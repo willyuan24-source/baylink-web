@@ -7,7 +7,7 @@ import {
   ChevronDown, CheckCircle, Loader2
 } from 'lucide-react';
 
-// Fixed Deployment v2
+// FORCE_UPDATE_V3: Fix TS6133 errors
 
 /**
  * ============================================================================
