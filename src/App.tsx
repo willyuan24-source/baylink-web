@@ -13,6 +13,7 @@ import {
  * ============================================================================
  */
 
+// ✅ 真实后端地址
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
 // --- Types ---
@@ -399,7 +400,7 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   );
 };
 
-// --- Official Ads (修复：移除了不使用的 isAdmin) ---
+// --- Official Ads ---
 const OfficialAds = () => {
   const [ads, setAds] = useState<AdData[]>([]);
 
