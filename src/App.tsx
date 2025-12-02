@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   MessageCircle, Heart, Send, Plus, MapPin, 
-  User as UserIcon, LogOut, X, Image as ImageIcon, 
-  ShieldCheck, Trash2, Edit, AlertCircle, Phone, Mail, 
-  MessageSquare, Search, Info, Home, Bell, MoreHorizontal, 
-  ChevronDown, Star, CheckCircle, Share2, Filter, Loader2
+  User as UserIcon, X, 
+  ShieldCheck, Trash2, Edit, AlertCircle, Phone, 
+  MessageSquare, Search, Info, Home, 
+  ChevronDown, CheckCircle, Loader2
 } from 'lucide-react';
 
 /**
@@ -13,8 +13,7 @@ import {
  * ============================================================================
  */
 
-// ✅ 这里已经配置好了你的真实后端地址
-const USE_MOCK_BACKEND = false; 
+// ✅ 真实后端地址
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
 // --- Types ---
@@ -600,7 +599,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
 };
 
 // --- Feed Item ---
-const PostCard = ({ post, currentUser, onLoginNeeded, onClick, onContactClick }: any) => {
+const PostCard = ({ post, onClick, onContactClick }: any) => {
   const isProvider = post.type === 'provider';
   const contacted = !!post.isContacted;
 
