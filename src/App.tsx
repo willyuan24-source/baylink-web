@@ -405,7 +405,7 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
 };
 
 // --- Official Ads ---
-const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
+const OfficialAds = () => {
   const [ads, setAds] = useState<AdData[]>([]);
 
   useEffect(() => {
