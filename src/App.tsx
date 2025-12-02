@@ -7,6 +7,8 @@ import {
   ChevronDown, CheckCircle, Loader2
 } from 'lucide-react';
 
+// FINAL CLEANUP V6: Removed Mail, Bell, Share2, Filter, MoreHorizontal
+
 /**
  * ============================================================================
  * CONFIGURATION
