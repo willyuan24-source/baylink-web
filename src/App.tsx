@@ -1,3 +1,4 @@
+// FINAL_FIX_V5: 强制修复所有未使用变量报错
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   MessageCircle, Heart, Send, Plus, MapPin, 
@@ -6,8 +7,6 @@ import {
   MessageSquare, Search, Info, Home, 
   ChevronDown, CheckCircle, Loader2
 } from 'lucide-react';
-
-// FORCE_UPDATE_V3: Fix TS6133 errors
 
 /**
  * ============================================================================
