@@ -7,6 +7,8 @@ import {
   ChevronDown, CheckCircle, Loader2
 } from 'lucide-react';
 
+// Fixed Deployment v2
+
 /**
  * ============================================================================
  * CONFIGURATION
