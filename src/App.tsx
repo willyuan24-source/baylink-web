@@ -13,7 +13,6 @@ import {
  * ============================================================================
  */
 
-// ✅ 真实后端地址
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
 // --- Types ---
@@ -125,7 +124,6 @@ const CATEGORIES = [
  */
 const api = {
   request: async (endpoint: string, options: any = {}) => {
-    // 真实后端请求
     const headers: any = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
@@ -151,7 +149,6 @@ const api = {
  * ============================================================================
  */
 
-// --- Login Modal ---
 const LoginModal = ({ onClose, onLogin }: any) => {
   const [isRegister, setIsRegister] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
@@ -230,7 +227,6 @@ const LoginModal = ({ onClose, onLogin }: any) => {
   );
 };
 
-// --- Create Post Modal ---
 const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const [form, setForm] = useState({
     title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', 
@@ -245,7 +241,6 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
     const files = e.target.files;
     if (files) {
       Array.from(files).forEach(file => {
-        // Limit file size to 1MB to prevent heavy payload
         if (file.size > 1024 * 1024) {
           alert(`图片 "${file.name}" 太大 (超过1MB)，请压缩后上传。`);
           return;
@@ -404,7 +399,7 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   );
 };
 
-// --- Official Ads ---
+// --- Official Ads (修复：移除了不使用的 isAdmin) ---
 const OfficialAds = () => {
   const [ads, setAds] = useState<AdData[]>([]);
 
@@ -1047,7 +1042,7 @@ export default function App() {
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-24 min-h-screen bg-[#F5F5F7]">
-        <OfficialAds isAdmin={user?.role === 'admin'} />
+        <OfficialAds />
         
         {loading ? (
           <div className="text-center py-10 text-gray-400 text-sm">加载中...</div>
@@ -1056,8 +1051,6 @@ export default function App() {
             <PostCard 
               key={post.id} 
               post={post} 
-              currentUser={user}
-              onLoginNeeded={() => setShowLogin(true)}
               onClick={() => setSelectedPost(post)}
               onContactClick={handleContactClick}
             />
