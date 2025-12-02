@@ -1,4 +1,3 @@
-// FINAL_FIX_V5: 强制修复所有未使用变量报错
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   MessageCircle, Heart, Send, Plus, MapPin, 
