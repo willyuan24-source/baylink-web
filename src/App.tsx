@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 
-// BAYLINK APP V17.0 - 增强 Admin 权限：点击广告可编辑，顶部增加添加按钮
+// BAYLINK APP V17.1 - 优化注册邮箱提示 & 找回密码流程
 
 /**
  * ================= CONFIGURATION =================
@@ -215,6 +215,7 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   );
 };
 
+
 // 🏠 Post Card
 const PostCard = ({ post, onClick, onContactClick }: any) => {
   const isProvider = post.type === 'provider';
@@ -405,21 +406,30 @@ const LoginModal = ({ onClose, onLogin }: any) => {
   const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [forgotEmail, setForgotEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'forgot') {
         if(!forgotEmail) return alert('请输入邮箱');
-        alert(`重置密码邮件已发送至 ${forgotEmail}`); 
-        setMode('login');
+        setLoading(true);
+        // 模拟发送邮件延迟
+        setTimeout(() => {
+            alert(`重置密码链接已发送至 ${forgotEmail}\n请查收邮件（需后端集成邮件服务）。`); 
+            setLoading(false);
+            setMode('login');
+        }, 1500);
         return;
     }
+    
+    setLoading(true);
     try {
       const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
       const user = await api.request(endpoint, { method: 'POST', body: JSON.stringify(form) });
       localStorage.setItem('currentUser', JSON.stringify(user));
       onLogin(user); onClose();
     } catch (err: any) { alert(err.message || '失败'); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -433,17 +443,28 @@ const LoginModal = ({ onClose, onLogin }: any) => {
                 <div className="text-center mb-4">
                     <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center mx-auto mb-2"><Lock size={20} className="text-brand-gray"/></div>
                     <p className="text-sm text-brand-dark font-bold">找回密码</p>
+                    <p className="text-xs text-brand-gray mt-1">输入注册时使用的邮箱，我们将向您发送重置链接。</p>
                 </div>
                 <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" />
-                <button className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg">发送重置邮件</button>
+                <button disabled={loading} className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
+                    {loading ? <Loader2 className="animate-spin" size={18}/> : '发送重置邮件'}
+                </button>
                 <button type="button" onClick={()=>setMode('login')} className="w-full mt-2 text-xs text-brand-gray hover:text-brand-forest flex items-center justify-center gap-1"><ArrowRight size={12}/> 想起密码了？去登录</button>
              </form>
          ) : (
              <form onSubmit={handleSubmit} className="space-y-3">
-               <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder="邮箱账号" />
+               <div className="space-y-1">
+                  <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder={mode === 'register' ? "邮箱账号 (用于找回密码)" : "邮箱账号"} />
+                  {mode === 'register' && <p className="text-[10px] text-brand-gray pl-2">* 请填写真实邮箱以便找回密码</p>}
+               </div>
                <input required type="password" className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />
-               {mode === 'register' && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" />}
-               {mode === 'register' && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" />}
+               
+               {mode === 'register' && (
+                 <>
+                    <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" />
+                    <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" />
+                 </>
+               )}
                
                {mode === 'login' && (
                    <div className="text-right">
@@ -451,7 +472,9 @@ const LoginModal = ({ onClose, onLogin }: any) => {
                    </div>
                )}
 
-               <button className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg">{mode === 'register' ? '加入社区' : '回到社区'}</button>
+               <button disabled={loading} className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
+                  {loading ? <Loader2 className="animate-spin" size={18}/> : (mode === 'register' ? '加入社区' : '回到社区')}
+               </button>
              </form>
          )}
          
@@ -479,7 +502,7 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
     try { await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); } catch { alert('发送失败'); }
   };
   return (
-    <div className="fixed inset-0 z-[100] bg-brand-cream flex flex-col w-full h-full">
+    <div className="fixed inset-0 bg-brand-cream z-[100] flex flex-col">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top shrink-0">
         <button onClick={onClose} className="p-1 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
         <span className="font-bold text-sm text-brand-dark">{conversation.otherUser.nickname}</span>
