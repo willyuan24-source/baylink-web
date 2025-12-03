@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight
 } from 'lucide-react';
 
-// BAYLINK APP V13.0 - 布局架构重构 (修复页面不显示问题)
+// BAYLINK APP V14.0 - 终极布局修复 (修复高度塌陷、页面不显示问题)
 
 /**
  * ================= CONFIGURATION =================
@@ -44,17 +44,18 @@ const triggerSessionExpired = () => {
   window.dispatchEvent(event);
 };
 
+// 安全解析 JSON
+const safeParse = (str: string | null) => {
+  try { return str ? JSON.parse(str) : null; } catch { return null; }
+};
+
 const api = {
   request: async (endpoint: string, options: any = {}) => {
     const headers: any = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
-      try {
-        const token = JSON.parse(userStr).token;
-        if(token) headers['Authorization'] = `Bearer ${token}`;
-      } catch (e) { 
-        localStorage.removeItem('currentUser'); 
-      }
+      const user = safeParse(userStr);
+      if (user && user.token) headers['Authorization'] = `Bearer ${user.token}`;
     }
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
@@ -74,7 +75,7 @@ const api = {
 };
 
 /**
- * ================= UI COMPONENTS =================
+ * ================= SUB-COMPONENTS =================
  */
 
 // 🏷️ Filter Tag
@@ -112,7 +113,7 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-brand-cream flex flex-col w-full h-full">
+    <div className="fixed inset-0 z-[60] bg-brand-cream flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0">
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
@@ -145,7 +146,7 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   }, [user.id]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-brand-cream flex flex-col w-full h-full">
+    <div className="fixed inset-0 z-[60] bg-brand-cream flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0">
         <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
         <span className="font-bold text-lg text-brand-dark">我的发布</span>
@@ -329,8 +330,8 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
     try { await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); } catch { alert('发送失败'); }
   };
   return (
-    <div className="fixed inset-0 bg-brand-cream z-[100] flex flex-col">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top">
+    <div className="fixed inset-0 z-[100] bg-brand-cream flex flex-col w-full h-full">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top shrink-0">
         <button onClick={onClose} className="p-1 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
         <span className="font-bold text-sm text-brand-dark">{conversation.otherUser.nickname}</span>
       </div>
@@ -340,7 +341,7 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
           return (<div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm shadow-sm ${isMe ? 'bg-brand-forest text-white rounded-br-sm' : 'bg-white text-brand-dark border border-white rounded-bl-sm'} ${m.type === 'contact-share' ? 'bg-brand-orange/10 border-brand-orange/20 text-brand-orange' : ''}`}>{m.type === 'contact-share' && <div className="text-[10px] font-bold mb-1 flex items-center gap-1"><Phone size={10}/> 联系方式</div>}{m.content}</div></div>);
         })}
       </div>
-      <div className="p-3 bg-brand-cream border-t border-white/50 flex gap-2 items-center pb-safe">
+      <div className="p-3 bg-brand-cream border-t border-white/50 flex gap-2 items-center pb-safe shrink-0">
         <button onClick={() => confirm('分享联系方式？') && send('contact-share', '')} className="p-2 bg-white rounded-full text-brand-forest shadow-sm"><Phone size={18}/></button>
         <input className="flex-1 bg-white rounded-full px-4 py-2.5 text-sm outline-none shadow-sm focus:ring-2 focus:ring-brand-forest/20" value={input} onChange={e => setInput(e.target.value)} placeholder="输入消息..." />
         <button onClick={() => send('text', input)} className="p-2 bg-brand-forest rounded-full text-white shadow-lg hover:scale-105 transition"><Send size={18}/></button>
@@ -362,8 +363,8 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   };
   const deletePost = async () => { if (!confirm('删除此贴？')) return; try { await api.request(`/posts/${post.id}`, { method: 'DELETE' }); onDeleted(); onClose(); } catch { alert('删除失败'); } };
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300">
-      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top shrink-0">
         <button onClick={onClose}><X size={24} className="text-brand-dark"/></button>
         {(isAdmin || isOwner) && <button onClick={deletePost} className="text-red-500 flex items-center gap-1 text-xs font-bold bg-red-50 px-3 py-1 rounded-full"><Trash2 size={14}/> 删除</button>}
       </div>
@@ -379,7 +380,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
         {post.imageUrls.map((url:string, i:number) => <img key={i} src={url} className="w-full rounded-2xl mb-3 border border-white shadow-sm" />)}
         <div className="mt-8 pt-6 border-t border-gray-200"><h3 className="font-bold text-brand-dark mb-4">评论 ({comments.length})</h3>{comments.map((c:any) => (<div key={c.id} className="flex gap-3 mb-4"><div className="w-8 h-8 bg-brand-cream rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-brand-forest border border-white shadow-sm">{c.authorName[0]}</div><div className="bg-white p-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-white flex-1"><div className="font-bold text-brand-dark text-xs mb-1">{c.authorName}</div>{c.content}</div></div>))}</div>
       </div>
-      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe shadow-lg">
+      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe shadow-lg shrink-0">
         <input className="flex-1 bg-brand-cream rounded-full px-5 py-3 text-sm outline-none transition focus:ring-2 focus:ring-brand-forest/20" placeholder={currentUser ? "发表评论..." : "登录后评论"} value={input} onChange={e => setInput(e.target.value)} disabled={!currentUser} />
         <button onClick={postComment} disabled={!input} className="text-brand-forest p-2 hover:bg-brand-cream rounded-full transition"><Send size={20}/></button>
         {!isOwner && <button onClick={() => { if(!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, post.author.nickname); }} className="bg-brand-dark text-white px-5 py-3 rounded-full text-sm font-bold shadow-lg hover:bg-brand-forest transition active:scale-95">私信 TA</button>}
@@ -405,9 +406,9 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   const displayName = user.nickname || user.email || 'User';
 
   return (
-    <div className="flex-1 relative w-full h-full bg-brand-cream">
+    <div className="flex-1 flex flex-col w-full h-full bg-brand-cream">
       {subView === 'menu' && (
-        <div className="p-5 pt-4 w-full">
+        <div className="flex-1 p-5 pt-4 w-full overflow-y-auto">
            {/* User Card */}
            <div className="bg-white p-6 rounded-3xl shadow-soft border border-white mb-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-forest/5 rounded-bl-full -mr-10 -mt-10"></div>
@@ -517,17 +518,6 @@ export default function App() {
     setTab('home');
   };
 
-  // 骨架屏组件（缺失补充）
-  const SkeletonCard = () => (
-    <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
-      <div className="flex justify-between mb-3">
-        <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-brand-light rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-brand-light rounded"/><div className="w-16 h-2 bg-brand-light rounded"/></div></div>
-        <div className="w-16 h-6 bg-brand-light rounded-md"/>
-      </div>
-      <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/><div className="w-full h-3 bg-brand-light rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-brand-light rounded"/><div className="w-20 h-8 bg-brand-light rounded-full"/></div>
-    </div>
-  );
-
   return (
     <div className="fixed inset-0 bg-brand-cream flex justify-center font-sans text-brand-dark">
       <div className="w-full max-w-[480px] bg-brand-cream h-full shadow-2xl relative flex flex-col border-x border-white/50">
@@ -548,14 +538,12 @@ export default function App() {
             </header>
         )}
 
-        {/* CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto bg-brand-cream hide-scrollbar relative flex flex-col">
+        {/* CONTENT AREA (强制 flex-1 min-h-0 确保滚动正常) */}
+        <main className="flex-1 min-h-0 overflow-y-auto bg-brand-cream hide-scrollbar relative flex flex-col w-full">
             
             {tab === 'home' && (
               <>
-                <div className="px-4 pb-3 z-10 bg-brand-cream/95 backdrop-blur-sm sticky top-0 shadow-sm shadow-brand-forest/5">
-                  
-                  {/* Search (No Header here) */}
+                <div className="px-4 pb-3 z-10 bg-brand-cream/95 backdrop-blur-sm sticky top-0 shadow-sm shadow-brand-forest/5 shrink-0">
                   <div className="relative mb-4 mt-1">
                     <Search className="absolute left-4 top-3.5 text-brand-gray/50" size={18} />
                     <input 
@@ -564,16 +552,12 @@ export default function App() {
                       value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts()}
                     />
                   </div>
-
-                  {/* Region Filter */}
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1">
                     <FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => { setRegionFilter('全部'); fetchPosts(); }} />
                     {REGIONS.map(r => (
                       <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => { setRegionFilter(r); fetchPosts(); }} />
                     ))}
                   </div>
-
-                  {/* Type Toggle */}
                   <div className="bg-brand-light p-1 rounded-2xl flex shadow-inner mb-4">
                     <button onClick={() => setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${feedType === 'client' ? 'bg-brand-orange text-white shadow-md' : 'text-brand-gray hover:bg-white/50'}`}>
                        <span>🙋‍♂️</span> 找帮忙 (求助)
@@ -582,8 +566,6 @@ export default function App() {
                        <span>🤝</span> 我接单 (提供)
                     </button>
                   </div>
-                  
-                  {/* Categories */}
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1">
                     {CATEGORIES.map(c => (
                       <button key={c} className="text-[11px] text-brand-dark font-bold whitespace-nowrap bg-white px-3.5 py-2 rounded-xl border border-white shadow-sm hover:border-brand-forest/20 active:scale-95 transition-all">{c}</button>
@@ -591,32 +573,19 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 7. POST LIST */}
-                <main className="flex-1 overflow-y-auto px-4 pb-24 hide-scrollbar">
+                <div className="px-4 pb-24">
                   <OfficialAds isAdmin={user?.role === 'admin'} />
-
                   <div onClick={handleRefresh} className="flex justify-center py-3 text-brand-gray/50 text-[10px] font-bold tracking-wider uppercase cursor-pointer hover:text-brand-forest transition">
                     {loading ? <Loader2 className="animate-spin" size={14}/> : 'Pull to Refresh'}
                   </div>
-
-                  {loading ? (
-                    [1,2,3].map(i => <SkeletonCard key={i}/>)
-                  ) : posts.length > 0 ? (
-                    posts.map(p => <PostCard key={p.id} post={p} onClick={() => setSelectedPost(p)} onContactClick={async () => { if(!user) return setShowLogin(true); await api.request(`/posts/${p.id}/contact-mark`, {method:'POST'}); fetchPosts(); openChat(p.authorId, p.author.nickname); }} />)
-                  ) : (
-                    <div className="text-center py-24 opacity-60">
-                      <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Search size={32} className="text-brand-gray/50"/></div>
-                      <p className="text-sm font-bold text-brand-gray">暂无相关信息</p>
-                      <button onClick={()=>setShowCreate(true)} className="mt-4 text-brand-forest text-xs font-bold hover:underline">发布第一条？</button>
-                    </div>
-                  )}
-                </main>
+                  {loading ? ([1,2,3].map(i => <SkeletonCard key={i}/>)) : posts.length > 0 ? (posts.map(p => <PostCard key={p.id} post={p} onClick={() => setSelectedPost(p)} onContactClick={async () => { if(!user) return setShowLogin(true); await api.request(`/posts/${p.id}/contact-mark`, {method:'POST'}); fetchPosts(); openChat(p.authorId, p.author.nickname); }} />)) : (<div className="text-center py-24 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Search size={32} className="text-brand-gray/50"/></div><p className="text-sm font-bold text-brand-gray">暂无相关信息</p><button onClick={()=>setShowCreate(true)} className="mt-4 text-brand-forest text-xs font-bold hover:underline">发布第一条？</button></div>)}
+                </div>
               </>
             )}
 
             {tab === 'messages' && (
                 <div className="flex flex-col h-full w-full">
-                   <div className="px-5 pt-safe-top pb-4 bg-brand-cream border-b border-white/50"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
+                   <div className="px-5 pt-safe-top pb-4 bg-brand-cream border-b border-white/50 shrink-0"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
                    <MessagesList currentUser={user} onOpenChat={(c) => { setChatConv(c); }} />
                 </div>
             )}
@@ -630,7 +599,7 @@ export default function App() {
             )}
 
             {tab === 'profile' && (
-              <div className="w-full h-full pt-safe-top">
+              <div className="w-full h-full pt-safe-top flex flex-col">
                  <ProfileView user={user} onLogin={() => setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} />
               </div>
             )}
@@ -649,7 +618,6 @@ export default function App() {
              <span className="text-[9px] font-bold">消息</span>
            </button>
 
-           {/* Floating Publish Button */}
            <div className="-mt-10 group">
              <button onClick={() => user ? setShowCreate(true) : setShowLogin(true)} className="w-16 h-16 bg-brand-dark rounded-full shadow-float flex items-center justify-center text-white group-hover:scale-110 group-active:scale-95 transition-all duration-300 border-[5px] border-brand-cream">
                <Plus size={32} strokeWidth={3} />
