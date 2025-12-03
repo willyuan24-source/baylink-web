@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight
 } from 'lucide-react';
 
-// BAYLINK APP V12.0 - 修复所有图标引入错误 (Star, MessageSquare)
+// BAYLINK APP V13.0 - 布局架构重构 (修复页面不显示问题)
 
 /**
  * ================= CONFIGURATION =================
@@ -35,7 +35,6 @@ interface Conversation {
 }
 interface Message { id: string; senderId: string; type: 'text'|'contact-request'|'contact-share'; content: string; createdAt: number; }
 
-// --- Constants ---
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
@@ -75,46 +74,26 @@ const api = {
 };
 
 /**
- * ================= SUB-COMPONENTS =================
+ * ================= UI COMPONENTS =================
  */
+
+// 🏷️ Filter Tag
+const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
+  <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shadow-sm ${active ? 'bg-brand-forest text-white border-brand-forest shadow-brand-forest/20' : 'bg-white text-brand-gray border-brand-light hover:border-brand-forest/30 hover:text-brand-dark'}`}>{label}</button>
+);
 
 // 🦴 Skeleton Loader
 const SkeletonCard = () => (
   <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
     <div className="flex justify-between mb-3">
-      <div className="flex gap-3 items-center">
-        <div className="w-10 h-10 bg-brand-light rounded-full"/>
-        <div className="space-y-2">
-          <div className="w-24 h-3 bg-brand-light rounded"/>
-          <div className="w-16 h-2 bg-brand-light rounded"/>
-        </div>
-      </div>
+      <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-brand-light rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-brand-light rounded"/><div className="w-16 h-2 bg-brand-light rounded"/></div></div>
       <div className="w-16 h-6 bg-brand-light rounded-md"/>
     </div>
-    <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/>
-    <div className="w-full h-3 bg-brand-light rounded mb-4"/>
-    <div className="flex justify-between pt-2">
-      <div className="w-20 h-3 bg-brand-light rounded"/>
-      <div className="w-20 h-8 bg-brand-light rounded-full"/>
-    </div>
+    <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/><div className="w-full h-3 bg-brand-light rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-brand-light rounded"/><div className="w-20 h-8 bg-brand-light rounded-full"/></div>
   </div>
 );
 
-// 🏷️ Filter Tag Component
-const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
-  <button 
-    onClick={onClick}
-    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shadow-sm ${
-      active 
-        ? 'bg-brand-forest text-white border-brand-forest shadow-brand-forest/20' 
-        : 'bg-white text-brand-gray border-brand-light hover:border-brand-forest/30 hover:text-brand-dark'
-    }`}
-  >
-    {label}
-  </button>
-);
-
-// 📄 Info Page (管理员可编辑)
+// 📄 Info Page
 const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -139,19 +118,11 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
           <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
           <span className="font-bold text-lg text-brand-dark">{title}</span>
         </div>
-        {user?.role === 'admin' && !isEditing && (
-          <button onClick={() => setIsEditing(true)} className="text-brand-forest text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14}/> 编辑</button>
-        )}
-        {isEditing && (
-          <button onClick={handleSave} className="text-white bg-brand-forest text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> 保存</button>
-        )}
+        {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-brand-forest text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14}/> 编辑</button>}
+        {isEditing && <button onClick={handleSave} className="text-white bg-brand-forest text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> 保存</button>}
       </div>
       <div className="flex-1 p-5 overflow-y-auto bg-white">
-        {isEditing ? (
-          <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." />
-        ) : (
-          <div className="text-brand-dark text-sm leading-relaxed whitespace-pre-wrap">{content}</div>
-        )}
+        {isEditing ? <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> : <div className="text-brand-dark text-sm leading-relaxed whitespace-pre-wrap">{content}</div>}
       </div>
     </div>
   );
@@ -168,9 +139,7 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
         const allPosts = await api.request('/posts'); 
         const filtered = allPosts.filter((p: PostData) => p.authorId === user.id);
         setMyPosts(filtered);
-      } catch (e) {
-        console.error(e);
-      } finally { setLoading(false); }
+      } catch (e) { console.error(e); } finally { setLoading(false); }
     };
     load();
   }, [user.id]);
@@ -200,51 +169,17 @@ const PostCard = ({ post, onClick, onContactClick }: any) => {
     <div onClick={onClick} className="bg-white p-5 rounded-2xl shadow-card border border-white hover:border-brand-forest/20 transition-all duration-300 cursor-pointer mb-3 group active:scale-[0.98]">
       <div className="flex justify-between items-start mb-3">
         <div className="flex gap-3 items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${isProvider ? 'bg-brand-forest' : 'bg-brand-orange'}`}>
-            {post.author.nickname ? post.author.nickname[0] : <UserIcon size={16}/>}
-          </div>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${isProvider ? 'bg-brand-forest' : 'bg-brand-orange'}`}>{post.author.nickname ? post.author.nickname[0] : <UserIcon size={16}/>}</div>
           <div>
-            <div className="text-sm font-bold text-brand-dark flex items-center gap-1">
-              {post.author.nickname} 
-              <ShieldCheck size={12} className="text-brand-forest" fill="#E8F5E9" />
-            </div>
-            <div className="text-[10px] text-brand-gray flex items-center gap-2 mt-0.5">
-              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-              <span className="w-0.5 h-2 bg-brand-light"></span>
-              <span className="flex items-center gap-0.5"><MapPin size={10}/> 湾区</span>
-            </div>
+            <div className="text-sm font-bold text-brand-dark flex items-center gap-1">{post.author.nickname} <ShieldCheck size={12} className="text-brand-forest" fill="#E8F5E9" /></div>
+            <div className="text-[10px] text-brand-gray flex items-center gap-2 mt-0.5"><span>{new Date(post.createdAt).toLocaleDateString()}</span><span className="w-0.5 h-2 bg-brand-light"></span><span className="flex items-center gap-0.5"><MapPin size={10}/> 湾区</span></div>
           </div>
         </div>
-        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${isProvider ? 'bg-brand-forest/5 text-brand-forest border-brand-forest/20' : 'bg-brand-orange/5 text-brand-orange border-brand-orange/20'}`}>
-          {isProvider ? '我帮忙' : '求帮助'}
-        </div>
+        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${isProvider ? 'bg-brand-forest/5 text-brand-forest border-brand-forest/20' : 'bg-brand-orange/5 text-brand-orange border-brand-orange/20'}`}>{isProvider ? '我帮忙' : '求帮助'}</div>
       </div>
-      
-      <div className="mb-3">
-        <h3 className="font-bold text-[15px] text-brand-dark mb-1.5 line-clamp-1 group-hover:text-brand-forest transition-colors">{post.title}</h3>
-        <p className="text-xs text-brand-gray leading-relaxed line-clamp-2">{post.description}</p>
-      </div>
-
-      <div className="flex justify-between items-center mb-4 border-b border-brand-light/50 pb-3">
-        <div className="flex flex-wrap gap-1.5">
-          <span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.category}</span>
-          <span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.city}</span>
-        </div>
-        <div className="font-bold text-sm text-brand-orange font-mono">{post.budget}</div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4 text-brand-gray">
-           <button className="flex items-center gap-1 text-xs hover:text-brand-orange transition"><Heart size={16}/> {post.likesCount}</button>
-           <button className="flex items-center gap-1 text-xs hover:text-brand-forest transition"><MessageSquare size={16}/> {post.commentsCount}</button>
-        </div>
-        <button 
-          onClick={(e) => {e.stopPropagation(); onContactClick(post);}}
-          className="text-xs bg-brand-dark text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-brand-forest transition flex items-center gap-1"
-        >
-          <MessageCircle size={12} /> 私信 TA
-        </button>
-      </div>
+      <div className="mb-3"><h3 className="font-bold text-[15px] text-brand-dark mb-1.5 line-clamp-1 group-hover:text-brand-forest transition-colors">{post.title}</h3><p className="text-xs text-brand-gray leading-relaxed line-clamp-2">{post.description}</p></div>
+      <div className="flex justify-between items-center mb-4 border-b border-brand-light/50 pb-3"><div className="flex flex-wrap gap-1.5"><span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.category}</span><span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.city}</span></div><div className="font-bold text-sm text-brand-orange font-mono">{post.budget}</div></div>
+      <div className="flex items-center justify-between"><div className="flex gap-4 text-brand-gray"><button className="flex items-center gap-1 text-xs hover:text-brand-orange transition"><Heart size={16}/> {post.likesCount}</button><button className="flex items-center gap-1 text-xs hover:text-brand-forest transition"><MessageSquare size={16}/> {post.commentsCount}</button></div><button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-xs bg-brand-dark text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-brand-forest transition flex items-center gap-1"><MessageCircle size={12} /> 私信 TA</button></div>
     </div>
   );
 };
@@ -457,6 +392,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about'>('menu');
 
+  // 修复：防止用户对象为空时的崩溃，并确保数据加载
   if (!user) return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center w-full h-full">
        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-float text-brand-gray/30"><UserIcon size={48} /></div>
