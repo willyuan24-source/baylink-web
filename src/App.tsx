@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight
 } from 'lucide-react';
 
-// BAYLINK APP V8.0 - 布局与显示终极修复版
+// BAYLINK APP V12.0 - 修复所有图标引入错误 (Star, MessageSquare)
 
 /**
  * ================= CONFIGURATION =================
@@ -290,21 +290,21 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
       <div className="bg-brand-cream w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-brand-dark font-rounded flex items-center gap-2">发布需求 <span className="text-xs font-normal text-brand-gray bg-white px-2 py-1 rounded-full border border-brand-light">Step {step}/3</span></h3><div className="flex gap-1 mt-2">{[1, 2, 3].map(i => (<div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-brand-forest' : 'w-2 bg-brand-light'}`} />))}</div></div><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-brand-light text-brand-dark shadow-sm"><X size={20}/></button></div>
         {step === 1 && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in slide-in-from-right">
             <div><label className="block text-sm font-bold text-brand-dark mb-3">你的目标是？</label><div className="flex gap-3"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'client' ? 'border-brand-orange bg-brand-orange/5 text-brand-orange' : 'border-brand-light bg-white text-brand-gray'}`}><span>🤔</span> 找人帮忙</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'provider' ? 'border-brand-forest bg-brand-forest/5 text-brand-forest' : 'border-brand-light bg-white text-brand-gray'}`}><span>💪</span> 我来接单</button></div></div>
             <div><label className="block text-sm font-bold text-brand-dark mb-3">选择分类</label><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => (<button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition ${form.category === c ? 'bg-brand-dark text-white border-brand-dark shadow-lg' : 'bg-white text-brand-gray border-brand-light hover:border-brand-gray'}`}>{c}</button>))}</div></div>
             <button onClick={() => setStep(2)} className="w-full py-4 bg-brand-dark text-white rounded-2xl font-bold mt-2 text-base shadow-lg hover:opacity-90 transition">下一步</button>
           </div>
         )}
         {step === 2 && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-in slide-in-from-right">
             <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">标题</label><input className="w-full p-4 bg-white border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="例如：周末搬家求助..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></div>
             <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">详细描述</label><textarea className="w-full p-4 bg-white border-none rounded-2xl text-sm outline-none h-36 resize-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="请描述具体需求、时间、地点细节..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
             <div className="flex justify-between gap-3 pt-2"><button onClick={() => setStep(1)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={() => setStep(3)} className="flex-[2] py-3.5 bg-brand-dark text-white rounded-2xl font-bold shadow-lg hover:opacity-90">下一步</button></div>
           </div>
         )}
         {step === 3 && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-in slide-in-from-right">
             <div><label className="block text-xs font-bold text-brand-gray mb-2">所在区域</label><div className="grid grid-cols-2 gap-2">{REGIONS.map(r => (<button key={r} onClick={() => setForm({...form, city: r})} className={`py-2.5 rounded-xl text-xs font-bold border transition ${form.city === r ? 'bg-brand-forest text-white border-brand-forest' : 'bg-white text-brand-gray border-brand-light'}`}>{r}</button>))}</div></div>
             <div className="grid grid-cols-2 gap-3"><div><label className="block text-xs font-bold text-brand-gray mb-1">预算/报价 ($)</label><input className="w-full p-3 bg-white rounded-xl font-bold text-brand-orange border-none outline-none" placeholder="$0" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} /></div><div><label className="block text-xs font-bold text-brand-gray mb-1">时间要求</label><input className="w-full p-3 bg-white rounded-xl text-sm border-none outline-none" placeholder="如: 周末" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})} /></div></div>
             <div className="flex justify-between gap-3 mt-6"><button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3.5 bg-brand-forest text-white rounded-2xl font-bold shadow-lg shadow-brand-forest/30 hover:bg-brand-forest/90 transition flex items-center justify-center gap-2">{submitting ? <Loader2 className="animate-spin" size={18}/> : <CheckCircle size={18}/>} 确认发布</button></div>
@@ -581,23 +581,36 @@ export default function App() {
     setTab('home');
   };
 
+  // 骨架屏组件（缺失补充）
+  const SkeletonCard = () => (
+    <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
+      <div className="flex justify-between mb-3">
+        <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-brand-light rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-brand-light rounded"/><div className="w-16 h-2 bg-brand-light rounded"/></div></div>
+        <div className="w-16 h-6 bg-brand-light rounded-md"/>
+      </div>
+      <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/><div className="w-full h-3 bg-brand-light rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-brand-light rounded"/><div className="w-20 h-8 bg-brand-light rounded-full"/></div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-brand-cream flex justify-center font-sans text-brand-dark">
       <div className="w-full max-w-[480px] bg-brand-cream h-full shadow-2xl relative flex flex-col border-x border-white/50">
         
-        {/* 1. TOP BAR */}
-        <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-brand-cream z-20 shrink-0">
-           <div className="flex flex-col">
-             <h1 className="font-rounded font-black text-2xl text-brand-forest tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-brand-orange rounded-full mt-1"></div></h1>
-             <span className="text-[10px] text-brand-gray font-bold tracking-widest">湾区邻里 · 互助平台</span>
-           </div>
-           <div className="flex items-center gap-3">
-             <button className="p-2 bg-white rounded-full shadow-sm text-brand-dark hover:text-brand-forest transition"><Search size={20} strokeWidth={2.5} /></button>
-             <div onClick={() => !user && setShowLogin(true)} className="w-10 h-10 rounded-full bg-brand-dark text-white flex items-center justify-center font-bold shadow-md cursor-pointer border-2 border-white hover:scale-105 transition">
-               {user ? (user.nickname ? user.nickname[0] : <UserIcon size={16}/>) : <UserIcon size={20}/>}
-             </div>
-           </div>
-        </header>
+        {/* 1. TOP BAR (仅在首页显示) */}
+        {tab === 'home' && (
+            <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-brand-cream z-20 shrink-0">
+            <div className="flex flex-col">
+                <h1 className="font-rounded font-black text-2xl text-brand-forest tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-brand-orange rounded-full mt-1"></div></h1>
+                <span className="text-[10px] text-brand-gray font-bold tracking-widest">湾区邻里 · 互助平台</span>
+            </div>
+            <div className="flex items-center gap-3">
+                <button className="p-2 bg-white rounded-full shadow-sm text-brand-dark hover:text-brand-forest transition"><Search size={20} strokeWidth={2.5} /></button>
+                <div onClick={() => !user && setShowLogin(true)} className="w-10 h-10 rounded-full bg-brand-dark text-white flex items-center justify-center font-bold shadow-md cursor-pointer border-2 border-white hover:scale-105 transition">
+                {user ? (user.nickname ? user.nickname[0] : <UserIcon size={16}/>) : <UserIcon size={20}/>}
+                </div>
+            </div>
+            </header>
+        )}
 
         {/* CONTENT AREA */}
         <main className="flex-1 overflow-y-auto bg-brand-cream hide-scrollbar relative flex flex-col">
@@ -606,7 +619,7 @@ export default function App() {
               <>
                 <div className="px-4 pb-3 z-10 bg-brand-cream/95 backdrop-blur-sm sticky top-0 shadow-sm shadow-brand-forest/5">
                   
-                  {/* Search */}
+                  {/* Search (No Header here) */}
                   <div className="relative mb-4 mt-1">
                     <Search className="absolute left-4 top-3.5 text-brand-gray/50" size={18} />
                     <input 
@@ -667,7 +680,7 @@ export default function App() {
 
             {tab === 'messages' && (
                 <div className="flex flex-col h-full w-full">
-                   <div className="px-5 pt-2 pb-4 bg-brand-cream"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
+                   <div className="px-5 pt-safe-top pb-4 bg-brand-cream border-b border-white/50"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
                    <MessagesList currentUser={user} onOpenChat={(c) => { setChatConv(c); }} />
                 </div>
             )}
@@ -681,7 +694,7 @@ export default function App() {
             )}
 
             {tab === 'profile' && (
-              <div className="w-full h-full">
+              <div className="w-full h-full pt-safe-top">
                  <ProfileView user={user} onLogin={() => setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} />
               </div>
             )}
