@@ -5,10 +5,10 @@ import {
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
-  MessageSquare // ✅ Added missing import
+  MessageSquare, Lock, Mail as MailIcon, ArrowRight
 } from 'lucide-react';
 
-// BAYLINK APP V4.1 - 修复图标引入错误
+// BAYLINK APP V5.0 - 修复Admin显示、登录稳定性及新增忘记密码功能
 
 /**
  * ================= CONFIGURATION =================
@@ -40,6 +40,7 @@ const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
 // --- API Client ---
+// 增加错误处理机制，遇到 401/403 自动抛出特定错误以便前端清理缓存
 const api = {
   request: async (endpoint: string, options: any = {}) => {
     const headers: any = { 'Content-Type': 'application/json', ...(options.headers || {}) };
@@ -47,16 +48,25 @@ const api = {
     if (userStr) {
       try {
         const token = JSON.parse(userStr).token;
-        headers['Authorization'] = `Bearer ${token}`;
-      } catch (e) { localStorage.removeItem('currentUser'); }
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+      } catch (e) { 
+        localStorage.removeItem('currentUser'); 
+      }
     }
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+      // 处理后端重启导致的用户失效问题
+      if (res.status === 401 || res.status === 403) {
+        throw { status: res.status, message: 'SESSION_EXPIRED' };
+      }
       const data = await res.json();
       if (!res.ok) throw data;
       return data;
     } catch (err: any) {
       console.error("API Error:", err);
+      if (err.status === 401 || err.status === 403 || err.message === 'SESSION_EXPIRED') {
+        throw err; // 向上传递，由 UI 层处理登出
+      }
       throw { message: err.error || err.message || '网络连接错误' };
     }
   }
@@ -66,7 +76,7 @@ const api = {
  * ================= SUB-COMPONENTS =================
  */
 
-// 📄 Info Page (About / Support)
+// 📄 Info Page
 const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -260,7 +270,7 @@ const NotificationsView = () => (
   </div>
 );
 
-// 👤 Profile View (Restored with Sub-views)
+// 👤 Profile View (Optimized for safety)
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about'>('menu');
 
@@ -272,6 +282,10 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
     </div>
   );
 
+  // 安全获取昵称首字母，防止 admin 用户数据结构不完整导致崩溃
+  const initial = user.nickname ? user.nickname[0] : (user.email ? user.email[0].toUpperCase() : 'U');
+  const displayName = user.nickname || user.email || 'User';
+
   return (
     <div className="flex-1 relative h-full bg-brand-cream">
       {subView === 'menu' && (
@@ -281,10 +295,10 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-forest/5 rounded-bl-full -mr-10 -mt-10"></div>
               <div className="flex items-center gap-5 relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-brand-forest to-green-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-md">
-                  {user.nickname[0]}
+                  {initial}
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-brand-dark">{user.nickname}</h2>
+                  <h2 className="text-xl font-black text-brand-dark">{displayName}</h2>
                   <div className="flex gap-2 mt-1.5">
                     <span className="text-[10px] bg-brand-forest/10 text-brand-forest px-2 py-0.5 rounded-md font-bold">{user.role === 'admin' ? '管理员' : '认证邻居'}</span>
                     <span className="text-[10px] bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded-md font-bold">信用极好</span>
@@ -419,26 +433,65 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   );
 };
 
-// --- Login Modal ---
+// --- Login/Forgot Password Modal ---
 const LoginModal = ({ onClose, onLogin }: any) => {
-  const [isRegister, setIsRegister] = useState(false);
+  const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
+  const [forgotEmail, setForgotEmail] = useState('');
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === 'forgot') {
+        if(!forgotEmail) return alert('请输入邮箱');
+        // 模拟发送邮件
+        alert(`重置密码邮件已发送至 ${forgotEmail} (演示功能)`);
+        setMode('login');
+        return;
+    }
     try {
-      const endpoint = isRegister ? '/auth/register' : '/auth/login';
+      const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
       const user = await api.request(endpoint, { method: 'POST', body: JSON.stringify(form) });
       localStorage.setItem('currentUser', JSON.stringify(user));
       onLogin(user); onClose();
     } catch (err: any) { alert(err.message || '失败'); }
   };
+
   return (
      <div className="fixed inset-0 bg-brand-dark/80 flex items-center justify-center p-6 z-[60] backdrop-blur-sm animate-in fade-in">
        <div className="bg-brand-cream p-8 rounded-[2rem] shadow-2xl w-full max-w-xs relative">
          <h2 className="text-3xl font-extrabold mb-1 text-center text-brand-forest font-rounded tracking-tight">BAYLINK</h2>
          <p className="text-center text-xs text-brand-gray mb-8 tracking-widest uppercase">Bay Area Neighborhood</p>
-         <form onSubmit={handleSubmit} className="space-y-3"><input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder="邮箱账号" /><input required type="password" className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />{isRegister && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" />}{isRegister && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" />}<button className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg">{isRegister ? '加入社区' : '回到社区'}</button></form>
-         <button onClick={()=>setIsRegister(!isRegister)} className="w-full mt-6 text-xs text-brand-gray hover:text-brand-forest transition">{isRegister ? '已有账号？去登录' : '新邻居？创建账号'}</button><button onClick={onClose} className="absolute top-5 right-5 text-brand-gray/50 hover:text-brand-dark"><X size={20}/></button>
+         
+         {mode === 'forgot' ? (
+             <form onSubmit={handleSubmit} className="space-y-4">
+                <p className="text-sm text-brand-dark font-bold">找回密码</p>
+                <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" />
+                <button className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg">发送重置邮件</button>
+                <button type="button" onClick={()=>setMode('login')} className="w-full mt-2 text-xs text-brand-gray hover:text-brand-forest">想起密码了？去登录</button>
+             </form>
+         ) : (
+             <form onSubmit={handleSubmit} className="space-y-3">
+               <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder="邮箱账号" />
+               <input required type="password" className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />
+               {mode === 'register' && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" />}
+               {mode === 'register' && <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" />}
+               
+               {mode === 'login' && (
+                   <div className="text-right">
+                       <button type="button" onClick={()=>setMode('forgot')} className="text-[10px] text-brand-gray hover:text-brand-forest font-bold">忘记密码?</button>
+                   </div>
+               )}
+
+               <button className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg">{mode === 'register' ? '加入社区' : '回到社区'}</button>
+             </form>
+         )}
+         
+         {mode !== 'forgot' && (
+             <button onClick={()=>setMode(mode === 'login' ? 'register' : 'login')} className="w-full mt-6 text-xs text-brand-gray hover:text-brand-forest transition">
+                {mode === 'login' ? '新邻居？创建账号' : '已有账号？去登录'}
+             </button>
+         )}
+         <button onClick={onClose} className="absolute top-5 right-5 text-brand-gray/50 hover:text-brand-dark"><X size={20}/></button>
        </div>
      </div>
   );
