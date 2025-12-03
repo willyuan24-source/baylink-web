@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight
 } from 'lucide-react';
 
-// BAYLINK APP V7.2 - 修复 SkeletonCard 缺失问题
+// BAYLINK APP V8.0 - 布局与显示终极修复版
 
 /**
  * ================= CONFIGURATION =================
@@ -78,7 +78,7 @@ const api = {
  * ================= SUB-COMPONENTS =================
  */
 
-// 🦴 Skeleton Loader (修复缺失的组件)
+// 🦴 Skeleton Loader
 const SkeletonCard = () => (
   <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
     <div className="flex justify-between mb-3">
@@ -120,7 +120,6 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
 
-  // 从本地存储读取内容（模拟CMS）
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     setContent(saved || '暂无内容，管理员可点击右上角编辑。');
@@ -291,21 +290,21 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
       <div className="bg-brand-cream w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-brand-dark font-rounded flex items-center gap-2">发布需求 <span className="text-xs font-normal text-brand-gray bg-white px-2 py-1 rounded-full border border-brand-light">Step {step}/3</span></h3><div className="flex gap-1 mt-2">{[1, 2, 3].map(i => (<div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-brand-forest' : 'w-2 bg-brand-light'}`} />))}</div></div><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-brand-light text-brand-dark shadow-sm"><X size={20}/></button></div>
         {step === 1 && (
-          <div className="space-y-6 animate-in slide-in-from-right">
+          <div className="space-y-6">
             <div><label className="block text-sm font-bold text-brand-dark mb-3">你的目标是？</label><div className="flex gap-3"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'client' ? 'border-brand-orange bg-brand-orange/5 text-brand-orange' : 'border-brand-light bg-white text-brand-gray'}`}><span>🤔</span> 找人帮忙</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'provider' ? 'border-brand-forest bg-brand-forest/5 text-brand-forest' : 'border-brand-light bg-white text-brand-gray'}`}><span>💪</span> 我来接单</button></div></div>
             <div><label className="block text-sm font-bold text-brand-dark mb-3">选择分类</label><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => (<button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition ${form.category === c ? 'bg-brand-dark text-white border-brand-dark shadow-lg' : 'bg-white text-brand-gray border-brand-light hover:border-brand-gray'}`}>{c}</button>))}</div></div>
             <button onClick={() => setStep(2)} className="w-full py-4 bg-brand-dark text-white rounded-2xl font-bold mt-2 text-base shadow-lg hover:opacity-90 transition">下一步</button>
           </div>
         )}
         {step === 2 && (
-          <div className="space-y-4 animate-in slide-in-from-right">
+          <div className="space-y-4">
             <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">标题</label><input className="w-full p-4 bg-white border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="例如：周末搬家求助..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></div>
             <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">详细描述</label><textarea className="w-full p-4 bg-white border-none rounded-2xl text-sm outline-none h-36 resize-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="请描述具体需求、时间、地点细节..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
             <div className="flex justify-between gap-3 pt-2"><button onClick={() => setStep(1)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={() => setStep(3)} className="flex-[2] py-3.5 bg-brand-dark text-white rounded-2xl font-bold shadow-lg hover:opacity-90">下一步</button></div>
           </div>
         )}
         {step === 3 && (
-          <div className="space-y-4 animate-in slide-in-from-right">
+          <div className="space-y-4">
             <div><label className="block text-xs font-bold text-brand-gray mb-2">所在区域</label><div className="grid grid-cols-2 gap-2">{REGIONS.map(r => (<button key={r} onClick={() => setForm({...form, city: r})} className={`py-2.5 rounded-xl text-xs font-bold border transition ${form.city === r ? 'bg-brand-forest text-white border-brand-forest' : 'bg-white text-brand-gray border-brand-light'}`}>{r}</button>))}</div></div>
             <div className="grid grid-cols-2 gap-3"><div><label className="block text-xs font-bold text-brand-gray mb-1">预算/报价 ($)</label><input className="w-full p-3 bg-white rounded-xl font-bold text-brand-orange border-none outline-none" placeholder="$0" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} /></div><div><label className="block text-xs font-bold text-brand-gray mb-1">时间要求</label><input className="w-full p-3 bg-white rounded-xl text-sm border-none outline-none" placeholder="如: 周末" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})} /></div></div>
             <div className="flex justify-between gap-3 mt-6"><button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3.5 bg-brand-forest text-white rounded-2xl font-bold shadow-lg shadow-brand-forest/30 hover:bg-brand-forest/90 transition flex items-center justify-center gap-2">{submitting ? <Loader2 className="animate-spin" size={18}/> : <CheckCircle size={18}/>} 确认发布</button></div>
@@ -458,9 +457,8 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about'>('menu');
 
-  // 修复：防止用户对象为空时的崩溃，并确保数据加载
   if (!user) return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center w-full h-full">
        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-float text-brand-gray/30"><UserIcon size={48} /></div>
        <p className="text-brand-gray text-sm mb-6">登录后体验更多社区功能</p>
        <button onClick={onLogin} className="w-full bg-brand-forest text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-forest/20 active:scale-95 transition">登录 / 注册</button>
@@ -471,9 +469,9 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   const displayName = user.nickname || user.email || 'User';
 
   return (
-    <div className="flex-1 relative h-full bg-brand-cream">
+    <div className="flex-1 relative w-full h-full bg-brand-cream">
       {subView === 'menu' && (
-        <div className="p-5 pt-4">
+        <div className="p-5 pt-4 w-full">
            {/* User Card */}
            <div className="bg-white p-6 rounded-3xl shadow-soft border border-white mb-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-forest/5 rounded-bl-full -mr-10 -mt-10"></div>
@@ -544,6 +542,7 @@ export default function App() {
       localStorage.removeItem('currentUser');
       setUser(null);
       alert('登录已过期，请重新登录');
+      setTab('profile');
     };
     window.addEventListener('session-expired', handleSessionExpired);
     return () => window.removeEventListener('session-expired', handleSessionExpired);
@@ -667,21 +666,25 @@ export default function App() {
             )}
 
             {tab === 'messages' && (
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full w-full">
                    <div className="px-5 pt-2 pb-4 bg-brand-cream"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
                    <MessagesList currentUser={user} onOpenChat={(c) => { setChatConv(c); }} />
                 </div>
             )}
             
             {tab === 'notifications' && (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full">
                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><Bell size={32} className="text-brand-gray/50" /></div>
                     <h3 className="font-bold text-brand-dark mb-2">暂无新通知</h3>
                     <p className="text-brand-gray text-xs">重要的社区动态会出现在这里</p>
                 </div>
             )}
 
-            {tab === 'profile' && <ProfileView user={user} onLogin={() => setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} />}
+            {tab === 'profile' && (
+              <div className="w-full h-full">
+                 <ProfileView user={user} onLogin={() => setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} />
+              </div>
+            )}
 
         </main>
 
