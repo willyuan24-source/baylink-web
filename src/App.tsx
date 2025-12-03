@@ -5,10 +5,10 @@ import {
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
-  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info
+  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 
-// BAYLINK APP V15.1 - 修复 Info 图标缺失导致的崩溃
+// BAYLINK APP V17.0 - 增强 Admin 权限：点击广告可编辑，顶部增加添加按钮
 
 /**
  * ================= CONFIGURATION =================
@@ -23,6 +23,7 @@ interface UserData {
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
 }
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
+interface CommentData { id: string; authorId: string; authorName: string; content: string; createdAt: number; parentId?: string; replies?: CommentData[]; }
 interface PostData {
   id: string; authorId: string; author: { nickname: string; avatarUrl?: string; };
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
@@ -60,15 +61,16 @@ const api = {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
       if (res.status === 401 || res.status === 403) {
         triggerSessionExpired();
-        throw { status: res.status, message: '登录已过期' };
+        throw { status: res.status, message: '登录已过期', handled: true };
       }
       const data = await res.json();
       if (!res.ok) throw data;
       return data;
     } catch (err: any) {
-      console.error("API Error:", err);
-      if (err.status === 401 || err.status === 403) throw err;
-      throw { message: err.error || err.message || '网络错误' };
+      if (!err.handled && err.status !== 401 && err.status !== 403) {
+        console.error("API Error:", err);
+      }
+      throw err;
     }
   }
 };
@@ -111,7 +113,6 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
     setIsEditing(false);
   };
 
-  // 使用 fixed 定位确保覆盖
   return (
     <div className="fixed inset-0 z-[80] bg-brand-cream flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
@@ -214,7 +215,6 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   );
 };
 
-
 // 🏠 Post Card
 const PostCard = ({ post, onClick, onContactClick }: any) => {
   const isProvider = post.type === 'provider';
@@ -237,22 +237,92 @@ const PostCard = ({ post, onClick, onContactClick }: any) => {
   );
 };
 
-// 📣 Official Ads Banner
+// 📣 Official Ads Banner & Manager
 const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
   const [ads, setAds] = useState<AdData[]>([]);
-  useEffect(() => { const f = async () => { try { setAds(await api.request('/ads')); } catch {} }; f(); }, []);
-  if (ads.length === 0) return null;
+  const [isManagerOpen, setIsManagerOpen] = useState(false);
+  const [editingAd, setEditingAd] = useState<Partial<AdData> | null>(null);
+
+  const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch {} };
+  useEffect(() => { fetchAds(); }, []);
+
+  const handleSaveAd = async () => {
+    if (!editingAd?.title || !editingAd?.content) return alert('请填写标题和内容');
+    try {
+      await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) });
+      setEditingAd(null); setIsManagerOpen(false); fetchAds();
+    } catch { alert('操作失败'); }
+  };
+
+  const handleDeleteAd = async (id: string) => {
+    if(!confirm('确定删除这条官方推荐吗？')) return;
+    try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); } catch { alert('删除失败'); }
+  };
+
   return (
     <div className="mb-6">
-      <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-brand-dark text-sm flex items-center gap-1"><Star size={14} className="text-brand-orange" fill="currentColor"/> 官方推荐</h3>{isAdmin && <span className="text-[10px] bg-brand-light px-1.5 py-0.5 rounded text-brand-gray">管理</span>}</div>
-      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x">
-        {ads.map(ad => (
-          <div key={ad.id} className="snap-center min-w-[280px] bg-white rounded-xl shadow-sm p-3 flex gap-3 border border-brand-light shrink-0 relative overflow-hidden group">
-             <div className="absolute right-0 top-0 w-16 h-16 bg-brand-forest/5 rounded-bl-full -mr-4 -mt-4"></div>{ad.imageUrl && <img src={ad.imageUrl} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shadow-sm z-10" />}
-             <div className="flex flex-col justify-center z-10 flex-1"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-brand-forest text-white px-1.5 py-0.5 rounded-md font-bold">官方认证</span></div><div className="font-bold text-brand-dark text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-brand-gray line-clamp-1">{ad.content}</div></div>
-          </div>
-        ))}
+      <div className="flex justify-between items-center mb-3 px-1">
+        <h3 className="font-bold text-brand-dark text-sm flex items-center gap-1">
+          <Star size={14} className="text-brand-orange" fill="currentColor"/> 官方推荐
+        </h3>
+        {isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-brand-dark text-white px-2 py-1 rounded-md font-bold hover:bg-brand-forest transition flex items-center gap-1"><Plus size={10}/> 添加</button>}
       </div>
+      
+      {ads.length > 0 ? (
+        <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x">
+          {ads.map(ad => (
+            <div key={ad.id} className="snap-center min-w-[280px] bg-white rounded-xl shadow-sm p-3 flex gap-3 border border-brand-light shrink-0 relative overflow-hidden group cursor-pointer" onClick={() => {
+                // 关键修复：如果是 Admin，点击进入编辑；如果是用户，点击进入只读详情
+                setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any);
+                setIsManagerOpen(true);
+            }}>
+              <div className="absolute right-0 top-0 w-16 h-16 bg-brand-forest/5 rounded-bl-full -mr-4 -mt-4"></div>
+              {ad.imageUrl && <img src={ad.imageUrl} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shadow-sm z-10" />}
+              <div className="flex flex-col justify-center z-10 flex-1">
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-[9px] bg-brand-forest text-white px-1.5 py-0.5 rounded-md font-bold">官方认证</span>
+                </div>
+                <div className="font-bold text-brand-dark text-sm line-clamp-1 mb-0.5">{ad.title}</div>
+                <div className="text-[10px] text-brand-gray line-clamp-1">{ad.content}</div>
+              </div>
+              {isAdmin && (
+                <div className="absolute top-2 right-2 flex gap-1 z-20">
+                   <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="p-1.5 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><Trash2 size={12}/></button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4 bg-white rounded-xl border border-dashed border-brand-light text-center text-xs text-brand-gray">暂无官方推荐</div>
+      )}
+
+      {/* Ad Manager Modal */}
+      {isManagerOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl">
+             <h3 className="text-lg font-bold mb-4">{editingAd && (editingAd as any).readonly ? '推荐详情' : '管理官方推荐'}</h3>
+             {editingAd && (editingAd as any).readonly ? (
+                <div className="space-y-3">
+                   {editingAd.imageUrl && <img src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}
+                   <h4 className="font-bold text-lg">{editingAd.title}</h4>
+                   <p className="text-sm text-gray-600 leading-relaxed">{editingAd.content}</p>
+                   <button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-brand-light text-brand-dark rounded-xl font-bold mt-4">关闭</button>
+                </div>
+             ) : (
+               <div className="space-y-3">
+                 <input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} />
+                 <textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} />
+                 <input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片 URL (可选)" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} />
+                 <div className="flex gap-2 mt-4">
+                   <button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button>
+                   <button onClick={handleSaveAd} className="flex-1 py-3 bg-brand-dark text-white rounded-xl font-bold text-sm">保存发布</button>
+                 </div>
+               </div>
+             )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -261,13 +331,29 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
 const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
+  const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      if (images.length + files.length > 3) {
+        return alert('最多只能上传 3 张照片');
+      }
+      Array.from(files).forEach(file => {
+        if (file.size > 1024 * 1024) return alert(`图片 ${file.name} 过大`);
+        const reader = new FileReader();
+        reader.onloadend = () => setImages(p => [...p, reader.result as string].slice(0, 3));
+        reader.readAsDataURL(file);
+      });
+    }
+  };
   
   const handleSubmit = async () => {
     if (!form.title || !form.budget) return alert('请完善信息');
     setSubmitting(true);
     try {
-      await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: [] }) });
+      await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) });
       onCreated(); onClose();
     } catch (err: any) { alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); } 
     finally { setSubmitting(false); }
@@ -278,21 +364,32 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
       <div className="bg-brand-cream w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-brand-dark font-rounded flex items-center gap-2">发布需求 <span className="text-xs font-normal text-brand-gray bg-white px-2 py-1 rounded-full border border-brand-light">Step {step}/3</span></h3><div className="flex gap-1 mt-2">{[1, 2, 3].map(i => (<div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-brand-forest' : 'w-2 bg-brand-light'}`} />))}</div></div><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-brand-light text-brand-dark shadow-sm"><X size={20}/></button></div>
         {step === 1 && (
-          <div className="space-y-6 animate-in slide-in-from-right">
+          <div className="space-y-6">
             <div><label className="block text-sm font-bold text-brand-dark mb-3">你的目标是？</label><div className="flex gap-3"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'client' ? 'border-brand-orange bg-brand-orange/5 text-brand-orange' : 'border-brand-light bg-white text-brand-gray'}`}><span>🤔</span> 找人帮忙</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'provider' ? 'border-brand-forest bg-brand-forest/5 text-brand-forest' : 'border-brand-light bg-white text-brand-gray'}`}><span>💪</span> 我来接单</button></div></div>
             <div><label className="block text-sm font-bold text-brand-dark mb-3">选择分类</label><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => (<button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition ${form.category === c ? 'bg-brand-dark text-white border-brand-dark shadow-lg' : 'bg-white text-brand-gray border-brand-light hover:border-brand-gray'}`}>{c}</button>))}</div></div>
             <button onClick={() => setStep(2)} className="w-full py-4 bg-brand-dark text-white rounded-2xl font-bold mt-2 text-base shadow-lg hover:opacity-90 transition">下一步</button>
           </div>
         )}
         {step === 2 && (
-          <div className="space-y-4 animate-in slide-in-from-right">
+          <div className="space-y-4">
             <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">标题</label><input className="w-full p-4 bg-white border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="例如：周末搬家求助..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></div>
-            <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">详细描述</label><textarea className="w-full p-4 bg-white border-none rounded-2xl text-sm outline-none h-36 resize-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="请描述具体需求、时间、地点细节..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
+            
+            <div className="space-y-1">
+              <div className="flex justify-between"><label className="text-xs font-bold text-brand-gray">照片 ({images.length}/3)</label></div>
+              <div className="flex gap-2 overflow-x-auto py-1">
+                {images.map((img, i) => <div key={i} className="relative w-20 h-20 flex-shrink-0"><img src={img} className="w-full h-full object-cover rounded-xl border" /><button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-lg"><X size={12}/></button></div>)}
+                {images.length < 3 && (
+                  <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"><Plus size={24} className="text-gray-400"/><span className="text-[10px] text-gray-400 mt-1">添加</span><input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} /></label>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">详细描述</label><textarea className="w-full p-4 bg-white border-none rounded-2xl text-sm outline-none h-28 resize-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="请描述具体需求、时间、地点细节..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
             <div className="flex justify-between gap-3 pt-2"><button onClick={() => setStep(1)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={() => setStep(3)} className="flex-[2] py-3.5 bg-brand-dark text-white rounded-2xl font-bold shadow-lg hover:opacity-90">下一步</button></div>
           </div>
         )}
         {step === 3 && (
-          <div className="space-y-4 animate-in slide-in-from-right">
+          <div className="space-y-4">
             <div><label className="block text-xs font-bold text-brand-gray mb-2">所在区域</label><div className="grid grid-cols-2 gap-2">{REGIONS.map(r => (<button key={r} onClick={() => setForm({...form, city: r})} className={`py-2.5 rounded-xl text-xs font-bold border transition ${form.city === r ? 'bg-brand-forest text-white border-brand-forest' : 'bg-white text-brand-gray border-brand-light'}`}>{r}</button>))}</div></div>
             <div className="grid grid-cols-2 gap-3"><div><label className="block text-xs font-bold text-brand-gray mb-1">预算/报价 ($)</label><input className="w-full p-3 bg-white rounded-xl font-bold text-brand-orange border-none outline-none" placeholder="$0" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} /></div><div><label className="block text-xs font-bold text-brand-gray mb-1">时间要求</label><input className="w-full p-3 bg-white rounded-xl text-sm border-none outline-none" placeholder="如: 周末" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})} /></div></div>
             <div className="flex justify-between gap-3 mt-6"><button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3.5 bg-brand-forest text-white rounded-2xl font-bold shadow-lg shadow-brand-forest/30 hover:bg-brand-forest/90 transition flex items-center justify-center gap-2">{submitting ? <Loader2 className="animate-spin" size={18}/> : <CheckCircle size={18}/>} 确认发布</button></div>
@@ -382,8 +479,8 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
     try { await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); } catch { alert('发送失败'); }
   };
   return (
-    <div className="fixed inset-0 bg-brand-cream z-[100] flex flex-col">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top">
+    <div className="fixed inset-0 z-[100] bg-brand-cream flex flex-col w-full h-full">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top shrink-0">
         <button onClick={onClose} className="p-1 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
         <span className="font-bold text-sm text-brand-dark">{conversation.otherUser.nickname}</span>
       </div>
@@ -393,7 +490,7 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
           return (<div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm shadow-sm ${isMe ? 'bg-brand-forest text-white rounded-br-sm' : 'bg-white text-brand-dark border border-white rounded-bl-sm'} ${m.type === 'contact-share' ? 'bg-brand-orange/10 border-brand-orange/20 text-brand-orange' : ''}`}>{m.type === 'contact-share' && <div className="text-[10px] font-bold mb-1 flex items-center gap-1"><Phone size={10}/> 联系方式</div>}{m.content}</div></div>);
         })}
       </div>
-      <div className="p-3 bg-brand-cream border-t border-white/50 flex gap-2 items-center pb-safe">
+      <div className="p-3 bg-brand-cream border-t border-white/50 flex gap-2 items-center pb-safe shrink-0">
         <button onClick={() => confirm('分享联系方式？') && send('contact-share', '')} className="p-2 bg-white rounded-full text-brand-forest shadow-sm"><Phone size={18}/></button>
         <input className="flex-1 bg-white rounded-full px-4 py-2.5 text-sm outline-none shadow-sm focus:ring-2 focus:ring-brand-forest/20" value={input} onChange={e => setInput(e.target.value)} placeholder="输入消息..." />
         <button onClick={() => send('text', input)} className="p-2 bg-brand-forest rounded-full text-white shadow-lg hover:scale-105 transition"><Send size={18}/></button>
@@ -415,8 +512,8 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   };
   const deletePost = async () => { if (!confirm('删除此贴？')) return; try { await api.request(`/posts/${post.id}`, { method: 'DELETE' }); onDeleted(); onClose(); } catch { alert('删除失败'); } };
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300">
-      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top shrink-0">
         <button onClick={onClose}><X size={24} className="text-brand-dark"/></button>
         {(isAdmin || isOwner) && <button onClick={deletePost} className="text-red-500 flex items-center gap-1 text-xs font-bold bg-red-50 px-3 py-1 rounded-full"><Trash2 size={14}/> 删除</button>}
       </div>
@@ -432,7 +529,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
         {post.imageUrls.map((url:string, i:number) => <img key={i} src={url} className="w-full rounded-2xl mb-3 border border-white shadow-sm" />)}
         <div className="mt-8 pt-6 border-t border-gray-200"><h3 className="font-bold text-brand-dark mb-4">评论 ({comments.length})</h3>{comments.map((c:any) => (<div key={c.id} className="flex gap-3 mb-4"><div className="w-8 h-8 bg-brand-cream rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-brand-forest border border-white shadow-sm">{c.authorName[0]}</div><div className="bg-white p-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-white flex-1"><div className="font-bold text-brand-dark text-xs mb-1">{c.authorName}</div>{c.content}</div></div>))}</div>
       </div>
-      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe shadow-lg">
+      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe shadow-lg shrink-0">
         <input className="flex-1 bg-brand-cream rounded-full px-5 py-3 text-sm outline-none transition focus:ring-2 focus:ring-brand-forest/20" placeholder={currentUser ? "发表评论..." : "登录后评论"} value={input} onChange={e => setInput(e.target.value)} disabled={!currentUser} />
         <button onClick={postComment} disabled={!input} className="text-brand-forest p-2 hover:bg-brand-cream rounded-full transition"><Send size={20}/></button>
         {!isOwner && <button onClick={() => { if(!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, post.author.nickname); }} className="bg-brand-dark text-white px-5 py-3 rounded-full text-sm font-bold shadow-lg hover:bg-brand-forest transition active:scale-95">私信 TA</button>}
@@ -529,12 +626,14 @@ export default function App() {
     const handleSessionExpired = () => {
       localStorage.removeItem('currentUser');
       setUser(null);
-      alert('登录已过期，请重新登录');
-      setTab('profile');
+      // 改为仅在非首页时提醒，避免打断体验
+      if (tab !== 'home') {
+        setTab('profile'); // 引导用户去登录
+      }
     };
     window.addEventListener('session-expired', handleSessionExpired);
     return () => window.removeEventListener('session-expired', handleSessionExpired);
-  }, []);
+  }, [tab]);
 
   useEffect(() => {
     const u = localStorage.getItem('currentUser');
