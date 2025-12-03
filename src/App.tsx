@@ -8,11 +8,8 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 
-// BAYLINK APP V17.1 - 优化注册邮箱提示 & 找回密码流程
+// BAYLINK APP V18.0 - 完备版：内容云端同步 + 密码更新
 
-/**
- * ================= CONFIGURATION =================
- */
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
 // --- Types ---
@@ -23,7 +20,6 @@ interface UserData {
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
 }
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
-interface CommentData { id: string; authorId: string; authorName: string; content: string; createdAt: number; parentId?: string; replies?: CommentData[]; }
 interface PostData {
   id: string; authorId: string; author: { nickname: string; avatarUrl?: string; };
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
@@ -95,22 +91,46 @@ const SkeletonCard = () => (
   </div>
 );
 
-// 📄 Info Page
+// 📄 Info Page (Updated to sync with Server)
 const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    setContent(saved || '暂无内容，管理员可点击右上角编辑。');
-    setEditValue(saved || '');
+    const loadContent = async () => {
+        setLoading(true);
+        try {
+            // 从后端获取公共内容
+            const data = await api.request(`/content/${storageKey}`);
+            setContent(data.value || '暂无内容');
+            setEditValue(data.value || '');
+        } catch (e) {
+            setContent('加载失败，请检查网络');
+        } finally {
+            setLoading(false);
+        }
+    };
+    loadContent();
   }, [storageKey]);
 
-  const handleSave = () => {
-    localStorage.setItem(storageKey, editValue);
-    setContent(editValue);
-    setIsEditing(false);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+        // 发送更新到后端
+        await api.request('/content', { 
+            method: 'POST', 
+            body: JSON.stringify({ key: storageKey, value: editValue }) 
+        });
+        setContent(editValue);
+        setIsEditing(false);
+        alert('更新成功，所有用户可见');
+    } catch (e) {
+        alert('保存失败');
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -121,10 +141,17 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
           <span className="font-bold text-lg text-brand-dark">{title}</span>
         </div>
         {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-brand-forest text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14}/> 编辑</button>}
-        {isEditing && <button onClick={handleSave} className="text-white bg-brand-forest text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> 保存</button>}
+        {isEditing && <button onClick={handleSave} disabled={loading} className="text-white bg-brand-forest text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> {loading ? '...' : '发布'}</button>}
       </div>
       <div className="flex-1 p-5 overflow-y-auto bg-white">
-        {isEditing ? <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> : <div className="text-brand-dark text-sm leading-relaxed whitespace-pre-wrap">{content}</div>}
+        {loading && !isEditing && <div className="text-center py-10"><Loader2 className="animate-spin mx-auto text-brand-gray"/></div>}
+        
+        {!loading && (
+            isEditing ? 
+            <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> 
+            : 
+            <div className="text-brand-dark text-sm leading-relaxed whitespace-pre-wrap">{content}</div>
+        )}
       </div>
     </div>
   );
@@ -273,7 +300,6 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
         <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x">
           {ads.map(ad => (
             <div key={ad.id} className="snap-center min-w-[280px] bg-white rounded-xl shadow-sm p-3 flex gap-3 border border-brand-light shrink-0 relative overflow-hidden group cursor-pointer" onClick={() => {
-                // 关键修复：如果是 Admin，点击进入编辑；如果是用户，点击进入只读详情
                 setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any);
                 setIsManagerOpen(true);
             }}>
