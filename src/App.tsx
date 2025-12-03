@@ -5,10 +5,10 @@ import {
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
-  MessageSquare, Lock, Mail as MailIcon, ArrowRight
+  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info
 } from 'lucide-react';
 
-// BAYLINK APP V14.1 - 修复 MessagesList 未定义错误
+// BAYLINK APP V15.1 - 修复 Info 图标缺失导致的崩溃
 
 /**
  * ================= CONFIGURATION =================
@@ -44,7 +44,6 @@ const triggerSessionExpired = () => {
   window.dispatchEvent(event);
 };
 
-// 安全解析 JSON
 const safeParse = (str: string | null) => {
   try { return str ? JSON.parse(str) : null; } catch { return null; }
 };
@@ -112,9 +111,10 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
     setIsEditing(false);
   };
 
+  // 使用 fixed 定位确保覆盖
   return (
-    <div className="fixed inset-0 z-[60] bg-brand-cream flex flex-col w-full h-full">
-      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0">
+    <div className="fixed inset-0 z-[80] bg-brand-cream flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
           <span className="font-bold text-lg text-brand-dark">{title}</span>
@@ -146,8 +146,8 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   }, [user.id]);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-brand-cream flex flex-col w-full h-full">
-      <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0">
+    <div className="fixed inset-0 z-[80] bg-brand-cream flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
         <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
         <span className="font-bold text-lg text-brand-dark">我的发布</span>
       </div>
@@ -163,7 +163,7 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   );
 };
 
-// 💬 Messages List View (补充缺失组件)
+// 💬 Messages List View
 const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | null, onOpenChat: (conv: Conversation) => void }) => {
   const [convs, setConvs] = useState<Conversation[]>([]);
   
@@ -176,7 +176,7 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   }, [currentUser]);
 
   if (!currentUser) return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full min-h-[300px]">
       <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><MessageCircle size={32} className="text-brand-gray" /></div>
       <h3 className="font-bold text-brand-dark mb-2">请先登录</h3>
       <p className="text-brand-gray text-xs">登录后可查看私信消息</p>
@@ -459,7 +459,7 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   return (
     <div className="flex-1 relative w-full h-full bg-brand-cream">
       {subView === 'menu' && (
-        <div className="p-5 pt-4 w-full">
+        <div className="p-5 pt-4 w-full h-full overflow-y-auto">
            {/* User Card */}
            <div className="bg-white p-6 rounded-3xl shadow-soft border border-white mb-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-forest/5 rounded-bl-full -mr-10 -mt-10"></div>
