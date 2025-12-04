@@ -5,11 +5,14 @@ import {
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
-  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink
+  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera
 } from 'lucide-react';
 
-// BAYLINK APP V18.0 - 完备版：内容云端同步 + 密码更新
+// BAYLINK APP V25.0 - 修复登录错误提示 (Invalid credentials)
 
+/**
+ * ================= CONFIGURATION =================
+ */
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
 // --- Types ---
@@ -18,17 +21,19 @@ type PostType = 'client' | 'provider';
 interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
+  bio?: string; avatar?: string;
 }
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
+interface CommentData { id: string; authorId: string; authorName: string; content: string; createdAt: number; parentId?: string; replies?: CommentData[]; }
 interface PostData {
-  id: string; authorId: string; author: { nickname: string; avatarUrl?: string; };
+  id: string; authorId: string; author: { nickname: string; avatar?: string; }; 
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
   createdAt: number; isContacted?: boolean;
 }
 interface Conversation {
-  id: string; otherUser: { id: string; nickname: string; }; lastMessage?: string; updatedAt: number;
+  id: string; otherUser: { id: string; nickname: string; avatar?: string; }; lastMessage?: string; updatedAt: number;
 }
 interface Message { id: string; senderId: string; type: 'text'|'contact-request'|'contact-share'; content: string; createdAt: number; }
 
@@ -56,42 +61,66 @@ const api = {
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
       if (res.status === 401 || res.status === 403) {
-        triggerSessionExpired();
-        throw { status: res.status, message: '登录已过期', handled: true };
+        // 如果不是登录接口本身报 401，则认为是 Token 过期
+        if (!endpoint.includes('/auth/login')) {
+             triggerSessionExpired();
+             throw { status: res.status, message: '登录已过期', handled: true };
+        }
       }
       const data = await res.json();
       if (!res.ok) throw data;
       return data;
     } catch (err: any) {
+      // 只有未处理的非 401/403 错误才打印到控制台，避免干扰
       if (!err.handled && err.status !== 401 && err.status !== 403) {
-        console.error("API Error:", err);
+        // console.error("API Error:", err); 
       }
       throw err;
     }
+  },
+  getUserProfile: async (userId: string) => {
+      return await api.request(`/users/${userId}`);
+  },
+  updateProfile: async (data: Partial<UserData>) => {
+      return await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) });
   }
 };
 
 /**
- * ================= SUB-COMPONENTS =================
+ * ================= HELPER COMPONENTS =================
  */
 
-// 🏷️ Filter Tag
+const Avatar = ({ src, name, size = 10, className = "" }: { src?: string, name?: string, size?: number, className?: string }) => {
+    const displaySize = size * 4; 
+    if (src) {
+        return <img src={src} alt={name || "User"} className={`rounded-full object-cover border border-gray-100 bg-white ${className}`} style={{ width: `${displaySize}px`, height: `${displaySize}px` }} />;
+    }
+    return (
+        <div className={`rounded-full bg-green-700 text-white flex items-center justify-center font-bold shadow-sm ${className}`} style={{ width: `${displaySize}px`, height: `${displaySize}px`, fontSize: `${displaySize * 0.4}px` }}>
+            {name ? name[0].toUpperCase() : <UserIcon size={displaySize * 0.5} />}
+        </div>
+    );
+};
+
 const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shadow-sm ${active ? 'bg-brand-forest text-white border-brand-forest shadow-brand-forest/20' : 'bg-white text-brand-gray border-brand-light hover:border-brand-forest/30 hover:text-brand-dark'}`}>{label}</button>
+  <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shadow-sm ${active ? 'bg-green-700 text-white border-green-700 shadow-green-900/20' : 'bg-white text-gray-600 border-gray-200 hover:border-green-700/30 hover:text-gray-900'}`}>{label}</button>
 );
 
-// 🦴 Skeleton Loader
 const SkeletonCard = () => (
   <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
     <div className="flex justify-between mb-3">
-      <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-brand-light rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-brand-light rounded"/><div className="w-16 h-2 bg-brand-light rounded"/></div></div>
-      <div className="w-16 h-6 bg-brand-light rounded-md"/>
+      <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-green-50 rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-green-50 rounded"/><div className="w-16 h-2 bg-green-50 rounded"/></div></div>
+      <div className="w-16 h-6 bg-green-50 rounded-md"/>
     </div>
-    <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/><div className="w-full h-3 bg-brand-light rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-brand-light rounded"/><div className="w-20 h-8 bg-brand-light rounded-full"/></div>
+    <div className="w-3/4 h-4 bg-green-50 rounded mb-2"/><div className="w-full h-3 bg-green-50 rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-green-50 rounded"/><div className="w-20 h-8 bg-green-50 rounded-full"/></div>
   </div>
 );
 
-// 📄 Info Page (Updated to sync with Server)
+/**
+ * ================= SUB-VIEWS & MODALS =================
+ */
+
+// 📄 Info Page
 const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -102,15 +131,11 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
     const loadContent = async () => {
         setLoading(true);
         try {
-            // 从后端获取公共内容
             const data = await api.request(`/content/${storageKey}`);
             setContent(data.value || '暂无内容');
             setEditValue(data.value || '');
-        } catch (e) {
-            setContent('加载失败，请检查网络');
-        } finally {
-            setLoading(false);
-        }
+        } catch (e) { setContent('加载失败，请检查网络'); } 
+        finally { setLoading(false); }
     };
     loadContent();
   }, [storageKey]);
@@ -118,41 +143,47 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const handleSave = async () => {
     setLoading(true);
     try {
-        // 发送更新到后端
-        await api.request('/content', { 
-            method: 'POST', 
-            body: JSON.stringify({ key: storageKey, value: editValue }) 
-        });
+        await api.request('/content', { method: 'POST', body: JSON.stringify({ key: storageKey, value: editValue }) });
         setContent(editValue);
         setIsEditing(false);
-        alert('更新成功，所有用户可见');
-    } catch (e) {
-        alert('保存失败');
-    } finally {
-        setLoading(false);
-    }
+        alert('更新成功');
+    } catch (e) { alert('保存失败'); } finally { setLoading(false); }
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-brand-cream flex flex-col w-full h-full">
-      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
-        <div className="flex items-center gap-2">
-          <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
-          <span className="font-bold text-lg text-brand-dark">{title}</span>
-        </div>
-        {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-brand-forest text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14}/> 编辑</button>}
-        {isEditing && <button onClick={handleSave} disabled={loading} className="text-white bg-brand-forest text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> {loading ? '...' : '发布'}</button>}
+    <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
+        <div className="flex items-center gap-2"><button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-gray-900"/></button><span className="font-bold text-lg text-gray-900">{title}</span></div>
+        {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-green-700 text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14}/> 编辑</button>}
+        {isEditing && <button onClick={handleSave} disabled={loading} className="text-white bg-green-700 text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14}/> {loading ? '...' : '发布'}</button>}
       </div>
       <div className="flex-1 p-5 overflow-y-auto bg-white">
-        {loading && !isEditing && <div className="text-center py-10"><Loader2 className="animate-spin mx-auto text-brand-gray"/></div>}
-        
-        {!loading && (
-            isEditing ? 
-            <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> 
-            : 
-            <div className="text-brand-dark text-sm leading-relaxed whitespace-pre-wrap">{content}</div>
-        )}
+        {!loading && (isEditing ? <textarea className="w-full h-full p-4 bg-gray-50 border rounded-xl text-sm outline-none resize-none shadow-inner" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> : <div className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">{content}</div>)}
       </div>
+    </div>
+  );
+};
+
+// 🏠 Post Card
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick }: any) => {
+  const isProvider = post.type === 'provider';
+  return (
+    <div onClick={onClick} className="bg-white p-5 rounded-2xl shadow-card border border-white hover:border-green-700/20 transition-all duration-300 cursor-pointer mb-3 group active:scale-[0.98]">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex gap-3 items-center">
+          <div onClick={(e) => { e.stopPropagation(); onAvatarClick && onAvatarClick(post.authorId); }} className="cursor-pointer hover:opacity-80 transition">
+              <Avatar src={post.author.avatar} name={post.author.nickname} size={10} className={`border-2 ${isProvider ? 'border-green-600' : 'border-orange-500'}`}/>
+          </div>
+          <div>
+            <div className="text-sm font-bold text-gray-900 flex items-center gap-1">{post.author.nickname} <ShieldCheck size={12} className="text-green-600" fill="#E8F5E9" /></div>
+            <div className="text-[10px] text-gray-400 flex items-center gap-2 mt-0.5"><span>{new Date(post.createdAt).toLocaleDateString()}</span><span className="w-0.5 h-2 bg-gray-200"></span><span className="flex items-center gap-0.5"><MapPin size={10}/> 湾区</span></div>
+          </div>
+        </div>
+        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${isProvider ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>{isProvider ? '我帮忙' : '求帮助'}</div>
+      </div>
+      <div className="mb-3"><h3 className="font-bold text-[15px] text-gray-900 mb-1.5 line-clamp-1 group-hover:text-green-700 transition-colors">{post.title}</h3><p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{post.description}</p></div>
+      <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3"><div className="flex flex-wrap gap-1.5"><span className="bg-[#FFF8F0] px-2 py-0.5 rounded text-[10px] text-gray-600 font-medium border border-gray-100">{post.category}</span><span className="bg-[#FFF8F0] px-2 py-0.5 rounded text-[10px] text-gray-600 font-medium border border-gray-100">{post.city}</span></div><div className="font-bold text-sm text-orange-500 font-mono">{post.budget}</div></div>
+      <div className="flex items-center justify-between"><div className="flex gap-4 text-gray-400"><button className="flex items-center gap-1 text-xs hover:text-orange-500 transition"><Heart size={16}/> {post.likesCount}</button><button className="flex items-center gap-1 text-xs hover:text-green-700 transition"><MessageSquare size={16}/> {post.commentsCount}</button></div><button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-xs bg-gray-900 text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-green-700 transition flex items-center gap-1"><MessageCircle size={12} /> 私信 TA</button></div>
     </div>
   );
 };
@@ -166,26 +197,28 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
     const load = async () => {
       try {
         const allPosts = await api.request('/posts'); 
-        const filtered = allPosts.filter((p: PostData) => p.authorId === user.id);
-        setMyPosts(filtered);
-      } catch (e) { console.error(e); } finally { setLoading(false); }
+        if (Array.isArray(allPosts)) {
+            const filtered = allPosts.filter((p: PostData) => p.authorId === user.id);
+            setMyPosts(filtered);
+        } else {
+            setMyPosts([]);
+        }
+      } catch (e) { console.error(e); setMyPosts([]); } 
+      finally { setLoading(false); }
     };
     load();
   }, [user.id]);
 
   return (
-    <div className="fixed inset-0 z-[80] bg-brand-cream flex flex-col w-full h-full">
-      <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-brand-cream/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
-        <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
-        <span className="font-bold text-lg text-brand-dark">我的发布</span>
+    <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-[#FFF8F0]/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10">
+        <button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-gray-900"/></button>
+        <span className="font-bold text-lg text-gray-900">我的发布</span>
       </div>
       <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">
-        {loading ? <div className="text-center py-10 text-brand-gray text-xs">加载中...</div> : 
-         myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={()=>{}} />) : 
-         <div className="text-center py-20 opacity-60">
-            <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-brand-gray/50"/></div>
-            <p className="text-sm font-bold text-brand-gray">你还没有发布过内容</p>
-         </div>}
+        {loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : 
+         myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={()=>{}} onAvatarClick={()=>{}} />) : 
+         <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p></div>}
       </div>
     </div>
   );
@@ -197,17 +230,24 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   
   useEffect(() => {
     if (!currentUser) return;
-    const load = async () => { try { setConvs(await api.request('/conversations')); } catch {} };
+    const load = async () => { 
+        try { 
+            const res = await api.request('/conversations'); 
+            if (Array.isArray(res)) setConvs(res);
+        } catch {} 
+    };
     load();
-    const interval = setInterval(load, 5000);
+    const interval = setInterval(async () => {
+      try { setConvs(await api.request('/conversations')); } catch(e) {}
+    }, 5000);
     return () => clearInterval(interval);
   }, [currentUser]);
 
   if (!currentUser) return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full min-h-[300px]">
-      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><MessageCircle size={32} className="text-brand-gray" /></div>
-      <h3 className="font-bold text-brand-dark mb-2">请先登录</h3>
-      <p className="text-brand-gray text-xs">登录后可查看私信消息</p>
+      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><MessageCircle size={32} className="text-gray-400" /></div>
+      <h3 className="font-bold text-gray-900 mb-2">请先登录</h3>
+      <p className="text-gray-500 text-xs">登录后可查看私信消息</p>
     </div>
   );
 
@@ -216,56 +256,147 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
        {convs.length > 0 ? (
          <div className="space-y-3">
             {convs.map(c => (
-              <div key={c.id} onClick={() => onOpenChat(c)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-card hover:shadow-soft transition cursor-pointer border border-transparent hover:border-brand-forest/10">
-                <div className="w-12 h-12 bg-brand-cream rounded-full flex items-center justify-center text-brand-forest font-bold text-lg border-2 border-white shadow-sm">
-                  {c.otherUser.nickname?.[0]}
-                </div>
+              <div key={c.id} onClick={() => onOpenChat(c)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-card hover:shadow-soft transition cursor-pointer border border-transparent hover:border-green-700/10">
+                <Avatar src={c.otherUser.avatar} name={c.otherUser.nickname} size={12} />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between mb-1">
-                    <span className="font-bold text-brand-dark">{c.otherUser.nickname}</span>
-                    <span className="text-[10px] text-brand-gray">{new Date(c.updatedAt).toLocaleDateString()}</span>
+                    <span className="font-bold text-gray-900">{c.otherUser.nickname}</span>
+                    <span className="text-[10px] text-gray-500">{new Date(c.updatedAt).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-xs text-brand-gray truncate">{c.lastMessage || '点击开始聊天'}</p>
+                  <p className="text-xs text-gray-500 truncate">{c.lastMessage || '点击开始聊天'}</p>
                 </div>
-                <ChevronRight size={16} className="text-brand-gray/30" />
+                <ChevronRight size={16} className="text-gray-300" />
               </div>
             ))}
          </div>
        ) : (
          <div className="text-center py-20 opacity-60">
-            <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><MessageCircle size={32} className="text-brand-gray/50"/></div>
-            <p className="text-sm font-bold text-brand-gray">暂无消息</p>
-            <p className="text-xs text-brand-gray/70 mt-2">去联系一下感兴趣的发布者吧</p>
+            <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><MessageCircle size={32} className="text-gray-400"/></div>
+            <p className="text-sm font-bold text-gray-500">暂无消息</p>
+            <p className="text-xs text-gray-400 mt-2">去联系一下感兴趣的发布者吧</p>
          </div>
        )}
     </div>
   );
 };
 
+// 👤 Public Profile Modal
+const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
+    const [profile, setProfile] = useState<UserData | null>(null);
+    const [loading, setLoading] = useState(true);
 
-// 🏠 Post Card
-const PostCard = ({ post, onClick, onContactClick }: any) => {
-  const isProvider = post.type === 'provider';
-  return (
-    <div onClick={onClick} className="bg-white p-5 rounded-2xl shadow-card border border-white hover:border-brand-forest/20 transition-all duration-300 cursor-pointer mb-3 group active:scale-[0.98]">
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex gap-3 items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${isProvider ? 'bg-brand-forest' : 'bg-brand-orange'}`}>{post.author.nickname ? post.author.nickname[0] : <UserIcon size={16}/>}</div>
-          <div>
-            <div className="text-sm font-bold text-brand-dark flex items-center gap-1">{post.author.nickname} <ShieldCheck size={12} className="text-brand-forest" fill="#E8F5E9" /></div>
-            <div className="text-[10px] text-brand-gray flex items-center gap-2 mt-0.5"><span>{new Date(post.createdAt).toLocaleDateString()}</span><span className="w-0.5 h-2 bg-brand-light"></span><span className="flex items-center gap-0.5"><MapPin size={10}/> 湾区</span></div>
-          </div>
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await api.getUserProfile(userId);
+                setProfile(data);
+            } catch (e) { alert('无法获取用户信息'); onClose(); } 
+            finally { setLoading(false); }
+        };
+        load();
+    }, [userId]);
+
+    if (loading || !profile) return <div className="fixed inset-0 z-[100] bg-white/90 flex items-center justify-center"><Loader2 className="animate-spin text-green-700"/></div>;
+
+    return (
+        <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
+             <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/95 backdrop-blur pt-safe-top">
+                <button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><X size={20}/></button>
+                <span className="font-bold text-lg text-gray-900">用户主页</span>
+                <div className="w-9"></div>
+             </div>
+
+             <div className="flex-1 p-6 overflow-y-auto flex flex-col items-center">
+                 <Avatar src={profile.avatar} name={profile.nickname} size={24} className="mb-4 shadow-lg border-4 border-white"/>
+                 <h2 className="text-2xl font-black text-gray-900 mb-1">{profile.nickname}</h2>
+                 <div className="flex gap-2 mb-6">
+                    <span className={`text-xs px-2 py-0.5 rounded font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                        {profile.role === 'admin' ? '管理员' : '认证用户'}
+                    </span>
+                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold">信用极好</span>
+                 </div>
+
+                 <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6">
+                     <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3>
+                     <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">
+                         {profile.bio || "这个用户很懒，还没有写简介。"}
+                     </p>
+                 </div>
+
+                 {currentUser?.id !== profile.id && (
+                     <button onClick={() => { onChat(profile.id, profile.nickname); onClose(); }} className="w-full py-4 bg-green-700 text-white rounded-2xl font-bold shadow-lg shadow-green-900/20 active:scale-95 transition flex items-center justify-center gap-2">
+                         <MessageCircle size={20}/> 发送私信
+                     </button>
+                 )}
+             </div>
         </div>
-        <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${isProvider ? 'bg-brand-forest/5 text-brand-forest border-brand-forest/20' : 'bg-brand-orange/5 text-brand-orange border-brand-orange/20'}`}>{isProvider ? '我帮忙' : '求帮助'}</div>
-      </div>
-      <div className="mb-3"><h3 className="font-bold text-[15px] text-brand-dark mb-1.5 line-clamp-1 group-hover:text-brand-forest transition-colors">{post.title}</h3><p className="text-xs text-brand-gray leading-relaxed line-clamp-2">{post.description}</p></div>
-      <div className="flex justify-between items-center mb-4 border-b border-brand-light/50 pb-3"><div className="flex flex-wrap gap-1.5"><span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.category}</span><span className="bg-brand-cream px-2 py-0.5 rounded text-[10px] text-brand-dark/70 font-medium border border-brand-light">{post.city}</span></div><div className="font-bold text-sm text-brand-orange font-mono">{post.budget}</div></div>
-      <div className="flex items-center justify-between"><div className="flex gap-4 text-brand-gray"><button className="flex items-center gap-1 text-xs hover:text-brand-orange transition"><Heart size={16}/> {post.likesCount}</button><button className="flex items-center gap-1 text-xs hover:text-brand-forest transition"><MessageSquare size={16}/> {post.commentsCount}</button></div><button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-xs bg-brand-dark text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-brand-forest transition flex items-center gap-1"><MessageCircle size={12} /> 私信 TA</button></div>
-    </div>
-  );
+    );
 };
 
-// 📣 Official Ads Banner & Manager
+// ✏️ Edit Profile Modal
+const EditProfileModal = ({ user, onClose, onUpdate }: any) => {
+    const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '' });
+    const [saving, setSaving] = useState(false);
+
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 1024 * 1024) return alert('图片不能超过 1MB');
+        const reader = new FileReader();
+        reader.onloadend = () => setForm(prev => ({ ...prev, avatar: reader.result as string }));
+        reader.readAsDataURL(file);
+    };
+
+    const handleSave = async () => {
+        if (!form.nickname) return alert('昵称不能为空');
+        setSaving(true);
+        try {
+            const updated = await api.updateProfile(form);
+            const newUserData = { ...user, ...updated };
+            localStorage.setItem('currentUser', JSON.stringify(newUserData));
+            onUpdate(newUserData);
+            onClose();
+        } catch (e) { alert('保存失败'); }
+        finally { setSaving(false); }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
+             <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/95 backdrop-blur pt-safe-top">
+                <button onClick={onClose} className="text-gray-500 hover:text-gray-900">取消</button>
+                <span className="font-bold text-lg text-gray-900">编辑资料</span>
+                <button onClick={handleSave} disabled={saving} className="text-green-700 font-bold disabled:opacity-50">
+                    {saving ? '保存中...' : '完成'}
+                </button>
+             </div>
+             <div className="flex-1 p-6 overflow-y-auto">
+                 <div className="flex flex-col items-center mb-8">
+                     <div className="relative group">
+                        <Avatar src={form.avatar} name={form.nickname} size={24} />
+                        <label className="absolute bottom-0 right-0 bg-gray-900 text-white p-2 rounded-full cursor-pointer shadow-md hover:scale-110 transition">
+                            <Camera size={16}/>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                        </label>
+                     </div>
+                     <p className="text-xs text-gray-400 mt-3">点击相机图标修改头像</p>
+                 </div>
+
+                 <div className="space-y-4">
+                     <div>
+                         <label className="block text-xs font-bold text-gray-500 mb-1.5">昵称</label>
+                         <input className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm font-medium" value={form.nickname} onChange={e => setForm({...form, nickname: e.target.value})} />
+                     </div>
+                     <div>
+                         <label className="block text-xs font-bold text-gray-500 mb-1.5">个人简介</label>
+                         <textarea className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm h-32 resize-none font-medium" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="介绍一下你自己..." />
+                     </div>
+                 </div>
+             </div>
+        </div>
+    );
+};
+
+// 📣 Official Ads Banner
 const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
@@ -275,56 +406,26 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
   useEffect(() => { fetchAds(); }, []);
 
   const handleSaveAd = async () => {
-    if (!editingAd?.title || !editingAd?.content) return alert('请填写标题和内容');
-    try {
-      await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) });
-      setEditingAd(null); setIsManagerOpen(false); fetchAds();
-    } catch { alert('操作失败'); }
+    if (!editingAd?.title) return;
+    try { await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) }); setEditingAd(null); setIsManagerOpen(false); fetchAds(); } catch {}
   };
-
-  const handleDeleteAd = async (id: string) => {
-    if(!confirm('确定删除这条官方推荐吗？')) return;
-    try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); } catch { alert('删除失败'); }
-  };
+  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); } catch {} };
 
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3 px-1">
-        <h3 className="font-bold text-brand-dark text-sm flex items-center gap-1">
-          <Star size={14} className="text-brand-orange" fill="currentColor"/> 官方推荐
-        </h3>
-        {isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-brand-dark text-white px-2 py-1 rounded-md font-bold hover:bg-brand-forest transition flex items-center gap-1"><Plus size={10}/> 添加</button>}
+        <h3 className="font-bold text-gray-900 text-sm flex items-center gap-1"><Star size={14} className="text-orange-500" fill="currentColor"/> 官方推荐</h3>
+        {isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-gray-800 text-white px-2 py-1 rounded-md font-bold hover:bg-green-700 transition flex items-center gap-1"><Plus size={10}/> 添加</button>}
       </div>
-      
-      {ads.length > 0 ? (
-        <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x">
-          {ads.map(ad => (
-            <div key={ad.id} className="snap-center min-w-[280px] bg-white rounded-xl shadow-sm p-3 flex gap-3 border border-brand-light shrink-0 relative overflow-hidden group cursor-pointer" onClick={() => {
-                setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any);
-                setIsManagerOpen(true);
-            }}>
-              <div className="absolute right-0 top-0 w-16 h-16 bg-brand-forest/5 rounded-bl-full -mr-4 -mt-4"></div>
-              {ad.imageUrl && <img src={ad.imageUrl} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shadow-sm z-10" />}
-              <div className="flex flex-col justify-center z-10 flex-1">
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-[9px] bg-brand-forest text-white px-1.5 py-0.5 rounded-md font-bold">官方认证</span>
-                </div>
-                <div className="font-bold text-brand-dark text-sm line-clamp-1 mb-0.5">{ad.title}</div>
-                <div className="text-[10px] text-brand-gray line-clamp-1">{ad.content}</div>
-              </div>
-              {isAdmin && (
-                <div className="absolute top-2 right-2 flex gap-1 z-20">
-                   <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="p-1.5 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><Trash2 size={12}/></button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-4 bg-white rounded-xl border border-dashed border-brand-light text-center text-xs text-brand-gray">暂无官方推荐</div>
-      )}
-
-      {/* Ad Manager Modal */}
+      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x">
+        {ads.length > 0 ? ads.map(ad => (
+          <div key={ad.id} className="snap-center min-w-[280px] bg-white rounded-xl shadow-sm p-3 flex gap-3 border border-gray-100 shrink-0 relative overflow-hidden group cursor-pointer" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}>
+             <div className="absolute right-0 top-0 w-16 h-16 bg-green-50 rounded-bl-full -mr-4 -mt-4"></div>{ad.imageUrl && <img src={ad.imageUrl} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shadow-sm z-10" />}
+             <div className="flex flex-col justify-center z-10 flex-1"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-green-700 text-white px-1.5 py-0.5 rounded-md font-bold">官方认证</span></div><div className="font-bold text-gray-900 text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-gray-500 line-clamp-1">{ad.content}</div></div>
+             {isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm"><Trash2 size={12}/></button>}
+          </div>
+        )) : <div className="p-4 bg-white rounded-xl border border-dashed border-gray-200 text-center text-xs text-gray-400">暂无推荐</div>}
+      </div>
       {isManagerOpen && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl">
@@ -332,19 +433,15 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
              {editingAd && (editingAd as any).readonly ? (
                 <div className="space-y-3">
                    {editingAd.imageUrl && <img src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}
-                   <h4 className="font-bold text-lg">{editingAd.title}</h4>
-                   <p className="text-sm text-gray-600 leading-relaxed">{editingAd.content}</p>
-                   <button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-brand-light text-brand-dark rounded-xl font-bold mt-4">关闭</button>
+                   <h4 className="font-bold text-lg">{editingAd.title}</h4><p className="text-sm text-gray-600 leading-relaxed">{editingAd.content}</p>
+                   <button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-bold mt-4">关闭</button>
                 </div>
              ) : (
                <div className="space-y-3">
                  <input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} />
                  <textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} />
                  <input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片 URL (可选)" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} />
-                 <div className="flex gap-2 mt-4">
-                   <button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button>
-                   <button onClick={handleSaveAd} className="flex-1 py-3 bg-brand-dark text-white rounded-xl font-bold text-sm">保存发布</button>
-                 </div>
+                 <div className="flex gap-2 mt-4"><button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button><button onClick={handleSaveAd} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">保存发布</button></div>
                </div>
              )}
           </div>
@@ -387,41 +484,12 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-brand-dark/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
-      <div className="bg-brand-cream w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-brand-dark font-rounded flex items-center gap-2">发布需求 <span className="text-xs font-normal text-brand-gray bg-white px-2 py-1 rounded-full border border-brand-light">Step {step}/3</span></h3><div className="flex gap-1 mt-2">{[1, 2, 3].map(i => (<div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-8 bg-brand-forest' : 'w-2 bg-brand-light'}`} />))}</div></div><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-brand-light text-brand-dark shadow-sm"><X size={20}/></button></div>
-        {step === 1 && (
-          <div className="space-y-6">
-            <div><label className="block text-sm font-bold text-brand-dark mb-3">你的目标是？</label><div className="flex gap-3"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'client' ? 'border-brand-orange bg-brand-orange/5 text-brand-orange' : 'border-brand-light bg-white text-brand-gray'}`}><span>🤔</span> 找人帮忙</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold text-base transition flex flex-col items-center gap-2 ${form.type === 'provider' ? 'border-brand-forest bg-brand-forest/5 text-brand-forest' : 'border-brand-light bg-white text-brand-gray'}`}><span>💪</span> 我来接单</button></div></div>
-            <div><label className="block text-sm font-bold text-brand-dark mb-3">选择分类</label><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => (<button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition ${form.category === c ? 'bg-brand-dark text-white border-brand-dark shadow-lg' : 'bg-white text-brand-gray border-brand-light hover:border-brand-gray'}`}>{c}</button>))}</div></div>
-            <button onClick={() => setStep(2)} className="w-full py-4 bg-brand-dark text-white rounded-2xl font-bold mt-2 text-base shadow-lg hover:opacity-90 transition">下一步</button>
-          </div>
-        )}
-        {step === 2 && (
-          <div className="space-y-4">
-            <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">标题</label><input className="w-full p-4 bg-white border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="例如：周末搬家求助..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between"><label className="text-xs font-bold text-brand-gray">照片 ({images.length}/3)</label></div>
-              <div className="flex gap-2 overflow-x-auto py-1">
-                {images.map((img, i) => <div key={i} className="relative w-20 h-20 flex-shrink-0"><img src={img} className="w-full h-full object-cover rounded-xl border" /><button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-lg"><X size={12}/></button></div>)}
-                {images.length < 3 && (
-                  <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"><Plus size={24} className="text-gray-400"/><span className="text-[10px] text-gray-400 mt-1">添加</span><input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} /></label>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-1"><label className="text-xs font-bold text-brand-gray">详细描述</label><textarea className="w-full p-4 bg-white border-none rounded-2xl text-sm outline-none h-28 resize-none focus:ring-2 focus:ring-brand-forest/20 text-brand-dark placeholder:text-gray-300" placeholder="请描述具体需求、时间、地点细节..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} /></div>
-            <div className="flex justify-between gap-3 pt-2"><button onClick={() => setStep(1)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={() => setStep(3)} className="flex-[2] py-3.5 bg-brand-dark text-white rounded-2xl font-bold shadow-lg hover:opacity-90">下一步</button></div>
-          </div>
-        )}
-        {step === 3 && (
-          <div className="space-y-4">
-            <div><label className="block text-xs font-bold text-brand-gray mb-2">所在区域</label><div className="grid grid-cols-2 gap-2">{REGIONS.map(r => (<button key={r} onClick={() => setForm({...form, city: r})} className={`py-2.5 rounded-xl text-xs font-bold border transition ${form.city === r ? 'bg-brand-forest text-white border-brand-forest' : 'bg-white text-brand-gray border-brand-light'}`}>{r}</button>))}</div></div>
-            <div className="grid grid-cols-2 gap-3"><div><label className="block text-xs font-bold text-brand-gray mb-1">预算/报价 ($)</label><input className="w-full p-3 bg-white rounded-xl font-bold text-brand-orange border-none outline-none" placeholder="$0" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} /></div><div><label className="block text-xs font-bold text-brand-gray mb-1">时间要求</label><input className="w-full p-3 bg-white rounded-xl text-sm border-none outline-none" placeholder="如: 周末" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})} /></div></div>
-            <div className="flex justify-between gap-3 mt-6"><button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-brand-light bg-white rounded-2xl font-bold text-brand-gray hover:bg-gray-50">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3.5 bg-brand-forest text-white rounded-2xl font-bold shadow-lg shadow-brand-forest/30 hover:bg-brand-forest/90 transition flex items-center justify-center gap-2">{submitting ? <Loader2 className="animate-spin" size={18}/> : <CheckCircle size={18}/>} 确认发布</button></div>
-          </div>
-        )}
+    <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
+      <div className="bg-[#FFF8F0] w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-gray-900">发布需求 <span className="text-xs font-normal bg-white px-2 py-1 rounded">Step {step}/3</span></h3></div><button onClick={onClose}><X/></button></div>
+        {step === 1 && <div className="space-y-6"><div><label className="block text-sm font-bold mb-3">目标</label><div className="flex gap-3"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold ${form.type==='client'?'border-orange-500 bg-orange-100/50 text-orange-600':'border-white bg-white'}`}><span>🙋‍♂️</span> 找帮忙 (求助)</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-5 rounded-2xl border-2 font-bold ${form.type==='provider'?'border-green-600 bg-green-100/50 text-green-700':'border-white bg-white'}`}><span>🤝</span> 我接单 (提供)</button></div></div><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => <button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2 rounded-xl text-xs font-bold border ${form.category===c?'bg-gray-900 text-white':'bg-white'}`}>{c}</button>)}</div><button onClick={() => setStep(2)} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold mt-4">下一步</button></div>}
+        {step === 2 && <div className="space-y-4"><input className="w-full p-4 bg-white rounded-2xl font-bold text-lg outline-none" placeholder="标题..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /><div className="flex gap-2 overflow-x-auto">{images.map((img,i)=><img key={i} src={img} className="w-16 h-16 rounded-lg object-cover"/>)}<label className="w-16 h-16 flex items-center justify-center border-2 border-dashed rounded-lg cursor-pointer"><Plus/><input type="file" hidden onChange={handleImageUpload}/></label></div><textarea className="w-full p-4 bg-white rounded-2xl h-32 resize-none outline-none" placeholder="描述..." value={form.description} onChange={e => setForm({...form, description: e.target.value})}/><div className="flex gap-3"><button onClick={()=>setStep(1)} className="flex-1 py-3 border rounded-2xl">上一步</button><button onClick={()=>setStep(3)} className="flex-[2] py-3 bg-gray-900 text-white rounded-2xl">下一步</button></div></div>}
+        {step === 3 && <div className="space-y-4"><div className="grid grid-cols-2 gap-2">{REGIONS.map(r => <button key={r} onClick={() => setForm({...form, city: r})} className={`py-2 rounded-xl text-xs border ${form.city===r?'bg-green-700 text-white':'bg-white'}`}>{r}</button>)}</div><input className="w-full p-4 bg-white rounded-2xl outline-none" placeholder="预算" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})}/><input className="w-full p-4 bg-white rounded-2xl outline-none" placeholder="时间" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})}/><div className="flex gap-3"><button onClick={()=>setStep(2)} className="flex-1 py-3 border rounded-2xl">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3 bg-green-700 text-white rounded-2xl">{submitting?'...':'发布'}</button></div></div>}
       </div>
     </div>
   );
@@ -432,14 +500,15 @@ const LoginModal = ({ onClose, onLogin }: any) => {
   const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [forgotEmail, setForgotEmail] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (mode === 'forgot') {
-        if(!forgotEmail) return alert('请输入邮箱');
+        if(!forgotEmail) return setError('请输入邮箱');
         setLoading(true);
-        // 模拟发送邮件延迟
         setTimeout(() => {
             alert(`重置密码链接已发送至 ${forgotEmail}\n请查收邮件（需后端集成邮件服务）。`); 
             setLoading(false);
@@ -447,69 +516,36 @@ const LoginModal = ({ onClose, onLogin }: any) => {
         }, 1500);
         return;
     }
-    
     setLoading(true);
     try {
-      const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
-      const user = await api.request(endpoint, { method: 'POST', body: JSON.stringify(form) });
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      onLogin(user); onClose();
-    } catch (err: any) { alert(err.message || '失败'); }
-    finally { setLoading(false); }
+      const user = await api.request(mode==='register'?'/auth/register':'/auth/login', { method: 'POST', body: JSON.stringify(form) });
+      localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose();
+    } catch (e:any) { 
+        let msg = e.message || '失败';
+        if (msg.includes('User not found')) msg = '该账号尚未注册';
+        else if (msg.includes('Invalid password')) msg = '密码错误';
+        else if (msg.includes('User exists')) msg = '该邮箱已被注册';
+        setError(msg);
+    } finally { setLoading(false); }
   };
-
   return (
-     <div className="fixed inset-0 bg-brand-dark/80 flex items-center justify-center p-6 z-[60] backdrop-blur-sm">
-       <div className="bg-brand-cream p-8 rounded-[2rem] shadow-2xl w-full max-w-xs relative">
-         <h2 className="text-3xl font-extrabold mb-1 text-center text-brand-forest font-rounded tracking-tight">BAYLINK</h2>
-         <p className="text-center text-xs text-brand-gray mb-8 tracking-widest uppercase">Bay Area Neighborhood</p>
-         
+     <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center p-6 z-[60] backdrop-blur-sm">
+       <div className="bg-[#FFF8F0] p-8 rounded-[2rem] shadow-2xl w-full max-w-xs relative">
+         <h2 className="text-3xl font-extrabold mb-6 text-center text-green-700">BAYLINK</h2>
+         {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-xs font-medium flex items-center gap-2"><AlertCircle size={14}/>{error}</div>}
          {mode === 'forgot' ? (
-             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="text-center mb-4">
-                    <div className="w-12 h-12 bg-brand-light rounded-full flex items-center justify-center mx-auto mb-2"><Lock size={20} className="text-brand-gray"/></div>
-                    <p className="text-sm text-brand-dark font-bold">找回密码</p>
-                    <p className="text-xs text-brand-gray mt-1">输入注册时使用的邮箱，我们将向您发送重置链接。</p>
-                </div>
-                <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" />
-                <button disabled={loading} className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
-                    {loading ? <Loader2 className="animate-spin" size={18}/> : '发送重置邮件'}
-                </button>
-                <button type="button" onClick={()=>setMode('login')} className="w-full mt-2 text-xs text-brand-gray hover:text-brand-forest flex items-center justify-center gap-1"><ArrowRight size={12}/> 想起密码了？去登录</button>
-             </form>
+             <form onSubmit={handleSubmit} className="space-y-4"><input required className="w-full p-3.5 bg-white rounded-2xl" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="邮箱" /><button disabled={loading} className="w-full py-3.5 bg-gray-900 text-white rounded-2xl font-bold">{loading ? '...' : '发送重置邮件'}</button><button type="button" onClick={()=>setMode('login')} className="w-full text-xs text-center mt-2">返回登录</button></form>
          ) : (
              <form onSubmit={handleSubmit} className="space-y-3">
-               <div className="space-y-1">
-                  <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder={mode === 'register' ? "邮箱账号 (用于找回密码)" : "邮箱账号"} />
-                  {mode === 'register' && <p className="text-[10px] text-brand-gray pl-2">* 请填写真实邮箱以便找回密码</p>}
-               </div>
-               <input required type="password" className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />
-               
-               {mode === 'register' && (
-                 <>
-                    <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" />
-                    <input required className="w-full p-3.5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-brand-forest/20 outline-none" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" />
-                 </>
-               )}
-               
-               {mode === 'login' && (
-                   <div className="text-right">
-                       <button type="button" onClick={()=>setMode('forgot')} className="text-[10px] text-brand-gray hover:text-brand-forest font-bold">忘记密码?</button>
-                   </div>
-               )}
-
-               <button disabled={loading} className="w-full py-3.5 bg-brand-dark text-white rounded-2xl font-bold mt-2 hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
-                  {loading ? <Loader2 className="animate-spin" size={18}/> : (mode === 'register' ? '加入社区' : '回到社区')}
-               </button>
+               <input required className="w-full p-3.5 bg-white rounded-2xl" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder="邮箱账号" />
+               <input required type="password" className="w-full p-3.5 bg-white rounded-2xl" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />
+               {mode === 'register' && <><input required className="w-full p-3.5 bg-white rounded-2xl" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" /><input required className="w-full p-3.5 bg-white rounded-2xl" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话 (用于私信)" /></>}
+               {mode === 'login' && <div className="text-right"><button type="button" onClick={()=>setMode('forgot')} className="text-[10px] font-bold">忘记密码?</button></div>}
+               <button disabled={loading} className="w-full py-3.5 bg-gray-900 text-white rounded-2xl font-bold">{loading ? '...' : (mode === 'register' ? '注册' : '登录')}</button>
              </form>
          )}
-         
-         {mode !== 'forgot' && (
-             <button onClick={()=>setMode(mode === 'login' ? 'register' : 'login')} className="w-full mt-6 text-xs text-brand-gray hover:text-brand-forest transition">
-                {mode === 'login' ? '新邻居？创建账号' : '已有账号？去登录'}
-             </button>
-         )}
-         <button onClick={onClose} className="absolute top-5 right-5 text-brand-gray/50 hover:text-brand-dark"><X size={20}/></button>
+         {mode !== 'forgot' && <button onClick={()=>setMode(mode==='login'?'register':'login')} className="w-full mt-6 text-xs text-center">{mode==='login'?'去注册':'去登录'}</button>}
+         <button onClick={onClose} className="absolute top-4 right-4"><X/></button>
        </div>
      </div>
   );
@@ -523,27 +559,12 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
   const refresh = useCallback(async () => { try { const data = await api.request(`/conversations/${conversation.id}/messages`); setMessages(prev => (JSON.stringify(prev) !== JSON.stringify(data) ? data : prev)); } catch {} }, [conversation.id]);
   useEffect(() => { refresh(); const i = setInterval(refresh, 3000); return () => clearInterval(i); }, [refresh]);
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages]);
-  const send = async (type: MessageType, content: string) => {
-    if (!content && type === 'text') return;
-    try { await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); } catch { alert('发送失败'); }
-  };
+  const send = async (type: MessageType, content: string) => { if(!content && type==='text')return; try{ await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); }catch{} };
   return (
-    <div className="fixed inset-0 bg-brand-cream z-[100] flex flex-col">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-brand-cream/95 backdrop-blur pt-safe-top shrink-0">
-        <button onClick={onClose} className="p-1 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-brand-dark"/></button>
-        <span className="font-bold text-sm text-brand-dark">{conversation.otherUser.nickname}</span>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-3" ref={scrollRef}>
-        {messages.map(m => {
-          const isMe = m.senderId === currentUser.id;
-          return (<div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm shadow-sm ${isMe ? 'bg-brand-forest text-white rounded-br-sm' : 'bg-white text-brand-dark border border-white rounded-bl-sm'} ${m.type === 'contact-share' ? 'bg-brand-orange/10 border-brand-orange/20 text-brand-orange' : ''}`}>{m.type === 'contact-share' && <div className="text-[10px] font-bold mb-1 flex items-center gap-1"><Phone size={10}/> 联系方式</div>}{m.content}</div></div>);
-        })}
-      </div>
-      <div className="p-3 bg-brand-cream border-t border-white/50 flex gap-2 items-center pb-safe shrink-0">
-        <button onClick={() => confirm('分享联系方式？') && send('contact-share', '')} className="p-2 bg-white rounded-full text-brand-forest shadow-sm"><Phone size={18}/></button>
-        <input className="flex-1 bg-white rounded-full px-4 py-2.5 text-sm outline-none shadow-sm focus:ring-2 focus:ring-brand-forest/20" value={input} onChange={e => setInput(e.target.value)} placeholder="输入消息..." />
-        <button onClick={() => send('text', input)} className="p-2 bg-brand-forest rounded-full text-white shadow-lg hover:scale-105 transition"><Send size={18}/></button>
-      </div>
+    <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/95 pt-safe-top"><button onClick={onClose}><ChevronLeft/></button><span className="font-bold">{conversation.otherUser.nickname}</span></div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3" ref={scrollRef}>{messages.map(m=>(<div key={m.id} className={`flex ${m.senderId===currentUser.id?'justify-end':'justify-start'}`}><div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${m.senderId===currentUser.id?'bg-green-700 text-white':'bg-white'}`}>{m.content}</div></div>))}</div>
+      <div className="p-3 border-t flex gap-2 pb-safe"><button onClick={()=>confirm('分享联系方式?')&&send('contact-share','')}><Phone/></button><input className="flex-1 bg-white rounded-full px-4" value={input} onChange={e=>setInput(e.target.value)} /><button onClick={()=>send('text',input)}><Send/></button></div>
     </div>
   );
 };
@@ -554,98 +575,56 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   const [input, setInput] = useState('');
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
-  const postComment = async () => {
-    if (!currentUser) return onLoginNeeded();
-    if (!input.trim()) return;
-    try { const c = await api.request(`/posts/${post.id}/comments`, { method: 'POST', body: JSON.stringify({ content: input }) }); setComments([...comments, c]); setInput(''); } catch { alert('评论失败'); }
-  };
+  const postComment = async () => { if(!currentUser)return onLoginNeeded(); if(!input.trim())return; try{const c = await api.request(`/posts/${post.id}/comments`, { method:'POST', body:JSON.stringify({content:input})}); setComments([...comments,c]); setInput('');}catch{} };
   const deletePost = async () => { if (!confirm('删除此贴？')) return; try { await api.request(`/posts/${post.id}`, { method: 'DELETE' }); onDeleted(); onClose(); } catch { alert('删除失败'); } };
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full">
-      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top shrink-0">
-        <button onClick={onClose}><X size={24} className="text-brand-dark"/></button>
-        {(isAdmin || isOwner) && <button onClick={deletePost} className="text-red-500 flex items-center gap-1 text-xs font-bold bg-red-50 px-3 py-1 rounded-full"><Trash2 size={14}/> 删除</button>}
+      <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top"><button onClick={onClose}><X/></button>{(isAdmin || isOwner)&&<button onClick={deletePost}><Trash2 className="text-red-500"/></button>}</div>
+      <div className="flex-1 overflow-y-auto p-5 pb-24 bg-[#FFF8F0]/30">
+         <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
+         <div className="flex gap-3 mb-4"><Avatar src={post.author.avatar} name={post.author.nickname}/><span className="font-bold">{post.author.nickname}</span></div>
+         <p className="mb-4">{post.description}</p>
+         {post.imageUrls.map((u:string,i:number)=><img key={i} src={u} className="w-full rounded-xl mb-2"/>)}
+         <div className="mt-6"><h3>评论</h3>{comments.map((c:any)=><div key={c.id} className="bg-white p-2 mt-2 rounded">{c.content}</div>)}</div>
       </div>
-      <div className="flex-1 overflow-y-auto p-5 pb-24 bg-brand-cream/30">
-        <div className="flex gap-2 mb-4"><span className="bg-brand-forest/10 text-brand-forest px-2.5 py-1 rounded-lg text-xs font-bold">{post.city}</span><span className="bg-brand-orange/10 text-brand-orange px-2.5 py-1 rounded-lg text-xs font-bold">{post.category}</span></div>
-        <h1 className="text-2xl font-extrabold text-brand-dark mb-4 leading-tight">{post.title}</h1>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-white mb-6 flex justify-between items-center">
-          <div><div className="text-xs text-brand-gray font-bold mb-0.5">预算/报价</div><div className="font-mono text-lg font-bold text-brand-orange">{post.budget}</div></div>
-          <div className="w-px h-8 bg-gray-100"></div>
-          <div className="text-right"><div className="text-xs text-brand-gray font-bold mb-0.5">时间要求</div><div className="font-bold text-brand-dark">{post.timeInfo}</div></div>
-        </div>
-        <p className="text-sm text-brand-dark leading-relaxed whitespace-pre-wrap mb-6">{post.description}</p>
-        {post.imageUrls.map((url:string, i:number) => <img key={i} src={url} className="w-full rounded-2xl mb-3 border border-white shadow-sm" />)}
-        <div className="mt-8 pt-6 border-t border-gray-200"><h3 className="font-bold text-brand-dark mb-4">评论 ({comments.length})</h3>{comments.map((c:any) => (<div key={c.id} className="flex gap-3 mb-4"><div className="w-8 h-8 bg-brand-cream rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-brand-forest border border-white shadow-sm">{c.authorName[0]}</div><div className="bg-white p-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-white flex-1"><div className="font-bold text-brand-dark text-xs mb-1">{c.authorName}</div>{c.content}</div></div>))}</div>
-      </div>
-      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe shadow-lg shrink-0">
-        <input className="flex-1 bg-brand-cream rounded-full px-5 py-3 text-sm outline-none transition focus:ring-2 focus:ring-brand-forest/20" placeholder={currentUser ? "发表评论..." : "登录后评论"} value={input} onChange={e => setInput(e.target.value)} disabled={!currentUser} />
-        <button onClick={postComment} disabled={!input} className="text-brand-forest p-2 hover:bg-brand-cream rounded-full transition"><Send size={20}/></button>
-        {!isOwner && <button onClick={() => { if(!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, post.author.nickname); }} className="bg-brand-dark text-white px-5 py-3 rounded-full text-sm font-bold shadow-lg hover:bg-brand-forest transition active:scale-95">私信 TA</button>}
-      </div>
+      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe"><input className="flex-1 bg-gray-100 rounded-full px-4 py-2" value={input} onChange={e=>setInput(e.target.value)}/><button onClick={postComment}><Send/></button>{!isOwner&&<button onClick={()=>{if(!currentUser)return onLoginNeeded();onOpenChat(post.authorId,post.author.nickname);}} className="bg-gray-900 text-white px-4 py-2 rounded-full">私信</button>}</div>
     </div>
   );
 };
 
 // 👤 Profile View 
-const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about'>('menu');
+const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser }: any) => {
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile'>('menu');
 
-  if (!user) return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center w-full h-full">
-       <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-float text-brand-gray/30"><UserIcon size={48} /></div>
-       <p className="text-brand-gray text-sm mb-6">登录后体验更多社区功能</p>
-       <button onClick={onLogin} className="w-full bg-brand-forest text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-forest/20 active:scale-95 transition">登录 / 注册</button>
-    </div>
-  );
-
-  const initial = user.nickname ? user.nickname[0] : (user.email ? user.email[0].toUpperCase() : 'U');
-  const displayName = user.nickname || user.email || 'User';
+  if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><button onClick={onLogin} className="w-full bg-green-700 text-white py-3 rounded-2xl font-bold">登录 / 注册</button></div>;
 
   return (
-    <div className="flex-1 relative w-full h-full bg-brand-cream">
+    <div className="flex-1 relative w-full h-full bg-[#FFF8F0]">
       {subView === 'menu' && (
         <div className="p-5 pt-4 w-full h-full overflow-y-auto">
-           {/* User Card */}
-           <div className="bg-white p-6 rounded-3xl shadow-soft border border-white mb-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-forest/5 rounded-bl-full -mr-10 -mt-10"></div>
-              <div className="flex items-center gap-5 relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-brand-forest to-green-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-md">
-                  {initial}
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-brand-dark">{displayName}</h2>
-                  <div className="flex gap-2 mt-1.5">
-                    <span className="text-[10px] bg-brand-forest/10 text-brand-forest px-2 py-0.5 rounded-md font-bold">{user.role === 'admin' ? '管理员' : '认证邻居'}</span>
-                    <span className="text-[10px] bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded-md font-bold">信用极好</span>
-                  </div>
-                </div>
-              </div>
+           <div className="bg-white p-6 rounded-3xl shadow-soft border border-white mb-6 flex items-center gap-5">
+             <Avatar src={user.avatar} name={user.nickname} size={16} className="shadow-md" />
+             <div className="flex-1">
+                <h2 className="text-xl font-black text-gray-900">{user.nickname}</h2>
+                <p className="text-xs text-gray-500 line-clamp-1 mt-1">{user.bio || '暂无简介'}</p>
+             </div>
+             <button onClick={() => setSubView('edit_profile')} className="p-2 bg-gray-100 rounded-full"><Edit size={16}/></button>
            </div>
-
-           {/* Menu List */}
            <div className="bg-white rounded-3xl shadow-card overflow-hidden mb-6">
               {[
                 { label: '我的发布', icon: Edit, action: () => setSubView('my_posts') },
                 { label: '联系客服', icon: Phone, action: () => setSubView('support') },
                 { label: '关于我们', icon: Info, action: () => setSubView('about') },
               ].map((item, i) => (
-                <button key={i} onClick={item.action} className="w-full p-4 flex items-center justify-between hover:bg-brand-cream/50 transition border-b border-brand-light last:border-none group">
-                   <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-full bg-brand-cream flex items-center justify-center text-brand-forest"><item.icon size={16}/></div>
-                     <span className="text-sm font-bold text-brand-dark">{item.label}</span>
-                   </div>
-                   <ChevronRight size={16} className="text-brand-gray/50 group-hover:text-brand-forest transition"/>
+                <button key={i} onClick={item.action} className="w-full p-4 flex items-center justify-between hover:bg-[#FFF8F0]/50 transition border-b border-gray-100 last:border-none group">
+                   <div className="flex items-center gap-3"><item.icon size={16} className="text-green-700"/><span className="text-sm font-bold text-gray-900">{item.label}</span></div><ChevronRight size={16} className="text-gray-400"/>
                 </button>
               ))}
            </div>
-
-           <button onClick={onLogout} className="w-full py-3.5 bg-white text-red-500 rounded-2xl font-bold text-sm shadow-sm hover:bg-red-50 transition flex items-center justify-center gap-2 border border-red-50">
-             <LogOut size={16}/> 退出登录
-           </button>
+           <button onClick={onLogout} className="w-full py-3.5 bg-white text-red-500 rounded-2xl font-bold text-sm shadow-sm border border-red-50">退出登录</button>
         </div>
       )}
-
+      {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
       {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} />}
       {subView === 'about' && <InfoPage title="关于我们" storageKey="baylink_about" user={user} onBack={() => setSubView('menu')} />}
@@ -653,225 +632,90 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost }: any) => {
   );
 };
 
-/**
- * ================= MAIN APP SHELL =================
- */
+// --- MAIN APP ---
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [tab, setTab] = useState('home');
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [feedType, setFeedType] = useState<PostType>('client');
-  const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
   const [myConvs, setMyConvs] = useState<Conversation[]>([]);
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null); 
+  const [regionFilter, setRegionFilter] = useState<string>('全部');
+  const [categoryFilter, setCategoryFilter] = useState<string>('全部');
 
-  // 自动登出处理
-  useEffect(() => {
-    const handleSessionExpired = () => {
-      localStorage.removeItem('currentUser');
-      setUser(null);
-      // 改为仅在非首页时提醒，避免打断体验
-      if (tab !== 'home') {
-        setTab('profile'); // 引导用户去登录
-      }
-    };
-    window.addEventListener('session-expired', handleSessionExpired);
-    return () => window.removeEventListener('session-expired', handleSessionExpired);
-  }, [tab]);
+  const fetchPosts = useCallback(async () => { 
+    try { 
+        let data = await api.request(`/posts?type=${feedType}`);
+        if (Array.isArray(data)) {
+            if (regionFilter !== '全部') data = data.filter((p: PostData) => p.city.includes(regionFilter));
+            if (categoryFilter !== '全部') data = data.filter((p: PostData) => p.category === categoryFilter);
+            if (keyword) {
+                const k = keyword.toLowerCase();
+                data = data.filter((p: PostData) => p.title.toLowerCase().includes(k) || p.description.toLowerCase().includes(k));
+            }
+            setPosts(data); 
+        }
+    } catch {} 
+  }, [feedType, regionFilter, categoryFilter, keyword]);
 
-  useEffect(() => {
-    const u = localStorage.getItem('currentUser');
-    if (u) setUser(JSON.parse(u));
-    fetchPosts();
-  }, [feedType]);
-
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    try {
-      let data = await api.request(`/posts?type=${feedType}&keyword=${keyword}`);
-      if (regionFilter !== '全部') {
-         data = data.filter((p: PostData) => p.city.includes(regionFilter));
-      }
-      setPosts(data);
-    } catch(e) { console.error(e); } 
-    finally { setLoading(false); }
-  }, [feedType, keyword, regionFilter]);
-
-  const handleRefresh = () => { setLoading(true); setTimeout(() => fetchPosts(), 800); };
+  useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); fetchPosts(); }, [fetchPosts]);
 
   const openChat = async (targetId: string, nickname?: string) => {
-    try {
-      const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
-      setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() });
-    } catch { alert('错误'); }
+      try {
+          const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
+          setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() });
+      } catch { alert('Error'); }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    setUser(null);
-    setTab('home');
+      localStorage.removeItem('currentUser');
+      setUser(null);
+      setTab('home');
   };
 
-  // 骨架屏组件（缺失补充）
-  const SkeletonCard = () => (
-    <div className="bg-white p-5 rounded-2xl shadow-sm mb-3 border border-white animate-pulse">
-      <div className="flex justify-between mb-3">
-        <div className="flex gap-3 items-center"><div className="w-10 h-10 bg-brand-light rounded-full"/><div className="space-y-2"><div className="w-24 h-3 bg-brand-light rounded"/><div className="w-16 h-2 bg-brand-light rounded"/></div></div>
-        <div className="w-16 h-6 bg-brand-light rounded-md"/>
-      </div>
-      <div className="w-3/4 h-4 bg-brand-light rounded mb-2"/><div className="w-full h-3 bg-brand-light rounded mb-4"/><div className="flex justify-between pt-2"><div className="w-20 h-3 bg-brand-light rounded"/><div className="w-20 h-8 bg-brand-light rounded-full"/></div>
-    </div>
-  );
-
   return (
-    <div className="fixed inset-0 bg-brand-cream flex justify-center font-sans text-brand-dark">
-      <div className="w-full max-w-[480px] bg-brand-cream h-full shadow-2xl relative flex flex-col border-x border-white/50">
+    <div className="fixed inset-0 bg-[#FFF8F0] flex justify-center font-sans text-gray-900">
+      <div className="w-full max-w-[480px] bg-[#FFF8F0] h-full shadow-2xl relative flex flex-col border-x border-white/50">
+        {tab === 'home' && <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-[#FFF8F0] z-20 shrink-0"><div className="flex flex-col"><h1 className="font-rounded font-black text-2xl text-green-700 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1><span className="text-[10px] text-gray-500 font-bold tracking-widest">湾区邻里 · 互助平台</span></div><div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div></header>}
         
-        {/* 1. TOP BAR (仅在首页显示) */}
-        {tab === 'home' && (
-            <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-brand-cream z-20 shrink-0">
-            <div className="flex flex-col">
-                <h1 className="font-rounded font-black text-2xl text-brand-forest tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-brand-orange rounded-full mt-1"></div></h1>
-                <span className="text-[10px] text-brand-gray font-bold tracking-widest">湾区邻里 · 互助平台</span>
-            </div>
-            <div className="flex items-center gap-3">
-                <button className="p-2 bg-white rounded-full shadow-sm text-brand-dark hover:text-brand-forest transition"><Search size={20} strokeWidth={2.5} /></button>
-                <div onClick={() => !user && setShowLogin(true)} className="w-10 h-10 rounded-full bg-brand-dark text-white flex items-center justify-center font-bold shadow-md cursor-pointer border-2 border-white hover:scale-105 transition">
-                {user ? (user.nickname ? user.nickname[0] : <UserIcon size={16}/>) : <UserIcon size={20}/>}
-                </div>
-            </div>
-            </header>
-        )}
-
-        {/* CONTENT AREA (强制 flex-1 min-h-0 确保滚动正常) */}
-        <main className="flex-1 min-h-0 overflow-y-auto bg-brand-cream hide-scrollbar relative flex flex-col w-full">
-            
-            {tab === 'home' && (
-              <>
-                <div className="px-4 pb-3 z-10 bg-brand-cream/95 backdrop-blur-sm sticky top-0 shadow-sm shadow-brand-forest/5 shrink-0">
-                  
-                  {/* Search (No Header here) */}
-                  <div className="relative mb-4 mt-1">
-                    <Search className="absolute left-4 top-3.5 text-brand-gray/50" size={18} />
-                    <input 
-                      className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium shadow-soft focus:ring-2 focus:ring-brand-forest/20 outline-none transition placeholder:text-brand-gray/40 text-brand-dark"
-                      placeholder="搜索互助信息..."
-                      value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts()}
-                    />
-                  </div>
-
-                  {/* Region Filter */}
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1">
-                    <FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => { setRegionFilter('全部'); fetchPosts(); }} />
-                    {REGIONS.map(r => (
-                      <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => { setRegionFilter(r); fetchPosts(); }} />
-                    ))}
-                  </div>
-
-                  {/* Type Toggle */}
-                  <div className="bg-brand-light p-1 rounded-2xl flex shadow-inner mb-4">
-                    <button onClick={() => setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${feedType === 'client' ? 'bg-brand-orange text-white shadow-md' : 'text-brand-gray hover:bg-white/50'}`}>
-                       <span>🙋‍♂️</span> 找帮忙 (求助)
-                    </button>
-                    <button onClick={() => setFeedType('provider')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${feedType === 'provider' ? 'bg-brand-forest text-white shadow-md' : 'text-brand-gray hover:bg-white/50'}`}>
-                       <span>🤝</span> 我接单 (提供)
-                    </button>
-                  </div>
-                  
-                  {/* Categories */}
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1">
-                    {CATEGORIES.map(c => (
-                      <button key={c} className="text-[11px] text-brand-dark font-bold whitespace-nowrap bg-white px-3.5 py-2 rounded-xl border border-white shadow-sm hover:border-brand-forest/20 active:scale-95 transition-all">{c}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 7. POST LIST */}
-                <main className="flex-1 overflow-y-auto px-4 pb-24 hide-scrollbar">
-                  <OfficialAds isAdmin={user?.role === 'admin'} />
-
-                  <div onClick={handleRefresh} className="flex justify-center py-3 text-brand-gray/50 text-[10px] font-bold tracking-wider uppercase cursor-pointer hover:text-brand-forest transition">
-                    {loading ? <Loader2 className="animate-spin" size={14}/> : 'Pull to Refresh'}
-                  </div>
-
-                  {loading ? (
-                    [1,2,3].map(i => <SkeletonCard key={i}/>)
-                  ) : posts.length > 0 ? (
-                    posts.map(p => <PostCard key={p.id} post={p} onClick={() => setSelectedPost(p)} onContactClick={async () => { if(!user) return setShowLogin(true); await api.request(`/posts/${p.id}/contact-mark`, {method:'POST'}); fetchPosts(); openChat(p.authorId, p.author.nickname); }} />)
-                  ) : (
-                    <div className="text-center py-24 opacity-60">
-                      <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Search size={32} className="text-brand-gray/50"/></div>
-                      <p className="text-sm font-bold text-brand-gray">暂无相关信息</p>
-                      <button onClick={()=>setShowCreate(true)} className="mt-4 text-brand-forest text-xs font-bold hover:underline">发布第一条？</button>
-                    </div>
-                  )}
-                </main>
-              </>
-            )}
-
-            {tab === 'messages' && (
-                <div className="flex flex-col h-full w-full">
-                   <div className="px-5 pt-safe-top pb-4 bg-brand-cream border-b border-white/50 shrink-0"><h2 className="text-2xl font-black text-brand-dark">消息列表</h2></div>
-                   <MessagesList currentUser={user} onOpenChat={(c) => { setChatConv(c); }} />
-                </div>
-            )}
-            
-            {tab === 'notifications' && (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><Bell size={32} className="text-brand-gray/50" /></div>
-                    <h3 className="font-bold text-brand-dark mb-2">暂无新通知</h3>
-                    <p className="text-brand-gray text-xs">重要的社区动态会出现在这里</p>
-                </div>
-            )}
-
-            {tab === 'profile' && (
-              <div className="w-full h-full pt-safe-top flex flex-col">
-                 <ProfileView user={user} onLogin={() => setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} />
-              </div>
-            )}
-
+        <main className="flex-1 min-h-0 overflow-y-auto bg-[#FFF8F0] hide-scrollbar relative flex flex-col w-full">
+           {tab === 'home' && (
+               <div className="p-4 pb-24">
+                   <div className="relative mb-4 mt-1">
+                    <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
+                    <input className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-green-700/20 outline-none" placeholder="搜索互助信息..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts()} />
+                   </div>
+                   <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1"><FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
+                   <div className="bg-gray-100 p-1 rounded-2xl flex shadow-inner mb-4"><button onClick={()=>setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='client'?'bg-orange-500 text-white':'text-gray-500'}`}><span>🙋‍♂️</span> 找帮忙 (求助)</button><button onClick={()=>setFeedType('provider')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='provider'?'bg-green-700 text-white':'text-gray-500'}`}><span>🤝</span> 我接单 (提供)</button></div>
+                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1 mb-4"><button onClick={() => setCategoryFilter('全部')} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter==='全部'?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>全部</button>{CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter===c?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>{c}</button>)}</div>
+                   <OfficialAds isAdmin={user?.role==='admin'} />
+                   {posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} />)}
+               </div>
+           )}
+           {tab === 'messages' && <div className="flex flex-col h-full w-full"><div className="px-5 pt-safe-top pb-4 bg-[#FFF8F0] border-b border-white/50"><h2 className="text-2xl font-black">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}
+           {tab === 'notifications' && <div className="flex-1 flex items-center justify-center text-gray-400">暂无通知</div>}
+           {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} />}
         </main>
 
-        {/* 8. BOTTOM NAV */}
-        <div className="bg-white/90 backdrop-blur-md border-t border-brand-light px-6 py-2 pb-safe flex justify-between items-center z-40 relative shadow-[0_-4px_24px_rgba(0,0,0,0.04)] shrink-0">
-           <button onClick={() => setTab('home')} className={`flex flex-col items-center gap-1 p-2 transition-all ${tab==='home' ? 'text-brand-forest scale-110' : 'text-brand-gray hover:text-brand-dark'}`}>
-             <Home size={24} strokeWidth={tab==='home'?2.5:2} />
-             <span className="text-[9px] font-bold">首页</span>
-           </button>
-           
-           <button onClick={() => setTab('messages')} className={`flex flex-col items-center gap-1 p-2 transition-all ${tab==='messages' ? 'text-brand-forest scale-110' : 'text-brand-gray hover:text-brand-dark'}`}>
-             <MessageCircle size={24} strokeWidth={tab==='messages'?2.5:2} />
-             <span className="text-[9px] font-bold">消息</span>
-           </button>
-
-           {/* Floating Publish Button */}
-           <div className="-mt-10 group">
-             <button onClick={() => user ? setShowCreate(true) : setShowLogin(true)} className="w-16 h-16 bg-brand-dark rounded-full shadow-float flex items-center justify-center text-white group-hover:scale-110 group-active:scale-95 transition-all duration-300 border-[5px] border-brand-cream">
-               <Plus size={32} strokeWidth={3} />
-             </button>
-           </div>
-
-           <button onClick={() => setTab('notifications')} className={`flex flex-col items-center gap-1 p-2 transition-all ${tab==='notifications' ? 'text-brand-forest scale-110' : 'text-brand-gray hover:text-brand-dark'}`}>
-             <Bell size={24} strokeWidth={tab==='notifications'?2.5:2} />
-             <span className="text-[9px] font-bold">通知</span>
-           </button>
-
-           <button onClick={() => setTab('profile')} className={`flex flex-col items-center gap-1 p-2 transition-all ${tab==='profile' ? 'text-brand-forest scale-110' : 'text-brand-gray hover:text-brand-dark'}`}>
-             <UserIcon size={24} strokeWidth={tab==='profile'?2.5:2} />
-             <span className="text-[9px] font-bold">我的</span>
-           </button>
+        <div className="bg-[#FFF8F0]/90 backdrop-blur-md border-t border-gray-200 px-6 py-2 pb-safe flex justify-between items-center z-40 relative shrink-0">
+           <button onClick={()=>setTab('home')}><Home className={tab==='home'?'text-green-700':'text-gray-400'}/></button>
+           <button onClick={()=>setTab('messages')}><MessageCircle className={tab==='messages'?'text-green-700':'text-gray-400'}/></button>
+           <div className="-mt-10"><button onClick={()=>user?setShowCreate(true):setShowLogin(true)} className="w-16 h-16 bg-gray-900 rounded-full shadow-lg flex items-center justify-center text-white"><Plus size={32}/></button></div>
+           <button onClick={()=>setTab('notifications')}><Bell className={tab==='notifications'?'text-green-700':'text-gray-400'}/></button>
+           <button onClick={()=>setTab('profile')}><UserIcon className={tab==='profile'?'text-green-700':'text-gray-400'}/></button>
         </div>
 
-        {/* Modals */}
-        {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={setUser} />}
-        {showCreate && <CreatePostModal user={user} onClose={() => setShowCreate(false)} onCreated={fetchPosts} />}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={() => setSelectedPost(null)} onLoginNeeded={() => setShowLogin(true)} onOpenChat={openChat} onDeleted={() => {setSelectedPost(null); fetchPosts();}} />}
-        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={() => setChatConv(null)} />}
+        {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser}/>}
+        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={fetchPosts}/>}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts();}}/>}
+        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)}/>}
+        {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} />}
       </div>
     </div>
   );
