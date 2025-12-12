@@ -9,14 +9,20 @@ import {
   Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap
 } from 'lucide-react';
 
+// ✨ 新增库：用于 Socket 连接和图片压缩
+import imageCompression from 'browser-image-compression';
+import { io, Socket } from 'socket.io-client';
+
 import Avatar from './components/Avatar';
 import PostCard from './components/PostCard';
-import Toast from './components/Toast'; // ✨ 确保你已经新建了这个文件
+import Toast from './components/Toast'; 
 import { UserData, PostData, Conversation, Message, Role, PostType, AdData } from './types';
 
-// BAYLINK APP V25.7 - UX Polish Edition (最终完美版)
+// BAYLINK APP V25.8 - Real-time & Optimization Edition (Final)
 
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
+// ✨ Socket 地址: 通常和 API 地址相同。如果部署在 Render，直接用主域名即可
+const SOCKET_URL = 'https://baylink-api.onrender.com';
 
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
@@ -24,6 +30,21 @@ const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", 
 // --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
+
+// ✨ 图片压缩工具函数 (优化：增加错误处理和参数调优)
+const compressImage = async (file: File): Promise<File> => {
+  const options = {
+    maxSizeMB: 0.5, // 目标压缩到 0.5MB 以内
+    maxWidthOrHeight: 1280, // 限制最大分辨率，适合手机浏览
+    useWebWorker: true, // 使用多线程处理，防止页面卡顿
+  };
+  try {
+    return await imageCompression(file, options);
+  } catch (error) {
+    console.error("Compression failed:", error);
+    return file; // 如果压缩失败，降级使用原图
+  }
+};
 
 // --- API 客户端 ---
 const api = {
@@ -162,10 +183,26 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
     );
 };
 
+// ✨ 使用图片压缩的编辑资料组件 (批量处理优化版)
 const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '', socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }});
     const [saving, setSaving] = useState(false);
-    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file && file.size < 1024*1024) { const reader = new FileReader(); reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); reader.readAsDataURL(file); } else { showToast('图片需小于1MB', 'error'); } };
+    
+    // ✨ 修改：图片上传压缩逻辑
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
+        const file = e.target.files?.[0]; 
+        if (file) { 
+            try {
+                const compressedFile = await compressImage(file);
+                const reader = new FileReader(); 
+                reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); 
+                reader.readAsDataURL(compressedFile); 
+            } catch (err) {
+                showToast('图片处理失败', 'error');
+            }
+        } 
+    };
+
     const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); showToast('资料已更新', 'success'); } catch (e) { showToast('保存失败', 'error'); } finally { setSaving(false); } };
     return (
         <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
@@ -207,6 +244,7 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
 };
 
 // --- CreatePostModal (已完全修复格式) ---
+// ✨ 使用图片压缩的发帖组件 (批量处理优化版)
 const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
@@ -214,15 +252,30 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false); 
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { 
+  // ✨ 修改：图片上传压缩逻辑 (批量并行处理)
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
     const files = e.target.files; 
     if (files) { 
       if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error'); 
-      Array.from(files).forEach(f => { 
-        const r = new FileReader(); 
-        r.onloadend = () => setImages(p => [...p, r.result as string].slice(0,3)); 
-        r.readAsDataURL(f); 
-      }); 
+      
+      const fileArray = Array.from(files);
+      const compressedImages: string[] = [];
+
+      // 并行处理所有图片
+      await Promise.all(fileArray.map(async (file) => {
+          try {
+              const compressedFile = await compressImage(file);
+              const reader = new FileReader();
+              const result = await new Promise<string>((resolve) => {
+                  reader.onloadend = () => resolve(reader.result as string);
+                  reader.readAsDataURL(compressedFile);
+              });
+              compressedImages.push(result);
+          } catch(e) { console.error(e); }
+      }));
+
+      // 一次性更新状态，避免多次重渲染
+      setImages(prev => [...prev, ...compressedImages].slice(0,3));
     } 
   };
   
@@ -392,14 +445,52 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-const ChatView = ({ currentUser, conversation, onClose }: any) => {
+// ✨ 使用 Socket 监听的聊天组件
+const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const refresh = useCallback(async () => { try { const data = await api.request(`/conversations/${conversation.id}/messages`); setMessages(prev => (JSON.stringify(prev) !== JSON.stringify(data) ? data : prev)); } catch {} }, [conversation.id]);
-  useEffect(() => { refresh(); const i = setInterval(refresh, 3000); return () => clearInterval(i); }, [refresh]);
+
+  // 初次加载历史记录
+  useEffect(() => { 
+      const load = async () => { 
+          try { 
+              const data = await api.request(`/conversations/${conversation.id}/messages`); 
+              setMessages(data); 
+          } catch {} 
+      }; 
+      load(); 
+  }, [conversation.id]);
+
+  // ✨ 监听实时消息 (替代轮询)
+  useEffect(() => {
+      if(!socket) return;
+      const handleNewMessage = (msg: Message) => {
+          if (msg.conversationId === conversation.id) {
+              setMessages(prev => [...prev, msg]);
+          }
+      };
+      socket.on('new_message', handleNewMessage);
+      return () => { socket.off('new_message', handleNewMessage); };
+  }, [socket, conversation.id]);
+
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages]);
-  const send = async (type: Message['type'], content: string) => { if(!content && type==='text')return; try{ await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); setInput(''); refresh(); }catch{} };
+
+  const send = async (type: Message['type'], content: string) => { 
+      if(!content && type==='text') return; 
+      // 乐观更新 UI (先显示在界面上，再发请求)
+      const optimisticMsg: Message = { id: Date.now().toString(), senderId: currentUser.id, conversationId: conversation.id, type, content, createdAt: Date.now() };
+      setMessages(prev => [...prev, optimisticMsg]);
+      setInput(''); 
+      
+      try { 
+          await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); 
+      } catch {
+          // 如果失败，应该回滚 (这里简化处理，暂不回滚)
+          alert('发送失败');
+      } 
+  };
+
   return (
     <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top"><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><ChevronLeft/></button><span className="font-bold text-lg">{conversation.otherUser.nickname}</span></div>
@@ -496,9 +587,39 @@ export default function App() {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
 
-  // ✨ Toast State
+  // ✨ Toast & Socket State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [hasNotification, setHasNotification] = useState(false); // 🔴 小红点状态
+
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
+
+  // ✨ Socket 初始化
+  useEffect(() => {
+    if (user && !socket) {
+        const newSocket = io(SOCKET_URL);
+        newSocket.on('connect', () => {
+            console.log('Socket Connected');
+            newSocket.emit('join_room', user.id);
+        });
+        
+        // 监听全局新消息（用于显示小红点）
+        newSocket.on('new_message', () => {
+            if (tab !== 'messages') { // 如果当前不在消息页，就显示红点
+                setHasNotification(true);
+                showToast('收到新私信', 'info');
+            }
+        });
+
+        setSocket(newSocket);
+        return () => { newSocket.disconnect(); }
+    }
+  }, [user, tab]); // 依赖 user 和 tab
+
+  // 切换到消息页时，清除红点
+  useEffect(() => {
+      if (tab === 'messages') setHasNotification(false);
+  }, [tab]);
 
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
@@ -521,7 +642,13 @@ export default function App() {
 
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); };
   const openChat = async (targetId: string, nickname?: string) => { try { const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() }); } catch { showToast('无法打开聊天', 'error'); } };
-  const handleLogout = () => { localStorage.removeItem('currentUser'); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
+  const handleLogout = () => { 
+      localStorage.removeItem('currentUser'); 
+      if(socket) socket.disconnect();
+      setUser(null); 
+      setTab('home'); 
+      showToast('已退出登录', 'info'); 
+  };
 
   // 🖥️ PC 侧边栏
   const LeftSidebar = () => (
@@ -532,7 +659,9 @@ export default function App() {
       </div>
       <nav className="space-y-3 flex-1">
         <button onClick={() => setTab('home')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='home'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}><Home size={22}/> 首页</button>
-        <button onClick={() => setTab('messages')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='messages'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}><MessageCircle size={22}/> 消息</button>
+        <button onClick={() => setTab('messages')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='messages'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}>
+            <div className="relative"><MessageCircle size={22}/>{hasNotification && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>}</div> 消息
+        </button>
         <button onClick={() => setTab('profile')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='profile'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}><UserIcon size={22}/> 我的</button>
       </nav>
       {tab === 'home' && (
@@ -614,7 +743,11 @@ export default function App() {
 
         <div className="lg:hidden absolute bottom-6 left-6 right-6 bg-gray-900/90 backdrop-blur-xl text-white px-6 py-4 rounded-[2rem] flex justify-between items-center z-40 shadow-2xl border border-white/10">
            <button onClick={()=>setTab('home')} className={`transition active:scale-90 ${tab==='home'?'text-green-400':'text-gray-500'}`}><Home size={24}/></button>
-           <button onClick={()=>setTab('messages')} className={`transition active:scale-90 ${tab==='messages'?'text-green-400':'text-gray-500'}`}><MessageCircle size={24}/></button>
+           <button onClick={()=>setTab('messages')} className={`transition active:scale-90 relative ${tab==='messages'?'text-green-400':'text-gray-500'}`}>
+                <MessageCircle size={24}/>
+                {/* ✨ 移动端消息红点 */}
+                {hasNotification && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>}
+           </button>
            <button onClick={()=>user?setShowCreate(true):setShowLogin(true)} className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-400 rounded-full shadow-lg shadow-green-900/50 flex items-center justify-center text-white -mt-12 border-4 border-[#FFF8F0] active:scale-90 transition"><Plus size={28} strokeWidth={3}/></button>
            <button onClick={()=>setTab('notifications')} className={`transition active:scale-90 ${tab==='notifications'?'text-green-400':'text-gray-500'}`}><Bell size={24}/></button>
            <button onClick={()=>setTab('profile')} className={`transition active:scale-90 ${tab==='profile'?'text-green-400':'text-gray-500'}`}><UserIcon size={24}/></button>
@@ -624,7 +757,7 @@ export default function App() {
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
         {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)} showToast={showToast}/>}
         {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
-        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)}/>}
+        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket}/>}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
