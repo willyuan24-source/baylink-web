@@ -9,19 +9,23 @@ import {
   Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap
 } from 'lucide-react';
 
-// BAYLINK APP V25.5 - 修复版 (格式化代码，解决构建错误)
+// BAYLINK APP V25.6 - 修复构建错误版 (完全格式化)
 
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
+// --- 类型定义 ---
 type Role = 'user' | 'admin';
 type PostType = 'client' | 'provider';
+
 interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
   bio?: string; avatar?: string;
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
+
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
+
 interface PostData {
   id: string; authorId: string; author: { nickname: string; avatar?: string; }; 
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
@@ -30,15 +34,18 @@ interface PostData {
   createdAt: number; isContacted?: boolean;
   isReported?: boolean;
 }
+
 interface Conversation { id: string; otherUser: { id: string; nickname: string; avatar?: string; }; lastMessage?: string; updatedAt: number; }
 interface Message { id: string; senderId: string; type: 'text'|'contact-request'|'contact-share'; content: string; createdAt: number; }
 
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
+// --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
 
+// --- API 客户端 ---
 const api = {
   request: async (endpoint: string, options: any = {}) => {
     const headers: any = { 'Content-Type': 'application/json', ...(options.headers || {}) };
@@ -61,6 +68,8 @@ const api = {
   updateProfile: async (data: Partial<UserData>) => await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
   reportPost: async (postId: string, reason: string) => await api.request(`/posts/${postId}/report`, { method: 'POST', body: JSON.stringify({ reason }) })
 };
+
+// --- 组件部分 ---
 
 const Avatar = ({ src, name, size = 10, className = "" }: { src?: string, name?: string, size?: number, className?: string }) => {
     const displaySize = size * 4; 
@@ -261,7 +270,7 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
   );
 };
 
-// ✨ 修复版 CreatePostModal (关键修复)
+// --- CreatePostModal (已完全修复格式) ---
 const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
@@ -269,12 +278,29 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false); 
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const files = e.target.files; if (files) { if (images.length + files.length > 3) return alert('最多3张'); Array.from(files).forEach(f => { const r = new FileReader(); r.onloadend = () => setImages(p => [...p, r.result as string].slice(0,3)); r.readAsDataURL(f); }); } };
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { 
+    const files = e.target.files; 
+    if (files) { 
+      if (images.length + files.length > 3) return alert('最多3张'); 
+      Array.from(files).forEach(f => { 
+        const r = new FileReader(); 
+        r.onloadend = () => setImages(p => [...p, r.result as string].slice(0,3)); 
+        r.readAsDataURL(f); 
+      }); 
+    } 
+  };
   
   const handleSubmit = async () => {
     if (!form.title || !form.budget) return alert('请完善信息');
     setSubmitting(true);
-    try { await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) }); onCreated(); setIsSuccess(true); } catch (err: any) { alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); setSubmitting(false); } 
+    try { 
+      await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) }); 
+      onCreated(); 
+      setIsSuccess(true); 
+    } catch (err: any) { 
+      alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); 
+      setSubmitting(false); 
+    } 
   };
 
   if (isSuccess) {
@@ -282,7 +308,9 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
       <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-md flex items-center justify-center z-[70] animate-in zoom-in-95">
         <div className="bg-white w-full max-w-sm rounded-[2rem] p-8 text-center shadow-2xl m-4 relative overflow-hidden">
            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
-           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 animate-bounce"><CheckCircle size={40} /></div>
+           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 animate-bounce">
+              <CheckCircle size={40} />
+           </div>
            <h2 className="text-2xl font-black text-gray-900 mb-2">发布成功！</h2>
            <p className="text-gray-500 mb-8 text-sm">你的需求已推送给湾区邻居们。</p>
            <button onClick={onClose} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 transition active:scale-95">知道了</button>
@@ -294,15 +322,104 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   return (
     <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
       <div className="bg-[#FFF8F0] w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="flex justify-between items-center mb-6"><div><h3 className="text-xl font-extrabold text-gray-900">发布需求 <span className="text-xs font-normal bg-white px-2 py-1 rounded-full border border-gray-100 ml-2">Step {step}/3</span></h3></div><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><X size={20}/></button></div>
-        {step === 1 && <div className="space-y-6"><div><label className="block text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">你的目标</label><div className="flex gap-4"><button onClick={() => setForm({...form, type: 'client'})} className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all active:scale-95 ${form.type==='client'?'border-orange-500 bg-orange-50 text-orange-600 shadow-md':'border-transparent bg-white text-gray-400'}`}><span className="text-2xl block mb-2">🙋‍♂️</span> 找帮忙</button><button onClick={() => setForm({...form, type: 'provider'})} className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all active:scale-95 ${form.type==='provider'?'border-green-600 bg-green-50 text-green-700 shadow-md':'border-transparent bg-white text-gray-400'}`}><span className="text-2xl block mb-2">🤝</span> 我接单</button></div></div><div className="flex flex-wrap gap-2">{CATEGORIES.map(c => <button key={c} onClick={() => setForm({...form, category: c})} className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${form.category===c?'bg-gray-900 text-white border-gray-900 shadow-md':'bg-white text-gray-600 border-transparent hover:bg-gray-50'}`}>{c}</button>)}</div></div><button onClick={() => setStep(2)} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold mt-4 shadow-lg hover:bg-gray-800 active:scale-95 transition">下一步</button></div>}
-        {step === 2 && <div className="space-y-4"><input className="w-full p-5 bg-white rounded-2xl font-bold text-lg outline-none placeholder:text-gray-300" placeholder="起个吸引人的标题..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} /><div className="flex gap-3 overflow-x-auto pb-2">{images.map((img,i)=><div key={i} className="relative shrink-0"><img src={img} className="w-20 h-20 rounded-xl object-cover shadow-sm"/><div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white"></div></div>)}<label className="w-20 h-20 shrink-0 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-green-500 hover:text-green-500 text-gray-400 transition bg-white"><Plus/><span className="text-[10px] mt-1">添加图片</span><input type="file" hidden onChange={handleImageUpload}/></label></div><textarea className="w-full p-5 bg-white rounded-2xl h-40 resize-none outline-none placeholder:text-gray-300" placeholder="详细描述你的需求..." value={form.description} onChange={e => setForm({...form, description: e.target.value})}/><div className="flex gap-3"><button onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50">上一步</button><button onClick={()=>setStep(3)} className="flex-[2] py-3 bg-gray-900 text-white rounded-2xl font-bold shadow-lg">下一步</button></div></div>}
-        {step === 3 && <div className="space-y-4"><div className="grid grid-cols-2 gap-3">{REGIONS.map(r => <button key={r} onClick={() => setForm({...form, city: r})} className={`py-3 rounded-2xl text-xs font-bold border transition-all ${form.city===r?'bg-green-600 text-white border-green-600 shadow-md':'bg-white text-gray-500 border-transparent hover:bg-gray-50'}`}>{r}</button>)}</div><div className="bg-white p-2 rounded-2xl"><input className="w-full p-3 bg-transparent outline-none font-bold text-center text-lg" placeholder="💰 预算 (如: $50/小时)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})}/></div><div className="bg-white p-2 rounded-2xl"><input className="w-full p-3 bg-transparent outline-none font-bold text-center text-lg" placeholder="⏰ 时间 (如: 周末)" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})}/></div><div className="flex gap-3 mt-6"><button onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50">上一步</button><button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3 bg-green-700 text-white rounded-2xl font-bold shadow-lg hover:bg-green-800 active:scale-95 transition">{submitting?'发布中...':'确认发布'}</button></div></div>}
+        <div className="flex justify-between items-center mb-6">
+          <div><h3 className="text-xl font-extrabold text-gray-900">发布需求 <span className="text-xs font-normal bg-white px-2 py-1 rounded-full border border-gray-100 ml-2">Step {step}/3</span></h3></div>
+          <button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><X size={20}/></button>
+        </div>
+
+        {step === 1 && (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">你的目标</label>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setForm({...form, type: 'client'})} 
+                  className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all active:scale-95 ${form.type==='client'?'border-orange-500 bg-orange-50 text-orange-600 shadow-md':'border-transparent bg-white text-gray-400'}`}
+                >
+                  <span className="text-2xl block mb-2">🙋‍♂️</span> 找帮忙
+                </button>
+                <button 
+                  onClick={() => setForm({...form, type: 'provider'})} 
+                  className={`flex-1 py-6 rounded-2xl border-2 font-bold transition-all active:scale-95 ${form.type==='provider'?'border-green-600 bg-green-50 text-green-700 shadow-md':'border-transparent bg-white text-gray-400'}`}
+                >
+                  <span className="text-2xl block mb-2">🤝</span> 我接单
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">选择分类</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map(c => (
+                  <button 
+                    key={c} 
+                    onClick={() => setForm({...form, category: c})} 
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${form.category===c?'bg-gray-900 text-white border-gray-900 shadow-md':'bg-white text-gray-600 border-transparent hover:bg-gray-50'}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={() => setStep(2)} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold mt-4 shadow-lg hover:bg-gray-800 active:scale-95 transition">下一步</button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4">
+            <input className="w-full p-5 bg-white rounded-2xl font-bold text-lg outline-none placeholder:text-gray-300" placeholder="起个吸引人的标题..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {images.map((img,i)=> (
+                <div key={i} className="relative shrink-0">
+                  <img src={img} className="w-20 h-20 rounded-xl object-cover shadow-sm"/>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-white"></div>
+                </div>
+              ))}
+              <label className="w-20 h-20 shrink-0 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-green-500 hover:text-green-500 text-gray-400 transition bg-white">
+                <Plus/><span className="text-[10px] mt-1">添加图片</span>
+                <input type="file" hidden onChange={handleImageUpload}/>
+              </label>
+            </div>
+            <textarea className="w-full p-5 bg-white rounded-2xl h-40 resize-none outline-none placeholder:text-gray-300" placeholder="详细描述你的需求..." value={form.description} onChange={e => setForm({...form, description: e.target.value})}/>
+            <div className="flex gap-3">
+              <button onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50">上一步</button>
+              <button onClick={()=>setStep(3)} className="flex-[2] py-3 bg-gray-900 text-white rounded-2xl font-bold shadow-lg">下一步</button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {REGIONS.map(r => (
+                <button 
+                  key={r} 
+                  onClick={() => setForm({...form, city: r})} 
+                  className={`py-3 rounded-2xl text-xs font-bold border transition-all ${form.city===r?'bg-green-600 text-white border-green-600 shadow-md':'bg-white text-gray-500 border-transparent hover:bg-gray-50'}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <div className="bg-white p-2 rounded-2xl">
+              <input className="w-full p-3 bg-transparent outline-none font-bold text-center text-lg" placeholder="💰 预算 (如: $50/小时)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})}/>
+            </div>
+            <div className="bg-white p-2 rounded-2xl">
+              <input className="w-full p-3 bg-transparent outline-none font-bold text-center text-lg" placeholder="⏰ 时间 (如: 周末)" value={form.timeInfo} onChange={e => setForm({...form, timeInfo: e.target.value})}/>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50">上一步</button>
+              <button onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3 bg-green-700 text-white rounded-2xl font-bold shadow-lg hover:bg-green-800 active:scale-95 transition">
+                {submitting?'发布中...':'确认发布'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
+// --- Login Modal ---
 const LoginModal = ({ onClose, onLogin }: any) => {
   const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
@@ -407,6 +524,7 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser }: any)
   );
 };
 
+// 🌟 MAIN APP 组件
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [tab, setTab] = useState('home');
@@ -427,9 +545,8 @@ export default function App() {
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [categoryFilter, setCategoryFilter] = useState<string>('全部');
   
-  // ✨ 新增 UI 状态
-  const [viewingImage, setViewingImage] = useState<string | null>(null); // 灯箱图片
-  const [sharingPost, setSharingPost] = useState<PostData | null>(null); // 分享帖子
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [sharingPost, setSharingPost] = useState<PostData | null>(null);
 
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
@@ -539,7 +656,7 @@ export default function App() {
            <button onClick={()=>setTab('profile')} className={`transition active:scale-90 ${tab==='profile'?'text-green-400':'text-gray-500'}`}><UserIcon size={24}/></button>
         </div>
 
-        {/* Global Modals */}
+        {/* Modals */}
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser}/>}
         {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)}/>}
         {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} />}
