@@ -9,16 +9,14 @@ import {
   Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap
 } from 'lucide-react';
 
-// --- 新增：引入我们刚刚拆分出去的组件和类型 ---
 import Avatar from './components/Avatar';
 import PostCard from './components/PostCard';
+import Toast from './components/Toast'; // ✨ 确保你已经新建了这个文件
 import { UserData, PostData, Conversation, Message, Role, PostType, AdData } from './types';
 
-// BAYLINK APP V25.6 - 重构版 (App.tsx)
+// BAYLINK APP V25.7 - UX Polish Edition (最终完美版)
 
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
-
-// --- 注意：旧的类型定义已经被移动到 src/types/index.ts，这里不再需要了 ---
 
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
@@ -51,9 +49,7 @@ const api = {
   reportPost: async (postId: string, reason: string) => await api.request(`/posts/${postId}/report`, { method: 'POST', body: JSON.stringify({ reason }) })
 };
 
-// --- 组件部分 ---
-
-// 注意：Avatar 组件已被移动到 src/components/Avatar.tsx，这里删除了旧代码
+// --- 子组件 ---
 
 const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <button onClick={onClick} className={`px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 active:scale-95 whitespace-nowrap shadow-sm ${active ? 'bg-gray-900 text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}>{label}</button>
@@ -66,18 +62,23 @@ const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => 
   </div>
 );
 
-const ShareModal = ({ post, onClose }: { post: PostData, onClose: () => void }) => {
+const ShareModal = ({ post, onClose, showToast }: any) => {
   const [copied, setCopied] = useState(false);
   const shareUrl = window.location.href; 
   const handleCopy = () => {
     navigator.clipboard.writeText(`【${post.title}】\n${post.description.slice(0,50)}...\n点击查看: ${shareUrl}`);
-    setCopied(true); setTimeout(() => setCopied(false), 2000);
+    setCopied(true); 
+    showToast('链接已复制到剪贴板', 'success');
+    setTimeout(() => setCopied(false), 2000);
   };
   return (
     <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl transform transition-all scale-100">
          <div className="bg-gradient-to-br from-green-700 to-teal-600 p-8 text-white text-center relative overflow-hidden">
-            <div className="relative z-10"><h3 className="text-2xl font-black mb-1 tracking-tight">BAYLINK</h3><p className="text-xs opacity-80 uppercase tracking-widest font-medium">湾区生活 · 触手可及</p></div>
+            <div className="relative z-10">
+                <h3 className="text-2xl font-black mb-1 tracking-tight">BAYLINK</h3>
+                <p className="text-[10px] opacity-80 uppercase tracking-[0.2em] font-medium mt-1">湾区华人互助平台</p>
+            </div>
             <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-yellow-400/20 rounded-full blur-3xl"></div>
          </div>
@@ -98,13 +99,13 @@ const ShareModal = ({ post, onClose }: { post: PostData, onClose: () => void }) 
   );
 };
 
-const InfoPage = ({ title, storageKey, user, onBack }: any) => {
+const InfoPage = ({ title, storageKey, user, onBack, showToast }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [loading, setLoading] = useState(false);
   useEffect(() => { const load = async () => { setLoading(true); try { const data = await api.request(`/content/${storageKey}`); setContent(data.value || '暂无内容'); setEditValue(data.value || ''); } catch (e) { setContent('加载失败'); } finally { setLoading(false); } }; load(); }, [storageKey]);
-  const handleSave = async () => { setLoading(true); try { await api.request('/content', { method: 'POST', body: JSON.stringify({ key: storageKey, value: editValue }) }); setContent(editValue); setIsEditing(false); alert('更新成功'); } catch (e) { alert('保存失败'); } finally { setLoading(false); } };
+  const handleSave = async () => { setLoading(true); try { await api.request('/content', { method: 'POST', body: JSON.stringify({ key: storageKey, value: editValue }) }); setContent(editValue); setIsEditing(false); showToast('页面内容已更新', 'success'); } catch (e) { showToast('保存失败', 'error'); } finally { setLoading(false); } };
   return (
     <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10">
@@ -116,8 +117,6 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
     </div>
   );
 };
-
-// 注意：PostCard 组件已被移动到 src/components/PostCard.tsx，这里删除了旧代码
 
 const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   const [myPosts, setMyPosts] = useState<PostData[]>([]);
@@ -140,10 +139,10 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   );
 };
 
-const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
+const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }: any) => {
     const [profile, setProfile] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    useEffect(() => { const load = async () => { try { setProfile(await api.getUserProfile(userId)); } catch (e) { alert('无法获取用户信息'); onClose(); } finally { setLoading(false); } }; load(); }, [userId]);
+    useEffect(() => { const load = async () => { try { setProfile(await api.getUserProfile(userId)); } catch (e) { showToast('无法获取用户信息', 'error'); onClose(); } finally { setLoading(false); } }; load(); }, [userId]);
     if (loading || !profile) return <div className="fixed inset-0 z-[100] bg-white/90 flex items-center justify-center"><Loader2 className="animate-spin text-green-700"/></div>;
     return (
         <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
@@ -163,11 +162,11 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
     );
 };
 
-const EditProfileModal = ({ user, onClose, onUpdate }: any) => {
+const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '', socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }});
     const [saving, setSaving] = useState(false);
-    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file && file.size < 1024*1024) { const reader = new FileReader(); reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); reader.readAsDataURL(file); } else { alert('图片需小于1MB'); } };
-    const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); } catch (e) { alert('保存失败'); } finally { setSaving(false); } };
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file && file.size < 1024*1024) { const reader = new FileReader(); reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); reader.readAsDataURL(file); } else { showToast('图片需小于1MB', 'error'); } };
+    const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); showToast('资料已更新', 'success'); } catch (e) { showToast('保存失败', 'error'); } finally { setSaving(false); } };
     return (
         <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
              <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
@@ -190,14 +189,14 @@ const EditProfileModal = ({ user, onClose, onUpdate }: any) => {
     );
 };
 
-const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
+const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Partial<AdData> | null>(null);
   const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch {} };
   useEffect(() => { fetchAds(); }, []);
-  const handleSaveAd = async () => { if (!editingAd?.title) return; try { await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) }); setEditingAd(null); setIsManagerOpen(false); fetchAds(); } catch {} };
-  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); } catch {} };
+  const handleSaveAd = async () => { if (!editingAd?.title) return; try { await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) }); setEditingAd(null); setIsManagerOpen(false); fetchAds(); showToast('推荐已发布', 'success'); } catch {} };
+  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch {} };
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-gray-900 text-sm flex items-center gap-1"><Sparkles size={14} className="text-orange-500 fill-orange-500"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-gray-800 text-white px-2 py-1 rounded-md font-bold hover:bg-green-700 transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
@@ -208,7 +207,7 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
 };
 
 // --- CreatePostModal (已完全修复格式) ---
-const CreatePostModal = ({ onClose, onCreated, user }: any) => {
+const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
   const [images, setImages] = useState<string[]>([]);
@@ -218,7 +217,7 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { 
     const files = e.target.files; 
     if (files) { 
-      if (images.length + files.length > 3) return alert('最多3张'); 
+      if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error'); 
       Array.from(files).forEach(f => { 
         const r = new FileReader(); 
         r.onloadend = () => setImages(p => [...p, r.result as string].slice(0,3)); 
@@ -228,14 +227,14 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   };
   
   const handleSubmit = async () => {
-    if (!form.title || !form.budget) return alert('请完善信息');
+    if (!form.title || !form.budget) return showToast('请完善标题和预算信息', 'error');
     setSubmitting(true);
     try { 
       await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) }); 
       onCreated(); 
       setIsSuccess(true); 
     } catch (err: any) { 
-      alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); 
+      showToast(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败，请稍后重试', 'error'); 
       setSubmitting(false); 
     } 
   };
@@ -357,7 +356,7 @@ const CreatePostModal = ({ onClose, onCreated, user }: any) => {
 };
 
 // --- Login Modal ---
-const LoginModal = ({ onClose, onLogin }: any) => {
+const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [forgotEmail, setForgotEmail] = useState('');
@@ -365,16 +364,28 @@ const LoginModal = ({ onClose, onLogin }: any) => {
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setError('');
-    if (mode === 'forgot') { if(!forgotEmail) return setError('请输入邮箱'); setLoading(true); setTimeout(() => { alert(`链接已发送至 ${forgotEmail}`); setLoading(false); setMode('login'); }, 1500); return; }
+    if (mode === 'forgot') { if(!forgotEmail) return setError('请输入邮箱'); setLoading(true); setTimeout(() => { showToast(`重置链接已发送至 ${forgotEmail}`, 'success'); setLoading(false); setMode('login'); }, 1500); return; }
     setLoading(true);
-    try { const user = await api.request(mode==='register'?'/auth/register':'/auth/login', { method: 'POST', body: JSON.stringify(form) }); localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose(); } catch (e:any) { let msg = e.message || '失败'; if (msg.includes('User not found')) msg = '该账号尚未注册'; else if (msg.includes('Invalid password')) msg = '密码错误'; else if (msg.includes('User exists')) msg = '该邮箱已被注册'; setError(msg); } finally { setLoading(false); }
+    try { 
+        const user = await api.request(mode==='register'?'/auth/register':'/auth/login', { method: 'POST', body: JSON.stringify(form) }); 
+        localStorage.setItem('currentUser', JSON.stringify(user)); 
+        onLogin(user); 
+        onClose(); 
+        showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
+    } catch (e:any) { 
+        let msg = e.message || '失败'; 
+        if (msg.includes('User not found')) msg = '该账号尚未注册'; 
+        else if (msg.includes('Invalid password')) msg = '密码错误'; 
+        else if (msg.includes('User exists')) msg = '该邮箱已被注册'; 
+        setError(msg); 
+    } finally { setLoading(false); }
   };
   return (
      <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center p-6 z-[60] backdrop-blur-md animate-in fade-in">
        <div className="bg-[#FFF8F0] p-8 rounded-[2.5rem] shadow-2xl w-full max-w-xs relative overflow-hidden">
          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
          <h2 className="text-3xl font-black mb-1 text-center text-gray-900">BAYLINK</h2>
-         <p className="text-center text-xs text-gray-400 mb-8 tracking-widest uppercase">湾区生活 · 触手可及</p>
+         <p className="text-center text-[10px] text-gray-400 mb-8 tracking-[0.2em] font-medium uppercase">湾区华人互助平台</p>
          {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-xs font-medium flex items-center gap-2 animate-pulse"><AlertCircle size={14}/>{error}</div>}
          {mode === 'forgot' ? (<form onSubmit={handleSubmit} className="space-y-4"><input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" /><button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">{loading ? '...' : '发送重置邮件'}</button><button type="button" onClick={()=>setMode('login')} className="w-full text-xs text-center mt-2 text-gray-500">返回登录</button></form>) : (<form onSubmit={handleSubmit} className="space-y-3"><input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} placeholder="邮箱账号" /><input required type="password" className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} placeholder="密码" />{mode === 'register' && <><input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.nickname} onChange={e=>setForm({...form, nickname:e.target.value})} placeholder="社区昵称" /><input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.contactValue} onChange={e=>setForm({...form, contactValue:e.target.value})} placeholder="微信号/电话" /></>}{mode === 'login' && <div className="text-right"><button type="button" onClick={()=>setMode('forgot')} className="text-[10px] font-bold text-gray-400 hover:text-gray-900">忘记密码?</button></div>}<button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition">{loading ? 'Loading...' : (mode === 'register' ? '注册账号' : '立即登录')}</button></form>)}{mode !== 'forgot' && <button onClick={()=>setMode(mode==='login'?'register':'login')} className="w-full mt-6 text-xs text-center text-gray-500">{mode==='login'?'还没有账号？去注册':'已有账号？去登录'}</button>}<button onClick={onClose} className="absolute top-5 right-5 p-2 bg-white rounded-full text-gray-400 hover:text-gray-900 transition"><X size={18}/></button></div>
      </div>
@@ -398,15 +409,15 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
   );
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onImageClick, onShare }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onImageClick, onShare, showToast }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [isReported, setIsReported] = useState(post.isReported);
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
-  const postComment = async () => { if(!currentUser)return onLoginNeeded(); if(!input.trim())return; try{const c = await api.request(`/posts/${post.id}/comments`, { method:'POST', body:JSON.stringify({content:input})}); setComments([...comments,c]); setInput('');}catch{} };
-  const deletePost = async () => { if (!confirm('删除此贴？')) return; try { await api.request(`/posts/${post.id}`, { method: 'DELETE' }); onDeleted(); onClose(); } catch { alert('删除失败'); } };
-  const handleReport = async () => { if(!currentUser) return onLoginNeeded(); if(isReported) return; if(!confirm('确认举报该内容违规？')) return; try { await api.reportPost(post.id, 'user_report'); setIsReported(true); alert('感谢反馈，我们将尽快审核'); } catch { alert('举报失败'); } };
+  const postComment = async () => { if(!currentUser)return onLoginNeeded(); if(!input.trim())return; try{const c = await api.request(`/posts/${post.id}/comments`, { method:'POST', body:JSON.stringify({content:input})}); setComments([...comments,c]); setInput(''); showToast('评论已发送', 'success');}catch{ showToast('评论失败', 'error'); } };
+  const deletePost = async () => { if (!confirm('删除此贴？')) return; try { await api.request(`/posts/${post.id}`, { method: 'DELETE' }); onDeleted(); onClose(); showToast('帖子已删除', 'success'); } catch { showToast('删除失败', 'error'); } };
+  const handleReport = async () => { if(!currentUser) return onLoginNeeded(); if(isReported) return; if(!confirm('确认举报该内容违规？')) return; try { await api.reportPost(post.id, 'user_report'); setIsReported(true); showToast('感谢反馈，我们将尽快审核', 'success'); } catch { showToast('举报失败', 'error'); } };
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-2xl">
@@ -430,7 +441,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   );
 };
 
-const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser }: any) => {
+const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile'>('menu');
   if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40}/></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
   return (
@@ -453,10 +464,10 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser }: any)
            <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20}/></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300"/></button>
         </div>
       )}
-      {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} />}
+      {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
-      {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} />}
-      {subView === 'about' && <InfoPage title="关于我们" storageKey="baylink_about" user={user} onBack={() => setSubView('menu')} />}
+      {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
+      {subView === 'about' && <InfoPage title="关于我们" storageKey="baylink_about" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
     </div>
   );
 };
@@ -485,6 +496,10 @@ export default function App() {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
 
+  // ✨ Toast State
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
+
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
 
@@ -505,13 +520,16 @@ export default function App() {
   };
 
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); };
-  const openChat = async (targetId: string, nickname?: string) => { try { const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() }); } catch { alert('Error'); } };
-  const handleLogout = () => { localStorage.removeItem('currentUser'); setUser(null); setTab('home'); };
+  const openChat = async (targetId: string, nickname?: string) => { try { const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() }); } catch { showToast('无法打开聊天', 'error'); } };
+  const handleLogout = () => { localStorage.removeItem('currentUser'); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
 
   // 🖥️ PC 侧边栏
   const LeftSidebar = () => (
     <div className="hidden lg:flex flex-col w-64 h-screen sticky top-0 p-8 border-r border-gray-200 bg-white/80 backdrop-blur-xl overflow-y-auto">
-      <div className="mb-10 pl-2"><h1 className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-teal-600 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div></h1><span className="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">Connect Bay Area</span></div>
+      <div className="mb-10 pl-2">
+        <h1 className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-teal-600 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div></h1>
+        <span className="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase block mt-1">湾区华人互助平台</span>
+      </div>
       <nav className="space-y-3 flex-1">
         <button onClick={() => setTab('home')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='home'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}><Home size={22}/> 首页</button>
         <button onClick={() => setTab('messages')} className={`w-full text-left px-5 py-4 rounded-2xl font-bold transition flex items-center gap-4 ${tab==='messages'?'bg-gray-900 text-white shadow-lg shadow-gray-200':'text-gray-500 hover:bg-gray-50'}`}><MessageCircle size={22}/> 消息</button>
@@ -548,7 +566,7 @@ export default function App() {
        )}
        <div>
           <h3 className="text-xs font-black text-gray-400 mb-4 uppercase tracking-widest">热门推荐</h3>
-          <OfficialAds isAdmin={false} />
+          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} />
        </div>
        <div className="mt-12 text-[10px] text-gray-300 text-center font-medium">© 2025 BayLink Inc. <br/> Designed for Bay Area Community</div>
     </div>
@@ -556,9 +574,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F2F4F6] flex justify-center lg:justify-between font-sans text-gray-900 relative">
+      {/* ✨ 全局 Toast 容器 */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       <LeftSidebar />
       <div className="w-full max-w-[500px] bg-[#FFF8F0] min-h-screen shadow-2xl relative flex flex-col border-x border-white mx-auto">
-        <div className="lg:hidden">{tab === 'home' && <header className="px-6 pt-safe-top pb-4 flex justify-between items-center bg-[#FFF8F0]/90 backdrop-blur-md z-20 sticky top-0"><div className="flex flex-col"><h1 className="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-teal-600 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1></div><div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer shadow-md active:scale-95 transition"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div></header>}</div>
+        <div className="lg:hidden">{tab === 'home' && <header className="px-6 pt-safe-top pb-4 flex justify-between items-center bg-[#FFF8F0]/90 backdrop-blur-md z-20 sticky top-0">
+            <div className="flex flex-col">
+                <h1 className="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-teal-600 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1>
+                <p className="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase mt-0.5">湾区华人互助平台</p>
+            </div>
+            <div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer shadow-md active:scale-95 transition"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div>
+        </header>}</div>
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
            {tab === 'home' && (
@@ -572,7 +599,7 @@ export default function App() {
 
                    <div className="bg-white p-1.5 rounded-[1.5rem] flex shadow-soft-glow mb-8 border border-white"><button onClick={()=>setFeedType('client')} className={`flex-1 py-3.5 rounded-xl text-sm font-black transition-all ${feedType==='client'?'bg-orange-500 text-white shadow-md':'text-gray-400 hover:bg-gray-50'}`}>🙋‍♂️ 找帮忙</button><button onClick={()=>setFeedType('provider')} className={`flex-1 py-3.5 rounded-xl text-sm font-black transition-all ${feedType==='provider'?'bg-green-600 text-white shadow-md':'text-gray-400 hover:bg-gray-50'}`}>🤝 我接单</button></div>
                    
-                   <div className="lg:hidden"><OfficialAds isAdmin={user?.role==='admin'} /></div>
+                   <div className="lg:hidden"><OfficialAds isAdmin={user?.role==='admin'} showToast={showToast} /></div>
                    
                    {isInitialLoading && posts.length === 0 ? <div className="py-32 text-center space-y-6"><Loader2 className="animate-spin w-12 h-12 text-green-600 mx-auto"/><div className="animate-pulse"><p className="text-gray-900 font-black text-lg">正在连接社区...</p><p className="text-sm text-gray-400 mt-2 font-medium">云端数据加载中，请稍候 ☕️</p></div></div> : posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} />)}
                    
@@ -582,7 +609,7 @@ export default function App() {
            )}
            {tab === 'messages' && <div className="flex flex-col h-full w-full"><div className="px-6 pt-safe-top pb-6 bg-[#FFF8F0]/90 backdrop-blur-md sticky top-0 z-10"><h2 className="text-3xl font-black text-gray-900">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}
            {tab === 'notifications' && <div className="flex-1 flex flex-col items-center justify-center text-gray-300"><div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Bell size={40}/></div><p className="font-bold">暂无通知</p></div>}
-           {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} />}
+           {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} showToast={showToast} />}
         </main>
 
         <div className="lg:hidden absolute bottom-6 left-6 right-6 bg-gray-900/90 backdrop-blur-xl text-white px-6 py-4 rounded-[2rem] flex justify-between items-center z-40 shadow-2xl border border-white/10">
@@ -594,13 +621,13 @@ export default function App() {
         </div>
 
         {/* Modals */}
-        {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser}/>}
-        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)}/>}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} />}
+        {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
+        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)} showToast={showToast}/>}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
         {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)}/>}
-        {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} />}
+        {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
-        {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} />}
+        {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
       </div>
       <RightSidebar />
     </div>
