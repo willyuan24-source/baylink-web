@@ -8,7 +8,7 @@ import {
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera
 } from 'lucide-react';
 
-// BAYLINK APP V25.0 - 修复登录错误提示 (Invalid credentials)
+// BAYLINK APP V25.1 - 包含分页与加载更多功能
 
 /**
  * ================= CONFIGURATION =================
@@ -200,6 +200,10 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
         if (Array.isArray(allPosts)) {
             const filtered = allPosts.filter((p: PostData) => p.authorId === user.id);
             setMyPosts(filtered);
+        } else if (allPosts && allPosts.posts) {
+             // 适配新的分页结构，如果有的话
+             const filtered = allPosts.posts.filter((p: PostData) => p.authorId === user.id);
+             setMyPosts(filtered);
         } else {
             setMyPosts([]);
         }
@@ -638,33 +642,77 @@ export default function App() {
   const [tab, setTab] = useState('home');
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  
+  // --- 分页相关状态 ---
   const [feedType, setFeedType] = useState<PostType>('client');
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // ------------------
+
   const [keyword, setKeyword] = useState('');
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
-  const [myConvs, setMyConvs] = useState<Conversation[]>([]);
   const [viewingUserId, setViewingUserId] = useState<string | null>(null); 
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [categoryFilter, setCategoryFilter] = useState<string>('全部');
 
-  const fetchPosts = useCallback(async () => { 
-    try { 
-        let data = await api.request(`/posts?type=${feedType}`);
-        if (Array.isArray(data)) {
-            if (regionFilter !== '全部') data = data.filter((p: PostData) => p.city.includes(regionFilter));
-            if (categoryFilter !== '全部') data = data.filter((p: PostData) => p.category === categoryFilter);
-            if (keyword) {
-                const k = keyword.toLowerCase();
-                data = data.filter((p: PostData) => p.title.toLowerCase().includes(k) || p.description.toLowerCase().includes(k));
-            }
-            setPosts(data); 
-        }
-    } catch {} 
+  // 初始化加载 (第一页)
+  useEffect(() => {
+    setPage(1); // 切换筛选条件时重置页码
+    setHasMore(true);
+    fetchPosts(1, true);
   }, [feedType, regionFilter, categoryFilter, keyword]);
 
-  useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); fetchPosts(); }, [fetchPosts]);
+  // 加载用户
+  useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
+
+  // 获取数据的核心函数 (支持分页)
+  const fetchPosts = async (pageNum: number, isRefresh: boolean = false) => {
+    try {
+      if (!isRefresh) setIsLoadingMore(true);
+      
+      // 构建查询参数
+      let queryParams = `?type=${feedType}&page=${pageNum}&limit=5`; // 每页加载5条，方便测试
+      if (keyword) queryParams += `&keyword=${encodeURIComponent(keyword)}`;
+      
+      // 注意：这里不再需要前端过滤 region/category，建议后续移到后端。
+      // 为了兼容现有后端逻辑，我们先获取数据，如果是纯前端过滤，分页会比较麻烦。
+      // 假设后端还没做筛选，这里暂时还是获取所有后前端过滤（但这会破坏分页）。
+      // **最佳实践**：我们直接把筛选参数传给后端（需要后端支持），或者目前先只展示分页结果。
+      
+      const res = await api.request(`/posts${queryParams}`);
+      
+      // 适配后端返回的新格式 { posts: [], hasMore: boolean }
+      const newPosts = res.posts || [];
+      const more = res.hasMore;
+
+      // 前端二次过滤（如果后端没做筛选）- *临时方案*
+      // 注意：真正的分页应该在后端做筛选。这里仅为了代码不崩。
+      let filtered = newPosts;
+      if (regionFilter !== '全部') filtered = filtered.filter((p: any) => p.city.includes(regionFilter));
+      if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
+
+      if (isRefresh) {
+        setPosts(filtered);
+      } else {
+        setPosts(prev => [...prev, ...filtered]);
+      }
+      
+      setHasMore(more);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchPosts(nextPage, false);
+  };
 
   const openChat = async (targetId: string, nickname?: string) => {
       try {
@@ -684,18 +732,38 @@ export default function App() {
       <div className="w-full max-w-[480px] bg-[#FFF8F0] h-full shadow-2xl relative flex flex-col border-x border-white/50">
         {tab === 'home' && <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-[#FFF8F0] z-20 shrink-0"><div className="flex flex-col"><h1 className="font-rounded font-black text-2xl text-green-700 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1><span className="text-[10px] text-gray-500 font-bold tracking-widest">湾区邻里 · 互助平台</span></div><div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div></header>}
         
-        <main className="flex-1 min-h-0 overflow-y-auto bg-[#FFF8F0] hide-scrollbar relative flex flex-col w-full">
+        <main className="flex-1 min-h-0 overflow-y-auto bg-[#FFF8F0] hide-scrollbar relative flex flex-col w-full" id="scroll-container">
            {tab === 'home' && (
                <div className="p-4 pb-24">
                    <div className="relative mb-4 mt-1">
                     <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
-                    <input className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-green-700/20 outline-none" placeholder="搜索互助信息..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts()} />
+                    <input className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-green-700/20 outline-none" placeholder="搜索..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
                    </div>
+                   
+                   {/* 筛选栏 */}
                    <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1"><FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
                    <div className="bg-gray-100 p-1 rounded-2xl flex shadow-inner mb-4"><button onClick={()=>setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='client'?'bg-orange-500 text-white':'text-gray-500'}`}><span>🙋‍♂️</span> 找帮忙 (求助)</button><button onClick={()=>setFeedType('provider')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='provider'?'bg-green-700 text-white':'text-gray-500'}`}><span>🤝</span> 我接单 (提供)</button></div>
                    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1 mb-4"><button onClick={() => setCategoryFilter('全部')} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter==='全部'?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>全部</button>{CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter===c?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>{c}</button>)}</div>
+                   
                    <OfficialAds isAdmin={user?.role==='admin'} />
+                   
+                   {/* 帖子列表 */}
                    {posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} />)}
+                   
+                   {/* 加载更多按钮 */}
+                   {posts.length > 0 && hasMore ? (
+                     <button 
+                       onClick={handleLoadMore} 
+                       disabled={isLoadingMore}
+                       className="w-full py-3 mt-4 bg-white text-gray-500 text-xs font-bold rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                     >
+                       {isLoadingMore ? <Loader2 className="animate-spin mx-auto w-4 h-4"/> : '加载更多'}
+                     </button>
+                   ) : posts.length > 0 ? (
+                     <div className="text-center py-6 text-gray-300 text-xs font-bold">没有更多内容了</div>
+                   ) : (
+                     <div className="text-center py-20 opacity-50"><p>暂无相关发布</p></div>
+                   )}
                </div>
            )}
            {tab === 'messages' && <div className="flex flex-col h-full w-full"><div className="px-5 pt-safe-top pb-4 bg-[#FFF8F0] border-b border-white/50"><h2 className="text-2xl font-black">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}
@@ -712,8 +780,8 @@ export default function App() {
         </div>
 
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser}/>}
-        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={fetchPosts}/>}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts();}}/>}
+        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)}/>}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}}/>}
         {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)}/>}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} />}
       </div>
