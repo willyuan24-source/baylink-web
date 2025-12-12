@@ -6,10 +6,10 @@ import {
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle
+  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check
 } from 'lucide-react';
 
-// BAYLINK APP V25.2 - 信任与安全升级版 (Report & Social Links)
+// BAYLINK APP V25.3 - 终极体验版 (PC适配 + 灯箱 + 分享 + 信任安全)
 
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
 
@@ -19,7 +19,7 @@ interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
   bio?: string; avatar?: string;
-  socialLinks?: { linkedin?: string; instagram?: string; }; // ✨ 新增
+  socialLinks?: { linkedin?: string; instagram?: string; };
 }
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
 interface CommentData { id: string; authorId: string; authorName: string; content: string; createdAt: number; parentId?: string; replies?: CommentData[]; }
@@ -29,7 +29,7 @@ interface PostData {
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
   createdAt: number; isContacted?: boolean;
-  isReported?: boolean; // ✨ 新增
+  isReported?: boolean;
 }
 interface Conversation { id: string; otherUser: { id: string; nickname: string; avatar?: string; }; lastMessage?: string; updatedAt: number; }
 interface Message { id: string; senderId: string; type: 'text'|'contact-request'|'contact-share'; content: string; createdAt: number; }
@@ -73,6 +73,63 @@ const FilterTag = ({ label, active, onClick }: { label: string, active: boolean,
   <button onClick={onClick} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap border shadow-sm ${active ? 'bg-green-700 text-white border-green-700 shadow-green-900/20' : 'bg-white text-gray-600 border-gray-200 hover:border-green-700/30 hover:text-gray-900'}`}>{label}</button>
 );
 
+// ✨ 全屏图片查看器 (Lightbox)
+const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => (
+  <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+    <button onClick={onClose} className="absolute top-6 right-6 p-3 bg-white/10 text-white rounded-full hover:bg-white/30 transition"><X size={24}/></button>
+    <img src={src} className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl scale-in-95 animate-in duration-300" onClick={e => e.stopPropagation()} />
+  </div>
+);
+
+// ✨ 分享海报模态框
+const ShareModal = ({ post, onClose }: { post: PostData, onClose: () => void }) => {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = window.location.href; // 简单起见，分享当前首页，实际可改为具体post链接
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`【${post.title}】\n${post.description.slice(0,50)}...\n点击查看: ${shareUrl}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl transform transition-all scale-100">
+         <div className="bg-green-700 p-6 text-white text-center relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-xl font-black mb-1">BAYLINK</h3>
+              <p className="text-xs opacity-80 uppercase tracking-widest">湾区邻里互助</p>
+            </div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl"></div>
+         </div>
+         <div className="p-6">
+            <div className="flex gap-3 items-center mb-4">
+               <Avatar src={post.author.avatar} name={post.author.nickname} size={10} />
+               <div>
+                  <div className="font-bold text-gray-900">{post.author.nickname}</div>
+                  <div className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
+               </div>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">{post.title}</h2>
+            <div className="bg-gray-50 p-3 rounded-xl text-sm text-gray-600 mb-6 line-clamp-4 leading-relaxed border border-gray-100">
+               {post.description}
+            </div>
+            <div className="flex gap-3">
+               <button onClick={handleCopy} className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                  {copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? '已复制' : '复制链接'}
+               </button>
+               <button onClick={onClose} className="p-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition"><X size={20}/></button>
+            </div>
+         </div>
+         <div className="bg-gray-50 p-3 text-center text-[10px] text-gray-400 border-t border-gray-100">
+            截图分享给朋友，或复制链接传播
+         </div>
+      </div>
+    </div>
+  );
+};
+
 const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -94,7 +151,8 @@ const InfoPage = ({ title, storageKey, user, onBack }: any) => {
   );
 };
 
-const PostCard = ({ post, onClick, onContactClick, onAvatarClick }: any) => {
+// 🏠 Post Card
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick }: any) => {
   const isProvider = post.type === 'provider';
   return (
     <div onClick={onClick} className="bg-white p-5 rounded-2xl shadow-card border border-white hover:border-green-700/20 transition-all duration-300 cursor-pointer mb-3 group active:scale-[0.98]">
@@ -105,7 +163,18 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick }: any) => {
         </div>
         <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${isProvider ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>{isProvider ? '我帮忙' : '求帮助'}</div>
       </div>
-      <div className="mb-3"><h3 className="font-bold text-[15px] text-gray-900 mb-1.5 line-clamp-1 group-hover:text-green-700 transition-colors">{post.title}</h3><p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{post.description}</p></div>
+      <div className="mb-3">
+          <h3 className="font-bold text-[15px] text-gray-900 mb-1.5 line-clamp-1 group-hover:text-green-700 transition-colors">{post.title}</h3>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{post.description}</p>
+          {/* 预览图 */}
+          {post.imageUrls && post.imageUrls.length > 0 && (
+             <div className="flex gap-2 mt-3 overflow-hidden">
+                {post.imageUrls.slice(0,3).map((url:string, i:number) => (
+                    <img key={i} src={url} onClick={(e)=>{e.stopPropagation(); onImageClick(url)}} className="w-16 h-16 object-cover rounded-lg bg-gray-100 hover:opacity-90 transition" />
+                ))}
+             </div>
+          )}
+      </div>
       <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3"><div className="flex flex-wrap gap-1.5"><span className="bg-[#FFF8F0] px-2 py-0.5 rounded text-[10px] text-gray-600 font-medium border border-gray-100">{post.category}</span><span className="bg-[#FFF8F0] px-2 py-0.5 rounded text-[10px] text-gray-600 font-medium border border-gray-100">{post.city}</span></div><div className="font-bold text-sm text-orange-500 font-mono">{post.budget}</div></div>
       <div className="flex items-center justify-between"><div className="flex gap-4 text-gray-400"><button className="flex items-center gap-1 text-xs hover:text-orange-500 transition"><Heart size={16}/> {post.likesCount}</button><button className="flex items-center gap-1 text-xs hover:text-green-700 transition"><MessageSquare size={16}/> {post.commentsCount}</button></div><button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-xs bg-gray-900 text-white px-4 py-2 rounded-full font-bold shadow-md hover:bg-green-700 transition flex items-center gap-1"><MessageCircle size={12} /> 私信 TA</button></div>
     </div>
@@ -119,7 +188,7 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   return (
     <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center gap-2 bg-[#FFF8F0]/95 backdrop-blur sticky top-0 pt-safe-top shrink-0 z-10"><button onClick={onBack} className="p-2 hover:bg-white rounded-full transition"><ChevronLeft size={24} className="text-gray-900"/></button><span className="font-bold text-lg text-gray-900">我的发布</span></div>
-      <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">{loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={()=>{}} onAvatarClick={()=>{}} />) : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p></div>}</div>
+      <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">{loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={()=>{}} onAvatarClick={()=>{}} onImageClick={()=>{}} />) : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p></div>}</div>
     </div>
   );
 };
@@ -133,7 +202,6 @@ const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | nul
   );
 };
 
-// 👤 Public Profile Modal (已更新：显示社交链接)
 const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
     const [profile, setProfile] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -149,13 +217,7 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
                  <Avatar src={profile.avatar} name={profile.nickname} size={24} className="mb-4 shadow-lg border-4 border-white"/>
                  <h2 className="text-2xl font-black text-gray-900 mb-1">{profile.nickname}</h2>
                  <div className="flex gap-2 mb-6"><span className={`text-xs px-2 py-0.5 rounded font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>{profile.role === 'admin' ? '管理员' : '认证用户'}</span><span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold">信用极好</span></div>
-                 {/* ✨ 社交链接展示 */}
-                 {profile.socialLinks && (profile.socialLinks.linkedin || profile.socialLinks.instagram) && (
-                   <div className="flex gap-4 mb-6">
-                     {profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}
-                     {profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}
-                   </div>
-                 )}
+                 {profile.socialLinks && (profile.socialLinks.linkedin || profile.socialLinks.instagram) && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
                  <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6"><h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3><p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">{profile.bio || "这个用户很懒，还没有写简介。"}</p></div>
                  {currentUser?.id !== profile.id && <button onClick={() => { onChat(profile.id, profile.nickname); onClose(); }} className="w-full py-4 bg-green-700 text-white rounded-2xl font-bold shadow-lg shadow-green-900/20 active:scale-95 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> 发送私信</button>}
              </div>
@@ -163,12 +225,8 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser }: any) => {
     );
 };
 
-// ✏️ Edit Profile Modal (已更新：编辑社交链接)
 const EditProfileModal = ({ user, onClose, onUpdate }: any) => {
-    const [form, setForm] = useState({ 
-      nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '',
-      socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }
-    });
+    const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '', socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }});
     const [saving, setSaving] = useState(false);
     const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file && file.size < 1024*1024) { const reader = new FileReader(); reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); reader.readAsDataURL(file); } else { alert('图片需小于1MB'); } };
     const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); } catch (e) { alert('保存失败'); } finally { setSaving(false); } };
@@ -182,7 +240,6 @@ const EditProfileModal = ({ user, onClose, onUpdate }: any) => {
                  <div className="space-y-4">
                      <div><label className="block text-xs font-bold text-gray-500 mb-1.5">昵称</label><input className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm font-medium" value={form.nickname} onChange={e => setForm({...form, nickname: e.target.value})} /></div>
                      <div><label className="block text-xs font-bold text-gray-500 mb-1.5">个人简介</label><textarea className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm h-32 resize-none font-medium" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="介绍一下你自己..." /></div>
-                     {/* ✨ 社交链接输入 */}
                      <div><label className="block text-xs font-bold text-gray-500 mb-1.5 flex items-center gap-1"><Linkedin size={12}/> LinkedIn URL</label><input className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm font-medium" placeholder="https://linkedin.com/in/..." value={form.socialLinks.linkedin} onChange={e => setForm({...form, socialLinks: {...form.socialLinks, linkedin: e.target.value}})} /></div>
                      <div><label className="block text-xs font-bold text-gray-500 mb-1.5 flex items-center gap-1"><Instagram size={12}/> Instagram URL</label><input className="w-full p-4 bg-white rounded-xl border-none outline-none text-sm font-medium" placeholder="https://instagram.com/..." value={form.socialLinks.instagram} onChange={e => setForm({...form, socialLinks: {...form.socialLinks, instagram: e.target.value}})} /></div>
                  </div>
@@ -208,13 +265,44 @@ const OfficialAds = ({ isAdmin }: { isAdmin: boolean }) => {
   );
 };
 
+// ✨ Create Post Modal (优化：发布成功卡片)
 const CreatePostModal = ({ onClose, onCreated, user }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
   const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // ✨ 新增成功状态
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const files = e.target.files; if (files) { if (images.length + files.length > 3) return alert('最多3张'); Array.from(files).forEach(f => { const r = new FileReader(); r.onloadend = () => setImages(p => [...p, r.result as string].slice(0,3)); r.readAsDataURL(f); }); } };
-  const handleSubmit = async () => { if (!form.title || !form.budget) return alert('请完善信息'); setSubmitting(true); try { await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) }); onCreated(); onClose(); } catch (err: any) { alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); } finally { setSubmitting(false); } };
+  
+  const handleSubmit = async () => {
+    if (!form.title || !form.budget) return alert('请完善信息');
+    setSubmitting(true);
+    try {
+      await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) });
+      onCreated();
+      setIsSuccess(true); // ✨ 显示成功卡片
+    } catch (err: any) { 
+      alert(err.message === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限' : '发布失败'); 
+      setSubmitting(false);
+    } 
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-[70] animate-in zoom-in-95">
+        <div className="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl m-4">
+           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 animate-bounce">
+              <CheckCircle size={40} />
+           </div>
+           <h2 className="text-2xl font-black text-gray-900 mb-2">发布成功！</h2>
+           <p className="text-gray-500 mb-8 text-sm">你的需求已推送给湾区邻居们。</p>
+           <button onClick={onClose} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 transition">知道了</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
       <div className="bg-[#FFF8F0] w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -263,8 +351,8 @@ const ChatView = ({ currentUser, conversation, onClose }: any) => {
   );
 };
 
-// ✨ Post Detail Modal (已更新：增加举报功能)
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted }: any) => {
+// ✨ Post Detail Modal (优化：支持分享海报 + 图片点击预览)
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onImageClick, onShare }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [isReported, setIsReported] = useState(post.isReported);
@@ -279,7 +367,8 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
       <div className="flex items-center justify-between px-4 py-3 border-b pt-safe-top">
           <button onClick={onClose}><X/></button>
           <div className="flex gap-4">
-              {/* ✨ 举报按钮 */}
+              {/* ✨ 分享按钮 */}
+              <button onClick={() => onShare(post)} className="text-gray-400 hover:text-green-700 transition"><Share2 size={20}/></button>
               {!isOwner && <button onClick={handleReport} className={`${isReported ? 'text-gray-300' : 'text-gray-400 hover:text-red-500'}`} disabled={isReported}><AlertTriangle size={20}/></button>}
               {(isAdmin || isOwner)&&<button onClick={deletePost}><Trash2 className="text-red-500"/></button>}
           </div>
@@ -287,8 +376,8 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
       <div className="flex-1 overflow-y-auto p-5 pb-24 bg-[#FFF8F0]/30">
          <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
          <div className="flex gap-3 mb-4"><Avatar src={post.author.avatar} name={post.author.nickname}/><span className="font-bold">{post.author.nickname}</span></div>
-         <p className="mb-4">{post.description}</p>
-         {post.imageUrls.map((u:string,i:number)=><img key={i} src={u} className="w-full rounded-xl mb-2"/>)}
+         <p className="mb-4 whitespace-pre-wrap">{post.description}</p>
+         {post.imageUrls.map((u:string,i:number)=><img key={i} src={u} onClick={()=>onImageClick(u)} className="w-full rounded-xl mb-2 shadow-sm cursor-zoom-in hover:opacity-95 transition"/>)}
          <div className="mt-6"><h3>评论</h3>{comments.map((c:any)=><div key={c.id} className="bg-white p-2 mt-2 rounded">{c.content}</div>)}</div>
       </div>
       <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe"><input className="flex-1 bg-gray-100 rounded-full px-4 py-2" value={input} onChange={e=>setInput(e.target.value)}/><button onClick={postComment}><Send/></button>{!isOwner&&<button onClick={()=>{if(!currentUser)return onLoginNeeded();onOpenChat(post.authorId,post.author.nickname);}} className="bg-gray-900 text-white px-4 py-2 rounded-full">私信</button>}</div>
@@ -319,6 +408,7 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser }: any)
   );
 };
 
+// 🌟 MAIN APP (Responsive PC Layout)
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [tab, setTab] = useState('home');
@@ -330,7 +420,6 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  // ✨ 新增：首次加载状态，解决冷启动白屏问题
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const [keyword, setKeyword] = useState('');
@@ -339,6 +428,10 @@ export default function App() {
   const [viewingUserId, setViewingUserId] = useState<string | null>(null); 
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [categoryFilter, setCategoryFilter] = useState<string>('全部');
+  
+  // ✨ 新增 UI 状态
+  const [viewingImage, setViewingImage] = useState<string | null>(null); // 灯箱图片
+  const [sharingPost, setSharingPost] = useState<PostData | null>(null); // 分享帖子
 
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
@@ -346,19 +439,14 @@ export default function App() {
   const fetchPosts = async (pageNum: number, isRefresh: boolean = false) => {
     try {
       if (!isRefresh) setIsLoadingMore(true); else setIsInitialLoading(true);
-      
       let queryParams = `?type=${feedType}&page=${pageNum}&limit=5`;
       if (keyword) queryParams += `&keyword=${encodeURIComponent(keyword)}`;
-      
       const res = await api.request(`/posts${queryParams}`);
       const newPosts = res.posts || [];
       const more = res.hasMore;
-
-      // 简单的前端过滤(防抖动)
       let filtered = newPosts;
       if (regionFilter !== '全部') filtered = filtered.filter((p: any) => p.city.includes(regionFilter));
       if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
-
       if (isRefresh) setPosts(filtered); else setPosts(prev => [...prev, ...filtered]);
       setHasMore(more);
     } catch (e) { console.error(e); } finally { setIsLoadingMore(false); setIsInitialLoading(false); }
@@ -368,28 +456,92 @@ export default function App() {
   const openChat = async (targetId: string, nickname?: string) => { try { const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() }); } catch { alert('Error'); } };
   const handleLogout = () => { localStorage.removeItem('currentUser'); setUser(null); setTab('home'); };
 
+  // 🖥️ PC 侧边栏导航组件
+  const LeftSidebar = () => (
+    <div className="hidden lg:flex flex-col w-64 h-screen sticky top-0 p-6 border-r border-gray-200 bg-[#FFF8F0]/50 backdrop-blur-sm overflow-y-auto">
+      <div className="mb-8 pl-2"><h1 className="font-rounded font-black text-2xl text-green-700 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1><span className="text-[10px] text-gray-500 font-bold tracking-widest">湾区邻里 · 互助平台</span></div>
+      <nav className="space-y-2 flex-1">
+        <button onClick={() => setTab('home')} className={`w-full text-left px-4 py-3 rounded-xl font-bold transition flex items-center gap-3 ${tab==='home'?'bg-green-100 text-green-800':'text-gray-600 hover:bg-white'}`}><Home size={20}/> 首页</button>
+        <button onClick={() => setTab('messages')} className={`w-full text-left px-4 py-3 rounded-xl font-bold transition flex items-center gap-3 ${tab==='messages'?'bg-green-100 text-green-800':'text-gray-600 hover:bg-white'}`}><MessageCircle size={20}/> 消息</button>
+        <button onClick={() => setTab('profile')} className={`w-full text-left px-4 py-3 rounded-xl font-bold transition flex items-center gap-3 ${tab==='profile'?'bg-green-100 text-green-800':'text-gray-600 hover:bg-white'}`}><UserIcon size={20}/> 我的</button>
+      </nav>
+      {tab === 'home' && (
+        <div className="mt-8">
+           <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase">分类浏览</h3>
+           <div className="flex flex-wrap gap-2">
+             <button onClick={() => setCategoryFilter('全部')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${categoryFilter==='全部'?'bg-gray-900 text-white':'bg-white text-gray-600 hover:bg-gray-100'}`}>全部</button>
+             {CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${categoryFilter===c?'bg-gray-900 text-white':'bg-white text-gray-600 hover:bg-gray-100'}`}>{c}</button>)}
+           </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // 🖥️ PC 右侧信息栏组件
+  const RightSidebar = () => (
+    <div className="hidden lg:block w-80 h-screen sticky top-0 p-6 border-l border-gray-200 bg-[#FFF8F0]/50 backdrop-blur-sm overflow-y-auto">
+       {user ? (
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+             <div className="flex items-center gap-3 mb-3">
+                <Avatar src={user.avatar} name={user.nickname} size={12} />
+                <div><div className="font-bold text-gray-900">{user.nickname}</div><div className="text-xs text-gray-500">{user.role==='admin'?'管理员':'认证用户'}</div></div>
+             </div>
+             <button onClick={() => setShowCreate(true)} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"><Plus size={16}/> 发布新需求</button>
+          </div>
+       ) : (
+          <div className="bg-green-700 p-6 rounded-3xl shadow-lg shadow-green-900/20 text-white mb-6 text-center">
+             <h3 className="font-bold text-lg mb-2">加入 BayLink</h3>
+             <p className="text-sm opacity-90 mb-4">连接湾区华人，互助更简单</p>
+             <button onClick={() => setShowLogin(true)} className="w-full py-3 bg-white text-green-800 rounded-xl font-bold text-sm hover:bg-green-50 transition">立即登录 / 注册</button>
+          </div>
+       )}
+       <div>
+          <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase">热门推荐</h3>
+          <OfficialAds isAdmin={false} />
+       </div>
+       <div className="mt-8 text-[10px] text-gray-400 text-center">
+          © 2025 BayLink. All rights reserved.
+       </div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 bg-[#FFF8F0] flex justify-center font-sans text-gray-900">
-      <div className="w-full max-w-[480px] bg-[#FFF8F0] h-full shadow-2xl relative flex flex-col border-x border-white/50">
-        {tab === 'home' && <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-[#FFF8F0] z-20 shrink-0"><div className="flex flex-col"><h1 className="font-rounded font-black text-2xl text-green-700 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1><span className="text-[10px] text-gray-500 font-bold tracking-widest">湾区邻里 · 互助平台</span></div><div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div></header>}
+    <div className="min-h-screen bg-[#FAFAFA] flex justify-center lg:justify-between font-sans text-gray-900 relative">
+      
+      {/* PC 左侧栏 */}
+      <LeftSidebar />
+
+      {/* 移动端核心区域 (中间) */}
+      <div className="w-full max-w-[480px] bg-[#FFF8F0] min-h-screen shadow-2xl relative flex flex-col border-x border-white/50 mx-auto">
+        {/* Mobile Header (只在移动端显示) */}
+        <div className="lg:hidden">
+            {tab === 'home' && <header className="px-5 pt-safe-top pb-2 flex justify-between items-center bg-[#FFF8F0] z-20 shrink-0"><div className="flex flex-col"><h1 className="font-rounded font-black text-2xl text-green-700 tracking-tighter flex items-center gap-1">BAYLINK <div className="w-2 h-2 bg-orange-500 rounded-full mt-1"></div></h1><span className="text-[10px] text-gray-500 font-bold tracking-widest">湾区邻里 · 互助平台</span></div><div onClick={()=>!user&&setShowLogin(true)} className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold cursor-pointer"><Avatar src={user?.avatar} name={user?.nickname} size={10}/></div></header>}
+        </div>
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-[#FFF8F0] hide-scrollbar relative flex flex-col w-full" id="scroll-container">
            {tab === 'home' && (
                <div className="p-4 pb-24">
                    <div className="relative mb-4 mt-1"><Search className="absolute left-4 top-3.5 text-gray-400" size={18} /><input className="w-full bg-white rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-green-700/20 outline-none" placeholder="搜索..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} /></div>
-                   <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1"><FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
-                   <div className="bg-gray-100 p-1 rounded-2xl flex shadow-inner mb-4"><button onClick={()=>setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='client'?'bg-orange-500 text-white':'text-gray-500'}`}><span>🙋‍♂️</span> 找帮忙 (求助)</button><button onClick={()=>setFeedType('provider')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='provider'?'bg-green-700 text-white':'text-gray-500'}`}><span>🤝</span> 我接单 (提供)</button></div>
-                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1 mb-4"><button onClick={() => setCategoryFilter('全部')} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter==='全部'?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>全部</button>{CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter===c?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>{c}</button>)}</div>
-                   <OfficialAds isAdmin={user?.role==='admin'} />
                    
-                   {/* ✨ 优化体验：Loading 状态 */}
+                   {/* 移动端筛选 (PC端隐藏) */}
+                   <div className="lg:hidden">
+                       <div className="flex gap-2 overflow-x-auto hide-scrollbar mb-4 px-1"><FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
+                       <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 px-1 mb-4"><button onClick={() => setCategoryFilter('全部')} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter==='全部'?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>全部</button>{CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border shadow-sm ${categoryFilter===c?'bg-gray-800 text-white border-gray-800':'bg-white text-gray-700 border-white'}`}>{c}</button>)}</div>
+                   </div>
+
+                   {/* PC端只显示大类切换 */}
+                   <div className="bg-gray-100 p-1 rounded-2xl flex shadow-inner mb-4"><button onClick={()=>setFeedType('client')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='client'?'bg-orange-500 text-white':'text-gray-500'}`}><span>🙋‍♂️</span> 找帮忙 (求助)</button><button onClick={()=>setFeedType('provider')} className={`flex-1 py-3 rounded-xl text-xs font-bold ${feedType==='provider'?'bg-green-700 text-white':'text-gray-500'}`}><span>🤝</span> 我接单 (提供)</button></div>
+                   
+                   <div className="lg:hidden"><OfficialAds isAdmin={user?.role==='admin'} /></div>
+                   
+                   {/* Loading & Posts */}
                    {isInitialLoading && posts.length === 0 ? (
                       <div className="py-20 text-center space-y-4">
                         <Loader2 className="animate-spin w-10 h-10 text-green-700 mx-auto"/>
                         <div><p className="text-gray-900 font-bold">正在连接社区...</p><p className="text-xs text-gray-500 mt-1">云服务器唤醒中，请稍候 ☕️</p></div>
                       </div>
                    ) : (
-                      posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} />)
+                      posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} />)
                    )}
                    
                    {!isInitialLoading && posts.length > 0 && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-4 bg-white text-gray-500 text-xs font-bold rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-4 h-4"/> : '加载更多'}</button>}
@@ -401,7 +553,8 @@ export default function App() {
            {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} />}
         </main>
 
-        <div className="bg-[#FFF8F0]/90 backdrop-blur-md border-t border-gray-200 px-6 py-2 pb-safe flex justify-between items-center z-40 relative shrink-0">
+        {/* Mobile Bottom Nav (只在移动端显示) */}
+        <div className="lg:hidden bg-[#FFF8F0]/90 backdrop-blur-md border-t border-gray-200 px-6 py-2 pb-safe flex justify-between items-center z-40 relative shrink-0">
            <button onClick={()=>setTab('home')}><Home className={tab==='home'?'text-green-700':'text-gray-400'}/></button>
            <button onClick={()=>setTab('messages')}><MessageCircle className={tab==='messages'?'text-green-700':'text-gray-400'}/></button>
            <div className="-mt-10"><button onClick={()=>user?setShowCreate(true):setShowLogin(true)} className="w-16 h-16 bg-gray-900 rounded-full shadow-lg flex items-center justify-center text-white"><Plus size={32}/></button></div>
@@ -409,12 +562,21 @@ export default function App() {
            <button onClick={()=>setTab('profile')}><UserIcon className={tab==='profile'?'text-green-700':'text-gray-400'}/></button>
         </div>
 
+        {/* Global Modals */}
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser}/>}
         {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)}/>}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}}/>}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} />}
         {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)}/>}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} />}
+        
+        {/* ✨ 新增全局组件 */}
+        {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
+        {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} />}
       </div>
+
+      {/* PC 右侧栏 */}
+      <RightSidebar />
+
     </div>
   );
 }
