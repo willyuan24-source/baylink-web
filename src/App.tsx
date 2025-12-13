@@ -6,10 +6,10 @@ import {
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap
+  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText
 } from 'lucide-react';
 
-// ✨ 新增库：用于 Socket 连接和图片压缩
+// 引入库
 import imageCompression from 'browser-image-compression';
 import { io, Socket } from 'socket.io-client';
 
@@ -18,32 +18,33 @@ import PostCard from './components/PostCard';
 import Toast from './components/Toast'; 
 import { UserData, PostData, Conversation, Message, Role, PostType, AdData } from './types';
 
-// BAYLINK APP V25.8 - Real-time & Optimization Edition (Final)
+// BAYLINK APP V25.9 Final - Trust & Context (信任与上下文终极版)
 
 const API_BASE_URL = 'https://baylink-api.onrender.com/api'; 
-// ✨ Socket 地址: 通常和 API 地址相同。如果部署在 Render，直接用主域名即可
 const SOCKET_URL = 'https://baylink-api.onrender.com';
 
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
+// 🏷️ 快捷标签配置
+const SMART_TAGS: Record<string, string[]> = {
+  "租屋": ["长租", "短租", "带家具", "近BART", "找室友"],
+  "维修": ["水管", "电路", "屋顶", "家电", "需自带工具"],
+  "清洁": ["全屋清洁", "地毯清洗", "退房扫除", "垃圾清运"],
+  "搬家": ["有电梯", "需拆装", "只有纸箱", "需大车", "跨湾区"],
+  "接送": ["SFO接机", "SJC接机", "早起", "带宠物", "七座车"],
+  "闲置": ["九成新", "全新未拆", "可送货", "自取", "原箱在"],
+  "兼职": ["现金", "周末", "远程", "需英语"],
+};
+
 // --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
 
-// ✨ 图片压缩工具函数 (优化：增加错误处理和参数调优)
 const compressImage = async (file: File): Promise<File> => {
-  const options = {
-    maxSizeMB: 0.5, // 目标压缩到 0.5MB 以内
-    maxWidthOrHeight: 1280, // 限制最大分辨率，适合手机浏览
-    useWebWorker: true, // 使用多线程处理，防止页面卡顿
-  };
-  try {
-    return await imageCompression(file, options);
-  } catch (error) {
-    console.error("Compression failed:", error);
-    return file; // 如果压缩失败，降级使用原图
-  }
+  const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1280, useWebWorker: true };
+  try { return await imageCompression(file, options); } 
+  catch (error) { console.error("Compression failed:", error); return file; }
 };
 
 // --- API 客户端 ---
@@ -70,7 +71,7 @@ const api = {
   reportPost: async (postId: string, reason: string) => await api.request(`/posts/${postId}/report`, { method: 'POST', body: JSON.stringify({ reason }) })
 };
 
-// --- 子组件 ---
+// --- 组件部分 ---
 
 const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <button onClick={onClick} className={`px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 active:scale-95 whitespace-nowrap shadow-sm ${active ? 'bg-gray-900 text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}>{label}</button>
@@ -139,6 +140,7 @@ const InfoPage = ({ title, storageKey, user, onBack, showToast }: any) => {
   );
 };
 
+// 🌟 PostCard (已更新：onContactClick 传递 post 对象)
 const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   const [myPosts, setMyPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +174,10 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
                 <span className="font-bold text-lg text-gray-900">用户主页</span><div className="w-9"></div>
              </div>
              <div className="flex-1 p-6 overflow-y-auto flex flex-col items-center">
-                 <Avatar src={profile.avatar} name={profile.nickname} size={24} className="mb-4 shadow-xl border-4 border-white"/>
+                 <div className="relative mb-4">
+                    <Avatar src={profile.avatar} name={profile.nickname} size={24} className="shadow-xl border-4 border-white"/>
+                    <div className="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-sm" title="已实名认证"><ShieldCheck size={16}/></div>
+                 </div>
                  <h2 className="text-2xl font-black text-gray-900 mb-1">{profile.nickname}</h2>
                  <div className="flex gap-2 mb-6"><span className={`text-xs px-2.5 py-1 rounded-lg font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>{profile.role === 'admin' ? '管理员' : '认证用户'}</span><span className="text-xs bg-orange-100 text-orange-600 px-2.5 py-1 rounded-lg font-bold">信用极好</span></div>
                  {profile.socialLinks && (profile.socialLinks.linkedin || profile.socialLinks.instagram) && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
@@ -183,12 +188,10 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
     );
 };
 
-// ✨ 使用图片压缩的编辑资料组件 (批量处理优化版)
 const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '', socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }});
     const [saving, setSaving] = useState(false);
     
-    // ✨ 修改：图片上传压缩逻辑
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
         const file = e.target.files?.[0]; 
         if (file) { 
@@ -243,8 +246,7 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
   );
 };
 
-// --- CreatePostModal (已完全修复格式) ---
-// ✨ 使用图片压缩的发帖组件 (批量处理优化版)
+// --- CreatePostModal (已完全修复格式 & 快捷标签版) ---
 const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
@@ -252,16 +254,26 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false); 
 
-  // ✨ 修改：图片上传压缩逻辑 (批量并行处理)
+  const getPlaceholder = (category: string) => {
+    switch(category) {
+      case '搬家': return '例如：本周六求两位壮汉从 Daly City 搬到 SF，有电梯...';
+      case '接送': return '例如：SFO接机，三个行李箱，需七座车...';
+      case '维修': return '例如：厨房水槽漏水，求熟悉管道的师傅...';
+      case '闲置': return '例如：出一台九成新 Dyson 吸尘器，原箱在...';
+      default: return '详细描述你的需求，越具体越容易找到人帮忙...';
+    }
+  };
+
+  const addTagToDesc = (tag: string) => {
+      setForm(prev => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
     const files = e.target.files; 
     if (files) { 
       if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error'); 
-      
       const fileArray = Array.from(files);
       const compressedImages: string[] = [];
-
-      // 并行处理所有图片
       await Promise.all(fileArray.map(async (file) => {
           try {
               const compressedFile = await compressImage(file);
@@ -273,8 +285,6 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
               compressedImages.push(result);
           } catch(e) { console.error(e); }
       }));
-
-      // 一次性更新状态，避免多次重渲染
       setImages(prev => [...prev, ...compressedImages].slice(0,3));
     } 
   };
@@ -356,6 +366,17 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
         {step === 2 && (
           <div className="space-y-4">
             <input className="w-full p-5 bg-white rounded-2xl font-bold text-lg outline-none placeholder:text-gray-300" placeholder="起个吸引人的标题..." value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+            
+            {SMART_TAGS[form.category] && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {SMART_TAGS[form.category].map(tag => (
+                        <button key={tag} onClick={() => addTagToDesc(tag)} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-200 transition border border-gray-200 hover:border-gray-400 active:scale-95">#{tag}</button>
+                    ))}
+                </div>
+            )}
+
+            <textarea className="w-full p-5 bg-white rounded-2xl h-40 resize-none outline-none placeholder:text-gray-300" placeholder={getPlaceholder(form.category)} value={form.description} onChange={e => setForm({...form, description: e.target.value})}/>
+            
             <div className="flex gap-3 overflow-x-auto pb-2">
               {images.map((img,i)=> (
                 <div key={i} className="relative shrink-0">
@@ -368,8 +389,8 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
                 <input type="file" hidden onChange={handleImageUpload}/>
               </label>
             </div>
-            <textarea className="w-full p-5 bg-white rounded-2xl h-40 resize-none outline-none placeholder:text-gray-300" placeholder="详细描述你的需求..." value={form.description} onChange={e => setForm({...form, description: e.target.value})}/>
-            <div className="flex gap-3">
+
+            <div className="flex gap-3 mt-4">
               <button onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50">上一步</button>
               <button onClick={()=>setStep(3)} className="flex-[2] py-3 bg-gray-900 text-white rounded-2xl font-bold shadow-lg">下一步</button>
             </div>
@@ -445,13 +466,12 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-// ✨ 使用 Socket 监听的聊天组件
+// ✨ ChatView (已修复：正确显示关联帖子卡片)
 const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 初次加载历史记录
   useEffect(() => { 
       const load = async () => { 
           try { 
@@ -462,7 +482,6 @@ const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
       load(); 
   }, [conversation.id]);
 
-  // ✨ 监听实时消息 (替代轮询)
   useEffect(() => {
       if(!socket) return;
       const handleNewMessage = (msg: Message) => {
@@ -478,22 +497,30 @@ const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
 
   const send = async (type: Message['type'], content: string) => { 
       if(!content && type==='text') return; 
-      // 乐观更新 UI (先显示在界面上，再发请求)
       const optimisticMsg: Message = { id: Date.now().toString(), senderId: currentUser.id, conversationId: conversation.id, type, content, createdAt: Date.now() };
       setMessages(prev => [...prev, optimisticMsg]);
       setInput(''); 
-      
       try { 
           await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) }); 
-      } catch {
-          // 如果失败，应该回滚 (这里简化处理，暂不回滚)
-          alert('发送失败');
-      } 
+      } catch { alert('发送失败'); } 
   };
 
   return (
     <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top"><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><ChevronLeft/></button><span className="font-bold text-lg">{conversation.otherUser.nickname}</span></div>
+      
+      {/* ✨ 优化后的上下文卡片 */}
+      <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+            <div className="bg-orange-200 p-1.5 rounded-lg"><FileText size={16} className="text-orange-700"/></div>
+            <div>
+                <div className="text-[10px] text-orange-600 font-bold uppercase">正在沟通</div>
+                <div className="text-xs font-bold text-gray-900 line-clamp-1">{conversation.lastPostTitle || "互助需求沟通"}</div>
+            </div>
+        </div>
+        <div className="text-[10px] bg-white px-2 py-1 rounded-md text-gray-400 font-bold shadow-sm border border-gray-100">交易前请核实</div>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>{messages.map(m=>(<div key={m.id} className={`flex ${m.senderId===currentUser.id?'justify-end':'justify-start'}`}><div className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.senderId===currentUser.id?'bg-gray-900 text-white rounded-tr-none':'bg-white text-gray-800 rounded-tl-none'}`}>{m.content}</div></div>))}</div>
       <div className="p-3 border-t flex gap-3 pb-safe items-center bg-white"><button onClick={()=>confirm('分享联系方式?')&&send('contact-share','')} className="p-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200"><Phone size={20}/></button><input className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none" placeholder="输入消息..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send('text',input)} /><button onClick={()=>send('text',input)} className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition active:scale-90"><Send size={18}/></button></div>
     </div>
@@ -522,7 +549,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
       </div>
       <div className="flex-1 overflow-y-auto p-6 pb-32 bg-[#FAFAFA]">
          <h1 className="text-2xl font-black mb-4 leading-tight text-gray-900">{post.title}</h1>
-         <div className="flex gap-3 mb-6 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-50"><Avatar src={post.author.avatar} name={post.author.nickname} size={10}/><div className="flex-1"><div className="font-bold text-gray-900">{post.author.nickname}</div><div className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleDateString()}</div></div><button onClick={()=>{if(!currentUser)return onLoginNeeded();onOpenChat(post.authorId,post.author.nickname);}} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button></div>
+         <div className="flex gap-3 mb-6 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-50"><Avatar src={post.author.avatar} name={post.author.nickname} size={10}/><div className="flex-1"><div className="font-bold text-gray-900">{post.author.nickname}</div><div className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleDateString()}</div></div><button onClick={()=>{if(!currentUser)return onLoginNeeded();onOpenChat(post.authorId,post.author.nickname, post.title);}} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button></div>
          <p className="mb-6 whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">{post.description}</p>
          <div className="space-y-3 mb-8">{post.imageUrls.map((u:string,i:number)=><img key={i} src={u} onClick={()=>onImageClick(u)} className="w-full rounded-2xl shadow-sm cursor-zoom-in hover:opacity-95 transition"/>)}</div>
          <div className="border-t border-gray-200 pt-6"><h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><MessageSquare size={18}/> 评论 ({comments.length})</h3>{comments.length===0?<div className="text-center text-gray-400 text-xs py-4">暂无评论，快来抢沙发~</div>:comments.map((c:any)=><div key={c.id} className="bg-white p-3 mb-3 rounded-2xl border border-gray-50 text-sm"><span className="font-bold text-gray-900 mr-2">{c.authorName}:</span><span className="text-gray-600">{c.content}</span></div>)}</div>
@@ -540,14 +567,26 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
       {subView === 'menu' && (
         <div className="p-6 pt-8 w-full h-full overflow-y-auto">
            <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-black text-gray-900">我的主页</h1><button onClick={onLogout} className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20}/></button></div>
+           
+           {/* ✨ 增强版个人卡片 */}
            <div className="bg-white p-6 rounded-[2rem] shadow-soft-glow mb-6 relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100 to-transparent rounded-full -mr-10 -mt-10 transition group-hover:scale-110"></div>
              <div className="flex items-center gap-5 relative z-10">
                <Avatar src={user.avatar} name={user.nickname} size={18} className="shadow-lg border-4 border-white" />
-               <div className="flex-1"><h2 className="text-2xl font-black text-gray-900">{user.nickname}</h2><p className="text-xs text-gray-500 line-clamp-1 mt-1 font-medium">{user.bio || '写句签名展示自己吧~'}</p></div>
+               <div className="flex-1">
+                   <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">{user.nickname} <ShieldCheck size={18} className="text-blue-500"/></h2>
+                   <p className="text-xs text-gray-500 line-clamp-1 mt-1 font-medium">{user.bio || '写句签名展示自己吧~'}</p>
+               </div>
                <button onClick={() => setSubView('edit_profile')} className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition"><Edit size={18}/></button>
              </div>
+             {/* ✨ 信任数据看板 (Mock Data) */}
+             <div className="mt-6 flex divide-x divide-gray-100">
+                <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">12</div><div className="text-[10px] text-gray-400 font-bold uppercase">成功互助</div></div>
+                <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">100%</div><div className="text-[10px] text-gray-400 font-bold uppercase">好评率</div></div>
+                <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">365</div><div className="text-[10px] text-gray-400 font-bold uppercase">加入天数</div></div>
+             </div>
            </div>
+
            <div className="grid grid-cols-2 gap-4 mb-6">
               <button onClick={() => setSubView('my_posts')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition"><Edit size={20}/></div><div className="font-bold text-gray-900">我的发布</div><div className="text-[10px] text-gray-400">管理帖子</div></button>
               <button onClick={() => setSubView('support')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition"><Phone size={20}/></div><div className="font-bold text-gray-900">联系客服</div><div className="text-[10px] text-gray-400">帮助支持</div></button>
@@ -590,37 +629,23 @@ export default function App() {
   // ✨ Toast & Socket State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [hasNotification, setHasNotification] = useState(false); // 🔴 小红点状态
+  const [hasNotification, setHasNotification] = useState(false); 
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
 
-  // ✨ Socket 初始化
+  // ✨ Socket 初始化 (已优化：防抖)
   useEffect(() => {
     if (user && !socket) {
         const newSocket = io(SOCKET_URL);
-        newSocket.on('connect', () => {
-            console.log('Socket Connected');
-            newSocket.emit('join_room', user.id);
-        });
-        
-        // 监听全局新消息（用于显示小红点）
-        newSocket.on('new_message', () => {
-            if (tab !== 'messages') { // 如果当前不在消息页，就显示红点
-                setHasNotification(true);
-                showToast('收到新私信', 'info');
-            }
-        });
-
+        newSocket.on('connect', () => { newSocket.emit('join_room', user.id); });
+        newSocket.on('new_message', () => { if (tab !== 'messages') { setHasNotification(true); showToast('收到新私信', 'info'); } });
         setSocket(newSocket);
+        // 清理函数
         return () => { newSocket.disconnect(); }
     }
-  }, [user, tab]); // 依赖 user 和 tab
+  }, [user, tab]); 
 
-  // 切换到消息页时，清除红点
-  useEffect(() => {
-      if (tab === 'messages') setHasNotification(false);
-  }, [tab]);
-
+  useEffect(() => { if (tab === 'messages') setHasNotification(false); }, [tab]);
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
 
@@ -641,14 +666,22 @@ export default function App() {
   };
 
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); };
-  const openChat = async (targetId: string, nickname?: string) => { try { const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); setChatConv({ id: c.id, otherUser: { id: targetId, nickname: nickname || 'User' }, lastMessage: '', updatedAt: Date.now() }); } catch { showToast('无法打开聊天', 'error'); } };
-  const handleLogout = () => { 
-      localStorage.removeItem('currentUser'); 
-      if(socket) socket.disconnect();
-      setUser(null); 
-      setTab('home'); 
-      showToast('已退出登录', 'info'); 
+  
+  // ✨ 已修复：传入 postTitle 作为聊天上下文
+  const openChat = async (targetId: string, nickname?: string, postTitle?: string) => { 
+      try { 
+          const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); 
+          setChatConv({ 
+              id: c.id, 
+              otherUser: { id: targetId, nickname: nickname || 'User' }, 
+              lastMessage: '', 
+              updatedAt: Date.now(),
+              lastPostTitle: postTitle // 传递上下文
+          }); 
+      } catch { showToast('无法打开聊天', 'error'); } 
   };
+  
+  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
 
   // 🖥️ PC 侧边栏
   const LeftSidebar = () => (
@@ -721,6 +754,28 @@ export default function App() {
                <div className="p-5 pb-32">
                    <div className="relative mb-6 mt-2 group"><Search className="absolute left-5 top-4 text-gray-400 group-focus-within:text-green-600 transition" size={20} /><input className="w-full bg-white rounded-[1.5rem] pl-14 pr-6 py-4 text-sm font-bold shadow-soft-glow focus:ring-2 focus:ring-green-500/20 outline-none transition placeholder:font-normal" placeholder="搜索互助信息..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} /></div>
                    
+                   {/* ✨ 首页 Hero Section: 移动端适配 */}
+                   {!keyword && (
+                    <div className="mb-8 px-1">
+                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h2 className="text-xl sm:text-2xl font-black mb-1">湾区生活，互助更简单</h2>
+                            <p className="text-gray-400 text-xs mb-6 opacity-80 font-medium">本周已有 128 位邻居完成了互助</p>
+                            <div className="flex gap-3">
+                            <button onClick={() => { setFeedType('client'); setShowCreate(true); }} className="flex-1 py-3 bg-white text-gray-900 rounded-xl font-bold text-xs sm:text-sm shadow-lg hover:bg-gray-100 transition active:scale-95 whitespace-nowrap">
+                                👋 我要找人
+                            </button>
+                            <button onClick={() => { setFeedType('provider'); setCategoryFilter('全部'); }} className="flex-1 py-3 bg-white/10 text-white border border-white/20 rounded-xl font-bold text-xs sm:text-sm hover:bg-white/20 transition active:scale-95 backdrop-blur-md whitespace-nowrap">
+                                💰 我要接单
+                            </button>
+                            </div>
+                        </div>
+                        <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
+                        <div className="absolute bottom-[-20px] left-[-20px] w-32 h-32 bg-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+                        </div>
+                    </div>
+                   )}
+
                    <div className="lg:hidden">
                        <div className="flex gap-3 overflow-x-auto hide-scrollbar mb-6 px-1"><FilterTag label="全部地区" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
                        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 px-1 mb-6"><button onClick={() => setCategoryFilter('全部')} className={`px-4 py-2 rounded-xl text-xs font-bold border transition ${categoryFilter==='全部'?'bg-gray-900 text-white border-gray-900 shadow-md':'bg-white text-gray-600 border-transparent'}`}>全部</button>{CATEGORIES.map(c => <button key={c} onClick={() => setCategoryFilter(c)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition ${categoryFilter===c?'bg-gray-900 text-white border-gray-900 shadow-md':'bg-white text-gray-600 border-transparent'}`}>{c}</button>)}</div>
@@ -730,7 +785,7 @@ export default function App() {
                    
                    <div className="lg:hidden"><OfficialAds isAdmin={user?.role==='admin'} showToast={showToast} /></div>
                    
-                   {isInitialLoading && posts.length === 0 ? <div className="py-32 text-center space-y-6"><Loader2 className="animate-spin w-12 h-12 text-green-600 mx-auto"/><div className="animate-pulse"><p className="text-gray-900 font-black text-lg">正在连接社区...</p><p className="text-sm text-gray-400 mt-2 font-medium">云端数据加载中，请稍候 ☕️</p></div></div> : posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} />)}
+                   {isInitialLoading && posts.length === 0 ? <div className="py-32 text-center space-y-6"><Loader2 className="animate-spin w-12 h-12 text-green-600 mx-auto"/><div className="animate-pulse"><p className="text-gray-900 font-black text-lg">正在连接社区...</p><p className="text-sm text-gray-400 mt-2 font-medium">云端数据加载中，请稍候 ☕️</p></div></div> : posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname, p.title);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} />)}
                    
                    {!isInitialLoading && posts.length > 0 && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-4 mt-6 bg-white text-gray-900 text-sm font-black rounded-2xl shadow-soft-glow hover:scale-[1.02] transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5"/> : '加载更多'}</button>}
                    {!isInitialLoading && posts.length > 0 && !hasMore && <div className="text-center py-10 text-gray-300 text-xs font-bold uppercase tracking-widest">没有更多内容了</div>}
