@@ -155,6 +155,126 @@ const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => 
   </div>
 );
 
+const ShareModal = ({ post, onClose, showToast }: any) => {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = window.location.href;
+  const authorName = post.author?.nickname || '匿名用户';
+  const authorAvatar = post.author?.avatar;
+  const descriptionPreview = (post.description || '').slice(0, 50);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`【${post.title}】\n${descriptionPreview}${descriptionPreview ? '...' : ''}\n点击查看: ${shareUrl}`);
+    setCopied(true);
+    showToast('链接已复制到剪贴板', 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl transform transition-all scale-100">
+        <div className="bg-gradient-to-br from-green-700 to-teal-600 p-8 text-white text-center relative overflow-hidden">
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-1 tracking-tight">BAYLINK</h3>
+            <p className="text-[10px] opacity-80 uppercase tracking-[0.2em] font-medium mt-1">湾区华人互助平台</p>
+          </div>
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-yellow-400/20 rounded-full blur-3xl"></div>
+        </div>
+        <div className="p-6">
+          <div className="flex gap-3 items-center mb-5">
+            <Avatar src={authorAvatar} name={authorName} size={12} />
+            <div>
+              <div className="font-bold text-gray-900 text-lg">{authorName}</div>
+              <div className="text-xs text-gray-400 font-medium">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3 leading-snug">{post.title}</h2>
+          <div className="bg-gray-50 p-4 rounded-2xl text-sm text-gray-600 mb-6 line-clamp-3 leading-relaxed border border-gray-100 italic">“{post.description}”</div>
+          <div className="flex gap-3">
+            <button onClick={handleCopy} className={`flex-1 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200'}`}>
+              {copied ? <Check size={18} /> : <Copy size={18} />} {copied ? '已复制' : '复制链接'}
+            </button>
+            <button onClick={onClose} className="p-3.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition active:scale-95"><X size={20} /></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const InfoPage = ({ title, storageKey, user, onBack, showToast }: any) => {
+  const [content, setContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await api.request(`/content/${storageKey}`);
+        setContent(data.value || '暂无内容');
+        setEditValue(data.value || '');
+      } catch (e) {
+        setContent('加载失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [storageKey]);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await api.request('/content', { method: 'POST', body: JSON.stringify({ key: storageKey, value: editValue }) });
+      setContent(editValue);
+      setIsEditing(false);
+      showToast('页面内容已更新', 'success');
+    } catch (e) {
+      showToast('保存失败', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10">
+        <div className="flex items-center gap-3"><button onClick={onBack} className="p-2 hover:bg-white/50 rounded-full transition active:scale-90"><ChevronLeft size={24} className="text-gray-900" /></button><span className="font-bold text-lg text-gray-900">{title}</span></div>
+        {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-green-700 text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14} /> 编辑</button>}
+        {isEditing && <button onClick={handleSave} disabled={loading} className="text-white bg-green-700 text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14} /> {loading ? '...' : '发布'}</button>}
+      </div>
+      <div className="flex-1 p-6 overflow-y-auto bg-white/50">{!loading && (isEditing ? <textarea className="w-full h-full p-4 bg-white border rounded-2xl text-sm outline-none resize-none shadow-sm" value={editValue} onChange={e => setEditValue(e.target.value)} placeholder="在这里输入内容..." /> : <div className="text-gray-900 text-base leading-relaxed whitespace-pre-wrap">{content}</div>)}</div>
+    </div>
+  );
+};
+
+const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
+  const [myPosts, setMyPosts] = useState<PostData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const all = await api.request('/posts');
+        const list = Array.isArray(all) ? all : (all.posts || []);
+        setMyPosts(list.filter((p: any) => p.authorId === user.id));
+      } catch {} finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user.id]);
+
+  return (
+    <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center gap-3 bg-[#FFF8F0]/80 backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10"><button onClick={onBack} className="p-2 hover:bg-white/50 rounded-full transition active:scale-90"><ChevronLeft size={24} className="text-gray-900" /></button><span className="font-bold text-lg text-gray-900">我的发布</span></div>
+      <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">{loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={() => {}} onAvatarClick={() => {}} onImageClick={() => {}} />) : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400" /></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p></div>}</div>
+    </div>
+  );
+};
+
 const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick }: any) => {
   const isProvider = post.type === 'provider';
   const hasImage = post.imageUrls && post.imageUrls.length > 0;
@@ -532,6 +652,269 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+const LoginModal = ({ onClose, onLogin, showToast }: any) => {
+  const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
+  const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (mode === 'forgot') {
+      if (!forgotEmail) return setError('请输入邮箱');
+      setLoading(true);
+      setTimeout(() => {
+        showToast(`重置链接已发送至 ${forgotEmail}`, 'success');
+        setLoading(false);
+        setMode('login');
+      }, 1500);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(form) });
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      onLogin(user);
+      onClose();
+      showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
+    } catch (e: any) {
+      let msg = e.message || '失败';
+      if (msg.includes('User not found')) msg = '该账号尚未注册';
+      else if (msg.includes('Invalid password')) msg = '密码错误';
+      else if (msg.includes('User exists')) msg = '该邮箱已被注册';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center p-6 z-[60] backdrop-blur-md animate-in fade-in">
+      <div className="bg-[#FFF8F0] p-8 rounded-[2.5rem] shadow-2xl w-full max-w-xs relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
+        <h2 className="text-3xl font-black mb-1 text-center text-gray-900">BAYLINK</h2>
+        <p className="text-center text-[10px] text-gray-400 mb-8 tracking-[0.2em] font-medium uppercase">湾区华人互助平台</p>
+        {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-xs font-medium flex items-center gap-2 animate-pulse"><AlertCircle size={14} />{error}</div>}
+        {mode === 'forgot' ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" />
+            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">{loading ? '...' : '发送重置邮件'}</button>
+            <button type="button" onClick={() => setMode('login')} className="w-full text-xs text-center mt-2 text-gray-500">返回登录</button>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="邮箱账号" />
+            <input required type="password" className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
+            {mode === 'register' && (
+              <>
+                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
+                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号/电话" />
+              </>
+            )}
+            {mode === 'login' && <div className="text-right"><button type="button" onClick={() => setMode('forgot')} className="text-[10px] font-bold text-gray-400 hover:text-gray-900">忘记密码?</button></div>}
+            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition">{loading ? 'Loading...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
+          </form>
+        )}
+        {mode !== 'forgot' && <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>}
+        <button onClick={onClose} className="absolute top-5 right-5 p-2 bg-white rounded-full text-gray-400 hover:text-gray-900 transition"><X size={18} /></button>
+      </div>
+    </div>
+  );
+};
+
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onImageClick, onShare, showToast }: any) => {
+  const [comments, setComments] = useState(post.comments || []);
+  const [input, setInput] = useState('');
+  const [isReported, setIsReported] = useState(post.isReported);
+  const isAdmin = currentUser?.role === 'admin';
+  const isOwner = currentUser?.id === post.authorId;
+  const authorName = post.author?.nickname || '匿名用户';
+  const authorAvatar = post.author?.avatar;
+  const imageUrls = Array.isArray(post.imageUrls) ? post.imageUrls : [];
+
+  const postComment = async () => {
+    if (!currentUser) return onLoginNeeded();
+    if (!input.trim()) return;
+    try {
+      const c = await api.request(`/posts/${post.id}/comments`, { method: 'POST', body: JSON.stringify({ content: input }) });
+      setComments([...comments, c]);
+      setInput('');
+      showToast('评论已发送', 'success');
+    } catch {
+      showToast('评论失败', 'error');
+    }
+  };
+
+  const deletePost = async () => {
+    if (!confirm('删除此贴？')) return;
+    try {
+      await api.request(`/posts/${post.id}`, { method: 'DELETE' });
+      onDeleted();
+      onClose();
+      showToast('帖子已删除', 'success');
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
+
+  const handleReport = async () => {
+    if (!currentUser) return onLoginNeeded();
+    if (isReported) return;
+    if (!confirm('确认举报该内容违规？')) return;
+    try {
+      await api.reportPost(post.id, 'user_report');
+      setIsReported(true);
+      showToast('感谢反馈，我们将尽快审核', 'success');
+    } catch {
+      showToast('举报失败', 'error');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-2xl">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 pt-safe-top">
+        <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
+        <div className="flex gap-3">
+          <button onClick={() => onShare(post)} className="p-2 bg-gray-100 rounded-full hover:bg-green-100 hover:text-green-700 transition"><Share2 size={20} /></button>
+          {!isOwner && <button onClick={handleReport} className={`p-2 rounded-full transition ${isReported ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}`} disabled={isReported}><AlertTriangle size={20} /></button>}
+          {(isAdmin || isOwner) && <button onClick={deletePost} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 size={20} /></button>}
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-6 pb-32 bg-[#FAFAFA]">
+        <h1 className="text-2xl font-black mb-4 leading-tight text-gray-900">{post.title}</h1>
+        <div className="flex gap-3 mb-6 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-50">
+          <Avatar src={authorAvatar} name={authorName} size={10} />
+          <div className="flex-1">
+            <div className="font-bold text-gray-900">{authorName}</div>
+            <div className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleDateString()}</div>
+          </div>
+          <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
+        </div>
+        <p className="mb-6 whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">{post.description}</p>
+        <div className="space-y-3 mb-8">{imageUrls.map((u: string, i: number) => <img key={i} src={u} onClick={() => onImageClick(u)} className="w-full rounded-2xl shadow-sm cursor-zoom-in hover:opacity-95 transition" />)}</div>
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><MessageSquare size={18} /> 评论 ({comments.length})</h3>
+          {comments.length === 0 ? <div className="text-center text-gray-400 text-xs py-4">暂无评论，快来抢沙发~</div> : comments.map((c: any) => <div key={c.id} className="bg-white p-3 mb-3 rounded-2xl border border-gray-50 text-sm"><span className="font-bold text-gray-900 mr-2">{c.authorName}:</span><span className="text-gray-600">{c.content}</span></div>)}
+        </div>
+      </div>
+      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe">
+        <input className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm transition focus:ring-2 focus:ring-green-500/20 focus:bg-white" placeholder="写下你的评论..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()} />
+        <button onClick={postComment} className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-green-600 shadow-lg' : 'bg-gray-300'}`} disabled={!input.trim()}><Send size={20} /></button>
+      </div>
+    </div>
+  );
+};
+
+const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.request(`/conversations/${conversation.id}/messages`);
+        setMessages(data);
+      } catch {}
+    };
+    load();
+  }, [conversation.id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewMessage = (msg: Message) => {
+      if (msg.conversationId === conversation.id) {
+        setMessages(prev => [...prev, msg]);
+      }
+    };
+    socket.on('new_message', handleNewMessage);
+    return () => { socket.off('new_message', handleNewMessage); };
+  }, [socket, conversation.id]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
+  }, [messages]);
+
+  const send = async (type: Message['type'], content: string) => {
+    if (!content && type === 'text') return;
+    const optimisticMsg: Message = { id: Date.now().toString(), senderId: currentUser.id, conversationId: conversation.id, type, content, createdAt: Date.now() };
+    setMessages(prev => [...prev, optimisticMsg]);
+    setInput('');
+    try {
+      await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) });
+    } catch {
+      alert('发送失败');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top"><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><ChevronLeft /></button><span className="font-bold text-lg">{conversation.otherUser.nickname}</span></div>
+
+      <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="bg-orange-200 p-1.5 rounded-lg"><FileText size={16} className="text-orange-700" /></div>
+          <div>
+            <div className="text-[10px] text-orange-600 font-bold uppercase">正在沟通</div>
+            <div className="text-xs font-bold text-gray-900 line-clamp-1">{conversation.lastPostTitle || '互助需求沟通'}</div>
+          </div>
+        </div>
+        <div className="text-[10px] bg-white px-2 py-1 rounded-md text-gray-400 font-bold shadow-sm border border-gray-100">交易前请核实</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>{messages.map(m => (<div key={m.id} className={`flex ${m.senderId === currentUser.id ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.senderId === currentUser.id ? 'bg-gray-900 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none'}`}>{m.content}</div></div>))}</div>
+      <div className="p-3 border-t flex gap-3 pb-safe items-center bg-white"><button onClick={() => confirm('分享联系方式?') && send('contact-share', '')} className="p-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200"><Phone size={20} /></button><input className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none" placeholder="输入消息..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send('text', input)} /><button onClick={() => send('text', input)} className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition active:scale-90"><Send size={18} /></button></div>
+    </div>
+  );
+};
+
+const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile'>('menu');
+
+  if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40} /></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
+
+  return (
+    <div className="flex-1 relative w-full h-full bg-[#FAFAFA]">
+      {subView === 'menu' && (
+        <div className="p-6 pt-8 w-full h-full overflow-y-auto">
+          <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-black text-gray-900">我的主页</h1><button onClick={onLogout} className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20} /></button></div>
+
+          <div className="bg-white p-6 rounded-[2rem] shadow-soft-glow mb-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100 to-transparent rounded-full -mr-10 -mt-10 transition group-hover:scale-110"></div>
+            <div className="flex items-center gap-5 relative z-10">
+              <Avatar src={user.avatar} name={user.nickname} size={18} className="shadow-lg border-4 border-white" />
+              <div className="flex-1">
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">{user.nickname} <TrustBadge user={user} size={16} /></h2>
+                <p className="text-xs text-gray-500 line-clamp-1 mt-1 font-medium">{user.bio || '写句签名展示自己吧~'}</p>
+              </div>
+              <button onClick={() => setSubView('edit_profile')} className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition"><Edit size={18} /></button>
+            </div>
+            <div className="mt-6 flex divide-x divide-gray-100">
+              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">12</div><div className="text-[10px] text-gray-400 font-bold uppercase">成功互助</div></div>
+              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">100%</div><div className="text-[10px] text-gray-400 font-bold uppercase">好评率</div></div>
+              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">365</div><div className="text-[10px] text-gray-400 font-bold uppercase">加入天数</div></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button onClick={() => setSubView('my_posts')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition"><Edit size={20} /></div><div className="font-bold text-gray-900">我的发布</div><div className="text-[10px] text-gray-400">管理帖子</div></button>
+            <button onClick={() => setSubView('support')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition"><Phone size={20} /></div><div className="font-bold text-gray-900">联系客服</div><div className="text-[10px] text-gray-400">帮助支持</div></button>
+          </div>
+          <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
+        </div>
+      )}
+      {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
+      {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
+      {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
+      {subView === 'about' && <InfoPage title="关于我们" storageKey="baylink_about" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
     </div>
   );
 };
