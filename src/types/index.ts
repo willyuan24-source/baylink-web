@@ -14,6 +14,8 @@ export interface UserData {
   token?: string;
   bio?: string; 
   avatar?: string;
+  isPhoneVerified?: boolean;
+  isOfficialVerified?: boolean;
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
 
@@ -51,11 +53,13 @@ export interface Conversation {
   id: string; 
   otherUser: { id: string; nickname: string; avatar?: string; }; 
   lastMessage?: string; 
+  lastPostTitle?: string;
   updatedAt: number; 
 }
 
 export interface Message { 
   id: string; 
+  conversationId?: string;
   senderId: string; 
   type: 'text'|'contact-request'|'contact-share'; 
   content: string; 
