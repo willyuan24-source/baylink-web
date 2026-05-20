@@ -5,7 +5,13 @@
 @tailwind utilities;
 
 :root {
-  background-color: #FFF8F0;
+  background-color: #F7F4EC;
+  --baylink-bg: #F7F4EC;
+  --baylink-green: #16A66A;
+  --baylink-green-hover: #128256;
+  --baylink-green-light: #EAF6F0;
+  --baylink-border: #E3DFD6;
+  --baylink-text: #17202A;
 }
 
 html, body, #root {
@@ -13,43 +19,100 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #FFF8F0;
-  /* 更时尚的字体组合 */
-  font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif; 
+  background-color: #F7F4EC;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
   -webkit-font-smoothing: antialiased;
-  color: #1A1C19;
+  color: #17202A;
+  overflow-x: hidden;
 }
 
-/* 隐藏滚动条但保留功能 - 更加简洁 */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* 安全距离适配 */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 .pt-safe-top { padding-top: env(safe-area-inset-top); }
 
-/* ✨ 网红风核心特效：毛玻璃 */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-/* ✨ 弥散光感阴影 - 比普通 shadow 更柔和 */
 .shadow-soft-glow {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 16px -4px rgba(23, 32, 42, 0.05);
 }
 
-/* ✨ 渐变文字 */
 .text-gradient {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, #15803d 0%, #10b981 100%);
+  background-image: linear-gradient(135deg, #16A66A 0%, #128256 100%);
+}
+
+@layer components {
+  .chip {
+    @apply px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 active:scale-95 whitespace-nowrap;
+  }
+  .chip-active {
+    @apply bg-baylink-chip-active text-[#2d6b4f] border border-[#d4e8dc];
+  }
+  .chip-inactive {
+    @apply bg-white text-baylink-text-secondary border border-baylink-border/80 hover:border-baylink-border;
+  }
+  .nav-item-active {
+    @apply text-baylink-text bg-baylink-green-soft border-l-2 border-baylink-green pl-[14px];
+  }
+  .nav-item-inactive {
+    @apply text-baylink-muted hover:bg-baylink-section/40 hover:text-baylink-text-secondary border-l-2 border-transparent pl-4;
+  }
+  .btn-primary {
+    @apply bg-baylink-green text-white font-semibold rounded-xl shadow-soft hover:bg-baylink-green-hover active:scale-[0.98] transition-all duration-200;
+  }
+  .mini-card {
+    @apply shrink-0 snap-start bg-white border border-baylink-border/60 rounded-xl px-3 py-2 shadow-sm;
+    min-width: 42%;
+    max-width: 44%;
+  }
+  @media (min-width: 640px) {
+    .mini-card { min-width: 140px; max-width: 160px; }
+  }
+  .feed-switch-active {
+    @apply bg-baylink-green text-white shadow-sm;
+  }
+  .feed-switch-inactive {
+    @apply bg-transparent text-baylink-muted hover:bg-baylink-section/30;
+  }
+  .tab-bar-active {
+    @apply text-baylink-green relative;
+  }
+  .tab-bar-active::after {
+    content: '';
+    @apply absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-baylink-green;
+  }
+  .search-input {
+    @apply w-full bg-white rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium shadow-search outline-none transition placeholder:text-baylink-muted/90 border border-baylink-border/40 focus:border-baylink-green/30 focus:ring-1 focus:ring-baylink-green/10;
+  }
+  .trust-badge-pill {
+    @apply text-[8px] font-normal px-1.5 py-px rounded-full bg-white/10 text-white/80 border border-white/15 whitespace-nowrap;
+  }
+  .hero-welcome {
+    background: linear-gradient(135deg, #0c3524 0%, #12603c 45%, #168A58 100%);
+    position: relative;
+  }
+  .hero-welcome::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 55%;
+    height: 80%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .toast-success {
+    @apply bg-baylink-green-light/90 text-[#2d6b4f] border-[#d4e8dc];
+  }
+  .toast-error {
+    @apply bg-[#FDF5F3] text-[#B4534B] border-[#F0D8D4];
+  }
+  .sidebar-panel {
+    @apply bg-white/80 rounded-xl p-3 border-0 shadow-sm;
+  }
+  .sidebar-note {
+    @apply bg-baylink-section/50 rounded-xl p-3 text-baylink-muted;
+  }
 }
