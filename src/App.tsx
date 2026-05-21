@@ -391,7 +391,7 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
   );
 };
 
-const HotRecommend = ({ onOpenDetail, refreshKey }: { onOpenDetail: (ad: AdDetailItem) => void; refreshKey?: number }) => {
+const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: (ad: AdDetailItem) => void; refreshKey?: number; onViewMore?: () => void }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -406,11 +406,18 @@ const HotRecommend = ({ onOpenDetail, refreshKey }: { onOpenDetail: (ad: AdDetai
 
   return (
     <section className="mb-2 sm:mb-3.5">
-      <div className="mb-1 px-0.5 sm:mb-2.5">
-        <h3 className="flex items-center gap-1 text-[13px] font-bold text-baylink-text sm:gap-1.5 sm:text-sm">
-          <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 热门推荐
-        </h3>
-        <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">精选房源、二手好物和本地服务</p>
+      <div className="mb-1 flex items-start justify-between gap-2 px-0.5 sm:mb-2.5">
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-1 text-[13px] font-bold text-baylink-text sm:gap-1.5 sm:text-sm">
+            <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 热门推荐
+          </h3>
+          <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">精选房源、二手好物和本地服务</p>
+        </div>
+        {onViewMore && (
+          <button type="button" onClick={onViewMore} className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green-light active:scale-95 sm:text-xs">
+            更多
+          </button>
+        )}
       </div>
       {loading ? (
         <div className="py-5 text-center sm:py-8"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green sm:h-6 sm:w-6" /></div>
@@ -872,11 +879,50 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   </div>
 );
 
-const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey }: {
+const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
+  ad: AdData;
+  isAdmin: boolean;
+  onOpenDetail: (ad: AdDetailItem) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const imageUrl = getAdImageUrl(ad);
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="relative flex w-full cursor-pointer gap-3 overflow-hidden rounded-2xl border border-baylink-border/60 bg-white p-3.5 shadow-card transition hover:border-baylink-green/25 active:scale-[0.995] sm:rounded-3xl"
+      onClick={() => onOpenDetail(toAdDetailItem(ad))}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(toAdDetailItem(ad)); } }}
+    >
+      {imageUrl ? (
+        <AdThumb src={imageUrl} contain className="h-[88px] w-[88px] shrink-0 rounded-xl sm:h-24 sm:w-24" />
+      ) : (
+        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-xl bg-baylink-section sm:h-24 sm:w-24">
+          <BadgeCheck size={22} className="text-baylink-muted/40" />
+        </div>
+      )}
+      <div className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+        <span className="mb-1 inline-flex w-fit items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[9px] font-semibold text-baylink-green">
+          <Shield size={8} /> 官方推荐
+        </span>
+        <div className="line-clamp-2 text-[14px] font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</div>
+        <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-baylink-muted">{getAdContent(ad)}</div>
+      </div>
+      {isAdmin && (
+        <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(ad.id); }} className="absolute right-2.5 top-2.5 rounded-full bg-white p-1.5 text-red-500 shadow-sm">
+          <Trash2 size={14} />
+        </button>
+      )}
+    </div>
+  );
+};
+
+const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'carousel' }: {
   isAdmin: boolean;
   showToast: any;
   onOpenDetail: (ad: AdDetailItem) => void;
   refreshKey?: number;
+  layout?: 'carousel' | 'list';
 }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -904,28 +950,59 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey }: {
     }
   };
   const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch {} };
+  const emptyState = (
+    <div className="w-full rounded-2xl border border-dashed border-baylink-border bg-white p-6 text-center">
+      <BadgeCheck size={22} className="mx-auto mb-2 text-baylink-muted opacity-50" />
+      <p className="text-sm font-semibold text-baylink-text-secondary">暂无推荐内容</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-baylink-muted">管理员添加的官方推荐和认证广告会显示在这里</p>
+    </div>
+  );
+
   return (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-baylink-text text-sm flex items-center gap-1"><BadgeCheck size={14} className="text-baylink-green"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="text-[10px] bg-baylink-green text-white px-2 py-1 rounded-lg font-semibold hover:bg-baylink-green-hover transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
-      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => (
-        <div
-          key={ad.id}
-          role="button"
-          tabIndex={0}
-          className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition"
-          onClick={() => onOpenDetail(toAdDetailItem(ad))}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(toAdDetailItem(ad)); } }}
-        >
-          <div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5" />
-          {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="w-14 h-14 rounded-xl z-10 shrink-0" />}
-          <div className="flex flex-col justify-center z-10 flex-1 min-w-0">
-            <div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div>
-            <div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{getAdTitle(ad)}</div>
-            <div className="text-[10px] text-baylink-muted line-clamp-1">{getAdContent(ad)}</div>
+    <div className={layout === 'list' ? 'w-full' : 'mb-6'}>
+      <div className={`flex items-center justify-between px-1 ${layout === 'list' ? 'mb-4' : 'mb-3'}`}>
+        {layout === 'carousel' ? (
+          <h3 className="flex items-center gap-1 text-sm font-bold text-baylink-text"><BadgeCheck size={14} className="text-baylink-green" /> 官方推荐</h3>
+        ) : (
+          <span className="sr-only">官方推荐列表</span>
+        )}
+        {isAdmin && (
+          <button type="button" onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="flex items-center gap-1 rounded-lg bg-baylink-green px-2.5 py-1.5 text-[10px] font-semibold text-white transition hover:bg-baylink-green-hover sm:text-xs">
+            <Plus size={12} /> 添加
+          </button>
+        )}
+      </div>
+      {ads.length > 0 ? (
+        layout === 'list' ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {ads.map((ad) => (
+              <OfficialAdListCard key={ad.id} ad={ad} isAdmin={isAdmin} onOpenDetail={onOpenDetail} onDelete={handleDeleteAd} />
+            ))}
           </div>
-          {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}
-        </div>
-      )) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar snap-x px-1">
+            {ads.map((ad) => (
+              <div
+                key={ad.id}
+                role="button"
+                tabIndex={0}
+                className="group relative flex min-w-[240px] shrink-0 cursor-pointer snap-center gap-3 overflow-hidden rounded-2xl border border-baylink-border/60 bg-white p-3 shadow-card transition hover:border-baylink-green/30"
+                onClick={() => onOpenDetail(toAdDetailItem(ad))}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(toAdDetailItem(ad)); } }}
+              >
+                <div className="absolute -right-5 -top-5 h-16 w-16 rounded-bl-full bg-baylink-green-light" />
+                {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="z-10 h-14 w-14 shrink-0 rounded-xl" />}
+                <div className="z-10 flex min-w-0 flex-1 flex-col justify-center">
+                  <div className="mb-1 flex items-center gap-1"><span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[9px] font-semibold text-baylink-green"><Shield size={8} /> 官方</span></div>
+                  <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text">{getAdTitle(ad)}</div>
+                  <div className="line-clamp-1 text-[10px] text-baylink-muted">{getAdContent(ad)}</div>
+                </div>
+                {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute right-2 top-2 z-20 rounded-full bg-white p-1 text-red-500 shadow-sm"><Trash2 size={12} /></button>}
+              </div>
+            ))}
+          </div>
+        )
+      ) : emptyState}
       {isFormOpen && (
         <AdFormModal
           editingAd={editingAd}
@@ -1675,7 +1752,7 @@ export default function App() {
                          onPublishService={() => openCreate('provider')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <HotRecommend onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
+                       <HotRecommend onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} onViewMore={() => setTab('notifications')} />
                      </>
                    )}
 
@@ -1724,7 +1801,7 @@ export default function App() {
                  <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">认证服务、精选房源和本地优质信息会显示在这里</p>
                </div>
                <div className="flex-1 overflow-y-auto p-4">
-                 <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
+                 <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} layout="list" />
                </div>
              </div>
            )}
