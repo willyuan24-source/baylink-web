@@ -52,6 +52,89 @@ const SMART_TAGS: Record<string, string[]> = {
   "兼职": ["现金", "周末", "远程", "需英语"],
 };
 
+type DefaultCover = {
+  id: string;
+  title: string;
+  type: 'client' | 'provider';
+  category: string;
+  url: string;
+  tags: string[];
+};
+
+const DEFAULT_COVERS: DefaultCover[] = [
+  { id: 'rent-wanted', title: '求租屋', type: 'client', category: '租屋', url: '/default-covers/01_求租屋.png', tags: ['求租', '找房', '租屋'] },
+  { id: 'roommate', title: '找室友', type: 'client', category: '租屋', url: '/default-covers/02_找室友.png', tags: ['室友', '合租'] },
+  { id: 'help-wanted', title: '求帮助', type: 'client', category: '其他', url: '/default-covers/03_求帮助.png', tags: ['求助'] },
+  { id: 'moving-wanted', title: '找搬家', type: 'client', category: '搬家', url: '/default-covers/04_找搬家.png', tags: ['搬家'] },
+  { id: 'cleaning-wanted', title: '找清洁', type: 'client', category: '清洁', url: '/default-covers/05_找清洁.png', tags: ['清洁'] },
+  { id: 'ride-wanted', title: '求接送', type: 'client', category: '接送', url: '/default-covers/06_求接送.png', tags: ['接送'] },
+  { id: 'used-wanted', title: '求购二手', type: 'client', category: '闲置', url: '/default-covers/07_求购二手.png', tags: ['求购', '二手'] },
+  { id: 'rental-available', title: '房源出租', type: 'provider', category: '租屋', url: '/default-covers/08_房源出租.png', tags: ['出租', '房源'] },
+  { id: 'service-provider', title: '提供服务', type: 'provider', category: '其他', url: '/default-covers/09_提供服务.png', tags: ['服务'] },
+  { id: 'available-order', title: '可接单', type: 'provider', category: '兼职', url: '/default-covers/10_可接单.png', tags: ['接单'] },
+  { id: 'moving-service', title: '搬家服务', type: 'provider', category: '搬家', url: '/default-covers/11_搬家服务.png', tags: ['搬家服务'] },
+  { id: 'cleaning-service', title: '清洁服务', type: 'provider', category: '清洁', url: '/default-covers/12_清洁服务.png', tags: ['清洁服务'] },
+  { id: 'ride-service', title: '接送服务', type: 'provider', category: '接送', url: '/default-covers/13_接送服务.png', tags: ['接送服务'] },
+  { id: 'repair-service', title: '维修服务', type: 'provider', category: '维修', url: '/default-covers/14_维修服务.png', tags: ['维修'] },
+  { id: 'used-selling', title: '二手出售', type: 'provider', category: '闲置', url: '/default-covers/15_二手出售.png', tags: ['二手', '出售'] },
+  { id: 'bay-area-life', title: '湾区生活', type: 'provider', category: '其他', url: '/default-covers/16_湾区生活.png', tags: ['湾区生活'] },
+];
+
+const isDefaultCoverUrl = (url: string) => url.includes('/default-covers/');
+
+const findDefaultCoverFromUrl = (url: string): DefaultCover | null =>
+  DEFAULT_COVERS.find((c) => url === c.url || url.endsWith(c.url) || url.includes(c.url)) || null;
+
+const splitPostImages = (urls: string[] = []) => {
+  const uploaded = urls.filter((u) => !isDefaultCoverUrl(u));
+  const defaultUrl = urls.find(isDefaultCoverUrl);
+  const cover = defaultUrl ? findDefaultCoverFromUrl(defaultUrl) : null;
+  return { uploaded, cover };
+};
+
+const buildSubmitImageUrls = (uploaded: string[], cover: DefaultCover | null) => {
+  if (uploaded.length > 0) return uploaded.slice(0, 3);
+  if (cover) return [cover.url];
+  return [];
+};
+
+const getRecommendedCoverIds = (type: 'client' | 'provider', category: string): string[] => {
+  if (type === 'client' && category === '租屋') return ['rent-wanted', 'roommate', 'help-wanted'];
+  if (type === 'provider' && category === '租屋') return ['rental-available', 'bay-area-life'];
+  if (type === 'client' && category === '搬家') return ['moving-wanted', 'help-wanted'];
+  if (type === 'provider' && category === '搬家') return ['moving-service', 'available-order'];
+  if (type === 'client' && category === '清洁') return ['cleaning-wanted', 'help-wanted'];
+  if (type === 'provider' && category === '清洁') return ['cleaning-service', 'service-provider'];
+  if (type === 'client' && category === '接送') return ['ride-wanted', 'help-wanted'];
+  if (type === 'provider' && category === '接送') return ['ride-service', 'available-order'];
+  if (type === 'client' && category === '闲置') return ['used-wanted', 'help-wanted'];
+  if (type === 'provider' && category === '闲置') return ['used-selling', 'bay-area-life'];
+  if (type === 'provider' && category === '维修') return ['repair-service', 'service-provider'];
+  return ['bay-area-life', 'help-wanted', 'service-provider'];
+};
+
+const getRecommendedCovers = (type: 'client' | 'provider', category: string) => {
+  const ids = getRecommendedCoverIds(type, category);
+  const recommended = DEFAULT_COVERS.filter((c) => ids.includes(c.id));
+  const others = DEFAULT_COVERS.filter((c) => !ids.includes(c.id));
+  return { recommended, others, all: DEFAULT_COVERS };
+};
+
+const suggestDefaultCoverFromText = (text: string, type: 'client' | 'provider', category: string): DefaultCover | null => {
+  const t = text;
+  if (/房源|出租|整租|合租|有房/.test(t) && type === 'provider') return DEFAULT_COVERS.find((c) => c.id === 'rental-available') || null;
+  if (/求租|找房|租房/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'rent-wanted') || null;
+  if (/室友|合租/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'roommate') || null;
+  if (/搬家/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'moving-service' : 'moving-wanted')) || null;
+  if (/清洁|打扫|退房/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'cleaning-service' : 'cleaning-wanted')) || null;
+  if (/接送|机场|SFO|接机/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'ride-service' : 'ride-wanted')) || null;
+  if (/求购|想买/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'used-wanted') || null;
+  if (/二手|出售|卖出|转让|出.+沙发|moving sale/i.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'used-selling') || null;
+  if (/维修|修理|修.+水龙头|水电/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'repair-service') || null;
+  const { recommended } = getRecommendedCovers(type, category);
+  return recommended[0] || null;
+};
+
 // --- 类型定义 ---
 type Role = 'user' | 'admin';
 type PostType = 'client' | 'provider';
@@ -774,6 +857,8 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
 const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete }: any) => {
   const isProvider = post.type === 'provider';
   const hasImage = post.imageUrls && post.imageUrls.length > 0;
+  const coverUrl = hasImage ? post.imageUrls[0] : '';
+  const isSystemCover = coverUrl && isDefaultCoverUrl(coverUrl);
   const canManage = currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -818,8 +903,16 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
       <div className="px-3.5 pb-2">
          <h3 className="font-semibold text-[15px] text-baylink-text leading-snug line-clamp-2 mb-1">{post.title}</h3>
          {hasImage ? (
-           <div className="rounded-xl overflow-hidden bg-baylink-section/50 mb-2">
-             <img src={post.imageUrls[0]} alt={post.title} className="w-full aspect-[16/10] object-cover" onClick={(e) => {e.stopPropagation(); onImageClick && onImageClick(post.imageUrls[0])}}/>
+           <div className="relative mb-2 overflow-hidden rounded-xl bg-baylink-section/50">
+             <img
+               src={coverUrl}
+               alt={post.title}
+               className={`aspect-[16/10] w-full ${isSystemCover ? 'object-contain bg-baylink-section/80 p-1' : 'object-cover'}`}
+               onClick={(e) => { e.stopPropagation(); onImageClick && onImageClick(coverUrl); }}
+             />
+             {isSystemCover && (
+               <span className="absolute left-2 top-2 rounded-md bg-black/40 px-1.5 py-0.5 text-[8px] font-medium text-white/90">系统封面</span>
+             )}
            </div>
          ) : null}
          <p className="text-[13px] text-baylink-text-secondary line-clamp-2 leading-relaxed">{post.description}</p>
@@ -1197,6 +1290,84 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
   );
 };
 
+const DefaultCoverPicker = ({
+  type,
+  category,
+  selected,
+  onSelect,
+  expanded,
+  onToggleExpanded,
+  open,
+  onToggleOpen,
+}: {
+  type: PostType;
+  category: string;
+  selected: DefaultCover | null;
+  onSelect: (cover: DefaultCover | null) => void;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  open: boolean;
+  onToggleOpen: () => void;
+}) => {
+  const { recommended, others } = getRecommendedCovers(type, category);
+  const displayCovers = expanded ? [...recommended, ...others] : recommended.slice(0, 4);
+
+  const toggleCover = (cover: DefaultCover) => {
+    onSelect(selected?.id === cover.id ? null : cover);
+  };
+
+  return (
+    <div className="rounded-xl border border-baylink-border/50 bg-white p-3">
+      <p className="text-[11px] font-semibold text-baylink-text">没有照片？选择默认封面</p>
+      <p className="mt-0.5 text-[10px] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
+      {selected && (
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-baylink-green-light/30 p-2">
+          <img src={selected.url} alt={selected.title} className="h-12 w-12 shrink-0 rounded-lg object-contain bg-baylink-section/50" />
+          <span className="min-w-0 flex-1 text-[11px] font-semibold text-baylink-text">已选：{selected.title}</span>
+          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[10px] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
+        </div>
+      )}
+      <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-xs font-semibold text-baylink-text transition hover:border-baylink-green/40">
+        {open ? '收起封面' : '选择默认封面'}
+      </button>
+      {open && (
+        <div className="mt-3">
+          <p className="mb-2 text-[10px] font-semibold text-baylink-muted">推荐封面</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {displayCovers.map((cover) => {
+              const isSelected = selected?.id === cover.id;
+              return (
+                <button
+                  key={cover.id}
+                  type="button"
+                  onClick={() => toggleCover(cover)}
+                  className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
+                >
+                  <img src={cover.url} alt={cover.title} className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
+                  <p className="mt-1 truncate px-0.5 text-center text-[9px] font-medium text-baylink-text-secondary">{cover.title}</p>
+                  {isSelected && (
+                    <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[8px] font-bold text-white">已选择</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {!expanded && others.length > 0 && (
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[10px] font-semibold text-baylink-green">
+              查看更多封面（共 {DEFAULT_COVERS.length} 张）
+            </button>
+          )}
+          {expanded && (
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[10px] font-semibold text-baylink-muted">
+              收起全部封面
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- CreatePostModal ---
 const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', mode = 'create', editingPost }: {
   onClose: () => void;
@@ -1223,7 +1394,11 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '',
     type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '',
   });
-  const [images, setImages] = useState<string[]>(isEdit && editingPost?.imageUrls ? [...editingPost.imageUrls] : []);
+  const initialImg = isEdit && editingPost?.imageUrls ? splitPostImages(editingPost.imageUrls) : { uploaded: [], cover: null as DefaultCover | null };
+  const [uploadedImages, setUploadedImages] = useState<string[]>(initialImg.uploaded);
+  const [selectedDefaultCover, setSelectedDefaultCover] = useState<DefaultCover | null>(initialImg.cover);
+  const [coversPickerOpen, setCoversPickerOpen] = useState(false);
+  const [coversExpanded, setCoversExpanded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [briefInput, setBriefInput] = useState('');
@@ -1256,13 +1431,22 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
       budget: organized.budget || prev.budget,
       city: organized.city || prev.city,
     }));
+    const combined = `${briefInput} ${organized.title} ${organized.description}`;
+    if (uploadedImages.length === 0 && !selectedDefaultCover) {
+      const suggested = suggestDefaultCoverFromText(combined, form.type, form.category);
+      if (suggested) {
+        setSelectedDefaultCover(suggested);
+        showToast('已帮你整理帖子，并推荐了一张默认封面', 'success');
+        return;
+      }
+    }
     showToast('已帮你整理成帖子，可继续修改后发布', 'success');
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error');
+      if (uploadedImages.length + files.length > 3) return showToast('最多只能上传3张图片', 'error');
       const fileArray = Array.from(files);
       const compressedImages: string[] = [];
       await Promise.all(fileArray.map(async (file) => {
@@ -1276,7 +1460,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
           compressedImages.push(result);
         } catch (err) { console.error(err); }
       }));
-      setImages((prev) => [...prev, ...compressedImages].slice(0, 3));
+      setUploadedImages((prev) => [...prev, ...compressedImages].slice(0, 3));
     }
   };
 
@@ -1287,7 +1471,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
       return showToast('请先完成验证', 'error');
     }
     setSubmitting(true);
-    const payload = { ...form, imageUrls: images };
+    const payload = { ...form, imageUrls: buildSubmitImageUrls(uploadedImages, selectedDefaultCover) };
     try {
       if (isEdit && editingPost) {
         await api.request(`/posts/${editingPost.id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -1416,17 +1600,32 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
               onChange={e => setForm({...form, description: e.target.value})}
             />
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-              {images.map((img,i)=> (
+              {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
-                  <img src={img} className="w-[72px] h-[72px] rounded-xl object-cover border border-baylink-border/50"/>
-                  <button type="button" onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm"><X size={12}/></button>
+                  <img src={img} alt="" className="h-[72px] w-[72px] rounded-xl border border-baylink-border/50 object-cover" />
+                  <button type="button" onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm"><X size={12} /></button>
                 </div>
               ))}
-              <label className="w-[72px] h-[72px] shrink-0 flex flex-col items-center justify-center border-2 border-dashed border-baylink-border rounded-xl cursor-pointer hover:border-baylink-green/50 hover:text-baylink-green text-baylink-muted transition bg-white">
-                <Plus size={18}/><span className="text-[10px] mt-0.5">添加图片</span>
-                <input type="file" hidden accept="image/*" onChange={handleImageUpload}/>
-              </label>
+              {uploadedImages.length < 3 && (
+                <label className="flex h-[72px] w-[72px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition hover:border-baylink-green/50 hover:text-baylink-green">
+                  <Plus size={18} /><span className="mt-0.5 text-[10px]">添加图片</span>
+                  <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
+                </label>
+              )}
             </div>
+            {uploadedImages.length > 0 && (
+              <p className="text-[10px] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
+            )}
+            <DefaultCoverPicker
+              type={form.type}
+              category={form.category}
+              selected={selectedDefaultCover}
+              onSelect={setSelectedDefaultCover}
+              open={coversPickerOpen}
+              onToggleOpen={() => setCoversPickerOpen((v) => !v)}
+              expanded={coversExpanded}
+              onToggleExpanded={() => setCoversExpanded((v) => !v)}
+            />
 
             <div className="flex gap-2 mt-3">
               <button type="button" onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border hover:bg-baylink-section/50">上一步</button>
