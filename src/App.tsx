@@ -27,11 +27,18 @@ const CATEGORY_EMOJI: Record<string, string> = {
   "翻译": "📝", "兼职": "💼", "闲置": "♻️", "其他": "📌",
 };
 
-const NEARBY_HAPPENING = [
-  { title: '南湾搬家资源', sub: '周末可约', tag: '搬家' },
-  { title: 'SF 长租房源', sub: '近 BART', tag: '长租' },
-  { title: '东湾退房清洁', sub: '可当天沟通', tag: '清洁' },
-  { title: '半岛机场接送', sub: '可预约', tag: '接送' },
+const HOME_CHANNELS = [
+  { id: 'rent', title: '租房', sub: '整租 / 合租 / 短租', emoji: '🏠', category: '租屋', feedType: 'provider' as PostType },
+  { id: 'used', title: '二手', sub: '家具 / 电器 / 好物', emoji: '♻️', category: '闲置', feedType: 'provider' as PostType },
+  { id: 'service', title: '本地服务', sub: '清洁 / 搬家 / 维修', emoji: '🧹', category: '清洁', feedType: 'provider' as PostType },
+  { id: 'ride', title: '接送', sub: '机场 / 临时 / 通勤', emoji: '🚗', category: '接送', feedType: 'provider' as PostType },
+  { id: 'featured', title: '推荐', sub: '官方精选 / 认证信息', emoji: '⭐', category: null, feedType: null },
+];
+
+const HOT_FALLBACK = [
+  { id: 'demo-1', tag: '房源', title: 'Millbrae 2B2B 公寓整租', desc: '步行到 BART，带停车位，包水电网', price: '$2,850 / 月', location: 'Millbrae · 5 分钟前', coverType: 'rent' as const },
+  { id: 'demo-2', tag: '二手', title: 'Moving Sale：沙发 + 茶几', desc: '九成新，需自提，可议价', price: '$150', location: 'San Mateo · 1 小时前', coverType: 'used' as const },
+  { id: 'demo-3', tag: '服务', title: '专业退房清洁服务', desc: '深度清洁，可预约，口碑商家', price: '$120 起', location: 'Daly City · 2 小时前', coverType: 'service' as const },
 ];
 
 // 🏷️ 快捷标签
@@ -205,20 +212,148 @@ const CategoryChip = ({ label, active, onClick }: { label: string, active: boole
   return <button onClick={onClick} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{display}</button>;
 };
 
-const NearbyHappening = () => (
-  <section className="mb-2">
-    <h3 className="text-xs font-semibold text-baylink-text-secondary mb-1.5 px-0.5">附近正在发生</h3>
-    <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-1 px-1 snap-x snap-mandatory">
-      {NEARBY_HAPPENING.map((item) => (
-        <div key={item.title} className="mini-card">
-          <span className="text-[9px] text-baylink-muted bg-baylink-section/80 px-1.5 py-px rounded-md inline-block mb-1">{item.tag}</span>
-          <div className="text-[13px] font-medium text-baylink-text leading-tight line-clamp-1">{item.title}</div>
-          <div className="text-[10px] text-baylink-muted mt-0.5">{item.sub}</div>
+const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' | 'service'; isDemo?: boolean }) => (
+  <div className={`hot-cover hot-cover--${coverType}`} aria-hidden="true">
+    {isDemo && <span className="hot-cover-badge">示例推荐</span>}
+    {coverType === 'rent' && (
+      <>
+        <span className="hot-cover-el hot-cover-wall" />
+        <span className="hot-cover-el hot-cover-window" />
+        <span className="hot-cover-el hot-cover-sofa" />
+        <span className="hot-cover-el hot-cover-floor" />
+      </>
+    )}
+    {coverType === 'used' && (
+      <>
+        <span className="hot-cover-el hot-cover-wall-warm" />
+        <span className="hot-cover-el hot-cover-sofa-lg" />
+        <span className="hot-cover-el hot-cover-table" />
+      </>
+    )}
+    {coverType === 'service' && (
+      <>
+        <span className="hot-cover-el hot-cover-window-svc" />
+        <span className="hot-cover-el hot-cover-spray" />
+        <span className="hot-cover-el hot-cover-bucket" />
+      </>
+    )}
+  </div>
+);
+
+const BayHero = ({ onPublishNeed, onPublishService }: { onPublishNeed: () => void; onPublishService: () => void }) => (
+  <section className="mb-1.5 sm:mb-3">
+    <div className="baylink-hero-photo bay-hero-card relative min-h-[200px] max-h-[230px] sm:min-h-[300px] sm:max-h-[340px]">
+      <div className="baylink-hero-inner">
+        <div className="baylink-hero-content">
+          <div className="baylink-hero-badges">
+            <span className="trust-badge-pill bg-white/92 shadow-sm">Bay Area</span>
+            <span className="trust-badge-pill hidden bg-white/92 shadow-sm sm:inline">湾区生活</span>
+          </div>
+          <h2 className="baylink-hero-title">湾区真实生活信息站</h2>
+          <p className="baylink-hero-subtitle">
+            <span className="sm:hidden">租房 · 二手 · 本地服务 · 接送</span>
+            <span className="hidden sm:inline">租房 · 二手 · 本地服务 · 接送 · 推荐</span>
+          </p>
+          <p className="baylink-hero-desc hidden sm:block">一站式解决湾区生活大小事</p>
+          <div className="baylink-hero-cta">
+            <button type="button" onClick={onPublishNeed} className="baylink-hero-btn-primary">
+              发布需求
+            </button>
+            <button type="button" onClick={onPublishService} className="baylink-hero-btn-secondary">
+              提供服务
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  </section>
+);
+
+const ChannelShortcuts = ({ onChannel }: { onChannel: (ch: typeof HOME_CHANNELS[number]) => void }) => (
+  <section className="mb-1.5 sm:mb-3">
+    <div className="channel-scroll flex gap-2 overflow-x-auto hide-scrollbar -mx-1 px-1 snap-x snap-mandatory sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-2.5 sm:overflow-visible sm:px-0">
+      {HOME_CHANNELS.map((ch) => (
+        <button key={ch.id} type="button" onClick={() => onChannel(ch)} className={`channel-card channel-card--${ch.id}`}>
+          <span className={`channel-card-icon ${ch.id === 'featured' ? 'bg-amber-50' : ch.id === 'ride' ? 'bg-orange-50' : 'bg-baylink-green-light'}`} aria-hidden="true">{ch.emoji}</span>
+          <div className="channel-card-title">{ch.title}</div>
+          <div className="channel-card-sub hidden sm:block">{ch.sub}</div>
+          <div className="channel-card-sub sm:hidden">{ch.sub.replace(/ \/ /g, '·')}</div>
+        </button>
       ))}
     </div>
   </section>
 );
+
+const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo, coverType }: {
+  tag: string; title: string; desc: string; price?: string; location?: string;
+  imageUrl?: string; isDemo?: boolean; coverType?: 'rent' | 'used' | 'service';
+}) => {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = imageUrl && !imgFailed;
+  return (
+  <article className="hot-recommend-card">
+    <div className="hot-recommend-media">
+      {showImage ? (
+        <img src={imageUrl} alt="" className="hot-recommend-img" onError={() => setImgFailed(true)} />
+      ) : coverType ? (
+        <HotRecommendCover coverType={coverType} isDemo={isDemo} />
+      ) : (
+        <div className="hot-cover hot-cover--default" aria-hidden="true" />
+      )}
+    </div>
+    <div className="hot-recommend-body">
+      <div className="mb-1 flex items-center justify-between gap-1">
+        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[9px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-green-light text-baylink-green'}`}>
+          {isDemo ? tag : <><Shield size={8} /> {tag || '官方'}</>}
+        </span>
+        <button type="button" className="rounded-full p-0.5 text-baylink-muted/60 transition hover:bg-baylink-section hover:text-baylink-green lg:p-1" aria-label="收藏">
+          <Heart size={13} className="lg:w-3.5 lg:h-3.5" />
+        </button>
+      </div>
+      <h4 className="line-clamp-2 text-[13px] font-bold leading-snug text-baylink-text lg:line-clamp-1">{title}</h4>
+      <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-baylink-muted">{desc}</p>
+      {price && <p className="mt-1 text-[13px] font-bold text-baylink-green lg:mt-1.5">{price}</p>}
+      {location && <p className="mt-0.5 flex items-center gap-0.5 text-[10px] text-baylink-muted"><Clock size={9} />{location}</p>}
+    </div>
+  </article>
+  );
+};
+
+const HotRecommend = () => {
+  const [ads, setAds] = useState<AdData[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      try { setAds(await api.request('/ads')); } catch { setAds([]); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  const showFallback = !loading && ads.length === 0;
+
+  return (
+    <section className="mb-2 sm:mb-3.5">
+      <div className="mb-1 px-0.5 sm:mb-2.5">
+        <h3 className="flex items-center gap-1 text-[13px] font-bold text-baylink-text sm:gap-1.5 sm:text-sm">
+          <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 热门推荐
+        </h3>
+        <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">精选房源、二手好物和本地服务</p>
+      </div>
+      {loading ? (
+        <div className="py-5 text-center sm:py-8"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green sm:h-6 sm:w-6" /></div>
+      ) : (
+        <div className="hot-recommend-grid">
+          {ads.length > 0 ? ads.map((ad) => (
+            <HotRecommendCard key={ad.id} tag="官方" title={ad.title} desc={ad.content} imageUrl={ad.imageUrl} />
+          )) : HOT_FALLBACK.map((item) => (
+            <HotRecommendCard key={item.id} tag={item.tag} title={item.title} desc={item.desc} price={item.price} location={item.location} isDemo coverType={item.coverType} />
+          ))}
+        </div>
+      )}
+      {showFallback && <p className="mt-1.5 px-0.5 text-center text-[9px] text-baylink-muted/75 sm:mt-2">示例展示，真实推荐上线后自动替换</p>}
+    </section>
+  );
+};
 
 const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
   <div className="bg-white p-0.5 rounded-xl flex gap-0.5 shadow-sm mb-2 border border-baylink-border/40">
@@ -1186,6 +1321,17 @@ export default function App() {
     else setShowLogin(true);
   };
 
+  const handleChannelClick = (ch: typeof HOME_CHANNELS[number]) => {
+    if (ch.id === 'featured') {
+      setTab('notifications');
+      return;
+    }
+    if (ch.feedType) setFeedType(ch.feedType);
+    if (ch.category) setCategoryFilter(ch.category);
+    setRegionFilter('全部');
+    setKeyword('');
+  };
+
   // 🖥️ PC 侧边栏
   const LeftSidebar = () => (
     <div className="hidden lg:flex flex-col w-[200px] xl:w-[220px] h-screen sticky top-0 py-6 px-4 border-r border-baylink-border/60 bg-baylink-bg-alt overflow-y-auto shrink-0">
@@ -1273,36 +1419,22 @@ export default function App() {
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
            {tab === 'home' && (
-               <div className="px-4 pt-2 sm:px-5 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
-                   <div className="relative mb-2 group">
+               <div className="px-4 pt-1 sm:px-5 sm:pt-2 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
+                   <div className="relative mb-1 sm:mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
                      <input className="search-input" placeholder="搜索房源、服务、二手、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
                    </div>
                    
                    {!keyword && (
-                    <div className="mb-2 max-h-[28vh] lg:max-h-none">
-                        <div className="hero-welcome rounded-xl px-3.5 py-3 text-white shadow-sm relative overflow-hidden">
-                        <div className="relative z-10">
-                            <div className="flex flex-wrap gap-1 mb-1.5">
-                              <span className="trust-badge-pill">Bay Area</span>
-                              <span className="trust-badge-pill">128+ 互助</span>
-                            </div>
-                            <h2 className="text-[15px] font-semibold leading-snug mb-0.5">湾区生活，别再靠群里乱翻</h2>
-                            <p className="text-white/65 text-[10px] mb-2.5 leading-relaxed">租房、搬家、维修、接送，一站发布与发现。</p>
-                            <div className="flex gap-1.5">
-                            <button onClick={() => openCreate('client')} className="flex-[1.35] py-1.5 bg-white text-baylink-green rounded-lg font-bold text-[11px] shadow-sm hover:bg-white/95 transition active:scale-[0.98]">
-                                发布需求
-                            </button>
-                            <button onClick={() => { setFeedType('provider'); openCreate('provider'); }} className="flex-1 py-1.5 bg-white/10 text-white/90 border border-white/15 rounded-lg font-medium text-[11px] hover:bg-white/15 transition active:scale-[0.98]">
-                                提供服务
-                            </button>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
+                     <>
+                       <BayHero
+                         onPublishNeed={() => openCreate('client')}
+                         onPublishService={() => openCreate('provider')}
+                       />
+                       <ChannelShortcuts onChannel={handleChannelClick} />
+                       <HotRecommend />
+                     </>
                    )}
-
-                   {!keyword && <NearbyHappening />}
 
                    <FeedSwitch feedType={feedType} onClient={() => setFeedType('client')} onProvider={() => setFeedType('provider')} />
 
@@ -1339,7 +1471,6 @@ export default function App() {
                      </>
                    )}
 
-                   <div className="mt-6 lg:hidden"><OfficialAds isAdmin={user?.role==='admin'} showToast={showToast} /></div>
                </div>
            )}
            {tab === 'messages' && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}

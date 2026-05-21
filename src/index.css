@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,6 +41,463 @@ html, body, #root {
   background-image: linear-gradient(135deg, #16A66A 0%, #128256 100%);
 }
 
+/* Hero photo — public/baylink-hero-bg.png (bridge bottom-left, map right) */
+.baylink-hero-photo {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(227, 223, 214, 0.65);
+  background: #f7f4ec;
+  isolation: isolate;
+}
+
+.baylink-hero-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/baylink-hero-bg.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: left center;
+  opacity: 1;
+}
+
+.baylink-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(247, 244, 236, 0.3) 0%,
+    rgba(247, 244, 236, 0.18) 36%,
+    rgba(247, 244, 236, 0.04) 62%,
+    rgba(247, 244, 236, 0) 100%
+  );
+}
+
+@media (max-width: 639px) {
+  .baylink-hero-photo::before {
+    background-size: auto 100%;
+    background-position: left center;
+  }
+
+  .baylink-hero-photo::after {
+    background: linear-gradient(
+      90deg,
+      rgba(247, 244, 236, 0.56) 0%,
+      rgba(247, 244, 236, 0.28) 50%,
+      rgba(247, 244, 236, 0.07) 100%
+    );
+  }
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-photo::before {
+    background-position: left center;
+  }
+}
+
+/* 隐藏历史 CSS 假桥/地图点装饰（若 DOM 中仍存在） */
+.bay-hero-bridge,
+.bay-hero-cables,
+.bay-hero-skyline,
+.bay-hero-map-glow,
+.bay-hero-bg::before,
+.bay-hero-bg::after,
+.baylink-hero-overlay {
+  display: none !important;
+}
+
+.baylink-hero-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  min-height: inherit;
+  align-items: stretch;
+  padding: 12px 12px 10px;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-inner {
+    padding: 22px 24px 20px;
+  }
+}
+
+.baylink-hero-content {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 92%;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(247, 244, 236, 0.72),
+    rgba(247, 244, 236, 0.22),
+    rgba(247, 244, 236, 0)
+  );
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-content {
+    max-width: 56%;
+    padding: 14px 18px;
+    border-radius: 24px;
+    background: linear-gradient(
+      90deg,
+      rgba(247, 244, 236, 0.7),
+      rgba(247, 244, 236, 0.24),
+      rgba(247, 244, 236, 0)
+    );
+  }
+}
+
+@media (min-width: 768px) {
+  .baylink-hero-content {
+    max-width: 58%;
+  }
+}
+
+.baylink-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-badges {
+    margin-bottom: 10px;
+  }
+}
+
+.baylink-hero-title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #17202a;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .baylink-hero-title {
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 1024px) {
+  .baylink-hero-title {
+    font-size: 1.85rem;
+  }
+}
+
+.baylink-hero-subtitle {
+  margin-top: 6px;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-subtitle {
+    margin-top: 8px;
+    font-size: 0.8125rem;
+  }
+}
+
+.baylink-hero-desc {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  color: #9a978f;
+}
+
+.baylink-hero-cta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-cta {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    max-width: 320px;
+  }
+}
+
+.baylink-hero-btn-primary {
+  @apply rounded-xl bg-baylink-green font-bold text-white shadow-soft transition;
+  @apply hover:bg-baylink-green-hover active:scale-[0.98];
+  padding: 10px 12px;
+  font-size: 0.6875rem;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-btn-primary {
+    flex: 1.35;
+    padding: 11px 16px;
+    font-size: 0.8125rem;
+  }
+}
+
+.baylink-hero-btn-secondary {
+  @apply rounded-xl border border-baylink-green/30 bg-white/95 font-semibold text-baylink-green backdrop-blur-sm transition;
+  @apply hover:bg-baylink-green-light/60 active:scale-[0.98];
+  padding: 10px 12px;
+  font-size: 0.6875rem;
+}
+
+@media (min-width: 640px) {
+  .baylink-hero-btn-secondary {
+    flex: 1;
+    padding: 11px 16px;
+    font-size: 0.8125rem;
+  }
+}
+
+.bay-hero-card {
+  @apply rounded-2xl shadow-card relative;
+  box-shadow: 0 4px 24px -6px rgba(23, 32, 42, 0.08), 0 2px 8px -2px rgba(22, 166, 106, 0.06);
+}
+
+@media (min-width: 640px) {
+  .bay-hero-card {
+    border-radius: 1.35rem;
+  }
+}
+
+.channel-card {
+  @apply shrink-0 snap-start bg-white border rounded-xl shadow-sm text-left;
+  @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover active:scale-[0.98];
+  min-width: 36%;
+  max-width: 36%;
+  min-height: 88px;
+  max-height: 96px;
+  padding: 8px 10px;
+}
+
+.channel-card-title {
+  @apply text-[13px] font-bold leading-tight text-baylink-text;
+}
+
+.channel-card-sub {
+  @apply mt-0.5 text-[9px] leading-tight text-baylink-muted line-clamp-1;
+}
+
+.channel-card--rent { border-color: rgba(22, 166, 106, 0.12); background: linear-gradient(180deg, #fff 0%, #f4faf7 100%); }
+.channel-card--used { border-color: rgba(154, 151, 143, 0.2); background: linear-gradient(180deg, #fff 0%, #faf9f6 100%); }
+.channel-card--service { border-color: rgba(22, 166, 106, 0.1); background: linear-gradient(180deg, #fff 0%, #f6faf8 100%); }
+.channel-card--ride { border-color: rgba(255, 138, 61, 0.12); background: linear-gradient(180deg, #fff 0%, #fffaf6 100%); }
+.channel-card--featured { border-color: rgba(255, 138, 61, 0.15); background: linear-gradient(180deg, #fff 0%, #fff8f2 100%); }
+
+.channel-card-icon {
+  @apply w-7 h-7 rounded-lg flex items-center justify-center text-sm mb-1;
+}
+
+@media (min-width: 640px) {
+  .channel-card {
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    max-height: none;
+    flex: 1;
+    @apply rounded-2xl px-3.5 py-3.5 hover:-translate-y-1;
+  }
+  .channel-card-icon {
+    @apply w-10 h-10 rounded-xl text-xl mb-2;
+  }
+  .channel-card-title {
+    @apply text-[14px];
+  }
+  .channel-card-sub {
+    @apply text-[10px] leading-snug mt-1;
+  }
+}
+
+/* Hot recommend — mobile list row, desktop 3-col cards */
+.hot-recommend-grid {
+  @apply flex flex-col gap-1.5;
+}
+
+.hot-recommend-card {
+  @apply flex w-full min-w-0 max-w-none flex-row overflow-hidden rounded-2xl border border-baylink-border/55 bg-white shadow-sm;
+  @apply transition-all duration-200 active:scale-[0.995];
+}
+
+.hot-recommend-media {
+  @apply relative shrink-0 overflow-hidden;
+  width: 100px;
+  min-height: 88px;
+}
+
+.hot-recommend-img {
+  @apply h-full w-full min-h-[88px] object-cover;
+}
+
+.hot-recommend-body {
+  @apply flex min-w-0 flex-1 flex-col justify-center p-2 pl-2;
+}
+
+.hot-cover {
+  @apply relative h-full min-h-[88px] w-full overflow-hidden;
+}
+
+.hot-cover-badge {
+  @apply absolute right-1 top-1 z-20 rounded px-1 py-px text-[7px] font-medium text-baylink-muted;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.hot-cover-el {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* 房源 — 室内窗景 */
+.hot-cover--rent {
+  background: linear-gradient(180deg, #e8f0f6 0%, #f5f0e8 55%, #e8dfd0 100%);
+}
+.hot-cover-wall {
+  inset: 0;
+  background: linear-gradient(90deg, #f8f6f2 0%, #faf8f4 60%, #f0ebe4 100%);
+}
+.hot-cover-window {
+  left: 12%;
+  top: 10%;
+  width: 52%;
+  height: 48%;
+  border: 2px solid #fff;
+  border-radius: 2px;
+  background: linear-gradient(165deg, #a8cce8 0%, #d8ecfa 40%, #eef8ff 100%);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.6);
+}
+.hot-cover-window::after {
+  content: '';
+  position: absolute;
+  left: 48%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.hot-cover-sofa {
+  left: 8%;
+  bottom: 8%;
+  width: 56%;
+  height: 22%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #d9cfc0 0%, #b5a592 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+.hot-cover-floor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18%;
+  background: linear-gradient(180deg, #e5ddd2 0%, #d4cabb 100%);
+}
+
+/* 二手 — 沙发茶几 */
+.hot-cover--used {
+  background: linear-gradient(165deg, #f3ebe2 0%, #ebe2d6 100%);
+}
+.hot-cover-wall-warm {
+  inset: 0;
+  background: linear-gradient(180deg, #f7f0e8 0%, #efe6da 100%);
+}
+.hot-cover-sofa-lg {
+  left: 6%;
+  bottom: 14%;
+  width: 58%;
+  height: 30%;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(180deg, #cbb89e 0%, #a08870 100%);
+  box-shadow: 0 3px 8px rgba(80, 60, 40, 0.12);
+}
+.hot-cover-table {
+  right: 10%;
+  bottom: 18%;
+  width: 34%;
+  height: 16%;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ddd4c8 0%, #c4b8a8 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* 服务 — 窗户清洁 */
+.hot-cover--service {
+  background: linear-gradient(165deg, #d4ecf4 0%, #e8f6f2 50%, #f2f8f5 100%);
+}
+.hot-cover-window-svc {
+  left: 10%;
+  top: 8%;
+  width: 50%;
+  height: 52%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(190, 225, 240, 0.6) 0%, rgba(235, 250, 255, 0.95) 100%);
+}
+.hot-cover-spray {
+  right: 12%;
+  bottom: 28%;
+  width: 22%;
+  height: 8%;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(90deg, #7ec8a8, #5ab88e);
+  transform: rotate(-25deg);
+  opacity: 0.7;
+}
+.hot-cover-bucket {
+  right: 14%;
+  bottom: 10%;
+  width: 20%;
+  height: 22%;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(180deg, #8ec8e0 0%, #6aa8c8 100%);
+  opacity: 0.55;
+}
+
+.hot-cover--default {
+  background: linear-gradient(135deg, #eaf6f0 0%, #f0f7f3 50%, #efe9de 100%);
+}
+
+@media (min-width: 1024px) {
+  .hot-recommend-grid {
+    @apply grid grid-cols-3 gap-3;
+  }
+  .hot-recommend-card {
+    @apply flex-col hover:-translate-y-0.5 hover:border-baylink-green/20 hover:shadow-card-hover;
+  }
+  .hot-recommend-media {
+    width: 100%;
+    min-height: 0;
+    height: 108px;
+  }
+  .hot-recommend-img {
+    @apply min-h-0 h-[108px];
+  }
+  .hot-cover {
+    min-height: 108px;
+  }
+  .hot-recommend-body {
+    @apply p-3;
+  }
+}
+
 @layer components {
   .chip {
     @apply px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 active:scale-95 whitespace-nowrap;
@@ -84,10 +539,10 @@ html, body, #root {
     @apply absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-baylink-green;
   }
   .search-input {
-    @apply w-full bg-white rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium shadow-search outline-none transition placeholder:text-baylink-muted/90 border border-baylink-border/40 focus:border-baylink-green/30 focus:ring-1 focus:ring-baylink-green/10;
+    @apply w-full bg-white rounded-2xl pl-10 pr-3 py-3 text-sm font-medium shadow-search outline-none transition placeholder:text-baylink-muted/90 border border-baylink-border/50 focus:border-baylink-green focus:ring-2 focus:ring-baylink-green/15;
   }
   .trust-badge-pill {
-    @apply text-[8px] font-normal px-1.5 py-px rounded-full bg-white/10 text-white/80 border border-white/15 whitespace-nowrap;
+    @apply text-[8px] font-normal px-1.5 py-px rounded-full bg-white/90 text-baylink-green border border-baylink-green/15 whitespace-nowrap;
   }
   .hero-welcome {
     background: linear-gradient(135deg, #0c3524 0%, #12603c 45%, #168A58 100%);
