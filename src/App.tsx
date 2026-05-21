@@ -65,7 +65,29 @@ interface UserData {
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
 
-interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; }
+interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; description?: string; }
+
+type AdDetailItem = {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  isVerified?: boolean;
+  isDemo?: boolean;
+};
+
+const getAdTitle = (ad: Partial<AdData> & { title?: string }) => ad.title || '';
+const getAdContent = (ad: Partial<AdData> & { content?: string; description?: string }) =>
+  ad.content || ad.description || '';
+const getAdImageUrl = (ad: Partial<AdData> & { imageUrl?: string }) => ad.imageUrl || '';
+const toAdDetailItem = (ad: Partial<AdData> & { isDemo?: boolean }): AdDetailItem => ({
+  id: ad.id || Date.now().toString(),
+  title: getAdTitle(ad),
+  content: getAdContent(ad),
+  imageUrl: getAdImageUrl(ad) || undefined,
+  isVerified: ad.isVerified ?? true,
+  isDemo: ad.isDemo,
+});
 
 interface PostData {
   id: string; authorId: string; author: { nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; }; 
@@ -327,14 +349,21 @@ const ChannelShortcuts = ({ onChannel }: { onChannel: (ch: typeof HOME_CHANNELS[
   </section>
 );
 
-const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo, coverType }: {
+const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo, coverType, onClick }: {
   tag: string; title: string; desc: string; price?: string; location?: string;
   imageUrl?: string; isDemo?: boolean; coverType?: 'rent' | 'used' | 'service';
+  onClick?: () => void;
 }) => {
   const [imgFailed, setImgFailed] = useState(false);
   const showImage = imageUrl && !imgFailed;
   return (
-  <article className="hot-recommend-card">
+  <article
+    className={`hot-recommend-card ${onClick ? 'cursor-pointer hover:border-baylink-green/25' : ''}`}
+    onClick={onClick}
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+  >
     <div className="hot-recommend-media">
       {showImage ? (
         <img src={imageUrl} alt="" className="hot-recommend-img" onError={() => setImgFailed(true)} />
@@ -349,7 +378,7 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
         <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[9px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-green-light text-baylink-green'}`}>
           {isDemo ? tag : <><Shield size={8} /> {tag || '官方'}</>}
         </span>
-        <button type="button" className="rounded-full p-0.5 text-baylink-muted/60 transition hover:bg-baylink-section hover:text-baylink-green lg:p-1" aria-label="收藏">
+        <button type="button" onClick={(e) => e.stopPropagation()} className="rounded-full p-0.5 text-baylink-muted/60 transition hover:bg-baylink-section hover:text-baylink-green lg:p-1" aria-label="收藏">
           <Heart size={13} className="lg:w-3.5 lg:h-3.5" />
         </button>
       </div>
@@ -362,15 +391,16 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
   );
 };
 
-const HotRecommend = () => {
+const HotRecommend = ({ onOpenDetail, refreshKey }: { onOpenDetail: (ad: AdDetailItem) => void; refreshKey?: number }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      try { setAds(await api.request('/ads')); } catch { setAds([]); }
+      setLoading(true);
+      try { setAds(await api.request('/ads')); } catch (e) { console.error('fetch ads', e); setAds([]); }
       finally { setLoading(false); }
     })();
-  }, []);
+  }, [refreshKey]);
 
   const showFallback = !loading && ads.length === 0;
 
@@ -387,9 +417,31 @@ const HotRecommend = () => {
       ) : (
         <div className="hot-recommend-grid">
           {ads.length > 0 ? ads.map((ad) => (
-            <HotRecommendCard key={ad.id} tag="官方" title={ad.title} desc={ad.content || (ad as { description?: string }).description || ''} imageUrl={ad.imageUrl} />
+            <HotRecommendCard
+              key={ad.id}
+              tag="官方"
+              title={getAdTitle(ad)}
+              desc={getAdContent(ad)}
+              imageUrl={getAdImageUrl(ad)}
+              onClick={() => onOpenDetail(toAdDetailItem(ad))}
+            />
           )) : HOT_FALLBACK.map((item) => (
-            <HotRecommendCard key={item.id} tag={item.tag} title={item.title} desc={item.desc} price={item.price} location={item.location} isDemo coverType={item.coverType} />
+            <HotRecommendCard
+              key={item.id}
+              tag={item.tag}
+              title={item.title}
+              desc={item.desc}
+              price={item.price}
+              location={item.location}
+              isDemo
+              coverType={item.coverType}
+              onClick={() => onOpenDetail({
+                id: item.id,
+                title: item.title,
+                content: [item.desc, item.price, item.location].filter(Boolean).join('\n'),
+                isDemo: true,
+              })}
+            />
           ))}
         </div>
       )}
@@ -743,18 +795,94 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     );
 };
 
-const AdThumb = ({ src, className }: { src: string; className?: string }) => {
+const AdThumb = ({ src, className, contain }: { src: string; className?: string; contain?: boolean }) => {
   const [failed, setFailed] = useState(false);
   if (failed) return <div className={`bg-baylink-section shrink-0 ${className || 'w-14 h-14 rounded-xl'}`} />;
-  return <img src={src} alt="" className={className} onError={() => setFailed(true)} />;
+  return <img src={src} alt="" className={`${className || ''} ${contain ? 'ad-thumb-contain' : ''}`} onError={() => setFailed(true)} />;
 };
 
-const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any }) => {
+const AdDetailImage = ({ src }: { src: string }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <div className="ad-detail-image-placeholder">图片无法加载</div>;
+  return <img src={src} alt="" className="ad-detail-image" onError={() => setFailed(true)} />;
+};
+
+const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
+  ad: AdDetailItem;
+  onClose: () => void;
+  isAdmin?: boolean;
+  onDelete?: (id: string) => void;
+}) => {
+  const imageUrl = getAdImageUrl(ad);
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-4">
+          <h3 className="text-lg font-bold text-baylink-text">推荐详情</h3>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section" aria-label="关闭"><X size={18} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 pb-6">
+          {imageUrl ? <AdDetailImage src={imageUrl} /> : null}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-2 py-0.5 text-[10px] font-semibold text-baylink-green">
+              <Shield size={10} /> 官方推荐
+            </span>
+            {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[10px] text-baylink-muted">示例推荐</span>}
+          </div>
+          <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{getAdContent(ad)}</p>
+        </div>
+        <div className="border-t border-baylink-border/40 px-5 py-4 pb-safe">
+          {isAdmin && !ad.isDemo && onDelete ? (
+            <div className="flex gap-2">
+              <button type="button" onClick={() => onDelete(ad.id)} className="flex-1 rounded-xl border border-red-200 bg-red-50 py-3 text-sm font-bold text-red-600">删除</button>
+              <button type="button" onClick={onClose} className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-700">关闭</button>
+            </div>
+          ) : (
+            <button type="button" onClick={onClose} className="w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-800">关闭</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
+  editingAd: Partial<AdData>;
+  onClose: () => void;
+  onChange: (patch: Partial<AdData>) => void;
+  onSave: () => void;
+}) => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <h3 className="mb-4 text-lg font-bold">管理官方推荐</h3>
+      <div className="space-y-3">
+        <input className="w-full rounded-xl border bg-gray-50 p-3 text-sm" placeholder="标题" value={editingAd.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+        <textarea className="h-24 w-full resize-none rounded-xl border bg-gray-50 p-3 text-sm" placeholder="内容描述" value={editingAd.content || ''} onChange={(e) => onChange({ content: e.target.value })} />
+        <input className="w-full rounded-xl border bg-gray-50 p-3 text-sm" placeholder="图片直链 URL（可选，需 .jpg/.png/.webp）" value={editingAd.imageUrl || ''} onChange={(e) => onChange({ imageUrl: e.target.value })} />
+        <div className="mt-4 flex gap-2">
+          <button type="button" onClick={onClose} className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600">取消</button>
+          <button type="button" onClick={onSave} className="flex-1 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white">保存发布</button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey }: {
+  isAdmin: boolean;
+  showToast: any;
+  onOpenDetail: (ad: AdDetailItem) => void;
+  refreshKey?: number;
+}) => {
   const [ads, setAds] = useState<AdData[]>([]);
-  const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const [editingAd, setEditingAd] = useState<Partial<AdData> | null>(null);
-  const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch {} };
-  useEffect(() => { fetchAds(); }, []);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingAd, setEditingAd] = useState<Partial<AdData>>({});
+  const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch (e) { console.error('fetch ads', e); } };
+  useEffect(() => { fetchAds(); }, [refreshKey]);
   const handleSaveAd = async () => {
     if (!editingAd?.title?.trim()) return showToast('请填写标题', 'error');
     const imageUrl = (editingAd.imageUrl || '').trim();
@@ -767,8 +895,8 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
     };
     try {
       await api.request('/ads', { method: 'POST', body: JSON.stringify(payload) });
-      setEditingAd(null);
-      setIsManagerOpen(false);
+      setEditingAd({});
+      setIsFormOpen(false);
       fetchAds();
       showToast('推荐已发布', 'success');
     } catch (e: any) {
@@ -778,14 +906,34 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
   const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch {} };
   return (
     <div className="mb-6">
-      <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-baylink-text text-sm flex items-center gap-1"><BadgeCheck size={14} className="text-baylink-green"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-baylink-green text-white px-2 py-1 rounded-lg font-semibold hover:bg-baylink-green-hover transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
-      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => {
-        const adContent = ad.content || (ad as { description?: string }).description || '';
-        return (
-        <div key={ad.id} className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}><div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5"></div>{ad.imageUrl && <AdThumb src={ad.imageUrl} className="w-14 h-14 rounded-xl object-cover bg-baylink-section z-10 shrink-0" />}<div className="flex flex-col justify-center z-10 flex-1 min-w-0"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div><div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-baylink-muted line-clamp-1">{adContent}</div></div>{isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}</div>
-        );
-      }) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
-      {isManagerOpen && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"><div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl"><h3 className="text-lg font-bold mb-4">{editingAd && (editingAd as any).readonly ? '推荐详情' : '管理官方推荐'}</h3>{editingAd && (editingAd as any).readonly ? <div className="space-y-3">{editingAd.imageUrl && <AdThumb src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}<h4 className="font-bold text-lg">{editingAd.title}</h4><p className="text-sm text-gray-600 leading-relaxed">{editingAd.content || (editingAd as { description?: string }).description}</p><button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-bold mt-4">关闭</button></div> : <div className="space-y-3"><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} /><textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} /><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片直链 URL（可选，需 .jpg/.png/.webp）" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} /><div className="flex gap-2 mt-4"><button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button><button onClick={handleSaveAd} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">保存发布</button></div></div>}</div></div>}
+      <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-baylink-text text-sm flex items-center gap-1"><BadgeCheck size={14} className="text-baylink-green"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="text-[10px] bg-baylink-green text-white px-2 py-1 rounded-lg font-semibold hover:bg-baylink-green-hover transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
+      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => (
+        <div
+          key={ad.id}
+          role="button"
+          tabIndex={0}
+          className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition"
+          onClick={() => onOpenDetail(toAdDetailItem(ad))}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(toAdDetailItem(ad)); } }}
+        >
+          <div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5" />
+          {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="w-14 h-14 rounded-xl z-10 shrink-0" />}
+          <div className="flex flex-col justify-center z-10 flex-1 min-w-0">
+            <div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div>
+            <div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{getAdTitle(ad)}</div>
+            <div className="text-[10px] text-baylink-muted line-clamp-1">{getAdContent(ad)}</div>
+          </div>
+          {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}
+        </div>
+      )) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
+      {isFormOpen && (
+        <AdFormModal
+          editingAd={editingAd}
+          onClose={() => { setIsFormOpen(false); setEditingAd({}); }}
+          onChange={(patch) => setEditingAd((p) => ({ ...p, ...patch }))}
+          onSave={handleSaveAd}
+        />
+      )}
     </div>
   );
 };
@@ -1316,9 +1464,23 @@ export default function App() {
   // ✨ Toast & Socket State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [hasNotification, setHasNotification] = useState(false); 
+  const [hasNotification, setHasNotification] = useState(false);
+  const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
+  const [adsRefreshKey, setAdsRefreshKey] = useState(0);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
+  const openAdDetail = (ad: AdDetailItem) => setDetailAd(ad);
+  const handleDeleteAdFromDetail = async (id: string) => {
+    if (!confirm('确定删除?')) return;
+    try {
+      await api.request(`/ads/${id}`, { method: 'DELETE' });
+      setDetailAd(null);
+      setAdsRefreshKey((k) => k + 1);
+      showToast('已删除', 'success');
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
 
   // ✨ Socket 初始化 (已优化：防抖，防止切Tab重连)
   useEffect(() => {
@@ -1470,7 +1632,7 @@ export default function App() {
        </div>
        <div>
           <h3 className="text-[11px] text-baylink-muted mb-2">官方推荐</h3>
-          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} />
+          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
        </div>
        <div className="mt-6 text-[10px] text-baylink-muted/80 text-center">© 2025 BayLink</div>
     </div>
@@ -1479,6 +1641,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-baylink-bg flex justify-center lg:justify-start font-sans text-baylink-text relative overflow-x-hidden">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {detailAd && (
+        <AdDetailModal
+          ad={detailAd}
+          onClose={() => setDetailAd(null)}
+          isAdmin={user?.role === 'admin'}
+          onDelete={user?.role === 'admin' ? handleDeleteAdFromDetail : undefined}
+        />
+      )}
       
       <LeftSidebar />
       <div className="w-full max-w-[500px] lg:max-w-[640px] xl:max-w-[680px] bg-baylink-bg-alt min-h-screen lg:shadow-none shadow-card relative flex flex-col lg:border-x border-baylink-border/50 mx-auto lg:mx-0 flex-1 min-w-0">
@@ -1505,7 +1675,7 @@ export default function App() {
                          onPublishService={() => openCreate('provider')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <HotRecommend />
+                       <HotRecommend onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
                      </>
                    )}
 
@@ -1554,7 +1724,7 @@ export default function App() {
                  <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">认证服务、精选房源和本地优质信息会显示在这里</p>
                </div>
                <div className="flex-1 overflow-y-auto p-4">
-                 <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} />
+                 <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
                </div>
              </div>
            )}
