@@ -110,6 +110,47 @@ const getJoinDays = (user: Partial<UserData> & { _id?: string }): number | null 
   return Math.max(1, Math.ceil((Date.now() - joinedAt) / oneDayMs));
 };
 
+const isValidHttpUrl = (value: string) => {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const looksLikeImageUrl = (value: string) => {
+  const v = value.trim();
+  return /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(v)
+    || v.includes('res.cloudinary.com')
+    || v.includes('images.unsplash.com')
+    || v.includes('i.imgur.com');
+};
+
+const validateAdImageUrl = (imageUrl: string): string | null => {
+  const trimmed = imageUrl.trim();
+  if (!trimmed) return null;
+  if (!isValidHttpUrl(trimmed)) return '请输入有效的图片 URL';
+  if (/imgur\.com\/a\//i.test(trimmed) || (/imgur\.com/i.test(trimmed) && !trimmed.includes('i.imgur.com'))) {
+    return '请使用图片直链，例如以 .jpg、.png 或 .webp 结尾的地址';
+  }
+  if (!looksLikeImageUrl(trimmed)) return '请使用图片直链，例如以 .jpg、.png 或 .webp 结尾的地址';
+  return null;
+};
+
+const mapAdSaveError = (err: any) => {
+  const status = err?.status;
+  const msg = (err?.error || err?.message || '').toString();
+  if (status === 400) {
+    if (msg.includes('Invalid image URL')) return '请输入有效的图片 URL';
+    return msg || '请求参数无效';
+  }
+  if (status === 401) return '请重新登录';
+  if (status === 403) return '只有管理员可以操作';
+  if (status === 500 || status === 502) return '保存失败，请稍后再试';
+  return '保存失败，请稍后再试';
+};
+
 const mapAuthError = (err: any, mode: 'login' | 'register') => {
   const msg = (err?.error || err?.message || '').toString();
   if (msg.includes('Email already registered') || msg.includes('User exists')) return '该邮箱已注册，请直接登录';
@@ -189,8 +230,10 @@ const api = {
       if (res.status === 401 || res.status === 403) {
         if (!endpoint.includes('/auth/login')) { triggerSessionExpired(); throw { status: res.status, message: '登录已过期', handled: true }; }
       }
-      const data = await res.json();
-      if (!res.ok) throw data;
+      let data: any = {};
+      const text = await res.text();
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { error: 'Request failed' }; }
+      if (!res.ok) throw { ...data, status: res.status };
       return data;
     } catch (err: any) { if (!err.handled && err.status !== 401 && err.status !== 403) {} throw err; }
   },
@@ -344,7 +387,7 @@ const HotRecommend = () => {
       ) : (
         <div className="hot-recommend-grid">
           {ads.length > 0 ? ads.map((ad) => (
-            <HotRecommendCard key={ad.id} tag="官方" title={ad.title} desc={ad.content} imageUrl={ad.imageUrl} />
+            <HotRecommendCard key={ad.id} tag="官方" title={ad.title} desc={ad.content || (ad as { description?: string }).description || ''} imageUrl={ad.imageUrl} />
           )) : HOT_FALLBACK.map((item) => (
             <HotRecommendCard key={item.id} tag={item.tag} title={item.title} desc={item.desc} price={item.price} location={item.location} isDemo coverType={item.coverType} />
           ))}
@@ -700,19 +743,49 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     );
 };
 
+const AdThumb = ({ src, className }: { src: string; className?: string }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <div className={`bg-baylink-section shrink-0 ${className || 'w-14 h-14 rounded-xl'}`} />;
+  return <img src={src} alt="" className={className} onError={() => setFailed(true)} />;
+};
+
 const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any }) => {
   const [ads, setAds] = useState<AdData[]>([]);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Partial<AdData> | null>(null);
   const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch {} };
   useEffect(() => { fetchAds(); }, []);
-  const handleSaveAd = async () => { if (!editingAd?.title) return; try { await api.request('/ads', { method: 'POST', body: JSON.stringify(editingAd) }); setEditingAd(null); setIsManagerOpen(false); fetchAds(); showToast('推荐已发布', 'success'); } catch {} };
+  const handleSaveAd = async () => {
+    if (!editingAd?.title?.trim()) return showToast('请填写标题', 'error');
+    const imageUrl = (editingAd.imageUrl || '').trim();
+    const imageErr = validateAdImageUrl(editingAd.imageUrl || '');
+    if (imageErr) return showToast(imageErr, 'error');
+    const payload = {
+      title: editingAd.title.trim(),
+      content: (editingAd.content || '').trim(),
+      imageUrl,
+    };
+    try {
+      await api.request('/ads', { method: 'POST', body: JSON.stringify(payload) });
+      setEditingAd(null);
+      setIsManagerOpen(false);
+      fetchAds();
+      showToast('推荐已发布', 'success');
+    } catch (e: any) {
+      showToast(mapAdSaveError(e), 'error');
+    }
+  };
   const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch {} };
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-baylink-text text-sm flex items-center gap-1"><BadgeCheck size={14} className="text-baylink-green"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-baylink-green text-white px-2 py-1 rounded-lg font-semibold hover:bg-baylink-green-hover transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
-      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => (<div key={ad.id} className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}><div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5"></div>{ad.imageUrl && <img src={ad.imageUrl} className="w-14 h-14 rounded-xl object-cover bg-baylink-section z-10 shrink-0" />}<div className="flex flex-col justify-center z-10 flex-1 min-w-0"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div><div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-baylink-muted line-clamp-1">{ad.content}</div></div>{isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}</div>)) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
-      {isManagerOpen && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"><div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl"><h3 className="text-lg font-bold mb-4">{editingAd && (editingAd as any).readonly ? '推荐详情' : '管理官方推荐'}</h3>{editingAd && (editingAd as any).readonly ? <div className="space-y-3">{editingAd.imageUrl && <img src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}<h4 className="font-bold text-lg">{editingAd.title}</h4><p className="text-sm text-gray-600 leading-relaxed">{editingAd.content}</p><button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-bold mt-4">关闭</button></div> : <div className="space-y-3"><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} /><textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} /><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片 URL (可选)" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} /><div className="flex gap-2 mt-4"><button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button><button onClick={handleSaveAd} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">保存发布</button></div></div>}</div></div>}
+      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => {
+        const adContent = ad.content || (ad as { description?: string }).description || '';
+        return (
+        <div key={ad.id} className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}><div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5"></div>{ad.imageUrl && <AdThumb src={ad.imageUrl} className="w-14 h-14 rounded-xl object-cover bg-baylink-section z-10 shrink-0" />}<div className="flex flex-col justify-center z-10 flex-1 min-w-0"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div><div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-baylink-muted line-clamp-1">{adContent}</div></div>{isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}</div>
+        );
+      }) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
+      {isManagerOpen && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"><div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl"><h3 className="text-lg font-bold mb-4">{editingAd && (editingAd as any).readonly ? '推荐详情' : '管理官方推荐'}</h3>{editingAd && (editingAd as any).readonly ? <div className="space-y-3">{editingAd.imageUrl && <AdThumb src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}<h4 className="font-bold text-lg">{editingAd.title}</h4><p className="text-sm text-gray-600 leading-relaxed">{editingAd.content || (editingAd as { description?: string }).description}</p><button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-bold mt-4">关闭</button></div> : <div className="space-y-3"><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} /><textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} /><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片直链 URL（可选，需 .jpg/.png/.webp）" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} /><div className="flex gap-2 mt-4"><button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button><button onClick={handleSaveAd} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">保存发布</button></div></div>}</div></div>}
     </div>
   );
 };
