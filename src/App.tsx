@@ -108,8 +108,149 @@ interface PostData {
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
-  createdAt: number; isContacted?: boolean; isReported?: boolean;
+  createdAt: number; updatedAt?: number;
+  isContacted?: boolean; isReported?: boolean;
 }
+
+const isPostEdited = (post: { createdAt?: number; updatedAt?: number }) =>
+  !!post.updatedAt && !!post.createdAt && post.updatedAt > post.createdAt + 500;
+
+const formatPostDateLine = (post: { createdAt: number; updatedAt?: number; city?: string }) => {
+  const date = new Date(post.createdAt).toLocaleDateString();
+  const edited = isPostEdited(post) ? ' · 已编辑' : '';
+  return `${post.city || ''} · ${date}${edited}`.replace(/^ · /, '');
+};
+
+type PostWritingHints = {
+  titlePlaceholder: string;
+  descriptionPlaceholder: string;
+  quickTags: string[];
+  checklist: string[];
+};
+
+const getPostWritingHints = (category: string, type: PostType): PostWritingHints => {
+  const isClient = type === 'client';
+  const hints: Record<string, PostWritingHints> = {
+    租屋: {
+      titlePlaceholder: 'San Mateo 单间出租，$1600/月，近 Caltrain',
+      descriptionPlaceholder: '请写清楚位置、价格、入住时间、是否包水电、是否可养宠物、联系方式。',
+      quickTags: ['近Caltrain', '独立卫浴', '可短租', '包水电'],
+      checklist: ['位置', '价格', '入住时间', '联系方式'],
+    },
+    闲置: {
+      titlePlaceholder: '搬家出 IKEA 沙发，$150，San Mateo 自取',
+      descriptionPlaceholder: '请写清楚物品状态、价格、是否可议价、取货地点、是否需要自取。',
+      quickTags: ['搬家出', '可议价', '自取', '九成新'],
+      checklist: ['物品状态', '价格', '取货地点'],
+    },
+    清洁: {
+      titlePlaceholder: isClient ? '需要退房清洁 / 深度清洁' : '提供退房清洁 / 深度清洁服务，可预约',
+      descriptionPlaceholder: '请写清楚服务城市、价格范围、可预约时间、是否自带工具。',
+      quickTags: ['退房清洁', '深度清洁', '可预约'],
+      checklist: ['服务范围', '价格', '预约时间'],
+    },
+    搬家: {
+      titlePlaceholder: isClient ? '周末搬家需要帮忙' : '提供搬家服务，周末可预约',
+      descriptionPlaceholder: '请写清楚出发地、目的地、时间、楼层、是否有大件家具。',
+      quickTags: ['周末搬家', '有家具', '需要帮手'],
+      checklist: ['出发地', '目的地', '时间'],
+    },
+    接送: {
+      titlePlaceholder: 'SFO 接机 / 湾区机场接送，可预约',
+      descriptionPlaceholder: '请写清楚出发地、目的地、时间、人数、行李数量。',
+      quickTags: ['SFO', '机场接送', '可预约'],
+      checklist: ['路线', '时间', '人数'],
+    },
+    维修: {
+      titlePlaceholder: isClient ? '需要修水龙头' : '提供家庭维修服务',
+      descriptionPlaceholder: '请写清楚问题、位置、可上门时间、是否需要报价。',
+      quickTags: ['水电维修', '上门服务', '可报价'],
+      checklist: ['问题描述', '位置', '上门时间'],
+    },
+    翻译: {
+      titlePlaceholder: '需要 DMV / 医院 / 文件翻译协助',
+      descriptionPlaceholder: '请写清楚翻译语言、场景、时间、是否需要现场陪同。',
+      quickTags: ['文件翻译', '现场翻译', '中英'],
+      checklist: ['语言', '场景', '时间'],
+    },
+    兼职: {
+      titlePlaceholder: isClient ? '周末兼职帮忙' : '招短期帮手',
+      descriptionPlaceholder: '请写清楚工作内容、地点、时间、报酬、是否需要经验。',
+      quickTags: ['短期兼职', '周末', '现金结算'],
+      checklist: ['工作内容', '地点', '报酬'],
+    },
+    其他: {
+      titlePlaceholder: '请简单说明你想发布的信息',
+      descriptionPlaceholder: '请写清楚地点、时间、预算或价格、联系方式。',
+      quickTags: [],
+      checklist: ['地点', '时间', '预算'],
+    },
+  };
+  return hints[category] || hints['其他'];
+};
+
+const detectRegionFromText = (text: string): string | null => {
+  if (/san\s*mateo|millbrae|daly\s*city/i.test(text)) return '中半岛';
+  if (/fremont/i.test(text)) return '东湾';
+  if (/san\s*jose/i.test(text)) return '南湾';
+  if (/旧金山|san\s*francisco|\bsf\b/i.test(text)) return '旧金山';
+  for (const r of REGIONS) if (text.includes(r)) return r;
+  return null;
+};
+
+const organizePostFromBrief = (input: string, category: string, type: PostType) => {
+  const trimmed = input.trim();
+  const region = detectRegionFromText(trimmed) || REGIONS[0];
+  const priceMatch = trimmed.match(/\$?\s*(\d{2,5})(?:\s*\/\s*月|\/月|每月)?/i);
+  const budget = priceMatch ? `$${priceMatch[1]}${/\/月|每月|\/\s*月/i.test(trimmed) ? '/月' : ''}` : '';
+  const monthMatch = trimmed.match(/(\d{1,2})\s*月/);
+  const monthNote = monthMatch ? `${monthMatch[1]} 月` : '';
+  const place = trimmed.match(/(San Mateo|Millbrae|Daly City|Fremont|San Jose|旧金山|湾区)/i)?.[0] || region;
+
+  let title = '';
+  let description = '';
+  if (category === '租屋') {
+    title = `${place} 房间出租${budget ? `，${budget}` : ''}${/caltrain|bart/i.test(trimmed) ? '，近 Caltrain' : ''}`;
+    description = `位于 ${place}，交通方便${/caltrain|bart/i.test(trimmed) ? '，靠近 Caltrain' : ''}。\n${budget ? `租金 ${budget}` : '租金面议'}${monthNote ? `，预计 ${monthNote} 可入住` : ''}。\n适合正在湾区找房的朋友。\n有兴趣可以私信联系了解更多细节。`;
+  } else if (category === '闲置') {
+    title = `${place} 闲置好物${budget ? `，${budget}` : ''}`;
+    description = `${trimmed}\n\n取货地点：${place}。\n${budget ? `价格 ${budget}，` : ''}欢迎私信了解详情。`;
+  } else {
+    const action = type === 'client' ? '需要帮助' : '可提供服务';
+    title = `${place} ${category}信息${budget ? `，${budget}` : ''}`;
+    description = `${trimmed}\n\n地区：${region}。\n${budget ? `预算/价格：${budget}。` : ''}\n${action}，欢迎私信联系。`;
+  }
+  return { title: title.slice(0, 80), description: description.slice(0, 2000), budget, city: region };
+};
+
+const validatePostForm = (form: { title: string; description: string; category: string; city: string; budget: string }) => {
+  const title = form.title.trim();
+  const desc = form.description.trim();
+  const budget = (form.budget || '').trim();
+  if (title.length < 5) return '标题至少需要 5 个字';
+  if (title.length > 80) return '标题最多 80 个字';
+  if (desc.length < 10) return '请补充更多细节，至少 10 个字';
+  if (desc.length > 2000) return '正文最多 2000 个字';
+  if (!form.category) return '请选择分类';
+  if (!form.city) return '请选择地区';
+  if (budget.length > 30) return '预算/价格最多 30 个字';
+  return null;
+};
+
+const mapPostSaveError = (err: any, isEdit = false): string => {
+  const msg = err?.error || err?.message || '';
+  if (err?.status === 429) {
+    if (/frequently/i.test(msg)) return '发布太频繁了，请稍后再试';
+    if (/daily|limit/i.test(msg)) return '今日发布已达上限，请明天再试';
+    return '发布太频繁了，请稍后再试';
+  }
+  if (/Title must be at least/i.test(msg)) return '标题至少需要 5 个字';
+  if (/Description must be at least/i.test(msg)) return '请补充更多细节，至少 10 个字';
+  if (/Description must be at most/i.test(msg)) return '正文最多 2000 个字';
+  if (/Title must be at most/i.test(msg)) return '标题最多 80 个字';
+  if (isEdit) return '修改失败，请稍后再试';
+  return msg && msg !== '失败' ? msg : '发布失败，请稍后重试';
+};
 
 interface Conversation { 
   id: string; 
@@ -630,9 +771,11 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   );
 };
 
-const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare }: any) => {
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete }: any) => {
   const isProvider = post.type === 'provider';
   const hasImage = post.imageUrls && post.imageUrls.length > 0;
+  const canManage = currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <article onClick={onClick} className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden group cursor-pointer border border-baylink-border/30 transition-all duration-200 hover:shadow-card-hover">
       <div className="flex items-center gap-2 px-3.5 pt-3 pb-1.5">
@@ -644,11 +787,33 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
             <span className="font-medium">{post.author.nickname}</span>
             <TrustBadge user={post.author} size={10}/>
           </div>
-          <div className="text-[10px] text-baylink-muted/90">{post.city} · {new Date(post.createdAt).toLocaleDateString()}</div>
+          <div className="text-[10px] text-baylink-muted/90">{formatPostDateLine(post)}</div>
         </div>
-        <span className={`shrink-0 text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
-          {isProvider ? '资源' : '需求'}
-        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className={`text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
+            {isProvider ? '资源' : '需求'}
+          </span>
+          {canManage && (
+            <div className="relative">
+              <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }} className="p-1 text-baylink-muted hover:text-baylink-text rounded-lg hover:bg-baylink-section/80">
+                <MoreHorizontal size={16} />
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
+                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[88px] rounded-xl border border-baylink-border/60 bg-white py-1 shadow-lg">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text hover:bg-baylink-section/60">
+                      <Edit size={13} /> 编辑
+                    </button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
+                      <Trash2 size={13} /> 删除
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <div className="px-3.5 pb-2">
          <h3 className="font-semibold text-[15px] text-baylink-text leading-snug line-clamp-2 mb-1">{post.title}</h3>
@@ -1032,74 +1197,115 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
   );
 };
 
-// --- CreatePostModal (已完全修复格式 & 快捷标签版) ---
-const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'client' }: any) => {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '' });
-  const [images, setImages] = useState<string[]>([]);
+// --- CreatePostModal ---
+const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', mode = 'create', editingPost }: {
+  onClose: () => void;
+  onCreated: () => void;
+  onUpdated?: () => void;
+  user: UserData;
+  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+  defaultType?: PostType;
+  mode?: 'create' | 'edit';
+  editingPost?: PostData | null;
+}) => {
+  const isEdit = mode === 'edit' && !!editingPost;
+  const [step, setStep] = useState(isEdit ? 2 : 1);
+  const [form, setForm] = useState(() => isEdit && editingPost ? {
+    title: editingPost.title,
+    city: editingPost.city || REGIONS[0],
+    category: editingPost.category || CATEGORIES[0],
+    budget: editingPost.budget || '',
+    description: editingPost.description || '',
+    timeInfo: editingPost.timeInfo || '',
+    type: editingPost.type,
+    contactInfo: user?.contactValue || '',
+  } : {
+    title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '',
+    type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '',
+  });
+  const [images, setImages] = useState<string[]>(isEdit && editingPost?.imageUrls ? [...editingPost.imageUrls] : []);
   const [submitting, setSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); 
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [briefInput, setBriefInput] = useState('');
+  const [antiSpamAnswer, setAntiSpamAnswer] = useState('');
 
   const isClient = form.type === 'client';
-  const titlePlaceholder = isClient
-    ? '例如：周六需要搬家帮手 / San Mateo 退房清洁'
-    : '例如：湾区退房清洁可接单 / 提供机场接送服务';
-  const descPlaceholder = isClient
-    ? '说清楚地点、时间、预算、需要做什么，越具体越容易找到合适的人。'
-    : '介绍你的服务范围、可服务地区、价格方式、可预约时间和经验。';
-  const budgetPlaceholder = isClient
-    ? '预算 / 可支付金额（如: $50/小时）'
-    : '价格 / 收费方式（如: $80起 / 按小时）';
+  const isAdmin = user?.role === 'admin';
+  const hints = getPostWritingHints(form.category, form.type);
+  const budgetPlaceholder = isClient ? '预算 / 可支付金额（如: $50/小时）' : '价格 / 收费方式（如: $80起 / 按小时）';
 
   const typeCardClass = (selected: boolean) =>
-    selected
-      ? 'border-baylink-green bg-baylink-green-light text-[#2d6b4f] shadow-sm'
+    selected ? 'border-baylink-green bg-baylink-green-light text-[#2d6b4f] shadow-sm'
       : 'border-baylink-border bg-white text-baylink-text-secondary hover:border-baylink-green/35';
-  const categoryClass = (active: boolean) =>
-    active ? 'chip chip-active' : 'chip chip-inactive';
+  const categoryClass = (active: boolean) => active ? 'chip chip-active' : 'chip chip-inactive';
 
   const addTagToDesc = (tag: string) => {
-      setForm(prev => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
+    setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
-    const files = e.target.files; 
-    if (files) { 
-      if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error'); 
+  const handleOrganizeBrief = () => {
+    if (!briefInput.trim()) return showToast('请先简单描述一下你想发布的内容', 'error');
+    if (form.title.trim() || form.description.trim()) {
+      if (!window.confirm('会覆盖当前标题和描述，是否继续？')) return;
+    }
+    const organized = organizePostFromBrief(briefInput, form.category, form.type);
+    setForm((prev) => ({
+      ...prev,
+      title: organized.title,
+      description: organized.description,
+      budget: organized.budget || prev.budget,
+      city: organized.city || prev.city,
+    }));
+    showToast('已帮你整理成帖子，可继续修改后发布', 'success');
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      if (images.length + files.length > 3) return showToast('最多只能上传3张图片', 'error');
       const fileArray = Array.from(files);
       const compressedImages: string[] = [];
       await Promise.all(fileArray.map(async (file) => {
-          try {
-              const compressedFile = await compressImage(file);
-              const reader = new FileReader();
-              const result = await new Promise<string>((resolve) => {
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(compressedFile);
-              });
-              compressedImages.push(result);
-          } catch(e) { console.error(e); }
+        try {
+          const compressedFile = await compressImage(file);
+          const reader = new FileReader();
+          const result = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(compressedFile);
+          });
+          compressedImages.push(result);
+        } catch (err) { console.error(err); }
       }));
-      setImages(prev => [...prev, ...compressedImages].slice(0,3));
-    } 
+      setImages((prev) => [...prev, ...compressedImages].slice(0, 3));
+    }
   };
-  
+
   const handleSubmit = async () => {
-    if (!form.title.trim() || !form.description.trim()) return showToast('请先填写标题和描述', 'error');
-    if (!form.budget.trim()) return showToast(isClient ? '请填写预算或价格' : '请填写价格或收费方式', 'error');
-    if (!form.city) return showToast('请选择地区', 'error');
+    const err = validatePostForm(form);
+    if (err) return showToast(err, 'error');
+    if (!isEdit && !isAdmin && antiSpamAnswer !== '旧金山湾区') {
+      return showToast('请先完成验证', 'error');
+    }
     setSubmitting(true);
-    try { 
-      await api.request('/posts', { method: 'POST', body: JSON.stringify({ ...form, imageUrls: images }) }); 
-      onCreated(); 
-      setIsSuccess(true); 
-    } catch (err: any) { 
-      const m = err?.message || '';
-      const toastMsg = m === 'TODAY_LIMIT_REACHED' ? '今日发布已达上限'
-        : /image|upload|图片/i.test(m) ? '图片上传失败，请换一张图'
-        : m && m !== '失败' ? m : '发布失败，请稍后重试';
-      showToast(toastMsg, 'error'); 
-      setSubmitting(false); 
-    } 
+    const payload = { ...form, imageUrls: images };
+    try {
+      if (isEdit && editingPost) {
+        await api.request(`/posts/${editingPost.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        onUpdated?.();
+        onCreated();
+        showToast('信息已更新', 'success');
+        onClose();
+      } else {
+        await api.request('/posts', { method: 'POST', body: JSON.stringify(payload) });
+        onCreated();
+        setIsSuccess(true);
+      }
+    } catch (err: any) {
+      const toastMsg = mapPostSaveError(err, isEdit);
+      if (/image|upload|图片/i.test(err?.error || '')) showToast('图片上传失败，请换一张图', 'error');
+      else showToast(toastMsg, 'error');
+      setSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -1119,8 +1325,8 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
   }
 
   const goToStep3 = () => {
-    if (!form.title.trim()) return showToast('请先填写标题', 'error');
-    if (!form.description.trim()) return showToast('请先填写描述', 'error');
+    const err = validatePostForm(form);
+    if (err) return showToast(err, 'error');
     setStep(3);
   };
 
@@ -1129,7 +1335,7 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
       <div className="bg-baylink-bg w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl border border-baylink-border/40">
         <div className="flex justify-between items-center mb-5">
           <div>
-            <h3 className="text-lg font-bold text-baylink-text">发布信息</h3>
+            <h3 className="text-lg font-bold text-baylink-text">{isEdit ? '编辑信息' : '发布信息'}</h3>
             <span className="text-[11px] text-baylink-muted">Step {step}/3</span>
           </div>
           <button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-baylink-section border border-baylink-border/50"><X size={18} className="text-baylink-muted"/></button>
@@ -1148,8 +1354,7 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
                 >
                   {form.type === 'client' && <span className="text-[9px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">发布需求</div>
-                  <div className="text-[11px] mt-1 opacity-90 leading-snug">我想找人帮忙 / 找服务 / 找房源</div>
-                  <div className="hidden sm:block text-[10px] mt-1 opacity-70">搬家、清洁、维修、接送、租房</div>
+                  <div className="text-[11px] mt-1 opacity-90 leading-snug">找房、找人帮忙、找服务</div>
                 </button>
                 <button
                   type="button"
@@ -1157,9 +1362,8 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
                   className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='provider')}`}
                 >
                   {form.type === 'provider' && <span className="text-[9px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
-                  <div className="text-sm font-bold leading-tight">提供服务</div>
-                  <div className="text-[11px] mt-1 opacity-90 leading-snug">我可以提供服务、房源或资源</div>
-                  <div className="hidden sm:block text-[10px] mt-1 opacity-70">清洁、搬家、接送、房源、二手</div>
+                  <div className="text-sm font-bold leading-tight">提供资源</div>
+                  <div className="text-[11px] mt-1 opacity-90 leading-snug">房源、二手、服务、接送</div>
                 </button>
               </div>
             </div>
@@ -1177,32 +1381,45 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
 
         {step === 2 && (
           <div className="space-y-3">
+            <div className="rounded-xl border border-baylink-border/50 bg-white p-3">
+              <p className="text-[11px] font-semibold text-baylink-text mb-1.5">不会写？简单描述一下，BayLink 帮你整理成完整帖子。</p>
+              <textarea
+                className="w-full rounded-lg border border-baylink-border/50 bg-baylink-section/30 p-2.5 text-xs outline-none resize-none h-16 placeholder:text-baylink-muted"
+                placeholder="例如：San Mateo 有一间房出租，$1600，6月入住，近 Caltrain"
+                value={briefInput}
+                onChange={(e) => setBriefInput(e.target.value)}
+              />
+              <button type="button" onClick={handleOrganizeBrief} className="mt-2 w-full rounded-lg bg-baylink-green-light py-2 text-xs font-bold text-baylink-green">帮我整理</button>
+            </div>
             <input
               className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
-              placeholder={titlePlaceholder}
+              placeholder={hints.titlePlaceholder}
               value={form.title}
+              maxLength={80}
               onChange={e => setForm({...form, title: e.target.value})}
             />
-            
-            {SMART_TAGS[form.category] && (
-                <div className="flex flex-wrap gap-1.5">
-                    {SMART_TAGS[form.category].map(tag => (
-                        <button key={tag} type="button" onClick={() => addTagToDesc(tag)} className="text-[10px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
-                    ))}
-                </div>
+            {hints.quickTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {hints.quickTags.map((tag) => (
+                  <button key={tag} type="button" onClick={() => addTagToDesc(tag)} className="text-[10px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
+                ))}
+              </div>
             )}
-
+            {hints.checklist.length > 0 && (
+              <p className="text-[10px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.join('、')}</p>
+            )}
             <textarea
               className="w-full p-4 bg-white rounded-xl h-36 resize-none outline-none border border-baylink-border/60 placeholder:text-baylink-muted text-sm leading-relaxed focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
-              placeholder={descPlaceholder}
+              placeholder={hints.descriptionPlaceholder}
               value={form.description}
+              maxLength={2000}
               onChange={e => setForm({...form, description: e.target.value})}
             />
-            
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {images.map((img,i)=> (
                 <div key={i} className="relative shrink-0">
                   <img src={img} className="w-[72px] h-[72px] rounded-xl object-cover border border-baylink-border/50"/>
+                  <button type="button" onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm"><X size={12}/></button>
                 </div>
               ))}
               <label className="w-[72px] h-[72px] shrink-0 flex flex-col items-center justify-center border-2 border-dashed border-baylink-border rounded-xl cursor-pointer hover:border-baylink-green/50 hover:text-baylink-green text-baylink-muted transition bg-white">
@@ -1240,6 +1457,7 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
                 className="w-full p-3 bg-transparent outline-none font-semibold text-center text-base placeholder:text-baylink-muted"
                 placeholder={budgetPlaceholder}
                 value={form.budget}
+                maxLength={30}
                 onChange={e => setForm({...form, budget: e.target.value})}
               />
             </div>
@@ -1251,10 +1469,24 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
                 onChange={e => setForm({...form, timeInfo: e.target.value})}
               />
             </div>
+            {!isEdit && !isAdmin && (
+              <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
+                <p className="text-xs font-semibold text-baylink-text mb-2">为了防止垃圾内容，请完成验证</p>
+                <p className="text-[11px] text-baylink-muted mb-2">BayLink 主要服务哪个地区？</p>
+                <div className="space-y-1.5">
+                  {['旧金山湾区', '纽约', '洛杉矶'].map((opt) => (
+                    <label key={opt} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs cursor-pointer ${antiSpamAnswer === opt ? 'border-baylink-green bg-baylink-green-light/40' : 'border-baylink-border'}`}>
+                      <input type="radio" name="antiSpam" className="accent-baylink-green" checked={antiSpamAnswer === opt} onChange={() => setAntiSpamAnswer(opt)} />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex gap-2 mt-4">
               <button type="button" onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border">上一步</button>
               <button type="button" onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3 btn-primary disabled:opacity-50">
-                {submitting ? '发布中...' : '确认发布'}
+                {submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '确认发布')}
               </button>
             </div>
           </div>
@@ -1340,7 +1572,7 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onImageClick, onShare, showToast }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onImageClick, onShare, showToast }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [isReported, setIsReported] = useState(post.isReported);
@@ -1395,6 +1627,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
         <div className="flex gap-3">
           <button onClick={() => onShare(post)} className="p-2 bg-gray-100 rounded-full hover:bg-green-100 hover:text-green-700 transition"><Share2 size={20} /></button>
           {!isOwner && <button onClick={handleReport} className={`p-2 rounded-full transition ${isReported ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}`} disabled={isReported}><AlertTriangle size={20} /></button>}
+          {(isAdmin || isOwner) && <button onClick={() => onEdit?.(post)} className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-baylink-green-light hover:text-baylink-green" title="编辑"><Edit size={20} /></button>}
           {(isAdmin || isOwner) && <button onClick={deletePost} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 size={20} /></button>}
         </div>
       </div>
@@ -1404,7 +1637,10 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           <Avatar src={authorAvatar} name={authorName} size={10} />
           <div className="flex-1">
             <div className="font-bold text-gray-900">{authorName}</div>
-            <div className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleDateString()}</div>
+            <div className="text-xs text-gray-400">
+              {new Date(post.createdAt).toLocaleDateString()}
+              {isPostEdited(post) && <span className="text-gray-300"> · 已编辑</span>}
+            </div>
           </div>
           <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
         </div>
@@ -1536,6 +1772,7 @@ export default function App() {
   const [tab, setTab] = useState('home');
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingPost, setEditingPost] = useState<PostData | null>(null);
   
   const [feedType, setFeedType] = useState<PostType>('provider');
   const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
@@ -1645,9 +1882,28 @@ export default function App() {
   const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
 
   const openCreate = (type: PostType = 'client') => {
+    setEditingPost(null);
     setCreateDefaultType(type);
     if (user) setShowCreate(true);
     else setShowLogin(true);
+  };
+
+  const openEditPost = (post: PostData) => {
+    if (!user) return setShowLogin(true);
+    setEditingPost(post);
+    setShowCreate(true);
+  };
+
+  const handleDeletePost = async (post: PostData) => {
+    if (!confirm('删除此贴？')) return;
+    try {
+      await api.request(`/posts/${post.id}`, { method: 'DELETE' });
+      if (selectedPost?.id === post.id) setSelectedPost(null);
+      fetchPosts(1, true);
+      showToast('帖子已删除', 'success');
+    } catch {
+      showToast('删除失败', 'error');
+    }
   };
 
   const handleChannelClick = (ch: typeof HOME_CHANNELS[number]) => {
@@ -1802,7 +2058,7 @@ export default function App() {
                      />
                    ) : (
                      <>
-                       {posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
+                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
                        {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
                      </>
@@ -1850,8 +2106,19 @@ export default function App() {
 
         {/* Modals */}
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
-        {showCreate && <CreatePostModal user={user} defaultType={createDefaultType} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)} showToast={showToast}/>}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
+        {showCreate && user && (
+          <CreatePostModal
+            user={user}
+            mode={editingPost ? 'edit' : 'create'}
+            editingPost={editingPost}
+            defaultType={createDefaultType}
+            onClose={() => { setShowCreate(false); setEditingPost(null); }}
+            onCreated={() => fetchPosts(1, true)}
+            onUpdated={() => fetchPosts(1, true)}
+            showToast={showToast}
+          />
+        )}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onEdit={(p: PostData) => { setSelectedPost(null); openEditPost(p); }} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
         {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket}/>}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
