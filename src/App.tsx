@@ -28,10 +28,10 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 const NEARBY_HAPPENING = [
-  { title: '南湾搬家', sub: '周末可约', tag: '搬家' },
-  { title: 'SF 长租', sub: '近 BART', tag: '长租' },
-  { title: '东湾清洁', sub: '退房扫除', tag: '清洁' },
-  { title: '半岛接送', sub: '当天可聊', tag: '接送' },
+  { title: '南湾搬家服务', sub: '周末可约', tag: '搬家' },
+  { title: 'SF 长租房源', sub: '近 BART', tag: '长租' },
+  { title: '东湾退房清洁', sub: '可当天沟通', tag: '清洁' },
+  { title: '半岛机场接送', sub: '可预约', tag: '接送' },
 ];
 
 // 🏷️ 快捷标签
@@ -188,23 +188,31 @@ const NearbyHappening = () => (
 
 const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
   <div className="bg-white p-0.5 rounded-xl flex gap-0.5 shadow-sm mb-2 border border-baylink-border/40">
-    <button onClick={onClient} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">找帮忙</div>
-      <div className="hidden sm:block text-[10px] opacity-75 mt-0.5 font-normal">看看附近谁需要帮助</div>
-    </button>
     <button onClick={onProvider} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">我接单</div>
-      <div className="hidden sm:block text-[10px] opacity-75 mt-0.5 font-normal">展示你的服务和空档</div>
+      <div className="text-[13px] font-semibold leading-tight">找服务</div>
+      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看附近谁能帮你</div>
+    </button>
+    <button onClick={onClient} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
+      <div className="text-[13px] font-semibold leading-tight">接单机会</div>
+      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看附近谁需要服务</div>
     </button>
   </div>
 );
 
-const EmptyFeed = ({ onPublish }: { onPublish: () => void }) => (
-  <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-    <p className="text-sm font-medium text-baylink-text mb-0.5">还没有更多内容</p>
-    <p className="text-xs text-baylink-muted mb-3">发布第一条湾区信息，让附近的人看到</p>
-    <button onClick={onPublish} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布需求</button>
-  </div>
+const EmptyFeed = ({ feedType, onPublishService, onPublishInfo }: { feedType: PostType, onPublishService: () => void, onPublishInfo: () => void }) => (
+  feedType === 'provider' ? (
+    <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
+      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有服务内容</p>
+      <p className="text-xs text-baylink-muted mb-3">发布你的服务，让附近的人找到你</p>
+      <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布服务</button>
+    </div>
+  ) : (
+    <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
+      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有新的需求</p>
+      <p className="text-xs text-baylink-muted mb-3">附近需求会显示在这里，也可以先发布你的服务</p>
+      <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
+    </div>
+  )
 );
 
 const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => (
@@ -351,7 +359,7 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
           <div className="text-[10px] text-baylink-muted/90">{post.city} · {new Date(post.createdAt).toLocaleDateString()}</div>
         </div>
         <span className={`shrink-0 text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
-          {isProvider ? '接单' : '求助'}
+          {isProvider ? '服务' : '需求'}
         </span>
       </div>
       <div className="px-3.5 pb-2">
@@ -541,9 +549,9 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
 };
 
 // --- CreatePostModal (已完全修复格式 & 快捷标签版) ---
-const CreatePostModal = ({ onClose, onCreated, user, showToast }: any) => {
+const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'client' }: any) => {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: 'client' as PostType, contactInfo: user?.contactValue || '' });
+  const [form, setForm] = useState({ title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '', type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '' });
   const [images, setImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false); 
@@ -1046,7 +1054,8 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   
-  const [feedType, setFeedType] = useState<PostType>('client');
+  const [feedType, setFeedType] = useState<PostType>('provider');
+  const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
   const [posts, setPosts] = useState<PostData[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -1138,6 +1147,12 @@ export default function App() {
   
   const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
 
+  const openCreate = (type: PostType = 'client') => {
+    setCreateDefaultType(type);
+    if (user) setShowCreate(true);
+    else setShowLogin(true);
+  };
+
   // 🖥️ PC 侧边栏
   const LeftSidebar = () => (
     <div className="hidden lg:flex flex-col w-[200px] xl:w-[220px] h-screen sticky top-0 py-6 px-4 border-r border-baylink-border/60 bg-baylink-bg-alt overflow-y-auto shrink-0">
@@ -1176,7 +1191,7 @@ export default function App() {
                   <div className="text-[10px] text-baylink-muted">{user.role==='admin'?'管理员':'湾区邻居'}</div>
                 </div>
              </div>
-             <button onClick={() => setShowCreate(true)} className="w-full py-2 btn-primary text-xs flex items-center justify-center gap-1"><Plus size={15}/> 发布新需求</button>
+             <button onClick={() => openCreate('client')} className="w-full py-2 btn-primary text-xs flex items-center justify-center gap-1"><Plus size={15}/> 发布信息</button>
           </div>
        ) : (
           <div className="sidebar-panel mb-3 text-center py-4">
@@ -1227,7 +1242,7 @@ export default function App() {
                <div className="px-4 pt-2 sm:px-5 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
                    <div className="relative mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
-                     <input className="search-input" placeholder="搜索租房、搬家、维修、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
+                     <input className="search-input" placeholder="搜索服务、租房、接送、二手..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
                    </div>
                    
                    {!keyword && (
@@ -1241,11 +1256,11 @@ export default function App() {
                             <h2 className="text-[15px] font-semibold leading-snug mb-0.5">湾区生活，别再靠群里乱翻</h2>
                             <p className="text-white/65 text-[10px] mb-2.5 leading-relaxed">租房、搬家、维修、接送，一站发布与发现。</p>
                             <div className="flex gap-1.5">
-                            <button onClick={() => { setFeedType('client'); user ? setShowCreate(true) : setShowLogin(true); }} className="flex-[1.35] py-1.5 bg-white text-baylink-green rounded-lg font-bold text-[11px] shadow-sm hover:bg-white/95 transition active:scale-[0.98]">
+                            <button onClick={() => openCreate('client')} className="flex-[1.35] py-1.5 bg-white text-baylink-green rounded-lg font-bold text-[11px] shadow-sm hover:bg-white/95 transition active:scale-[0.98]">
                                 发布需求
                             </button>
-                            <button onClick={() => { setFeedType('provider'); setCategoryFilter('全部'); }} className="flex-1 py-1.5 bg-white/10 text-white/90 border border-white/15 rounded-lg font-medium text-[11px] hover:bg-white/15 transition active:scale-[0.98]">
-                                我要接单
+                            <button onClick={() => { setFeedType('provider'); openCreate('provider'); }} className="flex-1 py-1.5 bg-white/10 text-white/90 border border-white/15 rounded-lg font-medium text-[11px] hover:bg-white/15 transition active:scale-[0.98]">
+                                发布服务
                             </button>
                             </div>
                         </div>
@@ -1271,13 +1286,17 @@ export default function App() {
                    
                    <div className="flex items-center justify-between mb-2 px-0.5">
                      <h3 className="text-xs font-semibold text-baylink-text">社区动态</h3>
-                     <span className="text-[10px] text-baylink-muted">{feedType === 'client' ? '附近求助' : '附近服务'}</span>
+                     <span className="text-[10px] text-baylink-muted">{feedType === 'provider' ? '附近服务' : '附近需求'}</span>
                    </div>
                    
                    {isInitialLoading && posts.length === 0 ? (
                      <div className="py-16 text-center space-y-3"><Loader2 className="animate-spin w-9 h-9 text-baylink-green mx-auto"/><p className="text-sm text-baylink-muted">加载中...</p></div>
                    ) : posts.length === 0 ? (
-                     <EmptyFeed onPublish={() => user ? setShowCreate(true) : setShowLogin(true)} />
+                     <EmptyFeed
+                       feedType={feedType}
+                       onPublishService={() => openCreate('provider')}
+                       onPublishInfo={() => openCreate('client')}
+                     />
                    ) : (
                      <>
                        {posts.map(p => <PostCard key={p.id} post={p} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
@@ -1302,7 +1321,7 @@ export default function App() {
            <button onClick={()=>setTab('notifications')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='notifications'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <Search size={20} strokeWidth={tab==='notifications'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='notifications'?'font-medium':'font-normal'}`}>发现</span>
            </button>
-           <button onClick={()=>user?setShowCreate(true):setShowLogin(true)} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
+           <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
              <div className="w-9 h-9 bg-baylink-green rounded-lg shadow-sm flex items-center justify-center text-white ring-2 ring-baylink-bg"><Plus size={20} strokeWidth={2.5}/></div>
              <span className="text-[9px] font-medium text-baylink-green mt-px">发布</span>
            </button>
@@ -1319,7 +1338,7 @@ export default function App() {
 
         {/* Modals */}
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
-        {showCreate && <CreatePostModal user={user} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)} showToast={showToast}/>}
+        {showCreate && <CreatePostModal user={user} defaultType={createDefaultType} onClose={()=>setShowCreate(false)} onCreated={() => fetchPosts(1, true)} showToast={showToast}/>}
         {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
         {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket}/>}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
