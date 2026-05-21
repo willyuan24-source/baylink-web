@@ -28,7 +28,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 const NEARBY_HAPPENING = [
-  { title: '南湾搬家服务', sub: '周末可约', tag: '搬家' },
+  { title: '南湾搬家资源', sub: '周末可约', tag: '搬家' },
   { title: 'SF 长租房源', sub: '近 BART', tag: '长租' },
   { title: '东湾退房清洁', sub: '可当天沟通', tag: '清洁' },
   { title: '半岛机场接送', sub: '可预约', tag: '接送' },
@@ -189,12 +189,12 @@ const NearbyHappening = () => (
 const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
   <div className="bg-white p-0.5 rounded-xl flex gap-0.5 shadow-sm mb-2 border border-baylink-border/40">
     <button onClick={onProvider} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">找服务</div>
-      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看附近谁能帮你</div>
+      <div className="text-[13px] font-semibold leading-tight">本地资源</div>
+      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">房源、服务、二手、推荐</div>
     </button>
     <button onClick={onClient} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">接单机会</div>
-      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看附近谁需要服务</div>
+      <div className="text-[13px] font-semibold leading-tight">邻里需求</div>
+      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看谁需要帮忙</div>
     </button>
   </div>
 );
@@ -202,14 +202,14 @@ const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, on
 const EmptyFeed = ({ feedType, onPublishService, onPublishInfo }: { feedType: PostType, onPublishService: () => void, onPublishInfo: () => void }) => (
   feedType === 'provider' ? (
     <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有服务内容</p>
-      <p className="text-xs text-baylink-muted mb-3">发布你的服务，让附近的人找到你</p>
-      <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布服务</button>
+      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有资源内容</p>
+      <p className="text-xs text-baylink-muted mb-3">提供你的服务、房源或二手资源，让附近的人找到你</p>
+      <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 提供服务</button>
     </div>
   ) : (
     <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
       <p className="text-sm font-medium text-baylink-text mb-0.5">还没有新的需求</p>
-      <p className="text-xs text-baylink-muted mb-3">附近需求会显示在这里，也可以先发布你的服务</p>
+      <p className="text-xs text-baylink-muted mb-3">附近需求会显示在这里，也可以先发布你的信息</p>
       <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
     </div>
   )
@@ -359,7 +359,7 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
           <div className="text-[10px] text-baylink-muted/90">{post.city} · {new Date(post.createdAt).toLocaleDateString()}</div>
         </div>
         <span className={`shrink-0 text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
-          {isProvider ? '服务' : '需求'}
+          {isProvider ? '资源' : '需求'}
         </span>
       </div>
       <div className="px-3.5 pb-2">
@@ -542,7 +542,7 @@ const OfficialAds = ({ isAdmin, showToast }: { isAdmin: boolean, showToast: any 
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-3 px-1"><h3 className="font-bold text-baylink-text text-sm flex items-center gap-1"><BadgeCheck size={14} className="text-baylink-green"/> 官方推荐</h3>{isAdmin && <button onClick={() => { setEditingAd({}); setIsManagerOpen(true); }} className="text-[10px] bg-baylink-green text-white px-2 py-1 rounded-lg font-semibold hover:bg-baylink-green-hover transition flex items-center gap-1"><Plus size={10}/> 添加</button>}</div>
-      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => (<div key={ad.id} className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}><div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5"></div>{ad.imageUrl && <img src={ad.imageUrl} className="w-14 h-14 rounded-xl object-cover bg-baylink-section z-10 shrink-0" />}<div className="flex flex-col justify-center z-10 flex-1 min-w-0"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div><div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-baylink-muted line-clamp-1">{ad.content}</div></div>{isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}</div>)) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1">优质服务将显示在这里</p></div>}</div>
+      <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar snap-x px-1">{ads.length > 0 ? ads.map(ad => (<div key={ad.id} className="snap-center min-w-[240px] bg-white rounded-2xl shadow-card p-3 flex gap-3 border border-baylink-border/60 shrink-0 relative overflow-hidden group cursor-pointer hover:border-baylink-green/30 transition" onClick={() => { setEditingAd(isAdmin ? ad : {...ad, readonly: true} as any); setIsManagerOpen(true); }}><div className="absolute right-0 top-0 w-16 h-16 bg-baylink-green-light rounded-bl-full -mr-5 -mt-5"></div>{ad.imageUrl && <img src={ad.imageUrl} className="w-14 h-14 rounded-xl object-cover bg-baylink-section z-10 shrink-0" />}<div className="flex flex-col justify-center z-10 flex-1 min-w-0"><div className="flex items-center gap-1 mb-1"><span className="text-[9px] bg-baylink-green-light text-baylink-green px-1.5 py-0.5 rounded-md font-semibold flex items-center gap-0.5"><Shield size={8}/> 官方</span></div><div className="font-semibold text-baylink-text text-sm line-clamp-1 mb-0.5">{ad.title}</div><div className="text-[10px] text-baylink-muted line-clamp-1">{ad.content}</div></div>{isAdmin && <button onClick={(e) => {e.stopPropagation(); handleDeleteAd(ad.id);}} className="absolute top-2 right-2 p-1 bg-white rounded-full text-red-500 shadow-sm z-20"><Trash2 size={12}/></button>}</div>)) : <div className="p-5 bg-white rounded-2xl border border-dashed border-baylink-border text-center w-full"><BadgeCheck size={20} className="text-baylink-muted mx-auto mb-2 opacity-50"/><p className="text-xs font-semibold text-baylink-text-secondary">暂无推荐内容</p><p className="text-[10px] text-baylink-muted mt-1 leading-relaxed">管理员添加的官方推荐和验证广告会出现在这里</p></div>}</div>
       {isManagerOpen && <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"><div className="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl"><h3 className="text-lg font-bold mb-4">{editingAd && (editingAd as any).readonly ? '推荐详情' : '管理官方推荐'}</h3>{editingAd && (editingAd as any).readonly ? <div className="space-y-3">{editingAd.imageUrl && <img src={editingAd.imageUrl} className="w-full h-40 object-cover rounded-xl" />}<h4 className="font-bold text-lg">{editingAd.title}</h4><p className="text-sm text-gray-600 leading-relaxed">{editingAd.content}</p><button onClick={() => setIsManagerOpen(false)} className="w-full py-3 bg-gray-100 text-gray-800 rounded-xl font-bold mt-4">关闭</button></div> : <div className="space-y-3"><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="标题" value={editingAd?.title || ''} onChange={e => setEditingAd(p => ({...p, title: e.target.value}))} /><textarea className="w-full p-3 bg-gray-50 border rounded-xl text-sm h-24 resize-none" placeholder="内容描述" value={editingAd?.content || ''} onChange={e => setEditingAd(p => ({...p, content: e.target.value}))} /><input className="w-full p-3 bg-gray-50 border rounded-xl text-sm" placeholder="图片 URL (可选)" value={editingAd?.imageUrl || ''} onChange={e => setEditingAd(p => ({...p, imageUrl: e.target.value}))} /><div className="flex gap-2 mt-4"><button onClick={() => setIsManagerOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">取消</button><button onClick={handleSaveAd} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">保存发布</button></div></div>}</div></div>}
     </div>
   );
@@ -673,9 +673,9 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
                   className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='provider')}`}
                 >
                   {form.type === 'provider' && <span className="text-[9px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
-                  <div className="text-sm font-bold leading-tight">发布服务</div>
-                  <div className="text-[11px] mt-1 opacity-90 leading-snug">我可以接单 / 提供服务</div>
-                  <div className="hidden sm:block text-[10px] mt-1 opacity-70">清洁、搬家、维修、接送、翻译</div>
+                  <div className="text-sm font-bold leading-tight">提供服务</div>
+                  <div className="text-[11px] mt-1 opacity-90 leading-snug">我可以提供服务、房源或资源</div>
+                  <div className="hidden sm:block text-[10px] mt-1 opacity-70">清洁、搬家、接送、房源、二手</div>
                 </button>
               </div>
             </div>
@@ -1158,7 +1158,7 @@ export default function App() {
     <div className="hidden lg:flex flex-col w-[200px] xl:w-[220px] h-screen sticky top-0 py-6 px-4 border-r border-baylink-border/60 bg-baylink-bg-alt overflow-y-auto shrink-0">
       <div className="mb-6 px-1">
         <h1 className="font-bold text-xl text-gradient tracking-tight flex items-center gap-1">BAYLINK<span className="w-1.5 h-1.5 rounded-full bg-baylink-orange mt-1"></span></h1>
-        <span className="text-[10px] text-baylink-muted block mt-0.5">湾区本地生活</span>
+        <span className="text-[10px] text-baylink-muted block mt-0.5">湾区华人本地生活</span>
       </div>
       <nav className="space-y-0.5 flex-1">
         <button onClick={() => setTab('home')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='home'?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={tab==='home'?2.5:2}/> 首页</button>
@@ -1233,6 +1233,7 @@ export default function App() {
         <div className="lg:hidden">{tab === 'home' && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
             <div>
                 <h1 className="font-bold text-lg text-gradient tracking-tight flex items-center gap-1">BAYLINK<span className="w-1 h-1 rounded-full bg-baylink-orange"></span></h1>
+                <p className="text-[10px] text-baylink-muted mt-0.5 leading-none">湾区华人本地生活</p>
             </div>
             <button onClick={()=>!user?setShowLogin(true):setTab('profile')} className="rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
         </header>}</div>
@@ -1242,7 +1243,7 @@ export default function App() {
                <div className="px-4 pt-2 sm:px-5 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
                    <div className="relative mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
-                     <input className="search-input" placeholder="搜索服务、租房、接送、二手..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
+                     <input className="search-input" placeholder="搜索房源、服务、二手、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
                    </div>
                    
                    {!keyword && (
@@ -1260,7 +1261,7 @@ export default function App() {
                                 发布需求
                             </button>
                             <button onClick={() => { setFeedType('provider'); openCreate('provider'); }} className="flex-1 py-1.5 bg-white/10 text-white/90 border border-white/15 rounded-lg font-medium text-[11px] hover:bg-white/15 transition active:scale-[0.98]">
-                                发布服务
+                                提供服务
                             </button>
                             </div>
                         </div>
@@ -1286,7 +1287,7 @@ export default function App() {
                    
                    <div className="flex items-center justify-between mb-2 px-0.5">
                      <h3 className="text-xs font-semibold text-baylink-text">社区动态</h3>
-                     <span className="text-[10px] text-baylink-muted">{feedType === 'provider' ? '附近服务' : '附近需求'}</span>
+                     <span className="text-[10px] text-baylink-muted">{feedType === 'provider' ? '本地资源' : '邻里需求'}</span>
                    </div>
                    
                    {isInitialLoading && posts.length === 0 ? (
@@ -1309,7 +1310,17 @@ export default function App() {
                </div>
            )}
            {tab === 'messages' && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}
-           {tab === 'notifications' && <div className="flex-1 flex flex-col items-center justify-center text-gray-300"><div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Bell size={40}/></div><p className="font-bold">暂无通知</p></div>}
+           {tab === 'notifications' && (
+             <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
+               <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
+                 <h2 className="text-lg font-bold text-baylink-text">官方推荐</h2>
+                 <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">认证服务、精选房源和本地优质信息会显示在这里</p>
+               </div>
+               <div className="flex-1 overflow-y-auto p-4">
+                 <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} />
+               </div>
+             </div>
+           )}
            {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} showToast={showToast} />}
         </main>
 
@@ -1319,7 +1330,7 @@ export default function App() {
              <Home size={20} strokeWidth={tab==='home'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='home'?'font-medium':'font-normal'}`}>首页</span>
            </button>
            <button onClick={()=>setTab('notifications')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='notifications'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <Search size={20} strokeWidth={tab==='notifications'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='notifications'?'font-medium':'font-normal'}`}>发现</span>
+             <Star size={20} strokeWidth={tab==='notifications'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='notifications'?'font-medium':'font-normal'}`}>推荐</span>
            </button>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
              <div className="w-9 h-9 bg-baylink-green rounded-lg shadow-sm flex items-center justify-center text-white ring-2 ring-baylink-bg"><Plus size={20} strokeWidth={2.5}/></div>
