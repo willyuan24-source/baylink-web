@@ -53,6 +53,7 @@ interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
   bio?: string; avatar?: string;
+  createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
@@ -80,6 +81,39 @@ interface Message { id: string; conversationId?: string; senderId: string; type:
 // --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const validateEmail = (email: string) => EMAIL_REGEX.test(email.trim());
+const validatePassword = (password: string) =>
+  password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
+
+const getJoinDays = (user: Partial<UserData> & { _id?: string }): number | null => {
+  const oneDayMs = 86400000;
+  let joinedAt: number | null = null;
+  if (user.createdAt != null) {
+    joinedAt = typeof user.createdAt === 'number' ? user.createdAt : new Date(user.createdAt as string | Date).getTime();
+  } else if (user.id && /^\d{10,}$/.test(String(user.id))) {
+    joinedAt = Number(user.id);
+  } else if (user._id && String(user._id).length === 24) {
+    joinedAt = parseInt(String(user._id).substring(0, 8), 16) * 1000;
+  } else if (user.id && String(user.id).length === 24) {
+    joinedAt = parseInt(String(user.id).substring(0, 8), 16) * 1000;
+  }
+  if (joinedAt == null || Number.isNaN(joinedAt)) return null;
+  return Math.max(1, Math.ceil((Date.now() - joinedAt) / oneDayMs));
+};
+
+const mapAuthError = (err: any, mode: 'login' | 'register') => {
+  const msg = (err?.error || err?.message || '').toString();
+  if (msg.includes('Email already registered') || msg.includes('User exists')) return '该邮箱已注册，请直接登录';
+  if (msg.includes('Invalid email') || msg.toLowerCase().includes('email format')) return '请输入有效的邮箱地址';
+  if (msg.includes('Password must') || (msg.includes('password') && msg.includes('uppercase'))) return '密码至少8位，并包含大写字母、小写字母和数字';
+  if (msg.includes('Missing required')) return '请填写完整注册信息';
+  if (msg.includes('User not found') || msg.includes('Invalid credentials')) return '账号或密码不正确';
+  if (msg.includes('Invalid password')) return '账号或密码不正确';
+  if (mode === 'register') return '注册失败，请检查填写信息';
+  return '登录失败，请检查账号密码';
+};
 
 // ✨ 图片压缩
 const compressImage = async (file: File): Promise<File> => {
@@ -781,9 +815,9 @@ const CreatePostModal = ({ onClose, onCreated, user, showToast, defaultType = 'c
 };
 
 const LoginModal = ({ onClose, onLogin, showToast }: any) => {
-  const [mode, setMode] = useState<'login'|'register'|'forgot'>('login');
+  const [mode, setMode] = useState<'login'|'register'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
-  const [forgotEmail, setForgotEmail] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -791,34 +825,39 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
     e.preventDefault();
     setError('');
 
-    if (mode === 'forgot') {
-      if (!forgotEmail) return setError('请输入邮箱');
-      setLoading(true);
-      setTimeout(() => {
-        showToast(`重置链接已发送至 ${forgotEmail}`, 'success');
-        setLoading(false);
-        setMode('login');
-      }, 1500);
-      return;
+    if (mode === 'register') {
+      if (!form.email.trim() || !form.password || !form.nickname.trim() || !form.contactValue.trim()) {
+        setError('请填写完整注册信息');
+        return;
+      }
+      if (!validateEmail(form.email)) {
+        setError('请输入有效的邮箱地址');
+        return;
+      }
+      if (!validatePassword(form.password)) {
+        setError('密码至少8位，并包含大写字母、小写字母和数字');
+        return;
+      }
+      if (!confirmPassword) {
+        setError('请再次输入密码');
+        return;
+      }
+      if (form.password !== confirmPassword) {
+        setError('两次输入的密码不一致');
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(form) });
+      const payload = { email: form.email, password: form.password, nickname: form.nickname, contactType: form.contactType, contactValue: form.contactValue };
+      const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(payload) });
       localStorage.setItem('currentUser', JSON.stringify(user));
       onLogin(user);
       onClose();
       showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
     } catch (e: any) {
-      let msg = e.message || '操作失败，请稍后重试';
-      if (msg.includes('User not found')) msg = '该账号尚未注册，请先注册';
-      else if (msg.includes('Invalid password')) msg = '账号或密码不正确';
-      else if (msg.includes('User exists')) msg = '邮箱已注册，请直接登录';
-      else if (mode === 'register' && (!form.email || !form.password || !form.nickname)) msg = '请填写完整信息';
-      else if (msg === '失败' || msg === '操作失败，请稍后重试') {
-        msg = mode === 'register' ? '注册失败，请检查填写信息' : '登录失败，请检查账号密码';
-      }
-      setError(msg);
+      setError(mapAuthError(e, mode === 'register' ? 'register' : 'login'));
     } finally {
       setLoading(false);
     }
@@ -826,32 +865,25 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
 
   return (
     <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center p-6 z-[60] backdrop-blur-md animate-in fade-in">
-      <div className="bg-[#FFF8F0] p-8 rounded-[2.5rem] shadow-2xl w-full max-w-xs relative overflow-hidden">
+      <div className="bg-[#FFF8F0] p-8 rounded-[2.5rem] shadow-2xl w-full max-w-xs relative overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
         <h2 className="text-3xl font-black mb-1 text-center text-gray-900">BAYLINK</h2>
         <p className="text-center text-[10px] text-gray-400 mb-8 tracking-[0.2em] font-medium uppercase">湾区华人互助平台</p>
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-xs font-medium flex items-center gap-2 animate-pulse"><AlertCircle size={14} />{error}</div>}
-        {mode === 'forgot' ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="请输入注册邮箱" />
-            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">{loading ? '...' : '发送重置邮件'}</button>
-            <button type="button" onClick={() => setMode('login')} className="w-full text-xs text-center mt-2 text-gray-500">返回登录</button>
-          </form>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="邮箱账号" />
-            <input required type="password" className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
+        <form onSubmit={handleSubmit} className="space-y-3">
+            <input required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱账号'} />
+            <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
               <>
-                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
-                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal" value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号/电话" />
+                <input required type="password" autoComplete="new-password" className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="确认密码" />
+                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
+                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
               </>
             )}
-            {mode === 'login' && <div className="text-right"><button type="button" onClick={() => setMode('forgot')} className="text-[10px] font-bold text-gray-400 hover:text-gray-900">忘记密码?</button></div>}
+            {mode === 'login' && <div className="text-right"><button type="button" onClick={() => showToast('密码重置功能即将开放，请先联系管理员', 'info')} className="text-[10px] font-bold text-gray-400 hover:text-gray-900">忘记密码?</button></div>}
             <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition">{loading ? 'Loading...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
-          </form>
-        )}
-        {mode !== 'forgot' && <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>}
+        </form>
+        <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <button onClick={onClose} className="absolute top-5 right-5 p-2 bg-white rounded-full text-gray-400 hover:text-gray-900 transition"><X size={18} /></button>
       </div>
     </div>
@@ -1006,6 +1038,7 @@ const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
 
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile'>('menu');
+  const joinDays = user ? getJoinDays(user) : null;
 
   if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40} /></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
 
@@ -1028,7 +1061,7 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
             <div className="mt-6 flex divide-x divide-gray-100">
               <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">12</div><div className="text-[10px] text-gray-400 font-bold uppercase">成功互助</div></div>
               <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">100%</div><div className="text-[10px] text-gray-400 font-bold uppercase">好评率</div></div>
-              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">365</div><div className="text-[10px] text-gray-400 font-bold uppercase">加入天数</div></div>
+              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">{joinDays ?? '新用户'}</div><div className="text-[10px] text-gray-400 font-bold uppercase">加入天数</div></div>
             </div>
           </div>
 
