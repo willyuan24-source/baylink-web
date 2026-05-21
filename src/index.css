@@ -510,6 +510,12 @@ html, body, #root {
   .hot-recommend-grid {
     @apply grid grid-cols-3 gap-3;
   }
+  .hot-recommend-grid--cols-1 {
+    grid-template-columns: 1fr;
+  }
+  .hot-recommend-grid--cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .hot-recommend-card {
     @apply flex-col hover:-translate-y-0.5 hover:border-baylink-green/20 hover:shadow-card-hover;
   }

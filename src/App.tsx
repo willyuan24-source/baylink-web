@@ -65,7 +65,21 @@ interface UserData {
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
 
-interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; description?: string; }
+interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; description?: string; createdAt?: string | number; }
+
+const getAdSortTime = (ad: AdData): number => {
+  if (ad.createdAt == null) return 0;
+  return typeof ad.createdAt === 'number' ? ad.createdAt : new Date(ad.createdAt).getTime();
+};
+
+/** Homepage HotRecommend: latest 3 only (by createdAt desc, else API order). */
+const pickLatestHomeAds = (ads: AdData[], limit = 3): AdData[] => {
+  const list = ads.slice();
+  if (list.some((a) => a.createdAt != null)) {
+    list.sort((a, b) => getAdSortTime(b) - getAdSortTime(a));
+  }
+  return list.slice(0, limit);
+};
 
 type AdDetailItem = {
   id: string;
@@ -403,6 +417,9 @@ const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: 
   }, [refreshKey]);
 
   const showFallback = !loading && ads.length === 0;
+  const homeAds = pickLatestHomeAds(ads, 3);
+  const gridColsClass =
+    homeAds.length === 1 ? 'hot-recommend-grid--cols-1' : homeAds.length === 2 ? 'hot-recommend-grid--cols-2' : '';
 
   return (
     <section className="mb-2 sm:mb-3.5">
@@ -422,8 +439,8 @@ const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: 
       {loading ? (
         <div className="py-5 text-center sm:py-8"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green sm:h-6 sm:w-6" /></div>
       ) : (
-        <div className="hot-recommend-grid">
-          {ads.length > 0 ? ads.map((ad) => (
+        <div className={`hot-recommend-grid ${gridColsClass}`.trim()}>
+          {homeAds.length > 0 ? homeAds.map((ad) => (
             <HotRecommendCard
               key={ad.id}
               tag="官方"
@@ -822,16 +839,16 @@ const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
 }) => {
   const imageUrl = getAdImageUrl(ad);
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="flex max-h-[92vh] w-full max-w-md flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        className="flex w-full max-w-[calc(100vw-32px)] max-h-[86vh] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl sm:max-w-[520px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-4">
-          <h3 className="text-lg font-bold text-baylink-text">推荐详情</h3>
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section" aria-label="关闭"><X size={18} /></button>
+        <div className="relative flex shrink-0 items-center justify-between border-b border-baylink-border/40 px-5 py-4">
+          <h3 className="text-lg font-bold text-baylink-text pr-8">推荐详情</h3>
+          <button type="button" onClick={onClose} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-baylink-muted hover:bg-baylink-section" aria-label="关闭"><X size={18} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {imageUrl ? <AdDetailImage src={imageUrl} /> : null}
           <div className="mt-3 flex flex-wrap gap-1.5">
             <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-2 py-0.5 text-[10px] font-semibold text-baylink-green">
@@ -842,7 +859,7 @@ const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
           <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{getAdContent(ad)}</p>
         </div>
-        <div className="border-t border-baylink-border/40 px-5 py-4 pb-safe">
+        <div className="shrink-0 border-t border-baylink-border/40 px-5 py-4">
           {isAdmin && !ad.isDemo && onDelete ? (
             <div className="flex gap-2">
               <button type="button" onClick={() => onDelete(ad.id)} className="flex-1 rounded-xl border border-red-200 bg-red-50 py-3 text-sm font-bold text-red-600">删除</button>
