@@ -205,8 +205,24 @@ interface PostData {
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
   createdAt: number; updatedAt?: number;
+  isFeatured?: boolean;
+  featuredAt?: number | string;
+  featuredBy?: string;
   isContacted?: boolean; isReported?: boolean;
 }
+
+type PublicUserProfile = {
+  id: string;
+  nickname: string;
+  avatar?: string;
+  bio?: string;
+  role: Role;
+  createdAt?: number;
+  isPhoneVerified?: boolean;
+  isOfficialVerified?: boolean;
+  postCount: number;
+  recentPosts: Array<{ id: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number }>;
+};
 
 const isPostEdited = (post: { createdAt?: number; updatedAt?: number }) =>
   !!post.updatedAt && !!post.createdAt && post.updatedAt > post.createdAt + 500;
@@ -511,6 +527,7 @@ const api = {
     } catch (err: any) { if (!err.handled && err.status !== 401 && err.status !== 403) {} throw err; }
   },
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
+  getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),
   updateProfile: async (data: Partial<UserData>) => await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
   reportPost: async (postId: string, reason: string) => await api.request(`/posts/${postId}/report`, { method: 'POST', body: JSON.stringify({ reason }) }),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) })
@@ -600,9 +617,9 @@ const ChannelShortcuts = ({ onChannel }: { onChannel: (ch: typeof HOME_CHANNELS[
   </section>
 );
 
-const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo, coverType, onClick }: {
+const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo, isFeatured, coverType, onClick }: {
   tag: string; title: string; desc: string; price?: string; location?: string;
-  imageUrl?: string; isDemo?: boolean; coverType?: 'rent' | 'used' | 'service';
+  imageUrl?: string; isDemo?: boolean; isFeatured?: boolean; coverType?: 'rent' | 'used' | 'service';
   onClick?: () => void;
 }) => {
   const [imgFailed, setImgFailed] = useState(false);
@@ -626,8 +643,8 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
     </div>
     <div className="hot-recommend-body">
       <div className="mb-1 flex items-center justify-between gap-1">
-        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[9px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-green-light text-baylink-green'}`}>
-          {isDemo ? tag : <><Shield size={8} /> {tag || '官方'}</>}
+        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[9px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : isFeatured ? 'bg-amber-50 text-amber-700' : 'bg-baylink-green-light text-baylink-green'}`}>
+          {isDemo ? tag : isFeatured ? <><Sparkles size={8} /> 精选</> : <><Shield size={8} /> {tag || '官方'}</>}
         </span>
         <button type="button" onClick={(e) => e.stopPropagation()} className="rounded-full p-0.5 text-baylink-muted/60 transition hover:bg-baylink-section hover:text-baylink-green lg:p-1" aria-label="收藏">
           <Heart size={13} className="lg:w-3.5 lg:h-3.5" />
@@ -642,21 +659,26 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
   );
 };
 
-const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: (ad: AdDetailItem) => void; refreshKey?: number; onViewMore?: () => void }) => {
-  const [ads, setAds] = useState<AdData[]>([]);
+const HotRecommend = ({ onOpenPost, refreshKey, onViewMore }: { onOpenPost: (post: PostData) => void; refreshKey?: number; onViewMore?: () => void }) => {
+  const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
       setLoading(true);
-      try { setAds(await api.request('/ads')); } catch (e) { console.error('fetch ads', e); setAds([]); }
-      finally { setLoading(false); }
+      try {
+        const res = await api.request('/posts/featured?limit=3');
+        setPosts(res.posts || []);
+      } catch (e) {
+        console.error('fetch featured', e);
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [refreshKey]);
 
-  const showFallback = !loading && ads.length === 0;
-  const homeAds = pickLatestHomeAds(ads, 3);
   const gridColsClass =
-    homeAds.length === 1 ? 'hot-recommend-grid--cols-1' : homeAds.length === 2 ? 'hot-recommend-grid--cols-2' : '';
+    posts.length === 1 ? 'hot-recommend-grid--cols-1' : posts.length === 2 ? 'hot-recommend-grid--cols-2' : '';
 
   return (
     <section className="mb-2 sm:mb-3.5">
@@ -665,7 +687,7 @@ const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: 
           <h3 className="flex items-center gap-1 text-[13px] font-bold text-baylink-text sm:gap-1.5 sm:text-sm">
             <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 热门推荐
           </h3>
-          <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">精选房源、二手好物和本地服务</p>
+          <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">管理员精选的优质邻里帖子</p>
         </div>
         {onViewMore && (
           <button type="button" onClick={onViewMore} className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green-light active:scale-95 sm:text-xs">
@@ -675,39 +697,87 @@ const HotRecommend = ({ onOpenDetail, refreshKey, onViewMore }: { onOpenDetail: 
       </div>
       {loading ? (
         <div className="py-5 text-center sm:py-8"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green sm:h-6 sm:w-6" /></div>
-      ) : (
+      ) : posts.length > 0 ? (
         <div className={`hot-recommend-grid ${gridColsClass}`.trim()}>
-          {homeAds.length > 0 ? homeAds.map((ad) => (
-            <HotRecommendCard
-              key={ad.id}
-              tag="官方"
-              title={getAdTitle(ad)}
-              desc={getAdContent(ad)}
-              imageUrl={getAdImageUrl(ad)}
-              onClick={() => onOpenDetail(toAdDetailItem(ad))}
-            />
-          )) : HOT_FALLBACK.map((item) => (
-            <HotRecommendCard
-              key={item.id}
-              tag={item.tag}
-              title={item.title}
-              desc={item.desc}
-              price={item.price}
-              location={item.location}
-              isDemo
-              coverType={item.coverType}
-              onClick={() => onOpenDetail({
-                id: item.id,
-                title: item.title,
-                content: [item.desc, item.price, item.location].filter(Boolean).join('\n'),
-                isDemo: true,
-              })}
-            />
-          ))}
+          {posts.map((post) => {
+            const imgs = normalizePostImages(post);
+            return (
+              <HotRecommendCard
+                key={post.id}
+                tag={post.category}
+                title={post.title}
+                desc={post.description}
+                price={post.budget}
+                location={`${post.city} · ${new Date(post.createdAt).toLocaleDateString()}`}
+                imageUrl={imgs[0]}
+                isFeatured
+                onClick={() => onOpenPost(post)}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-baylink-border/60 bg-white px-4 py-6 text-center">
+          <Sparkles size={20} className="mx-auto mb-2 text-baylink-muted/50" />
+          <p className="text-xs font-semibold text-baylink-text-secondary">暂无热门推荐</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-baylink-muted">管理员精选的优质帖子会显示在这里</p>
         </div>
       )}
-      {showFallback && <p className="mt-1.5 px-0.5 text-center text-[9px] text-baylink-muted/75 sm:mt-2">示例展示，真实推荐上线后自动替换</p>}
     </section>
+  );
+};
+
+const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, onToggleFeature, onOpenProfile }: {
+  onOpenPost: (post: PostData) => void;
+  refreshKey?: number;
+  compact?: boolean;
+  currentUser?: UserData | null;
+  onToggleFeature?: (post: PostData) => void;
+  onOpenProfile?: (userId: string) => void;
+}) => {
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await api.request('/posts/featured');
+        setPosts(res.posts || []);
+      } catch {
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshKey]);
+
+  if (loading) {
+    return <div className="py-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green" /></div>;
+  }
+  if (posts.length === 0) {
+    return (
+      <div className="mb-6 rounded-2xl border border-dashed border-baylink-border bg-white p-6 text-center">
+        <Sparkles size={22} className="mx-auto mb-2 text-baylink-muted opacity-50" />
+        <p className="text-sm font-semibold text-baylink-text-secondary">暂无热门推荐</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-baylink-muted">管理员精选的优质帖子会显示在这里</p>
+      </div>
+    );
+  }
+  return (
+    <div className={compact ? 'mb-6 space-y-3' : 'mb-6 grid grid-cols-1 gap-3 md:grid-cols-2'}>
+      {posts.map((p) => (
+        <PostCard
+          key={p.id}
+          post={p}
+          currentUser={currentUser}
+          onToggleFeature={onToggleFeature}
+          onClick={() => onOpenPost(p)}
+          onContactClick={() => {}}
+          onAvatarClick={onOpenProfile}
+          onImageClick={() => {}}
+        />
+      ))}
+    </div>
   );
 };
 
@@ -867,13 +937,14 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   );
 };
 
-const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete }: any) => {
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete, onToggleFeature }: any) => {
   const isProvider = post.type === 'provider';
   const postImages = normalizePostImages(post);
   const hasImage = postImages.length > 0;
   const coverUrl = hasImage ? postImages[0] : '';
   const isSystemCover = !!coverUrl && isDefaultCoverUrl(coverUrl);
-  const canManage = currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
+  const isAdmin = currentUser?.role === 'admin';
+  const canManage = currentUser && (currentUser.id === post.authorId || isAdmin);
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <article onClick={onClick} className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden group cursor-pointer border border-baylink-border/30 transition-all duration-200 hover:shadow-card-hover">
@@ -892,7 +963,7 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
           <span className={`text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
             {isProvider ? '资源' : '需求'}
           </span>
-          {canManage && (
+          {(canManage || isAdmin) && (
             <div className="relative">
               <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }} className="p-1 text-baylink-muted hover:text-baylink-text rounded-lg hover:bg-baylink-section/80">
                 <MoreHorizontal size={16} />
@@ -900,13 +971,22 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
-                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[88px] rounded-xl border border-baylink-border/60 bg-white py-1 shadow-lg">
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text hover:bg-baylink-section/60">
-                      <Edit size={13} /> 编辑
-                    </button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
-                      <Trash2 size={13} /> 删除
-                    </button>
+                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[120px] rounded-xl border border-baylink-border/60 bg-white py-1 shadow-lg">
+                    {isAdmin && (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onToggleFeature?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50">
+                        <Star size={13} /> {post.isFeatured ? '取消热门推荐' : '加入热门推荐'}
+                      </button>
+                    )}
+                    {canManage && (
+                      <>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text hover:bg-baylink-section/60">
+                          <Edit size={13} /> 编辑
+                        </button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
+                          <Trash2 size={13} /> 删除
+                        </button>
+                      </>
+                    )}
                   </div>
                 </>
               )}
@@ -952,12 +1032,147 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
   );
 };
 
-const MessagesList = ({ currentUser, onOpenChat }: { currentUser: UserData | null, onOpenChat: (conv: Conversation) => void }) => {
+const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser: UserData | null; onOpenChat: (conv: Conversation) => void; onOpenProfile?: (userId: string) => void }) => {
   const [convs, setConvs] = useState<Conversation[]>([]);
   useEffect(() => { if (!currentUser) return; const load = async () => { try { const res = await api.request('/conversations'); if (Array.isArray(res)) setConvs(res); } catch {} }; load(); const i = setInterval(load, 5000); return () => clearInterval(i); }, [currentUser]);
   if (!currentUser) return <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full min-h-[300px]"><div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><MessageCircle size={32} className="text-gray-400" /></div><h3 className="font-bold text-gray-900 mb-2">请先登录</h3></div>;
   return (
-    <div className="flex-1 overflow-y-auto p-4 pb-24 w-full">{convs.length > 0 ? <div className="space-y-3">{convs.map(c => <div key={c.id} onClick={() => onOpenChat(c)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-green-100"><Avatar src={c.otherUser.avatar} name={c.otherUser.nickname} size={12} /><div className="flex-1 min-w-0"><div className="flex justify-between mb-1"><span className="font-bold text-gray-900 flex items-center gap-1">{c.otherUser.nickname} <TrustBadge user={c.otherUser} size={12}/></span><span className="text-[10px] text-gray-500">{new Date(c.updatedAt).toLocaleDateString()}</span></div><p className="text-xs text-gray-500 truncate">{c.lastMessage || '点击开始聊天'}</p></div><ChevronRight size={16} className="text-gray-300" /></div>)}</div> : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><MessageCircle size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">暂无消息</p></div>}</div>
+    <div className="flex-1 overflow-y-auto p-4 pb-24 w-full">{convs.length > 0 ? <div className="space-y-3">{convs.map(c => (
+      <div key={c.id} onClick={() => onOpenChat(c)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-green-100">
+        <div onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }} className="shrink-0 cursor-pointer">
+          <Avatar src={c.otherUser.avatar} name={c.otherUser.nickname} size={12} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between mb-1">
+            <span onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }} className="font-bold text-gray-900 flex items-center gap-1 cursor-pointer hover:text-baylink-green">{c.otherUser.nickname} <TrustBadge user={c.otherUser} size={12}/></span>
+            <span className="text-[10px] text-gray-500">{new Date(c.updatedAt).toLocaleDateString()}</span>
+          </div>
+          <p className="text-xs text-gray-500 truncate">{c.lastMessage || '点击开始聊天'}</p>
+        </div>
+        <ChevronRight size={16} className="text-gray-300 shrink-0" />
+      </div>
+    ))}</div> : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><MessageCircle size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">暂无消息</p></div>}</div>
+  );
+};
+
+const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenPost }: {
+  userId: string;
+  onClose: () => void;
+  currentUser: UserData | null;
+  onChat?: (targetId: string, nickname?: string) => void;
+  onOpenPost?: (post: PostData) => void;
+}) => {
+  const [profile, setProfile] = useState<PublicUserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      setFailed(false);
+      try {
+        setProfile(await api.getUserPublicProfile(userId));
+      } catch {
+        setFailed(true);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userId]);
+
+  const joinDays = profile ? getJoinDays(profile) : null;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
+      <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-4">
+          <h3 className="text-lg font-bold text-baylink-text">用户资料</h3>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {loading ? (
+            <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
+          ) : failed || !profile ? (
+            <p className="py-12 text-center text-sm text-baylink-muted">资料加载失败</p>
+          ) : (
+            <>
+              <div className="flex flex-col items-center text-center">
+                <Avatar src={profile.avatar} name={profile.nickname} size={20} className="mb-3" />
+                <h4 className="text-xl font-bold text-baylink-text">{profile.nickname}</h4>
+                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                  <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${profile.role === 'admin' ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+                    {profile.role === 'admin' ? '管理员' : '社区居民'}
+                  </span>
+                  <TrustBadge user={profile} size={12} showText />
+                </div>
+                <p className="mt-4 w-full rounded-xl bg-baylink-section/50 p-3 text-left text-sm leading-relaxed text-baylink-text-secondary">
+                  {profile.bio?.trim() || '这个邻居很懒，什么也没写～'}
+                </p>
+                <div className="mt-4 flex w-full gap-4 text-center text-xs text-baylink-muted">
+                  <div className="flex-1"><div className="font-bold text-baylink-text">{joinDays ?? '—'}</div><div>加入天数</div></div>
+                  <div className="flex-1"><div className="font-bold text-baylink-text">{profile.postCount}</div><div>发布数量</div></div>
+                </div>
+              </div>
+              {profile.recentPosts.length > 0 && (
+                <div className="mt-5">
+                  <h5 className="mb-2 text-xs font-bold text-baylink-muted">最近发布</h5>
+                  <div className="space-y-2">
+                    {profile.recentPosts.map((rp) => (
+                      <button
+                        key={rp.id}
+                        type="button"
+                        onClick={() => {
+                          onOpenPost?.({
+                            id: rp.id,
+                            authorId: profile.id,
+                            author: { nickname: profile.nickname, avatar: profile.avatar },
+                            type: (rp.type || 'client') as PostType,
+                            title: rp.title,
+                            description: rp.description || '',
+                            category: rp.category,
+                            city: rp.city,
+                            budget: rp.budget || '',
+                            timeInfo: '',
+                            contactInfo: null,
+                            imageUrls: rp.imageUrls || [],
+                            likesCount: 0,
+                            hasLiked: false,
+                            commentsCount: 0,
+                            createdAt: rp.createdAt,
+                          });
+                          onClose();
+                        }}
+                        className="flex w-full gap-2 rounded-xl border border-baylink-border/50 bg-white p-2 text-left transition hover:border-baylink-green/30"
+                      >
+                        {normalizePostImages(rp)[0] ? (
+                          <img src={normalizePostImages(rp)[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                        ) : (
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[10px] text-baylink-muted">无图</div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="line-clamp-1 text-sm font-semibold text-baylink-text">{rp.title}</div>
+                          <div className="text-[10px] text-baylink-muted">{rp.city} · #{rp.category}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        {!loading && profile && currentUser?.id !== profile.id && (
+          <div className="border-t border-baylink-border/40 px-5 py-4">
+            <button
+              type="button"
+              onClick={() => { onChat?.(profile.id, profile.nickname); onClose(); }}
+              className="w-full rounded-xl bg-gray-900 py-3 text-sm font-bold text-white"
+            >
+              {onChat ? '继续聊天' : '发私信'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -1786,7 +2001,7 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onImageClick, onShare, showToast }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [isReported, setIsReported] = useState(post.isReported);
@@ -1841,6 +2056,11 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
         <div className="flex gap-3">
           <button onClick={() => onShare(post)} className="p-2 bg-gray-100 rounded-full hover:bg-green-100 hover:text-green-700 transition"><Share2 size={20} /></button>
           {!isOwner && <button onClick={handleReport} className={`p-2 rounded-full transition ${isReported ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}`} disabled={isReported}><AlertTriangle size={20} /></button>}
+          {isAdmin && (
+            <button type="button" onClick={() => onToggleFeature?.(post)} className="rounded-full bg-amber-50 p-2 text-amber-700 hover:bg-amber-100" title={post.isFeatured ? '取消热门推荐' : '加入热门推荐'}>
+              <Star size={20} fill={post.isFeatured ? 'currentColor' : 'none'} />
+            </button>
+          )}
           {(isAdmin || isOwner) && <button onClick={() => onEdit?.(post)} className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-baylink-green-light hover:text-baylink-green" title="编辑"><Edit size={20} /></button>}
           {(isAdmin || isOwner) && <button onClick={deletePost} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 size={20} /></button>}
         </div>
@@ -1887,7 +2107,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   );
 };
 
-const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
+const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile }: any) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1931,7 +2151,13 @@ const ChatView = ({ currentUser, conversation, onClose, socket }: any) => {
 
   return (
     <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top"><button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100"><ChevronLeft /></button><span className="font-bold text-lg">{conversation.otherUser.nickname}</span></div>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
+        <button type="button" onClick={onClose} className="shrink-0 rounded-full bg-white p-2 hover:bg-gray-100"><ChevronLeft /></button>
+        <span className="min-w-0 flex-1 truncate font-bold text-lg">{conversation.otherUser.nickname}</span>
+        <button type="button" onClick={() => onViewProfile?.(conversation.otherUser.id)} className="shrink-0 rounded-lg border border-baylink-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text hover:bg-baylink-section">
+          查看资料
+        </button>
+      </div>
 
       <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -2026,6 +2252,8 @@ export default function App() {
   const [hasNotification, setHasNotification] = useState(false);
   const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
+  const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
   const openAdDetail = (ad: AdDetailItem) => setDetailAd(ad);
@@ -2128,9 +2356,26 @@ export default function App() {
       await api.request(`/posts/${post.id}`, { method: 'DELETE' });
       if (selectedPost?.id === post.id) setSelectedPost(null);
       fetchPosts(1, true);
+      setFeaturedRefreshKey((k) => k + 1);
       showToast('帖子已删除', 'success');
     } catch {
       showToast('删除失败', 'error');
+    }
+  };
+
+  const openUserProfile = (userId: string) => setProfileUserId(userId);
+
+  const handleToggleFeature = async (post: PostData) => {
+    if (user?.role !== 'admin') return;
+    const endpoint = post.isFeatured ? `/posts/${post.id}/unfeature` : `/posts/${post.id}/feature`;
+    try {
+      const updated = await api.request(endpoint, { method: 'PATCH' });
+      showToast(post.isFeatured ? '已取消热门推荐' : '已加入热门推荐', 'success');
+      setFeaturedRefreshKey((k) => k + 1);
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, ...updated } : p)));
+      if (selectedPost?.id === post.id) setSelectedPost({ ...selectedPost, ...updated });
+    } catch {
+      showToast('操作失败，请稍后再试', 'error');
     }
   };
 
@@ -2253,7 +2498,7 @@ export default function App() {
                          onPublishService={() => openCreate('provider')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <HotRecommend onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} onViewMore={() => setTab('notifications')} />
+                       <HotRecommend onOpenPost={setSelectedPost} refreshKey={featuredRefreshKey} onViewMore={() => setTab('notifications')} />
                      </>
                    )}
 
@@ -2286,7 +2531,7 @@ export default function App() {
                      />
                    ) : (
                      <>
-                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={(uid: string) => setViewingUserId(uid)} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
+                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
                        {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
                      </>
@@ -2294,14 +2539,17 @@ export default function App() {
 
                </div>
            )}
-           {tab === 'messages' && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}}/></div>}
+           {tab === 'messages' && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}} onOpenProfile={openUserProfile}/></div>}
            {tab === 'notifications' && (
              <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
                <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
-                 <h2 className="text-lg font-bold text-baylink-text">官方推荐</h2>
-                 <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">认证服务、精选房源和本地优质信息会显示在这里</p>
+                 <h2 className="text-lg font-bold text-baylink-text">推荐</h2>
+                 <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">热门推荐为精选帖子，官方推荐为认证服务与广告</p>
                </div>
                <div className="flex-1 overflow-y-auto p-4">
+                 <h3 className="mb-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><Sparkles size={14} className="text-baylink-green" /> 热门推荐</h3>
+                 <FeaturedPostsSection onOpenPost={setSelectedPost} refreshKey={featuredRefreshKey} compact currentUser={user} onToggleFeature={handleToggleFeature} onOpenProfile={openUserProfile} />
+                 <h3 className="mb-2 mt-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><BadgeCheck size={14} className="text-baylink-green" /> 官方推荐</h3>
                  <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} layout="list" />
                </div>
              </div>
@@ -2341,13 +2589,14 @@ export default function App() {
             editingPost={editingPost}
             defaultType={createDefaultType}
             onClose={() => { setShowCreate(false); setEditingPost(null); }}
-            onCreated={() => fetchPosts(1, true)}
-            onUpdated={() => fetchPosts(1, true)}
+            onCreated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
+            onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             showToast={showToast}
           />
         )}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onEdit={(p: PostData) => { setSelectedPost(null); openEditPost(p); }} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
-        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket}/>}
+        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onEdit={(p: PostData) => { setSelectedPost(null); openEditPost(p); }} onToggleFeature={handleToggleFeature} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
+        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket} onViewProfile={openUserProfile}/>}
+        {profileUserId && <UserProfileModal userId={profileUserId} onClose={() => setProfileUserId(null)} currentUser={user} onChat={openChat} onOpenPost={setSelectedPost} />}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
