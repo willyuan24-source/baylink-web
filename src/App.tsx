@@ -94,7 +94,20 @@ const splitPostImages = (urls: string[] = []) => {
 
 const buildSubmitImageUrls = (uploaded: string[], cover: DefaultCover | null) => {
   if (uploaded.length > 0) return uploaded.slice(0, 3);
-  if (cover) return [cover.url];
+  if (cover?.url) return [cover.url];
+  return [];
+};
+
+/** Normalize post image fields from API into a string array. */
+const normalizePostImages = (post: { imageUrls?: string[]; images?: string[]; imageUrl?: string } | null | undefined): string[] => {
+  if (!post) return [];
+  if (Array.isArray(post.imageUrls) && post.imageUrls.length > 0) {
+    return post.imageUrls.filter((u): u is string => typeof u === 'string' && !!u.trim());
+  }
+  if (Array.isArray(post.images) && post.images.length > 0) {
+    return post.images.filter((u): u is string => typeof u === 'string' && !!u.trim());
+  }
+  if (typeof post.imageUrl === 'string' && post.imageUrl.trim()) return [post.imageUrl.trim()];
   return [];
 };
 
@@ -856,9 +869,10 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
 
 const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete }: any) => {
   const isProvider = post.type === 'provider';
-  const hasImage = post.imageUrls && post.imageUrls.length > 0;
-  const coverUrl = hasImage ? post.imageUrls[0] : '';
-  const isSystemCover = coverUrl && isDefaultCoverUrl(coverUrl);
+  const postImages = normalizePostImages(post);
+  const hasImage = postImages.length > 0;
+  const coverUrl = hasImage ? postImages[0] : '';
+  const isSystemCover = !!coverUrl && isDefaultCoverUrl(coverUrl);
   const canManage = currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -1471,7 +1485,8 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
       return showToast('请先完成验证', 'error');
     }
     setSubmitting(true);
-    const payload = { ...form, imageUrls: buildSubmitImageUrls(uploadedImages, selectedDefaultCover) };
+    const finalImageUrls = buildSubmitImageUrls(uploadedImages, selectedDefaultCover);
+    const payload = { ...form, imageUrls: finalImageUrls };
     try {
       if (isEdit && editingPost) {
         await api.request(`/posts/${editingPost.id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -1779,7 +1794,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   const isOwner = currentUser?.id === post.authorId;
   const authorName = post.author?.nickname || '匿名用户';
   const authorAvatar = post.author?.avatar;
-  const imageUrls = Array.isArray(post.imageUrls) ? post.imageUrls : [];
+  const imageUrls = normalizePostImages(post);
 
   const postComment = async () => {
     if (!currentUser) return onLoginNeeded();
@@ -1844,7 +1859,21 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
         </div>
         <p className="mb-6 whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">{post.description}</p>
-        <div className="space-y-3 mb-8">{imageUrls.map((u: string, i: number) => <img key={i} src={u} onClick={() => onImageClick(u)} className="w-full rounded-2xl shadow-sm cursor-zoom-in hover:opacity-95 transition" />)}</div>
+        <div className="space-y-3 mb-8">
+          {imageUrls.map((u: string, i: number) => (
+            <div key={i} className="relative overflow-hidden rounded-2xl bg-baylink-section/50">
+              <img
+                src={u}
+                alt=""
+                onClick={() => onImageClick(u)}
+                className={`w-full cursor-zoom-in rounded-2xl shadow-sm transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
+              />
+              {isDefaultCoverUrl(u) && (
+                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 text-[9px] font-medium text-white/90">系统封面</span>
+              )}
+            </div>
+          ))}
+        </div>
         <div className="border-t border-gray-200 pt-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><MessageSquare size={18} /> 评论 ({comments.length})</h3>
           {comments.length === 0 ? <div className="text-center text-gray-400 text-xs py-4">暂无评论，快来抢沙发~</div> : comments.map((c: any) => <div key={c.id} className="bg-white p-3 mb-3 rounded-2xl border border-gray-50 text-sm"><span className="font-bold text-gray-900 mr-2">{c.authorName}:</span><span className="text-gray-600">{c.content}</span></div>)}
