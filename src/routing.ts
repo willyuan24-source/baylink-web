@@ -36,14 +36,17 @@ export const getSlugFromCategory = (category: string): string | null => {
 export const postShareUrl = (postId: string) => `${window.location.origin}/posts/${postId}`;
 export const userShareUrl = (userId: string) => `${window.location.origin}/users/${userId}`;
 
-export type AppTab = 'home' | 'notifications' | 'messages' | 'profile';
+export type AppTab = 'home' | 'guides' | 'notifications' | 'messages' | 'profile';
 
 export const tabFromPathname = (pathname: string): AppTab => {
+  if (pathname.startsWith('/guides')) return 'guides';
   if (pathname.startsWith('/recommend')) return 'notifications';
   if (pathname.startsWith('/messages')) return 'messages';
   if (pathname === '/me') return 'profile';
   return 'home';
 };
+
+export const isGuidesPath = (pathname: string) => pathname.startsWith('/guides');
 
 export const isHomePath = (pathname: string) =>
   pathname === '/' || pathname.startsWith('/category/');

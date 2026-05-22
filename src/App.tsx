@@ -6,14 +6,19 @@ import {
   postShareUrl,
   tabFromPathname,
   isHomePath,
-  userShareUrl,
+  isGuidesPath,
 } from './routing';
+import { GuideSection } from './components/GuideSection';
+import { CategoryGuideStrip } from './components/CategoryGuideStrip';
+import { GuidesHome } from './components/GuidesHome';
+import { GuideDetail } from './components/GuideDetail';
+import { getGuideBySlug } from './data/guides';
 import { 
   MessageCircle, Heart, Send, Plus, MapPin, 
   User as UserIcon, X, ShieldCheck, Trash2, Edit, 
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
-  Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, Menu, LogOut, ChevronRight,
+  Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, BookOpen, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
   Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone
 } from 'lucide-react';
@@ -2274,6 +2279,8 @@ export default function App() {
   const postIdParam = location.pathname.startsWith('/posts/') ? location.pathname.split('/posts/')[1]?.split('/')[0] : undefined;
   const userIdParam = location.pathname.startsWith('/users/') ? location.pathname.split('/users/')[1]?.split('/')[0] : undefined;
   const threadIdParam = location.pathname.match(/^\/messages\/([^/]+)/)?.[1];
+  const guideSlugParam = location.pathname.startsWith('/guides/') ? location.pathname.split('/guides/')[1]?.split('/')[0] : undefined;
+  const isGuidesList = location.pathname === '/guides';
 
   const navigateBack = () => {
     if (window.history.length > 1) navigate(-1);
@@ -2354,6 +2361,11 @@ export default function App() {
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
       document.title = `${cat}｜BayLink 湾区真实生活信息站`;
+    } else if (path.startsWith('/guides/') && guideSlugParam) {
+      const g = getGuideBySlug(guideSlugParam);
+      document.title = g ? `${g.title}｜BayLink` : '湾区生活指南｜BayLink';
+    } else if (path.startsWith('/guides')) {
+      document.title = '湾区生活指南｜BayLink';
     } else if (path.startsWith('/recommend')) {
       document.title = '推荐｜BayLink';
     } else if (path.startsWith('/messages')) {
@@ -2363,7 +2375,7 @@ export default function App() {
     } else {
       document.title = 'BayLink｜湾区真实生活信息站';
     }
-  }, [location.pathname, categorySlug, postIdParam, userIdParam]);
+  }, [location.pathname, categorySlug, postIdParam, userIdParam, guideSlugParam]);
 
   useEffect(() => {
     if (!userIdParam) return;
@@ -2534,6 +2546,7 @@ export default function App() {
       </div>
       <nav className="space-y-0.5 flex-1">
         <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
+        <button onClick={() => navigate('/guides')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isGuidesPath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><BookOpen size={18} strokeWidth={isGuidesPath(location.pathname)?2.5:2}/> 湾区指南</button>
         <button onClick={() => navigate('/messages')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
             <div className="relative"><MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>{hasNotification && <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}</div> 消息
         </button>
@@ -2633,6 +2646,7 @@ export default function App() {
                          onPublishService={() => openCreate('provider')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
+                       <GuideSection onOpenGuide={(slug) => navigate(`/guides/${slug}`)} onViewAll={() => navigate('/guides')} />
                        <HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} />
                      </>
                    )}
@@ -2650,6 +2664,13 @@ export default function App() {
                          {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
                        </div>
                    </div>
+
+                   {categorySlug && categoryFilter !== '全部' && !keyword && (
+                     <CategoryGuideStrip
+                       categorySlug={categorySlug}
+                       onOpenGuide={(slug) => navigate(`/guides/${slug}`)}
+                     />
+                   )}
                    
                    <div className="flex items-center justify-between mb-2 px-0.5">
                      <h3 className="text-xs font-semibold text-baylink-text">社区动态</h3>
@@ -2674,6 +2695,22 @@ export default function App() {
 
                </div>
            )}
+           {(isGuidesList || (isGuidesPath(location.pathname) && guideSlugParam)) && (
+             guideSlugParam ? (
+               <GuideDetail
+                 slug={guideSlugParam}
+                 onBack={navigateBack}
+                 onOpenGuide={(slug) => navigate(`/guides/${slug}`)}
+                 onNavigate={navigate}
+                 onOpenPost={() => {
+                   if (!user) { setShowLogin(true); return; }
+                   openCreate('client');
+                 }}
+               />
+             ) : (
+               <GuidesHome onOpenGuide={(slug) => navigate(`/guides/${slug}`)} />
+             )
+           )}
            {tab === 'messages' && !threadIdParam && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{ setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile}/></div>}
            {tab === 'notifications' && (
              <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
@@ -2697,8 +2734,8 @@ export default function App() {
            <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
              <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
            </button>
-           <button onClick={()=>navigate('/recommend')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='notifications'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <Star size={20} strokeWidth={tab==='notifications'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='notifications'?'font-medium':'font-normal'}`}>推荐</span>
+           <button onClick={()=>navigate('/guides')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted/80'}`}>
+             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
            </button>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
              <div className="w-9 h-9 bg-baylink-green rounded-lg shadow-sm flex items-center justify-center text-white ring-2 ring-baylink-bg"><Plus size={20} strokeWidth={2.5}/></div>
