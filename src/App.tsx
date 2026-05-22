@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  getCategoryFromSlug,
+  getSlugFromCategory,
+  postShareUrl,
+  tabFromPathname,
+  isHomePath,
+  userShareUrl,
+} from './routing';
 import { 
   MessageCircle, Heart, Send, Plus, MapPin, 
   User as UserIcon, X, ShieldCheck, Trash2, Edit, 
@@ -819,7 +828,7 @@ const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => 
 
 const ShareModal = ({ post, onClose, showToast }: any) => {
   const [copied, setCopied] = useState(false);
-  const shareUrl = window.location.href;
+  const shareUrl = postShareUrl(post.id);
   const authorName = post.author?.nickname || '匿名用户';
   const authorAvatar = post.author?.avatar;
   const descriptionPreview = (post.description || '').slice(0, 50);
@@ -2220,10 +2229,24 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
   );
 };
 
+const PostNotFoundView = ({ onBack }: { onBack: () => void }) => (
+  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-baylink-bg p-6">
+    <p className="text-lg font-bold text-baylink-text">帖子不存在或已删除</p>
+    <p className="mt-2 text-sm text-baylink-muted">链接可能已失效</p>
+    <button type="button" onClick={onBack} className="mt-6 rounded-xl bg-baylink-green px-6 py-3 text-sm font-bold text-white">返回</button>
+  </div>
+);
+
 // 🌟 MAIN APP 组件
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const tab = tabFromPathname(location.pathname);
+  const categorySlug = location.pathname.startsWith('/category/')
+    ? location.pathname.split('/category/')[1]?.split('/')[0]
+    : undefined;
+
   const [user, setUser] = useState<UserData | null>(null);
-  const [tab, setTab] = useState('home');
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
@@ -2238,8 +2261,10 @@ export default function App() {
 
   const [keyword, setKeyword] = useState('');
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
+  const [postRouteMissing, setPostRouteMissing] = useState(false);
+  const [postRouteLoading, setPostRouteLoading] = useState(false);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
-  const [viewingUserId, setViewingUserId] = useState<string | null>(null); 
+  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [categoryFilter, setCategoryFilter] = useState<string>('全部');
   
@@ -2253,9 +2278,24 @@ export default function App() {
   const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
   const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
-  const [profileUserId, setProfileUserId] = useState<string | null>(null);
-
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
+
+  const postIdParam = location.pathname.startsWith('/posts/') ? location.pathname.split('/posts/')[1]?.split('/')[0] : undefined;
+  const userIdParam = location.pathname.startsWith('/users/') ? location.pathname.split('/users/')[1]?.split('/')[0] : undefined;
+  const threadIdParam = location.pathname.match(/^\/messages\/([^/]+)/)?.[1];
+
+  const navigateBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/');
+  };
+
+  const navigateToPost = (post: PostData) => navigate(`/posts/${post.id}`);
+  const navigateToCategory = (category: string) => {
+    const slug = getSlugFromCategory(category);
+    if (slug) navigate(`/category/${slug}`);
+    else navigate('/');
+  };
+
   const openAdDetail = (ad: AdDetailItem) => setDetailAd(ad);
   const handleDeleteAdFromDetail = async (id: string) => {
     if (!confirm('确定删除?')) return;
@@ -2300,6 +2340,98 @@ export default function App() {
       if (tab === 'messages') setHasNotification(false);
   }, [tab]);
 
+  // URL → 分类筛选
+  useEffect(() => {
+    if (isHomePath(location.pathname)) {
+      setCategoryFilter(getCategoryFromSlug(categorySlug));
+    }
+  }, [location.pathname, categorySlug]);
+
+  // document.title
+  useEffect(() => {
+    if (postIdParam) return;
+    if (userIdParam) return;
+    const path = location.pathname;
+    if (path.startsWith('/category/')) {
+      const cat = getCategoryFromSlug(categorySlug);
+      document.title = `${cat}｜BayLink 湾区真实生活信息站`;
+    } else if (path.startsWith('/recommend')) {
+      document.title = '推荐｜BayLink';
+    } else if (path.startsWith('/messages')) {
+      document.title = '消息｜BayLink';
+    } else if (path === '/me') {
+      document.title = '我的｜BayLink';
+    } else {
+      document.title = 'BayLink｜湾区真实生活信息站';
+    }
+  }, [location.pathname, categorySlug, postIdParam, userIdParam]);
+
+  useEffect(() => {
+    if (!userIdParam) return;
+    let cancelled = false;
+    api.getUserPublicProfile(userIdParam).then((p: PublicUserProfile) => {
+      if (!cancelled) document.title = `${p.nickname}｜BayLink`;
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [userIdParam]);
+
+  // /posts/:id 加载详情
+  useEffect(() => {
+    if (!postIdParam) {
+      setPostRouteMissing(false);
+      setPostRouteLoading(false);
+      return;
+    }
+    const found = posts.find((p) => p.id === postIdParam);
+    if (found) {
+      setSelectedPost(found);
+      setPostRouteMissing(false);
+      setPostRouteLoading(false);
+      document.title = `${found.title}｜BayLink`;
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setPostRouteLoading(true);
+      setPostRouteMissing(false);
+      try {
+        const p = await api.request(`/posts/${postIdParam}`);
+        if (!cancelled) {
+          setSelectedPost(p);
+          setPostRouteMissing(false);
+          document.title = `${p.title}｜BayLink`;
+        }
+      } catch {
+        if (!cancelled) {
+          setSelectedPost(null);
+          setPostRouteMissing(true);
+          document.title = '帖子不存在｜BayLink';
+        }
+      } finally {
+        if (!cancelled) setPostRouteLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [postIdParam, posts]);
+
+  // /messages/:threadId 打开聊天
+  useEffect(() => {
+    if (!threadIdParam || !user) {
+      if (!threadIdParam) setChatConv(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const convs = await api.request('/conversations');
+        if (cancelled || !Array.isArray(convs)) return;
+        const c = convs.find((x: Conversation) => x.id === threadIdParam);
+        if (c) setChatConv(c);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [threadIdParam, user?.id]);
+
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
 
@@ -2325,17 +2457,19 @@ export default function App() {
   const openChat = async (targetId: string, nickname?: string, postTitle?: string) => { 
       try { 
           const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); 
-          setChatConv({ 
+          const conv: Conversation = { 
               id: c.id, 
               otherUser: { id: targetId, nickname: nickname || 'User' }, 
               lastMessage: '', 
               updatedAt: Date.now(),
-              lastPostTitle: postTitle // 传递上下文
-          }); 
+              lastPostTitle: postTitle
+          };
+          setChatConv(conv);
+          navigate(`/messages/${c.id}`);
       } catch { showToast('无法打开聊天', 'error'); } 
   };
   
-  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setTab('home'); showToast('已退出登录', 'info'); };
+  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); navigate('/'); showToast('已退出登录', 'info'); };
 
   const openCreate = (type: PostType = 'client') => {
     setEditingPost(null);
@@ -2354,7 +2488,8 @@ export default function App() {
     if (!confirm('删除此贴？')) return;
     try {
       await api.request(`/posts/${post.id}`, { method: 'DELETE' });
-      if (selectedPost?.id === post.id) setSelectedPost(null);
+      if (postIdParam === post.id) navigate('/');
+      else if (selectedPost?.id === post.id) setSelectedPost(null);
       fetchPosts(1, true);
       setFeaturedRefreshKey((k) => k + 1);
       showToast('帖子已删除', 'success');
@@ -2363,7 +2498,7 @@ export default function App() {
     }
   };
 
-  const openUserProfile = (userId: string) => setProfileUserId(userId);
+  const openUserProfile = (userId: string) => navigate(`/users/${userId}`);
 
   const handleToggleFeature = async (post: PostData) => {
     if (user?.role !== 'admin') return;
@@ -2381,13 +2516,14 @@ export default function App() {
 
   const handleChannelClick = (ch: typeof HOME_CHANNELS[number]) => {
     if (ch.id === 'featured') {
-      setTab('notifications');
+      navigate('/recommend');
       return;
     }
     if (ch.feedType) setFeedType(ch.feedType);
-    if (ch.category) setCategoryFilter(ch.category);
     setRegionFilter('全部');
     setKeyword('');
+    if (ch.category) navigateToCategory(ch.category);
+    else navigate('/');
   };
 
   // 🖥️ PC 侧边栏
@@ -2398,18 +2534,18 @@ export default function App() {
         <span className="text-[10px] text-baylink-muted block mt-0.5">湾区华人本地生活</span>
       </div>
       <nav className="space-y-0.5 flex-1">
-        <button onClick={() => setTab('home')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='home'?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={tab==='home'?2.5:2}/> 首页</button>
-        <button onClick={() => setTab('messages')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
+        <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
+        <button onClick={() => navigate('/messages')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
             <div className="relative"><MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>{hasNotification && <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}</div> 消息
         </button>
-        <button onClick={() => setTab('profile')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</button>
+        <button onClick={() => navigate(user ? '/me' : '/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</button>
       </nav>
-      {tab === 'home' && (
+      {isHomePath(location.pathname) && (
         <div className="mt-4 sidebar-panel">
            <h3 className="text-[10px] text-baylink-muted mb-2">探索分类</h3>
            <div className="flex flex-wrap gap-1">
-             <button onClick={() => setCategoryFilter('全部')} className={`chip text-[10px] py-1 px-2.5 ${categoryFilter==='全部'?'chip-active':'chip-inactive'}`}>全部</button>
-             {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => setCategoryFilter(c)} />)}
+             <button onClick={() => navigateToCategory('全部')} className={`chip text-[10px] py-1 px-2.5 ${categoryFilter==='全部'?'chip-active':'chip-inactive'}`}>全部</button>
+             {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
            </div>
         </div>
       )}
@@ -2475,16 +2611,16 @@ export default function App() {
       
       <LeftSidebar />
       <div className="w-full max-w-[500px] lg:max-w-[640px] xl:max-w-[680px] bg-baylink-bg-alt min-h-screen lg:shadow-none shadow-card relative flex flex-col lg:border-x border-baylink-border/50 mx-auto lg:mx-0 flex-1 min-w-0">
-        <div className="lg:hidden">{tab === 'home' && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
+        <div className="lg:hidden">{isHomePath(location.pathname) && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
             <div>
                 <h1 className="font-bold text-lg text-gradient tracking-tight flex items-center gap-1">BAYLINK<span className="w-1 h-1 rounded-full bg-baylink-orange"></span></h1>
                 <p className="text-[10px] text-baylink-muted mt-0.5 leading-none">湾区华人本地生活</p>
             </div>
-            <button onClick={()=>!user?setShowLogin(true):setTab('profile')} className="rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
+            <button onClick={()=>!user?setShowLogin(true):navigate('/me')} className="rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
         </header>}</div>
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
-           {tab === 'home' && (
+           {isHomePath(location.pathname) && (
                <div className="px-4 pt-1 sm:px-5 sm:pt-2 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
                    <div className="relative mb-1 sm:mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
@@ -2498,7 +2634,7 @@ export default function App() {
                          onPublishService={() => openCreate('provider')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <HotRecommend onOpenPost={setSelectedPost} refreshKey={featuredRefreshKey} onViewMore={() => setTab('notifications')} />
+                       <HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} />
                      </>
                    )}
 
@@ -2511,8 +2647,8 @@ export default function App() {
                    </div>
                    <div className="mb-2">
                        <div className="flex gap-1.5 overflow-x-auto hide-scrollbar lg:flex-wrap -mx-1 px-1 lg:mx-0 lg:px-0">
-                         <CategoryChip label="全部" active={categoryFilter==='全部'} onClick={() => setCategoryFilter('全部')} />
-                         {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => setCategoryFilter(c)} />)}
+                         <CategoryChip label="全部" active={categoryFilter==='全部'} onClick={() => navigateToCategory('全部')} />
+                         {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
                        </div>
                    </div>
                    
@@ -2531,7 +2667,7 @@ export default function App() {
                      />
                    ) : (
                      <>
-                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onClick={()=>setSelectedPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
+                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
                        {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
                      </>
@@ -2539,7 +2675,7 @@ export default function App() {
 
                </div>
            )}
-           {tab === 'messages' && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{setChatConv(c)}} onOpenProfile={openUserProfile}/></div>}
+           {tab === 'messages' && !threadIdParam && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{ setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile}/></div>}
            {tab === 'notifications' && (
              <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
                <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
@@ -2548,33 +2684,33 @@ export default function App() {
                </div>
                <div className="flex-1 overflow-y-auto p-4">
                  <h3 className="mb-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><Sparkles size={14} className="text-baylink-green" /> 热门推荐</h3>
-                 <FeaturedPostsSection onOpenPost={setSelectedPost} refreshKey={featuredRefreshKey} compact currentUser={user} onToggleFeature={handleToggleFeature} onOpenProfile={openUserProfile} />
+                 <FeaturedPostsSection onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} compact currentUser={user} onToggleFeature={handleToggleFeature} onOpenProfile={openUserProfile} />
                  <h3 className="mb-2 mt-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><BadgeCheck size={14} className="text-baylink-green" /> 官方推荐</h3>
                  <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} layout="list" />
                </div>
              </div>
            )}
-           {tab === 'profile' && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={setSelectedPost} onUpdateUser={setUser} showToast={showToast} />}
+           {(tab === 'profile' || location.pathname === '/me') && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={navigateToPost} onUpdateUser={setUser} showToast={showToast} />}
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-baylink-border/50 pb-safe max-w-[500px] mx-auto">
           <div className="flex justify-around items-center px-0.5 pt-1 pb-0.5">
-           <button onClick={()=>setTab('home')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='home'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <Home size={20} strokeWidth={tab==='home'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='home'?'font-medium':'font-normal'}`}>首页</span>
+           <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
+             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
            </button>
-           <button onClick={()=>setTab('notifications')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='notifications'?'tab-bar-active':'text-baylink-muted/80'}`}>
+           <button onClick={()=>navigate('/recommend')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='notifications'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <Star size={20} strokeWidth={tab==='notifications'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='notifications'?'font-medium':'font-normal'}`}>推荐</span>
            </button>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
              <div className="w-9 h-9 bg-baylink-green rounded-lg shadow-sm flex items-center justify-center text-white ring-2 ring-baylink-bg"><Plus size={20} strokeWidth={2.5}/></div>
              <span className="text-[9px] font-medium text-baylink-green mt-px">发布</span>
            </button>
-           <button onClick={()=>setTab('messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
+           <button onClick={()=>navigate('/messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
              {hasNotification && <div className="absolute top-0.5 right-2.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}
              <span className={`text-[9px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
            </button>
-           <button onClick={()=>setTab('profile')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted/80'}`}>
+           <button onClick={()=>navigate('/me')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
            </button>
           </div>
@@ -2594,9 +2730,43 @@ export default function App() {
             showToast={showToast}
           />
         )}
-        {selectedPost && <PostDetailModal post={selectedPost} currentUser={user} onClose={()=>setSelectedPost(null)} onLoginNeeded={()=>setShowLogin(true)} onOpenChat={openChat} onEdit={(p: PostData) => { setSelectedPost(null); openEditPost(p); }} onToggleFeature={handleToggleFeature} onDeleted={()=>{setSelectedPost(null);fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1);}} onImageClick={(src:string) => setViewingImage(src)} onShare={(p: PostData) => setSharingPost(p)} showToast={showToast}/>}
-        {chatConv && user && <ChatView currentUser={user} conversation={chatConv} onClose={()=>setChatConv(null)} socket={socket} onViewProfile={openUserProfile}/>}
-        {profileUserId && <UserProfileModal userId={profileUserId} onClose={() => setProfileUserId(null)} currentUser={user} onChat={openChat} onOpenPost={setSelectedPost} />}
+        {postIdParam && postRouteLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>
+        )}
+        {postIdParam && postRouteMissing && <PostNotFoundView onBack={navigateBack} />}
+        {postIdParam && selectedPost && !postRouteMissing && (
+          <PostDetailModal
+            post={selectedPost}
+            currentUser={user}
+            onClose={navigateBack}
+            onLoginNeeded={() => setShowLogin(true)}
+            onOpenChat={openChat}
+            onEdit={(p: PostData) => { navigateBack(); openEditPost(p); }}
+            onToggleFeature={handleToggleFeature}
+            onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
+            onImageClick={(src: string) => setViewingImage(src)}
+            onShare={(p: PostData) => setSharingPost(p)}
+            showToast={showToast}
+          />
+        )}
+        {chatConv && user && threadIdParam && (
+          <ChatView
+            currentUser={user}
+            conversation={chatConv}
+            onClose={() => { setChatConv(null); navigate('/messages'); }}
+            socket={socket}
+            onViewProfile={openUserProfile}
+          />
+        )}
+        {userIdParam && (
+          <UserProfileModal
+            userId={userIdParam}
+            onClose={navigateBack}
+            currentUser={user}
+            onChat={openChat}
+            onOpenPost={navigateToPost}
+          />
+        )}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
