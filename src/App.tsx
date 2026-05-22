@@ -230,7 +230,7 @@ type PublicUserProfile = {
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
   postCount: number;
-  recentPosts: Array<{ id: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number }>;
+  recentPosts: Array<{ id?: string; _id?: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number; updatedAt?: number }>;
 };
 
 const isPostEdited = (post: { createdAt?: number; updatedAt?: number }) =>
@@ -1064,12 +1064,13 @@ const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser:
   );
 };
 
-const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenPost }: {
+const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast }: {
   userId: string;
   onClose: () => void;
   currentUser: UserData | null;
   onChat?: (targetId: string, nickname?: string) => void;
-  onOpenPost?: (post: PostData) => void;
+  onOpenRecentPost?: (post: { id?: string; _id?: string }) => void;
+  showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }) => {
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1125,32 +1126,21 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenPost }: 
                 <div className="mt-5">
                   <h5 className="mb-2 text-xs font-bold text-baylink-muted">最近发布</h5>
                   <div className="space-y-2">
-                    {profile.recentPosts.map((rp) => (
+                    {profile.recentPosts.map((rp) => {
+                      const postId = rp.id || rp._id;
+                      return (
                       <button
-                        key={rp.id}
+                        key={postId || rp.title}
                         type="button"
-                        onClick={() => {
-                          onOpenPost?.({
-                            id: rp.id,
-                            authorId: profile.id,
-                            author: { nickname: profile.nickname, avatar: profile.avatar },
-                            type: (rp.type || 'client') as PostType,
-                            title: rp.title,
-                            description: rp.description || '',
-                            category: rp.category,
-                            city: rp.city,
-                            budget: rp.budget || '',
-                            timeInfo: '',
-                            contactInfo: null,
-                            imageUrls: rp.imageUrls || [],
-                            likesCount: 0,
-                            hasLiked: false,
-                            commentsCount: 0,
-                            createdAt: rp.createdAt,
-                          });
-                          onClose();
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!postId) {
+                            showToast?.('帖子链接不可用', 'error');
+                            return;
+                          }
+                          onOpenRecentPost?.(rp);
                         }}
-                        className="flex w-full gap-2 rounded-xl border border-baylink-border/50 bg-white p-2 text-left transition hover:border-baylink-green/30"
+                        className="flex w-full min-h-[56px] cursor-pointer gap-2 rounded-xl border border-baylink-border/50 bg-white p-3 text-left transition hover:border-baylink-green/30 hover:bg-gray-50 active:bg-gray-100"
                       >
                         {normalizePostImages(rp)[0] ? (
                           <img src={normalizePostImages(rp)[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
@@ -1161,8 +1151,9 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenPost }: 
                           <div className="line-clamp-1 text-sm font-semibold text-baylink-text">{rp.title}</div>
                           <div className="text-[10px] text-baylink-muted">{rp.city} · #{rp.category}</div>
                         </div>
+                        <ChevronRight size={16} className="shrink-0 self-center text-gray-300" />
                       </button>
-                    ))}
+                    );})}
                   </div>
                 </div>
               )}
@@ -2290,6 +2281,14 @@ export default function App() {
   };
 
   const navigateToPost = (post: PostData) => navigate(`/posts/${post.id}`);
+  const openRecentPostFromProfile = (post: { id?: string; _id?: string }) => {
+    const postId = post?.id || post?._id;
+    if (!postId) {
+      showToast('帖子链接不可用', 'error');
+      return;
+    }
+    navigate(`/posts/${postId}`);
+  };
   const navigateToCategory = (category: string) => {
     const slug = getSlugFromCategory(category);
     if (slug) navigate(`/category/${slug}`);
@@ -2764,7 +2763,8 @@ export default function App() {
             onClose={navigateBack}
             currentUser={user}
             onChat={openChat}
-            onOpenPost={navigateToPost}
+            onOpenRecentPost={openRecentPostFromProfile}
+            showToast={showToast}
           />
         )}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
