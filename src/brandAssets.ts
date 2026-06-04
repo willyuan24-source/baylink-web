@@ -1,6 +1,6 @@
 /** BAYLINK Otter brand asset paths (public/). */
 export const BRAND = {
-  logoHorizontal: '/brand/baylink-logo-horizontal.png',
+  logoHorizontal: '/brand/baylink-logo-horizontal-transparent.png',
   logoHorizontalTagline: '/brand/baylink-logo-horizontal-tagline.png',
   logoCn: '/brand/baylink-logo-cn.png',
   logoMonochrome: '/brand/baylink-logo-monochrome.png',
