@@ -9,6 +9,7 @@ import {
   isGuidesPath,
 } from './routing';
 import { BRAND } from './brandAssets';
+import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { GuideSection } from './components/GuideSection';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
@@ -2592,6 +2593,11 @@ export default function App() {
              <button onClick={() => setShowLogin(true)} className="w-full py-2 btn-primary text-xs">立即登录</button>
           </div>
        )}
+       <BayBayAssistantEntry
+         variant="sidebar"
+         onNavigate={navigate}
+         onCreatePostClick={() => openCreate('client')}
+       />
        <div className="sidebar-panel mb-2.5">
          <h3 className="text-[11px] font-medium text-baylink-text mb-2">本周大家在找</h3>
          <div className="space-y-1.5 text-[11px] text-baylink-text-secondary">
@@ -2657,6 +2663,11 @@ export default function App() {
                        <BayHero
                          onPublishNeed={() => openCreate('client')}
                          onPublishService={() => openCreate('provider')}
+                       />
+                       <BayBayAssistantEntry
+                         variant="inline"
+                         onNavigate={navigate}
+                         onCreatePostClick={() => openCreate('client')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
                        <GuideSection onOpenGuide={(slug) => navigate(`/guides/${slug}`)} onViewAll={() => navigate('/guides')} />
