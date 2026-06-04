@@ -82,7 +82,7 @@ export const BayBayAssistantEntry = ({
                 onClick={() => setOpen(true)}
                 className="mt-2.5 w-full rounded-lg bg-baylink-green py-2 text-xs font-bold text-white transition hover:opacity-95 active:scale-[0.98]"
               >
-                开始使用
+                开始找方向
               </button>
             </div>
           </div>
@@ -115,26 +115,26 @@ export const BayBayAssistantEntry = ({
           role="presentation"
         >
           <div
-            className="flex max-h-[min(88vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-baylink-bg-alt shadow-2xl lg:max-h-[85vh] lg:rounded-[24px] lg:border lg:border-baylink-border/50"
+            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-baylink-bg-alt shadow-2xl max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom,0px))] lg:mb-0 lg:max-h-[min(85vh,640px)] lg:rounded-[24px] lg:border lg:border-baylink-border/50"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-labelledby="baybay-panel-title"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-baylink-border/40 px-4 py-4 sm:px-5">
+            <div className="flex shrink-0 items-start justify-between gap-2 border-b border-baylink-border/40 px-4 py-3 sm:gap-3 sm:py-4 sm:px-5">
               <div className="flex min-w-0 gap-3">
                 <img
                   src={BRAND.baybayAvatar}
                   alt=""
-                  className="h-12 w-12 shrink-0 rounded-2xl object-cover ring-2 ring-baylink-green/15"
+                  className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-baylink-green/15 sm:h-12 sm:w-12 sm:rounded-2xl"
                   width={48}
                   height={48}
                 />
                 <div className="min-w-0">
-                  <h2 id="baybay-panel-title" className="flex items-center gap-1 text-base font-bold text-baylink-text">
-                    <Sparkles size={15} className="text-baylink-green shrink-0" />
-                    BayBay 湾区生活助手
+                  <h2 id="baybay-panel-title" className="flex items-center gap-1 text-sm font-bold text-baylink-text sm:text-base">
+                    <Sparkles size={14} className="text-baylink-green shrink-0 sm:w-[15px] sm:h-[15px]" />
+                    <span className="line-clamp-1">BayBay 湾区生活助手</span>
                   </h2>
-                  <p className="mt-0.5 text-xs leading-relaxed text-baylink-muted">
+                  <p className="mt-0.5 text-[11px] leading-snug text-baylink-muted sm:text-xs sm:leading-relaxed">
                     先选一个场景，我带你去合适的指南、分类或发帖入口。
                   </p>
                 </div>
@@ -149,23 +149,23 @@ export const BayBayAssistantEntry = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-3 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:px-5 lg:pb-4">
-              <div className="grid gap-2 sm:grid-cols-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 pb-3 sm:px-5 sm:py-3 sm:pb-4">
+              <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
                 {shortcuts.map((item) => (
                   <button
                     key={item.title}
                     type="button"
                     onClick={() => handleShortcut(item)}
-                    className="flex min-h-[72px] w-full cursor-pointer flex-col rounded-xl border border-baylink-border/50 bg-white p-3 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.03] active:scale-[0.99]"
+                    className="flex min-h-[56px] w-full min-w-0 cursor-pointer flex-col justify-center rounded-xl border border-baylink-border/50 bg-white px-3 py-2.5 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.03] active:scale-[0.99] sm:min-h-[68px] sm:p-3"
                   >
-                    <span className="text-sm font-semibold text-baylink-text">{item.title}</span>
-                    <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-baylink-muted">
+                    <span className="text-[13px] font-semibold text-baylink-text sm:text-sm">{item.title}</span>
+                    <span className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-baylink-muted sm:text-[11px]">
                       {item.description}
                     </span>
                   </button>
                 ))}
               </div>
-              <p className="mt-3 text-center text-[10px] text-baylink-muted/80">
+              <p className="mt-2 pb-1 text-center text-[10px] text-baylink-muted/80 sm:mt-3 sm:pb-0">
                 导航助手 · 暂不连接 AI 对话
               </p>
             </div>

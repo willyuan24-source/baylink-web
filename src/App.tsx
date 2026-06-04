@@ -10,7 +10,6 @@ import {
 } from './routing';
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
-import { GuideSection } from './components/GuideSection';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -2670,7 +2669,6 @@ export default function App() {
                          onCreatePostClick={() => openCreate('client')}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <GuideSection onOpenGuide={(slug) => navigate(`/guides/${slug}`)} onViewAll={() => navigate('/guides')} />
                        <HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} />
                      </>
                    )}
