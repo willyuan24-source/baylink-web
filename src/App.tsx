@@ -8,6 +8,7 @@ import {
   isHomePath,
   isGuidesPath,
 } from './routing';
+import { BRAND } from './brandAssets';
 import { GuideSection } from './components/GuideSection';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
@@ -2541,8 +2542,14 @@ export default function App() {
   const LeftSidebar = () => (
     <div className="hidden lg:flex flex-col w-[200px] xl:w-[220px] h-screen sticky top-0 py-6 px-4 border-r border-baylink-border/60 bg-baylink-bg-alt overflow-y-auto shrink-0">
       <div className="mb-6 px-1">
-        <h1 className="font-bold text-xl text-gradient tracking-tight flex items-center gap-1">BAYLINK<span className="w-1.5 h-1.5 rounded-full bg-baylink-orange mt-1"></span></h1>
-        <span className="text-[10px] text-baylink-muted block mt-0.5">湾区华人本地生活</span>
+        <img
+          src={BRAND.logoHorizontal}
+          alt="BAYLINK"
+          className="h-8 w-full max-w-[168px] object-contain object-left"
+          width={168}
+          height={32}
+        />
+        <span className="text-[10px] text-baylink-muted block mt-1">湾区生活信息站</span>
       </div>
       <nav className="space-y-0.5 flex-1">
         <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
@@ -2623,12 +2630,18 @@ export default function App() {
       
       <LeftSidebar />
       <div className="w-full max-w-[500px] lg:max-w-[640px] xl:max-w-[680px] bg-baylink-bg-alt min-h-screen lg:shadow-none shadow-card relative flex flex-col lg:border-x border-baylink-border/50 mx-auto lg:mx-0 flex-1 min-w-0">
-        <div className="lg:hidden">{isHomePath(location.pathname) && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
-            <div>
-                <h1 className="font-bold text-lg text-gradient tracking-tight flex items-center gap-1">BAYLINK<span className="w-1 h-1 rounded-full bg-baylink-orange"></span></h1>
-                <p className="text-[10px] text-baylink-muted mt-0.5 leading-none">湾区华人本地生活</p>
+        <div className="lg:hidden">{isHomePath(location.pathname) && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center gap-2 bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
+            <div className="min-w-0 flex-1">
+                <img
+                  src={BRAND.logoHorizontal}
+                  alt="BAYLINK"
+                  className="h-7 w-auto max-w-[min(168px,calc(100vw-5.5rem))] object-contain object-left"
+                  width={168}
+                  height={28}
+                />
+                <p className="text-[10px] text-baylink-muted mt-0.5 leading-none">湾区生活信息站</p>
             </div>
-            <button onClick={()=>!user?setShowLogin(true):navigate('/me')} className="rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
+            <button onClick={()=>!user?setShowLogin(true):navigate('/me')} className="shrink-0 rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
         </header>}</div>
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
