@@ -108,6 +108,12 @@ const resolveCityFromArea = (area: string, current: string): string => {
   }
   return current;
 };
+
+const resolveCityFromDraft = (draft: AiPostDraft, current: string): string => {
+  const locationText = `${draft.area || ''} ${draft.title || ''} ${draft.description || ''}`.trim();
+  if (!locationText) return current;
+  return resolveCityFromArea(locationText, current);
+};
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -1751,7 +1757,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
       if (catLabel && catLabel !== '全部' && CATEGORIES.includes(catLabel)) next.category = catLabel;
       if (draft.budget?.trim()) next.budget = draft.budget.trim();
       if (draft.timeInfo?.trim()) next.timeInfo = draft.timeInfo.trim();
-      if (draft.area?.trim()) next.city = resolveCityFromArea(draft.area, prev.city);
+      next.city = resolveCityFromDraft(draft, prev.city);
       return next;
     });
     if (uploadedImages.length === 0 && draft.coverSuggestion?.startsWith('/default-covers/')) {
