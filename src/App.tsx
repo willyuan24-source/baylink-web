@@ -10,6 +10,7 @@ import {
 } from './routing';
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
+import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -30,11 +31,83 @@ import { io, Socket } from 'socket.io-client';
 
 // BAYLINK APP V25.10 Final - Production Ready (最终上线版)
 
-// ✨ 配置: 自动适配 Render 环境或本地环境
-const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : 'https://baylink-api.onrender.com/api';
+// 默认 Render 线上 API；仅本地跑后端时在 .env.local 设 VITE_API_BASE_URL=http://localhost:3000/api
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api';
 const SOCKET_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://baylink-api.onrender.com';
 
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
+
+/** 地区关键词 → 发帖表单 REGIONS（先匹配具体城市，再匹配大区，避免 Millbrae 被 SF 误判） */
+const AREA_TO_REGION: { region: string; patterns: RegExp[] }[] = [
+  {
+    region: '中半岛',
+    patterns: [
+      /中半岛/,
+      /\bmillbrae\b/i,
+      /\bburlingame\b/i,
+      /\bsan\s*mateo\b/i,
+      /\bfoster\s*city\b/i,
+      /\bbelmont\b/i,
+      /\bsan\s*carlos\b/i,
+      /\bredwood\s*city\b/i,
+      /peninsula/i,
+    ],
+  },
+  {
+    region: '南湾',
+    patterns: [
+      /南湾/,
+      /\bpalo\s*alto\b/i,
+      /\bmountain\s*view\b/i,
+      /\bsunnyvale\b/i,
+      /\bsanta\s*clara\b/i,
+      /\bcupertino\b/i,
+      /\bsan\s*jose\b/i,
+      /\bmilpitas\b/i,
+      /south\s*bay/i,
+    ],
+  },
+  {
+    region: '东湾',
+    patterns: [
+      /东湾/,
+      /\boakland\b/i,
+      /\bberkeley\b/i,
+      /\bfremont\b/i,
+      /\bhayward\b/i,
+      /\bunion\s*city\b/i,
+      /\bnewark\b/i,
+      /\balameda\b/i,
+      /east\s*bay/i,
+    ],
+  },
+  {
+    region: '旧金山',
+    patterns: [
+      /旧金山/,
+      /\bsouth\s*san\s*francisco\b/i,
+      /\bsan\s*francisco\b/i,
+      /\bdaly\s*city\b/i,
+      /\bsf\b/i,
+    ],
+  },
+  {
+    // REGIONS 无「北湾」，Marin 一带归入旧金山侧选项
+    region: '旧金山',
+    patterns: [/北湾/, /\bmarin\b/i, /\bsan\s*rafael\b/i, /\bsausalito\b/i],
+  },
+];
+
+const resolveCityFromArea = (area: string, current: string): string => {
+  const a = area.trim();
+  if (!a) return current;
+  if (REGIONS.includes(a)) return a;
+  for (const { region, patterns } of AREA_TO_REGION) {
+    if (!REGIONS.includes(region)) continue;
+    if (patterns.some((p) => p.test(a))) return region;
+  }
+  return current;
+};
 const CATEGORIES = ["租屋", "维修", "清洁", "搬家", "接送", "翻译", "兼职", "闲置", "其他"];
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -1636,7 +1709,6 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   const [coversExpanded, setCoversExpanded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [briefInput, setBriefInput] = useState('');
   const [antiSpamAnswer, setAntiSpamAnswer] = useState('');
 
   const isClient = form.type === 'client';
@@ -1653,29 +1725,24 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
   };
 
-  const handleOrganizeBrief = () => {
-    if (!briefInput.trim()) return showToast('请先简单描述一下你想发布的内容', 'error');
-    if (form.title.trim() || form.description.trim()) {
-      if (!window.confirm('会覆盖当前标题和描述，是否继续？')) return;
+  const applyAiDraft = (draft: AiPostDraft) => {
+    setForm((prev) => {
+      const next = { ...prev };
+      if (draft.title?.trim()) next.title = draft.title.trim();
+      if (draft.description?.trim()) next.description = draft.description.trim();
+      if (draft.type === 'client' || draft.type === 'provider') next.type = draft.type;
+      const catLabel = getCategoryFromSlug(draft.category);
+      if (catLabel && catLabel !== '全部' && CATEGORIES.includes(catLabel)) next.category = catLabel;
+      if (draft.budget?.trim()) next.budget = draft.budget.trim();
+      if (draft.timeInfo?.trim()) next.timeInfo = draft.timeInfo.trim();
+      if (draft.area?.trim()) next.city = resolveCityFromArea(draft.area, prev.city);
+      return next;
+    });
+    if (uploadedImages.length === 0 && draft.coverSuggestion?.startsWith('/default-covers/')) {
+      const cover = findDefaultCoverFromUrl(draft.coverSuggestion);
+      if (cover) setSelectedDefaultCover(cover);
     }
-    const organized = organizePostFromBrief(briefInput, form.category, form.type);
-    setForm((prev) => ({
-      ...prev,
-      title: organized.title,
-      description: organized.description,
-      budget: organized.budget || prev.budget,
-      city: organized.city || prev.city,
-    }));
-    const combined = `${briefInput} ${organized.title} ${organized.description}`;
-    if (uploadedImages.length === 0 && !selectedDefaultCover) {
-      const suggested = suggestDefaultCoverFromText(combined, form.type, form.category);
-      if (suggested) {
-        setSelectedDefaultCover(suggested);
-        showToast('已帮你整理帖子，并推荐了一张默认封面', 'success');
-        return;
-      }
-    }
-    showToast('已帮你整理成帖子，可继续修改后发布', 'success');
+    showToast('BayBay 已帮你填好草稿，你可以继续修改后发布', 'success');
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1801,16 +1868,17 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
 
         {step === 2 && (
           <div className="space-y-3">
-            <div className="rounded-xl border border-baylink-border/50 bg-white p-3">
-              <p className="text-[11px] font-semibold text-baylink-text mb-1.5">不会写？简单描述一下，BayLink 帮你整理成完整帖子。</p>
-              <textarea
-                className="w-full rounded-lg border border-baylink-border/50 bg-baylink-section/30 p-2.5 text-xs outline-none resize-none h-16 placeholder:text-baylink-muted"
-                placeholder="例如：San Mateo 有一间房出租，$1600，6月入住，近 Caltrain"
-                value={briefInput}
-                onChange={(e) => setBriefInput(e.target.value)}
-              />
-              <button type="button" onClick={handleOrganizeBrief} className="mt-2 w-full rounded-lg bg-baylink-green-light py-2 text-xs font-bold text-baylink-green">帮我整理</button>
-            </div>
+            <BayBayPostAssist
+              postType={form.type}
+              categorySlug={getSlugFromCategory(form.category)}
+              areaHint={form.city}
+              user={user}
+              showToast={showToast}
+              onApply={applyAiDraft}
+              requestAiAssist={(body) =>
+                api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
+              }
+            />
             <input
               className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
               placeholder={hints.titlePlaceholder}
