@@ -1725,11 +1725,27 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
   };
 
-  const applyAiDraft = (draft: AiPostDraft) => {
+  const appendQuickTagsToDescription = (description: string, tags: string[]) => {
+    const normalized = tags
+      .map((t) => String(t).replace(/\s+/g, '').replace(/^#/, '').trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    let desc = description.trim();
+    const missing = normalized.filter((tag) => !new RegExp(`#${tag}\\b`, 'i').test(desc));
+    if (missing.length === 0) return desc;
+    const suffix = missing.map((t) => `#${t}`).join(' ');
+    return `${desc}\n\n${suffix}`.trim();
+  };
+
+  const applyAiDraft = (draft: AiPostDraft, options?: { appendQuickTags?: boolean }) => {
     setForm((prev) => {
       const next = { ...prev };
       if (draft.title?.trim()) next.title = draft.title.trim();
-      if (draft.description?.trim()) next.description = draft.description.trim();
+      let description = draft.description?.trim() || '';
+      if (options?.appendQuickTags && draft.quickTags?.length) {
+        description = appendQuickTagsToDescription(description, draft.quickTags);
+      }
+      if (description) next.description = description;
       if (draft.type === 'client' || draft.type === 'provider') next.type = draft.type;
       const catLabel = getCategoryFromSlug(draft.category);
       if (catLabel && catLabel !== '全部' && CATEGORIES.includes(catLabel)) next.category = catLabel;
