@@ -36,10 +36,12 @@ type CreatePostOptions = {
 };
 
 type BayBayAssistantEntryProps = {
-  variant: 'sidebar' | 'inline';
+  variant: 'sidebar' | 'inline' | 'headless';
   onNavigate: (path: string) => void;
   onCreatePostClick: (opts?: CreatePostOptions) => void;
   categoryHint?: string;
+  panelOpen?: boolean;
+  onPanelOpenChange?: (open: boolean) => void;
 };
 
 type ShortcutItem = {
@@ -102,8 +104,16 @@ export const BayBayAssistantEntry = ({
   onNavigate,
   onCreatePostClick,
   categoryHint,
+  panelOpen,
+  onPanelOpenChange,
 }: BayBayAssistantEntryProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isPanelControlled = onPanelOpenChange != null;
+  const open = isPanelControlled ? !!panelOpen : internalOpen;
+  const setOpen = useCallback((next: boolean) => {
+    if (isPanelControlled) onPanelOpenChange(next);
+    else setInternalOpen(next);
+  }, [isPanelControlled, onPanelOpenChange]);
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [chatError, setChatError] = useState(false);
@@ -113,7 +123,7 @@ export const BayBayAssistantEntry = ({
   const [safetyNote, setSafetyNote] = useState<string | null>(null);
   const [interactiveCards, setInteractiveCards] = useState<BayBayInteractiveCard[]>([]);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => setOpen(false), [setOpen]);
 
   const shortcuts: ShortcutItem[] = [
     {
@@ -214,7 +224,7 @@ export const BayBayAssistantEntry = ({
 
   return (
     <>
-      {variant === 'sidebar' ? (
+      {variant === 'headless' ? null : variant === 'sidebar' ? (
         <div className="sidebar-panel mb-3 overflow-hidden border border-baylink-green/15 bg-gradient-to-br from-baylink-green/6 via-white to-[#FFF8F0]/80">
           <div className="flex gap-3">
             <img

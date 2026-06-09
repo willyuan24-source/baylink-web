@@ -10,6 +10,7 @@ import {
 } from './routing';
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
+import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
@@ -3095,6 +3096,7 @@ export default function App() {
 
   const [user, setUser] = useState<UserData | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
   
@@ -3399,6 +3401,11 @@ export default function App() {
     else setShowLogin(true);
   };
 
+  const openCreateFromSlug = (type: PostType, categorySlug?: string) => {
+    const label = categorySlug ? getCategoryFromSlug(categorySlug) : undefined;
+    openCreate(type, label && label !== '全部' ? label : undefined);
+  };
+
   const openEditPost = (post: PostData) => {
     if (!user) return setShowLogin(true);
     setEditingPost(post);
@@ -3691,6 +3698,21 @@ export default function App() {
            </button>
           </div>
         </nav>
+
+        <BayBayAssistantEntry
+          variant="headless"
+          panelOpen={baybayPanelOpen}
+          onPanelOpenChange={setBaybayPanelOpen}
+          onNavigate={navigate}
+          onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
+        />
+        <BayBayFloatingLauncher
+          baybayPanelOpen={baybayPanelOpen}
+          onWriteRent={() => openCreateFromSlug('client', 'rent')}
+          onLocalHelp={() => openCreateFromSlug('client', 'other')}
+          onAskBayBay={() => setBaybayPanelOpen(true)}
+          onPromoteService={() => openCreateFromSlug('provider', 'other')}
+        />
 
         {/* Modals */}
         {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
