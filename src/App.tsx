@@ -311,12 +311,167 @@ type PublicUserProfile = {
   nickname: string;
   avatar?: string;
   bio?: string;
+  area?: string;
+  city?: string;
+  profileTags?: string[];
+  interests?: string[];
+  website?: string;
+  xiaohongshu?: string;
   role: Role;
   createdAt?: number;
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
+  socialLinks?: { linkedin?: string; instagram?: string };
   postCount: number;
   recentPosts: Array<{ id?: string; _id?: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number; updatedAt?: number }>;
+};
+
+const PROFILE_TAG_PRESETS = [
+  '新来湾区', '本地老湾区', '留学生', '上班族', '房东', '租客',
+  '服务提供者', '二手卖家', '活动组织者', '本地达人',
+];
+
+const INTEREST_PRESETS = [
+  '美食', '咖啡', '奶茶', 'Hiking', '健身', '摄影', '桌游', '电影', '宠物', '亲子',
+  '二手家具', '租房', '找室友', '搬家', '清洁', '接送', '维修', '湾区活动',
+];
+
+const calcProfileCompletion = (user: Partial<UserData>): number => {
+  let score = 0;
+  if (user.avatar?.trim()) score += 20;
+  if (user.bio?.trim()) score += 20;
+  if (user.area?.trim() || user.city?.trim()) score += 15;
+  if ((user.profileTags?.length || 0) >= 1) score += 15;
+  if ((user.interests?.length || 0) >= 1) score += 15;
+  const hasSocial = user.socialLinks?.instagram?.trim() || user.xiaohongshu?.trim() || user.website?.trim();
+  if (hasSocial) score += 15;
+  return score;
+};
+
+const formatProfileLocation = (area?: string, city?: string) => {
+  const parts = [area?.trim(), city?.trim()].filter(Boolean);
+  return parts.join(' · ');
+};
+
+const normalizeWebsiteUrl = (raw: string): string | null => {
+  const v = raw.trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  return `https://${v}`;
+};
+
+const normalizeInstagramUrl = (raw: string): string | null => {
+  const v = raw.trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  const handle = v.replace(/^@/, '').replace(/^instagram\.com\//i, '');
+  return `https://instagram.com/${handle}`;
+};
+
+const TagPills = ({ tags, variant = 'profile' }: { tags: string[]; variant?: 'profile' | 'interest' }) => (
+  <div className="flex flex-wrap gap-1.5">
+    {tags.map((t) => (
+      <span
+        key={t}
+        className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
+          variant === 'profile'
+            ? 'bg-baylink-green/10 text-baylink-green'
+            : 'bg-baylink-section/80 text-baylink-text-secondary'
+        }`}
+      >
+        {t}
+      </span>
+    ))}
+  </div>
+);
+
+const ProfileTagField = ({
+  label,
+  hint,
+  presets,
+  tags,
+  max,
+  onChange,
+  showToast,
+}: {
+  label: string;
+  hint: string;
+  presets: string[];
+  tags: string[];
+  max: number;
+  onChange: (next: string[]) => void;
+  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+}) => {
+  const [custom, setCustom] = useState('');
+  const toggle = (tag: string) => {
+    if (tags.includes(tag)) {
+      onChange(tags.filter((t) => t !== tag));
+      return;
+    }
+    if (tags.length >= max) {
+      showToast(`最多选择 ${max} 个标签`, 'error');
+      return;
+    }
+    onChange([...tags, tag]);
+  };
+  const addCustom = () => {
+    const tag = custom.trim().slice(0, 20);
+    if (!tag) return;
+    if (tags.includes(tag)) { setCustom(''); return; }
+    if (tags.length >= max) {
+      showToast(`最多选择 ${max} 个标签`, 'error');
+      return;
+    }
+    onChange([...tags, tag]);
+    setCustom('');
+  };
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-bold text-gray-500 ml-1">{label}</label>
+      <p className="mb-2 text-[10px] text-baylink-muted ml-1">{hint}</p>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {presets.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => toggle(p)}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${
+              tags.includes(p)
+                ? 'bg-baylink-green text-white'
+                : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+      {tags.filter((t) => !presets.includes(t)).length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {tags.filter((t) => !presets.includes(t)).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onChange(tags.filter((x) => x !== t))}
+              className="rounded-full bg-baylink-green/15 px-2 py-0.5 text-[10px] text-baylink-green"
+            >
+              {t} ×
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          className="flex-1 rounded-xl bg-white px-3 py-2 text-xs outline-none shadow-sm focus:ring-2 focus:ring-green-500/20"
+          placeholder="自定义标签，回车添加"
+          value={custom}
+          maxLength={20}
+          onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustom())}
+        />
+        <button type="button" onClick={addCustom} className="shrink-0 rounded-xl bg-baylink-section px-3 py-2 text-[10px] font-semibold text-baylink-text">添加</button>
+      </div>
+    </div>
+  );
 };
 
 const isPostEdited = (post: { createdAt?: number; updatedAt?: number }) =>
@@ -1203,41 +1358,114 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
   }, [userId]);
 
   const joinDays = profile ? getJoinDays(profile) : null;
+  const locationLine = profile ? formatProfileLocation(profile.area, profile.city) : '';
+  const profileTags = profile?.profileTags?.filter(Boolean) || [];
+  const interests = profile?.interests?.filter(Boolean) || [];
+  const hasTags = profileTags.length > 0 || interests.length > 0;
+  const instaUrl = profile?.socialLinks?.instagram ? normalizeInstagramUrl(profile.socialLinks.instagram) : null;
+  const websiteUrl = profile?.website ? normalizeWebsiteUrl(profile.website) : null;
+  const xhsRaw = profile?.xiaohongshu?.trim() || '';
+  const xhsUrl = xhsRaw && /^https?:\/\//i.test(xhsRaw) ? xhsRaw : null;
+  const hasSocial = !!(instaUrl || websiteUrl || xhsRaw);
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
-      <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-4">
-          <h3 className="text-lg font-bold text-baylink-text">用户资料</h3>
+      <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-3">
+          <h3 className="text-base font-bold text-baylink-text">湾区生活名片</h3>
           <button type="button" onClick={onClose} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5">
           {loading ? (
             <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
           ) : failed || !profile ? (
             <p className="py-12 text-center text-sm text-baylink-muted">资料加载失败</p>
           ) : (
             <>
-              <div className="flex flex-col items-center text-center">
-                <Avatar src={profile.avatar} name={profile.nickname} size={20} className="mb-3" />
-                <h4 className="text-xl font-bold text-baylink-text">{profile.nickname}</h4>
-                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                  <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold ${profile.role === 'admin' ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
-                    {profile.role === 'admin' ? '管理员' : '社区居民'}
-                  </span>
-                  <TrustBadge user={profile} size={12} showText />
+              <div className="rounded-2xl border border-baylink-green/15 bg-gradient-to-br from-baylink-green/[0.06] via-white to-[#FFF8F0]/80 p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar src={profile.avatar} name={profile.nickname} size={16} className="shrink-0 ring-2 ring-white" />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-lg font-bold text-baylink-text leading-tight">{profile.nickname}</h4>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                      <span className={`rounded-md px-1.5 py-px text-[9px] font-bold ${profile.role === 'admin' ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+                        {profile.role === 'admin' ? '管理员' : '社区居民'}
+                      </span>
+                      <TrustBadge user={profile} size={11} showText />
+                    </div>
+                    {locationLine && (
+                      <p className="mt-1.5 flex items-center gap-1 text-[11px] text-baylink-text-secondary">
+                        <MapPin size={11} className="shrink-0 text-baylink-green/70" />
+                        <span className="truncate">{locationLine}</span>
+                      </p>
+                    )}
+                    {joinDays != null && (
+                      <p className="mt-0.5 text-[10px] text-baylink-muted">加入 BAYLINK {joinDays} 天</p>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-4 w-full rounded-xl bg-baylink-section/50 p-3 text-left text-sm leading-relaxed text-baylink-text-secondary">
-                  {profile.bio?.trim() || '这个邻居很懒，什么也没写～'}
-                </p>
-                <div className="mt-4 flex w-full gap-4 text-center text-xs text-baylink-muted">
-                  <div className="flex-1"><div className="font-bold text-baylink-text">{joinDays ?? '—'}</div><div>加入天数</div></div>
-                  <div className="flex-1"><div className="font-bold text-baylink-text">{profile.postCount}</div><div>发布数量</div></div>
+                {profile.bio?.trim() && (
+                  <p className="mt-3 text-left text-[13px] leading-relaxed text-baylink-text-secondary">{profile.bio.trim()}</p>
+                )}
+              </div>
+
+              {hasTags && (
+                <div className="mt-3 space-y-2.5 rounded-xl border border-baylink-border/40 bg-white p-3">
+                  {profileTags.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-semibold text-baylink-muted">身份标签</p>
+                      <TagPills tags={profileTags} variant="profile" />
+                    </div>
+                  )}
+                  {interests.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-semibold text-baylink-muted">兴趣</p>
+                      <TagPills tags={interests} variant="interest" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {hasSocial && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {instaUrl && (
+                    <a href={instaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                      <Instagram size={12} className="text-[#E1306C]" /> Instagram
+                    </a>
+                  )}
+                  {xhsRaw && (
+                    xhsUrl ? (
+                      <a href={xhsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                        小红书
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary">
+                        小红书 · {xhsRaw}
+                      </span>
+                    )
+                  )}
+                  {websiteUrl && (
+                    <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                      <ExternalLink size={11} /> 个人网站
+                    </a>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[11px] text-baylink-text-secondary">
+                <p className="font-semibold text-baylink-text mb-2 text-xs">信任信息</p>
+                <div className="space-y-1.5">
+                  <p>已加入 BAYLINK <span className="font-medium text-baylink-text">{joinDays ?? '—'}</span> 天</p>
+                  <p>发布 <span className="font-medium text-baylink-text">{profile.postCount}</span> 条本地信息</p>
+                  <p>{profile.isPhoneVerified ? '手机已验证' : '手机未验证'}</p>
+                  <p>{profile.isOfficialVerified ? '官方认证用户' : '普通社区用户'}</p>
                 </div>
               </div>
+
               {profile.recentPosts.length > 0 && (
-                <div className="mt-5">
-                  <h5 className="mb-2 text-xs font-bold text-baylink-muted">最近发布</h5>
+                <div className="mt-4">
+                  <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
+                  <p className="mb-2 text-[10px] text-baylink-muted">查看 TA 最近的本地信息</p>
                   <div className="space-y-2">
                     {profile.recentPosts.map((rp) => {
                       const postId = rp.id || rp._id;
@@ -1253,7 +1481,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                           }
                           onOpenRecentPost?.(rp);
                         }}
-                        className="flex w-full min-h-[56px] cursor-pointer gap-2 rounded-xl border border-baylink-border/50 bg-white p-3 text-left transition hover:border-baylink-green/30 hover:bg-gray-50 active:bg-gray-100"
+                        className="flex w-full min-h-[56px] cursor-pointer gap-2 rounded-xl border border-baylink-border/50 bg-white p-3 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.02] active:scale-[0.99]"
                       >
                         {normalizePostImages(rp)[0] ? (
                           <img src={normalizePostImages(rp)[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
@@ -1393,10 +1621,21 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
 };
 
 const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
-    const [form, setForm] = useState({ nickname: user.nickname || '', bio: user.bio || '', avatar: user.avatar || '', socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' }});
+    const [form, setForm] = useState({
+      nickname: user.nickname || '',
+      bio: user.bio || '',
+      avatar: user.avatar || '',
+      area: user.area || '',
+      city: user.city || '',
+      profileTags: user.profileTags || [],
+      interests: user.interests || [],
+      website: user.website || '',
+      xiaohongshu: user.xiaohongshu || '',
+      socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' },
+    });
     const [saving, setSaving] = useState(false);
     const [showVerify, setShowVerify] = useState(false);
-    
+
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.target;
         const file = input.files?.[0];
@@ -1413,17 +1652,32 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
         }
     };
 
-    const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); showToast('资料已更新', 'success'); } catch (e) { showToast('保存失败', 'error'); } finally { setSaving(false); } };
-    
+    const handleSave = async () => {
+      if (!form.nickname) return;
+      setSaving(true);
+      try {
+        const updated = await api.updateProfile(form);
+        const newUserData = { ...user, ...updated };
+        localStorage.setItem('currentUser', JSON.stringify(newUserData));
+        onUpdate(newUserData);
+        onClose();
+        showToast('资料已更新', 'success');
+      } catch {
+        showToast('保存失败', 'error');
+      } finally {
+        setSaving(false);
+      }
+    };
+
     return (
         <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
              <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-900 font-bold text-sm">取消</button><span className="font-bold text-lg text-gray-900">编辑资料</span><button onClick={handleSave} disabled={saving} className="text-green-700 font-bold text-sm disabled:opacity-50">{saving ? '保存中...' : '完成'}</button>
              </div>
-             <div className="flex-1 p-6 overflow-y-auto">
-                 <div className="flex flex-col items-center mb-8"><div className="relative group"><Avatar src={form.avatar} name={form.nickname} size={24} /><label htmlFor="edit-profile-avatar-input" className="absolute bottom-0 right-0 bg-gray-900 text-white p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 transition border-2 border-white"><Camera size={18}/><input id="edit-profile-avatar-input" type="file" accept="image/*" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" onChange={handleAvatarUpload} aria-label="上传头像" /></label></div></div>
-                 
-                 <div className="bg-white p-4 rounded-2xl shadow-sm mb-6 flex items-center justify-between border border-blue-50">
+             <div className="flex-1 p-5 overflow-y-auto pb-8">
+                 <div className="flex flex-col items-center mb-6"><div className="relative group"><Avatar src={form.avatar} name={form.nickname} size={24} /><label htmlFor="edit-profile-avatar-input" className="absolute bottom-0 right-0 bg-gray-900 text-white p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 transition border-2 border-white"><Camera size={18}/><input id="edit-profile-avatar-input" type="file" accept="image/*" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" onChange={handleAvatarUpload} aria-label="上传头像" /></label></div></div>
+
+                 <div className="bg-white p-4 rounded-2xl shadow-sm mb-5 flex items-center justify-between border border-blue-50">
                      <div className="flex items-center gap-3">
                          <div className={`p-2 rounded-full ${user.isPhoneVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}><Smartphone size={20}/></div>
                          <div><div className="font-bold text-sm text-gray-900">实名认证</div><div className="text-[10px] text-gray-400">{user.isPhoneVerified ? '已验证手机号' : '未验证手机号'}</div></div>
@@ -1437,7 +1691,57 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
 
                  <div className="space-y-5">
                      <div><label className="block text-xs font-bold text-gray-500 mb-2 ml-1">昵称</label><input className="w-full p-4 bg-white rounded-2xl border-none outline-none text-sm font-bold text-gray-900 shadow-sm focus:ring-2 focus:ring-green-500/20 transition" value={form.nickname} onChange={e => setForm({...form, nickname: e.target.value})} /></div>
-                     <div><label className="block text-xs font-bold text-gray-500 mb-2 ml-1">个人简介</label><textarea className="w-full p-4 bg-white rounded-2xl border-none outline-none text-sm h-32 resize-none font-medium text-gray-700 shadow-sm focus:ring-2 focus:ring-green-500/20 transition" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="介绍一下你自己..." /></div>
+                     <div>
+                       <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">一句话介绍</label>
+                       <p className="mb-2 text-[10px] text-baylink-muted ml-1">让别人快速了解你是谁、在找什么或提供什么</p>
+                       <textarea className="w-full p-4 bg-white rounded-2xl border-none outline-none text-sm h-24 resize-none font-medium text-gray-700 shadow-sm focus:ring-2 focus:ring-green-500/20 transition" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="例如：在南湾工作三年，常发租房和二手信息…" />
+                     </div>
+                     <div className="grid grid-cols-2 gap-3">
+                       <div>
+                         <label className="block text-xs font-bold text-gray-500 mb-2 ml-1">所在区域</label>
+                         <select className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })}>
+                           <option value="">选择大区</option>
+                           {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                         </select>
+                       </div>
+                       <div>
+                         <label className="block text-xs font-bold text-gray-500 mb-2 ml-1">所在城市</label>
+                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="如 Millbrae" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
+                       </div>
+                     </div>
+                     <ProfileTagField
+                       label="身份标签"
+                       hint="选择最能代表你身份的标签，最多 8 个"
+                       presets={PROFILE_TAG_PRESETS}
+                       tags={form.profileTags}
+                       max={8}
+                       onChange={(profileTags) => setForm((p) => ({ ...p, profileTags }))}
+                       showToast={showToast}
+                     />
+                     <ProfileTagField
+                       label="兴趣标签"
+                       hint="分享你的兴趣，方便附近用户认识你，最多 12 个"
+                       presets={INTEREST_PRESETS}
+                       tags={form.interests}
+                       max={12}
+                       onChange={(interests) => setForm((p) => ({ ...p, interests }))}
+                       showToast={showToast}
+                     />
+                     <div className="space-y-3 pt-1">
+                       <p className="text-xs font-bold text-gray-500 ml-1">社交链接</p>
+                       <div>
+                         <label className="block text-[10px] text-baylink-muted mb-1 ml-1">Instagram</label>
+                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="用户名或完整链接" value={form.socialLinks.instagram} onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, instagram: e.target.value } })} />
+                       </div>
+                       <div>
+                         <label className="block text-[10px] text-baylink-muted mb-1 ml-1">小红书</label>
+                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="主页链接或 ID" value={form.xiaohongshu} onChange={e => setForm({ ...form, xiaohongshu: e.target.value })} />
+                       </div>
+                       <div>
+                         <label className="block text-[10px] text-baylink-muted mb-1 ml-1">个人网站</label>
+                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="https://..." value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
+                       </div>
+                     </div>
                  </div>
              </div>
              {showVerify && <PhoneVerificationModal user={user} onClose={() => setShowVerify(false)} onVerified={onUpdate} showToast={showToast} />}
@@ -2525,30 +2829,69 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports'>('menu');
   const joinDays = user ? getJoinDays(user) : null;
+  const completion = user ? calcProfileCompletion(user) : 0;
+  const locationLine = user ? formatProfileLocation(user.area, user.city) : '';
+  const myProfileTags = user?.profileTags?.filter(Boolean) || [];
+  const myInterests = user?.interests?.filter(Boolean) || [];
+  const myInsta = user?.socialLinks?.instagram ? normalizeInstagramUrl(user.socialLinks.instagram) : null;
+  const myWebsite = user?.website ? normalizeWebsiteUrl(user.website) : null;
+  const myXhs = user?.xiaohongshu?.trim() || '';
 
   if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40} /></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
 
   return (
     <div className="flex-1 relative w-full h-full bg-[#FAFAFA]">
       {subView === 'menu' && (
-        <div className="p-6 pt-8 w-full h-full overflow-y-auto">
-          <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-black text-gray-900">我的主页</h1><button onClick={onLogout} className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20} /></button></div>
+        <div className="p-6 pt-8 w-full h-full overflow-y-auto pb-24">
+          <div className="flex justify-between items-center mb-6"><h1 className="text-2xl font-black text-gray-900">我的名片</h1><button onClick={onLogout} className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20} /></button></div>
 
-          <div className="bg-white p-6 rounded-[2rem] shadow-soft-glow mb-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100 to-transparent rounded-full -mr-10 -mt-10 transition group-hover:scale-110"></div>
-            <div className="flex items-center gap-5 relative z-10">
-              <Avatar src={user.avatar} name={user.nickname} size={18} className="shadow-lg border-4 border-white" />
-              <div className="flex-1">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">{user.nickname} <TrustBadge user={user} size={16} /></h2>
-                <p className="text-xs text-gray-500 line-clamp-1 mt-1 font-medium">{user.bio || '写句签名展示自己吧~'}</p>
+          {completion < 100 && (
+            <div className="mb-4 rounded-2xl border border-baylink-green/20 bg-baylink-green/[0.06] px-4 py-3">
+              <p className="text-sm font-bold text-baylink-text">资料完成度 {completion}%</p>
+              <p className="mt-0.5 text-[11px] text-baylink-muted leading-snug">完善地区、兴趣和简介，让附近用户更容易认识你。</p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-baylink-section">
+                <div className="h-full rounded-full bg-baylink-green transition-all" style={{ width: `${completion}%` }} />
               </div>
-              <button onClick={() => setSubView('edit_profile')} className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition"><Edit size={18} /></button>
             </div>
-            <div className="mt-6 flex divide-x divide-gray-100">
-              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">12</div><div className="text-[10px] text-gray-400 font-bold uppercase">成功互助</div></div>
-              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">100%</div><div className="text-[10px] text-gray-400 font-bold uppercase">好评率</div></div>
-              <div className="flex-1 text-center"><div className="text-lg font-black text-gray-900">{joinDays ?? '新用户'}</div><div className="text-[10px] text-gray-400 font-bold uppercase">加入天数</div></div>
+          )}
+
+          <div className="bg-white p-5 rounded-[1.75rem] shadow-soft-glow mb-4 relative overflow-hidden group border border-baylink-border/30">
+            <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-green-100/80 to-transparent rounded-full -mr-8 -mt-8" />
+            <div className="flex items-start gap-4 relative z-10">
+              <Avatar src={user.avatar} name={user.nickname} size={16} className="shadow-md border-2 border-white shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl font-black text-gray-900 flex items-center gap-2 flex-wrap">{user.nickname} <TrustBadge user={user} size={14} /></h2>
+                {locationLine && (
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-baylink-text-secondary">
+                    <MapPin size={11} className="text-baylink-green/70 shrink-0" />{locationLine}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{user.bio || '写一句介绍，展示你的本地生活名片'}</p>
+                {joinDays != null && <p className="text-[10px] text-baylink-muted mt-1">加入 {joinDays} 天</p>}
+              </div>
+              <button onClick={() => setSubView('edit_profile')} className="p-2.5 bg-baylink-section rounded-xl hover:bg-baylink-green/10 transition shrink-0" title="编辑资料"><Edit size={16} className="text-baylink-green" /></button>
             </div>
+            {(myProfileTags.length > 0 || myInterests.length > 0) && (
+              <div className="mt-4 space-y-2 relative z-10">
+                {myProfileTags.length > 0 && <TagPills tags={myProfileTags} variant="profile" />}
+                {myInterests.length > 0 && <TagPills tags={myInterests} variant="interest" />}
+              </div>
+            )}
+            {(myInsta || myWebsite || myXhs) && (
+              <div className="mt-3 flex flex-wrap gap-2 relative z-10">
+                {myInsta && (
+                  <a href={myInsta} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[10px] text-baylink-text-secondary">
+                    <Instagram size={11} /> Instagram
+                  </a>
+                )}
+                {myXhs && <span className="rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[10px] text-baylink-text-secondary">小红书 · {myXhs}</span>}
+                {myWebsite && (
+                  <a href={myWebsite} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[10px] text-baylink-text-secondary">
+                    <ExternalLink size={10} /> 网站
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">

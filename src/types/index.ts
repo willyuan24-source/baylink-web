@@ -14,9 +14,16 @@ export interface UserData {
   token?: string;
   bio?: string; 
   avatar?: string;
+  area?: string;
+  city?: string;
+  profileTags?: string[];
+  interests?: string[];
+  website?: string;
+  xiaohongshu?: string;
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
   socialLinks?: { linkedin?: string; instagram?: string; };
+  createdAt?: number;
 }
 
 export interface AdData { 
