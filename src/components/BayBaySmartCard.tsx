@@ -38,20 +38,23 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
   const isChecklist = card.type === 'checklist';
 
   return (
-    <div className="mt-2.5 rounded-2xl border border-baylink-green/10 bg-white p-3 shadow-rest">
+    <div className="mt-2 rounded-2xl border border-baylink-green/10 bg-white p-3.5 shadow-rest">
       <div className="flex items-start gap-2">
         {!isChecklist && (
-          <Shield size={15} className="mt-0.5 shrink-0 text-baylink-green/80" aria-hidden />
+          <Shield size={14} className="mt-0.5 shrink-0 text-baylink-green/80" aria-hidden />
         )}
         <div className="min-w-0 flex-1">
+          <span className="mb-1 inline-block rounded-full bg-baylink-green/[0.08] px-2 py-0.5 text-[10px] font-semibold text-baylink-green">
+            BayBay 行动卡
+          </span>
           <h4 className="text-[15px] font-semibold text-baylink-text leading-snug">{card.title}</h4>
           {card.subtitle && (
-            <p className="mt-0.5 text-[12px] leading-snug text-baylink-text-secondary">{card.subtitle}</p>
+            <p className="mt-0.5 text-[12px] leading-[1.35] text-baylink-text-secondary">{card.subtitle}</p>
           )}
         </div>
       </div>
 
-      <ul className={`mt-2.5 space-y-1.5 ${isChecklist ? '' : 'pl-0.5'}`}>
+      <ul className={`mt-2 space-y-1 ${isChecklist ? '' : 'pl-0.5'}`}>
         {card.items.map((item) => {
           const checked = checkedIds.has(item.id);
           if (isChecklist) {
@@ -85,7 +88,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
           }
           return (
             <li key={item.id} className="flex items-start gap-2">
-              <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-baylink-green/60" aria-hidden />
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-baylink-green/60" aria-hidden />
               <span className="text-[13px] leading-snug text-baylink-text">{item.label}</span>
             </li>
           );
@@ -93,7 +96,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
       </ul>
 
       {card.actions && card.actions.length > 0 && (
-        <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-baylink-border/30 pt-2.5">
+        <div className="mt-2 flex flex-wrap gap-1.5 border-t border-baylink-border/30 pt-2">
           {card.actions.map((action, i) => (
             <button
               key={`${action.label}-${i}`}

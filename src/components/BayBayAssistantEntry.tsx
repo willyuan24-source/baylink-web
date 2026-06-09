@@ -301,7 +301,7 @@ export const BayBayAssistantEntry = ({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 pb-4 sm:px-5">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 pb-4 sm:px-5 baybay-scroll">
               {/* 问问 BayBay */}
               <section className="mb-4 min-w-0">
                 <h3 className="text-[13px] font-bold text-baylink-text">问问 BayBay</h3>
@@ -362,7 +362,7 @@ export const BayBayAssistantEntry = ({
                       <Sparkles size={12} />
                       BayBay 建议
                     </div>
-                    <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-baylink-text-secondary">{answer}</p>
+                    <p className="whitespace-pre-wrap text-[12px] leading-[1.45] text-baylink-text-secondary">{answer}</p>
 
                     {interactiveCards.length > 0 && interactiveCards.map((card) => (
                       <BayBaySmartCard key={card.id} card={card} onAction={handleAction} />
