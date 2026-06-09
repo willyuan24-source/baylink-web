@@ -1737,13 +1737,14 @@ const DefaultCoverPicker = ({
 };
 
 // --- CreatePostModal ---
-const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', mode = 'create', editingPost }: {
+const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', defaultCategory, mode = 'create', editingPost }: {
   onClose: () => void;
   onCreated: () => void;
   onUpdated?: () => void;
   user: UserData;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   defaultType?: PostType;
+  defaultCategory?: string;
   mode?: 'create' | 'edit';
   editingPost?: PostData | null;
 }) => {
@@ -1759,7 +1760,9 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     type: editingPost.type,
     contactInfo: user?.contactValue || '',
   } : {
-    title: '', city: REGIONS[0], category: CATEGORIES[0], budget: '', description: '', timeInfo: '',
+    title: '', city: REGIONS[0],
+    category: (defaultCategory && CATEGORIES.includes(defaultCategory) ? defaultCategory : CATEGORIES[0]),
+    budget: '', description: '', timeInfo: '',
     type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '',
   });
   const initialImg = isEdit && editingPost?.imageUrls ? splitPostImages(editingPost.imageUrls) : { uploaded: [], cover: null as DefaultCover | null };
@@ -2585,6 +2588,7 @@ export default function App() {
   
   const [feedType, setFeedType] = useState<PostType>('provider');
   const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
+  const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -2875,9 +2879,10 @@ export default function App() {
     }
   };
 
-  const openCreate = (type: PostType = 'client') => {
+  const openCreate = (type: PostType = 'client', category?: string) => {
     setEditingPost(null);
     setCreateDefaultType(type);
+    setCreateDefaultCategory(category);
     if (user) setShowCreate(true);
     else setShowLogin(true);
   };
@@ -2987,7 +2992,7 @@ export default function App() {
        <BayBayAssistantEntry
          variant="sidebar"
          onNavigate={navigate}
-         onCreatePostClick={() => openCreate('client')}
+         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
        />
        <div className="sidebar-panel mb-2.5">
          <h3 className="text-[11px] font-medium text-baylink-text mb-2">本周大家在找</h3>
@@ -3058,7 +3063,8 @@ export default function App() {
                        <BayBayAssistantEntry
                          variant="inline"
                          onNavigate={navigate}
-                         onCreatePostClick={() => openCreate('client')}
+                         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
+                         categoryHint={categorySlug}
                        />
                        <ChannelShortcuts onChannel={handleChannelClick} />
                        <HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} />
@@ -3174,7 +3180,8 @@ export default function App() {
             mode={editingPost ? 'edit' : 'create'}
             editingPost={editingPost}
             defaultType={createDefaultType}
-            onClose={() => { setShowCreate(false); setEditingPost(null); }}
+            defaultCategory={createDefaultCategory}
+            onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); }}
             onCreated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             showToast={showToast}
