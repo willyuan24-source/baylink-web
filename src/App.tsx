@@ -11,6 +11,7 @@ import {
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
+import ReportModal, { type ReportReason } from './components/ReportModal';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -22,7 +23,7 @@ import {
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, BookOpen, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone
+  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX
 } from 'lucide-react';
 
 // 引入库
@@ -623,9 +624,32 @@ const api = {
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
   getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),
   updateProfile: async (data: Partial<UserData>) => await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
-  reportPost: async (postId: string, reason: string) => await api.request(`/posts/${postId}/report`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  submitReport: async (body: { targetType: 'post' | 'user'; targetId: string; reason: string; note?: string }) =>
+    await api.request('/reports', { method: 'POST', body: JSON.stringify(body) }),
+  blockUser: async (blockedUserId: string) =>
+    await api.request('/blocks', { method: 'POST', body: JSON.stringify({ blockedUserId }) }),
+  getBlocks: async () => await api.request('/blocks'),
+  getAdminReports: async (status = 'open') => await api.request(`/admin/reports?status=${encodeURIComponent(status)}`),
+  updateAdminReport: async (id: string, status: 'reviewed' | 'dismissed') =>
+    await api.request(`/admin/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) })
 };
+
+const filterPostsByBlockedUsers = (list: PostData[], blockedUserIds: string[]): PostData[] => {
+  if (!blockedUserIds.length) return list;
+  const blocked = new Set(blockedUserIds);
+  return list.filter((p) => !blocked.has(p.authorId));
+};
+
+const REPORT_REASON_LABELS: Record<string, string> = {
+  scam: '疑似诈骗',
+  false_info: '虚假信息',
+  harassment: '骚扰/不当内容',
+  spam: '重复广告',
+  other: '其他',
+};
+
+type ReportTarget = { targetType: 'post' | 'user'; targetId: string };
 
 // --- 组件 ---
 
@@ -1031,14 +1055,17 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   );
 };
 
-const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete, onToggleFeature }: any) => {
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete, onToggleFeature, onReport }: any) => {
   const isProvider = post.type === 'provider';
   const postImages = normalizePostImages(post);
   const hasImage = postImages.length > 0;
   const coverUrl = hasImage ? postImages[0] : '';
   const isSystemCover = !!coverUrl && isDefaultCoverUrl(coverUrl);
   const isAdmin = currentUser?.role === 'admin';
-  const canManage = currentUser && (currentUser.id === post.authorId || isAdmin);
+  const isOwner = currentUser?.id === post.authorId;
+  const canManage = currentUser && (isOwner || isAdmin);
+  const showReport = !isOwner;
+  const hasMenu = showReport || canManage || isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <article onClick={onClick} className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden group cursor-pointer border border-baylink-border/30 transition-all duration-200 hover:shadow-card-hover">
@@ -1057,7 +1084,7 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
           <span className={`text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
             {isProvider ? '资源' : '需求'}
           </span>
-          {(canManage || isAdmin) && (
+          {hasMenu && (
             <div className="relative">
               <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }} className="p-1 text-baylink-muted hover:text-baylink-text rounded-lg hover:bg-baylink-section/80">
                 <MoreHorizontal size={16} />
@@ -1066,6 +1093,11 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
                 <>
                   <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
                   <div className="absolute right-0 top-full z-20 mt-1 min-w-[120px] rounded-xl border border-baylink-border/60 bg-white py-1 shadow-lg">
+                    {showReport && (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onReport?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/60">
+                        <Flag size={13} /> 举报
+                      </button>
+                    )}
                     {isAdmin && (
                       <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onToggleFeature?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50">
                         <Star size={13} /> {post.isFeatured ? '取消热门推荐' : '加入热门推荐'}
@@ -1149,13 +1181,16 @@ const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser:
   );
 };
 
-const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast }: {
+const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast, onReportUser, onBlockUser, onLoginNeeded }: {
   userId: string;
   onClose: () => void;
   currentUser: UserData | null;
   onChat?: (targetId: string, nickname?: string) => void;
   onOpenRecentPost?: (post: { id?: string; _id?: string }) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
+  onReportUser?: (userId: string) => void;
+  onBlockUser?: (userId: string) => void;
+  onLoginNeeded?: () => void;
 }) => {
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1246,7 +1281,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
           )}
         </div>
         {!loading && profile && currentUser?.id !== profile.id && (
-          <div className="border-t border-baylink-border/40 px-5 py-4">
+          <div className="border-t border-baylink-border/40 px-5 py-4 space-y-2">
             <button
               type="button"
               onClick={() => { onChat?.(profile.id, profile.nickname); onClose(); }}
@@ -1254,6 +1289,28 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
             >
               {onChat ? '继续聊天' : '发私信'}
             </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) { onLoginNeeded?.(); return; }
+                  onReportUser?.(profile.id);
+                }}
+                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
+              >
+                <Flag size={13} /> 举报用户
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) { onLoginNeeded?.(); return; }
+                  onBlockUser?.(profile.id);
+                }}
+                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
+              >
+                <UserX size={13} /> 屏蔽用户
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -2097,12 +2154,14 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
-  const [isReported, setIsReported] = useState(post.isReported);
+  const [menuOpen, setMenuOpen] = useState(false);
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
+  const showReport = !isOwner;
+  const hasMenu = showReport || isAdmin || isOwner;
   const authorName = post.author?.nickname || '匿名用户';
   const authorAvatar = post.author?.avatar;
   const imageUrls = normalizePostImages(post);
@@ -2132,33 +2191,52 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
     }
   };
 
-  const handleReport = async () => {
+  const openReport = () => {
     if (!currentUser) return onLoginNeeded();
-    if (isReported) return;
-    if (!confirm('确认举报该内容违规？')) return;
-    try {
-      await api.reportPost(post.id, 'user_report');
-      setIsReported(true);
-      showToast('感谢反馈，我们将尽快审核', 'success');
-    } catch {
-      showToast('举报失败', 'error');
-    }
+    setMenuOpen(false);
+    onReport?.(post);
   };
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-2xl">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 pt-safe-top">
         <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
-        <div className="flex gap-3">
+        <div className="flex gap-2 items-center">
           <button onClick={() => onShare(post)} className="p-2 bg-gray-100 rounded-full hover:bg-green-100 hover:text-green-700 transition"><Share2 size={20} /></button>
-          {!isOwner && <button onClick={handleReport} className={`p-2 rounded-full transition ${isReported ? 'bg-gray-100 text-gray-300' : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'}`} disabled={isReported}><AlertTriangle size={20} /></button>}
-          {isAdmin && (
-            <button type="button" onClick={() => onToggleFeature?.(post)} className="rounded-full bg-amber-50 p-2 text-amber-700 hover:bg-amber-100" title={post.isFeatured ? '取消热门推荐' : '加入热门推荐'}>
-              <Star size={20} fill={post.isFeatured ? 'currentColor' : 'none'} />
-            </button>
+          {hasMenu && (
+            <div className="relative">
+              <button type="button" onClick={() => setMenuOpen((v) => !v)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
+                <MoreHorizontal size={20} />
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[128px] rounded-xl border border-gray-100 bg-white py-1 shadow-lg">
+                    {showReport && (
+                      <button type="button" onClick={openReport} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-gray-600 hover:bg-gray-50">
+                        <Flag size={13} /> 举报
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <button type="button" onClick={() => { setMenuOpen(false); onToggleFeature?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50">
+                        <Star size={13} /> {post.isFeatured ? '取消热门推荐' : '加入热门推荐'}
+                      </button>
+                    )}
+                    {(isAdmin || isOwner) && (
+                      <button type="button" onClick={() => { setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                        <Edit size={13} /> 编辑
+                      </button>
+                    )}
+                    {(isAdmin || isOwner) && (
+                      <button type="button" onClick={() => { setMenuOpen(false); deletePost(); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
+                        <Trash2 size={13} /> 删除
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
-          {(isAdmin || isOwner) && <button onClick={() => onEdit?.(post)} className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-baylink-green-light hover:text-baylink-green" title="编辑"><Edit size={20} /></button>}
-          {(isAdmin || isOwner) && <button onClick={deletePost} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 size={20} /></button>}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-6 pb-32 bg-[#FAFAFA]">
@@ -2203,7 +2281,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   );
 };
 
-const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile }: any) => {
+const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, onBlockUser, showToast }: any) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -2253,6 +2331,14 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile }:
         <button type="button" onClick={() => onViewProfile?.(conversation.otherUser.id)} className="shrink-0 rounded-lg border border-baylink-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text hover:bg-baylink-section">
           查看资料
         </button>
+        <button
+          type="button"
+          onClick={() => onBlockUser?.(conversation.otherUser.id)}
+          className="shrink-0 rounded-lg border border-baylink-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text-secondary hover:bg-baylink-section"
+          title="屏蔽用户"
+        >
+          <UserX size={14} className="inline" />
+        </button>
       </div>
 
       <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex items-center justify-between">
@@ -2272,8 +2358,106 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile }:
   );
 };
 
+type AdminReportItem = {
+  id: string;
+  reporter: { id: string; nickname: string } | null;
+  targetType: string;
+  targetId: string;
+  reason: string;
+  note: string;
+  status: string;
+  createdAt: string;
+};
+
+const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast: (msg: string, type?: 'success' | 'error' | 'info') => void }) => {
+  const [reports, setReports] = useState<AdminReportItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getAdminReports('open');
+      setReports(Array.isArray(res.reports) ? res.reports : []);
+    } catch (e: any) {
+      showToast(e?.error || '加载举报列表失败', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleStatus = async (id: string, status: 'reviewed' | 'dismissed') => {
+    setUpdatingId(id);
+    try {
+      await api.updateAdminReport(id, status);
+      setReports((prev) => prev.filter((r) => r.id !== id));
+      showToast(status === 'reviewed' ? '已标记为已处理' : '已忽略', 'success');
+    } catch (e: any) {
+      showToast(e?.error || '操作失败', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
+      <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
+        <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
+        <h2 className="text-lg font-bold text-baylink-text">举报管理</h2>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 pb-24">
+        {loading ? (
+          <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
+        ) : reports.length === 0 ? (
+          <p className="py-16 text-center text-sm text-baylink-muted">暂无待处理举报</p>
+        ) : (
+          <div className="space-y-3">
+            {reports.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-baylink-muted">{new Date(r.createdAt).toLocaleString()}</div>
+                    <div className="mt-1 text-sm font-semibold text-baylink-text">
+                      {REPORT_REASON_LABELS[r.reason] || r.reason}
+                      <span className="ml-2 text-xs font-normal text-baylink-muted">· {r.targetType}</span>
+                    </div>
+                    {r.note && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-3">{r.note}</p>}
+                    <p className="mt-1 text-[10px] text-baylink-muted truncate">目标 ID: {r.targetId}</p>
+                    {r.reporter && <p className="text-[10px] text-baylink-muted">举报人: {r.reporter.nickname}</p>}
+                  </div>
+                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{r.status}</span>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={updatingId === r.id}
+                    onClick={() => handleStatus(r.id, 'reviewed')}
+                    className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50"
+                  >
+                    标记已处理
+                  </button>
+                  <button
+                    type="button"
+                    disabled={updatingId === r.id}
+                    onClick={() => handleStatus(r.id, 'dismissed')}
+                    className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50"
+                  >
+                    忽略
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile'>('menu');
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports'>('menu');
   const joinDays = user ? getJoinDays(user) : null;
 
   if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40} /></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
@@ -2306,8 +2490,18 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
             <button onClick={() => setSubView('support')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition"><Phone size={20} /></div><div className="font-bold text-gray-900">联系客服</div><div className="text-[10px] text-gray-400">帮助支持</div></button>
           </div>
           <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
+          {user.role === 'admin' && (
+            <button onClick={() => setSubView('admin_reports')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
+                <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[10px] text-gray-400">查看并处理用户举报</div></div>
+              </div>
+              <ChevronRight size={18} className="text-gray-300" />
+            </button>
+          )}
         </div>
       )}
+      {subView === 'admin_reports' && <AdminReportsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
       {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
@@ -2362,6 +2556,8 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [hasNotification, setHasNotification] = useState(false);
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
   const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
@@ -2537,6 +2733,24 @@ export default function App() {
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setBlockedUserIds([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.getBlocks();
+        if (cancelled) return;
+        const ids: string[] = res.blockedUserIds || [];
+        setBlockedUserIds(ids);
+        setPosts((prev) => filterPostsByBlockedUsers(prev, ids));
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   const fetchPosts = async (pageNum: number, isRefresh: boolean = false) => {
     try {
       if (!isRefresh) setIsLoadingMore(true); else setIsInitialLoading(true);
@@ -2548,6 +2762,7 @@ export default function App() {
       let filtered = newPosts;
       if (regionFilter !== '全部') filtered = filtered.filter((p: any) => p.city.includes(regionFilter));
       if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
+      if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
       if (isRefresh) setPosts(filtered); else setPosts(prev => [...prev, ...filtered]);
       setHasMore(more);
     } catch (e) { console.error(e); } finally { setIsLoadingMore(false); setIsInitialLoading(false); }
@@ -2571,7 +2786,43 @@ export default function App() {
       } catch { showToast('无法打开聊天', 'error'); } 
   };
   
-  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); navigate('/'); showToast('已退出登录', 'info'); };
+  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setBlockedUserIds([]); navigate('/'); showToast('已退出登录', 'info'); };
+
+  const openReportTarget = (target: ReportTarget) => {
+    if (!user) { showToast('请先登录后举报', 'info'); setShowLogin(true); return; }
+    setReportTarget(target);
+  };
+
+  const handleSubmitReport = async (reason: ReportReason, note: string) => {
+    if (!reportTarget) return;
+    try {
+      await api.submitReport({ ...reportTarget, reason, note });
+      showToast('已提交举报，感谢你的反馈。', 'success');
+      setReportTarget(null);
+    } catch (e: any) {
+      showToast(e?.error || e?.message || '举报提交失败', 'error');
+      throw e;
+    }
+  };
+
+  const handleBlockUser = async (blockedId: string) => {
+    if (!user) { showToast('请先登录', 'info'); setShowLogin(true); return; }
+    if (blockedId === user.id) return;
+    if (!confirm('确定屏蔽该用户？你将尽量不再看到他的内容。')) return;
+    try {
+      await api.blockUser(blockedId);
+      setBlockedUserIds((prev) => {
+        const next = prev.includes(blockedId) ? prev : [...prev, blockedId];
+        setPosts((p) => filterPostsByBlockedUsers(p, next));
+        return next;
+      });
+      showToast('已屏蔽该用户，你将尽量不再看到他的内容。', 'success');
+      if (userIdParam === blockedId) navigateBack();
+      if (chatConv?.otherUser.id === blockedId) { setChatConv(null); navigate('/messages'); }
+    } catch (e: any) {
+      showToast(e?.error || '屏蔽失败', 'error');
+    }
+  };
 
   const openCreate = (type: PostType = 'client') => {
     setEditingPost(null);
@@ -2799,7 +3050,7 @@ export default function App() {
                      />
                    ) : (
                      <>
-                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
+                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(post: PostData) => openReportTarget({ targetType: 'post', targetId: post.id })} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
                        {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
                      </>
@@ -2894,6 +3145,7 @@ export default function App() {
             onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onImageClick={(src: string) => setViewingImage(src)}
             onShare={(p: PostData) => setSharingPost(p)}
+            onReport={(p: PostData) => openReportTarget({ targetType: 'post', targetId: p.id })}
             showToast={showToast}
           />
         )}
@@ -2904,6 +3156,8 @@ export default function App() {
             onClose={() => { setChatConv(null); navigate('/messages'); }}
             socket={socket}
             onViewProfile={openUserProfile}
+            onBlockUser={handleBlockUser}
+            showToast={showToast}
           />
         )}
         {userIdParam && (
@@ -2914,6 +3168,17 @@ export default function App() {
             onChat={openChat}
             onOpenRecentPost={openRecentPostFromProfile}
             showToast={showToast}
+            onLoginNeeded={() => setShowLogin(true)}
+            onReportUser={(id) => openReportTarget({ targetType: 'user', targetId: id })}
+            onBlockUser={handleBlockUser}
+          />
+        )}
+        {reportTarget && (
+          <ReportModal
+            targetType={reportTarget.targetType}
+            targetId={reportTarget.targetId}
+            onClose={() => setReportTarget(null)}
+            onSubmit={handleSubmitReport}
           />
         )}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
