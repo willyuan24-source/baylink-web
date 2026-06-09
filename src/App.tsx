@@ -2824,17 +2824,23 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5" ref={scrollRef}>
-        {messages.map(m => {
+        {messages.map((m, i) => {
           const isMine = m.senderId === currentUser.id;
+          const nextMsg = messages[i + 1];
+          const showOtherAvatar = !isMine && (!nextMsg || nextMsg.senderId === currentUser.id);
           return (
             <div key={m.id} className={`flex items-end gap-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
               {!isMine && (
-                <Avatar
-                  src={conversation.otherUser.avatar}
-                  name={conversation.otherUser.nickname}
-                  size={7}
-                  className="shrink-0 self-end mb-1"
-                />
+                showOtherAvatar ? (
+                  <Avatar
+                    src={conversation.otherUser.avatar}
+                    name={conversation.otherUser.nickname}
+                    size={7}
+                    className="shrink-0 self-end mb-1"
+                  />
+                ) : (
+                  <div className="mb-1 w-7 h-7 shrink-0 self-end" aria-hidden />
+                )
               )}
               <div
                 className={`max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed ${
