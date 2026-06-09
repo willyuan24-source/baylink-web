@@ -607,4 +607,25 @@ html, body, #root {
   .sidebar-note {
     @apply bg-baylink-section/50 rounded-xl p-3 text-baylink-muted;
   }
+  .glass-chrome {
+    @apply bg-white/75 backdrop-blur-xl border border-white/40 shadow-elevated;
+  }
+  .surface-card {
+    @apply bg-white border border-black/[0.04] shadow-rest rounded-2xl;
+  }
+  .surface-inset {
+    @apply bg-white/70 border border-black/[0.04] rounded-2xl;
+  }
+  .type-page-title {
+    @apply text-[22px] font-semibold tracking-tight text-baylink-text;
+  }
+  .type-section-title {
+    @apply text-[17px] font-semibold tracking-tight text-baylink-text;
+  }
+  .type-footnote {
+    @apply text-[12px] text-baylink-muted;
+  }
+  .type-caption {
+    @apply text-[11px] font-medium;
+  }
 }

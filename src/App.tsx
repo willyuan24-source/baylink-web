@@ -1309,23 +1309,49 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
 const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser: UserData | null; onOpenChat: (conv: Conversation) => void; onOpenProfile?: (userId: string) => void }) => {
   const [convs, setConvs] = useState<Conversation[]>([]);
   useEffect(() => { if (!currentUser) return; const load = async () => { try { const res = await api.request('/conversations'); if (Array.isArray(res)) setConvs(res); } catch {} }; load(); const i = setInterval(load, 5000); return () => clearInterval(i); }, [currentUser]);
-  if (!currentUser) return <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-60 w-full min-h-[300px]"><div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-soft"><MessageCircle size={32} className="text-gray-400" /></div><h3 className="font-bold text-gray-900 mb-2">请先登录</h3></div>;
+  if (!currentUser) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center w-full min-h-[300px] bg-baylink-bg">
+      <div className="surface-card w-20 h-20 rounded-full flex items-center justify-center mb-4"><MessageCircle size={32} className="text-baylink-muted" /></div>
+      <h3 className="font-semibold text-baylink-text mb-2">请先登录</h3>
+    </div>
+  );
   return (
-    <div className="flex-1 overflow-y-auto p-4 pb-24 w-full">{convs.length > 0 ? <div className="space-y-3">{convs.map(c => (
-      <div key={c.id} onClick={() => onOpenChat(c)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-green-100">
-        <div onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }} className="shrink-0 cursor-pointer">
-          <Avatar src={c.otherUser.avatar} name={c.otherUser.nickname} size={12} />
+    <div className="flex-1 overflow-y-auto p-4 pb-24 w-full bg-baylink-bg">
+      {convs.length > 0 ? (
+        <div className="space-y-3">
+          {convs.map(c => (
+            <div
+              key={c.id}
+              onClick={() => onOpenChat(c)}
+              className="surface-card flex min-h-[72px] items-center gap-3.5 p-4 cursor-pointer transition hover:border-baylink-green/15 active:scale-[0.99]"
+            >
+              <div onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }} className="shrink-0 cursor-pointer">
+                <Avatar src={c.otherUser.avatar} name={c.otherUser.nickname} size={12} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2 mb-0.5">
+                  <span
+                    onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }}
+                    className="text-[17px] font-semibold text-baylink-text flex items-center gap-1 cursor-pointer hover:text-baylink-green truncate"
+                  >
+                    {c.otherUser.nickname} <TrustBadge user={c.otherUser} size={12} />
+                  </span>
+                  <span className="type-footnote shrink-0">{new Date(c.updatedAt).toLocaleDateString()}</span>
+                </div>
+                <p className="text-[14px] text-baylink-text-secondary truncate">{c.lastMessage || '点击开始聊天'}</p>
+              </div>
+              <ChevronRight size={16} className="text-baylink-muted opacity-50 shrink-0" />
+            </div>
+          ))}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between mb-1">
-            <span onClick={(e) => { e.stopPropagation(); onOpenProfile?.(c.otherUser.id); }} className="font-bold text-gray-900 flex items-center gap-1 cursor-pointer hover:text-baylink-green">{c.otherUser.nickname} <TrustBadge user={c.otherUser} size={12}/></span>
-            <span className="text-[10px] text-gray-500">{new Date(c.updatedAt).toLocaleDateString()}</span>
-          </div>
-          <p className="text-xs text-gray-500 truncate">{c.lastMessage || '点击开始聊天'}</p>
+      ) : (
+        <div className="surface-card mx-1 mt-8 px-6 py-10 text-center">
+          <MessageCircle size={28} className="mx-auto mb-3 text-baylink-green/60" />
+          <p className="text-[17px] font-semibold text-baylink-text">还没有消息</p>
+          <p className="mt-2 text-[14px] leading-relaxed text-baylink-text-secondary">看到合适的房源、二手或服务，可以点「私信」开始沟通。</p>
         </div>
-        <ChevronRight size={16} className="text-gray-300 shrink-0" />
-      </div>
-    ))}</div> : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><MessageCircle size={32} className="text-gray-400"/></div><p className="text-sm font-bold text-gray-500">暂无消息</p></div>}</div>
+      )}
+    </div>
   );
 };
 
@@ -2574,23 +2600,25 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
     onReport?.(post);
   };
 
+  const chromeIconBtn = 'p-2.5 rounded-full bg-white/75 backdrop-blur-xl border border-black/[0.04] shadow-rest text-baylink-text transition hover:bg-white active:scale-95';
+
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-2xl">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 pt-safe-top">
-        <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
+    <div className="fixed inset-0 bg-baylink-bg z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-elevated">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] bg-white/80 backdrop-blur-xl pt-safe-top shrink-0">
+        <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="关闭"><X size={20} /></button>
         <div className="flex gap-2 items-center">
-          <button onClick={() => onShare(post)} className="p-2 bg-gray-100 rounded-full hover:bg-green-100 hover:text-green-700 transition"><Share2 size={20} /></button>
+          <button type="button" onClick={() => onShare(post)} className={`${chromeIconBtn} hover:text-baylink-green`} aria-label="分享"><Share2 size={20} /></button>
           {hasMenu && (
             <div className="relative">
-              <button type="button" onClick={() => setMenuOpen((v) => !v)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
+              <button type="button" onClick={() => setMenuOpen((v) => !v)} className={chromeIconBtn} aria-label="更多">
                 <MoreHorizontal size={20} />
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[128px] rounded-xl border border-gray-100 bg-white py-1 shadow-lg">
+                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[128px] rounded-xl border border-black/[0.06] bg-white py-1 shadow-elevated">
                     {showReport && (
-                      <button type="button" onClick={openReport} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-gray-600 hover:bg-gray-50">
+                      <button type="button" onClick={openReport} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/60">
                         <Flag size={13} /> 举报
                       </button>
                     )}
@@ -2600,7 +2628,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
                       </button>
                     )}
                     {(isAdmin || isOwner) && (
-                      <button type="button" onClick={() => { setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                      <button type="button" onClick={() => { setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text hover:bg-baylink-section/60">
                         <Edit size={13} /> 编辑
                       </button>
                     )}
@@ -2616,9 +2644,9 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 pb-32 bg-[#FAFAFA]">
-        <h1 className="text-2xl font-black mb-4 leading-tight text-gray-900">{post.title}</h1>
-        <div className="flex gap-3 mb-6 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-50">
+      <div className="flex-1 overflow-y-auto px-5 py-5 pb-32 bg-baylink-bg">
+        <h1 className="text-[26px] sm:text-[28px] font-semibold tracking-tight text-baylink-text mb-5 leading-tight">{post.title}</h1>
+        <div className="surface-card flex gap-3 mb-6 items-center p-3.5">
           <button
             type="button"
             disabled={!canOpenProfile}
@@ -2633,41 +2661,46 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
               type="button"
               disabled={!canOpenProfile}
               onClick={handleOpenAuthorProfile}
-              className={`text-left font-bold text-gray-900 transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+              className={`text-left font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
             >
               {authorName}
             </button>
-            <div className="text-xs text-gray-400">
+            <div className="type-footnote mt-0.5">
               {new Date(post.createdAt).toLocaleDateString()}
-              {isPostEdited(post) && <span className="text-gray-300"> · 已编辑</span>}
+              {isPostEdited(post) && <span className="text-baylink-muted/70"> · 已编辑</span>}
             </div>
           </div>
-          <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
+          <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
         </div>
-        <p className="mb-6 whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">{post.description}</p>
+        <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
         <div className="space-y-3 mb-8">
           {imageUrls.map((u: string, i: number) => (
-            <div key={i} className="relative overflow-hidden rounded-2xl bg-baylink-section/50">
+            <div key={i} className="relative overflow-hidden rounded-[22px] bg-baylink-section/50">
               <img
                 src={u}
                 alt=""
                 onClick={() => onImageClick(u)}
-                className={`w-full cursor-zoom-in rounded-2xl shadow-sm transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
+                className={`w-full cursor-zoom-in rounded-[22px] shadow-rest transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
               />
               {isDefaultCoverUrl(u) && (
-                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 text-[9px] font-medium text-white/90">系统封面</span>
+                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 type-caption text-white/90">系统封面</span>
               )}
             </div>
           ))}
         </div>
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><MessageSquare size={18} /> 评论 ({comments.length})</h3>
-          {comments.length === 0 ? <div className="text-center text-gray-400 text-xs py-4">暂无评论，快来抢沙发~</div> : comments.map((c: any) => <div key={c.id} className="bg-white p-3 mb-3 rounded-2xl border border-gray-50 text-sm"><span className="font-bold text-gray-900 mr-2">{c.authorName}:</span><span className="text-gray-600">{c.content}</span></div>)}
+        <div className="border-t border-baylink-border/50 pt-6">
+          <h3 className="type-section-title mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-baylink-green" /> 评论 ({comments.length})</h3>
+          {comments.length === 0 ? <div className="text-center type-footnote text-baylink-muted py-6">暂无评论，快来抢沙发~</div> : comments.map((c: any) => (
+            <div key={c.id} className="surface-card p-3.5 mb-3 text-[15px] leading-relaxed">
+              <span className="font-semibold text-baylink-text mr-2">{c.authorName}</span>
+              <span className="text-baylink-text-secondary">{c.content}</span>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="border-t p-4 flex gap-3 items-center bg-white absolute bottom-0 w-full pb-safe">
-        <input className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none text-sm transition focus:ring-2 focus:ring-green-500/20 focus:bg-white" placeholder="写下你的评论..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()} />
-        <button onClick={postComment} className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-green-600 shadow-lg' : 'bg-gray-300'}`} disabled={!input.trim()}><Send size={20} /></button>
+      <div className="border-t border-black/[0.06] p-4 flex gap-3 items-center bg-white/80 backdrop-blur-xl absolute bottom-0 w-full pb-safe">
+        <input className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text transition placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15" placeholder="写下你的评论..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()} />
+        <button type="button" onClick={postComment} className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`} disabled={!input.trim()} aria-label="发送评论"><Send size={20} /></button>
       </div>
     </div>
   );
@@ -2715,37 +2748,82 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
     }
   };
 
+  const chromeIconBtn = 'shrink-0 rounded-full bg-white/75 backdrop-blur-xl border border-black/[0.04] p-2 text-baylink-text shadow-rest transition hover:bg-white active:scale-95';
+
   return (
-    <div className="fixed inset-0 bg-[#FFF8F0] z-[100] flex flex-col">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/50 bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
-        <button type="button" onClick={onClose} className="shrink-0 rounded-full bg-white p-2 hover:bg-gray-100"><ChevronLeft /></button>
-        <span className="min-w-0 flex-1 truncate font-bold text-lg">{conversation.otherUser.nickname}</span>
-        <button type="button" onClick={() => onViewProfile?.(conversation.otherUser.id)} className="shrink-0 rounded-lg border border-baylink-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text hover:bg-baylink-section">
+    <div className="fixed inset-0 bg-baylink-bg z-[100] flex flex-col">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-black/[0.06] bg-white/75 backdrop-blur-xl pt-safe-top shrink-0">
+        <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="返回"><ChevronLeft size={20} /></button>
+        <span className="min-w-0 flex-1 truncate text-[17px] font-semibold text-baylink-text">{conversation.otherUser.nickname}</span>
+        <button type="button" onClick={() => onViewProfile?.(conversation.otherUser.id)} className="shrink-0 rounded-xl border border-black/[0.06] bg-white/80 px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text hover:bg-baylink-section/60">
           查看资料
         </button>
         <button
           type="button"
           onClick={() => onBlockUser?.(conversation.otherUser.id)}
-          className="shrink-0 rounded-lg border border-baylink-border/60 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text-secondary hover:bg-baylink-section"
+          className="shrink-0 rounded-xl border border-black/[0.06] bg-white/80 px-2.5 py-1.5 text-baylink-text-secondary hover:bg-baylink-section/60"
           title="屏蔽用户"
+          aria-label="屏蔽用户"
         >
           <UserX size={14} className="inline" />
         </button>
       </div>
 
-      <div className="bg-orange-50 px-4 py-3 border-b border-orange-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-orange-200 p-1.5 rounded-lg"><FileText size={16} className="text-orange-700" /></div>
-          <div>
-            <div className="text-[10px] text-orange-600 font-bold uppercase">正在沟通</div>
-            <div className="text-xs font-bold text-gray-900 line-clamp-1">{conversation.lastPostTitle || '互助需求沟通'}</div>
-          </div>
+      <div className="mx-4 mt-3 mb-1 flex items-center gap-2.5 rounded-2xl border border-baylink-green/10 bg-baylink-green/[0.08] px-3.5 py-2.5">
+        <div className="shrink-0 rounded-lg bg-white/70 p-1.5 border border-baylink-green/10">
+          <FileText size={14} className="text-baylink-green" />
         </div>
-        <div className="text-[10px] bg-white px-2 py-1 rounded-md text-gray-400 font-bold shadow-sm border border-gray-100">交易前请核实</div>
+        <div className="min-w-0 flex-1">
+          <div className="type-caption text-baylink-muted">正在沟通</div>
+          <div className="text-[13px] font-medium text-baylink-text line-clamp-1">{conversation.lastPostTitle || '互助需求沟通'}</div>
+        </div>
+        <span className="type-caption shrink-0 rounded-full border border-baylink-green/10 bg-white/70 px-2 py-0.5 text-baylink-text-secondary">交易前请核实</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>{messages.map(m => (<div key={m.id} className={`flex ${m.senderId === currentUser.id ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.senderId === currentUser.id ? 'bg-gray-900 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none'}`}>{m.content}</div></div>))}</div>
-      <div className="p-3 border-t flex gap-3 pb-safe items-center bg-white"><button onClick={() => confirm('分享联系方式?') && send('contact-share', '')} className="p-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200"><Phone size={20} /></button><input className="flex-1 bg-gray-100 rounded-full px-5 py-3 outline-none" placeholder="输入消息..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send('text', input)} /><button onClick={() => send('text', input)} className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition active:scale-90"><Send size={18} /></button></div>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" ref={scrollRef}>
+        {messages.map(m => {
+          const isMine = m.senderId === currentUser.id;
+          return (
+            <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed ${
+                  isMine
+                    ? 'bg-baylink-ink text-white shadow-rest rounded-tr-md'
+                    : 'bg-white border border-black/[0.04] text-baylink-text shadow-rest rounded-tl-md'
+                }`}
+              >
+                {m.content}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="border-t border-black/[0.06] p-3 flex gap-2.5 pb-safe items-center bg-white/80 backdrop-blur-xl shrink-0">
+        <button
+          type="button"
+          onClick={() => confirm('分享联系方式?') && send('contact-share', '')}
+          className="shrink-0 rounded-full border border-black/[0.06] bg-baylink-section/50 p-2.5 text-baylink-text-secondary transition hover:bg-baylink-section active:scale-95"
+          aria-label="分享联系方式"
+        >
+          <Phone size={18} />
+        </button>
+        <input
+          className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
+          placeholder="输入消息..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send('text', input)}
+        />
+        <button
+          type="button"
+          onClick={() => send('text', input)}
+          disabled={!input.trim()}
+          className={`shrink-0 p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
+          aria-label="发送消息"
+        >
+          <Send size={18} />
+        </button>
+      </div>
     </div>
   );
 };
@@ -3508,7 +3586,7 @@ export default function App() {
                <GuidesHome onOpenGuide={(slug) => navigate(`/guides/${slug}`)} />
              )
            )}
-           {tab === 'messages' && !threadIdParam && <div className="flex flex-col h-full w-full pb-24 lg:pb-0"><div className="px-5 pt-safe-top pb-4 bg-baylink-bg/95 backdrop-blur-md sticky top-0 z-10 border-b border-baylink-border/40"><h2 className="text-2xl font-bold text-baylink-text">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{ setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile}/></div>}
+           {tab === 'messages' && !threadIdParam && <div className="flex flex-col h-full w-full pb-24 lg:pb-0 bg-baylink-bg"><div className="px-5 pt-safe-top pb-4 bg-white/75 backdrop-blur-xl sticky top-0 z-10 border-b border-black/[0.06]"><h2 className="type-page-title">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{ setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile}/></div>}
            {tab === 'notifications' && (
              <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
                <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
@@ -3526,17 +3604,17 @@ export default function App() {
            {(tab === 'profile' || location.pathname === '/me') && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={navigateToPost} onUpdateUser={setUser} showToast={showToast} />}
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-baylink-border/50 pb-safe max-w-[500px] mx-auto">
-          <div className="flex justify-around items-center px-0.5 pt-1 pb-0.5">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe max-w-[500px] mx-auto">
+          <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
            <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
              <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
            </button>
            <button onClick={()=>navigate('/guides')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
            </button>
-           <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-2 active:scale-95 transition px-1">
-             <div className="w-9 h-9 bg-baylink-green rounded-lg shadow-sm flex items-center justify-center text-white ring-2 ring-baylink-bg"><Plus size={20} strokeWidth={2.5}/></div>
-             <span className="text-[9px] font-medium text-baylink-green mt-px">发布</span>
+           <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-3 active:scale-95 transition px-1">
+             <div className="w-10 h-10 bg-baylink-green rounded-[18px] shadow-rest flex items-center justify-center text-white ring-2 ring-baylink-bg/90"><Plus size={20} strokeWidth={2.5}/></div>
+             <span className="text-[9px] font-medium text-baylink-green mt-0.5">发布</span>
            </button>
            <button onClick={()=>navigate('/messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>

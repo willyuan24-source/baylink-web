@@ -12,6 +12,8 @@ export default {
           bg: '#F7F4EC',
           'bg-alt': '#F7F6F2',
           card: '#FFFFFF',
+          surface: 'rgba(255, 255, 255, 0.88)',
+          ink: '#1A2B24',
           section: '#EFE9DE',
           'section-alt': '#EFEDE7',
           border: '#E3DFD6',
@@ -48,6 +50,8 @@ export default {
         'card-hover': '0 4px 20px -6px rgba(23, 32, 42, 0.07)',
         'search': '0 2px 12px -2px rgba(23, 32, 42, 0.06)',
         'nav': '0 -4px 24px -4px rgba(23, 32, 42, 0.08)',
+        'rest': '0 1px 2px rgba(23, 32, 42, 0.04), 0 1px 8px rgba(23, 32, 42, 0.03)',
+        'elevated': '0 8px 32px rgba(23, 32, 42, 0.08)',
       }
     },
   },
