@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { ChevronRight, X, Sparkles, Loader2, BookOpen } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
+import { BayBaySmartCard, type BayBayInteractiveCard } from './BayBaySmartCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api';
 
@@ -25,6 +26,7 @@ type GuideChatResponse = {
   suggestedGuides?: GuideChatGuide[];
   suggestedActions?: GuideChatAction[];
   safetyNote?: string;
+  interactiveCards?: BayBayInteractiveCard[];
   error?: string;
 };
 
@@ -109,6 +111,7 @@ export const BayBayAssistantEntry = ({
   const [suggestedGuides, setSuggestedGuides] = useState<GuideChatGuide[]>([]);
   const [suggestedActions, setSuggestedActions] = useState<GuideChatAction[]>([]);
   const [safetyNote, setSafetyNote] = useState<string | null>(null);
+  const [interactiveCards, setInteractiveCards] = useState<BayBayInteractiveCard[]>([]);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -161,6 +164,7 @@ export const BayBayAssistantEntry = ({
     setSuggestedGuides([]);
     setSuggestedActions([]);
     setSafetyNote(null);
+    setInteractiveCards([]);
 
     try {
       const res = await fetchGuideChat(msg, categoryHint);
@@ -172,6 +176,7 @@ export const BayBayAssistantEntry = ({
       setSuggestedGuides(res.suggestedGuides || []);
       setSuggestedActions(res.suggestedActions || []);
       setSafetyNote(res.safetyNote?.trim() || null);
+      setInteractiveCards(Array.isArray(res.interactiveCards) ? res.interactiveCards : []);
     } catch {
       setChatError(true);
     } finally {
@@ -358,6 +363,10 @@ export const BayBayAssistantEntry = ({
                       BayBay 建议
                     </div>
                     <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-baylink-text-secondary">{answer}</p>
+
+                    {interactiveCards.length > 0 && interactiveCards.map((card) => (
+                      <BayBaySmartCard key={card.id} card={card} onAction={handleAction} />
+                    ))}
 
                     {suggestedGuides.length > 0 && (
                       <div className="mt-2.5">
