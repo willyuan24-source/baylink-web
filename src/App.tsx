@@ -925,7 +925,13 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
   );
 };
 
-const HotRecommend = ({ onOpenPost, refreshKey, onViewMore }: { onOpenPost: (post: PostData) => void; refreshKey?: number; onViewMore?: () => void }) => {
+const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayBay }: {
+  onOpenPost: (post: PostData) => void;
+  refreshKey?: number;
+  onViewMore?: () => void;
+  onPublish?: () => void;
+  onAskBayBay?: () => void;
+}) => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -983,10 +989,23 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore }: { onOpenPost: (pos
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-baylink-border/60 bg-white px-4 py-6 text-center">
-          <Sparkles size={20} className="mx-auto mb-2 text-baylink-muted/50" />
-          <p className="text-xs font-semibold text-baylink-text-secondary">暂无热门推荐</p>
-          <p className="mt-1 text-[10px] leading-relaxed text-baylink-muted">管理员精选的优质帖子会显示在这里</p>
+        <div className="surface-card px-4 py-3.5 text-center">
+          <p className="text-[13px] font-semibold text-baylink-text">本周推荐正在整理中</p>
+          <p className="mt-1 text-[12px] leading-snug text-baylink-text-secondary">先看看最新发布，或者让 BayBay 帮你找方向。</p>
+          {(onAskBayBay || onPublish) && (
+            <div className="mt-2.5 flex justify-center gap-2">
+              {onAskBayBay && (
+                <button type="button" onClick={onAskBayBay} className="rounded-full border border-baylink-green/20 bg-baylink-green/[0.06] px-3 py-1.5 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.1] active:scale-95">
+                  问问 BayBay
+                </button>
+              )}
+              {onPublish && (
+                <button type="button" onClick={onPublish} className="rounded-full border border-black/[0.06] bg-white px-3 py-1.5 text-[11px] font-semibold text-baylink-text transition hover:bg-baylink-section/50 active:scale-95">
+                  发布信息
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -2550,6 +2569,20 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
+const formatPostDetailAuthorMeta = (post: PostData) => {
+  const author = post.author as PostData['author'] & { city?: string; area?: string; profileTags?: string[] };
+  const location =
+    post.city?.trim() ||
+    author.city?.trim() ||
+    formatProfileLocation(author.area, author.city) ||
+    '';
+  const roleLabel = author.profileTags?.map((t) => t?.trim()).filter(Boolean)?.[0] || '社区用户';
+  const dateStr = new Date(post.createdAt).toLocaleDateString();
+  const parts = [location, roleLabel, dateStr];
+  if (isPostEdited(post)) parts.push('已编辑');
+  return parts.filter(Boolean).join(' · ');
+};
+
 const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
@@ -2645,7 +2678,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-5 pb-32 bg-baylink-bg">
-        <h1 className="text-[26px] sm:text-[28px] font-semibold tracking-tight text-baylink-text mb-5 leading-tight">{post.title}</h1>
+        <h1 className="text-[24px] sm:text-[28px] font-semibold tracking-tight text-baylink-text mb-5 leading-tight">{post.title}</h1>
         <div className="surface-card flex gap-3 mb-6 items-center p-3.5">
           <button
             type="button"
@@ -2665,10 +2698,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             >
               {authorName}
             </button>
-            <div className="type-footnote mt-0.5">
-              {new Date(post.createdAt).toLocaleDateString()}
-              {isPostEdited(post) && <span className="text-baylink-muted/70"> · 已编辑</span>}
-            </div>
+            <p className="type-footnote mt-0.5 truncate">{formatPostDetailAuthorMeta(post)}</p>
           </div>
           <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
         </div>
@@ -2780,11 +2810,19 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
         <span className="type-caption shrink-0 rounded-full border border-baylink-green/10 bg-white/70 px-2 py-0.5 text-baylink-text-secondary">交易前请核实</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5" ref={scrollRef}>
         {messages.map(m => {
           const isMine = m.senderId === currentUser.id;
           return (
-            <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+            <div key={m.id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+              {!isMine && (
+                <Avatar
+                  src={conversation.otherUser.avatar}
+                  name={conversation.otherUser.nickname}
+                  size={7}
+                  className="shrink-0 mb-0.5"
+                />
+              )}
               <div
                 className={`max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed ${
                   isMine
@@ -3515,14 +3553,22 @@ export default function App() {
                          onPublishNeed={() => openCreate('client')}
                          onPublishService={() => openCreate('provider')}
                        />
-                       <BayBayAssistantEntry
-                         variant="inline"
-                         onNavigate={navigate}
-                         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
-                         categoryHint={categorySlug}
-                       />
+                       <div id="baybay-home-entry">
+                         <BayBayAssistantEntry
+                           variant="inline"
+                           onNavigate={navigate}
+                           onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
+                           categoryHint={categorySlug}
+                         />
+                       </div>
                        <ChannelShortcuts onChannel={handleChannelClick} />
-                       <HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} />
+                       <HotRecommend
+                         onOpenPost={navigateToPost}
+                         refreshKey={featuredRefreshKey}
+                         onViewMore={() => navigate('/recommend')}
+                         onAskBayBay={() => document.getElementById('baybay-home-entry')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                         onPublish={() => openCreate('client')}
+                       />
                      </>
                    )}
 
