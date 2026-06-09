@@ -1990,13 +1990,19 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
               }
             />
-            <input
-              className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
-              placeholder={hints.titlePlaceholder}
-              value={form.title}
-              maxLength={80}
-              onChange={e => setForm({...form, title: e.target.value})}
-            />
+            <div>
+              <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
+                <span className="text-[11px] font-semibold text-baylink-text">帖子标题</span>
+                <span className="text-[10px] text-baylink-muted">一句话说清楚需求或服务</span>
+              </div>
+              <input
+                className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                placeholder={hints.titlePlaceholder}
+                value={form.title}
+                maxLength={80}
+                onChange={e => setForm({...form, title: e.target.value})}
+              />
+            </div>
             {hints.quickTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hints.quickTags.map((tag) => (
@@ -2007,13 +2013,19 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
             {hints.checklist.length > 0 && (
               <p className="text-[10px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.join('、')}</p>
             )}
-            <textarea
-              className="w-full p-4 bg-white rounded-xl h-36 resize-none outline-none border border-baylink-border/60 placeholder:text-baylink-muted text-sm leading-relaxed focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
-              placeholder={hints.descriptionPlaceholder}
-              value={form.description}
-              maxLength={2000}
-              onChange={e => setForm({...form, description: e.target.value})}
-            />
+            <div>
+              <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
+                <span className="text-[11px] font-semibold text-baylink-text">详细内容</span>
+                <span className="text-[10px] text-baylink-muted">补充位置、价格、时间、联系方式等</span>
+              </div>
+              <textarea
+                className="w-full p-4 bg-white rounded-xl h-36 resize-none outline-none border border-baylink-border/60 placeholder:text-baylink-muted text-sm leading-relaxed focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                placeholder={hints.descriptionPlaceholder}
+                value={form.description}
+                maxLength={2000}
+                onChange={e => setForm({...form, description: e.target.value})}
+              />
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
