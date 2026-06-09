@@ -1404,9 +1404,9 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                     )}
                   </div>
                 </div>
-                {profile.bio?.trim() && (
-                  <p className="mt-3 text-left text-[13px] leading-relaxed text-baylink-text-secondary">{profile.bio.trim()}</p>
-                )}
+                <p className="mt-3 text-left text-[13px] leading-relaxed text-baylink-text-secondary">
+                  {profile.bio?.trim() || 'TA 还没介绍自己，先看看最近发布吧。'}
+                </p>
               </div>
 
               {hasTags && (
@@ -1458,7 +1458,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                   <p>已加入 BAYLINK <span className="font-medium text-baylink-text">{joinDays ?? '—'}</span> 天</p>
                   <p>发布 <span className="font-medium text-baylink-text">{profile.postCount}</span> 条本地信息</p>
                   <p>{profile.isPhoneVerified ? '手机已验证' : '手机未验证'}</p>
-                  <p>{profile.isOfficialVerified ? '官方认证用户' : '普通社区用户'}</p>
+                  <p>{profile.isOfficialVerified ? '官方认证用户' : '社区用户'}</p>
                 </div>
               </div>
 
@@ -2524,7 +2524,7 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
   );
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -2534,7 +2534,14 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   const hasMenu = showReport || isAdmin || isOwner;
   const authorName = post.author?.nickname || '匿名用户';
   const authorAvatar = post.author?.avatar;
+  const authorId = post.authorId;
+  const canOpenProfile = !!authorId && !!onOpenUserProfile;
   const imageUrls = normalizePostImages(post);
+
+  const handleOpenAuthorProfile = () => {
+    if (!canOpenProfile) return;
+    onOpenUserProfile(authorId);
+  };
 
   const postComment = async () => {
     if (!currentUser) return onLoginNeeded();
@@ -2612,15 +2619,30 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
       <div className="flex-1 overflow-y-auto p-6 pb-32 bg-[#FAFAFA]">
         <h1 className="text-2xl font-black mb-4 leading-tight text-gray-900">{post.title}</h1>
         <div className="flex gap-3 mb-6 items-center bg-white p-3 rounded-2xl shadow-sm border border-gray-50">
-          <Avatar src={authorAvatar} name={authorName} size={10} />
-          <div className="flex-1">
-            <div className="font-bold text-gray-900">{authorName}</div>
+          <button
+            type="button"
+            disabled={!canOpenProfile}
+            onClick={handleOpenAuthorProfile}
+            className={`shrink-0 rounded-full transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80 active:scale-95' : 'cursor-default'}`}
+            aria-label={canOpenProfile ? `查看 ${authorName} 的资料` : undefined}
+          >
+            <Avatar src={authorAvatar} name={authorName} size={10} />
+          </button>
+          <div className="min-w-0 flex-1">
+            <button
+              type="button"
+              disabled={!canOpenProfile}
+              onClick={handleOpenAuthorProfile}
+              className={`text-left font-bold text-gray-900 transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+            >
+              {authorName}
+            </button>
             <div className="text-xs text-gray-400">
               {new Date(post.createdAt).toLocaleDateString()}
               {isPostEdited(post) && <span className="text-gray-300"> · 已编辑</span>}
             </div>
           </div>
-          <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
+          <button onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-800 active:scale-95 transition">私信</button>
         </div>
         <p className="mb-6 whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">{post.description}</p>
         <div className="space-y-3 mb-8">
@@ -3553,6 +3575,7 @@ export default function App() {
             onClose={navigateBack}
             onLoginNeeded={() => setShowLogin(true)}
             onOpenChat={openChat}
+            onOpenUserProfile={openUserProfile}
             onEdit={(p: PostData) => { navigateBack(); openEditPost(p); }}
             onToggleFeature={handleToggleFeature}
             onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
