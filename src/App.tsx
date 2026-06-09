@@ -27,8 +27,8 @@ import {
 } from 'lucide-react';
 
 // 引入库
-import imageCompression from 'browser-image-compression';
 import { io, Socket } from 'socket.io-client';
+import { compressImageFile, fileToDataUrl, MAX_IMAGE_UPLOAD_BYTES } from './utils/imageCompression';
 
 // BAYLINK APP V25.10 Final - Production Ready (最终上线版)
 
@@ -545,13 +545,6 @@ const mapAuthError = (err: any, mode: 'login' | 'register') => {
   if (msg.includes('Invalid password')) return '账号或密码不正确';
   if (mode === 'register') return '注册失败，请检查填写信息';
   return '登录失败，请检查账号密码';
-};
-
-// ✨ 图片压缩
-const compressImage = async (file: File): Promise<File> => {
-  const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1280, useWebWorker: true };
-  try { return await imageCompression(file, options); } 
-  catch (error) { console.error("Compression failed:", error); return file; }
 };
 
 // --- 子组件 ---
@@ -1408,10 +1401,9 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
         const file = e.target.files?.[0]; 
         if (file) { 
             try {
-                const compressedFile = await compressImage(file);
-                const reader = new FileReader(); 
-                reader.onloadend = () => setForm(p => ({ ...p, avatar: reader.result as string })); 
-                reader.readAsDataURL(compressedFile); 
+                const { file: compressedFile } = await compressImageFile(file);
+                const dataUrl = await fileToDataUrl(compressedFile);
+                setForm((p) => ({ ...p, avatar: dataUrl })); 
             } catch (err) { showToast('图片处理失败', 'error'); }
         } 
     };
@@ -1773,6 +1765,8 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [antiSpamAnswer, setAntiSpamAnswer] = useState('');
+  const [imageCompressing, setImageCompressing] = useState(false);
+  const [imageCompressHint, setImageCompressHint] = useState<string | null>(null);
 
   const isClient = form.type === 'client';
   const isAdmin = user?.role === 'admin';
@@ -1826,23 +1820,48 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      if (uploadedImages.length + files.length > 3) return showToast('最多只能上传3张图片', 'error');
-      const fileArray = Array.from(files);
-      const compressedImages: string[] = [];
-      await Promise.all(fileArray.map(async (file) => {
-        try {
-          const compressedFile = await compressImage(file);
-          const reader = new FileReader();
-          const result = await new Promise<string>((resolve) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(compressedFile);
-          });
-          compressedImages.push(result);
-        } catch (err) { console.error(err); }
-      }));
-      setUploadedImages((prev) => [...prev, ...compressedImages].slice(0, 3));
+    if (!files?.length) return;
+    e.target.value = '';
+
+    if (uploadedImages.length + files.length > 3) {
+      showToast('最多只能上传3张图片', 'error');
+      return;
     }
+
+    setImageCompressing(true);
+    setImageCompressHint('图片压缩中...');
+
+    const newImages: string[] = [];
+    let anyCompressed = false;
+
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+
+      if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+        showToast('图片过大，请换一张或截图后上传', 'error');
+        continue;
+      }
+
+      try {
+        const result = await compressImageFile(file);
+        if (result.compressed) anyCompressed = true;
+        const dataUrl = await fileToDataUrl(result.file);
+        newImages.push(dataUrl);
+      } catch (err) {
+        console.warn('[CreatePost] image compress/read failed, using original', err);
+        try {
+          const dataUrl = await fileToDataUrl(file);
+          newImages.push(dataUrl);
+        } catch { /* skip broken file */ }
+      }
+    }
+
+    if (newImages.length > 0) {
+      setUploadedImages((prev) => [...prev, ...newImages].slice(0, 3));
+    }
+
+    setImageCompressing(false);
+    setImageCompressHint(anyCompressed ? '图片已优化，上传更快' : null);
   };
 
   const handleSubmit = async () => {
@@ -1990,12 +2009,21 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 </div>
               ))}
               {uploadedImages.length < 3 && (
-                <label className="flex h-[72px] w-[72px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition hover:border-baylink-green/50 hover:text-baylink-green">
-                  <Plus size={18} /><span className="mt-0.5 text-[10px]">添加图片</span>
-                  <input type="file" hidden accept="image/*" multiple onChange={handleImageUpload} />
+                <label className={`flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition ${imageCompressing ? 'pointer-events-none opacity-60' : 'cursor-pointer hover:border-baylink-green/50 hover:text-baylink-green'}`}>
+                  {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
+                  <span className="mt-0.5 text-[10px]">{imageCompressing ? '压缩中' : '添加图片'}</span>
+                  <input type="file" hidden accept="image/*" multiple disabled={imageCompressing} onChange={handleImageUpload} />
                 </label>
               )}
             </div>
+            {imageCompressing && (
+              <p className="flex items-center gap-1 text-[10px] text-baylink-muted px-0.5">
+                <Loader2 size={11} className="animate-spin" /> 图片压缩中...
+              </p>
+            )}
+            {!imageCompressing && imageCompressHint && (
+              <p className="text-[10px] text-baylink-green px-0.5">{imageCompressHint}</p>
+            )}
             {uploadedImages.length > 0 && (
               <p className="text-[10px] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
             )}
