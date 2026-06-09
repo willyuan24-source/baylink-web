@@ -989,11 +989,11 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayB
           })}
         </div>
       ) : (
-        <div className="surface-card px-4 py-3.5 text-center">
-          <p className="text-[13px] font-semibold text-baylink-text">本周推荐正在整理中</p>
-          <p className="mt-1 text-[12px] leading-snug text-baylink-text-secondary">先看看最新发布，或者让 BayBay 帮你找方向。</p>
+        <div className="surface-card px-3 py-2.5 text-center">
+          <p className="text-[12px] font-semibold text-baylink-text">本周推荐正在整理中</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-baylink-text-secondary">先看看最新发布，或者让 BayBay 帮你找方向。</p>
           {(onAskBayBay || onPublish) && (
-            <div className="mt-2.5 flex justify-center gap-2">
+            <div className="mt-2 flex justify-center gap-1.5">
               {onAskBayBay && (
                 <button type="button" onClick={onAskBayBay} className="rounded-full border border-baylink-green/20 bg-baylink-green/[0.06] px-3 py-1.5 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.1] active:scale-95">
                   问问 BayBay
@@ -1551,7 +1551,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
             <button
               type="button"
               onClick={() => { onChat?.(profile.id, profile.nickname); onClose(); }}
-              className="w-full rounded-xl bg-gray-900 py-3 text-sm font-bold text-white"
+              className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
             >
               {onChat ? '继续聊天' : '发私信'}
             </button>
@@ -2570,17 +2570,29 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
 };
 
 const formatPostDetailAuthorMeta = (post: PostData) => {
-  const author = post.author as PostData['author'] & { city?: string; area?: string; profileTags?: string[] };
+  const author = post.author as PostData['author'] & {
+    city?: string;
+    area?: string;
+    profileTags?: string[];
+    role?: string;
+  };
   const location =
     post.city?.trim() ||
     author.city?.trim() ||
+    author.area?.trim() ||
     formatProfileLocation(author.area, author.city) ||
     '';
-  const roleLabel = author.profileTags?.map((t) => t?.trim()).filter(Boolean)?.[0] || '社区用户';
+  const tagLabel = author.profileTags?.map((t) => t?.trim()).filter(Boolean)?.[0];
+  let identity = tagLabel;
+  if (!identity) {
+    if (author.isOfficialVerified) identity = '官方认证';
+    else if (author.role === 'admin') identity = '管理员';
+    else identity = '社区用户';
+  }
   const dateStr = new Date(post.createdAt).toLocaleDateString();
-  const parts = [location, roleLabel, dateStr];
+  const parts = [location, identity, dateStr];
   if (isPostEdited(post)) parts.push('已编辑');
-  return parts.filter(Boolean).join(' · ');
+  return parts.filter((p) => p && String(p).trim()).join(' · ');
 };
 
 const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport }: any) => {
@@ -2679,7 +2691,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-5 pb-32 bg-baylink-bg">
         <h1 className="text-[24px] sm:text-[28px] font-semibold tracking-tight text-baylink-text mb-5 leading-tight">{post.title}</h1>
-        <div className="surface-card flex gap-3 mb-6 items-center p-3.5">
+        <div className="surface-card flex gap-2.5 mb-6 items-center p-3">
           <button
             type="button"
             disabled={!canOpenProfile}
@@ -2694,13 +2706,14 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
               type="button"
               disabled={!canOpenProfile}
               onClick={handleOpenAuthorProfile}
-              className={`text-left font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+              className={`flex max-w-full items-center gap-1 text-left text-[15px] font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
             >
-              {authorName}
+              <span className="truncate">{authorName}</span>
+              <TrustBadge user={post.author} size={10} />
             </button>
-            <p className="type-footnote mt-0.5 truncate">{formatPostDetailAuthorMeta(post)}</p>
+            <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
           </div>
-          <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
+          <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
         </div>
         <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
         <div className="space-y-3 mb-8">
@@ -2728,7 +2741,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           ))}
         </div>
       </div>
-      <div className="border-t border-black/[0.06] p-4 flex gap-3 items-center bg-white/80 backdrop-blur-xl absolute bottom-0 w-full pb-safe">
+      <div className="border-t border-black/[0.06] px-4 pt-3 pb-safe-bar flex gap-3 items-center bg-white/80 backdrop-blur-xl absolute bottom-0 w-full">
         <input className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text transition placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15" placeholder="写下你的评论..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()} />
         <button type="button" onClick={postComment} className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`} disabled={!input.trim()} aria-label="发送评论"><Send size={20} /></button>
       </div>
@@ -2814,13 +2827,13 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
         {messages.map(m => {
           const isMine = m.senderId === currentUser.id;
           return (
-            <div key={m.id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+            <div key={m.id} className={`flex items-end gap-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
               {!isMine && (
                 <Avatar
                   src={conversation.otherUser.avatar}
                   name={conversation.otherUser.nickname}
                   size={7}
-                  className="shrink-0 mb-0.5"
+                  className="shrink-0 self-end mb-1"
                 />
               )}
               <div
@@ -2836,7 +2849,7 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
           );
         })}
       </div>
-      <div className="border-t border-black/[0.06] p-3 flex gap-2.5 pb-safe items-center bg-white/80 backdrop-blur-xl shrink-0">
+      <div className="border-t border-black/[0.06] px-3 pt-2.5 pb-safe-bar flex gap-2.5 items-center bg-white/80 backdrop-blur-xl shrink-0">
         <button
           type="button"
           onClick={() => confirm('分享联系方式?') && send('contact-share', '')}
@@ -3650,7 +3663,7 @@ export default function App() {
            {(tab === 'profile' || location.pathname === '/me') && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={navigateToPost} onUpdateUser={setUser} showToast={showToast} />}
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe max-w-[500px] mx-auto">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
           <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
            <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
              <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>

@@ -42,7 +42,10 @@ html, body, #root {
   border-radius: 9999px;
 }
 
-.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pb-safe-bar {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.625rem);
+}
 .pt-safe-top { padding-top: env(safe-area-inset-top); }
 
 .shadow-soft-glow {
