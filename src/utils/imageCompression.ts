@@ -2,7 +2,7 @@ export type CompressImageOptions = {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  /** 小于此字节数时跳过压缩，默认 900KB */
+  /** 小于此字节数时跳过压缩，默认 1.2MB */
   skipBelowBytes?: number;
 };
 
@@ -13,10 +13,32 @@ export type CompressImageResult = {
   compressed: boolean;
 };
 
-const DEFAULT_MAX_WIDTH = 1200;
-const DEFAULT_MAX_HEIGHT = 1200;
-const DEFAULT_QUALITY = 0.78;
-const DEFAULT_SKIP_BELOW = 900 * 1024;
+const DEFAULT_MAX_WIDTH = 1800;
+const DEFAULT_MAX_HEIGHT = 1800;
+const DEFAULT_QUALITY = 0.88;
+const DEFAULT_SKIP_BELOW = Math.round(1.2 * 1024 * 1024);
+const PNG_WEBP_SKIP_BELOW = 2 * 1024 * 1024;
+const PNG_WEBP_JPEG_QUALITY = 0.88;
+
+export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/** iOS 相册常返回空 type，用扩展名兜底 */
+export const isLikelyImageFile = (file: File): boolean => {
+  if (file.type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name);
+};
+
+const isGif = (file: File) =>
+  file.type === 'image/gif' || /\.gif$/i.test(file.name);
+
+const isHeic = (file: File) => {
+  const t = file.type.toLowerCase();
+  return t === 'image/heic' || t === 'image/heif' || /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name);
+};
+
+const isPng = (file: File) => file.type === 'image/png' || /\.png$/i.test(file.name);
+
+const isWebp = (file: File) => file.type === 'image/webp' || /\.webp$/i.test(file.name);
 
 const loadImageFromFile = (file: File): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -42,7 +64,7 @@ const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number):
     );
   });
 
-const buildOutputFile = (blob: Blob, original: File): File => {
+const buildJpegFile = (blob: Blob, original: File): File => {
   const base = original.name.replace(/\.[^.]+$/, '') || 'image';
   return new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 };
@@ -52,6 +74,7 @@ const compressWithCanvas = async (
   maxWidth: number,
   maxHeight: number,
   quality: number,
+  paintWhiteBackground: boolean,
 ): Promise<File> => {
   const img = await loadImageFromFile(file);
   const ratio = Math.min(1, maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
@@ -64,13 +87,27 @@ const compressWithCanvas = async (
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('canvas context unavailable');
 
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, width, height);
+  if (paintWhiteBackground) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  if ('imageSmoothingQuality' in ctx) {
+    (ctx as CanvasRenderingContext2D & { imageSmoothingQuality: string }).imageSmoothingQuality = 'high';
+  }
   ctx.drawImage(img, 0, 0, width, height);
 
   const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
-  return buildOutputFile(blob, file);
+  return buildJpegFile(blob, file);
 };
+
+const makeFallback = (file: File): CompressImageResult => ({
+  file,
+  originalSize: file.size,
+  compressedSize: file.size,
+  compressed: false,
+});
 
 /**
  * 浏览器端图片压缩（Canvas）。失败时回退原文件，不抛错阻断流程。
@@ -86,29 +123,42 @@ export async function compressImageFile(
     skipBelowBytes = DEFAULT_SKIP_BELOW,
   } = options;
 
-  const originalSize = file.size;
-  const fallback: CompressImageResult = {
-    file,
-    originalSize,
-    compressedSize: originalSize,
-    compressed: false,
-  };
+  const fallback = makeFallback(file);
 
-  if (!file.type.startsWith('image/')) return fallback;
+  if (!isLikelyImageFile(file)) return fallback;
 
-  // GIF 动图不压缩
-  if (file.type === 'image/gif') return fallback;
+  if (isGif(file)) return fallback;
 
-  if (originalSize <= skipBelowBytes) return fallback;
+  if (isHeic(file)) {
+    console.info('[imageCompression] HEIC/HEIF skipped, using original');
+    return fallback;
+  }
 
-  try {
-    const compressedFile = await compressWithCanvas(file, maxWidth, maxHeight, quality);
-    if (compressedFile.size >= originalSize) {
+  if (isPng(file) || isWebp(file)) {
+    if (file.size <= PNG_WEBP_SKIP_BELOW) return fallback;
+    try {
+      const compressedFile = await compressWithCanvas(file, maxWidth, maxHeight, PNG_WEBP_JPEG_QUALITY, true);
+      if (compressedFile.size >= file.size) return fallback;
+      return {
+        file: compressedFile,
+        originalSize: file.size,
+        compressedSize: compressedFile.size,
+        compressed: true,
+      };
+    } catch (err) {
+      console.warn('[imageCompression] PNG/WebP compress failed, using original', err);
       return fallback;
     }
+  }
+
+  if (file.size <= skipBelowBytes) return fallback;
+
+  try {
+    const compressedFile = await compressWithCanvas(file, maxWidth, maxHeight, quality, false);
+    if (compressedFile.size >= file.size) return fallback;
     return {
       file: compressedFile,
-      originalSize,
+      originalSize: file.size,
       compressedSize: compressedFile.size,
       compressed: true,
     };
@@ -117,8 +167,6 @@ export async function compressImageFile(
     return fallback;
   }
 }
-
-export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

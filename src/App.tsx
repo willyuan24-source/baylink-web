@@ -28,7 +28,7 @@ import {
 
 // 引入库
 import { io, Socket } from 'socket.io-client';
-import { compressImageFile, fileToDataUrl, MAX_IMAGE_UPLOAD_BYTES } from './utils/imageCompression';
+import { compressImageFile, fileToDataUrl, isLikelyImageFile, MAX_IMAGE_UPLOAD_BYTES } from './utils/imageCompression';
 
 // BAYLINK APP V25.10 Final - Production Ready (最终上线版)
 
@@ -1397,15 +1397,20 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
     const [saving, setSaving] = useState(false);
     const [showVerify, setShowVerify] = useState(false);
     
-    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { 
-        const file = e.target.files?.[0]; 
-        if (file) { 
-            try {
-                const { file: compressedFile } = await compressImageFile(file);
-                const dataUrl = await fileToDataUrl(compressedFile);
-                setForm((p) => ({ ...p, avatar: dataUrl })); 
-            } catch (err) { showToast('图片处理失败', 'error'); }
-        } 
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            const { file: compressedFile } = await compressImageFile(file, { maxWidth: 768, maxHeight: 768, quality: 0.86 });
+            const dataUrl = await fileToDataUrl(compressedFile);
+            setForm((p) => ({ ...p, avatar: dataUrl }));
+        } catch (err) {
+            console.warn('[avatar] image process failed', err);
+            showToast('图片处理失败', 'error');
+        } finally {
+            input.value = '';
+        }
     };
 
     const handleSave = async () => { if (!form.nickname) return; setSaving(true); try { const updated = await api.updateProfile(form); const newUserData = { ...user, ...updated }; localStorage.setItem('currentUser', JSON.stringify(newUserData)); onUpdate(newUserData); onClose(); showToast('资料已更新', 'success'); } catch (e) { showToast('保存失败', 'error'); } finally { setSaving(false); } };
@@ -1416,7 +1421,7 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-900 font-bold text-sm">取消</button><span className="font-bold text-lg text-gray-900">编辑资料</span><button onClick={handleSave} disabled={saving} className="text-green-700 font-bold text-sm disabled:opacity-50">{saving ? '保存中...' : '完成'}</button>
              </div>
              <div className="flex-1 p-6 overflow-y-auto">
-                 <div className="flex flex-col items-center mb-8"><div className="relative group"><Avatar src={form.avatar} name={form.nickname} size={24} /><label className="absolute bottom-0 right-0 bg-gray-900 text-white p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 transition border-2 border-white"><Camera size={18}/><input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} /></label></div></div>
+                 <div className="flex flex-col items-center mb-8"><div className="relative group"><Avatar src={form.avatar} name={form.nickname} size={24} /><label htmlFor="edit-profile-avatar-input" className="absolute bottom-0 right-0 bg-gray-900 text-white p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 transition border-2 border-white"><Camera size={18}/><input id="edit-profile-avatar-input" type="file" accept="image/*" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" onChange={handleAvatarUpload} aria-label="上传头像" /></label></div></div>
                  
                  <div className="bg-white p-4 rounded-2xl shadow-sm mb-6 flex items-center justify-between border border-blue-50">
                      <div className="flex items-center gap-3">
@@ -1819,49 +1824,54 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+    const input = e.target;
+    const files = input.files;
     if (!files?.length) return;
-    e.target.value = '';
 
     if (uploadedImages.length + files.length > 3) {
       showToast('最多只能上传3张图片', 'error');
+      input.value = '';
       return;
     }
 
     setImageCompressing(true);
-    setImageCompressHint('图片压缩中...');
+    setImageCompressHint('图片处理中...');
 
     const newImages: string[] = [];
     let anyCompressed = false;
 
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/')) continue;
+    try {
+      for (const file of Array.from(files)) {
+        if (!isLikelyImageFile(file)) continue;
 
-      if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
-        showToast('图片过大，请换一张或截图后上传', 'error');
-        continue;
-      }
+        if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+          showToast('图片过大，请换一张或截图后上传', 'error');
+          continue;
+        }
 
-      try {
-        const result = await compressImageFile(file);
-        if (result.compressed) anyCompressed = true;
-        const dataUrl = await fileToDataUrl(result.file);
-        newImages.push(dataUrl);
-      } catch (err) {
-        console.warn('[CreatePost] image compress/read failed, using original', err);
         try {
-          const dataUrl = await fileToDataUrl(file);
+          const result = await compressImageFile(file);
+          if (result.compressed) anyCompressed = true;
+          const dataUrl = await fileToDataUrl(result.file);
           newImages.push(dataUrl);
-        } catch { /* skip broken file */ }
+        } catch (err) {
+          console.warn('[CreatePost] image compress/read failed, using original', err);
+          try {
+            const dataUrl = await fileToDataUrl(file);
+            newImages.push(dataUrl);
+          } catch { /* skip broken file */ }
+        }
       }
-    }
 
-    if (newImages.length > 0) {
-      setUploadedImages((prev) => [...prev, ...newImages].slice(0, 3));
-    }
+      if (newImages.length > 0) {
+        setUploadedImages((prev) => [...prev, ...newImages].slice(0, 3));
+      }
 
-    setImageCompressing(false);
-    setImageCompressHint(anyCompressed ? '图片已优化，上传更快' : null);
+      setImageCompressHint(anyCompressed ? '图片已优化，上传更快' : null);
+    } finally {
+      setImageCompressing(false);
+      input.value = '';
+    }
   };
 
   const handleSubmit = async () => {
@@ -2009,16 +2019,29 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 </div>
               ))}
               {uploadedImages.length < 3 && (
-                <label className={`flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition ${imageCompressing ? 'pointer-events-none opacity-60' : 'cursor-pointer hover:border-baylink-green/50 hover:text-baylink-green'}`}>
-                  {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
-                  <span className="mt-0.5 text-[10px]">{imageCompressing ? '压缩中' : '添加图片'}</span>
-                  <input type="file" hidden accept="image/*" multiple disabled={imageCompressing} onChange={handleImageUpload} />
+                <label
+                  htmlFor="create-post-image-input"
+                  className="relative flex h-[72px] w-[72px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition hover:border-baylink-green/50 hover:text-baylink-green"
+                >
+                  <input
+                    id="create-post-image-input"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                    onChange={handleImageUpload}
+                    aria-label="添加图片"
+                  />
+                  <span className="pointer-events-none flex flex-col items-center justify-center">
+                    {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
+                    <span className="mt-0.5 text-[10px]">{imageCompressing ? '处理中' : '添加图片'}</span>
+                  </span>
                 </label>
               )}
             </div>
             {imageCompressing && (
               <p className="flex items-center gap-1 text-[10px] text-baylink-muted px-0.5">
-                <Loader2 size={11} className="animate-spin" /> 图片压缩中...
+                <Loader2 size={11} className="animate-spin" /> 图片处理中...
               </p>
             )}
             {!imageCompressing && imageCompressHint && (
