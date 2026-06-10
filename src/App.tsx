@@ -624,9 +624,12 @@ const validatePostForm = (form: { title: string; description: string; category: 
 const mapPostSaveError = (err: any, isEdit = false): string => {
   const msg = err?.error || err?.message || '';
   if (err?.status === 429) {
+    if (msg.includes('请不要重复发布相同内容')) return msg;
+    if (msg.includes('今天发布次数已达到上限')) return msg;
+    if (msg.includes('操作太频繁')) return msg;
     if (/frequently/i.test(msg)) return '发布太频繁了，请稍后再试';
     if (/daily|limit/i.test(msg)) return '今日发布已达上限，请明天再试';
-    return '发布太频繁了，请稍后再试';
+    return msg || '发布太频繁了，请稍后再试';
   }
   if (/Title must be at least/i.test(msg)) return '标题至少需要 5 个字';
   if (/Description must be at least/i.test(msg)) return '请补充更多细节，至少 10 个字';
@@ -2217,6 +2220,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   const [coversExpanded, setCoversExpanded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [postTrustWarning, setPostTrustWarning] = useState<string | null>(null);
   const [antiSpamAnswer, setAntiSpamAnswer] = useState('');
   const [imageCompressing, setImageCompressing] = useState(false);
   const [imageCompressHint, setImageCompressHint] = useState<string | null>(null);
@@ -2339,9 +2343,12 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
         showToast('信息已更新', 'success');
         onClose();
       } else {
-        await api.request('/posts', { method: 'POST', body: JSON.stringify(payload) });
+        const res = await api.request('/posts', { method: 'POST', body: JSON.stringify(payload) });
         onCreated();
+        const warning = typeof res?.trustWarning === 'string' ? res.trustWarning : null;
+        setPostTrustWarning(warning);
         setIsSuccess(true);
+        if (warning) showToast(warning, 'info');
       }
     } catch (err: any) {
       const toastMsg = mapPostSaveError(err, isEdit);
@@ -2360,7 +2367,12 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
               <CheckCircle size={40} />
            </div>
            <h2 className="text-2xl font-bold text-baylink-text mb-2">发布成功！</h2>
-           <p className="text-baylink-muted mb-8 text-sm">你的信息已推送给湾区邻居们。</p>
+           <p className="text-baylink-muted mb-4 text-sm">你的信息已推送给湾区邻居们。</p>
+           {postTrustWarning && (
+             <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs leading-relaxed text-amber-800">
+               {postTrustWarning}
+             </p>
+           )}
            <button onClick={onClose} className="w-full py-3.5 btn-primary">知道了</button>
         </div>
       </div>
