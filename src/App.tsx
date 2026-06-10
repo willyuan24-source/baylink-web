@@ -17,6 +17,7 @@ import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { PrivacyPolicyView } from './components/PrivacyPolicyView';
 import { TermsView } from './components/TermsView';
+import { OfficialVerificationModal } from './components/OfficialVerificationModal';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -262,6 +263,17 @@ interface UserData {
   createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
   phone?: string;
+  officialVerification?: {
+    status?: 'none' | 'pending' | 'approved' | 'rejected';
+    type?: string;
+    description?: string;
+    website?: string;
+    license?: string;
+    socialLink?: string;
+    submittedAt?: number;
+    reviewedAt?: number;
+    rejectionReason?: string;
+  };
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
 
@@ -330,6 +342,7 @@ type PublicUserProfile = {
   createdAt?: number;
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
+  officialVerification?: { status: string; type?: string };
   socialLinks?: { linkedin?: string; instagram?: string };
   postCount: number;
   recentPosts: Array<{ id?: string; _id?: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number; updatedAt?: number }>;
@@ -801,12 +814,27 @@ const api = {
     await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: async (token: string, newPassword: string) =>
     await api.request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
+  submitOfficialVerification: async (payload: Record<string, string | undefined>) =>
+    await api.request('/users/me/official-verification', { method: 'POST', body: JSON.stringify(payload) }),
+  getOfficialVerificationRequests: async (status = 'pending') =>
+    await api.request(`/admin/official-verifications?status=${encodeURIComponent(status)}`),
+  reviewOfficialVerification: async (userId: string, payload: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
+    await api.request(`/admin/users/${userId}/official-verification`, { method: 'PATCH', body: JSON.stringify(payload) }),
 };
 
 const filterPostsByBlockedUsers = (list: PostData[], blockedUserIds: string[]): PostData[] => {
   if (!blockedUserIds.length) return list;
   const blocked = new Set(blockedUserIds);
   return list.filter((p) => !blocked.has(p.authorId));
+};
+
+const OFFICIAL_VERIFICATION_TYPE_LABELS: Record<string, string> = {
+  realtor: '房产经纪',
+  service_provider: '本地服务商',
+  business: '商家',
+  official_account: '官方账号',
+  community_org: '社区组织',
+  other: '其他',
 };
 
 const REPORT_REASON_LABELS: Record<string, string> = {
@@ -2947,6 +2975,143 @@ type AdminReportItem = {
   createdAt: string;
 };
 
+type OfficialVerificationRequestItem = {
+  userId: string;
+  nickname: string;
+  email: string;
+  avatar?: string;
+  isPhoneVerified: boolean;
+  isOfficialVerified: boolean;
+  officialVerification: {
+    status: string;
+    type?: string;
+    description?: string;
+    website?: string;
+    license?: string;
+    socialLink?: string;
+    submittedAt?: number;
+    rejectionReason?: string;
+  };
+};
+
+const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => void; showToast: (msg: string, type?: 'success' | 'error' | 'info') => void }) => {
+  const [requests, setRequests] = useState<OfficialVerificationRequestItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getOfficialVerificationRequests('pending');
+      setRequests(Array.isArray(res.requests) ? res.requests : []);
+    } catch (e: any) {
+      showToast(e?.error || '加载认证申请失败', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleApprove = async (userId: string) => {
+    setUpdatingId(userId);
+    try {
+      await api.reviewOfficialVerification(userId, { status: 'approved' });
+      setRequests((prev) => prev.filter((r) => r.userId !== userId));
+      showToast('已通过官方认证', 'success');
+    } catch (e: any) {
+      showToast(e?.error || '操作失败', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleReject = async (userId: string) => {
+    setUpdatingId(userId);
+    try {
+      await api.reviewOfficialVerification(userId, {
+        status: 'rejected',
+        rejectionReason: rejectReason.trim() || '资料不足，请补充官网或 license 信息。',
+      });
+      setRequests((prev) => prev.filter((r) => r.userId !== userId));
+      setRejectingId(null);
+      setRejectReason('');
+      showToast('已拒绝认证申请', 'success');
+    } catch (e: any) {
+      showToast(e?.error || '操作失败', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
+      <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
+        <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
+        <h2 className="text-lg font-bold text-baylink-text">官方认证审核</h2>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 pb-24">
+        {loading ? (
+          <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
+        ) : requests.length === 0 ? (
+          <p className="py-16 text-center text-sm text-baylink-muted">暂无待审核申请</p>
+        ) : (
+          <div className="space-y-3">
+            {requests.map((r) => (
+              <div key={r.userId} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <Avatar src={r.avatar} name={r.nickname} size={10} className="shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-baylink-text">{r.nickname}</div>
+                    <div className="text-[11px] text-baylink-muted truncate">{r.email}</div>
+                    <div className="mt-1 text-xs text-baylink-text-secondary">
+                      {OFFICIAL_VERIFICATION_TYPE_LABELS[r.officialVerification?.type || ''] || r.officialVerification?.type}
+                      {r.isPhoneVerified && <span className="ml-2 text-blue-600">· 手机已验证</span>}
+                    </div>
+                    {r.officialVerification?.submittedAt && (
+                      <div className="text-[10px] text-baylink-muted">{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
+                    )}
+                  </div>
+                </div>
+                {r.officialVerification?.description && (
+                  <p className="mt-3 text-xs leading-relaxed text-baylink-text-secondary">{r.officialVerification.description}</p>
+                )}
+                <div className="mt-2 space-y-1 text-[11px] text-baylink-muted">
+                  {r.officialVerification?.website && <p>网站：{r.officialVerification.website}</p>}
+                  {r.officialVerification?.license && <p>资质：{r.officialVerification.license}</p>}
+                  {r.officialVerification?.socialLink && <p>社交：{r.officialVerification.socialLink}</p>}
+                </div>
+                {rejectingId === r.userId ? (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      className="w-full rounded-xl border border-baylink-border/50 p-2 text-xs outline-none"
+                      placeholder="拒绝原因（可选）"
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <button type="button" disabled={updatingId === r.userId} onClick={() => handleReject(r.userId)} className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-bold text-white disabled:opacity-50">确认拒绝</button>
+                      <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="rounded-lg border border-baylink-border/60 px-3 py-2 text-xs font-semibold">取消</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" disabled={updatingId === r.userId} onClick={() => handleApprove(r.userId)} className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50">通过</button>
+                    <button type="button" disabled={updatingId === r.userId} onClick={() => setRejectingId(r.userId)} className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">拒绝</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast: (msg: string, type?: 'success' | 'error' | 'info') => void }) => {
   const [reports, setReports] = useState<AdminReportItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -3034,8 +3199,18 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
   );
 };
 
+const getOfficialVerificationStatusLabel = (user: UserData) => {
+  const status = user.officialVerification?.status || (user.isOfficialVerified ? 'approved' : 'none');
+  if (status === 'approved' || user.isOfficialVerified) return '官方认证已通过';
+  if (status === 'pending') return '官方认证审核中';
+  if (status === 'rejected') return '认证未通过，可重新提交';
+  return '申请官方认证';
+};
+
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports'>('menu');
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
+  const [showOfficialModal, setShowOfficialModal] = useState(false);
+  const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
   const completion = user ? calcProfileCompletion(user) : 0;
   const locationLine = user ? formatProfileLocation(user.area, user.city) : '';
@@ -3102,22 +3277,72 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
             )}
           </div>
 
+          <div className="mb-4 rounded-[1.5rem] border border-amber-200/60 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <BadgeCheck size={18} className="shrink-0 text-amber-500" />
+                  <span className="font-bold text-gray-900">官方认证</span>
+                  {(officialStatus === 'approved' || user.isOfficialVerified) && <TrustBadge user={user} size={12} />}
+                </div>
+                <p className="mt-1 text-[11px] text-gray-500">{getOfficialVerificationStatusLabel(user)}</p>
+                {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && (
+                  <p className="mt-1 text-[10px] text-red-500 line-clamp-2">{user.officialVerification.rejectionReason}</p>
+                )}
+              </div>
+              {officialStatus === 'pending' ? (
+                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[10px] font-bold text-amber-700">审核中</span>
+              ) : (officialStatus === 'approved' || user.isOfficialVerified) ? (
+                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[10px] font-bold text-amber-700">已通过</span>
+              ) : (
+                <button type="button" onClick={() => setShowOfficialModal(true)} className="shrink-0 rounded-lg bg-gray-900 px-3 py-1.5 text-[10px] font-bold text-white">
+                  {officialStatus === 'rejected' ? '重新申请' : '申请认证'}
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 mb-6">
             <button onClick={() => setSubView('my_posts')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition"><Edit size={20} /></div><div className="font-bold text-gray-900">我的发布</div><div className="text-[10px] text-gray-400">管理帖子</div></button>
             <button onClick={() => setSubView('support')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition"><Phone size={20} /></div><div className="font-bold text-gray-900">联系客服</div><div className="text-[10px] text-gray-400">帮助支持</div></button>
           </div>
           <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
           {user.role === 'admin' && (
-            <button onClick={() => setSubView('admin_reports')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
-                <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[10px] text-gray-400">查看并处理用户举报</div></div>
-              </div>
-              <ChevronRight size={18} className="text-gray-300" />
-            </button>
+            <>
+              <button onClick={() => setSubView('admin_official')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition"><BadgeCheck size={20} /></div>
+                  <div><div className="font-bold text-gray-900">官方认证审核</div><div className="text-[10px] text-gray-400">查看并处理认证申请</div></div>
+                </div>
+                <ChevronRight size={18} className="text-gray-300" />
+              </button>
+              <button onClick={() => setSubView('admin_reports')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
+                  <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[10px] text-gray-400">查看并处理用户举报</div></div>
+                </div>
+                <ChevronRight size={18} className="text-gray-300" />
+              </button>
+            </>
           )}
         </div>
       )}
+      {showOfficialModal && (
+        <OfficialVerificationModal
+          isOpen={showOfficialModal}
+          onClose={() => setShowOfficialModal(false)}
+          onSubmit={(payload) => api.submitOfficialVerification(payload)}
+          onSuccess={(updatedUser) => {
+            const stored = localStorage.getItem('currentUser');
+            const current = stored ? safeParse(stored) : {};
+            const nextUser = { ...current, ...updatedUser };
+            localStorage.setItem('currentUser', JSON.stringify(nextUser));
+            onUpdateUser(nextUser);
+          }}
+          showToast={showToast}
+        />
+      )}
+      {subView === 'admin_official' && <AdminOfficialVerificationsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'admin_reports' && <AdminReportsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
