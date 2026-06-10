@@ -3587,7 +3587,9 @@ export default function App() {
                            categoryHint={categorySlug}
                          />
                        </div>
-                       <ChannelShortcuts onChannel={handleChannelClick} />
+                       <div className="hidden md:block">
+                         <ChannelShortcuts onChannel={handleChannelClick} />
+                       </div>
                        <HotRecommend
                          onOpenPost={navigateToPost}
                          refreshKey={featuredRefreshKey}
