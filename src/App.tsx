@@ -2503,7 +2503,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   );
 };
 
-const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: any) => {
+const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose: () => void; onLogin: (user: UserData) => void; showToast: (message: string, type?: 'success' | 'error' | 'info') => void; onForgotPassword: () => void }) => {
   const [mode, setMode] = useState<'login'|'register'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -2573,7 +2573,7 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: any) => {
               <div className="text-right">
                 <button
                   type="button"
-                  onClick={() => { onClose(); onForgotPassword?.(); }}
+                  onClick={onForgotPassword}
                   className="text-[10px] font-bold text-gray-400 hover:text-gray-900"
                 >
                   忘记密码?
@@ -3338,6 +3338,11 @@ export default function App() {
     setShowLogin(true);
   };
 
+  const handleOpenForgotPassword = () => {
+    setShowLogin(false);
+    setShowForgotPassword(true);
+  };
+
   useEffect(() => {
     if (!user) {
       setBlockedUserIds([]);
@@ -3758,7 +3763,7 @@ export default function App() {
             onClose={() => setShowLogin(false)}
             onLogin={setUser}
             showToast={showToast}
-            onForgotPassword={() => setShowForgotPassword(true)}
+            onForgotPassword={handleOpenForgotPassword}
           />
         )}
         {showForgotPassword && (
