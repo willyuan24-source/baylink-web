@@ -18,6 +18,16 @@ const TYPE_OPTIONS: { value: OfficialVerificationType; label: string }[] = [
   { value: 'other', label: '其他' },
 ];
 
+const EMPTY_OPTIONAL_VALUES = new Set(['没有', '无', 'none', 'n/a', 'na', 'null', 'undefined']);
+
+const normalizeOptionalField = (value: string): string | undefined => {
+  const s = value.trim();
+  if (!s) return undefined;
+  const lower = s.toLowerCase();
+  if (EMPTY_OPTIONAL_VALUES.has(lower) || EMPTY_OPTIONAL_VALUES.has(s)) return undefined;
+  return s;
+};
+
 type OfficialVerificationModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -27,7 +37,7 @@ type OfficialVerificationModalProps = {
     website?: string;
     license?: string;
     socialLink?: string;
-  }) => Promise<{ message: string; user: any }>;
+  }) => Promise<{ success?: boolean; user: any; message?: string }>;
   onSuccess: (user: any) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 };
@@ -59,15 +69,16 @@ export const OfficialVerificationModal = ({
       const res = await onSubmit({
         type,
         description: description.trim(),
-        website: website.trim() || undefined,
-        license: license.trim() || undefined,
-        socialLink: socialLink.trim() || undefined,
+        website: normalizeOptionalField(website),
+        license: normalizeOptionalField(license),
+        socialLink: normalizeOptionalField(socialLink),
       });
+      if (!res?.user) throw { error: 'Submit Failed' };
       onSuccess(res.user);
       showToast(res.message || '认证申请已提交，BAYLINK 会尽快审核。', 'success');
       onClose();
     } catch (err: any) {
-      showToast(err?.error || err?.message || '提交失败，请稍后再试', 'error');
+      showToast(err?.error || err?.message || 'Submit Failed', 'error');
     } finally {
       setLoading(false);
     }
