@@ -13,6 +13,8 @@ import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
+import { ForgotPasswordModal } from './components/ForgotPasswordModal';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -761,7 +763,10 @@ const api = {
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
       if (res.status === 401 || res.status === 403) {
-        if (!endpoint.includes('/auth/login')) { triggerSessionExpired(); throw { status: res.status, message: '登录已过期', handled: true }; }
+        const isPublicAuth = endpoint.includes('/auth/login')
+          || endpoint.includes('/auth/forgot-password')
+          || endpoint.includes('/auth/reset-password');
+        if (!isPublicAuth) { triggerSessionExpired(); throw { status: res.status, message: '登录已过期', handled: true }; }
       }
       let data: any = {};
       const text = await res.text();
@@ -781,7 +786,11 @@ const api = {
   getAdminReports: async (status = 'open') => await api.request(`/admin/reports?status=${encodeURIComponent(status)}`),
   updateAdminReport: async (id: string, status: 'reviewed' | 'dismissed') =>
     await api.request(`/admin/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
-  verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) })
+  verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+  forgotPassword: async (email: string) =>
+    await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: async (token: string, newPassword: string) =>
+    await api.request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 };
 
 const filterPostsByBlockedUsers = (list: PostData[], blockedUserIds: string[]): PostData[] => {
@@ -2494,7 +2503,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
   );
 };
 
-const LoginModal = ({ onClose, onLogin, showToast }: any) => {
+const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: any) => {
   const [mode, setMode] = useState<'login'|'register'>('login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -2560,7 +2569,17 @@ const LoginModal = ({ onClose, onLogin, showToast }: any) => {
                 <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
               </>
             )}
-            {mode === 'login' && <div className="text-right"><button type="button" onClick={() => showToast('密码重置功能即将开放，请先联系管理员', 'info')} className="text-[10px] font-bold text-gray-400 hover:text-gray-900">忘记密码?</button></div>}
+            {mode === 'login' && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => { onClose(); onForgotPassword?.(); }}
+                  className="text-[10px] font-bold text-gray-400 hover:text-gray-900"
+                >
+                  忘记密码?
+                </button>
+              </div>
+            )}
             <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition">{loading ? 'Loading...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
         </form>
         <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
@@ -3096,6 +3115,8 @@ export default function App() {
 
   const [user, setUser] = useState<UserData | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
@@ -3301,6 +3322,21 @@ export default function App() {
 
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/reset-password') {
+      const token = new URLSearchParams(location.search).get('token');
+      setResetPasswordToken(token || null);
+    } else {
+      setResetPasswordToken(null);
+    }
+  }, [location.pathname, location.search]);
+
+  const handleResetPasswordSuccess = () => {
+    window.history.replaceState({}, '', '/');
+    setResetPasswordToken(null);
+    setShowLogin(true);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -3717,7 +3753,33 @@ export default function App() {
         />
 
         {/* Modals */}
-        {showLogin && <LoginModal onClose={()=>setShowLogin(false)} onLogin={setUser} showToast={showToast}/>}
+        {showLogin && (
+          <LoginModal
+            onClose={() => setShowLogin(false)}
+            onLogin={setUser}
+            showToast={showToast}
+            onForgotPassword={() => setShowForgotPassword(true)}
+          />
+        )}
+        {showForgotPassword && (
+          <ForgotPasswordModal
+            isOpen={showForgotPassword}
+            onClose={() => setShowForgotPassword(false)}
+            onSubmit={(email) => api.forgotPassword(email)}
+          />
+        )}
+        {resetPasswordToken && (
+          <ResetPasswordModal
+            isOpen={!!resetPasswordToken}
+            token={resetPasswordToken}
+            onClose={() => {
+              window.history.replaceState({}, '', '/');
+              setResetPasswordToken(null);
+            }}
+            onSuccess={handleResetPasswordSuccess}
+            onSubmit={(token, newPassword) => api.resetPassword(token, newPassword)}
+          />
+        )}
         {showCreate && user && (
           <CreatePostModal
             user={user}
