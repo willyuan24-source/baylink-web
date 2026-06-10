@@ -749,25 +749,27 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
   );
 };
 
-// ✨ 信任徽章
+// ✨ 信任徽章（手机验证与官方认证独立展示）
 const TrustBadge = ({ user, size = 16, showText = false }: { user: Partial<UserData>, size?: number, showText?: boolean }) => {
-    if (user?.isOfficialVerified) {
-        return (
-            <div className="flex items-center gap-1 text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded-full border border-yellow-200" title="官方认证">
-                <BadgeCheck size={size} fill="#FBBF24" className="text-white"/>
-                {showText && <span className="text-[10px] font-bold">官方严选</span>}
-            </div>
-        );
-    }
-    if (user?.isPhoneVerified) {
-        return (
-            <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200" title="手机验证">
-                <ShieldCheck size={size} fill="#3B82F6" className="text-white"/>
-                {showText && <span className="text-[10px] font-bold">已验证</span>}
-            </div>
-        );
-    }
-    return null;
+    const phoneVerified = !!user?.isPhoneVerified;
+    const officialVerified = !!user?.isOfficialVerified;
+    if (!phoneVerified && !officialVerified) return null;
+    return (
+        <span className="inline-flex flex-wrap items-center gap-1">
+            {phoneVerified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-600" title="手机验证已完成">
+                    <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
+                    {showText && <span className="text-[10px] font-bold">已验证</span>}
+                </span>
+            )}
+            {officialVerified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-1.5 py-0.5 text-yellow-600" title="BAYLINK 官方认证账号">
+                    <BadgeCheck size={size} fill="#FBBF24" className="text-white" />
+                    {showText && <span className="text-[10px] font-bold">官方认证</span>}
+                </span>
+            )}
+        </span>
+    );
 };
 
 // --- API ---
@@ -835,6 +837,20 @@ const OFFICIAL_VERIFICATION_TYPE_LABELS: Record<string, string> = {
   official_account: '官方账号',
   community_org: '社区组织',
   other: '其他',
+};
+
+const getOfficialTypeLabel = (type?: string) =>
+  type ? (OFFICIAL_VERIFICATION_TYPE_LABELS[type] || type) : '';
+
+const getPhoneVerificationTrustLabel = (verified?: boolean) =>
+  verified ? '手机验证：已完成' : '手机验证：未完成';
+
+const getMyOfficialTrustLabel = (user: UserData) => {
+  const status = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
+  if (status === 'approved' || user?.isOfficialVerified) return '官方认证：已通过';
+  if (status === 'pending') return '官方认证：审核中';
+  if (status === 'rejected') return '官方认证：未通过，可重新申请';
+  return '官方认证：未申请';
 };
 
 const REPORT_REASON_LABELS: Record<string, string> = {
@@ -1550,8 +1566,15 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                 <div className="space-y-1.5">
                   <p>已加入 BAYLINK <span className="font-medium text-baylink-text">{joinDays ?? '—'}</span> 天</p>
                   <p>发布 <span className="font-medium text-baylink-text">{profile.postCount}</span> 条本地信息</p>
-                  <p>{profile.isPhoneVerified ? '手机已验证' : '手机未验证'}</p>
-                  <p>{profile.isOfficialVerified ? '官方认证用户' : '社区用户'}</p>
+                  <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
+                  {profile.isOfficialVerified && (
+                    <>
+                      <p>官方认证：已通过</p>
+                      {profile.officialVerification?.type && (
+                        <p>认证类型：{getOfficialTypeLabel(profile.officialVerification.type)}</p>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1648,10 +1671,14 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
                     <Avatar src={profile.avatar} name={profile.nickname} size={24} className="shadow-xl border-4 border-white"/>
                     <div className="absolute -bottom-2 -right-2"><TrustBadge user={profile} size={24} /></div>
                  </div>
-                 <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-2">{profile.nickname}</h2>
-                 <div className="flex gap-2 mb-6">
+                 <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-2 flex-wrap">{profile.nickname} <TrustBadge user={profile} size={12} showText /></h2>
+                 <div className="flex flex-wrap gap-2 mb-4">
                      <span className={`text-xs px-2.5 py-1 rounded-lg font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>{profile.role === 'admin' ? '管理员' : '社区居民'}</span>
-                     {profile.isPhoneVerified && <span className="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1"><ShieldCheck size={12}/> 手机已验证</span>}
+                 </div>
+                 <div className="w-full bg-white p-4 rounded-2xl shadow-sm border border-white mb-6 text-sm text-gray-600">
+                   <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">信任信息</h3>
+                   <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
+                   {profile.isOfficialVerified && <p className="mt-1">官方认证：已通过</p>}
                  </div>
                  {profile.socialLinks && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
                  <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6"><h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3><p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">{profile.bio || "这个用户很懒，还没有写简介。"}</p></div>
@@ -1794,7 +1821,7 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
                  <div className="bg-white p-4 rounded-2xl shadow-sm mb-5 flex items-center justify-between border border-blue-50">
                      <div className="flex items-center gap-3">
                          <div className={`p-2 rounded-full ${user.isPhoneVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}><Smartphone size={20}/></div>
-                         <div><div className="font-bold text-sm text-gray-900">手机验证</div><div className="text-[10px] text-gray-400">{user.isPhoneVerified ? '手机已验证' : '未验证手机号'}</div></div>
+                         <div><div className="font-bold text-sm text-gray-900">手机验证</div><div className="text-[10px] text-gray-400">{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</div></div>
                      </div>
                      {!user.isPhoneVerified ? (
                          <button onClick={() => setShowVerify(true)} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition">验证手机号</button>
@@ -2976,12 +3003,13 @@ type AdminReportItem = {
 };
 
 type OfficialVerificationRequestItem = {
-  userId: string;
+  id: string;
+  userId?: string;
   nickname: string;
-  email: string;
   avatar?: string;
-  isPhoneVerified: boolean;
-  isOfficialVerified: boolean;
+  isPhoneVerified?: boolean;
+  phoneVerifiedAt?: number | null;
+  isOfficialVerified?: boolean;
   officialVerification: {
     status: string;
     type?: string;
@@ -2990,9 +3018,12 @@ type OfficialVerificationRequestItem = {
     license?: string;
     socialLink?: string;
     submittedAt?: number;
+    reviewedAt?: number | null;
     rejectionReason?: string;
   };
 };
+
+const getOfficialRequestUserId = (r: OfficialVerificationRequestItem) => r.id || r.userId || '';
 
 const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => void; showToast: (msg: string, type?: 'success' | 'error' | 'info') => void }) => {
   const [requests, setRequests] = useState<OfficialVerificationRequestItem[]>([]);
@@ -3019,7 +3050,7 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, { status: 'approved' });
-      setRequests((prev) => prev.filter((r) => r.userId !== userId));
+      setRequests((prev) => prev.filter((r) => getOfficialRequestUserId(r) !== userId));
       showToast('已通过官方认证', 'success');
     } catch (e: any) {
       showToast(e?.error || '操作失败', 'error');
@@ -3035,7 +3066,7 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
         status: 'rejected',
         rejectionReason: rejectReason.trim() || '资料不足，请补充官网或 license 信息。',
       });
-      setRequests((prev) => prev.filter((r) => r.userId !== userId));
+      setRequests((prev) => prev.filter((r) => getOfficialRequestUserId(r) !== userId));
       setRejectingId(null);
       setRejectReason('');
       showToast('已拒绝认证申请', 'success');
@@ -3059,22 +3090,35 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
           <p className="py-16 text-center text-sm text-baylink-muted">暂无待审核申请</p>
         ) : (
           <div className="space-y-3">
-            {requests.map((r) => (
-              <div key={r.userId} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
+            {requests.map((r) => {
+              const requestUserId = getOfficialRequestUserId(r);
+              const phoneVerified = r.isPhoneVerified === true;
+              return (
+              <div key={requestUserId} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <Avatar src={r.avatar} name={r.nickname} size={10} className="shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-baylink-text">{r.nickname}</div>
-                    <div className="text-[11px] text-baylink-muted truncate">{r.email}</div>
                     <div className="mt-1 text-xs text-baylink-text-secondary">
-                      {OFFICIAL_VERIFICATION_TYPE_LABELS[r.officialVerification?.type || ''] || r.officialVerification?.type}
-                      {r.isPhoneVerified && <span className="ml-2 text-blue-600">· 手机已验证</span>}
+                      认证类型：{getOfficialTypeLabel(r.officialVerification?.type) || '—'}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-baylink-muted">
+                      {getPhoneVerificationTrustLabel(phoneVerified)}
+                      {phoneVerified && r.phoneVerifiedAt ? (
+                        <span className="ml-1">· {new Date(r.phoneVerifiedAt).toLocaleDateString()}</span>
+                      ) : null}
                     </div>
                     {r.officialVerification?.submittedAt && (
-                      <div className="text-[10px] text-baylink-muted">{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
+                      <div className="text-[10px] text-baylink-muted">申请时间：{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
                     )}
                   </div>
                 </div>
+                {!phoneVerified && (
+                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+                    <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600" />
+                    <span>该用户尚未完成手机验证，建议谨慎审核；你仍然可以通过或拒绝该认证申请。</span>
+                  </div>
+                )}
                 {r.officialVerification?.description && (
                   <p className="mt-3 text-xs leading-relaxed text-baylink-text-secondary">{r.officialVerification.description}</p>
                 )}
@@ -3083,7 +3127,7 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
                   {r.officialVerification?.license && <p>资质：{r.officialVerification.license}</p>}
                   {r.officialVerification?.socialLink && <p>社交：{r.officialVerification.socialLink}</p>}
                 </div>
-                {rejectingId === r.userId ? (
+                {rejectingId === requestUserId ? (
                   <div className="mt-3 space-y-2">
                     <textarea
                       className="w-full rounded-xl border border-baylink-border/50 p-2 text-xs outline-none"
@@ -3093,18 +3137,18 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
                       rows={2}
                     />
                     <div className="flex gap-2">
-                      <button type="button" disabled={updatingId === r.userId} onClick={() => handleReject(r.userId)} className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-bold text-white disabled:opacity-50">确认拒绝</button>
+                      <button type="button" disabled={updatingId === requestUserId} onClick={() => handleReject(requestUserId)} className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-bold text-white disabled:opacity-50">确认拒绝</button>
                       <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="rounded-lg border border-baylink-border/60 px-3 py-2 text-xs font-semibold">取消</button>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-3 flex gap-2">
-                    <button type="button" disabled={updatingId === r.userId} onClick={() => handleApprove(r.userId)} className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50">通过</button>
-                    <button type="button" disabled={updatingId === r.userId} onClick={() => setRejectingId(r.userId)} className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">拒绝</button>
+                    <button type="button" disabled={updatingId === requestUserId} onClick={() => handleApprove(requestUserId)} className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50">通过</button>
+                    <button type="button" disabled={updatingId === requestUserId} onClick={() => setRejectingId(requestUserId)} className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">拒绝</button>
                   </div>
                 )}
               </div>
-            ))}
+            );})}
           </div>
         )}
       </div>
@@ -3199,13 +3243,7 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
   );
 };
 
-const getOfficialVerificationStatusLabel = (user: UserData) => {
-  const status = user.officialVerification?.status || (user.isOfficialVerified ? 'approved' : 'none');
-  if (status === 'approved' || user.isOfficialVerified) return '官方认证已通过';
-  if (status === 'pending') return '官方认证审核中';
-  if (status === 'rejected') return '认证未通过，可重新提交';
-  return '申请官方认证';
-};
+const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
 const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast }: any) => {
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
@@ -3275,6 +3313,18 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
                 )}
               </div>
             )}
+          </div>
+
+          <div className="mb-4 rounded-[1.5rem] border border-baylink-border/40 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold text-gray-500 mb-2">信任信息</p>
+            <div className="space-y-1 text-[11px] text-gray-600">
+              {joinDays != null && <p>已加入 BAYLINK <span className="font-medium text-gray-900">{joinDays}</span> 天</p>}
+              <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
+              <p>{getMyOfficialTrustLabel(user)}</p>
+              {(officialStatus === 'approved' || user.isOfficialVerified) && user.officialVerification?.type && (
+                <p>认证类型：{getOfficialTypeLabel(user.officialVerification.type)}</p>
+              )}
+            </div>
           </div>
 
           <div className="mb-4 rounded-[1.5rem] border border-amber-200/60 bg-white p-4 shadow-sm">
