@@ -259,6 +259,7 @@ interface UserData {
   website?: string; xiaohongshu?: string;
   createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
+  phone?: string;
   socialLinks?: { linkedin?: string; instagram?: string; };
 }
 
@@ -745,9 +746,9 @@ const TrustBadge = ({ user, size = 16, showText = false }: { user: Partial<UserD
     }
     if (user?.isPhoneVerified) {
         return (
-            <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200" title="实名认证">
+            <div className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200" title="手机验证">
                 <ShieldCheck size={size} fill="#3B82F6" className="text-white"/>
-                {showText && <span className="text-[10px] font-bold">已实名</span>}
+                {showText && <span className="text-[10px] font-bold">已验证</span>}
             </div>
         );
     }
@@ -790,6 +791,10 @@ const api = {
   updateAdminReport: async (id: string, status: 'reviewed' | 'dismissed') =>
     await api.request(`/admin/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+  startPhoneVerification: async (phone: string) =>
+    await api.request('/users/me/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
+  verifyPhoneCode: async (code: string) =>
+    await api.request('/users/me/phone/verify', { method: 'POST', body: JSON.stringify({ code }) }),
   forgotPassword: async (email: string) =>
     await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: async (token: string, newPassword: string) =>
@@ -1616,7 +1621,7 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
                  <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-2">{profile.nickname}</h2>
                  <div className="flex gap-2 mb-6">
                      <span className={`text-xs px-2.5 py-1 rounded-lg font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>{profile.role === 'admin' ? '管理员' : '社区居民'}</span>
-                     {profile.isPhoneVerified && <span className="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1"><ShieldCheck size={12}/> 实名认证</span>}
+                     {profile.isPhoneVerified && <span className="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1"><ShieldCheck size={12}/> 手机已验证</span>}
                  </div>
                  {profile.socialLinks && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
                  <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6"><h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3><p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">{profile.bio || "这个用户很懒，还没有写简介。"}</p></div>
@@ -1628,31 +1633,36 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
 
 const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) => {
     const [step, setStep] = useState(1);
-    const [phone, setPhone] = useState(user.contactValue || '');
+    const [phone, setPhone] = useState(user.phone || '');
     const [code, setCode] = useState('');
+    const [devCode, setDevCode] = useState('');
     const [loading, setLoading] = useState(false);
 
     const sendCode = async () => {
-        if (!phone || phone.length < 10) return showToast('请输入有效的手机号', 'error');
+        if (!phone || phone.replace(/\D/g, '').length < 10) return showToast('请输入有效的手机号', 'error');
         setLoading(true);
         try {
-            await api.verifyPhone(phone);
+            const res = await api.startPhoneVerification(phone);
+            if (import.meta.env.DEV && res.devCode) setDevCode(res.devCode);
             showToast('验证码已发送', 'success');
             setStep(2);
-        } catch(e: any) { showToast(e.message || '发送失败', 'error'); } 
+        } catch(e: any) { showToast(e.error || e.message || '发送失败', 'error'); }
         finally { setLoading(false); }
     };
 
     const verifyCode = async () => {
-        if (!code) return showToast('请输入验证码', 'error');
+        if (!code || code.trim().length < 6) return showToast('请输入6位验证码', 'error');
         setLoading(true);
         try {
-            const res = await api.verifyPhone(phone, code);
-            localStorage.setItem('currentUser', JSON.stringify(res.user));
-            onVerified(res.user);
-            showToast('认证成功！', 'success');
+            const res = await api.verifyPhoneCode(code.trim());
+            const stored = localStorage.getItem('currentUser');
+            const current = stored ? safeParse(stored) : {};
+            const nextUser = { ...current, ...res.user };
+            localStorage.setItem('currentUser', JSON.stringify(nextUser));
+            onVerified(nextUser);
+            showToast('手机验证已完成', 'success');
             onClose();
-        } catch(e: any) { showToast(e.message || '验证码错误', 'error'); }
+        } catch(e: any) { showToast(e.error || e.message || '验证码错误', 'error'); }
         finally { setLoading(false); }
     };
 
@@ -1661,16 +1671,20 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
             <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
-                <h3 className="text-xl font-black text-center mb-2">实名认证</h3>
+                <h3 className="text-xl font-black text-center mb-1">手机验证</h3>
+                <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition" placeholder="输入手机号 (如 +1...)" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition" placeholder="输入手机号 (如 4151234567)" value={phone} onChange={e => setPhone(e.target.value)} />
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition tracking-widest text-lg" placeholder="验证码" value={code} onChange={e => setCode(e.target.value)} />
-                        <button onClick={verifyCode} disabled={loading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 active:scale-95 transition">{loading ? '验证中...' : '确认验证'}</button>
+                        {import.meta.env.DEV && devCode && (
+                          <p className="text-center text-[10px] text-amber-700">开发测试码：{devCode}</p>
+                        )}
+                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition tracking-widest text-lg" placeholder="6位验证码" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+                        <button onClick={verifyCode} disabled={loading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 active:scale-95 transition">{loading ? '验证中...' : '完成验证'}</button>
                     </div>
                 )}
             </div>
@@ -1738,10 +1752,10 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
                  <div className="bg-white p-4 rounded-2xl shadow-sm mb-5 flex items-center justify-between border border-blue-50">
                      <div className="flex items-center gap-3">
                          <div className={`p-2 rounded-full ${user.isPhoneVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}><Smartphone size={20}/></div>
-                         <div><div className="font-bold text-sm text-gray-900">实名认证</div><div className="text-[10px] text-gray-400">{user.isPhoneVerified ? '已验证手机号' : '未验证手机号'}</div></div>
+                         <div><div className="font-bold text-sm text-gray-900">手机验证</div><div className="text-[10px] text-gray-400">{user.isPhoneVerified ? '手机已验证' : '未验证手机号'}</div></div>
                      </div>
                      {!user.isPhoneVerified ? (
-                         <button onClick={() => setShowVerify(true)} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition">去认证</button>
+                         <button onClick={() => setShowVerify(true)} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition">验证手机号</button>
                      ) : (
                          <div className="text-blue-600 text-xs font-bold flex items-center gap-1"><Check size={14}/> 已认证</div>
                      )}
