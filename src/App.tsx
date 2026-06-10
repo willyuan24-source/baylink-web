@@ -15,6 +15,8 @@ import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssis
 import ReportModal, { type ReportReason } from './components/ReportModal';
 import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
+import { PrivacyPolicyView } from './components/PrivacyPolicyView';
+import { TermsView } from './components/TermsView';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
@@ -1677,6 +1679,12 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
                     <div className="space-y-4">
                         <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition" placeholder="输入手机号 (如 4151234567)" value={phone} onChange={e => setPhone(e.target.value)} />
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
+                        <p className="text-[10px] leading-relaxed text-gray-500">
+                          点击发送验证码，即表示你同意接收 BAYLINK 的一次性短信验证码。短信和数据费用可能适用。可回复 STOP 退订，回复 HELP 获取帮助。
+                        </p>
+                        <p className="text-[9px] leading-relaxed text-gray-400">
+                          By clicking Send verification code, you agree to receive one-time SMS verification messages from BAYLINK. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -3266,6 +3274,10 @@ export default function App() {
       document.title = '消息｜BayLink';
     } else if (path === '/me') {
       document.title = '我的｜BayLink';
+    } else if (path === '/privacy') {
+      document.title = 'Privacy Policy｜BayLink';
+    } else if (path === '/terms') {
+      document.title = 'Terms of Service｜BayLink';
     } else {
       document.title = 'BayLink｜湾区真实生活信息站';
     }
@@ -3734,6 +3746,8 @@ export default function App() {
              </div>
            )}
            {(tab === 'profile' || location.pathname === '/me') && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={navigateToPost} onUpdateUser={setUser} showToast={showToast} />}
+           {location.pathname === '/privacy' && <PrivacyPolicyView />}
+           {location.pathname === '/terms' && <TermsView />}
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
