@@ -1641,14 +1641,19 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
     const [loading, setLoading] = useState(false);
 
     const sendCode = async () => {
-        if (!phone || phone.replace(/\D/g, '').length < 10) return showToast('请输入有效的手机号', 'error');
+        const digits = phone.replace(/\D/g, '');
+        if (!digits || (digits.length !== 10 && !(digits.length === 11 && digits.startsWith('1')))) {
+          return showToast('请输入有效的美国手机号。', 'error');
+        }
         setLoading(true);
         try {
             const res = await api.startPhoneVerification(phone);
             if (import.meta.env.DEV && res.devCode) setDevCode(res.devCode);
             showToast('验证码已发送', 'success');
             setStep(2);
-        } catch(e: any) { showToast(e.error || e.message || '发送失败', 'error'); }
+        } catch(e: any) {
+            showToast(e.error || e.message || '验证码发送失败，请稍后再试。', 'error');
+        }
         finally { setLoading(false); }
     };
 
@@ -1677,7 +1682,8 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
                 <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition" placeholder="输入手机号 (如 4151234567)" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <p className="text-center text-[10px] text-gray-400">例如：4156012119 或 +14156012119</p>
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
                         <p className="text-[10px] leading-relaxed text-gray-500">
                           点击发送验证码，即表示你同意接收 BAYLINK 的一次性短信验证码。短信和数据费用可能适用。可回复 STOP 退订，回复 HELP 获取帮助。
