@@ -254,6 +254,9 @@ interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
   bio?: string; avatar?: string;
+  area?: string; city?: string;
+  profileTags?: string[]; interests?: string[];
+  website?: string; xiaohongshu?: string;
   createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
   socialLinks?: { linkedin?: string; instagram?: string; };
@@ -298,7 +301,7 @@ const toAdDetailItem = (ad: Partial<AdData> & { isDemo?: boolean }): AdDetailIte
 });
 
 interface PostData {
-  id: string; authorId: string; author: { nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; }; 
+  id: string; authorId: string; author: { id?: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; }; 
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
