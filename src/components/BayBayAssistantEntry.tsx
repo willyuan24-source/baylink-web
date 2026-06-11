@@ -177,7 +177,7 @@ export const BayBayAssistantEntry = ({
     setInteractiveCards([]);
 
     try {
-      const res = await fetchGuideChat(msg, categoryHint);
+      const res = await fetchGuideChat(msg);
       if (!res.ok || !res.answer) {
         setChatError(true);
         return;
