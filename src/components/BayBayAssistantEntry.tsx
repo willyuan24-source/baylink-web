@@ -253,7 +253,7 @@ export const BayBayAssistantEntry = ({
         <button
           type="button"
           onClick={openPanel}
-          className="mb-2 flex w-full min-h-[68px] max-h-[86px] items-center gap-2.5 rounded-2xl border border-baylink-green/15 bg-gradient-to-r from-baylink-green/8 via-white to-[#FFF8F0]/90 px-3 py-2.5 text-left shadow-card transition active:scale-[0.99] hover:border-baylink-green/25"
+          className="mb-2 flex w-full min-h-[60px] max-h-[76px] items-center gap-2.5 rounded-2xl border border-baylink-green/12 bg-white/80 px-3 py-2 text-left shadow-rest transition active:scale-[0.99] hover:border-baylink-green/20 hover:bg-baylink-green/[0.03]"
         >
           <img
             src={BRAND.baybayAvatar}
@@ -263,8 +263,8 @@ export const BayBayAssistantEntry = ({
             height={44}
           />
           <div className="min-w-0 flex-1">
-            <div className="line-clamp-1 text-sm font-bold text-baylink-text">BayBay 帮你找方向</div>
-            <div className="line-clamp-1 text-[10px] text-baylink-muted">问租房、找服务、买卖二手、发帖求助</div>
+            <div className="line-clamp-1 text-[13px] font-semibold text-baylink-text">BayBay 帮你找方向</div>
+            <div className="line-clamp-1 text-[11px] text-baylink-muted">问租房、找服务、买卖二手、发帖求助</div>
           </div>
           <ChevronRight size={18} className="shrink-0 text-baylink-green/70" />
         </button>

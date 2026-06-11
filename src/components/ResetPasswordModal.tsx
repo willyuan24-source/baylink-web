@@ -12,6 +12,8 @@ type ResetPasswordModalProps = {
 const validatePassword = (password: string) =>
   password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
 
+const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
+
 export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit }: ResetPasswordModalProps) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,17 +53,16 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/80 p-6 backdrop-blur-md animate-in fade-in">
-      <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[2.5rem] bg-[#FFF8F0] p-8 shadow-2xl">
-        <div className="absolute left-0 top-0 h-2 w-full bg-gradient-to-r from-green-400 to-teal-500" />
-        <button type="button" onClick={onClose} className="absolute right-5 top-5 rounded-full bg-white p-2 text-gray-400 transition hover:text-gray-900">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+      <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
+        <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
           <X size={18} />
         </button>
-        <h2 className="mb-1 text-center text-2xl font-black text-gray-900">重设密码</h2>
-        <p className="mb-6 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-gray-400">设置您的新密码</p>
+        <h2 className="mb-1 text-center text-xl font-bold text-baylink-text">重设密码</h2>
+        <p className="mb-6 text-center text-[11px] text-baylink-muted">设置您的新密码</p>
 
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600">
             <AlertCircle size={14} />
             {error}
           </div>
@@ -69,14 +70,14 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
 
         {successMessage ? (
           <div className="space-y-4">
-            <div className="flex items-start gap-2 rounded-xl bg-green-50 p-4 text-sm text-green-800">
-              <CheckCircle size={18} className="mt-0.5 shrink-0" />
+            <div className="flex items-start gap-2 rounded-2xl border border-baylink-green/15 bg-baylink-green-light/60 p-4 text-sm text-baylink-text">
+              <CheckCircle size={18} className="mt-0.5 shrink-0 text-baylink-green" />
               <p>{successMessage}</p>
             </div>
             <button
               type="button"
               onClick={onSuccess}
-              className="w-full rounded-2xl bg-gray-900 py-4 font-bold text-white shadow-lg transition hover:bg-gray-800 active:scale-95"
+              className="w-full rounded-2xl bg-baylink-green py-3.5 font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
             >
               去登录
             </button>
@@ -87,7 +88,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
               required
               type="password"
               autoComplete="new-password"
-              className="w-full rounded-2xl bg-white p-4 font-bold placeholder:font-normal placeholder:text-gray-400"
+              className={inputClass}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="新密码"
@@ -96,7 +97,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
               required
               type="password"
               autoComplete="new-password"
-              className="w-full rounded-2xl bg-white p-4 font-bold placeholder:font-normal placeholder:text-gray-400"
+              className={inputClass}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="确认新密码"
@@ -104,7 +105,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-2xl bg-gray-900 py-4 font-bold text-white shadow-lg transition hover:bg-gray-800 active:scale-95 disabled:opacity-60"
+              className="w-full rounded-2xl bg-baylink-green py-3.5 font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:opacity-60"
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">

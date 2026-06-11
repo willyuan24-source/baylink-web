@@ -182,63 +182,39 @@ html, body, #root {
   }
 }
 
-.baylink-hero-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-@media (min-width: 640px) {
-  .baylink-hero-badges {
-    margin-bottom: 10px;
-  }
-}
-
 .baylink-hero-title {
-  font-size: 1.0625rem;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.025em;
   color: #17202a;
 }
 
 @media (min-width: 640px) {
   .baylink-hero-title {
-    font-size: 1.75rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .baylink-hero-title {
-    white-space: nowrap;
+    font-size: 1.875rem;
   }
 }
 
 @media (min-width: 1024px) {
   .baylink-hero-title {
-    font-size: 1.85rem;
+    font-size: 2rem;
   }
 }
 
 .baylink-hero-subtitle {
-  margin-top: 6px;
-  font-size: 0.625rem;
-  line-height: 1.45;
-  color: #6b7280;
+  margin-top: 8px;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: #5c6370;
+  max-width: 28rem;
 }
 
 @media (min-width: 640px) {
   .baylink-hero-subtitle {
-    margin-top: 8px;
-    font-size: 0.8125rem;
+    margin-top: 10px;
+    font-size: 0.875rem;
   }
-}
-
-.baylink-hero-desc {
-  margin-top: 4px;
-  font-size: 0.6875rem;
-  color: #9a978f;
 }
 
 .baylink-hero-cta {
@@ -259,32 +235,32 @@ html, body, #root {
 }
 
 .baylink-hero-btn-primary {
-  @apply rounded-xl bg-baylink-green font-bold text-white shadow-soft transition;
+  @apply rounded-xl bg-baylink-green font-semibold text-white shadow-rest transition;
   @apply hover:bg-baylink-green-hover active:scale-[0.98];
   padding: 10px 12px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 @media (min-width: 640px) {
   .baylink-hero-btn-primary {
     flex: 1.35;
     padding: 11px 16px;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 }
 
 .baylink-hero-btn-secondary {
-  @apply rounded-xl border border-baylink-green/30 bg-white/95 font-semibold text-baylink-green backdrop-blur-sm transition;
-  @apply hover:bg-baylink-green-light/60 active:scale-[0.98];
+  @apply rounded-xl border border-baylink-green/25 bg-white/90 font-semibold text-baylink-green backdrop-blur-sm transition;
+  @apply hover:bg-baylink-green-light/50 active:scale-[0.98];
   padding: 10px 12px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 @media (min-width: 640px) {
   .baylink-hero-btn-secondary {
     flex: 1;
     padding: 11px 16px;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 }
 

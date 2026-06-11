@@ -983,27 +983,21 @@ const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' |
   </div>
 );
 
-const BayHero = ({ onPublishNeed, onPublishService }: { onPublishNeed: () => void; onPublishService: () => void }) => (
-  <section className="mb-1.5 sm:mb-3">
-    <div className="baylink-hero-photo bay-hero-card relative min-h-[200px] max-h-[230px] sm:min-h-[300px] sm:max-h-[340px]">
+const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: () => void; onBrowseResources: () => void }) => (
+  <section className="mb-2 sm:mb-3">
+    <div className="baylink-hero-photo bay-hero-card relative min-h-[188px] max-h-[220px] sm:min-h-[272px] sm:max-h-[300px]">
       <div className="baylink-hero-inner">
         <div className="baylink-hero-content">
-          <div className="baylink-hero-badges">
-            <span className="trust-badge-pill bg-white/92 shadow-sm">Bay Area</span>
-            <span className="trust-badge-pill hidden bg-white/92 shadow-sm sm:inline">湾区生活</span>
-          </div>
-          <h2 className="baylink-hero-title">湾区真实生活信息站</h2>
+          <h2 className="baylink-hero-title">湾区华人本地生活平台</h2>
           <p className="baylink-hero-subtitle">
-            <span className="sm:hidden">租房 · 二手 · 本地服务 · 接送</span>
-            <span className="hidden sm:inline">租房 · 二手 · 本地服务 · 接送 · 推荐</span>
+            租房、二手、本地服务、接送和生活指南，一站式连接湾区邻里。
           </p>
-          <p className="baylink-hero-desc hidden sm:block">一站式解决湾区生活大小事</p>
           <div className="baylink-hero-cta">
             <button type="button" onClick={onPublishNeed} className="baylink-hero-btn-primary">
               发布需求
             </button>
-            <button type="button" onClick={onPublishService} className="baylink-hero-btn-secondary">
-              提供服务
+            <button type="button" onClick={onBrowseResources} className="baylink-hero-btn-secondary">
+              浏览资源
             </button>
           </div>
         </div>
@@ -1208,14 +1202,14 @@ const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, on
 };
 
 const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
-  <div className="bg-white p-0.5 rounded-xl flex gap-0.5 shadow-sm mb-2 border border-baylink-border/40">
-    <button onClick={onProvider} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
+  <div className="mb-2 flex gap-0.5 rounded-xl border border-baylink-border/40 bg-white/90 p-0.5 shadow-rest">
+    <button onClick={onProvider} className={`flex-1 rounded-[10px] px-2 py-2 text-left transition-all ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
       <div className="text-[13px] font-semibold leading-tight">本地资源</div>
-      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">房源、服务、二手、推荐</div>
+      <div className="mt-0.5 text-[11px] font-normal leading-snug opacity-75">房源、服务、二手、推荐</div>
     </button>
-    <button onClick={onClient} className={`flex-1 py-2 px-2 rounded-[10px] transition-all text-left ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
+    <button onClick={onClient} className={`flex-1 rounded-[10px] px-2 py-2 text-left transition-all ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
       <div className="text-[13px] font-semibold leading-tight">邻里需求</div>
-      <div className="text-[10px] opacity-75 mt-0.5 font-normal leading-snug">看看谁需要帮忙</div>
+      <div className="mt-0.5 text-[11px] font-normal leading-snug opacity-75">看看谁需要帮忙</div>
     </button>
   </div>
 );
@@ -1266,31 +1260,27 @@ const ShareModal = ({ post, onClose, showToast }: any) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl transform transition-all scale-100">
-        <div className="bg-gradient-to-br from-green-700 to-teal-600 p-8 text-white text-center relative overflow-hidden">
-          <div className="relative z-10">
-            <h3 className="text-2xl font-black mb-1 tracking-tight">BAYLINK</h3>
-            <p className="text-[10px] opacity-80 uppercase tracking-[0.2em] font-medium mt-1">湾区华人互助平台</p>
-          </div>
-          <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-yellow-400/20 rounded-full blur-3xl"></div>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+      <div className="w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 shadow-elevated backdrop-blur-xl">
+        <div className="border-b border-black/[0.04] bg-gradient-to-br from-baylink-green/[0.08] via-white to-baylink-bg-alt px-6 py-5 text-center">
+          <h3 className="text-lg font-bold tracking-tight text-baylink-text">分享帖子</h3>
+          <p className="mt-1 text-[11px] text-baylink-muted">复制链接，分享给湾区邻里</p>
         </div>
-        <div className="p-6">
-          <div className="flex gap-3 items-center mb-5">
-            <Avatar src={authorAvatar} name={authorName} size={12} />
-            <div>
-              <div className="font-bold text-gray-900 text-lg">{authorName}</div>
-              <div className="text-xs text-gray-400 font-medium">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
+        <div className="p-5">
+          <div className="mb-4 flex items-center gap-3">
+            <Avatar src={authorAvatar} name={authorName} size={11} />
+            <div className="min-w-0">
+              <div className="truncate font-semibold text-baylink-text">{authorName}</div>
+              <div className="text-[11px] text-baylink-muted">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
             </div>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-3 leading-snug">{post.title}</h2>
-          <div className="bg-gray-50 p-4 rounded-2xl text-sm text-gray-600 mb-6 line-clamp-3 leading-relaxed border border-gray-100 italic">“{post.description}”</div>
-          <div className="flex gap-3">
-            <button onClick={handleCopy} className={`flex-1 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200'}`}>
+          <h2 className="mb-2 text-lg font-semibold leading-snug text-baylink-text">{post.title}</h2>
+          <div className="mb-5 line-clamp-3 rounded-2xl border border-black/[0.04] bg-white/80 p-3.5 text-sm leading-relaxed text-baylink-text-secondary">“{post.description}”</div>
+          <div className="flex gap-2.5">
+            <button onClick={handleCopy} className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 font-semibold transition active:scale-[0.98] ${copied ? 'bg-baylink-green-light text-baylink-green' : 'bg-baylink-green text-white shadow-rest hover:bg-baylink-green-hover'}`}>
               {copied ? <Check size={18} /> : <Copy size={18} />} {copied ? '已复制' : '复制链接'}
             </button>
-            <button onClick={onClose} className="p-3.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition active:scale-95"><X size={20} /></button>
+            <button onClick={onClose} className="rounded-2xl border border-black/[0.06] bg-white/90 p-3 text-baylink-muted transition hover:bg-baylink-section/60 active:scale-[0.98]"><X size={20} /></button>
           </div>
         </div>
       </div>
@@ -1384,20 +1374,20 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
   const hasMenu = showReport || canManage || isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <article onClick={onClick} className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden group cursor-pointer border border-baylink-border/30 transition-all duration-200 hover:shadow-card-hover">
-      <div className="flex items-center gap-2 px-3.5 pt-3 pb-1.5">
+    <article onClick={onClick} className="surface-card mb-3 overflow-hidden group cursor-pointer transition-all duration-200 hover:shadow-elevated hover:border-baylink-green/10">
+      <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2">
         <div onClick={(e) => { e.stopPropagation(); onAvatarClick && onAvatarClick(post.authorId); }} className="cursor-pointer shrink-0">
             <Avatar src={post.author.avatar} name={post.author.nickname} size={7} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-xs text-baylink-text flex items-center gap-1 truncate">
             <span className="font-medium">{post.author.nickname}</span>
-            <TrustBadge user={post.author} size={10}/>
+            <span className="opacity-80 scale-90 origin-left"><TrustBadge user={post.author} size={9}/></span>
           </div>
-          <div className="text-[10px] text-baylink-muted/90">{formatPostDateLine(post)}</div>
+          <div className="text-[11px] text-baylink-muted/85">{formatPostDateLine(post)}</div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <span className={`text-[9px] px-1.5 py-px rounded-md ${isProvider ? 'bg-baylink-section text-baylink-muted' : 'bg-baylink-chip-active/80 text-[#4a6b5a]'}`}>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full ${isProvider ? 'bg-baylink-section/80 text-baylink-muted' : 'bg-baylink-green-light/90 text-baylink-green'}`}>
             {isProvider ? '资源' : '需求'}
           </span>
           {hasMenu && (
@@ -1441,33 +1431,33 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
           )}
         </div>
       </div>
-      <div className="px-3.5 pb-2">
-         <h3 className="font-semibold text-[15px] text-baylink-text leading-snug line-clamp-2 mb-1">{post.title}</h3>
+      <div className="px-4 pb-2.5">
+         <h3 className="font-semibold text-base text-baylink-text leading-snug line-clamp-2 mb-1.5">{post.title}</h3>
          {hasImage ? (
-           <div className="relative mb-2 overflow-hidden rounded-xl bg-baylink-section/50">
+           <div className="relative mb-2.5 overflow-hidden rounded-xl border border-black/[0.04] bg-gradient-to-br from-baylink-section/60 to-baylink-green-light/30">
              <img
                src={coverUrl}
                alt={post.title}
-               className={`aspect-[16/10] w-full ${isSystemCover ? 'object-contain bg-baylink-section/80 p-1' : 'object-cover'}`}
+               className={`aspect-[16/10] w-full ${isSystemCover ? 'object-contain bg-baylink-section/50 p-2' : 'object-cover'}`}
                onClick={(e) => { e.stopPropagation(); onImageClick && onImageClick(coverUrl); }}
              />
              {isSystemCover && (
-               <span className="absolute left-2 top-2 rounded-md bg-black/40 px-1.5 py-0.5 text-[8px] font-medium text-white/90">系统封面</span>
+               <span className="absolute left-2.5 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium text-baylink-muted shadow-rest">封面</span>
              )}
            </div>
          ) : null}
          <p className="text-[13px] text-baylink-text-secondary line-clamp-2 leading-relaxed">{post.description}</p>
       </div>
-      <div className="px-3.5 pb-3 flex items-center justify-between gap-2">
-         <div className="flex items-center gap-2 min-w-0">
-           <span className="text-[10px] text-baylink-muted bg-baylink-section/60 px-1.5 py-px rounded">#{post.category}</span>
-           {post.budget && <span className="text-xs font-medium text-baylink-text truncate">{post.budget}</span>}
+      <div className="px-4 pb-3.5 flex items-center justify-between gap-2 border-t border-black/[0.03] pt-2.5 mx-4 mb-0.5">
+         <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+           {post.budget && <span className="text-sm font-semibold text-baylink-green truncate">{post.budget}</span>}
+           <span className="text-[11px] text-baylink-muted">#{post.category}</span>
          </div>
-         <div className="flex items-center gap-1 shrink-0">
-            <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="p-1.5 text-baylink-muted hover:text-baylink-text-secondary transition" title="分享">
+         <div className="flex items-center gap-0.5 shrink-0">
+            <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="p-1.5 text-baylink-muted/80 hover:text-baylink-text-secondary transition rounded-lg hover:bg-baylink-section/60" title="分享">
               <Share2 size={14}/>
             </button>
-            <button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-[11px] font-semibold bg-baylink-green text-white px-3 py-1.5 rounded-lg hover:bg-baylink-green-hover active:scale-[0.98] transition flex items-center gap-1">
+            <button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-[11px] font-semibold border border-baylink-green/25 bg-baylink-green/[0.08] text-baylink-green px-2.5 py-1.5 rounded-lg hover:bg-baylink-green/[0.12] active:scale-[0.98] transition flex items-center gap-1">
               <MessageCircle size={13} /> 私信
             </button>
          </div>
@@ -2450,14 +2440,13 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
 
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-md flex items-center justify-center z-[70] animate-in zoom-in-95">
-        <div className="bg-white w-full max-w-sm rounded-[2rem] p-8 text-center shadow-2xl m-4 relative overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
-           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 animate-bounce">
-              <CheckCircle size={40} />
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in zoom-in-95">
+        <div className="relative m-4 w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-8 text-center shadow-elevated backdrop-blur-xl">
+           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-baylink-green-light text-baylink-green">
+              <CheckCircle size={36} />
            </div>
-           <h2 className="text-2xl font-bold text-baylink-text mb-2">发布成功！</h2>
-           <p className="text-baylink-muted mb-4 text-sm">你的信息已推送给湾区邻居们。</p>
+           <h2 className="mb-2 text-xl font-bold text-baylink-text">发布成功</h2>
+           <p className="mb-4 text-sm text-baylink-muted">你的信息已推送给湾区邻居们。</p>
            {postTrustWarning && (
              <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs leading-relaxed text-amber-800">
                {postTrustWarning}
@@ -2741,21 +2730,22 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
     }
   };
 
+  const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
+
   return (
-    <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center p-6 z-[60] backdrop-blur-md animate-in fade-in">
-      <div className="bg-[#FFF8F0] p-8 rounded-[2.5rem] shadow-2xl w-full max-w-xs relative overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-teal-500"></div>
-        <h2 className="text-3xl font-black mb-1 text-center text-gray-900">BAYLINK</h2>
-        <p className="text-center text-[10px] text-gray-400 mb-8 tracking-[0.2em] font-medium uppercase">湾区华人互助平台</p>
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-xs font-medium flex items-center gap-2 animate-pulse"><AlertCircle size={14} />{error}</div>}
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+      <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
+        <h2 className="mb-1 text-center text-2xl font-bold text-baylink-text">BAYLINK</h2>
+        <p className="mb-6 text-center text-[11px] font-medium tracking-wide text-baylink-muted">湾区华人本地生活平台</p>
+        {error && <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
-            <input required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱账号'} />
-            <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
+            <input required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱账号'} />
+            <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className={inputClass} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
               <>
-                <input required type="password" autoComplete="new-password" className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="确认密码" />
-                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
-                <input required className="w-full p-4 bg-white rounded-2xl font-bold placeholder:font-normal placeholder:text-gray-400" value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
+                <input required type="password" autoComplete="new-password" className={inputClass} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="确认密码" />
+                <input required className={inputClass} value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
+                <input required className={inputClass} value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
               </>
             )}
             {mode === 'login' && (
@@ -2763,24 +2753,24 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
                 <button
                   type="button"
                   onClick={onForgotPassword}
-                  className="text-[10px] font-bold text-gray-400 hover:text-gray-900"
+                  className="text-[11px] font-semibold text-baylink-muted hover:text-baylink-green"
                 >
                   忘记密码?
                 </button>
               </div>
             )}
             {mode === 'register' && (
-              <p className="text-[10px] text-gray-500 text-center leading-relaxed px-1">
+              <p className="px-1 text-center text-[11px] leading-relaxed text-baylink-muted">
                 注册即代表你同意
                 <a href="/terms" className="mx-0.5 font-semibold text-baylink-green hover:underline">《服务条款》</a>
                 和
                 <a href="/privacy" className="mx-0.5 font-semibold text-baylink-green hover:underline">《隐私政策》</a>
               </p>
             )}
-            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition disabled:opacity-60">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
+            <button disabled={loading} className="w-full rounded-2xl bg-baylink-green py-3.5 font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:opacity-60">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
         </form>
-        <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
-        <button onClick={onClose} className="absolute top-5 right-5 p-2 bg-white rounded-full text-gray-400 hover:text-gray-900 transition"><X size={18} /></button>
+        <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="mt-5 w-full text-center text-xs text-baylink-muted hover:text-baylink-text">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
+        <button onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text"><X size={18} /></button>
       </div>
     </div>
   );
@@ -4432,7 +4422,10 @@ export default function App() {
                      <>
                        <BayHero
                          onPublishNeed={() => openCreate('client')}
-                         onPublishService={() => openCreate('provider')}
+                         onBrowseResources={() => {
+                           setFeedType('provider');
+                           document.getElementById('home-feed-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                         }}
                        />
                        <div id="baybay-home-entry">
                          <BayBayAssistantEntry
@@ -4455,7 +4448,9 @@ export default function App() {
                      </>
                    )}
 
+                   <div id="home-feed-section">
                    <FeedSwitch feedType={feedType} onClient={() => setFeedType('client')} onProvider={() => setFeedType('provider')} />
+                   </div>
 
                    <div className="hidden lg:flex gap-1.5 overflow-x-auto hide-scrollbar mb-2">{['全部', ...REGIONS].map(r => <FilterTag key={r} label={r === '全部' ? '全部地区' : r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
 
@@ -4478,7 +4473,7 @@ export default function App() {
                    
                    <div className="flex items-center justify-between mb-2 px-0.5">
                      <h3 className="text-xs font-semibold text-baylink-text">社区动态</h3>
-                     <span className="text-[10px] text-baylink-muted">{feedType === 'provider' ? '本地资源' : '邻里需求'}</span>
+                     <span className="text-[11px] text-baylink-muted">{feedType === 'provider' ? '本地资源' : '邻里需求'}</span>
                    </div>
                    
                    {feedError && posts.length === 0 && !isInitialLoading ? (
@@ -4548,22 +4543,22 @@ export default function App() {
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
           <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
            <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
+             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
            </button>
            <button onClick={()=>navigate('/guides')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
+             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
            </button>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-3 active:scale-95 transition px-1">
              <div className="w-10 h-10 bg-baylink-green rounded-[18px] shadow-rest flex items-center justify-center text-white ring-2 ring-baylink-bg/90"><Plus size={20} strokeWidth={2.5}/></div>
-             <span className="text-[9px] font-medium text-baylink-green mt-0.5">发布</span>
+             <span className="text-[10px] font-medium text-baylink-green mt-0.5">发布</span>
            </button>
            <button onClick={()=>navigate('/messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
              <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
              {hasNotification && <div className="absolute top-0.5 right-2.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}
-             <span className={`text-[9px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
+             <span className={`text-[10px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
            </button>
            <button onClick={()=>navigate('/me')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[9px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
+             <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
            </button>
           </div>
         </nav>
