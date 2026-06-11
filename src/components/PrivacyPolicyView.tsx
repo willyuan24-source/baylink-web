@@ -1,7 +1,7 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
 export const PrivacyPolicyView = () => (
-  <LegalPageLayout title="BAYLINK Privacy Policy" updated="June 2026">
+  <LegalPageLayout title="BAYLINK Privacy Policy" updated="May 2026">
     <LegalP>
       BAYLINK is a Bay Area local community and lifestyle information platform. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use BayBay AI features, or verify their phone number.
     </LegalP>
@@ -32,16 +32,25 @@ export const PrivacyPolicyView = () => (
 
     <LegalSection title="3. Phone Number and SMS Verification">
       <LegalP>
-        When users choose to verify their phone number, BAYLINK collects the phone number only for account security, phone verification, abuse prevention, and community trust. Phone numbers are not publicly displayed on user profiles or posts.
+        BAYLINK may collect your mobile phone number when you choose to complete phone verification for account security and community trust purposes. We use your phone number only to send one-time SMS verification codes and to help protect the BAYLINK community from spam, fraud, and abuse. Your phone number is not publicly displayed on your profile or posts.
       </LegalP>
       <LegalP>
-        BAYLINK may send one-time SMS verification codes to users who actively enter their phone number and click the button to request a verification code. BAYLINK does not use phone numbers collected for SMS verification for marketing or promotional text messages.
+        BAYLINK does not share, sell, rent, or disclose mobile phone numbers, SMS opt-in data, or SMS consent records with third parties or affiliates for marketing or promotional purposes.
+      </LegalP>
+      <LegalP>
+        SMS messages are only sent after you actively enter your phone number and request a verification code. Message and data rates may apply. Message frequency varies based on your verification requests. You may reply STOP to opt out and HELP for help.
+      </LegalP>
+      <LegalP>
+        当你选择完成手机验证时，BAYLINK 可能收集你的手机号码，仅用于账号安全、发送一次性验证码，以及帮助防范垃圾信息、欺诈和滥用行为。你的手机号不会在个人资料或帖子中公开显示。BAYLINK 不会出于营销或推广目的，向第三方或关联公司分享、出售、出租或披露手机号码、短信订阅同意数据或短信同意记录。
       </LegalP>
     </LegalSection>
 
     <LegalSection title="4. SMS Data Sharing">
       <LegalP>
-        BAYLINK does not sell, rent, or share SMS opt-in data or phone numbers with third parties for their marketing purposes. SMS opt-in information and phone numbers are used only to provide BAYLINK account verification, security, and related service messages.
+        Mobile phone numbers, SMS opt-in data, and SMS consent are not shared with third parties or affiliates for marketing or promotional purposes.
+      </LegalP>
+      <LegalP>
+        BAYLINK does not sell, rent, or share SMS opt-in data, SMS consent records, or mobile phone numbers with third parties or affiliates for marketing or promotional purposes. SMS opt-in information and phone numbers are used only to provide BAYLINK account verification, security, and related transactional service messages.
       </LegalP>
     </LegalSection>
 
@@ -72,6 +81,9 @@ export const PrivacyPolicyView = () => (
         'In connection with a business transfer, merger, acquisition, or reorganization.',
       ]} />
       <LegalP>BAYLINK does not sell personal information.</LegalP>
+      <LegalP>
+        This excludes mobile phone numbers, SMS opt-in data, and SMS consent, which will not be shared with third parties or affiliates for marketing or promotional purposes.
+      </LegalP>
     </LegalSection>
 
     <LegalSection title="9. Data Security">

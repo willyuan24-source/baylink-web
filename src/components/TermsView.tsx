@@ -1,7 +1,7 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
 export const TermsView = () => (
-  <LegalPageLayout title="BAYLINK Terms of Service" updated="June 2026">
+  <LegalPageLayout title="BAYLINK Terms of Service" updated="May 2026">
     <LegalP>
       Welcome to BAYLINK. BAYLINK is a Bay Area local community and lifestyle information platform for local posts, housing, roommate search, secondhand exchange, local services, rides, moving, cleaning, repairs, community help, local guides, and BayBay AI features.
     </LegalP>
@@ -60,19 +60,21 @@ export const TermsView = () => (
 
     <LegalSection title="8. Phone Verification and SMS Terms">
       <LegalP>
-        BAYLINK may offer phone verification to improve account security and community trust. Users opt in to receive SMS messages by logging into their BAYLINK account, opening phone verification, entering their mobile phone number, and clicking the button to request a verification code.
+        BAYLINK may offer phone verification to improve account security and community trust. By entering your mobile phone number and clicking &ldquo;Send verification code,&rdquo; you agree to receive one-time SMS verification codes from BAYLINK for account security and community trust purposes.
       </LegalP>
       <LegalP>
-        By requesting a verification code, users agree to receive one-time SMS verification messages from BAYLINK. These messages are transactional and used for account security and phone verification. BAYLINK does not send marketing or promotional SMS messages under this verification program.
+        These messages are transactional and used only for account security and phone verification. BAYLINK does not send marketing or promotional SMS messages under this verification program.
       </LegalP>
-      <LegalP>Message frequency varies based on user action. Users typically receive messages only when they request a verification code.</LegalP>
-      <LegalP>Message and data rates may apply.</LegalP>
-      <LegalP>Users can reply STOP to opt out of SMS messages. Users can reply HELP for help.</LegalP>
+      <LegalP>Message frequency varies based on your verification requests. Message and data rates may apply.</LegalP>
+      <LegalP>You can reply STOP to opt out of SMS messages and HELP for help.</LegalP>
+      <LegalP>
+        BAYLINK does not share SMS opt-in data or consent with third parties or affiliates for marketing or promotional purposes.
+      </LegalP>
+      <LegalP>Carriers are not liable for delayed or undelivered messages.</LegalP>
       <LegalP>
         For support, contact:{' '}
         <a href="mailto:Baylink.us@gmail.com" className="font-medium text-baylink-green hover:underline">Baylink.us@gmail.com</a>
       </LegalP>
-      <LegalP>Carriers are not liable for delayed or undelivered messages.</LegalP>
     </LegalSection>
 
     <LegalSection title="9. Privacy">
