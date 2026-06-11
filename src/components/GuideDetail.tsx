@@ -83,13 +83,22 @@ export const GuideDetail = ({
         )}
 
         {guide.cover && (
-          <div className="mt-5 max-w-full overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-rest">
+          <a
+            href={guide.cover}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mx-auto mt-6 block w-full max-w-[760px] rounded-2xl border border-baylink-border/60 bg-white/80 p-2 shadow-rest transition hover:border-baylink-green/25 hover:shadow-card"
+            aria-label={`${guide.title} 完整海报`}
+          >
             <img
               src={guide.cover}
               alt={`${guide.title} 海报`}
-              className="max-h-[220px] w-full object-cover sm:max-h-[260px]"
+              className="mx-auto h-auto w-full max-w-full rounded-xl object-contain"
             />
-          </div>
+            <div className="mt-2 text-center text-[11px] text-baylink-muted transition group-hover:text-baylink-green">
+              点击查看完整海报
+            </div>
+          </a>
         )}
 
         <div className="mt-6 space-y-4">
