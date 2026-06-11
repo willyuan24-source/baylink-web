@@ -13,6 +13,7 @@ import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
+import { AuthBrandHeader } from './components/AuthBrandHeader';
 import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { PrivacyPolicyView } from './components/PrivacyPolicyView';
@@ -1088,13 +1089,13 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayB
     posts.length === 1 ? 'hot-recommend-grid--cols-1' : posts.length === 2 ? 'hot-recommend-grid--cols-2' : '';
 
   return (
-    <section className="mb-2 sm:mb-3.5">
-      <div className="mb-1 flex items-start justify-between gap-2 px-0.5 sm:mb-2.5">
+    <section className="mb-1.5 sm:mb-3">
+      <div className="mb-1 flex items-start justify-between gap-2 px-0.5 sm:mb-2">
         <div className="min-w-0">
-          <h3 className="flex items-center gap-1 text-[13px] font-bold text-baylink-text sm:gap-1.5 sm:text-sm">
+          <h3 className="flex items-center gap-1 text-[13px] font-semibold text-baylink-text sm:text-sm">
             <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 热门推荐
           </h3>
-          <p className="mt-0.5 hidden text-[10px] text-baylink-muted sm:block">管理员精选的优质邻里帖子</p>
+          <p className="mt-0.5 hidden text-[11px] text-baylink-muted sm:block">精选优质邻里信息</p>
         </div>
         {onViewMore && (
           <button type="button" onClick={onViewMore} className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green-light active:scale-95 sm:text-xs">
@@ -1124,19 +1125,24 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayB
           })}
         </div>
       ) : (
-        <div className="surface-card px-3 py-2.5 text-center">
-          <p className="text-[12px] font-semibold text-baylink-text">本周推荐正在整理中</p>
-          <p className="mt-0.5 text-[11px] leading-snug text-baylink-text-secondary">先看看最新发布，或者让 BayBay 帮你找方向。</p>
+        <div className="hot-recommend-empty">
+          <div className="mx-auto mb-2.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-baylink-green-light ring-1 ring-baylink-green/15">
+            <Sparkles size={18} className="text-baylink-green" />
+          </div>
+          <p className="text-[13px] font-semibold text-baylink-text">暂时还没有热门推荐</p>
+          <p className="mx-auto mt-1 max-w-[260px] text-[11px] leading-relaxed text-baylink-muted">
+            你可以先浏览最新发布，或者让 BayBay 帮你找合适的信息。
+          </p>
           {(onAskBayBay || onPublish) && (
-            <div className="mt-2 flex justify-center gap-1.5">
+            <div className="mt-3 flex justify-center gap-2">
               {onAskBayBay && (
-                <button type="button" onClick={onAskBayBay} className="rounded-full border border-baylink-green/20 bg-baylink-green/[0.06] px-3 py-1.5 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.1] active:scale-95">
+                <button type="button" onClick={onAskBayBay} className="rounded-xl border border-baylink-green/20 bg-baylink-green-light px-3.5 py-2 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.12] active:scale-95">
                   问问 BayBay
                 </button>
               )}
               {onPublish && (
-                <button type="button" onClick={onPublish} className="rounded-full border border-black/[0.06] bg-white px-3 py-1.5 text-[11px] font-semibold text-baylink-text transition hover:bg-baylink-section/50 active:scale-95">
-                  发布信息
+                <button type="button" onClick={onPublish} className="rounded-xl border border-black/[0.06] bg-white/90 px-3.5 py-2 text-[11px] font-semibold text-baylink-text transition hover:bg-baylink-section/40 active:scale-95">
+                  发布需求
                 </button>
               )}
             </div>
@@ -1202,14 +1208,14 @@ const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, on
 };
 
 const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
-  <div className="mb-2 flex gap-0.5 rounded-xl border border-baylink-border/40 bg-white/90 p-0.5 shadow-rest">
-    <button onClick={onProvider} className={`flex-1 rounded-[10px] px-2 py-2 text-left transition-all ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">本地资源</div>
-      <div className="mt-0.5 text-[11px] font-normal leading-snug opacity-75">房源、服务、二手、推荐</div>
+  <div className="mb-2 flex gap-0.5 rounded-xl border border-baylink-border/30 bg-white/65 p-0.5">
+    <button onClick={onProvider} className={`flex-1 rounded-[10px] px-2 py-1.5 text-left transition-all ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
+      <div className="text-[12px] font-semibold leading-tight">本地资源</div>
+      <div className="mt-0.5 hidden text-[11px] font-normal leading-snug opacity-80 sm:block">房源、服务、二手</div>
     </button>
-    <button onClick={onClient} className={`flex-1 rounded-[10px] px-2 py-2 text-left transition-all ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[13px] font-semibold leading-tight">邻里需求</div>
-      <div className="mt-0.5 text-[11px] font-normal leading-snug opacity-75">看看谁需要帮忙</div>
+    <button onClick={onClient} className={`flex-1 rounded-[10px] px-2 py-1.5 text-left transition-all ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
+      <div className="text-[12px] font-semibold leading-tight">邻里需求</div>
+      <div className="mt-0.5 hidden text-[11px] font-normal leading-snug opacity-80 sm:block">看看谁需要帮忙</div>
     </button>
   </div>
 );
@@ -1262,25 +1268,31 @@ const ShareModal = ({ post, onClose, showToast }: any) => {
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
       <div className="w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 shadow-elevated backdrop-blur-xl">
-        <div className="border-b border-black/[0.04] bg-gradient-to-br from-baylink-green/[0.08] via-white to-baylink-bg-alt px-6 py-5 text-center">
-          <h3 className="text-lg font-bold tracking-tight text-baylink-text">分享帖子</h3>
-          <p className="mt-1 text-[11px] text-baylink-muted">复制链接，分享给湾区邻里</p>
+        <div className="border-b border-black/[0.04] px-5 pb-4 pt-5">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <img src={BRAND.baybayAvatar} alt="" className="h-7 w-7 rounded-lg object-cover ring-1 ring-baylink-green/15" width={28} height={28} />
+            <span className="text-sm font-bold tracking-tight text-baylink-text">BAYLINK</span>
+          </div>
+          <h3 className="text-center text-base font-semibold text-baylink-text">分享这条帖子</h3>
+          <p className="mt-1 text-center text-[11px] text-baylink-muted">复制链接，发给湾区邻里</p>
         </div>
         <div className="p-5">
-          <div className="mb-4 flex items-center gap-3">
-            <Avatar src={authorAvatar} name={authorName} size={11} />
-            <div className="min-w-0">
-              <div className="truncate font-semibold text-baylink-text">{authorName}</div>
-              <div className="text-[11px] text-baylink-muted">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
+          <div className="surface-inset mb-3 p-3.5">
+            <div className="mb-2.5 flex items-center gap-2.5">
+              <Avatar src={authorAvatar} name={authorName} size={9} />
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-baylink-text">{authorName}</div>
+                <div className="text-[11px] text-baylink-muted">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
+              </div>
             </div>
+            <h2 className="mb-1.5 text-[15px] font-semibold leading-snug text-baylink-text">{post.title}</h2>
+            <p className="line-clamp-3 text-[13px] leading-relaxed text-baylink-text-secondary">“{post.description}”</p>
           </div>
-          <h2 className="mb-2 text-lg font-semibold leading-snug text-baylink-text">{post.title}</h2>
-          <div className="mb-5 line-clamp-3 rounded-2xl border border-black/[0.04] bg-white/80 p-3.5 text-sm leading-relaxed text-baylink-text-secondary">“{post.description}”</div>
-          <div className="flex gap-2.5">
-            <button onClick={handleCopy} className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 font-semibold transition active:scale-[0.98] ${copied ? 'bg-baylink-green-light text-baylink-green' : 'bg-baylink-green text-white shadow-rest hover:bg-baylink-green-hover'}`}>
-              {copied ? <Check size={18} /> : <Copy size={18} />} {copied ? '已复制' : '复制链接'}
+          <div className="flex gap-2">
+            <button onClick={handleCopy} className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition active:scale-[0.98] ${copied ? 'bg-baylink-green-light text-baylink-green' : 'bg-baylink-green text-white shadow-rest hover:bg-baylink-green-hover'}`}>
+              {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? '已复制' : '复制链接'}
             </button>
-            <button onClick={onClose} className="rounded-2xl border border-black/[0.06] bg-white/90 p-3 text-baylink-muted transition hover:bg-baylink-section/60 active:scale-[0.98]"><X size={20} /></button>
+            <button onClick={onClose} className="rounded-xl border border-black/[0.06] bg-white/90 px-4 text-[12px] font-medium text-baylink-muted transition hover:bg-baylink-section/50 active:scale-[0.98]">关闭</button>
           </div>
         </div>
       </div>
@@ -2735,8 +2747,8 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
       <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
-        <h2 className="mb-1 text-center text-2xl font-bold text-baylink-text">BAYLINK</h2>
-        <p className="mb-6 text-center text-[11px] font-medium tracking-wide text-baylink-muted">湾区华人本地生活平台</p>
+        <AuthBrandHeader />
+        <p className="-mt-3 mb-5 text-center text-[12px] font-medium text-baylink-text">{mode === 'register' ? '创建你的湾区账号' : '欢迎回来'}</p>
         {error && <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-3">
             <input required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱账号'} />
@@ -4304,7 +4316,7 @@ export default function App() {
           width={180}
           height={36}
         />
-        <span className="text-[10px] text-baylink-muted block mt-0.5 leading-tight">湾区生活信息站</span>
+        <span className="text-[11px] text-baylink-muted block mt-0.5 leading-tight">连接湾区真实生活信息</span>
       </div>
       <nav className="space-y-0.5 flex-1">
         <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
@@ -4316,9 +4328,9 @@ export default function App() {
       </nav>
       {isHomePath(location.pathname) && (
         <div className="mt-4 sidebar-panel">
-           <h3 className="text-[10px] text-baylink-muted mb-2">探索分类</h3>
-           <div className="flex flex-wrap gap-1">
-             <button onClick={() => navigateToCategory('全部')} className={`chip text-[10px] py-1 px-2.5 ${categoryFilter==='全部'?'chip-active':'chip-inactive'}`}>全部</button>
+           <h3 className="sidebar-section-title mb-2.5">探索分类</h3>
+           <div className="flex flex-wrap gap-1.5">
+             <button onClick={() => navigateToCategory('全部')} className={`chip ${categoryFilter==='全部'?'chip-active':'chip-inactive'}`}>全部</button>
              {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
            </div>
         </div>
@@ -4331,20 +4343,20 @@ export default function App() {
     <div className="hidden lg:block w-[280px] xl:w-[300px] h-screen sticky top-0 py-6 px-4 border-l border-baylink-border/50 bg-baylink-bg overflow-y-auto shrink-0">
        {user ? (
           <div className="sidebar-panel mb-3">
-             <div className="flex items-center gap-2 mb-2.5">
+             <div className="flex items-center gap-2.5 mb-3">
                 <Avatar src={user.avatar} name={user.nickname} size={9} />
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-baylink-text truncate">{user.nickname}</div>
-                  <div className="text-[10px] text-baylink-muted">{user.role==='admin'?'管理员':'湾区邻居'}</div>
+                  <div className="text-sm font-semibold text-baylink-text truncate">{user.nickname}</div>
+                  <div className="text-[11px] text-baylink-muted">{user.role==='admin'?'管理员':'湾区邻居'}</div>
                 </div>
              </div>
-             <button onClick={() => openCreate('client')} className="w-full py-2 btn-primary text-xs flex items-center justify-center gap-1"><Plus size={15}/> 发布信息</button>
+             <button onClick={() => openCreate('client')} className="w-full py-2.5 btn-primary text-[11px] flex items-center justify-center gap-1"><Plus size={15}/> 发布需求</button>
           </div>
        ) : (
           <div className="sidebar-panel mb-3 text-center py-4">
-             <h3 className="text-sm font-medium text-baylink-text mb-1">加入 BAYLINK</h3>
-             <p className="text-[11px] text-baylink-muted mb-3">连接湾区华人邻居</p>
-             <button onClick={() => setShowLogin(true)} className="w-full py-2 btn-primary text-xs">立即登录</button>
+             <h3 className="sidebar-section-title mb-1">加入 BAYLINK</h3>
+             <p className="text-[11px] text-baylink-muted mb-3">连接湾区华人邻里</p>
+             <button onClick={() => setShowLogin(true)} className="w-full py-2.5 btn-primary text-[11px]">立即登录</button>
           </div>
        )}
        <BayBayAssistantEntry
@@ -4353,26 +4365,27 @@ export default function App() {
          onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
        />
        <div className="sidebar-panel mb-2.5">
-         <h3 className="text-[11px] font-medium text-baylink-text mb-2">本周大家在找</h3>
-         <div className="space-y-1.5 text-[11px] text-baylink-text-secondary">
+         <h3 className="sidebar-section-title mb-2">热门方向</h3>
+         <p className="mb-2 text-[11px] text-baylink-muted">常见邻里需求参考</p>
+         <div className="space-y-1 text-[12px] text-baylink-text-secondary">
            {['退房清洁', '周末搬家', '近 BART 长租', '机场接送'].map((t) => (
-             <div key={t} className="py-0.5">{t}</div>
+             <div key={t} className="rounded-lg bg-baylink-section/35 px-2.5 py-1.5">{t}</div>
            ))}
          </div>
        </div>
        <div className="sidebar-note mb-2.5">
-         <h3 className="text-[11px] font-medium text-baylink-text mb-1 flex items-center gap-1"><MapPin size={12} className="text-baylink-muted"/> 附近活跃</h3>
-         <p className="text-[10px] leading-relaxed">半岛、南湾、东湾本周都有新帖</p>
+         <h3 className="sidebar-section-title mb-1 flex items-center gap-1.5"><MapPin size={13} className="text-baylink-green/70"/> 湾区参考</h3>
+         <p className="text-[11px] leading-relaxed">半岛、南湾、东湾都是常见发帖区域</p>
        </div>
        <div className="sidebar-note mb-3 flex gap-2">
-         <Shield size={12} className="text-baylink-muted shrink-0 mt-0.5"/>
-         <p className="text-[10px] leading-relaxed">建议优先联系已认证用户，线下交易注意安全。</p>
+         <Shield size={13} className="text-baylink-green/70 shrink-0 mt-0.5"/>
+         <p className="text-[11px] leading-relaxed">建议优先联系已认证用户，线下交易注意安全。</p>
        </div>
        <div>
-          <h3 className="text-[11px] text-baylink-muted mb-2">官方推荐</h3>
+          <h3 className="sidebar-section-title mb-2.5">官方推荐</h3>
           <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
        </div>
-       <div className="mt-6 text-[10px] text-baylink-muted/80 text-center space-y-1.5">
+       <div className="mt-6 text-[11px] text-baylink-muted/80 text-center space-y-1.5">
          <div className="flex justify-center gap-3">
            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
@@ -4405,7 +4418,7 @@ export default function App() {
                   width={156}
                   height={28}
                 />
-                <p className="text-[10px] text-baylink-muted mt-px leading-tight">湾区生活信息站</p>
+                <p className="text-[11px] text-baylink-muted mt-px leading-tight">连接湾区真实生活信息</p>
             </div>
             <button onClick={()=>!user?setShowLogin(true):navigate('/me')} className="shrink-0 rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
         </header>}</div>

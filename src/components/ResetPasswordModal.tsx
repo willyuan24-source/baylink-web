@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { AuthBrandHeader } from './AuthBrandHeader';
 
 type ResetPasswordModalProps = {
   isOpen: boolean;
@@ -58,8 +59,9 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
         <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
           <X size={18} />
         </button>
-        <h2 className="mb-1 text-center text-xl font-bold text-baylink-text">重设密码</h2>
-        <p className="mb-6 text-center text-[11px] text-baylink-muted">设置您的新密码</p>
+        <AuthBrandHeader compact />
+        <h2 className="mb-1 text-center text-base font-semibold text-baylink-text">重设密码</h2>
+        <p className="mb-5 text-center text-[11px] text-baylink-muted">设置您的新登录密码</p>
 
         {error && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600">

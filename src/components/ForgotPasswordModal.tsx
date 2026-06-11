@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, Loader2 } from 'lucide-react';
+import { AuthBrandHeader } from './AuthBrandHeader';
 
 type ForgotPasswordModalProps = {
   isOpen: boolean;
@@ -48,8 +49,9 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswor
         <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
           <X size={18} />
         </button>
-        <h2 className="mb-1 text-center text-xl font-bold text-baylink-text">忘记密码</h2>
-        <p className="mb-6 text-center text-[11px] text-baylink-muted">重设您的登录密码</p>
+        <AuthBrandHeader compact />
+        <h2 className="mb-1 text-center text-base font-semibold text-baylink-text">忘记密码</h2>
+        <p className="mb-5 text-center text-[11px] text-baylink-muted">输入注册邮箱，我们会发送重设链接</p>
 
         {error && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600">

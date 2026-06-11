@@ -225,24 +225,24 @@ export const BayBayAssistantEntry = ({
   return (
     <>
       {variant === 'headless' ? null : variant === 'sidebar' ? (
-        <div className="sidebar-panel mb-3 overflow-hidden border border-baylink-green/15 bg-gradient-to-br from-baylink-green/6 via-white to-[#FFF8F0]/80">
-          <div className="flex gap-3">
+        <div className="sidebar-panel mb-3 overflow-hidden">
+          <div className="flex gap-2.5">
             <img
               src={BRAND.baybayAvatar}
               alt="BayBay"
-              className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-baylink-green/15"
-              width={56}
-              height={56}
+              className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-baylink-green/15"
+              width={48}
+              height={48}
             />
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-baylink-text leading-tight">BayBay 湾区生活助手</h3>
-              <p className="mt-1 text-[11px] leading-snug text-baylink-text-secondary">
-                找房、找室友、找服务、刚来湾区？我可以带你开始。
+              <h3 className="sidebar-section-title leading-tight">BayBay 生活助手</h3>
+              <p className="mt-1 text-[11px] leading-snug text-baylink-muted">
+                找房、找服务、刚来湾区？我可以帮你理清方向。
               </p>
               <button
                 type="button"
                 onClick={openPanel}
-                className="mt-2.5 w-full rounded-lg bg-baylink-green py-2 text-xs font-bold text-white transition hover:opacity-95 active:scale-[0.98]"
+                className="mt-2 w-full rounded-xl bg-baylink-green py-2 text-[11px] font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
               >
                 问问 BayBay
               </button>
@@ -253,20 +253,20 @@ export const BayBayAssistantEntry = ({
         <button
           type="button"
           onClick={openPanel}
-          className="mb-2 flex w-full min-h-[60px] max-h-[76px] items-center gap-2.5 rounded-2xl border border-baylink-green/12 bg-white/80 px-3 py-2 text-left shadow-rest transition active:scale-[0.99] hover:border-baylink-green/20 hover:bg-baylink-green/[0.03]"
+          className="mb-1.5 flex w-full min-h-[52px] items-center gap-2 rounded-xl border border-black/[0.04] bg-white/70 px-2.5 py-2 text-left transition active:scale-[0.99] hover:border-baylink-green/15 hover:bg-baylink-green/[0.03]"
         >
           <img
             src={BRAND.baybayAvatar}
             alt="BayBay"
-            className="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-baylink-green/20"
-            width={44}
-            height={44}
+            className="h-9 w-9 shrink-0 rounded-lg object-cover ring-1 ring-baylink-green/15"
+            width={36}
+            height={36}
           />
           <div className="min-w-0 flex-1">
-            <div className="line-clamp-1 text-[13px] font-semibold text-baylink-text">BayBay 帮你找方向</div>
-            <div className="line-clamp-1 text-[11px] text-baylink-muted">问租房、找服务、买卖二手、发帖求助</div>
+            <div className="line-clamp-1 text-[12px] font-medium text-baylink-text">问问 BayBay</div>
+            <div className="line-clamp-1 text-[11px] text-baylink-muted">租房、服务、二手与生活指南</div>
           </div>
-          <ChevronRight size={18} className="shrink-0 text-baylink-green/70" />
+          <ChevronRight size={16} className="shrink-0 text-baylink-muted/70" />
         </button>
       )}
 
