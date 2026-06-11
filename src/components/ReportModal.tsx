@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
-export type ReportReason = 'scam' | 'false_info' | 'harassment' | 'spam' | 'other';
+export type ReportReason =
+  | 'spam'
+  | 'scam'
+  | 'harassment'
+  | 'illegal'
+  | 'misleading'
+  | 'duplicate'
+  | 'other';
 
 export const REPORT_REASON_OPTIONS: { value: ReportReason; label: string }[] = [
-  { value: 'scam', label: '疑似诈骗' },
-  { value: 'false_info', label: '虚假信息' },
-  { value: 'harassment', label: '骚扰/不当内容' },
-  { value: 'spam', label: '重复广告' },
+  { value: 'spam', label: '垃圾广告' },
+  { value: 'scam', label: '诈骗 / 可疑交易' },
+  { value: 'harassment', label: '骚扰 / 不友善' },
+  { value: 'illegal', label: '违法 / 危险内容' },
+  { value: 'misleading', label: '虚假 / 误导信息' },
+  { value: 'duplicate', label: '重复内容' },
   { value: 'other', label: '其他' },
 ];
 
@@ -15,20 +24,24 @@ type ReportModalProps = {
   targetType: 'post' | 'user';
   targetId: string;
   onClose: () => void;
-  onSubmit: (reason: ReportReason, note: string) => Promise<void>;
+  onSubmit: (reason: ReportReason, detail: string) => Promise<void>;
 };
 
 export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportModalProps) => {
   const [reason, setReason] = useState<ReportReason | ''>('');
-  const [note, setNote] = useState('');
+  const [detail, setDetail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async () => {
     if (!reason) return;
     setSubmitting(true);
+    setError('');
     try {
-      await onSubmit(reason, note.trim());
+      await onSubmit(reason, detail.trim());
       onClose();
+    } catch (err: any) {
+      setError(err?.error || err?.message || '举报提交失败，请稍后再试');
     } finally {
       setSubmitting(false);
     }
@@ -44,14 +57,18 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-4 py-3">
-          <h3 className="text-base font-bold text-baylink-text">举报内容</h3>
+          <h3 className="text-base font-bold text-baylink-text">
+            {targetType === 'user' ? '举报用户' : '举报帖子'}
+          </h3>
           <button type="button" onClick={onClose} className="rounded-full p-1.5 text-baylink-muted hover:bg-baylink-section">
             <X size={18} />
           </button>
         </div>
         <div className="px-4 py-4">
           <p className="mb-3 text-sm text-baylink-text-secondary">
-            {targetType === 'user' ? '请选择举报该用户的原因，管理员会尽快查看。' : '请选择原因，管理员会尽快查看。'}
+            {targetType === 'user'
+              ? '请选择举报该用户的原因，管理员会尽快查看。'
+              : '请选择举报该帖子的原因，管理员会尽快查看。'}
           </p>
           <div className="space-y-2">
             {REPORT_REASON_OPTIONS.map((opt) => (
@@ -80,10 +97,11 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
             rows={3}
             maxLength={500}
             placeholder="补充说明（可选）"
-            value={note}
-            onChange={(e) => setNote(e.target.value.slice(0, 500))}
+            value={detail}
+            onChange={(e) => setDetail(e.target.value.slice(0, 500))}
           />
-          <p className="mt-1 text-right text-[10px] text-baylink-muted">{note.length}/500</p>
+          <p className="mt-1 text-right text-[10px] text-baylink-muted">{detail.length}/500</p>
+          {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
         </div>
         <div className="flex gap-2 border-t border-baylink-border/40 px-4 py-3">
           <button

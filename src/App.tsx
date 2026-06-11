@@ -802,14 +802,19 @@ const api = {
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
   getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),
   updateProfile: async (data: Partial<UserData>) => await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
-  submitReport: async (body: { targetType: 'post' | 'user'; targetId: string; reason: string; note?: string }) =>
+  submitReport: async (body: { targetType: 'post' | 'user'; targetId: string; reason: string; detail?: string }) =>
     await api.request('/reports', { method: 'POST', body: JSON.stringify(body) }),
   blockUser: async (blockedUserId: string) =>
     await api.request('/blocks', { method: 'POST', body: JSON.stringify({ blockedUserId }) }),
   getBlocks: async () => await api.request('/blocks'),
-  getAdminReports: async (status = 'open') => await api.request(`/admin/reports?status=${encodeURIComponent(status)}`),
-  updateAdminReport: async (id: string, status: 'reviewed' | 'dismissed') =>
-    await api.request(`/admin/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  getAdminReports: async (status = 'open', type = 'all') =>
+    await api.request(`/admin/reports?status=${encodeURIComponent(status)}&type=${encodeURIComponent(type)}`),
+  updateAdminReport: async (id: string, payload: { status: 'open' | 'reviewed' | 'dismissed'; adminNote?: string }) =>
+    await api.request(`/admin/reports/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  hideAdminPost: async (postId: string, reason?: string) =>
+    await api.request(`/admin/posts/${postId}/hide`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+  unhideAdminPost: async (postId: string) =>
+    await api.request(`/admin/posts/${postId}/unhide`, { method: 'PATCH', body: JSON.stringify({}) }),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
   startPhoneVerification: async (phone: string) =>
     await api.request('/users/me/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
@@ -857,11 +862,14 @@ const getMyOfficialTrustLabel = (user: UserData) => {
 };
 
 const REPORT_REASON_LABELS: Record<string, string> = {
-  scam: '疑似诈骗',
-  false_info: '虚假信息',
-  harassment: '骚扰/不当内容',
-  spam: '重复广告',
+  spam: '垃圾广告',
+  scam: '诈骗 / 可疑交易',
+  harassment: '骚扰 / 不友善',
+  illegal: '违法 / 危险内容',
+  misleading: '虚假 / 误导信息',
+  duplicate: '重复内容',
   other: '其他',
+  false_info: '虚假 / 误导信息',
 };
 
 type ReportTarget = { targetType: 'post' | 'user'; targetId: string };
@@ -3005,13 +3013,17 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
 
 type AdminReportItem = {
   id: string;
-  reporter: { id: string; nickname: string } | null;
-  targetType: string;
+  reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean } | null;
+  targetType: 'post' | 'user';
   targetId: string;
   reason: string;
-  note: string;
+  detail: string;
   status: string;
-  createdAt: string;
+  adminNote?: string;
+  createdAt: number;
+  reviewedAt?: number | null;
+  targetUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean } | null;
+  targetPost: { id: string; title: string; category?: string; area?: string; createdAt?: number; adminHidden?: boolean } | null;
 };
 
 type OfficialVerificationRequestItem = {
@@ -3171,12 +3183,14 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
 const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast: (msg: string, type?: 'success' | 'error' | 'info') => void }) => {
   const [reports, setReports] = useState<AdminReportItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'open' | 'reviewed' | 'dismissed' | 'all'>('open');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'post' | 'user'>('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.getAdminReports('open');
+      const res = await api.getAdminReports(statusFilter, typeFilter);
       setReports(Array.isArray(res.reports) ? res.reports : []);
     } catch (e: any) {
       showToast(e?.error || '加载举报列表失败', 'error');
@@ -3185,12 +3199,12 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [statusFilter, typeFilter]);
 
   const handleStatus = async (id: string, status: 'reviewed' | 'dismissed') => {
     setUpdatingId(id);
     try {
-      await api.updateAdminReport(id, status);
+      await api.updateAdminReport(id, { status });
       setReports((prev) => prev.filter((r) => r.id !== id));
       showToast(status === 'reviewed' ? '已标记为已处理' : '已忽略', 'success');
     } catch (e: any) {
@@ -3200,54 +3214,120 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
     }
   };
 
+  const handleHidePost = async (postId: string, hidden: boolean) => {
+    setUpdatingId(postId);
+    try {
+      if (hidden) {
+        await api.unhideAdminPost(postId);
+        showToast('帖子已恢复公开', 'success');
+      } else {
+        const reason = window.prompt('隐藏原因（可选）', '疑似违规，等待进一步核实') || '管理员隐藏';
+        await api.hideAdminPost(postId, reason);
+        showToast('帖子已从公开列表隐藏', 'success');
+      }
+      await load();
+    } catch (e: any) {
+      showToast(e?.error || '操作失败', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const statusLabel = (s: string) => {
+    if (s === 'open') return '待处理';
+    if (s === 'reviewed') return '已处理';
+    if (s === 'dismissed') return '已忽略';
+    return s;
+  };
+
   return (
     <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
         <h2 className="text-lg font-bold text-baylink-text">举报管理</h2>
       </div>
+      <div className="border-b border-baylink-border/40 bg-white px-4 py-3 space-y-2">
+        <div className="flex flex-wrap gap-2">
+          {(['open', 'reviewed', 'dismissed', 'all'] as const).map((s) => (
+            <button key={s} type="button" onClick={() => setStatusFilter(s)} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusFilter === s ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+              {s === 'all' ? '全部状态' : statusLabel(s)}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(['all', 'post', 'user'] as const).map((t) => (
+            <button key={t} type="button" onClick={() => setTypeFilter(t)} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+              {t === 'all' ? '全部类型' : t === 'post' ? '帖子' : '用户'}
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-amber-700">隐藏帖子只会从公开列表移除，不会删除数据。</p>
+      </div>
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {loading ? (
           <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
         ) : reports.length === 0 ? (
-          <p className="py-16 text-center text-sm text-baylink-muted">暂无待处理举报</p>
+          <p className="py-16 text-center text-sm text-baylink-muted">暂无举报记录</p>
         ) : (
           <div className="space-y-3">
-            {reports.map((r) => (
+            {reports.map((r) => {
+              const postId = r.targetPost?.id || (r.targetType === 'post' ? r.targetId : '');
+              const postHidden = !!r.targetPost?.adminHidden;
+              return (
               <div key={r.id} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="text-xs text-baylink-muted">{new Date(r.createdAt).toLocaleString()}</div>
                     <div className="mt-1 text-sm font-semibold text-baylink-text">
                       {REPORT_REASON_LABELS[r.reason] || r.reason}
-                      <span className="ml-2 text-xs font-normal text-baylink-muted">· {r.targetType}</span>
+                      <span className="ml-2 text-xs font-normal text-baylink-muted">
+                        · {r.targetType === 'post' ? '帖子举报' : '用户举报'}
+                      </span>
                     </div>
-                    {r.note && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-3">{r.note}</p>}
-                    <p className="mt-1 text-[10px] text-baylink-muted truncate">目标 ID: {r.targetId}</p>
-                    {r.reporter && <p className="text-[10px] text-baylink-muted">举报人: {r.reporter.nickname}</p>}
+                    {r.detail && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
+                    {r.reporter && (
+                      <p className="mt-2 text-[11px] text-baylink-muted">
+                        举报人：{r.reporter.nickname}
+                        {r.reporter.isPhoneVerified ? ' · 手机已验证' : ' · 手机未验证'}
+                      </p>
+                    )}
+                    {r.targetType === 'user' && r.targetUser && (
+                      <p className="mt-1 text-[11px] text-baylink-text-secondary">被举报用户：{r.targetUser.nickname}</p>
+                    )}
+                    {r.targetType === 'post' && r.targetPost && (
+                      <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-[11px] text-baylink-text-secondary">
+                        <p className="font-semibold text-baylink-text line-clamp-2">{r.targetPost.title}</p>
+                        <p className="mt-0.5">{r.targetPost.category}{r.targetPost.area ? ` · ${r.targetPost.area}` : ''}</p>
+                        {postHidden && <p className="mt-1 text-amber-700 font-semibold">已从公开列表隐藏</p>}
+                      </div>
+                    )}
+                    {r.targetType === 'post' && !r.targetPost && (
+                      <p className="mt-1 text-[11px] text-baylink-muted">关联帖子已不存在</p>
+                    )}
+                    {r.adminNote && <p className="mt-1 text-[10px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>
-                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{r.status}</span>
+                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{statusLabel(r.status)}</span>
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={updatingId === r.id}
-                    onClick={() => handleStatus(r.id, 'reviewed')}
-                    className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50"
-                  >
-                    标记已处理
-                  </button>
-                  <button
-                    type="button"
-                    disabled={updatingId === r.id}
-                    onClick={() => handleStatus(r.id, 'dismissed')}
-                    className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50"
-                  >
-                    忽略
-                  </button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {r.status === 'open' && (
+                    <>
+                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'reviewed')} className="flex-1 min-w-[120px] rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50">标记已处理</button>
+                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'dismissed')} className="flex-1 min-w-[120px] rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">忽略</button>
+                    </>
+                  )}
+                  {r.targetType === 'post' && postId && (
+                    <button
+                      type="button"
+                      disabled={updatingId === postId}
+                      onClick={() => handleHidePost(postId, postHidden)}
+                      className="w-full rounded-lg border border-amber-200 bg-amber-50 py-2 text-xs font-semibold text-amber-800 disabled:opacity-50"
+                    >
+                      {postHidden ? '恢复帖子公开' : '隐藏帖子'}
+                    </button>
+                  )}
                 </div>
               </div>
-            ))}
+            );})}
           </div>
         )}
       </div>
@@ -3725,16 +3805,11 @@ export default function App() {
     setReportTarget(target);
   };
 
-  const handleSubmitReport = async (reason: ReportReason, note: string) => {
+  const handleSubmitReport = async (reason: ReportReason, detail: string) => {
     if (!reportTarget) return;
-    try {
-      await api.submitReport({ ...reportTarget, reason, note });
-      showToast('已提交举报，感谢你的反馈。', 'success');
-      setReportTarget(null);
-    } catch (e: any) {
-      showToast(e?.error || e?.message || '举报提交失败', 'error');
-      throw e;
-    }
+    const res = await api.submitReport({ ...reportTarget, reason, detail: detail || undefined });
+    showToast(res?.message || '举报已提交，感谢你的反馈。', 'success');
+    setReportTarget(null);
   };
 
   const handleBlockUser = async (blockedId: string) => {
