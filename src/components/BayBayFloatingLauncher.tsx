@@ -65,10 +65,6 @@ const BayBayOrbButton = ({
         width={isSm ? 36 : 44}
         height={isSm ? 36 : 44}
       />
-      <span
-        className={`absolute rounded-full bg-baylink-orange ring-2 ring-white ${isSm ? 'right-0.5 top-0.5 h-2 w-2' : 'right-1 top-1 h-2.5 w-2.5'}`}
-        aria-hidden
-      />
     </button>
   );
 };

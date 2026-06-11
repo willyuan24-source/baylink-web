@@ -24,7 +24,7 @@ import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
 import { getGuideBySlug } from './data/guides';
 import { 
-  MessageCircle, Heart, Send, Plus, MapPin, 
+  MessageCircle, Send, Plus, MapPin, 
   User as UserIcon, X, ShieldCheck, Trash2, Edit, 
   AlertCircle, Phone, Search, Home, Bell, 
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
@@ -669,6 +669,7 @@ const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后
   if (/^failed$/i.test(raw)) return fallback;
   if (/^unauthorized$/i.test(raw)) return '请先登录';
   if (/^forbidden$/i.test(raw)) return '暂无权限执行此操作';
+  if (/^[\x00-\x7F]+$/.test(raw)) return fallback;
   return raw;
 };
 
@@ -1052,9 +1053,6 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
         <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[9px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : isFeatured ? 'bg-amber-50 text-amber-700' : 'bg-baylink-green-light text-baylink-green'}`}>
           {isDemo ? tag : isFeatured ? <><Sparkles size={8} /> 精选</> : <><Shield size={8} /> {tag || '官方'}</>}
         </span>
-        <button type="button" onClick={(e) => e.stopPropagation()} className="rounded-full p-0.5 text-baylink-muted/60 transition hover:bg-baylink-section hover:text-baylink-green lg:p-1" aria-label="收藏">
-          <Heart size={13} className="lg:w-3.5 lg:h-3.5" />
-        </button>
       </div>
       <h4 className="line-clamp-2 text-[13px] font-bold leading-snug text-baylink-text lg:line-clamp-1">{title}</h4>
       <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-baylink-muted">{desc}</p>
@@ -1463,9 +1461,6 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
            {post.budget && <span className="text-xs font-medium text-baylink-text truncate">{post.budget}</span>}
          </div>
          <div className="flex items-center gap-1 shrink-0">
-            <button onClick={(e) => e.stopPropagation()} className="p-1.5 text-baylink-muted/70 hover:text-baylink-muted transition" title="喜欢">
-              <Heart size={14} className="opacity-60"/> {(post.likesCount > 0) && <span className="sr-only">{post.likesCount}</span>}
-            </button>
             <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="p-1.5 text-baylink-muted hover:text-baylink-text-secondary transition" title="分享">
               <Share2 size={14}/>
             </button>
@@ -1802,7 +1797,7 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
             showToast('验证码已发送', 'success');
             setStep(2);
         } catch(e: any) {
-            showToast(e.error || e.message || '验证码发送失败，请稍后再试。', 'error');
+            showToast(friendlyErrorMessage(e, '验证码发送失败，请稍后再试。'), 'error');
         }
         finally { setLoading(false); }
     };
@@ -1819,7 +1814,7 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
             onVerified(nextUser);
             showToast('手机验证已完成', 'success');
             onClose();
-        } catch(e: any) { showToast(e.error || e.message || '验证码错误', 'error'); }
+        } catch(e: any) { showToast(friendlyErrorMessage(e, '验证码错误'), 'error'); }
         finally { setLoading(false); }
     };
 
@@ -2771,6 +2766,14 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
                 </button>
               </div>
             )}
+            {mode === 'register' && (
+              <p className="text-[10px] text-gray-500 text-center leading-relaxed px-1">
+                注册即代表你同意
+                <a href="/terms" className="mx-0.5 font-semibold text-baylink-green hover:underline">《服务条款》</a>
+                和
+                <a href="/privacy" className="mx-0.5 font-semibold text-baylink-green hover:underline">《隐私政策》</a>
+              </p>
+            )}
             <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition disabled:opacity-60">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
         </form>
         <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
@@ -2778,6 +2781,11 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
       </div>
     </div>
   );
+};
+
+const extractQuickTagsFromDescription = (description: string): string[] => {
+  const matches = String(description || '').match(/#([^\s#]+)/g) || [];
+  return [...new Set(matches.map((m) => m.slice(1).trim()).filter(Boolean))].slice(0, 8);
 };
 
 const formatPostDetailAuthorMeta = (post: PostData) => {
@@ -2806,10 +2814,14 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
   return parts.filter((p) => p && String(p).trim()).join(' · ');
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setComments(post.comments || []);
+  }, [post.id, post.comments]);
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
   const showReport = !isOwner;
@@ -2819,6 +2831,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   const authorId = post.authorId;
   const canOpenProfile = !!authorId && !!onOpenUserProfile;
   const imageUrls = normalizePostImages(post);
+  const quickTags = extractQuickTagsFromDescription(post.description);
 
   const handleOpenAuthorProfile = () => {
     if (!canOpenProfile) return;
@@ -2931,6 +2944,34 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           </div>
           <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
         </div>
+        {(post.budget || post.timeInfo || post.category || post.city || quickTags.length > 0) && (
+          <div className="surface-card mb-5 p-3.5 space-y-2">
+            {detailRefreshing && (
+              <p className="type-caption text-baylink-muted flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> 正在同步最新内容…</p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {post.category && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">分类：{post.category}</span>
+              )}
+              {post.city && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">区域：{post.city}</span>
+              )}
+              {post.budget && (
+                <span className="rounded-lg bg-baylink-green/[0.08] px-2.5 py-1 text-[11px] font-bold text-baylink-green">预算/价格：{post.budget}</span>
+              )}
+              {post.timeInfo && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">时间：{post.timeInfo}</span>
+              )}
+            </div>
+            {quickTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {quickTags.map((tag) => (
+                  <span key={tag} className="rounded-full border border-baylink-green/15 bg-baylink-green/[0.06] px-2 py-0.5 text-[10px] font-medium text-baylink-green">#{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
         <div className="space-y-3 mb-8">
           {imageUrls.map((u: string, i: number) => (
@@ -3094,8 +3135,7 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
           placeholder="输入消息..."
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !sending && send('text', input)}
-          disabled={sending}
+          onKeyDown={e => e.key === 'Enter' && !sending && input.trim() && send('text', input)}
         />
         <button
           type="button"
@@ -3735,6 +3775,10 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
             <ChevronRight size={18} className="text-gray-300" />
           </button>
           <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
+          <div className="mt-6 flex justify-center gap-4 text-[11px] text-gray-400">
+            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
+            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
+          </div>
           {user.role === 'admin' && (
             <>
               <button onClick={() => setSubView('admin_official')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
@@ -3815,7 +3859,11 @@ export default function App() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  const [feedError, setFeedError] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
+  const [postDetailRefreshing, setPostDetailRefreshing] = useState(false);
+  const sessionExpiredHandledRef = useRef(false);
   const [postRouteMissing, setPostRouteMissing] = useState(false);
   const [postRouteLoading, setPostRouteLoading] = useState(false);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
@@ -3872,8 +3920,8 @@ export default function App() {
       setDetailAd(null);
       setAdsRefreshKey((k) => k + 1);
       showToast('已删除', 'success');
-    } catch {
-      showToast('删除失败', 'error');
+    } catch (e) {
+      showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error');
     }
   };
 
@@ -3952,11 +4000,12 @@ export default function App() {
     return () => { cancelled = true; };
   }, [userIdParam]);
 
-  // /posts/:id 加载详情
+  // /posts/:id 加载详情（有缓存先展示，始终拉取完整帖子）
   useEffect(() => {
     if (!postIdParam) {
       setPostRouteMissing(false);
       setPostRouteLoading(false);
+      setPostDetailRefreshing(false);
       return;
     }
     const found = posts.find((p) => p.id === postIdParam);
@@ -3965,12 +4014,13 @@ export default function App() {
       setPostRouteMissing(false);
       setPostRouteLoading(false);
       document.title = `${found.title}｜BAYLINK`;
-      return;
+    } else {
+      setPostRouteLoading(true);
+      setPostRouteMissing(false);
     }
     let cancelled = false;
     (async () => {
-      setPostRouteLoading(true);
-      setPostRouteMissing(false);
+      if (found) setPostDetailRefreshing(true);
       try {
         const p = await api.request(`/posts/${postIdParam}`);
         if (!cancelled) {
@@ -3979,13 +4029,16 @@ export default function App() {
           document.title = `${p.title}｜BAYLINK`;
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && !found) {
           setSelectedPost(null);
           setPostRouteMissing(true);
           document.title = '内容不存在｜BAYLINK';
         }
       } finally {
-        if (!cancelled) setPostRouteLoading(false);
+        if (!cancelled) {
+          setPostRouteLoading(false);
+          setPostDetailRefreshing(false);
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -4009,8 +4062,30 @@ export default function App() {
     return () => { cancelled = true; };
   }, [threadIdParam, user?.id]);
 
-  useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, keyword]);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 400);
+    return () => clearTimeout(t);
+  }, [keyword]);
+
+  useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, debouncedKeyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
+
+  useEffect(() => {
+    const onSessionExpired = () => {
+      if (!localStorage.getItem('currentUser')) return;
+      if (sessionExpiredHandledRef.current) return;
+      sessionExpiredHandledRef.current = true;
+      localStorage.removeItem('currentUser');
+      setSocket((prev) => { prev?.disconnect(); return null; });
+      setUser(null);
+      setBlockedUserIds([]);
+      setShowLogin(true);
+      showToast('登录已过期，请重新登录。', 'error');
+      window.setTimeout(() => { sessionExpiredHandledRef.current = false; }, 3000);
+    };
+    window.addEventListener('session-expired', onSessionExpired);
+    return () => window.removeEventListener('session-expired', onSessionExpired);
+  }, []);
 
   useEffect(() => {
     if (location.pathname === '/reset-password') {
@@ -4050,11 +4125,13 @@ export default function App() {
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  const fetchPosts = async (pageNum: number, isRefresh: boolean = false) => {
+  const fetchPosts = async (pageNum: number, isRefresh: boolean = false, keywordOverride?: string) => {
+    const searchKw = keywordOverride ?? debouncedKeyword;
     try {
-      if (!isRefresh) setIsLoadingMore(true); else setIsInitialLoading(true);
+      if (!isRefresh) setIsLoadingMore(true);
+      else { setIsInitialLoading(true); setFeedError(false); }
       let queryParams = `?type=${feedType}&page=${pageNum}&limit=5`;
-      if (keyword) queryParams += `&keyword=${encodeURIComponent(keyword)}`;
+      if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
       const res = await api.request(`/posts${queryParams}`);
       const newPosts = res.posts || [];
       const more = res.hasMore;
@@ -4064,7 +4141,25 @@ export default function App() {
       if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
       if (isRefresh) setPosts(filtered); else setPosts(prev => [...prev, ...filtered]);
       setHasMore(more);
-    } catch (e) { console.error(e); } finally { setIsLoadingMore(false); setIsInitialLoading(false); }
+      setFeedError(false);
+    } catch (e) {
+      console.error(e);
+      if (isRefresh) setFeedError(true);
+    } finally { setIsLoadingMore(false); setIsInitialLoading(false); }
+  };
+
+  const retryFeed = () => {
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(1, true);
+  };
+
+  const searchPostsNow = () => {
+    const kw = keyword.trim();
+    setDebouncedKeyword(kw);
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(1, true, kw);
   };
 
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); };
@@ -4284,7 +4379,13 @@ export default function App() {
           <h3 className="text-[11px] text-baylink-muted mb-2">官方推荐</h3>
           <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
        </div>
-       <div className="mt-6 text-[10px] text-baylink-muted/80 text-center">© 2025 BayLink</div>
+       <div className="mt-6 text-[10px] text-baylink-muted/80 text-center space-y-1.5">
+         <div className="flex justify-center gap-3">
+           <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
+           <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
+         </div>
+         <div>© 2025 BayLink</div>
+       </div>
     </div>
   );
 
@@ -4321,7 +4422,7 @@ export default function App() {
                <div className="px-4 pt-1 sm:px-5 sm:pt-2 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
                    <div className="relative mb-1 sm:mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
-                     <input className="search-input" placeholder="搜索房源、服务、二手、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchPosts(1, true)} />
+                     <input className="search-input" placeholder="搜索房源、服务、二手、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchPostsNow()} />
                    </div>
                    
                    {!keyword && (
@@ -4377,8 +4478,17 @@ export default function App() {
                      <span className="text-[10px] text-baylink-muted">{feedType === 'provider' ? '本地资源' : '邻里需求'}</span>
                    </div>
                    
-                   {isInitialLoading && posts.length === 0 ? (
-                     <div className="py-16 text-center space-y-3"><Loader2 className="animate-spin w-9 h-9 text-baylink-green mx-auto"/><p className="text-sm text-baylink-muted">加载中...</p></div>
+                   {feedError && posts.length === 0 && !isInitialLoading ? (
+                     <div className="py-14 text-center space-y-4 px-4">
+                       <p className="text-sm text-baylink-text-secondary">加载失败，可能是网络较慢，请稍后重试。</p>
+                       <button type="button" onClick={retryFeed} className="rounded-xl bg-baylink-green px-5 py-2.5 text-sm font-semibold text-white shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">重新加载</button>
+                     </div>
+                   ) : isInitialLoading && posts.length === 0 ? (
+                     <div className="py-16 text-center space-y-3">
+                       <Loader2 className="animate-spin w-9 h-9 text-baylink-green mx-auto"/>
+                       <p className="text-sm text-baylink-muted">加载中...</p>
+                       <p className="text-[11px] text-baylink-muted/80">首次加载可能需要几秒钟，请稍候。</p>
+                     </div>
                    ) : posts.length === 0 ? (
                      <EmptyFeed
                        feedType={feedType}
@@ -4511,13 +4621,14 @@ export default function App() {
             showToast={showToast}
           />
         )}
-        {postIdParam && postRouteLoading && (
+        {postIdParam && postRouteLoading && !selectedPost && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>
         )}
         {postIdParam && postRouteMissing && <PostNotFoundView onBack={navigateBack} />}
         {postIdParam && selectedPost && !postRouteMissing && (
           <PostDetailModal
             post={selectedPost}
+            detailRefreshing={postDetailRefreshing}
             currentUser={user}
             onClose={navigateBack}
             onLoginNeeded={() => setShowLogin(true)}
