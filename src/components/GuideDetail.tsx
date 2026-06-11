@@ -82,6 +82,16 @@ export const GuideDetail = ({
           </div>
         )}
 
+        {guide.cover && (
+          <div className="mt-5 max-w-full overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-rest">
+            <img
+              src={guide.cover}
+              alt={`${guide.title} 海报`}
+              className="max-h-[220px] w-full object-cover sm:max-h-[260px]"
+            />
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
           {guide.blocks.map((block, i) => (
             <BlockRenderer key={i} block={block} onCta={handleCta} />

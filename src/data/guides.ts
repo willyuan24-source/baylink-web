@@ -1540,6 +1540,185 @@ export const guides: Guide[] = [
       },
     ],
   },
+  {
+    slug: 'san-francisco-guide',
+    title: '旧金山攻略',
+    subtitle: '海风、坡道、电车和第一次来湾区一定会记住的那种城市',
+    summary:
+      '第一次来湾区，很多人记住的就是旧金山这张脸：海风、坡道、电车、桥和海边，一天就能感受到这座城市最有代表性的样子。',
+    category: 'city',
+    categoryLabel: '城市指南',
+    emoji: '🌉',
+    audience: ['第一次来湾区的人', '新移民', '朋友来访接待', '父母来访', '周末想认真逛城市的人'],
+    tags: ['旧金山', 'San Francisco', '湾区城市攻略', '朋友来访', '周末路线', '经典地标'],
+    priority: 'P1',
+    featuredOnHome: false,
+    recommendedForCategories: ['ride', 'service', 'rent'],
+    cover: '/guides/san-francisco-guide.png',
+    readMinutes: 8,
+    updatedAt: '2026-06-10',
+    sourceNote: SOURCE_NOTE,
+    blocks: [
+      {
+        type: 'paragraph',
+        text: '如果你第一次来湾区，只打算先认真逛一座城市，旧金山通常就是最自然的起点。海风、坡道、电车、桥、码头和老街区挤在一起，很容易让人一下子记住“湾区原来是这个感觉”。它也是很多人带朋友来访、带父母看经典湾区，或刚落地时想快速建立城市印象的第一站。',
+      },
+      {
+        type: 'tip',
+        title: '这座城市给人的一句话印象',
+        text: '旧金山像一张立体的城市明信片：风很大，坡很多，游客感和本地生活感经常在同一条街上同时出现。它不一定最好停车，但很适合步行、看海、坐 Cable Car，慢慢感受高低起伏的街区切换。',
+      },
+      { type: 'heading', text: '适合谁来' },
+      {
+        type: 'list',
+        items: [
+          '第一次来湾区，想先看 Golden Gate Bridge、海边和经典地标的人',
+          '有朋友或父母来访，想安排一条“基本不会失手”的路线',
+          '喜欢步行、街区感、建筑层次和海边步道的人',
+          '新移民刚落地，想先感受湾区最有辨识度的城市气质',
+          '如果你特别怕风、怕找停车位、又不想多走路，可能需要把节奏放慢一点',
+        ],
+      },
+      { type: 'heading', text: '第一次来，先抓住这三种旧金山体验' },
+      {
+        type: 'list',
+        items: [
+          '海边经典路线：Fisherman’s Wharf、Pier 39、Alcatraz Island、Ferry Building，一路都是海湾、海鲜和第一次来必拍的海边氛围。',
+          '城市地标路线：Golden Gate Bridge、Palace of Fine Arts、Lombard Street、Painted Ladies / Alamo Square、Twin Peaks，适合建立“旧金山长什么样”的视觉印象。',
+          '街区生活感路线：Chinatown、Cable Car、Golden Gate Park、Lands End，让你看到这座城市怎么被真正生活出来，而不只是打卡。',
+        ],
+      },
+      { type: 'heading', text: '如果朋友来访，怎么安排更顺' },
+      {
+        type: 'paragraph',
+        text: '一天行程别贪多。常见顺路是：Golden Gate Bridge → Palace of Fine Arts → Fisherman’s Wharf / Pier 39，中间安排一段 Cable Car，再到 Ferry Building 或 Chinatown 收尾。父母来访可以更稳：桥、艺术宫、海边、唐人街。年轻朋友可以把 Painted Ladies、Twin Peaks、Lands End 多放一些。别忘了 Clam Chowder、Mission Burrito 和 Cable Car 体验，都很像“旧金山当天”的一部分。',
+      },
+      { type: 'heading', text: '半日 / 一日路线建议' },
+      {
+        type: 'checklist',
+        items: [
+          '半日：Golden Gate Bridge → Palace of Fine Arts → Fisherman’s Wharf / Pier 39 → Cable Car',
+          '一日（经典版）：早上大桥 → 艺术宫 → 中午到下午海边码头 → Ferry Building 或 Chinatown → 傍晚 Twin Peaks 或 Lands End',
+          '一日（生活感版）：Painted Ladies / Alamo Square → Golden Gate Park → Ferry Building → Chinatown → Cable Car → 傍晚 Twin Peaks',
+        ],
+      },
+      {
+        type: 'tip',
+        title: '交通与生活提醒',
+        text: '旧金山不太适合“每个点都开车到门口停一下”的想法，停车、单行、坡道和人流常让行程比想象中慢，公共交通加步行往往更轻松。周末桥边、码头一带容易人多；自驾请牢记车里不要放可见贵重物品。Cable Car、Alcatraz 和热门点位出发前请确认最新运营与预约信息。旧金山最容易犯的错是想一天塞太多地方——少排两个点，反而更容易记住它。',
+      },
+      { type: 'heading', text: '适合在 BAYLINK 发布什么需求' },
+      {
+        type: 'list',
+        items: [
+          '找接送，尤其是机场到旧金山或跨区往返',
+          '找周末搭子，一起走海边或城市路线',
+          '找附近租房，适合无车用户和想住市区的人',
+          '找短途搬家或寄放帮助，适合刚落地的人',
+          '问问 BayBay，先判断哪条路线更适合当天时间和天气',
+        ],
+      },
+      {
+        type: 'cta',
+        title: '继续探索旧金山和湾区城市生活',
+        text: '如果你准备带朋友来旧金山，或者刚来湾区想先建立城市印象，可以继续看湾区指南，也可以在 BayLink 发布接送、租房或周末搭子需求。',
+        primaryLabel: '继续看指南',
+        primaryAction: 'guides',
+      },
+    ],
+  },
+  {
+    slug: 'san-jose-guide',
+    title: '圣何塞攻略',
+    subtitle: '在科技城里逛街、吃饭、带朋友玩一整天',
+    summary:
+      '圣何塞不是传统游客城市，但很适合周末轻松逛街、吃饭、带朋友玩一整天，也很能代表南湾的生活节奏。',
+    category: 'city',
+    categoryLabel: '城市指南',
+    emoji: '🌴',
+    audience: ['南湾新移民', '朋友来访接待', '亲子家庭', '周末轻松出门的人', '想理解 South Bay 生活感的人'],
+    tags: ['圣何塞', 'San Jose', '南湾攻略', 'Santana Row', '周末路线', '科技城生活'],
+    priority: 'P1',
+    featuredOnHome: false,
+    recommendedForCategories: ['service', 'ride', 'rent'],
+    cover: '/guides/san-jose-guide.png',
+    readMinutes: 7,
+    updatedAt: '2026-06-10',
+    sourceNote: SOURCE_NOTE,
+    blocks: [
+      {
+        type: 'paragraph',
+        text: '如果旧金山像湾区的第一张城市名片，圣何塞更像很多人真正会过周末的地方。它没有“必须朝圣”的超级地标感，但很适合逛街、吃饭、带朋友、带孩子，也能让第一次来 South Bay 的人快速明白这边为什么这么像生活区。对 BayLink 用户来说，它更接近日常：约饭、看展、买东西、带 visiting friends、顺路熟悉南湾。',
+      },
+      {
+        type: 'tip',
+        title: '这座城市给人的一句话印象',
+        text: '圣何塞像一座把科技城、商圈、家庭生活和周末轻松感揉在一起的南湾中心。它更像要用一天慢慢体验的城市，而不是十分钟就能讲清楚的地标型目的地。',
+      },
+      { type: 'heading', text: '适合谁来' },
+      {
+        type: 'list',
+        items: [
+          '住在 South Bay，周末想轻松出门、不想安排太硬核景点的人',
+          '有朋友来访，喜欢逛街、吃饭、喝咖啡和边走边聊的人',
+          '亲子家庭，想找不太累但内容够丰富的半日或一日路线',
+          '想理解南湾“生活感城市”长什么样的新移民',
+          '如果你期待的是旧金山那种桥、海风和经典天际线冲击，这里会更偏日常和商圈节奏',
+        ],
+      },
+      { type: 'heading', text: '先理解圣何塞的几种周末片区' },
+      {
+        type: 'list',
+        items: [
+          'Santana Row 一带：街区感、咖啡、餐厅和轻松散步，旁边可接 Westfield Valley Fair 和 Winchester Mystery House，是很多人周末的主线。',
+          'Downtown 方向：The Tech Interactive、San Pedro Square Market，适合轻体验加吃饭聚会，带 visiting friends 很顺。',
+          '更温和的片区：Municipal Rose Garden、Rosicrucian Egyptian Museum、Japantown San Jose，让行程不只有 shopping，也多一点生活层次。',
+        ],
+      },
+      { type: 'heading', text: '为什么 Santana Row 是这篇攻略的核心' },
+      {
+        type: 'paragraph',
+        text: 'Santana Row 最能体现圣何塞的节奏：边走、边吃、边逛、边聊天，一天自然就过完了。Valley Fair 提供大型购物中心感，The Tech Interactive 加一点科技城互动体验，Winchester Mystery House 则给路线多一处故事感。晚上 San Pedro Square Market 很适合收尾聚会；想慢一点可以接 Rose Garden 或 Japantown。别错过 Vietnamese food、Santana Row 逛街和 San Pedro Square Market 聚会，这三样很能代表南湾周末。',
+      },
+      { type: 'heading', text: '如果朋友来访，怎么安排更顺' },
+      {
+        type: 'paragraph',
+        text: '第一次来 South Bay 又不想太满，最稳的是“商圈 + 一点体验 + 一顿好吃的”：Santana Row → Valley Fair 或 Winchester Mystery House → 下午 The Tech Interactive 或 Rose Garden → 晚上 San Pedro Square Market。带家人可以偏 Rose Garden、Egyptian Museum、The Tech Interactive；同龄朋友几乎不会出错的组合是 Santana Row + San Pedro Square Market。',
+      },
+      { type: 'heading', text: '半日 / 一日路线建议' },
+      {
+        type: 'checklist',
+        items: [
+          '半日：Santana Row → Westfield Valley Fair → Winchester Mystery House',
+          '一日（标准版）：上午 Santana Row → 中午 Valley Fair 或附近午餐 → 下午 The Tech Interactive 或 Winchester Mystery House → 傍晚 Rose Garden 或 Japantown → 晚上 San Pedro Square Market',
+          '一日（轻松生活感版）：Rosicrucian Egyptian Museum → Municipal Rose Garden → Santana Row → 晚上 San Pedro Square Market',
+        ],
+      },
+      {
+        type: 'tip',
+        title: '交通与生活提醒',
+        text: '圣何塞多数体验更适合开车在几个点之间切换，不像旧金山那样靠走就能串起来。周末 Santana Row、Valley Fair 和 downtown 可能较热闹，停车和吃饭高峰建议多留时间。The Tech Interactive、Winchester Mystery House、Rose Garden 等出发前请确认最新开放与停车信息。南湾周末节奏偏松，别排太满，留一顿好好聊天的晚饭往往更值。',
+      },
+      { type: 'heading', text: '适合在 BAYLINK 发布什么需求' },
+      {
+        type: 'list',
+        items: [
+          'South Bay 租房或找室友',
+          '机场或跨区接送',
+          '周末搭子，一起逛街或吃饭',
+          '搬家、清洁等本地服务',
+          '问问 BayBay，帮你判断哪条路线更适合当天安排',
+        ],
+      },
+      {
+        type: 'cta',
+        title: '继续探索南湾生活和周末路线',
+        text: '如果你住在南湾，圣何塞很适合作为第一篇城市指南继续看；也可以在 BayLink 查看 South Bay 附近帖子，找租房、接送、周末搭子和本地服务。',
+        primaryLabel: '继续看指南',
+        primaryAction: 'guides',
+      },
+    ],
+  },
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
