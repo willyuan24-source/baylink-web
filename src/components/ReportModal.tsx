@@ -41,7 +41,14 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
       await onSubmit(reason, detail.trim());
       onClose();
     } catch (err: any) {
-      setError(err?.error || err?.message || '举报提交失败，请稍后再试');
+      const msg = String(err?.error || err?.message || '').trim();
+      if (!msg || msg === 'undefined' || /^request failed$/i.test(msg)) {
+        setError('举报提交失败，请稍后再试');
+      } else if (/failed to fetch|network error/i.test(msg)) {
+        setError('网络连接异常，请稍后再试');
+      } else {
+        setError(msg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -64,7 +71,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
             <X size={18} />
           </button>
         </div>
-        <div className="px-4 py-4">
+        <div className="max-h-[min(60vh,420px)] overflow-y-auto px-4 py-4">
           <p className="mb-3 text-sm text-baylink-text-secondary">
             {targetType === 'user'
               ? '请选择举报该用户的原因，管理员会尽快查看。'

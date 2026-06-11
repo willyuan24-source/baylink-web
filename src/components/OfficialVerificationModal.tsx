@@ -73,12 +73,18 @@ export const OfficialVerificationModal = ({
         license: normalizeOptionalField(license),
         socialLink: normalizeOptionalField(socialLink),
       });
-      if (!res?.user) throw { error: 'Submit Failed' };
+      if (!res?.user) throw { error: '提交失败，请稍后再试' };
       onSuccess(res.user);
       showToast(res.message || '认证申请已提交，BAYLINK 会尽快审核。', 'success');
       onClose();
     } catch (err: any) {
-      showToast(err?.error || err?.message || 'Submit Failed', 'error');
+      const msg = String(err?.error || err?.message || '').trim();
+      const fallback = '提交失败，请检查内容后重试';
+      if (!msg || msg === 'undefined' || /failed to fetch|network error/i.test(msg)) {
+        showToast(/failed to fetch|network error/i.test(msg) ? '网络连接异常，请稍后再试' : fallback, 'error');
+      } else {
+        showToast(msg, 'error');
+      }
     } finally {
       setLoading(false);
     }

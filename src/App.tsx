@@ -641,8 +641,8 @@ const mapPostSaveError = (err: any, isEdit = false): string => {
   if (/Description must be at least/i.test(msg)) return '请补充更多细节，至少 10 个字';
   if (/Description must be at most/i.test(msg)) return '正文最多 2000 个字';
   if (/Title must be at most/i.test(msg)) return '标题最多 80 个字';
-  if (isEdit) return '修改失败，请稍后再试';
-  return msg && msg !== '失败' ? msg : '发布失败，请稍后重试';
+  if (isEdit) return friendlyErrorMessage(err, '修改失败，请稍后再试');
+  return friendlyErrorMessage(err, '发布失败，请稍后重试');
 };
 
 interface Conversation { 
@@ -658,6 +658,17 @@ interface Message { id: string; conversationId?: string; senderId: string; type:
 // --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
+
+const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后再试。'): string => {
+  const raw = err && typeof err === 'object'
+    ? String((err as { error?: string; message?: string }).error || (err as { message?: string }).message || '').trim()
+    : typeof err === 'string' ? err.trim() : '';
+  if (!raw || raw === 'undefined' || raw === 'null') return fallback;
+  if (/failed to fetch|networkerror|network error|load failed/i.test(raw)) return '网络连接异常，请稍后再试。';
+  if (/^request failed$/i.test(raw) || /^something went wrong$/i.test(raw)) return fallback;
+  if (/^failed$/i.test(raw)) return fallback;
+  return raw;
+};
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const validateEmail = (email: string) => EMAIL_REGEX.test(email.trim());
@@ -729,8 +740,8 @@ const mapAuthError = (err: any, mode: 'login' | 'register') => {
   if (msg.includes('Missing required')) return '请填写完整注册信息';
   if (msg.includes('User not found') || msg.includes('Invalid credentials')) return '账号或密码不正确';
   if (msg.includes('Invalid password')) return '账号或密码不正确';
-  if (mode === 'register') return '注册失败，请检查填写信息';
-  return '登录失败，请检查账号密码';
+  if (mode === 'register') return friendlyErrorMessage(err, '注册失败，请检查填写信息');
+  return friendlyErrorMessage(err, '登录失败，请检查账号密码');
 };
 
 // --- 子组件 ---
@@ -800,10 +811,15 @@ const api = {
       }
       let data: any = {};
       const text = await res.text();
-      try { data = text ? JSON.parse(text) : {}; } catch { data = { error: 'Request failed' }; }
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { error: '操作失败，请稍后再试' }; }
       if (!res.ok) throw { ...data, status: res.status };
       return data;
-    } catch (err: any) { if (!err.handled && err.status !== 401 && err.status !== 403) {} throw err; }
+    } catch (err: any) {
+      if (err?.handled) throw err;
+      if (err?.status === 401 || err?.status === 403) throw err;
+      if (err?.error || err?.status) throw err;
+      throw { error: friendlyErrorMessage(err, '网络连接异常，请稍后再试。') };
+    }
   },
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
   getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),
@@ -1201,8 +1217,16 @@ const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, on
   </div>
 );
 
-const EmptyFeed = ({ feedType, onPublishService, onPublishInfo }: { feedType: PostType, onPublishService: () => void, onPublishInfo: () => void }) => (
-  feedType === 'provider' ? (
+const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword }: { feedType: PostType, onPublishService: () => void, onPublishInfo: () => void, keyword?: string }) => {
+  if (keyword?.trim()) {
+    return (
+      <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
+        <p className="text-sm font-medium text-baylink-text mb-0.5">没有找到相关内容</p>
+        <p className="text-xs text-baylink-muted">换个关键词试试，或浏览其他分类</p>
+      </div>
+    );
+  }
+  return feedType === 'provider' ? (
     <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
       <p className="text-sm font-medium text-baylink-text mb-0.5">还没有资源内容</p>
       <p className="text-xs text-baylink-muted mb-3">提供你的服务、房源或二手资源，让附近的人找到你</p>
@@ -1214,8 +1238,8 @@ const EmptyFeed = ({ feedType, onPublishService, onPublishInfo }: { feedType: Po
       <p className="text-xs text-baylink-muted mb-3">附近需求会显示在这里，也可以先发布你的信息</p>
       <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
     </div>
-  )
-);
+  );
+};
 
 const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => (
   <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
@@ -1339,7 +1363,7 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   return (
     <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
       <div className="px-4 py-3 border-b border-white/50 flex items-center gap-3 bg-[#FFF8F0]/80 backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10"><button onClick={onBack} className="p-2 hover:bg-white/50 rounded-full transition active:scale-90"><ChevronLeft size={24} className="text-gray-900" /></button><span className="font-bold text-lg text-gray-900">我的发布</span></div>
-      <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">{loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={() => {}} onAvatarClick={() => {}} onImageClick={() => {}} />) : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400" /></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p></div>}</div>
+      <div className="flex-1 overflow-y-auto p-4 pb-24 bg-[#FAFAFA]">{loading ? <div className="text-center py-10 text-gray-400 text-xs">加载中...</div> : myPosts.length > 0 ? myPosts.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p)} onContactClick={() => {}} onAvatarClick={() => {}} onImageClick={() => {}} />) : <div className="text-center py-20 opacity-60"><div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-soft"><Edit size={32} className="text-gray-400" /></div><p className="text-sm font-bold text-gray-500">你还没有发布过内容</p><p className="text-xs text-gray-400 mt-1">发布第一条信息，让附近用户看到你</p></div>}</div>
     </div>
   );
 };
@@ -1553,7 +1577,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
           {loading ? (
             <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
           ) : failed || !profile ? (
-            <p className="py-12 text-center text-sm text-baylink-muted">资料加载失败</p>
+            <p className="py-12 text-center text-sm text-baylink-muted">无法查看该用户资料</p>
           ) : (
             <>
               <div className="rounded-2xl border border-baylink-green/15 bg-gradient-to-br from-baylink-green/[0.06] via-white to-[#FFF8F0]/80 p-4">
@@ -1643,9 +1667,10 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                 </div>
               </div>
 
-              {profile.recentPosts.length > 0 && (
-                <div className="mt-4">
-                  <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
+              <div className="mt-4">
+                <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
+                {profile.recentPosts.length > 0 ? (
+                  <>
                   <p className="mb-2 text-[10px] text-baylink-muted">查看 TA 最近的本地信息</p>
                   <div className="space-y-2">
                     {profile.recentPosts.map((rp) => {
@@ -1677,8 +1702,11 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                       </button>
                     );})}
                   </div>
-                </div>
-              )}
+                  </>
+                ) : (
+                  <p className="mt-2 text-[11px] text-baylink-muted">TA 还没有发布过内容</p>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -2102,7 +2130,7 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
       showToast(mapAdSaveError(e), 'error');
     }
   };
-  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除?')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch {} };
+  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除这条推荐？')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
   const emptyState = (
     <div className="w-full rounded-2xl border border-dashed border-baylink-border bg-white p-6 text-center">
       <BadgeCheck size={22} className="mx-auto mb-2 text-baylink-muted opacity-50" />
@@ -2449,7 +2477,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
-      <div className="bg-baylink-bg w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl border border-baylink-border/40">
+      <div className="bg-baylink-bg w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto pb-safe-bar shadow-2xl border border-baylink-border/40">
         <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-baylink-text">{isEdit ? '编辑信息' : '发布信息'}</h3>
@@ -2741,7 +2769,7 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
                 </button>
               </div>
             )}
-            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition">{loading ? 'Loading...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
+            <button disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 active:scale-95 transition disabled:opacity-60">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}</button>
         </form>
         <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="w-full mt-6 text-xs text-center text-gray-500">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <button onClick={onClose} className="absolute top-5 right-5 p-2 bg-white rounded-full text-gray-400 hover:text-gray-900 transition"><X size={18} /></button>
@@ -2938,6 +2966,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
 const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast }: any) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -2966,17 +2995,21 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
   }, [messages]);
 
   const send = async (type: Message['type'], content: string) => {
+    if (sending) return;
     if (!content && type === 'text') return;
     const optimisticMsg: Message = { id: Date.now().toString(), senderId: currentUser.id, conversationId: conversation.id, type, content, createdAt: Date.now() };
     const prevInput = input;
     setMessages(prev => [...prev, optimisticMsg]);
     if (type === 'text') setInput('');
+    setSending(true);
     try {
       await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) });
     } catch (err: any) {
       setMessages(prev => prev.filter((m) => m.id !== optimisticMsg.id));
       if (type === 'text') setInput(prevInput);
-      showToast?.(err?.error || err?.message || '发送失败', 'error');
+      showToast?.(friendlyErrorMessage(err, '发送失败，请稍后再试'), 'error');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -3047,8 +3080,9 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
       <div className="border-t border-black/[0.06] px-3 pt-2.5 pb-safe-bar flex gap-2.5 items-center bg-white/80 backdrop-blur-xl shrink-0">
         <button
           type="button"
-          onClick={() => confirm('分享联系方式?') && send('contact-share', '')}
-          className="shrink-0 rounded-full border border-black/[0.06] bg-baylink-section/50 p-2.5 text-baylink-text-secondary transition hover:bg-baylink-section active:scale-95"
+          onClick={() => confirm('确定向对方分享你的联系方式？') && send('contact-share', '')}
+          disabled={sending}
+          className="shrink-0 rounded-full border border-black/[0.06] bg-baylink-section/50 p-2.5 text-baylink-text-secondary transition hover:bg-baylink-section active:scale-95 disabled:opacity-50"
           aria-label="分享联系方式"
         >
           <Phone size={18} />
@@ -3058,16 +3092,17 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
           placeholder="输入消息..."
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && send('text', input)}
+          onKeyDown={e => e.key === 'Enter' && !sending && send('text', input)}
+          disabled={sending}
         />
         <button
           type="button"
           onClick={() => send('text', input)}
-          disabled={!input.trim()}
-          className={`shrink-0 p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
+          disabled={!input.trim() || sending}
+          className={`shrink-0 p-3 rounded-full text-white transition active:scale-90 disabled:opacity-50 ${input.trim() && !sending ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
           aria-label="发送消息"
         >
-          <Send size={18} />
+          {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
         </button>
       </div>
     </div>
@@ -3160,19 +3195,21 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
   useEffect(() => { load(); }, []);
 
   const handleApprove = async (userId: string) => {
+    if (!confirm('确认通过该用户的官方认证？')) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, { status: 'approved' });
       setRequests((prev) => prev.filter((r) => getOfficialRequestUserId(r) !== userId));
       showToast('已通过官方认证', 'success');
     } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
+      showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleReject = async (userId: string) => {
+    if (!confirm('确认拒绝该认证申请？')) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, {
@@ -3184,7 +3221,7 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
       setRejectReason('');
       showToast('已拒绝认证申请', 'success');
     } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
+      showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
       setUpdatingId(null);
     }
@@ -3200,7 +3237,7 @@ const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: () => v
         {loading ? (
           <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
         ) : requests.length === 0 ? (
-          <p className="py-16 text-center text-sm text-baylink-muted">暂无待审核申请</p>
+          <p className="py-16 text-center text-sm text-baylink-muted">当前没有待审核的认证申请</p>
         ) : (
           <div className="space-y-3">
             {requests.map((r) => {
@@ -3408,7 +3445,7 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
         {loading ? (
           <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
         ) : reports.length === 0 ? (
-          <p className="py-16 text-center text-sm text-baylink-muted">暂无举报记录</p>
+          <p className="py-16 text-center text-sm text-baylink-muted">当前没有符合条件的举报</p>
         ) : (
           <div className="space-y-3">
             {reports.map((r) => {
@@ -3520,7 +3557,7 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
               {logsLoading ? (
                 <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
               ) : logs.length === 0 ? (
-                <p className="py-12 text-center text-sm text-baylink-muted">暂无操作记录</p>
+                <p className="py-12 text-center text-sm text-baylink-muted">还没有管理员操作记录</p>
               ) : (
                 <div className="space-y-2">
                   {logs.map((log) => {
@@ -3737,8 +3774,8 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
 
 const PostNotFoundView = ({ onBack }: { onBack: () => void }) => (
   <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-baylink-bg p-6">
-    <p className="text-lg font-bold text-baylink-text">帖子不存在或已删除</p>
-    <p className="mt-2 text-sm text-baylink-muted">链接可能已失效</p>
+    <p className="text-lg font-bold text-baylink-text">内容不存在或已被移除。</p>
+    <p className="mt-2 text-sm text-baylink-muted">链接可能已失效，或内容已被管理员处理</p>
     <button type="button" onClick={onBack} className="mt-6 rounded-xl bg-baylink-green px-6 py-3 text-sm font-bold text-white">返回</button>
   </div>
 );
@@ -3890,11 +3927,11 @@ export default function App() {
     } else if (path === '/me') {
       document.title = '我的｜BayLink';
     } else if (path === '/privacy') {
-      document.title = 'Privacy Policy｜BayLink';
+      document.title = '隐私政策｜BAYLINK';
     } else if (path === '/terms') {
-      document.title = 'Terms of Service｜BayLink';
+      document.title = '服务条款｜BAYLINK';
     } else {
-      document.title = 'BayLink｜湾区真实生活信息站';
+      document.title = 'BAYLINK｜湾区华人本地生活信息平台';
     }
   }, [location.pathname, categorySlug, postIdParam, userIdParam, guideSlugParam]);
 
@@ -3937,7 +3974,7 @@ export default function App() {
         if (!cancelled) {
           setSelectedPost(null);
           setPostRouteMissing(true);
-          document.title = '帖子不存在｜BayLink';
+          document.title = '内容不存在｜BAYLINK';
         }
       } finally {
         if (!cancelled) setPostRouteLoading(false);
@@ -4332,6 +4369,7 @@ export default function App() {
                    ) : posts.length === 0 ? (
                      <EmptyFeed
                        feedType={feedType}
+                       keyword={keyword}
                        onPublishService={() => openCreate('provider')}
                        onPublishInfo={() => openCreate('client')}
                      />

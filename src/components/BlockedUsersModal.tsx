@@ -76,7 +76,7 @@ export const BlockedUsersModal = ({
           {loading ? (
             <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
           ) : blocks.length === 0 ? (
-            <p className="py-12 text-center text-sm text-baylink-muted">暂无屏蔽用户</p>
+            <p className="py-12 text-center text-sm text-baylink-muted">你还没有屏蔽任何用户</p>
           ) : (
             <div className="space-y-2">
               {blocks.map((b) => (
