@@ -667,6 +667,8 @@ const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后
   if (/failed to fetch|networkerror|network error|load failed/i.test(raw)) return '网络连接异常，请稍后再试。';
   if (/^request failed$/i.test(raw) || /^something went wrong$/i.test(raw)) return fallback;
   if (/^failed$/i.test(raw)) return fallback;
+  if (/^unauthorized$/i.test(raw)) return '请先登录';
+  if (/^forbidden$/i.test(raw)) return '暂无权限执行此操作';
   return raw;
 };
 
@@ -3914,18 +3916,18 @@ export default function App() {
     const path = location.pathname;
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
-      document.title = `${cat}｜BayLink 湾区真实生活信息站`;
+      document.title = `${cat}｜BAYLINK`;
     } else if (path.startsWith('/guides/') && guideSlugParam) {
       const g = getGuideBySlug(guideSlugParam);
-      document.title = g ? `${g.title}｜BayLink` : '湾区生活指南｜BayLink';
+      document.title = g ? `${g.title}｜BAYLINK` : '湾区生活指南｜BAYLINK';
     } else if (path.startsWith('/guides')) {
-      document.title = '湾区生活指南｜BayLink';
+      document.title = '湾区生活指南｜BAYLINK';
     } else if (path.startsWith('/recommend')) {
-      document.title = '推荐｜BayLink';
+      document.title = '推荐｜BAYLINK';
     } else if (path.startsWith('/messages')) {
-      document.title = '消息｜BayLink';
+      document.title = '消息｜BAYLINK';
     } else if (path === '/me') {
-      document.title = '我的｜BayLink';
+      document.title = '我的｜BAYLINK';
     } else if (path === '/privacy') {
       document.title = '隐私政策｜BAYLINK';
     } else if (path === '/terms') {
@@ -3939,7 +3941,7 @@ export default function App() {
     if (!userIdParam) return;
     let cancelled = false;
     api.getUserPublicProfile(userIdParam).then((p: PublicUserProfile) => {
-      if (!cancelled) document.title = `${p.nickname}｜BayLink`;
+      if (!cancelled) document.title = `${p.nickname}｜BAYLINK`;
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [userIdParam]);
@@ -3956,7 +3958,7 @@ export default function App() {
       setSelectedPost(found);
       setPostRouteMissing(false);
       setPostRouteLoading(false);
-      document.title = `${found.title}｜BayLink`;
+      document.title = `${found.title}｜BAYLINK`;
       return;
     }
     let cancelled = false;
@@ -3968,7 +3970,7 @@ export default function App() {
         if (!cancelled) {
           setSelectedPost(p);
           setPostRouteMissing(false);
-          document.title = `${p.title}｜BayLink`;
+          document.title = `${p.title}｜BAYLINK`;
         }
       } catch {
         if (!cancelled) {
