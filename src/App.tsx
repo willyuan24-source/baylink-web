@@ -263,6 +263,7 @@ interface UserData {
   website?: string; xiaohongshu?: string;
   createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
+  accountStatus?: 'active' | 'limited' | 'suspended';
   phone?: string;
   officialVerification?: {
     status?: 'none' | 'pending' | 'approved' | 'rejected';
@@ -626,6 +627,8 @@ const validatePostForm = (form: { title: string; description: string; category: 
 
 const mapPostSaveError = (err: any, isEdit = false): string => {
   const msg = err?.error || err?.message || '';
+  if (msg.includes('你的账号当前受到限制，暂时无法发布内容')) return msg;
+  if (err?.status === 403 && msg.includes('账号当前受到限制')) return msg;
   if (err?.status === 429) {
     if (msg.includes('请不要重复发布相同内容')) return msg;
     if (msg.includes('今天发布次数已达到上限')) return msg;
@@ -820,6 +823,8 @@ const api = {
     await api.request(`/admin/posts/${postId}/hide`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
   unhideAdminPost: async (postId: string) =>
     await api.request(`/admin/posts/${postId}/unhide`, { method: 'PATCH', body: JSON.stringify({}) }),
+  updateAdminAccountStatus: async (userId: string, payload: { status: 'active' | 'limited' | 'suspended'; reason?: string }) =>
+    await api.request(`/admin/users/${userId}/account-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
   startPhoneVerification: async (phone: string) =>
     await api.request('/users/me/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
@@ -864,6 +869,21 @@ const getMyOfficialTrustLabel = (user: UserData) => {
   if (status === 'pending') return '官方认证：审核中';
   if (status === 'rejected') return '官方认证：未通过，可重新申请';
   return '官方认证：未申请';
+};
+
+const ACCOUNT_STATUS_LABELS: Record<string, string> = {
+  active: '正常',
+  limited: '已限制',
+  suspended: '已暂停',
+};
+
+const showAccountStatusNotice = (user: UserData, showToast: (msg: string, type?: 'success' | 'error' | 'info') => void) => {
+  const status = user.accountStatus || 'active';
+  if (status === 'suspended') {
+    showToast('你的账号当前受到限制，部分功能暂时不可用。', 'error');
+  } else if (status === 'limited') {
+    showToast('你的账号部分功能受到限制，暂时无法发布内容或发送私信。', 'info');
+  }
 };
 
 const REPORT_REASON_LABELS: Record<string, string> = {
@@ -2663,6 +2683,7 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
       onLogin(user);
       onClose();
       showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
+      if (mode === 'login') showAccountStatusNotice(user, showToast);
     } catch (e: any) {
       setError(mapAuthError(e, mode === 'register' ? 'register' : 'login'));
     } finally {
@@ -3033,7 +3054,7 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
 
 type AdminReportItem = {
   id: string;
-  reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean } | null;
+  reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; accountStatus?: string } | null;
   targetType: 'post' | 'user';
   targetId: string;
   reason: string;
@@ -3042,7 +3063,17 @@ type AdminReportItem = {
   adminNote?: string;
   createdAt: number;
   reviewedAt?: number | null;
-  targetUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean } | null;
+  targetUser: {
+    id: string;
+    nickname: string;
+    avatar?: string;
+    isPhoneVerified?: boolean;
+    isOfficialVerified?: boolean;
+    accountStatus?: string;
+    accountStatusReason?: string;
+    accountStatusUpdatedAt?: number | null;
+    accountStatusUpdatedBy?: string;
+  } | null;
   targetPost: { id: string; title: string; category?: string; area?: string; createdAt?: number; adminHidden?: boolean } | null;
 };
 
@@ -3206,6 +3237,8 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
   const [statusFilter, setStatusFilter] = useState<'open' | 'reviewed' | 'dismissed' | 'all'>('open');
   const [typeFilter, setTypeFilter] = useState<'all' | 'post' | 'user'>('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [statusModal, setStatusModal] = useState<{ userId: string; nickname: string; status: 'active' | 'limited' | 'suspended' } | null>(null);
+  const [statusReason, setStatusReason] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -3260,6 +3293,36 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
     return s;
   };
 
+  const accountStatusActionLabel = (s: 'active' | 'limited' | 'suspended') => {
+    if (s === 'limited') return '限制';
+    if (s === 'suspended') return '暂停';
+    return '恢复正常';
+  };
+
+  const openStatusModal = (userId: string, nickname: string, status: 'active' | 'limited' | 'suspended') => {
+    setStatusModal({ userId, nickname, status });
+    setStatusReason('');
+  };
+
+  const handleAccountStatusUpdate = async () => {
+    if (!statusModal) return;
+    setUpdatingId(statusModal.userId);
+    try {
+      await api.updateAdminAccountStatus(statusModal.userId, {
+        status: statusModal.status,
+        reason: statusReason.trim() || undefined,
+      });
+      showToast(`已将 ${statusModal.nickname} 设为${ACCOUNT_STATUS_LABELS[statusModal.status]}`, 'success');
+      setStatusModal(null);
+      setStatusReason('');
+      await load();
+    } catch (e: any) {
+      showToast(e?.error || '更新账号状态失败', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
@@ -3309,10 +3372,17 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
                       <p className="mt-2 text-[11px] text-baylink-muted">
                         举报人：{r.reporter.nickname}
                         {r.reporter.isPhoneVerified ? ' · 手机已验证' : ' · 手机未验证'}
+                        {r.reporter.accountStatus && r.reporter.accountStatus !== 'active' ? ` · 账号${ACCOUNT_STATUS_LABELS[r.reporter.accountStatus] || r.reporter.accountStatus}` : ''}
                       </p>
                     )}
-                    {r.targetType === 'user' && r.targetUser && (
-                      <p className="mt-1 text-[11px] text-baylink-text-secondary">被举报用户：{r.targetUser.nickname}</p>
+                    {r.targetUser && (
+                      <div className="mt-2 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2 text-[11px]">
+                        <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : '帖子作者'}：{r.targetUser.nickname}</p>
+                        <p className="mt-0.5 text-baylink-muted">账号状态：{ACCOUNT_STATUS_LABELS[r.targetUser.accountStatus || 'active'] || r.targetUser.accountStatus}</p>
+                        {r.targetUser.accountStatusReason && (
+                          <p className="mt-1 text-baylink-text-secondary line-clamp-2">限制原因：{r.targetUser.accountStatusReason}</p>
+                        )}
+                      </div>
                     )}
                     {r.targetType === 'post' && r.targetPost && (
                       <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-[11px] text-baylink-text-secondary">
@@ -3345,12 +3415,42 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
                       {postHidden ? '恢复帖子公开' : '隐藏帖子'}
                     </button>
                   )}
+                  {r.targetUser && (
+                    <div className="flex w-full flex-wrap gap-2">
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'limited')} className="flex-1 min-w-[90px] rounded-lg border border-orange-200 bg-orange-50 py-2 text-xs font-semibold text-orange-800 disabled:opacity-50">限制账号</button>
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'suspended')} className="flex-1 min-w-[90px] rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-semibold text-red-700 disabled:opacity-50">暂停账号</button>
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'active')} className="flex-1 min-w-[90px] rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">恢复正常</button>
+                    </div>
+                  )}
                 </div>
               </div>
             );})}
           </div>
         )}
       </div>
+      {statusModal && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={() => setStatusModal(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-baylink-text">调整账号状态</h3>
+            <p className="mt-2 text-sm text-baylink-text-secondary">
+              你正在将 <span className="font-semibold text-baylink-text">{statusModal.nickname}</span> 的状态改为：
+              <span className="font-semibold text-baylink-text"> {accountStatusActionLabel(statusModal.status)}</span>
+            </p>
+            <textarea
+              className="mt-3 w-full resize-none rounded-xl border border-baylink-border/50 p-3 text-sm outline-none focus:border-baylink-green/40"
+              rows={3}
+              maxLength={300}
+              placeholder="管理员备注 / 原因（可选）"
+              value={statusReason}
+              onChange={(e) => setStatusReason(e.target.value.slice(0, 300))}
+            />
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setStatusModal(null)} className="flex-1 rounded-xl border border-baylink-border/60 py-2.5 text-sm font-semibold text-baylink-text-secondary">取消</button>
+              <button type="button" disabled={updatingId === statusModal.userId} onClick={handleAccountStatusUpdate} className="flex-1 rounded-xl bg-baylink-green py-2.5 text-sm font-bold text-white disabled:opacity-50">确认更新</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -3377,6 +3477,17 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
       {subView === 'menu' && (
         <div className="p-6 pt-8 w-full h-full overflow-y-auto pb-24">
           <div className="flex justify-between items-center mb-6"><h1 className="text-2xl font-black text-gray-900">我的名片</h1><button onClick={onLogout} className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20} /></button></div>
+
+          {user.accountStatus === 'limited' && (
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              你的账号部分功能受到限制，暂时无法发布内容或发送私信。
+            </div>
+          )}
+          {user.accountStatus === 'suspended' && (
+            <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              你的账号当前受到限制，部分功能暂时不可用。
+            </div>
+          )}
 
           {completion < 100 && (
             <div className="mb-4 rounded-2xl border border-baylink-green/20 bg-baylink-green/[0.06] px-4 py-3">
