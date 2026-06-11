@@ -806,15 +806,18 @@ const api = {
     }
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-      if (res.status === 401 || res.status === 403) {
-        const isPublicAuth = endpoint.includes('/auth/login')
-          || endpoint.includes('/auth/forgot-password')
-          || endpoint.includes('/auth/reset-password');
-        if (!isPublicAuth) { triggerSessionExpired(); throw { status: res.status, message: '登录已过期', handled: true }; }
-      }
       let data: any = {};
       const text = await res.text();
       try { data = text ? JSON.parse(text) : {}; } catch { data = { error: '操作失败，请稍后再试' }; }
+      if (res.status === 401) {
+        const isPublicAuth = endpoint.includes('/auth/login')
+          || endpoint.includes('/auth/forgot-password')
+          || endpoint.includes('/auth/reset-password');
+        if (!isPublicAuth) {
+          triggerSessionExpired();
+          throw { status: res.status, message: '登录已过期', handled: true };
+        }
+      }
       if (!res.ok) throw { ...data, status: res.status };
       return data;
     } catch (err: any) {
