@@ -3334,14 +3334,17 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
 
   useEffect(() => { load(); }, [statusFilter, typeFilter]);
 
-  const handleStatus = async (id: string, status: 'reviewed' | 'dismissed') => {
+  const handleStatus = async (id: string, status: 'open' | 'reviewed' | 'dismissed') => {
     setUpdatingId(id);
     try {
       await api.updateAdminReport(id, { status });
-      setReports((prev) => prev.filter((r) => r.id !== id));
-      showToast(status === 'reviewed' ? '已标记为已处理' : '已忽略', 'success');
+      await load();
+      showToast(
+        status === 'reviewed' ? '已标记为已处理' : status === 'dismissed' ? '已忽略' : '已重新打开',
+        'success',
+      );
     } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
+      showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
       setUpdatingId(null);
     }
@@ -3360,7 +3363,7 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
       }
       await load();
     } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
+      showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
       setUpdatingId(null);
     }
@@ -3397,7 +3400,7 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
       setStatusReason('');
       await load();
     } catch (e: any) {
-      showToast(e?.error || '更新账号状态失败', 'error');
+      showToast(friendlyErrorMessage(e, '更新账号状态失败'), 'error');
     } finally {
       setUpdatingId(null);
     }
@@ -3501,6 +3504,9 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
                       <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'reviewed')} className="flex-1 min-w-[120px] rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:opacity-50">标记已处理</button>
                       <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'dismissed')} className="flex-1 min-w-[120px] rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">忽略</button>
                     </>
+                  )}
+                  {(r.status === 'reviewed' || r.status === 'dismissed') && (
+                    <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'open')} className="w-full rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:opacity-50">重新打开</button>
                   )}
                   {r.targetType === 'post' && postId && (
                     <button
@@ -4076,7 +4082,7 @@ export default function App() {
           };
           setChatConv(conv);
           navigate(`/messages/${c.id}`);
-      } catch { showToast('无法打开聊天', 'error'); } 
+      } catch (e: any) { showToast(friendlyErrorMessage(e, '无法打开聊天'), 'error'); }
   };
   
   const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setBlockedUserIds([]); navigate('/'); showToast('已退出登录', 'info'); };
@@ -4088,7 +4094,12 @@ export default function App() {
 
   const handleSubmitReport = async (reason: ReportReason, detail: string) => {
     if (!reportTarget) return;
-    const res = await api.submitReport({ ...reportTarget, reason, detail: detail || undefined });
+    const res = await api.submitReport({
+      targetType: reportTarget.targetType,
+      targetId: reportTarget.targetId,
+      reason,
+      detail: detail || undefined,
+    });
     showToast(res?.message || '举报已提交，感谢你的反馈。', 'success');
     const blockHintUserId = reportTarget.targetType === 'user' ? reportTarget.targetId : reportTarget.authorId;
     if (blockHintUserId && blockHintUserId !== user?.id) {
