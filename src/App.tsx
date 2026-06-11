@@ -825,6 +825,8 @@ const api = {
     await api.request(`/admin/posts/${postId}/unhide`, { method: 'PATCH', body: JSON.stringify({}) }),
   updateAdminAccountStatus: async (userId: string, payload: { status: 'active' | 'limited' | 'suspended'; reason?: string }) =>
     await api.request(`/admin/users/${userId}/account-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  getModerationLogs: async (limit = 50) =>
+    await api.request(`/admin/moderation-logs?limit=${limit}`),
   verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
   startPhoneVerification: async (phone: string) =>
     await api.request('/users/me/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
@@ -875,6 +877,26 @@ const ACCOUNT_STATUS_LABELS: Record<string, string> = {
   active: '正常',
   limited: '已限制',
   suspended: '已暂停',
+};
+
+const MODERATION_ACTION_LABELS: Record<string, string> = {
+  official_verification_approved: '官方认证通过',
+  official_verification_rejected: '官方认证拒绝',
+  report_reviewed: '举报已处理',
+  report_dismissed: '举报已忽略',
+  report_reopened: '举报重新打开',
+  post_hidden: '帖子已隐藏',
+  post_unhidden: '帖子已恢复',
+  account_limited: '账号已限制',
+  account_suspended: '账号已暂停',
+  account_restored: '账号已恢复',
+};
+
+const MODERATION_TARGET_TYPE_LABELS: Record<string, string> = {
+  user: '用户',
+  post: '帖子',
+  report: '举报',
+  official_verification: '官方认证',
 };
 
 const showAccountStatusNotice = (user: UserData, showToast: (msg: string, type?: 'success' | 'error' | 'info') => void) => {
@@ -3052,6 +3074,22 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
   );
 };
 
+type ModerationLogItem = {
+  id: string;
+  admin: { id: string; nickname: string };
+  action: string;
+  targetType: string;
+  targetId: string;
+  targetUserId?: string;
+  targetPostId?: string;
+  targetReportId?: string;
+  previousValue?: Record<string, unknown>;
+  newValue?: Record<string, unknown>;
+  reason?: string;
+  note?: string;
+  createdAt: number;
+};
+
 type AdminReportItem = {
   id: string;
   reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; accountStatus?: string } | null;
@@ -3239,6 +3277,9 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [statusModal, setStatusModal] = useState<{ userId: string; nickname: string; status: 'active' | 'limited' | 'suspended' } | null>(null);
   const [statusReason, setStatusReason] = useState('');
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [logs, setLogs] = useState<ModerationLogItem[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -3323,11 +3364,28 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
     }
   };
 
+  const openLogsModal = async () => {
+    setShowLogsModal(true);
+    setLogsLoading(true);
+    try {
+      const res = await api.getModerationLogs(50);
+      setLogs(Array.isArray(res.logs) ? res.logs : []);
+    } catch (e: any) {
+      showToast(e?.error || '加载操作日志失败', 'error');
+      setLogs([]);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
-        <h2 className="text-lg font-bold text-baylink-text">举报管理</h2>
+        <h2 className="flex-1 text-lg font-bold text-baylink-text">举报管理</h2>
+        <button type="button" onClick={openLogsModal} className="rounded-lg border border-baylink-border/50 px-3 py-1.5 text-[11px] font-semibold text-baylink-text-secondary hover:bg-baylink-section">
+          管理员操作日志
+        </button>
       </div>
       <div className="border-b border-baylink-border/40 bg-white px-4 py-3 space-y-2">
         <div className="flex flex-wrap gap-2">
@@ -3447,6 +3505,51 @@ const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; showToast
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setStatusModal(null)} className="flex-1 rounded-xl border border-baylink-border/60 py-2.5 text-sm font-semibold text-baylink-text-secondary">取消</button>
               <button type="button" disabled={updatingId === statusModal.userId} onClick={handleAccountStatusUpdate} className="flex-1 rounded-xl bg-baylink-green py-2.5 text-sm font-bold text-white disabled:opacity-50">确认更新</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showLogsModal && (
+        <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={() => setShowLogsModal(false)}>
+          <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-baylink-border/40 px-4 py-3">
+              <h3 className="text-base font-bold text-baylink-text">管理员操作日志</h3>
+              <button type="button" onClick={() => setShowLogsModal(false)} className="rounded-full p-2 hover:bg-baylink-section"><X size={18} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {logsLoading ? (
+                <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
+              ) : logs.length === 0 ? (
+                <p className="py-12 text-center text-sm text-baylink-muted">暂无操作记录</p>
+              ) : (
+                <div className="space-y-2">
+                  {logs.map((log) => {
+                    const noteOrReason = log.reason?.trim() || log.note?.trim() || '';
+                    return (
+                      <div key={log.id} className="rounded-xl border border-baylink-border/40 bg-baylink-section/20 px-3 py-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs font-semibold text-baylink-text">
+                            {MODERATION_ACTION_LABELS[log.action] || log.action}
+                          </p>
+                          <span className="shrink-0 text-[10px] text-baylink-muted">
+                            {new Date(log.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-baylink-text-secondary">
+                          管理员：{log.admin?.nickname || 'Admin'}
+                          {' · '}
+                          目标：{MODERATION_TARGET_TYPE_LABELS[log.targetType] || log.targetType}
+                        </p>
+                        {noteOrReason && (
+                          <p className="mt-1 text-[11px] text-baylink-muted line-clamp-3">
+                            {log.reason?.trim() ? `原因：${log.reason}` : `备注：${log.note}`}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
