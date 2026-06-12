@@ -10,6 +10,10 @@ import {
 } from './routing';
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
+import { ContactCardMessage } from './components/ContactCardMessage';
+import { ContactPreferenceForm, defaultContactPreference, type ContactPreferenceValue } from './components/ContactPreferenceForm';
+import { PostDetailContactPanel } from './components/PostDetailContactPanel';
+import { contactsToPreferenceMethods, detectContactsInText } from './utils/contactDetection';
 import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
@@ -329,6 +333,11 @@ interface PostData {
   featuredAt?: number | string;
   featuredBy?: string;
   isContacted?: boolean; isReported?: boolean;
+  contactPreference?: {
+    mode: 'dm_first' | 'auto_send' | 'manual_approve';
+    methods: Array<{ type: string; label: string; value?: string; note?: string; enabled: boolean }>;
+    updatedAt?: number | null;
+  };
 }
 
 type PublicUserProfile = {
@@ -655,7 +664,20 @@ interface Conversation {
   lastPostTitle?: string; // ✨ 上下文
 }
 
-interface Message { id: string; conversationId?: string; senderId: string; type: 'text'|'contact-request'|'contact-share'; content: string; createdAt: number; }
+interface Message {
+  id: string;
+  conversationId?: string;
+  senderId: string;
+  type: 'text' | 'contact-request' | 'contact-share' | 'contact_card';
+  messageType?: 'text' | 'system' | 'contact_card';
+  content: string;
+  contactCard?: {
+    postId?: string;
+    contactRequestId?: string;
+    methods: Array<{ type: string; label?: string; value: string; note?: string }>;
+  };
+  createdAt: number;
+}
 
 // --- 工具函数 ---
 const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
@@ -820,7 +842,11 @@ const api = {
           throw { status: res.status, message: '登录已过期', handled: true };
         }
       }
-      if (!res.ok) throw { ...data, status: res.status };
+      if (!res.ok) {
+        const err: any = { ...data, status: res.status };
+        if (typeof data.status === 'string') err.requestStatus = data.status;
+        throw err;
+      }
       return data;
     } catch (err: any) {
       if (err?.handled) throw err;
@@ -866,6 +892,16 @@ const api = {
     await api.request(`/admin/official-verifications?status=${encodeURIComponent(status)}`),
   reviewOfficialVerification: async (userId: string, payload: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
     await api.request(`/admin/users/${userId}/official-verification`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  requestPostContact: async (postId: string, requestMessage?: string) =>
+    await api.request(`/posts/${postId}/contact-requests`, { method: 'POST', body: JSON.stringify({ requestMessage: requestMessage || '' }) }),
+  getContactRequests: async (role: 'owner' | 'requester', status?: string) => {
+    const statusQ = status ? `&status=${encodeURIComponent(status)}` : '';
+    return api.request(`/contact-requests?role=${encodeURIComponent(role)}${statusQ}`);
+  },
+  approveContactRequest: async (requestId: string) =>
+    await api.request(`/contact-requests/${requestId}/approve`, { method: 'PATCH', body: JSON.stringify({}) }),
+  declineContactRequest: async (requestId: string) =>
+    await api.request(`/contact-requests/${requestId}/decline`, { method: 'PATCH', body: JSON.stringify({}) }),
 };
 
 const filterPostsByBlockedUsers = (list: PostData[], blockedUserIds: string[]): PostData[] => {
@@ -2308,6 +2344,21 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     budget: '', description: '', timeInfo: '',
     type: (defaultType || 'client') as PostType, contactInfo: user?.contactValue || '',
   });
+  const [contactPreference, setContactPreference] = useState<ContactPreferenceValue>(() => {
+    if (isEdit && editingPost?.contactPreference) {
+      return {
+        mode: editingPost.contactPreference.mode || 'dm_first',
+        methods: defaultContactPreference().methods.map((m) => {
+          const found = editingPost.contactPreference?.methods?.find((x) => x.type === m.type);
+          return found ? { ...m, ...found, value: found.value || '', enabled: !!found.value } : m;
+        }),
+      };
+    }
+    return defaultContactPreference();
+  });
+  const [contactWarningDismissed, setContactWarningDismissed] = useState(false);
+  const detectedContacts = detectContactsInText(form.description);
+  const showContactWarning = detectedContacts.length > 0 && !contactWarningDismissed;
   const initialImg = isEdit && editingPost?.imageUrls ? splitPostImages(editingPost.imageUrls) : { uploaded: [], cover: null as DefaultCover | null };
   const [uploadedImages, setUploadedImages] = useState<string[]>(initialImg.uploaded);
   const [selectedDefaultCover, setSelectedDefaultCover] = useState<DefaultCover | null>(initialImg.cover);
@@ -2429,7 +2480,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     }
     setSubmitting(true);
     const finalImageUrls = buildSubmitImageUrls(uploadedImages, selectedDefaultCover);
-    const payload = { ...form, imageUrls: finalImageUrls };
+    const payload = { ...form, imageUrls: finalImageUrls, contactPreference };
     try {
       if (isEdit && editingPost) {
         await api.request(`/posts/${editingPost.id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -2574,9 +2625,39 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 placeholder={hints.descriptionPlaceholder}
                 value={form.description}
                 maxLength={2000}
-                onChange={e => setForm({...form, description: e.target.value})}
+                onChange={e => { setForm({ ...form, description: e.target.value }); setContactWarningDismissed(false); }}
               />
             </div>
+            {showContactWarning && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-[11px] leading-relaxed text-amber-900">
+                  为了减少骚扰和诈骗，建议不要把联系方式直接放在公开正文。你可以开启 BAYLINK 联系方式请求功能，让已登录用户请求联系方式。
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const methods = contactsToPreferenceMethods(detectedContacts);
+                      setContactPreference({
+                        mode: 'manual_approve',
+                        methods: defaultContactPreference().methods.map((m) => {
+                          const found = methods.find((x) => x.type === m.type);
+                          return found ? { ...m, ...found } : m;
+                        }),
+                      });
+                      setContactWarningDismissed(true);
+                      showToast('已填入联系方式设置，请检查第 3 步', 'info');
+                    }}
+                    className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white"
+                  >
+                    移到私密联系方式
+                  </button>
+                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-amber-900">
+                    仍保留在正文
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
@@ -2668,6 +2749,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 onChange={e => setForm({...form, timeInfo: e.target.value})}
               />
             </div>
+            <ContactPreferenceForm value={contactPreference} onChange={setContactPreference} />
             {!isEdit && !isAdmin && (
               <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
                 <p className="text-xs font-semibold text-baylink-text mb-2">为了防止垃圾内容，请完成验证</p>
@@ -2822,7 +2904,7 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
   return parts.filter((p) => p && String(p).trim()).join(' · ');
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: any) => {
   const [comments, setComments] = useState(post.comments || []);
   const [input, setInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -2950,8 +3032,31 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             </button>
             <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
           </div>
-          <button type="button" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(post.authorId, authorName, post.title); }} className="shrink-0 bg-baylink-green text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">私信</button>
         </div>
+        <PostDetailContactPanel
+          post={post}
+          currentUser={currentUser}
+          isOwner={isOwner}
+          onLoginNeeded={onLoginNeeded}
+          onOpenChat={onOpenChat}
+          authorName={authorName}
+          showToast={showToast}
+          onAskBayBay={onAskBayBay}
+          requestContact={async (postId) => {
+            try {
+              const res = await api.requestPostContact(postId);
+              return { status: res.status, threadId: res.threadId };
+            } catch (e: any) {
+              return { status: e?.requestStatus || '', error: e?.error || e?.message || '请求失败', threadId: e?.threadId };
+            }
+          }}
+          fetchOwnerPending={isOwner ? async () => {
+            const res = await api.getContactRequests('owner', 'pending');
+            return (res.requests || []).filter((r: any) => r.postId === post.id);
+          } : undefined}
+          approveRequest={(id) => api.approveContactRequest(id)}
+          declineRequest={(id) => api.declineContactRequest(id)}
+        />
         {(post.budget || post.timeInfo || post.category || post.city || quickTags.length > 0) && (
           <div className="surface-card mb-5 p-3.5 space-y-2">
             {detailRefreshing && (
@@ -3101,9 +3206,10 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
           const isMine = m.senderId === currentUser.id;
           const nextMsg = messages[i + 1];
           const showOtherAvatar = !isMine && (!nextMsg || nextMsg.senderId === currentUser.id);
+          const isContactCard = m.messageType === 'contact_card' || m.type === 'contact_card';
           return (
             <div key={m.id} className={`flex items-end gap-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
-              {!isMine && (
+              {!isMine && !isContactCard && (
                 showOtherAvatar ? (
                   <Avatar
                     src={conversation.otherUser.avatar}
@@ -3115,15 +3221,23 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
                   <div className="mb-1 w-7 h-7 shrink-0 self-end" aria-hidden />
                 )
               )}
-              <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed ${
-                  isMine
-                    ? 'bg-baylink-ink text-white shadow-rest rounded-tr-md'
-                    : 'bg-white border border-black/[0.04] text-baylink-text shadow-rest rounded-tl-md'
-                }`}
-              >
-                {m.content}
-              </div>
+              {isContactCard && m.contactCard?.methods?.length ? (
+                <ContactCardMessage
+                  methods={m.contactCard.methods}
+                  isMine={isMine}
+                  onCopied={(msg, type) => showToast?.(msg, type)}
+                />
+              ) : (
+                <div
+                  className={`max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed ${
+                    isMine
+                      ? 'bg-baylink-ink text-white shadow-rest rounded-tr-md'
+                      : 'bg-white border border-black/[0.04] text-baylink-text shadow-rest rounded-tl-md'
+                  }`}
+                >
+                  {m.content}
+                </div>
+              )}
             </div>
           );
         })}
@@ -3855,6 +3969,8 @@ export default function App() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
+  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<string | null>(null);
+  const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
   const [showCreate, setShowCreate] = useState(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
   
@@ -4587,7 +4703,16 @@ export default function App() {
         <BayBayAssistantEntry
           variant="headless"
           panelOpen={baybayPanelOpen}
-          onPanelOpenChange={setBaybayPanelOpen}
+          onPanelOpenChange={(open) => {
+            setBaybayPanelOpen(open);
+            if (!open) {
+              setBaybayPendingQuestion(null);
+              setBaybayCategoryHint(undefined);
+            }
+          }}
+          pendingQuestion={baybayPendingQuestion}
+          onPendingQuestionConsumed={() => setBaybayPendingQuestion(null)}
+          categoryHint={baybayCategoryHint}
           onNavigate={navigate}
           onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
         />
@@ -4662,6 +4787,11 @@ export default function App() {
             onToggleBlockUser={handleToggleBlockUser}
             blockedUserIds={blockedUserIds}
             showToast={showToast}
+            onAskBayBay={(question: string) => {
+              setBaybayPendingQuestion(question);
+              setBaybayCategoryHint(selectedPost?.category);
+              setBaybayPanelOpen(true);
+            }}
           />
         )}
         {chatConv && user && threadIdParam && (

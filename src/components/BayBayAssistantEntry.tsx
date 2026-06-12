@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChevronRight, X, Sparkles, Loader2, BookOpen } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
@@ -42,6 +42,8 @@ type BayBayAssistantEntryProps = {
   categoryHint?: string;
   panelOpen?: boolean;
   onPanelOpenChange?: (open: boolean) => void;
+  pendingQuestion?: string | null;
+  onPendingQuestionConsumed?: () => void;
 };
 
 type ShortcutItem = {
@@ -106,6 +108,8 @@ export const BayBayAssistantEntry = ({
   categoryHint,
   panelOpen,
   onPanelOpenChange,
+  pendingQuestion,
+  onPendingQuestionConsumed,
 }: BayBayAssistantEntryProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const isPanelControlled = onPanelOpenChange != null;
@@ -177,7 +181,7 @@ export const BayBayAssistantEntry = ({
     setInteractiveCards([]);
 
     try {
-      const res = await fetchGuideChat(msg);
+      const res = await fetchGuideChat(msg, categoryHint);
       if (!res.ok || !res.answer) {
         setChatError(true);
         return;
@@ -200,6 +204,15 @@ export const BayBayAssistantEntry = ({
     setQuestion(q);
     askBayBay(q);
   };
+
+  useEffect(() => {
+    if (!open || !pendingQuestion?.trim()) return;
+    const q = pendingQuestion.trim();
+    setQuestion(q);
+    askBayBay(q);
+    onPendingQuestionConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once when panel opens with a preset question
+  }, [open, pendingQuestion]);
 
   const handleAction = (action: GuideChatAction) => {
     if (action.type === 'category' || action.type === 'guide') {
