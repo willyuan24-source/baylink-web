@@ -12,6 +12,7 @@ import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { ContactCardMessage } from './components/ContactCardMessage';
 import { ContactPreferenceForm, defaultContactPreference, type ContactMethodField, type ContactPreferenceValue } from './components/ContactPreferenceForm';
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
+import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
 import { PostShareSheet } from './components/PostShareSheet';
 import { analyzeContactsInText } from './utils/contactDetection';
 import { CommentThread } from './components/CommentThread';
@@ -4197,31 +4198,39 @@ export default function App() {
     }
   };
 
-  // ✨ Socket 初始化 (已优化：防抖，防止切Tab重连)
+  // ✨ Socket 初始化：握手携带 JWT，服务端仅允许加入本人 room
   useEffect(() => {
-    if (user && !socket) {
-        const newSocket = io(SOCKET_URL);
-        newSocket.on('connect', () => { 
-            console.log('Socket Connected');
-            newSocket.emit('join_room', user.id); 
-        });
-        
-        // 监听全局新消息（用于显示小红点）
-        newSocket.on('new_message', () => {
-            if (tab !== 'messages') { // 如果当前不在消息页，就显示红点
-                setHasNotification(true);
-                showToast('收到新私信', 'info');
-            }
-        });
-
-        setSocket(newSocket);
-        return () => { newSocket.disconnect(); }
-    } else if (!user && socket) {
-        // 用户登出，断开连接
+    if (!user?.token) {
+      if (socket) {
         socket.disconnect();
         setSocket(null);
+      }
+      return;
     }
-  }, [user]); // 依赖仅为 user，tab 变化不触发重连
+
+    const newSocket = io(SOCKET_URL, {
+      auth: { token: user.token },
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Socket Connected');
+      newSocket.emit('join_room');
+    });
+
+    newSocket.on('connect_error', () => {
+      // 鉴权失败时不影响页面渲染
+    });
+
+    newSocket.on('new_message', () => {
+      if (tab !== 'messages') {
+        setHasNotification(true);
+        showToast('收到新私信', 'info');
+      }
+    });
+
+    setSocket(newSocket);
+    return () => { newSocket.disconnect(); };
+  }, [user?.id, user?.token]);
 
   // 切换到消息页时，清除私信未读红点（联系方式请求 badge 由 pending count 单独控制）
   useEffect(() => {
