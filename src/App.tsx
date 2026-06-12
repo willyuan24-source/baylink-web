@@ -39,7 +39,7 @@ import {
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, BookOpen, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX
+  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX, ThumbsUp
 } from 'lucide-react';
 
 // 引入库
@@ -888,6 +888,8 @@ const api = {
     await api.request(`/contact-requests/${requestId}/approve`, { method: 'PATCH', body: JSON.stringify({}) }),
   declineContactRequest: async (requestId: string) =>
     await api.request(`/contact-requests/${requestId}/decline`, { method: 'PATCH', body: JSON.stringify({}) }),
+  togglePostLike: async (postId: string) =>
+    await api.request(`/posts/${postId}/like`, { method: 'POST', body: JSON.stringify({}) }),
 };
 
 const filterPostsByBlockedUsers = (list: PostData[], blockedUserIds: string[]): PostData[] => {
@@ -1176,13 +1178,14 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayB
   );
 };
 
-const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, onToggleFeature, onOpenProfile }: {
+const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, onToggleFeature, onOpenProfile, onLike }: {
   onOpenPost: (post: PostData) => void;
   refreshKey?: number;
   compact?: boolean;
   currentUser?: UserData | null;
   onToggleFeature?: (post: PostData) => void;
   onOpenProfile?: (userId: string) => void;
+  onLike?: (post: PostData, onSynced?: (postId: string, liked: boolean, likesCount: number) => void) => void;
 }) => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1224,6 +1227,9 @@ const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentUser, on
           onContactClick={() => {}}
           onAvatarClick={onOpenProfile}
           onImageClick={() => {}}
+          onLike={(post: PostData) => onLike?.(post, (postId, liked, likesCount) => {
+            setPosts((prev) => prev.map((x) => (x.id === postId ? { ...x, hasLiked: liked, likesCount } : x)));
+          })}
         />
       ))}
     </div>
@@ -1347,7 +1353,35 @@ const MyPostsView = ({ user, onBack, onOpenPost }: any) => {
   );
 };
 
-const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: any) => {
+const formatUsefulLabel = (count: number) => (count > 0 ? `有用 ${count}` : '有用');
+
+const UsefulLikeButton = ({
+  post,
+  onLike,
+  compact = false,
+}: {
+  post: PostData;
+  onLike: (post: PostData) => void;
+  compact?: boolean;
+}) => (
+  <button
+    type="button"
+    onClick={(e) => { e.stopPropagation(); onLike(post); }}
+    className={`inline-flex items-center gap-0.5 rounded-lg transition active:scale-[0.98] ${
+      compact ? 'p-1.5' : 'px-2.5 py-1.5'
+    } ${
+      post.hasLiked
+        ? 'bg-baylink-green/[0.1] text-baylink-green'
+        : 'text-baylink-muted/80 hover:bg-baylink-section/60 hover:text-baylink-text-secondary'
+    }`}
+    title={post.hasLiked ? '取消标记有用' : '标记为有用'}
+  >
+    <ThumbsUp size={compact ? 14 : 15} className={post.hasLiked ? 'fill-baylink-green/25' : ''} />
+    <span className={`font-medium ${compact ? 'text-[10px]' : 'text-[11px]'}`}>{formatUsefulLabel(post.likesCount)}</span>
+  </button>
+);
+
+const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, onLike, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: any) => {
   const isProvider = post.type === 'provider';
   const postImages = normalizePostImages(post);
   const hasImage = postImages.length > 0;
@@ -1445,6 +1479,7 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
            <span className="text-[11px] text-baylink-muted">#{post.category}</span>
          </div>
          <div className="flex items-center gap-0.5 shrink-0">
+            {onLike && <UsefulLikeButton post={post} onLike={onLike} compact />}
             <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="inline-flex items-center gap-0.5 rounded-lg p-1.5 text-baylink-muted/80 transition hover:bg-baylink-section/60 hover:text-baylink-text-secondary" title="分享">
               <Share2 size={14}/>
               <span className="text-[10px] font-medium">分享</span>
@@ -2893,7 +2928,7 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
   return parts.filter((p) => p && String(p).trim()).join(' · ');
 };
 
-const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: any) => {
+const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, onLike, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: any) => {
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
   const [input, setInput] = useState('');
   const [commentMode, setCommentMode] = useState<
@@ -3122,6 +3157,17 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             )}
           </div>
         )}
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
+          <button
+            type="button"
+            onClick={() => onShare(post)}
+            className="inline-flex items-center gap-1 rounded-lg border border-black/[0.06] bg-white/90 px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary transition hover:bg-baylink-section/50 active:scale-[0.98]"
+          >
+            <Share2 size={14} />
+            分享给朋友
+          </button>
+        </div>
         <PostDetailContactPanel
           section="contact"
           post={post}
@@ -4539,6 +4585,33 @@ export default function App() {
     }
   };
 
+  const applyPostLikeState = (postId: string, liked: boolean, likesCount: number) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, hasLiked: liked, likesCount } : p)));
+    setSelectedPost((prev) => (prev?.id === postId ? { ...prev, hasLiked: liked, likesCount } : prev));
+  };
+
+  const handleToggleLike = async (
+    post: PostData,
+    onSynced?: (postId: string, liked: boolean, likesCount: number) => void,
+  ) => {
+    if (!user) return setShowLogin(true);
+    const prevLiked = post.hasLiked;
+    const prevCount = post.likesCount;
+    const optimisticLiked = !prevLiked;
+    const optimisticCount = Math.max(0, prevCount + (optimisticLiked ? 1 : -1));
+    applyPostLikeState(post.id, optimisticLiked, optimisticCount);
+    onSynced?.(post.id, optimisticLiked, optimisticCount);
+    try {
+      const res = await api.togglePostLike(post.id);
+      applyPostLikeState(post.id, !!res.liked, res.likesCount);
+      onSynced?.(post.id, !!res.liked, res.likesCount);
+    } catch (e: any) {
+      applyPostLikeState(post.id, prevLiked, prevCount);
+      onSynced?.(post.id, prevLiked, prevCount);
+      showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
+    }
+  };
+
   const handleChannelClick = (ch: typeof HOME_CHANNELS[number]) => {
     if (ch.id === 'featured') {
       navigate('/recommend');
@@ -4765,7 +4838,7 @@ export default function App() {
                      />
                    ) : (
                      <>
-                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(post: PostData) => openReportTarget({ targetType: 'post', targetId: post.id, authorId: post.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} />)}
+                       {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(post: PostData) => openReportTarget({ targetType: 'post', targetId: post.id, authorId: post.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} onLike={handleToggleLike} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
                        {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
                      </>
@@ -4820,7 +4893,7 @@ export default function App() {
                </div>
                <div className="flex-1 overflow-y-auto p-4">
                  <h3 className="mb-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><Sparkles size={14} className="text-baylink-green" /> 热门推荐</h3>
-                 <FeaturedPostsSection onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} compact currentUser={user} onToggleFeature={handleToggleFeature} onOpenProfile={openUserProfile} />
+                 <FeaturedPostsSection onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} compact currentUser={user} onToggleFeature={handleToggleFeature} onOpenProfile={openUserProfile} onLike={handleToggleLike} />
                  <h3 className="mb-2 mt-2 flex items-center gap-1 text-sm font-bold text-baylink-text"><BadgeCheck size={14} className="text-baylink-green" /> 官方推荐</h3>
                  <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} layout="list" />
                </div>
@@ -4946,6 +5019,7 @@ export default function App() {
             onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onImageClick={(src: string) => setViewingImage(src)}
             onShare={(p: PostData) => setSharingPost(p)}
+            onLike={handleToggleLike}
             onReport={(p: PostData) => openReportTarget({ targetType: 'post', targetId: p.id, authorId: p.authorId })}
             onToggleBlockUser={handleToggleBlockUser}
             blockedUserIds={blockedUserIds}
