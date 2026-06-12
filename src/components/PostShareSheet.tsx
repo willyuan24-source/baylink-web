@@ -99,27 +99,23 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 backdrop-blur-sm animate-in fade-in md:items-center md:p-6"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-t-[28px] border border-black/[0.06] bg-[#FFF8F0] shadow-elevated animate-in slide-in-from-bottom-full duration-300 md:rounded-[28px]"
+        className="relative w-[calc(100%-32px)] max-w-[360px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-black/[0.06] bg-[#FFF8F0] shadow-elevated animate-in zoom-in-95 fade-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 z-10 rounded-full p-2 text-baylink-muted hover:bg-black/[0.04] md:right-4 md:top-4"
+          className="absolute right-3 top-3 z-10 rounded-full p-2 text-baylink-muted hover:bg-black/[0.04]"
           aria-label="关闭"
         >
           <X size={18} />
         </button>
 
-        <div className="flex justify-center pt-2.5 md:hidden">
-          <div className="h-1 w-10 rounded-full bg-black/10" />
-        </div>
-
-        <div className={`${CONTENT_WIDTH} px-4 pb-safe-bar pt-4 md:px-5 md:pb-6 md:pt-5`}>
+        <div className={`${CONTENT_WIDTH} px-4 py-5 md:px-5 md:py-6`}>
           <div className="mb-5 flex flex-col items-center text-center">
             <div className="mb-4 flex items-center gap-2">
               <img
