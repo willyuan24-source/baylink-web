@@ -1,11 +1,28 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
-const OPT_IN_STEPS = [
-  'Step 1: Log in to BAYLINK',
-  'Step 2: Open Profile → Phone Verification',
-  'Step 3: Enter mobile number',
-  'Step 4: Click “Send verification code”',
-  'Step 5: Receive one-time verification code',
+const OPT_IN_FLOW = [
+  {
+    title: 'Step 1: Log in to BAYLINK',
+    description: 'The user logs into their BAYLINK account from baylink.us.',
+  },
+  {
+    title: 'Step 2: Open Profile → Phone Verification',
+    description: 'Inside the profile page, the user opens the phone verification section.',
+  },
+  {
+    title: 'Step 3: Enter mobile number',
+    description: 'The user enters their own mobile phone number in the phone verification form.',
+  },
+  {
+    title: 'Step 4: Review consent disclosure',
+    description:
+      'Before sending a code, BAYLINK displays that SMS is used only for one-time verification codes, message frequency varies, Msg & data rates may apply, and users can reply STOP to opt out or HELP for help.',
+  },
+  {
+    title: 'Step 5: Click “Send verification code”',
+    description:
+      'BAYLINK sends the one-time verification code only after the user actively clicks the button.',
+  },
 ];
 
 export const SmsConsentView = () => (
@@ -30,6 +47,7 @@ export const SmsConsentView = () => (
           'Log in to BAYLINK.',
           'Open Profile and select Phone Verification.',
           'Enter their mobile phone number.',
+          'Review the consent disclosure shown before sending a code.',
           'Click “Send verification code”.',
           'Receive a one-time verification code by SMS.',
         ]}
@@ -61,26 +79,41 @@ export const SmsConsentView = () => (
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="Reviewer screenshots / Opt-in flow">
+    <LegalSection title="Phone Verification Opt-in Flow">
       <LegalP>
-        The screenshots below illustrate the in-app opt-in flow. Placeholder cards are shown until production screenshots are added.
+        The flow below shows how a BAYLINK user opts in to receive one-time SMS verification codes for phone verification. SMS is sent only after the user enters their mobile number and actively clicks &ldquo;Send verification code&rdquo;.
       </LegalP>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {OPT_IN_STEPS.map((step, index) => (
+      <div className="mt-4 space-y-3">
+        {OPT_IN_FLOW.map((step, index) => (
           <div
-            key={step}
-            className="rounded-2xl border border-dashed border-baylink-border bg-baylink-section/40 p-4"
+            key={step.title}
+            className="flex gap-3 rounded-2xl border border-baylink-border/60 bg-white/90 p-4 shadow-rest"
           >
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-baylink-muted">
-              Placeholder
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-baylink-green-light text-sm font-bold text-baylink-green">
+              {index + 1}
             </div>
-            <div className="flex h-28 items-center justify-center rounded-xl border border-baylink-border/60 bg-white/80 text-center text-xs text-baylink-muted">
-              Screenshot pending
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-baylink-text">{step.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-baylink-text-secondary">{step.description}</p>
             </div>
-            <p className="mt-2 text-sm font-medium text-baylink-text">{step}</p>
-            <p className="mt-0.5 text-[11px] text-baylink-muted">Step {index + 1} of 5</p>
           </div>
         ))}
+      </div>
+      <div className="mt-5 rounded-2xl border border-baylink-green/20 bg-baylink-green/5 p-4">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-baylink-green">
+          Disclosure shown next to the phone verification CTA
+        </p>
+        <p className="text-sm leading-relaxed text-baylink-text-secondary">
+          By clicking &ldquo;Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
+          <a href="/privacy" className="font-medium text-baylink-green hover:underline">
+            Privacy Policy
+          </a>
+          {' '}and{' '}
+          <a href="/terms" className="font-medium text-baylink-green hover:underline">
+            Terms of Service
+          </a>
+          .
+        </p>
       </div>
     </LegalSection>
   </LegalPageLayout>
