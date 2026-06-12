@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, MessageCircle, Phone, Sparkles } from 'lucide-react';
+import { Loader2, MessageCircle, Phone, Share2, Sparkles } from 'lucide-react';
 import { getBayBayCategoryPrompt, getCategorySafetyTip } from '../utils/categorySafetyTips';
 
 type ContactPreference = {
@@ -26,6 +26,7 @@ type PostDetailContactPanelProps = {
   declineRequest?: (id: string) => Promise<void>;
   onAskBayBay: (question: string) => void;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+  onShare?: () => void;
   /** Which blocks to render — defaults to all for backward compatibility */
   section?: 'contact' | 'baybay' | 'owner' | 'all';
 };
@@ -51,6 +52,7 @@ export const PostDetailContactPanel = ({
   declineRequest,
   onAskBayBay,
   showToast,
+  onShare,
   section = 'all',
 }: PostDetailContactPanelProps) => {
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
@@ -129,6 +131,15 @@ export const PostDetailContactPanel = ({
               </button>
             )}
           </div>
+          {onShare && (
+            <button
+              type="button"
+              onClick={onShare}
+              className="mt-2 inline-flex items-center gap-1 rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary transition hover:border-baylink-green/20 hover:text-baylink-green"
+            >
+              <Share2 size={12} /> 分享给朋友
+            </button>
+          )}
           {requestStatus && (
             <p className="mt-2 text-[11px] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || requestStatus}</p>
           )}

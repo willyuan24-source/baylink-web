@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   getCategoryFromSlug,
   getSlugFromCategory,
-  postShareUrl,
   tabFromPathname,
   isHomePath,
   isGuidesPath,
@@ -13,6 +12,7 @@ import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { ContactCardMessage } from './components/ContactCardMessage';
 import { ContactPreferenceForm, defaultContactPreference, type ContactMethodField, type ContactPreferenceValue } from './components/ContactPreferenceForm';
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
+import { PostShareSheet } from './components/PostShareSheet';
 import { analyzeContactsInText } from './utils/contactDetection';
 import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
 import { UserTrustBadges, isPlatformAdmin } from './components/UserTrustBadges';
@@ -1273,55 +1273,6 @@ const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => 
   </div>
 );
 
-const ShareModal = ({ post, onClose, showToast }: any) => {
-  const [copied, setCopied] = useState(false);
-  const shareUrl = postShareUrl(post.id);
-  const authorName = post.author?.nickname || '匿名用户';
-  const authorAvatar = post.author?.avatar;
-  const descriptionPreview = (post.description || '').slice(0, 50);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`【${post.title}】\n${descriptionPreview}${descriptionPreview ? '...' : ''}\n点击查看: ${shareUrl}`);
-    setCopied(true);
-    showToast('链接已复制到剪贴板', 'success');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
-      <div className="w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 shadow-elevated backdrop-blur-xl">
-        <div className="border-b border-black/[0.04] px-5 pb-4 pt-5">
-          <div className="mb-3 flex items-center justify-center gap-2">
-            <img src={BRAND.baybayAvatar} alt="" className="h-7 w-7 rounded-lg object-cover ring-1 ring-baylink-green/15" width={28} height={28} />
-            <span className="text-sm font-bold tracking-tight text-baylink-text">BAYLINK</span>
-          </div>
-          <h3 className="text-center text-base font-semibold text-baylink-text">分享这条帖子</h3>
-          <p className="mt-1 text-center text-[11px] text-baylink-muted">复制链接，发给湾区邻里</p>
-        </div>
-        <div className="p-5">
-          <div className="surface-inset mb-3 p-3.5">
-            <div className="mb-2.5 flex items-center gap-2.5">
-              <Avatar src={authorAvatar} name={authorName} size={9} />
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-baylink-text">{authorName}</div>
-                <div className="text-[11px] text-baylink-muted">{new Date(post.createdAt).toLocaleDateString()} · {post.city}</div>
-              </div>
-            </div>
-            <h2 className="mb-1.5 text-[15px] font-semibold leading-snug text-baylink-text">{post.title}</h2>
-            <p className="line-clamp-3 text-[13px] leading-relaxed text-baylink-text-secondary">“{post.description}”</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleCopy} className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition active:scale-[0.98] ${copied ? 'bg-baylink-green-light text-baylink-green' : 'bg-baylink-green text-white shadow-rest hover:bg-baylink-green-hover'}`}>
-              {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? '已复制' : '复制链接'}
-            </button>
-            <button onClick={onClose} className="rounded-xl border border-black/[0.06] bg-white/90 px-4 text-[12px] font-medium text-baylink-muted transition hover:bg-baylink-section/50 active:scale-[0.98]">关闭</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const InfoPage = ({ title, storageKey, user, onBack, showToast }: any) => {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -1493,8 +1444,9 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
            <span className="text-[11px] text-baylink-muted">#{post.category}</span>
          </div>
          <div className="flex items-center gap-0.5 shrink-0">
-            <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="p-1.5 text-baylink-muted/80 hover:text-baylink-text-secondary transition rounded-lg hover:bg-baylink-section/60" title="分享">
+            <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="inline-flex items-center gap-0.5 rounded-lg p-1.5 text-baylink-muted/80 transition hover:bg-baylink-section/60 hover:text-baylink-text-secondary" title="分享">
               <Share2 size={14}/>
+              <span className="text-[10px] font-medium">分享</span>
             </button>
             <button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-[11px] font-semibold border border-baylink-green/25 bg-baylink-green/[0.08] text-baylink-green px-2.5 py-1.5 rounded-lg hover:bg-baylink-green/[0.12] active:scale-[0.98] transition flex items-center gap-1">
               <MessageCircle size={13} /> 私信
@@ -3136,6 +3088,7 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           }}
           approveRequest={(id) => api.approveContactRequest(id)}
           declineRequest={(id) => api.declineContactRequest(id)}
+          onShare={() => onShare?.(post)}
         />
         <PostDetailContactPanel
           section="baybay"
@@ -4968,7 +4921,7 @@ export default function App() {
         )}
         {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
-        {sharingPost && <ShareModal post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
+        {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
       </div>
       <RightSidebar />
     </div>
