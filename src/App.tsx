@@ -14,7 +14,8 @@ import { ContactPreferenceForm, defaultContactPreference, type ContactMethodFiel
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
 import { PostShareSheet } from './components/PostShareSheet';
 import { analyzeContactsInText } from './utils/contactDetection';
-import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
+import { CommentThread } from './components/CommentThread';
+import type { PostComment } from './components/CommentItem';
 import { UserTrustBadges, isPlatformAdmin } from './components/UserTrustBadges';
 import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
@@ -2893,13 +2894,79 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
 };
 
 const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: any) => {
-  const [comments, setComments] = useState(post.comments || []);
+  const [comments, setComments] = useState<PostComment[]>(post.comments || []);
   const [input, setInput] = useState('');
+  const [commentMode, setCommentMode] = useState<
+    { type: 'new' } | { type: 'reply'; parentId: string; nickname: string } | { type: 'edit'; commentId: string }
+  >({ type: 'new' });
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setComments(post.comments || []);
   }, [post.id, post.comments]);
+
+  const activeCommentCount = comments.filter((c) => !c.isDeleted).length;
+
+  const resetCommentInput = () => {
+    setCommentMode({ type: 'new' });
+    setInput('');
+  };
+
+  const submitComment = async () => {
+    if (!currentUser) return onLoginNeeded();
+    if (!input.trim()) return;
+    try {
+      if (commentMode.type === 'edit') {
+        const res = await api.request(`/posts/${post.id}/comments/${commentMode.commentId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ content: input.trim() }),
+        });
+        setComments(res.comments || []);
+        showToast('评论已更新', 'success');
+      } else {
+        const body: { content: string; parentId?: string } = { content: input.trim() };
+        if (commentMode.type === 'reply') body.parentId = commentMode.parentId;
+        const res = await api.request(`/posts/${post.id}/comments`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        setComments(res.comments || []);
+        showToast(commentMode.type === 'reply' ? '回复已发送' : '评论已发送', 'success');
+      }
+      resetCommentInput();
+    } catch (e: any) {
+      showToast(e?.error || '操作失败', 'error');
+    }
+  };
+
+  const handleReplyComment = (comment: PostComment) => {
+    setCommentMode({ type: 'reply', parentId: comment.id, nickname: comment.authorName });
+    setInput('');
+  };
+
+  const handleEditComment = (comment: PostComment) => {
+    setCommentMode({ type: 'edit', commentId: comment.id });
+    setInput(comment.content);
+  };
+
+  const handleDeleteComment = async (comment: PostComment) => {
+    if (!confirm('确定删除这条评论？')) return;
+    try {
+      const res = await api.request(`/posts/${post.id}/comments/${comment.id}`, { method: 'DELETE' });
+      setComments(res.comments || []);
+      if (commentMode.type === 'edit' && commentMode.commentId === comment.id) resetCommentInput();
+      showToast('评论已删除', 'success');
+    } catch (e: any) {
+      showToast(e?.error || '删除失败', 'error');
+    }
+  };
+
+  const commentPlaceholder =
+    commentMode.type === 'reply'
+      ? `回复 ${commentMode.nickname}...`
+      : commentMode.type === 'edit'
+        ? '编辑评论...'
+        : '写下你的评论...';
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
   const showReport = !isOwner;
@@ -2914,19 +2981,6 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
   const handleOpenAuthorProfile = () => {
     if (!canOpenProfile) return;
     onOpenUserProfile(authorId);
-  };
-
-  const postComment = async () => {
-    if (!currentUser) return onLoginNeeded();
-    if (!input.trim()) return;
-    try {
-      const c = await api.request(`/posts/${post.id}/comments`, { method: 'POST', body: JSON.stringify({ content: input }) });
-      setComments([...comments, c]);
-      setInput('');
-      showToast('评论已发送', 'success');
-    } catch {
-      showToast('评论失败', 'error');
-    }
   };
 
   const deletePost = async () => {
@@ -3103,21 +3157,49 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           requestContact={async () => ({ status: '' })}
         />
         <div className="border-t border-baylink-border/50 pt-6">
-          <h3 className="type-section-title mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-baylink-green" /> 评论 ({comments.length})</h3>
-          {comments.length === 0 ? <div className="text-center type-footnote text-baylink-muted py-6">暂无评论，快来抢沙发~</div> : comments.map((c: any) => (
-            <div key={c.id} className="surface-card p-3.5 mb-3 text-[15px] leading-relaxed">
-              <span className="mr-2 inline-flex flex-wrap items-center gap-1.5 font-semibold text-baylink-text">
-                {c.authorName}
-                {c.isAdmin && <TrustBadge user={{ isAdmin: true }} size={9} showText adminCompact />}
-              </span>
-              <span className="text-baylink-text-secondary">{c.content}</span>
-            </div>
-          ))}
+          <h3 className="type-section-title mb-4 flex items-center gap-2">
+            <MessageSquare size={18} className="text-baylink-green" /> 评论 ({activeCommentCount})
+          </h3>
+          <CommentThread
+            comments={comments}
+            currentUser={currentUser}
+            onReply={handleReplyComment}
+            onEdit={handleEditComment}
+            onDelete={handleDeleteComment}
+            onLoginNeeded={onLoginNeeded}
+          />
         </div>
       </div>
-      <div className="border-t border-black/[0.06] px-4 pt-3 pb-safe-bar flex gap-3 items-center bg-white/80 backdrop-blur-xl absolute bottom-0 w-full">
-        <input className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text transition placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15" placeholder="写下你的评论..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && postComment()} />
-        <button type="button" onClick={postComment} className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`} disabled={!input.trim()} aria-label="发送评论"><Send size={20} /></button>
+      <div className="border-t border-black/[0.06] bg-white/80 backdrop-blur-xl absolute bottom-0 w-full">
+        {commentMode.type !== 'new' && (
+          <div className="flex items-center justify-between border-b border-black/[0.04] px-4 py-2">
+            <span className="text-[11px] text-baylink-muted">
+              {commentMode.type === 'reply' ? `回复 ${commentMode.nickname}` : '编辑评论'}
+            </span>
+            <button type="button" onClick={resetCommentInput} className="text-[11px] font-medium text-baylink-green">
+              取消
+            </button>
+          </div>
+        )}
+        <div className="flex gap-3 items-center px-4 pt-3 pb-safe-bar">
+          <input
+            className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text transition placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
+            placeholder={commentPlaceholder}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onFocus={() => { if (!currentUser) onLoginNeeded(); }}
+            onKeyDown={e => e.key === 'Enter' && submitComment()}
+          />
+          <button
+            type="button"
+            onClick={submitComment}
+            className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
+            disabled={!input.trim()}
+            aria-label="发送评论"
+          >
+            <Send size={20} />
+          </button>
+        </div>
       </div>
     </div>
   );
