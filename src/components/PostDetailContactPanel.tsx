@@ -26,6 +26,8 @@ type PostDetailContactPanelProps = {
   declineRequest?: (id: string) => Promise<void>;
   onAskBayBay: (question: string) => void;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+  /** Which blocks to render — defaults to all for backward compatibility */
+  section?: 'contact' | 'baybay' | 'owner' | 'all';
 };
 
 const REQUEST_STATUS_COPY: Record<string, string> = {
@@ -49,6 +51,7 @@ export const PostDetailContactPanel = ({
   declineRequest,
   onAskBayBay,
   showToast,
+  section = 'all',
 }: PostDetailContactPanelProps) => {
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
   const [loadingRequest, setLoadingRequest] = useState(false);
@@ -57,15 +60,18 @@ export const PostDetailContactPanel = ({
 
   const mode = post.contactPreference?.mode || 'dm_first';
   const canRequestContact = mode !== 'dm_first' && !isOwner;
+  const showContact = section === 'contact' || section === 'all';
+  const showBaybay = section === 'baybay' || section === 'all';
+  const showOwner = section === 'owner' || section === 'all';
 
   useEffect(() => {
-    if (!isOwner || !fetchOwnerPending) return;
+    if (!showOwner || !isOwner || !fetchOwnerPending) return;
     setLoadingPending(true);
     fetchOwnerPending()
       .then(setPendingOwner)
       .catch(() => setPendingOwner([]))
       .finally(() => setLoadingPending(false));
-  }, [isOwner, fetchOwnerPending, post.id]);
+  }, [showOwner, isOwner, fetchOwnerPending, post.id]);
 
   const handleDm = () => {
     if (!currentUser) return onLoginNeeded();
@@ -103,50 +109,54 @@ export const PostDetailContactPanel = ({
   const categoryPrompt = getBayBayCategoryPrompt(post.category);
 
   return (
-    <div className="mb-5 space-y-3">
-      <div className="surface-card p-3.5">
-        <p className="mb-2 text-[11px] leading-relaxed text-baylink-muted">{getCategorySafetyTip(post.category)}</p>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={handleDm} className="inline-flex items-center gap-1.5 rounded-xl bg-baylink-green px-3.5 py-2 text-xs font-semibold text-white shadow-rest hover:bg-baylink-green-hover">
-            <MessageCircle size={14} /> 私信联系
-          </button>
-          {canRequestContact && (
-            <button
-              type="button"
-              onClick={handleRequest}
-              disabled={loadingRequest || requestStatus === 'pending' || requestStatus === 'auto_sent' || requestStatus === 'approved'}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-baylink-green/25 bg-baylink-green-light px-3.5 py-2 text-xs font-semibold text-baylink-green disabled:opacity-60"
-            >
-              {loadingRequest ? <Loader2 size={14} className="animate-spin" /> : <Phone size={14} />}
-              请求联系方式
+    <div className={section === 'all' ? 'mb-5 space-y-3' : 'mb-5'}>
+      {showContact && (
+        <div className="surface-card p-3.5">
+          <p className="mb-2 text-[11px] leading-relaxed text-baylink-muted">{getCategorySafetyTip(post.category)}</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={handleDm} className="inline-flex items-center gap-1.5 rounded-xl bg-baylink-green px-3.5 py-2 text-xs font-semibold text-white shadow-rest hover:bg-baylink-green-hover">
+              <MessageCircle size={14} /> 私信联系
             </button>
+            {canRequestContact && (
+              <button
+                type="button"
+                onClick={handleRequest}
+                disabled={loadingRequest || requestStatus === 'pending' || requestStatus === 'auto_sent' || requestStatus === 'approved'}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-baylink-green/25 bg-baylink-green-light px-3.5 py-2 text-xs font-semibold text-baylink-green disabled:opacity-60"
+              >
+                {loadingRequest ? <Loader2 size={14} className="animate-spin" /> : <Phone size={14} />}
+                请求联系方式
+              </button>
+            )}
+          </div>
+          {requestStatus && (
+            <p className="mt-2 text-[11px] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || requestStatus}</p>
           )}
         </div>
-        {requestStatus && (
-          <p className="mt-2 text-[11px] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || requestStatus}</p>
-        )}
-      </div>
+      )}
 
-      <div className="rounded-2xl border border-baylink-green/15 bg-baylink-green/[0.04] p-3.5">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-baylink-text">
-          <Sparkles size={15} className="text-baylink-green" /> 问问 BayBay
+      {showBaybay && (
+        <div className="rounded-2xl border border-baylink-green/15 bg-baylink-green/[0.04] p-3.5">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-baylink-text">
+            <Sparkles size={15} className="text-baylink-green" /> 问问 BayBay
+          </div>
+          <p className="mt-1 text-[11px] text-baylink-muted">不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {['这类帖子联系前要问什么？', '这条信息有什么需要注意？', '帮我整理一段私信开场白'].map((q) => (
+              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+                {q}
+              </button>
+            ))}
+            {categoryPrompt && (
+              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+                {categoryPrompt}
+              </button>
+            )}
+          </div>
         </div>
-        <p className="mt-1 text-[11px] text-baylink-muted">不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {['这类帖子联系前要问什么？', '这条信息有什么需要注意？', '帮我整理一段私信开场白'].map((q) => (
-            <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
-              {q}
-            </button>
-          ))}
-          {categoryPrompt && (
-            <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
-              {categoryPrompt}
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
-      {isOwner && (
+      {showOwner && isOwner && (
         <div className="surface-card p-3.5">
           <h4 className="text-sm font-semibold text-baylink-text">联系方式请求</h4>
           {loadingPending ? (

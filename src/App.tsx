@@ -13,7 +13,8 @@ import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { ContactCardMessage } from './components/ContactCardMessage';
 import { ContactPreferenceForm, defaultContactPreference, type ContactPreferenceValue } from './components/ContactPreferenceForm';
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
-import { contactsToPreferenceMethods, detectContactsInText } from './utils/contactDetection';
+import { analyzeContactsInText } from './utils/contactDetection';
+import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
 import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
@@ -2357,8 +2358,8 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     return defaultContactPreference();
   });
   const [contactWarningDismissed, setContactWarningDismissed] = useState(false);
-  const detectedContacts = detectContactsInText(form.description);
-  const showContactWarning = detectedContacts.length > 0 && !contactWarningDismissed;
+  const contactAnalysis = analyzeContactsInText(form.description);
+  const showContactWarning = contactAnalysis.hasContact && !contactWarningDismissed;
   const initialImg = isEdit && editingPost?.imageUrls ? splitPostImages(editingPost.imageUrls) : { uploaded: [], cover: null as DefaultCover | null };
   const [uploadedImages, setUploadedImages] = useState<string[]>(initialImg.uploaded);
   const [selectedDefaultCover, setSelectedDefaultCover] = useState<DefaultCover | null>(initialImg.cover);
@@ -2637,16 +2638,22 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                   <button
                     type="button"
                     onClick={() => {
-                      const methods = contactsToPreferenceMethods(detectedContacts);
+                      const analysis = analyzeContactsInText(form.description);
                       setContactPreference({
                         mode: 'manual_approve',
                         methods: defaultContactPreference().methods.map((m) => {
-                          const found = methods.find((x) => x.type === m.type);
+                          const found = analysis.detectedMethods.find((x) => x.type === m.type);
                           return found ? { ...m, ...found } : m;
                         }),
                       });
+                      setForm({ ...form, description: analysis.cleanedText });
                       setContactWarningDismissed(true);
-                      showToast('已填入联系方式设置，请检查第 3 步', 'info');
+                      const stillHasContact = analyzeContactsInText(analysis.cleanedText).hasContact;
+                      if (analysis.removedFromText && !stillHasContact) {
+                        showToast('已移到私密联系方式，并从公开正文中移除。发布前请再检查一次。', 'success');
+                      } else {
+                        showToast('已填入私密联系方式，请手动检查并删除正文中的联系方式。', 'info');
+                      }
                     }}
                     className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white"
                   >
@@ -3033,30 +3040,22 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
           </div>
         </div>
-        <PostDetailContactPanel
-          post={post}
-          currentUser={currentUser}
-          isOwner={isOwner}
-          onLoginNeeded={onLoginNeeded}
-          onOpenChat={onOpenChat}
-          authorName={authorName}
-          showToast={showToast}
-          onAskBayBay={onAskBayBay}
-          requestContact={async (postId) => {
-            try {
-              const res = await api.requestPostContact(postId);
-              return { status: res.status, threadId: res.threadId };
-            } catch (e: any) {
-              return { status: e?.requestStatus || '', error: e?.error || e?.message || '请求失败', threadId: e?.threadId };
-            }
-          }}
-          fetchOwnerPending={isOwner ? async () => {
-            const res = await api.getContactRequests('owner', 'pending');
-            return (res.requests || []).filter((r: any) => r.postId === post.id);
-          } : undefined}
-          approveRequest={(id) => api.approveContactRequest(id)}
-          declineRequest={(id) => api.declineContactRequest(id)}
-        />
+        <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
+        <div className="space-y-3 mb-6">
+          {imageUrls.map((u: string, i: number) => (
+            <div key={i} className="relative overflow-hidden rounded-[22px] bg-baylink-section/50">
+              <img
+                src={u}
+                alt=""
+                onClick={() => onImageClick(u)}
+                className={`w-full cursor-zoom-in rounded-[22px] shadow-rest transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
+              />
+              {isDefaultCoverUrl(u) && (
+                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 type-caption text-white/90">系统封面</span>
+              )}
+            </div>
+          ))}
+        </div>
         {(post.budget || post.timeInfo || post.category || post.city || quickTags.length > 0) && (
           <div className="surface-card mb-5 p-3.5 space-y-2">
             {detailRefreshing && (
@@ -3085,22 +3084,39 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             )}
           </div>
         )}
-        <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
-        <div className="space-y-3 mb-8">
-          {imageUrls.map((u: string, i: number) => (
-            <div key={i} className="relative overflow-hidden rounded-[22px] bg-baylink-section/50">
-              <img
-                src={u}
-                alt=""
-                onClick={() => onImageClick(u)}
-                className={`w-full cursor-zoom-in rounded-[22px] shadow-rest transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
-              />
-              {isDefaultCoverUrl(u) && (
-                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 type-caption text-white/90">系统封面</span>
-              )}
-            </div>
-          ))}
-        </div>
+        <PostDetailContactPanel
+          section="contact"
+          post={post}
+          currentUser={currentUser}
+          isOwner={isOwner}
+          onLoginNeeded={onLoginNeeded}
+          onOpenChat={onOpenChat}
+          authorName={authorName}
+          showToast={showToast}
+          onAskBayBay={onAskBayBay}
+          requestContact={async (postId) => {
+            try {
+              const res = await api.requestPostContact(postId);
+              return { status: res.status, threadId: res.threadId };
+            } catch (e: any) {
+              return { status: e?.requestStatus || '', error: e?.error || e?.message || '请求失败', threadId: e?.threadId };
+            }
+          }}
+          approveRequest={(id) => api.approveContactRequest(id)}
+          declineRequest={(id) => api.declineContactRequest(id)}
+        />
+        <PostDetailContactPanel
+          section="baybay"
+          post={post}
+          currentUser={currentUser}
+          isOwner={isOwner}
+          onLoginNeeded={onLoginNeeded}
+          onOpenChat={onOpenChat}
+          authorName={authorName}
+          showToast={showToast}
+          onAskBayBay={onAskBayBay}
+          requestContact={async () => ({ status: '' })}
+        />
         <div className="border-t border-baylink-border/50 pt-6">
           <h3 className="type-section-title mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-baylink-green" /> 评论 ({comments.length})</h3>
           {comments.length === 0 ? <div className="text-center type-footnote text-baylink-muted py-6">暂无评论，快来抢沙发~</div> : comments.map((c: any) => (
@@ -4003,6 +4019,8 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [hasNotification, setHasNotification] = useState(false);
+  const [pendingContactRequestCount, setPendingContactRequestCount] = useState(0);
+  const [contactRequestRefreshKey, setContactRequestRefreshKey] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
   const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
@@ -4076,10 +4094,33 @@ export default function App() {
     }
   }, [user]); // 依赖仅为 user，tab 变化不触发重连
 
-  // 切换到消息页时，清除红点
+  // 切换到消息页时，清除私信未读红点（联系方式请求 badge 由 pending count 单独控制）
   useEffect(() => {
       if (tab === 'messages') setHasNotification(false);
   }, [tab]);
+
+  const refreshPendingContactRequestCount = useCallback(async () => {
+    if (!user) {
+      setPendingContactRequestCount(0);
+      return;
+    }
+    try {
+      const res = await api.getContactRequests('owner', 'pending');
+      setPendingContactRequestCount((res.requests || []).length);
+    } catch {
+      setPendingContactRequestCount(0);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refreshPendingContactRequestCount();
+    if (!user) return;
+    const interval = setInterval(refreshPendingContactRequestCount, 30000);
+    return () => clearInterval(interval);
+  }, [user, refreshPendingContactRequestCount, contactRequestRefreshKey]);
+
+  const showMessagesBadge = hasNotification || pendingContactRequestCount > 0;
+  const messagesBadgeCount = pendingContactRequestCount > 0 ? Math.min(pendingContactRequestCount, 99) : 0;
 
   // URL → 分类筛选
   useEffect(() => {
@@ -4444,7 +4485,16 @@ export default function App() {
         <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
         <button onClick={() => navigate('/guides')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isGuidesPath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><BookOpen size={18} strokeWidth={isGuidesPath(location.pathname)?2.5:2}/> 湾区指南</button>
         <button onClick={() => navigate('/messages')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
-            <div className="relative"><MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>{hasNotification && <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}</div> 消息
+            <div className="relative">
+              <MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>
+              {showMessagesBadge && (
+                messagesBadgeCount > 0 ? (
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] rounded-full bg-baylink-orange px-1 py-0.5 text-center text-[9px] font-bold leading-none text-white">{messagesBadgeCount}</span>
+                ) : (
+                  <div className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-baylink-orange" />
+                )
+              )}
+            </div> 消息
         </button>
         <button onClick={() => navigate(user ? '/me' : '/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</button>
       </nav>
@@ -4656,7 +4706,29 @@ export default function App() {
                <GuidesHome onOpenGuide={(slug) => navigate(`/guides/${slug}`)} />
              )
            )}
-           {tab === 'messages' && !threadIdParam && <div className="flex flex-col h-full w-full pb-24 lg:pb-0 bg-baylink-bg"><div className="px-5 pt-safe-top pb-4 bg-white/75 backdrop-blur-xl sticky top-0 z-10 border-b border-black/[0.06]"><h2 className="type-page-title">消息</h2></div><MessagesList currentUser={user} onOpenChat={(c)=>{ setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile}/></div>}
+           {tab === 'messages' && !threadIdParam && (
+             <div className="flex flex-col h-full w-full pb-24 lg:pb-0 bg-baylink-bg">
+               <div className="px-5 pt-safe-top pb-4 bg-white/75 backdrop-blur-xl sticky top-0 z-10 border-b border-black/[0.06]">
+                 <h2 className="type-page-title">消息</h2>
+               </div>
+               {user && (
+                 <ContactRequestInboxPanel
+                   refreshKey={contactRequestRefreshKey}
+                   fetchPending={async () => {
+                     const res = await api.getContactRequests('owner', 'pending');
+                     return res.requests || [];
+                   }}
+                   onApprove={async (id) => { await api.approveContactRequest(id); setContactRequestRefreshKey((k) => k + 1); }}
+                   onDecline={async (id) => { await api.declineContactRequest(id); setContactRequestRefreshKey((k) => k + 1); }}
+                   onOpenChat={(targetId, nickname, postTitle) => openChat(targetId, nickname, postTitle)}
+                   onOpenPost={(postId) => navigate(`/posts/${postId}`)}
+                   showToast={showToast}
+                   onCountChange={setPendingContactRequestCount}
+                 />
+               )}
+               <MessagesList currentUser={user} onOpenChat={(c) => { setChatConv(c); navigate(`/messages/${c.id}`); }} onOpenProfile={openUserProfile} />
+             </div>
+           )}
            {tab === 'notifications' && (
              <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
                <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
@@ -4690,8 +4762,16 @@ export default function App() {
              <span className="text-[10px] font-medium text-baylink-green mt-0.5">发布</span>
            </button>
            <button onClick={()=>navigate('/messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
-             {hasNotification && <div className="absolute top-0.5 right-2.5 w-1.5 h-1.5 bg-baylink-orange rounded-full"></div>}
+             <div className="relative">
+               <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
+               {showMessagesBadge && (
+                 messagesBadgeCount > 0 ? (
+                   <span className="absolute -top-1 -right-2 min-w-[14px] rounded-full bg-baylink-orange px-1 py-0.5 text-center text-[8px] font-bold leading-none text-white">{messagesBadgeCount}</span>
+                 ) : (
+                   <div className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-baylink-orange" />
+                 )
+               )}
+             </div>
              <span className={`text-[10px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
            </button>
            <button onClick={()=>navigate('/me')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted/80'}`}>
