@@ -15,7 +15,7 @@ import { ContactPreferenceForm, defaultContactPreference, type ContactMethodFiel
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
 import { analyzeContactsInText } from './utils/contactDetection';
 import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
-import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
+import { UserTrustBadges, isPlatformAdmin } from './components/UserTrustBadges';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
 import { AuthBrandHeader } from './components/AuthBrandHeader';
@@ -325,7 +325,7 @@ const toAdDetailItem = (ad: Partial<AdData> & { isDemo?: boolean }): AdDetailIte
 });
 
 interface PostData {
-  id: string; authorId: string; author: { id?: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; }; 
+  id: string; authorId: string; author: { id?: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: string; }; 
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
@@ -353,6 +353,7 @@ type PublicUserProfile = {
   website?: string;
   xiaohongshu?: string;
   role: Role;
+  isAdmin?: boolean;
   createdAt?: number;
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
@@ -659,7 +660,7 @@ const mapPostSaveError = (err: any, isEdit = false): string => {
 
 interface Conversation { 
   id: string; 
-  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; }; 
+  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: string; }; 
   lastMessage?: string; 
   updatedAt: number;
   lastPostTitle?: string; // ✨ 上下文
@@ -797,28 +798,10 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
   );
 };
 
-// ✨ 信任徽章（手机验证与官方认证独立展示）
-const TrustBadge = ({ user, size = 16, showText = false }: { user: Partial<UserData>, size?: number, showText?: boolean }) => {
-    const phoneVerified = !!user?.isPhoneVerified;
-    const officialVerified = !!user?.isOfficialVerified;
-    if (!phoneVerified && !officialVerified) return null;
-    return (
-        <span className="inline-flex flex-wrap items-center gap-1">
-            {phoneVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-600" title="手机验证已完成">
-                    <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
-                    {showText && <span className="text-[10px] font-bold">已验证</span>}
-                </span>
-            )}
-            {officialVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-1.5 py-0.5 text-yellow-600" title="BAYLINK 官方认证账号">
-                    <BadgeCheck size={size} fill="#FBBF24" className="text-white" />
-                    {showText && <span className="text-[10px] font-bold">官方认证</span>}
-                </span>
-            )}
-        </span>
-    );
-};
+// ✨ 信任徽章（委托 UserTrustBadges 组件）
+const TrustBadge = ({ user, size = 16, showText = false, adminCompact = false }: { user: Partial<UserData>; size?: number; showText?: boolean; adminCompact?: boolean }) => (
+  <UserTrustBadges user={user} size={size} showText={showText} adminCompact={adminCompact} />
+);
 
 // --- API ---
 const api = {
@@ -1430,10 +1413,15 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
             <Avatar src={post.author.avatar} name={post.author.nickname} size={7} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-baylink-text flex items-center gap-1 truncate">
-            <span className="font-medium">{post.author.nickname}</span>
-            <span className="opacity-80 scale-90 origin-left"><TrustBadge user={post.author} size={9}/></span>
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-baylink-text">
+            <span className="max-w-full truncate font-medium">{post.author.nickname}</span>
+            {!isPlatformAdmin(post.author) && (
+              <span className="origin-left scale-90 opacity-80"><TrustBadge user={post.author} size={9} /></span>
+            )}
           </div>
+          {isPlatformAdmin(post.author) && (
+            <div className="mt-0.5"><TrustBadge user={post.author} size={9} showText /></div>
+          )}
           <div className="text-[11px] text-baylink-muted/85">{formatPostDateLine(post)}</div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -1626,11 +1614,16 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                   <div className="min-w-0 flex-1">
                     <h4 className="text-lg font-bold text-baylink-text leading-tight">{profile.nickname}</h4>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                      <span className={`rounded-md px-1.5 py-px text-[9px] font-bold ${profile.role === 'admin' ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
-                        {profile.role === 'admin' ? '管理员' : '社区居民'}
-                      </span>
+                      {!isPlatformAdmin(profile) && (
+                        <span className="rounded-md bg-baylink-section px-1.5 py-px text-[9px] font-bold text-baylink-muted">社区居民</span>
+                      )}
                       <TrustBadge user={profile} size={11} showText />
                     </div>
+                    {isPlatformAdmin(profile) && (
+                      <p className="mt-2 text-[11px] leading-relaxed text-emerald-800/90">
+                        该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。
+                      </p>
+                    )}
                     {locationLine && (
                       <p className="mt-1.5 flex items-center gap-1 text-[11px] text-baylink-text-secondary">
                         <MapPin size={11} className="shrink-0 text-baylink-green/70" />
@@ -1806,8 +1799,15 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
                  </div>
                  <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-2 flex-wrap">{profile.nickname} <TrustBadge user={profile} size={12} showText /></h2>
                  <div className="flex flex-wrap gap-2 mb-4">
-                     <span className={`text-xs px-2.5 py-1 rounded-lg font-bold ${profile.role === 'admin' ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'}`}>{profile.role === 'admin' ? '管理员' : '社区居民'}</span>
+                     {!isPlatformAdmin(profile) && (
+                       <span className="text-xs px-2.5 py-1 rounded-lg font-bold bg-gray-200 text-gray-600">社区居民</span>
+                     )}
                  </div>
+                 {isPlatformAdmin(profile) && (
+                   <p className="mb-4 max-w-sm text-center text-xs leading-relaxed text-emerald-800">
+                     该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。
+                   </p>
+                 )}
                  <div className="w-full bg-white p-4 rounded-2xl shadow-sm border border-white mb-6 text-sm text-gray-600">
                    <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">信任信息</h3>
                    <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
@@ -2929,8 +2929,8 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
   const tagLabel = author.profileTags?.map((t) => t?.trim()).filter(Boolean)?.[0];
   let identity = tagLabel;
   if (!identity) {
-    if (author.isOfficialVerified) identity = '官方认证';
-    else if (author.role === 'admin') identity = '管理员';
+    if (author.isAdmin || author.role === 'admin') identity = 'BAYLINK 管理员';
+    else if (author.isOfficialVerified) identity = '官方认证';
     else identity = '社区用户';
   }
   const dateStr = new Date(post.createdAt).toLocaleDateString();
@@ -3060,11 +3060,14 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
               type="button"
               disabled={!canOpenProfile}
               onClick={handleOpenAuthorProfile}
-              className={`flex max-w-full items-center gap-1 text-left text-[15px] font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+              className={`flex max-w-full flex-wrap items-center gap-1 text-left text-[15px] font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
             >
               <span className="truncate">{authorName}</span>
-              <TrustBadge user={post.author} size={10} />
+              <TrustBadge user={post.author} size={10} showText />
             </button>
+            {isPlatformAdmin(post.author) && (
+              <p className="type-footnote mt-0.5 text-emerald-700">BAYLINK 平台账号发布</p>
+            )}
             <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
           </div>
         </div>
@@ -3149,7 +3152,10 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           <h3 className="type-section-title mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-baylink-green" /> 评论 ({comments.length})</h3>
           {comments.length === 0 ? <div className="text-center type-footnote text-baylink-muted py-6">暂无评论，快来抢沙发~</div> : comments.map((c: any) => (
             <div key={c.id} className="surface-card p-3.5 mb-3 text-[15px] leading-relaxed">
-              <span className="font-semibold text-baylink-text mr-2">{c.authorName}</span>
+              <span className="mr-2 inline-flex flex-wrap items-center gap-1.5 font-semibold text-baylink-text">
+                {c.authorName}
+                {c.isAdmin && <TrustBadge user={{ isAdmin: true }} size={9} showText adminCompact />}
+              </span>
               <span className="text-baylink-text-secondary">{c.content}</span>
             </div>
           ))}
@@ -3219,7 +3225,12 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
     <div className="fixed inset-0 bg-baylink-bg z-[100] flex flex-col">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-black/[0.06] bg-white/75 backdrop-blur-xl pt-safe-top shrink-0">
         <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="返回"><ChevronLeft size={20} /></button>
-        <span className="min-w-0 flex-1 truncate text-[17px] font-semibold text-baylink-text">{conversation.otherUser.nickname}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="truncate text-[17px] font-semibold text-baylink-text">{conversation.otherUser.nickname}</span>
+            <TrustBadge user={conversation.otherUser} size={11} showText adminCompact />
+          </div>
+        </div>
         <button type="button" onClick={() => onViewProfile?.(conversation.otherUser.id)} className="shrink-0 rounded-xl border border-black/[0.06] bg-white/80 px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text hover:bg-baylink-section/60">
           查看资料
         </button>
@@ -3233,6 +3244,14 @@ const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, o
           <UserX size={14} className="inline" />
         </button>
       </div>
+
+      {isPlatformAdmin(conversation.otherUser) && (
+        <div className="mx-4 mt-2 mb-0 rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-3.5 py-2.5">
+          <p className="text-[11px] leading-relaxed text-emerald-900">
+            BAYLINK 管理员不会主动索要密码、验证码或付款信息。
+          </p>
+        </div>
+      )}
 
       <div className="mx-4 mt-3 mb-1 flex items-center gap-2.5 rounded-2xl border border-baylink-green/10 bg-baylink-green/[0.08] px-3.5 py-2.5">
         <div className="shrink-0 rounded-lg bg-white/70 p-1.5 border border-baylink-green/10">
@@ -4366,9 +4385,9 @@ export default function App() {
           const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) }); 
           const conv: Conversation = { 
               id: c.id, 
-              otherUser: { id: targetId, nickname: nickname || 'User' }, 
+              otherUser: c.otherUser || { id: targetId, nickname: nickname || 'User' }, 
               lastMessage: '', 
-              updatedAt: Date.now(),
+              updatedAt: c.updatedAt || Date.now(),
               lastPostTitle: postTitle
           };
           setChatConv(conv);
