@@ -18,6 +18,7 @@ import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { PrivacyPolicyView } from './components/PrivacyPolicyView';
 import { TermsView } from './components/TermsView';
+import { SmsConsentView } from './components/SmsConsentView';
 import { OfficialVerificationModal } from './components/OfficialVerificationModal';
 import { BlockedUsersModal } from './components/BlockedUsersModal';
 import { CategoryGuideStrip } from './components/CategoryGuideStrip';
@@ -1836,10 +1837,13 @@ const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) =
                         <p className="text-center text-[10px] text-gray-400">例如：4156012119 或 +14156012119</p>
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
                         <p className="text-[10px] leading-relaxed text-gray-500">
-                          点击发送验证码，即表示你同意接收 BAYLINK 的一次性短信验证码。短信和数据费用可能适用。可回复 STOP 退订，回复 HELP 获取帮助。
+                          By clicking &ldquo;Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
+                          <a href="/privacy" className="font-semibold text-baylink-green hover:underline">Privacy Policy</a>
+                          {' '}and{' '}
+                          <a href="/terms" className="font-semibold text-baylink-green hover:underline">Terms of Service</a>.
                         </p>
-                        <p className="text-[9px] leading-relaxed text-gray-400">
-                          By clicking Send verification code, you agree to receive one-time SMS verification messages from BAYLINK. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                        <p className="text-center text-[10px] text-gray-400">
+                          <a href="/sms-consent" className="text-baylink-green hover:underline">SMS Verification Consent</a>
                         </p>
                     </div>
                 ) : (
@@ -3780,9 +3784,10 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
             <ChevronRight size={18} className="text-gray-300" />
           </button>
           <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
-          <div className="mt-6 flex justify-center gap-4 text-[11px] text-gray-400">
+          <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
             <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
             <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
+            <a href="/sms-consent" className="hover:text-baylink-green transition">SMS Verification</a>
           </div>
           {user.role === 'admin' && (
             <>
@@ -3991,6 +3996,8 @@ export default function App() {
       document.title = '隐私政策｜BAYLINK';
     } else if (path === '/terms') {
       document.title = '服务条款｜BAYLINK';
+    } else if (path === '/sms-consent') {
+      document.title = 'SMS Verification Consent｜BAYLINK';
     } else {
       document.title = 'BAYLINK｜湾区华人本地生活信息平台';
     }
@@ -4386,9 +4393,10 @@ export default function App() {
           <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
        </div>
        <div className="mt-6 text-[11px] text-baylink-muted/80 text-center space-y-1.5">
-         <div className="flex justify-center gap-3">
+         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
+           <a href="/sms-consent" className="hover:text-baylink-green transition">SMS Verification</a>
          </div>
          <div>© 2025 BayLink</div>
        </div>
@@ -4551,6 +4559,7 @@ export default function App() {
            {(tab === 'profile' || location.pathname === '/me') && <ProfileView user={user} onLogin={()=>setShowLogin(true)} onLogout={handleLogout} onOpenPost={navigateToPost} onUpdateUser={setUser} showToast={showToast} onOpenBlockedUsers={() => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); }} />}
            {location.pathname === '/privacy' && <PrivacyPolicyView />}
            {location.pathname === '/terms' && <TermsView />}
+           {location.pathname === '/sms-consent' && <SmsConsentView />}
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
