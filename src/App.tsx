@@ -1928,8 +1928,8 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
         onUpdate(newUserData);
         onClose();
         showToast('资料已更新', 'success');
-      } catch {
-        showToast('保存失败', 'error');
+      } catch (e: any) {
+        showToast(friendlyErrorMessage(e, '保存失败'), 'error');
       } finally {
         setSaving(false);
       }
@@ -4106,6 +4106,8 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const tab = tabFromPathname(location.pathname);
+  const tabRef = useRef(tab);
+  useEffect(() => { tabRef.current = tab; }, [tab]);
   const categorySlug = location.pathname.startsWith('/category/')
     ? location.pathname.split('/category/')[1]?.split('/')[0]
     : undefined;
@@ -4222,7 +4224,7 @@ export default function App() {
     });
 
     newSocket.on('new_message', () => {
-      if (tab !== 'messages') {
+      if (tabRef.current !== 'messages') {
         setHasNotification(true);
         showToast('收到新私信', 'info');
       }
