@@ -16,6 +16,7 @@ import { PostDetailContactPanel } from './components/PostDetailContactPanel';
 import { analyzeContactsInText } from './utils/contactDetection';
 import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
 import { UserTrustBadges, isPlatformAdmin } from './components/UserTrustBadges';
+import { BayBayFloatingLauncher } from './components/BayBayFloatingLauncher';
 import { BayBayPostAssist, type AiPostDraft } from './components/BayBayPostAssist';
 import ReportModal, { type ReportReason } from './components/ReportModal';
 import { AuthBrandHeader } from './components/AuthBrandHeader';
