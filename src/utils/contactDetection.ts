@@ -10,12 +10,13 @@ export type ContactAnalysis = {
   uncertainMatches: string[];
   /** True when phone/email removed and no high-risk leftover contact patterns remain */
   removedFromText: boolean;
+  /** True when only vague keywords detected without concrete phone/email/wechat value */
+  keywordOnly?: boolean;
 };
 
 const PHONE_RE = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b/g;
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const WECHAT_RE = /(?:微信|wechat|wx|vx|威信|加我|联系方式)[:：\s]*[@]?([a-zA-Z0-9_-]{4,20})/gi;
-const WECHAT_KEYWORD_RE = /(?:微信|wechat|wx|vx|威信|加我|联系方式)/gi;
 
 export const detectContactsInText = (text: string): DetectedContact[] => {
   const found: DetectedContact[] = [];
@@ -72,21 +73,30 @@ export const analyzeContactsInText = (text: string): ContactAnalysis => {
   const detected = detectContactsInText(text);
   const detectedMethods = contactsToPreferenceMethods(detected);
   const uncertainMatches: string[] = [];
-  let cleanedText = text;
-
   const hadPhone = detected.some((d) => d.type === 'phone');
   const hadEmail = detected.some((d) => d.type === 'email');
   const hadWechat = detected.some((d) => d.type === 'wechat');
   const hadKeywordOnly = detected.some((d) => d.type === 'keyword');
+  const hasConcreteContact = detectedMethods.length > 0;
+
+  if (hadKeywordOnly && !hasConcreteContact) {
+    return {
+      detectedMethods: [],
+      cleanedText: text,
+      hasContact: true,
+      uncertainMatches: ['联系方式关键词'],
+      removedFromText: false,
+      keywordOnly: true,
+    };
+  }
+
+  let cleanedText = text;
 
   if (hadPhone) cleanedText = removeAllMatches(cleanedText, PHONE_RE);
   if (hadEmail) cleanedText = removeAllMatches(cleanedText, EMAIL_RE);
 
   if (hadWechat) {
     cleanedText = removeAllMatches(cleanedText, WECHAT_RE);
-  } else if (hadKeywordOnly) {
-    uncertainMatches.push('联系方式关键词');
-    cleanedText = cleanedText.replace(WECHAT_KEYWORD_RE, ' ');
   }
 
   cleanedText = normalizeCleanedText(cleanedText);
@@ -98,9 +108,6 @@ export const analyzeContactsInText = (text: string): ContactAnalysis => {
 
   if (hadWechat && leftover.some((d) => d.type === 'wechat')) {
     uncertainMatches.push('微信号');
-  }
-  if (hadKeywordOnly && leftover.length > 0) {
-    uncertainMatches.push('正文仍含联系方式相关文字');
   }
 
   return {

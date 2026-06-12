@@ -23,8 +23,9 @@ const typeLabel = (type: string, label?: string) => {
 
 export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMessageProps) => {
   const copy = async (value: string) => {
+    if (!value?.trim()) return;
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(value.trim());
       onCopied?.('已复制');
     } catch {
       onCopied?.('复制失败', 'error' as const);
@@ -49,7 +50,8 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
               <button
                 type="button"
                 onClick={() => copy(m.value)}
-                className="shrink-0 rounded-lg border border-black/[0.06] bg-white p-1.5 text-baylink-muted transition hover:text-baylink-green"
+                disabled={!m.value?.trim()}
+                className="shrink-0 rounded-lg border border-black/[0.06] bg-white p-1.5 text-baylink-muted transition hover:text-baylink-green disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="复制"
               >
                 <Copy size={14} />

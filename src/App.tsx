@@ -11,7 +11,7 @@ import {
 import { BRAND } from './brandAssets';
 import { BayBayAssistantEntry } from './components/BayBayAssistantEntry';
 import { ContactCardMessage } from './components/ContactCardMessage';
-import { ContactPreferenceForm, defaultContactPreference, type ContactPreferenceValue } from './components/ContactPreferenceForm';
+import { ContactPreferenceForm, defaultContactPreference, type ContactMethodField, type ContactPreferenceValue } from './components/ContactPreferenceForm';
 import { PostDetailContactPanel } from './components/PostDetailContactPanel';
 import { analyzeContactsInText } from './utils/contactDetection';
 import { ContactRequestInboxPanel } from './components/ContactRequestInboxPanel';
@@ -2316,6 +2316,26 @@ const DefaultCoverPicker = ({
   );
 };
 
+const CONTACT_METHOD_TYPES = ['wechat', 'phone', 'email', 'other'] as const;
+
+const mergeContactMethod = (
+  base: ContactMethodField,
+  found?: { type?: string; label?: string; value?: string; note?: string; enabled?: boolean },
+): ContactMethodField => {
+  if (!found) return base;
+  const type = CONTACT_METHOD_TYPES.includes(found.type as ContactMethodField['type'])
+    ? (found.type as ContactMethodField['type'])
+    : base.type;
+  return {
+    ...base,
+    type,
+    label: found.label || base.label,
+    value: found.value || '',
+    note: found.note || '',
+    enabled: !!found.value,
+  };
+};
+
 // --- CreatePostModal ---
 const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', defaultCategory, mode = 'create', editingPost }: {
   onClose: () => void;
@@ -2349,10 +2369,9 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     if (isEdit && editingPost?.contactPreference) {
       return {
         mode: editingPost.contactPreference.mode || 'dm_first',
-        methods: defaultContactPreference().methods.map((m) => {
-          const found = editingPost.contactPreference?.methods?.find((x) => x.type === m.type);
-          return found ? { ...m, ...found, value: found.value || '', enabled: !!found.value } : m;
-        }),
+        methods: defaultContactPreference().methods.map((m) =>
+          mergeContactMethod(m, editingPost.contactPreference?.methods?.find((x) => x.type === m.type)),
+        ),
       };
     }
     return defaultContactPreference();
@@ -2639,11 +2658,20 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                     type="button"
                     onClick={() => {
                       const analysis = analyzeContactsInText(form.description);
+                      if (analysis.keywordOnly) {
+                        setContactPreference({
+                          mode: 'manual_approve',
+                          methods: defaultContactPreference().methods,
+                        });
+                        setContactWarningDismissed(true);
+                        showToast('检测到联系方式相关词，但没有识别到具体号码或账号。请手动填写私密联系方式，并删除正文中的联系方式。', 'info');
+                        return;
+                      }
                       setContactPreference({
                         mode: 'manual_approve',
                         methods: defaultContactPreference().methods.map((m) => {
                           const found = analysis.detectedMethods.find((x) => x.type === m.type);
-                          return found ? { ...m, ...found } : m;
+                          return found ? mergeContactMethod(m, found) : m;
                         }),
                       });
                       setForm({ ...form, description: analysis.cleanedText });
@@ -4869,7 +4897,7 @@ export default function App() {
             showToast={showToast}
             onAskBayBay={(question: string) => {
               setBaybayPendingQuestion(question);
-              setBaybayCategoryHint(selectedPost?.category);
+              setBaybayCategoryHint(selectedPost?.category ? (getSlugFromCategory(selectedPost.category) || undefined) : undefined);
               setBaybayPanelOpen(true);
             }}
           />
