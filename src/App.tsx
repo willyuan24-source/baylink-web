@@ -53,6 +53,8 @@ import { compressImageFile, fileToDataUrl, isLikelyImageFile, MAX_IMAGE_UPLOAD_B
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api';
 const SOCKET_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://baylink-api.onrender.com';
 
+const MAX_POST_IMAGES = 5;
+
 const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
 
 /** 地区关键词 → 发帖表单 REGIONS（先匹配具体城市，再匹配大区，避免 Millbrae 被 SF 误判） */
@@ -205,7 +207,7 @@ const splitPostImages = (urls: string[] = []) => {
 };
 
 const buildSubmitImageUrls = (uploaded: string[], cover: DefaultCover | null) => {
-  if (uploaded.length > 0) return uploaded.slice(0, 3);
+  if (uploaded.length > 0) return uploaded.slice(0, MAX_POST_IMAGES);
   if (cover?.url) return [cover.url];
   return [];
 };
@@ -2436,11 +2438,15 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     const files = input.files;
     if (!files?.length) return;
 
-    if (uploadedImages.length + files.length > 3) {
-      showToast('最多只能上传3张图片', 'error');
+    const remaining = MAX_POST_IMAGES - uploadedImages.length;
+    if (remaining <= 0) {
+      showToast('最多上传 5 张照片', 'error');
       input.value = '';
       return;
     }
+
+    const fileList = Array.from(files);
+    const willTruncate = fileList.length > remaining;
 
     setImageCompressing(true);
     setImageCompressHint('图片处理中...');
@@ -2449,7 +2455,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
     let anyCompressed = false;
 
     try {
-      for (const file of Array.from(files)) {
+      for (const file of fileList.slice(0, remaining)) {
         if (!isLikelyImageFile(file)) continue;
 
         if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
@@ -2472,7 +2478,11 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
       }
 
       if (newImages.length > 0) {
-        setUploadedImages((prev) => [...prev, ...newImages].slice(0, 3));
+        setUploadedImages((prev) => [...prev, ...newImages].slice(0, MAX_POST_IMAGES));
+      }
+
+      if (willTruncate) {
+        showToast('最多上传 5 张照片', 'error');
       }
 
       setImageCompressHint(anyCompressed ? '图片已优化，上传更快' : null);
@@ -2683,6 +2693,14 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                 </div>
               </div>
             )}
+            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-1.5 px-0.5">
+              <span className="text-[11px] font-semibold text-baylink-text">上传照片</span>
+              <span className="text-[10px] text-baylink-muted">
+                {uploadedImages.length > 0
+                  ? `已上传 ${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 最多上传 5 张照片`
+                  : '最多上传 5 张照片'}
+              </span>
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
@@ -2690,7 +2708,7 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
                   <button type="button" onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm"><X size={12} /></button>
                 </div>
               ))}
-              {uploadedImages.length < 3 && (
+              {uploadedImages.length < MAX_POST_IMAGES && (
                 <label
                   htmlFor="create-post-image-input"
                   className="relative flex h-[72px] w-[72px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition hover:border-baylink-green/50 hover:text-baylink-green"
