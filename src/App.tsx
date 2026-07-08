@@ -40,7 +40,7 @@ import {
   ChevronDown, CheckCircle, Loader2, ChevronLeft, 
   Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, BookOpen, Menu, LogOut, ChevronRight,
   MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Zap, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX, ThumbsUp
+  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX, ThumbsUp
 } from 'lucide-react';
 
 // 引入库
@@ -521,8 +521,17 @@ const ProfileTagField = ({
 const isPostEdited = (post: { createdAt?: number; updatedAt?: number }) =>
   !!post.updatedAt && !!post.createdAt && post.updatedAt > post.createdAt + 500;
 
+/** 中文日期：同年显示「6月12日」，跨年显示「2025年12月8日」 */
+const formatChineseDate = (ts: number) => {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return '';
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const base = `${d.getMonth() + 1}月${d.getDate()}日`;
+  return sameYear ? base : `${d.getFullYear()}年${base}`;
+};
+
 const formatPostDateLine = (post: { createdAt: number; updatedAt?: number; city?: string }) => {
-  const date = new Date(post.createdAt).toLocaleDateString();
+  const date = formatChineseDate(post.createdAt);
   const edited = isPostEdited(post) ? ' · 已编辑' : '';
   return `${post.city || ''} · ${date}${edited}`.replace(/^ · /, '');
 };
@@ -1144,7 +1153,7 @@ const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, onAskBayB
                 title={post.title}
                 desc={post.description}
                 price={post.budget}
-                location={`${post.city} · ${new Date(post.createdAt).toLocaleDateString()}`}
+                location={`${post.city} · ${formatChineseDate(post.createdAt)}`}
                 imageUrl={imgs[0]}
                 isFeatured
                 onClick={() => onOpenPost(post)}
@@ -1252,7 +1261,14 @@ const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, on
   </div>
 );
 
-const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword }: { feedType: PostType, onPublishService: () => void, onPublishInfo: () => void, keyword?: string }) => {
+const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, onOpenGuides, onAskBayBay }: {
+  feedType: PostType;
+  onPublishService: () => void;
+  onPublishInfo: () => void;
+  keyword?: string;
+  onOpenGuides?: () => void;
+  onAskBayBay?: () => void;
+}) => {
   if (keyword?.trim()) {
     return (
       <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
@@ -1261,17 +1277,33 @@ const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword }: { fee
       </div>
     );
   }
+  const secondaryActions = (onOpenGuides || onAskBayBay) && (
+    <div className="mt-2.5 flex justify-center gap-2 text-[11px]">
+      {onOpenGuides && (
+        <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-medium text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
+          <BookOpen size={12} /> 先看湾区指南
+        </button>
+      )}
+      {onAskBayBay && (
+        <button onClick={onAskBayBay} className="inline-flex items-center gap-1 rounded-lg border border-baylink-green/20 bg-baylink-green-light/60 px-3 py-1.5 font-medium text-baylink-green transition hover:bg-baylink-green-light">
+          <Sparkles size={12} /> 问问 BayBay
+        </button>
+      )}
+    </div>
+  );
   return feedType === 'provider' ? (
-    <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有资源内容</p>
+    <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
+      <p className="text-sm font-medium text-baylink-text mb-0.5">这个分类还没有资源</p>
       <p className="text-xs text-baylink-muted mb-3">提供你的服务、房源或二手资源，让附近的人找到你</p>
       <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 提供服务</button>
+      {secondaryActions}
     </div>
   ) : (
-    <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
+    <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
       <p className="text-sm font-medium text-baylink-text mb-0.5">还没有新的需求</p>
-      <p className="text-xs text-baylink-muted mb-3">附近需求会显示在这里，也可以先发布你的信息</p>
+      <p className="text-xs text-baylink-muted mb-3">附近的需求会显示在这里，你也可以先把自己的需求发出来</p>
       <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
+      {secondaryActions}
     </div>
   );
 };
@@ -1526,7 +1558,7 @@ const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser:
                   >
                     {c.otherUser.nickname} <TrustBadge user={c.otherUser} size={12} />
                   </span>
-                  <span className="type-footnote shrink-0">{new Date(c.updatedAt).toLocaleDateString()}</span>
+                  <span className="type-footnote shrink-0">{formatChineseDate(c.updatedAt)}</span>
                 </div>
                 <p className="text-[14px] text-baylink-text-secondary truncate">{c.lastMessage || '点击开始聊天'}</p>
               </div>
@@ -1621,9 +1653,6 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                         <MapPin size={11} className="shrink-0 text-baylink-green/70" />
                         <span className="truncate">{locationLine}</span>
                       </p>
-                    )}
-                    {joinDays != null && (
-                      <p className="mt-0.5 text-[10px] text-baylink-muted">加入 BAYLINK {joinDays} 天</p>
                     )}
                   </div>
                 </div>
@@ -1732,6 +1761,11 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                   <p className="mt-2 text-[11px] text-baylink-muted">TA 还没有发布过内容</p>
                 )}
               </div>
+
+              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[10px] leading-relaxed text-baylink-muted">
+                <Shield size={12} className="mt-px shrink-0 text-baylink-green/60" />
+                交易前请核实对方信息，不要提前转账。遇到可疑行为可以举报或屏蔽。
+              </p>
             </>
           )}
         </div>
@@ -1807,7 +1841,7 @@ const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }:
                  </div>
                  {profile.socialLinks && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
                  <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6"><h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3><p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">{profile.bio || "这个用户很懒，还没有写简介。"}</p></div>
-                 {currentUser?.id !== profile.id && <button onClick={() => { onChat(profile.id, profile.nickname); onClose(); }} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> 发送私信</button>}
+                 {currentUser?.id !== profile.id && <button onClick={() => { onChat(profile.id, profile.nickname); onClose(); }} className="w-full py-4 btn-primary rounded-2xl font-bold shadow-rest active:scale-95 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> 发送私信</button>}
              </div>
         </div>
     );
@@ -2132,6 +2166,18 @@ const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
   );
 };
 
+const ADS_CACHE_TTL = 60_000;
+let adsCache: { data: AdData[]; ts: number } | null = null;
+const fetchAdsCached = async (force = false): Promise<AdData[]> => {
+  if (!force && adsCache && Date.now() - adsCache.ts < ADS_CACHE_TTL) return adsCache.data;
+  const data = await api.request('/ads');
+  adsCache = { data: Array.isArray(data) ? data : [], ts: Date.now() };
+  return adsCache.data;
+};
+
+/** 展示质量规则：无配图的推荐不对普通用户展示，管理员仍可看到全部以便管理 */
+const isDisplayableAd = (ad: AdData) => !!getAdImageUrl(ad);
+
 const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'carousel' }: {
   isAdmin: boolean;
   showToast: any;
@@ -2139,11 +2185,16 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
   refreshKey?: number;
   layout?: 'carousel' | 'list';
 }) => {
-  const [ads, setAds] = useState<AdData[]>([]);
+  const [ads, setAds] = useState<AdData[]>(() => adsCache?.data || []);
+  const [adsLoading, setAdsLoading] = useState(() => !adsCache);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Partial<AdData>>({});
-  const fetchAds = async () => { try { setAds(await api.request('/ads')); } catch (e) { console.error('fetch ads', e); } };
-  useEffect(() => { fetchAds(); }, [refreshKey]);
+  const fetchAds = async (force = false) => {
+    try { setAds(await fetchAdsCached(force)); }
+    catch (e) { console.error('fetch ads', e); }
+    finally { setAdsLoading(false); }
+  };
+  useEffect(() => { fetchAds(!!refreshKey); }, [refreshKey]);
   const handleSaveAd = async () => {
     if (!editingAd?.title?.trim()) return showToast('请填写标题', 'error');
     const imageUrl = (editingAd.imageUrl || '').trim();
@@ -2158,18 +2209,28 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
       await api.request('/ads', { method: 'POST', body: JSON.stringify(payload) });
       setEditingAd({});
       setIsFormOpen(false);
-      fetchAds();
+      fetchAds(true);
       showToast('推荐已发布', 'success');
     } catch (e: any) {
       showToast(mapAdSaveError(e), 'error');
     }
   };
-  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除这条推荐？')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
+  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除这条推荐？')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(true); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
+  const visibleAds = isAdmin ? ads : ads.filter(isDisplayableAd);
   const emptyState = (
-    <div className="w-full rounded-2xl border border-dashed border-baylink-border bg-white p-6 text-center">
-      <BadgeCheck size={22} className="mx-auto mb-2 text-baylink-muted opacity-50" />
-      <p className="text-sm font-semibold text-baylink-text-secondary">暂无推荐内容</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-baylink-muted">管理员添加的官方推荐和认证广告会显示在这里</p>
+    <div className="w-full rounded-2xl border border-baylink-border/50 bg-white p-4">
+      <div className="flex items-center gap-2">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><BadgeCheck size={16} className="text-baylink-green" /></span>
+        <p className="text-xs font-semibold text-baylink-text">认证商家推荐位</p>
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-baylink-muted">通过官方认证的本地服务商会展示在这里。想让你的服务被更多湾区邻居看到？可以在「我的」页面申请官方认证。</p>
+    </div>
+  );
+  const loadingState = (
+    <div className="w-full space-y-2">
+      {[0, 1].map((i) => (
+        <div key={i} className="h-16 w-full animate-pulse rounded-2xl border border-baylink-border/40 bg-baylink-section/40" />
+      ))}
     </div>
   );
 
@@ -2187,16 +2248,16 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
           </button>
         )}
       </div>
-      {ads.length > 0 ? (
+      {adsLoading ? loadingState : visibleAds.length > 0 ? (
         layout === 'list' ? (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {ads.map((ad) => (
+            {visibleAds.map((ad) => (
               <OfficialAdListCard key={ad.id} ad={ad} isAdmin={isAdmin} onOpenDetail={onOpenDetail} onDelete={handleDeleteAd} />
             ))}
           </div>
         ) : (
           <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar snap-x px-1">
-            {ads.map((ad) => (
+            {visibleAds.map((ad) => (
               <div
                 key={ad.id}
                 role="button"
@@ -2208,7 +2269,12 @@ const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layout = 'c
                 <div className="absolute -right-5 -top-5 h-16 w-16 rounded-bl-full bg-baylink-green-light" />
                 {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="z-10 h-14 w-14 shrink-0 rounded-xl" />}
                 <div className="z-10 flex min-w-0 flex-1 flex-col justify-center">
-                  <div className="mb-1 flex items-center gap-1"><span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[9px] font-semibold text-baylink-green"><Shield size={8} /> 官方</span></div>
+                  <div className="mb-1 flex items-center gap-1">
+                    <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[9px] font-semibold text-baylink-green"><Shield size={8} /> 官方</span>
+                    {isAdmin && !isDisplayableAd(ad) && (
+                      <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700">未配图 · 仅管理员可见</span>
+                    )}
+                  </div>
                   <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text">{getAdTitle(ad)}</div>
                   <div className="line-clamp-1 text-[10px] text-baylink-muted">{getAdContent(ad)}</div>
                 </div>
@@ -2885,7 +2951,12 @@ const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose
               <>
                 <input required type="password" autoComplete="new-password" className={inputClass} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="确认密码" />
                 <input required className={inputClass} value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
-                <input required className={inputClass} value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
+                <div>
+                  <input required className={inputClass} value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder="微信号 / 电话" />
+                  <p className="mt-1 px-1.5 text-[10px] leading-relaxed text-baylink-muted">
+                    仅用于账号信任与联系方式请求功能，不会公开显示。
+                  </p>
+                </div>
               </>
             )}
             {mode === 'login' && (
@@ -2921,12 +2992,14 @@ const extractQuickTagsFromDescription = (description: string): string[] => {
   return [...new Set(matches.map((m) => m.slice(1).trim()).filter(Boolean))].slice(0, 8);
 };
 
+/**
+ * 帖子 meta 行只描述帖子本身（地区 · 分类 · 日期），不放作者身份。
+ * 「官方认证 / 已验证 / 管理员」只以徽章形式跟在作者名字旁边，避免看起来像平台背书这条帖子。
+ */
 const formatPostDetailAuthorMeta = (post: PostData) => {
   const author = post.author as PostData['author'] & {
     city?: string;
     area?: string;
-    profileTags?: string[];
-    role?: string;
   };
   const location =
     post.city?.trim() ||
@@ -2934,15 +3007,7 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
     author.area?.trim() ||
     formatProfileLocation(author.area, author.city) ||
     '';
-  const tagLabel = author.profileTags?.map((t) => t?.trim()).filter(Boolean)?.[0];
-  let identity = tagLabel;
-  if (!identity) {
-    if (author.isAdmin || author.role === 'admin') identity = 'BAYLINK 管理员';
-    else if (author.isOfficialVerified) identity = '官方认证';
-    else identity = '社区用户';
-  }
-  const dateStr = new Date(post.createdAt).toLocaleDateString();
-  const parts = [location, identity, dateStr];
+  const parts = [location, post.category?.trim(), formatChineseDate(post.createdAt)];
   if (isPostEdited(post)) parts.push('已编辑');
   return parts.filter((p) => p && String(p).trim()).join(' · ');
 };
@@ -3132,6 +3197,27 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
           </div>
         </div>
+        {(post.budget || post.timeInfo || post.category || post.city) && (
+          <div className="surface-card mb-5 p-3.5 space-y-2">
+            {detailRefreshing && (
+              <p className="type-caption text-baylink-muted flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> 正在同步最新内容…</p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {post.budget && (
+                <span className="rounded-lg bg-baylink-green/[0.08] px-2.5 py-1 text-[11px] font-bold text-baylink-green">预算/价格：{post.budget}</span>
+              )}
+              {post.city && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">区域：{post.city}</span>
+              )}
+              {post.timeInfo && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">时间：{post.timeInfo}</span>
+              )}
+              {post.category && (
+                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">分类：{post.category}</span>
+              )}
+            </div>
+          </div>
+        )}
         <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
         <div className="space-y-3 mb-6">
           {imageUrls.map((u: string, i: number) => (
@@ -3148,32 +3234,11 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
             </div>
           ))}
         </div>
-        {(post.budget || post.timeInfo || post.category || post.city || quickTags.length > 0) && (
-          <div className="surface-card mb-5 p-3.5 space-y-2">
-            {detailRefreshing && (
-              <p className="type-caption text-baylink-muted flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> 正在同步最新内容…</p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {post.category && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">分类：{post.category}</span>
-              )}
-              {post.city && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">区域：{post.city}</span>
-              )}
-              {post.budget && (
-                <span className="rounded-lg bg-baylink-green/[0.08] px-2.5 py-1 text-[11px] font-bold text-baylink-green">预算/价格：{post.budget}</span>
-              )}
-              {post.timeInfo && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">时间：{post.timeInfo}</span>
-              )}
-            </div>
-            {quickTags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-0.5">
-                {quickTags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-baylink-green/15 bg-baylink-green/[0.06] px-2 py-0.5 text-[10px] font-medium text-baylink-green">#{tag}</span>
-                ))}
-              </div>
-            )}
+        {quickTags.length > 0 && (
+          <div className="mb-5 flex flex-wrap gap-1.5">
+            {quickTags.map((tag) => (
+              <span key={tag} className="rounded-full border border-baylink-green/15 bg-baylink-green/[0.06] px-2 py-0.5 text-[10px] font-medium text-baylink-green">#{tag}</span>
+            ))}
           </div>
         )}
         <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -3207,7 +3272,6 @@ const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat
           }}
           approveRequest={(id) => api.approveContactRequest(id)}
           declineRequest={(id) => api.declineContactRequest(id)}
-          onShare={() => onShare?.(post)}
         />
         <PostDetailContactPanel
           section="baybay"
@@ -3944,7 +4008,23 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
   const myWebsite = user?.website ? normalizeWebsiteUrl(user.website) : null;
   const myXhs = user?.xiaohongshu?.trim() || '';
 
-  if (!user) return <div className="flex-1 flex flex-col items-center justify-center p-8"><div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6 shadow-soft-glow animate-bounce"><Zap size={40} /></div><h2 className="text-2xl font-black text-gray-900 mb-2">欢迎来到 BayLink</h2><p className="text-gray-500 text-center mb-8 text-sm">连接湾区邻里，让互助更简单。</p><button onClick={onLogin} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:bg-gray-800 transition active:scale-95">立即登录 / 注册</button></div>;
+  if (!user) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-sm mx-auto w-full">
+      <img
+        src={BRAND.baybayAvatar}
+        alt="BayBay"
+        className="mb-6 h-20 w-20 rounded-[24px] object-cover shadow-rest ring-2 ring-baylink-green/15"
+        width={80}
+        height={80}
+      />
+      <h2 className="text-2xl font-bold text-baylink-text mb-2">欢迎来到 BAYLINK</h2>
+      <p className="text-baylink-muted text-center mb-8 text-sm leading-relaxed">连接湾区华人邻里，找房、二手、本地服务和生活指南都在这里。</p>
+      <button onClick={onLogin} className="w-full btn-primary py-3.5 rounded-2xl font-bold shadow-rest active:scale-[0.98] transition">立即登录 / 注册</button>
+      <a href="/guides" className="mt-4 text-[12px] text-baylink-muted hover:text-baylink-green transition">
+        刚来湾区？先看看 <span className="font-semibold text-baylink-green">湾区生活指南</span>
+      </a>
+    </div>
+  );
 
   return (
     <div className="flex-1 relative w-full h-full bg-[#FAFAFA]">
@@ -4064,7 +4144,7 @@ const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showTo
           <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
             <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
             <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
-            <a href="/sms-consent" className="hover:text-baylink-green transition">SMS Verification</a>
+            <a href="/sms-consent" className="hover:text-baylink-green transition">短信条款</a>
           </div>
           {user.role === 'admin' && (
             <>
@@ -4698,6 +4778,35 @@ export default function App() {
   // 🖥️ PC 右侧栏
   const RightSidebar = () => (
     <div className="hidden lg:block w-[280px] xl:w-[300px] h-screen sticky top-0 py-6 px-4 border-l border-baylink-border/50 bg-baylink-bg overflow-y-auto shrink-0">
+       <BayBayAssistantEntry
+         variant="sidebar"
+         onNavigate={navigate}
+         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
+       />
+       <div className="sidebar-panel mb-2.5">
+         <h3 className="sidebar-section-title mb-2">热门方向</h3>
+         <p className="mb-2 text-[11px] text-baylink-muted">大家常找的本地信息，点一下直接搜</p>
+         <div className="space-y-1 text-[12px] text-baylink-text-secondary">
+           {['退房清洁', '周末搬家', '近 BART 长租', '机场接送'].map((t) => (
+             <button
+               key={t}
+               type="button"
+               onClick={() => { setKeyword(t); navigate('/'); }}
+               className="flex w-full items-center justify-between rounded-lg bg-baylink-section/35 px-2.5 py-1.5 text-left transition hover:bg-baylink-green/[0.08] hover:text-baylink-green"
+             >
+               {t}
+               <Search size={11} className="text-baylink-muted/50" />
+             </button>
+           ))}
+         </div>
+       </div>
+       <div className="sidebar-note mb-2.5 flex gap-2">
+         <Shield size={13} className="text-baylink-green/70 shrink-0 mt-0.5"/>
+         <p className="text-[11px] leading-relaxed">建议优先联系已认证用户，看房、面交、付款前先核实，线下交易注意安全。</p>
+       </div>
+       <div className="mb-3">
+          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
+       </div>
        {user ? (
           <div className="sidebar-panel mb-3">
              <div className="flex items-center gap-2.5 mb-3">
@@ -4716,45 +4825,19 @@ export default function App() {
              <button onClick={() => setShowLogin(true)} className="w-full py-2.5 btn-primary text-[11px]">立即登录</button>
           </div>
        )}
-       <BayBayAssistantEntry
-         variant="sidebar"
-         onNavigate={navigate}
-         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
-       />
-       <div className="sidebar-panel mb-2.5">
-         <h3 className="sidebar-section-title mb-2">热门方向</h3>
-         <p className="mb-2 text-[11px] text-baylink-muted">常见邻里需求参考</p>
-         <div className="space-y-1 text-[12px] text-baylink-text-secondary">
-           {['退房清洁', '周末搬家', '近 BART 长租', '机场接送'].map((t) => (
-             <div key={t} className="rounded-lg bg-baylink-section/35 px-2.5 py-1.5">{t}</div>
-           ))}
-         </div>
-       </div>
-       <div className="sidebar-note mb-2.5">
-         <h3 className="sidebar-section-title mb-1 flex items-center gap-1.5"><MapPin size={13} className="text-baylink-green/70"/> 湾区参考</h3>
-         <p className="text-[11px] leading-relaxed">半岛、南湾、东湾都是常见发帖区域</p>
-       </div>
-       <div className="sidebar-note mb-3 flex gap-2">
-         <Shield size={13} className="text-baylink-green/70 shrink-0 mt-0.5"/>
-         <p className="text-[11px] leading-relaxed">建议优先联系已认证用户，线下交易注意安全。</p>
-       </div>
-       <div>
-          <h3 className="sidebar-section-title mb-2.5">官方推荐</h3>
-          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
-       </div>
        <div className="mt-6 text-[11px] text-baylink-muted/80 text-center space-y-1.5">
          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
-           <a href="/sms-consent" className="hover:text-baylink-green transition">SMS Verification</a>
+           <a href="/sms-consent" className="hover:text-baylink-green transition">短信条款</a>
          </div>
-         <div>© 2025 BayLink</div>
+         <div>© {new Date().getFullYear()} BAYLINK</div>
        </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-baylink-bg flex justify-center lg:justify-start font-sans text-baylink-text relative overflow-x-hidden">
+    <div className="min-h-screen bg-baylink-bg flex justify-center font-sans text-baylink-text relative overflow-x-hidden">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {detailAd && (
         <AdDetailModal
@@ -4765,7 +4848,7 @@ export default function App() {
         />
       )}
       
-      <LeftSidebar />
+      {LeftSidebar()}
       <div className="w-full max-w-[500px] lg:max-w-[640px] xl:max-w-[680px] bg-baylink-bg-alt min-h-screen lg:shadow-none shadow-card relative flex flex-col lg:border-x border-baylink-border/50 mx-auto lg:mx-0 flex-1 min-w-0">
         <div className="lg:hidden">{isHomePath(location.pathname) && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center gap-2 bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
             <div className="min-w-0 flex-1 pr-1">
@@ -4783,7 +4866,7 @@ export default function App() {
         
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
            {isHomePath(location.pathname) && (
-               <div className="px-4 pt-1 sm:px-5 sm:pt-2 pb-[5.5rem] lg:pb-8 max-w-full overflow-x-hidden">
+               <div className="px-4 pt-1 sm:px-5 sm:pt-2 pb-40 lg:pb-8 max-w-full overflow-x-hidden">
                    <div className="relative mb-1 sm:mb-2 group">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-baylink-muted/70 group-focus-within:text-baylink-green/80 transition pointer-events-none" size={16} />
                      <input className="search-input" placeholder="搜索房源、服务、二手、接送..." value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchPostsNow()} />
@@ -4828,8 +4911,9 @@ export default function App() {
                    <div className="lg:hidden mb-1.5">
                        <div className="flex gap-1.5 overflow-x-auto hide-scrollbar -mx-1 px-1"><FilterTag label="全部" active={regionFilter === '全部'} onClick={() => setRegionFilter('全部')} />{REGIONS.map(r => <FilterTag key={r} label={r} active={regionFilter === r} onClick={() => setRegionFilter(r)} />)}</div>
                    </div>
-                   <div className="mb-2">
-                       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar lg:flex-wrap -mx-1 px-1 lg:mx-0 lg:px-0">
+                   {/* 分类 chips 仅移动端展示；桌面端由左侧栏「探索分类」承担，避免重复 */}
+                   <div className="mb-2 lg:hidden">
+                       <div className="flex gap-1.5 overflow-x-auto hide-scrollbar -mx-1 px-1">
                          <CategoryChip label="全部" active={categoryFilter==='全部'} onClick={() => navigateToCategory('全部')} />
                          {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
                        </div>
@@ -4864,12 +4948,25 @@ export default function App() {
                        keyword={keyword}
                        onPublishService={() => openCreate('provider')}
                        onPublishInfo={() => openCreate('client')}
+                       onOpenGuides={() => navigate('/guides')}
+                       onAskBayBay={() => setBaybayPanelOpen(true)}
                      />
                    ) : (
                      <>
                        {posts.map(p => <PostCard key={p.id} post={p} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(post: PostData) => openReportTarget({ targetType: 'post', targetId: post.id, authorId: post.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={()=>navigateToPost(p)} onContactClick={()=>{if(!user)return setShowLogin(true); openChat(p.authorId, p.author.nickname);}} onAvatarClick={openUserProfile} onImageClick={(src:string) => setViewingImage(src)} onShare={(post: PostData) => setSharingPost(post)} onLike={handleToggleLike} />)}
                        {!isInitialLoading && hasMore && <button onClick={handleLoadMore} disabled={isLoadingMore} className="w-full py-3 mt-3 bg-white text-baylink-text text-sm font-semibold rounded-2xl border border-baylink-border shadow-card hover:border-baylink-green/30 transition disabled:opacity-50">{isLoadingMore ? <Loader2 className="animate-spin mx-auto w-5 h-5 text-baylink-green"/> : '加载更多'}</button>}
-                       {!hasMore && <div className="text-center py-6 text-baylink-muted text-xs">— 已浏览全部 —</div>}
+                       {!hasMore && (
+                         <div className="py-6 text-center">
+                           <p className="text-xs text-baylink-muted">已看完当前内容</p>
+                           <button
+                             type="button"
+                             onClick={() => navigate('/guides')}
+                             className="mt-2 inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 text-[11px] font-medium text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green"
+                           >
+                             <BookOpen size={12} /> 看看湾区生活指南
+                           </button>
+                         </div>
+                       )}
                      </>
                    )}
 
@@ -4983,6 +5080,19 @@ export default function App() {
         />
         <BayBayFloatingLauncher
           baybayPanelOpen={baybayPanelOpen}
+          hidden={!!(
+            showCreate ||
+            postIdParam ||
+            threadIdParam ||
+            tab === 'messages' ||
+            showLogin ||
+            sharingPost ||
+            viewingImage ||
+            userIdParam ||
+            viewingUserId ||
+            reportTarget ||
+            detailAd
+          )}
           onWriteRent={() => openCreateFromSlug('client', 'rent')}
           onLocalHelp={() => openCreateFromSlug('client', 'other')}
           onAskBayBay={() => setBaybayPanelOpen(true)}
@@ -5108,7 +5218,7 @@ export default function App() {
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
       </div>
-      <RightSidebar />
+      {RightSidebar()}
     </div>
   );
 }

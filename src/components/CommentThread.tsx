@@ -27,8 +27,9 @@ export const CommentThread = ({
 
   if (topLevel.length === 0) {
     return (
-      <div className="py-6 text-center type-footnote text-baylink-muted">
-        暂无评论，快来抢沙发~
+      <div className="rounded-2xl border border-dashed border-baylink-border/70 bg-white/60 py-6 text-center">
+        <p className="text-[13px] font-medium text-baylink-text-secondary">还没有评论</p>
+        <p className="mt-1 type-footnote text-baylink-muted">有疑问或补充？欢迎留言和帖主交流。</p>
       </div>
     );
   }

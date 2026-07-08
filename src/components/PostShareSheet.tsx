@@ -24,7 +24,7 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
   const timeInfo = post.timeInfo?.trim();
 
   return (
-    <div className="w-full rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_4px_20px_rgba(23,32,42,0.08)]">
+    <div className="w-full rounded-2xl border border-black/[0.08] bg-baylink-bg-alt/60 p-4 shadow-[0_4px_20px_rgba(23,32,42,0.08)]">
       <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[10px] font-semibold text-baylink-green">
         {category}
       </span>
@@ -103,7 +103,7 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
       onClick={onClose}
     >
       <div
-        className="relative w-[calc(100%-32px)] max-w-[360px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-black/[0.06] bg-[#FFF8F0] shadow-elevated animate-in zoom-in-95 fade-in duration-200"
+        className="relative w-[calc(100%-32px)] max-w-[360px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-black/[0.06] bg-white shadow-elevated animate-in zoom-in-95 fade-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <button

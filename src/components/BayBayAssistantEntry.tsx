@@ -250,7 +250,7 @@ export const BayBayAssistantEntry = ({
             <div className="min-w-0 flex-1">
               <h3 className="sidebar-section-title leading-tight">BayBay 生活助手</h3>
               <p className="mt-1 text-[11px] leading-snug text-baylink-muted">
-                找房、找服务、刚来湾区？我可以帮你理清方向。
+                一句话帮你整理发帖；找房、找服务、刚来湾区都可以先问我。
               </p>
               <button
                 type="button"
@@ -276,8 +276,8 @@ export const BayBayAssistantEntry = ({
             height={36}
           />
           <div className="min-w-0 flex-1">
-            <div className="line-clamp-1 text-[12px] font-medium text-baylink-text">问问 BayBay</div>
-            <div className="line-clamp-1 text-[11px] text-baylink-muted">租房、服务、二手与生活指南</div>
+            <div className="line-clamp-1 text-[12px] font-medium text-baylink-text">问问 BayBay · 湾区生活助手</div>
+            <div className="line-clamp-1 text-[11px] text-baylink-muted">一句话帮你整理发帖 · 刚来湾区先问我</div>
           </div>
           <ChevronRight size={16} className="shrink-0 text-baylink-muted/70" />
         </button>

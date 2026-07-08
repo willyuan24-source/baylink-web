@@ -7,6 +7,8 @@ type BayBayFloatingLauncherProps = {
   onAskBayBay: () => void;
   onPromoteService: () => void;
   baybayPanelOpen?: boolean;
+  /** 帖子详情、发帖、私信、分享等覆盖层打开时隐藏悬浮球，避免遮挡主操作 */
+  hidden?: boolean;
 };
 
 type ActionRunKey = 'onWriteRent' | 'onLocalHelp' | 'onAskBayBay' | 'onPromoteService';
@@ -75,6 +77,7 @@ export const BayBayFloatingLauncher = ({
   onAskBayBay,
   onPromoteService,
   baybayPanelOpen = false,
+  hidden = false,
 }: BayBayFloatingLauncherProps) => {
   const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
@@ -88,11 +91,11 @@ export const BayBayFloatingLauncher = ({
   };
 
   useEffect(() => {
-    if (baybayPanelOpen) {
+    if (baybayPanelOpen || hidden) {
       setDesktopExpanded(false);
       setMobileSheetOpen(false);
     }
-  }, [baybayPanelOpen]);
+  }, [baybayPanelOpen, hidden]);
 
   useEffect(() => {
     if (!desktopExpanded) return;
@@ -125,6 +128,8 @@ export const BayBayFloatingLauncher = ({
     setMobileSheetOpen(false);
     handlers[runKey]();
   };
+
+  if (hidden) return null;
 
   return (
     <>
