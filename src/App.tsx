@@ -33,19 +33,19 @@ import { CategoryGuideStrip } from './components/CategoryGuideStrip';
 import { GuidesHome } from './components/GuidesHome';
 import { GuideDetail } from './components/GuideDetail';
 import { getGuideBySlug } from './data/guides';
-import { 
-  MessageCircle, Send, Plus, MapPin, 
-  User as UserIcon, X, ShieldCheck, Trash2, Edit, 
-  AlertCircle, Phone, Search, Home, Bell, 
-  ChevronDown, CheckCircle, Loader2, ChevronLeft, 
-  Save, RefreshCw, Clock, Filter, MoreHorizontal, Star, BookOpen, Menu, LogOut, ChevronRight,
-  MessageSquare, Lock, Mail as MailIcon, ArrowRight, Info, Image as ImageIcon, ExternalLink, Camera,
-  Linkedin, Instagram, AlertTriangle, Share2, Copy, Check, Sparkles, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX, ThumbsUp
+import {
+  MessageCircle, Send, Plus, MapPin,
+  User as UserIcon, X, ShieldCheck, Trash2, Edit,
+  AlertCircle, Phone, Search, Home,
+  CheckCircle, Loader2, ChevronLeft,
+  Save, Clock, MoreHorizontal, Star, BookOpen, LogOut, ChevronRight,
+  MessageSquare, Info, ExternalLink, Camera,
+  Instagram, AlertTriangle, Share2, Check, Sparkles, Shield, FileText, BadgeCheck, Smartphone, Flag, UserX, ThumbsUp
 } from 'lucide-react';
 
 // 引入库
 import { io, Socket } from 'socket.io-client';
-import { compressImageFile, fileToDataUrl, isLikelyImageFile, MAX_IMAGE_UPLOAD_BYTES } from './utils/imageCompression';
+import { compressImageFile, fileToDataUrl, isLikelyImageFile, MAX_IMAGE_UPLOAD_BYTES, UnsupportedImageError } from './utils/imageCompression';
 
 // BAYLINK APP V25.10 Final - Production Ready (最终上线版)
 
@@ -149,23 +149,6 @@ const HOME_CHANNELS = [
   { id: 'featured', title: '推荐', sub: '官方精选 / 认证信息', emoji: '⭐', category: null, feedType: null },
 ];
 
-const HOT_FALLBACK = [
-  { id: 'demo-1', tag: '房源', title: 'Millbrae 2B2B 公寓整租', desc: '步行到 BART，带停车位，包水电网', price: '$2,850 / 月', location: 'Millbrae · 5 分钟前', coverType: 'rent' as const },
-  { id: 'demo-2', tag: '二手', title: 'Moving Sale：沙发 + 茶几', desc: '九成新，需自提，可议价', price: '$150', location: 'San Mateo · 1 小时前', coverType: 'used' as const },
-  { id: 'demo-3', tag: '服务', title: '专业退房清洁服务', desc: '深度清洁，可预约，口碑商家', price: '$120 起', location: 'Daly City · 2 小时前', coverType: 'service' as const },
-];
-
-// 🏷️ 快捷标签
-const SMART_TAGS: Record<string, string[]> = {
-  "租屋": ["长租", "短租", "带家具", "近BART", "找室友"],
-  "维修": ["水管", "电路", "屋顶", "家电", "需自带工具"],
-  "清洁": ["全屋清洁", "地毯清洗", "退房扫除", "垃圾清运"],
-  "搬家": ["有电梯", "需拆装", "只有纸箱", "需大车", "跨湾区"],
-  "接送": ["SFO接机", "SJC接机", "早起", "带宠物", "七座车"],
-  "闲置": ["九成新", "全新未拆", "可送货", "自取", "原箱在"],
-  "兼职": ["现金", "周末", "远程", "需英语"],
-};
-
 type DefaultCover = {
   id: string;
   title: string;
@@ -247,21 +230,6 @@ const getRecommendedCovers = (type: 'client' | 'provider', category: string) => 
   return { recommended, others, all: DEFAULT_COVERS };
 };
 
-const suggestDefaultCoverFromText = (text: string, type: 'client' | 'provider', category: string): DefaultCover | null => {
-  const t = text;
-  if (/房源|出租|整租|合租|有房/.test(t) && type === 'provider') return DEFAULT_COVERS.find((c) => c.id === 'rental-available') || null;
-  if (/求租|找房|租房/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'rent-wanted') || null;
-  if (/室友|合租/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'roommate') || null;
-  if (/搬家/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'moving-service' : 'moving-wanted')) || null;
-  if (/清洁|打扫|退房/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'cleaning-service' : 'cleaning-wanted')) || null;
-  if (/接送|机场|SFO|接机/.test(t)) return DEFAULT_COVERS.find((c) => c.id === (type === 'provider' ? 'ride-service' : 'ride-wanted')) || null;
-  if (/求购|想买/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'used-wanted') || null;
-  if (/二手|出售|卖出|转让|出.+沙发|moving sale/i.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'used-selling') || null;
-  if (/维修|修理|修.+水龙头|水电/.test(t)) return DEFAULT_COVERS.find((c) => c.id === 'repair-service') || null;
-  const { recommended } = getRecommendedCovers(type, category);
-  return recommended[0] || null;
-};
-
 // --- 类型定义 ---
 type Role = 'user' | 'admin';
 type PostType = 'client' | 'provider';
@@ -293,20 +261,6 @@ interface UserData {
 
 interface AdData { id: string; title: string; content: string; imageUrl?: string; isVerified: boolean; description?: string; createdAt?: string | number; }
 
-const getAdSortTime = (ad: AdData): number => {
-  if (ad.createdAt == null) return 0;
-  return typeof ad.createdAt === 'number' ? ad.createdAt : new Date(ad.createdAt).getTime();
-};
-
-/** Homepage HotRecommend: latest 3 only (by createdAt desc, else API order). */
-const pickLatestHomeAds = (ads: AdData[], limit = 3): AdData[] => {
-  const list = ads.slice();
-  if (list.some((a) => a.createdAt != null)) {
-    list.sort((a, b) => getAdSortTime(b) - getAdSortTime(a));
-  }
-  return list.slice(0, limit);
-};
-
 type AdDetailItem = {
   id: string;
   title: string;
@@ -330,7 +284,7 @@ const toAdDetailItem = (ad: Partial<AdData> & { isDemo?: boolean }): AdDetailIte
 });
 
 interface PostData {
-  id: string; authorId: string; author: { id?: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: string; }; 
+  id: string; authorId: string; author: { id?: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: Role; };
   type: PostType; title: string; city: string; category: string; timeInfo: string; budget: string;
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
@@ -362,7 +316,7 @@ type PublicUserProfile = {
   createdAt?: number;
   isPhoneVerified?: boolean;
   isOfficialVerified?: boolean;
-  officialVerification?: { status: string; type?: string };
+  officialVerification?: { status?: 'none' | 'pending' | 'approved' | 'rejected'; type?: string };
   socialLinks?: { linkedin?: string; instagram?: string };
   postCount: number;
   recentPosts: Array<{ id?: string; _id?: string; title: string; description?: string; category: string; city: string; type?: PostType; budget?: string; imageUrls?: string[]; createdAt: number; updatedAt?: number }>;
@@ -604,40 +558,6 @@ const getPostWritingHints = (category: string, type: PostType): PostWritingHints
   return hints[category] || hints['其他'];
 };
 
-const detectRegionFromText = (text: string): string | null => {
-  if (/san\s*mateo|millbrae|daly\s*city/i.test(text)) return '中半岛';
-  if (/fremont/i.test(text)) return '东湾';
-  if (/san\s*jose/i.test(text)) return '南湾';
-  if (/旧金山|san\s*francisco|\bsf\b/i.test(text)) return '旧金山';
-  for (const r of REGIONS) if (text.includes(r)) return r;
-  return null;
-};
-
-const organizePostFromBrief = (input: string, category: string, type: PostType) => {
-  const trimmed = input.trim();
-  const region = detectRegionFromText(trimmed) || REGIONS[0];
-  const priceMatch = trimmed.match(/\$?\s*(\d{2,5})(?:\s*\/\s*月|\/月|每月)?/i);
-  const budget = priceMatch ? `$${priceMatch[1]}${/\/月|每月|\/\s*月/i.test(trimmed) ? '/月' : ''}` : '';
-  const monthMatch = trimmed.match(/(\d{1,2})\s*月/);
-  const monthNote = monthMatch ? `${monthMatch[1]} 月` : '';
-  const place = trimmed.match(/(San Mateo|Millbrae|Daly City|Fremont|San Jose|旧金山|湾区)/i)?.[0] || region;
-
-  let title = '';
-  let description = '';
-  if (category === '租屋') {
-    title = `${place} 房间出租${budget ? `，${budget}` : ''}${/caltrain|bart/i.test(trimmed) ? '，近 Caltrain' : ''}`;
-    description = `位于 ${place}，交通方便${/caltrain|bart/i.test(trimmed) ? '，靠近 Caltrain' : ''}。\n${budget ? `租金 ${budget}` : '租金面议'}${monthNote ? `，预计 ${monthNote} 可入住` : ''}。\n适合正在湾区找房的朋友。\n有兴趣可以私信联系了解更多细节。`;
-  } else if (category === '闲置') {
-    title = `${place} 闲置好物${budget ? `，${budget}` : ''}`;
-    description = `${trimmed}\n\n取货地点：${place}。\n${budget ? `价格 ${budget}，` : ''}欢迎私信了解详情。`;
-  } else {
-    const action = type === 'client' ? '需要帮助' : '可提供服务';
-    title = `${place} ${category}信息${budget ? `，${budget}` : ''}`;
-    description = `${trimmed}\n\n地区：${region}。\n${budget ? `预算/价格：${budget}。` : ''}\n${action}，欢迎私信联系。`;
-  }
-  return { title: title.slice(0, 80), description: description.slice(0, 2000), budget, city: region };
-};
-
 const validatePostForm = (form: { title: string; description: string; category: string; city: string; budget: string }) => {
   const title = form.title.trim();
   const desc = form.description.trim();
@@ -674,7 +594,7 @@ const mapPostSaveError = (err: any, isEdit = false): string => {
 
 interface Conversation { 
   id: string; 
-  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: string; }; 
+  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: Role; };
   lastMessage?: string; 
   updatedAt: number;
   lastPostTitle?: string; // ✨ 上下文
@@ -791,13 +711,16 @@ const mapAuthError = (err: any, mode: 'login' | 'register') => {
 
 const Avatar = ({ src, name, size = 10, className = "" }: { src?: string, name?: string, size?: number, className?: string }) => {
     const displaySize = size * 4; 
-    if (src) return <img src={src} alt={name || "User"} className={`rounded-full object-cover border border-gray-100 bg-white ${className}`} style={{ width: `${displaySize}px`, height: `${displaySize}px` }} />;
+    if (src) return <img src={src} alt={name || "User"} loading="lazy" decoding="async" className={`rounded-full object-cover border border-gray-100 bg-white ${className}`} style={{ width: `${displaySize}px`, height: `${displaySize}px` }} />;
     return <div className={`rounded-full bg-gradient-to-br from-[#5a8f72] to-[#3d6b55] text-white flex items-center justify-center font-semibold ${className}`} style={{ width: `${displaySize}px`, height: `${displaySize}px`, fontSize: `${displaySize * 0.4}px` }}>{name ? name[0].toUpperCase() : <UserIcon size={displaySize * 0.5} />}</div>;
 };
 
 // ✨ Toast 组件
 const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error' | 'info', onClose: () => void }) => {
-  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
+  // 计时器只随内容变化重置：依赖 onClose（每次渲染都是新闭包）会导致任何无关重渲染都把 3 秒重新计时
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
+  useEffect(() => { const t = setTimeout(() => onCloseRef.current(), 3000); return () => clearTimeout(t); }, [message, type]);
   const styles = type === 'success'
     ? 'toast-success shadow-card'
     : type === 'error'
@@ -805,9 +728,13 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
     : 'bg-white text-baylink-text border-baylink-border/60 shadow-card';
   const iconColor = type === 'success' ? 'text-[#2d6b4f]' : type === 'error' ? 'text-[#B4534B]' : 'text-baylink-muted';
   return (
-    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-3 px-5 py-3 rounded-2xl border animate-in slide-in-from-top-5 fade-in duration-300 max-w-[90vw] ${styles}`}>
-      <span className={iconColor}>{type === 'success' ? <CheckCircle size={18}/> : <AlertCircle size={18}/>}</span>
-      <span className="text-sm font-semibold">{message}</span>
+    // 外层负责定位（flex 居中 + 状态栏 safe-area 偏移），内层负责入场动画：
+    // tailwindcss-animate 的 enter 关键帧会整体覆盖 transform，不能和 -translate-x-1/2 同元素共存
+    <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top,0px)+16px)] z-[110] flex justify-center px-4">
+      <div role="status" aria-live="polite" className={`pointer-events-auto flex items-center gap-3 px-5 py-3 rounded-2xl border animate-in slide-in-from-top-5 fade-in duration-300 max-w-[90vw] ${styles}`}>
+        <span className={iconColor}>{type === 'success' ? <CheckCircle size={18}/> : <AlertCircle size={18}/>}</span>
+        <span className="text-sm font-semibold">{message}</span>
+      </div>
     </div>
   );
 };
@@ -875,7 +802,6 @@ const api = {
     await api.request(`/admin/users/${userId}/account-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
   getModerationLogs: async (limit = 50) =>
     await api.request(`/admin/moderation-logs?limit=${limit}`),
-  verifyPhone: async (phone: string, code?: string) => await api.request('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ phone, code }) }),
   startPhoneVerification: async (phone: string) =>
     await api.request('/users/me/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
   verifyPhoneCode: async (code: string) =>
@@ -1076,7 +1002,7 @@ const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, isDemo,
   >
     <div className="hot-recommend-media">
       {showImage ? (
-        <img src={imageUrl} alt="" className="hot-recommend-img" onError={() => setImgFailed(true)} />
+        <img src={imageUrl} alt="" loading="lazy" decoding="async" className="hot-recommend-img" onError={() => setImgFailed(true)} />
       ) : coverType ? (
         <HotRecommendCover coverType={coverType} isDemo={isDemo} />
       ) : (
@@ -1310,8 +1236,8 @@ const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, onOpenG
 
 const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => (
   <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
-    <button onClick={onClose} className="absolute top-6 right-6 p-3 bg-white/10 text-white rounded-full hover:bg-white/30 transition"><X size={24}/></button>
-    <img src={src} className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl scale-in-95 animate-in duration-300" onClick={e => e.stopPropagation()} />
+    <button onClick={onClose} className="absolute top-[calc(env(safe-area-inset-top,0px)+24px)] right-6 p-3 bg-white/10 text-white rounded-full hover:bg-white/30 transition"><X size={24}/></button>
+    <img src={src} className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-300" onClick={e => e.stopPropagation()} />
   </div>
 );
 
@@ -1498,6 +1424,8 @@ const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, 
              <img
                src={coverUrl}
                alt={post.title}
+               loading="lazy"
+               decoding="async"
                className={`aspect-[16/10] w-full ${isSystemCover ? 'object-contain bg-baylink-section/50 p-2' : 'object-cover'}`}
                onClick={(e) => { e.stopPropagation(); onImageClick && onImageClick(coverUrl); }}
              />
@@ -1744,7 +1672,7 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
                         className="flex w-full min-h-[56px] cursor-pointer gap-2 rounded-xl border border-baylink-border/50 bg-white p-3 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.02] active:scale-[0.99]"
                       >
                         {normalizePostImages(rp)[0] ? (
-                          <img src={normalizePostImages(rp)[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                          <img src={normalizePostImages(rp)[0]} alt="" loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         ) : (
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[10px] text-baylink-muted">无图</div>
                         )}
@@ -1805,46 +1733,6 @@ const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPo
       </div>
     </div>
   );
-};
-
-const PublicProfileModal = ({ userId, onClose, onChat, currentUser, showToast }: any) => {
-    const [profile, setProfile] = useState<UserData | null>(null);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => { const load = async () => { try { setProfile(await api.getUserProfile(userId)); } catch (e) { showToast('无法获取用户信息', 'error'); onClose(); } finally { setLoading(false); } }; load(); }, [userId]);
-    if (loading || !profile) return <div className="fixed inset-0 z-[100] bg-white/90 flex items-center justify-center"><Loader2 className="animate-spin text-green-700"/></div>;
-    return (
-        <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
-             <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
-                <button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-gray-100 transition active:scale-90"><X size={20}/></button>
-                <span className="font-bold text-lg text-gray-900">用户主页</span><div className="w-9"></div>
-             </div>
-             <div className="flex-1 p-6 overflow-y-auto flex flex-col items-center">
-                 <div className="relative mb-4">
-                    <Avatar src={profile.avatar} name={profile.nickname} size={24} className="shadow-xl border-4 border-white"/>
-                    <div className="absolute -bottom-2 -right-2"><TrustBadge user={profile} size={24} /></div>
-                 </div>
-                 <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-2 flex-wrap">{profile.nickname} <TrustBadge user={profile} size={12} showText /></h2>
-                 <div className="flex flex-wrap gap-2 mb-4">
-                     {!isPlatformAdmin(profile) && (
-                       <span className="text-xs px-2.5 py-1 rounded-lg font-bold bg-gray-200 text-gray-600">社区居民</span>
-                     )}
-                 </div>
-                 {isPlatformAdmin(profile) && (
-                   <p className="mb-4 max-w-sm text-center text-xs leading-relaxed text-emerald-800">
-                     该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。
-                   </p>
-                 )}
-                 <div className="w-full bg-white p-4 rounded-2xl shadow-sm border border-white mb-6 text-sm text-gray-600">
-                   <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">信任信息</h3>
-                   <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
-                   {profile.isOfficialVerified && <p className="mt-1">官方认证：已通过</p>}
-                 </div>
-                 {profile.socialLinks && (<div className="flex gap-4 mb-6">{profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" className="p-3 bg-white rounded-full text-[#0077b5] shadow-sm hover:scale-110 transition"><Linkedin size={20}/></a>}{profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" className="p-3 bg-white rounded-full text-[#E1306C] shadow-sm hover:scale-110 transition"><Instagram size={20}/></a>}</div>)}
-                 <div className="w-full bg-white p-6 rounded-3xl shadow-sm border border-white mb-6"><h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">个人简介</h3><p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm">{profile.bio || "这个用户很懒，还没有写简介。"}</p></div>
-                 {currentUser?.id !== profile.id && <button onClick={() => { onChat(profile.id, profile.nickname); onClose(); }} className="w-full py-4 btn-primary rounded-2xl font-bold shadow-rest active:scale-95 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> 发送私信</button>}
-             </div>
-        </div>
-    );
 };
 
 const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) => {
@@ -1948,7 +1836,7 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
             setForm((p) => ({ ...p, avatar: dataUrl }));
         } catch (err) {
             console.warn('[avatar] image process failed', err);
-            showToast('图片处理失败', 'error');
+            showToast(err instanceof UnsupportedImageError ? err.message : '图片处理失败', 'error');
         } finally {
             input.value = '';
         }
@@ -2054,7 +1942,7 @@ const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
 const AdThumb = ({ src, className, contain }: { src: string; className?: string; contain?: boolean }) => {
   const [failed, setFailed] = useState(false);
   if (failed) return <div className={`bg-baylink-section shrink-0 ${className || 'w-14 h-14 rounded-xl'}`} />;
-  return <img src={src} alt="" className={`${className || ''} ${contain ? 'ad-thumb-contain' : ''}`} onError={() => setFailed(true)} />;
+  return <img src={src} alt="" loading="lazy" decoding="async" className={`${className || ''} ${contain ? 'ad-thumb-contain' : ''}`} onError={() => setFailed(true)} />;
 };
 
 const AdDetailImage = ({ src }: { src: string }) => {
@@ -2349,7 +2237,7 @@ const DefaultCoverPicker = ({
                   onClick={() => toggleCover(cover)}
                   className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
                 >
-                  <img src={cover.url} alt={cover.title} className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
+                  <img src={cover.url} alt={cover.title} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
                   <p className="mt-1 truncate px-0.5 text-center text-[9px] font-medium text-baylink-text-secondary">{cover.title}</p>
                   {isSelected && (
                     <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[8px] font-bold text-white">已选择</span>
@@ -2535,6 +2423,10 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
           const dataUrl = await fileToDataUrl(result.file);
           newImages.push(dataUrl);
         } catch (err) {
+          if (err instanceof UnsupportedImageError) {
+            showToast(err.message, 'error');
+            continue;
+          }
           console.warn('[CreatePost] image compress/read failed, using original', err);
           try {
             const dataUrl = await fileToDataUrl(file);
@@ -2592,8 +2484,9 @@ const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defau
 
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in zoom-in-95">
-        <div className="relative m-4 w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-8 text-center shadow-elevated backdrop-blur-xl">
+      // zoom 只放在内层卡片：整个遮罩层缩放会在入场瞬间露出四周未变暗的屏幕边缘
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="relative m-4 w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-8 text-center shadow-elevated backdrop-blur-xl animate-in zoom-in-95 fade-in duration-200">
            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-baylink-green-light text-baylink-green">
               <CheckCircle size={36} />
            </div>
@@ -4232,13 +4125,13 @@ export default function App() {
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [feedError, setFeedError] = useState(false);
+  const fetchSeqRef = useRef(0);
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
   const [postDetailRefreshing, setPostDetailRefreshing] = useState(false);
   const sessionExpiredHandledRef = useRef(false);
   const [postRouteMissing, setPostRouteMissing] = useState(false);
   const [postRouteLoading, setPostRouteLoading] = useState(false);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
-  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   const [categoryFilter, setCategoryFilter] = useState<string>('全部');
   
@@ -4246,7 +4139,7 @@ export default function App() {
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
 
   // ✨ Toast & Socket State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; id: number } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [hasNotification, setHasNotification] = useState(false);
   const [pendingContactRequestCount, setPendingContactRequestCount] = useState(0);
@@ -4257,7 +4150,8 @@ export default function App() {
   const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
   const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
+  // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置 3 秒计时
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type, id: Date.now() });
 
   const postIdParam = location.pathname.startsWith('/posts/') ? location.pathname.split('/posts/')[1]?.split('/')[0] : undefined;
   const userIdParam = location.pathname.startsWith('/users/') ? location.pathname.split('/users/')[1]?.split('/')[0] : undefined;
@@ -4532,26 +4426,63 @@ export default function App() {
   }, [user?.id]);
 
   const fetchPosts = async (pageNum: number, isRefresh: boolean = false, keywordOverride?: string) => {
+    // 请求代际守卫：每次调用使之前 in-flight 的请求失效，
+    // 防止用户中途切换筛选/Tab 时，旧请求的结果把新列表和 page/hasMore 写脏
+    const seq = ++fetchSeqRef.current;
     const searchKw = keywordOverride ?? debouncedKeyword;
     try {
       if (!isRefresh) setIsLoadingMore(true);
       else { setIsInitialLoading(true); setFeedError(false); }
-      let queryParams = `?type=${feedType}&page=${pageNum}&limit=5`;
-      if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
-      const res = await api.request(`/posts${queryParams}`);
-      const newPosts = res.posts || [];
-      const more = res.hasMore;
-      let filtered = newPosts;
-      if (regionFilter !== '全部') filtered = filtered.filter((p: any) => p.city.includes(regionFilter));
-      if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
-      if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
-      if (isRefresh) setPosts(filtered); else setPosts(prev => [...prev, ...filtered]);
+      // 服务端每页 5 条，而地区/分类目前在客户端过滤：筛选激活时一页可能被滤到 0 条，
+      // 表现为"点了加载更多却什么都没出现"。这里自动连续翻页直到凑够一批可见帖子或翻完。
+      const MIN_VISIBLE_PER_LOAD = 5;
+      const MAX_PAGES_PER_LOAD = 4;
+      const hasClientFilter = regionFilter !== '全部' || categoryFilter !== '全部' || (!!user && blockedUserIds.length > 0);
+      const collected: PostData[] = [];
+      const seenIds = new Set<string>();
+      let currentPage = pageNum;
+      let more = true;
+      let pagesFetched = 0;
+      while (true) {
+        let queryParams = `?type=${feedType}&page=${currentPage}&limit=5`;
+        if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
+        const res = await api.request(`/posts${queryParams}`);
+        if (fetchSeqRef.current !== seq) return; // 已被更新的请求接管，丢弃本次结果
+        const newPosts: PostData[] = res.posts || [];
+        more = res.hasMore;
+        pagesFetched += 1;
+        let filtered = newPosts;
+        if (regionFilter !== '全部') filtered = filtered.filter((p: any) => (p.city || '').includes(regionFilter));
+        if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
+        if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
+        for (const p of filtered) {
+          if (!seenIds.has(p.id)) { seenIds.add(p.id); collected.push(p); }
+        }
+        if (!more || !hasClientFilter || collected.length >= MIN_VISIBLE_PER_LOAD || pagesFetched >= MAX_PAGES_PER_LOAD) break;
+        // 只在确定还要再翻一页时才前进，保证 setPage 记录的是"实际拉取过"的最后一页，
+        // 否则下次 加载更多 会从未拉取的页码之后开始，凭空跳过一页帖子
+        currentPage += 1;
+      }
+      setPage(currentPage);
+      if (isRefresh) {
+        setPosts(collected);
+      } else {
+        // 两次翻页之间可能有新帖发布导致服务端分页偏移，按 id 去重避免重复卡片/重复 key
+        setPosts(prev => {
+          const prevIds = new Set(prev.map(p => p.id));
+          return [...prev, ...collected.filter(p => !prevIds.has(p.id))];
+        });
+      }
       setHasMore(more);
       setFeedError(false);
     } catch (e) {
+      if (fetchSeqRef.current !== seq) return;
       console.error(e);
       if (isRefresh) setFeedError(true);
-    } finally { setIsLoadingMore(false); setIsInitialLoading(false); }
+    } finally {
+      // 只清理本次调用自己设置的加载标记（即使已被新请求取代也要清，避免标记卡死）
+      if (!isRefresh) setIsLoadingMore(false); else setIsInitialLoading(false);
+    }
   };
 
   const retryFeed = () => {
@@ -4562,13 +4493,18 @@ export default function App() {
 
   const searchPostsNow = () => {
     const kw = keyword.trim();
-    setDebouncedKeyword(kw);
     setPage(1);
     setHasMore(true);
-    fetchPosts(1, true, kw);
+    if (kw === debouncedKeyword) {
+      // 关键词没变时 effect 不会触发，手动刷新一次
+      fetchPosts(1, true, kw);
+    } else {
+      // 关键词变了交给 debouncedKeyword 的 effect 去拉取，避免同一次搜索发两个请求
+      setDebouncedKeyword(kw);
+    }
   };
 
-  const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); };
+  const handleLoadMore = () => { fetchPosts(page + 1, false); };
   
   // ✨ 已修复：传入 postTitle 作为聊天上下文
   const openChat = async (targetId: string, nickname?: string, postTitle?: string) => { 
@@ -4838,7 +4774,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-baylink-bg flex justify-center font-sans text-baylink-text relative overflow-x-hidden">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {detailAd && (
         <AdDetailModal
           ad={detailAd}
@@ -4989,7 +4925,7 @@ export default function App() {
              )
            )}
            {tab === 'messages' && !threadIdParam && (
-             <div className="flex flex-col h-full w-full pb-24 lg:pb-0 bg-baylink-bg">
+             <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-0 bg-baylink-bg">
                <div className="px-5 pt-safe-top pb-4 bg-white/75 backdrop-blur-xl sticky top-0 z-10 border-b border-black/[0.06]">
                  <h2 className="type-page-title">消息</h2>
                </div>
@@ -5012,7 +4948,7 @@ export default function App() {
              </div>
            )}
            {tab === 'notifications' && (
-             <div className="flex flex-col h-full w-full pb-24 lg:pb-0">
+             <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-0">
                <div className="px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
                  <h2 className="text-lg font-bold text-baylink-text">推荐</h2>
                  <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">热门推荐为精选帖子，官方推荐为认证服务与广告</p>
@@ -5089,7 +5025,6 @@ export default function App() {
             sharingPost ||
             viewingImage ||
             userIdParam ||
-            viewingUserId ||
             reportTarget ||
             detailAd
           )}
@@ -5214,7 +5149,6 @@ export default function App() {
             onSubmit={handleSubmitReport}
           />
         )}
-        {viewingUserId && <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} onChat={openChat} currentUser={user} showToast={showToast}/>}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
       </div>

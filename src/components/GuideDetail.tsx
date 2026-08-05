@@ -2,7 +2,6 @@ import { ChevronLeft, CheckCircle2, Lightbulb } from 'lucide-react';
 import {
   getGuideBySlug,
   getRelatedGuides,
-  type Guide,
   type GuideBlock,
 } from '../data/guides';
 import { GuideCardMini } from './GuideCard';
@@ -46,7 +45,7 @@ export const GuideDetail = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full pb-24 lg:pb-8">
+    <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-baylink-border/40 bg-baylink-bg/95 px-4 py-3 backdrop-blur-sm">
         <button type="button" onClick={onBack} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section">
           <ChevronLeft size={22} />

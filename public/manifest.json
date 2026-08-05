@@ -1,0 +1,31 @@
+{
+  "name": "BAYLINK 湾区华人本地生活平台",
+  "short_name": "BAYLINK",
+  "description": "找房、找室友、二手交易、本地服务、接送和湾区生活指南",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EC",
+  "theme_color": "#F7F4EC",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

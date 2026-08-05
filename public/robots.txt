@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /messages
+Disallow: /me
+
+Sitemap: https://www.baylink.us/sitemap.xml

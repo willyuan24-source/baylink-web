@@ -7,7 +7,7 @@ type LegalPageLayoutProps = {
 };
 
 export const LegalPageLayout = ({ title, updated, children }: LegalPageLayoutProps) => (
-  <div className="px-4 py-6 pb-24 lg:pb-10 max-w-2xl mx-auto w-full">
+  <div className="px-4 py-6 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-10 max-w-2xl mx-auto w-full">
     <article className="rounded-[24px] border border-baylink-border/40 bg-white/90 shadow-rest backdrop-blur-sm p-6 sm:p-8">
       <header className="mb-6 border-b border-baylink-border/30 pb-5">
         <h1 className="text-xl sm:text-2xl font-bold text-baylink-text leading-tight">{title}</h1>

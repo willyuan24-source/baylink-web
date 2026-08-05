@@ -22,6 +22,14 @@ const PNG_WEBP_JPEG_QUALITY = 0.88;
 
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+/** 图片格式当前浏览器无法处理（如非 Safari 环境的 HEIC），调用方应提示用户换格式，不要原样上传 */
+export class UnsupportedImageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnsupportedImageError';
+  }
+}
+
 /** iOS 相册常返回空 type，用扩展名兜底 */
 export const isLikelyImageFile = (file: File): boolean => {
   if (file.type.startsWith('image/')) return true;
@@ -111,6 +119,7 @@ const makeFallback = (file: File): CompressImageResult => ({
 
 /**
  * 浏览器端图片压缩（Canvas）。失败时回退原文件，不抛错阻断流程。
+ * 例外：HEIC 解码失败会抛 UnsupportedImageError —— 原样上传只会产生裂图。
  */
 export async function compressImageFile(
   file: File,
@@ -130,8 +139,20 @@ export async function compressImageFile(
   if (isGif(file)) return fallback;
 
   if (isHeic(file)) {
-    console.info('[imageCompression] HEIC/HEIF skipped, using original');
-    return fallback;
+    // HEIC 只有 Safari 能解码，原样上传后安卓/Chrome 用户看到的是裂图，
+    // 所以无论大小都必须转成 JPEG；解码失败时抛错让调用方提示用户，绝不回退原文件
+    try {
+      const compressedFile = await compressWithCanvas(file, maxWidth, maxHeight, quality, false);
+      return {
+        file: compressedFile,
+        originalSize: file.size,
+        compressedSize: compressedFile.size,
+        compressed: true,
+      };
+    } catch (err) {
+      console.warn('[imageCompression] HEIC decode failed on this browser', err);
+      throw new UnsupportedImageError('这张照片是 HEIC 格式，当前浏览器无法处理。请在相册中把它导出/另存为 JPG 再上传');
+    }
   }
 
   if (isPng(file) || isWebp(file)) {

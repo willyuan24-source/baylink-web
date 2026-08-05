@@ -57,7 +57,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
   }, [tab, query, filtered]);
 
   return (
-    <div className="flex flex-col h-full w-full pb-24 lg:pb-8">
+    <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
       <div className="px-4 sm:px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
         <h2 className="text-xl font-bold text-baylink-text">湾区生活指南</h2>
         <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">

@@ -152,7 +152,8 @@ export const BayBayFloatingLauncher = ({
 
       {/* Mobile: compact orb + bottom action sheet */}
       <div className="lg:hidden">
-        <div className="fixed bottom-[88px] right-4 z-[44]">
+        {/* 88px 是底部导航（含 safe-area 前）以上的净空；导航高度随 env(safe-area-inset-bottom) 变化，这里要同步补偿 */}
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+88px)] right-4 z-[44]">
           <BayBayOrbButton
             expanded={mobileSheetOpen}
             onToggle={() => setMobileSheetOpen((v) => !v)}

@@ -52,13 +52,6 @@ type ShortcutItem = {
   run: () => void;
 };
 
-const RECOMMENDED_QUESTIONS = [
-  '刚来湾区租房要注意什么？',
-  '怎么找靠谱室友？',
-  '二手交易怎么避免被骗？',
-  '搬家前要准备什么？',
-];
-
 const resolveCategoryLabel = (cat?: string): string | undefined => {
   if (!cat) return undefined;
   const fromSlug = getCategoryFromSlug(cat);
@@ -200,10 +193,6 @@ export const BayBayAssistantEntry = ({
 
   const handleAsk = () => askBayBay(question);
 
-  const handleChip = (q: string) => {
-    setQuestion(q);
-    askBayBay(q);
-  };
 
   useEffect(() => {
     if (!open || !pendingQuestion?.trim()) return;
@@ -359,19 +348,8 @@ export const BayBayAssistantEntry = ({
                   </button>
                 </div>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {RECOMMENDED_QUESTIONS.map((q) => (
-                    <button
-                      key={q}
-                      type="button"
-                      onClick={() => handleChip(q)}
-                      disabled={loading}
-                      className="max-w-full rounded-full border border-baylink-border/50 bg-white/80 px-2.5 py-1 text-[10px] text-baylink-text-secondary transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.04] disabled:opacity-50"
-                    >
-                      <span className="line-clamp-1">{q}</span>
-                    </button>
-                  ))}
-                </div>
+                {/* 推荐问题 chips 已撤下：后端目前对这些问题只返回固定兜底回复，
+                    等 /ai/guide-chat 升级为真 LLM 后再恢复，并确保它们是展示质量的最佳案例 */}
 
                 {chatError && (
                   <p className="mt-2.5 rounded-lg bg-amber-50/80 px-3 py-2 text-[11px] text-amber-800/90">

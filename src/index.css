@@ -59,7 +59,7 @@ html, body, #root {
   background-image: linear-gradient(135deg, #16A66A 0%, #128256 100%);
 }
 
-/* Hero photo — public/baylink-hero-bg.png (bridge bottom-left, map right) */
+/* Hero photo — public/baylink-hero-bg.webp (bridge bottom-left, map right) */
 .baylink-hero-photo {
   position: relative;
   overflow: hidden;
@@ -73,7 +73,7 @@ html, body, #root {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url('/baylink-hero-bg.png');
+  background-image: url('/baylink-hero-bg.webp');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: left center;
@@ -627,5 +627,27 @@ html, body, #root {
   }
   .type-caption {
     @apply text-[11px] font-medium;
+  }
+}
+
+/* iOS Safari：聚焦字号小于 16px 的输入框会强制放大页面，移动端统一抬到 16px。
+   :not() 用于把特异性提到 (0,1,1)，压过 .search-input / .text-sm 这类单类选择器 */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']),
+  textarea:not([hidden]),
+  select:not([hidden]) {
+    font-size: 16px;
+  }
+}
+
+/* 尊重系统"减弱动态效果"设置：关闭装饰性动画与过渡 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
