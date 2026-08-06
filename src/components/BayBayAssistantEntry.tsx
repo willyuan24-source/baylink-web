@@ -3,8 +3,7 @@ import { ChevronRight, X, Sparkles, Loader2, BookOpen } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard, type BayBayInteractiveCard } from './BayBaySmartCard';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api';
+import { API_BASE_URL, authHeaders } from '../lib/api';
 
 type GuideChatGuide = {
   title: string;
@@ -60,18 +59,10 @@ const resolveCategoryLabel = (cat?: string): string | undefined => {
 };
 
 const fetchGuideChat = async (message: string, categoryHint?: string): Promise<GuideChatResponse> => {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  try {
-    const userStr = localStorage.getItem('currentUser');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user?.token) headers.Authorization = `Bearer ${user.token}`;
-    }
-  } catch { /* ignore */ }
-
+  // 走共享 client 的 base URL / 鉴权头，但保留本面板宽松的错误语义（失败返回 ok:false，不触发全局登出）
   const res = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
     method: 'POST',
-    headers,
+    headers: authHeaders(),
     body: JSON.stringify({
       message,
       context: {
