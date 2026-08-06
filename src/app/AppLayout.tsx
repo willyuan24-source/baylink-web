@@ -10,6 +10,7 @@ import { BRAND } from '../brandAssets';
 import { api, SOCKET_URL } from '../lib/api';
 import { CATEGORIES, HOME_CHANNELS } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
+import { readFeedCache, writeFeedCache } from '../lib/feedCache';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
 } from '../lib/types';
@@ -63,7 +64,8 @@ export default function AppLayout() {
   const [feedType, setFeedType] = useState<PostType>('provider');
   const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
   const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
-  const [posts, setPosts] = useState<PostData[]>([]);
+  // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）
+  const [posts, setPosts] = useState<PostData[]>(() => readFeedCache('provider'));
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -426,6 +428,10 @@ export default function AppLayout() {
       setPage(currentPage);
       if (isRefresh) {
         setPosts(collected);
+        // 只缓存默认视图（无搜索词、无筛选），供下次进入先渲染
+        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部') {
+          writeFeedCache(feedType, collected);
+        }
       } else {
         // 两次翻页之间可能有新帖发布导致服务端分页偏移，按 id 去重避免重复卡片/重复 key
         setPosts(prev => {

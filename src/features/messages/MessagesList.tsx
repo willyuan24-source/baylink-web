@@ -4,12 +4,15 @@ import { MessageCircle, ChevronRight } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { TrustBadge } from '../../components/TrustBadge';
+import { ConversationListSkeleton } from '../../components/ui/Skeleton';
 import { formatChineseDate } from '../../lib/format';
 import type { Conversation, UserData } from '../../lib/types';
 
 export const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { currentUser: UserData | null; onOpenChat: (conv: Conversation) => void; onOpenProfile?: (userId: string) => void }) => {
   const [convs, setConvs] = useState<Conversation[]>([]);
-  useEffect(() => { if (!currentUser) return; const load = async () => { try { const res = await api.request('/conversations'); if (Array.isArray(res)) setConvs(res); } catch {} }; load(); const i = setInterval(load, 5000); return () => clearInterval(i); }, [currentUser]);
+  // 首次加载完成前展示骨架，避免闪现「还没有消息」空态
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { if (!currentUser) return; const load = async () => { try { const res = await api.request('/conversations'); if (Array.isArray(res)) setConvs(res); } catch {} finally { setLoading(false); } }; load(); const i = setInterval(load, 5000); return () => clearInterval(i); }, [currentUser]);
   if (!currentUser) return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center w-full min-h-[300px] bg-baylink-bg">
       <div className="surface-card w-20 h-20 rounded-full flex items-center justify-center mb-4"><MessageCircle size={32} className="text-baylink-muted" /></div>
@@ -18,7 +21,9 @@ export const MessagesList = ({ currentUser, onOpenChat, onOpenProfile }: { curre
   );
   return (
     <div className="flex-1 overflow-y-auto p-4 pb-24 w-full bg-baylink-bg">
-      {convs.length > 0 ? (
+      {loading && convs.length === 0 ? (
+        <ConversationListSkeleton />
+      ) : convs.length > 0 ? (
         <div className="space-y-3">
           {convs.map(c => (
             <div

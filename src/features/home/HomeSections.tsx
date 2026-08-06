@@ -1,11 +1,12 @@
 // 首页区块组件：筛选 chips / Hero / 频道 / 热门推荐 / 精选帖 / feed 切换 / 空态
 import { useState, useEffect } from 'react';
-import { Sparkles, Shield, Clock, Loader2, BookOpen, Plus } from 'lucide-react';
+import { Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CATEGORY_EMOJI, HOME_CHANNELS, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate } from '../../lib/format';
 import type { PostData, PostType, UserData } from '../../lib/types';
 import { PostCard } from '../posts/PostCard';
+import { FeedSkeleton, HotRecommendSkeleton } from '../../components/ui/Skeleton';
 
 export const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <button onClick={onClick} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{label}</button>
@@ -165,7 +166,7 @@ export const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, on
         )}
       </div>
       {loading ? (
-        <div className="py-5 text-center sm:py-8"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green sm:h-6 sm:w-6" /></div>
+        <HotRecommendSkeleton />
       ) : posts.length > 0 ? (
         <div className={`hot-recommend-grid ${gridColsClass}`.trim()}>
           {posts.map((post) => {
@@ -240,7 +241,7 @@ export const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentU
   }, [refreshKey]);
 
   if (loading) {
-    return <div className="py-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-baylink-green" /></div>;
+    return <FeedSkeleton count={2} />;
   }
   if (posts.length === 0) {
     return (

@@ -1,11 +1,12 @@
 // 用户公开资料弹层（湾区生活名片）
 import { useState, useEffect } from 'react';
 import {
-  X, Loader2, MapPin, Instagram, ExternalLink, Shield, ChevronRight, Flag, UserX,
+  X, MapPin, Instagram, ExternalLink, Shield, ChevronRight, Flag, UserX,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { ModalShell } from '../../components/ui/Modal';
+import { ProfileCardSkeleton } from '../../components/ui/Skeleton';
 import { TrustBadge } from '../../components/TrustBadge';
 import { TagPills } from '../../components/TagPills';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
@@ -66,7 +67,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5">
           {loading ? (
-            <div className="py-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
+            <ProfileCardSkeleton />
           ) : failed || !profile ? (
             <p className="py-12 text-center text-sm text-baylink-muted">无法查看该用户资料</p>
           ) : (

@@ -10,6 +10,7 @@ import {
   BayHero, CategoryChip, ChannelShortcuts, EmptyFeed, FeedSwitch, FilterTag, HotRecommend,
 } from '../features/home/HomeSections';
 import { PostCard } from '../features/posts/PostCard';
+import { FeedSkeleton } from '../components/ui/Skeleton';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -97,10 +98,9 @@ export default function HomePage() {
             <button type="button" onClick={retryFeed} className="rounded-xl bg-baylink-green px-5 py-2.5 text-sm font-semibold text-white shadow-rest hover:bg-baylink-green-hover active:scale-95 transition">重新加载</button>
           </div>
         ) : isInitialLoading && posts.length === 0 ? (
-          <div className="py-16 text-center space-y-3">
-            <Loader2 className="animate-spin w-9 h-9 text-baylink-green mx-auto"/>
-            <p className="text-sm text-baylink-muted">加载中...</p>
-            <p className="text-[11px] text-baylink-muted/80">首次加载可能需要几秒钟，请稍候。</p>
+          <div>
+            <FeedSkeleton count={4} />
+            <p className="pb-3 pt-1 text-center text-[11px] text-baylink-muted/80">首次加载可能需要几秒钟，请稍候。</p>
           </div>
         ) : posts.length === 0 ? (
           <EmptyFeed
