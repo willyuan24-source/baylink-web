@@ -1,12 +1,21 @@
 // 指南详情页
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../app/context';
 import { GuideDetail } from '../components/GuideDetail';
+import { getGuideBySlug } from '../data/guides';
 
 export default function GuideDetailPage() {
   const navigate = useNavigate();
   const { slug } = useParams();
   const { user, setShowLogin, openCreate } = useApp();
+
+  // 标题在页面内设置：guides 语料随本页 chunk 懒加载，布局层不再依赖它
+  useEffect(() => {
+    if (!slug) return;
+    const g = getGuideBySlug(slug);
+    document.title = g ? `${g.title}｜BAYLINK` : '湾区生活指南｜BAYLINK';
+  }, [slug]);
 
   const navigateBack = () => {
     if (window.history.length > 1) navigate(-1);

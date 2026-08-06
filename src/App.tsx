@@ -2,17 +2,20 @@
 // 帖子 / 用户覆盖层用 background-location 模式：带着 state.backgroundLocation 导航时，
 // 页面区继续按"背景位置"渲染（来源页保持挂载），覆盖层本身由 AppLayout 按真实 URL 渲染。
 // 直接深链 /posts/:id、/users/:id（无背景）时，以首页 feed 作为覆盖层背景。
+// 除首页外全部路由懒加载（Suspense 边界在 AppLayout 的 <Outlet> 外层）。
+import { lazy } from 'react';
 import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
 import HomePage from './pages/HomePage';
-import GuidesPage from './pages/GuidesPage';
-import GuideDetailPage from './pages/GuideDetailPage';
-import MessagesPage from './pages/MessagesPage';
-import RecommendPage from './pages/RecommendPage';
-import ProfilePage from './pages/ProfilePage';
-import { PrivacyPolicyView } from './components/PrivacyPolicyView';
-import { TermsView } from './components/TermsView';
-import { SmsConsentView } from './components/SmsConsentView';
+
+const GuidesPage = lazy(() => import('./pages/GuidesPage'));
+const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const RecommendPage = lazy(() => import('./pages/RecommendPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const PrivacyPolicyView = lazy(() => import('./components/PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
+const TermsView = lazy(() => import('./components/TermsView').then((m) => ({ default: m.TermsView })));
+const SmsConsentView = lazy(() => import('./components/SmsConsentView').then((m) => ({ default: m.SmsConsentView })));
 
 export default function App() {
   const location = useLocation();

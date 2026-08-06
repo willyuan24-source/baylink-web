@@ -1,11 +1,11 @@
 // 应用布局层：共享状态容器 + 侧栏/底部导航 chrome + URL 驱动的覆盖层（帖子/用户/聊天）+ 全局弹层
 // 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useLocation, useNavigate, type Location } from 'react-router-dom';
 import {
   MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, Shield, Loader2,
 } from 'lucide-react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { BRAND } from '../brandAssets';
 import { api, SOCKET_URL } from '../lib/api';
 import { CATEGORIES, HOME_CHANNELS } from '../lib/constants';
@@ -16,7 +16,6 @@ import type {
 import {
   getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isGuidesPath,
 } from '../routing';
-import { getGuideBySlug } from '../data/guides';
 import type { AppContextValue } from './context';
 
 import Avatar from '../components/Avatar';
@@ -33,10 +32,12 @@ import { PostShareSheet } from '../components/PostShareSheet';
 import { CategoryChip } from '../features/home/HomeSections';
 import { AdDetailModal, OfficialAds } from '../features/ads/OfficialAds';
 import { LoginModal } from '../features/auth/LoginModal';
-import { CreatePostModal } from '../features/posts/CreatePostModal';
-import { PostDetailModal } from '../features/posts/PostDetailModal';
-import { UserProfileModal } from '../features/users/UserProfileModal';
-import { ChatView } from '../features/messages/ChatView';
+
+// 大弹层懒加载：发帖（含图片压缩管线）/ 帖子详情 / 聊天 / 用户名片只在打开时才拉取代码
+const CreatePostModal = lazy(() => import('../features/posts/CreatePostModal').then((m) => ({ default: m.CreatePostModal })));
+const PostDetailModal = lazy(() => import('../features/posts/PostDetailModal').then((m) => ({ default: m.PostDetailModal })));
+const UserProfileModal = lazy(() => import('../features/users/UserProfileModal').then((m) => ({ default: m.UserProfileModal })));
+const ChatView = lazy(() => import('../features/messages/ChatView').then((m) => ({ default: m.ChatView })));
 
 export default function AppLayout() {
   const location = useLocation();
@@ -144,6 +145,7 @@ export default function AppLayout() {
   };
 
   // ✨ Socket 初始化：握手携带 JWT，服务端仅允许加入本人 room
+  // socket.io-client 动态加载：未登录访客的首包不用背这份体积
   useEffect(() => {
     if (!user?.token) {
       if (socket) {
@@ -153,28 +155,36 @@ export default function AppLayout() {
       return;
     }
 
-    const newSocket = io(SOCKET_URL, {
-      auth: { token: user.token },
-    });
+    let cancelled = false;
+    let created: Socket | null = null;
+    (async () => {
+      const { io } = await import('socket.io-client');
+      if (cancelled) return;
 
-    newSocket.on('connect', () => {
-      console.log('Socket Connected');
-      newSocket.emit('join_room');
-    });
+      const newSocket = io(SOCKET_URL, {
+        auth: { token: user.token },
+      });
+      created = newSocket;
 
-    newSocket.on('connect_error', () => {
-      // 鉴权失败时不影响页面渲染
-    });
+      newSocket.on('connect', () => {
+        console.log('Socket Connected');
+        newSocket.emit('join_room');
+      });
 
-    newSocket.on('new_message', () => {
-      if (tabRef.current !== 'messages') {
-        setHasNotification(true);
-        showToast('收到新私信', 'info');
-      }
-    });
+      newSocket.on('connect_error', () => {
+        // 鉴权失败时不影响页面渲染
+      });
 
-    setSocket(newSocket);
-    return () => { newSocket.disconnect(); };
+      newSocket.on('new_message', () => {
+        if (tabRef.current !== 'messages') {
+          setHasNotification(true);
+          showToast('收到新私信', 'info');
+        }
+      });
+
+      setSocket(newSocket);
+    })();
+    return () => { cancelled = true; created?.disconnect(); };
   }, [user?.id, user?.token]);
 
   // 切换到消息页时，清除私信未读红点（联系方式请求 badge 由 pending count 单独控制）
@@ -220,11 +230,9 @@ export default function AppLayout() {
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
       document.title = `${cat}｜BAYLINK`;
-    } else if (path.startsWith('/guides/') && guideSlugParam) {
-      const g = getGuideBySlug(guideSlugParam);
-      document.title = g ? `${g.title}｜BAYLINK` : '湾区生活指南｜BAYLINK';
     } else if (path.startsWith('/guides')) {
-      document.title = '湾区生活指南｜BAYLINK';
+      // /guides/:slug 的具体标题由 GuideDetailPage 设置（guides 语料已懒加载，布局层不再 import）
+      if (!guideSlugParam) document.title = '湾区生活指南｜BAYLINK';
     } else if (path.startsWith('/recommend')) {
       document.title = '推荐｜BAYLINK';
     } else if (path.startsWith('/messages')) {
@@ -770,7 +778,9 @@ export default function AppLayout() {
         </header>}</div>
 
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
-           <Outlet context={ctx} />
+           <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
+             <Outlet context={ctx} />
+           </Suspense>
         </main>
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
@@ -840,7 +850,8 @@ export default function AppLayout() {
           onPromoteService={() => openCreateFromSlug('provider', 'other')}
         />
 
-        {/* Modals */}
+        {/* Modals（懒加载弹层的 chunk 就绪前不渲染任何占位；帖子详情的数据加载态已有独立 spinner） */}
+        <Suspense fallback={null}>
         {showLogin && (
           <LoginModal
             onClose={() => setShowLogin(false)}
@@ -957,6 +968,7 @@ export default function AppLayout() {
         )}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
+        </Suspense>
       </div>
       {RightSidebar()}
     </div>

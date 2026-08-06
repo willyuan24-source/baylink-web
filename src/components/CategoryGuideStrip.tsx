@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { CATEGORY_STRIP_TITLES, getGuidesForCategorySlug, type Guide } from '../data/guides';
+// guides 语料 ~1800 行：这里只用 type（编译期擦除），数据在 effect 里动态 import，避免进首包
+import type { Guide } from '../data/guides';
 
 type CategoryGuideStripProps = {
   categorySlug: string;
@@ -7,10 +9,20 @@ type CategoryGuideStripProps = {
 };
 
 export const CategoryGuideStrip = ({ categorySlug, onOpenGuide }: CategoryGuideStripProps) => {
-  const items = getGuidesForCategorySlug(categorySlug, 3);
-  if (items.length === 0) return null;
+  const [items, setItems] = useState<Guide[]>([]);
+  const [title, setTitle] = useState('相关生活指南');
 
-  const title = CATEGORY_STRIP_TITLES[categorySlug] ?? '相关生活指南';
+  useEffect(() => {
+    let cancelled = false;
+    import('../data/guides').then((m) => {
+      if (cancelled) return;
+      setItems(m.getGuidesForCategorySlug(categorySlug, 3));
+      setTitle(m.CATEGORY_STRIP_TITLES[categorySlug] ?? '相关生活指南');
+    }).catch(() => { /* 加载失败就不展示条目 */ });
+    return () => { cancelled = true; };
+  }, [categorySlug]);
+
+  if (items.length === 0) return null;
 
   return (
     <div className="mb-3 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2.5">
