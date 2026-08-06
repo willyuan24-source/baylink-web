@@ -22,8 +22,10 @@ export default function App() {
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
 
   return (
+    // 注意：<Routes location> 会把内部的 LocationContext 一并替换成传入的位置，
+    // 因此覆盖层所需的"真实位置"必须从这里（Router 层）作为 prop 传给 AppLayout。
     <Routes location={backgroundLocation || location}>
-      <Route element={<AppLayout />}>
+      <Route element={<AppLayout realLocation={location} />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categorySlug" element={<HomePage />} />
         {/* 覆盖层深链的背景页 */}

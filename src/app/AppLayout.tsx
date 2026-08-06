@@ -1,7 +1,7 @@
 // 应用布局层：共享状态容器 + 侧栏/底部导航 chrome + URL 驱动的覆盖层（帖子/用户/聊天）+ 全局弹层
 // 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
-import { Outlet, useLocation, useNavigate, type Location } from 'react-router-dom';
+import { Outlet, useNavigate, type Location } from 'react-router-dom';
 import {
   MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, Shield, Loader2,
 } from 'lucide-react';
@@ -41,8 +41,10 @@ const PostDetailModal = lazy(() => import('../features/posts/PostDetailModal').t
 const UserProfileModal = lazy(() => import('../features/users/UserProfileModal').then((m) => ({ default: m.UserProfileModal })));
 const ChatView = lazy(() => import('../features/messages/ChatView').then((m) => ({ default: m.ChatView })));
 
-export default function AppLayout() {
-  const location = useLocation();
+// realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
+// 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
+export default function AppLayout({ realLocation }: { realLocation: Location }) {
+  const location = realLocation;
   const navigate = useNavigate();
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
