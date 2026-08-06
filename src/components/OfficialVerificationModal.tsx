@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Loader2, BadgeCheck } from 'lucide-react';
+import { ModalShell } from './ui/Modal';
 
 export type OfficialVerificationType =
   | 'realtor'
@@ -93,7 +94,7 @@ export const OfficialVerificationModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md">
+    <ModalShell onClose={onClose} label="申请官方认证" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md">
       <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-6 shadow-elevated backdrop-blur-xl">
         <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
           <X size={18} />
@@ -151,6 +152,6 @@ export const OfficialVerificationModal = ({
           </button>
         </form>
       </div>
-    </div>
+    </ModalShell>
   );
 };

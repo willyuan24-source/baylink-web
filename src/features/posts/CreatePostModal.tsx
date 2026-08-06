@@ -1,6 +1,7 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useState } from 'react';
 import { X, CheckCircle, Loader2, Plus } from 'lucide-react';
+import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
 import {
   CATEGORIES, DEFAULT_COVERS, MAX_POST_IMAGES, REGIONS,
@@ -321,7 +322,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   if (isSuccess) {
     return (
       // zoom 只放在内层卡片：整个遮罩层缩放会在入场瞬间露出四周未变暗的屏幕边缘
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
+      <ModalShell onClose={onClose} label="发布成功" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
         <div className="relative m-4 w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-8 text-center shadow-elevated backdrop-blur-xl animate-in zoom-in-95 fade-in duration-200">
            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-baylink-green-light text-baylink-green">
               <CheckCircle size={36} />
@@ -335,7 +336,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
            )}
            <button onClick={onClose} className="w-full py-3.5 btn-primary">知道了</button>
         </div>
-      </div>
+      </ModalShell>
     );
   }
 
@@ -346,7 +347,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
+    // 表单内容较多，误触遮罩不关闭（closeOnBackdrop=false），Esc / 右上角 X 可关
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={isEdit ? '编辑信息' : '发布信息'} className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
       <div className="bg-baylink-bg w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto pb-safe-bar shadow-2xl border border-baylink-border/40">
         <div className="flex justify-between items-center mb-5">
           <div>
@@ -611,6 +613,6 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
           </div>
         )}
       </div>
-    </div>
+    </ModalShell>
   );
 };

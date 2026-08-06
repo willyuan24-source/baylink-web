@@ -19,6 +19,7 @@ import {
 import type { AppContextValue } from './context';
 
 import Avatar from '../components/Avatar';
+import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
 import { Toast } from '../components/Toast';
 import { ImageViewer } from '../components/ImageViewer';
 import { PostNotFoundView } from '../components/PostNotFoundView';
@@ -133,7 +134,7 @@ export default function AppLayout() {
 
   const openAdDetail = (ad: AdDetailItem) => setDetailAd(ad);
   const handleDeleteAdFromDetail = async (id: string) => {
-    if (!confirm('确定删除?')) return;
+    if (!(await confirmDialog({ title: '删除推荐', message: '确定删除这条官方推荐？', confirmText: '删除', danger: true }))) return;
     try {
       await api.request(`/ads/${id}`, { method: 'DELETE' });
       setDetailAd(null);
@@ -521,7 +522,12 @@ export default function AppLayout() {
   const handleBlockUser = async (blockedId: string) => {
     if (!user) { showToast('请先登录', 'info'); setShowLogin(true); return; }
     if (blockedId === user.id) return;
-    if (!confirm('屏蔽这个用户？\n\n屏蔽后，对方将无法继续给你发送私信。你也不能主动给对方发私信，除非之后取消屏蔽。')) return;
+    if (!(await confirmDialog({
+      title: '屏蔽这个用户？',
+      message: '屏蔽后，对方将无法继续给你发送私信。你也不能主动给对方发私信，除非之后取消屏蔽。',
+      confirmText: '屏蔽',
+      danger: true,
+    }))) return;
     try {
       const res = await api.blockUser(blockedId);
       setBlockedUserIds((prev) => {
@@ -562,7 +568,7 @@ export default function AppLayout() {
   };
 
   const handleDeletePost = async (post: PostData) => {
-    if (!confirm('删除此贴？')) return;
+    if (!(await confirmDialog({ title: '删除此贴？', message: '删除后其他用户将无法再看到这条信息。', confirmText: '删除', danger: true }))) return;
     try {
       await api.request(`/posts/${post.id}`, { method: 'DELETE' });
       if (postIdParam === post.id) navigate('/');
@@ -751,6 +757,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-baylink-bg flex justify-center font-sans text-baylink-text relative overflow-x-hidden">
+      <ConfirmHost />
       {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {detailAd && (
         <AdDetailModal

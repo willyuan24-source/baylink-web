@@ -1,6 +1,7 @@
 // 编辑资料全屏弹层 + 手机验证弹窗 + 标签选择字段
 import React, { useState } from 'react';
 import { X, ShieldCheck, Camera, Smartphone, Check } from 'lucide-react';
+import { ModalShell } from '../../components/ui/Modal';
 import { api, safeParse } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { INTEREST_PRESETS, PROFILE_TAG_PRESETS, REGIONS } from '../../lib/constants';
@@ -137,7 +138,7 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
+        <ModalShell onClose={onClose} label="手机验证" className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
             <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
@@ -167,7 +168,7 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
                     </div>
                 )}
             </div>
-        </div>
+        </ModalShell>
     );
 };
 
@@ -221,7 +222,7 @@ export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) =>
     };
 
     return (
-        <div className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
+        <ModalShell onClose={onClose} closeOnBackdrop={false} label="编辑资料" className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
              <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-900 font-bold text-sm">取消</button><span className="font-bold text-lg text-gray-900">编辑资料</span><button onClick={handleSave} disabled={saving} className="text-green-700 font-bold text-sm disabled:opacity-50">{saving ? '保存中...' : '完成'}</button>
              </div>
@@ -296,6 +297,6 @@ export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) =>
                  </div>
              </div>
              {showVerify && <PhoneVerificationModal user={user} onClose={() => setShowVerify(false)} onVerified={onUpdate} showToast={showToast} />}
-        </div>
+        </ModalShell>
     );
 };

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
+import { ModalShell } from '../../components/ui/Modal';
 import { TrustBadge } from '../../components/TrustBadge';
 import { TagPills } from '../../components/TagPills';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
@@ -57,7 +58,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   const isBlocked = profile ? (blockedUserIds?.includes(profile.id) || profile.viewerHasBlockedUser) : false;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
+    <ModalShell onClose={onClose} label="湾区生活名片" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
       <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-3">
           <h3 className="text-base font-bold text-baylink-text">湾区生活名片</h3>
@@ -241,6 +242,6 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
           </div>
         )}
       </div>
-    </div>
+    </ModalShell>
   );
 };

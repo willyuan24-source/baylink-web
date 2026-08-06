@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, UserX, FileText, Phone, Send, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
+import { ModalShell } from '../../components/ui/Modal';
+import { confirmDialog } from '../../components/ui/confirm';
 import { TrustBadge } from '../../components/TrustBadge';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { ContactCardMessage } from '../../components/ContactCardMessage';
@@ -62,7 +64,7 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
   const chromeIconBtn = 'shrink-0 rounded-full bg-white/75 backdrop-blur-xl border border-black/[0.04] p-2 text-baylink-text shadow-rest transition hover:bg-white active:scale-95';
 
   return (
-    <div className="fixed inset-0 bg-baylink-bg z-[100] flex flex-col">
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={`与 ${conversation.otherUser.nickname} 的对话`} className="fixed inset-0 bg-baylink-bg z-[100] flex flex-col">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-black/[0.06] bg-white/75 backdrop-blur-xl pt-safe-top shrink-0">
         <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="返回"><ChevronLeft size={20} /></button>
         <div className="min-w-0 flex-1">
@@ -148,7 +150,7 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
       <div className="border-t border-black/[0.06] px-3 pt-2.5 pb-safe-bar flex gap-2.5 items-center bg-white/80 backdrop-blur-xl shrink-0">
         <button
           type="button"
-          onClick={() => confirm('确定向对方分享你的联系方式？') && send('contact-share', '')}
+          onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) send('contact-share', ''); }}
           disabled={sending}
           className="shrink-0 rounded-full border border-black/[0.06] bg-baylink-section/50 p-2.5 text-baylink-text-secondary transition hover:bg-baylink-section active:scale-95 disabled:opacity-50"
           aria-label="分享联系方式"
@@ -172,6 +174,6 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
           {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
         </button>
       </div>
-    </div>
+    </ModalShell>
   );
 };

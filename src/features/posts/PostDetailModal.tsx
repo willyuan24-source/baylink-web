@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
+import { ModalShell } from '../../components/ui/Modal';
+import { confirmDialog } from '../../components/ui/confirm';
 import { TrustBadge } from '../../components/TrustBadge';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { CommentThread } from '../../components/CommentThread';
@@ -98,7 +100,7 @@ export const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onO
   };
 
   const handleDeleteComment = async (comment: PostComment) => {
-    if (!confirm('确定删除这条评论？')) return;
+    if (!(await confirmDialog({ title: '删除评论', message: '确定删除这条评论？', confirmText: '删除', danger: true }))) return;
     try {
       const res = await api.request(`/posts/${post.id}/comments/${comment.id}`, { method: 'DELETE' });
       setComments(res.comments || []);
@@ -132,7 +134,7 @@ export const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onO
   };
 
   const deletePost = async () => {
-    if (!confirm('删除此贴？')) return;
+    if (!(await confirmDialog({ title: '删除此贴？', message: '删除后其他用户将无法再看到这条信息。', confirmText: '删除', danger: true }))) return;
     try {
       await api.request(`/posts/${post.id}`, { method: 'DELETE' });
       onDeleted();
@@ -152,7 +154,7 @@ export const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onO
   const chromeIconBtn = 'p-2.5 rounded-full bg-white/75 backdrop-blur-xl border border-black/[0.04] shadow-rest text-baylink-text transition hover:bg-white active:scale-95';
 
   return (
-    <div className="fixed inset-0 bg-baylink-bg z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-elevated">
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={post.title || '帖子详情'} className="fixed inset-0 bg-baylink-bg z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-elevated">
       <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] bg-white/80 backdrop-blur-xl pt-safe-top shrink-0">
         <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="关闭"><X size={20} /></button>
         <div className="flex gap-2 items-center">
@@ -359,6 +361,6 @@ export const PostDetailModal = ({ post, onClose, currentUser, onLoginNeeded, onO
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { ModalShell } from './ui/Modal';
 
 export type ReportReason =
   | 'spam'
@@ -55,9 +56,10 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
   };
 
   return (
-    <div
+    <ModalShell
+      onClose={onClose}
+      label={targetType === 'user' ? '举报用户' : '举报帖子'}
       className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 px-4 pb-24 pt-6 backdrop-blur-sm sm:items-center sm:pb-6"
-      onClick={onClose}
     >
       <div
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
@@ -129,7 +131,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };
 

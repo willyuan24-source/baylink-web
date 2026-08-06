@@ -1,6 +1,8 @@
 // 管理员视图：官方认证审核 + 举报管理（含账号状态调整 / 操作日志）
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Loader2, AlertTriangle, X } from 'lucide-react';
+import { ModalShell } from '../../components/ui/Modal';
+import { confirmDialog, promptDialog } from '../../components/ui/confirm';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import {
@@ -94,7 +96,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
   useEffect(() => { load(); }, []);
 
   const handleApprove = async (userId: string) => {
-    if (!confirm('确认通过该用户的官方认证？')) return;
+    if (!(await confirmDialog({ title: '通过认证', message: '确认通过该用户的官方认证？', confirmText: '通过' }))) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, { status: 'approved' });
@@ -108,7 +110,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
   };
 
   const handleReject = async (userId: string) => {
-    if (!confirm('确认拒绝该认证申请？')) return;
+    if (!(await confirmDialog({ title: '拒绝认证', message: '确认拒绝该认证申请？', confirmText: '拒绝', danger: true }))) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, {
@@ -254,8 +256,15 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
         await api.unhideAdminPost(postId);
         showToast('帖子已恢复公开', 'success');
       } else {
-        const reason = window.prompt('隐藏原因（可选）', '疑似违规，等待进一步核实') || '管理员隐藏';
-        await api.hideAdminPost(postId, reason);
+        const reason = await promptDialog({
+          title: '隐藏帖子',
+          message: '帖子将从公开列表移除（不会删除数据）。可填写隐藏原因：',
+          confirmText: '隐藏',
+          danger: true,
+          input: { placeholder: '隐藏原因（可选）', defaultValue: '疑似违规，等待进一步核实' },
+        });
+        if (reason === null) return;
+        await api.hideAdminPost(postId, reason || '管理员隐藏');
         showToast('帖子已从公开列表隐藏', 'success');
       }
       await load();
@@ -429,7 +438,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
         )}
       </div>
       {statusModal && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={() => setStatusModal(null)}>
+        <ModalShell onClose={() => setStatusModal(null)} label="调整账号状态" className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-bold text-baylink-text">调整账号状态</h3>
             <p className="mt-2 text-sm text-baylink-text-secondary">
@@ -449,10 +458,10 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
               <button type="button" disabled={updatingId === statusModal.userId} onClick={handleAccountStatusUpdate} className="flex-1 rounded-xl bg-baylink-green py-2.5 text-sm font-bold text-white disabled:opacity-50">确认更新</button>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
       {showLogsModal && (
-        <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={() => setShowLogsModal(false)}>
+        <ModalShell onClose={() => setShowLogsModal(false)} label="管理员操作日志" className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
           <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-baylink-border/40 px-4 py-3">
               <h3 className="text-base font-bold text-baylink-text">管理员操作日志</h3>
@@ -494,7 +503,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
               )}
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

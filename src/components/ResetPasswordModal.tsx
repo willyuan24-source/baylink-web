@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { ModalShell } from './ui/Modal';
 import { AuthBrandHeader } from './AuthBrandHeader';
 
 type ResetPasswordModalProps = {
@@ -54,7 +55,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+    <ModalShell onClose={onClose} label="重设密码" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
       <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
         <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
           <X size={18} />
@@ -121,6 +122,6 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
           </form>
         )}
       </div>
-    </div>
+    </ModalShell>
   );
 };

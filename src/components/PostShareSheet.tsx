@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Copy, Link2, Share2, X } from 'lucide-react';
+import { ModalShell } from './ui/Modal';
 import { BRAND } from '../brandAssets';
 import {
   canUseNativeShare,
@@ -98,9 +99,10 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
     'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60';
 
   return (
-    <div
+    <ModalShell
+      onClose={onClose}
+      label="分享帖子"
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-in fade-in"
-      onClick={onClose}
     >
       <div
         className="relative w-[calc(100%-32px)] max-w-[360px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-black/[0.06] bg-white shadow-elevated animate-in zoom-in-95 fade-in duration-200"
@@ -166,6 +168,6 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
           </div>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };

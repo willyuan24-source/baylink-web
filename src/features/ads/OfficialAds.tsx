@@ -1,6 +1,8 @@
 // 官方推荐（广告位）：侧栏轮播 / 推荐页列表 + 详情弹层 + 管理员编辑
 import { useState, useEffect } from 'react';
 import { X, Shield, BadgeCheck, Plus, Trash2 } from 'lucide-react';
+import { ModalShell } from '../../components/ui/Modal';
+import { confirmDialog } from '../../components/ui/confirm';
 import { api } from '../../lib/api';
 import {
   friendlyErrorMessage, getAdContent, getAdImageUrl, getAdTitle, mapAdSaveError,
@@ -28,7 +30,7 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
 }) => {
   const imageUrl = getAdImageUrl(ad);
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
+    <ModalShell onClose={onClose} label="推荐详情" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
       <div
         className="flex w-full max-w-[calc(100vw-32px)] max-h-[86vh] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl sm:max-w-[520px]"
         onClick={(e) => e.stopPropagation()}
@@ -59,7 +61,7 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
           )}
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };
 
@@ -69,7 +71,7 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   onChange: (patch: Partial<AdData>) => void;
   onSave: () => void;
 }) => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+  <ModalShell onClose={onClose} label="管理官方推荐" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
     <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
       <h3 className="mb-4 text-lg font-bold">管理官方推荐</h3>
       <div className="space-y-3">
@@ -82,7 +84,7 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
         </div>
       </div>
     </div>
-  </div>
+  </ModalShell>
 );
 
 const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
@@ -172,7 +174,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
       showToast(mapAdSaveError(e), 'error');
     }
   };
-  const handleDeleteAd = async (id: string) => { if(!confirm('确定删除这条推荐？')) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(true); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
+  const handleDeleteAd = async (id: string) => { if(!(await confirmDialog({ title: '删除推荐', message: '确定删除这条推荐？', confirmText: '删除', danger: true }))) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(true); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
   const visibleAds = isAdmin ? ads : ads.filter(isDisplayableAd);
   const emptyState = (
     <div className="w-full rounded-2xl border border-baylink-border/50 bg-white p-4">

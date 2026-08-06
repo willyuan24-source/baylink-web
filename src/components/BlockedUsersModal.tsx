@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { ModalShell } from './ui/Modal';
 
 export type BlockedUserItem = {
   id: string;
@@ -64,7 +65,7 @@ export const BlockedUsersModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 px-4 pb-24 pt-6 backdrop-blur-sm sm:items-center sm:pb-6" onClick={onClose}>
+    <ModalShell onClose={onClose} label="已屏蔽用户" className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 px-4 pb-24 pt-6 backdrop-blur-sm sm:items-center sm:pb-6">
       <div className="flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-4 py-3">
           <h3 className="text-base font-bold text-baylink-text">已屏蔽用户</h3>
@@ -106,7 +107,7 @@ export const BlockedUsersModal = ({
           )}
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };
 

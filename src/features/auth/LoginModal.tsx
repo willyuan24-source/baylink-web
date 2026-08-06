@@ -1,6 +1,7 @@
 // 登录 / 注册弹层
 import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
+import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
 import { mapAuthError, showAccountStatusNotice, validateEmail, validatePassword } from '../../lib/format';
 import type { UserData } from '../../lib/types';
@@ -59,7 +60,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+    <ModalShell onClose={onClose} label="登录 / 注册" className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
       <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
         <AuthBrandHeader />
         <p className="-mt-3 mb-5 text-center text-[12px] font-medium text-baylink-text">{mode === 'register' ? '创建你的湾区账号' : '欢迎回来'}</p>
@@ -103,6 +104,6 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="mt-5 w-full text-center text-xs text-baylink-muted hover:text-baylink-text">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <button onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text"><X size={18} /></button>
       </div>
-    </div>
+    </ModalShell>
   );
 };
