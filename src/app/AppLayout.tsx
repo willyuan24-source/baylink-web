@@ -35,11 +35,22 @@ import { CategoryChip } from '../features/home/HomeSections';
 import { AdDetailModal, OfficialAds } from '../features/ads/OfficialAds';
 import { LoginModal } from '../features/auth/LoginModal';
 
+// chunk 拉取失败重试一次，瞬时网络错误 / 发版换 hash 不至于直接炸到根级 ErrorBoundary
+const retryImport = <T,>(load: () => Promise<T>): Promise<T> =>
+  load().catch(() => new Promise<void>((res) => setTimeout(res, 1000)).then(load));
+
 // 大弹层懒加载：发帖（含图片压缩管线）/ 帖子详情 / 聊天 / 用户名片只在打开时才拉取代码
-const CreatePostModal = lazy(() => import('../features/posts/CreatePostModal').then((m) => ({ default: m.CreatePostModal })));
-const PostDetailModal = lazy(() => import('../features/posts/PostDetailModal').then((m) => ({ default: m.PostDetailModal })));
-const UserProfileModal = lazy(() => import('../features/users/UserProfileModal').then((m) => ({ default: m.UserProfileModal })));
-const ChatView = lazy(() => import('../features/messages/ChatView').then((m) => ({ default: m.ChatView })));
+const CreatePostModal = lazy(() => retryImport(() => import('../features/posts/CreatePostModal').then((m) => ({ default: m.CreatePostModal }))));
+const PostDetailModal = lazy(() => retryImport(() => import('../features/posts/PostDetailModal').then((m) => ({ default: m.PostDetailModal }))));
+const UserProfileModal = lazy(() => retryImport(() => import('../features/users/UserProfileModal').then((m) => ({ default: m.UserProfileModal }))));
+const ChatView = lazy(() => retryImport(() => import('../features/messages/ChatView').then((m) => ({ default: m.ChatView }))));
+
+// 懒弹层 chunk 就绪前的可见占位：避免「点了没反应」和深链下的覆盖层空洞
+const overlayChunkFallback = (
+  <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80">
+    <Loader2 className="h-8 w-8 animate-spin text-baylink-green" />
+  </div>
+);
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -66,8 +77,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [feedType, setFeedType] = useState<PostType>('provider');
   const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
   const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
-  // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）
-  const [posts, setPosts] = useState<PostData[]>(() => readFeedCache('provider'));
+  // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）。
+  // 缓存只存「全部分类」默认视图：/category/:slug 冷启动不读缓存，避免首帧闪现错误分类的帖子
+  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug ? [] : readFeedCache('provider')));
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -84,7 +96,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [postRouteLoading, setPostRouteLoading] = useState(false);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
   const [regionFilter, setRegionFilter] = useState<string>('全部');
-  const [categoryFilter, setCategoryFilter] = useState<string>('全部');
+  // 直接落在 /category/:slug 时按 URL 初始化，省掉一次按「全部」发出的无效首拉
+  const [categoryFilter, setCategoryFilter] = useState<string>(() =>
+    isHomePath(location.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
 
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
@@ -122,13 +136,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
 
   const navigateToPost = (post: PostData) => navigate(`/posts/${post.id}`, { state: overlayNavState() });
+  const openPostById = (postId: string) => navigate(`/posts/${postId}`, { state: overlayNavState() });
   const openRecentPostFromProfile = (post: { id?: string; _id?: string }) => {
     const postId = post?.id || post?._id;
     if (!postId) {
       showToast('帖子链接不可用', 'error');
       return;
     }
-    navigate(`/posts/${postId}`, { state: overlayNavState() });
+    openPostById(postId);
   };
   const navigateToCategory = (category: string) => {
     const slug = getSlugFromCategory(category);
@@ -330,6 +345,15 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 400);
     return () => clearTimeout(t);
   }, [keyword]);
+
+  // 首屏空闲后预热高频弹层 chunk，让首次点击基本即开
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      import('../features/posts/PostDetailModal');
+      import('../features/users/UserProfileModal');
+    }, 2500);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, debouncedKeyword]);
   useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
@@ -650,7 +674,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     regionFilter, setRegionFilter, categoryFilter,
     feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
     blockedUserIds,
-    navigateToPost, navigateToCategory, openUserProfile, openRecentPostFromProfile, handleChannelClick,
+    navigateToPost, navigateToCategory, openUserProfile, openRecentPostFromProfile, openPostById, handleChannelClick,
     openCreate, openEditPost, handleDeletePost, handleToggleFeature, handleToggleLike,
     handleToggleBlockUser, openReportTarget, openChat, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
@@ -765,7 +789,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   return (
     <div className="min-h-screen bg-baylink-bg flex justify-center font-sans text-baylink-text relative overflow-x-hidden">
-      <ConfirmHost />
+      {/* locationKey 必须用真实位置：导航（含浏览器后退）时取消挂起的确认框，避免过期闭包执行 */}
+      <ConfirmHost locationKey={location.key} />
       {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {detailAd && (
         <AdDetailModal
@@ -865,8 +890,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           onPromoteService={() => openCreateFromSlug('provider', 'other')}
         />
 
-        {/* Modals（懒加载弹层的 chunk 就绪前不渲染任何占位；帖子详情的数据加载态已有独立 spinner） */}
-        <Suspense fallback={null}>
+        {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
         {showLogin && (
           <LoginModal
             onClose={() => setShowLogin(false)}
@@ -895,6 +919,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           />
         )}
         {showCreate && user && (
+          <Suspense fallback={overlayChunkFallback}>
           <CreatePostModal
             user={user}
             mode={editingPost ? 'edit' : 'create'}
@@ -906,12 +931,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             showToast={showToast}
           />
+          </Suspense>
         )}
         {postIdParam && postRouteLoading && !selectedPost && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>
         )}
         {postIdParam && postRouteMissing && <PostNotFoundView onBack={navigateBack} />}
         {postIdParam && selectedPost && !postRouteMissing && (
+          <Suspense fallback={overlayChunkFallback}>
           <PostDetailModal
             post={selectedPost}
             detailRefreshing={postDetailRefreshing}
@@ -936,8 +963,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
               setBaybayPanelOpen(true);
             }}
           />
+          </Suspense>
         )}
         {chatConv && user && threadIdParam && (
+          <Suspense fallback={overlayChunkFallback}>
           <ChatView
             currentUser={user}
             conversation={chatConv}
@@ -948,8 +977,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             blockedUserIds={blockedUserIds}
             showToast={showToast}
           />
+          </Suspense>
         )}
         {userIdParam && (
+          <Suspense fallback={overlayChunkFallback}>
           <UserProfileModal
             userId={userIdParam}
             onClose={navigateBack}
@@ -962,6 +993,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             onToggleBlockUser={handleToggleBlockUser}
             blockedUserIds={blockedUserIds}
           />
+          </Suspense>
         )}
         {showBlockedUsersModal && user && (
           <BlockedUsersModal
@@ -983,7 +1015,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         )}
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
-        </Suspense>
       </div>
       {RightSidebar()}
     </div>

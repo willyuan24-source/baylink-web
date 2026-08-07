@@ -1,6 +1,6 @@
 // 品牌化确认框，替代原生 confirm()/prompt()。
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { ModalShell } from './Modal';
 
@@ -70,7 +70,7 @@ const ConfirmDialog = ({ opts, onResolve }: { opts: ConfirmOptions; onResolve: R
             placeholder={opts.input?.placeholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && confirm()}
+            onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && confirm()}
           />
         )}
         <div className="mt-4 flex gap-2">
@@ -96,13 +96,24 @@ const ConfirmDialog = ({ opts, onResolve }: { opts: ConfirmOptions; onResolve: R
   );
 };
 
-export const ConfirmHost = () => {
+export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const [queue, setQueue] = useState<PendingConfirm[]>([]);
+  const firstKeyRef = useRef(true);
 
   useEffect(() => {
     pushRequest = (req) => setQueue((q) => [...q, req]);
     return () => { pushRequest = null; };
   }, []);
+
+  // 还原原生 confirm 的语义：页面导航（浏览器前进/后退）时挂起的确认框视为取消，
+  // 避免开启方组件已卸载后仍以过期闭包执行确认动作
+  useEffect(() => {
+    if (firstKeyRef.current) { firstKeyRef.current = false; return; }
+    setQueue((q) => {
+      q.forEach((p) => p.resolve(null));
+      return [];
+    });
+  }, [locationKey]);
 
   const current = queue[0];
   if (!current) return null;

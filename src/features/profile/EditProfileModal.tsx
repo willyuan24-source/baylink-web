@@ -138,7 +138,8 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
     };
 
     return (
-        <ModalShell onClose={onClose} label="手机验证" className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
+        // 两步短信验证流程，误触遮罩不关闭（关闭会丢失已发送的验证码步骤）
+        <ModalShell onClose={onClose} closeOnBackdrop={false} label="手机验证" className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
             <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>

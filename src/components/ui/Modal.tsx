@@ -44,6 +44,8 @@ export function useModalBehavior(onClose?: () => void) {
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
+      // 输入法组合中（拼音候选等）按 Esc/Enter 是在操作输入法，不能当成弹层快捷键
+      if (e.isComposing || e.keyCode === 229) return;
       if (modalStack[modalStack.length - 1] !== stackId) return; // 只有最上层弹层响应
       if (e.key === 'Escape') {
         if (onCloseRef.current) {

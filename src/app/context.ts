@@ -36,6 +36,8 @@ export type AppContextValue = {
   navigateToPost: (post: PostData) => void;
   navigateToCategory: (category: string) => void;
   openUserProfile: (userId: string) => void;
+  /** 覆盖层方式打开帖子（带 backgroundLocation，来源页保持挂载） */
+  openPostById: (postId: string) => void;
   openRecentPostFromProfile: (post: { id?: string; _id?: string }) => void;
   handleChannelClick: (ch: typeof HOME_CHANNELS[number]) => void;
 

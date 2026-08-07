@@ -1,15 +1,14 @@
 // 消息页：联系方式请求收件箱 + 会话列表（/messages/:threadId 时主区留空，聊天由布局层覆盖渲染）
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useApp } from '../app/context';
 import { ContactRequestInboxPanel } from '../components/ContactRequestInboxPanel';
 import { MessagesList } from '../features/messages/MessagesList';
 
 export default function MessagesPage() {
-  const navigate = useNavigate();
   const { threadId } = useParams();
   const {
-    user, showToast, openChat, openConversation, openUserProfile,
+    user, showToast, openChat, openConversation, openUserProfile, openPostById,
     contactRequestRefreshKey, setContactRequestRefreshKey, setPendingContactRequestCount,
   } = useApp();
 
@@ -30,7 +29,7 @@ export default function MessagesPage() {
           onApprove={async (id) => { await api.approveContactRequest(id); setContactRequestRefreshKey((k) => k + 1); }}
           onDecline={async (id) => { await api.declineContactRequest(id); setContactRequestRefreshKey((k) => k + 1); }}
           onOpenChat={(targetId, nickname, postTitle) => openChat(targetId, nickname, postTitle)}
-          onOpenPost={(postId) => navigate(`/posts/${postId}`)}
+          onOpenPost={openPostById}
           showToast={showToast}
           onCountChange={setPendingContactRequestCount}
         />

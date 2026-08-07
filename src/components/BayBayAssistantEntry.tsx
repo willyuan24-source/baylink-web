@@ -3,6 +3,7 @@ import { ChevronRight, X, Sparkles, Loader2, BookOpen } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard, type BayBayInteractiveCard } from './BayBaySmartCard';
+import { ModalShell } from './ui/Modal';
 import { API_BASE_URL, authHeaders } from '../lib/api';
 
 type GuideChatGuide = {
@@ -264,16 +265,15 @@ export const BayBayAssistantEntry = ({
       )}
 
       {open && (
-        <div
+        // ModalShell 让面板加入弹层栈：叠在帖子详情上时 Esc 关的是面板（而不是底下的详情），Tab 焦点也陷在面板内
+        <ModalShell
+          onClose={close}
+          labelledBy="baybay-panel-title"
           className="fixed inset-0 z-[105] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] lg:items-center lg:p-4"
-          onClick={close}
-          role="presentation"
         >
           <div
             className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-baylink-bg-alt shadow-2xl max-h-[78vh] lg:mb-0 lg:max-h-[min(85vh,640px)] lg:rounded-[24px] lg:border lg:border-baylink-border/50"
             onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-labelledby="baybay-panel-title"
           >
             <div className="flex shrink-0 items-start justify-between gap-2 border-b border-baylink-border/40 px-4 py-3 sm:gap-3 sm:py-4 sm:px-5">
               <div className="flex min-w-0 gap-3">
@@ -425,7 +425,7 @@ export const BayBayAssistantEntry = ({
               </div>
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </>
   );

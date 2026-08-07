@@ -263,7 +263,8 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
           danger: true,
           input: { placeholder: '隐藏原因（可选）', defaultValue: '疑似违规，等待进一步核实' },
         });
-        if (reason === null) return;
+        // 取消即中止（旧版 prompt 取消会以默认原因照样隐藏，属旧 bug，这里保留新语义但给出明确反馈）
+        if (reason === null) { showToast('已取消，帖子未隐藏', 'info'); return; }
         await api.hideAdminPost(postId, reason || '管理员隐藏');
         showToast('帖子已从公开列表隐藏', 'success');
       }

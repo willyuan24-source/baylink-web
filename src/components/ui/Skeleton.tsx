@@ -72,8 +72,8 @@ export const ConversationListSkeleton = ({ count = 3 }: { count?: number }) => (
 
 /** 用户名片骨架（弹层内） */
 export const ProfileCardSkeleton = () => (
-  <div className="py-2" aria-busy="true" aria-label="资料加载中" aria-hidden="true">
-    <div className="rounded-2xl border border-baylink-border/40 bg-white p-4">
+  <div className="py-2" aria-busy="true" aria-label="资料加载中">
+    <div className="rounded-2xl border border-baylink-border/40 bg-white p-4" aria-hidden="true">
       <div className="flex items-start gap-3">
         <Skeleton className="h-16 w-16 shrink-0 rounded-full" />
         <div className="min-w-0 flex-1 space-y-2 pt-1">
@@ -85,7 +85,7 @@ export const ProfileCardSkeleton = () => (
       <Skeleton className="mt-3 h-3 w-full" />
       <Skeleton className="mt-1.5 h-3 w-2/3" />
     </div>
-    <div className="mt-3 space-y-2 rounded-xl border border-baylink-border/40 bg-white p-3">
+    <div className="mt-3 space-y-2 rounded-xl border border-baylink-border/40 bg-white p-3" aria-hidden="true">
       <Skeleton className="h-3 w-16" />
       <Skeleton className="h-3 w-3/4" />
       <Skeleton className="h-3 w-1/2" />

@@ -60,7 +60,8 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
 
   return (
-    <ModalShell onClose={onClose} label="登录 / 注册" className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
+    // 注册模式有 5 个必填字段，误触遮罩不关闭（与旧版一致，仅 X / Esc 可关）
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label="登录 / 注册" className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
       <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
         <AuthBrandHeader />
         <p className="-mt-3 mb-5 text-center text-[12px] font-medium text-baylink-text">{mode === 'register' ? '创建你的湾区账号' : '欢迎回来'}</p>

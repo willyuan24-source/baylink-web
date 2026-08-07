@@ -71,7 +71,8 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   onChange: (patch: Partial<AdData>) => void;
   onSave: () => void;
 }) => (
-  <ModalShell onClose={onClose} label="管理官方推荐" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+  // 表单弹层，误触遮罩不关闭（关闭会丢弃草稿）
+  <ModalShell onClose={onClose} closeOnBackdrop={false} label="管理官方推荐" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
     <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
       <h3 className="mb-4 text-lg font-bold">管理官方推荐</h3>
       <div className="space-y-3">
