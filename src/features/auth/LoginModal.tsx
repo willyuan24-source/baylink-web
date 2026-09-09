@@ -73,8 +73,8 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         </div>
         {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="member-auth-form">
-            <label htmlFor="auth-email" className="block text-xs font-medium">邮箱账号</label>
-            <input id="auth-email" required type="email" autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="邮箱地址" />
+            <label htmlFor="auth-email" className="block text-xs font-medium">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
+            <input id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
             <label htmlFor="auth-password" className="block text-xs font-medium">密码</label>
             <input id="auth-password" required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className={inputClass} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
