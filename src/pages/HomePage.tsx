@@ -15,7 +15,12 @@ import { PostCardSkeleton } from '../components/ui/Skeleton';
 
 const VIEW_KEY = 'baylink.feed-view.v2';
 const getSavedView = (): 'grid' | 'list' => {
-  try { return typeof window !== 'undefined' && window.localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'grid'; } catch { return 'grid'; }
+  try {
+    if (typeof window === 'undefined') return 'grid';
+    const saved = window.localStorage.getItem(VIEW_KEY);
+    if (saved === 'grid' || saved === 'list') return saved;
+    return window.matchMedia('(max-width: 639px)').matches ? 'list' : 'grid';
+  } catch { return 'grid'; }
 };
 
 export default function HomePage() {
@@ -23,10 +28,10 @@ export default function HomePage() {
   const { categorySlug } = useParams();
   const [view, setView] = useState<'grid' | 'list'>(getSavedView);
   const {
-    user, showToast, setShowLogin, posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
+    user, showToast, posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
     regionFilter, setRegionFilter, categoryFilter, feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
     blockedUserIds, navigateToPost, navigateToCategory, handleChannelClick, openCreate, openEditPost, handleDeletePost,
-    handleToggleFeature, handleToggleLike, handleToggleBlockUser, openReportTarget, openChat, openUserProfile,
+    handleToggleFeature, handleToggleLike, handleToggleBlockUser, openReportTarget, requestPostContact, openUserProfile,
     setViewingImage, setSharingPost, setBaybayPanelOpen, featuredRefreshKey, openAdDetail, adsRefreshKey,
   } = useApp();
   const changeView = (next: 'grid' | 'list') => {
@@ -53,9 +58,11 @@ export default function HomePage() {
           <form className="bay-feed-search" onSubmit={(event) => { event.preventDefault(); searchPostsNow(); }} role="search"><Search size={19} /><input aria-label="搜索本地信息" type="search" placeholder="试试「San Mateo 租房」或「周末搬家」" value={keyword} onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /><button type="submit" aria-label="搜索"><ArrowRight size={19} /></button></form>
           <FeedSwitch feedType={feedType} onClient={() => setFeedType('client')} onProvider={() => setFeedType('provider')} />
           <div className="bay-feed-filters"><MapPin size={15} /><div>{['全部', ...REGIONS].map((region) => <FilterTag key={region} label={region === '全部' ? '全部地区' : region} active={regionFilter === region} onClick={() => setRegionFilter(region)} />)}</div></div>
+          <details className="bay-extra-filters"><summary><SlidersHorizontal size={15} /><span>更多分类与地区地图</span><Plus size={15} /></summary>
           <div className="bay-mobile-categories"><SlidersHorizontal size={15} /><div><CategoryChip label="全部" active={categoryFilter === '全部'} onClick={() => navigateToCategory('全部')} />{CATEGORIES.map((category) => <CategoryChip key={category} label={category} active={categoryFilter === category} onClick={() => navigateToCategory(category)} />)}</div></div>
           {categoryFilter === '本地服务' && <div className="bay-service-categories">{SERVICE_CATEGORIES.map((category) => <CategoryChip key={category} label={category} active={false} onClick={() => navigateToCategory(category)} />)}</div>}
           <details className="bay-mobile-explorer"><summary><MapPin size={16} /><span>用地区示意图探索</span><Plus size={16} /></summary><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></details>
+          </details>
           {categorySlug && !keyword && <CategoryGuideStrip categorySlug={categorySlug} onOpenGuide={(slug) => navigate(`/guides/${slug}`)} />}
           <div className="bay-results-meta"><span>{isInitialLoading ? '正在发现附近的信息…' : `${hasMore ? '已加载' : '共'} ${posts.length} 条信息`}<i />按最新发布排序</span><button type="button" onClick={retryFeed} disabled={isInitialLoading} aria-label="刷新信息"><RotateCw size={13} className={isInitialLoading ? 'animate-spin' : ''} /> 刷新</button></div>
           {hasFilters && <div className="bay-active-filters">{keyword && <button type="button" onClick={() => setKeyword('')}>关键词：{keyword}<X size={12} /></button>}{regionFilter !== '全部' && <button type="button" onClick={() => setRegionFilter('全部')}>{regionFilter}<X size={12} /></button>}{categorySlug && <button type="button" onClick={() => navigateToCategory('全部')}>{categoryFilter}<X size={12} /></button>}<button type="button" onClick={clearFilters} className="bay-clear-filters">清除筛选</button></div>}
@@ -64,7 +71,7 @@ export default function HomePage() {
             : isInitialLoading && posts.length === 0 ? <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'} aria-busy="true" aria-label="内容加载中">{Array.from({ length: 4 }, (_, index) => <PostCardSkeleton key={index} />)}</div>
               : posts.length === 0 ? <div className="bay-feed-empty"><Compass size={34} /><EmptyFeed feedType={feedType} keyword={keyword} onPublishService={() => openCreate('provider', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onPublishInfo={() => openCreate('client', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onOpenGuides={() => navigate('/guides')} onAskBayBay={() => setBaybayPanelOpen(true)} />{hasFilters && <button type="button" onClick={clearFilters} className="bay-button-text">清除筛选，发现更多 <ArrowRight size={15} /></button>}{hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-button-dark">{isLoadingMore ? '继续查找中…' : '继续查找更多信息'}</button>}</div>
                 : <>
-                  <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'}>{posts.map((post) => <PostCard key={post.id} layout={view} post={post} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={() => navigateToPost(post)} onContactClick={() => { if (!user) return setShowLogin(true); openChat(post.authorId, post.author.nickname); }} onAvatarClick={openUserProfile} onImageClick={(src: string) => setViewingImage(src)} onShare={(item: PostData) => setSharingPost(item)} onLike={handleToggleLike} />)}</div>
+                  <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'}>{posts.map((post) => <PostCard key={post.id} layout={view} post={post} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={() => navigateToPost(post)} onContactClick={() => requestPostContact(post)} onAvatarClick={openUserProfile} onImageClick={(src: string) => setViewingImage(src)} onShare={(item: PostData) => setSharingPost(item)} onLike={handleToggleLike} />)}</div>
                   {!isInitialLoading && hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-load-more">{isLoadingMore ? <><Loader2 size={17} className="animate-spin" />加载中…</> : <>继续发现更多<ArrowRight size={17} /></>}</button>}
                   {!hasMore && <div className="bay-feed-end"><span /><p>当前信息已全部展示<br /><Link to="/guides">去生活指南里逛逛 <ArrowUpRight size={13} /></Link></p><span /></div>}
                 </>}
@@ -72,7 +79,7 @@ export default function HomePage() {
         </section>
         <aside className="bay-home-rail" aria-label="湾区探索与生活帮助">
           <div className="bay-desktop-explorer"><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></div>
-          <section className="bay-assistant-card"><div className="bay-assistant-header"><img src={BRAND.baybayAvatar} alt="BayBay" width="54" height="54" /><span><strong>嗨，我是 BayBay</strong><small>你的 AI 湾区生活助手</small></span><Sparkles size={19} /></div><h2>生活的小问号，<br />我们一起解开。</h2><p>找信息、理思路、写帖子，<br />从你的一句话开始。</p><div className="bay-assistant-prompts"><button type="button" onClick={() => { setKeyword('租房'); navigate('/'); scrollToFeed(); }}>想在湾区找个家<ArrowUpRight size={14} /></button><button type="button" onClick={() => openCreate('client')}>帮我整理发布需求<ArrowUpRight size={14} /></button></div><button type="button" onClick={() => setBaybayPanelOpen(true)} className="bay-assistant-cta">和 BayBay 聊聊<ArrowRight size={17} /></button><span className="bay-ai-note">AI 提供参考，重要信息请再核实</span></section>
+          <section className="bay-assistant-card"><div className="bay-assistant-header"><img src={BRAND.baybayAvatar} alt="BayBay" width="54" height="54" /><span><strong>嗨，我是 BayBay</strong><small>你的 AI 湾区生活助手</small></span><Sparkles size={19} /></div><h2>生活的小问号，<br />我们一起解开。</h2><p>找信息、理思路、写帖子，<br />从你的一句话开始。</p><div className="bay-assistant-prompts"><button type="button" onClick={() => { setKeyword(''); navigateToCategory('租屋'); scrollToFeed(); }}>想在湾区找个家<ArrowUpRight size={14} /></button><button type="button" onClick={() => openCreate('client')}>帮我整理发布需求<ArrowUpRight size={14} /></button></div><button type="button" onClick={() => setBaybayPanelOpen(true)} className="bay-assistant-cta">和 BayBay 聊聊<ArrowRight size={17} /></button><span className="bay-ai-note">AI 提供参考，重要信息请再核实</span></section>
           <section className="bay-start-guide"><span className="bay-section-kicker">A LITTLE LOCAL KNOW-HOW</span><h2>新来湾区？从这里开始。</h2><p>把陌生的地方，慢慢过成熟悉的日常。</p>{[{ n: '01', title: '安顿好第一个月', slug: 'bay-area-newcomer-first-month-checklist', text: '从落地到日常，逐步安排' }, { n: '02', title: '找到适合自己的家', slug: 'bay-area-rental-scam-guide', text: '看房、签约前的安全功课' }, { n: '03', title: '摸清湾区的出行方式', slug: 'bay-area-commute-guide', text: '通勤路线和交通选择' }].map((item) => <Link key={item.slug} to={`/guides/${item.slug}`}><span>{item.n}</span><div><strong>{item.title}</strong><small>{item.text}</small></div><ArrowUpRight size={15} /></Link>)}<Link className="bay-guides-all" to="/guides"><BookOpen size={15} /> 查看全部生活指南<ArrowRight size={15} /></Link></section>
           <EditorialCollections compact />
           <div className="bay-home-ads"><OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} /></div>

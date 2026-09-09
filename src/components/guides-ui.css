@@ -1663,3 +1663,10 @@
 .bl-guide-template pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:14px; line-height:1.95; background:white; border:1px solid #dde5d8; border-radius:12px; padding:18px; margin:0; user-select:text; }
 .bl-guide-template-status { margin:9px 0 0; min-height:22px; }
 @media(max-width:639px) { .bl-guide-template { padding:17px; } .bl-guide-template pre { padding:14px; font-size:14px; } }
+.bl-guide-search-section {
+  display: block;
+  color: #38614f;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 8px 0 3px;
+}

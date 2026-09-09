@@ -98,6 +98,19 @@ test('opening and closing a background post leaves the source page position unto
   assert.deepEqual(scrollCalls, []);
 });
 
+test('changing only search parameters keeps the controls in view, while Back restores the earlier query position', () => {
+  render(<MemoryRouter initialEntries={['/guides']}><App /></MemoryRouter>);
+  moveTo(760);
+  act(() => navigate('/guides?q=打印', { replace: true }));
+  assert.equal(scrollY, 760);
+  moveTo(850);
+  act(() => navigate('/guides?q=图书馆'));
+  assert.equal(scrollY, 850);
+  moveTo(400);
+  act(() => navigate(-1));
+  assert.equal(scrollY, 850);
+});
+
 test('Back waits for lazy content to grow without replacing the saved position with a clamped one', () => {
   render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
   moveTo(960);

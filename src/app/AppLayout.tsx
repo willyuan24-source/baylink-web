@@ -21,6 +21,8 @@ import {
 } from '../routing';
 import type { AppContextValue } from './context';
 import { usePageScroll } from './usePageScroll';
+import { feedPageLocation, useFeedFilters } from './useFeedFilters';
+import { useContactIntent } from './useContactIntent';
 
 import Avatar from '../components/Avatar';
 import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
@@ -66,8 +68,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
-  const categorySlug = location.pathname.startsWith('/category/')
-    ? location.pathname.split('/category/')[1]?.split('/')[0]
+  const feedPage = feedPageLocation(location);
+  const categorySlug = feedPage.pathname.startsWith('/category/')
+    ? feedPage.pathname.split('/category/')[1]?.split('/')[0]
     : undefined;
 
   const [user, setUser] = useState<UserData | null>(getStoredUser);
@@ -92,19 +95,19 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const pendingCreateRef = useRef(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
 
-  const [feedType, setFeedType] = useState<PostType>('provider');
+  const { feedType, setFeedType, keyword, setKeyword, regionFilter, setRegionFilter, feedLocation } = useFeedFilters(location, navigate);
   const [createDefaultType, setCreateDefaultType] = useState<PostType>('client');
   const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
+  const [createInitialIntent, setCreateInitialIntent] = useState('');
   // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）。
   // 缓存只存「全部分类」默认视图：/category/:slug 冷启动不读缓存，避免首帧闪现错误分类的帖子
-  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug ? [] : readFeedCache('provider')));
+  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' ? [] : readFeedCache(feedType)));
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const [keyword, setKeyword] = useState('');
-  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword.trim());
   const [feedError, setFeedError] = useState(false);
   const fetchSeqRef = useRef(0);
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
@@ -119,10 +122,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [chatRouteError, setChatRouteError] = useState<string | null>(null);
   const [chatRetry, setChatRetry] = useState(0);
   const retryChatRoute = () => setChatRetry((value) => value + 1);
-  const [regionFilter, setRegionFilter] = useState<string>('全部');
   // 直接落在 /category/:slug 时按 URL 初始化，省掉一次按「全部」发出的无效首拉
   const [categoryFilter, setCategoryFilter] = useState<string>(() =>
-    isHomePath(location.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
+    isHomePath(feedPage.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
   const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, user?.id || 'guest']);
   const feedQueryKeyRef = useRef(feedQueryKey);
 
@@ -148,6 +150,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const userIdParam = location.pathname.match(/^\/users\/([^/]+)\/?$/)?.[1];
   const threadIdParam = location.pathname.match(/^\/messages\/([^/]+)\/?$/)?.[1];
   const chatPostTitle = typeof location.state?.postTitle === 'string' ? location.state.postTitle : undefined;
+  const chatPostId = typeof location.state?.postId === 'string' ? location.state.postId : undefined;
   const guideSlugParam = location.pathname.match(/^\/guides\/([^/]+)\/?$/)?.[1];
 
   const navigateBack = () => {
@@ -174,8 +177,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
   const navigateToCategory = (category: string) => {
     const slug = getSlugFromCategory(category);
-    if (slug) navigate(`/category/${slug}`);
-    else navigate('/');
+    if (slug) navigate(feedLocation(`/category/${slug}`));
+    else navigate(feedLocation('/'));
   };
 
   const openAdDetail = (ad: AdDetailItem) => setDetailAd(ad);
@@ -383,7 +386,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         if (cancelled) return;
         if (!Array.isArray(convs)) throw new Error('无法读取会话');
         const c = convs.find((x: Conversation) => x.id === threadIdParam);
-        if (c) { setChatConv({ ...c, lastPostTitle: chatPostTitle || c.lastPostTitle }); setChatRouteStatus('ready'); }
+        if (c) { setChatConv({ ...c, lastPostTitle: chatPostTitle || c.lastPostTitle, lastPostId: chatPostId || c.lastPostId }); setChatRouteStatus('ready'); }
         else setChatRouteStatus('not-found');
       } catch (error) {
         if (cancelled) return;
@@ -392,7 +395,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       }
     })();
     return () => { cancelled = true; };
-  }, [threadIdParam, user, chatRetry, chatPostTitle]);
+  }, [threadIdParam, user, chatRetry, chatPostTitle, chatPostId]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 400);
@@ -582,21 +585,27 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const handleLoadMore = () => { if (!isLoadingMore && !isInitialLoading && hasMore) fetchPosts(page + 1, false); };
 
   // ✨ 已修复：传入 postTitle 作为聊天上下文
-  const openChat = async (targetId: string, nickname?: string, postTitle?: string) => {
-      if (!user) { setShowLogin(true); return; }
+  const { openChat, requestPostContact, completeContactLogin, cancelPendingContact } = useContactIntent({
+    user,
+    onLoginNeeded: () => { pendingCreateRef.current = false; setShowLogin(true); },
+    onOpen: async ({ targetId, nickname, postTitle, postId }, authenticatedUser) => {
       try {
           const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
+          const current = getStoredUser();
+          if (current?.id !== authenticatedUser.id || current?.token !== authenticatedUser.token) return;
           const conv: Conversation = {
               id: c.id,
               otherUser: c.otherUser || { id: targetId, nickname: nickname || 'User' },
               lastMessage: '',
               updatedAt: c.updatedAt || Date.now(),
-              lastPostTitle: postTitle
+              lastPostTitle: postTitle,
+              lastPostId: postId,
           };
           setChatConv(conv);
-          navigate(`/messages/${c.id}`, { state: { postTitle } });
+          navigate(`/messages/${c.id}`, { state: { postTitle, postId } });
       } catch (e) { showToast(friendlyErrorMessage(e, '无法打开聊天'), 'error'); }
-  };
+    },
+  });
 
   const openConversation = (c: Conversation) => { setChatConv(c); navigate(`/messages/${c.id}`); };
 
@@ -672,10 +681,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     else handleBlockUser(userId);
   };
 
-  const openCreate = (type: PostType = 'client', category?: string) => {
+  const openCreate = (type: PostType = 'client', category?: string, initialIntent = '') => {
+    cancelPendingContact();
     setEditingPost(null);
     setCreateDefaultType(type);
     setCreateDefaultCategory(category);
+    setCreateInitialIntent(initialIntent);
     if (user) setShowCreate(true);
     else { pendingCreateRef.current = true; setShowLogin(true); }
   };
@@ -753,11 +764,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       navigate('/recommend');
       return;
     }
-    if (ch.feedType) setFeedType(ch.feedType);
-    setRegionFilter('全部');
-    setKeyword('');
-    if (ch.category) navigateToCategory(ch.category);
-    else navigate('/');
+    const slug = ch.category ? getSlugFromCategory(ch.category) : undefined;
+    navigate(feedLocation(slug ? `/category/${slug}` : '/', { feedType: ch.feedType || feedType, regionFilter: '全部', keyword: '' }));
   };
 
   const ctx: AppContextValue = {
@@ -769,7 +777,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     blockedUserIds,
     navigateToPost, navigateToCategory, openUserProfile, openRecentPostFromProfile, openPostById, handleChannelClick,
     openCreate, openEditPost, handleDeletePost, handleToggleFeature, handleToggleLike,
-    handleToggleBlockUser, openReportTarget, openChat, openConversation,
+    handleToggleBlockUser, openReportTarget, openChat, requestPostContact, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
     setBaybayPanelOpen,
@@ -801,7 +809,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
           <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
         </header>
-        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => { setKeyword(value); navigate('/'); }} onAsk={() => setBaybayPanelOpen(true)} />}
+        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={() => setBaybayPanelOpen(true)} />}
 
         <main className="site-main" id="scroll-container" tabIndex={-1}>
            <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
@@ -854,7 +862,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           onPendingQuestionConsumed={() => setBaybayPendingQuestion(null)}
           categoryHint={baybayCategoryHint}
           onNavigate={navigate}
-          onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
+          onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category, opts?.initialIntent)}
         />
         <BayBayFloatingLauncher
           baybayPanelOpen={baybayPanelOpen}
@@ -879,8 +887,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
         {showLogin && (
           <LoginModal
-            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; }}
-            onLogin={(loggedInUser) => { clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); }}
+            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; cancelPendingContact(); }}
+            onLogin={(loggedInUser) => { clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); completeContactLogin(loggedInUser); }}
             showToast={showToast}
             onForgotPassword={handleOpenForgotPassword}
           />
@@ -907,12 +915,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         {showCreate && user && (
           <Suspense fallback={overlayChunkFallback}>
           <CreatePostModal
+            key={`${user.id}:${editingPost?.id || 'new'}`}
             user={user}
             mode={editingPost ? 'edit' : 'create'}
             editingPost={editingPost}
             defaultType={createDefaultType}
             defaultCategory={createDefaultCategory}
-            onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); }}
+            initialIntent={editingPost ? undefined : createInitialIntent}
+            onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); setCreateInitialIntent(''); }}
             onCreated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             showToast={showToast}
@@ -933,7 +943,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             currentUser={user}
             onClose={navigateBack}
             onLoginNeeded={() => setShowLogin(true)}
-            onOpenChat={openChat}
+            onContactLoginNeeded={() => requestPostContact(selectedPost)}
+            onOpenChat={(id, nickname, title) => openChat(id, nickname, title, selectedPost.id)}
             onOpenUserProfile={openUserProfile}
             onEdit={(p: PostData) => { navigateBack(); openEditPost(p); }}
             onToggleFeature={handleToggleFeature}

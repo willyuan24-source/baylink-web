@@ -17,6 +17,7 @@ import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate, formatProfileLocation, friendlyErrorMessage, isPostEdited } from '../../lib/format';
 import type { PostData, UserData } from '../../lib/types';
 import { UsefulLikeButton } from './PostCard';
+import { BookmarkButton } from '../../components/BookmarkButton';
 import { PostAvailabilityBadge } from '../../components/PostAvailabilityBadge';
 import { postAvailability } from '../../lib/postAvailability';
 
@@ -47,6 +48,7 @@ const formatPostDetailAuthorMeta = (post: PostData) => {
 
 type PostDetailProps = {
   post: PostData; currentUser: UserData | null; onClose: () => void; onLoginNeeded: () => void;
+  onContactLoginNeeded?: () => void;
   onOpenChat: (id: string, nickname: string, title: string) => void;
   onOpenUserProfile?: (id: string) => void; onDeleted: () => void;
   onEdit?: (post: PostData) => void; onToggleFeature?: (post: PostData) => void;
@@ -61,7 +63,7 @@ export const PostDetailModal = (props: PostDetailProps) => (
   <PostDetailSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}`} {...props} />
 );
 
-const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, onLike, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: PostDetailProps) => {
+const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContactLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, onLike, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: PostDetailProps) => {
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
   const [input, setInput] = useState('');
   const [commentMode, setCommentMode] = useState<
@@ -255,6 +257,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onOpenCh
                 <p className="post-detail__description">{post.description}</p>
                 {quickTags.length > 0 && <div className="post-detail__tags">{quickTags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
                 <div className="post-detail__reactions">
+                  <BookmarkButton post={post} userId={currentUser?.id} />
                   {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
                   <button type="button" onClick={() => onShare(post)} className="post-action"><Share2 size={15} /><span>分享给朋友</span></button>
                 </div>
@@ -286,6 +289,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onOpenCh
                     currentUser={currentUser}
                     isOwner={isOwner}
                     onLoginNeeded={onLoginNeeded}
+                    onContactLoginNeeded={onContactLoginNeeded}
                     onOpenChat={onOpenChat}
                     authorName={authorName}
                     showToast={showToast}
@@ -344,7 +348,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onOpenCh
               onKeyDown={event => { if (event.key === 'Enter' && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void submitComment(); } }}
             />
             <button type="button" onClick={submitComment} className="post-detail__send" disabled={!input.trim() || commentBusy} aria-label="发送评论">{commentBusy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}<span>发送</span></button>
-            {!isOwner && post.status !== 'closed' && <button type="button" className="post-detail__quick-contact" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(authorId, authorName, post.title); }}><MessageCircle size={18} /><span>私信</span></button>}
+            {!isOwner && post.status !== 'closed' && <button type="button" className="post-detail__quick-contact" onClick={() => { if (!currentUser) return (onContactLoginNeeded || onLoginNeeded)(); onOpenChat(authorId, authorName, post.title); }}><MessageCircle size={18} /><span>私信</span></button>}
           </div>
         </div>
       </div>

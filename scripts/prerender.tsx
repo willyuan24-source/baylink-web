@@ -13,6 +13,7 @@ import { SmsConsentView } from '../src/components/SmsConsentView';
 import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { SITE_URL, escapeHtml, renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
+import { getGuideMetadata } from '../src/lib/guide-metadata';
 
 const outputDir = resolve('dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
@@ -57,7 +58,7 @@ await renderPage({ title: 'BAYLINK｜湾区华人本地生活平台', descriptio
 
 await renderPage({ title: '湾区生活指南｜BAYLINK', description: '查看湾区租房、找室友、二手交易、本地服务、交通与城市生活指南，附官方参考资料和行动清单。', path: '/guides' }, <GuidesHome onOpenGuide={noop} />);
 for (const guide of guides) {
-  await renderPage({ title: `${guide.title}｜BAYLINK`, description: guide.summary, path: `/guides/${guide.slug}`, image: guide.cover, type: 'article' }, <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
+  await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
 for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
   await renderPage({ title: `${category}｜湾区本地信息 · BAYLINK`, description: `浏览湾区${category}信息，按地区查找本地资源和邻里需求。请联系发布者确认信息仍有效。`, path: `/category/${slug}` }, (
@@ -71,6 +72,7 @@ await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 B
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
 const sitemapPaths = ['/', '/guides', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc></url>`).join('\n')}\n</urlset>\n`;
+const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${guideDates.has(path) ? `<lastmod>${escapeHtml(guideDates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

@@ -5,6 +5,7 @@ import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard, type BayBayInteractiveCard } from './BayBaySmartCard';
 import { ModalShell } from './ui/Modal';
 import { API_BASE_URL, authHeaders } from '../lib/api';
+import { BayBayMatchingPosts } from './BayBayMatchingPosts';
 
 type GuideChatGuide = {
   title: string;
@@ -27,12 +28,16 @@ type GuideChatResponse = {
   suggestedActions?: GuideChatAction[];
   safetyNote?: string;
   interactiveCards?: BayBayInteractiveCard[];
+  matchingPosts?: unknown[];
+  matchNote?: string;
+  degraded?: boolean;
   error?: string;
 };
 
 type CreatePostOptions = {
   postType?: 'client' | 'provider';
   category?: string;
+  initialIntent?: string;
 };
 
 type BayBayAssistantEntryProps = {
@@ -111,6 +116,10 @@ export const BayBayAssistantEntry = ({
   const [suggestedActions, setSuggestedActions] = useState<GuideChatAction[]>([]);
   const [safetyNote, setSafetyNote] = useState<string | null>(null);
   const [interactiveCards, setInteractiveCards] = useState<BayBayInteractiveCard[]>([]);
+  const [answerQuestion, setAnswerQuestion] = useState('');
+  const [matchingPosts, setMatchingPosts] = useState<unknown[]>([]);
+  const [matchNote, setMatchNote] = useState<string | null>(null);
+  const [degraded, setDegraded] = useState(false);
 
   const close = useCallback(() => setOpen(false), [setOpen]);
 
@@ -164,6 +173,10 @@ export const BayBayAssistantEntry = ({
     setSuggestedActions([]);
     setSafetyNote(null);
     setInteractiveCards([]);
+    setAnswerQuestion(msg);
+    setMatchingPosts([]);
+    setMatchNote(null);
+    setDegraded(false);
 
     try {
       const res = await fetchGuideChat(msg, categoryHint);
@@ -176,6 +189,9 @@ export const BayBayAssistantEntry = ({
       setSuggestedActions(res.suggestedActions || []);
       setSafetyNote(res.safetyNote?.trim() || null);
       setInteractiveCards(Array.isArray(res.interactiveCards) ? res.interactiveCards : []);
+      setMatchingPosts(Array.isArray(res.matchingPosts) ? res.matchingPosts : []);
+      setMatchNote(typeof res.matchNote === 'string' ? res.matchNote : null);
+      setDegraded(res.degraded === true);
     } catch {
       setChatError(true);
     } finally {
@@ -207,6 +223,7 @@ export const BayBayAssistantEntry = ({
       onCreatePostClick({
         postType: action.postType || 'client',
         category: resolveCategoryLabel(action.category),
+        initialIntent: answerQuestion,
       });
       close();
     }
@@ -354,9 +371,12 @@ export const BayBayAssistantEntry = ({
                   <div className="member-baybay-answer" aria-live="polite">
                     <div className="member-baybay-answer-label">
                       <Sparkles size={12} />
-                      BayBay 建议
+                      {degraded ? '参考指引' : 'BayBay 建议'}
                     </div>
+                    {degraded && <p role="status" className="mb-3 rounded-lg border border-baylink-border bg-white p-3 text-xs leading-relaxed text-baylink-text-secondary">AI 服务暂时不可用，以下是预设的参考指引。站内帖子以实际查询结果为准。</p>}
                     <p className="member-baybay-answer-text">{answer}</p>
+
+                    <BayBayMatchingPosts posts={matchingPosts} note={matchNote} onNavigate={(path) => { onNavigate(path); close(); }} />
 
                     {interactiveCards.length > 0 && interactiveCards.map((card) => (
                       <BayBaySmartCard key={card.id} card={card} onAction={handleAction} />

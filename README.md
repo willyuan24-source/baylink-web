@@ -20,7 +20,16 @@ BAYLINK 湾区华人本地信息网站，React 18 + TypeScript + Vite。前端�
 
 ## 页面与部署
 
-`vercel.json` 维护页面路由和安全响应头。`scripts/prerender.tsx` 从指南源数据生成 37 个 HTML 页面及 sitemap。指南正文与法律页面初始 HTML 可直接读取；首页和分类的最新帖子在浏览器加载。
+`vercel.json` 维护页面路由和安全响应头。`scripts/prerender.tsx` 从指南源数据生成 47 个 HTML 页面及 sitemap。指南正文与法律页面初始 HTML 可直接读取；首页和分类的最新帖子在浏览器加载。
+
+## 搜索、收藏、草稿与 BayBay
+
+- 首页筛选保存在 URL 的 `q`、`region`、`type` 参数，分类保留原有 `/category/:slug` 路由。指南使用 `q`、`category` 参数，检索正文、清单及模板；文章的返回入口保留搜索条件。
+- 收藏仅保存公开摘要到当前账号或访客在此浏览器的存储，打开收藏时重新读取可访问的帖子；不会同步到其他设备，且不保存联系方式或用户对象。“有用”仍是原有点赞功能。
+- 新帖文字、设置和 AI 原始需求可保存为账号隔离的本机草稿；照片不保存。再次打开时可恢复或丢弃，成功发布才清除；编辑已有帖子不使用新帖草稿。
+- 匿名私信入口在登录后继续打开目标聊天并保留关联帖子，不自动发送消息或联系方式请求。
+- BayBay 可以展示真实匹配帖子和明确降级状态。规则检索只按已识别条件查找，价格不明确时不会声称符合预算；模型答案使用已发布指南和来源，不代表实时访问官方站点。
+- 构建会执行 `npm run export:guides`，从同一指南源数据生成 `public/baybay-guides.json`。指南更新需同时运行 `npm run export:guides -- ../baylink-backend/data/guide-catalog.json` 并发布两个仓库，确保后端知识目录同步。
 
 `api/post-page.ts` 在 Vercel 使用匿名公开 API 为 `/posts/:id` 生成 HTML 与分享元数据：不转发 Cookie/Authorization，不序列化联系方式、用户对象或鉴权字段，响应禁止缓存。缺失/删除返回 404；服务故障返回 503，避免误报告内容删除。隐私相关页面使用 noindex，未知路由返回真正的 404。
 

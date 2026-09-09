@@ -1,5 +1,6 @@
 // 聊天全屏视图（socket 实时 + 乐观发送）
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, UserX, FileText, Phone, Send, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
@@ -156,7 +157,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         </div>
         <div className="min-w-0 flex-1">
           <div className="type-caption text-baylink-muted">正在沟通</div>
-          <div className="text-[13px] font-medium text-baylink-text line-clamp-1">{conversation.lastPostTitle || '互助需求沟通'}</div>
+          {conversation.lastPostId ? <Link to={`/posts/${encodeURIComponent(conversation.lastPostId)}`} className="flex min-h-11 items-center text-[13px] font-medium text-baylink-text underline">{conversation.lastPostTitle || '查看关联帖子'}</Link> : <div className="text-[13px] font-medium text-baylink-text line-clamp-1">{conversation.lastPostTitle || '互助需求沟通'}</div>}
         </div>
         <span className="type-caption shrink-0 rounded-full border border-baylink-green/10 bg-white/70 px-2 py-0.5 text-baylink-text-secondary">交易前请核实</span>
       </div>

@@ -8,6 +8,7 @@ export type PageMetadata = {
   image?: string;
   type?: 'website' | 'article';
   noindex?: boolean;
+  structuredData?: Record<string, unknown>[];
 };
 
 export const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, (character) => ({
@@ -50,6 +51,10 @@ const metadataEntries = (metadata: PageMetadata): [string, string, string][] => 
   ];
 };
 
+// JSON-LD is data, but HTML parsers still recognize a closing script tag inside strings.
+export const serializeStructuredData = (data: Record<string, unknown>[]): string =>
+  JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+
 /** Used on client navigation. Importing this module is also safe during server rendering. */
 export const setPageMetadata = (metadata: PageMetadata): void => {
   if (typeof document === 'undefined') return;
@@ -70,12 +75,21 @@ export const setPageMetadata = (metadata: PageMetadata): void => {
     document.head.append(canonical);
   }
   canonical.href = absolutePageUrl(metadata.path);
+  document.head.querySelectorAll('script[data-baylink-structured-data]').forEach((element) => element.remove());
+  if (metadata.structuredData?.length) {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.dataset.baylinkStructuredData = '';
+    script.textContent = serializeStructuredData(metadata.structuredData);
+    document.head.append(script);
+  }
 };
 
 export const renderMetadataHtml = (metadata: PageMetadata): string => [
   `<title>${escapeHtml(metadata.title)}</title>`,
   `<link rel="canonical" href="${escapeHtml(absolutePageUrl(metadata.path))}" />`,
   ...metadataEntries(metadata).map(([attribute, key, value]) => `<meta ${attribute}="${key}" content="${escapeHtml(value)}" />`),
+  ...(metadata.structuredData?.length ? [`<script type="application/ld+json" data-baylink-structured-data>${serializeStructuredData(metadata.structuredData)}</script>`] : []),
 ].join('\n    ');
 
 /** Marker replacement keeps the Vite asset references and avoids serializing user/API objects. */

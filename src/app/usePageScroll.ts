@@ -9,6 +9,7 @@ export function usePageScroll(location: Location) {
   const pageKey = `${page.key}:${page.pathname}${page.search}${page.hash}`;
   const hash = page.hash;
   const currentKey = useRef<string | null>(null);
+  const previousPage = useRef<{ pathname: string; search: string; hash: string } | null>(null);
   const positions = useRef(new Map<string, number>());
   const pending = useRef<(() => void) | null>(null);
 
@@ -40,7 +41,14 @@ export function usePageScroll(location: Location) {
     // StrictMode restarts effects; an unresolved initial hash still needs its observer.
     if (currentKey.current === pageKey && positions.current.has(pageKey)) return;
     const initial = currentKey.current === null;
+    const previous = previousPage.current;
+    previousPage.current = { pathname: page.pathname, search: page.search, hash: page.hash };
     currentKey.current = pageKey;
+    // Typing a search or changing a filter updates the URL without jumping away from the controls.
+    if (!positions.current.has(pageKey) && previous?.pathname === page.pathname && previous.hash === page.hash && previous.search !== page.search) {
+      positions.current.set(pageKey, window.scrollY);
+      return;
+    }
     if (initial && !hash) {
       positions.current.set(pageKey, window.scrollY);
       return;
@@ -87,5 +95,5 @@ export function usePageScroll(location: Location) {
       }
     }
     return stop;
-  }, [pageKey, hash]);
+  }, [pageKey, hash, page.pathname, page.search, page.hash]);
 }

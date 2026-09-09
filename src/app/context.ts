@@ -1,6 +1,7 @@
 // AppLayout 通过 <Outlet context> 传给各路由页面的共享状态与操作
 import { useOutletContext } from 'react-router-dom';
 import type { HOME_CHANNELS } from '../lib/constants';
+import type { ContactPost } from './useContactIntent';
 import type {
   AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData,
 } from '../lib/types';
@@ -52,7 +53,8 @@ export type AppContextValue = {
   handleToggleLike: (post: PostData, onSynced?: (postId: string, liked: boolean, likesCount: number) => void) => void;
   handleToggleBlockUser: (userId: string) => void;
   openReportTarget: (target: ReportTarget) => void;
-  openChat: (targetId: string, nickname?: string, postTitle?: string) => void;
+  openChat: (targetId: string, nickname?: string, postTitle?: string, postId?: string) => void;
+  requestPostContact: (post: ContactPost) => void;
   openConversation: (c: Conversation) => void;
   setViewingImage: (src: string | null) => void;
   setSharingPost: (post: PostData | null) => void;

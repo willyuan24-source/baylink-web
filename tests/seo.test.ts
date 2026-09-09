@@ -10,6 +10,7 @@ import { GuideDetail } from '../src/components/GuideDetail';
 import { GuidesHome } from '../src/components/GuidesHome';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
+import { getGuideMetadata } from '../src/lib/guide-metadata';
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
@@ -40,6 +41,33 @@ test('client navigation resets stale article image and noindex metadata', () => 
     assert.equal(dom.window.document.querySelector('meta[property="og:type"]')?.getAttribute('content'), 'website');
     assert.equal(dom.window.document.querySelector('meta[property="og:image"]')?.getAttribute('content'), DEFAULT_SOCIAL_IMAGE);
     assert.equal(dom.window.document.querySelectorAll('link[rel="canonical"]').length, 1);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else Reflect.deleteProperty(globalThis, 'document');
+  }
+});
+
+test('guide structured data uses real modification dates, escapes script delimiters and clears on navigation', () => {
+  const guide = { ...guides[0], title: '指南 </script><script>alert(1)</script>' };
+  const metadata = getGuideMetadata(guide);
+  const html = renderHtmlDocument(template, metadata, '<article>指南正文</article>');
+  const dom = new JSDOM(html);
+  const scripts = dom.window.document.querySelectorAll('script[type="application/ld+json"]');
+  assert.equal(scripts.length, 1);
+  const [article, breadcrumbs] = JSON.parse(scripts[0].textContent || '[]');
+  assert.equal(article.headline, guide.title);
+  assert.equal(article.dateModified, guide.updatedAt);
+  assert.equal(article.author, undefined, 'do not invent a personal author');
+  assert.equal(article.datePublished, undefined, 'modification time is not a known publication date');
+  assert.equal(breadcrumbs.itemListElement.at(-1).item, `https://www.baylink.us/guides/${guide.slug}`);
+  assert.equal(dom.window.document.querySelectorAll('script:not([src]):not([type="application/ld+json"])').length, 0);
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true });
+  try {
+    setPageMetadata(getGuideMetadata(guides[1]));
+    assert.equal(dom.window.document.querySelectorAll('script[data-baylink-structured-data]').length, 1);
+    setPageMetadata({ title: '生活指南', description: '指南索引', path: '/guides' });
+    assert.equal(dom.window.document.querySelectorAll('script[data-baylink-structured-data]').length, 0);
   } finally {
     if (previous) Object.defineProperty(globalThis, 'document', previous);
     else Reflect.deleteProperty(globalThis, 'document');
@@ -93,5 +121,5 @@ test('hosting config has explicit public routes, a real missing-page status and 
   const csp = config.routes[0].headers['Content-Security-Policy'];
   for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'wss://baylink-api.onrender.com', 'blob:']) assert.ok(csp.includes(directive));
   const sitemap = readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
-  for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc>`));
+  for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc><lastmod>${guide.updatedAt}</lastmod>`));
 });

@@ -6,6 +6,7 @@ import { StaticRouter } from 'react-router';
 import { JSDOM } from 'jsdom';
 import { EditorialCollections } from '../src/components/EditorialCollections';
 import { getGuideBySlug } from '../src/data/guides';
+import { editorialCollections } from '../src/data/editorial-collections';
 
 const renderCollections = (compact = false) => JSDOM.fragment(renderToStaticMarkup(
   createElement(StaticRouter, { location: '/' }, createElement(EditorialCollections, { compact })),
@@ -23,16 +24,16 @@ const assertPublishedLinks = (root: DocumentFragment) => {
   return links;
 };
 
-test('full editorial collections render three published guide links in each of three topics', () => {
+test('full editorial collections expose each published topic link, including the two settling-in guides', () => {
   const root = renderCollections();
   const topics = [...root.querySelectorAll('article')];
   assert.equal(topics.length, 3);
-  for (const topic of topics) {
-    assert.equal(topic.querySelectorAll('a').length, 3, topic.querySelector('h3')?.textContent || 'topic');
-  }
+  topics.forEach((topic, index) => assert.equal(topic.querySelectorAll('a').length, editorialCollections[index].guides.length));
   const links = assertPublishedLinks(root);
-  assert.equal(links.length, 9);
-  assert.equal(new Set(links.map((link) => link.getAttribute('href'))).size, 9);
+  assert.equal(links.length, 11);
+  assert.equal(new Set(links.map((link) => link.getAttribute('href'))).size, 11);
+  assert.ok(links.some((link) => link.getAttribute('href')?.endsWith('/bay-area-utilities-address-change-guide')));
+  assert.ok(links.some((link) => link.getAttribute('href')?.endsWith('/california-driver-license-id-preparation-guide')));
 });
 
 test('compact editorial collections render only the first published link from each topic', () => {

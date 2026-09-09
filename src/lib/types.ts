@@ -87,6 +87,7 @@ export interface Conversation {
   lastMessage?: string;
   updatedAt: number;
   lastPostTitle?: string; // ✨ 上下文
+  lastPostId?: string;
 }
 
 export interface Message {

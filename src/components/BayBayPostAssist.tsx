@@ -52,6 +52,9 @@ const SUPPLEMENT_HINTS: Record<string, string> = {
 };
 
 type BayBayPostAssistProps = {
+  intent?: string;
+  onIntentChange?: (intent: string) => void;
+  intentFromQuestion?: boolean;
   postType: 'client' | 'provider';
   categorySlug?: string | null;
   areaHint?: string;
@@ -77,8 +80,13 @@ export const BayBayPostAssist = ({
   showToast,
   onApply,
   requestAiAssist,
+  intent: controlledIntent,
+  onIntentChange,
+  intentFromQuestion,
 }: BayBayPostAssistProps) => {
-  const [aiPostIntent, setAiPostIntent] = useState('');
+  const [localIntent, setLocalIntent] = useState('');
+  const aiPostIntent = controlledIntent ?? localIntent;
+  const setAiPostIntent = onIntentChange ?? setLocalIntent;
   const [tone, setTone] = useState<AiAssistTone>('clear');
   const [appendTagsOnApply, setAppendTagsOnApply] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
@@ -151,10 +159,12 @@ export const BayBayPostAssist = ({
 
       {!aiDraft ? (
         <>
+          {intentFromQuestion && <p className="mt-3 rounded-lg bg-white p-2.5 text-xs leading-relaxed text-baylink-text-secondary">已带入你刚才的问题。请确认要公开的需求，补充地点、时间和预算，再点击「帮我整理」。生成后仍需你检查和发布。</p>}
           <textarea
             aria-label="告诉 BayBay 你想发布的内容"
             className="mt-2.5 w-full resize-none rounded-lg border border-baylink-border/50 bg-white/90 p-2.5 text-xs outline-none placeholder:text-baylink-muted focus:border-baylink-green/40"
             rows={3}
+            maxLength={3000}
             placeholder="例如：我想在 Millbrae 附近找一间房，预算 1800，7月入住，最好近 BART。"
             value={aiPostIntent}
             onChange={(e) => setAiPostIntent(e.target.value)}

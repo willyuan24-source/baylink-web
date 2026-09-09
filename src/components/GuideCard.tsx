@@ -15,7 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-type GuideCardProps = { guide: Guide; onClick?: () => void; compact?: boolean };
+type GuideCardProps = { guide: Guide; onClick?: () => void; compact?: boolean; searchSnippet?: string; searchSection?: string };
 
 /** Preserve app navigation callbacks while allowing copy-link and modified clicks. */
 export const handleGuideLinkClick = (
@@ -48,7 +48,7 @@ const categoryIcons = {
   events: BookOpen,
 };
 
-export const GuideCard = ({ guide, onClick, compact }: GuideCardProps) => {
+export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSection }: GuideCardProps) => {
   const Icon = categoryIcons[guide.category];
   return (
     <Link
@@ -89,7 +89,8 @@ export const GuideCard = ({ guide, onClick, compact }: GuideCardProps) => {
           )}
         </div>
         <h3>{guide.title}</h3>
-        {!compact && <p className="bl-guide-card-summary">{guide.summary}</p>}
+        {!compact && searchSection && <span className="bl-guide-search-section">文内匹配 · {searchSection}</span>}
+        {!compact && <p className="bl-guide-card-summary">{searchSnippet || guide.summary}</p>}
         <div className="bl-guide-card-meta">
           <span>
             <Clock3 size={12} aria-hidden="true" /> {guide.readMinutes} 分钟

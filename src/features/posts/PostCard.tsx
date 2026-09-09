@@ -6,6 +6,7 @@ import {
   MapPin, Images, House, Armchair, Wrench, Car, BriefcaseBusiness, Truck, Sparkles, Languages, ArrowUpRight,
 } from 'lucide-react';
 import Avatar from '../../components/Avatar';
+import { BookmarkButton } from '../../components/BookmarkButton';
 import { PostAvailabilityBadge } from '../../components/PostAvailabilityBadge';
 import { TrustBadge } from '../../components/TrustBadge';
 import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
@@ -142,6 +143,7 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
           <span className="post-card__date">{formatChineseDate(post.createdAt)}{isPostEdited(post) ? ' · 已编辑' : ''}</span>
         </div>
         <div className="post-card__actions">
+          <BookmarkButton post={post} userId={currentUser?.id} />
           {onLike && <UsefulLikeButton post={post} onLike={onLike} compact />}
           {onShare && <button type="button" onClick={(event) => { event.stopPropagation(); onShare(post); }} className="post-action" title="分享帖子"><Share2 size={15} /><span>分享</span></button>}
           {onContactClick && !isOwner && post.status !== 'closed' && <button type="button" onClick={(event) => { event.stopPropagation(); onContactClick(post); }} className="post-action post-action--contact"><MessageCircle size={15} /><span>私信</span></button>}

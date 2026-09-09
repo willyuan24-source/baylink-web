@@ -9,6 +9,7 @@ import { api, safeParse } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { TrustBadge } from '../../components/TrustBadge';
 import { TagPills } from '../../components/TagPills';
+import { SavedPostsPanel } from '../../components/SavedPostsPanel';
 import { OfficialVerificationModal } from '../../components/OfficialVerificationModal';
 import {
   calcProfileCompletion, formatProfileLocation, getJoinDays, getMyOfficialTrustLabel,
@@ -37,6 +38,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
   if (!user) return (
     <div className="member-profile-guest">
       <div className="member-page-heading"><div><span className="member-eyebrow">MAKE YOURSELF AT HOME</span><h1>我的 BAYLINK</h1></div></div>
+      <SavedPostsPanel />
       <section className="member-welcome-card">
         <div className="member-welcome-copy">
           <span className="member-welcome-label"><span /> 你好，新邻居</span>
@@ -63,6 +65,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
     <div className="member-profile-shell">
       {subView === 'menu' && (
         <div className="member-profile-content">
+          <SavedPostsPanel key={user.id} userId={user.id} />
           <div className="member-page-heading"><div><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
 
           {user.accountStatus === 'limited' && (

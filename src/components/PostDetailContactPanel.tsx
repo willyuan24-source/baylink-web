@@ -19,6 +19,7 @@ type PostDetailContactPanelProps = {
   currentUser?: { id: string } | null;
   isOwner: boolean;
   onLoginNeeded: () => void;
+  onContactLoginNeeded?: () => void;
   onOpenChat: (authorId: string, authorName: string, postTitle: string) => void;
   authorName: string;
   requestContact: (postId: string) => Promise<{ status: string; threadId?: string; error?: string }>;
@@ -49,6 +50,7 @@ const ContactPanelSession = ({
   currentUser,
   isOwner,
   onLoginNeeded,
+  onContactLoginNeeded,
   onOpenChat,
   authorName,
   requestContact,
@@ -96,7 +98,7 @@ const ContactPanelSession = ({
   }, [showOwner, isOwner, post.id, pendingRetry]);
 
   const handleDm = () => {
-    if (!currentUser) return onLoginNeeded();
+    if (!currentUser) return (onContactLoginNeeded || onLoginNeeded)();
     if (isOwner || isClosed) return;
     onOpenChat(post.authorId, authorName, post.title);
   };

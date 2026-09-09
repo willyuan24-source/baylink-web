@@ -11,7 +11,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: { onClose
   return (
     <ModalShell onClose={onClose} label="快速搜索与导航" className="quick-explore-overlay">
       <div className="quick-explore" onClick={(event) => event.stopPropagation()}>
-        <form onSubmit={(event) => { event.preventDefault(); search(); }} className="quick-search-form"><Search size={22} /><input aria-label="快速搜索" autoFocus placeholder="想在湾区找什么？" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /><button type="button" aria-label="关闭搜索" onClick={onClose}><X size={20} /></button></form>
+        <form onSubmit={(event) => { event.preventDefault(); search(); }} className="quick-search-form"><Search size={22} /><input maxLength={80} aria-label="快速搜索" autoFocus placeholder="想在湾区找什么？" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /><button type="button" aria-label="关闭搜索" onClick={onClose}><X size={20} /></button></form>
         <div className="quick-explore-body">
           {query.trim() && <button type="button" className="quick-result is-highlighted" onClick={search}><Search size={19} /><span>搜索「{query.trim()}」<small>查找房源、服务和邻里信息</small></span><CornerDownLeft size={17} /></button>}
           <p className="site-nav-label">快速前往</p>

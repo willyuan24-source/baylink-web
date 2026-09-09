@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
+    "build": "npm run export:guides && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "tsx --tsconfig tsconfig.app.json --test tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
-    "check": "npm run lint && npm test && npm run build"
+    "check": "npm run lint && npm test && npm run build",
+    "export:guides": "tsx --tsconfig tsconfig.app.json scripts/export-guide-catalog.ts"
   },
-  "engines": { "node": "24.x" },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "browser-image-compression": "^2.0.2",
     "lucide-react": "^0.460.0",

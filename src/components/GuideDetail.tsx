@@ -21,6 +21,7 @@ import { GuideCardMini } from "./GuideCard";
 
 type GuideDetailProps = {
   slug: string;
+  returnTo?: string;
   onBack: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
@@ -32,6 +33,7 @@ type GuideDetailProps = {
 
 export const GuideDetail = ({
   slug,
+  returnTo = '/guides',
   onBack,
   onOpenGuide,
   onNavigate,
@@ -155,7 +157,7 @@ export const GuideDetail = ({
       <article ref={articleRef} className="bl-guide-article">
         <header className="bl-guide-article-header">
           <div className="bl-guide-article-kicker">
-            <Link to="/guides">湾区生活指南</Link>
+            <Link to={returnTo}>湾区生活指南</Link>
             <span>/</span>
             <span>{guide.categoryLabel}</span>
             {guide.priority === "P0" && (
@@ -284,7 +286,7 @@ export const GuideDetail = ({
             </div>
           </section>
         )}
-        <Link to="/guides" className="bl-guide-return">
+        <Link to={returnTo} className="bl-guide-return">
           <ArrowLeft size={16} aria-hidden="true" />
           返回湾区指南
         </Link>

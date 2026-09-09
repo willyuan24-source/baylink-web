@@ -1,8 +1,9 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
+import { clearPostDraft, hasPostDraftContent, readPostDraft, savePostDraft, type PostDraft } from '../../lib/postDraft';
 import {
   CATEGORIES, DEFAULT_COVERS, MAX_POST_IMAGES, REGIONS,
   buildSubmitImageUrls, findDefaultCoverFromUrl, getRecommendedCovers,
@@ -120,7 +121,7 @@ const mergeContactMethod = (
   };
 };
 
-export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', defaultCategory, mode = 'create', editingPost }: {
+export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
   onClose: () => void;
   onCreated: () => void;
   onUpdated?: () => void;
@@ -128,11 +129,18 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   defaultType?: PostType;
   defaultCategory?: string;
+  initialIntent?: string;
   mode?: 'create' | 'edit';
   editingPost?: PostData | null;
 }) => {
   const isEdit = mode === 'edit' && !!editingPost;
-  const [step, setStep] = useState(isEdit ? 2 : 1);
+  const [step, setStep] = useState(isEdit || initialIntent.trim() ? 2 : 1);
+  const [savedDraft, setSavedDraft] = useState(() => isEdit ? null : readPostDraft(user.id));
+  const [draftReady, setDraftReady] = useState(() => isEdit || !savedDraft);
+  const [draftSaveState, setDraftSaveState] = useState<'empty' | 'saved' | 'failed'>('empty');
+  const [aiIntent, setAiIntent] = useState(isEdit ? '' : initialIntent.slice(0, 3000));
+  const [missingDraftPhotos, setMissingDraftPhotos] = useState(false);
+  const draftCompleted = useRef(false);
   const [form, setForm] = useState(() => isEdit && editingPost ? {
     title: editingPost.title,
     city: editingPost.city || REGIONS[0],
@@ -177,6 +185,37 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   const submittingRef = useRef(false);
   const [postStatus, setPostStatus] = useState<'active' | 'closed'>(editingPost?.status === 'closed' ? 'closed' : 'active');
   const [confirmAvailability, setConfirmAvailability] = useState(false);
+
+  useEffect(() => {
+    if (isEdit || !draftReady || isSuccess || draftCompleted.current) return;
+    const draft: PostDraft = { version: 1, updatedAt: Date.now(), form, contactPreference, aiIntent, step,
+      defaultCoverUrl: selectedDefaultCover?.url || null, hadPhotos: uploadedImages.length > 0 || missingDraftPhotos };
+    setDraftSaveState(savePostDraft(user.id, draft) ? (hasPostDraftContent(draft) ? 'saved' : 'empty') : 'failed');
+  }, [isEdit, draftReady, isSuccess, user.id, form, contactPreference, aiIntent, step, selectedDefaultCover, uploadedImages.length, missingDraftPhotos]);
+
+  const restoreDraft = () => {
+    if (!savedDraft) return;
+    setForm(savedDraft.form);
+    setContactPreference(savedDraft.contactPreference);
+    setAiIntent(savedDraft.aiIntent);
+    setStep(savedDraft.step);
+    setSelectedDefaultCover(savedDraft.defaultCoverUrl ? findDefaultCoverFromUrl(savedDraft.defaultCoverUrl) || null : null);
+    setMissingDraftPhotos(savedDraft.hadPhotos);
+    setSavedDraft(null);
+    setDraftReady(true);
+  };
+
+  const discardSavedDraft = () => {
+    if (!clearPostDraft(user.id)) { showToast('浏览器未能删除草稿，请重试。', 'error'); return; }
+    setSavedDraft(null);
+    setDraftReady(true);
+  };
+
+  const discardCurrentDraft = () => {
+    if (!clearPostDraft(user.id)) { showToast('浏览器未能删除草稿，请重试。', 'error'); return; }
+    draftCompleted.current = true;
+    onClose();
+  };
 
   const isClient = form.type === 'client';
   const closedStatusLabel = form.category === '租屋' && !isClient ? '已出租' : form.category === '闲置' && !isClient ? '已售出' : isClient ? '已解决' : '已结束';
@@ -315,6 +354,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
         onClose();
       } else {
         const res = await api.request('/posts', { method: 'POST', body: JSON.stringify(payload) });
+        draftCompleted.current = true;
+        if (!clearPostDraft(user.id)) showToast('发布成功，但浏览器未能清除本机草稿，请稍后丢弃。', 'info');
         onCreated();
         const warning = typeof res?.trustWarning === 'string' ? res.trustWarning : null;
         setPostTrustWarning(warning);
@@ -329,6 +370,22 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
       submittingRef.current = false;
     }
   };
+
+  if (!isEdit && !draftReady && savedDraft) {
+    return <ModalShell onClose={onClose} closeOnBackdrop={false} label="恢复发布草稿" className="member-compose-overlay">
+      <div className="member-compose-success">
+        <h2 className="text-xl font-bold text-baylink-text">有一份没写完的草稿</h2>
+        <p className="mt-3 text-sm text-baylink-text-secondary">{savedDraft.form.title || savedDraft.aiIntent.slice(0, 70) || '未命名的发布草稿'}</p>
+        <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">保存于 {new Date(savedDraft.updatedAt).toLocaleString('zh-CN')}，仅在当前账号的本机浏览器中保留。照片没有保存，恢复后请重新选择。</p>
+        {initialIntent.trim() && <p className="mt-2 text-xs text-baylink-text-secondary">继续旧草稿会保留原来的内容；选择重新开始，会带入你这次向 BayBay 提出的需求。</p>}
+        <div className="mt-6 flex flex-col gap-2">
+          <button type="button" className="member-primary min-h-11" onClick={restoreDraft}>继续之前的草稿</button>
+          <button type="button" className="member-secondary min-h-11" onClick={discardSavedDraft}>丢弃旧草稿，重新开始</button>
+          <button type="button" className="min-h-11 text-sm text-baylink-text-secondary" onClick={onClose}>稍后再写</button>
+        </div>
+      </div>
+    </ModalShell>;
+  }
 
   if (isSuccess) {
     return (
@@ -374,6 +431,12 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
           {['选择类型', '填写内容', '发布设置'].map((label, index) => <li key={label} className={step === index + 1 ? 'is-current' : step > index + 1 ? 'is-complete' : ''} aria-current={step === index + 1 ? 'step' : undefined}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><strong>{label}</strong></li>)}
         </ol>
         <div className="member-compose-body">
+
+        {!isEdit && <div className="mx-1 mb-4 rounded-xl border border-baylink-border bg-white p-3 text-xs text-baylink-text-secondary">
+          <p role="status">{draftSaveState === 'failed' ? '浏览器未能保存草稿，关闭或刷新后内容可能丢失。' : draftSaveState === 'saved' ? '文字和发布设置已自动保存到此账号的本机草稿。' : '文字和发布设置会自动保存到此账号的本机草稿。'}</p>
+          <p className="mt-1">照片不会保存到草稿，重新打开后需要再次选择。{missingDraftPhotos && uploadedImages.length === 0 ? '这份草稿之前有照片，请重新添加。' : ''}</p>
+          {draftSaveState !== 'empty' && <button type="button" onClick={discardCurrentDraft} className="mt-1 min-h-11 font-semibold text-baylink-green underline">丢弃草稿并关闭</button>}
+        </div>}
 
         {step === 1 && (
           <div className="member-compose-step space-y-6">
@@ -428,6 +491,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               user={user}
               showToast={showToast}
               onApply={applyAiDraft}
+              intent={aiIntent}
+              onIntentChange={setAiIntent}
+              intentFromQuestion={!isEdit && !!initialIntent.trim()}
               requestAiAssist={(body) =>
                 api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
               }

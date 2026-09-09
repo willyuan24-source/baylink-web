@@ -1,6 +1,8 @@
 import { practicalGuides } from './guides-practical';
 import { serviceGuides } from './guides-services';
 import { localLifeGuides } from './guides-local-life';
+import { settlingInGuides } from './guides-settling-in';
+import { editorialCollections } from './editorial-collections';
 
 export type GuideCategory =
   | 'rent'
@@ -1847,6 +1849,7 @@ export const guides: Guide[] = [
   ...practicalGuides,
   ...serviceGuides,
   ...localLifeGuides,
+  ...settlingInGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
@@ -1935,14 +1938,18 @@ export const CATEGORY_STRIP_TITLES: Record<string, string> = {
   other: '相关生活指南',
 };
 
-export const getRelatedGuides = (guide: Guide, limit = 3): Guide[] =>
-  guides
-    .filter(
-      (g) =>
-        g.slug !== guide.slug &&
-        (g.category === guide.category ||
-          g.recommendedForCategories.some((c) =>
-            guide.recommendedForCategories.includes(c)
-          ))
-    )
+export const getRelatedGuides = (guide: Guide, limit = 3): Guide[] => {
+  const topicSlugs = editorialCollections
+    .filter((collection) => collection.guides.some((item) => item.slug === guide.slug))
+    .flatMap((collection) => collection.guides.map((item) => item.slug));
+  const taskCategories = new Set(guide.recommendedForCategories.filter((category) => !['other', 'service', 'safety'].includes(category)));
+  const score = (candidate: Guide) =>
+    (topicSlugs.includes(candidate.slug) ? 100 : 0) +
+    candidate.recommendedForCategories.filter((category) => taskCategories.has(category)).length * 10 +
+    (candidate.category === guide.category ? 6 : 0) +
+    candidate.tags.filter((tag) => guide.tags.includes(tag)).length * 2;
+  return guides
+    .filter((candidate) => candidate.slug !== guide.slug && score(candidate) > 0)
+    .sort((a, b) => score(b) - score(a) || b.updatedAt.localeCompare(a.updatedAt) || a.slug.localeCompare(b.slug))
     .slice(0, limit);
+};

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Search,
   ArrowRight,
@@ -8,7 +8,7 @@ import {
   MapPin,
   X,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   guides,
   GUIDE_CATEGORY_TABS,
@@ -18,6 +18,7 @@ import {
 } from "../data/guides";
 import { GuideCard, handleGuideLinkClick } from "./GuideCard";
 import { EditorialCollections } from "./EditorialCollections";
+import { searchGuides } from "../lib/guide-search";
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -27,27 +28,27 @@ const NEWCOMER_SPOTLIGHT_SLUGS = [
 ];
 
 export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
-  const [tab, setTab] = useState<"all" | GuideCategory>("all");
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const tab = GUIDE_CATEGORY_TABS.some(({ id }) => id === categoryParam) ? categoryParam as 'all' | GuideCategory : 'all';
+  const query = (searchParams.get('q') || '').slice(0, 200);
+  const updateSearch = (values: { q?: string; category?: 'all' | GuideCategory }, replace = false) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      if (values.q !== undefined) {
+        if (values.q) next.set('q', values.q); else next.delete('q');
+      }
+      if (values.category !== undefined) {
+        if (values.category !== 'all') next.set('category', values.category); else next.delete('category');
+      }
+      return next;
+    }, { replace, preventScrollReset: true });
+  };
   const spotlightGuides = NEWCOMER_SPOTLIGHT_SLUGS.map(getGuideBySlug).filter(
     Boolean,
   ) as Guide[];
-  const filtered = useMemo(() => {
-    let list =
-      tab === "all" ? [...guides] : guides.filter((g) => g.category === tab);
-    const q = query.trim().toLowerCase();
-    if (q)
-      list = list.filter((g) =>
-        [g.title, g.summary, ...g.tags, ...g.audience].some((value) =>
-          value.toLowerCase().includes(q),
-        ),
-      );
-    return list.sort(
-      (a, b) =>
-        ({ P0: 0, P1: 1, P2: 2 })[a.priority] -
-        { P0: 0, P1: 1, P2: 2 }[b.priority] || b.updatedAt.localeCompare(a.updatedAt),
-    );
-  }, [tab, query]);
+  const results = useMemo(() => searchGuides(guides, { query, category: tab }), [tab, query]);
+  const filtered = useMemo(() => results.map(({ guide }) => guide), [results]);
   const grouped = useMemo(() => {
     if (tab !== "all" || query.trim()) return null;
     const byCat = new Map<string, Guide[]>();
@@ -169,13 +170,14 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
               type="search"
               aria-label="搜索生活指南"
               placeholder="搜索租房、通勤、二手交易…"
+              maxLength={200}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => updateSearch({ q: e.target.value }, true)}
             />
             {query && (
               <button
                 type="button"
-                onClick={() => setQuery("")}
+                onClick={() => updateSearch({ q: '' }, true)}
                 aria-label="清除指南搜索"
               >
                 <X size={16} />
@@ -187,7 +189,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
               <button
                 key={t.id}
                 type="button"
-                onClick={() => setTab(t.id)}
+                onClick={() => updateSearch({ category: t.id })}
                 aria-pressed={tab === t.id}
                 className={tab === t.id ? "is-active" : ""}
               >
@@ -204,8 +206,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
             <button
               type="button"
               onClick={() => {
-                setQuery("");
-                setTab("all");
+                updateSearch({ q: '', category: 'all' });
               }}
             >
               查看全部指南 <ArrowRight size={15} aria-hidden="true" />
@@ -235,10 +236,12 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           ))
         ) : (
           <div className="bl-guide-grid bl-guide-filter-results">
-            {filtered.map((g) => (
+            {results.map(({ guide: g, snippet, section }) => (
               <GuideCard
                 key={g.slug}
                 guide={g}
+                searchSnippet={snippet}
+                searchSection={section}
                 onClick={() => onOpenGuide(g.slug)}
               />
             ))}
