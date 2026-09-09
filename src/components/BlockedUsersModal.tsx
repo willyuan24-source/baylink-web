@@ -84,7 +84,7 @@ export const BlockedUsersModal = ({
                 <div key={b.id} className="flex items-center gap-3 rounded-xl border border-baylink-border/50 bg-baylink-section/20 p-3">
                   <Avatar src={b.avatar} name={b.nickname} size={10} className="shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-baylink-text">{b.nickname}</div>
+                    <div className="truncate text-sm font-semibold text-baylink-text" translate="no">{b.nickname}</div>
                     <p className="mt-0.5 text-[11px] text-baylink-muted">
                       {b.isPhoneVerified ? '手机验证：已完成' : '手机验证：未完成'}
                       {b.isOfficialVerified ? ' · 官方认证' : ''}

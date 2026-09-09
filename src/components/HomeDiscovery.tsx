@@ -6,6 +6,7 @@ import { getGuideBySlug, guides, type Guide } from '../data/guides';
 import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../data/monthly-edition';
 import { getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
+import { useLocale } from '../i18n/locale';
 
 const discoveries = [
   {
@@ -59,6 +60,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   onBrowseCommunity: () => void;
   today?: string;
 }) {
+  const locale = useLocale();
   const [intent, setIntent] = useState<(typeof discoveries)[number]['id']>('weekend');
   const [question, setQuestion] = useState('');
   const [localToday, setLocalToday] = useState(getBayAreaToday);
@@ -96,11 +98,14 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const heroImage = hero ? getGuideMedia(hero).cover : undefined;
   const images = [heroImage, ...picks.map(guide => getGuideMedia(guide).cover), eventImage, offerImage].filter((image): image is GuideImage => !!image);
   const month = Number(today.slice(5, 7));
+  const dateLabel = locale === 'en'
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`))
+    : `${month} 月 ${Number(today.slice(8, 10))} 日`;
 
   return <section className="home-discovery" aria-label="湾区阅读与探索">
     <header className="home-discovery-heading">
-      <div><span className="home-discovery-eyebrow"><Compass size={14} aria-hidden="true" /> THE BAY, A LITTLE CLOSER</span><h1>湾区的日常，<span>也值得期待。</span></h1><p>从一段散步、一份攻略，开始发现这里的生活。</p></div>
-      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {month} 月 {Number(today.slice(8, 10))} 日</time><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
+      <div><span className="home-discovery-eyebrow"><Compass size={14} aria-hidden="true" /> THE BAY, A LITTLE CLOSER</span><h1>湾区的日常，{locale === 'en' ? ' ' : null}<span>也值得期待。</span></h1><p>从一段散步、一份攻略，开始发现这里的生活。</p></div>
+      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
     </header>
 
     <div className="home-discovery-intents" role="group" aria-label="你想怎么发现湾区">

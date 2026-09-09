@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowUpRight, ChevronDown, Copy } from 'lucide-react';
 import { calculateLoan, type LoanSchedule } from '../../lib/loan-calculator';
 import type { ShowToast } from '../../app/context';
+import { translateText, useLocale } from '../../i18n/locale';
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 const duration = (months: number) => `${Math.floor(months / 12) ? `${Math.floor(months / 12)} 年` : ''}${months % 12 ? ` ${months % 12} 个月` : ''}`.trim() || '0 个月';
@@ -18,6 +19,7 @@ function numeric(raw: string, label: string, decimals: number, optional = false,
 }
 
 function BalanceChart({ baseline, current, principal, months, selected }: { baseline: LoanSchedule; current: LoanSchedule; principal: number; months: number; selected: number }) {
+  const locale = useLocale();
   const point = (month: number, balance: number) => `${42 + month / months * 506},${22 + (1 - balance / principal) * 122}`;
   const path = (schedule: LoanSchedule) => [point(0, principal), ...schedule.annualSummary.map(row => point(Math.min(row.year * 12, schedule.payoffMonths), row.balanceCents))].join(' ');
   const focus = current.annualSummary[selected];
@@ -29,11 +31,12 @@ function BalanceChart({ baseline, current, principal, months, selected }: { base
     <polyline points={path(baseline)} fill="none" stroke="#b8c4a9" strokeWidth="3" strokeDasharray="5 4" />
     <polyline points={path(current)} fill="none" stroke="#456c43" strokeWidth="3" />
     <circle cx={focusX} cy={focusY} r="5" fill="#456c43" stroke="white" strokeWidth="2" />
-    <text x="42" y="166" fontSize="11" fill="#738267">开始还款</text><text x="548" y="166" textAnchor="end" fontSize="11" fill="#738267">第 {months / 12} 年</text>
+    <text x="42" y="166" fontSize="11" fill="#738267">开始还款</text><text x="548" y="166" textAnchor="end" fontSize="11" fill="#738267">{locale === 'en' ? `Year ${months / 12}` : `第 ${months / 12} 年`}</text>
   </svg>;
 }
 
 export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {
+  const locale = useLocale();
   const [mode, setMode] = useState<'home' | 'loan'>('home');
   const [downMode, setDownMode] = useState<'percent' | 'amount'>('percent');
   const [values, setValues] = useState(INITIAL);
@@ -78,7 +81,7 @@ export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {
     if (!plan || !schedule) return;
     const finalPaymentSummary = schedule.payoffMonths ? `最后一期贷款还款：${usd(schedule.lastPaymentCents)}（不含住房税费与保险）${schedule.finalPaymentAdjustmentCents > 100 ? `\n末期另补足余额：${usd(schedule.finalPaymentAdjustmentCents)}，已计入最后一期金额，请核对贷款方实际还款表。` : ''}` : '';
     const summary = `BAYLINK 贷款计算\n贷款本金：${usd(schedule.totalPrincipalCents)}${mode === 'home' ? `\n首付：${usd(downCents)}` : ''}\n固定年利率：${values.rate}%\n贷款年限：${values.years} 年\n常规每月本息：${usd(plan.monthlyPaymentCents)}${mode === 'home' ? `\n每月住房预算（未计额外还款）：${usd(monthlyHousing)}\n其中税、保险、HOA：${usd(fees)}` : ''}\n每月额外还本金：${usd(schedule.payoffMonths ? plan.extraMonthlyCents : 0)}\n当前方案利息合计：${usd(schedule.totalInterestCents)}\n贷款本息合计：${usd(schedule.totalPaidCents)}\n预计还清：${duration(schedule.payoffMonths)}\n较不额外还款节省利息：${usd(plan.interestSavedCents)}\n固定利率、每月计息估算；未计贷款费用、罚金及税费变化，末期按余额调整。`;
-    try { await navigator.clipboard.writeText([summary, finalPaymentSummary].filter(Boolean).join('\n')); onToast('贷款计算摘要已复制', 'success'); } catch { onToast('复制失败，请手动选择页面结果复制', 'error'); }
+    try { await navigator.clipboard.writeText([summary, finalPaymentSummary].filter(Boolean).map(text => translateText(text)).join('\n')); onToast('贷款计算摘要已复制', 'success'); } catch { onToast('复制失败，请手动选择页面结果复制', 'error'); }
   };
   return <div className="tool-form loan-calculator">
     <div className="tool-choice-row" role="group" aria-label="贷款计算方式"><button type="button" aria-pressed={mode === 'home'} onClick={() => { setMode('home'); setExample(false); }}>房价与首付</button><button type="button" aria-pressed={mode === 'loan'} onClick={() => { setMode('loan'); setExample(false); }}>直接填写贷款本金</button></div>
@@ -100,7 +103,7 @@ export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {
       {schedule.payoffMonths > 0 && <p className="loan-final-payment">最后一期贷款还款：<strong>{usd(schedule.lastPaymentCents)}</strong>，不含住房税费与保险。</p>}
       {schedule.finalPaymentAdjustmentCents > 100 && <p className="tool-error" role="status">按美分取整后，末期需另补足 {usd(schedule.finalPaymentAdjustmentCents)} 余额，已计入上方最后一期金额。请核对贷款方的实际还款表。</p>}
       {plan.extraMonthlyCents > 0 && schedule.payoffMonths > 0 && <div className="loan-extra-result" aria-live="polite"><p>每月计划支出 <strong>{usd(monthlyOutlay)}</strong><small>包含额外还本金{mode === 'home' ? '和自填住房费用' : ''}；末期按余款结清</small></p><div><span>预计少付利息 <b>{usd(plan.interestSavedCents)}</b></span><span>预计提前 <b>{duration(plan.monthsSaved)}</b></span></div></div>}
-      {year && schedule.totalPrincipalCents > 0 && <div className="loan-chart-section"><div className="tool-inline-heading"><h3>本金余额，逐年看清</h3><span className="tool-note">深色：当前方案</span></div><BalanceChart baseline={plan.baseline} current={schedule} principal={schedule.totalPrincipalCents} months={plan.scheduledMonths} selected={yearIndex} /><label className="loan-year-slider"><span>查看第 {year.year} 年{yearIndex === schedule.annualSummary.length - 1 ? '结束时' : '末'}</span><input aria-label="查看还款年份" type="range" min={0} max={schedule.annualSummary.length - 1} value={yearIndex} onChange={event => setSelectedYear(Number(event.target.value))} /></label><div className="loan-year-facts"><span>当年还本金 <b>{usd(year.principalCents)}</b></span><span>当年利息 <b>{usd(year.interestCents)}</b></span><span>剩余本金 <b>{usd(year.balanceCents)}</b></span></div></div>}
+      {year && schedule.totalPrincipalCents > 0 && <div className="loan-chart-section"><div className="tool-inline-heading"><h3>本金余额，逐年看清</h3><span className="tool-note">深色：当前方案</span></div><BalanceChart baseline={plan.baseline} current={schedule} principal={schedule.totalPrincipalCents} months={plan.scheduledMonths} selected={yearIndex} /><label className="loan-year-slider"><span>{locale === 'en' ? `End of year ${year.year}` : `查看第 ${year.year} 年${yearIndex === schedule.annualSummary.length - 1 ? '结束时' : '末'}`}</span><input aria-label="查看还款年份" type="range" min={0} max={schedule.annualSummary.length - 1} value={yearIndex} onChange={event => setSelectedYear(Number(event.target.value))} /></label><div className="loan-year-facts"><span>当年还本金 <b>{usd(year.principalCents)}</b></span><span>当年利息 <b>{usd(year.interestCents)}</b></span><span>剩余本金 <b>{usd(year.balanceCents)}</b></span></div></div>}
       {schedule.annualSummary.length > 0 && <details className="loan-options"><summary>查看每年还款明细 <ChevronDown size={16} /></summary><div className="loan-table-scroll" tabIndex={0} role="region" aria-label="年度还款明细，可横向滚动"><table><caption>当前还款方案，金额为 USD；年份自首期开始计算</caption><thead><tr><th scope="col">年</th><th scope="col">还本金</th><th scope="col">付利息</th><th scope="col">剩余本金</th></tr></thead><tbody>{schedule.annualSummary.map(row => <tr key={row.year}><th scope="row">{row.year}</th><td>{usd(row.principalCents)}</td><td>{usd(row.interestCents)}</td><td>{usd(row.balanceCents)}</td></tr>)}</tbody></table></div></details>}
       {!schedule.payoffMonths && <p className="tool-note">贷款本金为 0，无需偿还贷款本息。房产税、保险与 HOA 仍按自填金额计入。</p>}
     </> : !error && <p className="tool-empty-result">填写房价或本金、利率与年限，马上看到月供和还款走势。</p>}

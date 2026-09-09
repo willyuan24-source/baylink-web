@@ -225,8 +225,8 @@ const ContactPanelSession = ({
             <div className="mt-2 space-y-2">
               {pendingOwner.map((r) => (
                 <div key={r.id} className="rounded-xl border border-black/[0.04] bg-white/80 p-3">
-                  <div className="text-sm font-medium text-baylink-text">{r.requester?.nickname || '用户'}</div>
-                  {r.requestMessage && <p className="mt-1 text-[11px] text-baylink-muted">{r.requestMessage}</p>}
+                  <div className="text-sm font-medium text-baylink-text">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : '用户'}</div>
+                  {r.requestMessage && <p className="mt-1 text-[11px] text-baylink-muted" translate="no">{r.requestMessage}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" disabled={actingId !== null || !approveRequest} onClick={() => void handleOwnerAction(r.id, true)} className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60">{actingId === r.id ? '处理中…' : '同意并发送'}</button>
                     <button type="button" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary disabled:opacity-60">暂不发送</button>

@@ -5,16 +5,18 @@ import { guides } from '../data/guides';
 import { searchGuides } from '../lib/guide-search';
 import { getSlugFromCategory } from '../routing';
 import { ModalShell } from './ui/Modal';
+import { useLocale } from '../i18n/locale';
 
 export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
   onClose: () => void; onSearch: (value: string) => void;
   onNavigate: (path: string) => void; onAsk: (question?: string) => void;
 }) {
   const [query, setQuery] = useState('');
+  const locale = useLocale();
   const [active, setActive] = useState(0);
   const composing = useRef(false);
   const term = query.trim();
-  const matches = useMemo(() => term ? searchGuides(guides, { query: term }).slice(0, 5) : [], [term]);
+  const matches = useMemo(() => term ? searchGuides(guides, { query: term, locale }).slice(0, 5) : [], [term, locale]);
   const run = (action: () => void) => { onClose(); action(); };
   const results = [
     ...matches.map(({ guide, snippet }) => ({

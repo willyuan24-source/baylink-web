@@ -114,7 +114,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                 <div className="flex items-start gap-3">
                   <Avatar src={profile.avatar} name={profile.nickname} size={16} className="shrink-0 ring-2 ring-white" />
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-lg font-bold text-baylink-text leading-tight">{profile.nickname}</h4>
+                    <h4 className="text-lg font-bold text-baylink-text leading-tight" translate="no">{profile.nickname}</h4>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1">
                       {!isPlatformAdmin(profile) && (
                         <span className="rounded-md bg-baylink-section px-1.5 py-px text-[11px] font-bold text-baylink-muted">社区居民</span>
@@ -135,7 +135,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                   </div>
                 </div>
                 <p className="mt-3 text-left text-[13px] leading-relaxed text-baylink-text-secondary">
-                  {profile.bio?.trim() || 'TA 还没介绍自己，先看看最近发布吧。'}
+                  {profile.bio?.trim() ? <span translate="no">{profile.bio.trim()}</span> : 'TA 还没介绍自己，先看看最近发布吧。'}
                 </p>
               </div>
 
@@ -170,7 +170,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                       </a>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary">
-                        小红书 · {xhsRaw}
+                        小红书 · <span translate="no">{xhsRaw}</span>
                       </span>
                     )
                   )}
@@ -227,7 +227,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[11px] text-baylink-muted">无图</div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="line-clamp-1 text-sm font-semibold text-baylink-text">{rp.title}</div>
+                          <div className="line-clamp-1 text-sm font-semibold text-baylink-text" translate="no">{rp.title}</div>
                           <div className="text-[11px] text-baylink-muted">{rp.city} · #{rp.category}</div>
                         </div>
                         <ChevronRight size={16} className="shrink-0 self-center text-gray-300" />

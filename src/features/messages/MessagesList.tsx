@@ -89,10 +89,10 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
               <button type="button" onClick={() => onOpenChat(conversation)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 flex items-start justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-baylink-text"><span className="truncate">{conversation.otherUser.nickname}</span><TrustBadge user={conversation.otherUser} size={12} /></span>
+                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-baylink-text"><span className="truncate" translate="no">{conversation.otherUser.nickname}</span><TrustBadge user={conversation.otherUser} size={12} /></span>
                     <span className="type-footnote shrink-0">{formatChineseDate(conversation.updatedAt)}</span>
                   </div>
-                  <p className="truncate text-[14px] text-baylink-text-secondary">{conversation.lastMessage || '点击开始聊天'}</p>
+                  <p className="truncate text-[14px] text-baylink-text-secondary">{conversation.lastMessage ? <span translate="no">{conversation.lastMessage}</span> : '点击开始聊天'}</p>
                 </div>
                 <ChevronRight size={16} className="shrink-0 text-baylink-muted" />
               </button>

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { translateText } from '../../i18n/locale';
 import { emptyMovingChecklist, MAX_CUSTOM_MOVING_TASKS, MAX_MOVING_TASK_LENGTH, MOVING_CHECKLIST_GROUPS,
   movingChecklistProgress, movingChecklistText, readMovingChecklist, saveMovingChecklist, validateMovingTask,
   type MovingChecklistState } from '../../lib/moving-checklist';
@@ -70,7 +71,7 @@ function MovingChecklistSession({ storageScope, onToast }: MovingChecklistProps)
   const copy = async () => {
     if (copyBusy.current) return;
     copyBusy.current = true;
-    const text = movingChecklistText(state);
+    const text = movingChecklistText(state, translateText);
     setCopyText(text);
     setCopyStatus('copying');
     try {
@@ -96,7 +97,7 @@ function MovingChecklistSession({ storageScope, onToast }: MovingChecklistProps)
     <fieldset className="tool-checklist-group tool-checklist-custom" disabled={readBlocked}>
       <legend>自己补充 <span>({state.custom.length} / {MAX_CUSTOM_MOVING_TASKS})</span></legend>
       {state.custom.map(item => <div key={item.id} className="tool-checklist-item">
-        <label><input type="checkbox" checked={item.done} onChange={() => toggle(item.id)} /><span>{item.label}</span></label>
+        <label><input type="checkbox" checked={item.done} onChange={() => toggle(item.id)} /><span translate="no">{item.label}</span></label>
         <button type="button" className="tool-button-secondary" aria-label={`删除待办：${item.label}`} onClick={() => { persist({ ...state, custom: state.custom.filter(task => task.id !== item.id) }); setInputError(null); }}>删除</button>
       </div>)}
       <form className="tool-actions" onSubmit={event => { event.preventDefault(); add(); }}>

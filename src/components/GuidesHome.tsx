@@ -24,6 +24,7 @@ import { GuideExplorer, GuideImageCredits } from './GuideExplorer';
 import { MonthlySpotlight } from './MonthlySpotlight';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
 import { ReadingShelf } from './ReaderLibrary';
+import { useLocale } from '../i18n/locale';
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -33,6 +34,7 @@ const NEWCOMER_SPOTLIGHT_SLUGS = [
 ];
 
 export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
+  const locale = useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   const tab = GUIDE_CATEGORY_TABS.some(({ id }) => id === categoryParam) ? categoryParam as 'all' | GuideCategory : 'all';
@@ -53,7 +55,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
   const spotlightGuides = NEWCOMER_SPOTLIGHT_SLUGS.map(getGuideBySlug).filter(
     Boolean,
   ) as Guide[];
-  const results = useMemo(() => searchGuides(guides, { query, category: tab }), [tab, query]);
+  const results = useMemo(() => searchGuides(guides, { query, category: tab, locale }), [tab, query, locale]);
   const filtered = useMemo(() => results.map(({ guide }) => guide), [results]);
   const grouped = useMemo(() => {
     if (tab !== "all" || query.trim()) return null;

@@ -1,5 +1,6 @@
 import type { Guide, GuideCategory } from '../data/guides';
 import { guideBlockText } from './guide-content';
+import { getLocale, simplifySearch, translateEditorial, type Locale } from '../i18n/locale';
 
 const synonyms = [
   ['租房', '租屋', '租賃', '租赁'], ['二手', '闲置', '閒置'],
@@ -10,7 +11,7 @@ const synonyms = [
 ];
 
 export const normalizeGuideQuery = (text: string): string => {
-  let value = text.normalize('NFKC').toLowerCase();
+  let value = simplifySearch(text).normalize('NFKC').toLowerCase();
   for (const [canonical, ...aliases] of synonyms) {
     for (const alias of aliases) value = value.replaceAll(alias, canonical);
   }
@@ -39,11 +40,11 @@ const passagesFor = (guide: Guide): Passage[] => {
 /** Search every published passage locally; query tokens use AND, aliases share a canonical form. */
 export const searchGuides = (
   guides: Guide[],
-  { query = '', category = 'all' }: { query?: string; category?: 'all' | GuideCategory } = {},
+  { query = '', category = 'all', locale = getLocale() }: { query?: string; category?: 'all' | GuideCategory; locale?: Locale } = {},
 ): GuideSearchResult[] => {
   const tokens = [...new Set(normalizeGuideQuery(query).split(/\s+/).filter(Boolean))];
   const scored = guides.filter((guide) => category === 'all' || guide.category === category).flatMap((guide) => {
-    const passages = passagesFor(guide);
+    const passages = locale === 'zh-Hans' ? passagesFor(guide) : [...passagesFor(translateEditorial(guide, locale)), ...passagesFor(guide)];
     const fullText = normalizeGuideQuery(passages.map((passage) => passage.text).join(' '));
     if (!tokens.every((token) => fullText.includes(token))) return [];
     const matches = passages.map((passage) => ({

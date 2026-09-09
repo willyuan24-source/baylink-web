@@ -42,7 +42,7 @@ export function SiteNavigation({ active, category, homeActive, user, notificatio
       <button type="button" className="site-baybay-note" onClick={onAsk}><Sparkles size={17} /><span>生活小事，问问 BayBay<small>你的 AI 湾区生活助手</small></span><ArrowUpRight size={15} /></button>
       <div className="site-sidebar-bottom">
         <Link to="/guides/baylink-safety-guide" className="site-safety-link"><ShieldCheck size={15} /> 安心连接，从了解开始</Link>
-        <button type="button" onClick={onAccount} className="site-account"><Avatar src={user?.avatar} name={user?.nickname || '邻居'} size={10} /><span><strong>{user?.nickname || '你好，新邻居'}</strong><small>{user ? '查看我的空间' : '登录，开启你的湾区生活'}</small></span><ArrowUpRight size={16} /></button>
+        <button type="button" onClick={onAccount} className="site-account"><Avatar src={user?.avatar} name={user?.nickname || '邻居'} size={10} /><span><strong translate={user?.nickname ? 'no' : undefined}>{user?.nickname || '你好，新邻居'}</strong><small>{user ? '查看我的空间' : '登录，开启你的湾区生活'}</small></span><ArrowUpRight size={16} /></button>
         <div className="site-legal"><Link to="/terms">条款</Link><Link to="/privacy">隐私</Link><Link to="/sms-consent">短信说明</Link><span>© {new Date().getFullYear()} BAYLINK</span></div>
       </div>
     </aside>

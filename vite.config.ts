@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  esbuild: { jsxImportSource: '@baylink/locale' },
+  resolve: { alias: { '@baylink/locale': fileURLToPath(new URL('./src/i18n', import.meta.url)) } },
+  optimizeDeps: { exclude: ['@baylink/locale/jsx-runtime', '@baylink/locale/jsx-dev-runtime'] },
   build: {
     rollupOptions: {
       output: {

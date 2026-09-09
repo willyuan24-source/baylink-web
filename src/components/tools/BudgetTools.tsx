@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Copy, Plus, X } from 'lucide-react';
 import { calculateRentalBudget, splitSharedBill } from '../../lib/life-tools';
 import type { ShowToast } from '../../app/context';
+import { translateText } from '../../i18n/locale';
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 const money = (value: string) => {
@@ -11,7 +12,7 @@ const money = (value: string) => {
   return Number(value);
 };
 async function copyResult(text: string, onToast: ShowToast) {
-  try { await navigator.clipboard.writeText(text); onToast('计算结果已复制', 'success'); }
+  try { await navigator.clipboard.writeText(translateText(text)); onToast('计算结果已复制', 'success'); }
   catch { onToast('复制失败，请手动选择结果复制', 'error'); }
 }
 const RENT_FIELDS = [

@@ -129,14 +129,14 @@ export const ContactRequestInboxPanel = ({
                   <div className="flex items-center gap-2">
                     <Avatar src={r.requester?.avatar} name={r.requester?.nickname || '用户'} size={8} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-baylink-text">{r.requester?.nickname || '用户'}</p>
+                      <p className="truncate text-sm font-semibold text-baylink-text">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : '用户'}</p>
                       {r.postTitle ? (
                         <button
                           type="button"
                           onClick={() => onOpenPost?.(r.postId)}
                           className="mt-0.5 truncate text-left text-[11px] text-baylink-green hover:underline"
                         >
-                          帖子：{r.postTitle}
+                          帖子：<span translate="no">{r.postTitle}</span>
                         </button>
                       ) : (
                         <p className="mt-0.5 truncate text-[11px] text-baylink-muted">帖子 ID：{r.postId}</p>
@@ -144,7 +144,7 @@ export const ContactRequestInboxPanel = ({
                     </div>
                   </div>
                   {r.requestMessage && (
-                    <p className="mt-2 text-[11px] leading-relaxed text-baylink-text-secondary">{r.requestMessage}</p>
+                    <p className="mt-2 text-[11px] leading-relaxed text-baylink-text-secondary" translate="no">{r.requestMessage}</p>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button

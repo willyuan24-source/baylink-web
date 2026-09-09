@@ -125,7 +125,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="返回"><ChevronLeft size={20} /></button>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="truncate text-[17px] font-semibold text-baylink-text">{conversation.otherUser.nickname}</span>
+            <span className="truncate text-[17px] font-semibold text-baylink-text" translate="no">{conversation.otherUser.nickname}</span>
             <TrustBadge user={conversation.otherUser} size={11} showText adminCompact />
           </div>
         </div>
@@ -199,7 +199,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
                       : 'bg-white border border-black/[0.04] text-baylink-text shadow-rest rounded-tl-md'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{messageText(m)}</p>
+                  <p className="whitespace-pre-wrap break-words" translate="no">{messageText(m)}</p>
                   {m.delivery === 'sending' && <p className="mt-1 text-xs opacity-80">发送中…</p>}
                   {m.delivery === 'failed' && <div className="mt-2 text-xs"><p>发送未确认，请刷新后确认是否送达。</p><button type="button" className="mt-1 underline" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button>{m.type === 'text' && !input && <button type="button" className="ml-3 underline" onClick={() => { draftRevision.current += 1; setInput(m.content); }}>放回输入框</button>}</div>}
                 </div>

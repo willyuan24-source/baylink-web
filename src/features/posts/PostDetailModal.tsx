@@ -234,7 +234,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
         <div className="post-detail__scroll">
           <div className="post-detail__heading">
             <div className="post-detail__eyebrow"><span>{post.category || '湾区生活'}</span><span>{post.type === 'provider' ? '本地资源' : '邻里需求'}</span>{post.isFeatured && <span className="post-detail__featured"><Star size={12} fill="currentColor" /> 编辑精选</span>}</div>
-            <h1>{post.title}</h1>
+            <h1 translate="no">{post.title}</h1>
             <div className="post-detail__availability"><PostAvailabilityBadge post={post} /><p>{availability.detail}</p></div>
             {detailRefreshing && <p className="post-detail__refresh" role="status"><Loader2 size={13} className="animate-spin" /> 正在同步最新内容…</p>}
           </div>
@@ -254,7 +254,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
               )}
               <section className="post-detail__description-section" aria-label="信息详情">
                 <h2>关于这条信息</h2>
-                <p className="post-detail__description">{post.description}</p>
+                <p className="post-detail__description" translate="no">{post.description}</p>
                 {quickTags.length > 0 && <div className="post-detail__tags">{quickTags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
                 <div className="post-detail__reactions">
                   <BookmarkButton post={post} userId={currentUser?.id} />
@@ -267,16 +267,16 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
             <aside className="post-detail__aside" aria-label="发布者和联系方式">
               <div className="post-detail__aside-sticky">
                 <div className="post-detail__summary">
-                  {post.budget && <div className="post-detail__budget"><span>{post.type === 'client' ? '预算' : '价格'}</span><strong>{post.budget}</strong></div>}
+                  {post.budget && <div className="post-detail__budget"><span>{post.type === 'client' ? '预算' : '价格'}</span><strong translate="no">{post.budget}</strong></div>}
                   {(post.city || post.timeInfo || post.category) && <dl className="post-detail__facts">
                     {post.city && <div><dt>所在地区</dt><dd>{post.city}</dd></div>}
-                    {post.timeInfo && <div><dt>时间安排</dt><dd>{post.timeInfo}</dd></div>}
+                    {post.timeInfo && <div><dt>时间安排</dt><dd translate="no">{post.timeInfo}</dd></div>}
                     {post.category && <div><dt>信息分类</dt><dd>{post.category}</dd></div>}
                   </dl>}
                   <div className="post-detail__author">
                     <button type="button" disabled={!canOpenProfile} onClick={handleOpenAuthorProfile} className="post-detail__avatar" aria-label={canOpenProfile ? `查看 ${authorName} 的资料` : undefined}><Avatar src={authorAvatar} name={authorName} size={10} /></button>
                     <div className="post-detail__author-info">
-                      <button type="button" disabled={!canOpenProfile} onClick={handleOpenAuthorProfile} className="post-detail__author-name"><span>{authorName}</span><TrustBadge user={post.author} size={10} showText /></button>
+                      <button type="button" disabled={!canOpenProfile} onClick={handleOpenAuthorProfile} className="post-detail__author-name"><span translate="no">{authorName}</span><TrustBadge user={post.author} size={10} showText /></button>
                       {isPlatformAdmin(post.author) && <p className="post-detail__platform-account">BAYLINK 平台账号发布</p>}
                       <p className="post-detail__author-date">{formatPostDetailAuthorMeta(post)}</p>
                     </div>

@@ -123,11 +123,11 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
             )}
           </div>
 
-          <h3 className="post-card__title"><Link to={`/posts/${post.id}`} state={{ backgroundLocation }} onClick={(event) => { event.stopPropagation(); if (onClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }}>{post.title}</Link></h3>
-          <p className="post-card__description">{post.description}</p>
-          <div className="post-card__location"><MapPin size={13} aria-hidden="true" /><span>{post.city || '湾区'}</span>{post.timeInfo && <><span aria-hidden="true">·</span><span className="post-card__time">{post.timeInfo}</span></>}</div>
+          <h3 className="post-card__title" translate="no"><Link to={`/posts/${post.id}`} state={{ backgroundLocation }} onClick={(event) => { event.stopPropagation(); if (onClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }}>{post.title}</Link></h3>
+          <p className="post-card__description" translate="no">{post.description}</p>
+          <div className="post-card__location"><MapPin size={13} aria-hidden="true" /><span>{post.city || '湾区'}</span>{post.timeInfo && <><span aria-hidden="true">·</span><span className="post-card__time" translate="no">{post.timeInfo}</span></>}</div>
           <div className="post-card__value-row">
-            {post.budget ? <span className="post-card__price">{post.budget}</span> : <span className="post-card__price-note">详情见介绍</span>}
+            {post.budget ? <span className="post-card__price" translate="no">{post.budget}</span> : <span className="post-card__price-note">详情见介绍</span>}
             <PostAvailabilityBadge post={post} />
           </div>
         </div>
@@ -137,7 +137,7 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
         <div className="post-card__author-row">
           <Link to={`/users/${post.authorId}`} state={{ backgroundLocation }} aria-label={`查看 ${post.author.nickname} 的资料`} onClick={(event) => { event.stopPropagation(); if (onAvatarClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onAvatarClick(post.authorId); } }} className="post-card__author">
             <Avatar src={post.author.avatar} name={post.author.nickname} size={7} />
-            <span className="post-card__author-name">{post.author.nickname}</span>
+            <span className="post-card__author-name" translate="no">{post.author.nickname}</span>
           </Link>
           <TrustBadge user={post.author} size={10} />
           <span className="post-card__date">{formatChineseDate(post.createdAt)}{isPostEdited(post) ? ' · 已编辑' : ''}</span>

@@ -6,13 +6,15 @@ import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { clearReadingHistory, rememberGuide, toggleSavedGuide, useReaderLibrary } from '../lib/reader-library';
 import { SITE_URL } from '../lib/seo';
+import { localizedUrl, translateText, useLocale } from '../i18n/locale';
 
 export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
+  const locale = useLocale();
   const { saved } = useReaderLibrary();
   const isSaved = saved.includes(guide.slug);
   const [status, setStatus] = useState('');
   const [shareFallback, setShareFallback] = useState(false);
-  const url = `${SITE_URL}/guides/${guide.slug}`;
+  const url = localizedUrl(`${SITE_URL}/guides/${guide.slug}`, locale);
   useEffect(() => { rememberGuide(guide.slug); }, [guide.slug]);
   const save = () => {
     const result = toggleSavedGuide(guide.slug);
@@ -23,7 +25,7 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
   const share = async () => {
     setShareFallback(false);
     if (navigator.share) {
-      try { await navigator.share({ title: guide.title, text: guide.summary, url }); setStatus('分享菜单已完成。'); return; }
+      try { await navigator.share({ title: translateText(guide.title), text: translateText(guide.summary), url }); setStatus('分享菜单已完成。'); return; }
       catch (error) { if (error instanceof Error && error.name === 'AbortError') return; }
     }
     try { await navigator.clipboard.writeText(url); setStatus('文章链接已复制，可以发给朋友。'); }

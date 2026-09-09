@@ -66,8 +66,8 @@ export function SavedPostsPanel({ userId }: { userId?: string }) {
         const result = lookup[item.id];
         const current = result?.state === 'ready' ? result.post : null;
         return <article key={item.id} className="saved-post-item">
-          <div><span className="saved-post-meta">{current?.category || item.category} · {current?.city || item.city || '湾区'}</span><h3>{current ? <Link to={`/posts/${encodeURIComponent(item.id)}`}>{current.title}<ArrowUpRight size={15} /></Link> : item.title}</h3>
-            {current ? <div className="saved-post-facts"><strong>{current.budget || '详情见介绍'}</strong><PostAvailabilityBadge post={current} /></div> : !result ? <p role="status"><Loader2 size={13} className="animate-spin" /> 正在检查信息…</p> : result.state === 'unavailable' ? <p>这条信息目前不可访问，可以移除收藏。</p> : <p>暂时无法检查，请稍后重试。</p>}
+          <div><span className="saved-post-meta">{current?.category || item.category} · {current?.city || item.city || '湾区'}</span><h3 translate="no">{current ? <Link to={`/posts/${encodeURIComponent(item.id)}`}>{current.title}<ArrowUpRight size={15} /></Link> : item.title}</h3>
+            {current ? <div className="saved-post-facts"><strong>{current.budget ? <span translate="no">{current.budget}</span> : '详情见介绍'}</strong><PostAvailabilityBadge post={current} /></div> : !result ? <p role="status"><Loader2 size={13} className="animate-spin" /> 正在检查信息…</p> : result.state === 'unavailable' ? <p>这条信息目前不可访问，可以移除收藏。</p> : <p>暂时无法检查，请稍后重试。</p>}
           </div><BookmarkButton post={current || item} userId={userId} />
         </article>;
       })}

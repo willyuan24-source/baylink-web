@@ -16,6 +16,8 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "@baylink/locale",
+    "paths": { "@baylink/locale/*": ["./src/i18n/*"] },
 
     /* Linting */
     "strict": true,

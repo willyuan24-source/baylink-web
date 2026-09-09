@@ -40,6 +40,7 @@ import { BlockedUsersModal } from '../components/BlockedUsersModal';
 import ReportModal, { type ReportReason } from '../components/ReportModal';
 import { PostShareSheet } from '../components/PostShareSheet';
 import { SiteNavigation } from '../components/SiteNavigation';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { QuickExplore } from '../components/QuickExplore';
 import { AdDetailModal } from '../features/ads/OfficialAds';
 import { LoginModal } from '../features/auth/LoginModal';
@@ -825,6 +826,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
           <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
           <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
+          <LanguageSwitcher />
         </header>
         {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} />}
 

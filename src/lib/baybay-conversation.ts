@@ -1,4 +1,5 @@
 import { API_BASE_URL, authHeaders } from './api';
+import { getLocale } from '../i18n/locale';
 import { guides } from '../data/guides';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 
@@ -19,9 +20,11 @@ export type BayBayTurn = {
   response?: GuideChatResponse; error?: string;
 };
 
+class BayBayServiceError extends Error {}
+
 export function bayBayErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message.trim() : '';
-  return /[\u4e00-\u9fff]/.test(message) ? message.slice(0, 160) : '暂时连接不上 BayBay，请检查网络后重试。问题已保留。';
+  return message && (error instanceof BayBayServiceError || /[\u4e00-\u9fff]/.test(message)) ? message.slice(0, 160) : '暂时连接不上 BayBay，请检查网络后重试。问题已保留。';
 }
 
 /** Only completed pairs are context; drafts, cancellations and errors never become model history. */
@@ -82,11 +85,11 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context, history }),
+          body: JSON.stringify({ message, context, history, locale: getLocale() }),
         });
         const data = await response.json() as GuideChatResponse;
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
-          throw new Error(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
+          throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         return data;
       })(),

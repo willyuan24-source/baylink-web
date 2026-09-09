@@ -25,6 +25,7 @@ import { GuideEditionNotice } from './MonthlyDealsSpotlight';
 import { FreebieBoard } from './FreebieBoard';
 import { GuideReaderActions } from './ReaderLibrary';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
+import { translateText } from '../i18n/locale';
 
 type GuideDetailProps = {
   slug: string;
@@ -358,7 +359,7 @@ const GuideTemplate = ({ title, text }: { title: string; text: string }) => {
     setStatus('copying');
     try {
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(translateText(text));
       setStatus('copied');
     } catch {
       setStatus('failed');

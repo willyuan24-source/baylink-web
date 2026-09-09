@@ -80,9 +80,9 @@ export function movingChecklistProgress(state: MovingChecklistState) {
   return { completed: state.completed.length + state.custom.filter(item => item.done).length, total: templateIds.size + state.custom.length };
 }
 
-export function movingChecklistText(state: MovingChecklistState) {
+export function movingChecklistText(state: MovingChecklistState, translate = (text: string) => text) {
   const progress = movingChecklistProgress(state);
-  const sections = MOVING_CHECKLIST_GROUPS.map(group => `${group.title}\n${group.items.map(item => `${state.completed.includes(item.id) ? '[x]' : '[ ]'} ${item.label}`).join('\n')}`);
-  if (state.custom.length) sections.push(`自己补充\n${state.custom.map(item => `${item.done ? '[x]' : '[ ]'} ${item.label}`).join('\n')}`);
-  return `搬家清单\n已完成 ${progress.completed} / ${progress.total} 项\n\n${sections.join('\n\n')}`;
+  const sections = MOVING_CHECKLIST_GROUPS.map(group => `${translate(group.title)}\n${group.items.map(item => `${state.completed.includes(item.id) ? '[x]' : '[ ]'} ${translate(item.label)}`).join('\n')}`);
+  if (state.custom.length) sections.push(`${translate('自己补充')}\n${state.custom.map(item => `${item.done ? '[x]' : '[ ]'} ${item.label}`).join('\n')}`);
+  return `${translate('搬家清单')}\n${translate(`已完成 ${progress.completed} / ${progress.total} 项`)}\n\n${sections.join('\n\n')}`;
 }

@@ -67,7 +67,7 @@ export const CommentItem = ({
         <Avatar src={comment.authorAvatar} name={comment.authorName} size={isReply ? 7 : 8} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-            <span className="text-[13px] font-semibold text-baylink-text">{comment.authorName}</span>
+            <span className="text-[13px] font-semibold text-baylink-text" translate="no">{comment.authorName}</span>
             {comment.isAdmin && (
               <UserTrustBadges user={{ isAdmin: true }} size={9} showText adminCompact />
             )}
@@ -77,7 +77,7 @@ export const CommentItem = ({
             )}
           </div>
           <p className={`mt-1 whitespace-pre-wrap break-words text-[14px] leading-relaxed ${isDeleted ? 'italic text-baylink-muted' : 'text-baylink-text-secondary'}`}>
-            {isDeleted ? '评论已删除' : comment.content}
+            {isDeleted ? '评论已删除' : <span translate="no">{comment.content}</span>}
           </p>
           {(showReply || canManage) && (
             <div className="mt-2 flex flex-wrap gap-2">

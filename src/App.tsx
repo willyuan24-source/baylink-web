@@ -4,6 +4,7 @@
 // 直接深链 /posts/:id、/users/:id（无背景）时，以首页 feed 作为覆盖层背景。
 // 除首页外全部路由懒加载（Suspense 边界在 AppLayout 的 <Outlet> 外层）。
 import { lazy } from 'react';
+import './i18n/router';
 import { Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
 import HomePage from './pages/HomePage';

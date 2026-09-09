@@ -16,10 +16,13 @@ import './components/product-improvements.css'
 import './components/reader-library.css'
 import './components/home-discovery.css'
 import './features/baybay-conversation.css'
+import './i18n/languages.css'
+import { initializeLocale } from './i18n/locale'
+import './i18n/metadata'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 
-createRoot(document.getElementById('root')!).render(
+const renderApp = () => createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
@@ -28,3 +31,5 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 )
+
+void initializeLocale().catch(() => { /* The original language remains readable if a chunk fails. */ }).finally(renderApp)

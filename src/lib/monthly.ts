@@ -1,5 +1,6 @@
 import type { MonthlyEvent } from '../data/monthly-types';
 import { MONTHLY_EDITION } from '../data/monthly-edition';
+import { translateText } from '../i18n/locale';
 
 const bayDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' });
 export const getBayAreaToday = (now = new Date()): string => {
@@ -40,8 +41,8 @@ export const buildEventCalendar = (event: MonthlyEvent): string => {
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BAYLINK//Monthly Local Life//ZH', 'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT', `UID:${event.id}@baylink.us`, `DTSTAMP:${event.verifiedAt.replace(/-/g, '')}T120000Z`,
     `DTSTART;VALUE=DATE:${event.startDate.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${nextDate(event.endDate)}`,
-    `SUMMARY:${calendarText(`${event.title}（日期提醒）`)}`, `LOCATION:${calendarText(`${event.venue}, ${event.city}`)}`,
-    `DESCRIPTION:${calendarText(description)}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT', 'END:VEVENT', 'END:VCALENDAR',
+    `SUMMARY:${calendarText(translateText(`${event.title}（日期提醒）`))}`, `LOCATION:${calendarText(`${event.venue}, ${event.city}`)}`,
+    `DESCRIPTION:${calendarText(translateText(description))}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT', 'END:VEVENT', 'END:VCALENDAR',
   ].map(foldCalendarLine).join('\r\n') + '\r\n';
 };
 

@@ -91,13 +91,13 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
             <div className="flex items-start gap-4 relative z-10">
               <Avatar src={user.avatar} name={user.nickname} size={16} className="shadow-md border-2 border-white shrink-0" />
               <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold text-baylink-text flex items-center gap-2 flex-wrap">{user.nickname} <TrustBadge user={user} size={14} /></h2>
+                <h2 className="text-2xl font-bold text-baylink-text flex items-center gap-2 flex-wrap"><span translate="no">{user.nickname}</span> <TrustBadge user={user} size={14} /></h2>
                 {locationLine && (
                   <p className="mt-2 flex items-center gap-1 text-xs text-baylink-text-secondary">
                     <MapPin size={11} className="text-baylink-green/70 shrink-0" />{locationLine}
                   </p>
                 )}
-                <p className="text-sm text-baylink-text-secondary mt-2 line-clamp-2 leading-relaxed">{user.bio || '写一句介绍，展示你的本地生活名片'}</p>
+                <p className="text-sm text-baylink-text-secondary mt-2 line-clamp-2 leading-relaxed">{user.bio ? <span translate="no">{user.bio}</span> : '写一句介绍，展示你的本地生活名片'}</p>
                 {joinDays != null && <p className="text-[11px] text-baylink-muted mt-1">加入 {joinDays} 天</p>}
               </div>
               <button onClick={() => setSubView('edit_profile')} className="member-edit-profile" title="编辑资料" aria-label="编辑资料"><Edit size={16} /></button>
@@ -115,7 +115,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
                     <Instagram size={11} /> Instagram
                   </a>
                 )}
-                {myXhs && <span className="rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">小红书 · {myXhs}</span>}
+                {myXhs && <span className="rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">小红书 · <span translate="no">{myXhs}</span></span>}
                 {myWebsite && (
                   <a href={myWebsite} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">
                     <ExternalLink size={10} /> 网站
@@ -147,7 +147,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">{getOfficialVerificationStatusLabel(user)}</p>
                 {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && (
-                  <p className="mt-1 text-[11px] text-red-500 line-clamp-2">{user.officialVerification.rejectionReason}</p>
+                  <p className="mt-1 text-[11px] text-red-500 line-clamp-2" translate="no">{user.officialVerification.rejectionReason}</p>
                 )}
               </div>
               {officialStatus === 'pending' ? (

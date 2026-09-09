@@ -1,3 +1,13 @@
+// Keep this module dependency-free: the public post server also imports it in native Node ESM.
+let translateText = (text: string): string => text;
+let metadataLocale = 'zh_CN';
+let translateStructuredData = (data: Record<string, unknown>[]): Record<string, unknown>[] => data;
+export const configureMetadataLanguage = (locale: string, translate: (text: string) => string, translateData: typeof translateStructuredData): void => {
+  metadataLocale = locale;
+  translateText = translate;
+  translateStructuredData = translateData;
+  if (currentMetadata) setPageMetadata(currentMetadata);
+};
 export const SITE_URL = 'https://www.baylink.us';
 export const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/brand/baylink-app-icon.png`;
 
@@ -35,18 +45,18 @@ export const safeSocialImage = (image?: string): string => {
 const metadataEntries = (metadata: PageMetadata): [string, string, string][] => {
   const image = safeSocialImage(metadata.image);
   return [
-    ['name', 'description', metadata.description],
+    ['name', 'description', translateText(metadata.description)],
     ['name', 'robots', metadata.noindex ? 'noindex, follow' : 'index, follow'],
     ['property', 'og:type', metadata.type || 'website'],
     ['property', 'og:site_name', 'BAYLINK'],
-    ['property', 'og:title', metadata.title],
-    ['property', 'og:description', metadata.description],
+    ['property', 'og:title', translateText(metadata.title)],
+    ['property', 'og:description', translateText(metadata.description)],
     ['property', 'og:url', absolutePageUrl(metadata.path)],
     ['property', 'og:image', image],
-    ['property', 'og:locale', 'zh_CN'],
+    ['property', 'og:locale', metadataLocale],
     ['name', 'twitter:card', image === DEFAULT_SOCIAL_IMAGE ? 'summary' : 'summary_large_image'],
-    ['name', 'twitter:title', metadata.title],
-    ['name', 'twitter:description', metadata.description],
+    ['name', 'twitter:title', translateText(metadata.title)],
+    ['name', 'twitter:description', translateText(metadata.description)],
     ['name', 'twitter:image', image],
   ];
 };
@@ -56,9 +66,11 @@ export const serializeStructuredData = (data: Record<string, unknown>[]): string
   JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
 /** Used on client navigation. Importing this module is also safe during server rendering. */
+let currentMetadata: PageMetadata | undefined;
 export const setPageMetadata = (metadata: PageMetadata): void => {
   if (typeof document === 'undefined') return;
-  document.title = metadata.title;
+  currentMetadata = metadata;
+  document.title = translateText(metadata.title);
   for (const [attribute, key, value] of metadataEntries(metadata)) {
     let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
     if (!element) {
@@ -80,7 +92,7 @@ export const setPageMetadata = (metadata: PageMetadata): void => {
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.dataset.baylinkStructuredData = '';
-    script.textContent = serializeStructuredData(metadata.structuredData);
+    script.textContent = serializeStructuredData(translateStructuredData(metadata.structuredData));
     document.head.append(script);
   }
 };

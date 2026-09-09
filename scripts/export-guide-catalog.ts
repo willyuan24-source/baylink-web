@@ -1,14 +1,15 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { guides } from '../src/data/guides';
+import { guides, type Guide } from '../src/data/guides';
+import { loadLocale, translateEditorial } from '../src/i18n/locale';
 import { guideBlockText } from '../src/lib/guide-content';
 import photoCredits from '../src/data/guide-photo-credits.json';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const supported = new Set(['rent', 'roommate', 'used', 'moving', 'cleaning', 'ride', 'repair', 'translation', 'part-time', 'other']);
 const categoryMap: Record<string, string> = { commute: 'ride', newcomer: 'other', city: 'other', safety: 'other', events: 'other' };
-const catalog = guides.map((guide) => {
+const makeCatalog = (items: Guide[]) => items.map((guide) => {
   const categories = [...new Set([
     ...(supported.has(guide.category) ? [guide.category] : [categoryMap[guide.category] || 'other']),
     ...guide.recommendedForCategories.filter((category) => supported.has(category)),
@@ -21,6 +22,7 @@ const catalog = guides.map((guide) => {
     ...(guide.editionMonth ? { editionMonth: guide.editionMonth } : {}),
   };
 });
+const catalog = makeCatalog(guides);
 const output = `${JSON.stringify(catalog, null, 2)}\n`;
 const targets = [resolve(root, 'public/baybay-guides.json')];
 if (process.argv[2]) targets.push(resolve(root, process.argv[2]));
@@ -29,6 +31,10 @@ for (const path of targets) {
   await writeFile(path, output, 'utf8');
 }
 console.log(`Exported ${catalog.length} published guides to ${targets.length} catalog file(s).`);
+await loadLocale('en');
+const englishOutput = `${JSON.stringify(makeCatalog(translateEditorial(guides, 'en')), null, 2)}\n`;
+await writeFile(resolve(root, 'public/baybay-guides.en.json'), englishOutput, 'utf8');
+if (process.argv[2]) await writeFile(resolve(root, process.argv[2]).replace(/\.json$/, '.en.json'), englishOutput, 'utf8');
 const creditsPath = resolve(root, 'public/guides/editorial/photo-credits.json');
 await mkdir(dirname(creditsPath), { recursive: true });
 await writeFile(creditsPath, `${JSON.stringify(photoCredits, null, 2)}\n`, 'utf8');

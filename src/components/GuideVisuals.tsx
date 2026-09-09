@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin, X } from 'lucide-r
 import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
 import { ModalShell } from './ui/Modal';
+import { useLocale } from '../i18n/locale';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
@@ -56,6 +57,7 @@ export function GuideRouteRenderer({ block, id }: { block: RouteBlock; id: strin
 }
 
 function RouteSession({ block }: { block: RouteBlock }) {
+  const locale = useLocale();
   const [selected, setSelected] = useState(0);
   const [interactive, setInteractive] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -84,7 +86,7 @@ function RouteSession({ block }: { block: RouteBlock }) {
     {/* All stops remain readable in server-rendered/no-JavaScript HTML. */}
     <div className="guide-route-stops">
       {block.stops.map((stop, index) => <div key={index} id={`${prefix}-stop-${index}`} className="guide-route-stop" hidden={interactive && selected !== index} role={interactive ? 'tabpanel' : undefined} aria-labelledby={interactive ? `${prefix}-tab-${index}` : undefined} tabIndex={interactive ? 0 : undefined}>
-        <span className="guide-route-stop-number">第 {index + 1} 站 / 共 {block.stops.length} 站</span>
+        <span className="guide-route-stop-number">{locale === 'en' ? `Stop ${index + 1} of ${block.stops.length}` : `第 ${index + 1} 站 / 共 ${block.stops.length} 站`}</span>
         <h4>{stop.title}</h4><p>{stop.text}</p>
         {isWebLink(stop.mapUrl) && <a href={stop.mapUrl} target="_blank" rel="noopener noreferrer" aria-label={`在地图中查看：${stop.title}（新标签页）`}><MapPin size={15} aria-hidden="true" />在地图中查看<ArrowUpRight size={15} aria-hidden="true" /></a>}
       </div>)}
