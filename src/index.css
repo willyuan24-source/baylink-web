@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  background-color: #F7F4EC;
-  --baylink-bg: #F7F4EC;
-  --baylink-green: #128256;
-  --baylink-green-hover: #0F704A;
+  background-color: #F8F9F6;
+  --baylink-bg: #F8F9F6;
+  --baylink-green: #176B52;
+  --baylink-green-hover: #12523F;
   --baylink-green-light: #EAF6F0;
-  --baylink-border: #E3DFD6;
-  --baylink-text: #17202A;
+  --baylink-border: #E2E7DF;
+  --baylink-text: #1C3029;
 }
 
 html, body, #root {
@@ -17,10 +17,10 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #F7F4EC;
+  background-color: #F8F9F6;
   font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
   -webkit-font-smoothing: antialiased;
-  color: #17202A;
+  color: #1C3029;
   overflow-x: hidden;
 }
 
@@ -56,7 +56,7 @@ html, body, #root {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, #128256 0%, #0F704A 100%);
+  background-image: linear-gradient(135deg, #176B52 0%, #12523F 100%);
 }
 
 /* Hero photo — public/baylink-hero-bg.webp (bridge bottom-left, map right) */

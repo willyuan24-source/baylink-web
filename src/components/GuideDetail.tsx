@@ -1,18 +1,32 @@
-import { ChevronLeft, CheckCircle2, Lightbulb } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BookOpen,
+  Check,
+  Clock3,
+  Lightbulb,
+  List,
+  ShieldCheck,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   getGuideBySlug,
   getRelatedGuides,
   type GuideBlock,
-} from '../data/guides';
-import { GuideCardMini } from './GuideCard';
+} from "../data/guides";
+import { GuideCardMini } from "./GuideCard";
 
 type GuideDetailProps = {
   slug: string;
   onBack: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
-  onOpenPost: (options: { type: 'client' | 'provider'; categorySlug: string }) => void;
+  onOpenPost: (options: {
+    type: "client" | "provider";
+    categorySlug: string;
+  }) => void;
 };
 
 export const GuideDetail = ({
@@ -23,201 +37,379 @@ export const GuideDetail = ({
   onOpenPost,
 }: GuideDetailProps) => {
   const guide = getGuideBySlug(slug);
+  const articleRef = useRef<HTMLElement>(null);
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const article = articleRef.current;
+    if (!article) return;
+    // The shared layout may scroll the app root, the page, or a bounded pane.
+    // Measure the actual scrolling ancestor instead of assuming main owns it.
+    let ancestor = article.parentElement;
+    let container: HTMLElement | null = null;
+    while (ancestor) {
+      if (
+        /auto|scroll|overlay/.test(getComputedStyle(ancestor).overflowY) &&
+        ancestor.scrollHeight > ancestor.clientHeight
+      ) {
+        container = ancestor;
+        break;
+      }
+      ancestor = ancestor.parentElement;
+    }
+    const target = container || window;
+    let frame = 0;
+    const measure = () => {
+      const rect = article.getBoundingClientRect();
+      const top = container ? container.getBoundingClientRect().top : 0;
+      const visibleHeight = container?.clientHeight || window.innerHeight;
+      const distance = rect.height - visibleHeight;
+      setProgress(
+        distance > 0
+          ? Math.round(
+              Math.min(100, Math.max(0, ((top - rect.top) / distance) * 100)),
+            )
+          : 100,
+      );
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    measure();
+    target.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      target.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [slug]);
 
-  if (!guide) {
+  if (!guide)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] px-6 pb-24 text-center">
-        <p className="text-lg font-semibold text-baylink-text">未找到该指南</p>
-        <p className="mt-2 text-sm text-baylink-muted">链接可能已失效或文章已移除</p>
-        <button type="button" onClick={() => onNavigate('/guides')} className="mt-6 btn-primary px-6 py-2.5 text-sm">
-          返回湾区指南
+      <div className="bl-guide-empty">
+        <BookOpen size={30} aria-hidden="true" />
+        <h1>未找到该指南</h1>
+        <p>链接可能已失效或文章已移除</p>
+        <button type="button" onClick={() => onNavigate("/guides")}>
+          返回湾区指南 <ArrowRight size={15} aria-hidden="true" />
         </button>
       </div>
     );
-  }
-
   const related = getRelatedGuides(guide, 3);
-
-  const handleCta = (block: Extract<GuideBlock, { type: 'cta' }>) => {
-    if (block.primaryAction === 'post' && block.postCategorySlug)
-      onOpenPost({ type: block.postType || 'client', categorySlug: block.postCategorySlug });
-    else if (block.primaryAction === 'category' && block.categorySlug)
+  const headings = guide.blocks.flatMap((block, index) =>
+    block.type === "heading"
+      ? [{ text: block.text, id: `guide-section-${index}` }]
+      : [],
+  );
+  const handleCta = (block: Extract<GuideBlock, { type: "cta" }>) => {
+    if (block.primaryAction === "post" && block.postCategorySlug)
+      onOpenPost({
+        type: block.postType || "client",
+        categorySlug: block.postCategorySlug,
+      });
+    else if (block.primaryAction === "category" && block.categorySlug)
       onNavigate(`/category/${block.categorySlug}`);
-    else if (block.primaryAction === 'guides') onNavigate('/guides');
+    else if (block.primaryAction === "guides") onNavigate("/guides");
   };
+  const contents = (
+    <ol>
+      {headings.map((heading, index) => (
+        <li key={heading.id}>
+          <a href={`#${heading.id}`}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {heading.text}
+          </a>
+        </li>
+      ))}
+      <li>
+        <a href="#guide-sources">
+          <span>
+            <ArrowUpRight size={13} aria-hidden="true" />
+          </span>
+          官方参考资料
+        </a>
+      </li>
+    </ol>
+  );
 
   return (
-    <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
-      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-baylink-border/40 bg-baylink-bg/95 px-4 py-3 backdrop-blur-sm">
-        <button type="button" onClick={onBack} aria-label="返回湾区指南" className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section">
-          <ChevronLeft size={22} />
+    <div className="bl-guide-detail">
+      <div className="bl-guide-reader-bar">
+        <button type="button" onClick={onBack} aria-label="返回湾区指南">
+          <ArrowLeft size={17} aria-hidden="true" />
+          <span>湾区指南</span>
         </button>
-        <span className="text-sm font-medium text-baylink-text truncate">湾区指南</span>
+        <span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span>
+        <span
+          className="bl-guide-reader-progress"
+          aria-label={`阅读进度 ${progress}%`}
+        >
+          {progress}%
+        </span>
+        <div className="bl-guide-progress-track" aria-hidden="true">
+          <span style={{ transform: `scaleX(${progress / 100})` }} />
+        </div>
       </div>
-
-      <article className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 max-w-full">
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
-          <span className="rounded-md bg-baylink-section px-2 py-0.5 font-medium text-baylink-muted">
-            {guide.categoryLabel}
-          </span>
-          {guide.priority === 'P0' && (
-            <span className="rounded-md bg-baylink-green/10 px-2 py-0.5 font-semibold text-baylink-green">
-              新手必看
-            </span>
-          )}
-          <span className="text-baylink-muted">{guide.readMinutes} 分钟阅读</span>
-          <span className="text-baylink-muted">更新 {guide.updatedAt}</span>
-        </div>
-
-        <h1 className="text-xl font-bold leading-snug text-baylink-text">{guide.title}</h1>
-        <p className="mt-2 text-sm text-baylink-text-secondary leading-relaxed">{guide.subtitle}</p>
-        <p className="mt-1 text-xs text-baylink-muted">{guide.summary}</p>
-
-        {guide.audience.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {guide.audience.map((a) => (
-              <span key={a} className="rounded-full bg-baylink-section px-2.5 py-0.5 text-[11px] text-baylink-muted">
-                {a}
-              </span>
-            ))}
+      <article ref={articleRef} className="bl-guide-article">
+        <header className="bl-guide-article-header">
+          <div className="bl-guide-article-kicker">
+            <Link to="/guides">湾区生活指南</Link>
+            <span>/</span>
+            <span>{guide.categoryLabel}</span>
+            {guide.priority === "P0" && (
+              <span className="bl-guide-essential">新手必看</span>
+            )}
           </div>
-        )}
-
-        {guide.cover && (
-          <a
-            href={guide.cover}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group mx-auto mt-6 block w-full max-w-[760px] rounded-2xl border border-baylink-border/60 bg-white/80 p-2 shadow-rest transition hover:border-baylink-green/25 hover:shadow-card"
-            aria-label={`${guide.title} 完整海报`}
-          >
-            <img
-              src={guide.cover}
-              alt={`${guide.title} 海报`}
-              className="mx-auto h-auto w-full max-w-full rounded-xl object-contain"
-            />
-            <div className="mt-2 text-center text-[11px] text-baylink-muted transition group-hover:text-baylink-green">
-              点击查看完整海报
+          <h1>{guide.title}</h1>
+          <p className="bl-guide-subtitle">{guide.subtitle}</p>
+          <div className="bl-guide-byline">
+            <span className="bl-guide-editor-mark">B.</span>
+            <span>
+              <strong>BAYLINK 生活整理</strong>
+              <small>更新 {guide.updatedAt}</small>
+            </span>
+            <span className="bl-guide-reading-time">
+              <Clock3 size={15} aria-hidden="true" />
+              {guide.readMinutes} 分钟阅读
+            </span>
+          </div>
+          <div className="bl-guide-abstract">
+            <span>这篇指南，帮你理清</span>
+            <p>{guide.summary}</p>
+            {guide.audience.length > 0 && (
+              <div className="bl-guide-audience">
+                {guide.audience.map((a) => (
+                  <span key={a}>{a}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </header>
+        <div className="bl-guide-reading-layout">
+          <aside className="bl-guide-toc" aria-label="文章目录">
+            <div className="bl-guide-toc-desktop">
+              <h2>
+                <List size={16} aria-hidden="true" /> 这篇会读到
+              </h2>
+              {contents}
+              <p>先了解，再行动。</p>
             </div>
-          </a>
-        )}
-
-        <div className="mt-6 space-y-4">
-          {guide.blocks.map((block, i) => (
-            <BlockRenderer key={i} block={block} onCta={handleCta} />
-          ))}
-        </div>
-
-        <section className="mt-8 rounded-2xl border border-baylink-border/60 bg-white p-4" aria-labelledby="guide-sources">
-          <h2 id="guide-sources" className="text-sm font-bold text-baylink-text">官方参考资料与办事入口</h2>
-          <p className="mt-1 text-xs leading-relaxed text-baylink-muted">按你的具体情况核对原始资料。票价、开放时间、法规和服务安排可能变化。</p>
-          <ul className="mt-3 space-y-3">
-            {guide.sources.map((source) => (
-              <li key={source.url}>
-                <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-baylink-green underline underline-offset-2">
-                  {source.title}<span className="sr-only">（在新标签页打开）</span>
-                </a>
-                <p className="mt-0.5 text-xs leading-relaxed text-baylink-text-secondary">{source.description}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {guide.sourceNote && (
-          <p className="mt-8 rounded-xl bg-baylink-section/60 p-3 text-[11px] leading-relaxed text-baylink-muted">
-            {guide.sourceNote}
-          </p>
-        )}
-
-        {related.length > 0 && (
-          <div className="mt-8">
-            <h3 className="mb-2 text-sm font-bold text-baylink-text">相关指南</h3>
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar -mx-1 px-1">
-              {related.map((g) => (
-                <GuideCardMini key={g.slug} guide={g} onClick={() => onOpenGuide(g.slug)} />
+            <details className="bl-guide-toc-mobile">
+              <summary>
+                <List size={16} aria-hidden="true" /> 文章目录{" "}
+                <span>{headings.length} 个章节</span>
+              </summary>
+              {contents}
+            </details>
+          </aside>
+          <div className="bl-guide-reading-main">
+            {guide.cover && (
+              <a
+                href={guide.cover}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bl-guide-poster"
+                aria-label={`${guide.title} 完整海报`}
+              >
+                <img src={guide.cover} alt={`${guide.title} 海报`} />
+                <span>
+                  点击查看完整海报 <ArrowUpRight size={14} aria-hidden="true" />
+                </span>
+              </a>
+            )}
+            <div className="bl-guide-prose">
+              {guide.blocks.map((block, index) => (
+                <BlockRenderer
+                  key={`${slug}-${index}`}
+                  block={block}
+                  id={`guide-section-${index}`}
+                  onCta={handleCta}
+                />
               ))}
             </div>
+            <section
+              className="bl-guide-sources"
+              aria-labelledby="guide-sources"
+            >
+              <span className="bl-guide-source-icon">
+                <ShieldCheck size={22} strokeWidth={1.4} aria-hidden="true" />
+              </span>
+              <h2 id="guide-sources">官方参考资料与办事入口</h2>
+              <p>
+                按你的具体情况核对原始资料。票价、开放时间、法规和服务安排可能变化。
+              </p>
+              <ul>
+                {guide.sources.map((source) => (
+                  <li key={source.url}>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {source.title}
+                      <ArrowUpRight size={15} aria-hidden="true" />
+                      <span className="sr-only">（在新标签页打开）</span>
+                    </a>
+                    <p>{source.description}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            {guide.sourceNote && (
+              <p className="bl-guide-source-note">{guide.sourceNote}</p>
+            )}
           </div>
+        </div>
+        {related.length > 0 && (
+          <section className="bl-guide-related">
+            <div className="bl-guide-related-heading">
+              <div>
+                <span className="bl-guide-eyebrow">KEEP EXPLORING</span>
+                <h2>接下来，你可能想看</h2>
+              </div>
+              <Link to="/guides">
+                全部指南 <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="bl-guide-related-grid">
+              {related.map((g) => (
+                <GuideCardMini
+                  key={g.slug}
+                  guide={g}
+                  onClick={() => onOpenGuide(g.slug)}
+                />
+              ))}
+            </div>
+          </section>
         )}
-
-        <button
-          type="button"
-          onClick={() => onNavigate('/guides')}
-          className="mt-6 w-full rounded-xl border border-baylink-border py-3 text-sm font-semibold text-baylink-text transition hover:border-baylink-green/30"
-        >
+        <Link to="/guides" className="bl-guide-return">
+          <ArrowLeft size={16} aria-hidden="true" />
           返回湾区指南
-        </button>
+        </Link>
       </article>
+    </div>
+  );
+};
+
+const Checklist = ({ items }: { items: string[] }) => {
+  const [checked, setChecked] = useState<number[]>([]);
+  return (
+    <div className="bl-guide-checklist">
+      <div className="bl-guide-checklist-heading">
+        <span>行动清单</span>
+        <span aria-live="polite">
+          {checked.length} / {items.length}
+        </span>
+      </div>
+      <ul>
+        {items.map((item, index) => (
+          <li key={index}>
+            <label>
+              <input
+                type="checkbox"
+                checked={checked.includes(index)}
+                onChange={(event) =>
+                  setChecked((current) =>
+                    event.target.checked
+                      ? [...current, index]
+                      : current.filter((value) => value !== index),
+                  )
+                }
+              />
+              <span className="bl-guide-check-box" aria-hidden="true">
+                {checked.includes(index) && (
+                  <Check size={13} strokeWidth={2.5} />
+                )}
+              </span>
+              <span>{item}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <p>可勾选整理思路，离开页面后重置。</p>
     </div>
   );
 };
 
 const BlockRenderer = ({
   block,
+  id,
   onCta,
 }: {
   block: GuideBlock;
-  onCta: (b: Extract<GuideBlock, { type: 'cta' }>) => void;
+  id: string;
+  onCta: (b: Extract<GuideBlock, { type: "cta" }>) => void;
 }) => {
   switch (block.type) {
-    case 'heading':
-      return <h2 className="text-base font-bold text-baylink-text pt-1">{block.text}</h2>;
-    case 'paragraph':
-      return <p className="text-sm leading-relaxed text-baylink-text-secondary">{block.text}</p>;
-    case 'list':
+    case "heading":
+      return <h2 id={id}>{block.text}</h2>;
+    case "paragraph":
+      return <p>{block.text}</p>;
+    case "list":
       return (
-        <ul className="list-disc space-y-1.5 pl-5 text-sm text-baylink-text-secondary">
+        <ul className="bl-guide-bullet-list">
           {block.items.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ul>
       );
-    case 'checklist':
+    case "checklist":
+      return <Checklist items={block.items} />;
+    case "tip":
       return (
-        <ul className="space-y-2">
-          {block.items.map((item, i) => (
-            <li key={i} className="flex gap-2 text-sm text-baylink-text-secondary">
-              <CheckCircle2 size={16} className="shrink-0 text-baylink-green mt-0.5" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+        <aside className="bl-guide-tip">
+          <span>
+            <Lightbulb size={17} aria-hidden="true" />
+            {block.title || "提示"}
+          </span>
+          <p>{block.text}</p>
+        </aside>
       );
-    case 'tip':
+    case "cta":
       return (
-        <div className="rounded-xl border border-baylink-green/20 bg-baylink-green/5 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-baylink-green mb-1">
-            <Lightbulb size={14} />
-            {block.title || '提示'}
-          </div>
-          <p className="text-sm leading-relaxed text-baylink-text-secondary">{block.text}</p>
-        </div>
-      );
-    case 'cta':
-      return (
-        <div className="rounded-2xl border border-baylink-green/25 bg-white p-4 shadow-card">
-          <h3 className="text-sm font-bold text-baylink-text">{block.title}</h3>
-          <p className="mt-1 text-xs text-baylink-muted leading-relaxed">{block.text}</p>
-          {block.primaryAction === 'post' ? (
+        <section className="bl-guide-cta">
+          <span className="bl-guide-eyebrow">YOUR NEXT STEP</span>
+          <h3>{block.title}</h3>
+          <p>{block.text}</p>
+          {block.primaryAction === "post" ? (
             block.postChoices?.length ? (
-              <div className="mt-3 grid gap-2 sm:grid-cols-3" aria-label={block.primaryLabel}>
+              <div
+                className="bl-guide-cta-choices"
+                aria-label={block.primaryLabel}
+              >
                 {block.postChoices.map((choice) => (
-                  <button key={choice.categorySlug} type="button" onClick={() => onCta({ ...block, postCategorySlug: choice.categorySlug })} className="rounded-xl bg-baylink-green px-3 py-2.5 text-sm font-bold text-white transition active:scale-[0.98]">
+                  <button
+                    key={choice.categorySlug}
+                    type="button"
+                    onClick={() =>
+                      onCta({ ...block, postCategorySlug: choice.categorySlug })
+                    }
+                  >
                     {choice.label}
+                    <ArrowUpRight size={15} aria-hidden="true" />
                   </button>
                 ))}
               </div>
             ) : (
-              <button type="button" onClick={() => onCta(block)} className="mt-3 block w-full rounded-xl bg-baylink-green py-2.5 text-center text-sm font-bold text-white transition active:scale-[0.98]">
+              <button type="button" onClick={() => onCta(block)}>
                 {block.primaryLabel}
+                <ArrowRight size={16} aria-hidden="true" />
               </button>
             )
           ) : (
-            <Link to={block.primaryAction === 'category' && block.categorySlug ? `/category/${block.categorySlug}` : '/guides'} className="mt-3 block w-full rounded-xl bg-baylink-green py-2.5 text-center text-sm font-bold text-white transition active:scale-[0.98]">
+            <Link
+              to={
+                block.primaryAction === "category" && block.categorySlug
+                  ? `/category/${block.categorySlug}`
+                  : "/guides"
+              }
+            >
               {block.primaryLabel}
+              <ArrowRight size={16} aria-hidden="true" />
             </Link>
           )}
-        </div>
+        </section>
       );
     default:
       return null;

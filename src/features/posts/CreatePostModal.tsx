@@ -1,6 +1,6 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useRef, useState } from 'react';
-import { X, CheckCircle, Loader2, Plus } from 'lucide-react';
+import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
 import {
@@ -49,7 +49,7 @@ const DefaultCoverPicker = ({
   };
 
   return (
-    <div className="rounded-xl border border-baylink-border/50 bg-white p-3">
+    <div className="member-compose-covers">
       <p className="text-[11px] font-semibold text-baylink-text">没有照片？选择默认封面</p>
       <p className="mt-0.5 text-[11px] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
       {selected && (
@@ -184,9 +184,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   const budgetPlaceholder = isClient ? '预算 / 可支付金额（如: $50/小时）' : '价格 / 收费方式（如: $80起 / 按小时）';
 
   const typeCardClass = (selected: boolean) =>
-    selected ? 'border-baylink-green bg-baylink-green-light text-[#2d6b4f] shadow-sm'
-      : 'border-baylink-border bg-white text-baylink-text-secondary hover:border-baylink-green/35';
-  const categoryClass = (active: boolean) => active ? 'chip chip-active' : 'chip chip-inactive';
+    selected ? 'member-compose-type--selected' : '';
+  const categoryClass = (active: boolean) => `member-category-choice${active ? ' member-category-choice--active' : ''}`;
 
   const addTagToDesc = (tag: string) => {
     setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
@@ -334,9 +333,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   if (isSuccess) {
     return (
       // zoom 只放在内层卡片：整个遮罩层缩放会在入场瞬间露出四周未变暗的屏幕边缘
-      <ModalShell onClose={onClose} label="发布成功" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
-        <div className="relative m-4 w-full max-w-sm overflow-hidden rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-8 text-center shadow-elevated backdrop-blur-xl animate-in zoom-in-95 fade-in duration-200">
-           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-baylink-green-light text-baylink-green">
+      <ModalShell onClose={onClose} label="发布成功" className="member-compose-overlay">
+        <div className="member-compose-success">
+           <div className="member-empty-icon mx-auto mb-5">
               <CheckCircle size={36} />
            </div>
            <h2 className="mb-2 text-xl font-bold text-baylink-text">发布成功</h2>
@@ -346,7 +345,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                {postTrustWarning}
              </p>
            )}
-           <button onClick={onClose} className="w-full py-3.5 btn-primary">知道了</button>
+           <button onClick={onClose} className="member-primary w-full">知道了</button>
         </div>
       </ModalShell>
     );
@@ -361,18 +360,23 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
 
   return (
     // 表单内容较多，误触遮罩不关闭（closeOnBackdrop=false），Esc / 右上角 X 可关
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={isEdit ? '编辑信息' : '发布信息'} className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70]">
-      <div className="bg-baylink-bg w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto pb-safe-bar shadow-2xl border border-baylink-border/40">
-        <div className="flex justify-between items-center mb-5">
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={isEdit ? '编辑信息' : '发布信息'} className="member-compose-overlay">
+      <div className="member-compose-dialog">
+        <div className="member-compose-header">
           <div>
-            <h3 className="text-lg font-bold text-baylink-text">{isEdit ? '编辑信息' : '发布信息'}</h3>
-            <span className="text-[11px] text-baylink-muted">Step {step}/3</span>
+            <span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span>
+            <h2>{isEdit ? '编辑信息' : '让你的信息，遇见需要的人。'}</h2>
+            <p>{isEdit ? '更新内容，让邻居看到准确的信息。' : '发布需求或分享资源，与湾区邻里建立联系。'}</p>
           </div>
-          <button type="button" aria-label="关闭发布窗口" onClick={onClose} className="p-2 bg-white rounded-full hover:bg-baylink-section border border-baylink-border/50"><X size={18} className="text-baylink-muted"/></button>
+          <button type="button" aria-label="关闭发布窗口" onClick={onClose} className="member-compose-close"><X size={18}/></button>
         </div>
+        <ol className="member-compose-progress" aria-label="发布步骤">
+          {['选择类型', '填写内容', '发布设置'].map((label, index) => <li key={label} className={step === index + 1 ? 'is-current' : step > index + 1 ? 'is-complete' : ''} aria-current={step === index + 1 ? 'step' : undefined}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><strong>{label}</strong></li>)}
+        </ol>
+        <div className="member-compose-body">
 
         {step === 1 && (
-          <div className="space-y-5">
+          <div className="member-compose-step space-y-6">
             <div>
               <label className="block text-sm font-semibold text-baylink-text mb-0.5">你想发布什么？</label>
               <p className="text-[11px] text-baylink-muted mb-3">选择后，我们会帮你匹配更合适的展示方式</p>
@@ -380,18 +384,22 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 <button
                   type="button"
                   onClick={() => setForm({...form, type: 'client'})}
-                  className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='client')}`}
+                  aria-pressed={form.type === 'client'}
+                  className={`member-compose-type ${typeCardClass(form.type==='client')}`}
                 >
-                  {form.type === 'client' && <span className="text-[11px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
+                  <span className="member-compose-type-icon"><Search size={24} aria-hidden="true" /></span>
+                  {form.type === 'client' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">发布需求</div>
                   <div className="text-[11px] mt-1 leading-snug">找房、找人帮忙、找服务</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setForm({...form, type: 'provider'})}
-                  className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='provider')}`}
+                  aria-pressed={form.type === 'provider'}
+                  className={`member-compose-type ${typeCardClass(form.type==='provider')}`}
                 >
-                  {form.type === 'provider' && <span className="text-[11px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
+                  <span className="member-compose-type-icon"><Store size={24} aria-hidden="true" /></span>
+                  {form.type === 'provider' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">提供资源</div>
                   <div className="text-[11px] mt-1 leading-snug">房源、二手、服务、接送</div>
                 </button>
@@ -401,16 +409,18 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               <label className="block text-sm font-semibold text-baylink-text mb-2">选择分类</label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(c => (
-                  <button key={c} type="button" onClick={() => setForm({...form, category: c})} className={categoryClass(form.category===c)}>{c}</button>
+                  <button key={c} type="button" onClick={() => setForm({...form, category: c})} aria-pressed={form.category === c} className={categoryClass(form.category===c)}>{c}</button>
                 ))}
               </div>
             </div>
-            <button type="button" disabled={imageCompressing || submitting} onClick={() => { if (!imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="w-full py-3.5 btn-primary mt-2 disabled:opacity-50">下一步</button>
+            <div className="member-compose-actions"><button type="button" disabled={imageCompressing || submitting} onClick={() => { if (!imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-3">
+          <div className="member-compose-step space-y-4">
+            <div className="member-compose-section-title"><span><PenLine size={18} aria-hidden="true" /></span><div><h3>把信息说清楚</h3><p>好的描述，让沟通更简单。</p></div></div>
+            <div className="member-compose-ai">
             <BayBayPostAssist
               postType={form.type}
               categorySlug={getSlugFromCategory(form.category)}
@@ -422,13 +432,14 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
               }
             />
+            </div>
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
                 <label htmlFor="post-title" className="text-[11px] font-semibold text-baylink-text">帖子标题</label>
                 <span className="text-[11px] text-baylink-muted">一句话说清楚需求或服务</span>
               </div>
               <input
-                className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                className="member-compose-input"
                 id="post-title"
                 placeholder={hints.titlePlaceholder}
                 value={form.title}
@@ -452,7 +463,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 <span className="text-[11px] text-baylink-muted">补充位置、价格、时间和具体要求</span>
               </div>
               <textarea
-                className="w-full p-4 bg-white rounded-xl h-36 resize-none outline-none border border-baylink-border/60 placeholder:text-baylink-muted text-sm leading-relaxed focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                className="member-compose-input member-compose-description"
                 id="post-description"
                 placeholder={hints.descriptionPlaceholder}
                 value={form.description}
@@ -514,25 +525,25 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 </div>
               </div>
             )}
-            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-1.5 px-0.5">
-              <span className="text-[11px] font-semibold text-baylink-text">上传照片</span>
+            <div className="member-compose-upload-heading">
+              <span><ImagePlus size={17} aria-hidden="true" />上传照片</span>
               <span className="text-[11px] text-baylink-muted">
                 {uploadedImages.length > 0
                   ? `已上传 ${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 最多上传 5 张照片`
                   : '最多上传 5 张照片'}
               </span>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            <div className="member-compose-images hide-scrollbar">
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
-                  <img src={img} alt="" className="h-[72px] w-[72px] rounded-xl border border-baylink-border/50 object-cover" />
+                  <img src={img} alt="" className="member-compose-image" />
                   <button type="button" aria-label={`移除第 ${i + 1} 张照片`} disabled={imageCompressing || submitting} onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm disabled:opacity-50"><X size={12} /></button>
                 </div>
               ))}
               {uploadedImages.length < MAX_POST_IMAGES && (
                 <label
                   htmlFor="create-post-image-input"
-                  className="relative flex h-[72px] w-[72px] shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-baylink-border bg-white text-baylink-muted transition hover:border-baylink-green/50 hover:text-baylink-green"
+                  className="member-compose-upload"
                 >
                   <input
                     id="create-post-image-input"
@@ -573,15 +584,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               onToggleExpanded={() => setCoversExpanded((v) => !v)}
             />
 
-            <div className="flex gap-2 mt-3">
-              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border hover:bg-baylink-section/50 disabled:opacity-50">上一步</button>
-              <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="flex-[2] py-3 btn-primary disabled:opacity-50">{imageCompressing ? '照片处理中…' : '下一步'}</button>
+            <div className="member-compose-actions">
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="member-secondary flex-1 disabled:opacity-50">上一步</button>
+              <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="member-primary flex-[2] disabled:opacity-50">{imageCompressing ? '照片处理中…' : '下一步'}<ArrowRight size={16} aria-hidden="true" /></button>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-3">
+          <div className="member-compose-step space-y-4">
+            <div className="member-compose-section-title"><span><MapPin size={18} aria-hidden="true" /></span><div><h3>补充发布设置</h3><p>确认地区、时间，以及你希望被联系的方式。</p></div></div>
             <div>
               <label className="block text-xs font-medium text-baylink-text-secondary mb-2">选择地区</label>
               <div className="grid grid-cols-2 gap-2">
@@ -590,35 +602,36 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                     key={r}
                     type="button"
                     onClick={() => setForm({...form, city: r})}
-                    className={`py-2.5 rounded-xl text-xs font-semibold border transition-all ${form.city===r ? 'chip-active' : 'chip-inactive'}`}
+                    aria-pressed={form.city === r}
+                    className={categoryClass(form.city===r)}
                   >
                     {r}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="bg-white p-1 rounded-xl border border-baylink-border/60">
-              <label htmlFor="post-budget" className="sr-only">预算或价格</label>
+            <div className="member-compose-field">
+              <label htmlFor="post-budget">预算或价格</label>
               <input
                 id="post-budget"
-                className="w-full p-3 bg-transparent outline-none font-semibold text-center text-base placeholder:text-baylink-muted"
+                className="member-compose-input"
                 placeholder={budgetPlaceholder}
                 value={form.budget}
                 maxLength={30}
                 onChange={e => setForm({...form, budget: e.target.value})}
               />
             </div>
-            <div className="bg-white p-1 rounded-xl border border-baylink-border/60">
-              <label htmlFor="post-time" className="sr-only">可服务或需要的时间</label>
+            <div className="member-compose-field">
+              <label htmlFor="post-time">可服务或需要的时间</label>
               <input
                 id="post-time"
-                className="w-full p-3 bg-transparent outline-none font-medium text-center text-sm placeholder:text-baylink-muted"
+                className="member-compose-input"
                 placeholder="可服务 / 需要的时间（如: 周末、本周）"
                 value={form.timeInfo}
                 onChange={e => setForm({...form, timeInfo: e.target.value})}
               />
             </div>
-            <ContactPreferenceForm value={contactPreference} onChange={setContactPreference} />
+            <div className="member-compose-contact"><ContactPreferenceForm value={contactPreference} onChange={setContactPreference} /></div>
             {isEdit && (
               <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
                 <label htmlFor="post-status" className="mb-2 block text-xs font-semibold">信息状态</label>
@@ -631,14 +644,15 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 </label>}
               </div>
             )}
-            <div className="flex gap-2 mt-4">
-              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border disabled:opacity-50">上一步</button>
-              <button type="button" onClick={handleSubmit} disabled={submitting || imageCompressing} className="flex-[2] py-3 btn-primary disabled:opacity-50">
+            <div className="member-compose-actions">
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(2)} className="member-secondary flex-1 disabled:opacity-50">上一步</button>
+              <button type="button" onClick={handleSubmit} disabled={submitting || imageCompressing} className="member-primary flex-[2] disabled:opacity-50">
                 {imageCompressing ? '照片处理中…' : submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '确认发布')}
               </button>
             </div>
           </div>
         )}
+        </div>
       </div>
     </ModalShell>
   );

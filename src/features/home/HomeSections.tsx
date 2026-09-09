@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getSlugFromCategory } from '../../routing';
-import { Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CATEGORY_EMOJI, HOME_CHANNELS, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate } from '../../lib/format';
@@ -11,7 +11,7 @@ import { PostCard } from '../posts/PostCard';
 import { FeedSkeleton, HotRecommendSkeleton } from '../../components/ui/Skeleton';
 
 export const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{label}</button>
+  <button type="button" onClick={onClick} aria-pressed={active} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{label}</button>
 );
 
 export const CategoryChip = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => {
@@ -50,39 +50,25 @@ const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' |
 );
 
 export const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: () => void; onBrowseResources: () => void }) => (
-  <section className="mb-2 sm:mb-3">
-    <div className="baylink-hero-photo bay-hero-card relative min-h-[188px] max-h-[220px] sm:min-h-[272px] sm:max-h-[300px]">
-      <div className="baylink-hero-inner">
-        <div className="baylink-hero-content">
-          <h1 className="baylink-hero-title">连接湾区邻里生活</h1>
-          <p className="baylink-hero-subtitle">
-            找房、找服务、买卖二手，也可以发布你的需求。
-          </p>
-          <div className="baylink-hero-cta">
-            <button type="button" onClick={onPublishNeed} className="baylink-hero-btn-primary">
-              发布需求
-            </button>
-            <button type="button" onClick={onBrowseResources} className="baylink-hero-btn-secondary">
-              浏览资源
-            </button>
-          </div>
-        </div>
-      </div>
+  <section className="bay-hero" aria-label="连接湾区生活">
+    <div className="bay-hero-copy">
+      <span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span>
+      <h1>在湾区，<br />找到生活的<span>更多可能。</span></h1>
+      <p>一个家，一份好物，一位靠谱的邻居。<br className="hidden sm:block" />你需要的生活连接，都从这里开始。</p>
+      <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ArrowUpRight size={17} /></button></div>
     </div>
+    <div className="bay-hero-art"><img src="/brand/bay-area-diorama-v2.webp" alt="金门大桥、海湾与湾区街屋组成的微缩景观" width="1254" height="1254" {...{ fetchpriority: 'high' }} /><span className="bay-hero-coordinate">37.8199° N &nbsp; 122.4783° W</span></div>
+    <div className="bay-hero-sticker"><span className="bay-hero-sticker-icon"><HeartHandshake size={19} /></span><span>让附近，变得更亲近<small>Good things happen locally.</small></span></div>
   </section>
 );
 
+const channelIcons = { rent: Building2, used: Sofa, service: HeartHandshake, ride: CarFront, featured: Sparkles };
 export const ChannelShortcuts = ({ onChannel }: { onChannel: (ch: typeof HOME_CHANNELS[number]) => void }) => (
-  <section className="mb-1.5 sm:mb-3">
-    <div className="channel-scroll flex gap-2 overflow-x-auto hide-scrollbar -mx-1 px-1 snap-x snap-mandatory sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-2.5 sm:overflow-visible sm:px-0">
-      {HOME_CHANNELS.map((ch) => (
-        <button key={ch.id} type="button" onClick={() => onChannel(ch)} className={`channel-card channel-card--${ch.id}`}>
-          <span className={`channel-card-icon ${ch.id === 'featured' ? 'bg-amber-50' : ch.id === 'ride' ? 'bg-orange-50' : 'bg-baylink-green-light'}`} aria-hidden="true">{ch.emoji}</span>
-          <div className="channel-card-title">{ch.title}</div>
-          <div className="channel-card-sub">{ch.sub.replace(/ \/ /g, '·')}</div>
-        </button>
-      ))}
-    </div>
+  <section className="bay-channels" aria-label="探索生活分类">
+    {HOME_CHANNELS.map((channel, index) => {
+      const Icon = channelIcons[channel.id as keyof typeof channelIcons];
+      return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ArrowUpRight size={15} className="bay-channel-arrow" /></button>;
+    })}
   </section>
 );
 
@@ -274,15 +260,9 @@ export const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentU
 };
 
 export const FeedSwitch = ({ feedType, onClient, onProvider }: { feedType: PostType, onClient: () => void, onProvider: () => void }) => (
-  <div className="mb-2 flex gap-0.5 rounded-xl border border-baylink-border/30 bg-white/65 p-0.5">
-    <button onClick={onProvider} className={`flex-1 rounded-[10px] px-2 py-1.5 text-left transition-all ${feedType==='provider'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[12px] font-semibold leading-tight">本地资源</div>
-      <div className="mt-0.5 hidden text-[11px] font-normal leading-snug sm:block">房源、服务、二手</div>
-    </button>
-    <button onClick={onClient} className={`flex-1 rounded-[10px] px-2 py-1.5 text-left transition-all ${feedType==='client'?'feed-switch-active':'feed-switch-inactive'}`}>
-      <div className="text-[12px] font-semibold leading-tight">邻里需求</div>
-      <div className="mt-0.5 hidden text-[11px] font-normal leading-snug sm:block">看看谁需要帮忙</div>
-    </button>
+  <div className="bay-feed-tabs" role="group" aria-label="信息类型">
+    <button type="button" onClick={onProvider} aria-pressed={feedType === 'provider'} className={feedType === 'provider' ? 'is-active' : ''}><Building2 size={17} /><span>本地资源</span><small>发现好物与服务</small></button>
+    <button type="button" onClick={onClient} aria-pressed={feedType === 'client'} className={feedType === 'client' ? 'is-active' : ''}><HeartHandshake size={17} /><span>邻里需求</span><small>把需要连接起来</small></button>
   </div>
 );
 

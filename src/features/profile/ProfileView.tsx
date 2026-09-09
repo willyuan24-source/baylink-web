@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   LogOut, MapPin, Edit, Instagram, ExternalLink, BadgeCheck, Phone, UserX,
-  ChevronRight, Info, Flag,
+  ChevronRight, Info, Flag, ArrowUpRight, House, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { BRAND } from '../../brandAssets';
 import { api, safeParse } from '../../lib/api';
@@ -35,65 +35,69 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
   const myXhs = user?.xiaohongshu?.trim() || '';
 
   if (!user) return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-sm mx-auto w-full">
-      <img
-        src={BRAND.baybayAvatar}
-        alt="BayBay"
-        className="mb-6 h-20 w-20 rounded-[24px] object-cover shadow-rest ring-2 ring-baylink-green/15"
-        width={80}
-        height={80}
-      />
-      <h2 className="text-2xl font-bold text-baylink-text mb-2">欢迎来到 BAYLINK</h2>
-      <p className="text-baylink-muted text-center mb-8 text-sm leading-relaxed">连接湾区华人邻里，找房、二手、本地服务和生活指南都在这里。</p>
-      <button onClick={onLogin} className="w-full btn-primary py-3.5 rounded-2xl font-bold shadow-rest active:scale-[0.98] transition">立即登录 / 注册</button>
-      <a href="/guides" className="mt-4 text-[12px] text-baylink-muted hover:text-baylink-green transition">
-        刚来湾区？先看看 <span className="font-semibold text-baylink-green">湾区生活指南</span>
-      </a>
+    <div className="member-profile-guest">
+      <div className="member-page-heading"><div><span className="member-eyebrow">MAKE YOURSELF AT HOME</span><h1>我的 BAYLINK</h1></div></div>
+      <section className="member-welcome-card">
+        <div className="member-welcome-copy">
+          <span className="member-welcome-label"><span /> 你好，新邻居</span>
+          <h2>让湾区，<br />多一点熟悉。</h2>
+          <p>找到需要的，分享拥有的。<br />从这一刻开始，连接属于你的湾区生活。</p>
+          <button onClick={onLogin} className="member-primary member-primary--lime">立即登录 / 注册<ArrowUpRight size={18} aria-hidden="true" /></button>
+        </div>
+        <div className="member-welcome-art" aria-hidden="true">
+          <div className="member-welcome-orbit" />
+          <img src={BRAND.baybayAvatar} alt="" width={160} height={160} />
+          <span className="member-welcome-sticker"><MapPin size={14} /> BAY AREA, CA</span>
+        </div>
+      </section>
+      <div className="member-welcome-benefits">
+        <div><span><House size={22} aria-hidden="true" /></span><h3>发现身边资源</h3><p>房源、二手好物与本地服务</p></div>
+        <div><span><MessageCircle size={22} aria-hidden="true" /></span><h3>与邻里聊一聊</h3><p>私信沟通，按需请求联系方式</p></div>
+        <div><span><Sparkles size={22} aria-hidden="true" /></span><h3>分享你的生活</h3><p>发布资源，让需要的人发现你</p></div>
+      </div>
+      <a href="/guides" className="member-guide-link"><span>刚来湾区？先看看 <strong>湾区生活指南</strong></span><ArrowUpRight size={18} aria-hidden="true" /></a>
     </div>
   );
 
   return (
-    <div className="flex-1 relative w-full h-full bg-[#FAFAFA]">
+    <div className="member-profile-shell">
       {subView === 'menu' && (
-        <div className="p-6 pt-8 w-full h-full overflow-y-auto pb-24">
-          <div className="flex justify-between items-center mb-6"><h1 className="text-2xl font-black text-gray-900">我的名片</h1><button onClick={onLogout} aria-label="退出登录" className="p-2 bg-white rounded-full text-red-500 shadow-sm hover:bg-red-50"><LogOut size={20} /></button></div>
+        <div className="member-profile-content">
+          <div className="member-page-heading"><div><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
 
           {user.accountStatus === 'limited' && (
-            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="member-profile-wide rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               你的账号部分功能受到限制，暂时无法发布内容或发送私信。
             </div>
           )}
           {user.accountStatus === 'suspended' && (
-            <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="member-profile-wide rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               你的账号当前受到限制，部分功能暂时不可用。
             </div>
           )}
 
           {completion < 100 && (
-            <div className="mb-4 rounded-2xl border border-baylink-green/20 bg-baylink-green/[0.06] px-4 py-3">
-              <p className="text-sm font-bold text-baylink-text">资料完成度 {completion}%</p>
-              <p className="mt-0.5 text-[11px] text-baylink-muted leading-snug">完善地区、兴趣和简介，让附近用户更容易认识你。</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-baylink-section">
-                <div className="h-full rounded-full bg-baylink-green transition-all" style={{ width: `${completion}%` }} />
-              </div>
+            <div className="member-profile-completion">
+              <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-baylink-text">资料完成度 {completion}%</p><p className="mt-1 text-xs text-baylink-text-secondary leading-relaxed">完善地区、兴趣和简介，让附近用户更容易认识你。</p><div className="member-completion-track" role="progressbar" aria-label="资料完成度" aria-valuenow={completion} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${completion}%` }} /></div></div>
+              <button type="button" onClick={() => setSubView('edit_profile')} className="member-text-action shrink-0">去完善<ArrowUpRight size={15} aria-hidden="true" /></button>
             </div>
           )}
 
-          <div className="bg-white p-5 rounded-[1.75rem] shadow-soft-glow mb-4 relative overflow-hidden group border border-baylink-border/30">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-green-100/80 to-transparent rounded-full -mr-8 -mt-8" />
+          <div className="member-profile-card">
+            <p className="member-eyebrow mb-5">BAYLINK · 本地生活名片</p>
             <div className="flex items-start gap-4 relative z-10">
               <Avatar src={user.avatar} name={user.nickname} size={16} className="shadow-md border-2 border-white shrink-0" />
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-black text-gray-900 flex items-center gap-2 flex-wrap">{user.nickname} <TrustBadge user={user} size={14} /></h2>
+                <h2 className="text-2xl font-bold text-baylink-text flex items-center gap-2 flex-wrap">{user.nickname} <TrustBadge user={user} size={14} /></h2>
                 {locationLine && (
-                  <p className="mt-1 flex items-center gap-1 text-[11px] text-baylink-text-secondary">
+                  <p className="mt-2 flex items-center gap-1 text-xs text-baylink-text-secondary">
                     <MapPin size={11} className="text-baylink-green/70 shrink-0" />{locationLine}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{user.bio || '写一句介绍，展示你的本地生活名片'}</p>
+                <p className="text-sm text-baylink-text-secondary mt-2 line-clamp-2 leading-relaxed">{user.bio || '写一句介绍，展示你的本地生活名片'}</p>
                 {joinDays != null && <p className="text-[11px] text-baylink-muted mt-1">加入 {joinDays} 天</p>}
               </div>
-              <button onClick={() => setSubView('edit_profile')} className="p-2.5 bg-baylink-section rounded-xl hover:bg-baylink-green/10 transition shrink-0" title="编辑资料"><Edit size={16} className="text-baylink-green" /></button>
+              <button onClick={() => setSubView('edit_profile')} className="member-edit-profile" title="编辑资料" aria-label="编辑资料"><Edit size={16} /></button>
             </div>
             {(myProfileTags.length > 0 || myInterests.length > 0) && (
               <div className="mt-4 space-y-2 relative z-10">
@@ -118,9 +122,9 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
             )}
           </div>
 
-          <div className="mb-4 rounded-[1.5rem] border border-baylink-border/40 bg-white p-4 shadow-sm">
-            <p className="text-xs font-bold text-gray-500 mb-2">信任信息</p>
-            <div className="space-y-1 text-[11px] text-gray-600">
+          <div className="member-profile-panel">
+            <h2 className="member-panel-title">信任信息</h2>
+            <div className="space-y-2 text-xs leading-relaxed text-baylink-text-secondary">
               {joinDays != null && <p>已加入 BAYLINK <span className="font-medium text-gray-900">{joinDays}</span> 天</p>}
               <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
               <p>{getMyOfficialTrustLabel(user)}</p>
@@ -130,15 +134,15 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
             </div>
           </div>
 
-          <div className="mb-4 rounded-[1.5rem] border border-amber-200/60 bg-white p-4 shadow-sm">
+          <div className="member-profile-panel member-verification-panel">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <BadgeCheck size={18} className="shrink-0 text-amber-500" />
-                  <span className="font-bold text-gray-900">资料审核</span>
+                  <BadgeCheck size={18} className="shrink-0 text-baylink-green" />
+                  <h2 className="font-semibold text-baylink-text">资料审核</h2>
                   {(officialStatus === 'approved' || user.isOfficialVerified) && <TrustBadge user={user} size={12} />}
                 </div>
-                <p className="mt-1 text-[11px] text-gray-500">{getOfficialVerificationStatusLabel(user)}</p>
+                <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">{getOfficialVerificationStatusLabel(user)}</p>
                 {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && (
                   <p className="mt-1 text-[11px] text-red-500 line-clamp-2">{user.officialVerification.rejectionReason}</p>
                 )}
@@ -148,40 +152,40 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
               ) : (officialStatus === 'approved' || user.isOfficialVerified) ? (
                 <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">已通过</span>
               ) : (
-                <button type="button" onClick={() => setShowOfficialModal(true)} className="shrink-0 rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white">
+                <button type="button" onClick={() => setShowOfficialModal(true)} className="member-verification-action">
                   {officialStatus === 'rejected' ? '重新申请' : '申请认证'}
                 </button>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <button onClick={() => setSubView('my_posts')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:scale-110 transition"><Edit size={20} /></div><div className="font-bold text-gray-900">我的发布</div><div className="text-[11px] text-baylink-muted">管理帖子</div></button>
-            <button onClick={() => setSubView('support')} className="bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition text-left group"><div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition"><Phone size={20} /></div><div className="font-bold text-gray-900">联系客服</div><div className="text-[11px] text-baylink-muted">帮助支持</div></button>
+          <div className="member-profile-actions">
+            <button onClick={() => setSubView('my_posts')} className="member-action-tile"><span className="member-action-icon"><Edit size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>我的发布</strong><span>管理帖子与发布状态</span></button>
+            <button onClick={() => setSubView('support')} className="member-action-tile"><span className="member-action-icon member-action-icon--warm"><Phone size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>联系客服</strong><span>获取帮助与支持</span></button>
           </div>
-          <button onClick={onOpenBlockedUsers} className="mb-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+          <button onClick={onOpenBlockedUsers} className="member-menu-row">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:scale-110 transition"><UserX size={20} /></div>
+              <div className="member-menu-icon"><UserX size={20} /></div>
               <div><div className="font-bold text-gray-900">已屏蔽用户</div><div className="text-[11px] text-baylink-muted">管理私信屏蔽名单</div></div>
             </div>
             <ChevronRight size={18} className="text-gray-300" />
           </button>
-          <button onClick={() => setSubView('about')} className="w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition"><Info size={20} /></div><div className="font-bold text-gray-900">关于我们</div></div><ChevronRight size={18} className="text-gray-300" /></button>
-          <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-baylink-muted">
+          <button onClick={() => setSubView('about')} className="member-menu-row"><div className="flex items-center gap-4"><div className="member-menu-icon"><Info size={20} /></div><div className="font-semibold text-baylink-text">关于我们</div></div><ChevronRight size={18} className="text-baylink-muted" /></button>
+          <div className="member-profile-legal">
             <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
             <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
             <a href="/sms-consent" className="hover:text-baylink-green transition">短信条款</a>
           </div>
           {user.role === 'admin' && (
             <>
-              <button onClick={() => setSubView('admin_official')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+              <button onClick={() => setSubView('admin_official')} className="member-menu-row">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition"><BadgeCheck size={20} /></div>
                   <div><div className="font-bold text-gray-900">资料审核管理</div><div className="text-[11px] text-baylink-muted">查看并处理资料审核申请</div></div>
                 </div>
                 <ChevronRight size={18} className="text-gray-300" />
               </button>
-              <button onClick={() => setSubView('admin_reports')} className="mt-4 w-full bg-white p-5 rounded-[1.5rem] shadow-sm hover:shadow-md transition flex items-center justify-between group">
+              <button onClick={() => setSubView('admin_reports')} className="member-menu-row">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
                   <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[11px] text-baylink-muted">查看并处理用户举报</div></div>

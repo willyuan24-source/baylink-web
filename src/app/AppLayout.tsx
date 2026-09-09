@@ -3,13 +3,13 @@
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, useNavigate, type Location } from 'react-router-dom';
 import {
-  MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, Shield, Loader2,
+  MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, MapPin, ArrowUpRight, Loader2,
 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { BRAND } from '../brandAssets';
 import { api, SOCKET_URL } from '../lib/api';
 import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
-import { CATEGORIES, HOME_CHANNELS, matchesCategory } from '../lib/constants';
+import { HOME_CHANNELS, matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
 import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
 import { setPageMetadata } from '../lib/seo';
@@ -17,9 +17,10 @@ import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
 } from '../lib/types';
 import {
-  getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isGuidesPath, isKnownAppPath,
+  getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isKnownAppPath,
 } from '../routing';
 import type { AppContextValue } from './context';
+import { usePageScroll } from './usePageScroll';
 
 import Avatar from '../components/Avatar';
 import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
@@ -34,8 +35,9 @@ import { ResetPasswordModal } from '../components/ResetPasswordModal';
 import { BlockedUsersModal } from '../components/BlockedUsersModal';
 import ReportModal, { type ReportReason } from '../components/ReportModal';
 import { PostShareSheet } from '../components/PostShareSheet';
-import { CategoryChip } from '../features/home/HomeSections';
-import { AdDetailModal, OfficialAds } from '../features/ads/OfficialAds';
+import { SiteNavigation } from '../components/SiteNavigation';
+import { QuickExplore } from '../components/QuickExplore';
+import { AdDetailModal } from '../features/ads/OfficialAds';
 import { LoginModal } from '../features/auth/LoginModal';
 
 // chunk 拉取失败重试一次，瞬时网络错误 / 发版换 hash 不至于直接炸到根级 ErrorBoundary
@@ -59,6 +61,7 @@ const overlayChunkFallback = (
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
 export default function AppLayout({ realLocation }: { realLocation: Location }) {
   const location = realLocation;
+  usePageScroll(location);
   const navigate = useNavigate();
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
@@ -69,6 +72,17 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const [user, setUser] = useState<UserData | null>(getStoredUser);
   const [showLogin, setShowLogin] = useState(false);
+  const [quickExploreOpen, setQuickExploreOpen] = useState(false);
+  useEffect(() => {
+    const openSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing && !document.getElementById('root')?.inert) {
+        event.preventDefault();
+        setQuickExploreOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', openSearch);
+    return () => window.removeEventListener('keydown', openSearch);
+  }, []);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
@@ -493,7 +507,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       let more = true;
       let pagesFetched = 0;
       while (true) {
-        let queryParams = `?type=${feedType}&page=${currentPage}&limit=5`;
+        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6`;
         if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
         if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
         if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
@@ -763,111 +777,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     contactRequestRefreshKey, setContactRequestRefreshKey, setPendingContactRequestCount,
   };
 
-  // 🖥️ PC 侧边栏
-  const LeftSidebar = () => (
-    <div className="hidden lg:flex flex-col w-[200px] xl:w-[220px] h-screen sticky top-0 py-6 px-4 border-r border-baylink-border/60 bg-baylink-bg-alt overflow-y-auto shrink-0">
-      <div className="mb-5 px-0.5">
-        <img
-          src={BRAND.logoHorizontal}
-          alt="BAYLINK"
-          className="h-9 w-auto max-w-[180px] object-contain object-left"
-          width={180}
-          height={36}
-        />
-        <span className="text-[11px] text-baylink-muted block mt-0.5 leading-tight">连接湾区真实生活信息</span>
-      </div>
-      <nav className="space-y-0.5 flex-1">
-        <Link to="/" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</Link>
-        <Link to="/guides" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isGuidesPath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><BookOpen size={18} strokeWidth={isGuidesPath(location.pathname)?2.5:2}/> 湾区指南</Link>
-        <Link to="/messages" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
-            <div className="relative">
-              <MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>
-              {showMessagesBadge && (
-                messagesBadgeCount > 0 ? (
-                  <span className="absolute -top-1.5 -right-2 min-w-[16px] rounded-full bg-baylink-orange px-1 py-0.5 text-center text-[9px] font-bold leading-none text-white">{messagesBadgeCount}</span>
-                ) : (
-                  <div className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-baylink-orange" />
-                )
-              )}
-            </div> 消息
-        </Link>
-        <Link to="/me" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</Link>
-      </nav>
-      {isHomePath(location.pathname) && (
-        <div className="mt-4 sidebar-panel">
-           <h3 className="sidebar-section-title mb-2.5">探索分类</h3>
-           <div className="flex flex-wrap gap-1.5">
-             <button onClick={() => navigateToCategory('全部')} className={`chip ${categoryFilter==='全部'?'chip-active':'chip-inactive'}`}>全部</button>
-             {CATEGORIES.map(c => <CategoryChip key={c} label={c} active={categoryFilter===c} onClick={() => navigateToCategory(c)} />)}
-           </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // 🖥️ PC 右侧栏
-  const RightSidebar = () => (
-    <div className="hidden lg:block w-[280px] xl:w-[300px] h-screen sticky top-0 py-6 px-4 border-l border-baylink-border/50 bg-baylink-bg overflow-y-auto shrink-0">
-       <BayBayAssistantEntry
-         variant="sidebar"
-         onNavigate={navigate}
-         onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
-       />
-       <div className="sidebar-panel mb-2.5">
-         <h3 className="sidebar-section-title mb-2">搜索建议</h3>
-         <p className="mb-2 text-[11px] text-baylink-muted">试试这些关键词，快速查找本地信息</p>
-         <div className="space-y-1 text-[12px] text-baylink-text-secondary">
-           {['退房清洁', '周末搬家', '近 BART 长租', '机场接送'].map((t) => (
-             <button
-               key={t}
-               type="button"
-               onClick={() => { setKeyword(t); navigate('/'); }}
-               className="flex w-full items-center justify-between rounded-lg bg-baylink-section/35 px-2.5 py-1.5 text-left transition hover:bg-baylink-green/[0.08] hover:text-baylink-green"
-             >
-               {t}
-               <Search size={11} className="text-baylink-muted/50" />
-             </button>
-           ))}
-         </div>
-       </div>
-       <div className="sidebar-note mb-2.5 flex gap-2">
-         <Shield size={13} className="text-baylink-green/70 shrink-0 mt-0.5"/>
-         <p className="text-[11px] leading-relaxed">手机号验证与资料审核不代表交易担保。看房、面交和付款前，请核实对方身份与具体信息。</p>
-       </div>
-       <div className="mb-3">
-          <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
-       </div>
-       {user ? (
-          <div className="sidebar-panel mb-3">
-             <div className="flex items-center gap-2.5 mb-3">
-                <Avatar src={user.avatar} name={user.nickname} size={9} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-baylink-text truncate">{user.nickname}</div>
-                  <div className="text-[11px] text-baylink-muted">{user.role==='admin'?'管理员':'湾区邻居'}</div>
-                </div>
-             </div>
-             <button onClick={() => openCreate('client')} className="w-full py-2.5 btn-primary text-[11px] flex items-center justify-center gap-1"><Plus size={15}/> 发布需求</button>
-          </div>
-       ) : (
-          <div className="sidebar-panel mb-3 text-center py-4">
-             <h3 className="sidebar-section-title mb-1">加入 BAYLINK</h3>
-             <p className="text-[11px] text-baylink-muted mb-3">连接湾区华人邻里</p>
-             <button onClick={() => setShowLogin(true)} className="w-full py-2.5 btn-primary text-[11px]">立即登录</button>
-          </div>
-       )}
-       <div className="mt-6 text-[11px] text-baylink-muted text-center space-y-1.5">
-         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
-           <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
-           <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
-           <a href="/sms-consent" className="hover:text-baylink-green transition">短信条款</a>
-         </div>
-         <div>© {new Date().getFullYear()} BAYLINK</div>
-       </div>
-    </div>
-  );
 
   return (
-    <div className="min-h-screen bg-baylink-bg flex justify-center font-sans text-baylink-text relative overflow-x-hidden">
+    <div className="site-app font-sans">
       {/* locationKey 必须用真实位置：导航（含浏览器后退）时取消挂起的确认框，避免过期闭包执行 */}
       <ConfirmHost locationKey={location.key} />
       {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -880,29 +792,24 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         />
       )}
 
-      {LeftSidebar()}
-      <div className="w-full max-w-[500px] lg:max-w-[640px] xl:max-w-[680px] bg-baylink-bg-alt min-h-screen lg:shadow-none shadow-card relative flex flex-col lg:border-x border-baylink-border/50 mx-auto lg:mx-0 flex-1 min-w-0">
-        <div className="lg:hidden">{isHomePath(location.pathname) && <header className="px-4 pt-safe-top pb-2 flex justify-between items-center gap-2 bg-baylink-bg/90 backdrop-blur-sm z-20 sticky top-0">
-            <div className="min-w-0 flex-1 pr-1">
-                <img
-                  src={BRAND.logoHorizontal}
-                  alt="BAYLINK"
-                  className="h-7 w-auto max-w-[min(156px,calc(100vw-6rem))] object-contain object-left"
-                  width={156}
-                  height={28}
-                />
-                <p className="text-[11px] text-baylink-muted mt-px leading-tight">连接湾区真实生活信息</p>
-            </div>
-            <button aria-label={user ? '查看我的资料' : '登录账号'} onClick={()=>!user?setShowLogin(true):navigate('/me')} className="shrink-0 rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
-        </header>}</div>
+      <a href="#scroll-container" className="site-skip-link">跳到主要内容</a>
+      <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate('client')} onAsk={() => setBaybayPanelOpen(true)} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
+      <div className="site-workspace">
+        <header className="site-topbar">
+          <Link to="/" className="site-mobile-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="150" height="38" /></Link>
+          <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
+          <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
+          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
+        </header>
+        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => { setKeyword(value); navigate('/'); }} onAsk={() => setBaybayPanelOpen(true)} />}
 
-        <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
+        <main className="site-main" id="scroll-container" tabIndex={-1}>
            <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
              <Outlet context={ctx} />
            </Suspense>
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
+        <nav className="site-mobile-nav pb-safe-bar" aria-label="手机导航">
           <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
            <Link to="/" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted'}`}>
              <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
@@ -1098,7 +1005,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
         {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
       </div>
-      {RightSidebar()}
+
     </div>
   );
 }

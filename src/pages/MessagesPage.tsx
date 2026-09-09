@@ -1,5 +1,6 @@
 // 消息页：联系方式请求收件箱 + 会话列表（/messages/:threadId 时主区留空，聊天由布局层覆盖渲染）
 import { Link, useParams } from 'react-router-dom';
+import { MessageCircle, LockKeyhole, ArrowLeft } from 'lucide-react';
 import { api } from '../lib/api';
 import { useApp } from '../app/context';
 import { ContactRequestInboxPanel } from '../components/ContactRequestInboxPanel';
@@ -22,14 +23,15 @@ export default function MessagesPage() {
       : chatRouteStatus === 'not-found' ? '对话不存在，或当前账号无法访问。'
         : chatRouteStatus === 'error' ? chatRouteError || '请检查网络后重试。' : '正在安全读取你的会话。';
     return (
-      <div className="px-5 py-10 text-center">
-        <div className="surface-card mx-auto max-w-md p-6">
-          <h1 className="type-section-title">{title}</h1>
-          <p className="mt-3 text-sm text-baylink-text-secondary">{description}</p>
+      <div className="member-route-state">
+        <div className="member-empty-card">
+          <span className="member-empty-icon"><LockKeyhole size={30} aria-hidden="true" /></span>
+          <h1>{title}</h1>
+          <p>{description}</p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            {!user && <button type="button" onClick={() => setShowLogin(true)} className="btn-primary px-4 py-2">登录 / 注册</button>}
-            {user && chatRouteStatus === 'error' && <button type="button" onClick={retryChatRoute} className="btn-primary px-4 py-2">重试</button>}
-            <Link to="/messages" className="rounded-xl border border-baylink-border px-4 py-2 text-sm font-semibold text-baylink-text">返回消息列表</Link>
+            {!user && <button type="button" onClick={() => setShowLogin(true)} className="member-primary">登录 / 注册</button>}
+            {user && chatRouteStatus === 'error' && <button type="button" onClick={retryChatRoute} className="member-primary">重试</button>}
+            <Link to="/messages" className="member-secondary"><ArrowLeft size={15} aria-hidden="true" />返回消息列表</Link>
           </div>
         </div>
       </div>
@@ -37,9 +39,10 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-0 bg-baylink-bg">
-      <div className="px-5 pt-safe-top pb-4 bg-white/75 backdrop-blur-xl sticky top-0 z-10 border-b border-black/[0.06]">
-        <h2 className="type-page-title">消息</h2>
+    <div className="member-messages-page">
+      <div className="member-page-heading">
+        <div><span className="member-eyebrow">STAY CONNECTED</span><h1>消息</h1><p>每一段湾区生活，从一句你好开始。</p></div>
+        <span className="member-heading-icon"><MessageCircle size={24} aria-hidden="true" /></span>
       </div>
       {user && (
         <ContactRequestInboxPanel

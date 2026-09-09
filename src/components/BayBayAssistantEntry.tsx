@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ChevronRight, X, Sparkles, Loader2, BookOpen } from 'lucide-react';
+import { ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUpRight, ArrowUp } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard, type BayBayInteractiveCard } from './BayBaySmartCard';
@@ -219,7 +219,7 @@ export const BayBayAssistantEntry = ({
   return (
     <>
       {variant === 'headless' ? null : variant === 'sidebar' ? (
-        <div className="sidebar-panel mb-3 overflow-hidden">
+        <div className="member-baybay-entry member-baybay-entry--sidebar">
           <div className="flex gap-2.5">
             <img
               src={BRAND.baybayAvatar}
@@ -236,7 +236,7 @@ export const BayBayAssistantEntry = ({
               <button
                 type="button"
                 onClick={openPanel}
-                className="mt-2 w-full rounded-xl bg-baylink-green py-2 text-[11px] font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
+                className="member-primary mt-3 w-full"
               >
                 问问 BayBay
               </button>
@@ -247,7 +247,7 @@ export const BayBayAssistantEntry = ({
         <button
           type="button"
           onClick={openPanel}
-          className="mb-1.5 flex w-full min-h-[52px] items-center gap-2 rounded-xl border border-black/[0.04] bg-white/70 px-2.5 py-2 text-left transition active:scale-[0.99] hover:border-baylink-green/15 hover:bg-baylink-green/[0.03]"
+          className="member-baybay-entry member-baybay-entry--inline"
         >
           <img
             src={BRAND.baybayAvatar}
@@ -269,27 +269,28 @@ export const BayBayAssistantEntry = ({
         <ModalShell
           onClose={close}
           labelledBy="baybay-panel-title"
-          className="fixed inset-0 z-[105] flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] lg:items-center lg:p-4"
+          className="member-baybay-overlay"
         >
           <div
-            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-baylink-bg-alt shadow-2xl max-h-[78vh] lg:mb-0 lg:max-h-[min(85vh,640px)] lg:rounded-[24px] lg:border lg:border-baylink-border/50"
+            className="member-baybay-dialog"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex shrink-0 items-start justify-between gap-2 border-b border-baylink-border/40 px-4 py-3 sm:gap-3 sm:py-4 sm:px-5">
+            <div className="member-baybay-header">
               <div className="flex min-w-0 gap-3">
                 <img
                   src={BRAND.baybayAvatar}
                   alt=""
-                  className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-baylink-green/15 sm:h-12 sm:w-12 sm:rounded-2xl"
+                  className="member-baybay-avatar"
                   width={48}
                   height={48}
                 />
                 <div className="min-w-0">
-                  <h2 id="baybay-panel-title" className="flex items-center gap-1 text-sm font-bold text-baylink-text sm:text-base">
-                    <Sparkles size={14} className="text-baylink-green shrink-0 sm:w-[15px] sm:h-[15px]" />
+                  <span className="member-compose-eyebrow">A LITTLE HELP, A LOT CLOSER</span>
+                  <h2 id="baybay-panel-title">
+                    <Sparkles size={15} className="shrink-0" aria-hidden="true" />
                     <span className="line-clamp-1">BayBay 湾区生活助手</span>
                   </h2>
-                  <p className="mt-0.5 text-[11px] leading-snug text-baylink-muted sm:text-xs sm:leading-relaxed">
+                  <p>
                     问租房、找服务、买卖二手、发帖求助，我可以帮你整理方向。
                   </p>
                 </div>
@@ -297,36 +298,37 @@ export const BayBayAssistantEntry = ({
               <button
                 type="button"
                 onClick={close}
-                className="shrink-0 rounded-full p-2 text-baylink-muted transition hover:bg-baylink-section"
+                className="member-compose-close"
                 aria-label="关闭"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 pb-4 sm:px-5 baybay-scroll">
+            <div className="member-baybay-body baybay-scroll">
               {/* 问问 BayBay */}
-              <section className="mb-4 min-w-0">
-                <h3 className="text-[13px] font-bold text-baylink-text">问问 BayBay</h3>
-                <p className="mt-0.5 text-[11px] text-baylink-muted leading-snug">
+              <section className="member-baybay-question-section">
+                <h3>湾区生活，有什么想问的？</h3>
+                <p className="member-baybay-intro">
                   租房、室友、二手、搬家、清洁、通勤，都可以先问我。
                 </p>
 
-                <div className="mt-2.5 flex gap-2">
+                <div className="member-baybay-composer">
                   <input
                     type="text"
+                    aria-label="向 BayBay 提问"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229 && handleAsk()}
                     placeholder="例如：刚来湾区租房要注意什么？"
-                    className="min-w-0 flex-1 rounded-xl border border-baylink-green/25 bg-white px-3 py-2.5 text-sm text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/45 focus:ring-1 focus:ring-baylink-green/15"
+                    className="member-baybay-question-input"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={handleAsk}
                     disabled={loading || !question.trim()}
-                    className="shrink-0 rounded-xl bg-baylink-green px-3.5 py-2.5 text-xs font-bold text-white transition hover:opacity-95 disabled:opacity-50"
+                    className="member-baybay-ask"
                   >
                     {loading ? (
                       <span className="flex items-center gap-1 whitespace-nowrap">
@@ -334,7 +336,7 @@ export const BayBayAssistantEntry = ({
                         BayBay 正在想...
                       </span>
                     ) : (
-                      '问一下'
+                      <><span>问一下</span><ArrowUp size={15} aria-hidden="true" /></>
                     )}
                   </button>
                 </div>
@@ -343,18 +345,18 @@ export const BayBayAssistantEntry = ({
                     等 /ai/guide-chat 升级为真 LLM 后再恢复，并确保它们是展示质量的最佳案例 */}
 
                 {chatError && (
-                  <p className="mt-2.5 rounded-lg bg-amber-50/80 px-3 py-2 text-[11px] text-amber-800/90">
+                  <p role="alert" className="member-baybay-error">
                     BayBay 暂时没连上，可以先看看下面这些入口。
                   </p>
                 )}
 
                 {answer && (
-                  <div className="mt-3 rounded-xl border border-baylink-green/15 bg-white p-3 shadow-sm">
-                    <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold text-baylink-green">
+                  <div className="member-baybay-answer" aria-live="polite">
+                    <div className="member-baybay-answer-label">
                       <Sparkles size={12} />
                       BayBay 建议
                     </div>
-                    <p className="whitespace-pre-wrap text-[12px] leading-[1.45] text-baylink-text-secondary">{answer}</p>
+                    <p className="member-baybay-answer-text">{answer}</p>
 
                     {interactiveCards.length > 0 && interactiveCards.map((card) => (
                       <BayBaySmartCard key={card.id} card={card} onAction={handleAction} />
@@ -369,7 +371,7 @@ export const BayBayAssistantEntry = ({
                               key={g.slug}
                               type="button"
                               onClick={() => { onNavigate(g.url); close(); }}
-                              className="inline-flex max-w-full items-center gap-1 rounded-lg border border-baylink-border/40 bg-baylink-section/40 px-2 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.06]"
+                              className="member-baybay-guide-chip"
                             >
                               <BookOpen size={10} className="shrink-0 text-baylink-green/70" />
                               <span className="truncate">{g.title}</span>
@@ -386,7 +388,7 @@ export const BayBayAssistantEntry = ({
                             key={`${action.label}-${i}`}
                             type="button"
                             onClick={() => handleAction(action)}
-                            className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition active:scale-[0.98] ${
+                            className={`member-baybay-action ${
                               action.type === 'postAssist'
                                 ? 'bg-baylink-green text-white shadow-sm hover:opacity-95'
                                 : 'border border-baylink-border/50 bg-white text-baylink-text hover:border-baylink-green/30'
@@ -405,16 +407,17 @@ export const BayBayAssistantEntry = ({
                 )}
               </section>
 
-              <div className="mb-2 border-t border-baylink-border/30 pt-3">
-                <p className="mb-2 text-[11px] font-semibold text-baylink-muted">快捷入口</p>
-                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
+              <div className="member-baybay-shortcuts">
+                <div className="member-baybay-shortcuts-heading"><p>也可以，从这里开始</p><span>快捷入口</span></div>
+                <div className="member-baybay-shortcut-grid">
                   {shortcuts.map((item) => (
                     <button
                       key={item.title}
                       type="button"
                       onClick={() => handleShortcut(item)}
-                      className="flex min-h-[56px] w-full min-w-0 cursor-pointer flex-col justify-center rounded-xl border border-baylink-border/50 bg-white px-3 py-2.5 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.03] active:scale-[0.99] sm:min-h-[68px] sm:p-3"
+                      className="member-baybay-shortcut"
                     >
+                      <ArrowUpRight size={14} className="member-baybay-shortcut-arrow" aria-hidden="true" />
                       <span className="text-[13px] font-semibold text-baylink-text sm:text-sm">{item.title}</span>
                       <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-baylink-muted sm:text-[11px]">
                         {item.description}

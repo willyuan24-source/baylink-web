@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   X, Share2, MoreHorizontal, Flag, UserX, Star, Edit, Trash2, Loader2,
-  MessageSquare, Send,
+  MessageSquare, Send, MessageCircle,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
@@ -201,221 +201,151 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onOpenCh
     onReport?.(post);
   };
 
-  const chromeIconBtn = 'p-2.5 rounded-full bg-white/75 backdrop-blur-xl border border-black/[0.04] shadow-rest text-baylink-text transition hover:bg-white active:scale-95';
-
   return (
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={post.title || '帖子详情'} className="fixed inset-0 bg-baylink-bg z-50 flex flex-col animate-in slide-in-from-bottom-full duration-300 w-full h-full sm:rounded-t-[2rem] sm:top-10 sm:max-w-md sm:mx-auto sm:shadow-elevated">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] bg-white/80 backdrop-blur-xl pt-safe-top shrink-0">
-        <button type="button" onClick={onClose} className={chromeIconBtn} aria-label="关闭"><X size={20} /></button>
-        <div className="flex gap-2 items-center">
-          <button type="button" onClick={() => onShare(post)} className={`${chromeIconBtn} hover:text-baylink-green`} aria-label="分享"><Share2 size={20} /></button>
-          {hasMenu && (
-            <div className="relative">
-              <button type="button" onClick={() => setMenuOpen((v) => !v)} className={chromeIconBtn} aria-label="更多">
-                <MoreHorizontal size={20} />
-              </button>
-              {menuOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[128px] rounded-xl border border-black/[0.06] bg-white py-1 shadow-elevated">
-                    {showReport && (
-                      <button type="button" onClick={openReport} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/60">
-                        <Flag size={13} /> 举报帖子
-                      </button>
-                    )}
-                    {showReport && onToggleBlockUser && authorId && (
-                      <button type="button" onClick={() => { setMenuOpen(false); onToggleBlockUser(authorId); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/60">
-                        <UserX size={13} /> {blockedUserIds?.includes(authorId) ? '取消屏蔽' : '屏蔽该用户'}
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <button type="button" onClick={() => { setMenuOpen(false); onToggleFeature?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50">
-                        <Star size={13} /> {post.isFeatured ? '取消热门推荐' : '加入热门推荐'}
-                      </button>
-                    )}
-                    {(isAdmin || isOwner) && (
-                      <button type="button" onClick={() => { setMenuOpen(false); onEdit?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-baylink-text hover:bg-baylink-section/60">
-                        <Edit size={13} /> 编辑
-                      </button>
-                    )}
-                    {(isAdmin || isOwner) && (
-                      <button type="button" onClick={() => { setMenuOpen(false); deletePost(); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
-                        <Trash2 size={13} /> 删除
-                      </button>
-                    )}
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={post.title || '帖子详情'} className="post-detail">
+      <div className="post-detail__window">
+        <header className="post-detail__toolbar">
+          <button type="button" onClick={onClose} className="post-detail__close" aria-label="关闭"><X size={18} /><span>返回浏览</span></button>
+          <span className="post-detail__toolbar-label">BAYLINK · 邻里生活</span>
+          <div className="post-detail__toolbar-actions">
+            <button type="button" onClick={() => onShare(post)} className="post-detail__icon-button" aria-label="分享"><Share2 size={18} /></button>
+            {hasMenu && (
+              <div className="post-card__menu-wrap">
+                <button type="button" onClick={() => setMenuOpen((value) => !value)} className="post-detail__icon-button" aria-label="更多" aria-expanded={menuOpen}><MoreHorizontal size={20} /></button>
+                {menuOpen && (
+                  <>
+                    <div className="post-card__menu-dismiss" onClick={() => setMenuOpen(false)} />
+                    <div className="post-card__menu" role="group" aria-label="帖子操作">
+                      {showReport && <button type="button" onClick={openReport}><Flag size={15} /> 举报帖子</button>}
+                      {showReport && onToggleBlockUser && authorId && <button type="button" onClick={() => { setMenuOpen(false); onToggleBlockUser(authorId); }}><UserX size={15} /> {blockedUserIds?.includes(authorId) ? '取消屏蔽' : '屏蔽该用户'}</button>}
+                      {isAdmin && <button type="button" onClick={() => { setMenuOpen(false); onToggleFeature?.(post); }}><Star size={15} /> {post.isFeatured ? '取消编辑精选' : '加入编辑精选'}</button>}
+                      {(isAdmin || isOwner) && <button type="button" onClick={() => { setMenuOpen(false); onEdit?.(post); }}><Edit size={15} /> 编辑</button>}
+                      {(isAdmin || isOwner) && <button type="button" className="post-card__danger" onClick={() => { setMenuOpen(false); void deletePost(); }}><Trash2 size={15} /> 删除</button>}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </header>
+
+        <div className="post-detail__scroll">
+          <div className="post-detail__heading">
+            <div className="post-detail__eyebrow"><span>{post.category || '湾区生活'}</span><span>{post.type === 'provider' ? '本地资源' : '邻里需求'}</span>{post.isFeatured && <span className="post-detail__featured"><Star size={12} fill="currentColor" /> 编辑精选</span>}</div>
+            <h1>{post.title}</h1>
+            <div className="post-detail__availability"><PostAvailabilityBadge post={post} /><p>{availability.detail}</p></div>
+            {detailRefreshing && <p className="post-detail__refresh" role="status"><Loader2 size={13} className="animate-spin" /> 正在同步最新内容…</p>}
+          </div>
+
+          <div className="post-detail__columns">
+            <div className="post-detail__main">
+              {imageUrls.length > 0 && (
+                <div className={`post-detail__gallery ${imageUrls.length > 1 ? 'post-detail__gallery--multiple' : ''}`}>
+                  {imageUrls.map((url: string, index: number) => (
+                    <button key={url + index} type="button" className="post-detail__photo" onClick={() => onImageClick(url)} aria-label={`查看 ${post.title} 的第 ${index + 1} 张图片`}>
+                      <img src={url} alt={`${post.title}，图片 ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" className={isDefaultCoverUrl(url) ? 'post-detail__photo--system' : ''} />
+                      {isDefaultCoverUrl(url) && <span className="post-detail__photo-label">系统封面</span>}
+                      <span className="post-detail__photo-number">{index + 1} / {imageUrls.length}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <section className="post-detail__description-section" aria-label="信息详情">
+                <h2>关于这条信息</h2>
+                <p className="post-detail__description">{post.description}</p>
+                {quickTags.length > 0 && <div className="post-detail__tags">{quickTags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
+                <div className="post-detail__reactions">
+                  {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
+                  <button type="button" onClick={() => onShare(post)} className="post-action"><Share2 size={15} /><span>分享给朋友</span></button>
+                </div>
+              </section>
+            </div>
+
+            <aside className="post-detail__aside" aria-label="发布者和联系方式">
+              <div className="post-detail__aside-sticky">
+                <div className="post-detail__summary">
+                  {post.budget && <div className="post-detail__budget"><span>{post.type === 'client' ? '预算' : '价格'}</span><strong>{post.budget}</strong></div>}
+                  {(post.city || post.timeInfo || post.category) && <dl className="post-detail__facts">
+                    {post.city && <div><dt>所在地区</dt><dd>{post.city}</dd></div>}
+                    {post.timeInfo && <div><dt>时间安排</dt><dd>{post.timeInfo}</dd></div>}
+                    {post.category && <div><dt>信息分类</dt><dd>{post.category}</dd></div>}
+                  </dl>}
+                  <div className="post-detail__author">
+                    <button type="button" disabled={!canOpenProfile} onClick={handleOpenAuthorProfile} className="post-detail__avatar" aria-label={canOpenProfile ? `查看 ${authorName} 的资料` : undefined}><Avatar src={authorAvatar} name={authorName} size={10} /></button>
+                    <div className="post-detail__author-info">
+                      <button type="button" disabled={!canOpenProfile} onClick={handleOpenAuthorProfile} className="post-detail__author-name"><span>{authorName}</span><TrustBadge user={post.author} size={10} showText /></button>
+                      {isPlatformAdmin(post.author) && <p className="post-detail__platform-account">BAYLINK 平台账号发布</p>}
+                      <p className="post-detail__author-date">{formatPostDetailAuthorMeta(post)}</p>
+                    </div>
                   </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto px-5 py-5 pb-32 bg-baylink-bg">
-        <h1 className="text-[24px] sm:text-[28px] font-semibold tracking-tight text-baylink-text mb-3 leading-tight">{post.title}</h1>
-        <div className="mb-5"><PostAvailabilityBadge post={post} /><p className="mt-2 text-sm text-baylink-text-secondary">{availability.detail}</p></div>
-        <div className="surface-card flex gap-2.5 mb-6 items-center p-3">
-          <button
-            type="button"
-            disabled={!canOpenProfile}
-            onClick={handleOpenAuthorProfile}
-            className={`shrink-0 rounded-full transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80 active:scale-95' : 'cursor-default'}`}
-            aria-label={canOpenProfile ? `查看 ${authorName} 的资料` : undefined}
-          >
-            <Avatar src={authorAvatar} name={authorName} size={10} />
-          </button>
-          <div className="min-w-0 flex-1">
-            <button
-              type="button"
-              disabled={!canOpenProfile}
-              onClick={handleOpenAuthorProfile}
-              className={`flex max-w-full flex-wrap items-center gap-1 text-left text-[15px] font-semibold text-baylink-text transition ${canOpenProfile ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-            >
-              <span className="truncate">{authorName}</span>
-              <TrustBadge user={post.author} size={10} showText />
-            </button>
-            {isPlatformAdmin(post.author) && (
-              <p className="type-footnote mt-0.5 text-emerald-700">BAYLINK 平台账号发布</p>
-            )}
-            <p className="type-footnote mt-0.5 line-clamp-2 leading-snug">{formatPostDetailAuthorMeta(post)}</p>
+                </div>
+                <div className="post-detail__contact">
+                  <PostDetailContactPanel
+                    section="contact"
+                    post={post}
+                    currentUser={currentUser}
+                    isOwner={isOwner}
+                    onLoginNeeded={onLoginNeeded}
+                    onOpenChat={onOpenChat}
+                    authorName={authorName}
+                    showToast={showToast}
+                    onAskBayBay={onAskBayBay}
+                    requestContact={async (postId) => {
+                      try {
+                        const res = await api.requestPostContact(postId);
+                        return { status: res.status, threadId: res.threadId };
+                      } catch (error) {
+                        const detail = error as { requestStatus?: string; threadId?: string };
+                        return { status: detail?.requestStatus || '', error: friendlyErrorMessage(error, '请求失败'), threadId: detail?.threadId };
+                      }
+                    }}
+                    approveRequest={(id) => api.approveContactRequest(id)}
+                    declineRequest={(id) => api.declineContactRequest(id)}
+                  />
+                </div>
+                <div className="post-detail__baybay">
+                  <PostDetailContactPanel
+                    section="baybay"
+                    post={post}
+                    currentUser={currentUser}
+                    isOwner={isOwner}
+                    onLoginNeeded={onLoginNeeded}
+                    onOpenChat={onOpenChat}
+                    authorName={authorName}
+                    showToast={showToast}
+                    onAskBayBay={onAskBayBay}
+                    requestContact={async () => ({ status: '' })}
+                  />
+                </div>
+              </div>
+            </aside>
+
+            <section className="post-detail__comments" aria-label="评论">
+              <h2><MessageSquare size={19} /><span>邻里聊聊</span><span className="post-detail__comment-count">{activeCommentCount}</span></h2>
+              <CommentThread comments={comments} currentUser={currentUser} onReply={handleReplyComment} onEdit={handleEditComment} onDelete={handleDeleteComment} onLoginNeeded={onLoginNeeded} disabled={commentBusy} />
+            </section>
           </div>
         </div>
-        {(post.budget || post.timeInfo || post.category || post.city) && (
-          <div className="surface-card mb-5 p-3.5 space-y-2">
-            {detailRefreshing && (
-              <p className="type-caption text-baylink-muted flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> 正在同步最新内容…</p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {post.budget && (
-                <span className="rounded-lg bg-baylink-green/[0.08] px-2.5 py-1 text-[11px] font-bold text-baylink-green">预算/价格：{post.budget}</span>
-              )}
-              {post.city && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">区域：{post.city}</span>
-              )}
-              {post.timeInfo && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">时间：{post.timeInfo}</span>
-              )}
-              {post.category && (
-                <span className="rounded-lg bg-baylink-section/80 px-2.5 py-1 text-[11px] font-semibold text-baylink-text-secondary">分类：{post.category}</span>
-              )}
-            </div>
+
+        <div className="post-detail__composer">
+          {commentMode.type !== 'new' && <div className="post-detail__reply-state"><span>{commentMode.type === 'reply' ? `回复 ${commentMode.nickname}` : '编辑评论'}</span><button type="button" disabled={commentBusy} onClick={resetCommentInput}>取消</button></div>}
+          <div className="post-detail__composer-row">
+            <MessageSquare size={19} className="post-detail__composer-icon" aria-hidden="true" />
+            <input
+              className="post-detail__comment-input"
+              placeholder={commentPlaceholder}
+              aria-label={commentMode.type === 'reply' ? `回复 ${commentMode.nickname}` : commentMode.type === 'edit' ? '编辑评论内容' : '评论内容'}
+              disabled={commentBusy}
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onFocus={() => { if (!currentUser) onLoginNeeded(); }}
+              onCompositionStart={() => { composing.current = true; }}
+              onCompositionEnd={() => { composing.current = false; }}
+              onKeyDown={event => { if (event.key === 'Enter' && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void submitComment(); } }}
+            />
+            <button type="button" onClick={submitComment} className="post-detail__send" disabled={!input.trim() || commentBusy} aria-label="发送评论">{commentBusy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}<span>发送</span></button>
+            {!isOwner && post.status !== 'closed' && <button type="button" className="post-detail__quick-contact" onClick={() => { if (!currentUser) return onLoginNeeded(); onOpenChat(authorId, authorName, post.title); }}><MessageCircle size={18} /><span>私信</span></button>}
           </div>
-        )}
-        <p className="mb-6 whitespace-pre-wrap text-[16px] leading-7 text-baylink-text-secondary">{post.description}</p>
-        <div className="space-y-3 mb-6">
-          {imageUrls.map((u: string, i: number) => (
-            <div key={i} className="relative overflow-hidden rounded-[22px] bg-baylink-section/50">
-              <img
-                src={u}
-                alt={`${post.title}，图片 ${i + 1}`}
-                onClick={() => onImageClick(u)}
-                className={`w-full cursor-zoom-in rounded-[22px] shadow-rest transition hover:opacity-95 ${isDefaultCoverUrl(u) ? 'max-h-[360px] object-contain bg-baylink-section/80 p-2' : ''}`}
-              />
-              {isDefaultCoverUrl(u) && (
-                <span className="absolute left-3 top-3 rounded-md bg-black/40 px-1.5 py-0.5 type-caption text-white/90">系统封面</span>
-              )}
-            </div>
-          ))}
-        </div>
-        {quickTags.length > 0 && (
-          <div className="mb-5 flex flex-wrap gap-1.5">
-            {quickTags.map((tag) => (
-              <span key={tag} className="rounded-full border border-baylink-green/15 bg-baylink-green/[0.06] px-2 py-0.5 text-[11px] font-medium text-baylink-green">#{tag}</span>
-            ))}
-          </div>
-        )}
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
-          <button
-            type="button"
-            onClick={() => onShare(post)}
-            className="inline-flex items-center gap-1 rounded-lg border border-black/[0.06] bg-white/90 px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary transition hover:bg-baylink-section/50 active:scale-[0.98]"
-          >
-            <Share2 size={14} />
-            分享给朋友
-          </button>
-        </div>
-        <PostDetailContactPanel
-          section="contact"
-          post={post}
-          currentUser={currentUser}
-          isOwner={isOwner}
-          onLoginNeeded={onLoginNeeded}
-          onOpenChat={onOpenChat}
-          authorName={authorName}
-          showToast={showToast}
-          onAskBayBay={onAskBayBay}
-          requestContact={async (postId) => {
-            try {
-              const res = await api.requestPostContact(postId);
-              return { status: res.status, threadId: res.threadId };
-            } catch (error) {
-              const detail = error as { requestStatus?: string; threadId?: string };
-              return { status: detail?.requestStatus || '', error: friendlyErrorMessage(error, '请求失败'), threadId: detail?.threadId };
-            }
-          }}
-          approveRequest={(id) => api.approveContactRequest(id)}
-          declineRequest={(id) => api.declineContactRequest(id)}
-        />
-        <PostDetailContactPanel
-          section="baybay"
-          post={post}
-          currentUser={currentUser}
-          isOwner={isOwner}
-          onLoginNeeded={onLoginNeeded}
-          onOpenChat={onOpenChat}
-          authorName={authorName}
-          showToast={showToast}
-          onAskBayBay={onAskBayBay}
-          requestContact={async () => ({ status: '' })}
-        />
-        <div className="border-t border-baylink-border/50 pt-6">
-          <h3 className="type-section-title mb-4 flex items-center gap-2">
-            <MessageSquare size={18} className="text-baylink-green" /> 评论 ({activeCommentCount})
-          </h3>
-          <CommentThread
-            comments={comments}
-            currentUser={currentUser}
-            onReply={handleReplyComment}
-            onEdit={handleEditComment}
-            onDelete={handleDeleteComment}
-            onLoginNeeded={onLoginNeeded}
-            disabled={commentBusy}
-          />
-        </div>
-      </div>
-      <div className="border-t border-black/[0.06] bg-white/80 backdrop-blur-xl absolute bottom-0 w-full">
-        {commentMode.type !== 'new' && (
-          <div className="flex items-center justify-between border-b border-black/[0.04] px-4 py-2">
-            <span className="text-[11px] text-baylink-muted">
-              {commentMode.type === 'reply' ? `回复 ${commentMode.nickname}` : '编辑评论'}
-            </span>
-            <button type="button" disabled={commentBusy} onClick={resetCommentInput} className="text-[11px] font-medium text-baylink-green disabled:opacity-50">
-              取消
-            </button>
-          </div>
-        )}
-        <div className="flex gap-3 items-center px-4 pt-3 pb-safe-bar">
-          <input
-            className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text transition placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
-            placeholder={commentPlaceholder}
-            aria-label={commentMode.type === 'reply' ? `回复 ${commentMode.nickname}` : commentMode.type === 'edit' ? '编辑评论内容' : '评论内容'}
-            disabled={commentBusy}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onFocus={() => { if (!currentUser) onLoginNeeded(); }}
-            onCompositionStart={() => { composing.current = true; }}
-            onCompositionEnd={() => { composing.current = false; }}
-            onKeyDown={e => { if (e.key === 'Enter' && !composing.current && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) { e.preventDefault(); void submitComment(); } }}
-          />
-          <button
-            type="button"
-            onClick={submitComment}
-            className={`p-3 rounded-full text-white transition active:scale-90 ${input.trim() ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
-            disabled={!input.trim() || commentBusy}
-            aria-label="发送评论"
-          >
-            {commentBusy ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-          </button>
         </div>
       </div>
     </ModalShell>

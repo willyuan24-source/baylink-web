@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, ChevronRight } from 'lucide-react';
+import { MessageCircle, ChevronRight, ArrowUpRight, MessagesSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { TrustBadge } from '../../components/TrustBadge';
@@ -63,26 +64,32 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
   }, [userId, retryKey]);
 
   if (!currentUser) return (
-    <div className="flex min-h-[300px] w-full flex-col items-center justify-center p-8 text-center">
-      <div className="surface-card mb-4 flex h-20 w-20 items-center justify-center rounded-full"><MessageCircle size={32} className="text-baylink-muted" /></div>
-      <h3 className="font-semibold text-baylink-text">登录后查看私信和联系方式请求</h3>
-      <button type="button" onClick={onLoginNeeded} className="btn-primary mt-4 px-5 py-2.5">登录 / 注册</button>
+    <div className="member-messages-guest">
+      <div className="member-empty-card">
+        <div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div>
+        <span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span>
+        <h2>身边的联系，都在这里。</h2>
+        <p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p>
+        <button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ArrowUpRight size={17} aria-hidden="true" /></button>
+        <Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link>
+      </div>
     </div>
   );
   return (
-    <div className="flex-1 overflow-y-auto p-4 pb-24 w-full bg-baylink-bg">
-      {error && <div role="alert" className="surface-card mb-3 p-4 text-sm text-baylink-text-secondary"><p>{error}</p><button type="button" onClick={() => setRetryKey(key => key + 1)} className="mt-2 font-semibold text-baylink-green">重新加载</button></div>}
+    <div className="member-conversations">
+      <div className="member-list-label"><span>最近对话</span><MessageCircle size={15} aria-hidden="true" /></div>
+      {error && <div role="alert" className="member-message-error"><p>{error}</p><button type="button" onClick={() => setRetryKey(key => key + 1)} className="member-text-action mt-2">重新加载</button></div>}
       {loading && convs.length === 0 ? <ConversationListSkeleton /> : convs.length > 0 ? (
-        <div className="space-y-3">
+        <div className="member-conversation-list">
           {convs.map(conversation => (
-            <div key={conversation.id} className="surface-card flex min-h-[72px] items-center gap-3.5 p-4">
+            <div key={conversation.id} className="member-conversation-row">
               <button type="button" onClick={() => onOpenProfile?.(conversation.otherUser.id)} disabled={!onOpenProfile} aria-label={`查看 ${conversation.otherUser.nickname} 的资料`} className="shrink-0 rounded-full">
                 <Avatar src={conversation.otherUser.avatar} name={conversation.otherUser.nickname} size={12} />
               </button>
               <button type="button" onClick={() => onOpenChat(conversation)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 flex items-start justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-1 text-[17px] font-semibold text-baylink-text"><span className="truncate">{conversation.otherUser.nickname}</span><TrustBadge user={conversation.otherUser} size={12} /></span>
+                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-baylink-text"><span className="truncate">{conversation.otherUser.nickname}</span><TrustBadge user={conversation.otherUser} size={12} /></span>
                     <span className="type-footnote shrink-0">{formatChineseDate(conversation.updatedAt)}</span>
                   </div>
                   <p className="truncate text-[14px] text-baylink-text-secondary">{conversation.lastMessage || '点击开始聊天'}</p>
@@ -93,10 +100,11 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
           ))}
         </div>
       ) : !error && (
-        <div className="surface-card mx-1 mt-8 px-6 py-10 text-center">
-          <MessageCircle size={28} className="mx-auto mb-3 text-baylink-green" />
-          <p className="text-[17px] font-semibold text-baylink-text">还没有消息</p>
-          <p className="mt-2 text-[14px] leading-relaxed text-baylink-text-secondary">看到合适的房源、二手或服务，可以点「私信」开始沟通。</p>
+        <div className="member-empty-card member-empty-card--compact">
+          <span className="member-empty-icon"><MessageCircle size={28} aria-hidden="true" /></span>
+          <h2>还没有消息</h2>
+          <p>看到合适的房源、二手或服务，<br />可以点「私信」开始沟通。</p>
+          <Link to="/" className="member-secondary mt-5">发现身边好物与服务<ArrowUpRight size={16} aria-hidden="true" /></Link>
         </div>
       )}
     </div>
