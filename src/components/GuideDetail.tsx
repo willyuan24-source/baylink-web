@@ -21,10 +21,12 @@ import {
 import { GuideCardMini } from "./GuideCard";
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
+import { GuideEditionNotice } from './MonthlyDealsSpotlight';
 
 type GuideDetailProps = {
   slug: string;
   returnTo?: string;
+  today?: string;
   onBack: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
@@ -39,6 +41,7 @@ export const GuideDetail = (props: GuideDetailProps) => <GuideDetailSession key=
 const GuideDetailSession = ({
   slug,
   returnTo = '/guides',
+  today,
   onBack,
   onOpenGuide,
   onNavigate,
@@ -190,6 +193,7 @@ const GuideDetailSession = ({
               {guide.readMinutes} 分钟阅读
             </span>
           </div>
+          {guide.editionMonth && <GuideEditionNotice editionMonth={guide.editionMonth} checkedAt={guide.updatedAt} today={today} />}
           <GuideFigure image={media.cover} variant="cover" />
           <div className="bl-guide-abstract">
             <span>这篇指南，帮你理清</span>
@@ -397,6 +401,8 @@ const BlockRenderer = ({
       return <GuideTemplate title={block.title} text={block.text} />;
     case "route":
       return <GuideRouteRenderer block={block} id={id} />;
+    case "link":
+      return <div className="bl-guide-source-link">{/^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p>{block.text}</p></div>;
     case "tip":
       return (
         <aside className="bl-guide-tip">

@@ -36,7 +36,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets'].flatMap(name =>
   JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')) as (GuideImage & { key: string })[]);
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -117,8 +117,8 @@ test('guide explorer keeps modifier and non-primary clicks native while ordinary
   assert.deepEqual(opened, [guide.slug]);
 });
 
-test('all 36 guides and the complete media registry have usable local images and real 480-pixel responsive assets', () => {
-  assert.equal(guides.length, 36);
+test('all published guides and the complete media registry have usable local images and real 480-pixel responsive assets', () => {
+  assert.ok(guides.length >= 37);
   const checked = new Set<string>();
   const checkImage = (image: GuideImage) => {
     assert.ok(image, 'every published image key resolves to an asset');
@@ -175,8 +175,8 @@ test('all 36 guides and the complete media registry have usable local images and
   assert.equal(checked.size, new Set(Object.values(GUIDE_IMAGES).map(image => image.src)).size);
 });
 
-test('all 36 guide covers use different source files and different actual image bytes', () => {
-  assert.equal(guides.length, 36);
+test('all published guide covers use different source files and different actual image bytes', () => {
+  assert.ok(guides.length >= 37);
   const paths = new Set<string>();
   const fingerprints = new Map<string, string>();
   for (const guide of guides) {
@@ -188,8 +188,8 @@ test('all 36 guide covers use different source files and different actual image 
     assert.equal(fingerprints.has(fingerprint), false, `${guide.slug} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
     fingerprints.set(fingerprint, guide.slug);
   }
-  assert.equal(paths.size, 36);
-  assert.equal(fingerprints.size, 36, 'renaming the same illustration must not satisfy the distinct-cover requirement');
+  assert.equal(paths.size, guides.length);
+  assert.equal(fingerprints.size, guides.length, 'renaming the same illustration must not satisfy the distinct-cover requirement');
 });
 
 test('the visible credits retain every photograph and poster source without inventing license links', () => {

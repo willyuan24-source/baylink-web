@@ -4,6 +4,7 @@ import { localLifeGuides } from './guides-local-life';
 import { settlingInGuides } from './guides-settling-in';
 import { editorialCollections } from './editorial-collections';
 import { weekendGuides } from './guides-weekends';
+import { monthlyDealsGuides } from './guides-deals';
 
 export type GuideCategory =
   | 'rent'
@@ -19,6 +20,7 @@ export type GuideCategory =
 export type GuideSource = { title: string; url: string; description: string };
 
 export type GuideBlock =
+  | { type: 'link'; title: string; text: string; url: string }
   | { type: 'route'; title: string; text: string; stops: { title: string; text: string; mapUrl?: string }[] }
   | { type: 'paragraph'; text: string }
   | { type: 'heading'; text: string }
@@ -54,6 +56,7 @@ export type Guide = {
   cover?: string;
   readMinutes: number;
   updatedAt: string;
+  editionMonth?: string;
   sourceNote?: string;
   sources: GuideSource[];
   blocks: GuideBlock[];
@@ -1853,6 +1856,7 @@ export const guides: Guide[] = [
   ...localLifeGuides,
   ...settlingInGuides,
   ...weekendGuides,
+  ...monthlyDealsGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>

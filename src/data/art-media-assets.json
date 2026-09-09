@@ -196,5 +196,16 @@
     "width": 1536,
     "height": 1024,
     "srcSet": "/guides/distinct/september-edition-small.webp 480w, /guides/distinct/september-edition.webp 1536w"
+  },
+  {
+    "key": "september-freebies",
+    "src": "/guides/distinct/september-freebies.webp",
+    "alt": "咖啡、草莓蛋糕、集点卡与购物小票组成的优惠攻略主题插图",
+    "caption": "九月优惠攻略专属原创插图，画面不代表任何商家的赠品、份量或可用优惠券。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/september-freebies-small.webp 480w, /guides/distinct/september-freebies.webp 1536w"
   }
 ]

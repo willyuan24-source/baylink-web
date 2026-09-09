@@ -21,6 +21,7 @@ import { searchGuides } from "../lib/guide-search";
 import { getGuideMedia } from '../data/guide-media';
 import { GuideExplorer, GuideImageCredits } from './GuideExplorer';
 import { MonthlySpotlight } from './MonthlySpotlight';
+import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -90,7 +91,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           </div>
         </div>
       </header>
-      {!query.trim() && tab === 'all' && <MonthlySpotlight />}
+      {!query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
       {!query.trim() && tab === "all" && hero && (
         <section className="bl-guides-spotlights" aria-label="新来湾区先看">
           <Link

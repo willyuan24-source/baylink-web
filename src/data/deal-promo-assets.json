@@ -1,0 +1,15 @@
+[
+  {
+    "key": "deal-85c-september",
+    "src": "/guides/distinct/deal-85c-september.webp",
+    "alt": "85°C 九月优惠官方宣传图：App 会员买指定咖啡，加一美元换一块指定蛋糕切片",
+    "caption": "85°C 2026 年 9 月官方宣传图。买指定咖啡，加 $1 换指定蛋糕切片；App 会员每人一次，商品售完为止。",
+    "credit": "85°C Bakery Cafe · 官方宣传图",
+    "creditUrl": "https://www.85cbakerycafe.com/menu_tag/top-picks/",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 962,
+    "height": 1024,
+    "srcSet": "/guides/distinct/deal-85c-september-small.webp 480w, /guides/distinct/deal-85c-september.webp 962w"
+  }
+]
