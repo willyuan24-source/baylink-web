@@ -57,7 +57,7 @@ test('deals spotlight reads the published guide and becomes an archive after its
   assert.equal(link.getAttribute('href'), `/guides/${slug}`);
   assert.ok(view.getByRole('heading', { name: fixture.title }));
   assert.ok(view.getByText('2026 年 9 月 · 优惠领取指南'));
-  assert.ok(view.getByText('咖啡、甜点和会员福利，先看领取条件。'));
+  assert.ok(view.getByText('Target、Lowe’s 与亲子手工，看图挑一份顺路福利。'));
   assert.equal(view.container.querySelector('img')?.getAttribute('src'), getGuideMedia(fixture).cover.src);
   assert.equal(view.container.querySelector('time')?.dateTime, fixture.updatedAt);
   fireEvent.click(link);

@@ -1,0 +1,41 @@
+[
+  {
+    "key": "freebie-lowes-haunted-house",
+    "kind": "photo",
+    "fullFrame": true,
+    "alt": "Lowe’s 官方鬼屋手工宣传照片：儿童与成人一起展示紫色 Haunted House 成品",
+    "caption": "Lowe’s 2026 年 9 月 12 日 Haunted House 项目官方宣传照片；非活动当日现场记录。",
+    "credit": "Lowe’s · Kids Club 官方宣传照片",
+    "creditUrl": "https://www.lowes.com/events/register/haunted-house",
+    "src": "/guides/distinct/freebie-lowes-haunted-house.webp",
+    "width": 1440,
+    "height": 929,
+    "srcSet": "/guides/distinct/freebie-lowes-haunted-house-small.webp 480w, /guides/distinct/freebie-lowes-haunted-house.webp 1440w"
+  },
+  {
+    "key": "freebie-lowes-kids-lollipop",
+    "kind": "poster",
+    "fullFrame": true,
+    "alt": "Lowe’s Kids Club 免费棒棒糖官方宣传图，注明每次到店可到客服柜台向店员领取",
+    "caption": "Lowe’s Kids Club 官方福利宣传图。会员为儿童建立 Kids Profile 后，可到客服柜台询问免费有机棒棒糖；数量有限。",
+    "credit": "Lowe’s · Kids Club 官方宣传图",
+    "creditUrl": "https://www.lowes.com/diy-projects-and-ideas/workshops",
+    "src": "/guides/distinct/freebie-lowes-kids-lollipop.webp",
+    "width": 800,
+    "height": 720,
+    "srcSet": "/guides/distinct/freebie-lowes-kids-lollipop-small.webp 480w, /guides/distinct/freebie-lowes-kids-lollipop.webp 800w"
+  },
+  {
+    "key": "freebie-homedepot-witch-candy-box",
+    "kind": "photo",
+    "fullFrame": true,
+    "alt": "Home Depot 官方 Witch Candy Box 手工宣传照片，孩子们展示绿色女巫糖果盒",
+    "caption": "Home Depot 下一期项目的官方宣传照片：Witch Candy Box，活动日期为 2026 年 10 月 3 日；九月可先查看预约。",
+    "credit": "The Home Depot · Kids Workshops 官方宣传照片",
+    "creditUrl": "https://www.homedepot.com/c/kids-workshop",
+    "src": "/guides/distinct/freebie-homedepot-witch-candy-box.webp",
+    "width": 702,
+    "height": 395,
+    "srcSet": "/guides/distinct/freebie-homedepot-witch-candy-box-small.webp 480w, /guides/distinct/freebie-homedepot-witch-candy-box.webp 702w"
+  }
+]

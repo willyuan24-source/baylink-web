@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  ArrowDownRight,
   BookOpen,
   Check,
   ChevronDown,
@@ -22,6 +23,7 @@ import { GuideCardMini } from "./GuideCard";
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './MonthlyDealsSpotlight';
+import { FreebieBoard } from './FreebieBoard';
 
 type GuideDetailProps = {
   slug: string;
@@ -133,6 +135,7 @@ const GuideDetailSession = ({
   };
   const contents = (
     <ol>
+      {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <li key={`freebies-${index}`}><a href={`#freebie-board-${index}`}><span>🎁</span>{block.title}</a></li>)}
       {headings.map((heading, index) => (
         <li key={heading.id}>
           <a href={`#${heading.id}`}>
@@ -182,6 +185,7 @@ const GuideDetailSession = ({
           </div>
           <h1>{guide.title}</h1>
           <p className="bl-guide-subtitle">{guide.subtitle}</p>
+          {guide.blocks.some(block => block.type === 'freebies') && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
           <div className="bl-guide-byline">
             <span className="bl-guide-editor-mark">B.</span>
             <span>
@@ -207,6 +211,7 @@ const GuideDetailSession = ({
             )}
           </div>
         </header>
+        {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoard offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">
             <div className="bl-guide-toc-desktop">
@@ -383,6 +388,8 @@ const BlockRenderer = ({
   onCta: (b: Extract<GuideBlock, { type: "cta" }>) => void;
 }) => {
   switch (block.type) {
+    case "freebies":
+      return null;
     case "heading":
       return <h2 id={id}>{block.text}</h2>;
     case "paragraph":

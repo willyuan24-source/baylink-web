@@ -1,0 +1,54 @@
+[
+  {
+    "key": "freebie-michaels-foam",
+    "src": "/guides/distinct/freebie-michaels-foam.webp",
+    "alt": "泡棉拼贴儿童手工作品，草莓、蜗牛和太阳图案用彩线串起",
+    "caption": "Michaels 九月 Quilted Foam Art 官方作品示例，实际材料以门店为准。",
+    "credit": "Michaels · 官方活动图",
+    "creditUrl": "https://www.michaels.com/class/kids-club:-quilted-foam-art-49435626159496",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1280,
+    "height": 1280,
+    "srcSet": "/guides/distinct/freebie-michaels-foam-small.webp 480w, /guides/distinct/freebie-michaels-foam.webp 1280w"
+  },
+  {
+    "key": "freebie-michaels-ghosts",
+    "src": "/guides/distinct/freebie-michaels-ghosts.webp",
+    "alt": "三个带有不同表情的白色布艺小幽灵",
+    "caption": "Michaels 九月 Fabric Ghosts 官方作品示例，适合 4 岁以上孩子的入门手工。",
+    "credit": "Michaels · 官方活动图",
+    "creditUrl": "https://www.michaels.com/class/kids-club-fabric-ghosts-716121777247387016-290096423091592",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1280,
+    "height": 1280,
+    "srcSet": "/guides/distinct/freebie-michaels-ghosts-small.webp 480w, /guides/distinct/freebie-michaels-ghosts.webp 1280w"
+  },
+  {
+    "key": "freebie-ikea-coffee",
+    "src": "/guides/distinct/freebie-ikea-coffee.webp",
+    "alt": "IKEA 餐厅内两位顾客喝咖啡聊天，黄色杯形图案框住画面",
+    "caption": "IKEA Family 免费热饮福利官方宣传图；领取时段与普通咖啡、茶选项依门店。",
+    "credit": "IKEA · 官方福利宣传图",
+    "creditUrl": "https://www.ikea.com/us/en/ikea-family/",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 600,
+    "height": 336,
+    "srcSet": "/guides/distinct/freebie-ikea-coffee-small.webp 480w, /guides/distinct/freebie-ikea-coffee.webp 600w"
+  },
+  {
+    "key": "freebie-sephora-birthday",
+    "src": "/guides/distinct/freebie-sephora-birthday.webp",
+    "alt": "Sephora 2026 生日礼宣传图中的护肤、彩妆、头发护理和香水小样组合",
+    "caption": "Sephora 年初发布的 2026 生日礼示例；图中含轮换及等级限定款，不代表九月门店库存。",
+    "credit": "Sephora Newsroom · 官方生日礼宣传图",
+    "creditUrl": "https://newsroom.sephora.com/sephora-unwraps-another-year-of-beauty-with-its-2026-beauty-insider-birthday-gift-offerings/",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1000,
+    "height": 564,
+    "srcSet": "/guides/distinct/freebie-sephora-birthday-small.webp 480w, /guides/distinct/freebie-sephora-birthday.webp 1000w"
+  }
+]

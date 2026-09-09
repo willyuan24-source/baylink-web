@@ -5,6 +5,7 @@ import { settlingInGuides } from './guides-settling-in';
 import { editorialCollections } from './editorial-collections';
 import { weekendGuides } from './guides-weekends';
 import { monthlyDealsGuides } from './guides-deals';
+import type { FreebieOffer } from '../components/FreebieBoard';
 
 export type GuideCategory =
   | 'rent'
@@ -20,6 +21,7 @@ export type GuideCategory =
 export type GuideSource = { title: string; url: string; description: string };
 
 export type GuideBlock =
+  | { type: 'freebies'; title: string; text: string; offers: FreebieOffer[] }
   | { type: 'link'; title: string; text: string; url: string }
   | { type: 'route'; title: string; text: string; stops: { title: string; text: string; mapUrl?: string }[] }
   | { type: 'paragraph'; text: string }

@@ -1,4 +1,5 @@
 import type { Guide, GuideSource } from './guides';
+import { septemberFreebies, septemberFreebieSources } from './september-freebies';
 
 const sources: Record<string, GuideSource> = {
   bakery85: { title: '85°C：September Sweet Treat 官方条款', url: 'https://www.85cbakerycafe.com/menu_tag/top-picks/', description: '核对 2026 年 9 月指定咖啡与蛋糕、App 优惠券及店内兑换条件。' },
@@ -24,19 +25,20 @@ const official = (key: keyof typeof sources) => ({ type: 'link' as const, title:
 
 export const monthlyDealsGuides: Guide[] = [{
   slug: 'bay-area-freebies-deals-2026-09',
-  title: '2026 年 9 月湾区 Freebie 与优惠攻略：咖啡、甜点和生日礼',
-  subtitle: '四条有日期的优惠，三项有条件的日常福利',
-  summary: '85°C 买咖啡加 $1 换蛋糕、Marina 开业买赠、Yogurtland 会员八折、Peet’s $1 冷萃，再看 IKEA 与生日礼。逐项说明日期、门店、消费门槛和领取步骤，附商家官方入口。',
+  title: '2026 年 9 月湾区 Freebie 攻略：Target、Lowe’s 与日常优惠',
+  subtitle: '常见大店的免费领取、亲子手工和顺路小优惠',
+  summary: 'Target 试用装与样品盒、Lowe’s 免费手工和棒棒糖、Michaels 儿童活动，再看咖啡甜点与生日礼。用独立官方图片看清领取内容，按无需购物、需预约或消费优惠筛选，附日期、条件和湾区门店。',
   category: 'events', categoryLabel: '生活活动', emoji: '🎁',
-  audience: ['湾区日常生活用户', '咖啡与甜点爱好者', '想把优惠用明白的人'],
-  tags: ['2026年9月', '当月优惠', 'freebie', '免费领取', '买赠', '咖啡', '甜点', '生日礼', '85°C', '85度C', 'Peet’s', 'Yogurtland', 'IKEA', 'Sephora', 'La Boulangerie'],
+  audience: ['湾区日常生活用户', '亲子家庭', '想顺路领取小福利的人'],
+  tags: ['2026年9月', '当月优惠', 'freebie', '免费领取', '试用装', '亲子手工', 'Target', 'Lowe’s', 'Lowes', 'Michaels', 'Home Depot', '买赠', '咖啡', '甜点', '生日礼', '85°C', '85度C', 'Peet’s', 'Yogurtland', 'IKEA', 'Sephora', 'La Boulangerie'],
   priority: 'P1', featuredOnHome: false, recommendedForCategories: ['other'],
-  readMinutes: 7, updatedAt: '2026-09-08', editionMonth: '2026-09',
-  sourceNote: 'BAYLINK 编辑于 2026-09-08 核对商家官网、条款和商家活动原页。本文是 2026 年 9 月资料快照；单日优惠只在写明的当天有效，长期福利另标。未电话确认每家门店的参与资格或库存，请出发前打开各项官方入口复核。',
-  sources: Object.values(sources),
+  readMinutes: 10, updatedAt: '2026-09-09', editionMonth: '2026-09',
+  sourceNote: 'BAYLINK 编辑于 2026-09-09 补核 Target、Lowe’s、Michaels 与 Home Depot 的官方活动及门店信息；此前咖啡、甜点与生日福利于 9 月 8 日核对。本文为九月资料快照，单日活动、长期福利及十月预告分别标示。未电话确认每家门店的实时库存，领取前请查看各项官方入口。',
+  sources: [...new Map([...Object.values(sources), ...septemberFreebieSources].map(source => [source.url, source])).values()],
   blocks: [
+    { type: 'freebies', title: '常见大店的免费领取图鉴', text: 'Target 样品、Lowe’s 儿童福利、Michaels 手工：看图挑喜欢的，再按领取条件筛选。十月活动单独标为下月预告。', offers: septemberFreebies },
     { type: 'paragraph', text: '一杯原本就想喝的咖啡，刚好能搭上一块优惠蛋糕；一次本来就要去的商场行程，也许顺路能领生日礼。这篇把值得留意的条件放在价格旁边：先判断自己是否用得上，再决定要不要出门。以下日期和时间均按湾区当地时间阅读。' },
-    { type: 'heading', text: '九月先看这四条：按日期挑，不必赶场' },
+    { type: 'heading', text: '咖啡甜点另有这四条：按日期挑，不必赶场' },
     { type: 'list', items: [
       '9 月 1–30 日｜85°C：购买指定咖啡，加 $1 换指定蛋糕切片。需 App、需消费，每会员一次。',
       '9 月 12 日 10:00–14:00｜La Boulangerie Marina：购买 espresso 饮品获赠 pastry。仅该门店开业活动。',
@@ -108,7 +110,7 @@ export const monthlyDealsGuides: Guide[] = [{
       '把原价部分、加料、税费、交通和停车都算进去；顺路才更容易省下来。',
       '付款前让店员确认适用项目与折扣；看到正确金额后再完成结账。',
     ] },
-    { type: 'tip', title: 'INS 可以发现线索，日期和细则仍要回到商家核对', text: '从品牌官网进入其 Instagram，查看原帖日期、配文、小字和更新。只看到转发、旧年份“National Coffee Day”攻略或抽奖帖时，先别当成人人可领的优惠。本篇没有把尚未找到 2026 官方确认的月底免费咖啡传闻列入推荐。' },
+    { type: 'tip', title: '截图存日期，官方页看细则', text: 'Target 两次活动的门店名单不同；Lowe’s 手工要先预约，而儿童棒棒糖是长期到店福利。网传 9/19 LG 冰模和月底免费咖啡尚未取得足够的官方确认，本次没有把它们列入已核验清单。' },
     { type: 'template', title: '到店核对优惠，可以这样问', text: 'Hi! Is the [offer name] promotion available at this location today? Which items qualify, and do I need to activate anything in the app before paying?\n\n你好，请问今天这家店参加[优惠名称]吗？哪些商品适用，付款前需要在 App 激活或出示什么？' },
     { type: 'cta', title: '优惠用完，给附近留一点时间', text: '把咖啡、购物与一段短途散步安排在同一区域，继续看看湾区的市集、海边与街区攻略。', primaryLabel: '继续看生活指南', primaryAction: 'guides' },
   ],

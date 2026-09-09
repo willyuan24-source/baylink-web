@@ -1,0 +1,34 @@
+[
+  {
+    "key": "target-eucerin",
+    "src": "/guides/distinct/freebie-target-eucerin.webp",
+    "alt": "Target 官方 Eucerin 活动图，展示 Radiant Tone 精华、眼霜与试用装袋",
+    "caption": "Target 官方 Eucerin 活动宣传图；实物为限量试用装，图中正装用于产品展示。",
+    "credit": "Target · 官方活动宣传图",
+    "creditUrl": "https://www.target.com/c/eucerin-launch-store-events/-/N-6700v",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1200,
+    "height": 525,
+    "srcSet": "/guides/distinct/freebie-target-eucerin-small.webp 480w, /guides/distinct/freebie-target-eucerin.webp 1200w",
+    "originalUrl": "https://target.scene7.com/is/image/Target/GUEST_72c01a08-6d90-4d1b-b0f2-f9ba28443f63?wid=2160&qlt=80&fmt=pjpeg",
+    "rights": "© Target / respective brands. Official promotional image reproduced for event reporting; no open license claimed.",
+    "retrievedAt": "2026-09-09"
+  },
+  {
+    "key": "target-beauty-box",
+    "src": "/guides/distinct/freebie-target-beauty-box.webp",
+    "alt": "Target Beauty Studio 官方活动宣传图中的酒红色样品礼盒",
+    "caption": "Target Beauty Studio 官方样品盒活动宣传图；礼盒仅在指定门店面向前 100 名符合条件的顾客发放。",
+    "credit": "Target · 官方活动宣传图",
+    "creditUrl": "https://www.target.com/c/target-beauty-studio-event/-/N-140b1",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1200,
+    "height": 661,
+    "srcSet": "/guides/distinct/freebie-target-beauty-box-small.webp 480w, /guides/distinct/freebie-target-beauty-box.webp 1200w",
+    "originalUrl": "https://target.scene7.com/is/image/Target/GUEST_93a6b17b-5f28-4647-9b9f-7c5c5d8935dd?wid=1200&qlt=80&fmt=pjpeg",
+    "rights": "© Target / respective brands. Official promotional image reproduced for event reporting; no open license claimed.",
+    "retrievedAt": "2026-09-09"
+  }
+]
