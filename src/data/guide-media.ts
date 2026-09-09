@@ -1,5 +1,5 @@
 import type { Guide, GuideCategory } from './guides';
-import photoCredits from '../../public/guides/editorial/photo-credits.json';
+import photoCredits from './guide-photo-credits.json';
 
 export type GuideImage = {
   src: string;

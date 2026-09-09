@@ -3,6 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { guides } from '../src/data/guides';
 import { guideBlockText } from '../src/lib/guide-content';
+import photoCredits from '../src/data/guide-photo-credits.json';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const supported = new Set(['rent', 'roommate', 'used', 'moving', 'cleaning', 'ride', 'repair', 'translation', 'part-time', 'other']);
@@ -27,3 +28,6 @@ for (const path of targets) {
   await writeFile(path, output, 'utf8');
 }
 console.log(`Exported ${catalog.length} published guides to ${targets.length} catalog file(s).`);
+const creditsPath = resolve(root, 'public/guides/editorial/photo-credits.json');
+await mkdir(dirname(creditsPath), { recursive: true });
+await writeFile(creditsPath, `${JSON.stringify(photoCredits, null, 2)}\n`, 'utf8');
