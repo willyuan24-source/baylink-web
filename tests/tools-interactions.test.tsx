@@ -19,7 +19,7 @@ const { RentalBudgetTool, SharedBillTool } = await import('../src/components/too
 const { UnitConverterTool } = await import('../src/components/tools/UnitConverterTool');
 // Node does not load browser stylesheets; this suite checks interaction, not layout.
 const cssHook = registerHooks({ load(url, context, nextLoad) {
-  if (url.endsWith('/tools.css')) return { format: 'module', shortCircuit: true, source: 'export {};' };
+  if (url.endsWith('/tools.css') || url.endsWith('/loan-calculator.css')) return { format: 'module', shortCircuit: true, source: 'export {};' };
   return nextLoad(url, context);
 } });
 const { ToolsHub } = await import('../src/components/tools/ToolsHub');

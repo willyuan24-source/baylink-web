@@ -1,14 +1,16 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowUpRight, Calculator, CheckCheck, Ruler, Sparkles, UsersRound } from 'lucide-react';
+import { ArrowUpRight, Calculator, CheckCheck, Landmark, Ruler, Sparkles, UsersRound } from 'lucide-react';
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
 import type { ShowToast } from '../../app/context';
 import { AiCommunicationTool } from './AiCommunicationTool';
 import { UnitConverterTool } from './UnitConverterTool';
 import { RentalBudgetTool, SharedBillTool } from './BudgetTools';
 import { MovingChecklistTool } from './MovingChecklistTool';
+import { LoanCalculatorTool } from './LoanCalculatorTool';
 import './tools.css';
+import './loan-calculator.css';
 
-const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck };
+const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark };
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const [params] = useSearchParams();
   const active = resolveLifeTool(params.get('tool'));
@@ -20,6 +22,7 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
     <section id="tool-workspace" className="tool-workspace" aria-labelledby="active-tool-title"><header className="tool-workspace-header"><span><CurrentIcon size={24} /></span><div><p>{current.tag}</p><h2 id="active-tool-title">{current.title}</h2><p>{current.description}</p></div></header>
       <div className="tool-workspace-body">
         <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
+        <div hidden={active !== 'loan'}><LoanCalculatorTool onToast={onToast} /></div>
         <div hidden={active !== 'units'}><UnitConverterTool onToast={onToast} /></div>
         <div hidden={active !== 'split'}><SharedBillTool onToast={onToast} /></div>
         <div hidden={active !== 'budget'}><RentalBudgetTool onToast={onToast} /></div>
