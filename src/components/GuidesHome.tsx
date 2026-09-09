@@ -17,6 +17,7 @@ import {
   type GuideCategory,
 } from "../data/guides";
 import { GuideCard, handleGuideLinkClick } from "./GuideCard";
+import { EditorialCollections } from "./EditorialCollections";
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -44,14 +45,17 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
     return list.sort(
       (a, b) =>
         ({ P0: 0, P1: 1, P2: 2 })[a.priority] -
-        { P0: 0, P1: 1, P2: 2 }[b.priority],
+        { P0: 0, P1: 1, P2: 2 }[b.priority] || b.updatedAt.localeCompare(a.updatedAt),
     );
   }, [tab, query]);
   const grouped = useMemo(() => {
     if (tab !== "all" || query.trim()) return null;
     const byCat = new Map<string, Guide[]>();
-    for (const g of filtered)
-      byCat.set(g.categoryLabel, [...(byCat.get(g.categoryLabel) ?? []), g]);
+    for (const { id } of GUIDE_CATEGORY_TABS) {
+      if (id === 'all') continue;
+      const categoryGuides = filtered.filter((g) => g.category === id);
+      if (categoryGuides.length) byCat.set(categoryGuides[0].categoryLabel, categoryGuides);
+    }
     return byCat;
   }, [tab, query, filtered]);
   const hero = spotlightGuides[0];
@@ -79,6 +83,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
             <BookOpen size={22} strokeWidth={1.3} aria-hidden="true" />
             <strong>{guides.length} 篇</strong>
             <span>湾区生活指南</span>
+            <a href="#guide-library-title" className="bl-guide-library-jump">查找指南 <ArrowRight size={14} aria-hidden="true" /></a>
           </div>
         </div>
       </header>
@@ -143,6 +148,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           </div>
         </section>
       )}
+      {!query.trim() && tab === "all" && <EditorialCollections />}
       <section
         className="bl-guides-library"
         aria-labelledby="guide-library-title"

@@ -6,6 +6,7 @@ import './design.css'
 import './features/member-ui.css'
 import './features/posts/posts-ui.css'
 import './components/guides-ui.css'
+import './components/editorial-content.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 

@@ -1,3 +1,7 @@
+import { practicalGuides } from './guides-practical';
+import { serviceGuides } from './guides-services';
+import { localLifeGuides } from './guides-local-life';
+
 export type GuideCategory =
   | 'rent'
   | 'roommate'
@@ -16,6 +20,7 @@ export type GuideBlock =
   | { type: 'heading'; text: string }
   | { type: 'list'; items: string[] }
   | { type: 'checklist'; items: string[] }
+  | { type: 'template'; title: string; text: string }
   | { type: 'tip'; title?: string; text: string }
   | {
       type: 'cta';
@@ -1839,6 +1844,9 @@ export const guides: Guide[] = [
       },
     ],
   },
+  ...practicalGuides,
+  ...serviceGuides,
+  ...localLifeGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
@@ -1853,8 +1861,11 @@ export const getFeaturedGuides = (limit = 4): Guide[] =>
 const CATEGORY_FEATURED_GUIDES: Record<string, string[]> = {
   service: ['local-service-safety-guide', 'bay-area-moving-checklist', 'baylink-safety-guide'],
   moving: ['bay-area-moving-checklist', 'local-service-safety-guide', 'move-in-move-out-checklist'],
-  cleaning: ['local-service-safety-guide', 'baylink-safety-guide', 'bay-area-moving-checklist'],
-  repair: ['local-service-safety-guide', 'baylink-safety-guide', 'baylink-posting-guide-for-trust'],
+  cleaning: ['bay-area-cleaning-quote-checklist', 'local-service-safety-guide', 'bay-area-moving-checklist'],
+  repair: ['bay-area-repair-request-guide', 'local-service-safety-guide', 'baylink-safety-guide'],
+  translation: ['bay-area-translation-service-guide', 'baylink-safety-guide'],
+  'part-time': ['bay-area-part-time-job-safety-guide', 'baylink-safety-guide'],
+  ride: ['bay-area-airport-arrival-guide', 'bay-area-commute-guide', 'north-bay-car-free-day-guide'],
 };
 
 const CATEGORY_SLUG_RECOMMENDED: Record<string, string[]> = {
@@ -1908,7 +1919,7 @@ export const GUIDE_CATEGORY_TABS: { id: 'all' | GuideCategory; label: string }[]
   { id: 'commute', label: '通勤' },
   { id: 'newcomer', label: '新手' },
   { id: 'city', label: '城市指南' },
-  { id: 'safety', label: '平台安全' },
+  { id: 'safety', label: '安全与防骗' },
 ];
 
 export const CATEGORY_STRIP_TITLES: Record<string, string> = {
@@ -1916,11 +1927,11 @@ export const CATEGORY_STRIP_TITLES: Record<string, string> = {
   rent: '租房前先看',
   used: '二手交易先看',
   moving: '找本地服务先看',
-  cleaning: '找本地服务先看',
+  cleaning: '预约清洁先看',
   ride: '接送通勤先看',
-  repair: '找本地服务先看',
-  translation: '相关生活指南',
-  'part-time': '相关生活指南',
+  repair: '安排维修先看',
+  translation: '找翻译先看',
+  'part-time': '联系招聘方之前',
   other: '相关生活指南',
 };
 

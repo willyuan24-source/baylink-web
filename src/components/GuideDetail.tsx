@@ -6,6 +6,7 @@ import {
   BookOpen,
   Check,
   Clock3,
+  Copy,
   Lightbulb,
   List,
   ShieldCheck,
@@ -332,6 +333,36 @@ const Checklist = ({ items }: { items: string[] }) => {
   );
 };
 
+const GuideTemplate = ({ title, text }: { title: string; text: string }) => {
+  const [status, setStatus] = useState<'idle' | 'copying' | 'copied' | 'failed'>('idle');
+  const copy = async () => {
+    setStatus('copying');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(text);
+      setStatus('copied');
+    } catch {
+      setStatus('failed');
+    }
+  };
+  return (
+    <section className="bl-guide-template" aria-label={title}>
+      <div className="bl-guide-template-heading">
+        <h3>{title}</h3>
+        <button type="button" onClick={copy} disabled={status === 'copying'} aria-label={`复制${title}`}>
+          {status === 'copied' ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+          {status === 'copying' ? '正在复制…' : status === 'copied' ? '已复制' : '复制模板'}
+        </button>
+      </div>
+      <p className="bl-guide-template-note">示例模板：请替换方括号中的内容，核对后再发送。</p>
+      <pre tabIndex={0}>{text}</pre>
+      <p className="bl-guide-template-status" role="status">
+        {status === 'failed' ? '浏览器未允许复制，请选中上方文字手动复制。' : status === 'copied' ? '模板已复制。请填写你的真实情况。' : ''}
+      </p>
+    </section>
+  );
+};
+
 const BlockRenderer = ({
   block,
   id,
@@ -356,6 +387,8 @@ const BlockRenderer = ({
       );
     case "checklist":
       return <Checklist items={block.items} />;
+    case "template":
+      return <GuideTemplate title={block.title} text={block.text} />;
     case "tip":
       return (
         <aside className="bl-guide-tip">

@@ -1650,3 +1650,16 @@
   .site-main .bl-guide-detail { --guide-shell-offset: 67px; }
   .site-main .bl-guide-prose > h2, .site-main .bl-guide-sources h2 { scroll-margin-top: 64px; }
 }
+.bl-guide-template { margin:28px 0; border:1px solid #cfdcc9; border-radius:18px; background:#f2f6ed; padding:22px; }
+.bl-guides-page > .editorial-collections { margin-top:44px; }
+.bl-guide-library-jump { display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-top:7px; color:#176b52; font-size:13px; font-weight:650; text-decoration:underline; text-underline-offset:4px; }
+.bl-guide-template-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.bl-guide-template-heading h3 { font-size:17px; font-weight:750; color:#234b3d; margin:0; }
+.bl-guide-template-heading button { display:inline-flex; align-items:center; gap:7px; padding:10px 13px; min-height:44px; border-radius:10px; background:#176b52; color:white; font-size:13px; font-weight:650; }
+.bl-guide-template-heading button:disabled { opacity:.7; cursor:wait; }
+.bl-guide-template-heading button:hover:not(:disabled) { background:#123c31; }
+.bl-guide-template-note,.bl-guide-template-status { font-size:12px; line-height:1.8; color:#52654e; }
+.bl-guide-template-note { margin:12px 0; }
+.bl-guide-template pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:14px; line-height:1.95; background:white; border:1px solid #dde5d8; border-radius:12px; padding:18px; margin:0; user-select:text; }
+.bl-guide-template-status { margin:9px 0 0; min-height:22px; }
+@media(max-width:639px) { .bl-guide-template { padding:17px; } .bl-guide-template pre { padding:14px; font-size:14px; } }
