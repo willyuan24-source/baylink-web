@@ -7,15 +7,29 @@ import { ModalShell } from './ui/Modal';
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
-function ImageCaption({ image, poster = false }: { image: GuideImage; poster?: boolean }) {
+export function GuideImageCaption({ image, poster = false, showKind = true }: { image: GuideImage; poster?: boolean; showKind?: boolean }) {
   return <figcaption className="guide-image-caption">
     <p>{image.caption}</p>
     <div className="guide-image-attribution">
-      {!poster && image.kind === 'illustration' && <span className="guide-image-kind">AI 插图 · 非实景照片</span>}
+      {showKind && !poster && image.kind === 'illustration' && <span className="guide-image-kind">AI 插图 · 非实景照片</span>}
+      {showKind && image.kind === 'poster' && <span className="guide-image-kind">官方宣传图</span>}
       {isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}<span className="sr-only">（在新标签页打开）</span></a> : <span>{image.credit}</span>}
       {isWebLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">图片授权<span className="sr-only">（在新标签页打开）</span></a>}
+      {image.kind === 'photo' && !image.credit.includes('缩放') && <span>{image.fullFrame ? '已缩放压缩；保留完整画面' : '已缩放压缩；卡片按版面裁切'}</span>}
     </div>
   </figcaption>;
+}
+
+export function GuideImageLightbox({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) {
+  return <ModalShell label={`图片放大：${image.alt}`} onClose={onClose} className="guide-image-overlay">
+    <div className="guide-image-dialog">
+      <button type="button" className="guide-image-close" onClick={onClose} aria-label="关闭放大图片"><X size={23} aria-hidden="true" /><span>关闭</span></button>
+      <figure>
+        <img src={image.src} alt={image.alt} width={image.width} height={image.height} decoding="async" />
+        <GuideImageCaption image={image} poster={poster} />
+      </figure>
+    </div>
+  </ModalShell>;
 }
 
 export function GuideFigure(props: FigureProps) {
@@ -25,22 +39,14 @@ export function GuideFigure(props: FigureProps) {
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
   return <>
-    <figure className={`guide-figure guide-figure--${variant}`}>
+    <figure className={`guide-figure guide-figure--${variant}${image.kind === 'poster' ? ' guide-figure--official-poster' : ''}`}>
       <button type="button" className="guide-figure-open" aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
         <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
         <span className="guide-figure-zoom"><Expand size={15} aria-hidden="true" /><span>查看大图</span></span>
       </button>
-      <ImageCaption image={image} poster={variant === 'poster'} />
+      <GuideImageCaption image={image} poster={variant === 'poster'} />
     </figure>
-    {open && <ModalShell label={`图片放大：${image.alt}`} onClose={() => setOpen(false)} className="guide-image-overlay">
-      <div className="guide-image-dialog">
-        <button type="button" className="guide-image-close" onClick={() => setOpen(false)} aria-label="关闭放大图片"><X size={23} aria-hidden="true" /><span>关闭</span></button>
-        <figure>
-          <img src={image.src} alt={image.alt} width={image.width} height={image.height} decoding="async" />
-          <ImageCaption image={image} poster={variant === 'poster'} />
-        </figure>
-      </div>
-    </ModalShell>}
+    {open && <GuideImageLightbox image={image} onClose={() => setOpen(false)} poster={variant === 'poster'} />}
   </>;
 }
 

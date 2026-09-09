@@ -24,12 +24,14 @@ export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => 
     <div className="bl-guide-explorer-heading"><div><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
     <div className="bl-guide-mood-picker" role="group" aria-label="选择周末灵感">{IDEAS.map((item, index) => <button type="button" key={item.slug} aria-pressed={selected === index} onClick={() => setSelected(index)}>{item.label}</button>)}</div>
     <div className="bl-guide-explorer-feature" aria-live="polite">
-      <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? '实景照片' : 'AI 原创插图'} <ArrowUpRight size={16} /></span></Link>
+      <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? '实景照片' : cover.kind === 'poster' ? '官方宣传图' : 'AI 原创插图'} <ArrowUpRight size={16} /></span></Link>
       <div className="bl-guide-explorer-copy"><span className="bl-guide-eyebrow"><MapPin size={13} /> {idea.place}</span><h3>{idea.note}</h3><p>{guide.summary}</p><span className="bl-guide-explorer-detail">{idea.detail}</span><Link to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))}>读这篇攻略 <ArrowRight size={17} /></Link><small>{guide.readMinutes} 分钟阅读 · 附官方资料</small></div>
     </div>
   </section>;
 }
 
-export function GuideImageCredits() {
-  return <details className="bl-guide-image-credits"><summary>关于图片与授权</summary><p>实景照片保留作者与拍摄年份，文章图注说明地点；资料照片不代表实时景况。BAYLINK 的 AI 原创插图用于表达生活情境。网页图片已缩放压缩，卡片按版面裁切。</p><ul>{Object.entries(GUIDE_IMAGES).filter(([,image]) => image.kind === 'photo').map(([key, image]) => <li key={key}><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.alt}</a><span>{image.credit}</span><a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权 <ArrowUpRight size={12} /></a></li>)}</ul></details>;
+export function GuideImageCredits({ imageKeys }: { imageKeys?: readonly string[] } = {}) {
+  const scope = imageKeys ? new Set(imageKeys) : null;
+  const images = Object.entries(GUIDE_IMAGES).filter(([key, image]) => (!scope || scope.has(key)) && (image.kind === 'photo' || image.kind === 'poster'));
+  return <details className="bl-guide-image-credits"><summary>关于图片与授权</summary><p>图片注明内容和来源；资料照片不代表实时景况。官方宣传图保持完整，点击可查看大图。BAYLINK 的 AI 主题插图用于表达生活情境。网页图片已缩放压缩，实景照片按卡片版面裁切。</p><ul>{images.map(([key, image]) => <li key={key}>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.alt}</a> : <span>{image.alt}</span>}<span>{image.credit}</span>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权 <ArrowUpRight size={12} /></a>}</li>)}</ul></details>;
 }

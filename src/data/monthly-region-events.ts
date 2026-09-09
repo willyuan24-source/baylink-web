@@ -23,7 +23,7 @@ export const regionalSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.mvartwine.com/press-kit',
     sourceLabel: 'Mountain View Art & Wine Festival 官方',
     verifiedAt: '2026-09-08',
-    imageKey: 'everyday',
+    imageKey: 'event-mountain-view',
     relatedGuideSlug: 'bay-area-without-car-guide',
   },
   {
@@ -48,7 +48,7 @@ export const regionalSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://lafayettefestival.com/visitors-guide/',
     sourceLabel: 'Lafayette Art & Wine Festival 游客指南',
     verifiedAt: '2026-09-08',
-    imageKey: 'everyday',
+    imageKey: 'event-lafayette',
     relatedGuideSlug: 'bay-area-commute-guide',
   },
   {
@@ -73,7 +73,7 @@ export const regionalSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.barksanjose.org/',
     sourceLabel: 'Bark in the Park San Jose 官方',
     verifiedAt: '2026-09-08',
-    imageKey: 'weekend',
+    imageKey: 'event-bark',
     relatedGuideSlug: 'bay-area-dog-park-first-outing-guide',
   },
   {
@@ -98,6 +98,6 @@ export const regionalSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.mvfaf.org/visitor-information',
     sourceLabel: 'Mill Valley Fall Arts Festival 游客指南',
     verifiedAt: '2026-09-08',
-    imageKey: 'weekend',
+    imageKey: 'event-mill-valley',
   },
 ];

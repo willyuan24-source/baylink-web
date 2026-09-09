@@ -1,0 +1,200 @@
+[
+  {
+    "key": "lease-review",
+    "src": "/guides/distinct/lease-review.webp",
+    "alt": "桌面上的租约、钥匙、放大镜与核对清单",
+    "caption": "签字前，把费用、期限和责任逐项对齐。租约核对主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/lease-review-small.webp 480w, /guides/distinct/lease-review.webp 1536w"
+  },
+  {
+    "key": "roommate-agreement",
+    "src": "/guides/distinct/roommate-agreement.webp",
+    "alt": "三位室友围桌讨论日常安排与共享空间",
+    "caption": "合住从一次清楚的讨论开始。室友沟通情境原创插图，不对应具体用户。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/roommate-agreement-small.webp 480w, /guides/distinct/roommate-agreement.webp 1536w"
+  },
+  {
+    "key": "secondhand-check",
+    "src": "/guides/distinct/secondhand-check.webp",
+    "alt": "买卖双方在公共咖啡桌旁检查二手相机与镜头",
+    "caption": "先检查实物，再确认交易条件。二手交易情境原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/secondhand-check-small.webp 480w, /guides/distinct/secondhand-check.webp 1536w"
+  },
+  {
+    "key": "moving-handover",
+    "src": "/guides/distinct/moving-handover.webp",
+    "alt": "住户在空房内拍摄墙面并核对交接清单",
+    "caption": "用照片和记录交接房屋状态。入住退租检查原创插图，不是真实房源。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/moving-handover-small.webp 480w, /guides/distinct/moving-handover.webp 1536w"
+  },
+  {
+    "key": "event-piano",
+    "src": "/guides/distinct/event-piano.webp",
+    "alt": "花园中的黑色三角钢琴、演奏者与坐在花丛边的听众",
+    "caption": "为 Flower Piano 的花园音乐主题设计的 BAYLINK 原创插图；不是官方海报或现场照片。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/event-piano-small.webp 480w, /guides/distinct/event-piano.webp 1536w"
+  },
+  {
+    "key": "translation-documents",
+    "src": "/guides/distinct/translation-documents.webp",
+    "alt": "原件与翻译件并排放在紫色文件夹、词典和笔之间",
+    "caption": "先明确文件用途和接收机构的要求。翻译准备主题原创插图，画面文书为示意。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/translation-documents-small.webp 480w, /guides/distinct/translation-documents.webp 1536w"
+  },
+  {
+    "key": "driver-id-prep",
+    "src": "/guides/distinct/driver-id-prep.webp",
+    "alt": "证件卡示意、材料夹、住址账单与蓝色小汽车模型",
+    "caption": "把身份、住址与预约材料一起整理。证件准备原创插图，非官方证件样本。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/driver-id-prep-small.webp 480w, /guides/distinct/driver-id-prep.webp 1536w"
+  },
+  {
+    "key": "utilities-setup",
+    "src": "/guides/distinct/utilities-setup.webp",
+    "alt": "新居内的路由器、灯、信箱与手持核对清单",
+    "caption": "水电网络开通与地址更新，按实际入住安排逐项办理。生活设置主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/utilities-setup-small.webp 480w, /guides/distinct/utilities-setup.webp 1536w"
+  },
+  {
+    "key": "cleaning-quote",
+    "src": "/guides/distinct/cleaning-quote.webp",
+    "alt": "厨房水槽旁的清洁收纳篮、手套、抹布和工作清单",
+    "caption": "先说明清洁范围，再比较报价与验收方式。清洁主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/cleaning-quote-small.webp 480w, /guides/distinct/cleaning-quote.webp 1536w"
+  },
+  {
+    "key": "rental-scam",
+    "src": "/guides/distinct/rental-scam.webp",
+    "alt": "放大镜下的房源卡片、钥匙与付款暂停标记",
+    "caption": "看到房源之后，先核验，再决定下一步。租房防骗主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/rental-scam-small.webp 480w, /guides/distinct/rental-scam.webp 1536w"
+  },
+  {
+    "key": "part-time-safety",
+    "src": "/guides/distinct/part-time-safety.webp",
+    "alt": "求职者对照电脑上的职位信息与纸面核对清单",
+    "caption": "问清招聘主体、任务和结算安排。兼职核验主题原创插图，不对应真实职位。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/part-time-safety-small.webp 480w, /guides/distinct/part-time-safety.webp 1536w"
+  },
+  {
+    "key": "service-quote",
+    "src": "/guides/distinct/service-quote.webp",
+    "alt": "顾客与服务者在工具箱旁比较两份工作报价单",
+    "caption": "把包含项、额外费用与交付条件写清楚。服务沟通主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/service-quote-small.webp 480w, /guides/distinct/service-quote.webp 1536w"
+  },
+  {
+    "key": "rental-viewing",
+    "src": "/guides/distinct/rental-viewing.webp",
+    "alt": "背着包的看房者在空房门口观察采光并记录",
+    "caption": "第一次看房，给现场观察和核对材料留时间。看房主题原创插图，不是真实房源。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/rental-viewing-small.webp 480w, /guides/distinct/rental-viewing.webp 1536w"
+  },
+  {
+    "key": "digital-safety",
+    "src": "/guides/distinct/digital-safety.webp",
+    "alt": "手机对话、保护盾与封闭信封构成的隐私主题画面",
+    "caption": "从站内沟通开始，谨慎分享个人资料。社区安全主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/digital-safety-small.webp 480w, /guides/distinct/digital-safety.webp 1536w"
+  },
+  {
+    "key": "moving-plan",
+    "src": "/guides/distinct/moving-plan.webp",
+    "alt": "搬家者借助手推车把纸箱装入货车",
+    "caption": "先核对物品体积、搬运条件和车辆空间。搬家规划主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/moving-plan-small.webp 480w, /guides/distinct/moving-plan.webp 1536w"
+  },
+  {
+    "key": "furniture-inspection",
+    "src": "/guides/distinct/furniture-inspection.webp",
+    "alt": "买家检查木椅接头、柜子尺寸与旁边的家电",
+    "caption": "二手家具看结构，家电另核型号与工作状态。验货主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/furniture-inspection-small.webp 480w, /guides/distinct/furniture-inspection.webp 1536w"
+  },
+  {
+    "key": "posting-trust",
+    "src": "/guides/distinct/posting-trust.webp",
+    "alt": "手机拍摄台灯，旁边摆着尺子和发帖准备卡",
+    "caption": "清楚的实物照片和尺寸，让需求更容易被理解。发帖准备主题原创插图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/posting-trust-small.webp 480w, /guides/distinct/posting-trust.webp 1536w"
+  },
+  {
+    "key": "september-edition",
+    "src": "/guides/distinct/september-edition.webp",
+    "alt": "蓝调傍晚的湾区街道、暖色橱窗、花摊与走向社区庆典的人们",
+    "caption": "九月月刊专属原创插图：用街灯、鲜花与音乐表现出门的期待，不对应某一场真实活动。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/september-edition-small.webp 480w, /guides/distinct/september-edition.webp 1536w"
+  }
+]

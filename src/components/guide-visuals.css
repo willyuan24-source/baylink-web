@@ -11,6 +11,9 @@
 .guide-figure--cover .guide-figure-image { aspect-ratio:1.9; object-fit:cover; }
 .guide-figure--poster { margin:0; padding:16px; }
 .guide-figure--poster .guide-figure-open { max-width:520px; margin:auto; }
+.guide-figure--official-poster .guide-figure-open { padding:22px 22px 65px; background:linear-gradient(135deg,#eeece4,#f8f7f1 55%,#e7e8e1); }
+.guide-figure--official-poster .guide-figure-image { aspect-ratio:auto; max-height:700px; object-fit:contain; }
+.guide-figure--official-poster .guide-figure-open:hover .guide-figure-image { transform:none; }
 .guide-figure-zoom { position:absolute; right:14px; bottom:14px; display:flex; align-items:center; gap:7px; min-height:36px; padding:8px 12px; border:1px solid #ffffff80; border-radius:100px; background:#fffdf5ed; color:#123c31; font-size:12px; font-weight:650; }
 .guide-image-caption { display:grid; gap:8px; padding:13px 3px 0; color:#52624d; font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
 .guide-image-caption p { margin:0; }

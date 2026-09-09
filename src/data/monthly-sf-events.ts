@@ -23,7 +23,7 @@ export const sfSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://gggp.org/flowerpiano/',
     sourceLabel: 'Gardens of Golden Gate Park',
     verifiedAt: '2026-09-08',
-    imageKey: 'weekend',
+    imageKey: 'event-piano',
     relatedGuideSlug: 'san-francisco-guide',
   },
   {
@@ -48,7 +48,7 @@ export const sfSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.sfopera.com/seasons/opera-in-the-park/',
     sourceLabel: 'San Francisco Opera',
     verifiedAt: '2026-09-08',
-    imageKey: 'weekend',
+    imageKey: 'event-opera',
     relatedGuideSlug: 'san-francisco-guide',
   },
   {
@@ -73,7 +73,7 @@ export const sfSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.sfmta.com/calendar/muni-heritage-weekend-2026',
     sourceLabel: 'SFMTA · Market Street Railway',
     verifiedAt: '2026-09-08',
-    imageKey: 'everyday',
+    imageKey: 'event-muni',
     relatedGuideSlug: 'bay-area-without-car-guide',
   },
   {
@@ -98,7 +98,7 @@ export const sfSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.moonfestival.org/',
     sourceLabel: 'Chinatown Merchants Association',
     verifiedAt: '2026-09-08',
-    imageKey: 'everyday',
+    imageKey: 'event-moon',
     relatedGuideSlug: 'san-francisco-guide',
   },
   {
@@ -123,7 +123,7 @@ export const sfSeptemberEvents: MonthlyEvent[] = [
     officialUrl: 'https://www.portolamusicfestival.com/general-info/',
     sourceLabel: 'Portola · Goldenvoice',
     verifiedAt: '2026-09-08',
-    imageKey: 'weekend',
+    imageKey: 'event-portola',
     relatedGuideSlug: 'bay-area-without-car-guide',
   },
 ];

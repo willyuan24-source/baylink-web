@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -24,10 +25,10 @@ afterEach(() => cleanup());
 const moods = [
   { label: '去海边', slug: 'half-moon-bay-coastal-half-day-guide', heading: '风有点大，日程可以慢一点。', kind: 'photo' },
   { label: '走进树林', slug: 'reinhardt-redwood-first-walk-guide', heading: '把脚步放轻，把绿色看仔细。', kind: 'photo' },
-  { label: '买点新鲜的', slug: 'bay-area-farmers-market-shopping-guide', heading: '让一袋新鲜食材，安排这周的餐桌。', kind: 'illustration' },
-  { label: '雨天也出门', slug: 'rainy-day-museum-family-guide', heading: '换一种天气，也换一种发现。', kind: 'illustration' },
+  { label: '买点新鲜的', slug: 'bay-area-farmers-market-shopping-guide', heading: '让一袋新鲜食材，安排这周的餐桌。', kind: 'photo' },
+  { label: '雨天也出门', slug: 'rainy-day-museum-family-guide', heading: '换一种天气，也换一种发现。', kind: 'photo' },
   { label: '铺开野餐垫', slug: 'presidio-picnic-day-guide', heading: '坐在草地上，也算认真过周末。', kind: 'photo' },
-  { label: '带狗一起走', slug: 'bay-area-dog-park-first-outing-guide', heading: '出门前，先读懂这片公园的规则。', kind: 'illustration' },
+  { label: '带狗一起走', slug: 'bay-area-dog-park-first-outing-guide', heading: '出门前，先读懂这片公园的规则。', kind: 'photo' },
 ] as const;
 
 type PhotoCredit = {
@@ -35,6 +36,8 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets'].flatMap(name =>
+  JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')) as (GuideImage & { key: string })[]);
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
   assert.equal(src.includes('..'), false, 'public asset paths must stay inside the guides directory');
@@ -114,14 +117,15 @@ test('guide explorer keeps modifier and non-primary clicks native while ordinary
   assert.deepEqual(opened, [guide.slug]);
 });
 
-test('all 36 guides have usable local cover and inline images including real 480-pixel responsive assets', () => {
+test('all 36 guides and the complete media registry have usable local images and real 480-pixel responsive assets', () => {
   assert.equal(guides.length, 36);
   const checked = new Set<string>();
   const checkImage = (image: GuideImage) => {
+    assert.ok(image, 'every published image key resolves to an asset');
     assert.ok(image.alt.trim().length >= 5, image.src);
     assert.ok(image.caption.trim().length >= 10, image.src);
     assert.ok(image.credit.trim().length >= 5, image.src);
-    assert.ok(['photo', 'illustration'].includes(image.kind));
+    assert.ok(['photo', 'illustration', 'poster'].includes(image.kind));
     if (checked.has(image.src)) return;
     checked.add(image.src);
     assert.deepEqual(dimensions(image.src), { width: image.width, height: image.height });
@@ -135,16 +139,26 @@ test('all 36 guides have usable local cover and inline images including real 480
     assert.ok(Math.abs(smallSize.height - image.height * 480 / image.width) <= 1, image.src);
     assert.ok(candidates.some(([src, width]) => src === image.src && width === `${image.width}w`));
     if (image.kind === 'illustration') {
-      assert.match(image.credit, /AI.*插图/);
-      assert.match(image.caption, /情境插图/);
+      assert.match(image.credit, /AI/);
+      assert.match(image.caption, /插图|插画|示意/);
     } else {
       const credit = photoCredits.find(item => item.src === image.src);
-      assert.ok(credit, `${image.src} needs its original attribution record`);
-      for (const field of ['author', 'license', 'captured', 'changes'] as const) assert.ok(credit[field].trim(), `${image.src}: ${field}`);
-      assert.equal(image.creditUrl, credit.sourceUrl);
-      assert.equal(image.licenseUrl, credit.licenseUrl.replace(/^http:/, 'https:'));
-      assert.ok(image.credit.includes(credit.author) && image.credit.includes(credit.license));
-      for (const url of [image.creditUrl, image.licenseUrl, credit.originalUrl]) assert.equal(new URL(url!).protocol, 'https:');
+      assert.ok(image.creditUrl, `${image.src} needs a source link`);
+      assert.equal(new URL(image.creditUrl).protocol, 'https:');
+      if (image.licenseUrl) assert.equal(new URL(image.licenseUrl).protocol, 'https:');
+      if (credit) {
+        for (const field of ['author', 'license', 'captured', 'changes'] as const) assert.ok(credit[field].trim(), `${image.src}: ${field}`);
+        assert.equal(image.creditUrl, credit.sourceUrl);
+        assert.equal(image.licenseUrl, credit.licenseUrl.replace(/^http:/, 'https:'));
+        assert.ok(image.credit.includes(credit.author) && image.credit.includes(credit.license));
+        assert.equal(new URL(credit.originalUrl).protocol, 'https:');
+      } else {
+        const record = distinctAssets.find(item => item.src === image.src);
+        assert.ok(record, `${image.src} needs its original attribution record`);
+        for (const field of ['kind', 'alt', 'caption', 'credit', 'creditUrl', 'licenseUrl'] as const) {
+          assert.equal(image[field], record[field], `${image.src}: ${field} must retain the source record`);
+        }
+      }
     }
   };
   for (const guide of guides) {
@@ -156,24 +170,46 @@ test('all 36 guides have usable local cover and inline images including real 480
       checkImage(inline.image);
     }
   }
-  assert.equal(checked.size, Object.keys(GUIDE_IMAGES).length);
+  // The monthly edition also registers assets which are not guide cover or inline images.
+  for (const image of Object.values(GUIDE_IMAGES)) checkImage(image);
+  assert.equal(checked.size, new Set(Object.values(GUIDE_IMAGES).map(image => image.src)).size);
 });
 
-test('the visible credits retain every photograph source, attribution and license link', () => {
+test('all 36 guide covers use different source files and different actual image bytes', () => {
+  assert.equal(guides.length, 36);
+  const paths = new Set<string>();
+  const fingerprints = new Map<string, string>();
+  for (const guide of guides) {
+    const { cover } = getGuideMedia(guide);
+    assert.ok(cover, guide.slug);
+    assert.equal(paths.has(cover.src), false, `${guide.slug} reuses a previous guide cover path`);
+    paths.add(cover.src);
+    const fingerprint = createHash('sha256').update(asset(cover.src)).digest('hex');
+    assert.equal(fingerprints.has(fingerprint), false, `${guide.slug} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
+    fingerprints.set(fingerprint, guide.slug);
+  }
+  assert.equal(paths.size, 36);
+  assert.equal(fingerprints.size, 36, 'renaming the same illustration must not satisfy the distinct-cover requirement');
+});
+
+test('the visible credits retain every photograph and poster source without inventing license links', () => {
   const view = render(<GuideImageCredits />);
   assert.ok(view.getByText('关于图片与授权'));
-  const photos = Object.values(GUIDE_IMAGES).filter(image => image.kind === 'photo');
-  assert.equal(photos.length, photoCredits.length);
+  const images = Object.values(GUIDE_IMAGES).filter(image => image.kind === 'photo' || image.kind === 'poster');
   const details = view.container.querySelector('details')!;
   details.open = true;
-  for (const image of photos) {
+  assert.equal(details.querySelectorAll('li').length, images.length);
+  for (const image of images) {
     const source = view.getByRole('link', { name: image.alt, exact: true });
     assert.equal(source.getAttribute('href'), image.creditUrl);
     const row = source.closest('li')!;
     assert.ok(row.textContent!.includes(image.credit));
-    const license = row.querySelector('a:last-of-type')!;
-    assert.equal(license.getAttribute('href'), image.licenseUrl);
-    for (const link of [source, license]) {
+    const license = [...row.querySelectorAll('a')].find(link => link.textContent!.includes('查看图片授权'));
+    if (image.licenseUrl) {
+      assert.ok(license, `${image.src} must show its recorded license`);
+      assert.equal(license.getAttribute('href'), image.licenseUrl);
+    } else assert.equal(license, undefined, `${image.src} must not fabricate permission from a source credit`);
+    for (const link of row.querySelectorAll('a')) {
       assert.equal(link.getAttribute('target'), '_blank');
       assert.match(link.getAttribute('rel')!, /noopener/);
       assert.match(link.getAttribute('rel')!, /noreferrer/);
@@ -205,7 +241,7 @@ test('every guide metadata uses its editorial cover while the two original poste
     const cover = getGuideMedia(guide).cover;
     const metadata = getGuideMetadata(guide);
     assert.equal(metadata.image, cover.src);
-    assert.match(metadata.image!, /^\/guides\/editorial\/.+\.webp$/);
+    assert.match(metadata.image!, /^\/guides\/(editorial|distinct)\/[a-z0-9-]+\.webp$/);
     const article = metadata.structuredData!.find(item => item['@type'] === 'Article')!;
     assert.equal(article.image, SITE_URL + cover.src);
     assert.equal(article.headline, guide.title);

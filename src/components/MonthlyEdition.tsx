@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
 import { GUIDE_IMAGES } from '../data/guide-media';
 import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
 import { GuideImageCredits } from './GuideExplorer';
+import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'all', label: '整个湾区' }, { value: 'sf', label: '旧金山' },
@@ -15,15 +16,25 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
 const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游' };
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
 
-function EditionPicture({ imageKey, className = '', eager = false }: { imageKey: string; className?: string; eager?: boolean }) {
-  const image = GUIDE_IMAGES[imageKey] || GUIDE_IMAGES.weekend;
-  return <figure className={`bl-monthly-picture ${className}`}>
-    <div className="bl-monthly-picture-frame">
+type EditionPictureProps = { imageKey: string; className?: string; eager?: boolean };
+
+export function EditionPicture(props: EditionPictureProps) {
+  return <EditionPictureSession key={props.imageKey} {...props} />;
+}
+
+function EditionPictureSession({ imageKey, className = '', eager = false }: EditionPictureProps) {
+  const [open, setOpen] = useState(false);
+  const image = GUIDE_IMAGES[imageKey];
+  if (!image) return null;
+  const label = image.kind === 'poster' ? '官方宣传图' : image.kind === 'illustration' ? 'BAYLINK 主题插图 · AI 创作' : image.caption.includes('资料') ? '资料照片' : '实景照片';
+  return <><figure className={`bl-monthly-picture bl-monthly-picture--${image.kind}${image.fullFrame ? ' bl-monthly-picture--full-frame' : ''} ${className}`}>
+    <button type="button" className="bl-monthly-picture-frame" aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
       <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 560px" width={image.width} height={image.height} alt={image.alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
-      <span>{image.kind === 'photo' ? '地区配图 · 非活动现场' : 'AI 原创情境插图'}</span>
-    </div>
-    <figcaption>{image.caption}</figcaption>
-  </figure>;
+      <span className="bl-monthly-picture-kind">{label}</span>
+      <span className="bl-monthly-picture-zoom"><Expand size={14} aria-hidden="true" /><span>查看大图</span></span>
+    </button>
+    <GuideImageCaption image={image} showKind={false} />
+  </figure>{open && <GuideImageLightbox image={image} onClose={() => setOpen(false)} />}</>;
 }
 
 function EventCard({ event, today }: { event: MonthlyEvent; today: string }) {
@@ -80,7 +91,7 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
     <header className="bl-monthly-hero">
       <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow"><span className="bl-monthly-edition-dot" />BAYLINK · THE MONTHLY EDIT</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '本月湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><a href="#monthly-events">{current ? '挑一个本月活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a><a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />已核对 {MONTHLY_EDITION.checkedAt}</span></div></div>
-      <div className="bl-monthly-hero-art"><EditionPicture imageKey="weekend" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
+      <div className="bl-monthly-hero-art"><EditionPicture imageKey="september-edition" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
     </header>
 
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}
@@ -96,6 +107,6 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
     <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 {MONTHLY_EDITION.checkedAt}；实际开放、预约与费用以各场所官网为准。</p></section>
 
     <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow">BEFORE YOU HEAD OUT</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
-    <GuideImageCredits />
+    <GuideImageCredits imageKeys={['september-edition', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey)]} />
   </div>;
 }

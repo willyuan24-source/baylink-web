@@ -1,0 +1,102 @@
+[
+  {
+    "key": "event-mountain-view",
+    "alt": "Mountain View Art & Wine Festival 官方宣传画，山峦与艺术葡萄酒标志",
+    "caption": "Mountain View 艺术与葡萄酒节官方宣传图，来自 2026 媒体资料包。",
+    "credit": "Mountain View Art & Wine Festival · 官方媒体素材",
+    "creditUrl": "https://www.mvartwine.com/press-kit",
+    "licenseUrl": "https://www.mvartwine.com/press-kit",
+    "kind": "poster",
+    "src": "/guides/distinct/event-mountain-view.webp",
+    "width": 1440,
+    "height": 754,
+    "srcSet": "/guides/distinct/event-mountain-view-small.webp 480w, /guides/distinct/event-mountain-view.webp 1440w"
+  },
+  {
+    "key": "event-mill-valley",
+    "alt": "2026 Mill Valley 秋季艺术节官方海报，红杉林与紫色花朵",
+    "caption": "2026 年官方海报：Hilary Williams 的 Golden Beams。9 月 19–20 日，Old Mill Park。",
+    "credit": "Hilary Williams / Mill Valley Fall Arts Festival",
+    "creditUrl": "https://www.mvfaf.org/press",
+    "kind": "poster",
+    "src": "/guides/distinct/event-mill-valley.webp",
+    "width": 720,
+    "height": 1080,
+    "srcSet": "/guides/distinct/event-mill-valley-small.webp 480w, /guides/distinct/event-mill-valley.webp 720w"
+  },
+  {
+    "key": "event-opera",
+    "fullFrame": true,
+    "alt": "2025 年公园歌剧的歌手谢幕与金门公园草地观众",
+    "caption": "2025 年 Opera in the Park 资料照片，展示舞台与草地观众；非 2026 年现场。",
+    "credit": "Kristen Loken / San Francisco Opera",
+    "creditUrl": "https://www.sfopera.com/press/press-releases/San-Francisco-Opera-2026-27-season/",
+    "licenseUrl": "https://www.sfopera.com/press/",
+    "kind": "photo",
+    "src": "/guides/distinct/event-opera.webp",
+    "width": 1440,
+    "height": 478,
+    "srcSet": "/guides/distinct/event-opera-small.webp 480w, /guides/distinct/event-opera.webp 1440w"
+  },
+  {
+    "key": "event-muni",
+    "alt": "2017 Muni Heritage Weekend 展出的红银色 3287 号复古公交",
+    "caption": "2017 年 Muni Heritage Weekend 资料照片；当年展出的 3287 号公交，不代表 2026 年出车名单。",
+    "credit": "Pi.1415926535 · CC BY-SA 3.0 · 已缩放并转为 WebP",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Muni_3287_during_Heritage_Weekend,_September_2017.JPG",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "kind": "photo",
+    "src": "/guides/distinct/event-muni.webp",
+    "width": 1280,
+    "height": 960,
+    "srcSet": "/guides/distinct/event-muni-small.webp 480w, /guides/distinct/event-muni.webp 1280w"
+  },
+  {
+    "key": "event-moon",
+    "alt": "唐人街秋月节舞龙队穿过红灯笼下的 Grant Avenue",
+    "caption": "2021 年唐人街秋月节舞龙资料照片，由活动官网用于介绍节庆；非 2026 年现场。",
+    "credit": "Calvin Jeng（2021）/ Chinatown Merchants Association",
+    "creditUrl": "https://www.moonfestival.org/",
+    "kind": "photo",
+    "src": "/guides/distinct/event-moon.webp",
+    "width": 936,
+    "height": 623,
+    "srcSet": "/guides/distinct/event-moon-small.webp 480w, /guides/distinct/event-moon.webp 936w"
+  },
+  {
+    "key": "event-portola",
+    "alt": "Portola 2026 官方阵容海报，蓝色背景、银色字体与抱着镜球的浣熊",
+    "caption": "Portola 2026 官方阵容海报。演出时间与名单以官网最新公布为准。",
+    "credit": "Portola / Goldenvoice · 官方宣传海报",
+    "creditUrl": "https://www.portolamusicfestival.com/",
+    "kind": "poster",
+    "src": "/guides/distinct/event-portola.webp",
+    "width": 819,
+    "height": 1024,
+    "srcSet": "/guides/distinct/event-portola-small.webp 480w, /guides/distinct/event-portola.webp 819w"
+  },
+  {
+    "key": "event-lafayette",
+    "alt": "Lafayette Art & Wine Festival 2026 官方两日音乐日程图",
+    "caption": "Lafayette 艺术与葡萄酒节 2026 官方音乐日程，9 月 3 日版本；出发前再查官网。",
+    "credit": "Lafayette Art & Wine Festival / Lafayette Chamber",
+    "creditUrl": "https://lafayettefestival.com/media-assets/",
+    "kind": "poster",
+    "src": "/guides/distinct/event-lafayette.webp",
+    "width": 1440,
+    "height": 1029,
+    "srcSet": "/guides/distinct/event-lafayette-small.webp 480w, /guides/distinct/event-lafayette.webp 1440w"
+  },
+  {
+    "key": "event-bark",
+    "alt": "Bark in the Park San Jose 2026 官方宣传图",
+    "caption": "Bark in the Park San Jose 2026 官方宣传图。",
+    "credit": "Bark in the Park / Naglee Park Campus Community Association",
+    "creditUrl": "https://www.barksanjose.org/",
+    "kind": "poster",
+    "src": "/guides/distinct/event-bark.webp",
+    "width": 600,
+    "height": 294,
+    "srcSet": "/guides/distinct/event-bark-small.webp 480w, /guides/distinct/event-bark.webp 600w"
+  }
+]

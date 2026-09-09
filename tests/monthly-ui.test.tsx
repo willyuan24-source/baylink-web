@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
+import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { buildEventCalendar } from '../src/lib/monthly';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/this-month' });
@@ -91,8 +94,47 @@ test('monthly edition initially exposes nine activities with named official link
     assert.match(official.getAttribute('rel')!, /noreferrer/);
     assert.ok(card.getByText(event.costLabel, { exact: true }));
     assert.ok(card.getByText(`已核对 ${event.verifiedAt} · ${event.sourceLabel}`));
-    assert.ok(card.getByText('AI 原创情境插图'), 'context illustration must not masquerade as event photography');
+    const image = GUIDE_IMAGES[event.imageKey];
+    assert.ok(image, `${event.id} needs its own registered image`);
+    const img = card.getByRole('img', { name: image.alt });
+    assert.equal(img.getAttribute('src'), image.src);
+    assert.equal(img.getAttribute('srcset'), image.srcSet);
+    assert.ok(card.getByText(image.caption));
+    assert.ok(card.getByRole('button', { name: `放大图片：${image.alt}` }));
+    const kindLabel = image.kind === 'poster' ? '官方宣传图' : image.kind === 'illustration' ? 'BAYLINK 主题插图 · AI 创作' : image.caption.includes('资料') ? '资料照片' : '实景照片';
+    assert.ok(card.getByText(kindLabel, { exact: true }), `${event.id} must label the actual media kind`);
+    if (image.kind !== 'illustration') {
+      assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
+      const credit = card.getByRole('link', { name: new RegExp(image.credit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
+      assert.equal(credit.getAttribute('href'), image.creditUrl);
+      assert.equal(credit.getAttribute('target'), '_blank');
+      assert.equal(credit.getAttribute('rel'), 'noopener noreferrer');
+    }
   }
+});
+
+test('all nine monthly activities use distinct registered assets and distinct actual image bytes', () => {
+  assert.equal(MONTHLY_EVENTS.length, 9);
+  const keys = new Set<string>();
+  const paths = new Set<string>();
+  const fingerprints = new Map<string, string>();
+  for (const event of MONTHLY_EVENTS) {
+    const image = GUIDE_IMAGES[event.imageKey];
+    assert.ok(image, event.id);
+    assert.equal(keys.has(event.imageKey), false, `${event.id} reuses an event image key`);
+    keys.add(event.imageKey);
+    assert.match(image.src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
+    assert.equal(image.src.includes('..'), false);
+    assert.equal(paths.has(image.src), false, `${event.id} reuses an event image path`);
+    paths.add(image.src);
+    const bytes = readFileSync(new URL(`../public${image.src}`, import.meta.url));
+    const fingerprint = createHash('sha256').update(bytes).digest('hex');
+    assert.equal(fingerprints.has(fingerprint), false, `${event.id} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
+    fingerprints.set(fingerprint, event.id);
+  }
+  assert.equal(keys.size, 9);
+  assert.equal(paths.size, 9);
+  assert.equal(fingerprints.size, 9, 'different filenames must not disguise reuse of a generic event illustration');
 });
 
 test('region, free admission and keyword filters combine and clearing a search restores regional matches', () => {

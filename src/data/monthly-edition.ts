@@ -15,13 +15,13 @@ export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents]
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {
-    id: 'filoli-garden', title: 'Filoli：把半天交给花园', area: '半岛 · Woodside', imageKey: 'weekend',
+    id: 'filoli-garden', title: 'Filoli：把半天交给花园', area: '半岛 · Woodside', imageKey: 'filoli',
     summary: '想避开赶场，就选宅邸与花园慢慢看。先订好入园时段，把走自然步道留作体力允许时的加项。',
     plan: ['编辑建议：先看宅邸，再在花园选一条轻松步线，留一点坐下休息的时间。', '官方建议提前订票，按所选一小时入园窗口报到；步道比庄园提前半小时关闭。', '普通宠物不能入内；野餐长椅在主入口附近，花园和园区内不能铺开野餐。'],
     officialUrl: 'https://filoli.org/visit/', sourceLabel: 'Filoli 参观说明', relatedGuideSlug: 'peninsula-living-guide',
   },
   {
-    id: 'ferry-plaza-morning', title: 'Ferry Plaza：采购之后，去海边走走', area: '旧金山 · Embarcadero', imageKey: 'everyday',
+    id: 'ferry-plaza-morning', title: 'Ferry Plaza：采购之后，去海边走走', area: '旧金山 · Embarcadero', imageKey: 'ferry-market',
     summary: '把周六的一餐交给农夫市集：先看看摊位，再按两餐清单买东西。买得少一点，回家也更容易安排。',
     plan: ['官方常规安排为周六 8:00–14:00，周二、周四 10:00–14:00；出发前另查临时公告。', '编辑建议：早餐、买菜与短程湾边散步选两项就够；不要提着易腐食品逛一整天。', '市集在 Ferry Building 外，室内商店有各自时间；带可重复使用的购物袋和合适保冷用品。'],
     officialUrl: 'https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/', sourceLabel: 'Foodwise 市集访客说明', relatedGuideSlug: 'bay-area-farmers-market-shopping-guide',
