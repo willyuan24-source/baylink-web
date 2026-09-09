@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { guides } from '../src/data/guides';
+import { guideBlockText } from '../src/lib/guide-content';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const supported = new Set(['rent', 'roommate', 'used', 'moving', 'cleaning', 'ride', 'repair', 'translation', 'part-time', 'other']);
@@ -14,7 +15,7 @@ const catalog = guides.map((guide) => {
   return {
     title: guide.title, slug: guide.slug, url: `/guides/${guide.slug}`, summary: guide.summary,
     keywords: [...new Set([guide.title, guide.categoryLabel, ...guide.tags])], categories,
-    content: guide.blocks.map((block) => 'items' in block ? block.items.join('\n') : 'text' in block ? `${'title' in block && block.title ? `${block.title}\n` : ''}${block.text}` : '').join('\n\n'),
+    content: guide.blocks.map(guideBlockText).join('\n\n'),
     sources: guide.sources.map(({ title, url }) => ({ title, url })), updatedAt: guide.updatedAt,
   };
 });

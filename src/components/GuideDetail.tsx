@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   BookOpen,
   Check,
+  ChevronDown,
   Clock3,
   Copy,
   Lightbulb,
@@ -18,6 +19,8 @@ import {
   type GuideBlock,
 } from "../data/guides";
 import { GuideCardMini } from "./GuideCard";
+import { getGuideMedia, type GuideImage } from '../data/guide-media';
+import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 
 type GuideDetailProps = {
   slug: string;
@@ -31,7 +34,9 @@ type GuideDetailProps = {
   }) => void;
 };
 
-export const GuideDetail = ({
+export const GuideDetail = (props: GuideDetailProps) => <GuideDetailSession key={props.slug} {...props} />;
+
+const GuideDetailSession = ({
   slug,
   returnTo = '/guides',
   onBack,
@@ -100,6 +105,14 @@ export const GuideDetail = ({
       </div>
     );
   const related = getRelatedGuides(guide, 3);
+  const media = getGuideMedia(guide);
+  const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
+  const inlineAfter = new Map<number, GuideImage[]>();
+  for (const item of media.inline) {
+    if (!Number.isInteger(item.afterHeading) || item.afterHeading < 1 || item.afterHeading > headingIndexes.length) continue;
+    const lastBlock = (headingIndexes[item.afterHeading] ?? guide.blocks.length) - 1;
+    inlineAfter.set(lastBlock, [...(inlineAfter.get(lastBlock) || []), item.image]);
+  }
   const headings = guide.blocks.flatMap((block, index) =>
     block.type === "heading"
       ? [{ text: block.text, id: `guide-section-${index}` }]
@@ -137,7 +150,7 @@ export const GuideDetail = ({
   );
 
   return (
-    <div className="bl-guide-detail">
+    <div className="bl-guide-detail bl-guide-detail--visual">
       <div className="bl-guide-reader-bar">
         <button type="button" onClick={onBack} aria-label="返回湾区指南">
           <ArrowLeft size={17} aria-hidden="true" />
@@ -177,6 +190,7 @@ export const GuideDetail = ({
               {guide.readMinutes} 分钟阅读
             </span>
           </div>
+          <GuideFigure image={media.cover} variant="cover" />
           <div className="bl-guide-abstract">
             <span>这篇指南，帮你理清</span>
             <p>{guide.summary}</p>
@@ -208,27 +222,17 @@ export const GuideDetail = ({
           </aside>
           <div className="bl-guide-reading-main">
             {guide.cover && (
-              <a
-                href={guide.cover}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bl-guide-poster"
-                aria-label={`${guide.title} 完整海报`}
-              >
-                <img src={guide.cover} alt={`${guide.title} 海报`} />
-                <span>
-                  点击查看完整海报 <ArrowUpRight size={14} aria-hidden="true" />
-                </span>
-              </a>
+              <details className="guide-poster-disclosure">
+                <summary>查看原版图文海报<ChevronDown size={17} aria-hidden="true" /></summary>
+                <GuideFigure variant="poster" image={{ src: guide.cover, alt: `${guide.title} 原版图文海报`, caption: '原版图文海报作为补充阅读，最新整理请以本文正文及官方资料为准。', credit: 'BAYLINK 原有指南附图', kind: 'illustration', width: 1055, height: 1491 }} />
+              </details>
             )}
             <div className="bl-guide-prose">
               {guide.blocks.map((block, index) => (
-                <BlockRenderer
-                  key={`${slug}-${index}`}
-                  block={block}
-                  id={`guide-section-${index}`}
-                  onCta={handleCta}
-                />
+                <Fragment key={`${slug}-${index}`}>
+                  <BlockRenderer block={block} id={`guide-section-${index}`} onCta={handleCta} />
+                  {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
+                </Fragment>
               ))}
             </div>
             <section
@@ -391,6 +395,8 @@ const BlockRenderer = ({
       return <Checklist items={block.items} />;
     case "template":
       return <GuideTemplate title={block.title} text={block.text} />;
+    case "route":
+      return <GuideRouteRenderer block={block} id={id} />;
     case "tip":
       return (
         <aside className="bl-guide-tip">

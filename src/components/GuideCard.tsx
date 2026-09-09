@@ -1,4 +1,5 @@
 import type { Guide } from "../data/guides";
+import { getGuideMedia } from '../data/guide-media';
 import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -49,7 +50,7 @@ const categoryIcons = {
 };
 
 export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSection }: GuideCardProps) => {
-  const Icon = categoryIcons[guide.category];
+  const { cover } = getGuideMedia(guide);
   return (
     <Link
       to={`/guides/${guide.slug}`}
@@ -58,27 +59,15 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
     >
       {!compact && (
         <div
-          className={`bl-guide-card-art${guide.cover ? " bl-guide-card-art-photo" : ""}`}
+          className="bl-guide-card-art bl-guide-card-art-photo"
           aria-hidden="true"
         >
-          {guide.cover ? (
-            <img src={guide.cover} alt="" loading="lazy" />
-          ) : (
-            <>
-              <span className="bl-guide-art-word">
-                BAY AREA
-                <br />
-                FIELD NOTES
-              </span>
-              <span className="bl-guide-art-icon">
-                <Icon strokeWidth={1.3} />
-              </span>
-            </>
-          )}
+          <img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 42vw, 340px" width={cover.width} height={cover.height} alt="" loading="lazy" decoding="async" />
           <span className="bl-guide-art-label">{guide.categoryLabel}</span>
           <span className="bl-guide-art-arrow">
             <ArrowUpRight size={17} />
           </span>
+          <span className="bl-guide-image-kind">{cover.kind === 'photo' ? '实景照片' : 'AI 原创插图'}</span>
         </div>
       )}
       <div className="bl-guide-card-body">
@@ -104,12 +93,14 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
 
 export const GuideCardMini = ({ guide, onClick }: GuideCardProps) => {
   const Icon = categoryIcons[guide.category];
+  const { cover } = getGuideMedia(guide);
   return (
     <Link
       to={`/guides/${guide.slug}`}
       onClick={(event) => handleGuideLinkClick(event, onClick)}
       className={`bl-guide-mini bl-guide-tone-${guide.category}`}
     >
+      <img className="bl-guide-mini-photo" src={cover.src} srcSet={cover.srcSet} sizes="280px" width={cover.width} height={cover.height} alt="" loading="lazy" decoding="async" />
       <span className="bl-guide-mini-top">
         <span className="bl-guide-mini-icon">
           <Icon size={20} strokeWidth={1.5} aria-hidden="true" />

@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   BookOpen,
   Compass,
-  MapPin,
   X,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -19,6 +18,8 @@ import {
 import { GuideCard, handleGuideLinkClick } from "./GuideCard";
 import { EditorialCollections } from "./EditorialCollections";
 import { searchGuides } from "../lib/guide-search";
+import { getGuideMedia } from '../data/guide-media';
+import { GuideExplorer, GuideImageCredits } from './GuideExplorer';
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -97,6 +98,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
             }
             className="bl-guides-feature"
           >
+            <img className="bl-guides-feature-photo" src={getGuideMedia(hero).cover.src} srcSet={getGuideMedia(hero).cover.srcSet} sizes="(max-width:639px) 100vw, 720px" width={1536} height={1024} alt="" />
             <div className="bl-guides-feature-top">
               <span>
                 <Compass size={15} aria-hidden="true" /> 新来湾区先看
@@ -114,17 +116,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
                 打开第一份生活清单 <ArrowRight size={17} aria-hidden="true" />
               </span>
             </div>
-            <div className="bl-guides-feature-drawing" aria-hidden="true">
-              <span className="bl-guide-orbit bl-guide-orbit-one" />
-              <span className="bl-guide-orbit bl-guide-orbit-two" />
-              <MapPin className="bl-guide-pin" strokeWidth={1.1} />
-              <span className="bl-guide-drawing-note">
-                HELLO,
-                <br />
-                BAY AREA.
-              </span>
-              <span className="bl-guide-drawing-dot" />
-            </div>
+            <span className="bl-guides-feature-photo-note">BAYLINK 原创 · AI 情境插图</span>
           </Link>
           <div className="bl-guides-starter-list">
             {spotlightGuides.slice(1).map((g, index) => (
@@ -136,6 +128,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
                 }
                 className="bl-guides-starter"
               >
+                <img className="bl-guides-starter-photo" src={getGuideMedia(g).cover.src} srcSet={getGuideMedia(g).cover.srcSet} sizes="240px" width={480} height={320} alt="" loading="lazy" />
                 <div className="bl-guides-starter-top">
                   <span>0{index + 2} / 必读指南</span>
                   <ArrowUpRight size={19} aria-hidden="true" />
@@ -149,6 +142,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           </div>
         </section>
       )}
+      {!query.trim() && tab === 'all' && <GuideExplorer onOpenGuide={onOpenGuide} />}
       {!query.trim() && tab === "all" && <EditorialCollections />}
       <section
         className="bl-guides-library"
@@ -253,6 +247,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
         <p>慢慢熟悉，也慢慢喜欢上这里。</p>
         <span>BAYLINK · CONNECTED BY THE BAY</span>
       </footer>
+      <GuideImageCredits />
     </div>
   );
 };

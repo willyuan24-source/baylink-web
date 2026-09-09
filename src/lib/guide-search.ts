@@ -1,4 +1,5 @@
 import type { Guide, GuideCategory } from '../data/guides';
+import { guideBlockText } from './guide-content';
 
 const synonyms = [
   ['租房', '租屋', '租賃', '租赁'], ['二手', '闲置', '閒置'],
@@ -29,8 +30,7 @@ const passagesFor = (guide: Guide): Passage[] => {
   let section: string | undefined;
   for (const block of guide.blocks) {
     if (block.type === 'heading') section = block.text;
-    const text = 'items' in block ? block.items.join('；') :
-      `${'title' in block ? block.title || '' : ''} ${block.text}`.trim();
+    const text = guideBlockText(block);
     passages.push({ text, section, weight: block.type === 'heading' ? 8 : 2 });
   }
   return passages;

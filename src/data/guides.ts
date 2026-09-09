@@ -3,6 +3,7 @@ import { serviceGuides } from './guides-services';
 import { localLifeGuides } from './guides-local-life';
 import { settlingInGuides } from './guides-settling-in';
 import { editorialCollections } from './editorial-collections';
+import { weekendGuides } from './guides-weekends';
 
 export type GuideCategory =
   | 'rent'
@@ -18,6 +19,7 @@ export type GuideCategory =
 export type GuideSource = { title: string; url: string; description: string };
 
 export type GuideBlock =
+  | { type: 'route'; title: string; text: string; stops: { title: string; text: string; mapUrl?: string }[] }
   | { type: 'paragraph'; text: string }
   | { type: 'heading'; text: string }
   | { type: 'list'; items: string[] }
@@ -1850,6 +1852,7 @@ export const guides: Guide[] = [
   ...serviceGuides,
   ...localLifeGuides,
   ...settlingInGuides,
+  ...weekendGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
@@ -1922,6 +1925,7 @@ export const GUIDE_CATEGORY_TABS: { id: 'all' | GuideCategory; label: string }[]
   { id: 'commute', label: '通勤' },
   { id: 'newcomer', label: '新手' },
   { id: 'city', label: '城市指南' },
+  { id: 'events', label: '生活活动' },
   { id: 'safety', label: '安全与防骗' },
 ];
 

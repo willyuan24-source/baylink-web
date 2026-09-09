@@ -32,7 +32,7 @@ test('aliases, multi-term queries and category restrictions cooperate without br
   assert.deepEqual(slugs('駕照'), slugs('驾驶证'));
   assert.deepEqual(slugs('公证 交付'), ['bay-area-translation-service-guide']);
   assert.deepEqual(searchGuides(guides, { query: '公证', category: 'rent' }), []);
-  assert.equal(searchGuides(guides).length, 30);
+  assert.equal(searchGuides(guides).length, guides.length);
 });
 
 test('related reading prioritizes existing editorial topics over incidental category overlap', () => {
