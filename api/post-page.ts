@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { escapeHtml, renderHtmlDocument, safeSocialImage, type PageMetadata } from '../src/lib/seo';
+import { escapeHtml, renderHtmlDocument, safeSocialImage, type PageMetadata } from '../src/lib/seo.js';
 
 type PublicPost = {
   id: string;
