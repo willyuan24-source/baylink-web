@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, BookOpen, CornerDownLeft, Home, Search, Sparkles, X } from 'lucide-react';
+import { ArrowRight, BookOpen, CornerDownLeft, Home, Search, Sparkles, Wrench, X } from 'lucide-react';
 import { CATEGORIES } from '../lib/constants';
 import { getSlugFromCategory } from '../routing';
 import { ModalShell } from './ui/Modal';
@@ -15,6 +15,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: { onClose
         <div className="quick-explore-body">
           {query.trim() && <button type="button" className="quick-result is-highlighted" onClick={search}><Search size={19} /><span>搜索「{query.trim()}」<small>查找房源、服务和邻里信息</small></span><CornerDownLeft size={17} /></button>}
           <p className="site-nav-label">快速前往</p>
+          <button type="button" onClick={() => run(() => onNavigate('/tools'))} className="quick-result"><Wrench size={19} /><span>生活工具箱<small>AI 沟通、单位换算、分账与生活清单</small></span><ArrowRight size={17} /></button>
           {[{ text: '发现湾区', sub: '浏览本地资源与需求', path: '/', icon: Home }, { text: '湾区生活指南', sub: '租房、通勤、搬家，少走弯路', path: '/guides', icon: BookOpen }].map(({ text, sub, path, icon: Icon }) => <button type="button" key={path} onClick={() => run(() => onNavigate(path))} className="quick-result"><Icon size={19} /><span>{text}<small>{sub}</small></span><ArrowRight size={17} /></button>)}
           <button type="button" onClick={() => run(onAsk)} className="quick-result"><Sparkles size={19} /><span>问问 BayBay<small>整理需求，找到生活的下一步</small></span><ArrowRight size={17} /></button>
           <p className="site-nav-label">按分类探索</p><div className="quick-categories">{CATEGORIES.filter((item) => !query.trim() || item.includes(query.trim()) || query.trim().length > 2).map((item) => <button type="button" key={item} onClick={() => run(() => onNavigate(`/category/${getSlugFromCategory(item)}`))}>{item}</button>)}</div>

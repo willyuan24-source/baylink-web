@@ -14,6 +14,7 @@ import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { SITE_URL, escapeHtml, renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
+import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 
 const outputDir = resolve('dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
@@ -24,7 +25,7 @@ const Shell = ({ children }: { children: ReactNode }) => (
     <header className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 border-b border-baylink-border px-5 py-4">
       <a href="/" className="text-lg font-bold text-baylink-green">BAYLINK</a>
       <nav aria-label="网站导航" className="flex gap-4 text-sm">
-        <a href="/">本地信息</a><a href="/guides">生活指南</a><a href="/recommend">编辑推荐</a>
+        <a href="/">本地信息</a><a href="/guides">生活指南</a><a href="/tools">生活工具箱</a><a href="/recommend">编辑推荐</a>
       </nav>
     </header>
     <main className="mx-auto max-w-4xl">{children}</main>
@@ -57,6 +58,7 @@ await renderPage({ title: 'BAYLINK｜湾区华人本地生活平台', descriptio
 ));
 
 await renderPage({ title: '湾区生活指南｜BAYLINK', description: '查看湾区租房、找室友、二手交易、本地服务、交通与城市生活指南，附官方参考资料和行动清单。', path: '/guides' }, <GuidesHome onOpenGuide={noop} />);
+await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
@@ -71,7 +73,7 @@ await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
-const sitemapPaths = ['/', '/guides', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
+const sitemapPaths = ['/', '/guides', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
 const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${guideDates.has(path) ? `<lastmod>${escapeHtml(guideDates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);

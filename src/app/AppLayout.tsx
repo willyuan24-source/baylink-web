@@ -13,6 +13,8 @@ import { HOME_CHANNELS, matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
 import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
 import { setPageMetadata } from '../lib/seo';
+import { TOOLS_METADATA } from '../data/tool-catalog';
+import { Wrench } from 'lucide-react';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
 } from '../lib/types';
@@ -274,6 +276,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
     if (postIdParam) return;
     const path = location.pathname;
+    if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
       document.title = `${cat}｜BAYLINK`;
@@ -807,6 +810,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <Link to="/" className="site-mobile-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="150" height="38" /></Link>
           <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
           <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
+          <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
           <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
         </header>
         {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={() => setBaybayPanelOpen(true)} />}

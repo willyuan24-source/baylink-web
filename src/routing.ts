@@ -37,7 +37,7 @@ export const getSlugFromCategory = (category: string): string | null => {
 
 export const isKnownAppPath = (pathname: string): boolean => {
   const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-  if (['/', '/guides', '/recommend', '/messages', '/me', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
+  if (['/', '/guides', '/tools', '/recommend', '/messages', '/me', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
   if (/^\/(posts|users|messages|guides)\/[^/]+$/.test(path)) return true;
   const category = path.match(/^\/category\/([^/]+)$/)?.[1];
   return !!category && Object.hasOwn(SLUG_TO_CATEGORY, category);
@@ -46,9 +46,10 @@ export const isKnownAppPath = (pathname: string): boolean => {
 export const postShareUrl = (postId: string) => `${window.location.origin}/posts/${postId}`;
 export const userShareUrl = (userId: string) => `${window.location.origin}/users/${userId}`;
 
-export type AppTab = 'home' | 'guides' | 'notifications' | 'messages' | 'profile';
+export type AppTab = 'home' | 'guides' | 'tools' | 'notifications' | 'messages' | 'profile';
 
 export const tabFromPathname = (pathname: string): AppTab => {
+  if (pathname === '/tools' || pathname === '/tools/') return 'tools';
   if (pathname.startsWith('/guides')) return 'guides';
   if (pathname.startsWith('/recommend')) return 'notifications';
   if (pathname.startsWith('/messages')) return 'messages';

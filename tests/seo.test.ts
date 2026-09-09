@@ -116,6 +116,7 @@ test('hosting config has explicit public routes, a real missing-page status and 
   assert.equal(routeFor('/guides/not-a-real-guide').status, 404);
   assert.equal(routeFor('/category/not-a-real-category').status, 404);
   assert.equal(routeFor('/does-not-exist').status, 404);
+  assert.equal(routeFor('/tools').dest, '/$1.html');
   assert.match(routeFor('/posts/example-post').dest, /^\/api\/post-page\?/);
   assert.ok(config.routes.some((route: { handle?: string }) => route.handle === 'filesystem'));
   const csp = config.routes[0].headers['Content-Security-Policy'];
