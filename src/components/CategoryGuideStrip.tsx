@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { handleGuideLinkClick } from './GuideCard';
 // guides 语料 ~1800 行：这里只用 type（编译期擦除），数据在 effect 里动态 import，避免进首包
 import type { Guide } from '../data/guides';
 
@@ -28,7 +30,7 @@ export const CategoryGuideStrip = ({ categorySlug, onOpenGuide }: CategoryGuideS
     <div className="mb-3 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[11px] font-semibold text-baylink-text">{title}</span>
-        <span className="text-[10px] text-baylink-muted">湾区指南</span>
+        <span className="text-[11px] text-baylink-muted">湾区指南</span>
       </div>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap">
         {items.map((g) => (
@@ -40,13 +42,13 @@ export const CategoryGuideStrip = ({ categorySlug, onOpenGuide }: CategoryGuideS
 };
 
 const GuidePill = ({ guide, onClick }: { guide: Guide; onClick: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
+  <Link
+    to={`/guides/${guide.slug}`}
+    onClick={(event) => handleGuideLinkClick(event, onClick)}
     className="flex min-h-[40px] w-full cursor-pointer items-center gap-2 rounded-lg border border-baylink-border/50 bg-white px-2.5 py-2 text-left transition hover:border-baylink-green/30 sm:max-w-[calc(50%-4px)] sm:flex-1"
   >
     <span className="text-base">{guide.emoji}</span>
     <span className="min-w-0 flex-1 line-clamp-1 text-xs font-medium text-baylink-text">{guide.title}</span>
     <ChevronRight size={14} className="shrink-0 text-gray-300" />
-  </button>
+  </Link>
 );

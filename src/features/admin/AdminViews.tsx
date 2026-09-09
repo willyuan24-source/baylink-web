@@ -1,5 +1,5 @@
-// 管理员视图：官方认证审核 + 举报管理（含账号状态调整 / 操作日志）
-import { useState, useEffect } from 'react';
+// 管理员视图：资料审核管理 + 举报管理（含账号状态调整 / 操作日志）
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, Loader2, AlertTriangle, X } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { confirmDialog, promptDialog } from '../../components/ui/confirm';
@@ -80,28 +80,30 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const requestSequence = useRef(0);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    const sequence = ++requestSequence.current;
     setLoading(true);
     try {
       const res = await api.getOfficialVerificationRequests('pending');
-      setRequests(Array.isArray(res.requests) ? res.requests : []);
+      if (sequence === requestSequence.current) setRequests(Array.isArray(res.requests) ? res.requests : []);
     } catch (e: any) {
-      showToast(e?.error || '加载认证申请失败', 'error');
+      if (sequence === requestSequence.current) showToast(e?.error || '加载审核申请失败', 'error');
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); return () => { requestSequence.current += 1; }; }, [load]);
 
   const handleApprove = async (userId: string) => {
-    if (!(await confirmDialog({ title: '通过认证', message: '确认通过该用户的官方认证？', confirmText: '通过' }))) return;
+    if (!(await confirmDialog({ title: '通过资料审核', message: '确认通过该用户的资料审核申请？', confirmText: '通过' }))) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, { status: 'approved' });
       setRequests((prev) => prev.filter((r) => getOfficialRequestUserId(r) !== userId));
-      showToast('已通过官方认证', 'success');
+      showToast('已通过资料审核', 'success');
     } catch (e: any) {
       showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
@@ -110,7 +112,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
   };
 
   const handleReject = async (userId: string) => {
-    if (!(await confirmDialog({ title: '拒绝认证', message: '确认拒绝该认证申请？', confirmText: '拒绝', danger: true }))) return;
+    if (!(await confirmDialog({ title: '拒绝资料审核', message: '确认拒绝该资料审核申请？', confirmText: '拒绝', danger: true }))) return;
     setUpdatingId(userId);
     try {
       await api.reviewOfficialVerification(userId, {
@@ -120,7 +122,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
       setRequests((prev) => prev.filter((r) => getOfficialRequestUserId(r) !== userId));
       setRejectingId(null);
       setRejectReason('');
-      showToast('已拒绝认证申请', 'success');
+      showToast('已拒绝资料审核申请', 'success');
     } catch (e: any) {
       showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
     } finally {
@@ -132,13 +134,13 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
     <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
-        <h2 className="text-lg font-bold text-baylink-text">官方认证审核</h2>
+        <h2 className="text-lg font-bold text-baylink-text">资料审核管理</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {loading ? (
           <div className="py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" /></div>
         ) : requests.length === 0 ? (
-          <p className="py-16 text-center text-sm text-baylink-muted">当前没有待审核的认证申请</p>
+          <p className="py-16 text-center text-sm text-baylink-muted">当前没有待审核的资料审核申请</p>
         ) : (
           <div className="space-y-3">
             {requests.map((r) => {
@@ -151,7 +153,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-baylink-text">{r.nickname}</div>
                     <div className="mt-1 text-xs text-baylink-text-secondary">
-                      认证类型：{getOfficialTypeLabel(r.officialVerification?.type) || '—'}
+                      申请类型：{getOfficialTypeLabel(r.officialVerification?.type) || '—'}
                     </div>
                     <div className="mt-0.5 text-[11px] text-baylink-muted">
                       {getPhoneVerificationTrustLabel(phoneVerified)}
@@ -160,14 +162,14 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                       ) : null}
                     </div>
                     {r.officialVerification?.submittedAt && (
-                      <div className="text-[10px] text-baylink-muted">申请时间：{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
+                      <div className="text-[11px] text-baylink-muted">申请时间：{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
                     )}
                   </div>
                 </div>
                 {!phoneVerified && (
                   <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
                     <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600" />
-                    <span>该用户尚未完成手机验证，建议谨慎审核；你仍然可以通过或拒绝该认证申请。</span>
+                    <span>该用户尚未完成手机验证，建议谨慎审核；你仍然可以通过或拒绝该资料审核申请。</span>
                   </div>
                 )}
                 {r.officialVerification?.description && (
@@ -218,20 +220,22 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [logs, setLogs] = useState<ModerationLogItem[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const requestSequence = useRef(0);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    const sequence = ++requestSequence.current;
     setLoading(true);
     try {
       const res = await api.getAdminReports(statusFilter, typeFilter);
-      setReports(Array.isArray(res.reports) ? res.reports : []);
+      if (sequence === requestSequence.current) setReports(Array.isArray(res.reports) ? res.reports : []);
     } catch (e: any) {
-      showToast(e?.error || '加载举报列表失败', 'error');
+      if (sequence === requestSequence.current) showToast(e?.error || '加载举报列表失败', 'error');
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
-  };
+  }, [showToast, statusFilter, typeFilter]);
 
-  useEffect(() => { load(); }, [statusFilter, typeFilter]);
+  useEffect(() => { void load(); return () => { requestSequence.current += 1; }; }, [load]);
 
   const handleStatus = async (id: string, status: 'open' | 'reviewed' | 'dismissed') => {
     setUpdatingId(id);
@@ -351,7 +355,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
             </button>
           ))}
         </div>
-        <p className="text-[10px] text-amber-700">隐藏帖子只会从公开列表移除，不会删除数据。</p>
+        <p className="text-[11px] text-amber-700">隐藏帖子只会从公开列表移除，不会删除数据。</p>
       </div>
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {loading ? (
@@ -401,9 +405,9 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     {r.targetType === 'post' && !r.targetPost && (
                       <p className="mt-1 text-[11px] text-baylink-muted">关联帖子已不存在</p>
                     )}
-                    {r.adminNote && <p className="mt-1 text-[10px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
+                    {r.adminNote && <p className="mt-1 text-[11px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>
-                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{statusLabel(r.status)}</span>
+                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">{statusLabel(r.status)}</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === 'open' && (
@@ -483,7 +487,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                           <p className="text-xs font-semibold text-baylink-text">
                             {MODERATION_ACTION_LABELS[log.action] || log.action}
                           </p>
-                          <span className="shrink-0 text-[10px] text-baylink-muted">
+                          <span className="shrink-0 text-[11px] text-baylink-muted">
                             {new Date(log.createdAt).toLocaleString()}
                           </span>
                         </div>

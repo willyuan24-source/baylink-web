@@ -4,7 +4,10 @@ import type { DefaultCover, PostType } from './types';
 
 export const MAX_POST_IMAGES = 5;
 
-export const REGIONS = ["旧金山", "中半岛", "东湾", "南湾"];
+export const REGIONS = ["旧金山", "中半岛", "东湾", "南湾", "北湾"];
+export const SERVICE_CATEGORIES = ['清洁', '搬家', '维修', '翻译'];
+export const matchesCategory = (actual: string, filter: string) =>
+  filter === '全部' || (filter === '本地服务' ? SERVICE_CATEGORIES.includes(actual) : actual === filter);
 
 /** 地区关键词 → 发帖表单 REGIONS（先匹配具体城市，再匹配大区，避免 Millbrae 被 SF 误判） */
 const AREA_TO_REGION: { region: string; patterns: RegExp[] }[] = [
@@ -47,6 +50,9 @@ const AREA_TO_REGION: { region: string; patterns: RegExp[] }[] = [
       /\bunion\s*city\b/i,
       /\bnewark\b/i,
       /\balameda\b/i,
+      /\bsan\s*pablo\b/i,
+      /\brichmond\b/i,
+      /\bconcord\b/i,
       /east\s*bay/i,
     ],
   },
@@ -61,9 +67,8 @@ const AREA_TO_REGION: { region: string; patterns: RegExp[] }[] = [
     ],
   },
   {
-    // REGIONS 无「北湾」，Marin 一带归入旧金山侧选项
-    region: '旧金山',
-    patterns: [/北湾/, /\bmarin\b/i, /\bsan\s*rafael\b/i, /\bsausalito\b/i],
+    region: '北湾',
+    patterns: [/北湾/, /\bmarin\b/i, /\bsan\s*rafael\b/i, /\bsausalito\b/i, /\bnovato\b/i, /\bsanta\s*rosa\b/i, /\bnapa\b/i, /\bsonoma\b/i],
   },
 ];
 
@@ -94,9 +99,9 @@ export const CATEGORY_EMOJI: Record<string, string> = {
 export const HOME_CHANNELS = [
   { id: 'rent', title: '租房', sub: '整租 / 合租 / 短租', emoji: '🏠', category: '租屋', feedType: 'provider' as PostType },
   { id: 'used', title: '二手', sub: '家具 / 电器 / 好物', emoji: '♻️', category: '闲置', feedType: 'provider' as PostType },
-  { id: 'service', title: '本地服务', sub: '清洁 / 搬家 / 维修', emoji: '🧹', category: '清洁', feedType: 'provider' as PostType },
+  { id: 'service', title: '本地服务', sub: '清洁 / 搬家 / 维修', emoji: '🧹', category: '本地服务', feedType: 'provider' as PostType },
   { id: 'ride', title: '接送', sub: '机场 / 临时 / 通勤', emoji: '🚗', category: '接送', feedType: 'provider' as PostType },
-  { id: 'featured', title: '推荐', sub: '官方精选 / 认证信息', emoji: '⭐', category: null, feedType: null },
+  { id: 'featured', title: '推荐', sub: '编辑精选 / 本地信息', emoji: '⭐', category: null, feedType: null },
 ];
 
 export const DEFAULT_COVERS: DefaultCover[] = [

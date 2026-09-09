@@ -1,4 +1,5 @@
 import { ChevronLeft, CheckCircle2, Lightbulb } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   getGuideBySlug,
   getRelatedGuides,
@@ -11,7 +12,7 @@ type GuideDetailProps = {
   onBack: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
-  onOpenPost: () => void;
+  onOpenPost: (options: { type: 'client' | 'provider'; categorySlug: string }) => void;
 };
 
 export const GuideDetail = ({
@@ -38,7 +39,8 @@ export const GuideDetail = ({
   const related = getRelatedGuides(guide, 3);
 
   const handleCta = (block: Extract<GuideBlock, { type: 'cta' }>) => {
-    if (block.primaryAction === 'post') onOpenPost();
+    if (block.primaryAction === 'post' && block.postCategorySlug)
+      onOpenPost({ type: block.postType || 'client', categorySlug: block.postCategorySlug });
     else if (block.primaryAction === 'category' && block.categorySlug)
       onNavigate(`/category/${block.categorySlug}`);
     else if (block.primaryAction === 'guides') onNavigate('/guides');
@@ -47,14 +49,14 @@ export const GuideDetail = ({
   return (
     <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-baylink-border/40 bg-baylink-bg/95 px-4 py-3 backdrop-blur-sm">
-        <button type="button" onClick={onBack} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section">
+        <button type="button" onClick={onBack} aria-label="返回湾区指南" className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section">
           <ChevronLeft size={22} />
         </button>
         <span className="text-sm font-medium text-baylink-text truncate">湾区指南</span>
       </div>
 
       <article className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 max-w-full">
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px]">
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
           <span className="rounded-md bg-baylink-section px-2 py-0.5 font-medium text-baylink-muted">
             {guide.categoryLabel}
           </span>
@@ -105,6 +107,21 @@ export const GuideDetail = ({
             <BlockRenderer key={i} block={block} onCta={handleCta} />
           ))}
         </div>
+
+        <section className="mt-8 rounded-2xl border border-baylink-border/60 bg-white p-4" aria-labelledby="guide-sources">
+          <h2 id="guide-sources" className="text-sm font-bold text-baylink-text">官方参考资料与办事入口</h2>
+          <p className="mt-1 text-xs leading-relaxed text-baylink-muted">按你的具体情况核对原始资料。票价、开放时间、法规和服务安排可能变化。</p>
+          <ul className="mt-3 space-y-3">
+            {guide.sources.map((source) => (
+              <li key={source.url}>
+                <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-baylink-green underline underline-offset-2">
+                  {source.title}<span className="sr-only">（在新标签页打开）</span>
+                </a>
+                <p className="mt-0.5 text-xs leading-relaxed text-baylink-text-secondary">{source.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {guide.sourceNote && (
           <p className="mt-8 rounded-xl bg-baylink-section/60 p-3 text-[11px] leading-relaxed text-baylink-muted">
@@ -181,13 +198,25 @@ const BlockRenderer = ({
         <div className="rounded-2xl border border-baylink-green/25 bg-white p-4 shadow-card">
           <h3 className="text-sm font-bold text-baylink-text">{block.title}</h3>
           <p className="mt-1 text-xs text-baylink-muted leading-relaxed">{block.text}</p>
-          <button
-            type="button"
-            onClick={() => onCta(block)}
-            className="mt-3 w-full rounded-xl bg-baylink-green py-2.5 text-sm font-bold text-white transition active:scale-[0.98]"
-          >
-            {block.primaryLabel}
-          </button>
+          {block.primaryAction === 'post' ? (
+            block.postChoices?.length ? (
+              <div className="mt-3 grid gap-2 sm:grid-cols-3" aria-label={block.primaryLabel}>
+                {block.postChoices.map((choice) => (
+                  <button key={choice.categorySlug} type="button" onClick={() => onCta({ ...block, postCategorySlug: choice.categorySlug })} className="rounded-xl bg-baylink-green px-3 py-2.5 text-sm font-bold text-white transition active:scale-[0.98]">
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button type="button" onClick={() => onCta(block)} className="mt-3 block w-full rounded-xl bg-baylink-green py-2.5 text-center text-sm font-bold text-white transition active:scale-[0.98]">
+                {block.primaryLabel}
+              </button>
+            )
+          ) : (
+            <Link to={block.primaryAction === 'category' && block.categorySlug ? `/category/${block.categorySlug}` : '/guides'} className="mt-3 block w-full rounded-xl bg-baylink-green py-2.5 text-center text-sm font-bold text-white transition active:scale-[0.98]">
+              {block.primaryLabel}
+            </Link>
+          )}
         </div>
       );
     default:

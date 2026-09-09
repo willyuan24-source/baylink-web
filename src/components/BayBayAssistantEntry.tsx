@@ -73,7 +73,7 @@ const fetchGuideChat = async (message: string, categoryHint?: string): Promise<G
     }),
   });
 
-  let data: GuideChatResponse = { ok: false };
+  let data: GuideChatResponse;
   try {
     data = await res.json();
   } catch {
@@ -308,7 +308,7 @@ export const BayBayAssistantEntry = ({
               {/* 问问 BayBay */}
               <section className="mb-4 min-w-0">
                 <h3 className="text-[13px] font-bold text-baylink-text">问问 BayBay</h3>
-                <p className="mt-0.5 text-[10px] text-baylink-muted leading-snug">
+                <p className="mt-0.5 text-[11px] text-baylink-muted leading-snug">
                   租房、室友、二手、搬家、清洁、通勤，都可以先问我。
                 </p>
 
@@ -319,7 +319,7 @@ export const BayBayAssistantEntry = ({
                     onChange={(e) => setQuestion(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
                     placeholder="例如：刚来湾区租房要注意什么？"
-                    className="min-w-0 flex-1 rounded-xl border border-baylink-green/25 bg-white px-3 py-2.5 text-sm text-baylink-text outline-none placeholder:text-baylink-muted/70 focus:border-baylink-green/45 focus:ring-1 focus:ring-baylink-green/15"
+                    className="min-w-0 flex-1 rounded-xl border border-baylink-green/25 bg-white px-3 py-2.5 text-sm text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/45 focus:ring-1 focus:ring-baylink-green/15"
                     disabled={loading}
                   />
                   <button
@@ -362,14 +362,14 @@ export const BayBayAssistantEntry = ({
 
                     {suggestedGuides.length > 0 && (
                       <div className="mt-2.5">
-                        <p className="mb-1.5 text-[10px] font-semibold text-baylink-muted">相关指南</p>
+                        <p className="mb-1.5 text-[11px] font-semibold text-baylink-muted">相关指南</p>
                         <div className="flex flex-wrap gap-1.5">
                           {suggestedGuides.map((g) => (
                             <button
                               key={g.slug}
                               type="button"
                               onClick={() => { onNavigate(g.url); close(); }}
-                              className="inline-flex max-w-full items-center gap-1 rounded-lg border border-baylink-border/40 bg-baylink-section/40 px-2 py-1 text-[10px] font-medium text-baylink-text transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.06]"
+                              className="inline-flex max-w-full items-center gap-1 rounded-lg border border-baylink-border/40 bg-baylink-section/40 px-2 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.06]"
                             >
                               <BookOpen size={10} className="shrink-0 text-baylink-green/70" />
                               <span className="truncate">{g.title}</span>
@@ -386,7 +386,7 @@ export const BayBayAssistantEntry = ({
                             key={`${action.label}-${i}`}
                             type="button"
                             onClick={() => handleAction(action)}
-                            className={`rounded-lg px-2.5 py-1.5 text-[10px] font-semibold transition active:scale-[0.98] ${
+                            className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition active:scale-[0.98] ${
                               action.type === 'postAssist'
                                 ? 'bg-baylink-green text-white shadow-sm hover:opacity-95'
                                 : 'border border-baylink-border/50 bg-white text-baylink-text hover:border-baylink-green/30'
@@ -399,14 +399,14 @@ export const BayBayAssistantEntry = ({
                     )}
 
                     {safetyNote && (
-                      <p className="mt-2.5 text-[10px] leading-relaxed text-baylink-muted/90">{safetyNote}</p>
+                      <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">{safetyNote}</p>
                     )}
                   </div>
                 )}
               </section>
 
               <div className="mb-2 border-t border-baylink-border/30 pt-3">
-                <p className="mb-2 text-[10px] font-semibold text-baylink-muted">快捷入口</p>
+                <p className="mb-2 text-[11px] font-semibold text-baylink-muted">快捷入口</p>
                 <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
                   {shortcuts.map((item) => (
                     <button
@@ -416,7 +416,7 @@ export const BayBayAssistantEntry = ({
                       className="flex min-h-[56px] w-full min-w-0 cursor-pointer flex-col justify-center rounded-xl border border-baylink-border/50 bg-white px-3 py-2.5 text-left transition hover:border-baylink-green/30 hover:bg-baylink-green/[0.03] active:scale-[0.99] sm:min-h-[68px] sm:p-3"
                     >
                       <span className="text-[13px] font-semibold text-baylink-text sm:text-sm">{item.title}</span>
-                      <span className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-baylink-muted sm:text-[11px]">
+                      <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-baylink-muted sm:text-[11px]">
                         {item.description}
                       </span>
                     </button>

@@ -7,17 +7,51 @@ const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // 弹层栈：嵌套弹层时只有最上层响应 Esc
-const modalStack: symbol[] = [];
+type ModalEntry = { id: symbol; container: HTMLElement };
+const modalStack: ModalEntry[] = [];
+const syncModalStack = () => {
+  modalStack.forEach(({ container }, index) => {
+    container.style.zIndex = String(200 + (index + 1) * 10);
+    container.inert = index !== modalStack.length - 1;
+  });
+};
 
 // 滚动锁计数：body 和内部滚动容器（#scroll-container）一起锁，嵌套弹层全部关闭后才解锁
 let scrollLockCount = 0;
-const setScrollLocked = (locked: boolean) => {
-  document.body.style.overflow = locked ? 'hidden' : '';
+let originalPageState: {
+  body: HTMLElement; bodyOverflow: string;
+  scroller: HTMLElement | null; scrollerOverflow: string;
+  appRoot: HTMLElement | null; appRootInert: boolean;
+  focusedElement: HTMLElement | null;
+} | null = null;
+const lockScroll = () => {
+  if (++scrollLockCount !== 1) return;
+  const body = document.body;
   const scroller = document.getElementById('scroll-container');
-  if (scroller) scroller.style.overflow = locked ? 'hidden' : '';
+  const appRoot = document.getElementById('root');
+  originalPageState = { body, bodyOverflow: body.style.overflow, scroller,
+    scrollerOverflow: scroller?.style.overflow || '', appRoot, appRootInert: !!appRoot?.inert,
+    focusedElement: document.activeElement as HTMLElement | null };
+  body.style.overflow = 'hidden';
+  if (scroller) scroller.style.overflow = 'hidden';
+  if (appRoot) appRoot.inert = true;
 };
-const lockScroll = () => { if (++scrollLockCount === 1) setScrollLocked(true); };
-const unlockScroll = () => { if (--scrollLockCount === 0) setScrollLocked(false); };
+const unlockScroll = () => {
+  if (--scrollLockCount !== 0 || !originalPageState) return;
+  const { body, bodyOverflow, scroller, scrollerOverflow, appRoot, appRootInert } = originalPageState;
+  body.style.overflow = bodyOverflow;
+  if (scroller) scroller.style.overflow = scrollerOverflow;
+  if (appRoot) appRoot.inert = appRootInert;
+  originalPageState = null;
+};
+
+const canRestoreFocus = (element: HTMLElement | null): element is HTMLElement => {
+  if (!element?.isConnected) return false;
+  for (let parent: HTMLElement | null = element; parent; parent = parent.parentElement) {
+    if (parent.inert) return false;
+  }
+  return true;
+};
 
 const getFocusable = (container: HTMLElement): HTMLElement[] =>
   Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
@@ -33,7 +67,11 @@ export function useModalBehavior(onClose?: () => void) {
     const container = containerRef.current;
     if (!container) return;
     const stackId = Symbol('modal');
-    modalStack.push(stackId);
+    modalStack.push({ id: stackId, container });
+    // The latest mounted portal is always above its parent, independent of legacy z-* classes.
+    // Only registered dialogs belong to the stack. Querying every portal in the DOM
+    // would disable siblings whose mount effects have not run yet.
+    syncModalStack();
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
     lockScroll();
@@ -46,7 +84,7 @@ export function useModalBehavior(onClose?: () => void) {
     const onKeyDown = (e: KeyboardEvent) => {
       // 输入法组合中（拼音候选等）按 Esc/Enter 是在操作输入法，不能当成弹层快捷键
       if (e.isComposing || e.keyCode === 229) return;
-      if (modalStack[modalStack.length - 1] !== stackId) return; // 只有最上层弹层响应
+      if (modalStack[modalStack.length - 1]?.id !== stackId) return; // 只有最上层弹层响应
       if (e.key === 'Escape') {
         if (onCloseRef.current) {
           e.stopPropagation();
@@ -70,10 +108,24 @@ export function useModalBehavior(onClose?: () => void) {
 
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
-      const idx = modalStack.indexOf(stackId);
+      const wasTop = modalStack[modalStack.length - 1]?.id === stackId;
+      const originalPageFocus = originalPageState?.focusedElement || null;
+      const idx = modalStack.findIndex((entry) => entry.id === stackId);
       if (idx >= 0) modalStack.splice(idx, 1);
+      syncModalStack();
       unlockScroll();
-      previouslyFocused?.focus?.();
+      // A background route may unmount before its child dialog. That must not steal
+      // focus from the still-open top dialog or reactivate a covered parent.
+      if (wasTop) {
+        const nextTop = modalStack[modalStack.length - 1]?.container;
+        if (canRestoreFocus(previouslyFocused) && (!nextTop || nextTop.contains(previouslyFocused))) {
+          previouslyFocused.focus();
+        } else if (nextTop) {
+          (getFocusable(nextTop)[0] || nextTop).focus();
+        } else if (canRestoreFocus(originalPageFocus)) {
+          originalPageFocus.focus();
+        }
+      }
     };
   }, []);
 

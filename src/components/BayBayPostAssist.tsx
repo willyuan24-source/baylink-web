@@ -143,7 +143,7 @@ export const BayBayPostAssist = ({
             <Sparkles size={13} className="text-baylink-green shrink-0" />
             BayBay 帮你整理帖子
           </h4>
-          <p className="mt-0.5 text-[10px] leading-snug text-baylink-muted">
+          <p className="mt-0.5 text-[11px] leading-snug text-baylink-muted">
             一句话告诉我你想发什么，我帮你整理成更清楚的标题和正文。
           </p>
         </div>
@@ -152,6 +152,7 @@ export const BayBayPostAssist = ({
       {!aiDraft ? (
         <>
           <textarea
+            aria-label="告诉 BayBay 你想发布的内容"
             className="mt-2.5 w-full resize-none rounded-lg border border-baylink-border/50 bg-white/90 p-2.5 text-xs outline-none placeholder:text-baylink-muted focus:border-baylink-green/40"
             rows={3}
             placeholder="例如：我想在 Millbrae 附近找一间房，预算 1800，7月入住，最好近 BART。"
@@ -160,7 +161,7 @@ export const BayBayPostAssist = ({
             disabled={aiLoading}
           />
           <div className="mt-2">
-            <p className="mb-1 text-[10px] font-medium text-baylink-muted">语气</p>
+            <p className="mb-1 text-[11px] font-medium text-baylink-muted">语气</p>
             <div className="flex flex-wrap gap-1">
               {TONE_OPTIONS.map((opt) => (
                 <button
@@ -168,7 +169,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => setTone(opt.id)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition ${
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition ${
                     tone === opt.id
                       ? 'bg-baylink-green text-white'
                       : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
@@ -208,7 +209,7 @@ export const BayBayPostAssist = ({
             {aiDraft.quickTags?.length > 0 && (
               <div>
                 <p><span className="font-medium text-baylink-muted">标签：</span>{aiDraft.quickTags.join(' · ')}</p>
-                <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[10px] text-baylink-muted">
+                <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[11px] text-baylink-muted">
                   <input
                     type="checkbox"
                     className="accent-baylink-green"
@@ -220,7 +221,7 @@ export const BayBayPostAssist = ({
               </div>
             )}
             {aiDraft.safetyTip && (
-              <p className="rounded-md bg-baylink-section/60 p-1.5 text-[10px] text-baylink-muted">{aiDraft.safetyTip}</p>
+              <p className="rounded-md bg-baylink-section/60 p-1.5 text-[11px] text-baylink-muted">{aiDraft.safetyTip}</p>
             )}
             {aiDraft.coverSuggestion && (
               <p className="truncate"><span className="font-medium text-baylink-muted">封面建议：</span>{aiDraft.coverSuggestion}</p>
@@ -228,14 +229,14 @@ export const BayBayPostAssist = ({
           </div>
 
           {supplementHint && (
-            <div className="mt-2 rounded-lg border border-baylink-green/15 bg-baylink-green/5 px-2.5 py-2 text-[10px] leading-relaxed text-baylink-text-secondary">
+            <div className="mt-2 rounded-lg border border-baylink-green/15 bg-baylink-green/5 px-2.5 py-2 text-[11px] leading-relaxed text-baylink-text-secondary">
               <span className="font-semibold text-baylink-green">BayBay 建议补充 · </span>
               {supplementHint.replace(/^建议补充：/, '')}
             </div>
           )}
 
           <div className="mt-2.5">
-            <p className="mb-1 text-[10px] text-baylink-muted">换个写法</p>
+            <p className="mb-1 text-[11px] text-baylink-muted">换个写法</p>
             <div className="flex flex-wrap gap-1">
               {REWRITE_OPTIONS.map((opt) => (
                 <button
@@ -243,7 +244,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => runAssist(opt.mode)}
-                  className="rounded-lg border border-baylink-border px-2 py-1 text-[10px] font-medium text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
+                  className="rounded-lg border border-baylink-border px-2 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
                 >
                   {aiLoading ? '…' : opt.label}
                 </button>

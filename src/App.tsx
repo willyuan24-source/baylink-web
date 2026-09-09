@@ -4,18 +4,25 @@
 // 直接深链 /posts/:id、/users/:id（无背景）时，以首页 feed 作为覆盖层背景。
 // 除首页外全部路由懒加载（Suspense 边界在 AppLayout 的 <Outlet> 外层）。
 import { lazy } from 'react';
-import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom';
+import { Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
 import HomePage from './pages/HomePage';
+import { SLUG_TO_CATEGORY } from './routing';
 
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
 const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const RecommendPage = lazy(() => import('./pages/RecommendPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const PrivacyPolicyView = lazy(() => import('./components/PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
 const TermsView = lazy(() => import('./components/TermsView').then((m) => ({ default: m.TermsView })));
 const SmsConsentView = lazy(() => import('./components/SmsConsentView').then((m) => ({ default: m.SmsConsentView })));
+
+const CategoryPage = () => {
+  const { categorySlug } = useParams();
+  return categorySlug && Object.hasOwn(SLUG_TO_CATEGORY, categorySlug) ? <HomePage /> : <NotFoundPage />;
+};
 
 export default function App() {
   const location = useLocation();
@@ -27,7 +34,7 @@ export default function App() {
     <Routes location={backgroundLocation || location}>
       <Route element={<AppLayout realLocation={location} />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/category/:categorySlug" element={<HomePage />} />
+        <Route path="/category/:categorySlug" element={<CategoryPage />} />
         {/* 覆盖层深链的背景页 */}
         <Route path="/posts/:postId" element={<HomePage />} />
         <Route path="/users/:userId" element={<HomePage />} />
@@ -41,7 +48,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPolicyView />} />
         <Route path="/terms" element={<TermsView />} />
         <Route path="/sms-consent" element={<SmsConsentView />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

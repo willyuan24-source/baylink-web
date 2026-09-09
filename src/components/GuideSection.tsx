@@ -52,7 +52,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
           onClick={() => onOpenGuide(spotlight.slug)}
           className="mb-2 w-full rounded-2xl border border-baylink-green/20 bg-gradient-to-br from-baylink-green/8 to-white p-3.5 text-left shadow-card"
         >
-          <span className="text-[10px] font-bold uppercase tracking-wide text-baylink-green">刚来湾区？从这里开始</span>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-baylink-green">刚来湾区？从这里开始</span>
           <div className="mt-1 flex items-start gap-2">
             <span className="text-2xl">{spotlight.emoji}</span>
             <div className="min-w-0 flex-1">
@@ -84,7 +84,7 @@ const SpotlightCard = ({ guide, onClick }: { guide: Guide; onClick: () => void }
       <div className="min-w-0 flex-1">
         <h4 className="line-clamp-2 text-base font-bold text-baylink-text">{guide.title}</h4>
         <p className="mt-1 line-clamp-2 text-xs text-baylink-text-secondary">{guide.summary}</p>
-        <span className="mt-2 inline-block text-[10px] text-baylink-muted">{guide.readMinutes} 分钟阅读</span>
+        <span className="mt-2 inline-block text-[11px] text-baylink-muted">{guide.readMinutes} 分钟阅读</span>
       </div>
     </div>
   </button>
@@ -99,7 +99,7 @@ const MiniRow = ({ guide, onClick }: { guide: Guide; onClick: () => void }) => (
     <span className="text-xl">{guide.emoji}</span>
     <div className="min-w-0 flex-1">
       <div className="line-clamp-2 text-xs font-semibold text-baylink-text">{guide.title}</div>
-      <span className="text-[10px] text-baylink-muted">{guide.categoryLabel}</span>
+      <span className="text-[11px] text-baylink-muted">{guide.categoryLabel}</span>
     </div>
     <ChevronRight size={14} className="shrink-0 text-gray-300" />
   </button>

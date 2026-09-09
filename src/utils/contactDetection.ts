@@ -16,7 +16,8 @@ export type ContactAnalysis = {
 
 const PHONE_RE = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b/g;
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const WECHAT_RE = /(?:微信|wechat|wx|vx|威信|加我|联系方式)[:：\s]*[@]?([a-zA-Z0-9_-]{4,20})/gi;
+// Generic words such as “联系方式” must not turn a following phone/email into a WeChat account.
+const WECHAT_RE = /(?:微信|\bwechat\b|\bwx\b|\bvx\b|威信)[:：\s]*[@]?([a-zA-Z0-9_-]{4,20})(?![a-zA-Z0-9_@.-])/gi;
 
 export const detectContactsInText = (text: string): DetectedContact[] => {
   const found: DetectedContact[] = [];
@@ -104,7 +105,7 @@ export const analyzeContactsInText = (text: string): ContactAnalysis => {
   const removedPhoneEmail = (!hadPhone || !leftover.some((d) => d.type === 'phone'))
     && (!hadEmail || !leftover.some((d) => d.type === 'email'));
   const removedWechat = !hadWechat || !leftover.some((d) => d.type === 'wechat');
-  const removedFromText = removedPhoneEmail && removedWechat && leftover.length === 0;
+  const removedFromText = hasConcreteContact && removedPhoneEmail && removedWechat && leftover.length === 0;
 
   if (hadWechat && leftover.some((d) => d.type === 'wechat')) {
     uncertainMatches.push('微信号');

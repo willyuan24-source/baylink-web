@@ -23,7 +23,7 @@ export const AdminBadge = ({ size = 12, showText = true, compact = false }: Admi
   >
     <Shield size={size} className="shrink-0" />
     {showText && (
-      <span className="text-[10px] leading-none">{compact ? '管理员' : 'BAYLINK 管理员'}</span>
+      <span className="text-[11px] leading-none">{compact ? '管理员' : 'BAYLINK 管理员'}</span>
     )}
   </span>
 );
@@ -51,10 +51,11 @@ export const UserTrustBadges = ({
         {user.isPhoneVerified && (
           <span
             className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-600"
-            title="手机验证已完成"
+            title="手机号已验证：完成过短信验证码验证，不代表身份或资质已核实"
+            aria-label="手机号已验证，非身份或资质认证"
           >
             <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
-            {showText && <span className="text-[10px] font-bold">已验证</span>}
+            {showText && <span className="text-[11px] font-bold">手机号已验证</span>}
           </span>
         )}
       </span>
@@ -70,19 +71,21 @@ export const UserTrustBadges = ({
       {phoneVerified && (
         <span
           className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-600"
-          title="手机验证已完成"
+          title="手机号已验证：完成过短信验证码验证，不代表身份或资质已核实"
+          aria-label="手机号已验证，非身份或资质认证"
         >
           <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
-          {showText && <span className="text-[10px] font-bold">已验证</span>}
+          {showText && <span className="text-[11px] font-bold">手机号已验证</span>}
         </span>
       )}
       {officialVerified && (
         <span
           className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-1.5 py-0.5 text-yellow-600"
-          title="BAYLINK 官方认证账号"
+          title="BAYLINK 资料审核通过：不构成政府认证、执照保证或交易担保"
+          aria-label="BAYLINK 资料审核通过，不构成政府认证或交易担保"
         >
           <BadgeCheck size={size} fill="#FBBF24" className="text-white" />
-          {showText && <span className="text-[10px] font-bold">官方认证</span>}
+          {showText && <span className="text-[11px] font-bold">资料审核通过</span>}
         </span>
       )}
     </span>

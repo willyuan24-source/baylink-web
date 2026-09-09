@@ -13,6 +13,9 @@ export type AppContextValue = {
   showToast: ShowToast;
   setShowLogin: (v: boolean) => void;
   handleLogout: () => void;
+  chatRouteStatus: 'idle' | 'loading' | 'ready' | 'not-found' | 'error';
+  chatRouteError: string | null;
+  retryChatRoute: () => void;
 
   // 首页 feed（状态留在布局层，跨 tab 切换不丢）
   posts: PostData[];

@@ -1,11 +1,23 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
 export const TermsView = () => (
-  <LegalPageLayout title="BAYLINK Terms of Service" updated="May 2026">
+  <LegalPageLayout title="服务条款 · Terms of Service" updated="September 8, 2026">
     <LegalP>
       Welcome to BAYLINK. BAYLINK is a Bay Area local community and lifestyle information platform for local posts, housing, roommate search, secondhand exchange, local services, rides, moving, cleaning, repairs, community help, local guides, and BayBay AI features.
     </LegalP>
     <LegalP>By accessing or using BAYLINK, you agree to these Terms of Service.</LegalP>
+
+    <LegalSection title="中文阅读要点">
+      <LegalP>以下是便于阅读的中文说明，对应下方英文条款。涉及具体权利、责任和适用条件，请结合完整条款阅读；有疑问可通过页末邮箱联系 BAYLINK。</LegalP>
+      <LegalUl items={[
+        'BAYLINK 提供本地信息发布与沟通工具。用户之间的租房、买卖、接送和服务交易由交易双方自行确认和履行。',
+        '请发布真实、合法的信息，不得诈骗、骚扰、冒充他人、歧视或侵犯他人权益。请妥善保管账号。',
+        '「手机号已验证」表示完成过短信验证码验证；「资料审核通过」表示资料经过 BAYLINK 人工审核。两者都不构成政府认证、身份或执照保证，也不保证交易安全。',
+        '编辑推荐表示平台选择展示的内容。请仍然自行核实房源、商品、服务资质、价格和付款安排。',
+        'BayBay AI 和生活指南可能存在遗漏或错误。重要事项请核对原始资料，不能替代法律、财务、医疗等专业意见。',
+        '手机号验证短信由你主动请求，用于账号验证与安全。短信的费用、退订和帮助说明见下方 SMS 条款。',
+      ]} />
+    </LegalSection>
 
     <LegalSection title="1. Use of BAYLINK">
       <LegalP>

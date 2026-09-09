@@ -7,6 +7,7 @@ type CommentThreadProps = {
   onEdit: (comment: PostComment) => void;
   onDelete: (comment: PostComment) => void;
   onLoginNeeded: () => void;
+  disabled?: boolean;
 };
 
 export const CommentThread = ({
@@ -16,10 +17,13 @@ export const CommentThread = ({
   onEdit,
   onDelete,
   onLoginNeeded,
+  disabled = false,
 }: CommentThreadProps) => {
-  const topLevel = comments.filter((c) => !c.parentId);
+  const uniqueComments = [...new Map(comments.map(comment => [comment.id, comment])).values()];
+  const commentIds = new Set(uniqueComments.map(comment => comment.id));
+  const topLevel = uniqueComments.filter((c) => !c.parentId || !commentIds.has(c.parentId));
   const repliesByParent = new Map<string, PostComment[]>();
-  comments.filter((c) => c.parentId).forEach((r) => {
+  uniqueComments.filter((c) => c.parentId && commentIds.has(c.parentId)).forEach((r) => {
     const list = repliesByParent.get(r.parentId!) || [];
     list.push(r);
     repliesByParent.set(r.parentId!, list);
@@ -45,6 +49,7 @@ export const CommentThread = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onLoginNeeded={onLoginNeeded}
+            disabled={disabled}
           />
           {(repliesByParent.get(comment.id) || []).map((reply) => (
             <CommentItem
@@ -55,6 +60,7 @@ export const CommentThread = ({
               onEdit={onEdit}
               onDelete={onDelete}
               onLoginNeeded={onLoginNeeded}
+              disabled={disabled}
             />
           ))}
         </div>

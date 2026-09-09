@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 export type ContactPreferenceMode = 'dm_first' | 'auto_send' | 'manual_approve';
 
 export type ContactMethodField = {
@@ -42,6 +44,7 @@ export const defaultContactPreference = (): ContactPreferenceValue => ({
 });
 
 export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceFormProps) => {
+  const fieldPrefix = useId();
   const methods = ensureMethods(value.methods);
   const showMethods = value.mode === 'auto_send' || value.mode === 'manual_approve';
 
@@ -67,7 +70,7 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
           ['manual_approve', '需要我确认后发送'],
         ] as const).map(([mode, label]) => (
           <label key={mode} className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2.5 text-xs ${value.mode === mode ? 'border-baylink-green bg-baylink-green-light/40' : 'border-baylink-border'}`}>
-            <input type="radio" name="contactMode" className="mt-0.5 accent-baylink-green" checked={value.mode === mode} onChange={() => setMode(mode)} />
+            <input type="radio" name={`${fieldPrefix}-contactMode`} className="mt-0.5 accent-baylink-green" checked={value.mode === mode} onChange={() => setMode(mode)} />
             <span className="font-medium text-baylink-text">{label}</span>
           </label>
         ))}
@@ -78,8 +81,10 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
             const m = methods.find((x) => x.type === row.type)!;
             return (
               <div key={row.type}>
-                <label className="mb-1 block text-[11px] font-medium text-baylink-text-secondary">{row.label}</label>
+                <label htmlFor={`${fieldPrefix}-${row.type}`} className="mb-1 block text-[11px] font-medium text-baylink-text-secondary">{row.label}</label>
                 <input
+                  id={`${fieldPrefix}-${row.type}`}
+                  type={row.type === 'phone' ? 'tel' : row.type === 'email' ? 'email' : 'text'}
                   className="w-full rounded-xl border border-baylink-border/60 bg-baylink-bg-alt/50 px-3 py-2 text-sm outline-none focus:border-baylink-green/40"
                   placeholder={row.placeholder}
                   value={m.value}

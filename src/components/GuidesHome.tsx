@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Search, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   guides,
   GUIDE_CATEGORY_TABS,
@@ -7,7 +8,7 @@ import {
   type Guide,
   type GuideCategory,
 } from '../data/guides';
-import { GuideCard } from './GuideCard';
+import { GuideCard, handleGuideLinkClick } from './GuideCard';
 
 type GuidesHomeProps = {
   onOpenGuide: (slug: string) => void;
@@ -59,7 +60,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
   return (
     <div className="flex flex-col h-full w-full pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
       <div className="px-4 sm:px-5 pt-safe-top pb-3 bg-baylink-bg/95 backdrop-blur-sm sticky top-0 z-10 border-b border-baylink-border/40">
-        <h2 className="text-xl font-bold text-baylink-text">湾区生活指南</h2>
+        <h1 className="text-xl font-bold text-baylink-text">湾区生活指南</h1>
         <p className="text-[11px] text-baylink-muted mt-0.5 leading-relaxed">
           租房、找室友、二手交易、通勤和本地生活，先避坑再行动
         </p>
@@ -78,7 +79,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`chip shrink-0 text-[10px] py-1 px-2.5 ${tab === t.id ? 'chip-active' : 'chip-inactive'}`}
+              className={`chip shrink-0 text-[11px] py-1 px-2.5 ${tab === t.id ? 'chip-active' : 'chip-inactive'}`}
             >
               {t.label}
             </button>
@@ -92,19 +93,19 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
             <h3 className="text-sm font-bold text-baylink-green mb-2">新来湾区先看</h3>
             <div className="space-y-2">
               {spotlightGuides.map((g) => (
-                <button
+                <Link
                   key={g.slug}
-                  type="button"
-                  onClick={() => onOpenGuide(g.slug)}
+                  to={`/guides/${g.slug}`}
+                  onClick={(event) => handleGuideLinkClick(event, () => onOpenGuide(g.slug))}
                   className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-baylink-border/40 bg-white/90 p-3 text-left transition hover:border-baylink-green/30"
                 >
                   <span className="text-2xl">{g.emoji}</span>
                   <div className="min-w-0 flex-1">
                     <div className="line-clamp-2 text-sm font-semibold text-baylink-text">{g.title}</div>
-                    <span className="text-[10px] text-baylink-muted">{g.readMinutes} 分钟 · {g.categoryLabel}</span>
+                    <span className="text-[11px] text-baylink-muted">{g.readMinutes} 分钟 · {g.categoryLabel}</span>
                   </div>
                   <ChevronRight size={16} className="shrink-0 text-gray-300" />
-                </button>
+                </Link>
               ))}
             </div>
           </div>

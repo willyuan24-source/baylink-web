@@ -5,8 +5,8 @@
 :root {
   background-color: #F7F4EC;
   --baylink-bg: #F7F4EC;
-  --baylink-green: #16A66A;
-  --baylink-green-hover: #128256;
+  --baylink-green: #128256;
+  --baylink-green-hover: #0F704A;
   --baylink-green-light: #EAF6F0;
   --baylink-border: #E3DFD6;
   --baylink-text: #17202A;
@@ -56,7 +56,7 @@ html, body, #root {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, #16A66A 0%, #128256 100%);
+  background-image: linear-gradient(135deg, #128256 0%, #0F704A 100%);
 }
 
 /* Hero photo — public/baylink-hero-bg.webp (bridge bottom-left, map right) */

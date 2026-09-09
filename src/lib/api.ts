@@ -1,16 +1,18 @@
 // 共享 API client：全站唯一的请求入口（含鉴权头、401 会话过期广播、错误规范化）
 import { friendlyErrorMessage } from './format';
 import type { UserData } from './types';
+import { getStoredUser } from './session';
+export { getStoredUser } from './session';
 
-// 默认 Render 线上 API；仅本地跑后端时在 .env.local 设 VITE_API_BASE_URL=http://localhost:3000/api
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api';
-export const SOCKET_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://baylink-api.onrender.com';
+// 开发默认仅连接本地服务；Vercel 构建默认连接线上 API。
+export const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL
+  || (import.meta.env?.DEV ? 'http://localhost:3000/api' : 'https://baylink-api.onrender.com/api')).replace(/\/$/, '');
+export const SOCKET_URL = import.meta.env?.VITE_SOCKET_URL || new URL(API_BASE_URL, typeof window === 'undefined' ? 'https://www.baylink.us' : window.location.origin).origin;
 
 export const triggerSessionExpired = () => { window.dispatchEvent(new Event('session-expired')); };
 export const safeParse = (str: string | null) => { try { return str ? JSON.parse(str) : null; } catch { return null; } };
 
 /** 从 localStorage 读当前登录用户（带 token）。 */
-export const getStoredUser = (): (UserData & { token?: string }) | null => safeParse(localStorage.getItem('currentUser'));
 
 /** 构造带鉴权的请求头；给少数不走 api.request 的调用（如 AI 面板的宽松错误语义）复用。 */
 export const authHeaders = (): Record<string, string> => {
@@ -21,20 +23,26 @@ export const authHeaders = (): Record<string, string> => {
 };
 
 export const api = {
-  request: async (endpoint: string, options: any = {}) => {
-    const headers: any = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  request: async (endpoint: string, options: RequestInit = {}) => {
+    const headers = new Headers(options.headers);
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     const user = getStoredUser();
-    if (user?.token) headers['Authorization'] = `Bearer ${user.token}`;
+    if (user?.token) headers.set('Authorization', `Bearer ${user.token}`);
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    options.signal?.addEventListener('abort', abort, { once: true });
+    if (options.signal?.aborted) controller.abort();
+    const timer = setTimeout(abort, 45000);
     try {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers, signal: controller.signal });
       let data: any = {};
       const text = await res.text();
-      try { data = text ? JSON.parse(text) : {}; } catch { data = { error: '操作失败，请稍后再试' }; }
+      try { data = text ? JSON.parse(text) : {}; } catch { throw { status: res.status >= 400 ? res.status : 502, error: '服务返回了无效数据，请稍后重试。' }; }
       if (res.status === 401) {
         const isPublicAuth = endpoint.includes('/auth/login')
           || endpoint.includes('/auth/forgot-password')
           || endpoint.includes('/auth/reset-password');
-        if (!isPublicAuth) {
+        if (!isPublicAuth && user?.token && getStoredUser()?.token === user.token) {
           triggerSessionExpired();
           throw { status: res.status, message: '登录已过期', handled: true };
         }
@@ -46,11 +54,12 @@ export const api = {
       }
       return data;
     } catch (err: any) {
+      if (controller.signal.aborted) throw { error: '请求已中断或超时。若刚提交了信息，请先刷新确认结果，再决定是否重新提交。' };
       if (err?.handled) throw err;
       if (err?.status === 401 || err?.status === 403) throw err;
       if (err?.error || err?.status) throw err;
       throw { error: friendlyErrorMessage(err, '网络连接异常，请稍后再试。') };
-    }
+    } finally { clearTimeout(timer); options.signal?.removeEventListener('abort', abort); }
   },
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
   getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),

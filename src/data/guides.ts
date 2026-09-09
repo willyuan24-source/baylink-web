@@ -9,6 +9,8 @@ export type GuideCategory =
   | 'safety'
   | 'events';
 
+export type GuideSource = { title: string; url: string; description: string };
+
 export type GuideBlock =
   | { type: 'paragraph'; text: string }
   | { type: 'heading'; text: string }
@@ -22,6 +24,9 @@ export type GuideBlock =
       primaryLabel: string;
       primaryAction: 'post' | 'category' | 'guides';
       categorySlug?: string;
+      postType?: 'client' | 'provider';
+      postCategorySlug?: string;
+      postChoices?: { label: string; categorySlug: string }[];
     };
 
 export type Guide = {
@@ -41,11 +46,96 @@ export type Guide = {
   readMinutes: number;
   updatedAt: string;
   sourceNote?: string;
+  sources: GuideSource[];
   blocks: GuideBlock[];
 };
 
 const SOURCE_NOTE =
-  'BayLink 本地生活整理，仅供参考，不构成法律、财务或专业建议。';
+  'BAYLINK 本地生活整理，仅供参考。涉及费用、规则、开放时间和班次，请查看下方官方资料；本文不替代法律或其他专业意见。';
+
+
+const OFFICIAL_SOURCES: Record<string, GuideSource> = {
+  "rentalScams": {
+    "title": "FTC：识别租房广告诈骗",
+    "url": "https://consumer.ftc.gov/articles/rental-listing-scams",
+    "description": "核验房源、出租人和付款要求。"
+  },
+  "tenants": {
+    "title": "加州法院：房东与租客帮助",
+    "url": "https://selfhelp.courts.ca.gov/landlords-and-tenants",
+    "description": "了解租赁问题的官方帮助与处理入口。"
+  },
+  "deposit": {
+    "title": "加州法院：租房押金指南",
+    "url": "https://selfhelp.courts.ca.gov/guide-security-deposits-california",
+    "description": "查看押金退还、扣款说明和争议处理。"
+  },
+  "marketplace": {
+    "title": "FTC：在网络交易平台购物",
+    "url": "https://consumer.ftc.gov/articles/buying-online-marketplace",
+    "description": "了解付款、卖家核验与争议处理；各平台保障范围不同。"
+  },
+  "selling": {
+    "title": "FTC：网上出售物品如何防骗",
+    "url": "https://consumer.ftc.gov/consumer-alerts/2022/07/selling-stuff-online-heres-how-avoid-scam",
+    "description": "识别假付款通知、假支票和验证码骗局。"
+  },
+  "movers": {
+    "title": "BHGS：加州搬家服务消费者指南",
+    "url": "https://www.bhgs.dca.ca.gov/consumers/movers.shtml",
+    "description": "查询搬家公司授权状态、报价文件和投诉方式。"
+  },
+  "contractors": {
+    "title": "CSLB：承包商执照查询",
+    "url": "https://www.cslb.ca.gov/OnlineServices/CheckLicenseII/CheckLicense.aspx",
+    "description": "对适用的承包商服务核对执照状态和公开投诉信息。"
+  },
+  "bart": {
+    "title": "BART：乘车与路线指南",
+    "url": "https://www.bart.gov/guide",
+    "description": "查询车站、行程规划与乘车信息。"
+  },
+  "caltrain": {
+    "title": "Caltrain：现行时刻表与临时调整",
+    "url": "https://www.caltrain.com/schedules/pdfs",
+    "description": "按出行日期核对班次、周末与临时服务安排。"
+  },
+  "samtrans": {
+    "title": "SamTrans：半岛公交线路",
+    "url": "https://www.samtrans.com/routes",
+    "description": "核对半岛各城市的公交站点和线路。"
+  },
+  "vta": {
+    "title": "VTA：南湾公交与轻轨线路",
+    "url": "https://www.vta.org/go/routes",
+    "description": "核对南湾站点、路线和服务安排。"
+  },
+  "region": {
+    "title": "MTC：湾区区域交通规划机构",
+    "url": "https://mtc.ca.gov/about-mtc/what-mtc",
+    "description": "了解九县湾区的区域范围；本文生活片区是便于找房的概括。"
+  },
+  "sfmta": {
+    "title": "SFMTA：Cable Car 乘坐指南",
+    "url": "https://www.sfmta.com/getting-around/muni/cable-cars",
+    "description": "查看缆车线路、购票和乘车安排。"
+  },
+  "alcatraz": {
+    "title": "美国国家公园管理局：Alcatraz",
+    "url": "https://www.nps.gov/alcatraz/",
+    "description": "通过公园官方入口查看开放、预约与渡轮安排。"
+  },
+  "tech": {
+    "title": "The Tech Interactive：参观安排",
+    "url": "https://www.thetech.org/visit",
+    "description": "查看场馆开放、门票与参观准备。"
+  },
+  "recalls": {
+    "title": "CPSC：产品召回与安全警示",
+    "url": "https://www.cpsc.gov/Recalls",
+    "description": "购买家具、电器前按品牌和型号查询安全警示。"
+  }
+};
 
 export const guides: Guide[] = [
   {
@@ -63,6 +153,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent'],
     readMinutes: 7,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.tenants],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -134,7 +225,7 @@ export const guides: Guide[] = [
     slug: 'bay-area-newcomer-first-month-checklist',
     title: '新来湾区第一个月 checklist：租房、交通、手机、生活怎么安排',
     subtitle: '落地第一周优先办什么',
-    summary: '从 SSN、手机卡、银行账户到通勤与租房顺序，帮新移民少走弯路。',
+    summary: '按住处、通勤、手机和基础采购的顺序安排落地生活，帮新来湾区的人少走弯路。',
     category: 'newcomer',
     categoryLabel: '新手指南',
     emoji: '🧳',
@@ -145,6 +236,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent', 'other'],
     readMinutes: 8,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -232,6 +324,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent'],
     readMinutes: 7,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -300,6 +393,7 @@ export const guides: Guide[] = [
         text: '如果你已经想清楚预算、区域和生活习惯，可以在 BAYLINK 发布找室友或求租需求；也可以先去浏览相关分类，看看现在都有哪些房源和室友信息。',
         primaryLabel: '发布找室友需求',
         primaryAction: 'post',
+        postCategorySlug: 'rent',
       },
     ],
   },
@@ -318,6 +412,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['ride'],
     readMinutes: 8,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.vta],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -399,6 +494,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['used'],
     readMinutes: 7,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.marketplace, OFFICIAL_SOURCES.selling],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -486,6 +582,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent'],
     readMinutes: 7,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -570,6 +667,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent', 'moving'],
     readMinutes: 8,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.deposit, OFFICIAL_SOURCES.movers],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -659,6 +757,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['moving', 'cleaning', 'repair'],
     readMinutes: 7,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.movers, OFFICIAL_SOURCES.contractors],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -724,8 +823,13 @@ export const guides: Guide[] = [
         type: 'cta',
         title: '把需求写清楚，更容易找到靠谱服务',
         text: '如果你需要搬家、清洁或维修，可以先把时间、地点、房型、照片和预算范围写清楚，在 BAYLINK 发布需求，让合适的人来联系你。',
-        primaryLabel: '发布服务需求',
+        primaryLabel: '选择需要的服务',
         primaryAction: 'post',
+        postChoices: [
+          { label: '找搬家', categorySlug: 'moving' },
+          { label: '找清洁', categorySlug: 'cleaning' },
+          { label: '找维修', categorySlug: 'repair' },
+        ],
       },
     ],
   },
@@ -733,7 +837,7 @@ export const guides: Guide[] = [
     slug: 'peninsula-living-guide',
     title: 'Peninsula 生活指南：San Mateo、Millbrae、Burlingame 怎么选',
     subtitle: '半岛居住速览',
-    summary: '半岛靠近 SF 与机场，适合 Caltrain 通勤，租金通常高于南湾部分区域。',
+    summary: '比较 San Mateo、Millbrae、Burlingame 的通勤、购物和出行条件，再按实际房源核对预算。',
     category: 'city',
     categoryLabel: '城市指南',
     emoji: '🌉',
@@ -744,6 +848,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent', 'other'],
     readMinutes: 8,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.samtrans],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -829,6 +934,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent', 'other'],
     readMinutes: 8,
     updatedAt: '2026-05-22',
+    sources: [OFFICIAL_SOURCES.vta, OFFICIAL_SOURCES.caltrain],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -911,9 +1017,10 @@ export const guides: Guide[] = [
     tags: ['湾区分区', '旧金山', '半岛', '南湾', '东湾', '北湾'],
     priority: 'P0',
     featuredOnHome: true,
-    recommendedForCategories: ['rent', 'ride', 'service'],
+    recommendedForCategories: ['rent', 'ride'],
     readMinutes: 8,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.region, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -935,7 +1042,7 @@ export const guides: Guide[] = [
         type: 'list',
         items: [
           '旧金山：城市感最强，适合喜欢步行、公共交通和经典街区的人。',
-          '半岛 Peninsula：通勤和生活比较平衡，适合想住得稳一点的人。',
+          '半岛 Peninsula：可结合 Caltrain 和 SamTrans 站点比较住处，重点看目的地与最后一公里。',
           '南湾 South Bay：工作、学校和华人生活圈都很完整，很多科技公司用户会优先看这里。',
           '东湾 East Bay：区域差异大，预算、空间和社区感的选择面更广。',
           '北湾 North Bay：更偏自然和慢节奏，适合有车、生活半径不靠市中心的人。',
@@ -992,6 +1099,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent', 'roommate'],
     readMinutes: 8,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1048,6 +1156,7 @@ export const guides: Guide[] = [
         text: '如果你已经知道预算、通勤方向和有没有车，可以直接在 BayLink 发布求租；如果还在比较，也可以先去看找室友和租房分类里的真实帖子。',
         primaryLabel: '发布求租',
         primaryAction: 'post',
+        postCategorySlug: 'rent',
       },
     ],
   },
@@ -1067,6 +1176,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['rent'],
     readMinutes: 9,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1139,32 +1249,33 @@ export const guides: Guide[] = [
   },
   {
     slug: 'baylink-safety-guide',
-    title: 'BAYLINK 安全使用指南：手机验证、官方认证、举报和屏蔽怎么用',
+    title: 'BAYLINK 安全使用指南：手机验证、资料审核、举报和屏蔽怎么用',
     subtitle: '平台工具能帮你降低风险，但判断和留痕还是要自己做。',
     summary:
-      '用 BAYLINK 找房、找室友、找服务、做二手前，先把平台里的手机验证、官方认证、举报和屏蔽这些信任工具用起来。',
+      '用 BAYLINK 找房、找室友、找服务、做二手前，先把平台里的手机验证、资料审核、举报和屏蔽这些信任工具用起来。',
     category: 'safety',
     categoryLabel: '安全指南',
     emoji: '🛡️',
     audience: ['找房用户', '找室友用户', '二手买卖用户', '本地服务需求方'],
-    tags: ['平台安全', '手机验证', '官方认证', '举报', '屏蔽'],
+    tags: ['平台安全', '手机验证', '资料审核', '举报', '屏蔽'],
     priority: 'P0',
     featuredOnHome: false,
-    recommendedForCategories: ['rent', 'used', 'service', 'ride'],
+    recommendedForCategories: ['rent', 'used', 'service', 'ride', 'safety'],
     readMinutes: 6,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.marketplace, OFFICIAL_SOURCES.selling],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
         type: 'paragraph',
-        text: 'BAYLINK 能帮你更快接到本地信息，但它不是魔法筛子。平台能提供手机验证、官方认证、举报、屏蔽和管理员审核这些信任工具，可真正让你少踩坑的，还是“工具 + 判断”一起用。',
+        text: 'BAYLINK 能帮你更快接到本地信息，但它不是魔法筛子。平台能提供手机验证、资料审核、举报、屏蔽和管理员审核这些信任工具，可真正让你少踩坑的，还是“工具 + 判断”一起用。',
       },
       { type: 'heading', text: '先把平台工具理解对：它们是降低风险，不是绝对担保' },
       {
         type: 'list',
         items: [
-          '手机验证：提高账号基础可信度。',
-          '官方认证：帮助识别通过额外审核的账号或主体。',
+          '手机号已验证：该账号完成过短信验证码验证，不代表真实身份或服务资质已经核实。',
+          '资料审核：该账号提交的资料通过 BAYLINK 人工审核，不是政府认证，也不保证资质持续有效或交易结果。',
           '举报：让可疑行为进入平台处理流程。',
           '屏蔽：减少骚扰和无效沟通。',
           '管理员审核：帮助清理明显违规内容。',
@@ -1175,10 +1286,10 @@ export const guides: Guide[] = [
         title: '提醒',
         text: '看到验证或认证标识，也不代表你可以跳过看房、验货、留合同、留聊天记录这些基本动作。',
       },
-      { type: 'heading', text: '手机验证和官方认证，分别怎么用更实际' },
+      { type: 'heading', text: '手机验证和资料审核，分别怎么用更实际' },
       {
         type: 'paragraph',
-        text: '找房、找室友、找服务时，可以优先看已完成手机验证的账号；如果是房东、商家、本地服务方、长期发帖账号，再结合官方认证一起判断。它们更适合做第一层筛选，而不是最终结论。',
+        text: '找房、找室友、找服务时，可以优先看已完成手机验证的账号；如果是房东、商家、本地服务方、长期发帖账号，再结合资料审核一起判断。它们更适合做第一层筛选，而不是最终结论。',
       },
       { type: 'heading', text: '举报按钮什么时候该用，不用太犹豫' },
       {
@@ -1230,6 +1341,7 @@ export const guides: Guide[] = [
     recommendedForCategories: ['ride', 'rent'],
     readMinutes: 8,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.samtrans, OFFICIAL_SOURCES.vta],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1303,9 +1415,10 @@ export const guides: Guide[] = [
     tags: ['搬家', '清洁', '交接', '二手家具', '新家准备'],
     priority: 'P1',
     featuredOnHome: false,
-    recommendedForCategories: ['service', 'used', 'rent'],
+    recommendedForCategories: ['moving', 'service', 'used', 'rent'],
     readMinutes: 8,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.movers, OFFICIAL_SOURCES.deposit],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1322,6 +1435,8 @@ export const guides: Guide[] = [
           '退租换房：重点是旧家交接和新家同步推进。',
         ],
       },
+      { type: 'heading', text: '先核对服务方，再比较报价' },
+      { type: 'paragraph', text: '加州境内住宅搬家可从文末 BHGS 官方入口核对搬家公司的授权状态，查看报价文件和投诉说明。请对照服务方名称与资料，保存书面报价；不要只凭平台徽章或聊天承诺判断。' },
       { type: 'heading', text: '找搬家服务时，别只看“多少钱一小时”' },
       {
         type: 'checklist',
@@ -1390,12 +1505,14 @@ export const guides: Guide[] = [
     recommendedForCategories: ['used', 'service'],
     readMinutes: 7,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.recalls, OFFICIAL_SOURCES.marketplace],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
         type: 'paragraph',
         text: '刚来湾区或者刚搬家，很多人都会先看二手。这个思路没问题，特别是桌子、椅子、书架这类，省钱又现实。真正容易踩坑的，是你把所有东西都按同一标准买：床和桌子不一样，冰箱和微波炉也不一样，洗衣机更不能只看照片。',
       },
+      { type: 'tip', title: '先按品牌和型号查安全警示', text: '家具和电器即使能正常使用，也应先通过文末 CPSC 入口查询是否有召回或安全警示。发现命中型号时，先核对官方处理说明，再决定是否交易。' },
       { type: 'heading', text: '先分清哪些东西适合买二手，哪些要更谨慎' },
       {
         type: 'list',
@@ -1476,18 +1593,19 @@ export const guides: Guide[] = [
     recommendedForCategories: ['service', 'rent', 'used'],
     readMinutes: 7,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.selling],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
         type: 'paragraph',
-        text: '很多人在平台上发帖，最大的问题不是没人需要，而是别人看不懂、看不放心，或者看完还得追着问十几个问题。你在 BayLink 上发房源、发服务、发二手，最重要的不是写得像广告，而是让人一眼知道你是谁、你提供什么、适合谁、怎么联系。',
+        text: '很多人在平台上发帖，最大的问题不是没人需要，而是别人看不懂、看不放心，或者看完还得追着问十几个问题。你在 BayLink 上发房源、发服务、发二手，最重要的不是写得像广告，而是让人一眼知道你是谁、你提供什么、适合谁。正文写联系时段，具体电话、微信和邮箱放在「联系方式设置」，按你的选择通过站内请求发送。',
       },
       { type: 'heading', text: '先把别人最关心的信息写前面' },
       {
         type: 'list',
         items: [
           '房源：区域、房型、租金、入住时间、是否合租、是否有车位。',
-          '服务：服务内容、覆盖区域、可上门时间、报价方式、联系方式。',
+          '服务：服务内容、覆盖区域、可上门时间、报价方式和方便沟通的时段。',
           '二手：物品名称、成色、尺寸、价格、提货方式。',
         ],
       },
@@ -1522,7 +1640,7 @@ export const guides: Guide[] = [
           '标题是否一眼看懂。',
           '地区是否写清。',
           '价格或价格范围是否明确。',
-          '联系方式和时间是否清楚。',
+          '联系时段是否清楚；具体电话、微信、邮箱是否填写在「联系方式设置」中。',
           '是否说明限制条件和注意事项。',
           '图片是否真实且近期。',
         ],
@@ -1553,10 +1671,11 @@ export const guides: Guide[] = [
     tags: ['旧金山', 'San Francisco', '湾区城市攻略', '朋友来访', '周末路线', '经典地标'],
     priority: 'P1',
     featuredOnHome: false,
-    recommendedForCategories: ['ride', 'service', 'rent'],
+    recommendedForCategories: ['ride', 'rent'],
     cover: '/guides/san-francisco-guide.png',
     readMinutes: 8,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.sfmta, OFFICIAL_SOURCES.alcatraz],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1583,7 +1702,7 @@ export const guides: Guide[] = [
       {
         type: 'list',
         items: [
-          '海边经典路线：Fisherman’s Wharf、Pier 39、Alcatraz Island、Ferry Building，一路都是海湾、海鲜和第一次来必拍的海边氛围。',
+          '海边路线：Fisherman’s Wharf、Pier 39、Ferry Building 可按时间选点。Alcatraz 需要单独安排渡轮与参观时间，先从下方国家公园官方入口确认预约，不要当作沿岸步行的中途一站。',
           '城市地标路线：Golden Gate Bridge、Palace of Fine Arts、Lombard Street、Painted Ladies / Alamo Square、Twin Peaks，适合建立“旧金山长什么样”的视觉印象。',
           '街区生活感路线：Chinatown、Cable Car、Golden Gate Park、Lands End，让你看到这座城市怎么被真正生活出来，而不只是打卡。',
         ],
@@ -1615,7 +1734,7 @@ export const guides: Guide[] = [
           '找周末搭子，一起走海边或城市路线',
           '找附近租房，适合无车用户和想住市区的人',
           '找短途搬家或寄放帮助，适合刚落地的人',
-          '问问 BayBay，先判断哪条路线更适合当天时间和天气',
+          '问问 BayBay，按你的时间整理备选路线；当天天气和营业情况另查官方信息',
         ],
       },
       {
@@ -1640,10 +1759,11 @@ export const guides: Guide[] = [
     tags: ['圣何塞', 'San Jose', '南湾攻略', 'Santana Row', '周末路线', '科技城生活'],
     priority: 'P1',
     featuredOnHome: false,
-    recommendedForCategories: ['service', 'ride', 'rent'],
+    recommendedForCategories: ['ride', 'rent'],
     cover: '/guides/san-jose-guide.png',
     readMinutes: 7,
     updatedAt: '2026-06-10',
+    sources: [OFFICIAL_SOURCES.tech, OFFICIAL_SOURCES.vta],
     sourceNote: SOURCE_NOTE,
     blocks: [
       {
@@ -1730,15 +1850,23 @@ export const getFeaturedGuides = (limit = 4): Guide[] =>
     .sort((a, b) => (a.priority === 'P0' ? -1 : 1) - (b.priority === 'P0' ? -1 : 1))
     .slice(0, limit);
 
+const CATEGORY_FEATURED_GUIDES: Record<string, string[]> = {
+  service: ['local-service-safety-guide', 'bay-area-moving-checklist', 'baylink-safety-guide'],
+  moving: ['bay-area-moving-checklist', 'local-service-safety-guide', 'move-in-move-out-checklist'],
+  cleaning: ['local-service-safety-guide', 'baylink-safety-guide', 'bay-area-moving-checklist'],
+  repair: ['local-service-safety-guide', 'baylink-safety-guide', 'baylink-posting-guide-for-trust'],
+};
+
 const CATEGORY_SLUG_RECOMMENDED: Record<string, string[]> = {
   rent: ['rent'],
   used: ['used'],
-  moving: ['moving'],
-  cleaning: ['cleaning'],
+  service: ['service', 'moving', 'cleaning', 'repair', 'translation'],
+  moving: ['moving', 'service'],
+  cleaning: ['cleaning', 'service'],
   ride: ['ride'],
-  repair: ['repair'],
-  translation: ['service', 'other'],
-  'part-time': ['other'],
+  repair: ['repair', 'service'],
+  translation: ['translation', 'safety'],
+  'part-time': ['part-time', 'safety'],
   other: ['other'],
 };
 
@@ -1754,14 +1882,20 @@ export const getGuidesForCategorySlug = (
   categorySlug: string,
   limit = 3
 ): Guide[] => {
-  const keys = CATEGORY_SLUG_RECOMMENDED[categorySlug] ?? ['other'];
+  const keys = CATEGORY_SLUG_RECOMMENDED[categorySlug];
+  if (!keys) return [];
   const matched = guides.filter((g) =>
     g.recommendedForCategories.some((c) => keys.includes(c))
   );
   const order = (g: Guide) =>
     (g.priority === 'P0' ? 0 : g.priority === 'P1' ? 1 : 2);
   return [...matched]
-    .sort((a, b) => order(a) - order(b))
+    .sort((a, b) => {
+      const preferred = CATEGORY_FEATURED_GUIDES[categorySlug] || [];
+      const rank = (g: Guide) => { const i = preferred.indexOf(g.slug); return i < 0 ? preferred.length : i; };
+      const direct = (g: Guide) => g.recommendedForCategories.includes(categorySlug) ? 0 : 1;
+      return rank(a) - rank(b) || direct(a) - direct(b) || order(a) - order(b);
+    })
     .slice(0, limit);
 };
 
@@ -1774,9 +1908,11 @@ export const GUIDE_CATEGORY_TABS: { id: 'all' | GuideCategory; label: string }[]
   { id: 'commute', label: '通勤' },
   { id: 'newcomer', label: '新手' },
   { id: 'city', label: '城市指南' },
+  { id: 'safety', label: '平台安全' },
 ];
 
 export const CATEGORY_STRIP_TITLES: Record<string, string> = {
+  service: '找本地服务先看',
   rent: '租房前先看',
   used: '二手交易先看',
   moving: '找本地服务先看',

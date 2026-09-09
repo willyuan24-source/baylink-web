@@ -23,6 +23,7 @@ type CommentItemProps = {
   onEdit: (comment: PostComment) => void;
   onDelete: (comment: PostComment) => void;
   onLoginNeeded: () => void;
+  disabled?: boolean;
 };
 
 const formatCommentTime = (ts: number) => {
@@ -41,6 +42,7 @@ export const CommentItem = ({
   onEdit,
   onDelete,
   onLoginNeeded,
+  disabled = false,
 }: CommentItemProps) => {
   const isDeleted = !!comment.isDeleted;
   const isAdmin = currentUser?.role === 'admin';
@@ -69,12 +71,12 @@ export const CommentItem = ({
             {comment.isAdmin && (
               <UserTrustBadges user={{ isAdmin: true }} size={9} showText adminCompact />
             )}
-            <span className="text-[10px] text-baylink-muted">{formatCommentTime(comment.createdAt)}</span>
+            <span className="text-[11px] text-baylink-muted">{formatCommentTime(comment.createdAt)}</span>
             {comment.editedAt && !isDeleted && (
-              <span className="text-[10px] text-baylink-muted">已编辑</span>
+              <span className="text-[11px] text-baylink-muted">已编辑</span>
             )}
           </div>
-          <p className={`mt-1 text-[14px] leading-relaxed ${isDeleted ? 'italic text-baylink-muted' : 'text-baylink-text-secondary'}`}>
+          <p className={`mt-1 whitespace-pre-wrap break-words text-[14px] leading-relaxed ${isDeleted ? 'italic text-baylink-muted' : 'text-baylink-text-secondary'}`}>
             {isDeleted ? '评论已删除' : comment.content}
           </p>
           {(showReply || canManage) && (
@@ -82,6 +84,7 @@ export const CommentItem = ({
               {showReply && (
                 <button
                   type="button"
+                  disabled={disabled}
                   onClick={() => requireLogin(() => onReply!(comment))}
                   className="text-[11px] font-medium text-baylink-green hover:underline"
                 >
@@ -92,6 +95,7 @@ export const CommentItem = ({
                 <>
                   <button
                     type="button"
+                    disabled={disabled}
                     onClick={() => requireLogin(() => onEdit(comment))}
                     className="text-[11px] font-medium text-baylink-text-secondary hover:text-baylink-text"
                   >
@@ -99,6 +103,7 @@ export const CommentItem = ({
                   </button>
                   <button
                     type="button"
+                    disabled={disabled}
                     onClick={() => requireLogin(() => onDelete(comment))}
                     className="text-[11px] font-medium text-red-500/90 hover:text-red-600"
                   >

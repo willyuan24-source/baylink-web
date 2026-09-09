@@ -44,6 +44,8 @@ export interface PostData {
   description: string; contactInfo: string | null; imageUrls: string[];
   likesCount: number; hasLiked: boolean; commentsCount: number; comments?: any[];
   createdAt: number; updatedAt?: number;
+  status?: 'active' | 'closed';
+  confirmedAt?: number | null;
   isFeatured?: boolean;
   featuredAt?: number | string;
   featuredBy?: string;

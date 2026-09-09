@@ -26,9 +26,9 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
     if (!value?.trim()) return;
     try {
       await navigator.clipboard.writeText(value.trim());
-      onCopied?.('已复制');
+      onCopied?.('已复制', 'success');
     } catch {
-      onCopied?.('复制失败', 'error' as const);
+      onCopied?.('复制失败，请长按联系方式复制。', 'error');
     }
   };
 
@@ -52,7 +52,7 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
                 onClick={() => copy(m.value)}
                 disabled={!m.value?.trim()}
                 className="shrink-0 rounded-lg border border-black/[0.06] bg-white p-1.5 text-baylink-muted transition hover:text-baylink-green disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="复制"
+                aria-label={`复制${typeLabel(m.type, m.label)}`}
               >
                 <Copy size={14} />
               </button>
@@ -60,7 +60,7 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
           </div>
         ))}
       </div>
-      <p className="mt-2.5 text-[10px] leading-relaxed text-baylink-muted">
+      <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">
         建议先确认身份、价格、时间和交易方式。涉及押金、预付款或上门服务时请谨慎。
       </p>
     </div>

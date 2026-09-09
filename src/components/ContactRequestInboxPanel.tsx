@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Avatar from './Avatar';
+import { friendlyErrorMessage } from '../lib/format';
 
 export type ContactRequestInboxItem = {
   id: string;
@@ -36,69 +37,70 @@ export const ContactRequestInboxPanel = ({
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const callbacks = useRef({ fetchPending, onCountChange });
+  const active = useRef(true);
+  const loadSequence = useRef(0);
+  const actionPending = useRef(false);
+  const completedIds = useRef(new Set<string>());
+  const requestsRef = useRef<ContactRequestInboxItem[]>([]);
+
+  useEffect(() => { callbacks.current = { fetchPending, onCountChange }; }, [fetchPending, onCountChange]);
+  useEffect(() => { active.current = true; return () => { active.current = false; loadSequence.current += 1; }; }, []);
 
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     setLoading(true);
     try {
-      const list = await fetchPending();
+      const response = await callbacks.current.fetchPending();
+      if (!Array.isArray(response)) throw new Error('联系方式请求响应格式异常');
+      if (!active.current || sequence !== loadSequence.current) return;
+      const list = [...new Map(response.filter(request => !completedIds.current.has(request.id)).map(request => [request.id, request])).values()];
+      requestsRef.current = list;
       setRequests(list);
-      onCountChange?.(list.length);
-    } catch {
-      setRequests([]);
-      onCountChange?.(0);
+      callbacks.current.onCountChange?.(list.length);
+      setError(null);
+    } catch (err) {
+      if (active.current && sequence === loadSequence.current) setError(friendlyErrorMessage(err, '联系方式请求加载失败。'));
     } finally {
-      setLoading(false);
+      if (active.current && sequence === loadSequence.current) setLoading(false);
     }
-  }, [fetchPending, onCountChange]);
+  }, []);
 
   useEffect(() => {
     load();
   }, [load, refreshKey]);
 
-  if (loading && requests.length === 0) return null;
-  if (!loading && requests.length === 0) return null;
-
-  const handleApprove = async (id: string) => {
+  const handleAction = async (id: string, approve: boolean) => {
+    if (actionPending.current) return;
+    actionPending.current = true;
     setActingId(id);
     try {
-      await onApprove(id);
-      showToast('已发送联系方式', 'success');
-      setRequests((prev) => {
-        const next = prev.filter((r) => r.id !== id);
-        onCountChange?.(next.length);
-        return next;
-      });
-    } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
+      await (approve ? onApprove(id) : onDecline(id));
+      if (!active.current) return;
+      completedIds.current.add(id);
+      const next = requestsRef.current.filter(request => request.id !== id);
+      requestsRef.current = next;
+      setRequests(next);
+      callbacks.current.onCountChange?.(next.length);
+      showToast(approve ? '已发送联系方式' : '已拒绝请求', approve ? 'success' : 'info');
+    } catch (err) {
+      if (active.current) showToast(friendlyErrorMessage(err, '操作失败，请重试。'), 'error');
     } finally {
-      setActingId(null);
+      if (active.current) { actionPending.current = false; setActingId(null); }
     }
   };
 
-  const handleDecline = async (id: string) => {
-    setActingId(id);
-    try {
-      await onDecline(id);
-      showToast('已拒绝请求', 'info');
-      setRequests((prev) => {
-        const next = prev.filter((r) => r.id !== id);
-        onCountChange?.(next.length);
-        return next;
-      });
-    } catch (e: any) {
-      showToast(e?.error || '操作失败', 'error');
-    } finally {
-      setActingId(null);
-    }
-  };
+  if (requests.length === 0 && !error) return loading ? <p role="status" className="mx-4 mt-3 text-sm text-baylink-text-secondary">正在加载联系方式请求…</p> : null;
 
   return (
     <div className="mx-4 mt-3 mb-1">
       <div className="rounded-2xl border border-amber-200/80 bg-amber-50/90 p-3.5 shadow-rest">
+        {error && <div role="alert" className="mb-3 text-sm text-baylink-text-secondary"><p>{error}</p><button type="button" onClick={() => void load()} className="mt-1 font-semibold text-baylink-green">重新加载</button></div>}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-amber-950">
-              你有 {requests.length} 个联系方式请求待处理
+              {requests.length ? `你有 ${requests.length} 个联系方式请求待处理` : '联系方式请求'}
             </p>
             <p className="mt-0.5 text-[11px] leading-relaxed text-amber-900/80">
               同意后将通过私信发送联系方式卡片，不会公开在帖子详情。
@@ -107,6 +109,7 @@ export const ContactRequestInboxPanel = ({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
             className="shrink-0 inline-flex items-center gap-0.5 rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-amber-900"
           >
             {expanded ? '收起' : '查看请求'}
@@ -146,22 +149,23 @@ export const ContactRequestInboxPanel = ({
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      disabled={actingId === r.id}
-                      onClick={() => handleApprove(r.id)}
+                      disabled={actingId !== null}
+                      onClick={() => void handleAction(r.id, true)}
                       className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60"
                     >
                       {actingId === r.id ? '处理中...' : '同意并发送'}
                     </button>
                     <button
                       type="button"
-                      disabled={actingId === r.id}
-                      onClick={() => handleDecline(r.id)}
+                      disabled={actingId !== null}
+                      onClick={() => void handleAction(r.id, false)}
                       className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary disabled:opacity-60"
                     >
                       暂不发送
                     </button>
                     <button
                       type="button"
+                      disabled={!r.requester?.id}
                       onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, r.postTitle || '帖子')}
                       className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary"
                     >

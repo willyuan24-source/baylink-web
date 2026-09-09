@@ -1,5 +1,7 @@
 // Feed 帖子卡片 + 「有用」点赞按钮
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { PostAvailabilityBadge } from '../../components/PostAvailabilityBadge';
 import {
   ThumbsUp, MoreHorizontal, Flag, UserX, Star, Edit, Trash2, Share2, MessageCircle,
 } from 'lucide-react';
@@ -8,7 +10,7 @@ import { TrustBadge } from '../../components/TrustBadge';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
 import { formatPostDateLine } from '../../lib/format';
-import type { PostData } from '../../lib/types';
+import type { PostData, UserData } from '../../lib/types';
 
 const formatUsefulLabel = (count: number) => (count > 0 ? `有用 ${count}` : '有用');
 
@@ -29,16 +31,26 @@ export const UsefulLikeButton = ({
     } ${
       post.hasLiked
         ? 'bg-baylink-green/[0.1] text-baylink-green'
-        : 'text-baylink-muted/80 hover:bg-baylink-section/60 hover:text-baylink-text-secondary'
+        : 'text-baylink-muted hover:bg-baylink-section/60 hover:text-baylink-text-secondary'
     }`}
     title={post.hasLiked ? '取消标记有用' : '标记为有用'}
   >
     <ThumbsUp size={compact ? 14 : 15} className={post.hasLiked ? 'fill-baylink-green/25' : ''} />
-    <span className={`font-medium ${compact ? 'text-[10px]' : 'text-[11px]'}`}>{formatUsefulLabel(post.likesCount)}</span>
+    <span className="font-medium text-[11px]">{formatUsefulLabel(post.likesCount)}</span>
   </button>
 );
 
-export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, onLike, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: any) => {
+type PostCardProps = {
+  post: PostData; currentUser?: UserData | null; blockedUserIds?: string[];
+  onClick?: () => void; onAvatarClick?: (id: string) => void; onImageClick?: (src: string) => void;
+  onToggleBlockUser?: (id: string) => void;
+  onContactClick?: (post: PostData) => void; onShare?: (post: PostData) => void;
+  onLike?: (post: PostData) => void; onEdit?: (post: PostData) => void;
+  onDelete?: (post: PostData) => void; onToggleFeature?: (post: PostData) => void; onReport?: (post: PostData) => void;
+};
+export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImageClick, onShare, onLike, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: PostCardProps) => {
+  const location = useLocation();
+  const backgroundLocation = location.state?.backgroundLocation || location;
   const isProvider = post.type === 'provider';
   const postImages = normalizePostImages(post);
   const hasImage = postImages.length > 0;
@@ -47,15 +59,15 @@ export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImage
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === post.authorId;
   const canManage = currentUser && (isOwner || isAdmin);
-  const showReport = !isOwner;
+  const showReport = !isOwner && !!onReport;
   const hasMenu = showReport || canManage || isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <article onClick={onClick} className="surface-card mb-3 overflow-hidden group cursor-pointer transition-all duration-200 hover:shadow-elevated hover:border-baylink-green/10">
+    <article onClick={(e) => { if (!(e.target as HTMLElement).closest('a,button,input')) onClick?.(); }} className="surface-card mb-3 overflow-hidden group cursor-pointer transition-all duration-200 hover:shadow-elevated hover:border-baylink-green/10">
       <div className="flex items-center gap-2.5 px-4 pt-3.5 pb-2">
-        <div onClick={(e) => { e.stopPropagation(); onAvatarClick && onAvatarClick(post.authorId); }} className="cursor-pointer shrink-0">
+        <Link to={`/users/${post.authorId}`} state={{ backgroundLocation }} aria-label={`查看 ${post.author.nickname} 的资料`} onClick={(e) => { e.stopPropagation(); if (onAvatarClick && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onAvatarClick(post.authorId); } }} className="cursor-pointer shrink-0">
             <Avatar src={post.author.avatar} name={post.author.nickname} size={7} />
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-baylink-text">
             <span className="max-w-full truncate font-medium">{post.author.nickname}</span>
@@ -66,15 +78,15 @@ export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImage
           {isPlatformAdmin(post.author) && (
             <div className="mt-0.5"><TrustBadge user={post.author} size={9} showText /></div>
           )}
-          <div className="text-[11px] text-baylink-muted/85">{formatPostDateLine(post)}</div>
+          <div className="text-[11px] text-baylink-muted">{formatPostDateLine(post)}</div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <span className={`text-[10px] px-2 py-0.5 rounded-full ${isProvider ? 'bg-baylink-section/80 text-baylink-muted' : 'bg-baylink-green-light/90 text-baylink-green'}`}>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full ${isProvider ? 'bg-baylink-section/80 text-baylink-muted' : 'bg-baylink-green-light/90 text-baylink-green'}`}>
             {isProvider ? '资源' : '需求'}
           </span>
           {hasMenu && (
             <div className="relative">
-              <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }} className="p-1 text-baylink-muted hover:text-baylink-text rounded-lg hover:bg-baylink-section/80">
+              <button type="button" aria-label="帖子操作" aria-expanded={menuOpen} onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }} className="p-2 text-baylink-muted hover:text-baylink-text rounded-lg hover:bg-baylink-section/80">
                 <MoreHorizontal size={16} />
               </button>
               {menuOpen && (
@@ -93,7 +105,7 @@ export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImage
                     )}
                     {isAdmin && (
                       <button type="button" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onToggleFeature?.(post); }} className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-xs font-semibold text-amber-700 hover:bg-amber-50">
-                        <Star size={13} /> {post.isFeatured ? '取消热门推荐' : '加入热门推荐'}
+                        <Star size={13} /> {post.isFeatured ? '取消编辑精选' : '加入编辑精选'}
                       </button>
                     )}
                     {canManage && (
@@ -114,19 +126,19 @@ export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImage
         </div>
       </div>
       <div className="px-4 pb-2.5">
-         <h3 className="font-semibold text-base text-baylink-text leading-snug line-clamp-2 mb-1.5">{post.title}</h3>
+         <h3 className="font-semibold text-base text-baylink-text leading-snug line-clamp-2 mb-1.5"><Link to={`/posts/${post.id}`} state={{ backgroundLocation }} onClick={(e) => { e.stopPropagation(); if (onClick && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) { e.preventDefault(); onClick(); } }}>{post.title}</Link></h3>
+         <div className="mb-2"><PostAvailabilityBadge post={post} /></div>
          {hasImage ? (
            <div className="relative mb-2.5 overflow-hidden rounded-xl border border-black/[0.04] bg-gradient-to-br from-baylink-section/60 to-baylink-green-light/30">
-             <img
+             <button type="button" className="block w-full" aria-label={`查看 ${post.title} 的图片`} onClick={(e) => { e.stopPropagation(); if (onImageClick) onImageClick(coverUrl); else onClick?.(); }}><img
                src={coverUrl}
                alt={post.title}
                loading="lazy"
                decoding="async"
                className={`aspect-[16/10] w-full ${isSystemCover ? 'object-contain bg-baylink-section/50 p-2' : 'object-cover'}`}
-               onClick={(e) => { e.stopPropagation(); onImageClick && onImageClick(coverUrl); }}
-             />
+             /></button>
              {isSystemCover && (
-               <span className="absolute left-2.5 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium text-baylink-muted shadow-rest">封面</span>
+               <span className="absolute left-2.5 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-baylink-muted shadow-rest">封面</span>
              )}
            </div>
          ) : null}
@@ -139,13 +151,13 @@ export const PostCard = ({ post, onClick, onContactClick, onAvatarClick, onImage
          </div>
          <div className="flex items-center gap-0.5 shrink-0">
             {onLike && <UsefulLikeButton post={post} onLike={onLike} compact />}
-            <button onClick={(e) => { e.stopPropagation(); onShare && onShare(post); }} className="inline-flex items-center gap-0.5 rounded-lg p-1.5 text-baylink-muted/80 transition hover:bg-baylink-section/60 hover:text-baylink-text-secondary" title="分享">
+            {onShare && <button onClick={(e) => { e.stopPropagation(); onShare(post); }} className="inline-flex items-center gap-0.5 rounded-lg p-1.5 text-baylink-muted transition hover:bg-baylink-section/60 hover:text-baylink-text-secondary" title="分享">
               <Share2 size={14}/>
-              <span className="text-[10px] font-medium">分享</span>
-            </button>
-            <button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-[11px] font-semibold border border-baylink-green/25 bg-baylink-green/[0.08] text-baylink-green px-2.5 py-1.5 rounded-lg hover:bg-baylink-green/[0.12] active:scale-[0.98] transition flex items-center gap-1">
+              <span className="text-[11px] font-medium">分享</span>
+            </button>}
+            {onContactClick && !isOwner && post.status !== 'closed' && <button onClick={(e) => {e.stopPropagation(); onContactClick(post);}} className="text-xs font-semibold border border-baylink-green/25 bg-baylink-green/[0.08] text-baylink-green px-2.5 py-1.5 rounded-lg hover:bg-baylink-green/[0.12] active:scale-[0.98] transition flex items-center gap-1">
               <MessageCircle size={13} /> 私信
-            </button>
+            </button>}
          </div>
       </div>
     </article>

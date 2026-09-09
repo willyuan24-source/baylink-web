@@ -1,25 +1,82 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ],
-  "headers": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/post-page.ts": {
+      "includeFiles": "dist/index.html",
+      "maxDuration": 15
+    }
+  },
+  "routes": [
     {
-      "source": "/assets/(.*\\.(?:js|css|woff2|woff|ttf|png|webp|svg|jpg|jpeg|map))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://baylink-api.onrender.com wss://baylink-api.onrender.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests"
+      },
+      "continue": true
     },
     {
-      "source": "/(brand|guides|default-covers)/(.*\\.(?:png|webp|jpg|jpeg|svg|ico))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
-      ]
+      "src": "^/assets/(.*)$",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
     },
     {
-      "source": "/baylink-hero-bg.webp",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
-      ]
+      "src": "^/(brand|guides|default-covers)/(.*\\.(?:png|webp|jpg|jpeg|svg|ico))$",
+      "headers": {
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=86400"
+      },
+      "continue": true
+    },
+    {
+      "src": "^/(?:me|messages(?:/.*)?|reset-password|users/.*)/?$",
+      "headers": {
+        "X-Robots-Tag": "noindex, follow",
+        "Cache-Control": "no-store"
+      },
+      "continue": true
+    },
+    {
+      "src": "^/guides/(bay-area-rental-scam-guide|bay-area-newcomer-first-month-checklist|bay-area-roommate-guide|bay-area-commute-guide|bay-area-used-trading-safety-guide|rental-lease-checklist-before-signing|move-in-move-out-checklist|local-service-safety-guide|peninsula-living-guide|south-bay-living-guide|bay-area-regions-explained|bay-area-where-to-live-first-month|bay-area-first-rental-process|baylink-safety-guide|bay-area-without-car-guide|bay-area-moving-checklist|bay-area-used-furniture-appliance-guide|baylink-posting-guide-for-trust|san-francisco-guide|san-jose-guide)/?$",
+      "dest": "/guides/$1.html"
+    },
+    {
+      "src": "^/category/(rent|used|moving|cleaning|ride|repair|translation|part-time|other|service)/?$",
+      "dest": "/category/$1.html"
+    },
+    {
+      "src": "^/(guides|recommend|privacy|terms|sms-consent)/?$",
+      "dest": "/$1.html"
+    },
+    {
+      "src": "^/posts/([a-zA-Z0-9_-]{1,128})/?$",
+      "dest": "/api/post-page?postId=$1"
+    },
+    {
+      "src": "^/404(?:\\.html)?/?$",
+      "dest": "/404.html",
+      "status": 404
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/(?:me|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/404.html",
+      "status": 404,
+      "headers": {
+        "X-Robots-Tag": "noindex, follow",
+        "Cache-Control": "no-store"
+      }
     }
   ]
 }

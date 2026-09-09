@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, MessageCircle, Phone, Share2, Sparkles } from 'lucide-react';
 import { getBayBayCategoryPrompt, getCategorySafetyTip } from '../utils/categorySafetyTips';
+import { friendlyErrorMessage } from '../lib/format';
 
 type ContactPreference = {
   mode?: 'dm_first' | 'auto_send' | 'manual_approve';
@@ -14,7 +15,7 @@ type ContactRequestItem = {
 };
 
 type PostDetailContactPanelProps = {
-  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference };
+  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference; status?: 'active' | 'closed' };
   currentUser?: { id: string } | null;
   isOwner: boolean;
   onLoginNeeded: () => void;
@@ -39,7 +40,11 @@ const REQUEST_STATUS_COPY: Record<string, string> = {
   dm_first: '该帖子仅支持站内私信',
 };
 
-export const PostDetailContactPanel = ({
+export const PostDetailContactPanel = (props: PostDetailContactPanelProps) => (
+  <ContactPanelSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}:${props.section || 'all'}:${props.post.contactPreference?.mode || 'dm_first'}:${props.post.status || 'active'}`} {...props} />
+);
+
+const ContactPanelSession = ({
   post,
   currentUser,
   isOwner,
@@ -59,36 +64,55 @@ export const PostDetailContactPanel = ({
   const [loadingRequest, setLoadingRequest] = useState(false);
   const [pendingOwner, setPendingOwner] = useState<ContactRequestItem[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
+  const [pendingError, setPendingError] = useState<string | null>(null);
+  const [pendingRetry, setPendingRetry] = useState(0);
+  const [actingId, setActingId] = useState<string | null>(null);
+  const active = useRef(true);
+  const requestInFlight = useRef(false);
+  const ownerActionInFlight = useRef(false);
+  const pendingFetcher = useRef(fetchOwnerPending);
+  const completedIds = useRef(new Set<string>());
+
+  useEffect(() => { pendingFetcher.current = fetchOwnerPending; }, [fetchOwnerPending]);
+  useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
 
   const mode = post.contactPreference?.mode || 'dm_first';
-  const canRequestContact = mode !== 'dm_first' && !isOwner;
+  const isClosed = post.status === 'closed';
+  const canRequestContact = mode !== 'dm_first' && !isOwner && !isClosed;
   const showContact = section === 'contact' || section === 'all';
   const showBaybay = section === 'baybay' || section === 'all';
   const showOwner = section === 'owner' || section === 'all';
 
   useEffect(() => {
-    if (!showOwner || !isOwner || !fetchOwnerPending) return;
+    let cancelled = false;
+    if (!showOwner || !isOwner || !pendingFetcher.current) return;
     setLoadingPending(true);
-    fetchOwnerPending()
-      .then(setPendingOwner)
-      .catch(() => setPendingOwner([]))
-      .finally(() => setLoadingPending(false));
-  }, [showOwner, isOwner, fetchOwnerPending, post.id]);
+    setPendingError(null);
+    pendingFetcher.current()
+      .then(list => { if (!cancelled) setPendingOwner(list.filter(request => !completedIds.current.has(request.id))); })
+      .catch(error => { if (!cancelled) setPendingError(friendlyErrorMessage(error, '联系方式请求加载失败。')); })
+      .finally(() => { if (!cancelled) setLoadingPending(false); });
+    return () => { cancelled = true; };
+  }, [showOwner, isOwner, post.id, pendingRetry]);
 
   const handleDm = () => {
     if (!currentUser) return onLoginNeeded();
+    if (isOwner || isClosed) return;
     onOpenChat(post.authorId, authorName, post.title);
   };
 
   const handleRequest = async () => {
     if (!currentUser) return onLoginNeeded();
+    if (requestInFlight.current || isOwner || isClosed) return;
     if (mode === 'dm_first') {
       showToast('该帖子仅支持站内私信', 'info');
       return;
     }
+    requestInFlight.current = true;
     setLoadingRequest(true);
     try {
       const res = await requestContact(post.id);
+      if (!active.current) return;
       if (res.error) {
         showToast(res.error, 'error');
         if (res.status) setRequestStatus(res.status);
@@ -101,10 +125,28 @@ export const PostDetailContactPanel = ({
       } else if (res.status === 'pending') {
         showToast('请求已发送，等待帖主确认', 'success');
       }
-    } catch (e: any) {
-      showToast(e?.error || e?.message || '请求失败', 'error');
+    } catch (error) {
+      if (active.current) showToast(friendlyErrorMessage(error, '请求失败，请重试。'), 'error');
     } finally {
-      setLoadingRequest(false);
+      if (active.current) { requestInFlight.current = false; setLoadingRequest(false); }
+    }
+  };
+
+  const handleOwnerAction = async (id: string, approve: boolean) => {
+    const action = approve ? approveRequest : declineRequest;
+    if (!action || ownerActionInFlight.current) return;
+    ownerActionInFlight.current = true;
+    setActingId(id);
+    try {
+      await action(id);
+      if (!active.current) return;
+      completedIds.current.add(id);
+      setPendingOwner(previous => previous.filter(request => request.id !== id));
+      showToast(approve ? '已发送联系方式' : '已拒绝请求', approve ? 'success' : 'info');
+    } catch (error) {
+      if (active.current) showToast(friendlyErrorMessage(error, '操作失败，请重试。'), 'error');
+    } finally {
+      if (active.current) { ownerActionInFlight.current = false; setActingId(null); }
     }
   };
 
@@ -116,9 +158,11 @@ export const PostDetailContactPanel = ({
         <div className="surface-card p-3.5">
           <p className="mb-2 text-[11px] leading-relaxed text-baylink-muted">{getCategorySafetyTip(post.category)}</p>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={handleDm} className="inline-flex items-center gap-1.5 rounded-xl bg-baylink-green px-3.5 py-2 text-xs font-semibold text-white shadow-rest hover:bg-baylink-green-hover">
+            {!isOwner && !isClosed && <button type="button" onClick={handleDm} className="inline-flex items-center gap-1.5 rounded-xl bg-baylink-green px-3.5 py-2 text-xs font-semibold text-white shadow-rest hover:bg-baylink-green-hover">
               <MessageCircle size={14} /> 私信联系
-            </button>
+            </button>}
+            {isOwner && <p className="text-sm text-baylink-text-secondary">这是你发布的帖子。收到的私信和联系方式请求可在消息页查看。</p>}
+            {!isOwner && isClosed && <p className="text-sm text-baylink-text-secondary">这条信息已结束，不再接受新的联系请求。</p>}
             {canRequestContact && (
               <button
                 type="button"
@@ -141,7 +185,7 @@ export const PostDetailContactPanel = ({
             </button>
           )}
           {requestStatus && (
-            <p className="mt-2 text-[11px] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || requestStatus}</p>
+            <p role="status" className="mt-2 text-[11px] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || '请求状态已更新，可前往消息页查看。'}</p>
           )}
         </div>
       )}
@@ -154,12 +198,12 @@ export const PostDetailContactPanel = ({
           <p className="mt-1 text-[11px] text-baylink-muted">不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {['这类帖子联系前要问什么？', '这条信息有什么需要注意？', '帮我整理一段私信开场白'].map((q) => (
-              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
                 {q}
               </button>
             ))}
             {categoryPrompt && (
-              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[10px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
                 {categoryPrompt}
               </button>
             )}
@@ -170,9 +214,10 @@ export const PostDetailContactPanel = ({
       {showOwner && isOwner && (
         <div className="surface-card p-3.5">
           <h4 className="text-sm font-semibold text-baylink-text">联系方式请求</h4>
+          {pendingError && <div role="alert" className="mt-2 text-sm text-baylink-text-secondary"><p>{pendingError}</p><button type="button" onClick={() => setPendingRetry(key => key + 1)} className="mt-1 font-semibold text-baylink-green">重新加载</button></div>}
           {loadingPending ? (
             <p className="mt-2 text-xs text-baylink-muted flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> 加载中...</p>
-          ) : pendingOwner.length === 0 ? (
+          ) : pendingOwner.length === 0 && !pendingError ? (
             <p className="mt-2 text-[11px] text-baylink-muted">暂无待处理的联系方式请求</p>
           ) : (
             <div className="mt-2 space-y-2">
@@ -181,8 +226,8 @@ export const PostDetailContactPanel = ({
                   <div className="text-sm font-medium text-baylink-text">{r.requester?.nickname || '用户'}</div>
                   {r.requestMessage && <p className="mt-1 text-[11px] text-baylink-muted">{r.requestMessage}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => approveRequest?.(r.id).then(() => { showToast('已发送联系方式', 'success'); setPendingOwner((prev) => prev.filter((x) => x.id !== r.id)); }).catch((e: any) => showToast(e?.error || '操作失败', 'error'))} className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white">同意并发送</button>
-                    <button type="button" onClick={() => declineRequest?.(r.id).then(() => { showToast('已拒绝请求', 'info'); setPendingOwner((prev) => prev.filter((x) => x.id !== r.id)); }).catch((e: any) => showToast(e?.error || '操作失败', 'error'))} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary">暂不发送</button>
+                    <button type="button" disabled={actingId !== null || !approveRequest} onClick={() => void handleOwnerAction(r.id, true)} className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60">{actingId === r.id ? '处理中…' : '同意并发送'}</button>
+                    <button type="button" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary disabled:opacity-60">暂不发送</button>
                     <button type="button" onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, post.title)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary">先私信聊聊</button>
                   </div>
                 </div>

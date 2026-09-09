@@ -1,5 +1,5 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, CheckCircle, Loader2, Plus } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
@@ -8,7 +8,7 @@ import {
   buildSubmitImageUrls, findDefaultCoverFromUrl, getRecommendedCovers,
   resolveCityFromDraft, splitPostImages,
 } from '../../lib/constants';
-import { getPostWritingHints, mapPostSaveError, validatePostForm } from '../../lib/format';
+import { getPostWritingHints, mapPostSaveError, PUBLIC_CONTACT_NOTICE, validatePostForm } from '../../lib/format';
 import type { DefaultCover, PostData, PostType, UserData } from '../../lib/types';
 import { getCategoryFromSlug, getSlugFromCategory } from '../../routing';
 import { BayBayPostAssist, type AiPostDraft } from '../../components/BayBayPostAssist';
@@ -51,12 +51,12 @@ const DefaultCoverPicker = ({
   return (
     <div className="rounded-xl border border-baylink-border/50 bg-white p-3">
       <p className="text-[11px] font-semibold text-baylink-text">没有照片？选择默认封面</p>
-      <p className="mt-0.5 text-[10px] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
       {selected && (
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-baylink-green-light/30 p-2">
           <img src={selected.url} alt={selected.title} className="h-12 w-12 shrink-0 rounded-lg object-contain bg-baylink-section/50" />
           <span className="min-w-0 flex-1 text-[11px] font-semibold text-baylink-text">已选：{selected.title}</span>
-          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[10px] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
+          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[11px] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
         </div>
       )}
       <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-xs font-semibold text-baylink-text transition hover:border-baylink-green/40">
@@ -64,7 +64,7 @@ const DefaultCoverPicker = ({
       </button>
       {open && (
         <div className="mt-3">
-          <p className="mb-2 text-[10px] font-semibold text-baylink-muted">推荐封面</p>
+          <p className="mb-2 text-[11px] font-semibold text-baylink-muted">推荐封面</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {displayCovers.map((cover) => {
               const isSelected = selected?.id === cover.id;
@@ -76,7 +76,7 @@ const DefaultCoverPicker = ({
                   className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
                 >
                   <img src={cover.url} alt={cover.title} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
-                  <p className="mt-1 truncate px-0.5 text-center text-[9px] font-medium text-baylink-text-secondary">{cover.title}</p>
+                  <p className="mt-1 truncate px-0.5 text-center text-[11px] font-medium text-baylink-text-secondary">{cover.title}</p>
                   {isSelected && (
                     <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[8px] font-bold text-white">已选择</span>
                   )}
@@ -85,12 +85,12 @@ const DefaultCoverPicker = ({
             })}
           </div>
           {!expanded && others.length > 0 && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[10px] font-semibold text-baylink-green">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[11px] font-semibold text-baylink-green">
               查看更多封面（共 {DEFAULT_COVERS.length} 张）
             </button>
           )}
           {expanded && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[10px] font-semibold text-baylink-muted">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[11px] font-semibold text-baylink-muted">
               收起全部封面
             </button>
           )}
@@ -161,7 +161,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   });
   const [contactWarningDismissed, setContactWarningDismissed] = useState(false);
   const contactAnalysis = analyzeContactsInText(form.description);
-  const showContactWarning = contactAnalysis.hasContact && !contactWarningDismissed;
+  const titleContactAnalysis = analyzeContactsInText(form.title);
+  const showContactWarning = (contactAnalysis.hasContact || titleContactAnalysis.hasContact) && !contactWarningDismissed;
   const initialImg = isEdit && editingPost?.imageUrls ? splitPostImages(editingPost.imageUrls) : { uploaded: [], cover: null as DefaultCover | null };
   const [uploadedImages, setUploadedImages] = useState<string[]>(initialImg.uploaded);
   const [selectedDefaultCover, setSelectedDefaultCover] = useState<DefaultCover | null>(initialImg.cover);
@@ -170,12 +171,15 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [postTrustWarning, setPostTrustWarning] = useState<string | null>(null);
-  const [antiSpamAnswer, setAntiSpamAnswer] = useState('');
   const [imageCompressing, setImageCompressing] = useState(false);
   const [imageCompressHint, setImageCompressHint] = useState<string | null>(null);
+  const imageProcessingRef = useRef(false);
+  const submittingRef = useRef(false);
+  const [postStatus, setPostStatus] = useState<'active' | 'closed'>(editingPost?.status === 'closed' ? 'closed' : 'active');
+  const [confirmAvailability, setConfirmAvailability] = useState(false);
 
   const isClient = form.type === 'client';
-  const isAdmin = user?.role === 'admin';
+  const closedStatusLabel = form.category === '租屋' && !isClient ? '已出租' : form.category === '闲置' && !isClient ? '已售出' : isClient ? '已解决' : '已结束';
   const hints = getPostWritingHints(form.category, form.type);
   const budgetPlaceholder = isClient ? '预算 / 可支付金额（如: $50/小时）' : '价格 / 收费方式（如: $80起 / 按小时）';
 
@@ -193,8 +197,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
       .map((t) => String(t).replace(/\s+/g, '').replace(/^#/, '').trim())
       .filter(Boolean)
       .slice(0, 5);
-    let desc = description.trim();
-    const missing = normalized.filter((tag) => !new RegExp(`#${tag}\\b`, 'i').test(desc));
+    const desc = description.trim();
+    const existingTags = new Set((desc.match(/#[^\s#]+/g) || []).map((tag) => tag.slice(1).toLowerCase()));
+    const missing = normalized.filter((tag) => !existingTags.has(tag.toLowerCase()));
     if (missing.length === 0) return desc;
     const suffix = missing.map((t) => `#${t}`).join(' ');
     return `${desc}\n\n${suffix}`.trim();
@@ -225,6 +230,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (imageProcessingRef.current || submittingRef.current) return;
     const input = e.target;
     const files = input.files;
     if (!files?.length) return;
@@ -239,6 +245,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
     const fileList = Array.from(files);
     const willTruncate = fileList.length > remaining;
 
+    imageProcessingRef.current = true;
     setImageCompressing(true);
     setImageCompressHint('图片处理中...');
 
@@ -282,25 +289,29 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
 
       setImageCompressHint(anyCompressed ? '图片已优化，上传更快' : null);
     } finally {
+      imageProcessingRef.current = false;
       setImageCompressing(false);
       input.value = '';
     }
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    if (imageProcessingRef.current) return showToast('照片还在处理中，请稍候再提交。', 'info');
     const err = validatePostForm(form);
     if (err) return showToast(err, 'error');
-    if (!isEdit && !isAdmin && antiSpamAnswer !== '旧金山湾区') {
-      return showToast('请先完成验证', 'error');
+    if (contactPreference.mode !== 'dm_first' && !contactPreference.methods.some((method) => method.enabled && method.value.trim())) {
+      return showToast('请填写至少一种联系方式，或选择优先站内私信。', 'error');
     }
+    submittingRef.current = true;
     setSubmitting(true);
     const finalImageUrls = buildSubmitImageUrls(uploadedImages, selectedDefaultCover);
-    const payload = { ...form, imageUrls: finalImageUrls, contactPreference };
+    const payload = { ...form, imageUrls: finalImageUrls, contactPreference, status: postStatus,
+      ...(isEdit && editingPost?.authorId === user.id && confirmAvailability && postStatus === 'active' ? { confirmAvailability: true } : {}) };
     try {
       if (isEdit && editingPost) {
         await api.request(`/posts/${editingPost.id}`, { method: 'PUT', body: JSON.stringify(payload) });
-        onUpdated?.();
-        onCreated();
+        if (onUpdated) onUpdated(); else onCreated();
         showToast('信息已更新', 'success');
         onClose();
       } else {
@@ -316,6 +327,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
       if (/image|upload|图片/i.test(err?.error || '')) showToast('图片上传失败，请换一张图', 'error');
       else showToast(toastMsg, 'error');
       setSubmitting(false);
+      submittingRef.current = false;
     }
   };
 
@@ -328,7 +340,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               <CheckCircle size={36} />
            </div>
            <h2 className="mb-2 text-xl font-bold text-baylink-text">发布成功</h2>
-           <p className="mb-4 text-sm text-baylink-muted">你的信息已推送给湾区邻居们。</p>
+           <p className="mb-4 text-sm text-baylink-muted">你的信息已发布，湾区邻居可以在社区中查看。</p>
            {postTrustWarning && (
              <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs leading-relaxed text-amber-800">
                {postTrustWarning}
@@ -341,6 +353,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
   }
 
   const goToStep3 = () => {
+    if (imageProcessingRef.current || submittingRef.current) return;
     const err = validatePostForm(form);
     if (err) return showToast(err, 'error');
     setStep(3);
@@ -355,7 +368,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
             <h3 className="text-lg font-bold text-baylink-text">{isEdit ? '编辑信息' : '发布信息'}</h3>
             <span className="text-[11px] text-baylink-muted">Step {step}/3</span>
           </div>
-          <button onClick={onClose} className="p-2 bg-white rounded-full hover:bg-baylink-section border border-baylink-border/50"><X size={18} className="text-baylink-muted"/></button>
+          <button type="button" aria-label="关闭发布窗口" onClick={onClose} className="p-2 bg-white rounded-full hover:bg-baylink-section border border-baylink-border/50"><X size={18} className="text-baylink-muted"/></button>
         </div>
 
         {step === 1 && (
@@ -369,18 +382,18 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                   onClick={() => setForm({...form, type: 'client'})}
                   className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='client')}`}
                 >
-                  {form.type === 'client' && <span className="text-[9px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
+                  {form.type === 'client' && <span className="text-[11px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">发布需求</div>
-                  <div className="text-[11px] mt-1 opacity-90 leading-snug">找房、找人帮忙、找服务</div>
+                  <div className="text-[11px] mt-1 leading-snug">找房、找人帮忙、找服务</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setForm({...form, type: 'provider'})}
                   className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all active:scale-[0.98] ${typeCardClass(form.type==='provider')}`}
                 >
-                  {form.type === 'provider' && <span className="text-[9px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
+                  {form.type === 'provider' && <span className="text-[11px] font-semibold bg-baylink-green/15 text-baylink-green px-1.5 py-px rounded mb-1.5 inline-block">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">提供资源</div>
-                  <div className="text-[11px] mt-1 opacity-90 leading-snug">房源、二手、服务、接送</div>
+                  <div className="text-[11px] mt-1 leading-snug">房源、二手、服务、接送</div>
                 </button>
               </div>
             </div>
@@ -392,7 +405,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                 ))}
               </div>
             </div>
-            <button type="button" onClick={() => setStep(2)} className="w-full py-3.5 btn-primary mt-2">下一步</button>
+            <button type="button" disabled={imageCompressing || submitting} onClick={() => { if (!imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="w-full py-3.5 btn-primary mt-2 disabled:opacity-50">下一步</button>
           </div>
         )}
 
@@ -411,73 +424,84 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
             />
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <span className="text-[11px] font-semibold text-baylink-text">帖子标题</span>
-                <span className="text-[10px] text-baylink-muted">一句话说清楚需求或服务</span>
+                <label htmlFor="post-title" className="text-[11px] font-semibold text-baylink-text">帖子标题</label>
+                <span className="text-[11px] text-baylink-muted">一句话说清楚需求或服务</span>
               </div>
               <input
                 className="w-full p-4 bg-white rounded-xl font-semibold text-base outline-none border border-baylink-border/60 placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                id="post-title"
                 placeholder={hints.titlePlaceholder}
                 value={form.title}
                 maxLength={80}
-                onChange={e => setForm({...form, title: e.target.value})}
+                onChange={e => { setForm({...form, title: e.target.value}); setContactWarningDismissed(false); }}
               />
             </div>
             {hints.quickTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hints.quickTags.map((tag) => (
-                  <button key={tag} type="button" onClick={() => addTagToDesc(tag)} className="text-[10px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
+                  <button key={tag} type="button" onClick={() => addTagToDesc(tag)} className="text-[11px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
                 ))}
               </div>
             )}
             {hints.checklist.length > 0 && (
-              <p className="text-[10px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.join('、')}</p>
+              <p className="text-[11px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.join('、')}</p>
             )}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <span className="text-[11px] font-semibold text-baylink-text">详细内容</span>
-                <span className="text-[10px] text-baylink-muted">补充位置、价格、时间、联系方式等</span>
+                <label htmlFor="post-description" className="text-[11px] font-semibold text-baylink-text">详细内容</label>
+                <span className="text-[11px] text-baylink-muted">补充位置、价格、时间和具体要求</span>
               </div>
               <textarea
                 className="w-full p-4 bg-white rounded-xl h-36 resize-none outline-none border border-baylink-border/60 placeholder:text-baylink-muted text-sm leading-relaxed focus:border-baylink-green/40 focus:ring-1 focus:ring-baylink-green/10"
+                id="post-description"
                 placeholder={hints.descriptionPlaceholder}
                 value={form.description}
                 maxLength={2000}
                 onChange={e => { setForm({ ...form, description: e.target.value }); setContactWarningDismissed(false); }}
               />
             </div>
+            <p className="px-0.5 text-[11px] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
             {showContactWarning && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
                 <p className="text-[11px] leading-relaxed text-amber-900">
-                  为了减少骚扰和诈骗，建议不要把联系方式直接放在公开正文。你可以开启 BAYLINK 联系方式请求功能，让已登录用户请求联系方式。
+                  检测到可能的联系方式。{PUBLIC_CONTACT_NOTICE}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       const analysis = analyzeContactsInText(form.description);
-                      if (analysis.keywordOnly) {
-                        setContactPreference({
-                          mode: 'manual_approve',
-                          methods: defaultContactPreference().methods,
-                        });
+                      const titleAnalysis = analyzeContactsInText(form.title);
+                      const detectedMethods = [...analysis.detectedMethods, ...titleAnalysis.detectedMethods];
+                      const hasConflictingValues = detectedMethods.some((method) => {
+                        const current = contactPreference.methods.find((item) => item.type === method.type)?.value.trim();
+                        return (current && current !== method.value.trim()) || detectedMethods.some((other) => other.type === method.type && other.value.trim() !== method.value.trim());
+                      });
+                      if (hasConflictingValues) {
+                        showToast('检测到同类多个联系方式或与已填写内容不同。请在下一步选择要分享的联系方式，再手动调整公开内容。', 'info');
+                        return;
+                      }
+                      if (detectedMethods.length === 0) {
+                        setContactPreference((previous) => ({ ...previous, mode: 'manual_approve' }));
                         setContactWarningDismissed(true);
-                        showToast('检测到联系方式相关词，但没有识别到具体号码或账号。请手动填写私密联系方式，并删除正文中的联系方式。', 'info');
+                        showToast('未识别到具体号码或账号。请在下一步填写联系方式，并检查标题和正文。', 'info');
                         return;
                       }
                       setContactPreference({
                         mode: 'manual_approve',
-                        methods: defaultContactPreference().methods.map((m) => {
-                          const found = analysis.detectedMethods.find((x) => x.type === m.type);
+                        methods: contactPreference.methods.map((m) => {
+                          const found = detectedMethods.find((x) => x.type === m.type);
+                          if (m.value.trim()) return m;
                           return found ? mergeContactMethod(m, found) : m;
                         }),
                       });
-                      setForm({ ...form, description: analysis.cleanedText });
+                      setForm({ ...form, title: titleAnalysis.cleanedText, description: analysis.cleanedText });
                       setContactWarningDismissed(true);
-                      const stillHasContact = analyzeContactsInText(analysis.cleanedText).hasContact;
+                      const stillHasContact = analyzeContactsInText(`${titleAnalysis.cleanedText}\n${analysis.cleanedText}`).hasContact;
                       if (analysis.removedFromText && !stillHasContact) {
-                        showToast('已移到私密联系方式，并从公开正文中移除。发布前请再检查一次。', 'success');
+                        showToast('已移到联系方式设置，请核对号码、账号和公开内容后再发布。', 'success');
                       } else {
-                        showToast('已填入私密联系方式，请手动检查并删除正文中的联系方式。', 'info');
+                        showToast('已填入联系方式设置，请继续检查标题和正文中的联系方式。', 'info');
                       }
                     }}
                     className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white"
@@ -485,14 +509,14 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                     移到私密联系方式
                   </button>
                   <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-amber-900">
-                    仍保留在正文
+                    我确认保留公开显示
                   </button>
                 </div>
               </div>
             )}
             <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-1.5 px-0.5">
               <span className="text-[11px] font-semibold text-baylink-text">上传照片</span>
-              <span className="text-[10px] text-baylink-muted">
+              <span className="text-[11px] text-baylink-muted">
                 {uploadedImages.length > 0
                   ? `已上传 ${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 最多上传 5 张照片`
                   : '最多上传 5 张照片'}
@@ -502,7 +526,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative shrink-0">
                   <img src={img} alt="" className="h-[72px] w-[72px] rounded-xl border border-baylink-border/50 object-cover" />
-                  <button type="button" onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm"><X size={12} /></button>
+                  <button type="button" aria-label={`移除第 ${i + 1} 张照片`} disabled={imageCompressing || submitting} onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm disabled:opacity-50"><X size={12} /></button>
                 </div>
               ))}
               {uploadedImages.length < MAX_POST_IMAGES && (
@@ -515,27 +539,28 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                     type="file"
                     accept="image/*"
                     multiple
+                    disabled={imageCompressing || submitting}
                     className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                     onChange={handleImageUpload}
                     aria-label="添加图片"
                   />
                   <span className="pointer-events-none flex flex-col items-center justify-center">
                     {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
-                    <span className="mt-0.5 text-[10px]">{imageCompressing ? '处理中' : '添加图片'}</span>
+                    <span className="mt-0.5 text-[11px]">{imageCompressing ? '处理中' : '添加图片'}</span>
                   </span>
                 </label>
               )}
             </div>
             {imageCompressing && (
-              <p className="flex items-center gap-1 text-[10px] text-baylink-muted px-0.5">
+              <p className="flex items-center gap-1 text-[11px] text-baylink-muted px-0.5">
                 <Loader2 size={11} className="animate-spin" /> 图片处理中...
               </p>
             )}
             {!imageCompressing && imageCompressHint && (
-              <p className="text-[10px] text-baylink-green px-0.5">{imageCompressHint}</p>
+              <p className="text-[11px] text-baylink-green px-0.5">{imageCompressHint}</p>
             )}
             {uploadedImages.length > 0 && (
-              <p className="text-[10px] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
+              <p className="text-[11px] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
             )}
             <DefaultCoverPicker
               type={form.type}
@@ -549,8 +574,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
             />
 
             <div className="flex gap-2 mt-3">
-              <button type="button" onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border hover:bg-baylink-section/50">上一步</button>
-              <button type="button" onClick={goToStep3} className="flex-[2] py-3 btn-primary">下一步</button>
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border hover:bg-baylink-section/50 disabled:opacity-50">上一步</button>
+              <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="flex-[2] py-3 btn-primary disabled:opacity-50">{imageCompressing ? '照片处理中…' : '下一步'}</button>
             </div>
           </div>
         )}
@@ -573,7 +598,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               </div>
             </div>
             <div className="bg-white p-1 rounded-xl border border-baylink-border/60">
+              <label htmlFor="post-budget" className="sr-only">预算或价格</label>
               <input
+                id="post-budget"
                 className="w-full p-3 bg-transparent outline-none font-semibold text-center text-base placeholder:text-baylink-muted"
                 placeholder={budgetPlaceholder}
                 value={form.budget}
@@ -582,7 +609,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               />
             </div>
             <div className="bg-white p-1 rounded-xl border border-baylink-border/60">
+              <label htmlFor="post-time" className="sr-only">可服务或需要的时间</label>
               <input
+                id="post-time"
                 className="w-full p-3 bg-transparent outline-none font-medium text-center text-sm placeholder:text-baylink-muted"
                 placeholder="可服务 / 需要的时间（如: 周末、本周）"
                 value={form.timeInfo}
@@ -590,24 +619,22 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               />
             </div>
             <ContactPreferenceForm value={contactPreference} onChange={setContactPreference} />
-            {!isEdit && !isAdmin && (
+            {isEdit && (
               <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
-                <p className="text-xs font-semibold text-baylink-text mb-2">为了防止垃圾内容，请完成验证</p>
-                <p className="text-[11px] text-baylink-muted mb-2">BayLink 主要服务哪个地区？</p>
-                <div className="space-y-1.5">
-                  {['旧金山湾区', '纽约', '洛杉矶'].map((opt) => (
-                    <label key={opt} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs cursor-pointer ${antiSpamAnswer === opt ? 'border-baylink-green bg-baylink-green-light/40' : 'border-baylink-border'}`}>
-                      <input type="radio" name="antiSpam" className="accent-baylink-green" checked={antiSpamAnswer === opt} onChange={() => setAntiSpamAnswer(opt)} />
-                      {opt}
-                    </label>
-                  ))}
-                </div>
+                <label htmlFor="post-status" className="mb-2 block text-xs font-semibold">信息状态</label>
+                <select id="post-status" value={postStatus} onChange={(e) => { setPostStatus(e.target.value as 'active' | 'closed'); setConfirmAvailability(false); }} className="w-full rounded-lg border border-baylink-border bg-white p-2 text-sm">
+                  <option value="active">仍在进行</option><option value="closed">{closedStatusLabel}</option>
+                </select>
+                {postStatus === 'active' && editingPost?.authorId === user.id && <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed">
+                  <input type="checkbox" className="mt-0.5 accent-baylink-green" checked={confirmAvailability} onChange={(e) => setConfirmAvailability(e.target.checked)} />
+                  <span>我已重新核实，这条信息目前仍然有效。<span className="block mt-1 text-baylink-muted">仅修改文字不会更新有效性确认时间。</span></span>
+                </label>}
               </div>
             )}
             <div className="flex gap-2 mt-4">
-              <button type="button" onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border">上一步</button>
-              <button type="button" onClick={handleSubmit} disabled={submitting} className="flex-[2] py-3 btn-primary disabled:opacity-50">
-                {submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '确认发布')}
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(2)} className="flex-1 py-3 bg-white text-baylink-text-secondary rounded-xl font-semibold border border-baylink-border disabled:opacity-50">上一步</button>
+              <button type="button" onClick={handleSubmit} disabled={submitting || imageCompressing} className="flex-[2] py-3 btn-primary disabled:opacity-50">
+                {imageCompressing ? '照片处理中…' : submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '确认发布')}
               </button>
             </div>
           </div>

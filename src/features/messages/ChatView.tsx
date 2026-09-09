@@ -10,28 +10,70 @@ import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { ContactCardMessage } from '../../components/ContactCardMessage';
 import { friendlyErrorMessage } from '../../lib/format';
 import type { Message } from '../../lib/types';
+import type { Conversation, UserData } from '../../lib/types';
+import type { Socket } from 'socket.io-client';
+import { mergeMessages, messageText, readServerMessage, restoreFailedDraft, type DisplayMessage } from './messageState';
 
-export const ChatView = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast }: any) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+type ChatViewProps = {
+  currentUser: UserData;
+  conversation: Conversation;
+  onClose: () => void;
+  socket: Socket | null;
+  onViewProfile?: (userId: string) => void;
+  onToggleBlockUser?: (userId: string) => void;
+  blockedUserIds?: string[];
+  showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
+};
+
+export const ChatView = (props: ChatViewProps) => (
+  <ChatSession key={`${props.currentUser.id}:${props.conversation.id}`} {...props} />
+);
+
+const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast }: ChatViewProps) => {
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const active = useRef(true);
+  const sendingRef = useRef(false);
+  const draftRevision = useRef(0);
+  const composing = useRef(false);
 
   useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     const load = async () => {
+      setLoading(true);
+      setLoadError(null);
       try {
-        const data = await api.request(`/conversations/${conversation.id}/messages`);
-        setMessages(data);
-      } catch {}
+        const data = await api.request(`/conversations/${conversation.id}/messages`, { signal: controller.signal });
+        if (!Array.isArray(data)) throw new Error('消息响应格式异常');
+        const history = data.map(readServerMessage).filter((message): message is Message => !!message);
+        if (!cancelled) setMessages(previous => mergeMessages(history, previous.filter(message => message.delivery !== 'failed')));
+      } catch (error) {
+        if (!cancelled) setLoadError(friendlyErrorMessage(error, '消息加载失败，请重试。'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
-    load();
-  }, [conversation.id]);
+    void load();
+    return () => { cancelled = true; controller.abort(); };
+  }, [conversation.id, retryKey]);
 
   useEffect(() => {
     if (!socket) return;
-    const handleNewMessage = (msg: Message) => {
-      if (msg.conversationId === conversation.id) {
-        setMessages(prev => [...prev, msg]);
+    const handleNewMessage = (value: unknown) => {
+      const msg = readServerMessage(value);
+      if (msg && msg.conversationId === conversation.id) {
+        setMessages(prev => mergeMessages(prev, [msg]));
       }
     };
     socket.on('new_message', handleNewMessage);
@@ -43,21 +85,34 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
   }, [messages]);
 
   const send = async (type: Message['type'], content: string) => {
-    if (sending) return;
-    if (!content && type === 'text') return;
-    const optimisticMsg: Message = { id: Date.now().toString(), senderId: currentUser.id, conversationId: conversation.id, type, content, createdAt: Date.now() };
-    const prevInput = input;
+    if (sendingRef.current || !active.current || loading || loadError) return;
+    const submittedContent = type === 'text' ? content.trim() : content;
+    if (!submittedContent && type === 'text') return;
+    const optimisticMsg: DisplayMessage = { id: `local:${crypto.randomUUID()}`, senderId: currentUser.id, conversationId: conversation.id, type, content: submittedContent, createdAt: Date.now(), delivery: 'sending' };
+    const revision = draftRevision.current;
     setMessages(prev => [...prev, optimisticMsg]);
     if (type === 'text') setInput('');
+    sendingRef.current = true;
     setSending(true);
     try {
-      await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content }) });
-    } catch (err: any) {
-      setMessages(prev => prev.filter((m) => m.id !== optimisticMsg.id));
-      if (type === 'text') setInput(prevInput);
-      showToast?.(friendlyErrorMessage(err, '发送失败，请稍后再试'), 'error');
+      const response = await api.request(`/conversations/${conversation.id}/messages`, { method: 'POST', body: JSON.stringify({ type, content: submittedContent }) });
+      if (!active.current) return;
+      const saved = readServerMessage(response);
+      if (saved) {
+        setMessages(prev => mergeMessages(prev, [saved], optimisticMsg.id));
+      } else {
+        // Older API envelopes may not include the created message. Read back the server history.
+        const history = await api.request(`/conversations/${conversation.id}/messages`);
+        if (!Array.isArray(history)) throw new Error('暂时无法确认发送结果，请刷新消息。');
+        if (active.current) setMessages(prev => mergeMessages(prev, history.map(readServerMessage).filter((message): message is Message => !!message), optimisticMsg.id));
+      }
+    } catch (err) {
+      if (!active.current) return;
+      setMessages(prev => prev.map(message => message.id === optimisticMsg.id ? { ...message, delivery: 'failed' } : message));
+      if (type === 'text') setInput(current => restoreFailedDraft(current, content, draftRevision.current === revision));
+      showToast?.(friendlyErrorMessage(err, '发送未确认，请刷新消息后再试。'), 'error');
     } finally {
-      setSending(false);
+      if (active.current) { sendingRef.current = false; setSending(false); }
     }
   };
 
@@ -107,6 +162,9 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5" ref={scrollRef}>
+        {loading && <p role="status" className="text-center text-sm text-baylink-text-secondary">正在加载消息…</p>}
+        {loadError && <div role="alert" className="surface-card p-4 text-sm text-baylink-text-secondary"><p>{loadError}</p><button type="button" onClick={() => setRetryKey(key => key + 1)} className="mt-2 font-semibold text-baylink-green">重新加载</button></div>}
+        {!loading && !loadError && messages.length === 0 && <p className="py-6 text-center text-sm text-baylink-text-secondary">还没有聊天记录，可以先打个招呼。</p>}
         {messages.map((m, i) => {
           const isMine = m.senderId === currentUser.id;
           const nextMsg = messages[i + 1];
@@ -140,7 +198,9 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
                       : 'bg-white border border-black/[0.04] text-baylink-text shadow-rest rounded-tl-md'
                   }`}
                 >
-                  {m.content}
+                  <p className="whitespace-pre-wrap break-words">{messageText(m)}</p>
+                  {m.delivery === 'sending' && <p className="mt-1 text-xs opacity-80">发送中…</p>}
+                  {m.delivery === 'failed' && <div className="mt-2 text-xs"><p>发送未确认，请刷新后确认是否送达。</p><button type="button" className="mt-1 underline" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button>{m.type === 'text' && !input && <button type="button" className="ml-3 underline" onClick={() => { draftRevision.current += 1; setInput(m.content); }}>放回输入框</button>}</div>}
                 </div>
               )}
             </div>
@@ -150,8 +210,8 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
       <div className="border-t border-black/[0.06] px-3 pt-2.5 pb-safe-bar flex gap-2.5 items-center bg-white/80 backdrop-blur-xl shrink-0">
         <button
           type="button"
-          onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) send('contact-share', ''); }}
-          disabled={sending}
+          onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) void send('contact-share', ''); }}
+          disabled={sending || loading || !!loadError}
           className="shrink-0 rounded-full border border-black/[0.06] bg-baylink-section/50 p-2.5 text-baylink-text-secondary transition hover:bg-baylink-section active:scale-95 disabled:opacity-50"
           aria-label="分享联系方式"
         >
@@ -160,14 +220,18 @@ export const ChatView = ({ currentUser, conversation, onClose, socket, onViewPro
         <input
           className="flex-1 bg-white border border-black/[0.06] rounded-full px-5 py-3 outline-none text-[15px] text-baylink-text placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
           placeholder="输入消息..."
+          aria-label="消息内容"
+          maxLength={2000}
           value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !sending && input.trim() && send('text', input)}
+          onChange={e => { draftRevision.current += 1; setInput(e.target.value); }}
+          onCompositionStart={() => { composing.current = true; }}
+          onCompositionEnd={() => { composing.current = false; }}
+          onKeyDown={e => { if (e.key === 'Enter' && !composing.current && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) { e.preventDefault(); void send('text', input); } }}
         />
         <button
           type="button"
           onClick={() => send('text', input)}
-          disabled={!input.trim() || sending}
+          disabled={!input.trim() || sending || loading || !!loadError}
           className={`shrink-0 p-3 rounded-full text-white transition active:scale-90 disabled:opacity-50 ${input.trim() && !sending ? 'bg-baylink-green shadow-rest hover:bg-baylink-green-hover' : 'bg-baylink-border'}`}
           aria-label="发送消息"
         >

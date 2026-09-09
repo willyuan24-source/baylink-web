@@ -109,7 +109,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
             value={detail}
             onChange={(e) => setDetail(e.target.value.slice(0, 500))}
           />
-          <p className="mt-1 text-right text-[10px] text-baylink-muted">{detail.length}/500</p>
+          <p className="mt-1 text-right text-[11px] text-baylink-muted">{detail.length}/500</p>
           {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
         </div>
         <div className="flex gap-2 border-t border-baylink-border/40 px-4 py-3">

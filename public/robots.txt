@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /messages
-Disallow: /me
+Disallow: /api/
 
+# Account and message routes return noindex headers; robots.txt is not access control.
 Sitemap: https://www.baylink.us/sitemap.xml

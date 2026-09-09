@@ -9,6 +9,7 @@ export const SLUG_TO_CATEGORY: Record<string, string> = {
   translation: '翻译',
   'part-time': '兼职',
   other: '其他',
+  service: '本地服务',
 };
 
 export const CATEGORY_TO_SLUG: Record<string, string> = {
@@ -21,16 +22,25 @@ export const CATEGORY_TO_SLUG: Record<string, string> = {
   翻译: 'translation',
   兼职: 'part-time',
   其他: 'other',
+  本地服务: 'service',
 };
 
 export const getCategoryFromSlug = (slug?: string): string => {
   if (!slug) return '全部';
-  return SLUG_TO_CATEGORY[slug] || '全部';
+  return Object.hasOwn(SLUG_TO_CATEGORY, slug) ? SLUG_TO_CATEGORY[slug] : '全部';
 };
 
 export const getSlugFromCategory = (category: string): string | null => {
   if (category === '全部') return null;
-  return CATEGORY_TO_SLUG[category] || null;
+  return Object.hasOwn(CATEGORY_TO_SLUG, category) ? CATEGORY_TO_SLUG[category] : null;
+};
+
+export const isKnownAppPath = (pathname: string): boolean => {
+  const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
+  if (['/', '/guides', '/recommend', '/messages', '/me', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
+  if (/^\/(posts|users|messages|guides)\/[^/]+$/.test(path)) return true;
+  const category = path.match(/^\/category\/([^/]+)$/)?.[1];
+  return !!category && Object.hasOwn(SLUG_TO_CATEGORY, category);
 };
 
 export const postShareUrl = (postId: string) => `${window.location.origin}/posts/${postId}`;

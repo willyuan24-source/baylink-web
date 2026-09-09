@@ -44,7 +44,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
           <Shield size={14} className="mt-0.5 shrink-0 text-baylink-green/80" aria-hidden />
         )}
         <div className="min-w-0 flex-1">
-          <span className="mb-1 inline-block rounded-full bg-baylink-green/[0.08] px-2 py-0.5 text-[10px] font-semibold text-baylink-green">
+          <span className="mb-1 inline-block rounded-full bg-baylink-green/[0.08] px-2 py-0.5 text-[11px] font-semibold text-baylink-green">
             BayBay 行动卡
           </span>
           <h4 className="text-[15px] font-semibold text-baylink-text leading-snug">{card.title}</h4>
@@ -102,7 +102,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
               key={`${action.label}-${i}`}
               type="button"
               onClick={() => onAction(action)}
-              className={`rounded-lg px-2.5 py-1.5 text-[10px] font-semibold transition active:scale-[0.98] ${
+              className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition active:scale-[0.98] ${
                 action.type === 'postAssist'
                   ? 'bg-baylink-green text-white shadow-rest hover:opacity-95'
                   : 'border border-baylink-border/50 bg-white text-baylink-text hover:border-baylink-green/30'

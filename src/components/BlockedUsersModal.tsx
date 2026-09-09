@@ -85,12 +85,12 @@ export const BlockedUsersModal = ({
                   <Avatar src={b.avatar} name={b.nickname} size={10} className="shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-baylink-text">{b.nickname}</div>
-                    <p className="mt-0.5 text-[10px] text-baylink-muted">
+                    <p className="mt-0.5 text-[11px] text-baylink-muted">
                       {b.isPhoneVerified ? '手机验证：已完成' : '手机验证：未完成'}
                       {b.isOfficialVerified ? ' · 官方认证' : ''}
                     </p>
                     {b.blockedAt ? (
-                      <p className="text-[10px] text-baylink-muted">屏蔽于 {new Date(b.blockedAt).toLocaleDateString()}</p>
+                      <p className="text-[11px] text-baylink-muted">屏蔽于 {new Date(b.blockedAt).toLocaleDateString()}</p>
                     ) : null}
                   </div>
                   <button

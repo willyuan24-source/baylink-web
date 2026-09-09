@@ -1,5 +1,5 @@
 // 用户公开资料弹层（湾区生活名片）
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   X, MapPin, Instagram, ExternalLink, Shield, ChevronRight, Flag, UserX,
 } from 'lucide-react';
@@ -13,7 +13,7 @@ import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { normalizePostImages } from '../../lib/constants';
 import {
   getJoinDays, formatProfileLocation, normalizeInstagramUrl, normalizeWebsiteUrl,
-  getPhoneVerificationTrustLabel, getOfficialTypeLabel,
+  getPhoneVerificationTrustLabel, getOfficialTypeLabel, friendlyErrorMessage,
 } from '../../lib/format';
 import type { PublicUserProfile, UserData } from '../../lib/types';
 
@@ -21,7 +21,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   userId: string;
   onClose: () => void;
   currentUser: UserData | null;
-  onChat?: (targetId: string, nickname?: string) => void;
+  onChat?: (targetId: string, nickname?: string) => void | Promise<unknown>;
   onOpenRecentPost?: (post: { id?: string; _id?: string }) => void;
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
   onReportUser?: (userId: string) => void;
@@ -32,19 +32,57 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [openingChat, setOpeningChat] = useState(false);
+  const [pendingChat, setPendingChat] = useState<{ id: string; nickname: string } | null>(null);
+  const openingChatRef = useRef(false);
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       setLoading(true);
       setFailed(false);
       try {
-        setProfile(await api.getUserPublicProfile(userId));
+        const result = await api.getUserPublicProfile(userId);
+        if (!cancelled) setProfile(result);
       } catch {
-        setFailed(true);
+        if (!cancelled) setFailed(true);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [userId]);
+    return () => { cancelled = true; };
+  }, [userId, currentUser?.id]);
+
+  const startChat = useCallback(async (target: { id: string; nickname: string }) => {
+    if (!onChat || openingChatRef.current) return;
+    openingChatRef.current = true;
+    setOpeningChat(true);
+    try {
+      // Successful navigation closes this route. Calling onClose here would navigate back out of the new conversation.
+      await onChat(target.id, target.nickname);
+    } catch (e) {
+      showToast?.(friendlyErrorMessage(e, '无法打开聊天，请重试。'), 'error');
+    } finally {
+      openingChatRef.current = false;
+      setOpeningChat(false);
+    }
+  }, [onChat, showToast]);
+
+  useEffect(() => {
+    if (!currentUser || !pendingChat) return;
+    setPendingChat(null);
+    if (pendingChat.id !== currentUser.id) void startChat(pendingChat);
+  }, [currentUser, pendingChat, startChat]);
+
+  const handleChat = () => {
+    if (!profile) return;
+    const target = { id: profile.id, nickname: profile.nickname };
+    if (!currentUser) {
+      setPendingChat(target);
+      onLoginNeeded?.();
+      return;
+    }
+    void startChat(target);
+  };
 
   const joinDays = profile ? getJoinDays(profile) : null;
   const locationLine = profile ? formatProfileLocation(profile.area, profile.city) : '';
@@ -56,14 +94,14 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   const xhsRaw = profile?.xiaohongshu?.trim() || '';
   const xhsUrl = xhsRaw && /^https?:\/\//i.test(xhsRaw) ? xhsRaw : null;
   const hasSocial = !!(instaUrl || websiteUrl || xhsRaw);
-  const isBlocked = profile ? (blockedUserIds?.includes(profile.id) || profile.viewerHasBlockedUser) : false;
+  const isBlocked = profile ? (blockedUserIds ? blockedUserIds.includes(profile.id) : profile.viewerHasBlockedUser) : false;
 
   return (
     <ModalShell onClose={onClose} label="湾区生活名片" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
       <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-3">
           <h3 className="text-base font-bold text-baylink-text">湾区生活名片</h3>
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
+          <button type="button" onClick={onClose} aria-label="关闭用户名片" className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5">
           {loading ? (
@@ -79,7 +117,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                     <h4 className="text-lg font-bold text-baylink-text leading-tight">{profile.nickname}</h4>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1">
                       {!isPlatformAdmin(profile) && (
-                        <span className="rounded-md bg-baylink-section px-1.5 py-px text-[9px] font-bold text-baylink-muted">社区居民</span>
+                        <span className="rounded-md bg-baylink-section px-1.5 py-px text-[11px] font-bold text-baylink-muted">社区居民</span>
                       )}
                       <TrustBadge user={profile} size={11} showText />
                     </div>
@@ -105,13 +143,13 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                 <div className="mt-3 space-y-2.5 rounded-xl border border-baylink-border/40 bg-white p-3">
                   {profileTags.length > 0 && (
                     <div>
-                      <p className="mb-1.5 text-[10px] font-semibold text-baylink-muted">身份标签</p>
+                      <p className="mb-1.5 text-[11px] font-semibold text-baylink-muted">身份标签</p>
                       <TagPills tags={profileTags} variant="profile" />
                     </div>
                   )}
                   {interests.length > 0 && (
                     <div>
-                      <p className="mb-1.5 text-[10px] font-semibold text-baylink-muted">兴趣</p>
+                      <p className="mb-1.5 text-[11px] font-semibold text-baylink-muted">兴趣</p>
                       <TagPills tags={interests} variant="interest" />
                     </div>
                   )}
@@ -121,23 +159,23 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
               {hasSocial && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {instaUrl && (
-                    <a href={instaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                    <a href={instaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
                       <Instagram size={12} className="text-[#E1306C]" /> Instagram
                     </a>
                   )}
                   {xhsRaw && (
                     xhsUrl ? (
-                      <a href={xhsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                      <a href={xhsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
                         小红书
                       </a>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary">
                         小红书 · {xhsRaw}
                       </span>
                     )
                   )}
                   {websiteUrl && (
-                    <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[10px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
+                    <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
                       <ExternalLink size={11} /> 个人网站
                     </a>
                   )}
@@ -152,7 +190,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                   <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
                   {profile.isOfficialVerified && (
                     <>
-                      <p>官方认证：已通过</p>
+                      <p>资料审核：已通过</p>
                       {profile.officialVerification?.type && (
                         <p>认证类型：{getOfficialTypeLabel(profile.officialVerification.type)}</p>
                       )}
@@ -165,7 +203,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                 <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
                 {profile.recentPosts.length > 0 ? (
                   <>
-                  <p className="mb-2 text-[10px] text-baylink-muted">查看 TA 最近的本地信息</p>
+                  <p className="mb-2 text-[11px] text-baylink-muted">查看 TA 最近的本地信息</p>
                   <div className="space-y-2">
                     {profile.recentPosts.map((rp) => {
                       const postId = rp.id || rp._id;
@@ -186,11 +224,11 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                         {normalizePostImages(rp)[0] ? (
                           <img src={normalizePostImages(rp)[0]} alt="" loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         ) : (
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[10px] text-baylink-muted">无图</div>
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[11px] text-baylink-muted">无图</div>
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="line-clamp-1 text-sm font-semibold text-baylink-text">{rp.title}</div>
-                          <div className="text-[10px] text-baylink-muted">{rp.city} · #{rp.category}</div>
+                          <div className="text-[11px] text-baylink-muted">{rp.city} · #{rp.category}</div>
                         </div>
                         <ChevronRight size={16} className="shrink-0 self-center text-gray-300" />
                       </button>
@@ -202,7 +240,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
                 )}
               </div>
 
-              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[10px] leading-relaxed text-baylink-muted">
+              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[11px] leading-relaxed text-baylink-muted">
                 <Shield size={12} className="mt-px shrink-0 text-baylink-green/60" />
                 交易前请核实对方信息，不要提前转账。遇到可疑行为可以举报或屏蔽。
               </p>
@@ -213,10 +251,11 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
           <div className="border-t border-baylink-border/40 px-5 py-4 space-y-2">
             <button
               type="button"
-              onClick={() => { onChat?.(profile.id, profile.nickname); onClose(); }}
-              className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
+                onClick={handleChat}
+                disabled={openingChat || !onChat || !!isBlocked || !!profile.viewerIsBlockedByUser}
+                className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:opacity-50"
             >
-              {onChat ? '继续聊天' : '发私信'}
+                {openingChat ? '正在打开聊天…' : isBlocked || profile.viewerIsBlockedByUser ? '当前无法私信' : currentUser ? '发私信' : '登录后发私信'}
             </button>
             <div className="flex gap-2">
               <button

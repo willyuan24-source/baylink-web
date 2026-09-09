@@ -12,7 +12,7 @@ export const friendlyErrorMessage = (err: unknown, fallback = '操作失败，�
   if (/^failed$/i.test(raw)) return fallback;
   if (/^unauthorized$/i.test(raw)) return '请先登录';
   if (/^forbidden$/i.test(raw)) return '暂无权限执行此操作';
-  if (/^[\x00-\x7F]+$/.test(raw)) return fallback;
+  if ([...raw].every((character) => character.codePointAt(0)! <= 0x7f)) return fallback;
   return raw;
 };
 
@@ -20,6 +20,20 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const validateEmail = (email: string) => EMAIL_REGEX.test(email.trim());
 export const validatePassword = (password: string) =>
   password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
+
+export const validateContactValue = (type: string, value: string): string | null => {
+  const trimmed = value.trim();
+  if (!trimmed) return '请填写联系方式';
+  if (type === 'email') return validateEmail(trimmed) ? null : '请输入有效的联系邮箱';
+  if (type === 'phone') {
+    const digits = trimmed.replace(/\D/g, '');
+    return /^[+\d\s().-]+$/.test(trimmed) && digits.length >= 7 && digits.length <= 15 ? null : '请输入有效的电话号码，可包含国家代码';
+  }
+  if (type === 'wechat') return !/\s/.test(trimmed) && trimmed.length <= 64 ? null : '请填写不含空格的微信号';
+  return '请选择联系方式类型';
+};
+
+export const PUBLIC_CONTACT_NOTICE = '标题和正文会公开显示。建议把微信、电话或邮箱填在「联系方式设置」，通过站内私信或请求方式分享。';
 
 export const getJoinDays = (user: Partial<UserData> & { _id?: string }): number | null => {
   const oneDayMs = 86400000;
@@ -69,9 +83,9 @@ export const getPostWritingHints = (category: string, type: PostType): PostWriti
   const hints: Record<string, PostWritingHints> = {
     租屋: {
       titlePlaceholder: 'San Mateo 单间出租，$1600/月，近 Caltrain',
-      descriptionPlaceholder: '请写清楚位置、价格、入住时间、是否包水电、是否可养宠物、联系方式。',
+      descriptionPlaceholder: '请写清楚位置、价格、入住时间、是否包水电、是否可养宠物。联系方式请在下一步单独设置。',
       quickTags: ['近Caltrain', '独立卫浴', '可短租', '包水电'],
-      checklist: ['位置', '价格', '入住时间', '联系方式'],
+      checklist: ['位置', '价格', '入住时间', '租住条件'],
     },
     闲置: {
       titlePlaceholder: '搬家出 IKEA 沙发，$150，San Mateo 自取',
@@ -117,7 +131,7 @@ export const getPostWritingHints = (category: string, type: PostType): PostWriti
     },
     其他: {
       titlePlaceholder: '请简单说明你想发布的信息',
-      descriptionPlaceholder: '请写清楚地点、时间、预算或价格、联系方式。',
+      descriptionPlaceholder: '请写清楚地点、时间、预算或价格。联系方式请在下一步单独设置。',
       quickTags: [],
       checklist: ['地点', '时间', '预算'],
     },
@@ -239,14 +253,14 @@ export const getOfficialTypeLabel = (type?: string) =>
   type ? (OFFICIAL_VERIFICATION_TYPE_LABELS[type] || type) : '';
 
 export const getPhoneVerificationTrustLabel = (verified?: boolean) =>
-  verified ? '手机验证：已完成' : '手机验证：未完成';
+  verified ? '手机号：已验证' : '手机号：未验证';
 
 export const getMyOfficialTrustLabel = (user: UserData) => {
   const status = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
-  if (status === 'approved' || user?.isOfficialVerified) return '官方认证：已通过';
-  if (status === 'pending') return '官方认证：审核中';
-  if (status === 'rejected') return '官方认证：未通过，可重新申请';
-  return '官方认证：未申请';
+  if (status === 'approved' || user?.isOfficialVerified) return '资料审核：已通过';
+  if (status === 'pending') return '资料审核：审核中';
+  if (status === 'rejected') return '资料审核：未通过，可重新申请';
+  return '资料审核：未申请';
 };
 
 export const showAccountStatusNotice = (user: UserData, showToast: (msg: string, type?: 'success' | 'error' | 'info') => void) => {

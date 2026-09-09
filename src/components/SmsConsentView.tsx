@@ -40,10 +40,20 @@ const SmsVerificationDisclosure = () => (
 );
 
 export const SmsConsentView = () => (
-  <LegalPageLayout title="BAYLINK SMS Verification Consent" updated="May 2026">
+  <LegalPageLayout title="短信验证说明 · SMS Verification Consent" updated="September 8, 2026">
     <LegalP>
-      This page describes how users opt in to receive SMS messages from BAYLINK for phone verification and account security. It is provided for transparency and A2P campaign review purposes.
+      This page describes how users opt in to receive SMS messages from BAYLINK for phone verification and account security, and how to find help with verification messages.
     </LegalP>
+
+    <LegalSection title="中文说明：何时会发送短信">
+      <LegalUl items={[
+        '一般使用 BAYLINK 不要求手机验证。登录后，你可以在个人资料中主动打开手机验证。',
+        '输入手机号码、阅读按钮旁的说明，并点击「发送验证码」后，才会请求发送一次性验证码；普通账号注册不会自动请求验证短信。',
+        '本验证项目用于账号安全和手机号验证，不发送营销短信。发送次数取决于你的验证请求，运营商可能收取短信或流量费。',
+        '短信退订与帮助方式见下方 STOP / HELP 说明；验证码收不到或有其他问题，可联系 Baylink.us@gmail.com。',
+        '验证码请只填写在你主动打开的 BAYLINK 验证页面，不要发给其他用户。',
+      ]} />
+    </LegalSection>
 
     <LegalSection title="What SMS messages BAYLINK sends">
       <LegalP>
@@ -98,7 +108,7 @@ export const SmsConsentView = () => (
 
     <LegalSection title="Phone Verification Opt-in Flow">
       <LegalP>
-        The flow below shows how a BAYLINK user opts in to receive one-time SMS verification codes for phone verification. SMS is sent only after the user enters their mobile number, reviews the consent disclosure, and actively clicks &ldquo;发送验证码 / Send verification code&rdquo;.
+        The screenshots below illustrate the phone verification flow; the current interface may look different. SMS is requested only after the user enters their mobile number, reviews the consent disclosure, and actively clicks &ldquo;发送验证码 / Send verification code&rdquo;.
       </LegalP>
       <div className="mt-4 space-y-5">
         {OPT_IN_FLOW.map((step) => (

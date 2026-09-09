@@ -1,26 +1,29 @@
 // 应用布局层：共享状态容器 + 侧栏/底部导航 chrome + URL 驱动的覆盖层（帖子/用户/聊天）+ 全局弹层
 // 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
-import { Outlet, useNavigate, type Location } from 'react-router-dom';
+import { Link, Outlet, useNavigate, type Location } from 'react-router-dom';
 import {
   MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, Shield, Loader2,
 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { BRAND } from '../brandAssets';
 import { api, SOCKET_URL } from '../lib/api';
-import { CATEGORIES, HOME_CHANNELS } from '../lib/constants';
+import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
+import { CATEGORIES, HOME_CHANNELS, matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
-import { readFeedCache, writeFeedCache } from '../lib/feedCache';
+import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
+import { setPageMetadata } from '../lib/seo';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
 } from '../lib/types';
 import {
-  getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isGuidesPath,
+  getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isGuidesPath, isKnownAppPath,
 } from '../routing';
 import type { AppContextValue } from './context';
 
 import Avatar from '../components/Avatar';
 import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
+import { ModalShell } from '../components/ui/Modal';
 import { Toast } from '../components/Toast';
 import { ImageViewer } from '../components/ImageViewer';
 import { PostNotFoundView } from '../components/PostNotFoundView';
@@ -64,7 +67,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     ? location.pathname.split('/category/')[1]?.split('/')[0]
     : undefined;
 
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserData | null>(getStoredUser);
   const [showLogin, setShowLogin] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
@@ -72,6 +75,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<string | null>(null);
   const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
   const [showCreate, setShowCreate] = useState(false);
+  const pendingCreateRef = useRef(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
 
   const [feedType, setFeedType] = useState<PostType>('provider');
@@ -94,11 +98,19 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const sessionExpiredHandledRef = useRef(false);
   const [postRouteMissing, setPostRouteMissing] = useState(false);
   const [postRouteLoading, setPostRouteLoading] = useState(false);
+  const [postRouteError, setPostRouteError] = useState<string | null>(null);
+  const [postRetry, setPostRetry] = useState(0);
   const [chatConv, setChatConv] = useState<Conversation | null>(null);
+  const [chatRouteStatus, setChatRouteStatus] = useState<AppContextValue['chatRouteStatus']>('idle');
+  const [chatRouteError, setChatRouteError] = useState<string | null>(null);
+  const [chatRetry, setChatRetry] = useState(0);
+  const retryChatRoute = () => setChatRetry((value) => value + 1);
   const [regionFilter, setRegionFilter] = useState<string>('全部');
   // 直接落在 /category/:slug 时按 URL 初始化，省掉一次按「全部」发出的无效首拉
   const [categoryFilter, setCategoryFilter] = useState<string>(() =>
     isHomePath(location.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
+  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, user?.id || 'guest']);
+  const feedQueryKeyRef = useRef(feedQueryKey);
 
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
@@ -116,12 +128,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
   const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
   // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置 3 秒计时
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type, id: Date.now() });
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type, id: Date.now() }), []);
 
-  const postIdParam = location.pathname.startsWith('/posts/') ? location.pathname.split('/posts/')[1]?.split('/')[0] : undefined;
-  const userIdParam = location.pathname.startsWith('/users/') ? location.pathname.split('/users/')[1]?.split('/')[0] : undefined;
-  const threadIdParam = location.pathname.match(/^\/messages\/([^/]+)/)?.[1];
-  const guideSlugParam = location.pathname.startsWith('/guides/') ? location.pathname.split('/guides/')[1]?.split('/')[0] : undefined;
+  const postIdParam = location.pathname.match(/^\/posts\/([^/]+)\/?$/)?.[1];
+  const userIdParam = location.pathname.match(/^\/users\/([^/]+)\/?$/)?.[1];
+  const threadIdParam = location.pathname.match(/^\/messages\/([^/]+)\/?$/)?.[1];
+  const chatPostTitle = typeof location.state?.postTitle === 'string' ? location.state.postTitle : undefined;
+  const guideSlugParam = location.pathname.match(/^\/guides\/([^/]+)\/?$/)?.[1];
 
   const navigateBack = () => {
     if (window.history.length > 1) navigate(-1);
@@ -168,10 +181,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   // socket.io-client 动态加载：未登录访客的首包不用背这份体积
   useEffect(() => {
     if (!user?.token) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
+      setSocket((previous) => { previous?.disconnect(); return null; });
       return;
     }
 
@@ -205,7 +215,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       setSocket(newSocket);
     })();
     return () => { cancelled = true; created?.disconnect(); };
-  }, [user?.id, user?.token]);
+  }, [user?.id, user?.token, showToast]);
 
   // 切换到消息页时，清除私信未读红点（联系方式请求 badge 由 pending count 单独控制）
   useEffect(() => {
@@ -242,10 +252,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     }
   }, [location.pathname, categorySlug]);
 
-  // document.title
+  // 每次站内导航同步分享摘要与 canonical，避免沿用前一页的元数据。
   useEffect(() => {
+    if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
     if (postIdParam) return;
-    if (userIdParam) return;
     const path = location.pathname;
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
@@ -268,20 +278,30 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     } else {
       document.title = 'BAYLINK｜湾区华人本地生活信息平台';
     }
+    if (guideSlugParam) return; // 指南正文页拥有自己的完整元数据。
+    if (userIdParam) document.title = '邻居资料｜BAYLINK';
+    setPageMetadata({
+      title: document.title,
+      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : 'BAYLINK 湾区华人本地生活社区：查找房源、服务与二手资源，发布邻里需求，阅读湾区生活指南。',
+      path,
+      noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/reset-password'),
+    });
   }, [location.pathname, categorySlug, postIdParam, userIdParam, guideSlugParam]);
 
   useEffect(() => {
     if (!userIdParam) return;
     let cancelled = false;
     api.getUserPublicProfile(userIdParam).then((p: PublicUserProfile) => {
-      if (!cancelled) document.title = `${p.nickname}｜BAYLINK`;
+      if (!cancelled) setPageMetadata({ title: `${p.nickname}｜BAYLINK`, description: '查看邻居资料与公开发布的信息。', path: `/users/${userIdParam}`, noindex: true });
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [userIdParam]);
 
   // /posts/:id 加载详情（有缓存先展示，始终拉取完整帖子）
   useEffect(() => {
+    setPostRouteError(null);
     if (!postIdParam) {
+      setSelectedPost(null);
       setPostRouteMissing(false);
       setPostRouteLoading(false);
       setPostDetailRefreshing(false);
@@ -292,10 +312,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       setSelectedPost(found);
       setPostRouteMissing(false);
       setPostRouteLoading(false);
-      document.title = `${found.title}｜BAYLINK`;
+      setPageMetadata({ title: `${found.title}｜BAYLINK`, description: found.description.slice(0, 160), path: `/posts/${postIdParam}`, image: found.imageUrls?.[0], type: 'article', noindex: found.status === 'closed' });
     } else {
+      setSelectedPost(null);
       setPostRouteLoading(true);
       setPostRouteMissing(false);
+      setPageMetadata({ title: '正在加载信息｜BAYLINK', description: '正在读取发布信息。', path: `/posts/${postIdParam}`, noindex: true });
     }
     let cancelled = false;
     (async () => {
@@ -305,13 +327,21 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         if (!cancelled) {
           setSelectedPost(p);
           setPostRouteMissing(false);
-          document.title = `${p.title}｜BAYLINK`;
+          setPageMetadata({ title: `${p.title}｜BAYLINK`, description: String(p.description || '').slice(0, 160), path: `/posts/${postIdParam}`, image: p.imageUrls?.[0], type: 'article', noindex: p.status === 'closed' });
         }
-      } catch {
-        if (!cancelled && !found) {
-          setSelectedPost(null);
-          setPostRouteMissing(true);
-          document.title = '内容不存在｜BAYLINK';
+      } catch (error) {
+        if (!cancelled) {
+          const status = (error as { status?: number })?.status;
+          if (status === 404 || status === 403) {
+            setSelectedPost(null);
+            setPostRouteMissing(true);
+            setPageMetadata({ title: '内容不可访问｜BAYLINK', description: '内容不存在、已移除或不可访问。', path: `/posts/${postIdParam}`, noindex: true });
+          } else if (!found) {
+            setPostRouteError(friendlyErrorMessage(error, '暂时无法加载，请重试。'));
+            setPageMetadata({ title: '暂时无法加载｜BAYLINK', description: '服务暂时不可用，请稍后重试。', path: `/posts/${postIdParam}`, noindex: true });
+          } else {
+            showToast('详情更新失败，当前显示缓存信息，请稍后重新打开。', 'info');
+          }
         }
       } finally {
         if (!cancelled) {
@@ -321,25 +351,34 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       }
     })();
     return () => { cancelled = true; };
-  }, [postIdParam, posts]);
+  }, [postIdParam, posts, user?.id, postRetry, showToast]);
 
   // /messages/:threadId 打开聊天
   useEffect(() => {
+    setChatConv(null);
+    setChatRouteError(null);
     if (!threadIdParam || !user) {
-      if (!threadIdParam) setChatConv(null);
+      setChatRouteStatus('idle');
       return;
     }
+    setChatRouteStatus('loading');
     let cancelled = false;
     (async () => {
       try {
         const convs = await api.request('/conversations');
-        if (cancelled || !Array.isArray(convs)) return;
+        if (cancelled) return;
+        if (!Array.isArray(convs)) throw new Error('无法读取会话');
         const c = convs.find((x: Conversation) => x.id === threadIdParam);
-        if (c) setChatConv(c);
-      } catch { /* ignore */ }
+        if (c) { setChatConv({ ...c, lastPostTitle: chatPostTitle || c.lastPostTitle }); setChatRouteStatus('ready'); }
+        else setChatRouteStatus('not-found');
+      } catch (error) {
+        if (cancelled) return;
+        setChatRouteStatus('error');
+        setChatRouteError(friendlyErrorMessage(error, '无法加载会话，请重试。'));
+      }
     })();
     return () => { cancelled = true; };
-  }, [threadIdParam, user?.id]);
+  }, [threadIdParam, user, chatRetry, chatPostTitle]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 400);
@@ -355,25 +394,47 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     return () => window.clearTimeout(id);
   }, []);
 
-  useEffect(() => { setPage(1); setHasMore(true); fetchPosts(1, true); }, [feedType, regionFilter, categoryFilter, debouncedKeyword]);
-  useEffect(() => { const u = localStorage.getItem('currentUser'); if(u) setUser(JSON.parse(u)); }, []);
+  const clearLocalSession = useCallback(() => {
+    ++fetchSeqRef.current;
+    clearFeedCache();
+    setUser(null);
+    setSocket((prev) => { prev?.disconnect(); return null; });
+    setPosts([]);
+    setSelectedPost(null);
+    setChatConv(null);
+    setBlockedUserIds([]);
+    setReportTarget(null);
+    setShowCreate(false);
+    setShowBlockedUsersModal(false);
+    setSharingPost(null);
+    setHasNotification(false);
+    setPendingContactRequestCount(0);
+  }, []);
+
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== SESSION_KEY && event.key !== null) return;
+      clearLocalSession();
+      setUser(getStoredUser());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [clearLocalSession]);
 
   useEffect(() => {
     const onSessionExpired = () => {
       if (!localStorage.getItem('currentUser')) return;
       if (sessionExpiredHandledRef.current) return;
       sessionExpiredHandledRef.current = true;
-      localStorage.removeItem('currentUser');
-      setSocket((prev) => { prev?.disconnect(); return null; });
-      setUser(null);
-      setBlockedUserIds([]);
+      removeStoredUser();
+      clearLocalSession();
       setShowLogin(true);
       showToast('登录已过期，请重新登录。', 'error');
       window.setTimeout(() => { sessionExpiredHandledRef.current = false; }, 3000);
     };
     window.addEventListener('session-expired', onSessionExpired);
     return () => window.removeEventListener('session-expired', onSessionExpired);
-  }, []);
+  }, [clearLocalSession, showToast]);
 
   useEffect(() => {
     if (location.pathname === '/reset-password') {
@@ -411,9 +472,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user]);
 
-  const fetchPosts = async (pageNum: number, isRefresh: boolean = false, keywordOverride?: string) => {
+  const fetchPosts = useCallback(async (pageNum: number, isRefresh: boolean = false, keywordOverride?: string) => {
     // 请求代际守卫：每次调用使之前 in-flight 的请求失效，
     // 防止用户中途切换筛选/Tab 时，旧请求的结果把新列表和 page/hasMore 写脏
     const seq = ++fetchSeqRef.current;
@@ -434,14 +495,16 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       while (true) {
         let queryParams = `?type=${feedType}&page=${currentPage}&limit=5`;
         if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
+        if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
+        if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
         const res = await api.request(`/posts${queryParams}`);
         if (fetchSeqRef.current !== seq) return; // 已被更新的请求接管，丢弃本次结果
         const newPosts: PostData[] = res.posts || [];
         more = res.hasMore;
         pagesFetched += 1;
         let filtered = newPosts;
-        if (regionFilter !== '全部') filtered = filtered.filter((p: any) => (p.city || '').includes(regionFilter));
-        if (categoryFilter !== '全部') filtered = filtered.filter((p: any) => p.category === categoryFilter);
+        if (regionFilter !== '全部') filtered = filtered.filter((p) => (p.city || '').includes(regionFilter));
+        filtered = filtered.filter((p) => matchesCategory(p.category, categoryFilter) && p.status !== 'closed');
         if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
         for (const p of filtered) {
           if (!seenIds.has(p.id)) { seenIds.add(p.id); collected.push(p); }
@@ -470,12 +533,18 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     } catch (e) {
       if (fetchSeqRef.current !== seq) return;
       console.error(e);
-      if (isRefresh) setFeedError(true);
+      setFeedError(true);
+      if (isRefresh) setHasMore(false);
     } finally {
       // 只清理本次调用自己设置的加载标记（即使已被新请求取代也要清，避免标记卡死）
-      if (!isRefresh) setIsLoadingMore(false); else setIsInitialLoading(false);
+      if (fetchSeqRef.current === seq) { setIsLoadingMore(false); setIsInitialLoading(false); }
     }
-  };
+  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, user, blockedUserIds]);
+
+  useEffect(() => {
+    if (feedQueryKeyRef.current !== feedQueryKey) { setPosts([]); feedQueryKeyRef.current = feedQueryKey; }
+    setPage(1); setHasMore(true); void fetchPosts(1, true);
+  }, [fetchPosts, feedQueryKey]);
 
   const retryFeed = () => {
     setPage(1);
@@ -496,10 +565,11 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     }
   };
 
-  const handleLoadMore = () => { fetchPosts(page + 1, false); };
+  const handleLoadMore = () => { if (!isLoadingMore && !isInitialLoading && hasMore) fetchPosts(page + 1, false); };
 
   // ✨ 已修复：传入 postTitle 作为聊天上下文
   const openChat = async (targetId: string, nickname?: string, postTitle?: string) => {
+      if (!user) { setShowLogin(true); return; }
       try {
           const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
           const conv: Conversation = {
@@ -510,13 +580,21 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
               lastPostTitle: postTitle
           };
           setChatConv(conv);
-          navigate(`/messages/${c.id}`);
-      } catch (e: any) { showToast(friendlyErrorMessage(e, '无法打开聊天'), 'error'); }
+          navigate(`/messages/${c.id}`, { state: { postTitle } });
+      } catch (e) { showToast(friendlyErrorMessage(e, '无法打开聊天'), 'error'); }
   };
 
   const openConversation = (c: Conversation) => { setChatConv(c); navigate(`/messages/${c.id}`); };
 
-  const handleLogout = () => { localStorage.removeItem('currentUser'); if(socket) socket.disconnect(); setUser(null); setBlockedUserIds([]); navigate('/'); showToast('已退出登录', 'info'); };
+  const handleLogout = () => {
+    const logout = api.request('/auth/logout', { method: 'POST' });
+    removeStoredUser();
+    clearLocalSession();
+    navigate('/');
+    showToast('已退出当前浏览器', 'info');
+    void logout.then(() => showToast('已退出登录，会话已撤销', 'info'))
+      .catch(() => showToast('当前浏览器已退出，服务端撤销尚未获确认。如需使旧会话失效，可使用重设密码。', 'error'));
+  };
 
   const openReportTarget = (target: ReportTarget) => {
     if (!user) { showToast('请先登录后举报', 'info'); setShowLogin(true); return; }
@@ -545,8 +623,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       const res = await api.unblockUser(blockedId);
       setBlockedUserIds((prev) => prev.filter((id) => id !== blockedId));
       showToast(res?.message || '已取消屏蔽。', 'success');
-    } catch (e: any) {
-      showToast(e?.error || '取消屏蔽失败', 'error');
+    } catch (e) {
+      showToast(friendlyErrorMessage(e, '取消屏蔽失败'), 'error');
       throw e;
     }
   };
@@ -570,8 +648,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       showToast(res?.message || '已屏蔽该用户。', 'success');
       if (userIdParam === blockedId) navigateBack();
       if (chatConv?.otherUser.id === blockedId) { setChatConv(null); navigate('/messages'); }
-    } catch (e: any) {
-      showToast(e?.error || '屏蔽失败', 'error');
+    } catch (e) {
+      showToast(friendlyErrorMessage(e, '屏蔽失败'), 'error');
     }
   };
 
@@ -585,7 +663,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setCreateDefaultType(type);
     setCreateDefaultCategory(category);
     if (user) setShowCreate(true);
-    else setShowLogin(true);
+    else { pendingCreateRef.current = true; setShowLogin(true); }
   };
 
   const openCreateFromSlug = (type: PostType, categorySlug?: string) => {
@@ -649,7 +727,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       const res = await api.togglePostLike(post.id);
       applyPostLikeState(post.id, !!res.liked, res.likesCount);
       onSynced?.(post.id, !!res.liked, res.likesCount);
-    } catch (e: any) {
+    } catch (e) {
       applyPostLikeState(post.id, prevLiked, prevCount);
       onSynced?.(post.id, prevLiked, prevCount);
       showToast(friendlyErrorMessage(e, '操作失败，请稍后再试'), 'error');
@@ -670,6 +748,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const ctx: AppContextValue = {
     user, setUser, showToast, setShowLogin, handleLogout,
+    chatRouteStatus, chatRouteError, retryChatRoute,
     posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
     regionFilter, setRegionFilter, categoryFilter,
     feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
@@ -698,9 +777,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         <span className="text-[11px] text-baylink-muted block mt-0.5 leading-tight">连接湾区真实生活信息</span>
       </div>
       <nav className="space-y-0.5 flex-1">
-        <button onClick={() => navigate('/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</button>
-        <button onClick={() => navigate('/guides')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isGuidesPath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><BookOpen size={18} strokeWidth={isGuidesPath(location.pathname)?2.5:2}/> 湾区指南</button>
-        <button onClick={() => navigate('/messages')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
+        <Link to="/" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isHomePath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><Home size={18} strokeWidth={isHomePath(location.pathname)?2.5:2}/> 首页</Link>
+        <Link to="/guides" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${isGuidesPath(location.pathname)?'nav-item-active':'nav-item-inactive'}`}><BookOpen size={18} strokeWidth={isGuidesPath(location.pathname)?2.5:2}/> 湾区指南</Link>
+        <Link to="/messages" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='messages'?'nav-item-active':'nav-item-inactive'}`}>
             <div className="relative">
               <MessageCircle size={18} strokeWidth={tab==='messages'?2.5:2}/>
               {showMessagesBadge && (
@@ -711,8 +790,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
                 )
               )}
             </div> 消息
-        </button>
-        <button onClick={() => navigate(user ? '/me' : '/')} className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</button>
+        </Link>
+        <Link to="/me" className={`w-full text-left py-2.5 rounded-lg font-medium text-sm transition flex items-center gap-2.5 ${tab==='profile'?'nav-item-active':'nav-item-inactive'}`}><UserIcon size={18} strokeWidth={tab==='profile'?2.5:2}/> 我的</Link>
       </nav>
       {isHomePath(location.pathname) && (
         <div className="mt-4 sidebar-panel">
@@ -735,8 +814,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
          onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category)}
        />
        <div className="sidebar-panel mb-2.5">
-         <h3 className="sidebar-section-title mb-2">热门方向</h3>
-         <p className="mb-2 text-[11px] text-baylink-muted">大家常找的本地信息，点一下直接搜</p>
+         <h3 className="sidebar-section-title mb-2">搜索建议</h3>
+         <p className="mb-2 text-[11px] text-baylink-muted">试试这些关键词，快速查找本地信息</p>
          <div className="space-y-1 text-[12px] text-baylink-text-secondary">
            {['退房清洁', '周末搬家', '近 BART 长租', '机场接送'].map((t) => (
              <button
@@ -753,7 +832,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
        </div>
        <div className="sidebar-note mb-2.5 flex gap-2">
          <Shield size={13} className="text-baylink-green/70 shrink-0 mt-0.5"/>
-         <p className="text-[11px] leading-relaxed">建议优先联系已认证用户，看房、面交、付款前先核实，线下交易注意安全。</p>
+         <p className="text-[11px] leading-relaxed">手机号验证与资料审核不代表交易担保。看房、面交和付款前，请核实对方身份与具体信息。</p>
        </div>
        <div className="mb-3">
           <OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} />
@@ -776,7 +855,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
              <button onClick={() => setShowLogin(true)} className="w-full py-2.5 btn-primary text-[11px]">立即登录</button>
           </div>
        )}
-       <div className="mt-6 text-[11px] text-baylink-muted/80 text-center space-y-1.5">
+       <div className="mt-6 text-[11px] text-baylink-muted text-center space-y-1.5">
          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
@@ -814,7 +893,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
                 />
                 <p className="text-[11px] text-baylink-muted mt-px leading-tight">连接湾区真实生活信息</p>
             </div>
-            <button onClick={()=>!user?setShowLogin(true):navigate('/me')} className="shrink-0 rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
+            <button aria-label={user ? '查看我的资料' : '登录账号'} onClick={()=>!user?setShowLogin(true):navigate('/me')} className="shrink-0 rounded-full ring-1 ring-baylink-border/60 active:scale-95 transition overflow-hidden"><Avatar src={user?.avatar} name={user?.nickname} size={8}/></button>
         </header>}</div>
 
         <main className="flex-1 min-h-0 overflow-y-auto bg-transparent hide-scrollbar relative flex flex-col w-full" id="scroll-container">
@@ -825,17 +904,17 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/75 backdrop-blur-xl border-t border-black/[0.06] pb-safe-bar max-w-[500px] mx-auto">
           <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
-           <button onClick={()=>navigate('/')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
-           </button>
-           <button onClick={()=>navigate('/guides')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
-           </button>
+           <Link to="/" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted'}`}>
+             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
+           </Link>
+           <Link to="/guides" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted'}`}>
+             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
+           </Link>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-3 active:scale-95 transition px-1">
              <div className="w-10 h-10 bg-baylink-green rounded-[18px] shadow-rest flex items-center justify-center text-white ring-2 ring-baylink-bg/90"><Plus size={20} strokeWidth={2.5}/></div>
-             <span className="text-[10px] font-medium text-baylink-green mt-0.5">发布</span>
+             <span className="text-[11px] font-medium text-baylink-green mt-0.5">发布</span>
            </button>
-           <button onClick={()=>navigate('/messages')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted/80'}`}>
+           <Link to="/messages" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted'}`}>
              <div className="relative">
                <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
                {showMessagesBadge && (
@@ -846,11 +925,11 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
                  )
                )}
              </div>
-             <span className={`text-[10px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
-           </button>
-           <button onClick={()=>navigate('/me')} className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted/80'}`}>
-             <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[10px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
-           </button>
+             <span className={`text-[11px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
+           </Link>
+           <Link to="/me" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted'}`}>
+             <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
+           </Link>
           </div>
         </nav>
 
@@ -893,8 +972,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
         {showLogin && (
           <LoginModal
-            onClose={() => setShowLogin(false)}
-            onLogin={setUser}
+            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; }}
+            onLogin={(loggedInUser) => { clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); }}
             showToast={showToast}
             onForgotPassword={handleOpenForgotPassword}
           />
@@ -933,13 +1012,15 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           />
           </Suspense>
         )}
-        {postIdParam && postRouteLoading && !selectedPost && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>
+        {postIdParam && postRouteLoading && selectedPost?.id !== postIdParam && (
+          <ModalShell onClose={navigateBack} label="正在加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={navigateBack}>返回</button></ModalShell>
         )}
         {postIdParam && postRouteMissing && <PostNotFoundView onBack={navigateBack} />}
-        {postIdParam && selectedPost && !postRouteMissing && (
+        {postIdParam && postRouteError && !postRouteLoading && <ModalShell onClose={navigateBack} label="暂时无法加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{postRouteError}</p><button type="button" className="btn-primary px-6 py-3" onClick={() => setPostRetry((value) => value + 1)}>重试加载</button><button type="button" onClick={navigateBack}>返回</button></ModalShell>}
+        {postIdParam && selectedPost?.id === postIdParam && !postRouteMissing && (
           <Suspense fallback={overlayChunkFallback}>
           <PostDetailModal
+            key={`${user?.id || 'guest'}:${postIdParam}`}
             post={selectedPost}
             detailRefreshing={postDetailRefreshing}
             currentUser={user}
@@ -965,9 +1046,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           />
           </Suspense>
         )}
-        {chatConv && user && threadIdParam && (
+        {chatConv && user && chatRouteStatus === 'ready' && chatConv.id === threadIdParam && (
           <Suspense fallback={overlayChunkFallback}>
           <ChatView
+            key={`${user.id}:${chatConv.id}`}
             currentUser={user}
             conversation={chatConv}
             onClose={() => { setChatConv(null); navigate('/messages'); }}
