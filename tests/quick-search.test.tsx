@@ -17,6 +17,7 @@ test('quick discovery finds tools, upcoming events and attractions with multilin
   assert.equal(searchQuickDestinations('mortgage', 'zh-Hans').tools[0].id, 'loan');
   assert.equal(searchQuickDestinations('钢琴', 'zh-Hans', '2026-09-09').events[0].id, 'flower-piano-2026');
   assert.equal(searchQuickDestinations('钢琴', 'zh-Hans', '2026-09-21').events.length, 0);
+  assert.equal(searchQuickDestinations('净滩', 'zh-Hans', '2026-09-09').events[0].id, 'treasure-island-coastal-cleanup-2026');
   assert.equal(searchQuickDestinations('金门大桥', 'zh-Hans').attractions[0].id, 'golden-gate');
   assert.equal(searchQuickDestinations('no-such-place-123', 'zh-Hans').attractions.length, 0);
   assert.equal(searchQuickDestinations('', 'zh-Hans').tools.length, 0);

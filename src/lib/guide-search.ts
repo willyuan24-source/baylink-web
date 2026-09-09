@@ -8,6 +8,7 @@ const synonyms = [
   ['打印', '列印'], ['公证', '公證'], ['维修', '維修', '修理'],
   ['图书馆', '圖書館'], ['兼职', '兼職'], ['机场', '機場'],
   ['旧金山', '舊金山', 'san francisco'], ['圣何塞', '聖荷西', '圣荷西', 'san jose'],
+  ['净滩', '淨灘', '海岸清理', 'coastal cleanup'],
 ];
 
 export const normalizeGuideQuery = (text: string): string => {
