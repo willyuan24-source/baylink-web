@@ -12,17 +12,37 @@ export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.sl
 export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 'upcoming' | 'ongoing' | 'ended' =>
   event.endDate < today ? 'ended' : event.startDate > today ? 'upcoming' : 'ongoing';
 
-export const filterMonthlyEvents = (events: MonthlyEvent[], filters: { region?: string; cost?: string; includeEnded?: boolean }, today = getBayAreaToday()): MonthlyEvent[] =>
-  events.filter(event => (!filters.region || filters.region === 'all' || event.region === filters.region)
+export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7';
+export const resolveMonthlyDateFilter = (value: string | null | undefined): MonthlyDateFilter =>
+  value === 'today' || value === 'weekend' || value === 'next7' ? value : 'all';
+
+// Treat the Bay Area date as a calendar day, never as a browser-local timestamp.
+// UTC arithmetic keeps consecutive dates stable across DST and month/year changes.
+const addCalendarDays = (date: string, days: number): string => {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+};
+
+export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAreaToday()): { start: string; end: string } | null => {
+  if (filter === 'all') return null;
+  if (filter === 'today') return { start: today, end: today };
+  if (filter === 'next7') return { start: today, end: addCalendarDays(today, 6) };
+  const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
+  const start = addCalendarDays(today, weekday === 0 ? -1 : 6 - weekday);
+  return { start, end: addCalendarDays(start, 1) };
+};
+
+export const filterMonthlyEvents = (events: MonthlyEvent[], filters: { region?: string; cost?: string; includeEnded?: boolean; date?: MonthlyDateFilter }, today = getBayAreaToday()): MonthlyEvent[] => {
+  const range = getMonthlyDateRange(filters.date || 'all', today);
+  return events.filter(event => (!filters.region || filters.region === 'all' || event.region === filters.region)
     && (!filters.cost || filters.cost === 'all' || event.cost === filters.cost)
-    && (filters.includeEnded || getEventStatus(event, today) !== 'ended'));
+    && (filters.includeEnded || getEventStatus(event, today) !== 'ended')
+    && (!range || (event.startDate <= range.end && event.endDate >= range.start)));
+};
 
 const calendarText = (value: string): string => value.replace(/\\/g, '\\\\').replace(/\r\n|\r|\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
-const nextDate = (date: string): string => {
-  const value = new Date(`${date}T12:00:00Z`);
-  value.setUTCDate(value.getUTCDate() + 1);
-  return value.toISOString().slice(0, 10).replace(/-/g, '');
-};
+const nextDate = (date: string): string => addCalendarDays(date, 1).replace(/-/g, '');
 // RFC 5545 folds at 75 UTF-8 octets, without splitting a Chinese character.
 const foldCalendarLine = (line: string): string => {
   const encoder = new TextEncoder();

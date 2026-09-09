@@ -1,5 +1,6 @@
 import { sfSeptemberEvents } from './monthly-sf-events';
 import { regionalSeptemberEvents } from './monthly-region-events';
+import { freshSeptemberEvents } from './fresh-monthly-events';
 import type { MonthlyPlace } from './monthly-types';
 
 export const MONTHLY_EDITION = {
@@ -10,7 +11,7 @@ export const MONTHLY_EDITION = {
   intro: '花园里的钢琴、街头的中秋、红杉下的艺术。先挑一个想去的地方，再把这一天慢慢展开。',
 };
 
-export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents]
+export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents]
   .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
@@ -18,7 +19,7 @@ export const MONTHLY_PLACES: MonthlyPlace[] = [
     id: 'filoli-garden', title: 'Filoli：把半天交给花园', area: '半岛 · Woodside', imageKey: 'filoli',
     summary: '想避开赶场，就选宅邸与花园慢慢看。先订好入园时段，把走自然步道留作体力允许时的加项。',
     plan: ['编辑建议：先看宅邸，再在花园选一条轻松步线，留一点坐下休息的时间。', '官方建议提前订票，按所选一小时入园窗口报到；步道比庄园提前半小时关闭。', '普通宠物不能入内；野餐长椅在主入口附近，花园和园区内不能铺开野餐。'],
-    officialUrl: 'https://filoli.org/visit/', sourceLabel: 'Filoli 参观说明', relatedGuideSlug: 'peninsula-living-guide',
+    officialUrl: 'https://filoli.org/visit/', sourceLabel: 'Filoli 参观说明', relatedGuideSlug: 'filoli-house-garden-day-trip',
   },
   {
     id: 'ferry-plaza-morning', title: 'Ferry Plaza：采购之后，去海边走走', area: '旧金山 · Embarcadero', imageKey: 'ferry-market',

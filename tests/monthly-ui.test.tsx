@@ -78,9 +78,9 @@ const assertResultTitles = (view: ReturnType<typeof render>, ids: string[]) => {
   assert.match(view.getByRole('status').textContent!, new RegExp(`找到\\s*${ids.length}\\s*场活动`));
 };
 
-test('monthly edition initially exposes nine activities with named official links and accurate source labels', () => {
+test('monthly edition initially exposes every activity with named official links and accurate source labels', () => {
   const view = render(edition());
-  assert.equal(MONTHLY_EVENTS.length, 9);
+  assert.ok(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'));
   assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
   assert.ok(view.getByText('本月湾区精选'));
   assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
@@ -113,8 +113,8 @@ test('monthly edition initially exposes nine activities with named official link
   }
 });
 
-test('all nine monthly activities use distinct registered assets and distinct actual image bytes', () => {
-  assert.equal(MONTHLY_EVENTS.length, 9);
+test('all monthly activities use distinct registered assets and distinct actual image bytes', () => {
+  assert.ok(MONTHLY_EVENTS.length > 0);
   const keys = new Set<string>();
   const paths = new Set<string>();
   const fingerprints = new Map<string, string>();
@@ -132,9 +132,9 @@ test('all nine monthly activities use distinct registered assets and distinct ac
     assert.equal(fingerprints.has(fingerprint), false, `${event.id} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
     fingerprints.set(fingerprint, event.id);
   }
-  assert.equal(keys.size, 9);
-  assert.equal(paths.size, 9);
-  assert.equal(fingerprints.size, 9, 'different filenames must not disguise reuse of a generic event illustration');
+  assert.equal(keys.size, MONTHLY_EVENTS.length);
+  assert.equal(paths.size, MONTHLY_EVENTS.length);
+  assert.equal(fingerprints.size, MONTHLY_EVENTS.length, 'different filenames must not disguise reuse of a generic event illustration');
 });
 
 test('region, free admission and keyword filters combine and clearing a search restores regional matches', () => {
@@ -170,6 +170,51 @@ test('URL filter choices survive unmounting and revisiting the resulting address
   assert.equal((revisited.getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, 'Lafayette');
   assert.equal((revisited.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, true);
   assertResultTitles(revisited, ['lafayette-art-wine-2026']);
+});
+
+test('date shortcuts combine with region, cost and search, and a shared weekend URL restores the selection', () => {
+  const first = render(edition('2026-09-09', '/this-month?lang=zh-Hant'));
+  fireEvent.click(first.getByRole('button', { name: '这个周末', exact: true }));
+  fireEvent.click(first.getByRole('button', { name: '南湾', exact: true }));
+  fireEvent.change(first.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.change(first.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Mountain View' } });
+  assertResultTitles(first, ['mountain-view-art-wine-2026']);
+  assert.equal(queryParams(first).get('when'), 'weekend');
+  assert.equal(queryParams(first).get('lang'), 'zh-Hant');
+  assert.deepEqual([...first.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-09-12', '2026-09-13']);
+  const savedUrl = first.getByTestId('current-route').textContent!;
+  first.unmount();
+
+  const revisited = render(edition('2026-09-09', savedUrl));
+  assert.equal(revisited.getByRole('button', { name: '这个周末', exact: true }).getAttribute('aria-pressed'), 'true');
+  assertResultTitles(revisited, ['mountain-view-art-wine-2026']);
+  fireEvent.change(revisited.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Bark' } });
+  assertResultTitles(revisited, []);
+  fireEvent.click(revisited.getByRole('button', { name: '全部日期', exact: true }));
+  assert.equal(queryParams(revisited).has('when'), false);
+  assertResultTitles(revisited, ['bark-in-the-park-san-jose-2026']);
+});
+
+test('empty date filters reset without deleting language and archive defaults still restore past events', () => {
+  const view = render(edition('2026-10-01', '/this-month?when=today&region=sf&cost=free&q=Opera&includeEnded=0&lang=en'));
+  assertResultTitles(view, []);
+  assert.equal(view.getByRole('button', { name: '今天', exact: true }).getAttribute('aria-pressed'), 'true');
+  fireEvent.click(view.getByRole('button', { name: '清除筛选条件' }));
+  assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
+  assert.equal(queryParams(view).toString(), 'lang=en');
+  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, true);
+});
+
+test('next seven days shows its inclusive date range and invalid date parameters safely default to all dates', () => {
+  const view = render(edition('2026-09-09', '/this-month?when=invalid'));
+  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
+  fireEvent.click(view.getByRole('button', { name: '未来 7 天', exact: true }));
+  assert.ok(view.getByText('包含今天'));
+  assert.equal(queryParams(view).get('when'), 'next7');
+  assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-09-09', '2026-09-15']);
+  assertResultTitles(view, MONTHLY_EVENTS.filter(event => event.startDate <= '2026-09-15' && event.endDate >= '2026-09-09').map(event => event.id));
 });
 
 test('empty filter results offer a working reset while keeping the three place recommendations available', () => {
@@ -235,7 +280,8 @@ test('monthly spotlight changes current-month language to archive language in bo
     let link = view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` });
     assert.equal(link.getAttribute('href'), '/this-month');
     assert.match(link.textContent!, /本月精选/);
-    assert.match(link.textContent!, /9 场可赴的活动/);
+    const activeCount = MONTHLY_EVENTS.filter(event => event.endDate >= '2026-09-08').length;
+    assert.ok(link.textContent!.includes(`${activeCount} 场可赴的活动`));
     view.rerender(<MemoryRouter><MonthlySpotlight today="2026-10-01" compact={compact} /></MemoryRouter>);
     link = view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` });
     assert.match(link.textContent!, /往期精选/);
@@ -245,7 +291,7 @@ test('monthly spotlight changes current-month language to archive language in bo
   }
 });
 
-test('server HTML contains all nine activities, their planning text and three linked place recommendations', () => {
+test('server HTML contains every activity, its planning text and three linked place recommendations', () => {
   for (const today of ['2026-09-08', '2026-10-01']) {
     const html = renderToStaticMarkup(<StaticRouter location="/this-month"><MonthlyEdition today={today} /></StaticRouter>);
     const server = new JSDOM(html).window.document;

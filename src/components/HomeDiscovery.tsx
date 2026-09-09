@@ -79,7 +79,14 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const today = suppliedToday || localToday;
   const selection = discoveries.find(item => item.id === intent)!;
   const hero = findGuide(selection.hero);
-  const picks = selection.picks.map(findGuide).filter((guide): guide is Guide => !!guide);
+  const freshCleanup = today >= '2026-09-09' && today <= '2026-09-19';
+  const pumpkinSeason = today >= '2026-09-09' && today <= '2026-11-15';
+  const pickSlugs = intent === 'weekend' ? [
+    freshCleanup ? ['bay-area-coastal-cleanup-2026-guide'] : selection.picks[0],
+    pumpkinSeason ? ['half-moon-bay-pumpkin-season-2026-guide'] : selection.picks[1],
+    selection.picks[2],
+  ] : selection.picks;
+  const picks = pickSlugs.map(findGuide).filter((guide): guide is Guide => !!guide);
   const currentEdition = isEditionCurrent(today);
   const editionPast = today.slice(0, 7) > MONTHLY_EDITION.month;
   const events = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended');
@@ -129,7 +136,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
         </div>
       </div>
 
-      <div className="home-discovery-picks-heading"><p aria-live="polite">{selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
+      <div className="home-discovery-picks-heading"><p aria-live="polite">{intent === 'weekend' && freshCleanup ? '海边做件小事，农场看看秋天，也留一段时间散步。' : selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
       <div className="home-discovery-picks">{picks.map(guide => <Link to={`/guides/${guide.slug}`} className="home-discovery-pick" key={guide.slug} aria-label={`阅读：${guide.title}`}><DiscoveryImage image={getGuideMedia(guide).cover} /><div><span>{guide.categoryLabel} · {guide.readMinutes} 分钟</span><h3>{guide.title}</h3><ArrowUpRight size={17} aria-hidden="true" /></div></Link>)}</div>
     </div>
 

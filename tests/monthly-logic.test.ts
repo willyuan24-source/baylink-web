@@ -4,7 +4,7 @@ import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import type { MonthlyEvent } from '../src/data/monthly-types';
-import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, isEditionCurrent } from '../src/lib/monthly';
+import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
 const event = (id: string): MonthlyEvent => {
   const found = MONTHLY_EVENTS.find(item => item.id === id);
@@ -75,7 +75,7 @@ test('ended events disappear by default and can be restored for archival reading
   assert.deepEqual(ids(filterMonthlyEvents(selected, {}, '2026-09-14')), ['bark-in-the-park-san-jose-2026']);
   assert.deepEqual(filterMonthlyEvents(selected, {}, '2026-09-20'), []);
   assert.deepEqual(ids(filterMonthlyEvents(selected, { includeEnded: true }, '2026-10-01')), ids(selected));
-  assert.equal(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'all', cost: 'all' }, '2026-09-08').length, 9);
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'all', cost: 'all' }, '2026-09-08')), ids(MONTHLY_EVENTS));
 });
 
 test('region and free admission filters combine while retaining separately paid food notices', () => {
@@ -84,10 +84,53 @@ test('region and free admission filters combine while retaining separately paid 
   ]);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'east-bay', cost: 'free' }, '2026-09-08')), ['lafayette-art-wine-2026']);
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'north-bay', cost: 'free' }, '2026-09-08'), []);
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'sf', cost: 'free' }, '2026-09-09')), [
+    'muni-heritage-2026', 'opera-in-the-park-2026', 'sf-autumn-moon-2026', 'treasure-island-coastal-cleanup-2026',
+  ]);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'south-bay', cost: 'free' }, '2026-09-14')), ['bark-in-the-park-san-jose-2026']);
   assert.match(event('mountain-view-art-wine-2026').costLabel, /另付/);
   assert.match(event('lafayette-art-wine-2026').costLabel, /另付/);
   assert.match(event('bark-in-the-park-san-jose-2026').costLabel, /建议.*捐款/);
+});
+
+test('this weekend keeps the current Saturday and Sunday, including on Sunday itself', () => {
+  for (const today of ['2026-09-07', '2026-09-11', '2026-09-12', '2026-09-13']) {
+    assert.deepEqual(getMonthlyDateRange('weekend', today), { start: '2026-09-12', end: '2026-09-13' }, today);
+  }
+  assert.deepEqual(getMonthlyDateRange('weekend', '2026-09-14'), { start: '2026-09-19', end: '2026-09-20' });
+  assert.deepEqual(getMonthlyDateRange('weekend', '2026-01-31'), { start: '2026-01-31', end: '2026-02-01' });
+  assert.deepEqual(getMonthlyDateRange('weekend', '2026-12-31'), { start: '2027-01-02', end: '2027-01-03' });
+  assert.deepEqual(getMonthlyDateRange('weekend', '2028-12-31'), { start: '2028-12-30', end: '2028-12-31' });
+});
+
+test('next seven days means today plus six calendar dates across DST, leap days and year changes', () => {
+  for (const [today, end] of [
+    ['2026-09-09', '2026-09-15'], ['2026-09-29', '2026-10-05'],
+    ['2026-12-29', '2027-01-04'], ['2028-02-27', '2028-03-04'],
+    ['2026-03-06', '2026-03-12'], ['2026-10-30', '2026-11-05'],
+  ]) {
+    assert.deepEqual(getMonthlyDateRange('next7', today), { start: today, end }, today);
+    assert.deepEqual(getMonthlyDateRange('today', today), { start: today, end: today }, today);
+  }
+  assert.equal(getMonthlyDateRange('all', '2026-09-09'), null);
+  for (const value of [null, undefined, '', 'unknown', 'WEEKEND']) assert.equal(resolveMonthlyDateFilter(value), 'all');
+  for (const value of ['today', 'weekend', 'next7'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
+});
+
+test('date filtering includes overlapping events and both endpoints, and combines all other choices', () => {
+  const base = event('mountain-view-art-wine-2026');
+  const make = (id: string, startDate: string, endDate = startDate, cost: MonthlyEvent['cost'] = 'free'): MonthlyEvent => ({ ...base, id, startDate, endDate, cost });
+  const selected = [
+    make('before', '2026-09-08'), make('first', '2026-09-09'), make('last', '2026-09-15'), make('after', '2026-09-16'),
+    make('spans-window', '2026-09-01', '2026-09-30'), make('paid', '2026-09-12', '2026-09-13', 'paid'),
+    make('saturday-only', '2026-09-12'), make('sunday-only', '2026-09-13'),
+  ];
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'next7', includeEnded: true }, '2026-09-09')), ['first', 'last', 'paid', 'saturday-only', 'spans-window', 'sunday-only']);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'today' }, '2026-09-15')), ['last', 'spans-window']);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'weekend', region: 'south-bay', cost: 'free' }, '2026-09-13')), ['spans-window', 'sunday-only']);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'weekend', region: 'south-bay', cost: 'free', includeEnded: true }, '2026-09-13')), ['saturday-only', 'spans-window', 'sunday-only']);
+  assert.deepEqual(filterMonthlyEvents(selected, { date: 'weekend', region: 'sf' }, '2026-09-13'), []);
+  assert.deepEqual(filterMonthlyEvents(selected, { date: 'today', includeEnded: true }, '2026-10-01'), [], 'archive visibility must not bypass an explicitly selected date');
 });
 
 test('calendar date reminders use an exclusive end date for single and multi-day events', () => {
@@ -151,10 +194,15 @@ test('calendar text escaping preserves Chinese, commas, semicolons, backslashes 
   assert.equal(unfold(calendar).split('\r\n').filter(line => line === 'END:VEVENT').length, 1);
 });
 
-test('the nine published activities have unique IDs, valid September dates and first-party source metadata', () => {
-  const officialHosts = new Set(['gggp.org', 'www.sfopera.com', 'www.sfmta.com', 'www.moonfestival.org', 'www.portolamusicfestival.com', 'www.mvartwine.com', 'lafayettefestival.com', 'www.barksanjose.org', 'www.mvfaf.org']);
-  assert.equal(MONTHLY_EVENTS.length, 9);
-  assert.equal(new Set(MONTHLY_EVENTS.map(item => item.id)).size, 9);
+test('all published activities have unique IDs, valid September dates and first-party source metadata', () => {
+  const officialHosts = new Set(['gggp.org', 'www.sfopera.com', 'www.sfmta.com', 'www.moonfestival.org', 'www.portolamusicfestival.com', 'www.mvartwine.com', 'lafayettefestival.com', 'www.barksanjose.org', 'www.mvfaf.org', 'www.sfenvironment.org']);
+  const publishedIds = new Set(MONTHLY_EVENTS.map(item => item.id));
+  for (const expectedId of [
+    'flower-piano-2026', 'opera-in-the-park-2026', 'muni-heritage-2026', 'sf-autumn-moon-2026', 'portola-2026',
+    'mountain-view-art-wine-2026', 'lafayette-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'mill-valley-fall-arts-2026',
+    'treasure-island-coastal-cleanup-2026',
+  ]) assert.ok(publishedIds.has(expectedId), `${expectedId} stays available as the edition grows`);
+  assert.equal(publishedIds.size, MONTHLY_EVENTS.length);
   for (const item of MONTHLY_EVENTS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     for (const date of [item.startDate, item.endDate]) {
@@ -162,8 +210,10 @@ test('the nine published activities have unique IDs, valid September dates and f
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);
-    assert.ok(item.endDate >= MONTHLY_EDITION.checkedAt, `${item.id} was still upcoming when verified`);
-    assert.equal(item.verifiedAt, MONTHLY_EDITION.checkedAt);
+    assert.match(item.verifiedAt, /^2026-09-\d{2}$/);
+    assert.equal(new Date(`${item.verifiedAt}T12:00:00Z`).toISOString().slice(0, 10), item.verifiedAt, `${item.id} has a valid verification date`);
+    assert.ok(item.verifiedAt >= MONTHLY_EDITION.checkedAt, `${item.id} was checked for this edition or a later update`);
+    assert.ok(item.endDate >= item.verifiedAt, `${item.id} had not ended when verified`);
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(officialHosts.has(source.hostname), `first-party host for ${item.id}`);
@@ -172,6 +222,7 @@ test('the nine published activities have unique IDs, valid September dates and f
     assert.equal(item.plan.length, 3);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }
+  assert.equal(event('treasure-island-coastal-cleanup-2026').verifiedAt, '2026-09-09');
 });
 
 test('published activities reference available guide images and existing related articles', () => {

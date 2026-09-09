@@ -1,5 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowUpRight, Calculator, CheckCheck, Landmark, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
+import { ArrowUpRight, Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
 import type { ShowToast } from '../../app/context';
 import { AiCommunicationTool } from './AiCommunicationTool';
@@ -8,10 +8,11 @@ import { RentalBudgetTool, SharedBillTool } from './BudgetTools';
 import { MovingChecklistTool } from './MovingChecklistTool';
 import { LoanCalculatorTool } from './LoanCalculatorTool';
 import { UnitPriceTool } from './UnitPriceTool';
+import { DiningCalculator } from './DiningCalculator';
 import './tools.css';
 import './loan-calculator.css';
 
-const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket };
+const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket, receipt: ReceiptText };
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const [params] = useSearchParams();
   const active = resolveLifeTool(params.get('tool'));
@@ -23,6 +24,7 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
     <section id="tool-workspace" className="tool-workspace" aria-labelledby="active-tool-title"><header className="tool-workspace-header"><span><CurrentIcon size={24} /></span><div><p>{current.tag}</p><h2 id="active-tool-title">{current.title}</h2><p>{current.description}</p></div></header>
       <div className="tool-workspace-body">
         <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
+        <div hidden={active !== 'dining'}><DiningCalculator onToast={onToast} /></div>
         <div hidden={active !== 'loan'}><LoanCalculatorTool onToast={onToast} /></div>
         <div hidden={active !== 'unit-price'}><UnitPriceTool onToast={onToast} /></div>
         <div hidden={active !== 'units'}><UnitConverterTool onToast={onToast} /></div>

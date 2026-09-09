@@ -4,7 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
 import { GUIDE_IMAGES } from '../data/guide-media';
-import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
+import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../lib/monthly';
+import type { MonthlyDateFilter } from '../lib/monthly';
 import { GuideImageCredits } from './GuideExplorer';
 import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
@@ -17,6 +18,10 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
 ];
 const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游' };
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
+const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
+  { value: 'all', label: '全部日期' }, { value: 'today', label: '今天' },
+  { value: 'weekend', label: '这个周末' }, { value: 'next7', label: '未来 7 天' },
+];
 
 type EditionPictureProps = { imageKey: string; className?: string; eager?: boolean };
 
@@ -73,14 +78,18 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
   useEffect(() => {
     const refresh = () => setLocalToday(getBayAreaToday());
     window.addEventListener('focus', refresh);
-    return () => window.removeEventListener('focus', refresh);
+    const interval = window.setInterval(refresh, 60_000);
+    return () => { window.removeEventListener('focus', refresh); window.clearInterval(interval); };
   }, []);
   const selectedRegion = searchParams.get('region') || 'all';
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const cost = searchParams.get('cost') === 'free' ? 'free' : 'all';
+  const date = resolveMonthlyDateFilter(searchParams.get('when'));
+  const dateRange = getMonthlyDateRange(date, today);
+  const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);
   const includeEnded = searchParams.get('includeEnded') === '1' || (searchParams.get('includeEnded') !== '0' && !current);
-  const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, includeEnded }, today).filter(event => !query.trim() || [event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event => !query.trim() || [event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
   const changeFilter = (name: string, value: string) => {
     setSearchParams(previous => {
@@ -89,6 +98,11 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
       return next;
     }, { replace: true, preventScrollReset: true });
   };
+  const clearFilters = () => setSearchParams(previous => {
+    const next = new URLSearchParams(previous);
+    for (const name of ['region', 'cost', 'when', 'q', 'includeEnded']) next.delete(name);
+    return next;
+  }, { replace: true, preventScrollReset: true });
 
   return <div className="bl-monthly">
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
@@ -103,9 +117,16 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
 
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '这个月，值得出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
-      <div className="bl-monthly-filters"><div className="bl-monthly-region-filter" role="group" aria-label="按湾区地区筛选">{REGIONS.map(item => <button type="button" key={item.value} aria-pressed={region === item.value} onClick={() => changeFilter('region', item.value)}>{item.label}</button>)}</div><div className="bl-monthly-filter-row"><label className="bl-monthly-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="搜索当月活动" placeholder="搜活动、城市或关键词" maxLength={200} value={query} onChange={event => changeFilter('q', event.target.value)} /></label><label className="bl-monthly-cost"><SlidersHorizontal size={15} aria-hidden="true" /><span className="sr-only">活动入场费用</span><select aria-label="活动入场费用" value={cost} onChange={event => changeFilter('cost', event.target.value)}><option value="all">所有入场方式</option><option value="free">仅免费入场</option></select></label><label className="bl-monthly-ended"><input type="checkbox" checked={includeEnded} onChange={event => changeFilter('includeEnded', event.target.checked ? '1' : '0')} />也看已结束活动</label></div></div>
+      <div className="bl-monthly-filters">
+        <div className="bl-monthly-date-filter" role="group" aria-label="按活动日期筛选">
+          <span className="bl-monthly-date-label"><CalendarDays size={16} aria-hidden="true" />什么时候出门？</span>
+          <div className="bl-monthly-date-options">{DATE_FILTERS.map(item => <button type="button" key={item.value} aria-pressed={date === item.value} onClick={() => changeFilter('when', item.value)}>{item.label}</button>)}</div>
+        </div>
+        {dateRange && <p className="bl-monthly-date-range"><span>湾区当地日期</span><strong><time dateTime={dateRange.start}>{formatDate(dateRange.start)}</time>{dateRange.start !== dateRange.end && <> — <time dateTime={dateRange.end}>{formatDate(dateRange.end)}</time></>}</strong>{date === 'next7' && <span>包含今天</span>}</p>}
+        <div className="bl-monthly-region-filter" role="group" aria-label="按湾区地区筛选">{REGIONS.map(item => <button type="button" key={item.value} aria-pressed={region === item.value} onClick={() => changeFilter('region', item.value)}>{item.label}</button>)}</div><div className="bl-monthly-filter-row"><label className="bl-monthly-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="搜索当月活动" placeholder="搜活动、城市或关键词" maxLength={200} value={query} onChange={event => changeFilter('q', event.target.value)} /></label><label className="bl-monthly-cost"><SlidersHorizontal size={15} aria-hidden="true" /><span className="sr-only">活动入场费用</span><select aria-label="活动入场费用" value={cost} onChange={event => changeFilter('cost', event.target.value)}><option value="all">所有入场方式</option><option value="free">仅免费入场</option></select></label><label className="bl-monthly-ended"><input type="checkbox" checked={includeEnded} onChange={event => changeFilter('includeEnded', event.target.checked ? '1' : '0')} />也看已结束活动</label></div>
+      </div>
       <div className="bl-monthly-results"><span role="status" aria-live="polite">{locale === 'en' ? <>Found <strong>{filtered.length}</strong> {filtered.length === 1 ? 'event' : 'events'}</> : <>找到 <strong>{filtered.length}</strong> 场活动</>}</span><span>日期按湾区当地时间 · 免费入场不代表餐饮、游乐或停车免费</span></div>
-      {filtered.length ? <div className="bl-monthly-event-grid">{filtered.map(event => <EventCard key={event.id} event={event} today={today} />)}</div> : <div className="bl-monthly-empty"><CalendarDays size={30} aria-hidden="true" /><h3>这组条件下，暂时没有活动</h3><p>换个地区、显示已结束活动，或看看下方的慢游提案。</p><button type="button" onClick={() => setSearchParams({}, { replace: true, preventScrollReset: true })}>清除筛选条件 <ArrowRight size={15} aria-hidden="true" /></button></div>}
+      {filtered.length ? <div className="bl-monthly-event-grid">{filtered.map(event => <EventCard key={event.id} event={event} today={today} />)}</div> : <div className="bl-monthly-empty"><CalendarDays size={30} aria-hidden="true" /><h3>这组条件下，暂时没有活动</h3><p>换个日期或地区，也可以看看下方的慢游提案。</p><button type="button" onClick={clearFilters}>清除筛选条件 <ArrowRight size={15} aria-hidden="true" /></button></div>}
       <p className="bl-monthly-calendar-note"><CalendarDays size={15} aria-hidden="true" /><span>“日期提醒”下载仅含活动日期的日历文件，不含具体场次与入场时间。票务、开放时段及临时变更，请在出发前查看官方详情。</span></p>
     </section>
 

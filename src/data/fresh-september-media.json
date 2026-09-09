@@ -1,0 +1,54 @@
+[
+  {
+    "key": "fresh-ocean-beach",
+    "src": "/guides/attractions/fresh-ocean-beach.webp",
+    "alt": "旧金山 Ocean Beach 北端的浪花、沙滩与 Seal Rocks",
+    "caption": "Ocean Beach 北端，2019 年资料照片；不是 2026 净滩现场，也不是 Stairwell 17 集合点示意。",
+    "credit": "© Radomianin / Wikimedia Commons / CC BY-SA 4.0 · 已缩放压缩，卡片裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Seal_Rocks,_Ocean_Beach,_San_Francisco.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 805,
+    "srcSet": "/guides/attractions/fresh-ocean-beach-small.webp 480w, /guides/attractions/fresh-ocean-beach.webp 1400w"
+  },
+  {
+    "key": "fresh-treasure-island",
+    "src": "/guides/attractions/fresh-treasure-island.webp",
+    "alt": "Treasure Island 的滨水步道、渡轮码头与傍晚建筑",
+    "caption": "Treasure Island 海岸，2025 年 5 月摄。用于认识岛上环境，净滩作业范围与集合位置须按报名通知。",
+    "credit": "9yz / CC BY 4.0 · 已缩放压缩，卡片裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Treasure_Island_Shoreline_Sunset_-_2025_(1).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 935,
+    "srcSet": "/guides/attractions/fresh-treasure-island-small.webp 480w, /guides/attractions/fresh-treasure-island.webp 1400w"
+  },
+  {
+    "key": "fresh-pumpkin-parade",
+    "src": "/guides/attractions/fresh-pumpkin-parade.webp",
+    "alt": "Half Moon Bay 南瓜节游行花车上的巨型南瓜与沿街观众",
+    "caption": "Half Moon Bay 南瓜节 2025 年资料照片；2026 节庆在 10 月 17–18 日，具体节目仍需等官方更新。",
+    "credit": "MegalithAgency / CC BY 4.0 · 已缩放压缩，卡片裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Half_Moon_Bay_Art_%26_Pumpkin_Festival_Great_Pumpkin_Parade.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 933,
+    "srcSet": "/guides/attractions/fresh-pumpkin-parade-small.webp 480w, /guides/attractions/fresh-pumpkin-parade.webp 1400w"
+  },
+  {
+    "key": "fresh-hmb-pumpkins",
+    "src": "/guides/attractions/fresh-hmb-pumpkins.webp",
+    "alt": "Half Moon Bay 南瓜田中成片的橙色南瓜与玉米秆",
+    "caption": "Half Moon Bay 南瓜田，2004 年资料照片。展示当地南瓜季的景象，不代表 Lemos Farm 或 2026 年农场布置。",
+    "credit": "JR Conlin / CC BY 2.0 · 已缩放压缩，卡片裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Pumpkin_Patch.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "kind": "photo",
+    "width": 1280,
+    "height": 851,
+    "srcSet": "/guides/attractions/fresh-hmb-pumpkins-small.webp 480w, /guides/attractions/fresh-hmb-pumpkins.webp 1280w"
+  }
+]

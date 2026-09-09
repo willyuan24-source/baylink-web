@@ -32,6 +32,14 @@
 .bl-monthly-section-heading h2 { margin-top:10px; font-size:26px; font-weight:600; line-height:1.6; letter-spacing:-.03em; }
 .bl-monthly-section-heading>p { max-width:330px; font-size:11px; line-height:1.9; color:#77816f; }
 .bl-monthly-filters { padding:20px; border:1px solid #e0e6d9; background:#f5f6f0; border-radius:13px; }
+.bl-monthly-date-filter { display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; margin-bottom:17px; padding-bottom:17px; border-bottom:1px solid #dfe5d7; }
+.bl-monthly-date-label { display:inline-flex; align-items:center; gap:7px; color:#476047; font-size:12px; font-weight:500; }
+.bl-monthly-date-options { display:flex; flex-wrap:wrap; gap:7px; }
+.bl-monthly-date-options button { min-height:42px; padding:9px 16px; border:1px solid #dce3d4; border-radius:8px; background:#fff; color:#53694a; font-size:12px; }
+.bl-monthly-date-options button[aria-pressed=true] { color:#fff; background:#284e3d; border-color:#284e3d; box-shadow:0 3px 7px #284e3d12; }
+.bl-monthly-date-options button:hover:not([aria-pressed=true]) { border-color:#9caf91; background:#eef3e7; }
+.bl-monthly-date-range { display:flex; flex-wrap:wrap; align-items:center; gap:5px 10px; margin:-3px 0 17px; color:#697a5e; font-size:10px; line-height:1.8; }
+.bl-monthly-date-range strong { color:#3b5d43; font-size:11px; font-weight:500; }
 .bl-monthly-region-filter { display:flex; flex-wrap:wrap; gap:7px; }
 .bl-monthly-region-filter button { min-height:38px; padding:8px 18px; border-radius:999px; border:1px solid #dce3d4; background:#fff; color:#66755d; font-size:12px; }
 .bl-monthly-region-filter button[aria-pressed=true] { background:#284e3d; color:white; border-color:#284e3d; }
@@ -179,6 +187,10 @@
  .bl-monthly-section-heading h2 { font-size:23px; margin-top:8px; }
  .bl-monthly-section-heading>p { max-width:none; font-size:11px; }
  .bl-monthly-filters { padding:14px; border-radius:10px; }
+ .bl-monthly-date-filter { flex-direction:column; align-items:stretch; gap:10px; padding-bottom:14px; margin-bottom:14px; }
+ .bl-monthly-date-label { font-size:11px; }
+ .bl-monthly-date-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+ .bl-monthly-date-options button { min-width:0; min-height:44px; padding:9px 7px; font-size:11px; }
  .bl-monthly-region-filter { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
  .bl-monthly-region-filter button { min-width:0; font-size:11px; padding:8px 5px; }
  .bl-monthly-filter-row { gap:12px; margin-top:14px; }
