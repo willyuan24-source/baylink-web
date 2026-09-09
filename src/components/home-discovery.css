@@ -45,6 +45,7 @@
 .home-discovery-card-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; color: #617453; font-size: 9px; line-height: 1.5; font-weight: 650; }
 .home-discovery-deals .home-discovery-card-kicker { color: #95653c; }
 .home-discovery-timely-copy h2 { margin: 9px 0 7px; color: var(--discovery-ink); font-size: 20px; font-weight: 720; line-height: 1.5; letter-spacing: -.5px; text-wrap: pretty; }
+.home-discovery-guide .home-discovery-timely-copy h2, .home-discovery-guide .home-discovery-timely-copy p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .home-discovery-timely-copy p { margin: 0; color: #63725e; font-size: 10px; line-height: 1.8; }
 .home-discovery-deals .home-discovery-timely-copy p { color: #816d58; }
 .home-discovery-timely-copy strong { display: flex; align-items: center; gap: 6px; margin-top: 12px; color: #355b37; font-size: 10px; line-height: 1.5; }

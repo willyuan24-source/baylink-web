@@ -40,14 +40,19 @@ test('homepage server HTML leads with readable guides, distinct actual images an
     assert.ok(image, `${src} is a registered image`);
     assert.equal(photo.alt, image.alt);
     assert.equal(photo.getAttribute('srcset'), image.srcSet);
-    assert.equal(image.kind === 'illustration', false, 'home discovery currently has specific place and official event imagery');
+    if (image.kind === 'illustration') assert.equal(image.src, GUIDE_IMAGES['september-edition'].src, 'only the monthly cover uses our original illustration');
     assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.caption));
-    assert.ok([...document.querySelectorAll('.home-discovery-credits a')].some(link => link.getAttribute('href') === image.creditUrl));
+    if (image.creditUrl) assert.ok([...document.querySelectorAll('.home-discovery-credits a')].some(link => link.getAttribute('href') === image.creditUrl));
+    else assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.credit));
     hashes.add(createHash('sha256').update(readFileSync(new URL(`../public${src}`, import.meta.url))).digest('hex'));
     if (image.kind === 'poster' || image.fullFrame) assert.ok(photo.closest('.home-discovery-image--full'), 'official complete graphics must use the uncropped image frame');
   }
   assert.equal(hashes.size, 6, 'each editorial surface has a different actual image');
   const hero = document.querySelector('.home-discovery-feature img')!;
+  assert.equal(document.querySelector('.home-discovery-feature-grid > a')?.getAttribute('href'), '/this-month');
+  assert.equal(hero.getAttribute('src'), GUIDE_IMAGES['september-edition'].src);
+  assert.equal(document.querySelector('.home-discovery-feature .home-discovery-image-label')?.textContent, 'AI 原创插图');
+  assert.equal(document.querySelector('.home-discovery-timely > a')?.getAttribute('href'), '/guides/golden-gate-park-free-car-free-day-guide');
   assert.equal(hero.getAttribute('loading'), 'eager');
   assert.equal(hero.getAttribute('fetchPriority')?.toLowerCase(), 'high');
   assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['freebie-lowes-haunted-house'].src);
@@ -65,13 +70,14 @@ test('intent switches change the featured guide and all three reading paths with
   ]) {
     fireEvent.click(view.getByRole('button', { name: label, exact: true }));
     assert.equal(view.getByRole('button', { name: label, exact: true }).getAttribute('aria-pressed'), 'true');
-    assert.equal(view.container.querySelector('.home-discovery-feature')?.getAttribute('href'), `/guides/${slug}`);
+    assert.equal(view.container.querySelector('.home-discovery-feature')?.getAttribute('href'), '/this-month');
+    assert.equal(view.container.querySelector('.home-discovery-guide')?.getAttribute('href'), `/guides/${slug}`);
     const guide = getGuideBySlug(slug)!;
-    assert.equal(view.container.querySelector('.home-discovery-feature img')?.getAttribute('src'), getGuideMedia(guide).cover.src);
+    assert.equal(view.container.querySelector('.home-discovery-guide img')?.getAttribute('src'), getGuideMedia(guide).cover.src);
     const links = [...view.container.querySelectorAll('.home-discovery-pick')];
     assert.equal(links.length, 3);
     for (const link of links) assert.ok(getGuideBySlug(link.getAttribute('href')!.split('/').at(-1)!));
-    assert.equal(new Set([...view.container.querySelectorAll('.home-discovery-feature img, .home-discovery-pick img')].map(image => image.getAttribute('src'))).size, 4);
+    assert.equal(new Set([...view.container.querySelectorAll('.home-discovery-guide img, .home-discovery-pick img')].map(image => image.getAttribute('src'))).size, 4);
     fireEvent.click(view.getByRole('button', { name: '帮我安排', exact: true }));
     assert.ok(questions.at(-1)?.includes(expected));
   }

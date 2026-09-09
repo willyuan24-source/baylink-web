@@ -83,9 +83,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const currentEdition = isEditionCurrent(today);
   const editionPast = today.slice(0, 7) > MONTHLY_EDITION.month;
   const events = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended');
-  const event = events.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo' && !GUIDE_IMAGES[item.imageKey].fullFrame)
-    || events.find(item => GUIDE_IMAGES[item.imageKey]?.kind !== 'illustration') || MONTHLY_EVENTS.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo');
-  const eventImage = event ? GUIDE_IMAGES[event.imageKey] : undefined;
+  const editionImage = GUIDE_IMAGES['september-edition'];
   const deals = getGuideBySlug('bay-area-freebies-deals-2026-09');
   const dealsCurrent = deals?.editionMonth === today.slice(0, 7);
   const dealsPast = !!deals?.editionMonth && deals.editionMonth < today.slice(0, 7);
@@ -96,7 +94,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo') || datedOffers[0] || offers[0];
   const offerImage = offer ? GUIDE_IMAGES[offer.imageKey] : deals ? getGuideMedia(deals).cover : undefined;
   const heroImage = hero ? getGuideMedia(hero).cover : undefined;
-  const images = [heroImage, ...picks.map(guide => getGuideMedia(guide).cover), eventImage, offerImage].filter((image): image is GuideImage => !!image);
+  const images = [editionImage, heroImage, offerImage, ...picks.map(guide => getGuideMedia(guide).cover)].filter((image): image is GuideImage => !!image);
   const month = Number(today.slice(5, 7));
   const dateLabel = locale === 'en'
     ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`))
@@ -115,15 +113,15 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
 
     <div id={panelId} className="home-discovery-panel">
       <div className="home-discovery-feature-grid">
-        {hero && heroImage && <Link to={`/guides/${hero.slug}`} className="home-discovery-feature" aria-label={`阅读：${hero.title}`}>
-          <DiscoveryImage image={heroImage} hero />
-          <div className="home-discovery-feature-copy"><span>{selection.eyebrow}</span><h2>{hero.title}</h2><p>{hero.summary}</p><div><small><BookOpen size={14} aria-hidden="true" />{hero.categoryLabel} · {hero.readMinutes} 分钟读完</small><strong>打开这篇攻略 <ArrowUpRight size={17} aria-hidden="true" /></strong></div></div>
-        </Link>}
+        <Link to={editionPast ? '/this-month?includeEnded=1' : '/this-month'} className="home-discovery-feature home-discovery-edition" aria-label={`阅读${MONTHLY_EDITION.label}湾区月刊`}>
+          <DiscoveryImage image={editionImage} hero />
+          <div className="home-discovery-feature-copy"><span>BAYLINK · THE MONTHLY EDIT</span><h2>{currentEdition ? '给这个月，找一个出门的理由。' : '翻一翻，留些出游灵感。'}</h2><p>{currentEdition ? `${events.length} 场尚未结束的活动，附日期、费用与出发前提醒。` : `${MONTHLY_EDITION.label} 活动与去处记录，最新安排请查主办方。`}</p><div><small><CalendarDays size={14} aria-hidden="true" />{MONTHLY_EDITION.label} · {currentEdition ? '本月月刊' : editionPast ? '往期月刊' : '月刊预告'}</small><strong>{currentEdition ? '打开湾区月刊' : '翻阅这期月刊'}<ArrowUpRight size={17} aria-hidden="true" /></strong></div></div>
+        </Link>
         <div className="home-discovery-timely">
-          <Link to={editionPast ? '/this-month?includeEnded=1' : '/this-month'} className="home-discovery-edition" aria-label={`阅读${MONTHLY_EDITION.label}湾区月刊`}>
-            {eventImage && <DiscoveryImage image={eventImage} />}
-            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><CalendarDays size={13} aria-hidden="true" />{MONTHLY_EDITION.label} · {currentEdition ? '本月月刊' : editionPast ? '往期月刊' : '月刊预告'}</span><h2>{currentEdition ? '给这个月，找一个出门的理由。' : '翻一翻，留些出游灵感。'}</h2><p>{currentEdition ? `${events.length} 场尚未结束的活动，附日期、费用与出发前提醒。` : `${MONTHLY_EDITION.label} 活动与去处记录，最新安排请查主办方。`}</p><strong>{currentEdition ? '挑一场活动' : '翻阅这期月刊'}<ArrowUpRight size={15} aria-hidden="true" /></strong></div>
-          </Link>
+          {hero && heroImage && <Link to={`/guides/${hero.slug}`} className="home-discovery-guide" aria-label={`阅读：${hero.title}`}>
+            <DiscoveryImage image={heroImage} />
+            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><BookOpen size={13} aria-hidden="true" />{hero.categoryLabel} · {hero.readMinutes} 分钟读完</span><h2>{hero.title}</h2><p>{hero.summary}</p><strong>打开这篇攻略 <ArrowUpRight size={15} aria-hidden="true" /></strong></div>
+          </Link>}
           {deals && <Link to={`/guides/${deals.slug}#freebie-board-0`} className="home-discovery-deals" aria-label={`查看${deals.title}的领取图鉴`}>
             {offerImage && <DiscoveryImage image={offerImage} />}
             <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><Ticket size={13} aria-hidden="true" />{dealsMonthLabel} · {dealsCurrent ? '本月福利' : dealsPast ? '往期福利' : '福利预告'}</span><h2>顺路领一份，<br />日常的小惊喜。</h2><p>{dealsPast ? '往期领取条件供回顾，不能当作实时优惠。' : 'Target、亲子手工和会员礼，先看日期、名额与领取条件。'}</p><strong>{dealsPast ? '查看往期领取记录' : '打开免费领取图鉴'}<ArrowUpRight size={15} aria-hidden="true" /></strong></div>
