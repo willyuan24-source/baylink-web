@@ -36,7 +36,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media'].flatMap(name =>
   JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')) as (GuideImage & { key: string })[]);
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);

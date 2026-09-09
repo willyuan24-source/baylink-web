@@ -1,0 +1,54 @@
+[
+  {
+    "key": "ggp-conservatory",
+    "src": "/guides/distinct/ggp-conservatory.webp",
+    "alt": "Conservatory of Flowers 白色温室前的草坪、步道与棕榈树",
+    "caption": "Golden Gate Park 的 Conservatory of Flowers 外景，2016 年摄；室内参观与户外散步的入场条件不同。",
+    "credit": "Fastily · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Exterior_of_the_Conservatory_of_Flowers_1_2016-11-13.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 937,
+    "srcSet": "/guides/distinct/ggp-conservatory-small.webp 480w, /guides/distinct/ggp-conservatory.webp 1400w"
+  },
+  {
+    "key": "baylands-marsh",
+    "src": "/guides/distinct/baylands-marsh.webp",
+    "alt": "Palo Alto Baylands 湿地的水面、水鸟与远处山丘",
+    "caption": "Palo Alto Baylands Nature Preserve，2013 年资料照片；鸟况、水位与开放步道以当天为准。",
+    "credit": "King of Hearts · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Palo_Alto_Baylands_February_2013_005.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 840,
+    "srcSet": "/guides/distinct/baylands-marsh-small.webp 480w, /guides/distinct/baylands-marsh.webp 1400w"
+  },
+  {
+    "key": "baylands-gull",
+    "src": "/guides/distinct/baylands-gull.webp",
+    "alt": "Palo Alto Duck Pond 上方展开双翅降落的加州鸥",
+    "caption": "加州鸥在 Palo Alto Baylands 的 Duck Pond 降落，2011 年摄；用于观察动作，不保证当天遇见同种鸟。",
+    "credit": "King of Hearts · CC BY-SA 3.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Larus_californicus_Palo_Alto_May_2011_001.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "kind": "photo",
+    "width": 1400,
+    "height": 933,
+    "srcSet": "/guides/distinct/baylands-gull-small.webp 480w, /guides/distinct/baylands-gull.webp 1400w"
+  },
+  {
+    "key": "jfk-promenade",
+    "src": "/guides/distinct/jfk-promenade.webp",
+    "alt": "JFK Promenade 官方宣传照片中散步、骑车与玩滑板车的访客",
+    "caption": "SF Recreation & Parks 的 JFK Promenade 官方资料图；画面为步行与骑行共享空间。",
+    "credit": "SF Recreation & Parks · 官方资料图",
+    "creditUrl": "https://www.sfrecpark.org/1538/JFK-Promenade",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1300,
+    "height": 800,
+    "srcSet": "/guides/distinct/jfk-promenade-small.webp 480w, /guides/distinct/jfk-promenade.webp 1300w"
+  }
+]

@@ -18,6 +18,7 @@ const catalog = guides.map((guide) => {
     keywords: [...new Set([guide.title, guide.categoryLabel, ...guide.tags])], categories,
     content: guide.blocks.map(guideBlockText).join('\n\n'),
     sources: guide.sources.map(({ title, url }) => ({ title, url })), updatedAt: guide.updatedAt,
+    ...(guide.editionMonth ? { editionMonth: guide.editionMonth } : {}),
   };
 });
 const output = `${JSON.stringify(catalog, null, 2)}\n`;

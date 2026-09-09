@@ -16,7 +16,6 @@ import {
 import { Link } from "react-router-dom";
 import {
   getGuideBySlug,
-  getRelatedGuides,
   type GuideBlock,
 } from "../data/guides";
 import { GuideCardMini } from "./GuideCard";
@@ -24,6 +23,8 @@ import { getGuideMedia, type GuideImage } from '../data/guide-media';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './MonthlyDealsSpotlight';
 import { FreebieBoard } from './FreebieBoard';
+import { GuideReaderActions } from './ReaderLibrary';
+import { discoverRelatedGuides } from '../lib/guide-discovery';
 
 type GuideDetailProps = {
   slug: string;
@@ -32,6 +33,7 @@ type GuideDetailProps = {
   onBack: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
+  onAsk?: (question: string) => void;
   onOpenPost: (options: {
     type: "client" | "provider";
     categorySlug: string;
@@ -47,6 +49,7 @@ const GuideDetailSession = ({
   onBack,
   onOpenGuide,
   onNavigate,
+  onAsk,
   onOpenPost,
 }: GuideDetailProps) => {
   const guide = getGuideBySlug(slug);
@@ -109,7 +112,7 @@ const GuideDetailSession = ({
         </button>
       </div>
     );
-  const related = getRelatedGuides(guide, 3);
+  const related = discoverRelatedGuides(guide, 3, today);
   const media = getGuideMedia(guide);
   const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
   const inlineAfter = new Map<number, GuideImage[]>();
@@ -198,6 +201,7 @@ const GuideDetailSession = ({
             </span>
           </div>
           {guide.editionMonth && <GuideEditionNotice editionMonth={guide.editionMonth} checkedAt={guide.updatedAt} today={today} />}
+          <GuideReaderActions guide={guide} onAsk={onAsk} />
           <GuideFigure image={media.cover} variant="cover" />
           <div className="bl-guide-abstract">
             <span>这篇指南，帮你理清</span>

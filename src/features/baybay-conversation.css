@@ -1,0 +1,55 @@
+.baybay-conversation { max-width: 730px; }
+.baybay-conversation .member-baybay-body { padding: 18px 25px 22px; }
+.baybay-context-line { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#71816e; font-size:11px; margin-bottom:17px; }
+.baybay-context-line button,.baybay-start-links button { display:flex; align-items:center; gap:6px; color:#386344; font-weight:600; }
+.baybay-context-line button { padding:6px 9px; border:1px solid #d9e1d3; border-radius:8px; background:white; }
+.baybay-reading-context { display:flex; align-items:center; gap:11px; padding:13px 14px; margin-bottom:21px; background:#edf2e8; border:1px solid #dbe4d4; border-radius:13px; color:#42643c; }
+.baybay-reading-context>svg { flex-shrink:0; }
+.baybay-reading-context>div { flex:1; min-width:0; }
+.baybay-reading-context small { display:block; font-size:10px; color:#74846b; margin-bottom:3px; }
+.baybay-reading-context strong { display:block; font-size:12px; line-height:1.55; }
+.baybay-reading-context button { flex-shrink:0; padding:8px; border-radius:7px; background:white; font-size:12px; }
+.baybay-welcome h3 { font-size:21px; color:#263d30; font-weight:650; letter-spacing:-.5px; }
+.baybay-welcome>p { font-size:13px; line-height:1.9; color:#687865; margin:9px 0 20px; }
+.baybay-scenarios { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.baybay-scenarios button { display:flex; align-items:center; gap:10px; padding:16px 13px; border:1px solid #dbe3d4; border-radius:13px; background:white; color:#35553b; font-size:13px; font-weight:600; text-align:left; transition:background .15s,border-color .15s; }
+.baybay-scenarios button:hover { background:#edf3e6; border-color:#9ab08b; }
+.baybay-scenarios button>span { display:grid; place-items:center; height:29px; width:29px; border-radius:9px; color:#7b9159; background:#f0f2e6; font-size:20px; }
+.baybay-scenarios button>svg { margin-left:auto; opacity:.6; }
+.baybay-start-links { display:flex; justify-content:space-between; gap:13px; border-top:1px solid #e3e8dc; padding-top:20px; margin-top:25px; font-size:12px; }
+.baybay-turn+.baybay-turn { margin-top:28px; }
+.baybay-user-question { margin-left:35px; display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.baybay-user-question>span { font-size:10px; color:#829079; }
+.baybay-user-question>p { white-space:pre-wrap; overflow-wrap:anywhere; background:#e5eddc; color:#344932; padding:12px 15px; border-radius:15px 15px 3px 15px; font-size:13px; line-height:1.85; }
+.baybay-conversation .member-baybay-answer { margin-top:13px; background:white; border-color:#e0e6d9; }
+.baybay-conversation .member-baybay-answer-text { white-space:pre-wrap; line-height:1.95; overflow-wrap:anywhere; }
+.baybay-thinking { display:flex; align-items:center; gap:9px; padding:20px 6px; color:#697c62; font-size:12px; }
+.baybay-degraded { margin:10px 0; background:#f4f5ef; border-radius:8px; padding:10px; font-size:11px; line-height:1.75; color:#6b765f; }
+.baybay-request-error { margin-top:13px; padding:14px; border-radius:11px; background:#f2efe7; color:#756750; font-size:12px; line-height:1.8; }
+.baybay-request-error button { display:flex; align-items:center; gap:7px; font-weight:600; color:#496140; margin-top:8px; }
+.baybay-references { margin-top:17px; border-top:1px solid #edf0e8; padding-top:12px; }
+.baybay-references>p { font-size:10px; color:#7d8b71; font-weight:600; margin-bottom:6px; }
+.baybay-references button { display:flex; align-items:center; gap:8px; width:100%; text-align:left; color:#486a3c; font-size:12px; line-height:1.65; padding:8px 2px; }
+.baybay-references button>span { flex:1; }
+.baybay-references button>svg { flex-shrink:0; }
+.baybay-followups { display:flex; flex-wrap:wrap; gap:7px; margin-top:18px; }
+.baybay-followups>span { flex-basis:100%; color:#7d8a71; font-size:10px; margin-bottom:1px; }
+.baybay-followups button { display:flex; align-items:center; justify-content:space-between; gap:9px; border:1px solid #dce3d4; border-radius:10px; padding:9px 11px; text-align:left; background:#fff; font-size:12px; color:#4f6945; line-height:1.65; }
+.baybay-followups button>svg { flex-shrink:0; }
+.baybay-composer-footer { flex-shrink:0; padding:16px 24px 14px; border-top:1px solid #dfe5d8; background:#f8f9f5; }
+.baybay-composer-footer .member-baybay-composer { margin:0; }
+.baybay-composer-footer .member-baybay-ask { display:flex; align-items:center; gap:6px; min-width:78px; justify-content:center; }
+.baybay-composer-note { margin-top:9px; font-size:10px; color:#829076; line-height:1.65; }
+.quick-result-snippet { display:-webkit-box !important; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:1.65; }
+.quick-empty { margin:5px 11px 17px; color:#74816b; font-size:12px; line-height:1.85; }
+@media(max-width:639px) {
+  .baybay-conversation .member-baybay-body { padding:16px 18px 20px; }
+  .baybay-welcome h3 { font-size:19px; }
+  .baybay-scenarios { gap:8px; }
+  .baybay-scenarios button { padding:13px 10px; gap:7px; font-size:12px; }
+  .baybay-composer-footer { padding:13px 16px calc(12px + env(safe-area-inset-bottom,0px)); }
+  .baybay-composer-footer input { font-size:16px; }
+  .baybay-composer-footer input::placeholder { font-size:12px; }
+  .baybay-user-question { margin-left:22px; }
+  .baybay-context-line { font-size:10px; }
+}

@@ -63,8 +63,8 @@ export const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: (
 );
 
 const channelIcons = { rent: Building2, used: Sofa, service: HeartHandshake, ride: CarFront, featured: Sparkles };
-export const ChannelShortcuts = ({ onChannel }: { onChannel: (ch: typeof HOME_CHANNELS[number]) => void }) => (
-  <section className="bay-channels" aria-label="探索生活分类">
+export const ChannelShortcuts = ({ onChannel, compact = false }: { onChannel: (ch: typeof HOME_CHANNELS[number]) => void; compact?: boolean }) => (
+  <section className={`bay-channels${compact ? ' bay-channels--compact' : ''}`} aria-label="探索生活分类">
     {HOME_CHANNELS.map((channel, index) => {
       const Icon = channelIcons[channel.id as keyof typeof channelIcons];
       return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ArrowUpRight size={15} className="bay-channel-arrow" /></button>;

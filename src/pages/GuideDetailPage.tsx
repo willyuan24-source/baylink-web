@@ -15,7 +15,7 @@ export default function GuideDetailPage() {
   const savedLibrary = location.state?.guideLibrary;
   const returnTo = typeof savedLibrary === 'string' && /^\/guides(?:\?[^#]*)?$/.test(savedLibrary) ? savedLibrary : '/guides';
   const { slug } = useParams();
-  const { user, setShowLogin, openCreate } = useApp();
+  const { user, setShowLogin, openCreate, openBayBay } = useApp();
   const [pendingPost, setPendingPost] = useState<{ type: 'client' | 'provider'; categorySlug: string } | null>(null);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export default function GuideDetailPage() {
       onBack={navigateBack}
       onOpenGuide={(next) => navigate(`/guides/${next}`, { state: { guideLibrary: returnTo } })}
       onNavigate={navigate}
+      onAsk={openBayBay}
       onOpenPost={({ type, categorySlug }) => {
         if (!user) { setPendingPost({ type, categorySlug }); setShowLogin(true); return; }
         const category = getCategoryFromSlug(categorySlug);

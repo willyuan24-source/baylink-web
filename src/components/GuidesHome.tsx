@@ -6,6 +6,7 @@ import {
   BookOpen,
   Compass,
   X,
+  Bookmark,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -22,6 +23,7 @@ import { getGuideMedia } from '../data/guide-media';
 import { GuideExplorer, GuideImageCredits } from './GuideExplorer';
 import { MonthlySpotlight } from './MonthlySpotlight';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
+import { ReadingShelf } from './ReaderLibrary';
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
 const NEWCOMER_SPOTLIGHT_SLUGS = [
@@ -35,11 +37,12 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
   const categoryParam = searchParams.get('category');
   const tab = GUIDE_CATEGORY_TABS.some(({ id }) => id === categoryParam) ? categoryParam as 'all' | GuideCategory : 'all';
   const query = (searchParams.get('q') || '').slice(0, 200);
+  const savedOnly = searchParams.get('view') === 'saved';
   const updateSearch = (values: { q?: string; category?: 'all' | GuideCategory }, replace = false) => {
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
       if (values.q !== undefined) {
-        if (values.q) next.set('q', values.q); else next.delete('q');
+        if (values.q) { next.set('q', values.q); next.delete('view'); } else next.delete('q');
       }
       if (values.category !== undefined) {
         if (values.category !== 'all') next.set('category', values.category); else next.delete('category');
@@ -73,26 +76,31 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
         <div className="bl-guides-intro-row">
           <div>
             <h1>
-              把湾区，
+              {savedOnly ? '留住喜欢的，' : '把湾区，'}
               <br />
-              <em>过成你的生活。</em>
+              <em>{savedOnly ? '下次接着看。' : '过成你的生活。'}</em>
             </h1>
             <p>
-              从第一份租约，到周末的新去处。
+              {savedOnly ? '想去的地方、实用的攻略，先为自己留一份。' : '从第一份租约，到周末的新去处。'}
               <br className="bl-guides-mobile-break" />{" "}
-              给每一步，一个更清晰的开始。
+              {savedOnly ? '无需登录，也能慢慢收集生活灵感。' : '给每一步，一个更清晰的开始。'}
             </p>
           </div>
           <div className="bl-guides-edition">
             <BookOpen size={22} strokeWidth={1.3} aria-hidden="true" />
             <strong>{guides.length} 篇</strong>
             <span>湾区生活指南</span>
-            <a href="#guide-library-title" className="bl-guide-library-jump">查找指南 <ArrowRight size={14} aria-hidden="true" /></a>
+            {savedOnly ? <Link to="/guides" className="bl-guide-library-jump">发现更多 <ArrowRight size={14} aria-hidden="true" /></Link> : <a href="#guide-library-title" className="bl-guide-library-jump">查找指南 <ArrowRight size={14} aria-hidden="true" /></a>}
           </div>
         </div>
       </header>
-      {!query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
-      {!query.trim() && tab === "all" && hero && (
+      <div className="reader-library-find">
+        <label><Search size={19} aria-hidden="true" /><input type="search" aria-label="搜索生活指南" placeholder="想去哪、想省什么？试试 Target、亲子、海边…" value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value }, true)} />{query && <button type="button" aria-label="清除指南搜索" onClick={() => updateSearch({ q: '' }, true)}><X size={17} /></button>}</label>
+        <Link to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark size={16} />{savedOnly ? '继续发现攻略' : '我的收藏'}</Link>
+      </div>
+      {!query.trim() && (savedOnly || tab === 'all') && <ReadingShelf />}
+      {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
+      {!savedOnly && !query.trim() && tab === "all" && hero && (
         <section className="bl-guides-spotlights" aria-label="新来湾区先看">
           <Link
             to={`/guides/${hero.slug}`}
@@ -145,9 +153,9 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           </div>
         </section>
       )}
-      {!query.trim() && tab === 'all' && <GuideExplorer onOpenGuide={onOpenGuide} />}
-      {!query.trim() && tab === "all" && <EditorialCollections />}
-      <section
+      {!savedOnly && !query.trim() && tab === 'all' && <GuideExplorer onOpenGuide={onOpenGuide} />}
+      {!savedOnly && !query.trim() && tab === "all" && <EditorialCollections />}
+      {!savedOnly && <section
         className="bl-guides-library"
         aria-labelledby="guide-library-title"
       >
@@ -161,26 +169,6 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           </span>
         </div>
         <div className="bl-guides-controls">
-          <div className="bl-guide-search">
-            <Search size={18} aria-hidden="true" />
-            <input
-              type="search"
-              aria-label="搜索生活指南"
-              placeholder="搜索租房、通勤、二手交易…"
-              maxLength={200}
-              value={query}
-              onChange={(e) => updateSearch({ q: e.target.value }, true)}
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => updateSearch({ q: '' }, true)}
-                aria-label="清除指南搜索"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
           <div className="bl-guide-tabs" role="group" aria-label="指南分类">
             {GUIDE_CATEGORY_TABS.map((t) => (
               <button
@@ -244,7 +232,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
             ))}
           </div>
         )}
-      </section>
+      </section>}
       <footer className="bl-guides-bottom">
         <Compass size={20} strokeWidth={1.4} aria-hidden="true" />
         <p>慢慢熟悉，也慢慢喜欢上这里。</p>

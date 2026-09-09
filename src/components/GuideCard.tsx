@@ -67,7 +67,7 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
           <span className="bl-guide-art-arrow">
             <ArrowUpRight size={17} />
           </span>
-          <span className="bl-guide-image-kind">{cover.kind === 'photo' ? '实景照片' : 'AI 原创插图'}</span>
+          <span className="bl-guide-image-kind">{cover.kind === 'photo' ? '实景照片' : cover.kind === 'poster' ? '活动宣传图' : 'AI 原创插图'}</span>
         </div>
       )}
       <div className="bl-guide-card-body">

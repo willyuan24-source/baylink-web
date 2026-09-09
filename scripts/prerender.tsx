@@ -19,6 +19,7 @@ import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import { MonthlySpotlight } from '../src/components/MonthlySpotlight';
 import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { MONTHLY_EDITION } from '../src/data/monthly-edition';
+import { HomeDiscovery } from '../src/components/HomeDiscovery';
 
 const outputDir = resolve('dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
@@ -47,12 +48,10 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
   await writeFile(destination, renderHtmlDocument(template, metadata, body));
 };
 
-const homeDescription = '找房、找室友、二手交易、本地服务、接送和湾区生活指南。BAYLINK 连接湾区邻里。';
-await renderPage({ title: 'BAYLINK｜湾区华人本地生活平台', description: homeDescription, path: '/' }, (
+const homeDescription = '从当月活动、免费福利到周末路线和实用工具，在 BAYLINK 发现湾区生活灵感，收藏攻略、询问 BayBay，再与邻里分享。';
+await renderPage({ title: 'BAYLINK｜湾区周末灵感、生活攻略与邻里社区', description: homeDescription, path: '/' }, (
   <section className="px-5 py-8">
-    <h1 className="text-3xl font-bold">湾区华人本地生活平台</h1>
-    <p className="mt-3 leading-relaxed">{homeDescription}</p>
-    <MonthlySpotlight />
+    <HomeDiscovery onAskBayBay={noop} onBrowseCommunity={noop} />
     <nav aria-label="本地信息分类" className="mt-6 flex flex-wrap gap-3">
       {Object.entries(SLUG_TO_CATEGORY).map(([slug, title]) => <a key={slug} href={`/category/${slug}`} className="rounded-xl border border-baylink-border bg-white px-4 py-2">{title}</a>)}
     </nav>

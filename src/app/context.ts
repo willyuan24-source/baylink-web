@@ -61,6 +61,7 @@ export type AppContextValue = {
   openAdDetail: (ad: AdDetailItem) => void;
   openBlockedUsersModal: () => void;
   setBaybayPanelOpen: (open: boolean) => void;
+  openBayBay: (question?: string) => void;
 
   adsRefreshKey: number;
   featuredRefreshKey: number;

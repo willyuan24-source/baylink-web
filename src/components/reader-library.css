@@ -1,0 +1,37 @@
+.reader-actions-wrap { margin: 18px 0 25px; }
+.reader-library-find { display: flex; gap: 12px; margin: 24px 0; align-items: stretch; }
+.reader-library-find label { display: flex; flex: 1; gap: 10px; align-items: center; min-width: 0; padding: 13px 16px; background: #fff; border: 1px solid #cfdccf; border-radius: 12px; color: #547161; box-shadow: 0 3px 15px #25462a04; }
+.reader-library-find input { min-width: 0; width: 100%; font-size: 13px; background: transparent; outline-offset: 4px; }
+.reader-library-find a { display: flex; align-items: center; gap: 6px; padding: 12px; color: #315e45; font-size: 12px; white-space: nowrap; }
+@media(max-width:600px) { .reader-library-find { flex-wrap: wrap; gap: 4px; } .reader-library-find label { flex-basis: 100%; } .reader-library-find a { margin-left: auto; padding: 8px 2px; } }
+.reader-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.reader-actions button,.reader-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #dbe4dc; border-radius: 99px; padding: 9px 14px; background: #fff; color: #245545; font-size: 12px; font-weight: 650; }
+.reader-actions button[aria-pressed=true] { background: #eaf3df; border-color: #99b881; color: #365727; }
+.reader-actions a { margin-left: auto; border-color: transparent; background: transparent; }
+.reader-actions button:hover,.reader-actions a:hover { background: #eff5ee; }
+.reader-status { margin-top: 9px; color: #576e59; font-size: 12px; line-height: 1.7; }
+.reader-share-fallback { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.reader-share-fallback input { width: 100%; min-width: 0; border: 1px solid #cbd8ce; border-radius: 8px; padding: 8px; font-size: 12px; }
+.reader-shelf { margin: 26px 0; padding: 24px; background: #f2f5ed; border: 1px solid #dde5d5; border-radius: 22px; color: #173f33; }
+.reader-shelf-heading { display: flex; gap: 12px; justify-content: space-between; align-items: end; }
+.reader-eyebrow { color: #64816b; font-size: 9px; font-weight: 750; letter-spacing: .15em; }
+.reader-shelf-heading h2 { font-size: 22px; line-height: 1.4; margin: 6px 0 0; font-weight: 700; letter-spacing: -.025em; }
+.reader-shelf-heading>a { display: flex; align-items: center; white-space: nowrap; font-size: 12px; }
+.reader-shelf-tabs { display: flex; align-items: center; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+.reader-shelf-tabs button { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 7px 11px; border: 1px solid transparent; border-radius: 8px; font-size: 12px; color: #556954; }
+.reader-shelf-tabs button[aria-pressed=true] { background: #fff; color: #1b5139; border-color: #d5dfcc; box-shadow: 0 2px 4px #25462a05; }
+.reader-shelf-tabs .reader-clear { margin-left: auto; font-size: 11px; text-decoration: underline; }
+.reader-shelf-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.reader-shelf-item { position: relative; background: #fff; border: 1px solid #e6ebe1; border-radius: 12px; overflow: hidden; }
+.reader-shelf-item a { display: flex; align-items: center; gap: 10px; padding: 8px; padding-right: 28px; height: 100%; }
+.reader-shelf-item img { width: 72px; height: 70px; flex: 0 0 72px; border-radius: 7px; object-fit: cover; }
+.reader-shelf-item strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; line-height: 1.6; }
+.reader-shelf-item small { display: block; font-size: 10px; color: #6b7865; margin-top: 4px; }
+.reader-shelf-item>button { position: absolute; right: 1px; top: 1px; width: 28px; height: 32px; display: grid; place-items: center; color: #73806e; }
+.reader-shelf-item a:hover { background: #fafcf7; }
+.reader-shelf-empty,.reader-local-note { color: #61715a; font-size: 12px; line-height: 1.8; }
+.reader-local-note { margin-top: 12px; font-size: 10px; }
+.reader-more { margin-top: 12px; font-size: 12px; text-decoration: underline; padding: 6px 0; }
+.reader-actions :is(button,a):focus-visible,.reader-shelf :is(button,a):focus-visible { outline: 2px solid #428e62; outline-offset: 3px; }
+@media(max-width:900px) { .reader-shelf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .reader-shelf--compact .reader-shelf-grid { grid-template-columns: 1fr; } }
+@media(max-width:600px) { .reader-shelf { padding: 18px 14px; border-radius: 17px; } .reader-shelf-grid { grid-template-columns: 1fr; } .reader-shelf-heading h2 { font-size: 19px; } .reader-actions { gap: 7px; } .reader-actions button,.reader-actions a { padding: 8px 11px; font-size: 11px; } .reader-actions a { margin-left: 0; } .reader-shelf-item img { width: 80px; flex-basis: 80px; } }

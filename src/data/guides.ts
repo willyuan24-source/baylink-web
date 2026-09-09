@@ -5,6 +5,7 @@ import { settlingInGuides } from './guides-settling-in';
 import { editorialCollections } from './editorial-collections';
 import { weekendGuides } from './guides-weekends';
 import { monthlyDealsGuides } from './guides-deals';
+import { slowWeekendGuides } from './guides-slow-weekends';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
 export type GuideCategory =
@@ -1859,6 +1860,7 @@ export const guides: Guide[] = [
   ...settlingInGuides,
   ...weekendGuides,
   ...monthlyDealsGuides,
+  ...slowWeekendGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>

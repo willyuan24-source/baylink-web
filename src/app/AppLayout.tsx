@@ -93,6 +93,16 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
   const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<string | null>(null);
   const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
+  const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
+  const baybayQuestionSequence = useRef(0);
+  const openBayBay = useCallback((question?: string) => {
+    if (question?.trim()) {
+      setBaybayPendingQuestionId(++baybayQuestionSequence.current);
+      setBaybayPendingQuestion(question.trim().slice(0, 500));
+    }
+    setBaybayCategoryHint(categorySlug);
+    setBaybayPanelOpen(true);
+  }, [categorySlug]);
   const [showCreate, setShowCreate] = useState(false);
   const pendingCreateRef = useRef(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
@@ -296,6 +306,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       document.title = '服务条款｜BAYLINK';
     } else if (path === '/sms-consent') {
       document.title = 'SMS Verification Consent｜BAYLINK';
+    } else if (path === '/') {
+      document.title = 'BAYLINK｜湾区周末灵感、生活攻略与邻里社区';
     } else {
       document.title = 'BAYLINK｜湾区华人本地生活信息平台';
     }
@@ -303,7 +315,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (userIdParam) document.title = '邻居资料｜BAYLINK';
     setPageMetadata({
       title: document.title,
-      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : 'BAYLINK 湾区华人本地生活社区：查找房源、服务与二手资源，发布邻里需求，阅读湾区生活指南。',
+      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : path === '/' ? '从当月活动、免费福利到周末路线和实用工具，在 BAYLINK 发现湾区生活灵感，收藏攻略、询问 BayBay，再与邻里分享。' : 'BAYLINK 湾区华人本地生活社区：查找房源、服务与二手资源，发布邻里需求，阅读湾区生活指南。',
       path,
       noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/reset-password'),
     });
@@ -784,7 +796,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     handleToggleBlockUser, openReportTarget, openChat, requestPostContact, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
-    setBaybayPanelOpen,
+    setBaybayPanelOpen, openBayBay,
     adsRefreshKey, featuredRefreshKey,
     contactRequestRefreshKey, setContactRequestRefreshKey, setPendingContactRequestCount,
   };
@@ -805,7 +817,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       )}
 
       <a href="#scroll-container" className="site-skip-link">跳到主要内容</a>
-      <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate('client')} onAsk={() => setBaybayPanelOpen(true)} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
+      <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate('client')} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
       <div className="site-workspace">
         <header className="site-topbar">
           <Link to="/" className="site-mobile-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="150" height="38" /></Link>
@@ -814,7 +826,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
           <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
         </header>
-        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={() => setBaybayPanelOpen(true)} />}
+        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} />}
 
         <main className="site-main" id="scroll-container" tabIndex={-1}>
            <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
@@ -864,7 +876,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             }
           }}
           pendingQuestion={baybayPendingQuestion}
-          onPendingQuestionConsumed={() => setBaybayPendingQuestion(null)}
+          pendingQuestionId={baybayPendingQuestionId}
+          onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
+          currentPath={location.pathname}
           categoryHint={baybayCategoryHint}
           onNavigate={navigate}
           onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category, opts?.initialIntent)}
@@ -885,7 +899,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           )}
           onWriteRent={() => openCreateFromSlug('client', 'rent')}
           onLocalHelp={() => openCreateFromSlug('client', 'other')}
-          onAskBayBay={() => setBaybayPanelOpen(true)}
+          onAskBayBay={() => openBayBay()}
           onPromoteService={() => openCreateFromSlug('provider', 'other')}
         />
 
@@ -962,9 +976,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             blockedUserIds={blockedUserIds}
             showToast={showToast}
             onAskBayBay={(question: string) => {
-              setBaybayPendingQuestion(question);
+              openBayBay(question);
               setBaybayCategoryHint(selectedPost?.category ? (getSlugFromCategory(selectedPost.category) || undefined) : undefined);
-              setBaybayPanelOpen(true);
             }}
           />
           </Suspense>

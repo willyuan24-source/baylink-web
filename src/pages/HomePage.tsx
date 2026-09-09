@@ -7,8 +7,9 @@ import { CATEGORIES, REGIONS, SERVICE_CATEGORIES } from '../lib/constants';
 import type { PostData } from '../lib/types';
 import { CategoryGuideStrip } from '../components/CategoryGuideStrip';
 import { EditorialCollections } from '../components/EditorialCollections';
-import { MonthlySpotlight } from '../components/MonthlySpotlight';
-import { BayHero, CategoryChip, ChannelShortcuts, EmptyFeed, FeedSwitch, FilterTag, HotRecommend } from '../features/home/HomeSections';
+import { HomeDiscovery } from '../components/HomeDiscovery';
+import { ReadingShelf } from '../components/ReaderLibrary';
+import { CategoryChip, ChannelShortcuts, EmptyFeed, FeedSwitch, FilterTag, HotRecommend } from '../features/home/HomeSections';
 import { RegionExplorer } from '../features/home/RegionExplorer';
 import { PostCard } from '../features/posts/PostCard';
 import { OfficialAds } from '../features/ads/OfficialAds';
@@ -33,7 +34,7 @@ export default function HomePage() {
     regionFilter, setRegionFilter, categoryFilter, feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
     blockedUserIds, navigateToPost, navigateToCategory, handleChannelClick, openCreate, openEditPost, handleDeletePost,
     handleToggleFeature, handleToggleLike, handleToggleBlockUser, openReportTarget, requestPostContact, openUserProfile,
-    setViewingImage, setSharingPost, setBaybayPanelOpen, featuredRefreshKey, openAdDetail, adsRefreshKey,
+    setViewingImage, setSharingPost, openBayBay, featuredRefreshKey, openAdDetail, adsRefreshKey,
   } = useApp();
   const changeView = (next: 'grid' | 'list') => {
     setView(next);
@@ -42,15 +43,16 @@ export default function HomePage() {
   const scrollToFeed = () => document.getElementById('home-feed-section')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   const selectRegion = (region: string) => { setRegionFilter(region); scrollToFeed(); };
   const hasFilters = !!keyword || regionFilter !== '全部' || !!categorySlug;
+  const isDiscovery = !keyword && !categorySlug;
   const clearFilters = () => { setKeyword(''); setRegionFilter('全部'); navigateToCategory('全部'); };
 
   return (
-    <div className="bay-home">
-      {!keyword && !categorySlug && <>
-        <div className="bay-welcome-line"><span><span className="bay-live-dot" /> 在这里，发现你的湾区生活</span><span>SAN FRANCISCO BAY AREA</span></div>
-        <BayHero onPublishNeed={() => openCreate('client')} onBrowseResources={() => { setFeedType('provider'); scrollToFeed(); }} />
-        <ChannelShortcuts onChannel={handleChannelClick} />
-        <MonthlySpotlight />
+    <div className={`bay-home${isDiscovery ? ' bay-home-editorial' : ''}`}>
+      {isDiscovery && <>
+        <HomeDiscovery onAskBayBay={openBayBay} onBrowseCommunity={scrollToFeed} />
+        <ReadingShelf compact />
+        <div className="bay-community-intro"><div><span className="bay-section-kicker">GOOD THINGS HAPPEN LOCALLY</span><h2>再逛逛，身边的生活。</h2><p>找房、好物与本地服务，也可以分享你的需求。</p></div><button type="button" onClick={() => openCreate('client')}><Plus size={15} />分享需求</button></div>
+        <ChannelShortcuts onChannel={handleChannelClick} compact />
       </>}
       {categorySlug && <header className="bay-category-header"><Link to="/"><Compass size={15} /> 发现湾区</Link><span className="bay-section-kicker">LOCAL CONNECTIONS</span><div><h1>{categoryFilter}<span>，就在你身边。</span></h1><button type="button" onClick={() => openCreate('client', categoryFilter === '本地服务' ? undefined : categoryFilter)} className="bay-button-dark"><Plus size={17} />发布需求</button></div><p>从一条信息开始，找到合适的人、物与服务。</p></header>}
       {keyword && !categorySlug && <header className="bay-search-heading"><span className="bay-section-kicker">FIND SOMETHING GOOD</span><h1>找到你需要的，<span>刚刚好。</span></h1></header>}
@@ -71,7 +73,7 @@ export default function HomePage() {
           {feedError && posts.length > 0 && <div role="status" className="bay-feed-error"><p>更新失败，当前保留已加载信息。</p><button type="button" onClick={retryFeed}>重新加载当前结果 <RotateCw size={14} /></button></div>}
           {feedError && posts.length === 0 && !isInitialLoading ? <div className="bay-feed-empty"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={retryFeed} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div>
             : isInitialLoading && posts.length === 0 ? <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'} aria-busy="true" aria-label="内容加载中">{Array.from({ length: 4 }, (_, index) => <PostCardSkeleton key={index} />)}</div>
-              : posts.length === 0 ? <div className="bay-feed-empty"><Compass size={34} /><EmptyFeed feedType={feedType} keyword={keyword} onPublishService={() => openCreate('provider', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onPublishInfo={() => openCreate('client', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onOpenGuides={() => navigate('/guides')} onAskBayBay={() => setBaybayPanelOpen(true)} />{hasFilters && <button type="button" onClick={clearFilters} className="bay-button-text">清除筛选，发现更多 <ArrowRight size={15} /></button>}{hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-button-dark">{isLoadingMore ? '继续查找中…' : '继续查找更多信息'}</button>}</div>
+              : posts.length === 0 ? <div className="bay-feed-empty"><Compass size={34} /><EmptyFeed feedType={feedType} keyword={keyword} onPublishService={() => openCreate('provider', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onPublishInfo={() => openCreate('client', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onOpenGuides={() => navigate('/guides')} onAskBayBay={() => openBayBay()} />{hasFilters && <button type="button" onClick={clearFilters} className="bay-button-text">清除筛选，发现更多 <ArrowRight size={15} /></button>}{hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-button-dark">{isLoadingMore ? '继续查找中…' : '继续查找更多信息'}</button>}</div>
                 : <>
                   <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'}>{posts.map((post) => <PostCard key={post.id} layout={view} post={post} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={() => navigateToPost(post)} onContactClick={() => requestPostContact(post)} onAvatarClick={openUserProfile} onImageClick={(src: string) => setViewingImage(src)} onShare={(item: PostData) => setSharingPost(item)} onLike={handleToggleLike} />)}</div>
                   {!isInitialLoading && hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-load-more">{isLoadingMore ? <><Loader2 size={17} className="animate-spin" />加载中…</> : <>继续发现更多<ArrowRight size={17} /></>}</button>}
@@ -81,9 +83,9 @@ export default function HomePage() {
         </section>
         <aside className="bay-home-rail" aria-label="湾区探索与生活帮助">
           <div className="bay-desktop-explorer"><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></div>
-          <section className="bay-assistant-card"><div className="bay-assistant-header"><img src={BRAND.baybayAvatar} alt="BayBay" width="54" height="54" /><span><strong>嗨，我是 BayBay</strong><small>你的 AI 湾区生活助手</small></span><Sparkles size={19} /></div><h2>生活的小问号，<br />我们一起解开。</h2><p>找信息、理思路、写帖子，<br />从你的一句话开始。</p><div className="bay-assistant-prompts"><button type="button" onClick={() => { setKeyword(''); navigateToCategory('租屋'); scrollToFeed(); }}>想在湾区找个家<ArrowUpRight size={14} /></button><button type="button" onClick={() => openCreate('client')}>帮我整理发布需求<ArrowUpRight size={14} /></button></div><button type="button" onClick={() => setBaybayPanelOpen(true)} className="bay-assistant-cta">和 BayBay 聊聊<ArrowRight size={17} /></button><span className="bay-ai-note">AI 提供参考，重要信息请再核实</span></section>
-          <section className="bay-start-guide"><span className="bay-section-kicker">A LITTLE LOCAL KNOW-HOW</span><h2>新来湾区？从这里开始。</h2><p>把陌生的地方，慢慢过成熟悉的日常。</p>{[{ n: '01', title: '安顿好第一个月', slug: 'bay-area-newcomer-first-month-checklist', text: '从落地到日常，逐步安排' }, { n: '02', title: '找到适合自己的家', slug: 'bay-area-rental-scam-guide', text: '看房、签约前的安全功课' }, { n: '03', title: '摸清湾区的出行方式', slug: 'bay-area-commute-guide', text: '通勤路线和交通选择' }].map((item) => <Link key={item.slug} to={`/guides/${item.slug}`}><span>{item.n}</span><div><strong>{item.title}</strong><small>{item.text}</small></div><ArrowUpRight size={15} /></Link>)}<Link className="bay-guides-all" to="/guides"><BookOpen size={15} /> 查看全部生活指南<ArrowRight size={15} /></Link></section>
-          <EditorialCollections compact />
+          {!isDiscovery && <section className="bay-assistant-card"><div className="bay-assistant-header"><img src={BRAND.baybayAvatar} alt="BayBay" width="54" height="54" /><span><strong>嗨，我是 BayBay</strong><small>你的 AI 湾区生活助手</small></span><Sparkles size={19} /></div><h2>生活的小问号，<br />我们一起解开。</h2><p>找信息、理思路、写帖子，<br />从你的一句话开始。</p><div className="bay-assistant-prompts"><button type="button" onClick={() => openBayBay('我想在湾区找个家。请先问我通勤地点、预算和入住时间，再帮我整理找房范围与看房清单。')}>想在湾区找个家<ArrowUpRight size={14} /></button><button type="button" onClick={() => openBayBay('帮我整理一份清楚的发布需求。请先了解我要找什么、地点、预算和时间，再写成可以核对的帖子草稿。')}>帮我整理发布需求<ArrowUpRight size={14} /></button></div><button type="button" onClick={() => openBayBay()} className="bay-assistant-cta">和 BayBay 聊聊<ArrowRight size={17} /></button><span className="bay-ai-note">AI 提供参考，重要信息请再核实</span></section>}
+          {!isDiscovery && <section className="bay-start-guide"><span className="bay-section-kicker">A LITTLE LOCAL KNOW-HOW</span><h2>新来湾区？从这里开始。</h2><p>把陌生的地方，慢慢过成熟悉的日常。</p>{[{ n: '01', title: '安顿好第一个月', slug: 'bay-area-newcomer-first-month-checklist', text: '从落地到日常，逐步安排' }, { n: '02', title: '找到适合自己的家', slug: 'bay-area-rental-scam-guide', text: '看房、签约前的安全功课' }, { n: '03', title: '摸清湾区的出行方式', slug: 'bay-area-commute-guide', text: '通勤路线和交通选择' }].map((item) => <Link key={item.slug} to={`/guides/${item.slug}`}><span>{item.n}</span><div><strong>{item.title}</strong><small>{item.text}</small></div><ArrowUpRight size={15} /></Link>)}<Link className="bay-guides-all" to="/guides"><BookOpen size={15} /> 查看全部生活指南<ArrowRight size={15} /></Link></section>}
+          {!isDiscovery && <EditorialCollections compact />}
           <section className="bay-start-guide"><span className="bay-section-kicker">A LITTLE EASIER, EVERY DAY</span><h2>顺手解决，生活小事。</h2><p>一句英文、一笔账、一个陌生的单位。</p><Link to="/tools?tool=communication"><span>AI</span><div><strong>中英文沟通助手</strong><small>把你的意思，表达得更清楚</small></div><ArrowUpRight size={15} /></Link><Link to="/tools?tool=units"><span>↔</span><div><strong>日常单位换算</strong><small>华氏、英里、平方英尺，一键换算</small></div><ArrowUpRight size={15} /></Link><Link to="/tools" className="bay-guides-all">打开生活工具箱<ArrowRight size={15} /></Link></section>
           <div className="bay-home-ads"><OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} /></div>
           <div className="bay-community-note"><ShieldCheck size={20} /><p><strong>友好连接，谨慎交易。</strong>手机号验证与资料审核不代表交易担保。看房、面交和付款前，请核实对方信息。</p></div>

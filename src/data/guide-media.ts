@@ -7,6 +7,7 @@ import dealPromos from './deal-promo-assets.json';
 import communityFreebies from './community-freebie-media.json';
 import everydayFreebies from './everyday-freebie-media.json';
 import targetFreebies from './target-freebie-media.json';
+import readingRouteMedia from './reading-route-media.json';
 
 export type GuideImage = {
   src: string;
@@ -46,12 +47,14 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
+  'golden-gate-park-free-car-free-day-guide': ['ggp-conservatory', 'jfk-promenade'],
+  'palo-alto-baylands-family-walk-guide': ['baylands-marsh', 'baylands-gull'],
   'bay-area-freebies-deals-2026-09': ['september-freebies', 'deal-85c-september'],
   'bay-area-rental-scam-guide': ['rental-scam', 'rental-viewing'],
   'rental-lease-checklist-before-signing': ['lease-review', 'moving-handover'],
