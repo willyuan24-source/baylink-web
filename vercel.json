@@ -50,7 +50,7 @@
       "dest": "/category/$1.html"
     },
     {
-      "src": "^/(guides|tools|recommend|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|this-month|tools|recommend|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },
     {

@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import { SLUG_TO_CATEGORY } from './routing';
 
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
+const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/users/:userId" element={<HomePage />} />
         <Route path="/reset-password" element={<HomePage />} />
         <Route path="/guides" element={<GuidesPage />} />
+        <Route path="/this-month" element={<MonthlyPage />} />
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/guides/:slug" element={<GuideDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />

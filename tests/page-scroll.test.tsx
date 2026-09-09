@@ -128,6 +128,16 @@ test('Back waits for lazy content to grow without replacing the saved position w
   assert.equal(scrollY, 960);
 });
 
+test('filtering after an in-page jump preserves position when the router clears the hash', () => {
+  render(<MemoryRouter initialEntries={['/this-month#guide-section-1']}><App /></MemoryRouter>);
+  assert.equal(scrollY, 1200);
+  moveTo(1280);
+  act(() => navigate('/this-month?region=south-bay', { replace: true }));
+  assert.equal(scrollY, 1280, 'removing the old anchor while filtering must not return to the hero');
+  act(() => navigate('/this-month?region=sf#guide-section-2'));
+  assert.equal(scrollY, 1800, 'an explicitly supplied new anchor must still be honored');
+});
+
 test('user scroll intent cancels a pending lazy restoration instead of jumping later', () => {
   render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
   moveTo(950);

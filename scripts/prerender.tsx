@@ -15,6 +15,10 @@ import { SLUG_TO_CATEGORY } from '../src/routing';
 import { SITE_URL, escapeHtml, renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
+import { MonthlyEdition } from '../src/components/MonthlyEdition';
+import { MonthlySpotlight } from '../src/components/MonthlySpotlight';
+import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 
 const outputDir = resolve('dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
@@ -48,6 +52,7 @@ await renderPage({ title: 'BAYLINK｜湾区华人本地生活平台', descriptio
   <section className="px-5 py-8">
     <h1 className="text-3xl font-bold">湾区华人本地生活平台</h1>
     <p className="mt-3 leading-relaxed">{homeDescription}</p>
+    <MonthlySpotlight />
     <nav aria-label="本地信息分类" className="mt-6 flex flex-wrap gap-3">
       {Object.entries(SLUG_TO_CATEGORY).map(([slug, title]) => <a key={slug} href={`/category/${slug}`} className="rounded-xl border border-baylink-border bg-white px-4 py-2">{title}</a>)}
     </nav>
@@ -58,6 +63,7 @@ await renderPage({ title: 'BAYLINK｜湾区华人本地生活平台', descriptio
 ));
 
 await renderPage({ title: '湾区生活指南｜BAYLINK', description: '查看湾区租房、找室友、二手交易、本地服务、交通与城市生活指南，附官方参考资料和行动清单。', path: '/guides' }, <GuidesHome onOpenGuide={noop} />);
+await renderPage(MONTHLY_METADATA, <MonthlyEdition />);
 await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
@@ -67,14 +73,15 @@ for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
     <section className="px-5 py-8"><h1 className="text-2xl font-bold">湾区{category}信息</h1><p className="mt-3">浏览本地资源和邻里需求，联系前请确认地点、价格和时间。</p><h2 className="mt-6 font-bold">行动前，先读一份实用指南</h2><ul className="mt-3 space-y-3">{getGuidesForCategorySlug(slug).map((guide) => <li key={guide.slug}><a href={`/guides/${guide.slug}`} className="text-baylink-green underline">{guide.title}</a><p className="mt-1 text-sm">{guide.summary}</p></li>)}</ul><a className="mt-5 inline-block text-baylink-green underline" href="/guides">全部生活指南</a><p className="mt-3 text-sm text-baylink-muted">最新帖子和地区筛选会在页面加载后显示。</p></section>
   ));
 }
-await renderPage({ title: '编辑推荐｜BAYLINK', description: '按生活场景阅读 BAYLINK 编辑专题、实用指南和本地信息。推荐不构成资质或交易担保。', path: '/recommend' }, <section className="px-5 py-8"><h1 className="text-2xl font-bold">编辑推荐</h1><p className="mt-3">从抵达湾区、寻找帮助到周末探索，按主题找到下一步。</p><EditorialCollections /><a href="/" className="mt-5 inline-block text-baylink-green underline">浏览全部本地信息</a></section>);
+await renderPage({ title: '编辑推荐｜BAYLINK', description: '按生活场景阅读 BAYLINK 编辑专题、实用指南和本地信息。推荐不构成资质或交易担保。', path: '/recommend' }, <section className="px-5 py-8"><h1 className="text-2xl font-bold">编辑推荐</h1><p className="mt-3">从抵达湾区、寻找帮助到周末探索，按主题找到下一步。</p><EditorialCollections /><MonthlySpotlight /><a href="/" className="mt-5 inline-block text-baylink-green underline">浏览全部本地信息</a></section>);
 await renderPage({ title: '服务条款｜BAYLINK', description: '了解 BAYLINK 的账号、信息发布、用户交易、AI 功能和短信验证使用条款。', path: '/terms' }, <TermsView />);
 await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK 账号资料、公开内容、验证手机号、联系方式分享与隐私申请说明。', path: '/privacy' }, <PrivacyPolicyView />);
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
-const sitemapPaths = ['/', '/guides', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
+const sitemapPaths = ['/', '/guides', '/this-month', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
 const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
+guideDates.set('/this-month', MONTHLY_EDITION.checkedAt);
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${guideDates.has(path) ? `<lastmod>${escapeHtml(guideDates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

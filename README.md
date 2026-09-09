@@ -20,7 +20,7 @@ BAYLINK 湾区华人本地信息网站，React 18 + TypeScript + Vite。前端�
 
 ## 页面与部署
 
-`vercel.json` 维护页面路由和安全响应头。`scripts/prerender.tsx` 从指南源数据生成 54 个 HTML 页面及 sitemap。指南正文与法律页面初始 HTML 可直接读取；首页和分类的最新帖子在浏览器加载。
+`vercel.json` 维护页面路由和安全响应头。`scripts/prerender.tsx` 从公开源数据生成 55 个 HTML 页面及 sitemap。指南正文、当月专题与法律页面初始 HTML 可直接读取；首页和分类的最新帖子在浏览器加载。
 
 ## 图文生活指南
 

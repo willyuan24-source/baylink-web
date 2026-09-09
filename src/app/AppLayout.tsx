@@ -276,6 +276,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
     if (postIdParam) return;
     const path = location.pathname;
+    if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);

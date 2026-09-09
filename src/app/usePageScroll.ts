@@ -45,7 +45,8 @@ export function usePageScroll(location: Location) {
     previousPage.current = { pathname: page.pathname, search: page.search, hash: page.hash };
     currentKey.current = pageKey;
     // Typing a search or changing a filter updates the URL without jumping away from the controls.
-    if (!positions.current.has(pageKey) && previous?.pathname === page.pathname && previous.hash === page.hash && previous.search !== page.search) {
+    // Search-param navigation can drop a previous in-page anchor; keep the filter in view then too.
+    if (!positions.current.has(pageKey) && previous?.pathname === page.pathname && (previous.hash === page.hash || !page.hash) && previous.search !== page.search) {
       positions.current.set(pageKey, window.scrollY);
       return;
     }

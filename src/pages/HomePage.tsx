@@ -7,6 +7,7 @@ import { CATEGORIES, REGIONS, SERVICE_CATEGORIES } from '../lib/constants';
 import type { PostData } from '../lib/types';
 import { CategoryGuideStrip } from '../components/CategoryGuideStrip';
 import { EditorialCollections } from '../components/EditorialCollections';
+import { MonthlySpotlight } from '../components/MonthlySpotlight';
 import { BayHero, CategoryChip, ChannelShortcuts, EmptyFeed, FeedSwitch, FilterTag, HotRecommend } from '../features/home/HomeSections';
 import { RegionExplorer } from '../features/home/RegionExplorer';
 import { PostCard } from '../features/posts/PostCard';
@@ -49,6 +50,7 @@ export default function HomePage() {
         <div className="bay-welcome-line"><span><span className="bay-live-dot" /> 在这里，发现你的湾区生活</span><span>SAN FRANCISCO BAY AREA</span></div>
         <BayHero onPublishNeed={() => openCreate('client')} onBrowseResources={() => { setFeedType('provider'); scrollToFeed(); }} />
         <ChannelShortcuts onChannel={handleChannelClick} />
+        <MonthlySpotlight />
       </>}
       {categorySlug && <header className="bay-category-header"><Link to="/"><Compass size={15} /> 发现湾区</Link><span className="bay-section-kicker">LOCAL CONNECTIONS</span><div><h1>{categoryFilter}<span>，就在你身边。</span></h1><button type="button" onClick={() => openCreate('client', categoryFilter === '本地服务' ? undefined : categoryFilter)} className="bay-button-dark"><Plus size={17} />发布需求</button></div><p>从一条信息开始，找到合适的人、物与服务。</p></header>}
       {keyword && !categorySlug && <header className="bay-search-heading"><span className="bay-section-kicker">FIND SOMETHING GOOD</span><h1>找到你需要的，<span>刚刚好。</span></h1></header>}
