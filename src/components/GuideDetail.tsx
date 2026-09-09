@@ -413,8 +413,10 @@ const BlockRenderer = ({
       return <GuideTemplate title={block.title} text={block.text} />;
     case "route":
       return <GuideRouteRenderer block={block} id={id} />;
-    case "link":
-      return <div className="bl-guide-source-link">{/^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p>{block.text}</p></div>;
+    case "link": {
+      const internal = block.url.startsWith('https://www.baylink.us/') ? block.url.slice('https://www.baylink.us'.length) : null;
+      return <div className="bl-guide-source-link">{internal ? <Link to={internal}>{block.title}<ArrowRight size={16} aria-hidden="true" /></Link> : /^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p>{block.text}</p></div>;
+    }
     case "tip":
       return (
         <aside className="bl-guide-tip">

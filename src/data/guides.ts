@@ -6,6 +6,9 @@ import { editorialCollections } from './editorial-collections';
 import { weekendGuides } from './guides-weekends';
 import { monthlyDealsGuides } from './guides-deals';
 import { slowWeekendGuides } from './guides-slow-weekends';
+import { sfAttractionGuides } from './guides-attractions-sf';
+import { regionalAttractionGuides } from './guides-attractions-regions';
+import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
 export type GuideCategory =
@@ -1861,10 +1864,34 @@ export const guides: Guide[] = [
   ...weekendGuides,
   ...monthlyDealsGuides,
   ...slowWeekendGuides,
+  ...sfAttractionGuides,
+  ...regionalAttractionGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
   guides.find((g) => g.slug === slug);
+
+// Make the original city overviews useful gateways into the more detailed outings.
+const cityAttractionRegions: Record<string, string> = {
+  'san-francisco-guide': 'sf',
+  'san-jose-guide': 'south-bay',
+  'south-bay-living-guide': 'south-bay',
+  'peninsula-living-guide': 'peninsula',
+  'east-bay-first-weekend-guide': 'east-bay',
+  'north-bay-car-free-day-guide': 'north-bay',
+};
+for (const guide of guides) {
+  const region = cityAttractionRegions[guide.slug];
+  if (!region) continue;
+  guide.updatedAt = '2026-09-09';
+  const outings = ATTRACTIONS.filter(item => item.region === region && getGuideBySlug(item.slug));
+  guide.blocks.push(
+    { type: 'heading', text: '接下来，挑一份具体景点攻略' },
+    { type: 'paragraph', text: '看点、游玩顺序、交通和预约，按自己的兴趣继续深入。也可以打开景点探索，把喜欢的地方排进出游清单。' },
+    ...outings.map(item => ({ type: 'link' as const, title: item.title, text: item.note, url: `https://www.baylink.us/guides/${item.slug}` })),
+    { type: 'link', title: '按地区找景点', text: '筛选地区、兴趣和门票条件，保存、排序并分享自己的出游清单。', url: `https://www.baylink.us/explore?region=${region}` },
+  );
+}
 
 export const getFeaturedGuides = (limit = 4): Guide[] =>
   guides

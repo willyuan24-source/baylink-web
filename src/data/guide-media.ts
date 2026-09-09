@@ -8,6 +8,8 @@ import communityFreebies from './community-freebie-media.json';
 import everydayFreebies from './everyday-freebie-media.json';
 import targetFreebies from './target-freebie-media.json';
 import readingRouteMedia from './reading-route-media.json';
+import sfAttractionMedia from './attractions-sf-media.json';
+import regionalAttractionMedia from './attractions-regions-media.json';
 
 export type GuideImage = {
   src: string;
@@ -47,12 +49,25 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
+  'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],
+  'oakland-lake-merritt-omca-half-day': ['region-omca', 'region-lake-merritt'],
+  'stanford-cantor-campus-art-walk': ['region-stanford-quad', 'region-cantor'],
+  'filoli-house-garden-day-trip': ['region-filoli-house', 'region-filoli-conservatory'],
+  'san-jose-tech-japantown-day-trip': ['region-tech', 'region-japantown'],
+  'hakone-gardens-saratoga-half-day': ['region-hakone', 'region-hakone-bridge'],
+  'muir-woods-reservation-day-trip': ['region-muir-boardwalk', 'region-muir-redwoods'],
+  'sausalito-waterfront-ferry-half-day': ['region-sausalito', 'region-sausalito-waterfront'],
+  'sf-golden-gate-bridge-fort-point-guide': ['sf-bridge', 'sf-fort-point'],
+  'sf-fishermans-wharf-pier39-guide': ['sf-pier39', 'sf-wharf'],
+  'sf-alcatraz-booking-day-guide': ['sf-alcatraz', 'sf-cellhouse'],
+  'sf-chinatown-north-beach-walk-guide': ['sf-chinatown', 'sf-northbeach'],
+  'sf-palace-fine-arts-marina-guide': ['sf-palace', 'sf-marina'],
   'golden-gate-park-free-car-free-day-guide': ['ggp-conservatory', 'jfk-promenade'],
   'palo-alto-baylands-family-walk-guide': ['baylands-marsh', 'baylands-gull'],
   'bay-area-freebies-deals-2026-09': ['september-freebies', 'deal-85c-september'],

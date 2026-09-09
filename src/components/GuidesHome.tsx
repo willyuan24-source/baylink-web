@@ -100,6 +100,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
         <label><Search size={19} aria-hidden="true" /><input type="search" aria-label="搜索生活指南" placeholder="想去哪、想省什么？试试 Target、亲子、海边…" value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value }, true)} />{query && <button type="button" aria-label="清除指南搜索" onClick={() => updateSearch({ q: '' }, true)}><X size={17} /></button>}</label>
         <Link to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark size={16} />{savedOnly ? '继续发现攻略' : '我的收藏'}</Link>
       </div>
+      {!savedOnly && !query.trim() && <Link to="/explore" className="guide-attraction-entry"><span><strong>按地区，找一个值得出门的地方。</strong><small>景点实拍、游玩攻略与出游清单，旧金山到北湾慢慢发现。</small></span><ArrowUpRight size={23} aria-hidden="true" /></Link>}
       {!query.trim() && (savedOnly || tab === 'all') && <ReadingShelf />}
       {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
       {!savedOnly && !query.trim() && tab === "all" && hero && (

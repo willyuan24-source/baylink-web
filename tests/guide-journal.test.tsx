@@ -36,7 +36,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media'].flatMap(name =>
   JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')) as (GuideImage & { key: string })[]);
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -241,7 +241,7 @@ test('every guide metadata uses its editorial cover while the two original poste
     const cover = getGuideMedia(guide).cover;
     const metadata = getGuideMetadata(guide);
     assert.equal(metadata.image, cover.src);
-    assert.match(metadata.image!, /^\/guides\/(editorial|distinct)\/[a-z0-9-]+\.webp$/);
+    assert.match(metadata.image!, /^\/guides\/(editorial|distinct|attractions)\/[a-z0-9-]+\.webp$/);
     const article = metadata.structuredData!.find(item => item['@type'] === 'Article')!;
     assert.equal(article.image, SITE_URL + cover.src);
     assert.equal(article.headline, guide.title);

@@ -14,6 +14,7 @@ import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
 import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
 import { setPageMetadata } from '../lib/seo';
 import { TOOLS_METADATA } from '../data/tool-catalog';
+import { EXPLORE_METADATA } from '../data/attractions';
 import { Wrench } from 'lucide-react';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
@@ -289,6 +290,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     const path = location.pathname;
     if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
+    if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
       document.title = `${cat}｜BAYLINK`;
@@ -841,8 +843,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
            <Link to="/" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted'}`}>
              <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
            </Link>
-           <Link to="/guides" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'?'tab-bar-active':'text-baylink-muted'}`}>
-             <BookOpen size={20} strokeWidth={tab==='guides'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='guides'?'font-medium':'font-normal'}`}>指南</span>
+           <Link to="/guides" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'||tab==='explore'?'tab-bar-active':'text-baylink-muted'}`}>
+             <BookOpen size={20} strokeWidth={tab==='guides'||tab==='explore'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='guides'||tab==='explore'?'font-medium':'font-normal'}`}>指南</span>
            </Link>
            <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-3 active:scale-95 transition px-1">
              <div className="w-10 h-10 bg-baylink-green rounded-[18px] shadow-rest flex items-center justify-center text-white ring-2 ring-baylink-bg/90"><Plus size={20} strokeWidth={2.5}/></div>

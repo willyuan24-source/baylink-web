@@ -1,5 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowUpRight, Calculator, CheckCheck, Landmark, Ruler, Sparkles, UsersRound } from 'lucide-react';
+import { ArrowUpRight, Calculator, CheckCheck, Landmark, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
 import type { ShowToast } from '../../app/context';
 import { AiCommunicationTool } from './AiCommunicationTool';
@@ -7,10 +7,11 @@ import { UnitConverterTool } from './UnitConverterTool';
 import { RentalBudgetTool, SharedBillTool } from './BudgetTools';
 import { MovingChecklistTool } from './MovingChecklistTool';
 import { LoanCalculatorTool } from './LoanCalculatorTool';
+import { UnitPriceTool } from './UnitPriceTool';
 import './tools.css';
 import './loan-calculator.css';
 
-const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark };
+const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket };
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const [params] = useSearchParams();
   const active = resolveLifeTool(params.get('tool'));
@@ -23,6 +24,7 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
       <div className="tool-workspace-body">
         <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
         <div hidden={active !== 'loan'}><LoanCalculatorTool onToast={onToast} /></div>
+        <div hidden={active !== 'unit-price'}><UnitPriceTool onToast={onToast} /></div>
         <div hidden={active !== 'units'}><UnitConverterTool onToast={onToast} /></div>
         <div hidden={active !== 'split'}><SharedBillTool onToast={onToast} /></div>
         <div hidden={active !== 'budget'}><RentalBudgetTool onToast={onToast} /></div>

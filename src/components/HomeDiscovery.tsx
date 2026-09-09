@@ -105,7 +105,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   return <section className="home-discovery" aria-label="湾区阅读与探索">
     <header className="home-discovery-heading">
       <div><span className="home-discovery-eyebrow"><Compass size={14} aria-hidden="true" /> THE BAY, A LITTLE CLOSER</span><h1>湾区的日常，{locale === 'en' ? ' ' : null}<span>也值得期待。</span></h1><p>从一段散步、一份攻略，开始发现这里的生活。</p></div>
-      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
+      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
     </header>
 
     <div className="home-discovery-intents" role="group" aria-label="你想怎么发现湾区">

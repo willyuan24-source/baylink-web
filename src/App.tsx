@@ -13,6 +13,7 @@ import { SLUG_TO_CATEGORY } from './routing';
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
 const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
+const ExplorePage = lazy(() => import('./pages/ExplorePage'));
 const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const RecommendPage = lazy(() => import('./pages/RecommendPage'));
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/this-month" element={<MonthlyPage />} />
         <Route path="/tools" element={<ToolsPage />} />
+        <Route path="/explore" element={<ExplorePage />} />
         <Route path="/guides/:slug" element={<GuideDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<MessagesPage />} />

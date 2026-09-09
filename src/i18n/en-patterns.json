@@ -89,5 +89,11 @@
   "这是活动日期提醒，不代表全天开放、预约或购票。具体场次、年龄限制与最新变动请查看主办方。\n{0}\n{1}\n官方详情：{2}\nBAYLINK 核对日期：{3}": "This is a date reminder, not an all-day opening time, reservation or ticket. Check the organizer for sessions, age limits and changes.\n{0}\n{1}\nOfficial details: {2}\nChecked by BAYLINK: {3}",
   "自己补充\n{0}": "Your own tasks\n{0}",
   "搬家清单\n已完成 {0} / {1} 项\n\n{2}": "Moving checklist\nCompleted {0} / {1} tasks\n\n{2}",
-  "已完成 {0} / {1} 项": "Completed {0} / {1} tasks"
+  "已完成 {0} / {1} 项": "Completed {0} / {1} tasks",
+  "阅读攻略：{0}": "Read guide: {0}",
+  "加入清单：{0}": "Add to outing: {0}",
+  "移出清单：{0}": "Remove from outing: {0}",
+  "上移：{0}": "Move up: {0}",
+  "下移：{0}": "Move down: {0}",
+  "移除：{0}": "Remove: {0}"
 }
