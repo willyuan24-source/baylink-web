@@ -1,21 +1,21 @@
 // 用户公开资料弹层（湾区生活名片）
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  X, MapPin, Instagram, ExternalLink, Shield, ChevronRight, Flag, UserX,
+  X, Shield, ChevronRight, Flag, UserX, Sparkles,
 } from 'lucide-react';
 import { api } from '../../lib/api';
-import Avatar from '../../components/Avatar';
 import { ModalShell } from '../../components/ui/Modal';
 import { ProfileCardSkeleton } from '../../components/ui/Skeleton';
-import { TrustBadge } from '../../components/TrustBadge';
-import { TagPills } from '../../components/TagPills';
 import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { normalizePostImages } from '../../lib/constants';
 import {
-  getJoinDays, formatProfileLocation, normalizeInstagramUrl, normalizeWebsiteUrl,
+  getJoinDays,
   getPhoneVerificationTrustLabel, getOfficialTypeLabel, friendlyErrorMessage,
 } from '../../lib/format';
 import type { PublicUserProfile, UserData } from '../../lib/types';
+import { ProfileIdentity, ProfileShareButton } from '../profile/ProfileIdentity';
+import { commonProfileInterests } from '../profile/profile-personality';
+import { translateText, useLocale } from '../../i18n/locale';
 
 export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast, onReportUser, onToggleBlockUser, blockedUserIds, onLoginNeeded }: {
   userId: string;
@@ -29,6 +29,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   blockedUserIds?: string[];
   onLoginNeeded?: () => void;
 }) => {
+  const locale = useLocale();
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -85,20 +86,12 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   };
 
   const joinDays = profile ? getJoinDays(profile) : null;
-  const locationLine = profile ? formatProfileLocation(profile.area, profile.city) : '';
-  const profileTags = profile?.profileTags?.filter(Boolean) || [];
-  const interests = profile?.interests?.filter(Boolean) || [];
-  const hasTags = profileTags.length > 0 || interests.length > 0;
-  const instaUrl = profile?.socialLinks?.instagram ? normalizeInstagramUrl(profile.socialLinks.instagram) : null;
-  const websiteUrl = profile?.website ? normalizeWebsiteUrl(profile.website) : null;
-  const xhsRaw = profile?.xiaohongshu?.trim() || '';
-  const xhsUrl = xhsRaw && /^https?:\/\//i.test(xhsRaw) ? xhsRaw : null;
-  const hasSocial = !!(instaUrl || websiteUrl || xhsRaw);
+  const commonInterests = currentUser?.id !== profile?.id ? commonProfileInterests(currentUser?.interests, profile?.interests) : [];
   const isBlocked = profile ? (blockedUserIds ? blockedUserIds.includes(profile.id) : profile.viewerHasBlockedUser) : false;
 
   return (
     <ModalShell onClose={onClose} label="湾区生活名片" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
-      <div className="flex max-h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[86vh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-3">
           <h3 className="text-base font-bold text-baylink-text">湾区生活名片</h3>
           <button type="button" onClick={onClose} aria-label="关闭用户名片" className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
@@ -110,83 +103,17 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
             <p className="py-12 text-center text-sm text-baylink-muted">无法查看该用户资料</p>
           ) : (
             <>
-              <div className="rounded-2xl border border-baylink-green/15 bg-gradient-to-br from-baylink-green/[0.06] via-white to-[#FFF8F0]/80 p-4">
-                <div className="flex items-start gap-3">
-                  <Avatar src={profile.avatar} name={profile.nickname} size={16} className="shrink-0 ring-2 ring-white" />
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-lg font-bold text-baylink-text leading-tight" translate="no">{profile.nickname}</h4>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                      {!isPlatformAdmin(profile) && (
-                        <span className="rounded-md bg-baylink-section px-1.5 py-px text-[11px] font-bold text-baylink-muted">社区居民</span>
-                      )}
-                      <TrustBadge user={profile} size={11} showText />
-                    </div>
-                    {isPlatformAdmin(profile) && (
-                      <p className="mt-2 text-[11px] leading-relaxed text-emerald-800/90">
-                        该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。
-                      </p>
-                    )}
-                    {locationLine && (
-                      <p className="mt-1.5 flex items-center gap-1 text-[11px] text-baylink-text-secondary">
-                        <MapPin size={11} className="shrink-0 text-baylink-green/70" />
-                        <span className="truncate">{locationLine}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <p className="mt-3 text-left text-[13px] leading-relaxed text-baylink-text-secondary">
-                  {profile.bio?.trim() ? <span translate="no">{profile.bio.trim()}</span> : 'TA 还没介绍自己，先看看最近发布吧。'}
-                </p>
-              </div>
-
-              {hasTags && (
-                <div className="mt-3 space-y-2.5 rounded-xl border border-baylink-border/40 bg-white p-3">
-                  {profileTags.length > 0 && (
-                    <div>
-                      <p className="mb-1.5 text-[11px] font-semibold text-baylink-muted">身份标签</p>
-                      <TagPills tags={profileTags} variant="profile" />
-                    </div>
-                  )}
-                  {interests.length > 0 && (
-                    <div>
-                      <p className="mb-1.5 text-[11px] font-semibold text-baylink-muted">兴趣</p>
-                      <TagPills tags={interests} variant="interest" />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {hasSocial && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {instaUrl && (
-                    <a href={instaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
-                      <Instagram size={12} className="text-[#E1306C]" /> Instagram
-                    </a>
-                  )}
-                  {xhsRaw && (
-                    xhsUrl ? (
-                      <a href={xhsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
-                        小红书
-                      </a>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary">
-                        小红书 · <span translate="no">{xhsRaw}</span>
-                      </span>
-                    )
-                  )}
-                  {websiteUrl && (
-                    <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-white px-2.5 py-1 text-[11px] font-medium text-baylink-text-secondary hover:border-baylink-green/30">
-                      <ExternalLink size={11} /> 个人网站
-                    </a>
-                  )}
-                </div>
-              )}
+              <ProfileIdentity profile={profile}>
+                <ProfileShareButton userId={profile.id} nickname={profile.nickname} />
+              </ProfileIdentity>
+              {isPlatformAdmin(profile) && <p className="profile-admin-note">该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。</p>}
+              {commonInterests.length > 0 && <section className="profile-common-interests" aria-label="你们的共同兴趣"><h3><Sparkles size={15} />你们的共同兴趣</h3><p>从共同喜欢的事，开始一段对话。</p><div>{commonInterests.map(interest => <span key={interest} translate="no">{interest}</span>)}</div></section>}
 
               <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[11px] text-baylink-text-secondary">
                 <p className="font-semibold text-baylink-text mb-2 text-xs">信任信息</p>
                 <div className="space-y-1.5">
-                  <p>已加入 BAYLINK <span className="font-medium text-baylink-text">{joinDays ?? '—'}</span> 天</p>
-                  <p>发布 <span className="font-medium text-baylink-text">{profile.postCount}</span> 条本地信息</p>
+                  {joinDays != null && <p>{translateText('已加入 BAYLINK {days} 天', locale).replace('{days}', String(joinDays))}</p>}
+                  <p>{translateText('已发布 {count} 条本地信息', locale).replace('{count}', String(profile.postCount))}</p>
                   <p>{getPhoneVerificationTrustLabel(profile.isPhoneVerified)}</p>
                   {profile.isOfficialVerified && (
                     <>

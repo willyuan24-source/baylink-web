@@ -14,7 +14,7 @@ export function parseStoredUser(raw: string | null): UserData | null {
       || !user.id.trim() || !user.token.trim()) return null;
     // Old sessions may omit profile fields. Present fields must be safe for React
     // text rendering and the profile's string/array operations before restoring.
-    if (!optionalStringsAreValid(user, ['email', 'nickname', 'contactValue', 'bio', 'avatar', 'area', 'city', 'website', 'xiaohongshu', 'phone'])) return null;
+    if (!optionalStringsAreValid(user, ['email', 'nickname', 'contactValue', 'bio', 'avatar', 'area', 'city', 'website', 'xiaohongshu', 'phone', 'profileTheme', 'statusText', 'coverImage'])) return null;
     if (['profileTags', 'interests'].some((field) => user[field] != null
       && (!Array.isArray(user[field]) || !user[field].every((item: unknown) => typeof item === 'string')))) return null;
     if (user.socialLinks != null && (!isRecord(user.socialLinks)

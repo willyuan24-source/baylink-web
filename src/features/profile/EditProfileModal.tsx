@@ -1,12 +1,14 @@
 // 编辑资料全屏弹层 + 手机号验证弹窗 + 标签选择字段
 import React, { useRef, useState } from 'react';
-import { X, ShieldCheck, Camera, Smartphone, Check, Loader2 } from 'lucide-react';
+import { X, ShieldCheck, Camera, Smartphone, Check, Loader2, ImagePlus, LockKeyhole, Globe2, Palette, Trash2 } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api, safeParse } from '../../lib/api';
-import Avatar from '../../components/Avatar';
 import { INTEREST_PRESETS, PROFILE_TAG_PRESETS, REGIONS } from '../../lib/constants';
 import { friendlyErrorMessage, getPhoneVerificationTrustLabel, validateContactValue } from '../../lib/format';
-import { compressImageFile, fileToDataUrl, UnsupportedImageError } from '../../utils/imageCompression';
+import { UnsupportedImageError } from '../../utils/imageCompression';
+import { prepareProfileImage } from './profile-images';
+import { ProfileIdentity } from './ProfileIdentity';
+import { PROFILE_THEMES, resolveProfileTheme } from './profile-personality';
 
 const ProfileTagField = ({
   label,
@@ -57,6 +59,7 @@ const ProfileTagField = ({
           <button
             key={p}
             type="button"
+            aria-pressed={tags.includes(p)}
             onClick={() => toggle(p)}
             className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
               tags.includes(p)
@@ -74,6 +77,7 @@ const ProfileTagField = ({
             <button
               key={t}
               type="button"
+              translate="no"
               onClick={() => onChange(tags.filter((x) => x !== t))}
               className="rounded-full bg-baylink-green/15 px-2 py-0.5 text-[11px] text-baylink-green"
             >
@@ -174,160 +178,86 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
 };
 
 export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
-    const [form, setForm] = useState({
-      nickname: user.nickname || '',
-      contactType: user.contactType || 'wechat',
-      contactValue: user.contactValue || '',
-      bio: user.bio || '',
-      avatar: user.avatar || '',
-      area: user.area || '',
-      city: user.city || '',
-      profileTags: user.profileTags || [],
-      interests: user.interests || [],
-      website: user.website || '',
-      xiaohongshu: user.xiaohongshu || '',
-      socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' },
-    });
-    const [saving, setSaving] = useState(false);
-    const [showVerify, setShowVerify] = useState(false);
-    const [avatarProcessing, setAvatarProcessing] = useState(false);
-    const avatarProcessingRef = useRef(false);
-    const savingRef = useRef(false);
+  const [form, setForm] = useState({
+    nickname: user.nickname || '', contactType: user.contactType || 'wechat', contactValue: user.contactValue || '',
+    bio: user.bio || '', statusText: user.statusText || '', avatar: user.avatar || '', coverImage: user.coverImage || '',
+    profileTheme: resolveProfileTheme(user.profileTheme), area: user.area || '', city: user.city || '',
+    profileTags: (user.profileTags || []) as string[], interests: (user.interests || []) as string[],
+    website: user.website || '', xiaohongshu: user.xiaohongshu || '',
+    socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' },
+  });
+  const [saving, setSaving] = useState(false);
+  const [showVerify, setShowVerify] = useState(false);
+  const [processing, setProcessing] = useState<'avatar' | 'coverImage' | null>(null);
+  const processingRef = useRef(false);
+  const savingRef = useRef(false);
+  const [saveError, setSaveError] = useState('');
 
-    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (avatarProcessingRef.current || savingRef.current) return;
-        const input = e.target;
-        const file = input.files?.[0];
-        if (!file) return;
-        avatarProcessingRef.current = true;
-        setAvatarProcessing(true);
-        try {
-            const { file: compressedFile } = await compressImageFile(file, { maxWidth: 768, maxHeight: 768, quality: 0.86 });
-            const dataUrl = await fileToDataUrl(compressedFile);
-            setForm((p) => ({ ...p, avatar: dataUrl }));
-        } catch (err) {
-            console.warn('[avatar] image process failed', err);
-            showToast(err instanceof UnsupportedImageError ? err.message : '图片处理失败', 'error');
-        } finally {
-            avatarProcessingRef.current = false;
-            setAvatarProcessing(false);
-            input.value = '';
-        }
-    };
-
-    const handleSave = async () => {
-      if (savingRef.current) return;
-      if (avatarProcessingRef.current) return showToast('头像还在处理中，请稍候再保存。', 'info');
-      if (!form.nickname.trim()) return showToast('请填写昵称', 'error');
-      const contactChanged = form.contactType !== (user.contactType || 'wechat') || form.contactValue !== (user.contactValue || '');
-      if (contactChanged || form.contactValue.trim()) {
-        const contactError = validateContactValue(form.contactType, form.contactValue);
-        if (contactError) return showToast(contactError, 'error');
-      }
-      savingRef.current = true;
-      setSaving(true);
-      try {
-        const { contactType, contactValue, ...publicFields } = form;
-        const updated = await api.updateProfile({ ...publicFields, nickname: form.nickname.trim(),
-          ...(contactChanged || contactValue.trim() ? { contactType, contactValue: contactValue.trim() } : {}) });
-        const newUserData = { ...user, ...updated };
-        localStorage.setItem('currentUser', JSON.stringify(newUserData));
-        onUpdate(newUserData);
-        onClose();
-        showToast('资料已更新', 'success');
-      } catch (e: any) {
-        showToast(friendlyErrorMessage(e, '保存失败'), 'error');
-      } finally {
-        savingRef.current = false;
-        setSaving(false);
-      }
-    };
-
-    return (
-        <ModalShell onClose={onClose} closeOnBackdrop={false} label="编辑资料" className="fixed inset-0 z-[90] bg-[#FFF8F0] flex flex-col animate-in slide-in-from-bottom duration-200">
-             <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md pt-safe-top">
-                <button onClick={onClose} className="text-gray-500 hover:text-gray-900 font-bold text-sm">取消</button><span className="font-bold text-lg text-gray-900">编辑资料</span><button onClick={handleSave} disabled={saving || avatarProcessing} className="text-green-700 font-bold text-sm disabled:opacity-50">{avatarProcessing ? '头像处理中…' : saving ? '保存中...' : '完成'}</button>
-             </div>
-             <div className="flex-1 p-5 overflow-y-auto pb-8">
-                 <div className="flex flex-col items-center mb-6"><div className="relative group"><Avatar src={form.avatar} name={form.nickname} size={24} /><label htmlFor="edit-profile-avatar-input" className="absolute bottom-0 right-0 bg-gray-900 text-white p-3 rounded-full cursor-pointer shadow-xl hover:scale-110 transition border-2 border-white">{avatarProcessing ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18}/>}<input id="edit-profile-avatar-input" type="file" accept="image/*" disabled={avatarProcessing || saving} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" onChange={handleAvatarUpload} aria-label="上传头像" /></label></div>{avatarProcessing && <p role="status" className="mt-2 text-xs text-baylink-muted">正在处理头像，请稍候再保存。</p>}</div>
-
-                 <div className="bg-white p-4 rounded-2xl shadow-sm mb-5 flex items-center justify-between border border-blue-50">
-                     <div className="flex items-center gap-3">
-                         <div className={`p-2 rounded-full ${user.isPhoneVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}><Smartphone size={20}/></div>
-                         <div><div className="font-bold text-sm text-gray-900">手机号验证</div><div className="text-[11px] text-baylink-muted">{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</div></div>
-                     </div>
-                     {!user.isPhoneVerified ? (
-                         <button onClick={() => setShowVerify(true)} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-md hover:bg-blue-700 transition">验证手机号</button>
-                     ) : (
-                         <div className="text-blue-600 text-xs font-bold flex items-center gap-1"><Check size={14}/> 已验证</div>
-                     )}
-                 </div>
-
-                  <div className="space-y-5">
-                      <div className="rounded-2xl border border-baylink-border bg-white p-4 space-y-2">
-                        <label htmlFor="profile-contact-type" className="block text-xs font-semibold">账号联系方式类型</label>
-                        <select id="profile-contact-type" value={form.contactType} onChange={(e) => setForm({ ...form, contactType: e.target.value })} className="w-full rounded-xl border border-baylink-border p-3 text-sm">
-                          <option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option>
-                        </select>
-                        <label htmlFor="profile-contact-value" className="block text-xs font-semibold">{form.contactType === 'phone' ? '电话号码' : form.contactType === 'email' ? '联系邮箱' : '微信号'}</label>
-                        <input id="profile-contact-value" type={form.contactType === 'phone' ? 'tel' : form.contactType === 'email' ? 'email' : 'text'} value={form.contactValue} onChange={(e) => setForm({ ...form, contactValue: e.target.value })} className="w-full rounded-xl border border-baylink-border p-3 text-sm" />
-                        <p className="text-[11px] leading-relaxed text-baylink-muted">不会显示在公开资料中。分享账号联系方式时使用；每条帖子的联系方式可在发帖时单独设置。</p>
-                      </div>
-                     <div><label className="block text-xs font-bold text-gray-500 mb-2 ml-1">昵称</label><input className="w-full p-4 bg-white rounded-2xl border-none outline-none text-sm font-bold text-gray-900 shadow-sm focus:ring-2 focus:ring-green-500/20 transition" value={form.nickname} onChange={e => setForm({...form, nickname: e.target.value})} /></div>
-                     <div>
-                       <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">一句话介绍</label>
-                       <p className="mb-2 text-[11px] text-baylink-muted ml-1">让别人快速了解你是谁、在找什么或提供什么</p>
-                       <textarea className="w-full p-4 bg-white rounded-2xl border-none outline-none text-sm h-24 resize-none font-medium text-gray-700 shadow-sm focus:ring-2 focus:ring-green-500/20 transition" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="例如：在南湾工作三年，常发租房和二手信息…" />
-                     </div>
-                     <div className="grid grid-cols-2 gap-3">
-                       <div>
-                         <label className="block text-xs font-bold text-gray-500 mb-2 ml-1">所在区域</label>
-                         <select className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })}>
-                           <option value="">选择大区</option>
-                           {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                         </select>
-                       </div>
-                       <div>
-                         <label className="block text-xs font-bold text-gray-500 mb-2 ml-1">所在城市</label>
-                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="如 Millbrae" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
-                       </div>
-                     </div>
-                     <ProfileTagField
-                       label="身份标签"
-                       hint="选择最能代表你身份的标签，最多 8 个"
-                       presets={PROFILE_TAG_PRESETS}
-                       tags={form.profileTags}
-                       max={8}
-                       onChange={(profileTags) => setForm((p) => ({ ...p, profileTags }))}
-                       showToast={showToast}
-                     />
-                     <ProfileTagField
-                       label="兴趣标签"
-                       hint="分享你的兴趣，方便附近用户认识你，最多 12 个"
-                       presets={INTEREST_PRESETS}
-                       tags={form.interests}
-                       max={12}
-                       onChange={(interests) => setForm((p) => ({ ...p, interests }))}
-                       showToast={showToast}
-                     />
-                     <div className="space-y-3 pt-1">
-                       <p className="text-xs font-bold text-gray-500 ml-1">社交链接</p>
-                       <div>
-                         <label className="block text-[11px] text-baylink-muted mb-1 ml-1">Instagram</label>
-                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="用户名或完整链接" value={form.socialLinks.instagram} onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, instagram: e.target.value } })} />
-                       </div>
-                       <div>
-                         <label className="block text-[11px] text-baylink-muted mb-1 ml-1">小红书</label>
-                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="主页链接或 ID" value={form.xiaohongshu} onChange={e => setForm({ ...form, xiaohongshu: e.target.value })} />
-                       </div>
-                       <div>
-                         <label className="block text-[11px] text-baylink-muted mb-1 ml-1">个人网站</label>
-                         <input className="w-full p-3 bg-white rounded-xl text-sm shadow-sm outline-none focus:ring-2 focus:ring-green-500/20" placeholder="https://..." value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
-                       </div>
-                     </div>
-                 </div>
-             </div>
-             {showVerify && <PhoneVerificationModal user={user} onClose={() => setShowVerify(false)} onVerified={onUpdate} showToast={showToast} />}
-        </ModalShell>
-    );
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, kind: 'avatar' | 'coverImage') => {
+    if (processingRef.current || savingRef.current) return;
+    const input = e.target;
+    const file = input.files?.[0];
+    if (!file) return;
+    processingRef.current = true; setProcessing(kind);
+    try { const dataUrl = await prepareProfileImage(file, kind); setForm(p => ({ ...p, [kind]: dataUrl })); }
+    catch (err) { showToast(err instanceof UnsupportedImageError ? err.message : '图片处理失败，请换一张照片。', 'error'); }
+    finally { processingRef.current = false; setProcessing(null); input.value = ''; }
+  };
+  const handleSave = async () => {
+    if (savingRef.current) return;
+    if (processingRef.current) return showToast('图片还在处理中，请稍候再保存。', 'info');
+    if (!form.nickname.trim()) return showToast('请填写昵称', 'error');
+    const contactChanged = form.contactType !== (user.contactType || 'wechat') || form.contactValue !== (user.contactValue || '');
+    if (contactChanged || form.contactValue.trim()) {
+      const error = validateContactValue(form.contactType, form.contactValue);
+      if (error) return showToast(error, 'error');
+    }
+    savingRef.current = true; setSaving(true); setSaveError('');
+    try {
+      const { contactType, contactValue, ...publicFields } = form;
+      const updated = await api.updateProfile({ ...publicFields, nickname: form.nickname.trim(), statusText: form.statusText.trim(),
+        ...(contactChanged || contactValue.trim() ? { contactType, contactValue: contactValue.trim() } : {}) });
+      const newUserData = { ...user, ...updated };
+      try { localStorage.setItem('currentUser', JSON.stringify(newUserData)); } catch { /* The server has saved the profile; session state still updates. */ }
+      onUpdate(newUserData); onClose(); showToast('资料已更新', 'success');
+    } catch (error) {
+      const message = friendlyErrorMessage(error, '保存失败。你的修改仍在这里，可以重试。');
+      setSaveError(message); showToast(message, 'error');
+    } finally { savingRef.current = false; setSaving(false); }
+  };
+  const busy = saving || !!processing;
+  return <ModalShell onClose={() => { if (!savingRef.current) onClose(); }} closeOnBackdrop={false} label="编辑资料" className="profile-editor-modal fixed inset-0 z-[90] flex flex-col">
+    <header className="profile-editor-header pt-safe-top"><button type="button" onClick={onClose} disabled={saving}>取消</button><div><strong>编辑你的名片</strong><span>让别人看见你的生活方式</span></div><button type="button" className="profile-editor-save" onClick={handleSave} disabled={busy}>{processing ? '图片处理中…' : saving ? '保存中...' : '保存资料'}</button></header>
+    <div className="profile-editor-scroll"><div className="profile-editor-layout">
+      <aside className="profile-editor-preview"><p className="profile-editor-eyebrow"><Globe2 size={14} />别人看到的名片</p><ProfileIdentity profile={{ ...user, ...form }} preview /><p className="profile-preview-note">预览随编辑更新，保存后才会公开。</p></aside>
+      <fieldset disabled={saving} className="profile-editor-fields">
+        {saveError && <p role="alert" className="profile-editor-error">{saveError}</p>}
+        <section className="profile-editor-section"><div className="profile-section-heading"><Palette size={19} /><div><h2>你的视觉风格</h2><p>选一种颜色，再加上自己的照片。</p></div></div>
+          <fieldset disabled={busy}><legend>名片主题</legend><div className="profile-theme-options">{PROFILE_THEMES.map(theme => <button key={theme.id} type="button" aria-pressed={form.profileTheme === theme.id} onClick={() => setForm(p => ({ ...p, profileTheme: theme.id }))} className={`profile-theme-option profile-theme-${theme.id}`}><span className="profile-theme-swatch">{form.profileTheme === theme.id && <Check size={18} />}</span><strong>{theme.title}</strong><small>{theme.description}</small></button>)}</div></fieldset>
+          <div className="profile-image-controls">{(['avatar', 'coverImage'] as const).map(kind => <div key={kind}><label className="profile-upload-control">{processing === kind ? <Loader2 size={17} className="animate-spin" /> : kind === 'avatar' ? <Camera size={17} /> : <ImagePlus size={17} />}<span>{kind === 'avatar' ? '上传头像' : '上传封面'}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" aria-label={kind === 'avatar' ? '上传头像' : '上传封面'} disabled={busy} onChange={event => void handleImageUpload(event, kind)} /></label>{form[kind] && <button type="button" className="profile-image-remove" disabled={busy} onClick={() => setForm(p => ({ ...p, [kind]: '' }))}><Trash2 size={12} />{kind === 'avatar' ? '移除头像' : '移除封面'}</button>}</div>)}</div>
+          <p className="profile-field-hint">照片不超过 10MB；封面建议用横图，主体放在中央。图片会自动缩小后上传。</p>{processing && <p role="status" className="profile-field-hint">正在处理照片，请稍候再保存。</p>}
+        </section>
+        <section className="profile-editor-section"><div className="profile-section-heading"><Globe2 size={19} /><div><h2>公开介绍</h2><p>这些内容会显示在你的名片上。</p></div></div>
+          <div className="profile-editor-field"><label htmlFor="profile-nickname">昵称</label><input id="profile-nickname" maxLength={30} value={form.nickname} onChange={event => setForm(p => ({ ...p, nickname: event.target.value }))} /></div>
+          <div className="profile-editor-field"><label htmlFor="profile-status">此刻的生活状态</label><input id="profile-status" maxLength={60} placeholder="最近在找一起徒步的朋友…" value={form.statusText} onChange={event => setForm(p => ({ ...p, statusText: event.target.value }))} /><div className="profile-field-meta"><span>一句近况，也可以是一个聊天话题。</span><span>{form.statusText.length}/60</span></div></div>
+          <div className="profile-editor-field"><label htmlFor="profile-bio">一句话介绍</label><textarea id="profile-bio" maxLength={200} rows={3} placeholder="例如：住在半岛，喜欢咖啡、摄影和周末海边散步。" value={form.bio} onChange={event => setForm(p => ({ ...p, bio: event.target.value }))} /><small>{form.bio.length}/200</small></div>
+          <div className="profile-field-grid"><div className="profile-editor-field"><label htmlFor="profile-area">所在区域</label><select id="profile-area" value={form.area} onChange={event => setForm(p => ({ ...p, area: event.target.value }))}><option value="">选择大区</option>{REGIONS.map(region => <option key={region} value={region}>{region}</option>)}</select></div><div className="profile-editor-field"><label htmlFor="profile-city">所在城市</label><input id="profile-city" maxLength={60} placeholder="如 Millbrae" value={form.city} onChange={event => setForm(p => ({ ...p, city: event.target.value }))} /></div></div>
+          <ProfileTagField label="身份标签" hint="选择最能代表你身份的标签，最多 8 个" presets={PROFILE_TAG_PRESETS} tags={form.profileTags} max={8} onChange={profileTags => setForm(p => ({ ...p, profileTags }))} showToast={showToast} />
+          <ProfileTagField label="兴趣标签" hint="分享你的兴趣，方便附近用户认识你，最多 12 个" presets={INTEREST_PRESETS} tags={form.interests} max={12} onChange={interests => setForm(p => ({ ...p, interests }))} showToast={showToast} />
+        </section>
+        <section className="profile-editor-section"><div className="profile-section-heading"><Globe2 size={19} /><div><h2>公开社交链接</h2><p>愿意分享的主页，让同好更容易找到你。</p></div></div>
+          <div className="profile-editor-field"><label htmlFor="profile-instagram">Instagram</label><input id="profile-instagram" placeholder="用户名或完整链接" value={form.socialLinks.instagram} onChange={event => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, instagram: event.target.value } }))} /></div>
+          <div className="profile-editor-field"><label htmlFor="profile-linkedin">LinkedIn</label><input id="profile-linkedin" placeholder="https://www.linkedin.com/in/..." value={form.socialLinks.linkedin} onChange={event => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, linkedin: event.target.value } }))} /></div>
+          <div className="profile-field-grid"><div className="profile-editor-field"><label htmlFor="profile-xhs">小红书</label><input id="profile-xhs" placeholder="主页链接或 ID" value={form.xiaohongshu} onChange={event => setForm(p => ({ ...p, xiaohongshu: event.target.value }))} /></div><div className="profile-editor-field"><label htmlFor="profile-website">个人网站</label><input id="profile-website" placeholder="https://..." value={form.website} onChange={event => setForm(p => ({ ...p, website: event.target.value }))} /></div></div>
+        </section>
+        <section className="profile-editor-section profile-editor-private" aria-label="私人账号设置"><div className="profile-section-heading"><LockKeyhole size={19} /><div><h2>私人账号设置</h2><p>以下信息不会出现在公开名片上。</p></div></div>
+          <div className="profile-phone-verification"><Smartphone size={21} /><div><strong>手机号验证</strong><p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p></div>{!user.isPhoneVerified ? <button type="button" onClick={() => setShowVerify(true)}>验证手机号</button> : <span><Check size={14} />已验证</span>}</div>
+          <div className="profile-editor-field"><label htmlFor="profile-contact-type">账号联系方式类型</label><select id="profile-contact-type" value={form.contactType} onChange={event => setForm(p => ({ ...p, contactType: event.target.value }))}><option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option></select></div>
+          <div className="profile-editor-field"><label htmlFor="profile-contact-value">{form.contactType === 'phone' ? '电话号码' : form.contactType === 'email' ? '联系邮箱' : '微信号'}</label><input id="profile-contact-value" type={form.contactType === 'phone' ? 'tel' : form.contactType === 'email' ? 'email' : 'text'} value={form.contactValue} onChange={event => setForm(p => ({ ...p, contactValue: event.target.value }))} /></div>
+          <p className="profile-field-hint">不会显示在公开资料中。分享账号联系方式时使用；每条帖子的联系方式可在发帖时单独设置。</p>
+        </section>
+      </fieldset>
+    </div></div>
+    {showVerify && <PhoneVerificationModal user={user} onClose={() => setShowVerify(false)} onVerified={onUpdate} showToast={showToast} />}
+  </ModalShell>;
 };

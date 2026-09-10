@@ -1,11 +1,13 @@
 // 共享类型定义：App 各页面 / 组件 / api client 共用
 export type Role = 'user' | 'admin';
 export type PostType = 'client' | 'provider';
+export type ProfileTheme = 'bay' | 'sunset' | 'redwood' | 'lavender';
 
 export interface UserData {
   id: string; email: string; nickname: string; role: Role;
   contactType: 'phone'|'wechat'|'email'; contactValue: string; isBanned: boolean; token?: string;
   bio?: string; avatar?: string;
+  profileTheme?: ProfileTheme; statusText?: string; coverImage?: string;
   area?: string; city?: string;
   profileTags?: string[]; interests?: string[];
   website?: string; xiaohongshu?: string;
@@ -62,6 +64,9 @@ export type PublicUserProfile = {
   nickname: string;
   avatar?: string;
   bio?: string;
+  profileTheme?: ProfileTheme;
+  statusText?: string;
+  coverImage?: string;
   area?: string;
   city?: string;
   profileTags?: string[];
@@ -83,7 +88,8 @@ export type PublicUserProfile = {
 
 export interface Conversation {
   id: string;
-  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: Role; };
+  otherUser: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; isAdmin?: boolean; role?: Role; profileTheme?: ProfileTheme; statusText?: string; city?: string; };
+  unreadCount?: number;
   lastMessage?: string;
   updatedAt: number;
   lastPostTitle?: string; // ✨ 上下文
@@ -97,6 +103,9 @@ export interface Message {
   type: 'text' | 'contact-request' | 'contact-share' | 'contact_card';
   messageType?: 'text' | 'system' | 'contact_card';
   content: string;
+  replyTo?: { id: string; senderId: string; content: string };
+  reactions?: Array<{ emoji: string; userIds: string[] }>;
+  reactionVersion?: number;
   contactCard?: {
     postId?: string;
     contactRequestId?: string;

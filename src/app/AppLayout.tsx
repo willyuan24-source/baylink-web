@@ -26,6 +26,8 @@ import type { AppContextValue } from './context';
 import { usePageScroll } from './usePageScroll';
 import { feedPageLocation, useFeedFilters } from './useFeedFilters';
 import { useContactIntent } from './useContactIntent';
+import { useUnreadMessages } from './useUnreadMessages';
+import { clearMessageDrafts } from '../features/messages/messageState';
 
 import Avatar from '../components/Avatar';
 import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
@@ -148,7 +150,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   // ✨ Toast & Socket State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; id: number } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [hasNotification, setHasNotification] = useState(false);
+  const unreadMessageCount = useUnreadMessages(user, socket);
   const [pendingContactRequestCount, setPendingContactRequestCount] = useState(0);
   const [contactRequestRefreshKey, setContactRequestRefreshKey] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
@@ -237,8 +239,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       });
 
       newSocket.on('new_message', () => {
+        window.dispatchEvent(new Event('baylink:messages-changed'));
         if (tabRef.current !== 'messages') {
-          setHasNotification(true);
           showToast('收到新私信', 'info');
         }
       });
@@ -247,11 +249,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     })();
     return () => { cancelled = true; created?.disconnect(); };
   }, [user?.id, user?.token, showToast]);
-
-  // 切换到消息页时，清除私信未读红点（联系方式请求 badge 由 pending count 单独控制）
-  useEffect(() => {
-      if (tab === 'messages') setHasNotification(false);
-  }, [tab]);
 
   const refreshPendingContactRequestCount = useCallback(async () => {
     if (!user) {
@@ -273,8 +270,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     return () => clearInterval(interval);
   }, [user, refreshPendingContactRequestCount, contactRequestRefreshKey]);
 
-  const showMessagesBadge = hasNotification || pendingContactRequestCount > 0;
-  const messagesBadgeCount = pendingContactRequestCount > 0 ? Math.min(pendingContactRequestCount, 99) : 0;
+  const messagesBadgeCount = Math.min(unreadMessageCount + pendingContactRequestCount, 99);
+  const showMessagesBadge = messagesBadgeCount > 0;
 
   // URL → 分类筛选
   useEffect(() => {
@@ -443,7 +440,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setShowCreate(false);
     setShowBlockedUsersModal(false);
     setSharingPost(null);
-    setHasNotification(false);
     setPendingContactRequestCount(0);
   }, []);
 
@@ -462,6 +458,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       if (!localStorage.getItem('currentUser')) return;
       if (sessionExpiredHandledRef.current) return;
       sessionExpiredHandledRef.current = true;
+      const expiringUser = getStoredUser();
+      if (expiringUser) clearMessageDrafts(expiringUser.id);
       removeStoredUser();
       clearLocalSession();
       setShowLogin(true);
@@ -630,6 +628,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const handleLogout = () => {
     const logout = api.request('/auth/logout', { method: 'POST' });
+    if (user) clearMessageDrafts(user.id);
     removeStoredUser();
     clearLocalSession();
     navigate('/');
@@ -827,7 +826,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
           <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
           <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
-          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
+          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
           <LanguageSwitcher />
         </header>
         {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} />}

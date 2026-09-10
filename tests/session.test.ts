@@ -17,7 +17,8 @@ test('session parser preserves a valid session without interpreting the token', 
 test('session parser rejects malformed renderable profile fields rather than returning a crashable user', () => {
   const session = { id: 'u', token: 'opaque-token' };
   for (const fields of [{ nickname: {} }, { profileTags: 'tag' }, { interests: [{}] },
-    { socialLinks: { instagram: {} } }, { officialVerification: { rejectionReason: {} } }]) {
+    { socialLinks: { instagram: {} } }, { officialVerification: { rejectionReason: {} } },
+    { profileTheme: {} }, { statusText: [] }, { coverImage: {} }]) {
     assert.equal(parseStoredUser(JSON.stringify({ ...session, ...fields })), null);
   }
 });

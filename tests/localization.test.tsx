@@ -112,7 +112,7 @@ test('localized JSX preserves Route and Fragment identities and routed form stat
 test('avatar initials and accessible names remain the user’s original spelling', async () => {
   const view = render(<div><Avatar name="发现湾区" /><Avatar name="发现湾区" src="/avatar.jpg" /><p>发现湾区</p></div>);
   const avatarInitial = view.container.querySelector('[translate=no]')!;
-  const image = view.getByRole('img');
+  const image = view.container.querySelector('img')!;
   await act(async () => { await setLocale('zh-Hant'); });
   assert.equal(avatarInitial.textContent, '发');
   assert.equal(image.getAttribute('alt'), '发现湾区');

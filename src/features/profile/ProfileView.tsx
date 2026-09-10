@@ -1,24 +1,24 @@
 // 「我的」页：个人名片 / 信任信息 / 资料审核 / 子视图入口（含管理员入口）
 import { useState } from 'react';
 import {
-  LogOut, MapPin, Edit, Instagram, ExternalLink, BadgeCheck, Phone, UserX,
+  LogOut, Edit, BadgeCheck, Phone, UserX, Eye, MapPin,
   ChevronRight, Info, Flag, ArrowUpRight, House, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { BRAND } from '../../brandAssets';
 import { api, safeParse } from '../../lib/api';
-import Avatar from '../../components/Avatar';
 import { TrustBadge } from '../../components/TrustBadge';
-import { TagPills } from '../../components/TagPills';
 import { SavedPostsPanel } from '../../components/SavedPostsPanel';
 import { OfficialVerificationModal } from '../../components/OfficialVerificationModal';
 import {
-  calcProfileCompletion, formatProfileLocation, getJoinDays, getMyOfficialTrustLabel,
-  getOfficialTypeLabel, getPhoneVerificationTrustLabel, normalizeInstagramUrl, normalizeWebsiteUrl,
+  calcProfileCompletion, getJoinDays, getMyOfficialTrustLabel,
+  getOfficialTypeLabel, getPhoneVerificationTrustLabel,
 } from '../../lib/format';
 import type { UserData } from '../../lib/types';
 import { AdminOfficialVerificationsView, AdminReportsView } from '../admin/AdminViews';
 import { EditProfileModal } from './EditProfileModal';
 import { InfoPage, MyPostsView } from './ProfileSubViews';
+import { ProfileIdentity, ProfileShareButton } from './ProfileIdentity';
+import { Link } from 'react-router-dom';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
@@ -28,12 +28,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
   const completion = user ? calcProfileCompletion(user) : 0;
-  const locationLine = user ? formatProfileLocation(user.area, user.city) : '';
-  const myProfileTags = user?.profileTags?.filter(Boolean) || [];
-  const myInterests = user?.interests?.filter(Boolean) || [];
-  const myInsta = user?.socialLinks?.instagram ? normalizeInstagramUrl(user.socialLinks.instagram) : null;
-  const myWebsite = user?.website ? normalizeWebsiteUrl(user.website) : null;
-  const myXhs = user?.xiaohongshu?.trim() || '';
+
 
   if (!user) return (
     <div className="member-profile-guest">
@@ -65,7 +60,6 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
     <div className="member-profile-shell">
       {subView === 'menu' && (
         <div className="member-profile-content">
-          <SavedPostsPanel key={user.id} userId={user.id} />
           <div className="member-page-heading"><div><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
 
           {user.accountStatus === 'limited' && (
@@ -79,6 +73,15 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
             </div>
           )}
 
+
+          <div className="member-profile-personality">
+            <ProfileIdentity profile={user}>
+              <button type="button" onClick={() => setSubView('edit_profile')}><Edit size={15} />编辑资料</button>
+              <Link to={`/users/${encodeURIComponent(user.id)}`}><Eye size={15} />查看公开名片</Link>
+              <ProfileShareButton userId={user.id} nickname={user.nickname} />
+            </ProfileIdentity>
+          </div>
+
           {completion < 100 && (
             <div className="member-profile-completion">
               <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-baylink-text">资料完成度 {completion}%</p><p className="mt-1 text-xs text-baylink-text-secondary leading-relaxed">完善地区、兴趣和简介，让附近用户更容易认识你。</p><div className="member-completion-track" role="progressbar" aria-label="资料完成度" aria-valuenow={completion} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${completion}%` }} /></div></div>
@@ -86,44 +89,7 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
             </div>
           )}
 
-          <div className="member-profile-card">
-            <p className="member-eyebrow mb-5">BAYLINK · 本地生活名片</p>
-            <div className="flex items-start gap-4 relative z-10">
-              <Avatar src={user.avatar} name={user.nickname} size={16} className="shadow-md border-2 border-white shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold text-baylink-text flex items-center gap-2 flex-wrap"><span translate="no">{user.nickname}</span> <TrustBadge user={user} size={14} /></h2>
-                {locationLine && (
-                  <p className="mt-2 flex items-center gap-1 text-xs text-baylink-text-secondary">
-                    <MapPin size={11} className="text-baylink-green/70 shrink-0" />{locationLine}
-                  </p>
-                )}
-                <p className="text-sm text-baylink-text-secondary mt-2 line-clamp-2 leading-relaxed">{user.bio ? <span translate="no">{user.bio}</span> : '写一句介绍，展示你的本地生活名片'}</p>
-                {joinDays != null && <p className="text-[11px] text-baylink-muted mt-1">加入 {joinDays} 天</p>}
-              </div>
-              <button onClick={() => setSubView('edit_profile')} className="member-edit-profile" title="编辑资料" aria-label="编辑资料"><Edit size={16} /></button>
-            </div>
-            {(myProfileTags.length > 0 || myInterests.length > 0) && (
-              <div className="mt-4 space-y-2 relative z-10">
-                {myProfileTags.length > 0 && <TagPills tags={myProfileTags} variant="profile" />}
-                {myInterests.length > 0 && <TagPills tags={myInterests} variant="interest" />}
-              </div>
-            )}
-            {(myInsta || myWebsite || myXhs) && (
-              <div className="mt-3 flex flex-wrap gap-2 relative z-10">
-                {myInsta && (
-                  <a href={myInsta} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">
-                    <Instagram size={11} /> Instagram
-                  </a>
-                )}
-                {myXhs && <span className="rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">小红书 · <span translate="no">{myXhs}</span></span>}
-                {myWebsite && (
-                  <a href={myWebsite} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-baylink-border/50 bg-baylink-bg px-2 py-0.5 text-[11px] text-baylink-text-secondary">
-                    <ExternalLink size={10} /> 网站
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+          <SavedPostsPanel key={user.id} userId={user.id} />
 
           <div className="member-profile-panel">
             <h2 className="member-panel-title">信任信息</h2>
