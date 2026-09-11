@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Copy, Link2, Share2, X } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
 import { BRAND } from '../brandAssets';
+import { translateText, useLocale } from '../i18n/locale';
 import {
+  buildPostShareUrl,
   canUseNativeShare,
   copyPostShareText,
   copyPostShareUrl,
@@ -29,21 +31,21 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
       <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[11px] font-semibold text-baylink-green">
         {category}
       </span>
-      <h4 className="mt-2.5 line-clamp-2 text-left text-[15px] font-semibold leading-snug text-baylink-text">
-        {post.title?.trim() || '本地信息'}
+      <h4 translate="no" className="mt-2.5 line-clamp-2 text-left text-[15px] font-semibold leading-snug text-baylink-text">
+        {post.title?.trim() || translateText('本地信息')}
       </h4>
       <div className="mt-2.5 space-y-1 text-left">
         <p className="text-[12px] text-baylink-text-secondary">
-          <span className="text-baylink-muted">地区</span> · {area}
+          <span className="text-baylink-muted">地区</span> · <span translate="no">{post.city?.trim() || translateText(area)}</span>
         </p>
         {budget && (
           <p className="text-[12px] font-medium text-baylink-green">
-            <span className="font-normal text-baylink-muted">预算/价格</span> · {budget}
+            <span className="font-normal text-baylink-muted">预算/价格</span> · <span translate="no">{budget}</span>
           </p>
         )}
         {timeInfo && (
           <p className="text-[12px] text-baylink-text-secondary">
-            <span className="text-baylink-muted">时间</span> · {timeInfo}
+            <span className="text-baylink-muted">时间</span> · <span translate="no">{timeInfo}</span>
           </p>
         )}
       </div>
@@ -55,18 +57,22 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
 };
 
 export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps) => {
+  useLocale();
   const [busy, setBusy] = useState<'share' | 'text' | 'link' | null>(null);
+  const [manualCopy, setManualCopy] = useState(false);
   const nativeAvailable = canUseNativeShare();
 
   const handleQuickShare = async () => {
     if (busy) return;
+    setManualCopy(false);
     setBusy('share');
     try {
       const res = await sharePost(post);
       if (res.method === 'clipboard') {
         showToast('已复制分享文案，可以粘贴到微信或短信。', 'success');
       } else if (res.method === 'failed') {
-        showToast('暂时无法打开分享，请复制链接后发送。', 'error');
+        setManualCopy(true);
+        showToast('请手动复制下方链接后发送。', 'info');
       }
     } finally {
       setBusy(null);
@@ -78,7 +84,8 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
     setBusy('text');
     try {
       const ok = await copyPostShareText(post);
-      showToast(ok ? '已复制分享文案，可以粘贴到微信或短信。' : '暂时无法打开分享，请复制链接后发送。', ok ? 'success' : 'error');
+      setManualCopy(!ok);
+      showToast(ok ? '已复制分享文案，可以粘贴到微信或短信。' : '请手动复制下方链接后发送。', ok ? 'success' : 'info');
     } finally {
       setBusy(null);
     }
@@ -89,7 +96,8 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
     setBusy('link');
     try {
       const ok = await copyPostShareUrl(post);
-      showToast(ok ? '链接已复制。' : '暂时无法打开分享，请复制链接后发送。', ok ? 'success' : 'error');
+      setManualCopy(!ok);
+      showToast(ok ? '链接已复制。' : '请手动复制下方链接后发送。', ok ? 'success' : 'info');
     } finally {
       setBusy(null);
     }
@@ -166,6 +174,10 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
               {busy === 'link' ? '复制中…' : '复制链接'}
             </button>
           </div>
+          {manualCopy && <label className="mt-4 block text-xs text-baylink-text-secondary">
+            <span>手动复制链接</span>
+            <input className="mt-2 w-full rounded-lg border border-black/10 p-2" readOnly value={buildPostShareUrl(post)} onFocus={event => event.currentTarget.select()} />
+          </label>}
         </div>
       </div>
     </ModalShell>

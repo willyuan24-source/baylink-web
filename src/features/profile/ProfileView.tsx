@@ -5,7 +5,7 @@ import {
   ChevronRight, Info, Flag, ArrowUpRight, House, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { BRAND } from '../../brandAssets';
-import { api, safeParse } from '../../lib/api';
+import { api } from '../../lib/api';
 import { TrustBadge } from '../../components/TrustBadge';
 import { SavedPostsPanel } from '../../components/SavedPostsPanel';
 import { OfficialVerificationModal } from '../../components/OfficialVerificationModal';
@@ -13,16 +13,28 @@ import {
   calcProfileCompletion, getJoinDays, getMyOfficialTrustLabel,
   getOfficialTypeLabel, getPhoneVerificationTrustLabel,
 } from '../../lib/format';
-import type { UserData } from '../../lib/types';
+import type { UserData, PostData } from '../../lib/types';
 import { AdminOfficialVerificationsView, AdminReportsView } from '../admin/AdminViews';
 import { EditProfileModal } from './EditProfileModal';
 import { InfoPage, MyPostsView } from './ProfileSubViews';
 import { ProfileIdentity, ProfileShareButton } from './ProfileIdentity';
 import { Link } from 'react-router-dom';
+import { useProfileSessionGuard } from './useProfileSessionGuard';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
-export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: any) => {
+type ProfileViewProps = {
+  user: UserData | null;
+  onLogout: () => void;
+  onLogin: () => void;
+  onOpenPost: (post: PostData) => void;
+  onUpdateUser: (user: UserData) => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  onOpenBlockedUsers: () => void;
+};
+export const ProfileView = (props: ProfileViewProps) => <ProfileSession key={JSON.stringify([props.user?.id, props.user?.token])} {...props} />;
+const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
+  const isCurrentSession = useProfileSessionGuard(user);
   const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
   const [showOfficialModal, setShowOfficialModal] = useState(false);
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
@@ -171,13 +183,12 @@ export const ProfileView = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser,
           onClose={() => setShowOfficialModal(false)}
           onSubmit={(payload) => api.submitOfficialVerification(payload)}
           onSuccess={(updatedUser) => {
-            const stored = localStorage.getItem('currentUser');
-            const current = stored ? safeParse(stored) : {};
-            const nextUser = { ...current, ...updatedUser };
-            localStorage.setItem('currentUser', JSON.stringify(nextUser));
+            if (!isCurrentSession()) return;
+            const nextUser = { ...user, ...updatedUser };
+            try { localStorage.setItem('currentUser', JSON.stringify(nextUser)); } catch { /* The server has saved the application. */ }
             onUpdateUser(nextUser);
           }}
-          showToast={showToast}
+          showToast={(message, type) => { if (isCurrentSession()) showToast(message, type); }}
         />
       )}
       {subView === 'admin_official' && <AdminOfficialVerificationsView onBack={() => setSubView('menu')} showToast={showToast} />}

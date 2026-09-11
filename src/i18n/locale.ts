@@ -1,4 +1,7 @@
 import { useSyncExternalStore } from 'react';
+import { ConverterFactory } from 'opencc-js/core';
+import searchCharacters from 'opencc-js/dict/TSCharacters';
+import searchPhrases from 'opencc-js/dict/TSPhrases';
 import patterns from './en-patterns.json';
 
 export type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
@@ -24,7 +27,6 @@ export const useLocale = () => useSyncExternalStore(subscribeLocale, getLocale, 
 
 const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
   traditional = module.Converter({ from: 'cn', to: 'tw' });
-  simplified = module.Converter({ from: 'tw', to: 'cn' });
 }).catch((error) => { chineseLoad = undefined; throw error; });
 
 export async function loadLocale(locale: Locale): Promise<void> {
@@ -69,7 +71,15 @@ export function translateText(text: string, locale: Locale = current, depth = 0)
   return text.split(/(\n| · | \/ |｜)/).map((part) => part !== text && depth < 3 ? translateText(part, locale, depth + 1) : english[normalizeText(part)] || part).join('');
 }
 
-export const simplifySearch = (text: string) => simplified?.(text) ?? text;
+/** Search works on the first keystroke, independently of the display language.
+ * Only the compact traditional-to-simplified dictionaries load synchronously;
+ * phrase exceptions take precedence and the trie is built on first Chinese use.
+ */
+export const simplifySearch = (text: string): string => {
+  if (!/\p{Script=Han}/u.test(text)) return text;
+  simplified ||= ConverterFactory([searchPhrases, searchCharacters]);
+  return simplified(text);
+};
 export function localizedUrl(value: string, locale: Locale = current): string {
   const url = new URL(value, 'https://www.baylink.us');
   if (locale === 'zh-Hans') url.searchParams.delete('lang'); else url.searchParams.set('lang', locale);

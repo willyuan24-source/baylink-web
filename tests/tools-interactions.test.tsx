@@ -25,8 +25,9 @@ const cssHook = registerHooks({ load(url, context, nextLoad) {
 const { ToolsHub } = await import('../src/components/tools/ToolsHub');
 cssHook.deregister();
 const { api } = await import('../src/lib/api');
+const { setLocale } = await import('../src/i18n/locale');
 
-afterEach(() => { cleanup(); dom.window.localStorage.clear(); dom.window.sessionStorage.clear(); });
+afterEach(async () => { cleanup(); dom.window.localStorage.clear(); dom.window.sessionStorage.clear(); await setLocale('zh-Hans', false); });
 const change = (element: HTMLElement, value: string) => fireEvent.change(element, { target: { value } });
 const disabled = (element: HTMLElement) => (element as HTMLButtonElement).disabled;
 const inputValue = (element: HTMLElement) => (element as HTMLInputElement).value;
@@ -127,6 +128,23 @@ test('invalid member weights or amounts cannot leave stale calculated shares ava
   change(total, '');
   assert.equal(view.queryByRole('alert'), null);
   assert.equal(view.queryByRole('list'), null);
+});
+
+test('switching language preserves custom bill member names in results and copied summaries', async t => {
+  const copies: string[] = [];
+  t.mock.method(clipboard, 'writeText', async text => { copies.push(text); });
+  const view = render(<SharedBillTool onToast={() => {}} />);
+  change(view.getByRole('textbox', { name: '分摊总金额' }), '30');
+  change(view.getByRole('textbox', { name: '成员 1 名称' }), '图书馆');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(view.getByRole('list').querySelector('li span')!.textContent, '图书馆');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '複製分攤結果' })); });
+  assert.match(copies[0], /图书馆：\$10\.00/);
+  await act(async () => { await setLocale('en', false); });
+  assert.equal(view.getByRole('list').querySelector('li span')!.textContent, '图书馆');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Copy split', exact: true })); });
+  assert.match(copies[1], /图书馆: \$10\.00 \(Weight 1\)/);
+  assert.match(copies[1], /BAYLINK shared bill/);
 });
 
 test('unit conversion distinguishes blank from zero, handles both directions and copies the displayed unit', async t => {

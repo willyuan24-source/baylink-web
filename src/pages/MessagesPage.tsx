@@ -46,7 +46,7 @@ export default function MessagesPage() {
       </div>
       {user && (
         <ContactRequestInboxPanel
-          key={user.id}
+          key={`${user.id}:${user.token}`}
           refreshKey={contactRequestRefreshKey}
           fetchPending={async () => {
             const res = await api.getContactRequests('owner', 'pending');

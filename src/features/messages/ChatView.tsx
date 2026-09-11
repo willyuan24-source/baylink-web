@@ -26,7 +26,7 @@ type ChatViewProps = {
 };
 const COMPOSER_EMOJI = ['👋', '😊', '👍', '❤️', '🙏', '🎉', '😂', '👀', '☕', '🌉', '🌿', '✨'];
 
-export const ChatView = (props: ChatViewProps) => <ChatSession key={`${props.currentUser.id}:${props.conversation.id}`} {...props} />;
+export const ChatView = (props: ChatViewProps) => <ChatSession key={JSON.stringify([props.currentUser.id, props.currentUser.token, props.conversation.id])} {...props} />;
 
 const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast }: ChatViewProps) => {
   const locale = useLocale();

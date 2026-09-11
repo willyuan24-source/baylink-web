@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { X, Loader2, BadgeCheck } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
 
@@ -45,8 +45,8 @@ type OfficialVerificationModalProps = {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 };
 
-export const OfficialVerificationModal = ({
-  isOpen,
+export const OfficialVerificationModal = (props: OfficialVerificationModalProps) => props.isOpen ? <OfficialVerificationForm {...props} /> : null;
+const OfficialVerificationForm = ({
   onClose,
   onSubmit,
   onSuccess,
@@ -58,16 +58,18 @@ export const OfficialVerificationModal = ({
   const [license, setLicense] = useState('');
   const [socialLink, setSocialLink] = useState('');
   const [loading, setLoading] = useState(false);
-
-  if (!isOpen) return null;
+  const mounted = useRef(true);
+  const submitting = useRef(false);
+  useLayoutEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current || !mounted.current) return;
     if (!description.trim()) {
       showToast('请填写认证说明', 'error');
       return;
     }
-    setLoading(true);
+    submitting.current = true; setLoading(true);
     try {
       const res = await onSubmit({
         type,
@@ -76,11 +78,13 @@ export const OfficialVerificationModal = ({
         license: normalizeOptionalField(license),
         socialLink: normalizeOptionalField(socialLink),
       });
+      if (!mounted.current) return;
       if (!res?.user) throw { error: '提交失败，请稍后再试' };
       onSuccess(res.user);
       showToast(res.message || '认证申请已提交，BAYLINK 会尽快审核。', 'success');
       onClose();
     } catch (err: any) {
+      if (!mounted.current) return;
       const msg = String(err?.error || err?.message || '').trim();
       const fallback = '提交失败，请检查内容后重试';
       if (!msg || msg === 'undefined' || /failed to fetch|network error/i.test(msg)) {
@@ -89,7 +93,8 @@ export const OfficialVerificationModal = ({
         showToast(msg, 'error');
       }
     } finally {
-      setLoading(false);
+      submitting.current = false;
+      if (mounted.current) setLoading(false);
     }
   };
 

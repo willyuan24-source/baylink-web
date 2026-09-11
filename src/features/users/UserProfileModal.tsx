@@ -17,7 +17,7 @@ import { ProfileIdentity, ProfileShareButton } from '../profile/ProfileIdentity'
 import { commonProfileInterests } from '../profile/profile-personality';
 import { translateText, useLocale } from '../../i18n/locale';
 
-export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast, onReportUser, onToggleBlockUser, blockedUserIds, onLoginNeeded }: {
+type UserProfileModalProps = {
   userId: string;
   onClose: () => void;
   currentUser: UserData | null;
@@ -28,7 +28,9 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
   onToggleBlockUser?: (userId: string) => void;
   blockedUserIds?: string[];
   onLoginNeeded?: () => void;
-}) => {
+};
+export const UserProfileModal = (props: UserProfileModalProps) => <UserProfileSession key={props.userId} {...props} />;
+const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecentPost, showToast, onReportUser, onToggleBlockUser, blockedUserIds, onLoginNeeded }: UserProfileModalProps) => {
   const locale = useLocale();
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setProfile(null);
       setFailed(false);
       try {
         const result = await api.getUserPublicProfile(userId);
@@ -51,7 +54,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
       }
     })();
     return () => { cancelled = true; };
-  }, [userId, currentUser?.id]);
+  }, [userId, currentUser?.id, currentUser?.token]);
 
   const startChat = useCallback(async (target: { id: string; nickname: string }) => {
     if (!onChat || openingChatRef.current) return;
@@ -174,7 +177,7 @@ export const UserProfileModal = ({ userId, onClose, currentUser, onChat, onOpenR
             </>
           )}
         </div>
-        {!loading && profile && currentUser?.id !== profile.id && (
+        {!loading && !failed && profile && currentUser?.id !== profile.id && (
           <div className="border-t border-baylink-border/40 px-5 py-4 space-y-2">
             <button
               type="button"

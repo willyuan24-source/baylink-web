@@ -17,7 +17,7 @@ type MessagesListProps = {
   onLoginNeeded?: () => void;
 };
 
-export const MessagesList = (props: MessagesListProps) => <ConversationList key={props.currentUser?.id || 'guest'} {...props} />;
+export const MessagesList = (props: MessagesListProps) => <ConversationList key={JSON.stringify([props.currentUser?.id, props.currentUser?.token])} {...props} />;
 
 const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeeded }: MessagesListProps) => {
   const locale = useLocale();

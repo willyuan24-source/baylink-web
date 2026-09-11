@@ -6,6 +6,7 @@ import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-
 import { GUIDE_IMAGES } from '../data/guide-media';
 import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../lib/monthly';
 import type { MonthlyDateFilter } from '../lib/monthly';
+import { normalizeGuideQuery } from '../lib/guide-search';
 import { GuideImageCredits } from './GuideExplorer';
 import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
@@ -89,7 +90,8 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);
   const includeEnded = searchParams.get('includeEnded') === '1' || (searchParams.get('includeEnded') !== '0' && !current);
-  const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event => !query.trim() || [event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const normalizedQuery = normalizeGuideQuery(query);
+  const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event => !normalizedQuery || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(normalizedQuery));
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
   const changeFilter = (name: string, value: string) => {
     setSearchParams(previous => {

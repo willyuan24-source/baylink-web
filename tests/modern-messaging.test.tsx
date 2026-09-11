@@ -191,6 +191,28 @@ test('inbox discards late responses after switching accounts', async () => {
   assert.equal(view.queryByText('邻居 old-account'), null);
 });
 
+test('rotating a session token discards old chat history even when the account and conversation stay the same', async () => {
+  const old = defer<unknown>(); let histories = 0;
+  api.request = async endpoint => endpoint.endsWith('/read') ? {} : ++histories === 1 ? old.promise : [message('current', '重新登录后的消息')];
+  const view = render(viewChat({ currentUser: { ...user(), token: 'first-token' } }));
+  view.rerender(viewChat({ currentUser: { ...user(), token: 'rotated-token' } }));
+  await act(async () => { old.resolve([message('stale', '已撤销会话的旧响应')]); });
+  assert.equal(histories, 2);
+  assert.ok(view.getByText('重新登录后的消息'));
+  assert.ok(!view.queryByText('已撤销会话的旧响应'));
+});
+
+test('rotating a session token reloads the inbox and ignores old responses', async () => {
+  const old = defer<unknown>(); let loads = 0;
+  api.request = async () => ++loads === 1 ? old.promise : [conversation('new-session')];
+  const view = render(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'first-token' }} onOpenChat={() => {}} /></MemoryRouter>);
+  view.rerender(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'rotated-token' }} onOpenChat={() => {}} /></MemoryRouter>);
+  await act(async () => { old.resolve([conversation('stale-session')]); });
+  assert.equal(loads, 2);
+  assert.ok(view.getByText('邻居 new-session'));
+  assert.ok(!view.queryByText('邻居 stale-session'));
+});
+
 
 
 

@@ -2,13 +2,15 @@
 import React, { useRef, useState } from 'react';
 import { X, ShieldCheck, Camera, Smartphone, Check, Loader2, ImagePlus, LockKeyhole, Globe2, Palette, Trash2 } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
-import { api, safeParse } from '../../lib/api';
+import { api } from '../../lib/api';
+import type { UserData } from '../../lib/types';
 import { INTEREST_PRESETS, PROFILE_TAG_PRESETS, REGIONS } from '../../lib/constants';
 import { friendlyErrorMessage, getPhoneVerificationTrustLabel, validateContactValue } from '../../lib/format';
 import { UnsupportedImageError } from '../../utils/imageCompression';
 import { prepareProfileImage } from './profile-images';
 import { ProfileIdentity } from './ProfileIdentity';
 import { PROFILE_THEMES, resolveProfileTheme } from './profile-personality';
+import { useProfileSessionGuard } from './useProfileSessionGuard';
 
 const ProfileTagField = ({
   label,
@@ -101,57 +103,68 @@ const ProfileTagField = ({
   );
 };
 
-export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }: any) => {
+type ProfileEditorCallbacks = {
+  user: UserData;
+  onClose: () => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+};
+type PhoneVerificationProps = ProfileEditorCallbacks & { onVerified: (user: UserData) => void };
+export const PhoneVerificationModal = (props: PhoneVerificationProps) => <PhoneVerificationSession key={JSON.stringify([props.user.id, props.user.token])} {...props} />;
+const PhoneVerificationSession = ({ user, onClose, onVerified, showToast }: PhoneVerificationProps) => {
+    const isCurrentSession = useProfileSessionGuard(user);
     const [step, setStep] = useState(1);
     const [phone, setPhone] = useState(user.phone || '');
     const [code, setCode] = useState('');
     const [devCode, setDevCode] = useState('');
     const [loading, setLoading] = useState(false);
+    const loadingRef = useRef(false);
 
     const sendCode = async () => {
+        if (loadingRef.current || !isCurrentSession()) return;
         const digits = phone.replace(/\D/g, '');
         if (!digits || (digits.length !== 10 && !(digits.length === 11 && digits.startsWith('1')))) {
           return showToast('请输入有效的美国手机号。', 'error');
         }
-        setLoading(true);
+        loadingRef.current = true; setLoading(true);
         try {
             const res = await api.startPhoneVerification(phone);
-            if (import.meta.env.DEV && res.devCode) setDevCode(res.devCode);
+            if (!isCurrentSession()) return;
+            if (import.meta.env?.DEV && res.devCode) setDevCode(res.devCode);
             showToast('验证码已发送', 'success');
             setStep(2);
-        } catch(e: any) {
-            showToast(friendlyErrorMessage(e, '验证码发送失败，请稍后再试。'), 'error');
+        } catch(e: unknown) {
+            if (isCurrentSession()) showToast(friendlyErrorMessage(e, '验证码发送失败，请稍后再试。'), 'error');
         }
-        finally { setLoading(false); }
+        finally { loadingRef.current = false; if (isCurrentSession()) setLoading(false); }
     };
 
     const verifyCode = async () => {
+        if (loadingRef.current || !isCurrentSession()) return;
         if (!code || code.trim().length < 6) return showToast('请输入6位验证码', 'error');
-        setLoading(true);
+        loadingRef.current = true; setLoading(true);
         try {
             const res = await api.verifyPhoneCode(code.trim());
-            const stored = localStorage.getItem('currentUser');
-            const current = stored ? safeParse(stored) : {};
-            const nextUser = { ...current, ...res.user };
-            localStorage.setItem('currentUser', JSON.stringify(nextUser));
+            if (!isCurrentSession()) return;
+            const nextUser = { ...user, ...res.user };
+            try { localStorage.setItem('currentUser', JSON.stringify(nextUser)); } catch { /* Verification is saved on the server. */ }
             onVerified(nextUser);
             showToast('手机号验证已完成', 'success');
             onClose();
-        } catch(e: any) { showToast(friendlyErrorMessage(e, '验证码错误'), 'error'); }
-        finally { setLoading(false); }
+        } catch(e: unknown) { if (isCurrentSession()) showToast(friendlyErrorMessage(e, '验证码错误'), 'error'); }
+        finally { loadingRef.current = false; if (isCurrentSession()) setLoading(false); }
     };
 
     return (
         // 两步短信验证流程，误触遮罩不关闭（关闭会丢失已发送的验证码步骤）
         <ModalShell onClose={onClose} closeOnBackdrop={false} label="手机号验证" className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
             <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
-                <button type="button" aria-label="关闭个人资料编辑" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
+                <button type="button" aria-label="关闭手机号验证" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
                 <h3 className="text-xl font-black text-center mb-1">手机号验证</h3>
                 <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <input className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-medium text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[11px] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <input type="tel" inputMode="tel" autoComplete="tel-national" aria-label="美国手机号" disabled={loading} className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-medium text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[11px] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
                         <p className="text-[11px] leading-relaxed text-gray-500">
                           By clicking &ldquo;发送验证码 / Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
@@ -165,10 +178,10 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {import.meta.env.DEV && devCode && (
+                        {import.meta.env?.DEV && devCode && (
                           <p className="text-center text-[11px] text-amber-700">开发测试码：{devCode}</p>
                         )}
-                        <input className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition tracking-widest text-lg" placeholder="6位验证码" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+                        <input inputMode="numeric" autoComplete="one-time-code" aria-label="6位验证码" disabled={loading} className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition tracking-widest text-lg" placeholder="6位验证码" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} />
                         <button onClick={verifyCode} disabled={loading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 active:scale-95 transition">{loading ? '验证中...' : '完成验证'}</button>
                     </div>
                 )}
@@ -177,7 +190,10 @@ export const PhoneVerificationModal = ({ user, onClose, onVerified, showToast }:
     );
 };
 
-export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) => {
+type EditProfileProps = ProfileEditorCallbacks & { onUpdate: (user: UserData) => void };
+export const EditProfileModal = (props: EditProfileProps) => <EditProfileSession key={JSON.stringify([props.user.id, props.user.token])} {...props} />;
+const EditProfileSession = ({ user, onClose, onUpdate, showToast }: EditProfileProps) => {
+  const isCurrentSession = useProfileSessionGuard(user);
   const [form, setForm] = useState({
     nickname: user.nickname || '', contactType: user.contactType || 'wechat', contactValue: user.contactValue || '',
     bio: user.bio || '', statusText: user.statusText || '', avatar: user.avatar || '', coverImage: user.coverImage || '',
@@ -194,17 +210,17 @@ export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) =>
   const [saveError, setSaveError] = useState('');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, kind: 'avatar' | 'coverImage') => {
-    if (processingRef.current || savingRef.current) return;
+    if (processingRef.current || savingRef.current || !isCurrentSession()) return;
     const input = e.target;
     const file = input.files?.[0];
     if (!file) return;
     processingRef.current = true; setProcessing(kind);
-    try { const dataUrl = await prepareProfileImage(file, kind); setForm(p => ({ ...p, [kind]: dataUrl })); }
-    catch (err) { showToast(err instanceof UnsupportedImageError ? err.message : '图片处理失败，请换一张照片。', 'error'); }
-    finally { processingRef.current = false; setProcessing(null); input.value = ''; }
+    try { const dataUrl = await prepareProfileImage(file, kind); if (isCurrentSession()) setForm(p => ({ ...p, [kind]: dataUrl })); }
+    catch (err) { if (isCurrentSession()) showToast(err instanceof UnsupportedImageError ? err.message : '图片处理失败，请换一张照片。', 'error'); }
+    finally { processingRef.current = false; if (isCurrentSession()) setProcessing(null); input.value = ''; }
   };
   const handleSave = async () => {
-    if (savingRef.current) return;
+    if (savingRef.current || !isCurrentSession()) return;
     if (processingRef.current) return showToast('图片还在处理中，请稍候再保存。', 'info');
     if (!form.nickname.trim()) return showToast('请填写昵称', 'error');
     const contactChanged = form.contactType !== (user.contactType || 'wechat') || form.contactValue !== (user.contactValue || '');
@@ -217,13 +233,15 @@ export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) =>
       const { contactType, contactValue, ...publicFields } = form;
       const updated = await api.updateProfile({ ...publicFields, nickname: form.nickname.trim(), statusText: form.statusText.trim(),
         ...(contactChanged || contactValue.trim() ? { contactType, contactValue: contactValue.trim() } : {}) });
+      if (!isCurrentSession()) return;
       const newUserData = { ...user, ...updated };
       try { localStorage.setItem('currentUser', JSON.stringify(newUserData)); } catch { /* The server has saved the profile; session state still updates. */ }
       onUpdate(newUserData); onClose(); showToast('资料已更新', 'success');
     } catch (error) {
+      if (!isCurrentSession()) return;
       const message = friendlyErrorMessage(error, '保存失败。你的修改仍在这里，可以重试。');
       setSaveError(message); showToast(message, 'error');
-    } finally { savingRef.current = false; setSaving(false); }
+    } finally { savingRef.current = false; if (isCurrentSession()) setSaving(false); }
   };
   const busy = saving || !!processing;
   return <ModalShell onClose={() => { if (!savingRef.current) onClose(); }} closeOnBackdrop={false} label="编辑资料" className="profile-editor-modal fixed inset-0 z-[90] flex flex-col">
@@ -252,7 +270,7 @@ export const EditProfileModal = ({ user, onClose, onUpdate, showToast }: any) =>
         </section>
         <section className="profile-editor-section profile-editor-private" aria-label="私人账号设置"><div className="profile-section-heading"><LockKeyhole size={19} /><div><h2>私人账号设置</h2><p>以下信息不会出现在公开名片上。</p></div></div>
           <div className="profile-phone-verification"><Smartphone size={21} /><div><strong>手机号验证</strong><p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p></div>{!user.isPhoneVerified ? <button type="button" onClick={() => setShowVerify(true)}>验证手机号</button> : <span><Check size={14} />已验证</span>}</div>
-          <div className="profile-editor-field"><label htmlFor="profile-contact-type">账号联系方式类型</label><select id="profile-contact-type" value={form.contactType} onChange={event => setForm(p => ({ ...p, contactType: event.target.value }))}><option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option></select></div>
+          <div className="profile-editor-field"><label htmlFor="profile-contact-type">账号联系方式类型</label><select id="profile-contact-type" value={form.contactType} onChange={event => setForm(p => ({ ...p, contactType: event.target.value as UserData['contactType'] }))}><option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option></select></div>
           <div className="profile-editor-field"><label htmlFor="profile-contact-value">{form.contactType === 'phone' ? '电话号码' : form.contactType === 'email' ? '联系邮箱' : '微信号'}</label><input id="profile-contact-value" type={form.contactType === 'phone' ? 'tel' : form.contactType === 'email' ? 'email' : 'text'} value={form.contactValue} onChange={event => setForm(p => ({ ...p, contactValue: event.target.value }))} /></div>
           <p className="profile-field-hint">不会显示在公开资料中。分享账号联系方式时使用；每条帖子的联系方式可在发帖时单独设置。</p>
         </section>

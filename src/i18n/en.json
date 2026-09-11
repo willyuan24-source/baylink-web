@@ -4719,5 +4719,9 @@
   "删除本机副本": "Discard local copy",
   "未确认消息原文": "Unconfirmed message text",
   "请先保存或发送当前草稿，再恢复这条消息。": "Save or send your current draft before restoring this message.",
-  "无法保存发送备份，请先复制原文再发送。": "Your browser could not save a backup. Copy this message before sending."
+  "无法保存发送备份，请先复制原文再发送。": "Your browser could not save a backup. Copy this message before sending.",
+  "手动复制链接": "Copy link manually",
+  "请手动复制下方链接后发送。": "Select and copy the link below, then send it.",
+  "关闭手机号验证": "Close phone verification",
+  "美国手机号": "U.S. phone number"
 }

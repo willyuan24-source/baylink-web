@@ -27,6 +27,7 @@ import { usePageScroll } from './usePageScroll';
 import { feedPageLocation, useFeedFilters } from './useFeedFilters';
 import { useContactIntent } from './useContactIntent';
 import { useUnreadMessages } from './useUnreadMessages';
+import { usePendingContacts } from './usePendingContacts';
 import { clearMessageDrafts } from '../features/messages/messageState';
 
 import Avatar from '../components/Avatar';
@@ -151,8 +152,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; id: number } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const unreadMessageCount = useUnreadMessages(user, socket);
-  const [pendingContactRequestCount, setPendingContactRequestCount] = useState(0);
   const [contactRequestRefreshKey, setContactRequestRefreshKey] = useState(0);
+  const [pendingContactRequestCount, setPendingContactRequestCount] = usePendingContacts(user, contactRequestRefreshKey);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
   const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
@@ -249,26 +250,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     })();
     return () => { cancelled = true; created?.disconnect(); };
   }, [user?.id, user?.token, showToast]);
-
-  const refreshPendingContactRequestCount = useCallback(async () => {
-    if (!user) {
-      setPendingContactRequestCount(0);
-      return;
-    }
-    try {
-      const res = await api.getContactRequests('owner', 'pending');
-      setPendingContactRequestCount((res.requests || []).length);
-    } catch {
-      setPendingContactRequestCount(0);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    refreshPendingContactRequestCount();
-    if (!user) return;
-    const interval = setInterval(refreshPendingContactRequestCount, 30000);
-    return () => clearInterval(interval);
-  }, [user, refreshPendingContactRequestCount, contactRequestRefreshKey]);
 
   const messagesBadgeCount = Math.min(unreadMessageCount + pendingContactRequestCount, 99);
   const showMessagesBadge = messagesBadgeCount > 0;
@@ -440,7 +421,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setShowCreate(false);
     setShowBlockedUsersModal(false);
     setSharingPost(null);
-    setPendingContactRequestCount(0);
   }, []);
 
   useEffect(() => {
@@ -480,7 +460,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   }, [location.pathname, location.search]);
 
   const handleResetPasswordSuccess = () => {
-    window.history.replaceState({}, '', '/');
+    navigate('/', { replace: true });
     setResetPasswordToken(null);
     setShowLogin(true);
   };
@@ -927,7 +907,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             isOpen={!!resetPasswordToken}
             token={resetPasswordToken}
             onClose={() => {
-              window.history.replaceState({}, '', '/');
+              navigate('/', { replace: true });
               setResetPasswordToken(null);
             }}
             onSuccess={handleResetPasswordSuccess}

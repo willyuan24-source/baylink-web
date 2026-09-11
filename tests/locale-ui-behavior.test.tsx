@@ -31,6 +31,16 @@ test('monthly search matches translated English and Traditional text while prese
   assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /舞獅/);
 });
 
+test('monthly search accepts Traditional queries while reading Simplified Chinese', async () => {
+  await setLocale('zh-Hant', false);
+  await setLocale('zh-Hans', false);
+  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-11" /></MemoryRouter>);
+  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '舞獅' } });
+  assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
+  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /中秋/);
+  assert.equal(view.getByRole('button', { name: '旧金山', exact: true }).getAttribute('aria-pressed'), 'true');
+});
+
 test('switching a calculated loan to Traditional preserves inputs and the repayment amount', async () => {
   await setLocale('en', false);
   const view = render(<LoanCalculatorTool onToast={() => {}} />);

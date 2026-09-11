@@ -9,14 +9,19 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, FileReader: dom.window.FileReader, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
+const { MemoryRouter } = await import('react-router-dom');
+await import('../src/i18n/router');
 const { ProfileIdentity, ProfileShareButton } = await import('../src/features/profile/ProfileIdentity');
-const { EditProfileModal } = await import('../src/features/profile/EditProfileModal');
+const { EditProfileModal, PhoneVerificationModal } = await import('../src/features/profile/EditProfileModal');
 const { UserProfileModal } = await import('../src/features/users/UserProfileModal');
+const { ProfileView } = await import('../src/features/profile/ProfileView');
+const { OfficialVerificationModal } = await import('../src/components/OfficialVerificationModal');
 const { prepareProfileImage } = await import('../src/features/profile/profile-images');
 const { commonProfileInterests, safeProfileLink, resolveProfileTheme, profileShareUrl } = await import('../src/features/profile/profile-personality');
 const { api } = await import('../src/lib/api');
 const { setLocale, translateText } = await import('../src/i18n/locale');
 const user: UserData = { id: 'profile-test-user', email: 'private@example.test', nickname: '生活指南', role: 'user', contactType: 'wechat', contactValue: 'private_wechat', phone: '+14155550101', isBanned: false, bio: '周末出门', statusText: '我的收藏', profileTheme: 'bay', coverImage: 'https://example.test/cover.jpg', avatar: 'https://example.test/avatar.jpg', interests: ['摄影', 'Hiking'], profileTags: ['生活指南'], socialLinks: { linkedin: 'https://www.linkedin.com/in/test-neighbor/' } };
+const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>(yes => { resolve = yes; }); return { promise, resolve }; };
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); Object.defineProperty(navigator, 'share', { configurable: true, value: undefined }); Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }); });
 
 test('profile helpers use real interest intersections and safe canonical links', () => {
@@ -131,4 +136,123 @@ test('public profile highlights common interests only for another real signed-in
   view.rerender(<UserProfileModal userId={profile.id} currentUser={null} onClose={() => {}} onChat={() => {}} />);
   await act(async () => {});
   assert.equal(view.queryByRole('region', { name: '你们的共同兴趣' }), null);
+});
+
+test('a failed profile switch never leaves actions pointing at the previous person', async t => {
+  const profile: PublicUserProfile = { ...user, id: 'first-neighbor', postCount: 0, recentPosts: [] };
+  t.mock.method(api, 'getUserPublicProfile', async (id: string) => { if (id === profile.id) return profile; throw new Error('Unavailable'); });
+  const props = { currentUser: user, onClose() {}, onChat() {}, onReportUser() {}, onToggleBlockUser() {} };
+  const view = render(<UserProfileModal userId={profile.id} {...props} />);
+  await act(async () => {});
+  assert.ok(view.getByRole('button', { name: '发私信' }));
+  view.rerender(<UserProfileModal userId="unavailable-neighbor" {...props} />);
+  await act(async () => {});
+  assert.ok(view.getByText('无法查看该用户资料'));
+  assert.ok(!view.queryByRole('button', { name: '发私信' }));
+  assert.ok(!view.queryByRole('button', { name: '举报用户' }));
+});
+
+test('a late profile save after closing cannot replace a newer signed-in account', async t => {
+  const pending = deferred<Partial<UserData>>();
+  const first = { ...user, token: 'old-session' };
+  const second = { ...user, id: 'second-account', nickname: '新账号', token: 'new-session' };
+  localStorage.setItem('currentUser', JSON.stringify(first));
+  let updates = 0; let closes = 0; let notices = 0;
+  t.mock.method(api, 'updateProfile', () => pending.promise);
+  const view = render(<EditProfileModal user={first} onClose={() => { closes += 1; }} onUpdate={() => { updates += 1; }} showToast={() => { notices += 1; }} />);
+  fireEvent.click(view.getByRole('button', { name: '保存资料' }));
+  view.unmount(); localStorage.setItem('currentUser', JSON.stringify(second));
+  await act(async () => { pending.resolve({ ...first, nickname: '旧账号保存结果' }); });
+  assert.equal(JSON.parse(localStorage.getItem('currentUser')!).id, second.id);
+  assert.equal(updates, 0); assert.equal(closes, 0); assert.equal(notices, 0);
+});
+
+test('changing the edited account discards its old form and ignores a late old save', async t => {
+  const pending = deferred<Partial<UserData>>();
+  const first = { ...user, token: 'first-token' };
+  const second = { ...user, id: 'second-account', nickname: '新账号昵称', statusText: '新账号状态', token: 'second-token' };
+  localStorage.setItem('currentUser', JSON.stringify(first));
+  let updates = 0;
+  t.mock.method(api, 'updateProfile', () => pending.promise);
+  const props = { onClose() {}, onUpdate() { updates += 1; }, showToast() {} };
+  const view = render(<EditProfileModal user={first} {...props} />);
+  fireEvent.change(view.getByRole('textbox', { name: '此刻的生活状态' }), { target: { value: '旧账号未保存状态' } });
+  fireEvent.click(view.getByRole('button', { name: '保存资料' }));
+  localStorage.setItem('currentUser', JSON.stringify(second));
+  view.rerender(<EditProfileModal user={second} {...props} />);
+  await act(async () => { pending.resolve({ ...first, statusText: '旧账号保存结果' }); });
+  assert.equal((view.getByRole('textbox', { name: '昵称' }) as HTMLInputElement).value, second.nickname);
+  assert.equal((view.getByRole('textbox', { name: '此刻的生活状态' }) as HTMLInputElement).value, second.statusText);
+  assert.equal(updates, 0);
+});
+
+test('a late phone verification cannot merge its account into a new browser session', async t => {
+  const pending = deferred<{ user: UserData }>();
+  const first = { ...user, token: 'old-phone-session' };
+  const second = { ...user, id: 'second-account', token: 'new-phone-session' };
+  localStorage.setItem('currentUser', JSON.stringify(first));
+  t.mock.method(api, 'startPhoneVerification', async () => ({}));
+  t.mock.method(api, 'verifyPhoneCode', () => pending.promise);
+  let updates = 0; let closes = 0;
+  const view = render(<PhoneVerificationModal user={first} onClose={() => { closes += 1; }} onVerified={() => { updates += 1; }} showToast={() => {}} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '发送验证码' })); });
+  fireEvent.change(view.getByPlaceholderText('6位验证码'), { target: { value: '123456' } });
+  fireEvent.click(view.getByRole('button', { name: '完成验证' }));
+  localStorage.setItem('currentUser', JSON.stringify(second));
+  await act(async () => { pending.resolve({ user: { ...first, isPhoneVerified: true } }); });
+  assert.equal(JSON.parse(localStorage.getItem('currentUser')!).id, second.id);
+  assert.equal(updates, 0); assert.equal(closes, 0);
+});
+
+test('a late official verification cannot restore the previous account after switching users', async t => {
+  const pending = deferred<{ user: UserData }>();
+  const first = { ...user, token: 'first-verification-token' };
+  const second = { ...user, id: 'second-account', nickname: '第二个账号', token: 'second-verification-token' };
+  localStorage.setItem('currentUser', JSON.stringify(first));
+  t.mock.method(api, 'submitOfficialVerification', () => pending.promise);
+  let updates = 0; let notices = 0;
+  const props = { onLogout() {}, onLogin() {}, onOpenPost() {}, onUpdateUser() { updates += 1; }, showToast() { notices += 1; }, onOpenBlockedUsers() {} };
+  const view = render(<MemoryRouter><ProfileView user={first} {...props} /></MemoryRouter>);
+  fireEvent.click(view.getByRole('button', { name: '申请认证' }));
+  fireEvent.change(view.getByPlaceholderText('介绍你的身份、服务范围、资质或社区角色…'), { target: { value: '本地服务提供者' } });
+  fireEvent.click(view.getByRole('button', { name: '提交申请' }));
+  localStorage.setItem('currentUser', JSON.stringify(second));
+  view.rerender(<MemoryRouter><ProfileView user={second} {...props} /></MemoryRouter>);
+  await act(async () => { pending.resolve({ user: { ...first, officialVerification: { status: 'pending' } } }); });
+  assert.equal(JSON.parse(localStorage.getItem('currentUser')!).id, second.id);
+  assert.equal(updates, 0); assert.equal(notices, 0);
+  assert.ok(!view.queryByRole('dialog', { name: '申请官方认证' }));
+});
+
+test('closing and reopening official verification starts a new form and ignores the old submission', async () => {
+  const pending = deferred<{ user: UserData }>();
+  let successes = 0; let closes = 0; let notices = 0;
+  const props = { onClose() { closes += 1; }, onSubmit: () => pending.promise, onSuccess() { successes += 1; }, showToast() { notices += 1; } };
+  const view = render(<OfficialVerificationModal isOpen {...props} />);
+  fireEvent.change(view.getByPlaceholderText('介绍你的身份、服务范围、资质或社区角色…'), { target: { value: '旧表单认证说明' } });
+  fireEvent.click(view.getByRole('button', { name: '提交申请' }));
+  view.rerender(<OfficialVerificationModal isOpen={false} {...props} />);
+  view.rerender(<OfficialVerificationModal isOpen {...props} />);
+  const description = view.getByPlaceholderText('介绍你的身份、服务范围、资质或社区角色…') as HTMLTextAreaElement;
+  assert.equal(description.value, '');
+  fireEvent.change(description, { target: { value: '新表单保留' } });
+  await act(async () => { pending.resolve({ user }); });
+  assert.equal(description.value, '新表单保留');
+  assert.equal(successes, 0); assert.equal(closes, 0); assert.equal(notices, 0);
+});
+
+test('successful phone verification updates the active profile even when storage writes fail', async t => {
+  const first = { ...user, token: 'current-verification-token' };
+  localStorage.setItem('currentUser', JSON.stringify(first));
+  t.mock.method(api, 'startPhoneVerification', async () => ({}));
+  t.mock.method(api, 'verifyPhoneCode', async () => ({ user: { ...first, isPhoneVerified: true } }));
+  t.mock.method(dom.window.Storage.prototype, 'setItem', () => { throw new Error('Storage is blocked'); });
+  let updated: UserData | undefined; let closes = 0;
+  const notices: string[] = [];
+  const view = render(<PhoneVerificationModal user={first} onClose={() => { closes += 1; }} onVerified={value => { updated = value; }} showToast={message => notices.push(message)} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '发送验证码' })); });
+  fireEvent.change(view.getByRole('textbox', { name: '6位验证码' }), { target: { value: '123456' } });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '完成验证' })); });
+  assert.equal(updated?.isPhoneVerified, true);
+  assert.equal(closes, 1); assert.ok(notices.includes('手机号验证已完成'));
 });
