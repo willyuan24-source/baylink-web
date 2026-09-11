@@ -59,17 +59,31 @@ function offerStatus(offer: FreebieOffer, today: string) {
   return range[0] > today ? { key: 'upcoming', label: '即将开始' } : { key: 'active', label: '有效期内' };
 }
 
+function orderedOffers(offers: FreebieOffer[], today: string) {
+  const position = (offer: FreebieOffer): [number, string] => {
+    if (offer.availability === 'ongoing') return [1, ''];
+    const range = offer.availability === 'dated' ? dateRange(offer) : null;
+    if (!range) return [2, ''];
+    return [range[1] < today ? 3 : 0, range[0]];
+  };
+  return [...offers].sort((left, right) => {
+    const [leftGroup, leftDate] = position(left);
+    const [rightGroup, rightDate] = position(right);
+    return leftGroup - rightGroup || leftDate.localeCompare(rightDate);
+  });
+}
+
 function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
   const [zoomed, setZoomed] = useState(false);
   const headingId = useId();
   const image = GUIDE_IMAGES[offer.imageKey];
   const status = offerStatus(offer, today);
   const pictureLabel = image?.kind === 'poster' ? '官方宣传图' : image?.kind === 'illustration' ? 'AI 原创插图' : image?.credit.includes('官方') ? '官方宣传照片' : image?.caption.includes('资料') ? '资料照片' : '实景照片';
-  return <article className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
+  return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     <div className="bl-freebie-card-brand"><strong>{offer.brand}</strong><Ticket size={16} aria-hidden="true" /></div>
     {image ? <figure className="bl-freebie-picture">
       <button type="button" className={`bl-freebie-picture-open${image.kind === 'poster' || image.fullFrame ? ' bl-freebie-picture-open--contain' : ''}`} onClick={() => setZoomed(true)} aria-label={`放大${offer.brand}配图：${image.alt}`} aria-haspopup="dialog">
-        <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) calc((100vw - 54px) / 2), (min-width: 1280px) 260px, 360px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+        <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 479px) calc(100vw - 40px), (max-width: 639px) calc((100vw - 54px) / 2), (min-width: 1280px) 260px, 360px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
         <span className="bl-freebie-picture-zoom"><Expand size={13} aria-hidden="true" /><span className="sr-only">查看大图</span></span>
       </button>
       <figcaption>{pictureLabel}{offer.imageNote && <span> · {offer.imageNote}</span>}</figcaption>
@@ -120,7 +134,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
     ...previews ? [{ value: previews, label: '下月预告' }] : [],
     ...local ? [{ value: local, label: '需查本店' }] : [],
   ];
-  const visible = offers.filter(offer => filter === 'all' || offer.kind === filter);
+  const visible = orderedOffers(offers, today).filter(offer => filter === 'all' || offer.kind === filter);
   return <section className="bl-freebie-board" aria-labelledby={headingId}>
     <header className="bl-freebie-board-heading"><span><Gift size={16} aria-hidden="true" />BAYLINK · LITTLE PERKS</span><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="bl-freebie-board-stats" aria-label="领取信息概况" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}>{stats.map(item => <span key={item.label}><strong>{item.value}</strong>{item.label}</span>)}</div>

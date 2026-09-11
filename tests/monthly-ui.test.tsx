@@ -141,7 +141,7 @@ test('region, free admission and keyword filters combine and clearing a search r
   const view = render(edition());
   fireEvent.click(view.getByRole('button', { name: '南湾', exact: true }));
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  assertResultTitles(view, ['mountain-view-art-wine-2026', 'bark-in-the-park-san-jose-2026']);
+  assertResultTitles(view, ['mountain-view-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'viva-calle-into-the-valley-2026', 'santa-clara-art-wine-2026']);
   fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'bArK' } });
   assertResultTitles(view, ['bark-in-the-park-san-jose-2026']);
   const params = queryParams(view);
@@ -149,7 +149,7 @@ test('region, free admission and keyword filters combine and clearing a search r
   assert.equal(params.get('cost'), 'free');
   assert.equal(params.get('q'), 'bArK');
   fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '' } });
-  assertResultTitles(view, ['mountain-view-art-wine-2026', 'bark-in-the-park-san-jose-2026']);
+  assertResultTitles(view, ['mountain-view-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'viva-calle-into-the-valley-2026', 'santa-clara-art-wine-2026']);
   assert.equal(queryParams(view).has('q'), false);
   assert.equal(view.getByRole('button', { name: '南湾', exact: true }).getAttribute('aria-pressed'), 'true');
 });
@@ -214,7 +214,23 @@ test('next seven days shows its inclusive date range and invalid date parameters
   assert.ok(view.getByText('包含今天'));
   assert.equal(queryParams(view).get('when'), 'next7');
   assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-09-09', '2026-09-15']);
-  assertResultTitles(view, MONTHLY_EVENTS.filter(event => event.startDate <= '2026-09-15' && event.endDate >= '2026-09-09').map(event => event.id));
+  assertResultTitles(view, ['flower-piano-2026', 'mountain-view-art-wine-2026', 'san-francisco-turkish-festival-2026', 'opera-in-the-park-2026', 'solano-stroll-2026', 'viva-calle-into-the-valley-2026']);
+});
+
+test('new regional activities keep mixed-cost registration and ticketed events out of free-admission results', () => {
+  const view = render(edition('2026-09-11'));
+  fireEvent.click(view.getByRole('button', { name: '北湾', exact: true }));
+  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026']);
+  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
+  assertResultTitles(view, ['mill-valley-fall-arts-2026', 'san-rafael-porchfest-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026']);
+  const farm = within(view.getByRole('article', { name: item('sonoma-farm-trails-fall-tour-2026').title, exact: true }));
+  assert.ok(farm.getByText('免费登记且必须登记 · 部分农场体验另收费或预约'));
+  fireEvent.click(view.getByRole('button', { name: '半岛', exact: true }));
+  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  assertResultTitles(view, ['pacific-coast-fog-fest-2026']);
+  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
+  assertResultTitles(view, ['pacific-coast-fog-fest-2026', 'redwood-oktoberfest-closing-weekend-2026']);
 });
 
 test('empty filter results offer a working reset while keeping the three place recommendations available', () => {

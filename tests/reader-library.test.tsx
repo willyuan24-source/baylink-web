@@ -31,7 +31,7 @@ test('save survives remount, recent is unique, clearing recent retains saved art
   const view = render(<MemoryRouter><GuideReaderActions guide={guide} /><ReadingShelf /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: '收藏 · 稍后读' }));
   assert.equal(view.getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
-  assert.ok(view.getByRole('link', { name: new RegExp(guide.title) }));
+  assert.ok(view.getByRole('link', { name: name => name.includes(guide.title) }));
   act(() => { rememberGuide(second.slug); rememberGuide(guide.slug); });
   assert.deepEqual(parseReaderLibrary(dom.window.localStorage.getItem(READER_LIBRARY_KEY)).recent, [guide.slug, second.slug]);
   cleanup();

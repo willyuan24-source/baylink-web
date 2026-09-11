@@ -11,6 +11,8 @@ import readingRouteMedia from './reading-route-media.json';
 import sfAttractionMedia from './attractions-sf-media.json';
 import regionalAttractionMedia from './attractions-regions-media.json';
 import freshSeptemberMedia from './fresh-september-media.json';
+import septemberUpdateMedia from './september-update-media.json';
+import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
   src: string;
@@ -50,7 +52,7 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
@@ -115,6 +117,10 @@ const bySlug: Record<string, [string, string]> = {
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend' };
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
+  if (guide.slug === 'bay-area-new-openings-2026-09') {
+    const images = septemberOpenings.map((shop, index) => ({ afterHeading: index + 1, image: GUIDE_IMAGES[shop.imageKey] })).filter(item => !!item.image);
+    return { cover: images[0]?.image || GUIDE_IMAGES.everyday, inline: images.slice(1) };
+  }
   const mapped = bySlug[guide.slug];
   const cover = GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]];
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;

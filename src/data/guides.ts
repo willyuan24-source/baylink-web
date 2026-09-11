@@ -9,6 +9,7 @@ import { slowWeekendGuides } from './guides-slow-weekends';
 import { sfAttractionGuides } from './guides-attractions-sf';
 import { regionalAttractionGuides } from './guides-attractions-regions';
 import { freshSeptemberGuides } from './guides-fresh-september';
+import { septemberOpeningGuides } from './guides-september-openings';
 import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
@@ -1868,6 +1869,7 @@ export const guides: Guide[] = [
   ...sfAttractionGuides,
   ...regionalAttractionGuides,
   ...freshSeptemberGuides,
+  ...septemberOpeningGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>

@@ -2,8 +2,8 @@ import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../data/monthly-edition';
 import { SITE_URL, type PageMetadata } from './seo';
 
 export const MONTHLY_METADATA: PageMetadata = {
-  title: `${MONTHLY_EDITION.label}湾区活动、周末攻略与推荐地点｜BAYLINK`,
-  description: 'BAYLINK 九月湾区精选：花园钢琴、中秋街庆、音乐与艺术节、亲子和宠物活动，附主办方链接、日期提醒与半日玩法。',
+  title: `${MONTHLY_EDITION.label}湾区活动、优惠与新店消息｜BAYLINK`,
+  description: 'BAYLINK 九月湾区精选：周末活动、免费福利、咖啡优惠与新店开业消息，附日期、领取条件、商家和主办方来源。已开业、庆典与预告分别标示。',
   path: '/this-month',
   image: `${SITE_URL}/guides/distinct/september-edition.webp`,
   structuredData: [{

@@ -36,7 +36,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'fresh-september-media'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'fresh-september-media', 'september-update-media'].flatMap(name =>
   JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')) as (GuideImage & { key: string })[]);
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -130,13 +130,14 @@ test('all published guides and the complete media registry have usable local ima
     checked.add(image.src);
     assert.deepEqual(dimensions(image.src), { width: image.width, height: image.height });
     const candidates = image.srcSet!.split(',').map(candidate => candidate.trim().split(/\s+/));
-    assert.equal(candidates.length, 2);
-    const small = candidates.find(([, width]) => width === '480w');
+    assert.equal(candidates.length, image.width <= 480 ? 1 : 2);
+    const smallWidth = Math.min(480, image.width);
+    const small = candidates.find(([, width]) => width === `${smallWidth}w`);
     assert.ok(small, image.src);
-    assert.equal(small[0], image.src.replace(/\.webp$/, '-small.webp'));
+    assert.equal(small[0], image.width <= 480 ? image.src : image.src.replace(/\.webp$/, '-small.webp'));
     const smallSize = dimensions(small[0]);
-    assert.equal(smallSize.width, 480);
-    assert.ok(Math.abs(smallSize.height - image.height * 480 / image.width) <= 1, image.src);
+    assert.equal(smallSize.width, smallWidth);
+    assert.ok(Math.abs(smallSize.height - image.height * smallWidth / image.width) <= 1, image.src);
     assert.ok(candidates.some(([src, width]) => src === image.src && width === `${image.width}w`));
     if (image.kind === 'illustration') {
       assert.match(image.credit, /AI/);
@@ -241,7 +242,7 @@ test('every guide metadata uses its editorial cover while the two original poste
     const cover = getGuideMedia(guide).cover;
     const metadata = getGuideMetadata(guide);
     assert.equal(metadata.image, cover.src);
-    assert.match(metadata.image!, /^\/guides\/(editorial|distinct|attractions)\/[a-z0-9-]+\.webp$/);
+    assert.match(metadata.image!, /^\/guides\/(editorial|distinct|attractions|september-2026)\/[a-z0-9-]+\.webp$/);
     const article = metadata.structuredData!.find(item => item['@type'] === 'Article')!;
     assert.equal(article.image, SITE_URL + cover.src);
     assert.equal(article.headline, guide.title);

@@ -1,17 +1,18 @@
 import { sfSeptemberEvents } from './monthly-sf-events';
 import { regionalSeptemberEvents } from './monthly-region-events';
 import { freshSeptemberEvents } from './fresh-monthly-events';
+import { verifiedSeptemberEvents } from './september-events-update';
 import type { MonthlyPlace } from './monthly-types';
 
 export const MONTHLY_EDITION = {
   month: '2026-09',
   label: '2026 年 9 月',
-  checkedAt: '2026-09-08',
+  checkedAt: '2026-09-11',
   title: '九月，把周末留给湾区。',
-  intro: '花园里的钢琴、街头的中秋、红杉下的艺术。先挑一个想去的地方，再把这一天慢慢展开。',
+  intro: '街头节庆、顺路优惠，还有刚亮灯的新店。把日期与条件看清，给这个月挑几个值得出门的理由。',
 };
 
-export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents]
+export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents]
   .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [

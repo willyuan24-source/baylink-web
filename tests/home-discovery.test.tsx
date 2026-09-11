@@ -27,7 +27,7 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(document.querySelectorAll('h1').length, 1);
   assert.ok(document.querySelector('.home-discovery-heading a[href="/guides"]'));
   assert.ok(document.querySelector('a[href="/guides/golden-gate-park-free-car-free-day-guide"]'));
-  assert.ok(document.querySelector('a[href="/guides/palo-alto-baylands-family-walk-guide"]'));
+  assert.ok(document.querySelector('a[href="/guides/bay-area-new-openings-2026-09"]'));
   assert.ok(document.querySelector('a[href="/this-month"]'));
   assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-09#freebie-board-0"]'));
   assert.match(document.querySelector('.home-discovery-count')!.textContent!, new RegExp(`${guides.length} 篇生活指南`));
@@ -55,7 +55,7 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(document.querySelector('.home-discovery-timely > a')?.getAttribute('href'), '/guides/golden-gate-park-free-car-free-day-guide');
   assert.equal(hero.getAttribute('loading'), 'eager');
   assert.equal(hero.getAttribute('fetchPriority')?.toLowerCase(), 'high');
-  assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['freebie-lowes-haunted-house'].src);
+  assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['sep26-target-eucerin'].src);
   assert.equal(document.querySelector('.home-discovery-deals .home-discovery-image-label')?.textContent, '官方宣传照片');
 });
 

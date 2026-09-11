@@ -16,6 +16,7 @@
 .bl-freebie-filters button[aria-pressed="true"] { border-color:#7b5131; background:#7b5131; color:#fffaf0; }
 .bl-freebie-results { margin:12px 0 18px; color:#918573; font-size:11px; line-height:1.8; }
 .bl-freebie-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start; }
+@media(max-width:479px) { .bl-freebie-grid { grid-template-columns:minmax(0,1fr); } }
 .bl-freebie-card { min-width:0; border:1px solid #e2d8c8; border-radius:15px; overflow:hidden; background:#fffefa; box-shadow:0 4px 14px #553b2310; }
 .bl-freebie-card-brand { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 15px 12px; border-bottom:1px solid #eee4d5; background:#fcf3e2; color:#67492f; }
 .bl-freebie-card-brand strong { min-width:0; font-size:17px; line-height:1.35; font-weight:750; overflow-wrap:anywhere; }
@@ -96,4 +97,18 @@
  .bl-freebie-card-actions a:first-child { padding:8px 4px; }
  .bl-freebie-image-source { margin-top:9px; }
  .bl-freebie-image-source summary { font-size:8px; }
+}
+@media(max-width:479px) {
+ .bl-freebie-card-brand { padding:14px 18px; }
+ .bl-freebie-card-brand strong { font-size:17px; }
+ .bl-freebie-picture-open { aspect-ratio:1.65; }
+ .bl-freebie-picture figcaption { padding:8px 18px 0; font-size:10px; }
+ .bl-freebie-card-body { padding:18px; }
+ .bl-freebie-card h3 { font-size:20px; }
+ .bl-freebie-card-date { font-size:14px; }
+ .bl-freebie-requirement,.bl-freebie-description { font-size:13px; }
+ .bl-freebie-card-actions { flex-direction:row; gap:10px; }
+ .bl-freebie-card-actions a { min-height:42px; padding:8px 12px; font-size:12px; }
+ .bl-freebie-card-actions a:first-child { padding:8px 12px; }
+ .bl-freebie-image-source summary { font-size:10px; min-height:38px; }
 }

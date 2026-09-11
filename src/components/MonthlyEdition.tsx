@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
@@ -10,6 +10,10 @@ import { normalizeGuideQuery } from '../lib/guide-search';
 import { GuideImageCredits } from './GuideExplorer';
 import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
+import { MonthlyOpenings } from './MonthlyOpenings';
+import { septemberOpenings } from '../data/september-openings';
+import { septemberFreebies } from '../data/september-freebies';
+import type { FreebieOffer } from './FreebieBoard';
 import { translateText, useLocale } from '../i18n/locale';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
@@ -93,6 +97,9 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
   const normalizedQuery = normalizeGuideQuery(query);
   const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event => !normalizedQuery || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(normalizedQuery));
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
+  const perkPreviews = ['nothing-bundt-joy-sep15', 'peets-orange-friday-sep25', 'target-beauty-sep26']
+    .map(id => septemberFreebies.find(offer => offer.id === id))
+    .filter((offer): offer is FreebieOffer => !!offer && (!offer.endDate || offer.endDate >= today));
   const changeFilter = (name: string, value: string) => {
     setSearchParams(previous => {
       const next = new URLSearchParams(previous);
@@ -113,7 +120,24 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
       <div className="bl-monthly-hero-art"><EditionPicture imageKey="september-edition" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
     </header>
 
-    <MonthlyDealsSpotlight today={today} />
+    <nav className="bl-monthly-jump" aria-label="月刊分区导航">
+      <a href="#monthly-events"><CalendarDays size={18} aria-hidden="true" /><span>活动日历</span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong></a>
+      <a href="#monthly-perks"><Ticket size={18} aria-hidden="true" /><span>优惠福利</span><strong>{septemberFreebies.length}</strong></a>
+      <a href="#monthly-openings"><Store size={18} aria-hidden="true" /><span>新店消息</span><strong>{septemberOpenings.length}</strong></a>
+      <a href="#monthly-places"><MapPin size={18} aria-hidden="true" /><span>慢游提案</span><strong>{MONTHLY_PLACES.length}</strong></a>
+    </nav>
+    <section id="monthly-perks" className="bl-monthly-perks" aria-label="本期优惠福利">
+      <MonthlyDealsSpotlight today={today} />
+      {current && perkPreviews.length > 0 && <div className="bl-perks-preview">{perkPreviews.map(offer => {
+        const image = GUIDE_IMAGES[offer.imageKey];
+        return <Link key={offer.id} to={`/guides/bay-area-freebies-deals-2026-09#offer-${offer.id}`}>
+          {image && <img src={image.src} alt="" width={image.width} height={image.height} loading="lazy" />}
+          <span><small>{offer.brand}</small><strong>{offer.title}</strong><em>{offer.dateLabel} · {offer.kind === 'no-purchase' ? '无需购物' : offer.kind === 'reservation' ? '需预约' : '需消费'}</em></span>
+        </Link>;
+      })}</div>}
+    </section>
+
+    <MonthlyOpenings today={today} />
 
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}
 
@@ -132,7 +156,7 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
       <p className="bl-monthly-calendar-note"><CalendarDays size={15} aria-hidden="true" /><span>“日期提醒”下载仅含活动日期的日历文件，不含具体场次与入场时间。票务、开放时段及临时变更，请在出发前查看官方详情。</span></p>
     </section>
 
-    <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 {MONTHLY_EDITION.checkedAt}；实际开放、预约与费用以各场所官网为准。</p></section>
+    <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 2026-09-08；实际开放、预约与费用以各场所官网为准。</p></section>
 
     <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow">BEFORE YOU HEAD OUT</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
     <GuideImageCredits imageKeys={['september-edition', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey)]} />

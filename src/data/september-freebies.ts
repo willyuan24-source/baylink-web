@@ -1,7 +1,8 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
+import { verifiedSeptemberOffers } from './september-offers-update';
 
-export const septemberFreebies: FreebieOffer[] = [
+const originalSeptemberFreebies: FreebieOffer[] = [
   {
     id: 'target-eucerin-sep12', brand: 'TARGET', title: 'Eucerin 护肤试用装',
     dateLabel: '9/12 周六 · 12:00–16:00', startDate: '2026-09-12', endDate: '2026-09-12',
@@ -92,6 +93,8 @@ export const septemberFreebies: FreebieOffer[] = [
     sourceUrl: 'https://www.homedepot.com/c/kids-workshop', sourceLabel: '查看十月手工预约',
   },
 ];
+
+export const septemberFreebies: FreebieOffer[] = [...new Map([...originalSeptemberFreebies, ...verifiedSeptemberOffers].map(offer => [offer.id, offer])).values()];
 
 const extras: GuideSource[] = [
   { title: 'Target：9/12 Eucerin 参与门店名单', url: septemberFreebies[0].storeUrl!, description: '这是 9/12 对应名单，含 Daly City、Fremont、Mountain View 等湾区门店；数量仍以现场为准。' },
