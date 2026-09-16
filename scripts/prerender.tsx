@@ -23,6 +23,9 @@ import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
+import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
+import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 
 const outputDir = resolve('dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
@@ -71,6 +74,9 @@ await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="t
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
+for (const item of localDiscoveries) {
+  await renderPage(getDiscoveryMetadata(item), <LocalDiscoveryDetail item={item} />);
+}
 for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
   await renderPage({ title: `${category}｜湾区本地信息 · BAYLINK`, description: `浏览湾区${category}信息，按地区查找本地资源和邻里需求。请联系发布者确认信息仍有效。`, path: `/category/${slug}` }, (
     <section className="px-5 py-8"><h1 className="text-2xl font-bold">湾区{category}信息</h1><p className="mt-3">浏览本地资源和邻里需求，联系前请确认地点、价格和时间。</p><h2 className="mt-6 font-bold">行动前，先读一份实用指南</h2><ul className="mt-3 space-y-3">{getGuidesForCategorySlug(slug).map((guide) => <li key={guide.slug}><a href={`/guides/${guide.slug}`} className="text-baylink-green underline">{guide.title}</a><p className="mt-1 text-sm">{guide.summary}</p></li>)}</ul><a className="mt-5 inline-block text-baylink-green underline" href="/guides">全部生活指南</a><p className="mt-3 text-sm text-baylink-muted">最新帖子和地区筛选会在页面加载后显示。</p></section>
@@ -82,8 +88,9 @@ await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
-const sitemapPaths = ['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), '/terms', '/privacy', '/sms-consent'];
+const sitemapPaths = ['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
 const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
+for (const item of localDiscoveries) { const share = discoveryShare(item); if (share.checkedAt) guideDates.set(share.path, share.checkedAt); }
 guideDates.set('/this-month', MONTHLY_EDITION.checkedAt);
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${guideDates.has(path) ? `<lastmod>${escapeHtml(guideDates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);

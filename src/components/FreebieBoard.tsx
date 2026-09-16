@@ -3,6 +3,8 @@ import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket }
 import { GUIDE_IMAGES } from '../data/guide-media';
 import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
+import { EditorialShareActions } from './EditorialShareActions';
+import { offerShare } from '../lib/editorial-share';
 
 export type FreebieOffer = {
   id: string;
@@ -91,9 +93,10 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
     <div className="bl-freebie-card-body">
       <div className="bl-freebie-card-date"><CalendarDays size={14} aria-hidden="true" /><span>{offer.dateLabel}</span></div>
       <div className="bl-freebie-card-tags"><span className={`bl-freebie-kind bl-freebie-kind--${offer.kind}`}>{KIND_LABELS[offer.kind]}</span><span className={`bl-freebie-status bl-freebie-status--${status.key}`}>{status.label}</span></div>
-      <h3 id={headingId}>{offer.title}</h3>
+      <h3 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h3>
       <p className="bl-freebie-requirement"><strong>领取条件</strong>{offer.requirement}</p>
       <p className="bl-freebie-description">{offer.description}</p>
+      <EditorialShareActions item={offerShare(offer)} />
       <div className="bl-freebie-card-actions">
         {safeUrl(offer.sourceUrl) && <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${offer.sourceLabel}`}>官方入口<ArrowUpRight size={15} aria-hidden="true" /></a>}
         {safeUrl(offer.storeUrl) && <a href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}><MapPin size={13} aria-hidden="true" />本地门店</a>}

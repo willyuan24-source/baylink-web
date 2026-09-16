@@ -87,7 +87,7 @@ export const buildPostShareText = (post: ShareablePost): string => {
 export const canUseNativeShare = () =>
   typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-const copyText = async (text: string): Promise<boolean> => {
+export const copyText = async (text: string): Promise<boolean> => {
   try {
     await navigator.clipboard.writeText(text);
     return true;

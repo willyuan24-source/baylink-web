@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Bookmark, Check, ChevronRight, Clock3, Copy, Share2, Sparkles, X } from 'lucide-react';
+import { Bookmark, Check, ChevronRight, Clock3, Sparkles, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide } from '../data/guides';
 import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { clearReadingHistory, rememberGuide, toggleSavedGuide, useReaderLibrary } from '../lib/reader-library';
-import { SITE_URL } from '../lib/seo';
-import { localizedUrl, translateText, useLocale } from '../i18n/locale';
+import { useLocale } from '../i18n/locale';
+import { EditorialShareActions } from './EditorialShareActions';
+import { guideShare } from '../lib/editorial-share';
 
 export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
-  const locale = useLocale();
+  useLocale();
   const { saved } = useReaderLibrary();
   const isSaved = saved.includes(guide.slug);
   const [status, setStatus] = useState('');
-  const [shareFallback, setShareFallback] = useState(false);
-  const url = localizedUrl(`${SITE_URL}/guides/${guide.slug}`, locale);
   useEffect(() => { rememberGuide(guide.slug); }, [guide.slug]);
   const save = () => {
     const result = toggleSavedGuide(guide.slug);
@@ -22,24 +21,14 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
       ? result.persisted ? '已加入稍后读。在生活指南的「我的收藏」中找回。' : '浏览器未允许保存，刷新后可能丢失。'
       : '已取消收藏。');
   };
-  const share = async () => {
-    setShareFallback(false);
-    if (navigator.share) {
-      try { await navigator.share({ title: translateText(guide.title), text: translateText(guide.summary), url }); setStatus('分享菜单已完成。'); return; }
-      catch (error) { if (error instanceof Error && error.name === 'AbortError') return; }
-    }
-    try { await navigator.clipboard.writeText(url); setStatus('文章链接已复制，可以发给朋友。'); }
-    catch { setShareFallback(true); setStatus('请复制下方文章链接。'); }
-  };
   return <div className="reader-actions-wrap">
     <div className="reader-actions" aria-label="文章操作">
       <button type="button" onClick={save} aria-pressed={isSaved}>{isSaved ? <Check size={16} /> : <Bookmark size={16} />}{isSaved ? '已收藏' : '收藏 · 稍后读'}</button>
-      <button type="button" onClick={share}><Share2 size={16} />分享给朋友</button>
+      <EditorialShareActions item={guideShare(guide)} />
       {onAsk && <button type="button" onClick={() => onAsk(`我正在读《${guide.title}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。`)}><Sparkles size={16} />让 BayBay 帮我整理</button>}
       <Link to="/guides?view=saved">我的收藏<ChevronRight size={14} /></Link>
     </div>
     {status && <p className="reader-status" role="status">{status}</p>}
-    {shareFallback && <label className="reader-share-fallback"><Copy size={15} /><span className="sr-only">文章分享链接</span><input readOnly value={url} onFocus={event => event.currentTarget.select()} /></label>}
   </div>;
 }
 

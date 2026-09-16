@@ -173,10 +173,17 @@ test('only valid unexpired offers and their conditions appear in server HTML', (
 test('invalid source protocols and missing media do not create unsafe links or unrelated fallback images', () => {
   const offer = { ...base, sourceUrl: 'javascript:alert(1)', storeUrl: 'data:text/html,hello', imageKey: 'unknown-freebie-media' };
   const view = render(<FreebieBoard offers={[offer]} today="2026-09-09" />);
-  assert.equal(view.queryByRole('link'), null);
-  assert.equal(view.queryByRole('img'), null);
-  assert.equal(view.queryByRole('button', { name: /放大/ }), null);
-  assert.equal(view.queryByText('配图整理中'), null);
+  const card = within(view.getByRole('article', { name: offer.title }));
+  // The title has a public detail link; invalid merchant URLs must still be omitted.
+  // Compare primitive values so failures do not recursively inspect React DOM/Fiber objects.
+  const links = card.queryAllByRole('link');
+  assert.deepEqual(links.map(link => link.getAttribute('href')), ['/offers/coffee']);
+  assert.equal(new URL(links[0].getAttribute('href')!, window.location.href).origin, window.location.origin);
+  assert.ok(!card.queryByRole('link', { name: `${offer.brand}：${offer.sourceLabel}` }));
+  assert.ok(!card.queryByRole('link', { name: `${offer.brand}：查询本地门店` }));
+  assert.ok(!card.queryByRole('img'));
+  assert.ok(!card.queryByRole('button', { name: /放大/ }));
+  assert.ok(!card.queryByText('配图整理中'));
   assert.ok(view.getByText(base.requirement));
 });
 

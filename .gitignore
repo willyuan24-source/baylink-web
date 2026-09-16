@@ -28,3 +28,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Branded editorial cards are rebuilt deterministically before Vite.
+/public/share-cards/

@@ -1,7 +1,7 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
 export const PrivacyPolicyView = () => (
-  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="September 8, 2026">
+  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="September 15, 2026">
     <LegalP>
       BAYLINK is a Bay Area local community and lifestyle information platform. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use BayBay AI features, or verify their phone number.
     </LegalP>
@@ -24,6 +24,7 @@ export const PrivacyPolicyView = () => (
         'Contact and verification information such as phone number when a user chooses to complete phone verification.',
         'Contact details such as WeChat ID, phone number, email address, and contact-sharing preferences that a user chooses to provide for contact requests.',
         'User-generated content such as posts, comments, messages, listings, service descriptions, images, and profile content.',
+        'Event IDs, interest and public buddy-list choices, and timestamps when signed-in users choose Interested or Go together.',
         'Technical information such as IP address, device information, browser type, log data, and usage activity.',
         'AI feature input when users choose to use BayBay AI Guide or AI post-assist features.',
       ]} />
@@ -73,6 +74,8 @@ export const PrivacyPolicyView = () => (
     </LegalSection>
 
     <LegalSection title="6. User Content">
+      <LegalP>Event interest is stored with your account and contributes to public aggregate counts. Selecting Interested alone does not publish your identity. If you explicitly join Go together, your nickname, avatar and city are displayed in that event's public buddy list, and members may contact you through site messaging. You may leave the list or cancel your interest at any time. Cancellation updates the stored choice; it does not automatically delete historical database records. Account data deletion requests can be made through the contact below.</LegalP>
+      <LegalP>活动“想去”会与账号关联并计入公开总人数，单独点“想去”不会公开你的身份。主动加入“一起去”后，昵称、头像和城市才会显示在该活动的公开搭子列表，其他用户可通过站内私信联系你。你可随时退出或取消想去。取消会更新已保存的状态，不会自动删除历史数据库记录；如需删除账号相关数据，可通过页末邮箱申请。</LegalP>
       <LegalP>
         Users are responsible for the content they post on BAYLINK. Public posts, public profile information, and public listing details may be visible to other users or visitors. Users should not post sensitive personal information that they do not want to share publicly.
       </LegalP>

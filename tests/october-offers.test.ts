@@ -9,6 +9,7 @@ import { octoberDealsGuides } from '../src/data/guides-october-deals';
 import { monthlyDealsGuides } from '../src/data/guides-deals';
 import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
+import { additionalOctoberOffers } from '../src/data/october-offers-extra';
 
 const offer = (id: string) => {
   const result = currentFreebies.find(item => item.id === id);
@@ -20,14 +21,19 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 )).window.document;
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
-test('the unified guide preserves valid September anchors and adds 15 distinct local benefits', () => {
-  assert.equal(currentFreebies.length, 26);
+test('the unified guide preserves valid September anchors and includes both October benefit batches', () => {
+  assert.equal(currentFreebies.length, 33);
   assert.equal(newOctoberOffers.length, 15);
-  assert.equal(new Set(currentFreebies.map(item => item.id)).size, 26);
+  assert.equal(additionalOctoberOffers.length, 7);
+  assert.equal(new Set(currentFreebies.map(item => item.id)).size, 33);
   const board = octoberDealsGuides[0].blocks.find(block => block.type === 'freebies');
   assert.ok(board?.type === 'freebies');
   for (const id of ['peets-orange-friday-sep25', 'target-beauty-sep26', 'michaels-ghosts-sep26', 'bampfa-free-oct1']) {
     assert.ok(board.offers.some(item => item.id === id), `Broken monthly-guide anchor: ${id}`);
+  }
+  for (const item of additionalOctoberOffers) {
+    assert.equal(board.offers.filter(offer => offer.id === item.id).length, 1, `Additional benefit must appear once: ${item.id}`);
+    assert.ok(!newOctoberOffers.some(offer => offer.id === item.id), 'The second batch must not duplicate the first batch');
   }
 });
 
@@ -80,6 +86,44 @@ test('calendar-rule free days are identified and material ticket restrictions re
   assert.match(offer('omca-free-oct4').requirement, /包含特别展览/);
   assert.match(offer('chm-museums-on-us-oct3-4').requirement, /仅持卡人.*同伴不包含/);
   assert.match(offer('santa-clara-library-parks-pass').description, /不含 Uvas Canyon、Sunnyvale Baylands、露营/);
+  for (const id of ['ikea-emeryville-as-is-wednesdays', 'poppy-claro-doggie-dinners-fall']) {
+    assert.match(offer(id).description, /规则/);
+    assert.match(offer(id).description, /未公布.*结束日/);
+  }
+});
+
+test('new local benefits retain the family, residence, borrowing and purchase restrictions', () => {
+  const sfmoma = offer('sfmoma-family-oct25');
+  assert.equal(sfmoma.startDate, '2026-10-25');
+  assert.equal(sfmoma.endDate, '2026-10-25');
+  assert.match(sfmoma.requirement, /18 岁及以下/);
+  assert.match(sfmoma.requirement, /最多两位成人/);
+  assert.match(sfmoma.requirement, /加价特展需另购票/);
+  assert.match(sfmoma.dateLabel, /提前两周/);
+  assert.equal(sfmoma.kind, 'reservation');
+  const sonoma = offer('sonoma-county-museum-family-oct10');
+  assert.equal(sonoma.startDate, '2026-10-10');
+  assert.equal(sonoma.endDate, '2026-10-10');
+  assert.match(sonoma.dateLabel, /11:00–13:00/);
+  assert.match(sonoma.description, /其他时段入馆条件请先确认/);
+  const tools = offer('berkeley-tool-lending');
+  assert.match(tools.requirement, /超过 18 岁.*Berkeley 居民或本市物业业主/);
+  assert.match(tools.requirement, /核验地址或产权/);
+  assert.match(tools.requirement, /一次最多 10 件/);
+  assert.match(tools.description, /图书证本身不能替代.*居住资格审核/);
+  const detector = offer('sfpl-radon-detector-loan');
+  assert.match(detector.requirement, /SFPL 图书证/);
+  assert.match(detector.requirement, /先到先得.*21 天.*须归还/);
+  const ikea = offer('ikea-emeryville-as-is-wednesdays');
+  assert.equal(ikea.kind, 'purchase');
+  assert.match(ikea.requirement, /IKEA Family.*会员号/);
+  assert.match(ikea.requirement, /不能叠加.*不可退/);
+  assert.match(ikea.dateLabel, /仅 Emeryville 实体店/);
+  const petMeal = offer('poppy-claro-doggie-dinners-fall');
+  assert.equal(petMeal.kind, 'purchase');
+  assert.match(petMeal.requirement, /供宠物狗享用/);
+  assert.match(petMeal.requirement, /天气允许/);
+  assert.match(petMeal.requirement, /成人餐饮另付/);
 });
 
 test('SSR hides expired offers at September and October boundaries while keeping ongoing benefits', () => {
@@ -93,20 +137,40 @@ test('SSR hides expired offers at September and October boundaries while keeping
   assert.ok(hasCard(october1, 'bampfa-free-oct1'));
   assert.equal(hasCard(renderBoard('2026-10-02'), 'bampfa-free-oct1'), false);
   const october31 = renderBoard('2026-10-31');
-  for (const id of ['sfpl-discover-go', 'smcl-discover-go', 'alameda-county-discover-go', 'santa-clara-library-parks-pass', 'japanese-tea-garden-free-hour']) {
+  for (const id of ['sfpl-discover-go', 'smcl-discover-go', 'alameda-county-discover-go', 'santa-clara-library-parks-pass', 'japanese-tea-garden-free-hour', 'cantor-stanford-free', 'sfpl-radon-detector-loan', 'berkeley-tool-lending', 'ikea-emeryville-as-is-wednesdays']) {
     assert.ok(hasCard(october31, id), `Missing month-end benefit: ${id}`);
   }
   assert.equal(hasCard(october31, 'yogurtland-anniversary-oct20'), false);
   const november1 = renderBoard('2026-11-01');
-  for (const id of ['bampfa-free-oct1', 'homedepot-october-preview', 'chm-museums-on-us-oct3-4', 'lowes-firefighting-plane-oct17', 'yogurtland-anniversary-oct20']) {
+  for (const id of ['bampfa-free-oct1', 'homedepot-october-preview', 'chm-museums-on-us-oct3-4', 'lowes-firefighting-plane-oct17', 'yogurtland-anniversary-oct20', 'sonoma-county-museum-family-oct10', 'sfmoma-family-oct25']) {
     assert.equal(hasCard(november1, id), false, `Expired October offer leaked into November: ${id}`);
   }
   assert.ok(hasCard(november1, 'sfpl-discover-go'));
 });
 
+test('additional dated family benefits remain visible on their day and expire the next day', () => {
+  assert.ok(hasCard(renderBoard('2026-10-10'), 'sonoma-county-museum-family-oct10'));
+  assert.equal(hasCard(renderBoard('2026-10-11'), 'sonoma-county-museum-family-oct10'), false);
+  assert.ok(hasCard(renderBoard('2026-10-25'), 'sfmoma-family-oct25'));
+  assert.equal(hasCard(renderBoard('2026-10-26'), 'sfmoma-family-oct25'), false);
+});
+
+test('benefits with no verified picture render useful text and the genuine source without placeholder photos', () => {
+  const document = renderBoard('2026-09-15');
+  for (const item of additionalOctoberOffers) {
+    assert.equal(item.imageKey, '');
+    const card = document.getElementById(`offer-${item.id}`);
+    assert.ok(card, item.id);
+    assert.equal(card.querySelector('img'), null);
+    assert.ok(card.textContent?.includes(item.title));
+    assert.ok(card.textContent?.includes(item.requirement));
+    assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === item.sourceUrl));
+  }
+});
+
 test('new offers have official source links, clear conditions and a dated guide with prose entry points', () => {
-  const officialHosts = new Set(['bampfa.org', 'sjmusart.org', 'computerhistory.org', 'museumca.org', 'about.asianart.org', 'gggp.org', 'www.lowes.com', 'www.yogurtland.com', 'svma.org', 'sfpl.org', 'smcl.org', 'aclibrary.org', 'parks.santaclaracounty.gov']);
-  for (const item of newOctoberOffers) {
+  const officialHosts = new Set(['bampfa.org', 'sjmusart.org', 'computerhistory.org', 'museumca.org', 'about.asianart.org', 'gggp.org', 'www.lowes.com', 'www.yogurtland.com', 'svma.org', 'sfpl.org', 'smcl.org', 'aclibrary.org', 'parks.santaclaracounty.gov', 'museumsc.org', 'www.sfmoma.org', 'museum.stanford.edu', 'www.berkeleypubliclibrary.org', 'www.ikea.com', 'www.poppyandclaro.com']);
+  for (const item of [...newOctoberOffers, ...additionalOctoberOffers]) {
     const url = new URL(item.sourceUrl);
     assert.equal(url.protocol, 'https:');
     assert.ok(officialHosts.has(url.hostname), `Non-official source for ${item.id}`);
@@ -114,6 +178,7 @@ test('new offers have official source links, clear conditions and a dated guide 
     assert.ok(item.sourceLabel.length > 4);
     assert.ok(octoberOfferSources.some(source => source.url === item.sourceUrl));
   }
+  assert.ok(additionalOctoberOffers.every(item => item.verifiedAt === '2026-09-15'));
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');

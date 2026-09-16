@@ -53,16 +53,18 @@ test('empty saved shelf can be opened directly and storage events update mounted
   assert.match(view.container.textContent!, /遇到喜欢的攻略/);
 });
 
-test('article AI action carries its title and sharing copies canonical URL', async () => {
+test('article AI carries its title and sharing copies branded text with a direct article link', async () => {
   let copied = '';
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { copied = text; } } });
   const questions: string[] = [];
   const view = render(<MemoryRouter><GuideReaderActions guide={guide} onAsk={question => questions.push(question)} /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: '让 BayBay 帮我整理' }));
   assert.ok(questions[0].includes(guide.title));
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '分享给朋友' })); });
-  assert.equal(copied, `https://www.baylink.us/guides/${guide.slug}`);
-  assert.match(view.getByRole('status').textContent!, /链接已复制/);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: `分享：${guide.title}`, exact: true })); });
+  assert.ok(copied.includes(`https://www.baylink.us/guides/${guide.slug}?from=share`));
+  assert.ok(copied.includes(guide.title));
+  assert.match(copied, /BAYLINK/);
+  assert.match(view.getByRole('status').textContent!, /分享文案已复制/);
 });
 
 test('failed storage stays usable in this session and explains the persistence limit', () => {

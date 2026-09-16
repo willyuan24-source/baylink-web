@@ -237,12 +237,11 @@ test('six new slugs occur once in data and explicit hosting routes, and all publ
   assert.equal(new RegExp(source).test('/guides/a-guide-that-was-never-published'), false);
 });
 
-test('every guide metadata uses its editorial cover while the two original posters remain preserved', () => {
+test('guide social metadata uses a branded share card while article photos and original posters remain preserved', () => {
   for (const guide of guides) {
     const cover = getGuideMedia(guide).cover;
     const metadata = getGuideMetadata(guide);
-    assert.equal(metadata.image, cover.src);
-    assert.match(metadata.image!, /^\/guides\/(editorial|distinct|attractions|september-2026)\/[a-z0-9-]+\.webp$/);
+    assert.equal(metadata.image, `/share-cards/guide-${guide.slug}.png`);
     const article = metadata.structuredData!.find(item => item['@type'] === 'Article')!;
     assert.equal(article.image, SITE_URL + cover.src);
     assert.equal(article.headline, guide.title);

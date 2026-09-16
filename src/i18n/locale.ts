@@ -33,6 +33,7 @@ export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await (englishLoad ||= Promise.all([
     import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
     import('../data/october-offers-en.json'), import('../data/october-local-en.json'),
+    import('../data/october-events-extra-en.json'), import('../data/october-offers-extra-en.json'), import('../data/october-openings-extra-en.json'), import('../data/discovery-community-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }

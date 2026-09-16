@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run export:guides && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
+    "build": "npm run export:guides && npm run export:events && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "tsx --tsconfig tsconfig.app.json --test tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
-    "check": "npm run lint && npm test && npm run build",
-    "export:guides": "tsx --tsconfig tsconfig.app.json scripts/export-guide-catalog.ts"
+    "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=4 tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
+    "check": "npm run lint && npm test && npm run build && npm run verify:share-cards",
+    "export:guides": "tsx --tsconfig tsconfig.app.json scripts/export-guide-catalog.ts",
+    "export:events": "tsx --tsconfig tsconfig.app.json scripts/export-event-catalog.ts",
+    "generate:share-cards": "tsx --tsconfig tsconfig.app.json scripts/generate-share-cards.ts",
+    "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts"
   },
   "engines": {
     "node": "24.x"
@@ -26,8 +29,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^5.2.0",
@@ -35,9 +40,13 @@
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
+    "fontkit": "^2.0.4",
     "globals": "^17.12.0",
     "jsdom": "^30.0.1",
+    "jsqr": "1.4.0",
+    "pngjs": "7.0.0",
     "postcss": "^8.5.28",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.23.13",

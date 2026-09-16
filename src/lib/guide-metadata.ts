@@ -1,6 +1,7 @@
 import type { Guide } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { SITE_URL, absolutePageUrl, safeSocialImage, type PageMetadata } from './seo';
+import { guideShare, shareCardPath } from './editorial-share';
 
 /** Only published editorial data belongs in the public article metadata. */
 export const getGuideMetadata = (guide: Guide): PageMetadata => {
@@ -8,7 +9,7 @@ export const getGuideMetadata = (guide: Guide): PageMetadata => {
   const url = absolutePageUrl(path);
   const image = getGuideMedia(guide).cover.src;
   return {
-    title: `${guide.title}｜BAYLINK`, description: guide.summary, path, image, type: 'article',
+    title: `${guide.title}｜BAYLINK`, description: guide.summary, path, image: shareCardPath(guideShare(guide)), type: 'article',
     structuredData: [
       {
         '@context': 'https://schema.org', '@type': 'Article', '@id': `${url}#article`,

@@ -1,0 +1,56 @@
+import type { SeptemberOpening } from './september-openings';
+
+/** Official operating status checked 2026-09-15. Celebration dates are not first-service dates. */
+export const additionalOctoberOpenings: SeptemberOpening[] = [
+  {
+    id: 'kaiyo-handroll-union', name: 'Kaiyō Handroll Bar', city: 'San Francisco', region: 'sf',
+    category: '日秘融合手卷', status: 'open', openingType: 'opening-celebration',
+    dateLabel: '已营业 · 9/11 举行开业庆典',
+    summary: 'KAIYŌ 在 Union Street 推出手卷新概念，把秘鲁 Nikkei 风味与日式手卷放在一起，提供吧台与桌边手卷车服务，也有 ceviche 和主菜。',
+    editorTip: '官网建议提前订位。9/11 是庆典日期；现在可作为 Cow Hollow 晚餐新选择，菜单和实际营业时间以订位页为准。',
+    address: '1838 Union Street, San Francisco, CA 94123',
+    officialUrl: 'https://www.kaiyosf.com/events', sourceUrl: 'https://www.kaiyosf.com/events',
+    sourceLabel: 'KAIYŌ 官方 9/11 开业与营业公告', verifiedAt: '2026-09-15', imageKey: '',
+  },
+  {
+    id: 'mess-hall-presidio-breadwinner', name: 'The Mess Hall · Breadwinner', city: 'San Francisco', region: 'sf',
+    category: '公园餐饮新空间', status: 'open', openingType: 'new-restaurant',
+    dateLabel: '2026 年新开 · Breadwinner 已营业',
+    summary: 'Presidio Tunnel Tops 旁的新餐饮空间，官网已确认首期 Breadwinner 供应汉堡、三明治和沙拉。Boda 与 Dayboat Seafood 仍标记即将开放。',
+    editorTip: '适合公园散步后吃午餐，Breadwinner 从 11:00 供应至打烊。带狗可用露台；大楼内仅允许服务犬，其他档口先查开业更新。',
+    address: '201 Halleck Street, San Francisco, CA 94129',
+    officialUrl: 'https://www.messhallpresidio.com/', sourceUrl: 'https://www.messhallpresidio.com/',
+    sourceLabel: 'Mess Hall 官方已营业与分期开放说明', verifiedAt: '2026-09-15', imageKey: '',
+  },
+  {
+    id: 'broken-dreams-oakland', name: 'Broken Dreams', city: 'Oakland', region: 'east-bay',
+    category: '越南碎米饭', status: 'open', openingType: 'new-restaurant', openedOn: '2026-08-10',
+    dateLabel: '8/10 已开业 · 目前仅周一至周五',
+    summary: 'Oakland 市中心的新越南餐厅，以 cơm tấm 碎米饭、烤肉和米粉碗为主，也有越南咖啡、鲜榨果汁与甜品。位置就在 12th Street BART 出口旁。',
+    editorTip: '官网公告周末暂休；同一联系页的中午开门时间有 11 点与 12 点两种写法，出发前致电 510-250-7701 确认，别专程安排周末。',
+    address: '1312 Broadway, Oakland, CA 94612',
+    officialUrl: 'https://www.brokendreamsoakland.com/', sourceUrl: 'https://www.brokendreamsoakland.com/contact',
+    sourceLabel: 'Broken Dreams 官方开业日期与临时营业安排', verifiedAt: '2026-09-15', imageKey: '',
+  },
+  {
+    id: 'hijau-san-jose-storefront', name: 'Hijau Coffee', city: 'San José', region: 'south-bay',
+    category: '印尼风味咖啡', status: 'open', openingType: 'opening-celebration',
+    dateLabel: '首家固定店已开 · 9/5 举行揭幕',
+    summary: '从湾区快闪摊位走进 San José 的首家固定咖啡店。印尼驻旧金山总领馆 9/5 的一手报道确认开店，店主把印尼咖啡文化带到 West San Carlos 社区。',
+    editorTip: '这是已开实体店的资讯，9/5 为揭幕活动日期。去之前查品牌最新营业公告，别沿用旧农夫市集快闪地址与时间。',
+    address: '1432 W San Carlos Street, Suite 70, San Jose, CA 95126',
+    officialUrl: 'https://www.wearehijau.com/',
+    sourceUrl: 'https://kemlu.go.id/id/sanfrancisco/berita/umkm-indonesia-naik-kelas-di-silicon-valley-kjri-san-francisco-dorong-hijau-coffee-jadi-jembatan-promosi-indonesia-di-san-jose?type=publication',
+    sourceLabel: '印尼驻旧金山总领馆 · 9/5 开店报道', verifiedAt: '2026-09-15', imageKey: '',
+  },
+  {
+    id: 'marufuku-burlingame-announced', name: 'Marufuku Ramen · Burlingame', city: 'Burlingame', region: 'peninsula',
+    category: '拉面新店预告', status: 'announced', openingType: 'new-restaurant',
+    dateLabel: '已宣布 · 开业日期尚未公布',
+    summary: 'Marufuku 官网已为 Burlingame 新店设立专页，并在门店列表标注 Coming Soon。截至 9/15，品牌仍未公布具体开业日与街道地址。',
+    editorTip: '先收藏官方门店页，等地址与营业日期确认后再安排前往；目前没有可核实的十月开业承诺。',
+    address: 'Burlingame, CA · 街道地址待官方公布',
+    officialUrl: 'https://www.marufukuramen.com/burlingame', sourceUrl: 'https://www.marufukuramen.com/burlingame',
+    sourceLabel: 'Marufuku 官方 Burlingame 新店预告', verifiedAt: '2026-09-15', imageKey: '',
+  },
+];

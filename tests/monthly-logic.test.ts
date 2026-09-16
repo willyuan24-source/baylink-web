@@ -3,6 +3,8 @@ import test from 'node:test';
 import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { additionalOctoberEvents } from '../src/data/october-events-extra';
+import extraEnglish from '../src/data/october-events-extra-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
@@ -123,7 +125,7 @@ test('next seven days means today plus six calendar dates across DST, leap days 
   }
   assert.equal(getMonthlyDateRange('all', '2026-09-09'), null);
   for (const value of [null, undefined, '', 'unknown', 'WEEKEND']) assert.equal(resolveMonthlyDateFilter(value), 'all');
-  for (const value of ['today', 'weekend', 'next7'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
+  for (const value of ['today', 'weekend', 'next7', 'september', 'october'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
 });
 
 test('date filtering includes overlapping events and both endpoints, and combines all other choices', () => {
@@ -248,11 +250,63 @@ test('published activities reference available guide images and existing related
 });
 
 test('explicit month filters include October 31 and remove September events from October', () => {
+  assert.deepEqual(getMonthlyDateRange('september', '2026-10-15'), { start: '2026-09-01', end: '2026-09-30' });
   assert.deepEqual(getMonthlyDateRange('october', '2026-09-15'), { start: '2026-10-01', end: '2026-10-31' });
   const october = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15');
-  assert.ok(october.length >= 20);
+  assert.equal(october.length, 38);
   assert.ok(october.every(item => item.endDate >= '2026-10-01'));
   assert.ok(october.some(item => item.endDate === '2026-10-31'));
+  const september = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'september' }, '2026-09-15');
+  assert.equal(september.length, 18);
+  assert.ok(september.some(item => item.id === 'novato-youth-folk-dance-2026'));
+  assert.ok(!october.some(item => item.id === 'novato-youth-folk-dance-2026'));
+  assert.deepEqual(ids(september.filter(item => october.some(other => other.id === item.id))), ['petaluma-pumpkin-patch-2026']);
   assert.equal(resolveMonthlyDateFilter('october'), 'october');
   assert.ok(!MONTHLY_EVENTS.some(item => item.endDate < '2026-09-15'));
+});
+
+test('late October dates retain verified community events and respect their final days', () => {
+  const lastWeek = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'next7' }, '2026-10-25');
+  for (const id of ['emeryville-art-exhibition-closing-2026', 'santa-rosa-pumpkins-parks-2026', 'benicia-farmers-market-final-2026', 'san-jose-avenida-altares-2026']) {
+    assert.ok(lastWeek.some(item => item.id === id), id);
+  }
+  assert.ok(!filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-26').some(item => item.id === 'emeryville-art-exhibition-closing-2026'));
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-31')), [
+    'petaluma-pumpkin-patch-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026',
+  ]);
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01'), []);
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
+    ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-11-01'), [], 'archive permission cannot bypass the requested day');
+});
+
+test('new community listings are published once with complete English text and no invented event photos', () => {
+  assert.equal(additionalOctoberEvents.length, 14);
+  const mapping = extraEnglish as Record<string, string>;
+  const texts = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(texts) : value && typeof value === 'object' ? Object.values(value).flatMap(texts) : [];
+  for (const added of additionalOctoberEvents) {
+    assert.equal(MONTHLY_EVENTS.filter(item => item.id === added.id).length, 1, added.id);
+    assert.equal(added.imageKey, '');
+    assert.equal(added.verifiedAt, '2026-09-15');
+    for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
+      assert.ok(mapping[value], 'English mapping exists: ' + value);
+      assert.doesNotMatch(mapping[value], /[\u4e00-\u9fff]/, 'English text must not retain untranslated Chinese');
+    }
+  }
+  assert.deepEqual(new Set(additionalOctoberEvents.map(item => item.region)), new Set(['sf', 'east-bay', 'south-bay', 'peninsula', 'north-bay']));
+  assert.equal(event('windsor-trick-or-treat-trail-2026').cost, 'free');
+  assert.match(event('windsor-trick-or-treat-trail-2026').costLabel, /预先登记/);
+  assert.equal(event('santa-rosa-halloween-howarth-2026').cost, 'paid');
+  assert.equal(event('benicia-farmers-market-final-2026').cost, 'mixed');
+});
+
+test('late-month calendars preserve actual selected dates without turning a closing weekend into a month-long booking', () => {
+  const exhibition = buildEventCalendar(event('emeryville-art-exhibition-closing-2026'));
+  assert.equal(field(exhibition, 'DTSTART;VALUE=DATE'), '20261023');
+  assert.equal(field(exhibition, 'DTEND;VALUE=DATE'), '20261026');
+  const halloween = buildEventCalendar(event('san-jose-avenida-altares-2026'));
+  assert.equal(field(halloween, 'DTSTART;VALUE=DATE'), '20261031');
+  assert.equal(field(halloween, 'DTEND;VALUE=DATE'), '20261101');
+  assert.equal(field(halloween, 'TRANSP'), 'TRANSPARENT');
+  assert.ok(decodeText(field(halloween, 'DESCRIPTION')).includes(event('san-jose-avenida-altares-2026').officialUrl));
 });

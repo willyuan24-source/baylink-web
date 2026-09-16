@@ -8,6 +8,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { buildEventCalendar } from '../src/lib/monthly';
+import type { AppContextValue } from '../src/app/context';
+import { api } from '../src/lib/api';
+import type { EventEngagement } from '../src/lib/event-engagement';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/this-month' });
 Object.assign(globalThis, {
@@ -15,8 +18,8 @@ Object.assign(globalThis, {
   Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
-const { MemoryRouter, StaticRouter, useLocation } = await import('react-router-dom');
+const { render, fireEvent, cleanup, within, act } = await import('@testing-library/react');
+const { MemoryRouter, StaticRouter, useLocation, Routes, Route, Outlet } = await import('react-router-dom');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const { MonthlySpotlight } = await import('../src/components/MonthlySpotlight');
 
@@ -70,15 +73,31 @@ const item = (id: string) => {
   return found;
 };
 const queryParams = (view: ReturnType<typeof render>) => new URL(view.getByTestId('current-route').textContent!, 'http://localhost').searchParams;
+const eventCards = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll<HTMLElement>('.bl-monthly-event')];
+const showAllResults = (view: ReturnType<typeof render>) => {
+  let pages = 0;
+  while (view.queryByRole('button', { name: '查看更多活动', exact: true })) {
+    assert.ok(++pages <= Math.ceil(MONTHLY_EVENTS.length / 12), 'pagination must make progress');
+    fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
+  }
+};
 const assertResultTitles = (view: ReturnType<typeof render>, ids: string[]) => {
-  const expected = new Set(ids);
-  for (const event of MONTHLY_EVENTS) {
-    assert.equal(Boolean(view.queryByRole('article', { name: event.title, exact: true })), expected.has(event.id), event.id);
+  showAllResults(view);
+  const actual = eventCards(view).map(card => {
+    const heading = card.querySelector('h3')!;
+    assert.equal(card.getAttribute('aria-labelledby'), heading.id, 'the event card has a named heading');
+    const id = heading.id.replace(/^event-/, '');
+    assert.equal(heading.textContent, item(id).title);
+    return id;
+  });
+  assert.deepEqual(actual.sort(), [...ids].sort(), 'only the matching activities are rendered after all pages are revealed');
+  for (const event of MONTHLY_EVENTS.filter(event => !ids.includes(event.id))) {
+    assert.equal(view.container.querySelector('[id="event-' + event.id + '"]'), null, event.id);
   }
   assert.match(view.getByRole('status').textContent!, new RegExp(`找到\\s*${ids.length}\\s*场活动`));
 };
 
-test('monthly edition initially exposes every activity with named official links and accurate source labels', () => {
+test('monthly edition exposes every activity through pagination with named official links and accurate source labels', () => {
   const view = render(edition());
   assert.ok(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'));
   assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
@@ -87,6 +106,7 @@ test('monthly edition initially exposes every activity with named official links
   assert.equal((view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, false);
   for (const event of MONTHLY_EVENTS) {
     const card = within(view.getByRole('article', { name: event.title, exact: true }));
+    assert.equal(card.getByRole('link', { name: event.title, exact: true }).getAttribute('href'), `/events/${event.id}`);
     const official = card.getByRole('link', { name: `查看${event.title}官方详情` });
     assert.equal(official.getAttribute('href'), event.officialUrl);
     assert.equal(official.getAttribute('target'), '_blank');
@@ -202,7 +222,7 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assertResultTitles(revisited, []);
   fireEvent.click(revisited.getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(queryParams(revisited).has('when'), false);
-  assertResultTitles(revisited, []);
+  assertResultTitles(revisited, ['san-jose-avenida-altares-2026']);
   fireEvent.change(revisited.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   assert.ok(revisited.getByRole('article', { name: item('san-jose-short-film-festival-2026').title, exact: true }));
 });
@@ -226,16 +246,16 @@ test('next seven days shows its inclusive date range and invalid date parameters
   assert.ok(view.getByText('包含今天'));
   assert.equal(queryParams(view).get('when'), 'next7');
   assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-10-25', '2026-10-31']);
-  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'menlo-park-trunk-or-treat-2026', 'sf-halloween-hoopla-2026']);
+  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'santa-rosa-pumpkins-parks-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'emeryville-art-exhibition-closing-2026', 'menlo-park-trunk-or-treat-2026', 'benicia-farmers-market-final-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026']);
 });
 
 test('new regional activities keep mixed-cost registration and ticketed events out of free-admission results', () => {
   const view = render(edition('2026-09-15', '/this-month?when=september'));
   fireEvent.click(view.getByRole('button', { name: '北湾', exact: true }));
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026']);
+  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026', 'novato-youth-folk-dance-2026']);
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
-  assertResultTitles(view, ['mill-valley-fall-arts-2026', 'san-rafael-porchfest-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026']);
+  assertResultTitles(view, ['mill-valley-fall-arts-2026', 'san-rafael-porchfest-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
   const farm = within(view.getByRole('article', { name: item('sonoma-farm-trails-fall-tour-2026').title, exact: true }));
   assert.ok(farm.getByText('免费登记且必须登记 · 部分农场体验另收费或预约'));
   fireEvent.click(view.getByRole('button', { name: '半岛', exact: true }));
@@ -272,6 +292,7 @@ test('every October weekend including Halloween has a published activity and exc
     ['2026-10-31', 'sf-halloween-hoopla-2026'],
   ]) {
     const view = render(edition(today, '/this-month?when=weekend'));
+    showAllResults(view);
     assert.ok(view.getByRole('article', { name: item(expectedId).title, exact: true }), `${today} offers a verified local outing`);
     for (const event of MONTHLY_EVENTS.filter(event => event.endDate < today)) {
       assert.equal(view.queryByRole('article', { name: event.title, exact: true }), null, `${event.id} has ended before ${today}`);
@@ -279,7 +300,7 @@ test('every October weekend including Halloween has a published activity and exc
     view.unmount();
   }
   const halloween = render(edition('2026-10-31', '/this-month?when=today'));
-  assertResultTitles(halloween, ['petaluma-pumpkin-patch-2026', 'sf-halloween-hoopla-2026']);
+  assertResultTitles(halloween, ['petaluma-pumpkin-patch-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026']);
 });
 
 test('empty filter results offer a working reset while keeping the three place recommendations available', () => {
@@ -332,6 +353,7 @@ test('October remains current, while November archives the edition and hides end
 test('event planning details expand to readable steps and date-reminder controls have activity-specific labels', () => {
   const view = render(edition());
   const event = item('portola-2026');
+  showAllResults(view);
   const cardElement = view.getByRole('article', { name: event.title, exact: true });
   const card = within(cardElement);
   assert.ok(card.getByRole('button', { name: `下载${event.title}日期提醒` }));
@@ -368,27 +390,159 @@ test('monthly spotlight changes current-month language to archive language in bo
   }
 });
 
-test('server HTML contains visible activities and planning text, with ended events available by explicit URL', () => {
-  for (const [today, path, includeEnded] of [['2026-09-15', '/this-month', false], ['2026-10-01', '/this-month', false], ['2026-11-01', '/this-month?includeEnded=1', true]] as const) {
+test('server HTML limits the first page to six real activities and preserves full result counts and archive rules', t => {
+  const fetch = t.mock.method(globalThis, 'fetch', async () => { throw new Error('SSR must not fetch participation'); });
+  const request = t.mock.method(api, 'request', async () => { throw new Error('SSR must not request engagement'); });
+  for (const [today, path, includeEnded] of [
+    ['2026-09-15', '/this-month', false],
+    ['2026-10-01', '/this-month', false],
+    ['2026-11-01', '/this-month', false],
+    ['2026-11-01', '/this-month?includeEnded=1', true],
+  ] as const) {
     const html = renderToStaticMarkup(<StaticRouter location={path}><MonthlyEdition today={today} /></StaticRouter>);
     const server = new JSDOM(html).window.document;
     const links = [...server.querySelectorAll('a')];
+    const eligible = MONTHLY_EVENTS.filter(event => includeEnded || event.endDate >= today)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
+    const firstPage = new Set(eligible.slice(0, 6).map(event => event.id));
+    assert.equal(server.querySelectorAll('.bl-monthly-event').length, Math.min(6, eligible.length));
+    assert.match(server.querySelector('[role="status"]')!.textContent!, new RegExp('找到\\s*' + eligible.length + '\\s*场活动'));
     for (const event of MONTHLY_EVENTS) {
       const heading = [...server.querySelectorAll('h3')].find(element => element.textContent === event.title);
-      if (!includeEnded && event.endDate < today) {
-        assert.equal(heading, undefined, `${today}: ${event.id} must not reappear after expiry`);
-        continue;
-      }
-      assert.ok(heading, `${today}: ${event.id} has a server-rendered title`);
+      assert.equal(Boolean(heading), firstPage.has(event.id), today + ': ' + event.id + ' follows first-page and expiry rules');
+      if (!heading) continue;
       const card = heading.closest('article')!;
       assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === event.officialUrl));
-      for (const step of event.plan) assert.ok(card.textContent!.includes(step), 'collapsed native details retain crawlable planning content');
+      assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === '/events/' + event.id), 'each card links to its complete indexable detail page');
+      for (const step of event.plan) assert.ok(card.textContent!.includes(step), 'native details retain crawlable planning content');
+      assert.equal(card.querySelector('.event-interest span')?.textContent, '—', 'unknown participation is never rendered as zero');
+      assert.doesNotMatch(card.querySelector('.event-participation')!.textContent!, /0 人想去/);
+      if (today > event.endDate) assert.equal(card.querySelector('button[aria-label^="下载"]'), null);
     }
     assert.equal(MONTHLY_PLACES.length, 3);
     for (const place of MONTHLY_PLACES) {
       assert.ok([...server.querySelectorAll('h3')].some(heading => heading.textContent === place.title));
       assert.ok(links.some(link => link.getAttribute('href') === place.officialUrl));
-      assert.ok(links.some(link => link.getAttribute('href') === `/guides/${place.relatedGuideSlug}`));
+      assert.ok(links.some(link => link.getAttribute('href') === '/guides/' + place.relatedGuideSlug));
     }
+  }
+  assert.equal(fetch.mock.callCount(), 0);
+  assert.equal(request.mock.callCount(), 0);
+});
+
+test('load more reveals twelve additional cards without changing totals and filters reset the first page', () => {
+  const view = render(edition());
+  assert.equal(MONTHLY_EVENTS.length, 55, '41 reviewed activities plus the new 14-event batch');
+  assert.equal(eventCards(view).length, 6);
+  assert.match(view.getByRole('status').textContent!, /找到\s*55\s*场活动/);
+  fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
+  assert.equal(eventCards(view).length, 18);
+  fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
+  assert.equal(eventCards(view).length, 30);
+  assert.match(view.getByRole('status').textContent!, /找到\s*55\s*场活动/);
+  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'family' } });
+  const families = MONTHLY_EVENTS.filter(event => event.category === 'family');
+  assert.equal(eventCards(view).length, Math.min(6, families.length), 'changing type returns to the initial page');
+  assert.equal(queryParams(view).get('category'), 'family');
+  assertResultTitles(view, families.map(event => event.id));
+  assert.equal(view.queryByRole('button', { name: '查看更多活动', exact: true }), null);
+});
+
+test('unknown filter and sort values fall back safely while preserving unrelated URL parameters', () => {
+  const view = render(edition('2026-09-15', '/this-month?region=unknown&cost=unknown&when=unknown&category=unknown&view=unknown&sort=unknown&lang=zh-Hant'));
+  assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.getByRole('button', { name: '全部活动', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((view.getByRole('combobox', { name: '活动类型' }) as HTMLSelectElement).value, 'all');
+  assert.equal((view.getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'soon');
+  assert.equal((view.getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'all');
+  assert.equal(eventCards(view).length, 6);
+  assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
+  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
+  assert.equal(queryParams(view).get('lang'), 'zh-Hant');
+  assertResultTitles(view, MONTHLY_EVENTS.filter(event => event.category === 'culture').map(event => event.id));
+});
+
+test('without app context the browser does not fetch or manufacture zero interest counts', async t => {
+  const request = t.mock.method(api, 'request', async () => { throw new Error('Missing app context must not request engagement'); });
+  const fetch = t.mock.method(globalThis, 'fetch', async () => { throw new Error('Network forbidden'); });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(edition()); });
+  assert.equal(eventCards(view).length, 6);
+  for (const card of eventCards(view)) {
+    assert.equal(card.querySelector('.event-interest span')?.textContent, '—');
+    assert.doesNotMatch(card.querySelector('.event-participation')!.textContent!, /0 人想去/);
+  }
+  assert.equal(request.mock.callCount(), 0);
+  assert.equal(fetch.mock.callCount(), 0);
+  fireEvent.click(view.getByRole('button', { name: '我的想去', exact: true }));
+  assert.equal(queryParams(view).get('view'), 'interested');
+  assert.ok(view.getByRole('button', { name: '登录查看我的想去', exact: true }));
+  assert.equal(eventCards(view).length, 0);
+});
+
+const withAppContext = (app: Partial<AppContextValue>, url = '/this-month') =>
+  <MemoryRouter initialEntries={[url]}><Routes><Route element={<Outlet context={app} />}><Route path="/this-month" element={<><MonthlyEdition today="2026-09-15" /><LocationProbe /></>} /></Route></Routes></MemoryRouter>;
+
+test('real engagement drives popularity, my-interest and buddy filters together with type and date', async t => {
+  const familyId = 'windsor-trick-or-treat-trail-2026';
+  const cultureId = 'san-jose-avenida-altares-2026';
+  const earlierId = 'novato-youth-folk-dance-2026';
+  const entries: EventEngagement[] = MONTHLY_EVENTS.map(event => ({
+    eventId: event.id,
+    interestedCount: event.id === familyId ? 12 : event.id === cultureId ? 20 : event.id === earlierId ? 12 : 0,
+    buddyCount: [familyId, cultureId].includes(event.id) ? 2 : 0,
+    me: { interested: [familyId, earlierId].includes(event.id), lookingForBuddy: event.id === familyId },
+  }));
+  const requestedIds: string[][] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    assert.ok(path.startsWith('/events/engagement?'), 'only a read of engagement is expected');
+    requestedIds.push(new URL(path, 'http://localhost').searchParams.get('ids')!.split(',').sort());
+    return { events: entries };
+  });
+  const app = { user: { id: 'monthly-ui-user' }, setShowLogin: () => {}, showToast: () => {} } as unknown as Partial<AppContextValue>;
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext(app, '/this-month?sort=popular&lang=zh-Hant')); });
+  assert.deepEqual(requestedIds[0], MONTHLY_EVENTS.map(event => event.id).sort());
+  const shownIds = () => eventCards(view).map(card => card.getAttribute('aria-labelledby')!.replace(/^event-/, ''));
+  assert.deepEqual(shownIds().slice(0, 3), [cultureId, earlierId, familyId], 'counts descend; equal counts use earlier dates');
+  const first = within(view.getByRole('article', { name: item(cultureId).title, exact: true }));
+  assert.match(first.getByText('20 人想去 · 意向不等于报名或购票。').textContent!, /^20 人想去/);
+  fireEvent.click(view.getByRole('button', { name: '我的想去', exact: true }));
+  assertResultTitles(view, [familyId, earlierId]);
+  assert.equal(queryParams(view).get('view'), 'interested');
+  fireEvent.click(view.getByRole('button', { name: '整个十月', exact: true }));
+  assertResultTitles(view, [familyId]);
+  fireEvent.click(view.getByRole('button', { name: '正在找搭子', exact: true }));
+  assertResultTitles(view, [familyId, cultureId]);
+  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
+  assertResultTitles(view, [cultureId]);
+  const savedUrl = view.getByTestId('current-route').textContent!;
+  const savedParams = queryParams(view);
+  assert.equal(savedParams.get('category'), 'culture');
+  assert.equal(savedParams.get('when'), 'october');
+  assert.equal(savedParams.get('view'), 'buddies');
+  assert.equal(savedParams.get('sort'), 'popular');
+  assert.equal(savedParams.get('lang'), 'zh-Hant');
+  view.unmount();
+  await act(async () => { view = render(withAppContext(app, savedUrl)); });
+  assertResultTitles(view, [cultureId]);
+  assert.equal((view.getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'popular');
+  assert.equal(view.getByRole('button', { name: '正在找搭子', exact: true }).getAttribute('aria-pressed'), 'true');
+});
+
+test('failed engagement leaves counts unknown and offers retry instead of a false empty buddy list', async t => {
+  t.mock.method(api, 'request', async () => { throw new Error('Engagement service unavailable'); });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext({ user: null }, '/this-month?view=buddies')); });
+  assert.ok(view.getByText('出行意向暂时无法加载，请重试。'));
+  assert.ok(view.getByRole('button', { name: '重试', exact: true }));
+  assert.equal(view.queryByRole('heading', { name: '这组条件下，还没有人公开找搭子' }), null);
+  assert.equal(eventCards(view).length, 0);
+  fireEvent.click(view.getByRole('button', { name: '全部活动', exact: true }));
+  assert.equal(eventCards(view).length, 6);
+  for (const card of eventCards(view)) {
+    assert.equal(card.querySelector('.event-interest span')?.textContent, '—');
+    assert.ok(within(card).getByText('人数暂时无法加载'));
   }
 });
