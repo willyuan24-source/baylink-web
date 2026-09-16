@@ -19,6 +19,7 @@ const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const RecommendPage = lazy(() => import('./pages/RecommendPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const PrivacyPolicyView = lazy(() => import('./components/PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
 const TermsView = lazy(() => import('./components/TermsView').then((m) => ({ default: m.TermsView })));
@@ -56,6 +57,7 @@ export default function App() {
         <Route path="/messages/:threadId" element={<MessagesPage />} />
         <Route path="/recommend" element={<RecommendPage />} />
         <Route path="/me" element={<ProfilePage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/privacy" element={<PrivacyPolicyView />} />
         <Route path="/terms" element={<TermsView />} />
         <Route path="/sms-consent" element={<SmsConsentView />} />

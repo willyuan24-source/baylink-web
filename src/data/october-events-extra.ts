@@ -54,7 +54,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.srcity.org/Calendar.aspx?EID=2289&calType=0&day=23&month=10&year=2026",
     "sourceLabel": "City of Santa Rosa",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "garden-walk"
   },
   {
     "id": "litquake-out-loud-2026",
@@ -81,7 +81,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.litquake.org/events-1/litquake-out-loud-1",
     "sourceLabel": "Litquake",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "october-library-culture"
   },
   {
     "id": "novato-nostalgia-days-2026",
@@ -135,7 +135,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://burlingame.org/356/Events",
     "sourceLabel": "Burlingame Public Library",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "october-library-culture"
   },
   {
     "id": "piedmont-wonka-outdoor-movie-2026",
@@ -162,7 +162,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://piedmont.ca.gov/cms/One.aspx?pageId=21392954&portalId=13659823",
     "sourceLabel": "City of Piedmont",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "outdoor-cinema"
   },
   {
     "id": "campbell-oktoberfest-2026",
@@ -189,7 +189,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://campbelloktoberfest.com/",
     "sourceLabel": "Campbell Chamber of Commerce",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "berkeley-harvest-festival-2026",
@@ -216,7 +216,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://berkeleyca.gov/community-recreation/events/harvest-festival-1",
     "sourceLabel": "City of Berkeley",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "emeryville-art-exhibition-closing-2026",
@@ -243,7 +243,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.emeryarts.org/",
     "sourceLabel": "Emeryville Celebration of the Arts",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "culture-visit"
   },
   {
     "id": "sf-family-connections-halloween-2026",
@@ -270,7 +270,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://fccenters.org/event/halloween-2026/",
     "sourceLabel": "Family Connections Centers",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "family-workshop"
   },
   {
     "id": "windsor-trick-or-treat-trail-2026",
@@ -297,7 +297,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.townofwindsor.com/trickortreat",
     "sourceLabel": "Town of Windsor Parks and Recreation",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "garden-walk"
   },
   {
     "id": "santa-rosa-halloween-howarth-2026",
@@ -324,7 +324,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.srcity.org/2164/Halloween-at-Howarth",
     "sourceLabel": "City of Santa Rosa",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "family-workshop"
   },
   {
     "id": "benicia-farmers-market-final-2026",
@@ -351,7 +351,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.beniciamainstreet.org/event-details/benicia-certified-farmers-market-2",
     "sourceLabel": "Benicia Main Street",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "san-jose-avenida-altares-2026",

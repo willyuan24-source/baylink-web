@@ -10,7 +10,8 @@ import { EventParticipationContext, useEventParticipation } from '../lib/event-p
 
 export function EventParticipationProvider({ events, children }: { events: MonthlyEvent[]; children: ReactNode }) {
   const app = useApp() as AppContextValue | undefined;
-  return <ParticipationSession key={app?.user?.id || 'guest'} events={events} app={app}>{children}</ParticipationSession>;
+  const session = app?.user ? `${app.user.id}:${app.user.token || ''}` : 'guest';
+  return <ParticipationSession key={session} events={events} app={app}>{children}</ParticipationSession>;
 }
 function ParticipationSession({ events, app, children }: { events: MonthlyEvent[]; app?: AppContextValue; children: ReactNode }) {
   const [entries, setEntries] = useState<Record<string, EventEngagement>>({});
@@ -23,22 +24,26 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
   const ids = events.map(event => event.id).sort().join(',');
   const enabled = !!app;
   const requestSerial = useRef(0);
+  const readController = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
     if (!enabled || !ids) return;
+    readController.current?.abort();
+    const controller = new AbortController();
+    readController.current = controller;
     const serial = ++requestSerial.current;
     const before = { ...revisions.current };
     setLoading(true);
     try {
-      const response = await getEventEngagement(ids.split(','));
-      if (!alive.current || serial !== requestSerial.current) return;
+      const response = await getEventEngagement(ids.split(','), controller.signal);
+      if (!alive.current || controller.signal.aborted || serial !== requestSerial.current) return;
       setEntries(previous => {
         const next = { ...previous };
         for (const entry of response) if ((before[entry.eventId] || 0) === (revisions.current[entry.eventId] || 0)) next[entry.eventId] = entry;
         return next;
       });
       setFailed(false);
-    } catch { if (alive.current && serial === requestSerial.current) setFailed(true); }
-    finally { if (alive.current && serial === requestSerial.current) setLoading(false); }
+    } catch { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setFailed(true); }
+    finally { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setLoading(false); }
   }, [enabled, ids]);
   useEffect(() => {
     alive.current = true; void refresh();
@@ -49,6 +54,7 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       // This is a request-generation counter, not a DOM ref. Cleanup must invalidate the latest request.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       ++requestSerial.current;
+      readController.current?.abort();
       window.removeEventListener('focus', focus);
     };
   }, [refresh]);
@@ -90,7 +96,7 @@ export function EventParticipationActions({ event, today = getBayAreaToday() }: 
       <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />一起去{entry && !participation.failed && <span>{entry.buddyCount}</span>}</button>
     </div>
     <p className="event-participation-note">{participation.failed ? <><span>人数暂时无法加载</span><button type="button" onClick={participation.refresh}><RefreshCw size={12} />重试</button></> : count === null ? '正在读取大家的出行意向…' : locale === 'en' ? `${count} interested · Interest is not a ticket or booking.` : `${count} 人想去 · 意向不等于报名或购票。`}</p>
-    {buddiesOpen && <EventBuddies event={event} ended={ended} onClose={() => setBuddiesOpen(false)} />}
+    {buddiesOpen && <EventBuddies key={event.id} event={event} ended={ended} onClose={() => setBuddiesOpen(false)} />}
   </div>;
 }
 
@@ -102,33 +108,49 @@ function EventBuddies({ event, ended, onClose }: { event: MonthlyEvent; ended: b
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const alive = useRef(false);
+  const requestSerial = useRef(0);
+  const readController = useRef<AbortController | null>(null);
   const me = participation.entries[event.id]?.me;
   const busy = participation.busy.includes(event.id);
-  const load = useCallback(async (next?: string, signal?: AbortSignal) => {
+  const load = useCallback(async (next?: string) => {
+    if (!alive.current || (next && readController.current)) return;
+    // A refresh supersedes any initial read or pagination that started before a membership change.
+    readController.current?.abort();
+    const controller = new AbortController();
+    readController.current = controller;
+    const serial = ++requestSerial.current;
+    const current = () => alive.current && !controller.signal.aborted && serial === requestSerial.current;
     setLoading(true); setFailed(false);
     try {
-      const result = await getEventBuddies(event.id, next, signal);
-      if (signal?.aborted) return;
+      const result = await getEventBuddies(event.id, next, controller.signal);
+      if (!current()) return;
       setBuddies(previous => next ? [...new Map([...previous, ...result.buddies].map(buddy => [buddy.id, buddy])).values()] : result.buddies); setCursor(result.nextCursor);
-    } catch { if (!signal?.aborted) setFailed(true); }
-    finally { if (!signal?.aborted) setLoading(false); }
+    } catch { if (current()) setFailed(true); }
+    finally { if (current()) { readController.current = null; setLoading(false); } }
   }, [event.id]);
-  useEffect(() => { const controller = new AbortController(); void load(undefined, controller.signal); return () => controller.abort(); }, [load]);
+  useEffect(() => {
+    alive.current = true; void load();
+    return () => { alive.current = false; readController.current?.abort(); };
+  }, [load]);
+  const updateMembership = async (value: EventInterest) => {
+    if (await participation.update(event.id, value) && alive.current) void load();
+  };
   const join = async () => {
     if (!app?.user) { onClose(); app?.setShowLogin(true); return; }
-    if (await participation.update(event.id, { interested: true, lookingForBuddy: !me?.lookingForBuddy })) void load();
+    await updateMembership({ interested: true, lookingForBuddy: !me?.lookingForBuddy });
   };
   return <ModalShell onClose={onClose} label="一起去 · 活动搭子" className="discovery-modal-backdrop">
     <div className="discovery-modal buddy-sheet" onClick={action => action.stopPropagation()}>
       <button type="button" className="discovery-modal-close" onClick={onClose} aria-label="关闭一起去"><X size={20} /></button>
       <span className="discovery-eyebrow">BAYLINK · GO TOGETHER</span><h2>有个搭子，出门更容易。</h2><h3>{event.title}</h3><p>{event.dateLabel} · {event.city}</p>
       <div className="discovery-inline-note"><strong>由你决定是否公开加入</strong><p>“想去”只计入人数；加入“一起去”才会在这里显示你的昵称、头像与城市，其他用户可以通过站内私信联系你。随时退出即可从列表移除。</p></div>
-      {!ended ? <button type="button" className="discovery-primary" disabled={busy || (!!app?.user && !me)} onClick={join}><Users size={17} />{me?.lookingForBuddy ? '退出一起去' : app?.user ? '公开加入一起去' : '登录后加入一起去'}</button> : me?.lookingForBuddy ? <button type="button" onClick={() => { void participation.update(event.id, { interested: false, lookingForBuddy: false }).then(ok => { if (ok) void load(); }); }}>退出已结束活动</button> : <p>活动已结束，不再接受新的出行意向。</p>}
+      {!ended ? <button type="button" className="discovery-primary" disabled={busy || (!!app?.user && !me)} onClick={join}><Users size={17} />{me?.lookingForBuddy ? '退出一起去' : app?.user ? '公开加入一起去' : '登录后加入一起去'}</button> : me?.lookingForBuddy ? <button type="button" disabled={busy} onClick={() => { void updateMembership({ interested: false, lookingForBuddy: false }); }}>退出已结束活动</button> : <p>活动已结束，不再接受新的出行意向。</p>}
       <div className="buddy-list-heading"><h3>正在找搭子的人</h3><button type="button" disabled={loading} onClick={() => { void load(); }}><RefreshCw size={14} />刷新</button></div>
       {failed ? <p role="alert">搭子列表暂时无法加载，请点刷新重试。</p> : !loading && buddies.length === 0 ? <p className="buddy-empty">还没有人公开加入。你可以先记下想去，或把活动分享给朋友。</p> : null}
       <ul className="buddy-list">{buddies.map(buddy => <li key={buddy.id}>
         <button type="button" className="buddy-person" onClick={() => { onClose(); app?.openUserProfile(buddy.id); }} aria-label={`${translateText('查看个人主页')}：${buddy.nickname}`}><span className="buddy-avatar">{buddy.avatar && /^(https:\/\/|\/(?!\/))/.test(buddy.avatar) ? <img src={buddy.avatar} alt="" width={40} height={40} /> : <Users size={20} />}</span><span><strong translate="no">{buddy.nickname}</strong>{buddy.city && <span translate="no">{buddy.city}</span>}</span></button>
-        {app?.user?.id === buddy.id ? <span className="discovery-small">我</span> : <button type="button" onClick={() => { onClose(); if (!app?.user) app?.setShowLogin(true); else app.openChat(buddy.id, buddy.nickname, event.title); }}><MessageCircle size={15} />私信聊聊</button>}
+        {app?.user?.id === buddy.id ? <span className="discovery-small">我</span> : <button type="button" onClick={() => { onClose(); app?.openChat(buddy.id, buddy.nickname, event.title); }}><MessageCircle size={15} />私信聊聊</button>}
       </li>)}</ul>
       {loading && <p role="status">正在加载搭子…</p>}{cursor && !loading && <button type="button" onClick={() => { void load(cursor); }}>查看更多搭子</button>}
       <p className="discovery-small">这里是出行意向交流，不是主办方报名。先在站内沟通，在公共场所碰面；对方的个人主页提供举报与屏蔽入口。</p>

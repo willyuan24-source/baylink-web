@@ -18,7 +18,7 @@ function OpeningCard({ shop }: { shop: SeptemberOpening }) {
   const image = GUIDE_IMAGES[shop.imageKey];
   const label = shop.status === 'open' ? '已开业' : shop.openingType === 'opening-celebration' ? '开业庆典' : '开业预告';
   return <article className="bl-opening-card" aria-labelledby={`opening-${shop.id}`}>
-    {image && <figure className="bl-opening-photo">
+    {image && <figure className={`bl-opening-photo${image.kind === 'poster' || image.fullFrame ? ' bl-opening-photo--contain' : ''}`}>
       <button type="button" onClick={() => setZoomed(true)} aria-label={`${translateText('查看大图')}：${shop.name}`}>
         <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 430px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
         <span>{image.kind === 'illustration' ? 'AI 原创插图' : image.kind === 'poster' ? '官方宣传图' : '资料照片'}</span>
@@ -33,7 +33,7 @@ function OpeningCard({ shop }: { shop: SeptemberOpening }) {
       <div className="bl-opening-tip"><strong>怎么安排</strong><p>{shop.editorTip}</p></div>
       <EditorialShareActions item={openingShare(shop)} />
       <div className="bl-opening-links"><a href={shop.officialUrl} target="_blank" rel="noopener noreferrer">商家入口 <ArrowUpRight size={14} aria-hidden="true" /></a><a href={openingMap(shop)} target="_blank" rel="noopener noreferrer">查看位置 <MapPin size={14} aria-hidden="true" /></a></div>
-      <details className="bl-opening-source"><summary>开业消息与图片来源</summary><a href={shop.sourceUrl} target="_blank" rel="noopener noreferrer">{shop.sourceLabel} <ArrowUpRight size={12} aria-hidden="true" /></a><p>核对 {shop.verifiedAt}</p>{image && <><p>{image.caption}</p>{image.creditUrl && <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>}</>}</details>
+      <details className="bl-opening-source"><summary>开业消息与图片来源</summary><a href={shop.sourceUrl} target="_blank" rel="noopener noreferrer">{shop.sourceLabel} <ArrowUpRight size={12} aria-hidden="true" /></a><p>核对 {shop.verifiedAt}</p>{image && <><p>{image.caption}</p>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <p>{image.credit}</p>}</>}</details>
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}
   </article>;

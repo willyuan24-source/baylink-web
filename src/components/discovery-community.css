@@ -71,6 +71,10 @@
 .discovery-detail-facts svg { flex:none; margin-top:2px; }
 .discovery-detail-header .event-participation { border-color:#cfdcc2; }
 .discovery-detail-header .editorial-share-actions { margin-bottom:0; }
+.discovery-detail-media { width:100%; min-width:0; }
+.discovery-detail-media .guide-figure { margin:26px 0 10px; }
+.discovery-detail-media--full .guide-figure-image { aspect-ratio:auto; max-height:700px; object-fit:contain; }
+.discovery-detail-media--full .guide-figure-open:hover .guide-figure-image { transform:none; }
 .discovery-detail-body { padding:15px 32px 35px; }
 .discovery-detail-body h2 { font-size:23px; font-weight:700; color:#214b39; margin:28px 0 16px; }
 .discovery-detail-body>p { font-size:15px; line-height:1.95; color:#53664f; margin:16px 0; }

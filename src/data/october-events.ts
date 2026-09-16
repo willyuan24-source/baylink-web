@@ -12,7 +12,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "city": "Petaluma",
     "venue": "Petaluma Pumpkin Patch · 450 Stony Point Road",
     "category": "family",
-    "cost": "mixed",
+    "cost": "free",
     "costLabel": "基础入场和停车免费 · 大迷宫与部分项目另付",
     "summary": "在 Sonoma County 的农场挑南瓜、看农场动物，或挑战每年重新设计的玉米迷宫。周五、周六可以把行程留到傍晚，体验夜间迷宫。",
     "plan": [
@@ -54,7 +54,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.mvff.com/press-info/",
     "sourceLabel": "California Film Institute / Mill Valley Film Festival",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "cinema-night"
   },
   {
     "id": "fremont-finding-nemo-outdoor-movie-2026",
@@ -81,7 +81,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.fremont.gov/government/departments/parks-recreation/events/movies-under-the-stars",
     "sourceLabel": "City of Fremont",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "outdoor-cinema"
   },
   {
     "id": "hardly-strictly-bluegrass-2026",
@@ -109,7 +109,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "Hardly Strictly Bluegrass",
     "relatedGuideSlug": "golden-gate-park-free-car-free-day-guide",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "rio-vista-bass-derby-2026",
@@ -190,7 +190,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.oaktoberfest.org/",
     "sourceLabel": "Oaktoberfest / Dimond community associations",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "clayton-oktoberfest-2026",
@@ -217,7 +217,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://claytonoktoberfest.com/info/",
     "sourceLabel": "Clayton Business and Community Association",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "sunnyvale-diwali-2026",
@@ -244,7 +244,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.sacas.org/",
     "sourceLabel": "South Asian Cultural Association of Sunnyvale",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "tiburon-wine-festival-2026",
@@ -298,7 +298,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.littleitalysj.com/little-italy-san-jose-festival",
     "sourceLabel": "Little Italy San Jose",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "san-francisco-fleet-week-2026",
@@ -326,7 +326,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "San Francisco Fleet Week Association",
     "relatedGuideSlug": "sf-fishermans-wharf-pier39-guide",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "sf-wharf"
   },
   {
     "id": "silicon-valley-african-film-festival-2026",
@@ -353,7 +353,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://svaff.org/programs/annual-film-festival",
     "sourceLabel": "Silicon Valley African Film Festival",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "cinema-night"
   },
   {
     "id": "san-carlos-art-wine-faire-2026",
@@ -381,7 +381,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "Pacific Fine Arts Festivals / City of San Carlos",
     "relatedGuideSlug": "bay-area-without-car-guide",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "napa-musictime-halloween-2026",
@@ -409,7 +409,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "Festival Napa Valley / Napa County Library",
     "relatedGuideSlug": "bay-area-library-starter-guide",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "october-library-culture"
   },
   {
     "id": "sonoma-harvest-fair-gala-2026",
@@ -464,7 +464,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "Friends of the Gardens at Lake Merritt",
     "relatedGuideSlug": "oakland-lake-merritt-omca-half-day",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "region-lake-merritt"
   },
   {
     "id": "half-moon-bay-pumpkin-festival-2026",
@@ -492,7 +492,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "sourceLabel": "Half Moon Bay Beautification Committee",
     "relatedGuideSlug": "half-moon-bay-pumpkin-season-2026-guide",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "fresh-pumpkin-parade"
   },
   {
     "id": "san-jose-short-film-festival-2026",
@@ -519,7 +519,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://sjsff.com/tickets/",
     "sourceLabel": "San Jose International Short Film Festival",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "cinema-night"
   },
   {
     "id": "bay-area-musical-improv-festival-2026",
@@ -573,7 +573,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.fremont.gov/government/departments/parks-recreation/events/trick-or-treat-event",
     "sourceLabel": "City of Fremont",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "menlo-park-halloween-hoopla-2026",
@@ -600,7 +600,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival",
     "sourceLabel": "City of Menlo Park",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "petaluma-witches-wizards-water-2026",
@@ -654,7 +654,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261028-Trunk-or-Treat",
     "sourceLabel": "City of Menlo Park",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "sf-halloween-hoopla-2026",
@@ -681,6 +681,6 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://ybgfestival.org/event/halloween-hoopla-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival / Circus Bella",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   }
 ];

@@ -37,7 +37,7 @@ function Harness() {
   </>;
 }
 
-function fixture(t: TestContext) {
+function fixture(t: TestContext, resetPath = '/reset-password?token=fixture-reset-token') {
   const calls: { path: string; options?: RequestInit }[] = [];
   t.mock.method(globalThis, 'fetch', async () => { throw new Error('Network forbidden in route regression'); });
   t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
@@ -46,9 +46,16 @@ function fixture(t: TestContext) {
     if (path === '/auth/reset-password') return { message: '密码已更新，请重新登录。' };
     throw new Error(`Unexpected API call: ${path}`);
   });
-  const view = render(<MemoryRouter initialEntries={['/guides', '/reset-password?token=fixture-reset-token']} initialIndex={1}><Harness /></MemoryRouter>);
+  const view = render(<MemoryRouter initialEntries={['/guides', resetPath]} initialIndex={1}><Harness /></MemoryRouter>);
   return { view, calls };
 }
+
+test('a password reset URL with a trailing slash still opens its token dialog', async t => {
+  const { view } = fixture(t, '/reset-password/?token=fixture-reset-token');
+  const dialog = await view.findByRole('dialog', { name: '重设密码', exact: true });
+  await act(async () => { fireEvent.keyDown(dialog, { key: 'Escape' }); });
+  assert.equal(view.getByTestId('router-location').textContent, '/');
+});
 
 test('closing password reset replaces the router entry so Back and Forward cannot restore its token', async t => {
   const { view, calls } = fixture(t);

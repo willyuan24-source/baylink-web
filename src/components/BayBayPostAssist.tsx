@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
@@ -91,8 +91,23 @@ export const BayBayPostAssist = ({
   const [appendTagsOnApply, setAppendTagsOnApply] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDraft, setAiDraft] = useState<AiPostDraft | null>(null);
+  const activeRequest = useRef<number | null>(null);
+  const requestSequence = useRef(0);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; activeRequest.current = null; };
+  }, []);
+
+  const dismissDraft = () => {
+    activeRequest.current = null;
+    setAiLoading(false);
+    setAiDraft(null);
+  };
 
   const runAssist = async (rewriteMode?: AiRewriteMode) => {
+    if (activeRequest.current !== null) return;
     const intent = aiPostIntent.trim();
     if (!user?.token) {
       showToast('请先登录后使用 BayBay 发帖助手', 'error');
@@ -102,6 +117,9 @@ export const BayBayPostAssist = ({
       showToast('多写一点需求，BayBay 才能帮你整理', 'error');
       return;
     }
+    const requestId = ++requestSequence.current;
+    activeRequest.current = requestId;
+    const isCurrent = () => mounted.current && activeRequest.current === requestId;
     setAiLoading(true);
     try {
       const res = await requestAiAssist({
@@ -113,17 +131,19 @@ export const BayBayPostAssist = ({
         tone,
         ...(rewriteMode ? { rewriteMode } : {}),
       });
+      if (!isCurrent()) return;
       if (res.ok && res.draft) {
         setAiDraft(res.draft);
       } else {
         showToast(res.error || 'AI 整理失败，请稍后再试', 'error');
       }
     } catch (e: unknown) {
+      if (!isCurrent()) return;
       const err = e as { error?: string; status?: number };
       if (err?.error) showToast(err.error, 'error');
       else showToast('AI 服务暂时不可用，请稍后再试', 'error');
     } finally {
-      setAiLoading(false);
+      if (isCurrent()) { activeRequest.current = null; setAiLoading(false); }
     }
   };
 
@@ -267,7 +287,7 @@ export const BayBayPostAssist = ({
               type="button"
               onClick={() => {
                 onApply(aiDraft, { appendQuickTags: appendTagsOnApply });
-                setAiDraft(null);
+                dismissDraft();
               }}
               className="flex-1 min-w-[88px] rounded-lg bg-baylink-green py-2 text-[11px] font-bold text-white"
             >
@@ -275,7 +295,7 @@ export const BayBayPostAssist = ({
             </button>
             <button
               type="button"
-              onClick={() => setAiDraft(null)}
+              onClick={dismissDraft}
               className="rounded-lg border border-baylink-border px-3 py-2 text-[11px] text-baylink-muted"
             >
               取消

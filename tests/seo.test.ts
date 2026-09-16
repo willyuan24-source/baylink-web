@@ -11,9 +11,35 @@ import { GuidesHome } from '../src/components/GuidesHome';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
+import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { getLocalDiscovery } from '../src/data/local-discoveries';
+import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
+
+test('monthly structured data links every event to a readable canonical detail page beyond the initial six cards', () => {
+  const html = renderHtmlDocument(template, MONTHLY_METADATA, '<main>Monthly edition</main>');
+  const dom = new JSDOM(html);
+  const [collection] = JSON.parse(dom.window.document.querySelector('script[type="application/ld+json"]')!.textContent!);
+  const entries: { url: string; name: string }[] = collection.mainEntity.itemListElement;
+  assert.equal(entries.length, MONTHLY_EVENTS.length);
+  assert.ok(entries.length > 6, 'the monthly list paginates content beyond its first six cards');
+  for (const entry of entries) {
+    const url = new URL(entry.url);
+    assert.equal(url.hash, '', 'a filtered or unrendered monthly card cannot be a durable entry point');
+    const id = url.pathname.match(/^\/events\/([^/]+)$/)?.[1];
+    assert.ok(id, entry.url);
+    const item = getLocalDiscovery('event', id);
+    assert.ok(item, entry.url);
+    assert.equal(item.kind, 'event');
+    const detail = getDiscoveryMetadata(item);
+    assert.equal(url.pathname, detail.path);
+    assert.equal(entry.name, MONTHLY_EVENTS.find(event => event.id === id)?.title);
+  }
+  dom.window.close();
+});
 
 test('server metadata replaces the entire previous page and escapes untrusted text', () => {
   const html = renderHtmlDocument(template, { title: '房源 <script>alert(1)</script>', description: '" onclick="bad', path: '/posts/example?token=private', image: 'javascript:alert(1)', type: 'article', noindex: true }, '<article>公开正文</article>');

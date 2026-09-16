@@ -35,7 +35,7 @@ type ProfileViewProps = {
 export const ProfileView = (props: ProfileViewProps) => <ProfileSession key={JSON.stringify([props.user?.id, props.user?.token])} {...props} />;
 const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
   const isCurrentSession = useProfileSessionGuard(user);
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'about' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
   const [showOfficialModal, setShowOfficialModal] = useState(false);
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
@@ -65,6 +65,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
         <div><span><Sparkles size={22} aria-hidden="true" /></span><h3>分享你的生活</h3><p>发布资源，让需要的人发现你</p></div>
       </div>
       <a href="/guides" className="member-guide-link"><span>刚来湾区？先看看 <strong>湾区生活指南</strong></span><ArrowUpRight size={18} aria-hidden="true" /></a>
+      <Link to="/about" className="member-guide-link"><span>认识 BAYLINK</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
     </div>
   );
 
@@ -151,7 +152,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
             </div>
             <ChevronRight size={18} className="text-gray-300" />
           </button>
-          <button onClick={() => setSubView('about')} className="member-menu-row"><div className="flex items-center gap-4"><div className="member-menu-icon"><Info size={20} /></div><div className="font-semibold text-baylink-text">关于我们</div></div><ChevronRight size={18} className="text-baylink-muted" /></button>
+          <Link to="/about" className="member-menu-row"><div className="flex items-center gap-4"><div className="member-menu-icon"><Info size={20} /></div><div className="font-semibold text-baylink-text">关于我们</div></div><ChevronRight size={18} className="text-baylink-muted" /></Link>
           <div className="member-profile-legal">
             <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
             <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
@@ -196,7 +197,6 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
       {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
       {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
-      {subView === 'about' && <InfoPage title="关于我们" storageKey="baylink_about" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
     </div>
   );
 };

@@ -21,6 +21,7 @@ const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
@@ -194,6 +195,23 @@ test('all detail pages server-render full content with matching canonical, OG, T
     else assert.equal(Object.hasOwn(article, 'dateModified'), false, 'offers without a checked date do not invent one');
 
     const content = doc.querySelector('.local-discovery-detail')!;
+    const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
+    const expectedMedia = GUIDE_IMAGES[imageKey];
+    const figure = content.querySelector('.discovery-detail-media');
+    if (expectedMedia) {
+      assert.ok(figure, share.id + ' displays its registered editorial image');
+      const img = figure.querySelector('img')!;
+      assert.equal(img.getAttribute('src'), expectedMedia.src);
+      assert.equal(img.getAttribute('srcset'), expectedMedia.srcSet);
+      assert.equal(img.getAttribute('alt'), expectedMedia.alt);
+      assert.equal(img.getAttribute('width'), String(expectedMedia.width));
+      assert.equal(img.getAttribute('height'), String(expectedMedia.height));
+      assert.equal(img.getAttribute('loading'), 'eager');
+      assert.ok(figure.textContent!.includes(expectedMedia.caption));
+      assert.ok(figure.textContent!.includes(expectedMedia.credit));
+      if (expectedMedia.creditUrl) assert.ok([...figure.querySelectorAll('a')].some(a => a.getAttribute('href') === expectedMedia.creditUrl));
+      if (expectedMedia.licenseUrl) assert.ok([...figure.querySelectorAll('a')].some(a => a.getAttribute('href') === expectedMedia.licenseUrl));
+    } else assert.equal(figure, null, share.id + ' stays readable without inventing an image');
     if (item.kind === 'event') {
       assert.deepEqual([...content.querySelectorAll('.discovery-plan li p')].map(node => node.textContent), item.event.plan, 'all three planning steps are indexable outside the paginated list');
       assert.ok(content.textContent!.includes(item.event.costLabel));
@@ -214,6 +232,50 @@ test('all detail pages server-render full content with matching canonical, OG, T
   }
   assert.equal(request.mock.callCount(), 0);
   assert.equal(fetch.mock.callCount(), 0);
+});
+
+test('missing, unknown and inherited image keys leave event, offer and opening details readable', () => {
+  for (const item of [eventItem, offerItem, openShop]) {
+    for (const imageKey of ['', 'unknown-editorial-image', '__proto__', 'constructor']) {
+      const fixture: LocalDiscovery = item.kind === 'event' ? { ...item, event: { ...item.event, imageKey } }
+        : item.kind === 'offer' ? { ...item, offer: { ...item.offer, imageKey } }
+        : { ...item, shop: { ...item.shop, imageKey } };
+      const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={fixture} today="2026-09-15" /></StaticRouter>);
+      const page = new JSDOM(body);
+      assert.equal(page.window.document.querySelector('h1')?.textContent, discoveryShare(item).title);
+      assert.equal(page.window.document.querySelector('.discovery-detail-media'), null);
+      assert.ok(page.window.document.querySelector('.discovery-detail-links a'));
+      page.window.close();
+    }
+  }
+});
+
+test('discovery posters and full-frame photos stay contained and open their complete source in an accessible lightbox', () => {
+  const style = document.createElement('style');
+  style.textContent = readFileSync(new URL('../src/components/guide-visuals.css', import.meta.url), 'utf8') + '\n'
+    + readFileSync(new URL('../src/components/discovery-community.css', import.meta.url), 'utf8');
+  document.head.append(style);
+  const poster = find('event', item => GUIDE_IMAGES[item.event.imageKey]?.kind === 'poster');
+  const fullPhoto = find('offer', item => GUIDE_IMAGES[item.offer.imageKey]?.kind === 'photo' && !!GUIDE_IMAGES[item.offer.imageKey]?.fullFrame);
+  for (const item of [poster, fullPhoto]) {
+    const imageKey = item.kind === 'event' ? item.event.imageKey : item.offer.imageKey;
+    const image = GUIDE_IMAGES[imageKey];
+    const view = render(detail(item));
+    const img = view.getByRole('img', { name: image.alt });
+    assert.ok(img.closest('.discovery-detail-media--full'));
+    const computed = dom.window.getComputedStyle(img);
+    assert.equal(computed.objectFit, 'contain');
+    assert.equal(computed.aspectRatio, 'auto');
+    const zoom = view.getByRole('button', { name: '放大图片：' + image.alt });
+    fireEvent.click(zoom);
+    const dialog = view.getByRole('dialog', { name: '图片放大：' + image.alt });
+    assert.equal(within(dialog).getByRole('img', { name: image.alt }).getAttribute('src'), image.src);
+    assert.ok(within(dialog).getByText(image.caption));
+    fireEvent.click(within(dialog).getByRole('button', { name: '关闭放大图片' }));
+    assert.equal(view.queryByRole('dialog'), null);
+    assert.equal(document.body.style.overflow, '');
+    view.unmount();
+  }
 });
 
 test('event recipients see all planning, cost, venue and audience details and retain safe source and return links', () => {

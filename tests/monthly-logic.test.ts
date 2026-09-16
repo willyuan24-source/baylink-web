@@ -280,13 +280,19 @@ test('late October dates retain verified community events and respect their fina
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-11-01'), [], 'archive permission cannot bypass the requested day');
 });
 
-test('new community listings are published once with complete English text and no invented event photos', () => {
+test('new community listings retain complete English text and clearly identify any illustrative media', () => {
   assert.equal(additionalOctoberEvents.length, 14);
   const mapping = extraEnglish as Record<string, string>;
   const texts = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(texts) : value && typeof value === 'object' ? Object.values(value).flatMap(texts) : [];
   for (const added of additionalOctoberEvents) {
     assert.equal(MONTHLY_EVENTS.filter(item => item.id === added.id).length, 1, added.id);
-    assert.equal(added.imageKey, '');
+    if (added.imageKey) {
+      const image = GUIDE_IMAGES[added.imageKey];
+      assert.ok(image, `${added.id} references registered media`);
+      assert.equal(image.kind, 'illustration', `${added.id} uses a theme illustration, not an unverified event photo`);
+      assert.match(image.caption, /插图|插画/);
+      assert.match(image.caption, /非|不代表|虚构|示意/);
+    }
     assert.equal(added.verifiedAt, '2026-09-15');
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
       assert.ok(mapping[value], 'English mapping exists: ' + value);
@@ -298,6 +304,29 @@ test('new community listings are published once with complete English text and n
   assert.match(event('windsor-trick-or-treat-trail-2026').costLabel, /预先登记/);
   assert.equal(event('santa-rosa-halloween-howarth-2026').cost, 'paid');
   assert.equal(event('benicia-farmers-market-final-2026').cost, 'mixed');
+});
+
+test('event photos keep their actual place and outdoor movies never borrow an indoor cinema image', () => {
+  const realPlaces: [string, string, RegExp][] = [
+    ['san-francisco-fleet-week-2026', 'sf-wharf', /Fisherman|渔人码头/],
+    ['oakland-autumn-lights-festival-2026', 'region-lake-merritt', /Lake Merritt/],
+    ['half-moon-bay-pumpkin-festival-2026', 'fresh-pumpkin-parade', /Half Moon Bay|半月湾/],
+  ];
+  for (const [id, key, place] of realPlaces) {
+    const image = GUIDE_IMAGES[event(id).imageKey];
+    assert.equal(event(id).imageKey, key, `${id} keeps the verified location photo`);
+    assert.equal(image.kind, 'photo');
+    assert.match(`${image.alt} ${image.caption}`, place);
+    assert.equal(new URL(image.creditUrl!).protocol, 'https:');
+  }
+  for (const id of ['fremont-finding-nemo-outdoor-movie-2026', 'piedmont-wonka-outdoor-movie-2026']) {
+    const image = GUIDE_IMAGES[event(id).imageKey];
+    assert.equal(event(id).imageKey, 'outdoor-cinema');
+    assert.equal(image.kind, 'illustration');
+    assert.match(`${image.alt} ${image.caption}`, /露天|户外/);
+    assert.match(image.caption, /非|不代表|虚构|示意/);
+  }
+  assert.equal(event('mill-valley-film-festival-2026').imageKey, 'cinema-night');
 });
 
 test('late-month calendars preserve actual selected dates without turning a closing weekend into a month-long booking', () => {

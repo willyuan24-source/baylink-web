@@ -15,7 +15,7 @@ const { render, fireEvent, cleanup, act, waitFor, within } = await import('@test
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { EventParticipationProvider, EventParticipationActions } = await import('../src/components/EventParticipation');
 const { api } = await import('../src/lib/api');
-const { getEventEngagement, setEventInterest, parseEventEngagement } = await import('../src/lib/event-engagement');
+const { getEventEngagement, getEventBuddies, setEventInterest, parseEventEngagement } = await import('../src/lib/event-engagement');
 afterEach(() => { cleanup(); localStorage.clear(); });
 
 const EVENT: MonthlyEvent = {
@@ -194,6 +194,152 @@ test('opening profiles or reading the buddy list never sends a DM; only the mess
   assert.equal(view.queryByRole('dialog', { name: '一起去 · 活动搭子' }), null);
 });
 
+test('a guest buddy message delegates the target to the resumable chat flow', async t => {
+  const actions = controls();
+  t.mock.method(api, 'request', async (path: string) => path.includes('/buddies?') ? buddyList : list(state(null)));
+  const view = render(fixture(actions.app(null)));
+  await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog', { name: '一起去 · 活动搭子' });
+  fireEvent.click(await within(dialog).findByRole('button', { name: '私信聊聊' }));
+  assert.deepEqual(actions.chats, [[buddy.id, buddy.nickname, EVENT.title]]);
+  assert.deepEqual(actions.logins, [], 'openChat owns the login continuation and must receive the target first');
+  assert.equal(view.queryByRole('dialog'), null);
+});
+
+test('a late initial buddy response cannot replace the list refreshed after joining', async t => {
+  const actions = controls();
+  const initial = deferred<typeof buddyList>();
+  const freshBuddy = { ...buddy, id: 'new-neighbor', nickname: 'New Neighbor' };
+  let buddyReads = 0;
+  let initialSignal: AbortSignal | null | undefined;
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method === 'PUT') return state({ interested: true, lookingForBuddy: true });
+    if (!path.includes('/buddies?')) return list();
+    if (++buddyReads === 1) { initialSignal = options.signal; return initial.promise; }
+    return { ...buddyList, buddies: [freshBuddy] };
+  });
+  const view = render(fixture(actions.app('owner')));
+  await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog', { name: '一起去 · 活动搭子' });
+  fireEvent.click(within(dialog).getByRole('button', { name: '公开加入一起去' }));
+  await within(dialog).findByText(freshBuddy.nickname);
+  assert.equal(initialSignal?.aborted, true);
+  await act(async () => initial.resolve(buddyList));
+  assert.ok(within(dialog).getByText(freshBuddy.nickname));
+  assert.equal(within(dialog).queryByText(buddy.nickname), null);
+});
+
+test('duplicate pagination is locked and stale pages cannot append after a membership refresh', async t => {
+  const actions = controls();
+  const page = deferred<typeof buddyList>();
+  const lateBuddy = { ...buddy, id: 'late-neighbor', nickname: 'Late Neighbor' };
+  const freshBuddy = { ...buddy, id: 'fresh-neighbor', nickname: 'Fresh Neighbor' };
+  let initialReads = 0, pageReads = 0;
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method === 'PUT') return state({ interested: true, lookingForBuddy: true });
+    if (!path.includes('/buddies?')) return list();
+    if (path.includes('&cursor=')) { pageReads++; return page.promise; }
+    return ++initialReads === 1 ? { ...buddyList, nextCursor: 'page-2' } : { ...buddyList, buddies: [freshBuddy] };
+  });
+  const view = render(fixture(actions.app('owner')));
+  await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog');
+  const more = await within(dialog).findByRole('button', { name: '查看更多搭子' });
+  fireEvent.click(more); fireEvent.click(more);
+  assert.equal(pageReads, 1);
+  fireEvent.click(within(dialog).getByRole('button', { name: '公开加入一起去' }));
+  await within(dialog).findByText(freshBuddy.nickname);
+  await act(async () => page.resolve({ ...buddyList, buddies: [lateBuddy] }));
+  assert.ok(within(dialog).getByText(freshBuddy.nickname));
+  assert.equal(within(dialog).queryByText(lateBuddy.nickname), null);
+  assert.equal(within(dialog).queryByRole('button', { name: '查看更多搭子' }), null);
+});
+
+test('closing the buddy sheet aborts its read and a pending join does not reopen or fetch the closed list', async t => {
+  const actions = controls(), save = deferred<EventEngagement>(), initial = deferred<typeof buddyList>();
+  let buddyReads = 0;
+  let signal: AbortSignal | null | undefined;
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method === 'PUT') return save.promise;
+    if (!path.includes('/buddies?')) return list();
+    buddyReads++; signal = options.signal; return initial.promise;
+  });
+  const view = render(fixture(actions.app('owner')));
+  await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog');
+  fireEvent.click(within(dialog).getByRole('button', { name: '公开加入一起去' }));
+  fireEvent.click(within(dialog).getByRole('button', { name: '关闭一起去' }));
+  assert.equal(signal?.aborted, true);
+  await act(async () => {
+    save.resolve(state({ interested: true, lookingForBuddy: true }));
+    initial.resolve(buddyList);
+  });
+  assert.equal(buddyReads, 1);
+  assert.equal(view.queryByRole('dialog'), null);
+});
+
+test('same-account token rotation clears membership and ignores old reads and writes', async t => {
+  const actions = controls(), oldRead = deferred<ReturnType<typeof list>>(), oldWrite = deferred<EventEngagement>();
+  let reads = 0;
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => {
+    if (options.method === 'PUT') return oldWrite.promise;
+    if (++reads === 1) return list();
+    if (reads === 2) return oldRead.promise;
+    return list(state({ interested: false, lookingForBuddy: false }, 11));
+  });
+  const first = actions.app('owner'); first.user!.token = 'first-session';
+  const second = actions.app('owner'); second.user!.token = 'second-session';
+  const view = render(fixture(first));
+  await view.findByText(getNote(7));
+  fireEvent(window, new dom.window.Event('focus'));
+  fireEvent.click(interestedButton(view));
+  view.rerender(fixture(second));
+  await view.findByText(getNote(11));
+  await act(async () => {
+    oldRead.resolve(list(state({ interested: true, lookingForBuddy: true }, 98)));
+    oldWrite.resolve(state({ interested: true, lookingForBuddy: false }, 99));
+  });
+  assert.ok(view.getByText(getNote(11)));
+  assert.equal(interestedButton(view).getAttribute('aria-pressed'), 'false');
+  assert.deepEqual(actions.toasts, []);
+});
+
+test('an ended public membership retains a pending-disabled exit and one cancellation request', async t => {
+  const actions = controls(), save = deferred<EventEngagement>();
+  let writes = 0;
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method === 'PUT') { writes++; return save.promise; }
+    return path.includes('/buddies?') ? buddyList : list(state({ interested: true, lookingForBuddy: true }));
+  });
+  const view = render(fixture(actions.app('owner'), '2026-10-19'));
+  await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog');
+  const exit = within(dialog).getByRole('button', { name: '退出已结束活动' }) as HTMLButtonElement;
+  fireEvent.click(exit); fireEvent.click(exit);
+  assert.equal(exit.disabled, true);
+  assert.equal(writes, 1);
+  await act(async () => save.resolve(state({ interested: false, lookingForBuddy: false }, 6)));
+  assert.equal(within(dialog).queryByRole('button', { name: '退出已结束活动' }), null);
+  assert.ok(within(dialog).getByText('活动已结束，不再接受新的出行意向。'));
+});
+
+test('buddy transport rejects another event, malformed profile fields and repeated pagination cursors', async t => {
+  const invalid = [
+    { ...buddyList, eventId: 'another-event' },
+    { ...buddyList, buddies: [{ ...buddy, city: { private: true } }] },
+    { ...buddyList, buddies: [{ ...buddy, avatar: 42 }] },
+    { ...buddyList, nextCursor: 'page-2' },
+  ];
+  t.mock.method(api, 'request', async () => invalid.shift());
+  for (let index = 0; index < 3; index++) await assert.rejects(getEventBuddies(EVENT.id), /Invalid buddy/);
+  await assert.rejects(getEventBuddies(EVENT.id, 'page-2'), /Invalid buddy/);
+});
+
 test('authentication changes clear private state and ignore both an old read and a pending old-user write', async t => {
   const actions = controls();
   const oldRead = deferred<ReturnType<typeof list>>(), newRead = deferred<ReturnType<typeof list>>(), oldWrite = deferred<EventEngagement>();
@@ -272,9 +418,10 @@ test('provider without an AppLayout context makes no public or authenticated req
 
 test('transport validation rejects impossible counts, partial batches and a write response for another event', async t => {
   for (const candidate of [{ ...state(), interestedCount: -1 }, { ...state(), interestedCount: 1.5 }, { ...state(), buddyCount: 8 }, { ...state(), me: { interested: false, lookingForBuddy: true } }]) assert.throws(() => parseEventEngagement(candidate));
-  const responses = [{ events: [] }, { events: [state({ interested: false, lookingForBuddy: false })] }, { ...state(), eventId: 'wrong-event' }];
+  const responses = [{ events: [] }, { events: [state({ interested: false, lookingForBuddy: false })] }, { events: [state(), state()] }, { ...state(), eventId: 'wrong-event' }];
   t.mock.method(api, 'request', async () => responses.shift());
   await assert.rejects(getEventEngagement([EVENT.id]));
   await assert.rejects(getEventEngagement([EVENT.id, 'another-event']));
+  await assert.rejects(getEventEngagement([EVENT.id]), /Incomplete/);
   await assert.rejects(setEventInterest(EVENT.id, { interested: true, lookingForBuddy: false }), /event|participation|response/i);
 });

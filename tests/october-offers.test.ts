@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -10,6 +11,7 @@ import { monthlyDealsGuides } from '../src/data/guides-deals';
 import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
+import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
   const result = currentFreebies.find(item => item.id === id);
@@ -155,14 +157,54 @@ test('additional dated family benefits remain visible on their day and expire th
   assert.equal(hasCard(renderBoard('2026-10-26'), 'sfmoma-family-oct25'), false);
 });
 
-test('benefits with no verified picture render useful text and the genuine source without placeholder photos', () => {
+test('benefit cards show registered media with its context while retaining the conditions and genuine source', () => {
   const document = renderBoard('2026-09-15');
-  for (const item of additionalOctoberOffers) {
-    assert.equal(item.imageKey, '');
+  for (const item of [...newOctoberOffers, ...additionalOctoberOffers]) {
+    const image = GUIDE_IMAGES[item.imageKey];
+    assert.ok(image, `${item.id} references registered media`);
+    assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0, `${item.id} image file exists`);
+    assert.ok(image.credit && image.caption);
     const card = document.getElementById(`offer-${item.id}`);
     assert.ok(card, item.id);
-    assert.equal(card.querySelector('img'), null);
+    assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
+    assert.equal(card.querySelector('img')?.getAttribute('alt'), image.alt);
+    assert.ok(card.textContent?.includes(image.caption));
+    if (item.imageNote) assert.ok(card.textContent?.includes(item.imageNote));
+    if (image.kind !== 'illustration') assert.equal(new URL(image.creditUrl!).protocol, 'https:');
     assert.ok(card.textContent?.includes(item.title));
+    assert.ok(card.textContent?.includes(item.requirement));
+    assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === item.sourceUrl));
+  }
+});
+
+test('offer media preserves verified places and labels generic tools, passes and product themes honestly', () => {
+  for (const id of ['smcl-discover-go', 'alameda-county-discover-go', 'santa-clara-library-parks-pass']) {
+    assert.equal(offer(id).imageKey, 'october-library-culture', `${id} must not use an unrelated SFPL building photo`);
+    assert.match(offer(id).imageNote || '', /非真实/);
+  }
+  for (const [id, key, place] of [
+    ['sfpl-radon-detector-loan', 'library', /San Francisco|旧金山/],
+    ['cantor-stanford-free', 'region-cantor', /Cantor/],
+  ] as const) {
+    assert.equal(offer(id).imageKey, key);
+    const image = GUIDE_IMAGES[key];
+    assert.equal(image.kind, 'photo');
+    assert.match(`${image.alt} ${image.caption}`, place);
+  }
+  assert.match(offer('sfpl-radon-detector-loan').imageNote || '', /非探测器或现有库存/);
+  assert.match(offer('berkeley-tool-lending').imageNote || '', /非该馆现场或现有库存/);
+  assert.match(offer('ikea-emeryville-as-is-wednesdays').imageNote || '', /非 IKEA 门店或实际库存/);
+  assert.match(offer('lowes-firefighting-plane-oct17').imageNote || '', /非本次消防飞机成品/);
+  assert.match(offer('poppy-claro-doggie-dinners-fall').imageNote || '', /非餐厅现场或实际套餐/);
+});
+
+test('empty or unavailable offer image keys safely omit media without losing conditions or the official link', () => {
+  for (const imageKey of ['', 'unregistered-offer-test-image']) {
+    const item = { ...offer('cantor-stanford-free'), imageKey };
+    const document = new JSDOM(renderToStaticMarkup(React.createElement(FreebieBoard, { offers: [item], today: '2026-09-15' }))).window.document;
+    const card = document.getElementById(`offer-${item.id}`)!;
+    assert.equal(card.querySelector('img'), null);
+    assert.equal(card.querySelector('.bl-freebie-picture-open'), null);
     assert.ok(card.textContent?.includes(item.requirement));
     assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === item.sourceUrl));
   }

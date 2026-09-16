@@ -10,7 +10,7 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     editorTip: '官网建议提前订位。9/11 是庆典日期；现在可作为 Cow Hollow 晚餐新选择，菜单和实际营业时间以订位页为准。',
     address: '1838 Union Street, San Francisco, CA 94123',
     officialUrl: 'https://www.kaiyosf.com/events', sourceUrl: 'https://www.kaiyosf.com/events',
-    sourceLabel: 'KAIYŌ 官方 9/11 开业与营业公告', verifiedAt: '2026-09-15', imageKey: '',
+    sourceLabel: 'KAIYŌ 官方 9/11 开业与营业公告', verifiedAt: '2026-09-15', imageKey: 'opening-kaiyo-handroll',
   },
   {
     id: 'mess-hall-presidio-breadwinner', name: 'The Mess Hall · Breadwinner', city: 'San Francisco', region: 'sf',
@@ -20,7 +20,7 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     editorTip: '适合公园散步后吃午餐，Breadwinner 从 11:00 供应至打烊。带狗可用露台；大楼内仅允许服务犬，其他档口先查开业更新。',
     address: '201 Halleck Street, San Francisco, CA 94129',
     officialUrl: 'https://www.messhallpresidio.com/', sourceUrl: 'https://www.messhallpresidio.com/',
-    sourceLabel: 'Mess Hall 官方已营业与分期开放说明', verifiedAt: '2026-09-15', imageKey: '',
+    sourceLabel: 'Mess Hall 官方已营业与分期开放说明', verifiedAt: '2026-09-15', imageKey: 'neighborhood-table',
   },
   {
     id: 'broken-dreams-oakland', name: 'Broken Dreams', city: 'Oakland', region: 'east-bay',
@@ -30,7 +30,7 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     editorTip: '官网公告周末暂休；同一联系页的中午开门时间有 11 点与 12 点两种写法，出发前致电 510-250-7701 确认，别专程安排周末。',
     address: '1312 Broadway, Oakland, CA 94612',
     officialUrl: 'https://www.brokendreamsoakland.com/', sourceUrl: 'https://www.brokendreamsoakland.com/contact',
-    sourceLabel: 'Broken Dreams 官方开业日期与临时营业安排', verifiedAt: '2026-09-15', imageKey: '',
+    sourceLabel: 'Broken Dreams 官方开业日期与临时营业安排', verifiedAt: '2026-09-15', imageKey: 'opening-broken-dreams',
   },
   {
     id: 'hijau-san-jose-storefront', name: 'Hijau Coffee', city: 'San José', region: 'south-bay',
@@ -39,9 +39,9 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     summary: '从湾区快闪摊位走进 San José 的首家固定咖啡店。印尼驻旧金山总领馆 9/5 的一手报道确认开店，店主把印尼咖啡文化带到 West San Carlos 社区。',
     editorTip: '这是已开实体店的资讯，9/5 为揭幕活动日期。去之前查品牌最新营业公告，别沿用旧农夫市集快闪地址与时间。',
     address: '1432 W San Carlos Street, Suite 70, San Jose, CA 95126',
-    officialUrl: 'https://www.wearehijau.com/',
+    officialUrl: 'https://www.hijau.coffee/',
     sourceUrl: 'https://kemlu.go.id/id/sanfrancisco/berita/umkm-indonesia-naik-kelas-di-silicon-valley-kjri-san-francisco-dorong-hijau-coffee-jadi-jembatan-promosi-indonesia-di-san-jose?type=publication',
-    sourceLabel: '印尼驻旧金山总领馆 · 9/5 开店报道', verifiedAt: '2026-09-15', imageKey: '',
+    sourceLabel: '印尼驻旧金山总领馆 · 9/5 开店报道', verifiedAt: '2026-09-15', imageKey: 'neighborhood-table',
   },
   {
     id: 'marufuku-burlingame-announced', name: 'Marufuku Ramen · Burlingame', city: 'Burlingame', region: 'peninsula',
@@ -51,6 +51,6 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     editorTip: '先收藏官方门店页，等地址与营业日期确认后再安排前往；目前没有可核实的十月开业承诺。',
     address: 'Burlingame, CA · 街道地址待官方公布',
     officialUrl: 'https://www.marufukuramen.com/burlingame', sourceUrl: 'https://www.marufukuramen.com/burlingame',
-    sourceLabel: 'Marufuku 官方 Burlingame 新店预告', verifiedAt: '2026-09-15', imageKey: '',
+    sourceLabel: 'Marufuku 官方 Burlingame 新店预告', verifiedAt: '2026-09-15', imageKey: 'opening-marufuku-burlingame',
   },
 ];

@@ -53,7 +53,7 @@ export type AppContextValue = {
   handleToggleLike: (post: PostData, onSynced?: (postId: string, liked: boolean, likesCount: number) => void) => void;
   handleToggleBlockUser: (userId: string) => void;
   openReportTarget: (target: ReportTarget) => void;
-  openChat: (targetId: string, nickname?: string, postTitle?: string, postId?: string) => void;
+  openChat: (targetId: string, nickname?: string, postTitle?: string, postId?: string) => void | Promise<void>;
   requestPostContact: (post: ContactPost) => void;
   openConversation: (c: Conversation) => void;
   setViewingImage: (src: string | null) => void;

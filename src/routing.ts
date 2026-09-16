@@ -37,7 +37,7 @@ export const getSlugFromCategory = (category: string): string | null => {
 
 export const isKnownAppPath = (pathname: string): boolean => {
   const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-  if (['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', '/messages', '/me', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
+  if (['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', '/messages', '/me', '/about', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
   if (/^\/(posts|users|messages|guides|events|offers|openings)\/[^/]+$/.test(path)) return true;
   const category = path.match(/^\/category\/([^/]+)$/)?.[1];
   return !!category && Object.hasOwn(SLUG_TO_CATEGORY, category);

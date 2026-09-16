@@ -1,5 +1,5 @@
 // 登录 / 注册弹层
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, AlertCircle, ArrowUpRight, LockKeyhole } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
@@ -13,10 +13,28 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+    };
+  }, []);
+
+  const cancelRequest = () => {
+    activeRequest.current?.abort();
+    activeRequest.current = null;
+    setLoading(false);
+  };
+  const close = () => { cancelRequest(); onClose(); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (activeRequest.current) return;
     setError('');
 
     if (mode === 'register') {
@@ -44,19 +62,23 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
       if (contactError) { setError(contactError); return; }
     }
 
+    const controller = new AbortController();
+    activeRequest.current = controller;
+    const isCurrent = () => mounted.current && activeRequest.current === controller && !controller.signal.aborted;
     setLoading(true);
     try {
       const payload = { email: form.email.trim(), password: form.password, nickname: form.nickname.trim(), contactType: form.contactType, contactValue: form.contactValue.trim() };
-      const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(payload) });
+      const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(payload), signal: controller.signal });
+      if (!isCurrent()) return;
       localStorage.setItem('currentUser', JSON.stringify(user));
       onLogin(user);
       onClose();
       showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
       if (mode === 'login') showAccountStatusNotice(user, showToast);
-    } catch (e: any) {
-      setError(mapAuthError(e, mode === 'register' ? 'register' : 'login'));
+    } catch (e: unknown) {
+      if (isCurrent()) setError(mapAuthError(e, mode === 'register' ? 'register' : 'login'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) { activeRequest.current = null; setLoading(false); }
     }
   };
 
@@ -64,7 +86,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
 
   return (
     // 注册模式有 5 个必填字段，误触遮罩不关闭（与旧版一致，仅 X / Esc 可关）
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label="登录 / 注册" className="member-auth-overlay">
+    <ModalShell onClose={close} closeOnBackdrop={false} label="登录 / 注册" className="member-auth-overlay">
       <div className="member-auth-dialog">
         <AuthBrandHeader />
         <div className="member-auth-heading">
@@ -100,7 +122,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
               <div className="text-right">
                 <button
                   type="button"
-                  onClick={onForgotPassword}
+                  onClick={() => { cancelRequest(); onForgotPassword(); }}
                   className="member-text-action"
                 >
                   忘记密码?
@@ -119,7 +141,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         </form>
         <button disabled={loading} onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="member-auth-switch">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <p className="member-auth-privacy"><LockKeyhole size={12} aria-hidden="true" />你的联系方式不会公开显示</p>
-        <button onClick={onClose} aria-label="关闭登录注册" className="member-auth-close"><X size={18} /></button>
+        <button onClick={close} aria-label="关闭登录注册" className="member-auth-close"><X size={18} /></button>
       </div>
     </ModalShell>
   );

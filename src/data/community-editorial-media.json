@@ -1,0 +1,79 @@
+[
+  {
+    "key": "culture-visit",
+    "src": "/guides/community-2026/culture-visit.webp",
+    "alt": "两位成人与一名儿童在阳光下的展厅观看画作与陶艺",
+    "caption": "AI 原创看展情境插图，不代表某一家博物馆、当前展览或实际参观现场。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/culture-visit-small.webp 480w, /guides/community-2026/culture-visit.webp 1536w"
+  },
+  {
+    "key": "autumn-neighbors",
+    "src": "/guides/community-2026/autumn-neighbors.webp",
+    "alt": "秋日街区的手作摊位、南瓜、散步邻居与吉他手",
+    "caption": "AI 原创秋日社区情境插图，不代表某场活动的现场或官方布置。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/autumn-neighbors-small.webp 480w, /guides/community-2026/autumn-neighbors.webp 1536w"
+  },
+  {
+    "key": "cinema-night",
+    "src": "/guides/community-2026/cinema-night.webp",
+    "alt": "观众在暖色座椅间观看影院银幕上的虚构山水画面",
+    "caption": "AI 原创影院情境插图；银幕为虚构画面，不是所列电影剧照或场馆实景。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/cinema-night-small.webp 480w, /guides/community-2026/cinema-night.webp 1536w"
+  },
+  {
+    "key": "garden-walk",
+    "src": "/guides/community-2026/garden-walk.webp",
+    "alt": "两位朋友沿着有池塘、长椅和绿植的花园步道散步",
+    "caption": "AI 原创园林散步插图，不代表具体植物园、茶园或当季花况。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/garden-walk-small.webp 480w, /guides/community-2026/garden-walk.webp 1536w"
+  },
+  {
+    "key": "family-workshop",
+    "src": "/guides/community-2026/family-workshop.webp",
+    "alt": "家长陪伴孩子在工作桌上组装木制玩具飞机",
+    "caption": "AI 原创亲子木作插图，不代表商家的实际套件、成品或工作坊现场。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/family-workshop-small.webp 480w, /guides/community-2026/family-workshop.webp 1536w"
+  },
+  {
+    "key": "neighborhood-table",
+    "src": "/guides/community-2026/neighborhood-table.webp",
+    "alt": "窗边餐桌上的咖啡、三明治、沙拉与陶瓷花瓶",
+    "caption": "AI 原创邻里餐饮情境插图，不代表所介绍商家的店内环境或实际菜单。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/neighborhood-table-small.webp 480w, /guides/community-2026/neighborhood-table.webp 1536w"
+  },
+  {
+    "key": "outdoor-cinema",
+    "src": "/guides/community-2026/outdoor-cinema.webp",
+    "alt": "朋友和家庭坐在公园草地上观看暮色中的露天银幕",
+    "caption": "AI 原创露天电影情境插图；银幕为虚构画面，不是所列电影剧照或活动现场。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/outdoor-cinema-small.webp 480w, /guides/community-2026/outdoor-cinema.webp 1536w"
+  }
+]

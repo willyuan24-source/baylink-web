@@ -11,6 +11,8 @@ import { GuidesHome } from '../src/components/GuidesHome';
 import { TermsView } from '../src/components/TermsView';
 import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
 import { SmsConsentView } from '../src/components/SmsConsentView';
+import { AboutContent } from '../src/components/AboutContent';
+import { ABOUT_METADATA } from '../src/lib/about-metadata';
 import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { SITE_URL, escapeHtml, renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
@@ -41,7 +43,7 @@ const Shell = ({ children }: { children: ReactNode }) => (
     </header>
     <main className="mx-auto max-w-4xl">{children}</main>
     <footer className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4 px-5 py-8 text-xs text-baylink-muted">
-      <a href="/terms">服务条款</a><a href="/privacy">隐私政策</a><a href="/sms-consent">短信验证说明</a>
+      <a href="/about">关于我们</a><a href="/terms">服务条款</a><a href="/privacy">隐私政策</a><a href="/sms-consent">短信验证说明</a>
     </footer>
   </div>
 );
@@ -70,6 +72,7 @@ await renderPage({ title: 'BAYLINK｜湾区周末灵感、生活攻略与邻里�
 await renderPage({ title: '湾区生活指南｜BAYLINK', description: '查看湾区租房、找室友、二手交易、本地服务、交通与城市生活指南，附官方参考资料和行动清单。', path: '/guides' }, <GuidesHome onOpenGuide={noop} />);
 await renderPage(MONTHLY_METADATA, <MonthlyEdition />);
 await renderPage(EXPLORE_METADATA, <AttractionExplorer />);
+await renderPage(ABOUT_METADATA, <AboutContent />);
 await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
@@ -88,7 +91,7 @@ await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
-const sitemapPaths = ['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
+const sitemapPaths = ['/', '/guides', '/this-month', '/explore', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
 const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
 for (const item of localDiscoveries) { const share = discoveryShare(item); if (share.checkedAt) guideDates.set(share.path, share.checkedAt); }
 guideDates.set('/this-month', MONTHLY_EDITION.checkedAt);

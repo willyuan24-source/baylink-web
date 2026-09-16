@@ -1,0 +1,41 @@
+[
+  {
+    "key": "community-history-park",
+    "src": "/guides/community-2026/community-history-park.webp",
+    "alt": "San Jose History Park 内写着 Printing Office 的木质印刷所建筑",
+    "caption": "San Jose 的 History Park 印刷所建筑，2010 年 3 月资料照片；不代表当前开放时间或十月活动布置。",
+    "credit": "HarshLight / Wikimedia Commons · CC BY 2.0 · 已缩放压缩，卡片按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:History_Park_(4526489917).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "kind": "photo",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/community-2026/community-history-park-small.webp 480w, /guides/community-2026/community-history-park.webp 1280w"
+  },
+  {
+    "key": "community-tilden-little-farm",
+    "src": "/guides/community-2026/community-tilden-little-farm.webp",
+    "alt": "Tilden Little Farm 的红色农舍、风车、围栏与场地上的禽鸟",
+    "caption": "Tilden Little Farm，2013 年 9 月资料照片；展示农场环境，不代表目前动物配置或十月活动现场。",
+    "credit": "Harmonywriter / Wikimedia Commons · CC BY-SA 3.0 · 已缩放压缩，卡片按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Tilden_Regional_Park_little_farm.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "kind": "photo",
+    "width": 1280,
+    "height": 960,
+    "srcSet": "/guides/community-2026/community-tilden-little-farm-small.webp 480w, /guides/community-2026/community-tilden-little-farm.webp 1280w"
+  },
+  {
+    "key": "community-china-camp-village",
+    "src": "/guides/community-2026/community-china-camp-village.webp",
+    "alt": "China Camp 渔村的临水木屋、码头与弧形岸边",
+    "caption": "China Camp 村落、码头与岸边，2010 年 3 月资料照片；码头与海滩开放情况以公园当天公告为准。",
+    "credit": "Sanfranman59 / Wikimedia Commons · CC BY-SA 3.0 · 已缩放压缩，卡片按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:China_Camp_247_N_San_Pedro_Rd_San_Rafael_CA_3-21-2010_4-39-54_PM.JPG",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "kind": "photo",
+    "width": 1280,
+    "height": 916,
+    "srcSet": "/guides/community-2026/community-china-camp-village-small.webp 480w, /guides/community-2026/community-china-camp-village.webp 1280w"
+  }
+]

@@ -38,6 +38,32 @@ test('completed conversations send bounded history and retain earlier answers', 
   assert.equal(view.queryByText('这是第 1 条根据上下文整理的回答。'), null);
 });
 
+test('follow-up chips preserve supplied travel facts instead of inventing age, origin, or transport', async t => {
+  const bodies: { message: string; history: { role: string; content: string }[] }[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    return answer(`这是第 ${bodies.length} 条保留原有条件的回答。`);
+  });
+  const cases = [
+    { question: '孩子 2 岁，从南湾自驾，预算 80 美元，周末去哪里？', followup: '帮我按已经提供的条件，列出需要提前预约的项目' },
+    { question: '周末独自从旧金山自驾，想玩一整天，预算 150 美元。', followup: '帮我按已经提供的条件，把推荐整理成出游安排' },
+    { question: '周末独自从旧金山自驾，想玩一整天，预算 150 美元。', followup: '帮我按已经提供的条件，比较这些去处的取舍' },
+  ];
+  for (const { question, followup } of cases) {
+    const offset = bodies.length;
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: question } });
+    fireEvent.click(view.getByRole('button', { name: '问一下' }));
+    await view.findByText(`这是第 ${offset + 1} 条保留原有条件的回答。`);
+    fireEvent.click(view.getByRole('button', { name: followup }));
+    await view.findByText(`这是第 ${offset + 2} 条保留原有条件的回答。`);
+    assert.deepEqual(bodies[offset + 1].history[0], { role: 'user', content: question });
+    assert.equal(bodies[offset + 1].message, followup);
+    assert.doesNotMatch(bodies[offset + 1].message, /6 岁|东湾|不开车|半天|不花钱|带孩子同行/);
+    view.unmount();
+  }
+});
+
 test('a preset arriving while busy waits, is consumed once when started, and can repeat under a new ID', async t => {
   const resolvers: ((response: Response) => void)[] = [];
   const bodies: { message: string }[] = [];

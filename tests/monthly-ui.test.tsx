@@ -137,31 +137,45 @@ test('monthly edition exposes every activity through pagination with named offic
   }
 });
 
-test('illustrated monthly activities use distinct registered assets and distinct actual image bytes', () => {
+test('monthly media files and credits are valid and only declared theme illustrations may be shared', () => {
   assert.ok(MONTHLY_EVENTS.length > 0);
   const keys = new Set<string>();
   const paths = new Set<string>();
-  const fingerprints = new Map<string, string>();
+  const fingerprints = new Map<string, { key: string; eventId: string }>();
   for (const event of MONTHLY_EVENTS) {
     if (!event.imageKey) continue;
     const image = GUIDE_IMAGES[event.imageKey];
     assert.ok(image, event.id);
-    assert.equal(keys.has(event.imageKey), false, `${event.id} reuses an event image key`);
+    if (keys.has(event.imageKey)) {
+      assert.equal(image.kind, 'illustration', `${event.id} must not borrow another event's photo or poster`);
+      assert.match(image.caption, /插图|插画/);
+      assert.match(image.caption, /非|不代表|虚构|示意/);
+    }
     keys.add(event.imageKey);
     assert.match(image.src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
     assert.equal(image.src.includes('..'), false);
-    assert.equal(paths.has(image.src), false, `${event.id} reuses an event image path`);
     paths.add(image.src);
+    assert.ok(image.alt.trim() && image.caption.trim() && image.credit.trim(), `${event.id} retains image context and credit`);
+    if (image.kind !== 'illustration') assert.equal(new URL(image.creditUrl!).protocol, 'https:', event.id);
+    for (const entry of (image.srcSet || '').split(',').filter(Boolean)) {
+      const src = entry.trim().split(/\s+/)[0];
+      assert.match(src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
+      assert.equal(src.includes('..'), false);
+      assert.ok(readFileSync(new URL(`../public${src}`, import.meta.url)).length > 0, `${event.id} thumbnail exists`);
+    }
     const bytes = readFileSync(new URL(`../public${image.src}`, import.meta.url));
     const fingerprint = createHash('sha256').update(bytes).digest('hex');
-    assert.equal(fingerprints.has(fingerprint), false, `${event.id} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
-    fingerprints.set(fingerprint, event.id);
+    const previous = fingerprints.get(fingerprint);
+    if (previous) {
+      assert.equal(previous.key, event.imageKey, `${event.id} must not disguise ${previous.eventId}'s image as a different asset`);
+      assert.equal(image.kind, 'illustration', 'actual event photos and posters remain specific to their event');
+    }
+    fingerprints.set(fingerprint, { key: event.imageKey, eventId: event.id });
   }
   const illustratedCount = MONTHLY_EVENTS.filter(event => event.imageKey).length;
   assert.ok(illustratedCount > 0, 'retain source checks for the existing illustrated activities');
-  assert.equal(keys.size, illustratedCount);
-  assert.equal(paths.size, illustratedCount);
-  assert.equal(fingerprints.size, illustratedCount, 'different filenames must not disguise reuse of a generic event illustration');
+  assert.equal(paths.size, keys.size, 'different keys must not alias the same file');
+  assert.equal(fingerprints.size, keys.size, 'different filenames must not disguise identical media');
 });
 
 test('region, free admission and keyword filters combine and clearing a search restores regional matches', () => {
@@ -253,7 +267,7 @@ test('new regional activities keep mixed-cost registration and ticketed events o
   const view = render(edition('2026-09-15', '/this-month?when=september'));
   fireEvent.click(view.getByRole('button', { name: '北湾', exact: true }));
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026', 'novato-youth-folk-dance-2026']);
+  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   assertResultTitles(view, ['mill-valley-fall-arts-2026', 'san-rafael-porchfest-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
   const farm = within(view.getByRole('article', { name: item('sonoma-farm-trails-fall-tour-2026').title, exact: true }));

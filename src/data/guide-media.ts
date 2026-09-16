@@ -13,6 +13,9 @@ import regionalAttractionMedia from './attractions-regions-media.json';
 import freshSeptemberMedia from './fresh-september-media.json';
 import septemberUpdateMedia from './september-update-media.json';
 import octoberMedia from './october-media.json';
+import communityEditorialMedia from './community-editorial-media.json';
+import communityOpeningMedia from './community-opening-media.json';
+import communityPlaceMedia from './community-place-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -53,19 +56,19 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
-  'bay-area-october-weekend-planner-2026': ['weekend', 'coast'],
+  'bay-area-october-weekend-planner-2026': ['autumn-neighbors', 'coast'],
   'half-moon-bay-october-pumpkin-coast-guide-2026': ['fresh-hmb-pumpkins', 'coast'],
-  'san-jose-october-family-history-farm-guide-2026': ['everyday', 'weekend'],
-  'east-bay-tilden-october-family-guide-2026': ['october-family-nature', 'weekend'],
-  'north-bay-china-camp-october-culture-guide-2026': ['october-north-bay-culture', 'weekend'],
+  'san-jose-october-family-history-farm-guide-2026': ['community-history-park', 'october-family-nature'],
+  'east-bay-tilden-october-family-guide-2026': ['october-family-nature', 'community-tilden-little-farm'],
+  'north-bay-china-camp-october-culture-guide-2026': ['october-north-bay-culture', 'community-china-camp-village'],
   'bay-area-october-library-museum-pass-guide-2026': ['october-library-culture', 'library'],
-  'bay-area-freebies-deals-2026-10': ['sep26-peets-orange', 'region-omca'],
+  'bay-area-freebies-deals-2026-10': ['culture-visit', 'october-library-culture'],
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],
   'half-moon-bay-pumpkin-season-2026-guide': ['fresh-pumpkin-parade', 'fresh-hmb-pumpkins'],
   'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],
@@ -104,7 +107,7 @@ const bySlug: Record<string, [string, string]> = {
   'half-moon-bay-coastal-half-day-guide': ['coast', 'weekend'],
   'reinhardt-redwood-first-walk-guide': ['redwoods', 'weekend'],
   'bay-area-farmers-market-shopping-guide': ['ferry-market', 'produce'],
-  'rainy-day-museum-family-guide': ['museum', 'lake'],
+  'rainy-day-museum-family-guide': ['museum', 'region-tech'],
   'presidio-picnic-day-guide': ['presidio', 'weekend'],
   'bay-area-dog-park-first-outing-guide': ['dog-park', 'dog'],
   'bay-area-used-trading-safety-guide': ['secondhand-check', 'digital-safety'],

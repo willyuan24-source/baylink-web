@@ -123,7 +123,8 @@ test('the actual October deals guide renders its dedicated art and each inline m
   assert.ok(previousGuide, 'the published September guide must be registered');
   assert.equal(previousGuide.editionMonth, '2026-10');
   const media = getGuideMedia(previousGuide);
-  assert.equal(media.cover.src, GUIDE_IMAGES['sep26-peets-orange'].src);
+  assert.equal(media.cover.src, GUIDE_IMAGES['culture-visit'].src);
+  assert.equal(media.inline[0].image.src, GUIDE_IMAGES['october-library-culture'].src);
   const sourceBlocks = previousGuide.blocks.filter(block => block.type === 'link');
   assert.ok(sourceBlocks.length >= 1, 'readers should find merchant sources beside the offer descriptions');
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-10-01" {...actions} /></StaticRouter>);

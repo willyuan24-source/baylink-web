@@ -34,27 +34,28 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
   const locale = useLocale();
   const [profile, setProfile] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [loadError, setLoadError] = useState<'missing' | 'failed' | null>(null);
+  const [retry, setRetry] = useState(0);
   const [openingChat, setOpeningChat] = useState(false);
-  const [pendingChat, setPendingChat] = useState<{ id: string; nickname: string } | null>(null);
   const openingChatRef = useRef(false);
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       setProfile(null);
-      setFailed(false);
+      setLoadError(null);
       try {
         const result = await api.getUserPublicProfile(userId);
         if (!cancelled) setProfile(result);
-      } catch {
-        if (!cancelled) setFailed(true);
+      } catch (error) {
+        const status = error && typeof error === 'object' && 'status' in error ? error.status : undefined;
+        if (!cancelled) setLoadError(status === 404 || status === 410 ? 'missing' : 'failed');
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [userId, currentUser?.id, currentUser?.token]);
+  }, [userId, currentUser?.id, currentUser?.token, retry]);
 
   const startChat = useCallback(async (target: { id: string; nickname: string }) => {
     if (!onChat || openingChatRef.current) return;
@@ -71,20 +72,10 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
     }
   }, [onChat, showToast]);
 
-  useEffect(() => {
-    if (!currentUser || !pendingChat) return;
-    setPendingChat(null);
-    if (pendingChat.id !== currentUser.id) void startChat(pendingChat);
-  }, [currentUser, pendingChat, startChat]);
-
   const handleChat = () => {
     if (!profile) return;
     const target = { id: profile.id, nickname: profile.nickname };
-    if (!currentUser) {
-      setPendingChat(target);
-      onLoginNeeded?.();
-      return;
-    }
+    // The shared contact flow owns login resumption and cancellation for guests.
     void startChat(target);
   };
 
@@ -102,8 +93,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
         <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5">
           {loading ? (
             <ProfileCardSkeleton />
-          ) : failed || !profile ? (
-            <p className="py-12 text-center text-sm text-baylink-muted">无法查看该用户资料</p>
+          ) : loadError || !profile ? (
+            <div role="alert" className="py-12 text-center text-sm text-baylink-muted">
+              <p>{loadError === 'failed' ? '资料加载失败，请稍后重试。' : '无法查看该用户资料'}</p>
+              {loadError === 'failed' && <button type="button" onClick={() => setRetry(value => value + 1)} className="mt-3 font-semibold text-baylink-green">重新加载</button>}
+            </div>
           ) : (
             <>
               <ProfileIdentity profile={profile}>
@@ -177,7 +171,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
             </>
           )}
         </div>
-        {!loading && !failed && profile && currentUser?.id !== profile.id && (
+        {!loading && !loadError && profile && currentUser?.id !== profile.id && (
           <div className="border-t border-baylink-border/40 px-5 py-4 space-y-2">
             <button
               type="button"

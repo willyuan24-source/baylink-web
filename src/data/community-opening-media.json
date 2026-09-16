@@ -1,0 +1,41 @@
+[
+  {
+    "key": "opening-kaiyo-handroll",
+    "src": "/guides/community-2026/opening-kaiyo-handroll.webp",
+    "alt": "Kaiyō Handroll Bar 官方开业庆典海报，标注 9 月 11 日与 Union Street 地址",
+    "caption": "Kaiyō Handroll Bar 2026 年 9 月 11 日开业庆典官方宣传图，作为开业记录；该庆典日期已过。",
+    "credit": "Kaiyō Handroll Bar · 官方宣传资料",
+    "creditUrl": "https://www.kaiyosf.com/events",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1080,
+    "height": 1350,
+    "srcSet": "/guides/community-2026/opening-kaiyo-handroll-small.webp 480w, /guides/community-2026/opening-kaiyo-handroll.webp 1080w"
+  },
+  {
+    "key": "opening-marufuku-burlingame",
+    "src": "/guides/community-2026/opening-marufuku-burlingame.webp",
+    "alt": "Marufuku Burlingame 官网展示的室内空间宣传图",
+    "caption": "Marufuku Burlingame 门店页官方空间宣传图；官网仍标注 Coming Soon，图片不代表已经开门营业。",
+    "credit": "Marufuku Ramen · 官方宣传资料",
+    "creditUrl": "https://www.marufukuramen.com/burlingame",
+    "kind": "poster",
+    "fullFrame": true,
+    "width": 1400,
+    "height": 817,
+    "srcSet": "/guides/community-2026/opening-marufuku-burlingame-small.webp 480w, /guides/community-2026/opening-marufuku-burlingame.webp 1400w"
+  },
+  {
+    "key": "opening-broken-dreams",
+    "src": "/guides/community-2026/opening-broken-dreams.webp",
+    "alt": "Broken Dreams 官网的煎蛋、猪肉与碎米饭菜品照片",
+    "caption": "Broken Dreams 官方菜品资料照片；展示碎米饭与配菜，实际菜单、份量和供应以店家为准。",
+    "credit": "Broken Dreams · 官方宣传资料",
+    "creditUrl": "https://www.brokendreamsoakland.com/",
+    "kind": "photo",
+    "fullFrame": true,
+    "width": 1050,
+    "height": 1400,
+    "srcSet": "/guides/community-2026/opening-broken-dreams-small.webp 480w, /guides/community-2026/opening-broken-dreams.webp 1050w"
+  }
+]

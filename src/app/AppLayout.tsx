@@ -15,6 +15,7 @@ import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache'
 import { setPageMetadata } from '../lib/seo';
 import { TOOLS_METADATA } from '../data/tool-catalog';
 import { EXPLORE_METADATA } from '../data/attractions';
+import { ABOUT_METADATA } from '../lib/about-metadata';
 import { Wrench } from 'lucide-react';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
@@ -26,6 +27,8 @@ import type { AppContextValue } from './context';
 import { usePageScroll } from './usePageScroll';
 import { feedPageLocation, useFeedFilters } from './useFeedFilters';
 import { useContactIntent } from './useContactIntent';
+import { useConversationOpener } from './useConversationOpener';
+import { withConversationContext } from '../lib/conversation-context';
 import { useUnreadMessages } from './useUnreadMessages';
 import { usePendingContacts } from './usePendingContacts';
 import { clearMessageDrafts } from '../features/messages/messageState';
@@ -96,18 +99,24 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
-  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<string | null>(null);
+  const baybaySessionScope = user?.id || 'guest';
+  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string } | null>(null);
   const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
   const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
   const baybayQuestionSequence = useRef(0);
   const openBayBay = useCallback((question?: string) => {
     if (question?.trim()) {
       setBaybayPendingQuestionId(++baybayQuestionSequence.current);
-      setBaybayPendingQuestion(question.trim().slice(0, 500));
+      setBaybayPendingQuestion({ text: question.trim().slice(0, 500), scope: baybaySessionScope });
     }
     setBaybayCategoryHint(categorySlug);
     setBaybayPanelOpen(true);
-  }, [categorySlug]);
+  }, [categorySlug, baybaySessionScope]);
+  useEffect(() => {
+    setBaybayPanelOpen(false);
+    setBaybayPendingQuestion(null);
+    setBaybayCategoryHint(undefined);
+  }, [baybaySessionScope]);
   const [showCreate, setShowCreate] = useState(false);
   const pendingCreateRef = useRef(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
@@ -270,6 +279,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
+    if (path === '/about' || path === '/about/') { setPageMetadata(ABOUT_METADATA); return; }
     if (path.startsWith('/category/')) {
       const cat = getCategoryFromSlug(categorySlug);
       document.title = `${cat}｜BAYLINK`;
@@ -384,7 +394,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         if (cancelled) return;
         if (!Array.isArray(convs)) throw new Error('无法读取会话');
         const c = convs.find((x: Conversation) => x.id === threadIdParam);
-        if (c) { setChatConv({ ...c, lastPostTitle: chatPostTitle || c.lastPostTitle, lastPostId: chatPostId || c.lastPostId }); setChatRouteStatus('ready'); }
+        if (c) { setChatConv(withConversationContext(c, chatPostTitle, chatPostId)); setChatRouteStatus('ready'); }
         else setChatRouteStatus('not-found');
       } catch (error) {
         if (cancelled) return;
@@ -452,7 +462,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   }, [clearLocalSession, showToast]);
 
   useEffect(() => {
-    if (location.pathname === '/reset-password') {
+    if (/^\/reset-password\/?$/.test(location.pathname)) {
       const token = new URLSearchParams(location.search).get('token');
       setResetPasswordToken(token || null);
     } else {
@@ -582,27 +592,18 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const handleLoadMore = () => { if (!isLoadingMore && !isInitialLoading && hasMore) fetchPosts(page + 1, false); };
 
-  // ✨ 已修复：传入 postTitle 作为聊天上下文
+  const openContactConversation = useConversationOpener({
+    routeKey: location.key,
+    onOpened: (conversation, { postTitle, postId }) => {
+      setChatConv(conversation);
+      navigate(`/messages/${conversation.id}`, { state: { postTitle, postId } });
+    },
+    onError: (error) => showToast(friendlyErrorMessage(error, '无法打开聊天'), 'error'),
+  });
   const { openChat, requestPostContact, completeContactLogin, cancelPendingContact } = useContactIntent({
     user,
     onLoginNeeded: () => { pendingCreateRef.current = false; setShowLogin(true); },
-    onOpen: async ({ targetId, nickname, postTitle, postId }, authenticatedUser) => {
-      try {
-          const c = await api.request('/conversations/open-or-create', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
-          const current = getStoredUser();
-          if (current?.id !== authenticatedUser.id || current?.token !== authenticatedUser.token) return;
-          const conv: Conversation = {
-              id: c.id,
-              otherUser: c.otherUser || { id: targetId, nickname: nickname || 'User' },
-              lastMessage: '',
-              updatedAt: c.updatedAt || Date.now(),
-              lastPostTitle: postTitle,
-              lastPostId: postId,
-          };
-          setChatConv(conv);
-          navigate(`/messages/${c.id}`, { state: { postTitle, postId } });
-      } catch (e) { showToast(friendlyErrorMessage(e, '无法打开聊天'), 'error'); }
-    },
+    onOpen: openContactConversation,
   });
 
   const openConversation = (c: Conversation) => { setChatConv(c); navigate(`/messages/${c.id}`); };
@@ -850,6 +851,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         </nav>
 
         <BayBayAssistantEntry
+          key={baybaySessionScope}
           variant="headless"
           panelOpen={baybayPanelOpen}
           onPanelOpenChange={(open) => {
@@ -859,7 +861,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
               setBaybayCategoryHint(undefined);
             }
           }}
-          pendingQuestion={baybayPendingQuestion}
+          pendingQuestion={baybayPendingQuestion?.scope === baybaySessionScope ? baybayPendingQuestion.text : null}
           pendingQuestionId={baybayPendingQuestionId}
           onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
           currentPath={location.pathname}

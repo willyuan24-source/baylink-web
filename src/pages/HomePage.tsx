@@ -91,7 +91,7 @@ export default function HomePage() {
           <div className="bay-community-note"><ShieldCheck size={20} /><p><strong>友好连接，谨慎交易。</strong>手机号验证与资料审核不代表交易担保。看房、面交和付款前，请核实对方信息。</p></div>
         </aside>
       </div>
-      <footer className="bay-home-footer"><span>BAYLINK<span>让生活的连接，更近一点。</span></span><Link to="/guides/baylink-safety-guide">社区安全指南<ArrowUpRight size={14} /></Link></footer>
+      <footer className="bay-home-footer"><span>BAYLINK<span>让生活的连接，更近一点。</span></span><nav aria-label="关于与帮助"><Link to="/about">认识 BAYLINK<ArrowUpRight size={14} /></Link><Link to="/guides/baylink-safety-guide">社区安全指南<ArrowUpRight size={14} /></Link></nav></footer>
     </div>
   );
 }

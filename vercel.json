@@ -62,7 +62,7 @@
       "dest": "/category/$1.html"
     },
     {
-      "src": "^/(guides|explore|this-month|tools|recommend|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|explore|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },
     {

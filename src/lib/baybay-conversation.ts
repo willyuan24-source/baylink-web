@@ -55,9 +55,9 @@ export const BAYBAY_SCENARIOS = [
 ];
 
 export function bayBayFollowups(question: string, hasArticle: boolean): string[] {
-  if (/亲子|带娃|儿童|孩子|手工/.test(question)) return ['孩子 6 岁，尽量不花钱，要先预约哪些？', '帮我列出出门前要核实的年龄、名额和材料条件'];
+  if (/亲子|带娃|儿童|孩子|手工/.test(question)) return ['帮我按已经提供的条件，列出需要提前预约的项目', '帮我列出出门前要核实的年龄、名额和材料条件'];
   if (/优惠|免费|省钱|领取/.test(question)) return ['哪些不需要消费？哪些需要会员或 App？', '帮我按预约、会员和领取时间列一个行动清单'];
-  if (/周末|去处|哪里|玩|路线/.test(question)) return ['我从东湾出发，不开车，想安排轻松的半天', '如果带孩子同行，这些方向怎么取舍？'];
+  if (/周末|去处|哪里|玩|路线/.test(question)) return ['帮我按已经提供的条件，把推荐整理成出游安排', '帮我按已经提供的条件，比较这些去处的取舍'];
   if (/租房|租屋|房源|室友/.test(question)) return ['帮我列出联系对方前最需要确认的五件事', '哪些信息还需要我补充？'];
   return hasArticle ? ['根据这篇攻略，帮我列一个行动清单', '哪些内容需要出发前再到官方渠道核实？'] : ['帮我把建议整理成三步行动清单', '为了更适合我，你还需要哪些信息？'];
 }

@@ -19,6 +19,7 @@ const { OfficialVerificationModal } = await import('../src/components/OfficialVe
 const { prepareProfileImage } = await import('../src/features/profile/profile-images');
 const { commonProfileInterests, safeProfileLink, resolveProfileTheme, profileShareUrl } = await import('../src/features/profile/profile-personality');
 const { api } = await import('../src/lib/api');
+const { calcProfileCompletion } = await import('../src/lib/format');
 const { setLocale, translateText } = await import('../src/i18n/locale');
 const user: UserData = { id: 'profile-test-user', email: 'private@example.test', nickname: '生活指南', role: 'user', contactType: 'wechat', contactValue: 'private_wechat', phone: '+14155550101', isBanned: false, bio: '周末出门', statusText: '我的收藏', profileTheme: 'bay', coverImage: 'https://example.test/cover.jpg', avatar: 'https://example.test/avatar.jpg', interests: ['摄影', 'Hiking'], profileTags: ['生活指南'], socialLinks: { linkedin: 'https://www.linkedin.com/in/test-neighbor/' } };
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>(yes => { resolve = yes; }); return { promise, resolve }; };
@@ -33,6 +34,14 @@ test('profile helpers use real interest intersections and safe canonical links',
   assert.equal(safeProfileLink('https://name:secret@example.com/'), null);
   assert.equal(safeProfileLink('www.linkedin.com/in/example'), 'https://www.linkedin.com/in/example');
   assert.equal(profileShareUrl('person/path', 'en'), 'https://www.baylink.us/users/person%2Fpath?lang=en');
+});
+
+test('profile completion counts LinkedIn as a social link without double-counting multiple links', () => {
+  const completeProfile = { ...user, area: '东湾', socialLinks: {} };
+  assert.equal(calcProfileCompletion(completeProfile), 85);
+  assert.equal(calcProfileCompletion({ ...completeProfile, socialLinks: { linkedin: '   ' } }), 85);
+  assert.equal(calcProfileCompletion({ ...completeProfile, socialLinks: { linkedin: 'https://www.linkedin.com/in/neighbor/' } }), 100);
+  assert.equal(calcProfileCompletion({ ...completeProfile, socialLinks: { linkedin: 'https://www.linkedin.com/in/neighbor/', instagram: 'neighbor' } }), 100);
 });
 
 test('public cards preserve personal text across languages and never render private account contacts', async () => {
@@ -140,7 +149,7 @@ test('public profile highlights common interests only for another real signed-in
 
 test('a failed profile switch never leaves actions pointing at the previous person', async t => {
   const profile: PublicUserProfile = { ...user, id: 'first-neighbor', postCount: 0, recentPosts: [] };
-  t.mock.method(api, 'getUserPublicProfile', async (id: string) => { if (id === profile.id) return profile; throw new Error('Unavailable'); });
+  t.mock.method(api, 'getUserPublicProfile', async (id: string) => { if (id === profile.id) return profile; throw { status: 404 }; });
   const props = { currentUser: user, onClose() {}, onChat() {}, onReportUser() {}, onToggleBlockUser() {} };
   const view = render(<UserProfileModal userId={profile.id} {...props} />);
   await act(async () => {});

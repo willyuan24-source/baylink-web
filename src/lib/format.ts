@@ -281,7 +281,7 @@ export const calcProfileCompletion = (user: Partial<UserData>): number => {
   if (user.area?.trim() || user.city?.trim()) score += 15;
   if ((user.profileTags?.length || 0) >= 1) score += 15;
   if ((user.interests?.length || 0) >= 1) score += 15;
-  const hasSocial = user.socialLinks?.instagram?.trim() || user.xiaohongshu?.trim() || user.website?.trim();
+  const hasSocial = user.socialLinks?.instagram?.trim() || user.socialLinks?.linkedin?.trim() || user.xiaohongshu?.trim() || user.website?.trim();
   if (hasSocial) score += 15;
   return score;
 };

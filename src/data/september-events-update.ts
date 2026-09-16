@@ -11,7 +11,7 @@ export const verifiedSeptemberEvents: MonthlyEvent[] = [
     "city": "Newark",
     "venue": "MacGregor Playfields / Newark Community Center · 35501 Cedar Blvd",
     "category": "family",
-    "cost": "mixed",
+    "cost": "free",
     "costLabel": "舞台演出免费 · 游乐设施、餐饮及部分项目另付",
     "summary": "这场社区生日会有游乐设施、现场表演、手作摊位和周六巡游。想带孩子体验热闹，又不想安排远途旅行，可以按兴趣挑一个时段参加。",
     "plan": [

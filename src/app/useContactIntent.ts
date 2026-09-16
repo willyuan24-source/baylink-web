@@ -8,7 +8,7 @@ export type ContactPost = Pick<PostData, 'id' | 'authorId' | 'title' | 'status'>
 export function useContactIntent({ user, onLoginNeeded, onOpen }: {
   user: UserData | null;
   onLoginNeeded: () => void;
-  onOpen: (intent: ContactIntent, authenticatedUser: UserData) => void;
+  onOpen: (intent: ContactIntent, authenticatedUser: UserData) => void | Promise<void>;
 }) {
   const pending = useRef<ContactIntent | null>(null);
   useEffect(() => { pending.current = null; }, [user?.id]);
@@ -16,7 +16,7 @@ export function useContactIntent({ user, onLoginNeeded, onOpen }: {
     if (!targetId || targetId === user?.id) return;
     const intent = { targetId, nickname, postTitle, postId };
     if (!user) { pending.current = intent; onLoginNeeded(); }
-    else { pending.current = null; onOpen(intent, user); }
+    else { pending.current = null; return onOpen(intent, user); }
   };
   return {
     openChat,

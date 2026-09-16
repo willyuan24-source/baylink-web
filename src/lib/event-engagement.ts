@@ -12,7 +12,7 @@ export const getEventEngagement = async (ids: string[], signal?: AbortSignal): P
   const response = await api.request(`/events/engagement?ids=${encodeURIComponent(ids.join(','))}`, { signal });
   if (!Array.isArray(response.events)) throw new Error('Invalid event participation response');
   const entries = response.events.map(parseEventEngagement);
-  if (new Set(entries.map((entry: EventEngagement) => entry.eventId)).size !== ids.length || entries.some((entry: EventEngagement) => !ids.includes(entry.eventId))) throw new Error('Incomplete event participation response');
+  if (entries.length !== ids.length || new Set(entries.map((entry: EventEngagement) => entry.eventId)).size !== ids.length || entries.some((entry: EventEngagement) => !ids.includes(entry.eventId))) throw new Error('Incomplete event participation response');
   return entries;
 };
 export const setEventInterest = async (id: string, interest: EventInterest) => {
@@ -22,6 +22,8 @@ export const setEventInterest = async (id: string, interest: EventInterest) => {
 };
 export const getEventBuddies = async (id: string, cursor?: string, signal?: AbortSignal): Promise<{ buddies: EventBuddy[]; nextCursor: string | null }> => {
   const response = await api.request(`/events/${encodeURIComponent(id)}/buddies?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { signal });
-  if (!Array.isArray(response.buddies) || response.buddies.some((buddy: EventBuddy) => !buddy || typeof buddy.id !== 'string' || typeof buddy.nickname !== 'string') || (response.nextCursor !== null && typeof response.nextCursor !== 'string')) throw new Error('Invalid buddy response');
-  return response;
+  if (!response || response.eventId !== id || !Array.isArray(response.buddies)
+    || response.buddies.some((buddy: EventBuddy) => !buddy || typeof buddy.id !== 'string' || !buddy.id.trim() || typeof buddy.nickname !== 'string' || typeof buddy.avatar !== 'string' || typeof buddy.city !== 'string')
+    || (response.nextCursor !== null && (typeof response.nextCursor !== 'string' || !response.nextCursor || response.nextCursor === cursor))) throw new Error('Invalid buddy response');
+  return { buddies: [...new Map<string, EventBuddy>(response.buddies.map((buddy: EventBuddy) => [buddy.id, { id: buddy.id, nickname: buddy.nickname, avatar: buddy.avatar, city: buddy.city }])).values()], nextCursor: response.nextCursor };
 };
