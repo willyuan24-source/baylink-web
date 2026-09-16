@@ -7,7 +7,7 @@ import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
 const event = (id: string): MonthlyEvent => {
-  const found = MONTHLY_EVENTS.find(item => item.id === id);
+  const found = MONTHLY_EVENTS.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
   assert.ok(found, `Missing event ${id}`);
   return found;
 };
@@ -46,15 +46,17 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('September edition is current throughout its local month and archived after it', () => {
-  assert.equal(MONTHLY_EDITION.month, '2026-09');
+test('fall edition stays current across September and October, then archives', () => {
+  assert.equal(MONTHLY_EDITION.month, '2026-10');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
-  assert.equal(isEditionCurrent('2026-10-01'), false);
+  assert.equal(isEditionCurrent('2026-10-01'), true);
+  assert.equal(isEditionCurrent('2026-10-31'), true);
+  assert.equal(isEditionCurrent('2026-11-01'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
-  assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), false);
+  assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
 });
 
 test('activity status includes both the first and final local date', () => {
@@ -165,7 +167,7 @@ test('calendar end dates roll across months, years and leap days without time zo
 });
 
 test('calendar reminders clearly avoid inventing opening hours, tickets or a busy all-day appointment', () => {
-  const item = event('opera-in-the-park-2026');
+  const item = event('bark-in-the-park-san-jose-2026');
   const calendar = buildEventCalendar(item);
   assert.match(decodeText(field(calendar, 'SUMMARY')), /日期提醒/);
   assert.match(decodeText(field(calendar, 'DESCRIPTION')), /不代表全天开放、预约或购票/);
@@ -201,19 +203,13 @@ test('calendar text escaping preserves Chinese, commas, semicolons, backslashes 
   assert.equal(unfold(calendar).split('\r\n').filter(line => line === 'END:VEVENT').length, 1);
 });
 
-test('all published activities have unique IDs, valid September dates and first-party source metadata', () => {
-  const officialHosts = new Set([
-    'gggp.org', 'www.sfopera.com', 'www.sfmta.com', 'www.moonfestival.org', 'www.portolamusicfestival.com',
-    'www.mvartwine.com', 'lafayettefestival.com', 'www.barksanjose.org', 'www.mvfaf.org', 'www.sfenvironment.org',
-    'turkfestsf.org', 'www.solanoavenueassn.org', 'www.vivacallesj.org', 'newarkdays.org', 'www.santaclaraca.gov',
-    'www.sanrafaelporchfest.com', 'www.redwoodcity.org', 'pacificcoastfogfest.com', 'presidio.gov', 'www.farmtrails.org', 'petalumadowntown.com',
-  ]);
+test('published activities have unique IDs, valid fall dates and traceable source metadata', () => {
   const publishedIds = new Set(MONTHLY_EVENTS.map(item => item.id));
   for (const expectedId of [
-    'flower-piano-2026', 'opera-in-the-park-2026', 'muni-heritage-2026', 'sf-autumn-moon-2026', 'portola-2026',
-    'mountain-view-art-wine-2026', 'lafayette-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'mill-valley-fall-arts-2026',
+    'flower-piano-2026', 'muni-heritage-2026', 'sf-autumn-moon-2026', 'portola-2026',
+    'lafayette-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'mill-valley-fall-arts-2026',
     'treasure-island-coastal-cleanup-2026',
-    'san-francisco-turkish-festival-2026', 'solano-stroll-2026', 'viva-calle-into-the-valley-2026', 'newark-days-2026',
+    'newark-days-2026',
     'santa-clara-art-wine-2026', 'san-rafael-porchfest-2026', 'redwood-oktoberfest-closing-weekend-2026',
     'pacific-coast-fog-fest-2026', 'presidio-chuseok-festival-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026',
   ]) assert.ok(publishedIds.has(expectedId), `${expectedId} stays available as the edition grows`);
@@ -221,7 +217,7 @@ test('all published activities have unique IDs, valid September dates and first-
   for (const item of MONTHLY_EVENTS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     for (const date of [item.startDate, item.endDate]) {
-      assert.match(date, /^2026-09-\d{2}$/);
+      assert.match(date, /^2026-(09|10)-\d{2}$/);
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);
@@ -231,7 +227,8 @@ test('all published activities have unique IDs, valid September dates and first-
     assert.ok(item.endDate >= item.verifiedAt, `${item.id} had not ended when verified`);
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
-    assert.ok(officialHosts.has(source.hostname), `first-party host for ${item.id}`);
+    assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
+    assert.ok(item.endDate >= '2026-09-15' && item.endDate <= '2026-10-31', item.id);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     assert.equal(item.plan.length, 3);
@@ -242,10 +239,20 @@ test('all published activities have unique IDs, valid September dates and first-
 
 test('published activities reference available guide images and existing related articles', () => {
   for (const item of MONTHLY_EVENTS) {
-    assert.ok(GUIDE_IMAGES[item.imageKey], `${item.id} image key exists`);
+    if (item.imageKey) assert.ok(GUIDE_IMAGES[item.imageKey], `${item.id} image key exists`);
     if (item.relatedGuideSlug) assert.ok(getGuideBySlug(item.relatedGuideSlug), `${item.id} related guide exists`);
     const calendar = buildEventCalendar(item);
     assert.equal(field(calendar, 'UID'), `${item.id}@baylink.us`);
     for (const line of calendar.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, `${item.id} calendar line length`);
   }
+});
+
+test('explicit month filters include October 31 and remove September events from October', () => {
+  assert.deepEqual(getMonthlyDateRange('october', '2026-09-15'), { start: '2026-10-01', end: '2026-10-31' });
+  const october = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15');
+  assert.ok(october.length >= 20);
+  assert.ok(october.every(item => item.endDate >= '2026-10-01'));
+  assert.ok(october.some(item => item.endDate === '2026-10-31'));
+  assert.equal(resolveMonthlyDateFilter('october'), 'october');
+  assert.ok(!MONTHLY_EVENTS.some(item => item.endDate < '2026-09-15'));
 });

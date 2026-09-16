@@ -13,7 +13,7 @@ const openingMap = (shop: SeptemberOpening) => `https://www.google.com/maps/sear
 function OpeningCard({ shop }: { shop: SeptemberOpening }) {
   const [zoomed, setZoomed] = useState(false);
   const image = GUIDE_IMAGES[shop.imageKey];
-  const label = shop.openingType === 'opening-celebration' ? '开业庆典' : shop.status === 'open' ? '已开业' : '开业预告';
+  const label = shop.status === 'open' ? '已开业' : shop.openingType === 'opening-celebration' ? '开业庆典' : '开业预告';
   return <article className="bl-opening-card" aria-labelledby={`opening-${shop.id}`}>
     {image && <figure className="bl-opening-photo">
       <button type="button" onClick={() => setZoomed(true)} aria-label={`${translateText('查看大图')}：${shop.name}`}>

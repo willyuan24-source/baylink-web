@@ -2,31 +2,6 @@ import type { MonthlyEvent } from './monthly-types';
 
 export const regionalSeptemberEvents: MonthlyEvent[] = [
   {
-    id: 'mountain-view-art-wine-2026',
-    title: 'Mountain View 艺术与葡萄酒节',
-    startDate: '2026-09-12',
-    endDate: '2026-09-13',
-    dateLabel: '9 月 12–13 日 · 周末',
-    region: 'south-bay',
-    city: 'Mountain View',
-    venue: 'Downtown Castro Street',
-    category: 'culture',
-    cost: 'free',
-    costLabel: '免费入场 · 餐饮与品酒另付',
-    summary: '把 Castro Street 的艺术摊位、现场音乐和街头美食排进同一个周末。适合朋友结伴慢逛，也可以只看作品、听一段演出。',
-    plan: [
-      '先选一天：周六 11:00–19:00，周日 10:00–18:00；两天开放时间不同。',
-      '骑车可查 Castro Street 与 Church Street 附近的免费单车停放；网约车接送点为 Lot 7，460 Hope Street。',
-      '活动欢迎各年龄层，但请勿带宠物；独立品酒体验限 21 岁及以上，出发前另查购票说明。',
-    ],
-    audience: ['朋友出游', '艺术爱好者', '街区散步'],
-    officialUrl: 'https://www.mvartwine.com/press-kit',
-    sourceLabel: 'Mountain View Art & Wine Festival 官方',
-    verifiedAt: '2026-09-08',
-    imageKey: 'event-mountain-view',
-    relatedGuideSlug: 'bay-area-without-car-guide',
-  },
-  {
     id: 'lafayette-art-wine-2026',
     title: 'Lafayette 艺术与葡萄酒节',
     startDate: '2026-09-19',

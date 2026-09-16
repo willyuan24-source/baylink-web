@@ -8,7 +8,7 @@ export function discoverRelatedGuides(guide: Guide, count = 3, today = getBayAre
   const rank = (candidate: Guide) => (candidate.category === guide.category ? 4 : 0)
     + candidate.tags.filter(tag => tags.has(tag)).length * 3
     + candidate.audience.filter(audience => guide.audience.includes(audience)).length;
-  return guides.filter(candidate => candidate.slug !== guide.slug && (!candidate.editionMonth || candidate.editionMonth === today.slice(0, 7)))
+  return guides.filter(candidate => candidate.slug !== guide.slug && (!candidate.editionMonth || candidate.editionMonth >= today.slice(0, 7)))
     .sort((a, b) => (editorial.includes(a.slug) ? editorial.indexOf(a.slug) : 100) - (editorial.includes(b.slug) ? editorial.indexOf(b.slug) : 100) || rank(b) - rank(a) || b.updatedAt.localeCompare(a.updatedAt) || a.slug.localeCompare(b.slug))
     .slice(0, count);
 }

@@ -2,17 +2,20 @@ import { sfSeptemberEvents } from './monthly-sf-events';
 import { regionalSeptemberEvents } from './monthly-region-events';
 import { freshSeptemberEvents } from './fresh-monthly-events';
 import { verifiedSeptemberEvents } from './september-events-update';
+import { verifiedOctoberEvents } from './october-events';
 import type { MonthlyPlace } from './monthly-types';
 
 export const MONTHLY_EDITION = {
-  month: '2026-09',
-  label: '2026 年 9 月',
-  checkedAt: '2026-09-11',
-  title: '九月，把周末留给湾区。',
-  intro: '街头节庆、顺路优惠，还有刚亮灯的新店。把日期与条件看清，给这个月挑几个值得出门的理由。',
+  month: '2026-10',
+  startMonth: '2026-09',
+  label: '2026 年 9–10 月',
+  checkedAt: '2026-09-15',
+  title: '这个秋天，把周末留给湾区。',
+  intro: '从九月余下的好去处，到十月底的南瓜季、社区节庆和免费文化日。按日期和地区挑活动，把交通、预约与领取条件一起安排好。',
 };
 
-export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents]
+export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents]
+  .filter(event => event.endDate >= MONTHLY_EDITION.checkedAt)
   .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [

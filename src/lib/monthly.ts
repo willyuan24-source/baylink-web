@@ -8,13 +8,13 @@ export const getBayAreaToday = (now = new Date()): string => {
   return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)!.value).join('-');
 };
 
-export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.slice(0, 7) === MONTHLY_EDITION.month;
+export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.slice(0, 7) >= MONTHLY_EDITION.startMonth && today.slice(0, 7) <= MONTHLY_EDITION.month;
 export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 'upcoming' | 'ongoing' | 'ended' =>
   event.endDate < today ? 'ended' : event.startDate > today ? 'upcoming' : 'ongoing';
 
-export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7';
+export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october';
 export const resolveMonthlyDateFilter = (value: string | null | undefined): MonthlyDateFilter =>
-  value === 'today' || value === 'weekend' || value === 'next7' ? value : 'all';
+  value === 'today' || value === 'weekend' || value === 'next7' || value === 'september' || value === 'october' ? value : 'all';
 
 // Treat the Bay Area date as a calendar day, never as a browser-local timestamp.
 // UTC arithmetic keeps consecutive dates stable across DST and month/year changes.
@@ -26,6 +26,8 @@ const addCalendarDays = (date: string, days: number): string => {
 
 export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAreaToday()): { start: string; end: string } | null => {
   if (filter === 'all') return null;
+  if (filter === 'september') return { start: '2026-09-01', end: '2026-09-30' };
+  if (filter === 'october') return { start: '2026-10-01', end: '2026-10-31' };
   if (filter === 'today') return { start: today, end: today };
   if (filter === 'next7') return { start: today, end: addCalendarDays(today, 6) };
   const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();

@@ -62,13 +62,13 @@ test('board counts only dated, unexpired current-month offers and separates ongo
   assert.ok(view.getByText('先按条件选。'));
   const counts = [...view.container.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent);
   assert.deepEqual(counts, ['2本月已确认', '1长期福利', '1下月预告', '1需查本店']);
-  assert.ok(within(view.getByRole('article', { name: '已过期蛋糕优惠' })).getByText('已结束'));
+  assert.equal(view.queryByRole('article', { name: '已过期蛋糕优惠' }), null);
   assert.ok(within(view.getByRole('article', { name: '本店手作场次' })).getByText('查本店场次'));
-  assert.ok(within(view.getByRole('article', { name: '日期仍需核对' })).getByText('日期待核对'));
+  assert.equal(view.queryByRole('article', { name: '日期仍需核对' }), null);
   assert.ok(within(view.getByRole('article', { name: '下月儿童手作' })).getByText('下月预告'));
   view.rerender(<FreebieBoard offers={offers} today="2026-10-01" />);
   assert.equal(view.container.querySelector('.bl-freebie-board-stats>span')?.textContent, '1本月已确认');
-  assert.ok(within(view.getByRole('article', { name: '周末小杯咖啡' })).getByText('已结束'));
+  assert.equal(view.queryByRole('article', { name: '周末小杯咖啡' }), null);
   assert.ok(within(view.getByRole('article', { name: '会员生日礼' })).getByText('长期福利'));
 });
 
@@ -79,8 +79,8 @@ test('condition filters select the matching offers without hiding requirements o
   for (const [label, kind] of [['无需购物', 'no-purchase'], ['需预约', 'reservation'], ['消费优惠', 'purchase']] as const) {
     fireEvent.click(filters.getByRole('button', { name: label, exact: true }));
     assert.equal(filters.getByRole('button', { name: label }).getAttribute('aria-pressed'), 'true');
-    const expected = offers.filter(offer => offer.kind === kind);
-    assert.equal(view.getAllByRole('article').length, expected.length);
+    const expected = offers.filter(offer => offer.kind === kind && !['ended', 'invalid-date'].includes(offer.id));
+    assert.equal(view.queryAllByRole('article').length, expected.length);
     for (const offer of expected) {
       const card = within(view.getByRole('article', { name: offer.title }));
       assert.ok(card.getByText(offer.requirement));
@@ -95,7 +95,7 @@ test('condition filters select the matching offers without hiding requirements o
   assert.equal(filters.getByRole('button', { name: '全部', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
-test('cards sort by valid dates, then ongoing and unverified entries, with expired dates last without mutating source order', () => {
+test('cards omit expired and invalid dated offers without mutating source order', () => {
   install();
   const input = [
     ...offers,
@@ -107,14 +107,14 @@ test('cards sort by valid dates, then ongoing and unverified entries, with expir
   Object.freeze(input);
   const view = render(<FreebieBoard offers={input} today="2026-09-12" />);
   const ids = () => [...view.container.querySelectorAll('article')].map(card => card.id.replace('offer-', ''));
-  assert.deepEqual(ids(), ['month-pass', 'early-a', 'early-b', 'coffee', 'single-date', 'next-month', 'birthday', 'local', 'invalid-date', 'ended']);
+  assert.deepEqual(ids(), ['month-pass', 'early-a', 'early-b', 'coffee', 'single-date', 'next-month', 'birthday', 'local']);
   assert.deepEqual(input.map(offer => offer.id), originalIds, 'sorting must not reorder exported data used by source lists');
   assert.ok(document.getElementById('offer-early-a'), 'card anchors stay tied to offer IDs');
   fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '需预约', exact: true }));
   assert.deepEqual(ids(), ['single-date', 'next-month', 'local']);
   fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '全部', exact: true }));
   view.rerender(<FreebieBoard offers={input} today="2026-09-21" />);
-  assert.deepEqual(ids(), ['month-pass', 'single-date', 'next-month', 'birthday', 'local', 'invalid-date', 'ended', 'early-a', 'early-b', 'coffee']);
+  assert.deepEqual(ids(), ['month-pass', 'single-date', 'next-month', 'birthday', 'local']);
   assert.deepEqual(input.map(offer => offer.id), originalIds);
 });
 
@@ -150,12 +150,14 @@ test('each card keeps official links separate from image zoom and complete poste
   assert.equal(document.activeElement, opener);
 });
 
-test('all offers and their conditions remain readable in server HTML before any filtering', () => {
+test('only valid unexpired offers and their conditions appear in server HTML', () => {
   install();
   const document = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today="2026-09-09" />)).window.document;
   const cards = [...document.querySelectorAll('article')];
-  assert.equal(cards.length, offers.length);
-  for (const offer of offers) {
+  assert.equal(cards.length, 5);
+  assert.equal(document.getElementById('offer-ended'), null);
+  assert.equal(document.getElementById('offer-invalid-date'), null);
+  for (const offer of offers.filter(offer => !['ended', 'invalid-date'].includes(offer.id))) {
     const card = document.getElementById(`offer-${offer.id}`);
     assert.ok(card);
     assert.ok(card.textContent?.includes(offer.brand));
@@ -174,27 +176,27 @@ test('invalid source protocols and missing media do not create unsafe links or u
   assert.equal(view.queryByRole('link'), null);
   assert.equal(view.queryByRole('img'), null);
   assert.equal(view.queryByRole('button', { name: /放大/ }), null);
-  assert.ok(view.getByText('配图整理中'));
+  assert.equal(view.queryByText('配图整理中'), null);
   assert.ok(view.getByText(base.requirement));
 });
 
-test('the published September guide renders fifteen distinct cards with separate Target lists and searchable eligibility conditions', () => {
+test('the cleaned September guide retains valid distinct cards and removes expired promotions', () => {
   const slug = 'bay-area-freebies-deals-2026-09';
   const guide = getGuideBySlug(slug);
   assert.ok(guide);
   const blocks = guide.blocks.filter(block => block.type === 'freebies');
   assert.equal(blocks.length, 1);
   const block = blocks[0];
-  assert.equal(block.offers.length, 15);
+  assert.equal(block.offers.length, 11);
   const imagePaths = block.offers.map(offer => GUIDE_IMAGES[offer.imageKey]?.src);
   assert.ok(imagePaths.every(Boolean), 'every real offer must have its own registered image');
-  assert.equal(new Set(imagePaths).size, 15);
+  assert.equal(new Set(imagePaths).size, block.offers.length);
   const imageHashes = imagePaths.map(path => {
     assert.match(path!, /^\/guides\/[a-z0-9/._-]+\.webp$/);
     assert.equal(path!.includes('..'), false);
     return createHash('sha256').update(readFileSync(new URL(`../public${path}`, import.meta.url))).digest('hex');
   });
-  assert.equal(new Set(imageHashes).size, 15, 'distinct filenames must correspond to distinct actual artwork');
+  assert.equal(new Set(imageHashes).size, block.offers.length, 'distinct filenames must correspond to distinct actual artwork');
 
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-09-11" onBack={() => {}} onOpenGuide={() => {}} onNavigate={() => {}} onOpenPost={() => {}} /></StaticRouter>);
   const document = new JSDOM(html).window.document;
@@ -203,8 +205,8 @@ test('the published September guide renders fifteen distinct cards with separate
   const board = boards[0];
   assert.equal(board.closest('.bl-guide-reading-layout'), null, 'cards belong above the narrow reading column');
   const cards = [...board.querySelectorAll('.bl-freebie-card')];
-  assert.equal(cards.length, 15);
-  assert.deepEqual([...board.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent), ['10本月已确认', '4长期福利', '1下月预告']);
+  assert.equal(cards.length, block.offers.length);
+  assert.deepEqual([...board.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent), ['6本月已确认', '4长期福利', '1下月预告']);
   for (const [index, offer] of block.offers.entries()) {
     const card = document.getElementById(`offer-${offer.id}`);
     assert.ok(card);
@@ -215,8 +217,8 @@ test('the published September guide renders fifteen distinct cards with separate
     assert.equal(card.querySelector('img')?.getAttribute('src'), imagePaths[index]);
   }
   const targetOffers = block.offers.filter(offer => offer.brand === 'TARGET');
-  assert.equal(targetOffers.length, 2);
-  assert.equal(new Set(targetOffers.map(offer => offer.storeUrl)).size, 2, 'the two Target events must retain their different eligible-store lists');
+  assert.equal(targetOffers.length, 1);
+  assert.ok(!block.offers.some(offer => ['target-eucerin-sep12', 'lowes-haunted-house-sep12', 'michaels-foam-sep12', 'nothing-bundt-joy-sep15'].includes(offer.id)));
   for (const target of targetOffers) {
     const card = cards.find(element => element.querySelector('h3')?.textContent === target.title);
     assert.equal(card?.querySelector('a[aria-label="TARGET：查询本地门店"]')?.getAttribute('href'), target.storeUrl);
@@ -229,7 +231,7 @@ test('the published September guide renders fifteen distinct cards with separate
   assert.ok(preview?.textContent?.includes(october.dateLabel));
 
   const text = guideBlockText(block);
-  const lowes = block.offers.find(offer => offer.id === 'lowes-haunted-house-sep12');
+  const lowes = block.offers.find(offer => offer.id === 'lowes-kids-lollipop');
   assert.ok(lowes);
   assert.ok(text.includes(lowes.requirement));
   for (const target of targetOffers) assert.ok(text.includes(target.requirement));

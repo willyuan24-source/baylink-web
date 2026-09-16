@@ -12,6 +12,7 @@ import sfAttractionMedia from './attractions-sf-media.json';
 import regionalAttractionMedia from './attractions-regions-media.json';
 import freshSeptemberMedia from './fresh-september-media.json';
 import septemberUpdateMedia from './september-update-media.json';
+import octoberMedia from './october-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -52,12 +53,19 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-october-weekend-planner-2026': ['weekend', 'coast'],
+  'half-moon-bay-october-pumpkin-coast-guide-2026': ['fresh-hmb-pumpkins', 'coast'],
+  'san-jose-october-family-history-farm-guide-2026': ['everyday', 'weekend'],
+  'east-bay-tilden-october-family-guide-2026': ['october-family-nature', 'weekend'],
+  'north-bay-china-camp-october-culture-guide-2026': ['october-north-bay-culture', 'weekend'],
+  'bay-area-october-library-museum-pass-guide-2026': ['october-library-culture', 'library'],
+  'bay-area-freebies-deals-2026-10': ['sep26-peets-orange', 'region-omca'],
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],
   'half-moon-bay-pumpkin-season-2026-guide': ['fresh-pumpkin-parade', 'fresh-hmb-pumpkins'],
   'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],

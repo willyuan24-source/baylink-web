@@ -17,7 +17,8 @@ afterEach(() => cleanup());
 
 test('full-text search finds practical body and template content with readable matching passages', () => {
   const print = searchGuides(guides, { query: '打印' });
-  assert.equal(print[0].guide.slug, 'bay-area-library-starter-guide');
+  assert.ok(print.some(({ guide }) => guide.slug === 'bay-area-library-starter-guide'));
+  assert.ok(print.some(({ guide }) => guide.slug === 'bay-area-october-library-museum-pass-guide-2026'));
   assert.match(print[0].snippet!, /打印/);
   assert.ok(print[0].section);
   assert.ok(searchGuides(guides, { query: '公证' }).some(({ guide }) => guide.slug === 'bay-area-translation-service-guide'));

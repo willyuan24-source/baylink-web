@@ -22,7 +22,7 @@ const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 
-const slug = 'bay-area-freebies-deals-2026-09';
+const slug = 'bay-area-freebies-deals-2026-10';
 const fixture: Guide = {
   ...guides[0], slug, title: '九月咖啡与甜点优惠领取指南', editionMonth: '2026-09', updatedAt: '2026-09-08',
   cover: undefined, blocks: [
@@ -33,11 +33,11 @@ const fixture: Guide = {
   ],
 };
 const previousGuide = guides.find(guide => guide.slug === slug);
-const previousArt = GUIDE_IMAGES['september-freebies'];
+const previousArt = GUIDE_IMAGES['sep26-peets-orange'];
 function installFixture() {
   const index = guides.findIndex(guide => guide.slug === slug);
   if (index >= 0) guides.splice(index, 1, fixture); else guides.push(fixture);
-  GUIDE_IMAGES['september-freebies'] = { ...GUIDE_IMAGES.settling, src: '/test/freebies.webp', alt: '咖啡与甜点的专属优惠插图' };
+  GUIDE_IMAGES['sep26-peets-orange'] = { ...GUIDE_IMAGES.settling, src: '/test/freebies.webp', alt: '咖啡与甜点的专属优惠插图' };
 }
 afterEach(() => {
   cleanup();
@@ -45,7 +45,7 @@ afterEach(() => {
   if (index >= 0) {
     if (previousGuide) guides.splice(index, 1, previousGuide); else guides.splice(index, 1);
   }
-  if (previousArt) GUIDE_IMAGES['september-freebies'] = previousArt; else delete GUIDE_IMAGES['september-freebies'];
+  if (previousArt) GUIDE_IMAGES['sep26-peets-orange'] = previousArt; else delete GUIDE_IMAGES['sep26-peets-orange'];
 });
 const actions = { onBack: () => {}, onOpenGuide: () => {}, onNavigate: () => {}, onOpenPost: () => {} };
 
@@ -57,7 +57,7 @@ test('deals spotlight reads the published guide and becomes an archive after its
   assert.equal(link.getAttribute('href'), `/guides/${slug}`);
   assert.ok(view.getByRole('heading', { name: fixture.title }));
   assert.ok(view.getByText('2026 年 9 月 · 优惠领取指南'));
-  assert.ok(view.getByText('从免费小蛋糕到 $1 冷萃，连同 Target、亲子手工和会员折扣，按日期与条件挑。'));
+  assert.ok(view.getByText('从九月剩余优惠到十月免费文化日、亲子工作坊与图书馆福利，按日期、地区和条件挑。'));
   assert.equal(view.container.querySelector('img')?.getAttribute('src'), getGuideMedia(fixture).cover.src);
   assert.equal(view.container.querySelector('time')?.dateTime, fixture.updatedAt);
   fireEvent.click(link);
@@ -119,18 +119,18 @@ test('guide home and monthly edition both expose the new guide as an SSR-readabl
   }
 });
 
-test('the actual September deals guide renders its dedicated art and each inline merchant source', () => {
+test('the actual October deals guide renders its dedicated art and each inline merchant source', () => {
   assert.ok(previousGuide, 'the published September guide must be registered');
-  assert.equal(previousGuide.editionMonth, '2026-09');
+  assert.equal(previousGuide.editionMonth, '2026-10');
   const media = getGuideMedia(previousGuide);
-  assert.equal(media.cover.src, GUIDE_IMAGES['september-freebies'].src);
+  assert.equal(media.cover.src, GUIDE_IMAGES['sep26-peets-orange'].src);
   const sourceBlocks = previousGuide.blocks.filter(block => block.type === 'link');
   assert.ok(sourceBlocks.length >= 1, 'readers should find merchant sources beside the offer descriptions');
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-10-01" {...actions} /></StaticRouter>);
   const server = new JSDOM(html).window.document;
   assert.equal(server.querySelector('h1')?.textContent, previousGuide.title);
   assert.equal(server.querySelector('.guide-figure--cover img')?.getAttribute('src'), media.cover.src);
-  assert.match(server.querySelector('.bl-guide-edition-notice')?.textContent || '', /往期攻略 · 2026 年 9 月/);
+  assert.match(server.querySelector('.bl-guide-edition-notice')?.textContent || '', /2026 年 10 月 · 本期攻略/);
   const sourceCards = [...server.querySelectorAll('.bl-guide-source-link')];
   assert.equal(sourceCards.length, sourceBlocks.length);
   for (const [index, block] of sourceBlocks.entries()) {

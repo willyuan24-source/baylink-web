@@ -66,7 +66,7 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
     if (!range) return [2, ''];
     return [range[1] < today ? 3 : 0, range[0]];
   };
-  return [...offers].sort((left, right) => {
+  return offers.filter(offer => offer.availability !== 'dated' || (dateRange(offer)?.[1] || '') >= today).sort((left, right) => {
     const [leftGroup, leftDate] = position(left);
     const [rightGroup, rightDate] = position(right);
     return leftGroup - rightGroup || leftDate.localeCompare(rightDate);
@@ -87,7 +87,7 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
         <span className="bl-freebie-picture-zoom"><Expand size={13} aria-hidden="true" /><span className="sr-only">查看大图</span></span>
       </button>
       <figcaption>{pictureLabel}{offer.imageNote && <span> · {offer.imageNote}</span>}</figcaption>
-    </figure> : <div className="bl-freebie-picture-missing"><Gift size={28} aria-hidden="true" /><span>配图整理中</span></div>}
+    </figure> : null}
     <div className="bl-freebie-card-body">
       <div className="bl-freebie-card-date"><CalendarDays size={14} aria-hidden="true" /><span>{offer.dateLabel}</span></div>
       <div className="bl-freebie-card-tags"><span className={`bl-freebie-kind bl-freebie-kind--${offer.kind}`}>{KIND_LABELS[offer.kind]}</span><span className={`bl-freebie-status bl-freebie-status--${status.key}`}>{status.label}</span></div>

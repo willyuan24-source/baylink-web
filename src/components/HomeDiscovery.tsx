@@ -6,6 +6,7 @@ import { getGuideBySlug, guides, type Guide } from '../data/guides';
 import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../data/monthly-edition';
 import { getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
+import { DEALS_SLUG } from './MonthlyDealsSpotlight';
 import { useLocale } from '../i18n/locale';
 
 const discoveries = [
@@ -84,21 +85,21 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const pickSlugs = intent === 'weekend' ? [
     freshCleanup ? ['bay-area-coastal-cleanup-2026-guide'] : selection.picks[0],
     pumpkinSeason ? ['half-moon-bay-pumpkin-season-2026-guide'] : selection.picks[1],
-    today.slice(0, 7) === '2026-09' ? ['bay-area-new-openings-2026-09'] : selection.picks[2],
+    today <= '2026-10-31' ? ['bay-area-october-weekend-planner-2026'] : selection.picks[2],
   ] : selection.picks;
   const picks = pickSlugs.map(findGuide).filter((guide): guide is Guide => !!guide);
   const currentEdition = isEditionCurrent(today);
   const editionPast = today.slice(0, 7) > MONTHLY_EDITION.month;
   const events = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended');
   const editionImage = GUIDE_IMAGES['september-edition'];
-  const deals = getGuideBySlug('bay-area-freebies-deals-2026-09');
-  const dealsCurrent = deals?.editionMonth === today.slice(0, 7);
+  const deals = getGuideBySlug(DEALS_SLUG);
+  const dealsCurrent = !!deals?.editionMonth && isEditionCurrent(today);
   const dealsPast = !!deals?.editionMonth && deals.editionMonth < today.slice(0, 7);
   const dealsMonthLabel = deals?.editionMonth ? `${deals.editionMonth.slice(0, 4)} 年 ${Number(deals.editionMonth.slice(5, 7))} 月` : '';
   const freebieBlock = deals?.blocks.find(block => block.type === 'freebies');
   const offers = freebieBlock?.type === 'freebies' ? freebieBlock.offers : [];
-  const datedOffers = offers.filter(item => item.availability === 'dated' && item.startDate?.startsWith(deals?.editionMonth || '') && (item.endDate || item.startDate) >= today);
-  const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo') || datedOffers[0] || offers[0];
+  const datedOffers = offers.filter(item => item.availability === 'dated' && item.startDate && (item.endDate || item.startDate) >= today);
+  const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo') || datedOffers[0] || offers.find(item => !item.endDate || item.endDate >= today);
   const offerImage = offer ? GUIDE_IMAGES[offer.imageKey] : deals ? getGuideMedia(deals).cover : undefined;
   const heroImage = hero ? getGuideMedia(hero).cover : undefined;
   const images = [editionImage, heroImage, offerImage, ...picks.map(guide => getGuideMedia(guide).cover)].filter((image): image is GuideImage => !!image);
@@ -120,7 +121,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
 
     <div id={panelId} className="home-discovery-panel">
       <div className="home-discovery-feature-grid">
-        <Link to={editionPast ? '/this-month?includeEnded=1' : '/this-month'} className="home-discovery-feature home-discovery-edition" aria-label={`阅读${MONTHLY_EDITION.label}湾区月刊`}>
+        <Link to="/this-month" className="home-discovery-feature home-discovery-edition" aria-label={`阅读${MONTHLY_EDITION.label}湾区月刊`}>
           <DiscoveryImage image={editionImage} hero />
           <div className="home-discovery-feature-copy"><span>BAYLINK · THE MONTHLY EDIT</span><h2>{currentEdition ? '给这个月，找一个出门的理由。' : '翻一翻，留些出游灵感。'}</h2><p>{currentEdition ? `${events.length} 场尚未结束的活动，附日期、费用与出发前提醒。` : `${MONTHLY_EDITION.label} 活动与去处记录，最新安排请查主办方。`}</p><div><small><CalendarDays size={14} aria-hidden="true" />{MONTHLY_EDITION.label} · {currentEdition ? '本月月刊' : editionPast ? '往期月刊' : '月刊预告'}</small><strong>{currentEdition ? '打开湾区月刊' : '翻阅这期月刊'}<ArrowUpRight size={17} aria-hidden="true" /></strong></div></div>
         </Link>
@@ -131,12 +132,12 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
           </Link>}
           {deals && <Link to={`/guides/${deals.slug}#freebie-board-0`} className="home-discovery-deals" aria-label={`查看${deals.title}的领取图鉴`}>
             {offerImage && <DiscoveryImage image={offerImage} />}
-            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><Ticket size={13} aria-hidden="true" />{dealsMonthLabel} · {dealsCurrent ? '本月福利' : dealsPast ? '往期福利' : '福利预告'}</span><h2>顺路领一份，<br />日常的小惊喜。</h2><p>{dealsPast ? '往期领取条件供回顾，不能当作实时优惠。' : 'Target、亲子手工和会员礼，先看日期、名额与领取条件。'}</p><strong>{dealsPast ? '查看往期领取记录' : '打开免费领取图鉴'}<ArrowUpRight size={15} aria-hidden="true" /></strong></div>
+            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><Ticket size={13} aria-hidden="true" />{dealsMonthLabel} · {dealsCurrent ? '本期福利' : dealsPast ? '往期福利' : '福利预告'}</span><h2>顺路领一份，<br />日常的小惊喜。</h2><p>{dealsPast ? '往期领取条件供回顾，不能当作实时优惠。' : '免费文化日、亲子手工和图书馆福利，先看日期、名额与领取条件。'}</p><strong>{dealsPast ? '查看往期领取记录' : '打开免费领取图鉴'}<ArrowUpRight size={15} aria-hidden="true" /></strong></div>
           </Link>}
         </div>
       </div>
 
-      <div className="home-discovery-picks-heading"><p aria-live="polite">{intent === 'weekend' && freshCleanup ? '海边做件小事，农场看看秋天，再找一家想去的新店。' : selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
+      <div className="home-discovery-picks-heading"><p aria-live="polite">{intent === 'weekend' && freshCleanup ? '海边做件小事，农场看看秋天，再提前安排十月周末。' : selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
       <div className="home-discovery-picks">{picks.map(guide => <Link to={`/guides/${guide.slug}`} className="home-discovery-pick" key={guide.slug} aria-label={`阅读：${guide.title}`}><DiscoveryImage image={getGuideMedia(guide).cover} /><div><span>{guide.categoryLabel} · {guide.readMinutes} 分钟</span><h3>{guide.title}</h3><ArrowUpRight size={17} aria-hidden="true" /></div></Link>)}</div>
     </div>
 

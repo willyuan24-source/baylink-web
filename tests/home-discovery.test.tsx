@@ -27,9 +27,9 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(document.querySelectorAll('h1').length, 1);
   assert.ok(document.querySelector('.home-discovery-heading a[href="/guides"]'));
   assert.ok(document.querySelector('a[href="/guides/golden-gate-park-free-car-free-day-guide"]'));
-  assert.ok(document.querySelector('a[href="/guides/bay-area-new-openings-2026-09"]'));
+  assert.ok(document.querySelector('a[href="/guides/bay-area-october-weekend-planner-2026"]'));
   assert.ok(document.querySelector('a[href="/this-month"]'));
-  assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-09#freebie-board-0"]'));
+  assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-10#freebie-board-0"]'));
   assert.match(document.querySelector('.home-discovery-count')!.textContent!, new RegExp(`${guides.length} 篇生活指南`));
   const photos = [...document.querySelectorAll<HTMLImageElement>('.home-discovery-panel img')];
   assert.equal(photos.length, 6);
@@ -40,7 +40,7 @@ test('homepage server HTML leads with readable guides, distinct actual images an
     assert.ok(image, `${src} is a registered image`);
     assert.equal(photo.alt, image.alt);
     assert.equal(photo.getAttribute('srcset'), image.srcSet);
-    if (image.kind === 'illustration') assert.equal(image.src, GUIDE_IMAGES['september-edition'].src, 'only the monthly cover uses our original illustration');
+    if (image.kind === 'illustration') assert.match(image.credit, /AI/);
     assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.caption));
     if (image.creditUrl) assert.ok([...document.querySelectorAll('.home-discovery-credits a')].some(link => link.getAttribute('href') === image.creditUrl));
     else assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.credit));
@@ -55,7 +55,7 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(document.querySelector('.home-discovery-timely > a')?.getAttribute('href'), '/guides/golden-gate-park-free-car-free-day-guide');
   assert.equal(hero.getAttribute('loading'), 'eager');
   assert.equal(hero.getAttribute('fetchPriority')?.toLowerCase(), 'high');
-  assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['sep26-target-eucerin'].src);
+  assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['sep26-target-beauty'].src);
   assert.equal(document.querySelector('.home-discovery-deals .home-discovery-image-label')?.textContent, '官方宣传照片');
 });
 
@@ -95,17 +95,18 @@ test('month cards follow Bay Area date, end-of-month counts and archive language
   const view = render(renderAt(today));
   const remaining = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
   assert.match(view.container.querySelector('.home-discovery-edition')!.textContent!, new RegExp(`${remaining} 场尚未结束的活动`));
-  assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /本月福利/);
-  assert.equal(view.container.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['deal-85c-september'].src, 'a September 12 promotion is replaced after its date has passed');
-  view.rerender(renderAt(getBayAreaToday(new Date('2026-10-01T07:01:00Z'))));
+  assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /本期福利/);
+  assert.ok(view.container.querySelector('.home-discovery-deals img'));
+  assert.doesNotMatch(view.container.querySelector('.home-discovery-deals')!.textContent!, /9\/12|免费小蛋糕/);
+  view.rerender(renderAt(getBayAreaToday(new Date('2026-11-01T07:01:00Z'))));
   const edition = view.container.querySelector('.home-discovery-edition')!;
   const deals = view.container.querySelector('.home-discovery-deals')!;
-  assert.match(edition.textContent!, /2026 年 9 月.*往期月刊/);
-  assert.equal(edition.getAttribute('href'), '/this-month?includeEnded=1');
+  assert.match(edition.textContent!, /2026 年 9–10 月.*往期月刊/);
+  assert.equal(edition.getAttribute('href'), '/this-month');
   assert.doesNotMatch(edition.textContent!, /本月月刊|尚未结束/);
   assert.match(deals.textContent!, /往期福利/);
   assert.match(deals.textContent!, /不能当作实时优惠/);
-  assert.doesNotMatch(deals.textContent!, /本月福利/);
+  assert.doesNotMatch(deals.textContent!, /本期福利/);
   view.rerender(renderAt('2026-08-31'));
   assert.match(view.container.querySelector('.home-discovery-edition')!.textContent!, /月刊预告/);
   assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /福利预告/);

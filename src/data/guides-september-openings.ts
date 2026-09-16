@@ -4,14 +4,14 @@ import { septemberOpenings } from './september-openings';
 export const septemberOpeningGuides: Guide[] = [{
   slug: 'bay-area-new-openings-2026-09',
   title: '九月湾区新店手册：水岸晚餐、街角烘焙与下一站期待',
-  subtitle: '已开业、开业庆典与预告，出门前一次看清',
-  summary: 'Sergeant Ma 的水岸晚餐、Marina 的咖啡烘焙庆典，以及 Mission、Russian Hill、渔人码头和 San Jose 的开业消息。附地址、商家入口与消息日期。',
+  subtitle: '已营业门店与待确认预告，出门前一次看清',
+  summary: 'Sergeant Ma 的水岸晚餐、Marina 已营业的咖啡烘焙门店，以及 Mission、Russian Hill、渔人码头和 San Jose 的开业消息。已移除结束的庆典优惠，附地址、商家入口与消息日期。',
   category: 'city', categoryLabel: '新店观察', emoji: '☕',
   audience: ['想找新地方吃饭的人', '咖啡与烘焙爱好者', '周末街区散步的人'],
   tags: ['九月新店', '2026 年 9 月', '餐厅', '咖啡', '烘焙', '旧金山', 'San Jose'],
   priority: 'P1', featuredOnHome: true, recommendedForCategories: ['other'],
-  readMinutes: 6, updatedAt: '2026-09-11', editionMonth: '2026-09',
-  sourceNote: '核查于 2026 年 9 月 11 日。本文整理商家公告与本地媒体报道，尚未实地探店；“推荐”是按地点、餐饮类型与出行便利给出的编辑建议，不是评分或质量担保。日期不明确的项目保留为预告，庆典不视为首次营业。',
+  readMinutes: 6, updatedAt: '2026-09-15', editionMonth: '2026-09',
+  sourceNote: '2026 年 9 月 15 日清理已结束的庆典优惠，并用商家官网复核 ERIA Marina 门店；其余项目保留逐店标注的原核查日期。本文未实地探店，编辑建议不代表食评。尚未获开业确认的计划继续标为预告，不因日期到了就自动改成已开。',
   sources: [...new Map(septemberOpenings.flatMap(shop => [
     { title: `${shop.name} · ${shop.sourceLabel}`, url: shop.sourceUrl, description: shop.dateLabel },
     { title: `${shop.name} · 商家入口`, url: shop.officialUrl, description: '出发前确认菜单、预约与当天营业安排。' },
@@ -27,7 +27,7 @@ export const septemberOpeningGuides: Guide[] = [{
       { type: 'link', title: shop.sourceLabel, text: `开业消息核对：${shop.verifiedAt}`, url: shop.sourceUrl },
     ]),
     { type: 'heading', text: '别赶场，顺路就好' },
-    { type: 'list', items: ['水岸晚餐可以搭一小段散步；不用再跨城赶第二家。', '开业优惠先问清饮品或赠品范围，菜单价格与库存以店内为准。', '临时没有开门就换附近熟悉的选择，别把还没确认的预告排成紧凑行程。'] },
-    { type: 'link', title: '继续翻九月月刊', text: '把新店和附近活动放在同一天，看看本月还有哪些值得出门的理由。', url: 'https://www.baylink.us/this-month#monthly-openings' },
+    { type: 'list', items: ['水岸晚餐可以搭一小段散步；不用再跨城赶第二家。', '已结束的开业庆典不作为当前优惠；菜单和营业时间看商家当天公告。', '临时没有开门就换附近熟悉的选择，别把还没确认的预告排成紧凑行程。'] },
+    { type: 'link', title: '查看最新本地月刊', text: '把确认营业的新店和附近活动放在同一天，查看当前仍有效的出行选择。', url: 'https://www.baylink.us/this-month#monthly-openings' },
   ],
 }];

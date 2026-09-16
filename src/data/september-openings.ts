@@ -21,7 +21,7 @@ export type SeptemberOpening = {
   imageKey: string;
 };
 
-/** Checked 2026-09-11. Dates are never promoted from announced to open by the clock. */
+/** Celebration copy cleaned 2026-09-15; per-item verification dates remain explicit. */
 export const septemberOpenings: SeptemberOpening[] = [
   {
     id: 'sergeant-ma', name: 'Sergeant Ma', city: 'San Francisco', region: 'sf',
@@ -36,14 +36,14 @@ export const septemberOpenings: SeptemberOpening[] = [
   },
   {
     id: 'boulangerie-eria-celebration', name: 'La Boulangerie at ERIA Marina', city: 'San Francisco', region: 'sf',
-    category: '开业庆祝 · 咖啡烘焙', status: 'announced', openingType: 'opening-celebration',
-    dateLabel: '9 月 12 日 · 10:00–14:00 开业庆祝',
-    summary: 'ERIA Marina 内的 La Boulangerie 已营业，9 月 12 日举办开业早午餐活动。活动时段购买 espresso 饮品可获赠 pastry；这不是无消费门槛的赠送。首日营业日期未核实。',
-    editorTip: '把它当作本月新店庆祝活动，别把 9 月 12 日当成首次营业日。出发前打开活动原页核对。',
+    category: '咖啡烘焙', status: 'open', openingType: 'opening-celebration',
+    dateLabel: '已营业 · 9 月 12 日庆典已结束',
+    summary: '商家官网确认 ERIA Marina 门店已营业，目前列出每日 7:00–14:30，周末供应 brunch。9 月 12 日开业庆典已结束，首日营业日期未核实。',
+    editorTip: '适合 Marina 街区散步时顺路喝咖啡；出发前看商家营业页面，历史庆典不代表仍有开业优惠。',
     address: '2300 Chestnut Street, San Francisco, CA 94123',
     officialUrl: 'https://www.laboulangeriesf.com/locations-hours',
-    sourceUrl: 'https://www.sfstation.com/brunch-soir-e-e15773232',
-    sourceLabel: '活动刊登 · SF Station', verifiedAt: '2026-09-11', imageKey: 'sep26-open-boulangerie-eria',
+    sourceUrl: 'https://www.laboulangeriesf.com/locations-hours',
+    sourceLabel: 'La Boulangerie · 官方门店营业页', verifiedAt: '2026-09-15', imageKey: 'sep26-open-boulangerie-eria',
   },
   {
     id: 'florecita-mission', name: 'Florecita Panadería', city: 'San Francisco', region: 'sf',

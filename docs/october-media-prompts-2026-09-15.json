@@ -1,0 +1,18 @@
+{
+  "tool": "Built-in image_gen (no CLI)",
+  "createdAt": "2026-09-15",
+  "images": [
+    {
+      "key": "october-family-nature",
+      "prompt": "Use case: illustration-story. Asset type: a landscape editorial cover illustration for a Chinese-language San Francisco Bay Area local-life guide. Primary request: an original, clearly illustrated concept of East Bay family nature observation, not a depiction of any specific real park. One adult and two children watch a goat and a sheep from the visitor side of a waist-high wooden farm fence, calmly observing. The children keep their hands to themselves; nobody feeds or touches the animals, no food is present. Background: open grassy park and softly shaped oak trees in mild autumn light. Medium: sophisticated hand-painted gouache editorial illustration, simplified expressive shapes, gentle paper grain, warm natural greens and ochres, adult magazine aesthetic, not a photograph. Composition: wide 3:2 landscape, clearly separated people and animals on opposite sides of the fence, complete limbs, spacious balanced view, main subjects readable in a small website card. Constraints: no words, letters, numerals, signs, logos, watermarks, famous landmarks, recognizable real location, or map. No animal feeding, no animals outside the fence."
+    },
+    {
+      "key": "october-north-bay-culture",
+      "prompt": "Use case: stylized-concept. Asset type: a landscape editorial illustration for a Bay Area local culture guide. Primary request: an original conceptual view of a modest North Bay Chinese American shrimping village and wooden dock by a quiet bay, evoking cultural history without claiming to reconstruct any historical site or photograph. Show simple low wooden waterside buildings, a small wooden fishing boat tied to the dock, coiled rope and a folded fishing net; distant low hills and tidal marsh. No people needed. Medium: sophisticated hand-painted gouache editorial illustration, simplified architectural forms, subtle paper texture, muted teal water and warm wood, peaceful daylight. Composition: wide 3:2 landscape, dock forms an easy visual lead toward the little boat and buildings, coherent water perspective, calm open sky. Constraints: unmistakably an illustration rather than a photograph, no text or inscriptions, no logos, no watermark, no specific named location, no famous landmarks, no ornamental Chinese stereotypes or exotic pagodas, no claim of documentary historical accuracy."
+    },
+    {
+      "key": "october-library-culture",
+      "prompt": "Use case: stylized-concept. Asset type: landscape cover artwork for a practical Bay Area guide to borrowing library museum passes. Primary request: an original still-life illustration of two gently used books, a completely blank library card, and two blank paper museum-admission tickets arranged on a library reading table. A quiet blurred bookshelf and soft window light in the background. The plain card and tickets carry no writing, barcode, signature, recognizable brand or official credential design. Medium: sophisticated hand-painted gouache editorial illustration with paper grain, tactile paper and linen book covers, calm cream and muted blue-green palette, adult magazine aesthetic. Composition: wide 3:2 landscape close-up, asymmetrical but balanced tabletop arrangement, easily legible at thumbnail size, no humans. Constraints: no words, letters, numbers, logos, QR codes, barcodes or watermarks anywhere, no real institution branding, not photorealistic, no claimed real museum pass."
+    }
+  ]
+}

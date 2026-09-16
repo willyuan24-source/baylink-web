@@ -30,7 +30,10 @@ const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
 }).catch((error) => { chineseLoad = undefined; throw error; });
 
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await (englishLoad ||= import('./en.json').then((module) => { english = module.default; }).catch((error) => { englishLoad = undefined; throw error; }));
+  if (locale === 'en') await (englishLoad ||= Promise.all([
+    import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
+    import('../data/october-offers-en.json'), import('../data/october-local-en.json'),
+  ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }
 

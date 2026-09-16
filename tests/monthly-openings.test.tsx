@@ -42,22 +42,26 @@ after(() => {
   }
 });
 
-const edition = (today = '2026-09-11') => <MemoryRouter><MonthlyOpenings today={today} /></MemoryRouter>;
+const edition = (today = '2026-09-15') => <MemoryRouter><MonthlyOpenings today={today} /></MemoryRouter>;
 const names = (view: ReturnType<typeof render>) => view.queryAllByRole('article').map(article => within(article).getByRole('heading', { level: 3 }).textContent);
 const statusFilters = (view: ReturnType<typeof render>) => within(view.getByRole('group', { name: '按开业状态筛选' }));
 
-test('opening status and region combine without treating an opening celebration as a confirmed September opening', () => {
+test('opening status and region use confirmed business status without reviving an ended celebration', () => {
   const view = render(edition());
   assert.deepEqual(names(view), septemberOpenings.slice(0, 6).map(shop => shop.name));
   assert.ok(view.getByText(/尚未实地探店/));
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'sf' } });
-  assert.deepEqual(names(view), ['La Boulangerie at ERIA Marina', 'Florecita Panadería', 'Handroll Hawker', 'Woods Beer & Wine Co. · Fisherman’s Wharf']);
-  const celebration = within(view.getByRole('article', { name: 'La Boulangerie at ERIA Marina' }));
-  assert.ok(celebration.getByText('开业庆典', { exact: true }));
-  assert.ok(celebration.getByText(/首日营业日期未核实/));
+  assert.deepEqual(names(view), ['Florecita Panadería', 'Handroll Hawker', 'Woods Beer & Wine Co. · Fisherman’s Wharf']);
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
-  assert.deepEqual(names(view), ['Sergeant Ma']);
+  assert.deepEqual(names(view), ['Sergeant Ma', 'La Boulangerie at ERIA Marina']);
+  const bakery = within(view.getByRole('article', { name: 'La Boulangerie at ERIA Marina' }));
+  assert.ok(bakery.getByText('已开业', { exact: true }));
+  assert.ok(!bakery.queryByText('开业庆典', { exact: true }));
+  assert.ok(bakery.getByText('已营业 · 9 月 12 日庆典已结束', { exact: true }));
+  assert.ok(bakery.getByText(/首日营业日期未核实/));
+  assert.ok(!bakery.queryByText(/espresso|pastry|获赠/));
+  assert.equal(septemberOpenings.find(shop => shop.id === 'boulangerie-eria-celebration')?.openedOn, undefined, 'verified operation does not invent a first-service date');
   assert.equal((view.getByRole('combobox', { name: '新店所在地区' }) as HTMLSelectElement).value, 'sf');
   assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).getAttribute('aria-pressed'), 'true');
 });
@@ -80,14 +84,14 @@ test('passing an announced date and moving to the archive never silently promote
   const originalStatuses = septemberOpenings.map(shop => [shop.id, shop.status, shop.openedOn]);
   const view = render(edition());
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
-  assert.deepEqual(names(view), ['Sergeant Ma']);
+  assert.deepEqual(names(view), ['Sergeant Ma', 'La Boulangerie at ERIA Marina']);
   view.rerender(edition('2026-09-30'));
-  assert.deepEqual(names(view), ['Sergeant Ma'], 'dates passing are not proof that service started');
+  assert.deepEqual(names(view), ['Sergeant Ma', 'La Boulangerie at ERIA Marina'], 'dates passing are not proof that service started');
   view.rerender(edition('2026-10-01'));
   assert.ok(view.getByRole('heading', { name: '本期新店记录' }));
   assert.ok(view.getByText('这是九月的开业消息快照，当前营业情况请查商家公告。'));
   assert.ok(!view.queryByRole('heading', { name: '九月，新开的一扇门。' }));
-  assert.deepEqual(names(view), ['Sergeant Ma']);
+  assert.deepEqual(names(view), ['Sergeant Ma', 'La Boulangerie at ERIA Marina']);
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
   for (const shop of septemberOpenings.filter(shop => shop.status === 'announced')) {
     const card = within(view.getByRole('article', { name: shop.name, exact: true }));
@@ -133,7 +137,7 @@ test('the handbook route resolves to published September content with all six pl
   assert.ok(guide, 'the card link must point to a registered guide');
   assert.equal(guides.filter(item => item.slug === OPENINGS_GUIDE_SLUG).length, 1);
   assert.equal(guide.editionMonth, '2026-09');
-  assert.match(guide.sourceNote || '', /尚未实地探店/);
+  assert.match(guide.sourceNote || '', /未实地探店/);
   const server = new JSDOM(renderToStaticMarkup(<StaticRouter location={`/guides/${OPENINGS_GUIDE_SLUG}`}>
     <GuideDetail slug={OPENINGS_GUIDE_SLUG} today="2026-10-01" onBack={() => {}} onOpenGuide={() => {}} onNavigate={() => {}} onOpenPost={() => {}} />
   </StaticRouter>));

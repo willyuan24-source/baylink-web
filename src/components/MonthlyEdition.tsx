@@ -12,9 +12,9 @@ import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
 import { MonthlyOpenings } from './MonthlyOpenings';
 import { septemberOpenings } from '../data/september-openings';
-import { septemberFreebies } from '../data/september-freebies';
-import type { FreebieOffer } from './FreebieBoard';
+import { currentFreebies } from '../data/october-offers';
 import { translateText, useLocale } from '../i18n/locale';
+import { octoberLocalGuides } from '../data/guides-october-local';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'all', label: '整个湾区' }, { value: 'sf', label: '旧金山' },
@@ -26,6 +26,7 @@ const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', en
 const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
   { value: 'all', label: '全部日期' }, { value: 'today', label: '今天' },
   { value: 'weekend', label: '这个周末' }, { value: 'next7', label: '未来 7 天' },
+  { value: 'september', label: '九月余下' }, { value: 'october', label: '整个十月' },
 ];
 
 type EditionPictureProps = { imageKey: string; className?: string; eager?: boolean };
@@ -93,13 +94,13 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
   const dateRange = getMonthlyDateRange(date, today);
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);
-  const includeEnded = searchParams.get('includeEnded') === '1' || (searchParams.get('includeEnded') !== '0' && !current);
+  const includeEnded = searchParams.get('includeEnded') === '1';
   const normalizedQuery = normalizeGuideQuery(query);
   const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event => !normalizedQuery || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(normalizedQuery));
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
-  const perkPreviews = ['nothing-bundt-joy-sep15', 'peets-orange-friday-sep25', 'target-beauty-sep26']
-    .map(id => septemberFreebies.find(offer => offer.id === id))
-    .filter((offer): offer is FreebieOffer => !!offer && (!offer.endDate || offer.endDate >= today));
+  const liveOffers = currentFreebies.filter(offer => !offer.endDate || offer.endDate >= today);
+  const perkPreviews = liveOffers.filter(offer => offer.availability === 'dated')
+    .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || '')).slice(0, 3);
   const changeFilter = (name: string, value: string) => {
     setSearchParams(previous => {
       const next = new URLSearchParams(previous);
@@ -116,13 +117,13 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
   return <div className="bl-monthly">
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
     <header className="bl-monthly-hero">
-      <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow"><span className="bl-monthly-edition-dot" />BAYLINK · THE MONTHLY EDIT</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '本月湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><a href="#monthly-events">{current ? '挑一个本月活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a><a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />已核对 {MONTHLY_EDITION.checkedAt}</span></div></div>
+      <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow"><span className="bl-monthly-edition-dot" />BAYLINK · THE MONTHLY EDIT</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '秋季湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><a href="#monthly-events">{current ? '挑一个秋季活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a><a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />已核对 {MONTHLY_EDITION.checkedAt}</span></div></div>
       <div className="bl-monthly-hero-art"><EditionPicture imageKey="september-edition" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
     </header>
 
     <nav className="bl-monthly-jump" aria-label="月刊分区导航">
       <a href="#monthly-events"><CalendarDays size={18} aria-hidden="true" /><span>活动日历</span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong></a>
-      <a href="#monthly-perks"><Ticket size={18} aria-hidden="true" /><span>优惠福利</span><strong>{septemberFreebies.length}</strong></a>
+      <a href="#monthly-perks"><Ticket size={18} aria-hidden="true" /><span>优惠福利</span><strong>{liveOffers.length}</strong></a>
       <a href="#monthly-openings"><Store size={18} aria-hidden="true" /><span>新店消息</span><strong>{septemberOpenings.length}</strong></a>
       <a href="#monthly-places"><MapPin size={18} aria-hidden="true" /><span>慢游提案</span><strong>{MONTHLY_PLACES.length}</strong></a>
     </nav>
@@ -130,11 +131,18 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
       <MonthlyDealsSpotlight today={today} />
       {current && perkPreviews.length > 0 && <div className="bl-perks-preview">{perkPreviews.map(offer => {
         const image = GUIDE_IMAGES[offer.imageKey];
-        return <Link key={offer.id} to={`/guides/bay-area-freebies-deals-2026-09#offer-${offer.id}`}>
+        return <Link key={offer.id} to={`/guides/bay-area-freebies-deals-2026-10#offer-${offer.id}`}>
           {image && <img src={image.src} alt="" width={image.width} height={image.height} loading="lazy" />}
           <span><small>{offer.brand}</small><strong>{offer.title}</strong><em>{offer.dateLabel} · {offer.kind === 'no-purchase' ? '无需购物' : offer.kind === 'reservation' ? '需预约' : '需消费'}</em></span>
         </Link>;
       })}</div>}
+    </section>
+
+    <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">十月出门，先读一篇本地攻略</h2></div><p>南瓜季交通、亲子半日游与免费文化资源，按自己的节奏安排。</p></div>
+      <div className="bl-monthly-place-grid">{octoberLocalGuides.map(guide => <article className="bl-monthly-place" key={guide.slug}>
+        <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
+      </article>)}</div>
     </section>
 
     <MonthlyOpenings today={today} />
@@ -142,7 +150,7 @@ export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}
 
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
-      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '这个月，值得出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '一直到十月底，值得出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
       <div className="bl-monthly-filters">
         <div className="bl-monthly-date-filter" role="group" aria-label="按活动日期筛选">
           <span className="bl-monthly-date-label"><CalendarDays size={16} aria-hidden="true" />什么时候出门？</span>

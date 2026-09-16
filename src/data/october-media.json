@@ -1,0 +1,35 @@
+[
+  {
+    "key": "october-family-nature",
+    "src": "/guides/distinct/october-family-nature.webp",
+    "alt": "成人与两名儿童在围栏外观察山羊和绵羊的原创插画",
+    "caption": "AI 原创概念插画：亲子隔栏观察动物、不喂食；不代表 Tilden 或其他具体公园的实景。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/october-family-nature-small.webp 480w, /guides/distinct/october-family-nature.webp 1536w"
+  },
+  {
+    "key": "october-north-bay-culture",
+    "src": "/guides/distinct/october-north-bay-culture.webp",
+    "alt": "平静海湾旁的木质渔村、码头、小渔船与渔网概念插画",
+    "caption": "AI 原创概念插画：以海湾渔村生活为主题，不是 China Camp 实景或历史复原图。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/october-north-bay-culture-small.webp 480w, /guides/distinct/october-north-bay-culture.webp 1536w"
+  },
+  {
+    "key": "october-library-culture",
+    "src": "/guides/distinct/october-library-culture.webp",
+    "alt": "阅读桌上的书本、空白借书卡与无文字门票静物插画",
+    "caption": "AI 原创概念插画：图书馆与文化出行主题；空白卡片及票券不代表真实凭证或任何场馆承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/distinct/october-library-culture-small.webp 480w, /guides/distinct/october-library-culture.webp 1536w"
+  }
+]
