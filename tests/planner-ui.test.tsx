@@ -145,3 +145,16 @@ test('a shared query restores at most three public stops and a guest can save an
   assert.equal(card.querySelector('time')?.getAttribute('datetime'), requestedDate);
   assert.ok(within(card).getByRole('link', { name: '继续编辑' }));
 });
+
+test('a shared event cannot be saved on an unconfirmed day inside its date range', async () => {
+  const fleet = PLANNER_EVENTS.find(row => row.id === 'san-francisco-fleet-week-2026')!;
+  const query = new URLSearchParams({ date: '2026-10-05', stops: `event:${fleet.id}` });
+  const view = await openPlanner('?' + query.toString());
+  assert.equal(view.container.querySelector(`[id="catalog-event:${fleet.id}"]`), null);
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  assert.match(editor(view).getByRole('status').textContent || '', /计划日期与所选活动不一致/);
+  assert.equal(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY) || '{"plans":[]}').plans.length, 0);
+  fireEvent.change(editor(view).getByLabelText('日期'), { target: { value: '2026-10-06' } });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  assert.equal(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].date, '2026-10-06');
+});

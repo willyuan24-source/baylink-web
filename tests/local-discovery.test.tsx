@@ -74,7 +74,7 @@ test('all published discoveries have unique IDs and category-specific routes tha
   assert.deepEqual(localDiscoveries.reduce<Record<string, number>>((counts, item) => {
     counts[item.kind] = (counts[item.kind] || 0) + 1;
     return counts;
-  }, {}), { event: MONTHLY_EVENTS.length, offer: currentFreebies.length, opening: 11 });
+  }, {}), { event: MONTHLY_EVENTS.length, offer: currentFreebies.length, opening: 14 });
   const ids = new Set<string>(), paths = new Set<string>();
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);

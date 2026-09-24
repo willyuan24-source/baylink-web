@@ -6,6 +6,8 @@ import { verifiedSeptemberEvents } from './september-events-update';
 import { verifiedOctoberEvents } from './october-events';
 import { additionalOctoberEvents } from './october-events-extra';
 import { refreshedAutumnEvents } from './autumn-refresh-events';
+import { EVENT_DATE_OVERRIDES } from './event-calendar-dates';
+import { communityDiscoveryEvents } from './community-discovery-events';
 import type { MonthlyPlace } from './monthly-types';
 
 export const MONTHLY_EDITION = {
@@ -17,8 +19,9 @@ export const MONTHLY_EDITION = {
   intro: '从九月余下的好去处，到十月底的南瓜季、社区节庆和免费文化日。按日期和地区挑活动，把交通、预约与领取条件一起安排好。',
 };
 
-export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents]
+export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents, ...communityDiscoveryEvents]
   .filter(event => event.endDate >= MONTHLY_EDITION.checkedAt)
+  .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) }))
   .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [

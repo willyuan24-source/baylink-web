@@ -52,18 +52,18 @@ after(() => {
 const edition = (today = '2026-09-15') => <MemoryRouter><MonthlyOpenings today={today} /></MemoryRouter>;
 const names = (view: ReturnType<typeof render>) => view.queryAllByRole('article').map(article => within(article).getByRole('heading', { level: 3 }).textContent);
 const statusFilters = (view: ReturnType<typeof render>) => within(view.getByRole('group', { name: '按开业状态筛选' }));
-const firstSix = ['Broken Dreams', 'Hijau Coffee', 'Kaiyō Handroll Bar', 'La Boulangerie at ERIA Marina', 'The Mess Hall · Breadwinner', 'Sergeant Ma'];
+const firstSix = ['Asia Live · Valley Fair', 'CHICHA San Chen · Pleasanton', 'Hey Yogurt · San Mateo', 'Broken Dreams', 'Hijau Coffee', 'Kaiyō Handroll Bar'];
 const sfOpen = ['Kaiyō Handroll Bar', 'La Boulangerie at ERIA Marina', 'The Mess Hall · Breadwinner', 'Sergeant Ma'];
 
 test('opening status and region use confirmed business status without reviving an ended celebration', () => {
   const view = render(edition());
   assert.deepEqual(names(view), firstSix);
-  assert.equal(currentOpenings.length, 11);
-  assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, 11);
-  assert.equal(currentOpenings.filter(shop => shop.status === 'open').length, 6);
+  assert.equal(currentOpenings.length, 14);
+  assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, 14);
+  assert.equal(currentOpenings.filter(shop => shop.status === 'open').length, 9);
   assert.equal(currentOpenings.filter(shop => shop.status === 'announced').length, 5);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).textContent, '全部新店11');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, '已开业6');
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).textContent, '全部新店14');
+  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, '已开业9');
   assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, '预告与庆典5');
   assert.ok(view.getByText(/尚未实地探店/));
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
@@ -85,8 +85,9 @@ test('opening status and region use confirmed business status without reviving a
 test('an empty status-region combination offers a reset that restores both filters and every available opening', () => {
   const view = render(edition());
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'peninsula' } });
-  assert.deepEqual(names(view), ['Marufuku Ramen · Burlingame']);
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
+  assert.deepEqual(names(view), ['Hey Yogurt · San Mateo', 'Marufuku Ramen · Burlingame']);
+  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'east-bay' } });
+  fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
   assert.deepEqual(names(view), []);
   assert.ok(view.getByText('这个地区暂没有符合条件的已核实新店。'));
   fireEvent.click(view.getByRole('button', { name: '查看全部新店', exact: true }));
@@ -102,13 +103,13 @@ test('six recently verified open shops appear first, expanding reveals every ann
   assert.deepEqual(names(view), firstSix);
   assert.ok(!view.queryByRole('article', { name: 'Marufuku Ramen · Burlingame' }));
   fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  assert.equal(names(view).length, 11);
+  assert.equal(names(view).length, 14);
   assert.deepEqual(new Set(names(view)), new Set(currentOpenings.map(shop => shop.name)));
   assert.deepEqual(names(view).slice(0, 6), firstSix);
-  assert.equal(names(view)[6], 'Marufuku Ramen · Burlingame', 'The newly verified announcement precedes older announcements');
+  assert.equal(names(view)[9], 'Florecita Panadería', 'Newly verified announcements follow all open shops');
   assert.ok(!view.queryByRole('button', { name: '展开其余新店' }));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'south-bay' } });
-  assert.deepEqual(names(view), ['Hijau Coffee', 'The Hedley Club & Palm Court']);
+  assert.deepEqual(names(view), ['Asia Live · Valley Fair', 'Hijau Coffee', 'The Hedley Club & Palm Court']);
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'all' } });
   assert.deepEqual(names(view), firstSix, 'Changing filters resets the expanded state');
   assert.ok(view.getByRole('button', { name: '展开其余新店' }));

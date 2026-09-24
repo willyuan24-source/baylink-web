@@ -129,6 +129,17 @@ test('an empty schedule override never falls back to a fabricated continuous dat
   assert.equal(eventOccursOn(event, '2026-10-02', inherited), true);
 });
 
+test('exported occurrence dates preserve calendar exceptions for planner consumers', () => {
+  for (const [id, dates] of Object.entries(EVENT_DATE_OVERRIDES)) {
+    const row = PLANNER_EVENTS.find(event => event.id === id)!;
+    assert.deepEqual(row.occurrenceDates, dates);
+    for (let day = row.startDate; day <= row.endDate; day = addCalendarDays(day, 1)) {
+      assert.equal(eventOccursOn(row, day, {}), dates.includes(day), `${id}: ${day}`);
+    }
+  }
+  assert.equal(eventOccursOn(fixture({ occurrenceDates: [] }), '2026-10-02', {}), false);
+});
+
 test('all published schedule overrides and notes belong to catalog events and stay within their dates', () => {
   const catalog = new Map(MONTHLY_EVENTS.map(event => [event.id, event]));
   assert.ok(Object.keys(EVENT_DATE_OVERRIDES).length > 0, 'real reviewed schedule exceptions are loaded');

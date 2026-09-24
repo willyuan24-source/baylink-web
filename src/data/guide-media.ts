@@ -63,6 +63,9 @@ for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, 
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
+  'bart-october-access-parking-update-2026': ['community-accessible-transit', 'bart'],
+  'san-jose-digital-help-sj-access-update-2026': ['everyday', 'library'],
+  'sccld-sharks-library-card-september-2026': ['community-library-card', 'library'],
   'bay-area-ai-week-tech-week-first-timer-guide-2026': ['september-edition', 'everyday'],
   'bay-area-october-muni-clipper-payment-update-2026': ['autumn-clipper', 'train'],
   'sf-sunset-dunes-october-coastal-walk-2026': ['autumn-sunset', 'weekend'],

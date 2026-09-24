@@ -4,6 +4,8 @@ export type MonthlyEvent = {
   title: string;
   startDate: string;
   endDate: string;
+  /** Explicit confirmed days for non-continuous programs; [] means none confirmed. */
+  occurrenceDates?: string[];
   dateLabel: string;
   region: MonthlyRegion;
   city: string;

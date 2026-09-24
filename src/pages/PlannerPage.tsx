@@ -13,6 +13,7 @@ import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { setPageMetadata } from '../lib/seo';
 import { PLAN_METADATA } from '../lib/planner';
 import { recordProductEvent } from '../lib/product-events';
+import { eventOccursOn } from '../lib/event-calendar';
 
 export default function PlannerPage() {
   const app = useApp();
@@ -55,7 +56,7 @@ export default function PlannerPage() {
   }, [library.loading, library.data, location.search, editing?.id]);
 
   const filteredPlaces = useMemo(() => PLANNER_PLACES.filter(place => region === 'all' || place.region === region), [region]);
-  const events = useMemo(() => results?.suggestions.map(s => PLANNER_EVENTS.find(event => event.id === s.eventId)).filter(event => !!event) || PLANNER_EVENTS.filter(event => event.endDate >= todayInBay() && (region === 'all' || event.region === region) && (!date || event.startDate <= date && event.endDate >= date)).slice(0, 8), [results, region, date]);
+  const events = useMemo(() => results?.suggestions.map(s => PLANNER_EVENTS.find(event => event.id === s.eventId)).filter(event => !!event) || PLANNER_EVENTS.filter(event => event.endDate >= todayInBay() && (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= todayInBay())) && (region === 'all' || event.region === region) && (!date || eventOccursOn(event, date))).slice(0, 8), [results, region, date]);
   const points = useMemo(() => [...events.map(event => ({ key: `event:${event.id}`, title: event.title, location: event.location })), ...filteredPlaces.map(place => ({ key: `place:${place.id}`, title: place.title, location: place.location }))].filter((point): point is { key: string; title: string; location: NonNullable<typeof point.location> } => !!point.location), [events, filteredPlaces]);
   const anchor = points.find(point => point.key === selected) || points.find(point => stops.some(stop => `${stop.kind}:${stop.id}` === point.key));
   const nearby = anchor ? filteredPlaces.filter(place => place.location && anchor.key !== `place:${place.id}`).map(place => ({ place, km: distanceKm(anchor.location, place.location!) })).filter(item => item.km <= 15).sort((a, b) => a.km - b.km).slice(0, 3) : [];
@@ -75,7 +76,7 @@ export default function PlannerPage() {
     if (!stops.length) { setStatus('先选择至少一站。'); return; }
     if (!date) { setStatus('请先选择出游日期。'); return; }
     if (date < todayInBay()) { setStatus('请选择今天或未来日期。'); return; }
-    const badDate = stops.some(stop => { const event = stop.kind === 'event' && PLANNER_EVENTS.find(e => e.id === stop.id); return event && (date < event.startDate || date > event.endDate); });
+    const badDate = stops.some(stop => { const event = stop.kind === 'event' && PLANNER_EVENTS.find(e => e.id === stop.id); return event && !eventOccursOn(event, date); });
     if (badDate) { setStatus('计划日期与所选活动不一致，请调整日期或移除活动。'); return; }
     const saved = await library.savePlan({ title: title.trim() || translateText('我的湾区出游', locale), date, stops }, editing);
     if (saved) { setEditing(saved); setStatus(app?.user ? '已保存到账号。' : '已保存到这个浏览器。'); }

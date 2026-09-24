@@ -75,5 +75,27 @@
     "width": 1536,
     "height": 1024,
     "srcSet": "/guides/community-2026/outdoor-cinema-small.webp 480w, /guides/community-2026/outdoor-cinema.webp 1536w"
+  },
+  {
+    "key": "community-accessible-transit",
+    "src": "/guides/community-2026/community-accessible-transit.webp",
+    "alt": "列车站台上使用轮椅的乘客与同行者走向无障碍电梯",
+    "caption": "AI 原创交通情境插图，场景与列车为虚构，不代表 BART 具体车站、电梯状态或停车布局。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/community-accessible-transit-small.webp 480w, /guides/community-2026/community-accessible-transit.webp 1536w"
+  },
+  {
+    "key": "community-library-card",
+    "src": "/guides/community-2026/community-library-card.webp",
+    "alt": "秋日阅读桌上的书本、眼镜与波浪图案借书卡",
+    "caption": "AI 原创阅读情境插图，卡片为虚构图案，不是 SCCLD 与 Sharks 联名卡实物或款式示意。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/community-2026/community-library-card-small.webp 480w, /guides/community-2026/community-library-card.webp 1536w"
   }
 ]

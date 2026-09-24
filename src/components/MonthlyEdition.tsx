@@ -17,6 +17,7 @@ import { currentFreebies } from '../data/october-offers';
 import { translateText, useLocale } from '../i18n/locale';
 import { octoberLocalGuides } from '../data/guides-october-local';
 import { autumnRefreshGuides } from '../data/guides-autumn-refresh';
+import { communityDiscoveryGuides } from '../data/guides-community-discovery';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
 import { useEventParticipation } from '../lib/event-participation-context';
 import { EditorialShareActions } from './EditorialShareActions';
@@ -182,7 +183,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
 
     <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">十月出门，先读一篇本地攻略</h2></div><p>南瓜季交通、亲子半日游与免费文化资源，按自己的节奏安排。</p></div>
-      <div className="bl-monthly-place-grid">{[...autumnRefreshGuides, ...octoberLocalGuides].map(guide => <article className="bl-monthly-place" key={guide.slug}>
+      <div className="bl-monthly-place-grid">{[...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides].map(guide => <article className="bl-monthly-place" key={guide.slug}>
         <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
       </article>)}</div>
     </section>

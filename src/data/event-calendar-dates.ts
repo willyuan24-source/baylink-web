@@ -1,3 +1,5 @@
+import { communityDiscoveryEventDates, communityDiscoveryScheduleNotes } from './community-discovery-events';
+
 /**
  * Calendar-day exceptions, reviewed 2026-09-23 in America/Los_Angeles.
  *
@@ -7,6 +9,7 @@
  * Sources: docs/event-calendar-schedule-sources-2026-09-23.md
  */
 export const EVENT_DATE_OVERRIDES: Record<string, string[]> = {
+  ...communityDiscoveryEventDates,
   "san-francisco-fleet-week-2026": [
     "2026-10-06",
     "2026-10-07",
@@ -23,6 +26,7 @@ export const EVENT_DATE_OVERRIDES: Record<string, string[]> = {
 };
 
 export const EVENT_SCHEDULE_NOTES: Record<string, string> = {
+  ...communityDiscoveryScheduleNotes,
   "petaluma-pumpkin-patch-2026": "园区每日开放，天气可能影响；夜间迷宫仅周五、周六，部分游乐项目另有时段。",
   "redwood-oktoberfest-closing-weekend-2026": "仅列 9 月 25–27 日收官周末；每天按所购场次入场。",
   "pacific-coast-fog-fest-2026": "两天均为 10:00–18:00；巡游仅周六 10:00。",

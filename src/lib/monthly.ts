@@ -10,6 +10,10 @@ export const getBayAreaToday = (now = new Date()): string => {
 
 export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.slice(0, 7) >= MONTHLY_EDITION.startMonth && today.slice(0, 7) <= MONTHLY_EDITION.month;
 export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 'upcoming' | 'ongoing' | 'ended' =>
+  event.occurrenceDates !== undefined
+    ? event.occurrenceDates.some(day => day >= today && day >= event.startDate && day <= event.endDate)
+      ? event.occurrenceDates.includes(today) ? 'ongoing' : 'upcoming' : 'ended'
+    :
   event.endDate < today ? 'ended' : event.startDate > today ? 'upcoming' : 'ongoing';
 
 export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october';
@@ -40,7 +44,8 @@ export const filterMonthlyEvents = (events: MonthlyEvent[], filters: { region?: 
   return events.filter(event => (!filters.region || filters.region === 'all' || event.region === filters.region)
     && (!filters.cost || filters.cost === 'all' || event.cost === filters.cost)
     && (filters.includeEnded || getEventStatus(event, today) !== 'ended')
-    && (!range || (event.startDate <= range.end && event.endDate >= range.start)));
+    && (!range || (event.startDate <= range.end && event.endDate >= range.start
+      && (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= range.start && day <= range.end && day >= event.startDate && day <= event.endDate && (filters.includeEnded || day >= today))))));
 };
 
 const calendarText = (value: string): string => value.replace(/\\/g, '\\\\').replace(/\r\n|\r|\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
@@ -59,12 +64,15 @@ const foldCalendarLine = (line: string): string => {
 
 export const buildEventCalendar = (event: MonthlyEvent): string => {
   const description = `这是活动日期提醒，不代表全天开放、预约或购票。具体场次、年龄限制与最新变动请查看主办方。\n${event.costLabel}\n${event.summary}\n官方详情：${event.officialUrl}\nBAYLINK 核对日期：${event.verifiedAt}`;
+  const dates = event.occurrenceDates === undefined ? [{ start: event.startDate, end: event.endDate, uid: event.id }]
+    : [...new Set(event.occurrenceDates)].filter(day => day >= event.startDate && day <= event.endDate).sort().map(day => ({ start: day, end: day, uid: `${event.id}-${day}` }));
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BAYLINK//Monthly Local Life//ZH', 'CALSCALE:GREGORIAN',
-    'BEGIN:VEVENT', `UID:${event.id}@baylink.us`, `DTSTAMP:${event.verifiedAt.replace(/-/g, '')}T120000Z`,
-    `DTSTART;VALUE=DATE:${event.startDate.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${nextDate(event.endDate)}`,
+    ...dates.flatMap(({ start, end, uid }) => [
+    'BEGIN:VEVENT', `UID:${uid}@baylink.us`, `DTSTAMP:${event.verifiedAt.replace(/-/g, '')}T120000Z`,
+    `DTSTART;VALUE=DATE:${start.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${nextDate(end)}`,
     `SUMMARY:${calendarText(translateText(`${event.title}（日期提醒）`))}`, `LOCATION:${calendarText(`${event.venue}, ${event.city}`)}`,
-    `DESCRIPTION:${calendarText(translateText(description))}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT', 'END:VEVENT', 'END:VCALENDAR',
+    `DESCRIPTION:${calendarText(translateText(description))}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT', 'END:VEVENT']), 'END:VCALENDAR',
   ].map(foldCalendarLine).join('\r\n') + '\r\n';
 };
 

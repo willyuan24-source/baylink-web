@@ -1,0 +1,55 @@
+import type { FreebieOffer } from '../components/FreebieBoard';
+
+/** Verified 2026-09-23. Ongoing benefits have no invented October expiration. */
+export const communityDiscoveryOffers: FreebieOffer[] = [
+  {
+    id: 'chicha-berkeley-bogo-sep25', brand: 'CHICHA SAN CHEN · BERKELEY',
+    title: '9/25 Berkeley 指定茶饮买一送一',
+    dateLabel: '9/25 周五 · 17:00–21:00', startDate: '2026-09-25', endDate: '2026-09-25', availability: 'dated', kind: 'purchase',
+    requirement: '仅 Berkeley 店指定饮品；需关注 Instagram @chichasanchen.norcal，并在取饮处向店员出示关注证明。',
+    description: '地址 2400A Bancroft Way。官方海报列出 Honey Dong Ding Oolong Tea Latte、Peach Green Tea with Mousse 等指定款。该晚 BOGO 与另行举办的抽奖分开，买一送一无需抽中奖。',
+    imageKey: 'neighborhood-table', imageNote: '茶饮聚会主题插图，非优惠饮品实拍',
+    sourceUrl: 'https://www.instagram.com/p/DddgD1VqMy2/', sourceLabel: '吃茶三千官方 9/25 BOGO 条件',
+    storeUrl: 'https://chichasanchennorcal.com/locations',
+  },
+  {
+    id: 'onigilly-valley-fair-anniversary-sep26-27', brand: 'ONIGILLY · VALLEY FAIR',
+    title: '9/26–27 Onigilly 四周年 $10 便当',
+    dateLabel: '9/26–27 · Valley Fair 二楼', startDate: '2026-09-26', endDate: '2026-09-27', availability: 'dated', kind: 'purchase',
+    requirement: '仅 Valley Fair 周年活动，$10 便当含两枚预先指定饭团、日式炸鸡和毛豆；不是任意口味自由搭配。',
+    description: '商场官方确认两天周年活动。适合在 Santa Clara 逛街时安排简餐；现场转盘赠品与会员抽奖另有安排，不计入便当必得内容。税费及现场供应以门店结账为准。',
+    imageKey: 'neighborhood-table', imageNote: '简餐主题插图，非本次便当实拍',
+    sourceUrl: 'https://www.westfield.com/en/united-states/valleyfair/events/onigilly-valley-fair-or-4th-anniversary-celebration/138770',
+    sourceLabel: 'Westfield 官方 Onigilly 四周年活动', storeUrl: 'https://www.westfield.com/en/united-states/valleyfair',
+  },
+  {
+    id: 'chicha-norcal-birthday-bogo', brand: 'CHICHA SAN CHEN · NORCAL',
+    title: '生日当天，北加州六店茶饮买一送一',
+    dateLabel: '长期福利 · 仅本人生日当天', startDate: '2026-03-01', availability: 'ongoing', kind: 'purchase',
+    requirement: '本人生日当天在店内前台出示有效实体证件；不适用预订。每笔最多 10 杯，可分多笔交易，需购买饮品才能获得赠饮。',
+    description: '官方置顶规则涵盖 Cupertino、Berkeley、Daly City、Fremont、San José 和 Pleasanton 六店。9/23 复核仍公布此福利，十月生日也可按现行规则安排；品牌未公布截止日，出发前复查公告。',
+    imageKey: 'neighborhood-table', imageNote: '茶饮聚会主题插图，非优惠饮品实拍',
+    sourceUrl: 'https://www.instagram.com/chichasanchen.norcal/p/DVUxImmkci8/', sourceLabel: '吃茶三千官方生日 BOGO 置顶条款',
+    storeUrl: 'https://chichasanchennorcal.com/locations',
+  },
+  {
+    id: 'chicha-cupertino-free-tea-tasting', brand: 'CHICHA SAN CHEN · CUPERTINO',
+    title: 'Cupertino 免费预约梨山乌龙品茶',
+    dateLabel: '常设预约项目 · 日期与余位看日历', availability: 'check-local', kind: 'reservation',
+    requirement: '免费、约 15 分钟、英语讲解；一份预约对应一位，同行者须分别预约，并提前 10 分钟报到。',
+    description: '地点 20688 Stevens Creek Boulevard。官方下午品茶页介绍五种焙火风味；这项免费体验与付费茶席、调饮菜单分开。十月出行先查看预约日历是否放位，不保证每天有场次。',
+    imageKey: 'neighborhood-table', imageNote: '品茶主题插图，非该店茶席实拍',
+    sourceUrl: 'https://chichasanchennorcal.com/reservation/ola/services/lishan-oolong-tea-tasting',
+    sourceLabel: '吃茶三千官方免费品茶预约与参加规则', storeUrl: 'https://chichasanchennorcal.com/locations',
+  },
+  {
+    id: 'amc-stubs-tuesday-wednesday-base-ticket', brand: 'AMC · BAY AREA',
+    title: '周二、周三电影成人基础票价半价',
+    dateLabel: '长期福利 · 周二、周三放映场次', availability: 'ongoing', kind: 'purchase',
+    requirement: '需 AMC Stubs 会员，免费 Insider 等级适用。按成人晚场基础票价减半，每个放映日最多 10 张；税、网购手续费、IMAX 等格式及特别活动附加费不减半。',
+    description: '东湾 Newark 的 AMC NewPark 12 官方页明确列出此福利。十月按周规则对应 6/7、13/14、20/21、27/28 日；以所选影片、场次和结账优惠为准，限制影片及特别活动可能除外。',
+    imageKey: 'cinema-night', imageNote: '影院主题插图，非 AMC 场馆或在映电影剧照',
+    sourceUrl: 'https://www.amctheatres.com/50pct-off-tuesdays-and-wednesdays?rel=discount-tuesdays_loy_alert_alert',
+    sourceLabel: 'AMC 官方半价日会员规则', storeUrl: 'https://www.amctheatres.com/movie-theatres/san-francisco/amc-newpark-12',
+  },
+];

@@ -35,8 +35,9 @@ export function calendarCells(day: string, view: CalendarView): string[] {
   return days;
 }
 export function eventOccursOn(event: MonthlyEvent, day: string, overrides: Record<string, string[]> = EVENT_DATE_OVERRIDES): boolean {
+  const dates = Object.hasOwn(overrides, event.id) ? overrides[event.id] : event.occurrenceDates;
   return validCalendarDay(day) && event.startDate <= day && event.endDate >= day
-    && (!Object.hasOwn(overrides, event.id) || overrides[event.id].includes(day));
+    && (dates === undefined || dates.includes(day));
 }
 export const eventsOnCalendarDay = <T extends MonthlyEvent>(events: T[], day: string): T[] => events.filter(event => eventOccursOn(event, day));
 export type CalendarMapGroup = CalendarMapPoint & { eventIds: string[]; sourceUrl: string };

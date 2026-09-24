@@ -40,9 +40,11 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   // Wikidata's preferred city coordinate avoids the offshore Census reference.
   'San Francisco': { lat: 37.775, lng: -122.419, precision: 'city', sourceUrl: 'https://www.wikidata.org/wiki/Q62#P625' },
   'San Jose': { lat: 37.296, lng: -121.815, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'San Mateo': { lat: 37.560, lng: -122.311, precision: 'city', sourceUrl: CENSUS_PLACES },
   'San Rafael': { lat: 37.981, lng: -122.507, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Santa Rosa': { lat: 38.446, lng: -122.706, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Sonoma County': { lat: 38.522, lng: -122.916, precision: 'area', sourceUrl: CENSUS_COUNTIES },
+  'Sonoma': { lat: 38.290, lng: -122.460, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Sunnyvale': { lat: 37.386, lng: -122.026, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Tiburon': { lat: 37.887, lng: -122.463, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Vacaville': { lat: 38.359, lng: -121.969, precision: 'city', sourceUrl: CENSUS_PLACES },

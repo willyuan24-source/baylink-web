@@ -12,6 +12,7 @@ import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
 import { autumnRefreshOffers } from '../src/data/autumn-refresh-offers';
+import { communityDiscoveryOffers } from '../src/data/community-discovery-offers';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
@@ -25,7 +26,7 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid September anchors and includes both October benefit batches', () => {
-  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length);
+  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length + communityDiscoveryOffers.length);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);

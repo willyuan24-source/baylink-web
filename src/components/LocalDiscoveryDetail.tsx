@@ -10,6 +10,7 @@ import { translateText } from '../i18n/locale';
 import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { SaveToWeek } from './SaveToWeek';
+import { nextConfirmedEventDate } from '../lib/event-occurrences';
 
 export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item: LocalDiscovery; today?: string }) {
   if (item.kind === 'event') return <EventParticipationProvider events={[item.event]}><DiscoveryArticle item={item} today={today} /></EventParticipationProvider>;
@@ -17,7 +18,9 @@ export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item
 }
 function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string }) {
   const share = discoveryShare(item);
-  const ended = item.kind === 'event' ? item.event.endDate < today : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
+  const planDate = item.kind === 'event' ? nextConfirmedEventDate(item.event, today) : null;
+  const ended = item.kind === 'event' ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
+  const unconfirmed = item.kind === 'event' && item.event.occurrenceDates?.length === 0;
   const officialUrl = item.kind === 'event' ? item.event.officialUrl : item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl;
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
   const sourceLabel = item.kind === 'event' ? item.event.sourceLabel : item.kind === 'offer' ? item.offer.sourceLabel : item.shop.sourceLabel;
@@ -29,12 +32,12 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <div className="discovery-detail-brand"><span>BAYLINK</span><span>YOUR BAY. YOUR PEOPLE.</span></div>
       <span className="discovery-eyebrow">{share.label}</span><h1>{share.title}</h1><p className="discovery-detail-summary">{share.summary}</p>
       <div className="discovery-detail-facts"><span><CalendarDays size={17} />{share.date}</span><span><MapPin size={17} />{share.area}</span>{item.kind === 'event' && <span><Ticket size={17} />{item.event.costLabel}</span>}</div>
-      {ended && <p className="discovery-inline-note">这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。</p>}
+      {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
       {item.kind === 'opening' && <p className="discovery-inline-note">{item.shop.status === 'open' ? '已开业 · 当天营业与订位请查商家入口。' : '开业预告 · 尚未确认正式营业，请先查商家公告。'}</p>}
       {item.kind === 'event' && <EventParticipationActions event={item.event} today={today} />}
       <EditorialShareActions item={share} />
       {item.kind === 'event' && <SaveToWeek favorite={{ kind: 'event', id: item.event.id }} />}
-      {item.kind === 'event' && !ended && <Link className="discovery-primary" to={`/plan?stops=event:${item.event.id}&date=${item.event.startDate < today ? today : item.event.startDate}`}>新建出游计划<ArrowRight size={16} /></Link>}
+      {item.kind === 'event' && planDate && <Link className="discovery-primary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}
     </header>
     {image && <div className={`discovery-detail-media${image.kind === 'poster' || image.fullFrame ? ' discovery-detail-media--full' : ''}`}><GuideFigure image={image} variant="cover" /></div>}
     <div className="discovery-detail-body">

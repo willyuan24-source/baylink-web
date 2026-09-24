@@ -10,6 +10,25 @@ import refreshedEnglish from '../src/data/autumn-refresh-events-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
+test('nonconsecutive programs filter and export only their confirmed dates', () => {
+  const item = { ...MONTHLY_EVENTS[0], startDate: '2026-10-01', endDate: '2026-10-12', occurrenceDates: ['2026-10-02', '2026-10-09'] };
+  assert.equal(getEventStatus(item, '2026-10-03'), 'upcoming');
+  assert.equal(getEventStatus(item, '2026-10-09'), 'ongoing');
+  assert.equal(getEventStatus(item, '2026-10-10'), 'ended');
+  assert.deepEqual(filterMonthlyEvents([item], { date: 'today' }, '2026-10-03'), []);
+  assert.deepEqual(filterMonthlyEvents([item], { date: 'weekend' }, '2026-10-03'), []);
+  assert.deepEqual(filterMonthlyEvents([item], { date: 'next7' }, '2026-10-03'), [item]);
+  const ics = buildEventCalendar(item).replace(/\r\n /g, '');
+  assert.equal(ics.match(/BEGIN:VEVENT/g)?.length, 2);
+  assert.match(ics, /DTSTART;VALUE=DATE:20261002\r\nDTEND;VALUE=DATE:20261003/);
+  assert.match(ics, /DTSTART;VALUE=DATE:20261009\r\nDTEND;VALUE=DATE:20261010/);
+  assert.equal(new Set([...ics.matchAll(/UID:([^\r]+)/g)].map(match => match[1])).size, 2);
+  assert.equal(buildEventCalendar({ ...item, occurrenceDates: [] }).includes('BEGIN:VEVENT'), false);
+  const weekend = { ...item, startDate: '2026-10-03', occurrenceDates: ['2026-10-03', '2026-10-10'] };
+  assert.deepEqual(filterMonthlyEvents([weekend], { date: 'weekend' }, '2026-10-04'), []);
+  assert.deepEqual(filterMonthlyEvents([weekend], { date: 'weekend', includeEnded: true }, '2026-10-04'), [weekend]);
+});
+
 const event = (id: string): MonthlyEvent => {
   const found = MONTHLY_EVENTS.find(item => item.id === id) || regionalSeptemberEvents.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
   assert.ok(found, `Missing event ${id}`);
@@ -242,7 +261,7 @@ test('published activities reference available guide images and existing related
     if (item.imageKey) assert.ok(GUIDE_IMAGES[item.imageKey], `${item.id} image key exists`);
     if (item.relatedGuideSlug) assert.ok(getGuideBySlug(item.relatedGuideSlug), `${item.id} related guide exists`);
     const calendar = buildEventCalendar(item);
-    assert.equal(field(calendar, 'UID'), `${item.id}@baylink.us`);
+    assert.equal(field(calendar, 'UID'), `${item.id}${item.occurrenceDates ? `-${item.occurrenceDates[0]}` : ''}@baylink.us`);
     for (const line of calendar.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, `${item.id} calendar line length`);
   }
 });
@@ -251,11 +270,11 @@ test('explicit month filters include October 31 and remove September events from
   assert.deepEqual(getMonthlyDateRange('september', '2026-10-15'), { start: '2026-09-01', end: '2026-09-30' });
   assert.deepEqual(getMonthlyDateRange('october', '2026-09-15'), { start: '2026-10-01', end: '2026-10-31' });
   const october = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15');
-  assert.equal(october.length, 64);
+  assert.equal(october.length, 82);
   assert.ok(october.every(item => item.endDate >= '2026-10-01' && item.startDate <= '2026-10-31'));
   assert.ok(october.some(item => item.endDate === '2026-10-31'));
   const september = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'september' }, '2026-09-15');
-  assert.equal(september.length, 11);
+  assert.equal(september.length, 13);
   assert.ok(september.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.ok(!october.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.deepEqual(ids(september.filter(item => october.some(other => other.id === item.id))), ['ai-conference-sf-2026', 'petaluma-pumpkin-patch-2026']);
