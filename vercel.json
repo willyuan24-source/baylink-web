@@ -62,7 +62,7 @@
       "dest": "/category/$1.html"
     },
     {
-      "src": "^/(guides|explore|plan|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|explore|plan|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },
     {

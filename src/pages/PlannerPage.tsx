@@ -85,7 +85,7 @@ export default function PlannerPage() {
   };
   const favorite = (kind: 'event' | 'place', id: string) => library.data.favorites.some(item => item.kind === kind && item.id === id);
   return <div className="planner-page">
-    <header className="planner-hero"><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想去哪里、想花多少。从真实活动出发，把湾区的下一站排进来。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动 ↗</Link></nav></header>
+    <header className="planner-hero"><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想去哪里、想花多少。从真实活动出发，把湾区的下一站排进来。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动 ↗</Link><Link to="/calendar">活动日历 ↗</Link></nav></header>
     <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />
     <form className="planner-form" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
       <label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => setMessage(e.target.value)} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>

@@ -49,6 +49,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
     ...(term ? [{ id: 'posts', title: `搜索邻里信息「${term}」`, detail: '继续查找房源、服务和邻里帖子', icon: Search, group: '继续探索', run: () => onSearch(term) }] : []),
     { id: 'baybay', title: term ? `问 BayBay「${term}」` : '问问 BayBay', detail: '一起安排周末、比较优惠、整理生活需求', icon: Sparkles, group: '继续探索', run: () => onAsk(term || undefined) },
     ...(!term ? [
+      { id: 'calendar', title: '活动日历', detail: '按月、按周查看活动与当天地图。', icon: CalendarDays, group: '快速前往', run: () => onNavigate('/calendar') },
       { id: 'month', title: '这个周末有什么？', detail: '按日期、地区与费用挑选湾区活动', icon: CalendarDays, group: '快速前往', run: () => onNavigate('/this-month?when=weekend#monthly-events') },
       { id: 'explore', title: '按地区找景点', detail: '找到想去的地方，存进出游清单', icon: MapPin, group: '快速前往', run: () => onNavigate('/explore') },
       { id: 'tools', title: '生活工具箱', detail: '贷款计算、分账、换算与生活清单', icon: Wrench, group: '快速前往', run: () => onNavigate('/tools') },

@@ -12,6 +12,7 @@ import { SLUG_TO_CATEGORY } from './routing';
 
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
 const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const LocalDiscoveryPage = lazy(() => import('./pages/LocalDiscoveryPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/reset-password" element={<HomePage />} />
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/this-month" element={<MonthlyPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} />
         <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
         <Route path="/openings/:id" element={<LocalDiscoveryPage kind="opening" />} />
