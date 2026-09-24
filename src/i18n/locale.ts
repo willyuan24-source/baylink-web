@@ -71,12 +71,32 @@ export async function initializeLocale(): Promise<void> {
   await setLocale(isLocale(query) ? query : isLocale(stored) ? stored : detected, isLocale(query));
 }
 
+/** Keep complete editorial translations when a brand or label is appended.
+ * Only resolve compositions whose Chinese parts are all known; partial matches
+ * must still go through the normal dynamic templates below.
+ */
+const translateKnownComposition = (text: string, depth = 0): string | undefined => {
+  if (!/[\u3400-\u9fff]/.test(text)) return text;
+  const exact = english[normalizeText(text)];
+  if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
+  if (depth >= 3) return undefined;
+  for (const separator of ['｜', ' · ', ' / ', '\n']) {
+    const parts = text.split(separator);
+    if (parts.length < 2) continue;
+    const translated = parts.map(part => translateKnownComposition(part, depth + 1));
+    if (translated.every(part => part !== undefined)) return translated.join(separator);
+  }
+  return undefined;
+};
+
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
 export function translateText(text: string, locale: Locale = current, depth = 0): string {
   if (locale === 'zh-Hans' || !/[\u3400-\u9fff]/.test(text)) return text;
   if (locale === 'zh-Hant') return (traditional?.(text) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
+  const composed = translateKnownComposition(text);
+  if (composed !== undefined) return composed;
   if (depth < 3) for (const { pattern, target } of englishPatterns) {
     const match = pattern.exec(text.trim());
     if (match) return text.slice(0, text.length - text.trimStart().length) + target.replace(/\{(\d+)\}/g, (_, index: string) => translateText(match[Number(index) + 1], locale, depth + 1)) + text.slice(text.trimEnd().length);

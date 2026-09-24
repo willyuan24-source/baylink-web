@@ -15,8 +15,11 @@ const { setLocale, getLocale, translateText, localizedUrl, initializeLocale, LOC
 const { LanguageSwitcher } = await import('../src/components/LanguageSwitcher');
 const { default: Avatar } = await import('../src/components/Avatar');
 const { guides } = await import('../src/data/guides');
+const { localDiscoveries } = await import('../src/data/local-discoveries');
 const { searchGuides } = await import('../src/lib/guide-search');
 const { setPageMetadata } = await import('../src/lib/seo');
+const { getGuideMetadata } = await import('../src/lib/guide-metadata');
+const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 await import('../src/i18n/metadata');
 const han = /[\u3400-\u9fff]/;
 
@@ -224,4 +227,46 @@ test('metadata follows reading language and retains original canonical URL', asy
   assert.ok(!han.test(document.title));
   assert.equal(document.querySelector('meta[property="og:locale"]')!.getAttribute('content'), 'en_US');
   assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), 'https://www.baylink.us/guides');
+});
+
+test('a dated guide title follows language changes in the browser and social metadata', async () => {
+  const guide = guides.find(({ slug }) => slug === 'bay-area-freebies-deals-2026-10');
+  assert.ok(guide);
+  const metadata = getGuideMetadata(guide);
+  const sharedPath = `${metadata.path}?lang=en#freebie-board-0`;
+  window.history.replaceState(null, '', sharedPath);
+  setPageMetadata(metadata);
+
+  const titles = [
+    ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
+    ['en', 'October 2026 Bay Area savings: free museums, kids workshops and library passes｜BAYLINK'],
+    ['zh-Hant', '2026 年 10 月灣區省錢攻略：免費場館、親子手工與圖書館門票｜BAYLINK'],
+    ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
+  ] as const;
+  for (const [locale, title] of titles) {
+    await setLocale(locale, false);
+    assert.equal(document.title, title, locale);
+    assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), title, locale);
+    assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), title, locale);
+    assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), `https://www.baylink.us${metadata.path}`);
+    assert.equal(window.location.pathname + window.location.search + window.location.hash, sharedPath);
+  }
+});
+
+test('all published editorial metadata titles translate completely and restore their Chinese originals', async () => {
+  const pages = [...guides.map(getGuideMetadata), ...localDiscoveries.map(getDiscoveryMetadata)];
+  await setLocale('en', false);
+  for (const metadata of pages) {
+    setPageMetadata(metadata);
+    assert.ok(!han.test(document.title), `${metadata.path}: ${document.title}`);
+    assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), document.title, metadata.path);
+    assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), document.title, metadata.path);
+  }
+  await setLocale('zh-Hans', false);
+  for (const metadata of pages) {
+    setPageMetadata(metadata);
+    assert.equal(document.title, metadata.title, metadata.path);
+    assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), metadata.title, metadata.path);
+    assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), metadata.title, metadata.path);
+  }
 });
