@@ -11,12 +11,13 @@ Object.assign(globalThis, {
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');
-const { MemoryRouter, Routes, Route } = await import('react-router-dom');
+const { MemoryRouter, Routes, Route, useLocation } = await import('react-router-dom');
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
 const { api } = await import('../src/lib/api');
 const { PLANNER_EVENTS, PLANNER_PLACES } = await import('../src/data/planner-catalog');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
+const { setLocale } = await import('../src/i18n/locale');
 const originalRequest = api.request;
 
 // This published event spans three days: the requested day is deliberately not its first day.
@@ -36,13 +37,15 @@ const editor = (view: View) => within(view.getByRole('complementary'));
 const mapCount = (view: View) => Number(view.container.querySelector('.planner-workspace .planner-section-head > span')?.textContent?.trim());
 const eventCard = (view: View) => view.container.querySelector(`[id="catalog-event:${event.id}"]`);
 
-async function openPlanner(search = '') {
+const LocationProbe = () => <span data-testid="planner-location">{useLocation().search}</span>;
+async function openPlanner(search = '', strict = false) {
   let view!: View;
   await act(async () => {
-    view = render(<MemoryRouter initialEntries={['/plan' + search]}><Routes>
+    const content = <MemoryRouter initialEntries={['/plan' + search]}><LocationProbe /><Routes>
       <Route path="/plan" element={<PlannerPage />} />
       <Route path="/my-week" element={<MyWeekPage />} />
-    </Routes></MemoryRouter>);
+    </Routes></MemoryRouter>;
+    view = render(strict ? <React.StrictMode>{content}</React.StrictMode> : content);
   });
   return view;
 }
@@ -157,4 +160,52 @@ test('a shared event cannot be saved on an unconfirmed day inside its date range
   fireEvent.change(editor(view).getByLabelText('日期'), { target: { value: '2026-10-06' } });
   await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
   assert.equal(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].date, '2026-10-06');
+});
+
+test('a BayBay handoff runs once in StrictMode, keeps text conditions and does not rerun on locale or form edits', async () => {
+  const bodies: { message: string; filters: Record<string, unknown> }[] = [];
+  api.request = async (endpoint, options) => {
+    assert.equal(endpoint, '/planner/recommend');
+    bodies.push(JSON.parse(String(options?.body)));
+    return response();
+  };
+  const message = '周六带 5 岁孩子，从 Fremont 出发，每人门票预算 $50';
+  const view = await openPlanner('?' + new URLSearchParams({ q: message, auto: '1' }), true);
+  assert.equal(bodies.length, 1, 'React development effect replay must not create two requests');
+  assert.equal(bodies[0].message, message);
+  assert.deepEqual(bodies[0].filters, {}, 'default date, region and transport must not overwrite natural-language intent');
+  assert.equal((view.getByLabelText('这次想怎么过？') as HTMLTextAreaElement).value, message);
+  assert.ok(view.getByRole('heading', { name: '有依据的出游建议' }));
+  assert.match(view.container.querySelector('.planner-applied-filters')?.textContent || '', /2026-09-30/);
+  const params = new URLSearchParams(view.getByTestId('planner-location').textContent || '');
+  assert.equal(params.has('auto'), false, 'reloading the resulting URL must not replay the paid request');
+  assert.equal(params.get('q'), message);
+  await act(async () => { await setLocale('en', false); });
+  assert.equal(bodies.length, 1, 'language changes must preserve results instead of automatically requesting again');
+  await act(async () => { await setLocale('zh-Hans', false); });
+  fireEvent.change(view.getByLabelText('这次想怎么过？'), { target: { value: '改成周日，预算 $20' } });
+  assert.equal(bodies.length, 1);
+  assert.equal(view.queryByRole('heading', { name: '有依据的出游建议' }), null);
+  fireEvent.change(view.getByLabelText('地区'), { target: { value: 'east-bay' } });
+  await ask(view);
+  assert.equal(bodies.length, 2);
+  assert.deepEqual(bodies[1].filters, { region: 'east-bay' });
+  assert.equal(bodies[1].message, '改成周日，预算 $20');
+});
+
+test('stopping an automatic plan request preserves the text and ignores a late response', async () => {
+  let signal: AbortSignal | null | undefined;
+  let finish!: (value: Recommendations) => void;
+  api.request = async (_endpoint, options) => {
+    signal = options?.signal;
+    return new Promise<Recommendations>(resolve => { finish = resolve; });
+  };
+  const message = 'Plan Saturday with a $50 budget in Fremont';
+  const view = await openPlanner('?' + new URLSearchParams({ q: message, auto: '1' }));
+  fireEvent.click(view.getByRole('button', { name: '停止' }));
+  assert.equal(signal?.aborted, true);
+  await act(async () => { finish(response()); });
+  assert.equal(view.queryByRole('heading', { name: '有依据的出游建议' }), null);
+  assert.equal((view.getByLabelText('这次想怎么过？') as HTMLTextAreaElement).value, message);
+  assert.match(view.getByRole('alert').textContent || '', /已停止挑选/);
 });

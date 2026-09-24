@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Sparkles, Heart, Plus, X, Share2, ArrowUp, CalendarDays } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { MapPin, Sparkles, Heart, Plus, X, Share2, ArrowUp, CalendarDays, ChevronRight, SlidersHorizontal, Square } from 'lucide-react';
 import { useApp } from '../app/context';
 import { api } from '../lib/api';
 import { useLocale, translateText } from '../i18n/locale';
 import { ATTRACTION_REGIONS } from '../data/attractions';
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
-import { cleanStops, distanceKm, errorText, parseSharedPlan, sharePlanUrl, stopPath, stopTitle, todayInBay, type Recommendations, type SavedPlan, type Stop } from '../lib/planner';
+import { cleanStops, distanceKm, errorText, parseSharedPlan, sharePlanUrl, stopPath, stopTitle, todayInBay, type PlanFilters, type Recommendations, type SavedPlan, type Stop } from '../lib/planner';
 import { usePlannerLibrary } from '../lib/planner-library';
 import { PlannerMap } from '../components/PlannerMap';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
@@ -14,15 +14,18 @@ import { setPageMetadata } from '../lib/seo';
 import { PLAN_METADATA } from '../lib/planner';
 import { recordProductEvent } from '../lib/product-events';
 import { eventOccursOn } from '../lib/event-calendar';
+import { EventScreenshotImport } from '../components/EventScreenshotImport';
 
 export default function PlannerPage() {
   const app = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
+  const queryMessage = new URLSearchParams(location.search).get('q')?.trim().slice(0, 800) || '';
   const shared = useMemo(() => parseSharedPlan(location.search), [location.search]);
   const locale = useLocale();
   useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
   const library = usePlannerLibrary(app?.user?.id);
-  const [message, setMessage] = useState(new URLSearchParams(location.search).get('q')?.slice(0, 800) || '');
+  const [message, setMessage] = useState(queryMessage);
   const [date, setDate] = useState(shared.date);
   const [region, setRegion] = useState('all');
   const [budget, setBudget] = useState('');
@@ -38,22 +41,26 @@ export default function PlannerPage() {
   const [editing, setEditing] = useState<SavedPlan>();
   const [selected, setSelected] = useState('');
   const request = useRef<AbortController>();
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
   const editLoaded = useRef('');
   const prefsLoaded = useRef(false);
+  const autoStarted = useRef(new Set<string>());
   useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => { if (results) resultsHeading.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }, [results]);
+  useEffect(() => { request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
   useEffect(() => { setEditing(undefined); setStops(parseSharedPlan(location.search).stops); setDate(parseSharedPlan(location.search).date); setTitle(translateText('我的湾区出游')); editLoaded.current = ''; prefsLoaded.current = false; }, [app?.user?.id, location.search]);
   useEffect(() => {
     if (new URLSearchParams(location.search).has('edit')) return;
     const next = parseSharedPlan(location.search); setStops(next.stops); setDate(next.date); setEditing(undefined); editLoaded.current = '';
   }, [location.search]);
   useEffect(() => {
-    if (!library.loading && !prefsLoaded.current) { prefsLoaded.current = true; setRegion(library.data.preferences.regions[0] || 'all'); setTravel(library.data.preferences.travelMode || 'any'); }
+    if (!library.loading && !prefsLoaded.current) { prefsLoaded.current = true; setRegion(queryMessage ? 'all' : library.data.preferences.regions[0] || 'all'); setTravel(queryMessage ? 'any' : library.data.preferences.travelMode || 'any'); }
     const id = new URLSearchParams(location.search).get('edit') || editing?.id;
     if (id && !library.loading) {
       const plan = library.data.plans.find(plan => plan.id === id);
       if (plan && editLoaded.current !== `${id}:${plan.version}`) { editLoaded.current = `${id}:${plan.version}`; setEditing(plan); setStops(cleanStops(plan.stops)); setDate(plan.date); setTitle(plan.title); }
     }
-  }, [library.loading, library.data, location.search, editing?.id]);
+  }, [library.loading, library.data, location.search, editing?.id, queryMessage]);
 
   const filteredPlaces = useMemo(() => PLANNER_PLACES.filter(place => region === 'all' || place.region === region), [region]);
   const events = useMemo(() => results?.suggestions.map(s => PLANNER_EVENTS.find(event => event.id === s.eventId)).filter(event => !!event) || PLANNER_EVENTS.filter(event => event.endDate >= todayInBay() && (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= todayInBay())) && (region === 'all' || event.region === region) && (!date || eventOccursOn(event, date))).slice(0, 8), [results, region, date]);
@@ -62,15 +69,36 @@ export default function PlannerPage() {
   const nearby = anchor ? filteredPlaces.filter(place => place.location && anchor.key !== `place:${place.id}`).map(place => ({ place, km: distanceKm(anchor.location, place.location!) })).filter(item => item.km <= 15).sort((a, b) => a.km - b.km).slice(0, 3) : [];
   const choose = (key: string) => { setSelected(key); document.getElementById(`catalog-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
   const add = (stop: Stop) => { setStatus(''); if (stops.some(s => s.kind === stop.kind && s.id === stop.id)) return; if (stops.length >= 3) { setStatus('一份计划最多三站，先移除一站再添加。'); return; } setStops([...stops, stop]); setSelected(`${stop.kind}:${stop.id}`); };
-  const recommend = async (replace = false) => {
+  const recommend = useCallback(async (replace = false, handoff?: { message: string; filters: PlanFilters }) => {
     request.current?.abort(); const controller = new AbortController(); request.current = controller;
     setRequesting(true); setError('');
     try {
-      const result: Recommendations = await api.request('/planner/recommend', { method: 'POST', signal: controller.signal, body: JSON.stringify({ message, locale, filters: { ...(date ? { date } : {}), region, ...(budget !== '' ? { budget: Number(budget) } : {}), ...(age !== '' ? { childAge: Number(age) } : {}), setting, travelMode: travel }, excludeEventIds: replace ? results?.suggestions.map(s => s.eventId) || [] : [] }) });
+      const result: Recommendations = await api.request('/planner/recommend', { method: 'POST', signal: controller.signal, body: JSON.stringify({ message: handoff?.message ?? message, locale, filters: handoff?.filters ?? { ...(date ? { date } : {}), ...(region !== 'all' ? { region } : {}), ...(budget !== '' ? { budget: Number(budget) } : {}), ...(age !== '' ? { childAge: Number(age) } : {}), ...(setting !== 'any' ? { setting } : {}), ...(travel !== 'any' ? { travelMode: travel } : {}) }, excludeEventIds: replace ? results?.suggestions.map(s => s.eventId) || [] : [] }) });
       if (request.current === controller && !controller.signal.aborted) { setResults(result); recordProductEvent('planner_recommendation'); }
     } catch (e) { if (request.current === controller && !controller.signal.aborted) setError(errorText(e)); }
     finally { if (request.current === controller) setRequesting(false); }
-  };
+  }, [message, locale, date, region, budget, age, setting, travel, results]);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const key = `${location.key}:${queryMessage}`;
+    if (params.get('auto') !== '1' || queryMessage.length < 2 || autoStarted.current.has(key)) return;
+    let cancelled = false;
+    // Defer past StrictMode's setup/cleanup replay so it cannot start a second paid request.
+    void Promise.resolve().then(() => {
+      if (cancelled || autoStarted.current.has(key)) return;
+      autoStarted.current.add(key);
+      params.delete('auto');
+      navigate({ pathname: location.pathname, search: params.toString(), hash: location.hash }, { replace: true });
+      void recommend(false, { message: queryMessage, filters: shared.date ? { date: shared.date } : {} });
+    });
+    return () => { cancelled = true; };
+  }, [location.search, location.key, location.pathname, location.hash, queryMessage, shared.date, recommend, navigate]);
+  const stopRequest = () => { request.current?.abort(); request.current = undefined; setRequesting(false); setError('已停止挑选。你的条件还在，可以修改后重试。'); };
+  const appliedFilters = results ? [results.filters.date, results.filters.city, results.filters.region && results.filters.region !== 'all' ? ATTRACTION_REGIONS.find(item => item.id === results.filters.region)?.label : undefined,
+    results.filters.budget != null ? `${translateText('每人门票预算', locale)} $${results.filters.budget}` : undefined,
+    results.filters.childAge != null ? `${translateText('孩子年龄', locale)} ${results.filters.childAge}` : undefined,
+    results.filters.setting === 'indoor' ? '室内' : results.filters.setting === 'outdoor' ? '户外' : undefined,
+  ].filter(Boolean) : [];
   const save = async () => {
     setStatus('');
     if (!stops.length) { setStatus('先选择至少一站。'); return; }
@@ -87,18 +115,20 @@ export default function PlannerPage() {
   const favorite = (kind: 'event' | 'place', id: string) => library.data.favorites.some(item => item.kind === kind && item.id === id);
   return <div className="planner-page">
     <header className="planner-hero"><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想去哪里、想花多少。从真实活动出发，把湾区的下一站排进来。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动 ↗</Link><Link to="/calendar">活动日历 ↗</Link></nav></header>
-    <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />
     <form className="planner-form" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
+      {queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
       <label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => setMessage(e.target.value)} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
-      <div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={date} onChange={e => setDate(e.target.value)} /></label><label>地区<select value={region} onChange={e => setRegion(e.target.value)}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => setBudget(e.target.value)} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => setAge(e.target.value)} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => setSetting(e.target.value)}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option></select></label><label>出行方式<select value={travel} onChange={e => setTravel(e.target.value)}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div>
-      <div className="planner-form-actions"><button className="planner-primary" disabled={requesting}><Sparkles size={17} />{requesting ? '正在挑选…' : '帮我挑选方案'}</button><span>门票预算不含餐饮、停车与交通。</span></div>
+      <details className="planner-refinements"><summary><SlidersHorizontal size={14} />日期、地区与预算（可选）<ChevronRight size={14} /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={date} onChange={e => setDate(e.target.value)} /></label><label>地区<select value={region} onChange={e => setRegion(e.target.value)}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => setBudget(e.target.value)} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => setAge(e.target.value)} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => setSetting(e.target.value)}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option></select></label><label>出行方式<select value={travel} onChange={e => setTravel(e.target.value)}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
+      <div className="planner-form-actions"><button className="planner-primary" disabled={requesting}><Sparkles size={17} />{requesting ? '正在挑选…' : '帮我挑选方案'}</button>{requesting && <button type="button" className="planner-stop-request" onClick={stopRequest}><Square size={12} className="inline mr-1" />停止</button>}<span>门票预算不含餐饮、停车与交通。</span></div>
     </form>
     {error && <p className="planner-error" role="alert">{error}</p>}
-    {results && <section className="planner-results"><div className="planner-section-head"><div><span className="planner-eyebrow">YOUR OPTIONS</span><h2>有依据的出游建议</h2><p>{results.responseMode === 'ai' ? 'AI 根据已收录资料整理，活动信息可追溯到官方来源。' : '根据活动目录与筛选条件匹配。'}</p></div><button disabled={requesting} onClick={() => void recommend(true)}>换一批</button></div>
-      {results.notices.map((notice, index) => <p className="planner-note" key={index}>{notice}</p>)}
+    {results && <section className="planner-results"><div className="planner-section-head"><div><span className="planner-eyebrow">YOUR OPTIONS</span><h2 ref={resultsHeading}>有依据的出游建议</h2><p>{results.responseMode === 'ai' ? 'AI 根据已收录资料整理，活动信息可追溯到官方来源。' : '根据活动目录与筛选条件匹配。'}</p></div><button disabled={requesting} onClick={() => void recommend(true)}>换一批</button></div>
+      {appliedFilters.length > 0 && <div className="planner-applied-filters" aria-label={translateText('已使用的条件', locale)}><span>已使用的条件</span>{appliedFilters.map((filter, index) => <strong key={index}>{filter}</strong>)}</div>}
+      {results.notices.length > 0 && <details className="planner-result-notes"><summary>{translateText('筛选说明与出行提示', locale)} ({results.notices.length})</summary>{results.notices.map((notice, index) => <p className="planner-note" key={index}>{notice}</p>)}</details>}
       {!results.suggestions.length && <p className="planner-note">没有完全符合条件的活动。试着放宽日期、地区或场地限制，也可以从地图中的景点开始。</p>}
       <div className="planner-options">{results.suggestions.map((suggestion, index) => { const event = PLANNER_EVENTS.find(e => e.id === suggestion.eventId); if (!event) return null; return <article className="planner-option" key={suggestion.id}><span className="planner-number">0{index + 1}</span><h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="planner-meta">{event.dateLabel} · {event.city}</p><p>{suggestion.reasons?.length ? suggestion.reasons.join(' ') : suggestion.reason}</p><strong className="planner-cost">{event.costLabel}</strong><ul>{suggestion.unknowns.map((unknown, i) => <li key={i}>{unknown}</li>)}</ul><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noreferrer">查看主办方最新信息 ↗</a><small>资料核查：{event.verifiedAt}</small><button className="planner-primary" onClick={() => { setStops(cleanStops([{ kind: 'event', id: event.id }, ...suggestion.placeIds.map(id => ({ kind: 'place', id }))])); setDate(suggestion.date); setSelected(`event:${event.id}`); setTitle(translateText(event.title, locale)); setEditing(undefined); }}>用这个方案开始</button></article>; })}</div>
     </section>}
+    <EventScreenshotImport userId={app?.user?.id} />
     <div className="planner-workspace"><main>
       <div className="planner-section-head"><div><span className="planner-eyebrow">EXPLORE THE BAY</span><h2>地图上，接着逛</h2></div><span><MapPin size={15} /> {points.length}</span></div>
       <PlannerMap points={points} selected={selected} onSelect={choose} />
@@ -108,6 +138,7 @@ export default function PlannerPage() {
       {!stops.length && <div className="planner-empty">从建议或地点列表中<br />加入你的第一站。</div>}
       <ol className="planner-stops">{stops.map((stop, index) => <li key={`${stop.kind}:${stop.id}`}><span>{index + 1}</span><Link to={stopPath(stop)}>{stopTitle(stop)}</Link><div>{index > 0 && <button aria-label={translateText('上移一站', locale)} onClick={() => setStops(current => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })}><ArrowUp size={14} /></button>}<button aria-label={translateText('移除此站', locale)} onClick={() => setStops(stops.filter((_, i) => i !== index))}><X size={14} /></button></div></li>)}</ol>
       <button className="planner-primary" disabled={library.loading || library.busy || !stops.length} onClick={() => void save()}>{library.busy ? '保存中…' : editing ? '更新这份计划' : '保存这份计划'}</button>
+      <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />
       {stops.length > 0 && <><button className="planner-share" onClick={() => void share()}><Share2 size={15} /> 分享地点与日期</button><a className="planner-public-link" onClick={() => recordProductEvent('plan_shared')} href={sharePlanUrl({ date, stops })}>打开公开分享链接 ↗</a></>}
       {status && <p className="planner-note" role="status">{status}</p>}
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>

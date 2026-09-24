@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, UserX, FileText, Phone, Send, Loader2, SmilePlus, Reply, X, ArrowDown, CornerDownLeft, MessageCircle } from 'lucide-react';
+import { ChevronLeft, UserX, FileText, Phone, Send, Loader2, SmilePlus, Reply, X, ArrowDown, CornerDownLeft, MessageCircle, Sparkles } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { ModalShell } from '../../components/ui/Modal';
@@ -13,6 +13,7 @@ import { translateText, useLocale } from '../../i18n/locale';
 import type { Message, Conversation, UserData } from '../../lib/types';
 import type { Socket } from 'socket.io-client';
 import { mergeMessages, messageText, readServerMessage, readMessageDraft, saveMessageDraft, readPendingMessages, savePendingMessage, removePendingMessage, messageReadBatches, isReplyable, isNearMessageBottom, MESSAGE_REACTIONS, type MessageReaction, type DisplayMessage } from './messageState';
+import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
 
 type ChatViewProps = {
   currentUser: UserData;
@@ -41,12 +42,14 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const [retryKey, setRetryKey] = useState(0);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [reactionFor, setReactionFor] = useState<string | null>(null);
   const [reactionPending, setReactionPending] = useState<string | null>(null);
   const [newMessages, setNewMessages] = useState(0);
   const [atBottom, setAtBottom] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const aiToggleRef = useRef<HTMLButtonElement>(null);
   const active = useRef(true);
   const sendingRef = useRef(false);
   const reactionBusy = useRef(false);
@@ -267,7 +270,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
                 <div className="modern-chat-message-content">
                   {isContactCard && message.contactCard?.methods?.length ? <ContactCardMessage methods={message.contactCard.methods} isMine={mine} onCopied={(text, type) => showToast?.(text, type)} /> : <div className="modern-chat-bubble">
                     {message.replyTo && <blockquote className="modern-chat-quote" translate="no"><strong>{senderName(message.replyTo.senderId)}</strong><span>{message.replyTo.content}</span></blockquote>}
-                    <p translate={message.content ? 'no' : undefined}>{messageText(message)}</p>
+                    {isReplyable(message) && !!message.content && !blocked ? <ChatAiTranslation conversationId={conversation.id} message={message} /> : <p translate={message.content ? 'no' : undefined}>{messageText(message)}</p>}
                     {message.delivery === 'sending' && <p className="modern-chat-delivery">发送中…</p>}
                     {message.delivery === 'failed' && <div className="modern-chat-delivery is-failed"><p>发送未确认，请刷新后确认是否送达。</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button>{message.type === 'text' && !input && <button type="button" onClick={() => { draftRevision.current += 1; writeDraft(message.content); }}>放回输入框</button>}</div>}
                   </div>}
@@ -282,6 +285,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>新消息</span><span translate="no">{newMessages}</span></> : <span>回到最新消息</span>}</button>}
         <div className="modern-chat-composer">
           {blocked && <p className="modern-chat-blocked">已屏蔽此用户。取消屏蔽后可继续发送。</p>}
+          {aiOpen && !blocked && !loading && !loadError && !sending && <ChatAiComposer conversationId={conversation.id} selectedMessage={replyTo} composerValue={input} onClose={() => { setAiOpen(false); aiToggleRef.current?.focus(); }} onApply={text => { draftRevision.current += 1; writeDraft(text); setAiOpen(false); inputRef.current?.focus(); }} />}
           {replyTo && <div className="modern-chat-reply-preview"><Reply size={17} /><div><span>回复给</span> <strong translate="no">{senderName(replyTo.senderId)}</strong><p translate="no">{replyTo.content}</p></div><button type="button" aria-label="取消引用回复" onClick={() => setReplyTo(null)}><X size={18} /></button></div>}
           {emojiOpen && <div className="modern-chat-emoji-picker" role="group" aria-label="选择消息表情">{COMPOSER_EMOJI.map(emoji => <button type="button" key={emoji} aria-label={emoji} translate="no" onClick={() => insertEmoji(emoji)}>{emoji}</button>)}</div>}
           <div className="modern-chat-compose-row">
@@ -289,7 +293,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
             <textarea ref={inputRef} rows={1} className="modern-chat-input" placeholder={tr('写点什么，聊聊吧…')} aria-label={tr('消息内容')} translate="no" maxLength={2000} value={input} disabled={blocked} onChange={event => { draftRevision.current += 1; writeDraft(event.target.value); }} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void send('text', input); } }} />
             <button type="button" className="modern-chat-send" disabled={!input.trim() || sending || loading || !!loadError || blocked} aria-label="发送消息" onClick={() => void send('text', input)}>{sending ? <Loader2 size={19} className="animate-spin" /> : <Send size={19} />}</button>
           </div>
-          <div className="modern-chat-compose-meta"><button type="button" onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) void send('contact-share', ''); }} disabled={sending || loading || !!loadError || blocked}><Phone size={13} />分享联系方式</button><span className="modern-chat-key-hint"><CornerDownLeft size={12} />Enter 发送 · Shift + Enter 换行</span><span translate="no">{input.length}/2000</span></div>
+          <div className="modern-chat-compose-meta"><button ref={aiToggleRef} type="button" className="chat-ai-toggle" aria-expanded={aiOpen && !blocked && !loading && !loadError && !sending} aria-controls="chat-ai-composer" disabled={sending || loading || !!loadError || blocked} onClick={() => { setAiOpen(value => !value); setEmojiOpen(false); }}><Sparkles size={14} />{tr('AI 帮我回复')}</button><button type="button" onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) void send('contact-share', ''); }} disabled={sending || loading || !!loadError || blocked}><Phone size={13} />分享联系方式</button><span className="modern-chat-key-hint"><CornerDownLeft size={12} />Enter 发送 · Shift + Enter 换行</span><span translate="no">{input.length}/2000</span></div>
           <p className={`modern-chat-draft-note ${draftStored ? '' : 'is-error'}`} role="status">{draftStored ? '草稿仅保存在当前浏览器会话。' : '浏览器未能保存草稿，关闭前请先复制。'}</p>
         </div>
       </section>

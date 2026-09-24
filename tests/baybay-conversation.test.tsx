@@ -11,7 +11,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { QuickExplore } = await import('../src/components/QuickExplore');
-const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage } = await import('../src/lib/baybay-conversation');
+const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
 afterEach(cleanup);
 const noop = () => {};
@@ -121,6 +121,42 @@ test('history only includes four complete pairs; AI navigation is restricted to 
   assert.equal(history[0].content, '问题 3');
   assert.equal(safeBayBayPath(`/guides/${guides[0].slug}`), true);
   for (const path of ['https://evil.test', '//evil.test', '/guides/made-up-article', '/category/rent\\evil']) assert.equal(safeBayBayPath(path), false);
+});
+
+test('AI action links only allow known planner queries and published tools', () => {
+  for (const path of ['/plan', '/plan?import=event', bayBayPlanPath('周六从 Fremont 出发，门票预算 $50'), '/tools?tool=communication', '/tools?tool=split', '/category/repair']) assert.equal(safeBayBayPath(path), true, path);
+  for (const path of ['/plan?redirect=https://evil.test', '/plan?auto=1', '/plan?q=hello&auto=2', '/plan?q=hello&q=other', '/plan?import=other', '/plan?import=event&q=hello', '/plan#https://evil.test', '/plan/../tools', '/tools?tool=unknown', '/tools?tool=communication&next=evil', '/tools?tool=split&tool=budget', '/category/made-up', '//evil.test/plan', '/plan?q=' + 'a'.repeat(801)]) assert.equal(safeBayBayPath(path), false, path);
+});
+
+test('clear Chinese and English outings hand off the original request without a duplicate chat call', async t => {
+  const requests: unknown[] = [];
+  t.mock.method(globalThis, 'fetch', async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
+  for (const question of ['周六带五岁孩子，从 Fremont 出发，预算 $50', '週六帶五歲孩子，從 Fremont 出發，預算 $50', 'Plan Saturday with my 5-year-old, starting from Fremont, with a $50 admission budget per person.']) {
+    const paths: string[] = [];
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop} />);
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: question } });
+    fireEvent.click(view.getByRole('button', { name: '问一下' }));
+    assert.equal(paths.length, 1);
+    const url = new URL(paths[0], 'https://www.baylink.us');
+    assert.equal(url.pathname, '/plan');
+    assert.equal(url.searchParams.get('q'), question);
+    assert.equal(url.searchParams.get('auto'), '1');
+    assert.equal(requests.length, 0);
+    view.unmount();
+  }
+  for (const question of ['想了解图书馆如何预约', '周六预算 $50 找家庭清洁', 'Help me plan a job interview tomorrow', 'Plan weekend rental viewings', '房东约我周六谈租房预算']) assert.equal(isBayBayPlanRequest(question), false, question);
+});
+
+test('four BayBay actions use focused destinations and service requests remain editable', () => {
+  const paths: string[] = [];
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop} />);
+  fireEvent.click(view.getByRole('button', { name: /读活动截图/ }));
+  fireEvent.click(view.getByRole('button', { name: /沟通帮手/ }));
+  fireEvent.click(view.getByRole('button', { name: /找本地服务/ }));
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement;
+  assert.equal(input.value, '我想找本地服务：');
+  assert.equal(document.activeElement, input);
+  assert.deepEqual(paths, ['/plan?import=event', '/tools?tool=communication']);
 });
 
 test('network and parsing errors show usable Chinese messages while explicit service guidance is preserved', () => {

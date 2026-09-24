@@ -94,6 +94,9 @@ export const PrivacyPolicyView = () => (
         BayBay AI features may process user-provided text to generate suggestions, post drafts, guide responses, safety tips, or related content. Users should avoid submitting highly sensitive personal information to AI features.
       </LegalP>
       <LegalP>When you request a BayBay outing suggestion, your submitted text and filters may be sent to our AI service provider to interpret your request. Saved plan titles and account libraries are not included in that request. Suggested places and dates are checked against our published catalog.</LegalP>
+      <LegalP>When you choose to read an event screenshot, the selected image is sent to our AI service provider. BAYLINK saves the event text only after you review and confirm it; the source image is not added to your saved event. Imported events stay in this browser for guests or privately in the signed-in account. You can edit or remove them in My Week.</LegalP>
+      <LegalP>Message translation sends only the selected text message to our AI service provider. Reply assistance uses your stated intent and, if selected, one message for context. It does not send the whole conversation. AI replies remain drafts until you choose to send them.</LegalP>
+      <LegalP>识别活动截图时，所选图片会发送给 AI 服务提供商；你核对并确认后，BAYLINK 只保存活动文字，不把原图加入活动记录。访客活动保存在此浏览器，登录后的活动私密保存在账号中，可在「我的这周」修改或移除。私信翻译只处理所选文字消息，回复助手只处理你填写的意思和选中的一条消息，不发送整段聊天记录；回复由你决定是否发送。</LegalP>
     </LegalSection>
 
     <LegalSection title="Outing Plans, Favorites and Maps">

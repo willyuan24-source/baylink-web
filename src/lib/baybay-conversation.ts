@@ -1,6 +1,8 @@
 import { API_BASE_URL, authHeaders } from './api';
-import { getLocale } from '../i18n/locale';
+import { getLocale, simplifySearch } from '../i18n/locale';
 import { guides } from '../data/guides';
+import { LIFE_TOOLS } from '../data/tool-catalog';
+import { SLUG_TO_CATEGORY } from '../routing';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 
 export type BayBayHistoryMessage = { role: 'user' | 'assistant'; content: string };
@@ -42,9 +44,36 @@ export function currentBayBayGuide(path: string) {
 }
 
 export function safeBayBayPath(path?: string): path is string {
-  if (!path || /[\\\s]/.test(path)) return false;
-  return path === '/guides' || path === '/tools' || /^\/category\/[a-z-]+$/.test(path) ||
+  if (!path || !path.startsWith('/') || path.startsWith('//') || /[\\\s#]/.test(path)) return false;
+  const [pathname, search = ''] = path.split('?');
+  if (path.split('?').length > 2) return false;
+  const query = new URLSearchParams(search);
+  if ([...query.keys()].some(key => query.getAll(key).length !== 1)) return false;
+  if (pathname === '/plan') {
+    if ([...query.keys()].some(key => !['q', 'auto', 'import'].includes(key))) return false;
+    const question = query.get('q');
+    if (question !== null && (question.trim().length < 2 || question.length > 800)) return false;
+    if (query.has('auto') && (query.get('auto') !== '1' || !question)) return false;
+    return !query.has('import') || (query.get('import') === 'event' && !question && !query.has('auto'));
+  }
+  if (pathname === '/tools') return [...query.keys()].every(key => key === 'tool') &&
+    (!query.has('tool') || LIFE_TOOLS.some(tool => tool.id === query.get('tool')));
+  if (search) return false;
+  return path === '/guides' || Object.keys(SLUG_TO_CATEGORY).some(category => path === `/category/${category}`) ||
     guides.some((guide) => path === `/guides/${guide.slug}`);
+}
+
+export const bayBayPlanPath = (message: string) => `/plan?${new URLSearchParams({ q: message.trim().slice(0, 800), auto: '1' })}`;
+
+/** Route clear first-turn outing requests; advice and follow-up questions stay conversational. */
+export function isBayBayPlanRequest(message: string): boolean {
+  message = simplifySearch(message);
+  if (/租房|租屋|维修|清洁|接送|搬家|工作|找服务|房东|landlord|repair|cleaning|moving|job|airport|\brent(?:al|ing)?\b/i.test(message)) return false;
+  const outing = /周末|周[一二三四五六日天]|星期|今天|明天|出游|玩|去哪|亲子|孩子|\b(?:weekend|saturday|sunday|tomorrow|outing|trip|day\s*out|kids?|child)\b/i.test(message);
+  const planning = /(?:帮我|给我|替我)?.{0,4}(?:安排|规划|计划|排).{0,10}(?:一天|出游|路线|行程|周末)|\b(?:plan|itinerary)\b/i.test(message);
+  const specificDay = /周[一二三四五六日天]|星期[一二三四五六日天]|今天|明天|\b(?:saturday|sunday|tomorrow)\b/i.test(message);
+  const personalDetails = /预算|[\d一二三四五六七八九十]+\s*岁|\$\s*\d|\b(?:budget|\d+[ -]year[ -]old)\b/i.test(message);
+  return outing && (planning || (specificDay && personalDetails));
 }
 
 export const BAYBAY_SCENARIOS = [

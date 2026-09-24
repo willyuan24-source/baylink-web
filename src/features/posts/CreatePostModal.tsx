@@ -521,7 +521,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
               </div>
             )}
             {hints.checklist.length > 0 && (
-              <p className="text-[11px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.join('、')}</p>
+              <p className="text-[11px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
             )}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">

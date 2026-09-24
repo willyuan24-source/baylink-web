@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
+import { DEFAULT_COVERS } from '../lib/constants';
+import { translateText, useLocale } from '../i18n/locale';
 
 export type AiPostDraft = {
   title: string;
@@ -24,6 +26,7 @@ export type AiAssistTone =
   | 'urgent';
 
 export type AiRewriteMode = 'shorter' | 'moreDetailed' | 'moreNatural';
+export type AiAssistLanguage = 'zh' | 'en' | 'bilingual';
 
 const TONE_OPTIONS: { id: AiAssistTone; label: string }[] = [
   { id: 'clear', label: '清楚实用' },
@@ -66,7 +69,7 @@ type BayBayPostAssistProps = {
     type: 'client' | 'provider';
     categoryHint?: string;
     areaHint?: string;
-    language: 'zh';
+    language: AiAssistLanguage;
     tone: AiAssistTone;
     rewriteMode?: AiRewriteMode;
   }) => Promise<{ ok: boolean; draft?: AiPostDraft; error?: string }>;
@@ -84,6 +87,10 @@ export const BayBayPostAssist = ({
   onIntentChange,
   intentFromQuestion,
 }: BayBayPostAssistProps) => {
+  const locale = useLocale();
+  const tr = (text: string) => translateText(text, locale);
+  const [languageChoice, setLanguageChoice] = useState<AiAssistLanguage | 'auto'>('auto');
+  const draftLanguage = languageChoice === 'auto' ? (locale === 'en' ? 'en' : 'zh') : languageChoice;
   const [localIntent, setLocalIntent] = useState('');
   const aiPostIntent = controlledIntent ?? localIntent;
   const setAiPostIntent = onIntentChange ?? setLocalIntent;
@@ -99,6 +106,17 @@ export const BayBayPostAssist = ({
     mounted.current = true;
     return () => { mounted.current = false; activeRequest.current = null; };
   }, []);
+
+  useEffect(() => {
+    activeRequest.current = null;
+    setAiLoading(false);
+  }, [draftLanguage, postType, categorySlug, areaHint]);
+
+  useEffect(() => {
+    activeRequest.current = null;
+    setAiLoading(false);
+    setAiDraft(null);
+  }, [user?.token]);
 
   const dismissDraft = () => {
     activeRequest.current = null;
@@ -127,7 +145,7 @@ export const BayBayPostAssist = ({
         type: postType,
         categoryHint: categorySlug || undefined,
         areaHint: areaHint?.trim() || undefined,
-        language: 'zh',
+        language: draftLanguage,
         tone,
         ...(rewriteMode ? { rewriteMode } : {}),
       });
@@ -155,6 +173,7 @@ export const BayBayPostAssist = ({
   const supplementHint = aiDraft
     ? SUPPLEMENT_HINTS[aiDraft.category] || SUPPLEMENT_HINTS.other
     : '';
+  const suggestedCover = DEFAULT_COVERS.find(cover => cover.url === aiDraft?.coverSuggestion);
 
   return (
     <div className="rounded-xl border border-baylink-green/20 bg-gradient-to-br from-baylink-green/6 via-white to-[#FFF8F0]/80 p-3">
@@ -176,6 +195,16 @@ export const BayBayPostAssist = ({
           </p>
         </div>
       </div>
+
+      <label className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-baylink-text-secondary" translate="no">
+        {tr('生成语言')}
+        <select className="min-h-11 max-w-full rounded-lg border border-baylink-border/60 bg-white px-3 text-xs text-baylink-text" value={languageChoice} onChange={event => setLanguageChoice(event.target.value as AiAssistLanguage | 'auto')}>
+          <option value="auto">{tr('跟随界面语言')}</option>
+          <option value="zh">{tr('中文')}</option>
+          <option value="en">English</option>
+          <option value="bilingual">{tr('中英双语')}</option>
+        </select>
+      </label>
 
       {!aiDraft ? (
         <>
@@ -199,7 +228,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => setTone(opt.id)}
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition ${
+                  className={`min-h-11 rounded-full px-3 py-1 text-[11px] font-medium transition ${
                     tone === opt.id
                       ? 'bg-baylink-green text-white'
                       : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
@@ -214,7 +243,7 @@ export const BayBayPostAssist = ({
             type="button"
             onClick={() => runAssist()}
             disabled={aiLoading}
-            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white transition hover:opacity-95 disabled:opacity-60"
+            className="mt-2 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white transition hover:opacity-95 disabled:opacity-60"
           >
             {aiLoading ? (
               <>
@@ -230,15 +259,15 @@ export const BayBayPostAssist = ({
         <div className="mt-2.5 rounded-lg border border-baylink-border/50 bg-white p-3 text-xs">
           <p className="mb-2 font-semibold text-baylink-text">BayBay 草稿预览</p>
           <div className="max-h-36 space-y-1.5 overflow-y-auto text-[11px] text-baylink-text-secondary">
-            <p><span className="font-medium text-baylink-muted">标题：</span>{aiDraft.title}</p>
-            <p className="whitespace-pre-wrap"><span className="font-medium text-baylink-muted">正文：</span>{aiDraft.description}</p>
+            <p><span className="font-medium text-baylink-muted">标题：</span><span translate="no">{aiDraft.title}</span></p>
+            <p className="whitespace-pre-wrap"><span className="font-medium text-baylink-muted">正文：</span><span translate="no">{aiDraft.description}</span></p>
             <p><span className="font-medium text-baylink-muted">分类：</span>{categoryLabel(aiDraft.category)}</p>
-            {aiDraft.area && <p><span className="font-medium text-baylink-muted">地区：</span>{aiDraft.area}</p>}
-            {aiDraft.budget && <p><span className="font-medium text-baylink-muted">预算：</span>{aiDraft.budget}</p>}
-            {aiDraft.timeInfo && <p><span className="font-medium text-baylink-muted">时间：</span>{aiDraft.timeInfo}</p>}
+            {aiDraft.area && <p><span className="font-medium text-baylink-muted">地区：</span><span translate="no">{tr(aiDraft.area)}</span></p>}
+            {aiDraft.budget && <p><span className="font-medium text-baylink-muted">预算：</span><span translate="no">{aiDraft.budget}</span></p>}
+            {aiDraft.timeInfo && <p><span className="font-medium text-baylink-muted">时间：</span><span translate="no">{aiDraft.timeInfo}</span></p>}
             {aiDraft.quickTags?.length > 0 && (
               <div>
-                <p><span className="font-medium text-baylink-muted">标签：</span>{aiDraft.quickTags.join(' · ')}</p>
+                <p><span className="font-medium text-baylink-muted">标签：</span><span translate="no">{aiDraft.quickTags.join(' · ')}</span></p>
                 <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[11px] text-baylink-muted">
                   <input
                     type="checkbox"
@@ -251,17 +280,17 @@ export const BayBayPostAssist = ({
               </div>
             )}
             {aiDraft.safetyTip && (
-              <p className="rounded-md bg-baylink-section/60 p-1.5 text-[11px] text-baylink-muted">{aiDraft.safetyTip}</p>
+              <p translate="no" className="rounded-md bg-baylink-section/60 p-1.5 text-[11px] text-baylink-muted">{aiDraft.safetyTip}</p>
             )}
-            {aiDraft.coverSuggestion && (
-              <p className="truncate"><span className="font-medium text-baylink-muted">封面建议：</span>{aiDraft.coverSuggestion}</p>
+            {suggestedCover && (
+              <p className="flex items-center gap-2"><img src={suggestedCover.url} alt="" className="h-12 w-12 rounded-md object-cover" /><span><span className="font-medium text-baylink-muted">封面建议：</span><span translate="no">{tr(suggestedCover.title)}</span></span></p>
             )}
           </div>
 
           {supplementHint && (
             <div className="mt-2 rounded-lg border border-baylink-green/15 bg-baylink-green/5 px-2.5 py-2 text-[11px] leading-relaxed text-baylink-text-secondary">
               <span className="font-semibold text-baylink-green">BayBay 建议补充 · </span>
-              {supplementHint.replace(/^建议补充：/, '')}
+              <span translate="no">{tr(supplementHint).replace(/^(?:建议补充|建議補充|Consider adding)[：:]\s*/, '')}</span>
             </div>
           )}
 
@@ -274,7 +303,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => runAssist(opt.mode)}
-                  className="rounded-lg border border-baylink-border px-2 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
+                  className="min-h-11 rounded-lg border border-baylink-border px-3 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
                 >
                   {aiLoading ? '…' : opt.label}
                 </button>
@@ -289,14 +318,14 @@ export const BayBayPostAssist = ({
                 onApply(aiDraft, { appendQuickTags: appendTagsOnApply });
                 dismissDraft();
               }}
-              className="flex-1 min-w-[88px] rounded-lg bg-baylink-green py-2 text-[11px] font-bold text-white"
+              className="flex-1 min-h-11 min-w-[88px] rounded-lg bg-baylink-green py-2 text-[11px] font-bold text-white"
             >
               应用到表单
             </button>
             <button
               type="button"
               onClick={dismissDraft}
-              className="rounded-lg border border-baylink-border px-3 py-2 text-[11px] text-baylink-muted"
+              className="min-h-11 rounded-lg border border-baylink-border px-3 py-2 text-[11px] text-baylink-muted"
             >
               取消
             </button>
