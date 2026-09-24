@@ -3,6 +3,7 @@ import { ConverterFactory } from 'opencc-js/core';
 import searchCharacters from 'opencc-js/dict/TSCharacters';
 import searchPhrases from 'opencc-js/dict/TSPhrases';
 import patterns from './en-patterns.json';
+import { browserLocale } from './browser-locale';
 
 export type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
 export const LOCALE_KEY = 'baylink.reading-language.v1';
@@ -63,7 +64,11 @@ export async function initializeLocale(): Promise<void> {
   const query = new URLSearchParams(window.location.search).get('lang');
   let stored: string | null = null;
   try { stored = localStorage.getItem(LOCALE_KEY); } catch { /* Optional browser storage. */ }
-  await setLocale(isLocale(query) ? query : isLocale(stored) ? stored : 'zh-Hans', isLocale(query));
+  const { languages, language } = window.navigator;
+  const detected = browserLocale(languages?.length ? languages : [language]);
+  // Only an explicit choice is saved. Automatic detection follows this device's
+  // current preferences and leaves ordinary shared links language-neutral.
+  await setLocale(isLocale(query) ? query : isLocale(stored) ? stored : detected, isLocale(query));
 }
 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */

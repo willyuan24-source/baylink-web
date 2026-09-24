@@ -141,6 +141,62 @@ test('explicit shared language wins over browser preference and sharing preserve
   assert.equal(localizedUrl('/guides/example?lang=en#board'), 'https://www.baylink.us/guides/example#board');
 });
 
+test('first visits follow browser preferences without saving or rewriting an automatic choice', async () => {
+  const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+  const originalLanguage = Object.getOwnPropertyDescriptor(window.navigator, 'language');
+  try {
+    window.history.replaceState(null, '', '/?ref=friend#discover');
+    for (const [languages, expected] of [[['en-US', 'zh-CN'], 'en'], [['zh-HK', 'en'], 'zh-Hant'], [['zh-SG', 'en'], 'zh-Hans'], [['es-MX'], 'en']] as const) {
+      Object.defineProperty(window.navigator, 'languages', { configurable: true, value: languages });
+      await initializeLocale();
+      assert.equal(getLocale(), expected);
+      assert.equal(document.documentElement.lang, expected);
+      assert.equal(localStorage.getItem(LOCALE_KEY), null);
+      assert.equal(window.location.search + window.location.hash, '?ref=friend#discover');
+    }
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, value: [] });
+    Object.defineProperty(window.navigator, 'language', { configurable: true, value: 'zh-TW' });
+    await initializeLocale();
+    assert.equal(getLocale(), 'zh-Hant');
+  } finally {
+    if (originalLanguages) Object.defineProperty(window.navigator, 'languages', originalLanguages); else Reflect.deleteProperty(window.navigator, 'languages');
+    if (originalLanguage) Object.defineProperty(window.navigator, 'language', originalLanguage); else Reflect.deleteProperty(window.navigator, 'language');
+  }
+});
+
+test('saved choices and explicit links override detection while invalid values do not block it', async () => {
+  const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+  try {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
+    localStorage.setItem(LOCALE_KEY, 'zh-Hant');
+    await initializeLocale();
+    assert.equal(getLocale(), 'zh-Hant');
+    window.history.replaceState(null, '', '/?lang=zh-Hans');
+    await initializeLocale();
+    assert.equal(getLocale(), 'zh-Hans');
+    window.history.replaceState(null, '', '/?lang=unsupported');
+    localStorage.setItem(LOCALE_KEY, 'unsupported');
+    await initializeLocale();
+    assert.equal(getLocale(), 'en');
+  } finally {
+    if (originalLanguages) Object.defineProperty(window.navigator, 'languages', originalLanguages); else Reflect.deleteProperty(window.navigator, 'languages');
+  }
+});
+
+test('browser detection still works when preference storage is unavailable', async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+  try {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, get: () => { throw new Error('Storage blocked'); } });
+    await initializeLocale();
+    assert.equal(getLocale(), 'en');
+  } finally {
+    if (original) Object.defineProperty(globalThis, 'localStorage', original);
+    if (originalLanguages) Object.defineProperty(window.navigator, 'languages', originalLanguages); else Reflect.deleteProperty(window.navigator, 'languages');
+  }
+});
+
 test('English guide catalog covers every Chinese editorial string and preserves search identity', async () => {
   await setLocale('en');
   const missing = new Set<string>();
