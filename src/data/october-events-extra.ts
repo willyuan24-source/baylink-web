@@ -261,7 +261,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "plan": [
       "16:30–18:00 到 2565 San Bruno Avenue 的 Portola 中心，不是 Mission Street 的 Excelsior 中心。",
       "活动免费；从机构网页进入报名链接，确认当时的登记与名额信息。",
-      "编辑建议选择方便做手工和走动的服装；零食种类未公布，有饮食需求先向机构确认。"
+      "所有儿童必须由成人陪同；编辑建议选择方便做手工和走动的服装，有饮食需求先向机构确认。"
     ],
     "audience": [
       "亲子家庭",
@@ -269,7 +269,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://fccenters.org/event/halloween-2026/",
     "sourceLabel": "Family Connections Centers",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-09-23",
     "imageKey": "family-workshop"
   },
   {

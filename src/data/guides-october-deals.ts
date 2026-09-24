@@ -10,8 +10,8 @@ export const octoberDealsGuides: Guide[] = [{
   audience: ['湾区亲子家庭', '想省门票的本地居民', '十月周末出行者'],
   tags: ['2026年10月', '当月优惠', '免费场馆', '亲子手工', 'Discover & Go', 'BAMPFA', 'OMCA', 'Lowe’s', 'Yogurtland', '图书馆', '南湾', '东湾', '半岛', '北湾'],
   priority: 'P0', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
-  updatedAt: '2026-09-15', editionMonth: '2026-10',
-  sourceNote: '2026-09-15 核对官方来源。BAMPFA、Lowe’s 与持卡免费周末有明确十月日期；其余免费日依场馆当前每月或每周规则换算，并在条目中注明。预约库存、门店参与及临时闭馆需出发前查看。九月剩余优惠保留原条款核对日期。',
+  updatedAt: '2026-09-23', editionMonth: '2026-10',
+  sourceNote: '2026-09-23 增补本地福利并清理过期条目。新增项目按当日官方来源整理，原有条目逐项复核；部分页面读取受限，相关条款保留 9 月 8–15 日的核查记录。每月或每周规则换算的日期在条目内注明；库存、门店参与、预约余票和临时闭馆仍需出发前确认。',
   sources: octoberOfferSources,
   blocks: [
     { type: 'freebies', title: '九月剩余优惠与十月本地福利', text: '固定日期、需要预约和消费优惠已分开。长期福利可安排到月底，预约成功与现场库存以官方页面为准。', offers: currentFreebies },

@@ -2,6 +2,7 @@ import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
 import { septemberFreebies } from './september-freebies';
 import { additionalOctoberOffers } from './october-offers-extra';
+import { autumnRefreshOffers } from './autumn-refresh-offers';
 
 // Official sources checked 2026-09-15. Monthly-rule dates are identified in the text.
 export const newOctoberOffers: FreebieOffer[] = [
@@ -72,7 +73,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     id: 'svma-free-wednesdays-october', brand: 'SONOMA VALLEY MUSEUM OF ART', title: 'Sonoma 周三免费美术馆时光',
     dateLabel: '每周三 · 11:00–17:00', availability: 'ongoing', kind: 'no-purchase',
     requirement: '周三普通入馆免费，无需会员或购买；仍需在前台登记，13 岁以下须成人陪同。',
-    description: '551 Broadway，靠近 Sonoma Town Plaza。十月周三为 10/7、14、21、28；9/8–19 换展闭馆，九月请从 9/23 周三安排。工作坊另看票价。',
+    description: '551 Broadway，靠近 Sonoma Town Plaza。十月周三为 10/7、14、21、28；现展 M. Louise Stanley 持续至 2027/1/24。工作坊另看票价。',
     imageKey: 'culture-visit', imageNote: '看展主题插图，非该馆实景', sourceUrl: 'https://svma.org/visit/', sourceLabel: 'Sonoma 美术馆免费周三与闭馆公告',
   },
   {
@@ -107,7 +108,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     id: 'santa-clara-library-parks-pass', brand: 'SANTA CLARA COUNTY PARKS', title: '借一张县公园车票，周末少付入园费',
     dateLabel: '长期福利 · 每次可借三周', availability: 'ongoing', kind: 'reservation',
     requirement: '需参与图书馆的图书证，向馆员借实体通行证；限一辆核载 15 人及以下乘用车或公路合法摩托车，库存有限。',
-    description: 'SJPL、SCCLD、Santa Clara 市、Palo Alto、Sunnyvale、Los Gatos 图书馆参与。仅 Santa Clara 县公园；不含 Uvas Canyon、Sunnyvale Baylands、露营或其他公园系统。',
+    description: 'SJPL、SCCLD、Santa Clara 市、Palo Alto、Sunnyvale、Los Gatos 与 Mountain View 图书馆参与。仅 Santa Clara 县公园；不含 Uvas Canyon、Sunnyvale Baylands、露营或其他公园系统。',
     imageKey: 'october-library-culture', imageNote: '图书馆福利主题插图，非真实公园通行证', sourceUrl: 'https://parks.santaclaracounty.gov/library-parks-pass', sourceLabel: 'Santa Clara 县图书馆公园通行证', storeUrl: 'https://parks.santaclaracounty.gov/library-parks-pass/faq',
   },
 ];
@@ -117,7 +118,8 @@ export const octoberOffers: FreebieOffer[] = [
   ...septemberFreebies.filter(offer => offer.availability === 'ongoing' || offer.startDate?.startsWith('2026-10')),
 ];
 
-export const currentFreebies: FreebieOffer[] = [...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers].map(offer => [offer.id, offer])).values()];
+export const currentFreebies: FreebieOffer[] = [...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers].map(offer => [offer.id, offer])).values()]
+  .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23');
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),

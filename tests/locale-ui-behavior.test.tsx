@@ -19,25 +19,25 @@ afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
 test('monthly search matches translated English and Traditional text while preserving the region filter', async () => {
   await setLocale('en', false);
-  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-09" /></MemoryRouter>);
-  fireEvent.change(view.getByRole('searchbox', { name: "Search this month's events" }), { target: { value: 'lion dances' } });
+  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-23" /></MemoryRouter>);
+  fireEvent.change(view.getByRole('searchbox', { name: "Search this month's events" }), { target: { value: 'bluegrass' } });
   assert.equal(view.getByRole('status').textContent, 'Found 1 event');
   assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /Chinatown Autumn Moon Festival/);
+  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /Hardly Strictly Bluegrass/);
   assert.equal(view.getByRole('button', { name: 'San Francisco', exact: true }).getAttribute('aria-pressed'), 'true');
   await act(async () => { await setLocale('zh-Hant', false); });
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索當月活動' }), { target: { value: '舞獅' } });
+  fireEvent.change(view.getByRole('searchbox', { name: '搜索當月活動' }), { target: { value: '免費音樂節' } });
   assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /舞獅/);
+  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /免費音樂節/);
 });
 
 test('monthly search accepts Traditional queries while reading Simplified Chinese', async () => {
   await setLocale('zh-Hant', false);
   await setLocale('zh-Hans', false);
-  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-11" /></MemoryRouter>);
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '舞獅' } });
+  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-23" /></MemoryRouter>);
+  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '免費音樂節' } });
   assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /中秋/);
+  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /免费音乐节/);
   assert.equal(view.getByRole('button', { name: '旧金山', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 

@@ -9,7 +9,7 @@ export const septemberOpeningGuides: Guide[] = [{
   category: 'city', categoryLabel: '新店观察', emoji: '☕',
   audience: ['想找新地方吃饭的人', '咖啡与烘焙爱好者', '周末街区散步的人'],
   tags: ['九月新店', '2026 年 9 月', '餐厅', '咖啡', '烘焙', '旧金山', 'San Jose'],
-  priority: 'P1', featuredOnHome: true, recommendedForCategories: ['other'],
+  priority: 'P1', featuredOnHome: false, recommendedForCategories: ['other'],
   readMinutes: 6, updatedAt: '2026-09-15', editionMonth: '2026-09',
   sourceNote: '2026 年 9 月 15 日清理已结束的庆典优惠，并用商家官网复核 ERIA Marina 门店；其余项目保留逐店标注的原核查日期。本文未实地探店，编辑建议不代表食评。尚未获开业确认的计划继续标为预告，不因日期到了就自动改成已开。',
   sources: [...new Map(septemberOpenings.flatMap(shop => [

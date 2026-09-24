@@ -1,12 +1,11 @@
 import type { Guide, GuideSource } from './guides';
 import { septemberFreebies, septemberFreebieSources } from './september-freebies';
+import { autumnRefreshOffers } from './autumn-refresh-offers';
 
 const sources: Record<string, GuideSource> = {
   bakery85: { title: '85°C：September Sweet Treat 官方条款', url: 'https://www.85cbakerycafe.com/menu_tag/top-picks/', description: '核对 2026 年 9 月指定咖啡与蛋糕、App 优惠券及店内兑换条件。' },
   bakery85Stores: { title: '85°C：品牌门店目录', url: 'https://85cbakerycafe.orderexperience.net/85cbakerycafe/locations', description: '查询 San Jose、Pleasanton、San Leandro 等门店地址；本优惠仍需店内兑换。' },
-  yogurtland: { title: 'Yogurtland：2026 周年优惠', url: 'https://www.yogurtland.com/news_posts/view/86/celebrating-20-years-of-yogurtland-anniversary-promo-how-you-can-join-the-fun', description: '核对每月 20 日 Real Rewards 会员到店八折的参与范围和排除项。' },
-  yogurtlandStores: { title: 'Yogurtland：官方门店查询', url: 'https://www.yogurtland.com/locations', description: '查湾区门店；有门店不代表已逐店确认参加本次优惠。' },
-  peetsOffers: { title: 'Peet’s：Current Offers', url: 'https://www.peets.com/pages/current-offers', description: '核对 9/25/26 的 $1 小杯冷萃，以及 9/1–30 可购买的 $30 冷萃月卡；两项的杯型、期限与门店限制不同。' },
+  peetsOffers: { title: 'Peet’s：Current Offers', url: 'https://www.peets.com/pages/current-offers', description: '9/23 复核：9/25 的 $1 小杯冷萃、9/29 的 $0.25 中杯滴滤咖啡，以及 9/1–30 可购买的 $30 冷萃月卡；杯型、期限与渠道限制分别适用。' },
   starbucksRefills: { title: 'Starbucks：堂食续杯政策', url: 'https://about.starbucks.com/back-to-starbucks/', description: '核对同次堂食的免费冲煮咖啡／茶续杯，以及 Cold Brew、调味茶等排除项。' },
   starbucksCups: { title: 'Starbucks：堂食杯与自带杯说明', url: 'https://about.starbucks.com/a-better-cup-for-all/', description: '了解堂食杯选项；先买饮品在店内享用，适用门店可续指定咖啡或茶。' },
   peetsStore: { title: 'Peet’s：Berkeley Vine Street 门店', url: 'https://www.peets.com/pages/store/vine-street', description: '查地址、当天营业时间和 Peetnik Rewards；活动参与资格仍需向门店确认。' },
@@ -25,23 +24,23 @@ const official = (key: keyof typeof sources) => ({ type: 'link' as const, title:
 
 export const monthlyDealsGuides: Guide[] = [{
   slug: 'bay-area-freebies-deals-2026-09',
-  title: '2026 年 9 月下半月湾区优惠：Target 样品盒与 $1 冷萃',
+  title: '2026 年 9 月剩余湾区优惠：Target 样品盒、$1 冷萃与 25¢ 咖啡',
   subtitle: '九月剩余优惠、亲子手工与日常会员福利',
-  summary: '9/20 Yogurtland 八折、9/25 Peet’s $1 冷萃、9/26 Target 样品盒与 Michaels 手工，再看冷萃月卡和 Starbucks 堂食续杯。已移除结束的赠品与开业买赠，写清日期、消费与会员门槛。',
+  summary: '9/25 Peet’s $1 冷萃、9/26 Target 样品盒与 Michaels 手工、9/29 Peet’s 25¢ 中杯滴滤咖啡，再看 9/30 截止购买的冷萃月卡。写清日期、消费与会员门槛。',
   category: 'events', categoryLabel: '生活活动', emoji: '🎁',
   audience: ['湾区日常生活用户', '亲子家庭', '想顺路领取小福利的人'],
   tags: ['2026年9月', '当月优惠', 'freebie', '免费领取', '试用装', '亲子手工', 'Target', 'Lowe’s', 'Lowes', 'Michaels', 'Home Depot', '买赠', '咖啡', '甜点', '生日礼', '85°C', '85度C', 'Peet’s', 'Yogurtland', 'IKEA', 'Sephora', 'Starbucks', '冷萃月卡', '堂食续杯'],
   priority: 'P1', featuredOnHome: false, recommendedForCategories: ['other'],
-  readMinutes: 12, updatedAt: '2026-09-15', editionMonth: '2026-09',
-  sourceNote: 'BAYLINK 编辑于 2026-09-15 清理 9/12 已结束活动及 9/15 限量蛋糕领取，保留仍有效的九月优惠。原优惠条款核对时间为 9 月 8–11 日；库存与参与门店须再看官方入口。十月本地免费日与新优惠请见十月攻略。',
+  readMinutes: 12, updatedAt: '2026-09-23', editionMonth: '2026-09',
+  sourceNote: '2026-09-23 清理 9/20 过期优惠并新增 9/29 咖啡优惠；复核 Peet’s、85°C、Target、Lowe’s、IKEA、Sephora 与 Starbucks 主要条款。Michaels 与 Home Depot 具体项目、Target 门店名单沿用 9 月 8–15 日记录；库存与参与门店出发前再查。',
   sources: [...new Map([...Object.values(sources), ...septemberFreebieSources].map(source => [source.url, source])).values()],
   blocks: [
-    { type: 'freebies', title: '免费领取与顺路优惠图鉴', text: '先看九月剩余日期，再看日常福利；免费、预约和消费优惠分开筛选。十月手工可提前预约。', offers: septemberFreebies },
+    { type: 'freebies', title: '免费领取与顺路优惠图鉴', text: '先看九月剩余日期，再看日常福利；免费、预约和消费优惠分开筛选。十月手工可提前预约。', offers: [...septemberFreebies, ...autumnRefreshOffers.filter(offer => offer.id === 'peets-coffee-day-sep29')] },
     { type: 'paragraph', text: '一杯原本就想喝的咖啡，刚好能搭上一块优惠蛋糕；一次本来就要去的商场行程，也许顺路能领生日礼。这篇把值得留意的条件放在价格旁边：先判断自己是否用得上，再决定要不要出门。以下日期和时间均按湾区当地时间阅读。' },
     { type: 'heading', text: '咖啡甜点时间表：限时优惠和日常福利分开看' },
     { type: 'list', items: [
       '9 月 1–30 日｜85°C：购买指定咖啡，加 $1 换指定蛋糕切片。需 App、需消费，每会员一次。',
-      '9 月 20 日｜Yogurtland：Real Rewards 会员在参与门店到店消费八折。不是整月折扣。',
+      '9 月 29 日｜Peet’s：店内中杯滴滤咖啡 $0.25，每人一杯；加料另付，不适用 App 点单。',
       '9 月 25 日 12:00 至打烊｜Peet’s：结账提 ORANGE FRIDAY，$1 买小杯冷萃。仅参与的北加州咖啡吧。',
       '9 月 1–30 日可购｜Peet’s：App 会员付 $30 买冷萃月卡，购买起连续 30 天每天一杯中杯，当天不用不累计。',
       '日常堂食｜Starbucks：先购买并在店内享用首杯饮品，同次到店期间可续指定冲煮咖啡或茶，不含拿铁和 Cold Brew。',
@@ -56,14 +55,14 @@ export const monthlyDealsGuides: Guide[] = [{
       '湾区线索：San Jose 店位于 1183 S. De Anza Blvd., Ste. 10。品牌目录也可查 Pleasanton 与 San Leandro；目录里的线上点餐入口不能代替本券的店内兑换。',
     ] },
     official('bakery85'),
-    { type: 'heading', text: '9/20｜Yogurtland：会员到店八折' },
-    { type: 'paragraph', text: 'Yogurtland 的 20 周年活动规定，2026 年每月 20 日，Real Rewards 会员在参与门店的到店消费可享 20% off。九月对应的是 9 月 20 日周日，按正常价格买一份自己吃得完的，再使用折扣即可。' },
+    { type: 'heading', text: '9/29｜Peet’s：25¢ 中杯滴滤咖啡' },
+    { type: 'paragraph', text: 'Peet’s 官方公布 2026 年 9 月 29 日 National Coffee Day 店内中杯滴滤咖啡 $0.25。它是单日付费特价，饮品是 drip coffee；不是拿铁、冷萃或整月优惠。' },
     { type: 'list', items: [
-      '怎么拿：可当天注册 Real Rewards；结账出示 App 或账户手机号。',
-      '限制：需要消费，不能叠加优惠；不含线上订单、第三方配送、团餐和礼品卡。',
-      '湾区线索：官网列有 San Jose Village Oaks，5638 Cottle Road，也可查 Cupertino、Fremont 等门店。先确认所选店参加活动，再决定路线。',
+      '怎么拿：9/29 到 Peet’s 自营零售咖啡店柜台购买，每位顾客限一杯。公开条款未列会员要求。',
+      '限制：加料另收费，不能叠加其他优惠；不适用官网或 App 订单，也不适用机场、超市和其他授权店。',
+      '湾区线索：从官方门店目录寻找附近 retail coffeebar，出发前确认营业时间与参与情况。',
     ] },
-    official('yogurtland'),
+    official('peetsOffers'),
     { type: 'heading', text: '9/25｜Peet’s：午后 $1 小杯冷萃' },
     { type: 'paragraph', text: 'Orange Friday 的本月日期是 9 月 25 日周五，时间为中午 12:00 至门店打烊。到参与活动的北加州 Peet’s retail coffeebar，结账时提 ORANGE FRIDAY，可用 $1 买一杯 small Cold Brew。' },
     { type: 'list', items: [

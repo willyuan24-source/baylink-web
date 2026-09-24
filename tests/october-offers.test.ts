@@ -11,6 +11,7 @@ import { monthlyDealsGuides } from '../src/data/guides-deals';
 import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
+import { autumnRefreshOffers } from '../src/data/autumn-refresh-offers';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
@@ -24,10 +25,10 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid September anchors and includes both October benefit batches', () => {
-  assert.equal(currentFreebies.length, 33);
+  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
-  assert.equal(new Set(currentFreebies.map(item => item.id)).size, 33);
+  assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
   const board = octoberDealsGuides[0].blocks.find(block => block.type === 'freebies');
   assert.ok(board?.type === 'freebies');
   for (const id of ['peets-orange-friday-sep25', 'target-beauty-sep26', 'michaels-ghosts-sep26', 'bampfa-free-oct1']) {
@@ -224,8 +225,8 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-09-15');
-  assert.match(guide.sourceNote || '', /2026-09-15 核对官方来源/);
+  assert.equal(guide.updatedAt, '2026-09-23');
+  assert.match(guide.sourceNote || '', /部分页面读取受限，相关条款保留 9 月 8–15 日的核查记录/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);
   assert.ok(guide.sources.every(source => source.title && source.description && new URL(source.url).protocol === 'https:'));
 });

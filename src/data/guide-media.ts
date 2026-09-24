@@ -16,6 +16,7 @@ import octoberMedia from './october-media.json';
 import communityEditorialMedia from './community-editorial-media.json';
 import communityOpeningMedia from './community-opening-media.json';
 import communityPlaceMedia from './community-place-media.json';
+import autumnGuideMedia from './autumn-guide-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -56,12 +57,23 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-october-muni-clipper-payment-update-2026': ['autumn-clipper', 'train'],
+  'sf-sunset-dunes-october-coastal-walk-2026': ['autumn-sunset', 'weekend'],
+  'san-mateo-japanese-garden-october-guide-2026': ['autumn-sanmateo', 'garden-walk'],
+  'alviso-marina-october-birdwatching-guide-2026': ['autumn-alviso', 'weekend'],
+  'fremont-ardenwood-october-farm-guide-2026': ['autumn-ardenwood', 'october-family-nature'],
+  'richmond-rosie-free-history-october-guide-2026': ['autumn-rosie', 'culture-visit'],
+  'martinez-shoreline-october-short-walk-guide-2026': ['autumn-martinez', 'weekend'],
+  'pleasanton-saturday-market-museum-guide-october-2026': ['autumn-pleasanton', 'everyday'],
+  'marin-sunday-market-october-local-guide-2026': ['autumn-marin', 'neighborhood-table'],
+  'sonoma-plaza-history-october-day-guide-2026': ['autumn-sonoma', 'culture-visit'],
+  'napa-bothe-october-redwood-picnic-guide-2026': ['autumn-napa', 'weekend'],
   'bay-area-october-weekend-planner-2026': ['autumn-neighbors', 'coast'],
   'half-moon-bay-october-pumpkin-coast-guide-2026': ['fresh-hmb-pumpkins', 'coast'],
   'san-jose-october-family-history-farm-guide-2026': ['community-history-park', 'october-family-nature'],

@@ -27,7 +27,7 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
     category: '越南碎米饭', status: 'open', openingType: 'new-restaurant', openedOn: '2026-08-10',
     dateLabel: '8/10 已开业 · 目前仅周一至周五',
     summary: 'Oakland 市中心的新越南餐厅，以 cơm tấm 碎米饭、烤肉和米粉碗为主，也有越南咖啡、鲜榨果汁与甜品。位置就在 12th Street BART 出口旁。',
-    editorTip: '官网公告周末暂休；同一联系页的中午开门时间有 11 点与 12 点两种写法，出发前致电 510-250-7701 确认，别专程安排周末。',
+    editorTip: '官网仍公告周末暂休；联系页目前同时写有 11:30 与 12:00 两种开门时间，出发前致电 510-250-7701 确认，别专程安排周末。',
     address: '1312 Broadway, Oakland, CA 94612',
     officialUrl: 'https://www.brokendreamsoakland.com/', sourceUrl: 'https://www.brokendreamsoakland.com/contact',
     sourceLabel: 'Broken Dreams 官方开业日期与临时营业安排', verifiedAt: '2026-09-15', imageKey: 'opening-broken-dreams',

@@ -48,9 +48,9 @@ export const septemberOpenings: SeptemberOpening[] = [
   {
     id: 'florecita-mission', name: 'Florecita Panadería', city: 'San Francisco', region: 'sf',
     category: '迁址预告 · 墨西哥烘焙', status: 'announced', openingType: 'relocation',
-    dateLabel: '计划 9 月 20 日 · 日期需复核',
+    dateLabel: '迁址开放待确认 · 原计划日期已过',
     summary: '以 concha 甜面包为特色的烘焙店，计划迁到 Mission 更大的新址，并增加咖啡与堂食空间。属于原有品牌迁址，不是全新品牌。',
-    editorTip: '早期报道写 9 月 12 日，8 月 31 日报道改为 9 月 20 日。先查看商家公告再安排，暂不标为已开。',
+    editorTip: '原报道中的 9 月 20 日已过，目前仍未取得新址正式开放的确认。先查商家最新公告，再安排到店。',
     address: '3349 23rd Street, San Francisco, CA 94110',
     officialUrl: 'https://www.florecitapanaderia.com/',
     sourceUrl: 'https://sfstandard.com/2026/08/31/new-sf-restaurants-bakeries/',

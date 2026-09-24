@@ -5,6 +5,8 @@ import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { LocalDiscovery } from '../src/data/local-discoveries';
+import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { currentFreebies } from '../src/data/october-offers';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/this-month' });
 const globals = {
@@ -67,12 +69,12 @@ after(() => {
   }
 });
 
-test('all 99 discoveries have unique IDs and category-specific routes that resolve back to the same record', () => {
-  assert.equal(localDiscoveries.length, 99);
+test('all published discoveries have unique IDs and category-specific routes that resolve back to the same record', () => {
+  assert.ok(localDiscoveries.length >= 99);
   assert.deepEqual(localDiscoveries.reduce<Record<string, number>>((counts, item) => {
     counts[item.kind] = (counts[item.kind] || 0) + 1;
     return counts;
-  }, {}), { event: 55, offer: 33, opening: 11 });
+  }, {}), { event: MONTHLY_EVENTS.length, offer: currentFreebies.length, opening: 11 });
   const ids = new Set<string>(), paths = new Set<string>();
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
@@ -155,8 +157,8 @@ test('every public discovery has a unique same-site PNG share URL without requir
     assert.equal(urls.has(url.href), false);
     urls.add(url.href);
   }
-  assert.equal(paths.size, 99);
-  assert.equal(urls.size, 99);
+  assert.equal(paths.size, localDiscoveries.length);
+  assert.equal(urls.size, localDiscoveries.length);
 });
 
 test('all detail pages server-render full content with matching canonical, OG, Twitter and Article metadata', t => {

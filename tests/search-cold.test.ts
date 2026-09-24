@@ -10,8 +10,8 @@ test('traditional queries work on a cold page and keep the same rules after ever
   const examples = [
     { query: '金門大橋', simplified: '金门大桥', kind: 'attractions', id: 'golden-gate' },
     { query: '房貸', simplified: '房贷', kind: 'tools', id: 'loan' },
-    { query: '鋼琴', simplified: '钢琴', kind: 'events', id: 'flower-piano-2026' },
-    { query: '淨灘', simplified: '净滩', kind: 'events', id: 'treasure-island-coastal-cleanup-2026' },
+    { query: 'Petaluma 迷宮', simplified: 'Petaluma 迷宫', kind: 'events', id: 'petaluma-pumpkin-patch-2026' },
+    { query: 'Mill Valley 電影', simplified: 'Mill Valley 电影', kind: 'events', id: 'mill-valley-film-festival-2026' },
     { query: '攝氏', simplified: '摄氏', kind: 'tools', id: 'units' },
   ] as const;
   const locales: Locale[] = ['zh-Hans', 'en', 'zh-Hant'];

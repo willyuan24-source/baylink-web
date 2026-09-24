@@ -80,10 +80,9 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const today = suppliedToday || localToday;
   const selection = discoveries.find(item => item.id === intent)!;
   const hero = findGuide(selection.hero);
-  const freshCleanup = today >= '2026-09-09' && today <= '2026-09-19';
   const pumpkinSeason = today >= '2026-09-09' && today <= '2026-11-15';
   const pickSlugs = intent === 'weekend' ? [
-    freshCleanup ? ['bay-area-coastal-cleanup-2026-guide'] : selection.picks[0],
+    selection.picks[0],
     pumpkinSeason ? ['half-moon-bay-pumpkin-season-2026-guide'] : selection.picks[1],
     today <= '2026-10-31' ? ['bay-area-october-weekend-planner-2026'] : selection.picks[2],
   ] : selection.picks;
@@ -137,7 +136,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
         </div>
       </div>
 
-      <div className="home-discovery-picks-heading"><p aria-live="polite">{intent === 'weekend' && freshCleanup ? '海边做件小事，农场看看秋天，再提前安排十月周末。' : selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
+      <div className="home-discovery-picks-heading"><p aria-live="polite">{selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
       <div className="home-discovery-picks">{picks.map(guide => <Link to={`/guides/${guide.slug}`} className="home-discovery-pick" key={guide.slug} aria-label={`阅读：${guide.title}`}><DiscoveryImage image={getGuideMedia(guide).cover} /><div><span>{guide.categoryLabel} · {guide.readMinutes} 分钟</span><h3>{guide.title}</h3><ArrowUpRight size={17} aria-hidden="true" /></div></Link>)}</div>
     </div>
 

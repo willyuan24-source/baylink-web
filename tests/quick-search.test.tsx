@@ -15,16 +15,16 @@ afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 test('quick discovery finds tools, upcoming events and attractions with multilingual queries', async () => {
   assert.equal(searchQuickDestinations('房贷', 'zh-Hans').tools[0].id, 'loan');
   assert.equal(searchQuickDestinations('mortgage', 'zh-Hans').tools[0].id, 'loan');
-  assert.equal(searchQuickDestinations('钢琴', 'zh-Hans', '2026-09-09').events[0].id, 'flower-piano-2026');
-  assert.equal(searchQuickDestinations('钢琴', 'zh-Hans', '2026-09-21').events.length, 0);
-  assert.equal(searchQuickDestinations('净滩', 'zh-Hans', '2026-09-09').events[0].id, 'treasure-island-coastal-cleanup-2026');
+  assert.equal(searchQuickDestinations('Petaluma 南瓜', 'zh-Hans', '2026-09-23').events[0].id, 'petaluma-pumpkin-patch-2026');
+  assert.equal(searchQuickDestinations('Petaluma 南瓜', 'zh-Hans', '2026-11-01').events.length, 0);
+  assert.equal(searchQuickDestinations('Coastal Cleanup', 'zh-Hans', '2026-09-23').events.length, 0);
   assert.equal(searchQuickDestinations('金门大桥', 'zh-Hans').attractions[0].id, 'golden-gate');
   assert.equal(searchQuickDestinations('no-such-place-123', 'zh-Hans').attractions.length, 0);
   assert.equal(searchQuickDestinations('', 'zh-Hans').tools.length, 0);
   await setLocale('zh-Hant', false);
   assert.equal(searchQuickDestinations('金門大橋', 'zh-Hant').attractions[0].id, 'golden-gate');
   await setLocale('en', false);
-  assert.equal(searchQuickDestinations('piano', 'en', '2026-09-09').events[0].id, 'flower-piano-2026');
+  assert.equal(searchQuickDestinations('Petaluma pumpkin', 'en', '2026-09-23').events[0].id, 'petaluma-pumpkin-patch-2026');
 });
 
 test('keyboard opens the matching tool and IME enter never navigates', () => {

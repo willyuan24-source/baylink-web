@@ -99,7 +99,7 @@ const assertResultTitles = (view: ReturnType<typeof render>, ids: string[]) => {
 
 test('monthly edition exposes every activity through pagination with named official links and accurate source labels', () => {
   const view = render(edition());
-  assert.ok(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'));
+  assert.equal(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'), false);
   assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
   assert.ok(view.getByText('秋季湾区精选'));
   assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
@@ -186,12 +186,12 @@ test('region, free admission and keyword filters combine and clearing a search r
   assert.ok(southBayFree.includes('sunnyvale-diwali-2026'));
   assert.ok(!southBayFree.includes('mountain-view-art-wine-2026'));
   assertResultTitles(view, southBayFree);
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'bArK' } });
-  assertResultTitles(view, ['bark-in-the-park-san-jose-2026']);
+  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'DiWaLi' } });
+  assertResultTitles(view, ['sunnyvale-diwali-2026']);
   const params = queryParams(view);
   assert.equal(params.get('region'), 'south-bay');
   assert.equal(params.get('cost'), 'free');
-  assert.equal(params.get('q'), 'bArK');
+  assert.equal(params.get('q'), 'DiWaLi');
   fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '' } });
   assertResultTitles(view, southBayFree);
   assert.equal(queryParams(view).has('q'), false);
@@ -202,7 +202,7 @@ test('URL filter choices survive unmounting and revisiting the resulting address
   const first = render(edition());
   fireEvent.click(first.getByRole('button', { name: '东湾', exact: true }));
   fireEvent.change(first.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  fireEvent.change(first.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Lafayette' } });
+  fireEvent.change(first.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Oaktoberfest' } });
   fireEvent.click(first.getByRole('checkbox', { name: '也看已结束活动' }));
   const savedUrl = first.getByTestId('current-route').textContent!;
   assert.equal(new URL(savedUrl, 'http://localhost').searchParams.get('includeEnded'), '1');
@@ -211,9 +211,9 @@ test('URL filter choices survive unmounting and revisiting the resulting address
   const revisited = render(edition('2026-09-15', savedUrl));
   assert.equal(revisited.getByRole('button', { name: '东湾', exact: true }).getAttribute('aria-pressed'), 'true');
   assert.equal((revisited.getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'free');
-  assert.equal((revisited.getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, 'Lafayette');
+  assert.equal((revisited.getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, 'Oaktoberfest');
   assert.equal((revisited.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, true);
-  assertResultTitles(revisited, ['lafayette-art-wine-2026']);
+  assertResultTitles(revisited, ['oakland-oaktoberfest-2026']);
 });
 
 test('date shortcuts combine with region, cost and search, and a shared weekend URL restores the selection', () => {
@@ -260,16 +260,16 @@ test('next seven days shows its inclusive date range and invalid date parameters
   assert.ok(view.getByText('包含今天'));
   assert.equal(queryParams(view).get('when'), 'next7');
   assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-10-25', '2026-10-31']);
-  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'santa-rosa-pumpkins-parks-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'emeryville-art-exhibition-closing-2026', 'menlo-park-trunk-or-treat-2026', 'benicia-farmers-market-final-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026']);
+  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'santa-rosa-pumpkins-parks-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'emeryville-art-exhibition-closing-2026', 'menlo-park-trunk-or-treat-2026', 'benicia-farmers-market-final-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026', 'napa-harvest-after-dark-2026', 'oakland-omca-dia-muertos-2026', 'oakland-omca-friday-finale-2026', 'palo-alto-addams-family-opening-2026', 'sunnyvale-spooky-storywalk-2026']);
 });
 
 test('new regional activities keep mixed-cost registration and ticketed events out of free-admission results', () => {
   const view = render(edition('2026-09-15', '/this-month?when=september'));
   fireEvent.click(view.getByRole('button', { name: '北湾', exact: true }));
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  assertResultTitles(view, ['san-rafael-porchfest-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
+  assertResultTitles(view, ['petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
-  assertResultTitles(view, ['mill-valley-fall-arts-2026', 'san-rafael-porchfest-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
+  assertResultTitles(view, ['sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026', 'petaluma-pumpkin-patch-2026', 'novato-youth-folk-dance-2026']);
   const farm = within(view.getByRole('article', { name: item('sonoma-farm-trails-fall-tour-2026').title, exact: true }));
   assert.ok(farm.getByText('免费登记且必须登记 · 部分农场体验另收费或预约'));
   fireEvent.click(view.getByRole('button', { name: '半岛', exact: true }));
@@ -314,7 +314,7 @@ test('every October weekend including Halloween has a published activity and exc
     view.unmount();
   }
   const halloween = render(edition('2026-10-31', '/this-month?when=today'));
-  assertResultTitles(halloween, ['petaluma-pumpkin-patch-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026']);
+  assertResultTitles(halloween, ['palo-alto-addams-family-opening-2026', 'petaluma-pumpkin-patch-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026']);
 });
 
 test('empty filter results offer a working reset while keeping the three place recommendations available', () => {
@@ -446,14 +446,14 @@ test('server HTML limits the first page to six real activities and preserves ful
 
 test('load more reveals twelve additional cards without changing totals and filters reset the first page', () => {
   const view = render(edition());
-  assert.equal(MONTHLY_EVENTS.length, 55, '41 reviewed activities plus the new 14-event batch');
+  assert.ok(MONTHLY_EVENTS.length >= 30, 'enough published activities to exercise three pages');
   assert.equal(eventCards(view).length, 6);
-  assert.match(view.getByRole('status').textContent!, /找到\s*55\s*场活动/);
+  assert.ok(view.getByRole('status').textContent!.includes(`找到 ${MONTHLY_EVENTS.length} 场活动`));
   fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
   assert.equal(eventCards(view).length, 18);
   fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
   assert.equal(eventCards(view).length, 30);
-  assert.match(view.getByRole('status').textContent!, /找到\s*55\s*场活动/);
+  assert.ok(view.getByRole('status').textContent!.includes(`找到 ${MONTHLY_EVENTS.length} 场活动`));
   fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'family' } });
   const families = MONTHLY_EVENTS.filter(event => event.category === 'family');
   assert.equal(eventCards(view).length, Math.min(6, families.length), 'changing type returns to the initial page');

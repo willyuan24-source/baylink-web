@@ -98,7 +98,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "summary": "金门公园的草地音乐节回到十月第一个周末。可以只挑半天和一两个舞台，带着野餐垫听音乐；不用先买音乐节门票。",
     "plan": [
       "周五入口 11:00 开放，周六、周日 09:00 开放；每天演出至 19:00。",
-      "官方计划 9 月 23 日发布详细时间表；出发前核对 2026 场次与入口、携包要求。",
+      "2026 演出时间表与可打印日程已上线；先选舞台和场次，再核对入口与携包要求。",
       "官方鼓励公共交通；自行车和滑板等不能带入场内，骑车者先查外围停放点。"
     ],
     "audience": [
@@ -108,7 +108,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://hardlystrictlybluegrass.com/info-faq-2026/",
     "sourceLabel": "Hardly Strictly Bluegrass",
     "relatedGuideSlug": "golden-gate-park-free-car-free-day-guide",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-09-23",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -532,11 +532,11 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "venue": "All Out Comedy Theater · Uptown Oakland",
     "category": "culture",
     "cost": "paid",
-    "costLabel": "演出与工作坊分别报名 · 演出票 10 月 1 日开售",
+    "costLabel": "演出票已开售 · 工作坊另行报名，部分已满",
     "summary": "第二届音乐即兴剧节把湾区与外地团队带到 Uptown Oakland，现场看故事和歌曲即兴成形。除了观演，也可选择适合自身经验的工作坊。",
     "plan": [
       "节期 10 月 22–25 日；主办方列有九场演出和多项工作坊，具体安排按官网选择。",
-      "官网标注演出票 10 月 1 日开售、工作坊 9 月 9 日起报名；票种和容量不同，分别确认。",
+      "官网已开放演出票；工作坊页有部分售罄标记，报名时分别核对经验要求、票价及剩余名额。",
       "编辑建议初次体验先选一场演出，想参与即兴再看工作坊要求；晚场预留回程交通。"
     ],
     "audience": [
@@ -545,7 +545,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://bayareamusicalimprov.com/festival",
     "sourceLabel": "Bay Area Musical Improv",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-09-23",
     "imageKey": ""
   },
   {
@@ -559,12 +559,12 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "venue": "Downtown Event Center & Plaza",
     "category": "family",
     "cost": "paid",
-    "costLabel": "室内讨糖须预售票 · 其他项目按现场票价",
+    "costLabel": "室内讨糖每名儿童 $15、仅预售 · 其他项目另付",
     "summary": "市府与 Fremont 商会合办万圣节晚间活动，有音乐、餐车、摊位和装扮比赛。室内讨糖采用预售票，适合先买好票再带孩子穿好服装出门。",
     "plan": [
       "10 月 23 日 17:00–21:00，在 Downtown Event Center & Plaza 举行。",
-      "室内讨糖预售票于 9 月 21 日 09:00 开卖；其他项目另有现场票，不把室内票视为全项目通票。",
-      "编辑建议提前选好入场安排、给孩子准备装糖袋；餐车消费与活动票分开预算。"
+      "室内讨糖面向 2–10 岁儿童，须成人陪同；每票预约 30 分钟，含 20 处讨糖、礼袋及 10 项嘉年华游戏。",
+      "预售于 9 月 21 日 09:00 开始，名额有限；先确认仍可购买的时段，餐车与其他现场项目另列预算。"
     ],
     "audience": [
       "亲子家庭",
@@ -572,7 +572,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.fremont.gov/government/departments/parks-recreation/events/trick-or-treat-event",
     "sourceLabel": "City of Fremont",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-09-23",
     "imageKey": "autumn-neighbors"
   },
   {

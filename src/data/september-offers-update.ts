@@ -1,17 +1,7 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
 
-// Checked against official sources on 2026-09-11. Merge by id: four entries refresh existing cards.
+// Original terms checked 2026-09-11; expired 9/20 card removed 2026-09-23.
 export const verifiedSeptemberOffers: FreebieOffer[] = [
-  {
-    id: 'yogurtland-anniversary-sep20', brand: 'YOGURTLAND', title: '20 号的冰酸奶，会员打八折',
-    dateLabel: '9/20 周日 · 门店营业时间', startDate: '2026-09-20', endDate: '2026-09-20',
-    availability: 'dated', kind: 'purchase',
-    requirement: 'Real Rewards 会员店内消费享 20% off；可当天加入。不能叠加其他优惠。',
-    description: '2026 周年福利每月 20 日有效。Alameda、Fremont、Cupertino 等有门店，参与情况先问店员；不含网单、外送、餐饮承办和礼品卡。',
-    imageKey: 'sep26-yogurtland-20', imageNote: '官方产品资料图；口味、配料和库存按门店供应',
-    sourceUrl: 'https://www.yogurtland.com/news_posts/view/86/celebrating-20-years-of-yogurtland-anniversary-promo-how-you-can-join-the-fun', sourceLabel: '2026 周年优惠条款',
-    storeUrl: 'https://www.yogurtland.com/locations',
-  },
   {
     id: 'peets-orange-friday-sep25', brand: 'PEET’S', title: '一句暗号，$1 小杯冷萃',
     dateLabel: '9/25 周五 · 12:00 至打烊', startDate: '2026-09-25', endDate: '2026-09-25',

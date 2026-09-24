@@ -4,12 +4,14 @@ import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { additionalOctoberEvents } from '../src/data/october-events-extra';
+import { regionalSeptemberEvents } from '../src/data/monthly-region-events';
 import extraEnglish from '../src/data/october-events-extra-en.json';
+import refreshedEnglish from '../src/data/autumn-refresh-events-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
 const event = (id: string): MonthlyEvent => {
-  const found = MONTHLY_EVENTS.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
+  const found = MONTHLY_EVENTS.find(item => item.id === id) || regionalSeptemberEvents.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
   assert.ok(found, `Missing event ${id}`);
   return found;
 };
@@ -208,11 +210,7 @@ test('calendar text escaping preserves Chinese, commas, semicolons, backslashes 
 test('published activities have unique IDs, valid fall dates and traceable source metadata', () => {
   const publishedIds = new Set(MONTHLY_EVENTS.map(item => item.id));
   for (const expectedId of [
-    'flower-piano-2026', 'muni-heritage-2026', 'sf-autumn-moon-2026', 'portola-2026',
-    'lafayette-art-wine-2026', 'bark-in-the-park-san-jose-2026', 'mill-valley-fall-arts-2026',
-    'treasure-island-coastal-cleanup-2026',
-    'newark-days-2026',
-    'santa-clara-art-wine-2026', 'san-rafael-porchfest-2026', 'redwood-oktoberfest-closing-weekend-2026',
+    'portola-2026', 'redwood-oktoberfest-closing-weekend-2026',
     'pacific-coast-fog-fest-2026', 'presidio-chuseok-festival-2026', 'sonoma-farm-trails-fall-tour-2026', 'petaluma-fall-antique-faire-2026',
   ]) assert.ok(publishedIds.has(expectedId), `${expectedId} stays available as the edition grows`);
   assert.equal(publishedIds.size, MONTHLY_EVENTS.length);
@@ -230,13 +228,13 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= '2026-09-15' && item.endDate <= '2026-10-31', item.id);
+    assert.ok(item.endDate >= MONTHLY_EDITION.checkedAt && item.endDate <= '2026-10-31', item.id);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     assert.equal(item.plan.length, 3);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }
-  assert.equal(event('treasure-island-coastal-cleanup-2026').verifiedAt, '2026-09-09');
+  assert.ok(!publishedIds.has('treasure-island-coastal-cleanup-2026'), 'ended cleanup is no longer published');
 });
 
 test('published activities reference available guide images and existing related articles', () => {
@@ -253,11 +251,11 @@ test('explicit month filters include October 31 and remove September events from
   assert.deepEqual(getMonthlyDateRange('september', '2026-10-15'), { start: '2026-09-01', end: '2026-09-30' });
   assert.deepEqual(getMonthlyDateRange('october', '2026-09-15'), { start: '2026-10-01', end: '2026-10-31' });
   const october = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15');
-  assert.equal(october.length, 38);
+  assert.equal(october.length, 57);
   assert.ok(october.every(item => item.endDate >= '2026-10-01'));
   assert.ok(october.some(item => item.endDate === '2026-10-31'));
   const september = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'september' }, '2026-09-15');
-  assert.equal(september.length, 18);
+  assert.equal(september.length, 9);
   assert.ok(september.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.ok(!october.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.deepEqual(ids(september.filter(item => october.some(other => other.id === item.id))), ['petaluma-pumpkin-patch-2026']);
@@ -272,7 +270,7 @@ test('late October dates retain verified community events and respect their fina
   }
   assert.ok(!filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-26').some(item => item.id === 'emeryville-art-exhibition-closing-2026'));
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-31')), [
-    'petaluma-pumpkin-patch-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026',
+    'palo-alto-addams-family-opening-2026', 'petaluma-pumpkin-patch-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026',
   ]);
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01'), []);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
@@ -282,7 +280,7 @@ test('late October dates retain verified community events and respect their fina
 
 test('new community listings retain complete English text and clearly identify any illustrative media', () => {
   assert.equal(additionalOctoberEvents.length, 14);
-  const mapping = extraEnglish as Record<string, string>;
+  const mapping: Record<string, string> = { ...extraEnglish, ...refreshedEnglish };
   const texts = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(texts) : value && typeof value === 'object' ? Object.values(value).flatMap(texts) : [];
   for (const added of additionalOctoberEvents) {
     assert.equal(MONTHLY_EVENTS.filter(item => item.id === added.id).length, 1, added.id);
@@ -293,7 +291,7 @@ test('new community listings retain complete English text and clearly identify a
       assert.match(image.caption, /插图|插画/);
       assert.match(image.caption, /非|不代表|虚构|示意/);
     }
-    assert.equal(added.verifiedAt, '2026-09-15');
+    assert.equal(added.verifiedAt, added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
       assert.ok(mapping[value], 'English mapping exists: ' + value);
       assert.doesNotMatch(mapping[value], /[\u4e00-\u9fff]/, 'English text must not retain untranslated Chinese');
