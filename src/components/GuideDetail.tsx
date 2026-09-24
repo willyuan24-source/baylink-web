@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
+import { SaveToWeek } from './SaveToWeek';
 import {
   ArrowLeft,
   ArrowRight,
@@ -203,6 +204,7 @@ const GuideDetailSession = ({
           </div>
           {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} checkedAt={guide.updatedAt} today={today} />}
           <GuideReaderActions guide={guide} onAsk={onAsk} />
+          <SaveToWeek favorite={{ kind: 'guide', id: guide.slug }} />
           <GuideFigure image={media.cover} variant="cover" />
           <div className="bl-guide-abstract">
             <span>这篇指南，帮你理清</span>

@@ -149,7 +149,7 @@ test('monthly media files and credits are valid and only declared theme illustra
     if (keys.has(event.imageKey)) {
       assert.equal(image.kind, 'illustration', `${event.id} must not borrow another event's photo or poster`);
       assert.match(image.caption, /插图|插画/);
-      assert.match(image.caption, /非|不代表|虚构|示意/);
+      assert.match(image.caption, /非|不代表|不对应.*真实活动|虚构|示意/);
     }
     keys.add(event.imageKey);
     assert.match(image.src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
@@ -274,9 +274,9 @@ test('new regional activities keep mixed-cost registration and ticketed events o
   assert.ok(farm.getByText('免费登记且必须登记 · 部分农场体验另收费或预约'));
   fireEvent.click(view.getByRole('button', { name: '半岛', exact: true }));
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  assertResultTitles(view, ['pacific-coast-fog-fest-2026']);
+  assertResultTitles(view, ['pacific-coast-fog-fest-2026', 'pyladies-snowflake-ai-data-2026']);
   fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
-  assertResultTitles(view, ['pacific-coast-fog-fest-2026', 'redwood-oktoberfest-closing-weekend-2026']);
+  assertResultTitles(view, ['pacific-coast-fog-fest-2026', 'pyladies-snowflake-ai-data-2026', 'redwood-oktoberfest-closing-weekend-2026']);
 });
 
 test('September and October shortcuts persist in URLs and include events spanning the month boundary', () => {

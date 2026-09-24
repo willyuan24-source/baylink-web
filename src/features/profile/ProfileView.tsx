@@ -20,6 +20,7 @@ import { InfoPage, MyPostsView } from './ProfileSubViews';
 import { ProfileIdentity, ProfileShareButton } from './ProfileIdentity';
 import { Link } from 'react-router-dom';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
+import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
@@ -35,7 +36,7 @@ type ProfileViewProps = {
 export const ProfileView = (props: ProfileViewProps) => <ProfileSession key={JSON.stringify([props.user?.id, props.user?.token])} {...props} />;
 const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
   const isCurrentSession = useProfileSessionGuard(user);
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official'>('menu');
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official' | 'admin_sources'>('menu');
   const [showOfficialModal, setShowOfficialModal] = useState(false);
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
@@ -46,6 +47,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
     <div className="member-profile-guest">
       <div className="member-page-heading"><div><span className="member-eyebrow">MAKE YOURSELF AT HOME</span><h1>我的 BAYLINK</h1></div></div>
       <SavedPostsPanel />
+      <Link to="/my-week" className="member-guide-link"><span>我的这周</span><ArrowUpRight size={18} /></Link>
       <section className="member-welcome-card">
         <div className="member-welcome-copy">
           <span className="member-welcome-label"><span /> 你好，新邻居</span>
@@ -103,6 +105,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
           )}
 
           <SavedPostsPanel key={user.id} userId={user.id} />
+          <Link to="/my-week" className="member-menu-row"><strong>我的这周</strong><ArrowUpRight size={18} /></Link>
 
           <div className="member-profile-panel">
             <h2 className="member-panel-title">信任信息</h2>
@@ -160,6 +163,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
           </div>
           {user.role === 'admin' && (
             <>
+              <button onClick={() => setSubView('admin_sources')} className="member-menu-row"><strong>来源变更监测</strong><ChevronRight size={18} /></button>
               <button onClick={() => setSubView('admin_official')} className="member-menu-row">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition"><BadgeCheck size={20} /></div>
@@ -194,6 +198,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
       )}
       {subView === 'admin_official' && <AdminOfficialVerificationsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'admin_reports' && <AdminReportsView onBack={() => setSubView('menu')} showToast={showToast} />}
+      {subView === 'admin_sources' && user.role === 'admin' && <AdminSourceMonitor onBack={() => setSubView('menu')} />}
       {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
       {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}

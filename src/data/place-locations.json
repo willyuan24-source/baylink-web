@@ -1,0 +1,128 @@
+{
+  "golden-gate": {
+    "lat": 37.80779,
+    "lng": -122.47484,
+    "label": "Golden Gate Bridge Welcome Center",
+    "sourceUrl": "https://presidio.gov/explore/attractions/golden-gate-bridge-welcome-center",
+    "precision": "venue"
+  },
+  "pier39": {
+    "lat": 37.809992,
+    "lng": -122.410357,
+    "label": "PIER 39",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q1856083",
+    "precision": "venue"
+  },
+  "alcatraz": {
+    "lat": 37.80767,
+    "lng": -122.404663,
+    "label": "Pier 33 · Alcatraz Landing area",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q66079565",
+    "precision": "area"
+  },
+  "chinatown": {
+    "lat": 37.790685,
+    "lng": -122.405585,
+    "label": "Dragon Gate",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q40729318",
+    "precision": "venue"
+  },
+  "palace": {
+    "lat": 37.802778,
+    "lng": -122.448333,
+    "label": "Palace of Fine Arts",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q966263",
+    "precision": "venue"
+  },
+  "golden-gate-park": {
+    "lat": 37.772,
+    "lng": -122.46,
+    "label": "Conservatory of Flowers area",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q5163145",
+    "precision": "area"
+  },
+  "presidio": {
+    "lat": 37.80277777777778,
+    "lng": -122.45611111111111,
+    "label": "Presidio Tunnel Tops",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q121870410",
+    "precision": "area"
+  },
+  "berkeley": {
+    "lat": 37.870218,
+    "lng": -122.259481,
+    "label": "Sather Gate",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q2226051",
+    "precision": "venue"
+  },
+  "lake-merritt": {
+    "lat": 37.798641,
+    "lng": -122.263611,
+    "label": "Oakland Museum of California",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q877714",
+    "precision": "venue"
+  },
+  "redwood": {
+    "lat": 37.80692,
+    "lng": -122.14813,
+    "label": "Reinhardt Redwood · park access area",
+    "sourceUrl": "https://www.ebparks.org/sites/default/files/2021-Trails-Challenge-Guidebook--2020-12-07.pdf",
+    "precision": "area"
+  },
+  "stanford": {
+    "lat": 37.432982,
+    "lng": -122.170844,
+    "label": "Cantor Arts Center",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q1672708",
+    "precision": "venue"
+  },
+  "filoli": {
+    "lat": 37.470389,
+    "lng": -122.310694,
+    "label": "Filoli",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q478408",
+    "precision": "venue"
+  },
+  "half-moon-bay": {
+    "lat": 37.4665,
+    "lng": -122.445,
+    "label": "Half Moon Bay State Beach · park access area",
+    "sourceUrl": "https://www.parks.ca.gov/?page_id=531",
+    "precision": "area"
+  },
+  "baylands": {
+    "lat": 37.4574977,
+    "lng": -122.107554,
+    "label": "Lucy Evans Baylands Nature Interpretive Center",
+    "sourceUrl": "https://www.paloalto.gov/Departments/Public-Works/Engineering-Services/Engineering-Projects/Baylands",
+    "precision": "venue"
+  },
+  "san-jose": {
+    "lat": 37.3316,
+    "lng": -121.89,
+    "label": "The Tech Interactive",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q7768226",
+    "precision": "venue"
+  },
+  "hakone": {
+    "lat": 37.2524,
+    "lng": -122.041,
+    "label": "Hakone Gardens",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q890625",
+    "precision": "venue"
+  },
+  "muir-woods": {
+    "lat": 37.892835,
+    "lng": -122.572559,
+    "label": "Muir Woods · entry area",
+    "sourceUrl": "https://www.nps.gov/planyourvisit/event-details.htm?id=D6FD5106-D812-D8ED-F4B055B57E1D4B35",
+    "precision": "area"
+  },
+  "sausalito": {
+    "lat": 37.856,
+    "lng": -122.479,
+    "label": "Sausalito Ferry Terminal area",
+    "sourceUrl": "https://www.wikidata.org/wiki/Q30642905",
+    "precision": "area"
+  }
+}

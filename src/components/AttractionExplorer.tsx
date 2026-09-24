@@ -70,6 +70,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   };
 
   return <div className="attraction-page">
+    <nav className="planner-launch-links"><Link to={`/plan?places=${plan.slice(0, 3).join(",")}`}><Sparkles size={16} />{plan.length ? "在地图里安排前三站" : "让 BayBay 帮我排一天"}</Link><Link to="/my-week">我的这周</Link></nav>
     <header className="attraction-intro">
       <span className="attraction-eyebrow"><Compass size={16} aria-hidden="true" /> YOUR NEXT BAY AREA DAY</span>
       <div><h1>湾区很大，<br /><em>从喜欢的地方出发。</em></h1><p>看海、逛街、走进花园或博物馆。<br />先找到想去的，再慢慢安排这一天。</p></div>

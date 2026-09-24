@@ -141,7 +141,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
           {currentGuide && <div className="baybay-reading-context"><BookOpen size={16} /><div><small>正在结合你阅读的攻略</small><strong>{currentGuide.title}</strong></div>
             <button type="button" disabled={loading} onClick={() => askBayBay('根据我正在读的这篇攻略，帮我提炼三个重点，再问我需要补充哪些个人需求。')}>帮我读</button></div>}
           {turns.length === 0 && <section className="baybay-welcome"><h3>想把湾区生活安排得更轻松？</h3><p>先选一个方向，也可以直接说说你的城市、预算和同行人。</p>
-            <div className="baybay-scenarios">{BAYBAY_SCENARIOS.map((scenario) => <button type="button" key={scenario.label} onClick={() => askBayBay(scenario.question)}><span aria-hidden="true">{scenario.icon}</span>{scenario.label}<ChevronRight size={14} /></button>)}</div>
+            <div className="baybay-scenarios"><button type="button" onClick={() => navigate('/plan')}><Sparkles size={14} />让 BayBay 帮我排一天<ChevronRight size={14} /></button>{BAYBAY_SCENARIOS.map((scenario) => <button type="button" key={scenario.label} onClick={() => askBayBay(scenario.question)}><span aria-hidden="true">{scenario.icon}</span>{scenario.label}<ChevronRight size={14} /></button>)}</div>
           </section>}
           <div className="baybay-thread" aria-label="本次对话">
             {turns.map((turn) => <section className="baybay-turn" key={turn.id} aria-label={`问题：${turn.question}`}>
@@ -153,6 +153,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
                 {turn.response.degraded && <p role="status" className="baybay-degraded">AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。</p>}
                 <p className="member-baybay-answer-text">{turn.response.answer}</p>
                 <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.matchNote} onNavigate={navigate} />
+                {/周末|出游|活动|去哪|weekend|outing|events?/i.test(turn.question) && <button type="button" className="member-primary" onClick={() => navigate(`/plan?q=${encodeURIComponent(turn.question)}`)}>让 BayBay 帮我排一天<ChevronRight size={14} /></button>}
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
                 {!!turn.response.suggestedGuides?.length && <div className="baybay-references"><p>可以接着读</p>{turn.response.suggestedGuides.filter((guide) => safeBayBayPath(guide.url)).map((guide) => <button type="button" key={guide.slug} onClick={() => navigate(guide.url)}><BookOpen size={13} /><span>{guide.title}</span><ChevronRight size={13} /></button>)}</div>}
                 {!!turn.response.suggestedActions?.length && <div className="mt-2.5 flex flex-wrap gap-1.5">{turn.response.suggestedActions.map((action, index) => <button type="button" key={`${action.label}-${index}`} onClick={() => handleAction(action, turn.question)} className="member-baybay-action border border-baylink-border/50 bg-white text-baylink-text">{action.label}</button>)}</div>}

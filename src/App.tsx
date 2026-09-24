@@ -15,6 +15,9 @@ const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
 const LocalDiscoveryPage = lazy(() => import('./pages/LocalDiscoveryPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
+const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const MyWeekPage = lazy(() => import('./pages/MyWeekPage'));
+const AiLocalPage = lazy(() => import('./pages/AiLocalPage'));
 const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const RecommendPage = lazy(() => import('./pages/RecommendPage'));
@@ -52,6 +55,9 @@ export default function App() {
         <Route path="/openings/:id" element={<LocalDiscoveryPage kind="opening" />} />
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/plan" element={<PlannerPage />} />
+        <Route path="/my-week" element={<MyWeekPage />} />
+        <Route path="/ai-in-the-bay" element={<AiLocalPage />} />
         <Route path="/guides/:slug" element={<GuideDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<MessagesPage />} />

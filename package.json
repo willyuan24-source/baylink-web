@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run export:guides && npm run export:events && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
+    "build": "npm run export:guides && npm run export:events && npm run export:planner && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=4 tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
     "check": "npm run lint && npm test && npm run build && npm run verify:share-cards",
     "export:guides": "tsx --tsconfig tsconfig.app.json scripts/export-guide-catalog.ts",
+    "export:planner": "tsx --tsconfig tsconfig.app.json scripts/export-planner-catalog.ts",
     "export:events": "tsx --tsconfig tsconfig.app.json scripts/export-event-catalog.ts",
     "generate:share-cards": "tsx --tsconfig tsconfig.app.json scripts/generate-share-cards.ts",
     "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts"
@@ -21,6 +22,7 @@
   "dependencies": {
     "browser-image-compression": "^2.0.2",
     "lucide-react": "^0.460.0",
+    "maplibre-gl": "6.11.1",
     "opencc-js": "^1.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

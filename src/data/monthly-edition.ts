@@ -1,3 +1,4 @@
+import { aiLocalEvents } from './ai-local-events';
 import { sfSeptemberEvents } from './monthly-sf-events';
 import { regionalSeptemberEvents } from './monthly-region-events';
 import { freshSeptemberEvents } from './fresh-monthly-events';
@@ -16,7 +17,7 @@ export const MONTHLY_EDITION = {
   intro: '从九月余下的好去处，到十月底的南瓜季、社区节庆和免费文化日。按日期和地区挑活动，把交通、预约与领取条件一起安排好。',
 };
 
-export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents]
+export const MONTHLY_EVENTS = [...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents]
   .filter(event => event.endDate >= MONTHLY_EDITION.checkedAt)
   .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 

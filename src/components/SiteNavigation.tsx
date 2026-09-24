@@ -35,6 +35,7 @@ export function SiteNavigation({ active, category, homeActive, user, notificatio
       <nav className="site-nav" aria-label="主要导航">
         {links.map(({ href, label, sub, icon: Icon, current }) => <Link key={href} to={href} aria-current={current ? 'page' : undefined} className={`site-nav-link ${current ? 'is-active' : ''}`}><Icon size={20} strokeWidth={current ? 2 : 1.7} /><span>{label}<small>{sub}</small></span>{href === '/messages' && notification && <b className="site-unread">{notificationCount || '•'}</b>}{current && <span className="site-nav-dot" />}</Link>)}
       </nav>
+      <div className="site-legal"><Link to="/plan">智能出游计划</Link><Link to="/my-week">我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动</Link></div>
       <button type="button" onClick={onCreate} className="site-publish"><Plus size={19} /> 发布信息<ArrowUpRight size={16} /></button>
       <div className="site-category-nav">
         <div className="site-nav-label">探索生活分类</div>

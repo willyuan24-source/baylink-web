@@ -12,6 +12,7 @@ import { freshSeptemberGuides } from './guides-fresh-september';
 import { septemberOpeningGuides } from './guides-september-openings';
 import { octoberLocalGuides } from './guides-october-local';
 import { octoberDealsGuides } from './guides-october-deals';
+import { aiWeekGuides } from './guides-ai-week';
 import { autumnRefreshGuides } from './guides-autumn-refresh';
 import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
@@ -1876,6 +1877,7 @@ export const guides: Guide[] = [
   ...octoberLocalGuides,
   ...octoberDealsGuides,
   ...autumnRefreshGuides,
+  ...aiWeekGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>

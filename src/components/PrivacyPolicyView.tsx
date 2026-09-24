@@ -1,7 +1,7 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
 
 export const PrivacyPolicyView = () => (
-  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="September 15, 2026">
+  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="September 23, 2026">
     <LegalP>
       BAYLINK is a Bay Area local community and lifestyle information platform. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use BayBay AI features, or verify their phone number.
     </LegalP>
@@ -88,6 +88,13 @@ export const PrivacyPolicyView = () => (
       <LegalP>
         BayBay AI features may process user-provided text to generate suggestions, post drafts, guide responses, safety tips, or related content. Users should avoid submitting highly sensitive personal information to AI features.
       </LegalP>
+      <LegalP>When you request a BayBay outing suggestion, your submitted text and filters may be sent to our AI service provider to interpret your request. Saved plan titles and account libraries are not included in that request. Suggested places and dates are checked against our published catalog.</LegalP>
+    </LegalSection>
+
+    <LegalSection title="Outing Plans, Favorites and Maps">
+      <LegalP>Guest plans and favorites stay in browser storage. When signed in, plans, favorites and selected regions, interests and travel preferences are stored with your account for access on other devices. Importing guest content is optional and requires a separate action. These account records are private. Public plan links contain selected public place or event IDs and a date, without your account ID or private plan title. Anyone receiving a link can view or forward those public selections.</LegalP>
+      <LegalP>访客计划和收藏留在本机浏览器。登录后保存的计划、收藏、地区、兴趣和出行偏好会与账号关联，供其他设备读取；导入访客内容需要你主动选择。账号计划不公开，分享链接只包含公开地点编号和日期，不含账号编号或私人计划名称。拿到链接的人可以查看和转发这些公开选择。</LegalP>
+      <LegalP>Opening the interactive map loads tiles from OpenFreeMap, which receives the network request and the map areas requested. This feature does not request your device location. You can remove saved plans and favorites in My Week; account-related privacy requests can be sent to the contact below.</LegalP>
     </LegalSection>
 
     <LegalSection title="8. Information Sharing">
