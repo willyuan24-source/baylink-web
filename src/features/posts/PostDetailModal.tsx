@@ -20,6 +20,10 @@ import { UsefulLikeButton } from './PostCard';
 import { BookmarkButton } from '../../components/BookmarkButton';
 import { PostAvailabilityBadge } from '../../components/PostAvailabilityBadge';
 import { postAvailability } from '../../lib/postAvailability';
+import { useLocale } from '../../i18n/locale';
+import { setPageMetadata } from '../../lib/seo';
+import { usePostTranslation } from './usePostTranslation';
+import { PostTranslationNotice } from './PostTranslationNotice';
 
 const extractQuickTagsFromDescription = (description: string): string[] => {
   const matches = String(description || '').match(/#([^\s#]+)/g) || [];
@@ -64,6 +68,12 @@ export const PostDetailModal = (props: PostDetailProps) => (
 );
 
 const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContactLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, onLike, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: PostDetailProps) => {
+  const locale = useLocale();
+  const reading = usePostTranslation(post);
+  const displayed = reading.display;
+  useEffect(() => {
+    setPageMetadata({ title: `${displayed.title}｜BAYLINK`, description: displayed.description.slice(0, 160), path: `/posts/${post.id}`, image: post.imageUrls?.[0], type: 'article', noindex: post.status === 'closed', preserveText: true });
+  }, [post, displayed.title, displayed.description, locale]);
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
   const [input, setInput] = useState('');
   const [commentMode, setCommentMode] = useState<
@@ -172,7 +182,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const authorId = post.authorId;
   const canOpenProfile = !!authorId && !!onOpenUserProfile;
   const imageUrls = normalizePostImages(post);
-  const quickTags = extractQuickTagsFromDescription(post.description);
+  const quickTags = extractQuickTagsFromDescription(displayed.description);
   const availability = postAvailability(post);
 
   const handleOpenAuthorProfile = () => {
@@ -204,7 +214,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   };
 
   return (
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={post.title || '帖子详情'} className="post-detail">
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || '帖子详情'} className="post-detail">
       <div className="post-detail__window">
         <header className="post-detail__toolbar">
           <button type="button" onClick={onClose} className="post-detail__close" aria-label="关闭"><X size={18} /><span>返回浏览</span></button>
@@ -234,7 +244,8 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
         <div className="post-detail__scroll">
           <div className="post-detail__heading">
             <div className="post-detail__eyebrow"><span>{post.category || '湾区生活'}</span><span>{post.type === 'provider' ? '本地资源' : '邻里需求'}</span>{post.isFeatured && <span className="post-detail__featured"><Star size={12} fill="currentColor" /> 编辑精选</span>}</div>
-            <h1 translate="no">{post.title}</h1>
+            <h1 translate="no">{displayed.title}</h1>
+            <PostTranslationNotice reading={reading} />
             <div className="post-detail__availability"><PostAvailabilityBadge post={post} /><p>{availability.detail}</p></div>
             {detailRefreshing && <p className="post-detail__refresh" role="status"><Loader2 size={13} className="animate-spin" /> 正在同步最新内容…</p>}
           </div>
@@ -244,8 +255,8 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
               {imageUrls.length > 0 && (
                 <div className={`post-detail__gallery ${imageUrls.length > 1 ? 'post-detail__gallery--multiple' : ''}`}>
                   {imageUrls.map((url: string, index: number) => (
-                    <button key={url + index} type="button" className="post-detail__photo" onClick={() => onImageClick(url)} aria-label={`查看 ${post.title} 的第 ${index + 1} 张图片`}>
-                      <img src={url} alt={`${post.title}，图片 ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" className={isDefaultCoverUrl(url) ? 'post-detail__photo--system' : ''} />
+                    <button key={url + index} type="button" className="post-detail__photo" onClick={() => onImageClick(url)} aria-label={`查看 ${displayed.title} 的第 ${index + 1} 张图片`}>
+                      <img src={url} alt={`${displayed.title}，图片 ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" className={isDefaultCoverUrl(url) ? 'post-detail__photo--system' : ''} />
                       {isDefaultCoverUrl(url) && <span className="post-detail__photo-label">系统封面</span>}
                       <span className="post-detail__photo-number">{index + 1} / {imageUrls.length}</span>
                     </button>
@@ -254,8 +265,8 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
               )}
               <section className="post-detail__description-section" aria-label="信息详情">
                 <h2>关于这条信息</h2>
-                <p className="post-detail__description" translate="no">{post.description}</p>
-                {quickTags.length > 0 && <div className="post-detail__tags">{quickTags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
+                <p className="post-detail__description" translate="no">{displayed.description}</p>
+                {quickTags.length > 0 && <div className="post-detail__tags" translate="no">{quickTags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
                 <div className="post-detail__reactions">
                   <BookmarkButton post={post} userId={currentUser?.id} />
                   {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
@@ -267,10 +278,10 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
             <aside className="post-detail__aside" aria-label="发布者和联系方式">
               <div className="post-detail__aside-sticky">
                 <div className="post-detail__summary">
-                  {post.budget && <div className="post-detail__budget"><span>{post.type === 'client' ? '预算' : '价格'}</span><strong translate="no">{post.budget}</strong></div>}
+                  {post.budget && <div className="post-detail__budget"><span>{post.type === 'client' ? '预算' : '价格'}</span><strong translate="no">{displayed.budget}</strong></div>}
                   {(post.city || post.timeInfo || post.category) && <dl className="post-detail__facts">
                     {post.city && <div><dt>所在地区</dt><dd>{post.city}</dd></div>}
-                    {post.timeInfo && <div><dt>时间安排</dt><dd translate="no">{post.timeInfo}</dd></div>}
+                    {post.timeInfo && <div><dt>时间安排</dt><dd translate="no">{displayed.timeInfo}</dd></div>}
                     {post.category && <div><dt>信息分类</dt><dd>{post.category}</dd></div>}
                   </dl>}
                   <div className="post-detail__author">

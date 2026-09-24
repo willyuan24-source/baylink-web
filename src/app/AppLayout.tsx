@@ -338,7 +338,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       setSelectedPost(found);
       setPostRouteMissing(false);
       setPostRouteLoading(false);
-      setPageMetadata({ title: `${found.title}｜BAYLINK`, description: found.description.slice(0, 160), path: `/posts/${postIdParam}`, image: found.imageUrls?.[0], type: 'article', noindex: found.status === 'closed' });
+      setPageMetadata({ title: `${found.title}｜BAYLINK`, description: found.description.slice(0, 160), path: `/posts/${postIdParam}`, image: found.imageUrls?.[0], type: 'article', noindex: found.status === 'closed', preserveText: true });
     } else {
       setSelectedPost(null);
       setPostRouteLoading(true);
@@ -353,7 +353,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         if (!cancelled) {
           setSelectedPost(p);
           setPostRouteMissing(false);
-          setPageMetadata({ title: `${p.title}｜BAYLINK`, description: String(p.description || '').slice(0, 160), path: `/posts/${postIdParam}`, image: p.imageUrls?.[0], type: 'article', noindex: p.status === 'closed' });
+          setPageMetadata({ title: `${p.title}｜BAYLINK`, description: String(p.description || '').slice(0, 160), path: `/posts/${postIdParam}`, image: p.imageUrls?.[0], type: 'article', noindex: p.status === 'closed', preserveText: true });
         }
       } catch (error) {
         if (!cancelled) {

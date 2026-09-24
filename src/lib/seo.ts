@@ -19,6 +19,8 @@ export type PageMetadata = {
   type?: 'website' | 'article';
   noindex?: boolean;
   structuredData?: Record<string, unknown>[];
+  /** User-authored or already translated copy must bypass the editorial dictionary. */
+  preserveText?: boolean;
 };
 
 export const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, (character) => ({
@@ -44,19 +46,20 @@ export const safeSocialImage = (image?: string): string => {
 
 const metadataEntries = (metadata: PageMetadata): [string, string, string][] => {
   const image = safeSocialImage(metadata.image);
+  const text = metadata.preserveText ? (value: string) => value : translateText;
   return [
-    ['name', 'description', translateText(metadata.description)],
+    ['name', 'description', text(metadata.description)],
     ['name', 'robots', metadata.noindex ? 'noindex, follow' : 'index, follow'],
     ['property', 'og:type', metadata.type || 'website'],
     ['property', 'og:site_name', 'BAYLINK'],
-    ['property', 'og:title', translateText(metadata.title)],
-    ['property', 'og:description', translateText(metadata.description)],
+    ['property', 'og:title', text(metadata.title)],
+    ['property', 'og:description', text(metadata.description)],
     ['property', 'og:url', absolutePageUrl(metadata.path)],
     ['property', 'og:image', image],
     ['property', 'og:locale', metadataLocale],
     ['name', 'twitter:card', image === DEFAULT_SOCIAL_IMAGE ? 'summary' : 'summary_large_image'],
-    ['name', 'twitter:title', translateText(metadata.title)],
-    ['name', 'twitter:description', translateText(metadata.description)],
+    ['name', 'twitter:title', text(metadata.title)],
+    ['name', 'twitter:description', text(metadata.description)],
     ['name', 'twitter:image', image],
   ];
 };
@@ -70,7 +73,7 @@ let currentMetadata: PageMetadata | undefined;
 export const setPageMetadata = (metadata: PageMetadata): void => {
   if (typeof document === 'undefined') return;
   currentMetadata = metadata;
-  document.title = translateText(metadata.title);
+  document.title = metadata.preserveText ? metadata.title : translateText(metadata.title);
   for (const [attribute, key, value] of metadataEntries(metadata)) {
     let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
     if (!element) {

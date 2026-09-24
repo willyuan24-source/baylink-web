@@ -90,6 +90,11 @@
   .post-card, .post-card__image, .post-action { transition: none; }
 }
 
+.post-translation { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; margin: 6px 0; color: #637361; font-size: 11px; line-height: 1.5; }
+.post-translation > span { display: inline-flex; align-items: center; gap: 5px; }
+.post-translation button { min-height: 32px; padding: 4px 0; color: #176b52; text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+.post-translation button:focus-visible { outline: 2px solid #176b52; outline-offset: 4px; border-radius: 3px; }
+
 /* A generous desktop reading dialog; a full-height, thumb-friendly view on mobile. */
 .post-detail { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 32px 24px; background: #0d291e91; backdrop-filter: blur(7px); color: #123c31; }
 .post-detail__window { display: flex; flex-direction: column; position: relative; width: 100%; max-width: 1060px; height: 100%; max-height: 1100px; min-height: 0; overflow: hidden; border: 1px solid #ffffff54; border-radius: 25px; background: #fafbf8; box-shadow: 0 32px 100px #0d291e40; }

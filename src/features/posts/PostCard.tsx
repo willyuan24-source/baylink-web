@@ -12,6 +12,9 @@ import { TrustBadge } from '../../components/TrustBadge';
 import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate, isPostEdited } from '../../lib/format';
 import type { PostData, UserData } from '../../lib/types';
+import { usePostTranslation } from './usePostTranslation';
+import { usePostVisibility } from './usePostVisibility';
+import { PostTranslationNotice } from './PostTranslationNotice';
 
 const formatUsefulLabel = (count: number) => (count > 0 ? `有用 ${count}` : '有用');
 const categoryIcons = {
@@ -60,9 +63,13 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
   const showReport = !isOwner && !!onReport;
   const hasMenu = showReport || canManage || isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
+  const { ref, visible } = usePostVisibility();
+  const reading = usePostTranslation(post, visible);
+  const displayed = reading.display;
 
   return (
     <article
+      ref={ref}
       onClick={(event) => { if (!(event.target as HTMLElement).closest('a,button,input')) onClick?.(); }}
       className={`post-card post-card--${layout} ${post.status === 'closed' ? 'post-card--closed' : ''}`}
       data-category={post.category}
@@ -73,17 +80,17 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
             <button
               type="button"
               className="post-card__image-button"
-              aria-label={`查看 ${post.title} 的图片`}
+              aria-label={`查看 ${displayed.title} 的图片`}
               onClick={(event) => { event.stopPropagation(); if (onImageClick) onImageClick(coverUrl); else onClick?.(); }}
             >
-              <img src={coverUrl} alt={post.title} loading="lazy" decoding="async" className={isSystemCover ? 'post-card__image post-card__image--system' : 'post-card__image'} />
+              <img src={coverUrl} alt={displayed.title} loading="lazy" decoding="async" className={isSystemCover ? 'post-card__image post-card__image--system' : 'post-card__image'} />
             </button>
           ) : (
             <Link
               to={`/posts/${post.id}`}
               state={{ backgroundLocation }}
               className="post-card__illustration"
-              aria-label={`查看 ${post.title}`}
+              aria-label={`查看 ${displayed.title}`}
               onClick={(event) => { event.stopPropagation(); if (onClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }}
             >
               <CategoryIcon size={44} strokeWidth={1.3} aria-hidden="true" />
@@ -123,11 +130,12 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
             )}
           </div>
 
-          <h3 className="post-card__title" translate="no"><Link to={`/posts/${post.id}`} state={{ backgroundLocation }} onClick={(event) => { event.stopPropagation(); if (onClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }}>{post.title}</Link></h3>
-          <p className="post-card__description" translate="no">{post.description}</p>
-          <div className="post-card__location"><MapPin size={13} aria-hidden="true" /><span>{post.city || '湾区'}</span>{post.timeInfo && <><span aria-hidden="true">·</span><span className="post-card__time" translate="no">{post.timeInfo}</span></>}</div>
+          <h3 className="post-card__title" translate="no"><Link to={`/posts/${post.id}`} state={{ backgroundLocation }} onClick={(event) => { event.stopPropagation(); if (onClick && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }}>{displayed.title}</Link></h3>
+          <p className="post-card__description" translate="no">{displayed.description}</p>
+          <PostTranslationNotice reading={reading} />
+          <div className="post-card__location"><MapPin size={13} aria-hidden="true" /><span>{post.city || '湾区'}</span>{post.timeInfo && <><span aria-hidden="true">·</span><span className="post-card__time" translate="no">{displayed.timeInfo}</span></>}</div>
           <div className="post-card__value-row">
-            {post.budget ? <span className="post-card__price" translate="no">{post.budget}</span> : <span className="post-card__price-note">详情见介绍</span>}
+            {post.budget ? <span className="post-card__price" translate="no">{displayed.budget}</span> : <span className="post-card__price-note">详情见介绍</span>}
             <PostAvailabilityBadge post={post} />
           </div>
         </div>
