@@ -41,5 +41,19 @@
   "标记为无关变化": "Dismiss as irrelevant",
   "官方页面有变化，待编辑复核；出发前请查看官方信息。": "The official page has changed and is awaiting editorial review. Check the official details before going.",
   "最新自动检查未完成，请查看官方信息。": "The latest automated check could not be completed. Check the official details.",
-  "最近成功读取官方页面": "Official page last successfully fetched"
+  "最近成功读取官方页面": "Official page last successfully fetched",
+  "功能使用统计": "Feature usage",
+  "最近 30 天的操作次数": "Actions in the last 30 days",
+  "刷新统计": "Refresh statistics",
+  "仅保存按日汇总的匿名计数，不识别用户。同一人可产生多次操作；这些数值不是用户人数、转化率或回访率。": "Only anonymous daily counts are stored, without identifying users. One person may perform an action several times; these numbers are not user counts, conversion rates or return rates.",
+  "正在读取使用统计…": "Loading usage statistics…",
+  "暂时无法读取使用统计，未将缺失数据记为零。": "Usage statistics are unavailable. Missing data has not been counted as zero.",
+  "重试统计": "Retry statistics",
+  "湾区日期，包含今天": "Bay Area dates, including today",
+  "生成出游建议": "Generate outing suggestions",
+  "保存计划": "Save a plan",
+  "分享计划": "Share a plan",
+  "点击官方来源": "Open an official source",
+  "加入收藏": "Add a favorite",
+  "打开互动地图": "Open the interactive map"
 }

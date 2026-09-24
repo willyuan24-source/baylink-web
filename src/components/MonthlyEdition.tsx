@@ -1,3 +1,4 @@
+import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -69,7 +70,7 @@ function EventCard({ event, today }: { event: MonthlyEvent; today: string }) {
       <EventParticipationActions event={event} today={today} />
       <EditorialShareActions item={eventShare(event)} />
       <details className="bl-monthly-plan"><summary>去之前，先安排这三件事 <ChevronDown size={15} aria-hidden="true" /></summary><ol>{event.plan.map((tip, index) => <li key={tip}><span aria-hidden="true">0{index + 1}</span><p>{tip}</p></li>)}</ol></details>
-      <div className="bl-monthly-event-actions"><a href={event.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`查看${event.title}官方详情`}>官方详情 <ArrowUpRight size={15} aria-hidden="true" /></a>{status !== 'ended' && <button type="button" onClick={() => downloadEventCalendar(event)} aria-label={`下载${event.title}日期提醒`}><CalendarDays size={14} aria-hidden="true" />日期提醒</button>}{event.relatedGuideSlug && <Link to={`/guides/${event.relatedGuideSlug}`}>搭配一篇攻略 <ArrowRight size={14} aria-hidden="true" /></Link>}</div>
+      <div className="bl-monthly-event-actions"><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`查看${event.title}官方详情`}>官方详情 <ArrowUpRight size={15} aria-hidden="true" /></a>{status !== 'ended' && <button type="button" onClick={() => downloadEventCalendar(event)} aria-label={`下载${event.title}日期提醒`}><CalendarDays size={14} aria-hidden="true" />日期提醒</button>}{event.relatedGuideSlug && <Link to={`/guides/${event.relatedGuideSlug}`}>搭配一篇攻略 <ArrowRight size={14} aria-hidden="true" /></Link>}</div>
       <p className="bl-monthly-source"><Check size={12} aria-hidden="true" /><span>已核对 {event.verifiedAt} · {event.sourceLabel}</span></p>
     </div>
   </article>;
@@ -78,7 +79,7 @@ function EventCard({ event, today }: { event: MonthlyEvent; today: string }) {
 function PlaceCard({ place, index }: { place: MonthlyPlace; index: number }) {
   return <article className="bl-monthly-place">
     <EditionPicture imageKey={place.imageKey} />
-    <div className="bl-monthly-place-body"><span className="bl-monthly-place-number">0{index + 1} <span>{place.area}</span></span><h3>{place.title}</h3><p>{place.summary}</p><details className="bl-monthly-plan"><summary>半天可以这样过 <ChevronDown size={15} aria-hidden="true" /></summary><ol>{place.plan.map((tip, step) => <li key={tip}><span aria-hidden="true">0{step + 1}</span><p>{tip}</p></li>)}</ol></details><div className="bl-monthly-place-links"><Link to={`/guides/${place.relatedGuideSlug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link><a href={place.officialUrl} target="_blank" rel="noopener noreferrer">{place.sourceLabel} <ArrowUpRight size={13} aria-hidden="true" /></a></div></div>
+    <div className="bl-monthly-place-body"><span className="bl-monthly-place-number">0{index + 1} <span>{place.area}</span></span><h3>{place.title}</h3><p>{place.summary}</p><details className="bl-monthly-plan"><summary>半天可以这样过 <ChevronDown size={15} aria-hidden="true" /></summary><ol>{place.plan.map((tip, step) => <li key={tip}><span aria-hidden="true">0{step + 1}</span><p>{tip}</p></li>)}</ol></details><div className="bl-monthly-place-links"><Link to={`/guides/${place.relatedGuideSlug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link><a onClick={() => recordProductEvent('official_source_click')} href={place.officialUrl} target="_blank" rel="noopener noreferrer">{place.sourceLabel} <ArrowUpRight size={13} aria-hidden="true" /></a></div></div>
   </article>;
 }
 

@@ -30,6 +30,11 @@ export const PrivacyPolicyView = () => (
       ]} />
     </LegalSection>
 
+    <LegalSection title="Anonymous product counters / 匿名功能统计">
+      <LegalP>We count successful recommendation requests, plan saves, share-link actions, favorites, map opens and official-link clicks by day and interface language. These first-party counters contain no account or session identifier, IP address, content ID, page URL, chat text or precise location. They do not measure unique visitors or individual return visits. We do not send authentication or referrer data with these requests, and we skip them when your browser enables Do Not Track or Global Privacy Control. Aggregate records expire after 180 days. Normal hosting and security logs are separate.</LegalP>
+      <LegalP>功能统计只按日期和界面语言累计推荐、保存、分享、收藏、地图与官方链接操作次数，不识别个人或跨次访问。统计请求不携带账号、问题正文或页面地址；浏览器开启 Do Not Track 或 Global Privacy Control 时不发送。聚合记录保留 180 天。</LegalP>
+    </LegalSection>
+
     <LegalSection title="2. How We Use Information">
       <LegalP>BAYLINK uses information to:</LegalP>
       <LegalUl items={[

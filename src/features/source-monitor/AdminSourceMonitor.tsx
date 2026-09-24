@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api } from '../../lib/api';
 import { translateText, useLocale } from '../../i18n/locale';
+import { ProductMetrics } from './ProductMetrics';
 
 type SourceRow = {
   id: string; title: string; url: string; kind: string; endDate?: string;
@@ -61,6 +62,7 @@ export function AdminSourceMonitor({ onBack }: { onBack?: () => void }) {
       <div className="source-monitor-actions"><button onClick={() => void load()} disabled={loading || !!busy}><RefreshCw size={15} />{t('刷新')}</button>
         <button className="source-monitor-primary" disabled={running || !!busy || loading} onClick={() => void run()}>{running ? t('正在检查…') : t('现在检查')}</button></div>
     </header>
+    <ProductMetrics />
     <div className="source-monitor-summary"><span><strong>{sources.length}</strong> {t('个官方来源')}</span><span><strong>{attention.length}</strong> {t('项需处理')}</span><span>{running ? t('后台批次运行中，可稍后回来查看。') : t('首次抓取建立基线，不自动更新内容核查日期。')}</span></div>
     <div className="source-monitor-filters" aria-label={t('筛选来源')}><button aria-pressed={filter === 'attention'} onClick={() => setFilter('attention')}>{t('需要处理')}</button><button aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>{t('全部来源')}</button></div>
     {message && <p role="alert" className="source-monitor-error">{t(message)}</p>}

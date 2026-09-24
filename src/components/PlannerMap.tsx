@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Map as LibreMap } from 'maplibre-gl';
 import { translateText, useLocale } from '../i18n/locale';
 import type { GeoPoint } from '../lib/planner';
+import { recordProductEvent } from '../lib/product-events';
 
 export type MapPoint = { key: string; title: string; location: GeoPoint };
 export function PlannerMap({ points, selected, onSelect }: { points: MapPoint[]; selected: string; onSelect: (key: string) => void }) {
@@ -46,7 +47,7 @@ export function PlannerMap({ points, selected, onSelect }: { points: MapPoint[];
   }, [selected, points]);
   if (!points.length) return <p className="planner-note">当前筛选暂无已核实坐标，仍可使用下方列表。</p>;
   return <section className="planner-map-shell" aria-label="地点地图">
-    {!enabled ? <div className="planner-map-placeholder"><span aria-hidden="true">↗</span><h3>把湾区放进你的计划</h3><p>在地图与列表之间切换，选择一站，再看看附近。</p><button className="planner-primary" onClick={() => setEnabled(true)}>显示互动地图</button><small>地图：OpenFreeMap / OpenStreetMap</small></div> : <div ref={container} className="planner-map" />}
+    {!enabled ? <div className="planner-map-placeholder"><span aria-hidden="true">↗</span><h3>把湾区放进你的计划</h3><p>在地图与列表之间切换，选择一站，再看看附近。</p><button className="planner-primary" onClick={() => { setEnabled(true); recordProductEvent('planner_map_opened'); }}>显示互动地图</button><small>地图：OpenFreeMap / OpenStreetMap</small></div> : <div ref={container} className="planner-map" />}
     {failed && <p role="status" className="planner-note">地图暂时不可用，请使用地点列表和官方地址链接。</p>}
     <p className="planner-map-caption">数字对应下方地点；标记是已核实的场馆或区域参考点，不代表入口或路线。</p>
   </section>;

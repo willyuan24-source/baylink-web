@@ -52,6 +52,7 @@ async function ask(view: View) {
 }
 
 beforeEach(context => {
+  context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
   context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-09-23T19:00:00Z') });
   localStorage.clear();
   api.request = async () => { throw new Error('Unexpected API call in guest planner test'); };
@@ -144,4 +145,3 @@ test('a shared query restores at most three public stops and a guest can save an
   assert.equal(card.querySelector('time')?.getAttribute('datetime'), requestedDate);
   assert.ok(within(card).getByRole('link', { name: '继续编辑' }));
 });
-

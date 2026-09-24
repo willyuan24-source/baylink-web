@@ -3,6 +3,7 @@ import { api } from './api';
 import { getStoredUser } from './session';
 import { cleanStops, EMPTY_LIBRARY, errorText, eventFor, placeFor, validDay, type Favorite, type Library, type Preferences, type SavedPlan } from './planner';
 import { guides } from '../data/guides';
+import { recordProductEvent } from './product-events';
 
 export const GUEST_PLANNER_KEY = 'baylink.planner.guest.v1';
 export const loadGuestLibrary = (): Library => {
@@ -71,6 +72,7 @@ export function usePlannerLibrary(userId?: string) {
     if (!isCurrent(userId, sequence)) return;
     const next = { ...dataRef.current, plans: [plan, ...dataRef.current.plans.filter(p => p.id !== plan.id)] };
     if (userId) { dataRef.current = next; setState({ owner: userId, data: next }); } else commitGuest(next);
+    recordProductEvent('plan_saved');
     return plan;
   });
   const deletePlan = (plan: SavedPlan) => run(async sequence => {
@@ -87,6 +89,7 @@ export function usePlannerLibrary(userId?: string) {
     if (!isCurrent(userId, sequence)) return;
     const next = { ...dataRef.current, favorites };
     if (userId) { dataRef.current = next; setState({ owner: userId, data: next }); } else commitGuest(next);
+    if (!found) recordProductEvent('favorite_saved');
     return true;
   });
   const savePreferences = (preferences: Preferences) => run(async sequence => {

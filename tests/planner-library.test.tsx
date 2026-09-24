@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { afterEach, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { ATTRACTIONS } from '../src/data/attractions';
@@ -11,6 +11,7 @@ const { renderHook, cleanup, act } = await import('@testing-library/react');
 const { api } = await import('../src/lib/api');
 const { GUEST_PLANNER_KEY, loadGuestLibrary, usePlannerLibrary } = await import('../src/lib/planner-library');
 const originalRequest = api.request;
+beforeEach(context => { context.mock.method(globalThis, 'fetch', async () => new Response('{}')); });
 const copy = <T,>(value: T): T => structuredClone(value);
 const defer = <T,>() => { let resolve!: (value: T) => void; let reject!: (reason: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const session = (id?: string) => id ? localStorage.setItem('currentUser', JSON.stringify({ id, token: `${id}-test-token` })) : localStorage.removeItem('currentUser');

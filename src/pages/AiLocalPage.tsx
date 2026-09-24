@@ -1,3 +1,4 @@
+import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, CheckCircle2, MapPin, Sparkles, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -107,7 +108,7 @@ export default function AiLocalPage() {
             <p className="bl-ai-summary">{t(event.summary)}</p>
             <p className="bl-ai-audience">{t('适合')} · {event.audience.map(item => t(item)).join(' / ')}</p>
             <details><summary>{t('报名与行前提示')}</summary><ul>{event.plan.map(tip => <li key={tip}>{t(tip)}</li>)}</ul></details>
-            <div className="bl-ai-card-actions"><Link to={`/events/${event.id}`}>{t('查看场次与安排')} <ArrowRight size={15} aria-hidden="true" /></Link><a href={event.officialUrl} target="_blank" rel="noopener noreferrer">{t('主办方报名页')} <ArrowUpRight size={15} aria-hidden="true" /></a></div>
+            <div className="bl-ai-card-actions"><Link to={`/events/${event.id}`}>{t('查看场次与安排')} <ArrowRight size={15} aria-hidden="true" /></Link><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noopener noreferrer">{t('主办方报名页')} <ArrowUpRight size={15} aria-hidden="true" /></a></div>
             <p className="bl-ai-source">{t('核对日期')} {event.verifiedAt} · {t(event.sourceLabel)}</p>
           </article>;
         })}</div>}
@@ -123,4 +124,3 @@ export default function AiLocalPage() {
     <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/this-month">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
   </main>;
 }
-
