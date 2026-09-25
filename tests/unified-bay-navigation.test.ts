@@ -6,6 +6,8 @@ import { JSDOM } from 'jsdom';
 import type { UnifiedBaySceneProps } from '../src/features/little-bay/UnifiedBayScene';
 import { BAY_FERRY_ROUTES, bayCanMove, baySegmentCanMove, baySpawn, getUnifiedPlace, type BayPoint } from '../src/features/little-bay/unified-bay-world';
 import { emptyBayJourney } from '../src/features/little-bay/bay-journey';
+import { BAY_CITIES } from '../src/features/little-bay/bay-cities';
+import { BAY_DISCOVERIES, bayDiscoveriesKey } from '../src/features/little-bay/bay-discoveries';
 
 const dom=new JSDOM('<!doctype html><html><body></body></html>',{url:'https://www.baylink.us/play?lang=en',pretendToBeVisual:true});
 Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Node:dom.window.Node,IS_REACT_ACT_ENVIRONMENT:true});
@@ -113,4 +115,55 @@ test('world pause and modal overlays suspend an active route without awarding or
   assert.equal(scene().running,true);assert.equal(scene().navigation,route);assert.deepEqual(visits,[]);
   fireEvent.click(view.getByRole('button',{name:'Cancel navigation'}));
   assert.equal(scene().navigation,null);assert.equal(scene().autoTravel,false);
+});
+
+test('city search previews the actual city without moving BAYBAY or awarding a visit',async()=>{
+  const {view,visits}=await fixture();
+  const spawn=scene().spawnCommand;
+  fireEvent.click(view.getByRole('button',{name:'Find a place'}));
+  fireEvent.change(view.getByRole('textbox',{name:'Search all Bay Area places'}),{target:{value:'Sunnyvale'}});
+  fireEvent.click(view.getByRole('button',{name:'Sunnyvale',exact:true}));
+  assert.equal(scene().mode,'overview');assert.equal(scene().focusCommand?.cityId,'sunnyvale');
+  assert.equal(scene().spawnCommand,spawn);assert.deepEqual(visits,[]);
+  assert.ok(view.getByRole('heading',{name:'Sunnyvale',exact:true}));
+  assert.equal(view.queryByText('A NEW LITTLE CHAPTER'),null);
+});
+
+test('city arrival follows physical presence and survives a paused overlay without announcing twice',async t=>{
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const {view}=await fixture();
+  fireEvent.click(view.getByRole('button',{name:'Walk',exact:true}));
+  const city=BAY_CITIES.find(item=>item.id==='stanford')!;
+  report(city.position);assert.equal(view.queryByText('A NEW LITTLE CHAPTER'),null);
+  now=2101;report(city.position);
+  const banner=view.getByText('A NEW LITTLE CHAPTER').parentElement!;
+  assert.ok(view.getByRole('heading',{name:'Stanford',exact:true}));
+  fireEvent.click(view.getByRole('button',{name:'Open field notes'}));
+  assert.equal(scene().running,false);now=5000;report(BAY_CITIES.find(item=>item.id==='san-jose')!.position);
+  fireEvent.click(view.getByRole('button',{name:'Close field notes'}));
+  report(city.position);
+  assert.ok(view.getByRole('heading',{name:'Stanford',exact:true}));
+  assert.equal(view.getByText('A NEW LITTLE CHAPTER').parentElement?.textContent,banner.textContent);
+  fireEvent.click(view.getByRole('button',{name:'Whole bay overview'}));
+  assert.equal(view.queryByText('A NEW LITTLE CHAPTER'),null);
+});
+
+test('field notes preview cannot collect remotely, while the nearby E interaction pauses and records a real arrival',async()=>{
+  const {view}=await fixture();const item=BAY_DISCOVERIES.find(item=>item.id==='tea-gardener')!;
+  fireEvent.click(view.getByRole('button',{name:'Open field notes'}));
+  fireEvent.click(view.getByRole('button',{name:/The gardener’s little question/}));
+  assert.ok(view.getByRole('button',{name:'Take me there'}));
+  assert.equal(view.queryByRole('button',{name:'A little curiosity'}),null);
+  fireEvent.click(view.getByRole('button',{name:'Close discovery'}));
+  fireEvent.click(view.getByRole('button',{name:'Walk',exact:true}));report(item.position);
+  act(()=>scene().onNearbyDiscovery?.(item.id));
+  const canvas=view.getByLabelText('Navigation scene fixture');canvas.focus();fireEvent.keyDown(canvas,{key:'e'});
+  assert.equal(scene().running,false);assert.ok(view.getByRole('dialog'));
+  fireEvent.click(view.getByRole('button',{name:'A little curiosity'}));
+  fireEvent.click(view.getByRole('button',{name:'Keep this little memory'}));
+  assert.ok(view.getByText('KEPT IN YOUR FIELD NOTES'));
+  assert.equal(JSON.parse(window.localStorage.getItem(bayDiscoveriesKey())!).memories[item.id].choiceId,'curiosity');
+  fireEvent.click(view.getByRole('button',{name:'Close discovery'}));assert.equal(scene().running,true);
+  fireEvent.click(view.getByRole('button',{name:'Whole bay overview'}));fireEvent.keyDown(canvas,{key:'e'});
+  assert.equal(view.queryByRole('dialog'),null,'overview must not trigger a nearby interaction');
 });

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { BAY_BRIDGES, BAY_FERRY_ROUTES, BAY_LAND_AREAS, BAY_ROADS, UNIFIED_BAY_PLACES, bayContains, bayHeight, projectBay, type BayPoint } from './unified-bay-world';
 import { createRoadGeometry, createShoreGeometry, mapHash } from './san-francisco-geometry';
 import { sfVisualRoads } from './sf-city-scenery';
+import { SealionsModel } from './SanFranciscoModels';
 
 type BoxPart={p:[number,number,number];s:[number,number,number];color:string;angle?:number};
 function Boxes({parts}:{parts:BoxPart[]}) {
@@ -16,7 +17,7 @@ function Boxes({parts}:{parts:BoxPart[]}) {
 /** A coarser adaptive surface is enough for a 70 km diorama; city geometry keeps its own detail. */
 function bayTerrain() {
   const positions:number[]=[],colors:number[]=[];
-  const sand=new THREE.Color('#ccd0a8'),hill=new THREE.Color('#91ab80'),color=new THREE.Color();
+  const sand=new THREE.Color('#c4cda1'),hill=new THREE.Color('#85a773'),color=new THREE.Color();
   const forests=[[-122.39,37.44,27,65],[-122.13,37.75,18,56],[-122.42,37.62,19,42],[-122.54,37.88,22,40],[-122.05,37.26,44,27],[-122.40,37.25,30,45]].map(([lng,lat,rx,rz])=>({point:projectBay([lng,lat]),rx,rz}));
   const triangle=(a:BayPoint,b:BayPoint,c:BayPoint,depth=0)=>{
     const points=[a,b,c],lengths=points.map((p,i)=>Math.hypot(p[0]-points[(i+1)%3][0],p[1]-points[(i+1)%3][1]));
@@ -38,7 +39,7 @@ export function UnifiedBayGround({onWalk}:{onWalk:(x:number,z:number)=>void}) {
   return <group onClick={event=>{event.stopPropagation();if(event.delta<5)onWalk(event.point.x,event.point.z);}}>
     <mesh geometry={geometry.land} receiveShadow><meshStandardMaterial vertexColors roughness={1} side={THREE.DoubleSide}/></mesh>
     <mesh geometry={geometry.shore}><meshStandardMaterial color="#bcb697" roughness={1} side={THREE.DoubleSide}/></mesh>
-    <mesh geometry={geometry.roads}><meshStandardMaterial color="#b1bca9" roughness={1} side={THREE.DoubleSide}/></mesh>
+    <mesh geometry={geometry.roads}><meshStandardMaterial color="#c5b78f" roughness={1} side={THREE.DoubleSide}/></mesh>
     <mesh geometry={geometry.streets}><meshStandardMaterial color="#bcc4ad" roughness={1} side={THREE.DoubleSide}/></mesh>
     <mesh geometry={geometry.decks}><meshStandardMaterial color="#be9c75" roughness={.9} side={THREE.DoubleSide}/></mesh>
   </group>;
@@ -73,7 +74,7 @@ export function UnifiedBayBridges() {
 
 /** Landmarks remain the largest forms. Scenery is instanced and thins out beyond the camera. */
 export function UnifiedBayScenery() {
-  const mesh=useRef<THREE.InstancedMesh>(null),canopy=useRef<THREE.InstancedMesh>(null),roof=useRef<THREE.InstancedMesh>(null),last=useRef(-1);
+  const mesh=useRef<THREE.InstancedMesh>(null),canopy=useRef<THREE.InstancedMesh>(null),roof=useRef<THREE.InstancedMesh>(null),last=useRef(.35);
   const objects=useMemo(()=>{
     const items:{x:number;z:number;height:number;tree:boolean;color:string}[]=[];
     UNIFIED_BAY_PLACES.forEach((place,j)=>{for(let i=0;i<22;i++){
@@ -83,8 +84,8 @@ export function UnifiedBayScenery() {
       if(!roadNear)items.push({x,z,height:.65+mapHash(i,j,3)*1.5,tree:i%3!==0,color:['#b8c5a7','#ccb797','#aec1b0','#d2bca8'][i%4]});
     }});return items;
   },[]);
-  useFrame(({camera,clock})=>{
-    if(clock.elapsedTime-last.current<.35)return;last.current=clock.elapsedTime;
+  useFrame(({camera},delta)=>{
+    last.current+=Math.max(0,Math.min(delta,.35));if(last.current<.35)return;last.current=0;
     const object=new THREE.Object3D(),color=new THREE.Color();
     objects.forEach((item,i)=>{const distance=Math.hypot(item.x-camera.position.x,item.z-camera.position.z),detail=distance<130||i%5===0;
       const y=bayHeight(item.x,item.z);object.position.set(item.x,y+item.height/2,item.z);object.scale.set(detail?(item.tree?.16:1.15):0,detail?item.height:0,detail?(item.tree?.16:1):0);object.updateMatrix();mesh.current?.setMatrixAt(i,object.matrix);mesh.current?.setColorAt(i,color.set(item.tree?'#a28665':item.color));
@@ -99,10 +100,36 @@ export function BayFerryModel() {
   return <group><mesh position={[0,.35,0]} scale={[1.4,.48,2.55]}><boxGeometry/><meshStandardMaterial color="#477e78" roughness={.85}/></mesh><mesh position={[0,.68,-.2]} scale={[1.13,.15,1.9]}><boxGeometry/><meshStandardMaterial color="#fff0ce"/></mesh><mesh position={[0,.92,-.6]} scale={[.92,.48,.66]}><boxGeometry/><meshStandardMaterial color="#e0c398"/></mesh><mesh position={[0,1.2,-.6]} scale={[1.03,.1,.82]}><boxGeometry/><meshStandardMaterial color="#f4ead2"/></mesh></group>;
 }
 
+function BayCoastline() {
+  const geometry=useMemo(()=>{
+    const shore:number[]=[],foam:number[]=[],colors:number[]=[],sand=new THREE.Color('#ddc79d'),marsh=new THREE.Color('#9fbd9f');
+    for(const area of BAY_LAND_AREAS)for(let i=1;i<area.ring.length;i++){
+      const a=area.ring[i-1],b=area.ring[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);if(length<.01)continue;
+      let nx=-(b[1]-a[1])/length,nz=(b[0]-a[0])/length;const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;if(!bayContains(mx+nx*.4,mz+nz*.4)){nx=-nx;nz=-nz;}
+      const ocean=mx<-185&&mz>-230,color=ocean?sand:marsh,width=ocean?2.3:.75;
+      const points:BayPoint[]=[a,b,[a[0]+nx*width,a[1]+nz*width],[b[0]+nx*width,b[1]+nz*width]],water:BayPoint[]=[[a[0]-nx*.7,a[1]-nz*.7],[b[0]-nx*.7,b[1]-nz*.7],[a[0]-nx*.94,a[1]-nz*.94],[b[0]-nx*.94,b[1]-nz*.94]];
+      for(const j of [0,2,1,1,2,3]){const p=points[j];shore.push(p[0],bayHeight(...p)+.013,p[1]);colors.push(color.r,color.g,color.b);const q=water[j];foam.push(q[0],-.405,q[1]);}
+    }
+    const strip=new THREE.BufferGeometry();strip.setAttribute('position',new THREE.Float32BufferAttribute(shore,3));strip.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));strip.computeVertexNormals();const edge=new THREE.BufferGeometry();edge.setAttribute('position',new THREE.Float32BufferAttribute(foam,3));return {strip,edge};
+  },[]);
+  useEffect(()=>()=>Object.values(geometry).forEach(item=>item.dispose()),[geometry]);
+  return <><mesh geometry={geometry.strip}><meshStandardMaterial vertexColors roughness={1} side={THREE.DoubleSide}/></mesh><mesh geometry={geometry.edge}><meshBasicMaterial color="#d9eee0" transparent opacity={.66} side={THREE.DoubleSide} depthWrite={false}/></mesh></>;
+}
+
+function BayShoreLife({running}:{running:boolean}) {
+  const birds=useRef<THREE.Group>(null),perch=useRef<THREE.Group>(null),elapsed=useRef(0);
+  const locations=useMemo(()=>UNIFIED_BAY_PLACES.filter(place=>['ocean-beach','half-moon-bay','alviso','alameda-beach'].includes(place.id)).map(place=>place.position),[]);
+  const pier=UNIFIED_BAY_PLACES.find(place=>place.key==='sf:pier')!;
+  useFrame(({camera},delta)=>{if(running)elapsed.current+=Math.min(delta,.05);if(perch.current)perch.current.visible=camera.position.distanceTo(perch.current.position)<100;
+    birds.current?.children.forEach((group,index)=>{const p=locations[index],time=elapsed.current*.35+index;group.visible=Math.hypot(camera.position.x-p[0],camera.position.z-p[1])<100&&camera.position.y<90;group.position.set(p[0]+Math.cos(time)*4,5.1+Math.sin(time*1.2)*.5,p[1]+Math.sin(time)*3);group.rotation.y=-time;group.children.forEach((wing,i)=>{wing.rotation.z=(i===0?1:-1)*(.16+Math.sin(elapsed.current*2.8+index)*.12);});});
+  });
+  return <><group ref={birds}>{locations.map((_,i)=><group key={i}>{[-1,1].map(side=><mesh key={side} position={[side*.22,0,0]}><boxGeometry args={[.5,.035,.18]}/><meshStandardMaterial color="#f3e9ce" roughness={1}/></mesh>)}</group>)}</group><group ref={perch} position={[pier.position[0]-3,bayHeight(...pier.position)+.10,pier.position[1]-2.7]}><mesh position={[0,-.06,0]}><boxGeometry args={[2.6,.18,1.4]}/><meshStandardMaterial color="#9c8463" roughness={1}/></mesh><SealionsModel/></group></>;
+}
+
 export function UnifiedBayWater({running}:{running:boolean}) {
   const wave=useRef<THREE.InstancedMesh>(null),foam=useRef<THREE.Group>(null),time=useRef(0),ferry=useRef<THREE.Group>(null);
   const waves=useMemo(()=>{const points:BayPoint[]=[];for(let x=-350;x<240;x+=13)for(let z=-310;z<370;z+=15){const p:BayPoint=[x+mapHash(x,z)*8,z+mapHash(z,x)*6];if(!bayContains(...p))points.push(p);}return points;},[]);
   useLayoutEffect(()=>{const object=new THREE.Object3D();waves.forEach((point,i)=>{object.position.set(point[0],-.36,point[1]);object.rotation.set(-Math.PI/2,0,0);object.scale.set(2.4+i%4*.5,.14,1);object.updateMatrix();wave.current?.setMatrixAt(i,object.matrix);});if(wave.current){wave.current.instanceMatrix.needsUpdate=true;wave.current.computeBoundingSphere();}},[waves]);
   useFrame((_,delta)=>{if(running){time.current+=Math.min(delta,.05);if(foam.current){foam.current.position.x=Math.sin(time.current*.12)*.32;foam.current.position.y=Math.sin(time.current*.5)*.025;}const path=BAY_FERRY_ROUTES[0]?.path;if(ferry.current&&path?.length){const progress=(Math.sin(time.current*.025)+1)/2*(path.length-1),index=Math.min(path.length-2,Math.floor(progress)),t=progress-index,a=path[index],b=path[index+1];ferry.current.position.set(a[0]+(b[0]-a[0])*t,-.24+Math.sin(time.current)*.025,a[1]+(b[1]-a[1])*t);ferry.current.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1])+(Math.cos(time.current*.025)<0?Math.PI:0);}}});
-  return <><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.44,0]}><planeGeometry args={[2400,2400]}/><meshStandardMaterial color="#87bdb9" roughness={.5} metalness={.015}/></mesh><group ref={foam}><instancedMesh ref={wave} args={[undefined,undefined,waves.length]}><planeGeometry/><meshBasicMaterial color="#d6eade" transparent opacity={.42} depthWrite={false}/></instancedMesh></group><group ref={ferry}><BayFerryModel/></group></>;
+  return <><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.44,0]}><planeGeometry args={[2400,2400]}/><meshStandardMaterial color="#72aaa8" roughness={.52} metalness={.015}/></mesh><group ref={foam}><instancedMesh ref={wave} args={[undefined,undefined,waves.length]}><planeGeometry/><meshBasicMaterial color="#d6eade" transparent opacity={.32} depthWrite={false}/></instancedMesh></group><BayCoastline/><BayShoreLife running={running}/><group ref={ferry}><BayFerryModel/></group></>;
 }
