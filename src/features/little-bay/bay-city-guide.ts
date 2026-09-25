@@ -40,8 +40,11 @@ export function cityEventMapUrl(event: PlannerEvent) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 export function cityGuideAiPrompt(city: BayCity, month: string, events: CityEvent[], locale: string) {
-  const known = events.slice(0, 2).map(({event,nextDate}) => `${event.id} (${nextDate}; ${event.venue})`).join('; ').slice(0,220);
-  return locale === 'en'
-    ? `Plan a half-day in ${city.nameEn} in ${month}. Ask my date, transport and companions first. Use BAYLINK sources; do not invent events or live availability. Note booking checks. Catalog IDs/dates: ${known || 'No confirmed city events listed.'}`
-    : `请安排 ${month} 的${city.name}半日游，先问日期、交通与同行人。使用 BAYLINK 来源，不编造活动或实时余票，说明需核实的时段与预约。已收录活动 ID / 日期：${known || '暂未收录本城活动。'}`;
+  // Listing a program's date here made the assistant treat it as a chosen day.
+  // Send optional catalog IDs only; ask for the user's date before planning.
+  const known = events.slice(0, 2).map(({event}) => event.id).join('; ');
+  const prefix = locale === 'en'
+    ? `Help plan a half-day in ${city.nameEn} during ${month}. I have NOT chosen a date or event. First ask my preferred day, transport and companions; do not select a day for me. Use BAYLINK sources; do not invent events or live availability. Note booking checks. Optional catalog IDs, NOT my selections: `
+    : `请帮我安排 ${month} 的${city.name}半日游。我还没有选择具体日期或活动，请先问哪一天、交通和同行人，不要替我选日期。使用 BAYLINK 来源，不编造活动或实时余票，说明需核实的时段与预约。以下只是可选目录 ID，不是我的选择：`;
+  return prefix + (known || (locale === 'en' ? 'No confirmed city events listed.' : '暂未收录本城活动。')).slice(0, Math.max(0, 500-prefix.length));
 }

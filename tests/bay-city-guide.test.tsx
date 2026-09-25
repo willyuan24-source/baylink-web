@@ -29,6 +29,11 @@ test('real address links never silently substitute a city centre and social link
 test('city AI prompts keep source limits inside the existing 500-character assistant handoff',()=>{
   for(const city of BAY_CITIES){const events=eventsForBayCity(PLANNER_EVENTS,city,'2026-10','2026-09-25');for(const locale of ['en','zh-Hans']){const prompt=cityGuideAiPrompt(city,'2026-10',events,locale);assert.ok(prompt.length<=500);assert.match(prompt,/do not invent|不编造/);}}
   assert.ok(cityGuidePlaces(sf).every(place=>place.region==='sf'));
+  const city=BAY_CITIES.find(c=>c.id==='san-mateo')!;
+  const prompt=cityGuideAiPrompt(city,'2026-10',eventsForBayCity(PLANNER_EVENTS,city,'2026-10','2026-09-25'),'en');
+  assert.match(prompt,/NOT chosen a date or event/);
+  assert.match(prompt,/san-mateo-boos-brews-2026/);
+  assert.ok(!prompt.includes('2026-10-24'),'an optional event date is not passed as a user-selected travel day');
 });
 
 const dom=new JSDOM('<!doctype html><html><body></body></html>',{url:'https://www.baylink.us/play',pretendToBeVisual:true});
