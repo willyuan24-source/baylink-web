@@ -8,9 +8,9 @@ import {
   terrainHeight, unprojectPosition,
 } from '../src/features/little-bay/sf-world';
 
-test('Mini SF retains real coordinate orientation and all 23 stable landmark anchors', () => {
-  assert.equal(SF_LANDMARKS.length, 23);
-  assert.equal(new Set(SF_LANDMARKS.map(place => place.id)).size, 23);
+test('Mini SF retains real coordinate orientation and all 32 stable landmark anchors', () => {
+  assert.equal(SF_LANDMARKS.length, 32);
+  assert.equal(new Set(SF_LANDMARKS.map(place => place.id)).size, 32);
   const byId = (id: string) => SF_LANDMARKS.find(place => place.id === id)!;
   assert.ok(byId('bridge').position[0] < byId('pier').position[0]);
   assert.ok(byId('park').position[0] < byId('union-square').position[0]);
@@ -49,6 +49,25 @@ test('park museums keep their real campus spacing and coast attractions have lan
   assert.ok(byId('ocean-beach').position[0] < tea.position[0]);
   assert.ok(byId('lands-end').position[1] < byId('ocean-beach').position[1]);
   assert.ok(byId('baker-beach').position[1] < byId('lands-end').position[1]);
+});
+
+test('campus and civic anchors retain their real districts and explicit visitor boundaries', () => {
+  const byId = (id: string) => SF_LANDMARKS.find(place => place.id === id)!;
+  const ids = ['ucsf-parnassus', 'ucsf-mission-bay', 'sf-state', 'exploratorium', 'stonestown', 'city-hall', 'salesforce', 'transamerica', 'oracle-park'];
+  for (const id of ids) {
+    const place = byId(id);
+    assert.ok(place, `${id}: stable destination`);
+    assert.ok(isOnLand(...place.position), `${id}: land-side anchor`);
+    assert.ok(place.visitNote && place.visitNoteEn, `${id}: real visitor context in both languages`);
+    assert.ok(place.modelScale && place.sceneryRadius && place.cameraDistance, `${id}: a framed, cleared site`);
+    assert.doesNotMatch(place.visitNoteEn, /[\u3400-\u9fff]/);
+  }
+  assert.ok(byId('ucsf-parnassus').position[0] < byId('ucsf-mission-bay').position[0], 'the two UCSF campuses are not collapsed into one');
+  assert.ok(byId('sf-state').position[1] > byId('stonestown').position[1], 'SF State is south of Stonestown');
+  assert.ok(byId('exploratorium').position[1] < byId('ferry').position[1], 'Pier 15 is north of Ferry Building');
+  assert.ok(byId('oracle-park').position[1] < byId('ucsf-mission-bay').position[1], 'the ballpark is north of Mission Bay campus');
+  assert.ok(byId('salesforce').markerHeight! > 5.12, 'tower label is above its roof');
+  assert.ok(byId('transamerica').markerHeight! > 4.63, 'pyramid label is above its spire');
 });
 
 test('shoreline separates mainland, Alcatraz and ocean; departure stays at Pier 33', () => {

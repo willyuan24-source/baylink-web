@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEv
 import { ArrowRight, BookOpen, Check, Compass, Footprints, MapPin, Sparkles, Stamp, Users, X } from 'lucide-react';
 import { translateText, type Locale } from '../../i18n/locale';
 import { SF_EXPLORATION_ROUTES, SF_EXPLORATION_STOPS, SF_EXPLORATION_STOP_BY_ID, SF_RESIDENTS, sfRouteProgress, type SfExplorationProgress, type SfStoryText } from './sf-exploration';
+import SfDiscoveryChallenge from './SfDiscoveryChallenge';
 
 export type SfExplorationTab = 'routes' | 'passport' | 'neighbors' | 'encounter';
 export type SfExplorationPanelProps = {
@@ -27,6 +28,7 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
   const [residentId, setResidentId] = useState(initialResidentId ?? SF_RESIDENTS[0].id);
   const [choice, setChoice] = useState<{ stopId: string; choiceId: string } | null>(null);
   const [memoryId, setMemoryId] = useState<string | null>(null);
+  const [solvedChallenge, setSolvedChallenge] = useState<string | null>(null);
   const panel = useRef<HTMLElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   const titleId = useId();
@@ -35,6 +37,7 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
   const nextStopId = activeRoute ? sfRouteProgress(progress, activeRoute).nextStopId : null;
   const resident = SF_RESIDENTS.find(item => item.id === residentId) ?? SF_RESIDENTS[0];
   const nearStamp = nearStop ? progress.stamps[nearStop.id] : undefined;
+  const challengeReady = !nearStop?.challenge || solvedChallenge === nearStop.id;
   const chosen = nearStop?.choices.find(item => item.id === (nearStamp?.choiceId ?? (choice?.stopId === nearStop.id ? choice.choiceId : null)));
   const memoryStop = memoryId ? SF_EXPLORATION_STOP_BY_ID[memoryId] : undefined;
   const memory = memoryStop?.choices.find(item => item.id === progress.stamps[memoryStop.id]?.choiceId);
@@ -44,6 +47,9 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
     close.current?.focus();
     return () => { if (previous?.isConnected) previous.focus(); };
   }, []);
+  useEffect(() => {
+    if (solvedChallenge && solvedChallenge === nearStop?.id) panel.current?.querySelector<HTMLButtonElement>('.sf-story-choices button')?.focus();
+  }, [solvedChallenge, nearStop?.id]);
 
   function handleKeys(event: KeyboardEvent<HTMLElement>) {
     event.stopPropagation();
@@ -71,7 +77,8 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
             <div className={`sf-story-emblem ${nearStamp ? 'is-collected' : ''}`} style={accent(nearStop.color)} aria-hidden="true">{nearStop.symbol}</div>
             <h4>{nearStamp ? story(nearStop.stamp) : t('在这里，留下一段小回忆', 'Make a little memory here')}</h4>
             <p>{nearStamp && chosen ? story(chosen.memory) : story(nearStop.prompt)}</p>
-            {!nearStamp && <div className="sf-story-choices">{nearStop.choices.map(item => <button key={item.id} type="button" aria-pressed={chosen?.id === item.id} onClick={() => setChoice({ stopId: nearStop.id, choiceId: item.id })}>{story(item.label)}{chosen?.id === item.id ? <Check size={17} /> : <ArrowRight size={17} />}</button>)}</div>}
+            {!nearStamp && nearStop.challenge && <SfDiscoveryChallenge key={nearStop.id} kind={nearStop.challenge} locale={locale} completed={challengeReady} onSolve={() => setSolvedChallenge(nearStop.id)} />}
+            {!nearStamp && challengeReady && <div className="sf-story-choices">{nearStop.choices.map(item => <button key={item.id} type="button" aria-pressed={chosen?.id === item.id} onClick={() => setChoice({ stopId: nearStop.id, choiceId: item.id })}>{story(item.label)}{chosen?.id === item.id ? <Check size={17} /> : <ArrowRight size={17} />}</button>)}</div>}
             {!nearStamp && chosen && <p className="sf-story-reveal" role="status">{story(chosen.memory)}</p>}
           </> : <div className="sf-story-empty"><Footprints size={32} /><h4>{t('小回忆，藏在下一站', 'Your next memory is waiting')}</h4><p>{t('让 BAYBAY 走到景点附近，就能开启一段小互动。先选一条小旅行也可以。', 'Walk BAYBAY up to a landmark to discover a little interaction, or choose a trip to get started.')}</p><button className="sf-story-primary" type="button" onClick={() => setTab('routes')}>{t('看看小旅行', 'Find a little trip')}<ArrowRight size={16} /></button></div>}
         </div>}
@@ -92,8 +99,8 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
         {tab === 'passport' && <div className="sf-story-passport">
           <div className="sf-story-passport-summary"><div><span>{t('BAYBAY 与你的旅行章', 'Your BAYBAY stamp collection')}</span><strong>{collected}<small> / {SF_EXPLORATION_STOPS.length}</small></strong></div><Stamp size={34} /></div>
           <p className="sf-story-intro">{t('每枚章都是一次迷你世界里的相遇。点击已收藏的章，可以重读你留下的小回忆。', 'Each stamp remembers a moment in the miniature world. Select a collected stamp to read your memory again.')}</p>
-          {memoryStop && memory && <div className="sf-story-memory" role="status" style={accent(memoryStop.color)}><span aria-hidden="true">{memoryStop.symbol}</span><div><strong>{story(memoryStop.stamp)}</strong><p>{story(memory.memory)}</p></div><button type="button" aria-label={t('收起这段回忆', 'Close this memory')} onClick={() => setMemoryId(null)}><X size={16} /></button></div>}
-          <div className="sf-story-stamp-grid">{SF_EXPLORATION_STOPS.map(stop => <button type="button" className={progress.stamps[stop.id] ? 'is-collected' : ''} key={stop.id} style={accent(stop.color)} onClick={() => { if (progress.stamps[stop.id]) setMemoryId(stop.id); else onTravel(stop.id); }} aria-label={`${story(stop.name)} · ${progress.stamps[stop.id] ? t('重读回忆', 'Read memory') : t('前往探索', 'Go explore')}`}><span aria-hidden="true">{stop.symbol}</span><strong>{story(stop.stamp)}</strong><small>{story(stop.name)}</small><em>{progress.stamps[stop.id] ? t('已收藏', 'Collected') : t('去发现', 'Discover')}</em></button>)}</div>
+          {memoryStop && memory && <div className="sf-story-memory" role="status" style={accent(memoryStop.color)}><span aria-hidden="true">{memoryStop.symbol}</span><div><strong>{story(memoryStop.stamp)}</strong><p>{story(memory.memory)}</p></div><button type="button" aria-label={t('收起这段回忆', 'Close this memory')} onClick={() => { setMemoryId(null); panel.current?.querySelector<HTMLButtonElement>(`[data-stamp-id="${memoryId}"]`)?.focus(); }}><X size={16} /></button></div>}
+          <div className="sf-story-stamp-grid">{SF_EXPLORATION_STOPS.map(stop => <button type="button" className={progress.stamps[stop.id] ? 'is-collected' : ''} key={stop.id} data-stamp-id={stop.id} style={accent(stop.color)} onClick={() => { if (progress.stamps[stop.id]) setMemoryId(stop.id); else onTravel(stop.id); }} aria-label={`${story(stop.name)} · ${progress.stamps[stop.id] ? t('重读回忆', 'Read memory') : t('前往探索', 'Go explore')}`}><span aria-hidden="true">{stop.symbol}</span><strong>{story(stop.stamp)}</strong><small>{story(stop.name)}</small><em>{progress.stamps[stop.id] ? t('已收藏', 'Collected') : t('去发现', 'Discover')}</em></button>)}</div>
         </div>}
 
         {tab === 'neighbors' && <div className="sf-story-neighbors">
@@ -103,7 +110,7 @@ export default function SfExplorationPanel({ locale, progress, currentNearId, in
         </div>}
       </div>
       {tab === 'encounter' && nearStop && <div className="sf-story-encounter-actions">
-        {nearStamp ? <span className="sf-story-saved" role="status"><Check size={16} />{t('已收藏到旅行本', 'Saved to your journal')}</span> : <button className="sf-story-primary" type="button" disabled={!chosen} onClick={() => { if (chosen) { onCollect(nearStop.id, chosen.id); close.current?.focus(); } }}><Stamp size={17} />{t('收下这枚虚拟旅行章', 'Keep this virtual stamp')}</button>}
+        {nearStamp ? <span className="sf-story-saved" role="status"><Check size={16} />{t('已收藏到旅行本', 'Saved to your journal')}</span> : <button className="sf-story-primary" type="button" disabled={!chosen || !challengeReady} onClick={() => { if (chosen && challengeReady) { onCollect(nearStop.id, chosen.id); close.current?.focus(); } }}><Stamp size={17} />{t('收下这枚虚拟旅行章', 'Keep this virtual stamp')}</button>}
         {nearStamp && nextStopId && <button className="sf-story-primary" type="button" onClick={() => onTravel(nextStopId)}>{t('继续下一站', 'Go to the next stop')}<ArrowRight size={17} /></button>}
         {nearStamp && activeRoute && !nextStopId && <div className="sf-story-route-finished"><Sparkles size={17} />{t('这条小旅行已完成！', 'This little trip is complete!')}<button type="button" onClick={() => setTab('routes')}>{t('选下一条路线', 'Choose another trip')}</button></div>}
         <button className="sf-story-text-action" type="button" onClick={() => onGuide(nearStop.id)}><BookOpen size={16} />{t('查看真实地点攻略', 'Explore the real place')}</button>

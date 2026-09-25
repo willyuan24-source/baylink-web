@@ -14,6 +14,15 @@ const WALK_ENTRANCES: Record<string, SfPoint> = {
   'lands-end': [1.08, .68],
   ferry: [0, 1.3],
   alcatraz: [0, .9],
+  'ucsf-parnassus': [0, 1.8],
+  'ucsf-mission-bay': [0, 1.8],
+  'sf-state': [0, 1.85],
+  exploratorium: [-1.45, 1.72],
+  stonestown: [0, 1.82],
+  'city-hall': [0, 1.78],
+  salesforce: [0, 1.95],
+  transamerica: [-.15, 1.65],
+  'oracle-park': [0, 2.3],
 };
 
 export function findSfArrival(x: number, z: number): string | null {

@@ -6,6 +6,8 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { bayBayPawPose, bayBayStrideAdvance, type BayBayLocomotion } from './baybay-locomotion';
 import { isOnLand, projectCoordinate, terrainHeight } from './sf-world';
+import { CivicLandmarkModel } from './SanFranciscoCivicModels';
+import { CIVIC_LANDMARK_IDS } from './sf-civic-landmarks';
 
 export type { BayBayLocomotion } from './baybay-locomotion';
 
@@ -904,10 +906,11 @@ function LandsEnd() {
   </>;
 }
 
-export type SanFranciscoLandmarkKind = 'bridge' | 'presidio' | 'palace' | 'lombard' | 'pier' | 'alcatraz' | 'chinatown' | 'ferry' | 'park' | 'cable-car' | 'twin-peaks' | 'union-square' | 'castro' | 'skystar' | 'coit' | 'painted-ladies' | 'sutro' | 'japanese-tea-garden' | 'academy' | 'de-young' | 'ocean-beach' | 'baker-beach' | 'lands-end';
+export type SanFranciscoLandmarkKind = 'bridge' | 'presidio' | 'palace' | 'lombard' | 'pier' | 'alcatraz' | 'chinatown' | 'ferry' | 'park' | 'cable-car' | 'twin-peaks' | 'union-square' | 'castro' | 'skystar' | 'coit' | 'painted-ladies' | 'sutro' | 'japanese-tea-garden' | 'academy' | 'de-young' | 'ocean-beach' | 'baker-beach' | 'lands-end' | typeof CIVIC_LANDMARK_IDS[number];
 
 /** All landmarks start at ground y=0. Their public-facing side is +Z. */
 export const LandmarkModel = memo(function LandmarkModel({ kind, animated = false }: { kind: string; animated?: boolean }) {
+  if ((CIVIC_LANDMARK_IDS as readonly string[]).includes(kind)) return <CivicLandmarkModel id={kind} />;
   switch (kind) {
     case 'bridge': return <GoldenGateBridge />;
     case 'presidio': return <Presidio />;

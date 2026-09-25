@@ -23,6 +23,17 @@ test('new museum departures stand in front of the model, and can walk away freel
   }
 });
 
+test('new campus and civic walking departures clear the miniature facades', () => {
+  for (const id of ['ucsf-parnassus','ucsf-mission-bay','sf-state','exploratorium','stonestown','city-hall','salesforce','transamerica','oracle-park']) {
+    const landmark = SF_LANDMARKS.find(item => item.id === id)!;
+    const { state: spawn } = createSfWalkingSpawn(id);
+    assert.ok(Math.hypot(spawn.x-landmark.position[0], spawn.z-landmark.position[1]) >= 1.6, `${id}: outside the front facade`);
+    let walker = createSfWalkerState(spawn.x, spawn.z, spawn.heading);
+    for (let frame = 0; frame < 30; frame++) walker = stepSfWalker(walker, {x:0,z:1}, 1/60, {canMove:isOnLand});
+    assert.ok(walker.z-spawn.z > .7, `${id}: can leave freely`);
+  }
+});
+
 test('resetting at the same attraction reports arrival again without repeating every frame', () => {
   const tracker = createSfArrivalTracker();
   const { state } = createSfWalkingSpawn('academy');

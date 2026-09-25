@@ -16,7 +16,7 @@ export type SfLandmark = {
   id: string;
   title: string;
   titleEn: string;
-  kind: 'bridge' | 'park' | 'palace' | 'street' | 'pier' | 'island' | 'gate' | 'market' | 'cable-car' | 'peak' | 'square' | 'rainbow' | 'wheel' | 'tower' | 'houses' | 'ruins' | 'garden' | 'museum' | 'beach' | 'coast';
+  kind: 'bridge' | 'park' | 'palace' | 'street' | 'pier' | 'island' | 'gate' | 'market' | 'cable-car' | 'peak' | 'square' | 'rainbow' | 'wheel' | 'tower' | 'houses' | 'ruins' | 'garden' | 'museum' | 'beach' | 'coast' | 'campus' | 'shopping' | 'civic' | 'skyscraper' | 'stadium';
   coordinate: SfCoordinate;
   position: SfPoint;
   arrivalRadius: number;
@@ -26,9 +26,14 @@ export type SfLandmark = {
   sceneryRadius?: number;
   /** Overview camera orbit distance, in world units. */
   cameraDistance?: number;
+  /** Tall skyline icons need their label above the architectural silhouette. */
+  markerHeight?: number;
   plannerPlaceId?: string;
   guideSlug?: string;
   sourceUrl: string;
+  /** Real-world visitor boundaries; exploring the model never grants building access. */
+  visitNote?: string;
+  visitNoteEn?: string;
 };
 
 export function projectCoordinate([lng, lat]: readonly number[]): SfPoint {
@@ -86,6 +91,16 @@ export const SF_LANDMARKS: SfLandmark[] = [
   landmark({ id: 'ocean-beach', title: 'Ocean Beach · 太平洋沙滩', titleEn: 'Ocean Beach', kind: 'beach', coordinate: [-122.51050, 37.76915], arrivalRadius: 3, modelScale: 1, sceneryRadius: 4.8, cameraDistance: 14, sourceUrl: 'https://www.nps.gov/goga/planyourvisit/oceanbeach.htm' }),
   landmark({ id: 'baker-beach', title: 'Baker Beach · 金门海滩', titleEn: 'Baker Beach', kind: 'beach', coordinate: [-122.48316, 37.79322], arrivalRadius: 2.8, modelScale: 1, sceneryRadius: 4, cameraDistance: 13, sourceUrl: 'https://www.nps.gov/places/000/baker-beach.htm' }),
   landmark({ id: 'lands-end', title: 'Lands End · 天涯海角', titleEn: 'Lands End · Coastal Trail', kind: 'coast', coordinate: [-122.50530, 37.78550], arrivalRadius: 2.4, modelScale: 1, sceneryRadius: 3.4, cameraDistance: 12, sourceUrl: 'https://www.nps.gov/goga/planyourvisit/landsend.htm' }),
+  // Public-facing campus and city anchors, with art-directed miniature silhouettes.
+  landmark({ id: 'ucsf-parnassus', title: 'UCSF · Parnassus 校区', titleEn: 'UCSF · Parnassus Heights', kind: 'campus', coordinate: [-122.45805, 37.76315], arrivalRadius: 2.4, modelScale: 1, sceneryRadius: 2.8, cameraDistance: 12, sourceUrl: 'https://www.ucsf.edu/maps/parnassus', visitNote: '校园外观与周边街区可作出游参考；医院、实验室和教学楼访问请遵循 UCSF 的安排。', visitNoteEn: 'Explore the campus exterior and surrounding streets. Hospital, laboratory and academic building access follows UCSF visitor rules.' }),
+  landmark({ id: 'ucsf-mission-bay', title: 'UCSF · Mission Bay 校区', titleEn: 'UCSF · Mission Bay', kind: 'campus', coordinate: [-122.39150, 37.76765], arrivalRadius: 2.4, modelScale: 1, sceneryRadius: 2.9, cameraDistance: 12, sourceUrl: 'https://www.ucsf.edu/maps/mission-bay', visitNote: '此处展示 Mission Bay 校区外观。临床、科研和教学区域不等同于公众游览空间。', visitNoteEn: 'This model represents the Mission Bay campus exterior. Clinical, research and academic areas are not unrestricted visitor spaces.' }),
+  landmark({ id: 'sf-state', title: 'SF State · 旧金山州立大学', titleEn: 'San Francisco State University', kind: 'campus', coordinate: [-122.47865, 37.72210], arrivalRadius: 2.5, modelScale: 1, sceneryRadius: 3, cameraDistance: 12, sourceUrl: 'https://future.sfsu.edu/explore', visitNote: 'Holloway Avenue 主校区；校园导览和楼宇开放安排请查看校方信息。', visitNoteEn: 'The main campus near Holloway Avenue. Check university information for campus tours and building access.' }),
+  landmark({ id: 'exploratorium', title: 'Exploratorium · 探索馆', titleEn: 'Exploratorium · Pier 15', kind: 'museum', coordinate: [-122.39870, 37.80075], arrivalRadius: 2.5, modelScale: 1, sceneryRadius: 4, cameraDistance: 12, sourceUrl: 'https://www.exploratorium.edu/visit', visitNote: '地图入口位于 Embarcadero 的 Pier 15 岸侧；博物馆入场、活动和特别开放时段以官方页面为准。', visitNoteEn: 'The map entrance is on the Embarcadero side of Pier 15. Check official admission, events and special opening arrangements.' }),
+  landmark({ id: 'stonestown', title: 'Stonestown Galleria · 购物中心', titleEn: 'Stonestown Galleria', kind: 'shopping', coordinate: [-122.47710, 37.72820], arrivalRadius: 2.5, modelScale: 1, sceneryRadius: 3, cameraDistance: 12, sourceUrl: 'https://www.stonestowngalleria.com/en/visit/', visitNote: '3251 20th Avenue；商场与各店营业时间可能不同，活动请查看官方信息。', visitNoteEn: '3251 20th Avenue. Mall and individual store hours may differ; check official event information.' }),
+  landmark({ id: 'city-hall', title: 'City Hall · 旧金山市政厅', titleEn: 'San Francisco City Hall', kind: 'civic', coordinate: [-122.41914, 37.77919], arrivalRadius: 2.5, modelScale: 1, sceneryRadius: 3, cameraDistance: 13, sourceUrl: 'https://www.sf.gov/location/san-francisco-city-hall', visitNote: '市政厅外观与 Civic Center 广场；进入建筑前请核实开放、安检和特别活动安排。', visitNoteEn: 'City Hall exterior and Civic Center. Verify opening, security screening and special events before entering.' }),
+  landmark({ id: 'salesforce', markerHeight: 5.65, title: 'Salesforce Tower · 空中花园', titleEn: 'Salesforce Tower & Park', kind: 'skyscraper', coordinate: [-122.39690, 37.78990], arrivalRadius: 2.3, modelScale: 1, sceneryRadius: 2.6, cameraDistance: 18, sourceUrl: 'https://www.tjpa.org/salesforce-transit-center/salesforce-park', visitNote: '公共游览目的地是旁边的 Salesforce Park；塔楼办公区域不等同于公众观景台。', visitNoteEn: 'The adjacent Salesforce Park is the public visitor destination. The office tower is not an unrestricted observation deck.' }),
+  landmark({ id: 'transamerica', markerHeight: 5.1, title: 'Transamerica Pyramid · 泛美金字塔', titleEn: 'Transamerica Pyramid', kind: 'skyscraper', coordinate: [-122.40280, 37.79520], arrivalRadius: 2.25, modelScale: 1, sceneryRadius: 2.5, cameraDistance: 14, sourceUrl: 'https://transamericapyramid.com/redwood-park', visitNote: '可结合 Redwood Park 与公开展览游览；塔楼办公区域的访问另有规定。', visitNoteEn: 'Combine the exterior with Redwood Park and public exhibitions. Office access has separate restrictions.' }),
+  landmark({ id: 'oracle-park', title: 'Oracle Park · 巨人队球场', titleEn: 'Oracle Park', kind: 'stadium', coordinate: [-122.38917, 37.77861], arrivalRadius: 2.6, modelScale: 1, sceneryRadius: 3.2, cameraDistance: 13, sourceUrl: 'https://www.mlb.com/giants/ballpark', visitNote: '球场外观与滨水街区；进入球场须按比赛、活动或官方导览的票务安排。', visitNoteEn: 'The ballpark exterior and waterfront neighborhood. Entry follows game, event or official tour ticket arrangements.' }),
 ];
 
 const LANDMARK_PRESENTATION: Record<string, Pick<SfLandmark, 'modelScale' | 'sceneryRadius' | 'cameraDistance'>> = {

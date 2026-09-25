@@ -157,7 +157,8 @@ test('collecting keeps keyboard focus inside the dialog after the collect button
 test('trips travel to the next uncollected stop and residents are explicitly authored', () => {
   const progress = collectSfExplorationStamp(emptySfExploration(), 'ferry', 'ferry');
   const { view, calls } = makePanel({ progress, initialTab: 'routes' });
-  fireEvent.click(view.getAllByRole('button', { name: 'Start this trip' })[1]);
+  const waterfront = view.getByRole('heading', { name: 'Hello along the waterfront' }).closest('article')!;
+  fireEvent.click(waterfront.querySelector('button')!);
   assert.deepEqual(calls.routes, ['waterfront-day']);
   assert.deepEqual(calls.travel, ['pier']);
   fireEvent.click(view.getByRole('button', { name: 'Neighbors' }));

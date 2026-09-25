@@ -13,6 +13,9 @@ export const SF_DRIVING_REVERSE_SPEED = 3.8;
 const LANDMARK_OBSTACLES: Record<string, number> = {
   park: 2.05, palace: 1.6, presidio: 1.3, ferry: 2.1, coit: .7,
   'painted-ladies': 1.9, skystar: .85, 'union-square': .65,
+  'ucsf-parnassus': 1.9, 'ucsf-mission-bay': 1.9, 'sf-state': 1.9,
+  exploratorium: 2.2, stonestown: 2, 'city-hall': 2,
+  salesforce: 1.9, transamerica: 1.5, 'oracle-park': 1.95,
 };
 
 function isHiddenBySfLandmark(x: number, z: number) {

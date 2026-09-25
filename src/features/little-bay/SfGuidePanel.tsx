@@ -80,6 +80,7 @@ function GuideSession({ landmark, locale, onClose, events = [], date, onAsk }: S
       <span className="sf-guide-eyebrow"><BookOpen size={15} /> BAYLINK · {t('地点攻略', 'LOCAL GUIDE')}</span>
       <h3 id={headingId}>{placeName}</h3>
       {photo && <SfLandmarkPhoto key={`${photo.src}:preview`} photo={photo} locale={locale} onExpand={() => setPhotoExpanded(true)} />}
+      {landmark.visitNote && <p className="sf-visit-note">{locale === 'en' ? landmark.visitNoteEn : translateText(landmark.visitNote, locale)}</p>}
       {!result.done ? <p className="sf-guide-loading" role="status">{t('正在打开攻略…', 'Opening the guide…')}</p> : result.guide ? <>
         <div className="sf-guide-related"><span>{t('相关攻略', 'RELATED GUIDE')}</span><h4>{result.guide.title}</h4></div>
         <div className="sf-guide-meta"><span><Clock3 size={14} /> {result.guide.readMinutes} {t('分钟阅读', 'min read')}</span><span>{t('文章更新', 'Article updated')} <time dateTime={result.guide.updatedAt}>{result.guide.updatedAt}</time></span></div>

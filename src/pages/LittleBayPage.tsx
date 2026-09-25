@@ -11,9 +11,13 @@ import { usePlannerLibrary } from '../lib/planner-library';
 import { setPageMetadata } from '../lib/seo';
 import { LITTLE_BAY_METADATA } from '../lib/little-bay-metadata';
 import { cleanLittleBayPlanStops, getLittleBayStops, getNextSaturday, pickLittleBayOuting, resolveLittleBayStop } from '../features/little-bay/catalog';
+import BayTravelAtlas from '../features/little-bay/BayTravelAtlas';
+import { isBayRegion, visitedInRegion } from '../features/little-bay/bay-journey';
+import { useBayJourney } from '../features/little-bay/useBayJourney';
 
 const LittleBayScene = lazy(() => import('../features/little-bay/LittleBayScene'));
 const SanFranciscoExplorer = lazy(() => import('../features/little-bay/SanFranciscoExplorer'));
+const RegionalBayExplorer = lazy(() => import('../features/little-bay/RegionalBayExplorer'));
 type Notice = { zh: string; en: string } | null;
 
 class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -51,6 +55,9 @@ export default function LittleBayPage() {
   const [saved, setSaved] = useState<SavedPlan>();
   const [shareUrl, setShareUrl] = useState('');
   const library = usePlannerLibrary(app?.user?.id);
+  const {journey,visit,persistent} = useBayJourney(app?.user?.id);
+  const travelRegion = useCallback((next:string) => { if(!isBayRegion(next))return;setRegion(next);setSelectedKey(null);setListMode(false); }, []);
+  const recordVisit = useCallback((id:string) => { if(isBayRegion(region))visit(region,id); }, [region,visit]);
   const previousOwner = useRef(app?.user?.id);
   const tripRef = useRef<HTMLElement>(null);
   const catalogRef = useRef<HTMLElement>(null);
@@ -140,12 +147,14 @@ export default function LittleBayPage() {
       <Link to="/my-week" className="lb-week-link"><Ticket size={18} />{t('我的这周', 'My week')}<ArrowUpRight size={16} /></Link>
     </header>
 
+    <BayTravelAtlas region={region} onTravel={travelRegion} journey={journey} persistent={persistent}/>
+
     <div className="lb-toolbar">
       <div className="lb-filters"><label><MapPin size={16} /><span className="sr-only">{t('探索地区', 'Explore a region')}</span><select value={region} disabled={library.busy} onChange={event => { setRegion(event.target.value); setSelectedKey(null); }}>{ATTRACTION_REGIONS.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{editorial(item.label)}</option>)}</select></label><span className="lb-filter-divider" /><label><CalendarDays size={16} /><span className="sr-only">{t('出游日期', 'Outing date')}</span><input aria-label={t('出游日期', 'Outing date')} type="date" min={todayInBay()} value={date} disabled={library.busy} onChange={event => updateDate(event.target.value)} /></label><button className={`lb-free ${freeOnly ? 'is-active' : ''}`} aria-pressed={freeOnly} onClick={() => setFreeOnly(value => !value)}><Leaf size={15} />{t('主体免费', 'Free admission')}</button></div>
       <div className="lb-view-toggle" aria-label={t('浏览方式', 'Explore view')}><button aria-pressed={!listMode} onClick={() => setListMode(false)}><Globe2 size={16} />{t('3D 探索', '3D world')}</button><button aria-pressed={listMode} onClick={() => setListMode(true)}><List size={16} />{t('地点列表', 'Places')}</button></div>
     </div>
 
-    {region === 'sf' && !listMode ? <Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22} /><span>{t('正在走进迷你旧金山…', 'Entering little San Francisco…')}</span></div>}><SanFranciscoExplorer date={date} stops={stops} onAddPlace={addWorldPlace} onShowList={() => setListMode(true)} freeOnly={freeOnly} ownerId={app?.user?.id} onAsk={app?.openBayBay} /></Suspense> : <div className={`lb-world-layout ${listMode ? 'is-list' : ''}`}>
+    {region === 'sf' && !listMode ? <Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22} /><span>{t('正在走进迷你旧金山…', 'Entering little San Francisco…')}</span></div>}><SanFranciscoExplorer date={date} stops={stops} onAddPlace={addWorldPlace} onShowList={() => setListMode(true)} freeOnly={freeOnly} ownerId={app?.user?.id} onAsk={app?.openBayBay} onTravel={travelRegion} onVisit={recordVisit}/></Suspense> : isBayRegion(region) && region !== 'sf' && !listMode ? <SceneBoundary key={region} fallback={sceneFallback}><Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22}/><span>{t('正在准备下一段湾区小旅行…','Getting your next Bay Area adventure ready…')}</span></div>}><RegionalBayExplorer key={region} region={region} date={date} onTravel={travelRegion} onVisit={recordVisit} visitedIds={visitedInRegion(journey,region)} addedPlaceIds={stops.filter(stop=>stop.kind==='place').map(stop=>stop.id)} onAddPlace={addWorldPlace} onShowList={()=>setListMode(true)} onAsk={app?.openBayBay}/></Suspense></SceneBoundary> : <div className={`lb-world-layout ${listMode ? 'is-list' : ''}`}>
       <section ref={worldRef} className={`lb-world lb-world--${timeOfDay}`} aria-label={t('互动湾区微缩街景', 'Interactive miniature Bay Area')}>
         {!listMode && <><div className="lb-world-heading"><span className="lb-live-dot" />{displayedRegion}<span className="lb-world-edition">A LITTLE BAY ADVENTURE</span></div><div className="lb-light-toggle"><button aria-label={t('白昼光线', 'Daylight')} title={t('白昼光线', 'Daylight')} aria-pressed={timeOfDay === 'day'} onClick={() => setTimeOfDay('day')}><Sun size={18} /></button><button aria-label={t('日落光线', 'Golden hour')} title={t('日落光线', 'Golden hour')} aria-pressed={timeOfDay === 'golden'} onClick={() => setTimeOfDay('golden')}><Sunset size={18} /></button></div></>}
         {listMode ? <div className="lb-list-world"><div className="lb-list-intro"><Compass size={26} /><div><span>LITTLE DISCOVERIES</span><h2>{t('下一站，想去哪里？', 'Where to next?')}</h2><p>{t('点开一个去处，看看是否适合你的这一天。', 'Open a place and see if it belongs in your day.')}</p></div></div><div className="lb-list-cards">{options.map((item, index) => <button key={item.key} className={active?.key === item.key ? 'is-selected' : ''} onClick={() => select(item.key)}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{editorial(item.title)}</strong><small>{item.city} · {editorial(item.price)}</small></div><ChevronRight size={16} /></button>)}</div>{!options.length && <p className="lb-empty">{t('这组条件下暂时没有去处，换个日期或取消免费筛选看看。', 'No places match these filters. Try another date or turn off free admission.')}</p>}</div> : <>
@@ -162,7 +171,7 @@ export default function LittleBayPage() {
       </aside>
     </div>}
 
-    {(region !== 'sf' || listMode) && <div className="lb-scene-caption"><span>{t('湾区灵感微缩场景，非实际道路或公交线路。', 'A Bay-inspired miniature, not a street map or transit route.')}</span><span><span className="lb-caption-dot" />{t('真实活动与地点', 'Real places. Real possibilities.')}</span></div>}
+    {(!isBayRegion(region) || listMode) && <div className="lb-scene-caption"><span>{t('湾区灵感微缩场景，非实际道路或公交线路。', 'A Bay-inspired miniature, not a street map or transit route.')}</span><span><span className="lb-caption-dot" />{t('真实活动与地点', 'Real places. Real possibilities.')}</span></div>}
 
     <section className="lb-ticket" ref={tripRef} aria-label={t('我的周末车票', 'My getaway ticket')}>
       <div className="lb-ticket-heading"><div><span className="lb-eyebrow">YOUR LITTLE GETAWAY</span><h2><TramFront size={23} />{t('我的周末车票', 'Your day, coming together.')}</h2><p>{dateLabel} <span>·</span> {t('最多三站，留一点时间慢慢逛。', 'Up to three stops. Leave a little room to linger.')}</p></div><button className="lb-curate" disabled={!options.length || library.busy} onClick={autoPick}><Sparkles size={16} />{t('帮我搭配', 'Pick a little outing')}</button></div>
@@ -174,7 +183,7 @@ export default function LittleBayPage() {
       {!!stops.length && <Link className="lb-real-map" to={plannerUrl.pathname + plannerUrl.search} target="_blank" rel="noopener noreferrer"><MapPin size={14} />{t('在真实地图中查看与调整', 'View and refine on the real map')}<ArrowUpRight size={13} /></Link>}
     </section>
 
-    <section className="lb-discoveries" ref={catalogRef} aria-label={t('探索这些去处', 'Explore these places')}><div className="lb-discoveries-heading"><div><span className="lb-eyebrow">A FEW GOOD PLACES</span><h2>{t('每一站，都有点期待。', 'A few reasons to get outside.')}</h2></div><Link to="/calendar">{t('完整活动日历', 'The full calendar')}<ArrowUpRight size={15} /></Link></div><div className="lb-discovery-grid">{options.map((item, index) => <button key={item.key} className={active?.key === item.key ? 'is-active' : ''} onClick={() => { select(item.key); if (region === 'sf' && !listMode) setListMode(true); requestAnimationFrame(() => document.querySelector('.lb-stop-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })); }}><span className={`lb-discovery-icon ${item.kind === 'event' ? 'is-event' : ''}`}>{item.kind === 'event' ? <CalendarDays size={21} /> : <MapPin size={21} />}</span><div><small>{String(index + 1).padStart(2, '0')} / {item.city}</small><strong>{editorial(item.title)}</strong><span>{editorial(item.price)}</span></div>{stops.some(stop => stop.kind === item.stop.kind && stop.id === item.stop.id) ? <Check size={17} /> : <ArrowUpRight size={17} />}</button>)}</div>{!options.length && <p className="lb-empty">{t('这组条件下暂时没有去处，请调整上方筛选。', 'No places match these filters. Adjust your date, region or admission preference.')}</p>}</section>
+    <section className="lb-discoveries" ref={catalogRef} aria-label={t('探索这些去处', 'Explore these places')}><div className="lb-discoveries-heading"><div><span className="lb-eyebrow">A FEW GOOD PLACES</span><h2>{t('每一站，都有点期待。', 'A few reasons to get outside.')}</h2></div><Link to="/calendar">{t('完整活动日历', 'The full calendar')}<ArrowUpRight size={15} /></Link></div><div className="lb-discovery-grid">{options.map((item, index) => <button key={item.key} className={active?.key === item.key ? 'is-active' : ''} onClick={() => { select(item.key); if (isBayRegion(region) && !listMode) setListMode(true); requestAnimationFrame(() => document.querySelector('.lb-stop-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })); }}><span className={`lb-discovery-icon ${item.kind === 'event' ? 'is-event' : ''}`}>{item.kind === 'event' ? <CalendarDays size={21} /> : <MapPin size={21} />}</span><div><small>{String(index + 1).padStart(2, '0')} / {item.city}</small><strong>{editorial(item.title)}</strong><span>{editorial(item.price)}</span></div>{stops.some(stop => stop.kind === item.stop.kind && stop.id === item.stop.id) ? <Check size={17} /> : <ArrowUpRight size={17} />}</button>)}</div>{!options.length && <p className="lb-empty">{t('这组条件下暂时没有去处，请调整上方筛选。', 'No places match these filters. Adjust your date, region or admission preference.')}</p>}</section>
     <footer className="lb-footer"><span>BAYBAY'S LITTLE BAY <i>✳</i> MADE FOR REAL-LIFE ADVENTURES</span><Link to="/plan">{t('更多条件？用 BayBay 智能规划', 'More in mind? Plan it with BayBay')}<ArrowRight size={15} /></Link></footer>
   </div>;
 }

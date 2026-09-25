@@ -8,6 +8,13 @@ function ClayBox({ position, scale, color }: { position: [number, number, number
   return <mesh position={position} scale={scale} castShadow><boxGeometry args={[1, 1, 1]} /><meshStandardMaterial color={color} roughness={.9} /></mesh>;
 }
 function MemoryObject({ id, choice }: { id: string; choice: string }) {
+  if (id === 'exploratorium') return <group>
+    <ClayBox position={[0,.1,0]} scale={[.8,.2,.6]} color="#b1bca1"/>
+    {['#cf836f','#95b074','#80afb9'].map((color,index)=><group key={color} position={[(index-1)*.23,.32,.14]}><mesh><cylinderGeometry args={[.075,.1,.28,10]}/><meshStandardMaterial color={color}/></mesh><mesh position={[0,.19,0]}><sphereGeometry args={[.085,10,8]}/><meshStandardMaterial color={color} emissive={color} emissiveIntensity={.2}/></mesh></group>)}
+    <mesh position={[0,.6,-.15]}><octahedronGeometry args={[.19]}/><meshStandardMaterial color="#fff2c6" roughness={.4}/></mesh>
+  </group>;
+  if (id === 'salesforce') return <group><mesh position={[0,.1,0]}><cylinderGeometry args={[.3,.24,.2,12]}/><meshStandardMaterial color="#c89370"/></mesh><ClayBox position={[0,.44,0]} scale={[.04,.65,.04]} color="#65926d"/>{[-1,1].map(side=><mesh key={side} position={[side*.13,.48,0]} rotation={[0,0,side*-.7]} scale={[.16,.26,.06]}><sphereGeometry args={[1,10,8]}/><meshStandardMaterial color="#95b475"/></mesh>)}</group>;
+  if (id === 'city-hall') return <group><ClayBox position={[0,.07,0]} scale={[.75,.14,.45]} color="#d6c99f"/>{[-.25,0,.25].map((x,index)=><mesh key={x} position={[x,.29+index*.06,0]}><coneGeometry args={[.12,.42+index*.12,index===1?4:12]}/><meshStandardMaterial color={['#7eaaa3','#b5a27d','#d2bf82'][index]}/></mesh>)}</group>;
   if (id === 'ocean-beach' && choice === 'castle') return <group>
     <ClayBox position={[0, .14, 0]} scale={[.7, .28, .58]} color="#ddc28a" />
     {[-.3, .3].flatMap(x => [-.23, .23].map(z => <group key={`${x}:${z}`} position={[x, 0, z]}>
@@ -40,7 +47,8 @@ function Discovery({ id, choice, running }: { id: string; choice: string; runnin
   const landmark = SF_LANDMARKS.find(place => place.id === id);
   useFrame((_, delta) => { if (running && group.current) group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, 1, 5, Math.min(delta, .1))); });
   if (!landmark) return null;
-  const offset = [[-1.1, 1.2], [.7, 1.3], [0, .7]].find(([dx, dz]) => isOnLand(landmark.position[0] + dx, landmark.position[1] + dz)) ?? [0, 0];
+  const candidates = id === 'exploratorium' ? [[-1.75, 1.9], [-2.1, 2.2]] : ['city-hall', 'salesforce', 'sf-state', 'stonestown', 'ucsf-parnassus', 'ucsf-mission-bay', 'oracle-park', 'transamerica'].includes(id) ? [[-1.5, 2.2], [1.5, 2.2], [0, 2.6]] : [[-1.1, 1.2], [.7, 1.3], [0, .7]];
+  const offset = candidates.find(([dx, dz]) => isOnLand(landmark.position[0] + dx, landmark.position[1] + dz)) ?? [0, 0];
   const x = landmark.position[0] + offset[0], z = landmark.position[1] + offset[1];
   return <group ref={group} position={[x, terrainHeight(x, z) + .12, z]} scale={.05}><MemoryObject id={id} choice={choice} /></group>;
 }

@@ -188,7 +188,7 @@ function LandmarkMarker({ id, active, overview, destination, visited, onSelect, 
   const name = locale === 'en' ? landmark.titleEn : landmark.title;
   const status = destination ? (locale === 'en' ? ' · Next stop' : ' · 下一站') : visited ? (locale === 'en' ? ' · Stamp collected' : ' · 已收集印章') : '';
   const compactSite = (landmark.sceneryRadius ?? 3) < 2;
-  return <Html center position={[0, id === 'academy' ? 1.35 : compactSite ? 2.1 : 3.7 * Math.min(landmark.modelScale ?? 1, 1.2), 0]} zIndexRange={named ? [18, 16] : [15, 0]} style={{ pointerEvents: 'none' }}>
+  return <Html center position={[0, landmark.markerHeight ?? (id === 'academy' ? 1.35 : compactSite ? 2.1 : 3.7 * Math.min(landmark.modelScale ?? 1, 1.2)), 0]} zIndexRange={named ? [18, 16] : [15, 0]} style={{ pointerEvents: 'none' }}>
     <button type="button" onClick={() => onSelect(id)} aria-label={name + status} aria-pressed={active} title={name + status}
       className={`sf-world-marker${active ? ' is-active' : ''}`} style={{
         minWidth: 44, minHeight: 44, display: 'grid', placeItems: 'center', border: active ? '2px solid #fff8e7' : 'none', borderRadius: 30, padding: named ? '7px 13px' : 10,

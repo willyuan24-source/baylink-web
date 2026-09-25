@@ -13,6 +13,7 @@ import { useSfTouchControls } from './useSfTouchControls';
 import { useSfExploration } from './useSfExploration';
 import { SF_EXPLORATION_STOP_BY_ID } from './sf-exploration';
 import { sfLandmarkEvents } from './sf-landmark-events';
+import { BAY_REGIONS } from './bay-journey';
 
 const CityScene = lazy(() => import('./SanFranciscoScene'));
 const ParkScene = lazy(() => import('./ParkGardenScene'));
@@ -27,8 +28,8 @@ class WorldBoundary extends Component<{ children: ReactNode; onError: () => void
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowList, freeOnly = false, ownerId, onAsk }: {
-  date: string; stops: Stop[]; onAddPlace: (id: string) => void; onShowList: () => void; freeOnly?: boolean; ownerId?: string; onAsk?: (question: string) => void;
+export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowList, freeOnly = false, ownerId, onAsk, onVisit, onTravel }: {
+  date: string; stops: Stop[]; onAddPlace: (id: string) => void; onShowList: () => void; freeOnly?: boolean; ownerId?: string; onAsk?: (question: string) => void; onVisit?: (id:string)=>void; onTravel?: (region:string)=>void;
 }) {
   const locale = useLocale();
   const touchControls = useSfTouchControls();
@@ -74,6 +75,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
   const added = !!linkedPlaceId && stops.some(stop => stop.kind === 'place' && stop.id === linkedPlaceId);
   const live = running && visible && !rewardOpen && !eventsOpen && !guidePlace && !journal;
   const physicalNearId = garden ? 'park' : mode === 'overview' || rideActive ? null : arrival;
+  useEffect(() => { if (physicalNearId) onVisit?.(physicalNearId); }, [physicalNearId, onVisit]);
   const encounter = physicalNearId ? SF_EXPLORATION_STOP_BY_ID[physicalNearId] : undefined;
   const destination = SF_LANDMARKS.find(place => place.id === exploration.nextStopId);
   const events = PLANNER_EVENTS.filter(event => event.region === 'sf' && (!freeOnly || event.cost === 'free') && eventOccursOn(event, date));
@@ -184,6 +186,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
         </label>
         <button onClick={city} aria-pressed={!garden && mode === 'overview' && !selectedId}><Map size={16} /><span>{t('全城地图', 'City map')}</span></button>
         <button onClick={enterGarden} aria-pressed={garden}><Footprints size={16} /><span>{t('花园', 'Garden')}</span></button>
+        {onTravel && <label className="sf-region-travel"><TramFront size={15}/><span className="sr-only">{t('前往湾区其他地区','Travel around the bay')}</span><select aria-label={t('前往湾区其他地区','Travel around the bay')} value="sf" onChange={event=>{release();onTravel(event.target.value);}}>{BAY_REGIONS.map(item=><option key={item.id} value={item.id}>{item.id==='sf'?t('湾区旅行','Travel the bay'):t(item.zh,item.en)}</option>)}</select></label>}
       </nav>
       {!error && <WorldBoundary onError={sceneError} fallback={fallback}><Suspense fallback={<div className="sf-loading"><span className="sf-loading-orbit" /><strong>{t('BayBay 正在准备出发', 'BayBay is getting ready')}</strong></div>}>
         {cityMounted && <div className="sf-city-layer" style={{ display: garden ? 'none' : 'block' }}><CityScene selectedId={selectedId} onSelect={select} mode={mode} cameraCommand={garden ? undefined : cameraCommand} running={live && !garden} timeOfDay={golden ? 'golden' : 'day'} driveInput={input} resetToken={resetToken} startId={startId} locale={locale === 'en' ? 'en' : 'zh'} onStreetChange={setStreet} onArrival={onArrival} onReady={sceneReady} onError={sceneError} activeDestinationId={exploration.nextStopId ?? undefined} visitedIds={Object.keys(exploration.progress.stamps)} discoveries={Object.fromEntries(Object.entries(exploration.progress.stamps).map(([id, stamp]) => [id, stamp.choiceId]))} onResidentInteract={id => openJournal('neighbors', id)} rideActive={rideActive} onRideComplete={completeRide} /></div>}
@@ -231,7 +234,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
         <button onClick={exploration.clearRoute} aria-label={t('结束小旅行，继续自由探索', 'End route and explore freely')}><X size={15} /></button>
       </aside>}
       {rideActive && <div className="sf-ride-caption"><TramFront size={16} /><span>{t('小城观光缆车 · 约 48 秒', 'Mini sightseeing tram · about 48 sec')}<small>{t('联合广场 → 唐人街 → 海滨 · 游戏观光线', 'Union Square → Chinatown → waterfront · game route')}</small></span></div>}
-      {journal && <Suspense fallback={<div className="sf-guide-overlay"><div className="sf-guide-panel" role="status">{t('正在打开旅行本…', 'Opening your journal…')}<button onClick={() => setJournal(null)}>{t('关闭', 'Close')}</button></div></div>}><ExplorationPanel locale={locale} progress={exploration.progress} currentNearId={physicalNearId} initialTab={journal.tab} initialResidentId={journal.residentId} onStartRoute={exploration.startRoute} onCollect={(id, choiceId) => exploration.collect(id, physicalNearId, choiceId)} onTravel={travelTo} onGuide={id => { setJournal(null); openGuide(id); }} onClose={() => setJournal(null)} /></Suspense>}
+      {journal && <Suspense fallback={<div className="sf-guide-overlay"><div className="sf-guide-panel" role="status">{t('正在打开旅行本…', 'Opening your journal…')}<button onClick={() => setJournal(null)}>{t('关闭', 'Close')}</button></div></div>}><ExplorationPanel key={ownerId ? 'user:' + ownerId : 'guest'} locale={locale} progress={exploration.progress} currentNearId={physicalNearId} initialTab={journal.tab} initialResidentId={journal.residentId} onStartRoute={exploration.startRoute} onCollect={(id, choiceId) => exploration.collect(id, physicalNearId, choiceId)} onTravel={travelTo} onGuide={id => { setJournal(null); openGuide(id); }} onClose={() => setJournal(null)} /></Suspense>}
       {guidePlace && <Suspense fallback={<div className="sf-guide-overlay"><div className="sf-guide-panel" role="status">{t('正在打开攻略…', 'Opening guide…')}<button onClick={closeGuide}>{t('关闭', 'Close')}</button></div></div>}><GuidePanel landmark={guidePlace} locale={locale} onClose={closeGuide} date={date} events={sfLandmarkEvents(PLANNER_EVENTS, guidePlace.id, date, freeOnly)} onAsk={onAsk ? askAboutPlace : undefined} /></Suspense>}
       <div className="sf-ground-caption">{rideActive ? t('拖动转视角 · 随时可暂停或下车', 'Drag to look around · Pause or exit any time') : touchControls && (garden || mode !== 'overview') ? t('左手摇杆移动 · 右手拖动视角 · 松手停下', 'Joystick to move · Drag scene to look · Release to stop') : garden ? t('点地面走路 · 拖动转视角', 'Tap to walk · Drag to orbit') : mode === 'drive' ? t('WASD / 方向键开车 · 拖动转视角', 'WASD / arrows to drive · Drag to orbit') : mode === 'walk' ? t('点地面走路 · WASD 移动 · 拖动转视角', 'Tap to walk · WASD to move · Drag to orbit') : t('真实街区与主要街道 · 房屋为微缩艺术化布置', 'Real districts and main streets · Homes are miniature interpretations')}</div>
       {photoNotice && <div className="sf-photo-notice" role="status">{t('明信片已准备下载。', 'Your postcard is ready to download.')}</div>}

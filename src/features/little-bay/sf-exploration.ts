@@ -1,3 +1,6 @@
+import { SF_EXTRA_DISCOVERIES } from './sf-extra-discoveries';
+import type { DiscoveryChallenge } from './SfDiscoveryChallenge';
+
 export type SfStoryText = { zh: string; en: string };
 export type SfEncounterChoice = { id: string; label: SfStoryText; memory: SfStoryText };
 export type SfExplorationStop = {
@@ -8,12 +11,14 @@ export type SfExplorationStop = {
   color: string;
   prompt: SfStoryText;
   choices: readonly SfEncounterChoice[];
+  challenge?: DiscoveryChallenge;
 };
 const text = (zh: string, en: string): SfStoryText => ({ zh, en });
 const choice = (id: string, zh: string, en: string, memoryZh: string, memoryEn: string): SfEncounterChoice => ({ id, label: text(zh, en), memory: text(memoryZh, memoryEn) });
 
 /** Authored, fictional moments in the miniature world, never evidence of a real visit. */
 export const SF_EXPLORATION_STOPS: readonly SfExplorationStop[] = [
+  ...SF_EXTRA_DISCOVERIES,
   { id: 'park', name: text('金门公园', 'Golden Gate Park'), stamp: text('公园慢时光', 'A slower afternoon'), symbol: '✿', color: '#6e8e59', prompt: text('BAYBAY 带来一块野餐布。给这次公园探险选一个开场吧。', 'BAYBAY brought a picnic blanket. How should this park adventure begin?'), choices: [choice('picnic', '铺开野餐布', 'Spread the blanket', '树影落在野餐布上。今天的冒险，从慢下来开始。', 'Leaf shadows fall across the blanket. Today’s adventure begins by slowing down.'), choice('sketch', '画一张公园速写', 'Sketch the park', 'BAYBAY 把温室、树和你的小小脚印画进了旅行本。', 'BAYBAY draws the conservatory, the trees and your tiny footprints in the journal.')] },
   { id: 'japanese-tea-garden', name: text('日本茶园', 'Japanese Tea Garden'), stamp: text('一园静谧', 'A quiet garden'), symbol: '❀', color: '#bd7864', prompt: text('走进这座迷你茶园，BAYBAY 请你帮旅行本留下一种心情。', 'Inside the miniature tea garden, BAYBAY wants a feeling to remember.'), choices: [choice('bridge', '在小桥旁停一会儿', 'Pause by the bridge', '水面把小桥倒映成另一座安静的花园。BAYBAY 也放轻了脚步。', 'The bridge reflects into another quiet garden. Even BAYBAY takes smaller steps.'), choice('tea', '想象一杯暖茶', 'Imagine a warm cup of tea', '一杯想象中的暖茶，和一段没有赶路的午后。', 'An imaginary warm cup of tea, and an afternoon with nowhere to rush.')] },
   { id: 'academy', name: text('加州科学馆', 'California Academy of Sciences'), stamp: text('小小科学家', 'Little explorer'), symbol: '✦', color: '#608e87', prompt: text('BAYBAY 的想象实验室开门了。今天想先探索哪里？', 'BAYBAY’s imaginary science lab is open. Where will you explore first?'), choices: [choice('ocean', '想象深海探险', 'Imagine a deep-sea dive', '你和 BAYBAY 坐进想象中的潜水艇，把一束蓝光装进明信片。', 'You and BAYBAY take an imaginary submarine ride and save a little blue light on a postcard.'), choice('stars', '写一封给星星的信', 'Write a letter to the stars', 'BAYBAY 在信封上画了一颗星：愿好奇心带我们去更远的地方。', 'BAYBAY draws a star on the envelope: may curiosity take us somewhere new.')] },
@@ -31,6 +36,8 @@ export const SF_EXPLORATION_STOPS: readonly SfExplorationStop[] = [
 export const SF_EXPLORATION_STOP_BY_ID: Readonly<Record<string, SfExplorationStop>> = Object.assign(Object.create(null) as Record<string, SfExplorationStop>, Object.fromEntries(SF_EXPLORATION_STOPS.map(stop => [stop.id, stop])));
 export type SfExplorationRoute = { id: string; title: SfStoryText; description: SfStoryText; duration: SfStoryText; color: string; stopIds: readonly string[] };
 export const SF_EXPLORATION_ROUTES: readonly SfExplorationRoute[] = [
+  { id: 'city-curiosity', title: text('城市里的小实验', 'Little city experiments'), description: text('点亮光线、拼出天际线，再登上想象中的云端花园。', 'Mix light, build a skyline and visit an imaginary garden above the streets.'), duration: text('游戏约 4–6 分钟', 'About 4–6 min in the game'), color: '#648d8d', stopIds: ['exploratorium', 'city-hall', 'salesforce', 'transamerica'] },
+  { id: 'campus-curiosity', title: text('带着问题逛校园', 'A pocketful of campus questions'), description: text('纸飞机、校园暗号与街区小贝壳。', 'A paper plane, a campus code and a little neighborhood shell.'), duration: text('游戏约 4–5 分钟', 'About 4–5 min in the game'), color: '#9981a3', stopIds: ['ucsf-parnassus', 'sf-state', 'stonestown'] },
   { id: 'park-day', title: text('公园里的好奇心', 'A curious park afternoon'), description: text('小桥、科学与艺术，一次慢慢发现的公园旅行。', 'A garden bridge, a little science and a little art.'), duration: text('游戏约 3–4 分钟', 'About 3–4 min in the game'), color: '#688466', stopIds: ['park', 'japanese-tea-garden', 'de-young', 'academy'] },
   { id: 'waterfront-day', title: text('沿着海湾遇见你', 'Hello along the waterfront'), description: text('从钟楼走向海狮码头，把愿望留给摩天轮。', 'From the clock tower to sea lions and a wish at the wheel.'), duration: text('游戏约 2–3 分钟', 'About 2–3 min in the game'), color: '#609195', stopIds: ['ferry', 'pier', 'skystar'] },
   { id: 'coastal-day', title: text('海风收集计划', 'Collect a little sea breeze'), description: text('沙滩、海岸与大桥，每一站都留下一张回忆。', 'Beaches, coastal views and a bridge, one memory at a time.'), duration: text('游戏约 3–4 分钟', 'About 3–4 min in the game'), color: '#b58c65', stopIds: ['ocean-beach', 'lands-end', 'baker-beach', 'bridge'] },
