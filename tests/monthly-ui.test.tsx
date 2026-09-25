@@ -7,6 +7,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
+import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 import { buildEventCalendar } from '../src/lib/monthly';
 import type { AppContextValue } from '../src/app/context';
 import { api } from '../src/lib/api';
@@ -151,19 +152,30 @@ test('monthly edition exposes every activity through pagination with named offic
   }
 });
 
-test('monthly media files and credits are valid and only declared theme illustrations may be shared', () => {
+test('monthly media files and credits are valid and only reviewed contextual media may be shared', () => {
   assert.ok(MONTHLY_EVENTS.length > 0);
   const keys = new Set<string>();
   const paths = new Set<string>();
   const fingerprints = new Map<string, { key: string; eventId: string }>();
+  const assertSharedContext = (key: string, eventId: string) => {
+    const image = GUIDE_IMAGES[key];
+    if (image.kind === 'illustration') {
+      assert.match(image.caption, /插图|插画/);
+      assert.match(image.caption, /非|不代表|不对应.*真实活动|虚构|示意/);
+      return;
+    }
+    assert.equal(image.kind, 'photo', `${eventId} must not reuse another event's poster`);
+    assert.ok(isApprovedEventContextPhoto(key, eventId), `${eventId} needs an explicit venue/theme photo approval`);
+    assert.match(image.caption, /资料/);
+    assert.match(image.caption, /不是|不代表|不表示/);
+    if (EVENT_CONTEXT_PHOTOS[key].purpose === 'theme') assert.match(image.caption, /主题/);
+  };
   for (const event of MONTHLY_EVENTS) {
     if (!event.imageKey) continue;
     const image = GUIDE_IMAGES[event.imageKey];
     assert.ok(image, event.id);
     if (keys.has(event.imageKey)) {
-      assert.equal(image.kind, 'illustration', `${event.id} must not borrow another event's photo or poster`);
-      assert.match(image.caption, /插图|插画/);
-      assert.match(image.caption, /非|不代表|不对应.*真实活动|虚构|示意/);
+      assertSharedContext(event.imageKey, event.id);
     }
     keys.add(event.imageKey);
     assert.match(image.src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
@@ -182,7 +194,8 @@ test('monthly media files and credits are valid and only declared theme illustra
     const previous = fingerprints.get(fingerprint);
     if (previous) {
       assert.equal(previous.key, event.imageKey, `${event.id} must not disguise ${previous.eventId}'s image as a different asset`);
-      assert.equal(image.kind, 'illustration', 'actual event photos and posters remain specific to their event');
+      assertSharedContext(event.imageKey, event.id);
+      assertSharedContext(previous.key, previous.eventId);
     }
     fingerprints.set(fingerprint, { key: event.imageKey, eventId: event.id });
   }

@@ -116,3 +116,14 @@
 @media(max-width:767px){.sf-journal-toggle{min-height:40px;font-size:11px;padding:8px 10px}.sf-journal-toggle>span{min-width:18px;height:18px}.sf-route-hud{top:143px;left:14px;max-width:calc(100% - 128px);padding:4px;gap:0}.sf-route-hud>button{min-width:29px}.sf-route-summary strong{font-size:10px;max-width:130px}.sf-route-summary span{font-size:8px}.sf-route-hud .sf-route-summary{padding:3px 5px;flex:1;overflow:hidden}.sf-ride-caption{left:13px;right:13px;bottom:calc(152px + env(safe-area-inset-bottom));max-width:none;padding:12px;font-size:11px}.sf-nearby>div{overflow:hidden}.sf-nearby strong{white-space:nowrap}.sf-nearby .sf-encounter-button{padding:8px}.sf-resident-marker{min-height:44px}}
 @media(max-height:520px) and (min-width:600px){.sf-stage.is-expanded .sf-route-hud{top:80px;max-width:290px}.sf-stage.is-expanded .sf-ride-caption{bottom:55px;max-width:340px}.sf-stage.is-expanded .sf-view-tools{top:82px}.sf-stage.is-expanded .sf-camera-options{top:0;right:100%}}
 @media(max-width:767px){.sf-nearby{flex-wrap:wrap;gap:6px}.sf-nearby>div{flex:1 1 100%;display:flex;align-items:center;gap:8px}.sf-nearby>div>span{margin:0;flex-shrink:0}.sf-nearby strong{max-width:none;flex:1}.sf-nearby button{flex:1;min-width:0}.sf-nearby button svg{flex-shrink:0}}
+
+/* Regional stop photos keep their source credit and open at reading size. */
+.lb-stop-photo-open{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
+.lb-stop-photo-open img{width:100%;height:100%;object-fit:cover}
+.lb-stop-photo-open:focus-visible{outline:3px solid #387569;outline-offset:-4px}
+.lb-stop-photo-open:disabled{cursor:default}
+.lb-stop-photo-zoom{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:5px;padding:6px 9px;border-radius:20px;background:#fffbeded;color:#315f50;font-size:11px}
+.lb-stop-photo-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;color:#668171}
+.lb-stop-photo-empty>button{display:flex;align-items:center;gap:5px;min-height:44px;padding:8px 12px;border:1px solid #bacab8;border-radius:9px;background:#fffbed;color:#315f50;font-size:12px}
+.lb-stop-image .lb-image-badge{pointer-events:none}
+@media(max-width:767px){.lb-stop-card{grid-template-columns:minmax(0,1fr)}.lb-stop-card .lb-stop-image{height:190px;min-height:0;margin:0 12px 14px}.lb-stop-card .lb-stop-body{padding:0 16px 18px}.lb-stop-card .lb-image-badge{font-size:8px;left:10px;bottom:12px;padding:6px 9px}}

@@ -40,6 +40,7 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/community-discovery-guides-en.json'),
     import('../data/community-discovery-openings-en.json'), import('../data/community-discovery-offers-en.json'),
     import('../data/community-discovery-events-en.json'),
+    import('../data/content-coverage-media-en.json'),
     import('../data/calendar-en.json'), import('../data/planner-en.json'), import('../data/ai-local-en.json'), import('../features/source-monitor/source-monitor-en.json'),
     import('../data/baybay-actions-en.json'), import('../features/messages/chat-ai-en.json'), import('../data/event-import-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));

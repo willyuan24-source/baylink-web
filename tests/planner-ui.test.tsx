@@ -16,6 +16,8 @@ const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
 const { api } = await import('../src/lib/api');
 const { PLANNER_EVENTS, PLANNER_PLACES } = await import('../src/data/planner-catalog');
+const { getGuideBySlug } = await import('../src/data/guides');
+const { getGuideMedia } = await import('../src/data/guide-media');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { setLocale } = await import('../src/i18n/locale');
 const originalRequest = api.request;
@@ -61,6 +63,26 @@ beforeEach(context => {
   api.request = async () => { throw new Error('Unexpected API call in guest planner test'); };
 });
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
+
+test('selecting an attraction reveals its real photograph and changing selection removes the previous preview', async () => {
+  const view = await openPlanner();
+  assert.equal(view.container.querySelectorAll('.planner-place-media').length, 0, 'unselected lists do not load every attraction photo');
+  for (const id of ['golden-gate', 'hakone']) {
+    const place = PLANNER_PLACES.find(item => item.id === id)!;
+    const image = getGuideMedia(getGuideBySlug(place.guideSlug)!).cover;
+    assert.equal(image.kind, 'photo', 'map attraction previews must use actual place photography');
+    const card = view.container.querySelector(`[id="catalog-place:${id}"]`)!;
+    fireEvent.click(card.querySelector('.planner-place-title')!);
+    const photo = card.querySelector('.planner-place-media img')!;
+    assert.equal(photo.getAttribute('src'), image.src);
+    assert.equal(photo.getAttribute('alt'), image.alt);
+    assert.equal(photo.getAttribute('loading'), 'lazy');
+    assert.equal(view.container.querySelectorAll('.planner-place-media').length, 1);
+    assert.ok(card.textContent?.includes(image.caption), 'historical/context captions remain visible beside the photo');
+    assert.ok(card.querySelector(`a[href="${image.creditUrl}"]`), 'photo source remains available');
+  }
+  assert.equal(editor(view).queryAllByRole('listitem').length, 0, 'previewing a photo does not add an itinerary stop');
+});
 
 test('starting a text-parsed suggestion keeps its requested day inside a multi-day event', async () => {
   assert.notEqual(event.startDate, requestedDate);

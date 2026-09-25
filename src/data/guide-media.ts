@@ -17,6 +17,7 @@ import communityEditorialMedia from './community-editorial-media.json';
 import communityOpeningMedia from './community-opening-media.json';
 import communityPlaceMedia from './community-place-media.json';
 import autumnGuideMedia from './autumn-guide-media.json';
+import contentCoverageMedia from './content-coverage-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -39,8 +40,8 @@ const illustration = (name: string, alt: string, caption: string): GuideImage =>
 
 export const GUIDE_IMAGES: Record<string, GuideImage> = {
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
-  weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不是导航地图。'),
-  everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。情境插图。'),
+  weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
+  everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。社区生活情境插图，不代表某场实际活动。'),
 };
 
 const photoCaptions: Record<string, [string, string]> = {
@@ -57,16 +58,16 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 const bySlug: Record<string, [string, string]> = {
   'bart-october-access-parking-update-2026': ['community-accessible-transit', 'bart'],
-  'san-jose-digital-help-sj-access-update-2026': ['everyday', 'library'],
+  'san-jose-digital-help-sj-access-update-2026': ['everyday', 'coverage-laptop'],
   'sccld-sharks-library-card-september-2026': ['community-library-card', 'library'],
-  'bay-area-ai-week-tech-week-first-timer-guide-2026': ['september-edition', 'everyday'],
+  'bay-area-ai-week-tech-week-first-timer-guide-2026': ['coverage-laptop', 'digital-safety'],
   'bay-area-october-muni-clipper-payment-update-2026': ['autumn-clipper', 'train'],
   'sf-sunset-dunes-october-coastal-walk-2026': ['autumn-sunset', 'weekend'],
   'san-mateo-japanese-garden-october-guide-2026': ['autumn-sanmateo', 'garden-walk'],
@@ -81,8 +82,8 @@ const bySlug: Record<string, [string, string]> = {
   'bay-area-october-weekend-planner-2026': ['autumn-neighbors', 'coast'],
   'half-moon-bay-october-pumpkin-coast-guide-2026': ['fresh-hmb-pumpkins', 'coast'],
   'san-jose-october-family-history-farm-guide-2026': ['community-history-park', 'october-family-nature'],
-  'east-bay-tilden-october-family-guide-2026': ['october-family-nature', 'community-tilden-little-farm'],
-  'north-bay-china-camp-october-culture-guide-2026': ['october-north-bay-culture', 'community-china-camp-village'],
+  'east-bay-tilden-october-family-guide-2026': ['community-tilden-little-farm', 'october-family-nature'],
+  'north-bay-china-camp-october-culture-guide-2026': ['community-china-camp-village', 'october-north-bay-culture'],
   'bay-area-october-library-museum-pass-guide-2026': ['october-library-culture', 'library'],
   'bay-area-freebies-deals-2026-10': ['culture-visit', 'october-library-culture'],
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],

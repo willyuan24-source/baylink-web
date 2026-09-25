@@ -27,7 +27,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://petalumapumpkinpatch.com/pricing-hours/",
     "sourceLabel": "Petaluma Pumpkin Patch",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "mill-valley-film-festival-2026",
@@ -136,7 +136,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.bassfestival.com/bass-festival",
     "sourceLabel": "Rio Vista Chamber of Commerce",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "coverage-rio-vista"
   },
   {
     "id": "vacaville-learn-your-colors-run-2026",
@@ -163,7 +163,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://color-run.vacavillekiwanis.org/",
     "sourceLabel": "Kiwanis Club of Vacaville / City of Vacaville",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "weekend"
   },
   {
     "id": "oakland-oaktoberfest-2026",
@@ -271,7 +271,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.tiburonchamber.org/tiburon-wine-festival/",
     "sourceLabel": "Tiburon Peninsula Chamber of Commerce",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "coverage-wine"
   },
   {
     "id": "little-italy-san-jose-festival-2026",
@@ -436,7 +436,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://harvestfair.org/",
     "sourceLabel": "Sonoma County Harvest Fair",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "coverage-wine"
   },
   {
     "id": "oakland-autumn-lights-festival-2026",
@@ -546,7 +546,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://bayareamusicalimprov.com/festival",
     "sourceLabel": "Bay Area Musical Improv",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-stage"
   },
   {
     "id": "fremont-trick-or-treat-2026",
@@ -627,7 +627,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026",
     "sourceLabel": "The Floathouse Petaluma",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "coverage-petaluma-river"
   },
   {
     "id": "menlo-park-trunk-or-treat-2026",

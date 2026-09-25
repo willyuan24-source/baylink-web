@@ -229,3 +229,12 @@
  .bl-monthly-spotlight-art>span { left:5px; bottom:8px; font-size:7px; padding:3px 5px; }
 }
 @media(prefers-reduced-motion:reduce) { .bl-monthly-plan summary>svg,.bl-monthly-spotlight-art img { transition:none; } }
+
+/* Compact editorial thumbnails keep the long autumn reading list scannable. */
+.bl-monthly-guide-photo{display:block;position:relative;overflow:hidden;background:#edf2e8;aspect-ratio:2.5;max-height:150px}
+.bl-monthly-guide-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.bl-monthly-guide-photo--full img{object-fit:contain}
+.bl-monthly-guide-photo span{position:absolute;left:9px;bottom:8px;padding:3px 6px;border-radius:4px;background:#fffffff0;color:#48634d;font-size:9px}
+.bl-monthly-guide-card .bl-monthly-place-body{min-width:0;padding:16px}
+.bl-monthly-guide-card .bl-monthly-place-body>p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+@media(max-width:639px){.bl-monthly-guide-card{display:grid;grid-template-columns:100px minmax(0,1fr)}.bl-monthly-guide-photo{width:88px;height:104px;max-height:none;aspect-ratio:auto;min-height:0;align-self:start;margin:14px 0 14px 12px;border-radius:9px}.bl-monthly-guide-card .bl-monthly-place-body{padding:14px}.bl-monthly-guide-card h3{font-size:16px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}.bl-monthly-guide-card .bl-monthly-place-body>p{font-size:11px;line-height:1.75;-webkit-line-clamp:2}.bl-monthly-guide-photo span{left:4px;right:4px;bottom:5px;font-size:8px;padding:3px 4px}}

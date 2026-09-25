@@ -5,7 +5,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "ai-conference-sf-2026",
     "title": "The AI Conference：从研究到实际产品",
@@ -33,7 +33,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "pyladies-snowflake-ai-data-2026",
     "title": "PyLadies：AI 时代的数据科学职业与实践",
@@ -61,7 +61,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "runtime-modal-sf-2026",
     "title": "Runtime by Modal：AI 基础设施交流日",
@@ -88,7 +88,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "llmday-san-francisco-q4-2026",
     "title": "LLMday：智能体、评测与 AI 工程实践",
@@ -116,7 +116,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "everyday",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "oakland-civic-ai-design-sprint-2026",
     "title": "Oakland Civic Tech Design Sprint：用 AI 回应社区问题",
@@ -144,7 +144,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "surrealdb-mastra-shared-memory-2026",
     "title": "SurrealDB × Mastra：智能体共享记忆与生产实践",
@@ -171,7 +171,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "n8n-sf-tech-week-workshop-2026",
     "title": "n8n 实作夜：做一个能带走的自动化流程",
@@ -199,7 +199,7 @@ export const aiLocalEvents: MonthlyEvent[] = [
   {
     "category": "culture",
     "verifiedAt": "2026-09-23",
-    "imageKey": "september-edition",
+    "imageKey": "coverage-laptop",
     "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
     "id": "oss4ai-agent-day-menlo-park-2026",
     "title": "SF Tech Week Agent Day：开源 AI 演讲、演示与工作坊",

@@ -27,7 +27,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.minoans.com/youth-festival",
     "sourceLabel": "Minoan Dancers",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "santa-rosa-pumpkins-parks-2026",
@@ -108,7 +108,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.downtownnovato.com/events",
     "sourceLabel": "Downtown Novato Business Association",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "coverage-classic-car"
   },
   {
     "id": "burlingame-mandarin-storytime-2026",
@@ -378,6 +378,6 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://mhplaza.org/allevents/avenida26",
     "sourceLabel": "School of Arts and Culture at Mexican Heritage Plaza",
     "verifiedAt": "2026-09-15",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   }
 ];

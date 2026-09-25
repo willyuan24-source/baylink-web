@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
+import { isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { additionalOctoberEvents } from '../src/data/october-events-extra';
 import { regionalSeptemberEvents } from '../src/data/monthly-region-events';
@@ -308,9 +309,16 @@ test('new community listings retain complete English text and clearly identify a
     if (added.imageKey) {
       const image = GUIDE_IMAGES[added.imageKey];
       assert.ok(image, `${added.id} references registered media`);
-      assert.equal(image.kind, 'illustration', `${added.id} uses a theme illustration, not an unverified event photo`);
-      assert.match(image.caption, /插图|插画/);
-      assert.match(image.caption, /非|不代表|虚构|示意/);
+      if (image.kind === 'illustration') {
+        assert.match(image.caption, /插图|插画/);
+        assert.match(image.caption, /非|不代表|虚构|示意/);
+      } else {
+        assert.equal(image.kind, 'photo');
+        assert.ok(isApprovedEventContextPhoto(added.imageKey, added.id), `${added.id} uses an explicitly reviewed archival or thematic photo`);
+        assert.match(image.caption, /资料/);
+        assert.match(image.caption, /不是|不代表|不表示/);
+        assert.equal(new URL(image.creditUrl!).protocol, 'https:');
+      }
     }
     assert.equal(added.verifiedAt, added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {

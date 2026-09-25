@@ -17,6 +17,16 @@
 .guide-figure-zoom { position:absolute; right:14px; bottom:14px; display:flex; align-items:center; gap:7px; min-height:36px; padding:8px 12px; border:1px solid #ffffff80; border-radius:100px; background:#fffdf5ed; color:#123c31; font-size:12px; font-weight:650; }
 .guide-image-caption { display:grid; gap:8px; padding:13px 3px 0; color:#52624d; font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
 .guide-image-caption p { margin:0; }
+.guide-figure--preview { margin:0; }
+.guide-figure--preview .guide-figure-open { border-radius:12px; }
+.guide-figure--preview .guide-figure-image { aspect-ratio:2.15; max-height:230px; object-fit:cover; }
+.guide-figure--preview .guide-image-caption { gap:5px; padding-top:9px; font-size:10px; line-height:1.65; }
+.guide-figure--preview .guide-image-attribution { font-size:9px; gap:4px 8px; }
+.guide-figure--preview .guide-figure-zoom { right:8px; bottom:8px; min-height:30px; padding:6px 9px; font-size:10px; }
+.guide-figure--preview.guide-figure--official-poster .guide-figure-open { padding:10px 10px 44px; }
+.guide-figure--preview.guide-figure--official-poster .guide-figure-image,
+.guide-figure--preview.guide-figure--full-frame .guide-figure-image { aspect-ratio:auto; max-height:220px; object-fit:contain; }
+.guide-figure--preview.guide-figure--full-frame .guide-figure-open:hover .guide-figure-image { transform:none; }
 .guide-image-attribution { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; font-size:11px; }
 .guide-image-attribution a { text-decoration:underline; text-underline-offset:3px; }
 .guide-image-attribution a:hover { color:#123c31; }

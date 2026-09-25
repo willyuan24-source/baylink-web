@@ -5,7 +5,7 @@ import type { GuideBlock } from '../data/guides';
 import { ModalShell } from './ui/Modal';
 import { useLocale } from '../i18n/locale';
 
-type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' };
+type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
 export function GuideImageCaption({ image, poster = false, showKind = true }: { image: GuideImage; poster?: boolean; showKind?: boolean }) {
@@ -40,9 +40,9 @@ export function GuideFigure(props: FigureProps) {
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
   return <>
-    <figure className={`guide-figure guide-figure--${variant}${image.kind === 'poster' ? ' guide-figure--official-poster' : ''}`}>
+    <figure className={`guide-figure guide-figure--${variant}${image.kind === 'poster' ? ' guide-figure--official-poster' : ''}${image.fullFrame ? ' guide-figure--full-frame' : ''}`}>
       <button type="button" className="guide-figure-open" aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
-        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
+        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? variant === 'preview' ? '(max-width: 600px) calc(100vw - 80px), 480px' : `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
         <span className="guide-figure-zoom"><Expand size={15} aria-hidden="true" /><span>查看大图</span></span>
       </button>
       <GuideImageCaption image={image} poster={variant === 'poster'} />

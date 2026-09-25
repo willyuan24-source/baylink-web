@@ -28,7 +28,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.cupertino.gov/Events-directory/Bike-Fest-2026",
     "sourceLabel": "City of Cupertino",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "everyday"
   },
   {
     "id": "redwood-city-portfest-2026",
@@ -55,7 +55,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.redwoodcityport.com/portfest2026",
     "sourceLabel": "Port of Redwood City",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-redwood-port"
   },
   {
     "id": "sf-african-arts-festival-2026",
@@ -82,7 +82,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://ybgfestival.org/event/african-arts-festival-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival / Duniya Dance and Drum Company",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-yerba-buena"
   },
   {
     "id": "sf-quinteto-latino-lunchtime-2026",
@@ -109,7 +109,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://ybgfestival.org/event/quinteto-latino-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-yerba-buena"
   },
   {
     "id": "marinwood-halloween-harvest-2026",
@@ -136,7 +136,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.marinwood.org/event/halloween-harvest-festival",
     "sourceLabel": "Marinwood Community Services District",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "cupertino-pooch-plunge-2026",
@@ -163,7 +163,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Pooch-Plunge",
     "sourceLabel": "City of Cupertino",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "dog"
   },
   {
     "id": "palo-alto-scare-faire-2026",
@@ -190,7 +190,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://transitionpaloalto.org/2026/08/18/sunday-october-10-2026-1-3pm-scare-faire-and-costume-swap/",
     "sourceLabel": "Transition Palo Alto / Museum of American Heritage",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "sf-ybg-dance-day-2026",
@@ -217,7 +217,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://ybgfestival.org/event/ybg-dance-day-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival / Rhythm & Motion",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-yerba-buena"
   },
   {
     "id": "sf-indigenous-peoples-day-2026",
@@ -244,7 +244,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://ybgfestival.org/event/sf-indigenous-peoples-day-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-yerba-buena"
   },
   {
     "id": "walnut-creek-diablo-improv-2026",
@@ -271,7 +271,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://diabloimprovfestival.org/",
     "sourceLabel": "Diablo Improv Festival / Lesher Center for the Arts",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-stage"
   },
   {
     "id": "sf-bay-area-science-festival-2026",
@@ -298,7 +298,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://bayareasciencefestival.org/",
     "sourceLabel": "UCSF Science & Health Education Partnership",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "family-workshop"
   },
   {
     "id": "cupertino-hidden-treasures-2026",
@@ -325,7 +325,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Hidden-Treasures/Hidden-Treasures-Event",
     "sourceLabel": "City of Cupertino",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "secondhand-check"
   },
   {
     "id": "calistoga-eleanor-alberga-2026",
@@ -352,7 +352,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.brannancenter.org/events/eleanor-alberga-the-green-room-ensemble",
     "sourceLabel": "Brannan Center / Festival Napa Valley",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "event-piano"
   },
   {
     "id": "cupertino-monster-mash-2026",
@@ -379,7 +379,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Monster-Mash/Monster-Mash-Event",
     "sourceLabel": "City of Cupertino",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "foster-city-halloween-festival-2026",
@@ -406,7 +406,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.fostercity.org/1248/2026-Halloween-Festival",
     "sourceLabel": "City of Foster City",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "autumn-neighbors"
   },
   {
     "id": "oakland-omca-dia-muertos-2026",
@@ -433,7 +433,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/",
     "sourceLabel": "Oakland Museum of California",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "region-omca"
   },
   {
     "id": "sunnyvale-spooky-storywalk-2026",
@@ -460,7 +460,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.library.sunnyvale.ca.gov/Home/Components/Calendar/Event/12565/74?curm=10&cury=2026",
     "sourceLabel": "Sunnyvale Public Library",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "october-library-culture"
   },
   {
     "id": "napa-harvest-after-dark-2026",
@@ -487,7 +487,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.theduckhorncollection.com/blogs/events/harvest-after-dark-a-halloween-masquerade-dinner",
     "sourceLabel": "The Duckhorn Collection",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-wine"
   },
   {
     "id": "oakland-omca-friday-finale-2026",
@@ -514,7 +514,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://museumca.org/event/friday-nights-at-omca-with-la-gente-sf/",
     "sourceLabel": "Oakland Museum of California",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "region-omca"
   },
   {
     "id": "palo-alto-addams-family-opening-2026",
@@ -541,6 +541,6 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://paplayers.org/show/the-addams-family/",
     "sourceLabel": "Palo Alto Players",
     "verifiedAt": "2026-09-23",
-    "imageKey": ""
+    "imageKey": "coverage-stage"
   }
 ];

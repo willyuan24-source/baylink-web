@@ -27,7 +27,7 @@
       "officialUrl": "https://petalumapumpkinpatch.com/pricing-hours/",
       "sourceLabel": "Petaluma Pumpkin Patch",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": 0
       }
@@ -88,7 +88,7 @@
       "officialUrl": "https://www.cupertino.gov/Events-directory/Bike-Fest-2026",
       "sourceLabel": "City of Cupertino",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "everyday",
       "planning": {
         "admissionUsd": 0
       }
@@ -306,7 +306,7 @@
       "officialUrl": "https://www.minoans.com/youth-festival",
       "sourceLabel": "Minoan Dancers",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": 0
       }
@@ -345,7 +345,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "ai-conference-sf-2026",
       "title": "The AI Conference：从研究到实际产品",
@@ -383,7 +383,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "pyladies-snowflake-ai-data-2026",
       "title": "PyLadies：AI 时代的数据科学职业与实践",
@@ -422,7 +422,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "llmday-san-francisco-q4-2026",
       "title": "LLMday：智能体、评测与 AI 工程实践",
@@ -491,7 +491,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "runtime-modal-sf-2026",
       "title": "Runtime by Modal：AI 基础设施交流日",
@@ -650,7 +650,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "everyday",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "oakland-civic-ai-design-sprint-2026",
       "title": "Oakland Civic Tech Design Sprint：用 AI 回应社区问题",
@@ -740,7 +740,7 @@
       "officialUrl": "https://www.bassfestival.com/bass-festival",
       "sourceLabel": "Rio Vista Chamber of Commerce",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "coverage-rio-vista",
       "planning": {
         "admissionUsd": null
       }
@@ -920,7 +920,7 @@
       "officialUrl": "https://www.redwoodcityport.com/portfest2026",
       "sourceLabel": "Port of Redwood City",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-redwood-port",
       "planning": {
         "admissionUsd": 0
       }
@@ -950,7 +950,7 @@
       "officialUrl": "https://ybgfestival.org/event/african-arts-festival-2026/",
       "sourceLabel": "Yerba Buena Gardens Festival / Duniya Dance and Drum Company",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-yerba-buena",
       "planning": {
         "admissionUsd": 0
       }
@@ -1010,7 +1010,7 @@
       "officialUrl": "https://www.tiburonchamber.org/tiburon-wine-festival/",
       "sourceLabel": "Tiburon Peninsula Chamber of Commerce",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "coverage-wine",
       "planning": {
         "admissionUsd": null
       }
@@ -1040,7 +1040,7 @@
       "officialUrl": "https://color-run.vacavillekiwanis.org/",
       "sourceLabel": "Kiwanis Club of Vacaville / City of Vacaville",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "weekend",
       "planning": {
         "admissionUsd": null
       }
@@ -1178,7 +1178,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "n8n-sf-tech-week-workshop-2026",
       "title": "n8n 实作夜：做一个能带走的自动化流程",
@@ -1216,7 +1216,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "surrealdb-mastra-shared-memory-2026",
       "title": "SurrealDB × Mastra：智能体共享记忆与生产实践",
@@ -1278,7 +1278,7 @@
       "officialUrl": "https://ybgfestival.org/event/quinteto-latino-2026/",
       "sourceLabel": "Yerba Buena Gardens Festival",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-yerba-buena",
       "planning": {
         "admissionUsd": 0,
         "setting": "outdoor"
@@ -1343,7 +1343,7 @@
       "officialUrl": "https://www.marinwood.org/event/halloween-harvest-festival",
       "sourceLabel": "Marinwood Community Services District",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": null
       }
@@ -1351,7 +1351,7 @@
     {
       "category": "culture",
       "verifiedAt": "2026-09-23",
-      "imageKey": "september-edition",
+      "imageKey": "coverage-laptop",
       "relatedGuideSlug": "bay-area-ai-week-tech-week-first-timer-guide-2026",
       "id": "oss4ai-agent-day-menlo-park-2026",
       "title": "SF Tech Week Agent Day：开源 AI 演讲、演示与工作坊",
@@ -1445,7 +1445,7 @@
       "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Pooch-Plunge",
       "sourceLabel": "City of Cupertino",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "dog",
       "planning": {
         "admissionUsd": null
       }
@@ -1536,7 +1536,7 @@
       "officialUrl": "https://www.downtownnovato.com/events",
       "sourceLabel": "Downtown Novato Business Association",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "coverage-classic-car",
       "planning": {
         "admissionUsd": 0
       }
@@ -1596,7 +1596,7 @@
       "officialUrl": "https://transitionpaloalto.org/2026/08/18/sunday-october-10-2026-1-3pm-scare-faire-and-costume-swap/",
       "sourceLabel": "Transition Palo Alto / Museum of American Heritage",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": 0
       }
@@ -1657,7 +1657,7 @@
       "officialUrl": "https://harvestfair.org/",
       "sourceLabel": "Sonoma County Harvest Fair",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "coverage-wine",
       "planning": {
         "admissionUsd": null
       }
@@ -1747,7 +1747,7 @@
       "officialUrl": "https://ybgfestival.org/event/ybg-dance-day-2026/",
       "sourceLabel": "Yerba Buena Gardens Festival / Rhythm & Motion",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-yerba-buena",
       "planning": {
         "admissionUsd": 0
       }
@@ -1777,7 +1777,7 @@
       "officialUrl": "https://ybgfestival.org/event/sf-indigenous-peoples-day-2026/",
       "sourceLabel": "Yerba Buena Gardens Festival",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-yerba-buena",
       "planning": {
         "admissionUsd": 0
       }
@@ -1868,7 +1868,7 @@
       "officialUrl": "https://diabloimprovfestival.org/",
       "sourceLabel": "Diablo Improv Festival / Lesher Center for the Arts",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-stage",
       "planning": {
         "admissionUsd": null
       }
@@ -1989,7 +1989,7 @@
       "officialUrl": "https://bayareasciencefestival.org/",
       "sourceLabel": "UCSF Science & Health Education Partnership",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "family-workshop",
       "planning": {
         "admissionUsd": 0
       }
@@ -2139,7 +2139,7 @@
       "officialUrl": "https://bayareamusicalimprov.com/festival",
       "sourceLabel": "Bay Area Musical Improv",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-stage",
       "planning": {
         "admissionUsd": null
       }
@@ -2169,7 +2169,7 @@
       "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Hidden-Treasures/Hidden-Treasures-Event",
       "sourceLabel": "City of Cupertino",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "secondhand-check",
       "planning": {
         "admissionUsd": 0
       }
@@ -2229,7 +2229,7 @@
       "officialUrl": "https://www.brannancenter.org/events/eleanor-alberga-the-green-room-ensemble",
       "sourceLabel": "Brannan Center / Festival Napa Valley",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "event-piano",
       "planning": {
         "admissionUsd": null
       }
@@ -2350,7 +2350,7 @@
       "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Monster-Mash/Monster-Mash-Event",
       "sourceLabel": "City of Cupertino",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": null
       }
@@ -2380,7 +2380,7 @@
       "officialUrl": "https://www.fostercity.org/1248/2026-Halloween-Festival",
       "sourceLabel": "City of Foster City",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": null
       }
@@ -2470,7 +2470,7 @@
       "officialUrl": "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026",
       "sourceLabel": "The Floathouse Petaluma",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "coverage-petaluma-river",
       "planning": {
         "admissionUsd": null
       }
@@ -2590,7 +2590,7 @@
       "officialUrl": "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/",
       "sourceLabel": "Oakland Museum of California",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "region-omca",
       "location": {
         "lat": 37.798641,
         "lng": -122.263611,
@@ -2718,7 +2718,7 @@
       "officialUrl": "https://www.library.sunnyvale.ca.gov/Home/Components/Calendar/Event/12565/74?curm=10&cury=2026",
       "sourceLabel": "Sunnyvale Public Library",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "october-library-culture",
       "planning": {
         "admissionUsd": 0
       }
@@ -2778,7 +2778,7 @@
       "officialUrl": "https://www.theduckhorncollection.com/blogs/events/harvest-after-dark-a-halloween-masquerade-dinner",
       "sourceLabel": "The Duckhorn Collection",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-wine",
       "planning": {
         "admissionUsd": null
       }
@@ -2808,7 +2808,7 @@
       "officialUrl": "https://museumca.org/event/friday-nights-at-omca-with-la-gente-sf/",
       "sourceLabel": "Oakland Museum of California",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "region-omca",
       "location": {
         "lat": 37.798641,
         "lng": -122.263611,
@@ -2846,7 +2846,7 @@
       "officialUrl": "https://paplayers.org/show/the-addams-family/",
       "sourceLabel": "Palo Alto Players",
       "verifiedAt": "2026-09-23",
-      "imageKey": "",
+      "imageKey": "coverage-stage",
       "planning": {
         "admissionUsd": null,
         "setting": "mixed",
@@ -2878,7 +2878,7 @@
       "officialUrl": "https://mhplaza.org/allevents/avenida26",
       "sourceLabel": "School of Arts and Culture at Mexican Heritage Plaza",
       "verifiedAt": "2026-09-15",
-      "imageKey": "",
+      "imageKey": "autumn-neighbors",
       "planning": {
         "admissionUsd": 0
       }

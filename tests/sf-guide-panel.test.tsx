@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/play' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
@@ -12,6 +14,7 @@ const { loadSfGuidePreview } = await import('../src/features/little-bay/sf-guide
 const { SF_LANDMARKS } = await import('../src/features/little-bay/sf-world');
 const { getGuideBySlug } = await import('../src/data/guides');
 const { loadLocale, translateText } = await import('../src/i18n/locale');
+const { getSfLandmarkPhoto } = await import('../src/features/little-bay/sf-landmark-photos');
 
 afterEach(() => { cleanup(); document.body.replaceChildren(); });
 
@@ -78,4 +81,67 @@ test('places without a mapped article offer official information without a fabri
   assert.equal(view.getByRole('link', { name: 'Official info' }).getAttribute('href'), ferry.sourceUrl);
   assert.match(view.getByRole('dialog').textContent || '', /preview is not available/);
   assert.equal(view.queryByRole('status'), null);
+});
+
+test('every SF map anchor has an attributed real photograph and available responsive files', () => {
+  for (const landmark of SF_LANDMARKS) {
+    const photo = getSfLandmarkPhoto(landmark.id, 'en');
+    assert.ok(photo, `${landmark.id} has an explicit image`);
+    assert.equal(photo.kind, 'photo');
+    assert.ok(photo.width >= 1000 && photo.height > 300);
+    assert.match(photo.creditUrl || '', /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+    assert.match(photo.licenseUrl || '', /^https:\/\/creativecommons\.org\//);
+    assert.doesNotMatch(`${photo.alt} ${photo.caption} ${photo.credit}`, /[\u3400-\u9fff]/);
+    assert.ok(existsSync(path.join(process.cwd(), 'public', photo.src)));
+    for (const source of photo.srcSet!.split(',')) assert.ok(existsSync(path.join(process.cwd(), 'public', source.trim().split(' ')[0])));
+  }
+  const gardenIds = ['park', 'japanese-tea-garden', 'academy', 'de-young'];
+  assert.equal(new Set(gardenIds.map(id => getSfLandmarkPhoto(id, 'en')!.src)).size, 4, 'nearby places that share a guide keep their own photographs');
+  assert.equal(getSfLandmarkPhoto('unknown-place', 'en'), undefined);
+});
+
+test('photo enlargement stays inside the scene dialog and Escape closes only the current view', () => {
+  let closed = 0;
+  let movementKeys = 0;
+  const sceneKey = (event: KeyboardEvent) => { if (event.key === 'ArrowUp') movementKeys += 1; };
+  window.addEventListener('keydown', sceneKey);
+  try {
+    const landmark = SF_LANDMARKS.find(place => place.id === 'japanese-tea-garden')!;
+    const view = render(<SfGuidePanel landmark={landmark} locale="en" onClose={() => { closed += 1; }} />);
+    fireEvent.click(view.getByRole('button', { name: /Enlarge attraction photograph/ }));
+    assert.equal(view.getAllByRole('dialog').length, 1);
+    assert.ok(view.container.contains(view.getByRole('img')), 'the image remains in the full-screen scene subtree');
+    const closePhoto = view.getByRole('button', { name: 'Close photograph and return to place' });
+    assert.equal(document.activeElement, closePhoto);
+    fireEvent.keyDown(closePhoto, { key: 'ArrowUp' });
+    assert.equal(movementKeys, 0);
+    fireEvent.keyDown(closePhoto, { key: 'Escape' });
+    assert.equal(closed, 0);
+    assert.ok(view.getByRole('button', { name: /Enlarge attraction photograph/ }));
+    fireEvent.click(view.getByRole('button', { name: /Enlarge attraction photograph/ }));
+    const back = view.getByRole('button', { name: 'Back to place details' });
+    back.focus();
+    fireEvent.click(back);
+    assert.equal(document.activeElement, view.getByRole('button', { name: 'Close guide and return to exploring' }), 'returning from the photograph restores focus inside the reader');
+    fireEvent.keyDown(view.getByRole('button', { name: 'Close guide and return to exploring' }), { key: 'Escape' });
+    assert.equal(closed, 1);
+  } finally {
+    window.removeEventListener('keydown', sceneKey);
+  }
+});
+
+test('an unavailable photo offers retry without hiding the official information', () => {
+  const landmark = SF_LANDMARKS.find(place => place.id === 'ferry')!;
+  const view = render(<SfGuidePanel landmark={landmark} locale="en" onClose={() => {}} />);
+  fireEvent.error(view.getByRole('img'));
+  assert.match(view.getByRole('status').textContent || '', /photograph could not load/);
+  assert.ok(view.getByRole('link', { name: 'Official info' }));
+  fireEvent.click(view.getByRole('button', { name: 'Try again' }));
+  assert.equal(view.queryByRole('status'), null);
+  assert.equal(view.getByRole('img').getAttribute('src'), getSfLandmarkPhoto('ferry', 'en')!.src);
+  assert.equal(document.activeElement, view.getByRole('button', { name: /Enlarge attraction photograph/ }));
+  fireEvent.click(view.getByRole('button', { name: /Enlarge attraction photograph/ }));
+  fireEvent.error(view.getByRole('img'));
+  fireEvent.click(view.getByRole('button', { name: 'Try again' }));
+  assert.equal(document.activeElement, view.getByRole('button', { name: 'Close photograph and return to place' }));
 });

@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, Map
 import { Link, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
-import { GUIDE_IMAGES } from '../data/guide-media';
+import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
 import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../lib/monthly';
 import type { MonthlyDateFilter } from '../lib/monthly';
 import { normalizeGuideQuery } from '../lib/guide-search';
@@ -30,6 +30,9 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
 ];
 const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游' };
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
+const autumnGuides = [...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
+const autumnCoverSources = new Set(autumnGuides.map(guide => getGuideMedia(guide).cover.src));
+const autumnImageKeys = Object.keys(GUIDE_IMAGES).filter(key => autumnCoverSources.has(GUIDE_IMAGES[key].src));
 const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
   { value: 'all', label: '全部日期' }, { value: 'today', label: '今天' },
   { value: 'weekend', label: '这个周末' }, { value: 'next7', label: '未来 7 天' },
@@ -183,9 +186,10 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
 
     <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">十月出门，先读一篇本地攻略</h2></div><p>南瓜季交通、亲子半日游与免费文化资源，按自己的节奏安排。</p></div>
-      <div className="bl-monthly-place-grid">{[...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides].map(guide => <article className="bl-monthly-place" key={guide.slug}>
+      <div className="bl-monthly-place-grid">{autumnGuides.map(guide => { const image = getGuideMedia(guide).cover; return <article className="bl-monthly-place bl-monthly-guide-card" key={guide.slug}>
+        <Link className={`bl-monthly-guide-photo${image.fullFrame || image.kind === 'poster' ? ' bl-monthly-guide-photo--full' : ''}`} to={`/guides/${guide.slug}`} aria-label={`阅读攻略：${guide.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 112px, (max-width: 1023px) 30vw, 360px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{image.kind === 'illustration' ? 'AI 主题插图' : image.kind === 'poster' ? '官方宣传图' : '实景照片'}</span></Link>
         <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
-      </article>)}</div>
+      </article>; })}</div>
     </section>
 
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}
@@ -193,6 +197,6 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 2026-09-08；实际开放、预约与费用以各场所官网为准。</p></section>
 
     <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow">BEFORE YOU HEAD OUT</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
-    <GuideImageCredits imageKeys={['september-edition', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey)]} />
+    <GuideImageCredits imageKeys={['september-edition', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey), ...autumnImageKeys]} />
   </div>;
 }
