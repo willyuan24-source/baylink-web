@@ -12,12 +12,12 @@ import { setPageMetadata } from '../lib/seo';
 import { LITTLE_BAY_METADATA } from '../lib/little-bay-metadata';
 import { cleanLittleBayPlanStops, getLittleBayStops, getNextSaturday, pickLittleBayOuting, resolveLittleBayStop } from '../features/little-bay/catalog';
 import BayTravelAtlas from '../features/little-bay/BayTravelAtlas';
-import { isBayRegion, visitedInRegion } from '../features/little-bay/bay-journey';
+import { isBayRegion, type BayRegionId } from '../features/little-bay/bay-journey';
 import { useBayJourney } from '../features/little-bay/useBayJourney';
 
 const LittleBayScene = lazy(() => import('../features/little-bay/LittleBayScene'));
 const SanFranciscoExplorer = lazy(() => import('../features/little-bay/SanFranciscoExplorer'));
-const RegionalBayExplorer = lazy(() => import('../features/little-bay/RegionalBayExplorer'));
+const UnifiedBayExplorer = lazy(() => import('../features/little-bay/UnifiedBayExplorer'));
 type Notice = { zh: string; en: string } | null;
 
 class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
@@ -56,8 +56,10 @@ export default function LittleBayPage() {
   const [shareUrl, setShareUrl] = useState('');
   const library = usePlannerLibrary(app?.user?.id);
   const {journey,visit,persistent} = useBayJourney(app?.user?.id);
-  const travelRegion = useCallback((next:string) => { if(!isBayRegion(next))return;setRegion(next);setSelectedKey(null);setListMode(false); }, []);
-  const recordVisit = useCallback((id:string) => { if(isBayRegion(region))visit(region,id); }, [region,visit]);
+  const [townDetail,setTownDetail]=useState(false);
+  const [worldFocus,setWorldFocus]=useState<{id:number;region:BayRegionId}>({id:0,region:'sf'});
+  const travelRegion = useCallback((next:string) => { if(!isBayRegion(next))return;setRegion(next);setSelectedKey(null);setListMode(false);setTownDetail(false);setWorldFocus(current=>({id:current.id+1,region:next})); }, []);
+  const recordVisit = useCallback((id:string) => { visit('sf',id); }, [visit]);
   const previousOwner = useRef(app?.user?.id);
   const tripRef = useRef<HTMLElement>(null);
   const catalogRef = useRef<HTMLElement>(null);
@@ -147,14 +149,14 @@ export default function LittleBayPage() {
       <Link to="/my-week" className="lb-week-link"><Ticket size={18} />{t('我的这周', 'My week')}<ArrowUpRight size={16} /></Link>
     </header>
 
-    <BayTravelAtlas region={region} onTravel={travelRegion} journey={journey} persistent={persistent}/>
+    {listMode&&<BayTravelAtlas region={region} onTravel={travelRegion} journey={journey} persistent={persistent}/>}
 
     <div className="lb-toolbar">
-      <div className="lb-filters"><label><MapPin size={16} /><span className="sr-only">{t('探索地区', 'Explore a region')}</span><select value={region} disabled={library.busy} onChange={event => { setRegion(event.target.value); setSelectedKey(null); }}>{ATTRACTION_REGIONS.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{editorial(item.label)}</option>)}</select></label><span className="lb-filter-divider" /><label><CalendarDays size={16} /><span className="sr-only">{t('出游日期', 'Outing date')}</span><input aria-label={t('出游日期', 'Outing date')} type="date" min={todayInBay()} value={date} disabled={library.busy} onChange={event => updateDate(event.target.value)} /></label><button className={`lb-free ${freeOnly ? 'is-active' : ''}`} aria-pressed={freeOnly} onClick={() => setFreeOnly(value => !value)}><Leaf size={15} />{t('主体免费', 'Free admission')}</button></div>
+      <div className="lb-filters"><label><MapPin size={16} /><span className="sr-only">{t('探索地区', 'Explore a region')}</span><select value={region} disabled={library.busy} onChange={event => { if (isBayRegion(event.target.value) && !listMode) travelRegion(event.target.value); else { setRegion(event.target.value); setSelectedKey(null); } }}>{ATTRACTION_REGIONS.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{editorial(item.label)}</option>)}</select></label><span className="lb-filter-divider" /><label><CalendarDays size={16} /><span className="sr-only">{t('出游日期', 'Outing date')}</span><input aria-label={t('出游日期', 'Outing date')} type="date" min={todayInBay()} value={date} disabled={library.busy} onChange={event => updateDate(event.target.value)} /></label><button className={`lb-free ${freeOnly ? 'is-active' : ''}`} aria-pressed={freeOnly} onClick={() => setFreeOnly(value => !value)}><Leaf size={15} />{t('主体免费', 'Free admission')}</button></div>
       <div className="lb-view-toggle" aria-label={t('浏览方式', 'Explore view')}><button aria-pressed={!listMode} onClick={() => setListMode(false)}><Globe2 size={16} />{t('3D 探索', '3D world')}</button><button aria-pressed={listMode} onClick={() => setListMode(true)}><List size={16} />{t('地点列表', 'Places')}</button></div>
     </div>
 
-    {region === 'sf' && !listMode ? <Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22} /><span>{t('正在走进迷你旧金山…', 'Entering little San Francisco…')}</span></div>}><SanFranciscoExplorer date={date} stops={stops} onAddPlace={addWorldPlace} onShowList={() => setListMode(true)} freeOnly={freeOnly} ownerId={app?.user?.id} onAsk={app?.openBayBay} onTravel={travelRegion} onVisit={recordVisit}/></Suspense> : isBayRegion(region) && region !== 'sf' && !listMode ? <SceneBoundary key={region} fallback={sceneFallback}><Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22}/><span>{t('正在准备下一段湾区小旅行…','Getting your next Bay Area adventure ready…')}</span></div>}><RegionalBayExplorer key={region} region={region} date={date} onTravel={travelRegion} onVisit={recordVisit} visitedIds={visitedInRegion(journey,region)} addedPlaceIds={stops.filter(stop=>stop.kind==='place').map(stop=>stop.id)} onAddPlace={addWorldPlace} onShowList={()=>setListMode(true)} onAsk={app?.openBayBay}/></Suspense></SceneBoundary> : <div className={`lb-world-layout ${listMode ? 'is-list' : ''}`}>
+    {townDetail && !listMode ? <><button className="ub-town-return" onClick={()=>setTownDetail(false)}><ArrowRight size={16}/>{t('返回连续湾区地图','Return to the whole bay')}</button><Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22}/></div>}><SanFranciscoExplorer date={date} stops={stops} onAddPlace={addWorldPlace} onShowList={() => setListMode(true)} freeOnly={freeOnly} ownerId={app?.user?.id} onAsk={app?.openBayBay} onTravel={travelRegion} onVisit={recordVisit}/></Suspense></> : isBayRegion(region) && !listMode ? <SceneBoundary fallback={sceneFallback}><Suspense fallback={<div className="lb-world lb-loading"><Loader2 className="animate-spin" size={22}/><span>{t('正在铺开整片湾区…','Unfolding the whole bay…')}</span></div>}><UnifiedBayExplorer date={date} ownerId={app?.user?.id} journey={journey} persistent={persistent} regionFocus={worldFocus} onRegionChange={setRegion} onVisit={visit} addedPlaceIds={stops.filter(stop=>stop.kind==='place').map(stop=>stop.id)} onAddPlace={addWorldPlace} onShowList={()=>setListMode(true)} onAsk={app?.openBayBay} onOpenTown={()=>{setTownDetail(true);setRegion('sf');}}/></Suspense></SceneBoundary> : <div className={`lb-world-layout ${listMode ? 'is-list' : ''}`}>
       <section ref={worldRef} className={`lb-world lb-world--${timeOfDay}`} aria-label={t('互动湾区微缩街景', 'Interactive miniature Bay Area')}>
         {!listMode && <><div className="lb-world-heading"><span className="lb-live-dot" />{displayedRegion}<span className="lb-world-edition">A LITTLE BAY ADVENTURE</span></div><div className="lb-light-toggle"><button aria-label={t('白昼光线', 'Daylight')} title={t('白昼光线', 'Daylight')} aria-pressed={timeOfDay === 'day'} onClick={() => setTimeOfDay('day')}><Sun size={18} /></button><button aria-label={t('日落光线', 'Golden hour')} title={t('日落光线', 'Golden hour')} aria-pressed={timeOfDay === 'golden'} onClick={() => setTimeOfDay('golden')}><Sunset size={18} /></button></div></>}
         {listMode ? <div className="lb-list-world"><div className="lb-list-intro"><Compass size={26} /><div><span>LITTLE DISCOVERIES</span><h2>{t('下一站，想去哪里？', 'Where to next?')}</h2><p>{t('点开一个去处，看看是否适合你的这一天。', 'Open a place and see if it belongs in your day.')}</p></div></div><div className="lb-list-cards">{options.map((item, index) => <button key={item.key} className={active?.key === item.key ? 'is-selected' : ''} onClick={() => select(item.key)}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{editorial(item.title)}</strong><small>{item.city} · {editorial(item.price)}</small></div><ChevronRight size={16} /></button>)}</div>{!options.length && <p className="lb-empty">{t('这组条件下暂时没有去处，换个日期或取消免费筛选看看。', 'No places match these filters. Try another date or turn off free admission.')}</p>}</div> : <>

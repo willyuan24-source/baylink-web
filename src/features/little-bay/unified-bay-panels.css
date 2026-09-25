@@ -1,0 +1,79 @@
+.unified-dialog-backdrop{position:absolute;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(23,49,44,.35);backdrop-filter:blur(7px);pointer-events:auto;overscroll-behavior:contain}
+.unified-dialog{position:relative;width:min(100%,610px);max-height:100%;overflow:auto;overscroll-behavior:contain;padding:28px;border:1px solid rgba(113,133,101,.25);border-radius:23px;background:#fffcf3;color:#294e46;box-shadow:0 20px 80px rgba(24,47,43,.22);text-align:left;scrollbar-width:thin;scrollbar-color:#b2bca0 transparent}
+.unified-dialog h3{margin:9px 32px 20px 0;color:#294e46;font-size:clamp(22px,2.4vw,29px);font-weight:600;line-height:1.22;letter-spacing:-.035em}
+.unified-dialog h4{color:#294e46;font-weight:600;line-height:1.35}
+.unified-dialog button,.unified-dialog a{touch-action:manipulation}
+.unified-dialog :is(button,a):focus-visible{outline:3px solid #789990;outline-offset:3px}
+.unified-dialog-close.sf-guide-close,.unified-dialog-close{position:absolute;top:15px;right:15px;display:grid;place-items:center;width:38px;height:38px;border:1px solid #d9dfce;border-radius:50%;color:#345c50;background:#f4f4e9;z-index:2}
+.unified-dialog-eyebrow{display:flex;align-items:center;gap:6px;color:#77816c;font-size:10px;font-weight:600;line-height:1.6;letter-spacing:.1em;text-transform:uppercase}
+.unified-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:10px 14px;border:1px solid #d8dfca;border-radius:12px;background:#f3f3e6;color:#345b4e;font-size:12px;font-weight:500;line-height:1.5;text-align:center;cursor:pointer}
+.unified-button:hover{background:#e8ecd9}
+.unified-button--primary{background:#375f50;color:#fffdf5;border-color:#375f50}
+.unified-button--primary:hover{background:#294d41}
+.unified-button:disabled{opacity:.52;cursor:default}
+.unified-place-description{margin:15px 0;font-size:13px;line-height:1.8;color:#758071}
+.unified-place-primary-actions{display:flex;flex-wrap:wrap;gap:9px;margin:19px 0}
+.unified-place-primary-actions .unified-button--primary{flex:1}
+.unified-place-guide{margin:22px 0;padding:19px;border:1px solid #e1e5d6;border-radius:15px;background:#f4f4e8}
+.unified-place-guide h4{font-size:17px;margin:7px 0}
+.unified-place-guide p{font-size:12px;color:#727c6a;line-height:1.8}
+.unified-place-guide>a{display:inline-flex;align-items:center;gap:6px;margin:12px 10px 0 0;font-size:12px;font-weight:600}
+.unified-place-guide small{display:inline-block;font-size:10px;color:#879080}
+.unified-place-links{display:flex;flex-wrap:wrap;gap:6px 15px;border-bottom:1px solid #e0e3d7;padding-bottom:17px}
+.unified-place-links>a,.unified-place-links>button{display:inline-flex;align-items:center;gap:5px;min-height:38px;font-size:12px;color:#51705d}
+.unified-place-events{margin-top:21px}
+.unified-place-events h4{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:13px;margin-bottom:12px}
+.unified-place-events time{margin-left:auto;color:#8a937e;font-size:11px;font-weight:400}
+.unified-place-events>p{margin:0 0 10px;font-size:12px;line-height:1.7;color:#7c8576}
+.unified-place-events>a{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:11px 20px 11px 0;font-size:12px;border-bottom:1px solid #eaecdf}
+.unified-place-events>a>strong{flex-basis:100%;font-weight:500;line-height:1.4}
+.unified-place-events>a>span{flex-basis:100%;color:#7c8576;font-size:11px;line-height:1.5}
+.unified-place-events>a>small{color:#879080;font-size:10px}
+.unified-place-events>a>svg:last-child{position:absolute;right:0;top:14px}
+.unified-dialog--photo{width:min(100%,960px)}
+.unified-dialog--photo .sf-landmark-photo-full img{max-height:60vh;object-fit:contain}
+.bay-adventure-journal{width:min(100%,670px)}
+.bay-adventure-intro{margin:-8px 0 18px;font-size:13px;line-height:1.8;color:#66745f}
+.bay-adventure-badges{display:flex;align-items:center;flex-wrap:wrap;gap:7px 15px;margin-bottom:21px}
+.bay-adventure-badges>span{display:inline-flex;align-items:center;gap:5px;color:#78846e;font-size:11px}
+.bay-adventure-badges>span>b{color:#355a48;font-size:18px;font-weight:600}
+.bay-adventure-badges>span.bay-adventure-earned{padding:5px 9px;border-radius:20px;background:#e9efdc;color:#496646}
+.bay-adventure-earned i{font-style:normal;font-size:15px}
+.bay-adventure-active{padding:21px;border:1px solid #d8dfcb;border-radius:19px;background:linear-gradient(135deg,#edf0df,#faf7e9);margin:0 0 21px}
+.bay-adventure-active-heading{display:flex;align-items:center;gap:13px}
+.bay-adventure-active-heading>div{flex:1;min-width:0}
+.bay-adventure-active-heading h4{margin:4px 0 0;font-size:19px;letter-spacing:-.03em}
+.bay-adventure-active-heading h4:focus{outline:none}
+.bay-adventure-active-heading>strong{color:#7e8a6d;font-size:18px;font-weight:500;white-space:nowrap}
+.bay-adventure-symbol{flex-shrink:0;display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--adventure-accent,#879d91);color:#fffdf4;font-size:29px;font-family:Georgia,serif;line-height:1}
+.bay-adventure-stops{display:flex;flex-direction:column;gap:0;list-style:none;padding:15px 0;margin:7px 0 0}
+.bay-adventure-stops>li{position:relative;display:flex;align-items:center;gap:12px;min-height:55px;padding:6px 0;color:#929b86}
+.bay-adventure-stops>li:not(:last-child):before{position:absolute;content:"";top:36px;bottom:-16px;left:13px;border-left:1px dashed #c4cfb2}
+.bay-adventure-step-number{position:relative;display:grid;place-items:center;width:28px;height:28px;flex-shrink:0;border:1px solid #ccd4bd;border-radius:50%;background:#f5f5e9;font-size:11px;z-index:1}
+.bay-adventure-stops>li>div{display:flex;flex:1;flex-direction:column;gap:2px}
+.bay-adventure-stops strong{font-weight:500;font-size:12px;line-height:1.5}
+.bay-adventure-stops small{font-size:9px}
+.bay-adventure-saved-memory{font-size:11px;line-height:1.7;color:#849074;margin:4px 0 8px}
+.bay-adventure-stops .is-collected{color:#69825e}
+.bay-adventure-stops .is-collected .bay-adventure-step-number{background:#dfe8d2;border-color:#dfe8d2}
+.bay-adventure-stops .is-next{color:#345948}
+.bay-adventure-stops .is-next .bay-adventure-step-number{color:#fffef3;background:#55745d;border-color:#55745d}
+.bay-adventure-stops button{display:grid;place-items:center;min-width:40px;min-height:40px;border:1px solid #d7dec6;border-radius:12px;background:#fcfaee;color:#476b53}
+.bay-adventure-arrival>p{margin:0 0 12px;font-size:12px;line-height:1.7;color:#78836c}
+.bay-adventure-arrival>p.bay-adventure-memory{display:flex;gap:8px;padding:13px;background:#fffdf5;border:1px solid #dfe5d2;border-radius:11px;color:#587552}
+.bay-adventure-memory>svg{flex-shrink:0;margin-top:3px}
+.bay-adventure-active-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.bay-adventure-pause{padding:8px 4px;min-height:38px;margin-left:auto;color:#869077;font-size:11px}
+.bay-adventure-arrival>p.bay-adventure-complete{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;color:#637b48;padding:12px 0}
+.bay-adventure-complete>span{flex-basis:100%;text-align:center}
+.bay-adventure-choices{display:flex;flex-direction:column;gap:11px}
+.bay-adventure-card{display:flex;align-items:center;flex-wrap:wrap;gap:14px;border:1px solid #e0e4d5;border-radius:17px;padding:17px;background:#fffef8}
+.bay-adventure-card>div{flex:1;min-width:140px}
+.bay-adventure-card h4{margin:0 0 5px;font-size:15px}
+.bay-adventure-card p{margin:0 0 7px;font-size:12px;line-height:1.7;color:#69755f}
+.bay-adventure-card small{font-size:10px;color:#7c8b72}
+.bay-adventure-card>.unified-button{flex-shrink:0;font-size:11px;padding:7px 11px;min-height:38px}
+.bay-adventure-note{font-size:10px;line-height:1.8;color:#90977f;margin:20px 0 0}
+@media(max-width:600px){.unified-dialog-backdrop{padding:9px;align-items:flex-end}.unified-dialog{padding:20px 17px;border-radius:20px;max-height:100%;width:100%}.unified-dialog h3{font-size:23px;margin-bottom:17px}.unified-dialog-close{top:11px;right:11px}.unified-dialog-eyebrow{font-size:9px;letter-spacing:.07em}.unified-place-primary-actions{flex-direction:column}.unified-place-primary-actions .unified-button{min-height:46px}.unified-place-links{gap:4px 11px}.unified-place-events time{flex-basis:100%;margin-left:23px}.bay-adventure-active{padding:16px 14px}.bay-adventure-active-heading{gap:10px}.bay-adventure-active-heading h4{font-size:17px}.bay-adventure-symbol{width:39px;height:39px;font-size:25px;border-radius:12px}.bay-adventure-active-actions>.unified-button{flex:1;min-height:44px}.bay-adventure-pause{flex-basis:100%;text-align:center;margin:0}.bay-adventure-card{gap:12px;padding:14px}.bay-adventure-card>.unified-button{margin-left:51px;min-height:42px}.bay-adventure-badges{gap:6px 10px}}
+@media(prefers-reduced-motion:reduce){.unified-dialog *{scroll-behavior:auto!important}}
+@media(max-width:600px){.unified-dialog-close.sf-guide-close,.unified-dialog-close{width:44px;height:44px}.unified-dialog h3{margin-right:37px}.unified-dialog-close~.unified-dialog-eyebrow{padding-right:33px}.bay-adventure-stops button{min-width:44px;min-height:44px}}
