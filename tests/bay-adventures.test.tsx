@@ -3,7 +3,8 @@ import { afterEach, test } from 'node:test';
 import React, { useEffect } from 'react';
 import { JSDOM } from 'jsdom';
 import { acceptBayAdventure, adventureNextKey, BAY_ADVENTURES, bayAdventuresKey, checkInBayAdventure, emptyBayAdventures, parseBayAdventures } from '../src/features/little-bay/bay-adventures';
-import { getUnifiedPlace } from '../src/features/little-bay/unified-bay-world';
+import { bayApproach, bayArrival, baySegmentCanMove, getUnifiedPlace } from '../src/features/little-bay/unified-bay-world';
+import { routeBay } from '../src/features/little-bay/unified-bay-routing';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/play' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
@@ -13,14 +14,61 @@ const { useBayAdventures } = await import('../src/features/little-bay/useBayAdve
 const { default: BayAdventureJournal } = await import('../src/features/little-bay/BayAdventureJournal');
 afterEach(() => { cleanup(); window.localStorage.clear(); });
 
-test('adventure stories use real map anchors across multiple regions, with no invented award eligibility', () => {
-  assert.equal(BAY_ADVENTURES.length, 4);
+test('adventure stories use real map anchors for regional loops and local trails, with no invented award eligibility', () => {
+  assert.equal(BAY_ADVENTURES.length, 6);
   for (const quest of BAY_ADVENTURES) {
     assert.ok(quest.steps.length >= 3 && quest.steps.length <= 4);
-    assert.ok(new Set(quest.steps.map(step => getUnifiedPlace(step.key)?.region)).size >= 2);
+    if (!['peninsula-small-stops', 'east-bay-green-pages'].includes(quest.id))
+      assert.ok(new Set(quest.steps.map(step => getUnifiedPlace(step.key)?.region)).size >= 2);
     for (const step of quest.steps) { assert.ok(getUnifiedPlace(step.key)); assert.ok(step.action.en && step.memory.zh); }
   }
   assert.equal(new Set(BAY_ADVENTURES.find(q => q.id === 'around-the-bay')!.steps.map(s => getUnifiedPlace(s.key)!.region)).size, 4);
+});
+
+test('new local trails connect useful stops within one region by traversable game routes', () => {
+  const expected = [
+    { id: 'peninsula-small-stops', region: 'peninsula', keys: ['peninsula:millbrae-transit', 'peninsula:twin-pines', 'peninsula:burgess-park'] },
+    { id: 'east-bay-green-pages', region: 'east-bay', keys: ['east-bay:hayward-garden', 'east-bay:fremont-central-park', 'east-bay:ardenwood'] },
+  ];
+  for (const trail of expected) {
+    const quest = BAY_ADVENTURES.find(item => item.id === trail.id)!;
+    assert.deepEqual(quest.steps.map(item => item.key), trail.keys);
+    const places = quest.steps.map(item => getUnifiedPlace(item.key)!);
+    assert.ok(places.every(place => place.region === trail.region));
+    assert.ok(new Set(places.map(place => place.regional?.city)).size >= 2);
+    for (let index = 1; index < places.length; index++) {
+      const route = routeBay(bayApproach(places[index - 1]), places[index].key);
+      assert.equal(route.available, true, `${quest.id}: ${places[index].key}`);
+      assert.equal(route.requiresFerry, false);
+      assert.equal(bayArrival(...route.points.at(-1)!)?.key, places[index].key, 'route ends within the physical arrival area');
+      for (let segment = 1; segment < route.points.length; segment++)
+        assert.equal(baySegmentCanMove(route.points[segment - 1], route.points[segment]), true, 'the new trail never cuts across unplayable water');
+    }
+  }
+});
+
+test('local trails reject remote or out-of-order collection, resume independently and award each keepsake once', () => {
+  const timestamp = new Date('2026-09-25T18:00:00.000Z');
+  let progress = acceptBayAdventure(emptyBayAdventures(), 'bay-postcard');
+  progress = checkInBayAdventure(progress, 'sf:ferry', timestamp);
+  for (const id of ['peninsula-small-stops', 'east-bay-green-pages']) {
+    const quest = BAY_ADVENTURES.find(item => item.id === id)!;
+    progress = acceptBayAdventure(progress, id);
+    assert.equal(checkInBayAdventure(progress, null, timestamp), progress);
+    assert.equal(checkInBayAdventure(progress, quest.steps[2].key, timestamp), progress);
+    for (const stop of quest.steps) {
+      assert.equal(adventureNextKey(progress), stop.key);
+      progress = checkInBayAdventure(progress, stop.key, timestamp);
+      assert.equal(checkInBayAdventure(progress, stop.key, timestamp), progress, 'returning to the same stop cannot duplicate its memory');
+      progress = parseBayAdventures(JSON.stringify(progress));
+    }
+    assert.equal(adventureNextKey(progress), null);
+    assert.equal(progress.stamps[id].length, 3);
+  }
+  progress = acceptBayAdventure(progress, 'bay-postcard');
+  assert.equal(adventureNextKey(progress), 'east-bay:jack-london', 'new trails preserve the existing postcard save');
+  assert.equal(progress.stamps['peninsula-small-stops'].length, 3);
+  assert.equal(progress.stamps['east-bay-green-pages'].length, 3);
 });
 
 test('map selection never awards a step; only the physical next stop can be checked in sequentially', () => {

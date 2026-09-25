@@ -9,8 +9,8 @@ import { BAY_WORLD_PLACE_IDS } from '../src/features/little-bay/bay-journey';
 import { createSfWalkerState, stepSfWalker } from '../src/features/little-bay/sf-walking';
 
 test('one geographic projection preserves every original place and compass orientation',()=>{
-  assert.equal(UNIFIED_BAY_PLACES.length,68);
-  assert.equal(new Set(UNIFIED_BAY_PLACES.map(place=>place.key)).size,68);
+  assert.equal(UNIFIED_BAY_PLACES.length,88);
+  assert.equal(new Set(UNIFIED_BAY_PLACES.map(place=>place.key)).size,88);
   for(const [region,ids] of Object.entries(BAY_WORLD_PLACE_IDS))assert.deepEqual(
     new Set(UNIFIED_BAY_PLACES.filter(place=>place.region===region).map(place=>place.id)),new Set(ids));
   for(const place of UNIFIED_BAY_PLACES){
@@ -130,7 +130,7 @@ test('resuming from a ferry channel keeps bends and never invents an open-water 
   }
 });
 
-test('the real walker reaches all 68 named entrances including the bounded ferry crossing',()=>{
+test('the real walker reaches every named entrance including the bounded ferry crossing',()=>{
   const start=getUnifiedPlace('sf:ferry')!.position;
   for(const place of UNIFIED_BAY_PLACES){
     const route=routeBay(start,place),points:{point:[number,number];mode:'land'|'ferry'}[]=[];

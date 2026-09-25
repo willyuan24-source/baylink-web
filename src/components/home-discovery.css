@@ -192,3 +192,25 @@
   .home-discovery *, .home-discovery *::after { transition: none !important; }
   .home-discovery-feature:hover .home-discovery-image img, .home-discovery-pick:hover .home-discovery-image img { transform: none; }
 }
+.home-start-paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 10px; }
+.home-start-paths > a { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 17px 14px; border: 1px solid #dce4d4; border-radius: 13px; background: #f7f8ef; color: #35563b; transition: background .18s, border-color .18s; }
+.home-start-paths > a:hover { background: #edf2e3; border-color: #9eb292; }
+.home-start-paths > a > span { display: grid; place-items: center; width: 39px; height: 39px; flex-shrink: 0; border-radius: 12px; background: #e5edd9; }
+.home-start-paths > a:nth-child(2) > span { background: #f2e8d4; color: #87633c; }
+.home-start-paths > a:nth-child(3) > span { background: #e1edeb; color: #3c7772; }
+.home-start-paths > a > div { min-width: 0; flex: 1; }
+.home-start-paths strong { display: block; font-size: 13px; line-height: 1.6; }
+.home-start-paths small { display: block; margin-top: 3px; color: #69775f; font-size: 10px; line-height: 1.65; }
+.home-start-paths > a > svg { flex-shrink: 0; }
+.home-start-continue { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 21px; margin-bottom: 17px; }
+.home-start-continue a, .home-start-continue button { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; color: #627357; font-size: 11px; }
+.home-start-paths a:focus-visible, .home-start-continue :focus-visible { outline: 3px solid #54886c; outline-offset: 3px; }
+@media (max-width: 1100px) and (min-width: 768px) { .home-start-paths > a { flex-wrap: wrap; } .home-start-paths > a > div { flex-basis: calc(100% - 62px); } .home-start-paths > a > svg { display: none; } }
+@media (max-width: 767px) {
+  .home-start-paths { grid-template-columns: 1fr; gap: 7px; }
+  .home-start-paths > a { padding: 11px 13px; }
+  .home-start-paths strong { font-size: 13px; }
+  .home-start-paths small { margin-top: 1px; font-size: 11px; }
+  .home-start-continue { gap: 2px 15px; margin-bottom: 12px; }
+  .home-start-continue a, .home-start-continue button { min-height: 44px; }
+}

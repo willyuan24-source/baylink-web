@@ -13,14 +13,14 @@ import SfLandmarkPhoto from './SfLandmarkPhoto';
 
 export type UnifiedPlacePanelProps = {
   place: UnifiedPlace; locale: Locale; date: string; addedPlaceIds: readonly string[];
-  onAddPlace?: (id: string) => void; onAsk?: (question: string) => void; onClose: () => void; onNavigate: (key: string) => void;
+  onAddPlace?: (id: string) => void; onAsk?: (question: string) => void; onCityGuide?: () => void; onClose: () => void; onNavigate: (key: string) => void;
 };
 
 export default function UnifiedPlacePanel(props: UnifiedPlacePanelProps) {
   return <PlaceReadingSession key={`${props.place.key}:${props.locale}`} {...props} />;
 }
 
-function PlaceReadingSession({ place, locale, date, addedPlaceIds, onAddPlace, onAsk, onClose, onNavigate }: UnifiedPlacePanelProps) {
+function PlaceReadingSession({ place, locale, date, addedPlaceIds, onAddPlace, onAsk, onCityGuide, onClose, onNavigate }: UnifiedPlacePanelProps) {
   const titleId = useId(), [expanded, setExpanded] = useState(false);
   const [result, setResult] = useState<{ done: boolean; guide?: SfGuidePreview }>({ done: !place.guideSlug });
   const leave = () => expanded ? setExpanded(false) : onClose();
@@ -47,8 +47,10 @@ function PlaceReadingSession({ place, locale, date, addedPlaceIds, onAddPlace, o
       <div className="unified-dialog-eyebrow"><MapPin size={14} />{t(region.zh, region.en)}{place.regional?.city && ` · ${place.regional.city}`}</div>
       <h3 id={titleId}>{title}</h3>
       {photo && <SfLandmarkPhoto key={`${photo.src}:${expanded}`} photo={photo} locale={locale} expanded={expanded} onExpand={() => setExpanded(true)} />}
+      {!photo && <div className="unified-photo-pending"><Compass size={25}/><p>{t('实景照片待补充，可以先查看官方地点页面。', 'Photograph coming soon. Visit the official place page for more information.')}</p><a href={place.sourceUrl} target="_blank" rel="noopener noreferrer">{t('查看官方页面', 'Official place page')}<ArrowUpRight size={14}/></a></div>}
       {expanded ? <button type="button" className="unified-button" onClick={() => setExpanded(false)}>{t('返回地点介绍', 'Back to place details')}</button> : <>
         {description && <p className="unified-place-description">{description}</p>}
+        {place.regional?.address && <p className="unified-place-address"><MapPin size={15}/>{place.regional.address}</p>}
         <div className="unified-place-primary-actions">
           <button type="button" className="unified-button unified-button--primary" onClick={() => { onNavigate(place.key); onClose(); }}><Navigation size={17} />{t('在游戏中导航到这里', 'Navigate here in the game')}</button>
           {place.plannerPlaceId && onAddPlace && <button type="button" className="unified-button" disabled={added} onClick={() => onAddPlace(place.plannerPlaceId!)}>{added ? <Check size={17} /> : <Plus size={17} />}{added ? t('已加入我的周末', 'Added to my day') : t('加入我的周末', 'Add to my day')}</button>}
@@ -61,6 +63,7 @@ function PlaceReadingSession({ place, locale, date, addedPlaceIds, onAddPlace, o
           {onAsk && <button type="button" onClick={() => { onAsk(t(`我想在 ${date} 去 ${place.title}，请根据有来源的 BAYLINK 攻略帮我安排周边半日游，注明仍需核实的预约、开放时间、费用。资料不足请直接说明，不要猜测。`, `I would like to visit ${place.titleEn} on ${date}. Use sourced BAYLINK guides to plan a half-day nearby. Identify what still needs verification about reservations, hours and prices. Clearly state any missing information.`)); onClose(); }}><Sparkles size={15} />{t('请 BAYBAY 帮我安排', 'Plan with BAYBAY')}</button>}
         </div>
         <section className="unified-place-events"><h4><CalendarDays size={16} />{t('这一天的附近活动', 'Nearby events on this day')}<time dateTime={date}>{date}</time></h4>
+          {onCityGuide && <button type="button" className="unified-button" onClick={onCityGuide}><CalendarDays size={15}/>{t('查看本城本月与下月活动', 'City events this month & next')}<ArrowUpRight size={15}/></button>}
           {events.length ? events.slice(0, 3).map(event => <a key={event.id} href={`/events/${encodeURIComponent(event.id)}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`} target="_blank" rel="noopener noreferrer"><strong>{translateText(event.title, locale)}</strong><span>{translateText(event.venue, locale)} · {translateText(event.costLabel, locale)}</span><small>{t('资料核实', 'Source checked')} {event.verifiedAt}</small><ArrowUpRight size={15} /></a>) : <p>{t('这一天暂未收录能明确匹配到附近的活动。可以继续查看地区日历。', 'No clearly matched nearby events are listed for this date. You can explore the regional calendar.')}</p>}
           <a href={`/calendar?date=${encodeURIComponent(date)}&region=${place.region}${lang}`} target="_blank" rel="noopener noreferrer"><Compass size={15} />{t(`查看${region.zh}活动日历`, `See the ${region.en} event calendar`)}<ArrowUpRight size={15} /></a>
         </section>

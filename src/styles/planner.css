@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){.planner-page *{scroll-behavior:auto!important;transition:none!important}}
 .planner-place-media{margin-top:15px;min-width:0}
 .planner-place-actions{flex-wrap:wrap}
+
+#outing-plan { scroll-margin-top: 110px; }

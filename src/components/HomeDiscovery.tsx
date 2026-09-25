@@ -110,10 +110,15 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   return <section className="home-discovery" aria-label="湾区阅读与探索">
     <header className="home-discovery-heading">
       <div><span className="home-discovery-eyebrow"><Compass size={14} aria-hidden="true" /> THE BAY, A LITTLE CLOSER</span><h1>湾区的日常，{locale === 'en' ? ' ' : null}<span>也值得期待。</span></h1><p>从一段散步、一份攻略，开始发现这里的生活。</p></div>
-      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
+      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link></div>
     </header>
 
-    <nav className="planner-launch-links" aria-label="计划湾区生活"><Link to="/calendar"><CalendarDays size={16} />活动日历<ArrowUpRight size={15} /></Link><Link to="/play"><TramFront size={16} aria-hidden="true" />小小湾区 · 3D 逛一圈<ArrowUpRight size={15} aria-hidden="true" /></Link><Link to="/plan"><Sparkles size={16} />让 BayBay 帮我排一天<ArrowUpRight size={15} /></Link><Link to="/my-week"><CalendarDays size={16} />我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动<ArrowUpRight size={15} /></Link></nav>
+    <nav className="home-start-paths" aria-label={locale==='en'?'Start your Bay Area day':'开始安排湾区生活'}>
+      <Link to="/play"><span><TramFront size={22}/></span><div><strong>{locale==='en'?'Explore the 3D Bay':'逛一圈 3D 湾区'}</strong><small>{locale==='en'?'Meet a city. Find a place worth visiting.':'认识一座城，找到想去的地方。'}</small></div><ArrowUpRight size={17}/></Link>
+      <Link to="/calendar"><span><CalendarDays size={22}/></span><div><strong>{locale==='en'?'Find an event':'挑一场本地活动'}</strong><small>{locale==='en'?'Dates, places and people to go with.':'看日期、地点，也能找一起去的人。'}</small></div><ArrowUpRight size={17}/></Link>
+      <Link to="/plan"><span><Sparkles size={22}/></span><div><strong>{locale==='en'?'Plan with BAYBAY':'让 BAYBAY 排一天'}</strong><small>{locale==='en'?'Turn your ideas into a sourced itinerary.':'把想法变成有来源的出游安排。'}</small></div><ArrowUpRight size={17}/></Link>
+    </nav>
+    <div className="home-start-continue"><Link to="/my-week"><Ticket size={14}/>{locale==='en'?'Continue my saved plans':'继续我的收藏与计划'}<ArrowRight size={13}/></Link><button type="button" onClick={onBrowseCommunity}>{locale==='en'?'Find local posts':'找本地信息'}<ArrowDownRight size={13}/></button><Link to="/ai-in-the-bay">{locale==='en'?'Local AI events':'湾区 AI 活动'}<ArrowUpRight size={13}/></Link></div>
 
     <div className="home-discovery-intents" role="group" aria-label="你想怎么发现湾区">
       <span>今天想…</span>{discoveries.map(item => <button key={item.id} type="button" aria-pressed={intent === item.id} aria-controls={panelId} onClick={() => setIntent(item.id)}>{intent === item.id && <Check size={14} aria-hidden="true" />}{item.label}</button>)}

@@ -45,7 +45,7 @@ test('visits persist across regions and reloads, migrate existing SF memories an
 });
 test('atlas region selection dispatches travel without inventing visit progress',()=>{
   const travels:string[]=[];const view=render(<BayTravelAtlas region="sf" onTravel={id=>travels.push(id)} journey={emptyBayJourney()} persistent/>);
-  fireEvent.click(view.getByRole('button',{name:/中半岛.*0 \/ 12/}));
+  fireEvent.click(view.getByRole('button',{name:new RegExp(`中半岛.*0 / ${BAY_WORLD_PLACE_IDS.peninsula.length}`)}));
   assert.deepEqual(travels,['peninsula']);assert.equal(view.container.querySelector('.bay-atlas-progress strong')?.textContent,'0');
   fireEvent.click(view.getByRole('button',{name:/一张地图，四段小旅行/}));
   assert.ok(view.getByRole('group',{name:/旧金山、半岛、南湾与东湾/}));

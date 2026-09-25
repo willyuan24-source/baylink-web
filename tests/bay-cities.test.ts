@@ -13,7 +13,7 @@ const tick = (state: BayCityPresence, id: string, now: number, flags: { active?:
 };
 
 test('city centres keep their own focus, valid nearby recommendations and explicit community kinds', () => {
-  assert.equal(BAY_CITIES.length, 30);
+  assert.equal(BAY_CITIES.length, 31);
   assert.equal(new Set(BAY_CITIES.map(item => item.id)).size, BAY_CITIES.length);
   for (const item of BAY_CITIES) {
     assert.deepEqual(item.position, projectBay(item.coordinate));
@@ -40,6 +40,14 @@ test('every existing landmark keeps the known city, including shoreline and hill
   assert.equal(bayCityForPlace('peninsula:stanford')?.id, 'stanford');
   assert.equal(bayCityForPlace('south-bay:alviso')?.id, 'san-jose');
   assert.equal(bayCityForPlace('peninsula:coyote-point')?.id, 'san-mateo');
+});
+
+test('expanded cities recommend a real place in their own city instead of a distant neighbor', () => {
+  for (const id of ['daly-city', 'south-san-francisco', 'san-bruno', 'millbrae', 'belmont', 'menlo-park', 'sunnyvale', 'santa-clara', 'milpitas', 'hayward', 'fremont', 'sfo-airport']) {
+    const item = city(id);
+    assert.equal(bayCityForPlace(item.focusKey)?.id, id, item.focusKey);
+  }
+  assert.equal(city('sfo-airport').kind, 'area');
 });
 
 test('water, bridges, nonfinite positions and distant countryside never claim a city', () => {

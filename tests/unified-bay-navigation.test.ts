@@ -8,6 +8,8 @@ import { BAY_FERRY_ROUTES, bayCanMove, baySegmentCanMove, baySpawn, getUnifiedPl
 import { emptyBayJourney } from '../src/features/little-bay/bay-journey';
 import { BAY_CITIES } from '../src/features/little-bay/bay-cities';
 import { BAY_DISCOVERIES, bayDiscoveriesKey } from '../src/features/little-bay/bay-discoveries';
+import { cityGuideMonths } from '../src/features/little-bay/bay-city-guide';
+import { todayInBay } from '../src/lib/planner';
 
 const dom=new JSDOM('<!doctype html><html><body></body></html>',{url:'https://www.baylink.us/play?lang=en',pretendToBeVisual:true});
 Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Node:dom.window.Node,IS_REACT_ACT_ENVIRONMENT:true});
@@ -34,12 +36,12 @@ const {default:UnifiedBayExplorer}=await import('../src/features/little-bay/Unif
 afterEach(()=>{cleanup();window.localStorage.clear();delete sceneState.__bayNavigationScene;});
 after(()=>sceneHook.deregister());
 const scene=()=>{assert.ok(sceneState.__bayNavigationScene);return sceneState.__bayNavigationScene;};
-async function fixture(){
+async function fixture(onAsk?:(question:string)=>void){
   await setLocale('en',false);
   const visits:string[]=[];
   const view=render(React.createElement(MemoryRouter,null,React.createElement(UnifiedBayExplorer,{
     date:'2026-09-25',journey:emptyBayJourney(),persistent:true,addedPlaceIds:[],
-    onVisit:(region,id)=>visits.push(`${region}:${id}`),onShowList(){},
+    onVisit:(region,id)=>visits.push(`${region}:${id}`),onShowList(){},onAsk,
   })));
   await waitFor(()=>assert.ok(sceneState.__bayNavigationScene));
   return {view,visits};
@@ -166,4 +168,67 @@ test('field notes preview cannot collect remotely, while the nearby E interactio
   fireEvent.click(view.getByRole('button',{name:'Close discovery'}));assert.equal(scene().running,true);
   fireEvent.click(view.getByRole('button',{name:'Whole bay overview'}));fireEvent.keyDown(canvas,{key:'e'});
   assert.equal(view.queryByRole('dialog'),null,'overview must not trigger a nearby interaction');
+});
+
+test('city guide pauses the world, releases held movement and routes from actual position without quick travel',async t=>{
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const {view,visits}=await fixture();
+  fireEvent.click(view.getByRole('button',{name:'Walk',exact:true}));
+  const city=BAY_CITIES.find(item=>item.id==='millbrae')!;
+  report(city.position);now=2101;report(city.position);
+  const opening=view.getByRole('button',{name:/^City guide/});
+  opening.focus();
+  fireEvent.keyDown(view.getByRole('button',{name:'Forward',exact:true}),{key:' '});
+  assert.equal(scene().input.current.forward,true,'the held movement is active before opening the guide');
+  fireEvent.click(opening);
+  assert.ok(view.getByRole('dialog',{name:'Millbrae',exact:true}));
+  assert.equal(scene().running,false);
+  assert.deepEqual(scene().input.current,{forward:false,backward:false,left:false,right:false});
+  assert.equal(document.activeElement,view.getByRole('button',{name:'Close city guide'}));
+  const actual:BayPoint=[city.position[0]-9,city.position[1]+8];
+  report(actual); // A final throttled scene report may arrive after the dialog opens.
+  const spawn=scene().spawnCommand;
+  fireEvent.click(view.getAllByRole('button',{name:'Route here',exact:true})[0]);
+  assert.equal(view.queryByRole('dialog'),null);
+  assert.equal(scene().mode,'drive');assert.equal(scene().running,true);assert.equal(scene().autoTravel,false);
+  assert.deepEqual(scene().navigation?.points[0],actual,'city-centre preview must not replace the real route origin');
+  assert.equal(scene().spawnCommand,spawn);assert.deepEqual(visits,[]);
+  for(const leg of scene().navigation?.legs||[])if(leg.mode==='land')for(let index=1;index<leg.points.length;index++)
+    assert.ok(baySegmentCanMove(leg.points[index-1],leg.points[index]));
+});
+
+test('contextual city Ask exits fullscreen and keeps the world paused while handing off the selected month',async()=>{
+  const asks:string[]=[];
+  const {view,visits}=await fixture(question=>asks.push(question));
+  const stage=view.getByRole('region',{name:'Continuous Bay Area 3D world'});
+  fireEvent.click(view.getByRole('button',{name:'Explore fullscreen'}));
+  assert.ok(stage.classList.contains('is-expanded'));
+  act(()=>scene().onCitySelect?.('cupertino'));
+  fireEvent.click(view.getByRole('button',{name:'Open city guide'}));
+  assert.equal(scene().running,false);
+  const nextMonth=cityGuideMonths(todayInBay())[1];
+  const monthName=new Intl.DateTimeFormat('en',{month:'long',timeZone:'UTC'}).format(new Date(`${nextMonth.key}-01T12:00:00Z`));
+  fireEvent.click(view.getByRole('button',{name:new RegExp(`^${monthName}`)}));
+  fireEvent.click(view.getByRole('button',{name:'Ask BAYBAY'}));
+  assert.equal(view.queryByRole('dialog'),null);
+  assert.equal(stage.classList.contains('is-expanded'),false);
+  assert.notEqual(document.body.style.overflow,'hidden');
+  assert.equal(scene().running,false,'closing the guide must not resume motion behind the assistant');
+  assert.deepEqual(scene().input.current,{forward:false,backward:false,left:false,right:false});
+  assert.equal(asks.length,1);assert.match(asks[0],/Cupertino/);assert.ok(asks[0].includes(nextMonth.key));
+  assert.match(asks[0],/do not invent events or live availability/);
+  assert.deepEqual(visits,[]);
+  assert.ok(view.getByRole('button',{name:'Resume world'}));
+});
+
+test('routing from an overview city guide returns keyboard focus to the playable stage',async()=>{
+  const {view}=await fixture();
+  act(()=>scene().onCitySelect?.('cupertino'));
+  const opening=view.getByRole('button',{name:'Open city guide'});
+  opening.focus();fireEvent.click(opening);
+  const route=view.getAllByRole('button',{name:'Route here',exact:true})[0];
+  route.focus();fireEvent.click(route);
+  assert.equal(view.queryByRole('dialog'),null);assert.equal(scene().mode,'drive');
+  assert.ok(scene().navigation?.points.length);
+  assert.equal(document.activeElement,view.getByLabelText('Navigation scene fixture'),'WASD requires focus inside the stage after the old city-card trigger is removed');
 });

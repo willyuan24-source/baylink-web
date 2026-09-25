@@ -19,7 +19,12 @@ const eventPlanning: Record<string, PlanningFacts> = {
   ...aiEventSettings,
   'surrealdb-mastra-shared-memory-2026': { setting: 'indoor', minAge: 18, reservation: 'required' },
 };
-const eventLocations: Record<string, GeoPoint> = { ...aiEventLocations, 'oakland-omca-dia-muertos-2026': placeLocations['lake-merritt'], 'oakland-omca-friday-finale-2026': placeLocations['lake-merritt'] };
+const eventLocations: Record<string, GeoPoint> = {
+  ...aiEventLocations,
+  'oakland-omca-dia-muertos-2026': placeLocations['lake-merritt'],
+  'oakland-omca-friday-finale-2026': placeLocations['lake-merritt'],
+  'cupertino-fall-bike-fest-2026': { lat: 37.3188973, lng: -122.0286498, label: 'Cupertino Civic Center Plaza · 10300 Torre Avenue', sourceUrl: 'https://www.cupertino.gov/Events-directory/Bike-Fest-2026', precision: 'venue' },
+};
 
 // Coordinates are added only from individually checked public venue sources.
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id] } }));

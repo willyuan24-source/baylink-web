@@ -8,7 +8,7 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 test('regional attractions have valid editorial links, sources and exact-place image references',()=>{
   for(const world of Object.values(REGIONAL_WORLDS)){
-    assert.equal(world.places.length,12,world.id);
+    assert.equal(world.places.length,{peninsula:22,'south-bay':18,'east-bay':16}[world.id],world.id);
     assert.equal(new Set(world.places.map(p=>p.id)).size,world.places.length);
     assert.ok(world.places.find(p=>p.id===world.startId));
     for(const place of world.places){
@@ -21,7 +21,7 @@ test('regional attractions have valid editorial links, sources and exact-place i
   }
 });
 
-test('all 36 landmarks and starting positions lie on playable land',()=>{
+test('all regional landmarks and starting positions lie on playable land',()=>{
   for(const world of Object.values(REGIONAL_WORLDS))for(const place of world.places){
     const point=projectRegional(world,place.coordinate),spawn=regionalSpawn(world,place.id);
     assert.ok(regionalContains(world,...point),`${world.id}:${place.id} anchor is in water`);
@@ -66,5 +66,30 @@ test('each regional travel station connects to the other three worlds only',()=>
     const station=world.places.find(p=>p.travelTo);
     assert.ok(station,world.id);
     assert.deepEqual(new Set(station.travelTo),new Set(['sf','peninsula','south-bay','east-bay'].filter(id=>id!==world.id)));
+  }
+});
+
+test('new city landmarks retain reviewable official addresses and coordinate provenance', () => {
+  const added = Object.values(REGIONAL_WORLDS).flatMap(world => world.places).filter(place => place.sourceCheckedOn);
+  assert.equal(added.length, 20);
+  for (const place of added) {
+    assert.ok(place.address?.includes('CA '), place.id);
+    assert.equal(place.sourceCheckedOn, '2026-09-25');
+    assert.ok(place.coordinateSourceUrl, place.id);
+    const host = new URL(place.coordinateSourceUrl).hostname;
+    assert.match(host, /(^|\.)(bart\.gov|caltrain\.com|sanbruno\.ca\.gov|menlopark\.gov|heritageparkmuseum\.org|scu\.edu|santaclaracounty\.gov|haywardrec\.org|parks\.ca\.gov|census\.gov)$/, place.id);
+  }
+  const airport = added.find(place => place.id === 'sfo-airport')!;
+  assert.equal(airport.city, 'SFO Airport');
+  assert.match(airport.descriptionEn, /San Mateo County/);
+  assert.notEqual(airport.city, 'San Francisco');
+});
+
+test('legacy travel entry points describe the connected world without promising real services', () => {
+  for (const world of Object.values(REGIONAL_WORLDS)) {
+    const stop = world.places.find(place => place.travelTo)!;
+    assert.doesNotMatch(stop.description, /切换区域|切换到/);
+    assert.doesNotMatch(stop.descriptionEn, /Switch game regions|change game regions/);
+    assert.match(stop.descriptionEn, /official|Caltrain/);
   }
 });

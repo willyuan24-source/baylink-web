@@ -6,6 +6,7 @@ import { BAY_BRIDGES, BAY_FERRY_ROUTES, BAY_LAND_AREAS, BAY_ROADS, UNIFIED_BAY_P
 import { createRoadGeometry, createShoreGeometry, mapHash } from './san-francisco-geometry';
 import { sfVisualRoads } from './sf-city-scenery';
 import { SealionsModel } from './SanFranciscoModels';
+import UrbanFabric from './UrbanFabric';
 
 type BoxPart={p:[number,number,number];s:[number,number,number];color:string;angle?:number};
 function Boxes({parts}:{parts:BoxPart[]}) {
@@ -72,29 +73,8 @@ export function UnifiedBayBridges() {
   return <Boxes parts={parts}/>;
 }
 
-/** Landmarks remain the largest forms. Scenery is instanced and thins out beyond the camera. */
-export function UnifiedBayScenery() {
-  const mesh=useRef<THREE.InstancedMesh>(null),canopy=useRef<THREE.InstancedMesh>(null),roof=useRef<THREE.InstancedMesh>(null),last=useRef(.35);
-  const objects=useMemo(()=>{
-    const items:{x:number;z:number;height:number;tree:boolean;color:string}[]=[];
-    UNIFIED_BAY_PLACES.forEach((place,j)=>{for(let i=0;i<22;i++){
-      const angle=mapHash(i,j)*Math.PI*2,radius=6+mapHash(i,j,2)*18,x=place.position[0]+Math.cos(angle)*radius,z=place.position[1]+Math.sin(angle)*radius;
-      if(!bayContains(x,z)||UNIFIED_BAY_PLACES.some(p=>Math.hypot(x-p.position[0],z-p.position[1])<Math.max(5,p.arrivalRadius+1.4)))continue;
-      const roadNear=BAY_ROADS.some(road=>road.path.slice(1).some((b,k)=>{const a=road.path[k],dx=b[0]-a[0],dz=b[1]-a[1],len=dx*dx+dz*dz,t=len?Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/len)):0;return Math.hypot(x-a[0]-t*dx,z-a[1]-t*dz)<road.width*.5+1.0;}));
-      if(!roadNear)items.push({x,z,height:.65+mapHash(i,j,3)*1.5,tree:i%3!==0,color:['#b8c5a7','#ccb797','#aec1b0','#d2bca8'][i%4]});
-    }});return items;
-  },[]);
-  useFrame(({camera},delta)=>{
-    last.current+=Math.max(0,Math.min(delta,.35));if(last.current<.35)return;last.current=0;
-    const object=new THREE.Object3D(),color=new THREE.Color();
-    objects.forEach((item,i)=>{const distance=Math.hypot(item.x-camera.position.x,item.z-camera.position.z),detail=distance<130||i%5===0;
-      const y=bayHeight(item.x,item.z);object.position.set(item.x,y+item.height/2,item.z);object.scale.set(detail?(item.tree?.16:1.15):0,detail?item.height:0,detail?(item.tree?.16:1):0);object.updateMatrix();mesh.current?.setMatrixAt(i,object.matrix);mesh.current?.setColorAt(i,color.set(item.tree?'#a28665':item.color));
-      object.position.y=y+item.height+(item.tree?.3:.08);object.scale.set(detail&&item.tree?.85:0,detail&&item.tree?.95:0,detail&&item.tree?.85:0);object.updateMatrix();canopy.current?.setMatrixAt(i,object.matrix);canopy.current?.setColorAt(i,color.set(i%3?'#9db78e':'#b1bf98'));
-      object.scale.set(detail&&!item.tree?1.26:0,detail&&!item.tree?.18:0,detail&&!item.tree?1.12:0);object.updateMatrix();roof.current?.setMatrixAt(i,object.matrix);
-    });for(const ref of [mesh,canopy,roof])if(ref.current){ref.current.visible=camera.position.y<170;ref.current.instanceMatrix.needsUpdate=true;if(ref.current.instanceColor)ref.current.instanceColor.needsUpdate=true;ref.current.computeBoundingSphere();}
-  });
-  return <group><instancedMesh ref={mesh} args={[undefined,undefined,objects.length]}><boxGeometry/><meshStandardMaterial roughness={1}/></instancedMesh><instancedMesh ref={canopy} args={[undefined,undefined,objects.length]}><icosahedronGeometry args={[1,1]}/><meshStandardMaterial roughness={1}/></instancedMesh><instancedMesh ref={roof} args={[undefined,undefined,objects.length]}><boxGeometry/><meshStandardMaterial color="#a68d70" roughness={1}/></instancedMesh></group>;
-}
+/** Continuous neighbourhoods remain visible at every map scale. */
+export function UnifiedBayScenery() { return <UrbanFabric/>; }
 
 export function BayFerryModel() {
   return <group><mesh position={[0,.35,0]} scale={[1.4,.48,2.55]}><boxGeometry/><meshStandardMaterial color="#477e78" roughness={.85}/></mesh><mesh position={[0,.68,-.2]} scale={[1.13,.15,1.9]}><boxGeometry/><meshStandardMaterial color="#fff0ce"/></mesh><mesh position={[0,.92,-.6]} scale={[.92,.48,.66]}><boxGeometry/><meshStandardMaterial color="#e0c398"/></mesh><mesh position={[0,1.2,-.6]} scale={[1.03,.1,.82]}><boxGeometry/><meshStandardMaterial color="#f4ead2"/></mesh></group>;

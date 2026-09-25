@@ -45,6 +45,24 @@ export const BAY_ADVENTURES: readonly BayAdventure[] = [
       step('east-bay:lake-merritt', 'Lake Merritt', 'Lake Merritt', '完成全湾旅行册', 'Complete the Bay journal', '四区的风景装进一本小册子。BAYBAY 还想继续走下去。', 'Four parts of the Bay fit into one little journal. BAYBAY is ready to keep exploring.'),
     ],
   },
+  {
+    id: 'peninsula-small-stops', title: words('半岛小城慢游', 'Little Peninsula stops'), symbol: '⌂', color: '#a58b64',
+    description: words('从 Millbrae 的换乘站出发，串起 Belmont 与 Menlo Park 的两片社区绿地。', 'Begin at Millbrae’s interchange, then connect two neighbourhood parks in Belmont and Menlo Park.'), badge: words('小城观察家', 'Neighbourhood observer'),
+    steps: [
+      step('peninsula:millbrae-transit', 'Millbrae 换乘枢纽', 'Millbrae Transit Center', '画一枚出发印章', 'Draw a departure stamp', 'BAYBAY 画了一枚小车票：下一站，去认识一座小城。', 'BAYBAY sketches a little ticket: next stop, a new neighbourhood.'),
+      step('peninsula:twin-pines', 'Twin Pines Park', 'Twin Pines Park', '记下溪边的绿意', 'Note a creekside green', '把树影画进旅行册，给匆忙的旅程留一点慢时光。', 'A sketch of leafy shadows leaves room for a slower moment in the journal.'),
+      step('peninsula:burgess-park', 'Burgess Park', 'Burgess Park', '完成小城观察页', 'Finish the neighbourhood page', '车站、溪边与社区公园，变成三枚只属于这次游戏旅程的小印章。', 'A station, a creekside pause and a neighbourhood park become three imaginary stamps from this game journey.'),
+    ],
+  },
+  {
+    id: 'east-bay-green-pages', title: words('东湾的三页绿意', 'Three green East Bay pages'), symbol: '♧', color: '#789879',
+    description: words('从 Hayward 的庭园到 Fremont 的湖畔，再去 Ardenwood 看看农场的故事。', 'From Hayward’s garden to Fremont’s lakeside, then on to the farm stories at Ardenwood.'), badge: words('东湾绿意收藏家', 'East Bay green collector'),
+    steps: [
+      step('east-bay:hayward-garden', 'Hayward 日本庭园', 'Hayward Japanese Gardens', '描下一片庭园绿', 'Sketch a garden green', 'BAYBAY 在纸上描下一片想象中的叶子，把真正的叶子留在树上。', 'BAYBAY sketches an imaginary leaf, leaving the real leaves on their branches.'),
+      step('east-bay:fremont-central-park', 'Central Park · Lake Elizabeth', 'Central Park · Lake Elizabeth', '收下湖畔的倒影', 'Keep a lakeside reflection', '旅行册多了一道蓝绿的波纹，那是 BAYBAY 画下的湖畔回忆。', 'A blue-green ripple joins the journal: BAYBAY’s little drawing of a lakeside memory.'),
+      step('east-bay:ardenwood', 'Ardenwood 历史农场', 'Ardenwood Historic Farm', '完成绿意旅行页', 'Complete the green pages', '庭园、湖岸与农场凑成三页绿意。游戏徽章已经夹进旅行册。', 'A garden, a lakeshore and a farm fill three green pages. An imaginary game badge marks the journal.'),
+    ],
+  },
 ];
 
 export type BayAdventureProgress = { version: 1; activeId: string | null; stamps: Record<string, string[]> };

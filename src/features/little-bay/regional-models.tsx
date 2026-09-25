@@ -22,14 +22,26 @@ function Tree({x,z,tall=false}:{x:number;z:number;tall?:boolean}){return <group 
 export const RegionalLandmarkModel=memo(function RegionalLandmarkModel({place}:{place:RegionalPlace}){
   const parts:Part[]=[];
   const block=(p:Part['p'],s:Part['s'],c=ivory,r?:Part['r'])=>parts.push({p,s,c,r});
-  const natural=['garden','forest','beach','wetland','lagoon','peak','farm'].includes(place.kind);
+  const natural=['garden','park','forest','beach','wetland','lagoon','peak','farm'].includes(place.kind);
   block([0,.08,0],place.kind==='ship'?[6.6,.16,6.3]:[4.4,.16,3.7],place.kind==='ship'?'#83b5b2':natural?'#b0bd95':'#dfd4b8');
-  if(place.kind==='garden'||place.kind==='pagoda'){
+  if(place.kind==='park'){
+    block([0,.19,0],[.6,.05,3.45],'#e5d7b8');block([0,.2,.28],[4.1,.045,.55],'#e5d7b8');
+    block([.98,.29,-.88],[1.45,.22,.9],'#8fb697');
+    for(const x of [-1.25,1.25]){block([x,.48,.92],[.98,.17,.38],roof);block([x,.76,1.08],[.98,.36,.09],roof);for(const dx of [-.3,.3])block([x+dx,.29,.9],[.08,.36,.3],teal);}
+    for(const x of [-1.65,-.65])block([x,.87,-.8],[.09,1.36,.1],teal);
+    block([-1.15,1.56,-.8],[1.35,.13,1.0],roof);block([-1.15,.72,-.8],[.65,.08,.55],ivory);
+    if(place.id==='burgess-park')block([1.14,.18,-.89],[1.65,.04,1.15],'#8ebdb3');
+  }else if(place.kind==='garden'||place.kind==='pagoda'){
     block([0,.14,.5],[2.3,.04,1.65],'#8cb9b0');
     [-1,1].forEach(x=>{block([x,1.05,-.6],[.14,1.6,.14],roof);block([x,.54,1],[.12,.65,.12],roof);});
     block([0,1.7,-.6],[2.9,.2,1.4],teal);block([0,1.93,-.6],[2.3,.2,1.0],teal);block([0,2.13,-.6],[1.5,.19,.6],teal);
     block([0,.43,.9],[2.5,.12,.4],roof);block([0,.74,.9],[2.5,.07,.09],roof);
     block([1.55,.6,-1],[.22,.8,.22],'#c8bb9f');block([1.55,1.07,-1],[.55,.16,.55],ivory);
+  }else if(place.id==='santa-clara-university'){
+    block([0,.99,-.55],[2.1,1.78,2.2]);block([0,1.96,-.55],[2.45,.18,2.55],roof);
+    block([0,1.4,.64],[2.25,2.55,.22]);block([0,2.76,.64],[1.35,.2,.3],ivory);
+    block([0,.58,.775],[.48,.82,.035],teal);for(const x of [-.77,.77])block([x,1.87,.78],[.28,.44,.035],teal);
+    block([-1.56,.6,-.45],[.72,1.04,2.25]);block([-1.56,1.18,-.45],[.94,.19,2.47],roof);
   }else if(place.kind==='campus'){
     block([0,.9,-.75],[3.8,1.5,1.0]);block([0,1.72,-.75],[4.1,.23,1.3],roof);
     for(let i=-2;i<=2;i++) {block([i*.7,.7,.12],[.18,1.25,.22]);block([i*.7,1.3,.12],[.6,.22,.25]);}
@@ -43,9 +55,21 @@ export const RegionalLandmarkModel=memo(function RegionalLandmarkModel({place}:{
     if(temple)block([0,.15,1.35],[1.8,.02,.9],'#86b7aa');
   }else if(place.kind==='observatory'){
     block([-.85,.8,0],[1.8,1.5,1.65]);block([1.15,.5,.3],[1.15,.9,1.1]);block([.2,.43,0],[1.3,.6,.7],ivory);
+  }else if(place.id==='sfo-airport'){
+    block([0,.6,-.4],[3.5,1.03,1.3],ivory);block([0,1.2,-.4],[3.8,.19,1.65],teal);
+    block([0,.63,.27],[3.12,.58,.03],'#8fbaba');for(const x of [-1.2,-.6,0,.6,1.2])block([x,.67,.3],[.06,.85,.05],ivory);
+    block([1.55,1.9,-.4],[.34,3.4,.34],ivory);block([1.55,3.39,-.4],[.8,.46,.65],teal);block([1.55,3.68,-.4],[.94,.15,.8],ivory);
+    block([-1,.49,1.07],[.24,.23,1.06],ivory);block([-1,.53,1.07],[1.38,.08,.29],roof);block([-1,.68,.6],[.1,.35,.25],teal);
   }else if(place.kind==='aviation'){
     block([0,.8,-.65],[3.5,1.45,1.5],'#d1b88e');block([0,1.6,-.65],[3.8,.2,1.8],teal);
     block([0,.75,.85],[.36,.32,2.2],ivory);block([0,.76,.8],[2.9,.12,.44],roof);block([0,1.01,-.05],[.15,.65,.4],teal);block([0,.74,-.05],[1,.1,.25],ivory);
+  }else if(place.kind==='station'&&(place.id.endsWith('-bart')||place.id==='millbrae-transit')){
+    block([0,.22,0],[4.05,.23,2.3],'#c7c6ac');for(const z of [-.53,.53])block([0,.37,z],[3.86,.05,.04],'#716d5b');
+    block([-.24,.74,0],[3.15,.74,.7],ivory);block([-.24,.66,.363],[3.15,.18,.025],teal);
+    for(let i=0;i<6;i++)block([-1.52+i*.49,.91,.365],[.31,.24,.025],'#648f8d');
+    for(const x of [-1.6,1.6]){block([x,1.37,-.83],[.12,2.3,.12],teal);block([x,1.37,.84],[.12,2.3,.12],teal);}
+    block([0,2.6,0],[4.2,.18,2.45],teal);block([0,2.74,0],[4.3,.13,1.3],'#dce4cd');
+    block([1.8,1.2,1.35],[.08,1.95,.08],teal);block([1.8,2.16,1.35],[.47,.39,.09],ivory);
   }else if(place.kind==='station'){
     block([-.65,.95,-.7],[1.8,1.65,1.3],ivory);block([-.65,1.86,-.7],[2.05,.24,1.6],roof);
     block([.8,.7,.9],[2.3,.83,.66],teal);block([.8,1.18,.9],[2.55,.15,.85],ivory);
@@ -66,11 +90,12 @@ export const RegionalLandmarkModel=memo(function RegionalLandmarkModel({place}:{
     if(place.kind==='beach')block([0,.19,.15],[4.15,.04,3.4],'#ebd4ab');
     if(place.kind==='peak'){block([0,.7,0],[.12,1.3,.12],roof);block([.28,1.24,0],[.62,.22,.08],teal);}
     else {block([0,.3,.85],[2.9,.14,.47],'#bd9471');[-1,1].forEach(x=>block([x,.45,.62],[.12,.62,.12],'#bd9471'));}
-  }else if(place.kind==='estate'||place.kind==='mansion'||place.kind==='farm'||place.kind==='town'){
+  }else if(place.kind==='estate'||place.kind==='mansion'||place.kind==='farm'||place.kind==='town'||place.id==='sunnyvale-heritage'){
     block([0,1.0,-.35],[3,1.8,1.5],place.kind==='farm'?'#c08867':ivory);block([0,2,-.35],[3.4,.25,1.9],roof);
     [-1,0,1].forEach(x=>{block([x*.9,1.12,.415],[.35,.48,.04],teal);block([x*.9,.5,.415],[.4,.04,.04],roof);});
     if(place.kind==='mansion'){block([-1,2.7,-.5],[.6,1.1,.6],ivory);block([1,2.45,-.5],[.6,.8,.6],ivory);}
     if(place.kind==='estate')for(let x=-1.5;x<2;x+=.75)block([x,.29,1.25],[.48,.32,.75],sage);
+    if(place.id==='sunnyvale-heritage'){block([0,.33,.98],[3.4,.18,1.2],ivory);block([0,1.4,.98],[3.55,.12,1.3],teal);for(const x of [-1.45,-.5,.5,1.45])block([x,.84,1.47],[.1,1.0,.1],ivory);}
   }else{
     const isGoogle=place.id==='google-visitor',isApple=place.id==='apple-visitor';
     block([0,.95,0],[3.6,1.6,2.2],place.id==='tech'?'#d39e72':ivory);
@@ -86,8 +111,9 @@ export const RegionalLandmarkModel=memo(function RegionalLandmarkModel({place}:{
     {place.kind==='temple'&&<Dome position={[0,2.2,.05]} radius={1.35}/>}
     {place.kind==='egypt'&&<Cone position={[1.4,2.6,-.75]} scale={[.9,1.7,.9]} color="#cfb77e"/>}
     {place.kind==='observatory'&&<><Dome position={[-.85,1.58,0]} radius={.96}/><Dome position={[1.15,.95,.3]} radius={.6}/></>}
-    {place.kind==='campus'&&<Cone position={[1.28,4.65,-.4]} scale={[.55,.7,.55]}/>}
+    {place.kind==='campus'&&place.id!=='santa-clara-university'&&<Cone position={[1.28,4.65,-.4]} scale={[.55,.7,.55]}/>}
     {place.kind==='mansion'&&<><Cone position={[-1,3.65,-.5]} scale={[.7,1,.7]}/><Cone position={[1,3.24,-.5]} scale={[.7,.9,.7]}/></>}
     {['garden','forest','wetland','beach','farm'].includes(place.kind)&&<><Tree x={-1.6} z={-.9} tall={place.kind==='forest'}/><Tree x={1.55} z={-1.2} tall={place.kind==='forest'}/></>}
+    {place.kind==='park'&&<><Tree x={-1.8} z={-.97}/><Tree x={1.76} z={-1.19}/><Tree x={1.67} z={.2}/></>}
   </group>;
 });

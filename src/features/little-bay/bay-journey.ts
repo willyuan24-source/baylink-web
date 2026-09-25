@@ -10,9 +10,9 @@ export const isBayRegion = (value:unknown):value is BayRegionId => BAY_REGIONS.s
 /** Lightweight allowlist shared by the passport. Coverage tests keep it in sync with scenes. */
 export const BAY_WORLD_PLACE_IDS: Record<BayRegionId, readonly string[]> = {
   sf:['bridge','presidio','palace','lombard','pier','alcatraz','chinatown','ferry','park','cable-car','twin-peaks','union-square','castro','skystar','coit','painted-ladies','sutro','japanese-tea-garden','academy','de-young','ocean-beach','baker-beach','lands-end','ucsf-parnassus','ucsf-mission-bay','sf-state','exploratorium','stonestown','city-hall','salesforce','transamerica','oracle-park'],
-  peninsula:['san-mateo-garden','burlingame','foster-city','hiller','redwood-square','filoli','stanford','baylands','half-moon-bay','coyote-point','pulgas-temple','san-mateo-station'],
-  'south-bay':['tech','sj-japantown','rosicrucian','winchester','hakone','apple-visitor','computer-history','google-visitor','shoreline','alviso','lick','diridon'],
-  'east-bay':['berkeley','berkeley-garden','tilden','lake-merritt','omca','jack-london','alameda-beach','hornet','chabot','redwood','ardenwood','mission-peak'],
+  peninsula:['san-mateo-garden','burlingame','foster-city','hiller','redwood-square','filoli','stanford','baylands','half-moon-bay','coyote-point','pulgas-temple','san-mateo-station','daly-city-bart','orange-memorial','south-sf-bart','san-bruno-park','san-bruno-bart','millbrae-transit','sfo-airport','twin-pines','burgess-park','menlo-park-station'],
+  'south-bay':['tech','sj-japantown','rosicrucian','winchester','hakone','apple-visitor','computer-history','google-visitor','shoreline','alviso','lick','diridon','sunnyvale-heritage','sunnyvale-station','santa-clara-university','santa-clara-central-park','milpitas-bart','ed-levin'],
+  'east-bay':['berkeley','berkeley-garden','tilden','lake-merritt','omca','jack-london','alameda-beach','hornet','chabot','redwood','ardenwood','mission-peak','hayward-garden','hayward-bart','fremont-central-park','fremont-bart'],
 };
 export type BayJourney = {version:1;visits:Record<string,string>};
 export const emptyBayJourney = ():BayJourney => ({version:1,visits:{}});

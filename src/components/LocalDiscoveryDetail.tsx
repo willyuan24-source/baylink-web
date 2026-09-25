@@ -34,7 +34,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <div className="discovery-detail-facts"><span><CalendarDays size={17} />{share.date}</span><span><MapPin size={17} />{share.area}</span>{item.kind === 'event' && <span><Ticket size={17} />{item.event.costLabel}</span>}</div>
       {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
       {item.kind === 'opening' && <p className="discovery-inline-note">{item.shop.status === 'open' ? '已开业 · 当天营业与订位请查商家入口。' : '开业预告 · 尚未确认正式营业，请先查商家公告。'}</p>}
-      {item.kind === 'event' && <EventParticipationActions event={item.event} today={today} />}
+      {item.kind === 'event' && <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={item.event} today={today} /></div>}
       <EditorialShareActions item={share} />
       {item.kind === 'event' && <SaveToWeek favorite={{ kind: 'event', id: item.event.id }} />}
       {item.kind === 'event' && planDate && <Link className="discovery-primary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}
