@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SF_ALCATRAZ_DEPARTURE, SF_CITY_RINGS, SF_LANDMARKS, isOnLand, nearestRoad } from '../src/features/little-bay/sf-world';
-import { createSfDrivingSpawn, SF_DRIVING_EMPTY_INPUT, SF_DRIVING_FORWARD_SPEED, sfDrivingPosition, stepSfVehicle } from '../src/features/little-bay/sf-driving';
+import { createSfDrivingSpawn, SF_DRIVING_EMPTY_INPUT, SF_DRIVING_FORWARD_SPEED, sfDrivingPosition, stepSfDirectionalVehicle, stepSfVehicle } from '../src/features/little-bay/sf-driving';
 import type { SfVehicleState } from '../src/features/little-bay/sf-driving';
 
 const forward = { ...SF_DRIVING_EMPTY_INPUT, forward: true };
@@ -123,4 +123,33 @@ test('turning and reversing are controlled by input and reset returns a fresh st
   assert.ok(steeringBack.heading < initial.heading, 'reversing mirrors the steering direction');
   initial.x += 100;
   assert.notEqual(createSfDrivingSpawn('chinatown').state.x, initial.x, 'callers cannot corrupt a cached reset point');
+});
+
+test('touch driving aims toward joystick direction, respects proportional throttle and settles on release', () => {
+  const initial = { ...createSfDrivingSpawn('park').state, heading: Math.PI / 2 };
+  const simulate = (strength: number) => {
+    let state = initial;
+    for (let frame = 0; frame < 120; frame++) state = stepSfDirectionalVehicle(state, { x: strength, z: 0 }, 1 / 60).state;
+    return state;
+  };
+  const full = simulate(1), half = simulate(.5);
+  assert.ok(Math.abs((half.x - initial.x) * 2 - (full.x - initial.x)) < 1e-9);
+  assert.ok(Math.abs(half.speed * 2 - full.speed) < 1e-9);
+  let released = full;
+  for (let frame = 0; frame < 60; frame++) released = stepSfDirectionalVehicle(released, { x: 0, z: 0 }, 1 / 60).state;
+  assert.equal(released.speed, 0);
+  assert.ok(released.x - full.x < .5, 'letting go brakes without long coasting');
+  assert.deepEqual(stepSfDirectionalVehicle(full, { x: 0, z: 1 }, 1 / 60, false).state, { ...full, speed: 0 });
+  assert.equal(initial.speed, 0, 'the initial state is not mutated');
+});
+
+test('touch driving turns toward a reversed thumb without first moving farther away', () => {
+  const initial = { ...createSfDrivingSpawn('park').state, heading: Math.PI / 2, speed: SF_DRIVING_FORWARD_SPEED };
+  const first = stepSfDirectionalVehicle(initial, { x: -1, z: 0 }, 1 / 60).state;
+  assert.equal(first.x, initial.x, 'waits for the short initial turn instead of driving in the wrong direction');
+  let state = first;
+  for (let frame = 0; frame < 30; frame++) state = stepSfDirectionalVehicle(state, { x: -1, z: 0 }, 1 / 60).state;
+  assert.ok(state.x < initial.x - 1.5, 'turns and makes useful progress promptly');
+  assert.ok(Math.abs(Math.atan2(Math.sin(state.heading + Math.PI / 2), Math.cos(state.heading + Math.PI / 2))) < .01);
+  assert.ok(isOnLand(state.x, state.z));
 });

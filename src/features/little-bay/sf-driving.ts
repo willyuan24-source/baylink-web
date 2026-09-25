@@ -1,7 +1,8 @@
 import { SF_ALCATRAZ_DEPARTURE, SF_CITY_RINGS, SF_LANDMARKS, isOnLand, nearestRoad } from './sf-world';
 import type { SfPoint, SfRoadHit } from './sf-world';
+import type { SfMovementInput } from './sf-movement-input';
 
-export type SfDriveInput = { forward: boolean; backward: boolean; left: boolean; right: boolean };
+export type SfDriveInput = SfMovementInput;
 export type SfVehicleState = { x: number; z: number; heading: number; speed: number };
 export type SfDrivingSpawn = { state: SfVehicleState; streetName: string; landmarkId: string };
 export const SF_DRIVING_EMPTY_INPUT: SfDriveInput = { forward: false, backward: false, left: false, right: false };
@@ -126,6 +127,36 @@ export function stepSfVehicle(previous: SfVehicleState, input: SfDriveInput, sec
   state.speed += (targetSpeed - state.speed) * (1 - Math.exp(-(acceleration ? 3.5 : 5) * delta));
   state.heading += steering * 2.2 * delta * (state.speed < -.15 ? -1 : 1);
   const position = moveOnLand(state.x, state.z, Math.sin(state.heading) * state.speed * delta, Math.cos(state.heading) * state.speed * delta);
+  if (position.x === state.x && position.z === state.z && position.blocked) state.speed *= Math.exp(-4 * delta);
+  state.x = position.x;
+  state.z = position.z;
+  return { state, blocked: position.blocked, streetName: nearestRoad(state.x, state.z, true).road.name };
+}
+
+/** Touch steering points the car toward a camera-relative direction with proportional throttle. */
+export function stepSfDirectionalVehicle(previous: SfVehicleState, direction: { x: number; z: number }, seconds: number, active = true) {
+  const state = { ...previous };
+  if (!active || !Number.isFinite(seconds) || seconds <= 0) {
+    if (!active) state.speed = 0;
+    return { state, blocked: false, streetName: nearestRoad(state.x, state.z, true).road.name };
+  }
+  const delta = Math.min(seconds, .04);
+  const x = Number.isFinite(direction.x) ? direction.x : 0;
+  const z = Number.isFinite(direction.z) ? direction.z : 0;
+  const strength = Math.min(1, Math.hypot(x, z));
+  let alignment = 1;
+  if (strength > 1e-6) {
+    const turn = Math.atan2(Math.sin(Math.atan2(x, z) - state.heading), Math.cos(Math.atan2(x, z) - state.heading));
+    const remainingTurn = turn * Math.exp(-14 * delta);
+    state.heading += turn - remainingTurn;
+    // Turn in place when the thumb reverses direction; do not drive away from it.
+    alignment = Math.max(0, Math.cos(remainingTurn));
+  }
+  const targetSpeed = strength * SF_DRIVING_FORWARD_SPEED;
+  state.speed = Math.max(0, state.speed) + (targetSpeed - Math.max(0, state.speed)) * (1 - Math.exp(-(strength ? 7 : 12) * delta));
+  if (!strength && state.speed < .005) state.speed = 0;
+  const distance = state.speed * alignment * delta;
+  const position = moveOnLand(state.x, state.z, Math.sin(state.heading) * distance, Math.cos(state.heading) * distance);
   if (position.x === state.x && position.z === state.z && position.blocked) state.speed *= Math.exp(-4 * delta);
   state.x = position.x;
   state.z = position.z;

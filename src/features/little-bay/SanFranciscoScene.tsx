@@ -10,9 +10,10 @@ import type { BayBayLocomotion } from './SanFranciscoModels';
 import { SF_CITY_RINGS, SF_LANDMARKS, SF_MAJOR_STREET_LABELS, SF_NEIGHBORHOODS, SF_ROADS, isOnLand, nearestRoad, terrainHeight } from './sf-world';
 import { containsPoint, createRoadGeometry, createShoreGeometry, createTerrainGeometry, mapHash } from './san-francisco-geometry';
 import type { MapPoint } from './san-francisco-geometry';
-import { createSfDrivingSpawn, stepSfVehicle } from './sf-driving';
+import { createSfDrivingSpawn, stepSfDirectionalVehicle, stepSfVehicle } from './sf-driving';
 import type { SfDriveInput, SfVehicleState as VehicleState } from './sf-driving';
 import { createSfWalkerState, stepSfWalker } from './sf-walking';
+import { sfCameraRelativeDirection, usesSfAnalogInput } from './sf-movement-input';
 import { adjustSfCamera, createSfCameraGestureGuard, observeSfCameraGestures, SF_FOLLOW_CAMERA_LIMITS, SF_OVERVIEW_CAMERA_LIMITS } from './sf-camera';
 import type { SfCameraCommand } from './sf-camera';
 
@@ -266,7 +267,7 @@ function CityPlayer({ vehicleRef, destinationRef, props }: { vehicleRef: Mutable
     const down = (event: KeyboardEvent) => handle(event, true); const up = (event: KeyboardEvent) => handle(event, false);
     const focusCanvas = () => gl.domElement.focus({ preventScroll: true });
     gl.domElement.setAttribute('tabindex', '0');
-    gl.domElement.setAttribute('aria-label', locale === 'en' ? 'Explore with BayBay using arrow keys or W A S D' : '使用方向键或 W A S D 跟 BayBay 探索');
+    gl.domElement.setAttribute('aria-label', locale === 'en' ? 'Explore with BayBay using the movement controls or keyboard' : '使用移动控制或键盘跟 BAYBAY 探索');
     gl.domElement.addEventListener('pointerdown', focusCanvas); gl.domElement.addEventListener('blur', clearKeyboard);
     gl.domElement.addEventListener('pointercancel', clear);
     window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', clear); document.addEventListener('visibilitychange', clear);
@@ -275,21 +276,24 @@ function CityPlayer({ vehicleRef, destinationRef, props }: { vehicleRef: Mutable
   useFrame((_, rawDelta) => {
     const dt = Math.min(rawDelta, .04);
     const combined = { forward: input.current.forward || driveInputRef.current.forward, backward: input.current.backward || driveInputRef.current.backward,
-      left: input.current.left || driveInputRef.current.left, right: input.current.right || driveInputRef.current.right };
+      left: input.current.left || driveInputRef.current.left, right: input.current.right || driveInputRef.current.right,
+      moveX: driveInputRef.current.moveX, moveY: driveInputRef.current.moveY };
     let state = vehicleRef.current;
     if (mode === 'walk') {
       camera.getWorldDirection(forward.current); forward.current.y = 0; forward.current.normalize();
-      const vertical = Number(combined.forward) - Number(combined.backward), horizontal = Number(combined.right) - Number(combined.left);
-      if (vertical || horizontal) destinationRef.current = null;
-      walker.current = stepSfWalker(walker.current, {
-        x: forward.current.x * vertical - forward.current.z * horizontal,
-        z: forward.current.z * vertical + forward.current.x * horizontal,
-      }, rawDelta, { active: running, maxSpeed: 2.3, canMove: isOnLand, destination: destinationRef.current });
+      const direction = sfCameraRelativeDirection(combined, forward.current);
+      if (direction.x || direction.z) destinationRef.current = null;
+      walker.current = stepSfWalker(walker.current, direction, rawDelta, { active: running, maxSpeed: 2.3, canMove: isOnLand, destination: destinationRef.current });
       const next = walker.current;
       state = { x: next.x, z: next.z, heading: next.heading, speed: next.speed };
       motion.current = { speed: next.speed, distance: next.distance, turn: next.turn };
       if (destinationRef.current && Math.hypot(next.x - destinationRef.current.x, next.z - destinationRef.current.z) < .09) destinationRef.current = null;
-    } else if (mode === 'drive') state = stepSfVehicle(state, combined, rawDelta, running).state;
+    } else if (mode === 'drive') {
+      if (usesSfAnalogInput(combined)) {
+        camera.getWorldDirection(forward.current);
+        state = stepSfDirectionalVehicle(state, sfCameraRelativeDirection(combined, forward.current), rawDelta, running).state;
+      } else state = stepSfVehicle(state, combined, rawDelta, running).state;
+    }
     vehicleRef.current = state;
     const streetName = nearestRoad(state.x, state.z, true).road.name;
     if (streetName !== lastStreet.current) { lastStreet.current = streetName; streetCallback.current?.(streetName); }

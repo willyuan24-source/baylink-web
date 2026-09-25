@@ -26,7 +26,7 @@ test('walking accelerates without snapping and releases into a short smooth stop
   assert.ok(Math.abs(stopped.distance - (stopped.z - initial.z)) < 1e-9);
 });
 
-test('diagonal input covers the same distance as a straight walk and ignores input magnitude', () => {
+test('diagonal and oversized input stay capped at the straight walking speed', () => {
   const start = createSfWalkerState(0, 0);
   const straight = simulate(start, { x: 0, z: 1 }, 2);
   const diagonal = simulate(start, { x: 1, z: 1 }, 2);
@@ -35,6 +35,17 @@ test('diagonal input covers the same distance as a straight walk and ignores inp
   assert.ok(Math.abs(diagonal.speed - straight.speed) < 1e-9);
   assert.ok(Math.abs(diagonal.x - diagonal.z) < 1e-9);
   assert.deepEqual(oversized, diagonal);
+});
+
+test('a partial joystick tilt walks proportionally, including diagonals', () => {
+  const start = createSfWalkerState(0, 0);
+  const full = simulate(start, { x: 1, z: 0 }, 2);
+  const half = simulate(start, { x: .5, z: 0 }, 2);
+  const diagonalHalf = simulate(start, { x: .3, z: .4 }, 2);
+  assert.ok(Math.abs(half.distance - full.distance * .5) < 1e-9);
+  assert.ok(Math.abs(diagonalHalf.speed - full.speed * .5) < 1e-9);
+  assert.ok(Math.abs(diagonalHalf.x / diagonalHalf.z - .75) < 1e-9);
+  assert.equal(simulate(half, still, 1).speed, 0, 'releasing the joystick settles fully');
 });
 
 test('30, 60 and 120 Hz produce the same acceleration, braking distance and gradual turn', () => {

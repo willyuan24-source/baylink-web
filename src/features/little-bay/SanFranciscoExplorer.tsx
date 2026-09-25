@@ -8,6 +8,8 @@ import type { GardenInput } from './ParkGardenScene';
 import type { Stop } from '../../lib/planner';
 import { PLANNER_EVENTS } from '../../data/planner-catalog';
 import { eventOccursOn } from '../../lib/event-calendar';
+import SfTouchJoystick from './SfTouchJoystick';
+import { useSfTouchControls } from './useSfTouchControls';
 
 const CityScene = lazy(() => import('./SanFranciscoScene'));
 const ParkScene = lazy(() => import('./ParkGardenScene'));
@@ -26,6 +28,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
   date: string; stops: Stop[]; onAddPlace: (id: string) => void; onShowList: () => void; freeOnly?: boolean; ownerId?: string;
 }) {
   const locale = useLocale();
+  const touchControls = useSfTouchControls();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [selectedId, setSelectedId] = useState<string | null>('park');
   const [mode, setMode] = useState<'overview' | 'walk' | 'drive'>('walk');
@@ -68,6 +71,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
   const label = (p: (typeof SF_LANDMARKS)[number]) => locale === 'en' ? p.titleEn : translateText(p.title, locale);
 
   const release = useCallback(() => { input.current = makeInput(); }, []);
+  useEffect(() => { release(); }, [touchControls, release]);
   const sceneReady = useCallback(() => setReady(true), []);
   const sceneError = useCallback(() => { setError(true); setRunning(false); }, []);
   const onArrival = useCallback((id: string | null) => setArrival(id), []);
@@ -151,7 +155,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
 
   return <section className="sf-explorer" aria-label={t('迷你旧金山', 'Mini San Francisco')}>
 
-    <section className={`sf-stage ${expanded ? 'is-expanded' : ''} ${garden ? 'is-garden' : ''} ${!garden && mode !== 'overview' ? 'is-exploring' : ''}`} ref={stage} aria-label={t('旧金山 3D 场景', 'San Francisco 3D scene')}>
+    <section className={`sf-stage ${expanded ? 'is-expanded' : ''} ${touchControls ? 'has-touch-controls' : ''} ${garden ? 'is-garden' : ''} ${!garden && mode !== 'overview' ? 'is-exploring' : ''}`} ref={stage} aria-label={t('旧金山 3D 场景', 'San Francisco 3D scene')}>
       <nav className="sf-explorer-bar sf-scene-nav" aria-label={t('游戏内地点与地图', 'In-game places and map')}>
         <label><MapPin size={16} /><span className="sr-only">{t('选择城市地标', 'Choose a city landmark')}</span>
           <select aria-label={t('选择城市地标', 'Choose a city landmark')} value={selectedId || ''} onChange={event => event.target.value ? select(event.target.value) : city()}>
@@ -164,10 +168,10 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
       </nav>
       {!error && <WorldBoundary onError={sceneError} fallback={fallback}><Suspense fallback={<div className="sf-loading"><span className="sf-loading-orbit" /><strong>{t('BayBay 正在准备出发', 'BayBay is getting ready')}</strong></div>}>
         {cityMounted && <div className="sf-city-layer" style={{ display: garden ? 'none' : 'block' }}><CityScene selectedId={selectedId} onSelect={select} mode={mode} cameraCommand={garden ? undefined : cameraCommand} running={live && !garden} timeOfDay={golden ? 'golden' : 'day'} driveInput={input} resetToken={resetToken} startId={startId} locale={locale === 'en' ? 'en' : 'zh'} onStreetChange={setStreet} onArrival={onArrival} onReady={sceneReady} onError={sceneError} /></div>}
-        {garden && <div className="sf-garden-layer"><ParkScene input={input} cameraCommand={cameraCommand} running={live && !digging} golden={golden} treasureFound={found} onNearTreasure={onNear} onReady={sceneReady} onError={sceneError} /></div>}
+        {garden && <div className="sf-garden-layer"><ParkScene locale={locale} input={input} cameraCommand={cameraCommand} running={live && !digging} golden={golden} treasureFound={found} onNearTreasure={onNear} onReady={sceneReady} onError={sceneError} /></div>}
       </Suspense></WorldBoundary>}
       {error && fallback}
-      <div className="sf-scene-heading"><span className="sf-chapter">BAYBAY'S LITTLE SAN FRANCISCO</span><h2>{garden ? t('花房旁，慢慢走。', 'A little walk in the garden.') : mode === 'walk' ? t('跟 BAYBAY，逛旧金山。', 'Explore with BAYBAY.') : mode === 'drive' ? t('开车，随处逛逛。', 'Take a little drive.') : selected ? label(selected) : t('你好，旧金山。', 'Hello, San Francisco.')}</h2><span>{garden ? 'GOLDEN GATE PARK' : mode !== 'overview' ? `${mode === 'walk' ? t('步行探索', 'WALKING') : t('自由驾驶', 'FREE DRIVE')} · ${street || 'SAN FRANCISCO'}` : t('拖动旋转 · 滚轮缩放', 'DRAG TO ORBIT · SCROLL TO ZOOM')}</span></div>
+      <div className="sf-scene-heading"><span className="sf-chapter">BAYBAY'S LITTLE SAN FRANCISCO</span><h2>{garden ? t('花房旁，慢慢走。', 'A little walk in the garden.') : mode === 'walk' ? t('跟 BAYBAY，逛旧金山。', 'Explore with BAYBAY.') : mode === 'drive' ? t('开车，随处逛逛。', 'Take a little drive.') : selected ? label(selected) : t('你好，旧金山。', 'Hello, San Francisco.')}</h2><span>{garden ? 'GOLDEN GATE PARK' : mode !== 'overview' ? `${mode === 'walk' ? t('步行探索', 'WALKING') : t('自由驾驶', 'FREE DRIVE')} · ${street || 'SAN FRANCISCO'}` : touchControls ? t('拖动转视角 · 双指缩放', 'DRAG TO ORBIT · PINCH TO ZOOM') : t('拖动旋转 · 滚轮缩放', 'DRAG TO ORBIT · SCROLL TO ZOOM')}</span></div>
       <div className="sf-corner-tools"><button onClick={() => setGolden(value => !value)} aria-label={golden ? t('切换白昼', 'Switch to daylight') : t('切换日落', 'Switch to golden hour')}>{golden ? <Sunset size={18} /> : <Sun size={18} />}</button><button onClick={() => setRunning(value => !value)} aria-label={running ? t('暂停场景', 'Pause scene') : t('继续探索', 'Resume exploring')}>{running ? <Pause size={16} /> : <Play size={16} />}</button><button onClick={() => setExpanded(value => !value)} aria-expanded={expanded} aria-label={expanded ? t('退出大画面', 'Close expanded scene') : t('放大画面', 'Expand scene')}><Expand size={16} /></button></div>
       <div className="sf-view-tools">
         <button className="sf-view-toggle" onClick={() => setViewOpen(value => !value)} aria-expanded={viewOpen} aria-controls="sf-camera-options"><Orbit size={17} />{t('视角', 'View')}</button>
@@ -179,10 +183,10 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
             ['zoom-in', Plus, '拉近画面', 'Zoom in'], ['zoom-out', Minus, '拉远画面', 'Zoom out'],
           ] as const).map(([action, Icon, zh, en]) => <button key={action} onClick={() => adjustCamera(action)} aria-label={t(zh, en)} title={t(zh, en)}><Icon size={18} /></button>)}</div>
           <button className="sf-camera-reset" onClick={() => adjustCamera('reset')}><RotateCcw size={15} />{t('恢复视角', 'Reset view')}</button>
-          <small>{t('拖动画面旋转，滚轮缩放；手机双指调整。', 'Drag to orbit, scroll to zoom. Use two fingers on mobile.')}</small>
+          <small>{touchControls ? t('拖动画面转动视角，双指捏合缩放。', 'Drag the scene to orbit. Pinch with two fingers to zoom.') : t('拖动画面旋转，滚轮缩放。', 'Drag the scene to orbit, scroll to zoom.')}</small>
         </div>}
       </div>
-      {ready && !error && (garden || mode !== 'overview') && <div className="sf-drive-controls" aria-label={t('移动控制', 'Movement controls')}>{([['forward', ArrowUp, '前进', 'Forward'], ['left', ArrowLeft, '左转或向左', 'Left'], ['backward', ArrowDown, '向后', 'Back'], ['right', ArrowRight, '右转或向右', 'Right']] as const).map(([direction, Icon, zh, en]) => <button key={direction} className={`sf-pad-${direction}`} aria-label={t(zh, en)} disabled={!live || digging} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); input.current[direction] = true; }} onPointerUp={() => { input.current[direction] = false; }} onPointerCancel={release} onLostPointerCapture={() => { input.current[direction] = false; }} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); input.current[direction] = true; } }} onKeyUp={() => { input.current[direction] = false; }} onBlur={() => { input.current[direction] = false; }}><Icon size={20} /></button>)}</div>}
+      {ready && !error && (garden || mode !== 'overview') && (touchControls ? <SfTouchJoystick key={`${garden}-${mode}-${resetToken}`} input={input} disabled={!live || digging} label={t('移动摇杆：拖动选择方向，松手停下', 'Movement joystick: drag to move, release to stop')} /> : <div className="sf-drive-controls" aria-label={t('移动控制', 'Movement controls')}>{([['forward', ArrowUp, '前进', 'Forward'], ['left', ArrowLeft, '左转或向左', 'Left'], ['backward', ArrowDown, '向后', 'Back'], ['right', ArrowRight, '右转或向右', 'Right']] as const).map(([direction, Icon, zh, en]) => <button key={direction} className={`sf-pad-${direction}`} aria-label={t(zh, en)} disabled={!live || digging} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); input.current[direction] = true; }} onPointerUp={() => { input.current[direction] = false; }} onPointerCancel={release} onLostPointerCapture={() => { input.current[direction] = false; }} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); input.current[direction] = true; } }} onKeyUp={() => { input.current[direction] = false; }} onBlur={() => { input.current[direction] = false; }}><Icon size={20} /></button>)}</div>)}
       {nearby && !error && <aside className="sf-nearby" aria-label={t('身边的景点', 'Nearby attraction')}>
         <div><span>{mode === 'overview' && !garden ? t('正在查看', 'ON THE MAP') : t('身边的发现', 'NEARBY')}</span><strong>{label(nearby)}</strong></div>
         <button onClick={() => openGuide(nearby.id)}>{nearby.guideSlug ? <BookOpen size={16} /> : <MapPin size={16} />}{nearby.guideSlug ? t('看攻略', 'Read guide') : t('景点信息', 'Place info')}</button>
@@ -199,7 +203,7 @@ export default function SanFranciscoExplorer({ date, stops, onAddPlace, onShowLi
         <button onClick={photo} aria-label={t('拍照保存明信片', 'Save a photo postcard')}><Camera size={17} /></button>
       </div>
       {guidePlace && <Suspense fallback={<div className="sf-guide-overlay"><div className="sf-guide-panel" role="status">{t('正在打开攻略…', 'Opening guide…')}<button onClick={closeGuide}>{t('关闭', 'Close')}</button></div></div>}><GuidePanel landmark={guidePlace} locale={locale} onClose={closeGuide} /></Suspense>}
-      <div className="sf-ground-caption">{garden ? t('点地面走路 · 拖动转视角', 'Tap to walk · Drag to orbit') : mode === 'drive' ? t('WASD / 方向键开车 · 拖动转视角', 'WASD / arrows to drive · Drag to orbit') : mode === 'walk' ? t('点地面走路 · WASD 移动 · 拖动转视角', 'Tap to walk · WASD to move · Drag to orbit') : t('真实街区与主要街道 · 房屋为微缩艺术化布置', 'Real districts and main streets · Homes are miniature interpretations')}</div>
+      <div className="sf-ground-caption">{touchControls && (garden || mode !== 'overview') ? t('左手摇杆移动 · 右手拖动视角 · 松手停下', 'Joystick to move · Drag scene to look · Release to stop') : garden ? t('点地面走路 · 拖动转视角', 'Tap to walk · Drag to orbit') : mode === 'drive' ? t('WASD / 方向键开车 · 拖动转视角', 'WASD / arrows to drive · Drag to orbit') : mode === 'walk' ? t('点地面走路 · WASD 移动 · 拖动转视角', 'Tap to walk · WASD to move · Drag to orbit') : t('真实街区与主要街道 · 房屋为微缩艺术化布置', 'Real districts and main streets · Homes are miniature interpretations')}</div>
       {photoNotice && <div className="sf-photo-notice" role="status">{t('明信片已准备下载。', 'Your postcard is ready to download.')}</div>}
       {rewardOpen && <div className="sf-modal-shade"><div className="sf-reward" ref={reward} role="dialog" aria-modal="true" aria-labelledby="sf-reward-title"><button className="sf-close" onClick={() => setRewardOpen(false)} aria-label={t('关闭发现卡', 'Close discovery card')}><X size={19} /></button><span className="sf-demo-label">{t('试玩彩蛋 · 实物领奖尚未开放', 'PLAYTEST · PHYSICAL REWARDS NOT OPEN')}</span><div className="sf-gift-mark"><Gift size={42} strokeWidth={1.3} /></div><span>GOLDEN GATE PARK · LITTLE SECRET</span><h3 id="sf-reward-title">{t('你发现了花园的秘密！', 'You found the garden’s secret!')}</h3><strong>LABUBU {t('盲盒彩蛋', 'blind-box surprise')}</strong><p>{t('这次先收藏一枚花园探索印章。正式奖品活动开放后，符合条件的发现会生成领取凭证，再联系管理员领取。', 'For now, keep a garden exploration stamp. When the prize event opens, eligible discoveries will receive a claim for collection through the administrator.')}</p><small>{t('本次试玩不发放实物、不生成兑奖资格。', 'This playtest does not award a physical item or a prize claim.')}</small><button className="sf-reward-done" onClick={() => setRewardOpen(false)}>{t('带着发现，继续逛逛', 'Keep exploring')}<ArrowRight size={16} /></button></div></div>}
     </section>

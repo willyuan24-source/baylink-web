@@ -53,14 +53,15 @@ export function stepSfWalker(
   const inputX = Number.isFinite(direction.x) ? direction.x : 0;
   const inputZ = Number.isFinite(direction.z) ? direction.z : 0;
   const inputLength = Math.hypot(inputX, inputZ);
+  const inputScale = Math.max(1, inputLength);
   const destination = inputLength < 1e-6 && options.destination
     && Number.isFinite(options.destination.x) && Number.isFinite(options.destination.z)
     ? options.destination : null;
   const canMove = options.canMove ?? (() => true);
 
   for (let step = 0; step < steps; step++) {
-    let desiredX = inputLength > 1e-6 ? inputX / inputLength * maxSpeed : 0;
-    let desiredZ = inputLength > 1e-6 ? inputZ / inputLength * maxSpeed : 0;
+    let desiredX = inputLength > 1e-6 ? inputX / inputScale * maxSpeed : 0;
+    let desiredZ = inputLength > 1e-6 ? inputZ / inputScale * maxSpeed : 0;
     let remaining = Infinity;
     let targetX = 0;
     let targetZ = 0;
