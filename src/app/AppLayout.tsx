@@ -76,6 +76,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   usePageScroll(location);
   const navigate = useNavigate();
   const tab = tabFromPathname(location.pathname);
+  const playingLittleBay = /^\/play\/?$/.test(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
   const feedPage = feedPageLocation(location);
@@ -275,7 +276,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
     if (postIdParam) return;
     const path = location.pathname;
-    if (/^\/(plan|calendar|my-week|ai-in-the-bay)\/?$/.test(path)) return; // These pages own their metadata.
+    if (/^\/(plan|play|calendar|my-week|ai-in-the-bay)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
     if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
@@ -413,12 +414,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   // 首屏空闲后预热高频弹层 chunk，让首次点击基本即开
   useEffect(() => {
+    if (playingLittleBay) return;
     const id = window.setTimeout(() => {
       import('../features/posts/PostDetailModal');
       import('../features/users/UserProfileModal');
     }, 2500);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [playingLittleBay]);
 
   const clearLocalSession = useCallback(() => {
     ++fetchSeqRef.current;
@@ -568,9 +570,11 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   }, [feedType, regionFilter, categoryFilter, debouncedKeyword, user, blockedUserIds]);
 
   useEffect(() => {
+    // The standalone 3D outing uses the editorial catalog, not the community feed.
+    if (playingLittleBay) { setIsInitialLoading(false); return; }
     if (feedQueryKeyRef.current !== feedQueryKey) { setPosts([]); feedQueryKeyRef.current = feedQueryKey; }
     setPage(1); setHasMore(true); void fetchPosts(1, true);
-  }, [fetchPosts, feedQueryKey]);
+  }, [fetchPosts, feedQueryKey, playingLittleBay]);
 
   const retryFeed = () => {
     setPage(1);
@@ -873,6 +877,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         <BayBayFloatingLauncher
           baybayPanelOpen={baybayPanelOpen}
           hidden={!!(
+            /^\/play\/?$/.test(location.pathname) ||
             showCreate ||
             postIdParam ||
             threadIdParam ||

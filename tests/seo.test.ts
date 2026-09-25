@@ -147,7 +147,7 @@ test('hosting config has explicit public routes, a real missing-page status and 
   assert.equal(routeFor('/explore/').dest, '/$1.html');
   assert.equal(routeFor('/this-month').dest, '/$1.html');
   assert.equal(routeFor('/this-month/').dest, '/$1.html');
-  for (const path of ['/plan', '/ai-in-the-bay']) {
+  for (const path of ['/plan', '/play', '/ai-in-the-bay']) {
     assert.equal(routeFor(path).dest, '/$1.html');
     assert.equal(routeFor(`${path}/`).dest, '/$1.html');
   }
@@ -162,6 +162,7 @@ test('hosting config has explicit public routes, a real missing-page status and 
   for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'wss://baylink-api.onrender.com', 'blob:']) assert.ok(csp.includes(directive));
   const sitemap = readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
   assert.ok(sitemap.includes('/plan</loc>'));
+  assert.ok(sitemap.includes('/play</loc>'));
   assert.ok(sitemap.includes('/ai-in-the-bay</loc>'));
   assert.ok(!sitemap.includes('/my-week</loc>'), 'private account plans must not be promoted as public indexed content');
   for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc><lastmod>${guide.updatedAt}</lastmod>`));

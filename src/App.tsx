@@ -17,6 +17,7 @@ const LocalDiscoveryPage = lazy(() => import('./pages/LocalDiscoveryPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
 const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const LittleBayPage = lazy(() => import('./pages/LittleBayPage'));
 const MyWeekPage = lazy(() => import('./pages/MyWeekPage'));
 const AiLocalPage = lazy(() => import('./pages/AiLocalPage'));
 const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/plan" element={<PlannerPage />} />
+        <Route path="/play" element={<LittleBayPage />} />
         <Route path="/my-week" element={<MyWeekPage />} />
         <Route path="/ai-in-the-bay" element={<AiLocalPage />} />
         <Route path="/guides/:slug" element={<GuideDetailPage />} />

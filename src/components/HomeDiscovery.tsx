@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket, TramFront } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BRAND } from '../brandAssets';
 import { getGuideBySlug, guides, type Guide } from '../data/guides';
@@ -113,7 +113,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
       <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link><button type="button" onClick={onBrowseCommunity}>找本地信息 <ArrowDownRight size={14} aria-hidden="true" /></button></div>
     </header>
 
-    <nav className="planner-launch-links" aria-label="计划湾区生活"><Link to="/calendar"><CalendarDays size={16} />活动日历<ArrowUpRight size={15} /></Link><Link to="/plan"><Sparkles size={16} />让 BayBay 帮我排一天<ArrowUpRight size={15} /></Link><Link to="/my-week"><CalendarDays size={16} />我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动<ArrowUpRight size={15} /></Link></nav>
+    <nav className="planner-launch-links" aria-label="计划湾区生活"><Link to="/calendar"><CalendarDays size={16} />活动日历<ArrowUpRight size={15} /></Link><Link to="/play"><TramFront size={16} aria-hidden="true" />小小湾区 · 3D 逛一圈<ArrowUpRight size={15} aria-hidden="true" /></Link><Link to="/plan"><Sparkles size={16} />让 BayBay 帮我排一天<ArrowUpRight size={15} /></Link><Link to="/my-week"><CalendarDays size={16} />我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动<ArrowUpRight size={15} /></Link></nav>
 
     <div className="home-discovery-intents" role="group" aria-label="你想怎么发现湾区">
       <span>今天想…</span>{discoveries.map(item => <button key={item.id} type="button" aria-pressed={intent === item.id} aria-controls={panelId} onClick={() => setIntent(item.id)}>{intent === item.id && <Check size={14} aria-hidden="true" />}{item.label}</button>)}
