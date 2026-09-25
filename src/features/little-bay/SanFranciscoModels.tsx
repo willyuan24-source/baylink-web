@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { bayBayPawPose, bayBayStrideAdvance, type BayBayLocomotion } from './baybay-locomotion';
+import { isOnLand, projectCoordinate, terrainHeight } from './sf-world';
 
 export type { BayBayLocomotion } from './baybay-locomotion';
 
@@ -424,7 +425,7 @@ function Conservatory() {
   </>;
 }
 
-function CableCar() {
+export function CableCarModel({ tracks = true }: { tracks?: boolean }) {
   return <>
     <Parts pieces={[
       { p: [0, 0.23, 0], s: [1.02, 0.17, 1.98], c: '#6f6351' },
@@ -442,7 +443,7 @@ function CableCar() {
     ]} />
     <Parts geometry={CYLINDER} pieces={[-0.34, 0.34].flatMap(x => [-0.55, 0.55].map(z => ({ p: [x, 0.16, z] as V3, s: [0.28, 0.12, 0.28] as V3, r: [0, 0, Math.PI / 2] as V3, c: C.dark })))} />
     <Parts geometry={SPHERE} pieces={[{ p: [0, 0.83, 0.884], s: [0.07, 0.07, 0.04], c: '#fff8d9' }]} />
-    <Parts pieces={[-0.32, 0.32].map(x => ({ p: [x, 0.01, 0], s: [0.035, 0.024, 2.55], c: '#8e877b' }))} />
+    {tracks && <Parts pieces={[-0.32, 0.32].map(x => ({ p: [x, 0.01, 0], s: [0.035, 0.024, 2.55], c: '#8e877b' }))} />}
   </>;
 }
 
@@ -523,10 +524,22 @@ function Pier() {
       { p: [0, 0.32, 1.12], s: [2.35, 0.09, 0.12], c: C.cream },
       ...[-1, 1].flatMap(x => [-1, 0, 1].map(z => ({ p: [x, 0.16, z] as V3, s: [0.15, 0.6, 0.15] as V3, c: '#8e6a49' }))),
       ...Array.from({ length: 13 }, (_, i) => ({ p: [0, 0.321, (i - 6) * 0.2], s: [2.42, 0.014, 0.023], c: '#a37850' } as Piece)),
+      ...[-1, 1].flatMap(side => [-1.12, -.53, .06, .65].map(z => ({ p: [side * 1.17, .53, z] as V3, s: [.045, .42, .045] as V3, c: C.ivory }))),
+      ...[-1, 1].map(side => ({ p: [side * 1.17, .72, -.24] as V3, s: [.045, .04, 1.87] as V3, c: C.ivory })),
+      ...[-.88, -.7, -.52, -.34].map((x, i) => ({ p: [x, .86, -.15] as V3, s: [.175, .045, .37] as V3, r: [.14, 0, 0] as V3, c: i % 2 ? C.ivory : C.rose })),
+      ...[.37, .55, .73, .91].map((x, i) => ({ p: [x, .86, -.15] as V3, s: [.175, .045, .37] as V3, r: [.14, 0, 0] as V3, c: i % 2 ? C.ivory : C.teal })),
+      { p: [-.83, .89, 1.03], s: [.04, 1.15, .04], c: C.darkTeal },
+      { p: [-.83, 1.32, 1.03], s: [.41, .19, .055], c: C.teal },
     ]} />
     <group position={[-0.61, 0.33, -0.61]} scale={0.7}><HouseModel color={C.rose} /></group>
     <group position={[0.64, 0.33, -0.61]} scale={0.7}><HouseModel color={C.teal} /></group>
     <group position={[0, 0.33, 0.5]} scale={0.8}><SealionsModel /></group>
+    <Shape geometry={SPHERE} color={C.gold} p={[-.83, 1.52, 1.03]} s={[.065, .065, .065]} />
+    <ShoreBird position={[1.15, .745, .43]} turn={-1.3} />
+    <group position={[1.2, .12, -1.55]} rotation={[0, -.22, 0]}>
+      <Parts pieces={[{ p: [0, 0, 0], s: [.57, .085, .82], c: '#aa845b' }, { p: [0, .051, 0], s: [.46, .016, .65], c: '#bf9a6f' }]} />
+      <group position={[0, .05, 0]} scale={.38}><SealionsModel /></group>
+    </group>
   </>;
 }
 
@@ -550,7 +563,7 @@ function FerryBuilding() {
 function Chinatown() {
   return <>
     <Parts pieces={[
-      ...[-1.02, 0, 1.02].map(x => ({ p: [x, 0.78, 0], s: [0.2, 1.56, 0.25], c: C.red } as Piece)),
+      ...[-1.23, -.67, .67, 1.23].map(x => ({ p: [x, 0.78, 0], s: [0.16, 1.56, 0.25], c: C.red } as Piece)),
       { p: [0, 1.4, 0], s: [2.65, 0.27, 0.45], c: C.darkTeal },
       { p: [0, 1.57, 0], s: [2.85, 0.15, 0.75], c: C.teal },
       { p: [0, 1.84, 0], s: [1.14, 0.18, 0.77], c: C.teal },
@@ -561,6 +574,13 @@ function Chinatown() {
       { points: [[-0.73, 1.99, 0], [-0.49, 1.84, 0], [0.49, 1.84, 0], [0.73, 1.99, 0]] },
     ]} />
     <Parts geometry={SPHERE} pieces={[-0.55, 0.55].map(x => ({ p: [x, 1.04, 0], s: [0.15, 0.2, 0.14], c: '#d57c59' }))} />
+    <Parts pieces={[-1.14, 1.14].flatMap(x => [-1.08, -1.95].map(z => ({ p: [x, .75, z] as V3, s: [.035, 1.5, .035] as V3, c: '#826b4e' })))} />
+    <Strokes color="#aa8d65" radius={.014} paths={[-1.08, -1.95].map(z => ({ points: [[-1.14, 1.51, z], [0, 1.38, z], [1.14, 1.51, z]] }))} />
+    <Parts geometry={SPHERE} pieces={[-1.08, -1.95].flatMap(z => [-.73, -.24, .24, .73].map(x => ({ p: [x, 1.27 + Math.abs(x) * .09, z] as V3, s: [.105, .14, .105] as V3, c: '#cf7859' })))} />
+    <Parts pieces={[-1.08, -1.95].flatMap(z => [-.73, -.24, .24, .73].map(x => ({ p: [x, 1.06 + Math.abs(x) * .09, z] as V3, s: [.026, .13, .026] as V3, c: C.gold })))} />
+    {[-1, 1].map(side => <group key={side} position={[side * 1.48, 0, -1.49]} scale={.59} rotation={[0, side * Math.PI / 2, 0]}><HouseModel color={side < 0 ? '#d9b186' : '#b7bda0'} /></group>)}
+    <Parts pieces={[{ p: [0, .012, -1.12], s: [1.16, .023, 2.1], c: '#ceb995' }, { p: [-.78, .06, .58], s: [.25, .12, .23], c: C.stone }, { p: [.78, .06, .58], s: [.25, .12, .23], c: C.stone }]} />
+    <Parts geometry={SPHERE} pieces={[-.78, .78].map(x => ({ p: [x, .22, .58], s: [.12, .16, .14], c: '#c8b78e' }))} />
   </>;
 }
 
@@ -683,7 +703,208 @@ function SutroBaths() {
   </>;
 }
 
-export type SanFranciscoLandmarkKind = 'bridge' | 'presidio' | 'palace' | 'lombard' | 'pier' | 'alcatraz' | 'chinatown' | 'ferry' | 'park' | 'cable-car' | 'twin-peaks' | 'union-square' | 'castro' | 'skystar' | 'coit' | 'painted-ladies' | 'sutro';
+const pagodaRoof = new THREE.ConeGeometry(.5, 1, 4);
+const roofHills = [[-.46, -.25, .34, .19], [.38, -.26, .37, .22], [-.4, .28, .15, .16], [.42, .27, .16, .16], [0, .37, .12, .14], [-.68, .06, .1, .11], [.67, .02, .11, .12]];
+function academyRoofHeight(x: number, z: number) {
+  return .51 + roofHills.reduce((sum, [cx, cz, h, radius]) => sum + h * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radius ** 2)), 0);
+}
+const academyRoof = new THREE.PlaneGeometry(1.72, 1.32, 28, 22);
+academyRoof.rotateX(-Math.PI / 2);
+for (let i = 0; i < academyRoof.attributes.position.count; i++) {
+  const positions = academyRoof.attributes.position;
+  positions.setY(i, academyRoofHeight(positions.getX(i), positions.getZ(i)));
+}
+academyRoof.computeVertexNormals();
+
+/** A compact garden vignette: five pagoda roofs, drum bridge and koi pond. */
+function JapaneseTeaGarden() {
+  const boxes: Piece[] = [
+    { p: [0, .025, 0], s: [1.66, .05, 1.48], c: '#a8b58a' },
+    { p: [.5, .064, .39], s: [.39, .04, .51], c: '#e4d6b7' },
+  ];
+  const arches: Stroke[] = [];
+  for (let tier = 0; tier < 5; tier++) {
+    const width = .45 - tier * .043;
+    const y = .18 + tier * .225;
+    boxes.push({ p: [-.38, y + .04, -.36], s: [width * .62, .14, width * .62], c: '#bc6249' });
+    for (const side of [-1, 1]) boxes.push({ p: [-.38 + side * width * .25, y + .04, -.36 + width * .32], s: [.026, .17, .023], c: C.cream });
+    for (const side of [-1, 1]) arches.push({ points: [[-.38 - width * .63, y + .19, -.36 + side * width * .4], [-.38 - width * .4, y + .135, -.36 + side * width * .4], [-.38 + width * .4, y + .135, -.36 + side * width * .4], [-.38 + width * .63, y + .19, -.36 + side * width * .4]], radius: .017 });
+  }
+  for (let i = 0; i < 12; i++) {
+    const angle = .12 + i / 11 * (Math.PI - .24);
+    boxes.push({ p: [.03 + Math.cos(angle) * .33, .115 + Math.sin(angle) * .26, .28], s: [.068, .042, .29], r: [0, 0, angle - Math.PI / 2], c: '#bb895b' });
+  }
+  for (const z of [.11, .45]) arches.push({ points: Array.from({ length: 15 }, (_, i) => {
+    const angle = .1 + i / 14 * (Math.PI - .2);
+    return [.03 + Math.cos(angle) * .34, .25 + Math.sin(angle) * .27, z] as V3;
+  }), radius: .017 });
+  return <group>
+    <Parts pieces={boxes} />
+    <Shape geometry={SPHERE} color="#81aaa2" p={[-.07, .057, .25]} s={[.57, .024, .38]} />
+    {Array.from({ length: 5 }, (_, tier) => <Shape key={tier} geometry={pagodaRoof} color="#496854" p={[-.38, .36 + tier * .225, -.36]} s={[.64 - tier * .055, .15, .64 - tier * .055]} r={[0, Math.PI / 4, 0]} />)}
+    <Shape geometry={CYLINDER} color={C.gold} p={[-.38, 1.46, -.36]} s={[.026, .35, .026]} />
+    <Parts geometry={SPHERE} pieces={Array.from({ length: 5 }, (_, i) => ({ p: [-.38, 1.32 + i * .05, -.36], s: [.036 - i * .004, .014, .036 - i * .004], c: C.gold }))} />
+    <Strokes paths={arches} color="#8a6245" />
+    <Parts geometry={SPHERE} pieces={[
+      { p: [-.45, .086, .37], s: [.075, .016, .024], r: [0, .5, 0], c: C.rose },
+      { p: [.31, .086, .31], s: [.063, .016, .021], r: [0, -.45, 0], c: C.ivory },
+      { p: [.48, .1, -.36], s: [.27, .11, .21], c: '#a2b48a' },
+    ]} />
+    <Strokes color="#765c44" radius={.035} paths={[{ points: [[.53, .1, -.45], [.48, .41, -.45], [.34, .67, -.41]], radius: .037 }, { points: [[.49, .37, -.45], [.7, .55, -.48]] }]} />
+    <Parts geometry={SPHERE} pieces={[{ p: [.35, .72, -.43], s: [.29, .13, .2], c: '#809c70' }, { p: [.7, .6, -.48], s: [.19, .1, .19], c: '#91aa7b' }, { p: [.48, .9, -.4], s: [.17, .09, .16], c: '#8ca579' }]} />
+    <Parts pieces={[{ p: [.55, .18, .46], s: [.07, .24, .07], c: C.stone }, { p: [.55, .34, .46], s: [.17, .12, .17], c: C.cream }, { p: [.55, .415, .46], s: [.25, .055, .25], c: C.stone }, { p: [.55, .34, .55], s: [.08, .055, .014], c: C.gold }]} />
+  </group>;
+}
+
+/** Seven green roof hills and round skylights remain legible at city scale. */
+function AcademyOfSciences() {
+  const boxes: Piece[] = [
+    { p: [0, .04, 0], s: [1.85, .08, 1.46], c: C.cream },
+    { p: [0, .29, 0], s: [1.57, .43, 1.2], c: '#9cbbb1' },
+    { p: [0, .5, 0], s: [1.84, .055, 1.44], c: '#d2d4ba' },
+    { p: [0, .075, .82], s: [.79, .065, .2], c: C.sand },
+    { p: [0, .19, .61], s: [.29, .28, .015], c: C.darkTeal },
+  ];
+  for (let i = -4; i <= 4; i++) boxes.push({ p: [i * .18, .29, .618], s: [.022, .4, .027], c: C.ivory });
+  for (const side of [-1, 1]) for (let i = -3; i <= 3; i++) boxes.push({ p: [side * .8, .29, i * .18], s: [.025, .4, .022], c: C.ivory });
+  for (const side of [-1, 1]) for (let i = -5; i <= 5; i++) boxes.push({ p: [i * .16, .543, side * .7], s: [.135, .018, .065], c: '#617e78' });
+  const skylights: Piece[] = roofHills.slice(0, 2).flatMap(([x, z]) => Array.from({ length: 5 }, (_, i) => {
+    const angle = i * Math.PI * 2 / 5;
+    const sx = x + Math.cos(angle) * .14, sz = z + Math.sin(angle) * .14;
+    return { p: [sx, academyRoofHeight(sx, sz) + .008, sz], s: [.041, .016, .041], c: '#cadfd0' };
+  }));
+  return <>
+    <Parts pieces={boxes} />
+    <mesh geometry={academyRoof} material={material('#8caa70')} castShadow receiveShadow dispose={null} />
+    <Parts geometry={SPHERE} pieces={skylights} />
+    <Shape geometry={hemisphere} color="#b9d5c7" p={[.04, .515, .15]} s={[.19, .15, .19]} />
+    <Strokes color={C.ivory} radius={.011} paths={[0, Math.PI / 2].map(angle => ({ points: Array.from({ length: 12 }, (_, i) => {
+      const a = i / 11 * Math.PI;
+      return [.04 + Math.cos(a) * Math.cos(angle) * .195, .52 + Math.sin(a) * .155, .15 + Math.cos(a) * Math.sin(angle) * .195] as V3;
+    }) }))} />
+    <Parts pieces={[-.65, .65].map(x => ({ p: [x, .1, .8], s: [.3, .1, .14], c: '#91a97a' }))} />
+  </>;
+}
+
+/** Copper-clad museum with the Hamon tower's distinctive twisting silhouette. */
+function DeYoungMuseum() {
+  const copper = '#aa7655';
+  const boxes: Piece[] = [
+    { p: [0, .035, 0], s: [1.65, .07, 1.36], c: '#cfbea0' },
+    { p: [-.18, .25, 0], s: [1.15, .43, 1.13], c: copper },
+    { p: [-.17, .48, 0], s: [1.23, .065, 1.22], c: '#8d644b' },
+    { p: [-.22, .17, .575], s: [.47, .27, .014], c: '#4c6b60' },
+    { p: [-.22, .43, .71], s: [.8, .065, .28], c: copper },
+    { p: [-.22, .057, .8], s: [.76, .035, .13], c: C.cream },
+  ];
+  for (let layer = 0; layer < 10; layer++) boxes.push({
+    p: [.48, .16 + layer * .13, -.28], s: [.37 + layer * .014, .135, .38 + layer * .008], r: [0, layer * .035, 0], c: layer % 3 === 0 ? '#ab7856' : '#a57151',
+  });
+  boxes.push({ p: [.48, 1.49, -.28], s: [.55, .17, .49], r: [0, .32, 0], c: '#405a52' }, { p: [.48, 1.605, -.28], s: [.6, .065, .54], r: [0, .32, 0], c: '#96694d' });
+  // Tiny clay inlays suggest the perforated copper skin without textures.
+  const dots: Piece[] = Array.from({ length: 45 }, (_, i) => ({
+    p: [-.71 + i % 15 * .074, .17 + Math.floor(i / 15) * .09, .572], s: [.013, .014, .006], c: i % 4 ? '#81583f' : '#cfaa78',
+  }));
+  const towerDots: Piece[] = Array.from({ length: 48 }, (_, i) => {
+    const layer = Math.floor(i / 4), y = .23 + layer * .097, angle = layer / 11 * .29;
+    const x = (i % 4 - 1.5) * .068, z = .198 + layer * .004;
+    return { p: [.48 + x * Math.cos(angle) + z * Math.sin(angle), y, -.28 + z * Math.cos(angle) - x * Math.sin(angle)], s: [.013, .018, .008], r: [0, angle, 0], c: '#704e3c' };
+  });
+  return <>
+    <Parts pieces={[...boxes, ...towerDots]} />
+    <Parts geometry={SPHERE} pieces={dots} />
+    <Shape geometry={SPHERE} color="#859b79" p={[-.54, .14, -.61]} s={[.18, .11, .13]} />
+    <Shape geometry={SPHERE} color="#556f64" p={[.61, .2, .53]} s={[.08, .18, .08]} />
+  </>;
+}
+
+function ShoreBird({ position, turn = 0 }: { position: V3; turn?: number }) {
+  return <group position={position} rotation={[0, turn, 0]}>
+    <Parts geometry={SPHERE} pieces={[{ p: [0, .11, 0], s: [.075, .07, .13], c: C.ivory }, { p: [0, .18, .09], s: [.058, .057, .06], c: C.ivory }, { p: [-.02, .197, .135], s: [.01, .012, .008], c: C.dark }, { p: [0, .165, .166], s: [.021, .015, .051], c: C.gold }, { p: [.052, .135, -.014], s: [.03, .05, .11], c: '#b5b7a6' }]} />
+    <Parts pieces={[-.027, .027].map(x => ({ p: [x, .045, .015], s: [.012, .075, .013], c: '#7d6953' }))} />
+  </group>;
+}
+
+/** Long pale sand, planted dunes and small shore life along the Pacific edge. */
+function CoastalBeach({ baker = false, animated = false }: { baker?: boolean; animated?: boolean }) {
+  const length = baker ? 5.6 : 8;
+  const angle = baker ? -.49 : -.06;
+  const anchor = projectCoordinate(baker ? [-122.48316, 37.79322] : [-122.51050, 37.76915]);
+  const ground = (x: number, z: number) => terrainHeight(anchor[0] + x * Math.cos(angle) + z * Math.sin(angle), anchor[1] + z * Math.cos(angle) - x * Math.sin(angle)) - terrainHeight(...anchor);
+  const sandGeometry = useMemo(() => {
+    const origin = projectCoordinate(baker ? [-122.48316, 37.79322] : [-122.51050, 37.76915]);
+    const rotation = baker ? -.49 : -.06;
+    const extent = baker ? 2.8 : 4;
+    const positions: number[] = [];
+    const colorValues: number[] = [];
+    const dry = new THREE.Color('#e7d5b3'), wet = new THREE.Color('#cfbfa0');
+    const vertex = (x: number, z: number) => {
+      const wx = origin[0] + x * Math.cos(rotation) + z * Math.sin(rotation), wz = origin[1] + z * Math.cos(rotation) - x * Math.sin(rotation);
+      return { x, z, wx, wz, y: terrainHeight(wx, wz) - terrainHeight(...origin) + .028, land: isOnLand(wx, wz) };
+    };
+    for (let z = -extent; z < extent; z += .16) for (let x = -3.8; x < 1; x += .16) {
+      // Follow the real shoreline; rounded inland ends avoid a rectangular mat.
+      const edge = .84 - Math.pow(Math.abs((z + .08) / extent), 6) * .95 + Math.sin(z * 2.1) * .045;
+      if (x + .08 > edge) continue;
+      const a = vertex(x, z), b = vertex(x + .16, z), c = vertex(x, z + .16), d = vertex(x + .16, z + .16);
+      for (const triangle of [[a, c, b], [b, c, d]]) {
+        if (!triangle.every(p => p.land)) continue;
+        for (const p of triangle) {
+          positions.push(p.x, p.y, p.z);
+          const nearSea = !isOnLand(p.wx - .32, p.wz) || !isOnLand(p.wx, p.wz - .32);
+          const color = nearSea ? wet : dry;
+          colorValues.push(color.r, color.g, color.b);
+        }
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorValues, 3));
+    geometry.computeVertexNormals();
+    return geometry;
+  }, [baker]);
+  useEffect(() => () => sandGeometry.dispose(), [sandGeometry]);
+  const dunes: Piece[] = Array.from({ length: 10 }, (_, i) => {
+    const x = .55 + Math.sin(i * 2) * .17, z = (i / 9 - .5) * length * .85;
+    return { p: [x, .065 + ground(x, z), z], s: [.35, .13 + i % 3 * .018, .43], c: i % 2 ? '#dbc8a3' : '#decca9' };
+  });
+  const grass: Piece[] = Array.from({ length: 26 }, (_, i) => {
+    const x = .62 + Math.sin(i * 4.3) * .24, z = (i / 25 - .5) * length * .83;
+    return { p: [x, .18 + ground(x, z), z], s: [.024, .17 + i % 3 * .025, .026], r: [0, 0, -.2 + i % 5 * .1], c: i % 2 ? '#98a578' : '#afae81' };
+  });
+  return <group rotation={[0, baker ? -.49 : -.06, 0]}>
+    <mesh geometry={sandGeometry} receiveShadow dispose={null}><meshStandardMaterial vertexColors roughness={.96} /></mesh>
+    <Parts geometry={SPHERE} pieces={dunes} />
+    <Parts pieces={grass} />
+    <group position={[0, ground(0, 1.9), 0]}><Strokes color="#b49673" paths={[{ points: [[-.46, .08, 1.9], [-.15, .095, 1.85], [.24, .1, 1.98]], radius: .05 }, { points: [[.1, .1, 1.95], [.22, .11, 1.73]], radius: .025 }]} /></group>
+    <ShoreBird position={[-.63, .046 + ground(-.63, .38), .38]} turn={-.9} />
+    <ShoreBird position={[baker ? .1 : -.8, .046 + ground(baker ? .1 : -.8, -.13), -.13]} turn={.7} />
+    <group position={[-.5, .051 + ground(-.5, -1.1), -1.1]} scale={.47}><CrabModel animated={animated} /></group>
+    {baker && <Parts geometry={SPHERE} pieces={[{ p: [-.53, .17 + ground(-.53, -2.65), -2.65], s: [.47, .29, .47], c: '#9d9d88' }, { p: [-.05, .12 + ground(-.05, -2.8), -2.8], s: [.31, .24, .36], c: '#afb098' }]} />}
+    {!baker && <Parts pieces={[{ p: [.98, .22, -.7], s: [.035, .44, .035], c: C.wood }, { p: [.98, .41, -.7], s: [.06, .22, .37], c: C.darkTeal }]} />}
+  </group>;
+}
+
+function LandsEnd() {
+  const rocks: Piece[] = [
+    { p: [-.49, .09, -.51], s: [1.12, .29, .9], c: '#b2ac91' },
+    { p: [-1.13, .01, -.7], s: [.59, .35, .61], c: '#939989' },
+    { p: [.17, .075, -.68], s: [.79, .23, .63], c: '#a2a58d' },
+    { p: [.26, .09, .21], s: [1.19, .12, .81], c: '#abb78b' },
+  ];
+  return <>
+    <Parts geometry={SPHERE} pieces={rocks} />
+    <Strokes color="#dbcba9" radius={.19} paths={[{ points: [[1.18, .13, .64], [.58, .16, .48], [.27, .16, .08], [-.35, .18, -.11], [-.63, .19, -.28]] }]} />
+    <Parts pieces={[-.8, -.4, 0].map(x => ({ p: [x, .4, -.53], s: [.038, .45, .038], c: '#8f7656' }))} />
+    <Strokes color="#a28a65" radius={.026} paths={[{ points: [[-.83, .59, -.53], [0, .59, -.53]] }, { points: [[-.83, .4, -.53], [0, .4, -.53]] }]} />
+    <Strokes color="#7e6e50" paths={[{ points: [[.56, .15, -.59], [.55, .49, -.58], [.34, .86, -.51], [.16, 1.14, -.44]], radius: .085 }, { points: [[.46, .7, -.55], [.88, 1.06, -.65]], radius: .057 }, { points: [[.3, .88, -.5], [-.06, 1.03, -.47]], radius: .048 }]} />
+    <Parts geometry={SPHERE} pieces={[{ p: [.12, 1.18, -.47], s: [.58, .16, .29], c: '#82966f' }, { p: [.89, 1.14, -.65], s: [.43, .14, .3], c: '#8d9f77' }, { p: [.48, 1.4, -.49], s: [.44, .13, .29], c: '#8ea278' }]} />
+    <group position={[.77, .19, .14]} scale={.36}><BenchModel /></group>
+    <ShoreBird position={[-.89, .22, -.72]} turn={-1.2} />
+  </>;
+}
+
+export type SanFranciscoLandmarkKind = 'bridge' | 'presidio' | 'palace' | 'lombard' | 'pier' | 'alcatraz' | 'chinatown' | 'ferry' | 'park' | 'cable-car' | 'twin-peaks' | 'union-square' | 'castro' | 'skystar' | 'coit' | 'painted-ladies' | 'sutro' | 'japanese-tea-garden' | 'academy' | 'de-young' | 'ocean-beach' | 'baker-beach' | 'lands-end';
 
 /** All landmarks start at ground y=0. Their public-facing side is +Z. */
 export const LandmarkModel = memo(function LandmarkModel({ kind, animated = false }: { kind: string; animated?: boolean }) {
@@ -697,7 +918,7 @@ export const LandmarkModel = memo(function LandmarkModel({ kind, animated = fals
     case 'chinatown': return <Chinatown />;
     case 'ferry': return <FerryBuilding />;
     case 'park': return <Conservatory />;
-    case 'cable-car': return <CableCar />;
+    case 'cable-car': return <CableCarModel />;
     case 'twin-peaks': return <TwinPeaks />;
     case 'union-square': return <UnionSquare />;
     case 'castro': return <Castro />;
@@ -705,6 +926,12 @@ export const LandmarkModel = memo(function LandmarkModel({ kind, animated = fals
     case 'coit': return <CoitTower />;
     case 'painted-ladies': return <group>{['#d6a28d', '#d8c693', '#a4b6a0', '#baafbe', '#b5c5c0', '#d5b394'].map((color, i) => <group key={color} position={[(i - 2.5) * 0.57, (5 - i) * 0.045, 0]}><HouseModel color={color} scale={0.54} variant={i} /></group>)}</group>;
     case 'sutro': return <SutroBaths />;
+    case 'japanese-tea-garden': return <group scale={[1, 1.2, 1]}><JapaneseTeaGarden /></group>;
+    case 'academy': return <group scale={[1, 1.65, 1]}><AcademyOfSciences /></group>;
+    case 'de-young': return <group scale={[1, 1.2, 1]}><DeYoungMuseum /></group>;
+    case 'ocean-beach': return <CoastalBeach animated={animated} />;
+    case 'baker-beach': return <CoastalBeach baker animated={animated} />;
+    case 'lands-end': return <LandsEnd />;
     default: return <HouseModel />;
   }
 });

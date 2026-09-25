@@ -16,10 +16,16 @@ export type SfLandmark = {
   id: string;
   title: string;
   titleEn: string;
-  kind: 'bridge' | 'park' | 'palace' | 'street' | 'pier' | 'island' | 'gate' | 'market' | 'cable-car' | 'peak' | 'square' | 'rainbow' | 'wheel' | 'tower' | 'houses' | 'ruins';
+  kind: 'bridge' | 'park' | 'palace' | 'street' | 'pier' | 'island' | 'gate' | 'market' | 'cable-car' | 'peak' | 'square' | 'rainbow' | 'wheel' | 'tower' | 'houses' | 'ruins' | 'garden' | 'museum' | 'beach' | 'coast';
   coordinate: SfCoordinate;
   position: SfPoint;
   arrivalRadius: number;
+  /** Art direction changes model size, never the real geographic anchor. */
+  modelScale?: number;
+  /** Clear ground around this attraction, in world units. */
+  sceneryRadius?: number;
+  /** Overview camera orbit distance, in world units. */
+  cameraDistance?: number;
   plannerPlaceId?: string;
   guideSlug?: string;
   sourceUrl: string;
@@ -71,7 +77,33 @@ export const SF_LANDMARKS: SfLandmark[] = [
   landmark({ id: 'coit', title: 'Coit Tower · 科伊特塔', titleEn: 'Coit Tower', kind: 'tower', coordinate: [-122.405886, 37.8027116], sourceUrl: 'https://www.sfrecpark.org/Facilities/Facility/Details/Coit-Tower-290' }),
   landmark({ id: 'painted-ladies', title: 'Painted Ladies · 彩绘女士', titleEn: 'Painted Ladies', kind: 'houses', coordinate: [-122.432832, 37.77561], sourceUrl: 'https://www.sftravel.com/things-to-do/attractions/iconic-sf/painted-ladies' }),
   landmark({ id: 'sutro', title: 'Sutro Baths · 海岸遗迹', titleEn: 'Sutro Baths', kind: 'ruins', coordinate: [-122.5137777, 37.7806323], sourceUrl: 'https://www.nps.gov/places/000/sutro-baths.htm' }),
+  // The museum campus keeps its true close spacing; compact individual models
+  // and smaller arrival areas let every entrance be discovered independently.
+  landmark({ id: 'japanese-tea-garden', title: 'Japanese Tea Garden · 日本茶园', titleEn: 'Japanese Tea Garden', kind: 'garden', coordinate: [-122.47025, 37.77020], arrivalRadius: 1.15, modelScale: 1, sceneryRadius: 1.25, cameraDistance: 8, guideSlug: 'golden-gate-park-free-car-free-day-guide', sourceUrl: 'https://gggp.org/japanese-tea-garden/' }),
+  landmark({ id: 'academy', title: 'California Academy of Sciences · 科学馆', titleEn: 'California Academy of Sciences', kind: 'museum', coordinate: [-122.46626, 37.76986], arrivalRadius: 1.25, modelScale: 1, sceneryRadius: 1.4, cameraDistance: 8.5, guideSlug: 'golden-gate-park-free-car-free-day-guide', sourceUrl: 'https://www.calacademy.org/plan-your-visit' }),
+  landmark({ id: 'de-young', title: 'de Young · 笛洋美术馆', titleEn: 'de Young Museum', kind: 'museum', coordinate: [-122.46867, 37.77148], arrivalRadius: 1.15, modelScale: 1, sceneryRadius: 1.25, cameraDistance: 8.5, guideSlug: 'golden-gate-park-free-car-free-day-guide', sourceUrl: 'https://www.famsf.org/visit/de-young' }),
+  // Coastal anchors use the public beach access / trail side of the shoreline.
+  landmark({ id: 'ocean-beach', title: 'Ocean Beach · 太平洋沙滩', titleEn: 'Ocean Beach', kind: 'beach', coordinate: [-122.51050, 37.76915], arrivalRadius: 3, modelScale: 1, sceneryRadius: 4.8, cameraDistance: 14, sourceUrl: 'https://www.nps.gov/goga/planyourvisit/oceanbeach.htm' }),
+  landmark({ id: 'baker-beach', title: 'Baker Beach · 金门海滩', titleEn: 'Baker Beach', kind: 'beach', coordinate: [-122.48316, 37.79322], arrivalRadius: 2.8, modelScale: 1, sceneryRadius: 4, cameraDistance: 13, sourceUrl: 'https://www.nps.gov/places/000/baker-beach.htm' }),
+  landmark({ id: 'lands-end', title: 'Lands End · 天涯海角', titleEn: 'Lands End · Coastal Trail', kind: 'coast', coordinate: [-122.50530, 37.78550], arrivalRadius: 2.4, modelScale: 1, sceneryRadius: 3.4, cameraDistance: 12, sourceUrl: 'https://www.nps.gov/goga/planyourvisit/landsend.htm' }),
 ];
+
+const LANDMARK_PRESENTATION: Record<string, Pick<SfLandmark, 'modelScale' | 'sceneryRadius' | 'cameraDistance'>> = {
+  bridge: { modelScale: 1.22, sceneryRadius: 6, cameraDistance: 22 },
+  palace: { modelScale: 1.35, sceneryRadius: 3.6, cameraDistance: 14 },
+  pier: { modelScale: 1.15, sceneryRadius: 3.5, cameraDistance: 12 },
+  chinatown: { modelScale: 1.2, sceneryRadius: 3.4, cameraDistance: 11 },
+  park: { modelScale: 1.12, sceneryRadius: 3.5, cameraDistance: 12 },
+  ferry: { modelScale: 1.2, sceneryRadius: 3.2, cameraDistance: 12 },
+  presidio: { modelScale: 1.12, sceneryRadius: 3.4, cameraDistance: 13 },
+  lombard: { modelScale: 1.18, sceneryRadius: 3.4, cameraDistance: 12 },
+  'twin-peaks': { modelScale: 1.15, sceneryRadius: 3.2, cameraDistance: 14 },
+  'union-square': { modelScale: 1.15, sceneryRadius: 3, cameraDistance: 11 },
+  castro: { modelScale: 1.18, sceneryRadius: 3, cameraDistance: 11 },
+  skystar: { modelScale: 1.13, sceneryRadius: 2.2, cameraDistance: 12 },
+  coit: { modelScale: 1.22, sceneryRadius: 2.4, cameraDistance: 11 },
+};
+for (const place of SF_LANDMARKS) Object.assign(place, LANDMARK_PRESENTATION[place.id]);
 
 /** Pier 33 is a mainland departure point, never the island's world position. */
 export const SF_ALCATRAZ_DEPARTURE = {

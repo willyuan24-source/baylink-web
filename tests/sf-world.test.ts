@@ -8,9 +8,9 @@ import {
   terrainHeight, unprojectPosition,
 } from '../src/features/little-bay/sf-world';
 
-test('Mini SF retains real coordinate orientation and all 17 stable landmark anchors', () => {
-  assert.equal(SF_LANDMARKS.length, 17);
-  assert.equal(new Set(SF_LANDMARKS.map(place => place.id)).size, 17);
+test('Mini SF retains real coordinate orientation and all 23 stable landmark anchors', () => {
+  assert.equal(SF_LANDMARKS.length, 23);
+  assert.equal(new Set(SF_LANDMARKS.map(place => place.id)).size, 23);
   const byId = (id: string) => SF_LANDMARKS.find(place => place.id === id)!;
   assert.ok(byId('bridge').position[0] < byId('pier').position[0]);
   assert.ok(byId('park').position[0] < byId('union-square').position[0]);
@@ -28,6 +28,27 @@ test('Mini SF retains real coordinate orientation and all 17 stable landmark anc
     }
   }
   assert.equal(SF_LANDMARKS.filter(place => place.plannerPlaceId).length, 7);
+});
+
+test('park museums keep their real campus spacing and coast attractions have land access', () => {
+  const byId = (id: string) => SF_LANDMARKS.find(place => place.id === id)!;
+  const tea = byId('japanese-tea-garden'), academy = byId('academy'), art = byId('de-young');
+  assert.ok(tea.position[0] < art.position[0] && art.position[0] < academy.position[0]);
+  assert.ok(art.position[1] < tea.position[1] && tea.position[1] < academy.position[1]);
+  for (const place of [tea, academy, art]) {
+    assert.ok(place.arrivalRadius <= 1.25, `${place.id} has an individual arrival area`);
+    assert.equal(place.modelScale, 1, 'the close museum campus must not be enlarged into its neighbours');
+    assert.ok(place.cameraDistance! <= 9, 'the compact detailed model has a closer camera');
+    assert.ok(place.guideSlug?.includes('golden-gate-park'), 'broader park guide remains available');
+  }
+  for (const id of ['japanese-tea-garden', 'academy', 'de-young', 'ocean-beach', 'baker-beach', 'lands-end']) {
+    const place = byId(id);
+    assert.ok(isOnLand(...place.position), `${id} anchor is on the walkable land side`);
+    assert.ok((place.sceneryRadius ?? 0) > 1);
+  }
+  assert.ok(byId('ocean-beach').position[0] < tea.position[0]);
+  assert.ok(byId('lands-end').position[1] < byId('ocean-beach').position[1]);
+  assert.ok(byId('baker-beach').position[1] < byId('lands-end').position[1]);
 });
 
 test('shoreline separates mainland, Alcatraz and ocean; departure stays at Pier 33', () => {

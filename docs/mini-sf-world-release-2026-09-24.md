@@ -1,0 +1,15 @@
+# Mini San Francisco: park, coast and exploration release
+
+The city now has 23 stable attraction anchors, including Japanese Tea Garden, California Academy of Sciences, de Young, Ocean Beach, Baker Beach and Lands End. The three park sites retain their real geographic relationship and link to the existing broader Golden Gate Park guide plus their own official sources. The miniature models do not assert current opening hours or admission availability.
+
+The existing warm clay style and BAYBAY design remain. Ordinary building density is reduced by about half and residential heights are lower. Landmark scale, scenery clearance, camera distance and walking entrances are configured separately. Beach sand follows the land outline and terrain; the coast includes foam, dunes, shorebirds and crabs. Mobile rendering uses a lower pixel budget and fewer building shadows.
+
+Three optional short routes connect 12 authored encounters. A player must arrive in the virtual scene and choose a memory before collecting its stamp. Stamps restore from browser storage scoped to the current account or guest; these are local game memories, not server attendance or physical reward records. Collecting a memory adds a small visible object such as a picnic blanket, sandcastle, lantern or illustrated postcard. Three clearly identified system residents recommend places. User-created public residents, merchant spaces and account-synced game progress remain a later release.
+
+A 48-second miniature sightseeing tram connects the downtown scene and waterfront. It can be paused or exited and ends near SkyStar. This is an authored game route, not an SFMTA routing recommendation. Free walking, free driving, orbit controls, touch joystick, garden treasure playtest and the real itinerary remain available.
+
+Place cards expose existing guide previews, official links, nearby catalog events filtered by exact occurrence date, and a handoff to the existing BAYBAY assistant. Specific venue names take priority over geographic matching; approximate area coordinates do not attach an event to a landmark. No new synthetic event listings or business claims were created.
+
+Validation includes the full site check (lint, 603 tests at the initial full run, production build, 263 prerendered public pages and 238 verified QR share cards), followed by targeted SF tests and a final build after visual refinements. Regression coverage includes all 23 walking arrivals, all driving starts, repeated arrival reset, continuous land-safe tram samples, per-account storage, malformed saves, stamp focus restoration, date/venue event matching and route progression. Desktop and 390×844 browser layouts were inspected; joystick layout used a temporary coarse-pointer fixture. Actual iOS/Android hardware performance and touch feel still require device testing.
+
+Browser review corrected museum entrances inside model footprints, collection actions below the fold, keyboard focus lost after collecting, duplicate route travel, and an expanded scene paused by an off-screen event list. All game controls and reading panels remain inside the expanded scene.
