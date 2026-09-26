@@ -8,7 +8,8 @@ The Opus Bay work moved from the owner's Windows machine to a Claude Code cloud 
 - Only Opus Bay files: `src/opus-bay/**`, `public/opus-bay/**`, `scripts/opus-sf/**`, `scripts/opus-shot.mjs`, `tests/opus-bay-*`, `vite.opus.config.ts`, `docs/opus-bay/**`. The two site files already touched (`src/App.tsx` route, `src/routing.ts` path) stay as they are. Never edit `src/features/little-bay/**`, `src/data/**`, `public/*.json` (another team's work).
 - Commit in small steps on `opus-bay` and push, so nothing is lost if the session ends.
 - Higgsfield: **229 credits were used this round before the move** (133 part 1 + 56 part 2a first run + 40 part 2a resumed run; balance 748.48 → 519.48; reconciled in `src/opus-bay/ASSETS-LEDGER.md`). **Owner update 2026-09-26 (cloud session): the whole remaining balance of 519.48 may be used if needed; quality matters most.** The old 450 cap / 298.48 floor no longer apply. Still log every job in the ledger and check `transactions` after every batch.
-- The cloud network policy blocks the Higgsfield result CDN (`d8j0ntlcm91z4.cloudfront.net`, proxy 403). Until the owner allows that host in the environment's network settings, generated images, audio and meshes cannot be downloaded into the repo from the cloud; generate only when the download works (test with `curl -sS -o /dev/null -w '%{http_code}' <a result url>`).
+- Higgsfield results come from `d8j0ntlcm91z4.cloudfront.net`. The owner added it to the cloud environment's allowed domains on 2026-09-26 (it works in the running session: a 1.6 MB SAM GLB downloaded with HTTP 200). If a new container reports proxy 403 for it again, the environment setting was lost; generate only when the download works (test with `curl -sS -o /dev/null -w '%{http_code}' <a result url>`).
+- PyPI is reachable, so Blender can run headless in the cloud as the `bpy` wheel (5.0.1, Python 3.11) in a scratch venv, e.g. `python3 -m venv /tmp/claude-0/bpyenv && /tmp/claude-0/bpyenv/bin/pip install bpy==5.0.1 numpy pillow`. Keep the venv outside the repo; it is a tool, not a project dependency.
 
 ## Path mapping (the lane reports cite local Windows paths)
 
@@ -36,7 +37,7 @@ Screenshots in the cloud (checked 2026-09-26): `CHROME_FLAGS="--use-angle=swifts
 
 ## Not available in the cloud
 
-- GPU (perf measurement), Blender 5.2 (3D asset cleanup: `assets-work` scripts), the owner's phone LAN test.
+- GPU (perf measurement) and the owner's phone LAN test. (Blender: see the `bpy` note above; the desktop Blender 5.2 and its `assets-work` scratch are only on the owner's machine.)
 - Anything under `C:/Users/willy/…`.
 
 ## State at the move
