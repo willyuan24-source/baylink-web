@@ -262,3 +262,57 @@ The first run of this lane was stopped midway (owner shutdown ~09:55 PDT). Rows 
 | K-x | one Nano Banana Pro image submitted at 16:35:29 UTC by the stopped run | nano_banana_pro | unknown (no local file; not in the completed-generations history) | 2, refunded +2 at 16:43:30 = 0 | not recorded (failed job) | - | failed, fully refunded |
 
 Reconciled subtotal of the stopped run: 22 × Nano Banana Pro (−44) + 12 × "3D Objects" (−12) + 1 × Nano Banana Pro spend and refund (0) = **56.00 credits**. Balance 615.48 → 559.48 (checked with `balance` on resume). Remaining cap: 64 (floor 495.48).
+
+### Part 2a, resumed run (landmark meshes) — reconciled in the cloud session, 2026-09-26
+
+The resumed run (22:03–22:14 UTC) made two concepts each for eight landmarks and one SAM 3 3D mesh each, then was stopped at 15:18 PDT before it wrote these rows. Reconciled from `transactions` (every charge from 22:03:07 to 22:13:57 UTC belongs to it) and `show_generations` (prompts, inputs and parent images). Nothing was regenerated. The generation history labels the image model `nano_banana_2`; `transactions` bills it as "Nano Banana Pro" at 2 credits. Variant a = refs K6 `3617006b-…` + rotunda concept L2-C1 `fba12f36-…`, with the "Match the handmade clay toy look … but make a completely different building exactly as described." prefix; variant b = ref K6 only. Every prompt = subject + the part-1 3D concept add-on + the style contract (no base, no text, no people, no thin wires). All eight meshes were made from variant b.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| LM1-a | Legion of Honor concept a | nano_banana_pro 1:1 2k, refs K6 + L2-C1 | white neoclassical courtyard complex: arch gateway screen wall, two colonnade wings, portico + low sage-grey dome; open courtyard | 2 | 0b86ff3b-0a8e-4d1d-a741-ad323f857f4b | - | not meshed |
+| LM1-b | Legion of Honor concept b | nano_banana_pro 1:1 2k, ref K6 | same | 2 | e61b7e8b-9e7d-4f66-b2d5-1337778a760c | - | meshed (LM1-3D) |
+| LM2-a | Ghirardelli clock tower concept a | same as LM1-a | narrow 3-storey red-brick building, square clock tower with blank faces, slate pyramid spire + corner turrets, no sign | 2 | e0ddbc20-c31a-4ee8-b518-ccda94bc7f1a | - | not meshed |
+| LM2-b | Ghirardelli clock tower concept b | same as LM1-b | same | 2 | 9d6be2ba-56d4-4371-906d-a0685d6d8b26 | - | meshed (LM2-3D) |
+| LM3-a | Fort Point concept a | same as LM1-a | squat red-brick fort, three tiers of arched gun openings, granite foot, roof terrace + courtyard, tiny corner lighthouse | 2 | 5646affa-71cc-4781-84f3-451622fccb21 | - | not meshed |
+| LM3-b | Fort Point concept b | same as LM1-b | same | 2 | b4385c0f-9f4b-4d3b-a9bd-e3bf50b0c9f9 | - | meshed (LM3-3D) |
+| LM4-a | Mission Dolores concept a | same as LM1-a | 1791 adobe chapel (tile gable, 4 engaged columns, 3 bells) joined to the cream baroque basilica with two domed towers | 2 | 4b2b3351-0dd9-44ae-a00f-1c9c30b3bb93 | - | not meshed |
+| LM4-b | Mission Dolores concept b | same as LM1-b | same | 2 | 2f313b8b-e559-431e-9d5c-61ecd1a24f5d | - | meshed (LM4-3D) |
+| LM5-a | Castro Theatre concept a | same as LM1-a | Spanish-colonial movie palace, blank red blade sign edged with bulbs, V marquee, sand auditorium block behind | 2 | 0b1a67fa-18eb-4567-8e8b-36572d7c049b | - | not meshed |
+| LM5-b | Castro Theatre concept b | same as LM1-b | same | 2 | 111f2c21-fd30-4d87-8ca4-79bab52230be | - | meshed (LM5-3D) |
+| LM6-a | Dutch windmill body concept a (no sails) | same as LM1-a | cream octagonal tapering tower on a brick foot, reefing balcony ring, brown boat cap with a stub hub; sails stay procedural | 2 | 305e6471-6251-4d32-acb5-21d8d7ca12d1 | - | not meshed |
+| LM6-b | Dutch windmill body concept b (no sails) | same as LM1-b | same | 2 | ea0ce3bb-83e7-4c19-8a13-d857ab3ad061 | - | meshed (LM6-3D) |
+| LM7-a | Grace Cathedral concept a | same as LM1-a | pale stone French-Gothic front, twin square towers, rose window, buttressed nave, sage copper roof, crossing spire | 2 | 59ffe68a-b5a0-41a5-a5d1-8fdd7621837c | - | not meshed |
+| LM7-b | Grace Cathedral concept b | same as LM1-b | same | 2 | 51457b31-4feb-49ea-82a1-1d036b4a1eeb | - | meshed (LM7-3D) |
+| LM8-a | City Hall concept a | same as LM1-a | white Beaux-Arts palace, colonnaded portico, corner pavilions, columned drum + sage dome with gold trim and lantern | 2 | 56fcad39-a25e-423b-b38e-ac4ae1b58191 | - | not meshed |
+| LM8-b | City Hall concept b | same as LM1-b | same | 2 | a842af50-b06f-412c-b8c8-5bdc6d75bc37 | - | meshed (LM8-3D) |
+| LM4-3D | Mission Dolores mesh | sam_3_3d textured, prompt "the toy mission church group" | from LM4-b | 1 | 1b2b296e-5b33-43bc-967c-dadfe94a14ab | - | raw only |
+| LM3-3D | Fort Point mesh | sam_3_3d, "the toy brick fort" | from LM3-b | 1 | 33906fb6-5410-42d3-8529-5e8bd181f6a1 | - | raw only |
+| LM6-3D | windmill body mesh | sam_3_3d, "the toy windmill tower" | from LM6-b | 1 | 2c4615b0-8d00-42cc-aa3e-b3bbe010e3c2 | - | raw only |
+| LM5-3D | Castro Theatre mesh | sam_3_3d, "the toy theatre building" | from LM5-b | 1 | f924e7e0-e8f0-4626-a787-9b1619d5e1dc | - | raw only |
+| LM2-3D | Ghirardelli clock tower mesh | sam_3_3d, "the toy clock tower building" | from LM2-b | 1 | eff7a796-6189-4920-ba4f-a152fc28fb60 | - | raw only |
+| LM7-3D | Grace Cathedral mesh | sam_3_3d, "the toy cathedral" | from LM7-b | 1 | e70a3dfe-cd66-4a9b-be55-49fec8396d55 | - | raw only |
+| LM8-3D | City Hall mesh | sam_3_3d, "the toy domed city hall" | from LM8-b | 1 | 06674d67-43e6-466c-bb1e-c9155b44c064 | - | raw only |
+| LM1-3D-x | Legion of Honor mesh, first submission | sam_3_3d | from LM1-b; charged 22:09:07, refunded +1 at 22:09:37 | 0 | not recorded (failed job) | - | failed, fully refunded |
+| LM1-3D | Legion of Honor mesh, retry | sam_3_3d, "the white toy building" | from LM1-b; 22:13:56 | 1 | 38ca4559-cc62-4974-8e1a-066ce7035611 | - | raw only |
+
+Reconciled subtotal of the resumed run: 16 × Nano Banana Pro (−32) + 9 × "3D Objects" spends (−9) + 1 refund (+1) = **40.00 credits**. Balance 559.48 → **519.48** (checked with `balance` in the cloud session). **Part 2a total: 56 + 40 = 96 of its 120 cap.**
+
+"Raw only" means: the GLB exists on Higgsfield (the result URL is in `show_generations`), but it has not been cleaned, graded, Draco-compressed or published. Whether the stopped run downloaded any of them to `C:/Users/willy/opus-qa/assets-work/sf/kit/raw/` is not known. The cloud session cannot fetch the CDN (the proxy returns 403) and has no Blender, so download, cleanup (`kit_cleanup.py`, `grade_kit.py` in `docs/opus-bay/kit-jobs/`) and the §8 QA gate wait for a local run. Until then these eight landmarks stay procedural.
+
+**Published by part 2a (house kit, cleaned before the stop).** 11 Draco GLBs with a WebP texture plus a tint/glass mask, in `public/opus-bay/models/sf/kit/`. Numbers measured from the GLB headers in the cloud session; the IoU and palette columns were not recorded before the stop.
+
+| file | tris | bytes | size w x h x d (u) | mask bytes | status |
+|---|---|---|---|---|---|
+| kit/edwardian-flats.glb | 2,890 | 44,448 | 4.4 x 5.2 x 8.0 | 4,344 | published, not yet registered in `data/assets.ts` |
+| kit/stick-victorian.glb | 2,889 | 42,904 | 4.4 x 5.4 x 8.0 | 8,366 | same |
+| kit/queen-anne-corner.glb | 2,891 | 68,232 | 5.2 x 6.4 x 7.0 | 15,810 | same |
+| kit/sunset-doelger.glb | 2,890 | 37,956 | 4.4 x 4.0 x 8.0 | 5,438 | same |
+| kit/marina-mediterranean.glb | 2,890 | 42,464 | 4.4 x 4.2 x 8.0 | 6,544 | same |
+| kit/richmond-flats.glb | 2,891 | 68,972 | 4.4 x 5.4 x 8.0 | 14,596 | same |
+| kit/chinatown-shophouse.glb | 2,890 | 55,044 | 4.4 x 5.4 x 8.0 | 13,018 | same |
+| kit/northbeach-corner.glb | 2,890 | 65,912 | 4.4 x 5.2 x 5.9 | 13,300 | same |
+| kit/soma-warehouse.glb | 2,887 | 65,732 | 6.6 x 5.6 x 8.0 | 12,284 | same |
+| kit/mission-mural.glb | 2,890 | 64,576 | 4.4 x 4.3 x 8.0 | 5,430 | same |
+| kit/deco-apartment.glb | 2,890 | 57,940 | 6.6 x 8.2 x 8.0 | 1,446 | same |
+
+**Round total (whole-SF phase): 133.00 (part 1) + 96.00 (part 2a) = 229.00 credits** of the owner's 500 allowance. Lead cap 450 → **221 credits left** this round; floor balance 298.48.
