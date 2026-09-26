@@ -1,0 +1,2850 @@
+{
+ "generated": "2026-09-26T10:11:48.773Z",
+ "projection": "baylink-opus/src/opus-bay/data/district.ts project(): K = 0.14 u/m, map rotated 46 deg, origin (37.802338, -122.40001); x = east-ish, z = south-ish; values rounded to 0.01 u",
+ "fields": {
+  "lat_lng": "WGS84; OSM feature centre (bbox centre / node) unless the id is a specific structure point (bridge towers, cable car termini) where the hand seed is kept",
+  "world": "Opus Bay world units at true horizontal scale (district.ts project)",
+  "heightM": "structure height in metres (published figure where known, else OSM height tag, else DataSF 2010 LiDAR max above ground); for hills/peaks see groundElevM",
+  "groundElevM": "bare-earth elevation (m) from AWS Terrain Tiles z14 (USGS 3DEP) at lat/lng",
+  "trueScaleU": "height / ground in world units at the horizontal scale 0.14 u/m (before any vertical exaggeration)"
+ },
+ "sources": {
+  "osm": "OpenStreetMap contributors (ODbL 1.0), Overpass API snapshot (osm_base 2026-09-26), raw/osm-*.json",
+  "lidar": "DataSF Building Footprints ynuv-fyni (2010 LiDAR heights; PDDL)",
+  "dem": "AWS Open Data Terrain Tiles (Mapzen terrarium, z14; USGS 3DEP)"
+ },
+ "count": 69,
+ "landmarks": [
+  {
+   "id": "ggb-south-tower",
+   "name": {
+    "en": "Golden Gate Bridge · south tower",
+    "zh": "金门大桥 · 南塔"
+   },
+   "category": "bridge",
+   "lat": 37.81401,
+   "lng": -122.47789,
+   "world": {
+    "x": -796.12,
+    "z": 564.38
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 1330586852,
+    "name": "San Fransisco Tower",
+    "url": "https://www.openstreetmap.org/way/1330586852",
+    "matchDistM": 1,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 227,
+   "heightSource": "published",
+   "heightNote": "tower top 227 m (746 ft) above water; OSM 3D parts reach 225 m",
+   "groundElevM": -2.9,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 31.78,
+    "ground": 0
+   },
+   "note": "Art Deco towers, International Orange; deck ~67 m (220 ft) clearance at mid-span; main span 1,280 m; total 2,737 m."
+  },
+  {
+   "id": "ggb-north-tower",
+   "name": {
+    "en": "Golden Gate Bridge · north tower",
+    "zh": "金门大桥 · 北塔"
+   },
+   "category": "bridge",
+   "lat": 37.8255,
+   "lng": -122.47923,
+   "world": {
+    "x": -935.5,
+    "z": 452.73
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 1330832666,
+    "name": "Marin Tower",
+    "url": "https://www.openstreetmap.org/way/1330832666",
+    "matchDistM": 0,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 227,
+   "heightSource": "published",
+   "heightNote": "tower top 227 m above water; OSM 3D parts reach 225 m",
+   "groundElevM": 1.8,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 31.78,
+    "ground": 0.26
+   },
+   "note": "Marin side; Vista Point + Marin Headlands backdrop just north (outside SF)."
+  },
+  {
+   "id": "ggb-deck-mid",
+   "name": {
+    "en": "Golden Gate Bridge · mid-span deck",
+    "zh": "金门大桥 · 桥面中段"
+   },
+   "category": "bridge",
+   "lat": 37.81976,
+   "lng": -122.47856,
+   "world": {
+    "x": -865.86,
+    "z": 508.5
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 21407754,
+    "name": "Golden Gate Bridge",
+    "url": "https://www.openstreetmap.org/relation/21407754",
+    "matchDistM": 2,
+    "wikidata": "Q44440",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 67,
+   "heightSource": "published",
+   "heightNote": "deck ~67 m above mean high water",
+   "groundElevM": -94.3,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 9.38,
+    "ground": 0
+   },
+   "points": {
+    "southAnchorage": {
+     "lat": 37.80944,
+     "lng": -122.47735,
+     "world": {
+      "x": -740.63,
+      "z": 608.73
+     },
+     "groundElevM": 11.8
+    },
+    "southTower": {
+     "lat": 37.81401,
+     "lng": -122.47789,
+     "world": {
+      "x": -796.12,
+      "z": 564.38
+     },
+     "groundElevM": -2.9
+    },
+    "northTower": {
+     "lat": 37.8255,
+     "lng": -122.47923,
+     "world": {
+      "x": -935.5,
+      "z": 452.73
+     },
+     "groundElevM": 1.8
+    },
+    "northAnchor": {
+     "lat": 37.82904,
+     "lng": -122.47969,
+     "world": {
+      "x": -978.84,
+      "z": 418.75
+     },
+     "groundElevM": 45.2
+    }
+   },
+   "note": "US-101; 6 lanes + sidewalks; walkable east sidewalk in reality — candidate for a walk-across set piece."
+  },
+  {
+   "id": "bay-bridge-sf-anchorage",
+   "name": {
+    "en": "Bay Bridge · SF anchorage (Rincon Hill)",
+    "zh": "海湾大桥 · 旧金山锚碇"
+   },
+   "category": "bridge",
+   "lat": 37.78585,
+   "lng": -122.38897,
+   "world": {
+    "x": 277.98,
+    "z": 79.46
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 1011568818,
+    "name": "San Francisco–Oakland Bay Bridge West Span",
+    "url": "https://www.openstreetmap.org/way/1011568818",
+    "matchDistM": 1586,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.5
+   },
+   "note": "West span starts at Rincon Hill / Embarcadero; I-80 on two decks."
+  },
+  {
+   "id": "bay-bridge-center-anchorage",
+   "name": {
+    "en": "Bay Bridge · centre anchorage",
+    "zh": "海湾大桥 · 中央锚墩"
+   },
+   "category": "bridge",
+   "lat": 37.79819,
+   "lng": -122.37786,
+   "world": {
+    "x": 235.65,
+    "z": -151.61
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 236374789,
+    "name": "Center Anchorage",
+    "url": "https://www.openstreetmap.org/way/236374789",
+    "matchDistM": 0,
+    "wikidata": null,
+    "heightTag": 67,
+    "eleTag": null
+   },
+   "heightM": 154,
+   "heightSource": "published",
+   "heightNote": "W-span towers rise ~154 m (505 ft) above the bay (OSM tower ways: height=160; centre anchorage W4 height=67)",
+   "groundElevM": 1.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 21.56,
+    "ground": 0.24
+   },
+   "points": {
+    "W2": {
+     "lat": 37.79075,
+     "lng": -122.38582,
+     "world": {
+      "x": 250.38,
+      "z": -1.12
+     },
+     "groundElevM": 2.3
+    },
+    "W3": {
+     "lat": 37.79559,
+     "lng": -122.38065,
+     "world": {
+      "x": 240.73,
+      "z": -98.95
+     },
+     "groundElevM": 2.6
+    },
+    "W4_centerAnchorage": {
+     "lat": 37.79819,
+     "lng": -122.37786,
+     "world": {
+      "x": 235.65,
+      "z": -151.61
+     },
+     "groundElevM": 1.7
+    },
+    "W5": {
+     "lat": 37.80079,
+     "lng": -122.37508,
+     "world": {
+      "x": 230.48,
+      "z": -204.19
+     },
+     "groundElevM": 0.5
+    },
+    "W6": {
+     "lat": 37.80562,
+     "lng": -122.3699,
+     "world": {
+      "x": 221.03,
+      "z": -302
+     },
+     "groundElevM": -0.2
+    },
+    "ybiTunnelWest": {
+     "lat": 37.80853,
+     "lng": -122.36681,
+     "world": {
+      "x": 215.06,
+      "z": -360.65
+     },
+     "groundElevM": 45.4
+    }
+   },
+   "note": "Two back-to-back suspension spans (4 towers W2/W3 and W5/W6) meet at the concrete centre anchorage; The Bay Lights LEDs on the west span."
+  },
+  {
+   "id": "yerba-buena-island",
+   "name": {
+    "en": "Yerba Buena Island",
+    "zh": "芳草地岛"
+   },
+   "category": "island",
+   "lat": 37.811202,
+   "lng": -122.365876,
+   "world": {
+    "x": 193.31,
+    "z": -397.65
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 26767311,
+    "name": "Yerba Buena Island",
+    "url": "https://www.openstreetmap.org/way/26767311",
+    "matchDistM": 139,
+    "wikidata": "Q768669",
+    "heightTag": null,
+    "eleTag": 98
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 70.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 9.87
+   },
+   "note": "Bay Bridge tunnels through it; summit ~105 m; causeway to Treasure Island."
+  },
+  {
+   "id": "treasure-island",
+   "name": {
+    "en": "Treasure Island",
+    "zh": "金银岛"
+   },
+   "category": "island",
+   "lat": 37.823762,
+   "lng": -122.37099,
+   "world": {
+    "x": 9.74,
+    "z": -487.37
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 26767313,
+    "name": "Treasure Island",
+    "url": "https://www.openstreetmap.org/way/26767313",
+    "matchDistM": 37,
+    "wikidata": "Q778565",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.49
+   },
+   "note": "Flat artificial island (1939 expo); best skyline view of SF; within the SF city boundary."
+  },
+  {
+   "id": "alcatraz",
+   "name": {
+    "en": "Alcatraz Island",
+    "zh": "恶魔岛"
+   },
+   "category": "island",
+   "lat": 37.826729,
+   "lng": -122.423004,
+   "world": {
+    "x": -468.22,
+    "z": -58.53
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 20197830,
+    "name": "Alcatraz Island",
+    "url": "https://www.openstreetmap.org/relation/20197830",
+    "matchDistM": 9,
+    "wikidata": "Q131354",
+    "heightTag": null,
+    "eleTag": 37
+   },
+   "heightM": 26,
+   "heightSource": "published",
+   "heightNote": "lighthouse ~26 m (84 ft); island top ~41 m",
+   "groundElevM": 37.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 3.64,
+    "ground": 5.28
+   },
+   "note": "Ferry from Pier 33 (already in Opus Bay). Cellhouse + lighthouse silhouette; not walkable in v1."
+  },
+  {
+   "id": "ferry-building",
+   "name": {
+    "en": "Ferry Building",
+    "zh": "渡轮大厦"
+   },
+   "category": "landmark",
+   "lat": 37.795538,
+   "lng": -122.39343,
+   "world": {
+    "x": 131.98,
+    "z": 14.82
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 558731934,
+    "name": "San Francisco Ferry Building",
+    "url": "https://www.openstreetmap.org/way/558731934",
+    "matchDistM": 19,
+    "wikidata": "Q1408117",
+    "heightTag": 15,
+    "eleTag": 1
+   },
+   "heightM": 75,
+   "heightSource": "published",
+   "heightNote": "clock tower 75 m (245 ft)",
+   "groundElevM": 1.2,
+   "lidar": {
+    "sf16_bldgid": "201006.0000058",
+    "maxM": 71.4,
+    "medianM": 15.17,
+    "groundM": 3.07
+   },
+   "trueScaleU": {
+    "height": 10.5,
+    "ground": 0.16
+   },
+   "note": "Existing Opus Bay hub (arrival)."
+  },
+  {
+   "id": "embarcadero-center",
+   "name": {
+    "en": "Embarcadero Center",
+    "zh": "内河码头中心"
+   },
+   "category": "landmark",
+   "lat": 37.794999,
+   "lng": -122.398511,
+   "world": {
+    "x": 94.52,
+    "z": 65.62
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 32612520,
+    "name": "Embarcadero Center 2",
+    "url": "https://www.openstreetmap.org/way/32612520",
+    "matchDistM": 34,
+    "wikidata": "Q7858934",
+    "heightTag": 130,
+    "eleTag": null
+   },
+   "heightM": 173,
+   "heightSource": "published",
+   "heightNote": "One/Four Embarcadero Center ~173 m (One EC is 173 m; Four EC 174 m)",
+   "groundElevM": 3.6,
+   "lidar": {
+    "sf16_bldgid": "201006.0000158",
+    "maxM": 127.3,
+    "medianM": 11.2,
+    "groundM": 3.35
+   },
+   "trueScaleU": {
+    "height": 24.22,
+    "ground": 0.5
+   },
+   "note": "Four slab towers + Hyatt atrium; holiday light outlines."
+  },
+  {
+   "id": "transamerica-pyramid",
+   "name": {
+    "en": "Transamerica Pyramid",
+    "zh": "泛美金字塔"
+   },
+   "category": "skyscraper",
+   "lat": 37.795166,
+   "lng": -122.402786,
+   "world": {
+    "x": 56.09,
+    "z": 101.69
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 24222973,
+    "name": "Transamerica Pyramid",
+    "url": "https://www.openstreetmap.org/way/24222973",
+    "matchDistM": 1,
+    "wikidata": "Q216865",
+    "heightTag": 260,
+    "eleTag": 5
+   },
+   "heightM": 260,
+   "heightSource": "published",
+   "heightNote": "260 m (853 ft) to spire",
+   "groundElevM": 5.4,
+   "lidar": {
+    "sf16_bldgid": "201006.0000687",
+    "maxM": 258.5,
+    "medianM": 67.78,
+    "groundM": 3.31
+   },
+   "trueScaleU": {
+    "height": 36.4,
+    "ground": 0.76
+   },
+   "note": "Silhouette hero; Redwood Park beside it (already in district)."
+  },
+  {
+   "id": "salesforce-tower",
+   "name": {
+    "en": "Salesforce Tower",
+    "zh": "Salesforce 大厦"
+   },
+   "category": "skyscraper",
+   "lat": 37.78978,
+   "lng": -122.39691,
+   "world": {
+    "x": 166.32,
+    "z": 107.54
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 431972186,
+    "name": "Salesforce Tower",
+    "url": "https://www.openstreetmap.org/way/431972186",
+    "matchDistM": 1,
+    "wikidata": "Q14684154",
+    "heightTag": 326,
+    "eleTag": null
+   },
+   "heightM": 326,
+   "heightSource": "published",
+   "heightNote": "326 m (1,070 ft) — tallest in SF; completed 2018 (NOT in the 2010 LiDAR)",
+   "groundElevM": 6.2,
+   "lidar": {
+    "sf16_bldgid": "201006.0000548",
+    "maxM": 110.8,
+    "medianM": 0.24,
+    "groundM": -0.56
+   },
+   "trueScaleU": {
+    "height": 45.64,
+    "ground": 0.86
+   },
+   "note": "LED crown artwork at night."
+  },
+  {
+   "id": "salesforce-park",
+   "name": {
+    "en": "Salesforce Park (Transit Center roof)",
+    "zh": "Salesforce 空中公园"
+   },
+   "category": "park",
+   "lat": 37.789117,
+   "lng": -122.396871,
+   "world": {
+    "x": 174.03,
+    "z": 114.32
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 8524888,
+    "name": "Salesforce Park",
+    "url": "https://www.openstreetmap.org/relation/8524888",
+    "matchDistM": 84,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 21,
+   "heightSource": "published",
+   "heightNote": "rooftop park ~21 m (70 ft) above street",
+   "groundElevM": 5.3,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 2.94,
+    "ground": 0.75
+   },
+   "note": "1.9 ha elevated park on the Transit Center, gondola from Fremont St — great elevated walk."
+  },
+  {
+   "id": "coit-tower",
+   "name": {
+    "en": "Coit Tower",
+    "zh": "科伊特塔"
+   },
+   "category": "landmark",
+   "lat": 37.80238,
+   "lng": -122.40583,
+   "world": {
+    "x": -50.25,
+    "z": 51.1
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 28824850,
+    "name": "Coit Tower",
+    "url": "https://www.openstreetmap.org/way/28824850",
+    "matchDistM": 0,
+    "wikidata": "Q1107297",
+    "heightTag": 64,
+    "eleTag": 89
+   },
+   "heightM": 64,
+   "heightSource": "published",
+   "heightNote": "64 m (210 ft) on Telegraph Hill (~84 m)",
+   "groundElevM": 91.5,
+   "lidar": {
+    "sf16_bldgid": "201006.0006230",
+    "maxM": 51.3,
+    "medianM": 5.97,
+    "groundM": 87.71
+   },
+   "trueScaleU": {
+    "height": 8.96,
+    "ground": 12.81
+   },
+   "note": "Existing Opus Bay summit."
+  },
+  {
+   "id": "exploratorium",
+   "name": {
+    "en": "Exploratorium (Pier 15)",
+    "zh": "探索馆（15 号码头）"
+   },
+   "category": "museum",
+   "lat": 37.800898,
+   "lng": -122.398525,
+   "world": {
+    "x": 28.73,
+    "z": 2.33
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "node",
+    "id": 621529017,
+    "name": "Exploratorium",
+    "url": "https://www.openstreetmap.org/node/621529017",
+    "matchDistM": 118,
+    "wikidata": "Q206518",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 15.6,
+   "heightSource": "DataSF LiDAR 2010 max",
+   "heightNote": null,
+   "groundElevM": 2.4,
+   "lidar": {
+    "sf16_bldgid": "201006.0000005",
+    "maxM": 15.6,
+    "medianM": 9.9,
+    "groundM": 0.81
+   },
+   "trueScaleU": {
+    "height": 2.18,
+    "ground": 0.34
+   },
+   "note": "Existing Opus Bay stop."
+  },
+  {
+   "id": "pier-39",
+   "name": {
+    "en": "Pier 39",
+    "zh": "39 号码头"
+   },
+   "category": "waterfront",
+   "lat": 37.808333,
+   "lng": -122.410287,
+   "world": {
+    "x": -154.65,
+    "z": 26.59
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "node",
+    "id": 1083360025,
+    "name": "Pier 39",
+    "url": "https://www.openstreetmap.org/node/1083360025",
+    "matchDistM": 55,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.6,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.5
+   },
+   "note": "Existing Opus Bay stop (sea lions on K-Dock)."
+  },
+  {
+   "id": "fishermans-wharf",
+   "name": {
+    "en": "Fisherman's Wharf",
+    "zh": "渔人码头"
+   },
+   "category": "waterfront",
+   "lat": 37.808133,
+   "lng": -122.416591,
+   "world": {
+    "x": -206.35,
+    "z": 84.58
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 11283438662,
+    "name": "Fisherman's Wharf",
+    "url": "https://www.openstreetmap.org/node/11283438662",
+    "matchDistM": 99,
+    "wikidata": "Q1324280",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.45
+   },
+   "note": "Wharf sign at Jefferson & Taylor; crab stands; Musée Mécanique at Pier 45."
+  },
+  {
+   "id": "ghirardelli-square",
+   "name": {
+    "en": "Ghirardelli Square",
+    "zh": "吉尔德利广场"
+   },
+   "category": "landmark",
+   "lat": 37.805871,
+   "lng": -122.422949,
+   "world": {
+    "x": -235.55,
+    "z": 165.21
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 27104863,
+    "name": "Ghirardelli Square",
+    "url": "https://www.openstreetmap.org/way/27104863",
+    "matchDistM": 8,
+    "wikidata": "Q5556730",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 29.6,
+   "heightSource": "DataSF LiDAR 2010 max",
+   "heightNote": null,
+   "groundElevM": 18.4,
+   "lidar": {
+    "sf16_bldgid": "201006.0000969",
+    "maxM": 29.6,
+    "medianM": 9.87,
+    "groundM": 17.91
+   },
+   "trueScaleU": {
+    "height": 4.14,
+    "ground": 2.58
+   },
+   "note": "Brick chocolate factory complex with the lit sign; above Aquatic Park."
+  },
+  {
+   "id": "aquatic-park-hyde-pier",
+   "name": {
+    "en": "Aquatic Park & Hyde Street Pier",
+    "zh": "水上公园与海德街码头"
+   },
+   "category": "waterfront",
+   "lat": 37.809513,
+   "lng": -122.421904,
+   "world": {
+    "x": -267.16,
+    "z": 116.8
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 456528981,
+    "name": "Hyde Street Pier",
+    "url": "https://www.openstreetmap.org/way/456528981",
+    "matchDistM": 169,
+    "wikidata": "Q12060640",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": -6.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0
+   },
+   "note": "Historic ships (Balclutha); curved Municipal Pier; swimmers in the cove."
+  },
+  {
+   "id": "cable-car-hyde-turnaround",
+   "name": {
+    "en": "Cable car turnaround · Hyde & Beach",
+    "zh": "缆车掉头点 · 海德街"
+   },
+   "category": "transit",
+   "lat": 37.80657,
+   "lng": -122.42048,
+   "world": {
+    "x": -222.21,
+    "z": 135.83
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 197979144,
+    "name": "turntable",
+    "url": "https://www.openstreetmap.org/way/197979144",
+    "matchDistM": 85,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 11.1,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 1.56
+   },
+   "note": "Powell–Hyde line terminus at Aquatic Park."
+  },
+  {
+   "id": "cable-car-powell-market",
+   "name": {
+    "en": "Cable car turntable · Powell & Market",
+    "zh": "缆车转盘 · 鲍威尔街"
+   },
+   "category": "transit",
+   "lat": 37.78477,
+   "lng": -122.40776,
+   "world": {
+    "x": 129.28,
+    "z": 257.51
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 8641952045,
+    "name": "Cable Car Turntable (Powell & Market)",
+    "url": "https://www.openstreetmap.org/node/8641952045",
+    "matchDistM": 8,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 11.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 1.64
+   },
+   "note": "Powell–Hyde + Powell–Mason start; hand-turned turntable; Powell BART below."
+  },
+  {
+   "id": "cable-car-museum",
+   "name": {
+    "en": "Cable Car Museum (powerhouse)",
+    "zh": "缆车博物馆"
+   },
+   "category": "museum",
+   "lat": 37.79466,
+   "lng": -122.41151,
+   "world": {
+    "x": -12.9,
+    "z": 184.41
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 30029681,
+    "name": "Cable Car Powerhouse and Barn",
+    "url": "https://www.openstreetmap.org/way/30029681",
+    "matchDistM": 44,
+    "wikidata": "Q5496957",
+    "heightTag": null,
+    "eleTag": 61
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 59,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 8.26
+   },
+   "note": "Washington & Mason — the winding wheels that pull every cable."
+  },
+  {
+   "id": "lombard-crooked",
+   "name": {
+    "en": "Lombard Street crooked block",
+    "zh": "九曲花街（伦巴底街）"
+   },
+   "category": "street",
+   "lat": 37.80212,
+   "lng": -122.418716,
+   "world": {
+    "x": -157.58,
+    "z": 168.04
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 4972243722,
+    "name": "Lombard Street",
+    "url": "https://www.openstreetmap.org/node/4972243722",
+    "matchDistM": 4,
+    "wikidata": "Q930276",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 67.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 9.41
+   },
+   "note": "Hyde → Leavenworth, 8 hairpins, ~180 m long, 27% natural grade; one-way downhill (east)."
+  },
+  {
+   "id": "chinatown-dragon-gate",
+   "name": {
+    "en": "Chinatown Dragon Gate",
+    "zh": "唐人街龙门"
+   },
+   "category": "landmark",
+   "lat": 37.790688,
+   "lng": -122.405594,
+   "world": {
+    "x": 81.92,
+    "z": 174.7
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 65328703,
+    "name": "Dragon Gate",
+    "url": "https://www.openstreetmap.org/node/65328703",
+    "matchDistM": 26,
+    "wikidata": "Q40729318",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 23.8,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 3.33
+   },
+   "note": "Grant Ave & Bush St entrance to Chinatown (1970)."
+  },
+  {
+   "id": "grace-cathedral",
+   "name": {
+    "en": "Grace Cathedral",
+    "zh": "慈恩堂（格雷斯大教堂）"
+   },
+   "category": "landmark",
+   "lat": 37.791833,
+   "lng": -122.413497,
+   "world": {
+    "x": 1.58,
+    "z": 232.4
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 32946942,
+    "name": "Grace Cathedral",
+    "url": "https://www.openstreetmap.org/way/32946942",
+    "matchDistM": 24,
+    "wikidata": "Q3082361",
+    "heightTag": 53,
+    "eleTag": 89
+   },
+   "heightM": 53,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 91.8,
+   "lidar": {
+    "sf16_bldgid": "201006.0000550",
+    "maxM": 69.9,
+    "medianM": 30.38,
+    "groundM": 90.04
+   },
+   "trueScaleU": {
+    "height": 7.42,
+    "ground": 12.85
+   },
+   "note": "Nob Hill summit area; labyrinths; Huntington Park opposite."
+  },
+  {
+   "id": "union-square",
+   "name": {
+    "en": "Union Square",
+    "zh": "联合广场"
+   },
+   "category": "plaza",
+   "lat": 37.787934,
+   "lng": -122.407517,
+   "world": {
+    "x": 96.13,
+    "z": 221.34
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 25278818,
+    "name": "Union Square",
+    "url": "https://www.openstreetmap.org/way/25278818",
+    "matchDistM": 8,
+    "wikidata": "Q49573226",
+    "heightTag": null,
+    "eleTag": 24
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 23.9,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 3.35
+   },
+   "note": "Dewey Monument column (~29 m); shopping; holiday tree & rink."
+  },
+  {
+   "id": "yerba-buena-gardens",
+   "name": {
+    "en": "Yerba Buena Gardens",
+    "zh": "芳草地花园"
+   },
+   "category": "park",
+   "lat": 37.78465,
+   "lng": -122.402404,
+   "world": {
+    "x": 176.43,
+    "z": 211.36
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 28842443,
+    "name": "Yerba Buena Gardens",
+    "url": "https://www.openstreetmap.org/way/28842443",
+    "matchDistM": 62,
+    "wikidata": "Q2600143",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 11,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 1.54
+   },
+   "note": "MLK waterfall memorial; SFMOMA + Moscone around it."
+  },
+  {
+   "id": "sfmoma",
+   "name": {
+    "en": "SFMOMA",
+    "zh": "旧金山现代艺术博物馆"
+   },
+   "category": "museum",
+   "lat": 37.785936,
+   "lng": -122.400629,
+   "world": {
+    "x": 177.3,
+    "z": 181.81
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 41692824,
+    "name": "San Francisco Museum of Modern Art",
+    "url": "https://www.openstreetmap.org/way/41692824",
+    "matchDistM": 43,
+    "wikidata": "Q913672",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 79,
+   "heightSource": "DataSF LiDAR 2010 max",
+   "heightNote": null,
+   "groundElevM": 9,
+   "lidar": {
+    "sf16_bldgid": "201006.0000183",
+    "maxM": 79,
+    "medianM": 37.83,
+    "groundM": 7.94
+   },
+   "trueScaleU": {
+    "height": 11.06,
+    "ground": 1.26
+   },
+   "note": "Striped cylinder skylight + rippled white rear extension."
+  },
+  {
+   "id": "city-hall",
+   "name": {
+    "en": "San Francisco City Hall",
+    "zh": "旧金山市政厅"
+   },
+   "category": "civic",
+   "lat": 37.779276,
+   "lng": -122.419231,
+   "world": {
+    "x": 92.31,
+    "z": 418.18
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 7261820,
+    "name": "San Francisco City Hall",
+    "url": "https://www.openstreetmap.org/relation/7261820",
+    "matchDistM": 1,
+    "wikidata": "Q1093944",
+    "heightTag": 30,
+    "eleTag": 20
+   },
+   "heightM": 94,
+   "heightSource": "published",
+   "heightNote": "dome 94 m (307.5 ft)",
+   "groundElevM": 17.6,
+   "lidar": {
+    "sf16_bldgid": "201006.0000041",
+    "maxM": 88,
+    "medianM": 26.41,
+    "groundM": 17.61
+   },
+   "trueScaleU": {
+    "height": 13.16,
+    "ground": 2.47
+   },
+   "note": "Beaux-Arts dome; Civic Center Plaza in front; gold leaf trim."
+  },
+  {
+   "id": "oracle-park",
+   "name": {
+    "en": "Oracle Park",
+    "zh": "甲骨文球场"
+   },
+   "category": "stadium",
+   "lat": 37.778646,
+   "lng": -122.38958,
+   "world": {
+    "x": 352.96,
+    "z": 162.31
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 7325085,
+    "name": "Oracle Park",
+    "url": "https://www.openstreetmap.org/relation/7325085",
+    "matchDistM": 29,
+    "wikidata": "Q298585",
+    "heightTag": 45,
+    "eleTag": null
+   },
+   "heightM": 45,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 3.6,
+   "lidar": {
+    "sf16_bldgid": "201006.0000003",
+    "maxM": 54.8,
+    "medianM": 11.57,
+    "groundM": 1.64
+   },
+   "trueScaleU": {
+    "height": 6.3,
+    "ground": 0.5
+   },
+   "note": "Giants ballpark on McCovey Cove; giant glove + Coke bottle slide (use generic shapes)."
+  },
+  {
+   "id": "chase-center",
+   "name": {
+    "en": "Chase Center",
+    "zh": "大通中心"
+   },
+   "category": "stadium",
+   "lat": 37.767888,
+   "lng": -122.387421,
+   "world": {
+    "x": 491.19,
+    "z": 258.83
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 579646390,
+    "name": "Chase Center",
+    "url": "https://www.openstreetmap.org/way/579646390",
+    "matchDistM": 27,
+    "wikidata": "Q15262098",
+    "heightTag": 38.1,
+    "eleTag": null
+   },
+   "heightM": 38.1,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 2.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 5.33,
+    "ground": 0.34
+   },
+   "note": "Warriors arena, Mission Bay (2019 — NOT in 2010 LiDAR)."
+  },
+  {
+   "id": "mission-dolores",
+   "name": {
+    "en": "Mission Dolores",
+    "zh": "多洛雷斯传教站"
+   },
+   "category": "historic",
+   "lat": 37.764185,
+   "lng": -122.426812,
+   "world": {
+    "x": 195.46,
+    "z": 647.57
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 256442765,
+    "name": "Old Mission Dolores",
+    "url": "https://www.openstreetmap.org/way/256442765",
+    "matchDistM": 29,
+    "wikidata": "Q1000321",
+    "heightTag": 8,
+    "eleTag": 23
+   },
+   "heightM": 8,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 24.8,
+   "lidar": {
+    "sf16_bldgid": "201006.0005375",
+    "maxM": 10.8,
+    "medianM": 8.15,
+    "groundM": 23.59
+   },
+   "trueScaleU": {
+    "height": 1.12,
+    "ground": 3.47
+   },
+   "note": "1791 adobe chapel (oldest building in SF) + basilica."
+  },
+  {
+   "id": "dolores-park",
+   "name": {
+    "en": "Mission Dolores Park",
+    "zh": "多洛雷斯公园"
+   },
+   "category": "park",
+   "lat": 37.759762,
+   "lng": -122.427132,
+   "world": {
+    "x": 241.96,
+    "z": 697.95
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 23871270,
+    "name": "Mission Dolores Park",
+    "url": "https://www.openstreetmap.org/way/23871270",
+    "matchDistM": 27,
+    "wikidata": "Q11519",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 30,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 4.2
+   },
+   "note": "Sloped lawn with downtown skyline view; picnic crowds on sunny days."
+  },
+  {
+   "id": "castro-theatre",
+   "name": {
+    "en": "Castro Theatre",
+    "zh": "卡斯特罗剧院"
+   },
+   "category": "landmark",
+   "lat": 37.762,
+   "lng": -122.434748,
+   "world": {
+    "x": 151.9,
+    "z": 741.35
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 1206216224,
+    "name": "Castro Theatre",
+    "url": "https://www.openstreetmap.org/way/1206216224",
+    "matchDistM": 2,
+    "wikidata": "Q2941518",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 21.7,
+   "heightSource": "DataSF LiDAR 2010 max",
+   "heightNote": null,
+   "groundElevM": 42.6,
+   "lidar": {
+    "sf16_bldgid": "201006.0001998",
+    "maxM": 21.7,
+    "medianM": 16.97,
+    "groundM": 41.43
+   },
+   "trueScaleU": {
+    "height": 3.04,
+    "ground": 5.96
+   },
+   "note": "Vertical blade sign; rainbow crosswalks at Castro & 18th."
+  },
+  {
+   "id": "haight-ashbury",
+   "name": {
+    "en": "Haight & Ashbury",
+    "zh": "海特-阿什伯里"
+   },
+   "category": "neighbourhood",
+   "lat": 37.76999,
+   "lng": -122.44694,
+   "world": {
+    "x": -41.34,
+    "z": 763.45
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 140982670,
+    "name": "Haight-Ashbury",
+    "url": "https://www.openstreetmap.org/node/140982670",
+    "matchDistM": 6,
+    "wikidata": "Q1027700",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 82.3,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 11.53
+   },
+   "note": "Victorians + 1960s counterculture; street sign corner."
+  },
+  {
+   "id": "alamo-square-painted-ladies",
+   "name": {
+    "en": "Alamo Square & Painted Ladies",
+    "zh": "阿拉莫广场与彩绘女士"
+   },
+   "category": "landmark",
+   "lat": 37.776361,
+   "lng": -122.434696,
+   "world": {
+    "x": -7.52,
+    "z": 586.51
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 745183964,
+    "name": "Alamo Square",
+    "url": "https://www.openstreetmap.org/way/745183964",
+    "matchDistM": 150,
+    "wikidata": "Q118533801",
+    "heightTag": null,
+    "eleTag": 79
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 75.8,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 10.62
+   },
+   "note": "Painted Ladies = 710–720 Steiner St (east edge of the park), skyline behind."
+  },
+  {
+   "id": "japantown-peace-pagoda",
+   "name": {
+    "en": "Japantown Peace Pagoda",
+    "zh": "日本城和平塔"
+   },
+   "category": "landmark",
+   "lat": 37.78507,
+   "lng": -122.429855,
+   "world": {
+    "x": -63.06,
+    "z": 450
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 1458363734,
+    "name": "Peace Pagoda",
+    "url": "https://www.openstreetmap.org/way/1458363734",
+    "matchDistM": 8,
+    "wikidata": "Q16899679",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 30,
+   "heightSource": "published",
+   "heightNote": "five-tier pagoda ~30 m (100 ft)",
+   "groundElevM": 47.1,
+   "lidar": {
+    "sf16_bldgid": "201006.0052027",
+    "maxM": 25.9,
+    "medianM": 18.29,
+    "groundM": 46.95
+   },
+   "trueScaleU": {
+    "height": 4.2,
+    "ground": 6.59
+   },
+   "note": "Japan Center plaza."
+  },
+  {
+   "id": "golden-gate-park",
+   "name": {
+    "en": "Golden Gate Park",
+    "zh": "金门公园"
+   },
+   "category": "park",
+   "lat": 37.769397,
+   "lng": -122.482024,
+   "world": {
+    "x": -334.84,
+    "z": 1080.6
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 158602261,
+    "name": "Golden Gate Park",
+    "url": "https://www.openstreetmap.org/way/158602261",
+    "matchDistM": 367,
+    "wikidata": "Q635559",
+    "heightTag": null,
+    "eleTag": 70
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 65.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 9.17
+   },
+   "note": "~4.1 km², 5 km long × 0.8 km, Panhandle to Ocean Beach."
+  },
+  {
+   "id": "de-young",
+   "name": {
+    "en": "de Young Museum (Hamon tower)",
+    "zh": "笛洋美术馆（观景塔）"
+   },
+   "category": "museum",
+   "lat": 37.771498,
+   "lng": -122.46872,
+   "world": {
+    "x": -244.43,
+    "z": 940.17
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 1652482,
+    "name": "de Young Museum",
+    "url": "https://www.openstreetmap.org/relation/1652482",
+    "matchDistM": 7,
+    "wikidata": "Q1470276",
+    "heightTag": 13,
+    "eleTag": null
+   },
+   "heightM": 44,
+   "heightSource": "published",
+   "heightNote": "twisting observation tower 44 m (144 ft)",
+   "groundElevM": 75.2,
+   "lidar": {
+    "sf16_bldgid": "201006.0000063",
+    "maxM": 45.4,
+    "medianM": 13.66,
+    "groundM": 70.29
+   },
+   "trueScaleU": {
+    "height": 6.16,
+    "ground": 10.53
+   },
+   "note": "Perforated copper skin; free observation floor."
+  },
+  {
+   "id": "cal-academy",
+   "name": {
+    "en": "California Academy of Sciences",
+    "zh": "加州科学院"
+   },
+   "category": "museum",
+   "lat": 37.769827,
+   "lng": -122.466092,
+   "world": {
+    "x": -203.35,
+    "z": 934.85
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 28695389,
+    "name": "California Academy of Sciences",
+    "url": "https://www.openstreetmap.org/way/28695389",
+    "matchDistM": 4,
+    "wikidata": "Q134486471",
+    "heightTag": 11,
+    "eleTag": 78
+   },
+   "heightM": 11,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 77.2,
+   "lidar": {
+    "sf16_bldgid": "201006.0000017",
+    "maxM": 19.9,
+    "medianM": 12.08,
+    "groundM": 69.58
+   },
+   "trueScaleU": {
+    "height": 1.54,
+    "ground": 10.81
+   },
+   "note": "Living green roof with 7 hills; rainforest dome."
+  },
+  {
+   "id": "conservatory-of-flowers",
+   "name": {
+    "en": "Conservatory of Flowers",
+    "zh": "花卉温室"
+   },
+   "category": "landmark",
+   "lat": 37.772615,
+   "lng": -122.460224,
+   "world": {
+    "x": -184.19,
+    "z": 852.9
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 30675038,
+    "name": "Conservatory of Flowers",
+    "url": "https://www.openstreetmap.org/way/30675038",
+    "matchDistM": 47,
+    "wikidata": "Q5163145",
+    "heightTag": 15,
+    "eleTag": 77
+   },
+   "heightM": 15,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 75.5,
+   "lidar": {
+    "sf16_bldgid": "201006.0001537",
+    "maxM": 16.4,
+    "medianM": 4.06,
+    "groundM": 75.19
+   },
+   "trueScaleU": {
+    "height": 2.1,
+    "ground": 10.57
+   },
+   "note": "White Victorian glasshouse (1879)."
+  },
+  {
+   "id": "japanese-tea-garden",
+   "name": {
+    "en": "Japanese Tea Garden",
+    "zh": "日本茶园"
+   },
+   "category": "garden",
+   "lat": 37.770343,
+   "lng": -122.470052,
+   "world": {
+    "x": -242.97,
+    "z": 964.38
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 30900516,
+    "name": "Japanese Tea Garden",
+    "url": "https://www.openstreetmap.org/way/30900516",
+    "matchDistM": 37,
+    "wikidata": "Q3270367",
+    "heightTag": null,
+    "eleTag": 77
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 77.9,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 10.9
+   },
+   "note": "Drum bridge, pagoda, koi."
+  },
+  {
+   "id": "stow-lake",
+   "name": {
+    "en": "Stow Lake & Strawberry Hill",
+    "zh": "斯托湖与草莓山"
+   },
+   "category": "park",
+   "lat": 37.768541,
+   "lng": -122.475527,
+   "world": {
+    "x": -269.74,
+    "z": 1032.25
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 358807454,
+    "name": "Strawberry Hill",
+    "url": "https://www.openstreetmap.org/node/358807454",
+    "matchDistM": 17,
+    "wikidata": "Q7622434",
+    "heightTag": null,
+    "eleTag": 129
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 129.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 18.08
+   },
+   "note": "Boats; Huntington Falls; Chinese pavilion."
+  },
+  {
+   "id": "dutch-windmill",
+   "name": {
+    "en": "Dutch Windmill (Queen Wilhelmina Garden)",
+    "zh": "荷兰风车"
+   },
+   "category": "landmark",
+   "lat": 37.770441,
+   "lng": -122.509406,
+   "world": {
+    "x": -580.69,
+    "z": 1311.93
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 287921407,
+    "name": "Dutch Windmill",
+    "url": "https://www.openstreetmap.org/way/287921407",
+    "matchDistM": 61,
+    "wikidata": "Q54799943",
+    "heightTag": 13,
+    "eleTag": 11
+   },
+   "heightM": 13,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 8.5,
+   "lidar": {
+    "sf16_bldgid": "201006.0015555",
+    "maxM": 35.4,
+    "medianM": 13.22,
+    "groundM": 8.43
+   },
+   "trueScaleU": {
+    "height": 1.82,
+    "ground": 1.19
+   },
+   "note": "Tulip garden at the park’s NW corner by Ocean Beach."
+  },
+  {
+   "id": "murphy-windmill",
+   "name": {
+    "en": "Murphy Windmill",
+    "zh": "墨菲风车"
+   },
+   "category": "landmark",
+   "lat": 37.765003,
+   "lng": -122.508697,
+   "world": {
+    "x": -514.09,
+    "z": 1364.11
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 287927026,
+    "name": "Murphy Windmill",
+    "url": "https://www.openstreetmap.org/way/287927026",
+    "matchDistM": 69,
+    "wikidata": "Q50418168",
+    "heightTag": 10,
+    "eleTag": 6
+   },
+   "heightM": 10,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 7.2,
+   "lidar": {
+    "sf16_bldgid": "201006.0007894",
+    "maxM": 34.4,
+    "medianM": 10.07,
+    "groundM": 6.81
+   },
+   "trueScaleU": {
+    "height": 1.4,
+    "ground": 1.01
+   },
+   "note": "SW corner of Golden Gate Park."
+  },
+  {
+   "id": "ocean-beach",
+   "name": {
+    "en": "Ocean Beach",
+    "zh": "海洋海滩"
+   },
+   "category": "beach",
+   "lat": 37.756163,
+   "lng": -122.510487,
+   "world": {
+    "x": -430.99,
+    "z": 1474.99
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 2165532,
+    "name": "Ocean Beach",
+    "url": "https://www.openstreetmap.org/relation/2165532",
+    "matchDistM": 358,
+    "wikidata": "Q2350498",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.4,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.47
+   },
+   "note": "5.6 km straight Pacific beach; Great Highway; fog + surf."
+  },
+  {
+   "id": "cliff-house",
+   "name": {
+    "en": "Cliff House",
+    "zh": "悬崖屋"
+   },
+   "category": "historic",
+   "lat": 37.778557,
+   "lng": -122.513978,
+   "world": {
+    "x": -710.15,
+    "z": 1265.18
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 168942988,
+    "name": "Cliff House",
+    "url": "https://www.openstreetmap.org/way/168942988",
+    "matchDistM": 11,
+    "wikidata": "Q863464",
+    "heightTag": 7,
+    "eleTag": null
+   },
+   "heightM": 7,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 24.4,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 0.98,
+    "ground": 3.42
+   },
+   "note": "Clifftop restaurant building above Seal Rocks; Camera Obscura behind."
+  },
+  {
+   "id": "sutro-baths",
+   "name": {
+    "en": "Sutro Baths ruins",
+    "zh": "苏特罗浴场遗址"
+   },
+   "category": "historic",
+   "lat": 37.780142,
+   "lng": -122.513796,
+   "world": {
+    "x": -726.24,
+    "z": 1246.52
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 32776564,
+    "name": "Sutro Baths",
+    "url": "https://www.openstreetmap.org/way/32776564",
+    "matchDistM": 26,
+    "wikidata": "Q3505806",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 5.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.72
+   },
+   "note": "Concrete ruins + cave tunnel at Point Lobos."
+  },
+  {
+   "id": "lands-end",
+   "name": {
+    "en": "Lands End (Lookout & Mile Rock)",
+    "zh": "天涯海角步道"
+   },
+   "category": "trail",
+   "lat": 37.787738,
+   "lng": -122.505663,
+   "world": {
+    "x": -741.23,
+    "z": 1092.82
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 379784480,
+    "name": "Lands End Point",
+    "url": "https://www.openstreetmap.org/node/379784480",
+    "matchDistM": 64,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 30.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 4.23
+   },
+   "note": "Coastal trail with Golden Gate views; labyrinth at Eagle Point."
+  },
+  {
+   "id": "legion-of-honor",
+   "name": {
+    "en": "Legion of Honor",
+    "zh": "荣勋宫美术馆"
+   },
+   "category": "museum",
+   "lat": 37.78455,
+   "lng": -122.500735,
+   "world": {
+    "x": -663.59,
+    "z": 1083.44
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 21115818,
+    "name": "Legion of Honor",
+    "url": "https://www.openstreetmap.org/relation/21115818",
+    "matchDistM": 11,
+    "wikidata": "Q2468251",
+    "heightTag": null,
+    "eleTag": 113
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 116.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 16.33
+   },
+   "note": "Neoclassical museum in Lincoln Park; glass pyramid; GG view."
+  },
+  {
+   "id": "baker-beach",
+   "name": {
+    "en": "Baker Beach",
+    "zh": "贝克海滩"
+   },
+   "category": "beach",
+   "lat": 37.793153,
+   "lng": -122.48474,
+   "world": {
+    "x": -622.53,
+    "z": 849.28
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 6260732,
+    "name": "Baker Beach",
+    "url": "https://www.openstreetmap.org/relation/6260732",
+    "matchDistM": 112,
+    "wikidata": "Q684879",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": -2.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0
+   },
+   "note": "Classic Golden Gate Bridge view from the SW."
+  },
+  {
+   "id": "presidio",
+   "name": {
+    "en": "Presidio",
+    "zh": "要塞公园"
+   },
+   "category": "park",
+   "lat": 37.798916,
+   "lng": -122.466182,
+   "world": {
+    "x": -527.94,
+    "z": 622.94
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 8346137,
+    "name": "Presidio of San Francisco",
+    "url": "https://www.openstreetmap.org/relation/8346137",
+    "matchDistM": 667,
+    "wikidata": "Q1755360",
+    "heightTag": null,
+    "eleTag": 49
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 54.1,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 7.58
+   },
+   "points": {
+    "mainPost": {
+     "lat": 37.8003,
+     "lng": -122.4588,
+     "world": {
+      "x": -480.2,
+      "z": 542.67
+     },
+     "groundElevM": 20.4
+    },
+    "tunnelTops": {
+     "lat": 37.803,
+     "lng": -122.463,
+     "world": {
+      "x": -546.19,
+      "z": 550.85
+     },
+     "groundElevM": 3.3
+    }
+   },
+   "note": "Former Army post, now national park land; Presidio Tunnel Tops park (2022)."
+  },
+  {
+   "id": "fort-point",
+   "name": {
+    "en": "Fort Point",
+    "zh": "波因特堡"
+   },
+   "category": "historic",
+   "lat": 37.810509,
+   "lng": -122.477104,
+   "world": {
+    "x": -750.43,
+    "z": 595.06
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 5504536,
+    "name": "Fort Point",
+    "url": "https://www.openstreetmap.org/relation/5504536",
+    "matchDistM": 16,
+    "wikidata": "Q1438659",
+    "heightTag": 15,
+    "eleTag": 3
+   },
+   "heightM": 15,
+   "heightSource": "osm height tag",
+   "heightNote": null,
+   "groundElevM": 4.8,
+   "lidar": {
+    "sf16_bldgid": "201006.0000856",
+    "maxM": 64.2,
+    "medianM": 15.28,
+    "groundM": 2.85
+   },
+   "trueScaleU": {
+    "height": 2.1,
+    "ground": 0.67
+   },
+   "note": "Brick Civil-War fort directly under the bridge’s south arch."
+  },
+  {
+   "id": "crissy-field",
+   "name": {
+    "en": "Crissy Field",
+    "zh": "克里西场"
+   },
+   "category": "park",
+   "lat": 37.804593,
+   "lng": -122.464429,
+   "world": {
+    "x": -576.15,
+    "z": 546.38
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 32649967,
+    "name": "Crissy Field",
+    "url": "https://www.openstreetmap.org/way/32649967",
+    "matchDistM": 77,
+    "wikidata": "Q5186096",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.52
+   },
+   "note": "Restored marsh + beach promenade with bridge views; flat, great for running."
+  },
+  {
+   "id": "palace-of-fine-arts",
+   "name": {
+    "en": "Palace of Fine Arts",
+    "zh": "艺术宫"
+   },
+   "category": "landmark",
+   "lat": 37.802918,
+   "lng": -122.448385,
+   "world": {
+    "x": -420.26,
+    "z": 422.27
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 288371295,
+    "name": "Palace of Fine Arts",
+    "url": "https://www.openstreetmap.org/way/288371295",
+    "matchDistM": 7,
+    "wikidata": "Q966263",
+    "heightTag": 48,
+    "eleTag": 3
+   },
+   "heightM": 49,
+   "heightSource": "published",
+   "heightNote": "rotunda 49 m (162 ft)",
+   "groundElevM": 2.7,
+   "lidar": {
+    "sf16_bldgid": "201006.0000986",
+    "maxM": 48.9,
+    "medianM": 37.45,
+    "groundM": 2.71
+   },
+   "trueScaleU": {
+    "height": 6.86,
+    "ground": 0.38
+   },
+   "note": "1915 expo rotunda + colonnade on a lagoon with swans."
+  },
+  {
+   "id": "marina-green",
+   "name": {
+    "en": "Marina Green",
+    "zh": "码头绿地"
+   },
+   "category": "park",
+   "lat": 37.806599,
+   "lng": -122.439129,
+   "world": {
+    "x": -382.06,
+    "z": 300.71
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 16761472,
+    "name": "Marina Green",
+    "url": "https://www.openstreetmap.org/way/16761472",
+    "matchDistM": 115,
+    "wikidata": "Q3293150",
+    "heightTag": null,
+    "eleTag": 1
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 3.3,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.47
+   },
+   "note": "Kite flying; Wave Organ at the jetty tip; yacht harbour."
+  },
+  {
+   "id": "fort-mason",
+   "name": {
+    "en": "Fort Mason",
+    "zh": "梅森堡"
+   },
+   "category": "historic",
+   "lat": 37.806167,
+   "lng": -122.431566,
+   "world": {
+    "x": -312.56,
+    "z": 238.36
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 1478520965,
+    "name": "Fort Mason Farmer's Market",
+    "url": "https://www.openstreetmap.org/node/1478520965",
+    "matchDistM": 30,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 6.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.86
+   },
+   "note": "Pier sheds + Great Meadow between Marina and Aquatic Park."
+  },
+  {
+   "id": "twin-peaks",
+   "name": {
+    "en": "Twin Peaks",
+    "zh": "双子峰"
+   },
+   "category": "hill",
+   "lat": 37.753323,
+   "lng": -122.447422,
+   "world": {
+    "x": 140.08,
+    "z": 946.9
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 11778387241,
+    "name": "Eureka Peak",
+    "url": "https://www.openstreetmap.org/node/11778387241",
+    "matchDistM": 124,
+    "wikidata": "Q125256271",
+    "heightTag": null,
+    "eleTag": 271
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 277.8,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 38.89
+   },
+   "points": {
+    "eurekaPeak": {
+     "lat": 37.75332,
+     "lng": -122.44742,
+     "world": {
+      "x": 140.13,
+      "z": 946.91
+     },
+     "groundElevM": 277.8
+    },
+    "noePeak": {
+     "lat": 37.7516,
+     "lng": -122.44775,
+     "world": {
+      "x": 156.46,
+      "z": 968.33
+     },
+     "groundElevM": 279.7
+    }
+   },
+   "note": "Two summits: Eureka (north, OSM node) and Noe (south, 37.75160,-122.44775); 360° city view; Christmas Tree Point lookout."
+  },
+  {
+   "id": "sutro-tower",
+   "name": {
+    "en": "Sutro Tower",
+    "zh": "苏特罗塔"
+   },
+   "category": "tower",
+   "lat": 37.75523,
+   "lng": -122.45276,
+   "world": {
+    "x": 73.19,
+    "z": 973.68
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 3829019,
+    "name": "Sutro Tower",
+    "url": "https://www.openstreetmap.org/relation/3829019",
+    "matchDistM": 13,
+    "wikidata": "Q650097",
+    "heightTag": 298,
+    "eleTag": 254
+   },
+   "heightM": 298,
+   "heightSource": "published",
+   "heightNote": "298 m (977 ft) structure on Mt Sutro (~254 m)",
+   "groundElevM": 255,
+   "lidar": {
+    "sf16_bldgid": "201006.0009087",
+    "maxM": 286.4,
+    "medianM": 210.44,
+    "groundM": 254.11
+   },
+   "trueScaleU": {
+    "height": 41.72,
+    "ground": 35.7
+   },
+   "note": "Three-legged red/white TV mast; visible everywhere — the orientation beacon."
+  },
+  {
+   "id": "mount-davidson",
+   "name": {
+    "en": "Mount Davidson",
+    "zh": "戴维森山"
+   },
+   "category": "hill",
+   "lat": 37.738264,
+   "lng": -122.453304,
+   "world": {
+    "x": 257.41,
+    "z": 1160.89
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 358806322,
+    "name": "Mount Davidson",
+    "url": "https://www.openstreetmap.org/node/358806322",
+    "matchDistM": 9,
+    "wikidata": "Q3321801",
+    "heightTag": null,
+    "eleTag": 283
+   },
+   "heightM": 31,
+   "heightSource": "published",
+   "heightNote": "concrete cross 31 m (103 ft); summit 282 m — highest natural point in SF",
+   "groundElevM": 276.6,
+   "lidar": null,
+   "trueScaleU": {
+    "height": 4.34,
+    "ground": 38.72
+   },
+   "note": "Wooded summit; Easter-sunrise cross."
+  },
+  {
+   "id": "bernal-heights",
+   "name": {
+    "en": "Bernal Heights Park",
+    "zh": "伯纳尔高地"
+   },
+   "category": "hill",
+   "lat": 37.742986,
+   "lng": -122.415804,
+   "world": {
+    "x": 525.62,
+    "z": 777.95
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 358806089,
+    "name": "Bernal Hill",
+    "url": "https://www.openstreetmap.org/node/358806089",
+    "matchDistM": 137,
+    "wikidata": "Q2745820",
+    "heightTag": null,
+    "eleTag": 132
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 138.6,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 19.4
+   },
+   "note": "Bald hilltop ~133 m with a lone tree swing (the \"Bernal swing\"), view of downtown."
+  },
+  {
+   "id": "telegraph-hill",
+   "name": {
+    "en": "Telegraph Hill",
+    "zh": "电报山"
+   },
+   "category": "hill",
+   "lat": 37.80273,
+   "lng": -122.405851,
+   "world": {
+    "x": -54.33,
+    "z": 47.53
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "node",
+    "id": 358807538,
+    "name": "Telegraph Hill",
+    "url": "https://www.openstreetmap.org/node/358807538",
+    "matchDistM": 92,
+    "wikidata": "Q1283754",
+    "heightTag": null,
+    "eleTag": 91
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 86.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 12.13
+   },
+   "note": "Existing Opus Bay hill (84 m real → 20 u)."
+  },
+  {
+   "id": "russian-hill",
+   "name": {
+    "en": "Russian Hill",
+    "zh": "俄罗斯山"
+   },
+   "category": "hill",
+   "lat": 37.800073,
+   "lng": -122.417094,
+   "world": {
+    "x": -120.92,
+    "z": 175.68
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 1680468587,
+    "name": "Russian Hill",
+    "url": "https://www.openstreetmap.org/node/1680468587",
+    "matchDistM": 202,
+    "wikidata": "Q339055",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 65.5,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 9.17
+   },
+   "note": "Crooked Lombard, Macondray Lane, cable cars on Hyde St; ~90 m."
+  },
+  {
+   "id": "nob-hill",
+   "name": {
+    "en": "Nob Hill",
+    "zh": "诺布山"
+   },
+   "category": "hill",
+   "lat": 37.793262,
+   "lng": -122.415249,
+   "world": {
+    "x": -29.32,
+    "z": 232.56
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 358806914,
+    "name": "Nob Hill",
+    "url": "https://www.openstreetmap.org/node/358806914",
+    "matchDistM": 72,
+    "wikidata": "Q7466",
+    "heightTag": null,
+    "eleTag": 113
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 104.4,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 14.62
+   },
+   "note": "Grand hotels, Grace Cathedral, California St cable car; ~115 m."
+  },
+  {
+   "id": "corona-heights",
+   "name": {
+    "en": "Corona Heights",
+    "zh": "科罗娜高地"
+   },
+   "category": "hill",
+   "lat": 37.764886,
+   "lng": -122.439368,
+   "world": {
+    "x": 80.25,
+    "z": 751.25
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 331937887,
+    "name": "Corona Heights",
+    "url": "https://www.openstreetmap.org/node/331937887",
+    "matchDistM": 61,
+    "wikidata": null,
+    "heightTag": null,
+    "eleTag": 158
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 147.7,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 20.68
+   },
+   "note": "Red chert outcrop above the Castro; ~158 m."
+  },
+  {
+   "id": "north-beach-washington-sq",
+   "name": {
+    "en": "North Beach · Washington Square",
+    "zh": "北滩 · 华盛顿广场"
+   },
+   "category": "neighbourhood",
+   "lat": 37.8008,
+   "lng": -122.4101,
+   "world": {
+    "x": -69.19,
+    "z": 105.91
+   },
+   "inCurrentDistrict": true,
+   "osm": {
+    "type": "way",
+    "id": 18583270,
+    "name": "Washington Square Park",
+    "url": "https://www.openstreetmap.org/way/18583270",
+    "matchDistM": 5,
+    "wikidata": "Q7972206",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 24,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 3.36
+   },
+   "note": "Saints Peter and Paul Church twin spires; Italian cafés."
+  },
+  {
+   "id": "mission-24th-valencia",
+   "name": {
+    "en": "The Mission (Valencia & 24th)",
+    "zh": "教会区"
+   },
+   "category": "neighbourhood",
+   "lat": 37.7598,
+   "lng": -122.4148,
+   "world": {
+    "x": 347.03,
+    "z": 588.3
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "node",
+    "id": 140983158,
+    "name": "Mission",
+    "url": "https://www.openstreetmap.org/node/140983158",
+    "matchDistM": 382,
+    "wikidata": "Q7469",
+    "heightTag": null,
+    "eleTag": 14
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 9.9,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 1.39
+   },
+   "note": "Murals (Balmy Alley, Clarion Alley), taquerias."
+  },
+  {
+   "id": "lake-merced",
+   "name": {
+    "en": "Lake Merced",
+    "zh": "默塞德湖"
+   },
+   "category": "water",
+   "lat": 37.719699,
+   "lng": -122.493704,
+   "world": {
+    "x": 118.49,
+    "z": 1718.33
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "relation",
+    "id": 16308125,
+    "name": "Lake Merced",
+    "url": "https://www.openstreetmap.org/relation/16308125",
+    "matchDistM": 809,
+    "wikidata": "Q6476880",
+    "heightTag": null,
+    "eleTag": 7
+   },
+   "heightM": null,
+   "heightSource": null,
+   "heightNote": null,
+   "groundElevM": 5.2,
+   "lidar": null,
+   "trueScaleU": {
+    "height": null,
+    "ground": 0.73
+   },
+   "note": "SW corner lake; SF Zoo and Fort Funston cliffs nearby."
+  },
+  {
+   "id": "sf-zoo",
+   "name": {
+    "en": "San Francisco Zoo",
+    "zh": "旧金山动物园"
+   },
+   "category": "attraction",
+   "lat": 37.732898,
+   "lng": -122.50232,
+   "world": {
+    "x": -102.14,
+    "z": 1652.76
+   },
+   "inCurrentDistrict": false,
+   "osm": {
+    "type": "way",
+    "id": 404847048,
+    "name": "San Francisco Zoo",
+    "url": "https://www.openstreetmap.org/way/404847048",
+    "matchDistM": 61,
+    "wikidata": "Q1886334",
+    "heightTag": null,
+    "eleTag": null
+   },
+   "heightM": 18.9,
+   "heightSource": "DataSF LiDAR 2010 max",
+   "heightNote": null,
+   "groundElevM": 8.3,
+   "lidar": {
+    "sf16_bldgid": "201006.0001454",
+    "maxM": 18.9,
+    "medianM": 7.22,
+    "groundM": 6.63
+   },
+   "trueScaleU": {
+    "height": 2.65,
+    "ground": 1.16
+   },
+   "note": "Ocean Beach south end."
+  }
+ ],
+ "backdrop": [
+  {
+   "id": "marin-headlands-hawk-hill",
+   "name": {
+    "en": "Marin Headlands · Hawk Hill",
+    "zh": "马林岬角 · 鹰山"
+   },
+   "lat": 37.82556,
+   "lng": -122.4993,
+   "world": {
+    "x": -1107.84,
+    "z": 629.86
+   },
+   "groundElevM_z11max5x5": 235,
+   "note": "Classic view down onto the Golden Gate Bridge; OSM peak ele 281."
+  },
+  {
+   "id": "point-bonita-lighthouse",
+   "name": {
+    "en": "Point Bonita Lighthouse",
+    "zh": "博尼塔角灯塔"
+   },
+   "lat": 37.81563,
+   "lng": -122.52977,
+   "world": {
+    "x": -1257.94,
+    "z": 1006.52
+   },
+   "groundElevM_z11max5x5": 12,
+   "note": "Marin headland tip at the Golden Gate mouth."
+  },
+  {
+   "id": "sausalito",
+   "name": {
+    "en": "Sausalito",
+    "zh": "索萨利托"
+   },
+   "lat": 37.8591,
+   "lng": -122.4852,
+   "world": {
+    "x": -1360.61,
+    "z": 144.4
+   },
+   "groundElevM_z11max5x5": 15,
+   "note": "Houseboats; ferry destination."
+  },
+  {
+   "id": "angel-island-mt-livermore",
+   "name": {
+    "en": "Angel Island · Mt Livermore",
+    "zh": "天使岛"
+   },
+   "lat": 37.86124,
+   "lng": -122.43307,
+   "world": {
+    "x": -938.51,
+    "z": -340.37
+   },
+   "groundElevM_z11max5x5": 215,
+   "note": "Largest island in the Bay; summit ~240 m."
+  },
+  {
+   "id": "mount-tamalpais",
+   "name": {
+    "en": "Mount Tamalpais (East Peak)",
+    "zh": "塔玛佩斯山"
+   },
+   "lat": 37.929,
+   "lng": -122.5778,
+   "world": {
+    "x": -2930.85,
+    "z": 213.21
+   },
+   "groundElevM_z11max5x5": 769,
+   "note": "784 m; the big Marin skyline peak."
+  },
+  {
+   "id": "tiburon-belvedere",
+   "name": {
+    "en": "Tiburon / Belvedere",
+    "zh": "蒂布龙"
+   },
+   "lat": 37.8735,
+   "lng": -122.4567,
+   "world": {
+    "x": -1277.12,
+    "z": -262.85
+   },
+   "groundElevM_z11max5x5": 21,
+   "note": "Peninsula behind Angel Island."
+  },
+  {
+   "id": "bay-bridge-east-span-sas",
+   "name": {
+    "en": "Bay Bridge East Span tower (SAS)",
+    "zh": "海湾大桥东段独塔"
+   },
+   "lat": 37.81527,
+   "lng": -122.35851,
+   "world": {
+    "x": 211.03,
+    "z": -506.63
+   },
+   "groundElevM_z11max5x5": 12,
+   "note": "Self-anchored suspension single tower, OSM height 160 m."
+  },
+  {
+   "id": "oakland-downtown",
+   "name": {
+    "en": "Oakland downtown",
+    "zh": "奥克兰市中心"
+   },
+   "lat": 37.8044,
+   "lng": -122.2711,
+   "world": {
+    "x": 1079.75,
+    "z": -1164.05
+   },
+   "groundElevM_z11max5x5": 14,
+   "note": "East Bay skyline; Port of Oakland cranes (~37.795,-122.32)."
+  },
+  {
+   "id": "port-of-oakland-cranes",
+   "name": {
+    "en": "Port of Oakland cranes",
+    "zh": "奥克兰港吊车"
+   },
+   "lat": 37.797,
+   "lng": -122.318,
+   "world": {
+    "x": 760.94,
+    "z": -669.06
+   },
+   "groundElevM_z11max5x5": 5,
+   "note": "Row of container cranes (the \"AT-AT\" silhouettes)."
+  },
+  {
+   "id": "berkeley-hills-grizzly-peak",
+   "name": {
+    "en": "Berkeley Hills · Grizzly Peak",
+    "zh": "伯克利山"
+   },
+   "lat": 37.8816,
+   "lng": -122.2345,
+   "world": {
+    "x": 533.42,
+    "z": -2318.17
+   },
+   "groundElevM_z11max5x5": 518,
+   "note": "~530 m ridge behind Berkeley/Oakland."
+  },
+  {
+   "id": "san-bruno-mountain",
+   "name": {
+    "en": "San Bruno Mountain",
+    "zh": "圣布鲁诺山"
+   },
+   "lat": 37.6964,
+   "lng": -122.4348,
+   "world": {
+    "x": 881.73,
+    "z": 1447.03
+   },
+   "groundElevM_z11max5x5": 223,
+   "note": "Big bald ridge just south of the city line (OSM summit ele 371)."
+  }
+ ]
+}

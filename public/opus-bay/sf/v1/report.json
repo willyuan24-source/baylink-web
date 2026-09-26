@@ -1,0 +1,658 @@
+{
+ "version": "v1",
+ "built": "2026-09-26T11:46:26.981Z",
+ "runtimeSeconds": 48.659,
+ "timings": {
+  "land": 3.053,
+  "terrain": 0.823,
+  "roads": 2.914,
+  "buildings": 34.677,
+  "graph+transit": 0.676,
+  "places+props": 1.378,
+  "chunks": 3.155,
+  "far+graph": 1.473
+ },
+ "osmBase": "2026-09-26T10:09:51Z",
+ "inputs": [
+  {
+   "file": "sf-data/raw/osm-buildings.json",
+   "bytes": 120277054,
+   "sha256": "5c84d890892c976a94c625ab66123c26673560136820c3b6574f5351ec1d9639"
+  },
+  {
+   "file": "sf-data/raw/osm-highways.json",
+   "bytes": 31879362,
+   "sha256": "2ff7081995ac2b4207c1eb36b945df10a15d82f3387346426d1fca8c82abe375"
+  },
+  {
+   "file": "sf-data/raw/osm-landcover.json",
+   "bytes": 10103973,
+   "sha256": "87ec90bcabdf92aef590586877eaeb90086751724a628386c77b65a78091cae5"
+  },
+  {
+   "file": "sf-data/raw/osm-railways.json",
+   "bytes": 4045238,
+   "sha256": "d79902f6f0b493241ef14aa5be0566031da46ccfae4a90bfa109351606fc6434"
+  },
+  {
+   "file": "sf-data/raw/osm-pois.json",
+   "bytes": 4163843,
+   "sha256": "b801577031a55dfc5ab4b86ac01441b948e11a95f346085ad95bb596a56e3a5a"
+  },
+  {
+   "file": "sf-data/raw/osm-backdrop.json",
+   "bytes": 3325041,
+   "sha256": "d9a80ffa363482b66471a74e0af96f5af666563cc9bc7e3a51f6d61d1ad49f6d"
+  },
+  {
+   "file": "sf-data/raw/osm-boundary.json",
+   "bytes": 47962,
+   "sha256": "133dd9db8f7649a04a1d86bfc86260abcd67ee82b970a707d215466c72d8202e"
+  },
+  {
+   "file": "sf-data/raw/osm-datasf-height-join.json",
+   "bytes": 3708806,
+   "sha256": "9f3ea21afcfffec54e12f05f1d4baf076f421a86583735253ecf55b9949630cf"
+  },
+  {
+   "file": "sf-data/raw/dem-sf-z14.f32",
+   "bytes": 15768760,
+   "sha256": "1d4d1594d33a98e9ae5cbec2278e6152eb657c6345fce14b5417b0742571fe38"
+  },
+  {
+   "file": "sf-data/raw/datasf-neighborhoods-j2bu-swwd.geojson",
+   "bytes": 1713909,
+   "sha256": "376c25348e45a41c540d995c3557ef48232805a152953da75ced2e5b66c86621"
+  },
+  {
+   "file": "sf-data/raw/datasf-street-trees.json",
+   "bytes": 27531988,
+   "sha256": "424a41f98f27357b2eb62d7a7a82f020d73183bcce855a2694d15481d206cc2a"
+  },
+  {
+   "file": "sf-data/landmarks.json",
+   "bytes": 62709,
+   "sha256": "f59973e4c5a92997c662fcdc6110f469a4c28a47562f909c372cf86d9bbab485"
+  }
+ ],
+ "counts": {
+  "chunks": 194,
+  "landChunks": 190,
+  "buildings": 57480,
+  "osmBuildingsKept": 158881,
+  "chains": 18402,
+  "chunkRoadRuns": 27844,
+  "areas": 3155,
+  "props": 39831,
+  "graphNodes": 32569,
+  "graphEdges": 86248,
+  "places": 1027,
+  "transitLines": 4,
+  "names": 2558,
+  "farPrisms": 5690,
+  "zones": 41
+ },
+ "styleCounts": {
+  "industrial": 474,
+  "residential": 4718,
+  "sunset": 11326,
+  "office": 464,
+  "civic": 1618,
+  "deco": 1898,
+  "edwardian": 22451,
+  "brick": 1421,
+  "victorian": 10607,
+  "tower": 151,
+  "marina": 1995,
+  "chinatown": 352,
+  "pier": 5
+ },
+ "bytes": {
+  "chunksGzip": 3337463,
+  "chunkMean": 17203,
+  "chunkMax": 35229,
+  "chunkMaxKey": "-1_1",
+  "far": 202356,
+  "farRaw": 399320,
+  "graph": 339864,
+  "graphRaw": 864404,
+  "transit": 34592,
+  "places": 323440,
+  "total": 3956281
+ },
+ "budgets": [
+  {
+   "name": "chunk ≤ 40 KB gzip",
+   "value": 35229,
+   "limit": 40960,
+   "detail": "-1_1",
+   "pass": true
+  },
+  {
+   "name": "chunk mean ≤ 22 KB gzip",
+   "value": 17203,
+   "limit": 22528,
+   "pass": true
+  },
+  {
+   "name": "total ≤ 5 MB gzip",
+   "value": 3956281,
+   "limit": 5242880,
+   "pass": true
+  },
+  {
+   "name": "far.obc ≤ 400 KB gzip",
+   "value": 202356,
+   "limit": 409600,
+   "pass": true
+  },
+  {
+   "name": "far L2 triangles ≤ 70k",
+   "value": 67403,
+   "limit": 70000,
+   "pass": true
+  },
+  {
+   "name": "graph.obc ≤ 800 KB gzip",
+   "value": 339864,
+   "limit": 819200,
+   "pass": true
+  },
+  {
+   "name": "toy buildings ≤ 60k",
+   "value": 57480,
+   "limit": 60000,
+   "pass": true
+  },
+  {
+   "name": "L0 cell estimate ≤ 14k triangles",
+   "value": 13170,
+   "limit": 14000,
+   "detail": "0_12",
+   "pass": true
+  }
+ ],
+ "budgetsPass": true,
+ "far": {
+  "prisms": 5690,
+  "blockPrisms": 4692,
+  "towers": 151,
+  "sparseBoxes": 847,
+  "areas": 212,
+  "lines": 1853,
+  "l2Triangles": 67403
+ },
+ "l0": {
+  "max": 13170,
+  "p95": 12274,
+  "maxCell": "0_12"
+ },
+ "land": {
+  "areaKm2": 120.88044642857142
+ },
+ "heights": {
+  "realM": [
+   {
+    "from": 0,
+    "to": 6,
+    "n": 9307
+   },
+   {
+    "from": 6,
+    "to": 10,
+    "n": 36417
+   },
+   {
+    "from": 10,
+    "to": 15,
+    "n": 9583
+   },
+   {
+    "from": 15,
+    "to": 25,
+    "n": 1387
+   },
+   {
+    "from": 25,
+    "to": 50,
+    "n": 571
+   },
+   {
+    "from": 50,
+    "to": 100,
+    "n": 164
+   },
+   {
+    "from": 100,
+    "to": 200,
+    "n": 49
+   },
+   {
+    "from": 200,
+    "to": null,
+    "n": 2
+   }
+  ],
+  "toyH": [
+   {
+    "from": 3.6,
+    "to": 4.5,
+    "n": 36957
+   },
+   {
+    "from": 4.5,
+    "to": 5,
+    "n": 14419
+   },
+   {
+    "from": 5,
+    "to": 6,
+    "n": 4700
+   },
+   {
+    "from": 6,
+    "to": 8,
+    "n": 887
+   },
+   {
+    "from": 8,
+    "to": 12,
+    "n": 352
+   },
+   {
+    "from": 12,
+    "to": 20,
+    "n": 128
+   },
+   {
+    "from": 20,
+    "to": 35,
+    "n": 35
+   },
+   {
+    "from": 35,
+    "to": 60,
+    "n": 2
+   },
+   {
+    "from": 60,
+    "to": null,
+    "n": 0
+   }
+  ]
+ },
+ "tallestNonHero": [
+  {
+   "osmId": 445566153,
+   "name": "181 Fremont Tower",
+   "heightM": 244.4,
+   "H": 41.08,
+   "x": 180,
+   "z": 93,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 288511106,
+   "name": "555 California Street",
+   "heightM": 226,
+   "H": 38.23,
+   "x": 82,
+   "z": 142,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 72963089,
+   "name": "Millennium Tower",
+   "heightM": 197,
+   "H": 33.74,
+   "x": 166,
+   "z": 94,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32963382,
+   "name": "Chevron Tower",
+   "heightM": 175,
+   "H": 30.33,
+   "x": 139,
+   "z": 141,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32963370,
+   "name": "44 Montgomery Street",
+   "heightM": 172,
+   "H": 29.86,
+   "x": 125,
+   "z": 152,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32963344,
+   "name": "One Sansome Street",
+   "heightM": 171,
+   "H": 29.71,
+   "x": 122,
+   "z": 138,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32946570,
+   "name": "First Market Tower",
+   "heightM": 169,
+   "H": 29.4,
+   "x": 139,
+   "z": 120,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32946671,
+   "name": "McKesson Plaza",
+   "heightM": 161,
+   "H": 28.15,
+   "x": 129,
+   "z": 169,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 693632325,
+   "name": "Four Seasons Private Residences at 706 Mission Street",
+   "heightM": 160,
+   "H": 28,
+   "x": 157,
+   "z": 200,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 148716020,
+   "name": "One Montgomery Tower",
+   "heightM": 152,
+   "H": 26.76,
+   "x": 118,
+   "z": 170,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 132125167,
+   "name": "333 Bush",
+   "heightM": 151,
+   "H": 26.61,
+   "x": 105,
+   "z": 153,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 80296761,
+   "name": "555 Mission Street",
+   "heightM": 148,
+   "H": 26.14,
+   "x": 166,
+   "z": 136,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 260520160,
+   "name": "650 California Street",
+   "heightM": 142,
+   "H": 25.21,
+   "x": 61,
+   "z": 148,
+   "zone": "Chinatown",
+   "style": "tower"
+  },
+  {
+   "osmId": 260925344,
+   "name": "",
+   "heightM": 134,
+   "H": 23.97,
+   "x": 64,
+   "z": 120,
+   "zone": "Chinatown",
+   "style": "tower"
+  },
+  {
+   "osmId": 438098525,
+   "name": "500 Folsom",
+   "heightM": 134,
+   "H": 23.97,
+   "x": 210,
+   "z": 119,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 6483285,
+   "name": "San Francisco Marriott Marquis",
+   "heightM": 133,
+   "H": 23.82,
+   "x": 153,
+   "z": 223,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 129142347,
+   "name": "Russ Building",
+   "heightM": 132.6,
+   "H": 23.75,
+   "x": 97,
+   "z": 143,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 227689990,
+   "name": "Jasper",
+   "heightM": 131,
+   "H": 23.51,
+   "x": 237,
+   "z": 122,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 79377216,
+   "name": "JPMorgan Chase Building",
+   "heightM": 128,
+   "H": 23.04,
+   "x": 156,
+   "z": 141,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 160673823,
+   "name": "Paramount",
+   "heightM": 127,
+   "H": 22.89,
+   "x": 157,
+   "z": 185,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 33790323,
+   "name": "Fox Plaza",
+   "heightM": 126,
+   "H": 22.73,
+   "x": 130,
+   "z": 428,
+   "zone": "Tenderloin",
+   "style": "tower"
+  },
+  {
+   "osmId": 288512967,
+   "name": "Parc 55 San Francisco - a Hilton Hotel",
+   "heightM": 125,
+   "H": 22.58,
+   "x": 118,
+   "z": 267,
+   "zone": "Tenderloin",
+   "style": "tower"
+  },
+  {
+   "osmId": 941649701,
+   "name": "",
+   "heightM": 125,
+   "H": 22.58,
+   "x": 139,
+   "z": 148,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 132125159,
+   "name": "101 Montgomery",
+   "heightM": 123,
+   "H": 22.27,
+   "x": 111,
+   "z": 150,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 32859640,
+   "name": "",
+   "heightM": 122,
+   "H": 22.11,
+   "x": 71,
+   "z": 151,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 35174722,
+   "name": "",
+   "heightM": 122,
+   "H": 22.11,
+   "x": 121,
+   "z": 445,
+   "zone": "Tenderloin",
+   "style": "tower"
+  },
+  {
+   "osmId": 693627612,
+   "name": "1550 Mission",
+   "heightM": 121,
+   "H": 21.96,
+   "x": 160,
+   "z": 467,
+   "zone": "Mission",
+   "style": "tower"
+  },
+  {
+   "osmId": 260282390,
+   "name": "Shell Building",
+   "heightM": 115.2,
+   "H": 21.06,
+   "x": 120,
+   "z": 116,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 118480404,
+   "name": "Hyatt Regency San Francisco Downtown SOMA",
+   "heightM": 115.2,
+   "H": 21.06,
+   "x": 150,
+   "z": 197,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  },
+  {
+   "osmId": 127460048,
+   "name": "",
+   "heightM": 115,
+   "H": 21.03,
+   "x": 166,
+   "z": 128,
+   "zone": "Financial District/South Beach",
+   "style": "tower"
+  }
+ ],
+ "heroSeam": {
+  "districtHash": "f4fd5f7e",
+  "heroDropLots": [
+   232
+  ],
+  "seamBlocks": 16,
+  "warp": [
+   "east: hero seawall meets the slab edge at (244.0, 12.6), the real coast at (244.0, 28.2)",
+   "west: hero seawall meets the slab edge at (-205.4, 73.6), the real coast at (-218.7, 63.9) — 16.4 u apart along the edge, no warp"
+  ],
+  "warpMaxGradient": 0.585339677452117,
+  "west": {
+   "hero": [
+    -205.41052917232022,
+    73.59648914518318
+   ],
+   "coast": [
+    -218.66869025794855,
+    63.92908002024585
+   ],
+   "gap": 16.408462285095183
+  }
+ },
+ "graph": {
+  "nodes": 32569,
+  "edges": 86248,
+  "components": 8,
+  "droppedNodes": 7757
+ },
+ "log": [
+  "[0.0s] opus-sf build → C:\\Users\\willy\\opus-qa\\sf-build\\20260926T114537Z (version v1)",
+  "[0.2s] warp east: hero seawall meets the slab edge at (244.0, 12.6), the real coast at (244.0, 28.2)",
+  "[0.2s] warp west: hero seawall meets the slab edge at (-205.4, 73.6), the real coast at (-218.7, 63.9) — 16.4 u apart along the edge, no warp",
+  "[0.3s] coastline: 412 ways, 5042 segments in the domain",
+  "[0.9s] land: 5 water seeds flooded 4.01 M u²",
+  "[3.0s] land: 12839 cells of county-line slivers dropped",
+  "[3.1s] land: 120.88 km² (31 components, 937 speck cells dropped)",
+  "[3.9s] terrain: 2561×3073 lattice at 1 u, 160888 seam samples",
+  "[5.4s] roads: 58061 ways (1699 outside San Francisco), 199 pedestrian areas",
+  "[6.2s] roads: 18457 chains from 58061 ways",
+  "[6.2s] roads: 55 deck chains over open water dropped (bridges are landmarks)",
+  "[6.8s] blocks: 5955 street blocks",
+  "[7.0s] areas: 3155 polygons {\"forest\":187,\"park\":364,\"golf\":13,\"water\":62,\"pitch\":615,\"parking\":853,\"grass\":727,\"scrub\":123,\"rock\":19,\"sand\":53,\"pier\":70,\"plaza\":69}",
+  "[7.1s] zones: 41 neighbourhoods",
+  "[9.5s] buildings: 169836 OSM, kept 158881 (skipped by tag 734, < 20 m² 2455, water / other county 7728, outside 17, hero / structure landmarks 9); height from OSM 138520, LiDAR 17036, levels 322, default 3003",
+  "[18.7s] merge rejections {\"backToBack\":19340,\"class\":3014,\"frontage\":12561,\"height\":905,\"cap\":11549,\"block\":412,\"geometry\":8536,\"frontage2\":996}",
+  "[38.9s] merge: 154171 wall pairs, 95889 merges (3 hull fallbacks), 900 rear-yard accessory structures dropped → 62092 toy buildings from 158881",
+  "[40.6s] carve: 47780 footprints cut by toy street corridors, 3596 dropped (< 0.4 u² or < 30 % left)",
+  "[40.8s] hero seam: dropped 1013 in hero-owned blocks, 0 inside the slab off city blocks, 3 near hero exclusions, 0 touching kept hero lots; 16 city blocks straddle the slab; heroDropLots 1",
+  "[41.4s] buildings: 57480 toy buildings (40143 simplified from > 8 vertices); 55 palette entries",
+  "[41.5s] L0 budget: 5610 footprints in dense cells simplified further",
+  "[41.5s] transit: powell-hyde 456 u, 28 stops, 2 turntables, max joint gap 0.00 u, hero spans []",
+  "[41.5s] transit: powell-mason 346 u, 23 stops, 2 turntables, max joint gap 0.00 u, hero spans [[335.04,345.51]]",
+  "[41.5s] transit: california 320 u, 18 stops, 0 turntables, max joint gap 0.00 u, hero spans [[0,71.8]]",
+  "[41.5s] transit: f-line 1136 u, 45 stops, 0 turntables, max joint gap 0.00 u, hero spans [[24.43,503.21]]",
+  "[42.1s] graph: 32569 nodes, 86248 directed edges (street/steps/path/pedestrian/service), 8 components ≥ 50 nodes (largest 31658), dropped 7757 nodes in 2332 small components",
+  "[42.3s] places: 1027 (69 curated + 958 OSM POIs, 141 duplicates skipped, 28 anchors moved onto solid land)",
+  "[42.5s] places: 990/1027 snapped to the largest graph component (≤ 60 u)",
+  "[43.4s] props: street trees 27533 + palms 895 + conifers 1432 (1 in 4; 17587 moved to the curb band, 4783 vetoed)",
+  "[43.4s] props: 3999 park / wood trees",
+  "[43.5s] props: 5707 lamps; {\"tree\":29001,\"pine\":3963,\"palm\":895,\"lamp\":5707,\"stop\":90,\"bench\":144,\"bike-rack\":31}",
+  "[45.3s] chunks: 194 files (190 with land, 84 shore, 8 touch the hero); max building overhang 20.7 u; L0 cell estimate max 13170 (0_12), p95 12274",
+  "[47.8s] far: 5690 prisms (4692 blocks, 151 towers, 847 boxes in sparse blocks) ≈ 67403 triangles; 212 areas, 1853 lines",
+  "[48.6s] budget ok   chunk ≤ 40 KB gzip: 35229 (-1_1)",
+  "[48.6s] budget ok   chunk mean ≤ 22 KB gzip: 17203",
+  "[48.6s] budget ok   total ≤ 5 MB gzip: 3956281",
+  "[48.6s] budget ok   far.obc ≤ 400 KB gzip: 202356",
+  "[48.6s] budget ok   far L2 triangles ≤ 70k: 67403",
+  "[48.6s] budget ok   graph.obc ≤ 800 KB gzip: 339864",
+  "[48.6s] budget ok   toy buildings ≤ 60k: 57480",
+  "[48.6s] budget ok   L0 cell estimate ≤ 14k triangles: 13170 (0_12)"
+ ]
+}

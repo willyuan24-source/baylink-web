@@ -1,0 +1,72 @@
+import type { BatchLike } from '../../builder';
+import { GLOW, LIT, NONE, box, cyl, lathe, pyramid, rect, worldPoly } from './kit';
+import type { SfLandmark } from './index';
+
+/**
+ * Legion of Honor (T2) in Lincoln Park: the neoclassical museum (a 3/4-scale copy of the Paris Palais de la Légion
+ * d'Honneur) — museum block with a domed portico at the back of the Court of Honor, colonnades down both sides,
+ * the triumphal-arch gateway in front and The Thinker on his plinth in the court. Local +z = the gateway side
+ * (yaw 176.9° from OSM relation 21115818; OSM node 2567140420 puts The Thinker at local z +4.4). Height ~20 m for
+ * the dome → 5.7 u; colonnades 2.7 u.
+ */
+
+const X0 = -663.61, Z0 = 1083.82, YAW = (176.9 * Math.PI) / 180;
+const WHITE = '#f1ede4', SHADE = '#ddd6c9', BRONZE = '#4e4436';
+const HALF_W = 4.2, BACK = -5.8, COURT = 0.3, FRONT = 6.5;
+
+function build(b: BatchLike, lod: 0 | 2) {
+  const lit = GLOW(0.1);
+  // museum block, dome, portico
+  box(b, 0, -1.2, (BACK + COURT) / 2, HALF_W * 2, 4.9, COURT - BACK, WHITE, lod === 0 ? [4, 0.4, -6.1, 0] : NONE);
+  if (lod === 0) {
+    box(b, 0, 3.7, (BACK + COURT) / 2, HALF_W * 2 + 0.2, 0.3, COURT - BACK + 0.2, SHADE);
+    lathe(b, [[1.5, 0], [1.5, 0.6], [1.35, 1.1], [0.95, 1.6], [0.35, 1.9], [0.05, 2.0]], 0, 4.0, -2.6, '#c7cfc9', lit, 14);
+  } else lathe(b, [[1.5, 0], [1.2, 1.3], [0.05, 2.0]], 0, 3.7, -2.6, WHITE, lit, 6);
+  // side colonnade wings + front screen with the triumphal arch
+  for (const sx of [-1, 1]) box(b, sx * (HALF_W - 0.4), -1.2, (COURT + FRONT) / 2, 0.8, 3.9, FRONT - COURT, WHITE, lit);
+  if (lod === 2) { box(b, 0, -1.2, FRONT - 0.3, HALF_W * 2 - 1.6, 5.1, 0.7, WHITE, lit); return; }
+  for (const sx of [-1, 1]) box(b, sx * (HALF_W - 1.5), -1.2, FRONT - 0.3, 2.3, 3.9, 0.6, WHITE, lit);
+  // the gateway: two piers and an attic over a walk-through opening (1.5 × 2.8 u)
+  for (const sx of [-1, 1]) box(b, sx * 1.025, -1.2, FRONT - 0.3, 0.55, 5.1, 0.8, WHITE, lit);
+  box(b, 0, 2.8, FRONT - 0.3, 2.6, 1.1, 0.8, WHITE, lit);
+  box(b, 0, 3.9, FRONT - 0.3, 2.9, 0.4, 1.0, SHADE);
+  for (const sx of [-1, 1]) {
+    // gate columns + wing colonnades facing the court
+    for (const cx of [0.95, 1.25]) cyl(b, sx * cx, 0, FRONT + 0.2, 0.12, 3.6, WHITE, NONE, 6);
+    for (let z = COURT + 0.6; z < FRONT - 0.8; z += 0.75) cyl(b, sx * (HALF_W - 0.95), 0, z, 0.1, 2.6, WHITE, NONE, 6);
+    box(b, sx * (HALF_W - 0.75), 2.6, (COURT + FRONT) / 2, 0.8, 0.25, FRONT - COURT - 0.6, SHADE);
+    for (let x = 1.6; x < HALF_W - 0.6; x += 0.7) cyl(b, sx * x, 0, FRONT + 0.05, 0.1, 2.6, WHITE, NONE, 6);
+  }
+  // portico of the museum (six columns + pediment) and the entrance
+  for (let k = 0; k < 6; k++) cyl(b, -1.5 + k * 0.6, 0.3, COURT + 0.55, 0.14, 3.2, WHITE, lit, 6);
+  box(b, 0, 3.4, COURT + 0.5, 3.8, 0.35, 1.0, SHADE);
+  pyramid(b, 0, 3.75, COURT + 0.5, 3.9, 1.0, 0.8, WHITE);
+  box(b, 0, 0, COURT + 0.02, 1.0, 1.8, 0.06, '#5a5047', LIT(0));
+  // Court of Honor paving + The Thinker on his plinth
+  box(b, 0, -0.05, (COURT + FRONT) / 2, HALF_W * 2 - 1.8, 0.08, FRONT - COURT - 0.6, '#e6dfd1');
+  box(b, 0, 0, 4.4, 0.7, 1.1, 0.7, '#cfc7b8');
+  box(b, 0, 1.1, 4.35, 0.36, 0.3, 0.44, BRONZE);
+  box(b, 0, 1.4, 4.28, 0.28, 0.42, 0.26, BRONZE, NONE, 0);
+  box(b, 0, 1.78, 4.42, 0.18, 0.2, 0.2, BRONZE);
+}
+
+export const legionOfHonor: SfLandmark = {
+  id: 'legion-of-honor',
+  tier: 2,
+  x: X0,
+  z: Z0,
+  yaw: YAW,
+  base: 'terrain',
+  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0.4, 9.2, 14)) },
+  build,
+  walk: {
+    blockers: [
+      { poly: rect(0, (BACK + COURT) / 2, HALF_W * 2, COURT - BACK + 0.4) },
+      ...[-1, 1].map(sx => ({ poly: rect(sx * (HALF_W - 0.4), (COURT + FRONT) / 2, 0.8, FRONT - COURT) })),
+      ...[-1, 1].map(sx => ({ poly: rect(sx * 2.7, FRONT - 0.3, 2.3, 0.6) })),
+      ...[-1, 1].map(sx => ({ poly: rect(sx * 1.025, FRONT - 0.3, 0.55, 0.8) })),
+      { x: 0, z: 4.4, r: 0.5 },
+    ],
+  },
+};
+

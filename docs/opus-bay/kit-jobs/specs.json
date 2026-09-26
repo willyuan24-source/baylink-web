@@ -1,0 +1,570 @@
+{
+ "edwardian-flats": {
+  "var": "b",
+  "box": "4.4,5.2,8.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.5,
+   "lift": 0.06,
+   "glass_dark": [
+    0.4,
+    0.65
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#8c9aa6",
+   "remap": [
+    {
+     "hue": [
+      195,
+      250
+     ],
+     "to": "#c9d6e8",
+     "min_s": 0.04,
+     "min_v": 0.2,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "stick-victorian": {
+  "var": "a",
+  "box": "4.4,5.4,8.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.5,
+   "lift": 0.06,
+   "glass_dark": [
+    0.4,
+    0.65
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#8c9aa6",
+   "remap": [
+    {
+     "hue": [
+      255,
+      335
+     ],
+     "to": "#d9c8e6",
+     "min_s": 0.04,
+     "min_v": 0.2,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "queen-anne-corner": {
+  "var": "a",
+  "box": "5.2,6.4,7.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.5,
+   "lift": 0.06,
+   "glass_dark": [
+    0.4,
+    0.65
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#8c9aa6",
+   "remap": [
+    {
+     "hue": [
+      195,
+      265
+     ],
+     "to": "#8c9aa6",
+     "min_s": 0.05,
+     "contrast": 0.45
+    },
+    {
+     "hue": [
+      340,
+      22
+     ],
+     "to": "#e8c6cf",
+     "min_s": 0.14,
+     "min_v": 0.45,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 1.0
+  },
+  "webp_q": 68
+ },
+ "sunset-doelger": {
+  "var": "a",
+  "box": "4.4,4.0,8.0",
+  "storeys": 2,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.06,
+   "glass_dark": [
+    0.4,
+    0.65
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#d9d0c0",
+   "remap": [
+    {
+     "hue": [
+      5,
+      45
+     ],
+     "to": "#d07a55",
+     "min_s": 0.4,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      90,
+      170
+     ],
+     "to": "#cfe0d0",
+     "min_s": 0.06,
+     "min_v": 0.25,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "marina-mediterranean": {
+  "var": "a",
+  "box": "4.4,4.2,8.0",
+  "storeys": 2,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.06,
+   "glass_dark": [
+    0.38,
+    0.65
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#d9d0c0",
+   "remap": [
+    {
+     "hue": [
+      5,
+      40
+     ],
+     "to": "#d07a55",
+     "min_s": 0.56,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      10,
+      45
+     ],
+     "to": "#f2c9b1",
+     "min_s": 0.22,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "richmond-flats": {
+  "var": "b",
+  "box": "4.4,5.4,8.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.06,
+   "glass_dark": [
+    0.38,
+    0.8
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#8c9aa6",
+   "remap": [
+    {
+     "hue": [
+      35,
+      70
+     ],
+     "to": "#f4e2a8",
+     "min_s": 0.15,
+     "min_v": 0.03,
+     "tint": true,
+     "contrast": 0.4,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "chinatown-shophouse": {
+  "var": "b",
+  "box": "4.4,5.4,8.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0.9,
+   "white_v": 0.6,
+   "lift": 0.06,
+   "glass_dark": [
+    0.38,
+    0.6
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#c9bfae",
+   "roof_nz": 0.9,
+   "remap": [
+    {
+     "hue": [
+      140,
+      190
+     ],
+     "to": "#2f8f88",
+     "min_s": 0.15,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      0,
+      28
+     ],
+     "to": "#b8463c",
+     "min_s": 0.4,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      30,
+      60
+     ],
+     "to": "#ece2cf",
+     "min_s": 0.1,
+     "min_v": 0.4,
+     "tint": true,
+     "contrast": 0.5,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "northbeach-corner": {
+  "var": "b",
+  "src": "raw/northbeach-corner-b-sam.glb",
+  "box": "4.4,5.2,5.9",
+  "storeys": 3,
+  "yaw": -90,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.06,
+   "glass_dark": [
+    0.4,
+    0.6
+   ],
+   "glass_front": 1.0,
+   "glass_to": "#79c1bb",
+   "roof_to": "#8c9aa6",
+   "remap": [
+    {
+     "hue": [
+      345,
+      26
+     ],
+     "to": "#d07a55",
+     "min_s": 0.16,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      30,
+      70
+     ],
+     "to": "#f0d49a",
+     "min_s": 0.15,
+     "min_v": 0.02,
+     "tint": true,
+     "contrast": 0.4,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ]
+  }
+ },
+ "soma-warehouse": {
+  "var": "a",
+  "box": "6.6,5.6,8.0",
+  "storeys": 3,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.05,
+   "glass_dark": [
+    0.36,
+    0.6
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#bdb2a4",
+   "remap": [
+    {
+     "hue": [
+      0,
+      22
+     ],
+     "to": "#b56e55",
+     "min_s": 0.45,
+     "tint": true,
+     "contrast": 0.6,
+     "region": "notroof"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  },
+  "webp_q": 68
+ },
+ "mission-mural": {
+  "var": "b",
+  "box": "4.4,4.3,8.0",
+  "storeys": 2,
+  "yaw": 0,
+  "grade": {
+   "sat_max": 0.62,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.05,
+   "glass_dark": [
+    0.3,
+    0.6
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#d9d0c0",
+   "remap": [
+    {
+     "hue": [
+      22,
+      42
+     ],
+     "to": "#f0b15a",
+     "min_s": 0.45,
+     "min_v": 0.45,
+     "contrast": 0.6,
+     "region": "vert"
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ },
+ "deco-apartment": {
+  "var": "b",
+  "box": "6.6,8.2,8.0",
+  "storeys": 5,
+  "yaw": 180,
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0.9,
+   "white_v": 0.55,
+   "lift": 0.05,
+   "glass_dark": [
+    0.4,
+    0.6
+   ],
+   "glass_to": "#79c1bb",
+   "roof_to": "#c9bfaf",
+   "remap": [
+    {
+     "hue": [
+      5,
+      40
+     ],
+     "to": "#d07a55",
+     "min_s": 0.4,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      70,
+      180
+     ],
+     "to": "#7f9c8f",
+     "min_s": 0.1,
+     "max_v": 0.66,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4ecdc",
+     "min_s": 0.0,
+     "max_s": 0.22,
+     "min_v": 0.42,
+     "contrast": 0.55,
+     "region": "notroof",
+     "note": "trim"
+    }
+   ],
+   "glass_front": 0.35
+  }
+ }
+}

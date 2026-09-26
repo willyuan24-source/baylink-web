@@ -1,0 +1,579 @@
+import * as THREE from 'three';
+import { CELL, CHUNK, CURB_BAND } from '../../core/geo';
+import type { Vec2 } from '../../core/types';
+import { BOX, C, CYL, type Info, M, hash2, mixColor, shade } from '../builder';
+import { CITY_PAL } from '../palette';
+import { CITY_ROOFS, CITY_STYLES, type CityBuildingSpec, type CityPalette, toyBuildingL0, toyBuildingL1 } from '../recipes/city';
+import { WIN } from '../recipes/shapes';
+import type { TypedBatchArrays } from '../typedBatch';
+import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
+import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
+import { type Raster, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
+
+/**
+ * Chunk → render geometry for the streamed city (runs in the stream workers; pure, three core only):
+ *
+ *   chunkContext(chunk, init)     rasters shared by both tiers: ground mask as a signed distance (land minus sea,
+ *                                 lakes and the hero slab), landcover classes, street segments for the flattened height
+ *   buildL1(ctx)                  per 64 u cell: one box per building (TOY pool) + 4 u ground with the main streets
+ *                                 (GROUND pool), the chunk's trees / lamps for the instanced props, landmark bases
+ *   buildL0(ctx, sub)             one 64 u cell: full toy buildings, benches / bike racks / stop poles, freeway decks
+ *                                 (TOY) + 2 u road-flattened ground, every street with sidewalks, rails, dashes,
+ *                                 pier decks (GROUND)
+ *
+ * Seam rules (plan §5.1): nothing of the city is drawn inside the hero slab (ground, streets, props); buildings
+ * there were already dropped offline except the seam blocks. Buildings inside a landmark's exclusion are dropped.
+ */
+
+/**
+ * A landmark's footprint (lane D's exclude): city buildings, props and streets inside are dropped, lakes inside are
+ * the landmark's own (the Palace lagoon, the Sutro Baths basins: no city water hole), and the city ground there sinks
+ * by `sink` u so the landmark's own terraces, lanes and plazas (built on the same DEM grade) always stay on top.
+ */
+export interface Exclude { id: string; x: number; z: number; r?: number; poly?: Vec2[]; base?: 'terrain' | number; sink?: number }
+
+/** Sent once to every worker. */
+export interface CityInit {
+  palettes: SfPalette[];
+  /** hero slab outline (DISTRICT.slab) */
+  slab: Vec2[];
+  excludes: Exclude[];
+  /**
+   * The hero's own land + decks (1) at 2 u (core/terrain's grid, downsampled): lane A keeps the buildings of seam
+   * blocks (< 60 % inside the slab) even where they reach inside it, and at the west seam some of them stand where the
+   * hero has water (its seawall runs landward of the real shore) — those are dropped.
+   */
+  heroLand?: { x0: number; z0: number; step: number; cols: number; rows: number; data: Uint8Array };
+}
+
+const P = { none: 0, pavers: 1, stone: 2, planks: 3, grass: 4, asphalt: 5, cobble: 6, earth: 7, brick: 8 } as const;
+const A = Object.fromEntries(AREA_CLASSES.map((c, i) => [c, i])) as Record<(typeof AREA_CLASSES)[number], number>;
+const R = Object.fromEntries(ROAD_CLASSES.map((c, i) => [c, i])) as Record<(typeof ROAD_CLASSES)[number], number>;
+const PK = Object.fromEntries(PROP_KINDS.map((c, i) => [c, i])) as Record<(typeof PROP_KINDS)[number], number>;
+
+/** landcover class → ground colour and GROUND pattern */
+const CLASS_PAINT: Record<number, { color: string; pattern: number }> = {
+  0: { color: CITY_PAL.land, pattern: P.earth },
+  [A.park]: { color: CITY_PAL.park, pattern: P.grass },
+  [A.grass]: { color: CITY_PAL.grass, pattern: P.grass },
+  [A.forest]: { color: CITY_PAL.forest, pattern: P.grass },
+  [A.golf]: { color: CITY_PAL.golf, pattern: P.grass },
+  [A.pitch]: { color: CITY_PAL.pitch, pattern: P.grass },
+  [A.sand]: { color: CITY_PAL.sand, pattern: P.earth },
+  [A.scrub]: { color: CITY_PAL.scrub, pattern: P.earth },
+  [A.rock]: { color: CITY_PAL.rock, pattern: P.earth },
+  [A.plaza]: { color: CITY_PAL.plaza, pattern: P.stone },
+  [A.parking]: { color: CITY_PAL.parking, pattern: P.asphalt },
+  [A.water]: { color: CITY_PAL.land, pattern: P.earth },
+  [A.pier]: { color: CITY_PAL.pier, pattern: P.planks },
+};
+
+// ---------------------------------------------------------------------------
+// shared per-chunk context
+// ---------------------------------------------------------------------------
+
+interface Seg { ax: number; az: number; ay: number; bx: number; bz: number; by: number; hw: number }
+
+/** Street centreline segments in 8 u buckets (flattened height, street-facing side of buildings). */
+class SegIndex {
+  private buckets = new Map<number, Seg[]>();
+  readonly x0: number;
+  readonly z0: number;
+  constructor(x0: number, z0: number) { this.x0 = x0; this.z0 = z0; }
+  private key(i: number, j: number) { return (i + 64) * 1024 + (j + 64); }
+  add(s: Seg, reach: number) {
+    const i0 = Math.floor((Math.min(s.ax, s.bx) - reach - this.x0) / 8), i1 = Math.floor((Math.max(s.ax, s.bx) + reach - this.x0) / 8);
+    const j0 = Math.floor((Math.min(s.az, s.bz) - reach - this.z0) / 8), j1 = Math.floor((Math.max(s.az, s.bz) + reach - this.z0) / 8);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const k = this.key(i, j);
+      let b = this.buckets.get(k);
+      if (!b) { b = []; this.buckets.set(k, b); }
+      b.push(s);
+    }
+  }
+  near(x: number, z: number): Seg[] | undefined { return this.buckets.get(this.key(Math.floor((x - this.x0) / 8), Math.floor((z - this.z0) / 8))); }
+}
+
+const BLEND = 1.5;
+const smooth = (e0: number, e1: number, x: number) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+export interface ChunkContext {
+  chunk: ChunkData;
+  init: CityInit;
+  /** mask raster (0.5 u, chunk ± 4 u) and its signed distance: + = ground */
+  mask: Raster;
+  sdf: Float32Array;
+  /** landcover class raster (1 u, chunk ± 4 u) */
+  cls: Raster;
+  clsData: Uint8Array;
+  segs: SegIndex;
+  /** chunk touches the hero slab */
+  hero: boolean;
+  inSlab(x: number, z: number): boolean;
+  excluded(x: number, z: number): boolean;
+  /** the exclusions touching this chunk, as polygons (circles as 16-gons) for clipping streets */
+  exclusions: { poly: Vec2[]; sink: number }[];
+  /** street ribbons stay out of the slab and the landmark footprints (CityBatch.clampXZ), null when none is near */
+  clampXZ: CityBatch['clampXZ'];
+  /** ground height: DEM with the street corridors flattened to their centreline (plan §4 step 3) */
+  height(x: number, z: number): number;
+  /** DEM only (L1 / skirts) */
+  dem(x: number, z: number): number;
+}
+
+/** Is the centroid of ring i0 … i1 (x, z pairs) inside one of the exclusions? */
+function ringInside(xz: ArrayLike<number>, i0: number, i1: number, inside: (x: number, z: number) => unknown) {
+  let cx = 0, cz = 0;
+  for (let k = i0; k < i1; k++) { cx += xz[k * 2]; cz += xz[k * 2 + 1]; }
+  return i1 > i0 && !!inside(cx / (i1 - i0), cz / (i1 - i0));
+}
+
+const bboxOf = (poly: readonly Vec2[]) => {
+  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+  for (const p of poly) { x0 = Math.min(x0, p.x); z0 = Math.min(z0, p.z); x1 = Math.max(x1, p.x); z1 = Math.max(z1, p.z); }
+  return { x0, z0, x1, z1 };
+};
+
+/** Road classes that are corridors on the ground (flattened, walkable); tram / rail lie inside streets. */
+const CORRIDOR = new Set([R.motorway, R.trunk, R.primary, R.secondary, R.tertiary, R.residential, R.service, R.pedestrian, R.footway, R.path, R.cycleway, R.steps, R.track]);
+
+export function chunkContext(chunk: ChunkData, init: CityInit): ChunkContext {
+  const ox = chunk.cx * CHUNK, oz = chunk.cz * CHUNK, M4 = 4;
+  const mask = makeRaster(ox - M4, oz - M4, ox + CHUNK + M4, oz + CHUNK + M4, 0.5);
+  const cls = makeRaster(ox - M4, oz - M4, ox + CHUNK + M4, oz + CHUNK + M4, 1);
+  const m = new Uint8Array(mask.cols * mask.rows), c = new Uint8Array(cls.cols * cls.rows);
+  const ar = chunk.areas;
+  // exclusions near this chunk (pre-filtered once: height() runs ~10k times per cell)
+  const R16 = 1 / Math.cos(Math.PI / 16);
+  const exclusions = init.excludes.flatMap(e => {
+    const poly = e.poly ?? Array.from({ length: 16 }, (_, k) => ({ x: e.x + Math.cos((k / 16) * Math.PI * 2) * (e.r ?? 0) * R16, z: e.z + Math.sin((k / 16) * Math.PI * 2) * (e.r ?? 0) * R16 }));
+    const b = bboxOf(poly);
+    return b.x1 < ox - 24 || b.x0 > ox + CHUNK + 24 || b.z1 < oz - 24 || b.z0 > oz + CHUNK + 24 ? [] : [{ poly, sink: e.sink ?? 0, box: b }];
+  });
+  const inExclusion = (x: number, z: number) => {
+    for (const e of exclusions) if (x >= e.box.x0 && x <= e.box.x1 && z >= e.box.z0 && z <= e.box.z1 && inPoly(x, z, e.poly)) return e;
+    return null;
+  };
+  let coast = true;
+  for (let i = 0; i < ar.count; i++) {
+    const k = ar.cls[i], i0 = ar.pStart[i], i1 = ar.pStart[i + 1], hole = (ar.flags[i] & AREA_FLAG.hole) !== 0;
+    if (k !== A.land && k !== A.water) coast = false;
+    if (!coast && k === A.water && !hole && ringInside(ar.xz, i0, i1, inExclusion)) continue; // a landmark's own lagoon / basins
+    if (coast || k === A.water) {
+      // coastline rings (land, then its sea holes) and lakes: the ground mask
+      const v = k === A.land ? 1 : 0;
+      fillRing(mask, ar.xz, i0, i1, j => { m[j] = v; });
+      if (k === A.water) fillRing(cls, ar.xz, i0, i1, j => { c[j] = A.water; });
+      continue;
+    }
+    if ((ar.flags[i] & AREA_FLAG.deck) !== 0) continue; // piers: drawn as decks (buildL0 / buildL1)
+    if (hole) fillRing(cls, ar.xz, i0, i1, j => { if (c[j] === k) c[j] = 0; });
+    else fillRing(cls, ar.xz, i0, i1, j => { c[j] = k; });
+  }
+  const sb = bboxOf(init.slab);
+  const hero = !(sb.x1 < ox - M4 || sb.x0 > ox + CHUNK + M4 || sb.z1 < oz - M4 || sb.z0 > oz + CHUNK + M4);
+  if (hero) fillPoly(mask, init.slab, j => { m[j] = 0; });
+  const sdf = signedDistance(m, mask, 16);
+
+  const segs = new SegIndex(ox - 16, oz - 16);
+  const rd = chunk.roads;
+  for (let i = 0; i < rd.count; i++) {
+    if (!CORRIDOR.has(rd.cls[i]) || rd.flags[i] & (ROAD_FLAG.bridge | ROAD_FLAG.deckOnly)) continue;
+    const hw = rd.width[i] / 2;
+    for (let k = rd.pStart[i]; k + 1 < rd.pStart[i + 1]; k++) {
+      const p = rd.xyz;
+      segs.add({ ax: p[k * 3], ay: p[k * 3 + 1], az: p[k * 3 + 2], bx: p[k * 3 + 3], by: p[k * 3 + 4], bz: p[k * 3 + 5], hw }, hw + BLEND);
+    }
+  }
+  const dem = (x: number, z: number) => demSample(chunk.dem, x, z);
+  const flat = (x: number, z: number) => {
+    const base = dem(x, z);
+    const list = segs.near(x, z);
+    if (!list) return base;
+    let bw = 0, by = base, bd = Infinity;
+    for (const s of list) {
+      const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz;
+      let t = L2 > 0 ? ((x - s.ax) * dx + (z - s.az) * dz) / L2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const d = Math.hypot(x - s.ax - dx * t, z - s.az - dz * t);
+      const w = d <= s.hw ? 1 : 1 - smooth(s.hw, s.hw + BLEND, d);
+      if (w <= 0) continue;
+      if (w > bw + 1e-6 || (w >= bw - 1e-6 && d < bd)) { bw = w; bd = d; by = s.ay + (s.by - s.ay) * t; }
+    }
+    return base + (by - base) * bw;
+  };
+  const height = exclusions.some(e => e.sink > 0) ? (x: number, z: number) => flat(x, z) - (inExclusion(x, z)?.sink ?? 0) : flat;
+  const inSlab = (x: number, z: number) => hero && inPoly(x, z, init.slab);
+  const excluded = (x: number, z: number) => inExclusion(x, z) !== null;
+  const clampPolys = [...(hero ? [init.slab] : []), ...exclusions.map(e => e.poly)];
+  const clampXZ = clampPolys.length ? pushOutOf(clampPolys) : null;
+  return { chunk, init, mask, sdf, cls, clsData: c, segs, hero, inSlab, excluded, exclusions, clampXZ, height, dem };
+}
+
+// ---------------------------------------------------------------------------
+// ground paint
+// ---------------------------------------------------------------------------
+
+const _col = new THREE.Color();
+function paintFor(ctx: ChunkContext) {
+  return (x: number, z: number, h: number, slope: number) => {
+    const k = sampleNearest(ctx.clsData, ctx.cls, x, z);
+    const p = CLASS_PAINT[k] ?? CLASS_PAINT[0];
+    const n = hash2(Math.floor(x / 5), Math.floor(z / 5));
+    let col = mixColor(p.color, k === 0 ? CITY_PAL.landShade : shade(p.color, 0.92), n * 0.45);
+    if (slope > 0.75) col = mixColor(col, CITY_PAL.earth, Math.min(0.6, (slope - 0.75) * 0.9));
+    if (k === 0 && h > 30) col = mixColor(col, CITY_PAL.scrub, Math.min(0.35, (h - 30) / 40));
+    return { color: _col.copy(col), pattern: p.pattern };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// buildings
+// ---------------------------------------------------------------------------
+
+interface BuildingRef { i: number; sub: number; poly: Vec2[] }
+
+/** Is (x, z) hero land or deck? (true when the raster is missing: keep lane A's decision) */
+function heroLandAt(init: CityInit, x: number, z: number) {
+  const h = init.heroLand;
+  if (!h) return true;
+  const i = Math.floor((x - h.x0) / h.step), j = Math.floor((z - h.z0) / h.step);
+  return i >= 0 && j >= 0 && i < h.cols && j < h.rows && h.data[j * h.cols + i] === 1;
+}
+
+function buildingsOf(ctx: ChunkContext): BuildingRef[] {
+  const b = ctx.chunk.buildings, out: BuildingRef[] = [];
+  const ox = ctx.chunk.cx * CHUNK, oz = ctx.chunk.cz * CHUNK;
+  for (let i = 0; i < b.count; i++) {
+    const poly: Vec2[] = [];
+    let cx = 0, cz = 0;
+    for (let k = b.vStart[i]; k < b.vStart[i + 1]; k++) { const p = { x: b.xz[k * 2], z: b.xz[k * 2 + 1] }; poly.push(p); cx += p.x; cz += p.z; }
+    if (poly.length < 3) continue;
+    cx /= poly.length; cz /= poly.length;
+    if (ctx.excluded(cx, cz) || (ctx.inSlab(cx, cz) && !heroLandAt(ctx.init, cx, cz))) continue;
+    const sx = Math.min(1, Math.max(0, Math.floor((cx - ox) / CELL))), sz = Math.min(1, Math.max(0, Math.floor((cz - oz) / CELL)));
+    out.push({ i, sub: sx + sz * 2, poly });
+  }
+  return out;
+}
+
+/** The footprint edge facing the nearest street (bay windows and storefronts go there). */
+function frontEdge(ctx: ChunkContext, poly: Vec2[]): number | undefined {
+  let best = -1, bestD = 6;
+  let area = 0;
+  for (let i = 0; i < poly.length; i++) { const p = poly[i], q = poly[(i + 1) % poly.length]; area += p.x * q.z - q.x * p.z; }
+  const s = area >= 0 ? 1 : -1;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const L = Math.hypot(b.x - a.x, b.z - a.z);
+    if (L < 1.4) continue;
+    const nx = (s * (b.z - a.z)) / L, nz = (-s * (b.x - a.x)) / L;
+    const px = (a.x + b.x) / 2 + nx * 2.2, pz = (a.z + b.z) / 2 + nz * 2.2;
+    const list = ctx.segs.near(px, pz);
+    if (!list) continue;
+    for (const g of list) {
+      const dx = g.bx - g.ax, dz = g.bz - g.az, L2 = dx * dx + dz * dz;
+      let t = L2 > 0 ? ((px - g.ax) * dx + (pz - g.az) * dz) / L2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const d = Math.hypot(px - g.ax - dx * t, pz - g.az - dz * t) - g.hw - L * 0.02;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+  }
+  return best >= 0 ? best : undefined;
+}
+
+/**
+ * Flat roofs of the commercial / civic styles: the palettes' grey-brown roofs (#b5ad9f …) read as a brown carpet from
+ * the hills, and aerial views are mostly roofs; cream and pale stone like the hero's roofs, with the odd terracotta
+ * deck, roof garden or pale-teal plant room keeps downtown warm and toy-like (colour picked per osmId).
+ */
+const FLAT_ROOFS = ['#e6dccb', '#e0d5c2', '#ebe3d4', '#dcd2c2', '#e7d6bf', '#e2dccf'];
+const ACCENT_ROOFS = ['#d6997a', '#adc197', '#c5d5cf', '#e0b98c'];
+const LIGHT_ROOF = new Set(['office', 'tower', 'deco', 'civic', 'brick', 'industrial', 'chinatown', 'pier']);
+export function flatRoofColor(seed: number): string {
+  const h = hash2(seed * 0.0137, 3.7);
+  return h < 0.12 ? ACCENT_ROOFS[Math.floor(h * 100) % ACCENT_ROOFS.length] : FLAT_ROOFS[Math.floor(h * 997) % FLAT_ROOFS.length];
+}
+
+function specOf(ctx: ChunkContext, ref: BuildingRef, withFront: boolean): CityBuildingSpec {
+  const b = ctx.chunk.buildings, i = ref.i;
+  const pal = ctx.init.palettes[b.palette[i]];
+  const style = CITY_STYLES[b.style[i]] ?? 'residential', roof = CITY_ROOFS[b.roof[i]] ?? 'flat';
+  const palette: CityPalette | number = pal ? { wall: pal.wall, trim: pal.trim, roof: roof === 'flat' && LIGHT_ROOF.has(style) ? flatRoofColor(b.osmId[i]) : pal.roof } : b.palette[i];
+  return {
+    poly: ref.poly,
+    baseY: b.baseY[i],
+    H: b.height[i],
+    style,
+    roof,
+    palette,
+    seed: b.osmId[i],
+    flags: b.flags[i],
+    front: withFront ? frontEdge(ctx, ref.poly) : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// streets
+// ---------------------------------------------------------------------------
+
+interface StreetStyle { walk: string; walkPat: number; asphalt?: string; dash?: boolean }
+const STREET: Partial<Record<number, StreetStyle>> = {
+  [R.motorway]: { walk: CITY_PAL.curb, walkPat: P.none, asphalt: CITY_PAL.motorway, dash: true },
+  [R.trunk]: { walk: CITY_PAL.sidewalk, walkPat: P.pavers, asphalt: CITY_PAL.asphaltMajor, dash: true },
+  [R.primary]: { walk: CITY_PAL.sidewalk, walkPat: P.pavers, asphalt: CITY_PAL.asphaltMajor, dash: true },
+  [R.secondary]: { walk: CITY_PAL.sidewalk, walkPat: P.pavers, asphalt: CITY_PAL.asphalt, dash: true },
+  [R.tertiary]: { walk: CITY_PAL.sidewalk, walkPat: P.pavers, asphalt: CITY_PAL.asphalt, dash: true },
+  [R.residential]: { walk: CITY_PAL.sidewalk, walkPat: P.pavers, asphalt: CITY_PAL.asphalt },
+  [R.service]: { walk: CITY_PAL.asphalt, walkPat: P.asphalt },
+  [R.pedestrian]: { walk: CITY_PAL.pedestrian, walkPat: P.stone },
+  [R.footway]: { walk: CITY_PAL.footway, walkPat: P.stone },
+  [R.path]: { walk: CITY_PAL.path, walkPat: P.earth },
+  [R.cycleway]: { walk: CITY_PAL.cycleway, walkPat: P.earth },
+  [R.steps]: { walk: CITY_PAL.steps, walkPat: P.stone },
+  [R.track]: { walk: CITY_PAL.track, walkPat: P.earth },
+};
+const LIFT = { walk: 0.035, asphalt: 0.055, rail: 0.075, dash: 0.07 } as const;
+const gInfo = (pattern: number): Info => [pattern, 0, 0, GROUND_CITY];
+
+/** Street pieces of the chunk inside the square [x0, x0 + s]² (and outside the hero slab). */
+function streetPieces(ctx: ChunkContext, i: number, x0: number, z0: number, s: number): Line3[] {
+  const rd = ctx.chunk.roads;
+  let pieces = clipPolyline(rd.xyz, rd.pStart[i], rd.pStart[i + 1], x0, z0, x0 + s, z0 + s);
+  if (ctx.hero && pieces.length) pieces = pieces.flatMap(l => clipOutside(l, ctx.init.slab, (x, z) => inPoly(x, z, ctx.init.slab)));
+  // a landmark draws its own streets (Lombard's crooked block, the GGB deck): the city's stop at its footprint
+  for (const e of ctx.exclusions) if (pieces.length) pieces = pieces.flatMap(l => clipOutside(l, e.poly, (x, z) => inPoly(x, z, e.poly)));
+  return pieces;
+}
+
+/** Elevated deck (freeway viaducts, bridges): asphalt top (ground batch), slab sides and pillars (toy batch). */
+function deck(ctx: ChunkContext, g: CityBatch, t: CityBatch | null, l: Line3, w: number, walk: boolean) {
+  if (walk) ribbon(g, l, w, 0.03, C(CITY_PAL.sidewalk), gInfo(P.stone));
+  ribbon(g, l, walk ? Math.max(1.6, w - CURB_BAND * 2) : w - 0.3, 0.05, C(CITY_PAL.motorway), gInfo(P.asphalt));
+  if (!t) return;
+  const side = C(CITY_PAL.deckSide), pillar = C(CITY_PAL.pillar);
+  const n = l.length / 3;
+  let acc = 7;
+  for (let k = 0; k + 1 < n; k++) {
+    const ax = l[k * 3], ay = l[k * 3 + 1], az = l[k * 3 + 2], bx = l[k * 3 + 3], by = l[k * 3 + 4], bz = l[k * 3 + 5];
+    const L = Math.hypot(bx - ax, bz - az);
+    if (L < 1e-3) continue;
+    const yaw = Math.atan2(bx - ax, bz - az);
+    // slab: a box under the deck surface
+    t.add(BOX(), M((ax + bx) / 2, Math.min(ay, by) - 0.75, (az + bz) / 2, yaw, w, 0.75 + Math.abs(by - ay) * 0.5, L + 0.05), side, [WIN.none, 0, 0, 0]);
+    // pillars every 14 u
+    while (acc < L) {
+      const f = acc / L, x = ax + (bx - ax) * f, z = az + (bz - az) * f, y = ay + (by - ay) * f - 0.75;
+      const gy = ctx.dem(x, z);
+      if (y - gy > 1.2) t.add(CYL(8), M(x, gy - 0.5, z, 0, 0.5, y - gy + 0.5, 0.5), pillar, [WIN.none, gy, 0, 0]);
+      acc += 14;
+    }
+    acc -= L;
+  }
+}
+
+/** Every street of the cell (L0): sidewalk band, asphalt, centre dashes, rails, steps, paths, freeway decks. */
+function streetsL0(ctx: ChunkContext, g: CityBatch, t: CityBatch, x0: number, z0: number) {
+  const rd = ctx.chunk.roads;
+  const asphalt: [Line3, number, number][] = [], extras: (() => void)[] = [];
+  for (let i = 0; i < rd.count; i++) {
+    const k = rd.cls[i], f = rd.flags[i], w = rd.width[i];
+    const pieces = streetPieces(ctx, i, x0, z0, CELL);
+    if (!pieces.length) continue;
+    if (f & (ROAD_FLAG.deckOnly | ROAD_FLAG.bridge)) {
+      const walk = !(f & ROAD_FLAG.deckOnly) && k !== R.motorway;
+      for (const l of pieces) extras.push(() => deck(ctx, g, t, l, w, walk));
+      continue;
+    }
+    if (k === R.tram || k === R.rail) {
+      const cable = (f & ROAD_FLAG.cable) !== 0;
+      for (const l of pieces) extras.push(() => {
+        if (k === R.rail) ribbon(g, l, 2.2, LIFT.walk + 0.004, C(CITY_PAL.ballast), gInfo(P.cobble));
+        for (const o of [-0.72, 0.72]) {
+          ribbon(g, l, 0.16, LIFT.rail, C(CITY_PAL.rail), gInfo(P.none), o);
+          ribbon(g, l, 0.07, LIFT.rail + 0.004, C(CITY_PAL.railTop), gInfo(P.none), o);
+        }
+        if (cable) ribbon(g, l, 0.06, LIFT.rail, C('#3f3a35'), gInfo(P.none));
+      });
+      continue;
+    }
+    const st = STREET[k];
+    if (!st) continue;
+    for (const l of pieces) {
+      if (st.asphalt) asphalt.push([l, Math.max(1.6, w - CURB_BAND * 2), k]);
+      else {
+        const col = C(st.walk), pat = st.walkPat;
+        extras.push(() => ribbon(g, l, w, k === R.service ? LIFT.asphalt - 0.004 : LIFT.walk + 0.002, col, pat === P.pavers ? (s, o) => [P.pavers, s, o, GROUND_CITY] : gInfo(pat)));
+      }
+    }
+  }
+  // sidewalks first, asphalt on top (clean junctions), then paths / steps / rails / decks
+  const sw = C(CITY_PAL.sidewalk);
+  for (const [l, aw, k] of asphalt) {
+    const row = aw + CURB_BAND * 2;
+    const st = STREET[k]!;
+    ribbon(g, l, row, LIFT.walk, st.walk === CITY_PAL.sidewalk ? sw : C(st.walk), (s, o) => [st.walkPat, s, o, GROUND_CITY]);
+  }
+  for (const [l, aw, k] of asphalt) {
+    const st = STREET[k]!;
+    ribbon(g, l, aw, LIFT.asphalt, C(st.asphalt!), gInfo(P.asphalt));
+    ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), aw / 2 - 0.06);
+    ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), -aw / 2 + 0.06);
+    if (st.dash && aw > 3.2) dashes(g, l, 0.14, LIFT.dash, C(CITY_PAL.dash), 1.6, 4, gInfo(P.none));
+  }
+  for (const e of extras) e();
+}
+
+/** Main streets for L1 (asphalt only) and freeway decks as flat ribbons. */
+function streetsL1(ctx: ChunkContext, g: CityBatch, x0: number, z0: number) {
+  const rd = ctx.chunk.roads;
+  const lift = 0.14;
+  const onGround = (x: number, z: number, y: number) => Math.max(y, ctx.dem(x, z));
+  for (let i = 0; i < rd.count; i++) {
+    const k = rd.cls[i], f = rd.flags[i];
+    const st = STREET[k];
+    if (!st || !(st.asphalt || k === R.pedestrian)) continue;
+    const elevated = (f & (ROAD_FLAG.deckOnly | ROAD_FLAG.bridge)) !== 0;
+    for (const l of streetPieces(ctx, i, x0, z0, CELL)) {
+      const w = rd.width[i];
+      if (!elevated) ribbon(g, l, w, lift - 0.02, C(st.walk === CITY_PAL.sidewalk ? CITY_PAL.sidewalk : st.walk), gInfo(P.none), 0, onGround);
+      ribbon(g, l, st.asphalt ? Math.max(1.6, w - CURB_BAND * 2) : w, lift, C(st.asphalt ?? st.walk), gInfo(st.asphalt ? P.asphalt : P.stone), 0, elevated ? undefined : onGround);
+    }
+  }
+}
+
+/** Pier decks (area class pier with the deck flag) of the square: planks at y 0 and a dark timber edge. */
+const _pp = { x: 0, z: 0 };
+function piers(ctx: ChunkContext, g: CityBatch, x0: number, z0: number, s: number) {
+  const ar = ctx.chunk.areas;
+  for (let i = 0; i < ar.count; i++) {
+    if (ar.cls[i] !== A.pier || !(ar.flags[i] & AREA_FLAG.deck)) continue;
+    const poly: Vec2[] = [];
+    let cx = 0, cz = 0;
+    for (let k = ar.pStart[i]; k < ar.pStart[i + 1]; k++) { const p = { x: ar.xz[k * 2], z: ar.xz[k * 2 + 1] }; poly.push(p); cx += p.x; cz += p.z; }
+    if (poly.length < 3) continue;
+    cx /= poly.length; cz /= poly.length;
+    if (cx < x0 || cz < z0 || cx >= x0 + s || cz >= z0 + s || ctx.inSlab(cx, cz)) continue;
+    // a pier crossing the slab edge stops at it (the hero draws its own decks inside)
+    if (ctx.hero && ctx.clampXZ) for (const p of poly) { ctx.clampXZ(p.x, p.z, _pp); p.x = _pp.x; p.z = _pp.z; }
+    const ang = Math.atan2(poly[1].z - poly[0].z, poly[1].x - poly[0].x);
+    g.polygon(poly, 0.06, C(CITY_PAL.pier), [P.planks, ang, 0, GROUND_CITY]);
+    g.walls(poly, -1.2, 0.06, C(CITY_PAL.pierSide), [0, 0, 0, GROUND_CITY], shade(CITY_PAL.pierSide, 0.6));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// props
+// ---------------------------------------------------------------------------
+
+/** Instanced props of a chunk (trees, conifers, palms, lamps), y = flattened ground. */
+export interface PropArrays { count: number; kind: Uint8Array; variant: Uint8Array; xyzr: Float32Array }
+
+function propsOf(ctx: ChunkContext): PropArrays {
+  const p = ctx.chunk.props;
+  const kind: number[] = [], variant: number[] = [], xyzr: number[] = [];
+  for (let i = 0; i < p.count; i++) {
+    const k = p.kind[i];
+    if (k !== PK.tree && k !== PK.pine && k !== PK.palm && k !== PK.lamp) continue;
+    const x = p.xz[i * 2], z = p.xz[i * 2 + 1];
+    if (ctx.inSlab(x, z) || ctx.excluded(x, z) || sampleField(ctx.sdf, ctx.mask, x, z) < 0.3) continue;
+    kind.push(k); variant.push(p.variant[i]); xyzr.push(x, ctx.height(x, z), z, p.rot[i]);
+  }
+  return { count: kind.length, kind: Uint8Array.from(kind), variant: Uint8Array.from(variant), xyzr: Float32Array.from(xyzr) };
+}
+
+/** Street furniture baked into the L0 toy batch: benches, bike racks, stop poles. */
+function furniture(ctx: ChunkContext, t: CityBatch, x0: number, z0: number) {
+  const p = ctx.chunk.props;
+  const wood = '#a4774d', metal = '#39433f';
+  for (let i = 0; i < p.count; i++) {
+    const k = p.kind[i];
+    if (k !== PK.bench && k !== PK['bike-rack'] && k !== PK.stop) continue;
+    const x = p.xz[i * 2], z = p.xz[i * 2 + 1];
+    if (x < x0 || z < z0 || x >= x0 + CELL || z >= z0 + CELL || ctx.inSlab(x, z) || ctx.excluded(x, z)) continue;
+    const y = ctx.height(x, z), ry = p.rot[i];
+    const keep: Info = [0, y, 0, 0];
+    if (k === PK.bench) {
+      t.add(BOX(), M(x, y + 0.42, z, ry, 1.55, 0.08, 0.46), wood, keep);
+      t.add(BOX(), M(x, y + 0.58, z, ry, 1.55, 0.36, 0.06, -0.18), wood, keep);
+      for (const s of [-0.65, 0.65]) t.add(BOX(), M(x + Math.cos(ry) * s, y, z - Math.sin(ry) * s, ry, 0.08, 0.42, 0.4), metal, keep);
+    } else if (k === PK['bike-rack']) {
+      for (const s of [-0.5, 0, 0.5]) t.add(BOX(), M(x + Math.cos(ry) * s, y, z - Math.sin(ry) * s, ry, 0.06, 0.7, 0.7), '#56655f', keep);
+    } else {
+      t.add(CYL(6), M(x, y, z, 0, 0.05, 2.6, 0.05), metal, keep);
+      t.add(BOX(), M(x, y + 2.2, z, ry, 0.5, 0.6, 0.05), '#d8744a', keep);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// tiers
+// ---------------------------------------------------------------------------
+
+const lipColor = () => C(CITY_PAL.lip);
+
+export interface L1Result {
+  cells: { sub: number; toy: PoolArrays | null; ground: PoolArrays | null }[];
+  props: PropArrays;
+  /** 'terrain'-based landmarks centred in this chunk: the lowest ground in their exclusion */
+  bases: { id: string; y: number }[];
+  ms: number;
+}
+
+export function buildL1(ctx: ChunkContext): L1Result {
+  const t0 = performance.now();
+  const refs = buildingsOf(ctx);
+  const paint = paintFor(ctx);
+  const cells: L1Result['cells'] = [];
+  for (let sub = 0; sub < 4; sub++) {
+    const ox = ctx.chunk.cx * CHUNK + (sub & 1) * CELL, oz = ctx.chunk.cz * CHUNK + (sub >> 1) * CELL;
+    const t = new CityBatch(4096), g = new CityBatch(2048);
+    g.clampXZ = ctx.clampXZ;
+    for (const r of refs) if (r.sub === sub) toyBuildingL1(t, specOf(ctx, r, false));
+    buildGround(g, {
+      x0: ox, z0: oz, size: CELL, step: 4,
+      sdf: (x, z) => sampleField(ctx.sdf, ctx.mask, x, z),
+      height: ctx.dem, paint, lip: 1.4, lipColor, skirt: 2.5,
+    });
+    streetsL1(ctx, g, ox, oz);
+    piers(ctx, g, ox, oz, CELL);
+    cells.push({ sub, toy: t.toPool(), ground: g.toPool() });
+  }
+  const bases: L1Result['bases'] = [];
+  const ox = ctx.chunk.cx * CHUNK, oz = ctx.chunk.cz * CHUNK;
+  for (const e of ctx.init.excludes) {
+    if (e.base !== 'terrain' || e.x < ox || e.z < oz || e.x >= ox + CHUNK || e.z >= oz + CHUNK) continue;
+    const r = e.r ?? 8;
+    let lo = Infinity;
+    for (let dz = -r; dz <= r; dz += 2) for (let dx = -r; dx <= r; dx += 2) {
+      if (dx * dx + dz * dz > r * r) continue;
+      if (sampleField(ctx.sdf, ctx.mask, e.x + dx, e.z + dz) <= 0) continue;
+      lo = Math.min(lo, ctx.height(e.x + dx, e.z + dz));
+    }
+    if (lo < Infinity) bases.push({ id: e.id, y: lo });
+  }
+  return { cells, props: propsOf(ctx), bases, ms: performance.now() - t0 };
+}
+
+export interface L0Result { sub: number; toy: TypedBatchArrays | null; ground: TypedBatchArrays | null; triangles: number; ms: number }
+
+export function buildL0(ctx: ChunkContext, sub: number): L0Result {
+  const t0 = performance.now();
+  const ox = ctx.chunk.cx * CHUNK + (sub & 1) * CELL, oz = ctx.chunk.cz * CHUNK + (sub >> 1) * CELL;
+  const t = new CityBatch(16384), g = new CityBatch(8192);
+  g.clampXZ = ctx.clampXZ;
+  for (const r of buildingsOf(ctx)) if (r.sub === sub) toyBuildingL0(t, specOf(ctx, r, true));
+  furniture(ctx, t, ox, oz);
+  buildGround(g, {
+    x0: ox, z0: oz, size: CELL, step: 2,
+    sdf: (x, z) => sampleField(ctx.sdf, ctx.mask, x, z),
+    height: ctx.height, paint: paintFor(ctx), lip: 1.4, lipColor, skirt: 1.5,
+  });
+  streetsL0(ctx, g, t, ox, oz);
+  piers(ctx, g, ox, oz, CELL);
+  return { sub, toy: t.arrays(), ground: g.arrays(), triangles: t.triangleCount + g.triangleCount, ms: performance.now() - t0 };
+}
+
+/** Sea-level check used by tests and the far builder: is (x, z) city ground of this chunk? */
+export function isGround(ctx: ChunkContext, x: number, z: number) { return sampleField(ctx.sdf, ctx.mask, x, z) > 0; }
+

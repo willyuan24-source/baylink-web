@@ -1,0 +1,729 @@
+import * as THREE from 'three';
+import type { ThreeEvent } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { emit, onEvent, type GameEvent } from '../core/events';
+import { input, pollInput } from '../core/input';
+import { runtime } from '../core/runtime';
+import { game } from '../core/store';
+import { MAX_GROUND_Y, canStand, heightAt, inWorld, nearestWalkable } from '../core/terrain';
+import type { Vec2 } from '../core/types';
+import { MODELS } from '../data/assets';
+import { DISTRICT } from '../data/district';
+import { nodeById } from '../game/flow';
+import { interactableById } from '../game/interactables';
+import { flow } from '../game/flowStore';
+import { Animator, GLB_BAYBAY_TUNING, type Emote } from './anim';
+import { PlayerController, RUN_SPEED, WALK_SPEED, dampAngle, type Obstacle } from './controller';
+import { GUIDE_RUN, GUIDE_WALK, GuideMover } from './guide';
+import { moveBasis, residents, view } from './view';
+import { CHAR_SCALE } from './dims';
+import { baybayGlbUniforms, buildBaybay, buildNewcomer, rigFromGltf, rimUniforms, type Rig } from './models';
+import { NPC_DEFS, Npc } from './npcs';
+import { DRAG_THRESHOLD } from './pointer';
+import { MoveSystem } from './moveSystem';
+
+/**
+ * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
+ * player + BAYBAY + residents (one skinned draw each), one instanced blob-shadow draw, the click target
+ * ring, and an invisible ground picker whose raycast is an analytic height-field march (no triangles).
+ * The movement system (moveSystem.ts) owns the rideable toys, the pelican glide, benches and the streetcar
+ * platform; when it carries the newcomer / BAYBAY it says where to draw them.
+ */
+
+export { view } from './view';
+
+const BLOB_DAY = new THREE.Color('#3a2816'), BLOB_NIGHT = new THREE.Color('#2e2a3a');
+const TALKING_NPCS = new Set(['npc-vendor', 'npc-fisher', 'npc-family', 'npc-streetcar', 'npc-jogger']);
+const BABY_EMOTES = new Set(['wave', 'point', 'hop', 'clap', 'shrug', 'think']);
+
+function radialTexture() {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  // white alpha falloff; the material colour tints it (warm brown by day, cool violet at night)
+  g.addColorStop(0, 'rgba(255,255,255,0.68)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.42)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Dev-only `?glb=0` keeps the procedural BAYBAY (A/B and fallback QA). */
+function glbDisabled(): boolean {
+  if (!import.meta.env.DEV || typeof location === 'undefined') return false;
+  try { return new URLSearchParams(location.search).get('glb') === '0'; } catch { return false; }
+}
+
+const frustum = new THREE.Frustum();
+const tmpPM = new THREE.Matrix4();
+const tmpSphere = new THREE.Sphere();
+
+const tmpM = new THREE.Matrix4();
+const tmpQ = new THREE.Quaternion();
+const tmpV = new THREE.Vector3();
+const tmpS = new THREE.Vector3();
+const UP = new THREE.Vector3(0, 1, 0);
+const tmpN = new THREE.Vector3();
+
+function groundNormal(x: number, z: number, out: THREE.Vector3) {
+  const e = 0.35;
+  const hx = heightAt(x + e, z) - heightAt(x - e, z), hz = heightAt(x, z + e) - heightAt(x, z - e);
+  return out.set(-hx / (2 * e), 1, -hz / (2 * e)).normalize();
+}
+
+/** Ray-march the terrain height field (clicks / taps): exact, zero triangles. */
+function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+  const o = raycaster.ray.origin, d = raycaster.ray.direction;
+  if (d.y > -1e-3) return;
+  const top = MAX_GROUND_Y;
+  let t = o.y > top ? (top - o.y) / d.y : 0;
+  const tMax = Math.min(raycaster.far, t + 1400);
+  let prevT = t;
+  for (let i = 0; i < 900 && t <= tMax; i++) {
+    const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t;
+    if (y < -6) return;
+    const inside = inWorld(x, z);
+    const h = inside ? heightAt(x, z) : 0;
+    const diff = y - h;
+    if (inside && diff <= 0) {
+      let lo = prevT, hi = t;
+      for (let k = 0; k < 10; k++) {
+        const mid = (lo + hi) / 2;
+        const mx = o.x + d.x * mid, mz = o.z + d.z * mid, my = o.y + d.y * mid;
+        if (my - heightAt(mx, mz) > 0) lo = mid; else hi = mid;
+      }
+      const hitT = (lo + hi) / 2;
+      if (hitT < raycaster.near || hitT > raycaster.far) return;
+      intersects.push({ distance: hitT, point: new THREE.Vector3(o.x + d.x * hitT, o.y + d.y * hitT, o.z + d.z * hitT), object: this });
+      return;
+    }
+    prevT = t;
+    t += Math.max(0.25, diff * 0.55);
+  }
+}
+
+class TargetRing {
+  readonly mesh: THREE.Mesh;
+  private material: THREE.MeshBasicMaterial;
+  private age = 99;
+  private fail = false;
+  private shown = 0;
+  private target: Vec2 | null = null;
+  /** arrival: the ring collapses into its dot (A11) */
+  private arriveAge = -1;
+  constructor() {
+    const ring = new THREE.RingGeometry(0.42, 0.58, 40);
+    const dot = new THREE.CircleGeometry(0.13, 20);
+    const g = new THREE.BufferGeometry();
+    const merged = [ring, dot];
+    const pos: number[] = [];
+    for (const m of merged) {
+      const src = m.toNonIndexed();
+      pos.push(...(src.attributes.position.array as Float32Array));
+      src.dispose();
+      m.dispose();
+    }
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.rotateX(-Math.PI / 2);
+    this.material = new THREE.MeshBasicMaterial({ color: '#fffaf1', transparent: true, opacity: 0, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(g, this.material);
+    this.mesh.renderOrder = 6;
+    this.mesh.visible = false;
+    this.mesh.frustumCulled = false;
+  }
+  show(p: Vec2, fail = false) {
+    this.target = { x: p.x, z: p.z };
+    this.age = 0;
+    this.fail = fail;
+    this.arriveAge = -1;
+    this.material.color.set(fail ? '#d8744a' : '#fffaf1');
+  }
+  /** The walk reached its target: collapse the ring (0.35 s). */
+  arrive() { if (this.target && !this.fail) { this.arriveAge = 0; } }
+  update(dt: number, t: number, pathTarget: Vec2 | null) {
+    this.age += dt;
+    if (this.arriveAge >= 0 && this.target) {
+      this.arriveAge += dt;
+      const k = Math.min(1, this.arriveAge / 0.35);
+      if (k >= 1 || pathTarget) { this.arriveAge = -1; if (!pathTarget) { this.mesh.visible = false; this.target = null; this.shown = 0; return; } }
+      else {
+        const p = this.target;
+        this.mesh.visible = true;
+        this.mesh.position.set(p.x, Math.max(heightAt(p.x, p.z), DISTRICT.waterLevel ?? -0.6) + 0.06, p.z);
+        this.mesh.scale.setScalar(Math.max(0.05, 1 - k * k));
+        this.material.opacity = 0.9 * (1 - k * 0.6);
+        return;
+      }
+    }
+    const alive = this.target && (this.fail ? this.age < 0.7 : !!pathTarget);
+    if (pathTarget && !this.fail && (!this.target || Math.hypot(pathTarget.x - this.target.x, pathTarget.z - this.target.z) > 0.8)) this.show(pathTarget);
+    this.shown += ((alive ? 1 : 0) - this.shown) * Math.min(1, dt * (alive ? 14 : 6));
+    if (this.shown < 0.02 || !this.target) { this.mesh.visible = false; if (!alive) this.target = null; return; }
+    const p = this.target;
+    const y = Math.max(heightAt(p.x, p.z), DISTRICT.waterLevel ?? -0.6) + 0.06; // a failed click on the water shows on its surface
+    const pop = this.age < 0.35 ? 1 + Math.sin((this.age / 0.35) * Math.PI) * 0.35 : 1 + Math.sin(t * 4) * 0.06;
+    const shake = this.fail ? Math.sin(this.age * 40) * 0.12 * (1 - this.age / 0.7) : 0;
+    this.mesh.visible = true;
+    this.mesh.position.set(p.x + shake, y, p.z);
+    this.mesh.quaternion.setFromUnitVectors(UP, groundNormal(p.x, p.z, tmpN));
+    this.mesh.scale.setScalar(pop * (0.6 + 0.4 * this.shown) * (this.fail ? 1.6 : 1));
+    this.material.opacity = 0.9 * this.shown;
+  }
+  dispose() { this.mesh.geometry.dispose(); this.material.dispose(); }
+}
+
+/** 6–8 fading dots along a long click-to-walk route (A11). One instanced draw, hidden when idle. */
+class Breadcrumbs {
+  static readonly N = 8;
+  readonly mesh: THREE.InstancedMesh;
+  private pts: THREE.Vector3[] = [];
+  private startT = -10;
+  constructor() {
+    const g = new THREE.CircleGeometry(0.2, 14).rotateX(-Math.PI / 2);
+    const m = new THREE.MeshBasicMaterial({ color: '#fffaf1', transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false });
+    this.mesh = new THREE.InstancedMesh(g, m, Breadcrumbs.N);
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 6;
+    this.mesh.visible = false;
+    this.mesh.count = 0;
+  }
+  /** Lay dots along from → path when the route is long enough (> 18 u). */
+  trace(from: Vec2, path: Vec2[], t: number) {
+    const pts = [from, ...path];
+    let total = 0;
+    for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+    if (total < 18) return;
+    const n = Math.min(Breadcrumbs.N, Math.max(6, Math.round(total / 8)));
+    this.pts = [];
+    for (let k = 1; k <= n; k++) {
+      let want = (total * k) / (n + 1), i = 1;
+      for (; i < pts.length; i++) {
+        const seg = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+        if (want <= seg) { const f = want / (seg || 1); const x = pts[i - 1].x + (pts[i].x - pts[i - 1].x) * f, z = pts[i - 1].z + (pts[i].z - pts[i - 1].z) * f; this.pts.push(new THREE.Vector3(x, heightAt(x, z) + 0.05, z)); break; }
+        want -= seg;
+      }
+    }
+    this.startT = t;
+  }
+  update(t: number) {
+    const age = t - this.startT;
+    if (age > 1.2 || !this.pts.length) { if (this.mesh.visible) { this.mesh.visible = false; this.mesh.count = 0; } return; }
+    this.mesh.visible = true;
+    let i = 0;
+    for (const [k, p] of this.pts.entries()) {
+      // dots pop in one after another (0.05 s apart) and fade over the last 0.5 s
+      const local = age - k * 0.05;
+      const s = local < 0 ? 0 : Math.min(1, local / 0.12) * (1 - Math.max(0, (age - 0.7) / 0.5));
+      tmpM.compose(p, tmpQ.identity(), tmpS.set(s, 1, s));
+      this.mesh.setMatrixAt(i++, tmpM);
+    }
+    this.mesh.count = i;
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+  dispose() { this.mesh.geometry.dispose(); (this.mesh.material as THREE.Material).dispose(); }
+}
+
+export class ActorSystem {
+  readonly root = new THREE.Group();
+  readonly pick: THREE.Mesh;
+  readonly controller = new PlayerController();
+  readonly mover = new GuideMover();
+  readonly player: Rig;
+  /** BAYBAY: procedural at first, swapped for the rigged GLB once it has loaded (A4) */
+  guide: Rig;
+  /** what is placed in the world for BAYBAY (the procedural SkinnedMesh, or the GLB scene holding mesh + bones) */
+  guideObject: THREE.Object3D;
+  readonly playerAnim: Animator;
+  guideAnim: Animator;
+  /** 'procedural' | 'loading' | 'ready' (loaded, waiting for an unseen moment) | 'glb' | 'failed' */
+  guideModel: 'procedural' | 'loading' | 'ready' | 'glb' | 'failed' = 'procedural';
+  private glbPending: { rig: Rig; object: THREE.Object3D } | null = null;
+  private lastDialogueNode: string | null = null;
+  readonly npcs: Npc[];
+  private blobs: THREE.InstancedMesh;
+  private blobTex: THREE.Texture;
+  private ring = new TargetRing();
+  private crumbs = new Breadcrumbs();
+  private prevPathTarget: Vec2 | null = null;
+  private seenPlan = 0;
+  private seenFail = -10;
+  private lastClick = { t: -10, x: 0, z: 0 };
+  private unsub: () => void;
+  private obstacles: Obstacle[] = [];
+  private lastLand = -10;
+  private lastJump = -10;
+  private lastGuideEmote = 'none';
+  private guideTalkUntil = 0;
+  private playerTalkUntil = 0;
+  private npcTalkUntil = 0;
+  private talkingNpc: string | null = null;
+  private lastBubbleKey = -1;
+  private photoPose = false;
+  private guidePhotoWaveAt = 0;
+  private now = 0;
+  private camPos = new THREE.Vector3();
+  /** vehicles, glide, benches, the streetcar platform */
+  readonly move = new MoveSystem();
+  private seenPant = -10;
+  // A9 · idle life
+  private idleT = 0;
+  private idleStage = 0;
+  private seaLionAt = -100;
+  private guideIdleT = 0;
+  private nextGroomAt = 14;
+
+  constructor() {
+    this.player = buildNewcomer();
+    this.guide = buildBaybay();
+    this.playerAnim = new Animator(this.player, 'newcomer');
+    this.guideAnim = new Animator(this.guide, 'baybay');
+    this.guideObject = this.guide.mesh;
+    this.player.mesh.castShadow = true;
+    this.guide.mesh.castShadow = true;
+    // C2: both hero rigs read a little bigger in the new camera
+    this.player.mesh.scale.setScalar(CHAR_SCALE);
+    this.guide.mesh.scale.setScalar(CHAR_SCALE);
+    this.player.mesh.name = 'opus-player';
+    this.guide.mesh.name = 'opus-baybay';
+    this.root.add(this.player.mesh, this.guide.mesh);
+    this.npcs = NPC_DEFS.filter(def => !!DISTRICT.anchors[def.anchor]).map(def => new Npc(def));
+    for (const npc of this.npcs) { npc.rig.mesh.castShadow = true; this.root.add(npc.object); }
+
+    this.blobTex = radialTexture();
+    const blobGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+    const blobMat = new THREE.MeshBasicMaterial({ map: this.blobTex, color: BLOB_DAY, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    this.blobs = new THREE.InstancedMesh(blobGeo, blobMat, 2 + this.npcs.length);
+    this.blobs.frustumCulled = false;
+    this.blobs.renderOrder = 1;
+    this.root.add(this.blobs, this.ring.mesh, this.crumbs.mesh, this.move.root);
+
+    const pickGeo = new THREE.BufferGeometry();
+    pickGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3));
+    this.pick = new THREE.Mesh(pickGeo, new THREE.MeshBasicMaterial({ visible: false }));
+    this.pick.raycast = heightfieldRaycast;
+    this.pick.frustumCulled = false;
+    this.pick.name = 'opus-ground-pick';
+
+    this.unsub = onEvent(e => this.onGameEvent(e));
+    this.mover.place();
+  }
+
+  // ---------------------------------------------------------------------------
+
+  private onGameEvent(e: GameEvent) {
+    const pa = this.playerAnim;
+    // (QA: the last movement events, readable as __opusBay.actors.move.recent)
+    if (e.type.includes(':') || e.type === 'sit' || e.type === 'stand' || e.type === 'hill' || e.type === 'pant') {
+      this.move.recent.push({ t: +this.now.toFixed(2), ...e });
+      if (this.move.recent.length > 24) this.move.recent.shift();
+    }
+    switch (e.type) {
+      case 'interact': {
+        // bikes / the toy car / benches are the movement system's (game/interactables registers them as 'info')
+        if (e.id.startsWith('ride:') || e.id.startsWith('seat:')) { this.move.onInteract(e.id, this.controller); break; }
+        const map: Partial<Record<string, Emote>> = { bell: 'bell', taste: 'taste', telescope: 'look', viewpoint: 'look', board: 'reach', fish: 'reach', info: 'reach' };
+        const em = map[e.kind];
+        if (em) pa.play(em);
+        if (TALKING_NPCS.has(e.id)) this.talkingNpc = e.id;
+        break;
+      }
+      case 'emote':
+        if (e.who === 'player') {
+          const m: Partial<Record<string, Emote>> = { taste: 'taste', cast: 'reach', wave: 'wave', cheer: 'cheer', hop: 'cheer', clap: 'clap' };
+          const em = m[e.emote];
+          if (em) pa.play(em);
+        }
+        break;
+      case 'guide-call': pa.play('call'); break;
+      case 'postcard': pa.play('pickup'); break;
+      case 'goal': if (!pa.playing('pickup')) pa.play('cheer'); break;
+      case 'sea-lion': this.seaLionAt = this.now; break;
+      case 'streetcar-bell':
+        for (const npc of this.npcs) if (npc.def.behavior === 'operator' && Math.hypot(npc.x - runtime.player.x, npc.z - runtime.player.z) < 45) npc.play('bell');
+        break;
+      case 'dialogue': {
+        const node = nodeById(e.nodeId);
+        const len = node ? node.text.zh.length : 12;
+        const dur = Math.min(4.2, Math.max(0.9, len * 0.085));
+        if (e.speaker === 'baybay') this.guideTalkUntil = this.now + dur;
+        else if (e.speaker === 'player') this.playerTalkUntil = this.now + dur;
+        else if (e.speaker === 'npc') {
+          this.npcTalkUntil = this.now + dur;
+          if (!this.talkingNpc) this.talkingNpc = this.nearestNpcId();
+        }
+        break;
+      }
+    }
+  }
+
+  private nearestNpcId(): string | null {
+    let best: string | null = null, bestD = 7;
+    for (const npc of this.npcs) {
+      const d = Math.hypot(npc.x - runtime.player.x, npc.z - runtime.player.z);
+      if (d < bestD) { bestD = d; best = npc.def.id; }
+    }
+    return best;
+  }
+
+  /** R3F onClick on the ground picker: tap / click to walk. */
+  onGroundClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > DRAG_THRESHOLD) return;
+    if ((e.nativeEvent as MouseEvent).button !== undefined && (e.nativeEvent as MouseEvent).button !== 0) return;
+    const s = game.get(), f = flow.get();
+    if (s.phase !== 'playing' || s.photoMode || s.riding || this.move.carried || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
+    e.stopPropagation();
+    let target: Vec2 = { x: e.point.x, z: e.point.z };
+    if (!canStand(target.x, target.z, 0.4)) {
+      const alt = nearestWalkable(target, 7);
+      if (!alt) { this.ring.show(target, true); emit({ type: 'ui', action: 'error' }); return; }
+      target = alt;
+    }
+    runtime.player.pendingInteract = null;
+    // double-click / double-tap on (about) the same spot: run there
+    const again = performance.now() / 1000 - this.lastClick.t < 0.38 && Math.hypot(target.x - this.lastClick.x, target.z - this.lastClick.z) < 3;
+    this.lastClick = { t: performance.now() / 1000, x: target.x, z: target.z };
+    runtime.player.pathTarget = target;
+    this.controller.forceRun = again;
+    this.ring.show(target);
+  };
+
+  // ---------------------------------------------------------------------------
+
+  update(rawDt: number, t: number, camera: THREE.Camera) {
+    const dt = Math.min(rawDt, 0.1);
+    this.now = t;
+    camera.getWorldPosition(this.camPos);
+    const s = game.get(), f = flow.get();
+    const p = runtime.player, g = runtime.guide;
+
+    pollInput();
+
+    const riding = s.riding === 'streetcar';
+    const frozen = p.locked || s.phase !== 'playing' || s.photoMode || !!s.dialogue.nodeId || !!f.fishing || !!f.postcardReward || !!f.cinematic;
+    // flow locks the player during a streetcar ride; the movement system still lets the rider switch spots there
+    const flowFrozen = s.phase !== 'playing' || s.photoMode || !!s.dialogue.nodeId || !!f.fishing || !!f.postcardReward || !!f.cinematic;
+    // is BAYBAY / a vehicle in the camera frustum (last frame's matrices)? — hop-in (A6), the unseen GLB swap (A4), bikes going home
+    tmpPM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(tmpPM);
+
+    // vehicles / glide / bench / streetcar platform first: they consume their own input edges and carry the body
+    const move = this.move;
+    move.update(dt, t, { cameraYaw: moveBasis.yaw, frozen: flowFrozen, playing: s.phase === 'playing', controller: this.controller, frustum, precompile: this.precompile ?? undefined });
+    const carried = move.carried || riding;
+
+    // soft obstacles for the player
+    this.obstacles.length = 0;
+    for (const npc of this.npcs) npc.obstacle(this.obstacles);
+    if (s.phase === 'playing' && !carried && !move.guideCarried) this.obstacles.push({ x: g.x, z: g.z, r: 0.42, kind: 'baybay' });
+    // parked bikes / the toy car are solid to the walker (soft obstacles, like the residents)
+    for (const r of move.fleet.rides) {
+      if (r.occupied || Math.abs(r.sim.x - p.x) > 8 || Math.abs(r.sim.z - p.z) > 8) continue;
+      this.obstacles.push({ x: r.sim.x, z: r.sim.z, r: r.kind === 'car' ? 0.8 : 0.45, kind: r.kind === 'car' ? 'car' : 'bike-rack' });
+    }
+
+    this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen, riding: carried, obstacles: this.obstacles });
+    move.finishPlayer();
+    this.guideSeen = frustum.intersectsSphere(tmpSphere.set(tmpV.set(g.x, g.y + 0.75, g.z), 1.1));
+    const guideHeld = move.guideCarried || (carried && move.mode !== 'sit');
+    this.mover.step(dt, t, { playing: s.phase === 'playing', riding: riding || guideHeld, visible: this.guideSeen });
+    if (move.guide.active) { g.x = move.guide.x; g.y = move.guide.y; g.z = move.guide.z; }
+    move.syncRideables();
+
+    // --- player facing while talking / posing
+    const pc = this.controller;
+    const inDialogue = !!s.dialogue.nodeId;
+    if (!p.moving && !carried) {
+      if (s.photoMode) {
+        p.heading = dampAngle(p.heading, Math.atan2(this.camPos.x - p.x, this.camPos.z - p.z), 5, dt);
+      } else if (inDialogue) {
+        const npc = this.talkingNpc ? this.npcs.find(n => n.def.id === this.talkingNpc) : undefined;
+        const node = nodeById(s.dialogue.nodeId);
+        const tx = node?.speaker === 'npc' && npc ? npc.x : g.x, tz = node?.speaker === 'npc' && npc ? npc.z : g.z;
+        if (Math.hypot(tx - p.x, tz - p.z) < 9) p.heading = dampAngle(p.heading, Math.atan2(tx - p.x, tz - p.z), 5, dt);
+      }
+    }
+
+    // --- visual placement (the movement system carries the rider on a bike / car / pelican / bench / streetcar)
+    let vx = p.x, vy = p.y, vz = p.z;
+    const vh = p.heading;
+    const R = move.rider;
+    if (R.active) {
+      vx = R.x; vy = R.y; vz = R.z;
+      this.player.mesh.position.set(vx, vy, vz);
+      this.player.mesh.quaternion.copy(R.quat);
+    } else {
+      this.player.mesh.position.set(vx, vy, vz);
+      this.player.mesh.rotation.set(0, vh, 0);
+    }
+    const onDeck = move.mode === 'transit' || move.mode === 'sit';
+    view.x = vx; view.y = vy; view.z = vz; view.ground = R.active && onDeck ? vy : heightAt(p.x, p.z);
+    const vv = move.ride && carried ? runtime.vehicle.speed : 0;
+    view.vx = carried ? vv * Math.sin(vh) : pc.vx;
+    view.vz = carried ? vv * Math.cos(vh) : pc.vz;
+    view.heading = vh; view.ready = true;
+
+    // --- player animation
+    if (pc.landedAt !== this.lastLand) { this.lastLand = pc.landedAt; this.playerAnim.land(pc.landImpact); }
+    if (pc.jumpedAt !== this.lastJump) { this.lastJump = pc.jumpedAt; this.playerAnim.jump(); }
+    if (move.landing > 0) this.playerAnim.land(move.landing);
+    if (pc.pantAt !== this.seenPant) { this.seenPant = pc.pantAt; if (!carried && !this.playerAnim.playing()) this.playerAnim.play('pant'); }
+    if (s.photoMode && !this.photoPose) { this.photoPose = true; this.playerAnim.play('pose'); }
+    if (!s.photoMode && this.photoPose) { this.photoPose = false; this.playerAnim.stop(); }
+    const guideNode = inDialogue ? nodeById(s.dialogue.nodeId) : undefined;
+    const look = this.playerLook(dt, frozen, carried, inDialogue);
+    const RA = move.riderAnim;
+    const deckWalk = move.mode === 'transit' && RA.speed > 0.05;
+    this.playerAnim.update({
+      t, dt, speed: carried ? RA.speed : p.speed, stride: deckWalk ? RA.stride : pc.stride, walkSpeed: deckWalk ? 2.4 : WALK_SPEED, runSpeed: RUN_SPEED,
+      grounded: carried ? true : pc.grounded, vy: carried ? 0 : pc.vy, crouch: pc.anticipation >= 0 ? Math.min(1, pc.anticipation / 0.07) : 0,
+      turnRate: carried ? 0 : pc.turnRate, accel: carried ? 0 : pc.accel,
+      lookYaw: look.yaw, lookWeight: look.w, wallLean: pc.wallLean, skid: pc.skid, stairs: pc.onStairs && !carried, sitting: this.idleStage >= 3 || RA.sitting,
+      talking: inDialogue && guideNode?.speaker === 'player' && t < this.playerTalkUntil,
+      riding: RA.pole && !deckWalk,
+      ride: RA.ride, pedal: RA.pedal, standing: RA.standing,
+    });
+
+    // --- BAYBAY (carried: in the bike basket / the car's front seat / on the pelican / beside you on the streetcar)
+    let gx = g.x, gy = g.y, gz = g.z;
+    const gh = g.heading;
+    const GP = move.guide;
+    this.maybeSwapGuide(t);
+    if (GP.active) {
+      gx = GP.x; gy = GP.y; gz = GP.z;
+      this.guideObject.position.set(gx, gy, gz);
+      this.guideObject.quaternion.copy(GP.quat);
+      this.guideObject.scale.setScalar(CHAR_SCALE * GP.scale);
+    } else {
+      this.guideObject.position.set(gx, gy, gz);
+      this.guideObject.rotation.set(0, gh, 0);
+      this.guideObject.scale.setScalar(CHAR_SCALE);
+    }
+    if (g.emote !== this.lastGuideEmote) {
+      this.lastGuideEmote = g.emote;
+      if (BABY_EMOTES.has(g.emote)) this.guideAnim.play(g.emote as Emote);
+    }
+    // BAYBAY's own idle: a grooming moment now and then
+    if (!GP.active && this.mover.animSpeed < 0.1 && t >= this.guideTalkUntil && !inDialogue && !s.photoMode) this.guideIdleT += dt; else this.guideIdleT = 0;
+    if (this.guideIdleT > this.nextGroomAt && !this.guideAnim.playing()) {
+      this.guideAnim.play('groom');
+      this.guideIdleT = 0;
+      this.nextGroomAt = 12 + Math.random() * 10;
+    }
+    if (s.photoMode && g.speed < 0.3 && t - this.guidePhotoWaveAt > 3.2 && Math.hypot(gx - p.x, gz - p.z) < 10) {
+      this.guidePhotoWaveAt = t;
+      this.guideAnim.play(Math.random() < 0.5 ? 'wave' : 'hop');
+    }
+    if (f.bubble && f.bubble.key !== this.lastBubbleKey) {
+      this.lastBubbleKey = f.bubble.key;
+      if (f.bubble.who === 'baybay') this.guideTalkUntil = Math.max(this.guideTalkUntil, t + 1.3);
+      else if (TALKING_NPCS.has(f.bubble.who)) { this.talkingNpc = f.bubble.who; this.npcTalkUntil = t + 1.4; }
+    }
+    let guideLook = 0, guideLookW = 0;
+    const gdx = p.x - gx, gdz = p.z - gz, gd = Math.hypot(gdx, gdz);
+    if (gd < 8 && this.mover.animSpeed < 0.5) { guideLook = Math.atan2(gdx, gdz) - gh; guideLook = Math.atan2(Math.sin(guideLook), Math.cos(guideLook)); guideLookW = 1; }
+    if (s.photoMode) { guideLook = Math.atan2(this.camPos.x - gx, this.camPos.z - gz) - gh; guideLook = Math.atan2(Math.sin(guideLook), Math.cos(guideLook)); guideLookW = 1; }
+    const GA = move.guideAnim;
+    this.guideAnim.update({
+      t, dt, speed: GP.active ? 0 : this.mover.animSpeed, stride: this.mover.stride, walkSpeed: GUIDE_WALK, runSpeed: GUIDE_RUN,
+      grounded: !(GP.active && GA.hop), vy: GP.active && GA.hop ? 2 : 0, crouch: 0, turnRate: 0, accel: 0,
+      lookYaw: guideLook, lookWeight: guideLookW,
+      talking: t < this.guideTalkUntil, riding: GP.active && GA.pole, sitting: GP.active && GA.sitting,
+    });
+
+    // --- residents
+    const npcTalking = inDialogue && guideNode?.speaker === 'npc';
+    if (!inDialogue && t > this.npcTalkUntil + 0.5) this.talkingNpc = null;
+    // who the player is talking to (the camera's conversation two-shot)
+    view.speaker = 0;
+    if (inDialogue) {
+      const npc = this.talkingNpc ? this.npcs.find(n => n.def.id === this.talkingNpc) : undefined;
+      if (npc && Math.hypot(npc.x - p.x, npc.z - p.z) < 9) { view.speaker = 2; view.speakerX = npc.x; view.speakerY = npc.y; view.speakerZ = npc.z; }
+      else if (!carried) { view.speaker = 1; view.speakerX = gx; view.speakerY = gy; view.speakerZ = gz; }
+    }
+    for (let k = 0; k < this.npcs.length; k++) {
+      const npc = this.npcs[k];
+      npc.talking = !!this.talkingNpc && npc.def.id === this.talkingNpc && (npcTalking || t < this.npcTalkUntil);
+      npc.update(dt, t);
+      const r = residents[k] ?? (residents[k] = { x: 0, z: 0 });
+      r.x = npc.x; r.z = npc.z;
+    }
+    residents.length = this.npcs.length;
+
+    // --- blob shadows (tilted to the ground, shrink while airborne)
+    let i = 0;
+    const blob = (x: number, z: number, footY: number, size: number) => {
+      const gy2 = heightAt(x, z);
+      const lift = Math.max(0, footY - gy2);
+      const k = size * Math.max(0.45, 1 - lift * 0.35);
+      tmpQ.setFromUnitVectors(UP, groundNormal(x, z, tmpN));
+      tmpM.compose(tmpV.set(x, gy2 + 0.035, z), tmpQ, tmpS.set(k, 1, k));
+      this.blobs.setMatrixAt(i++, tmpM);
+    };
+    // (on a vehicle / the pelican the blob sits under the rider; high up it shrinks away)
+    const high = move.mode === 'glide' && runtime.glide.height > 10;
+    blob(vx, vz, carried ? Math.max(heightAt(vx, vz), vy - (move.mode === 'glide' ? 0 : 0.6)) : p.y, 1.25 * CHAR_SCALE * (high ? 0.0001 : 1));
+    blob(gx, gz, gy, 1.1 * CHAR_SCALE * (GP.active ? (high ? 0.0001 : 0.6) : 1));
+    for (const npc of this.npcs) blob(npc.x, npc.z, npc.y, (npc.def.scale ?? 1) * 1.05);
+    this.blobs.count = i;
+    this.blobs.instanceMatrix.needsUpdate = true;
+
+    // A11: honest click-to-walk — say when a route fails, trace long routes, collapse the ring on arrival
+    const pc2 = this.controller;
+    if (pc2.pathFailedAt !== this.seenFail) {
+      this.seenFail = pc2.pathFailedAt;
+      if (this.prevPathTarget) { this.ring.show(this.prevPathTarget, true); emit({ type: 'ui', action: 'error' }); }
+    } else if (this.prevPathTarget && !p.pathTarget && Math.hypot(p.x - this.prevPathTarget.x, p.z - this.prevPathTarget.z) < 1.2) this.ring.arrive();
+    if (pc2.planCount !== this.seenPlan) {
+      this.seenPlan = pc2.planCount;
+      if (p.pathTarget) this.crumbs.trace({ x: p.x, z: p.z }, pc2.path, t);
+    }
+    this.prevPathTarget = p.pathTarget ? { x: p.pathTarget.x, z: p.pathTarget.z } : null;
+    this.crumbs.update(t);
+    this.ring.update(dt, t, p.pathTarget);
+
+    // warm rim light by day, faint at night
+    const tod = s.timeOfDay;
+    const k = Math.min(1, dt * 2);
+    rimUniforms.rimStrength.value += ((tod === 'night' ? 0.25 : tod === 'golden' ? 0.26 : 0.2) - rimUniforms.rimStrength.value) * k;
+    rimUniforms.charGlow.value += ((tod === 'night' ? 0.26 : tod === 'golden' ? 0.05 : 0.03) - rimUniforms.charGlow.value) * k;
+    if (tod === 'night') rimUniforms.rimColor.value.setRGB(0.75, 0.82, 1.0); else rimUniforms.rimColor.value.setRGB(1.0, 0.93, 0.8);
+    (this.blobs.material as THREE.MeshBasicMaterial).color.copy(tod === 'night' ? BLOB_NIGHT : BLOB_DAY);
+    // the textured white fur reads grey at night without a bit more self-light than the clay toys
+    baybayGlbUniforms.charGlow.value = rimUniforms.charGlow.value * (tod === 'night' ? 1.45 : 1.2);
+  }
+
+  // ---------------------------------------------------------------------------
+  // A9 · where the newcomer looks, and what they do when left alone
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Look-at priority: the one speaking (BAYBAY / a resident), the focused interactable, barking sea lions or a passing
+   * streetcar, then the camera after 8 s of standing still. Also runs the idle ladder: 5 s look around (the animator's
+   * glances), 10 s read the carried map, 18 s sit down. Any input cancels.
+   */
+  private playerLook(dt: number, frozen: boolean, riding: boolean, inDialogue: boolean): { yaw: number; w: number } {
+    const p = runtime.player, s = game.get();
+    const busy = p.moving || riding || s.photoMode || inDialogue || input.manualMove || !!p.pathTarget || s.phase !== 'playing';
+    if (busy || (frozen && !inDialogue)) {
+      if (this.idleStage >= 2 && this.playerAnim.playing('map')) this.playerAnim.stop();
+      this.idleT = 0; this.idleStage = 0;
+    } else {
+      this.idleT += dt;
+      if (this.idleStage < 1 && this.idleT > 5) this.idleStage = 1;
+      if (this.idleStage < 2 && this.idleT > 10) { this.idleStage = 2; if (!this.playerAnim.playing()) this.playerAnim.play('map'); }
+      if (this.idleStage < 3 && this.idleT > 18) this.idleStage = 3;
+    }
+    let tx = NaN, tz = NaN;
+    if (inDialogue) {
+      if (view.speaker) { tx = view.speakerX; tz = view.speakerZ; }
+    } else {
+      const it = s.focus ? interactableById(s.focus) : undefined;
+      if (it) { tx = it.source === 'baybay' ? runtime.guide.x : it.x; tz = it.source === 'baybay' ? runtime.guide.z : it.z; }
+      else if (this.now - this.seaLionAt < 3) {
+        const dock = DISTRICT.landmarks.find(l => l.kind === 'sea-lion-docks');
+        if (dock && Math.hypot(dock.position.x - p.x, dock.position.z - p.z) < 30) { tx = dock.position.x; tz = dock.position.z; }
+      }
+      if (Number.isNaN(tx)) {
+        const car = runtime.streetcar;
+        if (Math.hypot(car.x - p.x, car.z - p.z) < 12 && !riding) { tx = car.x; tz = car.z; }
+      }
+      if (Number.isNaN(tx) && this.idleT > 8 && this.idleStage < 2) { tx = this.camPos.x; tz = this.camPos.z; }
+    }
+    if (Number.isNaN(tx) || Math.hypot(tx - p.x, tz - p.z) < 0.3) return { yaw: 0, w: 0 };
+    const a = Math.atan2(tx - p.x, tz - p.z) - p.heading;
+    return { yaw: Math.atan2(Math.sin(a), Math.cos(a)), w: 1 };
+  }
+
+  // ---------------------------------------------------------------------------
+  // A4 · the rigged BAYBAY GLB: preload after Start (during the arrival cinematic), swap in unseen
+  // ---------------------------------------------------------------------------
+
+  /** set by Actors.tsx: compile an object's shader programs ahead of time (renderer.compileAsync) */
+  private precompile: ((object: THREE.Object3D) => Promise<unknown>) | null = null;
+  setPrecompile(fn: ((object: THREE.Object3D) => Promise<unknown>) | null) { this.precompile = fn; }
+  /** game phase when the GLB was requested (QA: must never be 'title') */
+  glbRequestedIn: string | null = null;
+
+  private loadGuideGlb() {
+    if (this.guideModel !== 'procedural' || glbDisabled()) return;
+    this.guideModel = 'loading';
+    this.glbRequestedIn = game.get().phase;
+    new GLTFLoader().loadAsync(MODELS.baybay.url).then(gltf => {
+      if (this.disposed) return;
+      const built = rigFromGltf(gltf.scene, MODELS.baybay.size[1]);
+      if (!built) { this.guideModel = 'failed'; return; }
+      built.object.name = 'opus-baybay';
+      built.object.scale.setScalar(CHAR_SCALE);
+      // compile her shader programs before the swap (no hitch on the frame she appears)
+      const ready = () => { if (this.disposed) return; this.glbPending = built; this.guideModel = 'ready'; };
+      const pre = this.precompile?.(built.object);
+      if (pre) pre.then(ready, ready); else ready();
+    }).catch(() => { this.guideModel = 'failed'; });
+  }
+
+  /** Swap only when nobody sees the pop: BAYBAY off-screen or far, a cinematic, a dialogue line change, the title. */
+  private maybeSwapGuide(t: number) {
+    const s = game.get(), f = flow.get();
+    if (this.guideModel === 'procedural' && s.phase !== 'title') this.loadGuideGlb();
+    const node = s.dialogue.nodeId;
+    const boundary = node !== this.lastDialogueNode;
+    this.lastDialogueNode = node;
+    if (this.guideModel !== 'ready' || !this.glbPending) return;
+    const g = runtime.guide;
+    const seen = this.guideSeen;
+    const far = Math.hypot(g.x - this.camPos.x, g.z - this.camPos.z) > 34;
+    if (seen && !far && !f.cinematic && !boundary && s.phase === 'playing' && t > 0) return;
+    this.swapGuideNow();
+  }
+
+  /** Replace the procedural BAYBAY with the loaded GLB right now (also a QA hook: __opusBay.actors.swapGuideNow()). */
+  swapGuideNow(): boolean {
+    const next = this.glbPending;
+    if (!next) return false;
+    const old = this.guide, oldObject = this.guideObject;
+    next.object.position.copy(oldObject.position);
+    next.object.rotation.copy(oldObject.rotation);
+    this.root.remove(oldObject);
+    this.root.add(next.object);
+    this.guide = next.rig;
+    this.guideObject = next.object;
+    this.guideAnim = new Animator(next.rig, 'baybay', GLB_BAYBAY_TUNING);
+    this.lastGuideEmote = 'none';
+    this.glbPending = null;
+    this.guideModel = 'glb';
+    old.mesh.geometry.dispose();
+    old.mesh.skeleton.dispose();
+    return true;
+  }
+
+  private disposed = false;
+  /** BAYBAY inside the camera frustum this frame */
+  guideSeen = true;
+
+  dispose() {
+    this.disposed = true;
+    this.unsub();
+    const geos = [this.player.mesh.geometry, this.guide.mesh.geometry, ...this.npcs.map(n => n.rig.mesh.geometry), this.blobs.geometry, this.pick.geometry];
+    if (this.guideModel === 'glb') {
+      const mat = this.guide.mesh.material as THREE.MeshStandardMaterial;
+      mat.map?.dispose();
+      mat.dispose();
+    }
+    if (this.glbPending) this.glbPending.rig.mesh.geometry.dispose();
+    geos.forEach(g => g.dispose());
+    (this.blobs.material as THREE.Material).dispose();
+    (this.pick.material as THREE.Material).dispose();
+    this.blobTex.dispose();
+    this.ring.dispose();
+    this.crumbs.dispose();
+    this.move.dispose();
+    this.player.mesh.skeleton.dispose();
+    this.guide.mesh.skeleton.dispose();
+    this.npcs.forEach(n => n.rig.mesh.skeleton.dispose());
+  }
+}

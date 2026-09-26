@@ -1,0 +1,379 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+
+/**
+ * Lane C (city streaming & rendering): the pure streaming state machine (tiers, hysteresis, attach budget, drops that
+ * never leave a hole, whenReady), the worker-side builders on the published data (L0 / L1 / far budgets, the hero
+ * seam, landmark exclusions), the pools' size classes, the city board and the hero's far stand-in, and a headless
+ * city-mode World next to the unchanged district.
+ */
+
+// --- headless canvas stub (world modules create label atlases / board shadows at import or build time) ---
+const g = globalThis as unknown as Record<string, unknown>;
+const noop = () => undefined;
+const ctx2d = new Proxy({}, {
+  get: (_t, k) => (k === 'measureText' ? () => ({ width: 10 }) : k === 'createRadialGradient' || k === 'createLinearGradient' ? () => ({ addColorStop: noop }) : k === 'getImageData' ? (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }) : noop),
+  set: () => true,
+});
+g.window ??= globalThis;
+g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
+
+const { ATTACH_BUDGET, CellTable, Lru, RADII, RESIDENCY, desiredTier, squareDist } = await import('../src/opus-bay/world/sf/cell');
+const { buildL0, buildL1, chunkContext, isGround } = await import('../src/opus-bay/world/sf/build');
+const { buildFar } = await import('../src/opus-bay/world/sf/far');
+const { GROUND_CITY, clipOutside, clipPolyline } = await import('../src/opus-bay/world/sf/mesh');
+const { classVerts, sizeClass } = await import('../src/opus-bay/world/sf/pools');
+const { inPoly } = await import('../src/opus-bay/world/sf/raster');
+const { boardPolygon, southCut } = await import('../src/opus-bay/world/sf/water');
+const { heroLandRaster, heroProxy } = await import('../src/opus-bay/world/sf/hero');
+const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+const { projectCity } = await import('../src/opus-bay/core/geo');
+const { DISTRICT } = await import('../src/opus-bay/data/district');
+const { sfDisk } = await import('./opus-bay-sf-disk');
+
+type Table = InstanceType<typeof CellTable>;
+
+const sf = sfDisk();
+const slab = DISTRICT.slab;
+const init = { palettes: sf.manifest.palettes, slab, excludes: new CitySites().excludes() };
+const chunkList = sf.manifest.chunks.map(c => ({ cx: c.cx, cz: c.cz, hero: c.hero }));
+
+// ---------------------------------------------------------------------------
+// streaming state machine
+// ---------------------------------------------------------------------------
+
+/**
+ * Drives a CellTable like stream.ts does, with instant workers: every job completes the same step, results attach
+ * within ATTACH_BUDGET, drops follow the table. L1 arrays are kept per cell while the chunk is wanted (stream.ts
+ * l1Ready). Returns per-step checks.
+ */
+function simulate(t: Table, path: { x: number; z: number }[], opts: { emptyCells?: Set<number> } = {}) {
+  const l1Data = new Set<number>();
+  const shownBefore = new Map<number, number>();
+  let maxL0 = 0, maxL1 = 0, holes = 0;
+  for (const p of path) {
+    t.select([p]);
+    for (const j of t.jobs()) {
+      if (j.kind === 'raster') j.chunk.raster = 'attached';
+      else if (j.kind === 'l1') {
+        j.chunk.l1 = 'ready';
+        for (const c of j.chunk.cells) {
+          if (c.l1 === 'attached' || (c.l1 === 'ready' && l1Data.has(c.key))) continue;
+          if (opts.emptyCells?.has(c.key)) { c.empty = true; c.l1 = 'none'; continue; }
+          l1Data.add(c.key); c.l1 = 'ready';
+        }
+      } else if (opts.emptyCells?.has(j.cell.key)) { j.cell.empty = true; j.cell.l0 = 'none'; } else j.cell.l0 = 'ready';
+    }
+    // a few frames per step
+    for (let f = 0; f < 6; f++) {
+      const a = t.nextAttaches(ATTACH_BUDGET);
+      maxL0 = Math.max(maxL0, a.l0.length); maxL1 = Math.max(maxL1, a.l1.length);
+      for (const c of a.l0) c.l0 = 'attached';
+      for (const c of a.l1) c.l1 = 'attached';
+      const d = t.drops();
+      for (const c of d.l0) c.l0 = 'none';
+      for (const c of d.l1) c.l1 = l1Data.has(c.key) ? 'ready' : 'none';
+      for (const ch of d.chunks) { for (const c of ch.cells) { l1Data.delete(c.key); c.l1 = 'none'; } ch.l1 = 'none'; }
+      for (const ch of d.rasters) ch.raster = 'none';
+      // never a hole: a cell that showed a near tier keeps showing one while it is still wanted near
+      for (const c of t.cells) {
+        const s = CellTable.shownFor(c), was = shownBefore.get(c.key) ?? 2;
+        if (was <= 1 && c.want <= 1 && s === 2 && !c.empty) holes++;
+        shownBefore.set(c.key, s);
+      }
+    }
+  }
+  return { maxL0, maxL1, holes };
+}
+
+test('tiers: radii shrink with quality, hysteresis keeps a cell on its tier between the in and out radii', () => {
+  for (const q of ['high', 'mid', 'low'] as const) {
+    const r = RADII[q];
+    assert.ok(r.l0In < r.l0Out && r.l0Out < r.l1In && r.l1In < r.l1Out, q);
+  }
+  assert.ok(RADII.high.l0In > RADII.mid.l0In && RADII.mid.l1In > RADII.low.l1In);
+  const r = RADII.high;
+  assert.equal(desiredTier(r.l0In - 1, 2, r), 0);
+  assert.equal(desiredTier(r.l0In + 5, 0, r), 0, 'stays L0 inside the out radius');
+  assert.equal(desiredTier(r.l0In + 5, 1, r), 1, 'comes in only below the in radius');
+  assert.equal(desiredTier(r.l0Out + 1, 0, r), 1);
+  assert.equal(desiredTier(r.l1Out + 1, 1, r), 2);
+  assert.equal(desiredTier(r.l1In + 5, 1, r), 1);
+  assert.equal(desiredTier(r.l1In + 5, 2, r), 2);
+  assert.equal(squareDist(5, 5, 0, 0, 10), 0);
+  assert.equal(squareDist(13, 14, 0, 0, 10), 5);
+});
+
+test('streaming walk across the city: ≤ 1 L0 + 2 L1 attaches per frame, never a hole, drops follow, ready() tracks', () => {
+  const t = new CellTable(chunkList);
+  // Ferry Building → Market St → the Mission → Twin Peaks → Ocean Beach, 6 u steps (≈ 1.5 s of running each)
+  const way = [{ x: 150, z: -30 }, { x: 180, z: 320 }, { x: 200, z: 660 }, { x: 140, z: 947 }, { x: -431, z: 1475 }];
+  const walk: { x: number; z: number }[] = [];
+  for (let i = 0; i + 1 < way.length; i++) {
+    const a = way[i], b = way[i + 1], n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 6);
+    for (let k = 0; k < n; k++) walk.push({ x: a.x + ((b.x - a.x) * k) / n, z: a.z + ((b.z - a.z) * k) / n });
+  }
+  const r = simulate(t, walk);
+  assert.ok(r.maxL0 <= ATTACH_BUDGET.l0 && r.maxL1 <= ATTACH_BUDGET.l1, JSON.stringify(r));
+  assert.equal(r.holes, 0, 'a receding / approaching cell never falls back to L2 while wanted near');
+  const end = way[way.length - 1];
+  assert.ok(t.ready(end.x, end.z, 150), 'the arrival is ready after the walk');
+  const n = t.counts();
+  assert.ok(n.l0 > 0 && n.l0 <= 30, `L0 cells ${n.l0}`);
+  // nothing near the start is still held
+  for (const c of t.cells) if (Math.hypot(c.x - 150, c.z + 30) < 200) assert.notEqual(c.l0, 'attached', 'L0 left behind is dropped');
+  for (const ch of t.chunks) if (ch.raster === 'attached') assert.ok(ch.dist <= RESIDENCY.out, 'rasters beyond 256 u are detached');
+});
+
+test('a cell swinging L1 → L2 → L1 while its chunk stays wanted re-attaches from kept arrays (no stuck L2)', () => {
+  const t = new CellTable(chunkList);
+  const r = RADII.high;
+  // stand so that a chunk straddles the L1 out radius, then step out and back in
+  const p0 = { x: 200, z: 660 };
+  simulate(t, [p0]);
+  const far = { x: p0.x + (r.l1Out - r.l1In) + 30, z: p0.z };
+  // enough frames back at p0 for every returning cell to attach at 2 per frame
+  simulate(t, [far, far, ...Array.from({ length: 30 }, () => p0)]);
+  for (const c of t.cells) {
+    if (c.empty || c.want === 2) continue;
+    assert.equal(CellTable.shownFor(c), c.want, `cell ${c.ix},${c.iz} (want ${c.want}, l0 ${c.l0}, l1 ${c.l1})`);
+  }
+  assert.ok(t.ready(p0.x, p0.z, 150));
+});
+
+test('whenReady semantics: not ready until the rasters within the residency radius are in; empty cells never block', () => {
+  const t = new CellTable(chunkList);
+  const p = { x: -8, z: 587 };
+  t.select([p]);
+  assert.equal(t.ready(p.x, p.z, 150), false);
+  // every nearby cell empty (open water) but rasters missing → still not ready
+  const empty = new Set(t.cells.filter(c => Math.hypot(c.x - p.x, c.z - p.z) < 400).map(c => c.key));
+  for (const c of t.cells) if (empty.has(c.key)) c.empty = true;
+  assert.equal(t.ready(p.x, p.z, 150), false);
+  for (const ch of t.chunks) if (squareDist(p.x, p.z, ch.cx * 128, ch.cz * 128, 128) < RESIDENCY.in) ch.raster = 'attached';
+  assert.equal(t.ready(p.x, p.z, 150), true);
+});
+
+test('LRU of compressed chunk bytes evicts least-recently used entries by byte budget', () => {
+  const evicted: string[] = [];
+  const l = new Lru<string, number>(100, k => evicted.push(k));
+  l.set('a', 1, 40); l.set('b', 2, 40);
+  assert.equal(l.get('a'), 1); // a is now the most recent
+  l.set('c', 3, 40);
+  assert.deepEqual(evicted, ['b']);
+  assert.equal(l.bytes, 80);
+  assert.ok(l.has('a') && l.has('c') && !l.has('b'));
+});
+
+// ---------------------------------------------------------------------------
+// worker builders on the published data
+// ---------------------------------------------------------------------------
+
+async function ctxOf(cx: number, cz: number) {
+  const c = await sf.chunk(cx, cz);
+  assert.ok(c, `chunk ${cx}_${cz}`);
+  return chunkContext(c, init);
+}
+
+const tris = (a: { indexCount: number } | null) => (a ? a.indexCount / 3 : 0);
+
+/**
+ * The densest L0 cell measures 17.9k triangles (2_11/0: 214 Edwardian rows at ~64 each + 3.4k ground) against the
+ * plan's 14k estimate; the walk-mode budget holds through the L0 radius and frustum culling (lane A is told).
+ */
+test('L0 / L1 on the densest chunks stay within budget; L1 is a massing tier (≤ 1/3 of L0)', async () => {
+  for (const [cx, cz] of [[-1, 1], [0, 6], [2, 11], [2, 6]]) {
+    const ctx = await ctxOf(cx, cz);
+    const l1 = buildL1(ctx);
+    let l1t = 0, l0t = 0;
+    for (const c of l1.cells) l1t += tris(c.toy) + tris(c.ground);
+    for (let sub = 0; sub < 4; sub++) {
+      const r = buildL0(ctx, sub);
+      assert.ok(r.triangles <= 18500, `L0 ${cx}_${cz}/${sub}: ${r.triangles} triangles`);
+      l0t += r.triangles;
+      // city ground carries the GROUND_CITY flag (skips the hero-only contact-shadow lookup)
+      if (r.ground) for (let i = 0; i < r.ground.vertexCount; i += 97) assert.equal(r.ground.info[i * 4 + 3], GROUND_CITY);
+    }
+    assert.ok(l1t <= 18000, `L1 ${cx}_${cz}: ${l1t}`);
+    assert.ok(l1t < l0t / 3, `L1 ${l1t} vs L0 ${l0t}`);
+    assert.ok(l1.props.count > 0, 'street trees / lamps');
+  }
+});
+
+test('hero seam: no city ground, street or prop inside the slab; seam chunks still draw their outside part', async () => {
+  const slabIn = (x: number, z: number) => inPoly(x, z, slab);
+  // shrink test: a point is "well inside" when it is ≥ 1 u from the slab edge
+  const deep = (x: number, z: number) => slabIn(x, z) && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dz]) => slabIn(x + dx, z + dz));
+  let outside = 0;
+  for (const k of sf.manifest.chunks.filter(c => c.hero)) {
+    const ctx = await ctxOf(k.cx, k.cz);
+    const l1 = buildL1(ctx);
+    for (let i = 0; i < l1.props.count; i++) assert.ok(!slabIn(l1.props.xyzr[i * 4], l1.props.xyzr[i * 4 + 2]), 'prop inside the slab');
+    for (let sub = 0; sub < 4; sub++) {
+      const r = buildL0(ctx, sub);
+      if (!r.ground) continue;
+      const p = r.ground.position;
+      for (let i = 0; i < r.ground.vertexCount; i++) {
+        assert.ok(!deep(p[i * 3], p[i * 3 + 2]), `ground vertex (${p[i * 3].toFixed(1)}, ${p[i * 3 + 2].toFixed(1)}) inside the slab`);
+        outside++;
+      }
+    }
+  }
+  assert.ok(outside > 1000, 'seam chunks draw the city outside the slab');
+  // west seam: seam-block buildings reaching into the slab where the hero has water are dropped (not where it has land)
+  const heroLand = heroLandRaster();
+  const c = (await sf.chunk(-2, 0))!;
+  const sub = 0; // (−201, 57.5) → cell (−4, 0) of chunk −2_0
+  const keep = buildL0(chunkContext(c, init), sub).toy, drop = buildL0(chunkContext(c, { ...init, heroLand }), sub).toy;
+  assert.ok(keep && (drop?.indexCount ?? 0) < keep.indexCount, 'the seam building standing in the hero water is gone');
+  const p = drop?.position ?? new Float32Array(0);
+  for (let i = 0; i < (drop?.vertexCount ?? 0); i++) assert.ok(Math.hypot(p[i * 3] + 201, p[i * 3 + 2] - 57.5) > 1.5 || p[i * 3 + 1] < 0.5, 'no wall at (−201, 57.5)');
+});
+
+test('landmark exclusions: city buildings and streets drop out, the ground sinks under the model, the Palace lagoon is no hole', async () => {
+  const sites = new CitySites();
+  const ex = sites.excludes();
+  const palace = ex.find(e => e.id === 'palace-of-fine-arts');
+  assert.ok(palace?.poly && palace.sink && palace.sink > 0);
+  assert.equal(ex.find(e => e.id === 'golden-gate-bridge')?.sink, 0);
+  const ctx = await ctxOf(Math.floor(palace.x / 128), Math.floor(palace.z / 128));
+  // the lagoon: every sample inside the exclusion is city ground (the landmark draws the water on top)
+  let n = 0;
+  for (let dz = -8; dz <= 8; dz += 2) for (let dx = -8; dx <= 8; dx += 2) {
+    const x = palace.x + dx, z = palace.z + dz;
+    if (!inPoly(x, z, palace.poly)) continue;
+    assert.ok(isGround(ctx, x, z), `lagoon hole at (${x}, ${z})`);
+    n++;
+  }
+  assert.ok(n > 10);
+  // with vs without the exclusions: fewer city triangles on the landmark's chunk, and the ground inside its
+  // footprint sinks by exactly `sink` (Lombard's lane and the Painted Ladies' stoops stay on top of it)
+  for (const id of ['lombard-crooked-street', 'painted-ladies', 'city-hall']) {
+    const e = ex.find(q => q.id === id)!;
+    const c = await sf.chunk(Math.floor(e.x / 128), Math.floor(e.z / 128));
+    assert.ok(c, id);
+    const withEx = chunkContext(c, init), without = chunkContext(c, { ...init, excludes: [] });
+    const sub = (e.x - c.cx * 128 >= 64 ? 1 : 0) + (e.z - c.cz * 128 >= 64 ? 2 : 0);
+    assert.ok(buildL0(withEx, sub).triangles < buildL0(without, sub).triangles, `${id}: city buildings / streets dropped`);
+    let n = 0;
+    for (let dz = -6; dz <= 6; dz += 1.5) for (let dx = -6; dx <= 6; dx += 1.5) {
+      const x = e.x + dx, z = e.z + dz;
+      if (!withEx.excluded(x, z)) continue;
+      assert.ok(Math.abs(without.height(x, z) - withEx.height(x, z) - (e.sink ?? 0)) < 1e-9, `${id} sink at (${x}, ${z})`);
+      n++;
+    }
+    assert.ok(n > 3, id);
+  }
+});
+
+test('street clipping: polylines clip to squares and out of polygons without losing the outside length', () => {
+  const line = [0, 0, 0, 10, 0, 0, 20, 0, 0];
+  const inSq = clipPolyline(line, 0, 3, 5, -5, 15, 5);
+  assert.equal(inSq.length, 1);
+  assert.deepEqual(inSq[0].filter((_, i) => i % 3 === 0), [5, 10, 15]);
+  const sq = [{ x: 8, z: -2 }, { x: 12, z: -2 }, { x: 12, z: 2 }, { x: 8, z: 2 }];
+  const out = clipOutside(line, sq, (x, z) => inPoly(x, z, sq));
+  assert.equal(out.length, 2);
+  const len = out.reduce((s, l) => s + Math.abs(l[l.length - 3] - l[0]), 0);
+  assert.ok(Math.abs(len - 16) < 1e-6, `outside length ${len}`);
+});
+
+test('far city: L2 within budget, prisms keep out of the slab, shore texture covers the board, lakes at their level', async () => {
+  const far = await sf.far();
+  const r = buildFar(far, { slab, excludes: init.excludes });
+  assert.ok(r.triangles < 190_000, `far triangles ${r.triangles}`);
+  assert.ok(r.cells.length > 300, `far cells ${r.cells.length}`);
+  for (const c of r.cells) {
+    if (!c.toy) continue;
+    const p = c.toy.position;
+    for (let i = 0; i < c.toy.vertexCount; i += 13) {
+      const x = p[i * 3], z = p[i * 3 + 2];
+      const deep = inPoly(x, z, slab) && inPoly(x + 2, z, slab) && inPoly(x - 2, z, slab) && inPoly(x, z + 2, slab) && inPoly(x, z - 2, slab);
+      assert.ok(!deep, `far prism vertex inside the slab (${x.toFixed(1)}, ${z.toFixed(1)})`);
+    }
+  }
+  const s = r.shore;
+  assert.equal(s.data.length, s.cols * s.rows);
+  const at = (x: number, z: number) => s.data[Math.floor((z - s.z0) / s.step) * s.cols + Math.floor((x - s.x0) / s.step)];
+  const mid = projectCity(37.84, -122.44); // mid-Bay between Alcatraz and Angel Island
+  assert.equal(at(mid.x, mid.z), 255, 'open water is far from any shore');
+  const mission = projectCity(37.7599, -122.4148);
+  assert.equal(at(mission.x, mission.z), 0, 'land is distance 0');
+  assert.ok(r.lakes && r.lakes.index.length > 0, 'hill lakes (Stow Lake, Mountain Lake …) get their own water');
+  assert.ok(r.ms < 20_000);
+});
+
+test('pools: size classes grow by 1.25 and always fit the item', () => {
+  for (const v of [1, 100, 256, 257, 1000, 5000, 20000]) {
+    const c = sizeClass(v, v * 1.5, 1.6);
+    assert.ok(classVerts(c) >= v && Math.ceil(classVerts(c) * 1.6) >= v * 1.5);
+    if (c > 0) assert.ok(classVerts(c - 1) < v || Math.ceil(classVerts(c - 1) * 1.6) < v * 1.5);
+  }
+});
+
+test('city board: Ocean Beach surf and the Bay inside, the county line cut keeps San Francisco and drops Daly City', () => {
+  const board = boardPolygon();
+  const inside = (lat: number, lng: number) => { const p = projectCity(lat, lng); return inPoly(p.x, p.z, board); };
+  assert.ok(inside(37.76, -122.515), 'Pacific off Ocean Beach');
+  assert.ok(inside(37.8235, -122.3707), 'Treasure Island');
+  assert.ok(inside(37.8609, -122.4326), 'Angel Island');
+  assert.ok(inside(37.8267, -122.423), 'Alcatraz');
+  assert.ok(!inside(37.88, -122.2), 'Oakland hills are beyond (East Bay board, wave 2)');
+  const cut = southCut();
+  const keep = (lat: number, lng: number) => { const p = projectCity(lat, lng); return p.x * cut.nx + p.z * cut.nz <= cut.d; };
+  assert.ok(keep(37.72, -122.45), 'Excelsior');
+  assert.ok(!keep(37.69, -122.47), 'Daly City');
+});
+
+test('hero far stand-in: one L1 box per lot and shed, inside the slab, a few thousand triangles', () => {
+  const p = heroProxy();
+  assert.ok(p);
+  const t = p.indexCount / 3;
+  const sheds = DISTRICT.piers.filter(q => q.shed).length;
+  assert.ok(t >= (DISTRICT.blocks.length + sheds) * 10 && t <= (DISTRICT.blocks.length + sheds) * 14, `${t} triangles`);
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const q of slab) { x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
+  for (let i = 0; i < p.vertexCount; i++) {
+    const x = p.position[i * 3], z = p.position[i * 3 + 2];
+    assert.ok(x > x0 - 3 && x < x1 + 3 && z > z0 - 3 && z < z1 + 3);
+  }
+});
+
+test('the city code stays worker-safe: the worker graph imports no DOM, React or materials', () => {
+  const root = path.resolve(import.meta.dirname, '../src/opus-bay');
+  const seen = new Set<string>();
+  const bad: string[] = [];
+  const visit = (file: string) => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    const src = fs.readFileSync(file, 'utf8');
+    for (const m of src.matchAll(/^import\s+(?!type\b)[^'"]*from\s+'([^']+)'/gm)) {
+      const spec = m[1];
+      if (!spec.startsWith('.')) { if (/react|drei|fiber/.test(spec)) bad.push(`${file}: ${spec}`); continue; }
+      const f = [spec + '.ts', spec + '.tsx', spec + '/index.ts'].map(s => path.resolve(path.dirname(file), s)).find(p => fs.existsSync(p));
+      if (!f) continue;
+      if (/materials\.ts$|\.tsx$|world\/world\.ts$|core\/store\.ts$/.test(f)) bad.push(`${path.relative(root, file)} → ${path.relative(root, f)}`);
+      visit(f);
+    }
+  };
+  visit(path.join(root, 'world/sf/worker.ts'));
+  assert.deepEqual(bad, []);
+  assert.ok(seen.size > 8);
+});
+
+test('city-mode World builds headless: hero first, backdrop in its own chunks, no district water; district unchanged', async () => {
+  const { World } = await import('../src/opus-bay/world/world');
+  const city = new World('city');
+  const names = new Set<string>();
+  city.root.traverse(o => { if (o.name) names.add(o.name.replace(/#\d+$/, '#')); });
+  assert.ok(names.has('city#') && names.has('ground#') && names.has('backdrop#'), [...names].join(' '));
+  assert.ok(!names.has('water#'), 'city water replaces the district water');
+  assert.ok(names.has('city-water'));
+  assert.ok(city.cityWater && city.cityWater.board.length >= 6);
+  const district = new World('district');
+  const dn = new Set<string>();
+  district.root.traverse(o => { if (o.name) dn.add(o.name.replace(/#\d+$/, '#')); });
+  assert.ok(dn.has('water#') && !dn.has('backdrop#') && !dn.has('city-water'));
+});
