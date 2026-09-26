@@ -22,8 +22,10 @@ const outDir = path.dirname(path.resolve(out));
 const actions = args.actions ? JSON.parse(args.actions) : [];
 const port = 9400 + Math.floor(Math.random() * 500);
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'opus-shot-'));
-const chromePath = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const chrome = spawn(chromePath, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+const chromePath = process.env.CHROME || (fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : 'C:/Program Files/Google/Chrome/Application/chrome.exe');
+// Linux containers run as root without a GPU: Chrome needs --no-sandbox there, and WebGL falls back to SwiftShader.
+const extraFlags = [...(process.getuid?.() === 0 ? ['--no-sandbox'] : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(' ') : [])];
+const chrome = spawn(chromePath, [...extraFlags, '--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = obj => console.log(JSON.stringify(obj));
 let exitCode = 0;

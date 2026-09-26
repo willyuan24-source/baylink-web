@@ -7,7 +7,8 @@ The Opus Bay work moved from the owner's Windows machine to a Claude Code cloud 
 - Work only on the `opus-bay` branch. Never push to `main`, never merge, never open a PR unless the owner asks.
 - Only Opus Bay files: `src/opus-bay/**`, `public/opus-bay/**`, `scripts/opus-sf/**`, `scripts/opus-shot.mjs`, `tests/opus-bay-*`, `vite.opus.config.ts`, `docs/opus-bay/**`. The two site files already touched (`src/App.tsx` route, `src/routing.ts` path) stay as they are. Never edit `src/features/little-bay/**`, `src/data/**`, `public/*.json` (another team's work).
 - Commit in small steps on `opus-bay` and push, so nothing is lost if the session ends.
-- Higgsfield: this round's owner allowance is 500 credits; **229 were used before the move** (133 part 1 + 56 part 2a first run + 40 part 2a resumed run; balance 748.48 → 519.48 at 15:18 PDT). Confirm with `balance`; keep total spend this round ≤ 450 (floor balance 298.48).
+- Higgsfield: **229 credits were used this round before the move** (133 part 1 + 56 part 2a first run + 40 part 2a resumed run; balance 748.48 → 519.48; reconciled in `src/opus-bay/ASSETS-LEDGER.md`). **Owner update 2026-09-26 (cloud session): the whole remaining balance of 519.48 may be used if needed; quality matters most.** The old 450 cap / 298.48 floor no longer apply. Still log every job in the ledger and check `transactions` after every batch.
+- The cloud network policy blocks the Higgsfield result CDN (`d8j0ntlcm91z4.cloudfront.net`, proxy 403). Until the owner allows that host in the environment's network settings, generated images, audio and meshes cannot be downloaded into the repo from the cloud; generate only when the download works (test with `curl -sS -o /dev/null -w '%{http_code}' <a result url>`).
 
 ## Path mapping (the lane reports cite local Windows paths)
 
@@ -31,7 +32,7 @@ npx vite --config vite.opus.config.ts          # dev server on :5174 → /opus-b
 npx vite build --config vite.opus.config.ts --outDir /tmp/opus-dist
 ```
 
-Screenshots: `CHROME=<path to chrome/chromium> node scripts/opus-shot.mjs --url "http://localhost:5174/opus-bay?start=free&world=city" --out shot.png` (the script defaults to the Windows Chrome path). The cloud has no GPU: WebGL runs in software, so screenshots are slow and **fps numbers are meaningless there** — performance and phone checks wait for the owner's machine.
+Screenshots in the cloud (checked 2026-09-26): `CHROME_FLAGS="--use-angle=swiftshader --enable-unsafe-swiftshader --use-gl=angle" node scripts/opus-shot.mjs --url "http://localhost:5174/opus-bay?start=free&world=city" --w 960 --h 600 --wait 40000 --out shot.png`. The script finds the Playwright Chromium in `/opt/pw-browsers` and adds `--no-sandbox` when it runs as root; without the SwiftShader flags WebGL is disabled. It renders at about 3 fps, so give it long waits and small viewports. `renderer.info` draw calls and triangles are still valid there, but **fps numbers are meaningless** — performance and phone checks wait for the owner's machine. The container has 4 CPUs: run at most 2 headless Chromes at a time.
 
 ## Not available in the cloud
 
