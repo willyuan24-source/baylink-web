@@ -19,6 +19,12 @@ export const NODE_BUCKET = 32;
 export const LEG_MAX = 60;
 /** default time slice per frame (ms) */
 export const SLICE_MS = 2;
+/**
+ * expansions between two clock checks in RouteSearch.step: few enough that a slice overruns its budget by little even
+ * while lazy node costs are first evaluated (hero streets: 12–20 µs per expansion measured in the cloud container, so
+ * the former 64 overran by up to 1.25 ms), many enough that reading the clock costs nothing
+ */
+export const SLICE_CHECK = 16;
 
 export class WalkGraphIndex {
   readonly graph: WalkGraph;
@@ -120,11 +126,13 @@ export interface RouteSearchOptions {
   nodeCost?: (node: number) => number;
   /** give up after this many expanded nodes (default: the whole graph) */
   maxExpansions?: number;
+  /** clock (ms) the time slices are measured with (default performance.now; tests inject a work clock) */
+  now?: () => number;
 }
 
 /**
- * Resumable A* between two graph nodes. `step(ms)` expands until the budget is used (checked every 64 expansions) and
- * returns true once finished; then `nodes` holds the node path (null when unreachable).
+ * Resumable A* between two graph nodes. `step(ms)` expands until the budget is used (the clock is read every SLICE_CHECK
+ * expansions) and returns true once finished; then `nodes` holds the node path (null when unreachable).
  */
 export class RouteSearch {
   readonly from: number;
@@ -140,6 +148,7 @@ export class RouteSearch {
   private readonly accept?: (node: number) => boolean;
   private readonly nodeCost?: (node: number) => number;
   private readonly maxExp: number;
+  private readonly now: () => number;
   private readonly gScore: Float64Array;
   private readonly parent: Int32Array;
   private readonly state: Uint8Array;
@@ -152,6 +161,7 @@ export class RouteSearch {
     this.accept = opts.accept;
     this.nodeCost = opts.nodeCost;
     this.maxExp = opts.maxExpansions ?? index.nodeCount;
+    this.now = opts.now ?? (() => performance.now());
     const n = index.nodeCount;
     this.gScore = new Float64Array(n).fill(Infinity);
     this.parent = new Int32Array(n).fill(-1);
@@ -196,7 +206,7 @@ export class RouteSearch {
   /** Expand for up to `budgetMs` (Infinity = run to the end). Returns true when the search is finished. */
   step(budgetMs = SLICE_MS): boolean {
     if (this.done) return true;
-    const t0 = performance.now();
+    const t0 = this.now();
     this.slices++;
     const { offsets, targets, cost } = this.ix.graph;
     let n = 0;
@@ -216,10 +226,10 @@ export class RouteSearch {
         this.gScore[nb] = ng; this.parent[nb] = cur; this.state[nb] = 1;
         this.push(nb, ng + this.h(nb));
       }
-      if ((++n & 63) === 0 && performance.now() - t0 >= budgetMs) break;
+      if (++n % SLICE_CHECK === 0 && this.now() - t0 >= budgetMs) break;
     }
     if (!this.done && this.heapN === 0) this.finish(false);
-    this.maxSliceMs = Math.max(this.maxSliceMs, performance.now() - t0);
+    this.maxSliceMs = Math.max(this.maxSliceMs, this.now() - t0);
     return this.done;
   }
 

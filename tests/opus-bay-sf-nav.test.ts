@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canStand, nearestWalkable, setCityTerrain, standAt } from '../src/opus-bay/core/terrain';
 import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTerrain';
-import { LEG_MAX, NODE_BUCKET, RouteSearch, findGraphPath, findGraphPathAsync, polylineLength, splitLegs } from '../src/opus-bay/core/walkGraph';
+import {
+  LEG_MAX, NODE_BUCKET, RouteSearch, SLICE_CHECK, SLICE_MS, findGraphPath, findGraphPathAsync, polylineLength, splitLegs,
+} from '../src/opus-bay/core/walkGraph';
 import {
   NAV_WINDOW, RouteWalker, arrivalSpot, findPath, graphNodeCost, graphNodeFilter, lineOfSight, navGrid, navWindowStats, routeTo, setWalkGraph,
 } from '../src/opus-bay/actors/nav';
@@ -68,24 +70,66 @@ test('A* is time-sliced: ≤ ~2 ms per step, several slices on long routes, same
   const ix = await sf.graphIndex();
   const nodeCost = graphNodeCost(ix);
   const a = ix.nearestNode(FERRY.x, FERRY.z, 60, graphNodeFilter(ix)), b = ix.nearestNode(TARGETS['ocean-beach'].x, TARGETS['ocean-beach'].z, 60);
+  // the one-shot search is the reference result; it also warms up the JIT and the lazy hero-node costs before timing
   const once = findGraphPath(ix, a, b, { nodeCost })!;
-  const s = new RouteSearch(ix, a, b, { nodeCost });
-  let steps = 0;
-  while (!s.step(0.25)) steps++;
-  assert.ok(steps >= 2, `sliced into ${steps + 1} steps`);
-  assert.ok(s.maxSliceMs < 0.25 + 3, `longest slice ${s.maxSliceMs.toFixed(2)} ms`);
-  assert.deepEqual(s.nodes, once.nodes);
+
+  // 1. The slicer's own logic on an injected work clock (deterministic, whatever else the machine is doing): virtual
+  //    time advances 1 µs per edge the search relaxes. Every slice but the last must use its whole budget, and none may
+  //    run past it by more than the work between two clock checks (SLICE_CHECK expansions × the largest node degree).
+  let maxDeg = 0;
+  for (let i = 0; i < ix.nodeCount; i++) maxDeg = Math.max(maxDeg, ix.graph.offsets[i + 1] - ix.graph.offsets[i]);
+  const US = 0.001, overrun = SLICE_CHECK * maxDeg * US;
+  for (const budget of [0.25, SLICE_MS]) {
+    let vt = 0;
+    const s = new RouteSearch(ix, a, b, { nodeCost: i => { vt += US; return nodeCost(i); }, now: () => vt });
+    const spans: number[] = [];
+    for (let done = false; !done;) { const v0 = vt; done = s.step(budget); spans.push(vt - v0); }
+    const full = spans.slice(0, -1); // the last slice ends early, at the goal
+    assert.ok(full.length >= 2, `${budget} ms (work clock): sliced into ${spans.length} steps`);
+    assert.ok(Math.min(...full) >= budget - 1e-9, `${budget} ms (work clock): shortest full slice ${Math.min(...full).toFixed(3)} ms`);
+    assert.ok(s.maxSliceMs <= budget + overrun + 1e-9, `${budget} ms (work clock): longest slice ${s.maxSliceMs.toFixed(3)} ms`);
+    assert.deepEqual(s.nodes, once.nodes);
+  }
+  // the clock is read every SLICE_CHECK expansions and a slice ends at the first read that reaches its budget: on a
+  // clock that advances a quarter of the budget per read, every slice but the last expands exactly 4 × SLICE_CHECK nodes
+  let reads = 0;
+  const q = new RouteSearch(ix, a, b, { nodeCost, now: () => reads++ * 0.25 });
+  const perSlice: number[] = [];
+  for (let done = false; !done;) { const e0 = q.expanded; done = q.step(1); perSlice.push(q.expanded - e0); }
+  assert.ok(perSlice.length >= 3 && perSlice.slice(0, -1).every(e => e === 4 * SLICE_CHECK), `expansions per slice: ${perSlice.join(' ')}`);
+  assert.ok(perSlice[perSlice.length - 1] <= 4 * SLICE_CHECK);
+  assert.deepEqual(q.nodes, once.nodes);
+
+  // 2. Real time. The OS can preempt the test process in the middle of any slice when the machine is busy (4–20 ms
+  //    seen while the whole suite runs in parallel), which no slicer can prevent: so the typical slice is the median of
+  //    three runs and the longest slice is the best of three runs, not a single run's worst.
+  const timedRuns = (budget: number) => {
+    const slices: number[] = [], longest: number[] = [], frames: number[] = [];
+    for (let run = 0; run < 3; run++) {
+      const s = new RouteSearch(ix, a, b, { nodeCost });
+      for (let done = false; !done;) { const t0 = performance.now(); done = s.step(budget); if (!done) slices.push(performance.now() - t0); }
+      assert.deepEqual(s.nodes, once.nodes);
+      longest.push(s.maxSliceMs); frames.push(s.slices);
+    }
+    slices.sort((p, q) => p - q);
+    return { median: slices[slices.length >> 1], longest: Math.min(...longest), frames: Math.max(...frames), all: longest };
+  };
+  const quarter = timedRuns(0.25);
+  assert.ok(quarter.frames >= 3, `0.25 ms: sliced into ${quarter.frames} steps`);
+  assert.ok(quarter.median < 0.25 + 0.5, `0.25 ms: median slice ${quarter.median.toFixed(2)} ms`);
+  assert.ok(quarter.longest < 0.25 + 3, `0.25 ms: longest slice ${quarter.all.map(v => v.toFixed(2)).join(' / ')} ms`);
+  // a 2 ms budget (the default) finishes the cross-city route in a handful of frames
+  const dflt = timedRuns(SLICE_MS);
+  assert.ok(dflt.frames < 30, `default slices: ${dflt.frames} frames`);
+  assert.ok(dflt.longest < SLICE_MS + 3, `default slices: longest ${dflt.all.map(v => v.toFixed(2)).join(' / ')} ms`);
+
+  // 3. Spread over frames by a scheduler, and aborted
   let scheduled = 0;
   const p = await findGraphPathAsync(ix, a, b, { nodeCost, budgetMs: 0.25, schedule: fn => { scheduled++; setImmediate(fn); } });
   assert.ok(p && scheduled >= 1, `async search used ${scheduled} extra frames`);
   assert.deepEqual(p.nodes, once.nodes);
   const aborted = await findGraphPathAsync(ix, a, b, { budgetMs: 0.05, schedule: fn => setImmediate(fn), signal: { aborted: true } });
   assert.equal(aborted, null);
-  // a 2 ms budget (the default) finishes the cross-city route in a handful of frames
-  const d = new RouteSearch(ix, a, b, { nodeCost });
-  let frames = 0;
-  while (!d.step()) frames++;
-  assert.ok(frames < 30 && d.maxSliceMs < 5, `default slices: ${frames + 1} frames, max ${d.maxSliceMs.toFixed(2)} ms`);
 });
 
 test('legs: ≤ 60 u, continuous, same total length', () => {
