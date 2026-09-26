@@ -3,7 +3,7 @@
 //   node scripts/opus-shot.mjs --out shot.png [--url http://localhost:5174/opus-bay?start=free] [--w 1440 --h 900]
 //        [--mobile] [--wait 6000] [--actions '[{"do":"key","key":"KeyW","ms":1500},{"do":"shot","name":"b.png"}]']
 // Actions: {do:'wait',ms} {do:'key',key:'KeyW'|'ShiftLeft'|'Space'|'KeyE'|'Enter'|'Escape'|'Digit1',ms} {do:'keys',keys:[..],ms}
-//          {do:'click',x,y} {do:'drag',from:[x,y],to:[x,y]} {do:'wheel',x,y,dy} {do:'eval',expr} {do:'shot',name}
+//          {do:'click',x,y} {do:'drag',from:[x,y],to:[x,y]} {do:'wheel',x,y,dy} {do:'eval',expr} {do:'shot',name}  (a name ending in .jpg saves a JPEG at q82)
 //          {do:'fps',ms} {do:'throttle',rate}
 // Prints console errors/warnings and eval results as JSON lines. Exits non-zero if the page crashed.
 import { spawn } from 'node:child_process';
@@ -48,7 +48,7 @@ try {
   if (args.mobile) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await send('Page.navigate', { url });
   await sleep(Number(args.wait || 6000));
-  const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); const file = path.isAbsolute(name) ? name : path.join(outDir, name); fs.writeFileSync(file, Buffer.from(r.data, 'base64')); log({ shot: file }); };
+  const shot = async name => { const r = await send('Page.captureScreenshot', /\.jpe?g$/i.test(name) ? { format: 'jpeg', quality: 82 } : { format: 'png' }); const file = path.isAbsolute(name) ? name : path.join(outDir, name); fs.writeFileSync(file, Buffer.from(r.data, 'base64')); log({ shot: file }); };
   const key = async (type, code) => {
     const keyName = code.startsWith('Key') ? code.slice(3).toLowerCase() : code.startsWith('Digit') ? code.slice(5) : ({ Space: ' ', ShiftLeft: 'Shift', Enter: 'Enter', Escape: 'Escape', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight', Tab: 'Tab' })[code] || code;
     await send('Input.dispatchKeyEvent', { type, code, key: keyName, text: type === 'keyDown' && keyName.length === 1 ? keyName : undefined });
