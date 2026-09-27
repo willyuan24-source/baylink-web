@@ -15,8 +15,9 @@ import type { VoiceClip } from './assets';
  *
  * Play one with `emit({ type: 'voice-line', id: '<lineId>' })` (core/events.ts); audio/audio.ts → voice.line(id, fallback).
  *
- * Wave 3 (H2b-6..9): G2's BARK_SCRIPT was not on the branch when these were recorded, so this table is the script (the
- * plan's list: 8 mode firsts + 12 neighbourhood greetings with real far.zones ids); G2 writes its bubbles from it.
+ * Wave 3 (H2b-6..9): G2's BARK_SCRIPT was not on the branch when these were recorded, so this table was the script (the
+ * plan's list: 8 mode firsts + 12 neighbourhood greetings with real far.zones ids); G2 then froze it word for word
+ * (data/sf/lines.ts BARK_SCRIPT_RECORDED) plus a not-recorded block, recorded the same day as SF_VOICE_EXTRA.
  * qwen_audio_tts, preset "Pixie" (0178ef57-…), wav 48 kHz, the shipped instruction + a mood; 3 takes per clip (+ 3
  * speech rates where a clip ran long; 8–10 for the re-records), trimmed, two-pass loudnorm −18 LUFS / TP −1.5, AAC 64k
  * .m4a + Opus 48k .ogg, every clip ≤ 2 s, picked by measurable checks (scripts/opus-sf/voice/voice_post.py).
@@ -62,6 +63,37 @@ export const SF_VOICE_LINES: Record<string, SfVoiceLine> = {
   'zone-sunset-parkside': { zh: '你好，日落区！', en: 'Hello, the Sunset!', mood: 'wave', fallback: 'arrived' },
 };
 
+/**
+ * G2's BARK_SCRIPT_TODO block (data/sf/lines.ts, frozen with G2-4 after the lines above were recorded), recorded word
+ * for word in the same part. Their clips are in SF_VOICE_CLIPS, so `voice.line` already plays them (G2 emits these ids;
+ * a clip not yet loaded gets LINE_WAIT). They are kept out of SF_VOICE_LINES only because G2's test pins
+ * SF_VOICE_LINES to BARK_SCRIPT_RECORDED: when G2 moves them into its recorded block, spread this table into
+ * SF_VOICE_LINES in the same commit (then they preload with the others). Request in docs/opus-bay/sf-w3-H2b.md.
+ */
+export const SF_VOICE_EXTRA: Record<string, SfVoiceLine> = {
+  // reactions (G2: repeat, 60 s per key)
+  'bump-hard': { zh: '哎呀！', en: 'Oops!', mood: 'thinking', fallback: 'think' },
+  stairs: { zh: '楼梯上不去！', en: 'No stairs on wheels!', mood: 'thinking', fallback: 'think' },
+  pant: { zh: '呼…歇口气！', en: 'Phew, catch your breath!', mood: 'happy', fallback: 'hi' },
+  'crest-again': { zh: '再飞一个！', en: 'Wheee, again!', mood: 'excited', fallback: 'wow' },
+  'glide-again': { zh: '起飞！', en: 'Up we go!', mood: 'excited', fallback: 'wow' },
+  'glide-land': { zh: '安全降落！', en: 'Safe landing!', mood: 'proud', fallback: 'yay' },
+  'glide-no-landing': { zh: '这儿降落不了！', en: "Can't land here!", mood: 'thinking', fallback: 'think' },
+  // transit
+  'cable-bell': { zh: '叮叮！叮当车来啦！', en: 'Ding ding! A cable car!', mood: 'excited', fallback: 'wow' },
+  'turntable-push': { zh: '一起推！嘿咻！', en: 'Push together! Heave!', mood: 'excited', fallback: 'yay' },
+  // more neighbourhoods, and the opener of G2's greeting template for the rest
+  'zone-new': { zh: '新街区！', en: 'New neighbourhood!', mood: 'wave', fallback: 'arrived' },
+  'zone-hayes-valley': { zh: '你好，海斯谷！', en: 'Hello, Hayes Valley!', mood: 'wave', fallback: 'arrived' },
+  'zone-japantown': { zh: '你好，日本城！', en: 'Hello, Japantown!', mood: 'wave', fallback: 'arrived' },
+  'zone-russian-hill': { zh: '你好，俄罗斯山！', en: 'Hello, Russian Hill!', mood: 'wave', fallback: 'arrived' },
+  'zone-south-of-market': { zh: '你好，南市场！', en: 'Hello, SoMa!', mood: 'wave', fallback: 'arrived' },
+  'zone-potrero-hill': { zh: '你好，波特雷罗山！', en: 'Hello, Potrero Hill!', mood: 'wave', fallback: 'arrived' },
+  'zone-lincoln-park': { zh: '你好，林肯公园！', en: 'Hello, Lincoln Park!', mood: 'wave', fallback: 'arrived' },
+  'zone-mission-bay': { zh: '你好，米慎湾！', en: 'Hello, Mission Bay!', mood: 'wave', fallback: 'arrived' },
+  'zone-outer-richmond': { zh: '你好，外列治文！', en: 'Hello, the Outer Richmond!', mood: 'wave', fallback: 'arrived' },
+};
+
 const DIR = '/opus-bay/voice/sf';
 const clip = (id: string, text: string, duration: number): VoiceClip => ({
   m4a: `${DIR}/${id}.m4a`,
@@ -93,6 +125,25 @@ const LINE_SECONDS: Record<string, [number, number]> = {
   'zone-presidio': [1.96, 1.51],
   'zone-nob-hill': [1.38, 1.79],
   'zone-sunset-parkside': [1.37, 1.32],
+  // SF_VOICE_EXTRA
+  'bump-hard': [0.51, 0.9],
+  stairs: [1.61, 1.92],
+  pant: [1.94, 1.99],
+  'crest-again': [0.82, 1.96],
+  'glide-again': [0.57, 0.92],
+  'glide-land': [1.13, 1.18],
+  'glide-no-landing': [1.79, 1.18],
+  'cable-bell': [1.94, 1.98],
+  'turntable-push': [1.69, 1.97],
+  'zone-new': [1.34, 1.22],
+  'zone-hayes-valley': [1.39, 1.96],
+  'zone-japantown': [1.4, 1.43],
+  'zone-russian-hill': [1.76, 1.57],
+  'zone-south-of-market': [1.54, 1.46],
+  'zone-potrero-hill': [1.72, 1.72],
+  'zone-lincoln-park': [1.65, 1.59],
+  'zone-mission-bay': [1.78, 1.96],
+  'zone-outer-richmond': [1.64, 1.9],
 };
 
 /**
@@ -107,7 +158,7 @@ export const SF_VOICE_REDOS: Record<string, VoiceClip> = {
 };
 
 export const SF_VOICE_CLIPS: Record<string, VoiceClip> = {
-  ...Object.fromEntries(Object.entries(SF_VOICE_LINES).flatMap(([id, line]) => {
+  ...Object.fromEntries(Object.entries({ ...SF_VOICE_LINES, ...SF_VOICE_EXTRA }).flatMap(([id, line]) => {
     const [zh, en] = LINE_SECONDS[id] ?? [0, 0];
     return zh > 0 ? [[`zh-${id}`, clip(`zh-${id}`, line.zh, zh)], [`en-${id}`, clip(`en-${id}`, line.en, en)]] : [];
   })),

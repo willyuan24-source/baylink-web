@@ -143,7 +143,7 @@ test('map paper: the registration check of v1 passed the coast gate and describe
 // BAYBAY's recorded city lines (H2b-6..9)
 // ---------------------------------------------------------------------------------------------------------------------
 
-const { SF_VOICE_LINES, SF_VOICE_CLIPS, SF_VOICE_REDOS, SF_VOICE_UNMUTE, SF_VOICE_ZONES } = await import('../src/opus-bay/data/voiceLinesSf');
+const { SF_VOICE_LINES, SF_VOICE_EXTRA, SF_VOICE_CLIPS, SF_VOICE_REDOS, SF_VOICE_UNMUTE, SF_VOICE_ZONES } = await import('../src/opus-bay/data/voiceLinesSf');
 const { MUTED_CLIPS } = await import('../src/opus-bay/audio/voice');
 const { ASSETS } = await import('../src/opus-bay/data/assets');
 
@@ -169,9 +169,22 @@ test('voice: every city line has a zh and an en clip that says it, each ≤ 2 s;
     }
   }
   assert.deepEqual(Object.keys(SF_VOICE_REDOS).sort(), ['zh-arrived', 'zh-think', 'zh-yay']);
-  assert.equal(Object.keys(SF_VOICE_CLIPS).length, 2 * ids.length + 3);
+  assert.equal(Object.keys(SF_VOICE_CLIPS).length, 2 * (ids.length + Object.keys(SF_VOICE_EXTRA).length) + 3);
   // ASSETS.voice lists each clip in the container this runtime decodes (the player plays listed ids only)
   for (const [id, clip] of Object.entries(SF_VOICE_CLIPS)) assert.ok([clip.m4a, clip.ogg].includes(ASSETS.voice[id]), id);
+});
+
+test('voice: G2 froze the recorded lines word for word; its later lines are recorded as SF_VOICE_EXTRA, clips ≤ 2 s', async () => {
+  const { BARK_SCRIPT_RECORDED, BARK_SCRIPT_TODO } = await import('../src/opus-bay/data/sf/lines');
+  assert.deepEqual(BARK_SCRIPT_RECORDED.map(l => [l.id, l.zh, l.en]), Object.entries(SF_VOICE_LINES).map(([id, l]) => [id, l.zh, l.en]));
+  assert.deepEqual(BARK_SCRIPT_TODO.map(l => [l.id, l.zh, l.en]), Object.entries(SF_VOICE_EXTRA).map(([id, l]) => [id, l.zh, l.en]));
+  for (const [id, line] of Object.entries(SF_VOICE_EXTRA)) {
+    assert.ok(!SF_VOICE_LINES[id], `${id} only once`);
+    for (const lang of ['zh', 'en'] as const) {
+      const clip = SF_VOICE_CLIPS[`${lang}-${id}`];
+      assert.ok(clip && clip.text === line[lang] && clip.duration > 0.3 && clip.duration <= 2.0, `${lang}-${id}`);
+    }
+  }
 });
 
 test('voice: the re-records stay muted until the owner approves them by ear', () => {

@@ -1,5 +1,6 @@
 /**
- * Lane H2b (H2b-6/7): the TTS take list for BAYBAY's city lines and the three district re-records.
+ * Lane H2b (H2b-6/7): the TTS take list for BAYBAY's city lines (SF_VOICE_LINES, then G2's later SF_VOICE_EXTRA) and
+ * the three district re-records.
  *
  *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/voice/takes.ts > <scratch>/takes.json
  *
@@ -8,7 +9,7 @@
  * recordings were mis-heard (zh-yay as 讨厌, zh-arrived as 到了, zh-think not understood). The job ids go back into
  * this list by hand (docs/opus-bay/h2b/voice-takes.json) and scripts/opus-sf/voice/voice_post.py picks from it.
  */
-import { SF_VOICE_LINES } from '../../../src/opus-bay/data/voiceLinesSf';
+import { SF_VOICE_EXTRA, SF_VOICE_LINES } from '../../../src/opus-bay/data/voiceLinesSf';
 
 export const PIXIE = '0178ef57-ada4-43d9-992b-8d9221045bb4';
 export const SEEDS = [11, 22, 33];
@@ -22,11 +23,20 @@ const MOOD_NOTE: Record<string, string> = {
   happy: 'Happy and warm, relaxed.',
   wave: 'A friendly, happy hello, like a little wave.',
   proud: 'Proud and happy, a bit out of breath.',
+  thinking: 'A little puzzled, playful, not upset.',
 };
 /** a line's own note replaces its mood note */
 const LINE_NOTE: Record<string, string> = {
   'first-hill': 'A bit out of breath, then amused.',
+  pant: 'A bit out of breath, then amused.',
+  'bump-hard': 'A surprised little "oops", playful.',
 };
+
+/**
+ * Round 3 (G2's BARK_SCRIPT_TODO, frozen after rounds 1–2): SF_VOICE_EXTRA, zh + en, at three speech rates from the
+ * start (the seed is unreliable, see round 2).
+ */
+export const ROUND3_RATES = [1.0, 1.1, 1.2];
 
 export interface Take {
   index: number;
@@ -89,6 +99,12 @@ export function takeList(): Take[] {
     const t = first.find(x => x.clip === clip);
     if (!t) throw new Error(`no such clip: ${clip}`);
     for (const speechRate of rates) add({ clip, text, language: 'zh', instruction: t.instruction, seed: SEEDS[0], speechRate });
+  }
+  for (const [id, line] of Object.entries(SF_VOICE_EXTRA)) {
+    const note = `${BASE_INSTRUCTION} ${LINE_NOTE[id] ?? MOOD_NOTE[line.mood ?? 'happy']}`;
+    for (const language of ['zh', 'en'] as const) {
+      for (const speechRate of ROUND3_RATES) add({ clip: `${language}-${id}`, text: line[language], language, instruction: note, seed: SEEDS[0], speechRate });
+    }
   }
   for (const t of out) if (t.instruction.length > MAX_INSTRUCTION) throw new Error(`instruction too long: ${t.clip}`);
   return out;

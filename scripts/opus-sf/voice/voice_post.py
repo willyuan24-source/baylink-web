@@ -19,7 +19,8 @@ most a 1.12× atempo when the trimmed take is a little over 2 s. Gates: final �
 speech not cut at the end of the raw, the longest pause inside ≤ 0.45 s (0.65 s where the text has "…" or "——"), median
 F0 in 180–450 Hz (the Pixie voice sits near 270 Hz). Pick among the takes that pass: the recognizer found the right
 phrase first, then the duration nearest the median of those takes (in 150 ms steps: no rushed or dragged reading),
-then the higher recognizer confidence.
+then the higher recognizer confidence. `--keep-picks`: clips already picked in voice-report.json keep their take and
+their files (a later round only adds clips).
 """
 import argparse, hashlib, json, os, re, subprocess, sys
 import numpy as np
@@ -157,8 +158,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--work', required=True)
     ap.add_argument('--repo', required=True)
+    ap.add_argument('--keep-picks', action='store_true', help='clips already in voice-report.json keep their pick and files (a later round adds clips only)')
     a = ap.parse_args()
     W, R = a.work, a.repo
+    prior = {}
+    if a.keep_picks and os.path.exists(f'{R}/docs/opus-bay/h2b/voice-report.json'):
+        prior = {k: e['pick'] for k, e in json.load(open(f'{R}/docs/opus-bay/h2b/voice-report.json', encoding='utf-8'))['clips'].items() if 'pick' in e}
     takes = json.load(open(f'{W}/takes.json', encoding='utf-8'))
     jobs = dict(l.split()[:2] for l in open(f'{W}/jobs.txt') if l.strip())
     seeds = json.load(open(f'{W}/seeds.json')) if os.path.exists(f'{W}/seeds.json') else {}
@@ -227,11 +232,16 @@ def main():
         med = float(np.median([r['final_s'] for r in ok])) if ok else 0
         ok.sort(key=lambda r: (not r.get('asr_ok'), round(abs(r['final_s'] - med) / 0.15), -r.get('asr_conf', 0)))
         pick = ok[0] if ok else None
+        kept = prior.get(clip)
+        if kept:
+            pick = next((r for r in rs if r['index'] == kept['index']), pick)
         entry = {'text': rs[0]['text'], 'takes': [{k: r.get(k) for k in ('index', 'seed', 'speechRate', 'job_id', 'text', 'raw_s', 'trim_s', 'tempo', 'final_s', 'lufs', 'tp', 'peak_dbfs', 'clipped',
                                                                    'cut_at_end', 'gap_s', 'f0', 'asr', 'asr_conf', 'asr_ok', 'gates', 'pass')} for r in rs]}
         if pick:
             base = f'{out_dir}/{clip}'
-            encode(f"{W}/norm/{pick['tag']}.wav", base + '.m4a', base + '.ogg')
+            same = kept and kept['index'] == pick['index'] and all(os.path.exists(f'{base}.{ext}') and hashlib.sha256(open(f'{base}.{ext}', 'rb').read()).hexdigest() == kept['files'][ext]['sha256'] for ext in ('m4a', 'ogg'))
+            if not same:
+                encode(f"{W}/norm/{pick['tag']}.wav", base + '.m4a', base + '.ogg')
             entry['pick'] = {'index': pick['index'], 'text': pick['text'], 'seed': pick['seed'], 'speechRate': pick.get('speechRate'), 'job_id': pick['job_id'], 'duration': pick['final_s'],
                              'files': {ext: {'path': f'public/opus-bay/voice/sf/{clip}.{ext}', 'bytes': os.path.getsize(base + '.' + ext),
                                              'sha256': hashlib.sha256(open(base + '.' + ext, 'rb').read()).hexdigest()} for ext in ('m4a', 'ogg')},

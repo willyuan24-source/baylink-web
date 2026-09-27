@@ -91,5 +91,26 @@ spend in between. **Subtotal murals: 19.00 credits.** Balance 475.72 → 456.72 
 Post-processing (free, `scripts/opus-sf/murals/murals_post.py`): 480 px art + 16 px edge gutter per 512 tile, atlas
 WebP q48 = 256,124 B; singles 512 px WebP q82.
 
-**Lane H2b total, wave 3: 20.5 (map) + 2.06 (voice) + 19.0 (murals) = 41.56 credits** of the 150 cap. Balance
-498.28 → 456.72.
+Lane subtotal at this point: 20.5 (map) + 2.06 (voice) + 19.0 (murals) = 41.56 credits; balance 456.72 (the final
+total is after round 3 below).
+
+## Part b · voice round 3: G2's later lines (H2b-7), 2026-09-27 09:56–10:07 UTC
+
+G2 froze `BARK_SCRIPT` (commit d4631e6) while this part ran: the 20 recorded lines word for word plus a
+`BARK_SCRIPT_TODO` block of 18 lines "for the next H2b pass". This is the lane's last part, so they were recorded now
+(`SF_VOICE_EXTRA` in `data/voiceLinesSf.ts`). Same model, preset and instruction scheme (moods: + "thinking" = "A little
+puzzled, playful, not upset."), three speech rates (1.0 / 1.1 / 1.2) per clip from the start. Balance before: 456.72.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-V4 | 18 later lines × zh / en, 3 takes each | qwen_audio_tts, Pixie, wav 48k, seed 11, speech_rate 1.0 / 1.1 / 1.2 | bump-hard, stairs, pant, crest-again, glide-again, glide-land, glide-no-landing, cable-bell, turntable-push, zone-new + 8 greetings (G2's `BARK_SCRIPT_TODO`, word for word) | 108 jobs | voice-takes.json #191–298 | raw/191–298.wav | picks below |
+| H2b-V4-fail | 10 submissions the service failed | same | retried with the same parameters | 0 (all refunded) | 2a5ad752, c887ce85, 03e943b8, cf2f21ec, 31849266, c67c4c7d, a65c48cd, 0f91fb13, a3f80a60, d6aefa9e | - | refunded |
+
+Picks: zh-bump-hard 7f30be8a, en-bump-hard 76418af7, zh-stairs c93c5819, en-stairs a91cdbde, zh-pant fc2463e4, en-pant 50db92b8, zh-crest-again 3083fd63, en-crest-again 04a4a1e9, zh-glide-again 4db34b3c, en-glide-again 5d62331c, zh-glide-land 2167449a, en-glide-land 64c5415e, zh-glide-no-landing 83ee6ba0, en-glide-no-landing 2eb29411, zh-cable-bell baea99d7, en-cable-bell 26eac3b8, zh-turntable-push 27e4af15, en-turntable-push f8fed7ba, zh-zone-new 83e1253e, en-zone-new 31a6027a, zh-zone-hayes-valley 44cdb2ef, en-zone-hayes-valley 6dbd005b, zh-zone-japantown e8eea529, en-zone-japantown 6664fbcc, zh-zone-russian-hill 819651d0, en-zone-russian-hill 4b0968dc, zh-zone-south-of-market 38d48182, en-zone-south-of-market 006766dc, zh-zone-potrero-hill 4095f95a, en-zone-potrero-hill 88f00e20, zh-zone-lincoln-park 628ae892, en-zone-lincoln-park 77c9daca, zh-zone-mission-bay c9650ad1, en-zone-mission-bay 37d3e767, zh-zone-outer-richmond 76fab452, en-zone-outer-richmond 9422f9a0. Full ids in voice-report.json.
+
+Transactions 09:56:01–10:07:13 UTC: only "Qwen Audio 3.0 TTS Flash" (118 submitted jobs: 108 completed, 10 failed and
+refunded). **Subtotal round 3: 1.14 credits.** Balance 456.72 → 455.58 (`balance` at 10:12 UTC).
+
+**Lane H2b total, wave 3 (final): 20.5 (map) + 3.20 (voice: 2.06 + 1.14) + 19.0 (murals) = 42.70 credits** of the 150 cap.
+Balance 498.28 → 455.58.
+
