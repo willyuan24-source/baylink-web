@@ -401,6 +401,8 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 5. **Dots**: CityMap passes `cluster: k.members.length` to every `<MapBadge>`, dots included: the pip renders.
 6. **places.json**: the sidecar is used as before (`--check`, then copy `<out>/places.json`); the two named piers stay
    runtime rows like the extras.
+7. **One time wording (lane G's O4)**: lane C2's step 2 (`sf-w4-C.md` part 2): `ui/tripRows.ts` `tripSecondsLabel` →
+   lane C's `timeLabel` (`game/tripText.ts`), with the two map-w4 test strings it names.
 
 ### Not done / known gaps
 
@@ -421,3 +423,6 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 - **Lane T**: keep `stationRides(stopId)` / ETAs per stop id; merged stations call them for each `station.ids` entry.
 - **Lane G**: the review's O1 (bridge arrival), O2 (the island piers' names) and O3 (Corona summit) are done in lane
   P's files; pass `tripDestination(a)` to `planTrips`.
+
+Checks of the tree pushed with this section (rebased onto `79cf5bb`, W4-C2-5): tsc 0, eslint 0 errors (whole repo), full
+opus-bay suite **716 / 716**, sidecar `--check` OK.
