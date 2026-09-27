@@ -127,11 +127,12 @@ export const TARGET_PIN_NODES = 6;
  * SVG elements one badge renders (for the ≤ 150 / 120 node budget), exactly as ui/MapBadge.tsx draws it (the
  * sf-map-w4 test renders every glyph and state and counts): a badge = g + shadow + disc + outline + ONE glyph path
  * (ui/glyphPaths.ts) = 5; + 2 for the arrived tick (disc + check), the cluster pip (pill + text), the tour number
- * (disc + text); a dot = 1; the active target = its pin-flag (6) whatever the tier.
+ * (disc + text); a dot = 1, + 2 for its cluster pip (review fix: a T3 dot hosting a cluster draws the pip too); the
+ * active target = its pin-flag (6) whatever the tier.
  */
 export function badgeNodes(size: BadgeSize, st: BadgeState): number {
   if (size.kind === 'none') return 0;
   if (st.target) return TARGET_PIN_NODES;
-  if (size.kind === 'dot') return 1;
+  if (size.kind === 'dot') return 1 + (st.cluster ? 2 : 0);
   return 5 + (st.arrived ? 2 : 0) + (st.cluster ? 2 : 0) + (st.tourStop !== undefined ? 2 : 0);
 }

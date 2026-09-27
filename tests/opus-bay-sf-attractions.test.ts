@@ -544,3 +544,41 @@ test('P2: the islands\' trips end at named places of their own (恶魔岛渡轮�
   const noArr = ATTRACTIONS.find(a => !a.arrival)!;
   assert.deepEqual([tripDestination(noArr).x, tripDestination(noArr).z], [noArr.x, noArr.z]);
 });
+
+test('P2: search — a multi-word query scores as word start when its words start a name\'s words in order; a transfer station answers its other stops\' names', async () => {
+  const { prepareSearch, rankSearch, attractionEntries, lineEntries, stationEntries, placeEntries } = await import('../src/opus-bay/data/sf/placeSearch');
+  const { LINE_STYLES, mapStations, mapLinesFrom } = await import('../src/opus-bay/ui/mapLines');
+  const { buildTransit } = await import('../src/opus-bay/data/transit');
+  type TFile = import('../src/opus-bay/data/transit').TransitFileJson;
+  const w1 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit.json'), 'utf8')) as TFile;
+  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const stations = mapStations(mapLinesFrom(buildTransit(w1), w1.lines.find(l => l.id === 'f-line')!, w4.lines));
+  const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(applyW4Places(places), coveredPlaceIds())]);
+  const hit = (q: string, id: string) => rankSearch(ix, q, 60).find(x => x.entry.id === id);
+  // consecutive words: was a substring (3), now a word start (2)
+  assert.equal(hit('gate bri', 'golden-gate-bridge')?.match, 'word');
+  assert.equal(rankSearch(ix, 'gate bri', 1)[0].entry.id, 'golden-gate-bridge');
+  assert.equal(hit('ladies post', 'alamo-square-painted-ladies')?.match, 'word');
+  assert.equal(hit('baths ruins', 'sutro-baths')?.match, 'word');
+  // a query that is also a name's or an alias's beginning keeps the better prefix score
+  assert.equal(hit('painted lad', 'alamo-square-painted-ladies')?.match, 'prefix');
+  // words skipped between: no substring existed, now found
+  assert.equal(rankSearch(ix, 'golden bridge', 1)[0].entry.id, 'golden-gate-bridge');
+  assert.equal(hit('golden bridge', 'golden-gate-bridge')!.match, 'word');
+  assert.equal(hit('college ocean', 'ccsf-ocean-campus')?.match, 'word');
+  // order matters (the second word must come later in the name)
+  assert.equal(hit('bridge golden', 'golden-gate-bridge'), undefined);
+  // single words: unchanged
+  assert.equal(hit('gate', 'golden-gate-bridge')?.match, 'word');
+  assert.equal(hit('金门大桥', 'golden-gate-bridge')?.match, 'exact');
+  // stations: the F-line stop merged into the Castro transfer station finds it by its own name, word by word
+  assert.equal(stations.find(s => s.ids.includes('f-line-44'))!.id, 'muni-castro');
+  assert.ok(hit('17th castro', 'muni-castro'), 'the F stop name');
+  assert.equal(hit('17th castro', 'muni-castro')!.match, 'word');
+  assert.ok(hit('卡斯特罗', 'muni-castro'), 'the loop stop name');
+  assert.equal(hit('buchanan st', 'f-line-36')?.match, 'word');
+  // per keystroke stays cheap with the phrase lists
+  let per = Infinity;
+  for (let b = 0; b < 5; b++) { const t0 = performance.now(); for (let k = 0; k < 10; k++) rankSearch(ix, k % 2 ? 'golden gate br' : 'market st'); per = Math.min(per, (performance.now() - t0) / 10); }
+  assert.ok(per < 25, `${per.toFixed(1)} ms per keystroke`);
+});

@@ -497,3 +497,129 @@ test('components: the four render (static markup): chips, legend, trip rows with
   assert.match(station, /带我去车站/);
   assert.match(station, /地下站/);
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Lane P2 (wave 4, early phase part 2): the open map items of lane P's early review
+// ---------------------------------------------------------------------------------------------------------------------
+
+type TransitFileJson = import('../src/opus-bay/data/transit').TransitFileJson;
+async function realMapLines() {
+  const { buildTransit } = await import('../src/opus-bay/data/transit');
+  const { mapLinesFrom } = await import('../src/opus-bay/ui/mapLines');
+  const file = w1 as unknown as TransitFileJson;
+  return mapLinesFrom(buildTransit(file), file.lines.find(l => l.id === 'f-line')!, w4.lines);
+}
+
+test('P2 stations: stops of different lines at one place merge into transfer stations (Castro 观光 · M · F, Powell N M · 叮当 · F …); one line\'s two directions are one station; stops a walk apart stay apart', async () => {
+  const { STATION_RULES } = await import('../src/opus-bay/ui/mapLines');
+  const lines = await realMapLines();
+  const raw = mapStations(lines, { mergeR: 0, sameNameR: 0 });
+  const st = mapStations(lines);
+  // every stop id in exactly one station, the primary's first
+  const all = st.flatMap(s => s.ids);
+  assert.equal(all.length, new Set(all).size);
+  assert.deepEqual([...all].sort(), raw.map(s => s.id).sort());
+  for (const s of st) assert.equal(s.ids[0], s.id);
+  assert.ok(st.length <= raw.length - 20, `${raw.length} stops → ${st.length} stations`);
+  const of = (id: string) => st.find(s => s.ids.includes(id))!;
+  const castro = of('loop-castro');
+  assert.equal(castro.id, 'muni-castro', 'the Metro station names a transfer');
+  assert.deepEqual(castro.lines, ['sf-loop', 'm-ocean-view', 'f-line']);
+  assert.ok(castro.ids.includes('f-line-44') && castro.ids.includes('f-line-45'));
+  assert.ok(castro.names.some(n => n.zh === '卡斯特罗') && castro.underground && castro.major);
+  for (const a of raw.find(r => r.id === 'loop-castro')!.attractions) assert.ok(castro.attractions.includes(a), `the loop stop's ${a}`);
+  const powell = of('powell-market');
+  assert.equal(powell.id, 'muni-powell');
+  for (const l of ['n-judah', 'm-ocean-view', 'powell-hyde', 'powell-mason', 'f-line']) assert.ok(powell.lines.includes(l), l);
+  assert.equal(of('hyde-beach').id, 'loop-wharf-hyde');
+  assert.equal(of('f-line-13').id, 'loop-ferry-building');
+  for (const id of ['muni-civic-center', 'muni-van-ness', 'muni-montgomery', 'muni-church']) assert.ok(of(id).lines.includes('f-line'), `${id}: the F-line above`);
+  // a short walk apart: separate stations (lane T's declared transfers 54–148 u away)
+  assert.notEqual(of('loop-civic-center').id, of('muni-civic-center').id);
+  assert.notEqual(of('loop-golden-gate-park').id, of('muni-9th-irving').id);
+  // no two stations that share no line stand within mergeR of each other; no line twice in one station
+  for (let i = 0; i < st.length; i++) {
+    assert.equal(new Set(st[i].lines).size, st[i].lines.length);
+    for (let j = i + 1; j < st.length; j++) {
+      const a = st[i], b = st[j];
+      if (!a.lines.some(l => b.lines.includes(l))) assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > STATION_RULES.mergeR, `${a.id} and ${b.id} should be one station`);
+    }
+  }
+  // the F-line's two directions: one station at their midpoint, found by either id
+  const buch = of('f-line-36');
+  assert.deepEqual(buch.ids, ['f-line-36', 'f-line-37']);
+  const [p36, p37] = ['f-line-36', 'f-line-37'].map(id => raw.find(r => r.id === id)!);
+  assert.ok(Math.abs(buch.x - (p36.x + p37.x) / 2) < 1e-9 && Math.abs(buch.z - (p36.z + p37.z) / 2) < 1e-9);
+  const fOnly = st.filter(s => s.lines.length === 1 && s.lines[0] === 'f-line');
+  for (let i = 0; i < fOnly.length; i++) for (let j = i + 1; j < fOnly.length; j++) {
+    if (fOnly[i].name.en === fOnly[j].name.en) assert.ok(Math.hypot(fOnly[i].x - fOnly[j].x, fOnly[i].z - fOnly[j].z) > STATION_RULES.sameNameR, fOnly[i].name.en);
+  }
+  // lane T's lines alone: the loop's Castro stop joins the M's station
+  assert.deepEqual(mapStations(w4.lines).find(s => s.ids.includes('loop-castro'))!.lines, ['sf-loop', 'm-ocean-view']);
+});
+
+test('P2 stations: two-character discs (观光, 叮当) and words (Tour, Cable) get capsules wide enough for their text; letters keep 12 px discs', async () => {
+  const { STATION_RULES, discWidth } = await import('../src/opus-bay/ui/mapLines');
+  const { labelWidth } = await import('../src/opus-bay/ui/cityMapDraw');
+  const st = mapStations(await realMapLines());
+  const powell = st.find(s => s.id === 'muni-powell')!, castro = st.find(s => s.id === 'muni-castro')!, wharf = st.find(s => s.id === 'loop-wharf-hyde')!;
+  for (const locale of ['zh', 'en'] as const) {
+    for (const s of [powell, castro, wharf]) {
+      const sym = stationSymbol(s, 0.6, { locale })!;
+      assert.equal(sym.kind, 'pill');
+      assert.equal(sym.locale, locale);
+      for (const d of sym.discs) {
+        const text = d.text[locale];
+        assert.equal(d.w, discWidth(text));
+        if ([...text].length === 1) assert.equal(d.w, STATION_RULES.disc, text);
+        else assert.ok(d.w > STATION_RULES.disc && d.w >= labelWidth(text, STATION_RULES.discFont) + 6, `${text} ${d.w}px`);
+      }
+      assert.equal(sym.w, 4 + sym.discs.reduce((a, d) => a + d.w + 2, 0) + (s.underground ? 10 : 0));
+      // the mark: nodes = stationNodes; a circle per letter, a capsule per word, its text centred on it, inside the pill
+      const html = inSvg(h(MapStationMark, { sym, x: 100, y: 50 }));
+      assert.equal(svgNodes(html), stationNodes(sym));
+      const pill = /<rect class="mw-stop" x="([-\d.]+)"[^>]*width="([-\d.]+)"/.exec(html)!;
+      const x0 = +pill[1], x1 = x0 + +pill[2];
+      const texts = [...html.matchAll(/<text class="mw-disc-t" x="([-\d.]+)"[^>]*>([^<]*)</g)];
+      assert.deepEqual(texts.map(m => m[2]), sym.discs.map(d => d.text[locale]));
+      const capsules = [...html.matchAll(/<rect x="([-\d.]+)" y="[-\d.]+" width="([-\d.]+)"/g)].map(m => [+m[1], +m[2]]);
+      assert.equal(capsules.length, sym.discs.filter(d => d.w > STATION_RULES.disc).length);
+      for (const [cx, w] of capsules) {
+        assert.ok(cx >= x0 + 2.9 && cx + w <= x1 - 2.9 - (sym.stair ? 10 : 0) + 1e-9, 'a capsule stays inside the pill');
+        assert.ok(texts.some(m => Math.abs(+m[1] - (cx + w / 2)) < 1e-9), 'its text is centred on it');
+      }
+    }
+  }
+  // the three cable lines still share one 叮当 disc
+  assert.equal(stationSymbol(powell, 0.6)!.discs.filter(d => d.text.zh === '叮当').length, 1);
+});
+
+test('P2 badges: a T3 dot that hosts a cluster draws its "+n" pip where the layout keeps labels off it; the node budget is exact', async () => {
+  const { pipBox } = await import('../src/opus-bay/ui/mapBadges');
+  const a = { id: 'x', cat: 'park' as const };
+  const size = badgeSize(3, 0.6);
+  assert.equal(size.kind, 'dot');
+  const html = inSvg(h(MapBadge, { a, tier: 3, s: 0.6, state: { discovered: false, cluster: 2 }, x: 40, y: 60 }));
+  assert.equal(svgNodes(html), 3);
+  assert.equal(badgeNodes(size, { discovered: false, cluster: 2 }), 3);
+  assert.match(html, /class="mw-pip"/);
+  assert.match(html, />\+2<\/text>/);
+  const b = pipBox(size.r, 2);
+  const rect = /<rect class="mw-pip" x="([-\d.]+)" y="([-\d.]+)" width="([-\d.]+)"/.exec(html)!;
+  assert.deepEqual([+rect[1], +rect[2], +rect[3]], [40 + b[0], 60 + b[1], b[2] - b[0]]);
+  assert.equal(svgNodes(inSvg(h(MapBadge, { a, tier: 3, s: 0.6, state: { discovered: true }, x: 0, y: 0 }))), 1, 'no pip without a cluster');
+  // a dimmed dot dims its pip too
+  assert.equal((inSvg(h(MapBadge, { a, tier: 3, s: 0.6, state: { discovered: true, cluster: 1, dim: true }, x: 0, y: 0 })).match(/opacity="0.25"/g) ?? []).length, 3);
+  // the layout: three T3 dots in a clump → one host with a pip; the nodes it counts are what renders (dot + pip + label)
+  const items = [0, 1, 2].map(i => ({ id: `t3-${i}`, x: 100 + i * 4, y: 100, r: size.r, prio: layoutPriority({ tier: 3, fame: 50 - i }), label: `地点${i}`, fontPx: 10.5, nodes: 1 }));
+  const out = layoutMap(items, { w: 300, h: 300, clusters: true });
+  assert.equal(out.kept.length, 1);
+  const host = out.kept[0];
+  assert.equal(host.members.length, 2);
+  assert.equal(host.text, '地点0 +2');
+  const rendered = svgNodes(inSvg(h(MapBadge, { a, tier: 3, s: 0.6, state: { discovered: false, cluster: host.members.length }, x: host.x, y: host.y }))) + (host.label ? 1 : 0);
+  assert.equal(out.nodes, rendered);
+  // the label never covers the dot's pip
+  const pb = pipBox(size.r, 2), L = host.label!;
+  assert.ok(L.x >= host.x + pb[2] || L.x + L.w <= host.x + pb[0] || L.y >= host.y + pb[3] || L.y + L.h <= host.y + pb[1], JSON.stringify(L));
+});

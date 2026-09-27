@@ -8,6 +8,10 @@ import type { Attraction, AttractionCat, AttractionGlyph, AttractionRank } from 
  * Ranking (lower = better): exact alias / name 0 · category word ("大学", "mall", "地铁" …) 0.5 · prefix 1 · word
  * start 2 · substring 3; then the tier bonus T1 −1.0, T2 −0.7, curated / T3 −0.6, lines −1.0 (a line answers its own
  * words first); ties by fame, then the shorter name. Results come grouped 景点 / 车站 / 线路 / 地点.
+ *
+ * Word start (review fix, lane P2): every word of the query starts a word of one name or alias, in order — "gate bri"
+ * and "golden bridge" find the Golden Gate Bridge as a word start, "buchanan st" the F-line's Market & Buchanan stop
+ * (the old rule compared the whole query, spaces included, with single words: a multi-word query never scored 2).
  */
 
 export type SearchGroup = 'attraction' | 'station' | 'line' | 'place';
@@ -68,17 +72,25 @@ export const SEARCH_SUGGESTIONS: readonly Bilingual[] = [
   { zh: '金门大桥', en: 'Golden Gate' }, { zh: '大学', en: 'university' }, { zh: '石镇', en: 'Stonestown' }, { zh: 'N 线', en: 'N Judah' },
 ];
 
-interface Prepared { e: SearchEntry; keys: string[]; aliases: string[]; words: string[] }
+interface Prepared { e: SearchEntry; keys: string[]; aliases: string[]; words: string[]; phrases: string[][] }
 export interface SearchIndex { readonly entries: readonly Prepared[] }
 
 const wordsOf = (s: string) => s.toLowerCase().normalize('NFKC').split(/[\s·/(),&\-–—'’]+/).filter(Boolean);
+
+/** Every query word starts a word of `phrase`, in order (words may be skipped between them). */
+function startsInOrder(phrase: readonly string[], q: readonly string[]): boolean {
+  let i = 0;
+  for (const w of phrase) if (w.startsWith(q[i]) && ++i === q.length) return true;
+  return false;
+}
 
 /** Prepare entries once (normalised names, aliases and word starts). */
 export function prepareSearch(entries: readonly SearchEntry[]): SearchIndex {
   return {
     entries: entries.map(e => {
       const names = [e.name.zh, e.name.en, ...(e.short ? [e.short.zh, e.short.en] : [])];
-      return { e, keys: [...new Set(names.map(normalizeSearch).filter(Boolean))], aliases: [...new Set((e.aliases ?? []).map(normalizeSearch).filter(Boolean))], words: [...new Set(names.flatMap(wordsOf))] };
+      const phrases = [...names, ...(e.aliases ?? [])].map(wordsOf).filter(ws => ws.length > 1);
+      return { e, keys: [...new Set(names.map(normalizeSearch).filter(Boolean))], aliases: [...new Set((e.aliases ?? []).map(normalizeSearch).filter(Boolean))], words: [...new Set(names.flatMap(wordsOf))], phrases };
     }),
   };
 }
@@ -96,7 +108,7 @@ const bonus = (e: SearchEntry) => (e.group === 'line' ? -1 : e.rank === 1 ? -1 :
 export function rankSearch(ix: SearchIndex, query: string, limit = 30): SearchHit[] {
   const q = normalizeSearch(query);
   if (!q) return [];
-  const raw = query.toLowerCase().normalize('NFKC').trim();
+  const qWords = wordsOf(query);
   const cats = CATEGORY_WORDS.filter(c => c.words.some(w => normalizeSearch(w) === q));
   const hits: SearchHit[] = [];
   for (const p of ix.entries) {
@@ -105,7 +117,7 @@ export function rankSearch(ix: SearchIndex, query: string, limit = 30): SearchHi
     if (p.aliases.includes(q) || p.keys.includes(q)) take(0, 'exact');
     if (cats.some(c => categoryHit(p.e, c))) take(0.5, 'category');
     if (p.keys.some(k => k.startsWith(q)) || p.aliases.some(a => a.startsWith(q))) take(1, 'prefix');
-    if (raw && p.words.some(w => w.startsWith(raw))) take(2, 'word');
+    if (qWords.length === 1 ? p.words.some(w => w.startsWith(qWords[0])) : qWords.length > 1 && p.phrases.some(ph => startsInOrder(ph, qWords))) take(2, 'word');
     if (p.keys.some(k => k.includes(q)) || p.aliases.some(a => a.includes(q))) take(3, 'substring');
     if (score === Infinity) continue;
     hits.push({ entry: p.e, score: score + bonus(p.e), match });
@@ -132,9 +144,13 @@ export const lineEntries = (lines: readonly { id: string; name: Bilingual; alias
   id: l.id, group: 'line', name: l.name, aliases: [...(l.aliases ?? []), ...(l.disc ? [l.disc.zh, l.disc.en] : [])], fame: 90,
 }));
 
-/** Stations (zh gloss + English sign name); `lines` lets 地铁 / muni find them. */
-export const stationEntries = (stations: readonly { id: string; name: Bilingual; lines: readonly string[]; major?: boolean }[]): SearchEntry[] => stations.map(s => ({
+/**
+ * Stations (zh gloss + English sign name); `lines` lets 地铁 / muni find them; a transfer station (ui/mapLines
+ * mapStations) is also found by its other stops' names (`names`: "17th Street & Castro Street" → the Castro station).
+ */
+export const stationEntries = (stations: readonly { id: string; name: Bilingual; lines: readonly string[]; major?: boolean; names?: readonly Bilingual[] }[]): SearchEntry[] => stations.map(s => ({
   id: s.id, group: 'station', name: s.name, lines: s.lines, fame: s.major ? 40 : 20,
+  ...(s.names?.length ? { aliases: [...new Set(s.names.flatMap(n => [n.zh, n.en]))] } : {}),
 }));
 
 /**

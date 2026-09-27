@@ -1,7 +1,7 @@
 import type { Attraction } from '../data/sf/attractionTypes';
 import type { MapTier } from '../data/sf/attractions';
 import { GLYPH_D, GLYPH_STROKE } from './glyphPaths';
-import { BADGE_INK, type BadgeSize, type BadgeState, badgeGlyph, badgePaint, badgeSize } from './mapBadges';
+import { BADGE_INK, type BadgeSize, type BadgeState, badgeGlyph, badgePaint, badgeSize, pipBox } from './mapBadges';
 import type { LabelBox } from './mapLayout';
 import { STATION_RULES, type StationSymbol } from './mapLines';
 
@@ -26,7 +26,18 @@ export function MapBadge({ a, tier, s, state, x, y, size }: {
   if (state.target) return <MapTargetPin x={x} y={y} />;
   const p = badgePaint(a, sz, state);
   if (sz.kind === 'dot') {
-    return <circle className="mw-dot" cx={x} cy={y} r={sz.r} fill={p.fill} stroke={p.ring} strokeWidth={sz.r > 3 ? 1.6 : 1} opacity={p.opacity} />;
+    const dot = <circle className="mw-dot" cx={x} cy={y} r={sz.r} fill={p.fill} stroke={p.ring} strokeWidth={sz.r > 3 ? 1.6 : 1} opacity={p.opacity} />;
+    if (!p.pip) return dot;
+    // a T3 dot that hosts a cluster shows its "+n" pip too (review fix: its label said "+n", the dot drew none); flat
+    // siblings in absolute coordinates, where layoutMap's pipBox keeps the labels off it
+    const [bx0, by0, bx1] = pipBox(sz.r, state.cluster!);
+    return (
+      <>
+        {dot}
+        <rect className="mw-pip" x={x + bx0} y={y + by0} width={bx1 - bx0} height={12} rx={6} fill={BADGE_INK.cream} stroke={BADGE_INK.outline} opacity={p.opacity} />
+        <text className="mw-pip-t" x={x + (bx0 + bx1) / 2} y={y + p.pip.y + 3.2} style={MIDDLE} opacity={p.opacity}>{p.pip.text}</text>
+      </>
+    );
   }
   const g = sz.glyph;
   return (
@@ -85,9 +96,11 @@ export function StairGlyph({ x = 0, y = 0, color = '#4d5d58' }: { x?: number; y?
 /**
  * A station in the SVG overlay (s ≥ 0.45; below that the canvas dot), centred on (x, y), as `stationSymbol` sizes it
  * and `stationNodes` counts it: a dot = one white 7 px circle with the line-colour ring; a transfer = a white pill
- * with one letter disc per line (N M); an underground station adds the stair mark on the right. No wrapper element.
+ * with one disc per line — a 12 px circle for a letter (N, M, F), a capsule as wide as the text for 观光 / 叮当 (review
+ * fix: two characters do not fit a 12 px disc) — in the symbol's locale; an underground station adds the stair mark on
+ * the right. No wrapper element.
  */
-export function MapStationMark({ sym, x, y, zh = true }: { sym: StationSymbol; x: number; y: number; zh?: boolean }) {
+export function MapStationMark({ sym, x, y }: { sym: StationSymbol; x: number; y: number }) {
   const stair = sym.stair ? <StairGlyph x={x + sym.w / 2 - (sym.kind === 'pill' ? 12 : 1)} y={y - 6} /> : null;
   if (sym.kind === 'dot') {
     return (
@@ -98,15 +111,17 @@ export function MapStationMark({ sym, x, y, zh = true }: { sym: StationSymbol; x
     );
   }
   const d = STATION_RULES.disc, x0 = x - sym.w / 2;
+  // each disc's left edge: 3 px in, then its predecessors' widths + 2 px gaps
+  const lefts = sym.discs.map((_, i) => sym.discs.slice(0, i).reduce((l, c) => l + c.w + 2, x0 + 3));
   return (
     <>
       <rect className="mw-stop" x={x0} y={y - sym.h / 2} width={sym.w} height={sym.h} rx={sym.h / 2} fill="#fff" stroke={BADGE_INK.outline} />
       {sym.discs.flatMap((c, i) => {
-        const cx = x0 + 3 + i * (d + 2) + d / 2;
-        return [
-          <circle key={`c${i}`} cx={cx} cy={y} r={d / 2} fill={c.color} />,
-          <text key={`t${i}`} className="mw-disc-t" x={cx} y={y + 3} style={MIDDLE}>{zh ? c.text.zh : c.text.en}</text>,
-        ];
+        const left = lefts[i], cx = left + c.w / 2;
+        const disc = c.w <= d
+          ? <circle key={`c${i}`} cx={cx} cy={y} r={d / 2} fill={c.color} />
+          : <rect key={`c${i}`} x={left} y={y - d / 2} width={c.w} height={d} rx={d / 2} fill={c.color} />;
+        return [disc, <text key={`t${i}`} className="mw-disc-t" x={cx} y={y + 3} style={MIDDLE}>{c.text[sym.locale]}</text>];
       })}
       {stair}
     </>

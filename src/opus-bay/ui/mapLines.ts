@@ -3,7 +3,7 @@ import { W4_LINES } from '../data/sf/stationNames';
 import type { TransitData, TransitLineJson } from '../data/transit';
 import type { TripLeg } from '../game/tripTypes';
 import type { TransitLine, TransitLineKind, TransitTunnel } from '../world/sf/format';
-import { type Ctx2D, type MapFrameBox, type MapView, visibleBox } from './cityMapDraw';
+import { type Ctx2D, type MapFrameBox, type MapView, labelWidth, visibleBox } from './cityMapDraw';
 
 /**
  * Wave 4 · transit lines, stations and trip routes on the city map (lane P, W4-P7 / W4-P10; plan sf-w4-plan.md §3.6
@@ -275,12 +275,19 @@ export function drawTransitLines(ctx: Ctx2D, lines: readonly MapLineInput[], v: 
 // Stations
 // ---------------------------------------------------------------------------------------------------------------------
 
-/** A station as the map shows it: one per stop id, the lines stopping there. */
+/** A station as the map shows it: the stops of every line that stand at one place (see `mapStations`). */
 export interface MapStation {
+  /** the primary stop's id (the Metro's where there is one) */
   id: string;
+  /** the primary stop's name */
   name: Bilingual;
+  /** the primary stop's position (the pill stays on its line) */
   x: number;
   z: number;
+  /** every stop id this station stands for, the primary's first (lane T's rides and ETAs are per stop id) */
+  ids: string[];
+  /** the other stops' names (search finds the station by any of them) */
+  names: Bilingual[];
   /** line ids stopping here, in LINE_STYLES order */
   lines: string[];
   underground: boolean;
@@ -289,32 +296,103 @@ export interface MapStation {
   attractions: string[];
 }
 
-/** Merge the stops of every line into stations (N and M share the Market St stations by id). */
-export function mapStations(lines: readonly MapLine[]): MapStation[] {
+export interface MapStationsOptions {
+  /** stops of different lines within this many u of a station's primary stop join it as a transfer (0: off) */
+  mergeR?: number;
+  /** stops of ONE line with the same name within this many u are its two directions (the F-line's): one station */
+  sameNameR?: number;
+}
+
+/** Which stop names a merged station: the Metro's, then the loop's, the cable car's, the F-line's. */
+const KIND_RANK: Readonly<Record<TransitLineKind, number>> = { 'light-rail': 0, bus: 1, 'cable-car': 2, streetcar: 3 };
+const sameStopName = (a: Bilingual, b: Bilingual) => a.en.trim().toLowerCase() === b.en.trim().toLowerCase();
+
+/**
+ * The map's stations (review fix: transfers by distance, not only by a shared id):
+ * 1. by stop id (N and M share their Market St stations);
+ * 2. one line's stops with the same name within `sameNameR` u (the F-line's two directions, 2–5 u apart) → one
+ *    station at their midpoint;
+ * 3. stations sharing NO line within `mergeR` u of a station's primary stop → one transfer station (a pill of every
+ *    line's disc): Castro (loop · M · F), Powell (N M · 叮当 · F), the Ferry Building (loop · F), Hyde & Beach (loop ·
+ *    叮当) … Primaries go Metro first, then the loop, the cable cars, the F-line (more lines first inside a kind); a
+ *    primary takes its nearest candidates first and never a second stop of a line it already has. Stops a short walk
+ *    apart (the loop's Civic Center, 54 u from the Metro's) stay separate stations.
+ */
+export function mapStations(lines: readonly MapLine[], o: MapStationsOptions = {}): MapStation[] {
+  const mergeR = o.mergeR ?? STATION_RULES.mergeR, sameNameR = o.sameNameR ?? STATION_RULES.sameNameR;
+  const kinds = new Map(lines.map(l => [l.id, l.kind] as const));
+  const order = (id: string) => LINE_STYLES[id]?.order ?? 10;
+  // 1. by id
   const by = new Map<string, MapStation>();
   for (const line of lines) {
     const under = new Set((line.tunnels ?? []).flatMap(t => ('stations' in t ? t.stations : [])));
     for (const s of line.stops) {
       let st = by.get(s.id);
-      if (!st) { st = { id: s.id, name: s.name, x: s.x, z: s.z, lines: [], underground: false, major: false, attractions: [] }; by.set(s.id, st); }
+      if (!st) { st = { id: s.id, name: s.name, x: s.x, z: s.z, ids: [s.id], names: [], lines: [], underground: false, major: false, attractions: [] }; by.set(s.id, st); }
       if (!st.lines.includes(line.id)) st.lines.push(line.id);
       st.underground ||= under.has(s.id);
       st.major ||= !!s.major;
       for (const a of s.attractions ?? []) if (!st.attractions.includes(a)) st.attractions.push(a);
     }
   }
-  const order = (id: string) => LINE_STYLES[id]?.order ?? 10;
-  for (const st of by.values()) st.lines.sort((a, b) => order(a) - order(b));
-  return [...by.values()];
+  const absorb = (into: MapStation, st: MapStation) => {
+    for (const id of st.ids) if (!into.ids.includes(id)) into.ids.push(id);
+    for (const n of [st.name, ...st.names]) if (!sameStopName(n, into.name) && !into.names.some(m => sameStopName(m, n))) into.names.push(n);
+    for (const l of st.lines) if (!into.lines.includes(l)) into.lines.push(l);
+    into.underground ||= st.underground;
+    into.major ||= st.major;
+    for (const a of st.attractions) if (!into.attractions.includes(a)) into.attractions.push(a);
+  };
+  // 2. one line's two directions
+  let list: MapStation[] = [];
+  const count = new Map<MapStation, number>();
+  for (const st of by.values()) {
+    const twin = sameNameR > 0
+      ? list.find(g => g.lines.some(l => st.lines.includes(l)) && sameStopName(g.name, st.name) && Math.hypot(g.x - st.x, g.z - st.z) <= sameNameR)
+      : undefined;
+    if (!twin) { list.push(st); count.set(st, 1); continue; }
+    const n = count.get(twin)!;
+    twin.x = (twin.x * n + st.x) / (n + 1);
+    twin.z = (twin.z * n + st.z) / (n + 1);
+    count.set(twin, n + 1);
+    absorb(twin, st);
+  }
+  // 3. transfers by distance
+  if (mergeR > 0) {
+    const rank = (st: MapStation) => Math.min(4, ...st.lines.map(id => KIND_RANK[kinds.get(id) ?? LINE_STYLES[id]?.kind ?? 'streetcar']));
+    const index = new Map(list.map((st, i) => [st, i] as const));
+    const primaries = [...list].sort((a, b) => rank(a) - rank(b) || b.lines.length - a.lines.length || Number(b.major) - Number(a.major) || index.get(a)! - index.get(b)!);
+    const taken = new Set<MapStation>();
+    for (const p of primaries) {
+      if (taken.has(p)) continue;
+      taken.add(p);
+      const d = (c: MapStation) => Math.hypot(c.x - p.x, c.z - p.z);
+      const near = list.filter(c => !taken.has(c) && d(c) <= mergeR).sort((a, b) => d(a) - d(b));
+      for (const c of near) {
+        if (c.lines.some(l => p.lines.includes(l))) continue;
+        taken.add(c);
+        count.set(c, 0);
+        absorb(p, c);
+      }
+    }
+    list = list.filter(st => count.get(st) !== 0);
+  }
+  for (const st of list) st.lines.sort((a, b) => order(a) - order(b));
+  return list;
 }
+
+/** One line disc of a station symbol: the line's disc text, its colour, its width in the symbol's locale (px). */
+export interface StationDisc { text: Bilingual; color: string; w: number }
 
 /** How a station draws at scale s (null = hidden). */
 export interface StationSymbol {
-  /** dot: white 7 px with a 2 px line-colour ring; pill: white pill holding 12 px discs (transfers) */
+  /** dot: white 7 px with a 2 px line-colour ring; pill: white pill holding the line discs (transfers) */
   kind: 'dot' | 'pill';
   /** the ring colour of a dot (the line's) */
   ring: string;
-  discs: { text: Bilingual; color: string }[];
+  discs: StationDisc[];
+  /** the locale the disc widths were measured in (MapStationMark writes that text) */
+  locale: 'zh' | 'en';
   /** underground: a small stair glyph beside it */
   stair: boolean;
   /** show the name (≥ 1.2 all; 0.45–1.2 transfers, termini and tour stops) */
@@ -326,23 +404,30 @@ export interface StationSymbol {
   h: number;
 }
 
-export const STATION_RULES = { hideBelow: 0.3, svgFrom: 0.45, allNamesFrom: 1.2, dot: 7, disc: 12 } as const;
+export const STATION_RULES = { hideBelow: 0.3, svgFrom: 0.45, allNamesFrom: 1.2, dot: 7, disc: 12, discFont: 8, discPad: 6, mergeR: 16, sameNameR: 12 } as const;
 
-export function stationSymbol(st: Pick<MapStation, 'lines' | 'underground' | 'major'>, s: number, o: { tourStop?: boolean; terminus?: boolean } = {}): StationSymbol | null {
+/**
+ * A disc's width for its text (review fix): 12 px holds one letter (N, M, F); two characters (观光, 叮当) or a word
+ * (Tour, Cable) get a capsule as wide as the text at the disc font (8 px, weight 800) plus 3 px a side.
+ */
+export const discWidth = (text: string): number => Math.max(STATION_RULES.disc, Math.ceil(labelWidth(text, STATION_RULES.discFont) + STATION_RULES.discPad));
+
+export function stationSymbol(st: Pick<MapStation, 'lines' | 'underground' | 'major'>, s: number, o: { tourStop?: boolean; terminus?: boolean; locale?: 'zh' | 'en' } = {}): StationSymbol | null {
   if (s < STATION_RULES.hideBelow || !st.lines.length) return null;
+  const locale = o.locale ?? 'zh';
   const styles = st.lines.map(id => LINE_STYLES[id] ?? null).filter((x): x is LineStyle => !!x);
   // one disc per distinct disc text (the three cable lines share 叮当)
-  const discs: { text: Bilingual; color: string }[] = [];
-  for (const sty of styles) if (!discs.some(d => d.text.zh === sty.disc.zh)) discs.push({ text: sty.disc, color: sty.color });
+  const discs: StationDisc[] = [];
+  for (const sty of styles) if (!discs.some(d => d.text.zh === sty.disc.zh)) discs.push({ text: sty.disc, color: sty.color, w: discWidth(sty.disc[locale]) });
   const transfer = discs.length > 1;
   const svg = s >= STATION_RULES.svgFrom;
   if (!svg && !(st.major || transfer || o.tourStop)) return null;
   const label = s >= STATION_RULES.allNamesFrom || (svg && (transfer || !!o.tourStop || !!o.terminus));
   if (transfer && svg) {
-    const w = 4 + discs.length * (STATION_RULES.disc + 2) + (st.underground ? 10 : 0);
-    return { kind: 'pill', ring: discs[0].color, discs, stair: st.underground, label, svg, w, h: STATION_RULES.disc + 4 };
+    const w = 4 + discs.reduce((sum, d) => sum + d.w + 2, 0) + (st.underground ? 10 : 0);
+    return { kind: 'pill', ring: discs[0].color, discs, locale, stair: st.underground, label, svg, w, h: STATION_RULES.disc + 4 };
   }
-  return { kind: 'dot', ring: styles[0]?.color ?? '#6f5f47', discs, stair: st.underground && svg, label, svg, w: STATION_RULES.dot + 4, h: STATION_RULES.dot + 4 };
+  return { kind: 'dot', ring: styles[0]?.color ?? '#6f5f47', discs, locale, stair: st.underground && svg, label, svg, w: STATION_RULES.dot + 4, h: STATION_RULES.dot + 4 };
 }
 
 /**
