@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Wave-4 perf spots (plan §5.7 W4-V1 / W4-V9): the six wave-1..3 spots (scripts/opus-sf/qa/perf/perf-gen.mjs, same coordinates) + the five new views of plan §2.6 + three moving rides. City frame (projectCity, x east-ish, z south-ish, u). `go` = the walking camera of perf-gen / budget-views (stream to x, z, teleport the player to the nearest arrival spot within 30 u, face the camera toward fx, fz); `anchor` = a DISTRICT anchor. Rides: until lane T's BusSystem / LightRailSystem land, a ride is measured as a camera path (world.cam at `camH` above the ground, looking `lookAhead` u ahead) moved along `path` at `speed` u/s with the streamer focused on the camera; after integration the same rows run on the real vehicles (the ride camera) boarding at `board`.",
+ "note": "Wave-4 perf spots (plan §5.7 W4-V1 / W4-V9): the six wave-1..3 spots (scripts/opus-sf/qa/perf/perf-gen.mjs, same coordinates) + the five new views of plan §2.6 + three moving rides. City frame (projectCity, x east-ish, z south-ish, u). `go` = the walking camera of perf-gen / budget-views (stream to x, z, teleport the player to the nearest arrival spot within 30 u, face the camera toward fx, fz); `anchor` = a DISTRICT anchor. Rides: until lane T's BusSystem / LightRailSystem land, a ride is measured as a camera path (world.cam at `camH` above the ground, looking `lookAhead` u ahead) moved along `path` at `speed` u/s with the streamer focused on the camera; after integration the same rows run on the real vehicles (the ride camera) boarding at `board` (lane T's station ids, data/sf/stationNames.ts). A spot's `sites` = the wave-4 sites whose lod-0 ring reaches it: lane L's W4Site ids where built (world/sf/landmarks/w4sites.ts), the plan §2.3 site names for the ones still to come.",
  "gate": {
   "desktop": {
    "size": [
@@ -103,7 +103,8 @@
    },
    "sites": [
     "union-square",
-    "yerba-buena",
+    "sfmoma",
+    "yerba-buena-gardens",
     "cable-car-museum",
     "chinatown-pagodas"
    ],
@@ -120,6 +121,8 @@
     "arrival": true
    },
    "sites": [
+    "union-square",
+    "yerba-buena-gardens",
     "civic-center",
     "cathedral-hill",
     "japantown"
@@ -137,11 +140,13 @@
     "arrival": true
    },
    "sites": [
+    "cal-academy",
     "music-concourse",
+    "japanese-tea-garden",
+    "st-ignatius-church",
+    "usf-lone-mountain",
     "blue-heron-lake",
     "park-east",
-    "ucsf-parnassus",
-    "usf-lone-mountain",
     "irving"
    ],
    "note": "between the de Young and Cal Academy looking east (Cal Academy AI, Tea Garden, UCSF, the Haight); plan R3: > 395k -> Cal Academy <= 4k"
@@ -159,9 +164,9 @@
    "sites": [
     "stonestown",
     "sfsu",
+    "ccsf-ocean",
     "stern-grove",
-    "lake-merced",
-    "sf-zoo"
+    "lake-merced"
    ],
    "note": "M 19th Ave & Winston between the mall and SF State"
   },
@@ -176,11 +181,15 @@
     "arrival": true
    },
    "sites": [
+    "haight-ashbury",
+    "st-ignatius-church",
     "usf-lone-mountain",
-    "haight",
-    "park-east",
     "ucsf-parnassus",
+    "cal-academy",
     "music-concourse",
+    "japanese-tea-garden",
+    "dolores-park",
+    "park-east",
     "corona-heights"
    ],
    "note": "loop stop Haight & Ashbury looking west to St Ignatius (AI) and USF"
@@ -190,8 +199,8 @@
   {
    "id": "bus-palace",
    "line": "sf-loop",
-   "board": "wharf-hyde",
-   "alight": "palace-of-fine-arts",
+   "board": "loop-wharf-hyde",
+   "alight": "loop-palace-of-fine-arts",
    "speed": 12,
    "camH": 9,
    "lookAhead": 40,
@@ -266,8 +275,8 @@
   {
    "id": "n-duboce",
    "line": "n-judah",
-   "board": "duboce-church",
-   "alight": "carl-cole",
+   "board": "muni-duboce-church",
+   "alight": "muni-carl-cole",
    "speed": 10,
    "camH": 6,
    "lookAhead": 30,
@@ -334,8 +343,8 @@
   {
    "id": "m-west-portal",
    "line": "m-ocean-view",
-   "board": "west-portal",
-   "alight": "19th-ave-winston",
+   "board": "muni-west-portal",
+   "alight": "muni-19th-winston",
    "speed": 10,
    "camH": 6,
    "lookAhead": 30,

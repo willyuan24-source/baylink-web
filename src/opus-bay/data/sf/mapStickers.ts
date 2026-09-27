@@ -9,6 +9,11 @@
  * centred on the badge, diameter = badge diameter + 4 px (the sticker brings its own cream rim, so no extra ring); the
  * glyph badge stays the fallback until the image is decoded (and under `?stickers=0`). Ids are the attraction ids of
  * data/sf/attractions.ts (lane P). Dependency-free.
+ *
+ * The map badges are SVG (ui/MapBadge.tsx), so the SVG path is `mapStickerSvg(id)`: a nested `<svg>` whose viewBox crops
+ * the one shared atlas image to the sticker (2 nodes per badge for `badgeNodes`; the browser decodes the atlas once):
+ *   <svg x={-d / 2} y={-d / 2} width={d} height={d} viewBox={v.viewBox}><image href={v.href} width={v.atlasW} height={v.atlasH} /></svg>
+ * `mapStickerRect(id)` is the same crop for a canvas `drawImage(img, x, y, w, h, …)` (the city map's canvas layer).
  */
 
 export const MAP_STICKER_IDS = [
@@ -44,6 +49,19 @@ export const isMapStickerId = (id: string): id is MapStickerId => (MAP_STICKER_I
 /** The sticker's source rect for canvas `drawImage(img, x, y, w, h, …)`, or null when the attraction has none. */
 export function mapStickerRect(id: string): MapStickerRect | null {
   return isMapStickerId(id) ? MAP_STICKERS_T1.rects[id] : null;
+}
+
+/** An SVG crop of the atlas: `viewBox` = the sticker's rect, the `<image>` at the atlas' own size. */
+export interface MapStickerSvg { href: string; viewBox: string; atlasW: number; atlasH: number }
+
+const SVG_CROPS: Readonly<Record<MapStickerId, MapStickerSvg>> = Object.fromEntries(MAP_STICKER_IDS.map(id => {
+  const r = MAP_STICKERS_T1.rects[id];
+  return [id, Object.freeze({ href: MAP_STICKERS_T1.url, viewBox: `${r.x} ${r.y} ${r.w} ${r.h}`, atlasW: MAP_STICKERS_T1.size[0], atlasH: MAP_STICKERS_T1.size[1] })];
+})) as Readonly<Record<MapStickerId, MapStickerSvg>>;
+
+/** The sticker as an SVG crop (one shared object per id, no allocation per render), or null when it has none. */
+export function mapStickerSvg(id: string): MapStickerSvg | null {
+  return isMapStickerId(id) ? SVG_CROPS[id] : null;
 }
 
 /** Files to list in `listAssetUrls()` at integration. */

@@ -5,16 +5,21 @@ import path from 'node:path';
 import test from 'node:test';
 import { SF_MODEL_IDS } from '../src/opus-bay/data/assets';
 import { W4_MODELS, W4_MODEL_IDS, w4ModelUrls } from '../src/opus-bay/data/sf/w4Models';
-import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
+import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerSvg, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
 import { T1_IDS } from '../src/opus-bay/data/sf/attractions';
 import { TOUR_LINES } from '../src/opus-bay/data/sf/tourLines';
 import { TOUR_VOICE_CHECK, TOUR_VOICE_CLIPS } from '../src/opus-bay/data/sf/voiceTour';
+import { LOOP_STOPS, W4_STATION_IDS } from '../src/opus-bay/data/sf/stationNames';
+import { W4_SITES, siteLod0R, w4Site } from '../src/opus-bay/world/sf/landmarks/w4sites';
+import { LOD0 } from '../src/opus-bay/world/sf/sites';
 
 /**
  * Lane V (wave 4, early phase): the new asset files against their data modules — the four AI landmark GLBs
  * (data/sf/w4Models.ts, not registered in data/assets.ts until the integration phase), the T1 map sticker atlas
  * (data/sf/mapStickers.ts + public/opus-bay/map/stickers-t1.json), the tour narration clips (data/sf/voiceTour.ts, lane C's
  * frozen TOUR_LINES) and the wave-4 perf spots (scripts/opus-sf/qa/perf/w4-spots.json). File checks only: no WebGL, no decoding.
+ * The lane-V review added the wiring checks: each model's `landmarkId` = the lane L site that holds its AI slot, the ledger
+ * rows = the files, the SVG sticker crop, the spots' site ids in their lod-0 rings and the rides on lane T's station ids.
  */
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -96,10 +101,13 @@ test('w4 models: Draco + WebP, one texture ≤ 1024 px, the plan §2.2 / §6 cap
 
 test('w4 models: the landmark height rule H = 3.2 + 0.155 · h (data/sf/landmarks.ts) for the three buildings of known height', () => {
   const H = (m: number) => 3.2 + 0.155 * m;
-  assert.ok(Math.abs(W4_MODELS['sf-st-ignatius'].size[1] - H(65)) < 0.1, 'St Ignatius towers 213 ft (lane L: 61 m to the lanterns + the crosses)');
-  assert.ok(Math.abs(W4_MODELS['sf-holy-virgin'].size[1] - H(38.1)) < 0.1, 'Holy Virgin 125 ft');
+  // St Ignatius: the towers rise "over 200 ft above the street" (California Preservation Foundation; USF says 210 ft,
+  // the SF Chronicle 185 ft above the campus): lane L's 61 m to the lanterns + the crosses ≈ 65 m, and the AI mesh is fitted to it
+  assert.ok(Math.abs(W4_MODELS['sf-st-ignatius'].size[1] - H(65)) < 0.1, 'St Ignatius towers ≈ 65 m to the crosses (lane L\'s procedural church)');
+  assert.ok(Math.abs(W4_MODELS['sf-holy-virgin'].size[1] - H(38.1)) < 0.1, 'Holy Virgin 125 ft (SFGate)');
   assert.ok(Math.abs(W4_MODELS['sf-chinese-pavilion'].size[1] - H(8.5)) < 0.1, 'pavilion 28 ft');
-  // the pavilion's eaves clear the player (1.5 u): at least 3 u overall
+  // the pavilion is walk-in: at least 3 u overall (measured on the decoded mesh by the lane-V review: floor platform 0.3 u,
+  // roof underside 2.3 u at the centre, 2.5 u at the eaves = 2.0 u over the floor for the 1.73 u player of actors/dims.ts)
   assert.ok(W4_MODELS['sf-chinese-pavilion'].size[1] >= 3);
 });
 
@@ -137,6 +145,16 @@ test('T1 stickers: 16 ids in the plan §4.1 order, atlas WebP 512 px with alpha,
   assert.equal(mapStickerRect('sutro-tower'), null, 'T2 attractions have no sticker');
   assert.ok(isMapStickerId('stonestown-galleria') && !isMapStickerId('stonestown'));
   assert.deepEqual(mapStickerUrls(), ['/opus-bay/map/stickers-t1.webp', '/opus-bay/map/stickers-t1.json']);
+  // the SVG crop for lane P's SVG badges (ui/MapBadge.tsx): viewBox = the rect, the image at the atlas size, one shared
+  // object per id (no allocation per render)
+  for (const id of MAP_STICKER_IDS) {
+    const v = mapStickerSvg(id)!, r = MAP_STICKERS_T1.rects[id];
+    assert.equal(v.viewBox, `${r.x} ${r.y} ${r.w} ${r.h}`, `${id} viewBox`);
+    assert.deepEqual([v.href, v.atlasW, v.atlasH], [MAP_STICKERS_T1.url, w, h]);
+    assert.equal(mapStickerSvg(id), v, `${id}: the same object every call`);
+    assert.ok(Object.isFrozen(v));
+  }
+  assert.equal(mapStickerSvg('sutro-tower'), null);
 });
 
 interface Spot { id: string; since: string; go: { x?: number; z?: number; fx: number; fz: number; anchor?: string; arrival?: boolean }; sites?: string[] }
@@ -175,6 +193,51 @@ test('w4 perf spots: the six old spots unchanged, the five new views of plan §2
       assert.ok(d > 0 && d <= 25, `${r.id} step ${i} = ${d.toFixed(1)} u`);
     }
     assert.ok(r.speed >= 8 && r.speed <= 14 && r.camH > 0 && r.lookAhead > 0, `${r.id} ride parameters`);
+    // board / alight are lane T's stable station ids (data/sf/stationNames.ts): the rows board the real vehicles after integration
+    for (const st of [r.board, r.alight]) assert.ok(W4_STATION_IDS.includes(st), `${r.id}: ${st} is a lane T station id`);
+    const prefix = r.line === 'sf-loop' ? 'loop-' : 'muni-';
+    assert.ok(r.board.startsWith(prefix) && r.alight.startsWith(prefix), `${r.id}: stations of its line`);
+    const stop = LOOP_STOPS.find(x => x.id === r.alight);
+    if (stop) assert.ok(Math.hypot(r.path.at(-1)![0] - stop.at.x, r.path.at(-1)![1] - stop.at.z) <= 30, `${r.id} ends at ${r.alight}`);
+  }
+  // `sites`: a built wave-4 site (lane L's W4Site ids) is listed only when its lod-0 ring reaches the spot; the other
+  // entries are plan §2.3 site names still to come
+  for (const s of S.spots.filter(x => x.since === 'w4')) {
+    for (const id of s.sites ?? []) {
+      const l = W4_SITES.find(x => x.id === id);
+      if (!l) continue;
+      const d = Math.hypot(l.x - s.go.x!, l.z - s.go.z!), ring = siteLod0R(l) ?? LOD0[l.tier];
+      assert.ok(d <= ring, `${s.id}: ${id} is ${d.toFixed(0)} u away, its lod-0 ring is ${ring} u`);
+    }
+  }
+});
+
+test('w4 models: landmarkId = the lane L site whose AI slot the model fills (D2 swap rule); the ledger rows = the files', () => {
+  const stem = (url: string) => path.basename(url, '.glb');
+  for (const id of W4_MODEL_IDS) {
+    const m = W4_MODELS[id], site = w4Site(m.landmarkId);
+    // a built site: its AI slot names this model's file (lane L's `aiSlot.model` strings are the GLB stems until integration)
+    if (site) assert.equal(site.w4.aiSlot?.model, stem(m.url), `${id}: site ${m.landmarkId} holds the AI slot for ${stem(m.url)}`);
+  }
+  // the two AI slots built today sit on their own sites, not on the plan's parent sites (music-concourse / usf-lone-mountain)
+  assert.equal(W4_MODELS['sf-cal-academy'].landmarkId, 'cal-academy');
+  assert.equal(W4_MODELS['sf-st-ignatius'].landmarkId, 'st-ignatius-church');
+  // every built site whose AI slot names a wave-4 GLB is that model's landmarkId (a new site id: re-label the row, free)
+  for (const l of W4_SITES) {
+    const slot = l.w4.aiSlot?.model;
+    const m = W4_MODEL_IDS.map(id => W4_MODELS[id]).find(x => stem(x.url) === slot);
+    if (m) assert.equal(m.landmarkId, l.id, `${slot}: landmarkId ${m.landmarkId} vs its site ${l.id}`);
+  }
+  // docs/opus-bay/ledger/w4-V.md "Published" rows (the lead merges them into ASSETS-LEDGER.md) state the published files
+  const ledger = fs.readFileSync(path.join(ROOT, 'docs/opus-bay/ledger/w4-V.md'), 'utf8').split(/\r?\n/);
+  for (const id of W4_MODEL_IDS) {
+    const m = W4_MODELS[id], row = ledger.find(line => line.startsWith(`| models/sf/${stem(m.url)}.glb`));
+    assert.ok(row, `${id} ledger row`);
+    const cells = row.split('|').map(c => c.trim());
+    assert.equal(Number(cells[2].replace(/,/g, '')), m.triangles, `${id} ledger triangles`);
+    assert.equal(Number(cells[3].replace(/,/g, '')), m.bytes, `${id} ledger bytes`);
+    const dims = cells[4].split('×').map(v => parseFloat(v));
+    for (let k = 0; k < 3; k++) assert.ok(Math.abs(dims[k] - m.size[k]) <= 0.02, `${id} ledger size[${k}] ${dims[k]} vs ${m.size[k]}`);
   }
 });
 

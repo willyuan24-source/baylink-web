@@ -7,6 +7,9 @@
  *
  * Not registered yet (early phase: new files only). Integration (lane V, data/assets.ts): append `W4_MODEL_IDS` to
  * `SF_MODEL_IDS` and spread `W4_MODELS` into `SF_MODELS`; lane L then swaps them in through the SoloView gate.
+ * `landmarkId` = the id of the site whose `w4.aiSlot` the model fills (lane L's W4Site ids: `cal-academy`,
+ * `st-ignatius-church`; the plan's `geary-west` / `blue-heron-lake` until those sites exist), as D2's swaps require
+ * (`SF_MODELS[part.model].landmarkId === site.id`).
  * Dependency-free at runtime (the type import is erased).
  */
 import type { SfModelAsset } from '../assets';
@@ -18,23 +21,23 @@ export type W4ModelId = (typeof W4_MODEL_IDS)[number];
 
 export const W4_MODELS: Record<W4ModelId, SfModelAsset> = {
   /**
-   * California Academy of Sciences (music-concourse site): a long low glass hall under a thin white roof slab on slim
+   * California Academy of Sciences (lane L's `cal-academy` site, beside the Music Concourse): a long low glass hall under a thin white roof slab on slim
    * columns, the green living roof with its two porthole domes and small humps. Fitted to lane L's procedural block
    * and canopy (world/sf/landmarks/cal-academy.ts, OSM way 28695389): place it at the procedural origin with scale 1.
    * 1024 px texture; mask R = the glass walls.
    */
   'sf-cal-academy': {
-    url: file('w4-cal-academy.glb'), mask: file('w4-cal-academy-mask.webp'), draco: true, kind: 'hero', landmarkId: 'music-concourse',
+    url: file('w4-cal-academy.glb'), mask: file('w4-cal-academy-mask.webp'), draco: true, kind: 'hero', landmarkId: 'cal-academy',
     scale: 1, yOffset: 0, triangles: 5880, bytes: 93_120, size: [24.4, 7.9, 16.6],
   },
   /**
-   * St Ignatius Church (usf-lone-mountain site): twin four-stage towers with domed lanterns and crosses, the columned
+   * St Ignatius Church (lane L's `st-ignatius-church` site, beside `usf-lone-mountain`): twin four-stage towers with domed lanterns and crosses, the columned
    * front and pediment, the tile-roofed nave and the dome on its drum over the crossing; warm buff walls. Fitted to lane
    * L's procedural church (world/sf/landmarks/st-ignatius.ts, OSM way 225193440; towers by the landmark rule
    * H = 3.2 + 0.155 · h): place it at (x 0.35, z −0.18) of the procedural frame (the footprint's centre) with scale 1. 1024 px texture.
    */
   'sf-st-ignatius': {
-    url: file('w4-st-ignatius.glb'), draco: true, kind: 'hero', landmarkId: 'usf-lone-mountain',
+    url: file('w4-st-ignatius.glb'), draco: true, kind: 'hero', landmarkId: 'st-ignatius-church',
     scale: 1, yOffset: 0, triangles: 5879, bytes: 152_988, size: [7.5, 13.2, 11.15],
   },
   /**
@@ -49,7 +52,10 @@ export const W4_MODELS: Record<W4ModelId, SfModelAsset> = {
   /**
    * The Chinese Pavilion on Blue Heron Lake (blue-heron-lake site; a 1981 gift from Taipei): an open octagonal pavilion,
    * eight red columns on a low stone floor, the grey-green glazed tile roof with upturned corners and a finial.
-   * 8.5 m → H = 4.5 u, so the eaves clear the player; walk-in (no blockers inside the columns). 512 px texture.
+   * 8.5 m → H = 4.5 u. Walk-in, open between every pair of columns (no bench walls), measured on the decoded mesh: the
+   * floor platform is 0.3 u high (edge r ≈ 2.4, steps to r ≈ 2.7 on ±Z), the roof underside 2.3 u at the centre and
+   * 2.5 u at the eaves (2.0 u over the floor: the 1.73 u player fits), columns ≈ r 0.25 on a ring r ≈ 2.15 at
+   * 22.5° + k·45°. 512 px texture.
    */
   'sf-chinese-pavilion': {
     url: file('w4-chinese-pavilion.glb'), draco: true, kind: 'hero', landmarkId: 'blue-heron-lake',

@@ -69,11 +69,14 @@ the hero palette grade (`grade.py`, per-asset hue remaps), Draco (level 6) + Web
 
 | file | tris | bytes | size w × h × d (u) | IoU | non-manifold / islands | palette ΔE12 (before → after) | status |
 |---|---|---|---|---|---|---|---|
-| models/sf/w4-cal-academy.glb (+ -mask.webp 7,592 B, R = glass) | 5,880 | 93,616 | 21.0 × 5.2 × 11.4 | 0.908 | 0 % / 1 | 0.66 → 0.99 | published, not registered (integration) |
-| models/sf/w4-st-ignatius.glb | 5,880 | 153,044 | 9.78 × 13.3 × 16.22 | 0.863 | 0.08 % / 1 | 0.21 → 0.92 | published, not registered |
+| models/sf/w4-cal-academy.glb (+ -mask.webp 7,592 B, R = glass) | 5,880 | 93,120 | 24.4 × 7.9 × 16.6 (fitted to lane L's procedural block + canopy) | 0.908 native / 0.894 as published | 0 % / 1 | 0.66 → 0.99 | published, not registered (integration) |
+| models/sf/w4-st-ignatius.glb | 5,879 | 152,988 | 7.5 × 13.2 × 11.15 (fitted to lane L's procedural church) | 0.863 native / 0.807 as published (fit waiver) | 0.08 % / 1 | 0.21 → 0.92 | published, not registered |
 | models/sf/w4-holy-virgin.glb | 5,880 | 184,596 | 6.10 × 9.1 × 6.69 | 0.854 | 0.23 % / 2 | 0.41 → 0.85 | published, not registered |
 | models/sf/w4-chinese-pavilion.glb | 2,940 | 71,388 | 5.62 × 4.5 × 5.61 | 0.855 | 0 % / 1 | 0.25 → 0.86 | published, not registered |
 | map/stickers-t1.webp + .json | — | 74,150 | 512 × 512 atlas, 16 × 124 px circles | — | — | — | published (lane P draws it) |
+
+The Cal Academy and St Ignatius rows were first written before the fit to lane L's bounds (`--box`); the lane-V review
+(2026-09-27) set them to the published files (tests/opus-bay-w4-assets.test.ts checks this table against `W4_MODELS`).
 
 ## Batch 3 · tour narration voice (W4-V6), 2026-09-27 18:29–19:30 UTC
 
