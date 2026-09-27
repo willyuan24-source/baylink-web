@@ -127,7 +127,29 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
     for (const r of raw) r.at -= shift;
     cum = cumulative(path);
   }
-  const stopsRaw = raw.filter(r => r.at >= -0.5);
+  let stopsRaw = raw.filter(r => r.at >= -0.5);
+  // the outer terminus: drop the turning loop / tight tail beyond it (a 13 u train must stand straight at the end):
+  // the path ends at the last spot where the 16 u before it turn by less than 0.35 rad
+  {
+    const heading = (i: number) => Math.atan2(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
+    const straightBefore = (k: number) => {
+      let lo = k;
+      while (lo > 1 && cum[k] - cum[lo - 1] < 16) lo--;
+      let a = Infinity, b = -Infinity;
+      for (let i = Math.max(1, lo); i <= k; i++) { const h = heading(i) - heading(k); const w = Math.atan2(Math.sin(h), Math.cos(h)); a = Math.min(a, w); b = Math.max(b, w); }
+      return b - a < 0.35;
+    };
+    let k = path.length - 1;
+    const floor = cum[k] - 40;
+    while (k > 2 && cum[k] > floor && !straightBefore(k)) k--;
+    if (k < path.length - 1) {
+      report.push(`${spec.id}: terminus tail trimmed by ${round(cum[cum.length - 1] - cum[k])} u (turning loop)`);
+      path = path.slice(0, k + 1); wayOf = wayOf.slice(0, k + 1);
+      cum = cumulative(path);
+      for (const r of stopsRaw) if (r.at > cum[k]) { r.at = cum[k]; r.x = path[k][0]; r.z = path[k][1]; }
+      stopsRaw = stopsRaw.filter((r, i, all) => i === all.findIndex(q => q.name === r.name && Math.abs(q.at - r.at) < 0.01));
+    }
+  }
   const length = cum[cum.length - 1];
 
   // --- tunnel spans from the way tags (a vertex takes the tags of the way that brought it = the segment ending there)

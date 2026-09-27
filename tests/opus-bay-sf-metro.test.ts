@@ -146,3 +146,151 @@ test('kiosks: underground stations are boarded on the Market St sidewalk, surfac
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// The light-rail simulation (world/lightRail.ts)
+// ---------------------------------------------------------------------------
+
+const platform = await import('../src/opus-bay/actors/platform');
+const { LRV, LightRailSystem, TRAIN_LENGTH, railTrack } = await import('../src/opus-bay/world/lightRail');
+const { runSeconds } = await import('../src/opus-bay/world/lineTrack');
+const TN = railTrack(N), TM = railTrack(M);
+type Rail = InstanceType<typeof LightRailSystem>;
+const run = (sys: Rail, secs: number, dt = 1 / 20, each?: () => void) => { for (let t = 0; t < secs; t += dt) { sys.step(dt); each?.(); } };
+const until = (sys: Rail, cond: () => boolean, max: number, dt = 1 / 20) => { let t = 0; while (!cond() && t < max) { sys.step(dt); t += dt; } return t; };
+
+test('light rail: 10 simulated minutes on N + M (2 trains each): no block violations, dwells 4 s surface / 3 s underground, reversals, hidden underground', () => {
+  const sys = new LightRailSystem([TN, TM]);
+  assert.equal(sys.trains.length, 4);
+  let bad: string[] = [];
+  const since = new Map<number, { t: number; st: string }>(), dwellSurface: number[] = [], dwellUnder: number[] = [];
+  let reversals = 0, hiddenSeen = 0;
+  run(sys, 600, 1 / 20, () => {
+    const v = sys.violations();
+    if (v.length) bad = v;
+    for (const tr of sys.trains) if (tr.hidden) hiddenSeen++;
+    for (const e of sys.events) {
+      if (e.what === 'arrive') since.set(e.train, { t: sys.time, st: e.station! });
+      if (e.what === 'reverse') reversals++;
+      if (e.what === 'depart' && since.has(e.train)) {
+        const a = since.get(e.train)!, track = sys.trains[e.train].track, stop = track.stops.find(s => s.id === a.st)!;
+        const end = stop.at < 0.5 || stop.at > track.length - 0.5;
+        if (!end) (stop.underground ? dwellUnder : dwellSurface).push(sys.time - a.t);
+      }
+    }
+    sys.events.length = 0;
+  });
+  assert.deepEqual(bad, []);
+  assert.ok(reversals >= 4, `reversals ${reversals}`);
+  assert.ok(hiddenSeen > 0, 'trains run hidden underground');
+  assert.ok(dwellSurface.length > 5 && dwellSurface.every(d => d >= LRV.dwell - 0.1 && d < LRV.dwell + 3), `surface dwells ${dwellSurface.map(d => d.toFixed(1))}`);
+  assert.ok(dwellUnder.length > 5 && dwellUnder.every(d => d >= LRV.dwellUnderground - 0.1 && d < LRV.dwellUnderground + 3), `underground dwells ${dwellUnder.map(d => d.toFixed(1))}`);
+  for (const t of sys.trains) assert.ok(t.still < 40, `${t.track.id}#${t.index} stuck ${t.still.toFixed(1)} s`);
+  // end to end (plan §3.1: N ≈ 2.8 min, M ≈ 3.1 min with the compressed subway)
+  const endToEnd = (tr: typeof TN) => runSeconds(tr, 0, tr.length) + tr.stops.filter(s => s.major && s.at > 0.5 && s.at < tr.length - 0.5).length * (LRV.dwell + LRV.stopPenalty);
+  assert.ok(endToEnd(TN) > 120 && endToEnd(TN) < 260, `N ${endToEnd(TN).toFixed(0)} s`);
+  assert.ok(endToEnd(TM) > 150 && endToEnd(TM) < 300, `M ${endToEnd(TM).toFixed(0)} s`);
+  // the subway is compressed: Embarcadero → Church ≈ 35 s
+  const church = TM.stops.find(s => s.id === 'muni-church')!;
+  const t0 = runSeconds(TM, 0, church.at) + 4 * (LRV.dwellUnderground + LRV.stopPenalty);
+  assert.ok(t0 > 20 && t0 < 50, `Embarcadero → Church ${t0.toFixed(0)} s`);
+});
+
+test('light rail: rider at an underground kiosk (Castro) → 19th & Winston: dispatch ≤ 15 s, overlay, portal hand-over, emerging, arrival', () => {
+  let ready = false;
+  const sys = new LightRailSystem([TN, TM], { portalReady: () => ready });
+  run(sys, 5);
+  const st = sys.request({ line: 'm-ocean-view', station: 'muni-castro', dir: 1, to: 'muni-19th-winston' })!;
+  assert.ok(st);
+  const waited = until(sys, () => sys.rideStatus()!.phase !== 'coming', 40);
+  assert.equal(sys.rideStatus()!.phase, 'here');
+  assert.ok(waited <= 15.5, `picked up after ${waited.toFixed(1)} s`);
+  sys.board();
+  const train = sys.riderCarOf('m-ocean-view')!;
+  const events: string[] = [];
+  let underground = false, heldAt = -1;
+  let t = until(sys, () => {
+    for (const e of sys.events) if (e.train === train.index) events.push(e.what);
+    sys.events.length = 0;
+    if (sys.rideStatus()!.underground) underground = true;
+    if (sys.rideStatus()!.portalWait && heldAt < 0) heldAt = sys.time;
+    // the surface streams in 3 s after the train starts waiting at the mouth
+    if (heldAt >= 0 && sys.time - heldAt > 3) ready = true;
+    return sys.rideStatus()!.phase === 'arrived';
+  }, 300);
+  assert.equal(sys.rideStatus()!.lastStation, 'muni-19th-winston');
+  assert.ok(underground, 'the overlay showed (underground)');
+  assert.ok(heldAt > 0, 'waited inside West Portal for the surface');
+  assert.ok(events.includes('portal-out'), `emerged: ${events.join(' ')}`);
+  assert.ok(events.includes('approach'));
+  const est = sys.rideSeconds('m-ocean-view', 'muni-castro', 'muni-19th-winston');
+  t -= 3 + 1.6;
+  assert.ok(Math.abs(t - est) < est * 0.15 + 4, `rode ${t.toFixed(1)} s vs ${est.toFixed(1)} s estimated`);
+  assert.ok(!train.hidden, 'on the surface at Winston');
+});
+
+test('light rail: the portal wait is capped at 8 s when the surface never reports ready', () => {
+  const sys = new LightRailSystem([TN], { portalReady: () => false });
+  sys.request({ line: 'n-judah', station: 'muni-van-ness', dir: 1, to: 'muni-carl-cole' });
+  until(sys, () => sys.rideStatus()!.phase !== 'coming', 40);
+  sys.board();
+  let held = 0;
+  const t = until(sys, () => { if (sys.rideStatus()!.portalWait) held += 1 / 20; return sys.rideStatus()!.phase === 'arrived'; }, 200);
+  assert.equal(sys.rideStatus()!.phase, 'arrived', `arrived after ${t.toFixed(0)} s`);
+  assert.ok(held > 5 && held <= 2 * (LRV.portalHold + 1.5), `held ${held.toFixed(1)} s in total at the two mouths`);
+});
+
+test('light rail: minor stops only on request; 下一站下车; hop-off ignored underground, honoured on the surface', () => {
+  const sys = new LightRailSystem([TN]);
+  // a rider waiting at a minor stop is served there
+  sys.request({ line: 'n-judah', station: 'muni-judah-28th', dir: -1, to: 'muni-judah-19th' });
+  const w = until(sys, () => sys.rideStatus()!.phase !== 'coming', 40);
+  assert.equal(sys.rideStatus()!.phase, 'here', `minor stop served after ${w.toFixed(1)} s`);
+  sys.board();
+  sys.events.length = 0;
+  const train = sys.riderCarOf('n-judah')!;
+  // passing minor stops: 25th, 23rd are not stopped at (the ride goes to 19th)
+  const arrivals: string[] = [];
+  until(sys, () => { for (const e of sys.events) if (e.what === 'arrive' && e.train === train.index) arrivals.push(e.station!); sys.events.length = 0; return sys.rideStatus()!.phase === 'arrived'; }, 120);
+  assert.deepEqual(arrivals, ['muni-judah-19th']);
+  sys.cancel();
+  // 下一站下车 on a surface ride stops at the very next station, minor or not
+  sys.request({ line: 'n-judah', station: 'muni-9th-irving', dir: 1, to: 'muni-judah-la-playa' });
+  until(sys, () => sys.rideStatus()!.phase !== 'coming', 40);
+  sys.board();
+  until(sys, () => sys.riderCarOf('n-judah')!.mode === 'run' && sys.riderCarOf('n-judah')!.v > 3, 30);
+  const next = sys.requestNextStop();
+  assert.equal(next, 'muni-judah-9th');
+  until(sys, () => sys.rideStatus()!.phase === 'arrived', 60);
+  assert.equal(sys.rideStatus()!.lastStation, 'muni-judah-9th');
+  sys.cancel();
+  // underground the hop-off brake is ignored
+  sys.request({ line: 'n-judah', station: 'muni-embarcadero', dir: 1, to: 'muni-van-ness' });
+  until(sys, () => sys.rideStatus()!.phase !== 'coming', 40);
+  sys.board();
+  until(sys, () => sys.rideStatus()!.underground && sys.riderCarOf('n-judah')!.v > 10, 30);
+  assert.ok(sys.rideStatus()!.underground);
+  platform.requestPlatformStop('n-judah', 1);
+  run(sys, 2);
+  assert.ok(sys.riderCarOf('n-judah')!.v > 5 || sys.riderCarOf('n-judah')!.mode === 'dwell', 'no braking in the tunnel');
+  platform.releasePlatformStop('n-judah');
+});
+
+test('light rail: termini reverse (double-ended) and serve a rider waiting to ride back; one train at a terminus', () => {
+  const sys = new LightRailSystem([TN]);
+  sys.request({ line: 'n-judah', station: 'muni-judah-la-playa', dir: -1, to: 'muni-judah-sunset' });
+  const w = until(sys, () => sys.rideStatus()!.phase !== 'coming', 60);
+  assert.equal(sys.rideStatus()!.phase, 'here', `served at the terminus after ${w.toFixed(1)} s`);
+  const tr = sys.riderCarOf('n-judah')!;
+  assert.equal(tr.dir, -1);
+  assert.ok(Math.abs(tr.s - (TN.length - TRAIN_LENGTH / 2 - 0.2)) < 0.5, 'the train stands a half train short of the track end');
+  // the pose: the lead car faces the travel direction, the two cars ≈ a train length long
+  const lead = sys.leadCar(tr), other = tr.cars[tr.dir > 0 ? 1 : 0];
+  const span = Math.hypot(lead.x - other.x, lead.z - other.z);
+  assert.ok(Math.abs(span - (TRAIN_LENGTH - LRV.carLength)) < 0.6, `car centres ${span.toFixed(2)} u apart`);
+  const fwd = { x: Math.sin(lead.heading), z: Math.cos(lead.heading) };
+  assert.ok((lead.x - other.x) * fwd.x + (lead.z - other.z) * fwd.z > 0, 'the lead car is in front');
+  sys.board();
+  until(sys, () => sys.rideStatus()!.phase === 'arrived', 90);
+  assert.equal(sys.rideStatus()!.lastStation, 'muni-judah-sunset');
+});
