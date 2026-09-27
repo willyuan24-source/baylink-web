@@ -17,6 +17,10 @@ import { RideCamera } from '../src/opus-bay/actors/cameraModes';
 import { zoneFrame } from '../src/opus-bay/actors/cityViews';
 import { VIEW_DIRS, VIEW_EYE, bestDir, preferredCameraYaw, preferredViewDir, resetViewField, viewScores, type ViewWorld } from '../src/opus-bay/actors/viewField';
 import { view } from '../src/opus-bay/actors/view';
+import { GLIDE, GlideSim, NO_GLIDE_INPUT, TallHash, terrainGlideWorld } from '../src/opus-bay/actors/glide';
+import { LiveTall, bayBridgeTall } from '../src/opus-bay/actors/glideTall';
+import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
+import { cityModule } from '../src/opus-bay/world/cityLoader';
 import { PlayerController } from '../src/opus-bay/actors/controller';
 import { GuideMover } from '../src/opus-bay/actors/guide';
 import { arrivalSpot, graphNodeFilter, setWalkGraph } from '../src/opus-bay/actors/nav';
@@ -662,4 +666,89 @@ test('E2-6 follow camera on a narrow city street: over the roofs round it, not a
     try { for (let i = 1; i < 30; i++) rc.update({ ...sub, z: sub.z + i * 0.05 }, DT, i * DT, pose); } finally { THREE.Vector3.prototype.clone = clone; }
     assert.equal(made, 0, 'no clone() per frame');
   } finally { setCityTerrain(null); game.set({ worldMode: 'district', phase: 'title' }); }
+});
+
+// ---------------------------------------------------------------------------
+// Wave 3, part b: the glide world (E2-7)
+// ---------------------------------------------------------------------------
+
+test('E2-7 glide world: the tall list is live (the city chunk and a later setTallStructures reach a glide already flying; landmark parts on the provider base); bucket hash = brute force', async () => {
+  game.set({ worldMode: 'district' });
+  const live = new LiveTall();
+  const world = terrainGlideWorld(() => live.get());
+  assert.equal(live.get().list.length, 4, 'district: Coit, Transamerica, Salesforce, the Ferry Building');
+  const coit = DISTRICT.landmarks.find(l => l.kind === 'coit-tower')!;
+  assert.ok(world.roofAt(coit.position.x, coit.position.z, 1) >= (coit.baseY ?? heightAt(coit.position.x, coit.position.z)) + 16);
+  const ggb = sfLandmark('golden-gate-bridge')!, south = landmarkToWorld(ggb, { x: -GGB.TOWER, z: 0 });
+  assert.equal(world.roofAt(south.x, south.z, 1), -Infinity, 'no bridge in the district');
+  game.set({ worldMode: 'city' });
+  const city = await cityAround([sfLandmarkAnchor('city-hall')!], 60);
+  try {
+    const { loadCity } = await import('../src/opus-bay/world/cityLoader');
+    await loadCity();
+    // the same world object, now over the city: the bridge's towers, Sutro, the Bay Bridge
+    assert.ok(world.roofAt(south.x, south.z, 1) >= GGB.TOP, 'GGB south tower');
+    const sutro = sfLandmark('sutro-tower')!;
+    assert.ok(world.roofAt(sutro.x, sutro.z, 1) > heightAt(sutro.x, sutro.z) + 40, 'Sutro Tower');
+    const bb = bayBridgeTall(), P = { w2: { x: 250.4, z: -1.1 } };
+    assert.ok(bb.length > 50, `${bb.length} Bay Bridge circles`);
+    const w2 = bb.slice(0, 4).sort((a, b) => Math.hypot(a.x - P.w2.x, a.z - P.w2.z) - Math.hypot(b.x - P.w2.x, b.z - P.w2.z))[0];
+    assert.ok(Math.hypot(w2.x - P.w2.x, w2.z - P.w2.z) < 20 && world.roofAt(w2.x, w2.z, 1) >= 31, 'a Bay Bridge tower at its pier');
+    for (const t of bb) assert.ok(world.roofAt(t.x, t.z, 0.5) >= 10.6, 'never lower than the deck');
+    // setTallStructures after take-off reaches the same world
+    live.setExtra([{ x: 3000, z: 3000, r: 3, top: 99 }]);
+    assert.equal(world.roofAt(3000, 3000, 1), 99);
+    // a 'terrain' landmark's tall parts stand on the base collision uses (the provider's), not the ground at its centre
+    const base = city.landmarkBase('city-hall')!;
+    const hl = sfLandmark('city-hall')!;
+    const hall = live.get(performance.now() + 5000).list.filter(t => Math.hypot(t.x - hl.x, t.z - hl.z) < 30);
+    const want = (cityModule()!.landmarkTallStructures(l => (l.id === 'city-hall' ? base : 0))).filter(t => t.id === 'city-hall').map(t => t.top);
+    assert.ok(want.length > 0 && want.every(top => hall.some(t => Math.abs(t.top - top) < 1e-9)), `City Hall on its base ${base.toFixed(2)}`);
+    // the 64 u bucket hash answers exactly what a scan of the list answers
+    const h = new TallHash(live.get().list);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 3000; i++) {
+      const x = -1100 + rnd() * 1800, z = -500 + rnd() * 2000, r = rnd() * 6;
+      let brute = -Infinity;
+      for (const t of h.list) if (Math.hypot(t.x - x, t.z - z) < t.r + r) brute = Math.max(brute, t.top);
+      assert.equal(h.roofAt(x, z, r), brute, `(${x.toFixed(1)}, ${z.toFixed(1)}, ${r.toFixed(2)})`);
+    }
+  } finally { setCityTerrain(null); game.set({ worldMode: 'district' }); }
+});
+
+test('E2-7 glide over the city: the pelican never passes through the Golden Gate Bridge tower or the Bay Bridge; it lands on a large open area', async () => {
+  const ggb = sfLandmark('golden-gate-bridge')!, south = landmarkToWorld(ggb, { x: -GGB.TOWER, z: 0 });
+  game.set({ worldMode: 'city' });
+  await cityAround([south], 40);
+  try {
+    const { loadCity } = await import('../src/opus-bay/world/cityLoader');
+    await loadCity();
+    const live = new LiveTall();
+    const world = terrainGlideWorld(() => live.get());
+    for (const [name, target] of [['GGB south tower', south], ['Bay Bridge W3', bayBridgeTall()[1]]] as const) {
+      const sim = new GlideSim();
+      // 90 u off, 30 u up, flying straight at it with no input
+      const h = Math.atan2(target.x - (target.x - 90), 0);
+      sim.x = target.x - 90; sim.z = target.z; sim.y = 30; sim.heading = h; sim.stage = 'flight';
+      let near = Infinity, low = Infinity;
+      for (let i = 0; i < 60 * 10; i++) {
+        sim.step(DT, NO_GLIDE_INPUT, world);
+        near = Math.min(near, Math.hypot(sim.x - target.x, sim.z - target.z));
+        const roof = world.roofAt(sim.x, sim.z, 1);
+        if (roof > -Infinity) low = Math.min(low, sim.y - roof);
+      }
+      // (the repulsor climbs and banks round it — over or beside — but never through it)
+      assert.ok(near < 30, `${name}: it came by (${near.toFixed(1)} u)`);
+      assert.ok(low >= GLIDE.hardClear - 0.5, `${name}: never through it (${low.toFixed(2)})`);
+    }
+    // city landing: nav.arrivalSpot, never a pocket
+    const at = sfLandmarkAnchor('city-hall')!;
+    await cityAround([at], 80);
+    const w2 = terrainGlideWorld(() => live.get());
+    assert.deepEqual(w2.landingSpot(at.x + 3, at.z + 3, 40), arrivalSpot({ x: at.x + 3, z: at.z + 3 }, 40));
+  } finally { setCityTerrain(null); game.set({ worldMode: 'district' }); }
+  // district: the nearest standable spot, as before
+  const f = DISTRICT.anchors['ferry-clock'];
+  assert.deepEqual(terrainGlideWorld().landingSpot(f.x, f.z, 40), nearestWalkable(f, 40));
 });

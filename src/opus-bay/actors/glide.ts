@@ -1,5 +1,6 @@
-import { blockersNear, heightAt, inWorld, nearestWalkable, type Blocker } from '../core/terrain';
+import { cityTerrain, forEachBlockerNear, heightAt, inWorld, nearestWalkable, type Blocker } from '../core/terrain';
 import type { Vec2 } from '../core/types';
+import { arrivalSpot } from './nav';
 
 /**
  * Pelican glide (plan §6.6): the newcomer rides the big pelican over the Bay, BAYBAY up front. A cozy flight model
@@ -13,8 +14,10 @@ import type { Vec2 } from '../core/types';
  *  - buildings: a 2 s swept look-ahead against roof heights acts as a repulsor (climb, bank toward the lower side —
  *    the idea of GTA_SZ src/city-flight-collision.ts, as a nudge instead of a crash);
  *  - landing: the nearest standable spot within 40 u, never water (the resolver idea of GTA_SZ
- *    src/city-observer-destination.ts), reached along a 2–3 s descent curve that ends with the seat `perch` u above
- *    the spot; the rider hops down (hop + squash) and the pelican flies on.
+ *    src/city-observer-destination.ts; in the city a spot of a large open area, nav.arrivalSpot), reached along a
+ *    2–3 s descent curve that ends with the seat `perch` u above the spot; the rider hops down (hop + squash) and the
+ *    pelican flies on;
+ *  - tall structures (towers, bridge cables, domes) come from a live source hashed in 64 u buckets (TallHash, E2-7).
  * Take-off is a scripted 1 s swoop. Pure (node tests with synthetic worlds).
  */
 
@@ -71,19 +74,67 @@ function blockerTop(b: Blocker, x: number, z: number): number {
   if (b.kind === 'circle') return heightAt(b.x, b.z) + (b.r >= 0.7 ? 20 : 5);
   return heightAt(x, z) + 24;
 }
+export const TALL_BUCKET = 64;
+/** the widest roofAt radius the glide asks for (GLIDE.floorR 6) plus a margin: buckets are filled that far out */
+const REACH = 8;
 
-/** The game's glide world: core/terrain (heights, model, blockers, standable grid) + optional known towers. */
-export function terrainGlideWorld(tall: readonly TallStructure[] = []): GlideWorld {
+const key = (i: number, j: number) => (i + 2048) * 4096 + (j + 2048);
+
+/** Tall structures in a 64 u bucket hash: roofAt(x, z, r) = the highest top whose circle comes within r of (x, z). */
+export class TallHash {
+  readonly list: readonly TallStructure[];
+  private buckets = new Map<number, TallStructure[]>();
+  constructor(list: readonly TallStructure[]) {
+    this.list = list;
+    for (const t of list) {
+      const R = t.r + REACH;
+      for (let j = Math.floor((t.z - R) / TALL_BUCKET); j <= Math.floor((t.z + R) / TALL_BUCKET); j++) {
+        for (let i = Math.floor((t.x - R) / TALL_BUCKET); i <= Math.floor((t.x + R) / TALL_BUCKET); i++) {
+          const k = key(i, j);
+          let b = this.buckets.get(k);
+          if (!b) this.buckets.set(k, (b = []));
+          b.push(t);
+        }
+      }
+    }
+  }
+  roofAt(x: number, z: number, r: number): number {
+    let top = -Infinity;
+    const scan = r > REACH ? this.list : this.buckets.get(key(Math.floor(x / TALL_BUCKET), Math.floor(z / TALL_BUCKET)));
+    if (!scan) return top;
+    for (const t of scan) {
+      if (t.top <= top) continue;
+      const dx = t.x - x, dz = t.z - z, rr = t.r + r;
+      if (dx * dx + dz * dz < rr * rr) top = t.top;
+    }
+    return top;
+  }
+}
+
+// (roofAt's blocker callback reads the query point and writes the highest roof here: no closure per call)
+let qx = 0, qz = 0, qTop = -Infinity;
+const roofOf = (b: Blocker) => { const t = blockerTop(b, qx, qz); if (t > qTop) qTop = t; };
+
+/** What the glide world asks of the tall structures: an array (built into a hash once) or a live lookup (E2-7). */
+export type TallSource = readonly TallStructure[] | (() => { roofAt(x: number, z: number, r: number): number });
+
+/**
+ * The game's glide world: core/terrain (heights, model, blockers, standable grid) + the tall structures. `tall` may be
+ * a getter (actors/glideTall LiveTall: rebuilt as the city streams, the stale-capture fix of E2-7). Landing in the city
+ * goes to a large open area (nav.arrivalSpot: never a backyard pocket or a slot between houses), district mode to
+ * the nearest standable spot as before. No allocation per query.
+ */
+export function terrainGlideWorld(tall: TallSource = []): GlideWorld {
+  const lookup = typeof tall === 'function' ? tall : (() => { const h = new TallHash(tall); return () => h; })();
   return {
     heightAt,
     inWorld,
     roofAt(x, z, r) {
-      let top = -Infinity;
-      for (const b of blockersNear(x, z, r)) top = Math.max(top, blockerTop(b, x, z));
-      for (const t of tall) if (Math.hypot(t.x - x, t.z - z) < t.r + r) top = Math.max(top, t.top);
-      return top;
+      qx = x; qz = z; qTop = -Infinity;
+      forEachBlockerNear(x, z, r, roofOf);
+      return Math.max(qTop, lookup().roofAt(x, z, r));
     },
-    landingSpot(x, z, r) { return nearestWalkable({ x, z }, r); },
+    landingSpot(x, z, r) { return cityTerrain() ? arrivalSpot({ x, z }, r) : nearestWalkable({ x, z }, r); },
   };
 }
 

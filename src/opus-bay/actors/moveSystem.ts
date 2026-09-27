@@ -5,19 +5,18 @@ import { runtime } from '../core/runtime';
 import { game, type MoveState } from '../core/store';
 import { canStand, groundPending, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
-import { DISTRICT } from '../data/district';
 import { seatSpots, type SeatSpot } from '../data/vehicles';
 import { cancelRide, hopOffRide, say } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { currentRide } from '../game/ride';
 import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
-import { cityModule } from '../world/cityLoader';
 import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
 import { NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
+import { LiveTall } from './glideTall';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
@@ -118,8 +117,6 @@ const rectDist = (r: DeckRect, x: number, z: number) => Math.hypot(Math.max(r.mi
 
 /** BAYBAY's scale in each seat (the basket is small; she tucks in). */
 const GUIDE_SEAT_SCALE = { bike: 0.72, car: 0.85, glide: 0.85 } as const;
-/** Known tall structures for the glide repulsor while blockers carry no roof heights (district fallback). */
-let tallCache: TallStructure[] | null = null;
 
 export class MoveSystem {
   readonly root = new THREE.Group();
@@ -702,8 +699,9 @@ export class MoveSystem {
     if (r.bump) emit({ type: 'bump', kind: 'glide', strength: 0.3 });
   }
 
+  /** The glide world (built once; its tall structures are looked up live, E2-7). */
   private world(): GlideWorld {
-    if (!this.glideWorld) this.glideWorld = terrainGlideWorld(tallStructures());
+    this.glideWorld ??= terrainGlideWorld(() => liveTall.get());
     return this.glideWorld;
   }
 
@@ -1154,29 +1152,8 @@ export class MoveSystem {
   }
 }
 
-/**
- * Tall landmarks the glide steers round. Landmark blockers carry no roof heights (city buildings do: Blocker.top), so
- * the hero's towers are listed here from their landmark positions with their modelled heights (world/landmarks.ts),
- * and in city mode lane D's tall San Francisco landmarks (cityTallStructures); more via setTallStructures.
- */
-const TOWER_TOPS: Record<string, number> = { 'coit-tower': 16, transamerica: 41, 'salesforce-tower': 56.5, 'ferry-building': 30 };
-function tallStructures(): TallStructure[] {
-  if (tallCache) return tallCache;
-  tallCache = DISTRICT.landmarks.filter(l => TOWER_TOPS[l.kind] !== undefined).map(l => ({
-    x: l.position.x, z: l.position.z, r: l.kind === 'ferry-building' ? 3 : 4, top: (l.baseY ?? heightAt(l.position.x, l.position.z)) + TOWER_TOPS[l.kind] + 2,
-  }));
-  if (game.get().worldMode === 'city') tallCache.push(...cityTallStructures());
-  return tallCache;
-}
-
-/**
- * City mode (checkpoint, lane E's request to lane D): landmarks at least 10 u tall with their modelled height, from lane
- * D2's world/sf/landmarks/context.ts landmarkTallStructures (day 0: the list this function used to build here, moved
- * verbatim; D2-10 refines radii and tops). 'terrain' bases are read from core/terrain when the first glide starts
- * (streamed ground, else the far DEM). Read through the city chunk (world/cityLoader cityModule, HC-1): the landmark
- * table stays out of the main graph, and city mode always has the module before the world is built.
- */
-function cityTallStructures(): TallStructure[] {
-  return cityModule()?.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : heightAt(l.x, l.z))) ?? [];
-}
-export function setTallStructures(list: TallStructure[]) { tallCache = [...tallStructures(), ...list]; }
+/** The glide's tall structures, live (actors/glideTall, E2-7); other lanes add theirs here. */
+const liveTall = new LiveTall();
+export function setTallStructures(list: TallStructure[]) { liveTall.setExtra(list); }
+/** QA / tests: the glide's current tall list. */
+export function tallStructuresNow(): readonly TallStructure[] { return liveTall.get().list; }
