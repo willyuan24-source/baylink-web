@@ -92,7 +92,7 @@ export function tallNow(extra: readonly TallStructure[] = []): TallStructure[] {
 /** The live list: rebuilt on a change of world mode, city chunk or extras, and (≤ 1 / s) as the city streams. */
 export class LiveTall {
   private hash: TallHash | null = null;
-  private stamp = '';
+  private stamp = -1;
   private epoch = -1;
   private builtAt = -1e9;
   private extra: TallStructure[] = [];
@@ -102,7 +102,8 @@ export class LiveTall {
   setExtra(list: readonly TallStructure[]) { this.extra = [...list]; this.extraV++; }
   get(now = performance.now()): TallHash {
     const city = game.get().worldMode === 'city';
-    const stamp = `${city ? 'c' : 'd'}:${city && cityModule() ? 1 : 0}:${this.extraV}`;
+    // (a number, not a string: roofAt asks this several times a glide frame and allocates nothing — E2-review)
+    const stamp = (city ? 1 : 0) + (city && cityModule() ? 2 : 0) + this.extraV * 4;
     const e = cityEpoch();
     const stale = !this.hash || stamp !== this.stamp || (city && e !== this.epoch && now - this.builtAt > 1000);
     if (stale) {

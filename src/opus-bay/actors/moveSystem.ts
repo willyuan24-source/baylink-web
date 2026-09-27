@@ -182,6 +182,8 @@ export class MoveSystem {
   /** city mode (E2-12): the pooled bikes at the racks near the player and the city benches (vehicles/cityBikes.ts, lazy) */
   cityBikes: CityBikePool | null = null;
   private cityBikesLoad: Promise<unknown> | null = null;
+  /** dispose() ran (E2-review: the lazy city chunks check it) */
+  private disposed = false;
   private frustum: THREE.Frustum | null = null;
   private readonly seenRide = (r: Ride) => !!this.frustum?.intersectsSphere(tmpS.set(tmpV.set(r.sim.x, r.sim.y + 0.5, r.sim.z), 1.4));
 
@@ -447,6 +449,8 @@ export class MoveSystem {
     this.frustum = env.frustum;
     if (s.worldMode === 'city') {
       this.cityBikesLoad ??= import('./vehicles/cityBikes').then(mod => {
+        // (a system disposed while the chunk loaded registers nothing: its interactables source would outlive it)
+        if (this.disposed) return;
         this.cityBikes = new mod.CityBikePool(this.fleet);
         this.seats.push(...mod.cityBenchSeats());
         this.cityBikes.register();
@@ -1282,6 +1286,7 @@ export class MoveSystem {
   }
 
   dispose() {
+    this.disposed = true;
     this.cityBikes?.dispose();
     this.fleet.dispose();
     this.pelican.dispose();
