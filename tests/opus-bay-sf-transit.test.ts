@@ -404,3 +404,32 @@ test('G2 glossary: the player reads 叮当车 / 叮当车司机 for the cable ca
   const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/game/transit.ts'), 'utf8');
   assert.deepEqual(src.split('\n').filter(s => old.test(s)), []);
 });
+
+test('review: another car turning on its turntable is heard by distance (rumble and bell), full only for the rider', async () => {
+  const { TransitLayer } = await import('../src/opus-bay/world/transitLayer');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const layer = new TransitLayer(DATA);
+  const heard: { what: string; strength: number }[] = [];
+  const off = onEvent(e => { if (e.type === 'transit' && e.kind === 'cable-car') heard.push({ what: e.what, strength: e.strength ?? 1 }); });
+  try {
+    const car = layer.sys.cars[0], line0 = car.line.id;
+    const drain = (d: number, what: 'turned' | 'bell') => {
+      runtime.player.x = car.pose.x + d; runtime.player.z = car.pose.z;
+      heard.length = 0;
+      layer.sys.events.push({ what, car: 0, line: line0 });
+      (layer as unknown as { drainEvents(): void }).drainEvents();
+      return heard.slice();
+    };
+    const near = drain(5, 'turned'), far = drain(80, 'turned'), gone = drain(95, 'turned');
+    assert.deepEqual(near.map(e => e.what), ['turned', 'bell']);
+    assert.ok(near[0].strength > 0.9 && near[1].strength > 0.8, `close by: ${JSON.stringify(near)}`);
+    assert.ok(far[0].strength < 0.25 && far[1].strength < 0.25, `80 u away: ${JSON.stringify(far)}`);
+    assert.equal(gone.length, 0, 'out of earshot');
+    // a stopped car's bell: quieter with distance (BAYBAY's "a bell close by" wants ≥ 0.4)
+    assert.ok(drain(5, 'bell')[0].strength > 0.7);
+    assert.ok(drain(45, 'bell')[0].strength < 0.4);
+  } finally {
+    off();
+    layer.dispose();
+  }
+});

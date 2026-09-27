@@ -251,18 +251,25 @@ export class TransitLayer {
       const mine = !!rider && rider.car === e.car && car.rider;
       const heard = mine || d < HEAR;
       const base = { type: 'transit' as const, line: e.line, kind: 'cable-car' as const };
-      // another car's bell / clank comes from where that car is (audio pans it); the rider's own is centred
+      // another car's bell / clank comes from where that car is (audio pans it); the rider's own is centred.
+      // `strength` is the loudness audio plays it at (and BAYBAY's "a bell close by" line wants ≥ 0.4): by distance
+      const near = mine ? 1 : Math.max(0.2, 1 - d / HEAR);
       const at = (ev: Parameters<typeof emit>[0]) => { if (mine) emit(ev); else emitAt(ev, car.pose.x, car.pose.z); };
       switch (e.what) {
         case 'depart':
           if (mine) emit({ ...base, what: 'depart' });
-          if (heard) at({ ...base, what: 'bell', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) });
+          if (heard) at({ ...base, what: 'bell', strength: near });
           break;
-        case 'grip': if (heard) at({ ...base, what: 'grip', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) }); break;
+        case 'grip': if (heard) at({ ...base, what: 'grip', strength: near }); break;
         case 'arrive': if (mine) emit({ ...base, what: 'arrive' }); break;
-        case 'bell': if (heard) at({ ...base, what: 'bell', strength: mine ? 1 : 0.8 }); break;
+        case 'bell': if (heard) at({ ...base, what: 'bell', strength: mine ? 1 : 0.8 * near }); break;
         case 'push': emit({ ...base, what: 'push', strength: 1 }); break;
-        case 'turned': if (d < HEAR * 1.5) { at({ ...base, what: 'turned' }); at({ ...base, what: 'bell', strength: 0.9 }); } break;
+        // (review) the rumble and the bell of a car that has turned were full loudness out to 90 u
+        case 'turned': if (mine || d < HEAR * 1.5) {
+          const k = mine ? 1 : Math.max(0.2, 1 - d / (HEAR * 1.5));
+          at({ ...base, what: 'turned', strength: k });
+          at({ ...base, what: 'bell', strength: 0.9 * k });
+        } break;
         case 'board': emit({ ...base, what: 'board' }); break;
         default: break;
       }
