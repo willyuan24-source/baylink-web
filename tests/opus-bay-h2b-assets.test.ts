@@ -208,3 +208,121 @@ test('voice: the files on disk are the picks of the report (bytes, sha256, durat
     }
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// the Mission murals (H2b-10)
+// ---------------------------------------------------------------------------------------------------------------------
+
+const { MURALS, MURAL_ATLAS, MURAL_ATLAS_SIZE, MURAL_GUTTER, MURAL_PANEL, MURAL_RANGE, MURAL_SITES, muralRect, muralUrls } = await import('../src/opus-bay/data/murals');
+const { muralGeometry, boardGround, muralSiteDist2 } = await import('../src/opus-bay/world/sf/murals');
+
+test('murals: eight originals, each on its own atlas tile, art inside the gutter; singles and atlas listed', () => {
+  assert.equal(MURALS.length, 8);
+  assert.equal(new Set(MURALS.map(m => m.id)).size, 8);
+  const { w, h, tile } = MURAL_ATLAS_SIZE;
+  MURALS.forEach((m, k) => {
+    assert.deepEqual(m.rect, muralRect(k), m.id);
+    const { u0, u1, v0, v1 } = m.rect;
+    // the rect is the tile minus its gutter, in the tile of index k (4 per row, rows from the top, v up)
+    const col = k % 4, row = Math.floor(k / 4);
+    assert.ok(Math.abs(u0 * w - (col * tile + MURAL_GUTTER)) < 1e-6 && Math.abs(u1 * w - ((col + 1) * tile - MURAL_GUTTER)) < 1e-6, m.id);
+    assert.ok(Math.abs((1 - v1) * h - (row * tile + MURAL_GUTTER)) < 1e-6 && Math.abs((1 - v0) * h - ((row + 1) * tile - MURAL_GUTTER)) < 1e-6, m.id);
+    assert.ok(m.title.zh && m.title.en && m.site && m.single === `/opus-bay/murals/${m.id}-512.webp`);
+  });
+  assert.equal(MURAL_ATLAS, '/opus-bay/murals/atlas-v1.webp');
+  assert.deepEqual(muralUrls().sort(), [MURAL_ATLAS, ...MURALS.map(m => m.single!)].sort());
+  // four per alley
+  assert.equal(MURALS.filter(m => m.site === 'clarion').length, 4);
+  assert.equal(MURALS.filter(m => m.site === 'balmy').length, 4);
+});
+
+test('murals: the files are the committed report (atlas 2048 × 1024 ≤ 300 KB, 512 px singles)', () => {
+  const r = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../docs/opus-bay/h2b/murals-report.json'), 'utf8')) as {
+    atlas: { path: string; bytes: number; sha256: string; size: [number, number] };
+    murals: { id: string; job_id: string; single: { path: string; bytes: number; sha256: string } }[];
+  };
+  const atlas = fs.readFileSync(publicFile(MURAL_ATLAS!));
+  assert.deepEqual(webpSize(atlas), [2048, 1024]);
+  assert.ok(atlas.length <= 300_000, `atlas ${atlas.length} B`);
+  assert.equal(atlas.length, r.atlas.bytes);
+  assert.equal(crypto.createHash('sha256').update(atlas).digest('hex'), r.atlas.sha256);
+  assert.deepEqual(r.murals.map(m => m.id), MURALS.map(m => m.id), 'atlas order = MURALS order');
+  for (const m of r.murals) {
+    const buf = fs.readFileSync(path.resolve(import.meta.dirname, '..', m.single.path));
+    assert.deepEqual(webpSize(buf), [512, 512], m.id);
+    assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), m.single.sha256, m.id);
+    assert.match(m.job_id, /^[0-9a-f-]{36}$/);
+  }
+});
+
+test('murals: every board stands in its alley, in front of the walls, facing the centreline, never inside a building', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { NO_NAME } = await import('../src/opus-bay/world/sf/format');
+  const sf = sfDisk();
+  const far = await sf.far();
+  const names = { clarion: 'Clarion Alley', balmy: 'Balmy Street' } as const;
+  for (const m of MURALS) {
+    const site = MURAL_SITES[m.site!];
+    assert.ok(Math.hypot(m.at.x - site.x, m.at.z - site.z) < 16, `${m.id} near its alley`);
+    assert.ok(muralSiteDist2(m.at.x, m.at.z) < MURAL_RANGE * MURAL_RANGE);
+    const c = await sf.chunk(Math.floor(m.at.x / 128), Math.floor(m.at.z / 128));
+    assert.ok(c, m.id);
+    // nearest point on the alley centreline: the board's face normal points at it, 0.5–3 u away
+    let best = { d: Infinity, x: 0, z: 0 };
+    for (let i = 0; i < c.roads.count; i++) {
+      if (c.roads.nameIdx[i] === NO_NAME || far.names[c.roads.nameIdx[i]] !== names[m.site!]) continue;
+      for (let p = c.roads.pStart[i]; p + 1 < c.roads.pStart[i + 1]; p++) {
+        const ax = c.roads.xyz[p * 3], az = c.roads.xyz[p * 3 + 2], bx = c.roads.xyz[p * 3 + 3], bz = c.roads.xyz[p * 3 + 5];
+        const t = Math.max(0, Math.min(1, ((m.at.x - ax) * (bx - ax) + (m.at.z - az) * (bz - az)) / ((bx - ax) ** 2 + (bz - az) ** 2)));
+        const x = ax + (bx - ax) * t, z = az + (bz - az) * t, d = Math.hypot(m.at.x - x, m.at.z - z);
+        if (d < best.d) best = { d, x, z };
+      }
+    }
+    assert.ok(best.d > 0.5 && best.d < 3, `${m.id} ${best.d.toFixed(2)} u off the centreline`);
+    const fx = Math.sin(m.at.yaw), fz = Math.cos(m.at.yaw);
+    assert.ok(((best.x - m.at.x) * fx + (best.z - m.at.z) * fz) / best.d > 0.95, `${m.id} faces the alley`);
+    // the board's footprint (4 corners + centre) is outside every building of its chunk
+    const ax = Math.cos(m.at.yaw) * m.at.width / 2, az = -Math.sin(m.at.yaw) * m.at.width / 2;
+    const tx = fx * MURAL_PANEL.thick / 2, tz = fz * MURAL_PANEL.thick / 2;
+    const pts = [[0, 0], [ax + tx, az + tz], [ax - tx, az - tz], [-ax + tx, -az + tz], [-ax - tx, -az - tz]].map(([dx, dz]) => [m.at.x + dx, m.at.z + dz]);
+    const b = c.buildings;
+    for (let i = 0; i < b.count; i++) {
+      const n = b.vStart[i + 1] - b.vStart[i];
+      for (const [px, pz] of pts) {
+        let inside = false;
+        for (let v = 0, u = n - 1; v < n; u = v++) {
+          const xi = b.xz[(b.vStart[i] + v) * 2], zi = b.xz[(b.vStart[i] + v) * 2 + 1], xj = b.xz[(b.vStart[i] + u) * 2], zj = b.xz[(b.vStart[i] + u) * 2 + 1];
+          if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) inside = !inside;
+        }
+        assert.ok(!inside, `${m.id} corner inside building ${i}`);
+      }
+    }
+  }
+});
+
+test('murals: one geometry of 8 boxes (96 triangles), painted faces carry the atlas rects; ground = the lowest sample', () => {
+  const ys = MURALS.map((_, i) => 2 + i * 0.1);
+  const g = muralGeometry(MURALS, ys);
+  assert.equal(g.getAttribute('position').count, 8 * 24);
+  assert.equal(g.getIndex()!.count / 3, 96);
+  const uv = g.getAttribute('uv'), pos = g.getAttribute('position'), nor = g.getAttribute('normal');
+  MURALS.forEach((m, i) => {
+    const base = i * 24;
+    // the front face: 4 vertices at the rect corners, its normal = the facing direction, bottom sunk into the ground
+    const us = [0, 1, 2, 3].map(k => uv.getX(base + k)), vs = [0, 1, 2, 3].map(k => uv.getY(base + k));
+    assert.deepEqual([Math.min(...us), Math.max(...us), Math.min(...vs), Math.max(...vs)].map(x => +x.toFixed(6)), [m.rect.u0, m.rect.u1, m.rect.v0, m.rect.v1].map(x => +x.toFixed(6)));
+    assert.ok(Math.abs(nor.getX(base) - Math.sin(m.at.yaw)) < 1e-5 && Math.abs(nor.getZ(base) - Math.cos(m.at.yaw)) < 1e-5);
+    assert.ok(Math.abs(pos.getY(base) - (ys[i] - MURAL_PANEL.sink)) < 1e-5);
+    assert.ok(Math.abs(pos.getY(base + 2) - (ys[i] - MURAL_PANEL.sink + MURAL_PANEL.height)) < 1e-5);
+    // every uv of the board stays inside its own rect (no neighbour tile at any mip level)
+    for (let k = 0; k < 24; k++) {
+      assert.ok(uv.getX(base + k) >= m.rect.u0 - 1e-6 && uv.getX(base + k) <= m.rect.u1 + 1e-6 && uv.getY(base + k) >= m.rect.v0 - 1e-6 && uv.getY(base + k) <= m.rect.v1 + 1e-6);
+    }
+  });
+  const m = MURALS[0];
+  assert.equal(boardGround(m, () => null), null);
+  let calls = 0;
+  assert.equal(boardGround(m, (x) => { calls++; return x > m.at.x + 0.1 ? 3 : x < m.at.x - 0.1 ? 2.5 : 2.8; }), 2.5);
+  assert.equal(calls, 3);
+  g.dispose();
+});

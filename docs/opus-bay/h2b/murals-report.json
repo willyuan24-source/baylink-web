@@ -1,0 +1,128 @@
+{
+ "atlas": {
+  "path": "public/opus-bay/murals/atlas-v1.webp",
+  "size": [
+   2048,
+   1024
+  ],
+  "tile": 512,
+  "gutter": 16,
+  "quality": 48,
+  "bytes": 256124,
+  "sha256": "b8e3a8f0287e6eadf3c8f215801418849cf309f85213ada2e695dff37d18b8e8"
+ },
+ "murals": [
+  {
+   "id": "sun-hummingbird",
+   "source": "ab-gpt-sun.png",
+   "job_id": "76baf3e7-c419-4cb2-adc6-41bb856b162f",
+   "tile": [
+    0,
+    0
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/sun-hummingbird-512.webp",
+    "bytes": 52888,
+    "sha256": "875b83304537002dff426da5b5dc3907a4d4b7395e9974c98df37916d9b9e477"
+   }
+  },
+  {
+   "id": "poppy-hills",
+   "source": "m-poppies.png",
+   "job_id": "1602341c-b13c-4261-890d-080b17229fa0",
+   "tile": [
+    1,
+    0
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/poppy-hills-512.webp",
+    "bytes": 64028,
+    "sha256": "75660ff372ccab69048092124f5fc63960e3329bae115d4c1608d4df5cc17b79"
+   }
+  },
+  {
+   "id": "fruit-stand",
+   "source": "m-market-b.png",
+   "job_id": "cdc779dd-c2e6-4b92-a9ca-9ca9eb5662d2",
+   "tile": [
+    2,
+    0
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/fruit-stand-512.webp",
+    "bytes": 68388,
+    "sha256": "9c6358e5d157853a1c9cb3a2f0f6ad215c724f6223b9e3e32cb23dd9b0fccedc"
+   }
+  },
+  {
+   "id": "music-garden",
+   "source": "m-music.png",
+   "job_id": "82dacccc-855b-4eac-8318-08c860f244a5",
+   "tile": [
+    3,
+    0
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/music-garden-512.webp",
+    "bytes": 75604,
+    "sha256": "a4fab9df983bfc1c4407920abd14a70774c1da59d684e020928db1966b86fe8b"
+   }
+  },
+  {
+   "id": "pelican-bay",
+   "source": "ab-gpt-pelican.png",
+   "job_id": "99ff5d30-d6b9-4fe2-8d2c-bbf04a618d3d",
+   "tile": [
+    0,
+    1
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/pelican-bay-512.webp",
+    "bytes": 44038,
+    "sha256": "7784adcb67ffbef60d4acb031d026bf56fb982b1adceb1927ee40473d2320ba4"
+   }
+  },
+  {
+   "id": "flower-cable-car",
+   "source": "m-cable-a.png",
+   "job_id": "90fae8d5-f281-465a-a14a-6e200f075f3f",
+   "tile": [
+    1,
+    1
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/flower-cable-car-512.webp",
+    "bytes": 73346,
+    "sha256": "1d5b601b9fdcc19443428df2d965ba6dcb6cce807881ad59c74591f5d042854a"
+   }
+  },
+  {
+   "id": "night-bay",
+   "source": "m-night.png",
+   "job_id": "042154ba-b1f9-47c0-9178-bb444aefb7a2",
+   "tile": [
+    2,
+    1
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/night-bay-512.webp",
+    "bytes": 62984,
+    "sha256": "81c111f6670dc1b9dfc03a27714203f2733feb383b0dfc8fd31162dbaeed3308"
+   }
+  },
+  {
+   "id": "kelp-forest",
+   "source": "m-ocean.png",
+   "job_id": "76869d60-f9e9-407b-b299-2e3b7ac79cb5",
+   "tile": [
+    3,
+    1
+   ],
+   "single": {
+    "path": "public/opus-bay/murals/kelp-forest-512.webp",
+    "bytes": 72912,
+    "sha256": "6c23c7c2df20fe2f3dec6162dd45511b43e37e4053cff28f229fcb0e809171dc"
+   }
+  }
+ ]
+}

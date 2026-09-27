@@ -59,3 +59,37 @@ Balance before: 477.78 (08:37 UTC; the last spend before was H2b-T2 at 07:54:56)
 Picks (clip → job id prefix): zh-first-bike 6a826864, zh-first-car 5919e43c, zh-first-cable-car 8edbea5b, zh-first-streetcar aea6933b, zh-first-ferry a698a207, zh-first-glide fc43304a, zh-first-hill 4e6c0b5c, zh-first-crest a8ea813c; en-first-bike db9a068e, en-first-car b349ce05, en-first-cable-car 4c63bd08, en-first-streetcar 851acf7f, en-first-ferry e0a6e81e, en-first-glide 6e400d50, en-first-hill d96dd651, en-first-crest 859b1e91; zh-zone-chinatown cb837ad5, zh-zone-north-beach 43da724b, zh-zone-mission 5b2ecdb2, zh-zone-castro-upper-market e3c79b4a, zh-zone-haight-ashbury 0497bd1b, zh-zone-marina 23922e5e, zh-zone-twin-peaks 72f1e530, zh-zone-golden-gate-park 325c70a8, zh-zone-financial-district-south-beach 54c19945, zh-zone-presidio b05ef19a, zh-zone-nob-hill bdb7f4cd, zh-zone-sunset-parkside 8682a5cb; en-zone-chinatown 9974cc47, en-zone-north-beach 5073e4df, en-zone-mission 08c00c54, en-zone-castro-upper-market 7cf37dba, en-zone-haight-ashbury b1231999, en-zone-marina d2f81d27, en-zone-twin-peaks a2d56d95, en-zone-golden-gate-park 83d5a94f, en-zone-financial-district-south-beach 40b86cad, en-zone-presidio d4a9c9a6, en-zone-nob-hill 1825efe1, en-zone-sunset-parkside f82c740e; zh-yay 0a4d3369, zh-think d41595dc, zh-arrived f1b2ead6. Full ids in voice-report.json.
 
 Transactions 08:37:56–09:05:45 UTC: only "Qwen Audio 3.0 TTS Flash" (224 submitted jobs at 0.01–0.02 each: 191 completed, 33 failed and refunded); no other lane spent in between. **Subtotal voice: 2.06 credits.** Balance 477.78 → 475.72 (`balance` at 09:07 UTC). Notes: the service often ignores the seed (byte-identical files for two or three of the seeds 11 / 22 / 33 on 14 of 46 text groups), so round 2 varied `speech_rate`; batches of 12 hit HTTP 429 (rate limit) — batches of 10 mostly pass.
+
+## Part b · Mission murals (H2b-10), 2026-09-27 09:22–09:25 UTC
+
+Balance before: 475.72 (09:07 UTC). Shared prompt (every job): "An original community mural in the spirit of the painted
+alleys of San Francisco's Mission District, but an entirely new design that copies no existing mural. Square,
+full-bleed flat artwork only … Subject: {subject}. Style: hand-painted acrylic, bold flat shapes with a soft visible
+brush texture, warm folk-art patterns, a cozy toy-town palette of cream, sand, sage green, terracotta, teal, marigold
+and soft rose; friendly and calm. Strictly no people, no human faces, no text, no letters, no numbers, no signature, no
+logos, no watermark." The nano_banana_pro variant adds K6 (`3617006b-…`) "only for its colour palette and warmth".
+Raw files: `C:/Users/willy/opus-qa/w3/h2b/murals/raw/`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-M-A1 | A/B: sun + hummingbird | gpt_image_2_5 (Flare), high, 1k, 1:1 | radiant sun, hummingbird at a giant marigold, cut-paper bunting | 1.5 | 76baf3e7-c419-4cb2-adc6-41bb856b162f | raw/ab-gpt-sun.png | **USED** → sun-hummingbird |
+| H2b-M-A2 | A/B: pelicans | gpt_image_2_5 (Flare), high, 1k, 1:1 | three brown pelicans over curling waves, tiny bridge towers in fog | 1.5 | 99ff5d30-d6b9-4fe2-8d2c-bbf04a618d3d | raw/ab-gpt-pelican.png | **USED** → pelican-bay |
+| H2b-M-B1 | A/B: sun + hummingbird | nano_banana_pro (served nano_banana_2), 2k, 1:1, ref K6 | same subject | 2 | d8b6b8f8-33cd-4b73-a970-e66b5820347c | raw/ab-nano-sun.png | A/B loser: softer pastel, busy dot patterns that turn to noise at 512 px |
+| H2b-M-B2 | A/B: pelicans | nano_banana_pro (served nano_banana_2), 2k, 1:1, ref K6 | same subject | 2 | 98383df7-80b5-433d-bb1f-678cfe7644d0 | raw/ab-nano-pelican.png | A/B loser (pink pelicans, same softness) |
+| H2b-M-3 | flower cable car | gpt_image_2_5 (Flare), high, 1k, 1:1 | a cable car made of flowers climbing a hill of pastel row houses (no numbers, no signs) | 1.5 | 90fae8d5-f281-465a-a14a-6e200f075f3f | raw/m-cable-a.png | **USED** → flower-cable-car (zoomed: no numbers or letters) |
+| H2b-M-4 | poppies + monarchs | same | poppies and lupines on green hills, monarch butterflies | 1.5 | 1602341c-b13c-4261-890d-080b17229fa0 | raw/m-poppies.png | **USED** → poppy-hills |
+| H2b-M-5 | fruit stand | same | baskets of mangoes, papayas, limes, chiles, corn, watermelon; cut-paper bunting | 1.5 | 1ecf7748-fc9b-4071-b2e0-c7b31004d402 | raw/m-market-a.png | runner-up |
+| H2b-M-6 | night bay | same | moon, stars, ribbon fog, a hill of houses with glowing windows | 1.5 | 042154ba-b1f9-47c0-9178-bb444aefb7a2 | raw/m-night.png | **USED** → night-bay |
+| H2b-M-7 | music garden | same | guitar, accordion, drum among roses, marigolds and vines (no written notes) | 1.5 | 82dacccc-855b-4eac-8318-08c860f244a5 | raw/m-music.png | **USED** → music-garden |
+| H2b-M-8 | under the bay | same | octopus, fish, sea stars in a kelp forest, sunbeams | 1.5 | 76869d60-f9e9-407b-b299-2e3b7ac79cb5 | raw/m-ocean.png | **USED** → kelp-forest |
+| H2b-M-9 | flower cable car (second draw) | same | as M-3 | 1.5 | c4976a53-6727-462f-807c-69cde7152976 | raw/m-cable-b.png | runner-up |
+| H2b-M-10 | fruit stand (second draw) | same | as M-5 | 1.5 | cdc779dd-c2e6-4b92-a9ca-9ca9eb5662d2 | raw/m-market-b.png | **USED** → fruit-stand |
+
+Every used image was read at full size for text, numbers, signatures and faces: none (animals only, in profile or as
+folk-art shapes). Transactions 09:22:02–09:24:27 UTC: GPT Image 2.5 Flare −1.5 × 10, Nano Banana Pro −2 × 2; no other
+spend in between. **Subtotal murals: 19.00 credits.** Balance 475.72 → 456.72 (`balance` at 09:40 UTC).
+Post-processing (free, `scripts/opus-sf/murals/murals_post.py`): 480 px art + 16 px edge gutter per 512 tile, atlas
+WebP q48 = 256,124 B; singles 512 px WebP q82.
+
+**Lane H2b total, wave 3: 20.5 (map) + 2.06 (voice) + 19.0 (murals) = 41.56 credits** of the 150 cap. Balance
+498.28 → 456.72.
