@@ -12,7 +12,8 @@ const ROOT = new URL('..', import.meta.url);
 const readJson = (rel: string) => JSON.parse(fs.readFileSync(new URL(rel, ROOT), 'utf8'));
 
 const { PLACE_CARDS, CARD_REFRESHES } = await import('../src/opus-bay/data/sf/placeCards');
-const { PLACE_CARDS_2 } = await import('../src/opus-bay/data/sf/placeCards2');
+const { PLACE_CARDS_2, CURATED_CARDS } = await import('../src/opus-bay/data/sf/placeCards2');
+const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const types = await import('../src/opus-bay/data/sf/placeCardTypes');
 const { placeCardProblems, zhWidth, cardPoiId, placeCardPoi, indexPlaceCards, loadPlaceCards, placeCardNow, placeCardsNow, CARD_LIMITS, CARD_VERIFIED_AT } = types;
 const { ARRIVAL_LINES, QUIET_LINES } = await import('../src/opus-bay/data/sf/tourLines');
@@ -161,10 +162,28 @@ test('placeCardPoi: a PoiDef for PoiCard (status first among the tips), and the 
   assert.equal(idx.byPlace.get('blue-heron-lake')?.id, 'blue-heron-lake');
   assert.equal(placeCardsNow(), null, 'nothing loaded before loadPlaceCards()');
   const loaded = await loadPlaceCards();
-  assert.equal(loaded.cards.length, 124);
+  assert.equal(loaded.cards.length, 124 + CURATED_CARDS.length);
+  assert.equal(placeCardNow('alcatraz')?.plannerPlaceId, 'alcatraz');
   assert.equal(placeCardNow('sf-state-university')?.name.zh, '旧金山州立大学');
   assert.equal(await loadPlaceCards(), loaded, 'loaded once');
   // the eager module never imports the card texts statically (they stay lazy chunks)
   const src = fs.readFileSync(new URL('src/opus-bay/data/sf/placeCardTypes.ts', ROOT), 'utf8');
   assert.ok(!/^import .* from '\.\/placeCards2?'/m.test(src), 'placeCardTypes.ts has no static import of the cards');
 });
+
+test('the famous curated places get full cards too (Alcatraz, Golden Gate Park, Presidio, Crissy Field, PIER 39)', () => {
+  assert.deepEqual(CURATED_CARDS.map(c => c.id), ['alcatraz', 'golden-gate-park', 'presidio', 'crissy-field', 'pier-39']);
+  const ids = new Set(ATTRACTIONS.map(a => a.id));
+  const photos = new Set<string>(readJson('src/data/sf-landmark-photo-assets.json').map((p: { id: string }) => p.id));
+  for (const c of CURATED_CARDS) {
+    assert.deepEqual(placeCardProblems(c), []);
+    assert.equal(c.depth, 'full');
+    assert.ok(ids.has(c.id), `${c.id} is a lane P Attraction id`);
+    assert.ok(!byId.has(c.id), `${c.id} does not collide with a new attraction`);
+    assert.equal(cardPoiId(c), `sf:${c.id}`);
+    if (c.photoKey) assert.ok(photos.has(c.photoKey));
+  }
+  // the Alcatraz card sends people to the right pier
+  assert.match(byIdCurated('alcatraz').bark.zh, /33 号码头/);
+});
+const byIdCurated = (id: string) => CURATED_CARDS.find(c => c.id === id)!;

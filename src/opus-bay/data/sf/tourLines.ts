@@ -276,3 +276,44 @@ export function loopNarration(event: { what: string; line: string; station?: str
 
 /** The hop-off hint of a loop stop (RideBanner / the hop-off chip), or null. */
 export const loopHopOffTip = (station: string): TourLine | null => LOOP_STOP_LINES[station]?.hopOffTip ?? null;
+
+/**
+ * The Metro narration for a `transit` event on the N / M (lane T emits `board`, `approach` ≈ 60 u before a stop and
+ * `arrive`, with `station` = the stop id; `dir` = the ride's direction along the line's arc, +1 = outbound from
+ * Embarcadero). Null when BAYBAY has nothing to say there.
+ */
+export function metroNarration(event: { what: string; line: string; station?: string; dir?: 1 | -1 }): TourLine | null {
+  const { what, line, station, dir } = event;
+  if (line !== 'n-judah' && line !== 'm-ocean-view') return null;
+  if (what === 'board') return line === 'n-judah' ? METRO_LINES['board-n'] : METRO_LINES['board-m'];
+  if (what === 'approach') {
+    if (line === 'm-ocean-view' && station === 'muni-19th-winston') return METRO_LINES['stonestown-next'];
+    if (line === 'm-ocean-view' && station === 'muni-19th-holloway') return METRO_LINES['sfsu-next'];
+    if (line === 'n-judah' && station === 'muni-carl-hillway') return METRO_LINES['ucsf-window'];
+    return null;
+  }
+  if (what !== 'arrive') return null;
+  if (line === 'n-judah') {
+    if (station === 'muni-9th-irving') return METRO_LINES['9th-irving'];
+    if (station === 'muni-judah-la-playa') return METRO_LINES['la-playa'];
+    if (station === 'muni-carl-cole') return dir === -1 ? METRO_LINES['sunset-tunnel'] : METRO_LINES['carl-cole'];
+    if (station === 'muni-duboce-church' && dir !== -1) return METRO_LINES['duboce-portal'];
+    return null;
+  }
+  if (station === 'muni-west-portal' && dir !== -1) return METRO_LINES['west-portal'];
+  if (station === 'muni-san-jose-geneva') return METRO_LINES['balboa-park'];
+  return null;
+}
+
+/**
+ * The line for the subway overlay (lane T's SubwayOverlay) when a ride goes under ground on the arc span
+ * [fromAt, toAt] (either order): the Twin Peaks Tunnel on an M ride that passes between the Castro (661) and West Portal
+ * (1164), else the Market Street subway. The short Sunset Tunnel says nothing itself: the arrive at Carl & Cole does
+ * ("前面是日落隧道" inbound, "钻出日落隧道" outbound).
+ */
+export function tunnelNarration(line: string, fromAt: number, toAt: number): TourLine | null {
+  const a = Math.min(fromAt, toAt), b = Math.max(fromAt, toAt);
+  if (line === 'm-ocean-view') return a < 1100 && b > 700 ? METRO_LINES['twin-peaks-tunnel'] : METRO_LINES.subway;
+  if (line === 'n-judah') return a < 516 ? METRO_LINES.subway : null;
+  return null;
+}

@@ -251,3 +251,31 @@ test('save v2 `tours`: untrusted input is clamped and validated, never thrown', 
 
 /** Snapshot of the frozen tour lines (id + zh + en). Changing a recorded line fails here on purpose. */
 const FROZEN_SNAPSHOT = 'a799f903365d56e8';
+
+test('Metro narration: boarding, the stop approaches and arrivals by direction, the subway overlay line', () => {
+  const { metroNarration, tunnelNarration } = lines;
+  assert.equal(metroNarration({ what: 'board', line: 'n-judah' })?.id, 'metro-board-n');
+  assert.equal(metroNarration({ what: 'board', line: 'm-ocean-view' })?.id, 'metro-board-m');
+  assert.equal(metroNarration({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-winston' })?.id, 'metro-stonestown-next');
+  assert.equal(metroNarration({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-holloway' })?.id, 'metro-sfsu-next');
+  assert.equal(metroNarration({ what: 'approach', line: 'n-judah', station: 'muni-carl-hillway' })?.id, 'metro-ucsf-window');
+  assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-carl-cole', dir: 1 })?.id, 'metro-carl-cole');
+  assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-carl-cole', dir: -1 })?.id, 'metro-sunset-tunnel');
+  assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-duboce-church', dir: 1 })?.id, 'metro-duboce-portal');
+  assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-duboce-church', dir: -1 }), null);
+  assert.equal(metroNarration({ what: 'arrive', line: 'm-ocean-view', station: 'muni-west-portal', dir: 1 })?.id, 'metro-west-portal');
+  assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-judah-la-playa' })?.id, 'metro-la-playa');
+  assert.equal(metroNarration({ what: 'arrive', line: 'm-ocean-view', station: 'muni-san-jose-geneva' })?.id, 'metro-balboa-park');
+  assert.equal(metroNarration({ what: 'arrive', line: 'sf-loop', station: 'loop-castro' }), null);
+  assert.equal(tunnelNarration('m-ocean-view', 569.3, 1164.2)?.id, 'metro-twin-peaks-tunnel');
+  assert.equal(tunnelNarration('m-ocean-view', 0, 300)?.id, 'metro-subway');
+  assert.equal(tunnelNarration('n-judah', 0, 516)?.id, 'metro-subway');
+  assert.equal(tunnelNarration('n-judah', 606.7, 787), null, 'the short Sunset Tunnel: the Carl & Cole arrival speaks');
+  // every Metro line is reachable from an event or the overlay
+  const said = new Set<string>();
+  for (const what of ['board', 'approach', 'arrive']) for (const line of ['n-judah', 'm-ocean-view']) for (const station of Object.keys({ ...TOUR_GEO['n-judah'].stations, ...TOUR_GEO['m-ocean-view'].stations })) for (const dir of [1, -1] as const) {
+    const l = metroNarration({ what, line, station, dir }); if (l) said.add(l.id);
+  }
+  for (const [a, b] of [[569, 1164], [0, 300]]) said.add(tunnelNarration('m-ocean-view', a, b)!.id);
+  assert.deepEqual([...said].sort(), Object.values(METRO_LINES).map(l => l.id).sort());
+});

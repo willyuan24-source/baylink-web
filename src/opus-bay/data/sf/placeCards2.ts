@@ -8,6 +8,9 @@ import { CARD_VERIFIED_AT, type PlaceCard } from './placeCardTypes';
  * checks: placeCardTypes.ts); LAZY (only `loadPlaceCards()` imports it). Facts re-checked on the web on 2026-09-27;
  * where sources disagree (the Lyon Street Steps' step count, the Chinese Telephone Exchange's line count, the Tadich
  * name year) the number is left out.
+ *
+ * CURATED_CARDS (end of file): full cards for the famous curated places that had no card (plan W4-C5: Alcatraz,
+ * Golden Gate Park, the Presidio, Crissy Field, PIER 39), keyed by lane P's Attraction ids (= their place ids).
  */
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
@@ -564,5 +567,77 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     officialUrl: 'https://ssjeremiahobrien.org/visit-us/',
     sourceUrl: 'https://ssjeremiahobrien.org/visit-us/', sources: ['https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien'],
     lat: 37.80876, lng: -122.40686, guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
+  }),
+];
+
+// ---------------------------------------------------------------------------------------------------------------
+// The famous curated places without a card (plan W4-C5): lane P's Attraction ids = their place ids
+// ---------------------------------------------------------------------------------------------------------------
+
+const full = (c: Omit<PlaceCard, 'depth' | 'verifiedAt'>): PlaceCard => ({ depth: 'full', verifiedAt: V, ...c });
+
+export const CURATED_CARDS: PlaceCard[] = [
+  full({
+    id: 'alcatraz',
+    name: bi('恶魔岛', 'Alcatraz Island'), zone: bi('旧金山湾', 'San Francisco Bay'),
+    bark: bi('那座岛就是恶魔岛！上岛的船从 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33, not PIER 39.'),
+    summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，"所有部落的印第安人"在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
+    hours: bi('按船票上的班次；国家公园管理局建议提前订票。', 'Follow the sailing on your ticket; the National Park Service advises booking ahead.'),
+    cost: bi('不收入岛门票，但要买往返渡轮票（以官网为准）。', 'No entrance fee, but you need a round-trip ferry ticket (see the official site).'),
+    tips: [
+      bi('只绕岛不靠岸的观光船，不算登岛票。', 'A cruise that only circles the island is not a landing ticket.'),
+      bi('岛上码头到监狱要爬一段坡，穿好走的鞋。', 'It\'s an uphill walk from the island dock to the prison: wear good shoes.'),
+    ],
+    officialUrl: 'https://www.nps.gov/alca/index.htm',
+    sourceUrl: 'https://www.nps.gov/alca/index.htm', sources: ['https://www.nps.gov/alca/planyourvisit/fees.htm', 'https://en.wikipedia.org/wiki/Alcatraz_Federal_Penitentiary'],
+    lat: 37.8267, lng: -122.423, photoKey: 'alcatraz', guideSlug: 'sf-alcatraz-booking-day-guide', plannerPlaceId: 'alcatraz',
+  }),
+  full({
+    id: 'golden-gate-park',
+    name: bi('金门公园', 'Golden Gate Park'), zone: bi('金门公园', 'Golden Gate Park'),
+    bark: bi('金门公园有 1,017 英亩，湖、草地、博物馆一路排到海边！', 'Golden Gate Park: 1,017 acres of lakes, meadows and museums, all the way to the sea!'),
+    summary: bi('从海特街一直延伸到海洋海滩的大公园，约 1,017 英亩，里面有加州科学院、迪扬博物馆、日本茶园、花卉温室、蓝鹭湖和野牛围场。', 'The great park that runs from the Haight to Ocean Beach, about 1,017 acres, holding the Cal Academy, the de Young, the Japanese Tea Garden, the Conservatory of Flowers, Blue Heron Lake and the bison paddock.'),
+    tips: [
+      bi('公园里有几段路不走汽车，走路骑车都舒服。', 'Some of the park\'s roads are car-free: lovely on foot or by bike.'),
+      bi('观光巴士在音乐广场停，N 线在公园南边走。', 'The sightseeing bus stops at the Music Concourse; the N runs along the south side.'),
+    ],
+    officialUrl: 'https://sfrecpark.org/770/Golden-Gate-Park',
+    sourceUrl: 'https://sfrecpark.org/770/Golden-Gate-Park', sources: ['https://en.wikipedia.org/wiki/Golden_Gate_Park'],
+    lat: 37.7694, lng: -122.4862, photoKey: 'park', guideSlug: 'golden-gate-park-free-car-free-day-guide', plannerPlaceId: 'golden-gate-park',
+  }),
+  full({
+    id: 'presidio',
+    name: bi('要塞公园', 'The Presidio'), zone: bi('要塞公园', 'The Presidio'),
+    bark: bi('要塞公园 1776 年由西班牙人建立，当了两百多年军营。', 'The Presidio was founded by Spain in 1776 and served as an army post for over 200 years.'),
+    summary: bi('1776 年西班牙人建立的要塞，后来是美军基地，1994 年移交国家公园管理局。现在是约 1,480 英亩的公园，有步道、老营房、博物馆和隧道顶公园。', 'Founded by Spain in 1776 and later a US Army post, it passed to the National Park Service in 1994. It is now a park of about 1,480 acres with trails, old barracks, museums and Tunnel Tops.'),
+    tips: [
+      bi('隧道顶公园免费，能看金门大桥。', 'Tunnel Tops is free and looks out at the Golden Gate Bridge.'),
+      bi('军官俱乐部的遗产展厅免费，讲要塞公园的历史。', 'The Officers\' Club heritage gallery is free and tells the Presidio\'s story.'),
+    ],
+    officialUrl: 'https://presidio.gov/',
+    sourceUrl: 'https://en.wikipedia.org/wiki/Presidio_of_San_Francisco', sources: ['https://presidio.gov/explore/attractions/presidio-tunnel-tops/'],
+    lat: 37.7989, lng: -122.4662, photoKey: 'presidio', guideSlug: PRESIDIO_GUIDE, plannerPlaceId: 'presidio',
+  }),
+  full({
+    id: 'crissy-field',
+    name: bi('克里西场', 'Crissy Field'), zone: bi('要塞公园 · 海湾边', 'The Presidio · bayfront'),
+    bark: bi('克里西场以前是陆军机场，现在是看金门大桥的海滨草地。', 'Crissy Field was an Army airfield — now it\'s a bayfront lawn facing the bridge.'),
+    summary: bi('1921–1974 年是陆军机场，2001 年修复成海滨公园：长长的海边步道、沙滩和恢复的潮汐湿地，一路看着金门大桥。', 'An Army airfield from 1921 to 1974, restored in 2001 as a bayfront park: a long shoreline promenade, a beach and a restored tidal marsh, all facing the Golden Gate Bridge.'),
+    tips: [bi('沿海边步道往西走，就能走到 Fort Point 炮台和大桥下面。', 'Follow the shore path west to Fort Point, right under the bridge.')],
+    sourceUrl: 'https://en.wikipedia.org/wiki/Crissy_Field', sources: ['https://www.parksconservancy.org/parks/crissy-field'],
+    lat: 37.8039, lng: -122.4644, guideSlug: PRESIDIO_GUIDE, plannerPlaceId: 'presidio',
+  }),
+  full({
+    id: 'pier-39',
+    name: bi('39 号码头', 'PIER 39'), zone: bi('渔人码头', 'Fisherman\'s Wharf'),
+    bark: bi('39 号码头！1989 年起，海狮就爱趴在这儿的浮台上。', 'PIER 39! Sea lions have hauled out on its floats since 1989.'),
+    summary: bi('1978 年开业的码头商场，免费进入，有双层旋转木马和海湾水族馆。1989 年起海狮开始趴在码头西边的浮台上，成了旧金山最出名的"居民"之一。', 'A pier of shops opened in 1978, free to walk in, with a two-storey carousel and the Aquarium of the Bay. Since 1989 sea lions have hauled out on the floats on its west side.'),
+    cost: bi('进码头免费，水族馆等项目另外收费。', 'Free to walk in; the aquarium and other attractions charge separately.'),
+    tips: [
+      bi('海狮不保证在家，看缘分。', 'The sea lions keep their own hours — no promises.'),
+      bi('去恶魔岛的船在 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33, not here.'),
+    ],
+    sourceUrl: 'https://en.wikipedia.org/wiki/Pier_39', sources: ['https://www.aquariumofthebay.org/'],
+    lat: 37.8087, lng: -122.4098, photoKey: 'pier', guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
   }),
 ];

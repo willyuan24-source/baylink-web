@@ -10,7 +10,8 @@ import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
  *   data/sf/placeCards.ts   PLACE_CARDS: full cards for the priority 1–3 attractions of docs/opus-bay/sf-w4-attractions.json
  *                           (owner requests, tier 1, tier 2 on the lines) + CARD_REFRESHES for the 10 built landmarks
  *                           that become loop / tour stops (status notes, current hours)
- *   data/sf/placeCards2.ts  PLACE_CARDS_2: short cards for the priority 4 attractions
+ *   data/sf/placeCards2.ts  PLACE_CARDS_2: short cards for the priority 4 attractions; CURATED_CARDS: full cards for
+ *                           Alcatraz, Golden Gate Park, the Presidio, Crissy Field and PIER 39 (lane P ids)
  *
  * Every card is keyed by its Attraction id (data/sf/attractionTypes.ts; = the attractions.json id). Rules (tested in
  * tests/opus-bay-sf-cards.test.ts):
@@ -199,7 +200,7 @@ let loading: Promise<PlaceCardSet> | null = null;
 export function loadPlaceCards(): Promise<PlaceCardSet> {
   if (loaded) return Promise.resolve(loaded);
   loading ??= Promise.all([import('./placeCards'), import('./placeCards2')]).then(([a, b]) => {
-    loaded = indexPlaceCards([...a.PLACE_CARDS, ...b.PLACE_CARDS_2], a.CARD_REFRESHES);
+    loaded = indexPlaceCards([...a.PLACE_CARDS, ...b.PLACE_CARDS_2, ...b.CURATED_CARDS], a.CARD_REFRESHES);
     return loaded;
   });
   return loading;
