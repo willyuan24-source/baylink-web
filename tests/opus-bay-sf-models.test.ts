@@ -4,11 +4,13 @@ import path from 'node:path';
 import test from 'node:test';
 import * as THREE from 'three';
 import { ASSETS, SF_DRACO_DECODER_PATH, SF_KIT, SF_KIT_IDS, SF_MODELS, SF_MODEL_IDS, listAssetUrls } from '../src/opus-bay/data/assets';
-import { TOY, makeHeroMaterial } from '../src/opus-bay/world/materials';
+import { TOY, U, makeHeroMaterial } from '../src/opus-bay/world/materials';
 import { MODEL_INST_ATTR, MODEL_TINT_ATTR, MODEL_VARIANTS, keyLuminance, makeModelMaterial, modelInstanceGeometry, modelWarmupSet, setModelInstance } from '../src/opus-bay/world/modelMaterial';
 import * as models from '../src/opus-bay/world/models';
-import { CitySites, buildGroundMesh, buildSwapObjects, disposeSwapObjects } from '../src/opus-bay/world/sf/sites';
-import { SF_LANDMARKS } from '../src/opus-bay/world/sf/landmarks/index';
+import { CitySites, buildGroundMesh, buildSwapObjects, disposeSwapObjects, fadeOccludes } from '../src/opus-bay/world/sf/sites';
+import { pointInPolygon } from '../src/opus-bay/core/terrain';
+import type { Vec2 } from '../src/opus-bay/core/types';
+import { SF_LANDMARKS, type SfLandmark, landmarkToWorld } from '../src/opus-bay/world/sf/landmarks/index';
 
 /**
  * Lane D2 (wave 2): the AI-mesh runtime — world/models.ts (shared GLTF + Draco loader, cache), world/modelMaterial.ts
@@ -145,6 +147,14 @@ test('warm-up set: one object per model variant plus the per-landmark hero TOY p
   assert.ok(toy.geometry.getAttribute('aInfo'));
   assert.equal(makeHeroMaterial('x').material.customProgramCacheKey(), 'ob-toy-hero');
   set.dispose();
+  // the materials outlive the set: three frees a program when its last material is disposed, so the warmed programs
+  // must stay referenced until the real models draw
+  const again = modelWarmupSet();
+  assert.deepEqual(again.objects.map(o => (o as THREE.Mesh).material), set.objects.map(o => (o as THREE.Mesh).material));
+  let disposed = 0;
+  for (const o of again.objects) ((o as THREE.Mesh).material as THREE.Material).addEventListener('dispose', () => { disposed++; });
+  again.dispose();
+  assert.equal(disposed, 0);
 });
 
 function fakeModel(id: string, w: number, h: number, d: number): models.LoadedModel {
@@ -189,4 +199,107 @@ test('sites: AI counts start empty; ground strips use the city GROUND program; e
     for (const p of l.swap?.parts ?? []) assert.ok(ASSETS.models[p.model], `${l.id}: ${p.model}`);
   }
   assert.notEqual(TOY.customProgramCacheKey(), 'ob-model-hero');
+});
+
+const lm = (id: string) => SF_LANDMARKS.find(l => l.id === id)!;
+/** Is the local point p inside one of l's walk blockers? */
+const blocked = (l: SfLandmark, p: Vec2) => l.walk!.blockers.some(b => ('r' in b ? Math.hypot(p.x - b.x, p.z - b.z) < b.r : pointInPolygon(p, b.poly)));
+/** Sample points of a local rectangle [x0, x1] × [z0, z1] (shrunk by 0.05: edges may touch). */
+function samples(x0: number, x1: number, z0: number, z1: number, n = 6): Vec2[] {
+  const out: Vec2[] = [];
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) out.push({ x: x0 + 0.05 + ((x1 - x0 - 0.1) * i) / n, z: z0 + 0.05 + ((z1 - z0 - 0.1) * j) / n });
+  return out;
+}
+const inExclude = (l: SfLandmark, p: Vec2) => {
+  const w = landmarkToWorld(l, p), e = l.exclude;
+  return 'r' in e ? Math.hypot(w.x - e.x, w.z - e.z) <= e.r : pointInPolygon(w, e.poly);
+};
+
+test('AI swaps: the D2-06/07 decision gates, walk data authored to the AI meshes (measured on the decoded GLBs)', () => {
+  assert.deepEqual(SF_LANDMARKS.filter(l => l.swap?.ship).map(l => l.id).sort(), ['conservatory-of-flowers', 'dragon-gate', 'palace-of-fine-arts']);
+  assert.equal(lm('painted-ladies').swap?.ship, false, 'D2-07: the procedural row reads better at 64 px and golden hour');
+  // Dragon Gate: walk-through >= 2.2 u clear between the inner pillars; the 4 pillars (inner |x| 1.14-2.05, outer
+  // 3.21-4.01, depth ±0.48) and the lion plinths (z 0.56-1.16) are solid; the pillar footprint is inside the exclusion
+  const gate = lm('dragon-gate');
+  for (const p of samples(-1.1, 1.1, -2, 2)) assert.ok(!blocked(gate, p), `gate passage free at ${p.x.toFixed(2)},${p.z.toFixed(2)}`);
+  for (const sx of [-1, 1]) {
+    for (const p of samples(1.14, 2.05, -0.48, 0.48)) assert.ok(blocked(gate, { x: sx * p.x, z: p.z }), 'inner pillar solid');
+    for (const p of samples(3.21, 4.01, -0.48, 0.48)) assert.ok(blocked(gate, { x: sx * p.x, z: p.z }), 'outer pillar solid');
+    for (const p of samples(1.29, 1.91, 0.56, 1.16)) assert.ok(blocked(gate, { x: sx * p.x, z: p.z }), 'lion plinth solid');
+    for (const z of [-0.48, 0.48]) assert.ok(inExclude(gate, { x: sx * 4.01, z }), 'pillars inside the exclusion');
+  }
+  // side openings stay walkable (between the inner and the outer pillar)
+  for (const sx of [-1, 1]) assert.ok(!blocked(gate, { x: sx * 2.6, z: 0 }) && !blocked(gate, { x: sx * 2.6, z: -0.8 }));
+  // Palace rotunda: 8 walk-in arches between the piers (centre reachable), piers solid, a 0.2 u deck
+  const pal = lm('palace-of-fine-arts');
+  assert.ok(!blocked(pal, { x: 0, z: 0 }), 'rotunda centre free');
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2, b = ((k + 0.5) / 8) * Math.PI * 2;
+    for (const r of [2.4, 3.0, 3.7, 4.4]) assert.ok(!blocked(pal, { x: Math.sin(a) * r, z: Math.cos(a) * r }), `arch ${k} free at r ${r}`);
+    assert.ok(blocked(pal, { x: Math.sin(b) * 3.7, z: Math.cos(b) * 3.7 }), `pier ${k} solid`);
+  }
+  const part = pal.swap!.parts[0], size = SF_MODELS['sf-palace-rotunda'].size;
+  assert.ok(Math.abs((size[0] * part.scale[0]) / 2 - 4.11) < 0.05, 'rotunda squeezed to r 4.1 (the procedural platform)');
+  assert.ok(pal.walk!.surfaces?.some(s => s.y === 0.2 && s.surface === 'plaza'));
+  // Conservatory: the scaled footprint (wings, entrance porch, rear house) is solid and inside the exclusion
+  const con = lm('conservatory-of-flowers');
+  for (const [x0, x1, z0, z1] of [[-5.3, 5.3, -1.23, 0.68], [-1.9, 1.9, 0.68, 2.45], [-2.63, 4.1, -2.45, -1.22]]) {
+    for (const p of samples(x0, x1, z0, z1)) assert.ok(blocked(con, p), `conservatory solid at ${p.x.toFixed(2)},${p.z.toFixed(2)}`);
+    for (const p of [{ x: x0, z: z0 }, { x: x1, z: z1 }]) assert.ok(inExclude(con, p), 'inside the exclusion');
+  }
+  // AI budget per landmark view: <= 12 draws, <= 60k triangles
+  for (const l of SF_LANDMARKS.filter(x => x.swap?.ship)) {
+    const tris = l.swap!.parts.reduce((t, p) => t + ASSETS.models[p.model].triangles, 0);
+    assert.ok(tris <= 60_000 && l.swap!.parts.length <= 12, `${l.id} AI budget`);
+  }
+});
+
+test('sites: a landmark with `fade` thins as a whole while it stands between the camera and the player', () => {
+  const sites = new CitySites();
+  const inner = sites as unknown as { sites: { l: SfLandmark; baseY: number; fade: { value: number } | null }[]; updateFade(s: unknown, dt: number): void };
+  const s = inner.sites.find(x => x.l.id === 'dragon-gate')!, l = s.l;
+  assert.ok(s.fade && l.fade, 'the gate has its own fade uniform');
+  assert.equal(inner.sites.find(x => x.l.id === 'painted-ladies')!.fade, null);
+  s.baseY = 5;
+  const f = { x: Math.sin(l.yaw), z: Math.cos(l.yaw) };
+  const run = (n = 60) => { for (let i = 0; i < n; i++) inner.updateFade(s, 1 / 30); return s.fade!.value; };
+  const saved = { cam: U.uCam.value.clone(), player: U.uPlayer.value.clone(), fade: U.uFade.value };
+  try {
+    U.uFade.value = 1;
+    // the player just walked through the gate, the camera follows from the other side: the whole gate thins
+    U.uPlayer.value.set(l.x + f.x * 3, 5, l.z + f.z * 3);
+    U.uCam.value.set(l.x - f.x * 8, 11, l.z - f.z * 8);
+    const v = run();
+    assert.ok(v > 0.3 && v <= 0.35, `fade ${v}`);
+    // camera on the player's side of the gate: solid again
+    U.uCam.value.set(l.x + f.x * 12, 11, l.z + f.z * 12);
+    assert.equal(run(), 0);
+    // the segment passes 6 u beside the gate: no fade
+    const r = { x: Math.cos(l.yaw), z: -Math.sin(l.yaw) };
+    U.uPlayer.value.set(l.x + f.x * 3 + r.x * 6, 5, l.z + f.z * 3 + r.z * 6);
+    U.uCam.value.set(l.x - f.x * 8 + r.x * 6, 11, l.z - f.z * 8 + r.z * 6);
+    assert.equal(run(), 0);
+    // occlusion fade off (QA camera, photo mode): never
+    U.uFade.value = 0;
+    U.uPlayer.value.set(l.x + f.x * 3, 5, l.z + f.z * 3);
+    U.uCam.value.set(l.x - f.x * 8, 11, l.z - f.z * 8);
+    assert.equal(run(), 0);
+  } finally {
+    U.uCam.value.copy(saved.cam);
+    U.uPlayer.value.copy(saved.player);
+    U.uFade.value = saved.fade;
+  }
+});
+
+test('fadeOccludes: under the gate or the rotunda = occluded; in front of it, beside it or above its top = not', () => {
+  const at = (l: SfLandmark, x: number, y: number, z: number) => { const w = landmarkToWorld(l, { x, z }); return new THREE.Vector3(w.x, y, w.z); };
+  const gate = lm('dragon-gate'), g = gate.fade!;
+  assert.ok(fadeOccludes(gate, g, 0, at(gate, 0, 6, -9), at(gate, 0, 0, 0)), 'player under the gate');
+  assert.ok(fadeOccludes(gate, g, 0, at(gate, 3, 6, -9), at(gate, 3, 0, 2)), 'side opening, just through');
+  assert.ok(!fadeOccludes(gate, g, 0, at(gate, 0, 6, 12), at(gate, 0, 0, 3)), 'gate behind the player');
+  assert.ok(!fadeOccludes(gate, g, 0, at(gate, 7, 6, -9), at(gate, 7, 0, 3)), 'beside the gate');
+  assert.ok(!fadeOccludes(gate, g, 0, at(gate, 0, 40, -9), at(gate, 0, 30, 3)), 'above the top');
+  const pal = lm('palace-of-fine-arts'), p = pal.fade!;
+  assert.ok(fadeOccludes(pal, p, 0.1, at(pal, 0, 9, 14), at(pal, 0, 0.3, 0)), 'player under the dome');
+  assert.ok(!fadeOccludes(pal, p, 0.1, at(pal, 0, 9, 20), at(pal, 0, 0.3, 7)), 'rotunda behind the player');
 });

@@ -1,7 +1,7 @@
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
-import { GLOW, NONE, arch, band, box, cyl, lathe, rot, worldPoly } from './kit';
-import type { SfLandmark, WalkBlocker } from './index';
+import { GLOW, NONE, arch, band, box, cyl, lathe, ngon, rot, worldPoly } from './kit';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Palace of Fine Arts (T1): the 1915 rotunda on its lagoon, the two curved peristyle wings with their flower-box
@@ -53,14 +53,15 @@ function colonnade(b: BatchLike, pts: Vec2[], lod: 0 | 2) {
   }
 }
 
-function build(b: BatchLike, lod: 0 | 2) {
+/** lagoon (water + a stone rim) — replaces the city's water inside `exclude` */
+function lagoon(b: BatchLike) {
+  b.polygon(LAGOON, 0.04, '#6fb3ad', [0, 0, 0, 1.05]);
+  b.walls(LAGOON, -0.4, 0.14, '#cdbb9d', NONE);
+}
+
+/** rotunda: platform, 8 clusters of 4 columns, arches, entablature, attic drum, dome, finial */
+function rotunda(b: BatchLike, lod: 0 | 2) {
   const lit = GLOW(0.12);
-  // lagoon (water + a stone rim) — replaces the city's water inside `exclude`
-  if (lod === 0) {
-    b.polygon(LAGOON, 0.04, '#6fb3ad', [0, 0, 0, 1.05]);
-    b.walls(LAGOON, -0.4, 0.14, '#cdbb9d', NONE);
-  }
-  // rotunda: platform, 8 clusters of 4 columns, arches, entablature, attic drum, dome, finial
   lathe(b, lod === 0 ? [[4.1, -1.2], [4.1, 0.2], [3.7, 0.2], [3.7, 0.45]] : [[4.1, -1.2], [4.1, 0.45]], 0, 0, 0, STONE_SHADE, NONE, lod === 0 ? 16 : 6);
   const R = 3.05;
   for (let k = 0; k < 8; k++) {
@@ -88,7 +89,10 @@ function build(b: BatchLike, lod: 0 | 2) {
     cyl(b, 0, 9.5, 0, 0.3, 0.6, STONE_LIGHT, NONE, 8);
     lathe(b, [[0.3, 0], [0.14, 0.5], [0.02, 1.2]], 0, 10.0, 0, STONE, NONE, 6);
   }
-  // peristyle wings + the exhibition hall
+}
+
+/** peristyle wings + the exhibition hall */
+function wings(b: BatchLike, lod: 0 | 2) {
   colonnade(b, WING_L, lod);
   colonnade(b, WING_R, lod);
   for (let i = 0; i < HALL_PTS.length - 1; i++) {
@@ -108,9 +112,42 @@ function build(b: BatchLike, lod: 0 | 2) {
   }
 }
 
-function walk(): NonNullable<SfLandmark['walk']> {
-  const blockers: WalkBlocker[] = [{ x: 0, z: 0, r: 0.1 }];
-  for (let k = 0; k < 8; k++) { const a = ((k + 0.5) / 8) * Math.PI * 2; blockers.push({ x: Math.sin(a) * 3.05, z: Math.cos(a) * 3.05, r: 0.7 }); }
+function build(b: BatchLike, lod: 0 | 2) {
+  if (lod === 0) lagoon(b);
+  rotunda(b, lod);
+  wings(b, lod);
+}
+
+/**
+ * AI rotunda (lane D2, D2-06): lane H's SAM mesh (12.66 u across, 8 piers, open underneath) squeezed to xz 0.65 so its
+ * piers stand on the procedural platform ring (pier centres 5.69 → 3.70 u, bases 2.1 → 1.4 u, the walk-in arches
+ * 2.45 → 1.6 u wide, 3.3 u clear) and kept at its 10.8 u height (plan §7). Its piers sit at the procedural clusters'
+ * angles ((k + ½)·45°, measured on the decoded mesh), so the colonnades still meet it between two piers. The platform
+ * is wider and lower than the procedural one (r 4.6, 0.2 u: a walkable deck, not a plinth).
+ */
+const AI_XZ = 0.65, AI_PIER_R = 3.7, AI_PIER = 0.72, AI_DECK = 0.2, AI_DECK_R = 4.6;
+
+function aiRemainder(b: BatchLike) {
+  lagoon(b);
+  lathe(b, [[AI_DECK_R, -1.2], [AI_DECK_R, AI_DECK - 0.06], [AI_DECK_R - 0.12, AI_DECK]], 0, 0, 0, STONE_SHADE, NONE, 24);
+  b.polygon(ngon(0, 0, AI_DECK_R - 0.12, 24), AI_DECK, STONE, NONE);
+  wings(b, 0);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-palace-rotunda', x: 0, y: AI_DECK, z: 0, scale: [AI_XZ, 1, AI_XZ], castShadow: true, glow: 0.1 }],
+  build: aiRemainder,
+  ship: true,
+  note: 'rotunda xz 0.65 on a walkable deck',
+};
+
+function walk(ai: boolean): NonNullable<SfLandmark['walk']> {
+  const blockers: WalkBlocker[] = ai ? [] : [{ x: 0, z: 0, r: 0.1 }];
+  // rotunda piers: the AI mesh's (walk-in arches between them) or the procedural column clusters
+  for (let k = 0; k < 8; k++) {
+    const a = ((k + 0.5) / 8) * Math.PI * 2, R = ai ? AI_PIER_R : 3.05;
+    blockers.push({ x: Math.sin(a) * R, z: Math.cos(a) * R, r: ai ? AI_PIER : 0.7 });
+  }
   for (const pts of [WING_L, WING_R, HALL_PTS]) {
     const w = pts === HALL_PTS ? HALL_W : 1.5;
     for (let i = 0; i < pts.length - 1; i++) {
@@ -119,7 +156,8 @@ function walk(): NonNullable<SfLandmark['walk']> {
     }
   }
   blockers.push({ poly: LAGOON });
-  return { blockers };
+  // the AI rotunda stands on a 0.2 u deck (the procedural platform is a solid plinth under the clusters)
+  return ai ? { blockers, surfaces: [{ poly: ngon(0, 0, AI_DECK_R, 24), y: AI_DECK, surface: 'plaza' }] } : { blockers };
 }
 
 export const palaceOfFineArts: SfLandmark = {
@@ -132,7 +170,10 @@ export const palaceOfFineArts: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -19, z: -14 }, { x: 20, z: -14 }, { x: 20, z: 17 }, { x: -19, z: 17 }]) },
   castShadow: true,
   build,
-  walk: walk(),
+  walk: walk(SWAP.ship),
+  swap: SWAP,
+  // only the rotunda thins as one (no dither holes under it); the wings and the hall keep the per-fragment fade
+  fade: { r: 4.8, y1: 11.5, procedural: false },
 };
 
 export const PALACE_LAGOON = LAGOON;

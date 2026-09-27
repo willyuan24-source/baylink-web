@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, SF, box, cbox, pyramid, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Chinatown Dragon Gate (T2) at Grant Ave & Bush St (OSM node 65328703): three openings — the street in the middle
@@ -61,6 +61,43 @@ function build(b: BatchLike, lod: 0 | 2) {
   cbox(b, 0, MID + 1.4, 0, 0.26, 0.26, 0.26, '#f0c35a', GLOW(0.4));
 }
 
+/**
+ * AI gate (lane D2, D2-06): lane H's SAM mesh at scale 1 (9.6 u wide, 5.85 u tall; central passage 2.24 u wide ×
+ * 2.57 u clear, measured on the decoded mesh: inner pillars |x| 1.14–2.05, outer 3.21–4.01, depth ±0.48). SAM dropped
+ * the concept's lions, so the procedural guardian lions stay (in front of the inner pillars, street side) with the red
+ * lanterns under the side arches (their top is ≈ 2.1 u).
+ */
+const AI_INNER = 1.6, AI_OUTER = 3.61, AI_SIDE_TOP = 2.05;
+
+function aiRemainder(b: BatchLike) {
+  for (const sx of [-1, 1]) {
+    // guardian lion on its plinth (street side, +z), facing down Grant Ave
+    box(b, sx * AI_INNER, -0.2, 0.86, 0.62, 0.55, 0.6, STONE_DARK);
+    box(b, sx * AI_INNER, 0.35, 0.84, 0.42, 0.38, 0.5, '#d6cdbf');
+    cbox(b, sx * AI_INNER, 0.9, 0.9, 0.36, 0.32, 0.36, '#d6cdbf');
+    // red lantern under the side arch
+    box(b, sx * ((AI_INNER + AI_OUTER) / 2), AI_SIDE_TOP - 0.12, 0, 0.04, 0.12, 0.04, '#3a2c22');
+    cbox(b, sx * ((AI_INNER + AI_OUTER) / 2), AI_SIDE_TOP - 0.47, 0, 0.3, 0.36, 0.3, RED, GLOW(0.9));
+  }
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-dragon-gate', x: 0, y: 0, z: 0, scale: [1, 1, 1], glow: 0.08 }],
+  build: aiRemainder,
+  ship: true,
+  note: 'scale 1: passage 2.24 u; procedural lions + lanterns',
+};
+
+/** the four pillars (AI: measured; procedural: the plinths), the lions' plinths in front of the inner pair */
+function blockers(ai: boolean): WalkBlocker[] {
+  if (!ai) return [INNER, OUTER].flatMap(px => [-1, 1].map(sx => ({ poly: rect(sx * px, 0, 0.8, 0.9) })));
+  return [-1, 1].flatMap(sx => [
+    // inner pillar (z ±0.48) and the lion plinth in front of it (z 0.56…1.16)
+    { poly: rect(sx * AI_INNER, 0.31, 0.94, 1.72) },
+    { poly: rect(sx * AI_OUTER, 0, 0.84, 1.0) },
+  ]);
+}
+
 export const dragonGate: SfLandmark = {
   id: 'dragon-gate',
   tier: 2,
@@ -70,5 +107,8 @@ export const dragonGate: SfLandmark = {
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 9.0, 2.2)) },
   build,
-  walk: { blockers: [INNER, OUTER].flatMap(px => [-1, 1].map(sx => ({ poly: rect(sx * px, 0, 0.8, 0.9) }))) },
+  walk: { blockers: blockers(SWAP.ship) },
+  swap: SWAP,
+  // the whole gate thins as one while the player walks under it (no dither holes in the roofs)
+  fade: { r: 3.2, y1: 6.2, box: [4.8, 1.3] },
 };

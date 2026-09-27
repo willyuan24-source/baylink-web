@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, LIT, NONE, SF, WIN, box, flowerBed, gable, pyramid, rect, shade, worldPoly } from './kit';
-import type { SfLandmark, WalkBlocker } from './index';
+import type { LandmarkSwap, LandmarkSwapPart, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Painted Ladies (T2): the seven Victorian row houses at 710–722 Steiner Street, facing Alamo Square (local +z =
@@ -60,7 +60,11 @@ function house(b: BatchLike, i: number, lod: 0 | 2) {
 function build(b: BatchLike, lod: 0 | 2) {
   for (let i = 0; i < HOUSES.length; i++) house(b, i, lod);
   if (lod === 2) return;
-  // sidewalk + low retaining curb along Steiner St, the lamp posts of the postcard shot
+  street(b);
+}
+
+/** sidewalk + low retaining curb along Steiner St, the lamp posts of the postcard shot */
+function street(b: BatchLike) {
   for (let i = 0; i < HOUSES.length; i++) box(b, houseX(i), HOUSES[i].y - 0.4, D / 2 + 0.25, SPACING, 0.42, 1.0, '#dcd3c3', NONE);
   for (const x of [-4.6, 0.2, 4.9]) {
     const y = HOUSES[Math.max(0, Math.min(6, Math.round(3 - x / SPACING)))].y - 0.05;
@@ -70,6 +74,34 @@ function build(b: BatchLike, lod: 0 | 2) {
 }
 
 const blockers: WalkBlocker[] = HOUSES.map((_, i) => ({ poly: rect(houseX(i), -0.4, W, D) }));
+
+/**
+ * AI row prototype (lane D2, D2-07): lane H's two Victorian meshes (A: Queen Anne with a turret, 4.23 u wide; B:
+ * Italianate with a bay, 3.81 u) squeezed into the 1.6 u toy lots (x 0.366 / 0.407 → 1.55 u, z 0.85, y 1.05) and
+ * tinted with the row's pastel bodies (mask.g), on foundations that follow the stepped grade. The decision gate
+ * (SoloView ?solo=painted-ladies&ai=0|1 at golden hour and at 64 px) keeps the procedural row: see `note`.
+ */
+const AI_MODEL = (i: number) => (i % 2 === 0 ? 'sf-victorian-a' : 'sf-victorian-b');
+const AI_SX: Record<string, number> = { 'sf-victorian-a': 1.55 / 4.23, 'sf-victorian-b': 1.55 / 3.81 };
+const AI_PARTS: LandmarkSwapPart[] = HOUSES.map((h, i) => ({
+  model: AI_MODEL(i), x: houseX(i), y: h.y, z: -0.4, scale: [AI_SX[AI_MODEL(i)], 1.05, 0.85], tint: h.body, occupancy: 0.5,
+}));
+
+function aiRemainder(b: BatchLike) {
+  for (let i = 0; i < HOUSES.length; i++) {
+    const h = HOUSES[i], x = houseX(i);
+    box(b, x, h.y - 1.6, -0.4, W, 1.62, D, shade(h.body, 0.82));
+    flowerBed(b, x + 0.35, h.y - 0.05, D / 2 - 0.4 + 0.75, 0.8, 0.4, 3 + i);
+  }
+  street(b);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: AI_PARTS,
+  build: aiRemainder,
+  ship: false,
+  note: 'prototype; the procedural row reads better at 64 px',
+};
 
 export const paintedLadies: SfLandmark = {
   id: 'painted-ladies',
@@ -81,6 +113,7 @@ export const paintedLadies: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, -0.1, 12, 5.2)) },
   build,
   walk: { blockers },
+  swap: SWAP,
 };
 
 export const PAINTED_LADIES = HOUSES;
