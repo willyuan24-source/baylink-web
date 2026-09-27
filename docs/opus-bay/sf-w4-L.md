@@ -9,7 +9,7 @@ modules yet, so the game runs exactly as before. Higgsfield: lane L spent **0 cr
 
 ### 给主人的摘要
 
-1. 新地点做好了 **24 个**：主人点名的全部 8 个（石镇购物中心、旧金山州立大学、UCSF 帕纳萨斯和 Mission Bay 两个校区、USF 孤山 + 圣依纳爵堂、城市学院和它的里维拉艺术中心工地），一级景点 13 个（加州科学院、音乐广场、日本茶园、联合广场、SFMOMA、芳草地花园、海特-阿什伯里路口、多洛雷斯公园、林角、海洋海滩、动物园非洲草原、墨菲风车、海滩小屋），还多做了三个 P3 的（金门公园野牛围场、蓝鹭湖中国亭、吉瑞大道的圣母大教堂）。
+1. 新地点做好了 **24 个**：主人点名的全部 8 个（石镇购物中心、旧金山州立大学、UCSF 帕纳萨斯和 Mission Bay 两个校区、USF 孤山 + 圣依纳爵堂、城市学院和它的里维拉艺术中心工地），一级景点 13 个（加州科学院、音乐广场、日本茶园、联合广场、SFMOMA、芳草地花园、海特-阿什伯里路口、多洛雷斯公园、天涯海角、海洋海滩、动物园非洲草原、墨菲风车、海滩小屋），还多做了三个 P3 的（金门公园野牛围场、蓝鹭湖中国亭、吉里大道的圣母大教堂）。
 2. 每个地点都有：按真实坡度铺的广场和小路、长椅路灯树、能走的范围和到达点、地图旗杆、照片机位；三角形都在预算内（最多 1.9k / 2.5k），市中心的三个按"瘦身"预算做（联合广场 0.6k）。
 3. 测试 8 项、全套 opus-bay 测试全部通过；每个地点都在预览页面里截图看过（`docs/opus-bay/qa/w4/L/`）。
 4. 还没接进游戏（等第三波验收），接线步骤写在下面。圣依纳爵堂、加州科学院、中国亭、圣母大教堂的 AI 模型 V 组已经做好，接线时换上（圣母大教堂的模型比它的地块宽，请 V 组按地块重新缩放）。
@@ -140,6 +140,11 @@ Every module's header comment carries its facts and sources and its local frame 
 
 ### Integration plan (after "wave 3 verified"; the files lane L owns then)
 
+> **Corrected by the early review** (see "## Early review" → "Integration changes" at the end): step 1 imports
+> `./w4list`, never `./w4sites` (a load-time cycle); step 2's draped ground and the sink are already done (D2-09 +
+> `sink: 0` on every record); tops.ts must be regenerated; the height rule `'ground'` and the shared CCSF place row
+> need a decision in step 4.
+
 1. `src/opus-bay/world/sf/landmarks/index.ts` — `import { W4_SITES } from './w4sites';` and append the records to the
    registry: `export const SF_LANDMARKS: SfLandmark[] = [ …existing…, ...W4_SITES ];` (w4sites calls into index.ts
    only inside functions, so the import cycle is safe: W4_SITES is fully evaluated before the literal).
@@ -203,3 +208,117 @@ Every module's header comment carries its facts and sources and its local frame 
   the module headers; Ocean Beach's card keeps "no swimming"; Lands End never promises the labyrinth.
 - **Lane D2 / the kit owner at integration:** `kit.pyramid` should apply its 45° turn before the scale (or call
   `siteKit.hipRoof`); the six existing `w ≠ d` calls listed under Decisions change shape when it is fixed.
+
+## Early review
+
+Written 2026-09-27 by the lane-L adversarial reviewer (worktree `C:/Users/willy/wt/w4-l`), on the lane's 13 commits
+`2c34d91` … `208969c` plus D2-09 (`9a60ebd`, landed during the review). Commits: `W4-L-review:` (4 code commits and
+this report). Higgsfield: 0 credits.
+
+### 给主人的摘要
+
+1. 复查了 L 线做的 24 个新地点，在网上核对了 23 条事实：4 条不对，都改好了（海洋海滩的篝火圈其实只在北段、林肯路以北，
+   这里不该有；野牛 1891 年就来了；圣依纳爵堂的塔高 210 英尺；马丁·路德·金纪念瀑布高 20 英尺）。
+2. 修好两个"接线那天才会爆"的问题：按原来的接线步骤，有的测试一加载就崩（模块互相引用）；新地点接进去后，人会陷进广场地面约
+   0.3（小人的六分之一）。现在每个地点自带"地面不下沉"，都有测试盯着。
+3. 另外 4 个地点把地面和会动的部分算进去后超了三角形预算，已瘦身到预算内；日本茶园里人脚陷进草地和石子路的问题也修了。
+
+### What I checked
+
+- **Every file the lane created** (24 site modules, `siteKit.ts`, `siteTerrain.ts`, `w4sites.ts`, the test, the four
+  scripts, this report, the QA table) and the files its integration plan names (`landmarks/index.ts`, `world/sf/sites.ts`,
+  `landmarks/context.ts`, `data/sf/landmarks.ts`, `core/sfTerrain.ts`, `landmarks/tops.ts` +
+  `scripts/opus-sf/assets/topsMeasure.ts`, `world/sf/build.ts` for the exclusion sink).
+- **Early-phase rule:** `git show --stat` over the 13 `W4-L*` commits lists only files lane L created (plus its report
+  and QA folder). No existing tracked file was edited. Held.
+- **Per-frame allocations:** the five `animate.update` functions (UCSF crane, CCSF crane, zoo necks, Murphy sails, bison
+  heads) only call `position.set` / `rotation.set`; the `new THREE.*` calls are all in build paths. None.
+- **Budgets** measured as the frame draws them (model + draped ground + animate part; the lane's own `sites-qa` reports
+  it that way): four sites were over (below).
+- **Walk height vs drawn ground** with the node terrain provider (`probe-sink.mts`, `probe-feet.mts` in
+  `C:/Users/willy/opus-qa/w4/w4-l/`): with sites.ts's default 0.2 u sink, the draped ground pieces stood 0.25–0.46 u
+  (mean per site) over the walk height; with sink 0, 0.08–0.25 (the Tea Garden 0.26, now 0.12).
+- **The integration step 1 as written**, applied to a scratch edit of `landmarks/index.ts` (reverted at once, never
+  committed): lane V's `opus-bay-w4-assets` test died at load with `ReferenceError: Cannot access 'W4_SITES' before
+  initialization`.
+- **zh text:** lane L's modules carry no player-facing text (cards are lane C's); the report's summary used 林角 and
+  吉瑞大道 where the game's glossary (lane C's cards) says 天涯海角 and 吉里大道: fixed.
+- **Preview shots** after the fixes (dev server 5303, `sites-qa.mjs --preview 1`, each read before describing): Ocean
+  Beach street (driftwood logs, the blank warning board, the plank path, no rings; replaces
+  `qa/w4/L/ocean-beach-street-golden.jpg`), Union Square street (column, palms without kerb boxes, 598 triangles on
+  screen), Bison Paddock street (the herd without horn bars, posts 6.5 u apart, 790 on screen), Japanese Tea Garden high
+  and street (lawn, pond and gravel on the new lifts, no z-fighting). Scratch: `C:/Users/willy/opus-qa/w4/w4-l/{qa,review}/`.
+
+**Facts re-checked on the web (2026-09-27)** — ✓ right, ✗ fixed:
+
+| # | fact (module) | source | |
+|---|---|---|---|
+| 1 | Stonestown opened 16 July 1952 (stonestown) | Wikipedia "Stonestown Galleria" | ✓ |
+| 2 | enclosed / reopened as the Galleria in 1987 (stonestown) | Wikipedia; outsidelands.org | ✓ |
+| 3 | SF State founded 1899, on the Lake Merced campus from 1953 (sf-state) | Wikipedia; outsidelands.org | ✓ |
+| 4 | Helen Diller Hospital: 15 storeys, work through 2029, opening 2030 (ucsf-parnassus) | realestate.ucsf.edu | ✓ |
+| 5 | its main steel erection under way in 2026 (ucsf-parnassus) | UCSF monthly updates (Apr–May 2026) | ✓ |
+| 6 | Science Hall: 1940, 489 ft long, 90 ft high, 89 ft longer than City Hall (ccsf-ocean) | The Guardsman | ✓ |
+| 7 | Diego Rivera PAC ground broken 22 Jan 2026, Pan American Unity in its lobby (ccsf-drpac) | ccsf.edu; LMN | ✓ |
+| 8 | Lone Mountain Main Building 1932, Henry A. Minton, Spanish Gothic, "Spanish Steps" from Turk, USF's from 1978 (usf-lone-mountain) | usfca.edu; Wikipedia | ✓ |
+| 9 | St Ignatius dedicated 1914, Charles Devlin, Fulton St & Parker Ave (st-ignatius) | Wikipedia | ✓ |
+| 10 | St Ignatius towers "200 ft" → **210 ft** (st-ignatius; realM 61 → 64) | usfca.edu "9 facts" | ✗ |
+| 11 | Dewey Monument 1903, 97 ft, Victory with trident and wreath (union-square) | Wikipedia "Dewey Monument" | ✓ |
+| 12 | MLK Memorial restored in 2026 (yerba-buena-gardens) | yerbabuena.org | ✓ |
+| 13 | its waterfall "≈ 22 ft" → **20 ft high, 50 ft wide** (yerba-buena-gardens; realM 7 → 6.1) | yerbabuena.org | ✗ |
+| 14 | Lands End Lookout at 680 Point Lobos Ave (lands-end) | NPS; Parks Conservancy | ✓ |
+| 15 | Ocean Beach **fire rings at Lawton St** → the 16 rings are only between Stairwells 15 and 20 (Stairwell 15 at JFK Dr, north of Lincoln Way) (ocean-beach) | nps.gov "Ocean Beach Fire Program"; Parks Conservancy | ✗ |
+| 16 | the N Judah terminus "two blocks south" → **north** of Lawton St (Lincoln, Irving, Judah, Kirkham, Lawton) (ocean-beach) | the street order; the lane's own 66 u | ✗ |
+| 17 | Sunset Dunes car-free since 12 April 2025; Prop G on 3 Nov 2026 (ocean-beach notes) | Wikipedia; KQED; CBS | ✓ |
+| 18 | Murphy Windmill completed 1908, reopened 2012, 114 ft sails (murphy-windmill) | outsidelands.org; Wikipedia | ✓ |
+| 19 | Beach Chalet: Willis Polk, 1925, Spanish Revival, the park visitor center downstairs, WPA frescoes (beach-chalet) | Wikipedia; SF Heritage | ✓ |
+| 20 | bison in the park "since 1892" → **since 1891**; in this meadow since 1899 (bison-paddock) | sfzoo.org timeline; Local News Matters | ✗ |
+| 21 | Stow Lake renamed Blue Heron Lake on 18 Jan 2024 (blue-heron-lake) | sfrecpark.org; SFist | ✓ |
+| 22 | Chinese Pavilion: Taipei's gift, dedicated 1981, red pillars, green tiled roof, 28 ft (blue-heron-lake) | sfrecpark.org; noehill.com | ✓ |
+| 23 | Holy Virgin Cathedral, 6210 Geary Blvd at 26th Ave, five gold-leaf onion domes (geary-west) | Wikipedia; Richmond Review | ✓ |
+| — | UCSF Mission Bay "57.9 acres": ucsf.edu's page gives no acreage, UC's 2015 news says 60.2; the 1999 start and the 1 Feb 2015 hospitals ✓ | universityofcalifornia.edu | open (lane C's card) |
+
+### Defects found (16): fixed 13, open 3
+
+| # | defect | fix / state |
+|---|---|---|
+| 1 | Integration step 1 (`index.ts` imports `W4_SITES` from `w4sites.ts`, which imports `index.ts`) throws at load wherever `w4sites.ts` is the first to load (lane V's test; reproduced) | **fixed** `4ac8f4c`: `w4list.ts` holds the list and imports only the site modules; `w4sites.ts` re-exports it; the test walks `w4list`'s import graph (no runtime import of `./index`, `./w4sites`, `./context`, `../sites`) |
+| 2 | Registered as planned, every site's exclusion sank the city ground 0.2 u (sites.ts) under ground draped on the unsunk ground: walkers ≈ 0.3 u under every plaza; the test hid it with a hand-made `sink: 0` | **fixed** `4ac8f4c` + `7a07312`: every record has `sink: 0` (D2-09's `SfLandmark.sink`, required by `W4Site`); the test uses sites.ts `landmarkSink` and checks the walk height under every standable ground piece (mean over the lift ≤ 0.15, worst ≤ 0.5; fails at every site with 0.2) |
+| 3 | Budgets counted the model only; with ground and animate parts Union Square 646 / 600 (diet), UCSF Mission Bay 856 / 800, Murphy Windmill 804 / 800, Bison Paddock 934 / 800 | **fixed** `4ac8f4c`: 598, 712, 788, 790 (palm kerbs as ground squares and 4-sided trunks; one-blob row trees; an 8-sided cap; no horn bars, posts 6.5 u apart); the test counts all three parts |
+| 4 | Ocean Beach fire rings (and their night glow) at Lawton St, where there are none | **fixed** `63b8407`: eight driftwood logs (walk blockers) and more dune grass; the rings belong on the Stairwell 15–20 stretch (defect 16) |
+| 5 | Ocean Beach header: N Judah terminus "two blocks south" | **fixed** `63b8407`: north |
+| 6 | Bison header "since 1892" (lane C quotes the headers) | **fixed** `4ac8f4c`: 1891 |
+| 7 | St Ignatius "200-ft towers", realM 61 | **fixed** `63b8407`: 210 ft, realM 64 |
+| 8 | MLK waterfall "≈ 22 ft", realM 7 | **fixed** `63b8407`: 20 ft × 50 ft, realM 6.1 |
+| 9 | Japanese Tea Garden lawn / pond / gravel lifted 0.18 / 0.23 / 0.25 u: walkers 0.2–0.3 u under the lawn and gravel (drawn − walk mean 0.257, max 0.646 u) | **fixed** `142463d`: 1 u bake (`terrainStep 1`), one 1.5 u lattice, lifts 0.08 / 0.13 (mean 0.119, max 0.330); ground 369, site 2201 / 2500 |
+| 10 | The integration plan never regenerates `tops.ts`: the landmark-context test fails on the first registered site, blockers have no tops (the glide treats them as walls) and Murphy's sails `tall` part is dropped | **fixed** (plan below) + test: `topsMeasure` measures every blocker and tall part of all 24 sites (finite, 0–30 u) |
+| 11 | Integration step 2's draped-ground change to `buildGroundMesh` and the preview's mount | **done by D2-09** (`ys` drawn natively); the preview now appends the records as they are (`7a07312`) |
+| 12 | `sites-terrain.mts` header said a 3 u grid (it is 2 u) | **fixed** `63b8407` |
+| 13 | Report summary names 林角 / 吉瑞大道 vs the game's 天涯海角 / 吉里大道; the Ocean Beach QA shot showed the removed rings | **fixed** (this report commit) |
+| 14 | `W4SiteMeta.height.rule` has `'ground'` (8 sites), which `SfLandmarkInfo.height.rule` does not accept; cityViews / cityLive read `height.u` over the base, but `u` is the height over the model's own ground (USF 12.8 vs 16.0 drawn over the base, Dolores Park 5.6 vs 9.5, Lands End 3.5 vs 7.4) | **open** (integration step 4, below) |
+| 15 | `ccsf-ocean` and `ccsf-drpac` share `placeId` `ccsf-ocean-campus`: a `sfLandmarkInfoByPlace` fallback would keep whichever comes last (the construction lot) | **open** (integration step 4, below) |
+| 16 | The fire rings have no record now (plan's Ocean Beach west group) | **open**: a small T3 record on the sand between Stairwell 15 (JFK Dr, the Beach Chalet) and Lincoln Way with a March–October glow; lane C's Ocean Beach card may mention them "at the north end" |
+
+Not defects, noted: `siteKit.ts` is now imported by ten D2-09 landmark modules, so its baked `siteTerrain.ts` (29 KB,
+9 KB gzip) loads with the registry; keep `siteKit`'s exported helpers stable (D2's settings use `gfill`, `lamp`,
+`bench`, `planter`, `flagpole`, `hedge`, `palm`, `tree`, `conifer`, `bollard`, `GC`, `PAT`, `FC`).
+
+### Integration changes (replace the plan's steps where they differ)
+
+1. `landmarks/index.ts`: `import { W4_SITES } from './w4list';` and `SF_LANDMARKS = [ …existing…, ...W4_SITES ]`.
+   **Never import `./w4sites` or `./context` from index.ts** (the opus-bay-sf-sites-w4 "integration safety" test keeps
+   `w4list`'s side clean).
+2. `world/sf/sites.ts`: only the per-site lod ring (`siteLod0R`, as planned). The draped ground is drawn already
+   (D2-09 `buildGroundMesh`), and the sink needs no change: `landmarkSink(l)` reads each record's `sink: 0`.
+3. `landmarks/context.ts`: re-export `siteFlagTop`, `flagHeight`, `LANDMARK_FLAGS`, `HERO_FLAGS` from `./w4sites` (as
+   planned; context.ts → w4sites → index is not a cycle once index imports w4list).
+4. `data/sf/landmarks.ts` fallback: map the rule `'ground'` onto `'overlook'` (no building to frame in cityViews) or widen
+   the union; give the fallback `height.u` = the measured top over the base (tops.ts max) where cityViews / cityLive
+   read it; key `sfLandmarkInfoByPlace` by the primary record only (`w4SiteOf(placeId)`, i.e. `ccsf-ocean`, not
+   `ccsf-drpac`); lat / lng / zone / bark / realInfo from lane C's cards.
+5. **Re-run `npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/assets/landmark-tops.ts`** in the registration
+   commit: tops.ts gains the 24 rows the landmark-context test requires (blocker tops for the glide, Murphy's sails).
+6. Tests that change on purpose: as the plan's step 6, plus `opus-bay-sf-landmark-context` (tops.ts rows).
+
+### Checks
+
