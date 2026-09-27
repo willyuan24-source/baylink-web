@@ -131,6 +131,11 @@ test('D2-10: blocker tops reach the terrain provider as world Blocker.top and fo
   assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (27.25 + top0)) < 1e-9), 'Grace Cathedral nave top follows its base');
   city.setLandmarkBase('grace-cathedral', 28);
   assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (28 + top0)) < 1e-9));
+  // D2-review: landmarkBase answers the pinned base too (it answered the walkInputs hint 0), so the glide's tall parts
+  // (actors/glideTall landmarkBaseY reads the provider) stand on it: the flèche over the nave, not 20 u under it
+  assert.equal(city.landmarkBase('grace-cathedral'), 28);
+  const spire = landmarkTallStructures(l => city.landmarkBase(l.id) ?? NaN).filter(t => t.id === 'grace-cathedral');
+  assert.ok(spire.length === tallParts(hall).length && spire.every(t => t.top > 28 + top0), `Grace tall tops ${spire.map(t => t.top.toFixed(1))} over the nave ${28 + top0}`);
   // landmarkWalkWorld agrees (world tops)
   assert.deepEqual(landmarkWalkWorld(hall, 8).blockers.map(b => b.top), blockerTops(hall).map(t => 8 + t!));
 });

@@ -898,7 +898,12 @@ class Provider implements CityTerrainProvider {
     const li = this.lmIndex.get(id);
     if (li === undefined) return null;
     const l = this.lmInput[li];
-    return typeof l.base === 'number' ? l.base : this.lmDeferred[li] ? this.deferredBase(li) : fixedBase(l, (x, z) => this.groundGuess(x, z));
+    if (typeof l.base === 'number') return l.base;
+    if (this.lmDeferred[li]) return this.deferredBase(li);
+    // D2-review: a 'terrain' landmark without deferred decks answered the walkInputs hint (0) even after the renderer
+    // pinned its base, so the glide's tall parts on it (actors/glideTall landmarkBaseY) stood ~20 u low: Grace
+    // Cathedral's flèche at 13.5 instead of 33.9. Its Blocker.top already used the pinned base (setLandmarkBase).
+    return this.lmBaseSrc[li] ? this.lmBase[li] : fixedBase(l, (x, z) => this.groundGuess(x, z));
   }
 
   /** Base of a deferred landmark: pinned / centre chunk, else the renderer's first estimate (far DEM), else the hint. */
