@@ -169,3 +169,20 @@ let lastSize = 0;
 let scans = 0;
 /** QA: how many layout reads the scanner made */
 export const hudScanCount = () => scans;
+/** QA: the fixed boxes as last read */
+export const hudBoxes = (): readonly Box[] => scanned;
+
+/**
+ * The Canvas went away (leaving /opus-bay, a remount): stop watching the old overlay and forget its boxes. Without
+ * this the module kept the detached overlay (and the React tree hanging off its nodes) alive until the next scan
+ * (G1-review).
+ */
+export function releaseHudLayout() {
+  observer?.disconnect();
+  observer = null;
+  observed = null;
+  scanned = [];
+  scannedAt = -Infinity;
+  dirtyAt = settleAt = 0;
+  lastSize = 0;
+}

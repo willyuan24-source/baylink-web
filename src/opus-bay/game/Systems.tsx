@@ -17,7 +17,7 @@ import { flow } from './flowStore';
 import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
 import { consumeShutter } from './photo';
 import { domAnchors, overlayInsets } from './projector';
-import { type Box, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, scanHudBoxes } from './hudLayout';
+import { type Box, hudBoxes, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, releaseHudLayout, scanHudBoxes } from './hudLayout';
 import { routeLeftTo } from './mapRoute';
 import { autoWalkSeconds, gameTimeLabel, secondsLabel } from './travel';
 import { stepTravel } from './fastTravel';
@@ -477,6 +477,8 @@ function Ticker() {
   const scene = useThree(s => s.scene);
   const clock = useRef({ tenHz: 0, frames: 0, fpsAt: 0, objects: 0, objectsAt: 0 });
   useEffect(() => { warmProbe.renderer = gl; return () => { if (warmProbe.renderer === gl) warmProbe.renderer = null; }; }, [gl]);
+  // G1-review: a new Ticker projects on its first frame; an old one lets go of the overlay it watched
+  useEffect(() => { sigLast.fill(NaN); return () => { releaseHudLayout(); sigLast.fill(NaN); }; }, []);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
@@ -537,6 +539,10 @@ let waypointTextAt = 0;
 let bubbleBoxKey = -1;
 const bubbleBox = { w: 250, h: 48 };
 let labelHalf = 60;
+/** the label's width was read for its current text (0 while it is not laid out yet) */
+let labelMeasured = false;
+/** the label text was due while the 4 Hz throttle held it back (or it could not be measured): run once more (P8) */
+let labelRecheck = false;
 const focusProj = new THREE.Vector3();
 
 /**
@@ -565,6 +571,7 @@ function projectionChanged(camera: THREE.Camera, w: number, h: number, now: numb
   const focus = game.get().focus;
   s[37] = focus ? interactableById(focus)?.x ?? 1 : 0;
   let changed = false;
+  if (labelRecheck && now - waypointTextAt > 250) { labelRecheck = false; changed = true; }
   for (let i = 0; i < SIG; i++) {
     if (Math.abs(s[i] - sigLast[i]) > 1e-5 || Number.isNaN(sigLast[i])) { changed = true; break; }
   }
@@ -659,6 +666,27 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
       x = cx + dx * k; y = cy + dy * k;
     }
     const angle = Math.atan2(y - cy, x - cx);
+    // the label text first (4 Hz): its width feeds the slide below. G1-review: it used to be set after the slide was
+    // written with the previous label's width, and with the P8 skip nothing re-ran while the view stood still — a new
+    // clue label stayed half off the left edge (768×1024: −59 px). A throttled or unmeasured label asks for one more run.
+    const lab = domAnchors.waypointLabel;
+    if (lab) {
+      if (now - waypointTextAt > 250) {
+        waypointTextAt = now;
+        // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed). G1-8: a
+        // city place the map planned a route to says the time along that route (the map's own figure: at the
+        // auto-walk's pace while 带我去 walks you, at walking pace when you walk it yourself)
+        const locale = getLocale();
+        const along = target.id.startsWith('place:') ? routeLeftTo(target, runtime.player) : null;
+        const time = along === null ? gameTimeLabel(d) : runtime.player.pathTarget ? secondsLabel(autoWalkSeconds(along)) : gameTimeLabel(along);
+        const text = `${pick(target.name, locale)} · ${pick(time, locale)}`;
+        if (lab.textContent !== text) { lab.textContent = text; labelMeasured = false; }
+        if (!labelMeasured) {
+          const lw = lab.offsetWidth;
+          if (lw) { labelHalf = lw / 2; labelMeasured = true; writeProp(wp, '--ob-label-half', `${labelHalf.toFixed(0)}px`); } else labelRecheck = true;
+        }
+      } else labelRecheck = true;
+    }
     // the label is centred under the pin: slide it (not the pin) so it stays inside the screen
     const margin = 10;
     const shift = Math.max(0, margin + labelHalf - x) + Math.min(0, w - margin - labelHalf - x);
@@ -671,17 +699,6 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
     writeProp(wp, '--ob-label-dx', `${shift.toFixed(0)}px`);
     writeData(wp, 'edge', off ? '1' : '0');
     writeProp(wp, '--ob-angle', `${angle.toFixed(3)}rad`);
-    if (domAnchors.waypointLabel && now - waypointTextAt > 250) {
-      waypointTextAt = now;
-      // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed). G1-8: a
-      // city place the map planned a route to says the time along that route (the map's own figure: at the
-      // auto-walk's pace while 带我去 walks you, at walking pace when you walk it yourself)
-      const locale = getLocale();
-      const along = target.id.startsWith('place:') ? routeLeftTo(target, runtime.player) : null;
-      const time = along === null ? gameTimeLabel(d) : runtime.player.pathTarget ? secondsLabel(autoWalkSeconds(along)) : gameTimeLabel(along);
-      const text = `${pick(target.name, locale)} · ${pick(time, locale)}`;
-      if (domAnchors.waypointLabel.textContent !== text) { domAnchors.waypointLabel.textContent = text; labelHalf = (domAnchors.waypointLabel.offsetWidth || 120) / 2; writeProp(wp, '--ob-label-half', `${labelHalf.toFixed(0)}px`); }
-    }
   }
 }
 
@@ -746,7 +763,7 @@ function QaBridge() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, exportMap: exportCityMap, warmProbe } };
+    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, hudBoxes, exportMap: exportCityMap, warmProbe } };
     w.__opusBay = { ...(w.__opusBay ?? {}), ...mine, renderer: (w.__opusBay?.renderer as unknown) ?? gl };
     // other modules re-publish the object on their own schedules: keep the flow hooks on it (QA scripts rely on them)
     const id = window.setInterval(() => { const o = w.__opusBay; if (o && o.actions !== flowActions) Object.assign(o, mine); }, 500);
