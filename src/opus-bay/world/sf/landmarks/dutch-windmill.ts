@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import type { BatchLike } from '../../builder';
-import { LIT, NONE, box, cbox, flowerBed, lathe, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import { LIT, NONE, box, cbox, cyl, flowerBed, lathe, rect, worldPoly } from './kit';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Dutch Windmill (T2), north-west corner of Golden Gate Park (OSM way 287921407), with the Queen Wilhelmina Tulip
@@ -12,7 +12,9 @@ import type { SfLandmark } from './index';
 
 const X0 = -580.69, Z0 = 1311.93, YAW = (-44 * Math.PI) / 180;
 const BODY = '#eee5d2', TRIM = '#fbf6ec', CAP = '#5d5048', SAIL = '#f2ead8', FRAME = '#8a6a4c';
-const HUB_Y = 5.45, HUB_Z = 1.2, SAIL_R = 4.15;
+const SAIL_R = 4.15;
+/** the sails' windshaft: the procedural cap's, or the AI body's stub (measured: tip at y 5.85, z 1.71; see SWAP) */
+const HUB = { proc: { y: 5.45, z: 1.2 }, ai: { y: 5.85, z: 2.0 } };
 
 function build(b: BatchLike, lod: 0 | 2) {
   // brick plinth, octagonal body tapering to the cap ring, reefing stage
@@ -20,8 +22,8 @@ function build(b: BatchLike, lod: 0 | 2) {
     lathe(b, [[1.5, -1.2], [0.95, 5.5]], 0, 0, 0, BODY, NONE, 6);
     lathe(b, [[1.2, 0], [0.05, 1.42]], 0, 5.1, 0, CAP, NONE, 6);
     // static sail cross for the far view
-    cbox(b, 0, HUB_Y, HUB_Z, 0.5, SAIL_R * 2, 0.08, SAIL, NONE, 0, 0, Math.PI / 4);
-    cbox(b, 0, HUB_Y, HUB_Z, 0.5, SAIL_R * 2, 0.08, SAIL, NONE, 0, 0, -Math.PI / 4);
+    cbox(b, 0, hub.y, hub.z, 0.5, SAIL_R * 2, 0.08, SAIL, NONE, 0, 0, Math.PI / 4);
+    cbox(b, 0, hub.y, hub.z, 0.5, SAIL_R * 2, 0.08, SAIL, NONE, 0, 0, -Math.PI / 4);
     return;
   }
   lathe(b, [[1.55, -1.2], [1.55, 0.6]], 0, 0, 0, '#b9a58f', NONE, 8);
@@ -39,8 +41,13 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, 0, 0.6, 1.3, 0.6, 1.1, 0.12, '#6b5140', LIT(0.6));
   for (const y of [3.3, 4.2]) box(b, 0, y, 1.08 - (y - 3.3) * 0.12, 0.34, 0.45, 0.1, '#50606a', LIT(y));
   lathe(b, [[1.05, 0], [1.05, 0.22]], 0, 4.95, 0, TRIM, NONE, 8);
-  cbox(b, 0, HUB_Y, 0.75, 0.42, 0.42, 0.9, CAP);
-  // tulip garden (Queen Wilhelmina) around the foot
+  cbox(b, 0, HUB.proc.y, 0.75, 0.42, 0.42, 0.9, CAP);
+  if (hub !== HUB.proc) cbox(b, 0, hub.y, (1.2 + hub.z) / 2, 0.3, 0.3, hub.z - 1.0, CAP);
+  tulips(b);
+}
+
+/** the Queen Wilhelmina Tulip Garden around the foot */
+function tulips(b: BatchLike) {
   flowerBed(b, 2.8, 0, 2.2, 2.2, 1.0, 2);
   flowerBed(b, -2.8, 0, 2.2, 2.2, 1.0, 5);
   flowerBed(b, 3.4, 0, -1.2, 1.2, 2.4, 8, 0.4);
@@ -70,6 +77,28 @@ function buildSails(b: BatchLike) {
   }
 }
 
+/**
+ * AI body (lane D2, D2-15): lane H's SAM mesh (LM6-3D: brick plinth r 1.8, tapering octagonal tower, reefing stage
+ * r 1.9, cap with the windshaft stub) at scale 1 = 6.5 u to the cap, the procedural 6.52 u. The sails stay procedural
+ * (animate) and turn on the stub: while the swap ships they sit at HUB.ai (0.3 u in front of the stage rim) with a short
+ * procedural shaft to the stub, whichever body is drawn (walk data and sails follow `ship`, like the blockers).
+ */
+function aiRemainder(b: BatchLike) {
+  cyl(b, 0, -1.2, 0, 1.75, 1.25, '#b9a58f', NONE, 12);
+  cbox(b, 0, HUB.ai.y, 1.85, 0.3, 0.3, 0.4, CAP);
+  tulips(b);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-windmill-body', x: 0, y: 0, z: 0, scale: [1, 1, 1], glow: 0.08 }],
+  build: aiRemainder,
+  ship: true,
+  note: 'scale 1; procedural sails on the stub',
+};
+
+const hub = SWAP.ship ? HUB.ai : HUB.proc;
+const BEDS: WalkBlocker[] = [{ poly: rect(2.8, 2.2, 2.2, 1.0) }, { poly: rect(-2.8, 2.2, 2.2, 1.0) }];
+
 export const dutchWindmill: SfLandmark = {
   id: 'dutch-windmill',
   tier: 2,
@@ -82,10 +111,12 @@ export const dutchWindmill: SfLandmark = {
   animate: {
     build: buildSails,
     update(obj: THREE.Object3D, t: number) {
-      obj.position.set(0, HUB_Y, HUB_Z);
+      obj.position.set(0, hub.y, hub.z);
       obj.rotation.set(0, 0, -t * 0.45);
     },
   },
-  walk: { blockers: [{ x: 0, z: 0, r: 1.6 }, { poly: rect(2.8, 2.2, 2.2, 1.0) }, { poly: rect(-2.8, 2.2, 2.2, 1.0) }] },
+  walk: { blockers: [{ x: 0, z: 0, r: SWAP.ship ? 1.85 : 1.6 }, ...BEDS] },
+  swap: SWAP,
+  fade: { r: 2.2, y1: 6.6, procedural: false },
 };
 

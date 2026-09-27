@@ -7,7 +7,7 @@ import { ASSETS, SF_DRACO_DECODER_PATH, SF_KIT, SF_KIT_IDS, SF_MODELS, SF_MODEL_
 import { TOY, U, makeHeroMaterial } from '../src/opus-bay/world/materials';
 import { MODEL_INST_ATTR, MODEL_TINT_ATTR, MODEL_VARIANTS, keyLuminance, makeModelMaterial, modelInstanceGeometry, modelWarmupSet, setModelInstance } from '../src/opus-bay/world/modelMaterial';
 import * as models from '../src/opus-bay/world/models';
-import { CitySites, buildGroundMesh, buildSwapObjects, disposeSwapObjects, fadeOccludes } from '../src/opus-bay/world/sf/sites';
+import { CitySites, LOD0, buildGroundMesh, buildSwapObjects, disposeSwapObjects, fadeOccludes } from '../src/opus-bay/world/sf/sites';
 import { pointInPolygon } from '../src/opus-bay/core/terrain';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { SF_LANDMARKS, type SfLandmark, landmarkToWorld } from '../src/opus-bay/world/sf/landmarks/index';
@@ -29,6 +29,20 @@ function glb(url: string): GlbInfo {
   return { bytes: buf.length, json: JSON.parse(buf.subarray(20, 20 + len).toString('utf8')) };
 }
 const isWebp = (url: string) => { const b = fs.readFileSync(fileOf(url)); return b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP'; };
+/** Pixel size of the GLB's embedded WebP textures (VP8 / VP8L / VP8X headers). */
+function glbTextureSizes(url: string): [number, number][] {
+  const buf = fs.readFileSync(fileOf(url));
+  const len = buf.readUInt32LE(12), json = JSON.parse(buf.subarray(20, 20 + len).toString('utf8'));
+  const bin = 20 + len + 8;
+  return (json.images ?? []).map((im: { bufferView: number }) => {
+    const bv = json.bufferViews[im.bufferView], w = buf.subarray(bin + (bv.byteOffset ?? 0), bin + (bv.byteOffset ?? 0) + bv.byteLength);
+    assert.equal(w.subarray(8, 12).toString(), 'WEBP');
+    const kind = w.subarray(12, 16).toString();
+    if (kind === 'VP8X') return [1 + w.readUIntLE(24, 3), 1 + w.readUIntLE(27, 3)];
+    if (kind === 'VP8L') { const b = w.readUInt32LE(21); return [1 + (b & 0x3fff), 1 + ((b >> 14) & 0x3fff)]; }
+    return [w.readUInt16LE(26) & 0x3fff, w.readUInt16LE(28) & 0x3fff];
+  });
+}
 
 test('models.ts is node-safe: importing touches no DOM, every load resolves null without a browser', async () => {
   assert.equal(models.canLoadModels(), false);
@@ -46,7 +60,7 @@ test('models.ts is node-safe: importing touches no DOM, every load resolves null
 
 test('registry: every SF model / kit house matches its file (bytes, triangles, bounds within 2 %), Draco + WebP, masks, size caps', () => {
   const all = [...SF_MODEL_IDS.map(id => [id, SF_MODELS[id]] as const), ...SF_KIT_IDS.map(id => [id, SF_KIT[id]] as const)];
-  assert.equal(all.length, 16);
+  assert.equal(all.length, 24);
   for (const [id, a] of all) {
     const g = glb(a.url);
     assert.equal(g.bytes, a.bytes, `${id} bytes`);
@@ -62,6 +76,8 @@ test('registry: every SF model / kit house matches its file (bytes, triangles, b
     assert.ok(Math.abs(pos.min![1]) < 1e-3 && Math.abs(pos.min![0] + pos.max![0]) < 0.02 && Math.abs(pos.min![2] + pos.max![2]) < 0.02, `${id} origin`);
     const mask = (a as { mask?: string }).mask;
     if (mask) assert.ok(isWebp(mask), `${id} mask is a WebP`);
+    // textures: 1024 px for the landmark heroes, 512 px for the houses (GPU memory on phones: ≈ 5.3 MB per hero with mips)
+    for (const [w, h] of glbTextureSizes(a.url)) assert.ok(w === h && w <= (a.kind === 'hero' ? 1024 : 512), `${id} texture ${w}×${h}`);
     const cap = a.kind === 'hero' ? 250_000 : 90_000;
     assert.ok(a.bytes <= cap, `${id} ${a.bytes} B ≤ ${cap}`);
     assert.ok(a.triangles <= (a.kind === 'hero' ? 10_000 : 3_500), `${id} triangles`);
@@ -212,11 +228,14 @@ function samples(x0: number, x1: number, z0: number, z1: number, n = 6): Vec2[] 
 }
 const inExclude = (l: SfLandmark, p: Vec2) => {
   const w = landmarkToWorld(l, p), e = l.exclude;
-  return 'r' in e ? Math.hypot(w.x - e.x, w.z - e.z) <= e.r : pointInPolygon(w, e.poly);
+  return 'r' in e ? Math.hypot(w.x - l.x, w.z - l.z) <= e.r : pointInPolygon(w, e.poly);
 };
 
 test('AI swaps: the D2-06/07 decision gates, walk data authored to the AI meshes (measured on the decoded GLBs)', () => {
-  assert.deepEqual(SF_LANDMARKS.filter(l => l.swap?.ship).map(l => l.id).sort(), ['conservatory-of-flowers', 'dragon-gate', 'palace-of-fine-arts']);
+  assert.deepEqual(SF_LANDMARKS.filter(l => l.swap?.ship).map(l => l.id).sort(), [
+    'castro-theatre', 'city-hall', 'conservatory-of-flowers', 'dragon-gate', 'dutch-windmill', 'grace-cathedral', 'legion-of-honor',
+    'mission-dolores', 'palace-of-fine-arts',
+  ]);
   assert.equal(lm('painted-ladies').swap?.ship, false, 'D2-07: the procedural row reads better at 64 px and golden hour');
   // Dragon Gate: walk-through >= 2.2 u clear between the inner pillars; the 4 pillars (inner |x| 1.14-2.05, outer
   // 3.21-4.01, depth ±0.48) and the lion plinths (z 0.56-1.16) are solid; the pillar footprint is inside the exclusion
@@ -302,4 +321,68 @@ test('fadeOccludes: under the gate or the rotunda = occluded; in front of it, be
   const pal = lm('palace-of-fine-arts'), p = pal.fade!;
   assert.ok(fadeOccludes(pal, p, 0.1, at(pal, 0, 9, 14), at(pal, 0, 0.3, 0)), 'player under the dome');
   assert.ok(!fadeOccludes(pal, p, 0.1, at(pal, 0, 9, 20), at(pal, 0, 0.3, 7)), 'rotunda behind the player');
+});
+
+/** Local ground-level box corners of a swap part: registry size × scale, turned by the part's yaw, at its offset. */
+function partCorners(p: NonNullable<SfLandmark['swap']>['parts'][number]): Vec2[] {
+  const size = ASSETS.models[p.model].size, hx = (size[0] * p.scale[0]) / 2, hz = (size[2] * p.scale[2]) / 2;
+  const c = Math.cos(p.yaw ?? 0), s = Math.sin(p.yaw ?? 0);
+  return [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]].map(([x, z]) => ({ x: p.x + x * c + z * s, z: p.z - x * s + z * c }));
+}
+
+test('D2-15 swaps: the eight SAM landmarks — decision gates, AI bounds inside the exclusions, walk data on the measured meshes', () => {
+  // the gates (SoloView golden / night / 64 px + the city): six ship, two stay procedural with the reason in `note`
+  for (const id of ['legion-of-honor', 'mission-dolores', 'castro-theatre', 'dutch-windmill', 'grace-cathedral', 'city-hall']) assert.equal(lm(id).swap?.ship, true, id);
+  for (const id of ['fort-point', 'ghirardelli-square']) {
+    assert.equal(lm(id).swap?.ship, false, id);
+    assert.match(lm(id).swap!.note ?? '', /^prototype: /, `${id} says why`);
+  }
+  const d215 = ['legion-of-honor', 'ghirardelli-square', 'fort-point', 'mission-dolores', 'castro-theatre', 'dutch-windmill', 'grace-cathedral', 'city-hall'];
+  for (const id of d215) {
+    const l = lm(id), swap = l.swap!;
+    assert.equal(swap.parts.length, 1, `${id}: one AI part`);
+    const p = swap.parts[0], m = SF_MODELS[p.model as keyof typeof SF_MODELS];
+    assert.ok(m && m.landmarkId === id && m.kind === 'hero', `${id}: ${p.model} is its hero model`);
+    // the AI footprint stands inside the exclusion (city buildings there are dropped) ...
+    for (const c of partCorners(p)) assert.ok(inExclude(l, c), `${id}: AI corner ${c.x.toFixed(2)},${c.z.toFixed(2)} inside the exclusion`);
+    if (!swap.ship) continue;
+    // ... and its middle is solid (the Legion's middle is the open Court of Honor, checked below)
+    if (id !== 'legion-of-honor') assert.ok(blocked(l, { x: p.x, z: p.z }), `${id}: AI centre blocked`);
+    assert.ok(l.fade && l.fade.procedural === false, `${id}: the AI part thins as one`);
+  }
+  // Legion: the Court of Honor is reached through the widened gateway (|x| < 0.8), the Thinker's plinth is solid,
+  // museum, wings and the screen are solid (measured on the decoded mesh, +0.5 u toward the gate)
+  const legion = lm('legion-of-honor');
+  for (const p of samples(-0.75, 0.75, 5.1, 6.4)) assert.ok(!blocked(legion, p), `gateway free at ${p.x.toFixed(2)},${p.z.toFixed(2)}`);
+  for (const p of samples(-2.4, 2.4, -1.7, 4.9)) if (Math.hypot(p.x, p.z - 3.2) > 0.55) assert.ok(!blocked(legion, p), `court free at ${p.x.toFixed(2)},${p.z.toFixed(2)}`);
+  assert.ok(blocked(legion, { x: 0, z: 3.2 }), 'The Thinker');
+  for (const [x0, x1, z0, z1] of [[-4.3, 4.3, -5.2, -2.9], [-4.2, -2.6, -2.7, 4.9], [2.6, 4.2, -2.7, 4.9], [-4.3, -0.9, 5.3, 6.2], [0.9, 4.3, 5.3, 6.2]]) {
+    for (const p of samples(x0, x1, z0, z1, 4)) assert.ok(blocked(legion, p), `Legion solid at ${p.x.toFixed(2)},${p.z.toFixed(2)}`);
+  }
+  // City Hall: the scaled AI block (|x| ≤ 8.86, z −5.85…6.35 with its offset) lies inside the procedural blockers,
+  // which the frozen terrain tests pin
+  const hall = lm('city-hall'), hp = hall.swap!.parts[0];
+  for (const c of partCorners(hp)) assert.ok(blocked(hall, { x: c.x * 0.99, z: hp.z + (c.z - hp.z) * 0.99 }), 'AI hall inside its blockers');
+  // windmill: the procedural sails turn on the AI body's windshaft stub (tip at y 5.85, z 1.71), in front of the stage
+  const mill = lm('dutch-windmill'), o = new THREE.Object3D();
+  mill.animate!.update(o, 0);
+  assert.ok(Math.abs(o.position.y - 5.85) < 0.05 && o.position.z >= 1.9 && o.position.z <= 2.1, `hub ${o.position.y}, ${o.position.z}`);
+  assert.ok(blocked(mill, { x: 1.8, z: 0 }) && !blocked(mill, { x: 0, z: 2.3 }), 'plinth r 1.85, the door side free');
+  // Castro: the marquee over the sidewalk stays inside the (widened) exclusion
+  assert.ok(inExclude(lm('castro-theatre'), { x: 0, z: 4.2 }));
+});
+
+test('AI budget per view: the shipped AI parts inside any lod-0 ring stay ≤ 60k triangles (shadows counted) and ≤ 12 draws', () => {
+  const ship = SF_LANDMARKS.filter(l => l.swap?.ship);
+  let worst = { tris: 0, draws: 0, at: '' };
+  for (const at of SF_LANDMARKS) {
+    let tris = 0, draws = 0;
+    for (const l of ship) {
+      if (Math.hypot(l.x - at.x, l.z - at.z) > LOD0[l.tier]) continue;
+      for (const p of l.swap!.parts) { const t = ASSETS.models[p.model].triangles; tris += p.castShadow ? 2 * t : t; draws += p.castShadow ? 2 : 1; }
+    }
+    if (tris > worst.tris) worst = { tris, draws, at: at.id };
+    assert.ok(tris <= 60_000 && draws <= 12, `at ${at.id}: ${tris} AI triangles, ${draws} draws`);
+  }
+  assert.ok(worst.tris > 0, `worst view ${JSON.stringify(worst)}`);
 });

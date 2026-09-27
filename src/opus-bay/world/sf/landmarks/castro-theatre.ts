@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, LIT, NONE, SELF, arch, box, cbox, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Castro Theatre (T2), 1922: the Spanish-Colonial movie palace on Castro St — the ornate stepped facade with its
@@ -45,6 +45,37 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, 0, 0, ZF + 0.3, 0.8, 1.0, 0.5, '#e7d6b8', NONE);
 }
 
+/**
+ * AI theatre (lane D2, D2-15): lane H's SAM mesh (LM5-3D) at 4.3 × 4.36 × 5.67 u, shown at [1, 1.35, 1.3]: the facade
+ * 5.9 u tall like the procedural one, 7.4 u deep, its marquee front at z 4.2 over the Castro St sidewalk (the
+ * procedural V marquee reaches 4.3). Measured on the decoded mesh: the building |x| ≤ 2.15 from z −3.2 to 3.5, the
+ * box office under the marquee to z 4.0 (x −1.25…1.0).
+ */
+const AI_Z = 0.5, AI_S = [1, 1.35, 1.3] as const;
+
+/**
+ * The AI blade sign keeps the procedural bulb rows, one column on each vertical edge (measured with rays on the decoded
+ * mesh, local: y 2.36…5.83, z 3.66…4.13; the inner face at x 1.62–1.66, the outer face slants from x 1.94 at the back
+ * edge to 1.81 at the front): [x, z] per column, 0.02 u proud of the face.
+ */
+const AI_SIGN = { y0: 2.45, y1: 5.75, cols: [[1.6, 3.68], [1.64, 4.11], [1.96, 3.68], [1.83, 4.11]] as const };
+
+function aiRemainder(b: BatchLike) {
+  box(b, 0, -1.2, AI_Z - 0.1, 4.2, 1.24, 7.1, STUCCO);
+  for (let y = AI_SIGN.y0; y < AI_SIGN.y1; y += 0.3) for (const [x, z] of AI_SIGN.cols) cbox(b, x, y, z, 0.04, 0.08, 0.1, BULB, SELF(1.4));
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-castro-theatre', x: 0, y: 0, z: AI_Z, scale: AI_S, glow: 0.12 }],
+  build: aiRemainder,
+  ship: true,
+  note: '[1, 1.35, 1.3]: facade 5.9 u',
+};
+
+const blockers = (ai: boolean): WalkBlocker[] => (ai
+  ? [{ poly: rect(0, 0.15, 4.3, 6.7) }, { poly: rect(-0.1, 3.75, 2.3, 0.5) }]
+  : [{ poly: rect(0, -0.2, 4.2, 7.0) }, { poly: rect(0, ZF + 0.3, 0.8, 0.5) }]);
+
 export const castroTheatre: SfLandmark = {
   id: 'castro-theatre',
   tier: 2,
@@ -52,7 +83,10 @@ export const castroTheatre: SfLandmark = {
   z: Z0,
   yaw: YAW,
   base: 'terrain',
-  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 4.6, 7.4)) },
+  // the AI marquee reaches 0.5 u further over the sidewalk than the procedural one
+  exclude: { poly: worldPoly(X0, Z0, YAW, SWAP.ship ? rect(0, 0.3, 4.6, 8.0) : rect(0, 0, 4.6, 7.4)) },
   build,
-  walk: { blockers: [{ poly: rect(0, -0.2, 4.2, 7.0) }, { poly: rect(0, ZF + 0.3, 0.8, 0.5) }] },
+  walk: { blockers: blockers(SWAP.ship) },
+  swap: SWAP,
+  fade: { r: 4, y1: 6.2, box: [2.3, 4.2], procedural: false },
 };

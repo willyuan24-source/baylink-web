@@ -257,7 +257,12 @@ export interface SfModelAsset extends ModelAsset {
   passage?: { width: number; clearHeight: number };
 }
 
-export const SF_MODEL_IDS = ['sf-victorian-a', 'sf-victorian-b', 'sf-palace-rotunda', 'sf-dragon-gate', 'sf-conservatory'] as const;
+export const SF_MODEL_IDS = [
+  'sf-victorian-a', 'sf-victorian-b', 'sf-palace-rotunda', 'sf-dragon-gate', 'sf-conservatory',
+  // wave 3 (D2-15): the eight part-2a SAM landmark meshes
+  'sf-legion-of-honor', 'sf-ghirardelli-clock-tower', 'sf-fort-point', 'sf-mission-dolores', 'sf-castro-theatre',
+  'sf-windmill-body', 'sf-grace-cathedral', 'sf-city-hall',
+] as const;
 export type SfModelId = (typeof SF_MODEL_IDS)[number];
 
 const sfFile = (name: string) => `${BASE}/models/sf/${name}`;
@@ -293,6 +298,56 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
   'sf-conservatory': {
     url: sfFile('conservatory.glb'), mask: sfFile('conservatory-mask.webp'), draco: true, kind: 'hero',
     landmarkId: 'conservatory-of-flowers', scale: 1, yOffset: 0, triangles: 5879, bytes: 125_224, size: [11.77, 6.0, 6.13],
+  },
+  // ---- wave 3 (lane D2, D2-15): the part-2a SAM 3 meshes (ledger LM1-3D…LM8-3D), cleaned with
+  // docs/opus-bay/kit-jobs/kit_cleanup.py --grader hero (Blender 5.2) and graded to the DESIGN palette. 1024 px texture,
+  // no mask (they are floodlit at night through the swap part's `glow`). The landmark modules scale them per axis.
+  /**
+   * Legion of Honor: museum block with the sage dome, the two colonnade wings and the front screen round the Court of
+   * Honor. The court was stretched in depth (--box, middle band) and the gateway widened to 1.6 u (--gate).
+   */
+  'sf-legion-of-honor': {
+    url: sfFile('legion-of-honor.glb'), draco: true, kind: 'hero', landmarkId: 'legion-of-honor',
+    passage: { width: 1.6, clearHeight: 2.0 }, scale: 1, yOffset: 0, triangles: 5880, bytes: 120_288, size: [8.8, 5.0, 11.6],
+  },
+  /** Ghirardelli clock tower: a three-storey red-brick block with the clock tower and slate spire on one corner. */
+  'sf-ghirardelli-clock-tower': {
+    url: sfFile('ghirardelli-clock-tower.glb'), draco: true, kind: 'hero', landmarkId: 'ghirardelli-square',
+    scale: 1, yOffset: 0, triangles: 5879, bytes: 133_520, size: [4.77, 8.0, 4.89],
+  },
+  /** Fort Point: the brick casemate fort, three tiers of gun ports, open parade ground, the little lighthouse. */
+  'sf-fort-point': {
+    url: sfFile('fort-point.glb'), draco: true, kind: 'hero', landmarkId: 'fort-point',
+    scale: 1, yOffset: 0, triangles: 5879, bytes: 162_588, size: [11.98, 5.34, 10.2],
+  },
+  /**
+   * Mission Dolores: the white adobe mission (tile roof, bell niches) beside the cream basilica with its two towers. The
+   * basilica's butter yellow read as ochre in the city at golden hour: re-graded toward cream in place
+   * (docs/opus-bay/kit-jobs/regrade_glb.py, hue 30–70°, saturation × 0.55; palette ΔE ≤ 12 on 94 % → 98 % of texels).
+   */
+  'sf-mission-dolores': {
+    url: sfFile('mission-dolores.glb'), draco: true, kind: 'hero', landmarkId: 'mission-dolores',
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 98_936, size: [6.5, 4.55, 4.36],
+  },
+  /** Castro Theatre: the baroque facade, blank blade sign and V marquee, the long auditorium behind. No lettering. */
+  'sf-castro-theatre': {
+    url: sfFile('castro-theatre.glb'), draco: true, kind: 'hero', landmarkId: 'castro-theatre',
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 87_048, size: [4.3, 4.36, 5.67],
+  },
+  /** Dutch windmill body: plinth, tapering octagonal tower, reefing stage, cap with the windshaft stub (sails procedural). */
+  'sf-windmill-body': {
+    url: sfFile('windmill-body.glb'), draco: true, kind: 'hero', landmarkId: 'dutch-windmill',
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 91_692, size: [3.8, 6.5, 3.85],
+  },
+  /** Grace Cathedral: twin west towers, rose window, buttressed nave, transept, sage roofs and the crossing flèche. */
+  'sf-grace-cathedral': {
+    url: sfFile('grace-cathedral.glb'), draco: true, kind: 'hero', landmarkId: 'grace-cathedral',
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 118_076, size: [8.42, 9.57, 13.0],
+  },
+  /** City Hall: the Beaux-Arts block with porticos and corner pavilions, colonnaded drum, sage dome with gold trim. */
+  'sf-city-hall': {
+    url: sfFile('city-hall.glb'), draco: true, kind: 'hero', landmarkId: 'city-hall',
+    scale: 1, yOffset: 0, triangles: 6860, bytes: 151_068, size: [17.7, 14.24, 11.29],
   },
 };
 

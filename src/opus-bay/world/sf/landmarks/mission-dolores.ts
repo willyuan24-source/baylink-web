@@ -1,6 +1,6 @@
 import { type BatchLike, ICO, M } from '../../builder';
 import { GLOW, LIT, NONE, SF, SWAY, arch, box, cbox, cyl, disc, gable, lathe, pyramid, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Mission Dolores (T2): the 1791 adobe Mission San Francisco de Asís — whitewashed, tile-roofed, its facade of
@@ -55,7 +55,11 @@ function build(b: BatchLike, lod: 0 | 2) {
     box(b, tx, 5.75, 2.95, 1.25, 0.35, 1.25, ORNATE);
     for (const [ox, oz] of [[-0.55, -0.55], [0.55, -0.55], [-0.55, 0.55], [0.55, 0.55]]) cbox(b, tx + ox, 6.25, 2.95 + oz, 0.14, 0.4, 0.14, ORNATE);
   }
-  // cemetery garden: lawn, headstones, two old trees, the adobe wall
+  cemetery(b);
+}
+
+/** the walled cemetery garden: lawn, headstones, two old trees, the adobe wall */
+function cemetery(b: BatchLike) {
   box(b, -4.1, -0.05, -1.2, 3.0, 0.1, 6.4, SF.lawn);
   for (let i = 0; i < 9; i++) box(b, -4.9 + (i % 3) * 0.8, 0, -3.6 + Math.floor(i / 3) * 1.6, 0.35, 0.45, 0.12, '#e3ded4');
   for (const [tx, tz] of [[-4.6, 0.8], [-3.4, -2.6]]) {
@@ -66,6 +70,31 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, -5.62, -0.2, -1.2, 0.2, 0.9, 6.4, ADOBE);
 }
 
+/**
+ * AI mission (lane D2, D2-15): lane H's SAM mesh (LM4-3D, the adobe chapel and the basilica as one group) at
+ * 6.5 × 4.55 × 4.36 u, shown at [1, 1.4, 1.45] (towers 6.4 u, 6.3 u deep) over the two procedural buildings: x −2.72…3.78,
+ * z −2.56…3.76 (measured on the decoded mesh: a solid box, the basilica towers flush with the chapel's facade).
+ * The cemetery garden stays procedural beside it.
+ */
+const AI_X = 0.53, AI_Z = 0.6, AI_S = [1, 1.4, 1.45] as const;
+
+function aiRemainder(b: BatchLike) {
+  box(b, AI_X, -1.2, AI_Z, 6.4, 1.24, 6.2, ADOBE);
+  cemetery(b);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-mission-dolores', x: AI_X, y: 0, z: AI_Z, scale: AI_S, glow: 0.1 }],
+  build: aiRemainder,
+  ship: true,
+  note: '[1, 1.4, 1.45]; cemetery garden procedural',
+};
+
+const CEMETERY: WalkBlocker = { poly: rect(-4.1, -1.2, 3.1, 6.6) };
+const blockers = (ai: boolean): WalkBlocker[] => (ai
+  ? [{ poly: rect(AI_X, AI_Z, 6.5, 6.32) }, CEMETERY]
+  : [{ poly: rect(OM.x, (OM.z0 + OM.z1) / 2, OM.w, OM.z1 - OM.z0) }, { poly: rect(BA.x, (BA.z0 + BA.z1) / 2 + 0.5, BA.w, BA.z1 - BA.z0 + 1.2) }, CEMETERY]);
+
 export const missionDolores: SfLandmark = {
   id: 'mission-dolores',
   tier: 2,
@@ -75,5 +104,7 @@ export const missionDolores: SfLandmark = {
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(-0.9, -0.6, 10.2, 9.4)) },
   build,
-  walk: { blockers: [{ poly: rect(OM.x, (OM.z0 + OM.z1) / 2, OM.w, OM.z1 - OM.z0) }, { poly: rect(BA.x, (BA.z0 + BA.z1) / 2 + 0.5, BA.w, BA.z1 - BA.z0 + 1.2) }, { poly: rect(-4.1, -1.2, 3.1, 6.6) }] },
+  walk: { blockers: blockers(SWAP.ship) },
+  swap: SWAP,
+  fade: { r: 5, y1: 6.6, box: [3.8, 3.8], procedural: false },
 };

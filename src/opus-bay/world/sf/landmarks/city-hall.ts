@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, SF, WIN, band, box, cyl, lathe, pyramid, rect } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark } from './index';
 
 /**
  * San Francisco City Hall (T1): the Beaux-Arts block with its dome, facing Civic Center Plaza (local +z = east,
@@ -59,6 +59,25 @@ function build(b: BatchLike, lod: 0 | 2) {
   lathe(b, [[0.62, 0], [0.62, 0.9], [0.78, 1.0], [0.78, 1.1], [0.5, 1.2], [0.34, 1.6], [0.14, 2.0], [0.04, 2.95]], 0, y0 + 6.85, ZC, GOLD, GLOW(0.35), 12);
 }
 
+/**
+ * AI City Hall (lane D2, D2-15): lane H's SAM mesh (LM8-3D) at 17.7 × 14.24 × 11.29 u, shown at [1, 1.24, 1.08] = the
+ * OSM block 17.7 × 12.2 u (porticos included) and the lantern at 17.65 u, the procedural top (plan §2.3). Measured on
+ * the decoded mesh: the block |x| ≤ 8.9, z −5.85…6.35 with the local offset, the porticos |x| ≤ 1.85 — inside the
+ * procedural blockers, which stay as they are.
+ */
+const AI_S = [1, 1.24, 1.08] as const;
+
+function aiRemainder(b: BatchLike) {
+  box(b, 0, -1.2, ZC, X * 2 - 0.2, 1.24, Z1 - Z0 - 0.2, '#ddd6c8');
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-city-hall', x: 0, y: 0, z: ZC, scale: AI_S, castShadow: true, glow: 0.1 }],
+  build: aiRemainder,
+  ship: true,
+  note: '[1, 1.24, 1.08] = the OSM block, lantern 17.65 u',
+};
+
 export const cityHall: SfLandmark = {
   id: 'city-hall',
   tier: 1,
@@ -70,5 +89,8 @@ export const cityHall: SfLandmark = {
   castShadow: true,
   build,
   walk: { blockers: [{ poly: rect(0, ZC, X * 2, Z1 - Z0) }, { poly: rect(0, 0, 3.6, 13.8) }] },
+  swap: SWAP,
+  // the AI hall thins as one (the procedural keeps the per-fragment occlusion dither)
+  fade: { r: 9, y1: 18, box: [9, 7], procedural: false },
 };
 

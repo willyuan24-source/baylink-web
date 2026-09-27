@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, LIT, NONE, box, cyl, lathe, pyramid, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Legion of Honor (T2) in Lincoln Park: the neoclassical museum (a 3/4-scale copy of the Paris Palais de la Légion
@@ -44,10 +44,55 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, 0, 0, COURT + 0.02, 1.0, 1.8, 0.06, '#5a5047', LIT(0));
   // Court of Honor paving + The Thinker on his plinth
   box(b, 0, -0.05, (COURT + FRONT) / 2, HALF_W * 2 - 1.8, 0.08, FRONT - COURT - 0.6, '#e6dfd1');
-  box(b, 0, 0, 4.4, 0.7, 1.1, 0.7, '#cfc7b8');
-  box(b, 0, 1.1, 4.35, 0.36, 0.3, 0.44, BRONZE);
-  box(b, 0, 1.4, 4.28, 0.28, 0.42, 0.26, BRONZE, NONE, 0);
-  box(b, 0, 1.78, 4.42, 0.18, 0.2, 0.2, BRONZE);
+  thinker(b, 4.4);
+}
+
+/**
+ * AI Legion (lane D2, D2-15): lane H's SAM mesh (LM1-3D) cleaned to 8.8 × 5.0 × 11.6 u: the Court of Honor was
+ * stretched in depth (the middle band between the gateway screen and the museum) and the gateway widened to a 1.6 u
+ * passage. Shown at y 1.12 (dome 5.6 u) 0.5 u toward the gate. Measured on the decoded mesh (local, with the offset):
+ * museum block z −5.3…−2.8 (|x| ≤ 4.4) with the portico to z −1.8 (|x| ≤ 1.5), colonnade wings |x| 2.5…4.25 from
+ * z −2.8 to 5.0, the screen z 5.23…6.3 with the gateway |x| < 0.8. The Thinker stays procedural in the court.
+ */
+const AI_Z = 0.5, AI_Y = 1.12;
+
+function thinker(b: BatchLike, z: number) {
+  box(b, 0, 0, z, 0.7, 1.1, 0.7, '#cfc7b8');
+  box(b, 0, 1.1, z - 0.05, 0.36, 0.3, 0.44, BRONZE);
+  box(b, 0, 1.4, z - 0.12, 0.28, 0.42, 0.26, BRONZE, NONE, 0);
+  box(b, 0, 1.78, z + 0.02, 0.18, 0.2, 0.2, BRONZE);
+}
+
+function aiRemainder(b: BatchLike) {
+  // a stone skirt under the whole mesh (the lawn falls away on the Lincoln Park side), The Thinker in the court
+  box(b, 0, -1.2, AI_Z, 8.7, 1.24, 11.5, SHADE);
+  thinker(b, 3.2);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-legion-of-honor', x: 0, y: 0, z: AI_Z, scale: [1, AI_Y, 1], glow: 0.1 }],
+  build: aiRemainder,
+  ship: true,
+  note: 'court stretched, gateway 1.6 u; The Thinker procedural',
+};
+
+function blockers(ai: boolean): WalkBlocker[] {
+  if (!ai) {
+    return [
+      { poly: rect(0, (BACK + COURT) / 2, HALF_W * 2, COURT - BACK + 0.4) },
+      ...[-1, 1].map(sx => ({ poly: rect(sx * (HALF_W - 0.4), (COURT + FRONT) / 2, 0.8, FRONT - COURT) })),
+      ...[-1, 1].map(sx => ({ poly: rect(sx * 2.7, FRONT - 0.3, 2.3, 0.6) })),
+      ...[-1, 1].map(sx => ({ poly: rect(sx * 1.025, FRONT - 0.3, 0.55, 0.8) })),
+      { x: 0, z: 4.4, r: 0.5 },
+    ];
+  }
+  return [
+    { poly: rect(0, -4.05, 8.8, 2.5) },
+    { poly: rect(0, -2.3, 3.0, 1.0) },
+    ...[-1, 1].map(sx => ({ poly: rect(sx * 3.375, 1.1, 1.75, 7.8) })),
+    ...[-1, 1].map(sx => ({ poly: rect(sx * 2.625, 5.77, 3.55, 1.08) })),
+    { x: 0, z: 3.2, r: 0.5 },
+  ];
 }
 
 export const legionOfHonor: SfLandmark = {
@@ -59,14 +104,9 @@ export const legionOfHonor: SfLandmark = {
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0.4, 9.2, 14)) },
   build,
-  walk: {
-    blockers: [
-      { poly: rect(0, (BACK + COURT) / 2, HALF_W * 2, COURT - BACK + 0.4) },
-      ...[-1, 1].map(sx => ({ poly: rect(sx * (HALF_W - 0.4), (COURT + FRONT) / 2, 0.8, FRONT - COURT) })),
-      ...[-1, 1].map(sx => ({ poly: rect(sx * 2.7, FRONT - 0.3, 2.3, 0.6) })),
-      ...[-1, 1].map(sx => ({ poly: rect(sx * 1.025, FRONT - 0.3, 0.55, 0.8) })),
-      { x: 0, z: 4.4, r: 0.5 },
-    ],
-  },
+  walk: { blockers: blockers(SWAP.ship) },
+  swap: SWAP,
+  // the AI complex thins as one while it stands between the camera and the player (walking into the court)
+  fade: { r: 6, y1: 5.8, box: [4.5, 6.4], procedural: false },
 };
 

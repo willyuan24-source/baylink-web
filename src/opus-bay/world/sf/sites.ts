@@ -67,7 +67,7 @@ export interface SiteHooks {
 }
 
 /** lod-0 radius per tier (lane D: inside the L1 ring; tier 1 a little beyond it, they read from several districts) */
-const LOD0: Record<1 | 2 | 3, number> = { 1: 520, 2: 340, 3: 220 };
+export const LOD0: Record<1 | 2 | 3, number> = { 1: 520, 2: 340, 3: 220 };
 const HYST = 40;
 /** animated parts move only this close to the focus */
 const ANIM_R = 150;

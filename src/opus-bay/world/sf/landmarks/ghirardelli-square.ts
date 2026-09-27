@@ -1,6 +1,6 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, WIN, box, disc, lathe, prismXZ, pyramid, rect, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Ghirardelli Square (T2): the red-brick former chocolate factory stepping down the hill to Beach St and the Bay,
@@ -47,13 +47,24 @@ function build(b: BatchLike, lod: 0 | 2) {
     pyramid(b, -7.1, top + 2.7, -4.1, 2.3, 2.3, 2.9, '#5f6c6a');
     return;
   }
+  buildings(b, false);
+  clockTower(b);
+  signAndTerrace(b);
+}
+
+/** the brick blocks with their cream cornice lines (`ai`: without the Clock Tower block, the AI mesh stands there) */
+function buildings(b: BatchLike, ai: boolean) {
   B.forEach((bd, i) => {
+    if (ai && bd.name === 'clock') return;
     const y0 = floorOf(bd.poly);
     prismXZ(b, bd.poly, y0 - 1.5, y0 + bd.h, BRICKS[i % BRICKS.length], '#8e8173', WIN(4, y0 + 0.4, 3 + i));
     // cream cornice line
     b.walls(bd.poly.map(([x, z]) => ({ x, z })), y0 + bd.h - 0.25, y0 + bd.h + 0.05, TRIM, NONE);
   });
-  // clock tower (Larkin St corner): shaft, clock stage, steep slate spire
+}
+
+/** clock tower (Larkin St corner): shaft, clock stage, steep slate spire */
+function clockTower(b: BatchLike) {
   const clock = B[3], cy = floorOf(clock.poly) + clock.h, tx = -7.1, tz = -4.1;
   box(b, tx, cy - 0.5, tz, 2.2, 3.2, 2.2, BRICKS[0], GLOW(0.08));
   box(b, tx, cy + 2.7, tz, 2.45, 0.3, 2.45, TRIM);
@@ -61,6 +72,9 @@ function build(b: BatchLike, lod: 0 | 2) {
   for (let k = 0; k < 4; k++) { const a = (k * Math.PI) / 2; disc(b, tx + Math.sin(a) * 1.11, cy + 1.9, tz + Math.cos(a) * 1.11, 0.55, 0.04, a, '#f7f1e3', GLOW(0.9), 12); }
   box(b, tx, cy + 5.9, tz, 0.1, 0.8, 0.1, '#d9b25a');
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) pyramid(b, tx + dx * 1.05, cy + 2.95, tz + dz * 1.05, 0.35, 0.35, 0.8, '#5f6c6a');
+}
+
+function signAndTerrace(b: BatchLike) {
   // rooftop sign frame on the Cocoa/Chocolate row, facing the Bay: plain lit panels on a dark lattice
   const sy = floorOf(B[0].poly) + B[0].h;
   for (const x of [0.8, 4.6, 8.3]) box(b, x, sy, -2.2, 0.12, 1.5, 0.12, '#3e3a36');
@@ -77,6 +91,36 @@ function build(b: BatchLike, lod: 0 | 2) {
   }
 }
 
+/**
+ * AI clock tower (lane D2, D2-15): lane H's SAM mesh (LM2-3D: a three-storey brick block with the clock tower and
+ * spire on one corner, 4.77 × 8 × 4.89 u) in place of the Clock Tower block, turned so the tower stands on the Larkin /
+ * North Point corner, at [0.75, 1.3, 0.75]: 3.67 × 3.58 u (the OSM block is 2.4 × 3.6 u; it overlaps the Mustard
+ * block by 0.3 u), the block 4.7 u tall like the others and the spire at 10.4 u (the procedural 10.65 u).
+ * Decision gate (wave 3): stays procedural. Among the ten brick blocks the AI tower is thin, its clock faces small and
+ * dark at night; the procedural clock stage with its four lit faces reads better at 64 px and after dark.
+ */
+const AI_AT = { x: -7.07, z: -4.12, yaw: Math.PI / 2 }, AI_S = [0.75, 1.3, 0.75] as const;
+const AI_FOOT = rect(AI_AT.x, AI_AT.z, 3.67, 3.58);
+
+function aiRemainder(b: BatchLike) {
+  buildings(b, true);
+  const y0 = floorOf(B[3].poly);
+  box(b, AI_AT.x, y0 - 1.5, AI_AT.z, 3.6, 1.52, 3.5, BRICKS[0], NONE);
+  signAndTerrace(b);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-ghirardelli-clock-tower', x: AI_AT.x, y: floorOf(B[3].poly), z: AI_AT.z, yaw: AI_AT.yaw, scale: AI_S, glow: 0.05 }],
+  build: aiRemainder,
+  ship: false,
+  note: 'prototype: the slim AI tower reads weaker than the procedural clock stage, no lit clocks at night',
+};
+
+const blockers = (ai: boolean): WalkBlocker[] => [
+  ...B.filter(bd => !(ai && bd.name === 'clock')).map(bd => ({ poly: bd.poly.map(([x, z]) => ({ x, z })) })),
+  ...(ai ? [{ poly: AI_FOOT }] : []),
+];
+
 export const ghirardelliSquare: SfLandmark = {
   id: 'ghirardelli-square',
   tier: 2,
@@ -86,5 +130,6 @@ export const ghirardelliSquare: SfLandmark = {
   base: 1.3,
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 18.2, 12.4)) },
   build,
-  walk: { blockers: B.map(bd => ({ poly: bd.poly.map(([x, z]) => ({ x, z })) })), surfaces: [{ poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), y: TERRACE.y, surface: 'plaza' }] },
+  walk: { blockers: blockers(SWAP.ship), surfaces: [{ poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), y: TERRACE.y, surface: 'plaza' }] },
+  swap: SWAP,
 };

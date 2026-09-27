@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import type { Vec2 } from '../../../core/types';
 import { type BatchLike, M } from '../../builder';
 import { GLOW, LIT, NONE, archGeo, box, lathe, worldPoly } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 
 /**
  * Fort Point (T2): the 1861 brick casemate fort under the Golden Gate Bridge's south arch — three tiers of gun
@@ -70,6 +71,34 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, 5.4, H + 1.6, -4.2, 1.6, 0.2, 1.6, GRANITE, NONE);
 }
 
+/**
+ * AI fort (lane D2, D2-15): lane H's SAM mesh (LM3-3D) at 11.98 × 5.34 × 10.2 u, shown at y 1.1 (5.9 u, the procedural
+ * barbette) centred on the outline's box. A chamfered rectangle (corners cut 1.2 u, measured on the decoded mesh):
+ * it also covers the south-west corner the OSM outline leaves open. The mesh's granite foot and lighthouse replace
+ * the procedural ones; the sea wall stays, a granite skirt hides the base on the shore, and the stair tower where the
+ * bridge's arch lands is dropped.
+ * Decision gate (wave 3): stays procedural. In SoloView and at 64 px the AI fort is a rounded brick box in a hot
+ * orange whose gun ports came out as ragged triangles (65k → 6k triangles); the procedural fort keeps the real
+ * outline, clean arched ports, the lighthouse and the stair tower under the bridge.
+ */
+const AI_X = 0.1, AI_Z = -0.3, AI_Y = 1.1;
+const AI_OUTLINE: Vec2[] = [[-4.8, -5.1], [4.8, -5.1], [6.0, -3.9], [6.0, 3.9], [4.8, 5.1], [-4.8, 5.1], [-6.0, 3.9], [-6.0, -3.9]].map(([x, z]) => ({ x: x + AI_X, z: z + AI_Z }));
+
+function aiRemainder(b: BatchLike) {
+  b.walls(AI_OUTLINE.map(p => ({ x: p.x * 0.99, z: p.z * 0.99 })), -1.5, 0.05, GRANITE, NONE);
+  box(b, 0.5, -1.2, 5.6, 13.5, 1.5, 0.7, GRANITE, NONE);
+}
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-fort-point', x: AI_X, y: 0, z: AI_Z, scale: [1, AI_Y, 1], glow: 0.05 }],
+  build: aiRemainder,
+  ship: false,
+  note: 'prototype: the gun ports lost their arches in the 6k reduction, the box is less true than the OSM outline',
+};
+
+const SEA_WALL: WalkBlocker = { poly: [{ x: -6.3, z: 5.25 }, { x: 7.3, z: 5.25 }, { x: 7.3, z: 5.95 }, { x: -6.3, z: 5.95 }] };
+const blockers = (ai: boolean): WalkBlocker[] => [{ poly: ai ? AI_OUTLINE : FORT.map(([x, z]) => ({ x, z })) }, SEA_WALL];
+
 export const fortPoint: SfLandmark = {
   id: 'fort-point',
   tier: 2,
@@ -79,6 +108,8 @@ export const fortPoint: SfLandmark = {
   base: 0.3,
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -7, z: -6.5 }, { x: 7, z: -6.5 }, { x: 7, z: 6.2 }, { x: -7, z: 6.2 }]) },
   build,
-  walk: { blockers: [{ poly: FORT.map(([x, z]) => ({ x, z })) }, { poly: [{ x: -6.3, z: 5.25 }, { x: 7.3, z: 5.25 }, { x: 7.3, z: 5.95 }, { x: -6.3, z: 5.95 }] }] },
+  walk: { blockers: blockers(SWAP.ship) },
+  swap: SWAP,
+  fade: { r: 7, y1: 6.2, box: [6.2, 5.5], procedural: false },
 };
 
