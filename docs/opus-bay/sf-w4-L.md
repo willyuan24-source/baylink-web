@@ -283,16 +283,16 @@ this report). Higgsfield: 0 credits.
 | # | defect | fix / state |
 |---|---|---|
 | 1 | Integration step 1 (`index.ts` imports `W4_SITES` from `w4sites.ts`, which imports `index.ts`) throws at load wherever `w4sites.ts` is the first to load (lane V's test; reproduced) | **fixed** `4ac8f4c`: `w4list.ts` holds the list and imports only the site modules; `w4sites.ts` re-exports it; the test walks `w4list`'s import graph (no runtime import of `./index`, `./w4sites`, `./context`, `../sites`) |
-| 2 | Registered as planned, every site's exclusion sank the city ground 0.2 u (sites.ts) under ground draped on the unsunk ground: walkers ≈ 0.3 u under every plaza; the test hid it with a hand-made `sink: 0` | **fixed** `4ac8f4c` + `7a07312`: every record has `sink: 0` (D2-09's `SfLandmark.sink`, required by `W4Site`); the test uses sites.ts `landmarkSink` and checks the walk height under every standable ground piece (mean over the lift ≤ 0.15, worst ≤ 0.5; fails at every site with 0.2) |
+| 2 | Registered as planned, every site's exclusion sank the city ground 0.2 u (sites.ts) under ground draped on the unsunk ground: walkers ≈ 0.3 u under every plaza; the test hid it with a hand-made `sink: 0` | **fixed** `4ac8f4c` + `ec63b32`: every record has `sink: 0` (D2-09's `SfLandmark.sink`, required by `W4Site`); the test uses sites.ts `landmarkSink` and checks the walk height under every standable ground piece (mean over the lift ≤ 0.15, worst ≤ 0.5; fails at every site with 0.2) |
 | 3 | Budgets counted the model only; with ground and animate parts Union Square 646 / 600 (diet), UCSF Mission Bay 856 / 800, Murphy Windmill 804 / 800, Bison Paddock 934 / 800 | **fixed** `4ac8f4c`: 598, 712, 788, 790 (palm kerbs as ground squares and 4-sided trunks; one-blob row trees; an 8-sided cap; no horn bars, posts 6.5 u apart); the test counts all three parts |
 | 4 | Ocean Beach fire rings (and their night glow) at Lawton St, where there are none | **fixed** `63b8407`: eight driftwood logs (walk blockers) and more dune grass; the rings belong on the Stairwell 15–20 stretch (defect 16) |
 | 5 | Ocean Beach header: N Judah terminus "two blocks south" | **fixed** `63b8407`: north |
 | 6 | Bison header "since 1892" (lane C quotes the headers) | **fixed** `4ac8f4c`: 1891 |
 | 7 | St Ignatius "200-ft towers", realM 61 | **fixed** `63b8407`: 210 ft, realM 64 |
 | 8 | MLK waterfall "≈ 22 ft", realM 7 | **fixed** `63b8407`: 20 ft × 50 ft, realM 6.1 |
-| 9 | Japanese Tea Garden lawn / pond / gravel lifted 0.18 / 0.23 / 0.25 u: walkers 0.2–0.3 u under the lawn and gravel (drawn − walk mean 0.257, max 0.646 u) | **fixed** `142463d`: 1 u bake (`terrainStep 1`), one 1.5 u lattice, lifts 0.08 / 0.13 (mean 0.119, max 0.330); ground 369, site 2201 / 2500 |
+| 9 | Japanese Tea Garden lawn / pond / gravel lifted 0.18 / 0.23 / 0.25 u: walkers 0.2–0.3 u under the lawn and gravel (drawn − walk mean 0.257, max 0.646 u) | **fixed** `de97382`: 1 u bake (`terrainStep 1`), one 1.5 u lattice, lifts 0.08 / 0.13 (mean 0.119, max 0.330); ground 369, site 2201 / 2500 |
 | 10 | The integration plan never regenerates `tops.ts`: the landmark-context test fails on the first registered site, blockers have no tops (the glide treats them as walls) and Murphy's sails `tall` part is dropped | **fixed** (plan below) + test: `topsMeasure` measures every blocker and tall part of all 24 sites (finite, 0–30 u) |
-| 11 | Integration step 2's draped-ground change to `buildGroundMesh` and the preview's mount | **done by D2-09** (`ys` drawn natively); the preview now appends the records as they are (`7a07312`) |
+| 11 | Integration step 2's draped-ground change to `buildGroundMesh` and the preview's mount | **done by D2-09** (`ys` drawn natively); the preview now appends the records as they are (`ec63b32`) |
 | 12 | `sites-terrain.mts` header said a 3 u grid (it is 2 u) | **fixed** `63b8407` |
 | 13 | Report summary names 林角 / 吉瑞大道 vs the game's 天涯海角 / 吉里大道; the Ocean Beach QA shot showed the removed rings | **fixed** (this report commit) |
 | 14 | `W4SiteMeta.height.rule` has `'ground'` (8 sites), which `SfLandmarkInfo.height.rule` does not accept; cityViews / cityLive read `height.u` over the base, but `u` is the height over the model's own ground (USF 12.8 vs 16.0 drawn over the base, Dolores Park 5.6 vs 9.5, Lands End 3.5 vs 7.4) | **open** (integration step 4, below) |
@@ -322,3 +322,12 @@ Not defects, noted: `siteKit.ts` is now imported by ten D2-09 landmark modules, 
 
 ### Checks
 
+- On the rebased tree (`09654ba` on `503fa8f`): `npx tsc -p tsconfig.app.json --noEmit` 0 errors; `npx eslint src/opus-bay
+  tests/opus-bay-*` 0 problems; whole-repo `npx eslint . --ignore-pattern .vite-opus` 0 errors (42 old warnings); the full
+  opus-bay suite **674 / 674** (`opus-bay-sf-sites-w4` now 10 tests: + integration safety, + the re-checked facts;
+  budgets count ground and animate parts; walk data checks the feet on the draped ground).
+- Site numbers after the review (model + ground + animate / cap): Union Square 598 / 600, UCSF Mission Bay 712 / 800,
+  Murphy Windmill 788 / 800, Bison Paddock 790 / 800, Ocean Beach 488 / 2500, Japanese Tea Garden 2201 / 2500; the
+  preview measured the same on screen for the three it shot (Union Square 598, Bison Paddock 790, Ocean Beach 488).
+
+Status (2026-09-27): 复查完成，4 个修复提交 + 本报告已推送到 opus-bay；剩下 3 个待办（高度规则 'ground' 的接线映射、城市学院两个记录共用一个地点、篝火圈要在北段另做一个小地点）写在上面。
