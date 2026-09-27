@@ -239,14 +239,19 @@ export class FlagSlots {
 
   /** Free the slots whose fade-out has finished; returns true when any was freed. */
   sweep(now: number): boolean {
+    // (every frame: a plain loop, no closure)
     let freed = false;
-    this.slots.forEach((s, i) => { if (s && s.out !== null && now - s.out >= FLAG_FADE_S) { this.slots[i] = null; freed = true; } });
+    for (let i = 0; i < this.slots.length; i++) {
+      const s = this.slots[i];
+      if (s && s.out !== null && now - s.out >= FLAG_FADE_S) { this.slots[i] = null; freed = true; }
+    }
     return freed;
   }
 
   /** Any slot mid-fade (the alpha attribute must be rewritten this frame)? */
   fading(now: number): boolean {
-    return this.slots.some(s => !!s && (s.out !== null || now - s.since < FLAG_FADE_S));
+    for (const s of this.slots) if (s && (s.out !== null || now - s.since < FLAG_FADE_S)) return true;
+    return false;
   }
 
   /** Instances to draw: the highest used slot + 1. */
@@ -460,7 +465,11 @@ export class FlagLayer {
     // grounds still unknown (streaming): look again twice a second
     if (now >= this.groundCheck) {
       this.groundCheck = now + 0.5;
-      this.slots.slots.forEach((s, i) => { if (s && this.grounds[i] === null && this.ground(s.pick.x, s.pick.z) !== null) { s.dirty = true; rewrite = true; } });
+      const slots = this.slots.slots;
+      for (let i = 0; i < slots.length; i++) {
+        const s = slots[i];
+        if (s && this.grounds[i] === null && this.ground(s.pick.x, s.pick.z) !== null) { s.dirty = true; rewrite = true; }
+      }
     }
     if (rewrite) this.writeInstances();
     // the fades: an upload only on frames where an alpha really changed
@@ -495,13 +504,15 @@ export class FlagLayer {
 
   /** the caller's clock (s): the last setPicks / update time */
   private now = 0;
+  /** every frame: plain loops, no closures (review) */
   private writeAlpha() {
     const inst = this.mesh.geometry.getAttribute('aInst') as THREE.InstancedBufferAttribute;
+    const slots = this.slots.slots;
     let changed = false;
-    this.slots.slots.forEach((s, i) => {
-      const a = s && this.grounds[i] !== null ? this.slots.alpha(i, this.now) : 0;
+    for (let i = 0; i < slots.length; i++) {
+      const a = slots[i] && this.grounds[i] !== null ? this.slots.alpha(i, this.now) : 0;
       if (Math.abs(inst.getZ(i) - a) > 1e-4) { inst.setZ(i, a); changed = true; }
-    });
+    }
     if (changed) inst.needsUpdate = true;
   }
 

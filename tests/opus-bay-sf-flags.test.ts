@@ -281,6 +281,11 @@ test('panorama tags: T1 then T2 in view within 2,000 u, at most 8; laid out with
   assert.deepEqual(tags.slice(0, 6).map(t => t.rank), [1, 1, 1, 1, 1, 1]);
   assert.ok(tags.every(t => t.d <= 2000 && t.id !== 't1-behind' && t.id !== 'no-name'));
   assert.equal(tags.find(t => t.id === 't2-0')!.name.zh, '二0', 'the short name when there is one');
+  // (review) a tag stands on its flag: the pole foot and the pole top (the projector anchors it at ground + h)
+  const flagged = pickPanoramaTags(PLAYER, YAW_NORTH, [at('fl', 0, -400, { name: { zh: '旗', en: 'Flag' }, flag: { x: 12, z: -410, h: 52 } }), at('plain', 0, -600, { name: { zh: '无旗', en: 'Plain' } })]);
+  assert.deepEqual(flagged.map(t => [t.id, t.x, t.z, t.h]), [['fl', 12, -410, 52], ['plain', 0, -600, FLAG_RULES.defaultH]]);
+  const sameAsFlags = pickFlags({ player: PLAYER, yaw: YAW_NORTH, attractions: [at('fl', 0, -400, { flag: { x: 12, z: -410, h: 52 } })], discovered: none, max: 3, panorama: true })[0];
+  assert.deepEqual([sameAsFlags.x, sameAsFlags.z, sameAsFlags.h], [flagged[0].x, flagged[0].z, flagged[0].h]);
   // screen layout: 390 × 844, anchors in a crowded band
   const inputs = tags.map((t, i) => ({ id: t.id, x: 120 + i * 22, y: 300 + (i % 3) * 6, w: tagWidth(t.name.zh), h: 26, rank: t.rank }));
   const area = { l: 12, t: 72, r: 378, b: 720 };

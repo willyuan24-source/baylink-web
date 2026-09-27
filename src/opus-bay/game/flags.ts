@@ -192,7 +192,12 @@ export const PANORAMA = {
   viewpoints: ['twin-peaks', 'coit-tower', 'de-young-tower', 'grand-view-park', 'corona-heights-randall-museum', 'bernal-heights-park'],
 } as const;
 
-export interface PanoramaTag { id: string; name: Bilingual; x: number; z: number; rank: AttractionRank; d: number; color: string; glyph: FlagGlyph }
+/**
+ * A panorama name tag. `x`, `z` = the flag's pole foot (the same point pickFlags plants the flag on) and `h` = its pole
+ * top above the ground there, so the projector anchors the tag at (x, ground + h, z), right over the flag (review: the
+ * tag used the attraction centre, up to ≈ 10 u off the flag, and the integrator had to look the flag height up again).
+ */
+export interface PanoramaTag { id: string; name: Bilingual; x: number; z: number; h: number; rank: AttractionRank; d: number; color: string; glyph: FlagGlyph }
 
 /** Is this attraction a panorama viewpoint (its `panorama` flag, else the default list)? */
 export const isPanoramaViewpoint = (a: { id: string; panorama?: boolean }) => a.panorama ?? (PANORAMA.viewpoints as readonly string[]).includes(a.id);
@@ -201,11 +206,11 @@ export const isPanoramaViewpoint = (a: { id: string; panorama?: boolean }) => a.
 export function pickPanoramaTags(eye: Vec2, yaw: number, attractions: readonly FlagSource[], max: number = PANORAMA.max, halfView = FLAG_RULES.halfView): PanoramaTag[] {
   const list = attractions
     .filter(a => (a.rank === 1 || a.rank === 2) && a.name)
-    .map(a => ({ a, d: Math.hypot(a.x - eye.x, a.z - eye.z) }))
-    .filter(e => e.d >= FLAG_RULES.near && e.d <= PANORAMA.far && inViewCone(eye, yaw, e.a, halfView))
+    .map(a => { const f = footOf(a); return { a, f, d: Math.hypot(f.x - eye.x, f.z - eye.z) }; })
+    .filter(e => e.d >= FLAG_RULES.near && e.d <= PANORAMA.far && inViewCone(eye, yaw, e.f, halfView))
     .sort((p, q) => p.a.rank - q.a.rank || p.d - q.d);
-  return list.slice(0, Math.max(0, max)).map(({ a, d }) => ({
-    id: a.id, name: a.short ?? a.name!, x: a.x, z: a.z, rank: a.rank, d, color: ATTRACTION_CAT_STYLE[a.cat].color, glyph: glyphOf(a),
+  return list.slice(0, Math.max(0, max)).map(({ a, f, d }) => ({
+    id: a.id, name: a.short ?? a.name!, x: f.x, z: f.z, h: clampH(a.flag?.h ?? FLAG_RULES.defaultH), rank: a.rank, d, color: ATTRACTION_CAT_STYLE[a.cat].color, glyph: glyphOf(a),
   }));
 }
 

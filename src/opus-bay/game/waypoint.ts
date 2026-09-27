@@ -165,28 +165,58 @@ export interface WaypointLayout {
   hidden: boolean;
 }
 
-const pinBox = (x: number, y: number, edge: boolean): Box => { const r = edge ? WAYPOINT.arrowR : WAYPOINT.pinR; return { l: x - r, t: y - r, r: x + r, b: y + r }; };
+const pinBox = (x: number, y: number, edge: boolean): Box => setPin({ l: 0, t: 0, r: 0, b: 0 }, x, y, edge);
+
+// The layout runs on every projection change (every frame while the camera moves): the candidate search below writes
+// into these scratch boxes and a precomputed slide table instead of allocating arrays and boxes per candidate; only the
+// returned layout is new (review: up to ≈ 600 boxes a call before).
+const S_PIN: Box = { l: 0, t: 0, r: 0, b: 0 };
+const S_LABEL: Box = { l: 0, t: 0, r: 0, b: 0 };
+const S_SPOT = { x: 0, y: 0 };
+/** Slides along an arrow's own edge, nearest first: 0, +16, −16, +32, … ±400 px. */
+const EDGE_SLIDES: readonly number[] = (() => { const t = [0]; for (let s = 16; s <= 400; s += 16) t.push(s, -s); return t; })();
+/** Steps round the nearer corner, down / up the side edge: 16 … 320 px. */
+const CORNER_STEPS = 20;
+
+function setPin(out: Box, x: number, y: number, edge: boolean): Box {
+  const r = edge ? WAYPOINT.arrowR : WAYPOINT.pinR;
+  out.l = x - r; out.t = y - r; out.r = x + r; out.b = y + r;
+  return out;
+}
 
 /** The label box under a pin / arrow at (x, y), `drop` px lower than the default, slid sideways to stay in the area. */
-function labelBox(x: number, y: number, edge: boolean, w: number, area: Box, drop = 0): Box {
+function setLabel(out: Box, x: number, y: number, edge: boolean, w: number, area: Box, drop = 0): Box {
   const top = y + (edge ? WAYPOINT.labelBelowArrow : WAYPOINT.labelBelowPin) + drop;
   const half = w / 2;
   const cx = Math.min(area.r - half, Math.max(area.l + half, x));
-  return { l: cx - half, t: top, r: cx + half, b: top + WAYPOINT.labelH };
+  out.l = cx - half; out.t = top; out.r = cx + half; out.b = top + WAYPOINT.labelH;
+  return out;
 }
 
 /** A label beside an edge arrow (vertically centred on it), to its right or left. */
-function sideBox(x: number, y: number, w: number, right: boolean): Box {
+function setSide(out: Box, x: number, y: number, w: number, right: boolean): Box {
   const gap = WAYPOINT.arrowR + WAYPOINT.gap;
   const l = right ? x + gap : x - gap - w;
-  return { l, t: y - WAYPOINT.labelH / 2, r: l + w, b: y + WAYPOINT.labelH / 2 };
+  out.l = l; out.t = y - WAYPOINT.labelH / 2; out.r = l + w; out.b = y + WAYPOINT.labelH / 2;
+  return out;
 }
+
+function isBlocked(b: Box, area: Box, boxes: readonly Box[], bubble: Box | null): boolean {
+  if (!inside(b, area)) return true;
+  for (let k = 0; k < boxes.length; k++) if (overlaps(b, boxes[k], WAYPOINT.gap)) return true;
+  return !!bubble && overlaps(b, bubble, WAYPOINT.gap);
+}
+
+const copyBox = (b: Box): Box => ({ l: b.l, t: b.t, r: b.r, b: b.b });
 
 /**
  * The whole waypoint: pin / arrow + label, inside the safe area, out of the fixed HUD boxes, never under BAYBAY's
  * bubble. Order of retreat (plan §4.2, "fixes M1 for good"): the label under the pin → an edge arrow slides along its
  * edge (below the bubble, else above), its label under it or beside it → the label drops below the bubble (≤ 90 px) →
  * the label collapses to the time alone → the pin / arrow alone. A pin that itself sits under the bubble or a fixed box hides (`hidden`).
+ *
+ * `x`, `y` = the RAW projection of the target (CSS px of the canvas, NOT mirrored for a target behind the camera) and
+ * `behind` = projected z > 1: placeEdge mirrors it itself (mirroring before the call would point the arrow backwards).
  */
 export function layoutWaypoint(i: WaypointLayoutInput): WaypointLayout {
   const { area } = i;
@@ -195,56 +225,61 @@ export function layoutWaypoint(i: WaypointLayoutInput): WaypointLayout {
   const g = WAYPOINT.gap;
   const e = placeEdge(i.x, i.y, i.behind, area);
   let { x, y } = e;
-  const blocked = (b: Box) => !inside(b, area) || boxes.some(o => overlaps(b, o, g)) || (!!bubble && overlaps(b, bubble, g));
   const opacity = i.occluded && !e.edge ? WAYPOINT.occludedOpacity : 1;
   const notch = !!i.occluded && !e.edge;
   const shortW = i.shortW ?? WAYPOINT.shortW;
-  const result = (mode: LabelMode, box: Box | null): WaypointLayout => ({ x, y, edge: e.edge, angle: e.angle, label: { mode, box }, pin: pinBox(x, y, e.edge), opacity, notch, hidden: false });
+  const result = (mode: LabelMode, box: Box | null): WaypointLayout => ({ x, y, edge: e.edge, angle: e.angle, label: { mode, box: box && copyBox(box) }, pin: pinBox(x, y, e.edge), opacity, notch, hidden: false });
 
   // an edge arrow may slide along its edge: find a y (or x on the top / bottom edges) where the arrow + label fit
   if (e.edge) {
     const R = WAYPOINT.arrowR;
     const vertical = Math.abs(x - (area.l + R)) < 1 || Math.abs(x - (area.r - R)) < 1;
-    const tries: number[] = [0];
-    for (let s = 16; s <= 400; s += 16) tries.push(s, -s);
     const yMax = area.b - WAYPOINT.labelBelowArrow - WAYPOINT.labelH, yMin = area.t + R;
     // candidate arrow spots: along its own edge (nearest first), then round the nearer corner down / up the side edge
-    const spots: [number, number][] = tries.map(s => (vertical ? [x, Math.min(yMax, Math.max(yMin, y + s))] : [Math.min(area.r - R, Math.max(area.l + R, x + s)), y]));
-    if (!vertical) {
-      const sx = x < (area.l + area.r) / 2 ? area.l + R : area.r - R;
-      const down = y < (area.t + area.b) / 2 ? 1 : -1;
-      for (let s = 16; s <= 320; s += 16) spots.push([sx, Math.min(yMax, Math.max(yMin, y + down * s))]);
-    }
-    for (const w of [i.labelW, shortW]) {
-      for (const [nx, ny] of spots) {
-        const p = pinBox(nx, ny, true);
-        if (blocked(p)) continue;
+    const x0 = x, y0 = y;
+    const cornerX = x0 < (area.l + area.r) / 2 ? area.l + R : area.r - R;
+    const down = y0 < (area.t + area.b) / 2 ? 1 : -1;
+    const nSpots = EDGE_SLIDES.length + (vertical ? 0 : CORNER_STEPS);
+    const spot = (k: number) => {
+      if (k < EDGE_SLIDES.length) {
+        const s = EDGE_SLIDES[k];
+        if (vertical) { S_SPOT.x = x0; S_SPOT.y = Math.min(yMax, Math.max(yMin, y0 + s)); } else { S_SPOT.x = Math.min(area.r - R, Math.max(area.l + R, x0 + s)); S_SPOT.y = y0; }
+      } else { S_SPOT.x = cornerX; S_SPOT.y = Math.min(yMax, Math.max(yMin, y0 + down * 16 * (k - EDGE_SLIDES.length + 1))); }
+    };
+    for (let wi = 0; wi < 2; wi++) {
+      const w = wi === 0 ? i.labelW : shortW;
+      for (let k = 0; k < nSpots; k++) {
+        spot(k);
+        const nx = S_SPOT.x, ny = S_SPOT.y;
+        if (isBlocked(setPin(S_PIN, nx, ny, true), area, boxes, bubble)) continue;
         // the label under the arrow, else beside it (toward the screen centre first: a top-edge arrow under a docked
         // bubble keeps its words on the row beside it)
         const toRight = nx < (area.l + area.r) / 2;
-        for (const l of [labelBox(nx, ny, true, w, area), sideBox(nx, ny, w, toRight), sideBox(nx, ny, w, !toRight)]) {
-          if (!blocked(l)) { x = nx; y = ny; return result(w === i.labelW ? 'full' : 'short', l); }
+        for (let c = 0; c < 3; c++) {
+          const l = c === 0 ? setLabel(S_LABEL, nx, ny, true, w, area) : setSide(S_LABEL, nx, ny, w, c === 1 ? toRight : !toRight);
+          if (!isBlocked(l, area, boxes, bubble)) { x = nx; y = ny; return result(w === i.labelW ? 'full' : 'short', l); }
         }
       }
     }
     // no place with a label: the arrow alone where it is, else slid
-    for (const [nx, ny] of spots) {
-      if (!blocked(pinBox(nx, ny, true))) { x = nx; y = ny; return result('none', null); }
+    for (let k = 0; k < nSpots; k++) {
+      spot(k);
+      if (!isBlocked(setPin(S_PIN, S_SPOT.x, S_SPOT.y, true), area, boxes, bubble)) { x = S_SPOT.x; y = S_SPOT.y; return result('none', null); }
     }
     return { ...result('none', null), hidden: true };
   }
 
   // a pin on its target keeps its place: the pin itself under the bubble / HUD → hidden this frame
-  if (blocked(pinBox(x, y, false))) return { ...result('none', null), hidden: true };
+  if (isBlocked(setPin(S_PIN, x, y, false), area, boxes, bubble)) return { ...result('none', null), hidden: true };
   // the label: under the pin, else dropped below the bubble, else short (time only), else none
-  const full = labelBox(x, y, false, i.labelW, area);
-  if (!blocked(full)) return result('full', full);
-  for (const w of [i.labelW, shortW]) {
+  if (!isBlocked(setLabel(S_LABEL, x, y, false, i.labelW, area), area, boxes, bubble)) return result('full', S_LABEL);
+  for (let wi = 0; wi < 2; wi++) {
+    const w = wi === 0 ? i.labelW : shortW;
     if (bubble) {
       const drop = bubble.b + g - (y + WAYPOINT.labelBelowPin) + 1;
-      if (drop > 0 && drop <= WAYPOINT.maxDrop) { const l = labelBox(x, y, false, w, area, drop); if (!blocked(l)) return result(w === i.labelW ? 'full' : 'short', l); }
+      if (drop > 0 && drop <= WAYPOINT.maxDrop && !isBlocked(setLabel(S_LABEL, x, y, false, w, area, drop), area, boxes, bubble)) return result(w === i.labelW ? 'full' : 'short', S_LABEL);
     }
-    if (w !== i.labelW) { const l = labelBox(x, y, false, w, area); if (!blocked(l)) return result('short', l); }
+    if (w !== i.labelW && !isBlocked(setLabel(S_LABEL, x, y, false, w, area), area, boxes, bubble)) return result('short', S_LABEL);
   }
   return result('none', null);
 }

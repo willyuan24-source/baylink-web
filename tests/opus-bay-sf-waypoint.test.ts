@@ -129,6 +129,20 @@ test('an edge arrow slides along its edge to clear the bubble', () => {
   assert.ok(Math.abs(L.x - (area.r - WAYPOINT.arrowR)) < 1, 'still on the right edge');
 });
 
+test('(review) a layout keeps its boxes: the next call (the search reuses scratch boxes) never changes an earlier result', () => {
+  const area = waypointSafeArea({ w: 390, h: 844, phone: true });
+  const a = layoutWaypoint({ x: 195, y: 300, behind: false, area, labelW: 150, bubble: null });
+  const b = layoutWaypoint({ x: 1200, y: 400, behind: false, area, labelW: 140, bubble: { l: 250, t: 380, r: 390, b: 440 } });
+  const c = layoutWaypoint({ x: 100, y: 500, behind: false, area, labelW: 120, bubble: { l: 40, t: 520, r: 300, b: 560 } });
+  assert.deepEqual(a.label.box, { l: 120, t: 316, r: 270, b: 341 });
+  assert.notEqual(a.label.box, b.label.box);
+  assert.notEqual(b.label.box, c.label.box);
+  assert.notEqual(a.pin, b.pin);
+  const snapshot = JSON.stringify([a, b]);
+  for (let k = 0; k < 50; k++) layoutWaypoint({ x: 30 + k * 9, y: 90 + k * 13, behind: k % 3 === 0, area, labelW: 100 + k, bubble: { l: 0, t: 80 + k * 4, r: 390, b: 140 + k * 4 } });
+  assert.equal(JSON.stringify([a, b]), snapshot);
+});
+
 test('occluded on-screen targets: 70 % and a notch; edge arrows never', () => {
   const area = waypointSafeArea({ w: 1440, h: 900, phone: false });
   const on = layoutWaypoint({ x: 700, y: 400, behind: false, area, labelW: 160, bubble: null, occluded: true });
