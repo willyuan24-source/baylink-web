@@ -92,7 +92,7 @@ test('fog stays a uniform: the city Environment scales FogExp2.density, THREE.Sh
 // Karl the Fog (C2-8) and the night light field (C2-9)
 // ---------------------------------------------------------------------------
 
-const { KARL, KARL_TIME, KarlState, karlCover, karlTarget, parseKarlFlag, patchFog } = await import('../src/opus-bay/world/sf/fog');
+const { KARL, KARL_GEO, KARL_TIME, KarlState, karlCover, karlTarget, parseKarlFlag, patchFog } = await import('../src/opus-bay/world/sf/fog');
 const { GROUND, TOY, patchToyShader } = await import('../src/opus-bay/world/materials');
 
 const P = {
@@ -129,8 +129,8 @@ test('Karl: patchFog edits one material\'s own shader (THREE.ShaderChunk byte-id
   assert.equal(JSON.stringify(THREE.ShaderChunk), CHUNKS_BEFORE);
 });
 
-test('Karl: time table (morning 1, day 0.15, golden 0.6, night 0.35) and ?karl=0|1', () => {
-  assert.deepEqual(TODS.map(t => KARL_TIME[t].level), [1, 0.15, 0.6, 0.35]);
+test('Karl: time table (morning 1, day 0.15, golden 0.9, night 0.35) and ?karl=0|1', () => {
+  assert.deepEqual(TODS.map(t => KARL_TIME[t].level), [1, 0.15, 0.9, 0.35]);
   for (const t of TODS) {
     assert.equal(karlTarget(t, 0).level, 0, `${t}: ?karl=0 is off`);
     assert.ok(karlTarget(t, 1).level >= 0.6, `${t}: ?karl=1 is on`);
@@ -145,7 +145,9 @@ test('Karl: pools over the Sunset / Richmond, through the Gate at golden hour, n
   for (const t of TODS) for (const k of ['downtown', 'mission', 'tpSummit'] as const) assert.equal(cover(k, t), 0, `${t} ${k}`);
   assert.ok(cover('ggbDeck', 'golden') > 0.9 && cover('ggbDeck', 'morning') > 0.7, 'the deck is in the Gate tongue');
   assert.equal(cover('ggbTop', 'golden'), 0, 'the towers stand above it');
-  assert.ok(cover('oceanBeach', 'golden') > 0.5 && cover('richmond', 'golden') < 0.05, 'golden: only the outer avenues');
+  // M3 (wave 3): at golden hour the bank rolls in over the Sunset (Ocean Beach to its middle), not yet the inner Richmond
+  assert.ok(cover('oceanBeach', 'golden') > 0.9 && cover('sunset', 'golden') > 0.9, 'golden: rolling in over the Sunset');
+  assert.ok(cover('richmond', 'golden') < 0.6 && cover('richmond', 'golden') < cover('richmond', 'morning'), 'golden: the inner avenues still clear');
   assert.ok(cover('sunset', 'day') === 0 && cover('offshore', 'day') > 0.9, 'day: waits offshore');
 });
 
@@ -159,7 +161,7 @@ test('Karl: district never turns it on; the city slides between layouts in KARL_
   const k = new KarlState();
   k.setTime('golden', true);
   k.update(0.016);
-  assert.equal(k.cur.level, 0.6);
+  assert.equal(k.cur.level, KARL_TIME.golden.level);
   const epoch = k.epoch;
   k.setTime('morning', false);
   assert.equal(k.epoch, epoch + 1);
@@ -174,6 +176,31 @@ test('Karl: district never turns it on; the city slides between layouts in KARL_
   assert.equal(KARL.uKarl.value, 0, '?karl=0 is off at once');
   k.setFlag(null);
   KARL.uKarl.value = 0;
+});
+
+test('Karl as a bank (M3): an opaque sea under Twin Peaks in the morning, thick inside, clear above the top and downtown', async () => {
+  const { karlAmount } = await import('../src/opus-bay/world/sf/fog');
+  const m = karlTarget('morning', null), g = karlTarget('golden', null);
+  const tp = { x: 130, y: 62, z: 960 };
+  const at = (k: keyof typeof P) => ({ x: P[k][0], y: P[k][1], z: P[k][2] });
+  const dist = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+  // from the Twin Peaks summit the Sunset and the Richmond lie under white in the morning; downtown stays clear
+  for (const k of ['sunset', 'richmond', 'oceanBeach'] as const) assert.ok(karlAmount(at(k), tp, dist(at(k), tp), m) > 0.9, `morning: ${k} from Twin Peaks`);
+  assert.equal(karlAmount(at('downtown'), tp, dist(at('downtown'), tp), m), 0, 'downtown readable');
+  assert.ok(karlAmount(at('sunset'), tp, dist(at('sunset'), tp), g) > 0.8, 'golden: the Sunset under it too');
+  // walking in the Outer Sunset in the morning: a house 30 u away still shows, 100 u is mostly gone, 250 u is gone
+  const walker = { x: -250, y: 14, z: 1330 };
+  const house = (d: number) => karlAmount({ x: walker.x - d * 0.7, y: 16, z: walker.z + d * 0.7 }, walker, d, m);
+  assert.ok(house(30) < 0.4 && house(100) > 0.55 && house(100) < 0.85 && house(250) > 0.9, `walking: ${house(30).toFixed(2)} / ${house(100).toFixed(2)} / ${house(250).toFixed(2)}`);
+  // the first KARL_GEO.clear u stay clear (the player and BAYBAY in front of the walking camera)
+  assert.equal(house(KARL_GEO.clear - 1), 0, 'the player reads inside the bank');
+  // the summit itself, above the top, is clear even from inside the bank's reach; a glide high above sees the sea
+  assert.equal(karlAmount(at('tpSummit'), { x: 60, y: 90, z: 1000 }, 80, m), 0);
+  assert.ok(karlAmount(at('sunset'), { x: -200, y: 150, z: 1200 }, 170, m) > 0.5, 'from a glide: the sea below');
+  // the shader carries the same model
+  const sh = { vertexShader: ['#include <fog_pars_vertex>', '#include <fog_vertex>'].join('\n'), fragmentShader: ['#include <fog_pars_fragment>', '#include <fog_fragment>'].join('\n'), uniforms: {} as Record<string, THREE.IUniform> };
+  patchFog(sh);
+  assert.ok(sh.fragmentShader.includes('float cy = cameraPosition.y, portion, len') && sh.fragmentShader.includes('* portion / len'), 'in-layer ray length in GLSL');
 });
 
 const { CLOUD_BANK, CloudBank, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
@@ -205,6 +232,13 @@ test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMes
     assert.equal(slots.length, CLOUD_BANK.count);
     const inside = slots.filter(s => karlCover(s.x, t.top - 12, s.z, t) > 0.5).length;
     assert.ok(inside >= slots.length * 0.9, `${tod}: ${inside}/${slots.length} clusters over Karl`);
+    // M3: a rolling front — three in five west clusters stand tall in a row just behind the front, the rest lie low behind
+    const Gk = KARL_GEO, along = (s: { x: number; z: number }) => (s.x - Gk.origin.x) * Gk.east.x + (s.z - Gk.origin.z) * Gk.east.z;
+    const west = slots.slice(t.gate > 0.05 ? Math.round(CLOUD_BANK.count * 0.3) : 0);
+    const wall = west.filter((_, i) => i % 5 < 3), low = west.filter((_, i) => i % 5 >= 3);
+    assert.ok(wall.every(s => t.front - along(s) >= 70 && t.front - along(s) <= 115), `${tod}: the front row`);
+    assert.ok(low.every(s => t.front - along(s) >= 150), `${tod}: the low bank behind`);
+    assert.ok(Math.min(...wall.map(s => s.sx)) > Math.max(...low.map(s => s.sx)) - 20 && wall.every(s => s.sy >= 17), `${tod}: the front row stands tall`);
     // never over downtown / the Mission (east of the front by far)
     assert.ok(slots.every(s => (s.x - 137) ** 2 + (s.z - 133) ** 2 > 400 ** 2 && (s.x - 195) ** 2 + (s.z - 648) ** 2 > 250 ** 2), `${tod}: clear of downtown`);
   }

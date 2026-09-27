@@ -3,7 +3,7 @@
 // breakdown of world/sf/stats.ts breakdown() (main pass after frustum culling + the sun's shadow pass), plus a JPEG.
 //
 //   node scripts/opus-sf/qa/budget-views.mjs --out /tmp/c2/base-golden [--port 5201] [--time golden] [--quality high]
-//        [--views tp-walk,tp-high] [--pool tile] [--wait 20000] [--w 960 --h 600] [--karl 0] [--hud 1]
+//        [--views tp-walk,tp-high] [--pool tile] [--wait 20000] [--w 960 --h 600] [--karl 0] [--hud 1] [--mobile [--dpr 3]]
 //        [--shot "node scripts/opus-shot.mjs"]   (cloud: --shot /tmp/claude-0/bin/opus-shot)
 //
 // Writes <out>/views.json (every number), <out>/views.md (the table) and <out>/<view>.jpg. Needs the dev server
@@ -37,6 +37,13 @@ export const VIEWS = [
   // Karl the Fog / night light field (lane C2-8 / C2-9)
   { id: 'tp-west', note: 'Twin Peaks high → the Sunset / Richmond and the Pacific (Karl)', cam: { p: [150, 120, 1000], t: [-420, 0, 1180], f: [128.9, 922.7] } },
   { id: 'tp-gate', note: 'Twin Peaks high → the Golden Gate (Karl pours in at golden hour)', cam: { p: [150, 120, 1000], t: [-865, 0, 505], f: [128.9, 922.7] } },
+  // Karl at walking height (M3, wave 3): the owner's Twin Peaks look (eye height ≈ 15 u over the summit, the camera
+  // turned west / to the Gate: the rig's own summit view faces downtown, faceCameraToward yields to its zone view there),
+  // the Sunset inside the bank, Crissy Field → the Gate
+  { id: 'tp-eye-west', note: 'Twin Peaks summit at eye height → the Sunset and the Pacific (Karl rolling in)', cam: { p: [140, 62, 935], t: [-420, 20, 1180], f: [128.9, 922.7] } },
+  { id: 'tp-eye-gate', note: 'Twin Peaks summit at eye height → the Golden Gate', cam: { p: [140, 62, 935], t: [-865, 20, 505], f: [128.9, 922.7] } },
+  { id: 'sunset-walk', note: 'walking in the Outer Sunset → Ocean Beach (inside the bank in the morning)', go: { x: -250, z: 1330, fx: -470, fz: 1440, arrival: true } },
+  { id: 'crissy-walk', note: 'walking on Crissy Field → the Golden Gate Bridge (Karl through the Gate)', go: { x: -560, z: 545, fx: -860, fz: 505, arrival: true } },
   { id: 'ggb-crissy', note: 'the Golden Gate Bridge from above Crissy Field (deck and tower lights at night)', cam: { p: [-500, 38, 470], t: [-865, 15, 508], f: [-560, 520] } },
   { id: 'hero-far', note: 'the hero district from Nob Hill, ≈ 400 u (hero far: L1 boxes + ground stand-in)', cam: { p: [-60, 55, 470], t: [20, 0, 70], f: [-40, 460] } },
   // the Marin and East Bay boards, the Bay Bridge east span, the world's edges (lane C2-7 / C2-13, wave 3)
@@ -138,7 +145,7 @@ for (const v of views) {
   acts.push({ do: 'shot', name: path.join(out, `${v.id}.jpg`) });
 }
 const shot = String(args.shot || 'node scripts/opus-shot.mjs').split(' ');
-const cmd = [...shot.slice(1), '--url', url, '--w', String(args.w || 960), '--h', String(args.h || 600), '--wait', String(args.bootwait || 30000), '--out', path.join(out, 'last.jpg'), '--actions', JSON.stringify(acts)];
+const cmd = [...shot.slice(1), '--url', url, '--w', String(args.w || 960), '--h', String(args.h || 600), '--wait', String(args.bootwait || 30000), '--out', path.join(out, 'last.jpg'), ...(args.mobile ? ['--mobile', '--dpr', String(args.dpr || 3)] : []), '--actions', JSON.stringify(acts)];
 console.error(`[budget-views] ${views.length} views → ${out}\n  ${url}`);
 const child = spawn(shot[0], cmd, { stdio: ['ignore', 'pipe', 'inherit'] });
 let buf = '';

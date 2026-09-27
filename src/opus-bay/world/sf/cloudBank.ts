@@ -11,7 +11,9 @@ import { KARL_GEO, type KarlState, type KarlTarget } from './fog';
  * through instanceColor, the props' tinted program, warmed up), laid out per time of day from Karl's target (fog.ts):
  *
  *   morning   the front edge of the bank over the Sunset and the Richmond up to the Sutro slopes, a tongue in the Gate
- *   golden    a row pouring through the Golden Gate (under the towers, over the deck), the rest on Ocean Beach
+ *   golden    a row pouring through the Golden Gate (under the towers, over the deck), the rest rolling in over the
+ *             outer Sunset
+ * Three in five of the west clusters stand tall on the rolling front, the others lie low on the bank behind it (M3).
  *   day       offshore, a low bank on the Pacific horizon
  *   night     like the morning, lower and thinner
  *
@@ -27,8 +29,9 @@ export const CLOUD_BANK = { count: 40, lumps: 3, trisPerCluster: 240, wrap: 110 
 export function cloudClusterGeometry(): THREE.BufferGeometry {
   const b = new Batch();
   const top = C('#fdfcf8'), mid = C('#f3f4f2'), under = C('#e2e7eb');
-  // aInfo: no windows, base far below (no contact AO), no glow (TOY_INST reads it)
-  const info = [0, -1000, 0, 0] as const;
+  // aInfo: no windows, base far below (no contact AO), a faint always-on glow (TOY: w in (1, 2]) so the side away from a
+  // low sun reads as lit fog, not a storm cloud (M3: the golden-hour bank was grey from Twin Peaks)
+  const info = [0, -1000, 0, 1.18] as const;
   const lumps: [number, number, number, number, number, number][] = [[0, 0.08, 0, 1, 0.78, 0.9], [-0.8, -0.04, 0.2, 0.7, 0.62, 0.66], [0.82, -0.02, -0.16, 0.74, 0.64, 0.68]];
   for (const [x, y, z, sx, sy, sz] of lumps) {
     const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion(), new THREE.Vector3(sx, sy, sz));
@@ -65,19 +68,24 @@ export function cloudSlots(t: KarlTarget, n: number = CLOUD_BANK.count): CloudSl
   const nWest = n - nGate;
   const eastYaw = Math.atan2(-G.east.z, G.east.x);
   for (let i = 0; i < nWest; i++) {
+    // three in five on the rolling front (tall, lined up along it), the rest low and flat on the bank behind (M3)
+    const wall = i % 5 < 3;
     const b = 820 - ((i + 0.5) / nWest) * 1450 + (r() - 0.5) * 40;
-    const a = t.front - 90 - r() * 280;
+    const a = wall ? t.front - 70 - r() * 45 : t.front - 150 - r() * 260;
     out.push({
       x: G.origin.x + G.east.x * a + G.north.x * b, z: G.origin.z + G.east.z * a + G.north.z * b,
-      y: t.top - 8 + r() * 4, sx: 36 + r() * 20, sy: 17 + r() * 6, sz: 28 + r() * 16, yaw: eastYaw + Math.PI / 2 + (r() - 0.5) * 0.9,
+      y: t.top - (wall ? 6 : 9) + r() * 3,
+      sx: wall ? 54 + r() * 24 : 34 + r() * 20, sy: wall ? 17 + r() * 6 : 12 + r() * 5, sz: 30 + r() * 16,
+      yaw: eastYaw + Math.PI / 2 + (r() - 0.5) * (wall ? 0.5 : 0.9),
     });
   }
   return out;
 }
 
-/** instanceColor of the bank per time (multiplies the white / grey vertex colours; the TOY lighting stays) */
+/** instanceColor of the bank per time (multiplies the white / grey vertex colours and the clusters' faint glow; the TOY
+ *  lighting stays): at night low, or the glow alone would light the bank white against the night sky */
 export const CLOUD_TINT: Record<TimeOfDay, [number, number, number]> = {
-  morning: [1.2, 1.2, 1.22], day: [1.15, 1.15, 1.15], golden: [1.42, 1.26, 1.14], night: [0.92, 0.86, 0.98],
+  morning: [1.2, 1.2, 1.22], day: [1.15, 1.15, 1.15], golden: [1.42, 1.26, 1.14], night: [0.6, 0.55, 0.62],
 };
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);

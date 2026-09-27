@@ -57,12 +57,14 @@ export const fogFactor = (density: number, d: number) => 1 - Math.exp(-((density
  * Coverage in world space (city frame; W = true east, N = true north):
  *   west bank   everything west of `front` (u inland of Ocean Beach along W), lumpy edge (drifting noise ±110 u):
  *               the morning front reaches the Sutro slopes (Richmond ≈ 360, Presidio ≈ 530, Sutro Tower ≈ 690),
- *               golden hour only the outer avenues, by day it waits offshore
- *   gate lobe   a tongue through the Golden Gate along the strait (towards Alcatraz), `gate` × (across 80 → 200 u),
+ *               golden hour rolls in over the outer half of the Sunset, by day it waits offshore
+ *   gate lobe   a tongue through the Golden Gate along the strait (towards Alcatraz), `gate` × (across 95 → 175 u),
  *               out to `gateLen` u from the strait mouth (the bridge sits at ≈ 520)
- *   height      under `top` (≈ 30–36 u; the Twin Peaks summit ≈ 55 and the GGB towers 42 stay above it)
- * and a fragment inside it is whitened by 1 − exp(−depth / 300): walking in the Sunset you see ≈ 30 % at 100 u,
- * from Twin Peaks the Sunset lies under a ≈ 80 % blanket, and downtown (≈ 1,340 u inland) is never covered.
+ *   height      under `top` (≈ 32–40 u; the Twin Peaks summit ≈ 55 and the GGB towers 42 stay above it)
+ * and a fragment inside it is whitened by 1 − exp(−(L − 15) / 80), L = the length of the view ray inside the layer
+ * (M3, wave 3: from above, only the part below the top): walking in the Sunset ≈ 65 % is gone at 100 u (the first 15 u
+ * stay clear: the player and BAYBAY), from Twin Peaks the Sunset lies under an opaque white sea with a lumpy top (the
+ * hills stand out of it), and downtown (≈ 1,340 u inland) is never covered.
  */
 
 export interface KarlTarget {
@@ -79,15 +81,16 @@ export interface KarlTarget {
 }
 
 /**
- * The time table (checkpoint C2-8: morning 1, day 0.15, golden 0.6, night 0.35). Morning pools over the Sunset and the
- * Richmond up to the Sutro slopes and fills the Gate; golden hour pours through the Gate (the deck in it, the towers
- * above) with the bank on the beach; by day it waits offshore; at night a thinner bank lit warm by the streets.
+ * The time table (checkpoint C2-8: morning 1, day 0.15, golden 0.6, night 0.35; M3, wave 3: golden 0.9, whiter, rolling in
+ * over the outer half of the Sunset). Morning pools over the Sunset and the Richmond up to the Sutro slopes and fills the
+ * Gate; golden hour pours through the Gate (the deck in it, the towers above) while the bank rolls in over the outer
+ * avenues; by day it waits offshore; at night a thinner bank lit warm by the streets.
  */
 export const KARL_TIME: Record<TimeOfDay, KarlTarget> = {
-  morning: { level: 1, front: 560, gate: 0.85, gateLen: 760, top: 36, color: '#e2e6e9' },
+  morning: { level: 1, front: 680, gate: 0.85, gateLen: 760, top: 40, color: '#e2e6e9' },
   day: { level: 0.15, front: -330, gate: 0, gateLen: 0, top: 30, color: '#eceeef' },
-  golden: { level: 0.6, front: 150, gate: 1, gateLen: 860, top: 31, color: '#f1dccd' },
-  night: { level: 0.35, front: 380, gate: 0.7, gateLen: 700, top: 32, color: '#57525e' },
+  golden: { level: 0.9, front: 380, gate: 1, gateLen: 860, top: 35, color: '#f5e7dd' },
+  night: { level: 0.35, front: 450, gate: 0.7, gateLen: 700, top: 32, color: '#57525e' },
 };
 
 
@@ -107,11 +110,27 @@ export function karlTarget(tod: TimeOfDay, flag: KarlFlag): KarlTarget {
 export function karlCover(x: number, y: number, z: number, t: KarlTarget): number {
   const G = KARL_GEO;
   const a = (x - G.origin.x) * G.east.x + (z - G.origin.z) * G.east.z;
-  const west = 1 - smooth(t.front - 150, t.front + 30, a);
+  const west = 1 - smooth(t.front - G.edge[0], t.front + G.edge[1], a);
   const gx = x - G.gate.x, gz = z - G.gate.z;
   const along = gx * G.gate.dx + gz * G.gate.dz, across = Math.abs(-gx * G.gate.dz + gz * G.gate.dx);
-  const lobe = t.gate * (1 - smooth(80, 200, across)) * (1 - smooth(t.gateLen - 160, t.gateLen, along)) * smooth(-420, -300, along);
-  return Math.max(west, lobe) * (1 - smooth(t.top - 16, t.top + 6, y));
+  const lobe = t.gate * (1 - smooth(95, 175, across)) * (1 - smooth(t.gateLen - 160, t.gateLen, along)) * smooth(-420, -300, along);
+  return Math.max(west, lobe) * (1 - smooth(t.top - G.topSoft[0], t.top + G.topSoft[1], y));
+}
+
+/**
+ * How much of Karl's colour lies over a world point seen from `cam` at view depth `depth` (pure; the shader's obKarl with
+ * the noise at its mean, before `level`): the length of the view ray inside the layer over the extinction length
+ * (from above the top only the part below it; from inside the bank the whole ray, and the camera's own ground counts).
+ */
+export function karlAmount(p: { x: number; y: number; z: number }, cam: { x: number; y: number; z: number }, depth: number, t: KarlTarget): number {
+  let c = karlCover(p.x, p.y, p.z, t);
+  let portion: number, len: number = KARL_GEO.depth;
+  if (cam.y > t.top) { portion = Math.min(1, Math.max(0, (t.top - p.y) / Math.max(cam.y - p.y, 0.5))); len = KARL_GEO.depthAbove; }
+  else {
+    c = Math.max(c, 0.6 * karlCover(cam.x, -1e3, cam.z, t));
+    portion = p.y <= t.top ? 1 : Math.min(1, Math.max(0, (t.top - cam.y) / Math.max(p.y - cam.y, 0.5)));
+  }
+  return c * (1 - Math.exp(-Math.max(depth - KARL_GEO.clear, 0) * portion / len));
 }
 
 /** Seconds Karl takes to slide from one time's layout to the next (the cloud bank moves with it). */

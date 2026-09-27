@@ -17,8 +17,24 @@ export const KARL_GEO = {
   north: { x: -0.7193, z: -0.6947 },
   /** the strait mouth west of the bridge and the axis through the Golden Gate towards Alcatraz */
   gate: { x: -1167, z: 927, dx: 0.5819, dz: -0.8131 },
-  /** view depth (u) of Karl's whitening: amount = 1 − exp(−depth / depth) */
-  depth: 300,
+  /**
+   * extinction length (u) inside the bank: amount = 1 − exp(−(length of the view ray inside the layer past `clear`) /
+   * depth). Seen from above (Twin Peaks, a glide) only the part of the ray below the fog top counts, so the Sunset lies
+   * under an opaque white sea with a lumpy top; walking inside it, ≈ 65 % is gone at 100 u (M3, wave 3; was 300 on the
+   * whole ray)
+   */
+  depth: 80,
+  /** the same seen from above the top (only the part of the ray below it counts): the toy layer is thin (≈ 30 u), a
+   *  real bank is opaque from above, so its extinction length is shorter there */
+  depthAbove: 30,
+  /** view depth (u) that stays clear around the camera, so the player and BAYBAY read inside the bank (the walking
+   *  camera is 20–40 u away) */
+  clear: 15,
+  /** the fog top's soft band (u below / above the lumpy top) */
+  topSoft: [10, 4],
+  /** the west bank's leading edge: full cover `edge[0]` u behind the front, none `edge[1]` u past it (M3: a bank's edge, not
+   *  a 180 u gradient; the noise still lumps it ±110 u) */
+  edge: [70, 20],
 } as const;
 
 /** `?karl=0|1`: 0 = off, 1 = forced on (≥ 0.6 at every time; by day it comes in like golden hour), null = the table. */
@@ -59,25 +75,45 @@ float obKarlN(vec2 p) {
   vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(obKarlH(i), obKarlH(i + vec2(1.0, 0.0)), u.x), mix(obKarlH(i + vec2(0.0, 1.0)), obKarlH(i + vec2(1.0, 1.0)), u.x), u.y);
 }
-float obKarlCover(vec3 w) {
+// Karl's lumpy edge / top noise at a ground point (−0.5 … 0.5), drifting inland with the wind
+float obKarlNoise(vec2 p) {
+  vec2 dr = p - vec2(${f1(KARL_GEO.east.x)}, ${f1(KARL_GEO.east.z)}) * uKarlDrift;
+  return obKarlN(dr * 0.006) * 0.65 + obKarlN(dr * 0.019 + 7.3) * 0.35 - 0.5;
+}
+// 0 … 1: the bank over a ground point (the west bank or the gate lobe), before the height
+float obKarlXZ(vec2 p, float n) {
   const vec2 E = vec2(${f1(KARL_GEO.east.x)}, ${f1(KARL_GEO.east.z)});
   const vec2 O = vec2(${f1(KARL_GEO.origin.x)}, ${f1(KARL_GEO.origin.z)});
   const vec2 G = vec2(${f1(KARL_GEO.gate.x)}, ${f1(KARL_GEO.gate.z)});
   const vec2 GD = vec2(${f1(KARL_GEO.gate.dx)}, ${f1(KARL_GEO.gate.dz)});
-  vec2 dr = w.xz - E * uKarlDrift;
-  float n = obKarlN(dr * 0.006) * 0.65 + obKarlN(dr * 0.019 + 7.3) * 0.35 - 0.5;
-  float a = dot(w.xz - O, E) + n * 220.0;
-  float west = 1.0 - smoothstep(uKarlA.x - 150.0, uKarlA.x + 30.0, a);
-  vec2 g = w.xz - G;
+  float a = dot(p - O, E) + n * 220.0;
+  float west = 1.0 - smoothstep(uKarlA.x - ${KARL_GEO.edge[0].toFixed(1)}, uKarlA.x + ${KARL_GEO.edge[1].toFixed(1)}, a);
+  vec2 g = p - G;
   float along = dot(g, GD) + n * 120.0, across = abs(dot(g, vec2(-GD.y, GD.x))) + n * 90.0;
-  float lobe = uKarlA.z * (1.0 - smoothstep(80.0, 200.0, across)) * (1.0 - smoothstep(uKarlA.w - 160.0, uKarlA.w, along)) * smoothstep(-420.0, -300.0, along);
-  float top = uKarlA.y + n * 12.0;
-  return max(west, lobe) * (1.0 - smoothstep(top - 16.0, top + 6.0, w.y));
+  float lobe = uKarlA.z * (1.0 - smoothstep(95.0, 175.0, across)) * (1.0 - smoothstep(uKarlA.w - 160.0, uKarlA.w, along)) * smoothstep(-420.0, -300.0, along);
+  return max(west, lobe);
 }
-// 0 … 1: how much of Karl's colour lies over a point at world position w seen from depth (u) away
+float obKarlCover(vec3 w) {
+  float n = obKarlNoise(w.xz);
+  float top = uKarlA.y + n * 12.0;
+  return obKarlXZ(w.xz, n) * (1.0 - smoothstep(top - ${KARL_GEO.topSoft[0].toFixed(1)}, top + ${KARL_GEO.topSoft[1].toFixed(1)}, w.y));
+}
+// 0 … 1: how much of Karl's colour lies over a point at world position w seen from depth (u) away. The length of the
+// view ray inside the layer: from above the top, the part below it (an opaque sea seen from Twin Peaks); from inside the
+// bank, the whole ray (and the fog over the camera's own ground counts too); up to a point above the top, the part
+// still in the layer
 float obKarl(vec3 w, float depth) {
   if (uKarl <= 0.0) return 0.0;
-  return uKarl * obKarlCover(w) * (1.0 - exp(-max(depth, 0.0) / ${KARL_GEO.depth.toFixed(1)}));
+  float n = obKarlNoise(w.xz);
+  float top = uKarlA.y + n * 12.0;
+  float c = obKarlXZ(w.xz, n) * (1.0 - smoothstep(top - ${KARL_GEO.topSoft[0].toFixed(1)}, top + ${KARL_GEO.topSoft[1].toFixed(1)}, w.y));
+  float cy = cameraPosition.y, portion, len = ${KARL_GEO.depth.toFixed(1)};
+  if (cy > top) { portion = clamp((top - w.y) / max(cy - w.y, 0.5), 0.0, 1.0); len = ${KARL_GEO.depthAbove.toFixed(1)}; }
+  else {
+    c = max(c, 0.6 * obKarlXZ(cameraPosition.xz, obKarlNoise(cameraPosition.xz)));
+    portion = w.y <= top ? 1.0 : clamp((top - cy) / max(w.y - cy, 0.5), 0.0, 1.0);
+  }
+  return uKarl * c * (1.0 - exp(-max(depth - ${KARL_GEO.clear.toFixed(1)}, 0.0) * portion / len));
 }
 `;
 
