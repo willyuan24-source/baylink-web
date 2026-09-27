@@ -1061,6 +1061,8 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-coach b { font-weight: 800; }
 .ob-coach.is-touch { bottom: calc(max(6px, var(--ob-sb)) + 70px); }
 @media (max-width: 600px) { .ob-coach, .ob-coach.is-touch { bottom: calc(max(6px, var(--ob-sb)) + 142px); } }
+/* phones: the right-hand touch column (E2's 跳 / Hop, 56 px at 18 px from the edge) keeps its own strip */
+@media (max-width: 600px) { .ob-coach.is-touch { left: calc(12px + var(--ob-sl, 0px)); right: calc(84px + var(--ob-sr, 0px)); transform: none; width: auto; max-width: none; } }
 @media (max-width: 720px) { .ob-coach { font-size: 13px; padding: 8px 12px; } .ob-coach-keys.is-arrows, .ob-coach-or { display: none; } }
 
 /* F2 · touch: pulsing tap marker on the ground between you and BAYBAY */
@@ -1112,6 +1114,9 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
   .ob-topstack { top: calc(62px + var(--ob-st)); gap: 6px; }
   .ob-overlay .ob-topstack > .ob-time-offer { max-width: 100%; }
   .ob-overlay .ob-topstack > .ob-goals-card { position: relative; left: auto; top: auto; width: min(300px, 100%); z-index: auto; }
+  /* the stack ends above the right-hand touch column (跳 / Hop, the info button: ≈ 216 px from the bottom) with room
+     for two toasts under the card: a long card (the city goals + 邻居的小忙) scrolls inside on small phones */
+  .ob-overlay .ob-topstack > .ob-goals-card { max-height: calc(100dvh - var(--ob-st) - var(--ob-sb) - 380px); min-height: 150px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
   /* the ride banner used to run off both edges (line + destination + 提前下车 + 直接到站 on one line): it wraps */
   .ob-overlay .ob-topstack > .ob-ride { max-width: 100%; flex-wrap: wrap; justify-content: center; row-gap: 4px; white-space: normal; border-radius: 22px; padding: 6px 8px 6px 14px; }
   .ob-topstack > .ob-ride > span { flex: 1 1 55%; min-width: 0; line-height: 1.3; text-wrap: balance; }

@@ -146,7 +146,11 @@ export function scanHudBoxes(canvas: HTMLElement, now: number, needed: boolean, 
   scannedAt = now;
   const origin = canvas.getBoundingClientRect();
   const out: Box[] = [];
+  let moving = false;
   document.querySelectorAll<HTMLElement>(HUD_BOX_SELECTOR).forEach(el => {
+    // a box still sliding / popping in (the goals card slides in over 0.5 s) is read again once it has settled
+    // (looping pulses do not count: they never settle and do not move the box)
+    if (!moving && el.getAnimations?.().some(a => a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Infinity)) moving = true;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return;
     const cs = getComputedStyle(el);
@@ -156,6 +160,7 @@ export function scanHudBoxes(canvas: HTMLElement, now: number, needed: boolean, 
   const key = out.map(b => `${b.l | 0},${b.t | 0},${b.r | 0},${b.b | 0}`).join(';');
   const before = scanned.map(b => `${b.l | 0},${b.t | 0},${b.r | 0},${b.b | 0}`).join(';');
   if (key !== before) version++;
+  if (moving) settleAt = now;
   scanned = out;
   scans++;
   return scanned;
