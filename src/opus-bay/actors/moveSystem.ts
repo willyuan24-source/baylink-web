@@ -9,6 +9,7 @@ import { seatSpots, type SeatSpot } from '../data/vehicles';
 import { cancelRide, hopOffRide, say } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { currentRide } from '../game/ride';
+import { rideSystemFor } from '../data/transit';
 import { travelPose, type TravelPose } from '../game/fastTravel';
 import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
@@ -427,7 +428,10 @@ export class MoveSystem {
         if (hop) runtime.input.jump = false;
         if (hop || vehiclePress || hopOffPress) {
           if (r.mode === 'wait') { cancelRide(); m.endTransit(); platformRider.platform = null; this.releaseGuide(false); }
-          else if (r.line && m.phase === 'steady') {
+          else if (r.line && m.phase === 'steady' && r.kind === 'ferry' && rideSystemFor(r.line)?.rideStatus()?.station == null) {
+            // lane F's request (sf-w3-F.md part a): no hopping off a ferry under way — only onto a quay, once it docks
+            say('等船靠岸', 'Wait until we dock');
+          } else if (r.line && m.phase === 'steady') {
             // E2-10 (sf-w2-contracts §5.2): ask the car to stop, brake, then step off (onOutcome 'transit-alight')
             requestPlatformStop(r.line, TIMING.transitBrake);
             m.brakeTransit();
