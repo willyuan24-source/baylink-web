@@ -1,4 +1,5 @@
 import type { Bilingual } from '../../core/types';
+import type { SfPlaceKindAll } from '../../world/sf/format';
 import {
   ATTRACTION_CAT_STYLE, ATTRACTION_FLAG_H, type Attraction, type AttractionCat, type AttractionFlag, type AttractionGlyph, type AttractionRank,
   type AttractionStop,
@@ -30,7 +31,11 @@ import {
  * - `arrival` of the 24 existing SF landmarks = the landmark's walkable anchor (`LANDMARK_ARRIVALS`, review fix): the
  *   place index already ends every trip, fly and discovery there, so lane C's arrival moment and lane G's trip
  *   destination use the same spot. The other attractions keep the scouting's measured arrival, and
- *   data/sf/extraPlaces.ts `applyW4Places` gives the place rows they decorate that same arrival.
+ *   data/sf/extraPlaces.ts `applyW4Places` gives the place rows they decorate that same arrival. `ARRIVAL_OVERRIDES`
+ *   (lane P2) moves three on purpose: the Golden Gate Bridge to the Welcome Center plaza (the loop stop's), Corona
+ *   Heights to its summit (the panorama), the Botanical Garden to its main gate;
+ * - `ARRIVAL_PLACES` + `tripDestination(a)` (lane P2): the islands' trips end at a named place of their own (恶魔岛渡轮码头
+ *   · 33 号码头, 14 号码头), so no row says "步行到恶魔岛".
  *
  * Coordinates are the world city frame (x, z in u, `projectCity`). Facts checked on 2026-09-27 (the scouting's date).
  */
@@ -176,7 +181,7 @@ const ROWS: Attraction[] = [
   { id: 'sentinel-building', placeId: 'osm-w288485994', name: bi('哨兵大厦（哥伦布塔）', 'Sentinel Building (Columbus Tower)'), short: bi('哨兵大厦', 'Columbus Tower'), cat: 'landmark', rank: 3, fame: 32, x: 21.3, z: 106.9, arrival: { x: 20.6, z: 106.9 }, area: 'north-downtown', aliases: ['Sentinel', 'Columbus Tower', '绿色大楼'], treatment: 'defer', priority: 4, hero: true },
   { id: 'ss-jeremiah-obrien', placeId: 'osm-w1280748838', name: bi('奥布莱恩号自由轮', 'SS Jeremiah O\'Brien'), short: bi('奥布莱恩号', 'SS O\'Brien'), cat: 'museum', glyph: 'Sailboat', rank: 3, fame: 28, x: -130.1, z: -8.3, area: 'north-downtown', aliases: ['自由轮', 'Liberty ship', 'O\'Brien'], treatment: 'defer', priority: 4, officialUrl: 'https://ssjeremiahobrien.org/visit-us/', hero: true },
   { id: 'golden-gate-bridge', placeId: 'ggb-deck-mid', name: bi('金门大桥', 'Golden Gate Bridge'), short: bi('金门大桥', 'Golden Gate'), cat: 'landmark', rank: 1, fame: 100, x: -796.1, z: 564.4, area: 'bridge-presidio', aliases: ['金门桥', 'GGB', 'Golden Gate', '大桥', 'bridge'], photoKey: 'bridge', landmarkId: 'golden-gate-bridge', treatment: 'stop', priority: 2 },
-  { id: 'alcatraz', placeId: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), short: bi('恶魔岛', 'Alcatraz'), cat: 'coast', glyph: 'Sailboat', rank: 1, fame: 95, x: -468.2, z: -58.5, arrival: { x: -97.7, z: -21.2 }, offWalk: 'island: boats leave from Pier 33, the game leads to its telescope', area: 'north-downtown', aliases: ['恶魔岛', '恶魔岛监狱', 'Alcatraz', '阿尔卡特拉斯', 'prison'], photoKey: 'alcatraz', treatment: 'card', priority: 2 },
+  { id: 'alcatraz', placeId: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), short: bi('恶魔岛', 'Alcatraz'), cat: 'coast', glyph: 'Sailboat', rank: 1, fame: 95, x: -468.2, z: -58.5, arrival: { x: -97.68, z: -21.16 }, offWalk: 'island: the ferries leave from Pier 33 (ARRIVAL_PLACES: 恶魔岛渡轮码头 · 33 号码头, its telescope)', area: 'north-downtown', aliases: ['恶魔岛', '恶魔岛监狱', 'Alcatraz', '阿尔卡特拉斯', 'prison'], photoKey: 'alcatraz', treatment: 'card', priority: 2 },
   { id: 'fishermans-wharf', placeId: 'fishermans-wharf', name: bi('渔人码头', 'Fisherman\'s Wharf'), short: bi('渔人码头', 'The Wharf'), cat: 'coast', rank: 1, fame: 90, x: -206.3, z: 84.6, area: 'north-downtown', aliases: ['渔人码头', 'Fisherman\'s Wharf', 'Wharf', '螃蟹'], landmarkId: 'fishermans-wharf', treatment: 'stop', priority: 2 },
   { id: 'coit-tower', placeId: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), short: bi('科伊特塔', 'Coit Tower'), cat: 'landmark', rank: 1, fame: 80, x: -50.2, z: 51.1, area: 'north-downtown', aliases: ['科伊特', 'Coit', '电报山', 'Telegraph Hill'], photoKey: 'coit', treatment: 'card', priority: 2, hero: true, panorama: true },
   { id: 'chinatown-dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), short: bi('唐人街', 'Chinatown'), cat: 'landmark', rank: 1, fame: 86, x: 81.9, z: 174.7, area: 'north-downtown', aliases: ['唐人街', '中国城', '华埠', 'Chinatown', '龙门', 'Dragon Gate'], photoKey: 'chinatown', landmarkId: 'dragon-gate', treatment: 'stop', priority: 2 },
@@ -197,7 +202,7 @@ const ROWS: Attraction[] = [
   { id: 'pier-39', placeId: 'pier-39', name: bi('39 号码头', 'Pier 39'), short: bi('39号码头', 'PIER 39'), cat: 'coast', glyph: 'Sailboat', rank: 2, fame: 74, x: -154.6, z: 26.6, area: 'north-downtown', aliases: ['39号码头', 'PIER 39', '海狮', 'sea lions'], photoKey: 'pier', treatment: 'card', priority: 2, hero: true },
   { id: 'exploratorium', placeId: 'exploratorium', name: bi('探索馆（15 号码头）', 'Exploratorium (Pier 15)'), short: bi('探索馆', 'Exploratorium'), cat: 'museum', rank: 2, fame: 62, x: 29, z: 4.3, area: 'north-downtown', aliases: ['探索馆', '科学馆', 'Exploratorium'], photoKey: 'exploratorium', treatment: 'card', priority: 2, hero: true },
   { id: 'bay-bridge', placeId: 'bay-bridge-sf-anchorage', name: bi('海湾大桥', 'Bay Bridge'), short: bi('海湾大桥', 'Bay Bridge'), cat: 'landmark', rank: 2, fame: 70, x: 278, z: 71.7, area: 'north-downtown', aliases: ['海湾大桥', 'Bay Bridge', '奥克兰大桥'], treatment: 'card', priority: 2 },
-  { id: 'treasure-island', placeId: 'treasure-island', name: bi('金银岛', 'Treasure Island'), short: bi('金银岛', 'Treasure Is.'), cat: 'coast', glyph: 'Sailboat', rank: 2, fame: 40, x: 9.7, z: -487.4, arrival: { x: 183.1, z: -22.7 }, offWalk: 'island: no walking link in the game; the Pier 14 telescope looks at it', area: 'north-downtown', aliases: ['金银岛', 'Treasure Island'], treatment: 'card', priority: 2 },
+  { id: 'treasure-island', placeId: 'treasure-island', name: bi('金银岛', 'Treasure Island'), short: bi('金银岛', 'Treasure Is.'), cat: 'coast', glyph: 'Sailboat', rank: 2, fame: 40, x: 9.7, z: -487.4, arrival: { x: 183.1, z: -22.68 }, offWalk: 'island: no walking link in the game; trips end on Pier 14 (ARRIVAL_PLACES), its telescope looks at it', area: 'north-downtown', aliases: ['金银岛', 'Treasure Island'], treatment: 'card', priority: 2 },
   { id: 'marina-green', placeId: 'marina-green', name: bi('码头绿地', 'Marina Green'), short: bi('码头绿地', 'Marina Green'), cat: 'park', rank: 2, fame: 45, x: -382.1, z: 300.7, area: 'bridge-presidio', aliases: ['Marina', '码头区', '放风筝', 'kites'], treatment: 'card', priority: 2 },
 ];
 
@@ -233,8 +238,9 @@ export function flagFor(a: Pick<Attraction, 'id' | 'x' | 'z' | 'rank'>, tops: Re
  * keyed by SF landmark id — world/sf/landmarks/context.ts `sfLandmarkAnchor(id)` (city-only code with the recipes, so
  * the numbers are copied here; tests/opus-bay-sf-attractions.test.ts fails with the new values when an anchor moves).
  * Why: data/sf/places.ts sends every trip, fly and discovery of a landmark row to that anchor, while the scouting's own
- * arrival points sat 2–19 u away (the Golden Gate Bridge 147 u: its badge stands on the south tower, the anchor is the
- * visitor plaza) — outside lane C's 12 u arrival radius, so the arrival moment would not fire where 跟 BAYBAY 去 ends.
+ * arrival points sat 2–19 u away (the Golden Gate Bridge 147 u: its badge stands on the south tower) — outside lane C's
+ * 12 u arrival radius, so the arrival moment would not fire where 跟 BAYBAY 去 ends. `ARRIVAL_OVERRIDES` wins over this
+ * table (the bridge arrives at the Welcome Center; its place row then ends travel there too, see extraPlaces.ts).
  */
 export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; heading: number }>> = {
   'golden-gate-bridge': { x: -680.06, z: 654.15, heading: 4.037 },
@@ -269,10 +275,67 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
  * that the place row the attraction speaks for ends travel there too (data/sf/extraPlaces.ts `applyW4Places`).
  */
 export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; heading?: number; why: string }>> = {
+  // lane G's review O1: the bridge's trips ended at the landmark anchor (the Golden Gate Overlook, 31 u south of the
+  // loop's stop, across Lincoln Blvd) and before that at mid-span. The Welcome Center plaza at the south end (OSM way
+  // 164569681 "Welcome Center", 37.80765, −122.47494) is what the loop stop 5 "金门大桥 · 游客中心" names: 25 u from
+  // the stop, the south tower in view (heading = towards it). Walking-graph node 3970.
+  'golden-gate-bridge': { x: -702.4, z: 605.6, heading: 4.3, why: 'the Welcome Center plaza at the south end: the loop stop 金门大桥 · 游客中心 serves it' },
+  // lane G's review O3: the panorama belongs at the summit (the DEM's highest cell (79, 749); Wikipedia's summit
+  // 37.76465, −122.43914 is 6 u east), not at the Randall Museum door 19 u down the east slope. Walking-graph node
+  // 19640, facing downtown and the bay.
+  'corona-heights-randall-museum': { x: 81, z: 749, heading: 3.01, why: 'the summit (the view), not the Randall Museum door' },
   // lane L2 builds the gate plaza here; OSM node 7838369891 (entrance=main, 37.76705, −122.46679), the main gate on
   // MLK Dr reached from 9th Ave & Lincoln Way (gggp.org); the JSON point is the garden's centre, 58 u inside
   'sf-botanical-garden': { x: -178.3, z: 970.9, heading: 5.43, why: 'the main gate (MLK Dr at 9th Ave), not the middle of the garden' },
 };
+
+/**
+ * A place of its own where an off-walk attraction's trips end (lane G's review O2: the rows said "步行到恶魔岛 约 1
+ * 分钟" when the walk really ends at the Pier 33 ferry landing). data/sf/extraPlaces.ts turns each into a runtime place
+ * row (`ARRIVAL_PLACE_ROWS`: discoverable, searchable, a T3 dot; its English name contains the district POI's, so
+ * buildPlaceIndex merges that POI — its telescope, BAYBAY's bark — into the row); `tripDestination(a)` names it.
+ */
+export interface ArrivalPlace {
+  /** place-index id of the new row */
+  id: string;
+  name: Bilingual;
+  /** anchor = arrival spot: the district POI's point (its telescope) */
+  x: number;
+  z: number;
+  kind: SfPlaceKindAll;
+  sourceUrl: string;
+  /** inside the hand-made hero slab (the sidecar's `--check` pins it) */
+  hero?: boolean;
+}
+/** Keyed by attraction id. */
+export const ARRIVAL_PLACES: Readonly<Record<string, ArrivalPlace>> = {
+  // Alcatraz City Cruises: every ferry leaves from "Pier 33 Alcatraz Landing" on the Embarcadero (near Bay St); the
+  // point is the district POI pier33 (its telescope, 37.80783, −122.40428)
+  alcatraz: {
+    id: 'alcatraz-landing', name: bi('恶魔岛渡轮码头 · 33 号码头', 'Pier 33 · Alcatraz Landing'), x: -97.68, z: -21.16, kind: 'transit',
+    sourceUrl: 'https://alcatrazcitycruises.com/plan-your-visit/directions', hero: true,
+  },
+  // Pier 14: the 637-foot public pier / breakwater at the foot of Mission St; its end looks at the Bay Bridge and
+  // Treasure Island (no walking link to the island in the game); the district POI pier14's point (its telescope)
+  'treasure-island': {
+    id: 'pier-14', name: bi('14 号码头', 'Pier 14'), x: 183.1, z: -22.68, kind: 'waterfront',
+    sourceUrl: 'https://www.romacollaborative.com/pier-14', hero: true,
+  },
+};
+
+/** Where 跟 BAYBAY 去 goes for an attraction: lane G's `TripDestination` (game/tripPlan.ts), structurally. */
+export interface AttractionDestination { placeId: string; x: number; z: number; name: Bilingual; attraction: string }
+/**
+ * The trip destination of an attraction (lane G's planTrips, lane C's startTrip): its own named arrival place when it
+ * has one (Alcatraz → 恶魔岛渡轮码头 · 33 号码头: the rows read "步行到恶魔岛渡轮码头 · 33 号码头"), else the place it
+ * decorates, at its `arrival` (else its anchor), under its own name.
+ */
+export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 'x' | 'z' | 'arrival'>): AttractionDestination {
+  const spot = ARRIVAL_PLACES[a.id];
+  if (spot) return { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: a.id };
+  const at = a.arrival ?? a;
+  return { placeId: a.placeId ?? a.id, x: at.x, z: at.z, name: a.name, attraction: a.id };
+}
 
 /** Every attraction, T1 and T2 with their flag. Sorted by map priority (rank, then fame). */
 export const ATTRACTIONS: readonly Attraction[] = ROWS.map(row => {

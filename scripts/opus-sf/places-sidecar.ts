@@ -8,7 +8,8 @@
 //                 Publishing = copying places.json over public/opus-bay/sf/<version>/places.json (integration phase
 //                 only, after SfPlaceKind absorbs the wave-4 kinds; the manifest names the file without a hash).
 //   --snaps       also write <out>/extra-snaps.txt: the EXTRA_PLACE_SNAPS block of src/opus-bay/data/sf/extraPlaces.ts
-//                 (ground y, zone, walking-graph node of each extra row, as the build computes them for places.json).
+//                 (ground y, zone, walking-graph node of each runtime row — the 47 extras and the named arrival places —
+//                 as the build computes them for places.json).
 //   --check       exit 1 when extraPlaces.ts EXTRA_PLACE_SNAPS / hero flags differ from what this run computes, or an
 //                 extra id collides with a published row.
 //
@@ -19,7 +20,7 @@ import path from 'node:path';
 import * as OpenCC from 'opencc-js';
 import { unproject } from '../../src/opus-bay/core/geo';
 import { WalkGraphIndex } from '../../src/opus-bay/core/walkGraph';
-import { EXTRA_PLACES, EXTRA_PLACE_SNAPS } from '../../src/opus-bay/data/sf/extraPlaces';
+import { EXTRA_PLACE_SNAPS, RUNTIME_PLACES } from '../../src/opus-bay/data/sf/extraPlaces';
 import { type PlacesFile, type SfCurrent, decodeGraphFile } from '../../src/opus-bay/world/sf/format';
 import { inLake, loadAreas, onPier } from './lib/areas';
 import { elements, layerHeader, loadDem, writeFile } from './lib/io';
@@ -126,7 +127,7 @@ for (const c of candidates.sort((a, b) => (a.key < b.key ? -1 : 1))) {
   const n = norm(c.name);
   const dupe = rebuilt.find(p => Math.hypot(p.x - x, p.z - z) < (p.curated ? 25 : 40) && (norm(p.name.en).includes(n) || n.includes(norm(p.name.en))));
   if (dupe) { skipped.push({ key: c.key, name: c.name, why: `duplicate of ${dupe.id}` }); continue; }
-  const why = candidateSkip({ key: c.key, name: c.name }, EXTRA_PLACES, additions.map(a => ({ name: a.name.en })));
+  const why = candidateSkip({ key: c.key, name: c.name }, RUNTIME_PLACES, additions.map(a => ({ name: a.name.en })));
   if (why) { skipped.push({ key: c.key, name: c.name, why }); continue; }
   const zhRaw = c.t['name:zh-Hans'] ?? c.t['name:zh'] ?? c.t['name:zh-Hant'] ?? '';
   const row: PlaceRowW4 = {
@@ -153,7 +154,7 @@ for (const a of additions) log(`  + ${a.id} ${a.kind} "${a.name.en}" (${a.x}, ${
 
 // --- 4. the extra rows' snaps ----------------------------------------------------------------------------------------
 const pubIds = new Set(published.places.map(p => p.id));
-const snaps = EXTRA_PLACES.map(e => ({ id: e.id, y: r2(heightAt(terrain, e.x, e.z)), zone: zoneAt(e.x, e.z), graphNode: snapNode(e.arrival.x, e.arrival.z), hero: inSlab(e.x, e.z) }));
+const snaps = RUNTIME_PLACES.map(e => ({ id: e.id, y: r2(heightAt(terrain, e.x, e.z)), zone: zoneAt(e.x, e.z), graphNode: snapNode(e.arrival.x, e.arrival.z), hero: inSlab(e.x, e.z) }));
 if (flag('snaps')) {
   const lines = snaps.map(s => `  '${s.id}': { y: ${s.y}, zone: ${s.zone === null ? 'null' : `'${s.zone}'`}, graphNode: ${s.graphNode} },`);
   writeFile(path.join(OUT, 'extra-snaps.txt'), `${lines.join('\n')}\n`);
@@ -163,13 +164,13 @@ if (flag('check')) {
   const bad: string[] = [];
   for (const s of snaps) {
     const have = EXTRA_PLACE_SNAPS[s.id];
-    const e = EXTRA_PLACES.find(q => q.id === s.id)!;
+    const e = RUNTIME_PLACES.find(q => q.id === s.id)!;
     if (pubIds.has(s.id)) bad.push(`${s.id}: id is a published row`);
     if (!have) { bad.push(`${s.id}: no snap`); continue; }
     if (Math.abs(have.y - s.y) > 0.011 || have.zone !== s.zone || have.graphNode !== s.graphNode) bad.push(`${s.id}: snap ${JSON.stringify(have)} ≠ ${JSON.stringify({ y: s.y, zone: s.zone, graphNode: s.graphNode })}`);
     if (!!e.hero !== s.hero) bad.push(`${s.id}: hero ${!!e.hero} ≠ inSlab ${s.hero}`);
   }
-  for (const a of additions) for (const e of EXTRA_PLACES) if (sameName(a.name.en, e.name.en)) bad.push(`${a.id} duplicates extra ${e.id}`);
+  for (const a of additions) for (const e of RUNTIME_PLACES) if (sameName(a.name.en, e.name.en)) bad.push(`${a.id} duplicates extra ${e.id}`);
   if (bad.length) { console.error(`check FAILED:\n  ${bad.join('\n  ')}`); process.exit(1); }
   log('check: extra snaps, hero flags and ids OK');
 }

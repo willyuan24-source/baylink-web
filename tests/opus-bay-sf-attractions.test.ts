@@ -12,9 +12,9 @@ import { sfDisk } from './opus-bay-sf-disk';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const { ATTRACTIONS, ATTRACTION_INDEX, AttractionIndex, FLAG_TOPS, T1_IDS, attractionGlyph, attractionColor, attractionShort, byMapPriority, flagFor, nearStops, placeTier, withNearStops,
-  LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds, ARRIVAL_OVERRIDES } = await import('../src/opus-bay/data/sf/attractions');
+  LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds, ARRIVAL_OVERRIDES, ARRIVAL_PLACES, tripDestination } = await import('../src/opus-bay/data/sf/attractions');
 const { ATTRACTION_CATS, ATTRACTION_CAT_STYLE, ATTRACTION_AREAS, ATTRACTION_FLAG_H, ATTRACTION_GLYPHS, ATTRACTION_TREATMENTS } = await import('../src/opus-bay/data/sf/attractionTypes');
-const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals } = await import('../src/opus-bay/data/sf/extraPlaces');
+const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals, RUNTIME_PLACES, ARRIVAL_PLACE_ROWS } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { SF_PLACE_KINDS_W4 } = await import('../src/opus-bay/world/sf/format');
 const { MAP_FRAME } = await import('../src/opus-bay/data/mapPaper');
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
@@ -214,7 +214,8 @@ test('extra places: applyW4Places hides, renames, re-anchors, re-kinds and appen
   const before = JSON.stringify(places.places.slice(0, 50));
   const rows = applyW4Places(places);
   assert.equal(JSON.stringify(places.places.slice(0, 50)), before, 'input untouched');
-  assert.equal(rows.length, places.places.length - PLACE_HIDDEN.size + EXTRA_PLACES.length);
+  assert.equal(rows.length, places.places.length - PLACE_HIDDEN.size + RUNTIME_PLACES.length);
+  assert.equal(RUNTIME_PLACES.length, EXTRA_PLACES.length + 2, 'the 47 extras + the two named arrival places');
   const by = new Map(rows.map(r => [r.id, r]));
   assert.equal(by.has('sutro-baths'), false);
   for (const [id, name] of Object.entries(PLACE_NAME_FIXES)) { assert.ok(placeIds.has(id), `name fix for a missing row ${id}`); assert.deepEqual(by.get(id)!.name, name); }
@@ -350,15 +351,18 @@ test('attractions: the 24 landmark attractions arrive at the landmark\'s walkabl
   for (const a of withLm) {
     const anc = sfLandmarkAnchor(a.landmarkId!);
     assert.ok(anc, `${a.landmarkId} has no anchor`);
-    const arr = a.arrival!;
-    assert.deepEqual(arr, LANDMARK_ARRIVALS[a.landmarkId!]);
+    const want = LANDMARK_ARRIVALS[a.landmarkId!];
+    // the attraction arrives there unless its arrival was moved on purpose (ARRIVAL_OVERRIDES: the bridge)
+    if (!ARRIVAL_OVERRIDES[a.id]) assert.deepEqual(a.arrival, want);
+    const arr = want;
     if (Math.hypot(arr.x - anc.x, arr.z - anc.z) > 0.05 || Math.abs((arr.heading ?? 0) - anc.heading) > 0.002)
       stale.push(`  '${a.landmarkId}': { x: ${+anc.x.toFixed(2)}, z: ${+anc.z.toFixed(2)}, heading: ${+anc.heading.toFixed(3)} },`);
   }
   assert.equal(stale.length, 0, `a landmark anchor moved: update LANDMARK_ARRIVALS in data/sf/attractions.ts:\n${stale.join('\n')}`);
-  // the Golden Gate Bridge's badge stays on the south tower; the trip and the arrival moment end at the visitor plaza
+  // the Golden Gate Bridge's badge stays on the south tower; the trip and the arrival moment end at the Welcome Center
   const ggb = ATTRACTION_INDEX.get('golden-gate-bridge')!;
-  assert.ok(Math.hypot(ggb.arrival!.x - ggb.x, ggb.arrival!.z - ggb.z) > 100);
+  assert.ok(Math.hypot(ggb.arrival!.x - ggb.x, ggb.arrival!.z - ggb.z) > 90);
+  assert.deepEqual({ x: ggb.arrival!.x, z: ggb.arrival!.z }, { x: ARRIVAL_OVERRIDES['golden-gate-bridge'].x, z: ARRIVAL_OVERRIDES['golden-gate-bridge'].z });
 });
 
 test('attractions × place index: a trip to the place an attraction speaks for ends inside its arrival radius (the integration\'s index)', async () => {
@@ -369,8 +373,12 @@ test('attractions × place index: a trip to the place an attraction speaks for e
   const rows = applyW4Places(places);
   const ix = buildPlaceIndex({ places: rows as typeof places.places }, landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor), poiInputs());
   const rowById = new Map(rows.map(r => [r.id, r]));
-  // the integration's buildPlaceIndex: arrival = the landmark anchor for the 24 landmark rows, else row.arrival ?? anchor
-  const placeArrival = (id: string) => { const p = ix.get(id)!; return p.landmark ? p.arrival : rowById.get(id)!.arrival ?? { x: p.x, z: p.z }; };
+  // the integration's buildPlaceIndex (lane P2 correction): arrival = the wave-4 row's arrival when it has one (every
+  // landmark row carries its attraction's: the landmark anchor for 23, the Welcome Center for the bridge), else the
+  // landmark anchor, else the anchor
+  const placeArrival = (id: string) => { const p = ix.get(id)!; return rowById.get(id)!.arrival ?? (p.landmark ? p.arrival : { x: p.x, z: p.z }); };
+  // the 23 landmark rows the override does not touch: the row's arrival IS the landmark anchor (the rule changes nothing there)
+  for (const a of ATTRACTIONS) if (a.landmarkId && !ARRIVAL_OVERRIDES[a.id]) { const p = ix.get(a.placeId!)!, r = rowById.get(a.placeId!)!.arrival!; assert.ok(Math.hypot(p.arrival.x - r.x, p.arrival.z - r.z) <= 0.05, a.id); }
   const arrivals = attractionArrivals();
   let checked = 0;
   for (const a of ATTRACTIONS) {
@@ -444,4 +452,95 @@ test('P2: Clement St is 克莱门街 (企李街 is Clay St in Chinatown) in the 
   assert.deepEqual(EXTRA_PLACES.find(e => e.id === 'clement-street')!.name, a.name);
   assert.equal(J.attractions.find(j => j.id === 'clement-street')!.zh, a.name.zh);
   assert.ok(!fs.readFileSync(path.join(ROOT, 'docs/opus-bay/sf-w4-plan.md'), 'utf8').includes('企李街'), 'plan §2.4 row 59');
+});
+
+test('P2: the Golden Gate Bridge arrives at the Welcome Center, the loop stop "金门大桥 · 游客中心" serves it and lane G\'s planner offers the loop (review G O1)', async () => {
+  const { planTrips } = await import('../src/opus-bay/game/tripPlan');
+  const { transitTripLine } = await import('../src/opus-bay/game/tripProviders');
+  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const ggb = ATTRACTION_INDEX.get('golden-gate-bridge')!;
+  const arr = ggb.arrival!;
+  const loop = w4.lines.find(l => l.id === 'sf-loop')!;
+  const stop = loop.stops.find(s => s.id === 'loop-golden-gate-bridge')!;
+  assert.ok(Math.hypot(stop.x - arr.x, stop.z - arr.z) <= 30, `the loop stop is ${Math.hypot(stop.x - arr.x, stop.z - arr.z).toFixed(1)} u away`);
+  assert.equal(stop.name.zh, '金门大桥 · 游客中心');
+  const wc = places.places.find(p => p.id === 'osm-w164569681')!;
+  assert.equal(wc.name.en, 'Welcome Center');
+  assert.ok(Math.hypot(wc.x - arr.x, wc.z - arr.z) <= 3, 'at the OSM Welcome Center');
+  // facing the south tower (the badge)
+  const face = Math.atan2(ggb.x - arr.x, ggb.z - arr.z);
+  assert.ok(Math.abs(Math.atan2(Math.sin(face - arr.heading!), Math.cos(face - arr.heading!))) < 0.1, 'faces the south tower');
+  // the place row the bridge speaks for (ggb-deck-mid) ends travel there
+  const row = applyW4Places(places).find(r => r.id === 'ggb-deck-mid')!;
+  assert.deepEqual(row.arrival, arr);
+  // lane G's planner, from the Ferry Building with the published lines: a loop option alighting at the bridge stop
+  const lines = () => w4.lines.map(transitTripLine);
+  const from = { x: 133, z: 10 };
+  const opts = planTrips(from, tripDestination(ggb), { lines });
+  const ride = opts.find(o => o.mode === 'line' && o.legs.some(l => l.via === 'line' && l.line === 'sf-loop'));
+  assert.ok(ride, `no loop option: ${opts.map(o => o.mode).join(', ')}`);
+  const leg = ride.legs.find(l => l.via === 'line')!;
+  assert.equal(leg.via === 'line' && leg.alight, 'loop-golden-gate-bridge');
+  // the old destination (mid-span) had none: the reason for the move
+  const mid = places.places.find(p => p.id === 'ggb-deck-mid')!;
+  assert.ok(!planTrips(from, { placeId: 'ggb-deck-mid', x: mid.x, z: mid.z }, { lines }).some(o => o.mode === 'line' && o.legs.some(l => l.via === 'line' && l.line === 'sf-loop')));
+});
+
+test('P2: Corona Heights arrives at its summit (the panorama point), not at the Randall Museum door (review G O3)', async () => {
+  const { projectCity } = await import('../src/opus-bay/core/geo');
+  const a = ATTRACTION_INDEX.get('corona-heights-randall-museum')!;
+  assert.equal(a.panorama, true);
+  const summit = projectCity(37.76465, -122.43914), museum = projectCity(37.76439, -122.43813);
+  assert.ok(Math.hypot(a.arrival!.x - summit.x, a.arrival!.z - summit.z) <= 8, 'at the summit');
+  assert.ok(Math.hypot(a.arrival!.x - museum.x, a.arrival!.z - museum.z) >= 12, 'away from the museum door');
+  // the highest walkable ground around: no main-graph node within 25 u stands higher than 0.5 u above the arrival's
+  const gi = await sf.graphIndex();
+  const main = gi.mainComponent();
+  const node = gi.nearestNode(a.arrival!.x, a.arrival!.z, 3, i => gi.component(i) === main);
+  assert.ok(node >= 0);
+  const y0 = gi.graph.xyz[3 * node + 1];
+  gi.forNodesNear(a.arrival!.x, a.arrival!.z, 25, i => { if (gi.component(i) === main) assert.ok(gi.graph.xyz[3 * i + 1] <= y0 + 0.5, `node ${i} is higher than the summit arrival`); });
+  // the curated hill row it decorates arrives there too (the panorama fires where 跟 BAYBAY 去 ends)
+  const row = applyW4Places(places).find(r => r.id === a.placeId)!;
+  assert.deepEqual(row.arrival, a.arrival);
+});
+
+test('P2: the islands\' trips end at named places of their own (恶魔岛渡轮码头 · 33 号码头, 14 号码头), with the district POIs merged (review G O2)', async () => {
+  const { planTrips } = await import('../src/opus-bay/game/tripPlan');
+  const { buildPlaceIndex, landmarkInputsFrom, poiInputs } = await import('../src/opus-bay/data/sf/places');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
+  assert.deepEqual(Object.keys(ARRIVAL_PLACES).sort(), ['alcatraz', 'treasure-island']);
+  const rows = applyW4Places(places);
+  const by = new Map(rows.map(r => [r.id, r]));
+  for (const [id, spot] of Object.entries(ARRIVAL_PLACES)) {
+    const a = ATTRACTION_INDEX.get(id)!;
+    assert.ok(a.offWalk, `${id} is off-walk`);
+    assert.ok(!placeIds.has(spot.id) && !ATTRACTION_INDEX.get(spot.id), `${spot.id} is a new id`);
+    assert.deepEqual({ x: a.arrival!.x, z: a.arrival!.z }, { x: spot.x, z: spot.z }, `${id}: the attraction arrives at its named place`);
+    const d = tripDestination(a);
+    assert.deepEqual(d, { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: id });
+    const row = by.get(spot.id)!;
+    assert.ok(row && row.extra && row.curated && row.hero, `${spot.id} row`);
+    assert.deepEqual(row.name, spot.name);
+    assert.ok(EXTRA_PLACE_SNAPS[spot.id], `${spot.id} snapped by the sidecar`);
+    assert.ok(ARRIVAL_PLACE_ROWS.some(r => r.id === spot.id));
+    assert.match(spot.sourceUrl, /^https:\/\//);
+  }
+  assert.equal(ARRIVAL_PLACES.alcatraz.name.zh, '恶魔岛渡轮码头 · 33 号码头');
+  // the district POIs (telescope, bark, the Alcatraz booking guide) merge into the new rows
+  const ix = buildPlaceIndex({ places: rows as typeof places.places }, landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor), poiInputs());
+  assert.equal(ix.get('alcatraz-landing')!.poi, 'pier33');
+  assert.equal(ix.get('pier-14')!.poi, 'pier14');
+  assert.equal(ix.get('alcatraz-landing')!.walkable, true);
+  // lane G's planner: the walk row names the pier, not the island
+  const walk = planTrips({ x: 133, z: 10 }, tripDestination(ATTRACTION_INDEX.get('alcatraz')!)).find(o => o.mode === 'walk')!;
+  assert.equal(walk.legs[walk.legs.length - 1].label!.zh, '步行到恶魔岛渡轮码头 · 33 号码头');
+  assert.ok(!/步行到恶魔岛(?!渡轮)/.test(JSON.stringify(walk)));
+  // every other attraction: its own place at its arrival, under its own name
+  const twin = ATTRACTION_INDEX.get('twin-peaks')!;
+  assert.deepEqual(tripDestination(twin), { placeId: 'twin-peaks', x: twin.arrival!.x, z: twin.arrival!.z, name: twin.name, attraction: 'twin-peaks' });
+  const noArr = ATTRACTIONS.find(a => !a.arrival)!;
+  assert.deepEqual([tripDestination(noArr).x, tripDestination(noArr).z], [noArr.x, noArr.z]);
 });
