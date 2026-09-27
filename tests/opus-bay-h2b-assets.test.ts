@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import { Mask, composite, distanceTransform, fillShape, halve, strokeCapsule, strokePolyline } from '../scripts/opus-sf/map/raster2d';
 
@@ -64,4 +67,74 @@ test('raster: halve averages 2 × 2; the chamfer distance is near Euclidean', ()
   assert.equal(d[20 * 41 + 30], 10);
   const diag = d[30 * 41 + 30], true_ = Math.hypot(10, 10);
   assert.ok(Math.abs(diag - true_) / true_ < 0.08, `diagonal ${diag} vs ${true_}`);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// the painted map (H2b-4 / H2b-5)
+// ---------------------------------------------------------------------------------------------------------------------
+
+const { MAP_FRAME, MAP_PAPER, MAP_PAPER_V1, mapPaperUrls } = await import('../src/opus-bay/data/mapPaper');
+const { paperWidthFor, paperUrl } = await import('../src/opus-bay/ui/mapPaper');
+
+const publicFile = (url: string) => path.resolve(import.meta.dirname, '../public', url.replace(/^\//, ''));
+
+/** Width and height of a WebP (VP8 / VP8L / VP8X headers). */
+function webpSize(b: Buffer): [number, number] {
+  assert.equal(b.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(b.toString('ascii', 8, 12), 'WEBP');
+  const kind = b.toString('ascii', 12, 16);
+  if (kind === 'VP8X') return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
+  if (kind === 'VP8L') { const v = b.readUInt32LE(21); return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)]; }
+  if (kind === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+  throw new Error(`unknown WebP chunk ${kind}`);
+}
+
+test('map paper: v1 is registered over MAP_FRAME, every file exists at its size, within the byte caps', () => {
+  assert.ok(MAP_PAPER, 'MAP_PAPER is on (node has no ?paper=0)');
+  assert.deepEqual(MAP_PAPER_V1.bounds, MAP_FRAME);
+  // the frame is square (the paper is square) and covers the whole board
+  assert.equal(MAP_FRAME.maxX - MAP_FRAME.minX, MAP_FRAME.maxZ - MAP_FRAME.minZ);
+  const urls = mapPaperUrls();
+  assert.equal(urls.length, 3);
+  const caps: Record<number, number> = { 1024: 200_000, 2048: 650_000, 4096: 1_600_000 };
+  for (const w of [1024, 2048, 4096] as const) {
+    const url = MAP_PAPER_V1.sizes[w]!;
+    assert.ok(urls.includes(url) && url.startsWith('/opus-bay/map/'), url);
+    const buf = fs.readFileSync(publicFile(url));
+    assert.deepEqual(webpSize(buf), [w, w], url);
+    assert.ok(buf.length <= caps[w], `${url} ${buf.length} B ≤ ${caps[w]}`);
+    assert.equal(buf.length, MAP_PAPER_V1.bytes?.[w], `${url} bytes recorded`);
+  }
+  const sha = crypto.createHash('sha256').update(fs.readFileSync(publicFile(MAP_PAPER_V1.sizes[2048]))).digest('hex');
+  assert.equal(sha, MAP_PAPER_V1.sha256);
+});
+
+test('map paper: phones and tablets stop at 2048; a request picks the next size up', () => {
+  assert.equal(paperWidthFor(4096, false), 4096);
+  assert.equal(paperWidthFor(4096, true), 2048);
+  assert.equal(paperWidthFor(4096, false, false), 2048);
+  assert.equal(paperWidthFor(2048, true), 2048);
+  assert.equal(paperWidthFor(1024, false), 1024);
+  assert.equal(paperWidthFor(1500, false), 2048);
+  assert.equal(paperWidthFor(3000, false), 4096);
+  assert.equal(paperUrl(1024), MAP_PAPER_V1.sizes[1024]);
+  assert.equal(paperUrl(4096), MAP_PAPER_V1.sizes[4096]);
+});
+
+test('map paper: the registration check of v1 passed the coast gate and describes the committed files', () => {
+  const r = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../docs/opus-bay/h2b/paper-v1-check.json'), 'utf8')) as {
+    pass: boolean; p95: number; gatePx: number; coastPx2048: { fitted: { candToBaseP95: number; baseToCandP95: number } };
+    export: Record<string, { path: string; bytes: number; sha256: string }>;
+  };
+  // coast p95 ≤ 1.5 % of the width, both ways (candidate → base coast, base → candidate coast)
+  assert.ok(Math.abs(r.gatePx - 0.015 * 2048) < 1e-6);
+  assert.ok(r.pass && r.p95 <= r.gatePx);
+  assert.ok(r.coastPx2048.fitted.candToBaseP95 <= r.gatePx && r.coastPx2048.fitted.baseToCandP95 <= r.gatePx);
+  for (const w of [1024, 2048, 4096] as const) {
+    const e = r.export[w];
+    const buf = fs.readFileSync(path.resolve(import.meta.dirname, '..', e.path));
+    assert.equal(buf.length, e.bytes, e.path);
+    assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), e.sha256, e.path);
+    assert.equal(`/${e.path.replace(/^public\//, '')}`, MAP_PAPER_V1.sizes[w]);
+  }
 });

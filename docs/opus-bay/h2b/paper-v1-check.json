@@ -1,0 +1,78 @@
+{
+  "cand": "C:/Users/willy/opus-qa/w3/h2b/cand/c4.png (job aebf64b4-e9c9-4931-9959-dc0499974082)",
+  "candSize": [
+    4096,
+    4096
+  ],
+  "fit": {
+    "scale": 0.9972167687466518,
+    "rotDeg": -0.028730952893586292,
+    "tx": 1.8954720046737676,
+    "ty": -0.9781424126640885,
+    "costBefore": 18.784372329711914,
+    "costAfter": 17.283071517944336
+  },
+  "coastPx2048": {
+    "raw": {
+      "candToBaseP50": 1.4142135381698608,
+      "candToBaseP95": 12.173731803894043,
+      "baseToCandP95": 8.485280990600586
+    },
+    "fitted": {
+      "candToBaseP50": 2.0,
+      "candToBaseP95": 12.041594505310059,
+      "baseToCandP50": 2.0,
+      "baseToCandP95": 6.4031243324279785
+    }
+  },
+  "gatePx": 30.72,
+  "landIoU": 0.7753725952679296,
+  "pass": true,
+  "p95": 12.041594505310059,
+  "tableBefore": [
+    247.75,
+    238.25001525878906,
+    228.0
+  ],
+  "grade": {
+    "tableGain": [
+      0.9808274507522583,
+      0.9905561208724976,
+      0.9780701994895935
+    ]
+  },
+  "retouch": {
+    "declutterPx": 76045,
+    "rects": [
+      [
+        3030,
+        2172,
+        3122,
+        2210
+      ]
+    ],
+    "hero": true
+  },
+  "export": {
+    "1024": {
+      "path": "public/opus-bay/map/paper-v1-1024.webp",
+      "bytes": 110694,
+      "sha256": "d4dd2caba03e8fbc417e381f9b85308435bdc13374a3dc6da22f1e016f4570c0",
+      "quality": 86
+    },
+    "2048": {
+      "path": "public/opus-bay/map/paper-v1-2048.webp",
+      "bytes": 344736,
+      "sha256": "e00cdc7ffe85a6feca5dd4fa9c3b979b421d012b44114f663f1e1f13a9ec64ea",
+      "quality": 86
+    },
+    "4096": {
+      "path": "public/opus-bay/map/paper-v1-4096.webp",
+      "bytes": 668100,
+      "sha256": "238c4aec14169b5d719b09a9ac6e1dad6a6a1600c7116a0b3b0648d0d00ed5f2",
+      "quality": 80
+    }
+  },
+  "command": "paper_post.py --base <render-base out> --cand c4.png --export public/opus-bay/map --version v1 --smooth-hero --declutter \"3030,2172,3122,2210\" --quality 86",
+  "textCheck": "by eye: 9 tiles at 1.33:1, 9 tiles at 1:1 over the city, 11 crops at 2:1 over the big-lot east side, zooms on every suspect; pseudo-letters found on the hero lots / Ferry shed and on one Bayview lot (4096 px 3059..3109 x 2178..2201), wiped"
+}

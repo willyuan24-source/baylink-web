@@ -5,8 +5,10 @@
 //   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/map/render-base.ts [--out C:/Users/willy/opus-qa/w3/h2b/base] [--size 4096]
 //
 // Writes <out>/base-<size>.png and base-<size/2>.png (RGB), land-<size>.png and land-<size/2>.png (grey: land coverage
-// 0..255 — far.obc land rings plus the hero district's land and pier decks; the coast the registration is checked
-// against), and base.json (frame, sizes, counts, timings).
+// 0..255 — far.obc land rings, the hero district's seawall land and Angel Island; the coast the registration is
+// checked against), board-<size/2>.png and bridges-<size/2>.png (the board polygon's and the two bridge decks'
+// coverage: paper_post.py compares coasts inside the board and away from the bridges), hero-<size>.png (the hero
+// district's lots and sheds, for the retouch) and base.json.
 //
 // Layers, bottom to top: cream table → the board's soft shadow on the table → board water (shallow → deep with the
 // distance from the shore, the cooler Pacific west of the Golden Gate) → land → the hero slab (its water, land and
@@ -432,6 +434,12 @@ for (const l of DISTRICT.landmarks) {
   if (l.collider && 'polygon' in l.collider) blds.push({ ring: polyPx(l.collider.polygon), H: 10, roof: rgb('#eadcc2'), wall: rgb('#d9c7a6') });
 }
 count('heroBuildings', DISTRICT.blocks.length);
+// the hero district's lots, sheds and landmark footprints: big flat roofs a painting may fill with scribbles
+// (paper_post.py --smooth smooths inside them)
+const heroMask = new Mask(N, N);
+for (const lot of DISTRICT.blocks) fillShape(heroMask, [polyPx(lot.footprint)]);
+for (const p of DISTRICT.piers) if (p.shed) fillShape(heroMask, [polyPx(p.shed.footprint)]);
+for (const l of DISTRICT.landmarks) if (l.collider && 'polygon' in l.collider) fillShape(heroMask, [polyPx(l.collider.polygon)]);
 
 // shadows: one union layer (never darker where two overlap), a sweep of the footprint toward the lower right
 const SH = { x: 0.2, y: 0.28 }; // px offset per u of height, ×U
@@ -510,6 +518,7 @@ const tTrees = Date.now() - t0;
 // city mode: from the SF anchorage to the Yerba Buena tunnel portal, 6.8 u deck, towers at W2 / W3 / W5 / W6) silver
 // ---------------------------------------------------------------------------------------------------------------------
 
+const bridgeMask = new Mask(N, N);
 {
   const ggb = { x0: -865.81, z0: 508.555, yaw: 2.4662 };
   const gp = (s: number, t = 0) => {
@@ -539,6 +548,9 @@ const tTrees = Date.now() - t0;
   composite(img, sh, PAINT.shadow, 0.18);
   composite(img, gg, PAINT.ggb);
   composite(img, bay, PAINT.bridge);
+  // the checker's bridge corridors run on past both ends (a painting may carry a deck on to the board's edge)
+  deck(bridgeMask, gp(-230 - 400), gp(192 + 600), 3.5);
+  deck(bridgeMask, [px(bb.x), pz(bb.z)], [px(ybi.x + (ybi.x - bb.x) * 0.2), pz(ybi.z + (ybi.z - bb.z) * 0.2)], 4);
   // towers: darker blocks across the deck
   const towers = new Mask(N, N), bayTowers = new Mask(N, N);
   for (const s of [-89.29, 89.29]) deck(towers, gp(s - 1.4, 0), gp(s + 1.4, 0), 4.2);
@@ -599,6 +611,9 @@ writePng(path.join(OUT, `land-${N}.png`), N, N, landBytes, true);
 const half = halve(img, N, N);
 writePng(path.join(OUT, `base-${N / 2}.png`), N / 2, N / 2, toRgba(half, N / 2, N / 2));
 writePng(path.join(OUT, `land-${N / 2}.png`), N / 2, N / 2, halveBytes(landBytes, N, N), true);
+writePng(path.join(OUT, `board-${N / 2}.png`), N / 2, N / 2, halveBytes(boardMask.toBytes(), N, N), true);
+writePng(path.join(OUT, `bridges-${N / 2}.png`), N / 2, N / 2, halveBytes(bridgeMask.toBytes(), N, N), true);
+writePng(path.join(OUT, `hero-${N}.png`), N, N, heroMask.toBytes(), true);
 const meta = {
   frame: MAP_FRAME, size: N, pxPerUnit: U, sfVersion: current.version, built: new Date().toISOString(),
   counts, ms: { load: tLoad, water: tWater, areas: tAreas, relief: tRelief, streets: tStreets, buildings: tBuildings, trees: tTrees, bridges: tBridges, total: Date.now() - t0 },
