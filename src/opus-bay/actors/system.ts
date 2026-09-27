@@ -60,6 +60,8 @@ function glbDisabled(): boolean {
   try { return new URLSearchParams(location.search).get('glb') === '0'; } catch { return false; }
 }
 
+/** residents and parked rides cast a real shadow within this of the camera (u; C2 part b request 1) */
+const ACTOR_SHADOW_R = 40;
 const frustum = new THREE.Frustum();
 const tmpPM = new THREE.Matrix4();
 const tmpSphere = new THREE.Sphere();
@@ -309,6 +311,15 @@ export class ActorSystem {
   private guidePhotoWaveAt = 0;
   private now = 0;
   private camPos = new THREE.Vector3();
+  /**
+   * Within ACTOR_SHADOW_R of the camera (horizontal): residents and parked rides draw into the shadow map only there
+   * (C2's part b request 1: at the Ferry gate the actors cast 35k shadow triangles in 7 draws, two residents 42–44 u
+   * off among them; their blob shadows stay).
+   */
+  private nearCamera(x: number, z: number): boolean {
+    const dx = x - this.camPos.x, dz = z - this.camPos.z;
+    return dx * dx + dz * dz < ACTOR_SHADOW_R * ACTOR_SHADOW_R;
+  }
   /** vehicles, glide, benches, the streetcar platform */
   readonly move = new MoveSystem();
   private seenPant = -10;
@@ -474,6 +485,8 @@ export class ActorSystem {
     // vehicles / glide / bench / streetcar platform first: they consume their own input edges and carry the body
     const move = this.move;
     move.update(dt, t, { cameraYaw: moveBasis.yaw, frozen: flowFrozen, playing: s.phase === 'playing', controller: this.controller, frustum, precompile: this.precompile ?? undefined });
+    // parked rides cast a real shadow only near the camera (C2 part b request 1; the one you ride always does)
+    for (const r of move.fleet.rides) r.rig.mesh.castShadow = r === move.ride || this.nearCamera(r.sim.x, r.sim.z);
     const carried = move.carried || riding;
 
     // soft obstacles for the player
@@ -611,6 +624,8 @@ export class ActorSystem {
       const npc = this.npcs[k];
       npc.talking = !!this.talkingNpc && npc.def.id === this.talkingNpc && (npcTalking || t < this.npcTalkUntil);
       npc.update(dt, t);
+      // (a resident's real shadow only near the camera, its blob always: C2 part b request 1)
+      npc.rig.mesh.castShadow = this.nearCamera(npc.x, npc.z);
       const r = residents[k] ?? (residents[k] = { x: 0, z: 0 });
       r.x = npc.x; r.z = npc.z;
     }
