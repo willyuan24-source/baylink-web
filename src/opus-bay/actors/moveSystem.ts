@@ -3,7 +3,8 @@ import { emit } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game, type MoveState } from '../core/store';
-import { canStand, heightAt, nearestWalkable } from '../core/terrain';
+import { canStand, groundPending, heightAt, nearestWalkable } from '../core/terrain';
+import type { Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { seatSpots, type SeatSpot } from '../data/vehicles';
 import { cancelRide, hopOffRide, say } from '../game/flow';
@@ -19,10 +20,13 @@ import { CHAR_SCALE } from './dims';
 import { NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, nearestEnterSlot, pickExitSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, rider as platformRider, spotFor, toLocal, toWorld } from './platform';
-import { NO_DRIVE, type DriveInput, type StepReport } from './vehicles/collide';
+import { PursuitDriver } from './vehicles/autopilot';
+import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
+import { driveRoute } from './vehicles/driveRoute';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
+import type { FleetSnapshot } from './moveApi';
 import { residents, rideables } from './view';
 
 /**
@@ -35,6 +39,11 @@ import { residents, rideables } from './view';
  * transitions only; per-frame vehicle / glide state goes to runtime.vehicle / runtime.glide. Events: see
  * core/events.ts ('vehicle:*', 'glide:*', 'sit', 'stand', 'hill', 'pant', 'transit:spot').
  * Collision / ground only through core/terrain (the streamed city extends it).
+ *
+ * Tap-to-drive (lane E2 wave 2, E2-4): while riding a bike or the toy car, a ground tap / moveApi.driveTo(p) fetches a
+ * drive route (vehicles/driveRoute: grid A* on a drive mask, or the city walking graph with the vehicle's edge filter)
+ * and a PursuitDriver (vehicles/autopilot) steers the vehicle along it through the same DriveInput the keyboard uses;
+ * any manual input takes over. Save v2 (E2-15): fleetSnapshot / restoreFleet (via actors/moveApi).
  */
 
 export interface MoveEnv {
@@ -143,6 +152,19 @@ export class MoveSystem {
   /** where this system last put the logical player (to notice someone else teleporting them) */
   private wroteX = NaN;
   private wroteZ = NaN;
+  // --- tap-to-drive (E2-4)
+  /** the autopilot following a drive route, and the pending route request */
+  auto: PursuitDriver | null = null;
+  private autoToken: { aborted: boolean } | null = null;
+  /** where the autopilot is heading (the tapped point, then the route's end) — the target ring */
+  driveTarget: Vec2 | null = null;
+  /** the current drive route (breadcrumbs) and counters the actor system watches: route arrived, arrival, no route */
+  drivePath: Vec2[] = [];
+  driveRoutes = 0;
+  driveArrivals = 0;
+  driveFails = 0;
+  /** save v2: a fleet restore waiting for its ground to stream in */
+  private restoreWait: { snap: FleetSnapshot; t: number } | null = null;
 
   constructor() {
     this.root.name = 'opus-move';
@@ -276,6 +298,7 @@ export class MoveSystem {
 
   /** Fast travel / restarts (lane G): everything back on foot, the vehicle parked where it is. */
   toFoot() {
+    this.cancelDrive(true);
     if (this.ride) { this.ride.occupied = false; this.ride = null; }
     this.machine.toFoot();
     this.seat = null;
@@ -351,7 +374,7 @@ export class MoveSystem {
     } else if (mode === 'bike' || mode === 'car') {
       if (vehiclePress && m.phase === 'steady' && !frozen) m.exit();
       if (hornPress && this.ride && !frozen) emit({ type: 'vehicle:horn', vehicle: this.ride.kind });
-      if (resetPress && this.ride && m.phase === 'steady') { if (this.fleet.reset(this.ride)) spawnFx('dust', this.ride.sim.x, this.ride.sim.y + 0.3, this.ride.sim.z); }
+      if (resetPress && this.ride && m.phase === 'steady') { this.cancelDrive(); if (this.fleet.reset(this.ride)) spawnFx('dust', this.ride.sim.x, this.ride.sim.y + 0.3, this.ride.sim.z); }
     } else if (mode === 'glide') {
       if (glidePress && m.phase === 'steady' && !frozen) { if (this.approach) this.approach = null; else this.tryLand(); }
     } else if (mode === 'transit') {
@@ -368,6 +391,9 @@ export class MoveSystem {
       }
     }
     input.vehicleContext = this.carried && (mode === 'bike' || mode === 'car' || mode === 'glide') ? 'in' : near ? 'near' : 'none';
+    // the autopilot only drives a steady ride (F to get off, R, a teleport … hand control back)
+    if ((this.auto || this.autoToken) && (!(m.mode === 'bike' || m.mode === 'car') || m.phase !== 'steady' || !this.ride)) this.cancelDrive(m.mode !== 'bike' && m.mode !== 'car');
+    if (this.restoreWait) { this.restoreWait.t += dt; if (this.restoreWait.t > 60 || this.tryRestore(this.restoreWait.snap)) this.restoreWait = null; }
 
     // --- advance the vehicles / glide
     const ride = this.ride;
@@ -421,18 +447,140 @@ export class MoveSystem {
       const y = runtime.input.moveY;
       const hop = runtime.input.jump;
       runtime.input.jump = false;
-      inp = {
-        throttle: Math.max(0, y, input.throttle),
-        brake: Math.max(0, -y, input.brake),
-        steer: runtime.input.moveX,
-        digital: !input.analogSteer,
-        sprint: runtime.input.run,
-        hop,
-      };
+      // any manual input takes over from the autopilot
+      if ((this.auto || this.autoToken) && (input.manualMove || input.throttle > 0.05 || input.brake > 0.05 || hop)) this.cancelDrive();
+      if (this.auto) inp = this.stepAuto(ride, this.auto, dt);
+      else if (this.autoToken) inp = NO_DRIVE; // the route is on its way: roll on
+      else {
+        inp = {
+          throttle: Math.max(0, y, input.throttle),
+          brake: Math.max(0, -y, input.brake),
+          steer: runtime.input.moveX,
+          digital: !input.analogSteer,
+          sprint: runtime.input.run,
+          hop,
+        };
+      }
     }
     const report = this.fleet.drive(ride, dt, inp);
     this.onDriveReport(ride, report, t);
     this.giveWay(ride, t);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tap-to-drive (E2-4) and save v2 (E2-15)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Drive the ridden bike / toy car to p (a ground tap, G1's 骑车去 / 开车去). False when not riding one. The route
+   * is fetched asynchronously (abortable); the vehicle rolls on meanwhile and the autopilot takes it from there.
+   */
+  driveTo(p: Vec2): boolean {
+    const m = this.machine, r = this.ride;
+    if (!r || !(m.mode === 'bike' || m.mode === 'car') || m.phase !== 'steady' || !Number.isFinite(p.x) || !Number.isFinite(p.z)) return false;
+    this.cancelDrive(true);
+    const token = { aborted: false };
+    this.autoToken = token;
+    this.driveTarget = { x: p.x, z: p.z };
+    driveRoute({ x: r.sim.x, z: r.sim.z }, p, r.kind, { signal: token }).then(route => {
+      if (token.aborted || this.autoToken !== token) return;
+      this.autoToken = null;
+      if (!route || this.ride !== r || route.points.length < 2) {
+        this.driveTarget = null;
+        this.driveFails++;
+        say('那边开不过去', r.kind === 'car' ? 'The toy car can’t get there' : 'The bike can’t get there');
+        return;
+      }
+      this.auto = new PursuitDriver(r.sim.spec, route.points);
+      this.drivePath = route.points;
+      this.driveTarget = route.points[route.points.length - 1];
+      this.driveRoutes++;
+      emit({ type: 'vehicle:auto', vehicle: r.kind, state: 'start' });
+    }, () => {
+      if (this.autoToken !== token) return;
+      this.autoToken = null; this.driveTarget = null; this.driveFails++;
+    });
+    return true;
+  }
+
+  /** Stop the autopilot (and a pending route). `quiet`: no 'cancel' event (mode changes, a newer request). */
+  cancelDrive(quiet = false) {
+    if (this.autoToken) this.autoToken.aborted = true;
+    const was = !!this.auto || !!this.autoToken;
+    this.autoToken = null;
+    this.auto = null;
+    this.driveTarget = null;
+    this.drivePath = [];
+    if (was && !quiet && this.ride) emit({ type: 'vehicle:auto', vehicle: this.ride.kind, state: 'cancel' });
+  }
+
+  /** The autopilot is fetching or following a route. */
+  get autoDriving(): boolean { return !!this.auto || !!this.autoToken; }
+
+  private stepAuto(ride: Ride, auto: PursuitDriver, dt: number): DriveInput {
+    const s = ride.sim;
+    // the ground just ahead still streaming in (city): wait there, that is not being stuck
+    const ahead = groundPending(s.x + Math.sin(s.heading) * 2.5, s.z + Math.cos(s.heading) * 2.5, 0.6);
+    const inp = auto.step(s, dt, ahead);
+    if (auto.state === 'arrived' && Math.abs(s.v) < 0.3) {
+      emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'arrive' });
+      this.driveArrivals++;
+      this.auto = null; this.driveTarget = null; this.drivePath = [];
+    } else if (auto.state === 'stuck') {
+      emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'stuck' });
+      say('前面过不去了，换你来开吧', 'Can’t get through here — your turn to steer');
+      this.driveFails++;
+      this.auto = null; this.driveTarget = null; this.drivePath = [];
+    }
+    return inp;
+  }
+
+  /** Save v2 (G1): the last-ridden bike and the toy car, when they are away from their spots (or ridden). */
+  fleetSnapshot(): FleetSnapshot {
+    const out: FleetSnapshot = {};
+    const r2 = (v: number) => Math.round(v * 100) / 100;
+    const bikes = this.fleet.rides.filter(r => r.kind === 'bike');
+    const bike = [this.ride, this.lastRide].find(r => r?.kind === 'bike') ?? bikes.find(r => r.displaced);
+    if (bike && (bike.displaced || bike.occupied)) out.bike = { id: bike.id, x: r2(bike.sim.x), z: r2(bike.sim.z), heading: r2(bike.sim.heading) };
+    const car = this.fleet.rides.find(r => r.kind === 'car');
+    if (car && (car.displaced || car.occupied)) out.car = { x: r2(car.sim.x), z: r2(car.sim.z), heading: r2(car.sim.heading) };
+    return out;
+  }
+
+  /**
+   * Put the bike / toy car of a save back (G1 validates the file; this checks the poses again: finite, on drivable
+   * ground where the hull fits, else the nearest fit within 6 u, else skipped). City ground that is not resident yet
+   * is waited for (≤ 60 s). A vehicle the player is riding is left alone. The restored bike becomes "your" vehicle
+   * (hold F calls it).
+   */
+  restoreFleet(snap: FleetSnapshot) {
+    this.restoreWait = null;
+    if (!snap || typeof snap !== 'object') return;
+    if (!this.tryRestore(snap)) this.restoreWait = { snap, t: 0 };
+  }
+
+  /** True when done (placed or skipped); false = some ground is still streaming in. */
+  private tryRestore(snap: FleetSnapshot): boolean {
+    let waiting = false;
+    const put = (r: Ride | undefined, e: { x: number; z: number; heading: number } | undefined): boolean => {
+      if (!r || !e || r.occupied || r.call) return false;
+      const { x, z } = e, h = Number.isFinite(e.heading) ? e.heading : 0;
+      if (!Number.isFinite(x) || !Number.isFinite(z) || Math.abs(x) > 5000 || Math.abs(z) > 5000) return false;
+      if (Math.hypot(r.sim.x - x, r.sim.z - z) < 0.05) return true;
+      if (groundPending(x, z, 2)) { waiting = true; return false; }
+      const fit = poseCheck(TERRAIN_WORLD, r.sim.spec, x, z, h).ok ? { x, z, heading: h } : findFit(TERRAIN_WORLD, r.sim.spec, x, z, h, 6);
+      if (!fit) return false;
+      r.sim.place(fit.x, fit.z, fit.heading, TERRAIN_WORLD);
+      r.displaced = true; r.dirty = true;
+      return true;
+    };
+    const bike = snap.bike && typeof snap.bike.id === 'string' ? this.fleet.rides.find(r => r.kind === 'bike' && r.id === snap.bike!.id) : undefined;
+    const car = this.fleet.rides.find(r => r.kind === 'car');
+    const placedCar = put(car, snap.car);
+    const placedBike = put(bike, snap.bike);
+    if (placedBike && bike) this.lastRide = bike; else if (placedCar && car && !this.lastRide) this.lastRide = car;
+    if (placedBike || placedCar) this.publishRideables();
+    return !waiting;
   }
 
   /** People never get knocked over: a vehicle about to touch a resident stops with a soft bump. */

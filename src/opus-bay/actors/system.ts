@@ -145,6 +145,8 @@ class TargetRing {
   }
   /** The walk reached its target: collapse the ring (0.35 s). */
   arrive() { if (this.target && !this.fail) { this.arriveAge = 0; } }
+  /** where the ring is (null when hidden) */
+  get current(): Vec2 | null { return this.target; }
   update(dt: number, t: number, pathTarget: Vec2 | null) {
     this.age += dt;
     if (this.arriveAge >= 0 && this.target) {
@@ -177,28 +179,46 @@ class TargetRing {
   dispose() { this.mesh.geometry.dispose(); this.material.dispose(); }
 }
 
-/** 6–8 fading dots along a long click-to-walk route (A11). One instanced draw, hidden when idle. */
+/** The first `maxLen` u of a polyline after its start (breadcrumbs of a drive route). */
+function crumbsAhead(pts: Vec2[], maxLen: number): Vec2[] {
+  const out: Vec2[] = [];
+  let acc = 0;
+  for (let i = 1; i < pts.length && acc < maxLen; i++) { acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z); out.push(pts[i]); }
+  return out;
+}
+
+/**
+ * 6–8 fading dots along a long click-to-walk route (A11); up to 14 along the first 140 u of a city walking / drive
+ * route (lane E2 wave 2). One instanced draw, hidden when idle.
+ */
 class Breadcrumbs {
   static readonly N = 8;
+  /** capacity: long city routes lay more dots */
+  static readonly MAX = 14;
   readonly mesh: THREE.InstancedMesh;
   private pts: THREE.Vector3[] = [];
   private startT = -10;
+  /** how long one trace shows (s) and the pop-in stagger between dots */
+  private life = 1.2;
+  private stagger = 0.05;
   constructor() {
     const g = new THREE.CircleGeometry(0.2, 14).rotateX(-Math.PI / 2);
     const m = new THREE.MeshBasicMaterial({ color: '#fffaf1', transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false });
-    this.mesh = new THREE.InstancedMesh(g, m, Breadcrumbs.N);
+    this.mesh = new THREE.InstancedMesh(g, m, Breadcrumbs.MAX);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 6;
     this.mesh.visible = false;
     this.mesh.count = 0;
   }
-  /** Lay dots along from → path when the route is long enough (> 18 u). */
-  trace(from: Vec2, path: Vec2[], t: number) {
+  /** Lay dots along from → path when the route is long enough (> 18 u). `max` dots (long city routes: more, slower). */
+  trace(from: Vec2, path: Vec2[], t: number, max = Breadcrumbs.N) {
     const pts = [from, ...path];
     let total = 0;
     for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
     if (total < 18) return;
-    const n = Math.min(Breadcrumbs.N, Math.max(6, Math.round(total / 8)));
+    const n = Math.min(max, Breadcrumbs.MAX, Math.max(6, Math.round(total / 8)));
+    this.life = max > Breadcrumbs.N ? 2.2 : 1.2;
+    this.stagger = max > Breadcrumbs.N ? 0.07 : 0.05;
     this.pts = [];
     for (let k = 1; k <= n; k++) {
       let want = (total * k) / (n + 1), i = 1;
@@ -212,13 +232,13 @@ class Breadcrumbs {
   }
   update(t: number) {
     const age = t - this.startT;
-    if (age > 1.2 || !this.pts.length) { if (this.mesh.visible) { this.mesh.visible = false; this.mesh.count = 0; } return; }
+    if (age > this.life || !this.pts.length) { if (this.mesh.visible) { this.mesh.visible = false; this.mesh.count = 0; } return; }
     this.mesh.visible = true;
     let i = 0;
     for (const [k, p] of this.pts.entries()) {
-      // dots pop in one after another (0.05 s apart) and fade over the last 0.5 s
-      const local = age - k * 0.05;
-      const s = local < 0 ? 0 : Math.min(1, local / 0.12) * (1 - Math.max(0, (age - 0.7) / 0.5));
+      // dots pop in one after another (0.05 s apart; long routes 0.07) and fade over the last 0.5 s
+      const local = age - k * this.stagger;
+      const s = local < 0 ? 0 : Math.min(1, local / 0.12) * (1 - Math.max(0, (age - (this.life - 0.5)) / 0.5));
       tmpM.compose(p, tmpQ.identity(), tmpS.set(s, 1, s));
       this.mesh.setMatrixAt(i++, tmpM);
     }
@@ -252,6 +272,7 @@ export class ActorSystem {
   private prevPathTarget: Vec2 | null = null;
   private seenPlan = 0;
   private seenFail = -10;
+  private seenDrive = { routes: 0, arrivals: 0, fails: 0 };
   private lastClick = { t: -10, x: 0, z: 0 };
   private unsub: () => void;
   private obstacles: Obstacle[] = [];
@@ -377,13 +398,19 @@ export class ActorSystem {
     return best;
   }
 
-  /** R3F onClick on the ground picker: tap / click to walk. */
+  /** R3F onClick on the ground picker: tap / click to walk; on a bike or in the toy car, tap to drive (E2-4). */
   onGroundClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > DRAG_THRESHOLD) return;
     if ((e.nativeEvent as MouseEvent).button !== undefined && (e.nativeEvent as MouseEvent).button !== 0) return;
     const s = game.get(), f = flow.get();
-    if (s.phase !== 'playing' || s.photoMode || s.riding || this.move.carried || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
+    const driving = this.move.mode === 'bike' || this.move.mode === 'car';
+    if (s.phase !== 'playing' || s.photoMode || s.riding || (this.move.carried && !driving) || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
     e.stopPropagation();
+    if (driving) {
+      const at = { x: e.point.x, z: e.point.z };
+      if (this.move.driveTo(at)) this.ring.show(at); else { this.ring.show(at, true); emit({ type: 'ui', action: 'error' }); }
+      return;
+    }
     let target: Vec2 = { x: e.point.x, z: e.point.z };
     if (!canStand(target.x, target.z, 0.4)) {
       const alt = nearestWalkable(target, 7);
@@ -589,11 +616,16 @@ export class ActorSystem {
     } else if (this.prevPathTarget && !p.pathTarget && Math.hypot(p.x - this.prevPathTarget.x, p.z - this.prevPathTarget.z) < 1.2) this.ring.arrive();
     if (pc2.planCount !== this.seenPlan) {
       this.seenPlan = pc2.planCount;
-      if (p.pathTarget) this.crumbs.trace({ x: p.x, z: p.z }, pc2.path, t);
+      if (p.pathTarget) this.crumbs.trace({ x: p.x, z: p.z }, pc2.crumbPath(), t, pc2.longMode ? Breadcrumbs.MAX : Breadcrumbs.N);
     }
+    // tap-to-drive: dots along the drive route, the ring collapses on arrival, a red ring when there is no way
+    const sd = this.seenDrive;
+    if (move.driveRoutes !== sd.routes) { sd.routes = move.driveRoutes; if (move.drivePath.length > 1) this.crumbs.trace(move.drivePath[0], crumbsAhead(move.drivePath, 140), t, Breadcrumbs.MAX); }
+    if (move.driveArrivals !== sd.arrivals) { sd.arrivals = move.driveArrivals; this.ring.arrive(); }
+    if (move.driveFails !== sd.fails) { sd.fails = move.driveFails; const r = this.ring.current; if (r) { this.ring.show(r, true); emit({ type: 'ui', action: 'error' }); } }
     this.prevPathTarget = p.pathTarget ? { x: p.pathTarget.x, z: p.pathTarget.z } : null;
     this.crumbs.update(t);
-    this.ring.update(dt, t, p.pathTarget);
+    this.ring.update(dt, t, p.pathTarget ?? move.driveTarget);
 
     // warm rim light by day, faint at night
     const tod = s.timeOfDay;

@@ -7,12 +7,18 @@ import type { Vec2 } from '../core/types';
  * Every function is safe before the bind (no-op / neutral answer).
  *
  *   driveTo(p): boolean                 tap-to-drive / 骑车去·开车去 (G1): start the autopilot toward p while riding a
- *                                       bike or the toy car; false = not riding / refused. Day 0: always false.
+ *                                       bike or the toy car (steady, not boarding / braking); false = not riding /
+ *                                       refused. The drive route is fetched asynchronously (district grid, city
+ *                                       walking graph with the vehicle's edge filter); events 'vehicle:auto'
+ *                                       start / arrive / stuck / cancel. With no way there: a line and no 'start'.
  *   cancelDrive()                       stop the autopilot (any manual input also cancels it)
  *   requestHopOff()                     "提前下车" (HUD button): the same path as Space / pad B in a transit car
  *   toFoot()                            park whatever carries the player (bike, car, pelican, bench) right now
- *   fleetSnapshot(): FleetSnapshot      last-ridden bike + the toy car poses, for G1's save v2. Day 0: {}.
- *   restoreFleet(s)                     place them back (validated input from save v2). Day 0: no-op.
+ *   fleetSnapshot(): FleetSnapshot      last-ridden bike (+ id) and the toy car poses when they are away from their
+ *                                       spots or ridden, for G1's save v2 ({} when nothing moved).
+ *   restoreFleet(s)                     place them back: finite, inside the model, the hull fits (else the nearest
+ *                                       fit within 6 u, else skipped); city ground still streaming in is waited for
+ *                                       (≤ 60 s); a ridden vehicle is left alone. Call after the player is placed.
  *   glideUnlocked(): boolean            the pelican glide is unlocked (Coit viewpoint or ?debug=1)
  *   isRiding(): boolean                 carried by anything (bike, car, glide, transit, bench)
  */
