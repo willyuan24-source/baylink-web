@@ -252,7 +252,7 @@ route QA, HC-4 hero GLB compression / preload (the pelican with E2); the kit nig
 - 被地标"切断"的街道都自动补回来了（例如市政厅旁的 Van Ness 大道、棒球场旁的 King St 和轻轨轨道）。F 线的游客已经站到这些广场上了。
 - 三条完整路线做好了：唐人街→北滩→科伊特塔（长 396）、码头绿地→艺术宫→克里西场→Fort Point→金门大桥南塔（1,051）、金门公园→海洋海滩（1,403），每两个有名字的地点之间都不超过 225。
 - 五个老的主角模型（BAYBAY、鹈鹕、帆船、两只海狮）文件从 1.36 MB 压到 0.91 MB，游戏里看起来一样。
-- 没花 Higgsfield 积分（整条线 0/80）；检查全绿（674 个测试通过）。还没达标的一项：路线上"屏幕里总能看到一个大地标"的比例实测 72–82%（目标 90%），金门公园那段要等第四波把公园里的新地标接进来。
+- 没花 Higgsfield 积分（整条线 0/80）；检查全绿（679 个测试通过）。还没达标的一项：路线上"屏幕里总能看到一个大地标"的比例实测 72–82%（目标 90%），金门公园那段要等第四波把公园里的新地标接进来。
 
 ### What was built
 
@@ -278,9 +278,9 @@ map route lines), G2 (stop slots / lines) and F (crowds along a route). `heroGlt
 
 ### Evidence
 
-- **Checks** on the pushed head `503fa8f` (rebased on `b87326e`): `tsc` 0 errors; `npx eslint . --ignore-pattern
-  ".vite-opus/**"` 0 errors (42 warnings, none in D2 files; `.vite-opus/` is the local dev cache, not in git);
-  **674 / 674** opus-bay tests (hero regression and contracts included).
+- **Checks** on the pushed head `93188ed` (the Castro turn, rebased on `9c32236`): `tsc` 0 errors; `npx eslint .
+  --ignore-pattern ".vite-opus/**"` 0 errors (42 warnings, none in D2 files; `.vite-opus/` is the local dev cache, not
+  in git); **679 / 679** opus-bay tests (hero regression and contracts included).
 - **Settings, before / after** (golden, desktop 1440×900, quality high): `qa/w3/D2/d2-09-before-after-1.jpg` (Dragon
   Gate, Palace lagoon, GGB south end, Conservatory) and `-2.jpg` (windmill, Castro — the Hartford-side forecourt shown there was replaced by the turn, see `d2-09-castro-turned.jpg` —, Twin Peaks, City Hall); **night**
   (after): `d2-09-night-1.jpg`, `-2.jpg` (lanterns over Grant Ave, lamps round the lagoon, City Hall's flags and lamps,
