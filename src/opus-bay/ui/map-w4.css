@@ -3,7 +3,7 @@
    Toy-paper palette of opus-bay.css (--ob-*); touch targets ≥ 44 px (rows 48 px); laid out for 390 / 375 px phones. */
 
 /* --- filter chips: a horizontally scrolling row of 32 px chips in a 44 px band ---------------------------------- */
-.mw-chips { display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 6px 2px; margin: 0 -2px; min-height: 44px; align-items: center; -webkit-overflow-scrolling: touch; }
+.mw-chips { position: relative; display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 6px 2px; margin: 0 -2px; min-height: 44px; align-items: center; -webkit-overflow-scrolling: touch; }
 .mw-chips::-webkit-scrollbar { display: none; }
 .mw-chip { --mw-chip: var(--ob-ink-2); flex: none; display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--ob-line-2); background: var(--ob-cream); color: var(--ob-ink-2); font: 700 13px/1 var(--ob-font); cursor: pointer; white-space: nowrap; transition: background .15s var(--ob-ease), border-color .15s var(--ob-ease); }
 .mw-chip svg { color: var(--mw-chip); }

@@ -301,6 +301,7 @@ test('layout: at 352 × 388 with the SF-land fit ≥ 11 T1 labels, no overlappin
     const a = boxes[i], b = boxes[j];
     assert.ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `labels ${labelled[i].id} / ${labelled[j].id} overlap`);
   }
+  assert.ok(r.kept.find(k => k.id === 'golden-gate-bridge')?.label, 'the Golden Gate Bridge is labelled');
   // the owner's two stay findable: SF State is labelled, Stonestown is its badge or its pip
   const sfsu = r.kept.find(k => k.id === 'sf-state-university' || k.members.includes('sf-state-university'))!;
   assert.ok(sfsu.label && /州立大学|石镇/.test(sfsu.text!), sfsu.text ?? 'no label');

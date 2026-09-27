@@ -19,7 +19,7 @@ function Swatch({ style, underground = false }: { style: LineStyle; underground?
 
 function BadgeCell({ cat, size, state, label }: { cat: AttractionCat; size: BadgeSize; state: Parameters<typeof MapBadge>[0]['state']; label: Bilingual }) {
   const { t } = useT();
-  const box = Math.max(28, size.r * 2 + 12);
+  const box = Math.max(28, size.r * 2 + 12) + (state.cluster ? 14 : 0);
   return (
     <li>
       <svg width={box} height={box} viewBox={`${-box / 2} ${-box / 2} ${box} ${box}`} aria-hidden>
@@ -76,7 +76,7 @@ export function MapLegend({ onClose }: { onClose?: () => void }) {
           <span>{t('正在去的地方', 'Where you are heading')}</span>
         </li>
         <BadgeCell cat="landmark" size={t2} state={{ discovered: false, tourStop: 3 }} label={{ zh: '导览下一站', en: 'Next tour stop' }} />
-        <BadgeCell cat="park" size={t2} state={{ discovered: true, cluster: 2 }} label={{ zh: '挤在一起：点一下放大', en: 'Grouped: tap to zoom' }} />
+        <BadgeCell cat="park" size={t2} state={{ discovered: true, cluster: 2 }} label={{ zh: '叠在一起的景点', en: 'Grouped sights' }} />
       </ul>
 
       <h4>{t('线路和车站', 'Lines and stops')}</h4>

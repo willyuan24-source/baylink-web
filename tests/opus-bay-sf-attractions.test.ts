@@ -65,7 +65,8 @@ test('attractions: every JSON attraction is here with its names, position, map r
   const extra = ATTRACTIONS.filter(a => !J.attractions.some(j => j.id === a.id));
   assert.equal(extra.length, 24);
   for (const a of extra) {
-    const p = places.places.find(q => q.id === a.placeId);
+    // the Golden Gate Bridge's badge stands on its south tower (the landmark's place row is the mid-span one)
+    const p = places.places.find(q => q.id === (a.id === 'golden-gate-bridge' ? 'ggb-south-tower' : a.placeId));
     assert.ok(p, `${a.id} place ${a.placeId}`);
     assert.ok(Math.abs(p.x - a.x) <= 0.051 && Math.abs(p.z - a.z) <= 0.051, `${a.id} at its place`);
   }
@@ -305,4 +306,20 @@ test('search: every alias finds its attraction; the plan\'s queries rank as aske
   // hidden rows are not searchable, the fixed names are
   assert.ok(!ids('Main pool house', 30).includes('osm-w32776540'));
   assert.equal(ids('苏特罗浴场', 1)[0], 'sutro-baths');
+});
+
+test('attractions: withSiteFlags takes lane L\'s poles (by id, then place id), clamps them, leaves T3 alone', async () => {
+  const { withSiteFlags } = await import('../src/opus-bay/data/sf/attractions');
+  const tops: Record<string, { x: number; z: number; h: number }> = { 'sf-state-university': { x: 1, z: 2, h: 44 }, 'ggb-deck-mid': { x: 3, z: 4, h: 99 }, 'bison-paddock': { x: 0, z: 0, h: 40 } };
+  const out = withSiteFlags(ATTRACTIONS, ref => tops[ref] ?? null);
+  const by = new Map(out.map(a => [a.id, a]));
+  assert.deepEqual(by.get('sf-state-university')!.flag, { x: 1, z: 2, h: 44 });
+  assert.deepEqual(by.get('golden-gate-bridge')!.flag, { x: 3, z: 4, h: 70 }, 'by place id, clamped');
+  assert.equal(by.get('bison-paddock')!.flag, undefined, 'T3 has no flag');
+  assert.deepEqual(by.get('alcatraz')!.flag, ATTRACTION_INDEX.get('alcatraz')!.flag, 'no pole: the placeholder stays');
+  // lane L's real function answers for the sites it has built (world/sf/landmarks/w4sites.ts)
+  const { siteFlagTop } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
+  const real = withSiteFlags(ATTRACTIONS, siteFlagTop);
+  for (const a of real) if (a.flag) assert.ok(a.flag.h >= 28 && a.flag.h <= 70, a.id);
+  assert.ok(real.filter(a => a.flag && JSON.stringify(a.flag) !== JSON.stringify(ATTRACTION_INDEX.get(a.id)!.flag)).length >= 2, 'L already answers for some attractions');
 });

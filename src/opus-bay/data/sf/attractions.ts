@@ -20,7 +20,9 @@ import {
  *   JSON facts; the card adds "出发前查官网确认"), `quiet` (churches, memorials), `panorama` (the six viewpoints);
  * - `placeId`: the place-index row the attraction decorates. New rows (47) are data/sf/extraPlaces.ts rows with the
  *   attraction's id. Existing landmarks use the row the place index matched to them at runtime (the Golden Gate Bridge
- *   → `ggb-deck-mid`, Sutro Baths → `osm-w32776540`, whose names data/sf/extraPlaces.ts fixes);
+ *   → `ggb-deck-mid`, Sutro Baths → `osm-w32776540`, whose names data/sf/extraPlaces.ts fixes). The Golden Gate
+ *   Bridge's badge stands on its SOUTH TOWER (the `ggb-south-tower` row), not mid-span: on a phone's whole-city view the
+ *   mid-span point sits on the frame edge and loses its label;
  * - `flag` for every T1 / T2 (the in-world pennant, plan §4.2): foot = the anchor unless `FLAG_TOPS` moves it, pole top =
  *   `FLAG_TOPS[id].h` or 30 u. PLACEHOLDERS until lane L's `siteFlagTop(id)` lands (L fills `FLAG_TOPS` or the
  *   integration reads siteFlagTop first); every value is clamped to ATTRACTION_FLAG_H (28–70).
@@ -169,7 +171,7 @@ const ROWS: Attraction[] = [
   { id: 'yoda-fountain', placeId: 'yoda-fountain', name: bi('尤达喷泉（卢卡斯影业园区）', 'Yoda Fountain (Letterman Digital Arts Center)'), short: bi('尤达喷泉', 'Yoda Fountain'), cat: 'culture', rank: 3, fame: 30, x: -392.6, z: 484.9, arrival: { x: -387.4, z: 484.9 }, area: 'bridge-presidio', aliases: ['尤达', 'Yoda', '星球大战', 'Star Wars', 'Lucasfilm'], siteId: 'presidio', treatment: 'card', priority: 4 },
   { id: 'sentinel-building', placeId: 'osm-w288485994', name: bi('哨兵大厦（哥伦布塔）', 'Sentinel Building (Columbus Tower)'), short: bi('哨兵大厦', 'Columbus Tower'), cat: 'landmark', rank: 3, fame: 32, x: 21.3, z: 106.9, arrival: { x: 20.6, z: 106.9 }, area: 'north-downtown', aliases: ['Sentinel', 'Columbus Tower', '绿色大楼'], treatment: 'defer', priority: 4, hero: true },
   { id: 'ss-jeremiah-obrien', placeId: 'osm-w1280748838', name: bi('奥布莱恩号自由轮', 'SS Jeremiah O\'Brien'), short: bi('奥布莱恩号', 'SS O\'Brien'), cat: 'museum', glyph: 'Sailboat', rank: 3, fame: 28, x: -130.1, z: -8.3, area: 'north-downtown', aliases: ['自由轮', 'Liberty ship', 'O\'Brien'], treatment: 'defer', priority: 4, officialUrl: 'https://ssjeremiahobrien.org/visit-us/', hero: true },
-  { id: 'golden-gate-bridge', placeId: 'ggb-deck-mid', name: bi('金门大桥', 'Golden Gate Bridge'), short: bi('金门大桥', 'Golden Gate'), cat: 'landmark', rank: 1, fame: 100, x: -865.9, z: 508.5, area: 'bridge-presidio', aliases: ['金门桥', 'GGB', 'Golden Gate', '大桥', 'bridge'], photoKey: 'bridge', landmarkId: 'golden-gate-bridge', treatment: 'stop', priority: 2 },
+  { id: 'golden-gate-bridge', placeId: 'ggb-deck-mid', name: bi('金门大桥', 'Golden Gate Bridge'), short: bi('金门大桥', 'Golden Gate'), cat: 'landmark', rank: 1, fame: 100, x: -796.1, z: 564.4, area: 'bridge-presidio', aliases: ['金门桥', 'GGB', 'Golden Gate', '大桥', 'bridge'], photoKey: 'bridge', landmarkId: 'golden-gate-bridge', treatment: 'stop', priority: 2 },
   { id: 'alcatraz', placeId: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), short: bi('恶魔岛', 'Alcatraz'), cat: 'coast', glyph: 'Sailboat', rank: 1, fame: 95, x: -468.2, z: -58.5, arrival: { x: -97.7, z: -21.2 }, offWalk: 'island: boats leave from Pier 33, the game leads to its telescope', area: 'north-downtown', aliases: ['恶魔岛', '恶魔岛监狱', 'Alcatraz', '阿尔卡特拉斯', 'prison'], photoKey: 'alcatraz', treatment: 'card', priority: 2 },
   { id: 'fishermans-wharf', placeId: 'fishermans-wharf', name: bi('渔人码头', 'Fisherman\'s Wharf'), short: bi('渔人码头', 'The Wharf'), cat: 'coast', rank: 1, fame: 90, x: -206.3, z: 84.6, area: 'north-downtown', aliases: ['渔人码头', 'Fisherman\'s Wharf', 'Wharf', '螃蟹'], landmarkId: 'fishermans-wharf', treatment: 'stop', priority: 2 },
   { id: 'coit-tower', placeId: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), short: bi('科伊特塔', 'Coit Tower'), cat: 'landmark', rank: 1, fame: 80, x: -50.2, z: 51.1, area: 'north-downtown', aliases: ['科伊特', 'Coit', '电报山', 'Telegraph Hill'], photoKey: 'coit', treatment: 'card', priority: 2, hero: true, panorama: true },
@@ -314,3 +316,15 @@ export function nearStops(a: Pick<Attraction, 'x' | 'z' | 'arrival'>, lines: rea
 /** A copy of `list` with `near` filled from the published lines (call once the transit data is in). */
 export const withNearStops = (list: readonly Attraction[], lines: readonly NearLine[], maxD = 200): Attraction[] =>
   list.map(a => { const near = nearStops(a, lines, maxD); return near.length ? { ...a, near } : a; });
+
+/**
+ * The list with lane L's real flag poles: `top(id)` (world/sf/landmarks/w4sites.ts `siteFlagTop`, city-only code:
+ * call this in the city chunk), else `top(placeId)`, else the placeholder above; h clamped to 28–70. T3 get none.
+ */
+export function withSiteFlags(list: readonly Attraction[], top: (ref: string) => AttractionFlag | null): Attraction[] {
+  return list.map(a => {
+    if (a.rank > 2) return a;
+    const f = top(a.id) ?? (a.placeId ? top(a.placeId) : null);
+    return f ? { ...a, flag: { x: f.x, z: f.z, h: clampFlag(f.h) } } : a;
+  });
+}
