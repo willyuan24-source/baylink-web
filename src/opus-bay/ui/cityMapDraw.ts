@@ -8,7 +8,8 @@ import type { AreaSet, FarData, PrismSet, RoadSet } from '../world/sf/format';
  *   sea → land → lakes → parks / woods / sand → street blocks → streets by class → cable-car lines →
  *   neighbourhood borders → paper fog over neighbourhoods not visited yet
  *
- * With H2b's painted paper underneath (`paper: true`) the sea and land fills are left out so the paper shows.
+ * With H2b's painted paper underneath (`paper: true`, H2b's request) the paper paints sea, land, parks, beaches and
+ * blocks: the canvas only strokes the coastline on top, fades the streets in from 0.8 px/u and lays a lighter fog.
  * World x → right, world z → down (the same frame as the painted map, data/mapPaper MAP_FRAME).
  */
 
@@ -70,6 +71,10 @@ export const MAP_PAINT = {
   border: 'rgba(125, 104, 76, .45)',
   fog: 'rgba(241, 232, 216, .82)',
   fogEdge: 'rgba(168, 146, 112, .55)',
+  /** the coastline over H2b's painted paper */
+  paperCoast: 'rgba(58, 116, 126, .6)',
+  /** lighter fog over the painted paper: the painting hints through where you have not been yet */
+  paperFog: 'rgba(241, 232, 216, .7)',
 } as const;
 
 /** The subset of the Canvas 2D API the drawing uses (tests pass a recorder). */
@@ -206,26 +211,38 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
     ctx.beginPath();
     if (areaPath(ctx, v, far.areas, b.areas, vb, [A_LAND])) fill(MAP_PAINT.land, 'evenodd');
   }
-  ctx.beginPath();
-  if (areaPath(ctx, v, far.areas, b.areas, vb, [A_WATER])) fill(MAP_PAINT.lake, 'evenodd');
-  ctx.beginPath();
-  if (areaPath(ctx, v, far.areas, b.areas, vb, [A_PARK, A_GRASS, A_GOLF, A_PITCH, A_SCRUB])) fill(MAP_PAINT.park, 'evenodd');
-  ctx.beginPath();
-  if (areaPath(ctx, v, far.areas, b.areas, vb, [A_FOREST])) fill(MAP_PAINT.forest, 'evenodd');
-  ctx.beginPath();
-  if (areaPath(ctx, v, far.areas, b.areas, vb, [A_SAND])) fill(MAP_PAINT.sand, 'evenodd');
-  ctx.beginPath();
-  if (prismPath(ctx, v, far.prisms, b.prisms, vb)) fill(MAP_PAINT.blocks);
-  // streets: minor ones (tertiary) from 1.6 px/u … widths grow with the zoom (right-of-way ≈ 3–6 u)
-  const w = (u: number, min: number) => Math.max(min, u * zoom);
-  if (zoom > 0.6) {
+  if (!input.paper) {
     ctx.beginPath();
-    if (linePath(ctx, v, far.lines, b.lines, vb, c => c === R_TERTIARY)) { stroke(MAP_PAINT.streetCase, w(3.4, 1.4)); stroke(MAP_PAINT.street, w(2.6, 0.9)); }
+    if (areaPath(ctx, v, far.areas, b.areas, vb, [A_WATER])) fill(MAP_PAINT.lake, 'evenodd');
+    ctx.beginPath();
+    if (areaPath(ctx, v, far.areas, b.areas, vb, [A_PARK, A_GRASS, A_GOLF, A_PITCH, A_SCRUB])) fill(MAP_PAINT.park, 'evenodd');
+    ctx.beginPath();
+    if (areaPath(ctx, v, far.areas, b.areas, vb, [A_FOREST])) fill(MAP_PAINT.forest, 'evenodd');
+    ctx.beginPath();
+    if (areaPath(ctx, v, far.areas, b.areas, vb, [A_SAND])) fill(MAP_PAINT.sand, 'evenodd');
+    ctx.beginPath();
+    if (prismPath(ctx, v, far.prisms, b.prisms, vb)) fill(MAP_PAINT.blocks);
+  } else {
+    // H2b's paper paints the lakes, parks, woods, beaches and blocks; the vector coastline goes on top of it
+    ctx.beginPath();
+    if (areaPath(ctx, v, far.areas, b.areas, vb, [A_LAND])) stroke(MAP_PAINT.paperCoast, Math.max(1, 0.9 * zoom));
   }
-  ctx.beginPath();
-  if (linePath(ctx, v, far.lines, b.lines, vb, c => c > 1 && c < R_TERTIARY)) { stroke(MAP_PAINT.streetCase, w(4.4, 2.2)); stroke(MAP_PAINT.street, w(3.4, 1.5)); }
-  ctx.beginPath();
-  if (linePath(ctx, v, far.lines, b.lines, vb, c => c <= 1)) { stroke(MAP_PAINT.majorCase, w(5.6, 3)); stroke(MAP_PAINT.major, w(4.2, 2)); }
+  // streets: minor ones (tertiary) from 1.6 px/u … widths grow with the zoom (right-of-way ≈ 3–6 u). Over the paper
+  // they fade in from 0.8 px/u (the paper's own streets read below that)
+  const w = (u: number, min: number) => Math.max(min, u * zoom);
+  const streetAlpha = input.paper ? Math.min(0.9, Math.max(0, (zoom - 0.8) / 0.8)) : 1;
+  if (streetAlpha > 0.01) {
+    ctx.globalAlpha = streetAlpha;
+    if (zoom > 0.6) {
+      ctx.beginPath();
+      if (linePath(ctx, v, far.lines, b.lines, vb, c => c === R_TERTIARY)) { stroke(MAP_PAINT.streetCase, w(3.4, 1.4)); stroke(MAP_PAINT.street, w(2.6, 0.9)); }
+    }
+    ctx.beginPath();
+    if (linePath(ctx, v, far.lines, b.lines, vb, c => c > 1 && c < R_TERTIARY)) { stroke(MAP_PAINT.streetCase, w(4.4, 2.2)); stroke(MAP_PAINT.street, w(3.4, 1.5)); }
+    ctx.beginPath();
+    if (linePath(ctx, v, far.lines, b.lines, vb, c => c <= 1)) { stroke(MAP_PAINT.majorCase, w(5.6, 3)); stroke(MAP_PAINT.major, w(4.2, 2)); }
+    ctx.globalAlpha = 1;
+  }
   // cable cars (their own colours, drawn on the street)
   for (const line of input.transit ?? []) {
     ctx.beginPath();
@@ -245,7 +262,7 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
     ctx.setLineDash([]);
   }
   ctx.beginPath();
-  if (zonePath(ctx, v, far.zones, id => !input.visited(id))) { fill(MAP_PAINT.fog, 'evenodd'); stroke(MAP_PAINT.fogEdge, 1.2); }
+  if (zonePath(ctx, v, far.zones, id => !input.visited(id))) { fill(input.paper ? MAP_PAINT.paperFog : MAP_PAINT.fog, 'evenodd'); stroke(MAP_PAINT.fogEdge, 1.2); }
   ctx.restore();
   return ops;
 }
