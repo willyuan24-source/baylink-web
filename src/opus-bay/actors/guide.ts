@@ -4,6 +4,7 @@ import type { Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { dampAngle, moveDisc } from './controller';
 import { findPath, lineOfSight, pathLength } from './nav';
+import { RouteFollower, isLongRoute } from './routeFollow';
 
 /**
  * BAYBAY's legs (contract C3). The guide brain (game/brain.ts, 10 Hz) decides WHERE and WHICH MODE
@@ -12,6 +13,11 @@ import { findPath, lineOfSight, pathLength } from './nav';
  * lead: holds ~3.5 u ahead and never sprints away from a walking player), arrives comfortably, keeps out of the
  * player's way (with a dead zone so two idle friends do not shuffle), faces the player while talking / waiting, and
  * when she is left far behind and off-screen she hops back in beside the player (never a visible teleport).
+ *
+ * City mode (lane E2 wave 2, E2-2): a lead target beyond the local window asks for a walking-graph route like the
+ * player's click-to-walk (routeFollow.RouteFollower: abortable, the clamped local path while it is pending, legs refined
+ * as she reaches them, a fresh route after repeated stalls); small nudges of the brain's target keep the route. The
+ * > 60 u hop-in stays. District mode is unchanged (findPath / line of sight only).
  */
 
 export const GUIDE_RADIUS = 0.42;
@@ -28,6 +34,8 @@ const LEAD_AHEAD = 3.5;
 const HOP_FAR = 18, HOP_DELAY = 1.5, HOP_TIME = 0.4;
 /** the walk cycle starts only after the commanded speed has been above this for WALK_GATE s */
 const WALK_MIN = 0.4, WALK_GATE = 0.15;
+/** a long route is kept while the brain's target stays within this of its goal (lead targets shift with the player) */
+const LONG_KEEP = 8;
 
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -67,6 +75,10 @@ export class GuideMover {
   private hiddenFarT = 0;
   private hop: { fx: number; fz: number; tx: number; tz: number; t: number } | null = null;
   private gateT = 0;
+  /** city mode: the long route of the current target (E2-2) */
+  readonly route = new RouteFollower();
+  /** following `route` (pending: still on the clamped local path) */
+  long = false;
 
   /** Initial spot: a few steps ahead of the spawn, in view, so BAYBAY can waddle up for the welcome. */
   place() {
@@ -82,6 +94,7 @@ export class GuideMover {
 
   private resetPath() {
     this.path = []; this.pathIndex = 0; this.plannedFor = null; this.stallT = 0; this.stallRef = Infinity; this.fails = 0;
+    this.route.cancel(); this.long = false;
   }
 
   /** The camera-space side slot beside the player (F15 semantics): ±2 u lateral, 0.6 u beyond. */
@@ -180,13 +193,15 @@ export class GuideMover {
     let arrived = true;
     if (target) {
       if (target !== this.plannedFor || (this.path.length === 0 && now - this.planAt > 0.5)) this.plan(target, now);
+      if (this.long) this.followLong(target);
       while (this.pathIndex < this.path.length - 1 && dist(this.path[this.pathIndex], g) < 0.6) this.pathIndex++;
       const wp = this.path[this.pathIndex];
       if (wp) {
         const last = this.pathIndex === this.path.length - 1;
         const d = dist(wp, g);
         const remaining = pathLength({ x: g.x, z: g.z }, this.path, this.pathIndex);
-        if (last && d < 0.45) { arrived = true; }
+        if (last && d < 0.45 && this.long && this.route.walker && !this.route.walker.lastLeg) { this.route.walker.leg++; arrived = false; }
+        else if (last && d < 0.45) { arrived = true; }
         else {
           arrived = false;
           wx = (wp.x - g.x) / (d || 1); wz = (wp.z - g.z) / (d || 1);
@@ -196,7 +211,12 @@ export class GuideMover {
           if (remaining < this.stallRef - 0.2) { this.stallRef = remaining; this.stallT = 0; } else this.stallT += dt;
           if (this.stallT > 1.2) {
             this.stallT = 0; this.stallRef = Infinity;
-            if (++this.fails > 3) { if (gp > 12 && hidden) { this.hopIn(); return; } this.resetPath(); this.plannedFor = target; }
+            if (this.long) {
+              // long route: re-plan the leg, then ask for a fresh route (twice), then as below
+              if (++this.fails <= 3) { const re = this.route.replan(g); if (re && re.length) { this.path = re; this.pathIndex = 0; } }
+              else if (this.route.requests < 3) { this.fails = 0; this.route.request({ x: g.x, z: g.z }, target); }
+              else { if (gp > 12 && hidden) { this.hopIn(); return; } this.resetPath(); this.plannedFor = target; }
+            } else if (++this.fails > 3) { if (gp > 12 && hidden) { this.hopIn(); return; } this.resetPath(); this.plannedFor = target; }
             else this.plan(target, now);
           }
         }
@@ -299,9 +319,35 @@ export class GuideMover {
     this.planAt = now;
     this.stallT = 0; this.stallRef = Infinity;
     const from = { x: g.x, z: g.z };
+    // a lead target nudged by the brain keeps its long route
+    if (this.long && this.route.goal && dist(this.route.goal, target) < LONG_KEEP) return;
+    if (this.long) { this.long = false; this.route.cancel(); }
     if (lineOfSight(from, target)) { this.path = [{ x: target.x, z: target.z }]; this.pathIndex = 0; return; }
     const res = findPath(from, target, 8);
+    if (isLongRoute(from, target, res)) { this.long = true; this.route.request(from, target); }
     this.path = res?.points ?? [];
     this.pathIndex = 0;
+  }
+
+  /** Long route: the route walker's local legs once the route is known (else the clamped path planned above). */
+  private followLong(target: Vec2) {
+    const g = runtime.guide, f = this.route;
+    if (f.state === 'failed') {
+      // no graph route: walk as far as the local grid goes
+      this.long = false; f.cancel();
+      this.path = findPath({ x: g.x, z: g.z }, target, 8)?.points ?? []; this.pathIndex = 0;
+      return;
+    }
+    if (!f.active) return;
+    const pts = f.update({ x: g.x, z: g.z }, 3, 0.45);
+    if (!pts) {
+      // the route is walked: the last bit to the (possibly nudged) target is local
+      this.long = false; f.cancel();
+      const from = { x: g.x, z: g.z };
+      this.path = lineOfSight(from, target) ? [{ x: target.x, z: target.z }] : findPath(from, target, 8)?.points ?? [];
+      this.pathIndex = 0;
+      return;
+    }
+    if (pts !== this.path) { this.path = pts; this.pathIndex = 0; this.stallRef = Infinity; this.stallT = 0; }
   }
 }

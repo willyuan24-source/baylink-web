@@ -1,10 +1,11 @@
 import { emit } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
-import { canStand, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
+import { canStand, cityTerrain, groundPending, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
 import type { SurfaceKind, Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { findPath, pathLength } from './nav';
+import { RouteFollower, isLongRoute } from './routeFollow';
 
 /**
  * Player controller: camera-relative movement with acceleration curves, turn smoothing, gravity jump,
@@ -16,6 +17,13 @@ import { findPath, pathLength } from './nav';
  * downhill × (1 + 0.12·min(1, |g| / 0.5)), stairs × 0.8 up / × 0.9 down, and ground steeper than 0.9 that is not a
  * flight of stairs is a wall (moveDisc). No stamina: a long uphill run ends in a cosmetic pant at the crest.
  * Ground / collision come from core/terrain only (the city provider extends it).
+ *
+ * Long click-to-walk (city mode, lane E2 wave 2, E2-1): a target beyond LOCAL_ROUTE (or one the local grid cannot
+ * reach) asks for a walking-graph route (routeFollow.RouteFollower → nav.routeTo, abortable) and walks the clamped local
+ * path while it is pending; then it follows the route leg by leg (each ≤ 60 u, refined with findPath), re-plans a leg on
+ * a stall and asks for a fresh route after 3 stalls. District mode never takes that branch (findPath only, as before).
+ * City ground that is not resident yet (standAt −1) is unknown, not stuck: the stuck timer pauses there and the rescue
+ * never throws the player back to the Ferry gate (checkpoint CS-4).
  */
 
 /** = terrain STAND_RADIUS, so A* paths on the nav grid stay valid for the body (A8) */
@@ -209,6 +217,13 @@ export class PlayerController {
   private stallT = 0;
   private stallRef = Infinity;
   private repaths = 0;
+  /** city mode: the long route being fetched / followed for the current target (E2-1) */
+  readonly route = new RouteFollower();
+  /** following `route` (pending: still walking the clamped local path) */
+  longMode = false;
+  /** the clamped local path of a long target reached the target itself (fallback when the graph fails) */
+  private localOk = false;
+  private seenArrivals = 0;
   // bookkeeping
   private lastX = NaN;
   private lastZ = NaN;
@@ -266,6 +281,14 @@ export class PlayerController {
     this.stallT = 0;
     this.stallRef = Infinity;
     this.repaths = 0;
+    this.route.cancel();
+    this.longMode = false;
+  }
+
+  /** Where the breadcrumbs go: the long route ahead (≤ 140 u) once it is known, else the local path. */
+  crumbPath(): Vec2[] {
+    const p = runtime.player;
+    return this.longMode && this.route.active ? this.route.ahead({ x: p.x, z: p.z }, 140) : this.path;
   }
 
   /** Stop auto-walking (keyboard/stick took over, or the path is impossible). */
@@ -278,7 +301,9 @@ export class PlayerController {
 
   unstick() {
     const p = runtime.player;
-    const spot = nearestWalkable({ x: p.x, z: p.z }, 60) ?? nearestWalkable(DISTRICT.spawn, 20) ?? { x: DISTRICT.spawn.x, z: DISTRICT.spawn.z };
+    // city mode: never the district spawn (CS-4) — with nothing standable within 60 u, stay put until the ground streams in
+    const spot = nearestWalkable({ x: p.x, z: p.z }, 60) ?? (cityTerrain() ? null : nearestWalkable(DISTRICT.spawn, 20) ?? { x: DISTRICT.spawn.x, z: DISTRICT.spawn.z });
+    if (!spot) { this.stuckT = 0; return; }
     p.x = spot.x; p.z = spot.z;
     this.sync();
     p.pathTarget = null;
@@ -520,8 +545,9 @@ export class PlayerController {
       this.stride += (target - this.stride) * Math.min(1, dt * 6);
     }
 
-    // 9. unstuck: inside a blocker / off the walkable area for > 1 s
-    if (!canStand(p.x, p.z, PLAYER_RADIUS * 0.7)) this.stuckT += dt; else this.stuckT = 0;
+    // 9. unstuck: inside a blocker / off the walkable area for > 1 s (city ground that is not resident is unknown: the
+    //    timer pauses there, CS-4)
+    if (!canStand(p.x, p.z, PLAYER_RADIUS * 0.7)) { if (!groundPending(p.x, p.z)) this.stuckT += dt; } else this.stuckT = 0;
     if (this.stuckT > 1) this.unstick();
 
     // 10. publish (+ the crest pant after a long uphill run)
@@ -555,8 +581,10 @@ export class PlayerController {
       this.plannedFor = target;
       this.repaths = 0;
       this.autoRunK = 0;
+      if (this.longMode) { this.longMode = false; this.route.cancel(); }
       if (!this.plan(target)) { this.pathFailedAt = this.stepNow; this.cancelPath(); return null; }
     }
+    if (this.longMode) return this.followLong(dt, target);
     // advance through reached waypoints
     while (this.pathIndex < this.path.length - 1 && Math.hypot(this.path[this.pathIndex].x - p.x, this.path[this.pathIndex].z - p.z) < 0.55) this.pathIndex++;
     const wp = this.path[this.pathIndex];
@@ -583,6 +611,17 @@ export class PlayerController {
   private plan(target: Vec2): boolean {
     const p = runtime.player;
     const res = findPath({ x: p.x, z: p.z }, target, 10);
+    if (!this.longMode && isLongRoute(p, target, res)) {
+      // city mode, far target: fetch the graph route, walk the clamped local path meanwhile
+      this.longMode = true;
+      this.localOk = !!res && !res.snapped && res.points.length > 0;
+      this.route.request({ x: p.x, z: p.z }, target);
+      this.path = res?.points ?? [];
+      this.pathIndex = 0;
+      this.stallRef = Infinity;
+      this.stallT = 0;
+      return true;
+    }
     if (!res || !res.points.length) return false;
     this.path = res.points;
     this.pathIndex = 0;
@@ -590,5 +629,56 @@ export class PlayerController {
     this.stallT = 0;
     this.planCount++;
     return true;
+  }
+
+  /** Long route (city mode): the route walker's local legs once the route is known, the clamped path until then. */
+  private followLong(dt: number, target: Vec2): { x: number; z: number; speed: number } | null {
+    const p = runtime.player, f = this.route, pos = { x: p.x, z: p.z };
+    if (f.state === 'failed') {
+      // no graph route: finish the local path when it reached the target itself, else say so
+      if (this.localOk && this.path.length) { this.longMode = false; this.route.cancel(); return null; }
+      this.pathFailedAt = this.stepNow; this.cancelPath(); return null;
+    }
+    if (f.active) {
+      if (f.arrivals !== this.seenArrivals) { this.seenArrivals = f.arrivals; this.planCount++; }
+      const pts = f.update(pos, 3, 0.35);
+      if (!pts) { p.pathTarget = null; this.clearPath(); return null; }
+      if (pts !== this.path) { this.path = pts; this.pathIndex = 0; this.stallRef = Infinity; this.stallT = 0; }
+    }
+    while (this.pathIndex < this.path.length - 1 && Math.hypot(this.path[this.pathIndex].x - p.x, this.path[this.pathIndex].z - p.z) < 0.55) this.pathIndex++;
+    const wp = this.path[this.pathIndex];
+    // still fetching and no local way (or its end reached): wait here for the route
+    if (!wp) return null;
+    const last = this.pathIndex === this.path.length - 1;
+    const final = f.active && !!f.walker?.lastLeg && last;
+    const dx = wp.x - p.x, dz = wp.z - p.z, d = Math.hypot(dx, dz);
+    if (last && d < 0.3) {
+      if (final || !f.active) { if (final) { p.pathTarget = null; this.clearPath(); } return null; }
+      // the leg's local path ended short of the leg end (its goal snapped): go on with the next leg
+      f.walker!.leg++;
+      return null;
+    }
+    // stall → re-plan the leg (3×) → a fresh route (twice) → give up. Ground that is still streaming in is not a stall.
+    const remaining = pathLength(pos, this.path, this.pathIndex);
+    const ahead = groundPending(p.x + (dx / (d || 1)) * 1.2, p.z + (dz / (d || 1)) * 1.2, 0.45);
+    if (remaining < this.stallRef - 0.25) { this.stallRef = remaining; this.stallT = 0; }
+    else if (!ahead) this.stallT += dt;
+    if (this.stallT > 0.9) {
+      this.stallT = 0; this.stallRef = Infinity;
+      if (++this.repaths <= 3) {
+        const re = f.active ? f.replan(pos) : findPath(pos, target, 10)?.points ?? null;
+        if (re && re.length) { this.path = re; this.pathIndex = 0; }
+      } else if (f.requests < 3) {
+        this.repaths = 0;
+        f.request(pos, target);
+        this.path = findPath(pos, target, 10)?.points ?? [];
+        this.pathIndex = 0;
+      } else { this.pathFailedAt = this.stepNow; this.cancelPath(); return null; }
+    }
+    const left = f.active ? f.remaining(pos) : Infinity;
+    this.autoRunK = clamp(this.autoRunK + (left > 30 || this.forceRun ? dt / 0.8 : -dt / 0.4), 0, 1);
+    let speed = runtime.input.run ? RUN_SPEED : WALK_SPEED + (RUN_SPEED - WALK_SPEED) * this.autoRunK * this.autoRunK;
+    if (final) speed *= clamp(d / 1.6, 0.35, 1);
+    return { x: dx / (d || 1), z: dz / (d || 1), speed };
   }
 }

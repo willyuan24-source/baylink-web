@@ -92,6 +92,16 @@ function cityWindow(a: Vec2, b?: Vec2): NavGrid {
 /** Optional hint (city mode): the next lineOfSight / navOpen / navGrid call builds its window around this point. */
 export function setNavFocus(p: Vec2): void { WIN_FOCUS = { x: p.x, z: p.z }; }
 
+/**
+ * The grid a search from a (toward b) runs on: the district grid, or in city mode the window covering a (and b when it
+ * fits), rebuilt when needed — the same window findPath(a, b) would use (actors/vehicles/driveRoute's drive grid).
+ */
+export function navWindowFor(a: Vec2, b?: Vec2): NavGrid {
+  return cityTerrain() ? cityWindow(a, b) : navGrid();
+}
+/** True when p lies inside grid g with `margin` u to spare. */
+export function navInside(g: NavGrid, p: Vec2, margin = 1): boolean { return winInside(g, p, margin); }
+
 const col = (g: NavGrid, x: number) => Math.floor((x - g.minX) / g.cell);
 const row = (g: NavGrid, z: number) => Math.floor((z - g.minZ) / g.cell);
 const cx = (g: NavGrid, c: number) => g.minX + (c + 0.5) * g.cell;
@@ -508,19 +518,45 @@ export class RouteWalker {
     return l ? l[l.length - 1] : null;
   }
 
-  update(pos: Vec2, reach = 3): Vec2[] | null {
+  /**
+   * `finalReach` (default = reach) is how close the walker must come to the route's own end before it counts as done
+   * (a walker wants its goal within a step, not 3 u short of it).
+   */
+  update(pos: Vec2, reach = 3, finalReach = reach): Vec2[] | null {
     const legs = this.route.legs;
     while (this.leg < legs.length) {
       const end = legs[this.leg][legs[this.leg].length - 1];
-      if (Math.hypot(end.x - pos.x, end.z - pos.z) > reach) break;
+      if (Math.hypot(end.x - pos.x, end.z - pos.z) > (this.leg === legs.length - 1 ? finalReach : reach)) break;
       this.leg++;
     }
     if (this.leg >= legs.length) return null;
-    if (this.pathLeg !== this.leg || !this.path) {
-      const leg = legs[this.leg], end = leg[leg.length - 1];
-      this.path = findPath(pos, end, 12)?.points ?? leg.slice(1);
-      this.pathLeg = this.leg;
-    }
+    if (this.pathLeg !== this.leg || !this.path) this.refine(pos);
     return this.path;
+  }
+
+  /** Re-plan the current leg from pos (the walker stalled on it). */
+  replan(pos: Vec2): Vec2[] | null {
+    if (this.leg >= this.route.legs.length) return null;
+    this.refine(pos);
+    return this.path;
+  }
+
+  /** the current leg is the route's last one */
+  get lastLeg(): boolean { return this.leg >= this.route.legs.length - 1; }
+
+  /** Remaining route length from pos: to the current leg's end, then the later legs (u). */
+  remaining(pos: Vec2): number {
+    const legs = this.route.legs;
+    if (this.leg >= legs.length) return 0;
+    const cur = legs[this.leg], end = cur[cur.length - 1];
+    let L = Math.hypot(end.x - pos.x, end.z - pos.z);
+    for (let i = this.leg + 1; i < legs.length; i++) L += polylineLength(legs[i]);
+    return L;
+  }
+
+  private refine(pos: Vec2) {
+    const leg = this.route.legs[this.leg], end = leg[leg.length - 1];
+    this.path = findPath(pos, end, 12)?.points ?? leg.slice(1);
+    this.pathLeg = this.leg;
   }
 }
