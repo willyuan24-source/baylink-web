@@ -125,3 +125,15 @@ test('G1-8 map maths: the selected label rides over other markers; fitPoints fra
   assert.ok(fitPoints(v, MAP_FRAME, [{ x: 0, z: 0 }, { x: 1, z: 1 }]).scale <= fitScale(MAP_FRAME, 400, 300) * 8 + 1e-9, 'never closer than 8×');
   assert.deepEqual(thinPx([[0, 0], [0.5, 0], [1, 0], [3, 0], [3.2, 0]]), [[0, 0], [3, 0], [3.2, 0]]);
 });
+
+test('G1-review markers: the selected place always has its marker, even one not found yet or at city zoom', async () => {
+  const { markerShown } = await import('../src/opus-bay/ui/cityMapDraw');
+  assert.equal(markerShown('lm', 1, false, false), true, 'landmarks always');
+  assert.equal(markerShown('curated', 2, true, false), false);
+  assert.equal(markerShown('curated', 2.2, false, false), true);
+  assert.equal(markerShown('place', 6, false, false), false, 'a place you have not found stays hidden');
+  assert.equal(markerShown('place', 4, true, false), false);
+  assert.equal(markerShown('place', 5, true, false), true);
+  assert.equal(markerShown('place', 1, false, true), true, 'picked from the search: drawn, so its route ends on it');
+  assert.equal(markerShown('curated', 1, false, true), true);
+});

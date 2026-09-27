@@ -74,6 +74,16 @@ export function thinPx(pts: readonly [number, number][], minPx = 1.5): [number, 
   return out;
 }
 
+/**
+ * Which place markers the map draws: landmarks always, curated places from 2.2×, the other places you found from 5×,
+ * and the selected place always (G1-review: a place picked from the search that you had not found yet got no marker,
+ * so its route and time chip ended on nothing and its name never showed). Pure.
+ */
+export function markerShown(kind: 'lm' | 'curated' | 'place', zoom: number, found: boolean, selected: boolean): boolean {
+  if (selected || kind === 'lm') return true;
+  return kind === 'curated' ? zoom >= 2.2 : zoom >= 5 && found;
+}
+
 export function visibleBox(v: MapView, pad = 0): MapFrameBox {
   const hw = v.w / 2 / v.scale + pad, hh = v.h / 2 / v.scale + pad;
   return { minX: v.cx - hw, maxX: v.cx + hw, minZ: v.cz - hh, maxZ: v.cz + hh };

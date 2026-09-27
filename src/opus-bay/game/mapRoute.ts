@@ -26,7 +26,12 @@ export interface PlannedRoute {
 export type PlanSource = (from: Vec2, to: Vec2, signal: { aborted: boolean }) => Promise<{ points: Vec2[]; length: number; snapped: boolean } | null>;
 const defaultSource: PlanSource = (from, to, signal) => routeTo(from, to, { signal });
 
-/** A cached plan still serves while the player is within this of its start (and the goal is the same). */
+/**
+ * A cached plan still serves while the player is within this of it (and the goal is the same): near its start, or
+ * anywhere along its polyline — someone walking the route (带我去 with the map open) keeps the one plan, so the map,
+ * the trip strip and the waypoint count down one number instead of re-planning every 20 u (G1-review: each new A*
+ * from the middle of a street snapped to another node, and the time jumped 35 s → 40 s → 25 s → 30 s on the way).
+ */
 export const REPLAN_U = 20;
 const CACHE = 6;
 const cache: PlannedRoute[] = [];
@@ -34,9 +39,14 @@ let token: { aborted: boolean } | null = null;
 
 const same = (a: Vec2, b: Vec2, r: number) => Math.hypot(a.x - b.x, a.z - b.z) <= r;
 
-/** A kept plan to `to` that started within REPLAN_U of `from`, or null. */
+/** true when pos has left the plan: more than REPLAN_U from its start and from every point of its polyline. */
+export function offRoute(route: Pick<PlannedRoute, 'from' | 'points'>, pos: Vec2): boolean {
+  return !same(route.from, pos, REPLAN_U) && routeAhead(route.points, pos).off > REPLAN_U;
+}
+
+/** A kept plan to `to` that `from` is still on (near its start or its polyline, see offRoute), or null. */
 export function cachedRoute(from: Vec2, to: Vec2): PlannedRoute | null {
-  for (let i = cache.length - 1; i >= 0; i--) if (same(cache[i].to, to, 1) && same(cache[i].from, from, REPLAN_U)) return cache[i];
+  for (let i = cache.length - 1; i >= 0; i--) if (same(cache[i].to, to, 1) && !offRoute(cache[i], from)) return cache[i];
   return null;
 }
 

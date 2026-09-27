@@ -129,7 +129,7 @@ test('G1-8 route: what is left ahead of the player, the honest label, the real k
 });
 
 test('G1-8 planner: one plan at a time, kept plans serve the map again, the waypoint reads what is left', async () => {
-  const { cachedRoute, planRoute, routeLeftTo, REPLAN_U } = await import('../src/opus-bay/game/mapRoute');
+  const { cachedRoute, offRoute, planRoute, routeLeftTo, REPLAN_U } = await import('../src/opus-bay/game/mapRoute');
   const calls: string[] = [];
   const slow = (from: { x: number; z: number }, to: { x: number; z: number }, signal: { aborted: boolean }) => new Promise<{ points: { x: number; z: number }[]; length: number; snapped: boolean } | null>(resolve => {
     calls.push(`${to.x}`);
@@ -142,7 +142,13 @@ test('G1-8 planner: one plan at a time, kept plans serve the map again, the wayp
   const r = await second;
   assert.ok(r && r.length === 250);
   assert.equal(cachedRoute({ x: 1000 + REPLAN_U - 1, z: 1000 }, { x: 1200, z: 1050 }), r, 'kept while you stay near its start');
-  assert.equal(cachedRoute({ x: 1000 + REPLAN_U + 1, z: 1000 }, { x: 1200, z: 1050 }), null);
+  // G1-review: walking the route keeps the one plan (no re-plan every 20 u); leaving it plans again
+  assert.equal(cachedRoute({ x: 1150, z: 1004 }, { x: 1200, z: 1050 }), r, 'kept while you walk along it');
+  assert.equal(cachedRoute({ x: 1195, z: 1030 }, { x: 1200, z: 1050 }), r, 'kept round the corner');
+  assert.equal(cachedRoute({ x: 1100, z: 1000 + REPLAN_U + 1 }, { x: 1200, z: 1050 }), null, 'off the route');
+  assert.equal(cachedRoute({ x: 1000 - REPLAN_U - 1, z: 1000 }, { x: 1200, z: 1050 }), null, 'behind its start');
+  assert.equal(offRoute(r!, { x: 1100, z: 1000 + REPLAN_U - 1 }), false);
+  assert.equal(offRoute(r!, { x: 1100, z: 1000 + REPLAN_U + 1 }), true);
   const again = await planRoute({ x: 1002, z: 1001 }, { x: 1200, z: 1050 }, slow);
   assert.equal(again, r);
   assert.deepEqual(calls, ['1100', '1200'], 'no new search for a kept plan');

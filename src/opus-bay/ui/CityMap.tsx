@@ -12,10 +12,10 @@ import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel } from '../game/flow';
 import { useFlow } from '../game/flowStore';
-import { type PlannedRoute, REPLAN_U, cachedRoute, cancelPlan, endTrip, planRoute, tripPlaceId } from '../game/mapRoute';
+import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { useT } from '../i18n';
-import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitPoints, fitScale, labelWidth, layoutLabels, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitPoints, fitScale, labelWidth, layoutLabels, markerShown, thinPx, toPx, zoomAt } from './cityMapDraw';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { BaybayFace, Sheet } from './common';
 import { MapPaperLayer } from './MapPaperLayer';
@@ -48,8 +48,9 @@ function useRoutePlan(place: CityPlace | null, pos: Vec2): RoutePlan | null {
   const [plan, setPlan] = useState<RoutePlan | null>(null);
   const id = place?.walkable ? place.id : null;
   const to = place?.walkable ? place.arrival : null;
-  // the player walked away from where the plan started (desktop: the map does not stop you): plan again from here
-  const stale = !!plan?.route && plan.id === id && Math.hypot(plan.route.from.x - pos.x, plan.route.from.z - pos.z) > REPLAN_U;
+  // the player left the planned way (the map does not stop you): plan again from here. Walking along it (带我去 with
+  // the map open) keeps the plan: what is left of it is drawn and timed (G1-review: no re-plan every 20 u)
+  const stale = !!plan?.route && plan.id === id && offRoute(plan.route, pos);
   useEffect(() => {
     if (!id || !to) { setPlan(null); return; }
     const from = { x: runtime.player.x, z: runtime.player.z };
@@ -67,10 +68,14 @@ function useRoutePlan(place: CityPlace | null, pos: Vec2): RoutePlan | null {
   return plan && plan.id === id ? plan : null;
 }
 
-/** "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline. */
-function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual } {
+/**
+ * "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline. The way back onto
+ * the route counts too, as in the waypoint's routeLeftTo (G1-review: the strip, the chip, the place card and the
+ * waypoint say one number).
+ */
+function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual; walked: Vec2[] } {
   const ahead = routeAhead(route.points, pos);
-  return { points: ahead.points, time: secondsLabel(autoWalkSeconds(ahead.length)) };
+  return { points: ahead.points, time: secondsLabel(autoWalkSeconds(ahead.length + ahead.off)), walked: [{ x: pos.x, z: pos.z }, ...ahead.points] };
 }
 
 type Tab = 'landmarks' | 'near' | 'found';
@@ -215,14 +220,13 @@ export function CityMapPanel() {
     const pad = 20;
     for (const p of ix.list) {
       const kind = p.landmark ? 'lm' : p.curated ? 'curated' : 'place';
-      if (kind === 'curated' && zoom < 2.2) continue;
-      if (kind === 'place' && (zoom < 5 || !isDiscovered(p.id))) continue;
+      if (!markerShown(kind, zoom, isDiscovered(p.id), p.id === selected)) continue;
       const [x, y] = toPx(view, p.x, p.z);
       if (x < -pad || y < -pad || x > view.w + pad || y > view.h + pad) continue;
       out.push({ p, kind });
     }
     return out;
-  }, [ix, view, zoom, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ix, view, zoom, epoch, selected]); // eslint-disable-line react-hooks/exhaustive-deps
   const zoneLabels = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at) : []), [far]);
   const sel = selected && ix ? ix.get(selected) ?? null : null;
 
@@ -308,7 +312,7 @@ export function CityMapPanel() {
 
   const heading = runtime.player.heading;
   const vis = view ? { x: view.cx - view.w / 2 / view.scale, z: view.cz - view.h / 2 / view.scale, w: view.w / view.scale, h: view.h / view.scale } : null;
-  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.points ?? plan.route.points) };
+  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
