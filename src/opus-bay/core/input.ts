@@ -53,8 +53,10 @@ export const input = {
   vehicleContext: 'none' as 'none' | 'near' | 'in',
   /** true while the player is holding a movement key / stick */
   manualMove: false,
-  /** true while Space / gamepad B is held (a release before the apex cuts the jump short) */
+  /** true while Space / gamepad B / the touch 跳 button is held (a release before the apex cuts the jump short) */
   jumpHeld: false,
+  /** the touch 跳 / Hop button is held (actors/TouchControls via touchJump, E2-9) */
+  touchJumpHeld: false,
   /** keyboard keys held (event.code) */
   keys: new Set<string>(),
 };
@@ -112,7 +114,7 @@ export function onKeyDown(e: Pick<KeyboardEvent, 'code' | 'repeat' | 'target' | 
 
 export function onKeyUp(e: Pick<KeyboardEvent, 'code'>) {
   input.keys.delete(e.code);
-  if (e.code === 'Space') { spaceHeld = false; input.jumpHeld = padHeld; }
+  if (e.code === 'Space') { spaceHeld = false; input.jumpHeld = padHeld || input.touchJumpHeld; }
   if (e.code === 'KeyF' && hold.key >= 0) { if (!hold.keyFired) input.vehicleCount++; hold.key = -1; }
 }
 
@@ -126,8 +128,22 @@ export function clearKeys() {
   input.keys.clear();
   hold.key = -1;
   spaceHeld = false;
+  input.touchJumpHeld = false;
   input.jumpHeld = false;
   input.stick.active = false; input.stick.x = 0; input.stick.y = 0;
+}
+
+/**
+ * The touch 跳 / Hop button (E2-9): down = one jump press (the same edge as Space / pad B: a hop on foot, a bunny hop
+ * on the bike), held until up — a quick tap is a short hop, a held press the full jump.
+ */
+export function touchJump(down: boolean) {
+  if (down) {
+    if (!input.touchJumpHeld) runtime.input.jump = true;
+    input.touchJumpHeld = true;
+    runtime.input.device = 'touch';
+  } else input.touchJumpHeld = false;
+  input.jumpHeld = spaceHeld || padHeld || input.touchJumpHeld;
 }
 
 let installed = 0;
@@ -238,7 +254,7 @@ export function pollInput() {
   x += gp.mx; y += gp.my; run = run || gp.run;
   input.analogSteer = analog || gp.analog;
   pollHolds(nowMs());
-  input.jumpHeld = spaceHeld || padHeld;
+  input.jumpHeld = spaceHeld || padHeld || input.touchJumpHeld;
   const m = Math.hypot(x, y);
   if (m > 1) { x /= m; y /= m; }
   runtime.input.moveX = x;

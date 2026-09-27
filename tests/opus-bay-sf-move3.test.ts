@@ -3,6 +3,7 @@ import test from 'node:test';
 import * as THREE from 'three';
 import { onEvent, type GameEvent } from '../src/opus-bay/core/events';
 import { runtime } from '../src/opus-bay/core/runtime';
+import { clearKeys, input, onKeyDown, onKeyUp, pollInput, touchJump } from '../src/opus-bay/core/input';
 import { game } from '../src/opus-bay/core/store';
 import { blockersNear, canStand, heightAt, setCityTerrain } from '../src/opus-bay/core/terrain';
 import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTerrain';
@@ -10,6 +11,7 @@ import { SF_LANDMARKS } from '../src/opus-bay/world/sf/landmarks/index';
 import { facadeAlongRay, frontSpot, resetFacadeCache } from '../src/opus-bay/actors/tapTarget';
 import { sfDisk } from './opus-bay-sf-disk';
 import { PlayerController, type Obstacle } from '../src/opus-bay/actors/controller';
+import { DISTRICT } from '../src/opus-bay/data/district';
 import { MoveSystem } from '../src/opus-bay/actors/moveSystem';
 import * as moveApi from '../src/opus-bay/actors/moveApi';
 import { registerObstacleSource } from '../src/opus-bay/actors/view';
@@ -18,6 +20,8 @@ import { registerObstacleSource } from '../src/opus-bay/actors/view';
 // sources in giveWay for F's crowd and traffic), then the transit rider, touch, gamepad and pant work.
 
 const DT = 1 / 60;
+/** the district clock plaza (flat, open): a clean spot to jump */
+const DISTRICT_CLOCK = DISTRICT.anchors['ferry-clock'];
 
 function moveEnv(c: PlayerController) {
   return { cameraYaw: Math.PI, frozen: false, playing: true, controller: c, frustum: new THREE.Frustum() };
@@ -196,4 +200,42 @@ test('M2 tap on a facade: the ray stops at the first city wall; the walk target 
   } finally { setCityTerrain(null); resetFacadeCache(); }
   // district mode: no building tops, the ground picker stays as it was
   assert.equal(facadeAlongRay({ x: 120, y: 30, z: -40 }, { x: 0.6, y: -0.2, z: 0.77 }, 400), null);
+});
+
+// ---------------------------------------------------------------------------
+// E2-9 · the touch 跳 / Hop button: a press is the jump edge, holding it is the full jump
+// ---------------------------------------------------------------------------
+
+test('E2-9 touch hop: a press raises the jump edge once, a quick tap is a short hop, a held press the full jump', () => {
+  const c = new PlayerController();
+  const apex = (holdFrames: number) => {
+    resetPlayer(DISTRICT_CLOCK, 0);
+    c.sync();
+    let top = 0;
+    touchJump(true);
+    assert.equal(runtime.input.jump, true, 'the press is a jump edge');
+    touchJump(true);
+    for (let i = 0; i < 80; i++) {
+      if (i === holdFrames) touchJump(false);
+      pollInput();
+      c.step({ dt: DT, now: i * DT, cameraYaw: 0, frozen: false, riding: false });
+      top = Math.max(top, runtime.player.y - heightAt(runtime.player.x, runtime.player.z));
+    }
+    touchJump(false);
+    return top;
+  };
+  // (a finger tap lasts ~0.1 s, past the 0.07 s take-off crouch; a release before take-off keeps the full jump, as for clicks)
+  const tap = apex(8), held = apex(60);
+  assert.ok(tap < 1.0, `quick tap: short hop (${tap.toFixed(2)} u)`);
+  assert.ok(held > 1.3, `held: the full jump (${held.toFixed(2)} u)`);
+  // held touch + Space released: still held; clearKeys (blur) lets go
+  touchJump(true);
+  onKeyDown({ code: 'Space', repeat: false, target: null, metaKey: false, ctrlKey: false, altKey: false });
+  onKeyUp({ code: 'Space' });
+  assert.equal(input.jumpHeld, true, 'the thumb still holds it');
+  clearKeys();
+  pollInput();
+  assert.equal(input.jumpHeld, false, 'blur releases the touch hold');
+  assert.equal(input.touchJumpHeld, false);
+  runtime.input.jump = false;
 });

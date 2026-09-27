@@ -1,9 +1,10 @@
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
-import { Bell, Bird, LogOut, Megaphone, PlaneLanding } from 'lucide-react';
-import { input } from '../core/input';
+import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { ArrowBigUp, Bell, Bird, LogOut, Megaphone, PlaneLanding } from 'lucide-react';
+import { input, touchJump } from '../core/input';
 import { useGame } from '../core/store';
+import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
-import { useDevice } from '../ui/hooks';
+import { useDevice, useMedia } from '../ui/hooks';
 import { glideUnlocked, subscribeGlide } from './moveApi';
 import { setStickRenderer, stickView } from './pointer';
 
@@ -17,6 +18,11 @@ import { setStickRenderer, stickView } from './pointer';
  * Movement buttons (plan §6.10, touch only, right edge above the action button, ≥ 44 px): 下车 while riding, the
  * bell / horn (56 px), 起飞 once the glide is unlocked and 降落 while gliding. In a vehicle the stick is throttle (up),
  * brake / reverse (down) and steering (sideways).
+ *
+ * 跳 / Hop (E2-9, 56 px): always the lowest button of the column, on foot and on the bike / in the car (a bunny hop),
+ * held like Space (core/input touchJump: a quick tap is a short hop). The column clears the rest of the HUD: on phones
+ * (≤ 600 px) it stands above the contextual action button (ui/Hud .ob-touch-action), wider touch screens have the
+ * round HUD buttons down the right edge (≤ 1180 px), so there it moves one column in. Safe-area insets included.
  */
 
 const base: CSSProperties = {
@@ -34,6 +40,8 @@ const column: CSSProperties = {
   position: 'absolute', right: 'calc(18px + var(--ob-sr))', bottom: 'calc(150px + var(--ob-sb))', display: 'flex', flexDirection: 'column',
   alignItems: 'center', gap: 14, zIndex: 4, pointerEvents: 'none',
 };
+/** 601–1180 px touch screens: the round HUD buttons stand in a column at the right edge (≤ 70 px wide): one column in */
+const columnBeside: CSSProperties = { ...column, right: 'calc(84px + var(--ob-sr))' };
 const btn = (size: number, tone: 'teal' | 'cream' | 'gold'): CSSProperties => ({
   width: size, height: size, borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
   border: '3px solid rgba(255,255,255,.92)', pointerEvents: 'auto', touchAction: 'manipulation', font: 'inherit', fontSize: 11, fontWeight: 800,
@@ -51,6 +59,25 @@ function Btn({ size, tone, label, onPress, children }: { size: number; tone: 'te
   );
 }
 
+/** 跳 / Hop: pressed while the thumb is down (pointer capture keeps the release even when the thumb slides off) */
+function HopButton({ label }: { label: string }) {
+  const held = useRef(false);
+  const up = () => { if (held.current) { held.current = false; touchJump(false); } };
+  useEffect(() => up, []);
+  const down = (e: ReactPointerEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
+    held.current = true;
+    touchJump(true);
+  };
+  return (
+    <button type="button" aria-label={label} className="ob-hop" style={{ ...btn(56, 'cream'), touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+      onPointerDown={down} onPointerUp={up} onPointerCancel={up} onLostPointerCapture={up} onContextMenu={e => e.preventDefault()}>
+      <ArrowBigUp size={22} aria-hidden /><span style={{ lineHeight: 1 }}>{label}</span>
+    </button>
+  );
+}
+
 function MoveButtons() {
   const { t } = useT();
   const mode = useGame(s => s.move.mode);
@@ -58,10 +85,12 @@ function MoveButtons() {
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
   const focus = useGame(s => s.focus);
-  if (dialogue || panel) return null;
+  const busy = useFlow(s => !!s.cinematic || !!s.fishing || !!s.postcardReward);
+  const beside = useMedia('(min-width: 601px) and (max-width: 1180px)');
+  if (dialogue || panel || busy) return null;
   const riding = mode === 'bike' || mode === 'car';
   return (
-    <div style={column}>
+    <div className="ob-move-buttons" style={beside ? columnBeside : column}>
       {riding && (
         <Btn size={56} tone="cream" label={mode === 'bike' ? t('按铃', 'Bell') : t('喇叭', 'Horn')} onPress={() => { input.hornCount++; }}>
           {mode === 'bike' ? <Bell size={22} aria-hidden /> : <Megaphone size={22} aria-hidden />}
@@ -70,6 +99,7 @@ function MoveButtons() {
       {riding && <Btn size={64} tone="teal" label={t('下车', 'Get off')} onPress={() => { input.vehicleCount++; }}><LogOut size={24} aria-hidden /></Btn>}
       {mode === 'glide' && <Btn size={64} tone="teal" label={t('降落', 'Land')} onPress={() => { input.glideCount++; }}><PlaneLanding size={24} aria-hidden /></Btn>}
       {mode === 'foot' && unlocked && !focus && <Btn size={52} tone="gold" label={t('起飞', 'Glide')} onPress={() => { input.glideCount++; }}><Bird size={20} aria-hidden /></Btn>}
+      {(mode === 'foot' || riding) && <HopButton label={t('跳', 'Hop')} />}
     </div>
   );
 }
