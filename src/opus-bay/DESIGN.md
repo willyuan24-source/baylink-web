@@ -81,6 +81,7 @@ The whole district sits on a diorama slab with a clean cut edge (layered earth/s
 - Events come only from `/planner-catalog.json` at runtime (no invented events). Expired events never shown. `/events/:id` links only for ids from that catalog.
 - Place links: BAYLINK guide `/guides/:slug` when a guide exists; planner handoff `/plan?date=YYYY-MM-DD&stops=place:<plannerPlaceId>,event:<eventId>` (only planner place ids that exist in the catalog `places`, e.g. `pier39`, `chinatown`, `alcatraz`, `golden-gate`); official site; Google Maps search link from lat/lng.
 - Wishlist ("想去") is local (localStorage key `opus-bay:wishlist:v1`), with a clear handoff button to BAYLINK planning. Virtual collectibles are clearly game items.
+- Whole-SF city content (wave 2): positioned by real lat/lng through `core/geo.ts projectCity` (or the SF landmark registry's arrival points), never by district anchors; the district's anchors, POIs and postcards are unchanged. Content is resolved by world mode (G2's `data/contentMode.ts`), so a district session never shows city entries.
 
 ## 9. Performance budgets (hard)
 
@@ -112,6 +113,8 @@ The whole district sits on a diorama slab with a clean cut edge (layered earth/s
 - Streetcar boarding spots: `streetcar-ferry`, `streetcar-green`, `streetcar-pier39` (ids match `DISTRICT.streetcar.stops[].id` = `ferry`, `green`, `pier39`)
 - NPC posts: `npc-vendor`, `npc-fisher`, `npc-jogger-a`, `npc-jogger-b` (jog loop endpoints), `npc-family`, `npc-streetcar`
 - Postcards (hidden a little off the main path near the subject): `postcard-ferry-building-dawn`, `postcard-pier7-sunset`, `postcard-exploratorium`, `postcard-filbert-steps`, `postcard-coit-tower`, `postcard-bay-bridge-night`, `postcard-sea-lions`, `postcard-streetcar`
+
+City mode (wave 2) adds no district anchors: city spots are `projectCity(lat, lng)` world points validated with `arrivalSpot`; ownership for wave 2 is in `docs/opus-bay/sf-w2-contracts.md` (it supersedes §10 for the lanes).
 
 Zones (`DISTRICT.zones`) for the top-left label: Ferry Building, Pier 14, Pier 7, Exploratorium · Pier 15, Levi's Plaza, Filbert Steps, Coit Tower · Telegraph Hill, Pier 33, Pier 39, The Embarcadero (default).
 

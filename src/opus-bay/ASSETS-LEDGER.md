@@ -316,3 +316,9 @@ Reconciled subtotal of the resumed run: 16 × Nano Banana Pro (−32) + 9 × "3D
 | kit/deco-apartment.glb | 2,890 | 57,940 | 6.6 x 8.2 x 8.0 | 1,446 | same |
 
 **Round total (whole-SF phase): 133.00 (part 1) + 96.00 (part 2a) = 229.00 credits** of the owner's 500 allowance. Lead cap 450 → **221 credits left** this round; floor balance 298.48.
+
+## Wave 2 — ledger note (2026-09-27, lead, day-0 contracts)
+
+- **CDN block lifted.** The part 2a note above says the cloud session cannot fetch `d8j0ntlcm91z4.cloudfront.net` (proxy 403). That is no longer true: the owner allowed the host in the cloud environment on 2026-09-26, and GLB / PNG / WAV results download with HTTP 200 / 206 (checked 2026-09-26/27, see `docs/opus-bay/CLOUD.md` and `docs/opus-bay/sf-w1-checkpoint.md` §5.2). A new container can lose the allow-list: test with `curl -sS -o /dev/null -w '%{http_code}' <result url>` before paying for a generation.
+- **Where wave-2 rows go.** Each wave-2 lane logs its Higgsfield jobs in its own file, `docs/opus-bay/ledger/w2-<lane>.md` (lanes C2, D2, E2, F, G1, G2, H2b), with the same columns as the tables above (`# | asset | model / settings | prompt summary | credits | job id | local raw file | status`) plus a subtotal and the balance before / after each batch (`transactions`). This file stays append-only and is written by the lead only: the lead merges the lane files here at the end of wave 2.
+- Balance at the start of wave 2: **519.48** (owner: all of it may be used if needed; quality first).
