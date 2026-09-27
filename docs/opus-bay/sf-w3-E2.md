@@ -391,11 +391,11 @@ regression and contracts green; after the last rebase onto `515fb30` (lane T's w
 ## Review
 
 Adversarial review of lane E2's wave-3 work (parts a and b), 2026-09-27 afternoon, in the lane's worktree (dev server
-5203). Hashes below are as committed before the push; find them by the `E2-review` subject if a rebase moved them.
+5203). Hashes below are as rebased onto `86bf90e`; find them by the `E2-review` subject if a later rebase moved them.
 
 ### 给主人的摘要
 
-- 逐个读了 E2 这一轮的 18 个提交，并在浏览器里（电脑 1440×900、手机 390×844 / 375×667、横屏和平板）把新功能都试了一遍，找到并修好了 7 个问题。最明显的三个：坐渡轮在海上按“下车”，小人会掉进海里站一秒再被弹到别的码头（现在按设计落到下一个渡轮码头）；在鹈鹕上滑翔时用地图“飞过去”，小人会悬在半空、BAYBAY 掉到地上（现在两人一直坐在鹈鹕上）；手机上很快地点一下「跳」反而是大跳（现在轻点就是小跳）。
+- 逐个读了 E2 这一轮的 18 个提交，并在浏览器里（电脑 1440×900、手机 390×844 / 375×667、横屏和平板）把新功能都试了一遍，找到并修好了 7 个问题。最明显的三个：坐渡轮在海上按“下车”，小人会掉进海里站一秒再被弹到别的码头（现在船在开的时候会提示“等船靠岸”，靠岸后下船落在码头上）；在鹈鹕上滑翔时用地图“飞过去”，小人会悬在半空、BAYBAY 掉到地上（现在两人一直坐在鹈鹕上）；手机上很快地点一下「跳」反而是大跳（现在轻点就是小跳）。
 - 另外：手机竖屏到金门大桥、传教团教堂时地标在画面外，现在在画面里；第一次在城市里起飞会临时编译一个着色器（查出来是刚停好的共享单车，不是鹈鹕），现在 0 个；远处的居民和停着的车不再投真实阴影（C2 的要求）；还有两处小的内存/泄漏问题。
 - 还没解决：个别地标（缆车转盘、卡斯特罗剧院）在手机上到达时镜头先背对、几秒后才转回来；另有几条要别的车道改的，写在 Requests 里。检查：tsc 0、eslint 0、opus-bay 测试全过。
 
@@ -420,19 +420,19 @@ Adversarial review of lane E2's wave-3 work (parts a and b), 2026-09-27 afternoo
 
 | # | defect | where | status |
 |---|---|---|---|
-| 1 | **Ferry hop-off at sea puts the player in the water.** E2-10's `transit-alight` called F's `hopOffRide()` (which places the rider on a quay — the next terminal when at sea) and then overwrote that with its own exit slot beside the boat. In the app (Gate E → Pier 41, Space ≈ 40 u off the Embarcadero) the player stood in the Bay for 1.3 s until the walker's unstick dropped them on the end of Pier 7. | `actors/moveSystem.ts` | **fixed** `6e653ea`: off a ferry (and wherever our slot is no ground) F's spot wins; neither is ground → the nearest walkable spot within 40 u; a spot > 6 u away is a cut, not a hop across the water. After: hop-offs 80 u and ≈ 290 u from Pier 41 land on the Pier 41 quay (−238.3, 66.8). The cable car keeps E2's slot beside the car (hop-off test green). |
-| 2 | **Fast travel started mid-glide** (the map's 飞过去 while flying: G1's `flyTo` relies on E2 parking the pelican): the pelican was reset to the player's feet and the ground pickup ran — the rider stood in the standing pose ≈ 20 u up in the air, BAYBAY dropped from her seat to the ground in one frame and hopped back in, the pelican dived toward the pickup pose 2.5 u over the ground (a roof in the city). | `actors/moveSystem.ts` | **fixed** `c5af008`: the trip keeps the glide pelican and both riders seated, holds its height until G1's rise passes it and turns onto the trip heading. Node test (fails before); in the app BAYBAY stays seated at 15.5 u through the pickup. |
-| 3 | **A quick touch 跳 tap was the full jump.** The controller keeps the cut only if the button is still held at take-off (after the 0.07 s crouch): a 40 ms tap rose **1.33 u** (= a held press) at every screen size tried, a 0.1 s tap 0.65 u — the report's "轻点是小跳" held only for slower taps. | `core/input.ts`, `actors/controller.ts` | **fixed** `bf2f317`: a touch press marks its jump edge (`input.touchJumpArm`) and that jump always keeps its cut: 40 ms tap **0.39 u**, hold 1.33 u (390 and 375). Space / pad B unchanged. Node test (fails before). |
-| 4 | **Portrait phones lose the landmark at arrival.** E2-6's zone yaw leans up to 0.35 rad toward D2's photo side, and the subject then sits that far off the frame's middle: fine on a desktop (half-FOV 0.55 rad), past the edge on a portrait phone (0.31). At 375×667 the Golden Gate Bridge's photo target was at x **1.04** of the frame (a cypress filled the view), Mission Dolores at **1.00**. | `actors/camera.ts`, `actors/cityViews.ts` | **fixed** `53ab979`: zones carry axis + lean; `zoneYaw()` scales the lean with the view's horizontal half-FOV (desktop unchanged, test). After: the bridge at 0.74, the mission at 0.56–0.64. |
-| 5 | `LiveTall.get()` built a template-string stamp on every call, and `roofAt` calls it for every query (a dozen and more per glide frame): per-frame garbage, against E2-7's "no allocation per query". | `actors/glideTall.ts` | **fixed** `855426f` (a numeric stamp). |
-| 6 | The city bike pool's dynamic import resolving after `MoveSystem.dispose()` still built the pool and registered the `e2-city-rides` interactables source, which then outlived the system (the shape of G2's resident-body leak). | `actors/moveSystem.ts` | **fixed** `855426f` (a disposed system registers nothing). |
-| 7 | **Report claim wrong (P5).** Part b says the program linking on the first city glide is "a plain depth program (no skinning, so not the pelican)" (request 3 to C2). After C2's fix for plain casters (`ff4463d`) the Marina glide still linked it (40 → 41). Decoded, its key is three's own `MeshDepthMaterial` **with skinning** (layer bit 5); a hook on `renderBufferDirect` names the caster: `ride-city-bike-3`, a bike E2-12's pool builds at runtime when the glide brings the player near a rack, drawn before C2's `kindSweep` (once a second) gave it the skinned depth material. | `actors/system.ts` | **fixed** `5f8327a`: a skinned caster whose `castShadow` turns on takes the player's (kindSweep's skinned) depth material that frame. After: first city glide **40 → 40**, at night 40 → 40; the BAYBAY GLB swap still 40 → 40. |
+| 1 | **Ferry hop-off at sea puts the player in the water.** E2-10's `transit-alight` called F's `hopOffRide()` (which places the rider on a quay — the next terminal when at sea) and then overwrote that with its own exit slot beside the boat. In the app (Gate E → Pier 41, Space ≈ 40 u off the Embarcadero) the player stood in the Bay for 1.3 s until the walker's unstick dropped them on the end of Pier 7. | `actors/moveSystem.ts` | **fixed** `806f167`: off a ferry (and wherever our slot is no ground) F's spot wins; neither is ground → the nearest walkable spot within 40 u; a spot > 6 u away is a cut, not a hop across the water (hop-offs 80 u and ≈ 290 u from Pier 41 then landed on its quay, −238.3, 66.8). Then `0f86593` did lane F's part a request, which the lane's reports had missed (`sf-w3-F.md`: no hop-off while the ferry is under way): under way it says 等船靠岸 / Wait until we dock and the ride goes on; docked (Gate E after boarding) it steps off onto F's quay (157.3, −20.8). The cable car keeps E2's slot beside the car (hop-off test green). |
+| 2 | **Fast travel started mid-glide** (the map's 飞过去 while flying: G1's `flyTo` relies on E2 parking the pelican): the pelican was reset to the player's feet and the ground pickup ran — the rider stood in the standing pose ≈ 20 u up in the air, BAYBAY dropped from her seat to the ground in one frame and hopped back in, the pelican dived toward the pickup pose 2.5 u over the ground (a roof in the city). | `actors/moveSystem.ts` | **fixed** `8b15cb8`: the trip keeps the glide pelican and both riders seated, holds its height until G1's rise passes it and turns onto the trip heading. Node test (fails before); in the app BAYBAY stays seated at 15.5 u through the pickup. |
+| 3 | **A quick touch 跳 tap was the full jump.** The controller keeps the cut only if the button is still held at take-off (after the 0.07 s crouch): a 40 ms tap rose **1.33 u** (= a held press) at every screen size tried, a 0.1 s tap 0.65 u — the report's "轻点是小跳" held only for slower taps. | `core/input.ts`, `actors/controller.ts` | **fixed** `de1a34c`: a touch press marks its jump edge (`input.touchJumpArm`) and that jump always keeps its cut: 40 ms tap **0.39 u**, hold 1.33 u (390 and 375). Space / pad B unchanged. Node test (fails before). |
+| 4 | **Portrait phones lose the landmark at arrival.** E2-6's zone yaw leans up to 0.35 rad toward D2's photo side, and the subject then sits that far off the frame's middle: fine on a desktop (half-FOV 0.55 rad), past the edge on a portrait phone (0.31). At 375×667 the Golden Gate Bridge's photo target was at x **1.04** of the frame (a cypress filled the view), Mission Dolores at **1.00**. | `actors/camera.ts`, `actors/cityViews.ts` | **fixed** `a45b853`: zones carry axis + lean; `zoneYaw()` scales the lean with the view's horizontal half-FOV (desktop unchanged, test). After: the bridge at 0.74, the mission at 0.56–0.64. |
+| 5 | `LiveTall.get()` built a template-string stamp on every call, and `roofAt` calls it for every query (a dozen and more per glide frame): per-frame garbage, against E2-7's "no allocation per query". | `actors/glideTall.ts` | **fixed** `2f3bc36` (a numeric stamp). |
+| 6 | The city bike pool's dynamic import resolving after `MoveSystem.dispose()` still built the pool and registered the `e2-city-rides` interactables source, which then outlived the system (the shape of G2's resident-body leak). | `actors/moveSystem.ts` | **fixed** `2f3bc36` (a disposed system registers nothing). |
+| 7 | **Report claim wrong (P5).** Part b says the program linking on the first city glide is "a plain depth program (no skinning, so not the pelican)" (request 3 to C2). After C2's fix for plain casters (`ff4463d`) the Marina glide still linked it (40 → 41). Decoded, its key is three's own `MeshDepthMaterial` **with skinning** (layer bit 5); a hook on `renderBufferDirect` names the caster: `ride-city-bike-3`, a bike E2-12's pool builds at runtime when the glide brings the player near a rack, drawn before C2's `kindSweep` (once a second) gave it the skinned depth material. | `actors/system.ts` | **fixed** `62ba652`: a skinned caster whose `castShadow` turns on takes the player's (kindSweep's skinned) depth material that frame. After: first city glide **40 → 40**, at night 40 → 40; the BAYBAY GLB swap still 40 → 40. |
 
 Also done here (a request, not a defect): **C2 part b request 1** (it landed after E2 had finished) — residents and
-parked rides draw into the shadow map only within 40 u of the camera (`2a75908`; their blob shadows stay, the ride you
+parked rides draw into the shadow map only within 40 u of the camera (`d4239ac`; their blob shadows stay, the ride you
 are on always casts). At the Ferry gate the actors' shadow pass was 35.0k triangles in 7 draws; the two waterfront
 residents (10.7k) drop out once they are past 40 u (vendor / operator at 52–59 u: blob only; at 36–38 u they keep
-theirs). `5f8327a` covers the program such a caster would otherwise link when it turns back on.
+theirs). `62ba652` covers the program such a caster would otherwise link when it turns back on.
 
 **Open** (not fixed here):
 
@@ -477,19 +477,19 @@ Palace dome (D2 request 2).
   rider alone in mid-air; after: both on the pelican),
   [`e2-review-arrivals-375-ggb-mission-before-after.jpg`](qa/w3/E2/e2-review-arrivals-375-ggb-mission-before-after.jpg)
   (375×667: the bridge behind a cypress → in frame; Mission Dolores at the edge → in frame).
-- Numbers: ferry hop-off before (86.5, −78.5) in the water for 1.3 s → (78.8, −43.3) Pier 7; after (−238.3, 66.8), the
-  Pier 41 quay. Touch tap 40 ms: 1.33 → 0.39 u. Arrivals at 375×667, photo-target x: bridge 1.04 → 0.74, Mission
+- Numbers: ferry hop-off before (86.5, −78.5) in the water for 1.3 s → (78.8, −43.3) Pier 7; after: under way the toast
+  and the ride goes on, docked the quay (157.3, −20.8); before the refusal, at sea → the Pier 41 quay (−238.3, 66.8). Touch tap 40 ms: 1.33 → 0.39 u. Arrivals at 375×667, photo-target x: bridge 1.04 → 0.74, Mission
   Dolores 1.00 → 0.56 / 0.64. First city glide: 40 → 41 programs → 40 → 40. Actors' shadow pass at the Ferry gate: 35.0k
   triangles in 7 draws before the gate.
 - Scratch and QA specs: `C:/Users/willy/opus-qa/w3/e2/review/` (ferry, ferry2, travel, glide, glide-who, arrivals,
-  zdbg, shadows, shadows2, navcost, m2far; the lane's `qa/hop.mjs` with W / H for the extra sizes).
+  ferry3, zdbg, shadows, shadows2, navcost, m2far; the lane's `qa/hop.mjs` with W / H for the extra sizes).
 
 ### Requests
 
-1. **F, `src/opus-bay/game/transit.ts` `leaveLineRide`** (ferry branch): when the quay's ground is not streamed in,
-   `nearestWalkable(quay, 16)` is null and nobody is moved (E2 now falls back to the nearest walkable spot within 40 u,
-   usually none at sea → the walker's unstick). Use the quay point itself then — the walker waits on pending ground
-   (E2-14): `if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16) ?? { x: quay.x, z: quay.z };`
+1. **F**: your part a request to E2 (the ferry hop-off) is done (`806f167`, `0f86593`). Optional, `game/transit.ts`
+   `leaveLineRide` (ferry branch): `nearestWalkable(quay, 16)` is null while the quay's ground is not streamed in, and
+   then nobody is moved; `?? { x: quay.x, z: quay.z }` would cover it (E2 no longer hops off under way, so only QA's
+   `requestHopOff` can reach it now).
 2. **G1, `src/opus-bay/opus-bay.css`** (landscape phones): at 667×375 the round `.ob-hud-buttons` column spans y −17 …
    249 — its top button is cut off above the screen (E2's Hop column there is clear of it).
 3. **C2**: E2's part b request 3 was misattributed (defect 7): the program was a pooled bike's skinned depth variant,
@@ -500,3 +500,6 @@ Palace dome (D2 request 2).
    **F** part a 4 (the hero F-line's braked hop-off); **G2** request 5 (the two-shot side: E2's own, not done here).
 
 Relayed messages during the review: none.
+
+Checks of the tree pushed with this review (the 9 `E2-review` commits on `86bf90e`): tsc 0, eslint 0 errors (42 warnings,
+whole repo), **676 / 676** opus-bay tests, hero regression and contracts green.
