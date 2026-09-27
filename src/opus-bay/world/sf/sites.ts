@@ -511,7 +511,9 @@ export class CitySites {
     return { sites: this.sites.length, near, triangles: this.triangles, ai };
   }
 
+  /** City teardown (World.disableCity): drop every lod 0, then the decoded models and the Draco workers. */
   dispose() {
     for (const s of this.sites) this.dropMesh(s);
+    modelsMod?.disposeModels();
   }
 }
