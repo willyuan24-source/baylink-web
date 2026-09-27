@@ -1,8 +1,9 @@
 import { emit } from '../core/events';
 import { runtime, type Emote } from '../core/runtime';
 import { game } from '../core/store';
-import { canStand, pointInPolygon, zoneAt } from '../core/terrain';
+import { canStand, pointInPolygon } from '../core/terrain';
 import type { Vec2 } from '../core/types';
+import { AREA_NAMES, cityAreaAt } from '../data/cityZones';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { STOP_PROMPTS } from '../data/script';
@@ -28,8 +29,21 @@ const G = () => ({ x: runtime.guide.x, z: runtime.guide.z });
 
 let lastPos = { x: NaN, z: NaN };
 let lastArea: string | null | undefined;
-/** City-mode area names by zone id (the DataSF neighbourhoods are not in DISTRICT.zones); the HUD label reads it. */
-export const AREA_NAMES = new Map<string, { zh: string; en: string }>();
+/** City-mode area names by zone id: moved to data/cityZones.ts (lane G1), re-exported here for old imports. */
+export { AREA_NAMES };
+
+/**
+ * Day-0 focus hooks (wave 2): lane G1's discovery / street name / zone visits run from here without editing brain.
+ * `tick(p, now)` runs every updateFocus (10 Hz) BEFORE the "blocked" early return (so it also runs while riding,
+ * gliding or in a dialogue; throttle and skip travel yourself); `area(id)` runs when the area label changes (id null =
+ * outside every area).
+ */
+export interface FocusHook { tick?(p: Vec2, now: number): void; area?(id: string | null): void }
+const focusHooks = new Map<string, FocusHook>();
+export function registerFocusHook(key: string, hook: FocusHook): () => void {
+  focusHooks.set(key, hook);
+  return () => { if (focusHooks.get(key) === hook) focusHooks.delete(key); };
+}
 
 export function updateFocus() {
   const s = game.get();
@@ -37,10 +51,10 @@ export function updateFocus() {
   // low-frequency player position for UI (map)
   if (!(Math.abs(p.x - lastPos.x) < 0.35 && Math.abs(p.z - lastPos.z) < 0.35)) { lastPos = p; game.set({ playerPos: p }); }
 
-  // area label (city mode: hero zones first, then the DataSF neighbourhood, via core/terrain zoneAt)
+  // area label (city mode: data/cityZones cityAreaAt — hero zones first, then the DataSF neighbourhood)
   let area: string | null = null;
   let named: { id: string; name: { zh: string; en: string } } | null = null;
-  if (s.worldMode === 'city') { named = zoneAt(p.x, p.z); area = named?.id ?? null; }
+  if (s.worldMode === 'city') { named = cityAreaAt(p.x, p.z); area = named?.id ?? null; }
   else for (const zone of DISTRICT.zones ?? []) if (zone.polygon?.length > 2 && pointInPolygon(p, zone.polygon)) { area = zone.id; break; }
   if (area !== lastArea) {
     lastArea = area;
@@ -48,7 +62,9 @@ export function updateFocus() {
     game.set({ area });
     const zone = DISTRICT.zones.find(item => item.id === area) ?? named;
     if (zone) emit({ type: 'area', name: zone.name.en });
+    for (const h of focusHooks.values()) h.area?.(area);
   }
+  if (focusHooks.size) { const now = performance.now(); for (const h of focusHooks.values()) h.tick?.(p, now); }
 
   const mapTarget = flow.get().mapTarget;
   if (mapTarget) { const it = interactableById(mapTarget); if (!it || dist(p, it) < it.radius + 2) flow.set({ mapTarget: null }); }

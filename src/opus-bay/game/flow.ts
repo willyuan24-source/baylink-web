@@ -8,7 +8,7 @@ import { spawnFx } from '../world/fx';
 import { getCatalog, isExpired, loadCatalog, recommendEvents, todayInBay, weekday } from '../data/catalog';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
-import { POSTCARDS } from '../data/postcards';
+import { POSTCARDS, activePostcardCount, allPostcardsFound } from '../data/postcards';
 import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/script';
 import { FIRST_TOUR } from '../data/tours';
 import { markProgress, wishlist } from '../data/wishlist';
@@ -18,7 +18,9 @@ import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
 import { flow, initialFlowState, type Bubble } from './flowStore';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, subjectPosition, type Interactable } from './interactables';
-import { beginRide, currentRide, endRide, nearestStopId, rideSeconds, sortedStops } from './ride';
+import { endRide } from './ride';
+import { goalTargets, initCityContent } from './cityContent';
+import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { gameTimeLabel } from './travel';
 
@@ -89,9 +91,9 @@ export const dialogueOpen = () => !!game.get().dialogue.nodeId;
 function openNode(nodeId: string) {
   if (nodeId.startsWith('flow.goto.')) { closeQuiet(); startFreeLead(nodeId.slice('flow.goto.'.length)); return; }
   if (nodeId.startsWith('flow.ride.')) {
-    const [from, to] = nodeId.slice('flow.ride.'.length).split('>');
+    // transit nodes belong to game/transit.ts (lane F): today `flow.ride.<fromStop>><toStop>`
     closeQuiet();
-    rideTo(from, to);
+    openRideNode(nodeId.slice('flow.ride.'.length));
     return;
   }
   const node = nodeById(nodeId);
@@ -690,13 +692,19 @@ export function openBoard(nodeId?: string) {
 // Goals & collectibles
 // ---------------------------------------------------------------------------
 
-export type GoalKey = 'postcards' | 'streetcar' | 'viewpoint' | 'photo' | 'taste';
+/**
+ * Goal keys completeGoal() understands; a key also completes every FREE_GOALS id containing one of its words.
+ * Day-0 (wave 2): 'cable-car' and 'ferry' for lane F's rides (completeGoal('cable-car') after a counted ride).
+ */
+export type GoalKey = 'postcards' | 'streetcar' | 'viewpoint' | 'photo' | 'taste' | 'cable-car' | 'ferry';
 const GOAL_WORDS: Record<GoalKey, string[]> = {
   postcards: ['postcard', 'card'],
   streetcar: ['streetcar', 'ride', 'tram', 'f-line', 'fline'],
   viewpoint: ['coit', 'viewpoint', 'view', 'summit', 'hill'],
   photo: ['photo', 'sea-lion', 'sealion', 'camera'],
   taste: ['taste', 'market', 'food', 'sample'],
+  'cable-car': ['cable-car', 'cablecar'],
+  ferry: ['ferry'],
 };
 export const goalIdsFor = (key: GoalKey) => FREE_GOALS.filter(goal => GOAL_WORDS[key].some(word => goal.id.toLowerCase().includes(word))).map(goal => goal.id);
 export const goalKeyOf = (goalId: string): GoalKey | null => (Object.keys(GOAL_WORDS) as GoalKey[]).find(key => GOAL_WORDS[key].some(word => goalId.toLowerCase().includes(word))) ?? null;
@@ -725,8 +733,10 @@ export function collectPostcard(id: string) {
   const reduced = game.get().settings.reducedMotion;
   momentTimers.push(setTimeout(revealPostcard, reduced ? 120 : 600));
   freshPostcard = true;
-  announce({ zh: `收集到明信片：${card.title.zh}（${postcards.length}/${POSTCARDS.length}）`, en: `Postcard collected: ${card.title.en} (${postcards.length}/${POSTCARDS.length})` });
-  if (postcards.length >= POSTCARDS.length && POSTCARDS.length > 0) completeGoal('postcards');
+  // (counts go through data/postcards: only the active world mode's cards count, G2-3)
+  const count = activePostcardCount(postcards);
+  announce({ zh: `收集到明信片：${card.title.zh}（${count}/${POSTCARDS.length}）`, en: `Postcard collected: ${card.title.en} (${count}/${POSTCARDS.length})` });
+  if (allPostcardsFound(postcards)) completeGoal('postcards');
 }
 
 let freshPostcard = false;
@@ -742,8 +752,9 @@ export function closePostcardReward() {
   emit({ type: 'ui', action: 'close' });
   if (!freshPostcard) return;
   freshPostcard = false;
-  const count = game.get().postcards.length;
-  if (count >= POSTCARDS.length && POSTCARDS.length > 0) { const all = hook('postcardAll'); if (all) { setTimeout(() => playDialogue(all), 350); return; } }
+  const collected = game.get().postcards;
+  const count = activePostcardCount(collected);
+  if (allPostcardsFound(collected)) { const all = hook('postcardAll'); if (all) { setTimeout(() => playDialogue(all), 350); return; } }
   const text = hookText(count === 1 ? 'postcardFirst' : 'postcardFound');
   if (text) bubble(text, 3600);
 }
@@ -868,7 +879,7 @@ export function performInteraction(id: string) {
     case 'viewpoint': viewpointSweep(it, done); return;
     case 'photo': enterPhotoMode(it.id); return;
     case 'board': if (isTourTarget(it.id)) { openBoard(); later(300, done); } else openBoard(it.nodeId); return;
-    case 'streetcar': boardStreetcar(it.refId ?? nearestStopId(it) ?? ''); return;
+    case 'streetcar': boardFrom(it); return;
     case 'postcard': collectPostcard(it.refId ?? it.id); return;
   }
 }
@@ -1160,90 +1171,9 @@ function viewpointSweep(it: Interactable, done: () => void) {
   });
 }
 
-// --- streetcar ---------------------------------------------------------------------
+// --- streetcar / transit: moved to game/transit.ts (lane F); re-exported for old imports -------------
 
-/** Streetcar stop: pick a destination (the F-line runs the whole waterfront). */
-export function boardStreetcar(stopId: string) {
-  if (!stopId) return;
-  const stops = sortedStops();
-  const here = stops.find(stop => stop.id === stopId);
-  const others = stops.filter(stop => stop.id !== stopId);
-  if (!here || others.length === 0) { say('这一站暂时没有电车', 'No streetcar at this stop right now'); return; }
-  if (others.length === 1) { rideTo(stopId, others[0].id); return; }
-  const choices: NonNullable<DialogueNode['choices']> = others
-    .sort((a, b) => Math.abs(a.at - here.at) - Math.abs(b.at - here.at))
-    .map((stop, i) => {
-      const secs = Math.round(rideSeconds(stopId, stop.id));
-      return { hotkey: String(i + 1), label: { zh: `去${stop.name.zh}（约 ${secs} 秒）`, en: `To ${stop.name.en} (~${secs}s)` }, next: `flow.ride.${stopId}>${stop.id}` };
-    });
-  choices.push({ hotkey: String(choices.length + 1), label: { zh: '先不坐了', en: 'Not now' }, action: { type: 'end' } });
-  const operator = npcLine('streetcar').name ?? { zh: '电车司机', en: 'Streetcar operator' };
-  playDialogue(defineNode({ id: 'flow.streetcar', speaker: 'npc', npcName: operator, mood: 'happy', text: { zh: `叮叮！这里是${here.name.zh}，想坐到哪一站？`, en: `Ding ding! This is ${here.name.en}. Where to?` }, choices }));
-}
-
-function rideTo(stopId: string, target: string) {
-  const r = beginRide(stopId, target);
-  if (!r) { say('这一站暂时没有电车', 'No streetcar at this stop right now'); return; }
-  game.set({ riding: 'streetcar', panel: { kind: null } });
-  refreshLock();
-  emit({ type: 'streetcar-bell' });
-  const to = DISTRICT.streetcar.stops.find(stop => stop.id === r.to);
-  flow.set({ ride: { stage: r.mode === 'wait' ? 'waiting' : 'riding', from: r.from, to: r.to } });
-  const boardLine = nodeText(interactableById(`streetcar-${stopId}`)?.nodeId) ?? nodeText(POIS.find(poi => poi.interaction?.kind === 'streetcar')?.interaction.nodeId);
-  if (boardLine) bubble(boardLine, 3600);
-  announce({ zh: `上车：开往${to?.name.zh ?? ''}`, en: `Boarding: to ${to?.name.en ?? ''}` });
-}
-
-/** Cancel while waiting at the stop (no teleport). */
-export function cancelRide() {
-  endRide();
-  game.set({ riding: null });
-  flow.set({ ride: null });
-  refreshLock();
-}
-
-/**
- * F17 · "提前下车": get off right here — beside the car on the nearest walkable spot, not teleported to the
- * destination. (It still counts as a ride once the car has actually moved you along.)
- */
-export function hopOffRide() {
-  const r = currentRide();
-  if (!r) { cancelRide(); return; }
-  const rode = r.mode !== 'wait' && r.elapsed > 2.5;
-  endRide();
-  game.set({ riding: null });
-  flow.set({ ride: null });
-  const p = runtime.player;
-  const car = r.mode === 'follow' ? runtime.streetcar : { x: p.x, z: p.z, heading: p.heading };
-  // step off on the promenade side of the car
-  const side = { x: car.x + Math.cos(car.heading) * 2.4, z: car.z - Math.sin(car.heading) * 2.4 };
-  const spot = nearestWalkable(canStand(side.x, side.z, 0.45) ? side : { x: car.x, z: car.z }, 12) ?? { x: p.x, z: p.z };
-  teleportPlayer(spot);
-  runtime.guide.x = spot.x + 1.2; runtime.guide.z = spot.z + 0.8;
-  emit({ type: 'streetcar-bell' });
-  if (rode) completeGoal('streetcar');
-  refreshLock();
-}
-
-export function finishRide() {
-  const r = currentRide();
-  endRide();
-  game.set({ riding: null });
-  flow.set({ ride: null });
-  if (r) {
-    const at = DISTRICT.anchors?.[`streetcar-${r.to}`];
-    if (at) teleportPlayer(at);
-    const stop = DISTRICT.streetcar.stops.find(item => item.id === r.to);
-    emit({ type: 'streetcar-bell' });
-    if (stop) say(`到站：${stop.name.zh}`, `Arrived: ${stop.name.en}`, 'success');
-    const offLine = hookText('streetcarOff');
-    if (offLine) setTimeout(() => bubble(offLine, 2600), 300);
-    completeGoal('streetcar');
-    // BAYBAY hops off with you.
-    if (at) { runtime.guide.x = at.x + 1.5; runtime.guide.z = at.z + 1; }
-  }
-  refreshLock();
-}
+export { boardStreetcar, cancelRide, finishRide, hopOffRide, rideTo } from './transit';
 
 // --- photo mode ----------------------------------------------------------------------
 
@@ -1331,6 +1261,9 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
     const near = card ? POIS.filter(poi => poi.interaction.kind !== 'board').sort((a, b) => dist(card.position, a.position) - dist(card.position, b.position))[0] : undefined;
     if (near) add(near.id, { zh: `明信片线索 · ${near.name.zh}附近`, en: `Postcard clue · near ${near.name.en}` });
   }
+  // city goals (lane G2, game/cityContent.ts goalTargets): a waypoint per unfinished goal; ids resolve through
+  // interactableById (an interactable, or a G1 `place:<id>` via setExtraResolver) so "take me there" can lead
+  for (const t of goalTargets()) if (!goalDone(t.goal) && dist(from, t) > (t.radius ?? 3) + 1) out.push({ id: t.id, x: t.x, z: t.z, name: t.name });
   out.sort((a, b) => dist(from, a) - dist(from, b));
   return out[0] ?? null;
 }
@@ -1408,7 +1341,7 @@ export function restartOnboarding() {
 
 let lastEdgeLine = 0;
 export function initFlowListeners(): () => void {
-  return onEvent(event => {
+  const off = onEvent(event => {
     if (event.type === 'bump' && /edge/.test(event.kind)) {
       const now = performance.now();
       if (now - lastEdgeLine < 9000) return;
@@ -1416,4 +1349,8 @@ export function initFlowListeners(): () => void {
       bubble(bark('edge') ?? hookText('edge') ?? { zh: '前面是模型边缘啦！', en: "That's the edge of the model!" }, 2800);
     }
   });
+  // day-0 lane entry points: G2's city content (residents, lines, goals) and F's transit (stations, listeners)
+  const offContent = initCityContent();
+  const offTransit = initTransit();
+  return () => { off(); offContent(); offTransit(); };
 }

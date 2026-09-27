@@ -12,7 +12,8 @@ import { POSTCARDS } from '../data/postcards';
  * time — this module only relies on the shared types.
  */
 
-export type InteractableSource = 'poi' | 'postcard' | 'npc' | 'baybay' | 'streetcar' | 'board' | 'vehicle' | 'seat';
+/** 'transit' = lane F's city stations (action 'streetcar'); 'place' = lane G1's places resolved by setExtraResolver */
+export type InteractableSource = 'poi' | 'postcard' | 'npc' | 'baybay' | 'streetcar' | 'board' | 'vehicle' | 'seat' | 'transit' | 'place';
 
 export interface Interactable {
   id: string;
@@ -129,7 +130,51 @@ export function buildInteractables(): Interactable[] {
   for (const seat of seatSpots()) {
     list.push({ id: seat.id, source: 'seat', action: 'info', name: { zh: seat.kind === 'step' ? '台阶' : '长椅', en: seat.kind === 'step' ? 'Steps' : 'Bench' }, verb: { zh: '坐一会儿', en: 'Sit for a while' }, x: seat.x + Math.sin(seat.heading) * 0.9, z: seat.z + Math.cos(seat.heading) * 0.9, radius: 1.5 });
   }
+  // lanes' own sources (F stations, G2 residents, …), in registration order, after everything above
+  for (const fn of sources.values()) for (const it of fn()) if (!list.some(item => item.id === it.id)) list.push(it);
   return list;
+}
+
+// ---------------------------------------------------------------------------
+// Day-0 registries (wave 2): other lanes add interactables, id resolvers and subject resolvers from their own files
+// ---------------------------------------------------------------------------
+
+const sources = new Map<string, () => Interactable[]>();
+const sourceListeners = new Set<() => void>();
+let sourcesEpoch = 0;
+const bumpSources = () => { sourcesEpoch++; sourceListeners.forEach(fn => fn()); };
+
+/**
+ * Add a source of interactables (F: city transit stations, G2: residents). `fn` runs on every rebuild; the list is
+ * rebuilt when a source is (un)registered or invalidateInteractables() is called (game/Systems.tsx watches the epoch).
+ * Ids must be unique (a duplicate of an existing id is skipped). Returns the unregister function.
+ */
+export function registerInteractables(key: string, fn: () => Interactable[]): () => void {
+  sources.set(key, fn);
+  bumpSources();
+  return () => { if (sources.get(key) === fn) { sources.delete(key); bumpSources(); } };
+}
+/** A registered source's content changed (data loaded, a resident moved home): rebuild the list. */
+export function invalidateInteractables() { bumpSources(); }
+/** For useSyncExternalStore (game/Systems.tsx). */
+export function subscribeInteractables(fn: () => void): () => void { sourceListeners.add(fn); return () => { sourceListeners.delete(fn); }; }
+export const interactablesEpoch = () => sourcesEpoch;
+
+type ExtraResolver = (id: string) => Interactable | undefined;
+let extraResolver: ExtraResolver | null = null;
+/**
+ * G1: resolve ids that are not in the list (e.g. `place:<id>` → {source: 'place', action: 'info', radius 12, …}), so
+ * flow.objectiveTarget / navigateTo / the waypoint and brain's mapTarget clear work for city places. Resolved items
+ * are NOT added to interactables() (no E prompt). null clears it.
+ */
+export function setExtraResolver(fn: ExtraResolver | null) { extraResolver = fn; }
+
+type SubjectResolver = (subject: string) => { x: number; y: number; z: number } | null;
+const subjectResolvers: SubjectResolver[] = [];
+/** G2: telescope / photo subjects beyond the district ones (e.g. 'sutro-tower' from Twin Peaks). Returns the unregister. */
+export function registerSubjectResolver(fn: SubjectResolver): () => void {
+  subjectResolvers.push(fn);
+  return () => { const i = subjectResolvers.indexOf(fn); if (i >= 0) subjectResolvers.splice(i, 1); };
 }
 
 let current: Interactable[] = [];
@@ -148,7 +193,7 @@ export function interactableById(id: string | null | undefined): Interactable | 
   if (!id) return undefined;
   const item = byId.get(id);
   if (item) syncMoving(item);
-  return item;
+  return item ?? extraResolver?.(id);
 }
 export const poiById = (id: string | null | undefined) => (id ? POIS.find(poi => poi.id === id) : undefined);
 export const postcardById = (id: string | null | undefined) => (id ? POSTCARDS.find(card => card.id === id) : undefined);
@@ -168,5 +213,6 @@ export function subjectPosition(subject: string): { x: number; y: number; z: num
   if (anchor) return { x: anchor.x, y: 2, z: anchor.z };
   const poi = poiById(subject);
   if (poi) return { x: poi.position.x, y: 3, z: poi.position.z };
+  for (const fn of subjectResolvers) { const p = fn(subject); if (p) return p; }
   return null;
 }

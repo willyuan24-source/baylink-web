@@ -98,3 +98,19 @@ export const POSTCARDS: PostcardDef[] = [
 
 /** Postcard facts are verified on this date (see data/pois.ts VERIFIED_AT). */
 export { VERIFIED_AT as POSTCARDS_VERIFIED_AT } from './pois';
+
+/**
+ * Day-0 counting hooks (G2-3): a save may hold postcard ids of both world modes, so every "n / total" and the
+ * all-found check count only the cards of the active set (POSTCARDS, which G2 resolves by world mode).
+ */
+export function activePostcardCount(collected: readonly string[]): number {
+  let n = 0;
+  for (const id of collected) if (POSTCARDS.some(card => card.id === id)) n++;
+  return n;
+}
+/** Size of the active postcard set. */
+export const activePostcardTotal = (): number => POSTCARDS.length;
+/** Every active postcard collected (false while the set is empty). */
+export function allPostcardsFound(collected: readonly string[]): boolean {
+  return POSTCARDS.length > 0 && activePostcardCount(collected) >= POSTCARDS.length;
+}

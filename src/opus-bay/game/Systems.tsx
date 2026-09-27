@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { emit } from '../core/events';
@@ -12,14 +12,15 @@ import { updateFocus, updateGuide } from './brain';
 import { currentFraming, measureBottomCover, stepCinema } from './cinema';
 import { BAYBAY_HEAD_Y, PLAYER_HEAD_Y } from '../actors/dims';
 import * as flowActions from './flow';
-import { busy, callBaybay, finishRide, objectiveTarget, performInteraction, requestInteract, teleportPlayer, walkTo } from './flow';
+import { busy, callBaybay, objectiveTarget, performInteraction, requestInteract, teleportPlayer, walkTo } from './flow';
 import { flow } from './flowStore';
-import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, postcardIdOf, setInteractables, type Interactable } from './interactables';
+import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
 import { consumeShutter } from './photo';
 import { domAnchors, overlayInsets } from './projector';
 import { gameTimeLabel } from './travel';
 import { readQa } from './qa';
-import { stepRide } from './ride';
+import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
+import { stepTransit } from './transit';
 
 /**
  * Canvas-side game systems: click/hover proxies, the gold focus marker, postcard glints, the objective
@@ -27,7 +28,9 @@ import { stepRide } from './ride';
  * DOM projection (bubbles / waypoint), photo capture and the debug readout.
  */
 export function Systems() {
-  const list = useMemo(() => buildInteractables(), []);
+  // (day 0) rebuilt when another lane registers / invalidates an interactables source (game/interactables.ts)
+  const epoch = useSyncExternalStore(subscribeInteractables, interactablesEpoch, interactablesEpoch);
+  const list = useMemo(() => buildInteractables(), [epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   useLayoutEffect(() => { setInteractables(list); }, [list]);
   return (
     <>
@@ -37,15 +40,27 @@ export function Systems() {
       <Beacon />
       <Ticker />
       <QaBridge />
+      <SceneSystems />
     </>
   );
 }
+
+/** Other lanes' scene components (game/systemsRegistry.ts registerSceneSystem). */
+function SceneSystems() {
+  const list = useSyncExternalStore(subscribeSystemsRegistry, sceneSystems, sceneSystems);
+  return <>{list.map(({ key, Component }) => <Component key={key} />)}</>;
+}
+
+/** City mode: items outside the hero stand on streamed ground that arrives after mount; re-sample within this radius. */
+const REHEIGHT_R = 200;
+const cityMode = () => game.get().worldMode === 'city';
 
 // ---------------------------------------------------------------------------
 // Click / hover proxies (one instanced mesh + one for BAYBAY; invisible material)
 // ---------------------------------------------------------------------------
 
-type Hit = { id: string; x: number; y: number; z: number; r: number; card?: string };
+/** `ground`: y follows the terrain (+1.1), re-sampled in city mode as the city streams in */
+type Hit = { id: string; x: number; y: number; z: number; r: number; card?: string; ground?: boolean };
 
 const hitMaterial = new THREE.MeshBasicMaterial({ visible: false });
 const hitGeometry = new THREE.SphereGeometry(1, 10, 8);
@@ -81,29 +96,37 @@ function setHover(id: string | null) {
 function Proxies({ list }: { list: Interactable[] }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const baybay = useRef<THREE.Mesh>(null);
+  const registry = useSyncExternalStore(subscribeSystemsRegistry, systemsRegistryEpoch, systemsRegistryEpoch);
   const hits = useMemo<Hit[]>(() => {
     const out: Hit[] = [];
     for (const it of list) {
       // (moving things have no fixed click proxy: BAYBAY has her own below; parked bikes / the toy car are boarded with F / E)
       if (it.source === 'baybay' || it.id === JOGGER_ID || it.source === 'vehicle') continue;
-      out.push({ id: it.id, x: it.x, y: heightAt(it.x, it.z) + 1.1, z: it.z, r: Math.min(2.2, Math.max(1.1, it.radius * 0.45)), card: it.source === 'postcard' ? postcardIdOf(it) : undefined });
+      out.push({ id: it.id, x: it.x, y: heightAt(it.x, it.z) + 1.1, z: it.z, r: Math.min(2.2, Math.max(1.1, it.radius * 0.45)), card: it.source === 'postcard' ? postcardIdOf(it) : undefined, ground: true });
       const landmark = it.poi?.landmarkId ? DISTRICT.landmarks.find(item => item.id === it.poi?.landmarkId) : undefined;
       if (landmark) {
         const scale = Math.min(2, Math.max(0.6, landmark.scale || 1));
         out.push({ id: it.id, x: landmark.position.x, y: (landmark.baseY ?? heightAt(landmark.position.x, landmark.position.z)) + 4 * scale, z: landmark.position.z, r: 3.4 * scale });
       }
+      // other lanes' extra click bodies (game/systemsRegistry registerProxySource)
+      for (const h of extraProxies(it)) out.push({ id: it.id, x: h.x, y: h.y, z: h.z, r: h.r });
     }
     return out;
-  }, [list]);
+  }, [list, registry]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** y per hit (city re-heighting writes it) */
+  const ys = useRef<number[]>([]);
+  const applyRef = useRef<(() => void) | null>(null);
+  const reheight = useRef(0);
 
   useLayoutEffect(() => {
+    ys.current = hits.map(hit => hit.y);
     const m = mesh.current;
     if (!m) return;
     const apply = () => {
       const collected = game.get().postcards;
       hits.forEach((hit, i) => {
         const hidden = !!hit.card && collected.includes(hit.card);
-        tmpMatrix.compose(tmpVec.set(hit.x, hit.y, hit.z), tmpQuat.identity(), tmpScale.setScalar(hidden ? 0.0001 : hit.r));
+        tmpMatrix.compose(tmpVec.set(hit.x, ys.current[i] ?? hit.y, hit.z), tmpQuat.identity(), tmpScale.setScalar(hidden ? 0.0001 : hit.r));
         m.setMatrixAt(i, tmpMatrix);
       });
       m.count = hits.length;
@@ -111,14 +134,26 @@ function Proxies({ list }: { list: Interactable[] }) {
       m.computeBoundingSphere();
     };
     apply();
+    applyRef.current = apply;
     let last = game.get().postcards;
-    return game.subscribe(() => { const now = game.get().postcards; if (now !== last) { last = now; apply(); } });
+    const off = game.subscribe(() => { const now = game.get().postcards; if (now !== last) { last = now; apply(); } });
+    return () => { off(); applyRef.current = null; };
   }, [hits]);
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const b = baybay.current;
-    if (!b) return;
-    b.position.set(runtime.guide.x, runtime.guide.y + 0.8, runtime.guide.z);
+    if (b) b.position.set(runtime.guide.x, runtime.guide.y + 0.8, runtime.guide.z);
+    // city mode (day 0, for G2's city items): once a second, items near the player follow the streamed ground
+    if (!cityMode() || (reheight.current += dt) < 1) return;
+    reheight.current = 0;
+    const p = runtime.player;
+    let changed = false;
+    hits.forEach((hit, i) => {
+      if (!hit.ground || Math.abs(hit.x - p.x) > REHEIGHT_R || Math.abs(hit.z - p.z) > REHEIGHT_R) return;
+      const y = heightAt(hit.x, hit.z) + 1.1;
+      if (Math.abs(y - (ys.current[i] ?? hit.y)) > 0.05) { ys.current[i] = y; changed = true; }
+    });
+    if (changed) applyRef.current?.();
   });
 
   const idOf = (e: ThreeEvent<PointerEvent | MouseEvent>) => (e.instanceId !== undefined ? hits[e.instanceId]?.id ?? null : null);
@@ -285,10 +320,20 @@ function PostcardGlints({ list }: { list: Interactable[] }) {
   }, []);
   useEffect(() => () => { assets.cardGeometry.dispose(); assets.cardMaterial.dispose(); assets.cardTexture.dispose(); assets.glowGeometry.dispose(); assets.glowMaterial.dispose(); assets.glowTexture.dispose(); }, [assets]);
   const euler = useMemo(() => new THREE.Euler(), []);
+  /** ground y per item (city re-heighting writes it) */
+  const ys = useRef<number[]>([]);
+  useLayoutEffect(() => { ys.current = items.map(item => item.y); }, [items]);
+  const reheight = useRef(0);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, dt) => {
     const c = cards.current, g = glows.current;
     if (!c || !g || !items.length) return;
+    // city mode (day 0, for G2's city postcards on hills): once a second, cards near the player follow the streamed ground
+    if (cityMode() && (reheight.current += dt) >= 1) {
+      reheight.current = 0;
+      const p = runtime.player;
+      items.forEach((item, i) => { if (Math.abs(item.x - p.x) <= REHEIGHT_R && Math.abs(item.z - p.z) <= REHEIGHT_R) ys.current[i] = heightAt(item.x, item.z); });
+    }
     const collected = game.get().postcards;
     const fly = flow.get().postcardFly;
     const t = clock.elapsedTime;
@@ -301,14 +346,15 @@ function PostcardGlints({ list }: { list: Interactable[] }) {
       const s = hidden ? 0.0001 : 1 - 0.35 * e;
       euler.set(0.18 * Math.sin(t * 1.3 + i), t * 1.5 + i * 1.7 + e * Math.PI * 4, 0.1 * Math.sin(t * 0.9 + i));
       tmpQuat.setFromEuler(euler);
-      const hover = item.y + 1.15 + 0.16 * Math.sin(t * 2.2 + i);
+      const baseY = ys.current[i] ?? item.y;
+      const hover = baseY + 1.15 + 0.16 * Math.sin(t * 2.2 + i);
       if (flying) {
         const p = runtime.player;
         tmpVec.set(item.x + (p.x - item.x) * e, hover + (p.y + 1.1 - hover) * e, item.z + (p.z - item.z) * e);
       } else tmpVec.set(item.x, hover, item.z);
       tmpMatrix.compose(tmpVec, tmpQuat, tmpScale.setScalar(s));
       c.setMatrixAt(i, tmpMatrix);
-      tmpMatrix.compose(tmpVec.set(item.x, item.y + 0.05, item.z), tmpQuat.identity(), tmpScale.setScalar(hidden || flying ? 0.0001 : 0.85 + 0.15 * Math.sin(t * 2.6 + i)));
+      tmpMatrix.compose(tmpVec.set(item.x, baseY + 0.05, item.z), tmpQuat.identity(), tmpScale.setScalar(hidden || flying ? 0.0001 : 0.85 + 0.15 * Math.sin(t * 2.6 + i)));
       g.setMatrixAt(i, tmpMatrix);
     });
     c.instanceMatrix.needsUpdate = true;
@@ -390,16 +436,15 @@ function Ticker() {
 
     stepCinema(dt);
 
-    const ride = stepRide(dt);
-    if (ride) {
-      const current = flow.get().ride;
-      if (current && (current.stage !== ride.stage || current.eta !== ride.eta)) flow.set({ ride: { ...current, stage: ride.stage, eta: ride.eta } });
-      if (ride.done) finishRide();
-    }
+    // rides (lane F, game/transit.ts): advance the ride, keep the HUD banner in step, finish at the stop
+    stepTransit(dt);
 
     // input edges mirrored by actors (E/Enter/gamepad A, Q/gamepad X)
     if (runtime.input.interact) { runtime.input.interact = false; if (!isTypingTarget()) requestInteract('runtime'); }
     if (runtime.input.call) { runtime.input.call = false; callBaybay(); }
+
+    // other lanes' per-frame steps (game/systemsRegistry registerFrameSystem)
+    stepFrameSystems(dt, now);
 
     c.tenHz += dt;
     if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); }
