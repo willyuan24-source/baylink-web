@@ -20,6 +20,9 @@ import type { Vec2 } from '../core/types';
  *                                       fit within 6 u, else skipped); city ground still streaming in is waited for
  *                                       (≤ 60 s); a ridden vehicle is left alone. Call after the player is placed.
  *   glideUnlocked(): boolean            the pelican glide is unlocked (Coit viewpoint or ?debug=1)
+ *   setGlideUnlocked(v)                 G1's save v2 restore (unlocked.glide): unlock quietly (no "Unlocked" line, no
+ *                                       sound; the pelican model starts loading) or lock again (Settings reset). Safe
+ *                                       before the bind: the last value is applied when the ActorSystem binds.
  *   isRiding(): boolean                 carried by anything (bike, car, glide, transit, bench)
  */
 
@@ -32,6 +35,7 @@ export interface FleetSnapshot {
 export interface MoveApiImpl {
   readonly carried: boolean;
   glideUnlocked: boolean;
+  setGlideUnlocked?(v: boolean): void;
   toFoot(): void;
   driveTo?(p: Vec2): boolean;
   cancelDrive?(): void;
@@ -40,8 +44,14 @@ export interface MoveApiImpl {
 }
 
 let impl: MoveApiImpl | null = null;
+/** a setGlideUnlocked call that came before the bind (resume runs while the world is still mounting) */
+let pendingGlide: boolean | null = null;
 /** actors/system.ts at construction (and null on dispose). */
-export function bindMoveApi(m: MoveApiImpl | null) { impl = m; }
+export function bindMoveApi(m: MoveApiImpl | null) {
+  impl = m;
+  if (m && pendingGlide !== null) { applyGlide(m, pendingGlide); pendingGlide = null; }
+}
+function applyGlide(m: MoveApiImpl, v: boolean) { if (m.setGlideUnlocked) m.setGlideUnlocked(v); else m.glideUnlocked = v; }
 
 export function driveTo(p: Vec2): boolean { return impl?.driveTo?.(p) ?? false; }
 export function cancelDrive() { impl?.cancelDrive?.(); }
@@ -49,5 +59,9 @@ export function requestHopOff() { input.hopOffCount++; }
 export function toFoot() { impl?.toFoot(); }
 export function fleetSnapshot(): FleetSnapshot { return impl?.fleetSnapshot?.() ?? {}; }
 export function restoreFleet(s: FleetSnapshot) { impl?.restoreFleet?.(s); }
-export function glideUnlocked(): boolean { return impl?.glideUnlocked ?? false; }
+export function glideUnlocked(): boolean { return impl?.glideUnlocked ?? pendingGlide ?? false; }
+export function setGlideUnlocked(v: boolean) {
+  if (typeof v !== 'boolean') return;
+  if (impl) applyGlide(impl, v); else pendingGlide = v;
+}
 export function isRiding(): boolean { return impl?.carried ?? false; }

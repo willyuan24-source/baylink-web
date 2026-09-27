@@ -173,6 +173,18 @@ export class MoveSystem {
     this.publishRideables();
   }
 
+  /**
+   * Save v2 restore (G1, via moveApi.setGlideUnlocked): unlock without the "Unlocked" line and sound (the player has
+   * heard it before), start loading the pelican; false locks again (Settings reset). A viewpoint already unlocked in
+   * the store unlocks it again on the next frame, as before.
+   */
+  setGlideUnlocked(v: boolean) {
+    if (v && !this.glideUnlocked) this.pelican.load(this.precompile ?? undefined);
+    this.glideUnlocked = v;
+  }
+  /** the last env.precompile seen (for a quiet unlock outside the frame) */
+  private precompile: MoveEnv['precompile'] | null = null;
+
   get mode() { return this.machine.mode; }
   /** the controller must not move the body (vehicle, glide, bench, transit) */
   get carried() { const m = this.machine.mode; return m !== 'foot' && m !== 'photo'; }
@@ -318,6 +330,7 @@ export class MoveSystem {
     const s = game.get(), p = runtime.player;
     const c = env.controller;
     this.landing = 0;
+    if (env.precompile) this.precompile = env.precompile;
 
     // glide unlock (the Coit viewpoint sets viewpointUnlocked; ?debug=1 unlocks from the start)
     if (!this.glideUnlocked && s.viewpointUnlocked) {
