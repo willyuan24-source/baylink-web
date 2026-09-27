@@ -328,7 +328,7 @@ export class CitySites {
   private kit: KitSwap | null = null;
   private kitStarted = false;
   private disposed = false;
-  /** the renderer (caught by the lod-0 meshes' onBeforeRender) and its triangles of the last whole frame */
+  /** the renderer (caught by the lod-0 meshes' and the kit meshes' onBeforeRender) and its triangles of the last whole frame */
   private renderer: THREE.WebGLRenderer | null = null;
   private frameTris: number | null = null;
   private frameSampled = 0;
@@ -621,7 +621,7 @@ export class CitySites {
     this.kitStarted = true;
     void Promise.all([import('./kitSwap'), modelsModule()]).then(([k, m]) => {
       if (this.disposed) return;
-      this.kit = new k.KitSwap(src, { peek: id => m.peekModel(id), retain: id => { void m.retainModel(id); }, release: id => m.releaseModel(id) }, { frameTriangles: () => this.frameTris });
+      this.kit = new k.KitSwap(src, { peek: id => m.peekModel(id), retain: id => { void m.retainModel(id); }, release: id => m.releaseModel(id) }, { frameTriangles: () => this.frameTris, onRender: this.grab });
       this.group.add(this.kit.group);
     }, () => undefined);
   }

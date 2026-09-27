@@ -72,8 +72,20 @@ export interface L0Source {
   quality?: string;
 }
 
-/** Options: the renderer's triangles of the last whole frame (null while unknown: no frame limit). */
-export interface KitSwapOptions { frameTriangles?: () => number | null }
+/**
+ * Options: the renderer's triangles of the last whole frame (null while unknown: no frame limit); `onRender` goes on the
+ * kit meshes' onBeforeRender (sites.ts catches the renderer there too, so the frame budget holds even before a landmark
+ * lod 0 has been drawn).
+ */
+export interface KitSwapOptions { frameTriangles?: () => number | null; onRender?: (renderer: THREE.WebGLRenderer) => void }
+
+/**
+ * Instance slots per kit model (D2-review): the cap counts the houses fading in or on, and the ones fading out still hold
+ * a slot for 0.3 s, so a street of one model (the Sunset's sunset-doelger) reached 13 instances in a 12-slot mesh while
+ * a house left and the next one joined (mesh.count past the instance buffer). Twice the cap: every house of the cap
+ * fading out while as many fade in.
+ */
+export const KIT_SLOTS = KIT_SWAP.max.high * 2;
 
 /** The decoded kit models (world/models.ts in the city; fakes in the tests). */
 export interface KitModels {
@@ -159,6 +171,7 @@ export class KitSwap {
   /** paused (camera high, quality low): everything fades out */
   private off = false;
   private readonly frameTriangles: () => number | null;
+  private readonly onRender: ((renderer: THREE.WebGLRenderer) => void) | null;
   /** the frame's triangles without the kit, smoothed (−1 = unknown) */
   private baseTris = -1;
 
@@ -166,6 +179,7 @@ export class KitSwap {
     this.src = src;
     this.models = models;
     this.frameTriangles = opts.frameTriangles ?? (() => null);
+    this.onRender = opts.onRender ?? null;
     this.group.name = 'city-kit-swap';
     this.offDrop = src.onL0Drop(cell => this.dropCell(cell));
   }
@@ -231,6 +245,8 @@ export class KitSwap {
     for (const e of this.entries.values()) if (e.phase !== 'out') active++;
     for (const [key, p] of this.pending) {
       if (t - p.since < KIT_SWAP.dwell || active >= cap) continue;
+      // never more instances than the model's mesh has slots (the leaving ones free theirs within the fade)
+      if ((this.holders.get(p.fit.id)?.entries.length ?? 0) >= KIT_SLOTS) continue;
       const model = this.models.peek(p.fit.id);
       if (!model) continue;
       this.pending.delete(key);
@@ -260,7 +276,7 @@ export class KitSwap {
   private holder(id: SfKitId, model: LoadedModel): Holder {
     let h = this.holders.get(id);
     if (h) return h;
-    const max = KIT_SWAP.max.high;
+    const max = KIT_SLOTS;
     const geo = modelInstanceGeometry(model.geometry, max);
     const mat = makeModelMaterial({ map: model.map, mask: model.mask, variant: 'ob-model-inst', tintKey: SF_KIT[id].tintKey, name: `ob-model:kit:${id}` });
     const mesh = new THREE.InstancedMesh(geo, mat, max);
@@ -271,6 +287,7 @@ export class KitSwap {
     mesh.receiveShadow = true;
     mesh.matrixAutoUpdate = false;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    if (this.onRender) { const grab = this.onRender; mesh.onBeforeRender = r => grab(r); }
     this.group.add(mesh);
     h = { id, mesh, geo, mat, entries: [], triangles: model.triangles };
     this.holders.set(id, h);
@@ -333,7 +350,8 @@ export class KitSwap {
   /** Fades (per frame): a finished fade-in hides the toy house, a finished fade-out frees the instance. */
   private step(dt: number) {
     const k = dt / KIT_SWAP.fade;
-    for (const e of [...this.entries.values()]) {
+    // straight over the map (remove() deletes the entry being visited, which a Map iteration allows): no per-frame array
+    for (const e of this.entries.values()) {
       if (e.phase === 'on') continue;
       e.f = e.phase === 'in' ? Math.min(1, e.f + k) : Math.max(0, e.f - k);
       const h = this.holders.get(e.fit.id);

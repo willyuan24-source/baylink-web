@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SF_KIT, SF_KIT_IDS, type SfKitId } from '../src/opus-bay/data/assets';
 import type { LoadedModel } from '../src/opus-bay/world/models';
 import { CITY_STYLES } from '../src/opus-bay/world/recipes/city';
-import { KIT_SWAP, KitSwap, type KitModels, type L0Source, kitChoices, kitFit, lotFrame } from '../src/opus-bay/world/sf/kitSwap';
+import { KIT_SLOTS, KIT_SWAP, KitSwap, type KitModels, type L0Source, kitChoices, kitFit, lotFrame } from '../src/opus-bay/world/sf/kitSwap';
 import { type L0BuildingView, type L0Buildings, type L0Hidden, setRangeHidden } from '../src/opus-bay/world/sf/l0index';
 
 /**
@@ -253,4 +253,33 @@ test('KitSwap fills only the frame\'s room: the view stays ≤ 400k − margin w
   assert.equal(k2.counts().on, 12);
   k.dispose();
   k2.dispose();
+});
+
+test('D2-review: a street of one kit model never draws more instances than its mesh has slots (a house leaving while the next joins)', () => {
+  // the Sunset: every lot takes sunset-doelger (18 candidates within 40 u at (-199, 1518) in the city), the player walks
+  const src = new FakeL0(), models = new FakeModels();
+  const [kw, kh, kd] = SF_KIT['sunset-doelger'].size;
+  src.add(1, Array.from({ length: 80 }, (_, i) => lot(i, -160 + i * 4, 6, { style: style('sunset'), w: kw * 0.95, H: kh * 0.95 - KIT_SWAP.roof, d: kd * 0.4 })));
+  let grabbed = 0;
+  const k = new KitSwap(src, models, { onRender: () => { grabbed++; } });
+  let t = 0, worst = 0, over = 0, maxOn = 0;
+  for (let i = 0; i < 60 * 60; i++) {
+    t += 1 / 60;
+    k.update(-120 + t * 3.5, 0, t, 5);
+    for (const m of k.group.children as THREE.InstancedMesh[]) {
+      worst = Math.max(worst, m.count);
+      if (m.count > m.instanceMatrix.count || m.count * 4 > (m.geometry.getAttribute('aObInst') as THREE.InstancedBufferAttribute).array.length) over++;
+    }
+    maxOn = Math.max(maxOn, k.counts().on);
+  }
+  assert.deepEqual(k.counts().models, ['sunset-doelger']);
+  assert.equal(maxOn, KIT_SWAP.max.high, 'the full dozen of one model');
+  assert.ok(worst > KIT_SWAP.max.high, `a leaving house and a joining one overlap (worst ${worst} instances)`);
+  assert.equal(over, 0, `mesh.count past the instance buffers on ${over} frames (worst ${worst}, ${KIT_SLOTS} slots)`);
+  // the kit meshes hand the renderer to sites.ts (the frame budget before any landmark lod 0 is drawn)
+  const mesh = k.group.children[0] as THREE.InstancedMesh;
+  mesh.onBeforeRender({} as THREE.WebGLRenderer, new THREE.Scene(), new THREE.Camera(), mesh.geometry, mesh.material as THREE.Material, null);
+  assert.equal(grabbed, 1);
+  k.dispose();
+  assert.equal(src.hiddenCount(), 0);
 });
