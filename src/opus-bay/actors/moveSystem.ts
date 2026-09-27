@@ -14,7 +14,7 @@ import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
 import { landmarkTallStructures } from '../world/sf/landmarks/context';
 import type { RidePose } from './anim';
-import type { PlayerController } from './controller';
+import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
 import { NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
@@ -27,7 +27,7 @@ import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
 import type { FleetSnapshot } from './moveApi';
-import { residents, rideables } from './view';
+import { collectObstacles, residents, rideables } from './view';
 
 /**
  * Movement system (plan §6): turns input into the movement state machine (actors/modes.ts) and runs whatever the
@@ -475,9 +475,10 @@ export class MoveSystem {
         };
       }
     }
+    const x0 = ride.sim.x, y0 = ride.sim.y, z0 = ride.sim.z;
     const report = this.fleet.drive(ride, dt, inp);
     this.onDriveReport(ride, report, t);
-    this.giveWay(ride, t);
+    this.giveWay(ride, t, x0, y0, z0);
   }
 
   // ---------------------------------------------------------------------------
@@ -596,24 +597,43 @@ export class MoveSystem {
     return !waiting;
   }
 
-  /** People never get knocked over: a vehicle about to touch a resident stops with a soft bump. */
-  private giveWay(ride: Ride, t: number) {
+  /**
+   * People never get knocked over: a vehicle about to touch a resident stops with a soft bump. The same holds for the
+   * moving things other lanes register as obstacle sources (actors/view.ts registerObstacleSource: F's crowd walkers
+   * and toy traffic), each with its own radius. The step that reached them is undone (x0, y0, z0: the pose before the
+   * drive step), so holding the throttle never creeps the vehicle into anyone.
+   */
+  private giveWay(ride: Ride, t: number, x0: number, y0: number, z0: number) {
     const s = ride.sim;
-    if (Math.abs(s.v) < 0.5) return;
+    // (checked at any speed: a vehicle nudged from a standstill must not creep into someone either)
+    if (Math.abs(s.v) < 0.02) return;
     const fx = Math.sin(s.heading) * Math.sign(s.v), fz = Math.cos(s.heading) * Math.sign(s.v);
     const reach = ride.length * 0.5 + 0.45;
-    for (const r of residents) {
-      const dx = r.x - s.x, dz = r.z - s.z;
+    const inPath = (dx: number, dz: number, r: number) => {
       const ahead = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx);
-      if (ahead > 0 && ahead < reach && side < ride.width * 0.5 + 0.4) {
-        const strength = Math.min(1, Math.abs(s.v) / s.spec.vmax);
-        s.v = 0; s.px = 0; s.pz = 0;
-        if (t - this.giveWayAt > 0.8) { this.giveWayAt = t; emit({ type: 'vehicle:bump', vehicle: ride.kind, strength, hard: false, kind: 'wall' }); emit({ type: 'bump', kind: 'npc', strength: 0.3 }); }
-        return;
-      }
+      return ahead > 0 && ahead < reach + Math.max(0, r - 0.45) && side < ride.width * 0.5 + r;
+    };
+    let hit: string | null = null;
+    for (const r of residents) if (inPath(r.x - s.x, r.z - s.z, 0.4)) { hit = 'npc'; break; }
+    if (!hit) {
+      const obs = this.wayObstacles;
+      obs.length = 0;
+      collectObstacles(obs, s.x + fx * reach * 0.5, s.z + fz * reach * 0.5, reach + 2);
+      for (const o of obs) if (inPath(o.x - s.x, o.z - s.z, o.r)) { hit = o.kind; break; }
+    }
+    if (!hit) return;
+    const speed = Math.abs(s.v), strength = Math.min(1, speed / s.spec.vmax);
+    s.v = 0; s.px = 0; s.pz = 0;
+    s.x = x0; s.y = y0; s.z = z0;
+    if (speed >= 0.5 && t - this.giveWayAt > 0.8) {
+      this.giveWayAt = t;
+      emit({ type: 'vehicle:bump', vehicle: ride.kind, strength, hard: false, kind: 'wall' });
+      // a person (resident, crowd walker) says "whoa"; another vehicle just bumps
+      if (hit !== 'traffic' && hit !== 'car') emit({ type: 'bump', kind: 'npc', strength: 0.3 });
     }
   }
   private giveWayAt = -9;
+  private readonly wayObstacles: Obstacle[] = [];
 
   private onDriveReport(ride: Ride, r: StepReport, t: number) {
     const s = ride.sim;
