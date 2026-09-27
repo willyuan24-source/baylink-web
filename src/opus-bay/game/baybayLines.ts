@@ -87,7 +87,7 @@ export interface LineGates {
 /** A line ready to be said. */
 export interface PlayLine { key: string; voice: string; text: Bilingual; emote?: SpokenLine['emote']; zone?: string }
 
-interface Pending { line: SpokenLine; at: number; until: number }
+interface Pending { line: SpokenLine; at: number; ready: number; until: number }
 
 /** The pure line picker: offers come in from events, `step` decides what is said (times in seconds). */
 export class LineScheduler {
@@ -112,7 +112,7 @@ export class LineScheduler {
     if (!line) return false;
     if (this.pending.some(p => p.line.key === line.key)) return false;
     if (now - (this.lastByKey.get(line.key) ?? -Infinity) < (line.cooldown ?? KEY_COOLDOWN)) return false;
-    this.pending.push({ line, at: now, until: now + line.ttl });
+    this.pending.push({ line, at: now, ready: now + (line.after ?? 0), until: now + line.ttl });
     if (this.pending.length > MAX_PENDING) {
       this.pending.sort((a, b) => b.line.priority - a.line.priority || a.at - b.at);
       this.pending.length = MAX_PENDING;
@@ -142,6 +142,8 @@ export class LineScheduler {
     const zonePriority = 2;
     let best: Pending | null = null;
     for (const p of this.pending) if (!best || p.line.priority > best.line.priority || (p.line.priority === best.line.priority && p.at < best.at)) best = p;
+    // a line that waits a moment on purpose (`after`, e.g. the glide lines after the take-off whoosh) keeps its turn
+    if (best && now < best.ready) return null;
     const zone = this.zoneLine && !g.gliding ? this.zoneLine : null;
     if (zone && (!best || zonePriority >= best.line.priority)) {
       this.zoneLine = null;

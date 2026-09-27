@@ -18,7 +18,7 @@ g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getCont
 
 const lines = await import('../src/opus-bay/data/sf/lines');
 const { BARK_SCRIPT, BARK_SCRIPT_RECORDED, BARK_SCRIPT_TODO, EVENT_LINES, NEIGHBOURHOOD_LINES, barkLine, lineMs, neighbourhoodGreeting, neighbourhoodLine } = lines;
-const { SF_VOICE_CLIPS, SF_VOICE_LINES, SF_VOICE_ZONES } = await import('../src/opus-bay/data/voiceLinesSf');
+const { SF_VOICE_CLIPS, SF_VOICE_EXTRA, SF_VOICE_LINES, SF_VOICE_ZONES } = await import('../src/opus-bay/data/voiceLinesSf');
 const { LINE_GAP, KEY_COOLDOWN, BUBBLE_SETTLE, LineScheduler, createLineMemory, lineEventOf, zoneKey, LINE_MEMORY_KEY } = await import('../src/opus-bay/game/baybayLines');
 const { sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
 const { ZH_GLOSSARY } = await import('../src/opus-bay/data/sf/cityPois');
@@ -47,9 +47,12 @@ const startsWithPhrase = (text: Bilingual, voice: string, where: string) => {
 test('G2-4: BARK_SCRIPT recorded block is exactly H2b’s recorded lines; ids unique; phrases short', () => {
   const ids = BARK_SCRIPT.map(l => l.id);
   assert.equal(new Set(ids).size, ids.length, 'unique ids');
-  assert.deepEqual(BARK_SCRIPT_RECORDED.map(l => l.id).sort(), Object.keys(SF_VOICE_LINES).sort(), 'the recorded block = SF_VOICE_LINES');
+  // the first block is SF_VOICE_LINES (H2b's first pass); SF_VOICE_LINES may grow by the later block (H2b's request 1)
+  for (const l of BARK_SCRIPT_RECORDED) assert.ok(SF_VOICE_LINES[l.id], `${l.id} is in SF_VOICE_LINES`);
+  for (const id of Object.keys(SF_VOICE_LINES)) assert.ok(barkLine(id), `recorded ${id} is a BARK_SCRIPT line`);
+  const recorded = { ...SF_VOICE_EXTRA, ...SF_VOICE_LINES };
   for (const l of BARK_SCRIPT) {
-    const rec = SF_VOICE_LINES[l.id];
+    const rec = recorded[l.id];
     if (rec) {
       assert.equal(l.zh, rec.zh, `${l.id} zh as recorded`);
       assert.equal(l.en, rec.en, `${l.id} en as recorded`);
@@ -64,8 +67,9 @@ test('G2-4: BARK_SCRIPT recorded block is exactly H2b’s recorded lines; ids un
     assert.ok(syllables >= 1 && syllables <= 9, `${l.id}: zh phrase ≤ 9 syllables`);
     assert.ok(l.en.split(/\s+/).length <= 6, `${l.id}: en phrase ≤ 6 words`);
   }
-  assert.ok(BARK_SCRIPT_TODO.length >= 8, 'a not-recorded-yet block for the next H2b pass');
-  for (const l of BARK_SCRIPT_TODO) assert.ok(!SF_VOICE_LINES[l.id] || SF_VOICE_LINES[l.id].zh === l.zh, `${l.id}: once recorded, recorded as written`);
+  assert.ok(BARK_SCRIPT_TODO.length >= 8, 'the later block');
+  // every line of the script now has both clips (H2b recorded the later block as SF_VOICE_EXTRA)
+  for (const l of BARK_SCRIPT) for (const lang of ['zh', 'en']) assert.ok(SF_VOICE_CLIPS[`${lang}-${l.id}`], `${lang}-${l.id} recorded`);
 });
 
 test('G2-4: every event line speaks a BARK_SCRIPT line and its bubble starts with the phrase', () => {
@@ -226,7 +230,8 @@ test('G2-4 scheduler: a first beats a greeting beats a reaction; while gliding t
   const t = mk();
   t.offer('glide', 0);
   t.zone('marina', hood('marina'));
-  assert.equal(t.step(0, { ...open, gliding: true })?.voice, 'first-glide');
+  assert.equal(t.step(0.4, { ...open, gliding: true }), null, 'the glide line lets the take-off whoosh finish');
+  assert.equal(t.step(0.9, { ...open, gliding: true })?.voice, 'first-glide');
   t.offer('glide-no-landing', 9);
   assert.equal(t.step(9, { ...open, gliding: true })?.voice, 'glide-no-landing');
 });

@@ -64,9 +64,10 @@ export const BARK_SCRIPT_RECORDED: readonly BarkLine[] = [
 ];
 
 /**
- * NOT RECORDED YET — the script for a later H2b pass (same rules: ≤ 2 s, the shipped instruction + the mood). Until a
- * clip exists these lines are text bubbles with a chirp (the `voice-line` event is already emitted with these ids, so
- * a recording goes live with no G2 change once H2b lists it in SF_VOICE_LINES / SF_VOICE_CLIPS).
+ * The later block (written after H2b's first recording pass). H2b recorded it the same day, word for word, as
+ * data/voiceLinesSf.ts SF_VOICE_EXTRA (commit e60eec4; its clips are in SF_VOICE_CLIPS, so they play). The two blocks
+ * stay apart until the lead merges SF_VOICE_EXTRA into SF_VOICE_LINES (H2b's request 1; then they preload too): H2b's
+ * test pins this block to SF_VOICE_EXTRA. A line without a clip would still be a bubble with a chirp.
  */
 export const BARK_SCRIPT_TODO: readonly BarkLine[] = [
   // reactions (repeat, 60 s per key)
@@ -121,6 +122,8 @@ export interface SpokenLine {
   ttl: number;
   /** higher plays first when several wait */
   priority: number;
+  /** seconds to wait before speaking (the glide lines let audio's take-off "wow" finish first) */
+  after?: number;
   emote?: LineEmote;
   source?: LineSource;
 }
@@ -143,8 +146,8 @@ export const EVENT_LINES: Record<LineEvent, readonly SpokenLine[]> = {
     { key: 'crest', voice: 'crest-again', ...REACT, cooldown: 180, text: { zh: '再飞一个！抓稳咯～', en: 'Wheee, again! Hold on~' } },
   ],
   glide: [
-    { key: 'first-glide', voice: 'first-glide', ...FIRST, ttl: 6, text: { zh: '抓稳，飞咯！整座城都在下面～', en: "Hold on, we're flying! The whole city's below us~" } },
-    { key: 'glide', voice: 'glide-again', ...REACT, cooldown: 120, text: { zh: '起飞！想飞去哪儿？', en: 'Up we go! Where to?' } },
+    { key: 'first-glide', voice: 'first-glide', ...FIRST, ttl: 6, after: 0.9, text: { zh: '抓稳，飞咯！整座城都在下面～', en: "Hold on, we're flying! The whole city's below us~" } },
+    { key: 'glide', voice: 'glide-again', ...REACT, cooldown: 120, after: 0.9, text: { zh: '起飞！想飞去哪儿？', en: 'Up we go! Where to?' } },
   ],
   'glide-land': [{ key: 'glide-land', voice: 'glide-land', ...REACT, emote: 'clap', text: { zh: '安全降落！', en: 'Safe landing!' } }],
   'glide-no-landing': [{ key: 'glide-no-landing', voice: 'glide-no-landing', ...REACT, priority: 2, text: { zh: '这儿降落不了！再往前飞一点～', en: "Can't land here! Fly on a little~" } }],
