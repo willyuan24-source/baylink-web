@@ -315,3 +315,177 @@ Tests: lane C's three files 32 → **42** tests (cards 12, tours 14, arrival 16)
 
 On the rebased head (over `5f4afa6`: lane T's `0a86c3f`, lane L's `84c12e2` and lane G's review included): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
 `npx eslint src/opus-bay tests/opus-bay-*` 0 · full opus-bay suite **601 / 601** green. Higgsfield: 0 credits.
+
+## Early phase · part 2 (lane C2 · content: the open card and line items)
+
+Worktree `C:/Users/willy/wt/w4-c`, 2026-09-27. Scope: the content items left open by lane C's early review (O2, O3,
+O6, O8, the R1 follow-up) and by the other reviews (lane G O2 / O3 / O4, lane V item 4). Only lane C's own wave-4
+files and new files were edited; **no other lane's file was edited** (lane P landed its own island names and the
+Corona Heights summit arrival while I worked; lane C follows them instead of duplicating them).
+
+### 给主人的摘要
+
+1. 补上了三张缺的介绍卡：海湾大桥、码头绿地、金银岛（事实今天都上网核对过，带出处）。现在所有能走到的一、二级景点"抵达"时 BAYBAY 都有话说，不再冷场。
+2. 恶魔岛的说法统一成"恶魔岛渡轮码头 · 33 号码头"（卡片、39 号码头的提示都改了），和 P 线的行程终点同名；克莱门街全部核对过，卡片里的英文引号也改成了中文引号。
+3. 旧台词"下一站 Holloway，州立大学到了！"已冻结、已录音，不改；另加一句新台词"下一站 Holloway，就是州立大学。"，请 V 线补录。
+4. BAYBAY 的导游语音现在排队说：上一段录音没说完，下一句不会插进来；同一句在同一站只说一次；错过时机的句子直接跳过。整趟一日游模拟跑了一遍，没有一句重叠。
+5. "约 N 分钟"只剩一种写法（新文件 game/tripText.ts），抵达提示也只剩一种写法，G 线、P 线接线时换过来即可；科罗娜高地的全景在山顶触发。检查全部通过：tsc 0、eslint 0 错误、全套 706 个测试通过；Higgsfield 0 分。
+
+### What was built
+
+Commits on `opus-bay`: `678edd8` (W4-C2-1), `7c6e6e2` (W4-C2-2), `86ba716` (W4-C2-3) and the commit of this report
+(W4-C2-4, which also adds `stopSay` / `chapterSay` and the whole-tour pacing test).
+
+| file | what | API |
+|---|---|---|
+| `src/opus-bay/game/tripText.ts` (**new**, light: types only) | the ONE time rule and the ONE arrival toast (lane G review O4, lane C review O8) | `timeLabel(seconds, style?)` → "约 6 秒 · ~6s", "约 40 秒", "约 1 分钟" (57.5–89 s), "约 4 分钟", "约 1 小时 5 分钟", NaN → "计算中…"; styles `compact` (~4 min), `prose` (about 4 min), `bare` (4 分钟 / 4 min); `timeParts`, `minutesLabel(min, style?)`, `PENDING_TIME`, `arrivalToast(name, quiet)` ("抵达 · 艺术宫"; quiet "到了 · 圣依纳爵堂") |
+| `src/opus-bay/game/linePacer.ts` (**new**, pure, light) | BAYBAY's lines one at a time (lane V review item 4; lane C review O6) | `new LinePacer(clipSeconds, { gap, repeatGap, max })`; `.offer(line, now)` → false for a repeat within 25 s or a line already waiting; `.step(now, blocked?)` → `SaidLine` (`seconds`, `voiced`, `bubbleMs`) or null; `.busyUntil`, `.isBusy`, `.pending`, `.clear`; `readSeconds(text)` (= data/sf/lines.ts `lineMs` / 1000), `LINE_TTL` (approach 5, arrive 8, tip 8, board 8, portal 6, arrival 15, stop 20, chapter 30 s), `PACER_GAP` 0.6 s, `REPEAT_GAP` 25 s, `PACER_MAX` 4 |
+| `src/opus-bay/data/sf/tourLines.ts` | lines added after the freeze (TOUR_LINES untouched: snapshot `a799f903365d56e8` holds) | `TOUR_LINES_2` = [`metro-sfsu-next-2` "下一站 Holloway，就是州立大学。" / "Next stop Holloway — that's SF State."], `TOUR_LINES_2_ADDED`, `RETIRED_LINES` (`metro-sfsu-next` → `metro-sfsu-next-2`); `metroNarration` picks the new id at the Holloway approach; `tourLine(id)` finds both sets; `sayLine(say, ttl?)` → a paced line (frozen / added ids keep their voice id, plain bubbles are text) |
+| `src/opus-bay/data/sf/tours.ts` | tour times from the rule; tour lines ready for the pacer | `SF_GRAND.subtitle` built from `minutesLabel(model minutes)` (same text: "全城 5 章 · 约 26 分钟 · 随时下车"); `tourResumeLabel` via `minutesLabel`; `stopSay(stop, 'lead' / 'arrive' / 'done', express?)` (express: `expressArrive`), `chapterSay(chapter, 'intro' / 'outro')` |
+| `src/opus-bay/ui/TourRecap.tsx` | "完整版 · 约 26 分钟" via `minutesLabel` | props unchanged |
+| `src/opus-bay/game/arrival.ts` | the Corona Heights panorama at the summit; the toast from the rule; paced lines; save decoder | `PANORAMA_SPOTS` (a view spot used only when the arrival is more than 12 u from the view; today lane P's override puts Corona's arrival on the summit, so the arrival anchor carries the panorama), `ArrivalAnchor.spot` / `.key`, `ArrivalHit.panorama`, `arrivalPaced(beats, attraction)`, `decodeArrivalSeen(raw)` (≤ 512 keys, `<attraction>` or `<attraction>@<spot>`) |
+| `src/opus-bay/data/sf/placeCards2.ts` | 3 new full cards + wording | `CURATED_CARDS` + `bay-bridge` (row `bay-bridge-sf-anchorage`), `marina-green`, `treasure-island`; the Alcatraz bark "船从恶魔岛渡轮码头 · 33 号码头开" + a telescope tip; the PIER 39 tip with the same pier name |
+| `src/opus-bay/data/sf/placeCards.ts` | 克莱门街 re-checked; ASCII `"…"` inside Chinese → “…” in 21 texts of both card files | — |
+| `src/opus-bay/game/trips.ts` | header only (the destination rule is lane P's `tripDestination`) | API unchanged |
+| `tests/opus-bay-sf-triptext.test.ts` (**new**, 10 tests) | the time rule (table, styles, parity with lane G's and lane P's labels), the island trip ends through lane G's pill, the toast parity, the pacer (clip durations, every loop approach ends before its stop, once per stop, ttl, busy, cap, unrecorded lines), arrival lines through the pacer, **the whole Grand Tour through the pacer** (full + express × zh + en: every line said, in order, never over another clip) | |
+| `tests/opus-bay-sf-{cards,tours,arrival}.test.ts` | updated on purpose + new tests | cards: the curated list + the 3 cards (row, position ≤ 0.001°, hedges, the pier names = lane P's), no silent T1 / T2, 克莱门街 and quotes; tours: the Holloway line, the TOUR_LINES_2 snapshot `a8b4566e2f65aa73`, `sayLine`, times from the rule; arrival: Corona (today's summit arrival and the old door variant, either order), the quiet toast, the anchor count |
+
+### Evidence
+
+- Checks on the pushed tree `86ba716` (on `81b5ae6`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0
+  errors (43 warnings, none in lane C's files) · full opus-bay suite **706 / 706**. (A first full run had the known
+  `sf-nav` "local A* window" wall-clock flake under load, 272.8 ms; green alone, 7 / 7.) The report commit's checks are
+  in "Checks (part 2)" below.
+- **Honest note:** `7c6e6e2` was pushed right after a rebase that brought lane P's `564c68a` (Corona's arrival moved to
+  the summit) without re-running the checks; on that tree my new Corona test failed (1 test). Fixed and pushed about 15
+  minutes later in `86ba716`, after a full run. Every later push followed a full run on the rebased tree.
+- **Facts re-checked on the web on 2026-09-27** (source → what the card or code says):
+  - Bay Bridge — [Wikipedia](https://en.wikipedia.org/wiki/San_Francisco%E2%80%93Oakland_Bay_Bridge): opened 12 Nov
+    1936, "six months before the Golden Gate Bridge"; 4.46 mi (7.18 km) excluding approaches; the west section a double
+    suspension bridge (two spans, a centre anchorage); the new self-anchored east span opened 2 Sep 2013; the west
+    section is closed to pedestrians and bicycles. The Bay Lights — [Wikipedia](https://en.wikipedia.org/wiki/The_Bay_Lights),
+    [SFist, 19 Feb 2026](https://sfist.com/2026/02/19/the-wait-is-ending-bay-lights-will-officially-be-re-lit-on-friday-march-20/),
+    [SF Chronicle](https://www.sfchronicle.com/sf/article/bay-bridge-lights-return-22084492.php): dark since 5 Mar 2023,
+    relit 20 Mar 2026 on the north (Embarcadero) side, the south side a later phase → "2026 年 3 月起重新亮了，天黑后在内河
+    码头看" (no LED count, no south side). The east span path runs Oakland → Yerba Buena Island since 23 Oct 2016
+    ([MTC](https://mtc.ca.gov/news/san-francisco-oakland-bay-bridge-bike-path-opens-yerba-buena-island)).
+  - Marina Green — [Wikipedia](https://en.wikipedia.org/wiki/Marina_Green): between Fort Mason and the Presidio; tidal
+    marsh → 1906 rubble → prepared for the 1915 PPIE → Marina Airfield, the first terminus of the transcontinental air
+    mail (1920s); [Hoodline](https://hoodline.com/2016/05/great-explorations-marina-green/): "the place to fly a kite";
+    the Wave Organ ([Wikipedia](https://en.wikipedia.org/wiki/Wave_Organ)): May 1986, at the end of the spit from the
+    Golden Gate Yacht Club, best at high tide; [SF Rec & Park, Marina project](https://sfrecpark.org/1160/Marina-Improvement-and-Remediation-Proje):
+    design 2025–26, construction from 2027 (update March 2026) → a hedged tip. Wikipedia's 74 acres is left out.
+  - Treasure Island — [Wikipedia](https://en.wikipedia.org/wiki/Treasure_Island,_San_Francisco): 393 acres, built
+    1936–37 for the 1939 Golden Gate International Exposition, Naval Station 1941–1997, a causeway to Yerba Buena
+    Island; [tisf.com/ferry](https://www.tisf.com/ferry): from the Ferry Building Gate B, about 8 min, $5 a ride,
+    weekdays 7:30 am – 8 pm, weekends too → hedged ("大约", "出发前查官网确认").
+  - Alcatraz departure — [Alcatraz City Cruises](https://www.alcatrazcitycruises.com/plan-your-visit/directions/):
+    "Pier 33 Alcatraz Landing" → 恶魔岛渡轮码头 · 33 号码头 (= lane P's `ARRIVAL_PLACES.alcatraz`).
+  - Corona Heights — [Wikipedia](https://en.wikipedia.org/wiki/Corona_Heights_Park): summit 37.7646522, −122.4391379,
+    520 ft, red Franciscan chert, "an unobstructed panoramic view … from downtown to the Twin Peaks" → projectCity (84.8,
+    751.7); the walking graph's highest node there is (81.0, 749.0), y 29.8 (the museum door's node: 23.6) — the same
+    point lane P chose for the arrival.
+  - Street names — [Wikipedia, streets of Chinatown](https://en.wikipedia.org/wiki/List_of_streets_and_alleys_in_Chinatown,_San_Francisco):
+    Clay Street = 企李街, so never Clement St. A primary Chinese source for 克莱门街 was not found today (zh.wikipedia and
+    Chinese-press searches returned nothing for Clement St); 克莱门街 stays as the plain transliteration, now also on
+    lane P's map (`a09d859`). No lane-C text says 企李街 except the CHSA card (Clay St, tested).
+- Pacer numbers (lane V's `TOUR_VOICE_CLIPS`): the longest loop approach clips are zh 6.48 s (Lands End) and en 6.35 s
+  (Ferry Building); + 0.6 s gap = 7.08 s, under the 7.3 s from the approach event to the stop (lane V's review), so every
+  stop's arrive line starts on time (tested for 16 stops × 2 languages). Chapter clips 3.49–6.86 s. The whole tour (full
+  / express, zh / en) through the pacer: every offered chapter / stop line said, in order, 0 overlaps, 0 dropped.
+- Lane G's phone pill for the island trips (compact): "下一站 恶魔岛渡轮…" + "约 4 分钟" (desktop: the full name), and
+  "下一站 14 号码头". Passing `Attraction.short` would print "下一站 恶魔岛" (see Integration step 6).
+
+### Decisions
+
+- **One source per wording.** Time and toast: `game/tripText.ts` (lane C). Where an island trip ends and its name: lane
+  P's `ARRIVAL_PLACES` / `tripDestination(a)`. I had first written an island table in `tripText.ts`; lane P pushed its
+  own minutes later, so mine was removed (`86ba716`) and the cards use P's names (tested).
+- **The time rule** keeps lane G's numbers below a minute (identical for 0–57.5 s, tested every 0.5 s) and takes the
+  minutes from the real seconds: 88 s is "约 1 分钟" (1.47 min; G said 2 because it rounded 88 → 90 first). The only
+  differences with G are the 2.5 s before each half minute (tested). Lane P's zh is identical below an hour; its
+  English loses the space ("~6 s" → "~6s", as G and the rest of the game write it) and hours read "1 小时 2 分钟".
+- **The pacer** holds a line for its clip (the current voice language's `TOUR_VOICE_CLIPS` duration) or, without a
+  clip, for the bubble's reading time; it says `voiced: false` for lines lane V has not recorded
+  (`metro-sfsu-next-2` today), so no chirp plays for them. Transit lines carry a ttl, so an approach is never said after
+  its stop.
+- **Corona Heights**: the panorama plays where the view is. With lane P's summit arrival the arrival anchor carries it;
+  the `PANORAMA_SPOTS` mechanism (tested with the old door arrival, either order, once) stays for any viewpoint whose
+  arrival is more than 12 u from its view.
+- **New cards on lane P's rows**: `bay-bridge` decorates `bay-bridge-sf-anchorage` (POI id `sf:bay-bridge-sf-anchorage`);
+  `marina-green` and `treasure-island` use their own ids. Their lat / lng = lane P's point unprojected. No BAYLINK guide
+  fits the Bay Bridge or Treasure Island; Marina Green takes `sf-palace-fine-arts-marina-guide`.
+- The frozen line `loop-palace-of-fine-arts-tip` says 海滨草地 for Marina Green (a description: "the bayside lawn"); the
+  map name is lane P's 码头绿地. Not reworded (frozen); harmless.
+
+### Integration plan (part 2 additions; the early plan and the review's "Integration changes" still hold)
+
+1. **Lane G, `game/tripPlan.ts`**: `tripTimeLabel(seconds)` → `return timeLabel(seconds)` (import `timeLabel` from
+   `./tripText`; keep the export, so `optionSummary`, `ui/guideText.ts` and `tests/opus-bay-sf-trip.test.ts` lines
+   338–342 stay as they are: all five values are identical under the rule). **`ui/guideText.ts`**:
+   `arrivalToastText(name, quiet)` → `return arrivalToast(name, quiet)` (identical output; `tests/opus-bay-sf-guide.test.ts`
+   lines 184–185 unchanged).
+2. **Lane P, `ui/tripRows.ts`**: `tripSecondsLabel(sec)` → `return timeLabel(sec)`; in `optionDetail` use
+   `timeLabel(x, 'bare')` instead of `.zh.replace('约 ', '')` / `.en.replace('~', '')`. Tests changing on purpose:
+   `tests/opus-bay-sf-map-w4.test.ts` line 313 `en: '~6 s'` → `'~6s'`, line 317 `'约 1 小时 2 分'` → `'约 1 小时 2 分钟'`.
+   `StationActions.tsx` / `TripOptions.tsx` keep calling `tripSecondsLabel` (or import `timeLabel` directly).
+3. Optional, same rule (not part of O4): lane T's `game/lineChoices.ts` `duration()` and `ui/SubwayOverlay.tsx`
+   "约 N 秒", lane P's `game/travel.ts` time format → `timeLabel` (check their tests: the texts differ at ≥ 90 s).
+4. **Pacer** (lane C, `game/cityContent.ts`, city only, lazy): one pacer, `new LinePacer(id =>
+   TOUR_VOICE_CLIPS['<lang>-' + id]?.duration)` with `<lang>` = `VoicePlayer.lang()` (audio/voice.ts; lane V's
+   `data/sf/voiceTour.ts` loads lazily with the tour); a city frame system at 5 Hz: `said = pacer.step(now / 1000,
+   dialogueOpen() || cinemaActive() || !!flow.get().cinematic)`; on a line `bubble(said.text, said.bubbleMs, BAYBAY_ID,
+   'bark')` and, when `said.voiced`, `emit({ type: 'voice-line', id: said.voice })`, the mood as today. Offers:
+   `transit` events → `loopNarration(e) ?? metroNarration(e)` → `pacer.offer(sayLine(line.id, ttl), now)` with ttl =
+   `LINE_TTL.approach` / `.board` / `.arrive` by `e.what`; the subway overlay start → `tunnelNarration(...)` with
+   `LINE_TTL.portal`; the tour engine → `chapterSay(chapter, 'intro' | 'outro')`, `stopSay(stop, 'lead' | 'arrive' |
+   'done', express)`; an arrival hit → `arrivalPaced(beats, hit.anchor.attraction)` offered in order (instead of
+   bubbling `beats.line` / `beats.postcardHint` directly); a tour cancel / end → `pacer.clear()`. The hop-off chip keeps
+   `loopHopOffTip(station)` as text (not paced). G2's `baybayLines` scheduler already waits while any bubble shows:
+   unchanged. Voice preload stays lane V's step 3 (load the next stop's approach / arrive / tip clips).
+5. **Save v2 `arrivals`**: `new ArrivalWatcher(arrivalAnchors(ATTRACTIONS), decodeArrivalSeen(save.arrivals))`; write
+   `watcher.seen()` (it may hold `<attraction>@<spot>` keys).
+6. **Trips to an attraction** (lane C `startFreeLead` / `startTrip`, lane P PlaceActions, lane G planTrips): the end
+   point and its name come from lane P's `tripDestination(a)`; lane G's pill gets `destination: d.name` and
+   `short: a.offWalk ? null : a.short` (never the island's own short for a pier; P's pier short once it exists).
+7. **Lane V**: record `metro-sfsu-next-2` (zh + en) into `data/sf/voiceTour.ts`; `tests/opus-bay-w4-assets.test.ts`
+   line 245 then counts `(TOUR_LINES.length + TOUR_LINES_2.length) * 2` and loops over both sets (lane V's test).
+   `metro-sfsu-next` stays recorded but is never picked (`RETIRED_LINES`), so it can leave any preload list.
+8. **Counts at integration** (`sf-content`): 124 place cards + **8** curated cards (was 5).
+9. **`data/VOICE.md` glossary** (lane C at integration) adds: 海湾大桥 (Bay Bridge), 码头绿地 (Marina Green; the frozen
+   loop tip says 海滨草地 as a description), 金银岛 (Treasure Island), 恶魔岛渡轮码头 · 33 号码头 (Pier 33 Alcatraz
+   Landing), 14 号码头 (Pier 14), 科罗娜高地 (Corona Heights), Holloway (the M stop; no Chinese name).
+
+### Not done (part 2)
+
+- Everything that edits existing files (the steps above), the recording of `metro-sfsu-next-2` (lane V), and phone
+  shots of the new cards (they need the integration's PoiCard path).
+- Other lanes' time wordings outside O4 (lane T's "坐一圈（约 N 分钟）", the subway overlay, lane P's travel.ts):
+  listed in Integration step 3 only.
+
+### Requests
+
+- **Lane V:** record `metro-sfsu-next-2` — zh "下一站 Holloway，就是州立大学。", en "Next stop Holloway — that's SF
+  State.", mood `happy` (`TOUR_LINES_2` in `data/sf/tourLines.ts`, snapshot-tested and frozen from now on); then extend
+  your count test as in Integration step 7. Keep the `metro-sfsu-next` files (retired, never picked).
+- **Lane P:** an optional `short` on `ARRIVAL_PLACES` (alcatraz: 33 号码头 / Pier 33), so lane G's phone pill reads
+  "下一站 33 号码头" instead of "下一站 恶魔岛渡轮…"; the Alcatraz / PIER 39 / Treasure Island cards already use your
+  names (tested against `ARRIVAL_PLACES`).
+- **Lane G:** the two one-line switches of Integration step 1 (output-identical for your tests).
+- **Lead:** none new. The early report's requests (a) `dir` on `transit`, (b) `start-tour` `tourId`, (c)
+  `flow.arrival` landed in `9c73e91` (W4-I0a) while this part ran; `metroNarration` already speaks the portal lines
+  when `dir` is set (lane T emits it next, lead note §8).
+- **Lane L (integration, lead note §8):** when the four D2 arrivals move (`data/sf/arrivals.ts` LANDMARK_ARRIVALS), the
+  tour's `sf:` targets follow (read live); tell lane C, which re-derives the declared minutes
+  (`C:/Users/willy/opus-qa/w4/w4-c/tour-patch.mts`; the tours test allows 0.15 min).
+
+No relayed owner message arrived during this part. Higgsfield: 0 credits.
+
+### Checks (part 2)
+
+On the tree rebased over `32eda15` (the lead's W4-I0 merge: flow.trip / flow.arrival, transit `dir`, start-tour
+`tourId`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings, none in lane C's files) ·
+full opus-bay suite **714 / 714** green, hero regression and contracts included (`flow.arrival` is typed on lane C's
+`ArrivalBeats`, which this part did not change). Re-run on the final rebase over `11b7413` (lane L): tsc 0, eslint 0
+errors, 713 / 714 with the known `sf-nav` "local A* window" wall-clock flake under load (333.7 ms), which passes alone
+(7 / 7). Lane C's four test files: 57 tests (the new `sf-triptext` 10). Scratch: `C:/Users/willy/opus-qa/w4/w4-c/p2/` (the geo scripts, suite logs).
