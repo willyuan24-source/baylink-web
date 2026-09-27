@@ -15,7 +15,7 @@
 // - The four wave-4 models (data/sf/w4Models.ts) are added to ASSETS.models (not registered anywhere else yet);
 //   `hv=<file>` / `pv=<file>` load another GLB under /opus-bay/models/sf/ for sf-holy-virgin / sf-chinese-pavilion
 //   (candidate re-fits, compared before one is published); `hvs=sx,sy,sz` / `pvs=…` override their part's scale.
-import { Suspense, lazy } from 'react';
+import { Suspense, createElement, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASSETS } from '../../../../src/opus-bay/data/assets';
 import { W4_MODELS, type W4ModelId } from '../../../../src/opus-bay/data/sf/w4Models';
@@ -71,5 +71,6 @@ if (solo) SF_LANDMARKS.splice(0, SF_LANDMARKS.length, ...picked);
 else SF_LANDMARKS.push(...picked);
 (window as unknown as { __aiGate?: unknown }).__aiGate = { sites: picked.map(s => s.id), ai, override };
 
-const OpusBayPage = lazy(() => import('../../../../src/opus-bay/OpusBayPage'));
-createRoot(document.getElementById('root')!).render(<Suspense fallback={null}><OpusBayPage /></Suspense>);
+// (createElement, not JSX: a PascalCase lazy component in a file without exports trips react-refresh's lint rule)
+const page = lazy(() => import('../../../../src/opus-bay/OpusBayPage'));
+createRoot(document.getElementById('root')!).render(createElement(Suspense, { fallback: null }, createElement(page)));

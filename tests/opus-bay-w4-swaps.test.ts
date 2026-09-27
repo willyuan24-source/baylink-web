@@ -5,6 +5,7 @@ import test from 'node:test';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { W4_MODELS } from '../src/opus-bay/data/sf/w4Models';
 import { W4_SWAPS, w4Swap, w4SwapPart } from '../src/opus-bay/data/sf/w4Swaps';
+import { siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { w4Site } from '../src/opus-bay/world/sf/landmarks/w4sites';
 
 /**
@@ -45,6 +46,10 @@ test('w4 swaps: each row fills its site\'s AI slot with a model whose landmarkId
     assert.ok(site, `${row.site} is a lane L site`);
     assert.equal(m.landmarkId, row.site, `${row.model}.landmarkId`);
     assert.equal(site.w4.aiSlot?.model, stem(m.url), `${row.site} AI slot names ${stem(m.url)}`);
+    // lane L's slot names the registry id and the placement it planned (d6d8c24): the row agrees within 0.05 u
+    assert.equal(site.w4.aiSlot?.id, row.model, `${row.site} AI slot id`);
+    const at = site.w4.aiSlot!.at, placed = w4SwapPart(row, siteGround(site.id, site.base).at);
+    for (const [k, v] of [[0, placed.x], [1, placed.y], [2, placed.z]] as const) assert.ok(Math.abs(at[k] - v) <= 0.05, `${row.site} placement[${k}] ${v} vs lane L's ${at[k]}`);
     assert.equal(w4Swap(row.site), row);
     const part = w4SwapPart(row, () => 0.37);
     assert.equal(part.model, row.model);
