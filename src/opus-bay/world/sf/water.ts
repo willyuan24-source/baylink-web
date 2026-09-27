@@ -5,7 +5,9 @@ import { Batch, freezeStatic, splitGeometry } from '../builder';
 import { GROUND } from '../materials';
 import { CITY_PAL } from '../palette';
 import { makeWaterMaterial } from '../water';
+import { SOUTH_LAT, worldPolygon } from './boardData';
 import { patchFog } from './fog';
+import { widenedFrustum } from './props';
 
 /**
  * City-mode water and the edges of the big board (plan §5.8): one water material (the district's shader, with a deeper,
@@ -21,16 +23,14 @@ import { patchFog } from './fog';
  * earth where it crosses land (the county line), from world/ground.ts slabEdge.
  */
 
-/** The county line cut: land with lat < 37.7093 (the San Mateo county line) is not modelled (keep x·nx + z·nz ≤ d). */
-export const SOUTH_LAT = 37.7093;
-/** Board corners (lat, lng), counter-clockwise from the south-west: 180 u of Pacific off Ocean Beach / Lands End, the
- *  Bay past Treasure Island and Angel Island (the East Bay and Marin boards will sit beyond). */
-const BOARD_LL: [number, number][] = [
-  [SOUTH_LAT, -122.5205], [SOUTH_LAT, -122.353], [37.842, -122.343], [37.884, -122.398], [37.884, -122.47], [37.816, -122.536],
-];
-
+/** The county line cut: land with lat < SOUTH_LAT (the San Mateo county line) is not modelled (keep x·nx + z·nz ≤ d). */
+export { SOUTH_LAT };
+/**
+ * The world board (boardData.ts WORLD_LL, wave 3): 180 u of Pacific off Ocean Beach / Lands End, round the Marin
+ * Headlands and the north Bay to the East Bay ridge (the Marin and East Bay boards stand in it, world/sf/boards.ts).
+ */
 export function boardPolygon(): Polygon {
-  return BOARD_LL.map(([lat, lng]) => projectCity(lat, lng));
+  return worldPolygon();
 }
 
 /** Half-plane of the county-line cut in world coordinates: keep points with x·nx + z·nz ≤ d. */
@@ -48,7 +48,15 @@ export function southCut(): { nx: number; nz: number; d: number } {
 const TILE = 64, NEAR = 2; // near grid = (2·NEAR + 1)² tiles
 const NEAR_STEP = 4;
 const WATER_Y = -0.6;
-const EDGE_COLUMN = 6;
+/** edge column width (u): the county line (the city's south cut, walked past) and the far board edges */
+const EDGE_COLUMN = 6, EDGE_COLUMN_FAR = 12;
+/**
+ * The far tiles are cut to a widened copy of the view (wave 3: the world board is ≈ 4,000 far tiles since the boards
+ * came): re-cut when the camera changes tile or the view turns by more than CUT_TURN (less than CUT_WIDEN, so nothing
+ * inside the real frustum is ever missing).
+ */
+const CUT_WIDEN = 30, CUT_TURN = 14;
+const TILE_R = TILE * Math.SQRT1_2 + 1;
 
 /** Sutherland–Hodgman: clip a convex (or any) subject polygon against a convex clip polygon (CCW or CW). */
 export function clipConvex(subject: Vec2[], clip: Polygon): Vec2[] {
@@ -118,6 +126,16 @@ export class CityWater {
   private nearBlocks: Uint32Array[] = [];
   private lakes: THREE.Mesh | null = null;
   private edges: THREE.Mesh[] = [];
+  /** far tiles fully under the satellite boards' land (setBoardLand) */
+  private boardLand = new Set<number>();
+  private view = new THREE.Frustum();
+  private viewCam = new THREE.PerspectiveCamera();
+  private viewValid = false;
+  private cutAt = { yaw: NaN, pitch: NaN, fov: 0, aspect: 0 };
+  private dir = new THREE.Vector3();
+  private sphere = new THREE.Sphere();
+  /** far tiles in the last cut (QA) */
+  farTilesDrawn = 0;
 
   constructor(distTex: THREE.Texture, box: THREE.Vector4) {
     this.group.name = 'city-water';
@@ -226,14 +244,34 @@ export class CityWater {
     this.near.visible = nn > 0;
     const attr = this.far.geometry.getIndex()!;
     const dst = attr.array as Uint32Array;
-    let n = 0;
+    let n = 0, drawn = 0;
     for (const t of this.farTiles) {
-      if (t.land || inNear.has(t.key)) continue;
+      if (t.land || inNear.has(t.key) || this.boardLand.has(t.key)) continue;
+      if (this.viewValid) {
+        const tx = Math.floor(t.key / 1024) - 512, tz = (t.key % 1024) - 512;
+        this.sphere.center.set(tx * TILE + TILE / 2, WATER_Y, tz * TILE + TILE / 2);
+        this.sphere.radius = TILE_R;
+        if (!this.view.intersectsSphere(this.sphere)) continue;
+      }
       dst.set(this.farIndex.subarray(t.start, t.start + t.count), n);
       n += t.count;
+      drawn++;
     }
     this.far.geometry.setDrawRange(0, n);
+    attr.clearUpdateRanges();
+    if (n) attr.addUpdateRange(0, n);
     attr.needsUpdate = true;
+    this.farTilesDrawn = drawn;
+  }
+
+  /**
+   * The satellite boards' land (world/sf/boards.ts): far tiles it covers entirely (tile keys as tx, tz pairs) leave the
+   * water's index; the rest stays under the boards' coasts.
+   */
+  setBoardLand(tiles: ArrayLike<number>) {
+    this.boardLand.clear();
+    for (let k = 0; k + 1 < tiles.length; k += 2) this.boardLand.add(this.key(tiles[k], tiles[k + 1]));
+    this.tileKey = NaN;
   }
 
   /** New shore texture (far.ts): swap it in and drop the far tiles that are all land (no water to show there). */
@@ -277,12 +315,14 @@ export class CityWater {
    * The board's cut edge: glass through the water, layered earth where it crosses land (`groundAt` → ground top, or
    * null for water). Built once the far data is in (ground heights along the county line).
    */
-  setEdge(groundAt: (x: number, z: number) => number | null, slabEdge: (g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number) => void) {
+  setEdge(groundAt: (x: number, z: number) => number | null, slabEdge: (g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number | ((edge: number) => number)) => void) {
     if (this.edges.length) return;
     const g = new Batch();
-    // 6 u columns: the board is ~10 km round and seen from afar (1.6 u columns cost ~65k triangles); split in 512 u
-    // pieces so only the stretch in view is drawn
-    slabEdge(g, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, EDGE_COLUMN);
+    // 6 u columns along the county line (the city's own cut), 12 u on the far edges round the boards (the board is
+    // ≈ 13 km round and seen from afar: 1.6 u columns would cost ~100k triangles); split in 512 u pieces so only the
+    // stretch in view is drawn
+    // (WORLD_LL starts with the county line: edge 0)
+    slabEdge(g, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, (edge: number) => (edge === 0 ? EDGE_COLUMN : EDGE_COLUMN_FAR));
     splitGeometry(g.build(), 512).forEach((geo, i) => {
       const m = new THREE.Mesh(geo, GROUND);
       m.name = `city-board-edge#${i}`;
@@ -293,14 +333,33 @@ export class CityWater {
     });
   }
 
-  /** Per frame: move the near grid by whole tiles under the camera, re-cut both indexes on a tile change. */
+  /**
+   * Per frame: move the near grid by whole tiles under the camera; re-cut both indexes on a tile change, and the far
+   * index when the view turned by more than CUT_TURN degrees (the far tiles outside a CUT_WIDEN° wider view are skipped).
+   */
   update(camera: THREE.Camera) {
     const ctx = Math.floor(camera.position.x / TILE), ctz = Math.floor(camera.position.z / TILE);
     const key = this.key(ctx, ctz);
-    if (key === this.tileKey) return;
-    this.tileKey = key;
-    this.near.matrix.makeTranslation(ctx * TILE, 0, ctz * TILE);
-    this.near.matrixWorld.copy(this.near.matrix);
+    const cam = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? (camera as THREE.PerspectiveCamera) : null;
+    let turned = false;
+    if (cam) {
+      camera.getWorldDirection(this.dir);
+      const yaw = Math.atan2(this.dir.x, this.dir.z), pitch = Math.asin(Math.max(-1, Math.min(1, this.dir.y)));
+      const c = this.cutAt, deg = THREE.MathUtils.radToDeg;
+      const dyaw = Math.abs(((yaw - c.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      turned = !(deg(dyaw) <= CUT_TURN) || !(deg(Math.abs(pitch - c.pitch)) <= CUT_TURN * 0.7) || cam.fov !== c.fov || cam.aspect !== c.aspect;
+      if (turned || key !== this.tileKey) {
+        this.cutAt = { yaw, pitch, fov: cam.fov, aspect: cam.aspect };
+        widenedFrustum(cam, CUT_WIDEN, this.view, this.viewCam);
+        this.viewValid = true;
+      }
+    }
+    if (key === this.tileKey && !turned) return;
+    if (key !== this.tileKey) {
+      this.tileKey = key;
+      this.near.matrix.makeTranslation(ctx * TILE, 0, ctz * TILE);
+      this.near.matrixWorld.copy(this.near.matrix);
+    }
     this.refresh(ctx, ctz);
   }
 

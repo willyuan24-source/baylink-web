@@ -412,6 +412,7 @@ export class World {
     const sb = new THREE.Box3();
     for (const m of this.heroGroundChunks) sb.union(m.geometry.boundingBox!);
     const heroGround = this.heroGroundChunks;
+    let cityGround: ((x: number, z: number) => number | null) | null = null;
     this.city = new cm.CityStreamer({
       renderer, quality, slab: DISTRICT.slab, sites, pool: opts.pool,
       hero: {
@@ -434,10 +435,16 @@ export class World {
           const i = Math.floor((x - s.x0) / s.step), j = Math.floor((z - s.z0) / s.step);
           return i >= 0 && j >= 0 && i < s.cols && j < s.rows && s.data[j * s.cols + i] === 0;
         };
-        water.setEdge((x, z) => (land(x, z) ? demSample(far.dem, x, z) : null), slabEdge);
+        // the board's edge waits for the satellite boards (onBoards): where it crosses their land it shows their strata
+        cityGround = (x, z) => (land(x, z) ? demSample(far.dem, x, z) : null);
         this.env.groundAt = (x, z) => demSample(far.dem, x, z);
         clouds.setGround(this.env.groundAt);
         lightField.setFar(far);
+      },
+      onBoards: r => {
+        if (r) { water.setBoardLand(r.landTiles); lightField.setExtra(r.lights); }
+        const city = cityGround;
+        water.setEdge((x, z) => r?.groundAt(x, z) ?? city?.(x, z) ?? null, slabEdge);
       },
     });
     this.root.add(this.city.group);

@@ -3,7 +3,7 @@ import type { Polygon } from '../core/types';
 import type { Quality, TimeOfDay, WorldMode } from '../core/store';
 import { MOON_DIR, TIME_PRESETS, type TimePreset } from './palette';
 import { U } from './materials';
-import { KARL, KARL_GEO } from './fogShader';
+import { CITY_FAR_FADE, FAR_FADE, KARL, KARL_GEO, patchFog } from './fogShader';
 import type { KarlState, cityFogK } from './sf/fog';
 
 /** The city-only halves of the atmosphere (world/sf/fog.ts, in the lazy city chunk): the world passes them in city mode. */
@@ -151,6 +151,8 @@ export class Environment {
     this.mode = mode;
     this.karl = mode === 'city' && city ? new city.KarlState() : null;
     this.cityFogK = mode === 'city' && city ? city.cityFogK : null;
+    // the soft world edge: city only (district keeps it out of reach)
+    if (mode === 'city') FAR_FADE.uObFar.value.set(CITY_FAR_FADE.from, CITY_FAR_FADE.to);
     const T = TABLE[mode];
     this.group.name = 'environment';
     this.skyMat = new THREE.ShaderMaterial({
@@ -188,6 +190,8 @@ varying vec2 vTableXZ;
 const vec2 obTableC = vec2(${T.x.toFixed(1)}, ${T.z.toFixed(1)});`)
         .replace('#include <color_fragment>', `#include <color_fragment>
 diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.toFixed(1)}, length(vTableXZ - obTableC)));`);
+      // city: the table fades out with everything else before the far plane (and Karl lies over it off the coast)
+      if (mode === 'city') patchFog(shader);
     };
     // city: its own program key (the table shader differs); district unchanged
     if (mode === 'city') this.tableMat.customProgramCacheKey = () => 'ob-table-city';

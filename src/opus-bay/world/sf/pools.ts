@@ -25,7 +25,12 @@ import type { PoolArrays } from './mesh';
  * world/warmup.ts (pools: receiveShadow off, tiles: on) so no program is compiled while walking.
  */
 
-export interface PoolItem { toy: PoolArrays | null; ground: PoolArrays | null }
+export interface PoolItem {
+  toy: PoolArrays | null;
+  ground: PoolArrays | null;
+  /** tile pool: merge into this bin instead of the item's 512 u tile (the satellite boards: a few big bins, ≤ 2 calls each) */
+  bin?: number;
+}
 
 export interface PoolStats {
   kind: 'batched' | 'tile'; items: number; visible: number; toyVertices: number; groundVertices: number; toyCapacity: number; groundCapacity: number; drawObjects: number; rebuilds: number;
@@ -392,6 +397,7 @@ export class TilePool implements CellPool {
   }
 
   private tileOf(item: PoolItem) {
+    if (item.bin !== undefined) return 1_000_000 + item.bin;
     const b = (item.toy ?? item.ground)!.bounds;
     const cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2;
     return (Math.floor(cx / TILE) + 64) * 256 + (Math.floor(cz / TILE) + 64);

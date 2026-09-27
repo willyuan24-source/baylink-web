@@ -483,9 +483,10 @@ function edgeColumn(g: Batch, x0: number, z0: number, x1: number, z1: number, n:
 /**
  * Cut edge of a diorama board: strata under land, glassy water above the seabed.
  * `top(x,z)` returns the ground top on land; `water(x,z)` says whether the edge is water there. `column` is the
- * width of one edge column (the city board, ~10 km round, uses wider ones than the district's 1.6 u).
+ * width of one edge column (the city board, ~13 km round, uses wider ones than the district's 1.6 u), or per edge
+ * (`column(i)` for the edge from poly[i] to poly[i + 1]).
  */
-export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column = 1.6) {
+export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column: number | ((edge: number) => number) = 1.6) {
   const s = signedArea(poly) >= 0 ? 1 : -1;
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i], b = poly[(i + 1) % poly.length];
@@ -493,7 +494,7 @@ export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) =>
     if (L < 1e-3) continue;
     const nx = (s * (b.z - a.z)) / L, nz = (-s * (b.x - a.x)) / L;
     const n = v3(nx, 0, nz);
-    const cols = Math.max(1, Math.ceil(L / column));
+    const cols = Math.max(1, Math.ceil(L / (typeof column === 'number' ? column : column(i))));
     for (let k = 0; k < cols; k++) {
       const u0 = k / cols, u1 = (k + 1) / cols;
       const x0 = a.x + (b.x - a.x) * u0, z0 = a.z + (b.z - a.z) * u0;

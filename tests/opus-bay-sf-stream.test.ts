@@ -326,7 +326,7 @@ test('city board: Ocean Beach surf and the Bay inside, the county line cut keeps
   assert.ok(inside(37.8235, -122.3707), 'Treasure Island');
   assert.ok(inside(37.8609, -122.4326), 'Angel Island');
   assert.ok(inside(37.8267, -122.423), 'Alcatraz');
-  assert.ok(!inside(37.88, -122.2), 'Oakland hills are beyond (East Bay board, wave 2)');
+  assert.ok(!inside(37.88, -122.2), 'the far side of the Berkeley / Oakland ridge is beyond (the world polygon cuts along the crest)');
   const cut = southCut();
   const keep = (lat: number, lng: number) => { const p = projectCity(lat, lng); return p.x * cut.nx + p.z * cut.nz <= cut.d; };
   assert.ok(keep(37.72, -122.45), 'Excelsior');

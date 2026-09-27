@@ -8,6 +8,7 @@ import type { Vec2 } from '../../core/types';
 import { GROUND, TOY, type TierFadePair, makeTierFadePair, tierFadeIn, tierFadeOut } from '../materials';
 import { freezeStatic } from '../builder';
 import { TypedBatch } from '../typedBatch';
+import type { BoardsBuild, BoardsData } from './boards';
 import type { CityInit, L0Result, L1Result } from './build';
 import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
 import type { FarCell, FarInit, FarResult } from './far';
@@ -45,6 +46,11 @@ export interface StreamOptions {
   /** far arrived: shore texture, lakes, board edge (world wires them into the water) */
   onFar(r: FarResult, far: FarData): void;
   /**
+   * the satellite boards are in the pools (lane C2-7b; null when the data has none or they failed to load): the world
+   * builds the water's edge with their ground, drops the water under their land and lights them at night
+   */
+  onBoards?(r: BoardsBuild | null): void;
+  /**
    * the hero's own buildings + props (hidden beyond HERO_NEAR) and their L1 stand-in (plan §5.1); `ground`: the hero
    * ground chunks and the job that resamples them into a ground-pool stand-in (lane C2-5; run in 2 ms frame slices
    * once streaming starts; until it is done the hand-made ground stays on screen when far)
@@ -74,6 +80,8 @@ export interface CityStats {
   camH: number;
   farMs: number;
   focus: Vec2;
+  /** the satellite boards (C2-7b): load / build state, items and triangles in the pools */
+  boards: { status: string; items: number; triangles: number; ms: number };
 }
 
 type WorkerOut =
@@ -115,6 +123,8 @@ export class CityStreamer {
   readonly props = new CityProps();
   readonly pool: CellPool;
   manifest: SfManifest | null = null;
+  /** the data version's base URL (manifest, chunks, boards) */
+  base = '';
   far: FarData | null = null;
   table: CellTable | null = null;
   terrain: CityTerrainProvider | null = null;
@@ -169,6 +179,8 @@ export class CityStreamer {
   private heroGroundJob: Generator<void, PoolArrays | null> | null = null;
   private camH = 0;
   private heroFarListeners = new Set<(far: boolean) => void>();
+  /** C2-7b: the satellite boards, loaded (their own lazy chunk) once the far city is in, built in ≈ 2 ms slices */
+  private boards: { status: 'none' | 'loading' | 'building' | 'done' | 'error'; job: Generator<void, BoardsBuild> | null; result: BoardsBuild | null } = { status: 'none', job: null, result: null };
   private l0DropListeners = new Set<(cellKey: number) => void>();
   quality: Quality;
 
@@ -230,6 +242,7 @@ export class CityStreamer {
       const root = this.opts.root ?? SF_ROOT;
       const { base, manifest } = await loadManifest(root);
       this.manifest = manifest;
+      this.base = base;
       this.table = new CellTable(manifest.chunks.map(c => ({ cx: c.cx, cz: c.cz, hero: c.hero })));
       const sites = this.opts.sites;
       this.terrain = createCityTerrain(manifest, { landmarks: sites.walkInputs() });
@@ -322,6 +335,41 @@ export class CityStreamer {
     this.opts.sites.attach(this.pool, (x, z) => demSample(far.dem, x, z));
     this.status = 'streaming';
     this.jobsDirty = true;
+    this.loadBoards();
+  }
+
+  /** C2-7b: fetch the boards (their own lazy chunk); the build runs in frame slices (stepBoards). */
+  private loadBoards() {
+    if (this.boards.status !== 'none') return;
+    this.boards.status = 'loading';
+    import('./boards').then(async m => {
+      const data: BoardsData | null = await m.loadBoards(this.base);
+      if (this.disposed) return;
+      if (!data) { this.boards.status = 'error'; this.opts.onBoards?.(null); return; }
+      this.boards.job = m.boardsJob(data);
+      this.boards.status = 'building';
+    }).catch(e => {
+      this.boards.status = 'error';
+      if (import.meta.env.DEV) console.warn('[opus-bay city] boards', e);
+      this.opts.onBoards?.(null);
+    });
+  }
+
+  private stepBoards() {
+    const b = this.boards;
+    if (b.status !== 'building' || !b.job || this.farQueue.length) return;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 2) {
+      const r = b.job.next();
+      if (!r.done) continue;
+      b.job = null;
+      b.result = r.value;
+      b.status = 'done';
+      // static items, always on (the pools cull them per item); the tile pool merges them into a few bins
+      for (const it of r.value.items) this.pool.add(it.id, { toy: it.toy, ground: it.ground, bin: it.bin }, false, true);
+      this.opts.onBoards?.(r.value);
+      return;
+    }
   }
 
   /** L2 cells into the pool, a few ms per frame (static slots). */
@@ -602,6 +650,7 @@ export class CityStreamer {
   update(dt: number, camera: THREE.Camera) {
     this.time += dt;
     if (this.farQueue.length) this.drainFar(3);
+    this.stepBoards();
     const t = this.table;
     if (!t || this.status === 'error') return;
     this.updateFocus(dt, camera);
@@ -673,10 +722,15 @@ export class CityStreamer {
       workerMs: +this.workerMs.toFixed(1), attachMs: +this.attachMs.toFixed(2), attachMaxMs: +this.attachMax.toFixed(2),
       jobs: this.jobsDone, errors: this.errors, props: this.props.counts(), sites: this.opts.sites.counts(), pool: this.pool.stats(),
       l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, camH: Math.round(this.camH), farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
+      boards: { status: this.boards.status, items: this.boards.result?.items.length ?? 0, triangles: this.boards.result?.triangles.total ?? 0, ms: Math.round(this.boards.result?.ms ?? 0) },
     };
   }
 
+  private disposed = false;
+
   dispose() {
+    this.disposed = true;
+    this.boards.job = null;
     for (const key of [...this.fading.keys()]) this.finishFades(key, true);
     for (const w of this.workers) w.terminate();
     this.workers = [];

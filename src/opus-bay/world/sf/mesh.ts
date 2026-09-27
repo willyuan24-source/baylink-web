@@ -64,7 +64,8 @@ export class CityBatch extends TypedBatch {
 // ground
 // ---------------------------------------------------------------------------
 
-export interface GroundPaint { color: THREE.Color; pattern: number }
+/** `yz`: the pattern's aInfo.y / .z (angle, scale: materials.ts GROUND patterns), 0 / 0 when absent */
+export interface GroundPaint { color: THREE.Color; pattern: number; yz?: readonly [number, number] }
 
 export interface GroundSpec {
   /** min corner and edge length of the cell (u) */
@@ -82,6 +83,8 @@ export interface GroundSpec {
   lipColor(x: number, z: number, h: number): THREE.Color;
   /** depth of the cell-border skirt */
   skirt: number;
+  /** which borders get the skirt (bits 1 = −z, 2 = +x, 4 = +z, 8 = −x; default all four) */
+  skirtSides?: number;
   /** extra lift (u) on every vertex (far tiers sit a hair higher than the sea) */
   lift?: number;
 }
@@ -112,7 +115,7 @@ export function buildGround(b: CityBatch, s: GroundSpec): number {
     const dx = (s.height(x + e, z) - s.height(x - e, z)) / (2 * e), dz = (s.height(x, z + e) - s.height(x, z - e)) / (2 * e);
     _n.set(-dx, 1, -dz).normalize();
     const p = s.paint(x, z, h, Math.hypot(dx, dz));
-    return b.vert(x, h + lift, z, _n.x, _n.y, _n.z, p.color, [p.pattern, 0, 0, GROUND_CITY]);
+    return b.vert(x, h + lift, z, _n.x, _n.y, _n.z, p.color, [p.pattern, p.yz?.[0] ?? 0, p.yz?.[1] ?? 0, GROUND_CITY]);
   };
   const grid = (i: number, j: number) => {
     const k = j * N + i;
@@ -186,7 +189,10 @@ export function buildGround(b: CityBatch, s: GroundSpec): number {
       // i0, j0, di, dj, nx, nz
       [0, 0, 1, 0, 0, -1], [n, 0, 0, 1, 1, 0], [n, n, -1, 0, 0, 1], [0, n, 0, -1, -1, 0],
     ];
-    for (const [i0, j0, di, dj, nx, nz] of sides) {
+    const mask = s.skirtSides ?? 15;
+    for (let side = 0; side < 4; side++) {
+      if (!(mask & (1 << side))) continue;
+      const [i0, j0, di, dj, nx, nz] = sides[side];
       for (let k = 0; k < n; k++) {
         const ia = i0 + di * k, ja = j0 + dj * k, ib = ia + di, jb = ja + dj;
         const sa = S[ja * N + ia], sb = S[jb * N + ib];

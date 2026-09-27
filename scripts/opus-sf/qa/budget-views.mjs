@@ -39,6 +39,16 @@ export const VIEWS = [
   { id: 'tp-gate', note: 'Twin Peaks high → the Golden Gate (Karl pours in at golden hour)', cam: { p: [150, 120, 1000], t: [-865, 0, 505], f: [128.9, 922.7] } },
   { id: 'ggb-crissy', note: 'the Golden Gate Bridge from above Crissy Field (deck and tower lights at night)', cam: { p: [-500, 38, 470], t: [-865, 15, 508], f: [-560, 520] } },
   { id: 'hero-far', note: 'the hero district from Nob Hill, ≈ 400 u (hero far: L1 boxes + ground stand-in)', cam: { p: [-60, 55, 470], t: [20, 0, 70], f: [-40, 460] } },
+  // the Marin and East Bay boards, the Bay Bridge east span, the world's edges (lane C2-7 / C2-13, wave 3)
+  { id: 'marin-gate', note: 'above Crissy Field → the Golden Gate and the Marin Headlands (Hawk Hill, the north end)', cam: { p: [-560, 55, 600], t: [-1100, 20, 520], f: [-600, 560] } },
+  { id: 'ggb-north', note: 'the GGB north end (deck 15.2 meets the Marin ground), looking north up the Waldo grade', cam: { p: [-975, 26, 430], t: [-1120, 20, 250], f: [-940, 470] } },
+  { id: 'sausalito', note: 'over the Bay off Sausalito → the hillside town', cam: { p: [-1150, 45, 60], t: [-1400, 10, 180], f: [-900, 250] } },
+  { id: 'ferry-east', note: 'over the Ferry Building → the Bay Bridge, Oakland and the East Bay hills', cam: { p: [160, 45, 40], t: [600, 0, -900], f: [140, 40] } },
+  { id: 'tp-east', note: 'Twin Peaks high → downtown and the East Bay (the far edge)', cam: { p: [140, 115, 1000], t: [520, 0, -600], f: [128.9, 922.7] } },
+  { id: 'bridge-east', note: 'off Yerba Buena → the east span (SAS tower, skyway) to the Oakland touchdown', cam: { p: [150, 40, -440], t: [500, 8, -950], f: [180, -420] } },
+  { id: 'world-high', note: 'high over the Presidio → the whole Bay (the world edges, the far fade)', cam: { p: [-500, 420, 900], t: [300, 0, -700], f: [-400, 700] } },
+  { id: 'oakland', note: 'a glide over the Port of Oakland → downtown Oakland and the hills (the board dressing up close)', cam: { p: [560, 70, -560], t: [1080, 10, -1180], f: [300, -300] } },
+  { id: 'sausalito-close', note: 'low over Richardson Bay → Sausalito and Belvedere', cam: { p: [-1180, 22, 20], t: [-1330, 12, 140], f: [-900, 250] } },
 ];
 
 const HELPERS = `window.__qb = {

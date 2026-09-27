@@ -4,6 +4,7 @@ import { freezeStatic } from '../builder';
 import { U } from '../materials';
 import { registerWarmup } from '../warmup';
 import type { WorldSystem } from '../world';
+import { FAR_FADE } from '../fogShader';
 import { KARL, KARL_GLSL } from './fog';
 import { type FarData, ROAD_CLASSES, ROAD_FLAG } from './format';
 import { GGB, goldenGateBridge } from './landmarks/golden-gate-bridge';
@@ -91,6 +92,7 @@ attribute vec3 aColor;
 uniform float uNight;
 uniform float uTime;
 uniform float uPx;
+uniform vec2 uObFar;
 varying vec3 vCol;
 ${KARL_GLSL}
 void main() {
@@ -100,7 +102,7 @@ void main() {
   float lvl = aLevel, blink = 1.0;
   if (aLevel >= ${BLINK.toFixed(1)}) { lvl = 1.0; blink = 0.12 + 0.88 * step(0.55, fract(uTime * 0.5 + fract(aLevel))); }
   float a = uNight * smoothstep(60.0, 150.0, d) * blink * (0.4 + 0.6 * lvl);
-  a *= 1.0 - 0.85 * obKarl(wp.xyz, d);
+  a *= (1.0 - 0.85 * obKarl(wp.xyz, d)) * (1.0 - smoothstep(uObFar.x, uObFar.y, d));
   vCol = aColor * a;
   gl_PointSize = clamp(1.6 * uPx / d, 1.5, 4.5) * (0.75 + 0.35 * lvl);
   gl_Position = projectionMatrix * mv;
@@ -118,7 +120,7 @@ void main() {
 
 export const LIGHT_FIELD = new THREE.ShaderMaterial({
   name: 'ob-light-field',
-  uniforms: { uNight: U.uNight, uTime: U.uTime, uPx: { value: 600 }, ...KARL },
+  uniforms: { uNight: U.uNight, uTime: U.uTime, uPx: { value: 600 }, ...KARL, ...FAR_FADE },
   vertexShader: VERT,
   fragmentShader: FRAG,
   transparent: true,
@@ -156,6 +158,9 @@ export class LightField implements WorldSystem {
   readonly group = new THREE.Group();
   private points: THREE.Points | null = null;
   private street: LightSpec[] = [];
+  /** the satellite boards' and the Bay Bridge east span's lights (setExtra, lane C2-7b) */
+  private extra: LightSpec[] = [];
+  private sites: LightSpec[] = [];
   private siteCount = -1;
   private siteAt = 0;
   private size = new THREE.Vector2();
@@ -174,14 +179,21 @@ export class LightField implements WorldSystem {
   setFar(far: FarData) {
     const slab = this.opts.slab;
     this.street = [...streetLamps(far.lines, slab ? (x, z) => inPoly(x, z, slab) : undefined), ...ggbLights()];
-    this.rebuild([]);
+    this.rebuild(this.sites);
+  }
+
+  /** more lights in the same draw (the satellite boards' towns, freeways, cranes and the Bay Bridge east span) */
+  setExtra(specs: readonly LightSpec[]) {
+    this.extra = [...specs];
+    if (this.street.length) this.rebuild(this.sites);
   }
 
   get count(): number { return this.points?.geometry.getAttribute('position').count ?? 0; }
   get visible(): boolean { return !!this.points?.visible; }
 
   private rebuild(sites: LightSpec[]) {
-    const g = pointsGeometry([...this.street, ...sites]);
+    this.sites = sites;
+    const g = pointsGeometry([...this.street, ...this.extra, ...sites]);
     if (this.points) { this.points.geometry.dispose(); this.points.geometry = g; }
     else {
       this.points = new THREE.Points(g, LIGHT_FIELD);

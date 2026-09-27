@@ -153,7 +153,7 @@ vInfo = aInfo;`);
  * builder bakes its contact AO into the vertex colour). Same program either way: a per-vertex branch.
  */
 export const GROUND_CITY = 1;
-export const GROUND_PATTERN = { none: 0, pavers: 1, stone: 2, planks: 3, grass: 4, asphalt: 5, cobble: 6, earth: 7, brick: 8 } as const;
+export const GROUND_PATTERN = { none: 0, pavers: 1, stone: 2, planks: 3, grass: 4, asphalt: 5, cobble: 6, earth: 7, brick: 8, town: 9 } as const;
 
 function groundCompile(tier: { value: number }) {
   return (shader: THREE.WebGLProgramParametersWithUniforms) => patchGroundShader(shader, tier);
@@ -255,6 +255,16 @@ ${TIER_FADE_FRAG}
   } else if (pat == 7.0) { // hillside earth + gardens
     float n = obNoise(p * 0.5) * 0.6 + obNoise(p * 2.0) * 0.4;
     k = vec3(0.92 + 0.16 * n);
+  } else if (pat == 9.0) { // far town (the satellite boards, wave 3): blocks of aInfo.z u between streets, one roof tone
+    // per block, the grid turned by aInfo.y; the streets glow faintly at night (the flats read as a lit grid)
+    vec2 q = obRot(p, vInfo.y) / max(vInfo.z, 4.0);
+    vec2 id = floor(q);
+    float g = obGrout(q, vec2(0.16)) * (1.0 - obTiny(q));
+    float v = mix(0.86, 1.12, obHash(id + 7.7)), h = (obHash(id + 3.1) - 0.5) * 0.12;
+    // a quarter of the blocks keep their gardens (a green cast), the streets are grey asphalt
+    vec3 roof = vec3(v * (1.0 + h), v, v * (1.0 - h)) * mix(vec3(1.0), vec3(0.84, 0.98, 0.8), step(0.75, obHash(id + 11.3)) * 0.7);
+    k = mix(roof, vec3(0.7, 0.71, 0.73), g);
+    if (uNight > 0.01) totalEmissiveRadiance += vec3(1.0, 0.64, 0.32) * g * uNight * 0.16;
   }
   diffuseColor.rgb *= k * (0.965 + 0.07 * macro);
   // night street glow (lane C2-9): city main streets carry their lamp level in aInfo.w (GROUND_CITY + 0.5 … 1), the

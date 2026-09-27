@@ -36,6 +36,16 @@ export const KARL = {
   uKarlDrift: { value: 0 },
 };
 
+/**
+ * The soft world edge (lane C2-7b, wave 3): past `x` u of view depth everything fades into the fog colour, fully at `y`,
+ * just short of the camera's far plane (3,000 u in city mode), so the far plane never cuts the East Bay hills or the
+ * table with a hard line. District mode leaves it far beyond anything (no-op). Every patchFog material and the light
+ * field read it.
+ */
+export const FAR_FADE = { uObFar: { value: new THREE.Vector2(1e9, 2e9) } };
+/** the city's far fade (view depth, u) */
+export const CITY_FAR_FADE = { from: 2350, to: 2940 } as const;
+
 const f1 = (v: number) => v.toFixed(4);
 /** GLSL: Karl's uniforms, coverage and amount (usable in vertex and fragment shaders). */
 export const KARL_GLSL = /* glsl */ `
@@ -77,14 +87,14 @@ export interface FogPatchable { vertexShader: string; fragmentShader: string; un
 /**
  * Karl the Fog for one material (call it from the material's onBeforeCompile, or on a ShaderMaterial before its first
  * compile): adds the Karl uniforms and replaces `#include <fog_fragment>` with Karl's term followed by the same include,
- * so three's own fog runs unchanged after it (1 − (1 − fog)(1 − karl)). `world` names a varying that already holds the
+ * so three's own fog runs unchanged after it (1 − (1 − fog)(1 − karl)), then the soft world edge (FAR_FADE). `world` names a varying that already holds the
  * fragment's world position (TOY / GROUND: 'vWPos'); without it patchFog adds its own (from `mvPosition` next to
  * `#include <fog_vertex>`). No-op without a fog include, and applied at most once. THREE.ShaderChunk is never touched.
  * For lanes E2 / F: `patchFog(shader)` on their own non-TOY materials (C2 → E2, F in the contracts).
  */
 export function patchFog(shader: FogPatchable, opts: { world?: string } = {}): void {
   if (!shader.fragmentShader.includes('#include <fog_fragment>') || shader.fragmentShader.includes('obKarlCover')) return;
-  Object.assign(shader.uniforms, KARL);
+  Object.assign(shader.uniforms, KARL, FAR_FADE);
   let w = opts.world;
   if (!w) {
     if (!shader.vertexShader.includes('#include <fog_vertex>')) return;
@@ -95,9 +105,12 @@ export function patchFog(shader: FogPatchable, opts: { world?: string } = {}): v
     shader.fragmentShader = shader.fragmentShader.replace('#include <fog_pars_fragment>', '#include <fog_pars_fragment>\nvarying vec3 vObKarlW;');
   }
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <fog_pars_fragment>', `#include <fog_pars_fragment>\n${KARL_GLSL}`)
+    .replace('#include <fog_pars_fragment>', `#include <fog_pars_fragment>\n${KARL_GLSL}\nuniform vec2 uObFar;`)
     .replace('#include <fog_fragment>', /* glsl */ `#ifdef USE_FOG
 if (uKarl > 0.0) gl_FragColor.rgb = mix(gl_FragColor.rgb, uKarlColor, obKarl(${w}, vFogDepth));
 #endif
-#include <fog_fragment>`);
+#include <fog_fragment>
+#ifdef USE_FOG
+gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(uObFar.x, uObFar.y, vFogDepth));
+#endif`);
 }
