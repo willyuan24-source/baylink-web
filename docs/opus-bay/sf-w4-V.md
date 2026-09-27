@@ -321,9 +321,9 @@ models name the sites …" and this section.
 
 ### Checks
 
-- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on the pushed tree, rebased on `af3715b`)
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on the pushed tree: `0df24a7` + `a016a1a`)
 - `npx eslint .`: 0 errors, 42 warnings on the repo files (`--ignore-pattern .vite-opus`; the untracked `.vite-opus/` optimizer cache in this worktree adds the 12 known errors, lane V's request to the lead stands)
-- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **652 / 652** green on the pushed tree (rebased on `af3715b`; 643 / 643 before that rebase), incl. hero regression and contracts
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **654 / 654** green on the pushed tree (`a016a1a`, on `0684080`; 643 / 643 and 652 / 652 on the earlier rebases), incl. hero regression and contracts
 - `tests/opus-bay-w4-assets.test.ts`: 7 / 7 (was 6: + the landmarkId / ledger test; the sticker and spots tests gained
   the SVG crop, the station ids and the lod-0 rings). The new checks fail on the old data (tried: `music-concourse`,
   `carl-cole`).
