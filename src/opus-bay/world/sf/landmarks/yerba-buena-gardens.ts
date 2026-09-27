@@ -11,7 +11,8 @@ import { FC, GC, PAT, type SiteGroundPoly, type W4Site, gfill, plazaOf, siteGrou
  *
  * Frame: origin (176.9, 210.8), yaw 0 (world grid): the park (OSM) is x −13.1…10.3, z −7.9…8.1; the waterfall wall
  * replaces OSM way 109141774 (x 6.6…9.5, z −6.2…3.7), the pedestrian walk along the YBCA side (z −7.8) and Howard
- * St (x 11.9) stay the city's. The wall 4.2 u (≈ 22 ft of falling water over the walkway behind it).
+ * St (x 11.9) stay the city's. The wall 4.2 u: the waterfall is 20 ft (6.1 m) high and 50 ft wide, over the walkway
+ * behind it (yerbabuena.org).
  */
 
 const ID = 'yerba-buena-gardens';
@@ -78,7 +79,7 @@ export const yerbaBuenaGardens: W4Site = {
     arrival: { x: 0.0, z: 0.0, heading: Math.PI / 2 },
     photo: { target: [2, 2, 0], distance: 28, elevation: 0.45, bearing: -1.6 },
     flag: { x: -4.0, z: -3.2, h: 30 },
-    height: { realM: 7, u: 4.3, rule: 'ground' },
+    height: { realM: 6.1, u: 4.3, rule: 'ground' },
     osm: ['park way of Yerba Buena Gardens', 'way/109141774'],
     terrain: [-14, -9, 11, 8],
     notes: 'Downtown diet (plan §2.2): ≤ 0.4k, lod0R 200. The MLK Memorial quotations are never reproduced; the carousel, MoAD and Moscone are cards.',

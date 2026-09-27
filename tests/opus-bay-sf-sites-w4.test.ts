@@ -363,3 +363,20 @@ test('settings: plazas ≥ 30 u², lamps light the night, no text or logo parts,
     }
   }
 });
+
+test('facts the early review re-checked on the web stay right (the module headers feed lane C\'s cards)', () => {
+  const src = (f: string) => readFileSync(new URL(`../src/opus-bay/world/sf/landmarks/${f}.ts`, import.meta.url), 'utf8');
+  // Ocean Beach's 16 fire rings are only between Stairwells 15 and 20 (JFK Dr to Lincoln Way; nps.gov): none, and no
+  // fire glow, at Lawton St; the N Judah terminus (Judah St) is two blocks north of Lawton St
+  const ob = w4Site('ocean-beach')!;
+  assert.equal((ob.lights ?? []).length, 0, 'no fire glow at Lawton St');
+  assert.match(src('ocean-beach'), /Stairwells 15 and 20/);
+  assert.match(src('ocean-beach'), /two blocks NORTH/);
+  // bison in Golden Gate Park since 1891 (sfzoo.org timeline), in this meadow since 1899
+  assert.match(src('bison-paddock'), /since 1891/);
+  assert.doesNotMatch(src('bison-paddock'), /since 1892/);
+  // St Ignatius: 210 ft towers (USF, "9 facts"); the MLK Memorial waterfall is 20 ft high (yerbabuena.org)
+  assert.match(src('st-ignatius'), /210 ft/);
+  assert.equal(w4Site('st-ignatius-church')!.w4.height.realM, 64);
+  assert.match(src('yerba-buena-gardens'), /20 ft \(6\.1 m\) high/);
+});

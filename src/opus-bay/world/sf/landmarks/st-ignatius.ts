@@ -6,14 +6,15 @@ import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, gstrip, lamp, 
 
 /**
  * Saint Ignatius Church (wave 4, P1 · map T2, part of the USF site): the Jesuit church of 1914 by Charles Devlin at
- * Fulton St and Parker Ave, whose two 200-ft towers flank the columned front on its south side, with the dome behind
- * them over the crossing (USF, "9 facts about St. Ignatius Church"; SF Chronicle). An active parish: a quiet card, no
- * gameplay objects, and the saint's statue in the front niche is a plain figure.
+ * Fulton St and Parker Ave, whose twin towers (210 ft, the city's highest points when they were finished in 1914)
+ * flank the columned front on its south side, with the dome behind them over the crossing (USF, "9 facts about
+ * St. Ignatius Church"; SF Chronicle). An active parish: a quiet card, no gameplay objects, and the saint's statue in
+ * the front niche is a plain figure.
  *
  * Frame: origin (−150.4, 753.2), yaw 55.1° — local +z faces south onto Fulton St (z 7.3), Parker Ave runs along
  * x −5.4 (west), the campus lawn with its walks lies east (x 4…13, OSM footways, Kalmanovitz Hall at x ≥ 13.7).
- * Footprint (OSM way 225193440) x −3.3…4.0, z −5.8…5.1. Heights: towers 61 m → 12.65 u to the lantern tops, the
- * nave 20 m → 5.6 u walls, the dome over the crossing to 10.4 u.
+ * Footprint (OSM way 225193440) x −3.3…4.0, z −5.8…5.1. Heights: the towers 210 ft (64 m) → 13.1 u by the rule,
+ * drawn 12.9 u to the crosses; the nave 20 m → 5.6 u walls, the dome over the crossing to 10.4 u.
  *
  * The procedural church is the always-shippable fallback; lane V's AI mesh (`w4.aiSlot`) swaps in through the
  * SoloView gate in the integration phase with the same footprint and walk data.
@@ -136,7 +137,7 @@ export const stIgnatius: W4Site = {
     arrival: { x: 0.9, z: 6.4, heading: Math.PI },
     photo: { target: [0.4, 6.5, 0], distance: 34, elevation: 0.2, bearing: 0.35 },
     flag: { x: CX, z: CROSS_Z, h: 30 },
-    height: { realM: 61, u: 12.9, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 64, u: 12.9, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/225193440'],
     terrain: [-5, -8, 15, 8],
     aiSlot: { model: 'w4-st-ignatius', note: 'lane V (data/sf/w4Models.ts, sf-st-ignatius): twin spires + dome (H-1); swap through the SoloView gate, same footprint and blockers' },

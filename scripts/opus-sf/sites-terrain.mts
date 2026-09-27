@@ -1,7 +1,8 @@
 // Bakes the ground of the wave-4 sites (lane L) into src/opus-bay/world/sf/landmarks/siteTerrain.ts from the published
 // city (public/opus-bay/sf/<current>): per site the numeric base (the lowest walked ground inside its exclusion, 0.5 u
 // samples + the polygon's corners, rounded down to 0.01 u) and the local ground heights over its `w4.terrain` box on a
-// 3 u grid (1/100 u above the base). Deterministic; re-run after changing a site's exclusion or terrain box.
+// 2 u grid (`w4.terrainStep` overrides it; 1/100 u above the base). Deterministic; re-run after changing a site's
+// exclusion or terrain box.
 //
 //   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/sites-terrain.mts [--site <id>] [--check]
 //
