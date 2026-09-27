@@ -52,3 +52,23 @@
 .ob-place-num.is-found { background: var(--ob-teal); color: #fff; }
 .ob-citymap-empty { padding: 10px 4px; color: var(--ob-ink-3); font-size: 13px; }
 @media (max-width: 600px) { .ob-citymap-frame { height: 46vh; } }
+/* 足迹 (ui/Footprints.tsx, the Journal's city tab) */
+.ob-steps-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.ob-steps-stats li { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px 8px; border-radius: var(--ob-r-m); background: #fff; border: 1px solid var(--ob-line); text-align: center; }
+.ob-steps-stats strong { font-size: 22px; font-weight: 800; line-height: 1.1; color: var(--ob-teal-d); font-variant-numeric: tabular-nums; }
+.ob-steps-stats strong small { font-size: 13px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-steps-stats span { font-size: 12px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-steps-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ob-steps-list.is-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.ob-steps-list li > button, .ob-steps-list li > div { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 7px 10px; border-radius: var(--ob-r-s, 12px); background: #fff; border: 1px solid var(--ob-line); font: inherit; color: var(--ob-ink); text-align: left; cursor: pointer; }
+.ob-steps-list li > div { cursor: default; }
+.ob-steps-list.is-grid li:not(.is-found) > button { background: rgba(255, 255, 255, .55); color: var(--ob-ink-3); }
+.ob-steps-list .ob-check.is-on { background: var(--ob-teal); border-color: var(--ob-teal); }
+.ob-steps-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ob-steps-text span { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ob-steps-text small { font-size: 12px; color: var(--ob-ink-3); }
+.ob-steps-go { color: var(--ob-teal); flex: none; }
+.ob-steps-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ob-steps-chips li { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: rgba(125, 104, 76, .1); color: var(--ob-ink-3); }
+.ob-steps-chips li.is-on { background: var(--ob-teal-l); color: var(--ob-teal-d); }
+@media (max-width: 380px) { .ob-steps-stats { gap: 6px; } .ob-steps-stats strong { font-size: 19px; } .ob-steps-stats span { font-size: 11px; } }

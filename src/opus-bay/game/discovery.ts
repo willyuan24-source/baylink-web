@@ -53,6 +53,10 @@ export function useDiscoveryEpoch(): number { return useSyncExternalStore(subscr
 export const isDiscovered = (id: string) => everything || discovered.has(id);
 export const zoneVisited = (id: string) => everything || zones.has(id);
 export const discoveredCount = () => discovered.size;
+/** Every place found so far, oldest first (save v2 order, then this visit's finds): the Journal's 足迹 tab (G1-11). */
+export const discoveredIds = (): readonly string[] => [...discovered];
+/** The neighbourhoods visited so far (ids), in the order they were entered. */
+export const visitedZoneIds = (): readonly string[] => [...zones];
 export const visitedZoneCount = () => zones.size;
 /** G2: a line when a place is found; returns the unsubscribe */
 export function onDiscover(fn: (p: CityPlace) => void): () => void { discoverHooks.add(fn); return () => { discoverHooks.delete(fn); }; }

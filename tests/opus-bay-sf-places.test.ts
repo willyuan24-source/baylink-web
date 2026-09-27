@@ -122,3 +122,24 @@ test('street names: nearest named centreline within 6 u; 1.5 u hysteresis', () =
   assert.equal(chooseStreet('B', [{ name: 'A', d: 1 }, { name: 'B', d: 3 }]), 'A', '2 u nearer: switch');
   assert.equal(chooseStreet('B', []), null);
 });
+
+test('G1-11 足迹: counts landmarks / sights / places / neighbourhoods / rides from the real index; newest finds first', async () => {
+  const { footprintsSummary } = await import('../src/opus-bay/ui/footprintsData');
+  const empty = footprintsSummary(ix, [], 0, far.zones.length, {}, () => null);
+  assert.equal(empty.landmarks.total, 24);
+  assert.equal(empty.landmarks.found, 0);
+  assert.ok(empty.sights.total >= 40, `${empty.sights.total} curated places beside the landmarks`);
+  assert.equal(empty.zones.total, far.zones.length);
+  assert.deepEqual([empty.places, empty.ridesTotal, empty.recent.length], [0, 0, 0]);
+  const lm = ix.list.filter(p => p.landmark).slice(0, 3).map(p => p.id);
+  const sight = ix.list.find(p => p.curated && !p.landmark)!.id;
+  const osm = ix.list.find(p => !p.curated && !p.landmark)!.id;
+  const found = [...lm, sight, osm, 'gone-from-the-index'];
+  const s = footprintsSummary(ix, found, 5, far.zones.length, { 'powell-hyde': 2, 'california': 1, 'x': 0 }, id => (id === 'powell-hyde' ? { zh: '鲍威尔-海德线', en: 'Powell–Hyde' } : null));
+  assert.deepEqual([s.landmarks.found, s.sights.found, s.places, s.zones.visited], [3, 1, 5, 5]);
+  assert.deepEqual(s.recent.map(p => p.id), [osm, sight, lm[2], lm[1], lm[0]], 'newest first; unknown ids skipped');
+  assert.deepEqual(s.rides.map(r => [r.lineId, r.count]), [['powell-hyde', 2], ['california', 1]]);
+  assert.equal(s.rides[1].name.en, 'california', 'a line without a name shows its id');
+  assert.equal(s.ridesTotal, 3);
+  assert.equal(footprintsSummary(ix, found, 99, 41, {}, () => null).zones.visited, 41, 'never more than all');
+});

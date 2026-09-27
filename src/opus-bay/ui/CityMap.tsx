@@ -5,8 +5,8 @@ import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
 import type { Bilingual, Vec2 } from '../core/types';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
-import { landmarkAreaAt, learnZoneNames, zoneLabelAnchor, zoneName } from '../data/cityZones';
-import { type CityPlace, type PlaceIndex, loadPlaces, onPlaces, placeIndex } from '../data/sf/places';
+import { landmarkAreaAt, zoneLabelAnchor, zoneName } from '../data/cityZones';
+import type { CityPlace } from '../data/sf/places';
 import { onTransitData, transitData } from '../data/transit';
 import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
@@ -15,9 +15,8 @@ import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, REPLAN_U, cachedRoute, cancelPlan, endTrip, planRoute, tripPlaceId } from '../game/mapRoute';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { useT } from '../i18n';
-import { cityStreamerLazy } from '../world/cityLoader';
-import type { FarData } from '../world/sf/format';
 import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitPoints, fitScale, labelWidth, layoutLabels, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { useFar, usePlaceIndex } from './cityHooks';
 import { BaybayFace, Sheet } from './common';
 import { MapPaperLayer } from './MapPaperLayer';
 import { PlaceActions, type WalkInfo } from './PlaceActions';
@@ -35,23 +34,6 @@ const MAX_CANVAS = 1800;
 const HIT_PX = 22;
 /** screen boxes labels keep clear of: the tool column (4 buttons of 34 px + gaps, city-ui.css) and the credit line */
 const TOOLS_W = 48, TOOLS_H = 172, TOOL_STEP = 40, CREDIT_H = 20;
-
-/** far.obc once the streamer has it; the neighbourhood names are learned before the first render that uses it. */
-function useFar(): FarData | null {
-  const [far, setFar] = useState<FarData | null>(() => { const f = cityStreamerLazy()?.far ?? null; if (f) learnZoneNames(f.zones); return f; });
-  useEffect(() => {
-    if (far) return;
-    const id = window.setInterval(() => { const f = cityStreamerLazy()?.far; if (f) { learnZoneNames(f.zones); setFar(f); } }, 400);
-    return () => window.clearInterval(id);
-  }, [far]);
-  return far;
-}
-
-function usePlaces(): PlaceIndex | null {
-  const [ix, setIx] = useState<PlaceIndex | null>(() => placeIndex());
-  useEffect(() => { void loadPlaces(); return onPlaces(setIx); }, []);
-  return ix;
-}
 
 function useTransitLines() {
   const [d, setD] = useState(() => transitData());
@@ -96,7 +78,7 @@ type Tab = 'landmarks' | 'near' | 'found';
 export function CityMapPanel() {
   const { t } = useT();
   const far = useFar();
-  const ix = usePlaces();
+  const ix = usePlaceIndex();
   const lines = useTransitLines();
   const epoch = useDiscoveryEpoch();
   const pos = useGame(s => s.playerPos);
@@ -214,6 +196,16 @@ export function CityMapPanel() {
     setSelected(p.id);
     setView(v => (v ? clampView({ ...v, cx: p.x, cz: p.z, scale: Math.max(v.scale, fitScale(MAP_FRAME, v.w, v.h) * 5) }, MAP_FRAME) : v));
   };
+  // openPanel('map', '<placeId>') (the Journal's 足迹 tab): open on that place, selected
+  const openId = useGame(s => (s.panel.kind === 'map' ? s.panel.id ?? null : null));
+  const openedOn = useRef<string | null>(null);
+  useEffect(() => {
+    if (!openId || !ix || !view || openedOn.current === openId) return;
+    const p = ix.get(openId);
+    if (!p) return;
+    openedOn.current = openId;
+    focusPlace(p);
+  }, [openId, ix, view]);
 
   // --- markers ------------------------------------------------------------------------------------------------------
   const zoom = view ? view.scale / fitScale(MAP_FRAME, view.w, view.h) : 1;
