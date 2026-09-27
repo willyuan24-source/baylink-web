@@ -10,7 +10,7 @@ import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { noteRide } from '../data/save';
 import type { FLineStation } from '../data/fline';
-import { CABLE, type CableLine, type TransitData, activeCableSystem, activeStreetcarSystem, cableLine, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation } from '../data/transit';
+import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation } from '../data/transit';
 import { hookFill, hookText, nodeText, npcLine } from './content';
 import { travelEpoch } from './fastTravel';
 import { announce, bubble, completeGoal, defineNode, playDialogue, refreshLock, say, teleportPlayer } from './flow';
@@ -141,6 +141,7 @@ export function finishRide() {
  */
 export function boardFrom(it: Interactable) {
   if (it.id.startsWith(PUSH_PREFIX)) { pushTurntable(it.refId ?? it.id.slice(PUSH_PREFIX.length)); return; }
+  if (it.source === 'transit' && it.refId && ferryTerminal(it.refId)) { boardFerry(it.refId); return; }
   // city mode: the F-line to the Castro serves the hero stops and its Market Street stations
   const fl = it.refId && flineStation(it.refId) ? it.refId : it.source === 'streetcar' && activeStreetcarSystem() ? nearestStopId(it) : null;
   if (fl && flineStation(fl)) { boardFLine(fl); return; }
@@ -150,6 +151,11 @@ export function boardFrom(it: Interactable) {
 
 /** flow's dialogue runner hands every `flow.ride.<rest>` node here: `<fromStop>><toStop>` (F-line) or `cc:<line>:<from>:<to>`. */
 export function openRideNode(rest: string) {
+  if (rest.startsWith('fe:')) {
+    const [, from, to] = rest.split(':');
+    rideFerry(from, to);
+    return;
+  }
   if (rest.startsWith('fl:')) {
     const [, from, to] = rest.split(':');
     rideFLine(from, to);
@@ -214,6 +220,15 @@ export function rideLabel(ride: FlowRide): RideLabel {
       dest: dest ? dest.name : null,
     };
   }
+  if (ride.kind === 'ferry' && ride.line) {
+    const dest = ferryTerminal(ride.to)?.terminal;
+    return {
+      icon: 'ferry',
+      waiting: { zh: `等渡轮靠岸…${ride.eta ? `约 ${ride.eta} 秒` : ''}`, en: `Waiting for the ferry…${ride.eta ? ` ~${ride.eta}s` : ''}` },
+      lineTo: { zh: '渡轮 · 开往', en: 'Ferry · to' },
+      dest: dest ? dest.name : null,
+    };
+  }
   if (ride.kind === 'streetcar' && ride.line) {
     const dest = flineStation(ride.to);
     return {
@@ -251,6 +266,7 @@ let turningNear: string[] = [];
 let pushedAt: string | null = null;
 let pollT = 0;
 let seenFLine: unknown = null;
+let seenFerry: unknown = null;
 
 const isCity = () => game.get().worldMode === 'city';
 const lineName = (line: CableLine | undefined): Bilingual => line?.name ?? CABLE_CAR;
@@ -325,6 +341,7 @@ function stepCity(r: RideState, dt: number) {
     seenHorn = input.hornCount;
     if (r.mode === 'follow') {
       if (r.kind === 'streetcar') emit({ type: 'streetcar-bell' });
+      if (r.kind === 'ferry') { emit({ type: 'foghorn' }); emit({ type: 'transit', what: 'horn', line: r.line!, kind: 'ferry', strength: 1 }); return; }
       emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 1 });
     }
   }
@@ -344,7 +361,8 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
   const name = rideLineName(r);
   if (tick.boarded) {
     emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
-    if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
+    if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
+    else if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
     else bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
     announce({ zh: `上车：${name.zh}`, en: `Aboard the ${name.en}` });
   }
@@ -358,10 +376,12 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
 const rideKind = (r: RideState): TransitKind => r.kind ?? 'cable-car';
 /** A city ride's line name: the cable-car line, or the F-line. */
 function rideLineName(r: RideState): Bilingual {
+  if (r.kind === 'ferry') return FERRY_NAME;
   return r.kind === 'streetcar' ? F_LINE : lineName(cableLine(r.line!));
 }
 /** A station of the ride's line (cable-car station, or F-line station). */
 function stationOf(r: RideState, id: string): { name: Bilingual; x: number; z: number } | undefined {
+  if (r.kind === 'ferry') { const t = ferryTerminal(id)?.terminal; return t ? { name: t.name, x: t.quay.x, z: t.quay.z } : undefined; }
   return r.kind === 'streetcar' ? flineStation(id) : transitStation(id);
 }
 
@@ -370,7 +390,7 @@ function countRide(r: RideState) {
   const line = r.line!;
   rides[line] = (rides[line] ?? 0) + 1;
   emit({ type: 'transit', what: 'ride', line, kind: rideKind(r), real: true });
-  completeGoal(r.kind === 'streetcar' ? 'streetcar' : 'cable-car');
+  completeGoal(r.kind === 'streetcar' ? 'streetcar' : r.kind === 'ferry' ? 'ferry' : 'cable-car');
   noteRide(line);
 }
 
@@ -390,7 +410,11 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   game.set({ riding: null });
   flow.set({ ride: null });
   let spot: { x: number; z: number } | null = null;
-  if (skip) {
+  if (r.kind === 'ferry') {
+    // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach
+    const quay = stationOf(r, st?.station ?? r.to);
+    if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16);
+  } else if (skip) {
     const dest = stationOf(r, r.to);
     if (dest) spot = nearestWalkable({ x: dest.x, z: dest.z }, 16);
   } else if (pose && r.mode === 'follow') {
@@ -407,7 +431,9 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 0.8 });
   const dest = stationOf(r, r.to);
   if (finishing && dest) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
-  if (r.kind === 'streetcar') {
+  if (r.kind === 'ferry') {
+    if (r.counted && !skip) bubble(hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, 2800);
+  } else if (r.kind === 'streetcar') {
     if (r.counted && !skip) bubble(hookText('streetcarOff') ?? { zh: '叮叮！F 线电车，下次再坐', en: 'Ding ding! Let’s take the F-line again' }, 2800);
     else if (r.mode === 'follow') bubble({ zh: '坐到下一站再下车，才算坐过 F 线电车哦', en: 'Ride to the next stop and it counts as a streetcar ride' }, 3200);
   } else if (r.counted && !skip) bubble(hookText('cablecarOff') ?? { zh: '叮叮！下次还坐叮当车', en: 'Ding-ding! Let’s ride again soon' }, 2800);
@@ -427,8 +453,8 @@ export function pushTurntable(id: string) {
 function pollTurntables(dt: number) {
   if ((pollT -= dt) > 0) return;
   pollT = 0.25;
-  const fl = activeStreetcarSystem();
-  if (fl !== seenFLine) { seenFLine = fl; invalidateInteractables(); }
+  const fl = activeStreetcarSystem(), fe = activeFerrySystem();
+  if (fl !== seenFLine || fe !== seenFerry) { seenFLine = fl; seenFerry = fe; invalidateInteractables(); }
   const sys = activeCableSystem(), data = transitData();
   if (!sys || !data) { if (turningNear.length) { turningNear = []; invalidateInteractables(); } return; }
   const p = runtime.player;
@@ -439,6 +465,66 @@ function pollTurntables(dt: number) {
     emit({ type: 'emote', who: 'baybay', emote: 'clap' });
   }
   if (now.join() !== turningNear.join()) { turningNear = now; invalidateInteractables(); }
+}
+
+// --- the ferry (lane F, wave 3: F8) ------------------------------------------------------------------------
+
+const FERRY_NAME: Bilingual = { zh: '渡轮', en: 'Ferry' };
+const FERRY_LINE = 'ferry';
+
+/** Seconds from ferry terminal `from` to `to` (cruising at ≈ 7 u/s on average, berthing included). */
+export function ferryRideSeconds(from: string, to: string): number {
+  const sys = activeFerrySystem() as unknown as { line?: { stops: { terminal: string; u: number }[]; length: number } } | null;
+  const line = sys?.line;
+  const a = line?.stops.find(s => s.terminal === from), b = line?.stops.find(s => s.terminal === to);
+  if (!line || !a || !b) return 0;
+  return ((((b.u - a.u) % line.length) + line.length) % line.length) / 7 + 8;
+}
+
+/** E at a ferry terminal (city mode, once the ferry runs): the deckhand asks where to. */
+export function boardFerry(stationId: string) {
+  const t = ferryTerminal(stationId);
+  if (!t || !activeFerrySystem()) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
+  const others = t.route.terminals.filter(x => x.id !== stationId);
+  const choices: NonNullable<DialogueNode['choices']> = others.map((o, i) => {
+    const secs = Math.round(ferryRideSeconds(stationId, o.id));
+    return { hotkey: String(i + 1), label: { zh: `去${o.name.zh}（约 ${secs} 秒）`, en: `To ${o.name.en} (~${secs}s)` }, next: `flow.ride.fe:${stationId}:${o.id}` };
+  });
+  choices.push({ hotkey: String(choices.length + 1), label: { zh: '先不坐了', en: 'Not now' }, action: { type: 'end' } });
+  const deckhand = npcLine('deckhand').name ?? { zh: '水手', en: 'Deckhand' };
+  playDialogue(defineNode({
+    id: 'flow.ferry', speaker: 'npc', npcName: deckhand, mood: 'happy',
+    text: { zh: `嘟——这里是${t.terminal.name.zh}。上层甲板是露天的，想去哪儿？`, en: `Toot! This is ${t.terminal.name.en}. The top deck is open air. Where to?` },
+    choices,
+  }));
+}
+
+/** Wait at ferry terminal `from` for the boat to `to`, then ride it (you stand on the open sun deck). */
+export function rideFerry(from: string, to: string) {
+  if (!ferryTerminal(from) || !ferryTerminal(to) || from === to) { say('这里没有渡轮', 'No ferry from here'); return; }
+  const r = beginLineRide(FERRY_LINE, from, to, 1, travelEpoch(), 'ferry');
+  if (!r) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
+  game.set({ move: { mode: 'transit', line: FERRY_LINE, spot: 'deck' }, panel: { kind: null } });
+  refreshLock();
+  const eta = lineRideEta();
+  flow.set({ ride: { stage: 'waiting', from, to, line: FERRY_LINE, kind: 'ferry', eta: eta ? Math.max(1, Math.round(eta)) : undefined } });
+  const dest = ferryTerminal(to)?.terminal;
+  announce({ zh: `等渡轮：开往${dest?.name.zh ?? ''}`, en: `Waiting for the ferry to ${dest?.name.en ?? ''}` });
+  seenInteract = input.interactCount;
+}
+
+/** The ferry terminals as interactables (the running routes' quays). */
+function ferryInteractables(): Interactable[] {
+  if (!activeFerrySystem()) return [];
+  const out: Interactable[] = [];
+  for (const route of FERRY_ROUTES) {
+    if (!route.running) continue;
+    for (const t of route.terminals) {
+      if (out.some(o => o.refId === t.id)) continue;
+      out.push({ id: `transit-${t.id}`, source: 'transit', action: 'streetcar', verb: { zh: '坐渡轮', en: 'Take the ferry' }, name: t.name, x: t.quay.x, z: t.quay.z, radius: 6, refId: t.id });
+    }
+  }
+  return out;
 }
 
 // --- city F-line to the Castro (lane F, wave 3: F7) -------------------------------------------------------
@@ -517,7 +603,7 @@ function flineInteractables(): Interactable[] {
 export function transitInteractables(): Interactable[] {
   const data = transitData();
   if (!isCity()) return [];
-  const out: Interactable[] = flineInteractables();
+  const out: Interactable[] = [...flineInteractables(), ...ferryInteractables()];
   if (!data) return out;
   out.push(...data.stations.map(st => ({
     id: `transit-${st.id}`, source: 'transit' as const, action: 'streetcar' as const,
@@ -547,6 +633,8 @@ export function initTransit(): () => void {
       data: () => transitData(), system: () => activeCableSystem(), rideLog, board: boardCable, ride: rideCable, push: pushTurntable,
       /** the city F-line: its system, E at a station, a ride between two stations */
       fline: () => activeStreetcarSystem(), boardF: boardFLine, rideF: rideFLine,
+      /** the ferry: its system, E at a terminal, a ride between terminals */
+      ferry: () => activeFerrySystem(), boardFerry, rideFerry,
       /** QA: stand at a station (x, z) */
       station: (id: string) => transitStation(id),
       stopPos: (line: string, station: string, dir: 1 | -1) => { const l = cableLine(line); const st = l?.stops.find(s => s.station === station); return st ? stopPos(st, dir) : null; },

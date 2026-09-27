@@ -7,10 +7,11 @@ import { game } from '../core/store';
 import { canStand, heightAt, isWater } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { ASSETS, type ModelAsset } from '../data/assets';
+import { activeFerrySystem, pendingFerry } from '../data/transit';
 import { BOX, Batch, C, CBOX, CONE, CYL, M, SPHERE, extrudeXZ, hash2, rng } from './builder';
 import { cityStreamerLazy } from './cityLoader';
 import { K_DOCK_FLOATS, kDockFrame, kDockSpots } from './landmarks';
-import { TOY_DYN, TOY_INST, U } from './materials';
+import { TOY_DYN, TOY_INST, TOY_INST_TINT, U } from './materials';
 import { MAX_WAKES } from './water';
 
 /**
@@ -84,7 +85,11 @@ const FERRY_PLAN = [
   { x: -0.6, z: 5.7 }, { x: -1.55, z: 4.6 }, { x: -2.1, z: 2.6 }, { x: -2.1, z: -4.8 },
 ];
 let ferryHull: THREE.BufferGeometry[] | null = null;
-function ferryGeometry(stripe: string): THREE.BufferGeometry {
+/**
+ * A Bay ferry. `openDeck` (city mode, lane F8: the rideable ferry): instead of the enclosed upper cabin, an open sun deck
+ * on the main cabin roof (planks, railings, two outward benches) with the wheelhouse, funnel and mast at its bow end.
+ */
+export function ferryGeometry(stripe: string, openDeck = false): THREE.BufferGeometry {
   const b = new Batch();
   const white = '#f7f4ec', glass = '#41535a';
   ferryHull ??= [extrudeXZ(FERRY_PLAN, -1.0, -0.45), extrudeXZ(FERRY_PLAN, -0.45, 0.2), extrudeXZ(FERRY_PLAN, 0.2, 0.7), extrudeXZ(FERRY_PLAN.map(p => ({ x: p.x * 0.94, z: p.z * 0.97 })), 0.7, 0.74)];
@@ -105,6 +110,12 @@ function ferryGeometry(stripe: string): THREE.BufferGeometry {
   };
   b.add(BOX(), M(0, 1.05, -0.4, 0, 3.8, 0.6, 8.0), white);
   panes(1.08, 0.46, -4.4, 3.6, 1.93, 9, 3);
+  if (openDeck) {
+    sunDeck(b, stripe, white, glass, lit);
+    for (const s of [-1, 1]) b.add(BOX(), M(s * 1.95, 0.7, -0.4, 0, 0.06, 0.5, 9.6), '#e9e4da');
+    for (const z of [4.6, -5.6]) b.add(SPHERE(5, 4), M(0, 1.6, z, 0, 0.12, 0.12, 0.12), '#fff1c4', [0, 0, 0, 1]);
+    return b.build();
+  }
   b.add(BOX(), M(0, 2.0, -1.0, 0, 3.3, 1.1, 5.6), white);
   panes(2.32, 0.42, -3.6, 1.6, 1.68, 6, 7);
   b.add(BOX(), M(0, 3.1, 1.2, 0, 2.2, 0.9, 1.8), white);
@@ -115,6 +126,31 @@ function ferryGeometry(stripe: string): THREE.BufferGeometry {
   for (const s of [-1, 1]) b.add(BOX(), M(s * 1.95, 0.7, -0.4, 0, 0.06, 0.5, 9.6), '#e9e4da');
   for (const z of [4.6, -5.6]) b.add(SPHERE(5, 4), M(0, 1.6, z, 0, 0.12, 0.12, 0.12), '#fff1c4', [0, 0, 0, 1]);
   return b.build();
+}
+
+/** The open sun deck (F8): plank floor at y 2.0–2.04, railings, outward benches, the wheelhouse / funnel / mast forward. */
+function sunDeck(b: Batch, stripe: string, white: string, glass: string, lit: [number, number, number, number]) {
+  const wood = '#b98a5a', rail = '#f2eee6';
+  b.add(BOX(), M(0, 2.0, -0.4, 0, 3.6, 0.04, 8.1), wood);
+  // railings: posts round the edge and a top rail (open at nothing: the deck is a toy, you cannot fall off)
+  const minZ = -4.4, maxZ = 3.7, hw = 1.82;
+  for (let z = minZ; z <= maxZ + 1e-6; z += (maxZ - minZ) / 7) for (const sx of [-1, 1]) b.add(BOX(), M(sx * hw, 2.04, z, 0, 0.06, 0.72, 0.06), rail);
+  for (const sx of [-1, 1]) b.add(BOX(), M(sx * hw, 2.74, (minZ + maxZ) / 2, 0, 0.07, 0.06, maxZ - minZ), rail);
+  for (let x = -hw; x <= hw + 1e-6; x += hw / 2) b.add(BOX(), M(x, 2.04, minZ, 0, 0.06, 0.72, 0.06), rail);
+  b.add(BOX(), M(0, 2.74, minZ, 0, hw * 2, 0.06, 0.07), rail);
+  b.add(BOX(), M(0, 2.3, minZ, 0, hw * 2, 0.04, 0.05), rail);
+  // two benches back to back down the middle, facing out to either rail
+  for (const sx of [-1, 1]) {
+    b.add(BOX(), M(sx * 0.95, 2.4, -2.2, 0, 0.5, 0.08, 2.8), wood);
+    b.add(BOX(), M(sx * 0.95, 2.04, -2.2, 0, 0.36, 0.36, 2.6), '#8a6a4a');
+    b.add(BOX(), M(sx * 0.66, 2.48, -2.2, 0, 0.07, 0.42, 2.8), wood);
+  }
+  // wheelhouse at the bow end of the deck: white box, a band of lit windows, roof, funnel in the line colour, mast
+  b.add(BOX(), M(0, 2.04, 2.45, 0, 2.3, 1.15, 1.9), white);
+  b.add(BOX(), M(0, 2.55, 2.45, 0, 2.34, 0.42, 1.7), glass, lit);
+  b.add(BOX(), M(0, 3.19, 2.45, 0, 2.6, 0.12, 2.2), '#d9d4c7');
+  b.add(CYL(8), M(0, 3.31, 2.0, 0, 0.3, 1.0, 0.3), stripe);
+  b.add(CYL(5), M(0, 3.31, 1.8, 0, 0.05, 2.6, 0.05), '#e7e1d5');
 }
 
 function gullGeometry(): THREE.BufferGeometry {
@@ -423,8 +459,10 @@ export class Life {
     const loopA = new Route([dock, out(8, -6), out(24, 10), { x: 110, z: -82 }, { x: -40, z: -92 }, { x: -140, z: -86 }, { x: -155, z: -74 }, { x: -60, z: -76 }, { x: 60, z: -72 }, out(22, 30), out(8, 18)], true);
     const loopB = new Route([{ x: 205, z: -90 }, { x: 90, z: -98 }, { x: -60, z: -99 }, { x: -205, z: -92 }, { x: -222, z: -70 }, { x: -120, z: -80 }, { x: 40, z: -86 }, { x: 170, z: -80 }, { x: 214, z: -78 }], true);
     this.ferryRoutes = [loopA, loopB];
+    const city = game.get().worldMode === 'city';
     ['#2f8f88', '#3d6f9a'].forEach((stripe, i) => {
-      const mesh = new THREE.Mesh(ferryGeometry(stripe), TOY_DYN);
+      // city mode: ferry 0 is the rideable ferry after the arrival (world/ferry.ts): an open sun deck to stand on
+      const mesh = new THREE.Mesh(ferryGeometry(stripe, city && i === 0), TOY_DYN);
       mesh.name = `ferry-${i}`;
       mesh.matrixAutoUpdate = false;
       mesh.castShadow = true;
@@ -481,6 +519,8 @@ export class Life {
     this.pelicanGlide = new THREE.InstancedMesh(pGeo, this.flapMat, 4);
     this.pelicanGlide.name = 'pelicans-gliding';
     this.pelicanGlide.frustumCulled = false;
+    // white instance colours: the same program variant as the gulls' (they share flapMat; C2's P2 request)
+    for (let i = 0; i < 4; i++) this.pelicanGlide.setColorAt(i, new THREE.Color(1, 1, 1));
     this.group.add(this.pelicanGlide);
     this.pelicanRoute = new Route([{ x: 230, z: -66 }, { x: 120, z: -64 }, { x: 0, z: -70 }, { x: -120, z: -66 }, { x: -240, z: -62 }], false);
 
@@ -515,7 +555,7 @@ export class Life {
     this.walkers.forEach((_w, i) => this.people.setColorAt(i, new THREE.Color(shirts[i % shirts.length]).lerp(new THREE.Color('#e8dcc4'), 0.1)));
     this.group.add(this.people);
     // two walkers take their dogs out
-    this.dogs = new THREE.InstancedMesh(dogGeometry(), TOY_INST, DOG_OWNERS.length);
+    this.dogs = new THREE.InstancedMesh(dogGeometry(), TOY_INST_TINT, DOG_OWNERS.length);
     this.dogs.name = 'dogs';
     this.dogs.frustumCulled = false;
     this.dogs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -571,7 +611,7 @@ export class Life {
     // K-Dock: bobbing floats (one instanced draw) and a few heads in the water
     const kf = kDockFrame();
     this.kFrame.compose(new THREE.Vector3(kf.x, 0, kf.z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), kf.ry), new THREE.Vector3(1, 1, 1));
-    this.floats = new THREE.InstancedMesh(floatGeometry(), TOY_INST, K_DOCK_FLOATS.length);
+    this.floats = new THREE.InstancedMesh(floatGeometry(), TOY_INST_TINT, K_DOCK_FLOATS.length);
     this.floats.name = 'k-dock-floats';
     this.floats.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     K_DOCK_FLOATS.forEach((_f, i) => this.floats.setColorAt(i, new THREE.Color().setScalar(hash2(i, 3.3) > 0.5 ? 1 : 0.88)));
@@ -756,6 +796,17 @@ export class Life {
       if (k >= 1) { a.done = true; this.ferryDock = 22; this.ferryS[0] = 0; }
     } else {
       if (!a.done) { a.done = true; this.ferryDock = 22; }
+      // city mode (F8): lying at Gate E after the arrival, ferry 0 is handed to the ride system (world/ferry.ts)
+      if (this.ferryDock > 0 && game.get().worldMode === 'city') pendingFerry()?.takeOver();
+      const sys = game.get().worldMode === 'city' ? activeFerrySystem() : null;
+      const boat = sys?.cars[0]?.pose;
+      if (boat) {
+        setObj(f0, boat.x, boat.y, boat.z, boat.heading, -(boat.pitch ?? 0), boat.roll);
+        const moving = ((sys as unknown as { boat?: { v: number } }).boat?.v ?? 0) > 0.3;
+        this.ferryState[0] = { x: boat.x, z: boat.z, heading: boat.heading, moving };
+        this.updateFerry1AndLights(dt, t);
+        return;
+      }
       if (this.ferryDock > 0) {
         this.ferryDock -= dt;
         x0 = a.to.x; z0 = a.to.z; h0 = a.heading;
@@ -773,6 +824,11 @@ export class Life {
     const bob = Math.sin(t * 1.1) * 0.05;
     setObj(f0, x0, WATER + 0.55 + bob, z0, h0, Math.sin(t * 0.9) * 0.01, Math.sin(t * 0.7) * 0.015);
     this.ferryState[0] = { x: x0, z: z0, heading: h0, moving: moving0 };
+    this.updateFerry1AndLights(dt, t);
+  }
+
+  /** Ferry 1's crossing loop and every ferry's night lights. */
+  private updateFerry1AndLights(dt: number, t: number) {
     // ferry 1: crossing loop far out (paused with the rest of the hero life, F13)
     if (!this.heroFar) {
       const r1 = this.ferryRoutes[1];

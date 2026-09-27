@@ -5,6 +5,7 @@ import { runtime } from '../core/runtime';
 import { CABLE, type TransitData, type Turntable, flineJson, loadTransit, pointAt } from '../data/transit';
 import { Batch } from './builder';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
+import { FerryLayer } from './ferry';
 import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
@@ -24,7 +25,8 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  * - the platforms `<lineId>` (actors/platform.ts): the car carrying (or coming for) the rider, else the line's car
  *   nearest the player, with pitch;
  * - the cars' events as `transit` game events near the player (bells, grip clank, turntable push / turned);
- * - the city F-line to the Castro (world/flineLayer.ts: its four streetcars, the platform 'streetcar', its rails).
+ * - the city F-line to the Castro (world/flineLayer.ts: its four streetcars, the platform 'streetcar', its rails);
+ * - the rideable ferry (world/ferry.ts: life's ferry 0 after the arrival, Ferry Building ⇄ Pier 41, platform 'ferry').
  *
  * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, far cars 1, discs 1 (+ shadow 1),
  * aprons 1, rails 1, ring 1 while pushing: ≤ 8 calls. Triangles: 2,124 a near car (again in the shadow pass), 156 a far
@@ -68,6 +70,7 @@ export class TransitLayer {
   readonly data: TransitData;
   /** the city F-line (null without the published route) */
   readonly fline: FLineLayer | null;
+  readonly ferry = new FerryLayer();
 
   constructor(data: TransitData) {
     this.data = data;
@@ -201,6 +204,7 @@ export class TransitLayer {
     this.rails.update(dt);
     this.drainEvents();
     this.fline?.update(dt);
+    this.ferry.update(dt);
     void t;
   }
 
@@ -245,6 +249,7 @@ export class TransitLayer {
     this.aprons?.geometry.dispose();
     this.rails.dispose();
     this.fline?.dispose();
+    this.ferry.dispose();
     if (LAYER === this) LAYER = null;
   }
 }

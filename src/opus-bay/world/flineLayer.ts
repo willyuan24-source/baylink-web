@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { setPlatformPose } from '../actors/platform';
 import { emit } from '../core/events';
+import { currentRide } from '../game/ride';
 import { runtime } from '../core/runtime';
 import { DISTRICT } from '../data/district';
 import { FL, type FLine, buildFLine, centreAt, laneOffset, sAtU } from '../data/fline';
@@ -106,6 +107,8 @@ export class FLineLayer {
 
   update(dt: number) {
     const sys = this.sys;
+    // a ride the game ended some other way (a trip, a reset): the cars forget the rider
+    if (sys.rideStatus() && currentRide()?.line !== FLINE_ID) sys.cancel();
     sys.step(dt);
     const cam = U.uCam.value, p = runtime.player;
     const n = this.near.map(() => 0), nf = this.far.map(() => 0);

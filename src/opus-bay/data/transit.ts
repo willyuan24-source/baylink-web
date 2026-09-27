@@ -450,6 +450,13 @@ export interface LineRideSystem {
 let FERRY: LineRideSystem | null = null;
 export function setActiveFerrySystem(sys: LineRideSystem | null) { FERRY = sys; }
 export function activeFerrySystem(): LineRideSystem | null { return FERRY; }
+/** City mode: the ferry layer (world/ferry.ts) waiting for life's ferry 0 to lie at Gate E; world/life.ts hands it over. */
+let FERRY_PENDING: { takeOver(): void } | null = null;
+export function setPendingFerry(f: { takeOver(): void } | null) { FERRY_PENDING = f; }
+export function pendingFerry(): { takeOver(): void } | null { return FERRY_PENDING; }
+
+// the ferry route table (lane F, F8) lives in data/ferry.ts
+export { FERRY, FERRY_ROUTES, buildFerryLine, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
 
 /** The system running ride line `line` ('streetcar' = the city F-line, 'ferry', else a cable-car line). */
 export function rideSystemFor(line: string): LineRideSystem | null {
