@@ -8,11 +8,14 @@ import { ccsfOcean } from './ccsf-ocean';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { musicConcourse } from './music-concourse';
 import { sfState } from './sf-state';
+import { sfmoma } from './sfmoma';
 import { stIgnatius } from './st-ignatius';
 import { stonestown } from './stonestown';
 import { ucsfMissionBay } from './ucsf-mission-bay';
+import { unionSquare } from './union-square';
 import { ucsfParnassus } from './ucsf-parnassus';
 import { usfLoneMountain } from './usf-lone-mountain';
+import { yerbaBuenaGardens } from './yerba-buena-gardens';
 
 /**
  * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): the new site records, NOT registered yet. The integration phase
@@ -44,6 +47,9 @@ export const W4_SITES: readonly W4Site[] = [
   calAcademy,
   musicConcourse,
   japaneseTeaGarden,
+  unionSquare,
+  sfmoma,
+  yerbaBuenaGardens,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));

@@ -41,10 +41,10 @@ const HELPERS = `window.__sq = {
     let p, t;
     if (kind === 'ring') { const a = s.yaw + (k / n) * Math.PI * 2; p = [s.x + Math.sin(a) * R, s.base + 12 + R * 0.12, s.z + Math.cos(a) * R]; t = [s.x, top, s.z]; }
     else if (kind === 'high') { const a = s.yaw + 0.6; p = [s.x + Math.sin(a) * R * 1.1, s.base + 60, s.z + Math.cos(a) * R * 1.1]; t = [s.x, s.base, s.z]; }
-    else { // street: a player's eye from behind the arrival spot (walkable ground), looking at the photo target
+    else { // street: a player's eye 4 u behind the arrival spot (walkable ground), looking at the photo target
       const ar = s.w4.arrival, ph = s.w4.photo;
       const hx = Math.sin(ar.heading), hz = Math.cos(ar.heading);
-      const eye = this.w(s, ar.x - hx * 7, ar.z - hz * 7), tw = this.w(s, ph.target[0], ph.target[2]);
+      const eye = this.w(s, ar.x - hx * 4, ar.z - hz * 4), tw = this.w(s, ph.target[0], ph.target[2]);
       ob.world.cam(eye.x, s.base + 40, eye.z, tw.x, s.base, tw.z, s.x, s.z);
       await Promise.race([ob.city.whenReady(s.x, s.z, 150), this.sleep(60000)]);
       const gy = m.terrain.heightAt(eye.x, eye.z);
