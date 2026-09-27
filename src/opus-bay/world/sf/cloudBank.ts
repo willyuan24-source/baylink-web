@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { TimeOfDay } from '../../core/store';
 import { Batch, C, ICO } from '../builder';
 import { TOY_INST } from '../materials';
 import type { WorldSystem } from '../world';
@@ -6,8 +7,8 @@ import { KARL_GEO, type KarlState, type KarlTarget } from './fog';
 
 /**
  * Karl the Fog's cloud bank (lane C2-8, city chunk): CLOUD_BANK.count cotton clusters (3 lumps each) on ONE TOY_INST
- * InstancedMesh (1 draw call, ≈ 9.6k triangles, no shadow; the props' instanced program, warmed up), laid out per
- * time of day from Karl's target (fog.ts):
+ * InstancedMesh (1 draw call, ≤ 9.6k triangles: only the clusters in view are packed; no shadow; one tint per time
+ * through instanceColor, the props' tinted program, warmed up), laid out per time of day from Karl's target (fog.ts):
  *
  *   morning   the front edge of the bank over the Sunset and the Richmond up to the Sutro slopes, a tongue in the Gate
  *   golden    a row pouring through the Golden Gate (under the towers, over the deck), the rest on Ocean Beach
@@ -58,7 +59,7 @@ export function cloudSlots(t: KarlTarget, n: number = CLOUD_BANK.count): CloudSl
     const across = (r() - 0.5) * 150;
     out.push({
       x: G.gate.x + G.gate.dx * along - G.gate.dz * across, z: G.gate.z + G.gate.dz * along + G.gate.dx * across,
-      y: t.top - 7 + r() * 3, sx: 40 + r() * 16, sy: 10 + r() * 4, sz: 26 + r() * 10, yaw: gateYaw + (r() - 0.5) * 0.5,
+      y: t.top - 8 + r() * 3, sx: 40 + r() * 16, sy: 14 + r() * 5, sz: 26 + r() * 10, yaw: gateYaw + (r() - 0.5) * 0.5,
     });
   }
   const nWest = n - nGate;
@@ -68,14 +69,20 @@ export function cloudSlots(t: KarlTarget, n: number = CLOUD_BANK.count): CloudSl
     const a = t.front - 90 - r() * 280;
     out.push({
       x: G.origin.x + G.east.x * a + G.north.x * b, z: G.origin.z + G.east.z * a + G.north.z * b,
-      y: t.top - 7 + r() * 4, sx: 36 + r() * 20, sy: 13 + r() * 5, sz: 28 + r() * 16, yaw: eastYaw + Math.PI / 2 + (r() - 0.5) * 0.9,
+      y: t.top - 8 + r() * 4, sx: 36 + r() * 20, sy: 17 + r() * 6, sz: 28 + r() * 16, yaw: eastYaw + Math.PI / 2 + (r() - 0.5) * 0.9,
     });
   }
   return out;
 }
 
+/** instanceColor of the bank per time (multiplies the white / grey vertex colours; the TOY lighting stays) */
+export const CLOUD_TINT: Record<TimeOfDay, [number, number, number]> = {
+  morning: [1.2, 1.2, 1.22], day: [1.15, 1.15, 1.15], golden: [1.42, 1.26, 1.14], night: [0.92, 0.86, 0.98],
+};
+
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
-const TINY = new THREE.Vector3(1e-3, 1e-3, 1e-3);
+const _c = new THREE.Color(), _c2 = new THREE.Color();
+const _f = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
 const ease = (t: number) => t * t * (3 - 2 * t);
 const smooth = (e0: number, e1: number, x: number) => ease(Math.min(1, Math.max(0, (x - e0) / (e1 - e0))));
 
@@ -88,7 +95,6 @@ export class CloudBank implements WorldSystem {
   private from: CloudSlot[] = [];
   private to: CloudSlot[] = [];
   private phase: number[] = [];
-  private boundsAt = 0;
   /** the slide progress (eased) the clusters were last placed at */
   private placed = 1;
 
@@ -102,9 +108,13 @@ export class CloudBank implements WorldSystem {
     this.group.name = 'karl-clouds';
     this.mesh = new THREE.InstancedMesh(this.geo, TOY_INST, CLOUD_BANK.count);
     this.mesh.name = 'karl-clouds';
-    // the props' TOY_INST program (warmup.ts: receiveShadow on, no instanceColor); a cloud never casts a shadow
+    // the props' tinted TOY_INST program (warmup.ts: receiveShadow on, instanceColor); a cloud never casts a shadow
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
+    // culled per cluster in update() (only the clusters in view are packed and drawn)
+    this.mesh.frustumCulled = false;
+    // one tint for the whole bank (instanceColor multiplies the vertex colours: > 1 brightens): the props' tinted variant
+    for (let i = 0; i < CLOUD_BANK.count; i++) this.mesh.setColorAt(i, _c.setRGB(1, 1, 1));
     this.mesh.visible = false;
     const r = rng(907);
     for (let i = 0; i < CLOUD_BANK.count; i++) this.phase.push(r());
@@ -126,7 +136,7 @@ export class CloudBank implements WorldSystem {
     });
   }
 
-  update(dt: number, _t: number, camera: THREE.Camera) {
+  update(_dt: number, _t: number, camera: THREE.Camera) {
     const k = this.karl;
     const cam = camera.position;
     if (k.epoch !== this.epoch) {
@@ -136,8 +146,11 @@ export class CloudBank implements WorldSystem {
       this.epoch = k.epoch;
     }
     const level = k.cur.level;
-    this.mesh.visible = level > 0.02;
-    if (!this.mesh.visible) return;
+    if (level <= 0.02) { this.mesh.visible = false; return; }
+    this.tint(k.tod, k.t);
+    camera.updateMatrixWorld();
+    _f.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    let n = 0;
     const e = (this.placed = ease(k.t));
     const size = Math.min(1, level / 0.12) * (0.8 + 0.2 * Math.min(1, level / 0.6));
     const W = CLOUD_BANK.wrap, E = KARL_GEO.east;
@@ -150,13 +163,28 @@ export class CloudBank implements WorldSystem {
       // under the bank (walking in the Sunset, on Ocean Beach) Karl is the distance fog, not blobs overhead
       if (cam.y < _p.y + 12) grow *= smooth(70, 170, Math.hypot(_p.x - cam.x, _p.z - cam.z));
       _s.set(a.sx + (b.sx - a.sx) * e, a.sy + (b.sy - a.sy) * e, a.sz + (b.sz - a.sz) * e).multiplyScalar(grow);
+      if (_s.x < 0.05 || _s.y < 0.05) continue;
+      if (!_f.intersectsSphere(_sph.set(_p, Math.max(_s.x, _s.z) * 1.8))) continue;
       _q.setFromAxisAngle(_up, a.yaw + (b.yaw - a.yaw) * e);
-      this.mesh.setMatrixAt(i, _m.compose(_p, _q, _s.max(TINY)));
+      this.mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
     }
-    this.mesh.instanceMatrix.needsUpdate = true;
-    // the instances move: refresh the bounds (frustum culling) about once a second
-    this.boundsAt -= dt;
-    if (this.boundsAt <= 0 || this.mesh.boundingSphere === null) { this.mesh.computeBoundingSphere(); this.boundsAt = 1; }
+    this.mesh.count = n;
+    this.mesh.visible = n > 0;
+    if (n) { this.mesh.instanceMatrix.clearUpdateRanges(); this.mesh.instanceMatrix.addUpdateRange(0, n * 16); this.mesh.instanceMatrix.needsUpdate = true; }
+  }
+
+  /** the bank's tint (sunlit cotton by day, backlit peach at golden hour, dim at night), eased with the slide */
+  private tintTod: TimeOfDay | null = null;
+  private tintFrom = new THREE.Color(1, 1, 1);
+  private tintNow = new THREE.Color(1, 1, 1);
+  private tint(tod: TimeOfDay, t: number) {
+    if (tod !== this.tintTod) { this.tintFrom.copy(this.tintNow); this.tintTod = tod; }
+    const [r, g, b] = CLOUD_TINT[tod];
+    this.tintNow.copy(this.tintFrom).lerp(_c2.setRGB(r, g, b), ease(t));
+    const a = this.mesh.instanceColor!;
+    if (a.getX(0) === this.tintNow.r && a.getY(0) === this.tintNow.g && a.getZ(0) === this.tintNow.b) return;
+    for (let i = 0; i < CLOUD_BANK.count; i++) this.mesh.setColorAt(i, this.tintNow);
+    a.needsUpdate = true;
   }
 
   /** the clusters' layout positions right now (without the drift) */
@@ -169,7 +197,7 @@ export class CloudBank implements WorldSystem {
     });
   }
 
-  /** triangles drawn when visible (for the budget table / tests) */
+  /** triangles of the whole bank (all clusters in view; for the budget table / tests) */
   get triangles(): number { return CLOUD_BANK.count * ((this.geo.index?.count ?? this.geo.getAttribute('position').count) / 3); }
 
   dispose() {

@@ -184,13 +184,18 @@ test('Karl: the cloud bank is 40–80 clusters on one TOY_INST InstancedMesh, �
   assert.equal(bank.mesh.material, TOY_INST);
   assert.equal(bank.mesh.count, CLOUD_BANK.count);
   assert.equal(bank.mesh.castShadow, false);
-  assert.equal(bank.mesh.instanceColor, null, 'the props\' instanced program (no instanceColor)');
+  assert.ok(bank.mesh.instanceColor, 'the props\' tinted instanced program (instanceColor, warmed up)');
   assert.ok(bank.mesh.geometry.getAttribute('aInfo'), 'TOY_INST reads aInfo');
   assert.ok(bank.triangles <= 12000 && bank.triangles >= 8000, `triangles ${bank.triangles}`);
-  const cam = new THREE.PerspectiveCamera();
+  const cam = new THREE.PerspectiveCamera(50, 1.6, 0.5, 3000);
   cam.position.set(140, 115, 1000);
+  cam.lookAt(-420, 0, 1180); // Twin Peaks → the Sunset
   bank.update(0.016, 0, cam);
-  assert.ok(bank.mesh.visible);
+  assert.ok(bank.mesh.visible && bank.mesh.count > CLOUD_BANK.count / 3, `in view: ${bank.mesh.count}`);
+  const west = bank.mesh.count;
+  cam.lookAt(137, 0, 133); // → downtown: the clusters behind the camera are not drawn
+  bank.update(0.016, 0, cam);
+  assert.ok(bank.mesh.count < west, `culled per cluster: ${bank.mesh.count} < ${west}`);
   for (const tod of TODS) {
     const t = karlTarget(tod, null);
     const slots = cloudSlots(t);

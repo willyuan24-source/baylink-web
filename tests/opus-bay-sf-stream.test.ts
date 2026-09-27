@@ -193,8 +193,14 @@ test('L0 / L1 on the densest chunks stay within budget; L1 is a massing tier (�
       const r = buildL0(ctx, sub);
       assert.ok(r.triangles <= 18500, `L0 ${cx}_${cz}/${sub}: ${r.triangles} triangles`);
       l0t += r.triangles;
-      // city ground carries the GROUND_CITY flag (skips the hero-only contact-shadow lookup)
-      if (r.ground) for (let i = 0; i < r.ground.vertexCount; i += 97) assert.equal(r.ground.info[i * 4 + 3], GROUND_CITY);
+      // city ground carries the GROUND_CITY flag (skips the hero-only contact-shadow lookup, w < 0.5); lit asphalt
+      // adds its night lamp level (0.5 … 1, lane C2-9 street glow) on top, so the flag reads GROUND_CITY … GROUND_CITY + 1
+      if (r.ground) {
+        for (let i = 0; i < r.ground.vertexCount; i += 97) {
+          const w = r.ground.info[i * 4 + 3];
+          assert.ok(w >= GROUND_CITY && w <= GROUND_CITY + 1, `ground flag ${w}`);
+        }
+      }
     }
     assert.ok(l1t <= 18000, `L1 ${cx}_${cz}: ${l1t}`);
     assert.ok(l1t < l0t / 3, `L1 ${l1t} vs L0 ${l0t}`);

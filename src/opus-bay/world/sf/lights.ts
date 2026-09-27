@@ -194,7 +194,8 @@ export class LightField implements WorldSystem {
   update(dt: number, _t: number, camera: THREE.Camera, night: number) {
     const p = this.points;
     if (!p) return;
-    p.visible = night > 0.02;
+    // on from dusk (golden hour's 0.05 would cost a call for lamps nobody can see)
+    p.visible = night > 0.15;
     if (!p.visible) return;
     // landmark lights settle as the city streams in: pick up new ones every few seconds
     this.siteAt -= dt;
