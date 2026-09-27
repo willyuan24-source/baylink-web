@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Obstacle } from '../../actors/controller';
 import type { Quality } from '../../core/store';
-import { BOX, Batch, CBOX, CYL, M } from '../builder';
+import { BOX, Batch, CYL, M } from '../builder';
 import { TOY_INST_TINT } from '../materials';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, lifeRng } from './streetNet';
 
@@ -502,30 +502,46 @@ export const TRAFFIC_PAINTS = ['#e89a8c', '#9cc7d6', '#f1d38a', '#a9d3b2', '#f4e
 
 const GLASS = '#2c3a44';
 const TYRE = '#26252a';
-const TRIM = '#3b3b42';
 /** lit at night (aInfo style 7: a warm glow toward the bottom) */
 const LAMP: readonly [number, number, number, number] = [7, 0.2, 0, 0];
 
-/** The near car (≈ 300 triangles): a soft sedan 2.1 × 1.08, cabin with glass all round, bumpers, lamps, four wheels. */
+/** A unit box with 2 segments per side whose corners are pulled in (`soft` 0 … 1): the toy cars' rounded body. */
+let SOFT: THREE.BufferGeometry | null = null;
+function softUnitBox(): THREE.BufferGeometry {
+  if (SOFT) return SOFT;
+  const g = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
+  const p = g.attributes.position as THREE.BufferAttribute;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const nx = v.x * 2, ny = v.y * 2, nz = v.z * 2;
+    const len = Math.hypot(nx, ny, nz) || 1;
+    const k = 0.55 + 0.45 * (Math.max(Math.abs(nx), Math.abs(ny), Math.abs(nz)) / len);
+    p.setXYZ(i, v.x * k, v.y * k + 0.5 * k, v.z * k);
+  }
+  g.computeVertexNormals();
+  return (SOFT = g);
+}
+
+/**
+ * The near car (≈ 290 triangles): a rounded toy sedan 2.1 × 1.08 (the player's toy car's shape language: soft boxes),
+ * a rounded cabin with a glass band all round, head / tail lamps that glow at night, four wheels.
+ */
 export function trafficCarGeometry(): THREE.BufferGeometry {
   const b = new Batch();
-  const L = TRAFFIC.length, W = TRAFFIC.width;
+  const L = TRAFFIC.length, W = TRAFFIC.width, soft = softUnitBox();
   // wheels (dark tyres) under the body
-  for (const x of [-W / 2 + 0.1, W / 2 - 0.1]) for (const z of [-L * 0.3, L * 0.3]) b.add(CYL(8), M(x, 0.21, z, 0, 0.2, 0.16, 0.2, 0, Math.PI / 2).multiply(M(0, -0.5)), TYRE);
-  // body: lower tub + a rounded bonnet / boot line
-  b.add(BOX(), M(0, 0.14, 0, 0, W, 0.4, L - 0.1), '#ffffff');
-  b.add(CBOX(), M(0, 0.52, 0, 0, W - 0.04, 0.08, L - 0.18), '#ffffff');
-  // cabin + glass band (the band sits proud of the cabin sides / ends so it reads from every side)
-  b.add(BOX(), M(0, 0.56, -0.08, 0, W - 0.14, 0.42, L * 0.52), '#ffffff');
-  b.add(BOX(), M(0, 0.64, -0.08, 0, W - 0.12, 0.24, L * 0.52 + 0.04), GLASS);
-  b.add(BOX(), M(0, 0.98, -0.08, 0, W - 0.2, 0.05, L * 0.48), '#ffffff');
-  // bumpers
-  b.add(BOX(), M(0, 0.16, L / 2 - 0.02, 0, W - 0.04, 0.14, 0.1), TRIM);
-  b.add(BOX(), M(0, 0.16, -L / 2 + 0.02, 0, W - 0.04, 0.14, 0.1), TRIM);
+  for (const x of [-W / 2 + 0.1, W / 2 - 0.1]) for (const z of [-L * 0.3, L * 0.3]) b.add(CYL(6), M(x, 0.21, z, 0, 0.2, 0.16, 0.2, 0, Math.PI / 2).multiply(M(0, -0.5)), TYRE);
+  // body (the paint: white × the instance colour), a rounded tub from 0.12 to 0.58
+  b.add(soft, M(0, 0.12, 0, 0, W, 0.46, L), '#ffffff');
+  // cabin + the glass band (proud of the cabin on every side, so it reads from any angle)
+  b.add(soft, M(0, 0.48, -0.1, 0, W - 0.16, 0.5, L * 0.54), '#ffffff');
+  b.add(soft, M(0, 0.6, -0.1, 0, W - 0.12, 0.27, L * 0.54 + 0.06), GLASS);
   // head / tail lamps
-  for (const x of [-W / 2 + 0.18, W / 2 - 0.18]) {
-    b.add(BOX(), M(x, 0.36, L / 2 - 0.02, 0, 0.18, 0.1, 0.06), '#fff4d0', LAMP);
-    b.add(BOX(), M(x, 0.38, -L / 2 + 0.02, 0, 0.16, 0.08, 0.06), '#e8663d', LAMP);
+  // (tucked inside the rounded corners)
+  for (const x of [-W / 2 + 0.27, W / 2 - 0.27]) {
+    b.add(BOX(), M(x, 0.3, L / 2 - 0.08, 0, 0.22, 0.13, 0.1), '#fff4d0', LAMP);
+    b.add(BOX(), M(x, 0.32, -L / 2 + 0.08, 0, 0.2, 0.11, 0.1), '#f08a6a', LAMP);
   }
   return b.build();
 }
