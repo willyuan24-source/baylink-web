@@ -6,7 +6,8 @@ import type { WishItem } from '../core/types';
 import { eventById, nextShowing, placeById, todayInBay, useCatalog } from '../data/catalog';
 import { eventUrl, guideUrl, mapsUrl, pickPlanDate, planStopTitles, planUrl, walkingRouteUrl, type PlanStop } from '../data/links';
 import { POIS } from '../data/pois';
-import { POSTCARDS } from '../data/postcards';
+import { POSTCARDS, activePostcardCount, activePostcardTotal } from '../data/postcards';
+import { goalProgress } from '../data/sf/goals';
 import { FREE_GOALS } from '../data/script';
 import { wishlist } from '../data/wishlist';
 import { closePanel, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
@@ -23,10 +24,11 @@ type Tab = 'cards' | 'goals' | 'wish' | 'steps';
 export function Journal() {
   const { t } = useT();
   const wishCount = useGame(s => s.wishlist.length);
-  const cards = useGame(s => s.postcards.length);
+  // only the active world's cards count (a save may hold both worlds' ids, G2-3)
+  const cards = useGame(s => activePostcardCount(s.postcards));
   const [tab, setTab] = useState<Tab>(() => (wishCount > 0 && cards === 0 ? 'wish' : 'cards'));
   const tabs: { id: Tab; label: string; icon: ReactNode; count?: string }[] = [
-    { id: 'cards', label: t('明信片', 'Postcards'), icon: <Mail size={16} aria-hidden />, count: `${cards}/${POSTCARDS.length || 8}` },
+    { id: 'cards', label: t('明信片', 'Postcards'), icon: <Mail size={16} aria-hidden />, count: `${cards}/${activePostcardTotal() || 8}` },
     { id: 'goals', label: t('目标', 'Goals'), icon: <ListChecks size={16} aria-hidden /> },
     { id: 'wish', label: t('想去', 'Wishlist'), icon: <Heart size={16} aria-hidden />, count: wishCount ? String(wishCount) : undefined },
   ];
@@ -114,10 +116,11 @@ function Goals() {
         <ul className="ob-goals">
           {FREE_GOALS.map(goal => {
             const ok = done.includes(goal.id);
+            const progress = goalProgress(goal.id, done);
             return (
               <li key={goal.id} className={ok ? 'is-done' : ''}>
                 <span className="ob-check">{ok && <Check size={13} aria-hidden />}</span>
-                <div><strong>{t(goal.label)}</strong><small>{t(goal.hint)}</small></div>
+                <div><strong>{t(goal.label)}{progress && ` · ${progress}`}</strong><small>{t(goal.hint)}</small></div>
               </li>
             );
           })}

@@ -5,7 +5,8 @@ import { useGame } from '../core/store';
 import { DISTRICT } from '../data/district';
 import { eventById, guideTitle, placeById, useCatalog } from '../data/catalog';
 import { guideUrl, planStopTitles, planUrl, sourceDomain, validPlanStops, walkingRouteUrl, type PlanStop } from '../data/links';
-import { POSTCARDS } from '../data/postcards';
+import { activePostcardCount, activePostcardTotal } from '../data/postcards';
+import { goalProgress } from '../data/sf/goals';
 import { FREE_GOALS } from '../data/script';
 import {
   FISH_CATCHES, closeFishing, closePanel, closePostcardReward, exitPhotoMode, notePhotoTaken, reel, retryFishing, startWeek, tourStops,
@@ -76,8 +77,9 @@ export function PostcardReward() {
   const { t } = useT();
   const id = useFlow(s => s.postcardReward);
   const fresh = useFlow(s => s.rewardFresh);
-  const total = POSTCARDS.length;
-  const count = useGame(s => s.postcards.length);
+  // only the active world's cards count (G2-3)
+  const total = activePostcardTotal();
+  const count = useGame(s => activePostcardCount(s.postcards));
   const reduced = useGame(s => s.settings.reducedMotion);
   const [flipped, setFlipped] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -201,7 +203,7 @@ export function GoalsCard() {
         <button type="button" className="ob-icon-btn ob-icon-sm" onClick={() => flow.set({ goalsCard: false })} aria-label={t('收起', 'Dismiss')}><X size={16} aria-hidden /></button>
       </header>
       <ul>
-        {FREE_GOALS.map(goal => <li key={goal.id} className={done.includes(goal.id) ? 'is-done' : ''}><span className="ob-check">{done.includes(goal.id) && <Check size={12} aria-hidden />}</span><span>{t(goal.label)}<small>{t(goal.hint)}</small></span></li>)}
+        {FREE_GOALS.map(goal => { const progress = goalProgress(goal.id, done); return <li key={goal.id} className={done.includes(goal.id) ? 'is-done' : ''}><span className="ob-check">{done.includes(goal.id) && <Check size={12} aria-hidden />}</span><span>{t(goal.label)}{progress && ` · ${progress}`}<small>{t(goal.hint)}</small></span></li>; })}
       </ul>
     </aside>
   );
@@ -221,7 +223,7 @@ export function Recap() {
   const { t, locale } = useT();
   const catalog = useCatalog();
   const completed = useGame(s => s.tour.completed);
-  const postcards = useGame(s => s.postcards.length);
+  const postcards = useGame(s => activePostcardCount(s.postcards));
   const wishes = useGame(s => s.wishlist);
   const goals = useGame(s => FREE_GOALS.filter(goal => s.goalsDone.includes(goal.id)).length);
   const stops = tourStops();
@@ -255,7 +257,7 @@ export function Recap() {
         </ol>
         <div className="ob-recap-stats">
           <span><Route size={16} aria-hidden />{completed.length}/{stops.length} {t('站', 'stops')}</span>
-          <span><Mail size={16} aria-hidden />{postcards}/{POSTCARDS.length} {t('明信片', 'postcards')}</span>
+          <span><Mail size={16} aria-hidden />{postcards}/{activePostcardTotal()} {t('明信片', 'postcards')}</span>
           <span><Heart size={16} aria-hidden />{wishes.length} {t('想去', 'saved')}</span>
           <span><Sparkles size={16} aria-hidden />{goals}/{FREE_GOALS.length} {t('目标', 'goals')}</span>
         </div>
