@@ -208,3 +208,123 @@ Worktree `C:/Users/willy/wt/w4-v`, dev port 5306, scratch `C:/Users/willy/opus-q
   `LightRailSystem` are wired.
 - **Lead**: the whole-repo lint runs into a local `.vite-opus/` cache (12 errors from optimizer bundles) when a lane has
   a dev server running: add `.vite-opus` to the ESLint ignores (a frozen / config file).
+
+## Early review
+
+Adversarial review of the early phase (commits `3302149`, `87a5dbd`, `b67ae36`), 2026-09-27, in `C:/Users/willy/wt/w4-v`
+(rebased on `origin/opus-bay`); scratch `C:/Users/willy/opus-qa/w4/w4-v/review/`. Fixes: the commit "W4-V-review:
+models name the sites …" and this section.
+
+### 给主人的摘要
+
+1. V 线交的东西质量不错：四个 AI 地标模型、16 张地图贴纸、214 段环游语音都逐个核对过；抽查了 19 条事实和坐标，除了一处塔高没有出处，其余都对得上；花费 40.45 分，在 120 分上限内。
+2. 找到并修好了 6 处"接线时会接不上"的小问题：两个模型挂错了所属地标、地图贴纸只给了画布用法（地图徽章其实是 SVG）、测速乘车的上下车站名和 T 线对不上、测速点列的地标名不对、账本里两行还是旧数字、测试里一处没有出处的塔高。
+3. 还有几条要到"接线阶段"才能改（语音预加载的调用方式、L 线一个旧测试会因为新模型报错、湖心亭的走路数据），具体改法都写在下面。
+
+### What was checked
+
+- **Scope rule**: lane V's three commits only add files; the eight files `87a5dbd` modifies were all created by `3302149`.
+  No existing tracked file was edited. No uncommitted work was left in the worktree.
+- **Read**: the lead note, plan §2.2 / §2.6 / §5.7 / §6, this report, the ledger, every new source, test, script listing,
+  the spots JSON and runner, the sticker JSON and atlas, the voice report and the listening sheet; the files the
+  integration plan names (`data/assets.ts`, `data/voiceLinesSf.ts`, `audio/voice.ts`, `audio/audio.ts`, the swap API in
+  `landmarks/index.ts`, lane L's `cal-academy.ts` / `st-ignatius.ts` / `w4sites.ts`, lane P's `MapBadge.tsx`, lane T's
+  `stationNames.ts` / `busSystem.ts` / `transit-w4.json`, the D2 tests `sf-models` / `sf-landmarks`).
+- **Assets, measured**: the four GLBs decoded with draco3d (bounds = the rows; St Ignatius's towers stand at +Z = Fulton
+  St, the dome behind them; the pavilion ray-cast: floor platform 0.3 u, roof underside 2.3 u at the centre and 2.5 u at
+  the eaves, eight columns at 22.5° + k·45° on r ≈ 2.15, open between every pair). The atlas: padding alpha 0, all 16
+  subjects right and in `MAP_STICKER_IDS` order, no letters (read at 2×). Voice: the durations of all 428 files equal
+  `TOUR_VOICE_CLIPS` (≤ 0.06 s), AAC 64k / Opus mono 48 kHz, five sampled clips at −17.5…−17.9 LUFS with peaks ≤ −2.3
+  dBFS, no clip id collides with the 86 existing ones. The recogniser re-run with alternates on three of the 11
+  unmatched clips: "326 m" is read "three hundred twenty-six meters" (0.92, not "M"); "Haight" comes out "hate", which
+  is the right pronunciation; the Bernal clip stays for the owner's ear.
+- **Facts re-checked on the web** (2026-09-27):
+
+  | # | fact (where) | result | source |
+  |---|---|---|---|
+  | 1 | Holy Virgin: plain white until the 2015–16 red-and-white scheme (model, report) | right | orthodoxartsjournal.org "Bold New Colors for Holy Virgin Cathedral" |
+  | 2 | Holy Virgin: five onion domes in gold leaf (model, voice) | right (24-carat) | en.wikipedia.org/wiki/Holy_Virgin_Cathedral |
+  | 3 | Holy Virgin 125 ft → H 9.1 u (row, test) | right | sfgate.com "A cathedral's golden glow in Outer Richmond" |
+  | 4 | Pavilion octagonal, 28 ft tall, 27 ft wide, 4.5 ft spire (row, test) | right | richmondsunsetnews.com "Looking Back: Sister City Pavilion" |
+  | 5 | Pavilion: red columns, grey-green tiles like the Chinatown gate | right | same |
+  | 6 | Pavilion: 1981 gift of Taipei | right (plaque 15 Apr 1981) | same; sfrecpark.org/901 |
+  | 7 | St Ignatius: 1914, Charles Devlin, twin spires + dome | right | Wikipedia; usfca.edu "9 facts" |
+  | 8 | St Ignatius: buff brick + terra cotta, towers in four stages square → octagonal | right, but the source is the California Preservation Foundation (californiapreservation.org/awards/ignatius), not Wikipedia as "Decisions" says | CPF |
+  | 9 | St Ignatius towers "213 ft" (test label) | **no source**: "over 200 ft above the street" (CPF), 210 ft (USF), 185 ft above the campus (SF Chronicle). Relabelled; the height follows lane L's 61 m + the crosses | CPF, USF, SF Chronicle |
+  | 10 | Cal Academy: 2.5-acre living roof, two 90-ft domes, porthole skylights | right | calacademy.org (living roof); arup.com |
+  | 11 | Castro Theatre reopened in February 2026 (voice) | right (6 Feb 2026) | sfchronicle.com; localnewsmatters.org |
+  | 12 | SF State founded 1899, on the Lake Merced campus from 1953 (voice) | right (classes from fall 1953) | Wikipedia "History of San Francisco State University" |
+  | 13 | Salesforce Park: 600 trees (voice) | right | tjpa.org; Wikipedia |
+  | 14 | Lake Merced 650 acres (voice) | right as the lake's surface (Wikipedia); the park is 614 acres (SF Rec & Park) | Wikipedia "Lake Merced" |
+  | 15 | Ferry Building farmers market Tue / Thu / Sat (voice) | right | foodwise.org; ferrybuildingmarketplace.com |
+  | 16 | Pavilion world (−251.5, 1017.0) | right: `project(37.76838, −122.47361)` is 0.1 u away, on the island's east shore ("on the east side", SF Rec & Park) | core/geo.ts |
+  | 17 | St Ignatius / Holy Virgin / Cal Academy origins | right (0.0 / 0.1 / 0.8 u from their lat / lng) | core/geo.ts |
+  | 18 | New spots: Union Square 0.7 u from the Dewey Monument, Haight & Ashbury 0.8 u, 19th & Winston 4.1 u, Civic Center Plaza 3.8 u, Music Concourse 18 u from the bandshell (inside the concourse) | right | core/geo.ts |
+  | 19 | The three ride paths lie on lane T's published lines | right (≤ 5.4 u off) | public/opus-bay/sf/v1/transit-w4.json |
+
+- **Budgets**: 40.45 of the 120 cap (≥ 50 of the balance kept); GLBs 71–185 KB (≤ 250 KB), ≤ 5,880 triangles (≤ 6k),
+  one 1024 / 512 px WebP each; the atlas 74 KB; 17 MB of voice, loaded on demand. No per-frame code in the lane's
+  modules (data only; the new SVG helper returns one frozen object per id).
+
+### Defects found and fixed
+
+1. **Models named the wrong sites.** `W4_MODELS` said `landmarkId: 'music-concourse'` / `'usf-lone-mountain'` (the
+   plan's parent sites), but lane L put the AI slots on their own sites `cal-academy` and `st-ignatius-church`. D2's
+   swaps follow `SF_MODELS[part.model].landmarkId === site.id` (asserted for the wave-3 swaps in `sf-models`), so the
+   wave-4 swaps would break that rule. Now `'cal-academy'` / `'st-ignatius-church'`; a test ties every model to the site whose `w4.aiSlot` names
+   its GLB (it also fails if lane L later puts the Holy Virgin or pavilion slot on a site with another id: re-label the
+   row, free).
+2. **The sticker API only fitted a canvas.** Lane P's badges are SVG (`ui/MapBadge.tsx`), where `drawImage` does not
+   apply. New `mapStickerSvg(id)` → `{ href, viewBox, atlasW, atlasH }` (one frozen object per id): a nested
+   `<svg viewBox>` + `<image>` crops the one shared atlas (2 nodes per badge for `badgeNodes`). Tested.
+3. **Perf rides would not board.** `board` / `alight` were `wharf-hyde`, `duboce-church`, `19th-ave-winston`, …; lane
+   T's stable ids are `loop-wharf-hyde`, `muni-duboce-church`, `muni-19th-winston`, … Fixed and tested against
+   `W4_STATION_IDS` (the loop ride also ends within 30 u of its stop).
+4. **Spot site lists were wrong.** They used plan names for sites lane L built under other ids (`haight` →
+   `haight-ashbury`, `yerba-buena` → `yerba-buena-gardens`), missed the two AI-swap sites in range (`cal-academy`,
+   `st-ignatius-church` at Music Concourse and Haight / USF; `sfmoma` at Union Square) and listed `sf-zoo` 380 u from
+   Stonestown / SF State (its lod-0 ring is 220 u). Fixed; a test keeps every built site listed inside its lod-0 ring.
+5. **The ledger's "Published" rows were stale**: Cal Academy 93,616 B / 21.0 × 5.2 × 11.4 and St Ignatius 5,880 tris /
+   153,044 B / 9.78 × 13.3 × 16.22 (the files before the fit to lane L's bounds); the lead merges this table into
+   ASSETS-LEDGER. Now the published numbers (+ IoU native / as published); a test compares the rows with `W4_MODELS`.
+6. **Unsourced numbers in the test**: "213 ft" for St Ignatius (fact 9) and "player 1.5 u" for the pavilion (the player
+   is 1.73 u, `actors/dims.ts`). Relabelled with the sources and the measured clearance.
+
+### Open (integration corrections: they touch existing files or other lanes' files)
+
+1. **Step 3, `scale: 1`** → `scale: [1, 1, 1]`: `LandmarkSwapPart.scale` is a per-axis tuple (`landmarks/index.ts`).
+2. **Step 1 breaks a test it does not name**: `tests/opus-bay-sf-landmarks.test.ts` asserts `sfLandmark(m.landmarkId)`
+   for every `SF_MODELS` row, and the wave-4 sites are not in `SF_LANDMARKS` (`w4sites.ts` is drawn beside it). Lane L
+   changes that line on purpose to `sfLandmark(id) ?? w4Site(id)`; `sf-holy-virgin` / `sf-chinese-pavilion` are
+   registered only once `geary-west` / `blue-heron-lake` exist (or the test lists those two pending site ids).
+3. **Step 2, the voice preload call does not exist**: `voice.preload()` takes no ids (it warms the six barks) and the
+   `VoicePlayer` lives inside `audio/audio.ts`. With `LINE_WAIT` = 0.7 s a tour clip that is not fetched yet plays the
+   chirp and is dropped. Correct: in `audio/audio.ts` (lane T), on `transit` `board` / `approach` / `arrive` with a
+   `station`, and on `trip` `start` of a tour, ``voice.load(`${VoicePlayer.lang()}-<line id>`)`` for the next stop's
+   approach / arrive / tip lines (three clips ≈ 150 KB). Do **not** add the tour ids to `SF_VOICE_LINES`:
+   `preloadLines()` would then fetch all 107 clips (≈ 5 MB per language) at every city start; the default chirp
+   (`'hi'`) is fine for them.
+4. **Long clips, no queue**: tour clips run 2.2–8.1 s (wave 3: ≤ 2 s) and `voice.line` bypasses `CLIP_GAP`, so two lines
+   emitted back to back overlap. The bus fits (approach 60 u before the stop ≈ 7.3 s at 12 u/s with the 2.6 u/s² brake;
+   the longest approach clip is 6.5 s), but lane C should not emit a chapter intro / outro or an arrival line until the
+   previous clip's `TOUR_VOICE_CLIPS[id].duration` has passed.
+5. **Step 3, the pavilion's walk data**: the mesh is open between all eight columns (there is no "entrance gap on +Z";
+   the concept's bench walls did not survive the mesh) and stands on a 0.3 u platform (edge r ≈ 2.4, steps to r ≈ 2.7
+   on ±Z): a walk surface at local y 0.3 over the octagon, column blockers r ≈ 0.25 (not 0.18) on r ≈ 2.15.
+6. **St Ignatius, for the SoloView gate**: on the decoded mesh the AI dome's centre is at local z ≈ −1.9 against lane
+   L's −2.7 (0.8 u toward the front and higher, not "further back" as "Known gaps" says), the towers at z ≈ 3.2 against
+   L's 4.05, and the AI front steps reach z ≈ 5.4 against the blockers' 5.0: with "blockers unchanged" the player can
+   walk ≈ 0.4 u into the steps. The gate checks the walk-around there (or the front blocker moves to z 5.4).
+7. **Bundle**: `voiceTour.ts` is 32 KB (10.6 KB gzip) and repeats lane C's texts; `data/assets.ts` is in the eager
+   graph, so measure GameRoot gzip (≤ 250 KB) after step 2.
+8. **Minor, runner**: the exported `gateRow()` does not fail a void spot; only the Markdown table marks it. Read the table.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on the pushed tree, rebased on `af3715b`)
+- `npx eslint .`: 0 errors, 42 warnings on the repo files (`--ignore-pattern .vite-opus`; the untracked `.vite-opus/` optimizer cache in this worktree adds the 12 known errors, lane V's request to the lead stands)
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **652 / 652** green on the pushed tree (rebased on `af3715b`; 643 / 643 before that rebase), incl. hero regression and contracts
+- `tests/opus-bay-w4-assets.test.ts`: 7 / 7 (was 6: + the landmarkId / ledger test; the sticker and spots tests gained
+  the SVG crop, the station ids and the lod-0 rings). The new checks fail on the old data (tried: `music-concourse`,
+  `carl-cole`).
+- No relayed owner message arrived during the review.
