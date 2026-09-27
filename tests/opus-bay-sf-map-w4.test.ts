@@ -624,7 +624,7 @@ test('P2 badges: a T3 dot that hosts a cluster draws its "+n" pip where the layo
   assert.ok(L.x >= host.x + pb[2] || L.x + L.w <= host.x + pb[0] || L.y >= host.y + pb[3] || L.y + L.h <= host.y + pb[1], JSON.stringify(L));
 });
 
-test('P2 layout: stations are box-shaped items — labels keep off a pill (its own too), pills never merge into badges nor host them, the real downtown keeps every label off every pill', async () => {
+test('P2 layout: stations are box-shaped items — labels keep off a pill (a must-see may cover one), pills never merge into badges nor host them, on the real downtown too', async () => {
   const { stationItem, stationLayoutId } = await import('../src/opus-bay/ui/mapLayout');
   const { toPx } = await import('../src/opus-bay/ui/cityMapDraw');
   // label candidates of a box: 3 px beside / above / below the box, not the disc
@@ -668,7 +668,15 @@ test('P2 layout: stations are box-shaped items — labels keep off a pill (its o
   const lay = layoutMap([...items, ...stItems], { w: v.w, h: v.h, maxNodes: 120, clusters: true });
   const boxes = lay.kept.filter(k => k.id.startsWith('station:')).map(k => { const it = stItems.find(i => i.id === k.id)!; return box(k, it.hw!, it.hh!); });
   assert.equal(boxes.length, stItems.length, `${boxes.length} station boxes kept of ${stItems.length}, nodes ${lay.nodes}`);
-  for (const k of lay.kept) if (k.label) for (const b of boxes) assert.ok(!over(k.label, b), `${k.id} label "${k.text}" over a station pill`);
+  // labels keep off the pills, except the must-sees' (the T1 band may cover a pill: yieldBelow 20); the stations cost no T1 label
+  const t1 = new Set(ATTRACTIONS.filter(a => a.rank === 1).map(a => a.id));
+  for (const k of lay.kept) if (k.label && !t1.has(k.id)) for (const b of boxes) assert.ok(!over(k.label, b), `${k.id} label "${k.text}" over a station pill`);
+  const t1Labels = (l: typeof lay) => l.kept.filter(k => t1.has(k.id) && k.label).length;
+  assert.ok(t1Labels(lay) >= t1Labels(layoutMap(items, { w: v.w, h: v.h, maxNodes: 120, clusters: true })), "no T1 label lost to the stations");
+  assert.ok(lay.kept.some(k => k.id.startsWith('station:') && k.label), 'transfer stations keep their names');
+  // the synthetic case: a T1 badge (prio 10) left of the pill may put its label over it, the T2 above may not
+  const t1b = layoutMap([pill, { ...badge, id: 't1', prio: 10, x: 152 }], { w: 400, h: 300 });
+  assert.ok(t1b.kept.find(k => k.id === 't1')!.label);
   for (const k of lay.kept) if (k.id.startsWith('station:')) assert.equal(k.members.length, 0);
   for (const [from, to] of Object.entries(lay.merged)) { assert.ok(!from.startsWith('station:'), from); assert.ok(!to.startsWith('station:'), to); }
   assert.ok(lay.nodes <= 120);

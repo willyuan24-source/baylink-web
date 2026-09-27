@@ -21,7 +21,7 @@ import { type MapStation, type StationSymbol, stationNodes } from './mapLines';
  * Box-shaped markers (lane P2): a transfer station's pill is up to 80 px wide (N M 叮当 F), so an item may give its
  * half extents `hw` / `hh`: its obstacle box, its label gaps and its overlap test use the box instead of the disc r.
  * Stations enter with `clusterable: false, host: false` (they never merge, and nothing merges into them: MapStationMark
- * draws no pip); labels still keep off them.
+ * draws no pip); labels keep off them, except the T1 band's (`yieldBelow: 20`: a must-see keeps its name over a pill).
  *
  * 4. node budget: SVG nodes ≤ `maxNodes` (150 desktop / 120 phone), counted as rendered (badgeNodes / stationNodes:
  *    a badge is 5 elements, not 3); each badge is admitted WITH its label's node reserved, in priority order, so the
@@ -47,6 +47,8 @@ export interface LayoutItem {
   /** a box-shaped marker's half width / half height (px; default r): a station pill */
   hw?: number;
   hh?: number;
+  /** labels of items more important than this (prio below it) may cover this marker (stations: the T1 band) */
+  yieldBelow?: number;
   /** SVG nodes this item costs without its label and pip (badgeNodes / stationNodes; default a plain badge, 5) */
   nodes?: number;
 }
@@ -141,7 +143,8 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
         const b: Box = [c.x - pad / 2, c.y - pad / 2, c.x + c.w + pad / 2, c.y + c.h + pad / 2];
         if (b[0] < frame[0] || b[1] < frame[1] || b[2] > frame[2] || b[3] > frame[3]) continue;
         if (placed.some(p => hit(p, b))) continue;
-        if (discs.some((d, j) => j !== i && hit(d, b))) continue; // never against its own badge
+        // never against its own badge; a marker that yields (a station) only blocks the labels less important than its band
+        if (discs.some((d, j) => j !== i && !(k.prio < (within[j].yieldBelow ?? -Infinity)) && hit(d, b))) continue;
         label = c;
         placed.push(b);
         break;
@@ -216,6 +219,6 @@ export function stationItem(st: Pick<MapStation, 'id' | 'major'>, sym: StationSy
   const hw = sym.w / 2 + (sym.stair && sym.kind === 'dot' ? 12 : 0);
   return {
     id: stationLayoutId(st.id), x, y, r: sym.h / 2, hw, hh: sym.h / 2, prio: layoutPriority({ station: true, fame: st.major ? 70 : 30 }),
-    clusterable: false, host: false, nodes: o.canvas ? 0 : stationNodes(sym), ...(label && sym.label ? { label, fontPx } : {}),
+    clusterable: false, host: false, yieldBelow: 20, nodes: o.canvas ? 0 : stationNodes(sym), ...(label && sym.label ? { label, fontPx } : {}),
   };
 }
