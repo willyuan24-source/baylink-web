@@ -25,7 +25,7 @@ import { inLake, loadAreas, onPier } from './lib/areas';
 import { elements, layerHeader, loadDem, writeFile } from './lib/io';
 import { buildLand, loadBoundaryRings, loadCoast } from './lib/land';
 import { buildPlaces } from './lib/places';
-import { type PlaceRowW4, candidateSkip, poiKindW4, sameName, stableMerge } from './lib/placesW4';
+import { type PlaceRowW4, W4_OSM_ZH, candidateSkip, poiKindW4, sameName, stableMerge } from './lib/placesW4';
 import { loadWays } from './lib/roads';
 import { buildTerrain, heightAt } from './lib/terrain';
 import { inSlab, projPt } from './lib/world';
@@ -130,7 +130,7 @@ for (const c of candidates.sort((a, b) => (a.key < b.key ? -1 : 1))) {
   if (why) { skipped.push({ key: c.key, name: c.name, why }); continue; }
   const zhRaw = c.t['name:zh-Hans'] ?? c.t['name:zh'] ?? c.t['name:zh-Hant'] ?? '';
   const row: PlaceRowW4 = {
-    id: `osm-${c.type[0]}${c.id}`, name: { zh: zhRaw ? toHans(zhRaw) : c.t.name, en: c.name }, kind: poiKindW4(c.t)!, x: r2(sx), z: r2(sz), y: r2(heightAt(terrain, sx, sz)),
+    id: `osm-${c.type[0]}${c.id}`, name: { zh: W4_OSM_ZH[c.key] ?? (zhRaw ? toHans(zhRaw) : c.t.name), en: c.name }, kind: poiKindW4(c.t)!, x: r2(sx), z: r2(sz), y: r2(heightAt(terrain, sx, sz)),
     zone: zoneAt(sx, sz), osmType: c.type, osmId: c.id, sourceUrl: `https://www.openstreetmap.org/${c.type}/${c.id}`, verifiedAt, curated: false, graphNode: snapNode(sx, sz),
   };
   if (inSlab(sx, sz)) row.hero = true;

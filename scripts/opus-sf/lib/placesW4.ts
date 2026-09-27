@@ -47,6 +47,20 @@ export const W4_OSM_ADDS: Readonly<Record<string, string>> = {
 };
 
 /**
+ * zh names of the reviewed additions (review fix): OSM has no Chinese name for them, and a row without one shows its long
+ * English name in the zh UI ("City College of San Francisco (CCSF) Evans Center" in the 大学 search).
+ */
+export const W4_OSM_ZH: Readonly<Record<string, string>> = {
+  'way/301548804': '金门大学',
+  'way/35115837': '加州整合学院',
+  'way/25759123': '太平洋大学杜戈尼牙医学院',
+  'way/256029744': '旧金山城市学院 · 市中心校区',
+  'way/391084391': '旧金山城市学院 · 教会区校区',
+  'way/388134069': '旧金山城市学院 · Evans 校区',
+  'way/392375234': '旧金山城市学院 · 华埠/北岸校区',
+};
+
+/**
  * Why an OSM candidate row is not added (null = add it): it is not on the reviewed list, it is an extra row's own OSM
  * feature, it names the same place as an extra row (runtime rows win: they carry the verified card), or an earlier
  * candidate has the same name.

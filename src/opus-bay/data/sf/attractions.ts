@@ -27,6 +27,10 @@ import {
  *   `FLAG_TOPS[id].h` or 30 u. PLACEHOLDERS until lane L's `siteFlagTop(id)` lands (L fills `FLAG_TOPS` or the
  *   integration reads siteFlagTop first); every value is clamped to ATTRACTION_FLAG_H (28–70).
  * - `near` is not stored: `nearStops()` measures it from the published transit lines (lane T's stop ids stay the truth).
+ * - `arrival` of the 24 existing SF landmarks = the landmark's walkable anchor (`LANDMARK_ARRIVALS`, review fix): the
+ *   place index already ends every trip, fly and discovery there, so lane C's arrival moment and lane G's trip
+ *   destination use the same spot. The other attractions keep the scouting's measured arrival, and
+ *   data/sf/extraPlaces.ts `applyW4Places` gives the place rows they decorate that same arrival.
  *
  * Coordinates are the world city frame (x, z in u, `projectCity`). Facts checked on 2026-09-27 (the scouting's date).
  */
@@ -40,7 +44,7 @@ const ROWS: Attraction[] = [
   { id: 'st-ignatius-church', placeId: 'st-ignatius-church', name: bi('圣依纳爵堂', 'St Ignatius Church'), short: bi('圣依纳爵堂', 'St Ignatius'), cat: 'culture', glyph: 'Church', rank: 2, fame: 48, x: -150.9, z: 752.8, arrival: { x: -152.6, z: 756.4 }, area: 'park-sunset', aliases: ['USF', '圣依纳爵', 'St. Ignatius', '教堂', 'church'], siteId: 'usf-lone-mountain', treatment: 'ai', priority: 1, quiet: true },
   { id: 'sf-state-university', placeId: 'sf-state-university', name: bi('旧金山州立大学', 'San Francisco State University'), short: bi('州立大学', 'SF State'), cat: 'campus', rank: 1, fame: 66, x: 198.2, z: 1555.6, area: 'south', aliases: ['SFSU', 'SF State', '州大', '旧金山州立', '旧金山州大', '州立大学', 'San Francisco State', 'SF State University'], photoKey: 'sf-state', siteId: 'sfsu', treatment: 'proc', priority: 1, officialUrl: 'https://www.sfsu.edu/about' },
   { id: 'stonestown-galleria', placeId: 'stonestown-galleria', name: bi('石镇购物中心', 'Stonestown Galleria'), short: bi('石镇', 'Stonestown'), cat: 'shopping', rank: 1, fame: 64, x: 165.9, z: 1479.9, arrival: { x: 172.1, z: 1474.1 }, area: 'south', aliases: ['石镇', '石头城', 'Stonestown', '石镇商场', '商场', 'mall', 'Stonestown Galleria'], photoKey: 'stonestown', siteId: 'stonestown', treatment: 'proc', priority: 1, officialUrl: 'https://www.stonestowngalleria.com/en/visit/' },
-  { id: 'ccsf-ocean-campus', placeId: 'ccsf-ocean-campus', name: bi('旧金山城市学院（Ocean 校区）', 'City College of San Francisco · Ocean Campus'), short: bi('城市学院', 'City College'), cat: 'campus', rank: 2, fame: 46, x: 421.9, z: 1268.3, arrival: { x: 424.9, z: 1265.6 }, area: 'south', aliases: ['CCSF', '城市学院', 'City College', '旧金山城市大学', 'Ocean Campus'], siteId: 'ccsf-ocean', treatment: 'proc', priority: 1, officialUrl: 'https://www.ccsf.edu/news/diego-rivera-performing-arts-center-groundbreaking', visitNote: bi('里维拉壁画约 2028 年前不展出', 'The Rivera mural is not on view until about 2028') },
+  { id: 'ccsf-ocean-campus', placeId: 'ccsf-ocean-campus', name: bi('旧金山城市学院（Ocean 校区）', 'City College of San Francisco · Ocean Campus'), short: bi('城市学院', 'City College'), cat: 'campus', rank: 2, fame: 46, x: 421.9, z: 1268.3, arrival: { x: 424.9, z: 1265.6 }, area: 'south', aliases: ['CCSF', '城市学院', 'City College', '旧金山城市大学', 'Ocean Campus'], siteId: 'ccsf-ocean', treatment: 'proc', priority: 1, officialUrl: 'https://www.ccsf.edu/news/diego-rivera-performing-arts-center-groundbreaking', visitNote: bi('里维拉壁画预计 2028 年起展出', 'The Rivera mural goes on view about 2028') },
   { id: 'ucsf-parnassus', placeId: 'ucsf-parnassus', name: bi('加州大学旧金山分校 · 帕纳萨斯校区', 'UCSF Parnassus Heights'), short: bi('UCSF', 'UCSF Parnassus'), cat: 'campus', rank: 2, fame: 55, x: -56.8, z: 939.6, arrival: { x: -60.4, z: 934.9 }, area: 'park-sunset', aliases: ['UCSF', '加大旧金山', '加州大学旧金山', '加州大学旧金山分校', '帕纳萨斯', 'Parnassus'], photoKey: 'ucsf-parnassus', siteId: 'ucsf-parnassus', treatment: 'proc', priority: 1, officialUrl: 'https://realestate.ucsf.edu/projects/ucsf-health-helen-diller-hospital-hdh' },
   { id: 'university-of-san-francisco', placeId: 'university-of-san-francisco', name: bi('旧金山大学', 'University of San Francisco (USF)'), short: bi('旧金山大学', 'USF'), cat: 'campus', rank: 2, fame: 54, x: -188.5, z: 706.2, arrival: { x: -184.1, z: 711.4 }, area: 'park-sunset', aliases: ['USF', '旧金山大学', 'Lone Mountain', 'University of SF'], siteId: 'usf-lone-mountain', treatment: 'proc', priority: 1, officialUrl: 'https://www.usfca.edu/about' },
   { id: 'ucsf-mission-bay', placeId: 'ucsf-mission-bay', name: bi('加州大学旧金山分校 · 米慎湾校区', 'UCSF Mission Bay campus'), short: bi('米慎湾校区', 'UCSF Mis. Bay'), cat: 'campus', rank: 2, fame: 50, x: 441, z: 292.5, arrival: { x: 440.6, z: 292.1 }, area: 'north-downtown', aliases: ['UCSF', '加大旧金山', '加州大学旧金山', '加州大学旧金山分校', '米慎湾', 'Mission Bay'], photoKey: 'ucsf-mission-bay', siteId: 'ucsf-mission-bay', treatment: 'plaza', priority: 1, officialUrl: 'https://www.ucsf.edu/about/locations/mission-bay' },
@@ -65,7 +69,7 @@ const ROWS: Attraction[] = [
   { id: 'de-young-tower', placeId: 'de-young', name: bi('迪扬博物馆 · 观景塔', 'de Young Museum · Hamon Observation Tower'), short: bi('迪扬博物馆', 'de Young'), cat: 'museum', rank: 2, fame: 66, x: -244.4, z: 940.2, arrival: { x: -250.1, z: 940.1 }, area: 'park-sunset', aliases: ['迪扬', '笛洋', 'de Young', '观景塔', 'Hamon Tower'], photoKey: 'de-young', landmarkId: 'de-young-tower', siteId: 'music-concourse', treatment: 'stop', priority: 2, visitNote: bi('观景层免费；周一闭馆', 'The tower is free; closed Mondays'), panorama: true },
   { id: 'dutch-windmill', placeId: 'dutch-windmill', name: bi('荷兰风车与威廉明娜女王郁金香花园', 'Dutch Windmill & Queen Wilhelmina Tulip Garden'), short: bi('荷兰风车', 'Dutch Windmill'), cat: 'landmark', rank: 2, fame: 57, x: -580.7, z: 1311.9, arrival: { x: -579.4, z: 1313.6 }, area: 'coast', aliases: ['风车', 'windmill', '郁金香', 'tulip'], landmarkId: 'dutch-windmill', siteId: 'ocean-beach-west', treatment: 'stop', priority: 2, visitNote: bi('郁金香约三月开；风车内部不开放', 'Tulips bloom about March; the mill is closed inside') },
   { id: 'legion-of-honor', placeId: 'legion-of-honor', name: bi('荣勋宫美术馆', 'Legion of Honor'), short: bi('荣勋宫', 'The Legion'), cat: 'museum', rank: 2, fame: 58, x: -663.6, z: 1083.4, arrival: { x: -658.9, z: 1083.4 }, area: 'coast', aliases: ['荣勋宫', 'Legion of Honor', 'Legion'], landmarkId: 'legion-of-honor', siteId: 'legion', treatment: 'stop', priority: 2, visitNote: bi('周一闭馆', 'Closed Mondays') },
-  { id: 'mission-dolores', placeId: 'mission-dolores', name: bi('多洛雷斯传教站', 'Mission Dolores (Mission San Francisco de Asís)'), short: bi('传教站', 'Old Mission'), cat: 'culture', glyph: 'Church', rank: 2, fame: 60, x: 195.5, z: 647.6, arrival: { x: 199.1, z: 646.9 }, area: 'twin-peaks-mission', aliases: ['传教站', 'Mission Dolores', '多洛雷斯', '教会区'], landmarkId: 'mission-dolores', siteId: 'mission-dolores', treatment: 'stop', priority: 2, visitNote: bi('周一闭馆；导览暂停', 'Closed Mondays; guided tours suspended'), quiet: true },
+  { id: 'mission-dolores', placeId: 'mission-dolores', name: bi('多洛雷斯传教站', 'Mission Dolores (Mission San Francisco de Asís)'), short: bi('传教站', 'Old Mission'), cat: 'culture', glyph: 'Church', rank: 2, fame: 60, x: 195.5, z: 647.6, arrival: { x: 199.1, z: 646.9 }, area: 'twin-peaks-mission', aliases: ['传教站', 'Mission Dolores', '多洛雷斯', '教会区'], landmarkId: 'mission-dolores', siteId: 'mission-dolores', treatment: 'stop', priority: 2, visitNote: bi('每天开放；导览暂停，可自助参观', 'Open daily; guided tours paused, self-guided visits'), quiet: true },
   { id: 'sutro-tower', placeId: 'sutro-tower', name: bi('苏特罗塔', 'Sutro Tower'), short: bi('苏特罗塔', 'Sutro Tower'), cat: 'landmark', rank: 2, fame: 60, x: 73.2, z: 973.7, area: 'twin-peaks-mission', aliases: ['苏特罗塔', 'Sutro Tower', '电视塔'], landmarkId: 'sutro-tower', siteId: 'twin-peaks', treatment: 'stop', priority: 2, visitNote: bi('私人设施，不对外开放', 'Private: no public access') },
   { id: 'ferry-building-marketplace', placeId: 'ferry-building', name: bi('渡轮大厦市集', 'Ferry Building Marketplace & Ferry Plaza Farmers Market'), short: bi('渡轮大厦', 'Ferry Building'), cat: 'landmark', rank: 1, fame: 88, x: 131.5, z: 15.1, area: 'north-downtown', aliases: ['渡轮大厦', 'Ferry Building', '农夫市集', 'farmers market', 'Ferry Plaza', '钟楼'], photoKey: 'ferry', treatment: 'card', priority: 2, officialUrl: 'https://www.ferrybuildingmarketplace.com/', hero: true },
   { id: 'salesforce-tower', placeId: 'salesforce-tower', name: bi('Salesforce 大楼', 'Salesforce Tower'), short: bi('Salesforce', 'Salesforce'), cat: 'landmark', rank: 2, fame: 62, x: 166.2, z: 107.8, arrival: { x: 166.1, z: 112.1 }, area: 'north-downtown', aliases: ['最高楼', 'tallest', 'Salesforce'], photoKey: 'salesforce', treatment: 'card', priority: 2, hero: true },
@@ -104,7 +108,7 @@ const ROWS: Attraction[] = [
   { id: 'japan-center', placeId: 'japantown-peace-pagoda', name: bi('日本城购物中心', 'Japan Center Malls (Japantown)'), short: bi('日本城商场', 'Japan Center'), cat: 'shopping', rank: 3, fame: 42, x: -69.2, z: 454.7, arrival: { x: -73.1, z: 453.4 }, area: 'north-downtown', aliases: ['日本城', 'Japantown', '商场', 'mall'], siteId: 'japantown', treatment: 'plaza', priority: 3, officialUrl: 'https://www.sfjapantown.org/japan-center-malls/' },
   { id: 'sf-botanical-garden', placeId: 'osm-w120480164', name: bi('旧金山植物园', 'San Francisco Botanical Garden'), short: bi('植物园', 'Botanical Gdn'), cat: 'park', rank: 3, fame: 40, x: -223.4, z: 1010.3, area: 'park-sunset', aliases: ['植物园', 'Botanical Garden'], siteId: 'music-concourse', treatment: 'plaza', priority: 3, officialUrl: 'https://gggp.org/visit' },
   { id: 'sunset-dunes', placeId: 'osm-w609650218', name: bi('日落沙丘公园', 'Sunset Dunes'), short: bi('日落沙丘', 'Sunset Dunes'), cat: 'coast', rank: 3, fame: 32, x: -341.7, z: 1525, area: 'coast', aliases: ['沙丘', 'Sunset Dunes', 'Great Highway'], siteId: 'ocean-beach-west', treatment: 'plaza', priority: 3 },
-  { id: 'cliff-house', placeId: 'cliff-house', name: bi('悬崖屋与暗箱相机', 'Cliff House & Camera Obscura'), short: bi('悬崖屋', 'Cliff House'), cat: 'landmark', rank: 3, fame: 42, x: -710.1, z: 1265.2, arrival: { x: -709.9, z: 1263.4 }, area: 'coast', aliases: ['悬崖屋', 'Cliff House', 'Camera Obscura', '暗箱'], landmarkId: 'cliff-house', siteId: 'lands-end', treatment: 'stop', priority: 3, visitNote: bi('2020 年起关闭，重开未定', 'Closed since 2020; reopening not confirmed') },
+  { id: 'cliff-house', placeId: 'cliff-house', name: bi('悬崖屋与暗箱相机', 'Cliff House & Camera Obscura'), short: bi('悬崖屋', 'Cliff House'), cat: 'landmark', rank: 3, fame: 42, x: -710.1, z: 1265.2, arrival: { x: -709.9, z: 1263.4 }, area: 'coast', aliases: ['悬崖屋', 'Cliff House', 'Camera Obscura', '暗箱'], landmarkId: 'cliff-house', siteId: 'lands-end', treatment: 'stop', priority: 3, visitNote: bi('2020 年起关闭，翻修中，重开未定', 'Closed since 2020; being restored, no reopening date') },
   { id: 'city-lights-bookstore', placeId: 'osm-w32858754', name: bi('城市之光书店', 'City Lights Booksellers & Publishers'), short: bi('城市之光', 'City Lights'), cat: 'culture', rank: 3, fame: 45, x: -4.3, z: 108.9, area: 'north-downtown', aliases: ['书店', 'bookstore', 'City Lights', '垮掉的一代', 'Beat'], treatment: 'card', priority: 3, hero: true },
   { id: 'musee-mecanique', placeId: 'osm-n368166365', name: bi('机械博物馆（古董投币游戏机）', 'Musée Mécanique'), short: bi('机械博物馆', 'Mécanique'), cat: 'museum', rank: 3, fame: 42, x: -211.9, z: 65.5, arrival: { x: -205.9, z: 73.9 }, area: 'north-downtown', aliases: ['投币游戏机', 'arcade', 'Musee Mecanique'], treatment: 'card', priority: 3, hero: true },
   { id: 'national-aids-memorial-grove', placeId: 'national-aids-memorial-grove', name: bi('国家艾滋病纪念园', 'National AIDS Memorial Grove'), short: bi('艾滋纪念园', 'AIDS Memorial'), cat: 'park', rank: 3, fame: 30, x: -168.5, z: 902.3, area: 'park-sunset', aliases: ['纪念园', 'AIDS Memorial Grove'], siteId: 'park-east', treatment: 'card', priority: 3, quiet: true },
@@ -224,11 +228,64 @@ export function flagFor(a: Pick<Attraction, 'id' | 'x' | 'z' | 'rank'>, tops: Re
   return { x: t?.x ?? a.x, z: t?.z ?? a.z, h: clampFlag(t?.h ?? DEFAULT_FLAG_H) };
 }
 
+/**
+ * Where the 24 existing SF landmarks' attractions arrive (review fix): the landmark's walkable anchor with its facing,
+ * keyed by SF landmark id — world/sf/landmarks/context.ts `sfLandmarkAnchor(id)` (city-only code with the recipes, so
+ * the numbers are copied here; tests/opus-bay-sf-attractions.test.ts fails with the new values when an anchor moves).
+ * Why: data/sf/places.ts sends every trip, fly and discovery of a landmark row to that anchor, while the scouting's own
+ * arrival points sat 2–19 u away (the Golden Gate Bridge 147 u: its badge stands on the south tower, the anchor is the
+ * visitor plaza) — outside lane C's 12 u arrival radius, so the arrival moment would not fire where 跟 BAYBAY 去 ends.
+ */
+export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; heading: number }>> = {
+  'golden-gate-bridge': { x: -680.06, z: 654.15, heading: 4.037 },
+  'fishermans-wharf': { x: -198.51, z: 76.63, heading: 4.109 },
+  'dragon-gate': { x: 86.29, z: 178.06, heading: 4.056 },
+  'lombard-crooked-street': { x: -151.33, z: 159.48, heading: 5.653 },
+  'painted-ladies': { x: 4.38, z: 577.87, heading: 2.484 },
+  'palace-of-fine-arts': { x: -409.36, z: 407.23, heading: 5.498 },
+  'twin-peaks': { x: 128.86, z: 922.32, heading: 3.142 },
+  'city-hall': { x: 99.29, z: 408.19, heading: 5.672 },
+  'sutro-baths': { x: -717.26, z: 1246.05, heading: -0.352 },
+  'cable-car-turntable': { x: 134.9, z: 261.01, heading: 4.058 },
+  'de-young-tower': { x: -235.6, z: 938.6, heading: -1.571 },
+  'oracle-park': { x: 343.37, z: 179.07, heading: 2.421 },
+  'ghirardelli-square': { x: -242.3, z: 160.56, heading: 0.967 },
+  'conservatory-of-flowers': { x: -177.51, z: 858.11, heading: 4.049 },
+  'mission-dolores': { x: 198.74, z: 641.87, heading: 5.655 },
+  'sutro-tower': { x: 68.43, z: 980.61, heading: 2.443 },
+  'legion-of-honor': { x: -663.12, z: 1074.83, heading: 6.229 },
+  'dutch-windmill': { x: -584.3, z: 1315.67, heading: 2.374 },
+  'fort-point': { x: -744.02, z: 598.99, heading: -2.147 },
+  'castro-theatre': { x: 157.21, z: 734.76, heading: 5.59 },
+  'grace-cathedral': { x: 7.38, z: 223.67, heading: 5.669 },
+  'peace-pagoda': { x: -59.62, z: 452.42, heading: 4.102 },
+  'chase-center': { x: 483.33, z: 270.61, heading: 2.55 },
+  'cliff-house': { x: -711.12, z: 1261.59, heading: -0.323 },
+};
+
 /** Every attraction, T1 and T2 with their flag. Sorted by map priority (rank, then fame). */
-export const ATTRACTIONS: readonly Attraction[] = ROWS.map(a => {
+export const ATTRACTIONS: readonly Attraction[] = ROWS.map(row => {
+  const lm = row.landmarkId ? LANDMARK_ARRIVALS[row.landmarkId] : undefined;
+  const a = lm ? { ...row, arrival: { ...lm } } : row;
   const flag = flagFor(a);
   return flag ? { ...a, flag } : a;
 }).sort((a, b) => byMapPriority(a, b));
+
+/**
+ * Place rows an attraction's badge stands for besides its `placeId` (review fix): the Golden Gate Bridge's badge is
+ * drawn on the south tower, whose curated row (`ggb-south-tower`, "金门大桥 · 南塔") would otherwise draw a second
+ * dot under it (a "+1" pip below s 1.2, two overlapping badges above). The map's plain-place dots and the search's
+ * 地点 group skip every id of `coveredPlaceIds()`.
+ */
+export const BADGE_ALSO_COVERS: Readonly<Record<string, readonly string[]>> = {
+  'golden-gate-bridge': ['ggb-south-tower'],
+};
+/** Every place id an attraction badge stands for: the placeIds plus BADGE_ALSO_COVERS. */
+export function coveredPlaceIds(list: readonly Attraction[] = ATTRACTIONS): Set<string> {
+  const out = new Set<string>();
+  for (const a of list) { out.add(a.placeId ?? a.id); for (const id of BADGE_ALSO_COVERS[a.id] ?? []) out.add(id); }
+  return out;
+}
 
 /** Map / list priority: rank first (T1 before T2 before T3), then fame (higher first), then id (stable). */
 export function byMapPriority(a: Pick<Attraction, 'id' | 'rank' | 'fame'>, b: Pick<Attraction, 'id' | 'rank' | 'fame'>): number {

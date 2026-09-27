@@ -1,5 +1,6 @@
 import type { Bilingual } from '../../core/types';
 import type { SfPlace, SfPlaceKindAll } from '../../world/sf/format';
+import { ATTRACTION_INDEX, type AttractionIndex } from './attractions';
 
 /**
  * Wave 4 · place-index changes as data (lane P, W4-P3; plan sf-w4-plan.md §4.1 "Data", lead note §4.6):
@@ -18,6 +19,10 @@ import type { SfPlace, SfPlaceKindAll } from '../../world/sf/format';
  * - `PLACE_KIND_FIXES`: the zoo row becomes kind `zoo` (a wave-4 kind; `SfPlaceKind` absorbs them at the integration).
  * - `PLACE_HIDDEN`: the curated `sutro-baths` dot duplicates the landmark's own row 2 u away (it stays in places.json:
  *   the sidecar removes no ids).
+ * - `attractionArrivals()` (review fix): every published row an attraction speaks for (its primary attraction) ends
+ *   travel at that attraction's `arrival`, so a trip to the place ends inside lane C's 12 u arrival radius (Fort Funston's
+ *   OSM centroid was 71 u from the attraction's arrival, Corona Heights 19 u, Blue Heron Lake 15 u …). The 24 landmark
+ *   rows still take the landmark anchor in buildPlaceIndex, which is where their attractions arrive too.
  *
  * `applyW4Places(file)` applies all of it to the published rows (pure; node tests run it on the file on disk).
  */
@@ -184,8 +189,8 @@ export const PLACE_HIDDEN: ReadonlySet<string> = new Set(['sutro-baths']);
 /** A place row after the wave-4 changes: places.json fields, a wave-4 kind, an optional arrival spot. */
 export type W4PlaceRow = Omit<SfPlace, 'kind'> & {
   kind: SfPlaceKindAll;
-  /** where travel ends, when it is not the anchor (extra rows, re-anchored rows) */
-  arrival?: { x: number; z: number };
+  /** where travel ends, when it is not the anchor (extra rows, rows an attraction decorates, re-anchored rows) */
+  arrival?: { x: number; z: number; heading?: number };
   /** an EXTRA_PLACES row */
   extra?: boolean;
 };
@@ -197,6 +202,23 @@ export interface W4PlaceOptions {
   reanchors?: typeof PLACE_REANCHORS;
   kinds?: Readonly<Record<string, SfPlaceKindAll>>;
   hidden?: ReadonlySet<string>;
+  /** placeId → the arrival of the attraction that speaks for it (default: attractionArrivals()) */
+  arrivals?: Readonly<Record<string, { x: number; z: number; heading?: number }>>;
+}
+
+/**
+ * placeId → the arrival spot of the attraction that speaks for the place (its primary attraction: `arrival`, else its
+ * anchor). Non-primary attractions sharing a place (Japan Center on the Peace Pagoda's row) are not in it: a trip to
+ * one of them passes the attraction's own arrival as the destination (lane G's TripDestination x / z).
+ */
+export function attractionArrivals(ix: AttractionIndex = ATTRACTION_INDEX): Record<string, { x: number; z: number; heading?: number }> {
+  const out: Record<string, { x: number; z: number; heading?: number }> = {};
+  for (const a of ix.list) {
+    const id = a.placeId ?? a.id;
+    if (ix.primary(id) !== a) continue;
+    out[id] = a.arrival ? { ...a.arrival } : { x: a.x, z: a.z };
+  }
+  return out;
 }
 
 /** The row an extra place becomes (snaps default to "unknown": y 0, no zone, off the graph). */
@@ -215,6 +237,7 @@ export function extraRow(e: ExtraPlace, snap?: { y: number; zone: string | null;
 export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOptions = {}): W4PlaceRow[] {
   const extras = o.extras ?? EXTRA_PLACES, snaps = o.snaps ?? EXTRA_PLACE_SNAPS, names = o.names ?? PLACE_NAME_FIXES;
   const reanchors = o.reanchors ?? PLACE_REANCHORS, kinds = o.kinds ?? PLACE_KIND_FIXES, hidden = o.hidden ?? PLACE_HIDDEN;
+  const arrivals = o.arrivals ?? attractionArrivals();
   const out: W4PlaceRow[] = [];
   const ids = new Set<string>();
   for (const src of file.places) {
@@ -225,6 +248,8 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
     if (name) row.name = { ...name };
     const kind = kinds[src.id];
     if (kind) row.kind = kind;
+    const arr = arrivals[src.id];
+    if (arr && Math.hypot(arr.x - row.x, arr.z - row.z) > 0.05) row.arrival = { ...arr };
     const re = reanchors[src.id];
     if (re) { row.x = re.x ?? row.x; row.z = re.z ?? row.z; row.arrival = { ...re.arrival }; }
     out.push(row);

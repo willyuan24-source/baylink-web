@@ -11,10 +11,10 @@ import { sfDisk } from './opus-bay-sf-disk';
  */
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const { ATTRACTIONS, ATTRACTION_INDEX, AttractionIndex, FLAG_TOPS, T1_IDS, attractionGlyph, attractionColor, attractionShort, byMapPriority, flagFor, nearStops, placeTier, withNearStops } =
-  await import('../src/opus-bay/data/sf/attractions');
+const { ATTRACTIONS, ATTRACTION_INDEX, AttractionIndex, FLAG_TOPS, T1_IDS, attractionGlyph, attractionColor, attractionShort, byMapPriority, flagFor, nearStops, placeTier, withNearStops,
+  LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds } = await import('../src/opus-bay/data/sf/attractions');
 const { ATTRACTION_CATS, ATTRACTION_CAT_STYLE, ATTRACTION_AREAS, ATTRACTION_FLAG_H, ATTRACTION_GLYPHS, ATTRACTION_TREATMENTS } = await import('../src/opus-bay/data/sf/attractionTypes');
-const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow } = await import('../src/opus-bay/data/sf/extraPlaces');
+const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { SF_PLACE_KINDS_W4 } = await import('../src/opus-bay/world/sf/format');
 const { MAP_FRAME } = await import('../src/opus-bay/data/mapPaper');
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
@@ -59,7 +59,10 @@ test('attractions: every JSON attraction is here with its names, position, map r
     assert.equal(!!a.hero, hero, `${j.id} hero`);
     if (!hero && j.site) assert.equal(a.siteId, j.site, `${j.id} site`);
     const arr = a.arrival ?? { x: a.x, z: a.z };
-    assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 0.55, `${j.id} arrival`);
+    // the existing landmarks arrive at the landmark's walkable anchor (LANDMARK_ARRIVALS, review fix); the scouting's
+    // point is a sanity bound there, the exact spot everywhere else
+    if (a.landmarkId) assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 20, `${j.id} landmark arrival far from the scouting's`);
+    else assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 0.55, `${j.id} arrival`);
   }
   // the 24 non-JSON rows are the existing landmarks and famous curated places, at their places.json rows
   const extra = ATTRACTIONS.filter(a => !J.attractions.some(j => j.id === a.id));
@@ -110,12 +113,18 @@ test('attractions: every attraction stands inside the world frame; all but the i
   }
 });
 
-test('attractions: every T1 / T2 has a walkable arrival (≤ 25 u from the main walking graph) or an off-walk reason, and a flag 28–70 u', async () => {
+test('attractions: every arrival is walkable (≤ 25 u from the main walking graph) or has an off-walk reason; every T1 / T2 has a flag 28–70 u', async () => {
   const gi = await sf.graphIndex();
   const main = gi.mainComponent();
   const offWalk: string[] = [];
   for (const a of ATTRACTIONS) {
-    if (a.rank === 3) { assert.equal(a.flag, undefined, `${a.id}: T3 has no flag`); continue; }
+    if (a.rank === 3) {
+      assert.equal(a.flag, undefined, `${a.id}: T3 has no flag`);
+      const arr3 = a.arrival ?? { x: a.x, z: a.z };
+      // T3 trips end there too (跟 BAYBAY 去 works for every attraction)
+      assert.ok(gi.nearestNode(arr3.x, arr3.z, 25, i => gi.component(i) === main) >= 0 || a.hero, `${a.id}: T3 arrival (${arr3.x}, ${arr3.z}) is not walkable`);
+      continue;
+    }
     assert.ok(a.flag, `${a.id} flag`);
     assert.ok(a.flag.h >= ATTRACTION_FLAG_H.min && a.flag.h <= ATTRACTION_FLAG_H.max, `${a.id} flag h ${a.flag.h}`);
     assert.ok(Math.hypot(a.flag.x - a.x, a.flag.z - a.z) <= 120, `${a.id} flag foot far from the anchor`);
@@ -232,7 +241,7 @@ test('extra places: applyW4Places hides, renames, re-anchors, re-kinds and appen
 });
 
 test('places sidecar lib: wave-4 OSM kinds, name matching, reviewed additions, stable merge keeps every index', async () => {
-  const { poiKindW4, sameName, nameWords, candidateSkip, stableMerge, W4_OSM_ADDS } = await import('../scripts/opus-sf/lib/placesW4');
+  const { poiKindW4, sameName, nameWords, candidateSkip, stableMerge, W4_OSM_ADDS, W4_OSM_ZH } = await import('../scripts/opus-sf/lib/placesW4');
   assert.equal(poiKindW4({ amenity: 'university' }), 'campus');
   assert.equal(poiKindW4({ amenity: 'college' }), 'campus');
   assert.equal(poiKindW4({ shop: 'mall' }), 'shopping');
@@ -249,6 +258,8 @@ test('places sidecar lib: wave-4 OSM kinds, name matching, reviewed additions, s
   assert.match(candidateSkip({ key: 'way/3', name: 'Golden Gate University' }, extras, [{ name: 'Golden Gate University' }], null)!, /same name as/);
   assert.equal(candidateSkip({ key: 'way/301548804', name: 'Golden Gate University' }, extras, []), null);
   assert.ok(Object.keys(W4_OSM_ADDS).every(k => /^(node|way|relation)\/\d+$/.test(k)));
+  // every reviewed addition has a Chinese name (OSM has none: the zh UI would show the long English one)
+  for (const k of Object.keys(W4_OSM_ADDS)) assert.match(W4_OSM_ZH[k] ?? '', /[一-鿿]/, k);
   // stable merge: indices, geometry and sources of published rows never move; kinds may; additions append
   const pub = places.places.slice(0, 5);
   const rebuilt = pub.map((p, i) => ({ ...p, x: p.x + (i === 2 ? 1 : 0) })).reverse();
@@ -326,4 +337,66 @@ test('attractions: withSiteFlags takes lane L\'s poles (by id, then place id), c
   const real = withSiteFlags(ATTRACTIONS, siteFlagTop);
   for (const a of real) if (a.flag) assert.ok(a.flag.h >= 28 && a.flag.h <= 70, a.id);
   assert.ok(real.filter(a => a.flag && JSON.stringify(a.flag) !== JSON.stringify(ATTRACTION_INDEX.get(a.id)!.flag)).length >= 2, 'L already answers for some attractions');
+});
+
+test('attractions: the 24 landmark attractions arrive at the landmark\'s walkable anchor (LANDMARK_ARRIVALS = sfLandmarkAnchor)', async () => {
+  const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const withLm = ATTRACTIONS.filter(a => a.landmarkId);
+  assert.equal(withLm.length, 24);
+  assert.deepEqual(Object.keys(LANDMARK_ARRIVALS).sort(), withLm.map(a => a.landmarkId!).sort(), 'one arrival per landmark attraction');
+  const stale: string[] = [];
+  for (const a of withLm) {
+    const anc = sfLandmarkAnchor(a.landmarkId!);
+    assert.ok(anc, `${a.landmarkId} has no anchor`);
+    const arr = a.arrival!;
+    assert.deepEqual(arr, LANDMARK_ARRIVALS[a.landmarkId!]);
+    if (Math.hypot(arr.x - anc.x, arr.z - anc.z) > 0.05 || Math.abs((arr.heading ?? 0) - anc.heading) > 0.002)
+      stale.push(`  '${a.landmarkId}': { x: ${+anc.x.toFixed(2)}, z: ${+anc.z.toFixed(2)}, heading: ${+anc.heading.toFixed(3)} },`);
+  }
+  assert.equal(stale.length, 0, `a landmark anchor moved: update LANDMARK_ARRIVALS in data/sf/attractions.ts:\n${stale.join('\n')}`);
+  // the Golden Gate Bridge's badge stays on the south tower; the trip and the arrival moment end at the visitor plaza
+  const ggb = ATTRACTION_INDEX.get('golden-gate-bridge')!;
+  assert.ok(Math.hypot(ggb.arrival!.x - ggb.x, ggb.arrival!.z - ggb.z) > 100);
+});
+
+test('attractions × place index: a trip to the place an attraction speaks for ends inside its arrival radius (the integration\'s index)', async () => {
+  const { buildPlaceIndex, landmarkInputsFrom, poiInputs } = await import('../src/opus-bay/data/sf/places');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
+  const rows = applyW4Places(places);
+  const ix = buildPlaceIndex({ places: rows as typeof places.places }, landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor), poiInputs());
+  const rowById = new Map(rows.map(r => [r.id, r]));
+  // the integration's buildPlaceIndex: arrival = the landmark anchor for the 24 landmark rows, else row.arrival ?? anchor
+  const placeArrival = (id: string) => { const p = ix.get(id)!; return p.landmark ? p.arrival : rowById.get(id)!.arrival ?? { x: p.x, z: p.z }; };
+  const arrivals = attractionArrivals();
+  let checked = 0;
+  for (const a of ATTRACTIONS) {
+    const pid = a.placeId ?? a.id;
+    const p = ix.get(pid);
+    assert.ok(p, `${a.id}: place ${pid} is not in the index`);
+    // the matcher picks exactly the landmark rows the attractions name
+    if (a.landmarkId) assert.equal(ix.landmark(a.landmarkId)?.id, pid, `${a.id}: the landmark matcher picks another row`);
+    if (ATTRACTION_INDEX.primary(pid) !== a) continue;
+    const want = a.arrival ?? { x: a.x, z: a.z }, got = placeArrival(pid);
+    assert.ok(Math.hypot(want.x - got.x, want.z - got.z) <= 1, `${a.id}: the place's trips end ${Math.hypot(want.x - got.x, want.z - got.z).toFixed(1)} u from the attraction's arrival`);
+    assert.deepEqual(arrivals[pid] && { x: arrivals[pid].x, z: arrivals[pid].z }, { x: want.x, z: want.z });
+    checked++;
+  }
+  assert.ok(checked >= 150, `${checked} primary attractions checked`);
+  // the re-anchors agree with the attractions they serve
+  for (const [id, re] of Object.entries(PLACE_REANCHORS)) { const a = ATTRACTION_INDEX.primary(id)!; assert.deepEqual(re.arrival, { x: a.arrival!.x, z: a.arrival!.z }, id); }
+  // extra rows: the attraction's arrival too (≤ 1 u: the scouting rounded them separately)
+  for (const e of EXTRA_PLACES) { const a = ATTRACTION_INDEX.get(e.id)!, w = a.arrival ?? { x: a.x, z: a.z }; assert.ok(Math.hypot(w.x - e.arrival.x, w.z - e.arrival.z) <= 1, e.id); }
+});
+
+test('attractions: no second dot under a badge — the south-tower row is covered; no other uncovered curated row within 2 u of an attraction', () => {
+  const covered = coveredPlaceIds();
+  for (const ids of Object.values(BADGE_ALSO_COVERS)) for (const id of ids) { assert.ok(placeIds.has(id), id); assert.ok(covered.has(id), id); }
+  assert.ok(covered.has('ggb-south-tower') && covered.has('ggb-deck-mid'));
+  const rows = applyW4Places(places);
+  for (const r of rows) {
+    if (covered.has(r.id) || !r.curated) continue;
+    for (const a of ATTRACTIONS) assert.ok(Math.hypot(r.x - a.x, r.z - a.z) > 2, `${r.id} sits under the ${a.id} badge: add it to BADGE_ALSO_COVERS`);
+  }
 });
