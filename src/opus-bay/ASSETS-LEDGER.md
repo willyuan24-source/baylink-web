@@ -322,3 +322,34 @@ Reconciled subtotal of the resumed run: 16 × Nano Banana Pro (−32) + 9 × "3D
 - **CDN block lifted.** The part 2a note above says the cloud session cannot fetch `d8j0ntlcm91z4.cloudfront.net` (proxy 403). That is no longer true: the owner allowed the host in the cloud environment on 2026-09-26, and GLB / PNG / WAV results download with HTTP 200 / 206 (checked 2026-09-26/27, see `docs/opus-bay/CLOUD.md` and `docs/opus-bay/sf-w1-checkpoint.md` §5.2). A new container can lose the allow-list: test with `curl -sS -o /dev/null -w '%{http_code}' <result url>` before paying for a generation.
 - **Where wave-2 rows go.** Each wave-2 lane logs its Higgsfield jobs in its own file, `docs/opus-bay/ledger/w2-<lane>.md` (lanes C2, D2, E2, F, G1, G2, H2b), with the same columns as the tables above (`# | asset | model / settings | prompt summary | credits | job id | local raw file | status`) plus a subtotal and the balance before / after each batch (`transactions`). This file stays append-only and is written by the lead only: the lead merges the lane files here at the end of wave 2.
 - Balance at the start of wave 2: **519.48** (owner: all of it may be used if needed; quality first).
+
+## Wave 2 (lean, cloud session 2026-09-27)
+
+Merged by the lead from `docs/opus-bay/ledger/w2-*.md`. Only lane C2 logged rows.
+
+### Lane C2 (from docs/opus-bay/ledger/w2-C2.md)
+
+## Part a-look · art-direction targets (not shipped) — 2026-09-27
+
+Purpose: calibrate the C2-2 palette (flat SF roofscape, pastel / white walls, roof tops darker than the walls) and
+the C2-4 haze against a toy-diorama target. The images are reference only: nothing from them enters `public/`.
+Balance before: 519.48 (CDN check: HTTP 200 on a known result URL before paying).
+The job results report the served model as `nano_banana_2` for the `nano_banana_pro` requests (2 credits each).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| C2-AD1 | art direction: SF roofscape from Twin Peaks, golden hour | nano_banana_pro (served nano_banana_2), 16:9, 2k | style contract; green hill foreground, dense row houses with flat light-grey / off-white roofs + white parapets, white / cream / pastel walls, a terracotta minority in the far west, brick near downtown, towers, bay; light warm haze | 2 | 3919fa18-7d3f-4944-ab41-4b8ed0a789dc | /tmp/claude-0/c2/ad/ad-0.png (2752×1536) | used (palette + haze reference) |
+| C2-AD2 | art direction: the same view at night | nano_banana_pro (served nano_banana_2), 16:9, 2k | flat grey / off-white roofs, warm lit windows, street-lamp dots along the grid, lit towers, deep blue-teal sky, city still readable | 2 | 23734eba-b516-422f-b0ee-08bd201f9a37 | /tmp/claude-0/c2/ad/ad-1.png | used (night reference for C2-9) |
+| C2-AD3 | art direction: close aerial of a Mission block | nano_banana_pro (served nano_banana_2), 16:9, 2k | attached Victorians / Edwardians, flat roofs behind cornices, bay windows, pastel + white walls, light-grey roof tops, corner shop awning | 2 | 4b6e9c95-e162-43dc-b21a-2011408f8633 | /tmp/claude-0/c2/ad/ad-2.png | used (wall / roof pairs) |
+| C2-AD4 | art direction: Sunset district from above | nano_banana_pro, 16:9, 2k | uniform stucco rows, flat light-grey roofs, one in six with terracotta tile, beach + fog bank | 0 (failed, refunded) | 0c86343e-70bf-4941-a704-30cb37fbf061 | — | failed, refunded (transactions 02:15:01 spend, 02:15:44 refund) |
+| C2-AD5 | art direction: Sunset district from above (retry, reworded) | nano_banana_pro (served nano_banana_2), 16:9, 2k | as C2-AD4 | 2 | 7cd80df0-5892-47a0-aa6a-5a081f719d16 | /tmp/claude-0/c2/ad/ad-3.png | used (Sunset stucco + tile minority) |
+
+Subtotal part a-look: **8 credits** (5 spends of 2, 1 refund of 2). Balance 519.48 → 511.48 (transactions
+2026-09-27 02:15:01 ×4 spend, 02:15:44 refund, 02:16:31 spend; no other lane spent in between).
+
+
+### Unattributed Voiceover jobs (2026-09-27 03:55–05:00 UTC)
+
+`transactions` shows **22 × "Voiceover" at −0.6 = 13.20 credits** (03:55:13 ×5, 03:55:27, 04:23:32 ×6, 04:24:01 ×2, 04:29:06, 04:55:57–58 ×5, 05:00:14). No lane logged them and no voice file was committed in wave 2, so they were test or audition TTS runs by one of the running lanes (F, G1, G2, D2 or C2 part d). Their job ids can be found with `show_generations` (type audio). Nothing shipped from them.
+
+**Wave-2 total: 8.00 (C2) + 13.20 (Voiceover) = 21.20 credits.** Balance 519.48 → **498.28** (checked with `balance` at 05:25 UTC). Whole-SF round so far: 229 + 21.20 = 250.20 credits.

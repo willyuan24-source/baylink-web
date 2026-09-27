@@ -1,5 +1,17 @@
 # Opus Bay — resume notes (paused 2026-09-25 ~17:05 PDT)
 
+## WAVE 2 (lean) DONE 2026-09-27 ~05:30 UTC — cloud session stopped for budget; continue locally
+
+Read `docs/opus-bay/sf-w2-summary.md` first (what shipped, what is deferred), then `docs/opus-bay/sf-w2-contracts.md` (file ownership, day-0 hooks, protocol) and the lane reports `docs/opus-bay/sf-w2-{C2,D2,F,G1,G2}.md` (each ends with "Not done" and "Requests").
+State: branch `opus-bay` @ this commit; tsc 0, eslint 0, 299/299 tests; district mode unchanged (hero regression green). Higgsfield balance 498.28 (wave 2 spent 21.2; owner allows the whole balance, quality first).
+
+Local continuation, in order:
+1. `git pull` on `opus-bay` in `C:\Users\willy\baylink-opus`, `npm ci`, run the health commands from CLOUD.md.
+2. Perf + phone first (needs the GPU): fill the table in `sf-w1-checkpoint.md` §4 (6 spots × 1×/4× × desktop/390×844, `?quality=high`), test the phone (LAN build), check iPhone `WEBGL_multi_draw`.
+3. Apply the Karl fog + night patches in `docs/opus-bay/wip/` (git am, then git apply), fix the densest-chunk L0/L1 budget test, commit.
+4. Then the deferred lanes from the summary, one lane per worktree with the ownership table and push protocol from the contracts doc. Suggested order: E2 camera + pelican → C2 boards → D2 8 SAM meshes (Blender 5.2 locally) + kit swap + routes → F F-line/ferry/life/audio → G2 residents + lines → H2b map/voice/murals → final verify → flip `DEFAULT_WORLD_MODE` to `'city'` when the G2 perf gate passes.
+5. Log every Higgsfield job in `docs/opus-bay/ledger/w2-<lane>.md`, merge into ASSETS-LEDGER.md at the end.
+
 The owner paused the session to shut down the computer. Everything is on disk; nothing is committed yet.
 
 ## Where things are
