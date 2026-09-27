@@ -415,6 +415,8 @@ export class TilePool implements CellPool {
   private tiles = new Map<number, TileRec>();
   private rebuilds = 0;
   private cull = new ViewCull();
+  /** the per-item test (one closure for the pool, not one a frame) */
+  private test = (s: Float32Array, o: number) => this.cull.test(s, o);
 
   constructor() {
     this.group.name = 'city-tiles';
@@ -501,12 +503,11 @@ export class TilePool implements CellPool {
       break; // ≤ 1 tile per frame
     }
     if (!camera) return;
-    const test = (s: Float32Array, o: number) => this.cull.test(s, o);
     if (this.cull.from(camera, maxDepth)) {
-      for (const t of this.tiles.values()) { cullTilePart(t.toy, test); cullTilePart(t.ground, test); }
+      for (const t of this.tiles.values()) { cullTilePart(t.toy, this.test); cullTilePart(t.ground, this.test); }
     } else if (rebuilt) {
-      cullTilePart(rebuilt.toy, test);
-      cullTilePart(rebuilt.ground, test);
+      cullTilePart(rebuilt.toy, this.test);
+      cullTilePart(rebuilt.ground, this.test);
     }
   }
   stats(): PoolStats {

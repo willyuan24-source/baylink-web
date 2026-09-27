@@ -41,6 +41,7 @@ export interface PropCaps { tree: number; lolli: number; lamp: number; rFull: nu
 /** View-aware selection (see the header): near = always kept (u from the camera), widen / yaw / pitch in degrees, k = cap share. */
 export const PROP_VIEW = { near: 25, widen: 40, yaw: 20, pitch: 12, k: 0.5, minGap: 0.1 } as const;
 
+const _wideM = new THREE.Matrix4();
 /** The camera's frustum widened by `deg` degrees on every side (same position and orientation), into `out`. */
 export function widenedFrustum(camera: THREE.PerspectiveCamera, deg: number, out: THREE.Frustum, tmp = new THREE.PerspectiveCamera()): THREE.Frustum {
   const w = THREE.MathUtils.degToRad(deg), lim = THREE.MathUtils.degToRad(84);
@@ -52,8 +53,7 @@ export function widenedFrustum(camera: THREE.PerspectiveCamera, deg: number, out
   tmp.far = camera.far;
   tmp.updateProjectionMatrix();
   camera.updateMatrixWorld();
-  const m = new THREE.Matrix4().multiplyMatrices(tmp.projectionMatrix, camera.matrixWorldInverse);
-  return out.setFromProjectionMatrix(m);
+  return out.setFromProjectionMatrix(_wideM.multiplyMatrices(tmp.projectionMatrix, camera.matrixWorldInverse));
 }
 export function propCaps(camH: number): PropCaps {
   const P = PROP_HIGH;
