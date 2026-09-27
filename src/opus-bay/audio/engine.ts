@@ -1,13 +1,16 @@
 /**
  * Web Audio core: master chain, four buses (ambience / sfx / music / voice) with a shared reverb send,
- * reusable noise buffers, voice budget with stealing, and tiny synthesis primitives used by recipes.
+ * reusable noise buffers (synthesised in slices by engineBuffersJob), voice budget with stealing, and tiny synthesis
+ * primitives used by recipes.
  */
 import { clamp } from './logic';
+import { drain, type Job } from './slices';
 
 export type BusName = 'ambience' | 'sfx' | 'music' | 'voice';
 export type NoiseColor = 'white' | 'pink' | 'brown';
 
-const DEV = import.meta.env.DEV;
+// optional chaining: node tests import this module (no import.meta.env there)
+const DEV = import.meta.env?.DEV;
 
 /** Default bus levels (music is intentionally low). */
 export const BUS_LEVELS: Record<BusName, number> = { ambience: 0.36, sfx: 0.8, music: 0.26, voice: 0.9 };
@@ -154,7 +157,27 @@ export interface AudioStats {
   dropped: number;
 }
 
-function makeNoise(ctx: BaseAudioContext, seconds: number, color: NoiseColor): AudioBuffer {
+/** Samples synthesised between two yields of a buffer job (well under a millisecond, even on a slow phone). */
+const JOB_CHUNK = 2048;
+
+export type WaveName = 'soft' | 'warm' | 'reed';
+
+/** The shared sources: three looping noise colours, the reverb (a convolver with its impulse loaded), the waves. */
+export interface EngineBuffers { noise: Record<NoiseColor, AudioBuffer>; reverb: ConvolverNode; waves: Record<WaveName, PeriodicWave> }
+
+const WAVE_HARMONICS: Record<WaveName, number[]> = {
+  soft: [1, 0.18, 0.06, 0.02],
+  warm: [1, 0.45, 0.22, 0.12, 0.06, 0.03],
+  reed: [1, 0.7, 0.5, 0.36, 0.25, 0.18, 0.12, 0.08, 0.05],
+};
+
+function makeWave(ctx: BaseAudioContext, harmonics: number[]): PeriodicWave {
+  const real = new Float32Array(harmonics.length + 1), imag = new Float32Array(harmonics.length + 1);
+  harmonics.forEach((h, i) => { imag[i + 1] = h; });
+  return ctx.createPeriodicWave(real, imag);
+}
+
+function* noiseJob(ctx: BaseAudioContext, seconds: number, color: NoiseColor): Job<AudioBuffer> {
   const sr = ctx.sampleRate;
   const n = Math.floor(seconds * sr);
   const xf = Math.floor(sr * 0.05);
@@ -172,16 +195,18 @@ function makeNoise(ctx: BaseAudioContext, seconds: number, color: NoiseColor): A
       last = (last + 0.02 * w) / 1.02;
       raw[i] = last * 3.5;
     }
+    if (i % JOB_CHUNK === JOB_CHUNK - 1) yield;
   }
   // seamless loop: crossfade the tail into the head
   const buffer = ctx.createBuffer(1, n, sr);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < n; i++) data[i] = raw[i];
+  data.set(raw.subarray(0, n));
   for (let i = 0; i < xf; i++) { const t = i / xf; data[i] = raw[i] * t + raw[n + i] * (1 - t); }
+  yield;
   return buffer;
 }
 
-function makeImpulse(ctx: BaseAudioContext, seconds: number): AudioBuffer {
+function* impulseJob(ctx: BaseAudioContext, seconds: number): Job<AudioBuffer> {
   const sr = ctx.sampleRate;
   const n = Math.floor(seconds * sr);
   const pre = Math.floor(sr * 0.012);
@@ -195,9 +220,36 @@ function makeImpulse(ctx: BaseAudioContext, seconds: number): AudioBuffer {
       const coeff = 0.75 - 0.6 * t;
       lp += coeff * ((Math.random() * 2 - 1) - lp);
       d[i] = lp * Math.pow(1 - t, 2.2) * Math.exp(-t * 2.5);
+      if (i % JOB_CHUNK === JOB_CHUNK - 1) yield;
     }
   }
   return ir;
+}
+
+/**
+ * The shared reverb: a generated 2.3 s impulse in a convolver. Loading the impulse is one native call that prepares
+ * the FFT kernels (≈ 20 ms on the owner's machine) and cannot be sliced, so audio.ts runs this right after opening the
+ * context, in the same load-time stall, instead of as a hitch of its own.
+ */
+export function makeReverb(ctx: BaseAudioContext): ConvolverNode {
+  const reverb = ctx.createConvolver();
+  reverb.buffer = drain(impulseJob(ctx, 2.3));
+  return reverb;
+}
+
+/**
+ * Synthesise the engine's noise buffers as a sliced job (audio/slices.ts), white first (most one-shots use it); the
+ * reverb is `reverb` when given (made with the context), else made at the end. Nothing here may run inside the first
+ * gesture (lead note P1: it used to, ≈ 20–80 ms on top of opening the context).
+ */
+export function* engineBuffersJob(ctx: BaseAudioContext, reverb?: ConvolverNode): Job<EngineBuffers> {
+  const white = yield* noiseJob(ctx, 2, 'white');
+  const pink = yield* noiseJob(ctx, 4, 'pink');
+  const brown = yield* noiseJob(ctx, 4, 'brown');
+  // a periodic wave is ≈ 1 ms of native table building each
+  const waves = {} as Record<WaveName, PeriodicWave>;
+  for (const name of Object.keys(WAVE_HARMONICS) as WaveName[]) { waves[name] = makeWave(ctx, WAVE_HARMONICS[name]); yield; }
+  return { noise: { white, pink, brown }, reverb: reverb ?? makeReverb(ctx), waves };
 }
 
 export class AudioEngine {
@@ -207,12 +259,13 @@ export class AudioEngine {
   readonly reverb: ConvolverNode;
   readonly buses: Record<BusName, Bus>;
   readonly noise: Record<NoiseColor, AudioBuffer>;
-  readonly waves: { soft: PeriodicWave; warm: PeriodicWave; reed: PeriodicWave };
+  readonly waves: Record<WaveName, PeriodicWave>;
   readonly stats: AudioStats = { counts: {}, last: '', lastAt: 0, voices: 0, stolen: 0, dropped: 0 };
   private voices: Voice[] = [];
   private masterLevel = 0.9;
 
-  constructor(ctx: BaseAudioContext) {
+  /** `buffers` come from engineBuffersJob, synthesised in slices before the first gesture (audio.ts prepare) */
+  constructor(ctx: BaseAudioContext, buffers: EngineBuffers) {
     this.ctx = ctx;
     this.master = ctx.createGain();
     this.master.gain.value = 0;
@@ -226,8 +279,7 @@ export class AudioEngine {
     limiter.threshold.value = -3; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.12;
     this.master.connect(this.muffle).connect(glue).connect(limiter).connect(ctx.destination);
 
-    this.reverb = ctx.createConvolver();
-    this.reverb.buffer = makeImpulse(ctx, 2.3);
+    this.reverb = buffers.reverb;
     const reverbReturn = ctx.createGain();
     reverbReturn.gain.value = 0.42;
     this.reverb.connect(reverbReturn).connect(this.master);
@@ -238,17 +290,8 @@ export class AudioEngine {
       music: new Bus(ctx, this.master, this.reverb, BUS_LEVELS.music),
       voice: new Bus(ctx, this.master, this.reverb, BUS_LEVELS.voice),
     };
-    this.noise = { white: makeNoise(ctx, 2, 'white'), pink: makeNoise(ctx, 4, 'pink'), brown: makeNoise(ctx, 4, 'brown') };
-    const wave = (harmonics: number[]) => {
-      const real = new Float32Array(harmonics.length + 1), imag = new Float32Array(harmonics.length + 1);
-      harmonics.forEach((h, i) => { imag[i + 1] = h; });
-      return ctx.createPeriodicWave(real, imag);
-    };
-    this.waves = {
-      soft: wave([1, 0.18, 0.06, 0.02]),
-      warm: wave([1, 0.45, 0.22, 0.12, 0.06, 0.03]),
-      reed: wave([1, 0.7, 0.5, 0.36, 0.25, 0.18, 0.12, 0.08, 0.05]),
-    };
+    this.noise = buffers.noise;
+    this.waves = buffers.waves;
   }
 
   get now() { return this.ctx.currentTime; }

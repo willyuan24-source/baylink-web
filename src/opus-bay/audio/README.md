@@ -6,9 +6,15 @@ plucks). The only files ever fetched are the optional BAYBAY voice barks.
 ## Wiring
 
 - `audio.ts`: `startAudio()` (called once by `game/GameRoot.tsx`, returns cleanup).
-  - It creates the `AudioContext` on the first `{type:'start'}` event, which is a user gesture.
-    With `?start=…` the title is skipped and flow-ui sends no `start` event, so the first
-    key or pointer gesture after the title phase boots audio instead.
+  - Preparation starts at load, in idle slices of ≤ 4 ms (`slices.ts`, lead note P1 of wave 3): the
+    `AudioContext` is opened suspended (the first one opens the audio device, 110–370 ms on Windows
+    Chrome: the one stall that cannot be sliced, so it happens while the page loads), then the noise
+    and reverb buffers (`engineBuffersJob`) and the shore field (`shoreJob`) are synthesised.
+  - Activation is the first `{type:'start'}` event, which is a user gesture. With `?start=…` the
+    title is skipped and flow-ui sends no `start` event, so the first key or pointer gesture after
+    the title phase activates audio instead. Activation only resumes the context and plays the silent
+    iOS unlock sample; a gesture that comes before the first idle slice opens the context itself.
+  - `__opusAudio.stats().prep` (DEV): slices, `ctxMs`, `longestAfterContext`.
   - Resumes on later gestures, including iOS `interrupted`. Suspends while the tab is hidden and
     when sound is switched off, so it uses no CPU then.
   - Subscribes to the store:
@@ -22,8 +28,8 @@ plucks). The only files ever fetched are the optional BAYBAY voice barks.
   - Master chain: master gain → pause lowpass → glue compressor → limiter (-3 dB) → speakers.
   - Four buses (`ambience 0.36`, `sfx 0.8`, `music 0.26`, `voice 0.9`). Each has a matching send into
     one shared convolver reverb (generated 2.3 s impulse). Muting or ducking a bus also mutes its reverb.
-  - The noise buffers (white, pink, brown) are generated once and shared by every sound, with
-    seamless crossfaded loops.
+  - The noise buffers (white, pink, brown) are generated once, before the first gesture, in slices,
+    and shared by every sound, with seamless crossfaded loops.
   - One-shot voices: at most 32. When full, the oldest lowest-priority voice is stolen (footsteps and
     hover first). A voice's nodes are released when its last source ends.
 - `sfx.ts`: one-shot recipes.
@@ -42,7 +48,7 @@ plucks). The only files ever fetched are the optional BAYBAY voice barks.
 
 | Event (`core/events.ts`) | Sound |
 |---|---|
-| `start` | Boots audio. The master fades in over about 3 s; music fades in after 2 s. |
+| `start` | Activates audio (resume + unlock sample). The master fades in over about 3 s; music fades in after 2 s. |
 | `footstep {surface, run}` | By surface. `wood`: hollow boardwalk thunk. `pavement`: crisp tap. `plaza`: harder, brighter tap. `grass`: soft swish. `sand`: granular crunch. `stairs`: deeper wooden knock with alternating pitch. `dirt`: soft crunch. Pitch varies ±8% and level ±15%; left and right feet pan slightly apart; running is louder and shorter. Capped at 6/s (token bucket). |
 | `jump` | Toy "hup": rising sine plus a small whoosh. |
 | `land {impact}` | Thump plus surface texture. Scales with impact (0..1, or a vertical speed in u/s). Big landings add a squish. |

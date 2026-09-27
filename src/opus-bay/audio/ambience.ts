@@ -9,8 +9,9 @@ import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { AudioEngine } from './engine';
 import {
-  buildShoreField, clamp, distToPolyline, isMarketDay, panFor, proximity, rand, smoothstep, type ShoreField,
+  clamp, distToPolyline, isMarketDay, panFor, proximity, rand, shoreFieldJob, smoothstep, type ShoreField,
 } from './logic';
+import { drain, type Job } from './slices';
 import * as sfx from './sfx';
 
 const R = Math.random;
@@ -38,18 +39,22 @@ export function describeWorld(d: District, withShore: boolean): WorldInfo {
   add(anchor('farmers-market') ?? landmark('farmers-market'), 0.85, true);
   add(anchor('ferry-clock'), 0.45);
   add(anchor('exploratorium-front'), 0.35);
-  let shore: ShoreField | null = null;
-  if (withShore && d.slab?.length >= 3) {
-    try {
-      shore = buildShoreField({
-        slab: d.slab, walk: d.walk ?? [], piers: d.piers ?? [], hills: d.hills ?? [], roads: d.roads ?? [],
-        ramps: d.ramps ?? [], blocks: d.blocks ?? [], landmarks: d.landmarks ?? [],
-      }, 4);
-    } catch (error) {
-      if (import.meta.env.DEV) console.warn('[opus-audio] shore field failed', error);
-    }
-  }
+  const shore = withShore ? drain(shoreJob(d)) : null;
   return { shore, seaLions, crowds, roads: (d.roads ?? []).filter(r => r.kind === 'roadway').map(r => r.points) };
+}
+
+/** The district's shore distance field as a sliced job (audio/slices.ts); null without a slab or when it fails. */
+export function* shoreJob(d: District): Job<ShoreField | null> {
+  if (!(d.slab?.length >= 3)) return null;
+  try {
+    return yield* shoreFieldJob({
+      slab: d.slab, walk: d.walk ?? [], piers: d.piers ?? [], hills: d.hills ?? [], roads: d.roads ?? [],
+      ramps: d.ramps ?? [], blocks: d.blocks ?? [], landmarks: d.landmarks ?? [],
+    }, 4);
+  } catch (error) {
+    if (import.meta.env?.DEV) console.warn('[opus-audio] shore field failed', error);
+    return null;
+  }
 }
 
 interface WaveSide { gain: GainNode; filter: BiquadFilterNode; tilt: GainNode; next: number }
@@ -173,6 +178,9 @@ export class Ambience {
   }
 
   setWorld(world: WorldInfo) { this.world = world; }
+
+  /** Swap in a shore field built later (audio.ts prepares it in slices after the rig exists). */
+  setShore(shore: ShoreField | null) { this.world = { ...this.world, shore }; }
 
   private set(param: AudioParam, value: number, tau = 0.35, key?: string) {
     if (key) {

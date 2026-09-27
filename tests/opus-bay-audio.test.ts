@@ -141,3 +141,143 @@ test('city cable cars: bell, grip clank and turntable creak from transit events;
   assert.equal(transitSound('board', 'cable-car'), null);
   assert.equal(transitSound('bell', 'ferry'), null, 'the ferry has its own sounds (later)');
 });
+
+// ---------------------------------------------------------------------------
+// P1 (wave-3 lead note): nothing heavy inside the first gesture
+// ---------------------------------------------------------------------------
+
+/** A Web Audio stand-in that records what it is asked to do (every node / param accepts any call). */
+function fakeAudio() {
+  const log: { op: string; frames?: number; channels?: number }[] = [];
+  const param = () => ({ value: 0, setValueAtTime() {}, setTargetAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {}, cancelScheduledValues() {} });
+  const node = (kind: string): Record<string, unknown> => {
+    log.push({ op: kind });
+    const target: Record<string, unknown> = {
+      connect: (next: unknown) => next, disconnect() {}, start() {}, stop() {}, setPeriodicWave() {},
+      addEventListener() {}, buffer: null, onended: null, type: '', loop: false,
+    };
+    return new Proxy(target, { get: (t, k: string) => (k in t ? t[k] : (t[k] = param())) });
+  };
+  class FakeContext {
+    static made = 0;
+    state: 'suspended' | 'running' | 'closed' = 'suspended';
+    sampleRate = 48000;
+    currentTime = 0;
+    destination = node('destination');
+    constructor() { FakeContext.made++; log.push({ op: 'new AudioContext' }); }
+    createBuffer(channels: number, frames: number) {
+      log.push({ op: 'createBuffer', frames, channels });
+      const data = Array.from({ length: channels }, () => new Float32Array(frames));
+      return { numberOfChannels: channels, length: frames, sampleRate: this.sampleRate, duration: frames / this.sampleRate, getChannelData: (c: number) => data[c] };
+    }
+    resume() { log.push({ op: 'resume' }); this.state = 'running'; return Promise.resolve(); }
+    suspend() { log.push({ op: 'suspend' }); this.state = 'suspended'; return Promise.resolve(); }
+    close() { this.state = 'closed'; return Promise.resolve(); }
+    addEventListener() {}
+    createGain() { return node('gain'); }
+    createBiquadFilter() { return node('biquad'); }
+    createDynamicsCompressor() { return node('compressor'); }
+    createConvolver() { return node('convolver'); }
+    createStereoPanner() { return node('panner'); }
+    createOscillator() { return node('oscillator'); }
+    createBufferSource() { return node('bufferSource'); }
+    createPeriodicWave() { return {}; }
+  }
+  const listeners = new Map<string, ((ev?: unknown) => void)[]>();
+  const on = (type: string, fn: (ev?: unknown) => void) => { listeners.set(type, [...(listeners.get(type) ?? []), fn]); };
+  const win = {
+    AudioContext: FakeContext,
+    addEventListener: on, removeEventListener() {},
+    setTimeout, clearTimeout, setInterval, clearInterval,
+  };
+  const doc = { visibilityState: 'visible', addEventListener: on, removeEventListener() {} };
+  return { log, FakeContext, win, doc, fire: (type: string) => (listeners.get(type) ?? []).forEach(fn => fn({})) };
+}
+
+test('P1: preparation runs in slices before any gesture; the first gesture only resumes and plays the unlock sample', async () => {
+  const fake = fakeAudio();
+  const g = globalThis as unknown as Record<string, unknown>;
+  const saved = { window: g.window, document: g.document };
+  g.window = fake.win;
+  g.document = fake.doc;
+  const { startAudio } = await import('../src/opus-bay/audio/audio');
+  const { game } = await import('../src/opus-bay/core/store');
+  const stop = startAudio();
+  try {
+    assert.equal(fake.FakeContext.made, 0, 'mount does nothing synchronously');
+    // idle slices open the context and synthesise everything (node has no requestIdleCallback: setTimeout slices)
+    const bigBuffers = () => fake.log.filter(e => e.op === 'createBuffer' && (e.frames ?? 0) > 1000).length;
+    // done when the rig exists (the ambience starts its streetcar whine oscillator)
+    for (let i = 0; i < 1000 && !(bigBuffers() >= 4 && fake.log.some(e => e.op === 'oscillator')); i++) await new Promise(r => setTimeout(r, 5));
+    assert.equal(fake.FakeContext.made, 1);
+    const big = fake.log.filter(e => e.op === 'createBuffer' && (e.frames ?? 0) > 1000);
+    assert.equal(big.length, 4, 'white, pink, brown noise and the reverb impulse were made before the gesture');
+    assert.ok(!fake.log.some(e => e.op === 'resume'), 'the context stays suspended until the player acts');
+
+    // the gesture: the title is skipped (?start=free), the first key press activates audio
+    game.set({ phase: 'free' } as never);
+    const before = fake.log.length;
+    const t0 = performance.now();
+    fake.fire('keydown');
+    const ms = performance.now() - t0;
+    const during = fake.log.slice(before);
+    assert.equal(fake.FakeContext.made, 1, 'no new context in the gesture');
+    assert.deepEqual(during.filter(e => e.op === 'createBuffer').map(e => e.frames), [1], 'only the 1-sample unlock buffer');
+    assert.ok(during.some(e => e.op === 'resume'), 'resumed inside the gesture');
+    assert.ok(ms < 30, `the gesture took ${ms.toFixed(1)} ms`);
+    // a later key press does no setup at all
+    const again = fake.log.length;
+    fake.fire('keydown');
+    assert.ok(fake.log.slice(again).every(e => e.op !== 'createBuffer' && e.op !== 'new AudioContext'));
+  } finally {
+    stop();
+    g.window = saved.window;
+    g.document = saved.document;
+  }
+});
+
+test('P1: the sliced jobs keep every unit of work small (4 ms slices hold on a 4x slower phone)', async () => {
+  const { runSliced, drain } = await import('../src/opus-bay/audio/slices');
+  const { engineBuffersJob } = await import('../src/opus-bay/audio/engine');
+  const { shoreJob, describeWorld } = await import('../src/opus-bay/audio/ambience');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  // the runner stops a slice once the budget is spent (fake clock: every step costs 1 ms)
+  let clock = 0;
+  const queue: (() => void)[] = [];
+  const host = { now: () => clock, next: (run: () => void) => { queue.push(run); return () => {}; } };
+  function* job() { for (let i = 0; i < 10; i++) { clock += 1; yield; } return 'done'; }
+  const sliced = runSliced(job(), host, 4);
+  while (queue.length) queue.shift()!();
+  assert.equal(await sliced.done, 'done');
+  assert.equal(sliced.stats.slices, 3, '10 steps of 1 ms in 4 ms slices');
+  assert.ok(sliced.stats.longest <= 4);
+
+  const timeSteps = (it: Generator<void, unknown, void>) => {
+    const steps: number[] = [];
+    for (;;) {
+      const t = performance.now();
+      const r = it.next();
+      steps.push(performance.now() - t);
+      if (r.done) return steps.sort((a, b) => a - b);
+    }
+  };
+  const fake = fakeAudio();
+  const ctx = new fake.FakeContext() as unknown as BaseAudioContext;
+  const p95 = (s: number[]) => s[Math.floor(s.length * 0.95)];
+  // best of three runs (the machine may be busy): p95 of a unit < 0.5 ms here (< 2 ms at 4x CPU), so a 4 ms slice
+  // overruns by one small unit at most
+  let synth = Infinity, shore = Infinity, steps = 0;
+  for (let run = 0; run < 3; run++) {
+    const a = timeSteps(engineBuffersJob(ctx)), b = timeSteps(shoreJob(DISTRICT));
+    synth = Math.min(synth, p95(a));
+    shore = Math.min(shore, p95(b));
+    steps = a.length + b.length;
+  }
+  assert.ok(steps > 500, `the jobs yield often (${steps} units)`);
+  assert.ok(synth < 0.5, `buffer synthesis p95 step ${synth.toFixed(3)} ms`);
+  assert.ok(shore < 0.5, `shore field p95 step ${shore.toFixed(3)} ms`);
+  // the sliced shore field is the same field as the one-shot build
+  const a = drain(shoreJob(DISTRICT))!;
+  const b = describeWorld(DISTRICT, true).shore!;
+  assert.deepEqual([a.cols, a.rows, a.distanceAt(60, 120)], [b.cols, b.rows, b.distanceAt(60, 120)]);
+});

@@ -1,9 +1,13 @@
 /**
  * Opus Bay audio entry point. GameRoot calls startAudio() once and keeps the returned cleanup.
  *
- * - The AudioContext is created lazily on the first {type:'start'} event (a user gesture). If the
- *   title was skipped (?start=…) and no 'start' arrives, the first key/pointer gesture after the
- *   title phase boots it instead.
+ * - Preparation runs at load, off the input path (lead note P1): the AudioContext is created in the first idle slice
+ *   (opening the audio device is the one unavoidable stall, 110–370 ms on Windows Chrome, so it happens while the
+ *   page is still loading), then the noise / reverb buffers and the shore field are synthesised in slices of ≤ 4 ms
+ *   (audio/slices.ts). The context stays suspended.
+ * - Activation is the old boot moment: the first {type:'start'} event (a user gesture), or, if the title was skipped
+ *   (?start=…), the first key / pointer gesture after the title phase. It only resumes the context and plays the
+ *   silent iOS unlock sample; a gesture that comes before the idle slice opens the context there (rare).
  * - Resumes on later gestures, suspends while the tab is hidden or sound is switched off.
  * - settings.sound is the master switch; settings.music toggles the music bus (both live).
  * All sounds are synthesized; optional voice barks are feature-detected (see voice.ts).
@@ -13,12 +17,13 @@ import { runtime } from '../core/runtime';
 import { game, type GameState } from '../core/store';
 import { DISTRICT } from '../data/district';
 import { SF_VOICE_LINES } from '../data/voiceLinesSf';
-import { Ambience, describeWorld } from './ambience';
-import { AudioEngine, BUS_LEVELS } from './engine';
+import { Ambience, describeWorld, shoreJob } from './ambience';
+import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
 import { createRateLimiter, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
 import * as sfx from './sfx';
+import { runSliced, type Job, type Sliced } from './slices';
 import { VoicePlayer } from './voice';
 
 type AudioCtor = typeof AudioContext;
@@ -33,16 +38,23 @@ interface Rig {
   loops: rides.RideLoops;
 }
 
-const DEV = import.meta.env.DEV;
+// optional chaining: node tests run startAudio against a fake window (no import.meta.env there)
+const DEV = import.meta.env?.DEV;
 
 export function startAudio(): () => void {
   if (typeof window === 'undefined') return () => {};
+  let ctx: AudioContext | null = null;
   let rig: Rig | null = null;
+  let prep: Sliced<void> | null = null;
+  /** the player pressed Start / made the first gesture after the title: sound may play from now on */
+  let activated = false;
+  let activatedAt = 0;
+  /** how long opening the context took (QA: the one stall preparation cannot slice) */
+  let ctxMs = 0;
   let disposed = false;
   let loop = 0;
   let lastTick = 0;
   let suspendTimer = 0;
-  let bootedAt = 0;
   const timers: number[] = [];
   let prev: GameState = game.get();
 
@@ -55,27 +67,27 @@ export function startAudio(): () => void {
   const wantsSound = () => game.get().settings.sound && document.visibilityState === 'visible';
   // right after boot the context may still report 'suspended' for a moment: sounds scheduled then
   // (the arrival foghorn is emitted in the same tick as 'start') simply play once it is running
-  const live = () => !!rig && game.get().settings.sound
-    && (rig.ctx.state === 'running' || (rig.ctx.state === 'suspended' && performance.now() - bootedAt < 1500));
+  const live = () => !!rig && activated && game.get().settings.sound
+    && (rig.ctx.state === 'running' || (rig.ctx.state === 'suspended' && performance.now() - activatedAt < 1500));
 
   const resume = () => {
-    if (!rig || !wantsSound()) return;
+    if (!ctx || !activated || !wantsSound()) return;
     window.clearTimeout(suspendTimer);
     // 'suspended', or iOS 'interrupted' (phone call, other app took the audio session)
-    const state = rig.ctx.state as string;
-    if (state !== 'running' && state !== 'closed') rig.ctx.resume().catch(() => { /* needs another gesture */ });
+    const state = ctx.state as string;
+    if (state !== 'running' && state !== 'closed') ctx.resume().catch(() => { /* needs another gesture */ });
   };
 
   const suspendSoon = (delay = 350) => {
-    if (!rig) return;
+    if (!ctx) return;
     window.clearTimeout(suspendTimer);
     suspendTimer = window.setTimeout(() => {
-      if (rig && !wantsSound() && rig.ctx.state === 'running') rig.ctx.suspend().catch(() => {});
+      if (ctx && (!activated || !wantsSound()) && ctx.state === 'running') ctx.suspend().catch(() => {});
     }, delay);
   };
 
   const applySettings = (first = false) => {
-    if (!rig) return;
+    if (!rig || !activated) return;
     const s = game.get().settings;
     rig.engine.setMaster(s.sound, first ? 0.9 : 0.25);
     const musicOn = s.sound && s.music;
@@ -86,7 +98,7 @@ export function startAudio(): () => void {
   };
 
   const tick = () => {
-    if (!rig || rig.ctx.state !== 'running') return;
+    if (!rig || !activated || rig.ctx.state !== 'running') return;
     const now = rig.ctx.currentTime;
     const dt = lastTick ? Math.min(0.5, now - lastTick) : 0.1;
     lastTick = now;
@@ -101,32 +113,38 @@ export function startAudio(): () => void {
     }
   };
 
-  const boot = () => {
-    if (rig || disposed) return;
+  /** Open a context, suspended until activation. The first one opens the audio device: 110–370 ms on Windows. */
+  const createContext = (): AudioContext | null => {
     const w = window as unknown as { AudioContext?: AudioCtor; webkitAudioContext?: AudioCtor };
     const Ctor = w.AudioContext ?? w.webkitAudioContext;
-    if (!Ctor) return;
-    let ctx: AudioContext;
-    try { ctx = new Ctor({ latencyHint: 'interactive' }); } catch { return; }
+    if (!Ctor) return null;
+    let c: AudioContext;
+    const t0 = performance.now();
+    try { c = new Ctor({ latencyHint: 'interactive' }); } catch { return null; }
+    ctxMs = performance.now() - t0;
+    // an autoplay-allowed page starts it running: keep it quiet (and the audio thread idle) until activation
+    if (!activated && c.state === 'running') c.suspend().catch(() => {});
+    c.addEventListener?.('statechange', () => { if (rig) rig.engine.log(`ctx:${c.state}`); });
+    return c;
+  };
+
+  /** iOS unlock: one silent sample played inside the gesture that activates audio. */
+  const unlock = (c: AudioContext) => {
     try {
-      // iOS unlock: play one silent sample inside the gesture
-      const silent = ctx.createBufferSource();
-      silent.buffer = ctx.createBuffer(1, 1, 22050);
-      silent.connect(ctx.destination);
+      const silent = c.createBufferSource();
+      silent.buffer = c.createBuffer(1, 1, 22050);
+      silent.connect(c.destination);
       silent.start(0);
     } catch { /* ignore */ }
+  };
+
+  /** The rig comes alive (the old boot tail): master fade-in, music after 2.2 s, voice clips after 3.5 s, the tick. */
+  const goLive = () => {
+    if (!rig || disposed) return;
     const s = game.get();
-    const engine = new AudioEngine(ctx);
-    const ambience = new Ambience(engine, describeWorld(DISTRICT, false));
-    const music = new Music(engine, s.timeOfDay, s.mode);
-    const voice = new VoicePlayer(engine);
-    rig = { ctx, engine, ambience, music, voice, loops: new rides.RideLoops(engine) };
-    bootedAt = performance.now();
-    engine.log('boot', { state: ctx.state, sampleRate: ctx.sampleRate });
+    rig.engine.log('boot', { state: rig.ctx.state, sampleRate: rig.ctx.sampleRate });
     applySettings(true);
-    engine.setMuffled(s.paused);
-    // heavier setup off the gesture: the shore distance field and voice clip probing
-    timers.push(window.setTimeout(() => { if (rig && !disposed) rig.ambience.setWorld(describeWorld(DISTRICT, true)); }, 900));
+    rig.engine.setMuffled(s.paused);
     timers.push(window.setTimeout(() => {
       if (!rig || disposed) return;
       const voice = rig.voice;
@@ -134,11 +152,58 @@ export function startAudio(): () => void {
       void voice.preload().then(() => { if (!disposed && game.get().worldMode === 'city') void voice.preloadLines(); });
     }, 3500));
     loop = window.setInterval(tick, 100);
-    ctx.addEventListener?.('statechange', () => { if (rig) rig.engine.log(`ctx:${rig.ctx.state}`); });
+  };
+
+  /** Everything heavy, in idle slices from load on: the context, the engine buffers, the rig, then the shore field. */
+  function* prepare(): Job<void> {
+    let reverb: ConvolverNode | undefined;
+    if (!ctx) {
+      ctx = createContext();
+      if (!ctx) return;
+      // the reverb's kernel setup is native and unsliceable too: take it in the same stall (≈ +30 ms)
+      reverb = makeReverb(ctx);
+      yield;
+    }
+    const c = ctx;
+    const buffers = yield* engineBuffersJob(c, reverb);
+    const engine = new AudioEngine(c, buffers);
+    yield;
+    const ambience = new Ambience(engine, describeWorld(DISTRICT, false));
+    yield;
+    const s = game.get();
+    const music = new Music(engine, s.timeOfDay, s.mode);
+    rig = { ctx: c, engine, ambience, music, voice: new VoicePlayer(engine), loops: new rides.RideLoops(engine) };
+    if (activated) goLive();
+    yield;
+    // the shore distance field: the district's, as before (the city field is F10, lane F part b)
+    const shore = yield* shoreJob(DISTRICT);
+    if (rig && !disposed) rig.ambience.setShore(shore);
+  }
+
+  const startPrep = () => {
+    if (prep || disposed) return;
+    prep = runSliced(prepare());
+    prep.done.catch(error => { if (DEV) console.error('[opus-audio] prepare', error); });
+  };
+
+  /** The gesture path: resume the context and play the unlock sample, nothing heavy (lead note P1). */
+  const activate = () => {
+    if (disposed) return;
+    const first = !activated;
+    if (first) { activated = true; activatedAt = performance.now(); }
+    // a gesture before the first idle slice opened the context: open it here (the old path, rare)
+    if (!ctx) ctx = createContext();
+    if (!ctx) return;
+    if (first) {
+      unlock(ctx);
+      // else prepare() goes live as soon as the rig exists
+      if (rig) goLive();
+    }
+    resume();
   };
 
   const handle = (ev: GameEvent) => {
-    if (ev.type === 'start') { boot(); resume(); return; }
+    if (ev.type === 'start') { activate(); return; }
     if (!rig || !live()) return;
     const { engine: e, ambience, voice } = rig;
     const now = e.now;
@@ -203,7 +268,7 @@ export function startAudio(): () => void {
     const p = prev;
     prev = s;
     if (!rig) return;
-    if (s.settings.sound !== p.settings.sound || s.settings.music !== p.settings.music) applySettings();
+    if (activated && (s.settings.sound !== p.settings.sound || s.settings.music !== p.settings.music)) applySettings();
     if (s.timeOfDay !== p.timeOfDay || s.mode !== p.mode) rig.music.setMood(s.timeOfDay, s.mode);
     if (s.paused !== p.paused) rig.engine.setMuffled(s.paused);
     if (s.photoMode !== p.photoMode) rig.engine.buses.music.setLevel(BUS_LEVELS.music * (s.photoMode ? 0.55 : 1), 0.8);
@@ -216,15 +281,12 @@ export function startAudio(): () => void {
 
   const onGesture = () => {
     if (disposed) return;
-    if (!rig) {
-      if (game.get().phase === 'title') return;
-      boot();
-    }
-    resume();
+    if (!activated && game.get().phase === 'title') return;
+    activate();
   };
   const onVisibility = () => {
-    if (!rig) return;
-    if (document.visibilityState === 'hidden') { window.clearTimeout(suspendTimer); rig.ctx.suspend().catch(() => {}); }
+    if (!ctx || !activated) return;
+    if (document.visibilityState === 'hidden') { window.clearTimeout(suspendTimer); ctx.suspend().catch(() => {}); }
     else resume();
   };
   const gestureOpts: AddEventListenerOptions = { capture: true, passive: true };
@@ -238,13 +300,16 @@ export function startAudio(): () => void {
       /** snapshot for scripted QA (node scripts/opus-shot.mjs … eval) */
       stats: () => rig ? {
         state: rig.ctx.state,
+        activated,
         time: +rig.ctx.currentTime.toFixed(2),
+        prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null,
         ...rig.engine.stats,
         counts: { ...rig.engine.stats.counts },
-      } : { state: 'not-started' },
-      boot,
+      } : { state: ctx ? 'preparing' : 'not-started', activated, prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
+      boot: activate,
     };
   }
+  startPrep();
 
   return () => {
     disposed = true;
@@ -257,12 +322,14 @@ export function startAudio(): () => void {
     window.clearInterval(loop);
     window.clearTimeout(suspendTimer);
     timers.forEach(t => window.clearTimeout(t));
+    prep?.cancel();
     if (rig) {
       const r = rig;
       rig = null;
       try { r.loops.dispose(); r.voice.dispose(); r.music.dispose(); r.ambience.dispose(); r.engine.dispose(); } catch { /* ignore */ }
-      r.ctx.close().catch(() => {});
     }
+    ctx?.close().catch(() => {});
+    ctx = null;
     if (DEV) delete (window as unknown as { __opusAudio?: unknown }).__opusAudio;
   };
 }

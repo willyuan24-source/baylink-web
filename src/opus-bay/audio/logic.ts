@@ -3,6 +3,7 @@
  * Nothing in here touches Web Audio, window or import.meta.env.
  */
 import type { Mood, Polygon, SurfaceKind, Vec2 } from '../core/types';
+import { drain, type Job } from './slices';
 
 // ---------------------------------------------------------------------------
 // Small math
@@ -151,6 +152,14 @@ export interface ShoreField {
  * everything else on the slab is water. Pier decks count as water — you are standing over it.
  */
 export function buildShoreField(src: ShoreSource, cell = 3): ShoreField {
+  return drain(shoreFieldJob(src, cell));
+}
+
+/** Land tests between two yields of shoreFieldJob (a land test is a few microseconds on the district). */
+export const SHORE_JOB_CHUNK = 8;
+
+/** buildShoreField as a sliced job (audio/slices.ts): yields every SHORE_JOB_CHUNK land tests and every grid row. */
+export function* shoreFieldJob(src: ShoreSource, cell = 3): Job<ShoreField> {
   const xs = src.slab.map(p => p.x), zs = src.slab.map(p => p.z);
   const minX = Math.min(...xs), minZ = Math.min(...zs);
   const cols = Math.max(1, Math.ceil((Math.max(...xs) - minX) / cell));
@@ -173,11 +182,13 @@ export function buildShoreField(src: ShoreSource, cell = 3): ShoreField {
     else circles.push({ x: lm.position.x, z: lm.position.z, r: lm.collider.radius });
   }
   // bounding boxes make the (one-off) classification cheap even for a dense city
-  const polys = polyList.filter(p => p.length >= 3).map(poly => {
+  const box = (pts: readonly Vec2[], pad: number) => {
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
-    for (const p of poly) { x0 = Math.min(x0, p.x); z0 = Math.min(z0, p.z); x1 = Math.max(x1, p.x); z1 = Math.max(z1, p.z); }
-    return { poly, x0, z0, x1, z1 };
-  });
+    for (const p of pts) { x0 = Math.min(x0, p.x); z0 = Math.min(z0, p.z); x1 = Math.max(x1, p.x); z1 = Math.max(z1, p.z); }
+    return { x0: x0 - pad, z0: z0 - pad, x1: x1 + pad, z1: z1 + pad };
+  };
+  const polys = polyList.filter(p => p.length >= 3).map(poly => ({ poly, ...box(poly, 0) }));
+  const stripBoxes = strips.filter(s => s.points.length >= 1).map(s => ({ s, ...box(s.points, s.width / 2) }));
 
   const isLand = (x: number, z: number) => {
     for (const hill of src.hills) {
@@ -186,18 +197,20 @@ export function buildShoreField(src: ShoreSource, cell = 3): ShoreField {
     }
     for (const b of polys) if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1 && pointInPoly(x, z, b.poly)) return true;
     for (const c of circles) if (Math.hypot(x - c.x, z - c.z) < c.r) return true;
-    for (const s of strips) if (distToPolyline(x, z, s.points) < s.width / 2) return true;
+    for (const b of stripBoxes) if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1 && distToPolyline(x, z, b.s.points) < b.s.width / 2) return true;
     return false;
   };
 
+  let tests = 0;
   for (let c = 0; c < cols; c++) {
     const x = minX + (c + 0.5) * cell;
     let frontier = -1;
     for (let r = 0; r < rows; r++) {
       if (isLand(x, minZ + (r + 0.5) * cell)) { frontier = r; break; }
+      if (++tests % SHORE_JOB_CHUNK === 0) yield;
     }
-    if (frontier < 0) continue;
-    for (let r = frontier; r < rows; r++) land[r * cols + c] = 1;
+    if (frontier >= 0) for (let r = frontier; r < rows; r++) land[r * cols + c] = 1;
+    yield;
   }
 
   // two-pass chamfer distance (cells), 8-neighbourhood with weights 1 / √2
@@ -205,29 +218,35 @@ export function buildShoreField(src: ShoreSource, cell = 3): ShoreField {
   const dist = new Float32Array(cols * rows);
   for (let i = 0; i < dist.length; i++) dist[i] = land[i] ? INF : 0;
   const at = (c: number, r: number) => dist[r * cols + c];
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    const i = r * cols + c;
-    let v = dist[i];
-    if (v === 0) continue;
-    if (c > 0) v = Math.min(v, at(c - 1, r) + 1);
-    if (r > 0) {
-      v = Math.min(v, at(c, r - 1) + 1);
-      if (c > 0) v = Math.min(v, at(c - 1, r - 1) + D);
-      if (c < cols - 1) v = Math.min(v, at(c + 1, r - 1) + D);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      let v = dist[i];
+      if (v === 0) continue;
+      if (c > 0) v = Math.min(v, at(c - 1, r) + 1);
+      if (r > 0) {
+        v = Math.min(v, at(c, r - 1) + 1);
+        if (c > 0) v = Math.min(v, at(c - 1, r - 1) + D);
+        if (c < cols - 1) v = Math.min(v, at(c + 1, r - 1) + D);
+      }
+      dist[i] = v;
     }
-    dist[i] = v;
+    yield;
   }
-  for (let r = rows - 1; r >= 0; r--) for (let c = cols - 1; c >= 0; c--) {
-    const i = r * cols + c;
-    let v = dist[i];
-    if (v === 0) continue;
-    if (c < cols - 1) v = Math.min(v, at(c + 1, r) + 1);
-    if (r < rows - 1) {
-      v = Math.min(v, at(c, r + 1) + 1);
-      if (c < cols - 1) v = Math.min(v, at(c + 1, r + 1) + D);
-      if (c > 0) v = Math.min(v, at(c - 1, r + 1) + D);
+  for (let r = rows - 1; r >= 0; r--) {
+    for (let c = cols - 1; c >= 0; c--) {
+      const i = r * cols + c;
+      let v = dist[i];
+      if (v === 0) continue;
+      if (c < cols - 1) v = Math.min(v, at(c + 1, r) + 1);
+      if (r < rows - 1) {
+        v = Math.min(v, at(c, r + 1) + 1);
+        if (c < cols - 1) v = Math.min(v, at(c + 1, r + 1) + D);
+        if (c > 0) v = Math.min(v, at(c - 1, r + 1) + D);
+      }
+      dist[i] = v;
     }
-    dist[i] = v;
+    yield;
   }
   // no water anywhere: treat as far inland
   for (let i = 0; i < dist.length; i++) dist[i] = dist[i] >= INF ? 999 : dist[i] * cell;
