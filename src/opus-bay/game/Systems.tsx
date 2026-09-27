@@ -25,6 +25,10 @@ import { parseAt, readQa } from './qa';
 import { goToCitySpot } from './resume';
 import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
 import { stepTransit } from './transit';
+import { zoneVisited } from './discovery';
+import { cityStreamerLazy } from '../world/cityLoader';
+import { qualityDecision } from '../world/quality';
+import { registerWarmup } from '../world/warmup';
 
 /**
  * Canvas-side game systems: click/hover proxies, the gold focus marker, postcard glints, the objective
@@ -448,11 +452,31 @@ function writeData(el: HTMLElement, key: string, value: string) {
   if (el.dataset[key] !== value) el.dataset[key] = value;
 }
 
+/**
+ * CS-7 / M0 · the ?debug line's shader figures. A probe in C2's warm-up set (world/warmup registerWarmup; no objects,
+ * so it compiles nothing) marks each warm-up's start (make) and end (its dispose runs once compileAsync resolved): the
+ * line shows how long the last warm-up took, the programs linked after it and how many were linked since (P5: the
+ * count should not grow while you walk).
+ */
+const warmProbe = { runs: 0, ms: 0, startedAt: 0, programs: -1, renderer: null as THREE.WebGLRenderer | null };
+registerWarmup('g1-debug-probe', () => {
+  warmProbe.startedAt = performance.now();
+  return { objects: [], dispose: () => { warmProbe.runs++; warmProbe.ms = performance.now() - warmProbe.startedAt; warmProbe.programs = warmProbe.renderer?.info.programs?.length ?? -1; } };
+});
+
+/** "q mid (device)": the level really in use (the stale runtime.perf.tier said 'high' forever) and why it started so. */
+function qualityText(q: string): string {
+  const d = qualityDecision();
+  if (!d) return `q ${q}`;
+  return d.quality === q ? `q ${q} (${d.reason})` : `q ${q} (started ${d.quality}, ${d.reason})`;
+}
+
 function Ticker() {
   const gl = useThree(s => s.gl);
   const camera = useThree(s => s.camera);
   const scene = useThree(s => s.scene);
   const clock = useRef({ tenHz: 0, frames: 0, fpsAt: 0, objects: 0, objectsAt: 0 });
+  useEffect(() => { warmProbe.renderer = gl; return () => { if (warmProbe.renderer === gl) warmProbe.renderer = null; }; }, [gl]);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
@@ -475,7 +499,7 @@ function Ticker() {
     stepFrameSystems(dt, now);
 
     c.tenHz += dt;
-    if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); refreshObjective(); }
+    if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); refreshObjective(); runtime.perf.tier = game.get().settings.quality; }
 
     // bubbles / waypoint / tap hint (P8: R3F's size instead of a layout read, and only when something moved)
     const t0 = performance.now();
@@ -494,8 +518,10 @@ function Ticker() {
         if (now - c.objectsAt > 2000) { let n = 0; scene.traverse(() => { n++; }); c.objects = n; c.objectsAt = now; }
         const info = gl.info;
         const s = game.get();
-        domAnchors.debug.textContent = `${fps.toFixed(0)} fps · ${info.render.calls} calls · ${(info.render.triangles / 1000).toFixed(1)}k tris · ${c.objects} obj · ${info.memory.geometries} geo · ${info.memory.textures} tex · ${info.programs?.length ?? 0} prog\n`
-          + `player ${runtime.player.x.toFixed(1)}, ${runtime.player.z.toFixed(1)} · guide ${runtime.guide.state}${runtime.guide.target ? '→' : ''} · focus ${s.focus ?? '-'} · ${s.mode}/${flow.get().tourPhase}/${flow.get().weekStage} · tier ${runtime.perf.tier}`;
+        const prog = info.programs?.length ?? 0;
+        const warm = warmProbe.runs ? ` · warm-up ${warmProbe.ms.toFixed(0)} ms → ${warmProbe.programs}, +${Math.max(0, prog - warmProbe.programs)} since` : ' · warm-up …';
+        domAnchors.debug.textContent = `${fps.toFixed(0)} fps · ${info.render.calls} calls · ${(info.render.triangles / 1000).toFixed(1)}k tris · ${c.objects} obj · ${info.memory.geometries} geo · ${info.memory.textures} tex · ${prog} prog${warm}\n`
+          + `player ${runtime.player.x.toFixed(1)}, ${runtime.player.z.toFixed(1)} · guide ${runtime.guide.state}${runtime.guide.target ? '→' : ''} · focus ${s.focus ?? '-'} · ${s.mode}/${flow.get().tourPhase}/${flow.get().weekStage} · ${qualityText(s.settings.quality)}`;
       }
     }
   });
@@ -663,6 +689,35 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
 // QA bridge: ?at=<anchor>, window.__opusBay (DEV)
 // ---------------------------------------------------------------------------
 
+/**
+ * DEV · the city map as a PNG for H2b (G1-5 / G1-15): the vector base layer of ui/cityMapDraw over MAP_FRAME at `px`
+ * wide (default 4096), every neighbourhood open unless `fog`, the painted-paper variant (coastline only) with `paper`.
+ * `__opusBay.g1.exportMap({ px: 4096, download: true })` saves it; without `download` it resolves the data URL.
+ */
+async function exportCityMap(opts: { px?: number; fog?: boolean; paper?: boolean; download?: boolean } = {}) {
+  const far = cityStreamerLazy()?.far;
+  if (!far) return { error: 'far.obc not loaded yet (city mode only)' };
+  const [{ drawCityMap, fitScale }, { MAP_FRAME }, { transitData }] = await Promise.all([import('../ui/cityMapDraw'), import('../data/mapPaper'), import('../data/transit')]);
+  const w = Math.max(256, Math.min(8192, Math.round(opts.px ?? 4096)));
+  const h = Math.round((w * (MAP_FRAME.maxZ - MAP_FRAME.minZ)) / (MAP_FRAME.maxX - MAP_FRAME.minX));
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return { error: 'no 2D context' };
+  const view = { cx: (MAP_FRAME.minX + MAP_FRAME.maxX) / 2, cz: (MAP_FRAME.minZ + MAP_FRAME.maxZ) / 2, scale: fitScale(MAP_FRAME, w, h), w, h };
+  const transit = (transitData()?.lines ?? []).map(l => ({ xyz: l.xyz, color: l.color }));
+  const t0 = performance.now();
+  const ops = drawCityMap(ctx, { far, visited: opts.fog ? zoneVisited : () => true, transit, paper: !!opts.paper }, view);
+  const ms = performance.now() - t0;
+  const url = cv.toDataURL('image/png');
+  if (opts.download) {
+    const a = document.createElement('a');
+    a.href = url; a.download = `opus-bay-citymap-${w}x${h}${opts.paper ? '-paper' : ''}.png`;
+    a.click();
+  }
+  return { w, h, ops, ms: Math.round(ms), bytes: url.length, frame: MAP_FRAME, ...(opts.download ? {} : { url }) };
+}
+
 function QaBridge() {
   const gl = useThree(s => s.gl);
   useEffect(() => {
@@ -691,7 +746,7 @@ function QaBridge() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount } };
+    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, exportMap: exportCityMap, warmProbe } };
     w.__opusBay = { ...(w.__opusBay ?? {}), ...mine, renderer: (w.__opusBay?.renderer as unknown) ?? gl };
     // other modules re-publish the object on their own schedules: keep the flow hooks on it (QA scripts rely on them)
     const id = window.setInterval(() => { const o = w.__opusBay; if (o && o.actions !== flowActions) Object.assign(o, mine); }, 500);
