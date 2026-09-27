@@ -26,24 +26,33 @@ const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
 const { LANDMARK_AREAS, landmarkAreaAt, farZoneIndexAt, zoneLabelAnchor } = await import('../src/opus-bay/data/cityZones');
 const { newlyDiscovered, StampThrottle, DISCOVER_R } = await import('../src/opus-bay/game/discovery');
 const { namedRoadsNear, chooseStreet } = await import('../src/opus-bay/game/streets');
+const { applyW4Places, PLACE_HIDDEN, RUNTIME_PLACES, PLACE_NAME_FIXES } = await import('../src/opus-bay/data/sf/extraPlaces');
 
 const sf = sfDisk();
 const file = JSON.parse(fs.readFileSync(path.join(sf.base, 'places.json'), 'utf8')) as import('../src/opus-bay/world/sf/format').PlacesFile;
 const lms = landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor);
-const ix = buildPlaceIndex(file, lms, poiInputs());
+// the runtime index (wave 4, lane P integration): places.json through applyW4Places, as loadPlaces builds it
+const rows = applyW4Places(file);
+const rowById = new Map(rows.map(r => [r.id, r]));
+const ix = buildPlaceIndex({ places: rows }, lms, poiInputs());
 const far = await sf.far();
 
-test('places: all 24 landmarks resolve to a place, arriving at the landmark anchor', () => {
-  assert.equal(lms.length, SF_LANDMARKS.length);
-  assert.equal(SF_LANDMARKS.length, 24);
+test('places: all 24 landmarks resolve to a place, arriving at the landmark anchor (or where their attraction moved it)', () => {
+  // wave-4 site records (lane L, `w4` metadata) are drawn like landmarks but are not place-index landmarks
+  const lmRecords = SF_LANDMARKS.filter(l => !(l as { w4?: unknown }).w4);
+  assert.equal(lms.length, lmRecords.length);
+  assert.equal(lmRecords.length, 24);
   const seen = new Set<string>();
-  for (const l of SF_LANDMARKS) {
+  for (const l of lmRecords) {
     const p = ix.landmark(l.id);
     assert.ok(p, `landmark ${l.id}`);
     assert.ok(!seen.has(p.id), `${l.id} shares ${p.id}`);
     seen.add(p.id);
+    // the row's own arrival (its attraction's: data/sf/attractions.ts LANDMARK_ARRIVALS = the anchor, ARRIVAL_OVERRIDES
+    // for the Golden Gate Bridge) wins, else the landmark anchor
     const a = sfLandmarkAnchor(l.id)!;
-    assert.deepEqual(p.arrival, a, `${l.id} arrival`);
+    assert.deepEqual(p.arrival, rowById.get(p.id)?.arrival ?? a, `${l.id} arrival`);
+    if (l.id !== 'golden-gate-bridge') assert.ok(Math.hypot(p.arrival.x - a.x, p.arrival.z - a.z) <= 0.05, `${l.id}: its attraction arrives at the anchor`);
     assert.ok(Math.hypot(p.x - l.x, p.z - l.z) <= 40, `${l.id} matched ${p.id} too far away`);
     assert.equal(p.walkable, true);
   }
@@ -55,9 +64,9 @@ test('places: all 24 landmarks resolve to a place, arriving at the landmark anch
 test('places: walkable is false for exactly the 37 places off the walking graph; hero places merge with their POI', () => {
   const off = ix.list.filter(p => !p.walkable);
   assert.equal(off.length, 37);
-  const src = new Map(file.places.map(p => [p.id, p]));
-  for (const p of off) assert.equal(src.get(p.id)?.graphNode, -1, p.id);
-  assert.equal(ix.list.length, file.places.length, 'no synthetic places needed today');
+  for (const p of off) assert.equal(rowById.get(p.id)?.graphNode, -1, p.id);
+  assert.equal(ix.list.length, rows.length, 'no synthetic places needed today');
+  assert.equal(rows.length, file.places.length - PLACE_HIDDEN.size + RUNTIME_PLACES.length, 'the hidden row out, the wave-4 rows in');
   assert.equal(ix.get('ferry-building')?.poi, 'ferry-building');
   assert.equal(ix.get('coit-tower')?.poi, 'coit-tower');
   assert.equal(ix.get('pier-39')?.poi, undefined, 'PIER 39 is not the carousel');
@@ -74,6 +83,31 @@ test('places: near() by bucket matches a brute-force scan; search finds zh and e
   assert.ok(ix.search('golden gate').slice(0, 3).some(p => p.landmark === 'golden-gate-bridge'));
   assert.ok(ix.search('dolores').slice(0, 2).every(p => p.curated));
   assert.deepEqual(ix.search('   '), []);
+});
+
+test('wave 4 (lane P integration): the runtime index — extra rows, wave-4 kinds, name fixes, own arrivals; wave-4 site records are not place landmarks', () => {
+  // the 47 attraction rows and the islands' landing places are in, on the walking graph, arriving where measured
+  for (const e of RUNTIME_PLACES) {
+    const p = ix.get(e.id);
+    assert.ok(p, e.id);
+    assert.equal(p.walkable, true, `${e.id} walkable`);
+    assert.ok(Math.hypot(p.arrival.x - e.arrival.x, p.arrival.z - e.arrival.z) < 1e-6, `${e.id} arrival`);
+  }
+  assert.equal(ix.get('sutro-baths'), undefined, 'the duplicate curated dot is hidden');
+  assert.equal(ix.get('sf-state-university')!.kind, 'campus');
+  assert.equal(ix.get('stonestown-galleria')!.kind, 'shopping');
+  assert.equal(ix.get('sf-zoo')!.kind, 'zoo');
+  for (const [id, name] of Object.entries(PLACE_NAME_FIXES)) assert.deepEqual(ix.get(id)!.name, name, id);
+  // G2 w3 review 10: the tulip garden beside the windmill has its zh name
+  assert.equal(ix.get('osm-w120483945')!.name.zh, '威廉明娜女王郁金香花园');
+  assert.equal(ix.search('郁金香')[0]?.id, 'osm-w120483945');
+  // the Golden Gate Bridge's row ends travel at the Welcome Center (its attraction's arrival), not the landmark anchor
+  const ggb = ix.landmark('golden-gate-bridge')!, anchor = sfLandmarkAnchor('golden-gate-bridge')!;
+  assert.deepEqual(ggb.arrival, rowById.get('ggb-deck-mid')!.arrival);
+  assert.ok(Math.hypot(ggb.arrival.x - anchor.x, ggb.arrival.z - anchor.z) > 20);
+  // a wave-4 site record (lane L: `w4` metadata) never becomes a place-index landmark (its row keeps lane C's card)
+  const registry = [{ id: 'stonestown', x: 165.9, z: 1479.9, w4: { placeId: 'stonestown-galleria' } }, { id: 'city-hall', x: 92.3, z: 418.2 }];
+  assert.deepEqual(landmarkInputsFrom(registry, id => sfLandmarkInfo(id) ?? sfLandmarkInfo('city-hall'), () => null).map(l => l.id), ['city-hall']);
 });
 
 test('discovery: 11.9 u finds a place, 12.1 u does not; the stamp toast waits 4 s and tells finds together', () => {

@@ -185,6 +185,9 @@ export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
   'fort-point': bi('Fort Point 炮台', 'Fort Point'),
   'stow-lake': bi('蓝鹭湖（原斯托湖）与草莓山', 'Blue Heron Lake (formerly Stow Lake) & Strawberry Hill'),
   'lands-end': bi('天涯海角（Lands End）', 'Lands End (Lookout & Coastal Trail)'),
+  // the tulip garden beside the Dutch Windmill (OSM way 120483945): its zh was the English name (G2 w3 review 10); the
+  // residents already say "Queen Wilhelmina 郁金香花园", the windmill's attraction 荷兰风车与威廉明娜女王郁金香花园
+  'osm-w120483945': bi('威廉明娜女王郁金香花园', 'Queen Wilhelmina Tulip Garden'),
 };
 
 /** New anchors / arrivals (plan §4.1). `x` / `z` move the badge; `arrival` is where travel ends. */

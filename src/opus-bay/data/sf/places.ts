@@ -17,6 +17,11 @@ import { POIS } from '../pois';
  *
  * The pure builder (buildPlaceIndex) takes its inputs as arguments, so node tests run it on the published file; the
  * loader imports the landmark registry lazily (it is city-only code with its recipes).
+ *
+ * Wave 4 (lane P): the loader builds from data/sf/extraPlaces.ts `applyW4Places(file)` — the 47 attraction rows
+ * (universities, Stonestown, churches …) and the islands' landing places, the name fixes (map name = card name), the
+ * re-anchors, the wave-4 kinds (campus / shopping / zoo / religious) and each row's arrival (its attraction's), with the
+ * duplicate curated Sutro Baths dot hidden. A row's own arrival wins over the landmark anchor.
  */
 
 export interface CityPlace {
@@ -136,18 +141,31 @@ export class PlaceIndex {
   }
 }
 
-/** The pure builder (see the header). */
-export function buildPlaceIndex(file: Pick<PlacesFile, 'places'>, landmarks: readonly LandmarkInput[], pois: readonly PoiInput[] = []): PlaceIndex {
+/**
+ * A places.json row, or a wave-4 row (data/sf/extraPlaces.ts `applyW4Places`): `arrival` = where travel ends when it is
+ * not the anchor (the attraction's arrival, a re-anchor, an extra row's measured spot).
+ */
+export type PlaceRow = SfPlace & { arrival?: { x: number; z: number; heading?: number } };
+
+/**
+ * The pure builder (see the header). Wave 4 (lane P, integration): a row's own `arrival` wins over the landmark anchor
+ * (every landmark row carries its attraction's arrival: the anchor for 23 of them, the Golden Gate Welcome Center for
+ * the bridge), else the landmark anchor, else the anchor.
+ */
+export function buildPlaceIndex(file: { places: readonly PlaceRow[] }, landmarks: readonly LandmarkInput[], pois: readonly PoiInput[] = []): PlaceIndex {
   const list: CityPlace[] = [];
   const osmOf = new Map<string, CityPlace[]>();
-  for (const src of file.places as readonly SfPlace[]) {
+  const ownArrival = new Set<CityPlace>();
+  for (const src of file.places) {
     if (!src?.id || !src.name || !Number.isFinite(src.x) || !Number.isFinite(src.z)) continue;
+    const arr = src.arrival && Number.isFinite(src.arrival.x) && Number.isFinite(src.arrival.z) ? src.arrival : null;
     const p: CityPlace = {
       id: src.id, name: src.name, kind: src.kind, x: src.x, z: src.z, y: src.y ?? 0, zone: src.zone ?? null,
       curated: !!src.curated, hero: !!src.hero, walkable: src.graphNode >= 0 || !!src.hero,
-      arrival: { x: src.x, z: src.z }, sourceUrl: src.sourceUrl, verifiedAt: src.verifiedAt,
+      arrival: arr ? { ...arr } : { x: src.x, z: src.z }, sourceUrl: src.sourceUrl, verifiedAt: src.verifiedAt,
       ...(src.plannerId ? { plannerId: src.plannerId } : {}), ...(src.guideSlug ? { guideSlug: src.guideSlug } : {}),
     };
+    if (arr) ownArrival.add(p);
     if (p.hero) {
       let best: PoiInput | undefined, bestD = Infinity;
       for (const poi of pois) {
@@ -189,7 +207,7 @@ export function buildPlaceIndex(file: Pick<PlacesFile, 'places'>, landmarks: rea
       byId.set(hit.id, hit);
     }
     hit.landmark = lm.id;
-    if (lm.anchor) { hit.arrival = { ...lm.anchor }; hit.walkable = true; }
+    if (lm.anchor) { if (!ownArrival.has(hit)) hit.arrival = { ...lm.anchor }; hit.walkable = true; }
     hit.plannerId ??= lm.plannerId;
     hit.guideSlug ??= lm.guideSlug;
   }
@@ -232,13 +250,19 @@ async function landmarkInputs(): Promise<LandmarkInput[]> {
 }
 
 type LmInfo = { name: Bilingual; osm: string[]; plannerPlaceId?: string; guideSlug?: string; realInfo: { sourceUrl: string; verifiedAt: string } };
-/** Registry + info + anchors → builder inputs (shared with the tests). */
+/**
+ * Registry + info + anchors → builder inputs (shared with the tests). Only the modelled landmarks of waves 1–3 become
+ * place-index landmarks: a wave-4 site record (lane L, `w4` metadata: Stonestown, SF State, the park sites …) is drawn
+ * like a landmark, but its place row stays the attraction's row — the card, the arrival and the map badge come from
+ * lane C's cards and lane P's attractions (a `landmark` row would ask for a G2 landmark card and hide lane C's).
+ */
 export function landmarkInputsFrom(
-  registry: readonly { id: string; x: number; z: number }[], info: (id: string) => LmInfo | undefined,
+  registry: readonly { id: string; x: number; z: number; w4?: unknown }[], info: (id: string) => LmInfo | undefined,
   anchor: (id: string) => { x: number; z: number; heading: number } | null,
 ): LandmarkInput[] {
   const out: LandmarkInput[] = [];
   for (const l of registry) {
+    if (l.w4) continue;
     const i = info(l.id);
     if (!i) continue;
     out.push({
@@ -249,7 +273,11 @@ export function landmarkInputsFrom(
   return out;
 }
 
-/** Fetch and build once (a failure can be retried by calling again). */
+/**
+ * Fetch and build once (a failure can be retried by calling again). Wave 4: the published rows go through
+ * data/sf/extraPlaces.ts `applyW4Places` (the 47 attraction rows, the islands' landing places, name fixes, re-anchors,
+ * wave-4 kinds, arrivals, the hidden duplicate), imported on demand with the attraction list (not in GameRoot's graph).
+ */
 export function loadPlaces(root = '/opus-bay/sf'): Promise<PlaceIndex | null> {
   if (INDEX) return Promise.resolve(INDEX);
   loading ??= (async () => {
@@ -257,8 +285,8 @@ export function loadPlaces(root = '/opus-bay/sf'): Promise<PlaceIndex | null> {
       const cur = (await (await fetch(`${root}/current.json`)).json()) as { version: string };
       const res = await fetch(`${root}/${cur.version}/places.json`);
       if (!res.ok) throw new Error(`places.json: HTTP ${res.status}`);
-      const [file, lms] = await Promise.all([res.json() as Promise<PlacesFile>, landmarkInputs()]);
-      const ix = buildPlaceIndex(file, lms, poiInputs());
+      const [file, lms, { applyW4Places }] = await Promise.all([res.json() as Promise<PlacesFile>, landmarkInputs(), import('./extraPlaces')]);
+      const ix = buildPlaceIndex({ places: applyW4Places(file) }, lms, poiInputs());
       setPlaceIndex(ix);
       return ix;
     } catch (error) {
