@@ -22,6 +22,7 @@ import { Npc, npcDefsFor } from './npcs';
 import { DRAG_THRESHOLD } from './pointer';
 import { MoveSystem } from './moveSystem';
 import { bindMoveApi } from './moveApi';
+import { FACADE_REACH, facadeAlongRay, frontSpot, type FacadeIntersection } from './tapTarget';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -76,17 +77,16 @@ function groundNormal(x: number, z: number, out: THREE.Vector3) {
   return out.set(-hx / (2 * e), 1, -hz / (2 * e)).normalize();
 }
 
-/** Ray-march the terrain height field (clicks / taps): exact, zero triangles. */
-function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-  const o = raycaster.ray.origin, d = raycaster.ray.direction;
-  if (d.y > -1e-3) return;
+/** Ray parameter of the first terrain hit along the ray (a height-field march), or −1. */
+function groundAlongRay(o: THREE.Vector3, d: THREE.Vector3, far: number): number {
+  if (d.y > -1e-3) return -1;
   const top = MAX_GROUND_Y;
   let t = o.y > top ? (top - o.y) / d.y : 0;
-  const tMax = Math.min(raycaster.far, t + 1400);
+  const tMax = Math.min(far, t + 1400);
   let prevT = t;
   for (let i = 0; i < 900 && t <= tMax; i++) {
     const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t;
-    if (y < -6) return;
+    if (y < -6) return -1;
     const inside = inWorld(x, z);
     const h = inside ? heightAt(x, z) : 0;
     const diff = y - h;
@@ -97,14 +97,33 @@ function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, inters
         const mx = o.x + d.x * mid, mz = o.z + d.z * mid, my = o.y + d.y * mid;
         if (my - heightAt(mx, mz) > 0) lo = mid; else hi = mid;
       }
-      const hitT = (lo + hi) / 2;
-      if (hitT < raycaster.near || hitT > raycaster.far) return;
-      intersects.push({ distance: hitT, point: new THREE.Vector3(o.x + d.x * hitT, o.y + d.y * hitT, o.z + d.z * hitT), object: this });
-      return;
+      return (lo + hi) / 2;
     }
     prevT = t;
     t += Math.max(0.25, diff * 0.55);
   }
+  return -1;
+}
+
+/** The point the occlusion dither fades around (world/world.ts sets uPlayer from the same place). */
+const seenPlayer = () => ({ x: runtime.player.x, y: runtime.player.y + 0.8, z: runtime.player.z });
+
+/**
+ * Ray-march the terrain height field (clicks / taps): exact, zero triangles. In city mode the ray also stops at the
+ * first building wall in front of the ground (M2, actors/tapTarget): that hit carries `facade`.
+ */
+function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+  const o = raycaster.ray.origin, d = raycaster.ray.direction;
+  const hitT = groundAlongRay(o, d, raycaster.far);
+  const hl = Math.hypot(d.x, d.z);
+  const wall = hl > 1e-4 ? facadeAlongRay(o, d, Math.min(hitT >= 0 ? hitT : Infinity, FACADE_REACH / hl, raycaster.far), seenPlayer()) : null;
+  if (wall && wall.t >= raycaster.near) {
+    const hit: FacadeIntersection = { distance: wall.t, point: new THREE.Vector3(wall.x, wall.y, wall.z), object: this, facade: wall };
+    intersects.push(hit);
+    return;
+  }
+  if (hitT < 0 || hitT < raycaster.near || hitT > raycaster.far) return;
+  intersects.push({ distance: hitT, point: new THREE.Vector3(o.x + d.x * hitT, o.y + d.y * hitT, o.z + d.z * hitT), object: this });
 }
 
 class TargetRing {
@@ -406,12 +425,16 @@ export class ActorSystem {
     const driving = this.move.mode === 'bike' || this.move.mode === 'car';
     if (s.phase !== 'playing' || s.photoMode || s.riding || (this.move.carried && !driving) || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
     e.stopPropagation();
+    // M2 (city): a tap on a building wall means "go there": the nearest open ground in front of it
+    const wall = (e as unknown as FacadeIntersection).facade;
+    const front = wall ? frontSpot(wall.x, wall.z, wall.ux, wall.uz) : null;
+    if (wall && !front) { const at = { x: wall.x, z: wall.z }; this.ring.show(at, true); emit({ type: 'ui', action: 'error' }); return; }
     if (driving) {
-      const at = { x: e.point.x, z: e.point.z };
+      const at = front ?? { x: e.point.x, z: e.point.z };
       if (this.move.driveTo(at)) this.ring.show(at); else { this.ring.show(at, true); emit({ type: 'ui', action: 'error' }); }
       return;
     }
-    let target: Vec2 = { x: e.point.x, z: e.point.z };
+    let target: Vec2 = front ?? { x: e.point.x, z: e.point.z };
     if (!canStand(target.x, target.z, 0.4)) {
       const alt = nearestWalkable(target, 7);
       if (!alt) { this.ring.show(target, true); emit({ type: 'ui', action: 'error' }); return; }

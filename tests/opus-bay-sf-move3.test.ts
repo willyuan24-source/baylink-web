@@ -4,7 +4,11 @@ import * as THREE from 'three';
 import { onEvent, type GameEvent } from '../src/opus-bay/core/events';
 import { runtime } from '../src/opus-bay/core/runtime';
 import { game } from '../src/opus-bay/core/store';
-import { heightAt } from '../src/opus-bay/core/terrain';
+import { blockersNear, canStand, heightAt, setCityTerrain } from '../src/opus-bay/core/terrain';
+import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTerrain';
+import { SF_LANDMARKS } from '../src/opus-bay/world/sf/landmarks/index';
+import { facadeAlongRay, frontSpot, resetFacadeCache } from '../src/opus-bay/actors/tapTarget';
+import { sfDisk } from './opus-bay-sf-disk';
 import { PlayerController, type Obstacle } from '../src/opus-bay/actors/controller';
 import { MoveSystem } from '../src/opus-bay/actors/moveSystem';
 import * as moveApi from '../src/opus-bay/actors/moveApi';
@@ -140,4 +144,56 @@ test('E2-16 giveWay: a vehicle stops short of a registered crowd walker (soft bu
     assert.ok(events.some(e => e.type === 'vehicle:bump'), 'traffic: a soft bump');
     assert.ok(!events.some(e => e.type === 'bump' && e.kind === 'npc'), 'traffic: no whoa');
   } finally { runtime.input.moveY = 0; unregister(); off(); moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title' }); }
+});
+
+// ---------------------------------------------------------------------------
+// M2 · a tap on a building facade walks to the ground in front of it (city mode)
+// ---------------------------------------------------------------------------
+
+test('M2 tap on a facade: the ray stops at the first city wall; the walk target is open ground in front of it; district unchanged', async () => {
+  const sf = sfDisk();
+  const LMS = landmarkWalkInputs(SF_LANDMARKS);
+  const city = createCityTerrain(sf.manifest, { landmarks: LMS });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, 96, 210, 200, LMS);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  resetFacadeCache();
+  try {
+    // Union Square side streets (the phone QA shot): a camera 8 u up behind the player, looking at a tower wall on Post St
+    const eye = { x: 97, y: heightAt(97, 229) + 8, z: 229 };
+    const aim = { x: 101.1, y: 12.2, z: 192.6 };
+    const L = Math.hypot(aim.x - eye.x, aim.y - eye.y, aim.z - eye.z);
+    const d = { x: (aim.x - eye.x) / L, y: (aim.y - eye.y) / L, z: (aim.z - eye.z) / L };
+    const hit = facadeAlongRay(eye, d, 400);
+    assert.ok(hit, 'the ray stops at a wall');
+    const wall = blockersNear(hit.x, hit.z, 0.05).find(b => b.kind === 'polygon' && b.top !== undefined);
+    assert.ok(wall && wall.top !== undefined && hit.y <= wall.top, 'below the wall top of a city building');
+    assert.ok(hit.t < L + 2, `the first wall on the way (t ${hit.t.toFixed(1)} vs aim ${L.toFixed(1)})`);
+    assert.equal(facadeAlongRay(eye, d, 400), hit, 'the same ray answers from the cache (pointerdown / click)');
+    // the player just behind that wall: the view dithers the wall away between the camera and the player, the tap goes through
+    const behind = { x: eye.x + d.x * (hit.t + 4), y: eye.y + d.y * (hit.t + 4) - 1, z: eye.z + d.z * (hit.t + 4) };
+    const through = facadeAlongRay(eye, d, 400, behind);
+    assert.ok(!through || through.t > hit.t + 0.4, 'a dithered wall does not stop the tap');
+    assert.deepEqual(facadeAlongRay(eye, d, 400, { x: eye.x - 30, y: 0, z: eye.z + 30 }), hit, 'a player elsewhere changes nothing');
+    const spot = frontSpot(hit.x, hit.z, hit.ux, hit.uz);
+    assert.ok(spot && canStand(spot.x, spot.z, 0.4), 'a standable walk target');
+    const back = (spot.x - hit.x) * hit.ux + (spot.z - hit.z) * hit.uz;
+    assert.ok(back < 0, `in front of the wall, on the camera side (${back.toFixed(2)})`);
+    assert.ok(Math.hypot(spot.x - hit.x, spot.z - hit.z) < 20, 'near the wall');
+    // a thin building seen over a lower row (the 375 × 667 QA shot): the street on the camera side, not its back street
+    const eye2 = { x: 95.5, y: heightAt(95.5, 228) + 8, z: 228 };
+    const aim2 = { x: 98.2, y: 10, z: 191.4 };
+    const L2 = Math.hypot(aim2.x - eye2.x, aim2.y - eye2.y, aim2.z - eye2.z);
+    const hit2 = facadeAlongRay(eye2, { x: (aim2.x - eye2.x) / L2, y: (aim2.y - eye2.y) / L2, z: (aim2.z - eye2.z) / L2 }, 400);
+    assert.ok(hit2, 'the thin building is hit');
+    const spot2 = frontSpot(hit2.x, hit2.z, hit2.ux, hit2.uz);
+    assert.ok(spot2 && canStand(spot2.x, spot2.z, 0.4));
+    assert.ok((spot2.x - hit2.x) * hit2.ux + (spot2.z - hit2.z) * hit2.uz < 0, `camera side: ${spot2.x.toFixed(1)}, ${spot2.z.toFixed(1)}`);
+    // a ray at the street under the camera meets no wall before the ground
+    const down = { x: 0.05, y: -1, z: -0.3 };
+    const dl = Math.hypot(down.x, down.y, down.z);
+    assert.equal(facadeAlongRay(eye, { x: down.x / dl, y: down.y / dl, z: down.z / dl }, 9), null, 'open ground: no wall');
+  } finally { setCityTerrain(null); resetFacadeCache(); }
+  // district mode: no building tops, the ground picker stays as it was
+  assert.equal(facadeAlongRay({ x: 120, y: 30, z: -40 }, { x: 0.6, y: -0.2, z: 0.77 }, 400), null);
 });
