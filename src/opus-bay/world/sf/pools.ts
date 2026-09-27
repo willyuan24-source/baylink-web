@@ -51,8 +51,9 @@ export interface CellPool {
   trianglesOf(id: number): number;
   /** tier cross-fade value of an item (materials.ts TIER_FADE_FRAG: 1 = solid); false when this pool cannot fade (tiles) */
   setFade(id: number, value: number): boolean;
-  /** per frame: tile rebuilds and the per-item frustum cull against `camera` (without a camera nothing is culled) */
-  update(camera?: THREE.Camera): void;
+  /** per frame: tile rebuilds and the per-item frustum cull against `camera` (without a camera nothing is culled), items
+   *  wholly deeper than `maxDepth` out too (hazeCullDepth) */
+  update(camera?: THREE.Camera, maxDepth?: number): void;
   stats(): PoolStats;
   dispose(): void;
 }
@@ -83,27 +84,51 @@ export function poolGeometry(a: PoolArrays): THREE.BufferGeometry {
 export class ViewCull {
   readonly frustum = new THREE.Frustum();
   valid = false;
+  /** the haze cull (hazeCullDepth): spheres wholly deeper than this view depth are out; Infinity = off */
+  maxDepth = Infinity;
   private m = new THREE.Matrix4();
   private last = new Float64Array(16);
+  private eye = new THREE.Vector3();
+  private fwd = new THREE.Vector3();
 
-  from(camera: THREE.Camera): boolean {
+  /** Take the camera's frustum (and the haze depth); false when neither changed since the last call (nothing to re-test). */
+  from(camera: THREE.Camera, maxDepth = Infinity): boolean {
     const e = this.m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).elements;
-    let same = this.valid;
+    let same = this.valid && maxDepth === this.maxDepth;
     for (let i = 0; i < 16; i++) if (e[i] !== this.last[i]) { same = false; this.last[i] = e[i]; }
     if (same) return false;
     this.frustum.setFromProjectionMatrix(this.m);
+    this.maxDepth = maxDepth;
+    const w = camera.matrixWorld.elements;
+    this.eye.set(w[12], w[13], w[14]);
+    this.fwd.set(-w[8], -w[9], -w[10]).normalize();
     this.valid = true;
     return true;
   }
 
-  /** Sphere (cx, cy, cz, r at s[o…o+3], world space) inside or touching the frustum; true while no frustum is known. */
+  /** Sphere (cx, cy, cz, r at s[o…o+3], world space) inside or touching the frustum and not wholly past maxDepth; true while no frustum is known. */
   test(s: ArrayLike<number>, o = 0): boolean {
     if (!this.valid) return true;
     const x = s[o], y = s[o + 1], z = s[o + 2], r = s[o + 3];
     if (r < 0) return false;
     for (const p of this.frustum.planes) if (p.normal.x * x + p.normal.y * y + p.normal.z * z + p.constant < -r) return false;
+    if (this.maxDepth < Infinity && (x - this.eye.x) * this.fwd.x + (y - this.eye.y) * this.fwd.y + (z - this.eye.z) * this.fwd.z - r > this.maxDepth) return false;
     return true;
   }
+}
+
+/**
+ * The haze cull (wave 3, the budget after the satellite boards): three's FogExp2 hides a fragment at view depth d by
+ * 1 − exp(−(ρ·d)²), so a pool item wholly deeper than √(−ln(1 − fog)) / ρ is ≥ `fog` haze and is not drawn. At walking
+ * height that is 1,750 u at golden hour (ρ 0.0012), 950 u in the morning, 1,150 u at night: the far city cells and
+ * the Marin / East Bay boards behind the skyline; high up (Twin Peaks, a glide) the city thins its haze and nothing is
+ * cut. Quantised to `step` u so a drifting density re-tests the items rarely; Infinity past the far plane.
+ */
+export const HAZE_CULL = { fog: 0.985, step: 50 } as const;
+export function hazeCullDepth(density: number, far = Infinity): number {
+  if (!(density > 0)) return Infinity;
+  const d = Math.ceil(Math.sqrt(-Math.log(1 - HAZE_CULL.fog)) / density / HAZE_CULL.step) * HAZE_CULL.step;
+  return d >= far ? Infinity : d;
 }
 
 /** Bounding sphere (cx, cy, cz, r) around the bounds of some pool arrays, written at out[o…o+3] (r = −1: empty). */
@@ -290,9 +315,9 @@ export class BatchedPool implements CellPool {
     if (r.ground) this.ground.fade(r.ground, value);
     return true;
   }
-  update(camera?: THREE.Camera) {
+  update(camera?: THREE.Camera, maxDepth = Infinity) {
     if (!camera) return;
-    if (!this.cull.from(camera) && !this.dirty) return;
+    if (!this.cull.from(camera, maxDepth) && !this.dirty) return;
     this.dirty = false;
     let n = 0;
     for (const r of this.items.values()) {
@@ -466,7 +491,7 @@ export class TilePool implements CellPool {
     this.rebuilds++;
   }
 
-  update(camera?: THREE.Camera) {
+  update(camera?: THREE.Camera, maxDepth = Infinity) {
     let rebuilt: TileRec | null = null;
     for (const t of this.tiles.values()) {
       if (!t.dirty) continue;
@@ -477,7 +502,7 @@ export class TilePool implements CellPool {
     }
     if (!camera) return;
     const test = (s: Float32Array, o: number) => this.cull.test(s, o);
-    if (this.cull.from(camera)) {
+    if (this.cull.from(camera, maxDepth)) {
       for (const t of this.tiles.values()) { cullTilePart(t.toy, test); cullTilePart(t.ground, test); }
     } else if (rebuilt) {
       cullTilePart(rebuilt.toy, test);

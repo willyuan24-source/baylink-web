@@ -18,7 +18,7 @@ const ctx2d = new Proxy({}, { get: (_t, k) => (k === 'measureText' ? () => ({ wi
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const M = await import('../src/opus-bay/world/materials');
-const { BatchedPool, TilePool, ViewCull, boundsSphere, cullTilePart, mergePoolArrays } = await import('../src/opus-bay/world/sf/pools');
+const { BatchedPool, TilePool, ViewCull, boundsSphere, cullTilePart, hazeCullDepth, HAZE_CULL, mergePoolArrays } = await import('../src/opus-bay/world/sf/pools');
 type PoolArrays = Parameters<typeof mergePoolArrays>[0][number];
 
 const std = () => ({ vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} as Record<string, THREE.IUniform> });
@@ -105,6 +105,42 @@ test('P3: ViewCull and item spheres', () => {
   boundsSphere([null, null], s);
   assert.equal(s[3], -1);
   assert.equal(cull.test(s), false, 'an empty item is never drawn');
+});
+
+test('haze cull: items wholly past the depth where FogExp2 reaches 98.5 % are out; the depth follows the density', () => {
+  // walking height: golden 0.0012, morning 0.0022, night 0.0018 (palette.ts); Twin Peaks / a glide thin it (cityFogK)
+  assert.equal(hazeCullDepth(0.0012), 1750);
+  assert.equal(hazeCullDepth(0.0022), 950);
+  assert.equal(hazeCullDepth(0.0018), 1150);
+  assert.equal(hazeCullDepth(0.0012 * 0.45 * 0.9, 3000), Infinity, 'high up: nothing is cut before the far plane');
+  assert.equal(hazeCullDepth(0), Infinity);
+  for (const rho of [0.0011, 0.0012, 0.0018, 0.0022]) {
+    const d = hazeCullDepth(rho);
+    assert.ok(1 - Math.exp(-((rho * d) ** 2)) >= HAZE_CULL.fog, `${rho}: ${d} u is ≥ ${HAZE_CULL.fog} haze`);
+    assert.ok(1 - Math.exp(-((rho * (d - HAZE_CULL.step)) ** 2)) < HAZE_CULL.fog, `${rho}: not a step too early`);
+  }
+  const cull = new ViewCull();
+  const cam = camera();
+  const s = new Float32Array(4);
+  cull.from(cam);
+  boundsSphere([quad(0, -1200)], s);
+  assert.equal(cull.test(s), true, 'in the frustum');
+  assert.equal(cull.from(cam, 1000), true, 'a new haze depth alone re-tests');
+  assert.equal(cull.test(s), false, 'wholly past the haze depth');
+  boundsSphere([quad(0, -800)], s);
+  assert.equal(cull.test(s), true);
+  // the depth along the view, as three's fog measures it: an item off to the side at the same distance stays
+  boundsSphere([quad(600, -900)], s);
+  assert.equal(cull.test(s), true, `view depth ≈ 900 < 1000 at a radial ${Math.hypot(600, 900).toFixed(0)}`);
+  assert.equal(cull.from(cam, 1000), false, 'same camera, same depth: nothing to re-test');
+  const pool = new BatchedPool({ toyVerts: 1024, groundVerts: 1024, instances: 16 });
+  pool.add(1, { toy: quad(0, -1200), ground: null }, false);
+  pool.add(5, { toy: quad(0, -500), ground: null }, false);
+  pool.update(cam);
+  assert.equal(pool.stats().inView, 2);
+  pool.update(cam, hazeCullDepth(0.0022));
+  assert.equal(pool.stats().inView, 1, 'the morning haze hides the far item');
+  pool.dispose();
 });
 
 test('P2 / P3: the batched pool culls per item itself (three\'s per-instance pass off), only on a change', () => {

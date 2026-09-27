@@ -8,13 +8,14 @@ import type { Vec2 } from '../../core/types';
 import { GROUND, TOY, type TierFadePair, makeTierFadePair, tierFadeIn, tierFadeOut } from '../materials';
 import { freezeStatic } from '../builder';
 import { TypedBatch } from '../typedBatch';
+import { BOARD_LOD } from './boardData';
 import type { BoardsBuild, BoardsData } from './boards';
 import type { CityInit, L0Result, L1Result } from './build';
 import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
 import type { FarCell, FarInit, FarResult } from './far';
 import { type FarData, SF_ROOT, type SfManifest, demSample, loadManifest } from './format';
 import type { PoolArrays } from './mesh';
-import { type CellPool, createCellPool } from './pools';
+import { type CellPool, boundsSphere, createCellPool, hazeCullDepth } from './pools';
 import { CityProps } from './props';
 import { type L0BuildingView, type L0Buildings, type L0Hidden, l0Building, l0Near, setRangeHidden } from './l0index';
 import { lookZones } from './look';
@@ -81,7 +82,9 @@ export interface CityStats {
   farMs: number;
   focus: Vec2;
   /** the satellite boards (C2-7b): load / build state, items and triangles in the pools */
-  boards: { status: string; items: number; triangles: number; ms: number };
+  boards: { status: string; items: number; triangles: number; ms: number; nearTiles: number; tiles: number };
+  /** the haze cull's view depth this frame (pools.ts hazeCullDepth; null = off) */
+  hazeDepth: number | null;
 }
 
 type WorkerOut =
@@ -122,6 +125,9 @@ export class CityStreamer {
   readonly l0Group = new THREE.Group();
   readonly props = new CityProps();
   readonly pool: CellPool;
+  /** the scene's live FogExp2 density, set by the world before update(): pool items past its haze depth are not drawn */
+  haze = 0;
+  private hazeDepth = Infinity;
   manifest: SfManifest | null = null;
   /** the data version's base URL (manifest, chunks, boards) */
   base = '';
@@ -181,6 +187,10 @@ export class CityStreamer {
   private heroFarListeners = new Set<(far: boolean) => void>();
   /** C2-7b: the satellite boards, loaded (their own lazy chunk) once the far city is in, built in ≈ 2 ms slices */
   private boards: { status: 'none' | 'loading' | 'building' | 'done' | 'error'; job: Generator<void, BoardsBuild> | null; result: BoardsBuild | null } = { status: 'none', job: null, result: null };
+  /** the boards' near / far tiles (BOARD_LOD): one sphere per 256 u tile, its near and far item ids, near on? */
+  private boardLod: { x: number; y: number; z: number; r: number; near: number[]; far: number[]; on: boolean }[] = [];
+  /** camera position at the last near / far pass (re-run after 16 u of camera travel) */
+  private boardLodAt = new THREE.Vector3(Infinity, 0, 0);
   private l0DropListeners = new Set<(cellKey: number) => void>();
   quality: Quality;
 
@@ -365,10 +375,41 @@ export class CityStreamer {
       b.job = null;
       b.result = r.value;
       b.status = 'done';
-      // static items, always on (the pools cull them per item); the tile pool merges them into a few bins
-      for (const it of r.value.items) this.pool.add(it.id, { toy: it.toy, ground: it.ground, bin: it.bin }, false, true);
+      // static items (the pools cull them per item; the tile pool merges them into a few bins): the dressing always on,
+      // the near / far ground switched per tile by updateBoardLod (far to begin with)
+      const tiles = new Map<number, { near: number[]; far: number[]; parts: (PoolArrays | null)[] }>();
+      for (const it of r.value.items) {
+        this.pool.add(it.id, { toy: it.toy, ground: it.ground, bin: it.bin }, false, it.lod !== 'near');
+        if (it.lod === 'all') continue;
+        let t = tiles.get(it.tile);
+        if (!t) tiles.set(it.tile, (t = { near: [], far: [], parts: [] }));
+        (it.lod === 'near' ? t.near : t.far).push(it.id);
+        t.parts.push(it.toy, it.ground);
+      }
+      const sph = new Float32Array(4);
+      this.boardLod = [...tiles.values()].map(t => { boundsSphere(t.parts, sph); return { x: sph[0], y: sph[1], z: sph[2], r: Math.max(0, sph[3]), near: t.near, far: t.far, on: false }; });
+      this.boardLodAt.set(Infinity, 0, 0);
       this.opts.onBoards?.(r.value);
       return;
+    }
+  }
+
+  /**
+   * C2-7b: the boards' near / far ground (BOARD_LOD), per 256 u tile by the camera's distance to its bounds, with
+   * hysteresis; re-run after 16 u of camera travel (a few hundred sphere distances, a switch is a setVisible).
+   */
+  private updateBoardLod(camera: THREE.Camera) {
+    if (!this.boardLod.length) return;
+    const m = camera.matrixWorld.elements, cx = m[12], cy = m[13], cz = m[14];
+    if (Math.hypot(cx - this.boardLodAt.x, cy - this.boardLodAt.y, cz - this.boardLodAt.z) < 16) return;
+    this.boardLodAt.set(cx, cy, cz);
+    for (const t of this.boardLod) {
+      const d = Math.max(0, Math.hypot(t.x - cx, t.y - cy, t.z - cz) - t.r);
+      const on = t.on ? d < BOARD_LOD.near + BOARD_LOD.hyst : d < BOARD_LOD.near - BOARD_LOD.hyst;
+      if (on === t.on) continue;
+      t.on = on;
+      for (const id of t.near) this.pool.setVisible(id, on);
+      for (const id of t.far) this.pool.setVisible(id, !on);
     }
   }
 
@@ -691,8 +732,11 @@ export class CityStreamer {
       if (a.l0.length || a.l1.length || d.l0.length || d.l1.length || d.chunks.length || d.rasters.length) this.visDirty = true;
     }
     this.stepFades();
-    // tile rebuilds and the per-item frustum cull of the L1 / L2 pools (the camera's matrices are current: read above)
-    this.pool.update(camera);
+    // tile rebuilds and the per-item frustum cull of the L1 / L2 pools (the camera's matrices are current: read above),
+    // the items lost in the haze included (the far city and the boards behind the skyline at walking height)
+    this.hazeDepth = hazeCullDepth(this.haze, (camera as THREE.PerspectiveCamera).far ?? Infinity);
+    this.updateBoardLod(camera);
+    this.pool.update(camera, this.hazeDepth);
     this.props.update(this.focus.x, this.focus.z, this.time, this.camH, camera);
     this.opts.sites.update(this.focus.x, this.focus.z, this.time);
     // teleport / fast-travel waits
@@ -722,7 +766,8 @@ export class CityStreamer {
       workerMs: +this.workerMs.toFixed(1), attachMs: +this.attachMs.toFixed(2), attachMaxMs: +this.attachMax.toFixed(2),
       jobs: this.jobsDone, errors: this.errors, props: this.props.counts(), sites: this.opts.sites.counts(), pool: this.pool.stats(),
       l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, camH: Math.round(this.camH), farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
-      boards: { status: this.boards.status, items: this.boards.result?.items.length ?? 0, triangles: this.boards.result?.triangles.total ?? 0, ms: Math.round(this.boards.result?.ms ?? 0) },
+      boards: { status: this.boards.status, items: this.boards.result?.items.length ?? 0, triangles: this.boards.result?.triangles.total ?? 0, ms: Math.round(this.boards.result?.ms ?? 0), nearTiles: this.boardLod.filter(t => t.on).length, tiles: this.boardLod.length },
+      hazeDepth: Number.isFinite(this.hazeDepth) ? this.hazeDepth : null,
     };
   }
 

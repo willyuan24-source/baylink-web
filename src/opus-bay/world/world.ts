@@ -487,6 +487,8 @@ export class World {
     U.uFade.value = fade ? 1 : 0;
     this.env.update(dt, camera, this.tmp.set(runtime.player.x, runtime.player.y, runtime.player.z));
     if (this.city) {
+      // the haze cull reads the density the environment just set (city haze × cityFogK)
+      this.city.haze = this.env.fog.density;
       this.city.update(dt, camera);
       this.cityWater?.update(camera);
     }

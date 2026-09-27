@@ -65,6 +65,13 @@ export function worldPolygon(): Polygon {
   return WORLD_LL.map(([lat, lng]) => projectCity(lat, lng));
 }
 
+/**
+ * The boards' near / far switch (world/sf/boards.ts items, the streamer switches them): the fine ground and the trees
+ * while the camera is within `near` u of a 256 u tile's bounds, the coarse ground beyond (hysteresis `hyst` u). Crissy
+ * Field and the Golden Gate Bridge see the Headlands near; the Ferry Building, Twin Peaks and downtown see the boards far.
+ */
+export const BOARD_LOD = { near: 1100, hyst: 80 } as const;
+
 /** The Golden Gate Bridge's north deck end (world/sf/landmarks/golden-gate-bridge.ts END_N) and its deck height. */
 export const GGB_NORTH = { x: -1015.7, z: 388.6, y: 15.2, /** deck direction north → south */ dx: 0.7812, dz: 0.6243 } as const;
 /** Marin Headlands · Hawk Hill (landmarks.json backdrop point) */

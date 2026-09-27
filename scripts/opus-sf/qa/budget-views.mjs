@@ -99,7 +99,7 @@ const HELPERS = `window.__qb = {
     const b = ob.city.breakdown();
     const round = rec => Object.fromEntries(Object.entries(rec).sort((a, b) => b[1].triangles - a[1].triangles));
     return JSON.stringify({ id, calls: r.render.calls, triangles: r.render.triangles, programs: r.programs.length,
-      city: { l0: s.l0, l1: s.l1, l2: s.l2, l0T: s.l0Triangles, l1T: s.l1Triangles, l2T: s.l2Triangles, queued: s.queued, inflight: s.inflight, errors: s.errors, heroFar: s.heroFar, camH: s.camH, props: s.props, sites: s.sites },
+      city: { l0: s.l0, l1: s.l1, l2: s.l2, l0T: s.l0Triangles, l1T: s.l1Triangles, l2T: s.l2Triangles, queued: s.queued, inflight: s.inflight, errors: s.errors, heroFar: s.heroFar, camH: s.camH, hazeDepth: s.hazeDepth, boards: s.boards, props: s.props, sites: s.sites },
       breakdown: b && { groups: round(b.groups), shadow: round(b.shadow), total: b.total, shadowTotal: b.shadowTotal },
       quality: ob.game ? ob.game.get().settings.quality : null, lost: ob.renderer.getContext().isContextLost() });
   },

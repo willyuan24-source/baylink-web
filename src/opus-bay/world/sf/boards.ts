@@ -27,7 +27,10 @@ import { CityBatch, GROUND_CITY, type GroundPaint, type PoolArrays, buildGround,
  *   lights      the light field's points for all of it (town windows, freeway lamps, crane and tower aviation lights)
  *
  * Everything goes into the streamer's L1/L2 pools as static items of ≤ 256 u tiles (0 new draw calls; the pools cull
- * per item). Pure except `loadBoards` (fetch); `boardsJob` is a generator the streamer runs in ≈ 2 ms frame slices.
+ * per item), three per tile (BoardItem.lod): the dressing always, the fine ground + trees near, a coarse copy of the
+ * ground (farStep: steps doubled, ≥ 32 u) far — the streamer switches them at BOARD_LOD.near u from the camera, so the
+ * city (the Ferry Building, Twin Peaks, downtown: all > 1.1 km away) draws ≈ 15k triangles less of the boards.
+ * Pure except `loadBoards` (fetch); `boardsJob` is a generator the streamer runs in ≈ 2 ms frame slices.
  */
 
 /** pool ids ≡ 3 mod 4 (never an l1Id / l2Id), after the hero stand-ins (8,999,999 / 9,000,003) */
@@ -38,11 +41,20 @@ const CELL = 64;
 export const BOARD_BINS = 3;
 
 export interface BoardsData { index: BoardIndex; grids: BoardGrid[] }
-export interface BoardItem { id: number; bin: number; toy: PoolArrays | null; ground: PoolArrays | null }
+/**
+ * A pool item of the boards. `lod`: 'all' = always on (the towns, towers, cranes, the east span), 'near' = the fine ground
+ * and the trees, on while the camera is within BOARD_LOD.near u of the item, 'far' = the coarse ground (steps doubled,
+ * >= 32 u), on beyond it (the streamer switches them; the far ground carries the freeways too).
+ */
+export interface BoardItem { id: number; bin: number; lod: 'all' | 'near' | 'far'; toy: PoolArrays | null; ground: PoolArrays | null; /** the 256 u tile (a near and a far item switch together) */ tile: number }
+export { BOARD_LOD } from './boardData';
+/** The far ground's step for a cell of step `s` (coast cells stay <= 32 u so the shore keeps its place). */
+export const farStep = (s: number, coast: boolean) => Math.min(coast ? 32 : 64, Math.max(32, s * 2));
 export interface BoardsBuild {
   items: BoardItem[];
   lights: LightSpec[];
-  triangles: { ground: number; toy: number; bridge: number; total: number };
+  /** the near set (what a close camera draws: 'all' + 'near'); `far`: the far ground (in place of the near ground + trees) */
+  triangles: { ground: number; toy: number; bridge: number; total: number; far: number };
   cells: { marin: number; eastbay: number };
   /** triangles per part (ground / dressing of each board, the freeways, the bridge) and cells per ground step */
   parts: Record<string, number>;
@@ -136,9 +148,9 @@ const CFG: Record<string, BoardCfg> = {
   eastbay: { steps: [16, 32, 64], tol: 4.5, coastMax: 32 },
 };
 
-/** The step for one 64 u cell: the largest whose bilinear surface stays within `tol` of the grid (u). */
-function cellStep(g: BoardGrid, cfg: BoardCfg, x0: number, z0: number): number {
-  if (Math.hypot(x0 + CELL / 2 - GGB_NORTH.x, z0 + CELL / 2 - GGB_NORTH.z) < 60) return 8;
+/** The step for one 64 u cell: the largest whose bilinear surface stays within `tol` of the grid (u); 0 = no land. */
+function cellStep(g: BoardGrid, cfg: BoardCfg, x0: number, z0: number): { step: number; coast: boolean } {
+  if (Math.hypot(x0 + CELL / 2 - GGB_NORTH.x, z0 + CELL / 2 - GGB_NORTH.z) < 60) return { step: 8, coast: true };
   const n = Math.round(CELL / g.step) + 1;
   const ys = new Float32Array(n * n);
   let wet = false, land = false;
@@ -148,7 +160,7 @@ function cellStep(g: BoardGrid, cfg: BoardCfg, x0: number, z0: number): number {
     wet ||= !dry; land ||= dry;
     ys[j * n + i] = dry ? terrainY(h) : 0;
   }
-  if (!land) return 0;
+  if (!land) return { step: 0, coast: false };
   const near = cfg.near && Math.hypot(x0 + CELL / 2 - GGB_NORTH.x, z0 + CELL / 2 - GGB_NORTH.z) < cfg.near.r ? cfg.near : null;
   const steps = near?.steps ?? cfg.steps, tol = near?.tol ?? cfg.tol;
   for (let s = steps.length - 1; s >= 0; s--) {
@@ -163,9 +175,9 @@ function cellStep(g: BoardGrid, cfg: BoardCfg, x0: number, z0: number): number {
       err = Math.max(err, Math.abs(y - ys[j * n + i]));
       if (err > tol) break;
     }
-    if (err <= tol) return S;
+    if (err <= tol) return { step: S, coast: wet };
   }
-  return steps[0];
+  return { step: steps[0], coast: wet };
 }
 
 interface Zone { town: string | null; wood: number }
@@ -224,7 +236,7 @@ function paint(id: string, x: number, z: number, y: number, slope: number): Grou
   return { color: col, pattern, yz };
 }
 
-interface Cell { ix: number; iz: number; step: number }
+interface Cell { ix: number; iz: number; step: number; coast: boolean }
 
 /** Every land cell of a board with its step. */
 function boardCells(g: BoardGrid): Map<number, Cell> {
@@ -233,8 +245,8 @@ function boardCells(g: BoardGrid): Map<number, Cell> {
   const i0 = Math.floor(g.originX / CELL), i1 = Math.ceil((g.originX + (g.cols - 1) * g.step) / CELL);
   const j0 = Math.floor(g.originZ / CELL), j1 = Math.ceil((g.originZ + (g.rows - 1) * g.step) / CELL);
   for (let iz = j0; iz < j1; iz++) for (let ix = i0; ix < i1; ix++) {
-    const step = cellStep(g, cfg, ix * CELL, iz * CELL);
-    if (step) cells.set(ix * 65536 + iz, { ix, iz, step });
+    const st = cellStep(g, cfg, ix * CELL, iz * CELL);
+    if (st.step) cells.set(ix * 65536 + iz, { ix, iz, step: st.step, coast: st.coast });
   }
   return cells;
 }
@@ -338,19 +350,22 @@ const WHITE = [1.0, 0.95, 0.85] as const;
 /** light field aLevel ≥ 2 = blinking (lights.ts) */
 const BLINK = 2;
 
+/** One 256 u tile of a board: the dressing always on (`toy`), the trees near only (`detail`), the near / far ground. */
+interface Tile { toy: CityBatch; detail: CityBatch; ground: CityBatch; far: CityBatch; bin: number }
 class Tiles {
-  private map = new Map<number, { toy: CityBatch; ground: CityBatch; bin: number }>();
+  private map = new Map<number, Tile>();
   private bin: number;
   constructor(bin: number) { this.bin = bin; }
-  at(x: number, z: number) {
+  at(x: number, z: number): Tile {
     const k = (Math.floor(x / BOARD_TILE) + 64) * 256 + (Math.floor(z / BOARD_TILE) + 64);
     let t = this.map.get(k);
-    if (!t) { t = { toy: new CityBatch(1024), ground: new CityBatch(2048), bin: this.bin }; this.map.set(k, t); }
+    if (!t) { t = { toy: new CityBatch(1024), detail: new CityBatch(256), ground: new CityBatch(2048), far: new CityBatch(512), bin: this.bin }; this.map.set(k, t); }
     return t;
   }
   get all() { return [...this.map.values()]; }
-  /** triangles written so far (toy, ground) */
-  tris(): [number, number] { let t = 0, g = 0; for (const v of this.map.values()) { t += v.toy.indexCount / 3; g += v.ground.indexCount / 3; } return [t, g]; }
+  get entries() { return [...this.map.entries()]; }
+  /** triangles written so far to the near set (toy + trees, near ground) */
+  tris(): [number, number] { let t = 0, g = 0; for (const v of this.map.values()) { t += (v.toy.indexCount + v.detail.indexCount) / 3; g += v.ground.indexCount / 3; } return [t, g]; }
 }
 
 /**
@@ -367,9 +382,14 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
   const mark = (tiles: Tiles, key: string, last: [number, number]) => { const [t, g] = tiles.tris(); parts[key] = (parts[key] ?? 0) + (t - last[0]) + (g - last[1]); last[0] = t; last[1] = g; };
   let nextId = BOARD_ID0;
   const flush = (tiles: Tiles) => {
-    for (const t of tiles.all) {
-      const toy = t.toy.toPool(), ground = t.ground.toPool();
-      if (toy || ground) { out.push({ id: nextId, bin: t.bin, toy, ground }); nextId += 4; }
+    for (const [k, t] of tiles.entries) {
+      const tile = t.bin * 65536 + k;
+      const put = (lod: BoardItem['lod'], toy: PoolArrays | null, ground: PoolArrays | null) => {
+        if (toy || ground) { out.push({ id: nextId, bin: t.bin, lod, toy, ground, tile }); nextId += 4; }
+      };
+      put('all', t.toy.toPool(), null);
+      put('near', t.detail.toPool(), t.ground.toPool());
+      put('far', null, t.far.toPool());
     }
   };
   for (const g of data.grids) {
@@ -388,19 +408,25 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
       return Math.min((h - BOARD_SEA) * 40, d);
     };
     let n = 0;
+    const nb = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     for (const c of cells.values()) {
       const x0 = c.ix * CELL, z0 = c.iz * CELL;
-      // skirts only against a neighbour cell of another step
-      let sides = 0;
-      const nb = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-      for (let k = 0; k < 4; k++) { const o = cells.get((c.ix + nb[k][0]) * 65536 + c.iz + nb[k][1]); if (o && o.step !== c.step) sides |= 1 << k; }
       const t = tiles.at(x0 + CELL / 2, z0 + CELL / 2);
-      buildGround(t.ground, {
-        x0, z0, size: CELL, step: c.step, sdf, height,
-        paint: (x, z, h, slope) => paint(g.id, x, z, h, slope),
-        lip: 1.4, lipColor: () => C(CITY_PAL.lip), skirt: sides ? 3 : 0, skirtSides: sides,
-      });
-      if (++n % 24 === 0) yield;
+      // the near and the far ground (BOARD_LOD); skirts only against a neighbour cell of another step
+      for (const far of [false, true]) {
+        const step = far ? farStep(c.step, c.coast) : c.step;
+        let sides = 0;
+        for (let k = 0; k < 4; k++) {
+          const o = cells.get((c.ix + nb[k][0]) * 65536 + c.iz + nb[k][1]);
+          if (o && (far ? farStep(o.step, o.coast) : o.step) !== step) sides |= 1 << k;
+        }
+        buildGround(far ? t.far : t.ground, {
+          x0, z0, size: CELL, step, sdf, height,
+          paint: (x, z, h, slope) => paint(g.id, x, z, h, slope),
+          lip: 1.4, lipColor: () => C(CITY_PAL.lip), skirt: sides ? 3 : 0, skirtSides: sides,
+        });
+      }
+      if (++n % 16 === 0) yield;
     }
     mark(tiles, `${g.id}.ground`, last);
     // freeways on this board (OSM carriageways): ribbons 0.35 u over the ground
@@ -425,7 +451,7 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
       for (const line of lines) {
         if (line.length < 6) continue;
         const t = tiles.at(line[0], line[2]);
-        ribbon(t.ground, line, r.w, 0.35, asphalt, [P.asphalt, 0, 0, GROUND_CITY], 0, (x, z, y) => Math.max(y, height(x, z)));
+        for (const b of [t.ground, t.far]) ribbon(b, line, r.w, 0.35, asphalt, [P.asphalt, 0, 0, GROUND_CITY], 0, (x, z, y) => Math.max(y, height(x, z)));
         // a lamp every 22 u along the freeways (the light field)
         for (let k = 0; k + 5 < line.length; k += 3) {
           const ax = line[k], az = line[k + 2], bx = line[k + 3], bz = line[k + 5], L = Math.hypot(bx - ax, bz - az);
@@ -447,9 +473,14 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
   const bridgeStart = out.length;
   flush(bridge);
   const tri = (a: PoolArrays | null) => (a ? a.indexCount / 3 : 0);
-  let ground = 0, toy = 0, bridgeTris = 0;
-  out.forEach((it, i) => { if (i >= bridgeStart) bridgeTris += tri(it.toy) + tri(it.ground); else { ground += tri(it.ground); toy += tri(it.toy); } });
+  let ground = 0, toy = 0, bridgeTris = 0, far = 0;
+  out.forEach((it, i) => {
+    if (i >= bridgeStart) bridgeTris += tri(it.toy) + tri(it.ground);
+    else if (it.lod === 'far') far += tri(it.ground);
+    else { ground += tri(it.ground); toy += tri(it.toy); }
+  });
   parts.bridge = bridgeTris;
+  parts.farGround = far;
   // water tiles wholly under board land (tested every 8 u over the tile grown by 16 u: no inlet loses its water)
   const land = (x: number, z: number) => boardsGroundAt(data.grids, x, z) !== null && convexSdf(world, x, z) > 0;
   const landTiles: number[] = [];
@@ -466,7 +497,7 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
   }
   const grids = data.grids;
   return {
-    items: out, lights, triangles: { ground, toy, bridge: bridgeTris, total: ground + toy + bridgeTris }, cells: cellsN, parts,
+    items: out, lights, triangles: { ground, toy, bridge: bridgeTris, total: ground + toy + bridgeTris, far }, cells: cellsN, parts,
     landTiles: Int32Array.from(landTiles), groundAt: (x, z) => boardsGroundAt(grids, x, z), ms: performance.now() - t0,
   };
 }
@@ -526,7 +557,7 @@ function* marinTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (key:
     if (y === null || y < 1.5) continue;
     const zn = zoneOf('marin', px, pz, y);
     if (zn.wood < 0.55 || hash2(px * 0.7, pz * 0.3) > zn.wood * 0.5) continue;
-    tree(tiles.at(px, pz).toy, px, y, pz, 3 + hash2(pz, px) * 3, 1.4 + hash2(px, 1) * 0.8, hash2(px, pz) < 0.5 ? wood : wood2, hash2(pz, 3) * 3);
+    tree(tiles.at(px, pz).detail, px, y, pz, 3 + hash2(pz, px) * 3, 1.4 + hash2(px, 1) * 0.8, hash2(px, pz) < 0.5 ? wood : wood2, hash2(pz, 3) * 3);
   }
   part('trees');
   yield;
@@ -604,7 +635,7 @@ function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (ke
     if (y === null || y < 8) continue;
     const zn = zoneOf('eastbay', px, pz, y);
     if (zn.wood < 0.5 || hash2(px * 0.3, pz * 0.7) > zn.wood * 0.75) continue;
-    tree(tiles.at(px, pz).toy, px, y, pz, 6 + hash2(pz, px) * 5, 3.6 + hash2(px, 7) * 2, hash2(px, pz) < 0.6 ? wood : wood2, hash2(pz, 5) * 3);
+    tree(tiles.at(px, pz).detail, px, y, pz, 6 + hash2(pz, px) * 5, 3.6 + hash2(px, 7) * 2, hash2(px, pz) < 0.6 ? wood : wood2, hash2(pz, 5) * 3);
   }
   part('trees');
   yield;

@@ -9,7 +9,7 @@ import {
   BOARD_NONE, BOARD_SEA, type BoardGrid, type BoardIndex, BoardFormatError, GGB_NORTH, HAWK_HILL, SAUSALITO_FERRY, WORLD_LL,
   boardDem, boardY, convexSdf, decodeBoard, encodeBoard, worldPolygon,
 } from '../src/opus-bay/world/sf/boardData';
-import { BOARD_ID0, boardsGroundAt, buildBoards, SAS } from '../src/opus-bay/world/sf/boards';
+import { BOARD_ID0, BOARD_LOD, boardsGroundAt, buildBoards, farStep, SAS } from '../src/opus-bay/world/sf/boards';
 import { CITY_FAR_FADE, FAR_FADE, patchFog } from '../src/opus-bay/world/fogShader';
 import { TilePool } from '../src/opus-bay/world/sf/pools';
 import { boardPolygon } from '../src/opus-bay/world/sf/water';
@@ -188,4 +188,24 @@ test('the world board edge: no underside fan, pieces of ≤ 1,024 u (one draw ca
   assert.ok(pieces.length >= 8 && pieces.length <= 24, `${pieces.length} pieces`);
   assert.ok(tris > 8000 && tris < 20000, `${tris} triangles`);
   water.dispose();
+});
+
+test('near / far: the dressing always on, the fine ground and the trees near only, a coarse ground (≥ 32 u) far', () => {
+  assert.ok(BOARD_LOD.near >= 900 && BOARD_LOD.hyst > 0 && BOARD_LOD.hyst < BOARD_LOD.near / 4);
+  assert.deepEqual([farStep(8, true), farStep(64 / 6, true), farStep(16, false), farStep(16, true), farStep(32, false), farStep(32, true), farStep(64, false)], [32, 32, 32, 32, 64, 32, 64]);
+  const byTile = new Map<number, { near: number; far: number }>();
+  for (const it of build.items) {
+    if (it.lod === 'all') { assert.equal(it.ground, null, 'the always-on items carry no ground'); continue; }
+    if (it.lod === 'far') assert.equal(it.toy, null, 'the far items are ground only (no trees)');
+    const t = byTile.get(it.tile) ?? { near: 0, far: 0 };
+    t[it.lod]++;
+    byTile.set(it.tile, t);
+  }
+  // every tile that has a near ground has its far ground (they switch together)
+  for (const [k, t] of byTile) assert.ok(t.near <= 1 && t.far <= 1 && (t.far === 1 || t.near === 1), `tile ${k}`);
+  assert.ok(build.triangles.far < build.triangles.ground * 0.6, `far ground ${build.triangles.far} vs near ${build.triangles.ground}`);
+  // what a camera far from both boards draws: the dressing and the far ground, well under the near set
+  const tri = (a: { indexCount: number } | null) => (a ? a.indexCount / 3 : 0);
+  const farSet = build.items.filter(i => i.lod !== 'near' && i.bin !== 2).reduce((n, i) => n + tri(i.toy) + tri(i.ground), 0);
+  assert.ok(farSet < (build.triangles.ground + build.triangles.toy) * 0.7, `far set ${farSet}`);
 });
