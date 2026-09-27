@@ -1,0 +1,145 @@
+/* ==========================================================================
+   Wave 4 · guidance UI (lane G): trip pill + trip card, arrival toast + peek card, panorama tags, waypoint additions.
+   Tokens come from .ob-page (opus-bay.css). Phones: 390 × 844 and 375 × 667 (safe areas via --ob-st / --ob-sb / …).
+   No-overlap rules (plan §4.2): the pill takes the objective slot (.ob-objective rules), the arrival toast lives in the
+   top stack, the peek card sits 72 px above the phone bar (clear of the touch action, whose top is 130 px up), the trip
+   card is a sheet (z 20, like .ob-sheet), the tags and the waypoint share the projected layer (z 7).
+   ========================================================================== */
+
+.ob-trip-card, .ob-trip-card *, .ob-arrival-card, .ob-arrival-card *, .ob-pano-tag { box-sizing: border-box; }
+
+/* ---------- trip pill (the objective slot) ---------- */
+.ob-trip-pill .ob-objective-icon { background: var(--ob-gold); color: #2b2210; }
+.ob-trip-pill .ob-objective-text strong { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.ob-trip-pill-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ob-trip-pill .ob-objective-text strong em { flex: none; font-size: 11.5px; color: var(--ob-gold-d); }
+.ob-trip-pill .ob-objective-text small { color: var(--ob-ink-2); font-variant-numeric: tabular-nums; }
+.ob-trip-pill[aria-expanded='true'] { box-shadow: 0 0 0 3px rgba(224, 169, 74, .35), var(--ob-shadow-s); }
+
+/* ---------- trip card: a card under the pill (desktop), a 40 % bottom sheet (phones) ---------- */
+.ob-trip-card {
+  position: absolute; z-index: 20; right: calc(16px + var(--ob-sr)); top: calc(72px + var(--ob-st)); width: min(360px, calc(100vw - 32px));
+  max-height: min(60vh, 520px); display: flex; flex-direction: column; border-radius: var(--ob-r-l); background: var(--ob-cream);
+  border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow); overflow: hidden; pointer-events: auto; animation: ob-pop .3s var(--ob-spring);
+}
+.ob-trip-card-head { display: flex; align-items: flex-start; gap: 8px; padding: 14px 10px 8px 18px; }
+.ob-trip-card-head > div { flex: 1; min-width: 0; }
+.ob-trip-card-head h3 { font-size: 16px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.ob-trip-card-head p { font-size: 13px; color: var(--ob-ink-2); font-weight: 600; }
+.ob-trip-card-grip { display: none; }
+.ob-trip-legs { list-style: none; margin: 0; padding: 4px 12px 8px; overflow: auto; flex: 1; min-height: 0; }
+.ob-trip-legs li { position: relative; display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px; border-radius: 12px; }
+.ob-trip-legs li + li::before { content: ''; position: absolute; left: 21px; top: -8px; height: 12px; border-left: 2px dashed var(--ob-line-2); }
+.ob-trip-leg-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ob-cream-3); color: var(--ob-ink-2); }
+.ob-trip-leg-text { font-size: 14px; font-weight: 700; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.ob-trip-leg-text small { display: block; font-size: 12px; font-weight: 600; color: var(--ob-ink-3); }
+.ob-trip-leg-time { font-size: 13px; font-weight: 800; color: var(--ob-ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ob-trip-legs li.is-now { background: var(--ob-gold-l); }
+.ob-trip-legs li.is-now .ob-trip-leg-icon { background: var(--ob-gold); color: #2b2210; }
+.ob-trip-legs li.is-done { opacity: .5; }
+.ob-trip-legs li.is-done .ob-trip-leg-text { text-decoration: line-through; text-decoration-color: rgba(34, 50, 47, .35); }
+.ob-trip-card-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 14px calc(14px + var(--ob-sb)); border-top: 1px solid var(--ob-line); }
+.ob-trip-card-actions .ob-btn { flex: 1 1 auto; min-height: 40px; gap: 6px; }
+@media (max-width: 720px) {
+  .ob-trip-card {
+    left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 40vh; height: 40dvh; min-height: 260px; max-height: none;
+    border-radius: 22px 22px 0 0; border-bottom: 0; animation: ob-trip-sheet-in .34s var(--ob-ease);
+  }
+  .ob-trip-card-grip { display: block; position: absolute; left: 50%; top: 6px; width: 38px; height: 4px; margin-left: -19px; border-radius: 2px; background: var(--ob-line-2); }
+  .ob-trip-card-head { padding-top: 16px; }
+  .ob-trip-card-actions { padding-left: calc(14px + var(--ob-sl)); padding-right: calc(14px + var(--ob-sr)); }
+  .ob-trip-card-actions .ob-btn { min-height: 44px; }
+}
+@keyframes ob-trip-sheet-in { from { transform: translateY(100%); } }
+
+/* ---------- arrival: the gold toast (top stack) ---------- */
+.ob-toast.ob-arrival-toast {
+  padding: 12px 22px; font-size: 16.5px; font-weight: 800; letter-spacing: .01em; color: #2b2210;
+  background: linear-gradient(180deg, #f7d796, var(--ob-gold)); border: 2px solid #fff3d6;
+  box-shadow: 0 0 0 3px rgba(224, 169, 74, .28), 0 14px 30px -12px rgba(120, 80, 20, .55); animation: ob-arrival-in .5s var(--ob-spring);
+}
+.ob-toast.ob-arrival-toast { display: flex; flex-direction: column; align-items: center; gap: 1px; border-radius: 22px; }
+.ob-arrival-toast strong { font-weight: 800; line-height: 1.3; }
+.ob-arrival-toast small { font-size: 12.5px; font-weight: 700; line-height: 1.25; opacity: .8; }
+.ob-toast.ob-arrival-toast.is-quiet { color: var(--ob-ink); background: rgba(255, 250, 241, .97); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s); animation: ob-toast-in .4s var(--ob-ease); }
+@keyframes ob-arrival-in { from { opacity: 0; transform: translateY(-10px) scale(.8); } 60% { transform: scale(1.04); } }
+
+/* ---------- arrival: the peek card (6 s) ---------- */
+.ob-arrival-card {
+  position: absolute; z-index: 12; left: calc(16px + var(--ob-sl)); bottom: calc(18px + var(--ob-sb)); width: max(280px, min(380px, calc(50vw - 200px)));
+  display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; padding: 12px 34px 14px 12px; border-radius: 20px;
+  background: rgba(255, 250, 241, .98); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow); pointer-events: auto; overflow: hidden;
+  animation: ob-arrival-card-in .45s var(--ob-spring);
+}
+.ob-arrival-card.tier-1 { border-color: #f1d49a; box-shadow: 0 0 0 2px rgba(224, 169, 74, .35), var(--ob-shadow); }
+.ob-arrival-card.is-quiet { border-color: var(--ob-line); box-shadow: var(--ob-shadow); }
+.ob-arrival-thumb { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; background: var(--ob-terra); color: #fff; }
+.ob-arrival-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ob-arrival-body { min-width: 0; }
+.ob-arrival-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: var(--ob-gold-d); text-transform: uppercase; }
+.ob-arrival-card.is-quiet .ob-arrival-kicker { color: var(--ob-ink-3); }
+.ob-arrival-name { font-size: 16px; font-weight: 800; line-height: 1.25; margin: 1px 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ob-arrival-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ob-arrival-actions .ob-btn { gap: 4px; padding: 0 11px; }
+.ob-arrival-close { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; font-size: 17px; line-height: 1; color: var(--ob-ink-3); }
+.ob-arrival-close:hover { background: var(--ob-cream-3); }
+.ob-arrival-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--ob-gold); transform-origin: left center; animation: ob-arrival-timer var(--ob-arrival-ms, 6000ms) linear forwards; }
+.ob-arrival-card.is-quiet .ob-arrival-timer { background: var(--ob-line-2); }
+.ob-arrival-timer.is-held { animation-play-state: paused; }
+@keyframes ob-arrival-timer { to { transform: scaleX(0); } }
+@keyframes ob-arrival-card-in { from { opacity: 0; transform: translateY(16px) scale(.96); } }
+/* small desktop windows: the centred prompt / move chip could reach the card: it stands above them */
+@media (min-width: 721px) and (max-width: 900px) { .ob-arrival-card { bottom: calc(150px + var(--ob-sb)); } }
+/* phones: 72 px above the phone bar (bar = max(6px, sb) + 56 px): clear of the touch action (its top is 130 px up) and,
+   on the right, of the 跳 / 下车 button column (right 18 px, 56–64 px wide, from 150 px up: actors/TouchControls) */
+@media (max-width: 720px) {
+  .ob-arrival-card {
+    left: calc(12px + var(--ob-sl)); right: calc(84px + var(--ob-sr)); width: auto; bottom: calc(max(6px, var(--ob-sb)) + 56px + 72px);
+    grid-template-columns: 56px 1fr; gap: 10px; padding: 10px 30px 12px 10px;
+  }
+  .ob-arrival-thumb { width: 56px; height: 56px; border-radius: 12px; }
+  .ob-arrival-name { font-size: 15px; margin-bottom: 6px; }
+  .ob-arrival-actions { flex-wrap: nowrap; gap: 5px; }
+  .ob-arrival-actions .ob-btn { padding: 0 9px; font-size: 13px; }
+}
+@media (max-width: 420px) { .ob-arrival-actions .ob-btn svg { display: none; } }
+@media (pointer: coarse) {
+  .ob-arrival-actions .ob-btn { min-height: 44px; }
+  .ob-arrival-close { width: 36px; height: 36px; top: 2px; right: 2px; }
+}
+/* a dialogue or a sheet takes the screen: the card steps back (it comes back if its time is not up) */
+.ob-overlay.is-talking .ob-arrival-card, .ob-overlay.is-modal .ob-arrival-card { opacity: 0; pointer-events: none; transform: translateY(12px); transition: opacity .2s, transform .3s var(--ob-ease); }
+@media (max-width: 720px) { .ob-overlay.has-sheet .ob-arrival-card { display: none; } }
+
+/* ---------- panorama tags (projected, z 7 like the waypoint) ---------- */
+.ob-pano { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+.ob-pano-tag {
+  position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px 0 7px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 800; line-height: 1; white-space: nowrap; color: var(--ob-ink); background: rgba(255, 250, 241, .95);
+  border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s); pointer-events: auto; will-change: transform; transition: opacity .3s;
+  animation: ob-pano-in .45s var(--ob-spring) backwards;
+}
+.ob-pano-tag::before { content: ''; position: absolute; inset: -9px -4px; }
+.ob-pano-tag[data-show='0'] { opacity: 0; pointer-events: none; }
+.ob-pano-tag.rank-1 { font-size: 13px; }
+.ob-pano-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ob-tag-color, var(--ob-terra)); box-shadow: 0 0 0 2px #fff; flex: none; }
+.ob-pano-lead { position: absolute; top: 100%; left: var(--ob-lead-x, 50%); width: 0; height: var(--ob-lead, 0px); border-left: 1.5px solid rgba(34, 50, 47, .45); pointer-events: none; }
+/* (the projector owns `transform`: the entrance uses the separate translate / scale properties) */
+@keyframes ob-pano-in { from { opacity: 0; translate: 0 6px; scale: .9; } }
+
+/* ---------- waypoint additions (written by the projector: data-label, data-notch; the arrow turns the camera) ---------- */
+/* game/waypoint.ts layoutWaypoint places the label box: --ob-label-dy = its top below the pin (under it, dropped below the
+   bubble, or beside an edge arrow); only once the projector writes data-label (the wave-3 projector never does) */
+.ob-waypoint[data-label] .ob-waypoint-label { top: var(--ob-label-dy, 16px); }
+.ob-waypoint[data-label='none'] .ob-waypoint-label, .ob-waypoint[data-label='none'] .ob-waypoint-dismiss { opacity: 0; pointer-events: none; }
+.ob-waypoint[data-label='short'] .ob-waypoint-label { padding: 3px 8px; }
+.ob-waypoint[data-notch='1'] { opacity: .7; }
+.ob-waypoint[data-notch='1'] .ob-waypoint-pin::after { content: ''; position: absolute; right: -6px; bottom: -6px; width: 7px; height: 7px; border-radius: 2px; background: var(--ob-ink-2); border: 2px solid #fff; }
+.ob-waypoint[data-edge='1'] .ob-waypoint-arrow { pointer-events: auto; cursor: pointer; }
+.ob-waypoint[data-edge='1'] .ob-waypoint-arrow::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ob-trip-card, .ob-arrival-card, .ob-toast.ob-arrival-toast, .ob-pano-tag { animation: none; }
+  .ob-arrival-timer { display: none; }
+}
