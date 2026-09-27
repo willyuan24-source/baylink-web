@@ -1,4 +1,5 @@
 import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
+import type { SfPlaceKind } from '../../world/sf/format';
 import { sfLandmarkAnchor } from '../../world/sf/landmarks/context';
 import { SF_LANDMARK_INFO, type SfLandmarkInfo } from './landmarks';
 
@@ -108,3 +109,39 @@ export const CITY_PHOTO_SOURCE_PAGES: Record<string, string> = Object.fromEntrie
 export const CITY_SUBJECT_FACTS: Record<string, { name: Bilingual; fact: Bilingual; sourceUrl: string; verifiedAt: string }> = Object.fromEntries(
   SF_LANDMARK_INFO.map(info => [info.id, { name: gloss(info.name), fact: gloss(info.bark), sourceUrl: info.realInfo.sourceUrl, verifiedAt: info.realInfo.verifiedAt }]),
 );
+
+// ---------------------------------------------------------------------------------------------------------------
+// City places that are not landmarks (G1's request 3): `openPanel('poi', 'sf:<placeId>')`
+// ---------------------------------------------------------------------------------------------------------------
+
+/** What a place is, for its card (world/sf/format SfPlaceKind). */
+export const PLACE_KIND_NAMES: Record<SfPlaceKind, Bilingual> = {
+  landmark: { zh: '地标', en: 'Landmark' }, bridge: { zh: '桥', en: 'Bridge' }, island: { zh: '岛', en: 'Island' },
+  skyscraper: { zh: '高楼', en: 'Skyscraper' }, park: { zh: '公园', en: 'Park' }, museum: { zh: '博物馆', en: 'Museum' },
+  waterfront: { zh: '海滨', en: 'Waterfront' }, transit: { zh: '交通站点', en: 'Transit stop' }, street: { zh: '街道', en: 'Street' },
+  plaza: { zh: '广场', en: 'Plaza' }, civic: { zh: '公共建筑', en: 'Civic building' }, stadium: { zh: '球场', en: 'Stadium' },
+  historic: { zh: '历史古迹', en: 'Historic site' }, neighbourhood: { zh: '街区', en: 'Neighbourhood' }, garden: { zh: '花园', en: 'Garden' },
+  beach: { zh: '海滩', en: 'Beach' }, trail: { zh: '步道', en: 'Trail' }, hill: { zh: '山丘', en: 'Hill' }, tower: { zh: '塔', en: 'Tower' },
+  water: { zh: '水域', en: 'Water' }, attraction: { zh: '景点', en: 'Attraction' }, viewpoint: { zh: '观景点', en: 'Viewpoint' },
+  peak: { zh: '山顶', en: 'Peak' },
+};
+
+/** The fields of G1's CityPlace (data/sf/places.ts) a place card reads. */
+export interface PlaceCardInput { id: string; name: Bilingual; kind: SfPlaceKind; landmark?: string; poi?: string }
+
+/**
+ * What `openPanel('poi', id)` shows for a city id that is not a POI (PoiCard): a place standing for a landmark opens
+ * that landmark's card, a hero place merged with a district POI opens the POI's card, any other place gets its own
+ * place card. `id` is `sf:<placeId>`; `lookup` is G1's placeById.
+ */
+export function placeCardTarget<P extends PlaceCardInput>(id: string | undefined, lookup: (placeId: string) => P | undefined): { poi: string } | { place: P } | null {
+  if (!id?.startsWith(CITY_POI_PREFIX)) return null;
+  const place = lookup(id.slice(CITY_POI_PREFIX.length));
+  if (!place) return null;
+  if (place.landmark) return { poi: cityPoiId(place.landmark) };
+  if (place.poi) return { poi: place.poi };
+  return { place };
+}
+
+/** A place's name for the card title: the glossary on zh (OSM zh names are sometimes the English name). */
+export const placeCardName = (name: Bilingual): Bilingual => gloss(name);

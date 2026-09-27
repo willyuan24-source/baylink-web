@@ -349,3 +349,33 @@ test('G2 w3: city hooks resolve; the city call menu / tour-after lead to the cit
   for (const l of script.CITY_NPC_LINES) assert.ok(script.NODES[l.nodeId] && script.NODES[`${l.nodeId}.2`], `${l.key} has lines`);
   assert.deepEqual(script.NPC_LINES.map(l => l.key), script.DISTRICT_NPC_LINES.map(l => l.key), 'node tests resolve district: residents unchanged');
 });
+
+test('G1 request 3: sf:<placeId> resolves to the landmark card, the merged POI card or a place card', async () => {
+  const { buildPlaceIndex, landmarkInputsFrom, poiInputs } = await import('../src/opus-bay/data/sf/places');
+  const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
+  const { PLACE_KIND_NAMES, placeCardTarget, placeCardName } = await import('../src/opus-bay/data/sf/cityPois');
+  const file = readJson('public/opus-bay/sf/v1/places.json');
+  const ix = buildPlaceIndex(file, landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor), poiInputs());
+  const lookup = (id: string) => ix.get(id);
+  const cityIds = new Set(CITY_POIS.map(p => p.id)), districtIds = new Set(pois.DISTRICT_POIS.map(p => p.id));
+  let cards = 0, landmarks = 0, merged = 0;
+  for (const p of ix.list) {
+    const target = placeCardTarget(`sf:${p.id}`, lookup);
+    assert.ok(target, `${p.id} resolves`);
+    if ('poi' in target) {
+      if (p.landmark) { landmarks++; assert.ok(cityIds.has(target.poi), `${p.id} → its landmark card ${target.poi}`); }
+      else { merged++; assert.ok(districtIds.has(target.poi), `${p.id} → the district card ${target.poi}`); }
+    } else {
+      cards++;
+      assert.ok(PLACE_KIND_NAMES[target.place.kind], `${p.id}: kind ${target.place.kind} has a name`);
+      assert.match(target.place.sourceUrl, /^https:\/\//);
+      const name = placeCardName(target.place.name);
+      assert.ok(name.zh.trim() && name.en.trim(), `${p.id}: a title in both languages`);
+    }
+  }
+  assert.equal(landmarks, 24, 'every landmark place opens its landmark card');
+  assert.ok(merged >= 5 && cards > 900, `merged ${merged}, own cards ${cards}`);
+  assert.equal(placeCardTarget('sf:no-such-place', lookup), null);
+  assert.equal(placeCardTarget('ferry-building', lookup), null, 'not an sf: id');
+  for (const kind of new Set(ix.list.map(p => p.kind))) assert.ok(PLACE_KIND_NAMES[kind], `kind ${kind} named`);
+});
