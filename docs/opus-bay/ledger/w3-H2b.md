@@ -37,3 +37,25 @@ Balance before the batch: 498.28 (07:53 UTC).
 Transactions (07:54:55–07:54:56 UTC, no other spend in between): Nano Banana Pro −4 ×4, Seedream 4.5 −1 ×2,
 Seedream 5.0 Pro −2.5 ×1. **Subtotal T2: 20.5 credits.** Balance 498.28 → 477.78. No retake round (c4 passed).
 Downloads: the CDN reset the connection on 5 of the first 7 GETs (curl error 35) and served all of them on retry.
+
+## Part b · voice lines (H2b-6/7/8), 2026-09-27 08:37–09:06 UTC
+
+Model qwen_audio_tts (Qwen Audio 3.0 TTS Flash), preset "Pixie" `0178ef57-ada4-43d9-992b-8d9221045bb4`, wav 48 kHz,
+`language` zh / en, instruction = the shipped district instruction ("Cute otter mascot: warm, cheerful, bright but not
+shrill; snappy playful delivery.") + one mood note (the service caps an instruction at 128 characters). `get_cost`
+0.01 per job (longer texts are billed 0.02). Take list: `scripts/opus-sf/voice/takes.ts`; every job id with its text,
+instruction, seed and speech rate: `docs/opus-bay/h2b/voice-takes.json`; measurements and picks:
+`docs/opus-bay/h2b/voice-report.json`. Raw wavs: `C:/Users/willy/opus-qa/w3/h2b/voice/raw/<index>.wav`.
+
+Balance before: 477.78 (08:37 UTC; the last spend before was H2b-T2 at 07:54:56).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-V1 | 20 city lines × zh / en, 3 takes each | qwen_audio_tts, Pixie, wav 48k, seeds 11 / 22 / 33 (one retry on seed 44) | 8 mode firsts + 12 neighbourhood greetings (data/voiceLinesSf.ts SF_VOICE_LINES) | 120 jobs | voice-takes.json #0–119 | raw/0–119.wav | picks below |
+| H2b-V2 | re-records zh-yay / zh-think / zh-arrived, 2 phrasings × 3 seeds | same, note per word ("crisp 好 (hǎo), bright high 耶" …) | 好耶！ 好耶～！ · 嗯…让我想想 嗯——让我想想。 · 到啦！ 到啦～！ | 18 jobs | voice-takes.json #120–137 | raw/120–137.wav | picks below |
+| H2b-V3 | round 2: 14 clips over 2 s or with < 2 distinct passing takes, 3 speech rates each; re-record phrasings | same, seed 11, speech_rate 1.1 / 1.2 / 1.3 (re-records 0.9–1.15) | the same texts; 好耶好耶！, 我们到啦！, 嗯，让我想想。 | 53 jobs | voice-takes.json #138–190 | raw/138–190.wav | picks below |
+| H2b-V-fail | 33 submissions the service failed (status failed, 'type image' in the job record) | same | retried with the same parameters (#20 on seed 44) | 0 (all refunded) | 3082fe18, 90ffa0a1, 7400876e, 4a44ea29, a2539c81, c3d824ef, e3b84649, fdc26e9b, a7069b0b, ad95281e, d6c1e6f8, 2edfb3a3, 1482ddc8, 33a80f19, 7177f00e, f9d20872, ced9009f, 6668e867, 6f7d8ac7, 01ee342b, b1c573b5, cf1b5001, ee36947e, 77d48a36, 3d9e685f, 48e55218, 825353cd, 248106ce, ec41663a, bc312beb, cd12c904, 776077e5, c766f287 | - | refunded |
+
+Picks (clip → job id prefix): zh-first-bike 6a826864, zh-first-car 5919e43c, zh-first-cable-car 8edbea5b, zh-first-streetcar aea6933b, zh-first-ferry a698a207, zh-first-glide fc43304a, zh-first-hill 4e6c0b5c, zh-first-crest a8ea813c; en-first-bike db9a068e, en-first-car b349ce05, en-first-cable-car 4c63bd08, en-first-streetcar 851acf7f, en-first-ferry e0a6e81e, en-first-glide 6e400d50, en-first-hill d96dd651, en-first-crest 859b1e91; zh-zone-chinatown cb837ad5, zh-zone-north-beach 43da724b, zh-zone-mission 5b2ecdb2, zh-zone-castro-upper-market e3c79b4a, zh-zone-haight-ashbury 0497bd1b, zh-zone-marina 23922e5e, zh-zone-twin-peaks 72f1e530, zh-zone-golden-gate-park 325c70a8, zh-zone-financial-district-south-beach 54c19945, zh-zone-presidio b05ef19a, zh-zone-nob-hill bdb7f4cd, zh-zone-sunset-parkside 8682a5cb; en-zone-chinatown 9974cc47, en-zone-north-beach 5073e4df, en-zone-mission 08c00c54, en-zone-castro-upper-market 7cf37dba, en-zone-haight-ashbury b1231999, en-zone-marina d2f81d27, en-zone-twin-peaks a2d56d95, en-zone-golden-gate-park 83d5a94f, en-zone-financial-district-south-beach 40b86cad, en-zone-presidio d4a9c9a6, en-zone-nob-hill 1825efe1, en-zone-sunset-parkside f82c740e; zh-yay 0a4d3369, zh-think d41595dc, zh-arrived f1b2ead6. Full ids in voice-report.json.
+
+Transactions 08:37:56–09:05:45 UTC: only "Qwen Audio 3.0 TTS Flash" (224 submitted jobs at 0.01–0.02 each: 191 completed, 33 failed and refunded); no other lane spent in between. **Subtotal voice: 2.06 credits.** Balance 477.78 → 475.72 (`balance` at 09:07 UTC). Notes: the service often ignores the seed (byte-identical files for two or three of the seeds 11 / 22 / 33 on 14 of 46 text groups), so round 2 varied `speech_rate`; batches of 12 hit HTTP 429 (rate limit) — batches of 10 mostly pass.

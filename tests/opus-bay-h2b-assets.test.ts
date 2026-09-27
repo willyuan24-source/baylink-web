@@ -138,3 +138,73 @@ test('map paper: the registration check of v1 passed the coast gate and describe
     assert.equal(`/${e.path.replace(/^public\//, '')}`, MAP_PAPER_V1.sizes[w]);
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// BAYBAY's recorded city lines (H2b-6..9)
+// ---------------------------------------------------------------------------------------------------------------------
+
+const { SF_VOICE_LINES, SF_VOICE_CLIPS, SF_VOICE_REDOS, SF_VOICE_UNMUTE, SF_VOICE_ZONES } = await import('../src/opus-bay/data/voiceLinesSf');
+const { MUTED_CLIPS } = await import('../src/opus-bay/audio/voice');
+const { ASSETS } = await import('../src/opus-bay/data/assets');
+
+interface VoiceReport {
+  clips: Record<string, { text: string; pick?: { text: string; duration: number; files: Record<'m4a' | 'ogg', { path: string; bytes: number; sha256: string }> } }>;
+}
+const voiceReport = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../docs/opus-bay/h2b/voice-report.json'), 'utf8')) as VoiceReport;
+
+test('voice: every city line has a zh and an en clip that says it, each ≤ 2 s; the re-records override the district ids', () => {
+  const ids = Object.keys(SF_VOICE_LINES);
+  assert.equal(ids.length, 20);
+  assert.equal(ids.filter(id => id.startsWith('first-')).length, 8);
+  for (const id of ids) {
+    const line = SF_VOICE_LINES[id];
+    for (const lang of ['zh', 'en'] as const) {
+      const clip = SF_VOICE_CLIPS[`${lang}-${id}`];
+      assert.ok(clip, `${lang}-${id}`);
+      assert.equal(clip.lang, lang);
+      assert.equal(clip.text, line[lang], `${lang}-${id} says the line`);
+      assert.ok(clip.duration > 0.3 && clip.duration <= 2.0, `${lang}-${id} ${clip.duration} s`);
+      assert.equal(clip.m4a, `/opus-bay/voice/sf/${lang}-${id}.m4a`);
+      assert.equal(clip.ogg, `/opus-bay/voice/sf/${lang}-${id}.ogg`);
+    }
+  }
+  assert.deepEqual(Object.keys(SF_VOICE_REDOS).sort(), ['zh-arrived', 'zh-think', 'zh-yay']);
+  assert.equal(Object.keys(SF_VOICE_CLIPS).length, 2 * ids.length + 3);
+  // ASSETS.voice lists each clip in the container this runtime decodes (the player plays listed ids only)
+  for (const [id, clip] of Object.entries(SF_VOICE_CLIPS)) assert.ok([clip.m4a, clip.ogg].includes(ASSETS.voice[id]), id);
+});
+
+test('voice: the re-records stay muted until the owner approves them by ear', () => {
+  assert.deepEqual([...SF_VOICE_UNMUTE], []);
+  for (const id of Object.keys(SF_VOICE_REDOS)) assert.ok(MUTED_CLIPS.has(id), `${id} muted`);
+  assert.ok(!MUTED_CLIPS.has('zh-first-bike') && !MUTED_CLIPS.has('en-zone-chinatown'));
+});
+
+test('voice: the neighbourhood greetings use real far.zones ids, one line each', async () => {
+  const { decodeFarFile } = await import('../src/opus-bay/world/sf/format');
+  const far = await decodeFarFile(new Uint8Array(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/far.obc'))));
+  const zones = new Set(far.zones.map(z => z.id));
+  assert.equal(SF_VOICE_ZONES.length, 12);
+  for (const z of SF_VOICE_ZONES) {
+    assert.ok(zones.has(z), `far zone ${z}`);
+    assert.ok(SF_VOICE_LINES[`zone-${z}`], `line zone-${z}`);
+  }
+  assert.equal(Object.keys(SF_VOICE_LINES).filter(id => id.startsWith('zone-')).length, SF_VOICE_ZONES.length);
+});
+
+test('voice: the files on disk are the picks of the report (bytes, sha256, duration, text)', () => {
+  for (const [id, clip] of Object.entries(SF_VOICE_CLIPS)) {
+    const pick = voiceReport.clips[id]?.pick;
+    assert.ok(pick, `${id} picked`);
+    assert.equal(pick.text, clip.text, id);
+    assert.ok(Math.abs(pick.duration - clip.duration) <= 0.005, `${id} ${pick.duration} vs ${clip.duration}`);
+    for (const ext of ['m4a', 'ogg'] as const) {
+      const url = clip[ext];
+      const buf = fs.readFileSync(publicFile(url));
+      assert.equal(`/${pick.files[ext].path.replace(/^public\//, '')}`, url);
+      assert.equal(buf.length, pick.files[ext].bytes, url);
+      assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), pick.files[ext].sha256, url);
+      assert.ok(buf.length < 24_000, `${url} ${buf.length} B`);
+    }
+  }
+});
