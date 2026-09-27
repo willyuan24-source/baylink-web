@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { patchFog } from './sf/fog';
+import { patchFog } from './fogShader';
 
 /**
  * Shared materials + uniforms for the world. Almost everything static uses one of two
@@ -58,6 +58,7 @@ uniform float uNight;
 uniform vec3 uPlayer;
 uniform vec3 uCam;
 uniform float uFade;
+uniform float uTierFade;
 float obHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float obNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
@@ -72,6 +73,32 @@ float obBayer8(vec2 p) {
   return (float(v) + 0.5) / 64.0;
 }
 `;
+
+/**
+ * Tier cross-fade (lane C2-10), first thing in TOY's and GROUND's colour step: a streamed cell switching tier keeps its
+ * outgoing tier for TIER_FADE s while the incoming one dithers in, the two under complementary 8×8 Bayer masks (never both
+ * on one pixel, never a hole). The fade value is `uTierFade` on plain meshes (0 = solid: every material that does not
+ * set it) and the batching colour's alpha on the BatchedMesh pools (1 = solid): [0, 1) = coming in, drawn where the
+ * dither is under it; [-2, -1] = going out (t = value + 2), drawn where it is not. A uniform and a texel: no new program.
+ */
+export const TIER_FADE_FRAG = /* glsl */ `
+{
+  float obTier = uTierFade != 0.0 ? uTierFade : 1.0;
+#ifdef USE_BATCHING_COLOR
+  obTier = vColor.a;
+#endif
+  if (obTier < 0.999) {
+    float obB = obBayer8(gl_FragCoord.xy);
+    if (obTier >= 0.0 ? obB >= obTier : obB < obTier + 2.0) discard;
+  }
+}`;
+
+/** Fade value of a tier coming in (t 0 → 1) and of the one going out (its complement), see TIER_FADE_FRAG. */
+export const tierFadeIn = (t: number) => (t >= 1 ? 1 : Math.max(1e-3, t));
+export const tierFadeOut = (t: number) => Math.min(1, Math.max(0, t)) - 2;
+
+/** The uniform every TOY / GROUND material without its own fade reads (0 = solid). */
+const TIER_SOLID = { value: 0 };
 
 /** Vertex half of the TOY patch: aInfo / vInfo / vWPos / vWN varyings (batching + instancing aware), optional wind sway. */
 export function patchCommonVertex(shader: THREE.WebGLProgramParametersWithUniforms, sway: boolean) {
@@ -128,10 +155,21 @@ vInfo = aInfo;`);
 export const GROUND_CITY = 1;
 export const GROUND_PATTERN = { none: 0, pavers: 1, stone: 2, planks: 3, grass: 4, asphalt: 5, cobble: 6, earth: 7, brick: 8 } as const;
 
-export const GROUND = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.94, metalness: 0 });
-GROUND.name = 'ob-ground';
-GROUND.onBeforeCompile = shader => {
+function groundCompile(tier: { value: number }) {
+  return (shader: THREE.WebGLProgramParametersWithUniforms) => patchGroundShader(shader, tier);
+}
+
+function makeGround(name: string, tier: { value: number } = TIER_SOLID) {
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.94, metalness: 0 });
+  m.name = name;
+  m.onBeforeCompile = groundCompile(tier);
+  m.customProgramCacheKey = () => 'ob-ground';
+  return m;
+}
+
+function patchGroundShader(shader: THREE.WebGLProgramParametersWithUniforms, tier: { value: number }) {
   Object.assign(shader.uniforms, U);
+  shader.uniforms.uTierFade = tier;
   patchCommonVertex(shader, false);
   patchFog(shader, { world: 'vWPos' });
   shader.fragmentShader = shader.fragmentShader
@@ -170,6 +208,7 @@ vec2 obHerring(vec2 p) {
   return vec2(0.5, 0.5);
 }`)
     .replace('#include <color_fragment>', /* glsl */ `#include <color_fragment>
+${TIER_FADE_FRAG}
 {
   float pat = floor(vInfo.x + 0.5);
   vec2 p = vWPos.xz;
@@ -239,7 +278,14 @@ vec2 obHerring(vec2 p) {
     }
   }
 }`);
-};
+}
+
+export const GROUND = makeGround('ob-ground');
+/**
+ * GROUND for BatchedMesh (the city ground pool): the same patch and program key, hence the same programs; its own
+ * instance so the plain-mesh GROUND never flips programs (see TOY_BATCH below).
+ */
+export const GROUND_BATCH = makeGround('ob-ground-batch');
 
 // ---------------------------------------------------------------------------
 // Toy (buildings, props, landmarks, vehicles)
@@ -251,6 +297,7 @@ vec2 obHerring(vec2 p) {
  * w = glow ((0,1] at night, (1,2] always); w ≤ −1 marks "never dither-fade" with glow −w − 1.
  */
 export const TOY_FRAG = /* glsl */ `#include <color_fragment>
+${TIER_FADE_FRAG}
 float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
 {
   bool obKeep = vInfo.w < -0.5;
@@ -347,15 +394,17 @@ float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
 if (obGlowW > 1.0) totalEmissiveRadiance += diffuseColor.rgb * (obGlowW - 1.0) * 1.6;
 else if (obGlowW > 0.0) totalEmissiveRadiance += diffuseColor.rgb * uNight * 2.4 * obGlowW;`;
 
-interface ToyOpts { sway: boolean; name: string; hero?: { value: number } }
+interface ToyOpts { sway: boolean; name: string; hero?: { value: number }; /** program cache key (default: the name) */ key?: string; /** own tier-fade uniform (C2-10) */ tier?: { value: number } }
 
 /**
  * The whole TOY patch for an onBeforeCompile: shared uniforms (U), vertex half, fragment pars + TOY_FRAG. With `hero`
  * the material must also define OB_HERO (whole-mesh dither fade driven by hero.value). Day-0 export for other lanes.
  */
-export function patchToyShader(shader: THREE.WebGLProgramParametersWithUniforms, { sway, hero }: { sway: boolean; hero?: { value: number } }) {
+export function patchToyShader(shader: THREE.WebGLProgramParametersWithUniforms, { sway, hero, tier }: { sway: boolean; hero?: { value: number }; tier?: { value: number } }) {
   Object.assign(shader.uniforms, U);
   if (hero) shader.uniforms.uHeroFade = hero;
+  // C2-10: the tier fade (0 = solid unless the material brings its own uniform)
+  shader.uniforms.uTierFade = tier ?? TIER_SOLID;
   patchCommonVertex(shader, sway);
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${COMMON_FRAG_PARS}${hero ? '\nuniform float uHeroFade;' : ''}`)
@@ -364,12 +413,12 @@ export function patchToyShader(shader: THREE.WebGLProgramParametersWithUniforms,
   patchFog(shader, { world: 'vWPos' });
 }
 
-function makeToy({ sway, name, hero }: ToyOpts) {
+function makeToy({ sway, name, hero, key: k, tier }: ToyOpts) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0 });
   m.name = name;
   if (hero) m.defines = { OB_HERO: '' };
-  m.onBeforeCompile = shader => { patchToyShader(shader, { sway, hero }); };
-  const key = hero ? 'ob-toy-hero' : name;
+  m.onBeforeCompile = tier ? shader => { patchToyShader(shader, { sway, hero, tier }); } : shader => { patchToyShader(shader, { sway, hero }); };
+  const key = hero ? 'ob-toy-hero' : k ?? name;
   m.customProgramCacheKey = () => key;
   return m;
 }
@@ -385,6 +434,31 @@ export const TOY_DYN = makeToy({ sway: false, name: 'ob-toy-dyn' });
 export const TOY_INST = makeToy({ sway: false, name: 'ob-toy-inst' });
 
 /**
+ * One material instance per object kind (wave 3, P2). three.js keeps one "current program" per material instance and
+ * re-looks it up (getParameters + the cache key, ≈ 9 % of a dense 4× frame) every time the same instance is drawn by a
+ * different kind of object: Mesh ↔ BatchedMesh, InstancedMesh with ↔ without instanceColor. These twins run the same
+ * onBeforeCompile under the same program cache key as their originals, so they link the SAME programs (no new program,
+ * nothing to warm up beyond the variants warmup.ts already compiles); only the per-instance lookup cache differs.
+ *
+ *   TOY / GROUND        plain Mesh (hero chunks, city L0 cells, landmark sites, tile pools)
+ *   TOY_BATCH / GROUND_BATCH   BatchedMesh (the L1 / L2 pools)
+ *   TOY_INST            InstancedMesh without instanceColor
+ *   TOY_INST_TINT       InstancedMesh with instanceColor (city trees and lamps, Karl's cloud bank, tinted life)
+ */
+export const TOY_BATCH = makeToy({ sway: true, name: 'ob-toy-batch', key: 'ob-toy' });
+
+/**
+ * A pair of plain-mesh TOY / GROUND twins with their own tier-fade uniform, for one streamed L0 cell while it fades
+ * (lane C2-10; world/sf/stream.ts keeps a few). Same programs as TOY / GROUND.
+ */
+export interface TierFadePair { toy: THREE.MeshStandardMaterial; ground: THREE.MeshStandardMaterial; fade: { value: number } }
+export function makeTierFadePair(): TierFadePair {
+  const fade = { value: 0 };
+  return { toy: makeToy({ sway: true, name: 'ob-toy-fade', key: 'ob-toy', tier: fade }), ground: makeGround('ob-ground-fade', fade), fade };
+}
+export const TOY_INST_TINT = makeToy({ sway: false, name: 'ob-toy-inst-tint', key: 'ob-toy-inst' });
+
+/**
  * Hero landmark material: same program for every hero (shared cache key), one uniform object per mesh, so
  * each hero fades as a whole (`fade.value` 0 … ~0.35) when it stands between the camera and the player.
  */
@@ -392,6 +466,69 @@ export function makeHeroMaterial(name: string) {
   const fade = { value: 0 };
   const material = makeToy({ sway: true, name: `ob-hero:${name}`, hero: fade });
   return { material, fade };
+}
+
+// ---------------------------------------------------------------------------
+// One material instance per object kind: the sweep (wave 3, P2)
+// ---------------------------------------------------------------------------
+
+/**
+ * The shared materials' twins (TOY / TOY_BATCH, GROUND / GROUND_BATCH, TOY_INST / TOY_INST_TINT) only help if every
+ * object uses the one for its kind. `kindSweep` (WorldScene, once a second) puts objects that picked the wrong twin of
+ * these C2 materials on the right one (a lane's tinted InstancedMesh on TOY_INST, a BatchedMesh on TOY …: same program,
+ * so nothing recompiles) and gives shadow casters their kind's depth material (below). Lanes still pick the right twin
+ * themselves; the sweep keeps a late setColorAt or a new layer from bringing the per-frame lookups back.
+ *
+ * The sun's shadow pass draws every caster with ONE internal MeshDepthMaterial, so each switch between a plain, an
+ * instanced and a skinned caster re-looks-up its program (3 lookups a frame at every perf spot: hero meshes, the
+ * cable cars / turntable discs, the player). Instanced and skinned casters get their own depth material instead (same
+ * programs as three's: nothing new to compile), assigned by `shadowDepthByKind` to casters that have no
+ * customDepthMaterial and whose material needs no per-material depth variant (alpha-tested maps, displacement, clipping:
+ * three clones its depth material for those itself).
+ */
+const DEPTH_BY_KIND = { inst: new THREE.MeshDepthMaterial(), instColor: new THREE.MeshDepthMaterial(), skinned: new THREE.MeshDepthMaterial() };
+for (const [k, m] of Object.entries(DEPTH_BY_KIND)) m.name = `ob-depth-${k}`;
+
+function plainDepth(m: THREE.Material): boolean {
+  const s = m as THREE.MeshStandardMaterial;
+  return !(s.alphaMap && s.alphaTest > 0) && !(s.map && s.alphaTest > 0) && !(s.displacementMap && s.displacementScale !== 0) && s.alphaToCoverage !== true && !(s.clippingPlanes?.length);
+}
+
+/** The twin of a shared C2 material for an object's kind (null: not one of the twinned materials, or already right). */
+function twinFor(o: THREE.Object3D, m: THREE.Material): THREE.Material | null {
+  const batched = !!(o as THREE.BatchedMesh).isBatchedMesh, inst = o as THREE.InstancedMesh;
+  if (m === TOY && batched) return TOY_BATCH;
+  if (m === TOY_BATCH && !batched) return TOY;
+  if (m === GROUND && batched) return GROUND_BATCH;
+  if (m === GROUND_BATCH && !batched) return GROUND;
+  if (inst.isInstancedMesh && m === TOY_INST && inst.instanceColor) return TOY_INST_TINT;
+  if (inst.isInstancedMesh && m === TOY_INST_TINT && !inst.instanceColor) return TOY_INST;
+  return null;
+}
+
+/**
+ * Put every object under `root` on its kind's twin of the shared materials and give instanced / skinned shadow casters
+ * their kind's depth material (a scene walk: call it now and then, not every frame). Returns how many objects changed.
+ */
+export function kindSweep(root: THREE.Object3D): number {
+  let n = 0;
+  root.traverse(o => {
+    const r = o as THREE.Mesh;
+    if (r.isMesh && r.material && !Array.isArray(r.material)) {
+      const twin = twinFor(o, r.material);
+      if (twin) { r.material = twin; n++; }
+    }
+    if (!o.castShadow || o.customDepthMaterial) return;
+    const mesh = o as THREE.Mesh;
+    const inst = o as THREE.InstancedMesh;
+    const kind = inst.isInstancedMesh ? (inst.instanceColor ? 'instColor' : 'inst') : (o as THREE.SkinnedMesh).isSkinnedMesh ? 'skinned' : null;
+    if (!kind || !mesh.material || mesh.geometry?.morphAttributes.position || inst.morphTexture) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    if (!mats.every(plainDepth)) return;
+    o.customDepthMaterial = DEPTH_BY_KIND[kind];
+    n++;
+  });
+  return n;
 }
 
 // ---------------------------------------------------------------------------
@@ -490,7 +627,7 @@ export const POOL = new THREE.ShaderMaterial({
 });
 
 export function disposeMaterials() {
-  for (const m of [GROUND, TOY, TOY_DYN, TOY_INST, BLOB, HALO, POOL]) m.dispose();
+  for (const m of [GROUND, GROUND_BATCH, TOY, TOY_DYN, TOY_INST, TOY_BATCH, TOY_INST_TINT, BLOB, HALO, POOL, ...Object.values(DEPTH_BY_KIND)]) m.dispose();
   blobTex?.dispose();
   blobTex = null;
 }

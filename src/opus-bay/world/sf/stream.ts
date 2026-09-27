@@ -5,7 +5,8 @@ import { type ChunkRasters, type CityTerrainProvider, createCityTerrain } from '
 import type { Quality } from '../../core/store';
 import { setCityTerrain } from '../../core/terrain';
 import type { Vec2 } from '../../core/types';
-import { GROUND, TOY } from '../materials';
+import { GROUND, TOY, type TierFadePair, makeTierFadePair, tierFadeIn, tierFadeOut } from '../materials';
+import { freezeStatic } from '../builder';
 import { TypedBatch } from '../typedBatch';
 import type { CityInit, L0Result, L1Result } from './build';
 import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
@@ -91,6 +92,15 @@ const HERO_ID = 8_999_999;
 const HERO_GROUND_ID = 9_000_003;
 const FOCUS_AHEAD = 20;
 const INFLIGHT = 3;
+/**
+ * Tier cross-fade (lane C2-10): when a cell switches tier, the outgoing tier stays TIER_FADE s under the complementary
+ * dither of the incoming one (materials.ts TIER_FADE_FRAG; plain L0 meshes through one of FADE_PAIRS fade materials,
+ * pool items through their batching colour). Batched pool only: on the tile path tiers switch at once.
+ */
+export const TIER_FADE = 0.3;
+const FADE_PAIRS = 6;
+type L0Rec = { toy: THREE.Mesh | null; ground: THREE.Mesh | null; tris: number; buildings: L0Buildings | null; hidden: L0Hidden };
+interface FadePart { t0: number; out: boolean; l0?: L0Rec; pair?: TierFadePair | null; pool?: number; end?: () => void }
 const l1Id = (key: number) => key * 4 + 1;
 const l2Id = (key: number) => key * 4 + 2;
 
@@ -118,7 +128,12 @@ export class CityStreamer {
   private inflight = new Map<number, { job: Job; w: number }>();
   private perWorker = [0, 0];
   private nextId = 1;
-  private l0 = new Map<number, { toy: THREE.Mesh | null; ground: THREE.Mesh | null; tris: number; buildings: L0Buildings | null; hidden: L0Hidden }>();
+  private l0 = new Map<number, L0Rec>();
+  /** C2-10: the parts of each cell (key) fading right now, the free fade material pairs, whether the pool can fade */
+  private fading = new Map<number, FadePart[]>();
+  private pairs: TierFadePair[] = [];
+  private pairsMade = 0;
+  private canFade = false;
   private l0Ready = new Map<number, L0Result>();
   private l1Ready = new Map<number, { toy: L1Result['cells'][number]['toy']; ground: L1Result['cells'][number]['ground'] }>();
   private shown = new Map<number, number>();
@@ -186,10 +201,16 @@ export class CityStreamer {
     this.quality = opts.quality;
     this.group.name = 'city';
     this.l0Group.name = 'city-l0';
+    // the city graph never moves (everything is built in world space): without these, three recomposes the groups'
+    // matrices every frame and so recomputes the world matrix of every city object under them (wave 3, P2)
+    freezeStatic(this.group);
+    freezeStatic(this.l0Group);
+    freezeStatic(opts.sites.group);
     // reserved up front (grows if needed): far city ≈ 123k toy + 79k ground vertices, the L1 ring ≈ 2.2–4k + 0.7k per
     // cell (measured: ≤ 460k toy / 170k ground live on high)
     const scale = opts.quality === 'high' ? 1 : opts.quality === 'mid' ? 0.8 : 0.7;
     this.pool = createCellPool(opts.renderer, { toyVerts: Math.round(600_000 * scale), groundVerts: Math.round(260_000 * scale), instances: 3000 }, opts.pool);
+    this.canFade = this.pool.setFade(-1, 1);
     this.group.add(this.pool.group, this.l0Group, this.props.group, opts.sites.group);
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
     for (const p of opts.slab) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); }
@@ -422,7 +443,7 @@ export class CityStreamer {
       if (!a) return null;
       const m = new THREE.Mesh(TypedBatch.toGeometry(a), mat);
       m.name = `${name}:${c.ix},${c.iz}`;
-      m.matrixAutoUpdate = false;
+      freezeStatic(m);
       m.receiveShadow = true;
       m.castShadow = false;
       m.visible = false;
@@ -434,13 +455,16 @@ export class CityStreamer {
     c.l0 = 'attached';
   }
 
-  private dropL0(c: CellInfo) {
+  private dropL0(c: CellInfo, fade = true) {
     this.l0Ready.delete(c.key);
     const rec = this.l0.get(c.key);
     if (rec) {
       for (const fn of this.l0DropListeners) fn(c.key);
-      for (const m of [rec.toy, rec.ground]) if (m) { this.l0Group.remove(m); m.geometry.dispose(); }
       this.l0.delete(c.key);
+      const free = () => { for (const m of [rec.toy, rec.ground]) if (m) { this.l0Group.remove(m); m.geometry.dispose(); } };
+      // on screen: it fades out under the tier that replaces it (C2-10), then goes
+      if (fade && this.shown.get(c.key) === 0 && (rec.toy?.visible || rec.ground?.visible)) this.fadeL0(c.key, rec, true, free);
+      else free();
     }
     c.l0 = 'none';
   }
@@ -449,14 +473,84 @@ export class CityStreamer {
   private attachL1(c: CellInfo) {
     const r = this.l1Ready.get(c.key);
     if (!r) { c.l1 = 'none'; return; }
+    this.dropPoolFade(c.key, l1Id(c.key)); // its old copy may still be fading out
     this.pool.add(l1Id(c.key), r, true, false);
     c.l1 = 'attached';
   }
 
   private dropL1(c: CellInfo) {
-    this.pool.remove(l1Id(c.key));
+    const id = l1Id(c.key);
+    // on screen: it fades out under the far tier first (C2-10)
+    if (this.shown.get(c.key) === 1) this.fadePool(c.key, id, true, () => this.pool.remove(id));
+    else this.pool.remove(id);
     c.l1 = this.l1Ready.has(c.key) ? 'ready' : 'none';
   }
+
+  // --- tier cross-fade (C2-10) ---
+
+  private fadeL0(key: number, rec: L0Rec, out: boolean, end?: () => void) {
+    const pair = this.canFade ? this.pairs.pop() ?? (this.pairsMade < FADE_PAIRS ? (this.pairsMade++, makeTierFadePair()) : null) : null;
+    if (!pair) { end?.(); return; }
+    if (rec.toy) rec.toy.material = pair.toy;
+    if (rec.ground) rec.ground.material = pair.ground;
+    pair.fade.value = out ? tierFadeOut(0) : tierFadeIn(0);
+    this.addPart(key, { t0: this.time, out, l0: rec, pair, end });
+  }
+
+  private fadePool(key: number, id: number, out: boolean, end?: () => void) {
+    if (!this.canFade || !this.pool.has(id)) { end?.(); return; }
+    this.pool.setVisible(id, true);
+    this.pool.setFade(id, out ? tierFadeOut(0) : tierFadeIn(0));
+    this.addPart(key, { t0: this.time, out, pool: id, end });
+  }
+
+  private addPart(key: number, p: FadePart) {
+    let list = this.fading.get(key);
+    if (!list) { list = []; this.fading.set(key, list); }
+    list.push(p);
+  }
+
+  /** a pool item that comes back while its old copy fades out: forget that fade (the item is replaced) */
+  private dropPoolFade(key: number, id: number) {
+    const list = this.fading.get(key);
+    if (!list) return;
+    const i = list.findIndex(p => p.pool === id);
+    if (i >= 0) list.splice(i, 1);
+    if (!list.length) this.fading.delete(key);
+  }
+
+  private endPart(p: FadePart) {
+    if (p.pair && p.l0) {
+      if (p.l0.toy) p.l0.toy.material = TOY;
+      if (p.l0.ground) p.l0.ground.material = GROUND;
+      this.pairs.push(p.pair);
+    } else if (p.pool !== undefined) this.pool.setFade(p.pool, 1);
+    p.end?.();
+  }
+
+  /** settle a cell's earlier fades at once (a new switch starts); `all` also ends the ones started this frame */
+  private finishFades(key: number, all = false) {
+    const list = this.fading.get(key);
+    if (!list) return;
+    const keep: FadePart[] = [];
+    for (const p of list) { if (!all && p.t0 === this.time) keep.push(p); else this.endPart(p); }
+    if (keep.length) this.fading.set(key, keep); else this.fading.delete(key);
+  }
+
+  private stepFades() {
+    for (const [key, list] of this.fading) {
+      for (let i = list.length - 1; i >= 0; i--) {
+        const p = list[i], t = (this.time - p.t0) / TIER_FADE;
+        if (t >= 1) { list.splice(i, 1); this.endPart(p); continue; }
+        const v = p.out ? tierFadeOut(t) : tierFadeIn(t);
+        if (p.pair) p.pair.fade.value = v; else if (p.pool !== undefined) this.pool.setFade(p.pool, v);
+      }
+      if (!list.length) this.fading.delete(key);
+    }
+  }
+
+  /** Cells fading right now (QA / tests). */
+  get fadingCells(): number { return this.fading.size; }
 
   /** A chunk left the L1 ring for good: free its cells' arrays and props. */
   private dropChunk(ch: ChunkInfo) {
@@ -478,11 +572,22 @@ export class CityStreamer {
       if (rec && s === 0) tris += rec.tris;
       else if (s === 1) t1 += this.pool.trianglesOf(l1Id(c.key));
       else if (s === 2) t2 += this.pool.trianglesOf(l2Id(c.key));
-      if (this.shown.get(c.key) === s) continue;
+      const prev = this.shown.get(c.key);
+      if (prev === s) continue;
       this.shown.set(c.key, s);
       if (rec) { if (rec.toy) rec.toy.visible = s === 0; if (rec.ground) rec.ground.visible = s === 0; }
       if (c.l1 === 'attached') this.pool.setVisible(l1Id(c.key), s === 1);
       if (this.farCells.has(c.key)) this.pool.setVisible(l2Id(c.key), s === 2);
+      // C2-10: the new tier dithers in over TIER_FADE s, the old one (when it is still there) dithers out under it
+      if (prev === undefined || !this.canFade) continue;
+      this.finishFades(c.key);
+      if (s === 0 && rec) this.fadeL0(c.key, rec, false);
+      else if (s === 1 && c.l1 === 'attached') this.fadePool(c.key, l1Id(c.key), false);
+      else if (s === 2 && this.farCells.has(c.key)) this.fadePool(c.key, l2Id(c.key), false);
+      const key = c.key;
+      if (prev === 1 && c.l1 === 'attached') this.fadePool(key, l1Id(key), true, () => { if (this.shown.get(key) !== 1) this.pool.setVisible(l1Id(key), false); });
+      else if (prev === 2 && this.farCells.has(key)) this.fadePool(key, l2Id(key), true, () => { if (this.shown.get(key) !== 2) this.pool.setVisible(l2Id(key), false); });
+      else if (prev === 0 && rec) this.fadeL0(key, rec, true, () => { if (this.shown.get(key) !== 0) { if (rec.toy) rec.toy.visible = false; if (rec.ground) rec.ground.visible = false; } });
     }
     this.l0Tris = tris;
     this.l1Tris = t1;
@@ -525,8 +630,10 @@ export class CityStreamer {
     for (const ch of d.chunks) this.dropChunk(ch);
     for (const ch of d.rasters) { this.terrain?.detach(ch.cx, ch.cz); ch.raster = 'none'; }
     this.applyVisibility();
-    this.pool.update();
-    this.props.update(this.focus.x, this.focus.z, this.time, this.camH);
+    this.stepFades();
+    // tile rebuilds and the per-item frustum cull of the L1 / L2 pools (the camera's matrices are current: read above)
+    this.pool.update(camera);
+    this.props.update(this.focus.x, this.focus.z, this.time, this.camH, camera);
     this.opts.sites.update(this.focus.x, this.focus.z, this.time);
     // teleport / fast-travel waits
     if (this.waits.length) this.waits = this.waits.filter(w => { if (t.ready(w.p.x, w.p.z, w.r)) { w.resolve(); return false; } return true; });
@@ -559,10 +666,11 @@ export class CityStreamer {
   }
 
   dispose() {
+    for (const key of [...this.fading.keys()]) this.finishFades(key, true);
     for (const w of this.workers) w.terminate();
     this.workers = [];
     setCityTerrain(null);
-    if (this.table) for (const c of this.table.cells) this.dropL0(c);
+    if (this.table) for (const c of this.table.cells) this.dropL0(c, false);
     if (this._heroFar) for (const m of [...(this.opts.hero?.meshes ?? []), ...(this.opts.hero?.ground?.meshes ?? [])]) m.visible = true;
     this.pool.dispose();
     this.props.dispose();

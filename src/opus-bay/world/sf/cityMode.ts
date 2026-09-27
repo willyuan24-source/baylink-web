@@ -9,6 +9,8 @@ export { heroLandRaster, heroProxy } from './hero';
 export { heroGroundJob, heroGroundProxy } from './heroGround';
 export { attachMurals } from './murals';
 export { CloudBank } from './cloudBank';
+// Karl's live state and the city haze factor (world/environment.ts takes them in city mode; wave 3, P7)
+export { KarlState, cityFogK } from './fog';
 export { LightField, siteLightSpecs } from './lights';
 export { mountCityDebug } from './stats';
 export { demSample } from './format';

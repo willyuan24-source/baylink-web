@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Batch, C, CBOX, CONE, CYL, Frame, ICO, SPHERE, mixColor } from '../builder';
-import { HALO, POOL, TOY_INST, U } from '../materials';
+import { Batch, C, CBOX, CONE, CYL, Frame, ICO, SPHERE, freezeStatic, mixColor } from '../builder';
+import { HALO, POOL, TOY_INST_TINT, U } from '../materials';
 import { PAL } from '../palette';
 import type { PropArrays } from './build';
 import { PROP_KINDS } from './format';
@@ -14,7 +14,14 @@ import { PROP_KINDS } from './format';
  *   lamps      the district's lamp post — nearest 48 within 120 u, with night halos and light pools
  * ≈ 27k + 22k + 6k triangles at most (measured 83k with 300 / 900 / 64: the props were the city's largest group).
  *
- * One InstancedMesh per shape on TOY_INST (receiveShadow on, as warmed up), HALO and POOL for the night light.
+ * With the camera (wave 3, P6): beyond PROP_VIEW.near u of the camera only props inside a widened copy of its frustum
+ * (+ PROP_VIEW.widen° on every side) are placed, under the PROP_VIEW.k share of the caps, and the selection is redone
+ * when the view turns by more than PROP_VIEW.yaw° / .pitch° (less than the widening: nothing inside the real frustum
+ * is ever missing, and props a turn brings in are placed full-grown: they were out of view). Props behind the camera
+ * were ≈ half of the group's triangles.
+ *
+ * One InstancedMesh per shape on TOY_INST_TINT (instanceColor, receiveShadow on, as warmed up; the tinted twin of TOY_INST,
+ * so the untinted instanced meshes never flip its program), HALO and POOL for the night light.
  */
 
 const K = Object.fromEntries(PROP_KINDS.map((c, i) => [c, i])) as Record<(typeof PROP_KINDS)[number], number>;
@@ -30,6 +37,24 @@ const R_FULL = 70, R_LOLLI = 140, R_LAMP = 120;
  */
 export const PROP_HIGH = { h0: 25, h1: 80, steps: 4, tree: 50, lolli: 350, lamp: 12, rFull: 40, rLamp: 60 } as const;
 export interface PropCaps { tree: number; lolli: number; lamp: number; rFull: number; rLolli: number; rLamp: number; step: number }
+
+/** View-aware selection (see the header): near = always kept (u from the camera), widen / yaw / pitch in degrees, k = cap share. */
+export const PROP_VIEW = { near: 25, widen: 40, yaw: 20, pitch: 12, k: 0.6, minGap: 0.1 } as const;
+
+/** The camera's frustum widened by `deg` degrees on every side (same position and orientation), into `out`. */
+export function widenedFrustum(camera: THREE.PerspectiveCamera, deg: number, out: THREE.Frustum, tmp = new THREE.PerspectiveCamera()): THREE.Frustum {
+  const w = THREE.MathUtils.degToRad(deg), lim = THREE.MathUtils.degToRad(84);
+  const v = THREE.MathUtils.degToRad(camera.fov) / 2, h = Math.atan(Math.tan(v) * camera.aspect);
+  const v2 = Math.min(lim, v + w), h2 = Math.min(lim, h + w);
+  tmp.fov = THREE.MathUtils.radToDeg(v2 * 2);
+  tmp.aspect = Math.tan(h2) / Math.tan(v2);
+  tmp.near = camera.near;
+  tmp.far = camera.far;
+  tmp.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  const m = new THREE.Matrix4().multiplyMatrices(tmp.projectionMatrix, camera.matrixWorldInverse);
+  return out.setFromProjectionMatrix(m);
+}
 export function propCaps(camH: number): PropCaps {
   const P = PROP_HIGH;
   const t = Number.isFinite(camH) ? Math.min(1, Math.max(0, (camH - P.h0) / (P.h1 - P.h0))) : 0;
@@ -112,13 +137,21 @@ export class CityProps {
   private s = new THREE.Vector3();
   private col = new THREE.Color();
   private up = new THREE.Vector3(0, 1, 0);
+  /** view-aware selection state (PROP_VIEW): the widened frustum and the view it was made for */
+  private wide = new THREE.Frustum();
+  private wideCam = new THREE.PerspectiveCamera();
+  private sph = new THREE.Sphere();
+  private dir = new THREE.Vector3();
+  private view: { yaw: number; pitch: number; fov: number; aspect: number; at: number; cx: number; cz: number } | null = null;
   selected = 0;
 
   constructor() {
     this.group.name = 'city-props';
+    freezeStatic(this.group);
     const layer = (name: string, g: THREE.BufferGeometry, cap: number): Layer => {
-      const mesh = new THREE.InstancedMesh(g, TOY_INST, cap);
+      const mesh = new THREE.InstancedMesh(g, TOY_INST_TINT, cap);
       mesh.name = `city-${name}`;
+      freezeStatic(mesh);
       mesh.count = 0;
       mesh.receiveShadow = true;
       mesh.castShadow = false;
@@ -143,12 +176,14 @@ export class CityProps {
     hg.setAttribute('aHalo', new THREE.InstancedBufferAttribute(data, 3));
     this.halos = new THREE.InstancedMesh(hg, HALO, CAP.lamp * 2);
     this.halos.name = 'city-lamp-halos';
+    freezeStatic(this.halos);
     this.halos.count = 0;
     this.halos.frustumCulled = false;
     this.halos.renderOrder = 10;
     for (let i = 0; i < CAP.lamp * 2; i++) this.halos.setColorAt(i, i % 2 ? new THREE.Color(1.5, 1.25, 0.95) : new THREE.Color(1.0, 0.74, 0.42));
     this.pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), POOL, CAP.lamp);
     this.pools.name = 'city-lamp-pools';
+    freezeStatic(this.pools);
     this.pools.count = 0;
     this.pools.frustumCulled = false;
     this.pools.renderOrder = 1;
@@ -165,16 +200,25 @@ export class CityProps {
 
   private caps: PropCaps = propCaps(0);
 
-  private select(fx: number, fz: number, now: number) {
-    const cap = this.caps;
+  /** `grow`: new props grow in (the focus moved); a turn of the view places them full-grown (they come in out of sight) */
+  private select(fx: number, fz: number, now: number, grow = true) {
+    const view = this.view;
+    const k0 = view ? PROP_VIEW.k : 1;
+    const base = this.caps;
+    const cap = view ? { ...base, tree: Math.round(base.tree * k0), lolli: Math.round(base.lolli * k0), lamp: Math.round(base.lamp * k0) } : base;
+    const near2 = PROP_VIEW.near * PROP_VIEW.near;
     const trees: Pick[] = [], lamps: Pick[] = [];
     for (const [key, p] of this.sources) {
       for (let i = 0; i < p.count; i++) {
         const x = p.xyzr[i * 4], z = p.xyzr[i * 4 + 2];
         const d = Math.hypot(x - fx, z - fz);
         const k = p.kind[i];
-        const pick = { d, x, y: p.xyzr[i * 4 + 1], z, rot: p.xyzr[i * 4 + 3], kind: k, variant: p.variant[i], id: key * 8192 + i };
-        if (k === K.lamp) { if (d < cap.rLamp) lamps.push(pick); } else if (d < cap.rLolli) trees.push(pick);
+        if (d >= (k === K.lamp ? cap.rLamp : cap.rLolli)) continue;
+        const y = p.xyzr[i * 4 + 1];
+        // out of the widened view (and not right next to the camera): skip
+        if (view && (x - view.cx) ** 2 + (z - view.cz) ** 2 > near2 && !this.wide.intersectsSphere(this.sph.set(this.v.set(x, y + 2.5, z), 4))) continue;
+        const pick = { d, x, y, z, rot: p.xyzr[i * 4 + 3], kind: k, variant: p.variant[i], id: key * 8192 + i };
+        if (k === K.lamp) lamps.push(pick); else trees.push(pick);
       }
     }
     trees.sort((a, b) => a.d - b.d);
@@ -195,7 +239,7 @@ export class CityProps {
       L.ids.forEach((pid, i) => prev.set(pid, L.born[i]));
       L.ids = list.map(p => p.id);
       list.forEach((p, i) => {
-        L.born[i] = prev.get(p.id) ?? now;
+        L.born[i] = prev.get(p.id) ?? (grow ? now : now - GROW);
         const hue = ((p.id * 2654435761) >>> 0) / 4294967296;
         const s = name === 'round' ? (p.variant === 1 ? 1.25 : p.variant === 2 ? 0.75 : 1) * (0.9 + hue * 0.25) : 0.85 + hue * 0.3;
         L.scale[i] = s;
@@ -241,13 +285,37 @@ export class CityProps {
     return growing;
   }
 
-  /** Per frame: re-select after 12 u of focus movement, a new source or a new height step (camH = camera height above the ground). */
-  update(fx: number, fz: number, now: number, camH = 0) {
+  /** The view turned past PROP_VIEW.yaw / .pitch (or its lens changed) since the last selection. */
+  private turned(camera: THREE.PerspectiveCamera, now: number): boolean {
+    const v = this.view;
+    if (!v) return true;
+    if (now - v.at < PROP_VIEW.minGap) return false;
+    camera.getWorldDirection(this.dir);
+    const yaw = Math.atan2(this.dir.x, this.dir.z), pitch = Math.asin(Math.max(-1, Math.min(1, this.dir.y)));
+    const dyaw = Math.abs(((yaw - v.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    const R = THREE.MathUtils.degToRad;
+    return dyaw > R(PROP_VIEW.yaw) || Math.abs(pitch - v.pitch) > R(PROP_VIEW.pitch) || camera.fov !== v.fov || Math.abs(camera.aspect - v.aspect) > 0.01;
+  }
+
+  private setView(camera: THREE.PerspectiveCamera, now: number) {
+    camera.getWorldDirection(this.dir);
+    widenedFrustum(camera, PROP_VIEW.widen, this.wide, this.wideCam);
+    this.view = { yaw: Math.atan2(this.dir.x, this.dir.z), pitch: Math.asin(Math.max(-1, Math.min(1, this.dir.y))), fov: camera.fov, aspect: camera.aspect, at: now, cx: camera.position.x, cz: camera.position.z };
+  }
+
+  /**
+   * Per frame: re-select after 12 u of focus movement, a new source, a new height step (camH = camera height above the
+   * ground) or, with a camera, a turn of the view (PROP_VIEW).
+   */
+  update(fx: number, fz: number, now: number, camH = 0, camera?: THREE.Camera) {
     const caps = propCaps(camH);
     if (caps.step !== this.caps.step) { this.caps = caps; this.dirty = true; }
-    if (this.dirty || Math.hypot(fx - this.lastX, fz - this.lastZ) > RESELECT) {
+    const cam = (camera as THREE.PerspectiveCamera | undefined)?.isPerspectiveCamera ? camera as THREE.PerspectiveCamera : null;
+    const moved = this.dirty || Math.hypot(fx - this.lastX, fz - this.lastZ) > RESELECT;
+    if (moved || (cam && this.turned(cam, now))) {
       this.lastX = fx; this.lastZ = fz; this.dirty = false;
-      this.select(fx, fz, now);
+      if (cam) this.setView(cam, now); else this.view = null;
+      this.select(fx, fz, now, moved);
       this.growing = true;
     } else if (this.growing) {
       let any = false;

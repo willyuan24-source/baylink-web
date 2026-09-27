@@ -3,7 +3,11 @@ import type { Polygon } from '../core/types';
 import type { Quality, TimeOfDay, WorldMode } from '../core/store';
 import { MOON_DIR, TIME_PRESETS, type TimePreset } from './palette';
 import { U } from './materials';
-import { KARL, KARL_GEO, KarlState, cityFogK } from './sf/fog';
+import { KARL, KARL_GEO } from './fogShader';
+import type { KarlState, cityFogK } from './sf/fog';
+
+/** The city-only halves of the atmosphere (world/sf/fog.ts, in the lazy city chunk): the world passes them in city mode. */
+export interface CityAtmos { KarlState: new () => KarlState; cityFogK: typeof cityFogK }
 
 /**
  * Sky dome, sun + hemisphere light, fog, the cream "table" under the floating diorama boards and their
@@ -138,11 +142,15 @@ export class Environment {
   /** ground height under the camera (city mode fog), set by the world */
   groundAt: ((x: number, z: number) => number) | null = null;
   private fogK = 1;
-  /** Karl the Fog (city mode only; district keeps uKarl = 0): the world sets its `?karl` flag, the cloud bank reads it */
-  readonly karl = new KarlState();
+  /** Karl the Fog (city mode only, null in district: uKarl stays 0): the world sets its `?karl` flag, the cloud bank reads it */
+  readonly karl: KarlState | null;
+  private cityFogK: typeof cityFogK | null;
 
-  constructor(mode: WorldMode = 'district') {
+  /** `city`: the city chunk's KarlState / cityFogK (city mode; without them the city haze and Karl stay off) */
+  constructor(mode: WorldMode = 'district', city?: CityAtmos) {
     this.mode = mode;
+    this.karl = mode === 'city' && city ? new city.KarlState() : null;
+    this.cityFogK = mode === 'city' && city ? city.cityFogK : null;
     const T = TABLE[mode];
     this.group.name = 'environment';
     this.skyMat = new THREE.ShaderMaterial({
@@ -252,7 +260,7 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
   setTime(tod: TimeOfDay, instant: boolean) {
     if (tod === this.tod && this.blend >= 1) return;
     this.tod = tod;
-    if (this.mode === 'city') this.karl.setTime(tod, instant);
+    this.karl?.setTime(tod, instant);
     this.target = toLive(TIME_PRESETS[tod]);
     this.blend = instant ? 1 : 0;
     if (instant) { this.live = toLive(TIME_PRESETS[tod]); this.apply(); }
@@ -285,13 +293,13 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
       lerpLive(this.live, this.target, Math.min(1, dt * 2.2 + (this.blend >= 1 ? 1 : 0)));
       this.apply();
     }
-    if (this.mode === 'city') {
+    if (this.cityFogK) {
       // fog density is a uniform: thinning it with the camera altitude / height never recompiles anything
       const ground = this.groundAt ? this.groundAt(camera.position.x, camera.position.z) : 0;
-      const k = cityFogK(camera.position.y, ground, this.tod);
+      const k = this.cityFogK(camera.position.y, ground, this.tod);
       this.fogK += (k - this.fogK) * Math.min(1, dt * 3);
       this.fog.density = this.live.fogDensity * this.fogK;
-      this.karl.update(dt);
+      this.karl?.update(dt);
     }
     this.sky.position.copy(camera.position);
     this.sky.updateMatrix();

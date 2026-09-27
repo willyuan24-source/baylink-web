@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import type { TimeOfDay } from '../../core/store';
-import { Batch, C, ICO } from '../builder';
-import { TOY_INST } from '../materials';
+import { Batch, C, ICO, freezeStatic } from '../builder';
+import { TOY_INST_TINT } from '../materials';
 import type { WorldSystem } from '../world';
 import { KARL_GEO, type KarlState, type KarlTarget } from './fog';
 
 /**
- * Karl the Fog's cloud bank (lane C2-8, city chunk): CLOUD_BANK.count cotton clusters (3 lumps each) on ONE TOY_INST
+ * Karl the Fog's cloud bank (lane C2-8, city chunk): CLOUD_BANK.count cotton clusters (3 lumps each) on ONE TOY_INST_TINT
  * InstancedMesh (1 draw call, ≤ 9.6k triangles: only the clusters in view are packed; no shadow; one tint per time
  * through instanceColor, the props' tinted program, warmed up), laid out per time of day from Karl's target (fog.ts):
  *
@@ -106,9 +106,11 @@ export class CloudBank implements WorldSystem {
     this.karl = karl;
     this.groundAt = groundAt;
     this.group.name = 'karl-clouds';
-    this.mesh = new THREE.InstancedMesh(this.geo, TOY_INST, CLOUD_BANK.count);
+    this.mesh = new THREE.InstancedMesh(this.geo, TOY_INST_TINT, CLOUD_BANK.count);
     this.mesh.name = 'karl-clouds';
-    // the props' tinted TOY_INST program (warmup.ts: receiveShadow on, instanceColor); a cloud never casts a shadow
+    freezeStatic(this.group);
+    freezeStatic(this.mesh);
+    // the props' tinted TOY_INST_TINT program (warmup.ts: receiveShadow on, instanceColor); a cloud never casts a shadow
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     // culled per cluster in update() (only the clusters in view are packed and drawn)
@@ -177,14 +179,19 @@ export class CloudBank implements WorldSystem {
   private tintTod: TimeOfDay | null = null;
   private tintFrom = new THREE.Color(1, 1, 1);
   private tintNow = new THREE.Color(1, 1, 1);
+  /** the tint last written to instanceColor (float64: the Float32 attribute never compares equal to it) */
+  private tintSet = new THREE.Color(NaN, NaN, NaN);
+  /** Instance colours rewritten (and uploaded) this visit: only while the tint slides, never on a steady frame. */
+  tintWrites = 0;
   private tint(tod: TimeOfDay, t: number) {
     if (tod !== this.tintTod) { this.tintFrom.copy(this.tintNow); this.tintTod = tod; }
     const [r, g, b] = CLOUD_TINT[tod];
     this.tintNow.copy(this.tintFrom).lerp(_c2.setRGB(r, g, b), ease(t));
-    const a = this.mesh.instanceColor!;
-    if (a.getX(0) === this.tintNow.r && a.getY(0) === this.tintNow.g && a.getZ(0) === this.tintNow.b) return;
+    if (this.tintNow.equals(this.tintSet)) return;
+    this.tintSet.copy(this.tintNow);
     for (let i = 0; i < CLOUD_BANK.count; i++) this.mesh.setColorAt(i, this.tintNow);
-    a.needsUpdate = true;
+    this.mesh.instanceColor!.needsUpdate = true;
+    this.tintWrites++;
   }
 
   /** the clusters' layout positions right now (without the drift) */

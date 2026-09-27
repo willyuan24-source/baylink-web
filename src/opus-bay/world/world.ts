@@ -7,7 +7,7 @@ import type { Polygon } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { ANGEL_ISLAND, CITY_BACKDROP, buildBackdrop } from './backdrop';
 import { bayClock, handAngles, isMarketOpen } from './clock';
-import { Batch, C, splitGeometry } from './builder';
+import { Batch, C, freezeStatic, splitGeometry } from './builder';
 import { buildCity } from './city';
 import { Environment } from './environment';
 import { FxPool, attachFx } from './fx';
@@ -20,7 +20,7 @@ import { BlobBatch, Floaters, type HaloSpec, type PoolSpec, buildProps } from '.
 import { type CityModule, cityModule } from './cityLoader';
 import type { CityStreamer } from './sf/stream';
 import type { CityWater } from './sf/water';
-import type { KarlFlag } from './sf/fog';
+import type { KarlFlag } from './fogShader';
 import { Streetcars } from './streetcar';
 import { buildBuildingDistanceTexture, buildDistanceTexture, buildDistrictWater, buildLightMask, makeWaterMaterial } from './water';
 
@@ -57,7 +57,7 @@ function staticMesh(geo: THREE.BufferGeometry, mat: THREE.Material, name: string
   m.receiveShadow = receive;
   m.castShadow = cast;
   m.updateMatrix();
-  return m;
+  return freezeStatic(m);
 }
 
 interface HeroFade { fade: { value: number }; x: number; z: number; r: number; y0: number; y1: number }
@@ -169,7 +169,7 @@ export class World {
     const t0 = performance.now();
     this.mode = mode;
     const city = mode === 'city';
-    this.env = new Environment(mode);
+    this.env = new Environment(mode, city ? requireCity() : undefined);
     this.root.name = 'opus-world';
     const ground = new Batch();
     const toy = new Batch();
@@ -292,6 +292,8 @@ export class World {
     for (const g of [this.root, this.env.group, this.floaters.group, this.streetcars.group, this.life.group]) g.matrixAutoUpdate = false;
     this.root.traverse(o => { if (o.matrixAutoUpdate && o !== this.env.sun && o !== this.env.sun.target && o.name !== 'lighthouse-beam') { o.updateMatrix(); } });
     this.root.updateMatrixWorld(true);
+    // identity-transform statics: no per-frame matrix work (builder.ts freezeStatic; wave 3, P2)
+    for (const o of [this.root, blobMesh, this.hands, this.halos, this.pools]) freezeStatic(o);
     for (const m of [...chunks, labelMesh]) {
       const idx = m.geometry.getIndex();
       this.stats.triangles += (idx ? idx.count : m.geometry.getAttribute('position').count) / 3;
@@ -402,8 +404,9 @@ export class World {
     const { demSample } = cm;
     const sites = new cm.CitySites();
     // Karl the Fog (?karl=0|1, else the time table) with its cloud bank, and the night light field
-    if (opts.karl !== undefined) this.env.karl.setFlag(opts.karl);
-    const clouds = new cm.CloudBank(this.env.karl);
+    const karl = this.env.karl!; // city mode always has Karl (Environment gets the city chunk's KarlState)
+    if (opts.karl !== undefined) karl.setFlag(opts.karl);
+    const clouds = new cm.CloudBank(karl);
     const lightField = new cm.LightField(renderer, { slab: DISTRICT.slab, siteLights: () => cm.siteLightSpecs(sites.siteLights()) });
     this.detachAtmos = [this.addSystem(clouds), this.addSystem(lightField)];
     const sb = new THREE.Box3();

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { BOX, C } from './builder';
-import { GROUND, GROUND_CITY, TOY, TOY_INST } from './materials';
+import { GROUND, GROUND_BATCH, GROUND_CITY, TOY, TOY_BATCH, TOY_INST, TOY_INST_TINT } from './materials';
 import { toyBuildingL1 } from './recipes/city';
 import { TypedBatch } from './typedBatch';
 
@@ -10,11 +10,14 @@ import { TypedBatch } from './typedBatch';
  * A hidden dummy set (never added to the scene) is compiled with renderer.compileAsync against the real scene
  * (its lights, fog and shadow state are part of each program's key):
  *
- *   TOY      · plain Mesh, TypedBatch geometry, receiveShadow   → city L0 cells (same program as the district's)
- *   TOY      · BatchedMesh, receiveShadow off                    → L1 / L2 pools (USE_BATCHING variant)
- *   GROUND   · plain Mesh, city-flagged TypedBatch geometry       → L0 ground (same program as the district's)
- *   GROUND   · BatchedMesh                                        → far ground pool (USE_BATCHING variant)
- *   TOY_INST · InstancedMesh with and without instanceColor       → props / trees
+ *   TOY           · plain Mesh, TypedBatch geometry, receiveShadow   → city L0 cells (same program as the district's)
+ *   TOY_BATCH     · BatchedMesh with a colour texture, receiveShadow off → L1 / L2 pools (USE_BATCHING(_COLOR))
+ *   GROUND        · plain Mesh, city-flagged TypedBatch geometry      → L0 ground (same program as the district's)
+ *   GROUND_BATCH  · BatchedMesh with a colour texture                   → far ground pool (USE_BATCHING(_COLOR))
+ *   TOY_INST      · InstancedMesh without instanceColor              → untinted instanced props
+ *   TOY_INST_TINT · InstancedMesh with instanceColor                 → city trees / lamps, Karl's cloud bank
+ * (each material instance is warmed with the one object kind it draws: materials.ts, "one material instance per
+ * object kind")
  *
  * To reuse these programs, city meshes must match the dummies' flags: L0 Mesh receiveShadow = true /
  * castShadow = false; BatchedMesh pools receiveShadow = false; props InstancedMesh receiveShadow = true.
@@ -63,18 +66,20 @@ function dummySet(): { group: THREE.Group; dispose: () => void } {
     const index = geo.getIndex()!;
     const m = new THREE.BatchedMesh(1, geo.getAttribute('position').count, index.count, material);
     m.addInstance(m.addGeometry(geo));
+    // the pools carry a colour texture from the start (tier cross-fade, C2-10): the USE_BATCHING_COLOR variant
+    m.setColorAt(0, C('#ffffff'));
     m.receiveShadow = false;
     return m;
   };
-  const toyPool = batched(toyGeo, TOY);
-  const groundPool = batched(groundGeo, GROUND);
+  const toyPool = batched(toyGeo, TOY_BATCH);
+  const groundPool = batched(groundGeo, GROUND_BATCH);
 
   // TOY_INST props need aInfo like every TOY geometry (zero = no windows, no glow)
   const propGeo = BOX().clone();
   propGeo.setAttribute('aInfo', new THREE.Float32BufferAttribute(new Float32Array(propGeo.getAttribute('position').count * 4), 4));
   const props = new THREE.InstancedMesh(propGeo, TOY_INST, 1);
   props.receiveShadow = true;
-  const tinted = new THREE.InstancedMesh(propGeo, TOY_INST, 1);
+  const tinted = new THREE.InstancedMesh(propGeo, TOY_INST_TINT, 1);
   tinted.setColorAt(0, C('#ffffff'));
   tinted.receiveShadow = true;
 

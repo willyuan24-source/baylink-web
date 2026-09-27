@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { projectCity } from '../../core/geo';
 import type { Polygon, Vec2 } from '../../core/types';
-import { Batch, splitGeometry } from '../builder';
+import { Batch, freezeStatic, splitGeometry } from '../builder';
 import { GROUND } from '../materials';
 import { CITY_PAL } from '../palette';
 import { makeWaterMaterial } from '../water';
@@ -121,6 +121,7 @@ export class CityWater {
 
   constructor(distTex: THREE.Texture, box: THREE.Vector4) {
     this.group.name = 'city-water';
+    freezeStatic(this.group);
     this.board = boardPolygon();
     this.material = makeWaterMaterial(distTex, box);
     patchPacific(this.material);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../core/types';
+import { freezeStatic } from '../builder';
 import { U } from '../materials';
 import { registerWarmup } from '../warmup';
 import type { WorldSystem } from '../world';
@@ -166,6 +167,7 @@ export class LightField implements WorldSystem {
     this.renderer = renderer;
     this.opts = opts;
     this.group.name = 'light-field';
+    freezeStatic(this.group);
   }
 
   /** the far data arrived: build the street lamps (≈ 13k points, a few ms) */
@@ -184,6 +186,7 @@ export class LightField implements WorldSystem {
     else {
       this.points = new THREE.Points(g, LIGHT_FIELD);
       this.points.name = 'light-field';
+      freezeStatic(this.points);
       this.points.frustumCulled = false;
       this.points.renderOrder = 2;
       this.group.add(this.points);

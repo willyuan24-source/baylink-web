@@ -3,15 +3,15 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
-import { game, useGame, type Quality, type TimeOfDay } from '../core/store';
+import { game, useGame, type TimeOfDay } from '../core/store';
 import { flow } from '../game/flowStore';
 import { readQa } from '../game/qa';
-import { setSessionSettings } from '../data/wishlist';
 import { suspendForCity } from './cityLoader';
-import { U } from './materials';
+import { U, kindSweep } from './materials';
 import { PostFX, type PostParams } from './post';
+import { MONITOR, declineQuality, monitorBounds } from './quality';
 import { type World, getWorld } from './world';
-import { parseKarlFlag } from './sf/fog';
+import { parseKarlFlag } from './fogShader';
 
 export { FERRY_ARRIVAL_SECONDS } from './life';
 
@@ -24,9 +24,10 @@ export { FERRY_ARRIVAL_SECONDS } from './life';
 type QaCam = { position: THREE.Vector3; target: THREE.Vector3 } | null;
 let qaCam: QaCam = null;
 let post: PostFX | null = null;
-const LOWER: Record<Quality, Quality> = { high: 'mid', mid: 'low', low: 'low' };
 let timeApplied = false;
 const post$ = { focus: 0.3, warm: 0.25, vignette: 0.35, night: 0 } satisfies PostParams;
+/** seconds to the next material / shadow-depth sweep by object kind (materials.ts kindSweep; objects come and go with the city) */
+let sweepIn = 0;
 const _v = new THREE.Vector3();
 
 /**
@@ -125,6 +126,7 @@ export function WorldScene() {
       state.camera.updateMatrixWorld();
     }
     beginFrame(gl, world.env.exposure);
+    if ((sweepIn -= dt) <= 0) { sweepIn = 1; kindSweep(scene); }
     const fade = !flow.get().cinematic && !qaCam;
     world.update(dt, state.clock.elapsedTime, state.camera, fade);
     const usePost = s.settings.quality === 'high' && !s.settings.reducedMotion;
@@ -155,14 +157,14 @@ export function WorldScene() {
       <primitive object={world.root} />
       {monitor && (
         <PerformanceMonitor
-          ms={500}
-          iterations={8}
-          flipflops={3}
-          onDecline={() => {
-            const q = game.get().settings.quality;
-            // this visit only: a load hitch must not lower the saved quality for good
-            if (q !== 'low') setSessionSettings({ quality: LOWER[q] });
-          }}
+          ms={MONITOR.ms}
+          iterations={MONITOR.iterations}
+          threshold={MONITOR.threshold}
+          flipflops={MONITOR.flipflops}
+          // slow = under ≈ 50 fps on high (world/quality.ts); the upper bound is never reached: no step back up in a visit
+          bounds={() => monitorBounds(game.get().settings.quality)}
+          // this visit only: a load hitch must not lower the saved quality for good
+          onDecline={() => { declineQuality(); }}
         />
       )}
     </>

@@ -19,7 +19,7 @@ const noop = () => undefined;
 const ctx2d = new Proxy({}, { get: (_t, k) => (k === 'measureText' ? () => ({ width: 10 }) : k === 'createRadialGradient' || k === 'createLinearGradient' ? () => ({ addColorStop: noop }) : k === 'getImageData' ? (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }) : noop), set: () => true });
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
-const { CITY_FOG, cityFogK, fogFactor } = await import('../src/opus-bay/world/sf/fog');
+const { CITY_FOG, cityFogK, fogFactor, KarlState: CityKarl } = await import('../src/opus-bay/world/sf/fog');
 const { Environment } = await import('../src/opus-bay/world/environment');
 const { TIME_PRESETS } = await import('../src/opus-bay/world/palette');
 
@@ -64,7 +64,10 @@ test('fog stays a uniform: the city Environment scales FogExp2.density, THREE.Sh
   const squash = (x: string) => x.replace(/\s+/g, ' ').trim();
   assert.equal(squash(THREE.ShaderChunk.fog_fragment), squash(/`([\s\S]*)`/.exec(src)![1]));
   assert.equal(JSON.stringify(THREE.ShaderChunk), CHUNKS_BEFORE);
-  const env = new Environment('city');
+  // city mode: the world hands the Environment the city chunk's KarlState / cityFogK (wave 3, P7)
+  const env = new Environment('city', { KarlState: CityKarl, cityFogK });
+  assert.ok(env.karl, 'city: Karl');
+  assert.equal(new Environment('district').karl, null, 'district: no Karl at all');
   env.setTime('golden', true);
   env.groundAt = () => 45;
   const cam = new THREE.PerspectiveCamera();
@@ -175,13 +178,13 @@ test('Karl: district never turns it on; the city slides between layouts in KARL_
 
 const { CLOUD_BANK, CloudBank, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
 
-test('Karl: the cloud bank is 40–80 clusters on one TOY_INST InstancedMesh, ≤ 12k triangles, sitting inside Karl', async () => {
-  const { TOY_INST } = await import('../src/opus-bay/world/materials');
+test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMesh, ≤ 12k triangles, sitting inside Karl', async () => {
+  const { TOY_INST_TINT } = await import('../src/opus-bay/world/materials');
   assert.ok(CLOUD_BANK.count >= 40 && CLOUD_BANK.count <= 80);
   const k = new KarlState();
   k.setTime('morning', true);
   const bank = new CloudBank(k);
-  assert.equal(bank.mesh.material, TOY_INST);
+  assert.equal(bank.mesh.material, TOY_INST_TINT, 'the tinted twin of TOY_INST (wave 3, P2: one material instance per object kind)');
   assert.equal(bank.mesh.count, CLOUD_BANK.count);
   assert.equal(bank.mesh.castShadow, false);
   assert.ok(bank.mesh.instanceColor, 'the props\' tinted instanced program (instanceColor, warmed up)');

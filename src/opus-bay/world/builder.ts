@@ -372,6 +372,19 @@ export class Batch extends BatchBase {
  * Split an indexed geometry into spatial chunks (by triangle centroid on an xz grid) so that frustum
  * culling can skip the parts of the district that are off screen. All attributes are carried over.
  */
+const _identity = new THREE.Matrix4();
+/**
+ * A static object built in world space (identity transform, under identity parents): never recompose its matrix and
+ * never recompute its world matrix (wave 3, P2). The scene root recomposes itself every frame, which forces a
+ * matrixWorld multiply on every object below it; objects frozen here skip it (their world matrix stays identity).
+ * Objects with a real transform are left alone (only matrixAutoUpdate is switched off, as before).
+ */
+export function freezeStatic<T extends THREE.Object3D>(o: T): T {
+  o.matrixAutoUpdate = false;
+  if (o.matrix.equals(_identity) && o.matrixWorld.equals(_identity)) o.matrixWorldAutoUpdate = false;
+  return o;
+}
+
 export function splitGeometry(geo: THREE.BufferGeometry, cell: number): THREE.BufferGeometry[] {
   const index = geo.getIndex();
   const pos = geo.getAttribute('position') as THREE.BufferAttribute;

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { GROUND, TOY } from '../materials';
+import { GROUND, GROUND_BATCH, TOY, TOY_BATCH } from '../materials';
+import { freezeStatic } from '../builder';
 import type { PoolArrays } from './mesh';
 
 /**
@@ -13,13 +14,26 @@ import type { PoolArrays } from './mesh';
  * - `TilePool` (no multi-draw: three would issue one draw per item): items are merged per 512 u tile into one TOY and
  *   one GROUND mesh; a tile whose item set changed is rebuilt (≤ 1 per frame), ≈ 15 land tiles → ≤ 30 draw calls.
  *
- * Both use the shared TOY / GROUND materials; flags match world/warmup.ts (pools: receiveShadow off, tiles: on) so no
- * program is compiled while walking.
+ * Both cull per item against the camera frustum in `update(camera)` (wave 3, P2 / P3; one sphere test per item, skipped
+ * while the view and the items stand still): the batched pool switches items off with setVisibleAt (three's own
+ * per-instance culling, perObjectFrustumCulled, re-reads every instance matrix and bounding sphere each frame: it is
+ * off), the tile pool keeps each tile's full index and draws a compacted copy of the items in view (an index-only
+ * upload, the same draw calls), so both paths draw the same triangles.
+ *
+ * Materials (wave 3, P2): the batched pool draws with TOY_BATCH / GROUND_BATCH (BatchedMesh only), the tiles with
+ * TOY / GROUND (plain Mesh, like the L0 cells): one material instance per object kind, the same programs. Flags match
+ * world/warmup.ts (pools: receiveShadow off, tiles: on) so no program is compiled while walking.
  */
 
 export interface PoolItem { toy: PoolArrays | null; ground: PoolArrays | null }
 
-export interface PoolStats { kind: 'batched' | 'tile'; items: number; visible: number; toyVertices: number; groundVertices: number; toyCapacity: number; groundCapacity: number; drawObjects: number; rebuilds: number; /** triangles of the items switched on (before frustum culling) */ triangles: number }
+export interface PoolStats {
+  kind: 'batched' | 'tile'; items: number; visible: number; toyVertices: number; groundVertices: number; toyCapacity: number; groundCapacity: number; drawObjects: number; rebuilds: number;
+  /** triangles of the items switched on (before frustum culling) */
+  triangles: number;
+  /** items switched on and inside the camera frustum at the last cull */
+  inView: number;
+}
 
 export interface CellPool {
   readonly group: THREE.Group;
@@ -30,8 +44,10 @@ export interface CellPool {
   setVisible(id: number, visible: boolean): void;
   /** triangles of one item (0 when absent) */
   trianglesOf(id: number): number;
-  /** per frame (tile rebuilds) */
-  update(): void;
+  /** tier cross-fade value of an item (materials.ts TIER_FADE_FRAG: 1 = solid); false when this pool cannot fade (tiles) */
+  setFade(id: number, value: number): boolean;
+  /** per frame: tile rebuilds and the per-item frustum cull against `camera` (without a camera nothing is culled) */
+  update(camera?: THREE.Camera): void;
   stats(): PoolStats;
   dispose(): void;
 }
@@ -51,6 +67,55 @@ export function poolGeometry(a: PoolArrays): THREE.BufferGeometry {
 }
 
 // ---------------------------------------------------------------------------
+// per-item culling
+// ---------------------------------------------------------------------------
+
+/**
+ * The camera frustum for per-item culling. `from(camera)` refreshes it and returns false while the view-projection
+ * matrix is exactly the one of the last call (a camera standing still: nothing to re-test). The camera's
+ * matrixWorldInverse must be current (the streamer reads the camera direction first, which updates it).
+ */
+export class ViewCull {
+  readonly frustum = new THREE.Frustum();
+  valid = false;
+  private m = new THREE.Matrix4();
+  private last = new Float64Array(16);
+
+  from(camera: THREE.Camera): boolean {
+    const e = this.m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).elements;
+    let same = this.valid;
+    for (let i = 0; i < 16; i++) if (e[i] !== this.last[i]) { same = false; this.last[i] = e[i]; }
+    if (same) return false;
+    this.frustum.setFromProjectionMatrix(this.m);
+    this.valid = true;
+    return true;
+  }
+
+  /** Sphere (cx, cy, cz, r at s[o…o+3], world space) inside or touching the frustum; true while no frustum is known. */
+  test(s: ArrayLike<number>, o = 0): boolean {
+    if (!this.valid) return true;
+    const x = s[o], y = s[o + 1], z = s[o + 2], r = s[o + 3];
+    if (r < 0) return false;
+    for (const p of this.frustum.planes) if (p.normal.x * x + p.normal.y * y + p.normal.z * z + p.constant < -r) return false;
+    return true;
+  }
+}
+
+/** Bounding sphere (cx, cy, cz, r) around the bounds of some pool arrays, written at out[o…o+3] (r = −1: empty). */
+export function boundsSphere(parts: readonly (PoolArrays | null)[], out: Float32Array, o = 0) {
+  let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+  for (const a of parts) {
+    if (!a || !a.vertexCount) continue;
+    const b = a.bounds;
+    x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); z0 = Math.min(z0, b[2]);
+    x1 = Math.max(x1, b[3]); y1 = Math.max(y1, b[4]); z1 = Math.max(z1, b[5]);
+  }
+  if (!(x1 >= x0)) { out[o] = out[o + 1] = out[o + 2] = 0; out[o + 3] = -1; return; }
+  out[o] = (x0 + x1) / 2; out[o + 1] = (y0 + y1) / 2; out[o + 2] = (z0 + z1) / 2;
+  out[o + 3] = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2;
+}
+
+// ---------------------------------------------------------------------------
 // BatchedMesh pool
 // ---------------------------------------------------------------------------
 
@@ -65,6 +130,7 @@ export function sizeClass(v: number, i: number, ratio: number): number {
 }
 
 interface Slot { geo: number; inst: number; cls: number; verts: number; tris: number }
+const _fade = new THREE.Vector4();
 
 class Sub {
   readonly mesh: THREE.BatchedMesh;
@@ -85,11 +151,23 @@ class Sub {
     this.maxInst = maxInst;
     this.mesh = new THREE.BatchedMesh(maxInst, this.maxV, this.maxI, material);
     this.mesh.name = name;
-    this.mesh.frustumCulled = false; // per-instance culling (perObjectFrustumCulled) still runs
+    this.mesh.frustumCulled = false;
+    // the pool culls per item itself (setVisibleAt, see BatchedPool.update); with three's per-instance culling and
+    // sorting off, onBeforeRender only rebuilds the draw list on a frame whose visibility changed
+    this.mesh.perObjectFrustumCulled = false;
+    this.mesh.sortObjects = false;
     this.mesh.receiveShadow = false;
     this.mesh.castShadow = false;
-    this.mesh.sortObjects = false;
+    // pool items are in world space (identity instance matrices): the mesh never moves
+    freezeStatic(this.mesh);
+    // the tier cross-fade (C2-10) rides on the batching colour's alpha: the colour texture exists from the start, so the
+    // pool compiles one program variant (USE_BATCHING_COLOR, warmed up) and never switches
+    const m = this.mesh as unknown as { _colorsTexture: THREE.DataTexture | null; _initColorsTexture(): void };
+    if (!m._colorsTexture) m._initColorsTexture();
   }
+
+  /** the item's colour: white, alpha = the fade value (1 = solid) */
+  fade(s: Slot, value: number) { this.mesh.setColorAt(s.inst, _fade.set(1, 1, 1, value)); }
 
   get capacity() { return this.maxV; }
 
@@ -120,6 +198,7 @@ class Sub {
     if (reuse) {
       this.mesh.setGeometryAt(reuse.geo, geo);
       this.mesh.setVisibleAt(reuse.inst, true);
+      this.fade(reuse, 1);
       reuse.verts = a.vertexCount;
       reuse.tris = a.indexCount / 3;
       this.live++; this.liveVerts += a.vertexCount;
@@ -143,24 +222,44 @@ class Sub {
   }
 }
 
+interface BatchedRec { toy: Slot | null; ground: Slot | null; visible: boolean; inView: boolean; on: boolean; sphere: Float32Array }
+
 export class BatchedPool implements CellPool {
   readonly group = new THREE.Group();
   private toy: Sub;
   private ground: Sub;
-  private items = new Map<number, { toy: Slot | null; ground: Slot | null; visible: boolean }>();
+  private items = new Map<number, BatchedRec>();
+  private cull = new ViewCull();
+  /** an item arrived or was switched on since the last cull: re-test even when the view stood still */
+  private dirty = true;
+  private inView = 0;
 
   constructor(opts: { toyVerts: number; groundVerts: number; instances: number }) {
     this.group.name = 'city-pools';
-    this.toy = new Sub(TOY, 'city-pool-toy', opts.toyVerts, 1.6, opts.instances);
-    this.ground = new Sub(GROUND, 'city-pool-ground', opts.groundVerts, 3.2, opts.instances);
+    freezeStatic(this.group);
+    this.toy = new Sub(TOY_BATCH, 'city-pool-toy', opts.toyVerts, 1.6, opts.instances);
+    this.ground = new Sub(GROUND_BATCH, 'city-pool-ground', opts.groundVerts, 3.2, opts.instances);
     this.group.add(this.ground.mesh, this.toy.mesh);
+  }
+
+  /** instance visibility = switched on and in view; setVisibleAt only on a change (it re-lists the draws) */
+  private apply(r: BatchedRec) {
+    const on = r.visible && r.inView;
+    if (on === r.on) return;
+    r.on = on;
+    if (r.toy) this.toy.mesh.setVisibleAt(r.toy.inst, on);
+    if (r.ground) this.ground.mesh.setVisibleAt(r.ground.inst, on);
   }
 
   add(id: number, item: PoolItem, dynamic: boolean, visible = true) {
     if (this.items.has(id)) this.remove(id);
-    const rec = { toy: item.toy ? this.toy.add(item.toy, dynamic) : null, ground: item.ground ? this.ground.add(item.ground, dynamic) : null, visible: true };
+    const sphere = new Float32Array(4);
+    boundsSphere([item.toy, item.ground], sphere);
+    // Sub.add leaves the slot's instance visible (on = true); apply() settles it
+    const rec: BatchedRec = { toy: item.toy ? this.toy.add(item.toy, dynamic) : null, ground: item.ground ? this.ground.add(item.ground, dynamic) : null, visible, inView: this.cull.test(sphere), on: true, sphere };
     this.items.set(id, rec);
-    if (!visible) this.setVisible(id, false);
+    this.apply(rec);
+    this.dirty = true;
   }
   remove(id: number) {
     const r = this.items.get(id);
@@ -174,15 +273,35 @@ export class BatchedPool implements CellPool {
     const r = this.items.get(id);
     if (!r || r.visible === visible) return;
     r.visible = visible;
-    if (r.toy) this.toy.mesh.setVisibleAt(r.toy.inst, visible);
-    if (r.ground) this.ground.mesh.setVisibleAt(r.ground.inst, visible);
+    // tested against the last frustum at once (a caller after this frame's cull never shows an item out of view)
+    if (visible) { r.inView = this.cull.test(r.sphere); this.dirty = true; }
+    this.apply(r);
   }
   trianglesOf(id: number) { const r = this.items.get(id); return r ? (r.toy?.tris ?? 0) + (r.ground?.tris ?? 0) : 0; }
-  update() {}
+  setFade(id: number, value: number) {
+    const r = this.items.get(id);
+    if (!r) return true;
+    if (r.toy) this.toy.fade(r.toy, value);
+    if (r.ground) this.ground.fade(r.ground, value);
+    return true;
+  }
+  update(camera?: THREE.Camera) {
+    if (!camera) return;
+    if (!this.cull.from(camera) && !this.dirty) return;
+    this.dirty = false;
+    let n = 0;
+    for (const r of this.items.values()) {
+      if (!r.visible) continue;
+      r.inView = this.cull.test(r.sphere);
+      if (r.inView) n++;
+      this.apply(r);
+    }
+    this.inView = n;
+  }
   stats(): PoolStats {
     let visible = 0, triangles = 0;
     for (const r of this.items.values()) if (r.visible) { visible++; triangles += (r.toy?.tris ?? 0) + (r.ground?.tris ?? 0); }
-    return { kind: 'batched', items: this.items.size, visible, toyVertices: this.toy.liveVerts, groundVertices: this.ground.liveVerts, toyCapacity: this.toy.capacity, groundCapacity: this.ground.capacity, drawObjects: 2, rebuilds: 0, triangles };
+    return { kind: 'batched', items: this.items.size, visible, toyVertices: this.toy.liveVerts, groundVertices: this.ground.liveVerts, toyCapacity: this.toy.capacity, groundCapacity: this.ground.capacity, drawObjects: 2, rebuilds: 0, triangles, inView: this.inView };
   }
   dispose() {
     this.toy.mesh.dispose();
@@ -197,26 +316,67 @@ export class BatchedPool implements CellPool {
 
 const TILE = 512;
 
-interface TileRec { key: number; ids: Set<number>; toy: THREE.Mesh; ground: THREE.Mesh; dirty: boolean }
+/**
+ * One merged mesh of a tile (its TOY or its GROUND part) with per-item culling: `full` is the complete merged index,
+ * `ranges` holds per item (in merge order) its index start, index count and bounding sphere; the geometry's own index
+ * holds the compacted index of the items in view, drawn with setDrawRange (index-only partial upload).
+ */
+interface TilePart { mesh: THREE.Mesh; full: Uint16Array | Uint32Array | null; ranges: Float32Array; n: number; mask: Uint8Array; drawn: number }
 
-function merge(parts: PoolArrays[]): THREE.BufferGeometry | null {
+interface TileRec { key: number; ids: Set<number>; toy: TilePart; ground: TilePart; dirty: boolean }
+
+/** Merge pool arrays into one geometry; `ranges` gets, per part, index start / count and its bounding sphere (6 floats). */
+export function mergePoolArrays(parts: PoolArrays[]): { geometry: THREE.BufferGeometry; index: Uint16Array | Uint32Array; ranges: Float32Array } | null {
   let nv = 0, ni = 0;
   for (const p of parts) { nv += p.vertexCount; ni += p.indexCount; }
   if (!nv) return null;
   const pos = new Float32Array(nv * 3), nor = new Int8Array(nv * 4), col = new Uint8Array(nv * 3), inf = new Float32Array(nv * 4);
   const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
   const box = new Float32Array([Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]);
+  const ranges = new Float32Array(parts.length * 6);
   let v = 0, i = 0;
-  for (const p of parts) {
+  parts.forEach((p, k) => {
     pos.set(p.position.subarray(0, p.vertexCount * 3), v * 3);
     nor.set(p.normal.subarray(0, p.vertexCount * 4), v * 4);
     col.set(p.color.subarray(0, p.vertexCount * 3), v * 3);
     inf.set(p.info.subarray(0, p.vertexCount * 4), v * 4);
-    for (let k = 0; k < p.indexCount; k++) idx[i + k] = p.index[k] + v;
-    for (let k = 0; k < 3; k++) { box[k] = Math.min(box[k], p.bounds[k]); box[k + 3] = Math.max(box[k + 3], p.bounds[k + 3]); }
+    for (let q = 0; q < p.indexCount; q++) idx[i + q] = p.index[q] + v;
+    for (let q = 0; q < 3; q++) { box[q] = Math.min(box[q], p.bounds[q]); box[q + 3] = Math.max(box[q + 3], p.bounds[q + 3]); }
+    ranges[k * 6] = i;
+    ranges[k * 6 + 1] = p.indexCount;
+    boundsSphere([p], ranges, k * 6 + 2);
     v += p.vertexCount; i += p.indexCount;
+  });
+  const geometry = poolGeometry({ vertexCount: nv, indexCount: ni, position: pos, normal: nor, color: col, info: inf, index: idx.slice(), bounds: box });
+  geometry.getIndex()!.setUsage(THREE.DynamicDrawUsage);
+  return { geometry, index: idx, ranges };
+}
+
+/** Re-test a tile part's items against the view; on a change, compact the drawn index (true when it changed). */
+export function cullTilePart(part: Pick<TilePart, 'mesh' | 'full' | 'ranges' | 'n' | 'mask' | 'drawn'>, test: (s: Float32Array, o: number) => boolean): boolean {
+  if (!part.full) return false;
+  let changed = false;
+  for (let k = 0; k < part.n; k++) {
+    const vis = test(part.ranges, k * 6 + 2) ? 1 : 0;
+    if (vis !== part.mask[k]) { part.mask[k] = vis; changed = true; }
   }
-  return poolGeometry({ vertexCount: nv, indexCount: ni, position: pos, normal: nor, color: col, info: inf, index: idx, bounds: box });
+  if (!changed) return false;
+  const attr = part.mesh.geometry.getIndex()!;
+  const dst = attr.array as Uint16Array | Uint32Array;
+  let n = 0;
+  for (let k = 0; k < part.n; k++) {
+    if (!part.mask[k]) continue;
+    const s = part.ranges[k * 6], c = part.ranges[k * 6 + 1];
+    dst.set(part.full.subarray(s, s + c), n);
+    n += c;
+  }
+  part.drawn = n;
+  part.mesh.geometry.setDrawRange(0, n);
+  attr.clearUpdateRanges();
+  if (n) attr.addUpdateRange(0, n);
+  attr.needsUpdate = true;
+  part.mesh.visible = n > 0;
+  return true;
 }
 
 export class TilePool implements CellPool {
@@ -224,8 +384,12 @@ export class TilePool implements CellPool {
   private items = new Map<number, { item: PoolItem; tile: number; visible: boolean }>();
   private tiles = new Map<number, TileRec>();
   private rebuilds = 0;
+  private cull = new ViewCull();
 
-  constructor() { this.group.name = 'city-tiles'; }
+  constructor() {
+    this.group.name = 'city-tiles';
+    freezeStatic(this.group);
+  }
 
   private tileOf(item: PoolItem) {
     const b = (item.toy ?? item.ground)!.bounds;
@@ -235,13 +399,13 @@ export class TilePool implements CellPool {
   private tile(key: number): TileRec {
     let t = this.tiles.get(key);
     if (!t) {
-      const mk = (mat: THREE.Material, name: string) => {
+      const mk = (mat: THREE.Material, name: string): TilePart => {
         const m = new THREE.Mesh(new THREE.BufferGeometry(), mat);
-        m.name = name; m.matrixAutoUpdate = false; m.receiveShadow = true; m.visible = false;
-        return m;
+        m.name = name; freezeStatic(m); m.receiveShadow = true; m.visible = false;
+        return { mesh: m, full: null, ranges: new Float32Array(0), n: 0, mask: new Uint8Array(0), drawn: 0 };
       };
       t = { key, ids: new Set(), toy: mk(TOY, `city-tile-toy#${key}`), ground: mk(GROUND, `city-tile-ground#${key}`), dirty: false };
-      this.group.add(t.ground, t.toy);
+      this.group.add(t.ground.mesh, t.toy.mesh);
       this.tiles.set(key, t);
     }
     return t;
@@ -271,36 +435,61 @@ export class TilePool implements CellPool {
     this.tiles.get(r.tile)!.dirty = true;
   }
   trianglesOf(id: number) { const r = this.items.get(id); return r ? ((r.item.toy?.indexCount ?? 0) + (r.item.ground?.indexCount ?? 0)) / 3 : 0; }
-  update() {
+  /** merged tiles cannot fade one item (tiers switch at once on the no-multi-draw path) */
+  setFade() { return false; }
+
+  private rebuild(t: TileRec) {
+    const toys: PoolArrays[] = [], grounds: PoolArrays[] = [];
+    for (const id of t.ids) {
+      const r = this.items.get(id)!;
+      if (!r.visible) continue;
+      if (r.item.toy) toys.push(r.item.toy);
+      if (r.item.ground) grounds.push(r.item.ground);
+    }
+    for (const [part, arrays] of [[t.toy, toys], [t.ground, grounds]] as const) {
+      part.mesh.geometry.dispose();
+      const m = mergePoolArrays(arrays);
+      part.mesh.geometry = m?.geometry ?? new THREE.BufferGeometry();
+      part.mesh.visible = !!m;
+      part.full = m?.index ?? null;
+      part.ranges = m?.ranges ?? new Float32Array(0);
+      part.n = arrays.length;
+      part.mask = new Uint8Array(arrays.length).fill(1);
+      part.drawn = m?.index.length ?? 0;
+    }
+    this.rebuilds++;
+  }
+
+  update(camera?: THREE.Camera) {
+    let rebuilt: TileRec | null = null;
     for (const t of this.tiles.values()) {
       if (!t.dirty) continue;
       t.dirty = false;
-      const toys: PoolArrays[] = [], grounds: PoolArrays[] = [];
-      for (const id of t.ids) {
-        const r = this.items.get(id)!;
-        if (!r.visible) continue;
-        if (r.item.toy) toys.push(r.item.toy);
-        if (r.item.ground) grounds.push(r.item.ground);
-      }
-      for (const [mesh, parts] of [[t.toy, toys], [t.ground, grounds]] as const) {
-        mesh.geometry.dispose();
-        const g = merge(parts);
-        mesh.geometry = g ?? new THREE.BufferGeometry();
-        mesh.visible = !!g;
-      }
-      this.rebuilds++;
+      this.rebuild(t);
+      rebuilt = t;
       break; // ≤ 1 tile per frame
+    }
+    if (!camera) return;
+    const test = (s: Float32Array, o: number) => this.cull.test(s, o);
+    if (this.cull.from(camera)) {
+      for (const t of this.tiles.values()) { cullTilePart(t.toy, test); cullTilePart(t.ground, test); }
+    } else if (rebuilt) {
+      cullTilePart(rebuilt.toy, test);
+      cullTilePart(rebuilt.ground, test);
     }
   }
   stats(): PoolStats {
     let visible = 0, tv = 0, gv = 0, triangles = 0;
     for (const r of this.items.values()) if (r.visible) { visible++; tv += r.item.toy?.vertexCount ?? 0; gv += r.item.ground?.vertexCount ?? 0; triangles += ((r.item.toy?.indexCount ?? 0) + (r.item.ground?.indexCount ?? 0)) / 3; }
-    let draw = 0;
-    for (const t of this.tiles.values()) draw += (t.toy.visible ? 1 : 0) + (t.ground.visible ? 1 : 0);
-    return { kind: 'tile', items: this.items.size, visible, toyVertices: tv, groundVertices: gv, toyCapacity: 0, groundCapacity: 0, drawObjects: draw, rebuilds: this.rebuilds, triangles };
+    let draw = 0, inView = 0;
+    for (const t of this.tiles.values()) {
+      draw += (t.toy.mesh.visible ? 1 : 0) + (t.ground.mesh.visible ? 1 : 0);
+      for (let k = 0; k < t.toy.n; k++) inView += t.toy.mask[k];
+    }
+    return { kind: 'tile', items: this.items.size, visible, toyVertices: tv, groundVertices: gv, toyCapacity: 0, groundCapacity: 0, drawObjects: draw, rebuilds: this.rebuilds, triangles, inView };
   }
   dispose() {
-    for (const t of this.tiles.values()) { t.toy.geometry.dispose(); t.ground.geometry.dispose(); }
+    for (const t of this.tiles.values()) { t.toy.mesh.geometry.dispose(); t.ground.mesh.geometry.dispose(); }
     this.tiles.clear();
     this.items.clear();
   }

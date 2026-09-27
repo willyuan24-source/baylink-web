@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
 import { loadCity } from '../world/cityLoader';
+import { initQualityPolicy } from '../world/quality';
 import { warmPrograms } from '../world/warmup';
 import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
@@ -26,6 +27,10 @@ const audio = typeof window !== 'undefined' ? import('../audio/audio') : null;
 // City mode only: the streamed city is its own chunk (world/cityLoader.ts, HC-2), fetched in parallel with the
 // renderer setup; WorldScene waits for it. District mode never loads it.
 if (typeof window !== 'undefined' && game.get().worldMode === 'city') loadCity().catch(() => { /* WorldScene retries and reports */ });
+
+// The start quality (world/quality.ts, P4): touch-first / high-density devices start at `mid` unless ?quality= or the
+// player's own pick says otherwise; applied before the canvas mounts (no high → mid rebuild on the first frames).
+if (typeof window !== 'undefined') initQualityPolicy();
 
 export interface GameRootProps {
   /** the page's title screen asked to start (the title lives in OpusBayPage so it paints before this chunk) */

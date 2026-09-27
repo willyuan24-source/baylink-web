@@ -120,7 +120,7 @@ test('hero ground stand-in: ≤ 10k triangles for the ≈ 47k of the hand-made g
 
 test('HC-2: the city code stays out of the main graph (import it through world/cityLoader.ts)', () => {
   const root = path.resolve('src/opus-bay');
-  const heavy = /from\s+'[./]*(?:world\/)?sf\/(stream|sites|water|pools|hero|heroGround|stats|cityMode|far|build|worker|raster|cell)'|from\s+'[./]*(?:core\/)?sfTerrain'/;
+  const heavy = /from\s+'[./]*(?:world\/)?sf\/(stream|sites|water|pools|hero|heroGround|stats|cityMode|far|build|worker|raster|cell|fog|cloudBank|lights)'|from\s+'[./]*(?:core\/)?sfTerrain'/;
   const bad: string[] = [];
   const walk = (dir: string) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

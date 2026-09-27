@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
+import { registerWarmup } from './warmup';
 
 /**
  * Toy feedback particles: one instanced billboard pool (256 quads, one draw call while anything is alive,
@@ -148,6 +149,13 @@ export class FxPool {
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
     this.mesh.renderOrder = 12;
+    // the first dust puff (usually the first walk) must not link its program on the spot (wave 3, P5)
+    registerWarmup('c2-fx', () => {
+      const m = new THREE.InstancedMesh(this.mesh.geometry, this.material, 1);
+      m.frustumCulled = false;
+      m.renderOrder = 12;
+      return { objects: [m], dispose: () => m.dispose() };
+    });
     this.off = onEvent(e => {
       const p = runtime.player;
       if (e.type === 'land' && e.impact > 0.3) this.spawn('dust', p.x, p.y, p.z, { count: e.impact > 0.7 ? 8 : 6 });
