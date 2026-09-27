@@ -3,6 +3,7 @@ import type { Polygon } from '../core/types';
 import type { Quality, TimeOfDay, WorldMode } from '../core/store';
 import { MOON_DIR, TIME_PRESETS, type TimePreset } from './palette';
 import { U } from './materials';
+import { cityFogK } from './sf/fog';
 
 /**
  * Sky dome, sun + hemisphere light, fog, the cream "table" under the floating diorama boards and their
@@ -20,8 +21,6 @@ const TABLE = {
   district: { x: 0, z: 0, radius: 2600, dark0: 220, dark1: 700 },
   city: { x: 240, z: 660, radius: 3400, dark0: 1600, dark1: 3000 },
 } as const;
-/** City mode: fog thins as the camera climbs (camera height above the ground: 30 u → ×1, 150 u → ×0.4). */
-const FOG_HIGH = { y0: 30, y1: 150, k: 0.4 } as const;
 
 interface Live {
   skyTop: THREE.Color; skyHorizon: THREE.Color; skyBottom: THREE.Color;
@@ -275,11 +274,9 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
       this.apply();
     }
     if (this.mode === 'city') {
-      // fog density is a uniform: thinning it with the camera height never recompiles anything
+      // fog density is a uniform: thinning it with the camera altitude / height never recompiles anything
       const ground = this.groundAt ? this.groundAt(camera.position.x, camera.position.z) : 0;
-      const h = camera.position.y - Math.max(0, ground);
-      const t = Math.min(1, Math.max(0, (h - FOG_HIGH.y0) / (FOG_HIGH.y1 - FOG_HIGH.y0)));
-      const k = 1 + (FOG_HIGH.k - 1) * t * t * (3 - 2 * t);
+      const k = cityFogK(camera.position.y, ground, this.tod);
       this.fogK += (k - this.fogK) * Math.min(1, dt * 3);
       this.fog.density = this.live.fogDensity * this.fogK;
     }
