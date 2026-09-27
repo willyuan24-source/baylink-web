@@ -15,13 +15,15 @@ const { TOUR_LINES, TOUR_LINES_FROZEN, LOOP_STOP_LINES, METRO_LINES, CHAPTER_LIN
 const tours = await import('../src/opus-bay/data/sf/tours');
 const { SF_GRAND, TOUR_GEO, TOUR_MODEL, targetAt, rideArc, rideSeconds, stopSeconds, tourStops, chapterMinutes, expressRide, decodeTourSaves, tourResumeLabel, cityTour, GRAND_TOUR_ID, TOUR_SAVE_MAX_IDS } = tours;
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
+const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 
 const zhWidth = (text: string) => [...text].reduce((sum, ch) => sum + (ch === ' ' ? 0 : ch.charCodeAt(0) < 128 ? 0.5 : 1), 0);
 const ATTR: { id: string; mapRank: number; treatment: string }[] = readJson('docs/opus-bay/sf-w4-attractions.json').attractions;
 const PLACES: { id: string }[] = readJson('public/opus-bay/sf/v1/places.json').places;
 const placeIds = new Set([...PLACES.map(p => p.id), ...ATTR.filter(a => a.treatment !== 'stop').map(a => a.id)]);
 const landmarkIds = new Set(SF_LANDMARK_INFO.map(l => l.id));
-const attractionIds = new Set([...ATTR.map(a => a.id), ...landmarkIds, ...PLACES.map(p => p.id)]);
+/** lane P's Attraction ids (data/sf/attractions.ts): what the camera bias, the arrival moments and the flags key on */
+const attractionIds = new Set(ATTRACTIONS.map(a => a.id));
 /** lane T's station ids (data/sf/stationNames.ts, draft 2026-09-27): the 16 loop stops */
 const LOOP_IDS = ['ferry-building', 'pier-39', 'wharf-hyde', 'palace-of-fine-arts', 'golden-gate-bridge', 'legion-of-honor', 'lands-end-sutro', 'ocean-beach-windmill', 'golden-gate-park', 'haight-ashbury', 'painted-ladies', 'castro', 'twin-peaks', 'mission-dolores', 'civic-center', 'chinatown'].map(s => `loop-${s}`);
 
@@ -58,7 +60,7 @@ test('the loop: all 16 stops (lane T ids) with approach / arrive / hop-off tip; 
     assert.equal(s.approach.id, `${id}-approach`);
     assert.equal(s.arrive.id, `${id}-arrive`);
     assert.equal(s.hopOffTip.id, `${id}-tip`);
-    assert.ok(attractionIds.has(s.look), `${id} looks at a known attraction / landmark / place (${s.look})`);
+    assert.ok(attractionIds.has(s.look), `${id} looks at an Attraction id (${s.look})`);
     const said = s.approach.zh;
     if (s.side === 'left') assert.ok(said.includes('左手边'), `${id} says left`);
     else if (s.side === 'right') assert.ok(said.includes('右手边'), `${id} says right`);

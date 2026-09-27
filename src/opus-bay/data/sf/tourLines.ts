@@ -15,7 +15,7 @@ import type { LineSource } from './lines';
  * Sets (every text: one idea, zh ≤ 45 bubble width, en ≤ 110; a fact carries a `source`; VOICE.md glossary):
  * - LOOP_STOP_LINES   the 16 sightseeing-loop stops (lane T's station ids `loop-*`, data/sf/stationNames.ts):
  *                     `approach` (≈ 60 u before the stop, with the 4 s look-at bias toward `look`), `arrive` (during the
- *                     8 s dwell), `hopOffTip` (the hop-off hint). "左手边 / 右手边" only where the measured bearing of the
+ *                     8 s dwell), `hopOffTip` (the hop-off hint); `look` = lane P's Attraction id (data/sf/attractions.ts). "左手边 / 右手边" only where the measured bearing of the
  *                     sight is clearly to that side 45 u before the stop (C:/Users/willy/opus-qa/w4/w4-c/sides.mjs on
  *                     the plan's measured loop); elsewhere "前面".
  * - METRO_LINES       N / M boarding, the subway, portals, the stops with a sight (tunnel facts: lane T's stationNames).
@@ -107,7 +107,7 @@ export const LOOP_STOP_LINES: Readonly<Record<string, LoopStopLines>> = Object.f
     ['前面就是海特和阿什伯里的路口，爱之夏从这儿出名。', 'Haight and Ashbury ahead — the Summer of Love made it famous.', 'point', 'https://en.wikipedia.org/wiki/Haight-Ashbury'],
     ['海特街到了！彩色老房子和古着店一路排开。', 'Haight-Ashbury! Painted Victorians and vintage shops all the way.', 'happy'],
     ['沿海特街往西走到底就是金门公园；N 线在 Carl & Cole。', 'Walk Haight west into the park; the N stops at Carl & Cole.', 'happy']),
-  stop('painted-ladies', 'painted-ladies', 'left',
+  stop('painted-ladies', 'alamo-square-painted-ladies', 'left',
     ['左手边看！坡下那排彩色房子，就是彩绘女士。', 'Look left! That row of painted houses below the hill — the Painted Ladies.', 'excited'],
     ['彩绘女士到了！从阿拉莫广场的坡上拍最好看。', 'The Painted Ladies! The best photo is from the Alamo Square slope.', 'happy'],
     ['房子是私人住宅，在广场这边拍照就好。', 'They are private homes: take your photos from the square.', 'thinking']),
@@ -127,7 +127,7 @@ export const LOOP_STOP_LINES: Readonly<Record<string, LoopStopLines>> = Object.f
     ['前面那个金色圆顶，就是市政厅！', 'That golden dome ahead — City Hall!', 'point'],
     ['市政中心到了！市政厅的圆顶比美国国会大厦还高。', 'Civic Center! City Hall\'s dome is taller than the US Capitol\'s.', 'excited', 'https://www.sf.gov/location/san-francisco-city-hall'],
     ['工作日可以免费进市政厅；亚洲艺术博物馆就在对面。', 'City Hall is free to enter on weekdays; the Asian Art Museum is across the plaza.', 'happy', 'https://www.sf.gov/location/san-francisco-city-hall']),
-  stop('chinatown', 'dragon-gate', 'ahead',
+  stop('chinatown', 'chinatown-dragon-gate', 'ahead',
     ['前面就是唐人街龙门，门后面是都板街。', 'The Chinatown Dragon Gate ahead — Grant Avenue lies behind it.', 'point'],
     ['唐人街到了！它是北美最老的唐人街。', 'Chinatown! The oldest Chinatown in North America.', 'excited', 'https://en.wikipedia.org/wiki/Chinatown,_San_Francisco'],
     ['穿过龙门是唐人街；往西南走两个路口是联合广场。', 'Through the gate is Chinatown; Union Square is two blocks south-west.', 'happy']),

@@ -372,7 +372,7 @@ const CHAPTERS: CityTourChapter[] = [
       minutes: 1.7, expressMinutes: 0.4,
     },
     {
-      id: 'n-painted-ladies', target: 'sf:painted-ladies', leg: walk, moment: 'photo', goal: 'painted-ladies', postcard: 'sf-painted-ladies', express: 'skip',
+      id: 'n-painted-ladies', target: 'sf:painted-ladies', leg: walk, attraction: 'alamo-square-painted-ladies', moment: 'photo', goal: 'painted-ladies', postcard: 'sf-painted-ladies', express: 'skip',
       lines: { lead: bi('走上阿拉莫广场，给彩绘女士拍张照！', 'Up to Alamo Square for a photo of the Painted Ladies!'), arrive: 'loop-painted-ladies-arrive' },
       minutes: 1.1, expressMinutes: 0.0,
     },
@@ -432,7 +432,7 @@ const CHAPTERS: CityTourChapter[] = [
       minutes: 1.0, expressMinutes: 1.0,
     },
     {
-      id: 'peaks-ferry', target: 'place:ferry-building', leg: walk, moment: 'arrive',
+      id: 'peaks-ferry', target: 'place:ferry-building', leg: walk, attraction: 'ferry-building-marketplace', moment: 'arrive',
       lines: { arrive: bi('回到渡轮大厦，一圈旧金山转完啦！', 'Back at the Ferry Building — we\'ve been all round San Francisco!') },
       minutes: 0.5, expressMinutes: 0.5,
     },
