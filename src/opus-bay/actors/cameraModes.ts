@@ -116,11 +116,13 @@ export class RideCamera {
       case 'transit': {
         // side-on through the open windows, at window height, a little ahead of the rider
         const side = sub.side ?? 1;
-        yaw = sub.heading + (Math.PI / 2) * side - 0.35 * side + this.yawOff + Math.sin(now * 0.15) * 0.05;
         dist = sub.seated ? 8 : 7;
         pitch = 0.07; fov = 46; lookUp = 0; ahead = 0; rate = 10;
-        // city lines (cable cars between houses): a little farther and higher, over the street furniture
-        if (sub.occlude) { dist += 1.5; pitch = 0.2; lookUp = 0.15; }
+        // city lines (cable cars between houses): a little farther and higher, over the street furniture; seated, level
+        // with the outward bench under the roof's overhang (E2-6 / DR-5: from above the roof edge hid the sitter's head,
+        // worst when a narrow street pulls the rig in)
+        if (sub.occlude) { dist += 1.5; pitch = sub.seated ? 0.03 : 0.2; lookUp = sub.seated ? -0.1 : 0.15; }
+        yaw = sub.heading + (Math.PI / 2) * side - 0.35 * side + this.yawOff + Math.sin(now * 0.15) * 0.05;
         break;
       }
       case 'sit':
