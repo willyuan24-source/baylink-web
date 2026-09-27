@@ -54,7 +54,7 @@ const TURN_STEPS = 7;
  * The rider stands in the aisle / sits on a bench (actors/platform.ts); from outside you see them through the windows
  * (and the TOY occlusion dither thins the posts right in front of them).
  */
-function carGeometry(livery: string): THREE.BufferGeometry {
+export function carGeometry(livery: string, pole = false): THREE.BufferGeometry {
   const b = new Batch();
   const cream = '#f3ead6', dark = '#2d3431', glass = '#3d4d52', wood = '#b98a5a', brass = '#d9b25a', inside = '#e9dcc0';
   const L = CAR_LEN - 2, W = 2.1, T = 0.08;
@@ -101,6 +101,28 @@ function carGeometry(livery: string): THREE.BufferGeometry {
   b.add(BOX(), M(0, ROOF + 0.22, 0, 0, 0.9, 0.18, L * 0.6), '#bdb7aa');
   // bogies
   for (const s of [-1, 1]) b.add(BOX(), M(0, 0.05, s * (L / 2 - 1), 0, 1.6, 0.35, 1.8), dark);
+  // city mode (instanced cars): the trolley pole baked in, trailing up to the wire as the district's separate pole does
+  if (pole) {
+    const base = new THREE.Matrix4().makeTranslation(0, 2.9 - CAR_Y, -1.8).multiply(new THREE.Matrix4().makeRotationX(-0.71));
+    b.add(CYL(5), base.clone().multiply(M(0, 0, 0, 0, 0.04, 2.9, 0.04)), '#2a2a2a');
+    b.add(CYL(6), base.clone().multiply(M(0, 2.9, 0, 0, 0.08, 0.12, 0.08)), '#2a2a2a');
+  }
+  return b.build();
+}
+
+/** The car seen from afar (city mode, beyond ~110 u): the same silhouette, livery, lamps and warm sign in a few boxes. */
+export function carFarGeometry(livery: string): THREE.BufferGeometry {
+  const b = new Batch();
+  const L = CAR_LEN - 2, W = 2.1;
+  b.add(BOX(), M(0, 0.1, 0, 0, W - 0.3, 0.35, L - 1), '#454b48');
+  b.add(BOX(), M(0, 0.45, 0, 0, W, 0.7, L + 1.6), livery);
+  b.add(BOX(), M(0, 1.15, 0, 0, W, 1.4, L + 1.4), '#f3ead6');
+  b.add(BOX(), M(0, 1.5, 0, 0, W + 0.02, 0.5, L + 1.2), '#3d4d52');
+  b.add(BOX(), M(0, 2.55, 0, 0, W - 0.2, 0.3, L + 0.8), '#d9d4c7');
+  for (const s of [-1, 1]) {
+    b.add(BOX(), M(0, 2.3, s * (L / 2 + 0.55), 0, 1.0, 0.26, 0.3), '#ffcf7a', [0, 0, 0, 1]);
+    b.add(BOX(), M(0, 0.8, s * (L / 2 + 0.82), 0, 0.3, 0.2, 0.08), '#fff4d0', [0, 0, 0, 1]);
+  }
   return b.build();
 }
 
@@ -133,6 +155,8 @@ export class Streetcars {
   private poleGeo = poleGeometry();
   /** city mode: the cable cars, turntables and extra rails (world/transitLayer.ts, a lazy chunk) */
   private layer: TransitLayer | null = null;
+  /** the city F-line (the layer's) runs instead of the hero loop */
+  private cityLine = false;
   private disposed = false;
 
   constructor() {
@@ -225,6 +249,8 @@ export class Streetcars {
       if (!layer) return;
       if (this.disposed) { layer.dispose(); return; }
       this.layer = layer;
+      // the city F-line takes over where the hero cars are (no car pops in or out of view)
+      layer.fline?.sys.seedFrom(this.cars.map(c => { const p = this.sample(c.u); return { x: p.x, z: p.z, heading: p.heading }; }));
       this.group.add(layer.group);
       layer.group.updateMatrixWorld(true);
     }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay transit layer]', error); });
@@ -317,6 +343,15 @@ export class Streetcars {
   }
 
   update(dt: number, t: number) {
+    // city mode: once the transit layer runs the F-line to the Castro (world/flineLayer.ts), it owns the cars, the
+    // platform 'streetcar' and runtime.streetcar; the hero loop only finishes a ride that started on it
+    const r = currentRide();
+    const city = !!this.layer?.fline && !(r && !r.line);
+    if (city !== this.cityLine) {
+      this.cityLine = city;
+      for (const c of this.cars) { c.mesh.visible = !city; c.pole.visible = !city; }
+    }
+    if (city) { this.layer!.update(dt, t); return; }
     const ride = this.handleRide();
     const carrying = !!ride && ride.mode === 'follow';
     this.cars.forEach((car, i) => {

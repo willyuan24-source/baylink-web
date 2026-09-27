@@ -3,7 +3,7 @@ import type { TransitKind } from '../core/events';
 import type { Vec2 } from '../core/types';
 import { platformStop, riderWorld } from '../actors/platform';
 import { DISTRICT } from '../data/district';
-import { RIDE_MIN_ODOMETER, activeCableSystem } from '../data/transit';
+import { RIDE_MIN_ODOMETER, rideSystemFor } from '../data/transit';
 
 /**
  * Streetcar ride. Prefers the world's streetcar (runtime.streetcar): wait for it at the stop, ride along
@@ -135,31 +135,32 @@ export type RideTick = {
 };
 
 /**
- * City cable-car ride (lane F): ask the running cable-car system (world/transitLine.ts, driven by world/transitLayer.ts)
- * for a car to `station` heading `dir` toward `to`. Null when no system runs (district mode, data not loaded).
+ * City line ride (lane F): ask the system running `line` (data/transit.ts rideSystemFor: the cable cars of
+ * world/transitLine.ts, the city F-line of world/flineSystem.ts, the ferry) for a car to `station` toward `to` (`dir`
+ * along the line where it matters). Null when no system runs (district mode, data not loaded).
  */
-export function beginLineRide(line: string, from: string, to: string, dir: 1 | -1, epoch: number): RideState | null {
-  const sys = activeCableSystem();
+export function beginLineRide(line: string, from: string, to: string, dir: 1 | -1, epoch: number, kind: TransitKind = 'cable-car'): RideState | null {
+  const sys = rideSystemFor(line);
   if (!sys) return null;
   const st = sys.request({ line, station: from, dir, to });
   if (!st) return null;
-  ride = { from, to, fromT: 0, toT: 0, mode: 'wait', elapsed: 0, duration: 0, carT0: 0, leftStop: false, line, kind: 'cable-car', dir, epoch, counted: false, seenArrivals: 0, boarded: false };
+  ride = { from, to, fromT: 0, toT: 0, mode: 'wait', elapsed: 0, duration: 0, carT0: 0, leftStop: false, line, kind, dir, epoch, counted: false, seenArrivals: 0, boarded: false };
   return ride;
 }
 
 /** The pickup ETA of a waiting line ride (s), or null. */
 export function lineRideEta(): number | null {
-  const st = ride?.line ? activeCableSystem()?.rideStatus() : null;
+  const st = ride?.line ? rideSystemFor(ride.line)?.rideStatus() : null;
   return st && st.phase === 'coming' ? st.eta : null;
 }
 
 /** Is the car coming for the waiting rider turning on a turntable right now? */
 export function lineRideTurning(): boolean {
-  return !!(ride?.line && activeCableSystem()?.rideStatus()?.turning);
+  return !!(ride?.line && rideSystemFor(ride.line)?.rideStatus()?.turning);
 }
 
 function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTick {
-  const sys = activeCableSystem();
+  const sys = rideSystemFor(r.line!);
   const st = sys?.rideStatus();
   if (!sys || !st || st.line !== r.line) return { done: false, stage: r.mode === 'wait' ? 'waiting' : 'riding', lost: true };
   if (r.mode === 'wait') {
@@ -181,13 +182,21 @@ function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTic
     r.seenArrivals = st.arrivals;
     tick.arrivedAt = st.lastStation;
     // a real stop-to-stop segment: another station, far enough along, no fast travel since boarding
-    if (!r.counted && st.lastStation && st.lastStation !== r.from && st.odometer >= RIDE_MIN_ODOMETER && travelEpochNow === r.epoch) {
+    if (!r.counted && st.lastStation && st.lastStation !== r.from && st.odometer >= rideMinOdometer(r) && travelEpochNow === r.epoch) {
       r.counted = true;
       tick.count = true;
     }
   }
   void dt;
   return tick;
+}
+
+/**
+ * How far a city ride must go before a stop counts it (plan: 150 u). The city F-line's stops are closer on the hero side
+ * (the district's streetcar goal counted any ride between two of its stops), so there it is one stop-to-stop hop of ≥ 60 u.
+ */
+export function rideMinOdometer(r: Pick<RideState, 'kind'>): number {
+  return r.kind === 'streetcar' ? 60 : RIDE_MIN_ODOMETER;
 }
 
 /** Where a virtual ride is along DISTRICT.streetcar.path (0..1, eased in and out) — the world carries a car here. */

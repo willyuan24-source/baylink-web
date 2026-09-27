@@ -1,5 +1,6 @@
 import type { Bilingual } from '../core/types';
-import type { CableSystem } from '../world/transitLine';
+import type { StreetcarSystem } from '../world/flineSystem';
+import type { CableSystem, RideStatus, RiderRequest } from '../world/transitLine';
 
 /**
  * City transit data (lane F, plan §6.5), pure: no three.js, no DOM, no fetch at import. Built from the published
@@ -372,11 +373,16 @@ export const stopPos = (stop: CableStop, dir: 1 | -1) => stop.at - dir * stop.ne
 // ---------------------------------------------------------------------------
 
 let DATA: TransitData | null = null;
+/** the published F-line entry: city mode builds the Castro line from it (data/fline.ts, in the lazy transit layer) */
+let FLINE_JSON: TransitLineJson | null = null;
 let loading: Promise<TransitData | null> | null = null;
 const listeners = new Set<(d: TransitData) => void>();
 
 /** The loaded transit data (null until loadTransit resolves, or in district mode). */
 export function transitData(): TransitData | null { return DATA; }
+
+/** The published 'f-line' route (null until loadTransit resolves). */
+export function flineJson(): TransitLineJson | null { return FLINE_JSON; }
 
 /** Tests / QA: install (or clear) the data directly. */
 export function setTransitData(d: TransitData | null) {
@@ -402,7 +408,9 @@ export function loadTransit(root = '/opus-bay/sf'): Promise<TransitData | null> 
       const manifest = (await (await fetch(`${base}/manifest.json`)).json()) as { transit?: string };
       const res = await fetch(`${base}/${manifest.transit ?? 'transit.json'}`);
       if (!res.ok) throw new Error(`transit.json: HTTP ${res.status}`);
-      const d = buildTransit((await res.json()) as TransitFileJson);
+      const file = (await res.json()) as TransitFileJson;
+      FLINE_JSON = file.lines.find(l => l.id === 'f-line') ?? null;
+      const d = buildTransit(file);
       setTransitData(d);
       return d;
     } catch (error) {
@@ -425,3 +433,25 @@ export const transitStation = (id: string): TransitStation | undefined => DATA?.
 let ACTIVE: CableSystem | null = null;
 export function setActiveCableSystem(sys: CableSystem | null) { ACTIVE = sys; }
 export function activeCableSystem(): CableSystem | null { return ACTIVE; }
+
+/** The city F-line (world/flineSystem.ts, installed by the transit layer in city mode; null in district mode). */
+let STREETCAR: StreetcarSystem | null = null;
+export function setActiveStreetcarSystem(sys: StreetcarSystem | null) { STREETCAR = sys; }
+export function activeStreetcarSystem(): StreetcarSystem | null { return STREETCAR; }
+
+/** What game/ride.ts needs from any running line (cable cars, the city F-line, the ferry): the waiting-rider protocol. */
+export interface LineRideSystem {
+  request(req: RiderRequest): RideStatus | null;
+  board(): void;
+  cancel(): void;
+  rideStatus(): RideStatus | null;
+  readonly cars: readonly { pose: { x: number; y: number; z: number; heading: number; roll: number; pitch?: number } }[];
+}
+let FERRY: LineRideSystem | null = null;
+export function setActiveFerrySystem(sys: LineRideSystem | null) { FERRY = sys; }
+export function activeFerrySystem(): LineRideSystem | null { return FERRY; }
+
+/** The system running ride line `line` ('streetcar' = the city F-line, 'ferry', else a cable-car line). */
+export function rideSystemFor(line: string): LineRideSystem | null {
+  return line === 'streetcar' ? STREETCAR : line === 'ferry' ? FERRY : ACTIVE;
+}

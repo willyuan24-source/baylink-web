@@ -2,9 +2,10 @@ import * as THREE from 'three';
 import { definePlatform, setPlatformPose } from '../actors/platform';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
-import { CABLE, type TransitData, type Turntable, loadTransit, pointAt } from '../data/transit';
+import { CABLE, type TransitData, type Turntable, flineJson, loadTransit, pointAt } from '../data/transit';
 import { Batch } from './builder';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
+import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
@@ -22,7 +23,8 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  * - F's rails where the city draws none (world/rails.ts: hero spans, stubs, the Powell/Jackson corner);
  * - the platforms `<lineId>` (actors/platform.ts): the car carrying (or coming for) the rider, else the line's car
  *   nearest the player, with pitch;
- * - the cars' events as `transit` game events near the player (bells, grip clank, turntable push / turned).
+ * - the cars' events as `transit` game events near the player (bells, grip clank, turntable push / turned);
+ * - the city F-line to the Castro (world/flineLayer.ts: its four streetcars, the platform 'streetcar', its rails).
  *
  * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, far cars 1, discs 1 (+ shadow 1),
  * aprons 1, rails 1, ring 1 while pushing: ≤ 8 calls. Triangles: 2,124 a near car (again in the shadow pass), 156 a far
@@ -64,6 +66,8 @@ export class TransitLayer {
   private discYDirty = 0;
 
   readonly data: TransitData;
+  /** the city F-line (null without the published route) */
+  readonly fline: FLineLayer | null;
 
   constructor(data: TransitData) {
     this.data = data;
@@ -109,8 +113,10 @@ export class TransitLayer {
     this.ring.visible = false;
     this.ring.renderOrder = 2;
 
-    this.rails = new RailLayer(data);
+    this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround);
+    this.rails = new RailLayer(data, this.fline ? flineRailTracks(this.fline.line) : []);
     this.group.add(this.cars, this.carsFar, this.discMesh, this.ring, this.rails.mesh);
+    if (this.fline) this.group.add(this.fline.group);
     this.refreshDiscHeights(true);
     this.update(0, 0);
     this.group.updateMatrixWorld(true);
@@ -194,6 +200,7 @@ export class TransitLayer {
     } else this.ringFor = null;
     this.rails.update(dt);
     this.drainEvents();
+    this.fline?.update(dt);
     void t;
   }
 
@@ -226,7 +233,7 @@ export class TransitLayer {
 
   /** Per-car draw data for QA. */
   stats() {
-    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats() };
+    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats(), fline: this.fline?.stats() ?? null };
   }
 
   dispose() {
@@ -237,6 +244,7 @@ export class TransitLayer {
     this.ring.geometry.dispose();
     this.aprons?.geometry.dispose();
     this.rails.dispose();
+    this.fline?.dispose();
     if (LAYER === this) LAYER = null;
   }
 }
