@@ -8,6 +8,16 @@
 export interface SiteTerrainGrid { base: number; x0: number; z0: number; step: number; cols: number; rows: number; h: readonly number[] }
 
 export const SITE_TERRAIN: Readonly<Record<string, SiteTerrainGrid>> = {
+  'beach-chalet': {
+    base: 1.17, x0: -5, z0: -3, step: 2, cols: 6, rows: 5,
+    h: [
+      -1, -3, 0, 4, 5, 4,
+      4, 6, 16, 20, 11, 13,
+      11, 14, 20, 21, 19, 17,
+      10, 14, 18, 19, 17, 13,
+      6, 6, 8, 9, 6, 6,
+    ],
+  },
   'cal-academy': {
     base: 16.64, x0: -13, z0: -10, step: 2, cols: 14, rows: 12,
     h: [
@@ -144,6 +154,16 @@ export const SITE_TERRAIN: Readonly<Record<string, SiteTerrainGrid>> = {
       207, 214, 239, 250, 259, 282, 297, 302, 321, 358, 368, 376, 386, 395, 405,
       207, 217, 235, 245, 253, 284, 297, 303, 334, 361, 369, 379, 392, 397, 409,
       208, 220, 232, 238, 245, 287, 297, 303, 337, 361, 369, 382, 394, 399, 412,
+    ],
+  },
+  'murphy-windmill': {
+    base: 1.04, x0: -4, z0: -4, step: 2, cols: 5, rows: 5,
+    h: [
+      49, 35, 25, 14, 13,
+      48, 27, 25, 7, 3,
+      57, 36, 11, 1, -1,
+      59, 36, 16, 1, 2,
+      42, 26, 7, 9, 21,
     ],
   },
   'music-concourse': {

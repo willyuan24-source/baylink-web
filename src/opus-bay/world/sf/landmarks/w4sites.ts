@@ -2,6 +2,7 @@ import type { AttractionFlag } from '../../../data/sf/attractionTypes';
 import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
+import { beachChalet } from './beach-chalet';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { ccsfOcean } from './ccsf-ocean';
@@ -9,6 +10,7 @@ import { doloresPark } from './dolores-park';
 import { haightAshbury } from './haight-ashbury';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { landsEnd } from './lands-end';
+import { murphyWindmill } from './murphy-windmill';
 import { musicConcourse } from './music-concourse';
 import { oceanBeach } from './ocean-beach';
 import { sfState } from './sf-state';
@@ -60,6 +62,8 @@ export const W4_SITES: readonly W4Site[] = [
   landsEnd,
   oceanBeach,
   sfZoo,
+  murphyWindmill,
+  beachChalet,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));

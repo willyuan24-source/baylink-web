@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import { BOX, type BatchLike, CBOX, ICO, M } from '../../builder';
 import { GLOW, LIT, NONE, SF, box, cbox, gable, pyramid, rect, worldPoly } from './kit';
-import { FC, GC, PAT, type SiteGroundPoly, type W4Site, conifer, gfill, plazaOf, siteGround } from './siteKit';
+import { FC, GC, PAT, type SiteGroundPoly, type W4Site, conifer, gfill, hipRoof, plazaOf, siteGround } from './siteKit';
 
 /**
  * Japanese Tea Garden (wave 4, P2 · map T2, the Music Concourse site): the oldest public Japanese garden in the US
@@ -71,7 +71,7 @@ function teaHouse(b: BatchLike) {
   const y0 = g.at(TEA.x, TEA.z);
   box(b, TEA.x, y0 - 0.2, TEA.z, 2.8, 0.45, 2.0, WOOD);
   box(b, TEA.x, y0 + 0.25, TEA.z, 2.4, 1.3, 1.6, '#efe4cf', LIT(y0 + 0.25));
-  pyramid(b, TEA.x, y0 + 1.55, TEA.z, 3.4, 2.6, 0.9, ROOF);
+  hipRoof(b, TEA.x, y0 + 1.55, TEA.z, 3.4, 2.6, 0.9, ROOF);
 }
 
 function lantern(b: BatchLike, x: number, z: number) {

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SurfaceKind, Vec2 } from '../../../core/types';
-import { BOX, type BatchLike, CBOX, CONE, CYL, ICO, type Info, M, mixColor } from '../../builder';
+import { BOX, type BatchLike, CBOX, CONE, CYL, type ColorLike, ICO, type Info, M, mixColor } from '../../builder';
 import type { SiteHooks } from '../sites';
 import type { LandmarkGround, SfLandmark } from './index';
 import { SITE_TERRAIN, type SiteTerrainGrid } from './siteTerrain';
@@ -419,3 +419,29 @@ export type SiteLight = NonNullable<SiteHooks['lights']>[number];
 
 /** A walkable plaza polygon (SiteHooks.plaza, lane F's crowd spots) with its surface kind. */
 export const plazaOf = (poly: Vec2[], surface: SurfaceKind = 'plaza') => ({ poly, surface });
+
+/**
+ * Hip roof over a centred rectangle w × d (eaves at y0, the ridge — or the apex on a square — at y0 + h; ridge along
+ * the longer side), 6 triangles. kit.pyramid draws a true rectangle only when w = d: its scale applies before the 45°
+ * turn, so a w ≠ d cap comes out as a skewed rhombus (see the lane-L report).
+ */
+export function hipRoof(b: BatchLike, x: number, y0: number, z: number, w: number, d: number, h: number, color: ColorLike, ry = 0, info: Info = NONE) {
+  const c = Math.cos(ry), s = Math.sin(ry);
+  const P = (u: number, yy: number, v: number) => new THREE.Vector3(x + u * c + v * s, yy, z - u * s + v * c);
+  /** outward normal of a slope facing local (ou, ov) that climbs h over `run` */
+  const N = (ou: number, ov: number, run: number) => new THREE.Vector3((ou * c + ov * s) * h, run, (-ou * s + ov * c) * h).normalize();
+  const hw = w / 2, hd = d / 2;
+  if (w >= d) {
+    const r = hw - hd, R0 = P(-r, y0 + h, 0), R1 = P(r, y0 + h, 0);
+    b.quad(P(-hw, y0, hd), P(hw, y0, hd), R1, R0, N(0, 1, hd), color, info);
+    b.quad(P(hw, y0, -hd), P(-hw, y0, -hd), R0, R1, N(0, -1, hd), color, info);
+    b.tri(P(-hw, y0, -hd), P(-hw, y0, hd), R0, color, info, N(-1, 0, hd));
+    b.tri(P(hw, y0, hd), P(hw, y0, -hd), R1, color, info, N(1, 0, hd));
+  } else {
+    const r = hd - hw, R0 = P(0, y0 + h, -r), R1 = P(0, y0 + h, r);
+    b.quad(P(hw, y0, -hd), P(hw, y0, hd), R1, R0, N(1, 0, hw), color, info);
+    b.quad(P(-hw, y0, hd), P(-hw, y0, -hd), R0, R1, N(-1, 0, hw), color, info);
+    b.tri(P(-hw, y0, -hd), P(hw, y0, -hd), R0, color, info, N(0, -1, hw));
+    b.tri(P(hw, y0, hd), P(-hw, y0, hd), R1, color, info, N(0, 1, hw));
+  }
+}
