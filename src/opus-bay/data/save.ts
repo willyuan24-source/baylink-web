@@ -168,11 +168,12 @@ export function patchSave(fn: (s: SaveV2) => void) {
   const draft: SaveV2 = { ...(readSave() ?? { version: 2 }) };
   fn(draft);
   cache = draft;
-  if (savesOff() || !hasWindow()) return;
-  if (!flushHooked) {
+  // no storage (node tests with a stub window, blocked storage): memory only
+  if (savesOff() || !storage()) return;
+  if (!flushHooked && typeof window.addEventListener === 'function') {
     flushHooked = true;
     window.addEventListener('pagehide', flushSave);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); });
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); });
   }
   if (timer) clearTimeout(timer);
   timer = setTimeout(flushSave, 1000);

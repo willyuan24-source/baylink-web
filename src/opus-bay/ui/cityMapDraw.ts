@@ -252,3 +252,31 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
 
 /** Keep the tram / rail classes referenced (the map draws the cable cars from data/transit.ts instead). */
 export const SKIPPED_ROAD_CLASSES = [R_TRAM, R_RAIL] as const;
+
+/** Rough label width in px for the map font (CJK ≈ 1 em, latin ≈ 0.56 em). */
+export function labelWidth(text: string, fontPx: number): number {
+  let w = 0;
+  for (const ch of text) w += /[⺀-鿿＀-￯]/.test(ch) ? fontPx : fontPx * 0.56;
+  return w;
+}
+
+export interface LabelItem { id: string; x: number; y: number; text: string; prio: number; fontPx?: number }
+
+/**
+ * Greedy, collision-free labels in screen px (lower prio first): a label that would overlap one already placed, or
+ * leave the w × h box, or cover a marker (`obstacles`), is dropped. Returns the ids that keep their label. Pure.
+ */
+export function layoutLabels(items: readonly LabelItem[], w: number, h: number, pad = 3, obstacles: readonly { x: number; y: number; r: number }[] = []): Set<string> {
+  const placed: [number, number, number, number][] = obstacles.map(o => [o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r]);
+  const out = new Set<string>();
+  for (const it of [...items].sort((a, b) => a.prio - b.prio)) {
+    const f = it.fontPx ?? 11.5;
+    const lw = labelWidth(it.text, f) / 2 + pad, top = it.y - f - pad, bottom = it.y + pad;
+    const box: [number, number, number, number] = [it.x - lw, top, it.x + lw, bottom];
+    if (box[0] < 0 || box[2] > w || box[1] < 0 || box[3] > h) continue;
+    if (placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
+    placed.push(box);
+    out.add(it.id);
+  }
+  return out;
+}

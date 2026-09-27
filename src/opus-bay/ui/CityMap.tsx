@@ -3,7 +3,7 @@ import { Landmark, LocateFixed, Maximize2, Minus, Plus, Search } from 'lucide-re
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
-import { learnZoneNames, zoneLabelAnchor, zoneName } from '../data/cityZones';
+import { landmarkAreaAt, learnZoneNames, zoneLabelAnchor, zoneName } from '../data/cityZones';
 import { type CityPlace, type PlaceIndex, loadPlaces, onPlaces, placeIndex } from '../data/sf/places';
 import { onTransitData, transitData } from '../data/transit';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
@@ -11,7 +11,7 @@ import { closePanel } from '../game/flow';
 import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import type { FarData } from '../world/sf/format';
-import { type MapView, MAX_ZOOM, clampView, drawCityMap, fitScale, toPx, zoomAt } from './cityMapDraw';
+import { type MapView, MAX_ZOOM, clampView, drawCityMap, fitScale, layoutLabels, toPx, zoomAt, type LabelItem } from './cityMapDraw';
 import { Sheet } from './common';
 import { MapPaperLayer } from './MapPaperLayer';
 import { PlaceActions } from './PlaceActions';
@@ -183,6 +183,26 @@ export function CityMapPanel() {
   }, [ix, view, zoom, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   const zoneLabels = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at) : []), [far]);
   const sel = selected && ix ? ix.get(selected) ?? null : null;
+  // labels: the selected place first, then landmarks, curated places (zoomed in), then neighbourhood names
+  const shown = useMemo(() => {
+    if (!view) return new Set<string>();
+    const items: LabelItem[] = [];
+    const obstacles: { x: number; y: number; r: number }[] = [];
+    for (const { p, kind } of markers) {
+      const [x, y] = toPx(view, p.x, p.z);
+      obstacles.push({ x, y, r: kind === 'lm' ? 10 : 4 });
+      const prio = p.id === selected ? 0 : kind === 'lm' ? (isDiscovered(p.id) ? 1 : 2) : kind === 'curated' ? 3 : 4;
+      // the whole city: discovered landmarks only; zoomed in: every landmark, then curated places, then the rest
+      const want = prio === 0 || (prio === 1 && zoom > 1.6) || (prio === 2 && zoom > 2.4) || (kind === 'curated' && zoom > 4) || zoom > 9;
+      if (want) items.push({ id: p.id, x, y: y - (kind === 'lm' ? 12 : 6), text: t(p.name), prio });
+    }
+    if (zoom < 7) for (const z of zoneLabels) {
+      if (!zoneVisited(z.id)) continue;
+      const [x, y] = toPx(view, z.at!.x, z.at!.z);
+      items.push({ id: `zone:${z.id}`, x, y: y + 4, text: t(zoneName(z.id)), prio: 5, fontPx: 11 });
+    }
+    return layoutLabels(items, view.w, view.h, 3, obstacles);
+  }, [markers, view, zoom, zoneLabels, selected, t, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- list ---------------------------------------------------------------------------------------------------------
   const list = useMemo(() => {
@@ -206,10 +226,9 @@ export function CityMapPanel() {
         {view && (
           <svg className="ob-citymap-overlay" width={view.w} height={view.h} aria-hidden>
             {zoom < 7 && zoneLabels.map(z => {
-              if (!zoneVisited(z.id)) return null;
+              if (!shown.has(`zone:${z.id}`)) return null;
               const [x, y] = toPx(view, z.at!.x, z.at!.z);
-              if (x < 0 || y < 0 || x > view.w || y > view.h) return null;
-              return <text key={z.id} x={x} y={y} className="cm-zone">{t(zoneName(z.id))}</text>;
+              return <text key={z.id} x={x} y={y + 4} className="cm-zone">{t(zoneName(z.id))}</text>;
             })}
             {markers.map(({ p, kind }) => {
               const [x, y] = toPx(view, p.x, p.z);
@@ -219,14 +238,14 @@ export function CityMapPanel() {
                   <g key={p.id} className={`cm-lm ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
                     <circle r={10} />
                     <Landmark x={-6.5} y={-6.5} width={13} height={13} strokeWidth={2.2} />
-                    {(zoom > 3.2 || p.id === selected) && <text y={-15} className="cm-label">{t(p.name)}</text>}
+                    {shown.has(p.id) && <text y={-12} className="cm-label">{t(p.name)}</text>}
                   </g>
                 );
               }
               return (
                 <g key={p.id} className={`cm-dot ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
                   <circle r={kind === 'curated' ? 5 : 3.5} />
-                  {(p.id === selected || (kind === 'curated' && zoom > 6)) && <text y={-9} className="cm-label">{t(p.name)}</text>}
+                  {shown.has(p.id) && <text y={-6} className="cm-label">{t(p.name)}</text>}
                 </g>
               );
             })}
@@ -268,7 +287,7 @@ export function CityMapPanel() {
             <li key={p.id}>
               <button type="button" className={selected === p.id ? 'is-on' : ''} onClick={() => focusPlace(p)}>
                 <span className={`ob-place-num ${isDiscovered(p.id) ? 'is-found' : ''}`} aria-hidden>{p.landmark ? <Landmark size={13} /> : '·'}</span>
-                <span className="ob-place-text"><span>{t(p.name)}</span><small>{p.zone ? t(zoneName(p.zone)) : t('旧金山', 'San Francisco')}</small></span>
+                <span className="ob-place-text"><span>{t(p.name)}</span><small>{t(landmarkAreaAt(p.x, p.z)?.name ?? zoneName(p.zone))}</small></span>
               </button>
             </li>
           ))}

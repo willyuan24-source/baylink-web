@@ -1,7 +1,7 @@
 import { Bike, Bird, Car, ExternalLink, Info, Lock, Navigation } from 'lucide-react';
 import { unproject } from '../core/geo';
 import { useGame } from '../core/store';
-import { zoneName } from '../data/cityZones';
+import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { mapsUrl } from '../data/links';
 import type { CityPlace } from '../data/sf/places';
 import { isDiscovered, useDiscoveryEpoch } from '../game/discovery';
@@ -26,7 +26,7 @@ export function PlaceActions({ place }: { place: CityPlace }) {
   const found = isDiscovered(place.id);
   const drive = driveOption();
   const ll = unproject({ x: place.x, z: place.z });
-  const zone = place.zone ? zoneName(place.zone) : null;
+  const zone = landmarkAreaAt(place.x, place.z)?.name ?? (place.zone ? zoneName(place.zone) : null);
   return (
     <div className="ob-map-pop ob-place-pop" role="group" aria-label={t(place.name)}>
       <div className="ob-map-pop-text">

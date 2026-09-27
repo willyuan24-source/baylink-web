@@ -119,6 +119,15 @@ export function tripPose(c: TripClock, from: Vec2, to: Vec2, ground: (x: number,
   return { phase: c.phase, t, x: p.x, y: ground(p.x, p.z) + lift, z: p.z, heading };
 }
 
+export const PICKUP_PITCH = 1.0;
+export const PICKUP_DIST = 14;
+
+/** Camera on the follow rig's orbit: `yaw` points from the target to the camera (actors/camera.ts convention). */
+export function orbitShot(p: Vec2, gy: number, yaw: number, pitch: number, dist: number): { position: [number, number, number]; target: [number, number, number] } {
+  const h = Math.cos(pitch) * dist;
+  return { position: [p.x + Math.sin(yaw) * h, gy + 1.6 + Math.sin(pitch) * dist, p.z + Math.cos(yaw) * h], target: [p.x, gy + 1.6, p.z] };
+}
+
 /** Top-view camera over a ground point, looking along yaw. */
 export function topShot(p: Vec2, gy: number, yaw: number, dist = TOP_DIST, pitch = TOP_PITCH): { position: [number, number, number]; target: [number, number, number] } {
   const h = Math.cos(pitch) * dist;
@@ -182,9 +191,9 @@ export function startTravel(dest: TravelDest): boolean {
   const mine = trip;
   if (s) void s.whenReady({ x: dest.x, z: dest.z }, 150).then(() => { if (trip === mine) mine.ready = true; });
   else trip.ready = true;
-  // pickup: ease in behind and a little above the player
-  const yaw = trip.clock.plan.yaw, gy = heightAt(from.x, from.z);
-  runtime.camera.shot = { position: [from.x - Math.sin(yaw) * 9, gy + 5.5, from.z - Math.cos(yaw) * 9], target: [from.x, gy + 2, from.z], duration: PICKUP_S };
+  // pickup: up along the follow camera's own orbit (clear of buildings), steep enough that the horizon (and the whole
+  // city behind it) never fills the frame on the way up to the top view (≤ 400k triangles at high)
+  runtime.camera.shot = { ...orbitShot(from, heightAt(from.x, from.z), runtime.camera.yaw, PICKUP_PITCH, PICKUP_DIST), duration: PICKUP_S };
   return true;
 }
 

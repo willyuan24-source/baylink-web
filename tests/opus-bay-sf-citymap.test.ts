@@ -70,3 +70,17 @@ test('view: zoom limits 0.8–18×, zoomAt keeps the point under the cursor, toP
   const out = clampView({ ...v, cx: 1e6, cz: -1e6 }, MAP_FRAME);
   assert.deepEqual([out.cx, out.cz], [MAP_FRAME.maxX, MAP_FRAME.minZ]);
 });
+
+test('labels: greedy layout drops overlaps, off-frame labels and labels over markers; priority wins', async () => {
+  const { layoutLabels, labelWidth } = await import('../src/opus-bay/ui/cityMapDraw');
+  assert.ok(labelWidth('唐人街', 12) > labelWidth('abc', 12));
+  const items = [
+    { id: 'b', x: 100, y: 100, text: 'Second place', prio: 2 },
+    { id: 'a', x: 104, y: 102, text: 'First place', prio: 1 },
+    { id: 'edge', x: 2, y: 50, text: 'Off the edge', prio: 3 },
+    { id: 'far', x: 300, y: 200, text: 'Alone', prio: 4 },
+    { id: 'hidden', x: 200, y: 60, text: 'Under a marker', prio: 5 },
+  ];
+  const shown = layoutLabels(items, 400, 300, 3, [{ x: 200, y: 55, r: 10 }]);
+  assert.deepEqual([...shown].sort(), ['a', 'far']);
+});

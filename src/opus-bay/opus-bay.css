@@ -1087,5 +1087,6 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-travel-veil i:nth-child(4) { left: 55%; top: 66%; animation-duration: 6.5s; animation-delay: -1s; }
 @keyframes ob-cloud-drift { from { transform: translateX(-8vmax); } to { transform: translateX(8vmax); } }
 @media (prefers-reduced-motion: reduce) { .ob-travel-veil i { animation: none; } }
-.ob-title-resume { background: rgba(255, 250, 241, .92); }
+.ob-title-actions:has(.ob-title-resume) { flex-wrap: wrap; }
+.ob-title-resume { order: 3; flex: 1 0 100%; justify-content: center; background: rgba(255, 250, 241, .92); }
 .ob-title-resume svg { color: var(--ob-terra); }
