@@ -509,8 +509,13 @@ export function stageMark(poi: PoiDef, from: Vec2 = playerPos()): Vec2 {
   return nearestWalkable(want, 4) ?? { x: f.x, z: f.z };
 }
 
-/** BAYBAY's spot beside the city resident you are chatting with, solved once per resident and player spot. */
-let aside: { key: string; x: number; z: number; mark: Vec2 | null } | null = null;
+/**
+ * BAYBAY's spot beside the city resident you are chatting with, solved once per chat (resident and player spot). The
+ * brain asks every 100 ms while a dialogue is open; a gap longer than ASIDE_CHAT_GAP means a new chat, solved again
+ * from where she stands now (a mark kept from an earlier chat could be on the other side: she would cross in front).
+ */
+let aside: { key: string; x: number; z: number; mark: Vec2 | null; seen: number } | null = null;
+const ASIDE_CHAT_GAP = 400;
 
 /** Where BAYBAY should hold still while the current dialogue plays (welcome mark, stage mark, beside a resident), or null. */
 export function talkMark(): Vec2 | null {
@@ -521,9 +526,11 @@ export function talkMark(): Vec2 | null {
   const r = residentByKey(/^npc\.([a-z-]+)\./.exec(s.dialogue.nodeId ?? '')?.[1] ?? '');
   const p = playerPos();
   if (r && dist(p, r.at) < 7) {
-    if (!aside || aside.key !== r.key || Math.hypot(aside.x - p.x, aside.z - p.z) > 0.5) {
-      aside = { key: r.key, x: p.x, z: p.z, mark: asideMark(p, r, { x: runtime.guide.x, z: runtime.guide.z }, (x, z) => canStand(x, z, 0.45)) };
+    const now = performance.now();
+    if (!aside || aside.key !== r.key || now - aside.seen > ASIDE_CHAT_GAP || Math.hypot(aside.x - p.x, aside.z - p.z) > 0.5) {
+      aside = { key: r.key, x: p.x, z: p.z, mark: asideMark(p, r, { x: runtime.guide.x, z: runtime.guide.z }, (x, z) => canStand(x, z, 0.45)), seen: now };
     }
+    aside.seen = now;
     return aside.mark;
   }
   return null;

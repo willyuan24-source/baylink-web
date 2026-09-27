@@ -57,7 +57,8 @@ const SCRIPTS: Record<ResidentKey, Script> = {
     fact: ['proud', '全世界只剩旧金山的叮当车还靠人手开。谢谢你陪我试车！', "Ours are the world's last manually operated cable cars. Thanks for the test ride!"],
   },
   baker: {
-    hi: ['wave', '早呀，我是面包师 Rosa！刚出炉的酸面包，闻到了吗？', "Morning, I'm Rosa, the baker! Smell that? Sourdough, fresh from the oven."],
+    // no "早呀 / Morning": the chat can happen at any hour of the Bay's clock (night included)
+    hi: ['wave', '哈喽，我是面包师 Rosa！刚出炉的酸面包，闻到了吗？', "Hiya, I'm Rosa, the baker! Smell that? Sourdough, fresh from the oven."],
     ask: ['happy', '能帮我把这个面包送给叮当车司机 Ray 吗？他在 Powell & Market 转车台。', "Could you take this loaf to Ray the gripman? He's at the Powell & Market turntable."],
     accept: bi('交给我吧', 'Leave it to me'),
     yes: ['excited', '谢谢！趁热送去，他最爱这一口～', "Thank you! Take it while it's warm — it's his favourite~"],
