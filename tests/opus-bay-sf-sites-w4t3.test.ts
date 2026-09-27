@@ -313,7 +313,10 @@ test('flags (plan §4.2) and settings: poles 28–70 u over the site, plazas ≥
     // the record's measured top over its base (what cityViews / cityLive add to the base at the integration)
     assert.ok(Math.abs(s.w4.height.top - top) <= 0.1, `${s.id} height.top ${s.w4.height.top} vs the model's top ${top.toFixed(2)}`);
     const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0);
-    assert.ok(plaza >= 30, `${s.id} plaza ${plaza.toFixed(0)} u²`);
+    // a site in a residential court the plan says keeps no crowds (the sundial, #80) has NO crowd spots at all and says
+    // so in its notes; every other site offers ≥ 30 u² of them (lane L's rule)
+    if (/no crowd spots/i.test(s.w4.notes ?? '')) assert.equal(plaza, 0, `${s.id} says it has no crowd spots`);
+    else assert.ok(plaza >= 30, `${s.id} plaza ${plaza.toFixed(0)} u²`);
     for (const l of s.lights ?? []) assert.ok([l.x, l.y, l.z, l.size].every(Number.isFinite) && /^#[0-9a-f]{6}$/i.test(l.color), s.id);
     for (const k of Object.keys(s)) assert.ok(!/material|texture|label|sign|logo/i.test(k), `${s.id}.${k}`);
     assert.equal(s.swap, undefined, s.id);

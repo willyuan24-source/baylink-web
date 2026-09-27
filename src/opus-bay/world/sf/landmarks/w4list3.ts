@@ -1,6 +1,9 @@
 import type { W4Site } from './siteKit';
 import { balmyAlley } from './balmy-alley';
 import { bayviewOperaHouse } from './bayview-opera-house';
+import { craneCovePark } from './crane-cove-park';
+import { haasLilienthalHouse } from './haas-lilienthal-house';
+import { inglesideTerracesSundial } from './ingleside-terraces-sundial';
 
 /**
  * The wave-4 tier-3 site records (lane L3, W4-L9: plan §2.4 "Priority 4", in the table's order), and nothing else:
@@ -14,4 +17,7 @@ import { bayviewOperaHouse } from './bayview-opera-house';
 export const W4_SITES_T3: readonly W4Site[] = [
   balmyAlley,
   bayviewOperaHouse,
+  craneCovePark,
+  haasLilienthalHouse,
+  inglesideTerracesSundial,
 ];
