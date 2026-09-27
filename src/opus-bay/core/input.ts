@@ -77,6 +77,11 @@ export const input = {
   jumpHeld: false,
   /** the touch 跳 / Hop button is held (actors/TouchControls via touchJump, E2-9) */
   touchJumpHeld: false,
+  /**
+   * the pending jump edge came from the touch 跳 button (E2-review): its release cuts the jump even when it came before
+   * the take-off crouch, so every quick tap is a short hop (the controller reads and clears it with the edge)
+   */
+  touchJumpArm: false,
   /** keyboard keys held (event.code) */
   keys: new Set<string>(),
 };
@@ -155,11 +160,13 @@ export function clearKeys() {
 
 /**
  * The touch 跳 / Hop button (E2-9): down = one jump press (the same edge as Space / pad B: a hop on foot, a bunny hop
- * on the bike), held until up — a quick tap is a short hop, a held press the full jump.
+ * on the bike), held until up — a quick tap is a short hop, a held press the full jump. (A tap released before the
+ * 0.07 s take-off crouch is a short hop too — `touchJumpArm`; Space and pad B keep the old rule: a release that early
+ * keeps the full jump.)
  */
 export function touchJump(down: boolean) {
   if (down) {
-    if (!input.touchJumpHeld) runtime.input.jump = true;
+    if (!input.touchJumpHeld) { runtime.input.jump = true; input.touchJumpArm = true; }
     input.touchJumpHeld = true;
     runtime.input.device = 'touch';
   } else input.touchJumpHeld = false;

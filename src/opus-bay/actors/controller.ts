@@ -291,6 +291,8 @@ export class PlayerController {
   private lastGroundedAt = -10;
   private jumpPressedAt = -10;
   private cutAllowed = false;
+  /** the buffered jump came from the touch 跳 button (core/input touchJumpArm) */
+  private tapCut = false;
   private cutDone = false;
   /** averaged wall normal (points into the wall) of the last 3 contacts, and time since the last contact */
   private wallN = { x: 0, z: 0 };
@@ -365,8 +367,9 @@ export class PlayerController {
     if (!Number.isFinite(this.lastX)) this.sync();
 
     // edges are always consumed so they never fire late
-    if (runtime.input.jump) this.jumpPressedAt = ctx.now;
+    if (runtime.input.jump) { this.jumpPressedAt = ctx.now; this.tapCut = input.touchJumpArm; }
     runtime.input.jump = false;
+    input.touchJumpArm = false;
     const wantJump = ctx.now - this.jumpPressedAt <= JUMP_BUFFER;
     if (input.resetCount !== this.resetSeen) {
       this.resetSeen = input.resetCount;
@@ -490,7 +493,8 @@ export class PlayerController {
         this.grounded = false;
         this.airTime = 0;
         this.jumpedAt = ctx.now;
-        this.cutAllowed = input.jumpHeld;
+        // (a touch 跳 tap may already be released: it still cuts — a quick tap is a short hop, E2-review)
+        this.cutAllowed = input.jumpHeld || this.tapCut;
         this.cutDone = false;
         emit({ type: 'jump' });
       }

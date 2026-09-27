@@ -251,6 +251,34 @@ test('E2-9 touch hop: a press raises the jump edge once, a quick tap is a short 
   runtime.input.jump = false;
 });
 
+test('E2-review touch hop: a tap released before the take-off crouch is a short hop too; Space keeps the old rule', () => {
+  const c = new PlayerController();
+  const apex = (press: () => void, release: () => void, releaseAt: number) => {
+    resetPlayer(DISTRICT_CLOCK, 0);
+    c.sync();
+    let top = 0;
+    press();
+    for (let i = 0; i < 80; i++) {
+      if (i === releaseAt) release();
+      pollInput();
+      c.step({ dt: DT, now: i * DT, cameraYaw: 0, frozen: false, riding: false });
+      top = Math.max(top, runtime.player.y - heightAt(runtime.player.x, runtime.player.z));
+    }
+    return top;
+  };
+  const key = (code: string) => ({ code, repeat: false, target: null, metaKey: false, ctrlKey: false, altKey: false });
+  // (before: a 40 ms touch tap — released inside the 0.07 s crouch — gave the full 1.33 u jump, a 0.1 s tap 0.65 u)
+  const quick = apex(() => touchJump(true), () => touchJump(false), 1);
+  const tap = apex(() => touchJump(true), () => touchJump(false), 8);
+  const held = apex(() => touchJump(true), () => touchJump(false), 60);
+  assert.ok(quick < 1.0 && tap < 1.0, `quick ${quick.toFixed(2)} u, tap ${tap.toFixed(2)} u: short hops`);
+  assert.ok(held > 1.3, `held: the full jump (${held.toFixed(2)} u)`);
+  const space = apex(() => onKeyDown(key('Space')), () => onKeyUp({ code: 'Space' }), 1);
+  assert.ok(space > 1.3, `Space released before take-off keeps the full jump (${space.toFixed(2)} u)`);
+  assert.equal(input.touchJumpArm, false, 'the touch mark goes with the edge');
+  runtime.input.jump = false;
+});
+
 // ---------------------------------------------------------------------------
 // E2-11 · gamepad: standard mapping first, A = interact + the E count, View = map, L3 ignored on a hard stick push
 // ---------------------------------------------------------------------------
