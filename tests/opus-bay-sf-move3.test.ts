@@ -10,7 +10,7 @@ import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTe
 import { SF_LANDMARKS } from '../src/opus-bay/world/sf/landmarks/index';
 import { facadeAlongRay, frontSpot, resetFacadeCache } from '../src/opus-bay/actors/tapTarget';
 import { sfDisk } from './opus-bay-sf-disk';
-import { PlayerController, type Obstacle } from '../src/opus-bay/actors/controller';
+import { GradeTracker, PANT, PlayerController, type Obstacle } from '../src/opus-bay/actors/controller';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { MoveSystem } from '../src/opus-bay/actors/moveSystem';
 import * as moveApi from '../src/opus-bay/actors/moveApi';
@@ -324,4 +324,68 @@ test('E2-11 gamepad (stubbed getGamepads): standard pad preferred, A counts as E
     pollInput();
     runtime.input.device = 'keyboard'; runtime.input.interact = false; runtime.input.jump = false;
   }
+});
+
+// ---------------------------------------------------------------------------
+// E2-13 · the crest pant by climb height
+// ---------------------------------------------------------------------------
+
+test('E2-13 crest pant rule: ≥ 6 u rise at g > 0.2 (walking too), fires at the crest, landings are not crests, 45 s cooldown', () => {
+  const tr = new GradeTracker();
+  let y = 0, t = 0;
+  const pants: number[] = [];
+  /** walk `secs` at grade g and 3 u/s (moving = false: standing still) */
+  const go = (secs: number, g: number, moving = true) => {
+    for (let k = 0; k < Math.round(secs / DT); k++) {
+      if (moving) y += g * 3 * DT;
+      t += DT;
+      if (tr.update(DT, moving ? g : 0, moving, y)) pants.push(t);
+    }
+  };
+  // 4 u up the steps, a 0.5 s landing, a gentle stretch, 4 u more: no pant on the way
+  go(4 / 0.9, 0.3); go(0.5, 0.02); go(3, 0.15); go(4 / 0.9, 0.3);
+  assert.equal(pants.length, 0, 'no pant on the way up');
+  assert.ok(tr.rise > 8, `one climb (${tr.rise.toFixed(1)} u)`);
+  const top = t;
+  go(2, 0);
+  assert.equal(pants.length, 1, 'one pant at the crest');
+  assert.ok(pants[0] - top <= PANT.crestMove + DT * 2, `right at the top (${(pants[0] - top).toFixed(2)} s)`);
+  // another 7 u climb 20 s later: inside the cooldown
+  go(20, 0); go(7 / 0.9, 0.3); go(2, 0);
+  assert.equal(pants.length, 1, '45 s cooldown');
+  // after the cooldown: a climb that ends by standing still at the top pants
+  go(30, 0, false); go(7 / 0.9, 0.3); go(1.2, 0, false);
+  assert.equal(pants.length, 1, 'still standing 1.2 s: not yet');
+  go(0.5, 0, false);
+  assert.equal(pants.length, 2, 'standing 1.5 s at the top');
+  // a climb that turns straight back down (1.5 u below its peak) is a crest too; 5 u is not enough
+  go(50, 0); go(5 / 0.9, 0.3); go(1, -0.3);
+  assert.equal(pants.length, 2, '5 u: no pant');
+  tr.reset();
+  assert.equal(tr.rise, 0, 'reset forgets the climb');
+});
+
+test("E2-13 the Filbert Steps: a click-to-walk from Levi's Plaza to the Coit summit pants once, at the top", () => {
+  const c = new PlayerController();
+  const a = DISTRICT.anchors['levis-plaza'], b = DISTRICT.anchors['coit-summit'];
+  resetPlayer(a, 0);
+  c.sync();
+  const p = runtime.player;
+  p.pathTarget = { x: b.x, z: b.z };
+  const pants: { t: number; y: number }[] = [];
+  let arrived = -1, maxY = 0;
+  for (let i = 0; i < 60 * 60; i++) {
+    const t = i * DT;
+    c.step({ dt: DT, now: t, cameraYaw: 0, frozen: false, riding: false });
+    maxY = Math.max(maxY, p.y);
+    if (c.pantAt === t) pants.push({ t, y: p.y });
+    if (arrived < 0 && !p.pathTarget && i > 60) arrived = t;
+    if (arrived >= 0 && t > arrived + 4) break;
+  }
+  assert.ok(arrived > 0, 'arrived at the summit');
+  assert.ok(maxY > 15, `climbed (${maxY.toFixed(1)} u)`);
+  assert.equal(pants.length, 1, `one pant (${JSON.stringify(pants)})`);
+  assert.ok(pants[0].y > maxY - 0.5, 'at the top');
+  assert.ok(pants[0].t - arrived <= PANT.crestStill + 0.1, 'as the walker stops there');
+  p.pathTarget = null;
 });

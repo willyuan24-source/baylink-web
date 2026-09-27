@@ -15,7 +15,7 @@ import { RouteFollower, isLongRoute } from './routeFollow';
  *
  * Grade model (plan §6.2, whole-SF hills): g = Δh/Δs over 0.6 u along the motion; uphill × max(0.55, 1 − 0.45·g),
  * downhill × (1 + 0.12·min(1, |g| / 0.5)), stairs × 0.8 up / × 0.9 down, and ground steeper than 0.9 that is not a
- * flight of stairs is a wall (moveDisc). No stamina: a long uphill run ends in a cosmetic pant at the crest.
+ * flight of stairs is a wall (moveDisc). No stamina: a climb of ≥ 6 u ends in a cosmetic pant at the crest.
  * Ground / collision come from core/terrain only (the city provider extends it).
  *
  * Long click-to-walk (city mode, lane E2 wave 2, E2-1): a target beyond LOCAL_ROUTE (or one the local grid cannot
@@ -74,18 +74,58 @@ function steepWall(x: number, z: number, dx: number, dz: number, ground: number)
   return (heightAt(px, pz) - ground) / 0.3 > WALL_GRADE;
 }
 
+/** Crest pant (E2-13): a climb counts from g > PANT.climbG; its crest pants once it rose ≥ PANT.rise u. */
+export const PANT = {
+  /** grade that makes (and keeps) a climb */
+  climbG: 0.2,
+  /** below this the ground is flat / downhill; between the two a gentle stretch keeps the climb without ending it */
+  crestG: 0.1,
+  /** height gained since the foot of the climb (u) */
+  rise: 6,
+  /** the crest: this long on the flat (s) or standing still (s), or this far back down (u) */
+  crestMove: 1,
+  crestStill: 1.5,
+  crestDrop: 1.5,
+  /** at most one pant per this long (s) */
+  cooldown: 45,
+} as const;
+
 /**
- * No stamina, only a cosmetic pant (plan §6.2): after ≥ 10 s of running uphill (g > 0.25), reaching the crest
- * (g < 0.1) returns true once. Stopping or walking for more than 1.5 s forgets the climb.
+ * No stamina, only a cosmetic pant (plan §6.2, E2-13 by climb height): a climb starts when the walker moves uphill at
+ * g > 0.2 (walking or running, steps included) and lasts through gentle stretches (0.1–0.2); its crest is 1 s on the flat,
+ * 1.5 s standing still, or 1.5 u back down. A crest after a ≥ 6 u rise returns true once, at most one per 45 s — so a
+ * short landing on the Filbert Steps is not a crest, and the whole climb to Coit Tower pants once, at the top.
  */
 export class GradeTracker {
-  climb = 0;
-  private idle = 0;
-  update(dt: number, g: number, running: boolean): boolean {
-    if (running && g > 0.25) { this.climb += dt; this.idle = 0; return false; }
-    if (this.climb >= 10 && g < 0.1) { this.climb = 0; return true; }
-    if (!running || g < 0) { this.idle += dt; if (this.idle > 1.5) this.climb = 0; }
-    return false;
+  /** a climb is on: its foot and highest point (y), and how long the crest has lasted on the flat / standing */
+  private active = false;
+  private base = 0;
+  private peak = 0;
+  private flat = 0;
+  private still = 0;
+  private t = 0;
+  private lastPant = -Infinity;
+  /** height gained so far by the current climb (0 when none) */
+  get rise() { return this.active ? this.peak - this.base : 0; }
+  /** Forget the current climb (teleports); the cooldown stays. */
+  reset() { this.active = false; this.flat = this.still = 0; }
+  /** One grounded step: g = grade along the motion (+ uphill), moving = walking / running, y = the feet. True = pant. */
+  update(dt: number, g: number, moving: boolean, y: number): boolean {
+    this.t += dt;
+    if (!this.active) {
+      if (moving && g > PANT.climbG) { this.active = true; this.base = this.peak = y; this.flat = this.still = 0; }
+      return false;
+    }
+    if (y > this.peak) this.peak = y;
+    if (moving && g > PANT.climbG) { this.flat = this.still = 0; return false; }
+    if (moving && g >= PANT.crestG) { this.still = 0; return false; }
+    if (moving) { this.flat += dt; this.still = 0; } else this.still += dt;
+    if (this.flat < PANT.crestMove && this.still < PANT.crestStill && this.peak - y < PANT.crestDrop) return false;
+    const rise = this.peak - this.base;
+    this.active = false;
+    if (rise < PANT.rise || this.t - this.lastPant < PANT.cooldown) return false;
+    this.lastPant = this.t;
+    return true;
   }
 }
 /** pushing into a wall at less than this share of the wish speed along it = stop and lean instead of crawling */
@@ -243,7 +283,7 @@ export class PlayerController {
   /** grade along the motion (Δh/Δs, + = uphill) and the speed factor it gave (plan §6.2) */
   grade = 0;
   gradeK = 1;
-  /** long uphill runs → a pant at the crest (movement system plays it) */
+  /** climbs of ≥ 6 u → a pant at the crest (the actor system plays it, the movement system says 'pant') */
   readonly climb = new GradeTracker();
   /** `now` of the last crest pant */
   pantAt = -10;
@@ -269,6 +309,7 @@ export class PlayerController {
     p.y = heightAt(p.x, p.z);
     this.lastX = p.x; this.lastZ = p.z;
     this.clearPath();
+    this.climb.reset();
     this.stuckT = 0;
     this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.wallLean = 0;
   }
@@ -550,8 +591,8 @@ export class PlayerController {
     if (!canStand(p.x, p.z, PLAYER_RADIUS * 0.7)) { if (!groundPending(p.x, p.z)) this.stuckT += dt; } else this.stuckT = 0;
     if (this.stuckT > 1) this.unstick();
 
-    // 10. publish (+ the crest pant after a long uphill run)
-    if (this.grounded && this.climb.update(dt, speed > 0.5 ? this.grade : 0, speed > WALK_SPEED + 0.8)) this.pantAt = ctx.now;
+    // 10. publish (+ the crest pant after a climb of ≥ 6 u, E2-13)
+    if (this.grounded && this.climb.update(dt, speed > 0.5 ? this.grade : 0, speed > 0.5, p.y)) this.pantAt = ctx.now;
     p.speed = speed;
     p.moving = speed > 0.3;
     p.running = speed > WALK_SPEED + 0.8;

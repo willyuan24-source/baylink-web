@@ -252,18 +252,19 @@ test('on foot: grade model — uphill slower (≥ 0.55), downhill a touch faster
   assert.ok(Math.abs(gradeFactor(-1, 'plaza') - 1.12) < 1e-9);
   assert.ok(Math.abs(gradeFactor(0.6, 'stairs') - 0.8) < 1e-9);
   assert.ok(Math.abs(gradeFactor(-0.6, 'stairs') - 0.9) < 1e-9);
-  // pant after ≥ 10 s of running uphill at g > 0.25, at the crest
+  // pant at the crest of a climb of ≥ 6 u (E2-13; the full rule is in tests/opus-bay-sf-move3)
   const tr = new GradeTracker();
-  let pant = false;
-  for (let t = 0; t < 12; t += DT) pant ||= tr.update(DT, 0.35, true);
+  let pant = false, y = 0;
+  for (let t = 0; t < 8; t += DT) { y += 0.35 * 3 * DT; pant ||= tr.update(DT, 0.35, true, y); }
   assert.equal(pant, false, 'no pant while still climbing');
-  for (let t = 0; t < 0.5; t += DT) pant ||= tr.update(DT, 0.02, true);
+  for (let t = 0; t < 1.2; t += DT) pant ||= tr.update(DT, 0.02, true, y);
   assert.ok(pant, 'pant at the crest');
   const short = new GradeTracker();
   let p2 = false;
-  for (let t = 0; t < 5; t += DT) p2 ||= short.update(DT, 0.35, true);
-  for (let t = 0; t < 1; t += DT) p2 ||= short.update(DT, 0, true);
-  assert.equal(p2, false, 'a short climb does not pant');
+  y = 0;
+  for (let t = 0; t < 5; t += DT) { y += 0.35 * 3 * DT; p2 ||= short.update(DT, 0.35, true, y); }
+  for (let t = 0; t < 2; t += DT) p2 ||= short.update(DT, 0, true, y);
+  assert.equal(p2, false, 'a short climb (5.25 u) does not pant');
 });
 
 test('budgets: each rideable is one skinned draw under 3k triangles; the camera near plane rides with height', async () => {
