@@ -3,7 +3,7 @@ import type { MapTier } from '../data/sf/attractions';
 import { GLYPH_D, GLYPH_STROKE } from './glyphPaths';
 import { BADGE_INK, type BadgeSize, type BadgeState, badgeGlyph, badgePaint, badgeSize, pipBox } from './mapBadges';
 import type { LabelBox } from './mapLayout';
-import { STATION_RULES, type StationSymbol } from './mapLines';
+import { type StationSymbol, stationMarkGeometry } from './mapLines';
 
 // city-ui.css sets `.ob-citymap-overlay text { text-anchor: middle }`, and CSS beats the SVG `text-anchor` ATTRIBUTE:
 // every text here that is not centred on its x sets the anchor as an inline style (as CityMap's own labels do).
@@ -101,28 +101,26 @@ export function StairGlyph({ x = 0, y = 0, color = '#4d5d58' }: { x?: number; y?
  * the right. No wrapper element.
  */
 export function MapStationMark({ sym, x, y }: { sym: StationSymbol; x: number; y: number }) {
-  const stair = sym.stair ? <StairGlyph x={x + sym.w / 2 - (sym.kind === 'pill' ? 12 : 1)} y={y - 6} /> : null;
-  if (sym.kind === 'dot') {
+  const g = stationMarkGeometry(sym, x, y);
+  const stair = g.stair ? <StairGlyph x={g.stair.x} y={g.stair.y} /> : null;
+  if (g.dot) {
     return (
       <>
-        <circle className="mw-stop" cx={x} cy={y} r={STATION_RULES.dot / 2} fill="#fff" stroke={sym.ring} strokeWidth={2} />
+        <circle className="mw-stop" cx={g.dot.x} cy={g.dot.y} r={g.dot.r} fill="#fff" stroke={sym.ring} strokeWidth={2} />
         {stair}
       </>
     );
   }
-  const d = STATION_RULES.disc, x0 = x - sym.w / 2;
-  // each disc's left edge: 3 px in, then its predecessors' widths + 2 px gaps
-  const lefts = sym.discs.map((_, i) => sym.discs.slice(0, i).reduce((l, c) => l + c.w + 2, x0 + 3));
+  const p = g.pill!;
   return (
     <>
-      <rect className="mw-stop" x={x0} y={y - sym.h / 2} width={sym.w} height={sym.h} rx={sym.h / 2} fill="#fff" stroke={BADGE_INK.outline} />
-      {sym.discs.flatMap((c, i) => {
-        const left = lefts[i], cx = left + c.w / 2;
-        const disc = c.w <= d
-          ? <circle key={`c${i}`} cx={cx} cy={y} r={d / 2} fill={c.color} />
-          : <rect key={`c${i}`} x={left} y={y - d / 2} width={c.w} height={d} rx={d / 2} fill={c.color} />;
-        return [disc, <text key={`t${i}`} className="mw-disc-t" x={cx} y={y + 3} style={MIDDLE}>{c.text[sym.locale]}</text>];
-      })}
+      <rect className="mw-stop" x={p.x} y={p.y} width={p.w} height={p.h} rx={p.h / 2} fill="#fff" stroke={BADGE_INK.outline} />
+      {g.discs.flatMap((d, i) => [
+        d.capsule
+          ? <rect key={`c${i}`} x={d.x} y={d.y} width={d.w} height={d.h} rx={d.h / 2} fill={d.color} />
+          : <circle key={`c${i}`} cx={d.cx} cy={y} r={d.h / 2} fill={d.color} />,
+        <text key={`t${i}`} className="mw-disc-t" x={d.cx} y={y + 3} style={MIDDLE}>{d.text}</text>,
+      ])}
       {stair}
     </>
   );

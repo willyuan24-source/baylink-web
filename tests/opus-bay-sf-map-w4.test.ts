@@ -623,3 +623,84 @@ test('P2 badges: a T3 dot that hosts a cluster draws its "+n" pip where the layo
   const pb = pipBox(size.r, 2), L = host.label!;
   assert.ok(L.x >= host.x + pb[2] || L.x + L.w <= host.x + pb[0] || L.y >= host.y + pb[3] || L.y + L.h <= host.y + pb[1], JSON.stringify(L));
 });
+
+test('P2 layout: stations are box-shaped items — labels keep off a pill (its own too), pills never merge into badges nor host them, the real downtown keeps every label off every pill', async () => {
+  const { stationItem, stationLayoutId } = await import('../src/opus-bay/ui/mapLayout');
+  const { toPx } = await import('../src/opus-bay/ui/cityMapDraw');
+  // label candidates of a box: 3 px beside / above / below the box, not the disc
+  const c = labelCandidates(100, 50, 8, 'abc', 10, 3, { hw: 40, hh: 8 });
+  assert.equal(c[0].x, 143);
+  assert.equal(c[1].x + c[1].w, 57);
+  assert.ok(Math.abs(c[2].y + c[2].h + 1.5 - 39) < 1e-9 && Math.abs(c[3].y - 1.5 - 61) < 1e-9);
+  assert.deepEqual(labelCandidates(0, 0, 10, 'abc', 11).map(x => x.x), labelCandidates(0, 0, 10, 'abc', 11, 3, undefined).map(x => x.x), 'no box: unchanged');
+  // an 80 px pill with a badge 30 px to its right: the badge's right label is free, its left label would cover the pill
+  const pill = { id: 'st', x: 100, y: 100, r: 8, hw: 40, hh: 8, prio: 30, clusterable: false, host: false, nodes: 9, label: '鲍威尔站', fontPx: 10 };
+  const badge = { id: 'b', x: 152, y: 100, r: 10, prio: 20, label: '联合广场', fontPx: 11 };
+  const out = layoutMap([pill, badge], { w: 400, h: 300 });
+  assert.deepEqual(out.kept.map(k => k.id).sort(), ['b', 'st'], 'nothing merged (the badge touches the pill box: a disc test would have merged them)');
+  const box = (k: { x: number; y: number }, hw: number, hh: number) => [k.x - hw, k.y - hh, k.x + hw, k.y + hh];
+  const over = (l: { x: number; y: number; w: number; h: number }, b: number[]) => !(l.x + l.w <= b[0] || l.x >= b[2] || l.y + l.h <= b[1] || l.y >= b[3]);
+  for (const k of out.kept) if (k.label) assert.ok(!over(k.label, box(pill, 40, 8)), `${k.id} label over the pill`);
+  // a T3 dot inside the pill box: it stays a dot of its own (the pill hosts nothing), the pill never joins a badge
+  const dot = { id: 't3', x: 120, y: 102, r: 5, prio: 40, nodes: 1 };
+  const out2 = layoutMap([pill, dot, { ...badge, x: 130 }], { w: 400, h: 300, clusters: true });
+  const st2 = out2.kept.find(k => k.id === 'st')!;
+  assert.deepEqual(st2.members, []);
+  assert.ok(!Object.values(out2.merged).includes('st') && !out2.merged.st);
+  // real data: downtown at 0.7 on a phone, attraction badges + every station (the four-line Powell pill is 80 px)
+  const v = { cx: 130, cz: 150, scale: 0.7, w: 352, h: 388 };
+  const { items } = attractionMarkers(ATTRACTIONS, v, { discovered: () => false, name: b => b.zh });
+  const stations = mapStations(await realMapLines());
+  const stItems = stations.flatMap(s => {
+    const sym = stationSymbol(s, v.scale);
+    if (!sym?.svg) return [];
+    const [x, y] = toPx(v, s.x, s.z);
+    if (x < -40 || y < -20 || x > v.w + 40 || y > v.h + 20) return [];
+    return [stationItem(s, sym, x, y, s.name.zh, 10, { canvas: true })];
+  });
+  assert.ok(stItems.some(i => (i.hw ?? 0) >= 38), 'the Powell pill is in view');
+  const powellSym = stationSymbol(stations.find(s => s.id === 'muni-powell')!, v.scale)!;
+  assert.equal(stItems.find(i => i.id === stationLayoutId('muni-powell'))!.nodes, 0, 'drawn on the canvas');
+  assert.equal(stationItem({ id: 'muni-powell', major: true }, powellSym, 0, 0).nodes, stationNodes(powellSym), 'or in SVG at its real cost');
+  // in SVG the phone budget cannot hold them: the badges take ≈ 115 of 120 nodes
+  const svgLay = layoutMap([...items, ...stItems.map(i => ({ ...i, nodes: 9 }))], { w: v.w, h: v.h, maxNodes: 120, clusters: true });
+  assert.ok(svgLay.overBudget.filter(id => id.startsWith('station:')).length > stItems.length / 2, 'the reason for the canvas marks');
+  const lay = layoutMap([...items, ...stItems], { w: v.w, h: v.h, maxNodes: 120, clusters: true });
+  const boxes = lay.kept.filter(k => k.id.startsWith('station:')).map(k => { const it = stItems.find(i => i.id === k.id)!; return box(k, it.hw!, it.hh!); });
+  assert.equal(boxes.length, stItems.length, `${boxes.length} station boxes kept of ${stItems.length}, nodes ${lay.nodes}`);
+  for (const k of lay.kept) if (k.label) for (const b of boxes) assert.ok(!over(k.label, b), `${k.id} label "${k.text}" over a station pill`);
+  for (const k of lay.kept) if (k.id.startsWith('station:')) assert.equal(k.members.length, 0);
+  for (const [from, to] of Object.entries(lay.merged)) { assert.ok(!from.startsWith('station:'), from); assert.ok(!to.startsWith('station:'), to); }
+  assert.ok(lay.nodes <= 120);
+});
+
+test('P2 stations: drawStationMarks draws the marks on the canvas with the geometry of MapStationMark (pill, circles and capsules, white text, stair)', async () => {
+  const { drawStationMarks, stationMarkGeometry } = await import('../src/opus-bay/ui/mapLines');
+  const st = mapStations(await realMapLines());
+  const ops: { op: string; style?: unknown; text?: string; x?: number; y?: number }[] = [];
+  const arcs: number[][] = [];
+  const ctx = {
+    fillStyle: '', strokeStyle: '', lineWidth: 1, lineJoin: 'round', lineCap: 'round', globalAlpha: 1, font: '', textAlign: 'start', textBaseline: 'alphabetic',
+    save() {}, restore() {}, beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, setLineDash() {}, fillRect() {},
+    arc(x: number, y: number, r: number) { arcs.push([x, y, r]); },
+    fill() { ops.push({ op: 'fill', style: this.fillStyle }); }, stroke() { ops.push({ op: 'stroke', style: this.strokeStyle }); },
+    fillText(text: string, x: number, y: number) { ops.push({ op: 'text', text, x, y, style: this.fillStyle }); },
+  };
+  const powell = st.find(s => s.id === 'muni-powell')!, minor = st.find(s => !s.major && s.lines.length === 1 && s.underground === false)!;
+  const marks = [{ sym: stationSymbol(powell, 0.7)!, x: 100, y: 50 }, { sym: stationSymbol(minor, 0.7)!, x: 200, y: 80 }];
+  const n = drawStationMarks(ctx as unknown as import('../src/opus-bay/ui/mapLines').StationCtx, marks);
+  assert.equal(n, ops.length);
+  // the pill: fill + outline, then per disc a fill and its white text, then the stair; the dot: fill + ring
+  const g = stationMarkGeometry(marks[0].sym, 100, 50);
+  const texts = ops.filter(o => o.op === 'text');
+  assert.deepEqual(texts.map(t => t.text), ['N', 'M', '叮当', 'F']);
+  assert.deepEqual(texts.map(t => t.x), g.discs.map(d => d.cx));
+  assert.ok(texts.every(t => t.style === '#fff' && t.y === 53));
+  assert.deepEqual(ops.filter(o => o.op === 'fill' && o.style !== '#fff').map(o => o.style), g.discs.map(d => d.color));
+  assert.equal(ops.filter(o => o.op === 'stroke').length, 1 + 1 + 1, 'pill outline, stair, dot ring');
+  assert.equal(n, 2 + 4 * 2 + 1 + 2);
+  assert.ok(arcs.some(([x, y, r]) => x === 200 && y === 80 && r === 3.5), 'the dot');
+  // the geometry is the SVG mark's: same disc centres
+  const html = inSvg(h(MapStationMark, { sym: marks[0].sym, x: 100, y: 50 }));
+  assert.deepEqual([...html.matchAll(/<text class="mw-disc-t" x="([-\d.]+)"/g)].map(m => +m[1]), g.discs.map(d => d.cx));
+});

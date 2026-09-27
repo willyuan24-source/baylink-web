@@ -4,6 +4,7 @@ import { attractionShort, type MapTier } from '../data/sf/attractions';
 import { type BadgeSize, type BadgeState, badgeNodes, badgeSize, pipBox, scaleRules } from './mapBadges';
 import { type MapView, labelWidth, toPx } from './cityMapDraw';
 import { filterAttraction, type MapFilter } from './mapFilterRules';
+import { type MapStation, type StationSymbol, stationNodes } from './mapLines';
 
 /**
  * Wave 4 · badge and label layout of the city map (lane P, W4-P5; plan sf-w4-plan.md §4.1 "Labels", "Clusters",
@@ -17,6 +18,11 @@ import { filterAttraction, type MapFilter } from './mapFilterRules';
  *    a box stays inside the frame minus the tool column (44 px right) and the credit line (16 px bottom) and avoids
  *    placed labels, every cluster pip (its own too) and every kept badge EXCEPT ITS OWN (the wave-3 "no label ever
  *    renders" bug: a label tested against its own marker always lost);
+ * Box-shaped markers (lane P2): a transfer station's pill is up to 80 px wide (N M 叮当 F), so an item may give its
+ * half extents `hw` / `hh`: its obstacle box, its label gaps and its overlap test use the box instead of the disc r.
+ * Stations enter with `clusterable: false, host: false` (they never merge, and nothing merges into them: MapStationMark
+ * draws no pip); labels still keep off them.
+ *
  * 4. node budget: SVG nodes ≤ `maxNodes` (150 desktop / 120 phone), counted as rendered (badgeNodes / stationNodes:
  *    a badge is 5 elements, not 3); each badge is admitted WITH its label's node reserved, in priority order, so the
  *    T1 labels never lose their node to a crowd of T2 / T3 badges; the lowest-priority badges past the budget are
@@ -34,8 +40,13 @@ export interface LayoutItem {
   /** the label text (absent = no label wanted) */
   label?: string;
   fontPx?: number;
-  /** may merge into a neighbour (false: selected, target) */
+  /** may merge into a neighbour (false: selected, target, stations) */
   clusterable?: boolean;
+  /** others may merge into it (default true; false: stations, whose mark has no "+n" pip) */
+  host?: boolean;
+  /** a box-shaped marker's half width / half height (px; default r): a station pill */
+  hw?: number;
+  hh?: number;
   /** SVG nodes this item costs without its label and pip (badgeNodes / stationNodes; default a plain badge, 5) */
   nodes?: number;
 }
@@ -61,17 +72,27 @@ export interface LayoutOptions {
 type Box = [number, number, number, number];
 const hit = (a: Box, b: Box) => !(a[2] <= b[0] || a[0] >= b[2] || a[3] <= b[1] || a[1] >= b[3]);
 
-/** The four label boxes of a badge, in the order they are tried (plan §4.1). */
-export function labelCandidates(x: number, y: number, r: number, text: string, fontPx: number, pad = 3): LabelBox[] {
-  const w = labelWidth(text, fontPx) + 4, h = fontPx + 3, gap = r + 3;
-  if (r === 0) return [{ x: x - w / 2, y: y - h / 2, w, h, pos: 'center', anchor: 'middle', tx: x, ty: y + fontPx * 0.36 }];
+/**
+ * The four label boxes of a badge, in the order they are tried (plan §4.1). A box-shaped marker (`box`: half extents)
+ * keeps its labels 3 px beside / above / below its box instead of its disc.
+ */
+export function labelCandidates(x: number, y: number, r: number, text: string, fontPx: number, pad = 3, box?: { hw: number; hh: number }): LabelBox[] {
+  const w = labelWidth(text, fontPx) + 4, h = fontPx + 3, gx = (box?.hw ?? r) + 3, gy = (box?.hh ?? r) + 3;
+  if (r === 0 && !box) return [{ x: x - w / 2, y: y - h / 2, w, h, pos: 'center', anchor: 'middle', tx: x, ty: y + fontPx * 0.36 }];
   const base = fontPx * 0.36;
   return [
-    { x: x + gap, y: y - h / 2, w, h, pos: 'right', anchor: 'start', tx: x + gap + 2, ty: y + base },
-    { x: x - gap - w, y: y - h / 2, w, h, pos: 'left', anchor: 'end', tx: x - gap - 2, ty: y + base },
-    { x: x - w / 2, y: y - gap - h - pad / 2, w, h, pos: 'above', anchor: 'middle', tx: x, ty: y - gap - pad / 2 - h / 2 + base },
-    { x: x - w / 2, y: y + gap + pad / 2, w, h, pos: 'below', anchor: 'middle', tx: x, ty: y + gap + pad / 2 + h / 2 + base },
+    { x: x + gx, y: y - h / 2, w, h, pos: 'right', anchor: 'start', tx: x + gx + 2, ty: y + base },
+    { x: x - gx - w, y: y - h / 2, w, h, pos: 'left', anchor: 'end', tx: x - gx - 2, ty: y + base },
+    { x: x - w / 2, y: y - gy - h - pad / 2, w, h, pos: 'above', anchor: 'middle', tx: x, ty: y - gy - pad / 2 - h / 2 + base },
+    { x: x - w / 2, y: y + gy + pad / 2, w, h, pos: 'below', anchor: 'middle', tx: x, ty: y + gy + pad / 2 + h / 2 + base },
   ];
+}
+
+const hwOf = (k: LayoutItem) => k.hw ?? k.r, hhOf = (k: LayoutItem) => k.hh ?? k.r;
+/** Two markers touch (2 px apart or closer): discs by their radii, a box-shaped one by its box. */
+function touching(a: LayoutItem, b: LayoutItem): boolean {
+  if (a.hw === undefined && a.hh === undefined && b.hw === undefined && b.hh === undefined) return Math.hypot(a.x - b.x, a.y - b.y) < a.r + b.r + 2;
+  return Math.abs(a.x - b.x) < hwOf(a) + hwOf(b) + 2 && Math.abs(a.y - b.y) < hhOf(a) + hhOf(b) + 2;
 }
 
 /** Lay out badges, clusters and labels (pure; see the header). Items may come in any order. */
@@ -84,7 +105,7 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
   const merged: Record<string, string> = {};
   for (const it of sorted) {
     if (o.clusters !== false && it.r > 0 && it.clusterable !== false) {
-      const host = kept.find(k => k.r > 0 && Math.hypot(k.x - it.x, k.y - it.y) < k.r + it.r + 2);
+      const host = kept.find(k => k.r > 0 && k.host !== false && touching(k, it));
       if (host) { host.members.push(it.id); merged[it.id] = host.id; continue; }
     }
     kept.push({ ...it, members: [] });
@@ -102,7 +123,7 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
   }
   // 3. labels
   const frame: Box = [0, 0, w - toolRight, h - creditBottom];
-  const discs: Box[] = within.map(k => [k.x - k.r, k.y - k.r, k.x + k.r, k.y + k.r]);
+  const discs: Box[] = within.map(k => [k.x - hwOf(k), k.y - hhOf(k), k.x + hwOf(k), k.y + hhOf(k)]);
   // the "+n" pips (MapBadge draws them at 2 o'clock): no label covers one, not even its own badge's
   const placed: Box[] = within.filter(k => k.members.length && k.r > 0).map(k => { const b = pipBox(k.r, k.members.length); return [k.x + b[0], k.y + b[1], k.x + b[2], k.y + b[3]]; });
   const out: LaidOut[] = [];
@@ -110,7 +131,7 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
     let label: LabelBox | null = null, text: string | null = null;
     if (k.label) {
       text = k.members.length ? `${k.label} +${k.members.length}` : k.label;
-      const cands = labelCandidates(k.x, k.y, k.r, text, k.fontPx ?? 11, pad);
+      const cands = labelCandidates(k.x, k.y, k.r, text, k.fontPx ?? 11, pad, k.hw !== undefined || k.hh !== undefined ? { hw: hwOf(k), hh: hhOf(k) } : undefined);
       if (k.members.length && k.r > 0) {
         // a clustered badge: its own pip takes the upper right, so the right-hand box may also sit just below the pip
         const right = cands[0], dy = k.y + pipBox(k.r, k.members.length)[3] + pad - right.y;
@@ -179,4 +200,22 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
     markers.set(a.id, { a, x, y, size: shown, state, alpha: state.dim ? look.alpha : 1, label });
   }
   return { items, markers };
+}
+
+/** The layout id of a station item (stations and attractions share one layout; ids must not collide). */
+export const stationLayoutId = (stationId: string) => `station:${stationId}`;
+
+/**
+ * A station as a layout item (lane P2; CityMap feeds these with the attraction items): its pill / dot as a box (the
+ * dot's stair mark widens it), band 30 (majors first), its real SVG cost (`stationNodes`), and no merging either way —
+ * a pill is never swallowed into a badge's "+n" and nothing merges into a pill; labels, its own included, keep off it.
+ * `label` is the station name to show when the symbol asks for one (`sym.label`). `canvas: true` (the phone budget:
+ * ui/mapLines drawStationMarks draws the marks) makes the mark cost no SVG node; its label still costs one.
+ */
+export function stationItem(st: Pick<MapStation, 'id' | 'major'>, sym: StationSymbol, x: number, y: number, label?: string | null, fontPx = 10, o: { canvas?: boolean } = {}): LayoutItem {
+  const hw = sym.w / 2 + (sym.stair && sym.kind === 'dot' ? 12 : 0);
+  return {
+    id: stationLayoutId(st.id), x, y, r: sym.h / 2, hw, hh: sym.h / 2, prio: layoutPriority({ station: true, fame: st.major ? 70 : 30 }),
+    clusterable: false, host: false, nodes: o.canvas ? 0 : stationNodes(sym), ...(label && sym.label ? { label, fontPx } : {}),
+  };
 }

@@ -439,6 +439,111 @@ export function stationNodes(sym: StationSymbol | null): number {
   return (sym.kind === 'pill' ? 1 + sym.discs.length * 2 : 1) + (sym.stair ? 1 : 0);
 }
 
+/** Where each piece of a station mark goes (px): shared by MapStationMark (SVG) and drawStationMarks (canvas). */
+export interface StationMarkGeometry {
+  /** the white pill (transfers) or null for a dot */
+  pill: { x: number; y: number; w: number; h: number } | null;
+  /** a dot's centre and radius (null for a pill) */
+  dot: { x: number; y: number; r: number } | null;
+  /** one per disc: a circle (letters) or a capsule (words) with its text centre */
+  discs: { capsule: boolean; x: number; y: number; w: number; h: number; cx: number; text: string; color: string }[];
+  /** the stair mark's top-left (12 × 12) when underground */
+  stair: { x: number; y: number } | null;
+}
+
+/** The mark's geometry centred on (x, y), in the symbol's locale (the disc widths were measured in it). */
+export function stationMarkGeometry(sym: StationSymbol, x: number, y: number): StationMarkGeometry {
+  const stair = sym.stair ? { x: x + sym.w / 2 - (sym.kind === 'pill' ? 12 : 1), y: y - 6 } : null;
+  if (sym.kind === 'dot') return { pill: null, dot: { x, y, r: STATION_RULES.dot / 2 }, discs: [], stair };
+  const d = STATION_RULES.disc, x0 = x - sym.w / 2;
+  const discs: StationMarkGeometry['discs'] = [];
+  let left = x0 + 3;
+  for (const c of sym.discs) {
+    discs.push({ capsule: c.w > d, x: left, y: y - d / 2, w: c.w, h: d, cx: left + c.w / 2, text: c.text[sym.locale], color: c.color });
+    left += c.w + 2;
+  }
+  return { pill: { x: x0, y: y - sym.h / 2, w: sym.w, h: sym.h }, dot: null, discs, stair };
+}
+
+/** The canvas context drawStationMarks needs: the map's Ctx2D plus arcs and text. */
+export type StationCtx = Ctx2D & Pick<CanvasRenderingContext2D, 'arc' | 'fillText'> & { font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline };
+
+const PILL_OUTLINE = 'rgba(60, 40, 20, .25)';
+const STAIR_INK = '#4d5d58';
+
+/** A capsule (or a circle when w = h) as a closed path. */
+function capsulePath(ctx: StationCtx, x: number, y: number, w: number, h: number) {
+  const r = h / 2;
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arc(x + w - r, y + r, r, -Math.PI / 2, Math.PI / 2);
+  ctx.lineTo(x + r, y + h);
+  ctx.arc(x + r, y + r, r, Math.PI / 2, Math.PI * 1.5);
+  ctx.closePath();
+}
+
+/**
+ * Station marks on the CANVAS (lane P2): the same geometry as MapStationMark, so the phone's SVG node budget (120)
+ * stays with the badges and their labels. Downtown at s 0.7 on a phone shows ≈ 70 stations and the badges alone take
+ * ≈ 115 nodes: in SVG nearly every station fell over budget. Draw after the lines, before the SVG overlay; taps find
+ * the nearest station in JS (no SVG element needed); layoutMap still keeps every label off the pills (`stationItem`
+ * with `canvas: true`: an obstacle that costs no node). Returns the number of fill / stroke / text operations.
+ */
+export function drawStationMarks(ctx: StationCtx, marks: readonly { sym: StationSymbol; x: number; y: number }[], o: { alpha?: number } = {}): number {
+  let ops = 0;
+  ctx.save();
+  ctx.globalAlpha = o.alpha ?? 1;
+  ctx.setLineDash([]);
+  ctx.font = `800 ${STATION_RULES.discFont}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  for (const m of marks) {
+    const g = stationMarkGeometry(m.sym, m.x, m.y);
+    if (g.dot) {
+      ctx.beginPath();
+      ctx.arc(g.dot.x, g.dot.y, g.dot.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.strokeStyle = m.sym.ring;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ops += 2;
+    }
+    if (g.pill) {
+      ctx.beginPath();
+      capsulePath(ctx, g.pill.x, g.pill.y, g.pill.w, g.pill.h);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.strokeStyle = PILL_OUTLINE;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ops += 2;
+      for (const d of g.discs) {
+        ctx.beginPath();
+        if (d.capsule) capsulePath(ctx, d.x, d.y, d.w, d.h);
+        else ctx.arc(d.cx, m.y, d.h / 2, 0, Math.PI * 2);
+        ctx.fillStyle = d.color;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillText(d.text, d.cx, m.y + 3);
+        ops += 2;
+      }
+    }
+    if (g.stair) {
+      const { x, y } = g.stair;
+      ctx.beginPath();
+      ctx.moveTo(x + 1, y + 11); ctx.lineTo(x + 4, y + 11); ctx.lineTo(x + 4, y + 8); ctx.lineTo(x + 7, y + 8);
+      ctx.lineTo(x + 7, y + 5); ctx.lineTo(x + 10, y + 5); ctx.lineTo(x + 10, y + 2); ctx.lineTo(x + 12, y + 2);
+      ctx.strokeStyle = STAIR_INK;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ops++;
+    }
+  }
+  ctx.restore();
+  return ops;
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Trip routes on the map (the active trip, plan §4.1 "Guidance on the map")
 // ---------------------------------------------------------------------------------------------------------------------
