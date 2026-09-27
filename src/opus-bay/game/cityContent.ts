@@ -19,8 +19,8 @@ import { registerSubjectResolver } from './interactables';
  *
  *   initCityContent()   called once per page by game/flow.ts initFlowListeners (the Overlay's boot), in BOTH world
  *                       modes: returns early in district mode. City mode: the goal detectors (game/cityGoals.ts) and
- *                       the telescope / photo subject resolver for the SF landmarks. (Residents, BAYBAY's event and
- *                       neighbourhood lines: later G2 parts.)
+ *                       the telescope / photo subject resolver for the SF landmarks, and BAYBAY's event and
+ *                       neighbourhood lines (game/baybayLines.ts, its own chunk). (Residents: a later part.)
  *   goalTargets()       soft waypoints for unfinished city goals, read by flow.nextFreeGoal (free roam hint and the
  *                       call menu's "take me to the next goal"). `goal` is the goalsDone id that hides the target once
  *                       done; `id` resolves through interactables.interactableById (the landmark card `sf:<id>`).
@@ -51,7 +51,10 @@ export function initCityContent(): () => void {
     const base = typeof l.base === 'number' ? l.base : heightAt(l.x, l.z);
     return { x: l.x, y: base + Math.max(2, info.height.u * 0.6), z: l.z };
   });
-  return () => { offGoals(); offSubjects(); };
+  // BAYBAY's event and neighbourhood lines (plan G2-4): their own chunk, fetched only in city mode
+  let offLines: (() => void) | null = null, disposed = false;
+  void import('./baybayLines').then(m => { if (!disposed) offLines = m.initBaybayLines(); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay lines]', e); });
+  return () => { disposed = true; offGoals(); offSubjects(); offLines?.(); };
 }
 
 let targets: GoalTarget[] | null = null;
