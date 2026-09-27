@@ -109,3 +109,109 @@ API for other lanes: G1 keeps `<MapPaperLayer width={…} />` (or `loadMapPaper`
    test is unaffected). Shots with the patch are in `docs/opus-bay/qa/w3/H2b/*with-G1-request.jpg`.
 2. **G1 (optional)** — with the painting underneath, the paper fog over unvisited neighbourhoods could drop from
    `.82` to about `.7` so the painting hints through; a design call for G1.
+
+## Part b
+
+### 给主人的摘要
+
+- BAYBAY 在城市里会"说话"了：20 句新台词（第一次骑车 / 开车 / 坐叮当车 / 坐老电车 / 坐渡轮 / 滑翔 / 爬陡坡 / 冲过坡顶，加 12 个街区的"你好，XX！"），中英文各一版，每句不超过 2 秒，已在电脑和手机上确认能播放。
+- 三句以前被听错的旧语音（好耶、嗯…让我想想、到啦）重新录了，但**先保持静音，等你亲耳听过再打开**。试听单在 `docs/opus-bay/h2b/listening.md`，按顺序听两个合集 `voice-preview-zh.m4a` / `voice-preview-en.m4a` 就行。"好耶"最后选的是"好耶好耶！"，因为单说"好耶"的 8 个版本，识别器都听成"讨厌"。
+- 教会区的两条壁画小巷（Clarion、Balmy）各立了 4 块原创壁画板：太阳与蜂鸟、花菱草与帝王蝶、水果摊、花园乐器、鹈鹕、开满花的叮当车、海湾之夜、海底巨藻林。没有人物、没有人脸、没有文字，也不抄任何真实壁画；白天鲜艳，晚上暗暗的，像被路灯照着。
+- G2 的台词表一直没上主线，所以台词是我按计划写的。要让游戏里真正"触发"这些语音，还需要 G2 在对应时刻发 `voice-line` 事件（Requests 里写好了清单）。Part a 给 G1 的地图补丁 G1 已经合进去了（4002e25）。
+- 这一部分花 21.06 分（语音 2.06、壁画 19）；本 lane 合计 41.56 分（上限 150），余额 456.72。
+
+### What was built
+
+| file | what |
+|---|---|
+| `src/opus-bay/data/voiceLinesSf.ts` | `SF_VOICE_LINES` (20 lines: 8 `first-*` mode firsts + 12 `zone-<far.zones id>` greetings; zh / en text, mood, chirp fallback), `SF_VOICE_ZONES` (the 12 zone ids), `SF_VOICE_CLIPS` (40 line clips + `SF_VOICE_REDOS`, the 3 re-records that override `zh-yay` / `zh-think` / `zh-arrived`), `SF_VOICE_UNMUTE` (empty: the re-records stay in `MUTED_CLIPS`). |
+| `public/opus-bay/voice/sf/*.m4a, *.ogg` | 43 clips, AAC 64 k + Opus 48 k mono, 1,060,638 B in all (m4a: zh 317 KB, en 305 KB). |
+| `scripts/opus-sf/voice/takes.ts` | The take list (text, language, instruction ≤ 128 characters — the service's cap — seed, round-2 speech rate). |
+| `scripts/opus-sf/voice/voice_post.py` | Trim (−40 dB, 20 / 80 ms kept), fades, ≤ 1.12× atempo when a take is a little over 2 s, two-pass loudnorm −18 LUFS / TP −1.5, encode; gates (≤ 2.0 s, no clipped samples, not cut at the end, longest pause ≤ 0.45 s / 0.65 s with "…", median F0 180–450 Hz); an advisory closed-grammar Windows recogniser check (`asr-choice.ps1`); pick = recogniser right → duration nearest the median of the passing takes (150 ms steps) → confidence. Writes the files, `voice-report.json`, `voice-takes.json` and the two preview files. |
+| `scripts/opus-sf/voice/listening.py` → `docs/opus-bay/h2b/listening.md` | The owner's listening sheet: all 43 clips in preview order with text, seconds, what the recogniser heard, file, the alternates (scratch copies) and an empty "你的判断" column. |
+| `src/opus-bay/data/murals.ts` | `MURALS` (8: id, zh / en title, atlas rect, 512 px single, placement, site), `MURAL_SITES` (Clarion and Balmy centres), `MURAL_RANGE` 300, `MURAL_PANEL` (2.6 × 2.6 × 0.1 u, sunk 0.1), `MURAL_ATLAS`, `muralRect(k)`, `muralUrls()`. |
+| `src/opus-bay/world/sf/murals.ts` | `attachMurals(streamer)` (the World system), `muralGeometry(defs, ys)` (pure), `boardGround(def, heightAt)`, `muralSiteDist2`, `MURAL_GLOW` 0.015, warm-up `'ob-murals'`. One mesh, 1 draw call (+ its shadow), 96 triangles, on D2's `makeModelMaterial` in the non-hero variant on a plain Mesh (TOY occlusion dither, Karl, night; no mask). The atlas is fetched only within 300 u of an alley; the mesh is built once the chunks under the boards are resident (`standAt ≠ −1`). |
+| `public/opus-bay/murals/` | `atlas-v1.webp` (2048 × 1024, 256,124 B, WebP q48) + 8 × `<id>-512.webp` (44–76 KB). |
+| `scripts/opus-sf/murals/place.ts` | Placements from our own chunks: the alley centreline by name, the wall gap on both sides every 0.25 u, four boards per alley alternating sides at the flattest wall near 20 / 40 / 62 / 84 % of the alley, 0.12 u in front of the nearest wall point, facing the centreline. |
+| `scripts/opus-sf/murals/murals_post.py` | The atlas (480 px art + a 16 px self-repeating gutter per 512 tile, quality stepped down to ≤ 260 KB), the singles, `docs/opus-bay/h2b/murals-report.json`. |
+| `tests/opus-bay-h2b-assets.test.ts` | + 4 voice tests (both clips of every line say the line, ≤ 2 s; the re-records muted; the greetings on real `far.zones` ids; files = report by bytes / sha256 / duration) and 4 mural tests (atlas rects per tile; files = report; every board in its alley, facing the centreline, outside every building footprint; geometry / uv / ground). |
+| `tests/opus-bay-asset-files.test.ts` | New: every `listAssetUrls()` file exists and is not empty; every `ASSETS.voice` pick is a listed file. |
+| `public/opus-bay/README.md` | Wave-3 section (map, voice/sf, murals, credits). |
+
+API for other lanes: G2 emits `emit({ type: 'voice-line', id })` with an `SF_VOICE_LINES` id, next to a bubble whose text starts
+with that line's zh / en; `SF_VOICE_ZONES` lists the zones that have a greeting. The murals need nothing from anyone (World
+already attaches them).
+
+### Evidence
+
+- **Checks** on the final push: `tsc` 0 errors, `eslint src/opus-bay tests/opus-bay-*` 0 problems, **326 / 326** opus-bay
+  tests (after rebasing on E2's, D2's and G1's pushes; hero regression and contracts green).
+- **Voice in the app** (dev server 5207, `?start=free&world=city`, `__opusBay.emit({ type: 'voice-line', id })`, then
+  `__opusAudio.stats().counts`): desktop en — `first-bike`, `zone-mission`, `first-cable-car`, `zone-twin-peaks`,
+  `first-glide` → `voice-clip:en-<id>` = 1 each; desktop zh and phone 390 × 844 `--mobile --dpr 3` zh →
+  `voice-clip:zh-<id>` = 1 each; a second `first-bike` within 25 s → `chirp:yay` (SAME_CLIP_GAP); `yay` (a muted
+  re-record) → `chirp:hi`; `voice-clip:ready` 23 (zh: 3 district barks + 20 city lines preloaded) / 24 (en); 0 dropped.
+  Shot: `docs/opus-bay/qa/w3/H2b/voice-phone-390-zh.jpg`.
+- **Voice measured** (`docs/opus-bay/h2b/voice-report.json`): 43 picks, 0.88–2.00 s; 10 picks carry a 1.015–1.12×
+  atempo; no clipped samples; true peak ≤ −2.8 dBTP; integrated loudness −18.1 … −16.7 LUFS (on sub-2-s clips the gated
+  measure after the padded two-pass lands within 1.3 LU of the target); the advisory recogniser picked the right phrase
+  among all lines for 41 of 43 picks (not `en-first-hill` — "Phew" — and not `en-zone-mission`: no take recognised).
+- **Murals in the app**: Clarion and Balmy, desktop 1440 × 900 day and night, phone 390 × 844 `--mobile --dpr 3` day. The
+  mural mesh is in the scene with 96 triangles and uses the program compiled at warm-up (`ob-murals:warmup`, usedTimes 2
+  = warm-up + the real board): no compile during play. Clarion view: 56 draw calls, 258,527 triangles, 61 fps (RTX,
+  shared machine: rough); Balmy view: 87 calls, 373,722 triangles. Shots in `docs/opus-bay/qa/w3/H2b/`:
+  `murals-balmy-day-desktop.jpg`, `murals-balmy-night-desktop.jpg`, `murals-clarion-day-desktop.jpg` (+ `-b`),
+  `murals-clarion-night-desktop.jpg`, `murals-clarion-phone-390.jpg`, `murals-ab-gpt-vs-nano.jpg`, `murals-atlas-v1.jpg`.
+- **Credits**: voice 2.06 (224 jobs: 191 completed, 33 failed and refunded), murals 19.00 (12 jobs); `transactions`
+  show only this lane's jobs in both windows. Lane total 41.56 / 150; balance 456.72.
+
+### Decisions
+
+- **The line script is H2b's**: G2's frozen `BARK_SCRIPT` never reached the branch, so I wrote the plan's list (8 mode
+  firsts + 12 greetings on real zone ids) as short phrases (≤ 2 s) that G2's bubbles can start with. The greetings say
+  "你好，X！ / Hello, X!" (not "X到啦", the very word listeners mis-heard); Twin Peaks gets "登上双峰啦！ / Twin Peaks — we made it!".
+- **zh-yay = 好耶好耶！**: all 8 single-"好耶！" takes (2 phrasings, 3 seeds, 2 speech rates) were heard as 讨厌 by the
+  recogniser (0.93–0.99); "好耶好耶！" was heard as itself (0.98). The bark has no bubble, so the doubled word costs
+  nothing; the owner can switch back from the listening sheet.
+- **Round 2 by speech rate, not seed**: the service ignores the seed for about a third of the texts (14 of 46 groups gave
+  byte-identical files) and English ran long, so round 2 used speech_rate 1.1 / 1.2 / 1.3.
+- **Murals: gpt_image_2_5 over nano_banana_pro + K6**: nano's pastel matched the palette better, but its fine dot patterns
+  turn to noise at 512 px from the walking camera; gpt's bold shapes read at a glance and its warm palette still sits in
+  the city.
+- **Boards, not walls**: freestanding boards 0.12 u in front of the facades (Clarion's chunk walls stand right on its 2 u
+  road edge); both faces painted (the back faces the wall), the edges take the art's border strip. The non-hero model
+  material lets a board between the camera and the player melt like a wall (the phone's portrait camera often stands
+  behind one in these narrow alleys). It costs one program of its own, compiled at warm-up.
+- **Night glow 0.015**: 0.12 and 0.04 made the boards look lit by daylight against the dark walls; 0 was murky.
+
+### Known gaps
+
+- **Nothing emits the voice lines yet** (G2's triggers, Request 1); until then the clips preload in city mode and stay silent.
+- `glide:start` already plays `voice.bark('wow')`; when G2 adds `first-glide` on the same event the two overlap unless
+  G2 delays the line (≈ 0.8 s) or F skips the bark that once (Request 3).
+- The loudness of the shortest clips sits up to 1.3 LU above −18 (a measurement effect on sub-2-s clips); the owner should
+  say if any sounds loud.
+- The murals exist only in the two alleys; the Clarion boards are best seen walking the alley (edge-on from the street
+  ends). G2's `sf-mission-murals` postcard pickup stands between two Clarion boards (good company, no overlap).
+- The advisory recogniser is not the owner's ear; `en-first-hill` and `en-zone-mission` were not recognised in any take.
+
+### Not done
+
+- Nothing of part b is open on the H2b side. Waiting on others: G2's `voice-line` emits (Request 1) and the owner's
+  listening verdict (then add the approved ids to `SF_VOICE_UNMUTE`; a clip swap is "take #N" in the listening sheet →
+  point `voice_post.py`'s pick at it, re-run, commit).
+- The merge of `docs/opus-bay/ledger/w3-H2b.md` into `src/opus-bay/ASSETS-LEDGER.md` (lead-only file).
+
+### Requests
+
+1. **G2** (the city bubbles, e.g. `game/baybayLines.ts`): emit `{ type: 'voice-line', id }` once per save next to a bubble
+   whose zh / en text **starts with** `SF_VOICE_LINES[id]`: `first-bike` on the first `vehicle:enter` bike ·
+   `first-car` first `vehicle:enter` car · `first-cable-car` first `transit` `board` with `kind: 'cable-car'` ·
+   `first-streetcar` first `board` with `kind: 'streetcar'` · `first-ferry` first `board` with `kind: 'ferry'` ·
+   `first-glide` first `glide:start` (≈ 0.8 s later, see Known gaps) · `first-hill` first `pant` · `first-crest` first
+   `vehicle:hop` with `crest: true` · `zone-<id>` on the first `discover` with `kind: 'zone'` and `id` in `SF_VOICE_ZONES`
+   (import it from `data/voiceLinesSf.ts`). The 60 s cooldown stays on G2's side (contracts §4).
+2. **Lead**: merge `docs/opus-bay/ledger/w3-H2b.md` (part a map, part b voice + murals) into `src/opus-bay/ASSETS-LEDGER.md`;
+   after the owner has listened, add the approved re-records to `SF_VOICE_UNMUTE` (H2b's file; a one-line change).
+3. **F (optional)**: in `audio/audio.ts` `glide:start`, skip `voice.bark('wow')` the time the `first-glide` line plays (or
+   G2 delays the line as in 1).

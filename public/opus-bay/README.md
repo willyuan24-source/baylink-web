@@ -51,3 +51,14 @@ Account balance went from 1090.21 to 901.98 over the run (a drop of 188.23, matc
 | `badges/` | 18 neighbourhood badges | 256 px WebP, transparent. |
 
 Every paid job is in `src/opus-bay/ASSETS-LEDGER.md` ("Whole-SF assets, part 1 (lane H)"): 133.00 credits.
+
+## Whole San Francisco, wave 3 (2026-09-27, lane H2b)
+
+| folder | contents | notes |
+|---|---|---|
+| `map/` | `paper-v1-{1024,2048,4096}.webp`: the painted whole-city map under the city map (square, the world frame `MAP_FRAME`) | Nano Banana Pro 4k repaint of our own top-down base render (`scripts/opus-sf/map/render-base.ts`, no text) with the K6 key art as a style reference; similarity-fitted to our coast (p95 12 px at 2048), graded, pseudo-letters wiped (`scripts/opus-sf/map/paper_post.py`). 111 / 345 / 668 KB; phones stop at 2048. Registry: `src/opus-bay/data/mapPaper.ts`. |
+| `voice/sf/` | 40 BAYBAY city lines (`zh-` / `en-` × 8 mode firsts `first-*` + 12 neighbourhood greetings `zone-<far.zones id>`) and 3 re-records of district barks (`zh-yay` 好耶好耶！, `zh-think` 嗯…让我想想, `zh-arrived` 到啦！) | Qwen TTS (`qwen_audio_tts`, preset "Pixie", the district instruction + a mood), picked by measured checks from 3–6 takes each (`scripts/opus-sf/voice/voice_post.py`); trimmed, −18 LUFS / TP −1.5, every clip ≤ 2 s; `.m4a` AAC 64 kbps + `.ogg` Opus 48 kbps mono. The re-records stay muted until the owner approves them by ear (`docs/opus-bay/h2b/listening.md`). Registry: `src/opus-bay/data/voiceLinesSf.ts`. |
+| `murals/` | `atlas-v1.webp` (2048 × 1024, 4 × 2 tiles, 256 KB) and eight `<id>-512.webp` singles: sun-hummingbird, poppy-hills, fruit-stand, music-garden, pelican-bay, flower-cable-car, night-bay, kelp-forest | Original paintings in the spirit of the Mission's mural alleys — none copies a real mural; no people, no faces, no text. GPT Image 2.5 high (won an A/B against Nano Banana Pro + K6); tiles carry a 16 px edge gutter (`scripts/opus-sf/murals/murals_post.py`). Shown as freestanding boards along Clarion and Balmy alleys (`src/opus-bay/data/murals.ts`, `world/sf/murals.ts`). |
+
+Every paid job of wave 3 is in `docs/opus-bay/ledger/w3-H2b.md` (merged into `src/opus-bay/ASSETS-LEDGER.md` by the lead):
+map 20.5 + voice 2.06 + murals 19.0 = **41.56 credits**.
