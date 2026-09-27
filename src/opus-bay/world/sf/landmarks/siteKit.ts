@@ -74,6 +74,12 @@ export interface W4SiteMeta {
   notes?: string;
   /** the walk-around ring's open share when an existing building or the shore closes one side (default 0.75; say why in `notes`) */
   ringMin?: number;
+  /**
+   * a street site (a shopping block: shopStreet.ts): the block's kerb corners along local x and the facade line |z|.
+   * The walk check samples the street's length (sidewalks and carriageway) instead of a ring, which would cross the
+   * shops on both sides.
+   */
+  street?: { x0: number; x1: number; half: number };
 }
 
 /** A ground polygon with per-vertex local heights (the draped form of LandmarkGround) and the lift it was draped with. */

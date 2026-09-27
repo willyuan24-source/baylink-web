@@ -4,11 +4,13 @@ import { bisonPaddock } from './bison-paddock';
 import { blueHeronLake } from './blue-heron-lake';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
+import { clementStreet } from './clement-street';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { gearyWest } from './geary-west';
 import { haightAshbury } from './haight-ashbury';
 import { hippieHill } from './hippie-hill';
+import { irvingStreet } from './irving-street';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { kezarStadium } from './kezar-stadium';
 import { koretCarousel } from './koret-carousel';
@@ -68,4 +70,6 @@ export const W4_SITES: readonly W4Site[] = [
   koretCarousel,
   hippieHill,
   gearyWest,
+  clementStreet,
+  irvingStreet,
 ];

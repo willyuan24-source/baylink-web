@@ -224,8 +224,15 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
         land++;
         if (canStand(q.x, q.z, 0.4)) open++;
       }
-      const f = land ? open / land : 0;
-      console.log(`  ${s.id.padEnd(24)} arrival ok · ring r ${(rmax + 3).toFixed(1)} u: ${(f * 100).toFixed(0)} % open`);
+      let f = land ? open / land : 0;
+      const st = s.w4.street;
+      if (st) {
+        // a street site: its sidewalks and carriageway, the block's length, are open (a ring would cross the shops)
+        let o = 0, n = 0;
+        for (let x = st.x0; x <= st.x1; x += 0.5) for (const z of [-(st.half - 0.9), 0, st.half - 0.9]) { const q = landmarkToWorld(s, { x, z }); n++; if (canStand(q.x, q.z, 0.3)) o++; }
+        f = o / n;
+      }
+      console.log(`  ${s.id.padEnd(24)} arrival ok · ${st ? 'street' : `ring r ${(rmax + 3).toFixed(1)} u`}: ${(f * 100).toFixed(0)} % open`);
       const min = s.w4.ringMin ?? 0.75;
       if (min < 0.75) assert.ok(min >= 0.6 && /ring/i.test(s.w4.notes ?? ''), `${s.id} explains its lower ring`);
       assert.ok(f >= min, `${s.id} walk-around ring ${(f * 100).toFixed(0)} % ≥ ${(min * 100).toFixed(0)} %`);
