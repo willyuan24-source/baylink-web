@@ -30,6 +30,11 @@ function useZones(): { ids: string[]; total: number } {
   return useMemo(() => (far ? { ids: far.zones.map(z => z.id), total: far.zones.length } : { ids: [], total: 41 }), [far]);
 }
 
+const OTHER_LINES: Record<string, Bilingual> = {
+  streetcar: { zh: 'F 线电车', en: 'F-line streetcar' },
+  ferry: { zh: '渡轮', en: 'Ferry' },
+};
+
 export function Footprints() {
   const { t } = useT();
   const epoch = useDiscoveryEpoch();
@@ -37,7 +42,8 @@ export function Footprints() {
   const zones = useZones();
   const s = useMemo(() => {
     const lines = transitData()?.lines ?? [];
-    const lineName = (id: string) => { const l = lines.find(x => x.id === id); return l ? glossName(l.name) : null; };
+    // cable-car lines by their data/transit.ts names; lane F's F-line ('streetcar') and ferry ('ferry') rides by kind
+    const lineName = (id: string) => { const l = lines.find(x => x.id === id); return l ? glossName(l.name) : OTHER_LINES[id] ?? null; };
     return footprintsSummary(ix, discoveredIds(), visitedZoneIds().length, zones.total, readSave()?.rides ?? {}, lineName);
   }, [ix, zones.total, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   const landmarks = useMemo(() => (ix ? ix.list.filter(p => p.landmark) : []), [ix]);

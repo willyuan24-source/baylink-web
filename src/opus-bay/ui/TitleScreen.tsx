@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
+import type { Bilingual } from '../core/types';
 import { ASSETS, keyArtAlt } from '../data/assets';
 import { guidesUrl } from '../data/links';
 import { requestResume, resumeSpot } from '../data/save';
@@ -30,6 +31,8 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   // city mode: lane G2's subtitle (data/sf/copy.ts, dependency-free); null keeps the district line
   const city = useGame(s => s.worldMode === 'city');
   const citySub = city ? CITY_COPY.titleSub : null;
+  // G2's optional city greeting (sf-w2-G2 request to G1): shown as soon as data/sf/copy.ts has a `greet` line
+  const cityGreet = city ? (CITY_COPY as { greet?: Bilingual | null }).greet ?? null : null;
   // lane G1 (G1-10): a saved city spot → "继续上次的位置" (data/save.ts only: the title chunk stays small)
   const resume = city ? resumeSpot('city') : null;
 
@@ -73,7 +76,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
         <div className="ob-title-greet">
           <BaybayFace mood="wave" size={52} />
-          <p>{returning ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
+          <p>{returning ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : cityGreet ? t(cityGreet) : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
         </div>
         <div className="ob-title-actions">
           <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={onStart} aria-busy={waiting || undefined}>

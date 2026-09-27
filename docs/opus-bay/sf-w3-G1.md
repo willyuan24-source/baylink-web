@@ -1,0 +1,89 @@
+# Wave 3 · lane G1 (map, discovery, fast travel, save v2, HUD)
+
+## Part a
+
+### 给主人的摘要
+
+- 地图终于能看见地名了（以前的 bug 让地标名字一个都不显示）；手绘地图在陆地上也露出来了。
+- 选中一个地方，地图上会画出走过去的路线，并标出"真实要走多久"（实测：地图说约 40 秒，实际 39.7 秒到达）；按"带我去"后路线变成金色，再打开地图会显示"正在去 X · 还要走约 N 秒"，可以随时"不去了"。地图上还显示 BAYBAY 的头像、附近的单车和小车。
+- 旅行本新增"足迹"页：去过的地标（x/24）、景点、街区（x/41）、坐过的车，点一下就在地图上找到它。
+- 手机上 HUD 各元素不再互相遮挡（夜景提示、目标卡、明信片线索、BAYBAY 对话、新的"跳"按钮、提示条都检查过 390×844 和 375×667）。
+- 叮当车 / 渡轮站的按键图标按线路显示；坐车次数和滑翔解锁会存档并在下次恢复；调试行能看到着色器预热耗时和真实画质档位。
+- 没用 Higgsfield 额度（0 分）。
+
+### What was built (files, API for other lanes)
+
+Commits on `opus-bay` for this part (the first three are from the run that was cut off at 03:40; they were checked
+again on today's tree):
+
+| commit | task | what |
+|---|---|---|
+| `4002e25` | 1 · H2b's paper patch | `ui/cityMapDraw.ts`: with `MAP_PAPER` the canvas skips the lake / park / wood / sand / block fills, strokes the far land rings as the coastline, fades streets in from 0.8 px/u; unvisited-neighbourhood fog over the paper .82 → .7. Without paper nothing changes. ODbL credit and `?paper=0` kept. Reviewed, not applied blindly. |
+| `6bf5067` | 2 · M1 / DR-3 / DR-4, 3 · P8 | One **top stack** under the pills (night-view banner, ride banner, the goals card on phones, toasts) instead of four absolute boxes; `game/hudLayout.ts` reads the fixed HUD boxes (after a HUD mutation, a size change or every 4 s, only while a bubble / the waypoint is up) and places BAYBAY's bubble and the waypoint around them. DR-4: the goals card never shows during a cinematic or a trip. P8: `project()` runs only when the camera, the anchors, the bubble or the HUD boxes changed; the objective is refreshed at 10 Hz; style / data writes only on change. |
+| `eea5179` | 4 · F's requests, 7 · glide | `ui/transitGlyph.ts` + `InteractIcon`: a `source: 'transit'` prompt shows a cable car or a ferry by the lines at that station (the district F-line stop keeps the tram). Save v2 `rides` reconciles `transit.rideLog()` in the 3 s sampler (never counted twice). `unlocked.glide` mirrored from E2's `moveApi.glideUnlocked()` and restored with `setGlideUnlocked(true)` at boot and once more when play begins; Settings reset locks it again. |
+| `738abd4` | G1-13 | `game/travel.ts` reads the controller's `WALK_SPEED` (no copy) and shares one metres / km formatter. District labels unchanged. |
+| `c048ed2` | G1-5 fix | **No place label ever rendered** on the city map (wave-4 scouts found it): each label box touched its own 10 px badge, which counted as an obstacle. `layoutLabels` now takes obstacles with ids, never tests a label against its own marker, tries four spots (above, right, left, below), keeps clear of the tool column and the ODbL line; labels draw in their own layer over the badges. Zone names are learned before the first render with `far.obc` (the list read "San Francisco" until then). |
+| `92419d8` | G1-8 | **带我去 route on the map** (below). |
+| `a7ab40f` | G1-11 | **足迹 tab** (below). |
+| `0445f37` | CS-7 / M0, DEV export | The `?debug` line: `warm-up 1177 ms → 31, +4 since` and `q mid (device)` / `q mid (started high, default)`; `runtime.perf.tier` kept in step (it said `high` forever). `__opusBay.g1.exportMap({ px, fog, paper, download })`. |
+| `637bc2f` | M1 follow-up | Re-ran the HUD sweep on today's tree: E2's new 跳 / Hop button and G2's longer city goals card (邻居的小忙) collided with the coach mark and the toasts. Fixed (below). |
+| `dcd99c6` | G1-15 | The remaining shots; the HUD no longer says a place twice ("Pier 39 / Pier 39"); `?debug` wraps on phones. |
+| last commit | report | this report; 足迹 names F-line / ferry rides; the title reads G2's optional `CITY_COPY.greet`. |
+
+**G1-8 · 带我去 on the city map** (`game/mapRoute.ts` new, `game/travel.ts`, `ui/CityMap.tsx`, `ui/PlaceActions.tsx`, `ui/cityMapDraw.ts`, `game/Systems.tsx`)
+- `game/mapRoute.ts` (new, G1): `planRoute(from, to, source?)` → `PlannedRoute { from, to, points, length, snapped } | null | undefined` from E2's `routeTo` (the same walking graph, snapping and local grid the auto-walk itself uses; time-sliced A*), one plan at a time (a newer request aborts the older), the last 6 kept (`cachedRoute(from, to)`: same goal, start within `REPLAN_U` = 20 u); `routeLeftTo(to, pos)` (what is left of a kept plan for someone within 25 u of it); `tripPlaceId()` (flow.mapTarget `place:<id>`); `endTrip(arrival?)` (drops the target, stops the auto-walk if it was heading there).
+- `game/travel.ts`: `autoWalkSeconds(length)` — the auto-walk eases into a run (7.5 u/s) while more than 30 u are left and walks the last 30 u (4.2 u/s); `routeTravelLabel(points)` = that time + the real km along the route ("沿路走约 40 秒 · 现实约 2.0 公里"); `routeMeasure`, `routeAhead(points, pos)` (the polyline still ahead, and how far off it you are); `secondsLabel(s)` (the shared rounding: every old label reads the same).
+- The map: the selected place gets a **teal dotted preview** with a time chip at its end; while 带我去 is on it is **gold dashed**; a "whole route" tool button; the map opens on a trip selected and framed, with a strip "正在去 唐人街龙门 · 还要走约 25 秒 [不去了]". PlaceActions: 找路中… → the route time; 走不过去 (带我去 hidden) when no route exists; 详情 for every place now (G2's `sf:<placeId>` card landed in `eafcef8`).
+- Layers: BAYBAY as her face (22 px); parked bikes and the toy car from 2.5× (their spots, or E2's `fleetSnapshot()` where you left them; the one you ride is skipped); the selected place's name always reads (`LabelItem.over`).
+- The in-world waypoint for a planned place says the same time as the map (auto-walk pace while 带我去 walks you, walking pace when you walk it yourself); other targets keep the straight-line estimate.
+- `openPanel('map', '<placeId>')` opens the city map selected on that place (used by 足迹).
+
+**G1-11 · 足迹** (`ui/Footprints.tsx`, `ui/footprintsData.ts` new, `ui/cityHooks.ts` new, `game/discovery.ts`)
+- `FOOTPRINTS_TAB` is set in city mode only (the district journal keeps its three tabs; checked). Four counts (地标 x/24 · 景点 x/46 · 街区 x/41 · 去过的地点 n), 最近发现 (8, newest first), the 24 landmarks (found or not), the neighbourhoods as chips, 坐过的车 from save v2 `rides` (cable-car line names from `data/transit.ts`, F-line / ferry by kind). A find or a landmark opens the map on it.
+- `footprintsSummary(...)` (pure, tested on the real place index); `discoveredIds()` / `visitedZoneIds()` in `game/discovery.ts`; `useFar()` / `usePlaceIndex()` shared by the map and the tab.
+- Four tabs on a phone stand the icon over the label (`.ob-tabs:has(> button:nth-child(4))`, ≤ 480 px): "明信片" wrapped letter by letter at 390 px.
+
+**M1 follow-up** (`game/hudLayout.ts`, `opus-bay.css`): the phone coach mark keeps to the left of the right-hand touch column (E2's Hop at 18 px from the edge); the phone goals card is capped (`100dvh − 380 px`, scrolls inside) so the top stack ends above that column with room for two toasts; a HUD box that is still animating (the goals card slides in over 0.5 s) is read again once it settles (looping pulses are ignored).
+
+### Evidence
+
+- **Checks** on the tree of this report commit (rebased on the other lanes' pushes): `tsc -p tsconfig.app.json` 0 errors; `eslint src/opus-bay tests/opus-bay-*` 0 problems; `tests/opus-bay-*.test.ts` **591 / 591** (incl. hero regression and contracts; 568 / 568 on `dcd99c6`). Every push ran tsc, eslint on the changed files and the tests touched by the incoming commits plus G1's, contracts and the hero regression after its last rebase (the other lanes push every few minutes); the full suite ran on each commit before it. Under six lanes' load two wall-clock asserts flaked once each (E2's `sf-nav` "window build < 200 ms", F's P1 audio slices) and passed on the re-run; my own citymap redraw assert was loosened for the same reason (the op count stays the real budget).
+- **New tests**: `sf-citymap` (a label never collides with its own marker; four spots; the selection rides over dots; reserved boxes; `fitPoints`, `thinPx`), `sf-travel` (`autoWalkSeconds` monotonic and = 40.1 s for 280 u, old labels identical; `routeAhead`, `routeTravelLabel`; the planner aborts, caches, and `routeLeftTo`), `sf-places` (足迹 counts on the real index), plus the earlier `sf-hud` (M1 layout, transit glyph) and `sf-save` (rides reconcile) cases.
+- **带我去 honesty**: Ferry gate → Dragon Gate, the map said "~40s / 2.0 km for real"; pressing 带我去 arrived in **39.7 s** (position log every 0.5 s).
+- **P8** (from `6bf5067`, CPU profile at 4× throttling): the DOM projection 0.55 % → 0.26 % of the main thread standing, 0.64 % → 0.49 % walking (incl. the new layout work).
+- **HUD sweep** (scripted, box-overlap check of every HUD element): 390×844 zh and 375×667 en, 8 free-roam states (bubble + clue, night banner + goals, toasts, coach, dialogue, map + toast, trip, landed) and 4 riding states, and 1440×900: no overlaps except the bottom bar under a modal map sheet (intended) and a < 300 ms moment while the goals card slides in over a waypoint that then waits.
+- **Draw calls, map open vs closed** (alternating twice): 86 / 84 / 82 / 83 / 81 at 1440×900 high, 76 / 74 / 72 / 73 / 70 at 390×844 mid — the map adds none (DOM + 2D canvas).
+- **Cloud-cut trip**: Ferry Building → Dutch Windmill, 1,527 u: pickup, rise, pan, cloud veil at 4.0 s, descent, on foot at 6.5 s.
+- **Debug line** at the Ferry gate (quality high, desktop): `warm-up 1061–1177 ms → 31–33 programs, +4–6 since` — the P5 drift C2 is chasing, visible at a glance now.
+- **Shots** (`docs/opus-bay/qa/w3/G1/`): `map-paper-before-after-desktop.jpg`, `map-paper-after-390.jpg` (task 1); `hud-390-before-after.jpg`, `hud-375-ride-goals-map.jpg`, `hud-960-desktop-after.jpg` (task 2); `prompt-cable-car-glyph.jpg` (task 4); `map-labels-before-after.jpg`; `route-take-me.jpg`, `route-waypoint-390.jpg` (G1-8); `footprints-tab.jpg` (G1-11); `hud-w3-recheck-phones.jpg` (M1 follow-up); `hud-sunset-waterfront.jpg`, `map-fog-before-after.jpg`, `debug-line.jpg`, `trip-cloud-cut-1527u.jpg` (G1-15). Scratch and the QA scripts (`route.sh`, `steps.sh`, `hud-states.mjs`, `calls.mjs`, `trip.sh`, `fog.sh`, `push2.sh`) are in `C:/Users/willy/opus-qa/w3/g1/`.
+
+### Decisions
+
+- **The route comes from E2's `routeTo`, not a copy.** The preview and the auto-walk share the graph, the snapping and the local grid, so what the map draws is what you walk. The planner lives in a new G1 file; E2's files are untouched.
+- **The time is the auto-walk's, not walking pace.** 带我去 runs beyond 30 u (A11), so "route length / 4.2" would say twice the real time. The label says "沿路走" and the real distance next to it; measured within 1 s.
+- **Route in the SVG overlay, not the canvas**: it changes as you walk while the base layer does not; one polyline thinned to 1.5 px steps.
+- **The goals card, not the waypoint, gives way on small phones**: the card scrolls inside above the right-hand column; a waypoint with no free spot keeps waiting (the M1 rule).
+- **The warm-up figures come from a probe in C2's warm-up set** (`registerWarmup` with no objects: `make` marks the start, `dispose` runs after `compileAsync`) instead of a change in C2's GameRoot.
+- **详情 for every place**: G2's `sf:<placeId>` card exists now; the district POI card still wins for merged hero places.
+
+### Known gaps
+
+- The map labels only fit a few names in the dense north-east at city zoom (the fix makes them appear at all; the wave-4 plan's tiers and clusters are the real answer).
+- The route preview is a walking route even while you ride (骑车去 / 开车去 use E2's drive route, which the map does not draw).
+- A < 300 ms overlap while the goals card slides in over a waypoint (the scan runs at most 4 times a second).
+- `exportMap` exports the vector layer only (H2b already renders its own base; the export is for registration / QA).
+- On phones C2's city-streaming `?debug` panel (world/sf/stats.ts) sits over the coach mark and the Hop button (debug only; request below).
+- The fast-travel avatar still stays at the start during the trip (E2's pelican carry from `travelPose()` is not in yet).
+
+### Not done
+
+Nothing from this part's list is left. For the lead / wave 4:
+- W4-G1's `tripPlan.ts` (on origin) plans walk times with its own route cache; `game/mapRoute.ts` (`planRoute`, `routeLeftTo`) and `travel.ts` (`autoWalkSeconds`, `routeTravelLabel`, `routeAhead`) can serve it so the map, the trip options and the waypoint agree on one number.
+- The `vercel.json` immutable cache header for `/opus-bay/sf/v1/**` (wave-2 request 5) is still open.
+
+### Requests
+
+1. **E2** (`actors/moveSystem.ts` / `actors/system.ts`, open since wave 2): in `move.mode === 'travel'` pose the pelican with the rider from `travelPose()` (`game/fastTravel.ts`: `{ phase, t, x, y, z, heading }`, y = ground + lift, cruising +48 u); hide or carry the walking avatar from `pickup` to the end of `descent`.
+2. **E2** (`tests/opus-bay-sf-nav.test.ts` line 180): `navWindowStats.lastMs < 200` flakes when six lanes share the machine; allow ≈ 600 ms or drop the wall-clock part (the build count is the real check).
+3. **C2** (`world/sf/stats.ts`, the `?debug` city-streaming panel): on ≤ 720 px screens it covers the coach mark and the Hop button; use `font-size: 10px; max-width: calc(100% - 12px); white-space: pre-wrap` and place it under G1's debug line (which now sits at `top: 116px + safe area` on phones), or show it only above 720 px.
+4. **G2** (`data/sf/copy.ts`, optional): add `greet?: Bilingual` to `CityCopy` (a city first-visit greeting for the title, e.g. "嗨～这次我们逛整座旧金山！"); `ui/TitleScreen.tsx` already shows it when present and falls back to today's line.
