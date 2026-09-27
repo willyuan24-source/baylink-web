@@ -174,5 +174,14 @@ export function initResidentTasks(): () => void {
     }
   }, 6);
 
-  return () => { offEvents(); offFrame(); setResidentTalk(null); };
+  // Settings → reset progress empties goalsDone: the neighbours introduce themselves again (G2 review)
+  let lastDone = game.get().goalsDone;
+  const offReset = game.subscribe(() => {
+    const done = game.get().goalsDone;
+    if (done === lastDone) return;
+    if (!done.length && lastDone.length) { met.clear(); pendingGo = null; thankAfter = null; }
+    lastDone = done;
+  });
+
+  return () => { offEvents(); offFrame(); offReset(); setResidentTalk(null); };
 }
