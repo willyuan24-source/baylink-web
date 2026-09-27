@@ -251,7 +251,7 @@ export interface SfModelAsset extends ModelAsset {
   tint?: 'walls';
   /** 'house' = instanced near the player; 'hero' = one per landmark. */
   kind: 'house' | 'hero';
-  /** sf-data landmarks.json id this model belongs to. */
+  /** Landmark registry id (world/sf/landmarks, data/sf/landmarks) this model belongs to. */
   landmarkId: string;
   /** Walk-through passage along z, centred on x = 0 (measured by ray casts): clear width and height in world units. */
   passage?: { width: number; clearHeight: number };
@@ -266,12 +266,12 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
   /** Queen Anne row house with a corner turret, gable and stoop; walls tint-masked. 512 px texture. */
   'sf-victorian-a': {
     url: sfFile('victorian-a.glb'), mask: sfFile('victorian-a-mask.webp'), tint: 'walls', draco: true, kind: 'house',
-    landmarkId: 'alamo-square-painted-ladies', scale: 1, yOffset: 0, triangles: 2940, bytes: 67_900, size: [4.23, 5.6, 3.94],
+    landmarkId: 'painted-ladies', scale: 1, yOffset: 0, triangles: 2940, bytes: 67_900, size: [4.23, 5.6, 3.94],
   },
   /** Italianate row house: flat false-front cornice, two-storey angled bay, stoop; walls tint-masked. 512 px texture. */
   'sf-victorian-b': {
     url: sfFile('victorian-b.glb'), mask: sfFile('victorian-b-mask.webp'), tint: 'walls', draco: true, kind: 'house',
-    landmarkId: 'alamo-square-painted-ladies', scale: 1, yOffset: 0, triangles: 2940, bytes: 50_060, size: [3.81, 5.0, 4.19],
+    landmarkId: 'painted-ladies', scale: 1, yOffset: 0, triangles: 2940, bytes: 50_060, size: [3.81, 5.0, 4.19],
   },
   /**
    * Palace of Fine Arts rotunda only (colonnade and lagoon stay procedural): 8 arched piers, salmon dome, open
@@ -286,7 +286,7 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
    * 2.24 u x 2.57 u (side arches about 1.0 u x 2.0 u). 1024 px texture.
    */
   'sf-dragon-gate': {
-    url: sfFile('dragon-gate.glb'), draco: true, kind: 'hero', landmarkId: 'chinatown-dragon-gate',
+    url: sfFile('dragon-gate.glb'), draco: true, kind: 'hero', landmarkId: 'dragon-gate',
     passage: { width: 2.24, clearHeight: 2.57 }, scale: 1, yOffset: 0, triangles: 5880, bytes: 124_200, size: [9.6, 5.85, 2.45],
   },
   /** Conservatory of Flowers: central dome, two glass wings, end pavilions; glass night-masked. 1024 px texture. */
@@ -376,7 +376,7 @@ export const BADGES: Record<BadgeId, Badge> = {
   'twin-peaks': badge('twin-peaks', '双峰', 'Twin Peaks', 'two hills with the radio mast'),
   embarcadero: badge('embarcadero', '内河码头', 'Embarcadero', 'Ferry Building clock tower'),
   'fishermans-wharf': badge('fishermans-wharf', '渔人码头', 'Fisherman’s Wharf', 'sea lion on a dock'),
-  marina: badge('marina', '码头区', 'Marina', 'Palace of Fine Arts rotunda'),
+  marina: badge('marina', '马里纳区', 'Marina', 'Palace of Fine Arts rotunda'),
   'financial-district': badge('financial-district', '金融区', 'Financial District', 'pyramid tower'),
   'civic-center': badge('civic-center', '市政中心', 'Civic Center', 'City Hall dome'),
   japantown: badge('japantown', '日本城', 'Japantown', 'five-tier pagoda'),

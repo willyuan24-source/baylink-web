@@ -9,7 +9,9 @@ import type { Bilingual, RealInfo } from '../../core/types';
  *   `sources`); hours and prices are phrased cautiously ("出发前查官网确认");
  * - `plannerPlaceId` only uses ids in /planner-catalog.json `places`, `guideSlug` only slugs in /baybay-guides.json
  *   (checked by tests/opus-bay-sf-landmarks.test.ts); the UI builds the plan / guide / Google Maps links from them
- *   with data/links.ts (planUrl, guideUrl, mapsUrl);
+ *   with data/links.ts (planUrl, guideUrl, mapsUrl). A planner place is the landmark itself or the area it stands in
+ *   (Ghirardelli Square has none: PIER 39 is a different spot), and a guide is never tied to one month (those go
+ *   stale: the turntable links the general SF guide);
  * - no invented events; no brand text anywhere in the models.
  *
  * Poses are LOCAL to the landmark frame (origin at its ground centre, +z = its front, yaw as in the registry):
@@ -21,9 +23,16 @@ export const SF_VERIFIED_AT = '2026-09-26';
 
 export interface SfLandmarkInfo {
   id: string;
+  /**
+   * the landmark's row in public/opus-bay/sf/v1/places.json (lane G1's place index, map, discovery, fast travel; G2's
+   * cards): the registry id where places.json uses the same one, else the place it names (7 differ, D2-12)
+   */
+  placeId: string;
   name: Bilingual;
-  /** neighbourhood / area label */
+  /** neighbourhood / area label (zh follows the city glossary: 双峰, 马里纳区, 要塞公园, 叮当车, 卡斯特罗) */
   zone: Bilingual;
+  /** the named public space in front of / around the landmark, where one exists (plaza labels, crowd copy) */
+  plaza?: Bilingual;
   lat: number;
   lng: number;
   arrival: { x: number; z: number; heading: number };
@@ -50,8 +59,9 @@ const SF_GUIDE = 'san-francisco-guide';
 export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   {
     id: 'golden-gate-bridge',
+    placeId: 'ggb-south-tower',
     name: bi('金门大桥', 'Golden Gate Bridge'),
-    zone: bi('金门海峡 · Presidio', 'The Golden Gate · Presidio'),
+    zone: bi('金门海峡 · 要塞公园', 'The Golden Gate · Presidio'),
     lat: 37.81976, lng: -122.47856,
     arrival: { x: -236, z: 2.5, heading: Math.PI / 2 },
     photo: { target: [-40, 22, 0], distance: 240, elevation: 0.1, bearing: -0.55 },
@@ -77,8 +87,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'sutro-tower',
+    placeId: 'sutro-tower',
     name: bi('苏特罗塔', 'Sutro Tower'),
-    zone: bi('苏特罗山 · 双子峰旁', 'Mt Sutro · by Twin Peaks'),
+    zone: bi('苏特罗山 · 双峰旁', 'Mt Sutro · by Twin Peaks'),
     lat: 37.75523, lng: -122.45276,
     arrival: { x: 0.5, z: 7.5, heading: Math.PI },
     photo: { target: [0, 24, 0], distance: 95, elevation: 0.12, bearing: 0.35 },
@@ -100,8 +111,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'city-hall',
+    placeId: 'city-hall',
     name: bi('旧金山市政厅', 'San Francisco City Hall'),
     zone: bi('市政中心', 'Civic Center'),
+    plaza: bi('市政中心广场', 'Civic Center Plaza'),
     lat: 37.779276, lng: -122.419231,
     arrival: { x: 0, z: 12.5, heading: Math.PI },
     photo: { target: [0, 9, 0], distance: 42, elevation: 0.12, bearing: 0.35 },
@@ -125,8 +138,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'de-young-tower',
+    placeId: 'de-young',
     name: bi('迪扬博物馆 · 观景塔', 'de Young Museum · Hamon Tower'),
     zone: bi('金门公园 · 音乐广场', 'Golden Gate Park · Music Concourse'),
+    plaza: bi('音乐广场', 'Music Concourse'),
     lat: 37.771498, lng: -122.46872,
     arrival: { x: 11.5, z: 8, heading: -Math.PI / 2 },
     photo: { target: [1, 6, 3], distance: 36, elevation: 0.18, bearing: 1.25 },
@@ -150,8 +165,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'palace-of-fine-arts',
+    placeId: 'palace-of-fine-arts',
     name: bi('艺术宫', 'Palace of Fine Arts'),
-    zone: bi('码头区 Marina', 'The Marina'),
+    zone: bi('马里纳区', 'The Marina'),
     lat: 37.802918, lng: -122.448385,
     arrival: { x: 3, z: 18.5, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 58, elevation: 0.1, bearing: 0.15 },
@@ -175,8 +191,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'twin-peaks',
-    name: bi('双子峰观景台', 'Twin Peaks overlook'),
-    zone: bi('双子峰', 'Twin Peaks'),
+    placeId: 'twin-peaks',
+    name: bi('双峰观景台', 'Twin Peaks overlook'),
+    zone: bi('双峰', 'Twin Peaks'),
+    plaza: bi('圣诞树观景点', 'Christmas Tree Point'),
     lat: 37.7544, lng: -122.4477,
     arrival: { x: 0, z: 0.4, heading: 0 },
     photo: { target: [0, 2, 6], distance: 18, elevation: 0.32, bearing: Math.PI },
@@ -198,8 +216,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'painted-ladies',
+    placeId: 'alamo-square-painted-ladies',
     name: bi('彩绘女士（明信片排屋）', 'Painted Ladies (Postcard Row)'),
     zone: bi('阿拉莫广场', 'Alamo Square'),
+    plaza: bi('阿拉莫广场公园', 'Alamo Square park'),
     lat: 37.7762, lng: -122.4329,
     arrival: { x: 0, z: 9.5, heading: Math.PI },
     photo: { target: [0, 4, 0], distance: 30, elevation: 0.1, bearing: 0 },
@@ -221,6 +241,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'dragon-gate',
+    placeId: 'chinatown-dragon-gate',
     name: bi('唐人街龙门', 'Chinatown Dragon Gate'),
     zone: bi('唐人街', 'Chinatown'),
     lat: 37.790688, lng: -122.405594,
@@ -245,6 +266,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'conservatory-of-flowers',
+    placeId: 'conservatory-of-flowers',
     name: bi('花卉温室', 'Conservatory of Flowers'),
     zone: bi('金门公园', 'Golden Gate Park'),
     lat: 37.772615, lng: -122.460224,
@@ -270,8 +292,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'dutch-windmill',
+    placeId: 'dutch-windmill',
     name: bi('荷兰风车', 'Dutch Windmill'),
     zone: bi('金门公园 · 海洋海滩', 'Golden Gate Park · Ocean Beach'),
+    plaza: bi('威廉明娜女王郁金香花园', 'Queen Wilhelmina Tulip Garden'),
     lat: 37.770441, lng: -122.509406,
     arrival: { x: 0, z: 5.2, heading: Math.PI },
     photo: { target: [0, 4, 1], distance: 20, elevation: 0.1, bearing: 0.4 },
@@ -294,6 +318,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'mission-dolores',
+    placeId: 'mission-dolores',
     name: bi('多洛雷斯传教站', 'Mission Dolores'),
     zone: bi('教会区', 'The Mission'),
     lat: 37.764185, lng: -122.426812,
@@ -318,8 +343,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'grace-cathedral',
+    placeId: 'grace-cathedral',
     name: bi('慈恩堂（格雷斯大教堂）', 'Grace Cathedral'),
     zone: bi('诺布山', 'Nob Hill'),
+    plaza: bi('亨廷顿公园', 'Huntington Park'),
     lat: 37.791833, lng: -122.413497,
     arrival: { x: 0, z: 10.5, heading: Math.PI },
     photo: { target: [0, 6, 2], distance: 33, elevation: 0.1, bearing: 0.25 },
@@ -342,8 +369,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'legion-of-honor',
+    placeId: 'legion-of-honor',
     name: bi('荣勋宫美术馆', 'Legion of Honor'),
     zone: bi('林肯公园 · 海角', 'Lincoln Park · Lands End'),
+    plaza: bi('荣誉庭院', 'Court of Honor'),
     lat: 37.78455, lng: -122.500735,
     arrival: { x: 0, z: 9, heading: Math.PI },
     photo: { target: [0, 3, 2], distance: 27, elevation: 0.15, bearing: 0 },
@@ -366,8 +395,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'fort-point',
+    placeId: 'fort-point',
     name: bi('Fort Point 炮台', 'Fort Point'),
-    zone: bi('Presidio · 金门大桥南端', 'Presidio · south end of the bridge'),
+    zone: bi('要塞公园 · 金门大桥南端', 'Presidio · south end of the bridge'),
     lat: 37.810509, lng: -122.477104,
     arrival: { x: 0.5, z: -8, heading: 0 },
     photo: { target: [0, 4, 0], distance: 32, elevation: 0.22, bearing: 1.35 },
@@ -391,8 +421,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'castro-theatre',
+    placeId: 'castro-theatre',
     name: bi('卡斯特罗剧院', 'Castro Theatre'),
     zone: bi('卡斯特罗', 'The Castro'),
+    plaza: bi('哈维·米尔克广场', 'Harvey Milk Plaza'),
     lat: 37.762, lng: -122.434748,
     arrival: { x: 0, z: 8.5, heading: Math.PI },
     photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 0.3 },
@@ -415,8 +447,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'oracle-park',
+    placeId: 'oracle-park',
     name: bi('甲骨文球场', 'Oracle Park'),
     zone: bi('南滩 · McCovey Cove', 'South Beach · McCovey Cove'),
+    plaza: bi('威利·梅斯广场', 'Willie Mays Plaza'),
     lat: 37.778646, lng: -122.38958,
     arrival: { x: 1, z: 21.5, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 58, elevation: 0.22, bearing: 2.3 },
@@ -439,8 +473,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'peace-pagoda',
+    placeId: 'japantown-peace-pagoda',
     name: bi('日本城和平塔', 'Japantown Peace Pagoda'),
     zone: bi('日本城', 'Japantown'),
+    plaza: bi('和平广场', 'Peace Plaza'),
     lat: 37.78507, lng: -122.429855,
     arrival: { x: 0, z: 4.2, heading: Math.PI },
     photo: { target: [0, 4, 0], distance: 18, elevation: 0.12, bearing: 0.3 },
@@ -462,13 +498,13 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'ghirardelli-square',
+    placeId: 'ghirardelli-square',
     name: bi('吉尔德利广场', 'Ghirardelli Square'),
     zone: bi('渔人码头西端', 'West end of Fisherman\'s Wharf'),
     lat: 37.805871, lng: -122.422949,
     arrival: { x: 0, z: 8.2, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 34, elevation: 0.15, bearing: 0.2 },
     height: { realM: 22, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
-    plannerPlaceId: 'pier39',
     guideSlug: SF_GUIDE,
     officialUrl: 'https://www.ghirardellisq.com/',
     osm: ['way/27104863', 'way/939539785', 'way/288388853', 'way/939539794'],
@@ -487,6 +523,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'fishermans-wharf',
+    placeId: 'fishermans-wharf',
     name: bi('渔人码头螃蟹舵轮牌', 'Fisherman\'s Wharf wheel sign'),
     zone: bi('渔人码头', 'Fisherman\'s Wharf'),
     lat: 37.8079, lng: -122.4159,
@@ -512,6 +549,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'sutro-baths',
+    placeId: 'sutro-baths',
     name: bi('苏特罗浴场遗址', 'Sutro Baths ruins'),
     zone: bi('海角 Lands End', 'Lands End'),
     lat: 37.780142, lng: -122.513796,
@@ -536,6 +574,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'cliff-house',
+    placeId: 'cliff-house',
     name: bi('悬崖屋', 'Cliff House'),
     zone: bi('海角 Lands End · 海洋海滩北端', 'Lands End · north end of Ocean Beach'),
     lat: 37.778557, lng: -122.513978,
@@ -560,13 +599,15 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'cable-car-turntable',
+    placeId: 'cable-car-powell-market',
     name: bi('Powell & Market 叮当车转车台', 'Powell & Market cable-car turntable'),
     zone: bi('联合广场 · 市场街', 'Union Square · Market St'),
+    plaza: bi('哈勒迪广场', 'Hallidie Plaza'),
     lat: 37.78477, lng: -122.40776,
     arrival: { x: 0, z: 5.6, heading: Math.PI },
     photo: { target: [0, 1, -1], distance: 15, elevation: 0.35, bearing: 0.4 },
     height: { realM: 0, u: 0.12, rule: 'H = 3.2 + 0.155·h' },
-    guideSlug: 'bay-area-october-muni-clipper-payment-update-2026',
+    guideSlug: SF_GUIDE,
     officialUrl: 'https://www.sfmta.com/getting-around/muni/cable-cars',
     osm: ['node/8641952045', 'node/1578907655'],
     sources: ['https://www.sfmta.com/getting-around/muni/fares'],
@@ -575,7 +616,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       summary: bi('Powell-Hyde 和 Powell-Mason 两条叮当车线从这里出发，开往渔人码头一带；车在木转盘上人工掉头。', 'The Powell-Hyde and Powell-Mason cable-car lines start here and run to the Fisherman\'s Wharf area; the cars are turned by hand on the wooden turntable.'),
       cost: bi('单程成人 $9，老人/残障在早 7 点前或晚 9 点后 $4，4 岁及以下免费（以 SFMTA 公布为准）。', 'Single ride $9 for adults; $4 for seniors/disabled before 7am or after 9pm; free for 4 and under (per SFMTA).'),
       tips: [
-        bi('BAYLINK 攻略：Muni-only 一日票不含缆车，Visitor Passport 的适用范围不同，出发前先看清。', 'BAYLINK guide: the Muni-only Day Pass does not include cable cars, while the Visitor Passport differs — check before you ride.'),
+        bi('BAYLINK 攻略：Muni-only 一日票不含叮当车，Visitor Passport 的适用范围不同，出发前先看清。', 'BAYLINK guide: the Muni-only Day Pass does not include cable cars, while the Visitor Passport differs — check before you ride.'),
         bi('在转车台（线路起终点）上车比中途站容易排到。', 'Boarding at a turntable (the ends of the line) is easier than mid-route.'),
       ],
       sourceUrl: 'https://www.sfmta.com/getting-around/muni/cable-cars',
@@ -584,6 +625,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'lombard-crooked-street',
+    placeId: 'lombard-crooked',
     name: bi('九曲花街（伦巴底街）', 'Lombard Street (the crooked block)'),
     zone: bi('俄罗斯山', 'Russian Hill'),
     lat: 37.80212, lng: -122.418716,
@@ -607,8 +649,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   },
   {
     id: 'chase-center',
+    placeId: 'chase-center',
     name: bi('大通中心', 'Chase Center'),
     zone: bi('米慎湾', 'Mission Bay'),
+    plaza: bi('Thrive City 广场', 'Thrive City'),
     lat: 37.767888, lng: -122.387421,
     arrival: { x: 0, z: 14, heading: Math.PI },
     photo: { target: [0, 4.5, 0], distance: 42, elevation: 0.15, bearing: 0.4 },
@@ -633,3 +677,6 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
 
 const byId = new Map(SF_LANDMARK_INFO.map(i => [i.id, i]));
 export function sfLandmarkInfo(id: string): SfLandmarkInfo | undefined { return byId.get(id); }
+const byPlace = new Map(SF_LANDMARK_INFO.map(i => [i.placeId, i]));
+/** The landmark whose places.json row is `placeId` (lane G1's place index), if any. */
+export function sfLandmarkInfoByPlace(placeId: string): SfLandmarkInfo | undefined { return byPlace.get(placeId); }

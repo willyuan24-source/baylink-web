@@ -4,7 +4,8 @@ import test from 'node:test';
 import * as THREE from 'three';
 import { buildingH, terrainY } from '../src/opus-bay/core/geo';
 import type { Vec2 } from '../src/opus-bay/core/types';
-import { SF_LANDMARK_INFO, sfLandmarkInfo } from '../src/opus-bay/data/sf/landmarks';
+import { SF_MODELS } from '../src/opus-bay/data/assets';
+import { SF_LANDMARK_INFO, sfLandmarkInfo, sfLandmarkInfoByPlace } from '../src/opus-bay/data/sf/landmarks';
 import {
   SF_LANDMARKS, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkMatrix, landmarkToWorld, landmarkWalkWorld, sfLandmark, triangleBudget, worldToLandmark,
 } from '../src/opus-bay/world/sf/landmarks/index';
@@ -238,4 +239,40 @@ test('info: bilingual names, verified real facts, BAYLINK links only to ids that
   assert.equal(sfLandmarkInfo('palace-of-fine-arts')!.plannerPlaceId, 'palace');
   assert.equal(sfLandmarkInfo('dragon-gate')!.plannerPlaceId, 'chinatown');
   assert.equal(sfLandmarkInfo('conservatory-of-flowers')!.plannerPlaceId, 'golden-gate-park');
+});
+
+test('D2-12: every landmark names its places.json row; zh follows the city glossary; no stale links', () => {
+  const places = JSON.parse(readFileSync(new URL('../public/opus-bay/sf/v1/places.json', import.meta.url), 'utf8')) as { places: { id: string; x: number; z: number }[] };
+  const byId = new Map(places.places.map(p => [p.id, p]));
+  const seen = new Set<string>();
+  for (const i of SF_LANDMARK_INFO) {
+    const p = byId.get(i.placeId), l = sfLandmark(i.id)!;
+    assert.ok(p, `${i.id}: place ${i.placeId} exists`);
+    assert.ok(!seen.has(i.placeId), `${i.id}: place ${i.placeId} is not shared`);
+    seen.add(i.placeId);
+    // the place is the landmark (the bridge: its south tower, 89 u from the mid-span origin)
+    assert.ok(Math.hypot(p.x - l.x, p.z - l.z) < (i.id === 'golden-gate-bridge' ? 95 : 30), `${i.id}: place near the model`);
+    assert.equal(sfLandmarkInfoByPlace(i.placeId), i);
+    if (i.plaza) assert.ok(i.plaza.zh.trim() && i.plaza.en.trim(), i.id);
+  }
+  const renamed: Record<string, string> = {
+    'golden-gate-bridge': 'ggb-south-tower', 'de-young-tower': 'de-young', 'painted-ladies': 'alamo-square-painted-ladies',
+    'dragon-gate': 'chinatown-dragon-gate', 'peace-pagoda': 'japantown-peace-pagoda', 'cable-car-turntable': 'cable-car-powell-market',
+    'lombard-crooked-street': 'lombard-crooked',
+  };
+  for (const i of SF_LANDMARK_INFO) assert.equal(i.placeId, renamed[i.id] ?? i.id, i.id);
+  // the words the HUD's neighbourhood labels and BAYBAY use (lane G2's glossary): never the old ones in a zh string
+  const OLD = ['双子峰', '码头区', '缆车', '卡斯楚', 'Presidio'];
+  for (const i of SF_LANDMARK_INFO) {
+    for (const t of [i.name, i.zone, i.bark, i.realInfo.summary, i.realInfo.hours, i.realInfo.cost, ...i.realInfo.tips, i.plaza]) {
+      if (t) for (const w of OLD) assert.ok(!t.zh.includes(w), `${i.id}: "${w}" in "${t.zh}"`);
+    }
+    // a guide tied to one month or year goes stale on a permanent card
+    if (i.guideSlug) assert.ok(!/(january|february|march|april|may|june|july|august|september|october|november|december)|-20\d\d(-|$)/i.test(i.guideSlug), `${i.id}: ${i.guideSlug}`);
+  }
+  assert.equal(sfLandmarkInfo('cable-car-turntable')!.guideSlug, 'san-francisco-guide');
+  assert.equal(sfLandmarkInfo('ghirardelli-square')!.plannerPlaceId, undefined, 'PIER 39 is not Ghirardelli Square');
+  assert.equal(sfLandmarkInfo('twin-peaks')!.name.zh, '双峰观景台');
+  // D2-04: the AI models name registry landmarks
+  for (const [id, m] of Object.entries(SF_MODELS)) assert.ok(sfLandmark(m.landmarkId), `${id} → ${m.landmarkId}`);
 });
