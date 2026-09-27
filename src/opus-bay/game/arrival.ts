@@ -1,6 +1,8 @@
 import type { GameEvent } from '../core/events';
 import type { Bilingual, Mood } from '../core/types';
+import { DISTRICT_POIS } from '../data/pois';
 import type { Attraction, AttractionRank } from '../data/sf/attractionTypes';
+import { CITY_SUBJECT_FACTS } from '../data/sf/cityPois';
 import { placeCardNow } from '../data/sf/placeCardTypes';
 import { ARRIVAL_LINES, QUIET_LINES } from '../data/sf/tourLines';
 
@@ -20,9 +22,13 @@ import { ARRIVAL_LINES, QUIET_LINES } from '../data/sf/tourLines';
  *   watcher.hintSuppressed(now)   // the soft free hint stays off for 60 s after an arrival (plan §4.2 waypoint)
  *
  * Re-arming: an anchor fires again (first: false) only after the player has left it beyond 1.6 × its radius, so
- * standing on the edge never repeats. The nearest anchor inside its radius wins when several overlap (the Music
- * Concourse: de Young, Cal Academy, Tea Garden). Fast travel never counts; a busy moment (dialogue, panel, cinematic)
- * holds the arrival until it is free, as long as the player is still inside.
+ * standing on the edge never repeats. When several anchors overlap, the higher tier wins, then the nearest (the Music
+ * Concourse: de Young, Cal Academy, Tea Garden; Coit Tower over the Greenwich Steps 8 u away, whose T3 hit would
+ * otherwise swallow Coit's T1 moment and panorama). Fast travel never counts; a busy moment (dialogue, panel,
+ * cinematic) holds the arrival until it is free, as long as the player is still inside.
+ *
+ * Places you cannot walk to (`Attraction.offWalk`: Alcatraz, Treasure Island, whose "arrival" spot is a telescope on
+ * the waterfront) get no anchor: standing at Pier 33 is not arriving at Alcatraz (no toast, no reveal, no fly unlock).
  */
 
 export const ARRIVAL_MIN_R = 12;
@@ -48,6 +54,8 @@ export interface ArrivalAnchor {
   name: Bilingual;
   quiet?: boolean;
   panorama?: boolean;
+  /** the SF landmark registry id (Attraction.landmarkId): its card bark is the arrival line of a built landmark */
+  landmark?: string;
 }
 
 export interface ArrivalSample {
@@ -76,9 +84,12 @@ export interface ArrivalHit {
   event: ArrivalEvent;
 }
 
-/** Anchors from lane P's ATTRACTIONS (data/sf/attractions.ts): the arrival spot, rank, tone, place id. */
+/**
+ * Anchors from lane P's ATTRACTIONS (data/sf/attractions.ts): the arrival spot, rank, tone, place id, landmark. Places
+ * off the walkable city (`offWalk`) are left out: their arrival spot is a viewpoint elsewhere, not the place.
+ */
 export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAnchor[] {
-  return attractions.map(a => ({
+  return attractions.filter(a => !a.offWalk).map(a => ({
     attraction: a.id,
     place: a.placeId ?? a.id,
     rank: a.rank,
@@ -87,6 +98,7 @@ export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAncho
     name: a.name,
     ...(a.quiet ? { quiet: true } : {}),
     ...(a.panorama ? { panorama: true } : {}),
+    ...(a.landmarkId ? { landmark: a.landmarkId } : {}),
   }));
 }
 
@@ -150,11 +162,13 @@ export class ArrivalWatcher {
     if (s.travelling || s.busy) return null;
     const hopOff = s.hoppedOffAt !== undefined && s.now - s.hoppedOffAt >= 0 && s.now - s.hoppedOffAt <= HOP_OFF_GRACE_MS;
     if (!s.onFoot && !hopOff) return null;
+    // the higher tier first (T1 over T3), then the nearest
     let best: ArrivalAnchor | null = null, bestD = Infinity;
     for (const a of candidates) {
       if (this.inside.has(a.attraction)) continue;
       const d = Math.hypot(a.x - s.x, a.z - s.z);
-      if (d <= radiusOf(a) && d < bestD) { best = a; bestD = d; }
+      if (d > radiusOf(a)) continue;
+      if (!best || a.rank < best.rank || (a.rank === best.rank && d < bestD)) { best = a; bestD = d; }
     }
     if (!best) return null;
     // every anchor the player stands in now counts as visited-inside (no second hit from an overlapping neighbour)
@@ -179,8 +193,8 @@ export interface ArrivalContext {
   qualityLow?: boolean;
   /** an unfound postcard lies within POSTCARD_NEAR_R u of the arrival spot */
   postcardNear?: boolean;
-  /** the line resolver (default: the frozen arrival / quiet lines, then the loaded card's bark) */
-  lineFor?: (attraction: string) => { text: Bilingual; voice?: string; mood?: Mood } | null;
+  /** the line resolver (default `defaultArrivalLine`: frozen lines, the card's bark, the landmark / district card's bark) */
+  lineFor?: (attraction: string, anchor: ArrivalAnchor) => { text: Bilingual; voice?: string; mood?: Mood } | null;
 }
 
 export interface ArrivalBeats {
@@ -207,12 +221,22 @@ export interface ArrivalBeats {
 
 export const POSTCARD_HINT: Bilingual = { zh: '这附近藏着一张明信片哦', en: 'There\'s a postcard hiding somewhere near here' };
 
-/** The default line: the frozen arrival line (recorded), a quiet line, else the card's bark once cards are loaded. */
-export function defaultArrivalLine(attraction: string): { text: Bilingual; voice?: string; mood?: Mood } | null {
+/**
+ * The default line: the frozen arrival line (recorded), a quiet line, the wave-4 card's bark once the cards are loaded,
+ * else the bark of the card the place already has — a built landmark's (data/sf/landmarks.ts via cityPois, glossed:
+ * Golden Gate Bridge, Palace, Painted Ladies …) or the district POI's (Coit Tower, the Exploratorium). Null only for
+ * the few places with no card at all (text-free toast + peek).
+ */
+export function defaultArrivalLine(attraction: string, anchor?: Pick<ArrivalAnchor, 'landmark' | 'place' | 'quiet'>): { text: Bilingual; voice?: string; mood?: Mood } | null {
   const frozen = ARRIVAL_LINES[attraction] ?? QUIET_LINES[attraction];
   if (frozen) return { text: { zh: frozen.zh, en: frozen.en }, voice: frozen.id, mood: frozen.mood };
+  const mood: Mood = anchor?.quiet ? 'thinking' : 'point';
   const card = placeCardNow(attraction);
-  return card ? { text: card.bark, mood: card.quiet ? 'thinking' : 'point' } : null;
+  if (card) return { text: card.bark, mood: card.quiet ? 'thinking' : mood };
+  const landmark = anchor?.landmark ? CITY_SUBJECT_FACTS[anchor.landmark] : undefined;
+  if (landmark) return { text: landmark.fact, mood };
+  const poi = anchor?.place ? DISTRICT_POIS.find(p => p.id === anchor.place) : undefined;
+  return poi?.bark ? { text: poi.bark, mood } : null;
 }
 
 /** What an arrival shows (pure). Tier 3 and later arrivals are quiet: discovery only. */
@@ -220,7 +244,7 @@ export function arrivalBeats(hit: ArrivalHit, ctx: ArrivalContext = {}): Arrival
   const { anchor, first } = hit;
   const moment = first && anchor.rank <= 2;
   const quiet = !!anchor.quiet;
-  const line = moment ? (ctx.lineFor ?? defaultArrivalLine)(anchor.attraction) : null;
+  const line = moment ? (ctx.lineFor ?? defaultArrivalLine)(anchor.attraction, anchor) : null;
   return {
     toast: moment ? (quiet ? { zh: anchor.name.zh, en: anchor.name.en } : { zh: `抵达 · ${anchor.name.zh}`, en: `Arrived · ${anchor.name.en}` }) : null,
     line: line?.text ?? null,

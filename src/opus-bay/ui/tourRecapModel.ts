@@ -1,5 +1,5 @@
 import type { Bilingual } from '../core/types';
-import { targetAt, TOUR_GEO, type CityTourDef, type XZ } from '../data/sf/tours';
+import { expressRide, targetAt, TOUR_GEO, tourStops, type CityTourDef, type XZ } from '../data/sf/tours';
 
 /**
  * Wave 4 · lane C · W4-C4: the pure model of the Grand Tour recap (ui/TourRecap.tsx): the route sketch in the game
@@ -30,28 +30,32 @@ export interface TourRecapModel {
 const f1 = (n: number) => Math.round(n * 10) / 10;
 
 /**
- * The recap of `tour` with the stop ids in `completed`. Ride segments follow the line through its stations (the
- * TOUR_GEO stations between board and alight, a readable sketch, not the exact track); walks are straight dashes.
+ * The recap of `tour` with the stop ids in `completed`, in the version played (`express`: the skipped side stops are
+ * neither counted nor drawn, and a ride runs from its merged board to its `expressTo`, so a finished express tour is
+ * "complete" too). Ride segments follow the line through its stations (the TOUR_GEO stations between board and
+ * alight, a readable sketch, not the exact track); walks are straight dashes.
  */
-export function tourRecapModel(tour: CityTourDef, completed: readonly string[], names: (stopId: string) => Bilingual | null = () => null): TourRecapModel {
+export function tourRecapModel(tour: CityTourDef, completed: readonly string[], names: (stopId: string) => Bilingual | null = () => null, express = false): TourRecapModel {
   const done = new Set(completed);
   const segments: RecapSegment[] = [];
   const dots: RecapDot[] = [];
   const pts: XZ[] = [];
   let prev: XZ | null = targetAt('transit-loop-ferry-building');
   let total = 0, doneCount = 0;
+  const played = tourStops(tour, { express });
   const chapters: RecapChapter[] = tour.chapters.map((c, ci) => {
     let cDone = 0;
-    const stops = c.stops.filter(s => !s.optional);
+    const stops = played.filter(f => f.chapter === ci).map(f => f.stop);
     for (const s of stops) {
-      const end = targetAt(s.target);
+      const ride = s.leg.via !== 'line' ? null : express ? expressRide(tour, s.id) : { line: s.leg.line, from: s.leg.from, to: s.leg.to };
+      const end = ride ? targetAt(`transit-${ride.to}`) : targetAt(s.target);
       if (!end) continue;
       const ok = done.has(s.id);
       total++; if (ok) { doneCount++; cDone++; }
       const path: XZ[] = [];
-      if (s.leg.via === 'line') {
-        const geo = TOUR_GEO[s.leg.line];
-        const A = geo?.stations[s.leg.from], B = geo?.stations[s.leg.to];
+      if (ride) {
+        const geo = TOUR_GEO[ride.line];
+        const A = geo?.stations[ride.from], B = geo?.stations[ride.to];
         if (geo && A && B) {
           if (prev) path.push(prev);
           path.push(A);
@@ -65,8 +69,8 @@ export function tourRecapModel(tour: CityTourDef, completed: readonly string[], 
           path.push(...between, B);
         }
         if (prev && path.length > 1) segments.push({ d: `M${f1(path[0].x)} ${f1(path[0].z)}L${f1(path[1].x)} ${f1(path[1].z)}`, color: RECAP_COLORS.walk, dashed: true, done: ok });
-        const ride = prev ? path.slice(1) : path;
-        if (ride.length > 1) segments.push({ d: ride.map((p, i) => `${i ? 'L' : 'M'}${f1(p.x)} ${f1(p.z)}`).join(''), color: RECAP_COLORS[s.leg.line] ?? '#888', dashed: false, done: ok });
+        const track = prev ? path.slice(1) : path;
+        if (track.length > 1) segments.push({ d: track.map((p, i) => `${i ? 'L' : 'M'}${f1(p.x)} ${f1(p.z)}`).join(''), color: RECAP_COLORS[ride.line] ?? '#888', dashed: false, done: ok });
       } else if (prev) {
         path.push(prev, end);
         segments.push({ d: `M${f1(prev.x)} ${f1(prev.z)}L${f1(end.x)} ${f1(end.z)}`, color: RECAP_COLORS.walk, dashed: true, done: ok });

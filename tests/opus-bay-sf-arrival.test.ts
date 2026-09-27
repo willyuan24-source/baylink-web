@@ -7,10 +7,16 @@ import test from 'node:test';
 const arrival = await import('../src/opus-bay/game/arrival');
 const { ArrivalWatcher, arrivalAnchors, arrivalBeats, ARRIVAL_MIN_R, HINT_QUIET_MS, HOP_OFF_GRACE_MS, POSTCARD_HINT } = arrival;
 const trips = await import('../src/opus-bay/game/trips');
-const { tripReducer, tripEvents, currentLeg, isArrived, legTarget, tripRemaining, durationText, tripPillText, walkLeg, freeLeadTrip, tourStopOption, pickObjective, createTripStore, OBJECTIVE_ORDER } = trips;
+const { tripReducer, tripEvents, currentLeg, isArrived, legTarget, tripRemaining, walkLeg, freeLeadTrip, pickObjective, createTripStore, OBJECTIVE_ORDER } = trips;
+const { tourStopOption, tourStationName } = await import('../src/opus-bay/game/tourTrips');
+const { tripPillText: gTripPillText } = await import('../src/opus-bay/ui/guideText');
+const { defaultArrivalLine } = arrival;
+const { CITY_SUBJECT_FACTS } = await import('../src/opus-bay/data/sf/cityPois');
+const { loadPlaceCards } = await import('../src/opus-bay/data/sf/placeCardTypes');
+const fs = await import('node:fs');
 const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const { ARRIVAL_LINES } = await import('../src/opus-bay/data/sf/tourLines');
-const { SF_GRAND, targetAt } = await import('../src/opus-bay/data/sf/tours');
+const { SF_GRAND, targetAt, tourStops, TOUR_GEO } = await import('../src/opus-bay/data/sf/tours');
 const { tourRecapModel } = await import('../src/opus-bay/ui/tourRecapModel');
 const { TRIP_MODES } = await import('../src/opus-bay/game/tripTypes');
 type TripOption = import('../src/opus-bay/game/tripTypes').TripOption;
@@ -60,6 +66,53 @@ test('arrival: the nearest anchor wins where several overlap, and the neighbours
   assert.equal(w.step(sample(500, 3, 200))!.anchor.attraction, 'far', 'the spatial grid finds far anchors');
 });
 
+test('arrival: the higher tier wins over a nearer lower tier (a T3 neighbour never swallows a T1 moment)', () => {
+  // synthetic: the T3 anchor is nearer, both are inside
+  const w = new ArrivalWatcher([A('coit', 0, 0, 1, { panorama: true }), A('steps', 8, 0, 3)]);
+  const hit = w.step(sample(7, 0, 0))!;
+  assert.equal(hit.anchor.attraction, 'coit', 'T1 over the nearer T3');
+  assert.equal(arrivalBeats(hit).panorama, true);
+  assert.equal(w.step(sample(8, 0, 100)), null, 'the T3 inside too: no second moment');
+  // only the T3 inside: it fires alone, and the T1 still fires later on the way up
+  const w2 = new ArrivalWatcher([A('coit', 0, 0, 1), A('steps', 8, 0, 3)]);
+  assert.equal(w2.step(sample(19, 0, 0))!.anchor.attraction, 'steps');
+  assert.equal(w2.step(sample(3, 0, 100))!.anchor.attraction, 'coit');
+  // the real pair: walking up the Greenwich Steps to Coit Tower gets Coit's moment
+  const anchors = arrivalAnchors(ATTRACTIONS);
+  const coit = anchors.find(a => a.attraction === 'coit-tower')!, steps = anchors.find(a => a.attraction === 'greenwich-steps')!;
+  const w3 = new ArrivalWatcher(anchors);
+  const mid = { x: (coit.x * 0.45 + steps.x * 0.55), z: (coit.z * 0.45 + steps.z * 0.55) };
+  assert.ok(Math.hypot(mid.x - coit.x, mid.z - coit.z) <= ARRIVAL_MIN_R && Math.hypot(mid.x - steps.x, mid.z - steps.z) <= ARRIVAL_MIN_R, 'a spot inside both');
+  assert.equal(w3.step(sample(mid.x, mid.z, 0))!.anchor.attraction, 'coit-tower');
+});
+
+test('arrival: islands you cannot walk to get no anchor (standing at the Pier 33 telescope is not arriving at Alcatraz)', () => {
+  const anchors = arrivalAnchors(ATTRACTIONS);
+  const off = ATTRACTIONS.filter(a => a.offWalk);
+  assert.ok(off.some(a => a.id === 'alcatraz'), 'Alcatraz is off the walkable city');
+  for (const a of off) assert.equal(anchors.find(x => x.attraction === a.id), undefined, `${a.id} has no arrival anchor`);
+  const alca = ATTRACTIONS.find(a => a.id === 'alcatraz')!;
+  const w = new ArrivalWatcher(anchors);
+  const hit = w.step(sample(alca.arrival!.x, alca.arrival!.z, 0));
+  assert.notEqual(hit?.anchor.attraction, 'alcatraz');
+});
+
+test('arrival lines: the built landmarks and the district places speak their card bark (not a silent moment)', async () => {
+  await loadPlaceCards();
+  const anchors = arrivalAnchors(ATTRACTIONS);
+  const silent = anchors.filter(a => a.rank <= 2 && !defaultArrivalLine(a.attraction, a)).map(a => a.attraction).sort();
+  // the only T1 / T2 places with no card anywhere (Requests: cards at integration)
+  assert.deepEqual(silent, ['bay-bridge', 'marina-green']);
+  const ggb = anchors.find(a => a.attraction === 'golden-gate-bridge')!;
+  const line = arrivalBeats({ anchor: ggb, first: true, via: 'foot', event: { type: 'arrival', place: ggb.place, tier: 1, first: true, attraction: ggb.attraction } });
+  assert.deepEqual(line.line, CITY_SUBJECT_FACTS['golden-gate-bridge'].fact, 'GGB: the landmark card bark, glossed');
+  assert.equal(line.voice, null, 'no recorded clip for built landmarks (text bubble)');
+  const coit = anchors.find(a => a.attraction === 'coit-tower')!;
+  assert.ok(defaultArrivalLine(coit.attraction, coit)?.text.zh.includes('观景点'), 'Coit: the district POI bark');
+  const md = anchors.find(a => a.attraction === 'mission-dolores')!;
+  assert.equal(defaultArrivalLine(md.attraction, md)?.mood, 'thinking', 'a quiet landmark speaks softly');
+});
+
 test('arrival: the soft hint stays quiet 60 s after an arrival; seen ids survive a save', () => {
   const w = new ArrivalWatcher([A('x', 0, 0, 1)], ['x']);
   assert.equal(w.hintSuppressed(0), false);
@@ -96,7 +149,8 @@ test('arrival beats: T1 on foot gets the reveal; T2 no reveal; T3 and later arri
 
 test('arrival anchors from lane P\'s ATTRACTIONS: arrival spot, place id, tone', () => {
   const anchors = arrivalAnchors(ATTRACTIONS);
-  assert.equal(anchors.length, ATTRACTIONS.length);
+  assert.equal(anchors.length, ATTRACTIONS.filter(a => !a.offWalk).length);
+  assert.equal(anchors.find(a => a.attraction === 'painted-ladies' || a.attraction === 'alamo-square-painted-ladies')!.landmark, 'painted-ladies');
   const stones = anchors.find(a => a.attraction === 'stonestown-galleria')!;
   const src = ATTRACTIONS.find(a => a.id === 'stonestown-galleria')!;
   assert.equal(stones.x, src.arrival?.x ?? src.x);
@@ -128,6 +182,9 @@ test('trips: start → leg → end; skip, replan, cancel, clear; the events of e
   assert.deepEqual(tripEvents(s0, s1, { type: 'leg-arrived' }), [{ type: 'trip', what: 'leg', place: 'twin-peaks', mode: 'line', leg: 1 }]);
   assert.deepEqual(legTarget(currentLeg(s1), 'approach'), { x: 42, z: 0, station: 'loop-castro' }, 'lead to the boarding stop first');
   assert.deepEqual(legTarget(currentLeg(s1), 'underway'), { x: 42, z: 200, station: 'loop-twin-peaks' });
+  // the point keeps its name for the waypoint label
+  const named = walkLeg({ x: 0, z: 0 }, { x: 5, z: 0, place: 'p', name: bi('双峰', 'Twin Peaks') });
+  assert.deepEqual(legTarget(named), { x: 5, z: 0, place: 'p', name: bi('双峰', 'Twin Peaks') });
   const s2 = tripReducer(s1, { type: 'skip-leg' })!;
   const s3 = tripReducer(s2, { type: 'leg-arrived' })!;
   assert.equal(isArrived(s3), true);
@@ -147,18 +204,17 @@ test('trips: start → leg → end; skip, replan, cancel, clear; the events of e
   assert.ok(TRIP_MODES.includes(o.mode));
 });
 
-test('trips: honest remaining time, the pill text (≤ 16 CJK on phones), the free lead as a one-leg walking trip', () => {
+test('trips: honest remaining time, the free lead as a one-leg walking trip; the pill words are lane G\'s', () => {
   const s = tripReducer(null, { type: 'start', placeId: 'twin-peaks', option: opt(), now: 0 })!;
   const total = s.legs.reduce((a, l) => a + l.seconds, 0);
   assert.ok(Math.abs(tripRemaining(s) - total) < 1e-9);
   assert.ok(Math.abs(tripRemaining(s, 0.5) - (total - s.legs[0].seconds / 2)) < 1e-9);
-  assert.deepEqual(durationText(5), { zh: '不到 10 秒', en: 'under 10 s' });
-  assert.deepEqual(durationText(42), { zh: '约 40 秒', en: 'about 40 s' });
-  assert.deepEqual(durationText(170), { zh: '约 3 分钟', en: 'about 3 min' });
-  const pill = tripPillText(s, bi('双峰观景台 · Christmas Tree Point', 'Twin Peaks'))!;
-  assert.equal(pill.mode, 'line');
-  assert.ok([...pill.text.zh].length <= 16, `pill ≤ 16 (${pill.text.zh})`);
-  assert.match(pill.text.zh, /^下一站 .+ · 约 \d+ (秒|分钟)$/);
+  assert.equal(tripRemaining(tripReducer(tripReducer(tripReducer(s, { type: 'leg-arrived' }), { type: 'leg-arrived' }), { type: 'leg-arrived' })), 0);
+  // W4-C review: lane C kept its own pill / time words with other rounding; lane G's ui/guideText is the one rule
+  assert.equal('tripPillText' in trips, false);
+  assert.equal('durationText' in trips, false);
+  const pill = gTripPillText(s, tripRemaining(s), { compact: true, destination: bi('旧金山州立大学', 'SF State') });
+  assert.ok(pill.title.zh.length > 0);
   const lead = freeLeadTrip({ x: 0, z: 0 }, { x: 84, z: 0, place: 'city-hall' }, 7);
   assert.equal(lead.source, 'free-lead'); assert.equal(lead.legs.length, 1); assert.equal(lead.option.mode, 'walk');
   assert.ok(Math.abs(lead.legs[0].seconds - (84 * 1.25) / 4.2) < 1e-9, 'straight × 1.25 at 4.2 u/s');
@@ -183,7 +239,7 @@ test('trips: objectiveTarget priority freeLead > trip > tour > week > mapTarget 
   assert.equal(calls, 2, 'unsubscribed');
 });
 
-test('trips: every Grand Tour stop converts into a trip option (walk, or walk → wait → ride)', () => {
+test('trips: every Grand Tour stop converts into a trip option (walk, or walk → wait → ride) with named points', () => {
   let prev = targetAt('transit-loop-ferry-building')!;
   for (const c of SF_GRAND.chapters) for (const stop of c.stops) {
     const o = tourStopOption(stop, prev)!;
@@ -196,10 +252,23 @@ test('trips: every Grand Tour stop converts into a trip option (walk, or walk �
         assert.equal(ride.board, stop.leg.from); assert.equal(ride.alight, stop.leg.to);
         assert.ok(ride.stops >= 1);
         if (stop.leg.line === 'm-ocean-view' && stop.leg.from === 'muni-church') assert.equal(ride.underground, true);
+        // lane G's pill reads leg.to.name ("下一站 名称"): every ride end and boarding point is named
+        assert.ok(ride.to.name?.zh && ride.from.name?.zh, `${stop.id}: named stations`);
+        assert.deepEqual(ride.to.name, tourStationName(stop.leg.to));
       }
     } else assert.equal(o.mode, 'walk');
     if (!stop.optional) prev = targetAt(stop.target)!;
   }
+  // targets are named by the integration's resolver (interactableById(target).name)
+  const vista = SF_GRAND.chapters[0].stops.find(s => s.id === 'bay-vista')!;
+  const o = tourStopOption(vista, prev, t => (t === vista.target ? bi('游客中心', 'Welcome Center') : null))!;
+  assert.equal(o.legs[0].to.name?.zh, '游客中心');
+});
+
+test('trips.ts stays light: no runtime import of the tour data (flow.ts, the main graph, imports it)', () => {
+  const src = fs.readFileSync(new URL('../src/opus-bay/game/trips.ts', import.meta.url), 'utf8');
+  const runtimeImports = src.split('\n').filter(l => /^import (?!type )/.test(l));
+  assert.ok(runtimeImports.every(l => !/data\/sf\/(tours|tourLines|placeCards)/.test(l)), runtimeImports.join('\n'));
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -220,4 +289,17 @@ test('recap model: the route in line colours, chapters counted, complete when ev
   assert.ok(full.chapters.every(c => c.done === c.total));
   const one = tourRecapModel(SF_GRAND, SF_GRAND.chapters[0].stops.map(s => s.id));
   assert.equal(one.chapters[0].done, one.chapters[0].total); assert.equal(one.chapters[1].done, 0);
+});
+
+test('recap model, express: a finished express run is complete (the skipped side stops are not "missing")', () => {
+  const expressIds = tourStops(SF_GRAND, { express: true }).map(f => f.stop.id);
+  const ex = tourRecapModel(SF_GRAND, expressIds, undefined, true);
+  assert.equal(ex.complete, true, 'express complete');
+  assert.equal(ex.total, expressIds.length);
+  assert.equal(tourRecapModel(SF_GRAND, expressIds).complete, false, 'the same ids are not the full tour');
+  // the express sketch rides GGB → the windmill (expressTo) and never walks to the skipped Sutro Baths
+  const windmill = TOUR_GEO['sf-loop'].stations['loop-ocean-beach-windmill'];
+  assert.ok(ex.segments.some(s => s.color === '#e0563f' && s.d.endsWith(`L${Math.round(windmill.x * 10) / 10} ${Math.round(windmill.z * 10) / 10}`)), 'the merged bus ride ends at the windmill');
+  const sutro = targetAt('sf:sutro-baths')!;
+  assert.ok(!ex.dots.some(d => Math.hypot(d.x - sutro.x, d.y - sutro.z) < 1), 'no dot at the skipped Sutro Baths');
 });

@@ -1,7 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { Bilingual } from '../core/types';
-import { rideArc, rideSeconds, targetAt, TOUR_GEO, TOUR_MODEL, type CityTourStop, type XZ } from '../data/sf/tours';
-import type { TripLeg, TripLineLeg, TripMode, TripOption, TripSource, TripState, TripWalkLeg } from './tripTypes';
+import { STREET_FACTOR, TRIP_SPEED, tripRemainingSeconds } from './tripPlan';
+import type { TripLeg, TripOption, TripSource, TripState, TripWalkLeg } from './tripTypes';
 
 /**
  * Wave 4 · lane C · W4-C1 (early part): the trip state machine on the FROZEN TripState (game/tripTypes.ts), pure.
@@ -18,7 +18,13 @@ import type { TripLeg, TripLineLeg, TripMode, TripOption, TripSource, TripState,
  * Events (core/events.ts `trip`): `start` (leg 0), `leg` (the 0-based leg that just started), `end` (arrived),
  * `cancel`. objectiveTarget priority (plan §4.2): freeLead > trip leg > tour > week > mapTarget > freeHint —
  * `pickObjective`; a free lead is a one-leg walking trip (`freeLeadTrip`, source 'free-lead').
+ *
+ * Light on purpose: game/flow.ts (the main graph) imports it, so it imports no tour data (a Grand Tour stop as a trip
+ * option is game/tourTrips.ts, lazy with data/sf/tours) and reuses lane G's numbers (game/tripPlan.ts: speeds, the
+ * remaining time; the pill and time words are lane G's ui/guideText.ts tripPillText / tripTimeLabel, one rule for all).
  */
+
+type XZ = { x: number; z: number };
 
 export type TripAction =
   | { type: 'start'; placeId: string; attraction?: string; option: TripOption; now: number; source?: TripSource }
@@ -30,9 +36,9 @@ export type TripAction =
 
 export type TripEvent = Extract<GameEvent, { type: 'trip' }>;
 
-/** The walking speed BAYBAY leads at (actors/controller.ts WALK_SPEED) and the straight-line → street factor. */
-export const TRIP_WALK_SPEED = 4.2;
-export const TRIP_STREET_FACTOR = 1.25;
+/** The walking speed BAYBAY leads at and the straight-line → street factor (lane G's planner: one set of numbers). */
+export const TRIP_WALK_SPEED = TRIP_SPEED.walk;
+export const TRIP_STREET_FACTOR = STREET_FACTOR;
 
 export const isArrived = (trip: TripState | null): boolean => !!trip && trip.leg >= trip.legs.length;
 export const currentLeg = (trip: TripState | null): TripLeg | null => (trip && trip.leg < trip.legs.length ? trip.legs[trip.leg] : null);
@@ -87,39 +93,21 @@ export function tripEvents(prev: TripState | null, next: TripState | null, actio
   }
 }
 
-/** Where BAYBAY leads for the current leg: before boarding / mounting the leg's start, then its end (null: arrived). */
-export function legTarget(leg: TripLeg | null, stage: 'approach' | 'underway' = 'approach'): (XZ & { station?: string; place?: string }) | null {
+/**
+ * Where BAYBAY leads for the current leg: before boarding / mounting the leg's start, then its end (null: arrived).
+ * The point keeps its station / place / name, so objectiveTarget() can label the waypoint.
+ */
+export function legTarget(leg: TripLeg | null, stage: 'approach' | 'underway' = 'approach'): (XZ & { station?: string; place?: string; name?: Bilingual }) | null {
   if (!leg) return null;
-  if ((leg.via === 'line' || leg.via === 'bike' || leg.via === 'car') && stage === 'approach') return { x: leg.from.x, z: leg.from.z, ...(leg.from.station ? { station: leg.from.station } : {}) };
-  return { x: leg.to.x, z: leg.to.z, ...(leg.to.station ? { station: leg.to.station } : {}), ...(leg.to.place ? { place: leg.to.place } : {}) };
+  const p = (leg.via === 'line' || leg.via === 'bike' || leg.via === 'car') && stage === 'approach' ? leg.from : leg.to;
+  return { x: p.x, z: p.z, ...(p.station ? { station: p.station } : {}), ...(p.place ? { place: p.place } : {}), ...(p.name ? { name: p.name } : {}) };
 }
 
-/** Seconds left: the unfinished part of the current leg (`progress` 0–1) plus the legs after it. */
+/** Seconds left: the unfinished part of the current leg (`progress` 0–1) plus the legs after it (lane G's rule). */
 export function tripRemaining(trip: TripState | null, progress = 0): number {
   if (!trip || isArrived(trip)) return 0;
   const p = Math.max(0, Math.min(1, progress));
-  return trip.legs.slice(trip.leg).reduce((sum, leg, i) => sum + (i === 0 ? leg.seconds * (1 - p) : leg.seconds), 0);
-}
-
-/** "约 3 分钟" / "约 40 秒" / "不到 10 秒" — the honest time the pill, the card and the ETA chip show. */
-export function durationText(seconds: number): Bilingual {
-  if (!Number.isFinite(seconds) || seconds < 10) return { zh: '不到 10 秒', en: 'under 10 s' };
-  if (seconds < 55) { const s = Math.round(seconds / 5) * 5; return { zh: `约 ${s} 秒`, en: `about ${s} s` }; }
-  const m = Math.max(1, Math.round(seconds / 60));
-  return { zh: `约 ${m} 分钟`, en: `about ${m} min` };
-}
-
-const clip = (text: string, max: number) => ([...text].length <= max ? text : `${[...text].slice(0, Math.max(1, max - 1)).join('')}…`);
-
-/**
- * The trip pill's text: "下一站 名称 · 约 N 分钟" (plan §4.2). `name` = the next stop's or the destination's name;
- * the zh name is clipped so the whole pill stays ≤ `maxZh` characters (16 on phones).
- */
-export function tripPillText(trip: TripState | null, name: Bilingual, progress = 0, maxZh = 16): { mode: TripMode; text: Bilingual } | null {
-  if (!trip || isArrived(trip)) return null;
-  const t = durationText(tripRemaining(trip, progress));
-  const room = Math.max(2, maxZh - [...`下一站  · ${t.zh}`].length);
-  return { mode: trip.option.mode, text: { zh: `下一站 ${clip(name.zh, room)} · ${t.zh}`, en: `Next: ${name.en} · ${t.en}` } };
+  return tripRemainingSeconds(trip, trip.legs[trip.leg].seconds * (1 - p));
 }
 
 /** A straight-line walking estimate (× 1.25) until the A* answers ("计算中…"). */
@@ -137,45 +125,6 @@ export function freeLeadTrip(from: XZ, to: XZ & { place: string; name?: Bilingua
   const leg = walkLeg(from, to);
   const option: TripOption = { mode: 'walk', legs: [leg], seconds: leg.seconds };
   return tripReducer(null, { type: 'start', placeId: to.place, option, now, source: 'free-lead' })!;
-}
-
-/**
- * A Grand Tour stop as a trip option (so the trip pill, the map route and BAYBAY's lead treat tour legs like any
- * trip): a walk, or walk → wait → ride on the stop's line (TOUR_GEO, the tour's timing model). `prev` = where the
- * previous stop ended. Null when the stop's target is unknown.
- */
-export function tourStopOption(stop: CityTourStop, prev: XZ): TripOption | null {
-  const end = targetAt(stop.target);
-  if (!end) return null;
-  const place = stop.target.startsWith('place:') ? stop.target.slice(6) : stop.target.startsWith('sf:') ? stop.target : undefined;
-  if (stop.leg.via === 'walk') {
-    const leg = walkLeg(prev, { ...end, ...(place ? { place } : {}) });
-    return { mode: 'walk', legs: [leg], seconds: leg.seconds };
-  }
-  const { line, from, to } = stop.leg;
-  const geo = TOUR_GEO[line];
-  const board = geo?.stations[from], alight = geo?.stations[to], r = rideArc(line, from, to);
-  if (!geo || !board || !alight || !r) return null;
-  const legs: TripLeg[] = [];
-  if (Math.hypot(board.x - prev.x, board.z - prev.z) > 4) legs.push(walkLeg(prev, { x: board.x, z: board.z, station: from }));
-  const wait = geo.kind === 'bus' ? TOUR_MODEL.bus.wait : geo.kind === 'cable-car' ? TOUR_MODEL.cable.wait : TOUR_MODEL.rail.wait;
-  const underground = (geo.tunnels ?? []).some(([a, b]) => Math.min(r.b, b) > Math.max(r.a, a));
-  // stops passed after boarding, the alighting one included (TOUR_GEO lists the major stations; lane T's line data
-  // gives the full count at integration)
-  const stops = Object.entries(geo.stations).filter(([id, s]) => {
-    if (id === from) return false;
-    if (geo.loop) { const d = ((s.at - board.at) % geo.length + geo.length) % geo.length; return d > 0 && d <= r.arc; }
-    return s.at >= r.a && s.at <= r.b;
-  }).length;
-  const ride: TripLineLeg = {
-    via: 'line', line, board: from, alight: to, wait, stops,
-    dir: r.dir, ...(underground ? { underground: true } : {}),
-    from: { x: board.x, z: board.z, station: from }, to: { x: alight.x, z: alight.z, station: to },
-    seconds: wait + rideSeconds(line, from, to), length: r.arc,
-  };
-  legs.push(ride);
-  const seconds = legs.reduce((s, l) => s + l.seconds, 0);
-  return { mode: 'line', legs, seconds };
 }
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -37,7 +37,8 @@ export interface TourRecapProps {
 
 export function TourRecap({ tour, completed, postcards, stamps, express, stopName, onClose, onOpenMap, onKeepExploring, mapSlot }: TourRecapProps) {
   const { t } = useT();
-  const model = useMemo(() => tourRecapModel(tour, completed, stopName), [tour, completed, stopName]);
+  // count and draw the version played: an express run is complete without the side stops it skips
+  const model = useMemo(() => tourRecapModel(tour, completed, stopName, !!express), [tour, completed, stopName, express]);
   const minutes = Math.round(express ? tour.expressMinutes : tour.minutes);
   return (
     <div className="ob-recap-wrap" role="dialog" aria-modal="true" aria-labelledby="ob-tour-recap-title">
