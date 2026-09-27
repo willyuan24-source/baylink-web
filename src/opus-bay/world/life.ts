@@ -8,6 +8,7 @@ import { canStand, heightAt, isWater } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { ASSETS, type ModelAsset } from '../data/assets';
 import { BOX, Batch, C, CBOX, CONE, CYL, M, SPHERE, extrudeXZ, hash2, rng } from './builder';
+import { cityStreamerLazy } from './cityLoader';
 import { K_DOCK_FLOATS, kDockFrame, kDockSpots } from './landmarks';
 import { TOY_DYN, TOY_INST, U } from './materials';
 import { MAX_WAKES } from './water';
@@ -399,6 +400,14 @@ export class Life {
   private kdock: Vec2;
   /** moving night lights (set by the world after construction) */
   halos: DynamicHalos | null = null;
+  /**
+   * F13 (city mode): the player is beyond the streamer's HERO_NEAR of the district slab (`cityStreamer().heroFar`), so
+   * the district's ambient life hides and stops updating (≈ 38k triangles and 9 calls in C2's high views). Ferry 0
+   * keeps running (the arrival cinematic; the rideable ferry of F8) and so does the Alcatraz beam (seen across the Bay).
+   */
+  private heroFar = false;
+  /** where heroFar comes from (tests replace it) */
+  heroFarSource = (): boolean => game.get().worldMode === 'city' && !!cityStreamerLazy()?.heroFar;
 
   constructor(beams: { x: number; y: number; z: number; length: number; speed: number }[]) {
     this.group.name = 'life';
@@ -608,6 +617,7 @@ export class Life {
         mesh.boundingSphere = dockSphere.clone();
         mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         for (let i = 0; i < n; i++) mesh.setColorAt(i, LION_WET);
+        mesh.visible = !this.heroFar;
         this.group.add(mesh);
         return mesh;
       };
@@ -619,6 +629,7 @@ export class Life {
         this.pelicanSpots.forEach((p, i) => place(this.pelicans!, i, p.x, p.y, p.z, p.ry, 1.05));
         this.pelicans.computeBoundingSphere();
         if (this.pelicans.boundingSphere) this.pelicans.boundingSphere.radius += 2;
+        this.pelicans.visible = !this.heroFar;
         this.group.add(this.pelicans);
       }
       if (sail) {
@@ -633,14 +644,42 @@ export class Life {
         this.sailboats.count = this.sailRoutes.length;
         this.sailboats.name = 'sailboats';
         this.sailboats.frustumCulled = false;
+        this.sailboats.visible = !this.heroFar;
         this.group.add(this.sailboats);
       }
-    }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay world] model load failed', error); });
+    }).catch(error => { if (import.meta.env?.DEV) console.warn('[opus-bay world] model load failed', error); });
   }
+
+  /** The district life that pauses while the hero is far (F13): everything in the group except ferry 0 and the beam. */
+  private heroLife(): (THREE.Object3D | null)[] {
+    return [this.ferries[1], this.gullMesh, this.pelicanGlide, this.seal, this.people, this.dogs, this.carousel, this.mist,
+      this.floats, this.heads, this.lionLie, this.lionBark, this.sailboats, this.pelicans];
+  }
+
+  /** F13: hide / show the hero life (once near again, the per-frame code below manages what it always managed). */
+  setHeroFar(far: boolean) {
+    if (far === this.heroFar) return;
+    this.heroFar = far;
+    for (const o of this.heroLife()) if (o) o.visible = !far;
+    if (!far) { this.seal.visible = this.sealState.active; return; }
+    // their night lights off (ferry 1's, the sailboats' mast tops); ferry 0 keeps writing its own
+    const hl = this.halos;
+    if (hl) for (let i = FERRY_LIGHTS.length; i < hl.count; i++) hl.set(i, 0, 0, 0, false);
+  }
+
+  /** True while the hero life is paused (F13; QA and tests). */
+  get paused() { return this.heroFar; }
 
   update(dt: number, t: number, night: number) {
     const s = game.get();
     if (s.phase !== 'title') this.ensureModels();
+    this.setHeroFar(this.heroFarSource());
+    if (this.heroFar) {
+      this.updateFerries(dt, t, s.phase);
+      this.updateBeam(t, night);
+      this.pushWakes();
+      return;
+    }
     // GLB creatures are ~3k triangles each: skip them when they would be a few pixels
     const cam = U.uCam.value;
     const dockD = Math.hypot(cam.x - this.kdock.x, cam.z - this.kdock.z);
@@ -668,22 +707,30 @@ export class Life {
     // carousel turns
     const cy = 0.05;
     setObj(this.carousel, this.carouselPos.x, cy, this.carouselPos.z, t * 0.45);
-    // lighthouse
-    if (this.beam && this.beamMat) {
-      this.beam.visible = night > 0.3;
-      this.beamMat.opacity = Math.max(0, night - 0.3) * 0.22;
-      this.beam.rotation.set(0.06, t * 0.9, 0);
-    }
+    this.updateBeam(t, night);
     // fog bridge: mist for 9 s every 30 s
     const cycle = t % 30;
     const amt = cycle < 9 ? Math.sin((cycle / 9) * Math.PI) : 0;
     this.mistMat.uniforms.uAmt.value = amt;
     this.mist.visible = amt > 0.01;
-    // wakes → water shader
+    this.pushWakes();
+  }
+
+  /** Alcatraz lighthouse */
+  private updateBeam(t: number, night: number) {
+    if (!this.beam || !this.beamMat) return;
+    this.beam.visible = night > 0.3;
+    this.beamMat.opacity = Math.max(0, night - 0.3) * 0.22;
+    this.beam.rotation.set(0.06, t * 0.9, 0);
+  }
+
+  /** wakes → water shader (only ferry 0's while the hero life is paused) */
+  private pushWakes() {
     let w = 0;
     const push = (x: number, z: number, heading: number, strength: number) => { if (w < this.wakes.length) this.wakes[w++].set(x, z, heading, strength); };
-    this.ferries.forEach((f, i) => { const st = this.ferryState[i]; if (st) push(st.x, st.z, st.heading, st.moving ? 1 : 0); void f; });
-    if (this.sailboats) this.sailRoutes.forEach(r => { const p = r.route.at(r.s); push(p.x, p.z, p.heading, 0.45); });
+    const ferries = this.heroFar ? 1 : this.ferries.length;
+    for (let i = 0; i < ferries; i++) { const st = this.ferryState[i]; if (st) push(st.x, st.z, st.heading, st.moving ? 1 : 0); }
+    if (this.sailboats && !this.heroFar) this.sailRoutes.forEach(r => { const p = r.route.at(r.s); push(p.x, p.z, p.heading, 0.45); });
     for (; w < this.wakes.length; w++) this.wakes[w].set(0, 0, 0, 0);
   }
 
@@ -725,16 +772,19 @@ export class Life {
     }
     const bob = Math.sin(t * 1.1) * 0.05;
     setObj(f0, x0, WATER + 0.55 + bob, z0, h0, Math.sin(t * 0.9) * 0.01, Math.sin(t * 0.7) * 0.015);
-    // ferry 1: crossing loop far out
-    const r1 = this.ferryRoutes[1];
-    this.ferryS[1] += dt * 6;
-    const p1 = r1.at(this.ferryS[1]);
-    setObj(this.ferries[1], p1.x, WATER + 0.55 + Math.sin(t * 1.2 + 2) * 0.05, p1.z, p1.heading, 0, Math.sin(t * 0.8) * 0.015);
     this.ferryState[0] = { x: x0, z: z0, heading: h0, moving: moving0 };
-    this.ferryState[1] = { x: p1.x, z: p1.z, heading: p1.heading, moving: true };
+    // ferry 1: crossing loop far out (paused with the rest of the hero life, F13)
+    if (!this.heroFar) {
+      const r1 = this.ferryRoutes[1];
+      this.ferryS[1] += dt * 6;
+      const p1 = r1.at(this.ferryS[1]);
+      setObj(this.ferries[1], p1.x, WATER + 0.55 + Math.sin(t * 1.2 + 2) * 0.05, p1.z, p1.heading, 0, Math.sin(t * 0.8) * 0.015);
+      this.ferryState[1] = { x: p1.x, z: p1.z, heading: p1.heading, moving: true };
+    }
     const hl = this.halos;
     if (hl) {
       this.ferries.forEach((f, k) => {
+        if (k > 0 && this.heroFar) return;
         FERRY_LIGHTS.forEach((l, j) => {
           const i = k * FERRY_LIGHTS.length + j;
           if (i >= hl.count) return;
