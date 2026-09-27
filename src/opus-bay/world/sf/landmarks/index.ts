@@ -109,8 +109,12 @@ export interface LandmarkSwap {
  */
 export interface LandmarkFade { r: number; y1: number; box?: readonly [number, number]; procedural?: boolean }
 
-/** Street / plaza ground drawn by the landmark with the city GROUND material (local polygon at local height y). */
-export interface LandmarkGround { poly: Vec2[]; y: number; color: string; pattern: number }
+/**
+ * Street / plaza ground drawn by the landmark with the city GROUND material (local polygon at local height y). Lane D2
+ * (D2-09): `ys` drapes it (one local height per vertex: the setting's measured ground, landmarks/setting.ts), `angle`
+ * turns its pattern (local radians, added to the landmark's yaw).
+ */
+export interface LandmarkGround { poly: Vec2[]; y: number; color: string; pattern: number; ys?: readonly number[]; angle?: number }
 
 export interface SfLandmark {
   id: string;                       // kebab-case, e.g. 'golden-gate-bridge'
@@ -120,6 +124,7 @@ export interface SfLandmark {
   base: 'terrain' | number;         // 'terrain' = stand on the city ground (lowest point under the footprint), or explicit world y
   baseLift?: number;                // lane D2: a 'terrain' base this much above that lowest point (a flat plaza on a slope with a gutter in its footprint)
   exclude: { r: number } | { poly: Vec2[] };   // generated city buildings inside are dropped (poly in world coords)
+  sink?: number;                    // lane D2: the city ground sinks this much inside `exclude` (default 0.2, the bridge 0): 0 where the landmark's setting restores the city's streets at their own height
   build(b: BatchLike, lod: 0 | 2): void;       // LOCAL space: origin at ground centre, +y up, front faces +z; lod 2 = silhouette version ≤ 10 % triangles for far view
   buildKey?: () => number;          // lane D2: a lod 0 that depends on runtime state (the turntable under F's disc) changes this; sites.ts rebuilds it
   castShadow?: boolean;             // T1 only

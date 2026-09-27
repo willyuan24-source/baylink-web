@@ -1,6 +1,7 @@
 import { type BatchLike, ICO, M } from '../../builder';
 import { GLOW, LIT, NONE, SF, SWAY, arch, box, cbox, cyl, disc, gable, lathe, pyramid, rect, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { clearOf, streetStrips } from './setting';
 
 /**
  * Mission Dolores (T2): the 1791 adobe Mission San Francisco de Asís — whitewashed, tile-roofed, its facade of
@@ -105,6 +106,8 @@ export const missionDolores: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(-0.9, -0.6, 10.2, 9.4)) },
   build,
   walk: { blockers: blockers(SWAP.ship) },
+  // D2-09: Chula Lane (clipped by the exclusion) runs on behind the mission
+  ground: streetStrips('mission-dolores', clearOf(blockers(SWAP.ship))),
   swap: SWAP,
   fade: { r: 5, y1: 6.6, box: [3.8, 3.8], procedural: false },
 };

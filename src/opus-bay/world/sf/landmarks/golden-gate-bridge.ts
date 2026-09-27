@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, NONE, SF, box, cbox, lathe, rect, sweepX, tube, worldPoly } from './kit';
-import type { LandmarkTallPart, SfLandmark, WalkBlocker, WalkSurface } from './index';
+import type { LandmarkGround, LandmarkTallPart, SfLandmark, WalkBlocker, WalkSurface } from './index';
+import { type P3, settingGround, streetGround, streetStrips } from './setting';
+import { GC, PAT, bench, gfill, lamp } from './siteKit';
 
 /**
  * Golden Gate Bridge (T1, ≤ 12k triangles). Local frame: origin on the deck line half-way between the towers,
@@ -17,6 +20,11 @@ import type { LandmarkTallPart, SfLandmark, WalkBlocker, WalkSurface } from './i
  *
  * Toy liberties: the deck is 5.3 u wide (1.4× real) so the sidewalks are walkable; cables are 0.4 u thick so they
  * read from Twin Peaks; the art-deco portals keep their stepped corners and the legs their stepped setbacks.
+ *
+ * South approach (lane D2, D2-09, CS-11): the deck used to stop on the Presidio bluff's lawn with no road. It now runs
+ * on as a street that curves into Merchant Road at its Lincoln Boulevard junction (the toll plaza's place), with a
+ * paved viewing terrace west of the deck end (benches facing the span, lamps); the Coastal Trail pieces the exclusion
+ * clipped under the approach viaduct are restored.
  */
 
 const X0 = -865.81, Z0 = 508.555, YAW = 2.4662;
@@ -176,6 +184,7 @@ function build(b: BatchLike, lod: 0 | 2) {
     for (const zs of [-1, 1]) pylon(b, anch, zs, ground, DECK + 3.2);
   }
   if (lod === 2) return;
+  approachFurniture(b);
   for (const [sx, ground] of [[S1, 1.5], [S2, 2.0], [N1, 9.8]] as [number, number][]) for (const zs of [-1, 1]) pylon(b, sx, zs, ground, DECK + 2.2);
   // Fort Point arch: two steel ribs spring from the pylon feet and meet the deck mid-way
   const mid = (S1 + S2) / 2, half = (S1 - S2) / 2 - 0.9;
@@ -212,6 +221,32 @@ function build(b: BatchLike, lod: 0 | 2) {
       cbox(b, s, DECK + 2.15, zs * 2.45, 0.3, 0.2, 0.5, '#ffcf8a', GLOW(1));
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// south approach (D2-09, CS-11)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('golden-gate-bridge');
+/** the approach street: off the deck end, curving east into Merchant Road (its centreline, LOCAL x / z) */
+const APPROACH: [number, number][] = [[END_S + 0.4, 0], [-232.5, 0.1], [-235.2, 1.3], [-236.9, 3.6], [-237.3, 6.2], [-237.1, 8.2]];
+/** the viewing terrace west of the deck end, benches facing up the span */
+const TERRACE: { x: number; z: number }[] = [{ x: END_S + 0.4, z: -3.05 }, { x: -234.2, z: -3.05 }, { x: -236.4, z: -6.6 }, { x: END_S + 0.4, z: -6.6 }];
+const T_BENCHES: [number, number][] = [[-231.6, -5.9], [-233.6, -5.9]];
+const T_LAMPS: [number, number][] = [[END_S + 0.8, -6.2], [-235.2, -3.6], [-238.6, 2.3], [-235.0, 7.6]];
+
+function approach(): LandmarkGround[] {
+  // laid on the bluff corner by corner, blending up from the deck end over its first 2.5 u
+  const drape = (x: number, z: number) => { const k = Math.min(1, Math.max(0, (END_S - x) / 2.5)); return DECK + (G.at(x, z) - DECK) * k; };
+  const pts: P3[] = APPROACH.map(([x, z]) => ({ x, y: drape(x, z), z }));
+  const walk: LandmarkGround[] = [], top: LandmarkGround[] = [];
+  streetGround('secondary', 4.4, pts, walk, top, drape);
+  return [...gfill(TERRACE, GC.plazaWarm, PAT.stone, G, 2, 0.03), ...walk, ...top];
+}
+
+function approachFurniture(b: BatchLike) {
+  for (const [x, z] of T_BENCHES) bench(b, x, G.at(x, z), z, Math.PI / 2);
+  for (const [x, z] of T_LAMPS) lamp(b, x, G.at(x, z), z);
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +293,7 @@ function tall(): LandmarkTallPart[] {
 
 const EXCLUDE: Vec2[] = worldPoly(X0, Z0, YAW, [{ x: END_S - 3, z: -5.5 }, { x: END_N + 3, z: -5.5 }, { x: END_N + 3, z: 5.5 }, { x: END_S - 3, z: 5.5 }]);
 
-export const goldenGateBridge: SfLandmark = {
+export const goldenGateBridge: SfLandmark & SiteHooks = {
   id: 'golden-gate-bridge',
   tier: 1,
   x: X0,
@@ -270,6 +305,9 @@ export const goldenGateBridge: SfLandmark = {
   build,
   walk: walk(),
   tall: tall(),
+  ground: [...streetStrips('golden-gate-bridge'), ...approach()],
+  lights: T_LAMPS.map(([x, z]) => ({ x, y: G.at(x, z) + 3.8, z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: TERRACE, surface: 'plaza' }],
 };
 
 /** exported for tests / other lanes: deck height, tower stations and the south anchorage (local x) */

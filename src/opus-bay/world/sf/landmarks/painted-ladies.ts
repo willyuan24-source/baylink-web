@@ -1,6 +1,7 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, LIT, NONE, SF, WIN, box, flowerBed, gable, pyramid, rect, shade, worldPoly } from './kit';
 import type { LandmarkSwap, LandmarkSwapPart, SfLandmark, WalkBlocker } from './index';
+import { clearOf, streetStrips } from './setting';
 
 /**
  * Painted Ladies (T2): the seven Victorian row houses at 710–722 Steiner Street, facing Alamo Square (local +z =
@@ -113,6 +114,8 @@ export const paintedLadies: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, -0.1, 12, 5.2)) },
   build,
   walk: { blockers },
+  // D2-09: Grove St's corner piece (clipped by the exclusion) runs on
+  ground: streetStrips('painted-ladies', clearOf(blockers)),
   swap: SWAP,
 };
 

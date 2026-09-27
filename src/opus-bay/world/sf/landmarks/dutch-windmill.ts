@@ -1,13 +1,21 @@
 import type * as THREE from 'three';
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
-import { LIT, NONE, box, cbox, cyl, flowerBed, lathe, rect, worldPoly } from './kit';
+import type { SiteHooks } from '../sites';
+import { LIT, NONE, box, cbox, cyl, flowerBed, lathe, ngon, rect, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { ringBand, settingGround, streetStrips } from './setting';
+import { FC, GC, PAT, bench, gfill, hedge, lamp } from './siteKit';
 
 /**
  * Dutch Windmill (T2), north-west corner of Golden Gate Park (OSM way 287921407), with the Queen Wilhelmina Tulip
  * Garden around its foot. Octagonal tapering tower, reefing stage, a thatch-dark cap and four lattice sails facing
  * the ocean (local +z = west, yaw −44°). Real: ~23 m to the cap (→ H 6.8 u), sail span 31 m. The sails are the
  * `animate` part (turning slowly about the windshaft); the far LOD carries a static cross instead.
+ *
+ * Setting (lane D2, D2-09): the Queen Wilhelmina Tulip Garden between the mill and JFK Drive's path is a hedged lawn
+ * parterre with six tulip beds, a gravel walk round the mill's foot and a centre walk from the path; benches face the
+ * mill, two lamps light the walk. The service drive the exclusion clipped runs on to the mill.
  */
 
 const X0 = -580.69, Z0 = 1311.93, YAW = (-44 * Math.PI) / 180;
@@ -47,11 +55,21 @@ function build(b: BatchLike, lod: 0 | 2) {
 }
 
 /** the Queen Wilhelmina Tulip Garden around the foot */
+const G = settingGround('dutch-windmill');
+/** the tulip garden (local +z = the ocean side, JFK Drive's path at z ≈ 5.6) */
+const GARDEN: Vec2[] = [{ x: -4.4, z: 1.7 }, { x: 4.4, z: 1.7 }, { x: 4.4, z: 5.0 }, { x: -4.4, z: 5.0 }];
+const WALK: Vec2[] = [{ x: -0.55, z: 2.3 }, { x: 0.55, z: 2.3 }, { x: 0.55, z: 5.15 }, { x: -0.55, z: 5.15 }];
+/** tulip beds: x, z, w, d */
+const TULIPS: [number, number, number, number][] = [[-2.5, 2.75, 2.6, 0.8], [2.5, 2.75, 2.6, 0.8], [-2.5, 3.75, 2.6, 0.7], [2.5, 3.75, 2.6, 0.7], [-3.4, 0.6, 1.2, 1.8], [3.4, 0.6, 1.2, 1.8]];
+const LAMPS: Vec2[] = [{ x: -0.95, z: 4.8 }, { x: 0.95, z: 4.8 }];
+const BENCHES: Vec2[] = [{ x: -3.3, z: 4.55 }, { x: 3.3, z: 4.55 }];
+
 function tulips(b: BatchLike) {
-  flowerBed(b, 2.8, 0, 2.2, 2.2, 1.0, 2);
-  flowerBed(b, -2.8, 0, 2.2, 2.2, 1.0, 5);
-  flowerBed(b, 3.4, 0, -1.2, 1.2, 2.4, 8, 0.4);
-  flowerBed(b, -3.4, 0, -1.2, 1.2, 2.4, 11, -0.4);
+  TULIPS.forEach(([x, z, w, d], i) => flowerBed(b, x, G.at(x, z) - 0.12, z, w, d, i * 3 + 2));
+  // a low hedge along the garden's ends
+  for (const sx of [-1, 1]) hedge(b, { x: sx * 4.35, z: 1.8 }, { x: sx * 4.35, z: 4.9 }, G.at(sx * 4.35, 3.3), 0.5, 0.35, FC.hedge);
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, Math.PI);
 }
 
 /** Sails (animate part), authored around the hub; the update spins them about the windshaft (local z). */
@@ -97,16 +115,21 @@ const SWAP: LandmarkSwap = {
 };
 
 const hub = SWAP.ship ? HUB.ai : HUB.proc;
-const BEDS: WalkBlocker[] = [{ poly: rect(2.8, 2.2, 2.2, 1.0) }, { poly: rect(-2.8, 2.2, 2.2, 1.0) }];
+const BEDS: WalkBlocker[] = [
+  ...TULIPS.map(([x, z, w, d]) => ({ poly: rect(x, z, w, d) })), ...BENCHES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+  ...[-1, 1].map(sx => ({ poly: rect(sx * 4.35, 3.35, 0.35, 3.1) })),
+];
 
-export const dutchWindmill: SfLandmark = {
+export const dutchWindmill: SfLandmark & SiteHooks = {
   id: 'dutch-windmill',
   tier: 2,
   x: X0,
   z: Z0,
   yaw: YAW,
-  base: 'terrain',
-  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0.3, 9, 6.5)) },
+  // the 'terrain' base of the mill's own footprint (the garden's wider exclusion reaches 0.2 u lower ground)
+  base: 1.22,
+  // the mill and its tulip garden down to the path by JFK Drive
+  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 1.55, 9.4, 9.0)) },
   build,
   animate: {
     build: buildSails,
@@ -118,6 +141,14 @@ export const dutchWindmill: SfLandmark = {
   walk: { blockers: [{ x: 0, z: 0, r: SWAP.ship ? 1.85 : 1.6 }, ...BEDS] },
   swap: SWAP,
   fade: { r: 2.2, y1: 6.6, procedural: false },
+  ground: [
+    ...gfill(GARDEN, GC.lawn, PAT.grass, G, 2, 0.02),
+    ...ringBand(ngon(0, 0, 2.3, 16), -0.5, 0.45, (x, z) => G.at(x, z) + 0.045, GC.path, PAT.earth),
+    ...gfill(WALK, GC.path, PAT.earth, G, 2, 0.045),
+    ...streetStrips('dutch-windmill', (x, z) => Math.hypot(x, z) > 2.9 && !(z > 1.6 && z < 5.1 && Math.abs(x) < 4.5)),
+  ],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: WALK, surface: 'dirt' }, { poly: rect(0, 4.62, 8.4, 0.6), surface: 'grass' }],
   // D2-10: the disc the sails sweep about the windshaft (the glide never cuts through a turning sail)
   tall: [{ x: 0, z: hub.z, r: SAIL_R + 0.3 }],
 };

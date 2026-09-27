@@ -1,5 +1,7 @@
 import { sfLandmarkInfo } from '../../../data/sf/landmarks';
+import type { SiteHooks } from '../sites';
 import { SF_LANDMARKS, type SfLandmark, landmarkToWorld, sfLandmark, tallParts } from './index';
+import { plazaSpots } from './setting';
 
 /**
  * Landmark helpers other lanes code against (lane D2 owns this file from wave 2; plan D2-01 / D2-10 / D2-12, landed as
@@ -17,8 +19,9 @@ import { SF_LANDMARKS, type SfLandmark, landmarkToWorld, sfLandmark, tallParts }
  *                                    sites.walkInputs), so low landmarks no longer read as 20–24 u walls to the glide
  *   sfLandmarkAnchor(id)             the world arrival spot of a landmark (data/sf/landmarks `arrival`, placed with
  *                                    landmarkToWorld; heading in world yaw) for G1's `?at=lm-<id>`, fast travel and G2
- *   landmarkPlazaSpots()             world points on landmark plazas where F's crowd may stand / walk. Day 0: none
- *                                    (D2-09 dressing fills it)
+ *   landmarkPlazaSpots()             world points on landmark plazas where F's crowd may stand / walk (D2-09): each
+ *                                    landmark's SiteHooks `plaza` polygons sampled on a PLAZA_SPACING grid, at most
+ *                                    PLAZA_MAX per landmark, spread over its plazas
  */
 
 /** A vertical obstacle for the pelican glide: world centre, radius and top (world y). */
@@ -54,7 +57,37 @@ export function sfLandmarkAnchor(id: string): { x: number; z: number; heading: n
 /** A spot on a landmark plaza (world), for crowds and props. */
 export interface LandmarkPlazaSpot { id: string; x: number; z: number }
 
-/** Every landmark's plaza spots in world space. Day 0: none. */
+const inside = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[]) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c;
+  }
+  return c;
+};
+const nearEdge = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[], d: number) => poly.some((a, i) => {
+  const b = poly[(i + 1) % poly.length], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
+  const t = L2 > 0 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / L2)) : 0;
+  return Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t) < d;
+});
+
+/** crowd spots on a landmark's plazas: grid spacing (u) and the most per landmark */
+export const PLAZA_SPACING = 2.5, PLAZA_MAX = 8;
+
+let spots: LandmarkPlazaSpot[] | null = null;
+
+/** Every landmark's plaza spots in world space (computed once). */
 export function landmarkPlazaSpots(): LandmarkPlazaSpot[] {
-  return [];
+  if (spots) return spots;
+  spots = [];
+  for (const l of SF_LANDMARKS) {
+    const plaza = (l as SfLandmark & SiteHooks).plaza;
+    if (!plaza?.length) continue;
+    // never inside the landmark's own blockers (a bench, a bed, the mill's foot), with 0.25 u to spare
+    const clear = (p: { x: number; z: number }) => !(l.walk?.blockers ?? []).some(b => ('poly' in b ? inside(p, b.poly) || nearEdge(p, b.poly, 0.25) : Math.hypot(p.x - b.x, p.z - b.z) < b.r + 0.25));
+    const all = plazaSpots(plaza.map(q => q.poly), PLAZA_SPACING, 400).filter(clear);
+    const n = Math.min(PLAZA_MAX, all.length);
+    for (let k = 0; k < n; k++) spots.push({ id: l.id, ...landmarkToWorld(l, all[Math.floor(((k + 0.5) * all.length) / n)]) });
+  }
+  return spots;
 }

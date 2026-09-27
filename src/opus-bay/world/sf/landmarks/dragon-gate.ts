@@ -1,15 +1,24 @@
+import * as THREE from 'three';
 import type { BatchLike } from '../../builder';
-import { GLOW, NONE, SF, box, cbox, pyramid, rect, worldPoly } from './kit';
+import type { SiteHooks } from '../sites';
+import { GLOW, NONE, SF, box, cbox, pyramid, rect, tube, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { settingGround, streetStrips } from './setting';
 
 /**
  * Chinatown Dragon Gate (T2) at Grant Ave & Bush St (OSM node 65328703): three openings — the street in the middle
  * (3.2 × 3.4 u, well over the 2.2 u walk-through minimum) and a sidewalk arch each side — under green-tiled
  * pagoda roofs with upturned eaves, a gold ridge with two dragons (toy blocks) and a blank plaque (no text).
  * Local +z faces south down Grant Ave (yaw 52.4° from the Grant Ave way), walking north (−z) enters Chinatown.
+ *
+ * Setting (lane D2, D2-09): the toy gate is far wider than Grant Ave's toy right-of-way (3.5 u between the corner
+ * buildings), so its side bays stand on Bush St's north sidewalk in front of the corner buildings; the frame sits
+ * 0.55 u south of the OSM node (82.37, 175.04 instead of 81.93, 174.7) so their backs clear the facades (they cut
+ * 0.4 u into the north-west corner building before). Grant Ave runs on under the central arch (its clipped piece
+ * restored at its own height: sink 0), and red lantern strings hang across Grant Ave north of the gate, lit at night.
  */
 
-const X0 = 81.93, Z0 = 174.7, YAW = (52.4 * Math.PI) / 180;
+const X0 = 82.366, Z0 = 175.035, YAW = (52.4 * Math.PI) / 180;
 const STONE = '#e3ddd0', STONE_DARK = '#c9c1b2', GREEN = SF.chinaGreen, GREEN_DARK = SF.chinaGreenDark, RED = SF.chinaRed, GOLD = SF.chinaGold;
 const INNER = 1.95, OUTER = 3.75, MID = 4.2, SIDE = 3.1, DEPTH = 1.1;
 
@@ -59,7 +68,36 @@ function build(b: BatchLike, lod: 0 | 2) {
     cbox(b, sx * ((INNER + OUTER) / 2), SIDE - 0.9, 0, 0.3, 0.38, 0.3, RED, GLOW(0.9));
   }
   cbox(b, 0, MID + 1.4, 0, 0.26, 0.26, 0.26, '#f0c35a', GLOW(0.4));
+  if (lod === 0) lanterns(b);
 }
+
+// ---------------------------------------------------------------------------
+// setting (D2-09)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('dragon-gate');
+/** lantern strings across Grant Ave (local z, north of the gate), the wire this high over the street */
+const STRINGS = [-3.4, -6.8, -10.2], WIRE = 3.5, GRANT_HALF = 1.72;
+
+function lanterns(b: BatchLike) {
+  for (const z of STRINGS) {
+    const y = G.at(0, z) + WIRE;
+    const sag = (x: number) => y - 0.35 * (1 - (x / GRANT_HALF) ** 2);
+    for (let k = 0; k < 4; k++) {
+      const xa = -GRANT_HALF + (k * 2 * GRANT_HALF) / 4, xb = -GRANT_HALF + ((k + 1) * 2 * GRANT_HALF) / 4;
+      tube(b, new THREE.Vector3(xa, sag(xa), z), new THREE.Vector3(xb, sag(xb), z), 0.018, '#3a2c22', NONE, 3);
+    }
+    for (const x of [-1.15, -0.4, 0.4, 1.15]) {
+      const yl = sag(x);
+      cbox(b, x, yl - 0.32, z, 0.26, 0.3, 0.26, RED, GLOW(0.85));
+      box(b, x, yl - 0.18, z, 0.14, 0.06, 0.14, GOLD);
+    }
+  }
+}
+
+const LIGHTS: NonNullable<SiteHooks['lights']> = STRINGS.map(z => ({ x: 0, y: G.at(0, z) + WIRE - 0.5, z, size: 0.55, color: '#ff8a5c' }));
+/** Bush St's north sidewalk under the gate (the side arches span it): where people stop for the photo */
+const PLAZA = [rect(0, 0.95, 8.6, 0.9)];
 
 /**
  * AI gate (lane D2, D2-06): lane H's SAM mesh at scale 1 (9.6 u wide, 5.85 u tall; central passage 2.24 u wide ×
@@ -70,6 +108,7 @@ function build(b: BatchLike, lod: 0 | 2) {
 const AI_INNER = 1.6, AI_OUTER = 3.61, AI_SIDE_TOP = 2.05;
 
 function aiRemainder(b: BatchLike) {
+  lanterns(b);
   for (const sx of [-1, 1]) {
     // guardian lion on its plinth (street side, +z), facing down Grant Ave
     box(b, sx * AI_INNER, -0.2, 0.86, 0.62, 0.55, 0.6, STONE_DARK);
@@ -98,7 +137,7 @@ function blockers(ai: boolean): WalkBlocker[] {
   ]);
 }
 
-export const dragonGate: SfLandmark = {
+export const dragonGate: SfLandmark & SiteHooks = {
   id: 'dragon-gate',
   tier: 2,
   x: X0,
@@ -106,7 +145,12 @@ export const dragonGate: SfLandmark = {
   yaw: YAW,
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 9.0, 2.2)) },
+  // Grant Ave's piece under the arch is restored at the street's own height (no sunk ground to step down to)
+  sink: 0,
   build,
+  ground: streetStrips('dragon-gate'),
+  lights: LIGHTS,
+  plaza: PLAZA.map(poly => ({ poly, surface: 'pavement' as const })),
   walk: { blockers: blockers(SWAP.ship) },
   swap: SWAP,
   // the whole gate thins as one while the player walks under it (no dither holes in the roofs)

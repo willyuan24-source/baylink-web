@@ -1,7 +1,11 @@
 import * as THREE from 'three';
-import type { BatchLike } from '../../builder';
-import { GLOW, NONE, box, loftRings, prismXZ } from './kit';
+import type { Vec2 } from '../../../core/types';
+import { type BatchLike, CYL, ICO, M } from '../../builder';
+import type { SiteHooks } from '../sites';
+import { GLOW, NONE, box, cbox, loftRings, prismXZ } from './kit';
 import type { SfLandmark } from './index';
+import { settingGround, streetStrips } from './setting';
+import { GC, PAT, bench, gfill, lamp, tree } from './siteKit';
 
 /**
  * de Young museum + Hamon Observation Tower (T1). World-aligned local frame (yaw 0, origin at the tower) so the
@@ -9,6 +13,10 @@ import type { SfLandmark } from './index';
  * from a 3.9 × 1.3 u rectangle at the base (aligned with the museum) to a sheared parallelogram at the top (aligned
  * with the street grid) — lofted straight between the two OSM rings. Heights: the OSM parts reach 51 m → H 11.1 u
  * (the published 44 m is the observation floor); museum 13 m at 0.22 u/m → 3.0 u under its deep copper roof.
+ *
+ * Setting (lane D2, D2-09): a paved forecourt under the tower on the museum's north side (the exclusion reaches 4 u
+ * further north to hold it), with benches, lamps, two lawn sculptures and trees; the park walks the exclusion clips
+ * run on to it and round the museum. The Music Concourse east of Music Concourse Drive is lane L's wave-4 site.
  */
 
 const COPPER = '#a67a54', COPPER_DARK = '#83603f', COPPER_ROOF = '#6d5642', GLASS = '#a9c7c9';
@@ -78,19 +86,69 @@ function build(b: BatchLike, lod: 0 | 2) {
     box(b, 8.5 - (z > 6 ? (z - 6) * 0.036 : 0), -0.2, z, 0.12, MUSEUM_H + 0.2, 0.18, COPPER_DARK);
   }
   box(b, 4.8, 2.2, -0.9, 3.4, 0.14, 1.6, COPPER_ROOF);
+  setting(b);
 }
 
-export const deYoungTower: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (D2-09)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('de-young-tower');
+const FORECOURT: Vec2[] = [{ x: -1.2, z: -0.9 }, { x: 0.3, z: -0.45 }, { x: 8.7, z: -0.3 }, { x: 8.7, z: -5.6 }, { x: -1.2, z: -5.6 }];
+const BENCHES: [number, number, number][] = [[2.6, -4.9, 0], [5.0, -4.9, 0], [7.9, -2.6, -Math.PI / 2]];
+const LAMPS: Vec2[] = [{ x: -0.8, z: -5.2 }, { x: 3.8, z: -5.3 }, { x: 8.3, z: -5.2 }, { x: 8.3, z: -0.8 }];
+const TREES: Vec2[] = [{ x: -3.2, z: -5.4 }, { x: 9.6, z: -6.0 }, { x: -3.4, z: -2.6 }];
+
+/** two lawn sculptures: a rusted tilted slab and a bronze sphere on a plinth */
+function sculptures(b: BatchLike) {
+  const y1 = G.at(1.4, -3.2), y2 = G.at(6.2, -2.4);
+  cbox(b, 1.4, y1 + 0.75, -3.2, 0.14, 1.6, 1.1, '#8a4a2c', NONE, 0.5, 0, 0.18);
+  box(b, 6.2, y2 - 0.2, -2.4, 0.7, 0.55, 0.7, '#d8d0c1');
+  b.add(ICO(1), M(6.2, y2 + 0.72, -2.4, 0, 0.36, 0.36, 0.36), '#9a7440', GLOW(0.1));
+}
+
+function setting(b: BatchLike) {
+  for (const [x, z, ry] of BENCHES) bench(b, x, G.at(x, z), z, ry);
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  TREES.forEach((p, i) => tree(b, p.x, G.at(p.x, p.z), p.z, 1.3, i + 11));
+  sculptures(b);
+  b.add(CYL(8), M(4.3, G.at(4.3, -4.0) - 0.1, -4.0, 0, 0.9, 0.35, 0.9), '#cfc7b8');
+}
+
+const inMuseum = (x: number, z: number) => {
+  let c = false;
+  for (let i = 0, j = MUSEUM.length - 1; i < MUSEUM.length; j = i++) {
+    const [ax, az] = MUSEUM[i], [bx, bz] = MUSEUM[j];
+    if ((az > z) !== (bz > z) && x < ((bx - ax) * (z - az)) / (bz - az) + ax) c = !c;
+  }
+  return c;
+};
+const inForecourt = (x: number, z: number) => x > -1.3 && x < 8.8 && z > -5.7 && z < -0.3;
+
+export const deYoungTower: SfLandmark & SiteHooks = {
   id: 'de-young-tower',
   tier: 1,
   x: -247.1,
   z: 930.6,
   yaw: 0,
   base: 16.9,
-  exclude: { poly: [{ x: -250.3, z: 928.4 }, { x: -238.1, z: 928.4 }, { x: -238.8, z: 951.2 }, { x: -250.3, z: 951.2 }] },
+  // the museum and its north forecourt under the tower
+  exclude: { poly: [{ x: -250.3, z: 924.4 }, { x: -237.9, z: 924.4 }, { x: -238.8, z: 951.2 }, { x: -250.3, z: 951.2 }] },
   castShadow: true,
   build,
-  walk: { blockers: [{ poly: MUSEUM.map(([x, z]) => ({ x, z })) }, { poly: ringAt(0, 0, 0.2).map(p => ({ x: p.x, z: p.z })) }] },
+  walk: {
+    blockers: [
+      { poly: MUSEUM.map(([x, z]) => ({ x, z })) }, { poly: ringAt(0, 0, 0.2).map(p => ({ x: p.x, z: p.z })) },
+      ...BENCHES.map(([x, z]) => ({ x, z, r: 0.45 })), ...TREES.map(p => ({ x: p.x, z: p.z, r: 0.3 })),
+      { x: 1.4, z: -3.2, r: 0.6 }, { x: 6.2, z: -2.4, r: 0.5 }, { x: 4.3, z: -4.0, r: 0.95 },
+    ],
+  },
+  ground: [
+    ...gfill(FORECOURT, GC.plazaWarm, PAT.stone, G, 2.5, 0.045),
+    ...streetStrips('de-young-tower', (x, z) => !inMuseum(x, z) && !inForecourt(x, z)),
+  ],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: FORECOURT, surface: 'plaza' }],
   // D2-10: the twisted Hamon tower (the museum wings are its blockers' top)
   tall: [{ x: 0, z: -0.1, r: 3.6 }],
 };

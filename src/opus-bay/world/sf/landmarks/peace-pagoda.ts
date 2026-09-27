@@ -1,6 +1,7 @@
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, box, cyl, lathe, pyramid, rect, worldPoly } from './kit';
 import type { SfLandmark } from './index';
+import { clearOf, streetStrips } from './setting';
 
 /**
  * Japantown Peace Pagoda (T2), Yoshiro Taniguchi, 1968: a five-tier concrete stupa-pagoda on the Peace Plaza,
@@ -55,4 +56,6 @@ export const peacePagoda: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 3.6, 3.6)) },
   build,
   walk: { blockers: [{ poly: rect(0, 0, 3.2, 3.2) }] },
+  // D2-09: the Peace Plaza walk (clipped by the exclusion) runs on to the pagoda
+  ground: streetStrips('peace-pagoda', clearOf([{ poly: rect(0, 0, 3.2, 3.2) }])),
 };

@@ -1,12 +1,21 @@
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
-import { GLOW, NONE, SF, WIN, band, box, cyl, lathe, pyramid, rect } from './kit';
+import type { SiteHooks } from '../sites';
+import { GLOW, NONE, SF, WIN, band, box, cyl, lathe, pyramid, rect, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark } from './index';
+import { settingGround, streetStrips } from './setting';
+import { flagpole, lamp, planter } from './siteKit';
 
 /**
  * San Francisco City Hall (T1): the Beaux-Arts block with its dome, facing Civic Center Plaza (local +z = east,
  * yaw 145° from the OSM outline, relation 7261820). Footprint 17.7 × 12.2 u (OSM, 124 × 96 m at 0.14 u/m).
  * Height: dome 94 m → H = 3.2 + 0.155·94 = 17.8 u; the parts keep the real proportions at 17.8 / 94 = 0.189 u/m
  * (OSM building:part heights: wings 30–35 m, drum 40–60 m, dome to 75 m, lantern to 93 m).
+ *
+ * Setting (lane D2, D2-09): the exclusion was an r 11.5 circle that cut 14.5 u out of Van Ness Avenue and 10 u out of
+ * Dr. Carlton B. Goodlett Place; it is now the block (the building and its porticos + 0.6 u), so both streets run
+ * past unbroken, and the base stays the 'terrain' base of the old circle (3.27). On the Civic Center Plaza side: two
+ * flagpoles by the east steps, lamps and hedged planters along the front.
  */
 
 const WALL = '#e9e4d8', TRIM = '#f5f1e8', ROOF = '#bdb6a9', DOME = '#768d89', GOLD = SF.gold;
@@ -57,6 +66,7 @@ function build(b: BatchLike, lod: 0 | 2) {
   lathe(b, [[2.35, 0], [2.28, 0.65], [2.05, 1.35], [1.62, 2.05], [1.05, 2.6], [0.62, 2.85]], 0, y0 + 4.0, ZC, DOME, GLOW(0.06), 20);
   lathe(b, [[2.4, 0], [2.4, 0.14]], 0, y0 + 4.0, ZC, GOLD, NONE, 20);
   lathe(b, [[0.62, 0], [0.62, 0.9], [0.78, 1.0], [0.78, 1.1], [0.5, 1.2], [0.34, 1.6], [0.14, 2.0], [0.04, 2.95]], 0, y0 + 6.85, ZC, GOLD, GLOW(0.35), 12);
+  setting(b);
 }
 
 /**
@@ -69,6 +79,7 @@ const AI_S = [1, 1.24, 1.08] as const;
 
 function aiRemainder(b: BatchLike) {
   box(b, 0, -1.2, ZC, X * 2 - 0.2, 1.24, Z1 - Z0 - 0.2, '#ddd6c8');
+  setting(b);
 }
 
 const SWAP: LandmarkSwap = {
@@ -78,14 +89,30 @@ const SWAP: LandmarkSwap = {
   note: '[1, 1.24, 1.08] = the OSM block, lantern 17.65 u',
 };
 
-export const cityHall: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (D2-09)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('city-hall');
+const FLAGS: Vec2[] = [{ x: -3.5, z: 7.4 }, { x: 3.5, z: 7.4 }];
+const LAMPS: Vec2[] = [{ x: -5.2, z: 7.1 }, { x: 5.2, z: 7.1 }, { x: -9.3, z: 7.1 }, { x: 9.3, z: 7.1 }];
+const PLANTERS: Vec2[] = [{ x: -7.25, z: 7.0 }, { x: 7.25, z: 7.0 }];
+
+function setting(b: BatchLike) {
+  FLAGS.forEach((p, i) => flagpole(b, p.x, G.at(p.x, p.z), p.z, 6.2, i ? '#2f5d8a' : '#c9473a', 0));
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of PLANTERS) planter(b, p.x, G.at(p.x, p.z), p.z, 2.2, 0.8);
+}
+
+export const cityHall: SfLandmark & SiteHooks = {
   id: 'city-hall',
   tier: 1,
   x: 92.12,
   z: 418.43,
   yaw: (145 * Math.PI) / 180,
-  base: 'terrain',
-  exclude: { r: 11.5 },
+  base: 3.27,
+  // the block: the building and its porticos + 0.6 u (Van Ness Avenue and Goodlett Place run past it)
+  exclude: { poly: worldPoly(92.12, 418.43, (145 * Math.PI) / 180, rect(0, 0.5, 21, 15)) },
   castShadow: true,
   build,
   walk: { blockers: [{ poly: rect(0, ZC, X * 2, Z1 - Z0) }, { poly: rect(0, 0, 3.6, 13.8) }] },
@@ -94,5 +121,8 @@ export const cityHall: SfLandmark = {
   fade: { r: 9, y1: 18, box: [9, 7], procedural: false },
   // D2-10: the colonnaded drum, dome and lantern (the block's roof is its blockers' top)
   tall: [{ x: 0, z: -0.6, r: 3.6 }],
+  ground: streetStrips('city-hall', (x, z) => Math.abs(x) > X + 0.3 || z < Z0 - 0.3 || z > Z1 + 0.6),
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: rect(0, 7.3, 18, 0.8), surface: 'plaza' }],
 };
 

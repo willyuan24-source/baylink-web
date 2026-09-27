@@ -245,7 +245,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('唐人街龙门', 'Chinatown Dragon Gate'),
     zone: bi('唐人街', 'Chinatown'),
     lat: 37.790688, lng: -122.405594,
-    arrival: { x: 0, z: 5.5, heading: Math.PI },
+    arrival: { x: 0, z: 4.95, heading: Math.PI },
     photo: { target: [0, 3, 0], distance: 17, elevation: 0.08, bearing: 0 },
     height: { realM: 11, u: 5.8, rule: 'H = 3.2 + 0.155·h' },
     plannerPlaceId: 'chinatown',

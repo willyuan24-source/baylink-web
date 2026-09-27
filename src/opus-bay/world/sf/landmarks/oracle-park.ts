@@ -3,6 +3,7 @@ import type { Vec2 } from '../../../core/types';
 import { type BatchLike, ICO, M, resample } from '../../builder';
 import { GLOW, NONE, SELF, SWAY, box, cyl, disc, pyramid, worldPoly } from './kit';
 import type { SfLandmark } from './index';
+import { clearOf, streetStrips } from './setting';
 
 /**
  * Oracle Park (T2): the brick ballpark on McCovey Cove — horseshoe grandstand from the left-field pole around home
@@ -136,6 +137,8 @@ export const oraclePark: SfLandmark = {
   build,
   // the ballpark is ticketed: its whole OSM outline (relation 7325085, local) blocks; the plaza gate is outside
   walk: { blockers: [{ poly: OUTLINE }] },
+  // D2-09: King St, its Muni Metro tracks and 2nd St run on past the ballpark (the exclusion clipped 26 u of them)
+  ground: streetStrips('oracle-park', clearOf([{ poly: OUTLINE }])),
   // D2-10: the four light standards over the upper deck
   tall: [{ x: -13.5, z: 4.7, r: 0.9 }, { x: -10.4, z: 8.0, r: 0.9 }, { x: -7.9, z: 10.3, r: 1.0 }, { x: 0.6, z: 16.2, r: 0.9 }],
 };

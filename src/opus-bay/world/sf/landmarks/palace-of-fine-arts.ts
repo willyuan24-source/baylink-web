@@ -1,7 +1,10 @@
 import type { Vec2 } from '../../../core/types';
-import type { BatchLike } from '../../builder';
+import { type BatchLike, CBOX, ICO, M } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, NONE, arch, band, box, cyl, lathe, ngon, rot, worldPoly } from './kit';
-import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import type { LandmarkGround, LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { ringBand, settingGround, streetStrips } from './setting';
+import { bench, conifer, lamp, tree } from './siteKit';
 
 /**
  * Palace of Fine Arts (T1): the 1915 rotunda on its lagoon, the two curved peristyle wings with their flower-box
@@ -9,6 +12,13 @@ import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
  * way 456820271), yaw 135° so +z looks across the lagoon (relation 7471537). Wings / hall centrelines come from the
  * OSM "roof" ways 288371306 / 288371310 and the hall parts 1550664399 / 1550664400 (opus-qa/landmarks/_tools).
  * Height: rotunda 49 m → H = 3.2 + 0.155·49 = 10.8 u; colonnades 20 m and hall 17 m at the same 0.22 u/m.
+ *
+ * Setting (lane D2, D2-09): the exclusion (a rectangle over the whole lagoon) clipped the lagoon's shore walks, Palace
+ * Drive behind the hall and a corner of the Presidio Parkway; they run on as restored strips, except where the lagoon,
+ * the hall, the wings or the rotunda deck cover them. The lagoon (CS-13) is no longer a raised slab with a dark side:
+ * the water lies 0.18 u over the sunk ground, inside a pale stone coping that slopes down to the lawn. Benches and lamps
+ * line the south shore walk (the classic view of the rotunda across the water), willows and cypresses stand on the
+ * lawns at both ends, and two swans float on the lagoon.
  */
 
 const X0 = -420.32, Z0 = 422.43, YAW = (135 * Math.PI) / 180;
@@ -53,11 +63,70 @@ function colonnade(b: BatchLike, pts: Vec2[], lod: 0 | 2) {
   }
 }
 
-/** lagoon (water + a stone rim) — replaces the city's water inside `exclude` */
+const G = settingGround('palace-of-fine-arts');
+/** water level (local): just over the sunk lawn, never under the drawn ground where it rises to the exclusion edge */
+const WATER = -0.12;
+const waterY = (x: number, z: number) => Math.max(WATER, G.at(x, z) + 0.05);
+
+/** lagoon water (its coping and bank are `ground`) — replaces the city's water inside `exclude` */
 function lagoon(b: BatchLike) {
-  b.polygon(LAGOON, 0.04, '#6fb3ad', [0, 0, 0, 1.05]);
-  b.walls(LAGOON, -0.4, 0.14, '#cdbb9d', NONE);
+  b.polygon(LAGOON, waterY, '#6fb3ad', [0, 0, 0, 1.05]);
 }
+
+/** the stone coping round the water (0.35 u, just above it) and the bank sloping down to the lawn (0.4 u) */
+function lagoonRim(): LandmarkGround[] {
+  const top = (x: number, z: number) => waterY(x, z) + 0.08;
+  return [
+    ...ringBand(LAGOON, -0.05, 0.35, (x, z) => top(x, z), '#e4d6bd', 2),
+    ...ringBand(LAGOON, 0.35, 0.75, (x, z, d) => (d < 0.5 ? top(x, z) : Math.min(top(x, z) - 0.02, G.at(x, z) + 0.03)), '#cfc1a3', 0),
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// setting (D2-09): shore walk furniture, trees, swans
+// ---------------------------------------------------------------------------
+
+/** benches on the south shore walk, facing the rotunda across the water */
+const BENCHES: Vec2[] = [{ x: -6.2, z: 17.9 }, { x: -0.8, z: 17.3 }, { x: 4.6, z: 16.7 }, { x: 9.6, z: 14.9 }, { x: 14.8, z: 13.9 }];
+const LAMPS: Vec2[] = [{ x: -9.4, z: 18.1 }, { x: 1.9, z: 17.2 }, { x: 12.2, z: 15.0 }, { x: 18.2, z: 12.6 }, { x: -16.6, z: 13.4 }];
+/** willows (round) on the lagoon lawns and cypresses by the hall ends */
+const WILLOWS: Vec2[] = [{ x: -16.2, z: 9.2 }, { x: -11.2, z: 17.6 }, { x: 18.3, z: 9.6 }, { x: 16.3, z: 14.9 }, { x: -14.2, z: 16.2 }];
+const CYPRESS: Vec2[] = [{ x: -17.6, z: 0.8 }, { x: 18.8, z: -2.2 }, { x: -18.2, z: -4.6 }];
+const SWANS: [number, number, number][] = [[5.5, 9.5, 0.6], [-6.0, 11.2, 2.4]];
+const faceRotunda = (p: Vec2) => Math.atan2(-p.x, -p.z);
+
+/** a toy swan (≈ 70 triangles): round body, the neck rising from its breast, head and orange bill forward */
+function swan(b: BatchLike, x: number, z: number, ry: number) {
+  const y = waterY(x, z), s = Math.sin(ry), c = Math.cos(ry);
+  const at = (u: number, h: number): [number, number, number] => [x + s * u, y + h, z + c * u];
+  b.add(ICO(0), M(...at(-0.04, 0.12), ry, 0.2, 0.12, 0.32), '#f7f4ec');
+  b.add(ICO(0), M(...at(-0.3, 0.2), ry, 0.1, 0.07, 0.1), '#eeeae0');
+  b.add(CBOX(), M(...at(0.2, 0.36), ry, 0.06, 0.4, 0.06, -0.18), '#f7f4ec');
+  b.add(ICO(0), M(...at(0.25, 0.58), ry, 0.06, 0.055, 0.085), '#f7f4ec');
+  b.add(CBOX(), M(...at(0.35, 0.56), ry, 0.035, 0.03, 0.1), '#e08a3c');
+}
+
+function setting(b: BatchLike) {
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, faceRotunda(p));
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  WILLOWS.forEach((p, i) => tree(b, p.x, G.at(p.x, p.z), p.z, 1.25, i + 3));
+  for (const p of CYPRESS) conifer(b, p.x, G.at(p.x, p.z), p.z, 1.3);
+  for (const [x, z, ry] of SWANS) swan(b, x, z, ry);
+}
+
+const LIGHTS: NonNullable<SiteHooks['lights']> = LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' }));
+/** the south shore walk (the rotunda across the water) and the rotunda deck */
+const PLAZA: Vec2[][] = [[{ x: -9, z: 16.8 }, { x: 1.6, z: 15.6 }, { x: 6.6, z: 14.8 }, { x: 13.6, z: 13.0 }, { x: 16.6, z: 11.3 }, { x: 17.4, z: 12.6 }, { x: 14.2, z: 14.4 }, { x: 6.8, z: 16.3 }, { x: 1.6, z: 17.0 }, { x: -9, z: 17.9 }], ngon(0, 0, 4.2, 12)];
+
+/** the restored walks keep out of the lagoon, the buildings and from under the rotunda deck */
+const inPoly = (x: number, z: number, poly: readonly Vec2[]) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], q = poly[j];
+    if ((a.z > z) !== (q.z > z) && x < ((q.x - a.x) * (z - a.z)) / (q.z - a.z) + a.x) c = !c;
+  }
+  return c;
+};
 
 /** rotunda: platform, 8 clusters of 4 columns, arches, entablature, attic drum, dome, finial */
 function rotunda(b: BatchLike, lod: 0 | 2) {
@@ -113,7 +182,7 @@ function wings(b: BatchLike, lod: 0 | 2) {
 }
 
 function build(b: BatchLike, lod: 0 | 2) {
-  if (lod === 0) lagoon(b);
+  if (lod === 0) { lagoon(b); setting(b); }
   rotunda(b, lod);
   wings(b, lod);
 }
@@ -129,6 +198,7 @@ const AI_XZ = 0.65, AI_PIER_R = 3.7, AI_PIER = 0.72, AI_DECK = 0.2, AI_DECK_R = 
 
 function aiRemainder(b: BatchLike) {
   lagoon(b);
+  setting(b);
   lathe(b, [[AI_DECK_R, -1.2], [AI_DECK_R, AI_DECK - 0.06], [AI_DECK_R - 0.12, AI_DECK]], 0, 0, 0, STONE_SHADE, NONE, 24);
   b.polygon(ngon(0, 0, AI_DECK_R - 0.12, 24), AI_DECK, STONE, NONE);
   wings(b, 0);
@@ -156,11 +226,16 @@ function walk(ai: boolean): NonNullable<SfLandmark['walk']> {
     }
   }
   blockers.push({ poly: LAGOON });
+  for (const p of BENCHES) blockers.push({ x: p.x, z: p.z, r: 0.5 });
+  for (const p of [...WILLOWS, ...CYPRESS]) blockers.push({ x: p.x, z: p.z, r: 0.3 });
   // the AI rotunda stands on a 0.2 u deck (the procedural platform is a solid plinth under the clusters)
   return ai ? { blockers, surfaces: [{ poly: ngon(0, 0, AI_DECK_R, 24), y: AI_DECK, surface: 'plaza' }] } : { blockers };
 }
 
-export const palaceOfFineArts: SfLandmark = {
+const WALK = walk(SWAP.ship);
+const covered = (x: number, z: number) => Math.hypot(x, z) < AI_DECK_R || WALK.blockers.some(b => ('poly' in b ? b.poly.length > 3 && inPoly(x, z, b.poly) : false));
+
+export const palaceOfFineArts: SfLandmark & SiteHooks = {
   id: 'palace-of-fine-arts',
   tier: 1,
   x: X0,
@@ -170,8 +245,11 @@ export const palaceOfFineArts: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -19, z: -14 }, { x: 20, z: -14 }, { x: 20, z: 17 }, { x: -19, z: 17 }]) },
   castShadow: true,
   build,
-  walk: walk(SWAP.ship),
+  walk: WALK,
   swap: SWAP,
+  ground: [...lagoonRim(), ...streetStrips('palace-of-fine-arts', (x, z) => !covered(x, z))],
+  lights: LIGHTS,
+  plaza: PLAZA.map(poly => ({ poly, surface: 'plaza' as const })),
   // only the rotunda thins as one (no dither holes under it); the wings and the hall keep the per-fragment fade
   fade: { r: 4.8, y1: 11.5, procedural: false },
   // D2-10: the rotunda (piers, entablature, dome) on its deck

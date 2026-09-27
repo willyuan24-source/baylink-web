@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, loftRings, worldPoly } from './kit';
 import type { SfLandmark } from './index';
+import { clearOf, streetStrips } from './setting';
 
 /**
  * Chase Center (T3) in Mission Bay: the rounded-square arena wrapped in white aluminium fins over a glass base,
@@ -47,4 +48,6 @@ export const chaseCenter: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, ring(12, HALF + 0.8, 0).map(p => ({ x: p.x, z: p.z }))) },
   build,
   walk: { blockers: [{ poly: ring(16, HALF + 0.2, 0).map(p => ({ x: p.x, z: p.z })) }] },
+  // D2-09: the plaza walks round the arena (clipped by the exclusion) run on to it
+  ground: streetStrips('chase-center', clearOf([{ poly: ring(16, HALF + 0.2, 0).map(p => ({ x: p.x, z: p.z })) }])),
 };

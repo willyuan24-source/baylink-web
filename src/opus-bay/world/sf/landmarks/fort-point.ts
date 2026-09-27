@@ -1,14 +1,21 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
-import { type BatchLike, M } from '../../builder';
+import { type BatchLike, CBOX, CYL, M } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, LIT, NONE, archGeo, box, lathe, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { settingGround, streetStrips } from './setting';
+import { GC, PAT, bench, bollard, gfill, lamp } from './siteKit';
 
 /**
  * Fort Point (T2): the 1861 brick casemate fort under the Golden Gate Bridge's south arch — three tiers of gun
  * arches on the walls, the open parade ground ringed by three tiers of arched casemates, a granite sea-wall foot,
  * the barbette parapet and the little iron lighthouse on its rim.
  * Local +z faces the strait (yaw −123°), outline = OSM relation 5504536 (simplified, local). 15 m → H 5.5 u.
+ *
+ * Setting (lane D2, D2-09): Marine Drive's end loop (clipped by the exclusion) runs on to the fort's west corner; a
+ * granite-paved apron lies between the fort's landward wall and the bluff, and a walk along the sea wall in front;
+ * lamps, bollards and benches facing the Gate, and three cannons on the barbette.
  */
 
 const X0 = -750.46, Z0 = 594.21, YAW = (-123 * Math.PI) / 180;
@@ -69,7 +76,44 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, 0.5, -1.2, 5.6, 13.5, 1.5, 0.7, GRANITE, NONE);
   box(b, 5.4, 0.3, -4.2, 1.4, H + 1.3, 1.4, BRICK, NONE);
   box(b, 5.4, H + 1.6, -4.2, 1.6, 0.2, 1.6, GRANITE, NONE);
+  setting(b);
 }
+
+// ---------------------------------------------------------------------------
+// setting (D2-09)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('fort-point');
+/** the apron between the landward wall and the bluff (east of Marine Drive's loop), and the walk along the sea wall */
+const APRON: Vec2[] = [{ x: -2.4, z: -5.4 }, { x: 6.8, z: -5.4 }, { x: 6.8, z: -4.4 }, { x: 5.4, z: -5.1 }, { x: 3.6, z: -4.35 }, { x: -2.4, z: -1.9 }];
+const SEAWALK: Vec2[] = [{ x: -6.4, z: 4.62 }, { x: 7.1, z: 4.62 }, { x: 7.1, z: 5.24 }, { x: -6.4, z: 5.24 }];
+const LAMPS: Vec2[] = [{ x: 1.0, z: -5.1 }, { x: 6.3, z: -5.05 }, { x: -3.2, z: 4.72 }, { x: 4.6, z: 4.72 }];
+const BENCHES: Vec2[] = [{ x: -0.6, z: 4.95 }, { x: 2.2, z: 4.95 }];
+const BOLLARDS: Vec2[] = [{ x: -2.2, z: -2.4 }, { x: -2.2, z: -3.4 }, { x: -2.2, z: -4.4 }, { x: -2.2, z: -5.3 }];
+/** cannons on the barbette over the strait wall, muzzles to the Gate */
+const CANNONS: [number, number, number][] = [[-0.4, 3.35, 0.4], [1.7, 2.45, 0.4], [4.1, 1.7, 0.9]];
+
+function cannon(b: BatchLike, x: number, z: number, ry: number) {
+  const y = H + 0.5, s = Math.sin(ry), c = Math.cos(ry);
+  b.add(CBOX(), M(x, y + 0.14, z, ry, 0.42, 0.28, 0.5), '#5a4636');
+  b.add(CYL(6), M(x + s * 0.05, y + 0.38, z + c * 0.05, ry, 0.11, 0.9, 0.11, Math.PI / 2 - 0.08), '#2d2f31');
+}
+
+function setting(b: BatchLike) {
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, 0);
+  for (const p of BOLLARDS) bollard(b, p.x, G.at(p.x, p.z), p.z);
+  for (const [x, z, ry] of CANNONS) cannon(b, x, z, ry);
+}
+
+const inFort = (x: number, z: number) => {
+  let c = false;
+  for (let i = 0, j = FORT.length - 1; i < FORT.length; j = i++) {
+    const [ax, az] = FORT[i], [bx, bz] = FORT[j];
+    if ((az > z) !== (bz > z) && x < ((bx - ax) * (z - az)) / (bz - az) + ax) c = !c;
+  }
+  return c;
+};
 
 /**
  * AI fort (lane D2, D2-15): lane H's SAM mesh (LM3-3D) at 11.98 × 5.34 × 10.2 u, shown at y 1.1 (5.9 u, the procedural
@@ -87,6 +131,7 @@ const AI_OUTLINE: Vec2[] = [[-4.8, -5.1], [4.8, -5.1], [6.0, -3.9], [6.0, 3.9], 
 function aiRemainder(b: BatchLike) {
   b.walls(AI_OUTLINE.map(p => ({ x: p.x * 0.99, z: p.z * 0.99 })), -1.5, 0.05, GRANITE, NONE);
   box(b, 0.5, -1.2, 5.6, 13.5, 1.5, 0.7, GRANITE, NONE);
+  setting(b);
 }
 
 const SWAP: LandmarkSwap = {
@@ -96,10 +141,13 @@ const SWAP: LandmarkSwap = {
   note: 'prototype: the gun ports lost their arches in the 6k reduction, the box is less true than the OSM outline',
 };
 
-const SEA_WALL: WalkBlocker = { poly: [{ x: -6.3, z: 5.25 }, { x: 7.3, z: 5.25 }, { x: 7.3, z: 5.95 }, { x: -6.3, z: 5.95 }] };
-const blockers = (ai: boolean): WalkBlocker[] => [{ poly: ai ? AI_OUTLINE : FORT.map(([x, z]) => ({ x, z })) }, SEA_WALL];
+const SEA_WALL: WalkBlocker = { poly: [{ x: -6.3, z: 5.25 }, { x: 7.3, z: 5.25 }, { x: 7.3, z: 5.95 }, { x: -6.3, z: 5.95 }], top: 0.35 };
+const blockers = (ai: boolean): WalkBlocker[] => [
+  { poly: ai ? AI_OUTLINE : FORT.map(([x, z]) => ({ x, z })) }, SEA_WALL,
+  ...BENCHES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+];
 
-export const fortPoint: SfLandmark = {
+export const fortPoint: SfLandmark & SiteHooks = {
   id: 'fort-point',
   tier: 2,
   x: X0,
@@ -111,5 +159,12 @@ export const fortPoint: SfLandmark = {
   walk: { blockers: blockers(SWAP.ship) },
   swap: SWAP,
   fade: { r: 7, y1: 6.2, box: [6.2, 5.5], procedural: false },
+  ground: [
+    ...gfill(APRON, GC.pavers, PAT.stone, G, 2, 0.03),
+    ...gfill(SEAWALK, GC.pavers, PAT.stone, G, 2, 0.03),
+    ...streetStrips('fort-point', (x, z) => !inFort(x, z)),
+  ],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: APRON, surface: 'pavement' }, { poly: SEAWALK, surface: 'pavement' }],
 };
 

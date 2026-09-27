@@ -108,6 +108,8 @@ export const SITE_ID0 = 9_000_000;
  */
 const SINK = 0.2;
 const NO_SINK = new Set(['golden-gate-bridge']);
+/** the city ground's sink inside the landmark's exclusion (its own `sink`, lane D2 D2-09, else the default) */
+export const landmarkSink = (l: SfLandmark) => l.sink ?? (NO_SINK.has(l.id) ? 0 : SINK);
 
 interface Site {
   l: SfLandmark;
@@ -257,11 +259,21 @@ export function fadeOccludes(l: SfLandmark, cfg: LandmarkFade, baseY: number, ca
   return Math.min(ya, yb) < baseY + cfg.y1 && Math.max(ya, yb) > baseY - 1;
 }
 
-/** A landmark's `ground` polygons as one GROUND mesh (city-flagged: the L0 ground program), local frame. */
+/**
+ * A landmark's `ground` polygons as one GROUND mesh (city-flagged: the L0 ground program), local frame. A polygon with
+ * `ys` is draped (one height per vertex, D2-09), else flat at `y`; `angle` turns its pattern.
+ */
 export function buildGroundMesh(l: SfLandmark): THREE.Mesh | null {
   if (!l.ground?.length) return null;
   const b = new TypedBatch(256);
-  for (const g of l.ground) b.polygon(g.poly, g.y, C(g.color), [g.pattern, l.yaw, 0, GROUND_CITY]);
+  for (const g of l.ground) {
+    const info: [number, number, number, number] = [g.pattern, l.yaw + (g.angle ?? 0), 0, GROUND_CITY];
+    const ys = g.ys;
+    if (ys && ys.length === g.poly.length) {
+      const at = new Map(g.poly.map((p, i) => [`${p.x}|${p.z}`, ys[i]]));
+      b.polygon(g.poly, (x, z) => at.get(`${x}|${z}`) ?? g.y, C(g.color), info);
+    } else b.polygon(g.poly, g.y, C(g.color), info);
+  }
   const m = new THREE.Mesh(TypedBatch.toGeometry(b.toArrays()), GROUND);
   m.name = `sf:${l.id}:ground`;
   m.receiveShadow = true;
@@ -318,7 +330,7 @@ export class CitySites {
   /** Exclusion shapes for the stream workers (city buildings / props inside are dropped). */
   excludes(): Exclude[] {
     return this.sites.map(({ l }) => {
-      const e = l.exclude, sink = NO_SINK.has(l.id) ? 0 : SINK;
+      const e = l.exclude, sink = landmarkSink(l);
       if ('r' in e) return { id: l.id, x: l.x, z: l.z, r: e.r, base: l.base, sink };
       let r = 0;
       for (const p of e.poly) r = Math.max(r, Math.hypot(p.x - l.x, p.z - l.z));
@@ -338,7 +350,7 @@ export class CitySites {
         id: s.l.id, x: s.l.x, z: s.l.z, yaw: s.l.yaw, base: s.l.base, baseY: s.baseY,
         exclude: 'r' in e ? { r: e.r } : { poly: e.poly.map(p => ({ x: p.x, z: p.z })) },
         // collision follows the drawn ground's sink inside the exclusion (lane B's LandmarkWalkInput.sink)
-        sink: NO_SINK.has(s.l.id) ? 0 : SINK,
+        sink: landmarkSink(s.l),
         walk: w ? {
           ...JSON.parse(JSON.stringify(w)),
           blockers: w.blockers.map((b, i) => ({ ...JSON.parse(JSON.stringify(b)), ...(tops[i] !== undefined ? { top: tops[i] } : {}) })),

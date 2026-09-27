@@ -119,13 +119,15 @@ test('D2-10: blocker tops reach the terrain provider as world Blocker.top and fo
   const oracle = byId('oracle-park');
   const tops = near(oracle.x, oracle.z).map(b => b.top);
   assert.ok(tops.some(t => Math.abs(t! - ((oracle.base as number) + blockerTops(oracle)[0]!)) < 1e-9), `Oracle bowl top ${tops}`);
-  // a 'terrain' landmark: City Hall moves with setLandmarkBase (the far estimate, then its chunk)
-  const hall = byId('city-hall');
+  // a 'terrain' landmark: Grace Cathedral moves with setLandmarkBase (the far estimate, then its chunk; City Hall's
+  // base is numeric since D2-09 pinned it when its exclusion became the block)
+  const hall = byId('grace-cathedral');
+  assert.equal(hall.base, 'terrain');
   const top0 = blockerTops(hall)[0]!;
-  city.setLandmarkBase('city-hall', 7.25);
-  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (7.25 + top0)) < 1e-9), 'City Hall block top follows its base');
-  city.setLandmarkBase('city-hall', 8);
-  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (8 + top0)) < 1e-9));
+  city.setLandmarkBase('grace-cathedral', 27.25);
+  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (27.25 + top0)) < 1e-9), 'Grace Cathedral nave top follows its base');
+  city.setLandmarkBase('grace-cathedral', 28);
+  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (28 + top0)) < 1e-9));
   // landmarkWalkWorld agrees (world tops)
   assert.deepEqual(landmarkWalkWorld(hall, 8).blockers.map(b => b.top), blockerTops(hall).map(t => 8 + t!));
 });
@@ -216,4 +218,148 @@ test("F's request: with lane F's spinning disc on, the turntable's lod 0 drops i
   } finally {
     setTurntableSpinner(false);
   }
+});
+
+// ---------------------------------------------------------------------------
+// D2-09: landmark settings (plazas, restored streets, furniture, plaza spots)
+// ---------------------------------------------------------------------------
+
+/** the landmarks D2-09 set (priority: the three routes', then City Hall, Twin Peaks, the Castro pocket) */
+const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks', 'castro-theatre'];
+const inPoly = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[]) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; }
+  return c;
+};
+
+test('D2-09: landmarks/settingData.ts is the measurement of the published city (re-run scripts/opus-sf/assets/landmark-settings.ts)', async () => {
+  const { measureSetting } = await import('../scripts/opus-sf/assets/settingsMeasure');
+  const { SETTING_DATA } = await import('../src/opus-bay/world/sf/landmarks/settingData');
+  for (const id of ['dragon-gate', 'palace-of-fine-arts', 'city-hall', 'castro-theatre', 'dutch-windmill']) {
+    assert.deepEqual(await measureSetting(byId(id)), SETTING_DATA[id], `${id}: settingData is stale`);
+  }
+  // every landmark whose module reads its setting has a row (and no other), its numeric base as declared, and the
+  // sink sites.ts sends the workers
+  const { SETTING_IDS } = await import('../scripts/opus-sf/assets/settingsMeasure');
+  assert.deepEqual(Object.keys(SETTING_DATA).sort(), [...SETTING_IDS].sort());
+  const ex = new CitySites().excludes();
+  for (const l of SF_LANDMARKS.filter(q => SETTING_IDS.includes(q.id))) {
+    const d = SETTING_DATA[l.id];
+    assert.ok(d, `${l.id} row`);
+    if (typeof l.base === 'number') assert.equal(d.base, Math.round(l.base * 100) / 100, `${l.id} base`);
+    assert.equal(d.sink, ex.find(e => e.id === l.id)!.sink, `${l.id} sink`);
+  }
+});
+
+test('D2-09: setting ground lies on the drawn city ground (never buried, never floating) and stays small', async () => {
+  const { drawn } = await import('../scripts/opus-sf/assets/settingsMeasure');
+  const { SETTING_DATA } = await import('../src/opus-bay/world/sf/landmarks/settingData');
+  for (const id of SET) {
+    const l = byId(id), base = SETTING_DATA[id].base, g = l.ground ?? [], sink = SETTING_DATA[id].sink;
+    assert.ok(g.length > 0, `${id} has setting ground`);
+    // within 1 u of the exclusion's edge the sampled ground steps by the sink (the drawn mesh ramps over a cell there)
+    const ex = 'poly' in l.exclude ? l.exclude.poly : Array.from({ length: 32 }, (_, k) => ({ x: l.x + Math.sin((k / 32) * Math.PI * 2) * (l.exclude as { r: number }).r, z: l.z + Math.cos((k / 32) * Math.PI * 2) * (l.exclude as { r: number }).r }));
+    const nearEdge = (x: number, z: number) => ex.some((a, i) => {
+      const b = ex[(i + 1) % ex.length], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
+      const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2));
+      return Math.hypot(x - a.x - dx * t, z - a.z - dz * t) < 1;
+    });
+    let n = 0;
+    for (const q of g) {
+      assert.ok(q.poly.length >= 3 && q.poly.every(p => Number.isFinite(p.x) && Number.isFinite(p.z)), id);
+      if (!q.ys) continue;
+      assert.equal(q.ys.length, q.poly.length, `${id} ys`);
+      for (let i = 0; i < q.poly.length; i += 2) {
+        // the city's sampled ground within 0.35 u (it steps where the corridor model meets the raster by a bridge)
+        const w = landmarkToWorld(l, q.poly[i]), y = base + q.ys[i];
+        const around = await Promise.all([[0, 0], [0.35, 0], [-0.35, 0], [0, 0.35], [0, -0.35]].map(([dx, dz]) => drawn(w.x + dx, w.z + dz)));
+        const lo = Math.min(...around), hi = Math.max(...around);
+        // never buried (the grid is max-pooled; the restored streets ride their centreline), never floating
+        assert.ok(y > lo - 0.12 - (nearEdge(w.x, w.z) ? sink : 0), `${id} ground at (${q.poly[i].x}, ${q.poly[i].z}) is ${(lo - y).toFixed(3)} under the city ground`);
+        assert.ok(y < hi + 0.8, `${id} ground at (${q.poly[i].x}, ${q.poly[i].z}) floats ${(y - hi).toFixed(2)} u`);
+        n++;
+      }
+    }
+    assert.ok(n > 0, `${id}: draped ground checked`);
+    // one GROUND mesh in the lod 0: keep it small
+    const tris = g.reduce((s, q) => s + q.poly.length - 2, 0);
+    assert.ok(tris < 2600, `${id} setting ground ${tris} triangles`);
+  }
+});
+
+test('D2-09: streets the exclusions clipped run on (City Hall, the Dragon Gate, the Palace, Oracle Park); the GGB meets Merchant Road', async () => {
+  const { SETTING_DATA } = await import('../src/opus-bay/world/sf/landmarks/settingData');
+  // City Hall's exclusion is the block: Van Ness Avenue and Goodlett Place no longer enter it
+  assert.ok(!SETTING_DATA['city-hall'].streets.some(s => s.c === 'trunk' || s.c === 'secondary'), 'City Hall clips no avenue');
+  // the Dragon Gate: Grant Ave's piece under the arch is restored as asphalt at the street's own height (sink 0)
+  const gate = byId('dragon-gate');
+  assert.equal(gate.sink, 0);
+  assert.ok(SETTING_DATA['dragon-gate'].streets.some(s => s.c === 'residential'), 'Grant Ave clipped piece');
+  assert.ok((gate.ground ?? []).some(q => q.pattern === 5 && q.poly.some(p => Math.abs(p.z) < 0.6)), 'asphalt under the gate');
+  // the Palace: restored walks never run through the lagoon
+  const palace = byId('palace-of-fine-arts');
+  const { PALACE_LAGOON } = await import('../src/opus-bay/world/sf/landmarks/palace-of-fine-arts');
+  const walks = (palace.ground ?? []).filter(q => q.pattern === 2 && q.poly.length === 4 && q.color !== '#e4d6bd');
+  assert.ok(walks.length > 40, `Palace walks restored (${walks.length})`);
+  for (const q of walks) {
+    const c = { x: q.poly.reduce((s, p) => s + p.x, 0) / 4, z: q.poly.reduce((s, p) => s + p.z, 0) / 4 };
+    assert.ok(!inPoly(c, PALACE_LAGOON), `a walk crosses the lagoon at (${c.x.toFixed(1)}, ${c.z.toFixed(1)})`);
+  }
+  // Oracle Park: King St (26 u clipped) is asphalt again
+  assert.ok((byId('oracle-park').ground ?? []).filter(q => q.pattern === 5).length >= 10, 'King St restored');
+  // CS-11: the approach street leaves the deck end at deck height and ends on Merchant Road
+  const ggb = byId('golden-gate-bridge');
+  const asphalt = (ggb.ground ?? []).filter(q => q.pattern === 5 && q.poly.every(p => p.x < GGB.END_S + 1));
+  assert.ok(asphalt.length >= 4, 'approach asphalt');
+  assert.ok(asphalt.some(q => q.ys!.some(y => Math.abs(y - (GGB.DECK + 0.055)) < 0.01)), 'the approach starts at the deck');
+  const far = asphalt.flatMap(q => q.poly).reduce((a, p) => (p.z > a.z ? p : a));
+  assert.ok(Math.hypot(far.x - -237.1, far.z - 8.2) < 2.6, `the approach reaches Merchant Road (${far.x.toFixed(1)}, ${far.z.toFixed(1)})`);
+});
+
+test('D2-09: CS-13 the Palace lagoon lies low (no raised slab, no dark rim wall); the Castro Theatre faces Castro St across its forecourt', async () => {
+  const { drawn } = await import('../scripts/opus-sf/assets/settingsMeasure');
+  const { PALACE_LAGOON } = await import('../src/opus-bay/world/sf/landmarks/palace-of-fine-arts');
+  const { Batch } = await import('../src/opus-bay/world/builder');
+  const palace = byId('palace-of-fine-arts'), base = palace.base as number;
+  // the water: at most 0.25 u over the drawn ground (it was 0.44 with a 0.54 u rim wall)
+  const b = new Batch();
+  palace.build(b, 0);
+  const onRim = (x: number, z: number) => PALACE_LAGOON.some(p => Math.hypot(p.x - x, p.z - z) < 1e-3);
+  let n = 0;
+  for (let i = 0; i < b.pos.length; i += 3) {
+    if (!onRim(b.pos[i], b.pos[i + 2]) || Math.abs(b.pos[i + 1]) > 0.3) continue;
+    const w = landmarkToWorld(palace, { x: b.pos[i], z: b.pos[i + 2] }), gy = await drawn(w.x, w.z);
+    assert.ok(base + b.pos[i + 1] - gy < 0.25, `water ${(base + b.pos[i + 1] - gy).toFixed(2)} u over the ground`);
+    n++;
+  }
+  assert.ok(n >= PALACE_LAGOON.length, 'the water polygon');
+  // no wall faces round the lagoon any more: its rim is ground (the coping and its bank)
+  const rim = (palace.ground ?? []).filter(q => q.color === '#e4d6bd' || q.color === '#cfc1a3');
+  assert.equal(rim.length, PALACE_LAGOON.length * 2);
+  // Castro: the two frontage buildings drop (their centroids are inside the exclusion), the neighbours stay
+  const castro = byId('castro-theatre');
+  const ex = 'poly' in castro.exclude ? castro.exclude.poly : [];
+  for (const [x, z, want] of [[2.4, 5.9, true], [-2.8, 6.2, true], [4.6, 1.9, false], [5.65, 6.3, false], [-2.7, -1.1, false]] as const) {
+    assert.equal(inPoly(landmarkToWorld(castro, { x, z }), ex), want, `Castro frontage (${x}, ${z})`);
+  }
+  const a = sfLandmarkInfo('castro-theatre')!.arrival;
+  assert.ok(a.z > 7.4 && Math.abs(a.x) < 2, 'arrival on Castro St in front of the doors');
+});
+
+test('D2-09: landmarkPlazaSpots — crowd spots on the settings, clear of every blocker, near their landmark', async () => {
+  const { landmarkPlazaSpots, PLAZA_MAX } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const spots = landmarkPlazaSpots();
+  for (const id of SET) {
+    const mine = spots.filter(s => s.id === id), l = byId(id);
+    assert.ok(mine.length >= 2 && mine.length <= PLAZA_MAX, `${id}: ${mine.length} spots`);
+    const walk = landmarkWalkWorld(l, 0);
+    for (const s of mine) {
+      assert.ok(Math.hypot(s.x - l.x, s.z - l.z) < (id === 'golden-gate-bridge' ? 250 : 26), `${id} spot near`);
+      for (const bl of walk.blockers) {
+        if ('poly' in bl) assert.ok(!inPoly(s, bl.poly), `${id} spot (${s.x.toFixed(1)}, ${s.z.toFixed(1)}) inside a blocker`);
+        else assert.ok(Math.hypot(s.x - bl.x, s.z - bl.z) >= bl.r, `${id} spot in a round blocker`);
+      }
+    }
+  }
+  assert.equal(landmarkPlazaSpots(), spots, 'computed once');
 });
