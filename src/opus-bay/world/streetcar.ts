@@ -7,7 +7,9 @@ import { DISTRICT } from '../data/district';
 import { MAX_WAIT, currentRide, virtualT } from '../game/ride';
 import { BOX, Batch, CYL, M, shade } from './builder';
 import { definePlatform, setPlatformPose } from '../actors/platform';
-import { TOY_DYN } from './materials';
+import { TOY_DYN, TOY_INST } from './materials';
+import { registerWarmup } from './warmup';
+import type { TransitLayer } from './transitLayer';
 
 /**
  * F-line vintage streetcars. Two double-ended cars shuttle along DISTRICT.streetcar.path, dwell 6 s at
@@ -129,9 +131,13 @@ export class Streetcars {
   private carriedTo: string | null = null;
   private carriedHeading = 0;
   private poleGeo = poleGeometry();
+  /** city mode: the cable cars, turntables and extra rails (world/transitLayer.ts, a lazy chunk) */
+  private layer: TransitLayer | null = null;
+  private disposed = false;
 
   constructor() {
     this.group.name = 'streetcars';
+    if (game.get().worldMode === 'city') this.startCity();
     // the saloon between the cabs: aisle, the rail spot by the rear pole, the two benches (facing the aisle)
     definePlatform('streetcar', {
       floor: FLOOR,
@@ -200,6 +206,28 @@ export class Streetcars {
       const start = i === 0 ? this.stops.find(x => x.outbound)! : this.stops.find(x => !x.outbound)!;
       this.cars.push({ u: start.u, v: 0, dwell: DWELL_SECONDS * (0.4 + i * 0.3), atStop: start.id, mesh, pole, sway: 0 });
     });
+  }
+
+  /**
+   * City mode (lane F): warm the cable cars' program (instanced TOY_INST with shadows) and load the transit layer lazily,
+   * so district mode neither downloads nor compiles any of it.
+   */
+  private startCity() {
+    registerWarmup('f-cable-cars', () => {
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      geo.setAttribute('aInfo', new THREE.Float32BufferAttribute(new Float32Array(geo.getAttribute('position').count * 4), 4));
+      const mesh = new THREE.InstancedMesh(geo, TOY_INST, 1);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return { objects: [mesh], dispose: () => geo.dispose() };
+    });
+    void import('./transitLayer').then(m => m.createTransitLayer()).then(layer => {
+      if (!layer) return;
+      if (this.disposed) { layer.dispose(); return; }
+      this.layer = layer;
+      this.group.add(layer.group);
+      layer.group.updateMatrixWorld(true);
+    }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay transit layer]', error); });
   }
 
   private wrap(u: number) { return ((u % this.total) + this.total) % this.total; }
@@ -351,6 +379,7 @@ export class Streetcars {
     runtime.streetcar.atStop = car.atStop;
     // the car carrying (or about to carry) the rider is the 'streetcar' platform
     setPlatformPose('streetcar', { x: p.x, y: CAR_Y, z: p.z, heading: runtime.streetcar.heading, roll: car.sway }, dt);
+    this.layer?.update(dt, t);
   }
 
   /** World positions of the cars (for wakes / QA). */
@@ -359,6 +388,8 @@ export class Streetcars {
   dispose() {
     for (const c of this.cars) c.mesh.geometry.dispose();
     this.poleGeo.dispose();
+    this.disposed = true;
+    this.layer?.dispose();
   }
 }
 
