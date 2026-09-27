@@ -11,7 +11,7 @@ import { closePanel } from '../game/flow';
 import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import type { FarData } from '../world/sf/format';
-import { type MapView, MAX_ZOOM, clampView, drawCityMap, fitScale, layoutLabels, toPx, zoomAt, type LabelItem } from './cityMapDraw';
+import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitScale, layoutLabels, toPx, zoomAt } from './cityMapDraw';
 import { Sheet } from './common';
 import { MapPaperLayer } from './MapPaperLayer';
 import { PlaceActions } from './PlaceActions';
@@ -27,12 +27,15 @@ import './city-ui.css';
 const MAX_DPR = 2;
 const MAX_CANVAS = 1800;
 const HIT_PX = 22;
+/** screen boxes labels keep clear of: the tool column (4 buttons of 34 px + gaps, city-ui.css) and the credit line */
+const TOOLS_W = 48, TOOLS_H = 172, CREDIT_H = 20;
 
+/** far.obc once the streamer has it; the neighbourhood names are learned before the first render that uses it. */
 function useFar(): FarData | null {
-  const [far, setFar] = useState<FarData | null>(() => cityStreamerLazy()?.far ?? null);
+  const [far, setFar] = useState<FarData | null>(() => { const f = cityStreamerLazy()?.far ?? null; if (f) learnZoneNames(f.zones); return f; });
   useEffect(() => {
-    if (far) { learnZoneNames(far.zones); return; }
-    const id = window.setInterval(() => { const f = cityStreamerLazy()?.far; if (f) setFar(f); }, 400);
+    if (far) return;
+    const id = window.setInterval(() => { const f = cityStreamerLazy()?.far; if (f) { learnZoneNames(f.zones); setFar(f); } }, 400);
     return () => window.clearInterval(id);
   }, [far]);
   return far;
@@ -183,25 +186,29 @@ export function CityMapPanel() {
   }, [ix, view, zoom, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   const zoneLabels = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at) : []), [far]);
   const sel = selected && ix ? ix.get(selected) ?? null : null;
-  // labels: the selected place first, then landmarks, curated places (zoomed in), then neighbourhood names
-  const shown = useMemo(() => {
-    if (!view) return new Set<string>();
+  // labels: the selected place first, then landmarks, curated places (zoomed in), then neighbourhood names. A marker's
+  // label sits above, right, left or below its own badge (never dropped for touching it: the wave-2 bug hid them all)
+  const labels = useMemo(() => {
+    if (!view) return [] as { id: string; text: string; zone: boolean; x: number; y: number; anchor: 'middle' | 'start' | 'end' }[];
     const items: LabelItem[] = [];
-    const obstacles: { x: number; y: number; r: number }[] = [];
+    const obstacles: LabelObstacle[] = [];
     for (const { p, kind } of markers) {
       const [x, y] = toPx(view, p.x, p.z);
-      obstacles.push({ x, y, r: kind === 'lm' ? 10 : 4 });
+      const r = kind === 'lm' ? 10 : kind === 'curated' ? 5 : 3.5;
+      obstacles.push({ id: p.id, x, y, r });
       const prio = p.id === selected ? 0 : kind === 'lm' ? (isDiscovered(p.id) ? 1 : 2) : kind === 'curated' ? 3 : 4;
       // the whole city: discovered landmarks only; zoomed in: every landmark, then curated places, then the rest
       const want = prio === 0 || (prio === 1 && zoom > 1.6) || (prio === 2 && zoom > 2.4) || (kind === 'curated' && zoom > 4) || zoom > 9;
-      if (want) items.push({ id: p.id, x, y: y - (kind === 'lm' ? 12 : 6), text: t(p.name), prio });
+      if (want) items.push({ id: p.id, x, y, r, text: t(p.name), prio });
     }
     if (zoom < 7) for (const z of zoneLabels) {
       if (!zoneVisited(z.id)) continue;
       const [x, y] = toPx(view, z.at!.x, z.at!.z);
       items.push({ id: `zone:${z.id}`, x, y: y + 4, text: t(zoneName(z.id)), prio: 5, fontPx: 11 });
     }
-    return layoutLabels(items, view.w, view.h, 3, obstacles);
+    // keep clear of the zoom / locate / fit column (top right) and the ODbL credit line (bottom)
+    const placed = layoutLabels(items, view.w, view.h, 3, obstacles, [[view.w - TOOLS_W, 0, view.w, TOOLS_H], [0, view.h - CREDIT_H, view.w, view.h]]);
+    return items.flatMap(it => { const s = placed.get(it.id); return s ? [{ id: it.id, text: it.text, zone: it.id.startsWith('zone:'), ...s }] : []; });
   }, [markers, view, zoom, zoneLabels, selected, t, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- list ---------------------------------------------------------------------------------------------------------
@@ -225,11 +232,7 @@ export function CityMapPanel() {
         <canvas ref={canvasRef} className="ob-citymap-canvas" style={{ width: size.w, height: size.h }} aria-hidden />
         {view && (
           <svg className="ob-citymap-overlay" width={view.w} height={view.h} aria-hidden>
-            {zoom < 7 && zoneLabels.map(z => {
-              if (!shown.has(`zone:${z.id}`)) return null;
-              const [x, y] = toPx(view, z.at!.x, z.at!.z);
-              return <text key={z.id} x={x} y={y + 4} className="cm-zone">{t(zoneName(z.id))}</text>;
-            })}
+            {labels.map(l => (l.zone ? <text key={l.id} x={l.x} y={l.y} className="cm-zone">{l.text}</text> : null))}
             {markers.map(({ p, kind }) => {
               const [x, y] = toPx(view, p.x, p.z);
               const found = isDiscovered(p.id);
@@ -238,17 +241,16 @@ export function CityMapPanel() {
                   <g key={p.id} className={`cm-lm ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
                     <circle r={10} />
                     <Landmark x={-6.5} y={-6.5} width={13} height={13} strokeWidth={2.2} />
-                    {shown.has(p.id) && <text y={-12} className="cm-label">{t(p.name)}</text>}
                   </g>
                 );
               }
               return (
                 <g key={p.id} className={`cm-dot ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
                   <circle r={kind === 'curated' ? 5 : 3.5} />
-                  {shown.has(p.id) && <text y={-6} className="cm-label">{t(p.name)}</text>}
                 </g>
               );
             })}
+            {labels.map(l => (l.zone ? null : <text key={l.id} x={l.x} y={l.y} className={`cm-label ${l.id === selected ? 'is-on' : ''}`} style={{ textAnchor: l.anchor }}>{l.text}</text>))}
             {(() => { const [x, y] = toPx(view, guide.x, guide.z); return <circle className="cm-baybay" cx={x} cy={y} r={5} />; })()}
             {(() => {
               const [x, y] = toPx(view, pos.x, pos.z);

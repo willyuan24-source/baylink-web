@@ -82,5 +82,27 @@ test('labels: greedy layout drops overlaps, off-frame labels and labels over mar
     { id: 'hidden', x: 200, y: 60, text: 'Under a marker', prio: 5 },
   ];
   const shown = layoutLabels(items, 400, 300, 3, [{ x: 200, y: 55, r: 10 }]);
-  assert.deepEqual([...shown].sort(), ['a', 'far']);
+  assert.deepEqual([...shown.keys()].sort(), ['a', 'far']);
+});
+
+test('labels: a marker label never collides with its own marker, and moves beside it when the top is taken', async () => {
+  const { layoutLabels } = await import('../src/opus-bay/ui/cityMapDraw');
+  // the wave-2 bug: every landmark label box touched its own 10 px badge, so no place name ever showed on the map
+  const own = [{ id: 'coit', x: 200, y: 150, r: 10 }];
+  const one = layoutLabels([{ id: 'coit', x: 200, y: 150, r: 10, text: 'Coit Tower', prio: 1 }], 400, 300, 3, own);
+  assert.deepEqual(one.get('coit'), { x: 200, y: 137, anchor: 'middle' }, 'above its own badge');
+  // another marker right above: the label goes to the right of its badge, vertically centred on it
+  const blocked = layoutLabels([{ id: 'coit', x: 200, y: 150, r: 10, text: 'Coit Tower', prio: 1 }], 400, 300, 3, [...own, { id: 'x', x: 200, y: 128, r: 6 }]);
+  assert.equal(blocked.get('coit')?.anchor, 'start');
+  assert.ok(blocked.get('coit')!.x >= 213);
+  // at the right edge the right-hand spot leaves the frame: left of the badge instead
+  const edge = layoutLabels([{ id: 'e', x: 385, y: 150, r: 10, text: 'Edge label', prio: 1 }], 400, 300, 3, [{ id: 'e', x: 385, y: 150, r: 10 }, { id: 'x', x: 385, y: 128, r: 6 }]);
+  assert.equal(edge.get('e')?.anchor, 'end');
+  // two badges side by side: both keep a label (above / beside), and no two label boxes overlap
+  const pair = layoutLabels([
+    { id: 'a', x: 150, y: 150, r: 10, text: 'Ferry Building', prio: 1 },
+    { id: 'b', x: 160, y: 152, r: 10, text: 'Pier 1', prio: 2 },
+  ], 400, 300, 3, [{ id: 'a', x: 150, y: 150, r: 10 }, { id: 'b', x: 160, y: 152, r: 10 }]);
+  assert.equal(pair.size, 2);
+  assert.notDeepEqual(pair.get('a'), pair.get('b'));
 });

@@ -277,23 +277,53 @@ export function labelWidth(text: string, fontPx: number): number {
   return w;
 }
 
-export interface LabelItem { id: string; x: number; y: number; text: string; prio: number; fontPx?: number }
+/**
+ * A label to place. With `r` (the radius of the item's own marker at x, y) the label tries four spots around the marker
+ * — above, right, left, below — and never counts its own marker as an obstacle; without `r` it is centred on the
+ * baseline point (x, y) as given (neighbourhood names).
+ */
+export interface LabelItem { id: string; x: number; y: number; text: string; prio: number; fontPx?: number; r?: number }
+/** Where a kept label goes: its baseline point and the SVG text-anchor. */
+export interface PlacedLabel { x: number; y: number; anchor: 'middle' | 'start' | 'end' }
+/** A marker on the map, as an obstacle for labels (`id`: the item whose own marker it is). */
+export interface LabelObstacle { x: number; y: number; r: number; id?: string }
+
+/** The candidate spots of one label (baseline point + anchor), in preference order. Pure. */
+function labelSpots(it: LabelItem, f: number): PlacedLabel[] {
+  if (it.r === undefined) return [{ x: it.x, y: it.y, anchor: 'middle' }];
+  const r = it.r, gap = 3, mid = it.y + f * 0.35;
+  return [
+    { x: it.x, y: it.y - r - gap, anchor: 'middle' },
+    { x: it.x + r + gap, y: mid, anchor: 'start' },
+    { x: it.x - r - gap, y: mid, anchor: 'end' },
+    { x: it.x, y: it.y + r + gap + f * 0.8, anchor: 'middle' },
+  ];
+}
 
 /**
- * Greedy, collision-free labels in screen px (lower prio first): a label that would overlap one already placed, or
- * leave the w × h box, or cover a marker (`obstacles`), is dropped. Returns the ids that keep their label. Pure.
+ * Greedy, collision-free labels in screen px (lower prio first): each label takes its first candidate spot that stays
+ * inside the w × h box, overlaps no label placed before it and covers no other marker (`obstacles`; a label never
+ * collides with its own marker) or `reserved` screen boxes [x0, y0, x1, y1] (the map's buttons, the credit line). A
+ * label with no free spot is dropped. Returns the kept labels by id. Pure.
  */
-export function layoutLabels(items: readonly LabelItem[], w: number, h: number, pad = 3, obstacles: readonly { x: number; y: number; r: number }[] = []): Set<string> {
-  const placed: [number, number, number, number][] = obstacles.map(o => [o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r]);
-  const out = new Set<string>();
+export function layoutLabels(items: readonly LabelItem[], w: number, h: number, pad = 3, obstacles: readonly LabelObstacle[] = [], reserved: readonly (readonly [number, number, number, number])[] = []): Map<string, PlacedLabel> {
+  const marks = obstacles.map(o => ({ id: o.id, box: [o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r] as const }));
+  const placed: (readonly [number, number, number, number])[] = [...reserved];
+  const out = new Map<string, PlacedLabel>();
+  const overlaps = (a: readonly number[], b: readonly number[]) => !(a[2] < b[0] || a[0] > b[2] || a[3] < b[1] || a[1] > b[3]);
   for (const it of [...items].sort((a, b) => a.prio - b.prio)) {
     const f = it.fontPx ?? 11.5;
-    const lw = labelWidth(it.text, f) / 2 + pad, top = it.y - f - pad, bottom = it.y + pad;
-    const box: [number, number, number, number] = [it.x - lw, top, it.x + lw, bottom];
-    if (box[0] < 0 || box[2] > w || box[1] < 0 || box[3] > h) continue;
-    if (placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
-    placed.push(box);
-    out.add(it.id);
+    const lw = labelWidth(it.text, f);
+    for (const s of labelSpots(it, f)) {
+      const x0 = s.anchor === 'middle' ? s.x - lw / 2 : s.anchor === 'start' ? s.x : s.x - lw;
+      const box = [x0 - pad, s.y - f - pad, x0 + lw + pad, s.y + pad] as const;
+      if (box[0] < 0 || box[2] > w || box[1] < 0 || box[3] > h) continue;
+      if (placed.some(b => overlaps(box, b))) continue;
+      if (marks.some(m => m.id !== it.id && overlaps(box, m.box))) continue;
+      placed.push(box);
+      out.set(it.id, s);
+      break;
+    }
   }
   return out;
 }

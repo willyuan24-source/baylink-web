@@ -7,6 +7,7 @@
 .ob-citymap-overlay text { font-family: var(--ob-font); text-anchor: middle; paint-order: stroke; stroke: rgba(255, 250, 241, .95); stroke-linejoin: round; }
 .cm-zone { font-size: 11px; font-weight: 700; fill: #6f5f47; stroke-width: 3px; letter-spacing: .02em; }
 .cm-label { font-size: 11.5px; font-weight: 800; fill: var(--ob-ink); stroke-width: 3.2px; }
+.cm-label.is-on { fill: #7a4b0c; }
 .cm-lm circle { fill: #fffaf1; stroke: #b5a58a; stroke-width: 1.6px; }
 .cm-lm svg { color: #9c8f7a; }
 .cm-lm.is-found circle { fill: var(--ob-terra); stroke: #fffaf1; stroke-width: 2px; }
