@@ -235,11 +235,15 @@ test('bus: interlocks — the bus waits before a shared box while the other line
 });
 
 test('bus: stop poles stand right of the bus lane, outside the road (placed on the built city by the sidecar)', () => {
+  const placed = (FILE as unknown as { props: Record<string, [number, number]> }).props;
   for (const s of LOOP.stops) {
     const p = trackPoint(TRACK, s.at);
-    const rx = -Math.cos(p.heading), rz = Math.sin(p.heading);
-    const side = (s.x - p.x) * rx + (s.z - p.z) * rz;
-    assert.ok(side > 1.5 && side < 7.5, `${s.id} pole side ${side.toFixed(2)}`);
+    for (const [x, z, what] of [[s.x, s.z, 'stop point'], [placed[s.id][0], placed[s.id][1], 'pole']] as const) {
+      // the pole may stand up to 12 u along the kerb from the stop (a gap between the houses)
+      const q = trackPoint(TRACK, s.at + ((x - p.x) * Math.sin(p.heading) + (z - p.z) * Math.cos(p.heading)));
+      const side = (x - q.x) * -Math.cos(q.heading) + (z - q.z) * Math.sin(q.heading);
+      assert.ok(side > 1.5 && side < 7.5, `${s.id} ${what} side ${side.toFixed(2)}`);
+    }
   }
 });
 

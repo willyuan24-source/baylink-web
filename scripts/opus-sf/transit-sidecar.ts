@@ -82,17 +82,19 @@ function pathSampler(l: TransitLine): (s: number) => { x: number; z: number; hea
 /**
  * Stand every stop prop where the built city has room (lib/stopPlace.ts on the published chunks + the hero): loop poles
  * just outside the road right of the bus (hero stops keep their promenade-kerb poles), surface Metro poles outside the
- * road clear of a passing train, kiosks on a free patch of sidewalk / plaza near the station. Stop x, z = the prop.
+ * road clear of a passing train, kiosks on a free patch of sidewalk / plaza near the station. Returns stop id → [x, z].
+ * (Early phase: written as the file's `props` beside the unchanged stop x, z, which lane C's TOUR_GEO pins; at the
+ * integration T moves stop x, z onto the props in the same commit as C's TOUR_GEO follow-up.)
  */
-async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: number; z: number }>, log: (s: string) => void) {
+async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: number; z: number }>, log: (s: string) => void): Promise<Record<string, [number, number]>> {
+  const props: Record<string, [number, number]> = {};
   const c = new Clearance(path.join(REPO, 'public/opus-bay/sf/v1/c'));
   await c.prepare(lines.flatMap(l => l.stops.map(s => ({ x: s.x, z: s.z }))));
   const done = new Map<string, { x: number; z: number }>();
   for (const l of lines) {
     const at = pathSampler(l);
     for (const s of l.stops) {
-      const prev = done.get(s.id);
-      if (prev) { s.x = prev.x; s.z = prev.z; continue; }
+      if (done.has(s.id)) continue;
       const round2 = (v: number) => Math.round(v * 100) / 100;
       let spot: { x: number; z: number } | null = null;
       if (l.kind === 'bus') {
@@ -104,13 +106,16 @@ async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: numbe
       } else {
         spot = placePole(c, at, s.at, 1, 0.3, 2.7) ?? placePole(c, at, s.at, -1, 0.3, 2.7);
       }
-      if (!spot) { log(`place: no room for ${s.id} (kept at ${s.x}, ${s.z})`); continue; }
+      if (!spot) { log(`place: no room for ${s.id} (kept at ${s.x}, ${s.z})`); spot = { x: s.x, z: s.z }; }
       const moved = Math.hypot(spot.x - s.x, spot.z - s.z);
-      if (moved > 8) log(`place: ${s.id} moved ${moved.toFixed(1)} u to (${spot.x.toFixed(1)}, ${spot.z.toFixed(1)})`);
-      s.x = round2(spot.x); s.z = round2(spot.z);
-      done.set(s.id, { x: s.x, z: s.z });
+      if (moved > 8) log(`place: ${s.id} stands ${moved.toFixed(1)} u from its stop point, at (${spot.x.toFixed(1)}, ${spot.z.toFixed(1)})`);
+      props[s.id] = [round2(spot.x), round2(spot.z)];
+      done.set(s.id, spot);
     }
   }
+  // the hero stops keep their promenade-kerb poles
+  for (const l of lines) for (const s of l.stops) if (!props[s.id]) props[s.id] = [s.x, s.z];
+  return props;
 }
 
 async function main() {
@@ -130,13 +135,14 @@ async function main() {
   // the loop carries its speed spans (an additive field the runtime reads; lead request: `speeds?` on TransitLine)
   const loopLine = { ...loop.line, speeds: loop.speeds } as TransitLine & { speeds: [number, number, number][] };
   const w4 = [loopLine, ...metro.lines].sort((a, b) => Object.keys(W4_LINES).indexOf(a.id) - Object.keys(W4_LINES).indexOf(b.id));
-  await placeStops(w4, metroRaw, log);
+  const props = await placeStops(w4, metroRaw, log);
   const problems = checkW4Lines(w4);
   for (const r of [...metro.report, ...loop.report]) log(r);
   if (problems.length) { for (const p of problems) console.error(`PROBLEM ${p}`); throw new Error(`${problems.length} problems: nothing written`); }
   const source = `${published.source}; wave 4: the sightseeing loop designed on the car-legal OSM street graph, Muni Metro N / M from OSM route relations 3435877 / 3433314 (underground heights interpolated between the portals)`;
   const full: TransitFile = { version: published.version, source, lines: [...wave2, ...w4] };
-  const onlyW4: TransitFile = { version: published.version, source, lines: w4 };
+  // `props`: where each wave-4 stop's pole / kiosk stands (an additive field; the runtime reads it when present)
+  const onlyW4 = { version: published.version, source, lines: w4, props } as TransitFile & { props: Record<string, [number, number]> };
   fs.mkdirSync(OUT, { recursive: true });
   const fullJson = JSON.stringify(full), w4Json = JSON.stringify(onlyW4);
   // the wave-2 lines must come out byte-identical (copied, never rebuilt)

@@ -36,7 +36,7 @@ U.uFade.value = 0;
 const file = (await (await fetch('/opus-bay/sf/v1/transit-w4.json')).json()) as TransitFile;
 const loop = file.lines.find(l => l.id === 'sf-loop')! as TransitLine & { speeds?: [number, number, number][] };
 const metro = file.lines.filter(l => l.kind === 'light-rail');
-const fleet = new LineFleet({ loop, metro }, { emitEvents: false });
+const fleet = new LineFleet({ loop, metro, props: (file as unknown as { props?: Record<string, [number, number]> }).props }, { emitEvents: false });
 scene.add(fleet.group);
 
 // run the lines for a while (camera far away: everything is 'far'), then frame the subject

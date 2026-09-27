@@ -41,6 +41,8 @@ const HEAR = 60;
 export interface FleetInput {
   loop: TransitLine & { speeds?: [number, number, number][] };
   metro: TransitLine[];
+  /** where each stop's pole / kiosk stands (the sidecar's placement on the built city), by stop id */
+  props?: Readonly<Record<string, readonly [number, number]>>;
 }
 
 export interface FleetOptions {
@@ -142,7 +144,7 @@ export class LineFleet {
     for (const t of this.rail.trains) { const gi = 1 + metroIds.indexOf(t.track.id); this.carSlots.push([slot(gi), slot(gi)]); }
 
     // --- stops, kiosks, portals (static)
-    this.props = stationProps([input.loop, ...input.metro], opts.groundY);
+    this.props = stationProps([input.loop, ...input.metro], opts.groundY, input.props);
     this.portals = portalPlacements(input.metro);
     const keys = ['bus-pole', 'kiosk', 'rail-stop-n', 'rail-stop-m', 'rail-stop-nm'] as const;
     const propGeos: Record<string, THREE.BufferGeometry> = {

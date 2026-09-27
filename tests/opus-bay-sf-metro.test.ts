@@ -135,11 +135,14 @@ test('kiosks: underground stations are boarded at a street kiosk (a free patch o
     }
     return d;
   };
+  const placed = (FILE as unknown as { props: Record<string, [number, number]> }).props;
   for (const l of [N, M]) {
     const pts = ptsOf(l);
     for (const s of l.stops) {
       const ug = names.metroStation(s.id)?.underground;
-      const d = distTo(pts, s.x, s.z);
+      // the prop (kiosk / pole) the sidecar stood on the built city; the stop point itself stays (lane C pins it)
+      const [px, pz] = placed[s.id];
+      const d = distTo(pts, px, pz);
       if (ug) assert.ok(d > 2.5 && d < 36, `${l.id} ${s.id} kiosk ${d.toFixed(1)} u off the track`);
       else assert.ok(d > 2.5 && d < 7.5, `${l.id} ${s.id} stop pole ${d.toFixed(1)} u from the track (outside the road, clear of a passing train)`);
       if (!ug) for (const t of l.tunnels!) assert.ok(s.at <= t.fromAt - 7 || s.at >= t.toAt + 7 || (t.fromAt === 0 && s.at === 0), `${l.id} ${s.id} at ${s.at} clear of the tunnel [${t.fromAt}, ${t.toAt}]`);

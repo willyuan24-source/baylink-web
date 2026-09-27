@@ -49,14 +49,18 @@ function pathHeading(l: Pick<TransitLine, 'path'>, x: number, z: number): { head
 }
 
 /**
- * Every stop / station prop of the wave-4 lines (pure). `groundY` gives the resident ground height where known.
+ * Every stop / station prop of the wave-4 lines (pure). `groundY` gives the resident ground height where known;
+ * `placed` = the pipeline's prop positions by stop id (transit-w4.json `props`), else the stop's own x, z.
  * Shared Market St stations (N + M) get one kiosk; a surface stop shared by both lines one pole.
  */
-export function stationProps(lines: Pick<TransitLine, 'id' | 'kind' | 'path' | 'stops'>[], groundY?: (x: number, z: number) => number | null): StationProp[] {
+export function stationProps(lines: Pick<TransitLine, 'id' | 'kind' | 'path' | 'stops'>[], groundY?: (x: number, z: number) => number | null, placed?: Readonly<Record<string, readonly [number, number]>>): StationProp[] {
   const out: StationProp[] = [];
   const byStation = new Map<string, StationProp>();
   for (const l of lines) {
-    for (const s of l.stops) {
+    for (const s0 of l.stops) {
+      // the pipeline's placed prop position (transit-w4.json `props`) wins over the stop point
+      const pp = placed?.[s0.id];
+      const s = pp ? { ...s0, x: pp[0], z: pp[1] } : s0;
       const h = pathHeading(l, s.x, s.z);
       const y = (x: number, z: number) => groundY?.(x, z) ?? h.y;
       if (l.kind === 'bus') {

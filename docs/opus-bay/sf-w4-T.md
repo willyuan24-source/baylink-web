@@ -19,12 +19,12 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 | file | what | API (the integration surface) |
 |---|---|---|
 | `src/opus-bay/data/sf/stationNames.ts` | stable ids + names: 3 line metas, 16 loop stops (`loop-*`), 50 Muni Metro stations (`muni-*`, English sign name + zh gloss, `major`, `underground`), stop → attraction ids (checked against lane P's `ATTRACTIONS` by a test), tunnel names + one checked fact each, the 4 portal names | `LOOP_STOPS`, `METRO_STATIONS`, `STOP_ATTRACTIONS`, `TUNNELS`, `PORTAL_NAMES`, `W4_LINES`, `w4StationName(id)`, `stationAttractions(id)`, `metroStation(id)`, `metroStationForOsm(name)` |
-| `scripts/opus-sf/lib/metro.ts` (W4-T1) | N (OSM 3435877, cut at Embarcadero) and M (3433314): chained track, tunnel spans from the way tags (merged over < 6 u gaps), named portals, underground heights (a 0.25 u/u dive for 16 u behind each mouth, then under the street and a train height under the chord between the mouths — never over the hills; ≥ −20 u), the Duboce mouth moved 8 u out into the Duboce Ave median, surface stops moved out of the mouths, terminus turning loops trimmed (N 11 u, M 40 u) | `buildMetroLines(terrain, log)` |
+| `scripts/opus-sf/lib/metro.ts` (W4-T1) | N (OSM 3435877, cut at Embarcadero) and M (3433314): chained track, tunnel spans from the way tags (merged over < 6 u gaps), named portals, underground heights (a 0.25 u/u dive for 16 u behind each visible mouth, then under the street and a train height under the chord between the mouths — never over the hills; ≥ −20 u; the Duboce hood stands 8 u outward of the OSM tunnel end, in the Duboce Ave median, and the dive starts there), surface stops moved out of the mouths, terminus turning loops trimmed (N 11 u, M 40 u) | `buildMetroLines(terrain, log)` |
 | `scripts/opus-sf/lib/busLoop.ts` (W4-T2) | the 16-stop loop on the car-legal OSM graph with the plan-R8 exclusions (JFK 23 ways, Upper Great Highway south of Lincoln 23, Twin Peaks north 8), a cycle DP over stop candidates (no Chula Lane jog), right-hand lanes, a teardrop at the Twin Peaks spur, fillets, near-side stops, the hand-made hero Embarcadero (south lanes d −19.35 → U-turn at st 44 → bayside north lanes d −7.2 past the F platforms; poles on the promenade kerb at st 64 / 344), speed spans | `bakeLoop(terrain, log)` → `{ line, speeds, poles, report }` |
 | `scripts/opus-sf/lib/lineGeom.ts` | polyline helpers (height-aware Douglas–Peucker, densify, fillets …) | — |
 | `scripts/opus-sf/lib/stopPlace.ts` | where a pole / kiosk can stand in the built city: distances to building footprints and car-road edges from the published chunks (`public/opus-bay/sf/v1/c`) + the hero's lots / roadways | `Clearance(chunkDir)`: `prepare(points)`, `building(x, z)`, `road(x, z)`; `placePole(...)`, `placeKiosk(...)` |
-| `scripts/opus-sf/transit-sidecar.ts` (W4-T3) | deterministic rebuild (≈ 2 min: the kiosk search); wave-2 lines copied byte for byte; every stop prop placed on the built city (loop poles just outside the road right of the bus, surface Metro poles outside the road ≥ 2.7 u from the track, kiosks on a free patch of sidewalk / plaza ≤ 30 u from the station, 48 u at Montgomery); `checkW4Lines` = the frozen sf-data rules + `transitLineProblems` | `--out <dir>` (scratch), `--write-w4` (the new `public/opus-bay/sf/v1/transit-w4.json`), `--publish` (transit.json, integration only) |
-| `public/opus-bay/sf/v1/transit-w4.json` | the three lines (53 KB raw); the loop carries `speeds: [fromAt, toAt, u/s][]` | read by the tests and the QA harness only |
+| `scripts/opus-sf/transit-sidecar.ts` (W4-T3) | deterministic rebuild (≈ 2 min: the kiosk search); wave-2 lines copied byte for byte; every stop prop placed on the built city (loop poles just outside the road right of the bus, surface Metro poles outside the road ≥ 2.7 u from the track, kiosks on a free patch of sidewalk / plaza ≤ 30 u from the station, 48 u at Montgomery); writes them as the file's `props`; `checkW4Lines` = the frozen sf-data rules + `transitLineProblems` | `--out <dir>` (scratch), `--write-w4` (the new `public/opus-bay/sf/v1/transit-w4.json`), `--publish` (transit.json, integration only) |
+| `public/opus-bay/sf/v1/transit-w4.json` | the three lines (53 KB raw); the loop carries `speeds: [fromAt, toAt, u/s][]`; `props` = where each stop's pole / kiosk stands | read by the tests, lane C's tour pin test and the QA harness |
 | `src/opus-bay/world/lineTrack.ts` | pure track: arc tables (loops wrap), 1 u speed-limit profile (cruise spans, curve limit, 25 u/s deep underground with the tunnel accel, smoothed), time table, `proximitySpans` | `buildLineTrack`, `trackPoint`, `limitAt`, `arcAhead`, `runSeconds`, `tunnelOf`, `normArc`, `proximitySpans` |
 | `src/opus-bay/world/busSystem.ts` (W4-T5) | pure bus sim, the CableSystem rider / platform API | `BusSystem(track, { groundY, visible, viewer, boxes })`: `request({ line, station, to })`, `board()`, `cancel()`, `rideStatus()` (`BusRideStatus` = RideStatus + `nextStop`, `nextEta`), `riderCarOf(line)`, `requestNextStop()`, `occupies(boxId)`, `eta()`, `rideSeconds(from, to)`, `step(dt)`, `events`, `violations()`; `busTrack(line)`, `BUS` |
 | `src/opus-bay/world/lightRail.ts` (W4-T6) | pure LRV sim (N + M in one system) | `LightRailSystem(tracks, { groundY, visible, viewer, portalReady })`: same rider API with `dir`; `RailRideStatus` adds `underground`, `tunnel`, `at`, `dir`, `portalWait`; `leadCar(train)`, `rideSeconds(line, from, to)`, `nextStop(train)`; events incl. `portal-in` / `portal-out`; `railTrack(line)`, `LRV`, `TRAIN_LENGTH`, `stopPos` |
@@ -48,14 +48,16 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   byte-identical to the published ones (asserted in the sidecar).
 - **Data** (sidecar report): loop **6,501.5 u** (OSM route 6,399.8 u + lanes / fillets; plan 6,522 ± 20 %), 16 stops;
   1,170 u at 9 u/s (residential / grade > 0.12); 7 stops moved near-side off corners (Twin Peaks 29.8 u below the
-  teardrop: BAYBAY leads the rest, plan R4). N **1,569.1 u**, 28 stations, tunnels [0, 524.1] (Duboce) and
+  teardrop: BAYBAY leads the rest, plan R4). N **1,569.1 u**, 28 stations, tunnels [0, 516.1] (Duboce) and
   [606.7, 787.0] (Sunset Tunnel, 180 u ≈ 1,290 m real); M **1,987.7 u**, 27 stations, tunnel [0, 1,164.2] (8 stations)
   to West Portal. Both pass `transitLineProblems` and `checkW4Lines`. Mouth heights: the track drops 3–4 u within 16 u
-  behind each mouth (Duboce 7.4 → 3.6, Sunset east 12.6 → 9.5, Sunset west 21.6 → 16.7, West Portal 24.0 → 20.4).
+  behind each visible mouth (Duboce 7.7 → 3.6, Sunset east 12.6 → 9.5, Sunset west 21.6 → 16.7, West Portal 24.0 → 20.4).
 - **Props on the built city** (a scratch checker against the chunk buildings / car roads, the same data the game draws):
-  before the placement pass 54 of 66 props stood in a building or a roadway; after it **0 / 66**. Moves over 8 u:
-  Montgomery kiosk 32.6 u (downtown has no free sidewalk closer), Church kiosk 20.3 u, Castro 8.9 u, Duboce & Church
-  11.7 u, Judah & Sunset 11.6 u, Ocean Ave 12.5 u and four more. Portal hoods touch the nearest building by ≤ 0.9 u (West
+  before the placement pass 54 of 66 props stood in a building or a roadway; after it **0 / 66**. The placed positions
+  are the file's `props` (stop id → [x, z]); the stops' own x, z stay as pushed earlier because lane C's `TOUR_GEO` pins
+  them (see Requests). Props over 8 u from their stop point: Montgomery kiosk 32.6 u (downtown has no free sidewalk
+  closer), Church kiosk 20.3 u, Castro 8.9 u, Duboce & Church 11.7 u, Judah & Sunset 11.6 u, Ocean Ave 12.5 u and four
+  more. Portal hoods touch the nearest building by ≤ 0.9 u (West
   Portal: OSM's own portal building over the mouth; Sunset west: one Cole Valley house, 0.46 u).
 - **Times** (the systems' `rideSeconds`, the same numbers the boarding choices show): loop lap 913 s (15.2 min: 738 s
   driving + dwells); Ferry → Palace 107 s; Castro → Twin Peaks 86 s; N end to end 202 s; M end to end 208 s; Embarcadero →
@@ -90,14 +92,16 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 - **Station ids are prefixed** (`loop-…`, `muni-…`) instead of the plan table's bare `twin-peaks`, `castro` …: those are
   place ids, and stations join the place index (P) and the interactables (`transit-<id>`); `civic-center` would also have
   meant two different stations (the loop stop and the Muni station 53 u apart).
-- **Stop x, z = where you board = the prop**: the loop pole just outside the road right of the bus (the promenade kerb
+- **Props stand where the city has room**: the loop pole just outside the road right of the bus (the promenade kerb
   in the hero), a Metro kiosk on a free patch of sidewalk / plaza for underground stations, a pole outside the road for
-  surface stops (≥ 2.7 u from the track: a passing train's outer side is at 2.4 u). `at` stays the platform's arc
-  position. The sidecar places them on the published chunks (lib/stopPlace.ts), so no prop stands in a house or a street.
+  surface stops (≥ 2.7 u from the track: a passing train's outer side is at 2.4 u). The sidecar places them on the
+  published chunks (lib/stopPlace.ts), so no prop stands in a house or a street. They are published as `props` beside
+  the stops (the stops' x, z unchanged, pinned by lane C today); at the integration the stop x, z become the props (you
+  board where the pole / kiosk is).
 - **Short one-track hoods and a steep dive**: the toy terrain rises only ≈ 2 u over the first 14 u behind the mouths,
   so a long hood would stick out of the hill into the houses; instead the track dives 0.25 u/u behind the mouth and the
-  hood ends where a train's roof is under the ground (6.5 u; 12.5 u in the flat Duboce median). Trains never run side
-  by side within 20 u of a mouth.
+  hood ends where a train's roof is under the ground (6.5 u; 12.5 u in the flat Duboce median, whose hood stands 8 u
+  outward of the OSM tunnel end so it stays clear of Market St). Trains never run side by side within 20 u of a mouth.
 - **The hero Embarcadero is hand-made, not OSM** (plan §3.2 "555 u follow DISTRICT.roads"): the route arrives from
   Washington St on the landward south lanes, U-turns across the median at station 44 (before the Ferry F-line platform
   at 58.5), and serves the Ferry (st 64) and PIER 39 (st 344) stops from the bayside north lanes with the doors to the
@@ -123,8 +127,9 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 
 1. **Publish the data** — `npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/transit-sidecar.ts --publish` rewrites
    `public/opus-bay/sf/v1/transit.json` with the three lines (the frozen sf-data test already accepts them; wave-2 lines
-   byte-identical). Then point `tests/opus-bay-sf-{bus,metro}.test.ts` at transit.json, delete `transit-w4.json` and the
-   `--write-w4` flag. `scripts/opus-sf/build.ts` step 9a: append `buildMetroLines(terrain, log).lines` and
+   byte-identical). In the same commit set every stop's x, z to its `props` entry (the placed pole / kiosk: you board
+   there) — lane C's `TOUR_GEO` follows in the same push (Requests). Then point `tests/opus-bay-sf-{bus,metro}.test.ts`
+   at transit.json, delete `transit-w4.json` and the `--write-w4` flag. `scripts/opus-sf/build.ts` step 9a: append `buildMetroLines(terrain, log).lines` and
    `bakeLoop(terrain, log)` (line + `speeds`) to `transit.file.lines`, so a full rebuild reproduces the sidecar.
 2. **`data/transit.ts`** — widen `TransitLineJson.kind` to `TransitLineKind` and add the optional `short`, `loop`,
    `tunnels`, `speeds`; `buildTransit` keeps building the cable lines only (unchanged) and stores the raw bus /
@@ -190,7 +195,10 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 - **Lane P**: stations use the ids above; the stop `attractions` use your ids (`alamo-square-painted-ladies`,
   `chinatown-dragon-gate`, `lombard-crooked`, `cable-car-powell-market` …; a sf-bus test pins that each exists). Please
   expose "open the map on the 线路 tab with line X highlighted" for the 看线路图 choice.
-- **Lane C**: narration keys = the stop ids; the `transit` `approach` event carries `station` + `attraction` (the stop's
+- **Lane C**: `TOUR_GEO` pins transit-w4.json's stop x, z, `at` and tunnel spans within 1 u; T keeps them stable in the
+  early phase (the placed props are the separate `props` field). At the integration T moves each stop's x, z onto its
+  prop (up to 33 u at Montgomery): please regenerate `TOUR_GEO` from the file in the same push (or derive it from
+  `transitData()` at runtime). Narration keys = the stop ids; the `transit` `approach` event carries `station` + `attraction` (the stop's
   main attraction); `TUNNELS[*].fact` holds one checked line per tunnel for the tunnel-entry / portal lines; VOICE.md
   glossary: 内河码头站, 蒙哥马利站, 鲍威尔站, 市政中心站, 教堂街站, 卡斯特罗站 (SFMTA writes 卡斯楚), 森林山站, 西门站,
   观光巴士 / 观光环线, N 线 / M 线, 日落隧道, 双峰隧道.

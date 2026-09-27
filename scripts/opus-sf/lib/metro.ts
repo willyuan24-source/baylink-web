@@ -47,8 +47,12 @@ const UG_DEPTH = 4;
 /** the dive under a mouth (u/u) over its first 16 u: a train's roof is under the street within the portal hood */
 const UG_RAMP = 0.25;
 const UG_DIVE = 16;
-/** mouths moved outward along the track (u): the Duboce hood then sits in the Duboce Ave median, clear of Market St */
-const MOUTH_SHIFT: Record<string, number> = { duboce: 8 };
+/**
+ * The visible mouth (the portal hood, world/sf/portals.ts `PORTAL_VISUAL_SHIFT`) stands this far outward of the OSM
+ * tunnel end (u): the Duboce hood then sits in the Duboce Ave median, clear of Market St. The track already dives from
+ * the visible mouth; the tunnel span (the data other lanes pin) is unchanged.
+ */
+export const MOUTH_VISUAL_SHIFT: Record<string, number> = { duboce: 8 };
 const UG_FLOOR = -20;
 const UG_CEIL = 55;
 
@@ -171,17 +175,16 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
   // the line starts underground (the cut point takes its segment's tag)
   if (spans.length && spans[0][0] < 1) spans[0][0] = 0;
   const tunnelSpans = spans.filter(([a, b]) => b - a > 20);
-  // named mouths moved outward (the tunnel grows toward the surface side)
-  for (const sp of tunnelSpans) {
-    for (const end of [0, 1] as const) {
-      const at = sp[end];
-      if (at < 0.5 || at > cum[cum.length - 1] - 0.5) continue;
-      const q = pointAtArc(path, cum, at).p;
-      const spot = PORTAL_SPOTS.find(o => Math.hypot(o.x - q[0], o.z - q[1]) < 25);
-      const shift = spot ? MOUTH_SHIFT[spot.id] ?? 0 : 0;
-      if (shift) { sp[end] += end === 1 ? shift : -shift; report.push(`${spec.id}: ${spot!.id} mouth moved ${shift} u outward`); }
-    }
-  }
+  // the visible mouths: the portal hood may stand outward of the OSM tunnel end (the dive starts there)
+  const visShift = tunnelSpans.map(sp => ([0, 1] as const).map(end => {
+    const at = sp[end];
+    if (at < 0.5 || at > cum[cum.length - 1] - 0.5) return 0;
+    const q = pointAtArc(path, cum, at).p;
+    const spot = PORTAL_SPOTS.find(o => Math.hypot(o.x - q[0], o.z - q[1]) < 25);
+    const shift = spot ? MOUTH_VISUAL_SHIFT[spot.id] ?? 0 : 0;
+    if (shift) report.push(`${spec.id}: the ${spot!.id} hood stands ${shift} u outward of the tunnel end (the track dives from there)`);
+    return shift;
+  }));
 
   // --- heights on a densified copy (≤ 4 u steps: the underground ramps need vertices; arc positions are unchanged)
   path = densify(path, 4);
@@ -191,27 +194,36 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
   const surfAt = (s: number) => surf[nearestIdx(cum, s)];
   const yRaw = path.map((_, i) => {
     const s = cum[i];
-    if (!inTunnel(s)) return surf[i];
     let v = surf[i] - UG_DEPTH;
-    for (const [a, b] of tunnelSpans) {
-      if (s < a || s > b) continue;
-      const ya = a > 0.5 ? surfAt(a) : surfAt(a) - UG_DEPTH, yb = b < length - 0.5 ? surfAt(b) : surfAt(b) - UG_DEPTH;
-      const dA = a > 0.5 ? s - a : Infinity, dB = b < length - 0.5 ? b - s : Infinity;
-      // deep: under the street and under the chord between the two ends, the chord itself lowered by a train height
-      // once past the dive (no riding over the hills, never rising into a mouth) …
-      const chord = ya + ((yb - ya) * (s - a)) / Math.max(1, b - a);
+    let under = false;
+    for (const [k, [a, b]] of tunnelSpans.entries()) {
+      const aVis = a - visShift[k][0], bVis = b + visShift[k][1];
+      if (s < aVis || s > bVis) continue;
+      const hasA = a > 0.5, hasB = b < length - 0.5;
+      // the surface stretch between a visible mouth and the tunnel end: already diving under the hood
+      if (s < a || s > b) {
+        const ramp = s < a ? surfAt(aVis) - UG_RAMP * (s - aVis) : surfAt(bVis) - UG_RAMP * (bVis - s);
+        return Math.min(surf[i], ramp);
+      }
+      under = true;
+      const ya = hasA ? surfAt(aVis) : surfAt(a) - UG_DEPTH, yb = hasB ? surfAt(bVis) : surfAt(b) - UG_DEPTH;
+      const dA = hasA ? s - aVis : Infinity, dB = hasB ? bVis - s : Infinity;
+      // deep: under the street and a train height under the chord between the two ends (no riding over the hills,
+      // never rising into a mouth) …
+      const chord = ya + ((yb - ya) * (s - aVis)) / Math.max(1, bVis - aVis);
       v = Math.min(v, chord - UG_RAMP * Math.min(UG_DIVE, dA, dB));
-      // … and near each mouth the ramp: the mouth itself at street level, diving 0.25 u/u
+      // … and near each mouth the ramp: the visible mouth at street level, diving 0.25 u/u
       let ramp = -Infinity;
-      if (Number.isFinite(dA)) ramp = Math.max(ramp, ya - UG_RAMP * dA);
-      if (Number.isFinite(dB)) ramp = Math.max(ramp, yb - UG_RAMP * dB);
+      if (hasA) ramp = Math.max(ramp, ya - UG_RAMP * dA);
+      if (hasB) ramp = Math.max(ramp, yb - UG_RAMP * dB);
       v = Math.max(v, ramp);
     }
+    if (!under) return surf[i];
     return Math.min(UG_CEIL, Math.max(UG_FLOOR, v));
   });
   // smooth the deep part only (the ramps at the mouths stay exact)
   const ySm = smoothAlong(yRaw, cum, 16);
-  const nearMouth = (s: number) => tunnelSpans.some(([a, b]) => (a > 0.5 && Math.abs(s - a) < 18) || (b < length - 0.5 && Math.abs(s - b) < 18));
+  const nearMouth = (s: number) => tunnelSpans.some(([a, b]) => (a > 0.5 && Math.abs(s - a) < 26) || (b < length - 0.5 && Math.abs(s - b) < 26));
   const y = yRaw.map((v, i) => (inTunnel(cum[i]) && !nearMouth(cum[i]) ? Math.min(v, ySm[i]) : v));
 
   // --- stations: map, merge platform pairs, kiosks, portal clearance
@@ -262,7 +274,7 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
 
   // --- simplify the polyline (keep the tunnel ends and the stop anchors), then re-measure
   const keep = new Set<number>();
-  for (const [a, b] of tunnelSpans) for (const s of [a, b]) keep.add(nearestIdx(cum, s));
+  for (const [k, [a, b]] of tunnelSpans.entries()) for (const s of [a, b, a - visShift[k][0], b + visShift[k][1]]) keep.add(nearestIdx(cum, s));
   for (const s of stops) keep.add(nearestIdx(cum, s.at));
   const idx = simplifyIdx(path, 0.08, keep, y, 0.05);
   const pts = idx.map(i => path[i]);

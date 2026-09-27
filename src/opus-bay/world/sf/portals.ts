@@ -42,30 +42,44 @@ const PORTAL_OF: Record<string, PortalId> = {
   'Duboce portal': 'duboce', 'Sunset Tunnel east portal': 'sunset-east', 'Sunset Tunnel west portal': 'sunset-west', 'West Portal': 'west-portal',
 };
 
-function headingAt(l: Pick<TransitLine, 'path'>, x: number, z: number): number {
-  let best = { d: Infinity, h: 0 };
-  const p = l.path;
-  for (let i = 3; i < p.length; i += 3) {
-    const ax = p[i - 3], az = p[i - 1], bx = p[i], bz = p[i + 2];
-    const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1;
-    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
-    const d = Math.hypot(x - ax - dx * t, z - az - dz * t);
-    if (d < best.d) best = { d, h: Math.atan2(dx, dz) };
-  }
-  return best.h;
+/**
+ * The visible mouth (the hood) stands this far outward of the OSM tunnel end (u), on the surface side: the Duboce hood
+ * then sits in the Duboce Ave median, clear of Market St (the track dives from there: scripts/opus-sf/lib/metro.ts
+ * `MOUTH_VISUAL_SHIFT`, the same numbers).
+ */
+export const PORTAL_VISUAL_SHIFT: Readonly<Record<PortalId, number>> = { duboce: 8, 'sunset-east': 0, 'sunset-west': 0, 'west-portal': 0 };
+
+/** The point / heading / height at an arc of a path (clamped). */
+function pathArc(l: Pick<TransitLine, 'path'>) {
+  const p = l.path, n = p.length / 3, cum = [0];
+  for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(p[i * 3] - p[i * 3 - 3], p[i * 3 + 2] - p[i * 3 - 1]));
+  const at = (s0: number) => {
+    const s = Math.max(0, Math.min(cum[n - 1], s0));
+    let i = 1;
+    while (i < n - 1 && cum[i] < s) i++;
+    const t = (s - cum[i - 1]) / (cum[i] - cum[i - 1] || 1);
+    const ax = p[i * 3 - 3], ay = p[i * 3 - 2], az = p[i * 3 - 1], bx = p[i * 3], by = p[i * 3 + 1], bz = p[i * 3 + 2];
+    return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t, z: az + (bz - az) * t, heading: Math.atan2(bx - ax, bz - az) };
+  };
+  return { at };
 }
 
 /** The named mouths of the Metro lines (one per portal id; a mouth shared by two lines appears once). */
 export function portalPlacements(lines: Pick<TransitLine, 'id' | 'path' | 'tunnels'>[]): PortalPlacement[] {
   const out: PortalPlacement[] = [];
   for (const l of lines) {
+    const arc = pathArc(l);
     for (const t of l.tunnels ?? []) {
       for (const [p, into] of [[t.portalA, 1], [t.portalB, -1]] as [TransitPortal | null, 1 | -1][]) {
         if (!p?.name) continue;
         const id = PORTAL_OF[p.name.en];
         if (!id || out.some(o => o.id === id)) continue;
-        const h = headingAt(l, p.x, p.z) + (into > 0 ? 0 : Math.PI);
-        out.push({ id, name: PORTAL_NAMES[id], line: l.id, x: p.x, y: p.y, z: p.z, heading: Math.atan2(Math.sin(h), Math.cos(h)) });
+        // the hood stands at the visible mouth: `shift` u outward (against the into-tunnel direction) of the tunnel end
+        const s0 = into > 0 ? t.fromAt : t.toAt;
+        const q = arc.at(s0 - into * PORTAL_VISUAL_SHIFT[id]);
+        const h = q.heading + (into > 0 ? 0 : Math.PI);
+        const at = PORTAL_VISUAL_SHIFT[id] ? q : { ...q, x: p.x, y: p.y, z: p.z };
+        out.push({ id, name: PORTAL_NAMES[id], line: l.id, x: at.x, y: at.y, z: at.z, heading: Math.atan2(Math.sin(h), Math.cos(h)) });
       }
     }
   }
