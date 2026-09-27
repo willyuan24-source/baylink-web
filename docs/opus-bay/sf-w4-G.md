@@ -261,6 +261,10 @@ integration plan names (`game/Systems.tsx` project(), `game/hudLayout.ts`, `game
 - **O8**: `YawTurn` / `turnYawToward` are not used by the integration plan (it uses cinema `faceCameraToward` with a
   0.6 s duration): use them or drop them at integration. Panorama tag widths: measure the displayed locale
   (`tagWidth(t(tag.name))`); rank-1 tags are 13 px (the estimate is 12.5 px a CJK character; the 4 px pad covers it).
+- **O9 · lane T at integration (step 2)**: lane T's subway now brakes and pulls away at 7 u/s² underground
+  (`0a86c3f`); until `registerLineEstimator` hands the planner T's own times (`world/lineTrack.ts` `runSeconds` + the
+  stops), the planner's model reads short underground: Embarcadero → Church 38.6 s (T: 42 s), Castro → West Portal
+  27.7 s (T: 34 s). The loop lap agrees (model 13.7 min stop 1 → 16, T "坐一圈 约 15 分钟").
 - Unchanged from the lane's list: the bike-autopilot owner decision, FLAG_TOPS all `h 30` (lane L),
   `settings.landmarkFlags` (lead).
 
