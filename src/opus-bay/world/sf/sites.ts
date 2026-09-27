@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { LandmarkWalkInput } from '../../core/sfTerrain';
 import { heightAt } from '../../core/terrain';
+import { cityStreamerLazy } from '../cityLoader';
 import type { SurfaceKind, Vec2 } from '../../core/types';
 import { C } from '../builder';
 import { GROUND, GROUND_CITY, TOY, TOY_DYN, U, makeHeroMaterial } from '../materials';
@@ -9,6 +10,7 @@ import type { LoadedModel } from '../models';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
 import { type LandmarkFade, type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, blockerTops, landmarkMatrix, usesAi } from './landmarks';
+import type { KitSwap } from './kitSwap';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
 
@@ -38,6 +40,10 @@ import type { CellPool } from './pools';
  *              dither holes (the Dragon Gate, the rotunda). `fade.procedural === false` fades only the AI parts.
  *   ground     `ground` polygons (street strips, plazas) are drawn with the city GROUND material inside the lod 0.
  *   counts     counts().ai: AI parts drawn, pending, failed, their triangles and draw calls.
+ *
+ * Lane D2 (wave 3): the near-player house-kit swap (D2-08, world/sf/kitSwap.ts) runs from update(): imported lazily
+ * with world/models.ts once the city streamer is up (cityStreamerLazy: its L0 building index); `?kit=0` keeps every
+ * toy house (QA A/B). counts().kit reports it.
  */
 
 /** GLB loads start this much before a landmark's lod-0 ring (u). */
@@ -294,6 +300,17 @@ export class CitySites {
     }));
   }
 
+  /** false: no house-kit swap (QA A/B: `?kit=0` in the URL). */
+  kitEnabled = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('kit') === '0');
+  private kit: KitSwap | null = null;
+  private kitStarted = false;
+  private disposed = false;
+  /** the renderer (caught by the lod-0 meshes' onBeforeRender) and its triangles of the last whole frame */
+  private renderer: THREE.WebGLRenderer | null = null;
+  private frameTris: number | null = null;
+  private frameSampled = 0;
+  private readonly grab = (r: THREE.WebGLRenderer) => { this.renderer = r; };
+
   /** false: every landmark stays procedural (QA A/B: `?ai=0` in the URL; the default follows each swap's `ship`). */
   aiEnabled = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('ai') === '0');
   private aiFailed = new Set<string>();
@@ -414,6 +431,7 @@ export class CitySites {
     }
     const m = new THREE.Mesh(TypedBatch.toGeometry(a), s.heroMat ?? TOY);
     m.name = `sf:${s.l.id}:lod0`;
+    m.onBeforeRender = this.grab;
     m.castShadow = !!s.l.castShadow;
     m.receiveShadow = true;
     m.matrixAutoUpdate = false;
@@ -526,6 +544,27 @@ export class CitySites {
         s.anim.updateMatrixWorld(true);
       }
     }
+    this.updateKit(fx, fz, t);
+  }
+
+  /** The house-kit swap (D2-08): started once the streamer is up, then ticked every frame. */
+  private updateKit(fx: number, fz: number, t: number) {
+    // the frame's triangles: WorldScene resets renderer.info before the world updates, so sample it after the frame
+    const r = this.renderer;
+    if (r && this.kit && t - this.frameSampled > 0.25 && typeof setTimeout === 'function') {
+      this.frameSampled = t;
+      setTimeout(() => { this.frameTris = r.info.render.triangles; }, 0);
+    }
+    if (this.kit) { this.kit.update(fx, fz, t, this.camH); return; }
+    if (this.kitStarted || !this.kitEnabled) return;
+    const src = cityStreamerLazy();
+    if (!src) return;
+    this.kitStarted = true;
+    void Promise.all([import('./kitSwap'), modelsModule()]).then(([k, m]) => {
+      if (this.disposed) return;
+      this.kit = new k.KitSwap(src, { peek: id => m.peekModel(id), retain: id => { void m.retainModel(id); }, release: id => m.releaseModel(id) }, { frameTriangles: () => this.frameTris });
+      this.group.add(this.kit.group);
+    }, () => undefined);
   }
 
   /** Every landmark's SiteHooks.lights in world space (lane C2's night light field; call after the bases settle). */
@@ -547,11 +586,13 @@ export class CitySites {
       if (s.near) near++;
       if (s.ai) { ai.on++; ai.triangles += s.aiTris; ai.draws += s.aiDraws; } else if (s.mesh && usesAi(s.l) && this.aiEnabled && !this.aiFailed.has(s.l.id)) ai.pending++;
     }
-    return { sites: this.sites.length, near, triangles: this.triangles, ai, camH: Math.round(this.camH), lod0: siteLod0Radius(1, this.camH) };
+    return { sites: this.sites.length, near, triangles: this.triangles, ai, camH: Math.round(this.camH), lod0: siteLod0Radius(1, this.camH), kit: this.kit?.counts() ?? null };
   }
 
   /** City teardown (World.disableCity): drop every lod 0, then the decoded models and the Draco workers. */
   dispose() {
+    this.disposed = true;
+    if (this.kit) { this.kit.dispose(); this.group.remove(this.kit.group); this.kit = null; }
     for (const s of this.sites) this.dropMesh(s);
     modelsMod?.disposeModels();
   }
