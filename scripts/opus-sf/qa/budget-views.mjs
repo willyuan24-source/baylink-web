@@ -92,6 +92,9 @@ const HELPERS = `window.__qb = {
     return JSON.stringify({ ready, ms: Math.round(performance.now() - t0) });
   },
   measure(id) {
+    try { return this.measure1(id); } catch (e) { return 'measure failed: ' + (e && e.message) + ' @ ' + location.href; }
+  },
+  measure1(id) {
     const ob = window.__opusBay; const r = ob.renderer.info; const s = ob.city.stats();
     const b = ob.city.breakdown();
     const round = rec => Object.fromEntries(Object.entries(rec).sort((a, b) => b[1].triangles - a[1].triangles));
@@ -137,11 +140,15 @@ const acts = [
   { do: 'wait', ms: 8000 },
 ];
 // clean frames: hide the HUD (every element that is not the canvas or one of its ancestors); --hud 1 keeps it
-if (String(args.hud ?? '0') === '0') acts.push({ do: 'eval', label: 'hud', expr: "(() => { const c = document.querySelector('canvas'); let n = 0; for (const e of document.body.querySelectorAll('*')) if (c && !e.contains(c) && e !== c) { e.style.visibility = 'hidden'; n++; } return n; })()" });
+const HIDE = "(() => { const c = document.querySelector('canvas'); let n = 0; for (const e of document.body.querySelectorAll('*')) if (c && !e.contains(c) && e !== c) { e.style.visibility = 'hidden'; n++; } return n; })()";
+const clean = String(args.hud ?? '0') === '0';
+if (clean) acts.push({ do: 'eval', label: 'hud', expr: HIDE });
 for (const v of views) {
   acts.push({ do: 'eval', label: `pos ${v.id}`, expr: v.go ? `window.__qb.go(${JSON.stringify(v.go)})` : `window.__qb.cam(${JSON.stringify(v.cam)})` });
   acts.push({ do: 'wait', ms: v.wait ?? wait });
-  acts.push({ do: 'eval', label: `measure ${v.id}`, expr: `window.__qb.measure('${v.id}')` });
+  acts.push({ do: 'eval', label: `measure ${v.id}`, expr: `window.__qb ? window.__qb.measure('${v.id}') : 'no helpers: ' + location.href` });
+  // cards and toasts that opened since (a discovery, a place card) are hidden too
+  if (clean) acts.push({ do: 'eval', label: 'hud', expr: HIDE });
   acts.push({ do: 'shot', name: path.join(out, `${v.id}.jpg`) });
 }
 const shot = String(args.shot || 'node scripts/opus-shot.mjs').split(' ');

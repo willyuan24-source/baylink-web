@@ -98,6 +98,7 @@ const { GROUND, TOY, patchToyShader } = await import('../src/opus-bay/world/mate
 const P = {
   sunset: [-243, 12, 1306], richmond: [-436, 18, 949], oceanBeach: [-400, 4, 1480], downtown: [137, 10, 133], mission: [195, 12, 648],
   tpSummit: [126, 55, 938], ggbDeck: [-865.8, 15.2, 508.6], ggbTop: [-796.1, 42.2, 564.4], offshore: [-900, 2, 1900],
+  sausalito: [-1263, 5, 115], tiburon: [-1266, 5, -264], pointBonita: [-1256, 5, 1002],
 } as const;
 const cover = (k: keyof typeof P, tod: (typeof TODS)[number]) => karlCover(P[k][0], P[k][1], P[k][2], karlTarget(tod, null));
 
@@ -149,6 +150,9 @@ test('Karl: pools over the Sunset / Richmond, through the Gate at golden hour, n
   assert.ok(cover('oceanBeach', 'golden') > 0.9 && cover('sunset', 'golden') > 0.9, 'golden: rolling in over the Sunset');
   assert.ok(cover('richmond', 'golden') < 0.6 && cover('richmond', 'golden') < cover('richmond', 'morning'), 'golden: the inner avenues still clear');
   assert.ok(cover('sunset', 'day') === 0 && cover('offshore', 'day') > 0.9, 'day: waits offshore');
+  // north of the strait (the Marin board, wave 3) the bank keeps to the Pacific face: Sausalito and Tiburon stay clear
+  for (const t of TODS) for (const k of ['sausalito', 'tiburon'] as const) assert.equal(cover(k, t), 0, `${t} ${k}`);
+  assert.ok(cover('pointBonita', 'morning') > 0.9 && cover('pointBonita', 'golden') > 0.9, 'the Pacific face of the Headlands');
 });
 
 test('Karl: district never turns it on; the city slides between layouts in KARL_SLIDE s', () => {

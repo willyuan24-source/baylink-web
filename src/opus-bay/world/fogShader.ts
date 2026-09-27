@@ -35,6 +35,13 @@ export const KARL_GEO = {
   /** the west bank's leading edge: full cover `edge[0]` u behind the front, none `edge[1]` u past it (M3: a bank's edge, not
    *  a 180 u gradient; the noise still lumps it ±110 u) */
   edge: [70, 20],
+  /**
+   * North of the strait the west bank keeps to Marin's Pacific face (wave 3, with the Marin board): past `from` … `to` u
+   * north of the gate axis its front is capped at `front` (the Headlands' ridge, Hawk Hill ≈ 120), so the fog tops the
+   * Headlands while Sausalito and Richardson Bay stay clear (the front is a line along true north, which ran through
+   * Marin at every time)
+   */
+  marin: { front: 170, from: 150, to: 300 },
 } as const;
 
 /** `?karl=0|1`: 0 = off, 1 = forced on (≥ 0.6 at every time; by day it comes in like golden hour), null = the table. */
@@ -91,9 +98,11 @@ float obKarlXZ(vec2 p, float n) {
   const vec2 G = vec2(${f1(KARL_GEO.gate.x)}, ${f1(KARL_GEO.gate.z)});
   const vec2 GD = vec2(${f1(KARL_GEO.gate.dx)}, ${f1(KARL_GEO.gate.dz)});
   float a = dot(p - O, E) + n * 220.0;
-  float west = 1.0 - smoothstep(uKarlA.x - ${KARL_GEO.edge[0].toFixed(1)}, uKarlA.x + ${KARL_GEO.edge[1].toFixed(1)}, a);
   vec2 g = p - G;
-  float along = dot(g, GD) + n * 120.0, across = abs(dot(g, vec2(-GD.y, GD.x))) + n * 90.0;
+  float side = dot(g, vec2(-GD.y, GD.x));
+  float front = mix(uKarlA.x, min(uKarlA.x, ${KARL_GEO.marin.front.toFixed(1)}), smoothstep(${KARL_GEO.marin.from.toFixed(1)}, ${KARL_GEO.marin.to.toFixed(1)}, -side));
+  float west = 1.0 - smoothstep(front - ${KARL_GEO.edge[0].toFixed(1)}, front + ${KARL_GEO.edge[1].toFixed(1)}, a);
+  float along = dot(g, GD) + n * 120.0, across = abs(side) + n * 90.0;
   float lobe = uKarlA.z * (1.0 - smoothstep(95.0, 175.0, across)) * (1.0 - smoothstep(uKarlA.w - 160.0, uKarlA.w, along)) * smoothstep(-420.0, -300.0, along);
   return max(west, lobe);
 }

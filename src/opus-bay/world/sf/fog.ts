@@ -110,9 +110,12 @@ export function karlTarget(tod: TimeOfDay, flag: KarlFlag): KarlTarget {
 export function karlCover(x: number, y: number, z: number, t: Omit<KarlTarget, 'color' | 'level'>): number {
   const G = KARL_GEO;
   const a = (x - G.origin.x) * G.east.x + (z - G.origin.z) * G.east.z;
-  const west = 1 - smooth(t.front - G.edge[0], t.front + G.edge[1], a);
   const gx = x - G.gate.x, gz = z - G.gate.z;
-  const along = gx * G.gate.dx + gz * G.gate.dz, across = Math.abs(-gx * G.gate.dz + gz * G.gate.dx);
+  const side = -gx * G.gate.dz + gz * G.gate.dx;
+  // north of the strait the bank keeps to Marin's Pacific face (KARL_GEO.marin)
+  const front = t.front + (Math.min(t.front, G.marin.front) - t.front) * smooth(G.marin.from, G.marin.to, -side);
+  const west = 1 - smooth(front - G.edge[0], front + G.edge[1], a);
+  const along = gx * G.gate.dx + gz * G.gate.dz, across = Math.abs(side);
   const lobe = t.gate * (1 - smooth(95, 175, across)) * (1 - smooth(t.gateLen - 160, t.gateLen, along)) * smooth(-420, -300, along);
   return Math.max(west, lobe) * (1 - smooth(t.top - G.topSoft[0], t.top + G.topSoft[1], y));
 }
