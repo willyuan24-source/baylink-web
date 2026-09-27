@@ -36,7 +36,7 @@ const PLAYER_CAR = { halfL: 1.05, halfW: 0.6 };
 const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint: 6, attraction: 7, museum: 6, historic: 5 };
 /** a hop-aside is heard within this of the player (u) */
 const HOP_HEARD = 22;
-/** the crowd hides while the camera is this far above the player (u) */
+/** the crowd hides while the camera is this far above the ground under the player (u): a glide over the streets */
 const CROWD_HIGH = 55;
 
 export interface CityLifeOptions {
@@ -61,6 +61,8 @@ export class CityLife {
   private all: RoadVehicle[] = [];
   private others: RoadVehicle[] = [];
   private traveling = false;
+  /** the camera is high over the streets (a glide): the crowd hides */
+  private high = false;
   private hopAt = -9;
   private clock = 0;
   private qualityAt = -9;
@@ -156,7 +158,11 @@ export class CityLife {
     for (const q of this.all) if (q.kind !== 'traffic') this.others.push(q);
     const cam = U.uCam.value;
     traffic.update(dt, cam);
-    const high = cam.y - runtime.player.y > CROWD_HIGH;
+    // (review) measured from the ground under the player: while gliding the player is up with the pelican, so the camera
+    // stayed ~7 u above them and the crowd never hid
+    // (10 u of hysteresis: a glide hovering at the line would pop the crowd in and out)
+    const p = runtime.player, above = cam.y - heightAt(p.x, p.z);
+    const high = this.high = above > CROWD_HIGH || (this.high && above > CROWD_HIGH - 10);
     if (high) crowd.hide();
     else crowd.update(dt, cam);
     this.listen(high);
