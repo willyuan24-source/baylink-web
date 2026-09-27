@@ -25,7 +25,7 @@ import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistan
  *   of the focus (fast travel, a teleport) refills the crowd around the new spot. Fewer walkers at night.
  * - **Drawn** as two InstancedMeshes (near figure = the promenade walker; far figure ≈ 80 triangles beyond 24 u from the camera), one
  *   material instance for that one object kind (life.ts `crowdPeopleMaterial`, warmed as 'f-crowd'); no shadows (like
- *   the promenade's). Budget: 64 × ≤ 0.4k worst case, typically ≈ 7k triangles and 2 calls (near figure 324, far 80).
+ *   the promenade's). Budget: ≤ 18 near figures (324 triangles) + the rest far (92): ≤ 10.3k triangles and 2 calls.
  */
 
 export const CROWD = {
@@ -44,7 +44,7 @@ export const CROWD = {
   speed: [0.85, 1.45] as const,
   /** offsets past the kerb for the two walking directions (keep right) */
   laneIn: 0.3,
-  laneOut: 0.78,
+  laneOut: 0.9,
   /** hop aside: centre-line distance (u) that triggers it for a car (wide vehicles: half width + 0.55), look-ahead (s) */
   hopWithin: 1.2,
   hopHorizon: 1.2,
@@ -52,6 +52,8 @@ export const CROWD = {
   hopHeight: 0.32,
   /** near figures within this of the camera (u), far figures beyond */
   nearLod: 24,
+  /** at most this many near figures (the closest; a crowded plaza stays within budget) */
+  nearMax: 18,
   /** share of the crowd standing about at sights */
   standShare: 0.2,
   /** obstacle radius of a walker (u) */
@@ -295,6 +297,7 @@ export class CrowdSim {
       const seen = this.env.visible(_p.x, _p.z);
       if (!anywhere && seen && dd < CROWD.spawnInView) continue;
       if (!this.fits(s, along, side, lane)) continue;
+      if (this.walkers.some(o => o.on && Math.abs(o.x - _p.x) < 1.5 && Math.abs(o.z - _p.z) < 1.5)) continue;
       this.init(w, seen);
       w.mode = 'walk'; w.e = e; w.s = along; w.side = side; w.lane = lane; w.laneT = lane;
       w.x = _p.x; w.z = _p.z; w.heading = Math.atan2(s.dx, s.dz);
@@ -531,8 +534,10 @@ export class CrowdSim {
     // the right of travel is (−hz, hx): keep right of oncoming people, pass slower ones on their left
     const k = (0.5 - Math.abs(lat)) * dt * 2.5;
     if (!same) { w.px += -hz * k; w.pz += hx * k; return; }
-    if (w.v > o.v + 0.2 && o.pace > 0.5) { w.px -= -hz * k; w.pz -= hx * k; return; }
-    w.pace = Math.min(w.pace, Math.max(0, Math.min(1, (along - 0.55) / 0.45)));
+    // someone slower just ahead the same way: a quicker walker moves to the sidewalk's other lane to pass (the kerb
+    // side ↔ the house side; the sidewalk check falls back if it is blocked), everyone else keeps a body's length back
+    if (w.mode === 'walk' && w.v > o.v + 0.12 && along < 1.1) { w.lane = w.lane < 0.55 ? CROWD.laneOut + 0.25 : CROWD.laneIn; return; }
+    w.pace = Math.min(w.pace, Math.max(0, Math.min(1, (along - 0.95) / 0.55)));
   }
 
   /** Step around the player and BAYBAY; relax the push afterwards (like the promenade walkers). */
@@ -697,11 +702,13 @@ export class CrowdLayer {
   private near: Figure;
   private far: Figure;
   private colors: THREE.Color[] = SHIRTS.map(c => new THREE.Color(c).lerp(new THREE.Color('#e8dcc4'), 0.1));
+  private dist: Float32Array;
 
   constructor(net: StreetNet, env: CrowdEnv, max: number = CROWD.count.high) {
     this.group.name = 'city-crowd';
     this.group.matrixAutoUpdate = false;
     this.sim = new CrowdSim(net, env, { max, seed: 0xc0ffee });
+    this.dist = new Float32Array(max);
     this.near = figure(personGeometry(), max, 'crowd-near');
     this.far = figure(personFarGeometry(), max, 'crowd-far');
     this.group.add(this.near.mesh, this.far.mesh);
@@ -716,9 +723,20 @@ export class CrowdLayer {
   draw(cam: { x: number; y: number; z: number }) {
     let n = 0, nf = 0;
     const t = this.sim.time;
-    for (const w of this.sim.walkers) {
+    // the near figure for the CROWD.nearMax walkers closest to the camera within CROWD.nearLod (a triangle cap)
+    const ws = this.sim.walkers, dist = this.dist;
+    let within = 0;
+    for (let i = 0; i < ws.length; i++) {
+      const w = ws[i];
+      dist[i] = w.on ? Math.hypot(w.x - cam.x, w.y + 0.8 - cam.y, w.z - cam.z) : Infinity;
+      if (dist[i] <= CROWD.nearLod) within++;
+    }
+    let nearCut: number = CROWD.nearLod;
+    if (within > CROWD.nearMax) { const sorted = Array.from(dist).sort((a, b) => a - b); nearCut = sorted[CROWD.nearMax - 1]; }
+    for (let j = 0; j < ws.length; j++) {
+      const w = ws[j];
       if (!w.on) continue;
-      const d = Math.hypot(w.x - cam.x, w.y + 0.8 - cam.y, w.z - cam.z);
+      const d = dist[j];
       // people right at the lens shrink away (like the promenade's)
       const lens = d < 1.6 ? 0 : d < 3.6 ? smooth((d - 1.6) / 2) : 1;
       const k = w.scale * w.grow * lens;
@@ -727,7 +745,7 @@ export class CrowdLayer {
       const hop = w.hopT >= 0 ? Math.sin(Math.PI * Math.min(1, w.hopT / CROWD.hopTime)) * CROWD.hopHeight : 0;
       _e.set(0, w.heading, w.walking * Math.sin(t * 7.5 + w.ph) * 0.03, 'YXZ');
       _m.compose(_v.set(w.x, w.y + 0.04 + bob + hop, w.z), _qt.setFromEuler(_e), _s.set(k, k, k));
-      const fig = d > CROWD.nearLod ? this.far : this.near;
+      const fig = d > nearCut ? this.far : this.near;
       const i = fig === this.far ? nf++ : n++;
       fig.mesh.setMatrixAt(i, _m);
       fig.mesh.setColorAt(i, this.colors[w.color % this.colors.length]);
