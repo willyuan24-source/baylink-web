@@ -1,8 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { Bilingual } from '../core/types';
-import type { Attraction } from '../data/sf/attractionTypes';
 import { STREET_FACTOR, TRIP_SPEED, tripRemainingSeconds } from './tripPlan';
-import { tripDestination } from './tripText';
 import type { TripLeg, TripOption, TripSource, TripState, TripWalkLeg } from './tripTypes';
 
 /**
@@ -23,8 +21,9 @@ import type { TripLeg, TripOption, TripSource, TripState, TripWalkLeg } from './
  *
  * Light on purpose: game/flow.ts (the main graph) imports it, so it imports no tour data (a Grand Tour stop as a trip
  * option is game/tourTrips.ts, lazy with data/sf/tours) and reuses lane G's numbers (game/tripPlan.ts: speeds, the
- * remaining time); the pill is lane G's ui/guideText.ts tripPillText, the time and destination words the shared
- * game/tripText.ts (timeLabel, tripDestination: one rule for lanes C, G and P).
+ * remaining time); the pill is lane G's ui/guideText.ts tripPillText, the time words the shared game/tripText.ts
+ * (one rule for lanes C, G and P), where a trip to an attraction ends and its name lane P's data/sf/attractions.ts
+ * `tripDestination(a)` (an island's trip ends at its pier: 恶魔岛渡轮码头 · 33 号码头).
  */
 
 type XZ = { x: number; z: number };
@@ -121,17 +120,6 @@ export function walkLeg(from: XZ & { place?: string; station?: string }, to: XZ 
     to: { x: to.x, z: to.z, ...(to.place ? { place: to.place } : {}), ...(to.station ? { station: to.station } : {}), ...(to.name ? { name: to.name } : {}) },
     seconds: length / TRIP_WALK_SPEED, length, estimate: true,
   };
-}
-
-/**
- * Where a trip to an attraction ends and what it is called there (跟 BAYBAY 去, PlaceActions, startFreeLead): the
- * attraction's arrival spot and place row, named by the one rule of game/tripText.ts `tripDestination` — a trip "to
- * Alcatraz" ends at the Pier 33 telescope and says "恶魔岛渡轮码头 · 33 号码头" (lane G's review O2), not "步行到恶魔岛".
- * `short` goes to lane G's pill instead of Attraction.short; `note` to the trip card.
- */
-export function attractionTripEnd(a: Pick<Attraction, 'id' | 'placeId' | 'name' | 'short' | 'offWalk' | 'x' | 'z' | 'arrival'>): XZ & { place: string; attraction: string; name: Bilingual; short: Bilingual | null; note: Bilingual | null } {
-  const d = tripDestination(a);
-  return { x: a.arrival?.x ?? a.x, z: a.arrival?.z ?? a.z, place: a.placeId ?? a.id, attraction: a.id, name: d.name, short: d.short, note: d.note };
 }
 
 /** startFreeLead as a trip: one walking leg (source 'free-lead'). */

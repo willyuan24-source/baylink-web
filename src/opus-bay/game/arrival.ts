@@ -32,11 +32,13 @@ import { arrivalToast } from './tripText';
  * Places you cannot walk to (`Attraction.offWalk`: Alcatraz, Treasure Island, whose "arrival" spot is a telescope on
  * the waterfront) get no anchor: standing at Pier 33 is not arriving at Alcatraz (no toast, no reveal, no fly unlock).
  *
- * Panorama spots (`PANORAMA_SPOTS`, part 2): where a viewpoint's view is not where its trips end, the view gets its
- * own small spot. Corona Heights arrives at the Randall Museum door (trips, the card) but the view is from the red
- * chert summit 18 u west and 6 u higher: the door fires the arrival moment without the panorama, the summit fires the
- * panorama (and the whole moment, when the player climbs there first). Spots neither swallow nor get swallowed by the
- * arrival anchors around them; their seen key is `<attraction>@<spot>` (the save's `arrivals` keeps it).
+ * Panorama spots (`PANORAMA_SPOTS`, part 2): the panorama plays where the VIEW is. When a viewpoint's arrival spot is
+ * the view (Corona Heights since lane P's ARRIVAL_OVERRIDES put its arrival on the summit), the arrival anchor carries
+ * the panorama. When the arrival spot is elsewhere (more than 12 u away: e.g. the Randall Museum door, 18 u east and
+ * 6 u below the summit, where the attraction arrived before), the view gets a small spot of its own: the door fires the
+ * moment without the panorama, the summit fires the panorama (and the whole moment, when the player climbs there
+ * first). Spots neither swallow nor get swallowed by the arrival anchors around them; their seen key is
+ * `<attraction>@<spot>` (the save's `arrivals` keeps it).
  */
 
 export const ARRIVAL_MIN_R = 12;
@@ -99,11 +101,13 @@ export interface ArrivalHit {
 }
 
 /**
- * Viewpoints whose view is not at their arrival spot (attraction id → the spot). Corona Heights: the summit of
- * Corona Heights Park, Wikipedia 37.7646522, −122.4391379 (checked 2026-09-27: "an unobstructed panoramic view of the
- * city of San Francisco from downtown to the Twin Peaks"), projectCity → (84.8, 751.7); the spot is the highest node
- * of the published walking graph next to it, (81.0, 749.0) at y 29.8 (the museum door's node: y 23.6), 18.4 u from
- * the attraction's arrival (99.4, 748.1). Radius 7: the panorama waits for the top, not the path half-way up.
+ * Where the view of a viewpoint is (attraction id → the spot), used when the attraction's arrival is more than 12 u
+ * from it. Corona Heights: the summit of Corona Heights Park, Wikipedia 37.7646522, −122.4391379 (checked 2026-09-27:
+ * "an unobstructed panoramic view of the city of San Francisco from downtown to the Twin Peaks"), projectCity → (84.8,
+ * 751.7); the spot is the highest node of the published walking graph next to it, (81.0, 749.0) at y 29.8 (the
+ * Randall Museum door's node: y 23.6, 18.4 u east). Lane P's ARRIVAL_OVERRIDES now put the arrival itself there (the
+ * same point), so today the arrival anchor carries the panorama; the spot keeps the view at the top if the arrival
+ * ever moves back to the door. Radius 7: the panorama waits for the top, not the path half-way up.
  */
 export const PANORAMA_SPOTS: Readonly<Record<string, { spot: string; x: number; z: number; radius: number; name: Bilingual }>> = {
   'corona-heights-randall-museum': { spot: 'summit', x: 81.0, z: 749.0, radius: 7, name: { zh: '科罗娜高地山顶', en: 'Corona Heights summit' } },
@@ -115,13 +119,16 @@ export const PANORAMA_SPOTS: Readonly<Record<string, { spot: string; x: number; 
  */
 export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAnchor[] {
   return attractions.filter(a => !a.offWalk).flatMap(a => {
-    const spot = a.panorama ? PANORAMA_SPOTS[a.id] : undefined;
+    const x0 = a.arrival?.x ?? a.x, z0 = a.arrival?.z ?? a.z;
+    // a spot of its own only when the arrival is not already at the view
+    const def = a.panorama ? PANORAMA_SPOTS[a.id] : undefined;
+    const spot = def && Math.hypot(def.x - x0, def.z - z0) > ARRIVAL_MIN_R ? def : undefined;
     const anchor: ArrivalAnchor = {
       attraction: a.id,
       place: a.placeId ?? a.id,
       rank: a.rank,
-      x: a.arrival?.x ?? a.x,
-      z: a.arrival?.z ?? a.z,
+      x: x0,
+      z: z0,
       name: a.name,
       ...(a.quiet ? { quiet: true } : {}),
       // a viewpoint with a spot of its own: the panorama plays there, not at the door

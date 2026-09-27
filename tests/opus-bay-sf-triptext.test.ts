@@ -6,14 +6,14 @@ import test from 'node:test';
 // tour line before the previous clip has finished, lane V's review item 4; once per stop, lane C's review O6).
 
 const text = await import('../src/opus-bay/game/tripText');
-const { timeLabel, timeParts, minutesLabel, tripDestination, arrivalToast, OFF_WALK_POINTS, PENDING_TIME } = text;
+const { timeLabel, timeParts, minutesLabel, arrivalToast, PENDING_TIME } = text;
 const pacerMod = await import('../src/opus-bay/game/linePacer');
 const { LinePacer, readSeconds, LINE_TTL, PACER_GAP, REPEAT_GAP, PACER_MAX } = pacerMod;
 const { tripTimeLabel } = await import('../src/opus-bay/game/tripPlan');
 const { tripSecondsLabel } = await import('../src/opus-bay/ui/tripRows');
 const { arrivalToastText, tripPillText } = await import('../src/opus-bay/ui/guideText');
-const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
-const { attractionTripEnd, freeLeadTrip } = await import('../src/opus-bay/game/trips');
+const { ATTRACTIONS, ARRIVAL_PLACES, tripDestination } = await import('../src/opus-bay/data/sf/attractions');
+const { freeLeadTrip } = await import('../src/opus-bay/game/trips');
 const { TOUR_VOICE_CLIPS } = await import('../src/opus-bay/data/sf/voiceTour');
 const lines = await import('../src/opus-bay/data/sf/tourLines');
 const { LOOP_STOP_LINES, CHAPTER_LINES, GRAND_CHAPTER_IDS, TOUR_LINES, sayLine, loopNarration } = lines;
@@ -80,34 +80,24 @@ test('timeLabel agrees with lane G\'s tripTimeLabel and lane P\'s tripSecondsLab
 // Where a trip ends: the islands
 // ---------------------------------------------------------------------------------------------------------------
 
-test('tripDestination: a trip "to Alcatraz" ends at 恶魔岛渡轮码头 · 33 号码头 and says so (lane G review O2)', () => {
+test('the island trips end at ONE named pier (lane P\'s ARRIVAL_PLACES / tripDestination, lane G review O2); the pill never says the island', () => {
+  // one source: lane P's tripDestination (game/tripText.ts has no island table of its own)
+  assert.equal('tripDestination' in text, false);
+  const off = ATTRACTIONS.filter(a => a.offWalk).map(a => a.id).sort();
+  assert.deepEqual(Object.keys(ARRIVAL_PLACES).sort(), off, 'every island has its pier');
   const alca = ATTRACTIONS.find(a => a.id === 'alcatraz')!;
   const d = tripDestination(alca);
-  assert.deepEqual(d.name, bi('恶魔岛渡轮码头 · 33 号码头', 'Pier 33 Alcatraz Landing'));
-  assert.deepEqual(d.short, bi('33 号码头', 'Pier 33'));
-  assert.ok(d.note && /望远镜/.test(d.note.zh));
-  // every island of lane P has its pier; every other attraction keeps its own name and short
-  const off = ATTRACTIONS.filter(a => a.offWalk).map(a => a.id).sort();
-  assert.deepEqual(Object.keys(OFF_WALK_POINTS).sort(), off);
-  for (const a of ATTRACTIONS.filter(x => !x.offWalk)) {
-    const n = tripDestination(a);
-    assert.equal(n.name, a.name);
-    assert.equal(n.short, a.short ?? null);
-    assert.equal(n.note, null);
-  }
-  // an attraction id with a pier but not off the walk (never happens today) keeps its name
-  assert.deepEqual(tripDestination({ id: 'alcatraz', name: bi('恶魔岛', 'Alcatraz') }).name, bi('恶魔岛', 'Alcatraz'));
-  // the pier names fit lane G's phone pill with the time: "下一站 33 号码头 · 约 4 分钟"
-  const end = attractionTripEnd(alca);
-  assert.deepEqual({ x: end.x, z: end.z }, { x: alca.arrival!.x, z: alca.arrival!.z }, 'the trip ends at the telescope');
-  assert.equal(end.place, alca.placeId);
-  const trip = freeLeadTrip({ x: end.x + 200, z: end.z }, end, 0);
+  assert.equal(d.name.zh, '恶魔岛渡轮码头 · 33 号码头');
+  assert.deepEqual({ x: d.x, z: d.z }, { x: alca.arrival!.x, z: alca.arrival!.z }, 'the trip ends at the telescope');
+  const trip = freeLeadTrip({ x: d.x + 200, z: d.z }, { x: d.x, z: d.z, place: d.placeId, name: d.name }, 0);
   assert.deepEqual(trip.legs[0].to.name, d.name, 'the leg carries the pier name');
-  const pill = tripPillText(trip, 240, { compact: true, destination: end.name, short: end.short });
-  assert.equal(pill.title.zh, '下一站 33 号码头');
-  assert.equal(pill.time.zh, '约 4 分钟');
-  // Treasure Island: the Pier 14 telescope
-  assert.deepEqual(tripDestination(ATTRACTIONS.find(a => a.id === 'treasure-island')!).short, bi('14 号码头', 'Pier 14'));
+  // lane G's pill: the desktop shows the whole name; a phone fits "下一站 恶魔岛渡轮…" + the time (Request to lane P:
+  // a short "33 号码头" for the phone pill); passing Attraction.short would say the island — never do that for islands
+  assert.equal(tripPillText(trip, 240, { destination: d.name }).title.zh, '下一站 恶魔岛渡轮码头 · 33 号码头');
+  assert.equal(tripPillText(trip, 240, { compact: true, destination: d.name }).title.zh, '下一站 恶魔岛渡轮…');
+  assert.equal(tripPillText(trip, 240, { compact: true, destination: d.name, short: alca.short }).title.zh, '下一站 恶魔岛', 'what not to pass');
+  assert.equal(tripPillText(trip, 240, { compact: true }).time.zh, timeLabel(240).zh, 'the pill time = the one time rule');
+  assert.equal(tripDestination(ATTRACTIONS.find(a => a.id === 'treasure-island')!).name.zh, '14 号码头');
 });
 
 test('arrivalToast: one wording for lane C\'s arrival beats and lane G\'s toast (review O8)', () => {

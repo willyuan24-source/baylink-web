@@ -97,27 +97,44 @@ test('arrival: islands you cannot walk to get no anchor (standing at the Pier 33
   assert.notEqual(hit?.anchor.attraction, 'alcatraz');
 });
 
-test('part 2 · Corona Heights: the arrival at the museum door, the panorama at the summit (either order)', async () => {
+test('part 2 · Corona Heights: the panorama plays at the summit, whether the arrival is the summit or the museum door', async () => {
   const { PANORAMA_SPOTS, decodeArrivalSeen } = arrival;
-  const anchors = arrivalAnchors(ATTRACTIONS);
   const id = 'corona-heights-randall-museum';
-  const door = anchors.find(a => a.attraction === id && !a.spot)!, top = anchors.find(a => a.attraction === id && a.spot)!;
+  const { projectCity } = await import('../src/opus-bay/core/geo');
+  const summit = projectCity(37.7646522, -122.4391379);
+  // the Randall Museum door: the attraction's arrival before lane P's override (99.4, 748.1), 1–3 u from Wikipedia's
+  // museum point 37.76439, −122.43813 (lane G's review O3)
+  const museum = { x: 99.4, z: 748.1 };
+  const wiki = projectCity(37.76439, -122.43813);
+  assert.ok(Math.hypot(museum.x - wiki.x, museum.z - wiki.z) < 5, 'the door is the museum');
+  const spot = PANORAMA_SPOTS[id];
+  assert.ok(Math.hypot(spot.x - summit.x, spot.z - summit.z) < 5, `the spot is at the summit (${summit.x.toFixed(1)}, ${summit.z.toFixed(1)})`);
+  assert.ok(spot.radius < ARRIVAL_MIN_R, 'the summit spot is small: the top, not the path');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const gi = await sfDisk().graphIndex();
+  const main = gi.mainComponent();
+  const nTop = gi.nearestNode(spot.x, spot.z, 3, i => gi.component(i) === main), nDoor = gi.nearestNode(museum.x, museum.z, 6, i => gi.component(i) === main);
+  assert.ok(nTop >= 0 && nDoor >= 0, 'both on the main walking graph');
+  assert.ok(gi.y(nTop) > gi.y(nDoor) + 4, `the summit is higher (${gi.y(nTop).toFixed(1)} vs ${gi.y(nDoor).toFixed(1)})`);
+
+  // today: lane P's ARRIVAL_OVERRIDES put the arrival on the summit, so the arrival anchor carries the panorama
+  const today = arrivalAnchors(ATTRACTIONS).filter(a => a.attraction === id);
+  assert.equal(today.length, 1, 'no separate spot while the arrival is the view');
+  assert.ok(Math.hypot(today[0].x - spot.x, today[0].z - spot.z) <= ARRIVAL_MIN_R, 'the arrival is at the summit');
+  assert.equal(today[0].panorama, true);
+  const wt = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS));
+  const bt = arrivalBeats(wt.step(sample(spot.x, spot.z, 0))!);
+  assert.ok(bt.toast && bt.panorama, 'moment + panorama at the summit');
+
+  // the arrival at the museum door (as before lane P's override): a door anchor without the panorama + the summit spot
+  const corona = ATTRACTIONS.find(a => a.id === id)!;
+  const anchors = arrivalAnchors([{ ...corona, arrival: { x: museum.x, z: museum.z } }]);
+  const door = anchors.find(a => !a.spot)!, top = anchors.find(a => a.spot)!;
   assert.ok(door && top, 'the door anchor and the summit spot');
   assert.equal(door.panorama, undefined, 'no panorama at the door');
   assert.equal(top.panorama, true);
   assert.equal(top.key, `${id}@summit`);
-  // the spot is the summit (Wikipedia 37.7646522, −122.4391379), on the walking graph, higher than the door
-  const { projectCity } = await import('../src/opus-bay/core/geo');
-  const summit = projectCity(37.7646522, -122.4391379);
-  assert.ok(Math.hypot(top.x - summit.x, top.z - summit.z) < 5, `the spot is at the summit (${summit.x.toFixed(1)}, ${summit.z.toFixed(1)})`);
   assert.ok(Math.hypot(top.x - door.x, top.z - door.z) > ARRIVAL_MIN_R + 4, 'the door\'s trigger stops well short of the summit');
-  assert.ok(PANORAMA_SPOTS[id].radius < ARRIVAL_MIN_R, 'the summit spot is small: the top, not the path');
-  const { sfDisk } = await import('./opus-bay-sf-disk');
-  const gi = await sfDisk().graphIndex();
-  const main = gi.mainComponent();
-  const nTop = gi.nearestNode(top.x, top.z, 3, i => gi.component(i) === main), nDoor = gi.nearestNode(door.x, door.z, 3, i => gi.component(i) === main);
-  assert.ok(nTop >= 0 && nDoor >= 0, 'both on the main walking graph');
-  assert.ok(gi.y(nTop) > gi.y(nDoor) + 4, `the summit is higher (${gi.y(nTop).toFixed(1)} vs ${gi.y(nDoor).toFixed(1)})`);
 
   // door first: the moment (no panorama); halfway up nothing; the summit: the panorama only
   const w = new ArrivalWatcher(anchors);
@@ -157,7 +174,7 @@ test('part 2 · Corona Heights: the arrival at the museum door, the panorama at 
   assert.deepEqual(decodeArrivalSeen('nope'), []);
   assert.equal(decodeArrivalSeen(Array.from({ length: 600 }, (_, i) => `p-${i}`)).length, arrival.ARRIVAL_SAVE_MAX);
   // the other viewpoints keep their panorama at the arrival spot
-  for (const a of anchors.filter(x => x.panorama && !x.spot)) assert.ok(!PANORAMA_SPOTS[a.attraction], a.attraction);
+  for (const a of arrivalAnchors(ATTRACTIONS).filter(x => x.panorama && x.attraction !== id)) assert.ok(!PANORAMA_SPOTS[a.attraction], a.attraction);
 });
 
 test('arrival lines: the built landmarks and the district places speak their card bark (not a silent moment)', async () => {
@@ -213,8 +230,10 @@ test('arrival beats: T1 on foot gets the reveal; T2 no reveal; T3 and later arri
 
 test('arrival anchors from lane P\'s ATTRACTIONS: arrival spot, place id, tone', () => {
   const anchors = arrivalAnchors(ATTRACTIONS);
-  // one anchor per attraction you can walk to, plus the panorama spots (Corona Heights' summit)
-  assert.equal(anchors.length, ATTRACTIONS.filter(a => !a.offWalk).length + Object.keys(arrival.PANORAMA_SPOTS).length);
+  // one anchor per attraction you can walk to, plus a panorama spot where the arrival is away from the view (none
+  // today: lane P put Corona Heights' arrival on its summit)
+  assert.equal(anchors.filter(a => !a.spot).length, ATTRACTIONS.filter(a => !a.offWalk).length);
+  assert.equal(anchors.filter(a => a.spot).length, 0);
   assert.equal(anchors.filter(a => !a.spot).length, new Set(anchors.map(a => a.attraction)).size, 'one arrival anchor per attraction');
   assert.equal(anchors.find(a => a.attraction === 'painted-ladies' || a.attraction === 'alamo-square-painted-ladies')!.landmark, 'painted-ladies');
   const stones = anchors.find(a => a.attraction === 'stonestown-galleria')!;

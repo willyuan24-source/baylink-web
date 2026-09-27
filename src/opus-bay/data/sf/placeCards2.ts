@@ -581,8 +581,9 @@ export const CURATED_CARDS: PlaceCard[] = [
   full({
     id: 'alcatraz',
     name: bi('恶魔岛', 'Alcatraz Island'), zone: bi('旧金山湾', 'San Francisco Bay'),
-    // the pier by its one name (game/tripText.ts OFF_WALK_POINTS; "Pier 33 Alcatraz Landing", alcatrazcitycruises.com)
-    bark: bi('那座岛就是恶魔岛！船从恶魔岛渡轮码头 · 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 Alcatraz Landing, not PIER 39.'),
+    // the pier by its one name (lane P's ARRIVAL_PLACES, where the trips end; "Pier 33 Alcatraz Landing",
+    // alcatrazcitycruises.com/plan-your-visit/directions, checked 2026-09-27)
+    bark: bi('那座岛就是恶魔岛！船从恶魔岛渡轮码头 · 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 (Alcatraz Landing), not PIER 39.'),
     summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，“所有部落的印第安人”在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
     hours: bi('按船票上的班次；国家公园管理局建议提前订票。', 'Follow the sailing on your ticket; the National Park Service advises booking ahead.'),
     cost: bi('不收入岛门票，但要买往返渡轮票（以官网为准）。', 'No entrance fee, but you need a round-trip ferry ticket (see the official site).'),
@@ -638,7 +639,7 @@ export const CURATED_CARDS: PlaceCard[] = [
     cost: bi('进码头免费，水族馆等项目另外收费。', 'Free to walk in; the aquarium and other attractions charge separately.'),
     tips: [
       bi('海狮不保证在家，看缘分。', 'The sea lions keep their own hours — no promises.'),
-      bi('去恶魔岛的船在恶魔岛渡轮码头 · 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33 Alcatraz Landing, not here.'),
+      bi('去恶魔岛的船在恶魔岛渡轮码头 · 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33 (Alcatraz Landing), not here.'),
     ],
     sourceUrl: 'https://en.wikipedia.org/wiki/Pier_39', sources: ['https://www.aquariumofthebay.org/'],
     lat: 37.8087, lng: -122.4098, photoKey: 'pier', guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',

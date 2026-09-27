@@ -1,12 +1,13 @@
 import type { Bilingual } from '../core/types';
 
 /**
- * Wave 4 · the ONE set of trip words (lane C, part 2; lane G's review O4, lane C's review O8, lane G's review O2).
- * Before this module three lanes wrote "约 N 分钟" three ways (lane G game/tripPlan.ts `tripTimeLabel` "~6s", lane P
- * ui/tripRows.ts `tripSecondsLabel` "~6 s" / "约 1 小时 5 分", lane C's tour texts "about 26 min"), two lanes wrote the
- * quiet arrival toast two ways (lane G "到了 · 名称", lane C the bare name) and every trip to Alcatraz said "步行到恶魔岛"
- * although it ends at the Pier 33 telescope. Every trip / tour / arrival text now comes from here; lanes G and P switch
- * at integration (docs/opus-bay/sf-w4-C.md "Early phase · part 2" → Integration).
+ * Wave 4 · the ONE set of trip words (lane C, part 2; lane G's review O4, lane C's review O8). Before this module
+ * three lanes wrote "约 N 分钟" three ways (lane G game/tripPlan.ts `tripTimeLabel` "~6s", lane P ui/tripRows.ts
+ * `tripSecondsLabel` "~6 s" / "约 1 小时 5 分", lane C's tour texts "about 26 min") and two lanes wrote the quiet arrival
+ * toast two ways (lane G "到了 · 名称", lane C the bare name). Every trip / tour / arrival time and toast now comes from
+ * here; lanes G and P switch at integration (docs/opus-bay/sf-w4-C.md "Early phase · part 2" → Integration). Where a
+ * trip to an island ends and what it is called (恶魔岛渡轮码头 · 33 号码头) has ONE source too: lane P's
+ * data/sf/attractions.ts `ARRIVAL_PLACES` / `tripDestination(a)` (lane G's review O2); lane C's cards use its names.
  *
  * LIGHT on purpose (types only, no data): lane G's ui/guideText.ts and lane P's ui/tripRows.ts sit in the eager graph
  * and will import it.
@@ -52,48 +53,6 @@ export function timeLabel(seconds: number, style: TimeStyle = 'compact'): Biling
 
 /** A duration given in minutes (tour chapters, the Grand Tour): the same rule. */
 export const minutesLabel = (minutes: number, style: TimeStyle = 'prose'): Bilingual => timeLabel(minutes * 60, style);
-
-// ---------------------------------------------------------------------------------------------------------------
-// Where a trip really ends: places you cannot walk to
-// ---------------------------------------------------------------------------------------------------------------
-
-export interface TripPointName {
-  /** the name of the point the trip really ends at (the pill, the trip rows, the waypoint label) */
-  name: Bilingual;
-  /** the short form for the phone pill (instead of Attraction.short, which names the island) */
-  short: Bilingual;
-  /** one line for the trip card / options sheet: why the trip ends here */
-  note: Bilingual;
-}
-
-/**
- * The islands (`Attraction.offWalk`, lane P data/sf/attractions.ts): their arrival spot is a telescope on the
- * waterfront, so a trip "to Alcatraz" is a trip to the ferry pier. Names checked 2026-09-27: Alcatraz ferries leave
- * only from "Pier 33 Alcatraz Landing" (alcatrazcitycruises.com/plan-your-visit/directions); the Treasure Island view
- * is the Pier 14 telescope (the island's own ferry leaves from the Ferry Building, Gate B: tisf.com/ferry).
- */
-export const OFF_WALK_POINTS: Readonly<Record<string, TripPointName>> = {
-  alcatraz: {
-    name: { zh: '恶魔岛渡轮码头 · 33 号码头', en: 'Pier 33 Alcatraz Landing' },
-    short: { zh: '33 号码头', en: 'Pier 33' },
-    note: { zh: '上岛要坐船；游戏里在码头的望远镜看岛', en: 'The island is a boat ride away: look at it through the pier telescope' },
-  },
-  'treasure-island': {
-    name: { zh: '14 号码头 · 看金银岛', en: 'Pier 14 · Treasure Island view' },
-    short: { zh: '14 号码头', en: 'Pier 14' },
-    note: { zh: '金银岛要坐渡轮；游戏里在码头的望远镜看它', en: 'Treasure Island is a ferry ride away: look at it through the pier telescope' },
-  },
-};
-
-/**
- * The name a trip to an attraction shows (lane G's pill `destination` / `short`, lane P's rows, the waypoint): the
- * attraction's own name, or for an island the pier the trip really ends at. `offWalk` = Attraction.offWalk.
- */
-export function tripDestination(a: { id: string; name: Bilingual; short?: Bilingual; offWalk?: string }): { name: Bilingual; short: Bilingual | null; note: Bilingual | null } {
-  const pier = a.offWalk ? OFF_WALK_POINTS[a.id] : undefined;
-  if (pier) return { name: pier.name, short: pier.short, note: pier.note };
-  return { name: a.name, short: a.short ?? null, note: null };
-}
 
 // ---------------------------------------------------------------------------------------------------------------
 // The arrival toast (lane G shows it; lane C's arrival beats carry it)

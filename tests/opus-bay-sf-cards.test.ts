@@ -243,12 +243,15 @@ test('the famous curated places get full cards too (Alcatraz, Golden Gate Park, 
     if (c.hours && /\d/.test(c.hours.zh)) assert.match(c.hours.zh, /约|官网|确认|现场/, `${c.id} hours are hedged`);
     if (c.cost && /\d/.test(c.cost.zh)) assert.match(c.cost.zh, /约|官网|现场|确认/, `${c.id} a price is hedged`);
   }
-  // the Alcatraz card and the PIER 39 tip name the pier by its one name (game/tripText.ts OFF_WALK_POINTS)
-  const { OFF_WALK_POINTS } = await import('../src/opus-bay/game/tripText');
-  const pier = OFF_WALK_POINTS.alcatraz.name;
+  // the Alcatraz card and the PIER 39 tip name the pier by its one name (lane P's ARRIVAL_PLACES: where the trips end)
+  const { ARRIVAL_PLACES } = await import('../src/opus-bay/data/sf/attractions');
+  const pier = ARRIVAL_PLACES.alcatraz.name;
+  const pierEn = /Pier 33 \(Alcatraz Landing\)/;
+  assert.equal(pier.zh, '恶魔岛渡轮码头 · 33 号码头');
   assert.ok(byIdCurated('alcatraz').bark.zh.includes(pier.zh), 'Alcatraz bark: 恶魔岛渡轮码头 · 33 号码头');
-  assert.ok(byIdCurated('alcatraz').bark.en.includes(pier.en));
-  assert.ok(byIdCurated('pier-39').tips.some(t => t.zh.includes(pier.zh) && t.en.includes(pier.en)), 'PIER 39: the Alcatraz boats leave from Pier 33');
+  assert.match(byIdCurated('alcatraz').bark.en, pierEn);
+  assert.ok(byIdCurated('pier-39').tips.some(t => t.zh.includes(pier.zh) && pierEn.test(t.en)), 'PIER 39: the Alcatraz boats leave from Pier 33');
+  assert.ok(byIdCurated('treasure-island').tips.some(t => t.zh.includes(ARRIVAL_PLACES['treasure-island'].name.zh)), 'Treasure Island: the Pier 14 telescope');
   // no card calls the Alcatraz pier anything else ("33 号码头" appears only inside the full name)
   for (const c of [...CARDS, ...CURATED_CARDS]) for (const b of [c.bark, c.summary, ...c.tips]) {
     if (b.zh.includes('33 号码头')) assert.ok(b.zh.includes(pier.zh) || /游戏里/.test(b.zh), `${c.id}: the Alcatraz pier by its full name (${b.zh})`);
