@@ -16,7 +16,7 @@ import { CameraController, chooseYaw, heroPoints, loadCityViews, yawCandidates, 
 import { RideCamera } from '../src/opus-bay/actors/cameraModes';
 import { zoneFrame } from '../src/opus-bay/actors/cityViews';
 import { VIEW_DIRS, VIEW_EYE, bestDir, preferredCameraYaw, preferredViewDir, resetViewField, viewScores, type ViewWorld } from '../src/opus-bay/actors/viewField';
-import { view } from '../src/opus-bay/actors/view';
+import { rideables, view } from '../src/opus-bay/actors/view';
 import { GLIDE, GlideSim, NO_GLIDE_INPUT, TallHash, terrainGlideWorld } from '../src/opus-bay/actors/glide';
 import { LiveTall, bayBridgeTall } from '../src/opus-bay/actors/glideTall';
 import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
@@ -25,6 +25,10 @@ import { PELICAN_SEATS, buildPelicanRig } from '../src/opus-bay/actors/vehicles/
 import { Pelican } from '../src/opus-bay/actors/vehicles/pelican';
 import { characterMaterial } from '../src/opus-bay/actors/models';
 import { startTravel, stepTravel, travelActive, travelPose } from '../src/opus-bay/game/fastTravel';
+import { CITY_BENCHES, CITY_BIKE_SPOTS } from '../src/opus-bay/data/sf/rideSpots';
+import { PARK_R, POOL_SIZE } from '../src/opus-bay/actors/vehicles/cityBikes';
+import { pickExitSlot } from '../src/opus-bay/actors/modes';
+import { buildInteractables } from '../src/opus-bay/game/interactables';
 import { PlayerController } from '../src/opus-bay/actors/controller';
 import { GuideMover } from '../src/opus-bay/actors/guide';
 import { arrivalSpot, graphNodeFilter, setWalkGraph } from '../src/opus-bay/actors/nav';
@@ -32,7 +36,7 @@ import { isLongRoute } from '../src/opus-bay/actors/routeFollow';
 import { MoveSystem } from '../src/opus-bay/actors/moveSystem';
 import * as moveApi from '../src/opus-bay/actors/moveApi';
 import { NO_DRIVE, PENDING_SPEED, TERRAIN_WORLD, VehicleSim, poseCheck, type DriveInput, type StepReport, type VehicleWorld } from '../src/opus-bay/actors/vehicles/collide';
-import { BIKE_SPEC } from '../src/opus-bay/actors/vehicles/bike';
+import { BIKE_LENGTH, BIKE_SPEC, BIKE_WIDTH } from '../src/opus-bay/actors/vehicles/bike';
 import { CAR_SPEC } from '../src/opus-bay/actors/vehicles/toyCar';
 import { BIKE_PURSUIT, CAR_PURSUIT, PursuitDriver, cornerCap } from '../src/opus-bay/actors/vehicles/autopilot';
 import { DRIVE_EDGES, driveRoute, drivableAt, findDrivePath } from '../src/opus-bay/actors/vehicles/driveRoute';
@@ -838,4 +842,77 @@ test('E2-8 the ride pelican flaps and banks with its bones; G1 request 1: fast t
     assert.equal(ms.rider.active, false, 'on foot again');
     assert.ok(Math.hypot(runtime.player.x - dest.x, runtime.player.z - dest.z) < 8, 'at the destination');
   } finally { moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
+});
+
+// ---------------------------------------------------------------------------
+// Wave 3, part b: city bike racks and benches (E2-12)
+// ---------------------------------------------------------------------------
+
+test('E2-12 generated ride spots: every city rack bike fits with a clear door slot, every bench has standable ground in front (ids unique)', async () => {
+  const city = createCityTerrain(sf.manifest, { landmarks: LMS });
+  city.setFar(await sf.far());
+  await sf.attachAll(city, LMS);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    assert.ok(CITY_BIKE_SPOTS.length >= 20 && CITY_BENCHES.length >= 100, `${CITY_BIKE_SPOTS.length} racks, ${CITY_BENCHES.length} benches`);
+    assert.equal(new Set([...CITY_BIKE_SPOTS, ...CITY_BENCHES].map(s => s.id)).size, CITY_BIKE_SPOTS.length + CITY_BENCHES.length);
+    const slots = { canStand, heightAt };
+    for (const s of CITY_BIKE_SPOTS) {
+      assert.ok(poseCheck(TERRAIN_WORLD, BIKE_SPEC, s.x, s.z, s.heading).ok, `${s.id} fits`);
+      assert.ok(pickExitSlot(slots, { x: s.x, z: s.z, y: heightAt(s.x, s.z), heading: s.heading }, BIKE_WIDTH, BIKE_LENGTH), `${s.id} door slot`);
+    }
+    for (const b of CITY_BENCHES) assert.ok(canStand(b.x + Math.sin(b.heading) * 1.1, b.z + Math.cos(b.heading) * 1.1, 0.45), `${b.id} front`);
+  } finally { setCityTerrain(null); }
+});
+
+test('E2-12 city bike pool: ≤ 4 bikes parked at the racks near the player, recycled beyond 160 u (never the one being ridden); rideables keyed by id; benches to sit on', async () => {
+  const near = (a: { x: number; z: number }, r: number) => CITY_BIKE_SPOTS.filter(s => Math.hypot(s.x - a.x, s.z - a.z) < r);
+  const A = [...CITY_BIKE_SPOTS].sort((a, b) => near(b, PARK_R).length - near(a, PARK_R).length)[0];
+  const B = CITY_BIKE_SPOTS.find(s => Math.hypot(s.x - A.x, s.z - A.z) > 450)!;
+  const bench = [...CITY_BENCHES].sort((a, b) => Math.hypot(a.x - B.x, a.z - B.z) - Math.hypot(b.x - B.x, b.z - B.z))[0];
+  await cityAround([A, B, bench], 140);
+  game.set({ phase: 'playing', worldMode: 'city' });
+  const ms = new MoveSystem();
+  moveApi.bindMoveApi(ms);
+  const c = new PlayerController();
+  const run = async (s: number) => { for (let t = 0; t < s; t += 0.1) { ms.update(0.1, t, moveEnv(c)); ms.syncRideables(); await tick(); } };
+  try {
+    resetPlayer(nearestWalkable(A, 10)!);
+    c.sync();
+    await run(1.5);
+    assert.ok(ms.cityBikes, 'the pool loaded (city mode)');
+    const wantA = near(A, PARK_R).sort((a, b) => Math.hypot(a.x - A.x, a.z - A.z) - Math.hypot(b.x - A.x, b.z - A.z)).slice(0, POOL_SIZE).map(s => s.id);
+    const pooled = () => ms.cityBikes!.rides.map(r => r.id).sort();
+    assert.deepEqual(pooled(), [...wantA].sort(), 'the racks nearest the player have their bikes');
+    assert.ok(ms.cityBikes!.rides.length <= POOL_SIZE);
+    for (const id of wantA) {
+      const r = ms.fleet.byId(id)!, spot = CITY_BIKE_SPOTS.find(s => s.id === id)!;
+      assert.ok(Math.hypot(r.sim.x - spot.x, r.sim.z - spot.z) < 0.05, `${id} at its rack`);
+      assert.ok(rideables.some(v => v.id === id && v.free), `${id} rideable`);
+    }
+    const items = buildInteractables();
+    assert.ok(wantA.every(id => items.some(it => it.id === `ride:${id}`)) && items.some(it => it.id === CITY_BENCHES[0].id), 'offered as interactables');
+    // the player keeps one (occupied), walks to the far rack B: the others move there, the kept one stays
+    const kept = ms.cityBikes!.rides[0];
+    const keptId = kept.id;
+    kept.occupied = true;
+    resetPlayer(nearestWalkable(B, 10)!);
+    c.sync();
+    await run(1.5);
+    assert.equal(kept.id, keptId, 'the ridden bike is never recycled');
+    const wantB = near(B, PARK_R).sort((a, b) => Math.hypot(a.x - B.x, a.z - B.z) - Math.hypot(b.x - B.x, b.z - B.z)).slice(0, POOL_SIZE - 1).map(s => s.id);
+    for (const id of wantB) assert.ok(ms.fleet.byId(id), `${id} now has a bike`);
+    assert.ok(ms.cityBikes!.moves >= Math.min(wantB.length, POOL_SIZE - 1) - (ms.cityBikes!.rides.length - wantA.length));
+    assert.deepEqual(rideables.map(v => v.id), ms.fleet.rides.map(r => r.id), 'rideables follow the ids');
+    kept.occupied = false;
+    // a city bench: sit and stand up again
+    assert.ok(ms.seats.some(s => s.id === bench.id));
+    resetPlayer({ x: bench.x + Math.sin(bench.heading) * 1.1, z: bench.z + Math.cos(bench.heading) * 1.1 });
+    c.sync();
+    await run(0.2);
+    ms.onInteract(bench.id, c);
+    await run(1.2);
+    assert.equal(ms.mode, 'sit');
+    assert.ok(Math.abs(ms.rider.y - (heightAt(bench.x, bench.z) + bench.y + 0.22)) < 0.05, 'on the seat');
+  } finally { moveApi.bindMoveApi(null); ms.dispose(); setCityTerrain(null); game.set({ phase: 'title', worldMode: 'district' }); }
 });

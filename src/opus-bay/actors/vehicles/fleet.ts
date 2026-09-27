@@ -54,23 +54,37 @@ export class Fleet {
 
   constructor() {
     this.group.name = 'opus-rides';
-    for (const spot of vehicleSpots()) {
-      const car = spot.kind === 'car';
-      const sim = new VehicleSim(car ? CAR_SPEC : BIKE_SPEC);
-      sim.place(spot.x, spot.z, spot.heading, TERRAIN_WORLD);
-      const rig = car ? buildToyCarRig() : buildBikeRig(spot.livery ?? 0);
-      rig.mesh.name = `ride-${spot.id}`;
-      rig.mesh.castShadow = true;
-      if (car) for (const w of ['wheelFL', 'wheelFR']) rig.bones[w].rotation.order = 'YXZ';
-      this.group.add(rig.mesh);
-      const ride: Ride = {
-        id: spot.id, kind: spot.kind, spot, sim, rig, width: car ? CAR_WIDTH : BIKE_WIDTH, length: car ? CAR_LENGTH : BIKE_LENGTH,
-        occupied: false, displaced: false, spin: 0, crank: 0, squash: 0, squashV: 0, lean: 0, roll: 0, pitch: sim.terrainPitch,
-        standing: false, call: null, dirty: true,
-      };
-      this.rides.push(ride);
-      this.pose(ride, 0);
-    }
+    for (const spot of vehicleSpots()) this.add(spot);
+  }
+
+  /** Build a rideable at `spot` (the district's at construction; city mode's pooled bikes later, cityBikes.ts). */
+  add(spot: VehicleSpot): Ride {
+    const car = spot.kind === 'car';
+    const sim = new VehicleSim(car ? CAR_SPEC : BIKE_SPEC);
+    sim.place(spot.x, spot.z, spot.heading, TERRAIN_WORLD);
+    const rig = car ? buildToyCarRig() : buildBikeRig(spot.livery ?? 0);
+    rig.mesh.name = `ride-${spot.id}`;
+    rig.mesh.castShadow = true;
+    if (car) for (const w of ['wheelFL', 'wheelFR']) rig.bones[w].rotation.order = 'YXZ';
+    this.group.add(rig.mesh);
+    const ride: Ride = {
+      id: spot.id, kind: spot.kind, spot, sim, rig, width: car ? CAR_WIDTH : BIKE_WIDTH, length: car ? CAR_LENGTH : BIKE_LENGTH,
+      occupied: false, displaced: false, spin: 0, crank: 0, squash: 0, squashV: 0, lean: 0, roll: 0, pitch: sim.terrainPitch,
+      standing: false, call: null, dirty: true,
+    };
+    this.rides.push(ride);
+    this.pose(ride, 0);
+    return ride;
+  }
+
+  /** A pooled ride moves to another spot (and takes its id): parked there, at rest. */
+  reassign(ride: Ride, spot: VehicleSpot) {
+    ride.id = spot.id;
+    ride.spot = spot;
+    ride.rig.mesh.name = `ride-${spot.id}`;
+    ride.sim.v = 0;
+    this.home(ride);
+    this.pose(ride, 0);
   }
 
   byId(id: string | null): Ride | undefined { return id ? this.rides.find(r => r.id === id) : undefined; }

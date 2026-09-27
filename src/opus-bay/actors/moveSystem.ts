@@ -26,6 +26,7 @@ import { driveRoute } from './vehicles/driveRoute';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
+import type { CityBikePool } from './vehicles/cityBikes';
 import { notifyGlide, type FleetSnapshot } from './moveApi';
 import { collectObstacles, residents, rideables } from './view';
 
@@ -176,6 +177,11 @@ export class MoveSystem {
   driveFails = 0;
   /** save v2: a fleet restore waiting for its ground to stream in */
   private restoreWait: { snap: FleetSnapshot; t: number } | null = null;
+  /** city mode (E2-12): the pooled bikes at the racks near the player and the city benches (vehicles/cityBikes.ts, lazy) */
+  cityBikes: CityBikePool | null = null;
+  private cityBikesLoad: Promise<unknown> | null = null;
+  private frustum: THREE.Frustum | null = null;
+  private readonly seenRide = (r: Ride) => !!this.frustum?.intersectsSphere(tmpS.set(tmpV.set(r.sim.x, r.sim.y + 0.5, r.sim.z), 1.4));
 
   constructor() {
     this.root.name = 'opus-move';
@@ -429,6 +435,16 @@ export class MoveSystem {
     // the autopilot only drives a steady ride (F to get off, R, a teleport … hand control back)
     if ((this.auto || this.autoToken) && (!(m.mode === 'bike' || m.mode === 'car') || m.phase !== 'steady' || !this.ride)) this.cancelDrive(m.mode !== 'bike' && m.mode !== 'car');
     if (this.restoreWait) { this.restoreWait.t += dt; if (this.restoreWait.t > 60 || this.tryRestore(this.restoreWait.snap)) this.restoreWait = null; }
+    // city racks and benches (E2-12): park the pooled bikes near the player, recycle the far ones
+    this.frustum = env.frustum;
+    if (s.worldMode === 'city') {
+      this.cityBikesLoad ??= import('./vehicles/cityBikes').then(mod => {
+        this.cityBikes = new mod.CityBikePool(this.fleet);
+        this.seats.push(...mod.cityBenchSeats());
+        this.cityBikes.register();
+      }, () => { this.cityBikesLoad = null; });
+      if (this.cityBikes?.update(dt, p, this.seenRide)) this.publishRideables();
+    }
 
     // --- advance the vehicles / glide
     const ride = this.ride;
@@ -613,7 +629,12 @@ export class MoveSystem {
       r.displaced = true; r.dirty = true;
       return true;
     };
-    const bike = snap.bike && typeof snap.bike.id === 'string' ? this.fleet.rides.find(r => r.kind === 'bike' && r.id === snap.bike!.id) : undefined;
+    let bike = snap.bike && typeof snap.bike.id === 'string' ? this.fleet.rides.find(r => r.kind === 'bike' && r.id === snap.bike!.id) : undefined;
+    // a city rack's bike (E2-12): the pool puts one there first (the pool loads with the city: wait for it)
+    if (!bike && snap.bike && typeof snap.bike.id === 'string' && snap.bike.id.startsWith('city-bike-') && game.get().worldMode === 'city') {
+      if (!this.cityBikes) waiting = true;
+      else bike = this.cityBikes.claim(snap.bike.id, this.seenRide, runtime.player) ?? undefined;
+    }
     const car = this.fleet.rides.find(r => r.kind === 'car');
     const placedCar = put(car, snap.car);
     const placedBike = put(bike, snap.bike);
@@ -1208,16 +1229,22 @@ export class MoveSystem {
     for (const r of this.fleet.rides) rideables.push({ id: r.id, kind: r.kind, x: r.sim.x, z: r.sim.z, free: !r.occupied && !r.call });
   }
 
-  /** Keep the rideables list fresh while vehicles move (cheap; ~6 entries). */
+  /**
+   * Keep the rideables list fresh while vehicles move (cheap; ~10 entries). Keyed by id (E2-12): a pooled city bike that
+   * moved to another rack changed its id, and the list is published again.
+   */
   syncRideables() {
-    for (let i = 0; i < this.fleet.rides.length; i++) {
-      const r = this.fleet.rides[i], o = rideables[i];
-      if (!o) { this.publishRideables(); return; }
+    const rides = this.fleet.rides;
+    if (rideables.length !== rides.length) { this.publishRideables(); return; }
+    for (let i = 0; i < rides.length; i++) {
+      const r = rides[i], o = rideables[i];
+      if (o.id !== r.id) { this.publishRideables(); return; }
       o.x = r.sim.x; o.z = r.sim.z; o.free = !r.occupied && !r.call;
     }
   }
 
   dispose() {
+    this.cityBikes?.dispose();
     this.fleet.dispose();
     this.pelican.dispose();
     platformRider.platform = null;
