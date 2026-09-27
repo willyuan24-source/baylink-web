@@ -9,7 +9,7 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 
 1. 三条新线的数据做好并推上去了：**观光巴士环线**（16 站，一圈约 15 分钟，避开了 JFK 步行大道、日落沙丘和双峰北口这些禁止开车的路）、**N 线**（1,569 u，市场街地铁 → 杜博斯隧道口 → 日落隧道 → 海洋海滩）、**M 线**（1,988 u，一条隧道直到西门 → 石镇 → 州立大学 → Balboa Park）。每个站都有固定编号和中文名，其他组已经可以用。
 2. 巴士和地铁的"行车模拟"写好了：每站停靠、等你上车、**15 秒内一定有车来**、地铁在地下用 25 u/s 快速跑、到隧道口先等地面画面加载好再钻出来（最多等 8 秒）；测试里连续跑 10 分钟，没有一次撞车或卡死。
-3. 敞篷双层小巴士（约 1,060 个三角形）、两节小电车（每节约 400）、站牌、市场街地铁口、地面站台、4 个隧道口（日落隧道西口做成"地标级"）、"地铁隧道动画"界面和一套合成音效都做好了；三条线合起来最多只多 3 次绘制 + 1 次阴影，最挤的画面约 7.7k 三角形。截图在 `docs/opus-bay/qa/w4/T/`。
+3. 敞篷双层小巴士（约 1,060 个三角形）、两节小电车（每节约 400）、站牌、市场街地铁口、地面站台、4 个隧道口（日落隧道西口做成"地标级"）、"地铁隧道动画"界面和一套合成音效都做好了；三条线合起来最多只多 3 次绘制 + 1 次阴影，最挤的画面约 7.5k 三角形；66 个站牌 / 地铁口都按城市实际的房子和马路摆放，没有一个插进房子或占到马路上。截图在 `docs/opus-bay/qa/w4/T/`。
 4. 这些还没接进游戏（第三波还没验收）。等"接线"阶段按下面的步骤接上，就能在游戏里坐。
 
 进度（2026-09-27）：早期阶段的 T1–T3、T5–T8、T11（界面部分）、T13 已完成并推送；接线类任务（T4、T9、T10、T11 接线、T12、T14 实测）等第三波验收后做。
@@ -19,18 +19,19 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 | file | what | API (the integration surface) |
 |---|---|---|
 | `src/opus-bay/data/sf/stationNames.ts` | stable ids + names: 3 line metas, 16 loop stops (`loop-*`), 50 Muni Metro stations (`muni-*`, English sign name + zh gloss, `major`, `underground`), stop → attraction ids (checked against lane P's `ATTRACTIONS` by a test), tunnel names + one checked fact each, the 4 portal names | `LOOP_STOPS`, `METRO_STATIONS`, `STOP_ATTRACTIONS`, `TUNNELS`, `PORTAL_NAMES`, `W4_LINES`, `w4StationName(id)`, `stationAttractions(id)`, `metroStation(id)`, `metroStationForOsm(name)` |
-| `scripts/opus-sf/lib/metro.ts` (W4-T1) | N (OSM 3435877, cut at Embarcadero) and M (3433314): chained track, tunnel spans from the way tags (merged over < 6 u gaps), named portals, underground heights (under the street, never above the chord between the mouths, a 0.12 dive under each mouth, ≥ −20 u), kiosks (Market St NW sidewalk, Castro at Harvey Milk Plaza), surface stops moved out of the mouths, terminus turning loops trimmed (N 11 u, M 40 u) | `buildMetroLines(terrain, log)` |
+| `scripts/opus-sf/lib/metro.ts` (W4-T1) | N (OSM 3435877, cut at Embarcadero) and M (3433314): chained track, tunnel spans from the way tags (merged over < 6 u gaps), named portals, underground heights (a 0.25 u/u dive for 16 u behind each mouth, then under the street and a train height under the chord between the mouths — never over the hills; ≥ −20 u), the Duboce mouth moved 8 u out into the Duboce Ave median, surface stops moved out of the mouths, terminus turning loops trimmed (N 11 u, M 40 u) | `buildMetroLines(terrain, log)` |
 | `scripts/opus-sf/lib/busLoop.ts` (W4-T2) | the 16-stop loop on the car-legal OSM graph with the plan-R8 exclusions (JFK 23 ways, Upper Great Highway south of Lincoln 23, Twin Peaks north 8), a cycle DP over stop candidates (no Chula Lane jog), right-hand lanes, a teardrop at the Twin Peaks spur, fillets, near-side stops, the hand-made hero Embarcadero (south lanes d −19.35 → U-turn at st 44 → bayside north lanes d −7.2 past the F platforms; poles on the promenade kerb at st 64 / 344), speed spans | `bakeLoop(terrain, log)` → `{ line, speeds, poles, report }` |
 | `scripts/opus-sf/lib/lineGeom.ts` | polyline helpers (height-aware Douglas–Peucker, densify, fillets …) | — |
-| `scripts/opus-sf/transit-sidecar.ts` (W4-T3) | deterministic rebuild; wave-2 lines copied byte for byte; `checkW4Lines` = the frozen sf-data rules + `transitLineProblems` | `--out <dir>` (scratch), `--write-w4` (the new `public/opus-bay/sf/v1/transit-w4.json`), `--publish` (transit.json, integration only) |
+| `scripts/opus-sf/lib/stopPlace.ts` | where a pole / kiosk can stand in the built city: distances to building footprints and car-road edges from the published chunks (`public/opus-bay/sf/v1/c`) + the hero's lots / roadways | `Clearance(chunkDir)`: `prepare(points)`, `building(x, z)`, `road(x, z)`; `placePole(...)`, `placeKiosk(...)` |
+| `scripts/opus-sf/transit-sidecar.ts` (W4-T3) | deterministic rebuild (≈ 2 min: the kiosk search); wave-2 lines copied byte for byte; every stop prop placed on the built city (loop poles just outside the road right of the bus, surface Metro poles outside the road ≥ 2.7 u from the track, kiosks on a free patch of sidewalk / plaza ≤ 30 u from the station, 48 u at Montgomery); `checkW4Lines` = the frozen sf-data rules + `transitLineProblems` | `--out <dir>` (scratch), `--write-w4` (the new `public/opus-bay/sf/v1/transit-w4.json`), `--publish` (transit.json, integration only) |
 | `public/opus-bay/sf/v1/transit-w4.json` | the three lines (53 KB raw); the loop carries `speeds: [fromAt, toAt, u/s][]` | read by the tests and the QA harness only |
 | `src/opus-bay/world/lineTrack.ts` | pure track: arc tables (loops wrap), 1 u speed-limit profile (cruise spans, curve limit, 25 u/s deep underground with the tunnel accel, smoothed), time table, `proximitySpans` | `buildLineTrack`, `trackPoint`, `limitAt`, `arcAhead`, `runSeconds`, `tunnelOf`, `normArc`, `proximitySpans` |
 | `src/opus-bay/world/busSystem.ts` (W4-T5) | pure bus sim, the CableSystem rider / platform API | `BusSystem(track, { groundY, visible, viewer, boxes })`: `request({ line, station, to })`, `board()`, `cancel()`, `rideStatus()` (`BusRideStatus` = RideStatus + `nextStop`, `nextEta`), `riderCarOf(line)`, `requestNextStop()`, `occupies(boxId)`, `eta()`, `rideSeconds(from, to)`, `step(dt)`, `events`, `violations()`; `busTrack(line)`, `BUS` |
 | `src/opus-bay/world/lightRail.ts` (W4-T6) | pure LRV sim (N + M in one system) | `LightRailSystem(tracks, { groundY, visible, viewer, portalReady })`: same rider API with `dir`; `RailRideStatus` adds `underground`, `tunnel`, `at`, `dir`, `portalWait`; `leadCar(train)`, `rideSeconds(line, from, to)`, `nextStop(train)`; events incl. `portal-in` / `portal-out`; `railTrack(line)`, `LRV`, `TRAIN_LENGTH`, `stopPos` |
 | `src/opus-bay/world/sf/tourBus.ts` (W4-T7) | toy open-top double-decker (1,060 tris; far 132), night lamps (head / tail, deck bulbs, warm lower-deck windows) | `tourBusGeometry()`, `tourBusFarGeometry()`, `TOUR_BUS_PLATFORM` (upper deck: front-bench seats, rail spot, aisle + front standing room), `TOUR_BUS_SPOTS` (BAYBAY's seat, the lower-deck spot) |
 | `src/opus-bay/world/sf/lrv.ts` (W4-T7) | toy LRV car (396 tris; far 96), headsign in the line colour, lamps | `lrvCarGeometry(color)`, `lrvCarFarGeometry(color)`, `LRV_PLATFORM` |
-| `src/opus-bay/world/sf/stations.ts` (W4-T8) | loop poles (coral ring roundel, 200 tris), Market St kiosks (276), surface stops with an island clear of passing trains (80 / 112) | `stationProps(lines, groundY)`, `busPoleGeometry`, `kioskGeometry`, `railStopGeometry`, `stationGeometryKey`, `RAIL_POLE_OFFSET` |
-| `src/opus-bay/world/sf/portals.ts` (W4-T8) | Duboce (168 tris), Sunset east (180), Sunset west — landmark quality (324), West Portal (244): concrete hood over the first 14 u, dark inside | `portalPlacements(metroLines)`, `portalGeometry(id)`, `portalBlockers(p)`, `HOOD` |
+| `src/opus-bay/world/sf/stations.ts` (W4-T8) | loop poles (coral ring roundel, 200 tris), Market St kiosks (2.2 × 3.0 u, 276), surface Metro stop poles with line bands (68 / 100; the toy streets leave no room for islands), all at the stop's x, z | `stationProps(lines, groundY)`, `busPoleGeometry`, `kioskGeometry`, `railStopGeometry`, `stationGeometryKey`, `RAIL_POLE_OFFSET` |
+| `src/opus-bay/world/sf/portals.ts` (W4-T8) | Duboce (168 tris), Sunset east (180), Sunset west — landmark quality (324), West Portal (196): a one-track concrete hood (4.9 u wide) over the first 6.5–12.5 u (per mouth: beyond it a diving train is under the terrain), dark inside, wing walls except at West Portal | `portalPlacements(metroLines)`, `portalGeometry(id)`, `portalBlockers(p)`, `HOOD`, `HOOD_LENGTH`, `WING_LENGTH` |
 | `src/opus-bay/world/sf/lineFleet.ts` | the three.js layer: both systems, `near` / `far` vehicle BatchedMeshes + one props BatchedMesh, own material instances, warm-up `w4-lines`, platforms, `transit` game events | `new LineFleet({ loop, metro }, opts)`, `.update(dt, cam, player)`, `.onPortal(fn)`, `.riderTrain()`, `.stats()`, `.dispose()`, `.group`; `busInterlocks(busTrack, otherLines, blockedBy)`, `makeFleetMaterial`, `FAR_LOD`, `HIDE_BEYOND` |
 | `src/opus-bay/game/lineChoices.ts` (W4-T9/T10 pure part) | boarding choices (loop: next 3 stops + 坐一圈 + 看线路图 + 先不坐; Metro: next each way, termini, ★ stops beyond the current tunnel first, ≤ 6 on phones; pre-filled trip row) and the ride banner text | `lineChoices(line, from, { rideSeconds, max, to })`, `lineRideLabel(line, status, destination)` |
 | `src/opus-bay/ui/SubwayOverlay.tsx` + `ui/subwayStrip.ts` + `ui/transit-ui.css` (W4-T11 UI) | the dark tunnel layer, lamp streaks (still under reduced motion), the line strip (labels never overlap at 375 / 390 / 1440 px), next stop + seconds, the tunnel fact, 在这站下车 / 隧道里不能下车 / 马上出隧道… | `<SubwayOverlay visible line destination tunnel stations at dir moving stopped next portalWait onAlight />`, `stripLayout()` |
@@ -47,9 +48,15 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   byte-identical to the published ones (asserted in the sidecar).
 - **Data** (sidecar report): loop **6,501.5 u** (OSM route 6,399.8 u + lanes / fillets; plan 6,522 ± 20 %), 16 stops;
   1,170 u at 9 u/s (residential / grade > 0.12); 7 stops moved near-side off corners (Twin Peaks 29.8 u below the
-  teardrop: BAYBAY leads the rest, plan R4). N **1,569.1 u**, 28 stations, tunnels [0, 516.1] (Duboce) and
+  teardrop: BAYBAY leads the rest, plan R4). N **1,569.1 u**, 28 stations, tunnels [0, 524.1] (Duboce) and
   [606.7, 787.0] (Sunset Tunnel, 180 u ≈ 1,290 m real); M **1,987.7 u**, 27 stations, tunnel [0, 1,164.2] (8 stations)
-  to West Portal. Both pass `transitLineProblems` and `checkW4Lines`.
+  to West Portal. Both pass `transitLineProblems` and `checkW4Lines`. Mouth heights: the track drops 3–4 u within 16 u
+  behind each mouth (Duboce 7.4 → 3.6, Sunset east 12.6 → 9.5, Sunset west 21.6 → 16.7, West Portal 24.0 → 20.4).
+- **Props on the built city** (a scratch checker against the chunk buildings / car roads, the same data the game draws):
+  before the placement pass 54 of 66 props stood in a building or a roadway; after it **0 / 66**. Moves over 8 u:
+  Montgomery kiosk 32.6 u (downtown has no free sidewalk closer), Church kiosk 20.3 u, Castro 8.9 u, Duboce & Church
+  11.7 u, Judah & Sunset 11.6 u, Ocean Ave 12.5 u and four more. Portal hoods touch the nearest building by ≤ 0.9 u (West
+  Portal: OSM's own portal building over the mouth; Sunset west: one Cole Valley house, 0.46 u).
 - **Times** (the systems' `rideSeconds`, the same numbers the boarding choices show): loop lap 913 s (15.2 min: 738 s
   driving + dwells); Ferry → Palace 107 s; Castro → Twin Peaks 86 s; N end to end 202 s; M end to end 208 s; Embarcadero →
   Church 42 s; Castro → West Portal 34 s; Castro → 19th & Winston 73 s; Duboce & Church → Carl & Cole 23 s.
@@ -60,7 +67,7 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   it underground; interlock: the bus waits before Bush × Powell while blocked and drives through once clear.
 - **Budgets** (node, measured on the geometries): bus 1,060 / far 132, LRV car 396 (train 792) / far 96, pole 200, kiosk
   276, surface stop 80–112, portals 168–324. The fleet walked over every stop of the three lines for 10 simulated
-  minutes: **≤ 2 calls + 1 shadow call**, worst view **7,688 tris incl. shadows** (9th & Irving: 5 near vehicles, 20
+  minutes: **≤ 2 calls + 1 shadow call**, worst view **7,508 tris incl. shadows** (9th & Irving: 5 near vehicles, 20
   props). QA harness renderer: bus view 3 calls / 2,122 tris / 3 programs.
 - **Shots** (`docs/opus-bay/qa/w4/T/`, read before describing): `t-early-bus.jpg` (coral open-top double-decker, cream
   band, wheels, benches), `t-early-deck.jpg` (the rider's upper-deck view, 4 rows of blue benches), `t-early-lrv.jpg` (two
@@ -83,9 +90,14 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 - **Station ids are prefixed** (`loop-…`, `muni-…`) instead of the plan table's bare `twin-peaks`, `castro` …: those are
   place ids, and stations join the place index (P) and the interactables (`transit-<id>`); `civic-center` would also have
   meant two different stations (the loop stop and the Muni station 53 u apart).
-- **Stop x, z = where you board**: the loop pole at the right kerb (2.9 u right of the bus lane; the promenade kerb
-  in the hero), a Metro kiosk on the sidewalk for underground stations, the OSM stop position for surface stops (the pole
-  prop stands 3.4 u right of the outbound track). `at` stays the platform's arc position.
+- **Stop x, z = where you board = the prop**: the loop pole just outside the road right of the bus (the promenade kerb
+  in the hero), a Metro kiosk on a free patch of sidewalk / plaza for underground stations, a pole outside the road for
+  surface stops (≥ 2.7 u from the track: a passing train's outer side is at 2.4 u). `at` stays the platform's arc
+  position. The sidecar places them on the published chunks (lib/stopPlace.ts), so no prop stands in a house or a street.
+- **Short one-track hoods and a steep dive**: the toy terrain rises only ≈ 2 u over the first 14 u behind the mouths,
+  so a long hood would stick out of the hill into the houses; instead the track dives 0.25 u/u behind the mouth and the
+  hood ends where a train's roof is under the ground (6.5 u; 12.5 u in the flat Duboce median). Trains never run side
+  by side within 20 u of a mouth.
 - **The hero Embarcadero is hand-made, not OSM** (plan §3.2 "555 u follow DISTRICT.roads"): the route arrives from
   Washington St on the landward south lanes, U-turns across the median at station 44 (before the Ferry F-line platform
   at 58.5), and serves the Ferry (st 64) and PIER 39 (st 344) stops from the bayside north lanes with the doors to the
@@ -97,8 +109,7 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   train must stand straight, so the path ends where the last 16 u turn by < 0.35 rad.
 - **Underground runs virtually**: trains there are hidden and run at 25 u/s with 7 u/s² braking / pulling away (the
   overlay compresses the ride), 3 s at each station; within 25 u of a mouth they run at the surface speed so a train
-  visibly enters / leaves the hood. The underground path heights stay below the street and the chord between the mouths
-  (never over the hills) and dive 0.12 u/u under each mouth.
+  visibly enters / leaves the hood.
 - **Draw calls**: all buses and LRV cars in one near and one far BatchedMesh, every stop / kiosk / portal in one props
   BatchedMesh (per-item culling, hidden beyond 300 u, refreshed at 4 Hz and at once after a camera jump). Near vehicles
   cast and receive shadows (a new program variant: batching + colour + shadows, registered for warm-up); far vehicles and
@@ -164,8 +175,8 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   approach, the N surfacing at Duboce, the Sunset west portal, the M at 19th & Winston, a Market St kiosk in the city, a
   loop pole, a night bus), the phone perf / portal-cut checks at 4× CPU, the goal detector data (W4-T12), the streamer
   prefetch.
-- Kiosk and pole placement are checked against the track, not yet against city buildings / street furniture (verify in
-  the city; `KIOSK_AT` / pole offsets are one-line fixes).
+- Props are placed against buildings and car roads, not yet against street furniture (the chunks' trees, lamps,
+  benches) — verify in the city; the portal hoods overlap one or two houses by ≤ 0.9 u.
 - The loop's last 45 u in the hero west end blend from the north lanes into Jefferson St across the promenade line
   (st 356 → 441): check in the city.
 - Bus × F-line on Market St (Dolores → Van Ness, 137 u of shared street) has no box yet (the F-line's city path and the

@@ -574,7 +574,9 @@ export class LightRailSystem {
   /** Passing: opposite trains of a line near each other step aside (each 1.25 u to its right, as on double track). */
   private stepLateral(t: Train, dt: number) {
     let want = 0;
-    for (const o of this.trains) {
+    // never beside the track within 20 u of a mouth (the hoods are one track wide)
+    const nearMouth = t.track.tunnels.some(u => (u.portalA && Math.abs(t.s - u.fromAt) < 20) || (u.portalB && Math.abs(t.s - u.toAt) < 20));
+    if (!nearMouth) for (const o of this.trains) {
       if (o === t || o.track !== t.track || o.dir === t.dir) continue;
       if (Math.abs(o.s - t.s) < TRAIN_LENGTH * 3) { want = LRV.passOffset; break; }
     }

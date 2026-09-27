@@ -18,10 +18,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { type TransitFile, type TransitLine, transitLineProblems } from '../../src/opus-bay/world/sf/format';
-import { W4_LINES } from '../../src/opus-bay/data/sf/stationNames';
+import { METRO_STATIONS, W4_LINES } from '../../src/opus-bay/data/sf/stationNames';
 import { bakeLoop } from './lib/busLoop';
 import { loadDem } from './lib/io';
 import { buildMetroLines } from './lib/metro';
+import { Clearance, placeKiosk, placePole } from './lib/stopPlace';
 import { buildTerrain } from './lib/terrain';
 
 const REPO = path.resolve(import.meta.dirname, '../..');
@@ -63,7 +64,56 @@ export function checkW4Lines(lines: TransitLine[]): string[] {
   return out;
 }
 
-function main() {
+/** Arc → point + heading on a transit.json path (clamped; loops wrap). */
+function pathSampler(l: TransitLine): (s: number) => { x: number; z: number; heading: number } {
+  const n = l.path.length / 3, cum = [0];
+  for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(l.path[i * 3] - l.path[i * 3 - 3], l.path[i * 3 + 2] - l.path[i * 3 - 1]));
+  const L = cum[n - 1];
+  return (s0: number) => {
+    const s = l.loop ? ((s0 % L) + L) % L : Math.max(0, Math.min(L, s0));
+    let i = 1;
+    while (i < n - 1 && cum[i] < s) i++;
+    const t = (s - cum[i - 1]) / (cum[i] - cum[i - 1] || 1);
+    const ax = l.path[i * 3 - 3], az = l.path[i * 3 - 1], bx = l.path[i * 3], bz = l.path[i * 3 + 2];
+    return { x: ax + (bx - ax) * t, z: az + (bz - az) * t, heading: Math.atan2(bx - ax, bz - az) };
+  };
+}
+
+/**
+ * Stand every stop prop where the built city has room (lib/stopPlace.ts on the published chunks + the hero): loop poles
+ * just outside the road right of the bus (hero stops keep their promenade-kerb poles), surface Metro poles outside the
+ * road clear of a passing train, kiosks on a free patch of sidewalk / plaza near the station. Stop x, z = the prop.
+ */
+async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: number; z: number }>, log: (s: string) => void) {
+  const c = new Clearance(path.join(REPO, 'public/opus-bay/sf/v1/c'));
+  await c.prepare(lines.flatMap(l => l.stops.map(s => ({ x: s.x, z: s.z }))));
+  const done = new Map<string, { x: number; z: number }>();
+  for (const l of lines) {
+    const at = pathSampler(l);
+    for (const s of l.stops) {
+      const prev = done.get(s.id);
+      if (prev) { s.x = prev.x; s.z = prev.z; continue; }
+      const round2 = (v: number) => Math.round(v * 100) / 100;
+      let spot: { x: number; z: number } | null = null;
+      if (l.kind === 'bus') {
+        if (s.id === 'loop-ferry-building' || s.id === 'loop-pier-39') continue;
+        spot = placePole(c, at, s.at, 1, 0.3, 1.6);
+      } else if (METRO_STATIONS.find(m => m.id === s.id)?.underground) {
+        const o = metroRaw.get(s.id) ?? { x: s.x, z: s.z };
+        spot = placeKiosk(c, o.x, o.z) ?? placeKiosk(c, o.x, o.z, 1.3, 48);
+      } else {
+        spot = placePole(c, at, s.at, 1, 0.3, 2.7) ?? placePole(c, at, s.at, -1, 0.3, 2.7);
+      }
+      if (!spot) { log(`place: no room for ${s.id} (kept at ${s.x}, ${s.z})`); continue; }
+      const moved = Math.hypot(spot.x - s.x, spot.z - s.z);
+      if (moved > 8) log(`place: ${s.id} moved ${moved.toFixed(1)} u to (${spot.x.toFixed(1)}, ${spot.z.toFixed(1)})`);
+      s.x = round2(spot.x); s.z = round2(spot.z);
+      done.set(s.id, { x: s.x, z: s.z });
+    }
+  }
+}
+
+async function main() {
   const t0 = Date.now();
   const OUT = path.resolve(arg('out', 'C:/Users/willy/opus-qa/w4/w4-t/sidecar'));
   const lines: string[] = [];
@@ -74,9 +124,13 @@ function main() {
   const terrain = buildTerrain(loadDem(), log);
   const metro = buildMetroLines(terrain, log);
   const loop = bakeLoop(terrain, log);
+  // the OSM station positions (under Market St) before the kiosks move
+  const metroRaw = new Map<string, { x: number; z: number }>();
+  for (const l of metro.lines) for (const st of l.stops) if (!metroRaw.has(st.id)) metroRaw.set(st.id, { x: st.x, z: st.z });
   // the loop carries its speed spans (an additive field the runtime reads; lead request: `speeds?` on TransitLine)
   const loopLine = { ...loop.line, speeds: loop.speeds } as TransitLine & { speeds: [number, number, number][] };
   const w4 = [loopLine, ...metro.lines].sort((a, b) => Object.keys(W4_LINES).indexOf(a.id) - Object.keys(W4_LINES).indexOf(b.id));
+  await placeStops(w4, metroRaw, log);
   const problems = checkW4Lines(w4);
   for (const r of [...metro.report, ...loop.report]) log(r);
   if (problems.length) { for (const p of problems) console.error(`PROBLEM ${p}`); throw new Error(`${problems.length} problems: nothing written`); }
@@ -96,4 +150,4 @@ function main() {
   fs.writeFileSync(path.join(OUT, 'report.txt'), `${lines.join('\n')}\n`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) main();
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename)) await main();

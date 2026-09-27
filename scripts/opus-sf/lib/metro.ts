@@ -44,7 +44,11 @@ const KIOSK_AT: Record<string, { x: number; z: number }> = {
   'muni-castro': { x: 141.9, z: 748.2 },
 };
 const UG_DEPTH = 4;
-const UG_RAMP = 0.12;
+/** the dive under a mouth (u/u) over its first 16 u: a train's roof is under the street within the portal hood */
+const UG_RAMP = 0.25;
+const UG_DIVE = 16;
+/** mouths moved outward along the track (u): the Duboce hood then sits in the Duboce Ave median, clear of Market St */
+const MOUTH_SHIFT: Record<string, number> = { duboce: 8 };
 const UG_FLOOR = -20;
 const UG_CEIL = 55;
 
@@ -167,6 +171,17 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
   // the line starts underground (the cut point takes its segment's tag)
   if (spans.length && spans[0][0] < 1) spans[0][0] = 0;
   const tunnelSpans = spans.filter(([a, b]) => b - a > 20);
+  // named mouths moved outward (the tunnel grows toward the surface side)
+  for (const sp of tunnelSpans) {
+    for (const end of [0, 1] as const) {
+      const at = sp[end];
+      if (at < 0.5 || at > cum[cum.length - 1] - 0.5) continue;
+      const q = pointAtArc(path, cum, at).p;
+      const spot = PORTAL_SPOTS.find(o => Math.hypot(o.x - q[0], o.z - q[1]) < 25);
+      const shift = spot ? MOUTH_SHIFT[spot.id] ?? 0 : 0;
+      if (shift) { sp[end] += end === 1 ? shift : -shift; report.push(`${spec.id}: ${spot!.id} mouth moved ${shift} u outward`); }
+    }
+  }
 
   // --- heights on a densified copy (≤ 4 u steps: the underground ramps need vertices; arc positions are unchanged)
   path = densify(path, 4);
@@ -180,13 +195,17 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
     let v = surf[i] - UG_DEPTH;
     for (const [a, b] of tunnelSpans) {
       if (s < a || s > b) continue;
-      // below the street and never above the chord between the two ends (no riding over the hills) …
       const ya = a > 0.5 ? surfAt(a) : surfAt(a) - UG_DEPTH, yb = b < length - 0.5 ? surfAt(b) : surfAt(b) - UG_DEPTH;
-      v = Math.min(v, ya + ((yb - ya) * (s - a)) / Math.max(1, b - a));
-      // … and diving under each mouth: 0.12 down for the first 30 u, then climbing back at most 0.04
-      const dip = (y0: number, d: number) => y0 - UG_RAMP * Math.min(d, 30) + 0.04 * Math.max(0, d - 30);
-      if (a > 0.5) v = Math.min(v, dip(surfAt(a), s - a));
-      if (b < length - 0.5) v = Math.min(v, dip(surfAt(b), b - s));
+      const dA = a > 0.5 ? s - a : Infinity, dB = b < length - 0.5 ? b - s : Infinity;
+      // deep: under the street and under the chord between the two ends, the chord itself lowered by a train height
+      // once past the dive (no riding over the hills, never rising into a mouth) …
+      const chord = ya + ((yb - ya) * (s - a)) / Math.max(1, b - a);
+      v = Math.min(v, chord - UG_RAMP * Math.min(UG_DIVE, dA, dB));
+      // … and near each mouth the ramp: the mouth itself at street level, diving 0.25 u/u
+      let ramp = -Infinity;
+      if (Number.isFinite(dA)) ramp = Math.max(ramp, ya - UG_RAMP * dA);
+      if (Number.isFinite(dB)) ramp = Math.max(ramp, yb - UG_RAMP * dB);
+      v = Math.max(v, ramp);
     }
     return Math.min(UG_CEIL, Math.max(UG_FLOOR, v));
   });
@@ -264,12 +283,16 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
     const a = round(scale(a0)), b = round(scale(b0));
     const mouth = (s: number): TransitPortal | null => {
       if (s < 0.5 || s > length2 - 0.5) return null;
-      const i = nearestIdx(cum2, s);
-      const [x, z] = pts[i];
+      // the mouth exactly at arc s on the final polyline (position and height interpolated between its vertices)
+      let i = 1;
+      while (i < pts.length - 1 && cum2[i] < s) i++;
+      const f = (s - cum2[i - 1]) / (cum2[i] - cum2[i - 1] || 1);
+      const x = pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, z = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f;
+      const yM = ys[i - 1] + (ys[i] - ys[i - 1]) * f;
       const spot = PORTAL_SPOTS.slice().sort((p, q) => Math.hypot(p.x - x, p.z - z) - Math.hypot(q.x - x, q.z - z))[0];
       const named = spot && Math.hypot(spot.x - x, spot.z - z) < 25 ? PORTAL_NAMES[spot.id] : undefined;
       if (!named) report.push(`${spec.id}: unnamed portal at (${round(x)}, ${round(z)})`);
-      return { x: round(x), y: round(ys[i], 1000), z: round(z), ...(named ? { name: { ...named } } : {}) };
+      return { x: round(x), y: round(yM, 1000), z: round(z), ...(named ? { name: { ...named } } : {}) };
     };
     const key = spec.tunnels[k] ?? '';
     const name = key.includes('+')

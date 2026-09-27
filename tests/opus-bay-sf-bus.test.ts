@@ -49,7 +49,7 @@ test('stops sit near their measured kerb points (plan §3.2) and serve the right
     const s = LOOP.stops.find(q => q.id === def.id)!;
     const d = Math.hypot(s.x - def.at.x, s.z - def.at.z);
     assert.ok(d < 40, `${def.id} pole ${d.toFixed(1)} u from the plan point`);
-    assert.ok(minDist(s.x, s.z) < 4.5 && minDist(s.x, s.z) > 1.5, `${def.id} pole beside the lane (${minDist(s.x, s.z).toFixed(2)} u)`);
+    assert.ok(minDist(s.x, s.z) < 7.5 && minDist(s.x, s.z) > 1.5, `${def.id} pole beside the lane (${minDist(s.x, s.z).toFixed(2)} u)`);
   }
   const at = (id: string) => LOOP.stops.find(s => s.id === id)!;
   assert.equal(at('loop-golden-gate-bridge').attractions![0], 'golden-gate-bridge');
@@ -234,12 +234,12 @@ test('bus: interlocks — the bus waits before a shared box while the other line
   assert.ok(inside, 'drives through once clear');
 });
 
-test('bus: stop poles stand at the right kerb of the bus lane', () => {
+test('bus: stop poles stand right of the bus lane, outside the road (placed on the built city by the sidecar)', () => {
   for (const s of LOOP.stops) {
     const p = trackPoint(TRACK, s.at);
     const rx = -Math.cos(p.heading), rz = Math.sin(p.heading);
     const side = (s.x - p.x) * rx + (s.z - p.z) * rz;
-    assert.ok(side > 1.5 && side < 4.5, `${s.id} pole side ${side.toFixed(2)}`);
+    assert.ok(side > 1.5 && side < 7.5, `${s.id} pole side ${side.toFixed(2)}`);
   }
 });
 

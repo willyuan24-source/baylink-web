@@ -12,8 +12,9 @@ import type { TransitLine } from './format';
  * - `kiosk`: the street headhouse of an underground Muni Metro station (plan §3.3: "a toy stair headhouse with the
  *   line-letter disc"): a glass canopy over a stairwell, a dark stair void, a pylon with the N / M discs in the line
  *   colours (no letters, no logo), at the stop's x, z (the pipeline put it on the Market St sidewalk).
- * - `rail-stop`: a surface Metro stop — a slim pole with a band in the line colour and a low boarding island beside the
- *   track (right of the outbound direction; a stop served by both lines gets one pole with both bands).
+ * - `rail-stop`: a surface Metro stop — a slim pole with a band in the line colour and a small sign plate, at the stop's
+ *   x, z (the pipeline stood it outside the road, clear of a passing train and of buildings; the toy streets leave no
+ *   room for boarding islands); a stop served by both lines gets one pole with both bands.
  * Heights come from `groundY` (the resident terrain) when known, else the track height at the stop.
  */
 
@@ -31,8 +32,8 @@ export interface StationProp {
   heading: number;
 }
 
-/** Surface Metro poles: this far right of the outbound track centre (clear of a passing train at +1.25 u). */
-export const RAIL_POLE_OFFSET = 3.4;
+/** Surface Metro poles stand at least this far from the track centre (a passing train's outer side is at 2.4 u). */
+export const RAIL_POLE_OFFSET = 2.7;
 
 function pathHeading(l: Pick<TransitLine, 'path'>, x: number, z: number): { heading: number; px: number; pz: number; y: number } {
   let best = { d: Infinity, heading: 0, px: x, pz: z, y: 0 };
@@ -71,9 +72,10 @@ export function stationProps(lines: Pick<TransitLine, 'id' | 'kind' | 'path' | '
         const face = Math.atan2(h.px - s.x, h.pz - s.z);
         p = { kind: 'kiosk', station: s.id, lines: [l.id], x: s.x, y: y(s.x, s.z), z: s.z, heading: face };
       } else {
-        // right of the outbound direction: (−cos h, sin h); the pole faces the track
-        const x = h.px - Math.cos(h.heading) * RAIL_POLE_OFFSET, z = h.pz + Math.sin(h.heading) * RAIL_POLE_OFFSET;
-        p = { kind: 'rail-stop', station: s.id, lines: [l.id], x, y: y(x, z), z, heading: h.heading + Math.PI / 2 };
+        // the pole stands where the pipeline found room (scripts/opus-sf/lib/stopPlace.ts): outside the road, clear of a
+        // passing train and of buildings; it faces the track
+        const face = Math.atan2(h.px - s.x, h.pz - s.z);
+        p = { kind: 'rail-stop', station: s.id, lines: [l.id], x: s.x, y: y(s.x, s.z), z: s.z, heading: face };
       }
       byStation.set(s.id, p);
       out.push(p);
@@ -85,7 +87,7 @@ export function stationProps(lines: Pick<TransitLine, 'id' | 'kind' | 'path' | '
 const NO: Info = [0, -100, 0, 0];
 const LAMP: Info = [0, -100, 0, 1];
 const GLOW: Info = [0, -100, 0, 1.4];
-const POLE = '#6f7378', CORAL = '#e0563f', CREAM = '#f4e6c8', DARK = '#2c2e30', GLASS = '#8fb3c4', CONCRETE = '#c9c3b8', YELLOW = '#e8c547';
+const POLE = '#6f7378', CORAL = '#e0563f', CREAM = '#f4e6c8', DARK = '#2c2e30', GLASS = '#8fb3c4', CONCRETE = '#c9c3b8';
 const N_BLUE = '#2f6fb0', M_GREEN = '#2f8f5b';
 
 const box = (b: Batch, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: string, info: Info = NO, ry = 0) => b.add(BOX(), M(x, y, z, ry, sx, sy, sz), color, info);
@@ -107,39 +109,36 @@ export function busPoleGeometry(): THREE.BufferGeometry {
   return g;
 }
 
-/** A Market St kiosk (≈ 300 triangles): canopy, stair void, glass side screens, the pylon with the N / M discs. */
+/** A Market St kiosk (≈ 280 triangles, 2.2 × 3.0 u): canopy, stair void, glass side screens, the pylon with the N / M discs. */
 export function kioskGeometry(): THREE.BufferGeometry {
   const b = new Batch();
   // the stairwell surround and the dark void going down (+z = the street side, the stairs descend toward −z)
-  box(b, 0, 0, 0, 2.6, 0.35, 3.6, CONCRETE);
-  box(b, 0, 0.02, 0.1, 1.9, 0.34, 3.0, DARK);
-  for (let k = 0; k < 4; k++) box(b, 0, 0.36 - k * 0.09, 1.2 - k * 0.55, 1.8, 0.03, 0.5, '#4a4d50');
+  box(b, 0, 0, 0, 2.2, 0.35, 3.0, CONCRETE);
+  box(b, 0, 0.02, 0.1, 1.6, 0.34, 2.5, DARK);
+  for (let k = 0; k < 4; k++) box(b, 0, 0.36 - k * 0.09, 0.95 - k * 0.45, 1.5, 0.03, 0.42, '#4a4d50');
   // glass side screens and a light canopy on four posts
   for (const s of [-1, 1]) {
-    box(b, s * 1.12, 0.35, -0.2, 0.06, 1.0, 3.0, GLASS);
-    for (const z of [-1.6, 1.6]) box(b, s * 1.2, 0.35, z, 0.1, 2.1, 0.1, POLE);
+    box(b, s * 0.94, 0.35, -0.15, 0.06, 1.0, 2.5, GLASS);
+    for (const z of [-1.35, 1.35]) box(b, s * 1.02, 0.35, z, 0.1, 2.05, 0.1, POLE);
   }
-  box(b, 0, 2.45, 0, 2.9, 0.12, 3.8, '#e9e4da');
-  box(b, 0, 2.38, 0, 2.3, 0.06, 3.2, '#fff4d8', LAMP);
+  box(b, 0, 2.4, 0, 2.4, 0.12, 3.2, '#e9e4da');
+  box(b, 0, 2.33, 0, 1.9, 0.06, 2.7, '#fff4d8', LAMP);
   // the pylon at the street end: the N and M discs, lit at night
-  box(b, 1.15, 0.35, 2.35, 0.14, 3.3, 0.14, POLE);
-  b.add(CYL(12), M(1.15, 3.35, 2.43, 0, 0.26, 0.04, 0.26, Math.PI / 2), N_BLUE, GLOW);
-  b.add(CYL(12), M(1.15, 2.78, 2.43, 0, 0.26, 0.04, 0.26, Math.PI / 2), M_GREEN, GLOW);
+  box(b, 0.95, 0.35, 1.72, 0.14, 3.2, 0.14, POLE);
+  b.add(CYL(12), M(0.95, 3.25, 1.8, 0, 0.24, 0.04, 0.24, Math.PI / 2), N_BLUE, GLOW);
+  b.add(CYL(12), M(0.95, 2.72, 1.8, 0, 0.24, 0.04, 0.24, Math.PI / 2), M_GREEN, GLOW);
   const g = b.build();
   g.name = 'metro-kiosk';
   return g;
 }
 
-/** A surface Metro stop (≈ 90 triangles): the pole with line bands (`nm`: both N and M) and a low island. */
+/** A surface Metro stop (≈ 70 triangles): the pole with line bands (`nm`: both N and M) and a small sign plate. */
 export function railStopGeometry(nm: 'n' | 'm' | 'nm'): THREE.BufferGeometry {
   const b = new Batch();
   b.add(CYL(6), M(0, 0, 0, 0, 0.06, 3.0, 0.06), POLE, NO);
   const bands = nm === 'nm' ? [N_BLUE, M_GREEN] : [nm === 'n' ? N_BLUE : M_GREEN];
   bands.forEach((c, i) => b.add(CYL(8), M(0, 2.5 - i * 0.3, 0, 0, 0.1, 0.24, 0.1), c, GLOW));
-  // the low boarding island along the track (local x = along the track), a yellow edge on the track side (+z), its
-  // edge 2.4 u from the track centre (a train passing at +1.25 u still clears it)
-  box(b, 0, 0, 0.6, 5.5, 0.22, 0.8, CONCRETE);
-  box(b, 0, 0.22, 0.94, 5.5, 0.02, 0.12, YELLOW);
+  box(b, 0, 1.4, 0.07, 0.34, 0.46, 0.04, CREAM, GLOW);
   const g = b.build();
   g.name = nm === 'nm' ? 'rail-stop-nm' : 'rail-stop';
   return g;

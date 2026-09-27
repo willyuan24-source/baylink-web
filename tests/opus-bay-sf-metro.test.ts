@@ -124,7 +124,7 @@ test('heights: surface from the terrain, underground interpolated (never above t
   }
 });
 
-test('kiosks: underground stations are boarded on the Market St sidewalk, surface stops stand clear of the portals', () => {
+test('kiosks: underground stations are boarded at a street kiosk (a free patch of sidewalk / plaza near the station), surface stops stand clear of the portals', () => {
   const ptsOf = (l: TransitLine) => { const o: [number, number][] = []; for (let i = 0; i < l.path.length; i += 3) o.push([l.path[i], l.path[i + 2]]); return o; };
   const distTo = (pts: [number, number][], x: number, z: number) => {
     let d = Infinity;
@@ -140,8 +140,8 @@ test('kiosks: underground stations are boarded on the Market St sidewalk, surfac
     for (const s of l.stops) {
       const ug = names.metroStation(s.id)?.underground;
       const d = distTo(pts, s.x, s.z);
-      if (ug) assert.ok(d > 2.5 && d < 12, `${l.id} ${s.id} kiosk ${d.toFixed(1)} u off the track`);
-      else assert.ok(d < 6, `${l.id} ${s.id} stop ${d.toFixed(1)} u from the track`);
+      if (ug) assert.ok(d > 2.5 && d < 36, `${l.id} ${s.id} kiosk ${d.toFixed(1)} u off the track`);
+      else assert.ok(d > 2.5 && d < 7.5, `${l.id} ${s.id} stop pole ${d.toFixed(1)} u from the track (outside the road, clear of a passing train)`);
       if (!ug) for (const t of l.tunnels!) assert.ok(s.at <= t.fromAt - 7 || s.at >= t.toAt + 7 || (t.fromAt === 0 && s.at === 0), `${l.id} ${s.id} at ${s.at} clear of the tunnel [${t.fromAt}, ${t.toAt}]`);
     }
   }
@@ -339,7 +339,7 @@ test('portals: the four named mouths, heading into the tunnel along the track, �
     }
     assert.ok(tunnelAt(l, best.at), `${p.id}: +z points into the tunnel (arc ${best.at.toFixed(0)})`);
     const blockers = portals.portalBlockers(p);
-    assert.equal(blockers.length, 3);
+    assert.equal(blockers.length, p.id === 'west-portal' ? 1 : 3);
     for (const b of blockers) assert.equal(b.length, 4);
   }
   assert.equal(ps.find(p => p.id === 'sunset-west')!.name.zh, '日落隧道西口');

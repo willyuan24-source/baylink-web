@@ -8,8 +8,8 @@ import type { TransitLine, TransitPortal } from './format';
  * The four tunnel mouths of the Muni Metro (wave 4 · lane T, plan §3.3): Duboce (the N surfaces in the Duboce Ave
  * median), the Sunset Tunnel east (Duboce Park) and west (Carl & Cole, the classic N Judah photo: landmark quality) and
  * West Portal (the M comes out of the 1918 Twin Peaks Tunnel onto West Portal Ave). No tunnel geometry is built: each
- * mouth is a toy concrete hood over the first 14 u of the ramp (dark inside), so a train dives out of sight exactly at
- * the mouth (the track drops 0.12 u/u there, world/sf metro data) and the subway overlay takes over.
+ * mouth is a toy concrete hood over the first 6.5–12.5 u of the ramp (dark inside); the track dives 0.25 u/u behind the
+ * mouth (scripts/opus-sf/lib/metro.ts), so past the hood a train is under the ground, and the subway overlay takes over.
  *
  * Pure placement (`portalPlacements`, node-tested): position = the mouth (TransitPortal x, y, z), heading = INTO the
  * tunnel along the track. `portalGeometry(id)` ≤ 800 triangles each; `portalBlockers(p)` = the walk blockers (the hood
@@ -27,8 +27,16 @@ export interface PortalPlacement {
   heading: number;
 }
 
-/** hood: outer width, height, length into the hill (u) */
-export const HOOD = { width: 6.2, height: 3.9, length: 14 } as const;
+/** hood: outer width and height over the mouth (u) */
+export const HOOD = { width: 4.9, height: 3.7 } as const;
+/**
+ * Hood length per mouth (u): long enough that beyond it a diving train's roof (the track drops 0.25 u/u behind the
+ * mouth) is under the terrain there (measured on the terrain lattice: Duboce is flat, the Sunset mouths and West Portal
+ * rise ≈ 0.2 u/u), short enough to stay clear of the houses on the hill.
+ */
+export const HOOD_LENGTH: Readonly<Record<PortalId, number>> = { duboce: 12.5, 'sunset-east': 6.5, 'sunset-west': 6.5, 'west-portal': 6.5 };
+/** Wing walls along the approach (u): none at West Portal, where the trains come straight out onto the avenue. */
+export const WING_LENGTH: Readonly<Record<PortalId, number>> = { duboce: 4, 'sunset-east': 4.5, 'sunset-west': 4.5, 'west-portal': 0 };
 
 const PORTAL_OF: Record<string, PortalId> = {
   'Duboce portal': 'duboce', 'Sunset Tunnel east portal': 'sunset-east', 'Sunset Tunnel west portal': 'sunset-west', 'West Portal': 'west-portal',
@@ -80,7 +88,7 @@ const box = (b: Batch, x: number, y: number, z: number, sx: number, sy: number, 
  */
 export function portalGeometry(id: PortalId): THREE.BufferGeometry {
   const b = new Batch();
-  const W = HOOD.width, H = HOOD.height, L = HOOD.length, T = 0.45;
+  const W = HOOD.width, H = HOOD.height, L = HOOD_LENGTH[id], T = 0.4;
   const inner = W - 2 * T;
   // hood: side walls, roof, the dark void
   for (const s of [-1, 1]) box(b, s * (W / 2 - T / 2), -1.2, L / 2, T, H + 1.2, L, CONCRETE);
@@ -89,10 +97,13 @@ export function portalGeometry(id: PortalId): THREE.BufferGeometry {
   // headwall frame at the mouth: two pilasters and a lintel
   for (const s of [-1, 1]) box(b, s * (inner / 2 + 0.35), -0.6, -0.15, 0.7, H + 0.6, 0.5, STONE);
   box(b, 0, H - 0.6, -0.15, W + 0.4, 0.8, 0.5, STONE);
-  // wing walls along the approach (the ramp cut), stepping down away from the mouth
+  // wing walls along the approach (the ramp cut), stepping down away from the mouth; lamps on the headwall
+  const wing = WING_LENGTH[id];
   for (const s of [-1, 1]) {
-    box(b, s * (W / 2 + 0.1), -0.8, -2.2, 0.35, 2.2, 4.0, CONCRETE);
-    box(b, s * (W / 2 + 0.1), -0.8, -5.4, 0.35, 1.2, 2.6, CONCRETE);
+    if (wing > 0) {
+      box(b, s * (W / 2 + 0.1), -0.8, -0.2 - wing * 0.3, 0.35, 2.2, wing * 0.6, CONCRETE);
+      box(b, s * (W / 2 + 0.1), -0.8, -0.2 - wing * 0.8, 0.35, 1.2, wing * 0.4, CONCRETE);
+    }
     box(b, s * (inner / 2 + 0.35), H - 1.4, -0.45, 0.22, 0.22, 0.12, '#fff1c8', LAMP);
   }
   if (id === 'sunset-west') {
@@ -104,8 +115,8 @@ export function portalGeometry(id: PortalId): THREE.BufferGeometry {
     box(b, 0, H - 0.95, -0.42, 0.6, 0.55, 0.12, '#e9dfc8');
     box(b, 0, H + 0.1, -0.4, 1.4, 0.4, 0.08, '#b9ad95');
     for (const s of [-1, 1]) {
-      box(b, s * (W / 2 + 0.55), 1.4, -2.2, 0.9, 0.5, 2.8, CONCRETE_DARK);
-      box(b, s * (W / 2 + 0.55), 1.9, -2.2, 0.8, 0.35, 2.6, GREEN);
+      box(b, s * (W / 2 + 0.55), 1.4, -1.6, 0.9, 0.5, 2.4, CONCRETE_DARK);
+      box(b, s * (W / 2 + 0.55), 1.9, -1.6, 0.8, 0.35, 2.2, GREEN);
     }
     box(b, 0, H, L / 2 + 1, W + 2, 1.2, L - 1, GREEN);
   } else if (id === 'west-portal') {
@@ -127,11 +138,14 @@ export function portalGeometry(id: PortalId): THREE.BufferGeometry {
 }
 
 /** Walk blockers of a placed mouth (world frame, CCW-agnostic rectangles): the hood and the wing walls. */
-export function portalBlockers(p: Pick<PortalPlacement, 'x' | 'z' | 'heading'>): Polygon[] {
+export function portalBlockers(p: Pick<PortalPlacement, 'id' | 'x' | 'z' | 'heading'>): Polygon[] {
   const s = Math.sin(p.heading), c = Math.cos(p.heading);
   // local (lx = left, lz = into the tunnel) → world
   const w = (lx: number, lz: number) => ({ x: p.x + s * lz + c * lx, z: p.z + c * lz - s * lx });
   const rect = (x0: number, x1: number, z0: number, z1: number) => [w(x0, z0), w(x1, z0), w(x1, z1), w(x0, z1)];
   const hw = HOOD.width / 2 + 0.3;
-  return [rect(-hw, hw, -0.4, HOOD.length), rect(hw - 0.4, hw + 0.4, -6.7, -0.4), rect(-hw - 0.4, -hw + 0.4, -6.7, -0.4)];
+  const wing = WING_LENGTH[p.id];
+  const out = [rect(-hw, hw, -0.4, HOOD_LENGTH[p.id])];
+  if (wing > 0) out.push(rect(hw - 0.4, hw + 0.4, -0.4 - wing, -0.4), rect(-hw - 0.4, -hw + 0.4, -0.4 - wing, -0.4));
+  return out;
 }
