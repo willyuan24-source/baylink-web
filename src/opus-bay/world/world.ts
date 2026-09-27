@@ -116,6 +116,8 @@ export class World {
   private halosSpec: HaloSpec[] = [];
   private cityChunks: THREE.Mesh[] = [];
   private unmountDebug: (() => void) | null = null;
+  /** removes lane H2b's mural system (world/sf/murals.ts) with the city it was attached to */
+  private detachMurals: (() => void) | null = null;
   readonly atlas = new LabelAtlas();
   readonly water: THREE.ShaderMaterial;
   readonly heroes: THREE.Mesh[] = [];
@@ -405,7 +407,7 @@ export class World {
     const streamer = this.city;
     // lane H2b's Mission murals (world/sf/murals.ts; null until they exist)
     const murals = attachMurals(streamer);
-    if (murals) this.addSystem(murals);
+    if (murals) this.detachMurals = this.addSystem(murals);
     void streamer.start().then(() => {
       const m = streamer.manifest;
       if (m?.heroDropLots.length) dropLotTriangles(this.cityChunks, m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
@@ -419,6 +421,8 @@ export class World {
   disableCity() {
     this.unmountDebug?.();
     this.unmountDebug = null;
+    this.detachMurals?.();
+    this.detachMurals = null;
     if (!this.city) return;
     this.root.remove(this.city.group);
     this.city.dispose();

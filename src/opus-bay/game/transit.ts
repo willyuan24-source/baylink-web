@@ -20,7 +20,8 @@ import { beginRide, currentRide, endRide, nearestStopId, rideSeconds, sortedStop
  *   openRideNode(rest)       dialogue nodes `flow.ride.<rest>` (today `<from>><to>`) land here
  *   stepTransit(dt)          per frame, called by game/Systems.tsx Ticker at the old stepRide spot
  *   rideLabel(ride)          what the HUD RideBanner shows (ui/Hud.tsx)
- *   requestHopOff()          "get off here" (today = hopOffRide; F adds the 1.2 s brake, E2 the camera side)
+ *   requestHopOff()          immediate hop-off for code that is not the rider (QA, a trip start); = hopOffRide. Input
+ *                            (Space / B / the HUD's 提前下车) goes through E2's moveSystem brake instead (contracts §5.2)
  *   transitInteractables()   city stations (F registers them with interactables.registerInteractables in initTransit)
  *   rideLog()                rides per line id, for G1's save v2
  *   initTransit()            once per page, from flow.initFlowListeners (returns a disposer)
@@ -133,7 +134,11 @@ export function stepTransit(dt: number) {
   if (ride.done) finishRide();
 }
 
-/** "Get off here" (HUD button via actors/moveApi, Space / B in the car). Day 0: the old instant hop-off. */
+/**
+ * Immediate hop-off for callers that are not the rider (QA, G1 starting a trip while riding). Rider input (Space / B / F /
+ * the HUD's 提前下车 via actors/moveApi) never lands here: E2's moveSystem brakes first (requestPlatformStop), then calls
+ * hopOffRide (docs/opus-bay/sf-w2-contracts.md §5.2 "Hop-off handshake").
+ */
 export function requestHopOff() { hopOffRide(); }
 
 export interface RideLabel {

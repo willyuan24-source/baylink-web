@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BookOpen, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TramFront } from 'lucide-react';
+import { BookOpen, CableCar, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TramFront } from 'lucide-react';
 import { requestHopOff } from '../actors/moveApi';
 import { useGame } from '../core/store';
 import type { InteractionKind } from '../core/types';
@@ -260,7 +260,7 @@ function RideBanner() {
   if (!ride) return null;
   // line name, destination and glyph come from lane F (game/transit.ts rideLabel)
   const label = rideLabel(ride);
-  const Icon = label.icon === 'ferry' ? Ship : TramFront;
+  const Icon = label.icon === 'ferry' ? Ship : label.icon === 'cable-car' ? CableCar : TramFront;
   return (
     <div className="ob-ride" role="status">
       <Icon size={20} aria-hidden />
