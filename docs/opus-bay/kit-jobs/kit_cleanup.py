@@ -4,7 +4,10 @@ Kit additions (lane H2a, 2026-09-26): --box W,H,D scales width (three x) and hei
 (three z) to D: the depth is first scaled like the width, then, if it is short, only the middle band between the
 front --keep-front fraction and the back --keep-back fraction is stretched (piecewise linear along the depth), so the
 facade (bays, stoops, cornice) and the rear roof ends keep their shape; if it is long, the whole depth is scaled down.
-Grade/IoU scripts are read from the parent folder (assets-work/sf/).
+Grade/IoU scripts are read from this folder (wave 3; the parent folder as a fallback).
+Landmark additions (lane D2, wave 3): --grader hero runs grade.py (per-asset hue remaps to brand hex, the part-1
+hero pipeline of the rotunda / gate / conservatory) instead of grade_kit.py; --exposure sets the preview exposure;
+--gate W,K,Z[,F] widens a gateway in a front screen (see below).
 
 Extends assets-work/creatures/cleanup.py for buildings: weld by bbox fraction, drop tiny islands, flatten the base,
 planar-dissolve then collapse, scale to a target height (or fit a box), origin at ground centre, front -> +Z (three),
@@ -27,8 +30,8 @@ os.makedirs(WORK, exist_ok=True)
 opts = {"yaw": 0.0, "pitch": 0.0, "roll": 0.0, "height": 0.0, "fit": "", "max_tris": 3000, "tex": 512,
         "draco": 0, "dissolve": 3.0, "flatten": 0.01, "island": 0.003, "weld": 5e-4, "grade": "{}",
         "mask": "", "concept": "", "probe": False, "webp_q": 82, "smooth": 1, "sil": 1, "opening": 0, "sx": 1.0,
-        "box": "", "keep_front": 0.3, "keep_back": 0.12}
-STR = {"fit", "grade", "mask", "concept", "box"}
+        "box": "", "keep_front": 0.3, "keep_back": 0.12, "grader": "kit", "exposure": 0.35, "gate": ""}
+STR = {"fit", "grade", "mask", "concept", "box", "grader", "gate"}
 i = 3
 while i < len(argv):
     a = argv[i]
@@ -36,8 +39,20 @@ while i < len(argv):
     k = a[2:].replace("-", "_"); v = argv[i + 1]
     opts[k] = v if k in STR else float(v)
     i += 2
-PY = r"C:\Python314\python.exe"
-HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # assets-work/sf (grade.py, iou.py)
+# The system Python (numpy, PIL, scipy, rembg) runs grade*.py and iou.py: $OB_PYTHON, else the first python on PATH
+# (Blender's own interpreter is not on PATH), else the owner machine's default install. Wave 3 (D2): the helper
+# scripts live next to this file (docs/opus-bay/kit-jobs/: grade.py, grade_kit.py, iou.py); the parent folder is
+# still searched for the old assets-work/sf layout.
+import shutil
+PY = os.environ.get("OB_PYTHON") or shutil.which("python") or shutil.which("python3") or r"C:\Python314\python.exe"
+_SELF = os.path.dirname(os.path.abspath(__file__))
+
+
+def helper(name):
+    for d in (_SELF, os.path.dirname(_SELF)):
+        if os.path.exists(os.path.join(d, name)): return os.path.join(d, name)
+    return os.path.join(_SELF, name)
+
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=IN)
@@ -100,7 +115,7 @@ scn.display.shading.show_shadows = False
 scn.display.shading.show_cavity = False
 scn.render.image_settings.file_format = "PNG"
 scn.view_settings.view_transform = "Standard"  # AgX (the 5.x default) greys out the pastel textures in previews
-scn.view_settings.exposure = 0.35  # kit previews: Workbench studio light renders ~20 % darker than the game's day light
+scn.view_settings.exposure = opts["exposure"]  # kit previews: Workbench studio light renders ~20 % darker than the game's day light
 scn.world = bpy.data.worlds.new("w"); scn.world.color = (0.9, 0.87, 0.82)
 cam_data = bpy.data.cameras.new("cam"); cam = bpy.data.objects.new("cam", cam_data)
 scn.collection.objects.link(cam); scn.camera = cam
@@ -228,6 +243,20 @@ if not opts["box"]:
     obj.data.transform(Matrix.Scale(s, 4))
 if opts["sx"] != 1.0:  # widen only (gates: open the walk-through passage without making the gate taller)
     obj.data.transform(Matrix.Scale(opts["sx"], 4, Vector((1, 0, 0))))
+if opts["gate"]:
+    # widen a gateway in a front screen only (D2, Legion of Honor): in the band three z >= Z (Blender -y >= Z, feathered
+    # over F u), |x| <= W is stretched by K and W < |x| <= the half width is squeezed to fit, so the screen keeps its
+    # ends (they meet the side wings) and nothing behind it changes
+    W, K, Z, F = (float(x) for x in (opts["gate"].split(",") + ["1.0"])[:4])
+    mn, mx = bbox(obj); X1 = max(-mn.x, mx.x)
+    for v in obj.data.vertices:
+        w = min(1.0, max(0.0, (-v.co.y - (Z - F)) / F))
+        if w <= 0: continue
+        ax = abs(v.co.x)
+        nx = ax * K if ax <= W else W * K + (ax - W) * (X1 - W * K) / (X1 - W)
+        v.co.x += (1 if v.co.x >= 0 else -1) * w * (nx - ax)
+    obj.data.update()
+    stats["gate"] = {"half_width": W, "stretch": K, "z_from": Z, "feather": F}
 obj.data.update()
 mn, mx = bbox(obj)
 stats["size_xyz_three"] = [round((mx - mn).x, 3), round((mx - mn).z, 3), round((mx - mn).y, 3)]
@@ -323,8 +352,9 @@ for k, im in enumerate(base_imgs):
         ymin = min(v.co.y for v in obj.data.vertices); yd = max(1e-6, max(v.co.y for v in obj.data.vertices) - ymin)
         json.dump([[round(p.normal.z, 3), round((p.center.z - zmin) / zh, 3), round((p.center.y - ymin) / yd, 3)]
                    for p in obj.data.polygons], f)
-    g = json.loads(opts["grade"] or "{}"); g["faces"] = facej
-    cmd = [PY, os.path.join(os.path.dirname(os.path.abspath(__file__)), "grade_kit.py"), raw_png, graded, uvj,
+    g = json.loads(opts["grade"] or "{}")
+    if opts["grader"] == "kit": g["faces"] = facej
+    cmd = [PY, helper("grade_kit.py" if opts["grader"] == "kit" else "grade.py"), raw_png, graded, uvj,
            os.path.join(WORK, f"tex{k}-grade.json"), json.dumps(g)]
     if opts["mask"] and k == 0: cmd.append(opts["mask"])
     print("GRADE", subprocess.run(cmd, capture_output=True, text=True).stdout.strip()[-400:])
@@ -389,7 +419,7 @@ if opts["concept"] and opts["sil"]:
             a, e = math.radians(az), math.radians(el)
             d = Vector((math.sin(a) * math.cos(e), -math.cos(a) * math.cos(e), math.sin(e)))
             shoot(os.path.join(sdir, f"s_{az}_{el}.png"), d, 192, 1.1)
-    r = subprocess.run([PY, os.path.join(HERE, "iou.py"), opts["concept"], sdir], capture_output=True, text=True)
+    r = subprocess.run([PY, helper("iou.py"), opts["concept"], sdir], capture_output=True, text=True)
     print("IOU", r.stdout.strip()[-300:])
     try:
         stats["iou"] = json.loads(r.stdout.strip().splitlines()[-1])
