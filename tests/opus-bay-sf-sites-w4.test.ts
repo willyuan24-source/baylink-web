@@ -7,6 +7,7 @@ import { canStand, pointInPolygon, setCityTerrain } from '../src/opus-bay/core/t
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { findPath } from '../src/opus-bay/actors/nav';
 import { ATTRACTION_FLAG_H } from '../src/opus-bay/data/sf/attractionTypes';
+import { EXTRA_PLACES, PLACE_REANCHORS } from '../src/opus-bay/data/sf/extraPlaces';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
 import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
@@ -77,15 +78,14 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
       const d = Math.hypot(rec.x - s.x, rec.z - s.z);
       assert.ok(d < 70, `${s.id}: ${a} is ${d.toFixed(0)} u from the site`);
     }
-    // the place row: an existing places.json row near the site, or lane P's new extraPlaces row (= the attraction id)
-    const p = placeById.get(m.placeId);
-    if (p) {
-      const ar = landmarkToWorld(s, m.arrival);
-      assert.ok(Math.min(Math.hypot(p.x - s.x, p.z - s.z), Math.hypot(p.x - ar.x, p.z - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
-    } else {
-      const rec = attractionById.get(m.placeId);
-      assert.ok(rec && rec.placeId === null && m.attractions.includes(m.placeId), `${s.id}: ${m.placeId} is a new extraPlaces row (an attraction without a place row)`);
-    }
+    // the place row: an existing places.json row (with lane P's wave-4 re-anchor) near the site, or one of lane P's new
+    // extraPlaces rows (ids = the attraction ids), also near it
+    const row = placeById.get(m.placeId), extra = EXTRA_PLACES.find(e => e.id === m.placeId), re = PLACE_REANCHORS[m.placeId];
+    assert.ok(row || extra, `${s.id}: place ${m.placeId} is a places.json row or a lane-P extra row`);
+    const px = re?.x ?? (row ?? extra)!.x, pz = re?.z ?? (row ?? extra)!.z;
+    const ar = landmarkToWorld(s, m.arrival);
+    assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
+    if (extra) assert.ok(m.attractions.includes(m.placeId) || W4_SITES.some(o => o.w4.attractions.includes(m.placeId)), `${s.id}: ${m.placeId} is modelled`);
     assert.ok(Number.isFinite(m.height.u) && m.height.u > 0, s.id);
     if (m.lod0R !== undefined) assert.ok(m.lod0R >= 120 && m.lod0R <= 520, s.id);
     assert.ok(m.photo.distance > 0 && Math.abs(m.photo.elevation) < 1.5 && m.photo.target.every(Number.isFinite), s.id);

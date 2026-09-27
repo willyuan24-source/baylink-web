@@ -8,8 +8,11 @@ import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { haightAshbury } from './haight-ashbury';
 import { japaneseTeaGarden } from './japanese-tea-garden';
+import { landsEnd } from './lands-end';
 import { musicConcourse } from './music-concourse';
+import { oceanBeach } from './ocean-beach';
 import { sfState } from './sf-state';
+import { sfZoo } from './sf-zoo';
 import { sfmoma } from './sfmoma';
 import { stIgnatius } from './st-ignatius';
 import { stonestown } from './stonestown';
@@ -54,6 +57,9 @@ export const W4_SITES: readonly W4Site[] = [
   yerbaBuenaGardens,
   haightAshbury,
   doloresPark,
+  landsEnd,
+  oceanBeach,
+  sfZoo,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));
