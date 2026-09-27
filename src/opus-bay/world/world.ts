@@ -406,7 +406,7 @@ export class World {
     // Karl the Fog (?karl=0|1, else the time table) with its cloud bank, and the night light field
     const karl = this.env.karl!; // city mode always has Karl (Environment gets the city chunk's KarlState)
     if (opts.karl !== undefined) karl.setFlag(opts.karl);
-    const clouds = new cm.CloudBank(karl);
+    const clouds = new cm.CloudBank(karl, null, () => this.env.fog.density);
     const lightField = new cm.LightField(renderer, { slab: DISTRICT.slab, siteLights: () => cm.siteLightSpecs(sites.siteLights()) });
     this.detachAtmos = [this.addSystem(clouds), this.addSystem(lightField)];
     const sb = new THREE.Box3();

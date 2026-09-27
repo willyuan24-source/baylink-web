@@ -236,6 +236,15 @@ test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMes
   cam.lookAt(137, 0, 133); // → downtown: the clusters behind the camera are not drawn
   bank.update(0.016, 0, cam);
   assert.ok(bank.mesh.count < west, `culled per cluster: ${bank.mesh.count} < ${west}`);
+  // the haze cull: from the Ferry Building at walking height (morning haze) the bank 2 km west is not packed at all
+  const walker = new THREE.PerspectiveCamera(40, 1.6, 0.5, 3000);
+  walker.position.set(157, 7, -21);
+  walker.lookAt(-420, 20, 1180);
+  const hazy = new CloudBank(k, null, () => 0.0022);
+  hazy.update(0.016, 0, walker);
+  bank.update(0.016, 0, walker);
+  assert.ok(bank.mesh.count > 0 && hazy.mesh.count < bank.mesh.count / 2, `haze: ${hazy.mesh.count} of ${bank.mesh.count}`);
+  hazy.dispose();
   for (const tod of TODS) {
     const t = karlTarget(tod, null);
     const slots = cloudSlots(t);

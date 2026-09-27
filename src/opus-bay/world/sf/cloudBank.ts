@@ -4,6 +4,7 @@ import { Batch, C, ICO, freezeStatic } from '../builder';
 import { TOY_INST_TINT } from '../materials';
 import type { WorldSystem } from '../world';
 import { KARL_GEO, type KarlState, type KarlTarget } from './fog';
+import { hazeCullDepth } from './pools';
 
 /**
  * Karl the Fog's cloud bank (lane C2-8, city chunk): CLOUD_BANK.count cotton clusters (3 lumps each) on ONE TOY_INST_TINT
@@ -90,7 +91,7 @@ export const CLOUD_TINT: Record<TimeOfDay, [number, number, number]> = {
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 const _c = new THREE.Color(), _c2 = new THREE.Color();
-const _f = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
+const _f = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere(), _fwd = new THREE.Vector3();
 const ease = (t: number) => t * t * (3 - 2 * t);
 const smooth = (e0: number, e1: number, x: number) => ease(Math.min(1, Math.max(0, (x - e0) / (e1 - e0))));
 
@@ -110,9 +111,13 @@ export class CloudBank implements WorldSystem {
   /** city ground height (the far DEM), so no cluster sits inside a hill; null until the far city is in */
   private groundAt: ((x: number, z: number) => number) | null;
 
-  constructor(karl: KarlState, groundAt: ((x: number, z: number) => number) | null = null) {
+  /** the scene's live FogExp2 density (the world's environment): clusters lost in the haze are not packed */
+  private haze: (() => number) | null;
+
+  constructor(karl: KarlState, groundAt: ((x: number, z: number) => number) | null = null, haze: (() => number) | null = null) {
     this.karl = karl;
     this.groundAt = groundAt;
+    this.haze = haze;
     this.group.name = 'karl-clouds';
     this.mesh = new THREE.InstancedMesh(this.geo, TOY_INST_TINT, CLOUD_BANK.count);
     this.mesh.name = 'karl-clouds';
@@ -160,6 +165,9 @@ export class CloudBank implements WorldSystem {
     this.tint(k.tod, k.t);
     camera.updateMatrixWorld();
     _f.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    // the haze cull (pools.ts): at walking height the bank 2 km off behind the city is ≥ 98.5 % haze
+    const maxDepth = hazeCullDepth(this.haze?.() ?? 0, (camera as THREE.PerspectiveCamera).far ?? Infinity);
+    camera.getWorldDirection(_fwd);
     let n = 0;
     const e = (this.placed = ease(k.t));
     const size = Math.min(1, level / 0.12) * (0.8 + 0.2 * Math.min(1, level / 0.6));
@@ -174,7 +182,9 @@ export class CloudBank implements WorldSystem {
       if (cam.y < _p.y + 12) grow *= smooth(70, 170, Math.hypot(_p.x - cam.x, _p.z - cam.z));
       _s.set(a.sx + (b.sx - a.sx) * e, a.sy + (b.sy - a.sy) * e, a.sz + (b.sz - a.sz) * e).multiplyScalar(grow);
       if (_s.x < 0.05 || _s.y < 0.05) continue;
-      if (!_f.intersectsSphere(_sph.set(_p, Math.max(_s.x, _s.z) * 1.8))) continue;
+      const r = Math.max(_s.x, _s.z) * 1.8;
+      if (!_f.intersectsSphere(_sph.set(_p, r))) continue;
+      if (maxDepth < Infinity && (_p.x - cam.x) * _fwd.x + (_p.y - cam.y) * _fwd.y + (_p.z - cam.z) * _fwd.z - r > maxDepth) continue;
       _q.setFromAxisAngle(_up, a.yaw + (b.yaw - a.yaw) * e);
       this.mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
     }

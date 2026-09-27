@@ -24,6 +24,9 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, cur, i, arr) 
  */
 export const VIEWS = [
   { id: 'ferry', note: 'Ferry gate (hero district, walking)', go: { anchor: 'ferry-gate', fx: 100, fz: 60 } },
+  // the perf table's own spots (scripts/opus-sf/qa/perf, wave 3): the Ferry gate facing (60, 120), the Dragon Gate
+  { id: 'perf-ferry', note: 'Ferry gate as the perf table stands there (facing 60, 120)', go: { anchor: 'ferry-gate', fx: 60, fz: 120 } },
+  { id: 'perf-chinatown', note: 'Chinatown, the Dragon Gate, as the perf table stands there', go: { x: 86.3, z: 178.1, fx: 81.9, fz: 174.7, arrival: true } },
   { id: 'tp-walk', note: 'Twin Peaks summit, walking view toward downtown', go: { x: 128.9, z: 922.7, fx: 125, fz: 500, arrival: true } },
   { id: 'tp-high', note: 'Twin Peaks high (≈ 70 u above the summit) → Ferry Building', cam: { p: [140, 115, 1000], t: [132, 0, 15], f: [128.9, 922.7] } },
   { id: 'tp-high250', note: 'Twin Peaks 250 u (wave-1 worst case)', cam: { p: [180, 250, 1150], t: [60, 0, 400], f: [128, 900] } },

@@ -128,6 +128,8 @@ export class CityWater {
   private nearBlocks: Uint32Array[] = [];
   private lakes: THREE.Mesh | null = null;
   private edges: THREE.Mesh[] = [];
+  /** tiles that are all land in the shore texture (setShore): no water there, near or far */
+  private dry = new Set<number>();
   /** far tiles fully under the satellite boards' land (setBoardLand) */
   private boardLand = new Set<number>();
   private view = new THREE.Frustum();
@@ -236,6 +238,9 @@ export class CityWater {
     for (let tj = 0; tj < 2 * NEAR + 1; tj++) for (let ti = 0; ti < 2 * NEAR + 1; ti++) {
       const tx = ctx - NEAR + ti, tz = ctz - NEAR + tj;
       if (!this.insideBoard(tx, tz)) continue;
+      // a tile that is all land (the shore texture, the boards) has no water to wave: its block stays out (wave 3: at
+      // the Ferry gate facing downtown ≈ half the near grid, ≈ 6k triangles)
+      if (this.dry.has(this.key(tx, tz)) || this.boardLand.has(this.key(tx, tz))) continue;
       inNear.add(this.key(tx, tz));
       const b = this.nearBlocks[tj * (2 * NEAR + 1) + ti];
       nd.set(b, nn);
@@ -294,6 +299,7 @@ export class CityWater {
       }
       t.land = land;
     }
+    this.dry = new Set(this.farTiles.filter(t => t.land).map(t => t.key));
     this.tileKey = NaN;
   }
 

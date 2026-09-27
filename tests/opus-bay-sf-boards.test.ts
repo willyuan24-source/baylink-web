@@ -209,3 +209,23 @@ test('near / far: the dressing always on, the fine ground and the trees near onl
   const farSet = build.items.filter(i => i.lod !== 'near' && i.bin !== 2).reduce((n, i) => n + tri(i.toy) + tri(i.ground), 0);
   assert.ok(farSet < (build.triangles.ground + build.triangles.toy) * 0.7, `far set ${farSet}`);
 });
+
+test('city water: the near wave grid leaves out the tiles that are all land (no water to wave under the ground)', async () => {
+  const { CityWater } = await import('../src/opus-bay/world/sf/water');
+  const water = new CityWater(new THREE.DataTexture(new Uint8Array(4), 1, 1), new THREE.Vector4(0, 0, 1, 1));
+  const cam = new THREE.PerspectiveCamera(40, 1.6, 0.5, 3000);
+  cam.position.set(100, 10, 100);
+  cam.lookAt(100, 0, 0);
+  cam.updateMatrixWorld();
+  const near = (water as unknown as { near: THREE.Mesh }).near;
+  const shore = (v: number) => ({ data: new Uint8Array(400 * 400).fill(v), x0: -12800, z0: -12800, step: 64, cols: 400, rows: 400 });
+  const tex = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  water.setShore(tex(), new THREE.Vector4(0, 0, 1, 1), shore(255), tex());
+  water.update(cam);
+  const wet = near.geometry.drawRange.count;
+  assert.ok(wet > 0, 'all water: the whole near grid');
+  water.setShore(tex(), new THREE.Vector4(0, 0, 1, 1), shore(0), tex());
+  water.update(cam);
+  assert.equal(near.visible && near.geometry.drawRange.count > 0, false, 'all land: no near water');
+  water.dispose();
+});
