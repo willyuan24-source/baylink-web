@@ -301,3 +301,102 @@ neighbourhood-icon → neighbourhood, transit-icon → landmark, …); the JSON'
   underground" (N and M at Embarcadero), which `transitLineProblems` enforces.
 - The new lines get ± 20 % on length and y ≥ −30 in the frozen test (lane T bakes the loop and cuts the N at
   Embarcadero; underground heights are interpolated, not sampled), the wave-2 lines keep their old tolerances.
+
+## 8. Integration phase · lead-merge (the §6 items, the Requests, the ledgers)
+
+Written on 2026-09-27 by the lead-merge agent (worktree `C:/Users/willy/wt/i4-lead`, branch `i4-lead`, on `7c6e6e2`).
+Every "Requests" item of `sf-w3-*.md` and `sf-w4-*.md` addressed to the lead or to a frozen file was applied or decided
+below; the open wave-3 requests to wave-3 lanes were checked against the code and routed to their wave-4 owners (§5.1).
+Integration lanes: rebase onto this commit before you wire.
+
+### 8.1 给主人的摘要
+
+1. 第 6 节留到接线阶段的冻结改动已经落地：`flow.trip`（行程）和 `flow.arrival`（抵达时刻）两个新状态、地点类型加上校园 / 购物中心 / 动物园 / 宗教场所、乘车事件带方向（进隧道还是出隧道）、欢迎选项能直接开"环游旧金山"、观光巴士每段路的车速写进数据格式（带校验）。
+2. 各线在报告里对主人 / 冻结文件提的请求全部处理完：能做的做了，不需要的写明了原因（例如"地标旗开关"放在本机设置就够；唐人街宝塔群预算不够，先只做卡片）。
+3. 顺手修好两个工具问题：并行截图时 Chrome 调试端口会撞车（现在由 Chrome 自己挑端口，两路同时截图已验证）；本地开着开发服务器时全仓检查会误报（忽略 `.vite-opus` 缓存）。
+4. 第三、四波的 Higgsfield 账本已合并进总账并和平台流水对上：第三波 42.70 分，第四波到目前 55.45 分（上限 120），余额 400.13。
+5. 第三波各线留下、还没做的小请求（约 30 条）已按第四波的分工转给对应的线（见 8.4）。
+
+### 8.2 Applied (frozen / lead files)
+
+| request (source) | change | pinned by |
+|---|---|---|
+| §6 item 1 (day 0) | `game/flowStore.ts`: `trip: TripState \| null`, initial null (type-only import of `game/tripTypes`). Lane C owns the field from now on. | contracts "wave 4 integration: flow.trip …" |
+| lane C (c) (`sf-w4-C.md` Requests) | `game/flowStore.ts`: `arrival: (ArrivalBeats & { attraction: string; place: string }) \| null`, initial null (type-only import of `game/arrival`; no runtime edge, the P7 guard skips type imports). Lane C writes it, lane G reads it. | same test |
+| §6 item 2 (day 0; lane P's first request) | `world/sf/format.ts`: `SfPlaceKind` includes `SfPlaceKindW4` (`campus`, `shopping`, `zoo`, `religious`); `SfPlaceKindAll` stays as an alias of `SfPlaceKind`. `data/sf/cityPois.ts` `PLACE_KIND_NAMES` gains 校园 Campus · 购物中心 Shopping centre · 动物园 Zoo · 宗教场所 Place of worship in the same commit. | contracts "… SfPlaceKind absorbed …" |
+| lane C (a) | `core/events.ts` `transit`: `dir?: 1 \| -1` (1 = increasing `at`, the path order = outbound from Embarcadero on the N / M; −1 = inbound; absent = unknown). | contracts (dir travels the bus) |
+| lane C (b) | `core/types.ts` `DialogueAction`: `{ type: 'start-tour'; tourId?: string }` (absent = the first lesson, so every district node keeps its meaning). | contracts (documented values) |
+| lane T (`sf-w4-T.md` Requests) | `world/sf/format.ts` `TransitLine.speeds?: [fromAt, toAt, speed][]`; `transitLineProblems` checks the spans (numbers, `fromAt < toAt`, inside `[0, length]`, in order and not overlapping, speed > 0). The published `transit-w4.json` loop (121 spans) and every `transit.json` line pass. The runtime casts `TransitLine & { speeds? }` still compile; drop them at leisure. | sf-format "integration: speed spans …" (+ `speeds` on the sample loop); sf-data validates the published lines through `transitLineProblems` |
+| lane V (Requests) | `eslint.config.js`: `globalIgnores(['dist', '.vite-opus'])` (the opus dev server's optimizer cache). | `npx eslint .` with a dev server running |
+| lane C2, wave 3 (part b 5, review 1) | `scripts/opus-shot.mjs`: `--remote-debugging-port=0` and the port read from `<profile>/DevToolsActivePort` (the random 9400–9899 port collided between lanes and drove another lane's page). Two captures run in parallel each shot their own page. `w4-perf.mjs` runs through opus-shot and gets the fix. | — |
+| lanes D2, H2b, V (ledgers) | `src/opus-bay/ASSETS-LEDGER.md` "Wave 3 and wave 4 (local)": every row of `ledger/w3-D2.md`, `w3-H2b.md`, `w4-V.md`, the dated CDN correction (H2b-12), the balance trail and the reconciliation with `transactions` (15 credits at 22:16–22:20 UTC are not in a lane ledger yet: most likely lane V's Holy Virgin re-fit; its next ledger rows get merged). | — |
+
+### 8.3 Decided, not applied
+
+- **`settings.landmarkFlags` in `core/store.ts` (lane G, optional): not added.** A display preference per device is
+  what `game/guidePrefs.ts` already keeps; a store field would need a second writer (the settings decoder in
+  `data/wishlist.ts`) and touches every save for nothing the game needs.
+- **`vercel.json` immutable cache header for `/opus-bay/sf/v1/**` (G1, wave 2 → 3): not touched.** Preview deployments
+  of `opus-bay` are off and nobody edits `vercel.json` in this wave; it belongs to the release to `main`.
+- **`SF_VOICE_UNMUTE` (H2b):** waits for the owner's listening (`docs/opus-bay/qa/w3/H2b/`); nothing to change before.
+- **Mural boards vs the player's body (H2b review, design call):** boards flush to the walls (0.06 u instead of 0.12 u),
+  not soft obstacles (no new obstacle kind for the ride code) → lane V (H2b's files), see 8.4.
+- **Chinatown pagoda cluster (lane V / L):** card-only in wave 4. The headroom is 10.1k at `quality=high`, on the plan's
+  10k line with no margin, and C2's review measured Chinatown at 411k on `c9cd8a4`; Old St Mary's and the Sing Chong /
+  Sing Fat towers stay cards (lane C), models are a later wave's.
+- **Strawberry Hill drawn as lake water (lane L, "lead / the lane that owns the chunk build"):** not a data fault. The
+  chunks carry the island as `hole` rings right after the Blue Heron Lake ring (`-3_8` rings 13 → 14–16, `-2_7` 70 → 71–72),
+  and the walk raster honours them (`core/sfTerrain.ts rasterizeChunk` fills even-odd with the holes; probe: kind land,
+  surface 6 at the Chinese Pavilion origin). The **renderer** does not: `world/sf/build.ts chunkContext` fills every
+  water ring, holes included, as water (`const v = k === A.land ? 1 : 0`), and `world/sf/far.ts` sets `land = 0` for a
+  water hole too → lane V (C2's files), see 8.4. No chunk rebuild (plan R16).
+- **Owner decisions, left as the lanes' defaults:** the toy-bike autopilot cruise (lane G: leave it, times stay honest);
+  six residents' voices (G2, optional, would be lane V's recording + lane C's one-line emit).
+- **For the final verify (W4-Z), not now:** the perf table on a quiet machine (C2 review 2); GameRoot 309 KB vs the
+  250 KB target and whether to split the HUD / game systems by mode (C2 part b: a lead decision taken with lane V's
+  bundle numbers after the wiring); D2's G5 on-screen gate for the three routes (re-run `routes-qa.mjs` once lane L's
+  park sites are registered).
+
+### 8.4 Routed to the wave-4 owners (open wave-3 requests, checked in the code at `7c6e6e2`)
+
+| owner | from | file | change |
+|---|---|---|---|
+| **G** | C2 w3 a1 / b4 | `game/Systems.tsx` `FocusMarker` | ring material `forceSinglePass: true` (2 program lookups a frame today) |
+| **G** | E2 w3 a1 / review 4 | `game/hudLayout.ts` `HUD_BOX_SELECTOR` | add `'.ob-move-buttons > *'` (bubble and waypoint keep off Hop / bell / 下车 / 起飞 / 降落) |
+| **G** | E2 w3 review 2 | `opus-bay.css` | landscape 667 × 375: the `.ob-hud-buttons` column spans y −17…249, its top button is cut off |
+| **G** | G2 w3 c5 | `actors/camera.ts` `twoShotPose` | in a resident's chat prefer BAYBAY's side (`prefer = gs \|\| this.twoSide`, exact code in `sf-w3-G2.md`) |
+| **G** | G2 w3 review 8 | `ui/Settings.tsx` reset | `void import('../game/baybayLines').then(m => m.clearLineMemory());` after `clearSave()` |
+| **G** | D2 w3 c2 | `actors/system.ts` BAYBAY GLB | load with `(await import('../world/models')).heroGltfLoader()` (then lane V can publish Draco + WebP heroes) |
+| **G** | F w3 a / b | `ui/transitGlyph.ts`, `ui/icons.tsx` | F-line stations (`f-…`, hero stops while the city F-line runs) answer `'streetcar'`; ferry terminals by `ferryTerminal(refId)` (`pier-41`) |
+| **G** | G1 w3 a2 | `tests/opus-bay-sf-nav.test.ts` l.180 | `navWindowStats.lastMs < 200` flakes under load: ≈ 600 ms or drop the wall clock (the build count is the check) |
+| **G** | D2 w3 b (optional) | `actors/moveSystem.ts` `cityTallStructures` | the renderer's base for 'terrain' landmarks instead of `heightAt(l.x, l.z)` |
+| **G** | G1 w3 review (observation) | RouteWalker legs | Ferry gate → Dragon Gate: a ≈ 20 u excursion east near x 132–153, z 29–33 while `routeTo` goes straight |
+| **T** | E2 w3 a4 / review 4 | `world/streetcar.ts`, `game/transit.ts` | the hero F-line ride gets `line: 'streetcar'` and honours `requestPlatformStop('streetcar', 1.2)` / `releasePlatformStop` (braked hop-off like the city cars) |
+| **T** | D2 w3 c2 | `world/life.ts` `loadModel` | `heroGltfLoader()` instead of `new GLTFLoader()` (as lane G above) |
+| **T** | G2 w3 review 9 | `world/sf/cityLife.ts` `crowdEnv.avoid` | step round the six city residents (`RESIDENTS` within 100 u; code in `sf-w3-G2.md`) |
+| **T** | F w3 b | `world/sf/lineFleet.ts` | `registerRoadVehicles` (buses, LRVs: kind, line, half sizes) and `registerTransitStreet` for surface tracks (`world/sf/streetNet.ts`) |
+| **T** | E2 w3 review 1 (optional) | `game/transit.ts` `leaveLineRide` ferry branch | `?? { x: quay.x, z: quay.z }` when the quay's ground is not streamed |
+| **T** | lead (this merge) | `world/lightRail.ts` / fleet events | set the new `dir` on `transit` board / approach / arrive for `n-judah` / `m-ocean-view` (lane C's portal lines stay silent without it) |
+| **T + V** | C2 w3 b3 / review 3 | streetcars / cable cars | Chinatown 37k main tris on `c9cd8a4`: shadows only near the camera; confirm in the perf gate |
+| **P** | E2 w3 b1 / review 4 | `game/fastTravel.ts` `arrivalSpot` | in city mode use `actors/nav` `arrivalSpot(p, 30)` first (never a slot between house rows; code in `sf-w3-E2.md`) |
+| **P** | G2 w3 review 10 | place index names | zh for `osm-w120483945` (威廉明娜女王郁金香花园; residents already say "Queen Wilhelmina 郁金香花园"); `osm-w8916752` is named by the clarion-alley attraction |
+| **P / C** | D2 w3 c5 | map lines, discovery chips | `SF_ROUTES` (`data/sf/routes.ts`) is ready to show |
+| **L** (+ **C**, **P**) | D2 w3 c1 (to the lead) | `data/sf/landmarks.ts` + `data/sf/arrivals.ts` + `data/sf/attractions.ts` `LANDMARK_ARRIVALS` + `data/sf/routes.ts` | the four arrivals (Palace on the lagoon walk, Fort Point on the apron, de Young in the forecourt, Castro across the street; exact values in `sf-w3-D2.md` part c), in one push: `sf-content` and `sf-attractions` print the tables, then `routes-build.ts` (R2 / R3 stops). Routed rather than applied: every file is a lane's, and lanes C / P pin these points in tests they are editing now |
+| **L** | L w4 (to "D2 / the kit owner") | `world/sf/landmarks/kit.ts` `pyramid` | turn by 45° before the scale (or call `siteKit.hipRoof`); the six `w ≠ d` calls change shape with it |
+| **L** | D2 w3 not done | landmark settings | the remaining T2 settings (Grace's Huntington Park steps, the Legion's court approach, Ghirardelli, the Wharf, Sutro / Cliff House, Lombard, the turntable aprons) |
+| **V** | lead (8.3) | `world/sf/build.ts` `chunkContext`, `world/sf/far.ts` | fill a water ring even-odd with its following hole rings (as `rasterizeChunk` does) so Strawberry Hill (and every lake island) is land in the render; then lane L can lower the pavilion's stone-base workaround |
+| **V** | lead (8.3) | `scripts/opus-sf/murals/place.ts` | mural boards at 0.06 u from the wall (re-run; placement test stays); check for z-fighting at 300 u |
+| **V** | lead (this merge) | `scripts/opus-sf/qa/perf/opus-prof.mjs` | the same debugging-port fix as `opus-shot.mjs` (random 9900–9989 port today) |
+| **V** | G1 w3 a3 | `world/sf/stats.ts` `?debug` panel | on ≤ 720 px: `font-size 10px; max-width calc(100% − 12px); white-space pre-wrap`, under G1's debug line, or desktop only |
+| **V** | D2 w3 c3 | warm-up | programs drift 40–41 → 42 along each route (`routes-qa.mjs` JSON): one or two link after the warm-up at the first route stop |
+| **V** | D2 w3 not done | assets | Draco + WebP for the five district heroes once G and T load them through `heroGltfLoader()`; kit night-glass masks for marina-mediterranean / sunset-doelger / edwardian-flats |
+| **C** | G2 w3 b2 | `data/wishlist.ts` `readProgress` | `goalsDone: strings(raw.goalsDone, 128)` (41 `hood:` marks + goals + favours come close to 64) |
+| **C** | lead (this merge) | `game/flow.ts` | `start-tour` with `tourId` for the welcome choice; `flow.arrival` for the beats; `SfPlaceKindAll` may become `SfPlaceKind` |
+| **C** (optional) | G1 w3 a4, F w3 a, D2 w3 a | `data/sf/copy.ts`, `game/content.ts`, `data/sf/cityPois.ts` | `greet?: Bilingual` for the city title; `streetcarBoard` / `ferryBoard` / `ferryOff` hooks; drop the now redundant landmark part of `ZH_GLOSSARY` / `PLANNER_DROP` |
+
+Checked and already done (no action): C2 w3 a2–a4 and b1–b2, E2's BAYBAY precompile and crowd shadows, F's ferry
+hop-off refusal (E2 review), G2's blob skip of hidden residents and `dispose()` release, G2's `LANDMARK_EDGES_PENDING`
+(gone) and the cable-car fallback text, H2b's paper patch and the `SF_VOICE_LINES` merge, G2's `lines.ts` comment, the
+601–1180 px touch-action column (G1 review: 721–1180 px, below that the narrow HUD), lane C's O1 (克莱门街 in the plan
+row 59, the JSON and lane P's rows). The wave-4 reports' own cross-lane Requests stand as written: they already name
+their wave-4 lanes.
