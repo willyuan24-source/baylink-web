@@ -13,6 +13,8 @@ import type { Interactable } from './interactables';
  *                                            there); unmounted when unregistered
  *   registerProxySource(fn)                  extra invisible click spheres for an interactable (e.g. an SF landmark's
  *                                            body for its POI card): fn(it) → hits in world space, or null
+ *   invalidateProxies()                      a proxy source's answers changed (a landmark base settled, a model
+ *                                            loaded): Systems re-asks every source (day-0 review addition)
  *
  * Every register returns its unregister function. Keys are unique per registry (re-registering a key replaces it).
  * World-side systems (meshes that follow the streamed city) use world/world.ts `getWorld().addSystem` instead.
@@ -63,6 +65,8 @@ export function registerProxySource(fn: ProxySource): () => void {
   bump();
   return () => { const i = proxies.indexOf(fn); if (i >= 0) { proxies.splice(i, 1); bump(); } };
 }
+/** A registered proxy source now answers differently: rebuild the click proxies (cheap; call on change, not per frame). */
+export function invalidateProxies() { bump(); }
 /** Extra click spheres for one interactable (empty when no source adds any). */
 export function extraProxies(it: Interactable): ProxyHit[] {
   if (!proxies.length) return [];
