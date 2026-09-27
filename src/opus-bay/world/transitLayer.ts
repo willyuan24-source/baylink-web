@@ -4,7 +4,7 @@ import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { CABLE, type TransitData, type Turntable, loadTransit, pointAt } from '../data/transit';
 import { Batch } from './builder';
-import { CABLE_PLATFORM, cableCarGeometry } from './cablecar';
+import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
@@ -15,7 +15,8 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  * (a separate chunk: district mode never downloads it). Owns:
  *
  * - the cable-car simulation (world/transitLine.ts `CableSystem`, installed as the active system for game/ride.ts);
- * - 6 cable cars as ONE TOY_INST InstancedMesh (1 call + its shadow), hidden beyond 300 u from the camera;
+ * - 6 cable cars as TOY_INST InstancedMeshes: the full car within 110 u of the camera (1 call + its shadow), a
+ *   156-triangle far version beyond (1 call, no shadow), none beyond 300 u;
  * - 3 spinning turntable discs (one InstancedMesh), F's static aprons at Hyde & Beach and Taylor & Bay (one Mesh) and
  *   the push progress ring (one Mesh, only while a car turns near the player);
  * - F's rails where the city draws none (world/rails.ts: hero spans, stubs, the Powell/Jackson corner);
@@ -23,17 +24,19 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  *   nearest the player, with pitch;
  * - the cars' events as `transit` game events near the player (bells, grip clank, turntable push / turned).
  *
- * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, discs 1 (+ shadow 1), aprons 1,
- * rails 1, ring 1 while pushing: ≤ 7 calls; ≈ 6 × 1.9k + 3 × 1.3k + rails ≈ 17k triangles with everything in view.
+ * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, far cars 1, discs 1 (+ shadow 1),
+ * aprons 1, rails 1, ring 1 while pushing: ≤ 8 calls. Triangles: 2,124 a near car (again in the shadow pass), 156 a far
+ * one, 812 a disc (+ shadow); e.g. 2 near + 4 far cars and 3 discs ≈ 14k including shadows.
  */
 
 const HEAR = 60;
+/** cars farther than this from the camera draw the far version (no shadow) */
+const FAR_LOD = 110;
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
 const tmpE = new THREE.Euler();
 const tmpP = new THREE.Vector3();
 const ONE = new THREE.Vector3(1, 1, 1);
-const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** Rough "could the player see this": within 170 u of the camera and less than ~75° off its view line to the player. */
 function visibleFromCamera(x: number, z: number): boolean {
@@ -52,6 +55,7 @@ export class TransitLayer {
   readonly sys: CableSystem;
   readonly rails: RailLayer;
   private cars: THREE.InstancedMesh;
+  private carsFar: THREE.InstancedMesh;
   private discMesh: THREE.InstancedMesh;
   private discs: Disc[] = [];
   private aprons: THREE.Mesh | null = null;
@@ -79,6 +83,11 @@ export class TransitLayer {
     this.cars.receiveShadow = true;
     this.cars.frustumCulled = false;
     this.cars.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.carsFar = new THREE.InstancedMesh(cableCarFarGeometry(), TOY_INST, this.sys.cars.length);
+    this.carsFar.name = 'cable-cars-far';
+    this.carsFar.receiveShadow = true;
+    this.carsFar.frustumCulled = false;
+    this.carsFar.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
     // turntable discs: aligned with the track at the disc centre
     for (const tt of data.turntables) {
@@ -101,7 +110,7 @@ export class TransitLayer {
     this.ring.renderOrder = 2;
 
     this.rails = new RailLayer(data);
-    this.group.add(this.cars, this.discMesh, this.ring, this.rails.mesh);
+    this.group.add(this.cars, this.carsFar, this.discMesh, this.ring, this.rails.mesh);
     this.refreshDiscHeights(true);
     this.update(0, 0);
     this.group.updateMatrixWorld(true);
@@ -133,17 +142,23 @@ export class TransitLayer {
     sys.step(dt);
     const cam = U.uCam.value, p = runtime.player;
     // cars
-    let any = false;
+    // cars within range are packed to the front of the near (≤ FAR_LOD, with shadows) or the far mesh; each draw covers
+    // only its cars, so hidden ones cost no triangles
+    let n = 0, nf = 0;
     for (const car of sys.cars) {
       const q = car.pose;
-      const far = Math.hypot(q.x - cam.x, q.z - cam.z) > CABLE.hideBeyond;
-      if (far) { this.cars.setMatrixAt(car.index, ZERO); continue; }
-      any = true;
+      const d = Math.hypot(q.x - cam.x, q.z - cam.z);
+      if (d > CABLE.hideBeyond) continue;
       tmpQ.setFromEuler(tmpE.set(-q.pitch, q.heading, q.roll, 'YXZ'));
-      this.cars.setMatrixAt(car.index, tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE));
+      tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE);
+      if (d > FAR_LOD) this.carsFar.setMatrixAt(nf++, tmpM); else this.cars.setMatrixAt(n++, tmpM);
     }
+    this.cars.count = n;
     this.cars.instanceMatrix.needsUpdate = true;
-    this.cars.visible = any;
+    this.cars.visible = n > 0;
+    this.carsFar.count = nf;
+    this.carsFar.instanceMatrix.needsUpdate = true;
+    this.carsFar.visible = nf > 0;
     // platforms: the rider's car, else each line's car nearest the player
     for (const line of this.data.lines) {
       let car = sys.riderCarOf(line.id);
@@ -155,19 +170,18 @@ export class TransitLayer {
     }
     // discs (+ the progress ring for a turn near the player)
     if ((this.discYDirty -= dt) <= 0) { this.discYDirty = 1; this.refreshDiscHeights(); }
-    let discAny = false, ringTT: Disc | null = null, ringK = 0;
-    this.discs.forEach((d, i) => {
-      const far = Math.hypot(d.tt.x - cam.x, d.tt.z - cam.z) > CABLE.hideBeyond;
-      if (far) { this.discMesh.setMatrixAt(i, ZERO); return; }
-      discAny = true;
+    let discs = 0, ringTT: Disc | null = null, ringK = 0;
+    for (const d of this.discs) {
+      if (Math.hypot(d.tt.x - cam.x, d.tt.z - cam.z) > CABLE.hideBeyond) continue;
       const turning = sys.turningAt(d.tt.id);
       const yaw = d.yaw + (turning ? turning.turn : 0);
       tmpQ.setFromEuler(tmpE.set(0, yaw, 0, 'YXZ'));
-      this.discMesh.setMatrixAt(i, tmpM.compose(tmpP.set(d.tt.x, d.y, d.tt.z), tmpQ, ONE));
+      this.discMesh.setMatrixAt(discs++, tmpM.compose(tmpP.set(d.tt.x, d.y, d.tt.z), tmpQ, ONE));
       if (turning && Math.hypot(d.tt.x - p.x, d.tt.z - p.z) < 26) { ringTT = d; ringK = turning.turn / Math.PI; }
-    });
+    }
+    this.discMesh.count = discs;
     this.discMesh.instanceMatrix.needsUpdate = true;
-    this.discMesh.visible = discAny;
+    this.discMesh.visible = discs > 0;
     const rt = ringTT as Disc | null;
     this.ring.visible = !!rt;
     if (rt) {
@@ -218,6 +232,7 @@ export class TransitLayer {
   dispose() {
     if (activeCableSystem() === this.sys) setActiveCableSystem(null);
     this.cars.geometry.dispose();
+    this.carsFar.geometry.dispose();
     this.discMesh.geometry.dispose();
     this.ring.geometry.dispose();
     this.aprons?.geometry.dispose();

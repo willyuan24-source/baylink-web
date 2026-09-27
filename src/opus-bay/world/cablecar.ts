@@ -149,6 +149,31 @@ export function cableCarGeometry(): THREE.BufferGeometry {
 }
 
 /**
+ * The far version (beyond ~110 u, drawn without shadows): the same silhouette and colours in 13 boxes (156
+ * triangles instead of 2,124), lamps and warm windows included so a far car still reads at night.
+ */
+export function cableCarFarGeometry(): THREE.BufferGeometry {
+  const b = new Batch();
+  const F = CAR_FLOOR;
+  box(b, 0, 0.1, 0, 1.3, 0.3, L - 1.2, IRON);
+  box(b, 0, F - 0.06, 0, W + 0.5, 0.06, L - 0.5, WOOD);
+  box(b, 0, F, 0, W, 0.7, L - 0.12, MAROON);
+  box(b, 0, F + 0.7, 0, W - 0.3, 0.8, SALOON.z1 - SALOON.z0, CREAM);
+  for (const s of [-1, 1]) box(b, s * (W / 2 - 0.16), F + 0.8, (SALOON.z0 + SALOON.z1) / 2, 0.02, 0.6, SALOON.z1 - SALOON.z0 - 0.2, GLASS, WINDOW);
+  box(b, 0, F + 1.5, 0, W - 0.1, ROOF_Y - F - 1.5, L - 0.2, MAROON);
+  box(b, 0, ROOF_Y, 0, W + 0.14, 0.1, L + 0.2, ROOF);
+  box(b, 0, ROOF_Y + 0.1, 0, 1.05, 0.14, L - 1.6, CREAM_DARK);
+  for (const e of [-1, 1]) {
+    box(b, 0, F + 0.3, e * (HL + 0.02), 0.22, 0.2, 0.06, e > 0 ? '#fff1c8' : '#ffc08a', LAMP);
+    box(b, 0, ROOF_Y + 0.1, e * (HL + 0.02), 0.9, 0.14, 0.06, '#fff0c4', LAMP);
+  }
+  const g = b.build();
+  g.computeBoundingSphere();
+  g.name = 'cable-car-far';
+  return g;
+}
+
+/**
  * The cable-car platform (actors/platform.ts): the running boards at x ±1.22 (rider on the camera's side, leaning out
  * 12°), the outward benches of the front section (facing out, on the camera's side), the middle aisle as the deck and
  * the running boards as extra deck rects.

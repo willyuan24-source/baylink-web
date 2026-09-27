@@ -24,7 +24,7 @@ const T = await import('../src/opus-bay/data/transit');
 const { CABLE, RIDE_MIN_ODOMETER, buildTransit, pointAt, stopPos } = T;
 const { CableSystem, PUSH_BOOST, setActiveCableSystem } = await import('../src/opus-bay/world/transitLine');
 const platform = await import('../src/opus-bay/actors/platform');
-const { CABLE_PLATFORM, cableCarGeometry } = await import('../src/opus-bay/world/cablecar');
+const { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } = await import('../src/opus-bay/world/cablecar');
 const { discGeometry } = await import('../src/opus-bay/world/turntable');
 const { extraSpans } = await import('../src/opus-bay/world/rails');
 const { game } = await import('../src/opus-bay/core/store');
@@ -268,6 +268,15 @@ test('model: the toy cable car and the turntable disc stay within their triangle
   let lamps = 0, windows = 0;
   for (let i = 0; i < info.count; i++) { if (info.getW(i) > 0) lamps++; if (info.getX(i) === 7) windows++; }
   assert.ok(lamps > 0 && windows > 0, 'night lamps and warm windows');
+  // the far version: the same box, a tenth of the triangles, lamps still glow
+  const far = cableCarFarGeometry();
+  assert.ok(far.getIndex()!.count / 3 <= 300, `far car ${far.getIndex()!.count / 3} triangles`);
+  far.computeBoundingBox();
+  assert.ok(Math.abs(far.boundingBox!.max.y - bb.max.y) < 0.15 && Math.abs((far.boundingBox!.max.z - far.boundingBox!.min.z) - (bb.max.z - bb.min.z)) < 0.2, 'same silhouette');
+  const farInfo = far.getAttribute('aInfo');
+  let farLamps = 0;
+  for (let i = 0; i < farInfo.count; i++) if (farInfo.getW(i) > 0) farLamps++;
+  assert.ok(farLamps > 0);
   const disc = discGeometry();
   assert.ok(disc.getIndex()!.count / 3 < 1500);
 });
