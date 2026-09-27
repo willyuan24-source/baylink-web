@@ -339,3 +339,18 @@ test('C2-10: the batched pool fades an item through its colour alpha (texture fr
   assert.equal(tiles.setFade(1, 0.5), false);
   tiles.dispose();
 });
+
+test('P5 (E2 request 3): the warm-up carries the shadow pass depth programs of plain casters, kept alive', async () => {
+  const { shadowDepthSet } = await import('../src/opus-bay/world/warmup');
+  const a = shadowDepthSet();
+  const mats = a.group.children.map(o => (o as THREE.Mesh).material as THREE.MeshDepthMaterial);
+  assert.deepEqual(mats.map(m => [m.type, m.side, m.depthPacking]), [['MeshDepthMaterial', THREE.BackSide, THREE.BasicDepthPacking], ['MeshDepthMaterial', THREE.DoubleSide, THREE.BasicDepthPacking]]);
+  let disposed = 0;
+  for (const m of mats) m.addEventListener('dispose', () => disposed++);
+  a.dispose();
+  assert.equal(disposed, 0, 'three would drop the programs with their last material');
+  const b = shadowDepthSet();
+  assert.deepEqual(b.group.children.map(o => (o as THREE.Mesh).material), mats, 'the same instances every warm-up');
+  assert.ok(b.target.isWebGLRenderTarget, 'compiled into a render target, like the shadow map (no tone mapping)');
+  b.dispose();
+});

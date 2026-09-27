@@ -16,6 +16,8 @@ import { TypedBatch } from './typedBatch';
  *   GROUND_BATCH  · BatchedMesh with a colour texture                   → far ground pool (USE_BATCHING(_COLOR))
  *   TOY_INST      · InstancedMesh without instanceColor              → untinted instanced props
  *   TOY_INST_TINT · InstancedMesh with instanceColor                 → city trees / lamps, Karl's cloud bank
+ *   depth         · plain Mesh, MeshDepthMaterial BackSide / DoubleSide, into a render target → the shadow pass of
+ *                   plain casters (three's internal depth material; instanced / skinned casters get kindSweep's own)
  * (each material instance is warmed with the one object kind it draws: materials.ts, "one material instance per
  * object kind")
  *
@@ -100,6 +102,23 @@ function dummySet(): { group: THREE.Group; dispose: () => void } {
 }
 
 /**
+ * The warm-up's depth materials (the shadow pass's key for plain casters, both sides it uses). Never disposed: three
+ * drops a program when no material uses it any more, and three's own internal depth material only takes it over once
+ * a plain caster first draws into the shadow map.
+ */
+const WARM_DEPTH = [THREE.BackSide, THREE.DoubleSide].map(side => new THREE.MeshDepthMaterial({ side, name: '' }));
+
+/** Plain meshes with the shadow pass's depth material on both sides it uses, and a render target like the shadow map's. */
+export function shadowDepthSet(): { group: THREE.Group; target: THREE.WebGLRenderTarget; dispose: () => void } {
+  const group = new THREE.Group();
+  group.name = 'ob-warmup-shadow';
+  const geo = BOX().clone();
+  for (const m of WARM_DEPTH) group.add(new THREE.Mesh(geo, m));
+  const target = new THREE.WebGLRenderTarget(1, 1);
+  return { group, target, dispose: () => { geo.dispose(); target.dispose(); } };
+}
+
+/**
  * Compile the city's program variants for the current render state (call after the world has mounted:
  * fog, shadow map and tone mapping must already be set). Safe to call again (e.g. after a quality change):
  * programs already linked are reused and the call resolves quickly.
@@ -115,6 +134,19 @@ export async function warmPrograms(renderer: THREE.WebGLRenderer, scene: THREE.S
     renderer.setRenderTarget(target);
     const pending = renderer.compileAsync(group, camera, scene);
     renderer.setRenderTarget(prevTarget);
+    // the shadow pass's own depth programs for plain casters (P5, E2's wave-3 request 3: one linked on the first high
+    // glide in city mode): three draws a plain Mesh's shadow with its internal MeshDepthMaterial, the side flipped
+    // (FrontSide → BackSide; DoubleSide stays), into the shadow map (a render target: no tone mapping, linear output)
+    // (the shadow pass renders without a scene: no fog in the key — the scene's fog is lifted while the keys are made)
+    const shadow = renderer.shadowMap.enabled ? shadowDepthSet() : null;
+    if (shadow) {
+      const fog = scene.fog;
+      renderer.setRenderTarget(shadow.target);
+      scene.fog = null;
+      let p: Promise<unknown>;
+      try { p = renderer.compileAsync(shadow.group, camera, scene); } finally { scene.fog = fog; renderer.setRenderTarget(prevTarget); }
+      await p.finally(shadow.dispose);
+    }
     await pending;
   } finally {
     renderer.setRenderTarget(prevTarget);
