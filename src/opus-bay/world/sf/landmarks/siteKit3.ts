@@ -75,15 +75,16 @@ export function boulder(b: BatchLike, x: number, y: number, z: number, s = 1, se
 }
 
 /**
- * A straight stair flight from local point a (ground y ya) up to c (y yc), `w` wide: one box per step (12 triangles
- * each), treads ~0.35 u deep, risers never over 0.3 u. Returns the number of steps.
+ * A straight stair flight from local point a (ground y ya) to c (y yc), up or down, `w` wide: one box per step (12
+ * triangles each), risers never over 0.3 u. Each tread is the HIGHER end of its stretch of the slope, so the treads sit
+ * on the walked ground (which runs smoothly under them) and never sink into it. Returns the number of steps.
  */
 export function stairFlight(b: BatchLike, a: Vec2, c: Vec2, ya: number, yc: number, w: number, color: ColorLike = FC.concrete, nose: ColorLike | null = null) {
   const dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz);
   const rise = yc - ya, n = Math.max(1, Math.ceil(Math.max(Math.abs(rise) / 0.3, L / 0.6)));
   const ry = Math.atan2(dx, dz), tread = L / n;
   for (let k = 0; k < n; k++) {
-    const t = (k + 0.5) / n, top = ya + (rise * (k + 1)) / n;
+    const t = (k + 0.5) / n, top = ya + (rise * (rise < 0 ? k : k + 1)) / n;
     const bottom = Math.min(ya, yc) - 0.15;
     b.add(BOX(), M(a.x + dx * t, bottom, a.z + dz * t, ry, w, top - bottom, tread + 0.02), k % 2 && nose ? nose : color);
   }

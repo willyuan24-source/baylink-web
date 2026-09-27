@@ -7,6 +7,7 @@ import { inglesideTerracesSundial } from './ingleside-terraces-sundial';
 import { lyonStreetSteps } from './lyon-street-steps';
 import { octagonHouse } from './octagon-house';
 import { sewardStreetSlides } from './seward-street-slides';
+import { vermontStreetCrookedBlock } from './vermont-street-crooked-block';
 
 /**
  * The wave-4 tier-3 site records (lane L3, W4-L9: plan §2.4 "Priority 4", in the table's order), and nothing else:
@@ -26,4 +27,5 @@ export const W4_SITES_T3: readonly W4Site[] = [
   lyonStreetSteps,
   octagonHouse,
   sewardStreetSlides,
+  vermontStreetCrookedBlock,
 ];
