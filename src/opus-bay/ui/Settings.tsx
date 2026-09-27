@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { setGlideUnlocked } from '../actors/moveApi';
 import { clearSave } from '../data/save';
-import { Accessibility, Gauge, Keyboard, LogOut, Moon, Music, Pause, RotateCcw, Sun, Sunrise, Sunset, Volume2, ZoomIn } from 'lucide-react';
+import { Accessibility, Flag, Gauge, Keyboard, LogOut, Moon, Music, Pause, RotateCcw, Sun, Sunrise, Sunset, Volume2, ZoomIn } from 'lucide-react';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game, useGame, type GameState, type Quality } from '../core/store';
 import { homeUrl } from '../data/links';
 import { clearProgress, keepSetting } from '../data/wishlist';
 import { closePanel, restartOnboarding } from '../game/flow';
+import { setLandmarkFlagsPref, useLandmarkFlagsPref } from '../game/guidePrefs';
 import { useT } from '../i18n';
 import { Keycap, Sheet } from './common';
 
@@ -18,10 +19,21 @@ const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
   emit({ type: 'ui', action: 'select' });
 };
 
+/**
+ * G2 w3 review 8 · a progress reset also forgets which of BAYBAY's once-only lines she has said (first bike, first
+ * glide, the zone greetings …). A dynamic import: baybayLines stays in its city chunk (the P7 guard walks static imports).
+ */
+function resetLineMemory() {
+  void import('../game/baybayLines').then(m => m.clearLineMemory(), () => { /* chunk offline: the memory stays */ });
+}
+
 /** Pause + settings (Esc). */
 export function SettingsPanel() {
   const { t, locale } = useT();
   const settings = useGame(s => s.settings);
+  const city = useGame(s => s.worldMode === 'city');
+  // W4-G7 · 显示地标旗: visited attractions keep their flag (a per-device display preference, game/guidePrefs.ts)
+  const flags = useLandmarkFlagsPref();
   const [confirmReset, setConfirmReset] = useState(false);
   const times: { value: Settings['timeOfDay']; label: string; icon: ReactNode }[] = [
     { value: 'auto', label: t('跟随湾区时间', 'Bay clock'), icon: <Gauge size={15} aria-hidden /> },
@@ -42,6 +54,7 @@ export function SettingsPanel() {
         <Toggle icon={<Volume2 size={18} aria-hidden />} label={t('音效', 'Sound effects')} on={settings.sound} onChange={v => setSetting('sound', v)} />
         <Toggle icon={<Music size={18} aria-hidden />} label={t('音乐', 'Music')} on={settings.music} onChange={v => setSetting('music', v)} />
         <Toggle icon={<Accessibility size={18} aria-hidden />} label={t('减少动态效果', 'Reduce motion')} hint={t('关闭镜头晃动、景深和长动画', 'No camera shake, depth of field or long animations')} on={settings.reducedMotion} onChange={v => setSetting('reducedMotion', v)} />
+        {city && <Toggle icon={<Flag size={18} aria-hidden />} label={t('显示地标旗', 'Landmark flags')} hint={t('去过的大景点也插着小旗', 'Keep the flags over big sights you have visited')} on={flags} onChange={v => { setLandmarkFlagsPref(v); emit({ type: 'ui', action: 'select' }); }} />}
       </div>
 
       <fieldset className="ob-setting">
@@ -80,7 +93,7 @@ export function SettingsPanel() {
       <div className="ob-setting-actions">
         <button type="button" className="ob-btn ob-btn-soft" onClick={restartOnboarding}><RotateCcw size={17} aria-hidden /><span>{t('让 BAYBAY 重新打招呼', 'Replay the welcome')}</span></button>
         {confirmReset ? (
-          <button type="button" className="ob-btn ob-btn-danger" onClick={() => { clearProgress(); clearSave(); setGlideUnlocked(false); game.set({ postcards: [], goalsDone: [], viewpointUnlocked: false, tour: { active: false, stop: 0, completed: [] } }); setConfirmReset(false); restartOnboarding(); }}>
+          <button type="button" className="ob-btn ob-btn-danger" onClick={() => { clearProgress(); clearSave(); resetLineMemory(); setGlideUnlocked(false); game.set({ postcards: [], goalsDone: [], viewpointUnlocked: false, tour: { active: false, stop: 0, completed: [] } }); setConfirmReset(false); restartOnboarding(); }}>
             {t('确定清空明信片和进度？', 'Really clear postcards & progress?')}
           </button>
         ) : (

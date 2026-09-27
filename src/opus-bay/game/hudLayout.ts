@@ -15,9 +15,13 @@
 
 export interface Box { l: number; t: number; r: number; b: number }
 
-/** The fixed HUD. Direct children of .ob-hud (pills, bar / buttons, prompt, E2's move chip), the top stack, … */
+/**
+ * The fixed HUD. Direct children of .ob-hud (pills, bar / buttons, prompt, E2's move chip), the top stack, the touch
+ * movement buttons (Hop, bell, 下车, 起飞, 降落: E2 w3 a1), …
+ */
 export const HUD_BOX_SELECTOR = [
   '.ob-hud > *', '.ob-touch-action > span', '.ob-topstack > *', '.ob-toast', '.ob-goals-card', '.ob-coach', '.ob-lead-chip',
+  '.ob-move-buttons > *',
 ].join(', ');
 
 const GAP = 6;

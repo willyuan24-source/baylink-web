@@ -427,10 +427,16 @@ export class MoveSystem {
         const hop = runtime.input.jump;
         if (hop) runtime.input.jump = false;
         if (hop || vehiclePress || hopOffPress) {
+          const status = r.line && m.phase === 'steady' ? hopOffStatus(r.line) : null;
           if (r.mode === 'wait') { cancelRide(); m.endTransit(); platformRider.platform = null; this.releaseGuide(false); }
-          else if (r.line && m.phase === 'steady' && r.kind === 'ferry' && rideSystemFor(r.line)?.rideStatus()?.station == null) {
+          else if (r.line && m.phase === 'steady' && r.kind === 'ferry' && status?.station == null) {
             // lane F's request (sf-w3-F.md part a): no hopping off a ferry under way — only onto a quay, once it docks
             say('等船靠岸', 'Wait until we dock');
+          } else if (status?.canHopOff === false) {
+            // wave 4 (lane T's review open 1, E2's review): a Metro train in a tunnel or under a portal hood ignores the
+            // brake, so the rider would step off a moving (or hidden) train onto the street above: say why, ride on
+            if (status.portalWait) say('马上出隧道…', 'Coming out of the tunnel…');
+            else say('隧道里不能下车', 'No getting off inside the tunnel');
           } else if (r.line && m.phase === 'steady') {
             // E2-10 (sf-w2-contracts §5.2): ask the car to stop, brake, then step off (onOutcome 'transit-alight')
             requestPlatformStop(r.line, TIMING.transitBrake);
@@ -1298,6 +1304,16 @@ export class MoveSystem {
     input.vehicleContext = 'none';
     rideables.length = 0;
   }
+}
+
+/**
+ * What the hop-off asks of the ridden line's status: `station` (a ferry only lets you off at a quay) and, for lane T's
+ * light rail (world/lightRail.ts), `canHopOff` false while any part of the train is in a tunnel or under a portal hood
+ * (`portalWait`: stopped in a mouth for the surface to stream in). The cable cars, the F-line and the ferry never set
+ * `canHopOff` (undefined = allowed). Exported for the tests.
+ */
+export function hopOffStatus(line: string): { station: string | null; canHopOff?: boolean; portalWait?: boolean } | null {
+  return (rideSystemFor(line)?.rideStatus() as { station: string | null; canHopOff?: boolean; portalWait?: boolean } | null | undefined) ?? null;
 }
 
 /** The glide's tall structures, live (actors/glideTall, E2-7); other lanes add theirs here. */

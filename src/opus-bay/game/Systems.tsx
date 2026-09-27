@@ -215,7 +215,9 @@ function FocusMarker() {
   const glow = useRef<THREE.Mesh>(null);
   // F7: a calm signal — slim ring, faint glow, small chevron just above the thing (it must not dominate the frame)
   const materials = useMemo(() => ({
-    ring: new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.75, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }),
+    // (C2 w3 a1 / b4) a transparent DoubleSide material renders in two passes (back, front) and so looks its program
+    // up twice every frame; one pass draws the flat ring the same
+    ring: new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.75, depthWrite: false, toneMapped: false, side: THREE.DoubleSide, forceSinglePass: true }),
     glow: new THREE.MeshBasicMaterial({ color: new THREE.Color('#f6c86a'), transparent: true, opacity: 0.1, depthWrite: false, toneMapped: false }),
     chevron: new THREE.MeshBasicMaterial({ color: new THREE.Color('#f3c15f'), toneMapped: false, transparent: true }),
   }), []);

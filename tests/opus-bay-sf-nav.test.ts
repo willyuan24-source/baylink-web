@@ -177,7 +177,9 @@ test('city mode: local A* window leaves the hero through the Ferry crosswalk to 
       for (let t = 0; t <= L; t += 0.5) { const x = A.x + ((B.x - A.x) * t) / (L || 1), z = A.z + ((B.z - A.z) * t) / (L || 1); assert.ok(canStand(x, z, 0.3), `path point (${x.toFixed(1)}, ${z.toFixed(1)}) walkable`); }
     }
     assert.equal(navGrid().cols * navGrid().cell, NAV_WINDOW);
-    assert.ok(navWindowStats.builds >= 1 && navWindowStats.lastMs < 200, `window build ${navWindowStats.lastMs.toFixed(1)} ms`);
+    // (G1 w3 a2) the build count is the check; the wall clock only catches a runaway build (tens of ms alone, but a
+    // dozen lanes' suites share this machine: < 200 ms flaked under load)
+    assert.ok(navWindowStats.builds >= 1 && navWindowStats.lastMs < 600, `window build ${navWindowStats.lastMs.toFixed(1)} ms`);
     assert.ok(lineOfSight({ x: 170, z: 140 }, { x: 170, z: 150 }), 'line of sight inside the window');
     // a goal beyond the window is clamped (snapped), never null while the way is open
     const far = findPath(market, { x: 150, z: 700 }, 8);

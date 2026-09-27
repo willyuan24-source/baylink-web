@@ -999,14 +999,19 @@ export class CameraController {
     };
     if (fresh || !this.frameSolved || this.frameSolved.key !== 'two') {
       // the clearest of a few angles around 38° either side (occlusion incl. round colliders; a camera standing over
-      // walkable ground beats one hanging over the water behind a railing) — kept for the whole conversation
-      let best = this.twoSide * TWO_ANGLE, bestScore = Infinity;
-      for (const sign of [this.twoSide, -this.twoSide]) {
+      // walkable ground beats one hanging over the water behind a railing) — kept for the whole conversation.
+      // G2 w3 request 5: in a resident's chat BAYBAY waits beside the resident (game/flow talkMark) on the side she was
+      // on when the chat began: prefer her side so she is in the shot, not hidden behind the player (occlusion still
+      // wins). The sign matches camAt: a positive angle puts the camera on the (az, −ax) side, the side asideMark calls +1.
+      const gs = view.speaker === 2 ? Math.sign((runtime.guide.x - sx) * az - (runtime.guide.z - sz) * ax) : 0;
+      const prefer = gs || this.twoSide;
+      let best = prefer * TWO_ANGLE, bestScore = Infinity;
+      for (const sign of [prefer, -prefer]) {
         for (const a of [TWO_ANGLE, TWO_ANGLE * 0.65, TWO_ANGLE * 1.5]) {
           const c = camAt(sign * a, tmpA);
           const ground = canStand(c.x, c.z, 0.3) ? 0 : inWorld(c.x, c.z) ? 1.5 : 0.6;
           const score = segmentBlocked(c.x, c.z, px, pz) + segmentBlocked(c.x, c.z, sx, sz) * 1.2 + ground + residentsInView(c.x, c.z, mx, mz)
-            + (sign === this.twoSide ? 0 : 0.3) + Math.abs(a - TWO_ANGLE) * 0.8;
+            + (sign === prefer ? 0 : 0.3) + Math.abs(a - TWO_ANGLE) * 0.8;
           if (score < bestScore) { bestScore = score; best = sign * a; }
         }
       }

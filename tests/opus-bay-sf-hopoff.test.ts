@@ -179,3 +179,71 @@ test('E2-10 on the hero F-line (district): the car does not brake yet, so Space 
     ms.dispose();
   }
 });
+
+test('W4 integration (lane T review open 1): while the ridden line says canHopOff false (a Metro tunnel / portal hood) the hop-off says why and the ride goes on; allowed again, it brakes', () => {
+  T.setTransitData(DATA);
+  const sys = new CableSystem(DATA);
+  setActiveCableSystem(sys);
+  platform.definePlatform(LINE, CABLE_PLATFORM);
+  const ms = new MoveSystem();
+  const c = new PlayerController();
+  // stand-in for lane T's light-rail status: the same ride, with `canHopOff` / `portalWait` on top
+  const own = sys.rideStatus.bind(sys);
+  let blocked: false | 'tunnel' | 'mouth' = false;
+  (sys as unknown as { rideStatus: () => unknown }).rideStatus = () => {
+    const st = own();
+    return st && blocked ? { ...st, canHopOff: false, portalWait: blocked === 'mouth' } : st;
+  };
+  let t = 0;
+  const frame = () => {
+    sys.step(DT);
+    const car = sys.riderCarOf(LINE);
+    if (car) platform.setPlatformPose(LINE, car.pose, DT);
+    transit.stepTransit(DT);
+    ms.update(DT, t, env(c));
+    ms.finishPlayer();
+    t += DT;
+  };
+  const run = (maxS: number, until: () => boolean) => { for (let i = 0; i < maxS / DT; i++) { frame(); if (until()) return true; } return false; };
+  const toastTexts = () => game.get().toasts.map(x => x.text).join(' | ');
+  try {
+    game.set({ phase: 'playing', toasts: [] });
+    transit.rideCable(LINE, 'powell-geary', 'hyde-beach');
+    assert.ok(run(120, () => ride.currentRide()?.mode === 'follow'), 'boarded');
+    const car = sys.riderCarOf(LINE)!;
+    assert.ok(run(40, () => car.v > 6), 'moving');
+    run(0.5, () => false);
+    // (1) in the tunnel: Space, B and the HUD's 提前下车 all refuse, with the reason
+    blocked = 'tunnel';
+    runtime.input.jump = true;
+    frame();
+    input.hopOffCount++;
+    frame();
+    assert.equal(platform.platformStop(LINE), null, 'no stop request');
+    assert.equal(ms.machine.phase, 'steady', 'no brake');
+    assert.ok(ride.currentRide(), 'still riding');
+    assert.match(toastTexts(), /隧道里不能下车|No getting off inside the tunnel/);
+    // (2) waiting in a mouth for the surface: the other words
+    blocked = 'mouth';
+    input.hopOffCount++;
+    frame();
+    assert.equal(ms.machine.phase, 'steady');
+    assert.match(toastTexts(), /马上出隧道|Coming out of the tunnel/);
+    // (3) out in the open: the usual brake handshake
+    blocked = false;
+    input.hopOffCount++;
+    frame();
+    assert.ok(platform.platformStop(LINE), 'the car was asked to stop');
+    assert.equal(ms.machine.phase, 'braking');
+    assert.ok(run(3, () => ms.mode === 'foot'), 'off after the brake');
+  } finally {
+    setActiveCableSystem(null);
+    T.setTransitData(null);
+    ride.endRide();
+    platform.releasePlatformStop(LINE);
+    platform.platforms.delete(LINE);
+    game.set({ riding: null, phase: 'title', toasts: [] });
+    flow.set({ ride: null });
+    ms.dispose();
+  }
+});

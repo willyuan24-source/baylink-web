@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { emit, onEvent, type GameEvent } from '../core/events';
 import { input, pollInput, rumble } from '../core/input';
 import { runtime } from '../core/runtime';
@@ -749,7 +748,9 @@ export class ActorSystem {
     if (this.guideModel !== 'procedural' || glbDisabled()) return;
     this.guideModel = 'loading';
     this.glbRequestedIn = game.get().phase;
-    new GLTFLoader().loadAsync(MODELS.baybay.url).then(gltf => {
+    // D2 w3 c2: the shared Draco-capable loader (world/models heroGltfLoader), imported dynamically so the district's
+    // first load keeps DRACOLoader out; lane V can then publish BAYBAY as Draco + WebP like the other heroes
+    import('../world/models').then(m => m.heroGltfLoader().loadAsync(MODELS.baybay.url)).then(gltf => {
       if (this.disposed) return;
       const built = rigFromGltf(gltf.scene, MODELS.baybay.size[1]);
       if (!built) { this.guideModel = 'failed'; return; }

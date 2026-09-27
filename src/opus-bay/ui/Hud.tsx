@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BookOpen, CableCar, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TramFront } from 'lucide-react';
+import { BookOpen, Bus, CableCar, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TrainFront, TramFront, type LucideIcon } from 'lucide-react';
 import { requestHopOff } from '../actors/moveApi';
 import { useGame } from '../core/store';
 import type { InteractionKind } from '../core/types';
@@ -280,14 +280,17 @@ function PhoneBar() {
   );
 }
 
+/** The banner glyph per `RideLabel.icon` (an unknown icon falls back to the tram, like the district F-line). */
+const RIDE_ICONS: Readonly<Record<string, LucideIcon>> = { ferry: Ship, 'cable-car': CableCar, tram: TramFront, bus: Bus, metro: TrainFront };
+
 /** The ride banner (line, destination, 提前下车 / 直接到站): rendered in the Overlay's top stack. */
 export function RideBanner() {
   const { t } = useT();
   const ride = useFlow(s => s.ride);
   if (!ride) return null;
-  // line name, destination and glyph come from lane F (game/transit.ts rideLabel)
+  // line name, destination and glyph come from lane F / T (game/transit.ts rideLabel; wave 4 adds 'bus' / 'metro')
   const label = rideLabel(ride);
-  const Icon = label.icon === 'ferry' ? Ship : label.icon === 'cable-car' ? CableCar : TramFront;
+  const Icon = RIDE_ICONS[label.icon] ?? TramFront;
   return (
     <div className="ob-ride" role="status">
       <Icon size={20} aria-hidden />

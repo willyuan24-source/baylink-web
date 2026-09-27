@@ -1167,3 +1167,13 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
   .ob-hud-buttons .ob-round.is-baybay:has(.ob-ask-me) { margin-top: 38px; }
   .ob-hud-buttons .ob-ask-me { bottom: calc(100% + 14px); }
 }
+/* E2 w3 review 2 · landscape phones 601–720 px wide and short (667 × 375): the phone column (bottom 126 px, above the
+   touch action) ran 266 px tall from y −17, its top button cut off above the screen. On short screens the column
+   stands on the bottom edge like the 721–1180 px column (BAYBAY lowest) and the touch action moves one column in, under
+   E2's 跳 / Hop column (right 84 px there): at 667 × 375 the column spans y 91…357, clear of the objective pill */
+@media (min-width: 601px) and (max-width: 720px) and (max-height: 500px) {
+  .ob-hud-buttons { flex-direction: column-reverse; bottom: calc(18px + var(--ob-sb)); }
+  .ob-hud-buttons .ob-round.is-baybay:has(.ob-ask-me) { margin-top: 38px; }
+  .ob-hud-buttons .ob-ask-me { bottom: calc(100% + 14px); }
+  .ob-touch-action { right: calc(84px + var(--ob-sr)); }
+}

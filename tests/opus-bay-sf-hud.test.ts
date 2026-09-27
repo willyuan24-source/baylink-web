@@ -72,3 +72,22 @@ test("prompt glyph (lane F's request): city stations show the cable car, a ferry
     assert.equal(transitGlyph({ id: 'f-line-stop', source: 'poi' }), undefined, 'the district F-line stop keeps the tram');
   } finally { setTransitData(null); }
 });
+
+test('W4 integration (routed F w3 a / b): F-line stations show the streetcar, Pier 41 the ferry, lane T\'s stops the bus / metro', () => {
+  const file = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as TransitFileJson;
+  const data = buildTransit(file);
+  setTransitData(data);
+  try {
+    // the city F-line's own stations are `f-<street>` (data/fline.ts); transitStation knows only the cable-car stations
+    assert.equal(transitGlyph({ id: 'transit-f-castro-st-market-st', source: 'transit', refId: 'f-castro-st-market-st' }), 'streetcar');
+    // ferry terminals by ferryTerminal(refId): Pier 41 has no "ferry" in its id
+    assert.equal(transitGlyph({ id: 'transit-pier-41', source: 'transit', refId: 'pier-41' }), 'ferry');
+    assert.equal(transitGlyph({ id: 'transit-ferry-building', source: 'transit', refId: 'ferry-building' }), 'ferry');
+    // lane T's lines: the loop's Ferry Building stop is a bus stop, not a ferry
+    assert.equal(transitGlyph({ id: 'transit-loop-ferry-building', source: 'transit', refId: 'loop-ferry-building' }), 'bus');
+    assert.equal(transitGlyph({ id: 'transit-muni-embarcadero', source: 'transit', refId: 'muni-embarcadero' }), 'metro');
+    // a cable-car station keeps its glyph
+    const st = data.stations[0];
+    assert.equal(transitGlyph({ id: `transit-${st.id}`, source: 'transit', refId: st.id }), 'cable-car');
+  } finally { setTransitData(null); }
+});
