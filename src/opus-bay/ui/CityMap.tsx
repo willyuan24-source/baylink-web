@@ -1,20 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
-import { Landmark, LocateFixed, Maximize2, Minus, Plus, Search } from 'lucide-react';
+import { Bike, Car, Landmark, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, Search, X } from 'lucide-react';
+import { fleetSnapshot } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
+import type { Bilingual, Vec2 } from '../core/types';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
 import { landmarkAreaAt, learnZoneNames, zoneLabelAnchor, zoneName } from '../data/cityZones';
 import { type CityPlace, type PlaceIndex, loadPlaces, onPlaces, placeIndex } from '../data/sf/places';
 import { onTransitData, transitData } from '../data/transit';
+import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel } from '../game/flow';
+import { useFlow } from '../game/flowStore';
+import { type PlannedRoute, REPLAN_U, cachedRoute, cancelPlan, endTrip, planRoute, tripPlaceId } from '../game/mapRoute';
+import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import type { FarData } from '../world/sf/format';
-import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitScale, layoutLabels, toPx, zoomAt } from './cityMapDraw';
-import { Sheet } from './common';
+import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitPoints, fitScale, labelWidth, layoutLabels, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { BaybayFace, Sheet } from './common';
 import { MapPaperLayer } from './MapPaperLayer';
-import { PlaceActions } from './PlaceActions';
+import { PlaceActions, type WalkInfo } from './PlaceActions';
 import './city-ui.css';
 
 /**
@@ -28,7 +34,7 @@ const MAX_DPR = 2;
 const MAX_CANVAS = 1800;
 const HIT_PX = 22;
 /** screen boxes labels keep clear of: the tool column (4 buttons of 34 px + gaps, city-ui.css) and the credit line */
-const TOOLS_W = 48, TOOLS_H = 172, CREDIT_H = 20;
+const TOOLS_W = 48, TOOLS_H = 172, TOOL_STEP = 40, CREDIT_H = 20;
 
 /** far.obc once the streamer has it; the neighbourhood names are learned before the first render that uses it. */
 function useFar(): FarData | null {
@@ -53,6 +59,38 @@ function useTransitLines() {
   return useMemo(() => (d ? d.lines.map(l => ({ xyz: l.xyz, color: l.color })) : []), [d]);
 }
 
+/** The selected place's walking route (G1-8): pending while E2's time-sliced A* runs, then the route or 'none'. */
+interface RoutePlan { id: string; status: 'pending' | 'ok' | 'none'; route: PlannedRoute | null }
+
+function useRoutePlan(place: CityPlace | null, pos: Vec2): RoutePlan | null {
+  const [plan, setPlan] = useState<RoutePlan | null>(null);
+  const id = place?.walkable ? place.id : null;
+  const to = place?.walkable ? place.arrival : null;
+  // the player walked away from where the plan started (desktop: the map does not stop you): plan again from here
+  const stale = !!plan?.route && plan.id === id && Math.hypot(plan.route.from.x - pos.x, plan.route.from.z - pos.z) > REPLAN_U;
+  useEffect(() => {
+    if (!id || !to) { setPlan(null); return; }
+    const from = { x: runtime.player.x, z: runtime.player.z };
+    const hit = cachedRoute(from, to);
+    if (hit) { setPlan({ id, status: 'ok', route: hit }); return; }
+    setPlan(p => (p?.id === id && p.route ? p : { id, status: 'pending', route: null }));
+    let live = true;
+    // a short delay: flicking through the list does not start a search per row
+    const timer = window.setTimeout(() => {
+      void planRoute(from, to).then(r => { if (live && r !== undefined) setPlan({ id, status: r ? 'ok' : 'none', route: r }); });
+    }, 120);
+    return () => { live = false; window.clearTimeout(timer); };
+  }, [id, to?.x, to?.z, stale]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => cancelPlan, []);
+  return plan && plan.id === id ? plan : null;
+}
+
+/** "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline. */
+function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual } {
+  const ahead = routeAhead(route.points, pos);
+  return { points: ahead.points, time: secondsLabel(autoWalkSeconds(ahead.length)) };
+}
+
 type Tab = 'landmarks' | 'near' | 'found';
 
 export function CityMapPanel() {
@@ -69,6 +107,15 @@ export function CityMapPanel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ w: 520, h: 360 });
   const [view, setView] = useState<MapView | null>(null);
+  // 带我去 in progress (flow.mapTarget = place:<id>): the map opens on it, selected, with the route still ahead
+  const tripId = tripPlaceId(useFlow(s => s.mapTarget));
+  const tripPlace = tripId && ix ? ix.get(tripId) ?? null : null;
+  const openedOnTrip = useRef(false);
+  useEffect(() => {
+    if (openedOnTrip.current || !tripPlace) return;
+    openedOnTrip.current = true;
+    setSelected(s => s ?? tripPlace.id);
+  }, [tripPlace]);
 
   // size: follow the frame; the first view shows your part of the city at 3× (street names are for the HUD)
   useEffect(() => {
@@ -186,6 +233,47 @@ export function CityMapPanel() {
   }, [ix, view, zoom, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   const zoneLabels = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at) : []), [far]);
   const sel = selected && ix ? ix.get(selected) ?? null : null;
+
+  // --- G1-8 layers: the selected place's walking route (gold while 带我去 is on) with its time chip, rideables, BAYBAY
+  const plan = useRoutePlan(sel, pos);
+  const onTrip = !!sel && sel.id === tripId;
+  const left = useMemo(() => (plan?.route ? routeLeft(plan.route, pos) : null), [plan, pos]);
+  const routeDraw = useMemo(() => {
+    if (!view || !left || left.points.length < 2) return null;
+    const pts = thinPx(left.points.map(p => toPx(view, p.x, p.z)));
+    const end = pts[pts.length - 1];
+    const chip = t(left.time);
+    const cw = labelWidth(chip, 11) + 16;
+    return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw, box: [end[0] - cw / 2, end[1] + 12, end[0] + cw / 2, end[1] + 32] as const };
+  }, [view, left, t]);
+  // the map opened on a trip: frame you and the whole way once the route is known
+  const framedTrip = useRef(false);
+  useEffect(() => {
+    if (framedTrip.current || !onTrip || !plan?.route) return;
+    framedTrip.current = true;
+    const route = plan.route;
+    setView(v => (v ? fitPoints(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...route.points], 44) : v));
+  }, [onTrip, plan]);
+  const showRoute = () => { const route = plan?.route; if (route) setView(v => (v ? fitPoints(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...routeAhead(route.points, runtime.player).points], 44) : v)); };
+  // parked bikes and the toy car (their spots, or where you left them: E2's fleet snapshot), from 2.5× in
+  const rides = useMemo(() => {
+    if (!view || zoom < 2.5) return [] as { id: string; kind: 'bike' | 'car'; x: number; y: number }[];
+    const fleet = fleetSnapshot();
+    const out: { id: string; kind: 'bike' | 'car'; x: number; y: number }[] = [];
+    for (const s of vehicleSpots()) {
+      const moved = s.kind === 'car' ? fleet.car : fleet.bike?.id === s.id ? fleet.bike : undefined;
+      const x = moved?.x ?? s.x, z = moved?.z ?? s.z;
+      if (Math.hypot(x - pos.x, z - pos.z) < 2.5) continue; // the one you are riding
+      const [px, py] = toPx(view, x, z);
+      if (px < -10 || py < -10 || px > view.w + 10 || py > view.h + 10) continue;
+      out.push({ id: s.id, kind: s.kind, x: px, y: py });
+    }
+    return out;
+  }, [view, zoom, pos]);
+  const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
+  const youAt = view ? toPx(view, pos.x, pos.z) : null;
+  const toolsH = TOOLS_H + (plan?.route ? TOOL_STEP : 0);
+
   // labels: the selected place first, then landmarks, curated places (zoomed in), then neighbourhood names. A marker's
   // label sits above, right, left or below its own badge (never dropped for touching it: the wave-2 bug hid them all)
   const labels = useMemo(() => {
@@ -199,17 +287,23 @@ export function CityMapPanel() {
       const prio = p.id === selected ? 0 : kind === 'lm' ? (isDiscovered(p.id) ? 1 : 2) : kind === 'curated' ? 3 : 4;
       // the whole city: discovered landmarks only; zoomed in: every landmark, then curated places, then the rest
       const want = prio === 0 || (prio === 1 && zoom > 1.6) || (prio === 2 && zoom > 2.4) || (kind === 'curated' && zoom > 4) || zoom > 9;
-      if (want) items.push({ id: p.id, x, y, r, text: t(p.name), prio });
+      if (want) items.push({ id: p.id, x, y, r, text: t(p.name), prio, over: prio === 0 });
     }
     if (zoom < 7) for (const z of zoneLabels) {
       if (!zoneVisited(z.id)) continue;
       const [x, y] = toPx(view, z.at!.x, z.at!.z);
       items.push({ id: `zone:${z.id}`, x, y: y + 4, text: t(zoneName(z.id)), prio: 5, fontPx: 11 });
     }
-    // keep clear of the zoom / locate / fit column (top right) and the ODbL credit line (bottom)
-    const placed = layoutLabels(items, view.w, view.h, 3, obstacles, [[view.w - TOOLS_W, 0, view.w, TOOLS_H], [0, view.h - CREDIT_H, view.w, view.h]]);
+    // you, BAYBAY and the rideables are markers too
+    for (const r of rides) obstacles.push({ x: r.x, y: r.y, r: 8 });
+    if (youAt) obstacles.push({ x: youAt[0], y: youAt[1], r: 10 });
+    if (guideAt) obstacles.push({ x: guideAt[0], y: guideAt[1], r: 11 });
+    // keep clear of the zoom / locate / fit column (top right), the ODbL credit line (bottom) and the route's time chip
+    const reserved: (readonly [number, number, number, number])[] = [[view.w - TOOLS_W, 0, view.w, toolsH], [0, view.h - CREDIT_H, view.w, view.h]];
+    if (routeDraw) reserved.push(routeDraw.box);
+    const placed = layoutLabels(items, view.w, view.h, 3, obstacles, reserved);
     return items.flatMap(it => { const s = placed.get(it.id); return s ? [{ id: it.id, text: it.text, zone: it.id.startsWith('zone:'), ...s }] : []; });
-  }, [markers, view, zoom, zoneLabels, selected, t, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [markers, view, zoom, zoneLabels, selected, t, epoch, rides, routeDraw, toolsH, youAt?.[0], youAt?.[1]]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- list ---------------------------------------------------------------------------------------------------------
   const list = useMemo(() => {
@@ -221,18 +315,43 @@ export function CityMapPanel() {
   }, [ix, query, tab, pos.x, pos.z, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const heading = runtime.player.heading;
-  const guide = { x: runtime.guide.x, z: runtime.guide.z };
   const vis = view ? { x: view.cx - view.w / 2 / view.scale, z: view.cz - view.h / 2 / view.scale, w: view.w / view.scale, h: view.h / view.scale } : null;
+  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.points ?? plan.route.points) };
 
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
+      {tripPlace && (
+        <div className="ob-citymap-trip" role="status">
+          <Navigation size={15} aria-hidden />
+          <span>
+            <b>{t('正在去', 'Heading to')} {t(tripPlace.name)}</b>
+            {onTrip && left && <small>{t({ zh: `还要走${left.time.zh}`, en: `${left.time.en} to go` })}</small>}
+          </span>
+          <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={() => endTrip(tripPlace.arrival)}><X size={14} aria-hidden /><span>{t('不去了', 'Stop')}</span></button>
+        </div>
+      )}
       <div ref={frameRef} className="ob-citymap-frame" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
         role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放', 'Map of San Francisco: drag to pan, wheel or pinch to zoom')}>
         {vis && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={zoom > 4 ? 4096 : 2048} /></svg>}
         <canvas ref={canvasRef} className="ob-citymap-canvas" style={{ width: size.w, height: size.h }} aria-hidden />
+        {guideAt && guideAt[0] > -12 && guideAt[1] > -12 && guideAt[0] < size.w + 12 && guideAt[1] < size.h + 12 && (
+          <span className="cm-baybay-face" style={{ transform: `translate(${(guideAt[0] - 11).toFixed(1)}px, ${(guideAt[1] - 11).toFixed(1)}px)` }} aria-hidden><BaybayFace size={22} /></span>
+        )}
         {view && (
           <svg className="ob-citymap-overlay" width={view.w} height={view.h} aria-hidden>
             {labels.map(l => (l.zone ? <text key={l.id} x={l.x} y={l.y} className="cm-zone">{l.text}</text> : null))}
+            {routeDraw && (
+              <g className={`cm-route ${onTrip ? 'is-trip' : ''}`}>
+                <polyline className="cm-route-case" points={routeDraw.pts} />
+                <polyline className="cm-route-line" points={routeDraw.pts} />
+              </g>
+            )}
+            {rides.map(r => (
+              <g key={r.id} className="cm-ride" transform={`translate(${r.x.toFixed(1)},${r.y.toFixed(1)})`}>
+                <circle r={8} />
+                {r.kind === 'car' ? <Car x={-5.5} y={-5.5} width={11} height={11} strokeWidth={2.4} /> : <Bike x={-5.5} y={-5.5} width={11} height={11} strokeWidth={2.4} />}
+              </g>
+            ))}
             {markers.map(({ p, kind }) => {
               const [x, y] = toPx(view, p.x, p.z);
               const found = isDiscovered(p.id);
@@ -251,12 +370,16 @@ export function CityMapPanel() {
               );
             })}
             {labels.map(l => (l.zone ? null : <text key={l.id} x={l.x} y={l.y} className={`cm-label ${l.id === selected ? 'is-on' : ''}`} style={{ textAnchor: l.anchor }}>{l.text}</text>))}
-            {(() => { const [x, y] = toPx(view, guide.x, guide.z); return <circle className="cm-baybay" cx={x} cy={y} r={5} />; })()}
-            {(() => {
-              const [x, y] = toPx(view, pos.x, pos.z);
+            {routeDraw && (
+              <g className={`cm-route-chip ${onTrip ? 'is-trip' : ''}`} transform={`translate(${routeDraw.end[0].toFixed(1)},${(routeDraw.end[1] + 22).toFixed(1)})`}>
+                <rect x={-routeDraw.cw / 2} y={-10} width={routeDraw.cw} height={20} rx={10} />
+                <text y={4}>{routeDraw.chip}</text>
+              </g>
+            )}
+            {youAt && (() => {
               // heading (three.js yaw: forward = (sin h, cos h) in world x/z = screen x/y)
               const deg = (Math.atan2(Math.cos(heading), Math.sin(heading)) * 180) / Math.PI;
-              return <g className="cm-you" transform={`translate(${x},${y}) rotate(${deg})`}><circle r={9} /><path d="M-4 -4 L6 0 L-4 4 Z" /></g>;
+              return <g className="cm-you" transform={`translate(${youAt[0]},${youAt[1]}) rotate(${deg})`}><circle r={9} /><path d="M-4 -4 L6 0 L-4 4 Z" /></g>;
             })()}
           </svg>
         )}
@@ -266,11 +389,12 @@ export function CityMapPanel() {
           <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1 / 1.6)} aria-label={t('缩小', 'Zoom out')}><Minus size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={locate} aria-label={t('回到我这', 'Find me')}><LocateFixed size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={fit} aria-label={t('全城', 'Whole city')}><Maximize2 size={16} aria-hidden /></button>
+          {plan?.route && <button type="button" className="ob-icon-btn" onClick={showRoute} aria-label={t('看整条路线', 'Show the whole route')}><RouteIcon size={16} aria-hidden /></button>}
         </div>
         <p className="ob-citymap-credit">{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
       </div>
 
-      {sel && <PlaceActions place={sel} />}
+      {sel && <PlaceActions place={sel} walk={walk} onTrip={onTrip} />}
 
       <section className="ob-block ob-citymap-list">
         <label className="ob-citymap-search">

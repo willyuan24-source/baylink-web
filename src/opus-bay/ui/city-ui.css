@@ -15,7 +15,24 @@
 .cm-lm.is-on circle, .cm-dot.is-on circle { stroke: var(--ob-gold); stroke-width: 3px; }
 .cm-dot circle { fill: #fffaf1; stroke: #a99a80; stroke-width: 1.4px; }
 .cm-dot.is-found circle { fill: var(--ob-teal); stroke: #fffaf1; }
-.cm-baybay { fill: var(--ob-gold); stroke: #fffaf1; stroke-width: 2px; }
+.cm-baybay-face { position: absolute; left: 0; top: 0; pointer-events: none; border-radius: 50%; box-shadow: 0 0 0 2px #fffaf1, 0 0 0 3.5px var(--ob-gold), 0 1px 3px rgba(60, 40, 20, .3); }
+.cm-baybay-face .ob-face { display: block; }
+/* G1-8: the walking route to the selected place (teal preview), gold while 带我去 is taking you there */
+.cm-route polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.cm-route-case { stroke: rgba(255, 250, 241, .92); stroke-width: 6px; }
+.cm-route-line { stroke: var(--ob-teal); stroke-width: 3px; stroke-dasharray: 1 6; }
+.cm-route.is-trip .cm-route-case { stroke-width: 7px; }
+.cm-route.is-trip .cm-route-line { stroke: #d99a1e; stroke-width: 4px; stroke-dasharray: 8 6; }
+.cm-route-chip rect { fill: #fffaf1; stroke: var(--ob-teal); stroke-width: 1.4px; }
+.cm-route-chip text { font-size: 11px; font-weight: 800; fill: var(--ob-teal); stroke: none; }
+.cm-route-chip.is-trip rect { fill: #d99a1e; stroke: #fffaf1; stroke-width: 1.6px; }
+.cm-route-chip.is-trip text { fill: #fffaf1; }
+.cm-ride circle { fill: #fffaf1; stroke: #6f8f7a; stroke-width: 1.4px; }
+.cm-ride svg { color: #3f6f58; }
+.ob-citymap-trip { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 6px 6px 12px; border-radius: 999px; background: #fff4dc; border: 1px solid #efd49a; color: #7a4b0c; font-size: 13px; }
+.ob-citymap-trip > span { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.ob-citymap-trip b, .ob-citymap-trip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ob-citymap-trip small { font-size: 12px; font-weight: 600; opacity: .85; }
 .cm-you circle { fill: var(--ob-terra); stroke: #fffaf1; stroke-width: 2.5px; }
 .cm-you path { fill: #fffaf1; }
 .ob-citymap-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-weight: 700; color: var(--ob-ink-2); }
@@ -24,6 +41,9 @@
 .ob-citymap-credit { position: absolute; left: 6px; bottom: 4px; margin: 0; padding: 1px 6px; border-radius: 6px; background: rgba(255, 250, 241, .82); font-size: 10px; color: var(--ob-ink-3); }
 .ob-citymap-credit a { color: inherit; }
 .ob-place-pop { flex-wrap: wrap; }
+/* the name and the route time keep a readable width; the buttons wrap under them when the row is short */
+.ob-place-pop .ob-map-pop-text { flex: 1 1 210px; }
+.ob-place-pop .ob-map-pop-text small { white-space: normal; }
 .ob-place-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ob-place-locked { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ob-ink-3); padding: 0 6px; }
 .ob-citymap-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid var(--ob-line); color: var(--ob-ink-3); }

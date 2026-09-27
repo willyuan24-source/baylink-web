@@ -85,3 +85,70 @@ test('?at=: ids, lm-<id>, ll: and xz:; the old district cases unchanged', () => 
   assert.equal(readQa('?at=../../x').at, undefined);
   assert.deepEqual(readQa('?start=tour&time=night&quality=low&debug=1&at=coit-view'), { start: 'tour', time: 'night', quality: 'low', debug: true, at: 'coit-view' });
 });
+
+test('G1-8 time: the auto-walk runs beyond 30 u (so a long 带我去 takes far less than walking it), labels unchanged', async () => {
+  const { autoWalkSeconds, gameTimeLabel, secondsLabel, AUTO_RUN_LEFT } = await import('../src/opus-bay/game/travel');
+  const { RUN_SPEED, WALK_SPEED } = await import('../src/opus-bay/actors/controller');
+  assert.equal(autoWalkSeconds(0), 0);
+  assert.ok(Math.abs(autoWalkSeconds(21) - 21 / WALK_SPEED) < 1e-9, 'short: walking pace');
+  const L = 280;
+  const s = autoWalkSeconds(L);
+  assert.ok(s < L / WALK_SPEED && s > (L - AUTO_RUN_LEFT) / RUN_SPEED + AUTO_RUN_LEFT / WALK_SPEED, `${s.toFixed(1)} s`);
+  // measured in the game on 2026-09-27: Ferry gate → Dragon Gate (the map said "~40s") arrived after 39.7 s
+  assert.ok(Math.abs(s - 40.1) < 1, `${s.toFixed(1)} s`);
+  let prev = 0;
+  for (let d = 1; d < 3000; d += 7) { const t = autoWalkSeconds(d); assert.ok(t > prev, `monotonic at ${d}`); prev = t; }
+  // the old walking labels are the same text through the shared rounding
+  for (const d of [3, 30, 84, 90, 251, 400, 2600]) assert.deepEqual(gameTimeLabel(d), secondsLabel(d / WALK_SPEED));
+  assert.deepEqual(secondsLabel(40.1), { zh: '约 40 秒', en: '~40s' });
+  assert.deepEqual(secondsLabel(151), { zh: '约 3 分钟', en: '~3 min' });
+});
+
+test('G1-8 route: what is left ahead of the player, the honest label, the real km along the route', async () => {
+  const { routeAhead, routeMeasure, routeTravelLabel } = await import('../src/opus-bay/game/travel');
+  const route = [{ x: 0, z: 0 }, { x: 100, z: 0 }, { x: 100, z: 100 }];
+  const all = routeAhead(route, { x: -3, z: 0 });
+  assert.equal(all.length, 200);
+  assert.equal(all.off, 3);
+  const mid = routeAhead(route, { x: 100, z: 40 });
+  assert.deepEqual(mid.points, [{ x: 100, z: 40 }, { x: 100, z: 100 }]);
+  assert.equal(mid.length, 60);
+  const offRoute = routeAhead(route, { x: 50, z: 30 });
+  assert.equal(offRoute.off, 30, 'far off: from where the route comes nearest (the first leg on a tie)');
+  assert.deepEqual(offRoute.points[0], { x: 50, z: 0 });
+  // a loop back past the start: the earliest segment wins a tie
+  const loop = routeAhead([{ x: 0, z: 0 }, { x: 10, z: 0 }, { x: 10, z: 10 }, { x: 0, z: 10 }, { x: 0, z: 0.0001 }], { x: 0, z: 0 });
+  assert.ok(loop.length > 39);
+  assert.deepEqual(routeTravelLabel([{ x: 0, z: 0 }, { x: 1, z: 1 }]), { zh: '就在这', en: 'right here' });
+  const m = routeMeasure(route);
+  assert.equal(m.length, 200);
+  assert.ok(m.km > 0.5 && m.km < 5, `${m.km} km for 200 u`);
+  const label = routeTravelLabel(route);
+  assert.match(label.zh, /^沿路走约 \d+ 秒 · 现实约 /);
+  assert.match(label.en, /on foot · .* for real$/);
+});
+
+test('G1-8 planner: one plan at a time, kept plans serve the map again, the waypoint reads what is left', async () => {
+  const { cachedRoute, planRoute, routeLeftTo, REPLAN_U } = await import('../src/opus-bay/game/mapRoute');
+  const calls: string[] = [];
+  const slow = (from: { x: number; z: number }, to: { x: number; z: number }, signal: { aborted: boolean }) => new Promise<{ points: { x: number; z: number }[]; length: number; snapped: boolean } | null>(resolve => {
+    calls.push(`${to.x}`);
+    setTimeout(() => resolve(signal.aborted ? null : { points: [from, { x: to.x, z: from.z }, to], length: Math.abs(to.x - from.x) + Math.abs(to.z - from.z), snapped: false }), 20);
+  });
+  const from = { x: 1000, z: 1000 };
+  const first = planRoute(from, { x: 1100, z: 1050 }, slow);
+  const second = planRoute(from, { x: 1200, z: 1050 }, slow);
+  assert.equal(await first, undefined, 'superseded');
+  const r = await second;
+  assert.ok(r && r.length === 250);
+  assert.equal(cachedRoute({ x: 1000 + REPLAN_U - 1, z: 1000 }, { x: 1200, z: 1050 }), r, 'kept while you stay near its start');
+  assert.equal(cachedRoute({ x: 1000 + REPLAN_U + 1, z: 1000 }, { x: 1200, z: 1050 }), null);
+  const again = await planRoute({ x: 1002, z: 1001 }, { x: 1200, z: 1050 }, slow);
+  assert.equal(again, r);
+  assert.deepEqual(calls, ['1100', '1200'], 'no new search for a kept plan');
+  assert.equal(await planRoute(from, { x: 1300, z: 1000 }, async () => null), null, 'no way there');
+  // the in-world waypoint: 200 u along the first leg, 50 u down the second
+  assert.equal(routeLeftTo({ x: 1200, z: 1050 }, { x: 1100, z: 1000 }), 150);
+  assert.equal(routeLeftTo({ x: 1200, z: 1050 }, { x: 1100, z: 1040 }), null, 'more than 25 u off the route');
+  assert.equal(routeLeftTo({ x: 5, z: 5 }, from), null);
+});

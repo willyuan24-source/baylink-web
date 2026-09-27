@@ -106,3 +106,21 @@ test('labels: a marker label never collides with its own marker, and moves besid
   assert.equal(pair.size, 2);
   assert.notDeepEqual(pair.get('a'), pair.get('b'));
 });
+
+test('G1-8 map maths: the selected label rides over other markers; fitPoints frames you and a route; thinPx', async () => {
+  const { fitPoints, layoutLabels, thinPx } = await import('../src/opus-bay/ui/cityMapDraw');
+  const crowd = [{ id: 's', x: 200, y: 150, r: 10 }, { id: 'u', x: 200, y: 128, r: 5 }, { id: 'v', x: 222, y: 152, r: 5 }, { id: 'w', x: 178, y: 152, r: 5 }, { id: 'q', x: 200, y: 172, r: 5 }];
+  const item = { id: 's', x: 200, y: 150, r: 10, text: 'Selected place', prio: 0 };
+  assert.equal(layoutLabels([item], 400, 300, 3, crowd).size, 0, 'boxed in by dots');
+  assert.equal(layoutLabels([{ ...item, over: true }], 400, 300, 3, crowd).get('s')?.anchor, 'middle', 'the selection always reads');
+  assert.equal(layoutLabels([{ ...item, over: true }], 400, 300, 3, crowd, [[0, 0, 400, 135]]).get('s')?.anchor, 'start', 'reserved boxes still hold');
+  const v = { cx: 0, cz: 0, scale: 1, w: 400, h: 300 };
+  const f = fitPoints(v, MAP_FRAME, [{ x: 100, z: 200 }, { x: 300, z: 260 }], 40);
+  assert.deepEqual([f.cx, f.cz], [200, 230]);
+  for (const p of [{ x: 100, z: 200 }, { x: 300, z: 260 }]) {
+    const [x, y] = toPx(f, p.x, p.z);
+    assert.ok(x >= 39.9 && x <= 360.1 && y >= 39.9 && y <= 260.1, `${x}, ${y}`);
+  }
+  assert.ok(fitPoints(v, MAP_FRAME, [{ x: 0, z: 0 }, { x: 1, z: 1 }]).scale <= fitScale(MAP_FRAME, 400, 300) * 8 + 1e-9, 'never closer than 8×');
+  assert.deepEqual(thinPx([[0, 0], [0.5, 0], [1, 0], [3, 0], [3.2, 0]]), [[0, 0], [3, 0], [3.2, 0]]);
+});

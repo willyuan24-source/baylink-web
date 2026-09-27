@@ -50,6 +50,30 @@ export function zoomAt(v: MapView, f: MapFrameBox, k: number, px: number, py: nu
   return clampView({ ...next, cx: next.cx + before.x - after.x, cz: next.cz + before.z - after.z }, f);
 }
 
+/**
+ * The view that shows every point with `pad` px to spare (the player and a trip's target, a route), no closer than
+ * `maxZoom` × fit and inside the usual limits. Pure.
+ */
+export function fitPoints(v: MapView, f: MapFrameBox, pts: readonly { x: number; z: number }[], pad = 48, maxZoom = 8): MapView {
+  if (!pts.length) return v;
+  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+  for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); }
+  const fit = fitScale(f, v.w, v.h);
+  const sx = (v.w - 2 * pad) / Math.max(1, x1 - x0), sz = (v.h - 2 * pad) / Math.max(1, z1 - z0);
+  return clampView({ ...v, cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, scale: Math.min(sx, sz, fit * maxZoom) }, f);
+}
+
+/** Drop the points of a screen polyline closer than `minPx` to the last kept one (the end always stays). Pure. */
+export function thinPx(pts: readonly [number, number][], minPx = 1.5): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], q = out[out.length - 1];
+    if (q && i < pts.length - 1 && Math.hypot(p[0] - q[0], p[1] - q[1]) < minPx) continue;
+    out.push(p);
+  }
+  return out;
+}
+
 export function visibleBox(v: MapView, pad = 0): MapFrameBox {
   const hw = v.w / 2 / v.scale + pad, hh = v.h / 2 / v.scale + pad;
   return { minX: v.cx - hw, maxX: v.cx + hw, minZ: v.cz - hh, maxZ: v.cz + hh };
@@ -280,9 +304,10 @@ export function labelWidth(text: string, fontPx: number): number {
 /**
  * A label to place. With `r` (the radius of the item's own marker at x, y) the label tries four spots around the marker
  * — above, right, left, below — and never counts its own marker as an obstacle; without `r` it is centred on the
- * baseline point (x, y) as given (neighbourhood names).
+ * baseline point (x, y) as given (neighbourhood names). `over` (the selected place): only labels and reserved boxes
+ * stop it, not other markers.
  */
-export interface LabelItem { id: string; x: number; y: number; text: string; prio: number; fontPx?: number; r?: number }
+export interface LabelItem { id: string; x: number; y: number; text: string; prio: number; fontPx?: number; r?: number; over?: boolean }
 /** Where a kept label goes: its baseline point and the SVG text-anchor. */
 export interface PlacedLabel { x: number; y: number; anchor: 'middle' | 'start' | 'end' }
 /** A marker on the map, as an obstacle for labels (`id`: the item whose own marker it is). */
@@ -319,7 +344,7 @@ export function layoutLabels(items: readonly LabelItem[], w: number, h: number, 
       const box = [x0 - pad, s.y - f - pad, x0 + lw + pad, s.y + pad] as const;
       if (box[0] < 0 || box[2] > w || box[1] < 0 || box[3] > h) continue;
       if (placed.some(b => overlaps(box, b))) continue;
-      if (marks.some(m => m.id !== it.id && overlaps(box, m.box))) continue;
+      if (!it.over && marks.some(m => m.id !== it.id && overlaps(box, m.box))) continue;
       placed.push(box);
       out.set(it.id, s);
       break;

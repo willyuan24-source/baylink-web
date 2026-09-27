@@ -18,7 +18,8 @@ import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactabl
 import { consumeShutter } from './photo';
 import { domAnchors, overlayInsets } from './projector';
 import { type Box, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, scanHudBoxes } from './hudLayout';
-import { gameTimeLabel } from './travel';
+import { routeLeftTo } from './mapRoute';
+import { autoWalkSeconds, gameTimeLabel, secondsLabel } from './travel';
 import { stepTravel } from './fastTravel';
 import { parseAt, readQa } from './qa';
 import { goToCitySpot } from './resume';
@@ -646,9 +647,13 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
     writeProp(wp, '--ob-angle', `${angle.toFixed(3)}rad`);
     if (domAnchors.waypointLabel && now - waypointTextAt > 250) {
       waypointTextAt = now;
-      // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed)
+      // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed). G1-8: a
+      // city place the map planned a route to says the time along that route (the map's own figure: at the
+      // auto-walk's pace while 带我去 walks you, at walking pace when you walk it yourself)
       const locale = getLocale();
-      const text = `${pick(target.name, locale)} · ${pick(gameTimeLabel(d), locale)}`;
+      const along = target.id.startsWith('place:') ? routeLeftTo(target, runtime.player) : null;
+      const time = along === null ? gameTimeLabel(d) : runtime.player.pathTarget ? secondsLabel(autoWalkSeconds(along)) : gameTimeLabel(along);
+      const text = `${pick(target.name, locale)} · ${pick(time, locale)}`;
       if (domAnchors.waypointLabel.textContent !== text) { domAnchors.waypointLabel.textContent = text; labelHalf = (domAnchors.waypointLabel.offsetWidth || 120) / 2; writeProp(wp, '--ob-label-half', `${labelHalf.toFixed(0)}px`); }
     }
   }
