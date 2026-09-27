@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { BookOpen, CalendarPlus, Check, CircleHelp, Footprints, Heart, ListChecks, Mail, MapPinned, Route, Trash2 } from 'lucide-react';
+import { FOOTPRINTS_TAB, Footprints as FootprintsTab } from './Footprints';
 import { useGame } from '../core/store';
 import type { WishItem } from '../core/types';
 import { eventById, nextShowing, placeById, todayInBay, useCatalog } from '../data/catalog';
@@ -16,7 +17,7 @@ import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
 
-type Tab = 'cards' | 'goals' | 'wish';
+type Tab = 'cards' | 'goals' | 'wish' | 'steps';
 
 /** 旅行本: postcards, goals + tour progress, wishlist with a BAYLINK hand-off. */
 export function Journal() {
@@ -29,6 +30,9 @@ export function Journal() {
     { id: 'goals', label: t('目标', 'Goals'), icon: <ListChecks size={16} aria-hidden /> },
     { id: 'wish', label: t('想去', 'Wishlist'), icon: <Heart size={16} aria-hidden />, count: wishCount ? String(wishCount) : undefined },
   ];
+  // lane G1's 足迹 tab (ui/Footprints.tsx; absent until G1 turns it on)
+  const steps = FOOTPRINTS_TAB;
+  if (steps) tabs.push({ id: 'steps', label: t(steps.label), icon: <Footprints size={16} aria-hidden />, count: steps.count?.() });
   return (
     <Sheet eyebrow={<><BookOpen size={14} aria-hidden />{t('旅行本', 'Journal')}</>} title={t('我的湾区旅行本', 'My Bay journal')} onClose={closePanel} className="ob-journal">
       <div className="ob-tabs" role="tablist">
@@ -42,6 +46,7 @@ export function Journal() {
         {tab === 'cards' && <Cards />}
         {tab === 'goals' && <Goals />}
         {tab === 'wish' && <Wishes />}
+        {tab === 'steps' && <FootprintsTab />}
       </div>
     </Sheet>
   );

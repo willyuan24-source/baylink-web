@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { Armchair, Bike, Bird, BookOpen, Camera, CarFront, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Sparkles, TramFront } from 'lucide-react';
-import type { CSSProperties, ReactNode } from 'react';
-import { input } from '../core/input';
+import { BookOpen, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TramFront } from 'lucide-react';
+import { requestHopOff } from '../actors/moveApi';
 import { useGame } from '../core/store';
 import type { InteractionKind } from '../core/types';
 import { DISTRICT } from '../data/district';
-import { POSTCARDS } from '../data/postcards';
+import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { FREE_GOALS } from '../data/script';
-import { callBaybay, cancelRide, currentStop, enterPhotoMode, finishRide, hopOffRide, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
+import { callBaybay, cancelRide, currentStop, enterPhotoMode, finishRide, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
 import { flow, useFlow } from '../game/flowStore';
 import { BAYBAY_ID, interactableById } from '../game/interactables';
-import { readQa } from '../game/qa';
+import { rideLabel } from '../game/transit';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
+import { MoveChip } from './MoveChip';
 
 /** Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action. */
 export function Hud() {
@@ -30,87 +30,6 @@ export function Hud() {
       <MoveChip />
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Movement mode chip (lane E): which mode you are in + its keys, and the glide button once it is unlocked.
-// Keyboard / gamepad only — touch gets big buttons in actors/TouchControls. Clicking a hint does what the key does.
-// ---------------------------------------------------------------------------
-
-const chipStyle: CSSProperties = {
-  position: 'absolute', left: '50%', bottom: 'calc(26px + var(--ob-sb))', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 10,
-  minHeight: 48, padding: '0 8px 0 14px', borderRadius: 999, color: '#fff', background: 'rgba(28, 44, 41, .86)', border: '1px solid rgba(255,255,255,.14)',
-  boxShadow: '0 14px 30px -12px rgba(20, 30, 28, .6)', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 40px)', pointerEvents: 'auto',
-};
-const hintStyle: CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36, padding: '0 10px', borderRadius: 999, border: 0, background: 'rgba(255,255,255,.1)',
-  color: '#fff', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-};
-const glideStyle: CSSProperties = {
-  position: 'absolute', left: 'calc(18px + var(--ob-sl))', bottom: 'calc(26px + var(--ob-sb))', display: 'flex', alignItems: 'center', gap: 8, minHeight: 44,
-  padding: '0 14px 0 8px', borderRadius: 999, border: '1px solid var(--ob-line)', background: 'rgba(255, 250, 241, .95)', color: 'var(--ob-ink)',
-  boxShadow: 'var(--ob-shadow-s)', font: 'inherit', fontSize: 13.5, fontWeight: 800, cursor: 'pointer', pointerEvents: 'auto',
-};
-
-function Hint({ k, label, onPress }: { k: string; label: string; onPress?: () => void }) {
-  const body = <><Keycap className="ob-context-key">{k}</Keycap><span>{label}</span></>;
-  return onPress
-    ? <button type="button" style={hintStyle} onClick={onPress}>{body}</button>
-    : <span style={{ ...hintStyle, cursor: 'default', background: 'transparent', padding: '0 4px' }}>{body}</span>;
-}
-
-function MoveChip() {
-  const { t } = useT();
-  const mode = useGame(s => s.move.mode);
-  const spot = useGame(s => s.move.spot);
-  const unlocked = useGame(s => s.viewpointUnlocked) || readQa().debug;
-  const dialogue = useGame(s => s.dialogue.nodeId);
-  const focus = useGame(s => s.focus);
-  const device = useDevice();
-  if (device === 'touch' || dialogue) return null;
-  const pad = device === 'gamepad';
-  const exit = () => { input.vehicleCount++; };
-  const glide = () => { input.glideCount++; };
-  const horn = () => { input.hornCount++; };
-  const chip = (icon: ReactNode, name: string, hints: ReactNode) => (
-    <div style={chipStyle} role="status" aria-live="polite">
-      {icon}<strong style={{ fontSize: 14.5 }}>{name}</strong>{hints}
-    </div>
-  );
-  if (mode === 'bike' || mode === 'car') {
-    const bike = mode === 'bike';
-    return chip(bike ? <Bike size={20} aria-hidden /> : <CarFront size={20} aria-hidden />, bike ? t('骑车中', 'Riding') : t('开小车', 'Driving'), <>
-      <Hint k={pad ? 'Y' : 'F'} label={t('下车', 'Get off')} onPress={exit} />
-      <Hint k={pad ? 'LB' : 'H'} label={bike ? t('按铃', 'Bell') : t('喇叭', 'Horn')} onPress={horn} />
-      {!pad && <Hint k="Space" label={t('跳一下', 'Hop')} />}
-      {!pad && !bike && <Hint k="R" label={t('回到路上', 'Back on the road')} />}
-      {!pad && bike && <Hint k="Shift" label={t('冲刺', 'Sprint')} />}
-    </>);
-  }
-  if (mode === 'glide') {
-    return chip(<Bird size={20} aria-hidden />, t('鹈鹕滑翔', 'Pelican glide'), <>
-      {!pad && <Hint k="W/S" label={t('升降', 'Climb / dive')} />}
-      <Hint k={pad ? 'RB' : 'Shift'} label={t('加速', 'Faster')} />
-      <Hint k={pad ? 'L3' : 'G'} label={t('降落', 'Land')} onPress={glide} />
-    </>);
-  }
-  if (mode === 'sit') return chip(<Armchair size={20} aria-hidden />, t('坐着歇会儿', 'Taking a seat'), <Hint k={pad ? '←→' : 'E'} label={t('起身', 'Stand up')} onPress={() => { input.interactCount++; }} />);
-  if (mode === 'transit') {
-    return chip(<TramFront size={20} aria-hidden />, t('车厢里', 'On board'), <>
-      <Hint k={pad ? 'A' : 'E'} label={spot === 'seat' ? t('站起来', 'Stand') : t('坐下', 'Sit down')} onPress={() => { input.interactCount++; }} />
-      {!pad && <Hint k="WASD" label={t('车厢里走走', 'Walk the aisle')} />}
-      <Hint k={pad ? 'B' : 'Space'} label={t('下车', 'Hop off')} />
-    </>);
-  }
-  // on foot: the glide is ready (never over a context prompt)
-  if (mode === 'foot' && unlocked && !focus) {
-    return (
-      <button type="button" style={glideStyle} onClick={glide} aria-label={t('鹈鹕滑翔（G）', 'Pelican glide (G)')}>
-        <Keycap className="ob-context-key">{pad ? 'L3' : 'G'}</Keycap><Bird size={18} aria-hidden />{t('起飞', 'Take off')}
-      </button>
-    );
-  }
-  return null;
 }
 
 const SF_NAME = { zh: '旧金山', en: 'San Francisco' };
@@ -143,7 +62,8 @@ function Objective() {
   const tourActive = useGame(s => s.tour.active);
   const stopIndex = useGame(s => s.tour.stop);
   const completed = useGame(s => s.tour.completed.length);
-  const postcards = useGame(s => s.postcards.length);
+  // (day 0, G2-3) only the active world mode's cards count
+  const postcards = useGame(s => activePostcardCount(s.postcards));
   const goalsDone = useGame(s => s.goalsDone);
   const tourPhase = useFlow(s => s.tourPhase);
   const weekStage = useFlow(s => s.weekStage);
@@ -180,7 +100,7 @@ function Objective() {
     );
   }
   if (mode === 'free') {
-    const total = POSTCARDS.length;
+    const total = activePostcardTotal();
     const goals = FREE_GOALS.filter(goal => goalsDone.includes(goal.id)).length;
     return (
       <button type="button" className="ob-objective is-gold" onClick={() => flow.set(s => ({ goalsCard: !s.goalsCard }))} aria-label={t('看看探索目标', 'Show the explorer goals')} aria-expanded={goalsOpen}>
@@ -338,15 +258,18 @@ function RideBanner() {
   const { t } = useT();
   const ride = useFlow(s => s.ride);
   if (!ride) return null;
-  const to = DISTRICT.streetcar.stops.find(stop => stop.id === ride.to);
+  // line name, destination and glyph come from lane F (game/transit.ts rideLabel)
+  const label = rideLabel(ride);
+  const Icon = label.icon === 'ferry' ? Ship : TramFront;
   return (
     <div className="ob-ride" role="status">
-      <TramFront size={20} aria-hidden />
-      <span>{ride.stage === 'waiting' ? t(`等电车进站…${ride.eta ? `约 ${ride.eta} 秒` : ''}`, `Waiting for the streetcar…${ride.eta ? ` ~${ride.eta}s` : ''}`) : <>{t('F 线电车 · 开往', 'F-line · to')} <strong>{to ? t(to.name) : ''}</strong></>}</span>
+      <Icon size={20} aria-hidden />
+      <span>{ride.stage === 'waiting' ? t(label.waiting) : <>{t(label.lineTo)} <strong>{label.dest ? t(label.dest) : ''}</strong></>}</span>
       {ride.stage === 'waiting'
         ? <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={cancelRide}>{t('不坐了', 'Cancel')}</button>
         : <>
-            <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={hopOffRide}>{t('提前下车', 'Hop off here')}</button>
+            {/* lane E2's hop-off request (actors/moveApi): the same path as Space / pad B */}
+            <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={requestHopOff}>{t('提前下车', 'Hop off here')}</button>
             <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={finishRide}>{t('直接到站', 'Skip to stop')}</button>
           </>}
     </div>

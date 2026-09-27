@@ -8,8 +8,9 @@ import { progressExtras } from '../data/wishlist';
 import { skipCinema } from '../game/cinema';
 import {
   beginPlaying, callBaybay, initFlowListeners, closeFishing, closePanel, closePostcardReward, enterPhotoMode, noteInteractHandled, openPanel, reel, requestInteract,
-  startGame, teleportPlayer, togglePanel,
+  teleportPlayer, togglePanel,
 } from '../game/flow';
+import { startOrResume } from '../game/resume';
 import { flow, useFlow } from '../game/flowStore';
 import { setRightInset } from '../game/projector';
 import { bayTimeOfDay, readQa } from '../game/qa';
@@ -38,7 +39,8 @@ const SettingsPanel = lazy(() => loadSettings().then(m => ({ default: m.Settings
  */
 export function Overlay({ startRequested = false }: { startRequested?: boolean }) {
   useBoot();
-  useEffect(() => { if (startRequested) startGame(); }, [startRequested]);
+  // (lane G1's game/resume.ts: the title's "continue where you left off", else exactly startGame())
+  useEffect(() => { if (startRequested) startOrResume(); }, [startRequested]);
   usePrefetchPanels();
   useTimeOfDay();
   useKeyboard();

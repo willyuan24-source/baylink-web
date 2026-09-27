@@ -4,6 +4,7 @@ import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
 import { ASSETS, keyArtAlt } from '../data/assets';
 import { guidesUrl } from '../data/links';
+import { CITY_COPY } from '../data/sf/copy';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState } from './hooks';
@@ -25,6 +26,8 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   // Optimistic: paint the key art right away (no fallback flash); switch to the CSS diorama only if it fails.
   const artOk = useImageState(keyArt?.wide) !== 'error';
   const returning = useVisited();
+  // city mode: lane G2's subtitle (data/sf/copy.ts, dependency-free); null keeps the district line
+  const citySub = useGame(s => s.worldMode === 'city') ? CITY_COPY.titleSub : null;
 
   useEffect(() => { startRef.current?.focus({ preventScroll: true }); }, []);
   // Enter / Space start from anywhere on the title (not while on another control)
@@ -63,7 +66,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
       <div className="ob-title-card">
         <span className="ob-title-mark">Opus Bay · BAYLINK</span>
         <h1 className="ob-title-h1">{t('湾区小旅', 'Little Bay Trip')}</h1>
-        <p className="ob-title-sub">{t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
+        <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
         <div className="ob-title-greet">
           <BaybayFace mood="wave" size={52} />
           <p>{returning ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
