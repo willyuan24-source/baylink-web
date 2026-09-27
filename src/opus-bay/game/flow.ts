@@ -941,7 +941,15 @@ const later = (ms: number, fn: () => void) => {
   setTimeout(() => { feedbackPending = false; fn(); }, game.get().settings.reducedMotion ? Math.min(ms, 500) : ms);
 };
 
+/**
+ * Lane G2's city residents (game/residentTasks.ts, its own chunk): claims a resident's chat (their favour's state picks
+ * the dialogue) before the NPC_LINES / NPC_POSTS lines. Returns false for keys it does not know.
+ */
+let residentTalk: ((key: string) => boolean) | null = null;
+export function setResidentTalk(fn: ((key: string) => boolean) | null) { residentTalk = fn; }
+
 function talkToNpc(it: Interactable) {
+  if (it.npc && residentTalk?.(it.npc)) return;
   const post = NPC_POSTS.find(item => item.key === it.npc);
   const existing = npcLine(it.npc).nodeId ?? (NODES[it.id] ? it.id : undefined);
   if (existing) { playDialogue(existing); return; }
@@ -1281,10 +1289,13 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
     if (near) add(near.id, { zh: `明信片线索 · ${near.name.zh}附近`, en: `Postcard clue · near ${near.name.en}` });
   }
   // city goals (lane G2, game/cityContent.ts goalTargets): a waypoint per unfinished goal; ids resolve through
-  // interactableById (an interactable, or a G1 `place:<id>` via setExtraResolver) so "take me there" can lead
-  for (const t of goalTargets()) if (!goalDone(t.goal) && dist(from, t) > (t.radius ?? 3) + 1) out.push({ id: t.id, x: t.x, z: t.z, name: t.name });
-  out.sort((a, b) => dist(from, a) - dist(from, b));
-  return out[0] ?? null;
+  // interactableById (an interactable, or a G1 `place:<id>` via setExtraResolver) so "take me there" can lead.
+  // A favour you said yes to (`first`) comes before everything else.
+  const firsts: typeof out = [];
+  for (const t of goalTargets()) if (!goalDone(t.goal) && dist(from, t) > (t.radius ?? 3) + 1) (t.first ? firsts : out).push({ id: t.id, x: t.x, z: t.z, name: t.name });
+  const pickFrom = firsts.length ? firsts : out;
+  pickFrom.sort((a, b) => dist(from, a) - dist(from, b));
+  return pickFrom[0] ?? null;
 }
 
 /** BAYBAY leads you to an interactable (free roam, from the call menu). */
