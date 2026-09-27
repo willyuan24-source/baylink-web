@@ -50,6 +50,8 @@ const NEAR_STEP = 4;
 const WATER_Y = -0.6;
 /** edge column width (u): the county line (the city's south cut, walked past) and the far board edges */
 const EDGE_COLUMN = 6, EDGE_COLUMN_FAR = 12;
+/** the edge's pieces (u): each is one draw call when any of it is in view */
+const EDGE_PIECE = 1024;
 /**
  * The far tiles are cut to a widened copy of the view (wave 3: the world board is ≈ 4,000 far tiles since the boards
  * came): re-cut when the camera changes tile or the view turns by more than CUT_TURN (less than CUT_WIDEN, so nothing
@@ -315,15 +317,16 @@ export class CityWater {
    * The board's cut edge: glass through the water, layered earth where it crosses land (`groundAt` → ground top, or
    * null for water). Built once the far data is in (ground heights along the county line).
    */
-  setEdge(groundAt: (x: number, z: number) => number | null, slabEdge: (g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number | ((edge: number) => number)) => void) {
+  setEdge(groundAt: (x: number, z: number) => number | null, slabEdge: (g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number | ((edge: number) => number), underside?: boolean) => void) {
     if (this.edges.length) return;
     const g = new Batch();
     // 6 u columns along the county line (the city's own cut), 12 u on the far edges round the boards (the board is
-    // ≈ 13 km round and seen from afar: 1.6 u columns would cost ~100k triangles); split in 512 u pieces so only the
-    // stretch in view is drawn
+    // ≈ 13 km round and seen from afar: 1.6 u columns would cost ~100k triangles); no underside (its fan spans the
+    // whole board: split, every triangle was a draw call in almost every view); split in EDGE_PIECE u pieces so only
+    // the stretch in view is drawn (≈ 14k triangles round the board, ≈ 20 pieces)
     // (WORLD_LL starts with the county line: edge 0)
-    slabEdge(g, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, (edge: number) => (edge === 0 ? EDGE_COLUMN : EDGE_COLUMN_FAR));
-    splitGeometry(g.build(), 512).forEach((geo, i) => {
+    slabEdge(g, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, (edge: number) => (edge === 0 ? EDGE_COLUMN : EDGE_COLUMN_FAR), false);
+    splitGeometry(g.build(), EDGE_PIECE).forEach((geo, i) => {
       const m = new THREE.Mesh(geo, GROUND);
       m.name = `city-board-edge#${i}`;
       m.matrixAutoUpdate = false;

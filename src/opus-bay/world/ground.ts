@@ -486,7 +486,7 @@ function edgeColumn(g: Batch, x0: number, z0: number, x1: number, z1: number, n:
  * width of one edge column (the city board, ~13 km round, uses wider ones than the district's 1.6 u), or per edge
  * (`column(i)` for the edge from poly[i] to poly[i + 1]).
  */
-export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column: number | ((edge: number) => number) = 1.6) {
+export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column: number | ((edge: number) => number) = 1.6, underside = true) {
   const s = signedArea(poly) >= 0 ? 1 : -1;
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i], b = poly[(i + 1) % poly.length];
@@ -504,8 +504,8 @@ export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) =>
       edgeColumn(g, x0, z0, x1, z1, n, t0, t1, wet, bottom, seed);
     }
   }
-  // underside
-  g.polygon(poly, bottom, C('#6d5f52'), info(P.none), true);
+  // underside (the city's world board leaves it out: its fan spans the whole board and is never seen from above)
+  if (underside) g.polygon(poly, bottom, C('#6d5f52'), info(P.none), true);
 }
 
 // ---------------------------------------------------------------------------

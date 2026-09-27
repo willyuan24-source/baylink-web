@@ -168,3 +168,24 @@ test('the soft world edge: patchFog fades to the fog colour past uObFar; out of 
   assert.equal(sh.uniforms.uObFar, FAR_FADE.uObFar);
   assert.ok(sh.fragmentShader.indexOf('smoothstep(uObFar.x, uObFar.y, vFogDepth)') > sh.fragmentShader.indexOf('#include <fog_fragment>'), 'after three\'s own fog');
 });
+
+test('the world board edge: no underside fan, pieces of ≤ 1,024 u (one draw call each in view), ≈ 14k triangles', async () => {
+  const g = globalThis as unknown as Record<string, unknown>;
+  g.window ??= globalThis;
+  g.document ??= { createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => ({ addColorStop: () => undefined, data: new Uint8ClampedArray(4) }), set: () => true }), width: 0, height: 0 }) };
+  const { CityWater } = await import('../src/opus-bay/world/sf/water');
+  const { slabEdge } = await import('../src/opus-bay/world/ground');
+  const water = new CityWater(new THREE.DataTexture(new Uint8Array(4), 1, 1), new THREE.Vector4(0, 0, 1, 1));
+  water.setEdge(() => null, slabEdge);
+  const pieces = water.group.children.filter(o => o.name.startsWith('city-board-edge')) as THREE.Mesh[];
+  let tris = 0;
+  for (const m of pieces) {
+    const geo = m.geometry;
+    geo.computeBoundingSphere();
+    tris += (geo.index ? geo.index.count : geo.getAttribute('position').count) / 3;
+    assert.ok(geo.boundingSphere!.radius <= 1024 * 0.75, `${m.name}: radius ${geo.boundingSphere!.radius.toFixed(0)} (a board-wide triangle is drawn in every view)`);
+  }
+  assert.ok(pieces.length >= 8 && pieces.length <= 24, `${pieces.length} pieces`);
+  assert.ok(tris > 8000 && tris < 20000, `${tris} triangles`);
+  water.dispose();
+});
