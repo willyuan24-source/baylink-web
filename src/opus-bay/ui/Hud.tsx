@@ -16,6 +16,7 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
+import { transitGlyph } from './transitGlyph';
 import { MoveChip } from './MoveChip';
 
 /**
@@ -216,12 +217,14 @@ function ContextAction() {
   const label = t(it.verb);
   // lane E's movement interactables: bike / toy car / seat icons (ids ride:<spot id>, sources 'vehicle' and 'seat')
   const ride = it.source === 'vehicle' ? (it.id.startsWith('ride:car') ? 'car' : 'bike') : it.source === 'seat' ? 'seat' : undefined;
+  // lane F's city stations: a cable car / ferry glyph by the line kind (not the district F-line tram)
+  const transit = transitGlyph(it);
   // the bar's 问 BAYBAY already covers her on phones: only offer the big action when she has something to say
   if (device === 'touch' && it.source === 'baybay' && !baybayNews) return null;
   if (device === 'touch') {
     return (
       <button type="button" className={`ob-touch-action tone-${tone} ${panel ? 'is-behind-sheet' : ''}`} onClick={() => requestInteract('button')} aria-label={label}>
-        <InteractIcon kind={it.action} ride={ride} size={28} />
+        <InteractIcon kind={it.action} ride={ride} transit={transit} size={28} />
         <span>{label}</span>
       </button>
     );
@@ -229,7 +232,7 @@ function ContextAction() {
   return (
     <button type="button" className={`ob-context tone-${tone} ${chip ? 'is-lifted' : ''}`} onClick={() => requestInteract('button')}>
       <Keycap className="ob-context-key">{device === 'gamepad' ? 'A' : 'E'}</Keycap>
-      <InteractIcon kind={it.action} ride={ride} size={18} />
+      <InteractIcon kind={it.action} ride={ride} transit={transit} size={18} />
       <span className="ob-context-verb">{label}</span>
       {it.source !== 'baybay' && it.source !== 'postcard' && <span className="ob-context-name">{t(it.name)}</span>}
     </button>

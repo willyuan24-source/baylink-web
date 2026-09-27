@@ -6,6 +6,8 @@
  *   decodeSave(raw)        the pure decoder behind it (tests fuzz it): bad rows are dropped, never thrown
  *   patchSave(fn)          change the save in memory; a debounced 1 s write (plus a flush on pagehide) persists it
  *   noteRide(lineId)       lane F, after a counted stop-to-stop ride (save v2 `rides`)
+ *   reconcileRides(log)    the sampler reads lane F's transit.rideLog() (this visit) into `rides`: a ride F counted
+ *                          without a noteRide is added once, a noted one never twice
  *   requestResume() / takeResumeRequest()   the title's "继续上次的位置" → game/resume.ts startOrResume
  *   clearSave()            Settings → reset progress
  *
@@ -186,9 +188,13 @@ export function clearSave() {
   try { storage()?.removeItem(SAVE_KEY); } catch { /* ignore */ }
 }
 
+/** rides noted this visit, per line (reconcileRides compares lane F's rideLog with it) */
+const notedThisVisit: Record<string, number> = {};
+
 /** lane F: one counted ride on `lineId` */
 export const noteRide: (lineId: string) => void = lineId => {
   if (!isId(lineId)) return;
+  notedThisVisit[lineId] = (notedThisVisit[lineId] ?? 0) + 1;
   patchSave(s => {
     const rides = { ...(s.rides ?? {}) };
     if (!(lineId in rides) && Object.keys(rides).length >= MAX_RIDE_LINES) return;
@@ -196,6 +202,21 @@ export const noteRide: (lineId: string) => void = lineId => {
     s.rides = rides;
   });
 };
+
+/**
+ * Lane F's request (wave 3): `transit.rideLog()` (rides per line this visit) into save v2 `rides`. F already calls
+ * noteRide per counted ride; anything the log holds beyond what was noted this visit is added (so a ride is never
+ * counted twice). Returns how many rides were added.
+ */
+export function reconcileRides(log: Readonly<Record<string, number>>): number {
+  let added = 0;
+  for (const [line, n] of Object.entries(log)) {
+    if (!isId(line) || !fin(n)) continue;
+    const extra = Math.floor(n) - (notedThisVisit[line] ?? 0);
+    for (let i = 0; i < Math.min(extra, 1000); i++) { noteRide(line); added++; }
+  }
+  return added;
+}
 
 /** The spot to offer "继续上次的位置" in this world mode (null: nothing saved there). */
 export function resumeSpot(world: SaveWorld): NonNullable<SaveV2['lastSafe']> | null {
@@ -208,5 +229,5 @@ export function requestResume() { resumeRequested = true; }
 /** true once after requestResume() (game/resume.ts reads it) */
 export function takeResumeRequest(): boolean { const r = resumeRequested; resumeRequested = false; return r; }
 
-/** tests: forget the in-memory copy */
-export function resetSaveCache() { cache = undefined; if (timer) { clearTimeout(timer); timer = null; } }
+/** tests: forget the in-memory copy (and this visit's noted rides) */
+export function resetSaveCache() { cache = undefined; if (timer) { clearTimeout(timer); timer = null; } for (const k of Object.keys(notedThisVisit)) delete notedThisVisit[k]; }

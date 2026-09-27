@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { setGlideUnlocked } from '../actors/moveApi';
 import { clearSave } from '../data/save';
 import { Accessibility, Gauge, Keyboard, LogOut, Moon, Music, Pause, RotateCcw, Sun, Sunrise, Sunset, Volume2, ZoomIn } from 'lucide-react';
 import { emit } from '../core/events';
@@ -79,7 +80,7 @@ export function SettingsPanel() {
       <div className="ob-setting-actions">
         <button type="button" className="ob-btn ob-btn-soft" onClick={restartOnboarding}><RotateCcw size={17} aria-hidden /><span>{t('让 BAYBAY 重新打招呼', 'Replay the welcome')}</span></button>
         {confirmReset ? (
-          <button type="button" className="ob-btn ob-btn-danger" onClick={() => { clearProgress(); clearSave(); game.set({ postcards: [], goalsDone: [], viewpointUnlocked: false, tour: { active: false, stop: 0, completed: [] } }); setConfirmReset(false); restartOnboarding(); }}>
+          <button type="button" className="ob-btn ob-btn-danger" onClick={() => { clearProgress(); clearSave(); setGlideUnlocked(false); game.set({ postcards: [], goalsDone: [], viewpointUnlocked: false, tour: { active: false, stop: 0, completed: [] } }); setConfirmReset(false); restartOnboarding(); }}>
             {t('确定清空明信片和进度？', 'Really clear postcards & progress?')}
           </button>
         ) : (

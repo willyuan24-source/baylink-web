@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { type TransitFileJson, buildTransit, setTransitData } from '../src/opus-bay/data/transit';
 import { type Box, overlaps, placeBubble, placeWaypoint, waypointBox } from '../src/opus-bay/game/hudLayout';
+import { transitGlyph } from '../src/opus-bay/ui/transitGlyph';
 
 /**
  * Lane G1 (wave 3, M1 / DR-3): the projected bubble and waypoint keep out of the fixed HUD on a 390×844 phone —
@@ -53,4 +57,18 @@ test('waypoint: kept out of the fixed boxes, and it waits when no spot is free',
   assert.equal(s.hidden, false);
   assert.ok(!overlaps(waypointBox({ x: 200, y: s.y, edge: false, labelHalf: 90, labelDx: 0 }), offer, 5.9));
   assert.ok(s.y >= offer.b + 6);
+});
+
+test("prompt glyph (lane F's request): city stations show the cable car, a ferry pier the ferry, nothing else changes", () => {
+  const file = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as TransitFileJson;
+  const data = buildTransit(file);
+  setTransitData(data);
+  try {
+    const st = data.stations[0];
+    assert.equal(transitGlyph({ id: `transit-${st.id}`, source: 'transit', refId: st.id }), 'cable-car');
+    const tt = data.turntables[0];
+    assert.equal(transitGlyph({ id: `transit-push-${tt.id}`, source: 'transit', refId: tt.id }), 'cable-car', 'the turntable push');
+    assert.equal(transitGlyph({ id: 'transit-ferry-building-gangway', source: 'transit', refId: 'ferry-building' }), 'ferry');
+    assert.equal(transitGlyph({ id: 'f-line-stop', source: 'poi' }), undefined, 'the district F-line stop keeps the tram');
+  } finally { setTransitData(null); }
 });

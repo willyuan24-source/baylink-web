@@ -1,10 +1,15 @@
-import { Armchair, BellRing, Bike, Camera, CarFront, Fish, Info, Mail, MessageCircle, Mountain, Newspaper, Telescope, TramFront, UtensilsCrossed } from 'lucide-react';
+import { Armchair, BellRing, Bike, CableCar, Camera, CarFront, Fish, Info, Mail, MessageCircle, Mountain, Newspaper, Ship, Telescope, TramFront, UtensilsCrossed } from 'lucide-react';
 import type { InteractionKind } from '../core/types';
+import type { TransitGlyph } from './transitGlyph';
 
-/** `ride` overrides the icon of the movement interactables (their action is 'info'): parked bike / toy car, a seat. */
-export function InteractIcon({ kind, size = 18, ride }: { kind: InteractionKind; size?: number; ride?: 'bike' | 'car' | 'seat' }) {
+/**
+ * `ride` overrides the icon of the movement interactables (their action is 'info'): parked bike / toy car, a seat.
+ * `transit` (lane F's city stations, ui/transitGlyph.ts): the line's own vehicle instead of the F-line tram.
+ */
+export function InteractIcon({ kind, size = 18, ride, transit }: { kind: InteractionKind; size?: number; ride?: 'bike' | 'car' | 'seat'; transit?: TransitGlyph }) {
   const props = { size, 'aria-hidden': true as const, strokeWidth: 2.1 };
   if (ride) return ride === 'bike' ? <Bike {...props} /> : ride === 'car' ? <CarFront {...props} /> : <Armchair {...props} />;
+  if (transit) return transit === 'ferry' ? <Ship {...props} /> : transit === 'cable-car' ? <CableCar {...props} /> : <TramFront {...props} />;
   switch (kind) {
     case 'bell': return <BellRing {...props} />;
     case 'taste': return <UtensilsCrossed {...props} />;

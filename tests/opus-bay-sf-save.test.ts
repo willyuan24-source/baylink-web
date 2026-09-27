@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MAX_DISCOVERED, MAX_ZONES, SAVE_BOUNDS, SAVE_ID, SAVE_MAX_BYTES, decodeSave, encodeSave, noteRide, readSave, resetSaveCache, patchSave, requestResume, takeResumeRequest } from '../src/opus-bay/data/save';
+import { MAX_DISCOVERED, MAX_ZONES, SAVE_BOUNDS, SAVE_ID, SAVE_MAX_BYTES, decodeSave, encodeSave, noteRide, readSave, reconcileRides, resetSaveCache, patchSave, requestResume, takeResumeRequest } from '../src/opus-bay/data/save';
 
 /** Lane G1 (G1-3): save v2 is untrusted input — a fuzz corpus never throws and never yields an invalid save. */
 
@@ -93,5 +93,17 @@ test('noteRide / patchSave / resume request (in memory without a window)', () =>
   requestResume();
   assert.equal(takeResumeRequest(), true);
   assert.equal(takeResumeRequest(), false, 'once');
+  resetSaveCache();
+});
+
+test("reconcileRides: lane F's rideLog lands in save v2 rides once (noted rides are never counted twice)", () => {
+  resetSaveCache();
+  noteRide('powell-hyde');
+  // F's log this visit: the noted ride + one it missed, and a line never noted; junk rows are ignored
+  assert.equal(reconcileRides({ 'powell-hyde': 2, california: 1, 'Bad Id': 4, 'powell-mason': Number.NaN }), 2);
+  assert.deepEqual(readSave()?.rides, { 'powell-hyde': 2, california: 1 });
+  // the same log again (the sampler runs every 3 s): nothing new
+  assert.equal(reconcileRides({ 'powell-hyde': 2, california: 1 }), 0);
+  assert.deepEqual(readSave()?.rides, { 'powell-hyde': 2, california: 1 });
   resetSaveCache();
 });

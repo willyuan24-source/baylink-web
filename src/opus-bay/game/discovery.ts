@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react';
 import { emit } from '../core/events';
-import { fleetSnapshot } from '../actors/moveApi';
+import { fleetSnapshot, glideUnlocked, setGlideUnlocked } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { game, toast } from '../core/store';
 import { canStand } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { farZoneIndexAt } from '../data/cityZones';
-import { patchSave, readSave, MAX_DISCOVERED, MAX_ZONES } from '../data/save';
+import { patchSave, readSave, reconcileRides, MAX_DISCOVERED, MAX_ZONES } from '../data/save';
 import { type CityPlace, type PlaceIndex, loadPlacesOnIdle, onPlaces, placeIndex } from '../data/sf/places';
 import { pick } from '../i18n';
 import { getLocale } from '../../i18n/locale';
@@ -15,6 +15,8 @@ import { registerFocusHook } from './brain';
 import { type Interactable, setExtraResolver } from './interactables';
 import { travelActive } from './fastTravel';
 import { tickStreet } from './streets';
+import { readQa } from './qa';
+import { rideLog } from './transit';
 
 /**
  * Discovery (lane G1, plan §6.7 / G1-4), city mode only.
@@ -141,12 +143,20 @@ export function updateDiscovery(p: Vec2, now: number) {
 
 const SAMPLE_MS = 3000;
 let lastSample = 0;
+let glideRestored = false;
 function sampleLastSafe(now: number) {
   if (now - lastSample < SAMPLE_MS) return;
   lastSample = now;
   const s = game.get();
   // city mode only: the district title and flow stay exactly as they were
   if (s.worldMode !== 'city' || s.phase !== 'playing' || travelActive()) return;
+  // save v2 `unlocked.glide` once more when play begins: the boot-time call can land on an ActorSystem that React
+  // rebuilds (dev StrictMode, a remount), which starts locked again
+  if (!glideRestored) { glideRestored = true; if (readSave()?.unlocked?.glide && !glideUnlocked()) setGlideUnlocked(true); }
+  // lane F's counted rides this visit (noteRide already writes each one; this only catches a missed one)
+  reconcileRides(rideLog());
+  // the pelican glide unlock (E2's moveApi), restored on the next city start (?debug=1 unlocks it for the page only)
+  if (glideUnlocked() && !readQa().debug && !readSave()?.unlocked?.glide) patchSave(sv => { sv.unlocked = { ...sv.unlocked, glide: true }; });
   const fleet = fleetSnapshot();
   const prevFleet = readSave()?.vehicles;
   if (JSON.stringify(fleet) !== JSON.stringify(prevFleet ?? {})) patchSave(sv => { if (fleet.bike || fleet.car) sv.vehicles = fleet; else delete sv.vehicles; });
@@ -165,6 +175,8 @@ export function initG1(): () => void {
   const saved = readSave();
   for (const id of saved?.discovered ?? []) discovered.add(id);
   for (const id of saved?.zones ?? []) zones.add(id);
+  // save v2 `unlocked.glide` → E2's moveApi (safe before the ActorSystem binds; quiet: no "unlocked" line)
+  if (game.get().worldMode === 'city' && saved?.unlocked?.glide && !glideUnlocked()) setGlideUnlocked(true);
   everything = typeof location !== 'undefined' && /[?&]discover=all(?:&|$)/.test(location.search);
   const offHook = registerFocusHook('g1', {
     tick(p, now) {
