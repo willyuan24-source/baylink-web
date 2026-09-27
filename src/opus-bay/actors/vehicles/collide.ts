@@ -1,4 +1,4 @@
-import { blockersNear, heightAt, inWorld, surfaceAt } from '../../core/terrain';
+import { blockersNear, groundPending, heightAt, inWorld, surfaceAt } from '../../core/terrain';
 import type { SurfaceKind } from '../../core/types';
 
 /**
@@ -14,6 +14,10 @@ import type { SurfaceKind } from '../../core/types';
  * Contacts slide, never stick (GTA_SZ reverts the pose, src/city-world.ts): the wall normal comes from a ring of
  * samples round the failing probes (the same idea as controller.moveDisc), tangential velocity is kept ×0.85, the
  * normal part bounces at −0.3·v_n, and the heading eases toward the wall tangent at rate 6.
+ *
+ * Ground that is still streaming in (city mode, `world.pending`, lane E2 wave 2 E2-14): within reach of it the top
+ * speed drops to 0.3·vmax, and a hull point on it simply stops the vehicle — no bump, no 'edge' / 'water' line — until
+ * the chunk arrives.
  */
 
 export type VehicleKind = 'bike' | 'car';
@@ -26,6 +30,8 @@ export interface VehicleWorld {
   /** a static blocker (building, landmark, blocking prop) overlaps the disc */
   blocked(x: number, z: number, r: number): boolean;
   inWorld(x: number, z: number): boolean;
+  /** optional: the ground there is not known yet (a city chunk still streaming in) — neither drivable nor a wall */
+  pending?(x: number, z: number): boolean;
 }
 
 /** The game world: core/terrain only (never district geometry). */
@@ -34,6 +40,7 @@ export const TERRAIN_WORLD: VehicleWorld = {
   surfaceAt,
   blocked: (x, z, r) => blockersNear(x, z, r).length > 0,
   inWorld,
+  pending: (x, z) => groundPending(x, z),
 };
 
 /** Top-speed factor per surface; missing / 0 = the vehicle cannot go there. */
@@ -48,7 +55,7 @@ export interface Hull {
   probeR: number;
 }
 
-export type BlockReason = 'wall' | 'edge' | 'water' | 'stairs' | 'surface' | 'step';
+export type BlockReason = 'wall' | 'edge' | 'water' | 'stairs' | 'surface' | 'step' | 'pending';
 
 export interface VehicleSpec {
   kind: VehicleKind;
@@ -122,6 +129,8 @@ export const MAX_SUBSTEPS = 12;
 const STEP_GRADE = 0.8, STEP_CURB = 0.25;
 /** hard contact threshold (u/s of normal speed) */
 export const HARD_BUMP = 5;
+/** next to ground that is still streaming in, the top speed is this share of vmax */
+export const PENDING_SPEED = 0.3;
 const TANGENT_KEEP = 0.85, RESTITUTION = 0.3, TANGENT_YAW_RATE = 6, BOUNCE_DECAY = 6;
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -145,6 +154,7 @@ export interface ProbeResult { ok: boolean; factor: number; reason: BlockReason 
 /** One hull point: inside the model, off blockers, on an allowed surface, no cliff relative to the hull centre. */
 export function probePoint(world: VehicleWorld, rule: SurfaceRule, x: number, z: number, centreY: number, dist: number, r: number): ProbeResult {
   if (!world.inWorld(x, z)) return { ok: false, factor: 0, reason: 'edge', surface: null };
+  if (world.pending?.(x, z)) return { ok: false, factor: 0, reason: 'pending', surface: null };
   if (r > 0 && world.blocked(x, z, r)) return { ok: false, factor: 0, reason: 'wall', surface: null };
   const s = world.surfaceAt(x, z);
   if (!s) return { ok: false, factor: 0, reason: 'water', surface: null };
@@ -280,6 +290,8 @@ export class VehicleSim {
     let hop = input.hop;
     const thr = clamp(input.throttle, 0, 1), brk = clamp(input.brake, 0, 1);
     const coasting = thr <= 0.02 && brk <= 0.02;
+    // ground still streaming in under the hull or just ahead along the motion: crawl (E2-14)
+    const pendingCap = world.pending && this.pendingNear(world) ? PENDING_SPEED * s.vmax : Infinity;
     for (let i = 0; i < n; i++) {
       this.time += h;
       if (hop && !this.airborne && this.time - this.lastHopAt >= s.hopCooldown) {
@@ -291,7 +303,7 @@ export class VehicleSim {
       this.grade = g;
       const v0 = this.v;
       const uphill = this.v >= 0 ? g : -g;
-      const top = this.topSpeed(input.sprint, uphill);
+      const top = Math.min(this.topSpeed(input.sprint, uphill), pendingCap);
 
       // --- longitudinal
       let a = 0;
@@ -314,6 +326,7 @@ export class VehicleSim {
         if (coasting && Math.abs(this.v) < 0.3) { held = true; a = 0; this.v = 0; }
         else if (dir !== 0 && Math.sign(pull) === dir) a += pull;
       }
+      if (!this.airborne && Math.abs(this.v) > pendingCap) a = -Math.sign(this.v) * s.brake;
       this.v += a * h;
       if (!this.airborne && coasting && !held) {
         // hill hold: a downhill coast settles at ≤ hillHold (a faster entry sheds speed at the rolling rate)
@@ -376,6 +389,17 @@ export class VehicleSim {
     return report;
   }
 
+  /**
+   * The ground under the hull or ahead along the motion is still streaming in. The reach is fixed (0.8 s at top speed,
+   * + 2 u): a reach that shrank with the speed would let go of the cap while braking and pulse the throttle.
+   */
+  private pendingNear(world: VehicleWorld): boolean {
+    const p = world.pending!;
+    if (p(this.x, this.z)) return true;
+    const dir = this.v < 0 ? -1 : 1, reach = this.spec.hull.halfL + 2 + this.spec.vmax * 0.8;
+    return p(this.x + Math.sin(this.heading) * reach * dir, this.z + Math.cos(this.heading) * reach * dir);
+  }
+
   /** One sub-step of horizontal motion; slides along whatever stops it. */
   private move(world: VehicleWorld, h: number, report: StepReport) {
     const s = this.spec;
@@ -384,6 +408,8 @@ export class VehicleSim {
     if (Math.abs(dx) + Math.abs(dz) < 1e-7) return;
     const test = poseCheck(world, s, this.x + dx, this.z + dz, this.heading);
     if (test.ok) { this.x += dx; this.z += dz; this.factor = test.factor; return; }
+    // unknown ground (streaming in): wait at its edge, quietly
+    if (test.reason === 'pending') { this.v = 0; this.px = 0; this.pz = 0; this.lastBlock = 'pending'; return; }
     this.lastBlock = test.reason;
     if (test.reason === 'stairs' || test.reason === 'surface') report.refuse = { reason: test.reason, surface: test.surface };
     // contact: slide along the wall (tangent ×0.85), bounce the normal part (−0.3·v_n), ease the heading to the tangent

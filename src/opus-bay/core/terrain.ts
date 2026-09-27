@@ -734,6 +734,17 @@ export function standAt(x: number, z: number): 0 | 1 | -1 {
   return i >= 0 && g.stand[i] ? 1 : 0;
 }
 
+/**
+ * City mode: the ground at (x, z) — and, with r > 0, at four rim points r away — belongs to a city chunk that is not
+ * resident (standAt −1): unknown, not blocked. Walkers pause their stuck timers there and never unstick onto the Ferry
+ * gate; vehicles slow down instead of bumping (lane E2, checkpoint CS-4 / E2-14). Always false in district mode.
+ */
+export function groundPending(x: number, z: number, r = 0): boolean {
+  if (CITY === null) return false;
+  if (cityStand(x, z) === -1) return true;
+  return r > 0 && (cityStand(x + r, z) === -1 || cityStand(x - r, z) === -1 || cityStand(x, z + r) === -1 || cityStand(x, z - r) === -1);
+}
+
 function cityNearestWalkable(p: Vec2, maxDist: number): Vec2 | null {
   const cell = TERRAIN_CELL, c0 = Math.floor(p.x / cell), r0 = Math.floor(p.z / cell), maxK = Math.ceil(maxDist / cell);
   let best: Vec2 | null = null, bestD = Infinity;

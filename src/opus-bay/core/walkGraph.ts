@@ -124,6 +124,12 @@ export interface RouteSearchOptions {
   accept?: (node: number) => boolean;
   /** cost multiplier (≥ 1) for edges entering a node, e.g. streets the walker can only pass beside */
   nodeCost?: (node: number) => number;
+  /**
+   * edge filter (edge index into targets / cost / kind): false = the search never uses that edge (lane E2, wave 2:
+   * vehicle routes keep to GRAPH_EDGE kinds their vehicle may use — actors/vehicles/driveRoute). Unlike `accept`, a
+   * refused edge does not close its target node, which may still be reached through another edge.
+   */
+  edgeAccept?: (edge: number) => boolean;
   /** give up after this many expanded nodes (default: the whole graph) */
   maxExpansions?: number;
   /** clock (ms) the time slices are measured with (default performance.now; tests inject a work clock) */
@@ -147,6 +153,7 @@ export class RouteSearch {
   private readonly ix: WalkGraphIndex;
   private readonly accept?: (node: number) => boolean;
   private readonly nodeCost?: (node: number) => number;
+  private readonly edgeAccept?: (edge: number) => boolean;
   private readonly maxExp: number;
   private readonly now: () => number;
   private readonly gScore: Float64Array;
@@ -160,6 +167,7 @@ export class RouteSearch {
     this.ix = index; this.from = from; this.to = to;
     this.accept = opts.accept;
     this.nodeCost = opts.nodeCost;
+    this.edgeAccept = opts.edgeAccept;
     this.maxExp = opts.maxExpansions ?? index.nodeCount;
     this.now = opts.now ?? (() => performance.now());
     const n = index.nodeCount;
@@ -220,6 +228,7 @@ export class RouteSearch {
       for (let e = offsets[cur]; e < offsets[cur + 1]; e++) {
         const nb = targets[e];
         if (this.state[nb] === 2) continue;
+        if (this.edgeAccept && !this.edgeAccept(e)) continue;
         if (this.accept && nb !== this.to && !this.accept(nb)) { this.state[nb] = 2; continue; }
         const ng = g0 + (this.nodeCost ? cost[e] * this.nodeCost(nb) : cost[e]);
         if (ng >= this.gScore[nb]) continue;
