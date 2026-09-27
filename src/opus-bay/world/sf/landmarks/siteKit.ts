@@ -69,8 +69,13 @@ export interface W4SiteMeta {
 /** A ground polygon with per-vertex local heights (the draped form of LandmarkGround) and the lift it was draped with. */
 export interface SiteGroundPoly extends LandmarkGround { ys?: number[]; lift?: number }
 
-/** A wave-4 landmark site: an SfLandmark (numeric base) with the SiteHooks and its wave-4 metadata. */
-export type W4Site = SfLandmark & SiteHooks & { base: number; ground?: SiteGroundPoly[]; w4: W4SiteMeta };
+/**
+ * A wave-4 landmark site: an SfLandmark (numeric base) with the SiteHooks and its wave-4 metadata. `sink: 0` is
+ * required: sites.ts (landmarkSink) otherwise sinks the city ground 0.2 u inside the exclusion, render and walk raster,
+ * while the site drapes its ground on the UNSUNK walked ground (siteTerrain.ts): walkers would stand ≈ 0.3 u, a sixth
+ * of the player, under every plaza and lawn (W4-L-review).
+ */
+export type W4Site = SfLandmark & SiteHooks & { base: number; sink: 0; ground?: SiteGroundPoly[]; w4: W4SiteMeta };
 
 // ---------------------------------------------------------------------------
 // terrain

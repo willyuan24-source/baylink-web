@@ -68,6 +68,7 @@ export const gearyWest: W4Site = {
   z: Z0,
   yaw: YAW,
   base: g.base,
+  sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
   walk: { blockers: [{ poly: [{ x: -1.3, z: -1.55 }, { x: 1.3, z: -1.55 }, { x: 1.3, z: 1.45 }, { x: -1.3, z: 1.45 }] }] },

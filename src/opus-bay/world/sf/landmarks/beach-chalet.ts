@@ -58,6 +58,7 @@ export const beachChalet: W4Site = {
   z: Z0,
   yaw: YAW,
   base: g.base,
+  sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
   walk: { blockers: [{ poly: rect(0, 0, W + 0.1, D + 0.1) }] },

@@ -20,8 +20,9 @@ import { W4_SITES } from './w4list';
  *                            ground there (h 28–70); null when unknown (lane P then uses a 30 u pole at the attraction)
  *   siteLod0R(l)             the lod-0 ring override of a record (undefined: the tier's ring)
  *   siteBudget(l)            its lod-0 triangle cap when tighter than the tier's (downtown diet)
- *   siteSink(l)              the city-ground sink inside its exclusion (0 for every wave-4 site; undefined: sites.ts's
- *                            own rule, SINK 0.2 / NO_SINK)
+ *
+ * Every record carries `sink: 0` (SfLandmark.sink, read by sites.ts landmarkSink): its ground is draped on the unsunk
+ * city ground (see siteKit W4Site).
  */
 
 export { W4_SITES };
@@ -100,12 +101,3 @@ export function siteFlagTop(ref: string): AttractionFlag | null {
 
 export function siteLod0R(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4?.lod0R; }
 export function siteBudget(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4?.budget; }
-
-/**
- * The city-ground sink inside a wave-4 site's exclusion: 0. world/sf/sites.ts sinks the city ground (render and walk
- * raster) by SINK = 0.2 u inside every landmark footprint but the bridge's, which suits models that follow the DEM
- * grade; a wave-4 site instead drapes its own ground on the UNSUNK walked ground (siteTerrain.ts, `ys` = ground +
- * lift), so with the default sink the walker would stand ≈ 0.3 u (a sixth of the player) under every plaza and lawn.
- * At the integration, sites.ts `excludes()` and `walkInputs()` take `siteSink(l) ?? (NO_SINK.has(l.id) ? 0 : SINK)`.
- */
-export function siteSink(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4 ? 0 : undefined; }

@@ -63,6 +63,7 @@ export const ucsfMissionBay: W4Site = {
   z: Z0,
   yaw: YAW,
   base: g.base,
+  sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -9.4, z: -6.05 }, { x: 9.6, z: -6.05 }, { x: 9.6, z: 6.05 }, { x: -9.4, z: 6.05 }]) },
   build,
   walk: {

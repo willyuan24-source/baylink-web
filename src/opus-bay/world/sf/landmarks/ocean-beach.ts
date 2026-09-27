@@ -61,6 +61,7 @@ export const oceanBeach: W4Site = {
   z: Z0,
   yaw: YAW,
   base: g.base,
+  sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -14.0, z: -9.6 }, { x: 14.0, z: -9.6 }, { x: 14.0, z: 4.0 }, { x: -14.0, z: 3.4 }]) },
   build,
   walk: {

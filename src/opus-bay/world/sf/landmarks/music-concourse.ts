@@ -91,6 +91,7 @@ export const musicConcourse: W4Site = {
   z: Z0,
   yaw: YAW,
   base: g.base,
+  sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
   walk: { blockers: BLOCKERS, surfaces: [{ poly: FLOOR, y: 'terrain', surface: 'dirt' }] },
