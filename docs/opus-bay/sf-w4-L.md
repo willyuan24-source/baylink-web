@@ -9,13 +9,13 @@ modules yet, so the game runs exactly as before. Higgsfield: lane L spent **0 cr
 
 ### 给主人的摘要
 
-1. 新地点做好了 **23 个**：主人点名的全部 8 个（石镇购物中心、旧金山州立大学、UCSF 帕纳萨斯和 Mission Bay 两个校区、USF 孤山 + 圣依纳爵堂、城市学院和它的里维拉艺术中心工地），一级景点 13 个（加州科学院、音乐广场、日本茶园、联合广场、SFMOMA、芳草地花园、海特-阿什伯里路口、多洛雷斯公园、林角、海洋海滩、动物园非洲草原、墨菲风车、海滩小屋），还多做了两个三级的（金门公园野牛围场、蓝鹭湖中国亭）。
+1. 新地点做好了 **24 个**：主人点名的全部 8 个（石镇购物中心、旧金山州立大学、UCSF 帕纳萨斯和 Mission Bay 两个校区、USF 孤山 + 圣依纳爵堂、城市学院和它的里维拉艺术中心工地），一级景点 13 个（加州科学院、音乐广场、日本茶园、联合广场、SFMOMA、芳草地花园、海特-阿什伯里路口、多洛雷斯公园、林角、海洋海滩、动物园非洲草原、墨菲风车、海滩小屋），还多做了三个 P3 的（金门公园野牛围场、蓝鹭湖中国亭、吉瑞大道的圣母大教堂）。
 2. 每个地点都有：按真实坡度铺的广场和小路、长椅路灯树、能走的范围和到达点、地图旗杆、照片机位；三角形都在预算内（最多 1.9k / 2.5k），市中心的三个按"瘦身"预算做（联合广场 0.6k）。
 3. 测试 8 项、全套 opus-bay 测试全部通过；每个地点都在预览页面里截图看过（`docs/opus-bay/qa/w4/L/`）。
-4. 还没接进游戏（等第三波验收），接线步骤写在下面。圣依纳爵堂、加州科学院、中国亭的 AI 模型 V 组已经做好，我这边的尺寸和它们对齐了，接线时换上。
+4. 还没接进游戏（等第三波验收），接线步骤写在下面。圣依纳爵堂、加州科学院、中国亭、圣母大教堂的 AI 模型 V 组已经做好，接线时换上（圣母大教堂的模型比它的地块宽，请 V 组按地块重新缩放）。
 5. 发现一个老问题：城市把蓝鹭湖中间的草莓山岛画成了水（岛上的小路浮在湖面上），需要做城市数据的组修。
 
-Progress (2026-09-27): W4-L1, W4-L2 and W4-L3 done (P1 and P2 except the Botanical Garden gate), W4-L5 started (2 of
+Progress (2026-09-27): W4-L1, W4-L2 and W4-L3 done (P1 and P2 except the Botanical Garden gate), W4-L5 started (3 of
 the P3 list), W4-L7 walk data for every site, W4-L8 `sites-qa.mjs` and the preview page, W4-L10 tests and this report.
 W4-L4 prepared (the AI slots name lane V's models, both ways checked, and the pavilion is built to lane V's bounds); waiting for the
 integration phase: registration, draped ground in the renderer, lod rings, the AI swaps through the SoloView gate.
@@ -27,7 +27,7 @@ integration phase: registration, draped ground in the renderer, lod rings, the A
 | `src/opus-bay/world/sf/landmarks/siteKit.ts` | the wave-4 site record (`W4Site` = `SfLandmark & SiteHooks & { base: number; ground?: SiteGroundPoly[]; w4: W4SiteMeta }`), the baked terrain lookup, draped ground helpers (fill / strip / rect / clip / crosswalk with per-vertex `ys` and the `lift` used), street furniture (bench, lamp, bollard, bin, planter, hedge, fence, flagpole, trees, palm, conifer), crane parts (mast, jib, swing), hoarding, `hipRoof` (a true hip roof over w × d), `plazaOf`, `polyArea`, `along` | `siteGround(id, fallback)` → `{ base, grid, at(x, z) }`; `gfill`, `gstrip`, `grect`, `clipRect`, `crosswalk`, `GC`, `PAT`, `FC`, `LIFT`, `LIFT_STRIPE`, the helpers above |
 | `src/opus-bay/world/sf/landmarks/siteTerrain.ts` | generated: per site `base` (world y: the lowest walked city ground inside the exclusion) and the local ground heights on its grid (2 u; 1 u at Dolores Park and Lands End) | `SITE_TERRAIN[id]` |
 | `src/opus-bay/world/sf/landmarks/w4sites.ts` | the ordered list (plan §2.3 build order), lookups, the flag tops of every site, existing landmark and T1 hero (plan §4.2), per-site lod ring and budget accessors | `W4_SITES`, `W4_SITE_IDS`, `w4Site(id)`, `w4SiteOf(id or attraction or place id)`, `flagHeight(skyline)`, `LANDMARK_FLAGS`, `HERO_FLAGS`, `siteFlagTop(ref)`, `siteLod0R(l)`, `siteBudget(l)` |
-| 23 site modules in `src/opus-bay/world/sf/landmarks/` (below) | one declarative record each: `build(b, lod)`, exclusion, walk blockers and decks, draped ground, lights, plazas, animate part where it moves, `w4` metadata (placeId, attractions, lod ring, budget, arrival, photo pose, flag, height policy, OSM ids, terrain box, AI slot, notes) | `stonestown`, `sfState`, `ucsfParnassus`, `usfLoneMountain`, `stIgnatius`, `ccsfOcean`, `ccsfDrpac`, `ucsfMissionBay`, `calAcademy`, `musicConcourse`, `japaneseTeaGarden`, `unionSquare`, `sfmoma`, `yerbaBuenaGardens`, `haightAshbury`, `doloresPark`, `landsEnd`, `oceanBeach`, `sfZoo`, `murphyWindmill`, `beachChalet`, `bisonPaddock`, `blueHeronLake` |
+| 24 site modules in `src/opus-bay/world/sf/landmarks/` (below) | one declarative record each: `build(b, lod)`, exclusion, walk blockers and decks, draped ground, lights, plazas, animate part where it moves, `w4` metadata (placeId, attractions, lod ring, budget, arrival, photo pose, flag, height policy, OSM ids, terrain box, AI slot, notes) | `stonestown`, `sfState`, `ucsfParnassus`, `usfLoneMountain`, `stIgnatius`, `ccsfOcean`, `ccsfDrpac`, `ucsfMissionBay`, `calAcademy`, `musicConcourse`, `japaneseTeaGarden`, `unionSquare`, `sfmoma`, `yerbaBuenaGardens`, `haightAshbury`, `doloresPark`, `landsEnd`, `oceanBeach`, `sfZoo`, `murphyWindmill`, `beachChalet`, `bisonPaddock`, `blueHeronLake`, `gearyWest` |
 | `tests/opus-bay-sf-sites-w4.test.ts` | 8 tests on the modules directly (see Evidence) | — |
 | `scripts/opus-sf/sites-survey.mts` | authoring survey: the published city around a point (roads by class and name, buildings with OSM ids and heights, areas, props, walk nodes, places, ground contours, existing exclusions, and a wave-4 site's own model, exclusion, blockers, ground, arrival, flag) as PNG + JSON | `--site <id>` or `--x --z [--r --px --name]` |
 | `scripts/opus-sf/sites-terrain.mts` | bakes `siteTerrain.ts` from the published chunks (walked ground, pooled max over the cell) | `--site <id>` (one) or all |
@@ -61,6 +61,7 @@ The sites (T = map tier; lod-0 triangles / cap from the test; ring = the walk-ar
 | 21 | `beach-chalet` | the white Spanish Revival block, red hip roof, arched windows, door canopy (no murals, no names) | 3 | 426 / 800 | 18 | 0 | 220 | 100 % |
 | 22 | `bison-paddock` | P3: post-and-rail fence on the viewing sides, 8 toy bison (heads animate), a hay feeder | 3 | 742 / 800 | 24 | 0 | — | 98 % |
 | 23 | `blue-heron-lake` | P3: the Chinese Pavilion (8 red columns, grey-green upswept roof, built to lane V's model bounds) on a stone base with two causeways; AI slot `w4-chinese-pavilion` | 2 | 428 / 2500 | 24 | 0 | — | 77 % |
+| 24 | `geary-west` | P3: Holy Virgin Cathedral on its OSM lot — white body with red trim, a rounded front gable, five gold onion domes with crosses (9.1 u); AI slot `w4-holy-virgin` | 3 | 726 / 800 | 36 | 0 | — | 84 % |
 
 Every module's header comment carries its facts and sources and its local frame (origin, yaw, what lies where).
 
@@ -68,7 +69,7 @@ Every module's header comment carries its facts and sources and its local frame 
 
 - **Checks** on the pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint src/opus-bay tests/opus-bay-*
   scripts/opus-sf/sites-*` 0 errors; whole-repo `npx eslint . --ignore-pattern .vite-opus` 0 errors (the Vite dep
-  cache is not source); the full opus-bay suite green on the pushed tree (659 / 659).
+  cache is not source); the full opus-bay suite green on the pushed tree (660 / 660).
 - **tests/opus-bay-sf-sites-w4.test.ts** (8 tests, all green): registry (unique ids, tiers, numeric bases equal to the
   baked terrain, attractions in `sf-w4-attractions.json` within 70 u, place rows — places.json with lane P's
   re-anchors or lane P's extra rows — within 45 u); budgets (lod 0 ≤ tier cap or the site's diet cap, lod 2 ≤ 10 % of
@@ -92,13 +93,15 @@ Every module's header comment carries its facts and sources and its local frame 
   Dolores Park from above (walks, playground, courts, palms), the savanna with giraffes and zebras over the rail, the
   Lands End Lookout and forecourt, Ocean Beach's fire rings, logs and the blank warning board, the Beach Chalet front
   with the Dutch Windmill behind, the Murphy Windmill's stage and sails, the Tea Garden from above (hip-roofed tea
-  house, pagoda, bridge), the bison behind the fence, and the Chinese Pavilion on its stone base in the lake with the
+  house, pagoda, bridge), the bison behind the fence, the Holy Virgin domes over the Outer Richmond roofs, and the
+  Chinese Pavilion on its stone base in the lake with the
   island paths floating around it (the Strawberry Hill problem below).
 - **Facts**: each site's header names its sources (sfsu.edu, ucsf.edu / UCSF Real Estate, USF, CCSF news and The
   Guardsman, calacademy.org, gggp.org, sfmoma.org, yerbabuenagardens.org, nps.gov, sfzoo.org, sfrecpark.org, the
   Richmond Review, Wikipedia, OSM ids). Checked this session: Murphy Windmill completed 1908, reopened 2012, 114 ft
   sails (Wikipedia); the Chinese Pavilion is Taipei's 1981 gift with red columns and a grey-green tiled roof
-  (sfrecpark.org; Richmond Review 2021).
+  (sfrecpark.org; Richmond Review 2021); Holy Virgin Cathedral's five gold-leaf onion domes (Wikipedia), 125 ft (SFGate)
+  and its 2015–16 red-and-white scheme (Orthodox Arts Journal), as lane V's review re-checked them.
 
 ### Decisions
 
@@ -158,12 +161,13 @@ Every module's header comment carries its facts and sources and its local frame 
    - `tests/opus-bay-sf-sites-w4.test.ts`: exclusions test compares against `SF_LANDMARKS.filter(l => !w4Site(l.id))`
      (after step 1 a site would meet itself); the walk test's `lms` becomes `landmarkWalkInputs(SF_LANDMARKS)` alone.
    - suites that enumerate `SF_LANDMARKS` (`opus-bay-sf-landmarks`, `-models`, `-landmark-context`, `-nav`,
-     `-places`, `-terrain`, `-cards`, `-content`, `-attractions`, `sf-world`, `sf-place-arrival` …): expect +23
+     `-places`, `-terrain`, `-cards`, `-content`, `-attractions`, `sf-world`, `sf-place-arrival` …): expect +24
      records; any rule written for `base: 'terrain'` records must accept numeric bases; per-tier budgets must read
      `siteBudget(l)` first (the diet caps).
 7. AI swaps (W4-L4), after lane V spreads `W4_MODELS` into `SF_MODELS`: a `swap` on each record — `cal-academy` part
    `sf-cal-academy` at the origin (y = the block's ground), `st-ignatius-church` part `sf-st-ignatius` at (0.35, ground,
-   −0.18), `blue-heron-lake` part `sf-chinese-pavilion` at (0, 0.45, 0), all yaw 0, scale 1 (lane V's report §3) —
+   −0.18), `blue-heron-lake` part `sf-chinese-pavilion` at (0, 0.45, 0), `geary-west` part `sf-holy-virgin` at the origin
+   (y = ground, after lane V's re-fit), all yaw 0, scale 1 (lane V's report §3) —
    with `build` reduced to the setting, decided per site in SoloView (`?solo=<id>&ai=0|1`); walk data already matches.
 
 ### Not done (early phase)
@@ -171,14 +175,13 @@ Every module's header comment carries its facts and sources and its local frame 
 - **Botanical Garden gate** (T3 plaza, plan: MLK Dr & 9th Ave): the place row `osm-w120480164` is the garden's centre
   (−223.4, 1010.3), 58 u from the main gate (−178.3, 970.9; OSM node 7838369891, `entrance=main`), so the site test's
   "place near the site" fails; waiting for lane P's re-anchor (Requests).
-- **P3 sites** after the first two: `park-east` (Kezar, Koret carousel, Hippie Hill), `geary-west` (Holy Virgin, AI),
-  `clement` / `irving` strips, `golden-gate-heights`, `mount-davidson`, `stern-grove`, `lake-merced`, `fort-funston`,
+- **P3 sites** after the first three: `park-east` (Kezar, Koret carousel, Hippie Hill), `clement` / `irving` strips, `golden-gate-heights`, `mount-davidson`, `stern-grove`, `lake-merced`, `fort-funston`,
   `castro`, `presidio`, `fort-mason`, `baker-beach`, `corona-heights`, `bernal`, `cathedral-hill`, the `civic-center`
   and `japantown` extensions, `cable-car-museum`, `wharf-west`, `chinatown-pagodas` (gated, W4-L6); P4 (W4-L9).
 - **The Blue Heron bridges'** walk strips (W4-L7): they wait for the island fix below (today the whole island is water
   in the walk raster, so a bridge strip would lead onto water).
 - **W4-L4 AI swaps**: lane V's four meshes are published but not in `SF_MODELS` yet, so the swaps and the SoloView
-  verdicts wait for the integration; the Holy Virgin slot waits for its `geary-west` site (P3).
+  verdicts wait for the integration.
 - Integration items above (existing files).
 
 ### Requests
@@ -190,6 +193,9 @@ Every module's header comment carries its facts and sources and its local frame 
   `docs/opus-bay/qa/w4/L/blue-heron-lake-ring1-golden.jpg`.
 - **Lane P:** re-anchor `osm-w120480164` (San Francisco Botanical Garden) to its main gate (−178.3, 970.9) — the card
   and the arrival belong at the gate on MLK Dr — then lane L builds the gate plaza.
+- **Lane V:** please re-fit `w4-holy-virgin` to its lot: the OSM footprint (way 286435447) is 2.6 × 3.0 u between
+  neighbours 0.1–0.2 u away on three sides, but the published mesh is 6.1 × 6.7 u; the procedural `geary-west` keeps
+  9.1 u to the cross, front +Z on Geary Blvd (origin (−493.07, 1000.05), yaw 45°).
 - **Lane V:** the slots keep your GLB stems (your test's rule; your report asks for the registry ids — at the integration
   the swap parts use `sf-*` and the slot strings can follow); the pavilion follows your measured bounds (please keep
   them if you re-export). The Tea Garden pagoda stays procedural (no AI pagoda needed from lane L's side).
