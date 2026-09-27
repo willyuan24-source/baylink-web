@@ -83,7 +83,7 @@ Relayed messages during part a: none.
 - 城市里有人了：身边 90 u 内最多 64 个小人走在人行道上（靠右走、在路口过马路、在联合广场等景点驻足看风景），车或叮当车开过来会跳一下躲开；走得快的会从旁边超过走得慢的。
 - 城市里有车了：220 u 内最多 24 辆圆圆的玩具小汽车靠右行驶，排队保持 4 u 车距，路口一次只进一辆，会等行人、等你、等叮当车和 F 线电车；夜里车灯会亮。叮当车那几条街和 Market 街不走汽车（Market 街现实里也禁车）。
 - 城市声音：跟着你移动的全城海岸声场、Ocean Beach 的大浪、公园里的鸟叫（夜里是蟋蟀）、Mission 街头的吉他弹唱、叮当车轨道下缆绳的嗡嗡声、渡轮的汽笛和发动机、从金门大桥方向传来的雾笛；别的车的铃声从它所在的方向传来。
-- 全部检查通过（666/666），街区模式不变；Higgsfield 本部分 0 分（音效全是合成的，要不要换成生成音效等你试听后决定）。
+- 全部检查通过（668/668），街区模式不变；Higgsfield 本部分 0 分（音效全是合成的，要不要换成生成音效等你试听后决定）。
 
 ### What was built (files, API for other lanes)
 
@@ -108,7 +108,7 @@ Commits on `opus-bay`: `7ee36f1` F11 / F12, `78b21ed` F10, `5d470d3` F10 (city a
 
 ### Evidence
 
-- Checks on the final head (rebased on `9a60ebd`): `tsc` 0, `eslint` 0, **666 / 666** opus-bay tests (hero regression and contracts green).
+- Checks on the final head (rebased on `63b8407`): `tsc` 0, `eslint` 0, **668 / 668** opus-bay tests (hero regression and contracts green).
 - Node (published city, Union Square, 60–120 s at 30 Hz): 64 walkers out, > 93 % of samples on standable ground, ≈ 23 % on the roadway (crossing; walking along the roadway < 6 %), > 30 % within 30 u of the player; 24 cars, > 95 % of samples on the roadway, > 60 % moving, top speed ≤ 9, never two cars in one junction box, stopped queues ≥ 3.4 u apart, never along a registered transit street, a car stops ≥ 0.6 u short of a person in its lane, no car enters a box a cable car stands in. Step cost: crowd ≈ 0.12–0.18 ms, traffic ≈ 0.09–0.14 ms average (the refill is spread over frames, ≤ 10 walkers / 8 cars a frame; max step 2–4 ms).
 - Browser (1440 × 900, RTX, `quality=high`, day, Union Square): the crowd and the traffic add **5 calls and ≈ 15k triangles** (whole view 107 calls / 416k with them, 102 / 401k without: the city's own view is already at the 400k line, C2 / D2's budget work); **programs 41 with and without** (the warm-ups hold, no new program). Phone 390 × 844 dpr 3 (`mid`): 81 calls / 338k, 44 walkers, 16 cars. Transit + vehicles (F14): the traffic is ≤ 2 calls + 1 shadow, ≈ 5.4k triangles with 8 near cars, shadows included.
 - City audio in the browser (`__opusAudio.stats().city`): Ferry gate `engine 0.37` (the ferry alongside); Ocean Beach `ocean 1` + surf crashes + the morning foghorn; Golden Gate Park `park 0.75` + chirps / warbles / coos; Powell St `cable 1` + sheave clacks; Valencia & 24th `busk 1` (41 busker notes in 8 s, the score ducked); aboard the ferry `engine 1` + its horn at departure; the shore window re-centred at every stop (128 × 128 cells). Located bells / horn / hop-aside panned from where they happened.
