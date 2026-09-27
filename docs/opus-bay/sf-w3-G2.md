@@ -284,3 +284,89 @@ Relayed messages during part b: none.
 6. Requests 1–4 above (part b) stand unchanged.
 
 Relayed messages during this run: none.
+
+## Review (adversarial, 2026-09-27 afternoon)
+
+### 给主人的摘要
+
+- 把 G2 这一波的 12 个提交逐条读了代码，又在电脑和手机上亲手试玩（快速旅行、夜晚、画质切换、连点、只用触屏、街区模式）。
+- 修好一个真问题：答应邻居"去某个地方"的小忙后，用"飞过去"或鹈鹕直接落到目的地，小忙会立刻算完成，和设计说的"要自己走过去"不符。现在必须自己走、骑车或开小车进去才算（落地后走出去再走回来也行）。
+- 顺手修了四个小问题：面包师 Rosa 晚上也说"早呀"；第二次聊天时 BAYBAY 可能从邻居面前穿过；"重置进度"后邻居不再重新自我介绍；刚进城的一瞬间点 Ray 会说成缆车司机的通用台词。剩下的都是别的组文件里的小事（比如新加的街上行人会穿过 Ray 的身体），写在下面的请求里，不影响玩。
+
+### What was checked
+
+- **Code**: the diffs of G2's wave-3 commits (d4631e6, 96387f5, eafcef8, 6447b1a, c6762bf, 90de1d3, 5555f60, d77eedb,
+  88ed44f, a738b5e, 42a67c5, 5f6924e) and the code around them: `data/sf/{lines,residents,dialogue,arrivals,cityPois}.ts`,
+  `game/{baybayLines,residentTasks,cityLive,cityContent,flow,brain,content}.ts`, `actors/{npcs,residentLooks}.ts`,
+  `ui/{PoiCard,Journal,Moments}.tsx`, and where they meet E2's `actors/system.ts`, G1's `data/wishlist.ts` /
+  `ui/Settings.tsx` / `game/discovery.ts` and F's new `world/sf/cityLife.ts`.
+- **Checks**: on the lane's head `f169edb` tsc 0, 624 / 624. After the fixes, rebased on `7ee36f1` (F11 / F12): tsc 0,
+  `npx eslint . --quiet` 0 in tracked code (the only hits are the untracked dev cache `.vite-opus/deps`), **642 / 642**
+  opus-bay tests (hero regression and contracts green).
+- **In the app** (own dev server 5206, RTX, city mode, `save=off`; scripts and all shots in
+  `C:/Users/willy/opus-qa/w3/g2/review/`):
+  - fast travel (`startTravel`) to Twin Peaks with Marcus's favour on, before and after the fix;
+  - Rosa and Hank with quality high → low → high and time of day night (desktop 1440×900 high; phone 390×844 dpr 3 mid);
+  - renderer programs across a resident's body arriving; calls / triangles with a resident in view;
+  - a whole favour by taps only on the phone (the HUD's talk button, the dialogue box, the choices, a double tap on
+    "我去找", remind → 带我去 → the walk) at 390×844;
+  - GoalsCard and Journal "邻居的小忙" at 375×667 and 390×844 (overflow scan, button sizes, the 带我去 tap);
+  - the favour toasts at 375×667 in en and zh; Rosa's and Marcus's chats on the tree with lane L's new Haight & Ashbury
+    corner site (W4-L3); a district-mode NPC chat (talkMark null, no neighbour hint, the six absent);
+  - F's new city crowd (7ee36f1) around Ray and Rosa for 30 s; a progress reset between two chats.
+
+### Defects found
+
+| # | defect | status |
+|---|---|---|
+| 1 | **A place favour finished after a fast trip or a pelican landing.** `goalMet` refused only the samples taken while travelling / gliding, so the first 4 Hz sample after landing counted. In the app: accept Marcus → 飞过去 to Twin Peaks → "小忙完成：上双峰看看 Karl 来了没" 1.5 s after landing, while the explorer goal (epoch-armed) stayed open. The report's rule ("fast travel and the pelican do not") was not what the code did. | **fixed** `6583715`: `arrivalStep` arms a 'reach' / 'deck' favour on a sample outside its spot on foot / bike / car; G1's `travelEpoch` changing (trip, `?at=`, resume) or the pelican disarms it; accept / talk finish only the postcard favour at once. Tested, and re-played: the same trip leaves it open, stepping out of the lookout and back in finishes it. |
+| 2 | Rosa greets "早呀 / Morning" at any hour (seen at night). | **fixed** `be50fec` ("哈喽 / Hiya"); VOICE.md: no time-of-day greetings. |
+| 3 | `talkMark`'s aside spot was cached per resident + player spot across chats: a second chat from the same spot reused the side BAYBAY stood on before, which can walk her across the front of the resident (what the feature was built to avoid). | **fixed** `be50fec`: a gap > 400 ms between the brain's 10 Hz asks = a new chat, solved again. |
+| 4 | A resident body whose lazy fetch resolved after `ActorSystem.dispose` built a rig (geometry + skeleton) nobody freed. Only a remount can hit it (the world mode is fixed per page). | **fixed on G2's side** `968d704` (`Npc.release()`, tested); E2 must call it: Request 7. |
+| 5 | Tapping Ray before `residentTasks` is in fell through to `NPC_LINES`, where 'gripman' is the transit crew's generic line ("叮当车司机"); the other five did nothing. | **fixed** `968d704` (the tap waits for the chunk). |
+| 6 | After Settings → reset progress, `residentTasks` kept its "met this visit" set: the first chat skipped the resident's hello and sourced fact. | **fixed** `a05e144` (an emptied goalsDone clears it; in the app: Rosa hi → accept → remind → reset → hi). |
+| 7 | Reset progress does not clear BAYBAY's line memory (`opus-bay:lines:v1`): after a reset the "first bike / first glide / first cable car" lines and the zone greetings are never said again. `clearLineMemory()` exists (part a) but nothing calls it. | open: Request 8 (G1's Settings) |
+| 8 | **F's new crowd walks through the residents.** `cityLife.ts` has the walkers step round the player and BAYBAY only: at Ray's turntable in 30 s the closest walker came 0.39 u from Ray (10 samples inside 0.5 u, i.e. inside his body; 100 within 3 u). Rosa's corner was quiet (closest 15.7 u). Same for the waterfront residents in city mode. | open: Request 9 (F) |
+| 9 | Report claim "The six stand > 100 u apart, so at most one is ever drawn": Hank and Marcus stand 170 u apart, so between them (the Panhandle) both are inside 150 u and both are drawn (2 × 2 calls, ≈ 9k triangles). Harmless for the budget; the sentence is wrong. | noted here |
+| 10 | GoalsCard at 375×667: the card scrolls (G1's `max-height`; scrollHeight 375 > 285) and "邻居的小忙" with the favours you accepted sits below the fold; the card folds after 6 s, so on the smallest phone an accepted favour is not seen there (the waypoint and the journal still lead to it). At 390×844 it fits. | open (UX; a later G2 pass could list accepted favours first when there are any) |
+| 11 | zh UI: 带我去 to Luz's / Hank's favour spots says "出发：Clarion Alley" and the waypoint reads "Clarion Alley · 约 40 秒" (G1's place names; the favour itself says "Clarion 巷"). Part a's known gap, still there. | open: Request 10 (G1) |
+
+Also looked at and fine: resident bodies add **no program** (the character material keeps one program key; 40
+programs before and after Rosa's body arrives, quality high); Rosa's view 94 calls / 355k triangles (desktop high,
+before F's crowd), Hank's 52 / 188k (phone, mid); the six stay visible through quality switches and night (the switches
+themselves compile 30–45 programs: C2's quality path, not G2's); the tap-only chat works and a double tap on the accept
+choice leaves one `task-on:` mark; Journal buttons are 44 px tall with no overflow at 375 / 390; the en toasts wrap to
+two lines at 375 without overflow; district mode: no residents, `talkMark` null, no neighbour hint; all 41 far.zones
+ids fit the line memory's key pattern; Marcus's chat next to the new Haight & Ashbury site looks as it did in the
+lane's own run (the camera dithers through two facades on that narrow sidewalk: E2's framing).
+
+**Requests of part b, status on `7ee36f1`**: 1 (hidden resident's blob) done by E2 in `23a31fc`; 3
+(`LANDMARK_EDGES_PENDING`) done by C2 in `278fccc`; 2 (G1's `goalsDone` cap), 4 (F's fallback text, `transit.ts`
+l.440) and 5 (E2's two-shot side) still open. The optional H2b greetings list changes for Rosa:
+`哈喽，我是面包师 Rosa！` / "Hiya, I'm Rosa, the baker!".
+
+### Evidence
+
+- `docs/opus-bay/qa/w3/G2/g2-review-fast-trip-favour.jpg`: before, the favour is done right after the fast trip;
+  after, the same trip leaves it open, and stepping out and back in finishes it.
+- `docs/opus-bay/qa/w3/G2/g2-review-rosa-greeting.jpg`: "早呀" at night before, "哈喽" after.
+- `docs/opus-bay/qa/w3/G2/g2-review-phone-taps.jpg`: Luz's favour by taps at 390×844 (talk, ask, remind, 带我去 →
+  walking, with the "Clarion Alley" waypoint of defect 11) and the 375×667 goals card of defect 10.
+- Tests added in `tests/opus-bay-sf-tasks.test.ts` (13 tests now): "G2-review: a place favour counts when you get
+  there yourself …" and "G2-review: a resident body builds once near, and never after its ActorSystem let it go".
+
+### Requests
+
+7. **E2, `src/opus-bay/actors/system.ts` `dispose()`**, first line: `this.npcs.forEach(n => n.release());` (a city
+   resident whose body is still loading then never builds it; `release()` is a no-op for the waterfront residents).
+8. **G1, `src/opus-bay/ui/Settings.tsx`** l.83, the reset button's onClick, after `clearSave();`:
+   `void import('../game/baybayLines').then(m => m.clearLineMemory());` (a dynamic import: the P7 guard walks static
+   imports only, and baybayLines stays in its city chunk).
+9. **F, `src/opus-bay/world/sf/cityLife.ts`** `crowdEnv.avoid` (l.82): also step round the six city residents (static
+   spots; `data/sf/residents.ts` is data only):
+   `for (const r of RESIDENTS) if (Math.abs(r.at.x - p.x) < 100 && Math.abs(r.at.z - p.z) < 100) out.push({ x: r.at.x, z: r.at.z });`
+   with `import { RESIDENTS } from '../../data/sf/residents';` (the waterfront residents' spots the same way if F wants them).
+10. **G1** (the place index, part a's gap): zh names for the places the favours lead to: `osm-w8916752` Clarion 巷,
+    `osm-w120483945` Queen Wilhelmina 郁金香花园 (G2's `placeCardName` / `ZH_GLOSSARY` can supply them).
+
+Relayed messages during the review: none.
