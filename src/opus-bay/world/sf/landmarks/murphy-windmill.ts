@@ -33,7 +33,8 @@ function build(b: BatchLike, lod: 0 | 2) {
   lathe(b, [[1.6, -1.2], [1.6, 0.6]], 0, y0, 0, '#a89886', NONE, 8);
   lathe(b, [[1.4, 0], [1.2, 2.2], [0.98, 4.35], [0.92, 4.5]], 0, y0 + 0.6, 0, BODY, [5, y0 + 0.6, -9, 0], 8);
   lathe(b, [[1.05, 0], [1.05, 0.2]], 0, y0 + 4.95, 0, TRIM, NONE, 8);
-  lathe(b, [[1.15, 0], [1.1, 0.35], [0.85, 0.85], [0.45, 1.1], [0.05, 1.2]], 0, y0 + 5.1, 0, CAP, NONE, 10);
+  // (8 sides like the body: the T3 cap of 800 counts the turning sails too)
+  lathe(b, [[1.15, 0], [1.1, 0.35], [0.85, 0.85], [0.45, 1.1], [0.05, 1.2]], 0, y0 + 5.1, 0, CAP, NONE, 8);
   // the reefing stage with its rail and struts
   lathe(b, [[2.05, 0], [2.05, 0.12], [1.25, 0.12]], 0, y0 + 2.55, 0, FRAME, NONE, 8);
   for (let k = 0; k < 8; k++) {

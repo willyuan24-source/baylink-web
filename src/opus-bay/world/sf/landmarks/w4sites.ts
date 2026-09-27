@@ -2,38 +2,17 @@ import type { AttractionFlag } from '../../../data/sf/attractionTypes';
 import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
-import { beachChalet } from './beach-chalet';
-import { bisonPaddock } from './bison-paddock';
-import { blueHeronLake } from './blue-heron-lake';
-import { calAcademy } from './cal-academy';
-import { ccsfDrpac } from './ccsf-drpac';
-import { ccsfOcean } from './ccsf-ocean';
-import { doloresPark } from './dolores-park';
-import { gearyWest } from './geary-west';
-import { haightAshbury } from './haight-ashbury';
-import { japaneseTeaGarden } from './japanese-tea-garden';
-import { landsEnd } from './lands-end';
-import { murphyWindmill } from './murphy-windmill';
-import { musicConcourse } from './music-concourse';
-import { oceanBeach } from './ocean-beach';
-import { sfState } from './sf-state';
-import { sfZoo } from './sf-zoo';
-import { sfmoma } from './sfmoma';
-import { stIgnatius } from './st-ignatius';
-import { stonestown } from './stonestown';
-import { ucsfMissionBay } from './ucsf-mission-bay';
-import { unionSquare } from './union-square';
-import { ucsfParnassus } from './ucsf-parnassus';
-import { usfLoneMountain } from './usf-lone-mountain';
-import { yerbaBuenaGardens } from './yerba-buena-gardens';
+import { W4_SITES } from './w4list';
 
 /**
- * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): the new site records, NOT registered yet. The integration phase
- * adds `W4_SITES` to the city (world/sf/sites.ts draws `[...SF_LANDMARKS, ...W4_SITES]`, see docs/opus-bay/sf-w4-L.md
- * "Integration"), so this file is the one import that wires them in. Order = the plan's build order (§2.3).
+ * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): lookups over the new site records, NOT registered yet. The
+ * records themselves are listed in w4list.ts, which is what the registry imports at the integration
+ * (`SF_LANDMARKS = [...existing, ...W4_SITES]` in landmarks/index.ts): this file reads the registry (sfLandmark,
+ * landmarkToWorld), so index.ts must never import it (a cycle that throws at load; see w4list.ts). See
+ * docs/opus-bay/sf-w4-L.md "Integration".
  *
- *   W4_SITES                 the records (SfLandmark + SiteHooks + `w4` metadata: placeId, attractions, arrival,
- *                            photo, flag, lod0R, budget, terrain box, AI slot)
+ *   W4_SITES                 the records (re-exported from w4list.ts; SfLandmark + SiteHooks + `w4` metadata: placeId,
+ *                            attractions, arrival, photo, flag, lod0R, budget, terrain box, AI slot)
  *   w4Site(id)               by site id
  *   w4SiteOf(id)             the site that models an attraction id or a place id
  *   siteFlagTop(id)          plan §4.2 flag pole for a site, an existing landmark, a district hero (coit-tower,
@@ -41,37 +20,11 @@ import { yerbaBuenaGardens } from './yerba-buena-gardens';
  *                            ground there (h 28–70); null when unknown (lane P then uses a 30 u pole at the attraction)
  *   siteLod0R(l)             the lod-0 ring override of a record (undefined: the tier's ring)
  *   siteBudget(l)            its lod-0 triangle cap when tighter than the tier's (downtown diet)
+ *   siteSink(l)              the city-ground sink inside its exclusion (0 for every wave-4 site; undefined: sites.ts's
+ *                            own rule, SINK 0.2 / NO_SINK)
  */
 
-export const W4_SITES: readonly W4Site[] = [
-  // P1 · owner requests
-  stonestown,
-  sfState,
-  ucsfParnassus,
-  usfLoneMountain,
-  stIgnatius,
-  ccsfOcean,
-  ccsfDrpac,
-  ucsfMissionBay,
-  // P2 · tier-1 attractions
-  calAcademy,
-  musicConcourse,
-  japaneseTeaGarden,
-  unionSquare,
-  sfmoma,
-  yerbaBuenaGardens,
-  haightAshbury,
-  doloresPark,
-  landsEnd,
-  oceanBeach,
-  sfZoo,
-  murphyWindmill,
-  beachChalet,
-  // P3 · tier 2 on the lines
-  bisonPaddock,
-  blueHeronLake,
-  gearyWest,
-];
+export { W4_SITES };
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));
 const byRef = new Map<string, W4Site>();
@@ -147,3 +100,12 @@ export function siteFlagTop(ref: string): AttractionFlag | null {
 
 export function siteLod0R(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4?.lod0R; }
 export function siteBudget(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4?.budget; }
+
+/**
+ * The city-ground sink inside a wave-4 site's exclusion: 0. world/sf/sites.ts sinks the city ground (render and walk
+ * raster) by SINK = 0.2 u inside every landmark footprint but the bridge's, which suits models that follow the DEM
+ * grade; a wave-4 site instead drapes its own ground on the UNSUNK walked ground (siteTerrain.ts, `ys` = ground +
+ * lift), so with the default sink the walker would stand ≈ 0.3 u (a sixth of the player) under every plaza and lawn.
+ * At the integration, sites.ts `excludes()` and `walkInputs()` take `siteSink(l) ?? (NO_SINK.has(l.id) ? 0 : SINK)`.
+ */
+export function siteSink(l: SfLandmark): number | undefined { return (l as Partial<W4Site>).w4 ? 0 : undefined; }

@@ -1,6 +1,6 @@
 import type { Vec2 } from '../../../core/types';
-import { BOX, type BatchLike, CBOX, CYL, ICO, M } from '../../builder';
-import { GLOW, NONE, box, lathe, worldPoly } from './kit';
+import { type BatchLike, CBOX, CYL, ICO, M } from '../../builder';
+import { GLOW, box, lathe, worldPoly } from './kit';
 import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, plazaOf, siteGround } from './siteKit';
 
 /**
@@ -23,9 +23,9 @@ const GRANITE = '#e2dccf', GRANITE_DARK = '#c9c1b1', BRONZE = '#8a7a52';
 const PLAZA: Vec2[] = [{ x: -6.7, z: -4.6 }, { x: -3.2, z: -4.6 }, { x: -2.0, z: -5.15 }, { x: 6.6, z: -5.15 }, { x: 6.6, z: 5.1 }, { x: -6.7, z: 5.1 }];
 const PALMS: Vec2[] = [{ x: -5.6, z: -4.2 }, { x: 5.5, z: -4.2 }, { x: -5.6, z: 4.2 }, { x: 5.5, z: 4.2 }];
 
-/** a lean palm for the diet: tapering trunk + five fronds (≈ 80 triangles) */
+/** a lean palm for the diet: tapering four-sided trunk + five fronds (76 triangles) */
 function palm5(b: BatchLike, x: number, y: number, z: number, H: number, seed: number) {
-  b.add(CYL(5, 0.75), M(x, y - 0.2, z, 0, 0.26, H + 0.2, 0.26), FC.palmTrunk);
+  b.add(CYL(4, 0.75), M(x, y - 0.2, z, 0, 0.26, H + 0.2, 0.26), FC.palmTrunk);
   for (let i = 0; i < 5; i++) {
     const yaw = seed + (i / 5) * Math.PI * 2, pitch = i % 2 ? 0.5 : 0.25, seg = 1.4;
     const dx = Math.sin(yaw) * Math.cos(pitch) * seg, dy = -Math.sin(pitch) * seg, dz = Math.cos(yaw) * Math.cos(pitch) * seg;
@@ -53,14 +53,14 @@ function build(b: BatchLike, lod: 0 | 2) {
   if (lod === 2) return;
   for (const [k, p] of PALMS.entries()) palm5(b, p.x, g.at(p.x, p.z), p.z, 4.8, k * 1.3);
   for (const [x, z, ry] of [[-2.6, 1.8, 0], [2.6, -1.8, Math.PI]] as const) bench(b, x, g.at(x, z), z, ry);
-  // low granite planter kerbs around the palms
-  for (const p of PALMS) b.add(BOX(), M(p.x, g.at(p.x, p.z) - 0.2, p.z, 0, 1.2, 0.5, 1.2), GRANITE_DARK, NONE);
 }
 
 function ground(): SiteGroundPoly[] {
   return [
     ...gfill(PLAZA, GC.plaza, PAT.stone, g, 3),
     ...gfill([{ x: -1.3, z: -1.3 }, { x: 1.3, z: -1.3 }, { x: 1.3, z: 1.3 }, { x: -1.3, z: 1.3 }], GRANITE_DARK, PAT.stone, g, 3, 0.09),
+    // dark granite squares under the palms (flat ground, not kerb boxes: the diet counts the ground; W4-L-review)
+    ...PALMS.flatMap(p => gfill([{ x: p.x - 0.6, z: p.z - 0.6 }, { x: p.x + 0.6, z: p.z - 0.6 }, { x: p.x + 0.6, z: p.z + 0.6 }, { x: p.x - 0.6, z: p.z + 0.6 }], GRANITE_DARK, PAT.stone, g, 3, 0.09)),
   ];
 }
 

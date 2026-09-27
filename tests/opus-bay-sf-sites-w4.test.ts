@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import * as THREE from 'three';
 import { type GroundRaster, type LandmarkWalkInput, createCityTerrain, groundRaster, landmarkWalkInputs, rasterHeight } from '../src/opus-bay/core/sfTerrain';
-import { canStand, pointInPolygon, setCityTerrain } from '../src/opus-bay/core/terrain';
+import { canStand, heightAt, pointInPolygon, setCityTerrain } from '../src/opus-bay/core/terrain';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { findPath } from '../src/opus-bay/actors/nav';
 import { ATTRACTION_FLAG_H } from '../src/opus-bay/data/sf/attractionTypes';
@@ -14,7 +14,9 @@ import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
 import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
 import { LIFT, LIFT_STRIPE, type W4Site, polyArea, siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
-import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, siteFlagTop, w4Site, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
+import { W4_SITES as W4_LIST } from '../src/opus-bay/world/sf/landmarks/w4list';
+import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, siteFlagTop, siteSink, w4Site, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
+import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 import { sfDisk } from './opus-bay-sf-disk';
 
 // Wave-4 landmark sites (lane L, plan §2.2 / §5.4): the new site modules built in node against the published city
@@ -51,11 +53,13 @@ async function walked(x: number, z: number): Promise<number> {
   return rasterHeight(r, x, z);
 }
 
-/** what world/sf/sites.ts walkInputs() sends for a wave-4 site after the integration (numeric base, sink 0) */
+/** what world/sf/sites.ts walkInputs() sends for a wave-4 site after the integration (numeric base, sink = siteSink) */
 const walkInput = (s: W4Site): LandmarkWalkInput => ({
-  id: s.id, x: s.x, z: s.z, yaw: s.yaw, base: s.base, baseY: s.base, exclude: { poly: exPoly(s) }, sink: 0,
+  id: s.id, x: s.x, z: s.z, yaw: s.yaw, base: s.base, baseY: s.base, exclude: { poly: exPoly(s) }, sink: siteSink(s)!,
   walk: s.walk ? JSON.parse(JSON.stringify(s.walk)) : undefined,
 });
+/** every triangle a wave-4 site adds to the frame at lod 0: the model, its draped ground and its animate part */
+const groundTris = (s: W4Site) => (s.ground ?? []).reduce((a, q) => a + Math.max(0, q.poly.length - 2), 0);
 
 test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attractions and placeIds', () => {
   assert.ok(W4_SITES.length >= 1);
@@ -93,24 +97,24 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
   }
 });
 
-test('budgets: lod 0 within the tier (or diet) cap, lod 2 ≤ 10 % of it, small ground, at most 3 draw parts', () => {
+test('budgets: lod 0 (model + draped ground + animate part) within the tier (or diet) cap, lod 2 ≤ 10 % of the model, small ground, at most 3 draw parts', () => {
   for (const s of W4_SITES) {
-    const g0 = buildLandmark(s, 0, s.base), g2 = buildLandmark(s, 2, s.base);
-    const t0 = triCount(g0), t2 = triCount(g2);
+    const g0 = buildLandmark(s, 0, s.base), g2 = buildLandmark(s, 2, s.base), ga = buildLandmarkAnimated(s);
+    const t0 = triCount(g0), t2 = triCount(g2), ta = ga ? triCount(ga) : 0, gt = groundTris(s);
     const cap = s.w4.budget ?? (s.swap ? 6000 : TIER_TRIANGLES[s.tier]);
     assert.ok(t0 > 0 && t2 > 0, s.id);
-    assert.ok(t0 <= cap, `${s.id} lod0 ${t0} ≤ ${cap}`);
+    // the plan's caps (§2.2) are what the site costs the view (§2.6 adds them up; lane L's sites-qa measures them on
+    // screen): the ground and the moving part count too, not only the static model
+    assert.ok(t0 + gt + ta <= cap, `${s.id} lod0 ${t0} + ground ${gt} + animate ${ta} = ${t0 + gt + ta} ≤ ${cap}`);
     assert.ok(t2 <= t0 * 0.1 + 1e-9, `${s.id} lod2 ${t2} ≤ 10 % of ${t0}`);
-    let gt = 0;
-    for (const q of s.ground ?? []) gt += Math.max(0, q.poly.length - 2);
     assert.ok(gt <= 900, `${s.id} ground ${gt} triangles`);
-    const parts = 1 + (s.ground?.length ? 1 : 0) + (buildLandmarkAnimated(s) ? 1 : 0);
+    const parts = 1 + (s.ground?.length ? 1 : 0) + (ga ? 1 : 0);
     assert.ok(parts <= 3, s.id);
     for (const g of [g0, g2]) {
       const p = g.getAttribute('position').array as Float32Array;
       for (let i = 0; i < p.length; i++) assert.ok(Number.isFinite(p[i]), `${s.id} finite positions`);
     }
-    console.log(`  ${s.id.padEnd(24)} T${s.tier} lod0 ${t0} / ${cap}  lod2 ${t2}  ground ${gt}  lod0R ${s.w4.lod0R ?? '-'}`);
+    console.log(`  ${s.id.padEnd(24)} T${s.tier} lod0 ${t0} + ground ${gt} + animate ${ta} = ${t0 + gt + ta} / ${cap}  lod2 ${t2}  lod0R ${s.w4.lod0R ?? '-'}`);
   }
 });
 
@@ -217,8 +221,57 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
       const min = s.w4.ringMin ?? 0.75;
       if (min < 0.75) assert.ok(min >= 0.6 && /ring/i.test(s.w4.notes ?? ''), `${s.id} explains its lower ring`);
       assert.ok(f >= min, `${s.id} walk-around ring ${(f * 100).toFixed(0)} % ≥ ${(min * 100).toFixed(0)} %`);
+      // feet on the draped ground: where a walker can stand on a ground piece, the walk height (with the integration's
+      // exclusion sink, siteSink) is just under the drawn surface — the piece's lift plus the max-pooling of the bake,
+      // never the renderer's default 0.2 u sink on top (which would bury a sixth of the player in every plaza)
+      const over: number[] = [];
+      for (const q of s.ground ?? []) {
+        const c = { x: q.poly.reduce((a, p) => a + p.x, 0) / q.poly.length, z: q.poly.reduce((a, p) => a + p.z, 0) / q.poly.length };
+        const cw = landmarkToWorld(s, c), walk = heightAt(cw.x, cw.z);
+        if (!q.ys || !Number.isFinite(walk) || !canStand(cw.x, cw.z, 0.3)) continue;
+        over.push(s.base + q.ys.reduce((a, y) => a + y, 0) / q.ys.length - walk - (q.lift ?? LIFT));
+      }
+      if (over.length) {
+        const mean = over.reduce((a, d) => a + d, 0) / over.length, worst = Math.max(...over);
+        assert.ok(mean <= 0.15 && worst <= 0.5, `${s.id} draped ground over the walk height beyond its lift: mean ${mean.toFixed(3)}, worst ${worst.toFixed(3)} u (${over.length} pieces)`);
+      }
     } finally { setCityTerrain(null); }
   }
+});
+
+test('integration safety: the registry list is cycle-free, the sites keep an unsunk ground, the tops generator measures them', () => {
+  // landmarks/index.ts will import w4list.ts; nothing that module reaches may import the registry back at runtime
+  // (w4sites.ts does: an index → w4sites import throws "Cannot access 'W4_SITES' before initialization" whenever
+  // w4sites.ts is the first to load, e.g. in lane V's opus-bay-w4-assets test)
+  assert.equal(W4_SITES, W4_LIST, 'w4sites re-exports the list of w4list');
+  const dir = new URL('../src/opus-bay/world/sf/landmarks/', import.meta.url);
+  const FORBIDDEN = new Set(['./index', './w4sites', './context', '../sites']);
+  const seen = new Set<string>(), queue = ['w4list'];
+  while (queue.length) {
+    const name = queue.pop()!;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    const src = readFileSync(new URL(`${name}.ts`, dir), 'utf8');
+    for (const m of src.matchAll(/^import\s+(type\s+)?[^;]*?from\s+'([^']+)';/gms)) {
+      const [, typeOnly, from] = m;
+      if (typeOnly) continue;
+      assert.ok(!FORBIDDEN.has(from), `${name}.ts imports ${from} at runtime (only \`import type\` may reach the registry)`);
+      if (from.startsWith('./')) queue.push(from.slice(2));
+    }
+  }
+  // w4list + one module per site + siteKit, siteTerrain and kit
+  assert.ok(seen.has('siteKit') && seen.has('siteTerrain') && seen.has('kit') && seen.size >= W4_SITES.length + 4, `the graph reaches the kit and every site module (${seen.size})`);
+  for (const s of W4_SITES) {
+    // sites.ts excludes() / walkInputs() take siteSink at the integration: the draped ground is baked on the unsunk ground
+    assert.equal(siteSink(s), 0, s.id);
+    // scripts/opus-sf/assets/landmark-tops.ts (re-run after registering: the landmark-context test needs a row per
+    // landmark) measures every blocker and tall part of the site on its drawn lod 0
+    const t = measureTops(s, new Map());
+    assert.equal(t.blockers.length, s.walk?.blockers.length ?? 0, s.id);
+    assert.equal(t.tall.length, s.tall?.length ?? 0, s.id);
+    for (const v of [...t.blockers, ...t.tall]) assert.ok(Number.isFinite(v) && v > 0 && v < 30, `${s.id} measured top ${v}`);
+  }
+  for (const l of SF_LANDMARKS) assert.equal(siteSink(l), undefined, `${l.id}: the existing landmarks keep sites.ts's own sink`);
 });
 
 test('streets: every street the exclusion cuts is continued by the site ground, and the ones it passes keep their width', async () => {

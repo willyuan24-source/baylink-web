@@ -5,8 +5,9 @@ import { worldPoly } from './kit';
 import { type W4Site, along, conifer, siteGround } from './siteKit';
 
 /**
- * Golden Gate Park Bison Paddock (wave 4, P3 · map T3, the park-west site): bison have lived in the park since 1892
- * and in this meadow beside John F Kennedy Drive since 1899; the SF Zoo looks after the small herd (sfzoo.org). The
+ * Golden Gate Park Bison Paddock (wave 4, P3 · map T3, the park-west site): bison have lived in the park since 1891
+ * (Superintendent John McLaren's first ones, kept at the park's east end; sfzoo.org's timeline) and in this meadow
+ * beside John F Kennedy Drive since 1899; the SF Zoo looks after the small herd (sfzoo.org). The
  * meadow itself is the city's (OSM way 161707029, the paddock outline); this site fences its viewing sides — JFK Drive
  * on the east and the footway on the north — and grazes a small toy herd near the east fence, where people stop to
  * look. The heads are the animate part (a slow grazing bob). No signs.
@@ -39,7 +40,9 @@ const HERD: [number, number, number, number][] = [
   [4.4, -11.0, 2.4, 0.9], [7.2, -1.2, -1.9, 1.0], [3.0, -3.0, 1.1, 0.8], [9.2, -14.6, 0.6, 1.0],
 ];
 
-const HIDE = '#7a5a3e', MANE = '#3f2e22', HORN = '#d8cfbf', RAIL = '#8a6a4c';
+const HIDE = '#7a5a3e', MANE = '#3f2e22', RAIL = '#8a6a4c';
+/** fence post spacing (u): the T3 cap (800) counts the grazing heads too (W4-L-review) */
+const POST = 6.5;
 
 /** a point `u` to the right and `v` ahead of (x, z) facing `h` */
 const ahead = (x: number, z: number, h: number, u: number, v: number) => [x + u * Math.cos(h) + v * Math.sin(h), z - u * Math.sin(h) + v * Math.cos(h)] as const;
@@ -57,12 +60,11 @@ function bison(b: BatchLike, x: number, z: number, h: number, s: number) {
   b.add(CBOX(), M(hx, y + 1.3 * s, hz, h, 0.85 * s, 0.95 * s, 0.8 * s, -0.15), MANE);
 }
 
+/** the lowered head (12 triangles; the thin horn bar was dropped for the T3 cap: at 0.07 u it did not read) */
 function head(b: BatchLike, x: number, z: number, h: number, s: number) {
   const y = g.at(x, z) - 0.25;
   const [px, pz] = ahead(x, z, h, 0, 0.95 * s);
   b.add(CBOX(), M(px, y + 0.95 * s, pz, h, 0.5 * s, 0.55 * s, 0.55 * s, 0.35), MANE);
-  const [cx, cz] = ahead(x, z, h, 0, 0.85 * s);
-  b.add(BOX(), M(cx, y + 1.2 * s, cz, h, 0.72 * s, 0.07 * s, 0.07 * s), HORN);
 }
 
 function build(b: BatchLike, lod: 0 | 2) {
@@ -71,8 +73,8 @@ function build(b: BatchLike, lod: 0 | 2) {
     return;
   }
   for (const [x, z, h, s] of HERD) bison(b, x, z, h, s);
-  // a post-and-rail fence, posts every 5 u
-  for (const p of along(FENCE, 5, 0, 0)) b.add(BOX(), M(p.x, g.at(p.x, p.z) - 0.4, p.z, p.ry, 0.14, 1.55, 0.14), RAIL);
+  // a post-and-rail fence, posts every POST u
+  for (const p of along(FENCE, POST, 0, 0)) b.add(BOX(), M(p.x, g.at(p.x, p.z) - 0.4, p.z, p.ry, 0.14, 1.55, 0.14), RAIL);
   for (let i = 0; i + 1 < FENCE.length; i++) {
     const a = FENCE[i], c = FENCE[i + 1];
     b.beam(new THREE.Vector3(a.x, g.at(a.x, a.z) + 0.85, a.z), new THREE.Vector3(c.x, g.at(c.x, c.z) + 0.85, c.z), 0.08, 0.1, RAIL);

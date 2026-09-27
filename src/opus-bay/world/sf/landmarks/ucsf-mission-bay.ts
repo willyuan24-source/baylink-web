@@ -1,7 +1,7 @@
 import type { Vec2 } from '../../../core/types';
-import { BOX, type BatchLike, M } from '../../builder';
+import { BOX, type BatchLike, CYL, ICO, M } from '../../builder';
 import { worldPoly } from './kit';
-import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, gstrip, lamp, plazaOf, siteGround, tree } from './siteKit';
+import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, gstrip, lamp, plazaOf, siteGround } from './siteKit';
 
 /**
  * UCSF Mission Bay · Koret Quad (wave 4, P1 · map T2, the owner's request): the green heart of UCSF's 57.9-acre
@@ -27,13 +27,22 @@ const TREES: [number, number][] = [[-8.6, -5.4], [-4.6, -5.4], [-0.6, -5.4], [-8
 const LAMPS: Vec2[] = [{ x: 0.9, z: -3.0 }, { x: 0.9, z: 3.0 }];
 const BENCHES: [number, number, number][] = [[-2.8, -0.9, Math.PI], [-6.4, 0.9, 0], [1.6, 1.4, Math.PI / 2]];
 
+/**
+ * A clipped street tree of the quad's two rows: trunk and one crown (36 triangles; siteKit.tree's two-blob crown is
+ * 60). The T3 cap counts the draped ground and the lawns follow the ground's bumps on small cells (W4-L-review).
+ */
+function rowTree(b: BatchLike, x: number, y: number, z: number, k: number) {
+  b.add(CYL(4), M(x, y - 0.2, z, 0, 0.17, 2.2, 0.17), FC.trunk);
+  b.add(ICO(0), M(x, y + 2.6, z, k, 1.3, 1.15, 1.3), k % 2 ? FC.tree : FC.treeDark, [0, 0, 0.3, 0]);
+}
+
 function build(b: BatchLike, lod: 0 | 2) {
   if (lod === 2) {
     // far: the two tree rows as green bars (the lawn is ground)
     for (const z of [-5.4, 5.4]) b.add(BOX(), M(-4.6, g.at(-4.6, z) + 1.6, z, 0, 9.0, 1.8, 1.6), FC.tree);
     return;
   }
-  for (const [k, [x, z]] of TREES.entries()) tree(b, x, g.at(x, z), z, 1.1, k + 51);
+  for (const [k, [x, z]] of TREES.entries()) rowTree(b, x, g.at(x, z), z, k);
   for (const l of LAMPS) lamp(b, l.x, g.at(l.x, l.z), l.z);
   for (const [x, z, ry] of BENCHES) bench(b, x, g.at(x, z), z, ry);
 }
