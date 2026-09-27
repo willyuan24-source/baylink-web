@@ -51,15 +51,24 @@ export const filterPlaces = (f: MapFilter) => f === 'all';
 
 export const MAP_FILTER_KEY = 'ob-city-map-filter';
 
-export function loadMapFilter(storage: Pick<Storage, 'getItem'> | null = typeof localStorage === 'undefined' ? null : localStorage): MapFilter {
+/**
+ * The browser's localStorage, or null. Reading the global itself throws in some browsers when site data is blocked
+ * (Chrome: "Access is denied for this document"), so it is only ever touched inside a try.
+ */
+function browserStorage(): Storage | null {
+  try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; }
+}
+
+/** The remembered chip ('all' when none, unknown or storage is unavailable). `storage` defaults to localStorage. */
+export function loadMapFilter(storage?: Pick<Storage, 'getItem'> | null): MapFilter {
   try {
-    const v = storage?.getItem(MAP_FILTER_KEY);
+    const v = (storage === undefined ? browserStorage() : storage)?.getItem(MAP_FILTER_KEY);
     return (MAP_FILTER_IDS as readonly string[]).includes(v ?? '') ? (v as MapFilter) : 'all';
   } catch {
     return 'all';
   }
 }
 
-export function saveMapFilter(f: MapFilter, storage: Pick<Storage, 'setItem'> | null = typeof localStorage === 'undefined' ? null : localStorage): void {
-  try { storage?.setItem(MAP_FILTER_KEY, f); } catch { /* private window / blocked storage: the chip just is not remembered */ }
+export function saveMapFilter(f: MapFilter, storage?: Pick<Storage, 'setItem'> | null): void {
+  try { (storage === undefined ? browserStorage() : storage)?.setItem(MAP_FILTER_KEY, f); } catch { /* private window / blocked storage: the chip just is not remembered */ }
 }

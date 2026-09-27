@@ -1,8 +1,9 @@
 import type { Bilingual } from '../core/types';
 import { W4_LINES } from '../data/sf/stationNames';
+import type { TransitData, TransitLineJson } from '../data/transit';
 import type { TripLeg } from '../game/tripTypes';
-import type { TransitLineKind, TransitTunnel } from '../world/sf/format';
-import { type Ctx2D, type MapFrameBox, type MapView, toPx, visibleBox } from './cityMapDraw';
+import type { TransitLine, TransitLineKind, TransitTunnel } from '../world/sf/format';
+import { type Ctx2D, type MapFrameBox, type MapView, visibleBox } from './cityMapDraw';
 
 /**
  * Wave 4 · transit lines, stations and trip routes on the city map (lane P, W4-P7 / W4-P10; plan sf-w4-plan.md §3.6
@@ -93,7 +94,7 @@ export function lineStyle(line: { id: string; kind: TransitLineKind; name: Bilin
 }
 
 /** One stroke of a line at scale s (px). */
-export interface LineStroke { color: string; width: number; dash?: readonly number[]; alpha: number }
+export interface LineStroke { color: string; width: number; dash?: number[]; alpha: number }
 
 /**
  * The strokes of a line (casing, colour, centre dashes) at scale s. `underground` dashes the colour (tunnel spans);
@@ -108,7 +109,7 @@ export function lineStrokes(style: LineStyle, s: number, o: { underground?: bool
     return out;
   }
   out.push({ color: style.color, width: main, alpha });
-  if (style.centreDash && s >= 0.3) out.push({ color: '#ffffff', width: Math.max(1, main * 0.3), dash: style.centreDash, alpha });
+  if (style.centreDash && s >= 0.3) out.push({ color: '#ffffff', width: Math.max(1, main * 0.3), dash: [...style.centreDash], alpha });
   return out;
 }
 
@@ -123,6 +124,35 @@ export interface MapLineInput {
   path: ArrayLike<number>;
   loop?: boolean;
   tunnels?: readonly Pick<TransitTunnel, 'fromAt' | 'toAt'>[];
+}
+
+/** A stop as the map needs it (TransitStop / TransitStopJson / a cable-car station fit). */
+export interface MapStopInput { id: string; name: Bilingual; x: number; z: number; major?: boolean; attractions?: readonly string[] }
+/** A line with its stops: what drawTransitLines and mapStations take. */
+export type MapLine = MapLineInput & { stops: readonly MapStopInput[]; tunnels?: readonly Pick<TransitTunnel, 'fromAt' | 'toAt' | 'stations'>[] };
+
+/**
+ * The map's lines from what the runtime holds (review fix: the integration's adapter, tested on the real build).
+ * data/transit.ts `transitData()` keeps the three cable lines as `CableLine` (track `xyz`, stops that only name their
+ * merged `station`), the F-line is `flineJson()` (published JSON) and lane T's wave-4 lines are `TransitLine`s; none
+ * of them is a MapLine as is. Cable stops take their station's id, name and position (termini are major).
+ */
+export function mapLinesFrom(cable: Pick<TransitData, 'lines' | 'stations'> | null, fline: TransitLineJson | null, w4: readonly TransitLine[] = []): MapLine[] {
+  const out: MapLine[] = [];
+  if (cable) {
+    const byId = new Map(cable.stations.map(st => [st.id, st]));
+    for (const l of cable.lines) {
+      const stops: MapStopInput[] = [];
+      for (const s of l.stops) {
+        const st = byId.get(s.station);
+        if (st && !stops.some(q => q.id === st.id)) stops.push({ id: st.id, name: st.name, x: st.x, z: st.z, ...(s.terminus ? { major: true } : {}) });
+      }
+      out.push({ id: l.id, kind: l.kind, name: l.name, color: l.color, path: l.xyz, stops });
+    }
+  }
+  if (fline) out.push({ id: fline.id, kind: fline.kind, name: fline.name, color: fline.color, path: fline.path, stops: fline.stops });
+  for (const l of w4) out.push(l);
+  return out;
 }
 
 /** A piece of a line: flat [x0, z0, x1, z1, …] and whether it runs underground. */
@@ -170,8 +200,10 @@ export function splitByTunnels(path: ArrayLike<number>, tunnels: readonly Pick<T
   return pieces;
 }
 
-const pieceCache = new WeakMap<object, { pieces: LinePiece[]; box: MapFrameBox }>();
-function piecesOf(line: MapLineInput): { pieces: LinePiece[]; box: MapFrameBox } {
+interface LinePieces { pieces: LinePiece[]; box: MapFrameBox; surface: LinePiece[]; under: LinePiece[] }
+const pieceCache = new WeakMap<object, LinePieces>();
+/** A line's pieces, split once per line object (the map redraws on every pan / zoom step). */
+function piecesOf(line: MapLineInput): LinePieces {
   let hit = pieceCache.get(line);
   if (!hit) {
     const pieces = splitByTunnels(line.path, line.tunnels ?? []);
@@ -180,7 +212,7 @@ function piecesOf(line: MapLineInput): { pieces: LinePiece[]; box: MapFrameBox }
       const x = line.path[i], z = line.path[i + 2];
       if (x < box.minX) box.minX = x; if (x > box.maxX) box.maxX = x; if (z < box.minZ) box.minZ = z; if (z > box.maxZ) box.maxZ = z;
     }
-    hit = { pieces, box };
+    hit = { pieces, box, surface: pieces.filter(p => !p.under), under: pieces.filter(p => p.under) };
     pieceCache.set(line, hit);
   }
   return hit;
@@ -193,6 +225,8 @@ export interface DrawLinesOptions {
   dimAll?: boolean;
 }
 
+const NO_DASH: number[] = [];
+
 /**
  * Draw every line for view v (loop under the Metro under the cable cars): one path per piece style, casing first.
  * Returns the number of strokes (the op budget: ≤ 3 per piece kind per line, lines off the view cost nothing).
@@ -200,36 +234,38 @@ export interface DrawLinesOptions {
 export function drawTransitLines(ctx: Ctx2D, lines: readonly MapLineInput[], v: MapView, o: DrawLinesOptions = {}): number {
   const vb = visibleBox(v, 8);
   let ops = 0;
-  const sorted = [...lines].sort((a, b) => lineStyle(a).order - lineStyle(b).order);
+  const sorted = lines.length > 1 ? [...lines].sort((a, b) => lineStyle(a).order - lineStyle(b).order) : lines;
+  // toPx inlined: no [x, y] tuple per vertex (a pan redraws ≈ 2,300 line vertices per stroke kind)
+  const k = v.scale, ox = v.w / 2 - v.cx * k, oy = v.h / 2 - v.cz * k;
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   for (const line of sorted) {
-    const { pieces, box } = piecesOf(line);
+    const lp = piecesOf(line);
+    const box = lp.box;
     if (box.maxX < vb.minX || box.minX > vb.maxX || box.maxZ < vb.minZ || box.minZ > vb.maxZ) continue;
     const style = lineStyle(line);
     const dimmed = o.dimAll || (!!o.highlight && o.highlight !== line.id);
     for (const under of [false, true]) {
-      const mine = pieces.filter(p => p.under === under);
+      const mine = under ? lp.under : lp.surface;
       if (!mine.length) continue;
       for (const st of lineStrokes(style, v.scale, { underground: under, dimmed })) {
         ctx.beginPath();
         for (const p of mine) {
-          for (let k = 0; k < p.xz.length; k += 2) {
-            const [px, py] = toPx(v, p.xz[k], p.xz[k + 1]);
-            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-          }
+          const xz = p.xz;
+          ctx.moveTo(xz[0] * k + ox, xz[1] * k + oy);
+          for (let i = 2; i < xz.length; i += 2) ctx.lineTo(xz[i] * k + ox, xz[i + 1] * k + oy);
         }
         ctx.globalAlpha = st.alpha;
         ctx.strokeStyle = st.color;
         ctx.lineWidth = st.width;
-        ctx.setLineDash(st.dash ? [...st.dash] : []);
+        ctx.setLineDash(st.dash ?? NO_DASH);
         ctx.stroke();
         ops++;
       }
     }
   }
-  ctx.setLineDash([]);
+  ctx.setLineDash(NO_DASH);
   ctx.globalAlpha = 1;
   ctx.restore();
   return ops;
@@ -254,7 +290,7 @@ export interface MapStation {
 }
 
 /** Merge the stops of every line into stations (N and M share the Market St stations by id). */
-export function mapStations(lines: readonly (MapLineInput & { stops: readonly { id: string; name: Bilingual; x: number; z: number; major?: boolean; attractions?: readonly string[] }[]; tunnels?: readonly Pick<TransitTunnel, 'fromAt' | 'toAt' | 'stations'>[] })[]): MapStation[] {
+export function mapStations(lines: readonly MapLine[]): MapStation[] {
   const by = new Map<string, MapStation>();
   for (const line of lines) {
     const under = new Set((line.tunnels ?? []).flatMap(t => ('stations' in t ? t.stations : [])));
@@ -307,6 +343,15 @@ export function stationSymbol(st: Pick<MapStation, 'lines' | 'underground' | 'ma
     return { kind: 'pill', ring: discs[0].color, discs, stair: st.underground, label, svg, w, h: STATION_RULES.disc + 4 };
   }
   return { kind: 'dot', ring: styles[0]?.color ?? '#6f5f47', discs, stair: st.underground && svg, label, svg, w: STATION_RULES.dot + 4, h: STATION_RULES.dot + 4 };
+}
+
+/**
+ * SVG elements a station costs in the overlay, exactly as ui/MapBadge.tsx `MapStationMark` draws it (the layout's node
+ * budget): a dot 1, a pill 1 + 2 per line disc (circle + letter); + 1 for the stair mark. Canvas-only symbols cost 0.
+ */
+export function stationNodes(sym: StationSymbol | null): number {
+  if (!sym || !sym.svg) return 0;
+  return (sym.kind === 'pill' ? 1 + sym.discs.length * 2 : 1) + (sym.stair ? 1 : 0);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

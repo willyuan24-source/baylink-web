@@ -1,7 +1,7 @@
 import type { Bilingual } from '../core/types';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { attractionShort, type MapTier } from '../data/sf/attractions';
-import { type BadgeSize, type BadgeState, badgeNodes, badgeSize, scaleRules } from './mapBadges';
+import { type BadgeSize, type BadgeState, badgeNodes, badgeSize, pipBox, scaleRules } from './mapBadges';
 import { type MapView, labelWidth, toPx } from './cityMapDraw';
 import { filterAttraction, type MapFilter } from './mapFilterRules';
 
@@ -12,12 +12,15 @@ import { filterAttraction, type MapFilter } from './mapFilterRules';
  * 1. priority order: selected, active target, next tour stop, T1 by fame, T2 by fame, stations, T3, T4, zones;
  * 2. clusters (s < 1.2): a badge within rA + rB + 2 px of a kept badge of equal or higher priority merges into it (the
  *    kept one gets a "+n" pip; its label reads "州立大学 +1"); the selected badge and the target never merge away;
- * 3. labels, greedy in the same order: each kept badge tries 4 boxes (right x + r + 3 centred, left, above, below);
+ * 3. labels, greedy in the same order: each kept badge tries 4 boxes (right x + r + 3 centred, left, above, below;
+ *    a clustered badge then also the right box just below its own pip);
  *    a box stays inside the frame minus the tool column (44 px right) and the credit line (16 px bottom) and avoids
- *    placed labels and every kept badge EXCEPT ITS OWN (the wave-3 "no label ever renders" bug: a label tested
- *    against its own marker always lost);
- * 4. node budget: SVG nodes ≤ `maxNodes` (150 desktop / 120 phone); the lowest-priority badges past it are returned
- *    in `overBudget` for the canvas (plain dots, no tap target).
+ *    placed labels, every cluster pip (its own too) and every kept badge EXCEPT ITS OWN (the wave-3 "no label ever
+ *    renders" bug: a label tested against its own marker always lost);
+ * 4. node budget: SVG nodes ≤ `maxNodes` (150 desktop / 120 phone), counted as rendered (badgeNodes / stationNodes:
+ *    a badge is 5 elements, not 3); each badge is admitted WITH its label's node reserved, in priority order, so the
+ *    T1 labels never lose their node to a crowd of T2 / T3 badges; the lowest-priority badges past the budget are
+ *    returned in `overBudget` for the canvas (plain dots, no tap target).
  */
 
 export interface LayoutItem {
@@ -33,7 +36,7 @@ export interface LayoutItem {
   fontPx?: number;
   /** may merge into a neighbour (false: selected, target) */
   clusterable?: boolean;
-  /** SVG nodes this item costs without its label (badgeNodes) */
+  /** SVG nodes this item costs without its label and pip (badgeNodes / stationNodes; default a plain badge, 5) */
   nodes?: number;
 }
 
@@ -86,12 +89,13 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
     }
     kept.push({ ...it, members: [] });
   }
-  // 4. budget (badges first, in priority order; labels only for badges that stay)
+  // 4. budget, in priority order: a badge comes in with its pip and its label's node reserved (released below when the
+  //    label finds no room), so a crowd of low badges can never starve the T1 labels
   let nodes = 0;
   const overBudget: string[] = [];
   const within: typeof kept = [];
   for (const k of kept) {
-    const n = (k.nodes ?? (k.r > 0 ? 3 : 0)) + (k.members.length ? 2 : 0);
+    const n = (k.nodes ?? (k.r > 0 ? 5 : 0)) + (k.members.length ? 2 : 0) + (k.label ? 1 : 0);
     if (nodes + n > maxNodes) { overBudget.push(k.id); continue; }
     nodes += n;
     within.push(k);
@@ -99,23 +103,29 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
   // 3. labels
   const frame: Box = [0, 0, w - toolRight, h - creditBottom];
   const discs: Box[] = within.map(k => [k.x - k.r, k.y - k.r, k.x + k.r, k.y + k.r]);
-  const placed: Box[] = [];
+  // the "+n" pips (MapBadge draws them at 2 o'clock): no label covers one, not even its own badge's
+  const placed: Box[] = within.filter(k => k.members.length && k.r > 0).map(k => { const b = pipBox(k.r, k.members.length); return [k.x + b[0], k.y + b[1], k.x + b[2], k.y + b[3]]; });
   const out: LaidOut[] = [];
   within.forEach((k, i) => {
     let label: LabelBox | null = null, text: string | null = null;
-    if (k.label && nodes < maxNodes) {
+    if (k.label) {
       text = k.members.length ? `${k.label} +${k.members.length}` : k.label;
-      for (const c of labelCandidates(k.x, k.y, k.r, text, k.fontPx ?? 11, pad)) {
+      const cands = labelCandidates(k.x, k.y, k.r, text, k.fontPx ?? 11, pad);
+      if (k.members.length && k.r > 0) {
+        // a clustered badge: its own pip takes the upper right, so the right-hand box may also sit just below the pip
+        const right = cands[0], dy = k.y + pipBox(k.r, k.members.length)[3] + pad - right.y;
+        if (dy > 0) cands.push({ ...right, y: right.y + dy, ty: right.ty + dy });
+      }
+      for (const c of cands) {
         const b: Box = [c.x - pad / 2, c.y - pad / 2, c.x + c.w + pad / 2, c.y + c.h + pad / 2];
         if (b[0] < frame[0] || b[1] < frame[1] || b[2] > frame[2] || b[3] > frame[3]) continue;
         if (placed.some(p => hit(p, b))) continue;
         if (discs.some((d, j) => j !== i && hit(d, b))) continue; // never against its own badge
         label = c;
         placed.push(b);
-        nodes++;
         break;
       }
-      if (!label) text = null;
+      if (!label) { text = null; nodes--; }
     }
     out.push({ id: k.id, x: k.x, y: k.y, r: k.r, members: k.members, label, text });
   });
@@ -155,9 +165,10 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
     const look = filterAttraction(o.filter ?? 'all', a);
     if (!look.show && !selected && !target) continue;
     const shown = size.kind === 'none' ? badgeSize(1, s) : size;
+    const dim = look.alpha < 1 && !selected && !target;
     const state: BadgeState = {
-      discovered: o.discovered(a.placeId ?? a.id), arrived: o.arrived?.(a.id), selected, target, dim: look.alpha < 1 && !selected && !target,
-      ...(tourNext ? { tourStop: o.tourNext!.n } : {}),
+      discovered: o.discovered(a.placeId ?? a.id), arrived: o.arrived?.(a.id), selected, target, dim,
+      ...(dim ? { dimAlpha: look.alpha } : {}), ...(tourNext ? { tourStop: o.tourNext!.n } : {}),
     };
     const wantLabel = selected || target || tourNext || (look.label && (a.rank === 1 || (a.rank === 2 && rules.t2Labels) || (a.rank === 3 && rules.t3Labels)));
     const label = wantLabel ? o.name(selected ? a.name : attractionShort(a)) : null;

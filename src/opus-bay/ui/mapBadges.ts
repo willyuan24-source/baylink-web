@@ -65,8 +65,9 @@ export interface BadgeState {
   target?: boolean;
   /** the next tour stop: a coral number disc at 10 o'clock */
   tourStop?: number;
-  /** a filter dims the badge to 25 % */
+  /** a filter dims the badge (25 %; the T1 of other categories 40 %: `dimAlpha`, filterAttraction's alpha) */
   dim?: boolean;
+  dimAlpha?: number;
   /** members merged into this badge: a "+n" pip at 2 o'clock */
   cluster?: number;
 }
@@ -90,6 +91,15 @@ export interface BadgePaint {
 
 const at = (clock: number, r: number) => { const a = ((clock / 12) * 360 - 90) * (Math.PI / 180); return { x: Math.cos(a) * r, y: Math.sin(a) * r }; };
 
+/**
+ * The cluster pip's pill relative to the badge centre, [x0, y0, x1, y1] (px): a 12 px cream pill whose left end sits
+ * at 2 o'clock, r + 2 out, 6 px per character + 6. MapBadge draws it here; layoutMap keeps labels off it.
+ */
+export function pipBox(r: number, members: number): [number, number, number, number] {
+  const p = at(2, r + 2), w = String(`+${members}`).length * 6 + 6;
+  return [p.x - 2, p.y - 6, p.x - 2 + w, p.y + 6];
+}
+
 export function badgePaint(a: Pick<Attraction, 'cat'>, size: BadgeSize, st: BadgeState): BadgePaint {
   const color = attractionColor(a);
   const discovered = st.discovered;
@@ -99,7 +109,7 @@ export function badgePaint(a: Pick<Attraction, 'cat'>, size: BadgeSize, st: Badg
     ringWidth: st.selected ? 3 : discovered ? 2 : 2.5,
     glyph: discovered ? BADGE_INK.cream : color,
     scale: st.selected ? 1.15 : 1,
-    opacity: st.dim ? 0.25 : 1,
+    opacity: st.dim ? st.dimAlpha ?? 0.25 : 1,
     tick: st.arrived ? at(4, size.r) : null,
     pip: st.cluster && st.cluster > 0 ? { ...at(2, size.r + 2), text: `+${st.cluster}` } : null,
     tourDisc: st.tourStop !== undefined ? { ...at(10, size.r + 1), text: String(st.tourStop) } : null,
@@ -110,9 +120,18 @@ export function badgePaint(a: Pick<Attraction, 'cat'>, size: BadgeSize, st: Badg
 /** The lucide glyph name of an attraction's badge. */
 export const badgeGlyph = (a: Pick<Attraction, 'cat' | 'glyph'>) => attractionGlyph(a);
 
-/** SVG nodes one badge costs (for the ≤ 150 / 120 node budget): shadow + disc + glyph (+ tick, pip 2, tour disc 2, pulse). */
+/** SVG elements of the active target's pin-flag (MapTargetPin: g, pulse ring, shadow, pole, pennant, finial). */
+export const TARGET_PIN_NODES = 6;
+
+/**
+ * SVG elements one badge renders (for the ≤ 150 / 120 node budget), exactly as ui/MapBadge.tsx draws it (the
+ * sf-map-w4 test renders every glyph and state and counts): a badge = g + shadow + disc + outline + ONE glyph path
+ * (ui/glyphPaths.ts) = 5; + 2 for the arrived tick (disc + check), the cluster pip (pill + text), the tour number
+ * (disc + text); a dot = 1; the active target = its pin-flag (6) whatever the tier.
+ */
 export function badgeNodes(size: BadgeSize, st: BadgeState): number {
   if (size.kind === 'none') return 0;
+  if (st.target) return TARGET_PIN_NODES;
   if (size.kind === 'dot') return 1;
-  return 3 + (st.arrived ? 1 : 0) + (st.cluster ? 2 : 0) + (st.tourStop !== undefined ? 2 : 0) + (st.target ? 2 : 0);
+  return 5 + (st.arrived ? 2 : 0) + (st.cluster ? 2 : 0) + (st.tourStop !== undefined ? 2 : 0);
 }

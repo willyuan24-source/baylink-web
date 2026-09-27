@@ -15,14 +15,20 @@ import { sfDisk } from './opus-bay-sf-disk';
  */
 
 const sf = sfDisk();
-const { LINE_STYLES, lineStyle, lineStrokes, splitByTunnels, arcLengths, drawTransitLines, mapStations, stationSymbol, tripRouteStrokes, ROUTE_GOLD } = await import('../src/opus-bay/ui/mapLines');
+const { LINE_STYLES, lineStyle, lineStrokes, splitByTunnels, arcLengths, drawTransitLines, mapStations, stationSymbol, stationNodes, tripRouteStrokes, ROUTE_GOLD } = await import('../src/opus-bay/ui/mapLines');
 const { W4_LINES } = await import('../src/opus-bay/data/sf/stationNames');
-const { badgeSize, badgePaint, badgeNodes, scaleRules, BADGE_INK } = await import('../src/opus-bay/ui/mapBadges');
+const { badgeSize, badgePaint, badgeNodes, scaleRules, BADGE_INK, TARGET_PIN_NODES } = await import('../src/opus-bay/ui/mapBadges');
+const { MapBadge, MapTargetPin, MapStationMark } = await import('../src/opus-bay/ui/MapBadge');
+const { GLYPH_D } = await import('../src/opus-bay/ui/glyphPaths');
 const { filterAttraction, filterLines, loadMapFilter, saveMapFilter, MAP_FILTERS, MAP_FILTER_KEY } = await import('../src/opus-bay/ui/mapFilterRules');
 const { tripSecondsLabel, optionTitle, optionDetail, orderOptions, optionLineGlyph } = await import('../src/opus-bay/ui/tripRows');
 const { layoutMap, labelCandidates, attractionMarkers, layoutPriority } = await import('../src/opus-bay/ui/mapLayout');
 const { ATTRACTIONS, T1_IDS } = await import('../src/opus-bay/data/sf/attractions');
-const { ATTRACTION_CAT_STYLE, ATTRACTION_CATS } = await import('../src/opus-bay/data/sf/attractionTypes');
+const { ATTRACTION_CAT_STYLE, ATTRACTION_CATS, ATTRACTION_GLYPHS } = await import('../src/opus-bay/data/sf/attractionTypes');
+
+/** SVG elements in a static markup string (the root <svg> wrapper not counted). */
+const svgNodes = (markup: string) => (markup.match(/<[a-z]+[\s/>]/g) ?? []).length - 1;
+const inSvg = (el: ReturnType<typeof h>) => renderToStaticMarkup(h('svg', null, el));
 type TransitLine = import('../src/opus-bay/world/sf/format').TransitLine;
 type TripOption = import('../src/opus-bay/game/tripTypes').TripOption;
 
@@ -108,6 +114,26 @@ test('lines: one canvas pass draws every line (≤ 3 strokes per piece kind), cu
   assert.ok(hl.ops.filter(o => o.style === LINE_STYLES['n-judah'].color && !o.dash?.length).every(o => o.alpha === 1));
 });
 
+test('lines: mapLinesFrom adapts what the runtime holds (cable CableLines + F-line JSON + lane T\'s lines) for drawing and stations', async () => {
+  const { buildTransit } = await import('../src/opus-bay/data/transit');
+  const { mapLinesFrom } = await import('../src/opus-bay/ui/mapLines');
+  const data = buildTransit(w1 as unknown as import('../src/opus-bay/data/transit').TransitFileJson);
+  const fline = (w1 as unknown as import('../src/opus-bay/data/transit').TransitFileJson).lines.find(l => l.id === 'f-line')!;
+  const lines = mapLinesFrom(data, fline, w4.lines);
+  assert.deepEqual(lines.map(l => l.id).sort(), ALL_LINES.map(l => l.id).sort());
+  for (const l of lines) {
+    assert.equal(lineStyle(l), LINE_STYLES[l.id], l.id);
+    assert.ok(l.path.length >= 6 && l.stops.length >= 2, l.id);
+    for (const s of l.stops) assert.ok(s.id && s.name.zh && Number.isFinite(s.x) && Number.isFinite(s.z), `${l.id} stop ${s.id}`);
+  }
+  // the cable stops became the merged stations (Powell & California is one station of three lines)
+  const st = mapStations(lines);
+  assert.ok(st.some(s => s.lines.filter(id => LINE_STYLES[id]?.kind === 'cable-car').length === 3), 'a three-line cable-car station');
+  const r = recorder();
+  assert.ok(drawTransitLines(r.ctx, lines, { cx: 0, cz: 800, scale: 0.185, w: 352, h: 388 }) > 0);
+  assert.deepEqual(mapLinesFrom(null, null), []);
+});
+
 test('stations: N and M share the Market St stations (underground, transfer pills); symbols follow the scale rules', () => {
   const st = mapStations(w4.lines);
   const emb = st.find(s => s.id === 'muni-embarcadero')!;
@@ -133,6 +159,13 @@ test('stations: N and M share the Market St stations (underground, transfer pill
   assert.equal(dot.label, false);
   assert.equal(stationSymbol(minor, 1.3)!.label, true);
   assert.equal(stationSymbol(ferry, 0.6, { tourStop: true })!.label, true);
+  // the station mark renders exactly stationNodes elements (the layout's budget), canvas-only symbols cost nothing
+  for (const s of st) for (const sc of [0.35, 0.6, 1.3]) {
+    const sym = stationSymbol(s, sc);
+    if (!sym?.svg) { assert.equal(stationNodes(sym), 0); continue; }
+    assert.equal(svgNodes(inSvg(h(MapStationMark, { sym, x: 50, y: 50 }))), stationNodes(sym), `${s.id} at ${sc}`);
+  }
+  assert.equal(stationNodes(pill), 1 + 2 * 2 + 1, 'N M pill with the stair mark');
 });
 
 test('trip routes: walk dashed gold 3 px, rides solid 4 px in the line colour with board / alight dots, done legs grey', () => {
@@ -180,9 +213,51 @@ test('badges: sizes and visibility by absolute scale (plan §4.1), states, node 
   assert.ok(found.tick!.x > 0 && found.tick!.y > 0, 'tick at 4 o\'clock');
   assert.ok(found.pip!.x > 0 && found.pip!.y < 0 && found.pip!.text === '+2', 'pip at 2 o\'clock');
   assert.ok(found.tourDisc!.x < 0 && found.tourDisc!.y < 0, 'tour number at 10 o\'clock');
-  assert.equal(badgeNodes(size, { discovered: true }), 3);
+  assert.equal(badgeNodes(size, { discovered: true }), 5);
   assert.equal(badgeNodes(badgeSize(3, 0.5), { discovered: true }), 1);
   assert.equal(badgeNodes(badgeSize(2, 0.1), { discovered: true }), 0);
+  assert.equal(badgeNodes(badgeSize(3, 0.5), { discovered: true, target: true }), TARGET_PIN_NODES, 'a target is its pin whatever the tier');
+  // a filter's own alpha: the T1 of another category stays at 40 %, the rest 25 %
+  assert.equal(badgePaint({ cat: 'park' }, size, { discovered: true, dim: true, dimAlpha: 0.4 }).opacity, 0.4);
+  assert.equal(badgePaint({ cat: 'park' }, size, { discovered: true, dim: true }).opacity, 0.25);
+});
+
+test('badges: badgeNodes is exactly what MapBadge renders (every glyph and state; the budget counts real SVG elements)', () => {
+  const states = [{ discovered: false }, { discovered: true, arrived: true }, { discovered: true, cluster: 3 }, { discovered: false, tourStop: 2 },
+    { discovered: true, arrived: true, cluster: 1, tourStop: 4, selected: true, dim: true, dimAlpha: 0.4 }, { discovered: true, target: true }];
+  for (const glyph of ATTRACTION_GLYPHS) {
+    for (const [tier, s] of [[1, 0.2], [2, 0.6], [3, 0.6], [3, 1.3], [4, 1.6]] as const) {
+      for (const st of states) {
+        const n = svgNodes(inSvg(h(MapBadge, { a: { id: 'x', cat: 'landmark', glyph }, tier, s, state: st, x: 10, y: 20 })));
+        assert.equal(n, badgeNodes(badgeSize(tier, s), st), `${glyph} T${tier} s ${s} ${JSON.stringify(st)}`);
+      }
+    }
+  }
+  assert.equal(svgNodes(inSvg(h(MapTargetPin, { x: 0, y: 0 }))), TARGET_PIN_NODES);
+  // the badge draws its glyph as one path: no nested lucide <svg> in the map overlay
+  assert.ok(!/<svg[^>]*lucide/.test(inSvg(h(MapBadge, { a: { id: 'x', cat: 'campus' }, tier: 1, s: 1, state: { discovered: true }, x: 0, y: 0 }))));
+});
+
+test('badges: GLYPH_D is lucide-react\'s icon joined into one path (fails when the installed lucide-react changes an icon)', async () => {
+  const lucide = await import('lucide-react');
+  const attrs = (t: string) => Object.fromEntries([...t.matchAll(/([a-z0-9-]+)="([^"]*)"/g)].map(m => [m[1], m[2]]));
+  const fmt = (v: number) => String(Math.round(v * 1000) / 1000);
+  const absStart = (d: string) => { const m = /^\s*m\s*(-?[\d.]+)[\s,]*(-?[\d.]+)([\s,]*)(.*)$/s.exec(d); return m ? `M${m[1]} ${m[2]}${/^[-.\d]/.test(m[4]) ? 'l' : ''}${m[4]}` : d.trim(); };
+  for (const g of ATTRACTION_GLYPHS) {
+    const markup = renderToStaticMarkup(h((lucide as unknown as Record<string, Parameters<typeof h>[0]>)[g]));
+    const out: string[] = [];
+    for (const m of markup.replace(/^<svg[^>]*>/, '').matchAll(/<(path|line|circle|polygon|polyline)\s([^>]*?)\/?>/g)) {
+      const a = attrs(m[2]);
+      if (m[1] === 'path') out.push(absStart(a.d));
+      else if (m[1] === 'line') out.push(`M${a.x1} ${a.y1}L${a.x2} ${a.y2}`);
+      else if (m[1] === 'circle') { const cx = +a.cx, cy = +a.cy, r = +a.r; out.push(`M${fmt(cx - r)} ${fmt(cy)}a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(2 * r)} 0a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(-2 * r)} 0`); }
+      else { const p = a.points.trim().split(/[\s,]+/); let d = `M${p[0]} ${p[1]}`; for (let i = 2; i < p.length; i += 2) d += `L${p[i]} ${p[i + 1]}`; out.push(m[1] === 'polygon' ? `${d}Z` : d); }
+    }
+    assert.ok(out.length > 0, g);
+    assert.equal(GLYPH_D[g], out.join(''), `${g}: regenerate ui/glyphPaths.ts`);
+    // every sub-path starts absolute (a joined relative "m" would move with the previous sub-path)
+    assert.ok(!/(^|[zZ])\s*m/.test(GLYPH_D[g]), `${g} relative sub-path start`);
+  }
 });
 
 test('filters: category chips dim the rest (T1 stay), 交通 keeps lines + stations + T1, the choice survives storage failures', () => {
@@ -211,6 +286,16 @@ test('filters: category chips dim the rest (T1 stay), 交通 keeps lines + stati
   assert.equal(loadMapFilter(broken), 'all');
   assert.doesNotThrow(() => saveMapFilter('park', broken));
   assert.equal(loadMapFilter(null), 'all');
+  // the defaults: a browser whose site data is blocked throws on READING the localStorage global itself (Chrome)
+  const had = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const restore = () => { if (had) Object.defineProperty(globalThis, 'localStorage', had); else delete (globalThis as { localStorage?: unknown }).localStorage; };
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new Error('SecurityError: access denied'); } });
+  try {
+    assert.equal(loadMapFilter(), 'all');
+    assert.doesNotThrow(() => saveMapFilter('campus'));
+  } finally { restore(); }
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: store });
+  try { saveMapFilter('shopping'); assert.equal(loadMapFilter(), 'shopping', 'the defaults use localStorage'); } finally { restore(); }
   // every category chip has attractions to show
   for (const f of MAP_FILTERS) if (f.id !== 'all' && f.id !== 'must' && f.id !== 'transit') assert.ok(ATTRACTIONS.some(a => filterAttraction(f.id, a).alpha === 1 && a.rank > 1), f.id);
 });
@@ -271,6 +356,29 @@ test('layout: a label never collides with its own badge (the wave-3 bug), falls 
   assert.ok(layoutPriority({ selected: true }) < layoutPriority({ target: true }));
 });
 
+test('labels render beside their badge: the anchor is an inline style (city-ui.css centres overlay text), pips stay clear', async () => {
+  const { MapLabel } = await import('../src/opus-bay/ui/MapBadge');
+  const { pipBox } = await import('../src/opus-bay/ui/mapBadges');
+  const css = fs.readFileSync(path.join(import.meta.dirname, '../src/opus-bay/ui/city-ui.css'), 'utf8');
+  assert.match(css, /\.ob-citymap-overlay text \{[^}]*text-anchor: middle/, 'the rule this guards against');
+  const one = layoutMap([{ id: 'a', x: 100, y: 100, r: 13, prio: 10, label: '市政厅', fontPx: 12 }], { w: 400, h: 400 }).kept[0];
+  const markup = renderToStaticMarkup(h('svg', null, h(MapLabel, { label: one.label!, text: one.text!, fontPx: 12, weight: 800 })));
+  assert.match(markup, /style="text-anchor:start;font-size:12px;font-weight:800"/);
+  assert.match(markup, /x="118"/);
+  // the "+n" pip: its text is centred in its pill (inline middle), and no label box covers a pip, its own included
+  const badge = inSvg(h(MapBadge, { a: { id: 'x', cat: 'park' }, tier: 1, s: 0.2, state: { discovered: true, cluster: 12 }, x: 0, y: 0 }));
+  const rect = /<rect class="mw-pip" x="([-\d.]+)"[^>]*width="([\d.]+)"/.exec(badge)!;
+  const text = /<text class="mw-pip-t" x="([-\d.]+)"[^>]*style="text-anchor:middle"/.exec(badge)!;
+  assert.ok(rect && text, badge);
+  assert.ok(Math.abs(+text[1] - (+rect[1] + +rect[2] / 2)) < 0.01, 'pip text centred');
+  const b = pipBox(13, 12);
+  assert.ok(Math.abs(b[0] - +rect[1]) < 0.01 && Math.abs(b[2] - b[0] - +rect[2]) < 0.01, 'pipBox is the drawn pill');
+  const r = layoutMap([{ id: 'hi', x: 100, y: 100, r: 13, prio: 10, label: '州立大学', fontPx: 12 }, { id: 'lo', x: 110, y: 104, r: 13, prio: 11, label: '石镇', fontPx: 12 }], { w: 400, h: 400 });
+  const k = r.kept[0], pb = pipBox(k.r, k.members.length), l = k.label!;
+  const pip = [k.x + pb[0], k.y + pb[1], k.x + pb[2], k.y + pb[3]];
+  assert.ok(l.x + l.w <= pip[0] || pip[2] <= l.x || l.y + l.h <= pip[1] || pip[3] <= l.y, `label ${JSON.stringify(l)} covers its pip ${pip}`);
+});
+
 test('layout: clusters merge into the higher-priority badge with a +n pip; the selected badge never merges away', () => {
   const r = layoutMap([
     { id: 'hi', x: 100, y: 100, r: 13, prio: 10, label: '州立大学', fontPx: 12 },
@@ -286,6 +394,33 @@ test('layout: clusters merge into the higher-priority badge with a +n pip; the s
 });
 
 const phoneFit = { cx: 50, cz: 830, scale: 0.185, w: 352, h: 388 };
+
+type Marker = ReturnType<typeof attractionMarkers>['markers'] extends Map<string, infer M> ? M : never;
+const markersOf = (list: typeof ATTRACTIONS, v: typeof phoneFit) => attractionMarkers(list, v, { discovered: id => id.length % 2 === 0, name: zh, selected: 'union-square', filter: 'all' }).markers;
+/** The overlay as CityMap will render a layout: MapBadge per kept badge (its pip = members), a <text> per label. */
+function renderLayout(r: ReturnType<typeof layoutMap>, markers: Map<string, Marker>, s: number): string {
+  const parts: ReturnType<typeof h>[] = [];
+  for (const k of r.kept) {
+    const m = markers.get(k.id);
+    if (!m) continue;
+    parts.push(h(MapBadge, { key: k.id, a: m.a, tier: m.a.rank, s, state: { ...m.state, ...(k.members.length ? { cluster: k.members.length } : {}) }, x: k.x, y: k.y, size: m.size }));
+    if (k.label) parts.push(h('text', { key: `t-${k.id}` }, k.text));
+  }
+  return renderToStaticMarkup(h('svg', null, ...parts));
+}
+
+test('layout: the budget counts what renders; T1 labels keep their node in a crowded first open (the Ferry at s 0.34)', () => {
+  for (const [v, max, minT1Labels] of [[{ cx: 60, cz: 90, scale: 0.34, w: 352, h: 388 }, 120, 6], [{ cx: 60, cz: 150, scale: 0.5, w: 480, h: 430 }, 150, 5]] as const) {
+    const { items, markers } = attractionMarkers(ATTRACTIONS, v, { discovered: () => false, name: zh });
+    const r = layoutMap(items, { w: v.w, h: v.h, maxNodes: max, clusters: scaleRules(v.scale).clusters });
+    const real = svgNodes(renderLayout(r, markers, v.scale));
+    assert.ok(real <= max && real <= r.nodes, `${real} rendered, ${r.nodes} counted, budget ${max}`);
+    assert.ok(r.overBudget.length > 0, 'the crowded view does hit the budget');
+    const t1 = r.kept.filter(k => markers.get(k.id)!.a.rank === 1);
+    assert.ok(t1.filter(k => k.label).length >= minT1Labels, `T1 labels ${t1.filter(k => k.label).length} of ${t1.length}`);
+    assert.ok(r.overBudget.every(id => markers.get(id)!.a.rank > 1), 'no T1 badge is pushed to the canvas');
+  }
+});
 const zh = (b: { zh: string }) => b.zh;
 
 test('layout: at 352 × 388 with the SF-land fit ≥ 11 T1 labels, no overlapping label boxes, pips counted', () => {
@@ -325,6 +460,9 @@ test('layout: the SVG node budget holds at every scale (≤ 120 phone, ≤ 150 d
         const { items } = attractionMarkers(dense, v, { discovered: id => id.length % 2 === 0, name: zh, selected: 'union-square', filter: 'all' });
         const r = layoutMap(items, { w, h: hgt, maxNodes: max, clusters: s < 1.2 });
         assert.ok(r.nodes <= max, `${w}×${hgt} s ${s} at (${cx}, ${cz}): ${r.nodes} nodes`);
+        // what the integration renders from this result (badges with their pips, one <text> per label) really fits
+        const real = svgNodes(renderLayout(r, markersOf(dense, v), s));
+        assert.ok(real <= r.nodes, `${w}×${hgt} s ${s} at (${cx}, ${cz}): ${real} rendered > ${r.nodes} counted`);
         if (items.some(i => i.id === 'union-square')) assert.ok(r.kept.some(k => k.id === 'union-square'), 'the selected badge is never cut');
       }
     }
