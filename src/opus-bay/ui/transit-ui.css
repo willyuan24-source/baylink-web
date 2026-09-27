@@ -1,0 +1,83 @@
+/* ---- lane T (wave 4): the subway overlay (ui/SubwayOverlay.tsx) — dark tunnel, lamp streaks, the line strip ---- */
+.ob-subway {
+  position: absolute; inset: 0; z-index: 40; pointer-events: none; opacity: 0; transition: opacity .6s var(--ob-ease, ease);
+  background: radial-gradient(ellipse at 50% 58%, #1d2228 0 30%, #101316 70%, #07090a 100%); overflow: hidden; color: #f5efe2;
+  --ob-line-color: #2f6fb0;
+}
+.ob-subway.is-on { opacity: 1; pointer-events: auto; }
+
+/* tunnel lamps: warm streaks sliding past on both walls while moving; still at a station */
+.ob-subway-tunnel { position: absolute; inset: 0; perspective: 600px; }
+.ob-subway-tunnel i {
+  position: absolute; top: 50%; width: 38vmax; height: 6px; border-radius: 3px; opacity: .0;
+  background: linear-gradient(90deg, rgba(255, 214, 150, 0), rgba(255, 214, 150, .85) 60%, rgba(255, 240, 210, 0));
+  filter: blur(1px);
+}
+.ob-subway-tunnel i:nth-child(odd) { left: -10%; transform-origin: right center; }
+.ob-subway-tunnel i:nth-child(even) { right: -10%; transform-origin: left center; background: linear-gradient(270deg, rgba(255, 214, 150, 0), rgba(255, 214, 150, .85) 60%, rgba(255, 240, 210, 0)); }
+.ob-subway-tunnel i:nth-child(1) { margin-top: -18vh; }
+.ob-subway-tunnel i:nth-child(2) { margin-top: -18vh; }
+.ob-subway-tunnel i:nth-child(3) { margin-top: 14vh; }
+.ob-subway-tunnel i:nth-child(4) { margin-top: 14vh; }
+.ob-subway-tunnel i:nth-child(5) { margin-top: -2vh; height: 3px; }
+.ob-subway-tunnel i:nth-child(6) { margin-top: -2vh; height: 3px; }
+.ob-subway.is-moving .ob-subway-tunnel i { animation: ob-subway-lamp 1.1s linear infinite; }
+.ob-subway.is-moving .ob-subway-tunnel i:nth-child(2n) { animation-delay: -.55s; }
+.ob-subway.is-moving .ob-subway-tunnel i:nth-child(n+5) { animation-duration: .8s; animation-delay: -.3s; }
+.ob-subway:not(.is-moving) .ob-subway-tunnel i:nth-child(-n+2) { opacity: .45; transform: none; }
+@keyframes ob-subway-lamp {
+  0% { opacity: 0; transform: translateX(0) scaleX(.2); }
+  20% { opacity: .9; }
+  100% { opacity: 0; transform: translateX(var(--ob-lamp-run, 18vmax)) scaleX(1.4); }
+}
+.ob-subway-tunnel i:nth-child(odd) { --ob-lamp-run: 22vmax; }
+.ob-subway-tunnel i:nth-child(even) { --ob-lamp-run: -22vmax; }
+
+/* the line strip */
+.ob-subway-strip { position: absolute; left: 0; right: 0; top: calc(20px + var(--ob-st, 0px)); height: 76px; }
+.ob-subway-bar { position: absolute; left: 16px; right: 16px; top: 36px; height: 6px; border-radius: 3px; background: var(--ob-line-color); box-shadow: 0 0 0 2px rgba(255, 255, 255, .12); }
+.ob-subway-tick { position: absolute; top: 32px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #f5efe2; border: 2px solid var(--ob-line-color); box-sizing: border-box; }
+.ob-subway-tick.is-passed { background: #7d8388; border-color: #7d8388; }
+.ob-subway-tick.is-current, .ob-subway-tick.is-next { background: #ffd98a; }
+.ob-subway-label { position: absolute; font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: rgba(245, 239, 226, .8); }
+.ob-subway-label.is-above { top: 10px; }
+.ob-subway-label.is-below { top: 50px; }
+.ob-subway-label.is-passed { color: rgba(245, 239, 226, .42); }
+.ob-subway-label.is-current, .ob-subway-label.is-next { color: #ffe3a8; font-weight: 800; }
+.ob-subway-label.is-portal { color: #b9e0c4; font-style: italic; }
+.ob-subway-dot {
+  position: absolute; top: 29px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #fff; border: 4px solid var(--ob-line-color);
+  box-sizing: border-box; box-shadow: 0 0 12px rgba(255, 230, 170, .8); transition: left .12s linear;
+}
+
+/* the card */
+.ob-subway-card {
+  position: absolute; left: 50%; bottom: calc(96px + var(--ob-sb, 0px)); transform: translateX(-50%); width: min(460px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 18px; background: rgba(14, 18, 22, .78);
+  border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 18px 40px -20px rgba(0, 0, 0, .8); font-size: 14px;
+}
+.ob-subway-line { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; }
+.ob-subway-disc {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--ob-line-color); color: #fff; font-size: 16px; font-weight: 900; letter-spacing: 0;
+}
+.ob-subway-next { font-size: 16px; font-weight: 800; color: #ffe3a8; }
+.ob-subway-fact { display: flex; flex-direction: column; gap: 2px; color: rgba(245, 239, 226, .72); font-size: 12.5px; }
+.ob-subway-fact b { color: rgba(245, 239, 226, .92); font-weight: 700; }
+.ob-subway-note { font-size: 13px; color: #b9e0c4; }
+.ob-subway-note.is-muted { color: rgba(245, 239, 226, .5); }
+.ob-subway-alight {
+  align-self: flex-start; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: #ffd98a; color: #2b2418;
+  font: inherit; font-weight: 800; cursor: pointer;
+}
+
+@media (max-width: 420px) {
+  .ob-subway-card { bottom: calc(118px + var(--ob-sb, 0px)); padding: 12px 14px; font-size: 13px; }
+  .ob-subway-line { font-size: 14px; }
+  .ob-subway-next { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-subway { transition: none; }
+  .ob-subway.is-moving .ob-subway-tunnel i { animation: none; opacity: .35; }
+  .ob-subway-dot { transition: none; }
+}

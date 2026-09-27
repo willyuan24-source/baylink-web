@@ -294,3 +294,94 @@ test('light rail: termini reverse (double-ended) and serve a rider waiting to ri
   until(sys, () => sys.rideStatus()!.phase === 'arrived', 90);
   assert.equal(sys.rideStatus()!.lastStation, 'muni-judah-sunset');
 });
+
+// ---------------------------------------------------------------------------
+// The LRV, the portals, the subway overlay strip, the line sounds (world/sf/lrv.ts, portals.ts, ui/subwayStrip.ts, audio/lines.ts)
+// ---------------------------------------------------------------------------
+
+const lrv = await import('../src/opus-bay/world/sf/lrv');
+const portals = await import('../src/opus-bay/world/sf/portals');
+const strip = await import('../src/opus-bay/ui/subwayStrip');
+const lines = await import('../src/opus-bay/audio/lines');
+const triCount = (geo: { getIndex(): { count: number } | null }) => geo.getIndex()!.count / 3;
+
+test('LRV: ≤ 500 triangles a car (≤ 1k a two-car train), far ≤ 120; one geometry per line colour; the platform (lead car)', () => {
+  for (const c of ['#2f6fb0', '#2f8f5b']) {
+    const near = lrv.lrvCarGeometry(c), far = lrv.lrvCarFarGeometry(c);
+    assert.ok(triCount(near) * 2 <= 1000, `train ${triCount(near) * 2} tris`);
+    assert.ok(triCount(far) <= 120, `far car ${triCount(far)} tris`);
+    near.computeBoundingBox();
+    const bb = near.boundingBox!;
+    assert.ok(bb.max.z - bb.min.z <= LRV.carLength + 0.2, 'car length');
+    assert.ok(bb.max.x - bb.min.x <= LRV.width + 0.2, 'car width');
+  }
+  const P = lrv.LRV_PLATFORM;
+  assert.equal(P.kind, 'light-rail');
+  assert.ok(P.floor > 0.5 && P.floor < 1.2);
+  assert.ok(P.seatLeft.x > 0 && P.seatRight.x < 0 && Math.abs(P.seatLeft.heading + Math.PI / 2) < 1e-9, 'side benches face the aisle');
+});
+
+test('portals: the four named mouths, heading into the tunnel along the track, ≤ 800 triangles, walk blockers around the hood', () => {
+  const ps = portals.portalPlacements([N, M]);
+  assert.deepEqual(ps.map(p => p.id).sort(), ['duboce', 'sunset-east', 'sunset-west', 'west-portal']);
+  for (const p of ps) {
+    assert.ok(triCount(portals.portalGeometry(p.id)) <= 800, `${p.id} tris`);
+    // a point 10 u ahead of the mouth along the heading lies inside the tunnel span of its line
+    const l = p.line === 'n-judah' ? N : M;
+    const inside = { x: p.x + Math.sin(p.heading) * 10, z: p.z + Math.cos(p.heading) * 10 };
+    let best = { d: Infinity, at: 0 }, cum = 0;
+    for (let i = 3; i < l.path.length; i += 3) {
+      const ax = l.path[i - 3], az = l.path[i - 1], bx = l.path[i], bz = l.path[i + 2];
+      const dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz) || 1, t = Math.max(0, Math.min(1, ((inside.x - ax) * dx + (inside.z - az) * dz) / (L * L)));
+      const d = Math.hypot(inside.x - ax - dx * t, inside.z - az - dz * t);
+      if (d < best.d) best = { d, at: cum + t * L };
+      cum += L;
+    }
+    assert.ok(tunnelAt(l, best.at), `${p.id}: +z points into the tunnel (arc ${best.at.toFixed(0)})`);
+    const blockers = portals.portalBlockers(p);
+    assert.equal(blockers.length, 3);
+    for (const b of blockers) assert.equal(b.length, 4);
+  }
+  assert.equal(ps.find(p => p.id === 'sunset-west')!.name.zh, '日落隧道西口');
+});
+
+test('subway overlay strip: dot and ticks in travel order, labels never overlap at 390 / 375 / 1440 px, current + next + exit always shown', () => {
+  const t = N.tunnels![0];
+  const stations = N.stops.filter(s => s.at <= t.toAt + 1).map(s => ({ id: s.id, name: s.name, at: s.at }));
+  for (const width of [390 - 32, 375 - 32, 1440 - 32]) {
+    for (const zh of [true, false]) {
+      for (const [at, dir] of [[150, 1], [300.21, 1], [450, 1], [100, -1]] as const) {
+        const next = stations.filter(s => (s.at - at) * dir > 0.5).sort((a, b) => (a.at - b.at) * dir)[0]?.id ?? null;
+        const lay = strip.stripLayout({ stations, fromAt: t.fromAt, toAt: t.toAt, at, dir, portalA: null, portalB: t.portalB!.name, stopped: null, next, width }, zh);
+        assert.ok(lay.dot >= 0 && lay.dot <= 1);
+        for (const row of ['above', 'below'] as const) {
+          const ls = lay.labels.filter(l => l.row === row).sort((a, b) => a.left - b.left);
+          for (let i = 1; i < ls.length; i++) assert.ok(ls[i].left >= ls[i - 1].left + ls[i - 1].w, `${width}px ${zh ? 'zh' : 'en'} at ${at}: ${ls[i - 1].id} / ${ls[i].id} overlap`);
+          for (const l of ls) assert.ok(l.left >= 0 && l.left + l.w <= width + 0.5, `${l.id} inside the strip`);
+        }
+        if (next) assert.ok(lay.labels.some(l => l.id === next), `next ${next} labelled at ${width}px`);
+        if (dir > 0) assert.ok(lay.labels.some(l => l.kind === 'portal'), 'the Duboce mouth ahead is labelled');
+        // travel order: ahead stations to the right of the dot
+        for (const k of lay.ticks) if (k.state === 'ahead' || k.state === 'next') assert.ok(k.x >= lay.dot - 1e-6, `${k.id} ahead of the dot`);
+      }
+    }
+  }
+});
+
+test('line sounds: every one-shot builds a voice, the loops start / stop without throwing (fake engine)', () => {
+  const calls: string[] = [];
+  const param = () => ({ value: 0, setTargetAtTime: () => undefined });
+  const node = () => ({ connect: (n: unknown) => n ?? node(), disconnect: () => undefined, start: () => undefined, stop: () => undefined, frequency: param(), gain: param(), Q: param(), type: '' });
+  const ctx = { currentTime: 0, createOscillator: node, createBiquadFilter: node, createGain: node };
+  const e = {
+    ctx, buses: { sfx: { input: node() }, ambience: { input: node() } },
+    voice: (o: { name: string }) => { calls.push(o.name); return { input: node() }; },
+    tone: () => node(), noiseBurst: () => node(), loopNoise: () => node(),
+  } as unknown as Parameters<typeof lines.busAirBrake>[0];
+  lines.busAirBrake(e); lines.doorChime(e, true); lines.doorChime(e, false); lines.stopBell(e); lines.lrvGong(e, 0.5); lines.stationChime(e); lines.portalWhoosh(e, true);
+  assert.deepEqual(calls, ['bus-air-brake', 'door-chime', 'door-chime', 'stop-bell', 'lrv-gong', 'station-chime', 'portal-whoosh']);
+  const loops = new lines.LineLoops(e);
+  loops.update({ bus: true, busSpeed: 12, lrv: true, lrvSpeed: 8, tunnel: true });
+  loops.update({ bus: false, busSpeed: 0, lrv: false, lrvSpeed: 0, tunnel: false });
+  loops.dispose();
+});

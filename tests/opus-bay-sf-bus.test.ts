@@ -242,3 +242,79 @@ test('bus: stop poles stand at the right kerb of the bus lane', () => {
     assert.ok(side > 1.5 && side < 4.5, `${s.id} pole side ${side.toFixed(2)}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// The toy bus, the loop stops and the fleet layer's budget (world/sf/tourBus.ts, stations.ts, lineFleet.ts)
+// ---------------------------------------------------------------------------
+
+// headless canvas stub for modules that touch the DOM at import (none of ours; the fleet only builds geometry)
+const g = globalThis as unknown as Record<string, unknown>;
+g.window ??= globalThis;
+const tourBus = await import('../src/opus-bay/world/sf/tourBus');
+const stations = await import('../src/opus-bay/world/sf/stations');
+const { LineFleet, busInterlocks, FAR_LOD, HIDE_BEYOND } = await import('../src/opus-bay/world/sf/lineFleet');
+const tris = (geo: { getIndex(): { count: number } | null }) => geo.getIndex()!.count / 3;
+
+test('tour bus: ≤ 1.2k triangles near, ≤ 200 far; the upper-deck platform: seats inside the deck, floor at the deck', () => {
+  const near = tourBus.tourBusGeometry(), far = tourBus.tourBusFarGeometry();
+  assert.ok(tris(near) <= 1200, `bus ${tris(near)} tris`);
+  assert.ok(tris(far) <= 200, `far bus ${tris(far)} tris`);
+  for (const a of ['position', 'normal', 'color', 'aInfo']) assert.ok(near.getAttribute(a) && far.getAttribute(a), a);
+  near.computeBoundingBox();
+  const bb = near.boundingBox!;
+  assert.ok(bb.max.z - bb.min.z <= BUS.length + 0.3 && bb.max.x - bb.min.x <= BUS.width + 0.3, 'within the body footprint');
+  assert.ok(bb.max.y < BUS.height + 0.2 && bb.min.y >= -0.05, `height ${bb.min.y.toFixed(2)} … ${bb.max.y.toFixed(2)}`);
+  const P = tourBus.TOUR_BUS_PLATFORM;
+  assert.equal(P.kind, 'bus');
+  assert.equal(P.floor, tourBus.UP_FLOOR);
+  for (const s of [P.seatLeft, P.seatRight, tourBus.TOUR_BUS_SPOTS.baybaySeat]) assert.ok(Math.abs(s.x) < BUS.width / 2 && Math.abs(s.z) < BUS.length / 2, 'seat on the deck');
+  assert.ok(P.seatLeft.x > 0 && P.seatRight.x < 0, 'left = +x');
+  assert.ok(P.rail.z > P.seatLeft.z, 'the rail spot is in front of the first row');
+});
+
+test('stops: one pole per loop stop at the right kerb, one kiosk per underground station (shared by N and M), surface poles clear of the track', () => {
+  const props = stations.stationProps(FILE.lines);
+  const poles = props.filter(p => p.kind === 'bus-pole');
+  assert.equal(poles.length, 16);
+  const kiosks = props.filter(p => p.kind === 'kiosk');
+  assert.deepEqual(kiosks.map(k => k.station).sort(), ['muni-castro', 'muni-church', 'muni-civic-center', 'muni-embarcadero', 'muni-forest-hill', 'muni-montgomery', 'muni-powell', 'muni-van-ness']);
+  assert.ok(kiosks.find(k => k.station === 'muni-powell')!.lines.length === 2, 'Powell kiosk serves N and M');
+  const surface = props.filter(p => p.kind.startsWith('rail-stop'));
+  assert.ok(surface.length >= 35, `surface Metro stops ${surface.length}`);
+  for (const p of props) assert.ok(Number.isFinite(p.x + p.y + p.z + p.heading), p.station);
+  for (const [k, geo] of [['pole', stations.busPoleGeometry()], ['kiosk', stations.kioskGeometry()], ['stop', stations.railStopGeometry('nm')]] as const) assert.ok(tris(geo) <= 400, `${k} ${tris(geo)} tris`);
+});
+
+test('fleet: 3 buses + 4 two-car trains in 2 batched meshes, props in 1; ≤ 3 calls + 1 shadow; triangles in the densest views', () => {
+  const loop = LOOP, metro = FILE.lines.filter(l => l.kind === 'light-rail');
+  const fleet = new LineFleet({ loop, metro }, { emitEvents: false });
+  assert.equal(fleet.bus.buses.length, 3);
+  assert.equal(fleet.rail.trains.length, 4);
+  assert.equal(fleet.portals.length, 4);
+  // walk the camera over every stop of the three lines for 10 simulated minutes: the worst view
+  const spots = FILE.lines.flatMap(l => l.stops.map(s => ({ x: s.x, z: s.z })));
+  let worst = { tris: 0, shadowTris: 0, calls: 0, at: '' };
+  for (let k = 0; k < 600 * 4; k++) {
+    const cam = spots[k % spots.length];
+    fleet.update(0.25, cam, cam);
+    const s = fleet.stats();
+    if (s.tris + s.shadowTris > worst.tris + worst.shadowTris) worst = { tris: s.tris, shadowTris: s.shadowTris, calls: s.calls + s.shadowCalls, at: `${cam.x.toFixed(0)},${cam.z.toFixed(0)}` };
+    assert.ok(s.calls <= 3 && s.shadowCalls <= 1, 'calls');
+  }
+  assert.ok(worst.tris + worst.shadowTris <= 12000, `worst view ${worst.tris} + ${worst.shadowTris} shadow tris at ${worst.at}`);
+  assert.ok(FAR_LOD < HIDE_BEYOND);
+  // program family: every batched mesh has its own material instance under the pool program key
+  assert.equal(new Set(fleet.materials).size, 3);
+  for (const m of fleet.materials) assert.equal(m.customProgramCacheKey(), 'ob-toy');
+  fleet.dispose();
+});
+
+test('interlocks from data: the bus track shares Bush × Powell, California St and Hyde St with the cable cars; none with the Metro underground', () => {
+  const T2 = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as TransitFile;
+  const cables = T2.lines.filter(l => l.kind === 'cable-car');
+  const boxes = busInterlocks(TRACK, [...cables, ...FILE.lines.filter(l => l.kind === 'light-rail')], () => false);
+  const ids = boxes.map(b => b.id.split('@')[0]);
+  for (const id of ['powell-hyde', 'powell-mason', 'california']) assert.ok(ids.includes(id), `${id} box`);
+  assert.ok(!ids.includes('m-ocean-view') && !ids.includes('n-judah'), `no Metro box: ${ids.join(' ')}`);
+  for (const b of boxes) assert.ok(b.a1 - b.a0 < 90, `${b.id} ${b.a0.toFixed(0)}–${b.a1.toFixed(0)}`);
+});
