@@ -10,3 +10,8 @@
 .regional-bulletins-grid small { margin-top:12px; font-size:10px; color:#6d786d; }
 @media(max-width:1023px) { .regional-bulletins-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:639px) { .regional-bulletins-grid { grid-template-columns:1fr; gap:12px; } .regional-bulletins-grid article { padding:20px; } .regional-bulletins { margin:28px 0 36px; } }
+
+.regional-bulletin-image { width:100%; margin:0 0 20px; }
+.regional-bulletin-image img { width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; border-radius:9px; display:block; }
+.regional-bulletin-image figcaption { font-size:10px; line-height:1.7; margin-top:8px; }
+.regional-bulletin-image figcaption a { font-size:10px; margin-top:0; }

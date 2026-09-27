@@ -21,6 +21,8 @@ import communityPlaceMedia from './community-place-media.json';
 import autumnGuideMedia from './autumn-guide-media.json';
 import contentCoverageMedia from './content-coverage-media.json';
 import dailyLifeMedia from './daily-life-media.json';
+import schoolMedia from './schools-media.json';
+import schoolCampusMedia from './schools-campus-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -61,7 +63,7 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
@@ -166,7 +168,18 @@ const bySlug: Record<string, [string, string]> = {
   'california-driver-license-id-preparation-guide': ['driver-id-prep', 'translation-documents'],
 };
 
-const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend' };
+Object.assign(bySlug, {
+  'sf-school-district-enrollment-guide': ['school-sf', 'school-campus-sf-state'],
+  'east-bay-school-district-enrollment-guide': ['school-east', 'region-berkeley-campus'],
+  'peninsula-school-district-enrollment-guide': ['school-peninsula', 'region-stanford-quad'],
+  'south-bay-school-district-enrollment-guide': ['school-south', 'school-east'],
+  'north-bay-school-district-enrollment-guide': ['school-north', 'school-peninsula'],
+});
+for (const { key, ...asset } of schoolCampusMedia) {
+  if (!Object.values(GUIDE_IMAGES).some(image => image.src === asset.src)) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
+}
+
+const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
   if (guide.slug === 'bay-area-new-openings-2026-09') {
@@ -176,5 +189,6 @@ export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afte
   const mapped = bySlug[guide.slug];
   const cover = GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]];
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;
-  return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(2, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };
+  const headingPosition = ['sf-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide'].includes(guide.slug) ? 3 : 2;
+  return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };
 };

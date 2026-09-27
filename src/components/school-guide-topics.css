@@ -1,0 +1,23 @@
+.school-guide-topics { margin:36px 0; padding:28px; background:#f4f4e9; border:1px solid #dce1d1; border-radius:18px; }
+.school-guide-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:24px; }
+.school-guide-heading .bl-guide-eyebrow { display:flex; align-items:center; gap:8px; }
+.school-guide-heading h2 { color:#284e3b; font-size:clamp(21px,2vw,28px); line-height:1.5; margin:10px 0 8px; }
+.school-guide-heading p,.school-guide-note { font-size:13px; color:#596657; line-height:1.8; margin:0; }
+.school-guide-heading>a { display:flex; align-items:center; gap:8px; flex-shrink:0; color:#355c40; font-size:13px; }
+.school-guide-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
+.school-guide-grid>a { min-width:0; overflow:hidden; border-radius:12px; background:#fffdf7; border:1px solid #dbe1d4; color:#2c4b3d; text-decoration:none; transition:box-shadow .18s; }
+.school-guide-grid>a:hover { box-shadow:0 5px 18px #29452a16; }
+.school-guide-topics a:focus-visible { outline:3px solid #52784d; outline-offset:4px; }
+.school-guide-grid img { width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; display:block; }
+.school-guide-grid span { display:block; padding:15px; }
+.school-guide-grid strong { display:flex; justify-content:space-between; gap:8px; font-size:17px; }
+.school-guide-grid small { display:block; margin-top:8px; color:#606d61; font-size:12px; line-height:1.8; }
+.school-guide-note { margin-top:16px; font-size:11px; }
+.school-guide-intro { max-width:760px; color:#5d6c60; line-height:1.9; margin:0 0 28px; font-size:14px; }
+.bl-guides-controls--top { margin:12px 0 28px; }
+.bl-guides-page--filtered .bl-guides-intro h1 { font-size:clamp(28px,3vw,40px); line-height:1.3; }
+.bl-guides-page--filtered .bl-guides-intro h1 br { display:none; }
+@media(max-width:639px) { .bl-guides-page--filtered .bl-guides-edition { display:none; } .bl-guides-page--filtered .bl-guides-intro { padding-bottom:18px; } }
+@media(max-width:1023px) { .school-guide-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:767px) { .school-guide-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .school-guide-heading { align-items:flex-start; flex-direction:column; } .school-guide-topics { padding:20px; } }
+@media(max-width:599px) { .school-guide-grid { grid-template-columns:1fr; } .school-guide-grid>a { display:grid; grid-template-columns:40% 1fr; } .school-guide-grid img { height:100%; min-height:130px; } }

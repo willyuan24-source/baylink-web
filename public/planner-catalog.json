@@ -4219,6 +4219,26 @@
     {
       "slug": "bay-area-311-211-local-help-guide",
       "title": "湾区遇到问题找谁：311 报修、211 转介与紧急求助"
+    },
+    {
+      "slug": "sf-school-district-enrollment-guide",
+      "title": "旧金山学校与学区：从地址核对到 SFUSD 入学"
+    },
+    {
+      "slug": "peninsula-school-district-enrollment-guide",
+      "title": "半岛学校与学区：先查地址和年级，再安排入学"
+    },
+    {
+      "slug": "south-bay-school-district-enrollment-guide",
+      "title": "南湾学校与学区：San José、Cupertino、Sunnyvale 怎么查"
+    },
+    {
+      "slug": "east-bay-school-district-enrollment-guide",
+      "title": "东湾学校与学区：先查地址，再找对招生办公室"
+    },
+    {
+      "slug": "north-bay-school-district-enrollment-guide",
+      "title": "北湾学校与学区：Marin、Sonoma、Napa 分县找入口"
     }
   ]
 }

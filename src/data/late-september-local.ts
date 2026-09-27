@@ -1,11 +1,12 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { MonthlyRegion } from './monthly-types';
 
-export type RegionalBulletin = { id: string; region: MonthlyRegion; label: string; title: string; dateLabel: string; summary: string; sourceLabel: string; sourceUrl: string; verifiedAt: string; expiresAt: string };
+export type RegionalBulletin = { id: string; region: MonthlyRegion; label: string; title: string; dateLabel: string; summary: string; sourceLabel: string; sourceUrl: string; verifiedAt: string; expiresAt: string; imageKey: string };
 
 export const regionalBulletins: RegionalBulletin[] = [
   {
     "id": "sf-corbett-service-sep28",
+    "imageKey": "community-accessible-transit",
     "region": "sf",
     "label": "旧金山",
     "title": "37 Corbett：9/28 起恢复原进城路线",
@@ -18,6 +19,7 @@ export const regionalBulletins: RegionalBulletin[] = [
   },
   {
     "id": "peninsula-smcl-tutoring-september",
+    "imageKey": "school-peninsula",
     "region": "peninsula",
     "label": "半岛",
     "title": "县图书馆新增 Tutor.com 学习资源",
@@ -30,6 +32,7 @@ export const regionalBulletins: RegionalBulletin[] = [
   },
   {
     "id": "south-bay-wolfe-ramp-oct2",
+    "imageKey": "community-accessible-transit",
     "region": "south-bay",
     "label": "南湾",
     "title": "Wolfe Road：近 Marriott 的北向 I-280 上匝道将关闭",
@@ -42,6 +45,7 @@ export const regionalBulletins: RegionalBulletin[] = [
   },
   {
     "id": "east-bay-yellow-line-sep29",
+    "imageKey": "bart",
     "region": "east-bay",
     "label": "东湾",
     "title": "9/29–10/1 黄线深夜施工，预留换乘时间",
@@ -54,6 +58,7 @@ export const regionalBulletins: RegionalBulletin[] = [
   },
   {
     "id": "north-bay-rohnert-library-to-go",
+    "imageKey": "community-library-card",
     "region": "north-bay",
     "label": "北湾",
     "title": "Rohnert Park–Cotati 图书馆改到临时取书点",

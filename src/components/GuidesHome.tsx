@@ -25,6 +25,7 @@ import { MonthlySpotlight } from './MonthlySpotlight';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
 import { ReadingShelf } from './ReaderLibrary';
 import { DailyGuideTopics } from './DailyGuideTopics';
+import { SchoolGuideTopics } from './SchoolGuideTopics';
 import { useLocale } from '../i18n/locale';
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
@@ -71,7 +72,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
   const hero = spotlightGuides[0];
 
   return (
-    <div className="bl-guides-page">
+    <div className={`bl-guides-page${tab !== 'all' || query.trim() ? ' bl-guides-page--filtered' : ''}`}>
       <header className="bl-guides-intro">
         <span className="bl-guide-eyebrow">
           <span /> THE BAYLINK JOURNAL
@@ -80,7 +81,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
           <div>
             <h1>
               {savedOnly ? '留住喜欢的，' : '把湾区，'}
-              <br />
+              <br />{' '}
               <em>{savedOnly ? '下次接着看。' : '过成你的生活。'}</em>
             </h1>
             <p>
@@ -98,10 +99,28 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
         </div>
       </header>
       <div className="reader-library-find">
-        <label><Search size={19} aria-hidden="true" /><input type="search" aria-label="搜索生活指南" placeholder="想办什么、想去哪？试试停车、英语课、海边…" value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value }, true)} />{query && <button type="button" aria-label="清除指南搜索" onClick={() => updateSearch({ q: '' }, true)}><X size={17} /></button>}</label>
+        <label><Search size={19} aria-hidden="true" /><input type="search" aria-label="搜索生活指南" placeholder="搜学区、入学、停车、英语课、海边…" value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value }, true)} />{query && <button type="button" aria-label="清除指南搜索" onClick={() => updateSearch({ q: '' }, true)}><X size={17} /></button>}</label>
         <Link to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark size={16} />{savedOnly ? '继续发现攻略' : '我的收藏'}</Link>
       </div>
-      {!savedOnly && !query.trim() && <Link to="/explore" className="guide-attraction-entry"><span><strong>按地区，找一个值得出门的地方。</strong><small>景点实拍、游玩攻略与出游清单，旧金山到北湾慢慢发现。</small></span><ArrowUpRight size={23} aria-hidden="true" /></Link>}
+      {!savedOnly && <>
+        <div className="bl-guides-controls bl-guides-controls--top">
+          <div className="bl-guide-tabs" role="group" aria-label="指南分类">
+            {GUIDE_CATEGORY_TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => updateSearch({ category: t.id })}
+                aria-pressed={tab === t.id}
+                className={tab === t.id ? "is-active" : ""}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </>}
+      {!savedOnly && !query.trim() && tab === 'all' && <SchoolGuideTopics onOpenGuide={onOpenGuide} />}
+      {!savedOnly && !query.trim() && tab === 'all' && <Link to="/explore" className="guide-attraction-entry"><span><strong>按地区，找一个值得出门的地方。</strong><small>景点实拍、游玩攻略与出游清单，旧金山到北湾慢慢发现。</small></span><ArrowUpRight size={23} aria-hidden="true" /></Link>}
       {!savedOnly && !query.trim() && tab === 'all' && <DailyGuideTopics onOpenGuide={onOpenGuide} />}
       {!query.trim() && (savedOnly || tab === 'all') && <ReadingShelf />}
       {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
@@ -167,27 +186,13 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
         <div className="bl-guides-library-heading">
           <div>
             <span className="bl-guide-eyebrow">YOUR LOCAL HANDBOOK</span>
-            <h2 id="guide-library-title">生活的答案，在这里。</h2>
+            <h2 id="guide-library-title">{tab === 'education' ? '五区学校与学区指南' : '生活的答案，在这里。'}</h2>
           </div>
           <span className="bl-guides-count" aria-live="polite">
             {filtered.length} 篇指南
           </span>
         </div>
-        <div className="bl-guides-controls">
-          <div className="bl-guide-tabs" role="group" aria-label="指南分类">
-            {GUIDE_CATEGORY_TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => updateSearch({ category: t.id })}
-                aria-pressed={tab === t.id}
-                className={tab === t.id ? "is-active" : ""}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        {tab === 'education' && <p className="school-guide-intro">先按所在地区找到负责学区，再核对年级、学年和申请入口。大学与社区学院的校区、招生资源在各篇单独列出；城市名称和房源广告不能替代官方学区查询。</p>}
         {filtered.length === 0 ? (
           <div className="bl-guide-empty">
             <Search size={28} strokeWidth={1.3} aria-hidden="true" />
