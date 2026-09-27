@@ -122,7 +122,7 @@ export const bayviewOperaHouse: W4Site = {
     arrival: { x: 3.0, z: 4.6, heading: Math.PI },
     photo: { target: [-0.6, 2.2, 1.2], distance: 17, elevation: 0.18, bearing: -1.22 },
     flag: { x: 0.4, z: 0.4, h: 30 },
-    height: { realM: 12, u: 4.6, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 12, u: 4.95, top: 5.42, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/288836717'],
     terrain: [-3, -4, 8, 8],
     notes: 'No name board text on the false front; the stage and seats are the 2016 plaza (Walter Hood), the rock garden a few boulders.',

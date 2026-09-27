@@ -106,7 +106,7 @@ export const balmyAlley: W4Site = {
     arrival: { x: 0, z: -8.4, heading: 0 },
     photo: { target: [0, 1, 1], distance: 13, elevation: 0.28, bearing: Math.PI },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 3, u: 1.7, rule: 'ground' },
+    height: { realM: 3, u: 1.7, top: 4.53, rule: 'overlook' },
     osm: ['way/8920344', 'way/1034016020'],
     terrain: [-3, -12, 3, 12],
     notes: 'The murals are never copied (abstract colour fields only) and people live here: no crowd props beyond the alley itself.',

@@ -100,6 +100,7 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
     const ar = landmarkToWorld(s, m.arrival);
     assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
     assert.ok(Number.isFinite(m.height.u) && m.height.u > 0, s.id);
+    assert.ok(['H = 3.2 + 0.155·h', 'terrainY', 'overlook'].includes(m.height.rule), `${s.id}: a rule SfLandmarkInfo knows`);
     if (m.lod0R !== undefined) assert.ok(m.lod0R >= 120 && m.lod0R <= 520, s.id);
     assert.ok(m.photo.distance > 0 && Math.abs(m.photo.elevation) < 1.5 && m.photo.target.every(Number.isFinite), s.id);
     assert.equal(m.aiSlot, undefined, `${s.id}: tier-3 settings are procedural`);
@@ -309,6 +310,8 @@ test('flags (plan §4.2) and settings: poles 28–70 u over the site, plazas ≥
     g.computeBoundingBox();
     const top = g.boundingBox!.max.y;
     assert.ok(f.h >= top + 8 || f.h === 30 || f.h === ATTRACTION_FLAG_H.max, `${s.id} flag ${f.h} over the skyline ${top.toFixed(1)}`);
+    // the record's measured top over its base (what cityViews / cityLive add to the base at the integration)
+    assert.ok(Math.abs(s.w4.height.top - top) <= 0.1, `${s.id} height.top ${s.w4.height.top} vs the model's top ${top.toFixed(2)}`);
     const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0);
     assert.ok(plaza >= 30, `${s.id} plaza ${plaza.toFixed(0)} u²`);
     for (const l of s.lights ?? []) assert.ok([l.x, l.y, l.z, l.size].every(Number.isFinite) && /^#[0-9a-f]{6}$/i.test(l.color), s.id);
