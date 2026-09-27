@@ -9,7 +9,7 @@ import {
 } from '../data/sf/residents';
 import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
 import { sfLandmark, worldToLandmark } from '../world/sf/landmarks/index';
-import { travelActive } from './fastTravel';
+import { travelActive, travelEpoch } from './fastTravel';
 import { bubble, defineNode, dialogueOpen, navigateTo, playDialogue, say, setResidentTalk } from './flow';
 import { flow } from './flowStore';
 import { invalidateInteractables } from './interactables';
@@ -25,9 +25,10 @@ import { registerFrameSystem } from './systemsRegistry';
  *   accept        when `npc.<k>.yes` is shown: `task-on:<k>` in goalsDone (saved with it), a toast, and the favour's
  *                 target becomes the first waypoint (cityContent.goalTargets `first`)
  *   finish        the goal of data/sf/residents TaskGoal: a counted cable-car ride (lane F's `transit` event), the
- *                 delivery node, a postcard in hand, or being there (reach / the bridge deck) on your own — checked
- *                 at 4 Hz outside dialogue; `task:<k>` replaces `task-on:<k>`, the goal fanfare, a toast, and BAYBAY
- *                 says "go tell them" (a delivery or a favour finished while talking goes straight to the thanks)
+ *                 delivery node, a postcard in hand, or getting there (reach / the bridge deck) on your own — checked
+ *                 at 4 Hz outside dialogue (arrivalStep: a fast trip or the pelican to the spot does not count);
+ *                 `task:<k>` replaces `task-on:<k>`, the goal fanfare, a toast, and BAYBAY says "go tell them" (a
+ *                 delivery or a favour finished while talking goes straight to the thanks)
  *   `pendingGo`   remind → 带我去: the walk (flow.navigateTo) starts when the dialogue closes
  */
 
@@ -50,6 +51,26 @@ export function goalMet(goal: TaskGoal, s: TaskSample, bridgeLocal?: (p: Vec2) =
     }
     default: return false;
   }
+}
+
+/** Arming state of one 'reach' / 'deck' favour (arrivalStep). */
+export interface Arrival { armed: boolean; epoch: number | null }
+
+/**
+ * One 4 Hz sample of a 'reach' / 'deck' favour: true when you came into its spot on your own. A sample outside the spot
+ * on foot, bike or car arms it; a fast trip, a `?at=` teleport or a resume (G1's travelEpoch changes) and the pelican
+ * disarm it. So landing there by 飞过去 or on the pelican and standing still does not count (step out and back in) —
+ * the rule the explorer goals keep (game/cityGoals.ts), armed right outside the spot instead of 150 u away.
+ * (goalMet alone only refuses the moment of travel: the first sample after the landing used to finish the favour.)
+ */
+export function arrivalStep(a: Arrival, goal: TaskGoal, s: TaskSample, epoch: number, bridgeLocal?: (p: Vec2) => Vec2 | null): boolean {
+  if (a.epoch !== null && epoch !== a.epoch) a.armed = false;
+  a.epoch = epoch;
+  if (s.travelling || s.mode === 'glide' || s.mode === 'travel') { a.armed = false; return false; }
+  // a transit car (the cable car, the ferry) neither arms nor disarms: hopping off inside counts if you walked out to it
+  if (!OWN_WAY.has(s.mode)) return false;
+  if (!goalMet(goal, s, bridgeLocal)) { a.armed = true; return false; }
+  return a.armed;
 }
 
 /** The dialogue a chat with `r` opens, given the favours' state. */
@@ -82,8 +103,8 @@ export function initResidentTasks(): () => void {
     game.set({ goalsDone: acceptTask(before, key) });
     invalidateInteractables();
     say(TASK_TEXT.accepted(r.task.title).zh, TASK_TEXT.accepted(r.task.title).en, 'info', 3200);
-    // already done (the postcard was in your journal): thank you right after this chat
-    if (goalMet(r.task.goal, sample(), bridgeLocal)) { finish(key, false); thankAfter = key; }
+    // already done (the postcard was in your journal): thank you right after this chat (a place must be walked to)
+    if (r.task.goal.kind === 'postcard' && goalMet(r.task.goal, sample(), bridgeLocal)) { finish(key, false); thankAfter = key; }
   };
 
   function finish(key: ResidentKey, tell: boolean) {
@@ -109,8 +130,8 @@ export function initResidentTasks(): () => void {
     const r = residentByKey(key);
     if (!r) return false;
     const s = game.get();
-    // the favour may be done already (standing at the tulips, card in hand): finish it and go straight to the thanks
-    if (taskState(s.goalsDone, r.key) === 'on' && goalMet(r.task.goal, sample(), bridgeLocal)) finish(r.key, false);
+    // the favour may be done already (the card in hand): finish it and go straight to the thanks
+    if (r.task.goal.kind === 'postcard' && taskState(s.goalsDone, r.key) === 'on' && goalMet(r.task.goal, sample(), bridgeLocal)) finish(r.key, false);
     const node = entryNode(r, game.get().goalsDone, met.has(r.key));
     // met = introduced themselves (a loaf handed over is not an introduction)
     if (node === nodeIds(r.key).hi) met.add(r.key);
@@ -133,6 +154,8 @@ export function initResidentTasks(): () => void {
   });
 
   let acc = 0;
+  /** 'reach' / 'deck' favours: armed by a sample outside the spot on your own (arrivalStep) */
+  const arrivals = new Map<ResidentKey, Arrival>();
   const offFrame = registerFrameSystem('g2-resident-tasks', dt => {
     if ((acc += dt) < 0.25) return;
     acc = 0;
@@ -141,8 +164,13 @@ export function initResidentTasks(): () => void {
     if (s.phase !== 'playing' || dialogueOpen() || s.panel.kind !== null || f.postcardReward || f.postcardFly) return;
     let smp: TaskSample | null = null;
     for (const r of RESIDENTS) {
-      if (r.task.goal.kind === 'ride' || r.task.goal.kind === 'deliver' || taskState(s.goalsDone, r.key) !== 'on') continue;
-      if (goalMet(r.task.goal, (smp ??= sample()), bridgeLocal)) finish(r.key, true);
+      const goal = r.task.goal;
+      if (goal.kind === 'ride' || goal.kind === 'deliver' || taskState(s.goalsDone, r.key) !== 'on') continue;
+      smp ??= sample();
+      if (goal.kind === 'postcard') { if (goalMet(goal, smp, bridgeLocal)) finish(r.key, true); continue; }
+      let a = arrivals.get(r.key);
+      if (!a) arrivals.set(r.key, (a = { armed: false, epoch: null }));
+      if (arrivalStep(a, goal, smp, travelEpoch(), bridgeLocal)) finish(r.key, true);
     }
   }, 6);
 

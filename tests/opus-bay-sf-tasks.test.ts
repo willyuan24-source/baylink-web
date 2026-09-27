@@ -21,7 +21,7 @@ g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getCont
 const residents = await import('../src/opus-bay/data/sf/residents');
 const { RESIDENTS, TASK_ON, TASK_DONE, acceptTask, finishTask, residentByKey, residentById, taskDoneId, taskOnId, taskState, tasksDone, tasksOpen, GGB_SOUTH_TOWER } = residents;
 const { BREAD_NODE, RESIDENT_SOURCES, TASK_TEXT, nodeIds, residentDialogue } = await import('../src/opus-bay/data/sf/dialogue');
-const { goalMet, entryNode } = await import('../src/opus-bay/game/residentTasks');
+const { goalMet, entryNode, arrivalStep } = await import('../src/opus-bay/game/residentTasks');
 const { CITY_NPC_DEFS, NPC_DEFS, npcDefsFor, RESIDENT_HIDE, RESIDENT_SHOW, RESIDENT_LOAD } = await import('../src/opus-bay/actors/npcs');
 const { buildResident } = await import('../src/opus-bay/actors/residentLooks');
 const { NPC_BONES, characterMaterial } = await import('../src/opus-bay/actors/models');
@@ -185,6 +185,49 @@ test('G2-6: goal checks: being there on your own (not flying, not travelling), t
   assert.ok(!goalMet(deck, s(north.x, north.z, GGB.DECK), local), 'the north tower is not the south one');
   assert.ok(!goalMet(deck, s(tower.x, tower.z, GGB.DECK, 'glide'), local), 'not flying past');
   assert.ok(!goalMet({ kind: 'ride' }, s(0, 0)) && !goalMet({ kind: 'deliver', to: 'gripman' }, s(0, 0)), 'events finish those');
+});
+
+test('G2-review: a place favour counts when you get there yourself, not when 飞过去 or the pelican drops you there', () => {
+  type M = 'foot' | 'glide' | 'bike' | 'car' | 'travel' | 'transit';
+  const s = (x: number, z: number, y = 50, mode: M = 'foot', travelling = false) => ({ x, y, z, mode, travelling, postcards: [] as string[] });
+  const peaks = RESIDENTS[5].task.goal, tulips = RESIDENTS[3].task.goal, deck = RESIDENTS[4].task.goal;
+  assert.ok(peaks.kind === 'reach' && tulips.kind === 'reach' && deck.kind === 'deck');
+  const at = s(peaks.x, peaks.z + 5), out = s(peaks.x + peaks.r + 30, peaks.z);
+  // walked up: armed on the way (outside the lookout), counts on arrival
+  let a = { armed: false, epoch: null as number | null };
+  assert.ok(!arrivalStep(a, peaks, out, 1));
+  assert.ok(arrivalStep(a, peaks, at, 1), 'walked in');
+  // 飞过去 to the lookout: the trip bumps the epoch; standing where it lands does not count (the old code finished it)
+  a = { armed: false, epoch: null };
+  assert.ok(!arrivalStep(a, peaks, out, 1), 'accepted far away: armed');
+  assert.ok(!arrivalStep(a, peaks, s(peaks.x, peaks.z, 200, 'travel', true), 2), 'in the air');
+  for (let i = 0; i < 8; i++) assert.ok(!arrivalStep(a, peaks, at, 2), 'landed on the lookout: not yet');
+  assert.ok(!arrivalStep(a, peaks, out, 2), 'step out…');
+  assert.ok(arrivalStep(a, peaks, at, 2), '…and back in: counts');
+  // a trip that lands elsewhere, then walking in, counts
+  a = { armed: true, epoch: 1 };
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 60, tulips.z, 0), 2));
+  assert.ok(arrivalStep(a, tulips, s(tulips.x + 2, tulips.z, 0, 'bike'), 2), 'by bike after the trip');
+  // the pelican lands you in the garden (same epoch): not until you step out and back
+  a = { armed: false, epoch: null };
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 60, tulips.z, 0), 3));
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 2, tulips.z, 30, 'glide'), 3));
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 2, tulips.z, 0), 3), 'landed in the garden');
+  // a transit car neither arms nor disarms
+  a = { armed: false, epoch: null };
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 60, tulips.z, 0, 'transit'), 3));
+  assert.ok(!arrivalStep(a, tulips, s(tulips.x + 2, tulips.z, 0), 3), 'never armed on your own');
+  // the bridge deck: walked from the bridge end to the south tower counts, flown onto it does not
+  const bridge = sfLandmark('golden-gate-bridge')!;
+  const local = (p: { x: number; z: number }) => worldToLandmark(bridge, p);
+  const onDeck = (lx: number, lz: number) => { const c = Math.cos(bridge.yaw), sn = Math.sin(bridge.yaw); return { x: bridge.x + lx * c + lz * sn, z: bridge.z - lx * sn + lz * c }; };
+  const end = onDeck(-GGB.TOWER - 40, 0), tower = onDeck(-GGB.TOWER + 3, 0);
+  a = { armed: false, epoch: null };
+  assert.ok(!arrivalStep(a, deck, s(end.x, end.z, GGB.DECK), 4, local));
+  assert.ok(arrivalStep(a, deck, s(tower.x, tower.z, GGB.DECK), 4, local), 'walked the deck');
+  a = { armed: false, epoch: null };
+  assert.ok(!arrivalStep(a, deck, s(end.x, end.z, GGB.DECK + 20, 'glide'), 4, local));
+  assert.ok(!arrivalStep(a, deck, s(tower.x, tower.z, GGB.DECK), 4, local), 'landed at the tower');
 });
 
 test('G2-6: a chat opens the node the favour asks for; Ray takes the loaf first', () => {

@@ -82,7 +82,10 @@ does), never reads a sign aloud, and never talks just to fill silence.
 
   Rules: a resident never asks for money, a purchase or a real shop visit; "带我去" is always offered in the reminder; a
   favour finishes the moment you do it (BAYBAY: "完成啦！回去告诉 X 吧～"), and the thanks can be heard any time after.
-  Tulips: say when they bloom (usually March), never that they are in bloom now.
+  Tulips: say when they bloom (usually March), never that they are in bloom now. No time-of-day greetings ("早呀 /
+  Morning"): a chat can happen at any hour of the Bay's clock, night included.
+  A place favour (the tulips, the lookout, the bridge deck) counts when you get there on foot, by bike or in the toy
+  car; flying there (飞过去 or the pelican) and standing still does not — step out and back in.
   BAYBAY in a resident's chat: she steps beside them and listens (no lines of her own inside it). From the call menu,
   "附近有什么？" names one neighbour within about a minute whose favour you have not taken yet ("Rosa 就在附近，好像想找人
   帮个忙！") and offers "去找 …" — a hint, never a nag: once you said yes, the favour leads the "next goal" instead.
