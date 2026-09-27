@@ -121,7 +121,8 @@ export class Npc {
   private passWaveAt = -100;
   private sidestep = 0;
   // city residents
-  private bodyState: 'none' | 'loading' | 'ready' = 'none';
+  /** 'gone': released with its ActorSystem (a body still loading is never built) */
+  private bodyState: 'none' | 'loading' | 'ready' | 'gone' = 'none';
   private bodyAsked = 0;
   private shown = false;
 
@@ -213,7 +214,7 @@ export class Npc {
       this.bodyState = 'loading';
       this.bodyAsked = performance.now();
       loadLooks().then(m => { if (this.bodyState === 'loading') this.setBody(m.buildResident(key)); }).catch((e: unknown) => {
-        this.bodyState = 'none';
+        if (this.bodyState === 'loading') this.bodyState = 'none';
         if (import.meta.env?.DEV) console.warn('[opus-bay residents] body', key, e);
       });
     }
@@ -221,6 +222,13 @@ export class Npc {
     if (want !== this.shown) { this.shown = want; this.object.visible = want; }
     return want;
   }
+
+  /**
+   * The ActorSystem is going away (it disposes the current rig's geometry and skeleton itself): a city resident's body
+   * that is still loading is never built, so its fresh geometry and skeleton cannot outlive the system. (G2 review: the
+   * body fetch resolved after dispose built an orphan rig; only a remount can hit it, the world mode is fixed per page.)
+   */
+  release() { if (this.def.resident) { this.bodyState = 'gone'; this.shown = false; this.object.visible = false; } }
 
   /** Swap the stand-in for the built body (same skeleton layout, so a fresh Animator picks up from rest). */
   private setBody(rig: Rig) {

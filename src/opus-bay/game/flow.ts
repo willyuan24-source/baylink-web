@@ -970,6 +970,9 @@ export function setResidentTalk(fn: ((key: string) => boolean) | null) { residen
 
 function talkToNpc(it: Interactable) {
   if (it.npc && residentTalk?.(it.npc)) return;
+  // one of the six before their chunk is in (a tap in the first moments of a city visit): wait for it rather than
+  // fall through to NPC_LINES, where 'gripman' is the transit crew's generic line (G2 review)
+  if (it.npc && !residentTalk && residentByKey(it.npc)) return;
   const post = NPC_POSTS.find(item => item.key === it.npc);
   const existing = npcLine(it.npc).nodeId ?? (NODES[it.id] ? it.id : undefined);
   if (existing) { playDialogue(existing); return; }

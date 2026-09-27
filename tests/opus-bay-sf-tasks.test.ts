@@ -22,7 +22,8 @@ const residents = await import('../src/opus-bay/data/sf/residents');
 const { RESIDENTS, TASK_ON, TASK_DONE, acceptTask, finishTask, residentByKey, residentById, taskDoneId, taskOnId, taskState, tasksDone, tasksOpen, GGB_SOUTH_TOWER } = residents;
 const { BREAD_NODE, RESIDENT_SOURCES, TASK_TEXT, nodeIds, residentDialogue } = await import('../src/opus-bay/data/sf/dialogue');
 const { goalMet, entryNode, arrivalStep } = await import('../src/opus-bay/game/residentTasks');
-const { CITY_NPC_DEFS, NPC_DEFS, npcDefsFor, RESIDENT_HIDE, RESIDENT_SHOW, RESIDENT_LOAD } = await import('../src/opus-bay/actors/npcs');
+const { CITY_NPC_DEFS, NPC_DEFS, Npc, npcDefsFor, RESIDENT_HIDE, RESIDENT_SHOW, RESIDENT_LOAD } = await import('../src/opus-bay/actors/npcs');
+const { runtime } = await import('../src/opus-bay/core/runtime');
 const { buildResident } = await import('../src/opus-bay/actors/residentLooks');
 const { NPC_BONES, characterMaterial } = await import('../src/opus-bay/actors/models');
 const { CITY_POIS, ZH_GLOSSARY } = await import('../src/opus-bay/data/sf/cityPois');
@@ -308,6 +309,33 @@ test('G2-7: bodies on the resident skeleton, the shared character material, 2–
     assert.ok(rig.height > 1.25 && rig.height < 1.75, `${r.key}: ${rig.height.toFixed(2)} u tall`);
     rig.mesh.geometry.dispose(); rig.mesh.skeleton.dispose();
   }
+});
+
+test('G2-review: a resident body builds once near, and never after its ActorSystem let it go', async () => {
+  const tick = () => new Promise(res => setTimeout(res, 0));
+  const def = CITY_NPC_DEFS.find(d => d.resident === 'baker')!;
+  const saved = { x: runtime.player.x, z: runtime.player.z };
+  try {
+    runtime.player.x = def.at!.x + 2; runtime.player.z = def.at!.z;
+    // near: the body is fetched, built and shown
+    const a = new Npc(def);
+    const standIn = a.rig;
+    a.update(0.016, 0);
+    for (let i = 0; i < 40 && a.rig === standIn; i++) await tick();
+    a.update(0.016, 0.1);
+    assert.notEqual(a.rig, standIn, 'body built');
+    assert.ok(a.visible && a.object.visible, 'shown');
+    // released while its body is still loading (the system disposed): nothing is built, it stays hidden
+    const b = new Npc(def);
+    const standInB = b.rig;
+    b.update(0.016, 0);
+    b.release();
+    for (let i = 0; i < 40; i++) await tick();
+    b.update(0.016, 0.1);
+    assert.equal(b.rig, standInB, 'no orphan body after release');
+    assert.ok(!b.visible && !b.object.visible);
+    a.rig.mesh.geometry.dispose(); a.rig.mesh.skeleton.dispose(); b.rig.mesh.geometry.dispose(); b.rig.mesh.skeleton.dispose();
+  } finally { runtime.player.x = saved.x; runtime.player.z = saved.z; }
 });
 
 test('G2-7: city mode spawns the six at their spots; district mode unchanged', () => {
