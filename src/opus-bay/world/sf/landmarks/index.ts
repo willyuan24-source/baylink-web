@@ -90,10 +90,11 @@ export interface LandmarkSwap {
 
 /**
  * Whole-landmark hero fade (TOY OB_HERO): it thins as one while it stands between the camera and the player instead of
- * getting occlusion dither holes. `r` = radius around the origin (local), `y1` = top (local y); `procedural: false` =
- * only the AI parts fade (a large landmark whose procedural wings keep the per-fragment dither).
+ * getting occlusion dither holes. Footprint: `box` = local half extents (x, z) around the origin, else the circle `r`;
+ * `y1` = top (local y); `procedural: false` = only the AI parts fade (a large landmark whose procedural wings keep the
+ * per-fragment dither). world/sf/sites.ts fadeOccludes.
  */
-export interface LandmarkFade { r: number; y1: number; procedural?: boolean }
+export interface LandmarkFade { r: number; y1: number; box?: readonly [number, number]; procedural?: boolean }
 
 /** Street / plaza ground drawn by the landmark with the city GROUND material (local polygon at local height y). */
 export interface LandmarkGround { poly: Vec2[]; y: number; color: string; pattern: number }

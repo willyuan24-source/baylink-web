@@ -7,7 +7,7 @@ import { type ModelMaterial, makeModelMaterial, modelInstanceGeometry, setModelI
 import type { LoadedModel } from '../models';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
-import { type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, landmarkMatrix, usesAi } from './landmarks';
+import { type LandmarkFade, type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, landmarkMatrix, usesAi } from './landmarks';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
 
@@ -192,6 +192,40 @@ export function disposeSwapObjects(objects: readonly THREE.Object3D[]) {
   }
 }
 
+/**
+ * Does the landmark stand between the camera and the player? The camera → player segment, stopped 0.6 u short of the
+ * player (a landmark behind the player never fades), is clipped against the fade footprint in the landmark's local
+ * frame (`box` half extents, else the circle `r`) and the height band baseY − 1 … baseY + y1 over that stretch.
+ */
+export function fadeOccludes(l: SfLandmark, cfg: LandmarkFade, baseY: number, cam: THREE.Vector3, player: THREE.Vector3): boolean {
+  const cs = Math.cos(l.yaw), sn = Math.sin(l.yaw);
+  const ax = (cam.x - l.x) * cs - (cam.z - l.z) * sn, az = (cam.x - l.x) * sn + (cam.z - l.z) * cs;
+  const bx = (player.x - l.x) * cs - (player.z - l.z) * sn, bz = (player.x - l.x) * sn + (player.z - l.z) * cs;
+  const dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz);
+  if (L < 0.8) return false;
+  let t0 = 0, t1 = 1 - 0.6 / L;
+  if (cfg.box) {
+    // slab clip against |x| <= hx, |z| <= hz
+    for (const [o, d, h] of [[ax, dx, cfg.box[0]], [az, dz, cfg.box[1]]] as const) {
+      if (Math.abs(d) < 1e-9) { if (Math.abs(o) > h) return false; continue; }
+      const u = (-h - o) / d, v = (h - o) / d;
+      t0 = Math.max(t0, Math.min(u, v));
+      t1 = Math.min(t1, Math.max(u, v));
+    }
+  } else {
+    // |a + t d| = r
+    const A = dx * dx + dz * dz, B = 2 * (ax * dx + az * dz), C = ax * ax + az * az - cfg.r * cfg.r, D = B * B - 4 * A * C;
+    if (D < 0) return false;
+    const q = Math.sqrt(D);
+    t0 = Math.max(t0, (-B - q) / (2 * A));
+    t1 = Math.min(t1, (-B + q) / (2 * A));
+  }
+  if (t0 >= t1) return false;
+  const y = (t: number) => cam.y + (player.y + 0.2 - cam.y) * t;
+  const ya = y(t0), yb = y(t1);
+  return Math.min(ya, yb) < baseY + cfg.y1 && Math.max(ya, yb) > baseY - 1;
+}
+
 /** A landmark's `ground` polygons as one GROUND mesh (city-flagged: the L0 ground program), local frame. */
 export function buildGroundMesh(l: SfLandmark): THREE.Mesh | null {
   if (!l.ground?.length) return null;
@@ -235,8 +269,8 @@ export class CitySites {
     }));
   }
 
-  /** false: every landmark stays procedural (a QA switch; the default follows each swap's `ship`). */
-  aiEnabled = true;
+  /** false: every landmark stays procedural (QA A/B: `?ai=0` in the URL; the default follows each swap's `ship`). */
+  aiEnabled = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('ai') === '0');
   private aiFailed = new Set<string>();
 
   /** Exclusion shapes for the stream workers (city buildings / props inside are dropped). */
@@ -422,21 +456,12 @@ export class CitySites {
     this.pool?.setVisible(SITE_ID0 + s.i, true);
   }
 
-  /** Whole-landmark fades (world.ts updateHeroFades, per city landmark): camera → player segment near the landmark. */
+  /** Whole-landmark fades (world.ts updateHeroFades, per city landmark): see fadeOccludes. */
   private updateFade(s: Site, dt: number) {
     const f = s.fade, cfg = s.l.fade;
     if (!f || !cfg) return;
-    let target = 0;
-    if (U.uFade.value > 0.5) {
-      const c = U.uCam.value, p = U.uPlayer.value;
-      const px = p.x, py = p.y + 0.2, pz = p.z;
-      const dx = px - c.x, dz = pz - c.z, L2 = dx * dx + dz * dz || 1;
-      const t = Math.max(0, Math.min(0.92, ((s.l.x - c.x) * dx + (s.l.z - c.z) * dz) / L2));
-      const d = Math.hypot(c.x + dx * t - s.l.x, c.z + dz * t - s.l.z);
-      const y = c.y + (py - c.y) * t;
-      if (y > s.baseY - 1 && y < s.baseY + cfg.y1) target = HERO_FADE * (1 - Math.min(1, Math.max(0, (d - cfg.r) / 1.2)));
-    }
-    f.value += (target - f.value) * (1 - Math.exp(-dt * 8));
+    const on = U.uFade.value > 0.5 && fadeOccludes(s.l, cfg, s.baseY, U.uCam.value, U.uPlayer.value);
+    f.value += ((on ? HERO_FADE : 0) - f.value) * (1 - Math.exp(-dt * 8));
     if (f.value < 0.002) f.value = 0;
   }
 

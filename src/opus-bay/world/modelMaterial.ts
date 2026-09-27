@@ -231,14 +231,30 @@ export function setModelInstance(geo: THREE.BufferGeometry, i: number, tint: str
 // City mode only: a district session never draws them. Registered at import (sites.ts imports this module).
 // ---------------------------------------------------------------------------
 
+/**
+ * The warm-up materials stay alive for the session (never disposed): three frees a program as soon as no material uses
+ * it, so a disposed dummy would throw its freshly compiled program away and the first real model would compile again
+ * (seen in the city: 2 programs more with the AI gate than with `?ai=0`). One material per variant, a white 1×1 map.
+ */
+let warmMats: { hero: ModelMaterial; inst: ModelMaterial; heroToy: THREE.Material } | null = null;
+function warmMaterials() {
+  if (!warmMats) {
+    const map = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.needsUpdate = true;
+    warmMats = {
+      hero: makeModelMaterial({ map, variant: 'ob-model-hero', name: 'ob-model-hero:warmup' }),
+      inst: makeModelMaterial({ map, variant: 'ob-model-inst', name: 'ob-model-inst:warmup' }),
+      heroToy: makeHeroMaterial('warmup').material,
+    };
+  }
+  return warmMats;
+}
+
 /** The objects the warm-up compiles (exported for the test: one per variant + the hero TOY mesh). */
 export function modelWarmupSet(): { objects: THREE.Object3D[]; dispose: () => void } {
-  const map = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.needsUpdate = true;
+  const { hero, inst, heroToy } = warmMaterials();
   const box = new THREE.BoxGeometry(1, 1, 1);
-  const hero = makeModelMaterial({ map, variant: 'ob-model-hero', name: 'ob-model-hero:warmup' });
-  const inst = makeModelMaterial({ map, variant: 'ob-model-inst', name: 'ob-model-inst:warmup' });
   const heroMesh = new THREE.Mesh(box, hero);
   heroMesh.castShadow = true;
   heroMesh.receiveShadow = true;
@@ -248,13 +264,13 @@ export function modelWarmupSet(): { objects: THREE.Object3D[]; dispose: () => vo
   const toy = new TypedBatch(8);
   toy.polygon([{ x: 0, z: 0 }, { x: 1, z: 0 }, { x: 1, z: 1 }], 0, new THREE.Color('#ffffff'), [0, 0, 0, 0]);
   const toyGeo = TypedBatch.toGeometry(toy.toArrays());
-  const heroToy = makeHeroMaterial('warmup');
-  const toyMesh = new THREE.Mesh(toyGeo, heroToy.material);
+  const toyMesh = new THREE.Mesh(toyGeo, heroToy);
   toyMesh.castShadow = true;
   toyMesh.receiveShadow = true;
   return {
     objects: [heroMesh, instMesh, toyMesh],
-    dispose: () => { box.dispose(); instGeo.dispose(); toyGeo.dispose(); hero.dispose(); inst.dispose(); heroToy.material.dispose(); map.dispose(); instMesh.dispose(); },
+    // geometry only: the materials keep their programs (see warmMaterials)
+    dispose: () => { box.dispose(); instGeo.dispose(); toyGeo.dispose(); instMesh.dispose(); },
   };
 }
 
