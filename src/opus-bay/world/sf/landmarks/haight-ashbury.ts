@@ -100,7 +100,7 @@ export const haightAshbury: W4Site = {
     arrival: { x: -1.2, z: 1.4, heading: 2.3 },
     photo: { target: [3.5, 3, -3.5], distance: 20, elevation: 0.18, bearing: -2.4 },
     flag: { x: 3.3, z: -5.5, h: 30 },
-    height: { realM: 24, u: 7.0, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 24, u: 7.0, top: 7.3, rule: 'H = 3.2 + 0.155·h' },
     osm: ['node/4359145394', 'way/264356958', 'way/264356960', 'way/264356943'],
     terrain: [-3, -11, 14, 3],
     ringMin: 0.6,

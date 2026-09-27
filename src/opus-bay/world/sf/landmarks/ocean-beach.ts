@@ -78,7 +78,7 @@ export const oceanBeach: W4Site = {
     arrival: { x: -2.4, z: -1.0, heading: 0 },
     photo: { target: [0, 1, 0], distance: 26, elevation: 0.35, bearing: -2.6 },
     flag: { x: 0, z: -3.0, h: 30 },
-    height: { realM: 0, u: 2.2, rule: 'ground' },
+    height: { realM: 0, u: 2.2, top: 3.5, rule: 'overlook' },
     osm: ['place ocean-beach', 'footway over the dunes at Lawton St'],
     terrain: [-16, -12, 16, 6],
     notes: 'No swimming prompts (dangerous currents). No fire rings at Lawton St: the beach fires are only between Stairwells 15 and 20 (JFK Dr to Lincoln Way). Sunset Dunes may change after Prop G (3 Nov 2026).',

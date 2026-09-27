@@ -186,7 +186,7 @@ export const stonestown: W4Site = {
     arrival: { x: 2.4, z: 13.0, heading: Math.PI },
     photo: { target: [0, 4, 0], distance: 50, elevation: 0.34, bearing: 0.6 },
     flag: { x: 1.4, z: 6.4, h: 30 },
-    height: { realM: 26, u: 9.2, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 26, u: 9.2, top: 8.9, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/1154799336', 'way/35156778', 'way/147000933', 'way/1155126441', 'way/1155126445', 'way/147001452'],
     terrain: [-13, -12, 36, 22],
   },

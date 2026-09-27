@@ -79,7 +79,7 @@ export const ccsfDrpac: W4Site = {
     arrival: { x: 9.6, z: -2.0, heading: -Math.PI / 2 },
     photo: { target: [0, 5, 0], distance: 34, elevation: 0.3, bearing: 1.2 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 64, u: 14.6, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 64, u: 14.6, top: 13.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/159026646'],
     terrain: [-10, -9, 11, 7],
     notes: 'Construction lot of the Diego Rivera Performing Arts Center (opening ~late 2028): no mural, no signs.',

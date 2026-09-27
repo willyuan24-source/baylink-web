@@ -114,7 +114,7 @@ export const ccsfOcean: W4Site = {
     arrival: { x: -0.35, z: 9.8, heading: Math.PI },
     photo: { target: [0, 4, 0], distance: 38, elevation: 0.24, bearing: 0.5 },
     flag: { x: -0.35, z: 1.2, h: 30 },
-    height: { realM: 27, u: 8.3, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 27, u: 8.3, top: 10.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['relation/16916462'],
     terrain: [-12, -5, 12, 13],
     notes: 'The Rivera mural is not on show until the Diego Rivera Performing Arts Center opens (~2028); the Volz mosaics are plain colour panels.',

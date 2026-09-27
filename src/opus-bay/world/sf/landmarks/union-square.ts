@@ -93,7 +93,7 @@ export const unionSquare: W4Site = {
     arrival: { x: -3.0, z: 3.0, heading: 2.4 },
     photo: { target: [0, 4, 0], distance: 26, elevation: 0.3, bearing: -0.9 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 29.6, u: 7.8, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 29.6, u: 7.8, top: 9.0, rule: 'H = 3.2 + 0.155·h' },
     osm: ['place osm-w616479962 (Dewey Monument)', 'park way of Union Square'],
     terrain: [-9, -8, 9, 8],
     notes: 'Downtown diet (plan §2.2 / §2.6): if lane V measures < 4k headroom at the Chinatown spot, the integration keeps only the ground and the column (lod0R 120).',

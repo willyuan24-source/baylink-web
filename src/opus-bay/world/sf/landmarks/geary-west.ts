@@ -84,7 +84,7 @@ export const gearyWest: W4Site = {
     arrival: { x: 0, z: 2.6, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 22, elevation: 0.25, bearing: 0.3 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 38.1, u: 9.1, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 38.1, u: 9.1, top: 9.6, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/286435447'],
     terrain: [-4, -4, 4, 5],
     terrainStep: 1,

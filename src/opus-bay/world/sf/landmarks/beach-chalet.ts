@@ -71,7 +71,7 @@ export const beachChalet: W4Site = {
     arrival: { x: 0.2, z: 2.8, heading: Math.PI },
     photo: { target: [0, 2.5, 0], distance: 20, elevation: 0.2, bearing: 0.5 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 12, u: 5.06, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 12, u: 5.06, top: 5.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/28691595'],
     terrain: [-5, -3, 5, 5],
     notes: 'The WPA-era murals inside are never reproduced; the restaurant has no name or sign here.',

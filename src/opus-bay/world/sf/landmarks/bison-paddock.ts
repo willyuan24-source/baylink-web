@@ -113,7 +113,7 @@ export const bisonPaddock: W4Site = {
     arrival: { x: 13.9, z: -2.0, heading: -Math.PI / 2 },
     photo: { target: [8, 1, -9], distance: 22, elevation: 0.3, bearing: 1.1 },
     flag: { x: 4.0, z: -4.0, h: 30 },
-    height: { realM: 2, u: 1.9, rule: 'ground' },
+    height: { realM: 2, u: 1.9, top: 5.0, rule: 'overlook' },
     osm: ['way/161707029'],
     terrain: [-22, -25, 23, 24],
     notes: 'The meadow and its trees stay the city\'s ground; only the viewing sides are fenced (the far sides read as the meadow edge).',

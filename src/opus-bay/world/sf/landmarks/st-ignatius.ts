@@ -138,7 +138,7 @@ export const stIgnatius: W4Site = {
     arrival: { x: 0.9, z: 6.4, heading: Math.PI },
     photo: { target: [0.4, 6.5, 0], distance: 34, elevation: 0.2, bearing: 0.35 },
     flag: { x: CX, z: CROSS_Z, h: 30 },
-    height: { realM: 64, u: 12.9, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 64, u: 12.9, top: 13.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/225193440'],
     terrain: [-5, -8, 15, 8],
     aiSlot: { model: 'w4-st-ignatius', id: 'sf-st-ignatius', at: [CX, +g.at(CX, 5.4).toFixed(2), -0.18], note: 'lane V (data/sf/w4Models.ts, sf-st-ignatius): twin spires + dome (H-1); swap through the SoloView gate, same footprint and blockers' },

@@ -16,7 +16,7 @@ import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLand
 import { LIFT, LIFT_STRIPE, type W4Site, polyArea, siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
 import { W4_SITES as W4_LIST } from '../src/opus-bay/world/sf/landmarks/w4list';
-import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, siteFlagTop, w4Site, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
+import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, isMainSite, siteFlagTop, w4Site, w4SiteByPlace, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
 import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 import { sfDisk } from './opus-bay-sf-disk';
 
@@ -93,9 +93,16 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
     assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
     if (extra) assert.ok(m.attractions.includes(m.placeId) || W4_SITES.some(o => o.w4.attractions.includes(m.placeId)), `${s.id}: ${m.placeId} is modelled`);
     assert.ok(Number.isFinite(m.height.u) && m.height.u > 0, s.id);
+    assert.ok(['H = 3.2 + 0.155·h', 'terrainY', 'overlook'].includes(m.height.rule), `${s.id}: a rule SfLandmarkInfo knows`);
+    // one MAIN record per place row (the first in build order); the others share it
+    const main = w4SiteByPlace(m.placeId)!;
+    assert.ok(main.w4.placeId === m.placeId && W4_SITES.indexOf(main) <= W4_SITES.indexOf(s) && isMainSite(s) === (main === s), s.id);
     if (m.lod0R !== undefined) assert.ok(m.lod0R >= 120 && m.lod0R <= 520, s.id);
     assert.ok(m.photo.distance > 0 && Math.abs(m.photo.elevation) < 1.5 && m.photo.target.every(Number.isFinite), s.id);
   }
+  // the CCSF Ocean campus row answers with Science Hall, never the arts-center construction lot
+  assert.equal(w4SiteByPlace('ccsf-ocean-campus')?.id, 'ccsf-ocean');
+  assert.equal(isMainSite(w4Site('ccsf-drpac')!), false);
 });
 
 test('budgets: lod 0 (model + draped ground + animate part) within the tier (or diet) cap, lod 2 ≤ 10 % of the model, small ground, at most 3 draw parts', () => {
@@ -326,6 +333,8 @@ test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u;
     const g = buildLandmark(s, 0, 0);
     g.computeBoundingBox();
     const top = g.boundingBox!.max.y;
+    // the record's measured top over its base (what cityViews / cityLive add to the base at the integration)
+    assert.ok(Math.abs(s.w4.height.top - top) <= 0.1, `${s.id} height.top ${s.w4.height.top} vs the model's top ${top.toFixed(2)}`);
     assert.ok(f.h >= top + 8 || f.h === 30 || f.h === ATTRACTION_FLAG_H.max, `${s.id} flag ${f.h} over the skyline ${top.toFixed(1)}`);
   }
   for (const l of SF_LANDMARKS) {

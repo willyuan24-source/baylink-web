@@ -80,7 +80,7 @@ export const yerbaBuenaGardens: W4Site = {
     arrival: { x: 0.0, z: 0.0, heading: Math.PI / 2 },
     photo: { target: [2, 2, 0], distance: 28, elevation: 0.45, bearing: -1.6 },
     flag: { x: -4.0, z: -3.2, h: 30 },
-    height: { realM: 6.1, u: 4.3, rule: 'ground' },
+    height: { realM: 6.1, u: 4.3, top: 4.3, rule: 'overlook' },
     osm: ['park way of Yerba Buena Gardens', 'way/109141774'],
     terrain: [-14, -9, 11, 8],
     notes: 'Downtown diet (plan §2.2): ≤ 0.4k, lod0R 200. The MLK Memorial quotations are never reproduced; the carousel, MoAD and Moscone are cards.',

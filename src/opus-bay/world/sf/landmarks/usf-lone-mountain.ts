@@ -160,7 +160,7 @@ export const usfLoneMountain: W4Site = {
     arrival: { x: STAIR_X, z: 16.6, heading: Math.PI },
     photo: { target: [0, 6, 2], distance: 36, elevation: 0.28, bearing: 0.4 },
     flag: { x: TOWER.x, z: TOWER.z, h: 30 },
-    height: { realM: 58, u: 12.8, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 58, u: 12.8, top: 16.0, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/274298058'],
     terrain: [-11, -7, 11, 19],
   },

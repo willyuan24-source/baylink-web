@@ -50,8 +50,13 @@ export interface W4SiteMeta {
   photo: SitePhoto;
   /** flag pole foot (local) and top above the ground there (u, 28–70) */
   flag: { x: number; z: number; h: number };
-  /** real height (m) of the tallest structure and the toy height used (height policy, plan §2.2) */
-  height: { realM: number; u: number; rule: 'H = 3.2 + 0.155·h' | 'overlook' | 'ground' };
+  /**
+   * real height (m) of the tallest structure and the toy height used (height policy, plan §2.2): `u` = the policy's
+   * height of the main structure over its own ground, `top` = the lod-0 model's measured top over the site's BASE (the
+   * test re-measures it; data/sf/landmarks SfLandmarkInfo.height.u means this one: cityViews / cityLive add it to the
+   * base), `rule` as SfLandmarkInfo's ('overlook' for a plaza, park or view site with no building to frame)
+   */
+  height: { realM: number; u: number; top: number; rule: 'H = 3.2 + 0.155·h' | 'terrainY' | 'overlook' };
   /** OSM features the model replaces or was measured from */
   osm: readonly string[];
   /** the local box (x0, z0, x1, z1) scripts/opus-sf/sites-terrain.mts bakes the ground heights over */

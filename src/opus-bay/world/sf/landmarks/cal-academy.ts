@@ -104,7 +104,7 @@ export const calAcademy: W4Site = {
     arrival: { x: 0, z: 9.0, heading: Math.PI },
     photo: { target: [0, 4, 0], distance: 36, elevation: 0.35, bearing: 0.7 },
     flag: { x: -4.6, z: -0.4, h: 30 },
-    height: { realM: 25, u: 7.2, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 25, u: 7.2, top: 8.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/28695389'],
     terrain: [-13, -10, 13, 11],
     aiSlot: { model: 'w4-cal-academy', id: 'sf-cal-academy', at: [0, +g.at(0, 0).toFixed(2), 0], note: 'lane V (data/sf/w4Models.ts, sf-cal-academy): living roof with the two domes and the glass canopy (H-1); ≤ 6k, ≤ 4k if the Music Concourse view is over 395k' },

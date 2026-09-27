@@ -103,7 +103,7 @@ export const murphyWindmill: W4Site = {
     arrival: { x: 1.9, z: 2.8, heading: -2.54 },
     photo: { target: [0, 3.5, 0.5], distance: 22, elevation: 0.2, bearing: 0.5 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 10, u: 6.3, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 10, u: 6.3, top: 6.4, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/287927026'],
     terrain: [-4, -4, 4, 4],
     notes: 'Height: the OSM tag (10 m) gives 4.75 u by the rule, but the plan asks for the Dutch Windmill recipe, so the tower is drawn at its size (6.3 u to the cap top, sail radius 4.0; the real sails are 114 ft long, Wikipedia).',

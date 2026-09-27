@@ -80,7 +80,7 @@ export const sfmoma: W4Site = {
     arrival: { x: 0, z: 6.6, heading: Math.PI },
     photo: { target: [0, 5, 2], distance: 26, elevation: 0.22, bearing: 0.4 },
     flag: { x: 0, z: 2.4, h: 30 },
-    height: { realM: 43, u: 10.0, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 43, u: 10.0, top: 9.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/41692824'],
     terrain: [-6, -6, 6, 9],
     ringMin: 0.6,

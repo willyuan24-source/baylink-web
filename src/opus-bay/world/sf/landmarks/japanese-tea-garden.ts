@@ -165,7 +165,7 @@ export const japaneseTeaGarden: W4Site = {
     arrival: { x: 8.0, z: -3.0, heading: -Math.PI / 2 },
     photo: { target: [-1, 2, 1], distance: 26, elevation: 0.5, bearing: 1.2 },
     flag: { x: PAGODA.x, z: PAGODA.z, h: 30 },
-    height: { realM: 15, u: 7.4, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 15, u: 7.4, top: 8.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way (grass) around place japanese-tea-garden'],
     terrain: [-9, -11, 10, 12],
     terrainStep: 1,

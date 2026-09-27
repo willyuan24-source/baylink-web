@@ -114,7 +114,7 @@ export const ucsfParnassus: W4Site = {
     ringMin: 0.7,
     photo: { target: [0.9, 7, 0], distance: 40, elevation: 0.3, bearing: -2.3 },
     flag: { x: 1.1, z: 1.8, h: 30 },
-    height: { realM: 70, u: 15.5, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 70, u: 15.5, top: 15.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/1386883405', 'relation/3830592'],
     terrain: [-9, -8, 8, 6],
     notes: "The campus towers stay city buildings; the site is the new-hospital lot (steel frame + turning tower crane). Walk-around ring 70 %: the Medical Center closes the lot's south side. The Mt Sutro forest is the city's own forest area.",

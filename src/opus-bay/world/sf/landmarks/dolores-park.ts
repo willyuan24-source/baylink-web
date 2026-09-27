@@ -119,7 +119,7 @@ export const doloresPark: W4Site = {
     arrival: { x: 3.2, z: 7.0, heading: Math.PI },
     photo: { target: [0, 1, -4], distance: 40, elevation: 0.3, bearing: 0.3 },
     flag: { x: -1.5, z: 0, h: 30 },
-    height: { realM: 0, u: 5.6, rule: 'ground' },
+    height: { realM: 0, u: 5.6, top: 9.5, rule: 'overlook' },
     osm: ['park ways of Mission Dolores Park'],
     terrain: [-26, -15, 24, 12],
     terrainStep: 1,

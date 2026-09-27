@@ -81,7 +81,7 @@ export const ucsfMissionBay: W4Site = {
     arrival: { x: 0.2, z: 4.6, heading: Math.PI },
     photo: { target: [0, 2, 0], distance: 30, elevation: 0.45, bearing: 0.8 },
     flag: { x: 5.2, z: 0.2, h: 30 },
-    height: { realM: 0, u: 3.2, rule: 'ground' },
+    height: { realM: 0, u: 3.2, top: 4.6, rule: 'overlook' },
     osm: ['way/84821725'],
     terrain: [-11, -8, 11, 8],
     notes: "The lab towers and hospitals around the quad stay city buildings (their walls close the walk-around ring to 72 %); the card anchor is the Community Center on the south side.",

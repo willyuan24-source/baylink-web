@@ -140,7 +140,7 @@ export const sfZoo: W4Site = {
     arrival: { x: -2.0, z: -6.0, heading: 0.31 },
     photo: { target: [0, 1.8, 0], distance: 24, elevation: 0.38, bearing: -2.5 },
     flag: { x: -2.2, z: -7.0, h: 30 },
-    height: { realM: 5.5, u: 4.3, rule: 'ground' },
+    height: { realM: 5.5, u: 4.3, top: 3.3, rule: 'overlook' },
     osm: ['way/382796793', 'node/3860138780'],
     terrain: [-8, -9, 7, 9],
     notes: 'Never pandas. The zoo\'s paths, animal houses and entry plaza stay the city\'s; the savanna is seen over its rails from the deck and the north path.',

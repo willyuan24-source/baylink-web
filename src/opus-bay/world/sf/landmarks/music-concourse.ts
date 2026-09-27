@@ -104,7 +104,7 @@ export const musicConcourse: W4Site = {
     arrival: { x: 0.3, z: -3.0, heading: Math.PI },
     photo: { target: [0, 2, 6], distance: 40, elevation: 0.42, bearing: 2.6 },
     flag: { x: -0.6, z: 17.5, h: 30 },
-    height: { realM: 17, u: 5.8, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 17, u: 5.8, top: 6.3, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/30896932', 'place osm-w30899551'],
     terrain: [-10, -19, 10, 20],
     notes: 'Shared bowl of the Music Concourse site: no attraction of its own (the de Young, cal-academy and japanese-tea-garden records carry them); place row = the Music Concourse park.',

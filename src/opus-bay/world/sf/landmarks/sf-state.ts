@@ -167,7 +167,7 @@ export const sfState: W4Site = {
     arrival: { x: 7.4, z: 9.4, heading: -2.4 },
     photo: { target: [-4, 3.5, 0], distance: 42, elevation: 0.36, bearing: 0.9 },
     flag: { x: 3.0, z: 4.0, h: 30 },
-    height: { realM: 18, u: 7.4, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 18, u: 7.4, top: 8.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['relation/19710046', 'relation/4751349', 'relation/4793449', 'way/338711158'],
     terrain: [-20, -16, 15, 14],
   },

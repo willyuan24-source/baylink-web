@@ -15,6 +15,7 @@ import { W4_SITES } from './w4list';
  *                            attractions, arrival, photo, flag, lod0R, budget, terrain box, AI slot)
  *   w4Site(id)               by site id
  *   w4SiteOf(id)             the site that models an attraction id or a place id
+ *   w4SiteByPlace(placeId)   the MAIN record of a place row (several records may share one: CCSF), isMainSite(s)
  *   siteFlagTop(id)          plan §4.2 flag pole for a site, an existing landmark, a district hero (coit-tower,
  *                            ferry-building), an attraction or a place id: WORLD pole foot and pole top over the
  *                            ground there (h 28–70); null when unknown (lane P then uses a 30 u pole at the attraction)
@@ -37,6 +38,17 @@ for (const s of W4_SITES) {
 export const W4_SITE_IDS: readonly string[] = W4_SITES.map(s => s.id);
 export function w4Site(id: string): W4Site | undefined { return byId.get(id); }
 export function w4SiteOf(ref: string): W4Site | undefined { return byId.get(ref) ?? byRef.get(ref); }
+
+/**
+ * The MAIN record of a place row: the first site (build order) that names `placeId`. Places shared by several records
+ * (the CCSF Ocean campus: Science Hall `ccsf-ocean` and the arts-center lot `ccsf-drpac`) answer with one record, so a
+ * place → landmark-info lookup (data/sf/landmarks sfLandmarkInfoByPlace at the integration) keys on it alone.
+ */
+export function w4SiteByPlace(placeId: string): W4Site | undefined { return byPlace.get(placeId); }
+const byPlace = new Map<string, W4Site>();
+for (const s of W4_SITES) if (!byPlace.has(s.w4.placeId)) byPlace.set(s.w4.placeId, s);
+/** is this record the main one of its place row (see w4SiteByPlace)? */
+export const isMainSite = (s: W4Site) => byPlace.get(s.w4.placeId) === s;
 
 /** plan §4.2: pole top = skyline + 10 u clamped to 70; a site lower than that reads with a 30 u pole */
 export const flagHeight = (skylineU: number) => (skylineU + 10 >= 28 ? Math.min(70, +(skylineU + 10).toFixed(2)) : 30);

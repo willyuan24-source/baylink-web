@@ -84,7 +84,7 @@ export const blueHeronLake: W4Site = {
     arrival: { x: 0, z: 1.2, heading: 0 },
     photo: { target: [0, 2.2, 0], distance: 16, elevation: 0.22, bearing: 1.4 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 8.5, u: 4.5, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 8.5, u: 4.5, top: 5.0, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/120479810'],
     terrain: [-6, -5, 6, 6],
     aiSlot: { model: 'w4-chinese-pavilion', id: 'sf-chinese-pavilion', at: [0, BASE, 0], note: 'lane V (data/sf/w4Models.ts, sf-chinese-pavilion): 2,940 triangles, 5.62 × 4.5 × 5.61 u, placed at the origin with scale 1 at local y BASE; the column blockers match its ring' },
