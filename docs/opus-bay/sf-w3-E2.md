@@ -186,10 +186,10 @@ Relayed messages during part a: none.
 | E2-7 | `5bafb91` | Glide world: a live tall list, the Bay Bridge, a 64 u hash, city landing (below). |
 | E2-8 + G1 request 1 | `3890755` | The procedural flying pelican; fast travel rides it (below). |
 | G2 request 1 | `23a31fc` | `sf-w3-G2.md` request 1: a hidden city resident draws no blob shadow (`if (npc.visible)`); the rider's blob also shrinks away high up in fast travel. |
-| E2-12 | `17c8b03` | City bike racks and benches (below). |
-| E2-6 / DR-5 | `645e7f9` | The seated cable-car camera looks level under the roof's overhang (the roof edge cut the sitter's head off). |
+| E2-12 | `6d0e23e` | City bike racks and benches (below). |
+| E2-6 / DR-5 | `6c49f05` | The seated cable-car camera looks level under the roof's overhang (the roof edge cut the sitter's head off). |
 
-(Hashes of the local commits; the final push may rebase the last three.)
+(Hashes as pushed to `opus-bay`.)
 
 **E2-5 — the view field** (`actors/viewField.ts`, new):
 - `preferredViewDir(x, z)` (the direction to look toward) and `preferredCameraYaw(x, z)` (the follow camera's yaw for
@@ -220,7 +220,7 @@ additive):
   they attach (≤ 8 s, the player standing, the camera untouched) it is chosen again and turned to. The fast-travel
   descent hands over at its own yaw (as the arrival cinematic does).
 - Glide rig: 14 u at pitch 0.3 (was 16.8 / 0.4): the new pelican bigger in frame, the horizon in it. Seated on a city
-  cable car: pitch 0.03 (`645e7f9`, DR-5).
+  cable car: pitch 0.03 (`6c49f05`, DR-5).
 - No per-frame allocation: `RideCamera.update` reuses its vectors; blocker queries go through the new allocation-free
   `core/terrain.forEachBlockerNear` (additive, re-entrant).
 
@@ -318,8 +318,9 @@ additive):
     the bench next to it: E sits ([rack](qa/w3/E2/e2-12-city-bike-rack.jpg), [bench](qa/w3/E2/e2-12-city-bench.jpg)).
   - seated on a Powell-Hyde car ([the level view](qa/w3/E2/dr5-seated-cable-car.jpg)).
 - Bundle (`npx vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/w3/e2/dist`): GameRoot
-  **309.46 KB** gzip at `645e7f9` (301.49 KB at part a's end; the other lanes' wave-3 / wave-4 work landed in between).
-  E2's city-only code went to lazy chunks: `cityViews` 1.43 KB, `cityBikes` (with the spot table) 3.31 KB gzip.
+  **309.46 KB** gzip at `645e7f9` (`6c49f05` before its rebase; 301.49 KB at part a's end — the other lanes' wave-3 /
+  wave-4 work landed in between). E2's city-only code went to lazy chunks: `cityViews` 1.43 KB, `cityBikes` (with the
+  spot table) 3.31 KB gzip.
 
 ### Decisions
 
@@ -377,3 +378,7 @@ ones (G1 1–2, F 4).
    `.ob-touch-action` one column in); **F** request 4 (the hero F-line's braked hop-off).
 
 Relayed messages during part b: none.
+
+Checks of the tree pushed as `4908f1d`, run before its last rebase: `tsc` 0, `eslint` 0, **644 / 644** opus-bay tests, hero
+regression and contracts green; after the last rebase onto `515fb30` (lane T's wave-4 files only) `tsc`, `eslint` and
+`opus-bay-sf-bus` / `-metro` were re-run green.
