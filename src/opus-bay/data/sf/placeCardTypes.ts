@@ -73,6 +73,13 @@ export interface PlaceCard {
   plannerPlaceId?: string;
   /** key into src/data/sf-landmark-photo-assets.json (licensed photo; PoiCard shows the -small.webp) */
   photoKey?: string;
+  /**
+   * `place` is a row another card owns at runtime (a modelled landmark's place, or a hero place merged with a district
+   * POI: data/sf/places.ts buildPlaceIndex). The row keeps that card; this card opens as `sf:<id>` and does not claim
+   * the row (japan-center on the Peace Pagoda row, the marketplace on the Ferry Building row). Tested against the
+   * runtime place index in tests/opus-bay-sf-cards.test.ts.
+   */
+  sharesPlace?: true;
 }
 
 /** Patch for an already-built landmark card (data/sf/landmarks.ts SF_LANDMARK_INFO), applied by data/sf/cityPois.ts. */
@@ -136,8 +143,11 @@ export function placeCardProblems(card: PlaceCard): string[] {
   return p;
 }
 
-/** `openPanel('poi', id)` id of a card (same prefix as the landmark cards: data/sf/cityPois.ts CITY_POI_PREFIX). */
-export const cardPoiId = (card: Pick<PlaceCard, 'id' | 'place'>): string => `sf:${card.place ?? card.id}`;
+/**
+ * `openPanel('poi', id)` id of a card (same prefix as the landmark cards: data/sf/cityPois.ts CITY_POI_PREFIX): the
+ * place row it decorates, or its own id when it has no row of its own or shares a row another card owns.
+ */
+export const cardPoiId = (card: Pick<PlaceCard, 'id' | 'place' | 'sharesPlace'>): string => `sf:${card.sharesPlace ? card.id : card.place ?? card.id}`;
 
 /**
  * The card as a PoiDef, so PoiCard / "附近有什么" / the E prompt reuse the POI machinery (like cityPois.ts). `at` =
@@ -177,7 +187,7 @@ export interface PlaceCardSet {
   refreshes: Readonly<Record<string, CardRefresh>>;
   /** attraction id → card */
   byId: ReadonlyMap<string, PlaceCard>;
-  /** place-index id → card (a card decorating an existing row, and every card by its own id) */
+  /** place-index id → card (a card decorating an existing row it owns, and every card by its own id) */
   byPlace: ReadonlyMap<string, PlaceCard>;
 }
 
@@ -188,25 +198,55 @@ export function indexPlaceCards(cards: readonly PlaceCard[], refreshes: Readonly
   for (const card of cards) {
     byId.set(card.id, card);
     byPlace.set(card.id, card);
-    if (card.place) byPlace.set(card.place, card);
+    if (card.place && !card.sharesPlace) byPlace.set(card.place, card);
   }
   return { cards, refreshes, byId, byPlace };
 }
 
-let loaded: PlaceCardSet | null = null;
-let loading: Promise<PlaceCardSet> | null = null;
-
-/** Load both card chunks once (the city chunk calls it when city mode starts; later calls return the same set). */
-export function loadPlaceCards(): Promise<PlaceCardSet> {
-  if (loaded) return Promise.resolve(loaded);
-  loading ??= Promise.all([import('./placeCards'), import('./placeCards2')]).then(([a, b]) => {
-    loaded = indexPlaceCards([...a.PLACE_CARDS, ...b.PLACE_CARDS_2, ...b.CURATED_CARDS], a.CARD_REFRESHES);
-    return loaded;
-  });
-  return loading;
+/**
+ * The card a place row opens, or null when the row keeps another card or has none. The integration's order in
+ * data/sf/cityPois.ts placeCardTarget: the landmark card → the district POI card → this → the generic place card
+ * (a row standing for a landmark or merged with a district POI never loses that card to a wave-4 card).
+ */
+export function placeCardForPlace(set: PlaceCardSet | null, place: { id: string; landmark?: string; poi?: string }): PlaceCard | null {
+  if (!set || place.landmark || place.poi) return null;
+  return set.byPlace.get(place.id) ?? null;
 }
 
+/** The card behind a `sf:<id>` POI id (`cardPoiId`), for interactables' resolver; null for other ids. */
+export function placeCardByPoiId(set: PlaceCardSet | null, poiId: string): PlaceCard | null {
+  if (!set || !poiId.startsWith('sf:')) return null;
+  const card = set.byPlace.get(poiId.slice(3));
+  return card && cardPoiId(card) === poiId ? card : null;
+}
+
+/**
+ * A load-once loader that can be retried: a failed chunk import (a flaky phone network, a stale chunk hash after a
+ * deploy) is not cached, so the next call tries again (the same rule as data/sf/places.ts loadPlaces).
+ */
+export function createCardLoader(importChunks: () => Promise<PlaceCardSet>) {
+  let set: PlaceCardSet | null = null;
+  let pending: Promise<PlaceCardSet> | null = null;
+  return {
+    load(): Promise<PlaceCardSet> {
+      if (set) return Promise.resolve(set);
+      pending ??= importChunks().then(
+        s => { set = s; return s; },
+        error => { pending = null; throw error; },
+      );
+      return pending;
+    },
+    now: (): PlaceCardSet | null => set,
+  };
+}
+
+const LOADER = createCardLoader(() => Promise.all([import('./placeCards'), import('./placeCards2')])
+  .then(([a, b]) => indexPlaceCards([...a.PLACE_CARDS, ...b.PLACE_CARDS_2, ...b.CURATED_CARDS], a.CARD_REFRESHES)));
+
+/** Load both card chunks once (the city chunk calls it when city mode starts; later calls return the same set). */
+export const loadPlaceCards = (): Promise<PlaceCardSet> => LOADER.load();
+
 /** The loaded set, or null before `loadPlaceCards()` resolved (sync readers: arrival barks, PoiCard). */
-export const placeCardsNow = (): PlaceCardSet | null => loaded;
+export const placeCardsNow = (): PlaceCardSet | null => LOADER.now();
 /** The card of an attraction id (null until loaded / unknown). */
-export const placeCardNow = (id: string): PlaceCard | null => loaded?.byId.get(id) ?? null;
+export const placeCardNow = (id: string): PlaceCard | null => LOADER.now()?.byId.get(id) ?? null;

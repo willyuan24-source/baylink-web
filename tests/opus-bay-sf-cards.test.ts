@@ -72,8 +72,55 @@ test('cards stand where the attraction is and decorate the place row attractions
     assert.ok(Math.abs(c.lat - a.lat) < 0.001 && Math.abs(c.lng - a.lng) < 0.001, `${c.id} lat/lng near the scouted point`);
     if (a.placeId) assert.equal(c.place, a.placeId, `${c.id} decorates ${a.placeId}`);
     else assert.equal(c.place, undefined, `${c.id} is a new place row (id = attraction id)`);
-    assert.equal(cardPoiId(c), `sf:${a.placeId ?? a.id}`);
+    assert.equal(cardPoiId(c), c.sharesPlace ? `sf:${c.id}` : `sf:${a.placeId ?? a.id}`);
   }
+});
+
+test('a card never takes a place row another card owns at runtime (landmark / district POI rows keep theirs)', async () => {
+  // W4-C review: japan-center decorated the Peace Pagoda landmark's row and the marketplace the Ferry Building's
+  // district row; "cards first" would have replaced those cards and their sf:<place> POI ids collided
+  const { buildPlaceIndex, landmarkInputsFrom, poiInputs } = await import('../src/opus-bay/data/sf/places');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
+  const ix = buildPlaceIndex(readJson('public/opus-bay/sf/v1/places.json'), landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor), poiInputs());
+  const set = indexPlaceCards([...CARDS, ...CURATED_CARDS], CARD_REFRESHES);
+  for (const c of [...CARDS, ...CURATED_CARDS]) {
+    if (!c.place) continue;
+    const row = ix.get(c.place);
+    if (!row) continue; // lane P's extraPlaces rows (no landmark, no POI)
+    const owned = !!(row.landmark || row.poi);
+    assert.equal(!!c.sharesPlace, owned, `${c.id} on ${c.place}: sharesPlace ${!!c.sharesPlace}, row owned by ${row.landmark ?? row.poi ?? 'nobody'}`);
+    assert.equal(types.placeCardForPlace(set, row)?.id ?? null, owned ? null : c.id, `${c.place} opens the right card`);
+  }
+  assert.deepEqual([...CARDS, ...CURATED_CARDS].filter(c => c.sharesPlace).map(c => c.id).sort(), ['ferry-building-marketplace', 'japan-center']);
+  assert.equal(set.byPlace.get('japantown-peace-pagoda'), undefined, 'the Peace Pagoda row keeps its landmark card');
+  assert.equal(set.byPlace.get('ferry-building'), undefined, 'the Ferry Building row keeps its district card');
+  // every card POI id resolves back to its card, and no two cards share one
+  const poiIds = [...CARDS, ...CURATED_CARDS].map(c => cardPoiId(c));
+  assert.equal(new Set(poiIds).size, poiIds.length, 'card POI ids are unique');
+  for (const c of [...CARDS, ...CURATED_CARDS]) assert.equal(types.placeCardByPoiId(set, cardPoiId(c))?.id, c.id);
+  assert.equal(types.placeCardByPoiId(set, 'sf:japantown-peace-pagoda'), null);
+  assert.equal(types.placeCardByPoiId(set, 'ferry-building'), null);
+});
+
+test('zh street names follow the Chinatown table: 企李街 is Clay St (never Clement St, 克莱门街)', () => {
+  for (const c of [...CARDS, ...CURATED_CARDS]) {
+    for (const b of [c.name, c.zone, c.bark, c.summary, ...c.tips]) if (b.zh.includes('企李街')) assert.match(b.en, /Clay St/, `${c.id}: 企李街 = Clay St (${b.zh})`);
+  }
+  assert.match(byId.get('clement-street')!.name.zh, /^克莱门街/);
+});
+
+test('the card loader is retried after a failed chunk load (a stale hash or a flaky phone network)', async () => {
+  let calls = 0;
+  const set = indexPlaceCards(CARDS.slice(0, 2));
+  const loader = types.createCardLoader(async () => { calls++; if (calls === 1) throw new Error('chunk failed'); return set; });
+  await assert.rejects(loader.load(), /chunk failed/);
+  assert.equal(loader.now(), null);
+  assert.equal(await loader.load(), set, 'the second call loads');
+  assert.equal(await loader.load(), set);
+  assert.equal(calls, 2, 'loaded once after the retry');
+  assert.equal(loader.now(), set);
 });
 
 test('BAYLINK links and photos only where they exist (guides, planner places, licensed photos)', () => {
@@ -159,6 +206,7 @@ test('placeCardPoi: a PoiDef for PoiCard (status first among the tips), and the 
   assert.equal(poi.bark, card.bark);
   const idx = indexPlaceCards(CARDS, CARD_REFRESHES);
   assert.equal(idx.byPlace.get('stow-lake')?.id, 'blue-heron-lake');
+  assert.equal(idx.byPlace.get('japan-center')?.id, 'japan-center', 'a shared-row card still opens by its own id');
   assert.equal(idx.byPlace.get('blue-heron-lake')?.id, 'blue-heron-lake');
   assert.equal(placeCardsNow(), null, 'nothing loaded before loadPlaceCards()');
   const loaded = await loadPlaceCards();

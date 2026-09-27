@@ -345,7 +345,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     lat: 37.78465, lng: -122.40234,
   }),
   full({
-    id: 'ferry-building-marketplace', place: 'ferry-building',
+    id: 'ferry-building-marketplace', place: 'ferry-building', sharesPlace: true, // the hero row keeps the district Ferry Building card
     name: bi('渡轮大厦市集', 'Ferry Building Marketplace & Farmers Market'),
     zone: bi('内河码头', 'The Embarcadero'),
     bark: bi('渡轮大厦里是一整条美食走廊，周二、四、六门外还有农夫市集！', 'Inside the Ferry Building: a hall of local food. Outside, a farmers market Tue, Thu and Sat!'),
@@ -709,9 +709,10 @@ export const PLACE_CARDS: PlaceCard[] = [
   }),
   full({
     id: 'clement-street',
-    name: bi('企李街（列治文区"新华埠"）', 'Clement Street (Inner Richmond)'),
+    // 克莱门街 (zh.wikipedia 列治文區): 企李街 is Clay Street in Chinatown (the CHSA card), never Clement St
+    name: bi('克莱门街（列治文区"新华埠"）', 'Clement Street (Inner Richmond)'),
     zone: bi('内列治文', 'Inner Richmond'),
-    bark: bi('企李街人称「新华埠」，点心、烧腊、杂货铺一家挨一家。', 'Clement St, the "New Chinatown": dim sum, roast meats and grocers side by side.'),
+    bark: bi('克莱门街人称「新华埠」，点心、烧腊、杂货铺一家挨一家。', 'Clement St, the "New Chinatown": dim sum, roast meats and grocers side by side.'),
     summary: bi('内列治文区的主街。1950–60 年代起华人家庭从唐人街往西搬，这里慢慢成了"第二个唐人街"：点心馆、烧腊店、华人超市，也有缅甸、泰国、韩国小馆。', 'The Inner Richmond\'s main street. As Chinese families moved west from Chinatown in the 1950s–60s it became a "second Chinatown" of dim sum, roast meat and grocers, with Burmese, Thai and Korean places too.'),
     tips: [bi('这是街坊天天买菜的地方，别挡着店门拍照。', 'Neighbours shop here every day: don\'t block the doorways for photos.')],
     sourceUrl: 'https://www.sfexaminer.com/news/the-city/how-richmond-district-became-second-san-francisco-chinatown/article_a7783c70-e034-11ef-8c71-3b9f0e67a124.html',
@@ -775,7 +776,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     lat: 37.7636, lng: -122.4795,
   }),
   full({
-    id: 'japan-center', place: 'japantown-peace-pagoda',
+    id: 'japan-center', place: 'japantown-peace-pagoda', sharesPlace: true, // the row is the Peace Pagoda landmark's
     name: bi('日本城购物中心', 'Japan Center Malls'),
     zone: bi('日本城', 'Japantown'),
     bark: bi('日本城购物中心！拉面、漫画和日本小物，这里都有。', 'Japan Center! Ramen, manga and Japanese goods, all under one roof.'),
