@@ -126,7 +126,7 @@ export class MoveSystem {
   /** the last movement events (QA / debugging; filled by actors/system.ts) */
   readonly recent: Record<string, unknown>[] = [];
   private glideWorld: GlideWorld | null = null;
-  private seen = { vehicle: input.vehicleCount, call: input.callVehicleCount, glide: input.glideCount, horn: input.hornCount, interact: input.interactCount, reset: input.resetCount };
+  private seen = { vehicle: input.vehicleCount, call: input.callVehicleCount, glide: input.glideCount, horn: input.hornCount, interact: input.interactCount, reset: input.resetCount, hopOff: input.hopOffCount };
   private guideSeat: GuideSeat = 'none';
   private guideT = 0;
   private guideDur = 0.4;
@@ -331,7 +331,8 @@ export class MoveSystem {
     const hornPress = input.hornCount !== this.seen.horn;
     const interactPress = input.interactCount !== this.seen.interact;
     const resetPress = input.resetCount !== this.seen.reset;
-    this.seen = { vehicle: input.vehicleCount, call: input.callVehicleCount, glide: input.glideCount, horn: input.hornCount, interact: input.interactCount, reset: input.resetCount };
+    const hopOffPress = input.hopOffCount !== this.seen.hopOff;
+    this.seen = { vehicle: input.vehicleCount, call: input.callVehicleCount, glide: input.glideCount, horn: input.hornCount, interact: input.interactCount, reset: input.resetCount, hopOff: input.hopOffCount };
     const frozen = env.frozen;
     const busyFlow = !!s.dialogue.nodeId || s.photoMode || !!flow.get().cinematic;
 
@@ -360,7 +361,7 @@ export class MoveSystem {
       if (!frozen && r) {
         const hop = runtime.input.jump;
         if (hop) runtime.input.jump = false;
-        if (hop || vehiclePress) {
+        if (hop || vehiclePress || hopOffPress) {
           if (r.mode === 'wait') cancelRide(); else hopOffRide();
           m.endTransit(); platformRider.platform = null; this.releaseGuide(false);
         }

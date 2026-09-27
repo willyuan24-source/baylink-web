@@ -1,3 +1,4 @@
+import type { TransitKind } from '../core/events';
 import type { MoveSpot } from '../core/store';
 
 /**
@@ -15,6 +16,11 @@ export interface PlatformPose {
   heading: number;
   /** body roll (rad, + = right side down) */
   roll: number;
+  /**
+   * Day-0 (wave 2) optional: body pitch (rad, + = nose up) on cable-car grades. Lane F publishes it; the maths in
+   * toWorld / toLocal and the rider's seat (lane E2, moveSystem) read `pitch ?? 0`.
+   */
+  pitch?: number;
 }
 
 export interface DeckRect { minX: number; maxX: number; minZ: number; maxZ: number }
@@ -40,12 +46,24 @@ export interface Platform extends PlatformPose {
   live: boolean;
   /** seconds since the last pose (the owner stopped updating → not live) */
   age: number;
+  // --- day-0 (wave 2) optional shape, lane F fills them for cable cars and the ferry; readers default them
+  /** vehicle kind (default: 'streetcar') */
+  kind?: TransitKind;
+  /** cable-car running boards: rail spots on the left / right side (the single `rail` stays the default) */
+  railLeft?: PlatformSpot;
+  railRight?: PlatformSpot;
+  /** outward lean of a rider hanging on a running board (rad) */
+  hangLean?: number;
+  /** the rail spot follows the camera side (mirrored x) */
+  railMirror?: boolean;
+  /** extra walkable rects in the platform frame (the ferry's open sun deck) */
+  decks?: DeckRect[];
 }
 
 export const platforms = new Map<string, Platform>();
 
 /** Register (or re-shape) a platform. The pose starts at the origin, not live, until setPlatformPose is called. */
-export function definePlatform(id: string, shape: Pick<Platform, 'floor' | 'deck' | 'rail' | 'seatLeft' | 'seatRight' | 'seatY'>): Platform {
+export function definePlatform(id: string, shape: Pick<Platform, 'floor' | 'deck' | 'rail' | 'seatLeft' | 'seatRight' | 'seatY'> & Partial<Pick<Platform, 'kind' | 'railLeft' | 'railRight' | 'hangLean' | 'railMirror' | 'decks'>>): Platform {
   const prev = platforms.get(id);
   const p: Platform = { id, x: 0, y: 0, z: 0, heading: 0, roll: 0, vx: 0, vz: 0, live: false, age: 99, ...prev, ...shape };
   platforms.set(id, p);
@@ -62,9 +80,30 @@ export function setPlatformPose(id: string, pose: PlatformPose, dt: number) {
     p.vz += ((pose.z - p.z) / dt - p.vz) * k;
   } else { p.vx = 0; p.vz = 0; }
   p.x = pose.x; p.y = pose.y; p.z = pose.z; p.heading = pose.heading; p.roll = pose.roll;
+  if (pose.pitch !== undefined) p.pitch = pose.pitch;
   p.live = true;
   p.age = 0;
 }
+
+// ---------------------------------------------------------------------------
+// Stop requests (day-0 contract, plan E2-0): a rider asks the car to stop; the world module that moves the car
+// (lane F: world/streetcar.ts, cable cars) brakes to 0 within `within` seconds and holds while the request stands.
+// ---------------------------------------------------------------------------
+
+const stops = new Map<string, { within: number; at: number }>();
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
+
+/** Ask platform `id` to stop (brake to 0 within `seconds`, then hold). Repeating a request keeps the first time. */
+export function requestPlatformStop(id: string, seconds = 1.2) {
+  if (!stops.has(id)) stops.set(id, { within: seconds, at: clock() });
+}
+/** For the car's owner: the pending stop request (brake to 0 within `within` s of `since` s ago; hold while true), or null. */
+export function platformStop(id: string): { within: number; since: number; hold: boolean } | null {
+  const r = stops.get(id);
+  return r ? { within: r.within, since: clock() - r.at, hold: true } : null;
+}
+/** The rider is off (or changed their mind): the car may go on. */
+export function releasePlatformStop(id: string) { stops.delete(id); }
 
 /** Called once per frame by the reader: a platform whose owner stopped publishing goes stale. */
 export function agePlatforms(dt: number) {

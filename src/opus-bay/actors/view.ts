@@ -1,3 +1,5 @@
+import type { Obstacle } from './controller';
+
 /**
  * Per-frame actor state shared between the actor system and the camera rig (plain objects, no three import,
  * so node tests can load the camera maths without the scene code).
@@ -34,3 +36,20 @@ export const residents: { x: number; z: number }[] = [];
  * a moved bike).
  */
 export const rideables: { id: string; kind: 'bike' | 'car'; x: number; z: number; free: boolean }[] = [];
+
+/**
+ * Day-0 obstacle registry (wave 2): moving things other lanes own (F's crowd walkers and toy traffic) add soft
+ * obstacles for the walker and the ride code without editing actors files. `fn(out, x, z, r)` pushes the obstacles
+ * within r of (x, z) into `out` (kind e.g. 'crowd' | 'traffic'); it runs once per frame per consumer, so keep it cheap
+ * (a grid lookup). Returns the unregister function.
+ */
+export type ObstacleSource = (out: Obstacle[], x: number, z: number, r: number) => void;
+const obstacleSources: ObstacleSource[] = [];
+export function registerObstacleSource(fn: ObstacleSource): () => void {
+  obstacleSources.push(fn);
+  return () => { const i = obstacleSources.indexOf(fn); if (i >= 0) obstacleSources.splice(i, 1); };
+}
+/** Consumers (actors/system.ts walker obstacles; moveSystem giveWay, E2): append every source's obstacles near (x, z). */
+export function collectObstacles(out: Obstacle[], x: number, z: number, r: number) {
+  for (const fn of obstacleSources) fn(out, x, z, r);
+}

@@ -392,19 +392,26 @@ const OUTFITS = Object.fromEntries(Object.entries(OUTFITS_RAW).map(([k, o]) => [
   shirt: soften(o.shirt), pants: soften(o.pants), skin: o.skin, shoes: soften(o.shoes), hair: o.hair,
 }])) as Record<NpcLook, Outfit>;
 
+/**
+ * The resident skeleton (Animator 'npc' drives these bone names). Exported on wave-2 day 0 for lane G2's city residents
+ * (actors/residentLooks.ts builds its own looks on it with buildRig and the primitives above). Head centre y 1.16,
+ * head radius 0.22, torso capsule at y 0.68.
+ */
+export const NPC_BONES: readonly BoneDef[] = [
+  { name: 'root', parent: null, pos: [0, 0, 0] },
+  { name: 'body', parent: 'root', pos: [0, 0.3, 0] },
+  { name: 'head', parent: 'body', pos: [0, 0.95, 0] },
+  { name: 'armL', parent: 'body', pos: [0.24, 0.86, 0] },
+  { name: 'armR', parent: 'body', pos: [-0.24, 0.86, 0] },
+  { name: 'legL', parent: 'root', pos: [0.1, 0.3, 0] },
+  { name: 'legR', parent: 'root', pos: [-0.1, 0.3, 0] },
+];
+
 export function buildNpc(look: NpcLook): Rig {
   const o = OUTFITS[look];
   const HY = 1.16; // head centre
   const HR = 0.2 * 1.1; // head radius
-  const bones: BoneDef[] = [
-    { name: 'root', parent: null, pos: [0, 0, 0] },
-    { name: 'body', parent: 'root', pos: [0, 0.3, 0] },
-    { name: 'head', parent: 'body', pos: [0, 0.95, 0] },
-    { name: 'armL', parent: 'body', pos: [0.24, 0.86, 0] },
-    { name: 'armR', parent: 'body', pos: [-0.24, 0.86, 0] },
-    { name: 'legL', parent: 'root', pos: [0.1, 0.3, 0] },
-    { name: 'legR', parent: 'root', pos: [-0.1, 0.3, 0] },
-  ];
+  const bones: BoneDef[] = NPC_BONES.map(b => ({ ...b, pos: [...b.pos] as Vec3 }));
   const shorts = look === 'jogger';
   const parts: Part[] = [
     // stubby legs + bean feet

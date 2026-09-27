@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
+import type { WorldMode } from '../core/store';
 import { canStand, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { DISTRICT, at, frameAt, stationOf } from '../data/district';
@@ -26,6 +27,13 @@ export interface NpcDef {
   /** lateral offset (u) from the anchor, along the promenade tangent */
   offset?: number;
   scale?: number;
+  /**
+   * Day-0 (wave 2, lane G2's city residents): an explicit world spot instead of a DISTRICT anchor (`anchor` is then
+   * only a label). The district promenade helpers (offset, facing the walk) are skipped; heading defaults to 0.
+   */
+  at?: { x: number; z: number; heading?: number };
+  /** false = never the "talking" resident (the family's kid); default true */
+  talks?: boolean;
 }
 
 export const NPC_DEFS: NpcDef[] = [
@@ -33,9 +41,15 @@ export const NPC_DEFS: NpcDef[] = [
   { id: 'npc-fisher', look: 'fisher', behavior: 'fisher', anchor: 'npc-fisher' },
   { id: 'npc-jogger', look: 'jogger', behavior: 'jogger', anchor: 'npc-jogger-a' },
   { id: 'npc-family', look: 'parent', behavior: 'parent', anchor: 'npc-family', offset: -0.55 },
-  { id: 'npc-family-kid', look: 'kid', behavior: 'kid', anchor: 'npc-family', offset: 0.75, scale: 0.72 },
+  { id: 'npc-family-kid', look: 'kid', behavior: 'kid', anchor: 'npc-family', offset: 0.75, scale: 0.72, talks: false },
   { id: 'npc-streetcar', look: 'operator', behavior: 'operator', anchor: 'npc-streetcar' },
 ];
+
+/**
+ * The residents the ActorSystem spawns for a world mode (lane G2 owns this file from wave 2: city residents go here,
+ * e.g. NPC_DEFS.concat(CITY_NPC_DEFS) in city mode). A def spawns when it has `at` or its DISTRICT anchor exists.
+ */
+export const npcDefsFor: (mode: WorldMode) => NpcDef[] = () => NPC_DEFS;
 
 const JOG_SPEED = 3.3;
 const GREET_RADIUS = 4.6;
@@ -84,15 +98,15 @@ export class Npc {
     this.object = this.rig.mesh;
     const s = def.scale ?? 1;
     this.object.scale.setScalar(s);
-    const a = DISTRICT.anchors[def.anchor] ?? DISTRICT.spawn;
+    const a = def.at ?? DISTRICT.anchors[def.anchor] ?? DISTRICT.spawn;
     let p = { x: a.x, z: a.z };
-    if (def.offset) {
+    if (def.offset && !def.at) {
       const f = frameAt(stationOf(a).st);
       p = { x: a.x + f.tx * def.offset, z: a.z + f.tz * def.offset };
       if (!canStand(p.x, p.z, 0.3)) p = nearestWalkable(p, 3) ?? { x: a.x, z: a.z };
     }
     this.x = p.x; this.z = p.z; this.y = heightAt(p.x, p.z);
-    this.homeHeading = this.initialHeading(p);
+    this.homeHeading = def.at ? def.at.heading ?? 0 : this.initialHeading(p);
     this.heading = this.homeHeading;
     if (def.behavior === 'jogger') this.buildRoute();
     this.object.position.set(this.x, this.y, this.z);

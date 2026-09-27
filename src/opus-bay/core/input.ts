@@ -37,6 +37,8 @@ export const input = {
   glideCount: 0,
   /** H / gamepad LB: bike bell / toy horn */
   hornCount: 0,
+  /** "get off here" requests (the HUD's 提前下车 via actors/moveApi requestHopOff): in a transit car, same as Space / B */
+  hopOffCount: 0,
   /** C (or D-pad up / down while in a vehicle): cycle the camera near / far preset */
   camPresetCount: 0,
   /** gamepad triggers, analog 0..1: RT throttle, LT brake (vehicles; RT still runs on foot) */

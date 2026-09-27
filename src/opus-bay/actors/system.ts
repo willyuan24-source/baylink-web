@@ -15,12 +15,13 @@ import { flow } from '../game/flowStore';
 import { Animator, GLB_BAYBAY_TUNING, type Emote } from './anim';
 import { PlayerController, RUN_SPEED, WALK_SPEED, dampAngle, type Obstacle } from './controller';
 import { GUIDE_RUN, GUIDE_WALK, GuideMover } from './guide';
-import { moveBasis, residents, view } from './view';
+import { collectObstacles, moveBasis, residents, view } from './view';
 import { CHAR_SCALE } from './dims';
 import { baybayGlbUniforms, buildBaybay, buildNewcomer, rigFromGltf, rimUniforms, type Rig } from './models';
-import { NPC_DEFS, Npc } from './npcs';
+import { Npc, npcDefsFor } from './npcs';
 import { DRAG_THRESHOLD } from './pointer';
 import { MoveSystem } from './moveSystem';
+import { bindMoveApi } from './moveApi';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -33,7 +34,6 @@ import { MoveSystem } from './moveSystem';
 export { view } from './view';
 
 const BLOB_DAY = new THREE.Color('#3a2816'), BLOB_NIGHT = new THREE.Color('#2e2a3a');
-const TALKING_NPCS = new Set(['npc-vendor', 'npc-fisher', 'npc-family', 'npc-streetcar', 'npc-jogger']);
 const BABY_EMOTES = new Set(['wave', 'point', 'hop', 'clap', 'shrug', 'think']);
 
 function radialTexture() {
@@ -262,6 +262,8 @@ export class ActorSystem {
   private playerTalkUntil = 0;
   private npcTalkUntil = 0;
   private talkingNpc: string | null = null;
+  /** spawned residents that can talk (derived from the defs, see the constructor) */
+  private readonly talking: Set<string>;
   private lastBubbleKey = -1;
   private photoPose = false;
   private guidePhotoWaveAt = 0;
@@ -291,8 +293,12 @@ export class ActorSystem {
     this.player.mesh.name = 'opus-player';
     this.guide.mesh.name = 'opus-baybay';
     this.root.add(this.player.mesh, this.guide.mesh);
-    this.npcs = NPC_DEFS.filter(def => !!DISTRICT.anchors[def.anchor]).map(def => new Npc(def));
+    // residents: the world mode's defs (actors/npcs.ts npcDefsFor, lane G2), placed at `at` or their DISTRICT anchor
+    this.npcs = npcDefsFor(game.get().worldMode).filter(def => !!def.at || !!DISTRICT.anchors[def.anchor]).map(def => new Npc(def));
     for (const npc of this.npcs) { npc.rig.mesh.castShadow = true; this.root.add(npc.object); }
+    // who can be "the resident you are talking to" (district: vendor, fisher, family, operator, jogger)
+    this.talking = new Set(this.npcs.filter(n => n.def.talks !== false).map(n => n.def.id));
+    bindMoveApi(this.move);
 
     this.blobTex = radialTexture();
     const blobGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
@@ -329,7 +335,7 @@ export class ActorSystem {
         const map: Partial<Record<string, Emote>> = { bell: 'bell', taste: 'taste', telescope: 'look', viewpoint: 'look', board: 'reach', fish: 'reach', info: 'reach' };
         const em = map[e.kind];
         if (em) pa.play(em);
-        if (TALKING_NPCS.has(e.id)) this.talkingNpc = e.id;
+        if (this.talking.has(e.id)) this.talkingNpc = e.id;
         break;
       }
       case 'emote':
@@ -361,6 +367,7 @@ export class ActorSystem {
     }
   }
 
+  /** the resident nearest the player within 7 u (never a far-away one: the camera two-shot would swing there) */
   private nearestNpcId(): string | null {
     let best: string | null = null, bestD = 7;
     for (const npc of this.npcs) {
@@ -425,6 +432,8 @@ export class ActorSystem {
       if (r.occupied || Math.abs(r.sim.x - p.x) > 8 || Math.abs(r.sim.z - p.z) > 8) continue;
       this.obstacles.push({ x: r.sim.x, z: r.sim.z, r: r.kind === 'car' ? 0.8 : 0.45, kind: r.kind === 'car' ? 'car' : 'bike-rack' });
     }
+    // other lanes' moving things (F's crowd and traffic, actors/view.ts registerObstacleSource)
+    collectObstacles(this.obstacles, p.x, p.z, 8);
 
     this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen, riding: carried, obstacles: this.obstacles });
     move.finishPlayer();
@@ -521,7 +530,7 @@ export class ActorSystem {
     if (f.bubble && f.bubble.key !== this.lastBubbleKey) {
       this.lastBubbleKey = f.bubble.key;
       if (f.bubble.who === 'baybay') this.guideTalkUntil = Math.max(this.guideTalkUntil, t + 1.3);
-      else if (TALKING_NPCS.has(f.bubble.who)) { this.talkingNpc = f.bubble.who; this.npcTalkUntil = t + 1.4; }
+      else if (this.talking.has(f.bubble.who)) { this.talkingNpc = f.bubble.who; this.npcTalkUntil = t + 1.4; }
     }
     let guideLook = 0, guideLookW = 0;
     const gdx = p.x - gx, gdz = p.z - gz, gd = Math.hypot(gdx, gdz);
@@ -708,6 +717,7 @@ export class ActorSystem {
   dispose() {
     this.disposed = true;
     this.unsub();
+    bindMoveApi(null);
     const geos = [this.player.mesh.geometry, this.guide.mesh.geometry, ...this.npcs.map(n => n.rig.mesh.geometry), this.blobs.geometry, this.pick.geometry];
     if (this.guideModel === 'glb') {
       const mat = this.guide.mesh.material as THREE.MeshStandardMaterial;
