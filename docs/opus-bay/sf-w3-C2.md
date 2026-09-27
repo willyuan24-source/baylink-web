@@ -429,3 +429,82 @@ a `?solo=` landmark view),
    it next changes both, or exports the tower / cable stations from `backdrop.ts` for E2 to read.
 
 Relayed messages during part b: none.
+
+## Review
+
+Adversarial review of lane C2's wave-3 work (parts a and b), in the lane's worktree on port 5201. Review commits:
+`576290f`, `64e78c1`, `134e61a` (after the rebase onto `c9cd8a4`).
+
+### 给主人的摘要
+
+- 复查了 C2 这一波的全部代码（城市渲染提速、画质策略、雾神 Karl、马林和东湾的远景板、海湾大桥东段），在电脑和手机尺寸下实际跑了一遍。大部分说法属实，发现并修好了 5 个问题。
+- 最重要的两个：远景板加载完成的那一帧会卡 30–56 毫秒（在 4 倍降速下卡 150 毫秒），现在分散到很多帧里，最长的一帧约 3 毫秒；手机默认的"均衡"画质下，走到双峰时城市缓冲区会在半路扩容（整块重新上传显存，会卡一下），现在一开始就留好了远景板的空间，绕城一圈也不再扩容。
+- 另外修了远近切换淡入淡出在快速来回时的一个小闪、以及几个小的内存问题。还没解决的：唐人街和渡轮大厦朝市中心看时三角形仍略超 40 万（主要是别的 lane 新加的内容），马林山坡近看有细缝线（只在低空飞近马林时可见）。
+
+### What was checked
+
+- **Diffs**: every C2 commit of wave 3 (`69de4be`, `8694832`, `518f926`, `7ee18c1`, `598631c`, `5eba6f0`, `fdef292`,
+  `48808e5`, `75e64ae`, `cd2e8d3`, `81ed9cb`, `278fccc`, `a9ffa25`, `b1b2429`, `ff4463d`) and the code around them:
+  the material twins / kindSweep / depth materials, freezeStatic, the pools (ViewCull, the haze cull, the tile pool's
+  index compaction, the batching colour alpha), the stream (fades, board LOD, attach), props, the quality policy and
+  drei's monitor, fogShader / Karl, the cloud bank, the warm-up (the shadow depth set), the boards (data, build, east
+  span), the city water (near-grid skip, far cut, edge), the environment / world wiring, the tests.
+- **Checks** before the fixes: tsc 0, 660 / 660 opus-bay tests; `eslint .` prints 12 errors, all inside the untracked
+  `.vite-opus/` dependency cache (0 with `--ignore-pattern .vite-opus`), as the lane reported.
+- **In the app** (RTX, `CHROME_FLAGS=--force_high_performance_gpu`; a private copy of `opus-shot.mjs` with
+  `--remote-debugging-port=0` so no other lane's script could take a page over, the lane's request 5): desktop
+  1440×900 and phone 390×844 `--mobile --dpr 3`; city golden / night / morning / day; `quality` high / mid / low and
+  high → low → high mid-session; `pool=tile` on desktop and phone; a 14-spot teleport tour; camera sweeps along the
+  board LOD boundary; a walk with time switches; `?karl=0`; `boards.json` answering 404 (the city falls back cleanly:
+  status `error`, the edge built from the city ground); district mode.
+- **Claims re-measured**: the phone profile starts at `mid` / reason `device`; programs constant through a walk and
+  golden → night → morning (40); district `uKarl` 0, `uKarlCam` 0, `uObFar` (1e9, 2e9); GameRoot 309.99 KB gzip,
+  `cityMode` 40.50 KB, `boards` 9.75 KB (scratch build of `4f42a43`); world edge 19 pieces / 13,950 triangles; tile
+  rebuilds 0.1–3.6 ms (≤ 1 a frame) along the LOD boundary.
+
+### Defects
+
+| # | defect | status |
+|---|---|---|
+| 1 | **The pools were sized before the boards.** Their static items (40.4k TOY + 50.6k GROUND vertices: the near and the far set are both resident) made the ground pool grow at runtime at `mid`, the phone default: 208,000 → 312,000 on a Ferry gate → Twin Peaks walk (a BatchedMesh reallocation and a full re-upload mid-walk). With `boards.json` answering 404 the same walk stays at 208,000; `high` was ≈ 40k under its cap. | **fixed** `576290f`: `boardData.BOARD_POOL` (46k / 58k) reserved on top of the city's share; test: the build fits it. A 14-spot tour at `mid` (526k / 266k) and at `low` (466k / 240k) never grows. |
+| 2 | **"Built in ≈ 2 ms frame slices" did not hold.** Single build steps took 14–34 ms (a whole board's cell steps before the first yield, the tree and crane scans over the whole grid, `eastSpan`, `flush`), and the frame that finished the build also added all 294 items and ran `onBoards` (the world edge + `splitGeometry` ≈ 20–40 ms, the light field): 28–56 ms at 1× CPU; at 4× CPU the finishing step was 127 ms (a 150 ms frame) and slices reached 67 ms. | **fixed** `576290f`: yields per row / 4 cells / road / 2 tiles / 48 deck segments (the crane scan only over the port's bounding box), output byte-identical (SHA-1 over every item, the lights and the land tiles); the stream adds the items 32 a step and calls `onBoards` on a frame of its own; the city water builds its edge in 2 ms slices straight into its 1,024 u pieces (`ground.ts slabEdgeColumns`; `slabEdge` runs it at once, so the district's boards are unchanged). After, in the app: 1× worst call 3.9 ms, finishing frame 2.9 ms, every frame around it 16.7 ms; 4× worst call 16.9 ms, finishing 8.1 ms, frames ≤ 33 ms; phone `pool=tile` worst frame 16.8 ms. Warm node steps ≤ 4 ms (were ≤ 14). Tests: ≥ 1,000 yields (was 132); the edge job yields ≥ 30 times and still makes ≤ 24 pieces of 8–20k triangles. |
+| 3 | **C2-10 quick flip.** `endPart` put TOY / GROUND back on an L0 cell's meshes unconditionally: a cell that faded in on pair A and was dropped within 0.3 s (fade out on pair B) had A settled by `applyVisibility`'s `finishFades`, which replaced B, so the outgoing cell stayed solid under the incoming L1 for 0.3 s and then popped. | **fixed** `64e78c1`: restore only while the mesh still wears that pair; the test drives the real `CityStreamer` (fails before, passes after). |
+| 4 | The fade pairs (up to 6 × TOY + GROUND material instances per streamer) were never disposed on city teardown. | **fixed** `64e78c1` (the same test counts the 4 dispose events). |
+| 5 | Per-frame / per-call allocations: `TilePool.update` made a closure every frame (the no-multi-draw phone path); `widenedFrustum` a `Matrix4` per call. | **fixed** `134e61a`. |
+| 6 | Budget at the dense walking spots (1440×900, golden, `quality=high`, on `37d1785`): Chinatown 409k (375k main + 34k shadow; streetcars 38k, life 38k, actors 34k), Ferry gate 368k facing north / 424k facing downtown (actors ≈ 35–55k + ≈ 40k of their shadows): over 400k. C2's own groups are not the growth. Re-measured on `c9cd8a4` (E2's `5ee4664`: crowd shadows within 40 u): Ferry gate 393k (363k + 30k), Chinatown 411k (379k + 32k; streetcars 37k). | **open** for Chinatown: F's streetcar far LOD / near-only shadows (the lane's part-b request 3); E2's request 1 is done (`5ee4664`), D2's AI distance LOD too (`32924ef`). |
+| 7 | Marin board: where two 64 u cells of different steps meet, the skirt shows as a thin light line on the slopes when a camera is close over the Headlands ([`review-marin-seam.jpg`](qa/w3/C2/review-marin-seam.jpg), a QA camera 60 u over Marin). Cosmetic; not seen from the city or the GGB deck. | **open** (C2 next: a darker skirt shade, or joins without T-junctions). |
+| 8 | With more than 6 cells switching at once (a teleport / fast-travel arrival) the fade pairs run out and an incoming L0 is solid over its still-fading L1 for 0.3 s. | **open**, minor (behind the teleport cut). |
+
+Not defects (checked): the twins and fade pairs link the same programs (same cache key and shader); kindSweep's depth
+materials match three's internal one (r186: plain `MeshDepthMaterial`, no RGBA packing); `freezeStatic` only freezes
+identity statics (the clock hands rebuild geometry, not transforms); drei re-reads `bounds` at every judgement, so
+`mid` really declines only under 30 fps; `?quality=` locks the level; a missing `boards.json` falls back to the city
+edge.
+
+### Evidence
+
+Scratch: `C:/Users/willy/opus-qa/w3/c2/review/` (`p1/` before the fixes, `p2/` after; `run.mjs` + `a-*.json` probes;
+`timeboards*.js` page instrumentation; `node/` timing and identity tests; `bv-*` budget views). Key shots:
+[`qa/w3/C2/review-edge-south.jpg`](qa/w3/C2/review-edge-south.jpg) (the county-line cut built in slices, `?karl=0`),
+[`qa/w3/C2/review-marin-seam.jpg`](qa/w3/C2/review-marin-seam.jpg) (defect 7).
+
+| measure | before | after |
+|---|---|---|
+| ground pool capacity, `mid`, Ferry gate → Crissy → Twin Peaks → Mission | 208k → **312k** (grew) | 266k, never grows (14-spot tour; `low` 240k) |
+| boards: worst `stepBoards` call, 1× / 4× CPU | 30.6 / 66.9 ms | 3.9 / 16.9 ms |
+| boards: the finishing step, 1× / 4× | 56.1 / 127.2 ms (a 150 ms frame) | 2.9 / 8.1 ms (frames ≤ 33 ms) |
+| boards job in node (warm), longest step | 14.4 ms (133 steps) | ≤ 4 ms (1,400 steps), the same output |
+| world edge | 19 pieces, 13,950 triangles | 19 pieces, 13,950 triangles |
+
+**Checks** on the pushed tree (rebased on `c9cd8a4`): tsc 0 errors; eslint 0 errors (the whole repo; 12 errors
+appear only from the untracked `.vite-opus/` cache); **679 / 679** opus-bay tests (hero regression and contracts green).
+
+### Requests
+
+1. **Lead, `scripts/opus-shot.mjs`**: the lane's request 5 is confirmed by the code (`9400 + random(500)`); a copy
+   with `--remote-debugging-port=0` + `<profile>/DevToolsActivePort` ran every review probe without a collision.
+2. **Lead, final verify**: re-run the perf table on a quiet machine; the two dense spots are over 400k at 1440×900
+   (defect 6: Chinatown 411k on `c9cd8a4`) until F's streetcar LOD lands.
+3. **F**: the lane's part-b request 3 stands (streetcars 37k main at Chinatown on `c9cd8a4`); E2's request 1 is done.
+
+Relayed messages during the review: none.
