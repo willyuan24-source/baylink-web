@@ -118,8 +118,10 @@ export interface SfLandmark {
   x: number; z: number;             // world position (from C:/Users/willy/opus-qa/sf-data/landmarks.json)
   yaw: number;                      // radians, three.js convention (faces (sin yaw, cos yaw))
   base: 'terrain' | number;         // 'terrain' = stand on the city ground (lowest point under the footprint), or explicit world y
+  baseLift?: number;                // lane D2: a 'terrain' base this much above that lowest point (a flat plaza on a slope with a gutter in its footprint)
   exclude: { r: number } | { poly: Vec2[] };   // generated city buildings inside are dropped (poly in world coords)
   build(b: BatchLike, lod: 0 | 2): void;       // LOCAL space: origin at ground centre, +y up, front faces +z; lod 2 = silhouette version ≤ 10 % triangles for far view
+  buildKey?: () => number;          // lane D2: a lod 0 that depends on runtime state (the turntable under F's disc) changes this; sites.ts rebuilds it
   castShadow?: boolean;             // T1 only
   animate?: { update(obj: THREE.Object3D, t: number): void; build(b: BatchLike): void };  // optional separately-built moving parts (windmill sails, flags)
   walk?: { blockers: WalkBlocker[]; surfaces?: { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }[] };  // LOCAL-space collision + walkable decks for lane B

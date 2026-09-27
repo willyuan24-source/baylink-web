@@ -7,10 +7,12 @@ import { ASSETS } from '../src/opus-bay/data/assets';
 import { sfLandmarkInfo } from '../src/opus-bay/data/sf/landmarks';
 import type { SfManifest } from '../src/opus-bay/world/sf/format';
 import { TALL_MARGIN, landmarkTallStructures } from '../src/opus-bay/world/sf/landmarks/context';
+import { TURNTABLE, setTurntableSpinner, turntableSpinner } from '../src/opus-bay/world/sf/landmarks/cable-car-turntable';
 import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
-import { SF_LANDMARKS, type SfLandmark, blockerTops, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi } from '../src/opus-bay/world/sf/landmarks/index';
+import { SF_LANDMARKS, type SfLandmark, blockerTops, buildLandmark, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi } from '../src/opus-bay/world/sf/landmarks/index';
 import { LANDMARK_TOPS } from '../src/opus-bay/world/sf/landmarks/tops';
-import { CitySites } from '../src/opus-bay/world/sf/sites';
+import { U } from '../src/opus-bay/world/materials';
+import { CitySites, LOD0, LOD0_HIGH, SITE_CAM_H, siteLod0Radius } from '../src/opus-bay/world/sf/sites';
 import { type GlbMesh, readGlbMesh } from '../scripts/opus-sf/assets/glbNode';
 import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 
@@ -140,5 +142,78 @@ test('D2-10: the glide climbs over the Golden Gate Bridge tower and cables inste
     const want = at === 0 ? GGB.cableY(0) : GGB.TOP;
     assert.ok(roof >= want, `roof over ${at}: ${roof.toFixed(2)} ≥ ${want.toFixed(2)}`);
     if (at === 0) assert.ok(roof < 20, 'mid-span stays low enough to fly under the saddles');
+  }
+});
+
+test('C2-5 "Sites": the lod-0 radius shrinks with the camera height (walking keeps LOD0; a high view LOD0_HIGH)', () => {
+  for (const tier of [1, 2, 3] as const) {
+    for (const h of [0, 8, 25, SITE_CAM_H[0]]) assert.equal(siteLod0Radius(tier, h), LOD0[tier], `tier ${tier} walking at ${h}`);
+    for (const h of [SITE_CAM_H[1], 200, 400]) assert.equal(siteLod0Radius(tier, h), LOD0_HIGH[tier], `tier ${tier} high at ${h}`);
+    let last = Infinity;
+    for (let h = 0; h <= 150; h += 0.5) {
+      const r = siteLod0Radius(tier, h);
+      assert.ok(r <= last && r % 10 === 0, `tier ${tier} at ${h}: ${r} (monotone, 10 u steps)`);
+      last = r;
+    }
+    assert.ok(LOD0_HIGH[tier] < LOD0[tier] && LOD0_HIGH[tier] >= 100, 'a high camera still sees the nearby landmarks in full');
+  }
+  // CitySites follows U.uCam: raise the camera over Chinatown and the far landmarks drop to their silhouettes
+  const sites = new CitySites();
+  const fx = 86.3, fz = 178.1;
+  const run = (camY: number) => { U.uCam.value.set(fx, camY, fz + 10); for (let i = 0; i < 40; i++) sites.update(fx, fz, i * 0.05); return sites.counts(); };
+  const low = run(8), high = run(400);
+  assert.ok(low.camH < SITE_CAM_H[0] && high.camH >= SITE_CAM_H[1]);
+  assert.ok(high.near < low.near, `near ${low.near} → ${high.near}`);
+  assert.ok(high.triangles < low.triangles, `lod-0 triangles ${low.triangles} → ${high.triangles}`);
+  for (const l of SF_LANDMARKS) {
+    const d = Math.hypot(l.x - fx, l.z - fz);
+    if (d > LOD0_HIGH[l.tier] + 40) assert.ok(!(sites as unknown as { sites: { l: SfLandmark; mesh: unknown }[] }).sites.find(q => q.l === l)!.mesh, `${l.id} (${d.toFixed(0)} u) dropped`);
+  }
+  const back = run(8);
+  assert.equal(back.near, low.near, 'walking again brings them back');
+  sites.dispose();
+  U.uCam.value.set(0, 0, 0);
+});
+
+test("F's request: with lane F's spinning disc on, the turntable's lod 0 drops its static disc top; sites.ts rebuilds it", () => {
+  const l = byId('cable-car-turntable');
+  /** highest vertex strictly inside the disc (r < R − 0.2), local */
+  const discTop = () => {
+    const g = buildLandmark(l, 0, 0), p = g.getAttribute('position');
+    let top = -Infinity;
+    for (let i = 0; i < p.count; i++) if (Math.hypot(p.getX(i), p.getZ(i)) < TURNTABLE.r - 0.2) top = Math.max(top, p.getY(i));
+    return top;
+  };
+  assert.equal(turntableSpinner(), false, 'off by default (SoloView, no lane F)');
+  const k0 = l.buildKey!();
+  assert.ok(discTop() >= TURNTABLE.top, 'static disc: deck, rails and pivot at the top');
+  setTurntableSpinner(true);
+  try {
+    assert.notEqual(l.buildKey!(), k0);
+    assert.ok(discTop() <= TURNTABLE.top - 0.1 + 1e-6, `under F's disc nothing reaches its top (${discTop()})`);
+    // the far silhouette keeps its disc (F's discs hide beyond 300 u)
+    const far = buildLandmark(l, 2, 0).getAttribute('position');
+    let farTop = -Infinity;
+    for (let i = 0; i < far.count; i++) if (Math.hypot(far.getX(i), far.getZ(i)) < TURNTABLE.r + 0.05) farTop = Math.max(farTop, far.getY(i));
+    assert.ok(farTop >= TURNTABLE.top - 1e-6);
+    // the city rebuilds a mounted lod 0 when the key changes (one lod-0 build a frame)
+    setTurntableSpinner(false);
+    const sites = new CitySites();
+    sites.setBase(l.id, 5); // a 'terrain' landmark builds once its base is known (its chunk in the city)
+    // Powell & Market's gutter: the turntable stands its baseLift above the lowest ground the chunk reports
+    assert.ok((l.baseLift ?? 0) > 0.5);
+    assert.equal((sites as unknown as { sites: { l: SfLandmark; baseY: number }[] }).sites.find(q => q.l === l)!.baseY, 5 + l.baseLift!);
+    const at = (t: number) => { U.uCam.value.set(l.x, 8, l.z + 10); sites.update(l.x, l.z, t); };
+    for (let i = 0; i < 40; i++) at(i * 0.05);
+    const site = (sites as unknown as { sites: { l: SfLandmark; mesh: { children: { geometry?: { getAttribute(n: string): { count: number } } }[] } | null }[] }).sites.find(q => q.l === l)!;
+    const before = site.mesh;
+    assert.ok(before, 'lod 0 mounted');
+    setTurntableSpinner(true);
+    for (let i = 40; i < 80; i++) at(i * 0.05);
+    assert.ok(site.mesh && site.mesh !== before, 'rebuilt with the spinner on');
+    sites.dispose();
+    U.uCam.value.set(0, 0, 0);
+  } finally {
+    setTurntableSpinner(false);
   }
 });

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { LandmarkWalkInput } from '../../core/sfTerrain';
+import { heightAt } from '../../core/terrain';
 import type { SurfaceKind, Vec2 } from '../../core/types';
 import { C } from '../builder';
 import { GROUND, GROUND_CITY, TOY, TOY_DYN, U, makeHeroMaterial } from '../materials';
@@ -14,11 +15,13 @@ import type { CellPool } from './pools';
 /**
  * The San Francisco landmarks (lane D's registry, world/sf/landmarks) placed in the streamed city:
  *
- *   base    a number, or 'terrain' = the lowest city ground inside the exclusion: first estimated from the far
- *           16 u DEM, then refined when the landmark's chunk arrives (buildL1 bases)
+ *   base    a number, or 'terrain' = the lowest city ground inside the exclusion (+ the landmark's baseLift): first
+ *           estimated from the far 16 u DEM, then refined when the landmark's chunk arrives (buildL1 bases); the
+ *           terrain provider is pinned to it (onBase → setLandmarkBase)
  *   lod 0   the full model as its own mesh (TOY; T1 cast shadows near the player), within 520 / 340 / 220 u of the
- *           focus for tiers 1 / 2 / 3; animated parts (windmill sails, lane D's buildLandmarkAnimated part) ride on it
- *           and move within 150 u
+ *           focus for tiers 1 / 2 / 3, shrinking to 260 / 170 / 110 u as the camera rises (siteLod0Radius, C2-5
+ *           "Sites"); animated parts (windmill sails, lane D's buildLandmarkAnimated part) ride on it and move within
+ *           150 u
  *   lod 2   the far silhouette as an item of the far pool (one draw call for all of them), shown otherwise
  *
  * Exclusions go to the stream workers (city buildings inside are dropped) and the walk data to lane B's rasters.
@@ -68,6 +71,26 @@ export interface SiteHooks {
 
 /** lod-0 radius per tier (lane D: inside the L1 ring; tier 1 a little beyond it, they read from several districts) */
 export const LOD0: Record<1 | 2 | 3, number> = { 1: 520, 2: 340, 3: 220 };
+/**
+ * C2-5 "Sites" (lane D2, wave 3): the lod-0 radius shrinks with the camera's height above the ground. A walking camera
+ * (≤ SITE_CAM_H[0]) keeps LOD0; at SITE_CAM_H[1] and above (a high glide, the fast-travel rise) it is LOD0_HIGH: from
+ * up there the view takes in whole districts, the far silhouettes read, and every full landmark in the wider ring
+ * would cost its lod 0 (plan §5.10 high-view budget, C2's radiiFor does the same for the L0 / L1 rings).
+ */
+export const LOD0_HIGH: Record<1 | 2 | 3, number> = { 1: 260, 2: 170, 3: 110 };
+export const SITE_CAM_H = [30, 120] as const;
+
+/** lod-0 radius of a tier at camera height camH (u above the ground), linear between SITE_CAM_H, 10 u steps. */
+export function siteLod0Radius(tier: 1 | 2 | 3, camH: number): number {
+  const k = Math.min(1, Math.max(0, (camH - SITE_CAM_H[0]) / (SITE_CAM_H[1] - SITE_CAM_H[0])));
+  return Math.round((LOD0[tier] + (LOD0_HIGH[tier] - LOD0[tier]) * k) / 10) * 10;
+}
+
+/** The camera's height above the ground under it (U.uCam: world.ts writes it before the streamer updates). */
+function cameraHeight(): number {
+  const c = U.uCam.value, g = heightAt(c.x, c.z);
+  return Math.max(0, c.y - (Number.isFinite(g) ? g : 0));
+}
 const HYST = 40;
 /** animated parts move only this close to the focus */
 const ANIM_R = 150;
@@ -105,6 +128,8 @@ interface Site {
   requested: boolean;
   /** the AI models arrived after a procedural fallback build: rebuild the lod 0 */
   rebuild: boolean;
+  /** the landmark's buildKey() when the lod 0 was built (a change rebuilds it: the turntable under F's disc) */
+  key: number;
 }
 
 /** Group the AI parts by model (one InstancedMesh per model with several parts, else a plain Mesh). */
@@ -265,7 +290,7 @@ export class CitySites {
     this.group.name = 'city-landmarks';
     this.sites = SF_LANDMARKS.map((l, i) => ({
       l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null,
-      fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false,
+      fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false, key: 0,
     }));
   }
 
@@ -317,7 +342,7 @@ export class CitySites {
         const e = s.l.exclude, r = 'r' in e ? e.r : Math.max(...e.poly.map(p => Math.hypot(p.x - s.l.x, p.z - s.l.z)));
         let lo = Infinity;
         for (let dz = -r; dz <= r; dz += 4) for (let dx = -r; dx <= r; dx += 4) if (dx * dx + dz * dz <= r * r) lo = Math.min(lo, farGround(s.l.x + dx, s.l.z + dz));
-        s.baseY = Number.isFinite(lo) ? lo : 0;
+        s.baseY = (Number.isFinite(lo) ? lo : 0) + (s.l.baseLift ?? 0);
         this.onBase?.(s.l.id, s.baseY);
       }
       this.addLod2(s);
@@ -334,11 +359,12 @@ export class CitySites {
     s.lod2 = true;
   }
 
-  /** A chunk measured the ground under a 'terrain' landmark. */
+  /** A chunk measured the ground under a 'terrain' landmark (its lowest point; the landmark's baseLift goes on top). */
   setBase(id: string, y: number) {
     const s = this.sites.find(q => q.l.id === id);
     if (!s || s.refined) return;
     s.refined = true;
+    y += s.l.baseLift ?? 0;
     if (Math.abs(s.baseY - y) < 0.05) return;
     s.baseY = y;
     this.onBase?.(id, y);
@@ -374,6 +400,7 @@ export class CitySites {
     const g = new THREE.Group();
     g.name = `sf:${s.l.id}`;
     const models = this.readyModels(s);
+    s.key = s.l.buildKey?.() ?? 0;
     const b = new TypedBatch(8192);
     if (models) s.l.swap!.build(b);
     else s.l.build(b, 0);
@@ -474,17 +501,22 @@ export class CitySites {
 
   private lastT = 0;
 
+  /** camera height above the ground at the last update (C2-5 "Sites"), for QA */
+  camH = 0;
+
   /** At most one lod-0 build per frame (they cost 2–12k triangles to write). */
   update(fx: number, fz: number, t: number) {
     let built = false;
     const dt = Math.min(0.1, Math.max(0, t - this.lastT));
     this.lastT = t;
+    this.camH = cameraHeight();
+    const radius = { 1: siteLod0Radius(1, this.camH), 2: siteLod0Radius(2, this.camH), 3: siteLod0Radius(3, this.camH) };
     for (const s of this.sites) {
-      const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = LOD0[s.l.tier];
+      const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = radius[s.l.tier];
       const near = s.near ? d < r + HYST : d < r;
       if (!s.requested && s.l.swap && d < r + PRELOAD) this.requestModels(s);
       if (near && !s.mesh && !built && (s.refined || this.pool)) { this.buildMesh(s); built = true; }
-      if (near && s.mesh && s.rebuild && !built) { this.dropMesh(s, true); this.buildMesh(s); built = true; }
+      if (near && s.mesh && (s.rebuild || (s.l.buildKey && s.l.buildKey() !== s.key)) && !built) { this.dropMesh(s, true); this.buildMesh(s); built = true; }
       if (near && s.mesh && !s.near) { s.near = true; this.pool?.setVisible(SITE_ID0 + s.i, false); }
       if (!near && s.mesh) this.dropMesh(s);
       if (s.mesh && s.fade) this.updateFade(s, dt);
@@ -515,7 +547,7 @@ export class CitySites {
       if (s.near) near++;
       if (s.ai) { ai.on++; ai.triangles += s.aiTris; ai.draws += s.aiDraws; } else if (s.mesh && usesAi(s.l) && this.aiEnabled && !this.aiFailed.has(s.l.id)) ai.pending++;
     }
-    return { sites: this.sites.length, near, triangles: this.triangles, ai };
+    return { sites: this.sites.length, near, triangles: this.triangles, ai, camH: Math.round(this.camH), lod0: siteLod0Radius(1, this.camH) };
   }
 
   /** City teardown (World.disableCity): drop every lod 0, then the decoded models and the Draco workers. */
