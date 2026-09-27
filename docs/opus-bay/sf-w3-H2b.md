@@ -241,7 +241,7 @@ nothing from anyone (World already attaches them).
   `disableCity`, D2's `makeModelMaterial` (program key, instancing), G2's `data/sf/lines.ts` + its test. The offline
   scripts (`render-base.ts`, `paper_post.py`, `voice_post.py`, `place.ts`, `murals_post.py`) only skimmed: their outputs
   are pinned by bytes / sha256 in the tests.
-- Checks: before the fixes `tsc` 0, `eslint` 0, **381 / 381**; after them `tsc` 0, `eslint` 0, **384 / 384** (hero
+- Checks: before the fixes `tsc` 0, `eslint` 0, **381 / 381**; after them `tsc` 0, `eslint` 0, **384 / 384**, and **392 / 392** after rebasing on `71f2bff` (hero
   regression and contracts green).
 - In the app (own dev server 5207, RTX; scripted with `scripts/opus-shot.mjs`, every image read):
   - **Murals, lifecycle** (`?start=free&world=city&time=day`, QA camera): at the start (Ferry, > 300 u) the group is
@@ -264,9 +264,9 @@ nothing from anyone (World already attaches them).
 
 | # | what | status |
 |---|---|---|
-| 1 | **G2's 18 later lines played the wrong chirp and were never preloaded.** `audio.ts` takes the fallback from `SF_VOICE_LINES[id]?.fallback ?? 'hi'` and `voice.preloadLines` walks `SF_VOICE_LINES`, but the later block lived only in `SF_VOICE_EXTRA`. In the app: a second `bump-hard` within 25 s → `chirp:hi` (its line says `think`); `voice-clip:ready` 24 (en). The report called this "Request 1 (G2 + lead)", but the change is in H2b's own file and G2's test already allows it ("SF_VOICE_LINES may grow by the later block"). | **fixed** `9b4c27f`: `SF_VOICE_LINES = { ...CORE_LINES, ...SF_VOICE_EXTRA }`; now `chirp:think`, ready 42 (en: 4 barks + 38 lines; zh 41). Tests: `SF_VOICE_LINES` = `BARK_SCRIPT` (order, words, moods); every voice id G2 emits resolves there; all 20 greetings on real `far.zones`. |
-| 2 | **The map paper blinked to the bare table on every opening and every desktop zoom past 4×.** `MapPaperLayer` dropped the smaller paper the moment the sharper one was decoded, while that one was still at opacity 0 → 1 (0.3 s). Trace before: 1024 removed at 463 ms, 2048 at 0.00 … 1.00 until 800 ms; zoom: 2048 removed at 508 ms, 4096 at 0.00 … 1.00 until 823 ms. The component's own comment claimed the smaller one stays underneath. | **fixed** `9b4c27f`: `paperLayers()` (pure, `ui/mapPaper.ts`) keeps the one under until the fade has ended (a timer, not `transitionend`); a paper already decoded when it becomes the target shows at once, alone. Trace after: phone 1024 @ 1.00 under the 2048 until it reaches 1.00 (922 ms), removed at 932 ms; desktop zoom 2048 under the 4096 until 2133 ms, removed at 2166 ms. `isPhoneLike()` once per page (it ran on every pan step). Test added. |
-| 3 | **A failed mural atlas was re-requested twice a second** (`onError` → `loading = false` → the next 0.5 s check loads again) for as long as the camera stays within 300 u of an alley (offline, a 404). | **fixed** `9b4c27f`: `MURAL_RETRY` 20 s after a failure; node test with a failing `TextureLoader` (2 requests in 30 s, was 61). |
+| 1 | **G2's 18 later lines played the wrong chirp and were never preloaded.** `audio.ts` takes the fallback from `SF_VOICE_LINES[id]?.fallback ?? 'hi'` and `voice.preloadLines` walks `SF_VOICE_LINES`, but the later block lived only in `SF_VOICE_EXTRA`. In the app: a second `bump-hard` within 25 s → `chirp:hi` (its line says `think`); `voice-clip:ready` 24 (en). The report called this "Request 1 (G2 + lead)", but the change is in H2b's own file and G2's test already allows it ("SF_VOICE_LINES may grow by the later block"). | **fixed** (first H2b-review commit): `SF_VOICE_LINES = { ...CORE_LINES, ...SF_VOICE_EXTRA }`; now `chirp:think`, ready 42 (en: 4 barks + 38 lines; zh 41). Tests: `SF_VOICE_LINES` = `BARK_SCRIPT` (order, words, moods); every voice id G2 emits resolves there; all 20 greetings on real `far.zones`. |
+| 2 | **The map paper blinked to the bare table on every opening and every desktop zoom past 4×.** `MapPaperLayer` dropped the smaller paper the moment the sharper one was decoded, while that one was still at opacity 0 → 1 (0.3 s). Trace before: 1024 removed at 463 ms, 2048 at 0.00 … 1.00 until 800 ms; zoom: 2048 removed at 508 ms, 4096 at 0.00 … 1.00 until 823 ms. The component's own comment claimed the smaller one stays underneath. | **fixed** (first H2b-review commit): `paperLayers()` (pure, `ui/mapPaper.ts`) keeps the one under until the fade has ended (a timer, not `transitionend`); a paper already decoded when it becomes the target shows at once, alone. Trace after: phone 1024 @ 1.00 under the 2048 until it reaches 1.00 (922 ms), removed at 932 ms; desktop zoom 2048 under the 4096 until 2133 ms, removed at 2166 ms. `isPhoneLike()` once per page (it ran on every pan step). Test added. |
+| 3 | **A failed mural atlas was re-requested twice a second** (`onError` → `loading = false` → the next 0.5 s check loads again) for as long as the camera stays within 300 u of an alley (offline, a 404). | **fixed** (first H2b-review commit): `MURAL_RETRY` 20 s after a failure; node test with a failing `TextureLoader` (2 requests in 30 s, was 61). |
 | 4 | **The player's body can overlap a board by ≈ 0.1 u** when hugging the wall: boards stand 0.12 u in front of the wall (front face ≈ 0.22 u), the walk keeps the player's centre ≥ `PLAYER_RADIUS` 0.45 u from the wall, the body is drawn ≈ 0.35 u wide. The boards are not obstacles. Small; seen fine at 0.35 u. | **open** (Request 3) |
 
 Not defects, noted:
@@ -288,9 +288,9 @@ the fix). Scratch traces and the other shots: `C:/Users/willy/opus-qa/w3/h2b/rev
 
 1. **G2 (comment only)** — `src/opus-bay/data/sf/lines.ts` lines 66–70: the blocks no longer "stay apart until the lead
    merges"; replace with "H2b recorded it word for word as data/voiceLinesSf.ts SF_VOICE_EXTRA, which is part of
-   SF_VOICE_LINES since 9b4c27f (fallback chirps and city preload included); H2b's test pins this block to
+   SF_VOICE_LINES since the H2b-review fix (fallback chirps and city preload included); H2b's test pins this block to
    SF_VOICE_EXTRA."
-2. **Lead** — Part b's Request 1 is done (`9b4c27f`), Request 3 is withdrawn. Request 2 stands: merge
+2. **Lead** — Part b's Request 1 is done (first H2b-review commit), Request 3 is withdrawn. Request 2 stands: merge
    `docs/opus-bay/ledger/w3-H2b.md` into `src/opus-bay/ASSETS-LEDGER.md` including the dated CDN correction of line 300
    (H2b-12: the CDN returns 200 now, K6 6,390,343 B, 2026-09-27), and `SF_VOICE_UNMUTE` after the owner has listened.
 3. **Lead (design call, optional)** — defect 4: either H2b moves the boards flush to the walls (0.06 u instead of
