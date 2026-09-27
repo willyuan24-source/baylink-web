@@ -6,8 +6,11 @@ import type { VoiceClip } from './assets';
  * BAYBAY's recorded city lines (lane H2b owns this file from wave 2; plan H2b-6..9). Type-only imports: this module is
  * data (the title chunk may reach it through data/assets.ts).
  *
- *   SF_VOICE_LINES[id]     a line: the spoken phrase (G2's bubble text must START with it), mood, and the synth chirp
- *                          played when the clip is missing or not loaded within 700 ms
+ *   SF_VOICE_LINES[id]     every recorded line (the first pass, then SF_VOICE_EXTRA): the spoken phrase (G2's bubble
+ *                          text must START with it), mood, and the synth chirp played when the clip is missing, muted,
+ *                          rate-limited or not loaded within 700 ms. audio/audio.ts takes the fallback from here and
+ *                          audio/voice.ts preloadLines warms every id here in city mode, so a line missing from this
+ *                          table would chirp 'hi' and wait for its clip.
  *   SF_VOICE_CLIPS         clip id (`<lang>-<lineId>`, e.g. 'zh-first-bike') → files; data/assets.ts merges it into
  *                          ASSETS.voice (the player only plays listed ids) and listAssetUrls. An entry may also override
  *                          a district clip id (the re-records of 'zh-yay', 'zh-think', 'zh-arrived').
@@ -38,7 +41,8 @@ export const SF_VOICE_ZONES = [
   'twin-peaks', 'golden-gate-park', 'financial-district-south-beach', 'presidio', 'nob-hill', 'sunset-parkside',
 ] as const;
 
-export const SF_VOICE_LINES: Record<string, SfVoiceLine> = {
+/** the first pass (G2's BARK_SCRIPT_RECORDED, word for word) */
+const CORE_LINES: Record<string, SfVoiceLine> = {
   // the first time on / in each way of moving (G2: once per save, next to the bubble)
   'first-bike': { zh: '骑车出发！', en: 'Bike time!', mood: 'excited', fallback: 'yay' },
   'first-car': { zh: '开车兜风咯！', en: "Let's go for a drive!", mood: 'excited', fallback: 'yay' },
@@ -65,10 +69,9 @@ export const SF_VOICE_LINES: Record<string, SfVoiceLine> = {
 
 /**
  * G2's BARK_SCRIPT_TODO block (data/sf/lines.ts, frozen with G2-4 after the lines above were recorded), recorded word
- * for word in the same part. Their clips are in SF_VOICE_CLIPS, so `voice.line` already plays them (G2 emits these ids;
- * a clip not yet loaded gets LINE_WAIT). They are kept out of SF_VOICE_LINES only because G2's test pins
- * SF_VOICE_LINES to BARK_SCRIPT_RECORDED: when G2 moves them into its recorded block, spread this table into
- * SF_VOICE_LINES in the same commit (then they preload with the others). Request in docs/opus-bay/sf-w3-H2b.md.
+ * for word in the same part. Part of SF_VOICE_LINES (review of wave 3: kept apart at first, the 18 lines then played
+ * the 'hi' chirp instead of their own fallback and were never preloaded); this table stays exported so the tests can
+ * pin it to BARK_SCRIPT_TODO.
  */
 export const SF_VOICE_EXTRA: Record<string, SfVoiceLine> = {
   // reactions (G2: repeat, 60 s per key)
@@ -93,6 +96,9 @@ export const SF_VOICE_EXTRA: Record<string, SfVoiceLine> = {
   'zone-mission-bay': { zh: '你好，米慎湾！', en: 'Hello, Mission Bay!', mood: 'wave', fallback: 'arrived' },
   'zone-outer-richmond': { zh: '你好，外列治文！', en: 'Hello, the Outer Richmond!', mood: 'wave', fallback: 'arrived' },
 };
+
+/** Every recorded line: the first pass, then the later block (preload order). */
+export const SF_VOICE_LINES: Record<string, SfVoiceLine> = { ...CORE_LINES, ...SF_VOICE_EXTRA };
 
 const DIR = '/opus-bay/voice/sf';
 const clip = (id: string, text: string, duration: number): VoiceClip => ({
@@ -158,7 +164,7 @@ export const SF_VOICE_REDOS: Record<string, VoiceClip> = {
 };
 
 export const SF_VOICE_CLIPS: Record<string, VoiceClip> = {
-  ...Object.fromEntries(Object.entries({ ...SF_VOICE_LINES, ...SF_VOICE_EXTRA }).flatMap(([id, line]) => {
+  ...Object.fromEntries(Object.entries(SF_VOICE_LINES).flatMap(([id, line]) => {
     const [zh, en] = LINE_SECONDS[id] ?? [0, 0];
     return zh > 0 ? [[`zh-${id}`, clip(`zh-${id}`, line.zh, zh)], [`en-${id}`, clip(`en-${id}`, line.en, en)]] : [];
   })),

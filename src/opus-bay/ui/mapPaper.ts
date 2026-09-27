@@ -10,6 +10,7 @@ import { MAP_PAPER, type MapFrame, type PaperWidth } from '../data/mapPaper';
  *   preloadPaper(url)             fetch + decode once (cached); paperLoaded(url) says whether it is ready
  *   loadMapPaper(width)           cached Promise of the decoded image for a target pixel width (null: no paper / error)
  *   drawMapPaper(ctx, img, toPx)  canvas path: draw it under the vector layers; toPx maps world (x, z) → canvas px
+ *   paperLayers(…)                what MapPaperLayer draws for a target: the paper under it and the target's opacity
  */
 
 /**
@@ -69,6 +70,23 @@ export function bestLoadedPaper(max: PaperWidth): PaperWidth | null {
     if (u && ready.has(u)) return w;
   }
   return null;
+}
+
+/** the fade-in of a sharper paper (ms); the one under it stays this long (+ a frame or two) */
+export const PAPER_FADE_MS = 300;
+
+/** The next smaller width (the paper that may show under a loading one). */
+const below = (w: PaperWidth): PaperWidth => (w === 4096 ? 2048 : 1024);
+
+/**
+ * What the layer draws for a target paper (pure: node tests). `settled`: the target shows alone (it was decoded when it
+ * became the target, or its fade-in has ended). Otherwise the best decoded paper below it (else the 1024, which the
+ * browser loads by itself) stays underneath, and the target sits on top at opacity 0 until it is decoded, then 1.
+ */
+export function paperLayers(target: PaperWidth, targetUrl: string, done: boolean, settled: boolean): { under: string | null; opacity: number; fade: boolean } {
+  if (settled && done) return { under: null, opacity: 1, fade: false };
+  const u = paperUrl(bestLoadedPaper(below(target)) ?? 1024);
+  return { under: u && u !== targetUrl ? u : null, opacity: done ? 1 : 0, fade: true };
 }
 
 /** Decoded paper for a target pixel width (the phone cap applies). */

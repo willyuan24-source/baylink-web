@@ -74,7 +74,7 @@ test('raster: halve averages 2 × 2; the chamfer distance is near Euclidean', ()
 // ---------------------------------------------------------------------------------------------------------------------
 
 const { MAP_FRAME, MAP_PAPER, MAP_PAPER_V1, mapPaperUrls } = await import('../src/opus-bay/data/mapPaper');
-const { paperWidthFor, paperUrl } = await import('../src/opus-bay/ui/mapPaper');
+const { paperWidthFor, paperUrl, paperLayers } = await import('../src/opus-bay/ui/mapPaper');
 
 const publicFile = (url: string) => path.resolve(import.meta.dirname, '../public', url.replace(/^\//, ''));
 
@@ -121,6 +121,18 @@ test('map paper: phones and tablets stop at 2048; a request picks the next size 
   assert.equal(paperUrl(4096), MAP_PAPER_V1.sizes[4096]);
 });
 
+test('map paper: a sharper paper fades in over the smaller one, which leaves only when the fade has ended', () => {
+  // review of wave 3: the smaller paper left the DOM the moment the sharper one was decoded, so for the 0.3 s fade the
+  // map blinked to the bare table (seen in the app: 1024 gone at 463 ms, the 2048 at opacity 0 … 1 until 800 ms)
+  const [u1, u2, u4] = [paperUrl(1024)!, paperUrl(2048)!, paperUrl(4096)!];
+  // (node: nothing is decoded, so the one under is the 1024 the browser loads by itself)
+  assert.deepEqual(paperLayers(2048, u2, false, false), { under: u1, opacity: 0, fade: true });
+  assert.deepEqual(paperLayers(2048, u2, true, false), { under: u1, opacity: 1, fade: true }, 'still under it while fading in');
+  assert.deepEqual(paperLayers(2048, u2, true, true), { under: null, opacity: 1, fade: false });
+  assert.deepEqual(paperLayers(4096, u4, true, false).under, u1);
+  assert.deepEqual(paperLayers(1024, u1, false, false), { under: null, opacity: 0, fade: true }, 'never itself underneath');
+});
+
 test('map paper: the registration check of v1 passed the coast gate and describes the committed files', () => {
   const r = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../docs/opus-bay/h2b/paper-v1-check.json'), 'utf8')) as {
     pass: boolean; p95: number; gatePx: number; coastPx2048: { fitted: { candToBaseP95: number; baseToCandP95: number } };
@@ -154,8 +166,10 @@ const voiceReport = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname,
 
 test('voice: every city line has a zh and an en clip that says it, each ≤ 2 s; the re-records override the district ids', () => {
   const ids = Object.keys(SF_VOICE_LINES);
-  assert.equal(ids.length, 20);
+  // the first pass (8 mode firsts + 12 greetings) and G2's later block of 18 (SF_VOICE_EXTRA), in that order
+  assert.equal(ids.length, 38);
   assert.equal(ids.filter(id => id.startsWith('first-')).length, 8);
+  assert.deepEqual(ids.slice(20), Object.keys(SF_VOICE_EXTRA));
   for (const id of ids) {
     const line = SF_VOICE_LINES[id];
     for (const lang of ['zh', 'en'] as const) {
@@ -169,22 +183,42 @@ test('voice: every city line has a zh and an en clip that says it, each ≤ 2 s;
     }
   }
   assert.deepEqual(Object.keys(SF_VOICE_REDOS).sort(), ['zh-arrived', 'zh-think', 'zh-yay']);
-  assert.equal(Object.keys(SF_VOICE_CLIPS).length, 2 * (ids.length + Object.keys(SF_VOICE_EXTRA).length) + 3);
+  assert.equal(Object.keys(SF_VOICE_CLIPS).length, 2 * ids.length + 3);
   // ASSETS.voice lists each clip in the container this runtime decodes (the player plays listed ids only)
   for (const [id, clip] of Object.entries(SF_VOICE_CLIPS)) assert.ok([clip.m4a, clip.ogg].includes(ASSETS.voice[id]), id);
 });
 
 test('voice: G2 froze the recorded lines word for word; its later lines are recorded as SF_VOICE_EXTRA, clips ≤ 2 s', async () => {
-  const { BARK_SCRIPT_RECORDED, BARK_SCRIPT_TODO } = await import('../src/opus-bay/data/sf/lines');
-  assert.deepEqual(BARK_SCRIPT_RECORDED.map(l => [l.id, l.zh, l.en]), Object.entries(SF_VOICE_LINES).map(([id, l]) => [id, l.zh, l.en]));
+  const { BARK_SCRIPT, BARK_SCRIPT_RECORDED, BARK_SCRIPT_TODO } = await import('../src/opus-bay/data/sf/lines');
+  // SF_VOICE_LINES = the recorded block, then the later block: the whole BARK_SCRIPT, same order, same words and moods
+  assert.deepEqual(BARK_SCRIPT.map(l => [l.id, l.zh, l.en, l.mood]), Object.entries(SF_VOICE_LINES).map(([id, l]) => [id, l.zh, l.en, l.mood]));
+  assert.deepEqual(BARK_SCRIPT_RECORDED.map(l => l.id), Object.keys(SF_VOICE_LINES).slice(0, BARK_SCRIPT_RECORDED.length));
   assert.deepEqual(BARK_SCRIPT_TODO.map(l => [l.id, l.zh, l.en]), Object.entries(SF_VOICE_EXTRA).map(([id, l]) => [id, l.zh, l.en]));
   for (const [id, line] of Object.entries(SF_VOICE_EXTRA)) {
-    assert.ok(!SF_VOICE_LINES[id], `${id} only once`);
+    assert.equal(SF_VOICE_LINES[id], line, `${id} is part of SF_VOICE_LINES`);
     for (const lang of ['zh', 'en'] as const) {
       const clip = SF_VOICE_CLIPS[`${lang}-${id}`];
       assert.ok(clip && clip.text === line[lang] && clip.duration > 0.3 && clip.duration <= 2.0, `${lang}-${id}`);
     }
   }
+});
+
+test('voice: every voice id G2 emits resolves in SF_VOICE_LINES (audio takes its fallback chirp there; city mode preloads it)', async () => {
+  // review of wave 3: the 18 later lines lived only in SF_VOICE_EXTRA, so audio/audio.ts (`SF_VOICE_LINES[id]?.fallback
+  // ?? 'hi'`) played 'hi' for them (bump-hard → hi instead of think, seen in the app) and voice.preloadLines skipped them
+  const { EVENT_LINES, NEIGHBOURHOOD_LINES, neighbourhoodGreeting } = await import('../src/opus-bay/data/sf/lines');
+  const emitted = new Set<string>([
+    ...Object.values(EVENT_LINES).flatMap(list => list.map(l => l.voice)),
+    ...NEIGHBOURHOOD_LINES.map(l => l.voice),
+    neighbourhoodGreeting('any', { zh: '某地', en: 'Somewhere' }).voice,
+  ]);
+  assert.ok(emitted.size >= 30, `${emitted.size} voice ids`);
+  for (const id of emitted) {
+    const line = SF_VOICE_LINES[id];
+    assert.ok(line, `${id}: a line (else the 'hi' chirp and no preload)`);
+    for (const lang of ['zh', 'en'] as const) assert.ok(ASSETS.voice[`${lang}-${id}`], `${lang}-${id} listed`);
+  }
+  assert.equal(SF_VOICE_LINES['bump-hard'].fallback, 'think');
 });
 
 test('voice: the re-records stay muted until the owner approves them by ear', () => {
@@ -202,7 +236,10 @@ test('voice: the neighbourhood greetings use real far.zones ids, one line each',
     assert.ok(zones.has(z), `far zone ${z}`);
     assert.ok(SF_VOICE_LINES[`zone-${z}`], `line zone-${z}`);
   }
-  assert.equal(Object.keys(SF_VOICE_LINES).filter(id => id.startsWith('zone-')).length, SF_VOICE_ZONES.length);
+  // every other greeting (G2's later block) is on a real zone too; zone-new is the template's opener
+  const greetings = Object.keys(SF_VOICE_LINES).filter(id => id.startsWith('zone-') && id !== 'zone-new').map(id => id.slice(5));
+  assert.equal(greetings.length, SF_VOICE_ZONES.length + 8);
+  for (const z of greetings) assert.ok(zones.has(z), `far zone ${z}`);
 });
 
 test('voice: the files on disk are the picks of the report (bytes, sha256, duration, text)', () => {
@@ -310,6 +347,29 @@ test('murals: every board stands in its alley, in front of the walls, facing the
         assert.ok(!inside, `${m.id} corner inside building ${i}`);
       }
     }
+  }
+});
+
+test('murals: a failed atlas load is retried after MURAL_RETRY, not at every check (twice a second)', async () => {
+  const THREE = await import('three');
+  const { attachMurals, MURAL_RETRY } = await import('../src/opus-bay/world/sf/murals');
+  const loader = THREE.TextureLoader.prototype;
+  const orig = loader.load;
+  let calls = 0;
+  loader.load = function (_url: string, _onLoad?: unknown, _onProgress?: unknown, onError?: (e: unknown) => void) {
+    calls++;
+    onError?.(new Error('offline'));
+    return new THREE.Texture();
+  } as typeof loader.load;
+  try {
+    const sys = attachMurals({} as never)!;
+    const camera = { position: { x: MURAL_SITES.clarion.x, y: 6, z: MURAL_SITES.clarion.z } } as never;
+    for (let i = 0; i <= 300; i++) sys.update!(0.1, i * 0.1, camera, 0);
+    assert.equal(MURAL_RETRY, 20);
+    assert.equal(calls, 2, `${calls} requests in 30 s within range of an alley`);
+    sys.dispose!();
+  } finally {
+    loader.load = orig;
   }
 });
 

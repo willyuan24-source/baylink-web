@@ -24,6 +24,8 @@ import type { CityStreamer } from './stream';
  * without standing out bright against the dark walls (0.12 looked like daylight) */
 export const MURAL_GLOW = 0.015;
 const CHECK_EVERY = 0.5;
+/** seconds before the atlas is asked for again after a failed load (offline, a 404): not every check (2 a second) */
+export const MURAL_RETRY = 20;
 
 /**
  * The boards as one geometry (pure: node tests). `ys[i]` = the ground height under board i. Each board is a box
@@ -129,6 +131,9 @@ export function attachMurals(streamer: CityStreamer): WorldSystem | null {
   let mesh: THREE.Mesh<THREE.BufferGeometry, ModelMaterial> | null = null;
   let disposed = false;
   let nextCheck = 0;
+  /** world time before which a failed atlas is not asked for again */
+  let retryAt = 0;
+  let now = 0;
 
   const load = () => {
     loading = true;
@@ -137,7 +142,7 @@ export function attachMurals(streamer: CityStreamer): WorldSystem | null {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = 4;
       texture = tex;
-    }, undefined, () => { loading = false; });
+    }, undefined, () => { loading = false; retryAt = now + MURAL_RETRY; });
   };
 
   const build = () => {
@@ -160,10 +165,11 @@ export function attachMurals(streamer: CityStreamer): WorldSystem | null {
     name: 'murals',
     group,
     update(_dt, t, camera) {
+      now = t;
       if (t < nextCheck) return;
       nextCheck = t + CHECK_EVERY;
       const near = muralSiteDist2(camera.position.x, camera.position.z) <= MURAL_RANGE * MURAL_RANGE;
-      if (near && !texture && !loading) load();
+      if (near && !texture && !loading && t >= retryAt) load();
       if (near && texture && !mesh) build();
       group.visible = near && !!mesh;
     },
