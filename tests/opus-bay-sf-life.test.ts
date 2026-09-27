@@ -80,6 +80,31 @@ test('F13: far from the hero slab the district life hides and stops; ferry 0 and
   assert.ok(!m0.equals(m1), 'pedestrians walk again');
 });
 
+test('F8 (review): city mode keeps the arrival ferry at Gate E until the ferry ride system takes it over', async () => {
+  const T = await import('../src/opus-bay/data/transit');
+  game.set({ phase: 'free', worldMode: 'city' } as never);
+  try {
+    const life = new Life([]);
+    life.heroFarSource = () => false;
+    const ferry0 = life.group.getObjectByName('ferry-0') as THREE.Mesh;
+    life.update(0.1, 0, 0);
+    const dock = new THREE.Vector3().setFromMatrixPosition(ferry0.matrix);
+    // the transit layer (a lazy chunk) is not in yet: 90 s later the boat still lies at its berth (it used to leave on
+    // the district's harbour loop after 22 s and stay unrideable, its terminals without a prompt, for the whole loop)
+    for (let i = 1; i < 900; i++) life.update(0.1, i * 0.1, 0);
+    const now = new THREE.Vector3().setFromMatrixPosition(ferry0.matrix);
+    assert.ok(Math.hypot(now.x - dock.x, now.z - dock.z) < 0.3, `still at Gate E (moved ${Math.hypot(now.x - dock.x, now.z - dock.z).toFixed(1)} u)`);
+    // the layer comes in: handed over on the next frame
+    let taken = 0;
+    T.setPendingFerry({ takeOver: () => { taken++; T.setPendingFerry(null); } });
+    life.update(0.1, 90, 0);
+    assert.equal(taken, 1);
+  } finally {
+    T.setPendingFerry(null);
+    game.set({ worldMode: 'district' } as never);
+  }
+});
+
 test('F13: district mode never pauses (no streamer)', () => {
   const life = new Life([]);
   for (let i = 0; i < 5; i++) life.update(0.1, i * 0.1, 0);

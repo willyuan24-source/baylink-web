@@ -821,7 +821,10 @@ export class Life {
         return;
       }
       if (this.ferryDock > 0) {
-        this.ferryDock -= dt;
+        // city mode (review): the arrival ferry waits at Gate E until the ride system takes it over (the lazy transit
+        // layer comes 12–25 s after load, later on a slow phone); leaving on the harbour loop first kept the ferry
+        // unrideable, and its terminals without a prompt, for the whole loop (≈ 95 s)
+        this.ferryDock = game.get().worldMode === 'city' ? Math.max(0.5, this.ferryDock - dt) : this.ferryDock - dt;
         x0 = a.to.x; z0 = a.to.z; h0 = a.heading;
         if (this.ferryDock <= 0) { this.ferryS[0] = 0; emit({ type: 'foghorn' }); }
       } else {

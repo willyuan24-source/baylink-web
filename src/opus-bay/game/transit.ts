@@ -176,6 +176,7 @@ export function stepTransit(dt: number) {
   const ride = stepRide(dt, travelEpoch());
   if (r?.line) stepCity(r, dt);
   pollTurntables(dt);
+  keepAshore(dt);
   if (!ride) return;
   if (r?.line && ride.lost) { cancelRide(); return; }
   if (r?.line) lineTick(r, ride);
@@ -394,6 +395,28 @@ function countRide(r: RideState) {
   noteRide(line);
 }
 
+/** After a ferry hop-off: the quay the rider belongs on, for a few seconds (keepAshore). */
+let ashore: { x: number; z: number; t: number } | null = null;
+/** how long after leaving the boat a rider standing in the water is put back on the quay (E2's brake 1.2 s + hop 0.4 s) */
+const ASHORE_SECONDS = 4;
+
+/**
+ * Per frame: a rider who left the ferry and now stands where nobody can stand (the Bay, next to the boat's hull) goes to
+ * the quay F chose (review: hopping off under way left the rider on the open water, stuck, on ~35 % of the loop that is
+ * more than 60 u from any walkable ground; the lasting fix, refusing the hop-off until the boat docks, is E2's).
+ */
+function keepAshore(dt: number) {
+  if (!ashore) return;
+  const p = runtime.player;
+  if (runtime.move.mode === 'foot' && !canStand(p.x, p.z, 0.45)) {
+    teleportPlayer(ashore);
+    runtime.guide.x = ashore.x + 1.1; runtime.guide.z = ashore.z + 0.7;
+    ashore = null;
+    return;
+  }
+  if ((ashore.t -= dt) <= 0) ashore = null;
+}
+
 /** Leave a city line ride: at the stop (arrived) or anywhere (hop off, "skip to stop"). Steps off beside the car. */
 function leaveLineRide(r: RideState, finishing: boolean) {
   const sys = rideSystemFor(r.line!);
@@ -411,9 +434,13 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   flow.set({ ride: null });
   let spot: { x: number; z: number } | null = null;
   if (r.kind === 'ferry') {
-    // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach
-    const quay = stationOf(r, st?.station ?? r.to);
+    // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach.
+    // (review) Still waiting on the quay: stay there (the boat may lie at the other terminal, or be out on the Bay).
+    const quay = r.mode === 'follow' ? stationOf(r, st?.station ?? r.to) : undefined;
     if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16);
+    // E2's hop-off puts the feet on its exit slot beside the boat after this (actors/moveSystem 'transit-alight'):
+    // out on the Bay that is open water, so the quay is kept for a moment and restored if the rider lands in the water
+    if (spot) ashore = { x: spot.x, z: spot.z, t: ASHORE_SECONDS };
   } else if (skip) {
     const dest = stationOf(r, r.to);
     if (dest) spot = nearestWalkable({ x: dest.x, z: dest.z }, 16);
