@@ -142,6 +142,8 @@ export class CityStreamer {
   private waits: { p: Vec2; r: number; resolve: () => void }[] = [];
   private focus = { x: 0, z: 0, vx: 0, vz: 0 };
   private selAt = { x: Infinity, z: Infinity, yaw: 0, t: -1, radii: '' };
+  /** the cell table changed (a worker result, a re-selection, far cells, an attach / drop last frame): walk it again */
+  private visDirty = true;
   private jobsDirty = true;
   private queued = 0;
   private workerMs = 0;
@@ -254,6 +256,7 @@ export class CityStreamer {
   }
 
   private onMessage(w: number, m: WorkerOut) {
+    this.visDirty = true;
     if (m.t === 'ready') return;
     if (m.t === 'far') { this.onFar(m.result, m.far); return; }
     const rec = this.inflight.get(m.id);
@@ -331,6 +334,7 @@ export class CityStreamer {
       this.pool.add(l2Id(key), { toy: c.toy, ground: c.ground }, false, !cell || CellTable.shownFor(cell) === 2);
       this.farCells.add(key);
       if (!cell) this.l2Static += this.pool.trianglesOf(l2Id(key));
+      this.visDirty = true;
     }
   }
 
@@ -614,22 +618,29 @@ export class CityStreamer {
       this.selAt = { x: this.focus.x, z: this.focus.z, yaw, t: this.time, radii: rk };
       const foci: Focus[] = [this.focus, ...this.waits.map(w => ({ x: w.p.x, z: w.p.z }))];
       t.select(foci, radii);
+      this.visDirty = true;
       this.m4.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       this.frustum.setFromProjectionMatrix(this.m4);
       this.jobsDirty = true;
     }
     if (this.status === 'streaming' && (this.jobsDirty || this.inflight.size < 2)) this.dispatch();
-    // attach within budget (timed)
-    const a = t.nextAttaches(ATTACH_BUDGET);
-    for (const c of a.l0) { const t0 = performance.now(); this.attachL0(c); this.timeAttach(performance.now() - t0); }
-    for (const c of a.l1) { const t0 = performance.now(); this.attachL1(c); this.timeAttach(performance.now() - t0); }
-    // drop what left (after the replacement is on screen)
-    const d = t.drops();
-    for (const c of d.l0) this.dropL0(c);
-    for (const c of d.l1) this.dropL1(c);
-    for (const ch of d.chunks) this.dropChunk(ch);
-    for (const ch of d.rasters) { this.terrain?.detach(ch.cx, ch.cz); ch.raster = 'none'; }
-    this.applyVisibility();
+    // the three walks over every cell (attaches, drops, tiers on screen) only when the table changed (wave 3, P2: ≈ 0.5 ms
+    // a frame at 4× CPU on a standing camera); a frame that attached or dropped something looks again the next frame
+    if (this.visDirty) {
+      this.visDirty = false;
+      // attach within budget (timed)
+      const a = t.nextAttaches(ATTACH_BUDGET);
+      for (const c of a.l0) { const t0 = performance.now(); this.attachL0(c); this.timeAttach(performance.now() - t0); }
+      for (const c of a.l1) { const t0 = performance.now(); this.attachL1(c); this.timeAttach(performance.now() - t0); }
+      // drop what left (after the replacement is on screen)
+      const d = t.drops();
+      for (const c of d.l0) this.dropL0(c);
+      for (const c of d.l1) this.dropL1(c);
+      for (const ch of d.chunks) this.dropChunk(ch);
+      for (const ch of d.rasters) { this.terrain?.detach(ch.cx, ch.cz); ch.raster = 'none'; }
+      this.applyVisibility();
+      if (a.l0.length || a.l1.length || d.l0.length || d.l1.length || d.chunks.length || d.rasters.length) this.visDirty = true;
+    }
     this.stepFades();
     // tile rebuilds and the per-item frustum cull of the L1 / L2 pools (the camera's matrices are current: read above)
     this.pool.update(camera);
