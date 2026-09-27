@@ -25,6 +25,8 @@ export const TIMING = {
   /** longest auto-brake before getting off anyway */
   brakeMax: 0.7,
   transitBoard: 0.5,
+  /** longest hop-off brake of a transit car (the car is asked to stop within this; sf-w2-contracts §5.2) */
+  transitBrake: 1.2,
   transitAlight: 0.4,
   takeoff: 1.0,
   /** longest landing descent */
@@ -98,6 +100,26 @@ export function slotClear(world: SlotWorld, from: { x: number; z: number }, slot
   return true;
 }
 
+/**
+ * Where a transit rider steps off (E2-10): beside the car on the rider's side level with the rider (`side` +1 = the
+ * car's left, `riderZ` the rider's deck z), then level with the car's middle, then the other side, then behind / ahead.
+ * `halfWidth` is the car's half width to its running boards; the slot is 0.9 u beyond it.
+ */
+export function transitExitSlots(car: { x: number; z: number; heading: number }, side: 1 | -1, riderZ: number, halfWidth: number, length: number): DoorSlot[] {
+  const fx = Math.sin(car.heading), fz = Math.cos(car.heading), lx = Math.cos(car.heading), lz = -Math.sin(car.heading);
+  const w = halfWidth + 0.9, end = length / 2 + 0.8;
+  const at = (x: number, zz: number, s: SlotSide): DoorSlot => ({ x: car.x + lx * x + fx * zz, z: car.z + lz * x + fz * zz, side: s });
+  const near: SlotSide = side > 0 ? 'left' : 'right', far: SlotSide = side > 0 ? 'right' : 'left';
+  return [at(side * w, riderZ, near), at(side * w, 0, near), at(-side * w, riderZ, far), at(-side * w, 0, far), at(0, -end, 'back'), at(0, end, 'front')];
+}
+
+/** First clear transit exit slot (from the car's centre, at the ground height under it), or null. */
+export function pickTransitExit(world: SlotWorld, car: { x: number; z: number; heading: number }, side: 1 | -1, riderZ: number, halfWidth: number, length: number): DoorSlot | null {
+  const floorY = world.heightAt(car.x, car.z);
+  for (const slot of transitExitSlots(car, side, riderZ, halfWidth, length)) if (slotClear(world, car, slot, floorY)) return slot;
+  return null;
+}
+
 /** First clear slot to step out to, or null (→ "这里下不了车"). */
 export function pickExitSlot(world: SlotWorld, v: { x: number; z: number; y: number; heading: number }, width: number, length: number): DoorSlot | null {
   for (const slot of doorSlots(v.x, v.z, v.heading, width, length)) if (slotClear(world, v, slot, v.y)) return slot;
@@ -131,7 +153,11 @@ export type MoveOutcome =
   | { type: 'landed' }
   | { type: 'sat' }
   | { type: 'stood' }
-  | { type: 'transit-spot'; spot: MoveSpot };
+  | { type: 'transit-spot'; spot: MoveSpot }
+  /** transit hop-off (E2-10): the car is slow enough (or the brake time ran out) — step off to `slot` now */
+  | { type: 'transit-alight'; slot: DoorSlot }
+  /** transit hop-off: the feet are on the street */
+  | { type: 'transit-alighted'; slot: DoorSlot };
 
 /** World facts the machine needs each tick. */
 export interface MoveSense {
@@ -237,6 +263,17 @@ export class MoveMachine {
   /** Moving the stick on a transit car: walk the deck (ferry / aisle). */
   walkDeck() { if (this.mode === 'transit' && this.phase === 'steady') this.spot = 'deck'; }
 
+  /**
+   * Hop off a moving transit car (E2-10, sf-w2-contracts §5.2): brake first — the system has asked the car to stop —
+   * until its speed is below ALIGHT_SPEED or TIMING.transitBrake passed, then 'alighting' (0.4 s) to the exit slot.
+   */
+  brakeTransit(): MoveResult {
+    if (this.mode !== 'transit' || this.phase !== 'steady') return no('busy');
+    this.exitSlot = null;
+    this.go('braking', TIMING.transitBrake);
+    return OK;
+  }
+
   /** The ride ended (flow): off the car. */
   endTransit() {
     if (this.mode !== 'transit') return;
@@ -272,15 +309,23 @@ export class MoveMachine {
       case 'braking':
         if (sense.vehicleSpeed < ALIGHT_SPEED || this.phaseT >= this.dur) {
           const slot = sense.findExitSlot();
-          if (slot) { this.exitSlot = slot; this.go('alighting', TIMING.alight); }
-          else { this.steady(); out.push({ type: 'blocked', reason: 'no-slot' }); }
+          const transit = this.mode === 'transit';
+          if (slot) {
+            this.exitSlot = slot;
+            this.go('alighting', transit ? TIMING.transitAlight : TIMING.alight);
+            if (transit) out.push({ type: 'transit-alight', slot });
+          } else if (transit) {
+            // (the system always resolves a transit slot; without one the ride simply ends where the rider is)
+            this.toFoot();
+          } else { this.steady(); out.push({ type: 'blocked', reason: 'no-slot' }); }
         }
         break;
       case 'alighting':
         if (this.phaseT >= this.dur) {
-          const vehicle = this.vehicle, slot = this.exitSlot;
+          const vehicle = this.vehicle, slot = this.exitSlot, transit = this.mode === 'transit';
           this.toFoot();
           if (vehicle && slot) out.push({ type: 'alighted', vehicle, slot });
+          else if (transit && slot) out.push({ type: 'transit-alighted', slot });
         }
         break;
       case 'takeoff':

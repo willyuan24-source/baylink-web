@@ -1059,6 +1059,11 @@ export function nearPlane(camY: number, groundY: number): number {
   return clamp(0.5 + 0.02 * (camY - groundY), 0.5, 8);
 }
 
+/** The platform of the transit ride (the hero F-line 'streetcar', else the city line's car: `move.line`). */
+function transitPlatform() { return platforms.get(game.get().move.line ?? 'streetcar'); }
+/** the side a city line's ride camera keeps (+1 = the car's left), per platform, re-chosen after a break of > 1 s */
+const transitSide = { id: '', side: 1 as 1 | -1, t: -9 };
+
 /** Which ride rig applies right now (null = on foot / photo / travel: the follow rig). */
 export function rideCamMode(): RideCamMode | null {
   const m = runtime.move;
@@ -1066,7 +1071,8 @@ export function rideCamMode(): RideCamMode | null {
     case 'bike': case 'car': return m.phase === 'boarding' && m.progress < 0.5 ? null : m.mode;
     case 'glide': return 'glide';
     case 'sit': return m.phase === 'steady' ? 'sit' : null;
-    case 'transit': return runtime.move.spot && platforms.get('streetcar')?.live ? 'transit' : null;
+    // (the ride's own car: lane F publishes cable cars as platforms.get(move.line); stepping down hands back to the follow rig)
+    case 'transit': return runtime.move.spot && m.phase !== 'alighting' && transitPlatform()?.live ? 'transit' : null;
     default: return null;
   }
 }
@@ -1082,13 +1088,25 @@ function rideSubject(mode: RideCamMode, now: number): import('./cameraModes').Ri
   }
   if (mode === 'glide') return { mode, x: g.x, y: g.y, z: g.z, heading: g.heading, speed: g.speed, gradeAhead: 0 };
   if (mode === 'transit') {
-    const plat = platforms.get('streetcar')!;
+    const plat = transitPlatform()!;
+    const seated = runtime.move.spot === 'seat';
+    if (plat.id !== 'streetcar') {
+      // a city line (cable car): the side the camera already looks in from, kept for the ride; the rider hangs off the
+      // running board on that side (lane F railMirror) and the rig pulls in before a building (occlude)
+      if (transitSide.id !== plat.id || now - transitSide.t > 1) {
+        const cam = runtime.camera;
+        transitSide.side = toLocal(plat, p.x + Math.sin(cam.yaw) * 10, p.z + Math.cos(cam.yaw) * 10).x >= 0 ? 1 : -1;
+        transitSide.id = plat.id;
+      }
+      transitSide.t = now;
+      rideCamInfo.side = transitSide.side;
+      return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side: transitSide.side, seated, occlude: true };
+    }
     // camera on the water side of the car, as the old side-on ride shot (the promenade normal points to the Bay)
     const f = frameAt(stationOf({ x: p.x, z: p.z }).st);
     const local = toLocal(plat, plat.x + f.nx, plat.z + f.nz);
     const side: 1 | -1 = local.x >= 0 ? 1 : -1;
     rideCamInfo.side = side;
-    const seated = runtime.move.spot === 'seat';
     return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side, seated };
   }
   // sit: over the shoulder toward the view the bench faces

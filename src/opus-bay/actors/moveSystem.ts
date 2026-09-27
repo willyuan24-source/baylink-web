@@ -18,8 +18,8 @@ import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
 import { NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
-import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, nearestEnterSlot, pickExitSlot, type MoveOutcome, type SlotWorld } from './modes';
-import { DeckWalker, agePlatforms, platforms, rider as platformRider, spotFor, toLocal, toWorld } from './platform';
+import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
+import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
 import { driveRoute } from './vehicles/driveRoute';
@@ -88,6 +88,7 @@ const UPY = new THREE.Vector3(0, 1, 0);
 const tmpV = new THREE.Vector3();
 const tmpV2 = new THREE.Vector3();
 const tmpQ = new THREE.Quaternion();
+const tmpQ2 = new THREE.Quaternion();
 const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
 const tmpS = new THREE.Sphere();
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -102,6 +103,16 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
   if (action === 'exit') return d === 'touch' ? { zh: '点「下车」', en: 'tap Get off' } : d === 'gamepad' ? { zh: 'Y 下车', en: 'Y to get off' } : { zh: 'F 下车', en: 'F to get off' };
   return d === 'touch' ? { zh: '点「起飞」', en: 'tap Glide' } : d === 'gamepad' ? { zh: '按 L3 起飞', en: 'press L3 to take off' } : { zh: '按 G 起飞', en: 'press G to take off' };
 }
+
+/** On a cable car BAYBAY sits on the rider's (camera-side) outward bench, this far along it from the rider's seat (u). */
+const CABLE_GUIDE_DZ = 0.62;
+/** The walkable rect of a platform the rider is in: the aisle, or one of `decks` (a running board, a sun deck). */
+function deckRectAt(plat: Platform, x: number, z: number): DeckRect {
+  let best = plat.deck, bestD = rectDist(plat.deck, x, z);
+  for (const d of plat.decks ?? []) { const dd = rectDist(d, x, z); if (dd < bestD) { best = d; bestD = dd; } }
+  return best;
+}
+const rectDist = (r: DeckRect, x: number, z: number) => Math.hypot(Math.max(r.minX - x, 0, x - r.maxX), Math.max(r.minZ - z, 0, z - r.maxZ));
 
 /** BAYBAY's scale in each seat (the basket is small; she tucks in). */
 const GUIDE_SEAT_SCALE = { bike: 0.72, car: 0.85, glide: 0.85 } as const;
@@ -344,7 +355,8 @@ export class MoveSystem {
 
     // --- sync with the store: flow boards / ends streetcar rides and restarts the game
     if (s.move.mode === 'transit' && m.mode !== 'transit') this.beginTransit(s.move.line ?? 'streetcar');
-    else if (s.move.mode !== 'transit' && m.mode === 'transit') { m.endTransit(); platformRider.platform = null; this.releaseGuide(true); }
+    // (the hop-off's 0.4 s step down from the car runs on after the flow ended the ride: E2-10)
+    else if (s.move.mode !== 'transit' && m.mode === 'transit' && m.phase !== 'alighting') { m.endTransit(); platformRider.platform = null; this.releaseGuide(true); }
     if (!env.playing && m.mode !== 'foot' && m.mode !== 'transit') this.toFoot();
     // fast travel (game flow): the store says 'travel' → everything parked, the flow carries the player; back to foot after
     if (s.move.mode === 'travel' && m.mode !== 'travel') { this.toFoot(); m.beginTravel(); }
@@ -393,16 +405,24 @@ export class MoveSystem {
       if (glidePress && m.phase === 'steady' && !frozen) { if (this.approach) this.approach = null; else this.tryLand(); }
     } else if (mode === 'transit') {
       const r = currentRide();
-      if (!frozen && r) {
+      if (!frozen && r && (m.phase === 'steady' || m.phase === 'boarding')) {
         const hop = runtime.input.jump;
         if (hop) runtime.input.jump = false;
         if (hop || vehiclePress || hopOffPress) {
-          if (r.mode === 'wait') cancelRide(); else hopOffRide();
-          m.endTransit(); platformRider.platform = null; this.releaseGuide(false);
+          if (r.mode === 'wait') { cancelRide(); m.endTransit(); platformRider.platform = null; this.releaseGuide(false); }
+          else if (r.line && m.phase === 'steady') {
+            // E2-10 (sf-w2-contracts §5.2): ask the car to stop, brake, then step off (onOutcome 'transit-alight')
+            requestPlatformStop(r.line, TIMING.transitBrake);
+            m.brakeTransit();
+          } else if (!r.line) {
+            // the hero F-line car does not honour stop requests yet (lane F, world/streetcar.ts): off at once, as before
+            hopOffRide();
+            m.endTransit(); platformRider.platform = null; this.releaseGuide(false);
+          }
         }
         else if (interactPress && r.mode !== 'wait' && m.switchSpot().ok && m.spot) { this.placeOnSpot(); emit({ type: 'transit:spot', line: m.line ?? 'streetcar', spot: m.spot }); }
         else if (input.manualMove && r.mode !== 'wait' && m.spot !== 'deck') m.walkDeck();
-      }
+      } else if (!frozen) runtime.input.jump = false;
     }
     input.vehicleContext = this.carried && (mode === 'bike' || mode === 'car' || mode === 'glide') ? 'in' : near ? 'near' : 'none';
     // the autopilot only drives a steady ride (F to get off, R, a teleport … hand control back)
@@ -422,9 +442,11 @@ export class MoveSystem {
     this.pelican.update(dt, t);
 
     // --- state machine timers
+    const transitCar = m.mode === 'transit' ? platforms.get(m.line ?? 'streetcar') : undefined;
     const outs = m.tick(dt, {
-      vehicleSpeed: this.ride ? Math.abs(this.ride.sim.v) : 0,
-      findExitSlot: () => (this.ride ? pickExitSlot(SLOTS, { x: this.ride.sim.x, z: this.ride.sim.z, y: this.ride.sim.y, heading: this.ride.sim.heading }, this.ride.width, this.ride.length) : null),
+      vehicleSpeed: this.ride ? Math.abs(this.ride.sim.v) : transitCar?.live ? Math.hypot(transitCar.vx, transitCar.vz) : 0,
+      findExitSlot: () => (this.ride ? pickExitSlot(SLOTS, { x: this.ride.sim.x, z: this.ride.sim.z, y: this.ride.sim.y, heading: this.ride.sim.heading }, this.ride.width, this.ride.length)
+        : m.mode === 'transit' ? this.transitExit(transitCar) : null),
     });
     for (const o of outs) this.onOutcome(o, c);
 
@@ -728,8 +750,50 @@ export class MoveSystem {
         break;
       }
       case 'transit-spot': break;
+      case 'transit-alight': {
+        // E2-10: the car is slow (or the brake time ran out): end the ride (lane F counts it and steps the player off
+        // beside the car), put the feet on our clear exit slot, let the car go, and hop down over TIMING.transitAlight
+        const line = this.machine.line ?? 'streetcar';
+        this.alightFrom.set(this.rider.x, this.rider.y, this.rider.z);
+        this.alightQuat.copy(this.rider.quat);
+        hopOffRide();
+        releasePlatformStop(line);
+        platformRider.platform = null;
+        p.x = o.slot.x; p.z = o.slot.z; p.y = heightAt(o.slot.x, o.slot.z);
+        p.pathTarget = null; p.pendingInteract = null;
+        this.releaseGuide(true);
+        runtime.camera.shake = Math.max(runtime.camera.shake, 0.08);
+        break;
+      }
+      case 'transit-alighted':
+        p.x = o.slot.x; p.z = o.slot.z;
+        c.sync();
+        this.lean = 0;
+        break;
     }
   }
+
+  /**
+   * The exit slot for a transit hop-off: beside the car on the rider's side (running board / aisle side), level with
+   * the rider, else the other clear slots (modes.transitExitSlots), else the nearest walkable spot around the car.
+   */
+  private transitExit(plat: Platform | undefined): DoorSlot | null {
+    const p = runtime.player;
+    if (!plat) return { x: p.x, z: p.z, side: 'left' };
+    const side: 1 | -1 = this.deck.x < 0 ? -1 : 1;
+    let half = Math.max(Math.abs(plat.deck.minX), Math.abs(plat.deck.maxX));
+    for (const d of plat.decks ?? []) half = Math.max(half, Math.abs(d.minX), Math.abs(d.maxX));
+    const length = Math.max(plat.deck.maxZ - plat.deck.minZ, ...(plat.decks ?? []).map(d => d.maxZ - d.minZ)) + 0.6;
+    const slot = pickTransitExit(SLOTS, plat, side, this.deck.z, half, length);
+    if (slot) return slot;
+    const w = nearestWalkable({ x: plat.x, z: plat.z }, 12);
+    return w ? { x: w.x, z: w.z, side: 'left' } : { x: p.x, z: p.z, side: 'left' };
+  }
+  /** E2-10: the rider's pose on the car when the hop down began */
+  private readonly alightFrom = new THREE.Vector3();
+  private readonly alightQuat = new THREE.Quaternion();
+  /** current outward hang lean on a running board (rad, eased) */
+  private lean = 0;
 
   // ---------------------------------------------------------------------------
   // BAYBAY in the seat
@@ -773,6 +837,14 @@ export class MoveSystem {
     if (m.mode === 'transit') {
       const plat = platforms.get(m.line ?? 'streetcar');
       if (!plat || !plat.live || !platformRider.platform) return null;
+      if (plat.kind === 'cable-car') {
+        // on the outward bench on the rider's (= the camera's) side, next to the rider (the far bench would hide her
+        // behind the backrest)
+        const seat = spotFor(plat, 'seat', this.benchSide());
+        const w = toWorld(plat, seat.x, plat.floor + plat.seatY + 0.2, seat.z + CABLE_GUIDE_DZ);
+        out.set(w.x, w.y, w.z);
+        return { scale: 1, sitting: true, pole: false };
+      }
       const seated = m.spot === 'seat';
       const lx = seated ? (this.cameraSide > 0 ? plat.seatRight.x : plat.seatLeft.x) : clamp(this.deck.x - 0.1, plat.deck.minX + 0.3, plat.deck.maxX - 0.3);
       const lz = clamp(this.deck.z + 0.95, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
@@ -855,6 +927,8 @@ export class MoveSystem {
       R.quat.setFromAxisAngle(UPY, m.phase === 'rising' ? st.heading : lerp(this.boardHeading, this.boardHeading + wrap(st.heading - this.boardHeading), kk));
       A.sitting = kk > 0.4;
       p.heading = st.heading;
+    } else if (m.mode === 'transit' && m.phase === 'alighting') {
+      this.placeAlight();
     } else if (m.mode === 'transit') {
       this.placeTransit(dt, env);
     }
@@ -895,7 +969,7 @@ export class MoveSystem {
           if (kk >= 1) this.guideSeat = 'seated';
         } else { G.x = target.x; G.y = target.y; G.z = target.z; G.scale = info.scale; }
         this.guideFromScale = G.scale;
-        G.quat.copy(this.seatQuat());
+        G.quat.copy(this.guideQuat());
         this.guideAnim.sitting = info.sitting && this.guideSeat === 'seated';
         this.guideAnim.pole = info.pole;
         runtime.guide.x = G.x; runtime.guide.z = G.z; runtime.guide.y = G.y; runtime.guide.heading = p.heading;
@@ -908,7 +982,35 @@ export class MoveSystem {
     const m = this.machine;
     if ((m.mode === 'bike' || m.mode === 'car') && this.ride) return { scale: GUIDE_SEAT_SCALE[this.ride.kind], sitting: true, pole: false };
     if (m.mode === 'glide') return { scale: GUIDE_SEAT_SCALE.glide, sitting: true, pole: false };
+    if (m.mode === 'transit' && platforms.get(m.line ?? 'streetcar')?.kind === 'cable-car') return { scale: 1, sitting: true, pole: false };
     return { scale: 1, sitting: m.spot === 'seat', pole: m.spot !== 'seat' };
+  }
+
+  /** BAYBAY's orientation: the carrier's (seatQuat), or facing out from her cable-car bench. */
+  private guideQuat(): THREE.Quaternion {
+    const m = this.machine;
+    if (m.mode === 'transit') {
+      const plat = platforms.get(m.line ?? 'streetcar');
+      if (plat?.kind === 'cable-car') return this.platQuat(plat, spotFor(plat, 'seat', this.benchSide()).heading);
+    }
+    return this.seatQuat();
+  }
+
+  /** The side of the car BAYBAY's cable-car bench is on: the rider's (board or bench), else the camera's. */
+  private benchSide(): 1 | -1 {
+    return Math.abs(this.deck.x) > 0.5 ? (this.deck.x > 0 ? 1 : -1) : this.cameraSide;
+  }
+
+  /**
+   * Orientation on a platform: the car body as lane F draws it (three.js Euler(−pitch, heading, roll, 'YXZ')), leaning
+   * `leanLeft` about the car's forward axis (+ = toward the car's left: a rider hanging off the left running board),
+   * then `localYaw` in the car frame. Flat and upright (the F-line) it is the old Euler(0, heading + yaw, roll).
+   */
+  private platQuat(plat: Platform, localYaw: number, leanLeft = 0): THREE.Quaternion {
+    const pitch = plat.pitch ?? 0;
+    if (!pitch && !leanLeft) return tmpQ.setFromEuler(tmpE.set(0, plat.heading + localYaw, plat.roll, 'YXZ'));
+    tmpQ.setFromEuler(tmpE.set(-pitch, plat.heading, plat.roll - leanLeft, 'YXZ'));
+    return tmpQ.multiply(tmpQ2.setFromAxisAngle(UPY, localYaw));
   }
 
   /** Orientation of whatever carries the riders (vehicle / pelican / platform). */
@@ -921,6 +1023,21 @@ export class MoveSystem {
       if (plat) return tmpQ.setFromEuler(tmpE.set(0, plat.heading + this.deck.heading, plat.roll, 'YXZ'));
     }
     return tmpQ.setFromAxisAngle(UPY, runtime.player.heading);
+  }
+
+  /** E2-10: stepping down from a transit car to the exit slot (TIMING.transitAlight), turning away from the car. */
+  private placeAlight() {
+    const m = this.machine, p = runtime.player, R = this.rider, A = this.riderAnim;
+    const slot = m.exitSlot;
+    if (!slot) return;
+    const k = m.progress, e = ease(k), gy = heightAt(slot.x, slot.z);
+    R.active = true;
+    R.x = lerp(this.alightFrom.x, slot.x, e); R.z = lerp(this.alightFrom.z, slot.z, e);
+    R.y = lerp(this.alightFrom.y, gy, e) + Math.sin(Math.PI * k) * 0.45;
+    const away = Math.atan2(slot.x - this.alightFrom.x, slot.z - this.alightFrom.z);
+    R.quat.slerpQuaternions(this.alightQuat, tmpQ.setFromAxisAngle(UPY, away), e);
+    A.pole = k < 0.25;
+    p.heading = away;
   }
 
   /** The newcomer inside the streetcar: rail spot, bench seat or walking the aisle. */
@@ -937,19 +1054,27 @@ export class MoveSystem {
     // at the rail: hold the pole and turn three-quarters toward the open window on the camera's side
     if (m.spot === 'rail') this.deck.heading += wrap((Math.PI / 2) * this.cameraSide * 0.75 - this.deck.heading) * (1 - Math.exp(-4 * dt));
     if (!platformRider.platform) { this.placeOnSpot(); platformRider.platform = plat.id; this.startGuideIn(); }
+    // a cable car's running board follows the camera's side (lane F railMirror: the body never hides the rider)
+    else if (plat.railMirror && m.spot === 'rail' && m.phase === 'steady' && (this.deck.x >= 0 ? 1 : -1) !== this.cameraSide) this.placeOnSpot();
     platformRider.platform = plat.id;
     if (m.spot === 'deck') {
-      // camera yaw in the platform frame
-      this.deck.step(dt, runtime.input.moveX, runtime.input.moveY, env.cameraYaw - plat.heading, plat.deck);
+      // camera yaw in the platform frame; the rider stays in the rect they walk in (the aisle, a running board: F's decks)
+      const rect = deckRectAt(plat, this.deck.x, this.deck.z);
+      this.deck.step(dt, runtime.input.moveX, runtime.input.moveY, env.cameraYaw - plat.heading, rect);
+      if (rect.maxX - rect.minX < 2 * DeckWalker.RADIUS) this.deck.x = (rect.minX + rect.maxX) / 2;
       A.speed = this.deck.speed;
       A.stride = this.deck.stride;
     }
+    // hanging off a cable car's running board (lane F: railMirror, hangLean): lean out, eased; upright while walking
+    const board = plat.railMirror && plat.hangLean && m.spot !== 'seat' && this.deck.speed < 0.3 && deckRectAt(plat, this.deck.x, this.deck.z) !== plat.deck;
+    const leanTo = board ? (plat.hangLean ?? 0) * (this.deck.x >= 0 ? 1 : -1) : 0;
+    this.lean += (leanTo - this.lean) * (1 - Math.exp(-5 * dt));
     platformRider.x = this.deck.x; platformRider.z = this.deck.z; platformRider.heading = this.deck.heading; platformRider.spot = m.spot ?? 'rail';
     const seated = m.spot === 'seat';
     const w = toWorld(plat, this.deck.x, plat.floor + (seated ? plat.seatY + 0.22 : 0), this.deck.z);
     R.active = true;
     R.x = w.x; R.y = w.y; R.z = w.z;
-    R.quat.setFromEuler(tmpE.set(0, plat.heading + this.deck.heading, plat.roll, 'YXZ'));
+    R.quat.copy(this.platQuat(plat, this.deck.heading, this.lean));
     A.sitting = seated;
     A.pole = m.spot === 'rail';
     // logical player = the rider's feet in the car (uPlayer dither, zones, the camera focus)

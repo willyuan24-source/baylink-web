@@ -35,6 +35,8 @@ export interface RideSubject {
   /** transit: which side of the car the camera sits on (+1 = the car's left) and the rider's spot */
   side?: 1 | -1;
   seated?: boolean;
+  /** transit: pull in before a building like the vehicles (city lines run between houses; the F-line keeps its window shot) */
+  occlude?: boolean;
 }
 
 export interface RidePose { pos: THREE.Vector3; target: THREE.Vector3; fov: number }
@@ -115,6 +117,8 @@ export class RideCamera {
         yaw = sub.heading + (Math.PI / 2) * side - 0.35 * side + this.yawOff + Math.sin(now * 0.15) * 0.05;
         dist = sub.seated ? 8 : 7;
         pitch = 0.07; fov = 46; lookUp = 0; ahead = 0; rate = 10;
+        // city lines (cable cars between houses): a little farther and higher, over the street furniture
+        if (sub.occlude) { dist += 1.5; pitch = 0.2; lookUp = 0.15; }
         break;
       }
       case 'sit':
@@ -149,7 +153,7 @@ export class RideCamera {
 
   /** Distance from the target to the first building sample on the way to the camera, or null. */
   private occluded(sub: RideSubject, want: THREE.Vector3, dist: number): number | null {
-    if (sub.mode === 'transit') return null; // the car's own body is handled by the window framing + dither
+    if (sub.mode === 'transit' && !sub.occlude) return null; // the car's own body is handled by the window framing + dither
     const tx = sub.x, tz = sub.z, ty = sub.y + 1;
     const n = Math.ceil(dist / 0.6);
     for (let i = 2; i <= n; i++) {
