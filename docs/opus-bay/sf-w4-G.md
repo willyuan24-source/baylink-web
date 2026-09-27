@@ -270,7 +270,7 @@ integration plan names (`game/Systems.tsx` project(), `game/hudLayout.ts`, `game
 
 ### Checks (review)
 
-tsc 0, eslint 0 (`src/opus-bay tests/opus-bay-*`); the full opus-bay suite 555 / 555 before the rebase and 589 / 589 on
-the rebased tree (`a9b87cb` + the review commits); lane G's tests 50 → 54, plus 4 in the new
+tsc 0, eslint 0 (`src/opus-bay tests/opus-bay-*`); the full opus-bay suite 555 / 555 before the first rebase, 589 / 589 on
+`a9b87cb` + the review commits and 591 / 591 on `78b9094` + the review commits (the pushed tree); lane G's tests 50 → 54, plus 4 in the new
 `tests/opus-bay-sf-guide-ui.test.ts` (58 / 58). No Higgsfield spend, no dev server. Scratch:
 `C:/Users/willy/opus-qa/w4/w4-g/review/` (geo, fuzz and cache scripts, suite logs).
