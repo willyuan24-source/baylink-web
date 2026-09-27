@@ -42,8 +42,9 @@ tower, chip scroll-into-view, legend wording).
 ### Evidence
 
 - Checks (worktree, before each push): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint src/opus-bay tests/opus-bay-*` 0 ·
-  full suite **561 / 561** after the second push (the known wall-clock flake `sf-citymap` "draw … fast" failed once
-  under the parallel load and passed on the re-run, as the lead note says).
+  full suite **581 / 581** on the final head (the known wall-clock flakes `sf-citymap` "draw … fast" and `audio` "P1 sliced jobs" failed once each
+  under the parallel load and passed on the re-run, as the lead note says; my own per-keystroke search timing assert
+  flaked the same way once and now takes the best of 5 batches).
 - Sidecar (`places-sidecar.ts --snaps`, then `--check`: OK): 1,027 published rows → 1,033; **0 lost, 0 rebuild-only**, every
   published row at its index with its geometry; 1 kind change (`osm-w1501253434` tourism=zoo → zoo); 6 reviewed OSM
   additions (Golden Gate University, CIIS, the Dugoni dental school, CCSF Downtown / Mission / Evans); 19 `graphNode`

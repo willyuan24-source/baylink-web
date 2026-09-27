@@ -272,9 +272,13 @@ test('search: every alias finds its attraction; the plan\'s queries rank as aske
   const covered = new Set(ATTRACTIONS.map(a => a.placeId ?? a.id));
   const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(rows, covered)]);
   const ids = (q: string, n = 5) => rankSearch(ix, q, n).map(h => h.entry.id);
-  const t0 = performance.now();
-  for (let k = 0; k < 20; k++) rankSearch(ix, k % 2 ? '金门' : 'stones');
-  const perQuery = (performance.now() - t0) / 20;
+  // per keystroke: the best of 5 batches (the suite runs files in parallel on a shared machine: wall-clock noise)
+  let perQuery = Infinity;
+  for (let b = 0; b < 5; b++) {
+    const t0 = performance.now();
+    for (let k = 0; k < 10; k++) rankSearch(ix, k % 2 ? '金门' : 'stones');
+    perQuery = Math.min(perQuery, (performance.now() - t0) / 10);
+  }
   assert.ok(perQuery < 25, `${perQuery.toFixed(1)} ms per keystroke`);
   for (const a of ATTRACTIONS) for (const w of a.aliases ?? []) assert.ok(ids(w, 80).includes(a.id), `alias "${w}" does not find ${a.id}`);
   for (const a of ATTRACTIONS) assert.ok(ids(a.name.zh, 3).includes(a.id), `zh name finds ${a.id}`);
