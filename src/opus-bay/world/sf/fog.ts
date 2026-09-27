@@ -107,7 +107,7 @@ export function karlTarget(tod: TimeOfDay, flag: KarlFlag): KarlTarget {
  * Karl's coverage 0 … 1 at a world point (pure; the shader's obKarlCover with the noise at its mean): west bank or
  * gate lobe, times the height term. For tests and the cloud bank layout.
  */
-export function karlCover(x: number, y: number, z: number, t: KarlTarget): number {
+export function karlCover(x: number, y: number, z: number, t: Omit<KarlTarget, 'color' | 'level'>): number {
   const G = KARL_GEO;
   const a = (x - G.origin.x) * G.east.x + (z - G.origin.z) * G.east.z;
   const west = 1 - smooth(t.front - G.edge[0], t.front + G.edge[1], a);
@@ -183,9 +183,11 @@ export class KarlState {
     this.step(0);
   }
 
-  update(dt: number) {
+  /** once a frame: the slide, the wind and (with the camera) the bank over the camera's own ground (uKarlCam) */
+  update(dt: number, cam?: { x: number; z: number }) {
     this.drift += dt * KARL_WIND;
     this.step(dt);
+    if (cam) KARL.uKarlCam.value = karlCover(cam.x, -1e3, cam.z, this.cur);
   }
 
   private step(dt: number) {

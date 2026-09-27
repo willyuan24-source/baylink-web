@@ -50,6 +50,9 @@ export const KARL = {
   uKarlA: { value: new THREE.Vector4(150, 31, 0, 0) },
   /** noise drift (u, along true east) */
   uKarlDrift: { value: 0 },
+  /** the bank over the camera's own ground (0 … 1, the noise at its mean), written once a frame by KarlState: inside
+   *  the bank the fog lies over everything around, not only over the far points under it */
+  uKarlCam: { value: 0 },
 };
 
 /**
@@ -69,6 +72,7 @@ uniform float uKarl;
 uniform vec3 uKarlColor;
 uniform vec4 uKarlA;
 uniform float uKarlDrift;
+uniform float uKarlCam;
 float obKarlH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float obKarlN(vec2 p) {
   vec2 i = floor(p), f = fract(p);
@@ -110,7 +114,7 @@ float obKarl(vec3 w, float depth) {
   float cy = cameraPosition.y, portion, len = ${KARL_GEO.depth.toFixed(1)};
   if (cy > top) { portion = clamp((top - w.y) / max(cy - w.y, 0.5), 0.0, 1.0); len = ${KARL_GEO.depthAbove.toFixed(1)}; }
   else {
-    c = max(c, 0.6 * obKarlXZ(cameraPosition.xz, obKarlNoise(cameraPosition.xz)));
+    c = max(c, 0.6 * uKarlCam);
     portion = w.y <= top ? 1.0 : clamp((top - cy) / max(w.y - cy, 0.5), 0.0, 1.0);
   }
   return uKarl * c * (1.0 - exp(-max(depth - ${KARL_GEO.clear.toFixed(1)}, 0.0) * portion / len));

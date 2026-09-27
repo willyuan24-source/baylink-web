@@ -303,7 +303,7 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
       const k = this.cityFogK(camera.position.y, ground, this.tod);
       this.fogK += (k - this.fogK) * Math.min(1, dt * 3);
       this.fog.density = this.live.fogDensity * this.fogK;
-      this.karl?.update(dt);
+      this.karl?.update(dt, camera.position);
     }
     this.sky.position.copy(camera.position);
     this.sky.updateMatrix();

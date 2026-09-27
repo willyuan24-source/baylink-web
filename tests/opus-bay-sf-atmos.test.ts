@@ -172,6 +172,11 @@ test('Karl: district never turns it on; the city slides between layouts in KARL_
   assert.equal(k.cur.front, KARL_TIME.morning.front);
   assert.equal(KARL.uKarl.value, 1);
   assert.equal(KARL.uKarlA.value.x, KARL_TIME.morning.front);
+  // the bank over the camera's own ground: a per-frame uniform (M3), not two more noise lookups per fragment
+  k.update(0.016, { x: P.sunset[0], z: P.sunset[2] });
+  assert.ok(KARL.uKarlCam.value > 0.95, `in the Sunset: ${KARL.uKarlCam.value}`);
+  k.update(0.016, { x: P.downtown[0], z: P.downtown[2] });
+  assert.equal(KARL.uKarlCam.value, 0, 'downtown');
   k.setFlag(0);
   assert.equal(KARL.uKarl.value, 0, '?karl=0 is off at once');
   k.setFlag(null);
@@ -201,6 +206,7 @@ test('Karl as a bank (M3): an opaque sea under Twin Peaks in the morning, thick 
   const sh = { vertexShader: ['#include <fog_pars_vertex>', '#include <fog_vertex>'].join('\n'), fragmentShader: ['#include <fog_pars_fragment>', '#include <fog_fragment>'].join('\n'), uniforms: {} as Record<string, THREE.IUniform> };
   patchFog(sh);
   assert.ok(sh.fragmentShader.includes('float cy = cameraPosition.y, portion, len') && sh.fragmentShader.includes('* portion / len'), 'in-layer ray length in GLSL');
+  assert.ok(sh.uniforms.uKarlCam === KARL.uKarlCam && sh.fragmentShader.split('obKarlNoise(').length === 4, 'one noise per fragment (the camera term is a uniform)');
 });
 
 const { CLOUD_BANK, CloudBank, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
