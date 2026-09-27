@@ -2,6 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import { installInput, padActions } from '../core/input';
 import { openPanel, togglePanel } from '../game/flow';
+import { flow } from '../game/flowStore';
 import { game } from '../core/store';
 import { attachPointer } from './pointer';
 import { ActorSystem } from './system';
@@ -24,9 +25,12 @@ export function Actors() {
   useEffect(() => {
     const offKeys = installInput();
     const offPointer = attachPointer(gl.domElement);
-    padActions.journal = () => { if (game.get().phase === 'playing') togglePanel('journal'); };
+    // (Y / View like J / M on the keyboard: not over a dialogue, photo mode, a cinematic, fishing or the postcard reward)
+    const free = () => { const s = game.get(), f = flow.get(); return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && !f.cinematic && !f.fishing && !f.postcardReward; };
+    padActions.journal = () => { if (free()) togglePanel('journal'); };
     padActions.settings = () => { if (game.get().phase === 'playing') openPanel('settings'); };
-    return () => { offKeys(); offPointer(); padActions.journal = null; padActions.settings = null; };
+    padActions.map = () => { if (free()) togglePanel('map'); };
+    return () => { offKeys(); offPointer(); padActions.journal = null; padActions.settings = null; padActions.map = null; };
   }, [gl]);
   useEffect(() => () => system.dispose(), [system]);
   useEffect(() => {

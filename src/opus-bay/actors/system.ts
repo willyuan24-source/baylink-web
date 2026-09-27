@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { ThreeEvent } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { emit, onEvent, type GameEvent } from '../core/events';
-import { input, pollInput } from '../core/input';
+import { input, pollInput, rumble } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { MAX_GROUND_Y, canStand, heightAt, inWorld, nearestWalkable } from '../core/terrain';
@@ -386,6 +386,9 @@ export class ActorSystem {
         }
         break;
       case 'guide-call': pa.play('call'); break;
+      // (E2-11: a short rumble on the pad in use)
+      case 'vehicle:bump': if (e.hard) rumble(0.35, 0.7, 140); break;
+      case 'glide:land': rumble(0.5, 0.25, 180); break;
       case 'postcard': pa.play('pickup'); break;
       case 'goal': if (!pa.playing('pickup')) pa.play('cheer'); break;
       case 'sea-lion': this.seaLionAt = this.now; break;

@@ -3,7 +3,7 @@ import test from 'node:test';
 import * as THREE from 'three';
 import { onEvent, type GameEvent } from '../src/opus-bay/core/events';
 import { runtime } from '../src/opus-bay/core/runtime';
-import { clearKeys, input, onKeyDown, onKeyUp, pollInput, touchJump } from '../src/opus-bay/core/input';
+import { L3_STICK_MAX, clearKeys, input, onKeyDown, onKeyUp, padActions, pickGamepad, pollInput, rumble, touchJump } from '../src/opus-bay/core/input';
 import { game } from '../src/opus-bay/core/store';
 import { blockersNear, canStand, heightAt, setCityTerrain } from '../src/opus-bay/core/terrain';
 import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTerrain';
@@ -238,4 +238,90 @@ test('E2-9 touch hop: a press raises the jump edge once, a quick tap is a short 
   assert.equal(input.jumpHeld, false, 'blur releases the touch hold');
   assert.equal(input.touchJumpHeld, false);
   runtime.input.jump = false;
+});
+
+// ---------------------------------------------------------------------------
+// E2-11 · gamepad: standard mapping first, A = interact + the E count, View = map, L3 ignored on a hard stick push
+// ---------------------------------------------------------------------------
+
+test('E2-11 gamepad (stubbed getGamepads): standard pad preferred, A counts as E, View opens the map, L3 needs a calm stick, rumble', () => {
+  type Btn = { pressed: boolean; value: number };
+  const mkPad = (mapping: string, index: number) => {
+    const buttons: Btn[] = Array.from({ length: 17 }, () => ({ pressed: false, value: 0 }));
+    const effects: { type: string; p: { duration: number } }[] = [];
+    return {
+      id: `pad ${index}`, index, connected: true, mapping, timestamp: 0, axes: [0, 0, 0, 0], buttons, hapticActuators: [],
+      vibrationActuator: { playEffect: (type: string, p: { duration: number }) => { effects.push({ type, p }); return Promise.resolve('complete'); } },
+      effects,
+    };
+  };
+  const odd = mkPad('', 0), std = mkPad('standard', 1);
+  const nav = globalThis.navigator as unknown as Record<string, unknown>;
+  const had = Object.getOwnPropertyDescriptor(nav, 'getGamepads');
+  let pads: unknown[] = [null, odd, std];
+  Object.defineProperty(nav, 'getGamepads', { value: () => pads, configurable: true, writable: true });
+  const press = (pad: ReturnType<typeof mkPad>, i: number, on: boolean) => { pad.buttons[i] = { pressed: on, value: on ? 1 : 0 }; };
+  let maps = 0;
+  padActions.map = () => { maps++; };
+  try {
+    assert.equal(pickGamepad(pads as Gamepad[]), std as unknown as Gamepad, 'the standard-mapped pad wins');
+    assert.equal(pickGamepad([odd] as unknown as Gamepad[]), odd as unknown as Gamepad, 'else the first connected one');
+    assert.equal(pickGamepad([null, { ...std, connected: false }] as unknown as Gamepad[]), null);
+    // (the non-standard pad's buttons are ignored while a standard one is there)
+    press(odd, 3, true);
+    // A: one edge = the flow's interact + one E count; holding it does not repeat
+    runtime.input.interact = false;
+    const e0 = input.interactCount;
+    press(std, 0, true);
+    pollInput();
+    assert.equal(runtime.input.interact, true);
+    assert.equal(input.interactCount, e0 + 1);
+    assert.equal(runtime.input.device, 'gamepad');
+    runtime.input.interact = false;
+    pollInput();
+    assert.equal(input.interactCount, e0 + 1, 'held A does not repeat');
+    assert.equal(runtime.input.interact, false);
+    press(std, 0, false); pollInput();
+    // View / Back → the map (once per press)
+    press(std, 8, true); pollInput(); pollInput();
+    press(std, 8, false); pollInput();
+    assert.equal(maps, 1, 'View opened the map once');
+    // L3 with the stick pushed hard (a run): ignored; with the stick calm: take-off
+    const g0 = input.glideCount;
+    std.axes[0] = 0.2; std.axes[1] = -0.99;
+    assert.ok(Math.hypot(std.axes[0], std.axes[1]) > L3_STICK_MAX);
+    press(std, 10, true); pollInput();
+    assert.equal(runtime.input.run, true, 'a hard push runs');
+    press(std, 10, false); pollInput();
+    assert.equal(input.glideCount, g0, 'L3 clicked by a hard push is ignored');
+    std.axes[0] = 0; std.axes[1] = -0.4;
+    press(std, 10, true); pollInput();
+    press(std, 10, false); pollInput();
+    assert.equal(input.glideCount, g0 + 1, 'L3 with a calm stick takes off');
+    std.axes[1] = 0;
+    // B held = jump held (the variable jump)
+    press(std, 1, true); pollInput();
+    assert.equal(runtime.input.jump, true);
+    assert.equal(input.jumpHeld, true);
+    press(std, 1, false); pollInput();
+    assert.equal(input.jumpHeld, false);
+    runtime.input.jump = false;
+    // rumble: on the pad in use, clamped; nothing once the keyboard is the device
+    rumble(0.5, 2, 1000);
+    assert.equal(std.effects.length, 1);
+    assert.equal(std.effects[0].type, 'dual-rumble');
+    assert.equal(std.effects[0].p.duration, 400);
+    runtime.input.device = 'keyboard';
+    rumble(0.5, 0.5, 100);
+    assert.equal(std.effects.length, 1);
+    // no pad at all: nothing breaks, the pad inputs read zero
+    pads = [];
+    pollInput();
+    assert.equal(input.throttle, 0);
+  } finally {
+    padActions.map = null;
+    if (had) Object.defineProperty(nav, 'getGamepads', had); else delete nav.getGamepads;
+    pollInput();
+    runtime.input.device = 'keyboard'; runtime.input.interact = false; runtime.input.jump = false;
+  }
 });

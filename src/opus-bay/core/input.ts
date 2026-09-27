@@ -9,6 +9,26 @@ import { runtime } from './runtime';
  * Keyboard E / Enter / Q / M / J / P / Esc are NOT handled here: the DOM overlay (ui/Overlay, ui/Dialogue,
  * photo mode) owns them and calls the flow directly. Mirroring them into runtime.input would double-fire
  * (e.g. advance a dialogue twice), so only the gamepad raises runtime.input.interact / call.
+ *
+ * Gamepad (E2-11; the first connected pad with `mapping === 'standard'`, else the first connected one):
+ *
+ *   | button (standard index)   | on foot                          | bike / toy car         | glide     | transit / bench      |
+ *   |---------------------------|----------------------------------|------------------------|-----------|----------------------|
+ *   | left stick / D-pad        | walk (past 0.94 = run)           | steer (D-pad ↑↓: cam)  | steer     | walk the aisle       |
+ *   | right stick               | camera                           | camera                 | camera    | camera               |
+ *   | A (0)                     | interact / confirm (as E)        | —                      | —         | sit ↔ stand (as E)   |
+ *   | B (1)                     | jump (held = full jump)          | hop                    | —         | hop off / stand up   |
+ *   | X (2)                     | call BAYBAY (as Q)               |                        |           |                      |
+ *   | Y (3)                     | near a ride: get on; else tap = journal, hold = call your ride | get off | | |
+ *   | LB (4)                    |                                  | bell / horn            |           |                      |
+ *   | RB (5)                    | run                              | sprint                 | faster    |                      |
+ *   | LT (6) / RT (7)           | — / run                          | brake / throttle       |           |                      |
+ *   | View / Back (8)           | map                              | map                    | map       | map                  |
+ *   | Menu / Start (9)          | settings                         | settings               | settings  | settings             |
+ *   | L3 (10)                   | pelican take-off (ignored while the stick is pushed past 0.94: a hard push clicks it) | | land | |
+ *   | R3 (11)                   | reset: unstick, camera recentre  | back on the road       |           |                      |
+ *
+ * Rumble (optional, pads with a vibrationActuator): a hard vehicle bump and a glide landing (`rumble`).
  */
 
 export const input = {
@@ -184,8 +204,37 @@ function deadzone(x: number, y: number): [number, number] {
   return [x * k, y * k];
 }
 
-/** Gamepad Y button handler (journal; Y belongs to the vehicle while one is near / ridden) — set by Actors so input stays free of flow imports. */
-export const padActions = { journal: null as null | (() => void), settings: null as null | (() => void) };
+/**
+ * Gamepad button handlers that need the flow (Y: journal — Y belongs to the vehicle while one is near / ridden —,
+ * Start: settings, View: map) — set by Actors so input stays free of flow imports.
+ */
+export const padActions = { journal: null as null | (() => void), settings: null as null | (() => void), map: null as null | (() => void) };
+
+/** L3 is ignored while the left stick is pushed past this (a hard push clicks the stick by accident) */
+export const L3_STICK_MAX = 0.94;
+
+/** The pad to read: the first connected one with the standard mapping, else the first connected one. */
+export function pickGamepad(pads: ArrayLike<Gamepad | null>): Gamepad | null {
+  let any: Gamepad | null = null;
+  for (let i = 0; i < pads.length; i++) {
+    const p = pads[i];
+    if (!p || !p.connected) continue;
+    if (p.mapping === 'standard') return p;
+    any ??= p;
+  }
+  return any;
+}
+
+let activePad: Gamepad | null = null;
+/**
+ * A short rumble on the pad in use (no-op without one or without a vibrationActuator, and unless the pad is the input
+ * device). weak / strong 0..1, ms ≤ 400.
+ */
+export function rumble(weak: number, strong: number, ms: number) {
+  if (runtime.input.device !== 'gamepad' || !activePad) return;
+  const act = (activePad as Gamepad & { vibrationActuator?: { playEffect?: (type: string, p: object) => Promise<unknown> } }).vibrationActuator;
+  try { act?.playEffect?.('dual-rumble', { duration: Math.min(400, ms), weakMagnitude: Math.min(1, weak), strongMagnitude: Math.min(1, strong) })?.catch(() => {}); } catch { /* not supported */ }
+}
 
 function pollGamepad(): { mx: number; my: number; run: boolean; analog: boolean } {
   const out = { mx: 0, my: 0, run: false, analog: false };
@@ -193,9 +242,10 @@ function pollGamepad(): { mx: number; my: number; run: boolean; analog: boolean 
   input.throttle = 0; input.brake = 0;
   padHeld = false;
   const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : [];
-  let gp: Gamepad | null = null;
-  for (const p of pads) if (p && p.connected) { gp = p; break; }
+  const gp = pickGamepad(pads);
+  activePad = gp;
   if (!gp) return out;
+  const stick = Math.hypot(gp.axes[0] ?? 0, gp.axes[1] ?? 0);
   const [lx, ly] = deadzone(gp.axes[0] ?? 0, gp.axes[1] ?? 0);
   const [rx, ry] = deadzone(gp.axes[2] ?? 0, gp.axes[3] ?? 0);
   const pressed = gp.buttons.map(b => b.pressed || b.value > 0.5);
@@ -212,12 +262,13 @@ function pollGamepad(): { mx: number; my: number; run: boolean; analog: boolean 
   const trig = (i: number) => { const b = gp!.buttons[i]; return b ? Math.max(b.value || 0, b.pressed ? 1 : 0) : 0; };
   input.throttle = trig(7); input.brake = trig(6);
   // RT runs on foot; in a vehicle it is the throttle and RB sprints / boosts
-  out.run = !!pressed[5] || (!inVehicle && !!pressed[7]) || Math.hypot(lx, ly) > 0.94;
+  out.run = !!pressed[5] || (!inVehicle && !!pressed[7]) || Math.hypot(lx, ly) > L3_STICK_MAX;
   input.lookX = rx; input.lookY = ry;
   const active = Math.abs(dx) + Math.abs(dy) + Math.abs(rx) + Math.abs(ry) > 0 || pressed.some(Boolean);
   if (active) runtime.input.device = 'gamepad';
   if (rx || ry) input.lastCameraInputAt = performance.now();
-  if (edge(0)) runtime.input.interact = true; // A
+  // A: the flow's interact / confirm, and the E count (switch seat on a cable car, stand up from a bench)
+  if (edge(0)) { runtime.input.interact = true; input.interactCount++; }
   if (edge(1)) runtime.input.jump = true; // B
   padHeld = !!pressed[1];
   if (edge(2)) runtime.input.call = true; // X
@@ -226,8 +277,9 @@ function pollGamepad(): { mx: number; my: number; run: boolean; analog: boolean 
   // (a short Y with nothing near is still the journal)
   if (!pressed[3] && pad.prev[3] && hold.pad >= 0) { if (!hold.padFired) padActions.journal?.(); hold.pad = -1; }
   if (edge(4)) input.hornCount++; // LB
-  if (edge(10)) input.glideCount++; // L3
+  if (edge(10) && stick <= L3_STICK_MAX) input.glideCount++; // L3 (not a hard stick push)
   if (inVehicle && (edge(12) || edge(13))) input.camPresetCount++; // D-pad up / down
+  if (edge(8)) padActions.map?.(); // View / Back
   if (edge(9)) padActions.settings?.(); // Start
   if (edge(11)) input.resetCount++; // right stick click
   pad.prev = pressed;

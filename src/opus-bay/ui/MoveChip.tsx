@@ -81,7 +81,7 @@ export function MoveChip() {
       <Hint k={pad ? 'L3' : 'G'} label={t('降落', 'Land')} onPress={glide} />
     </>);
   }
-  if (mode === 'sit') return chip(<Armchair size={20} aria-hidden />, t('坐着歇会儿', 'Taking a seat'), <Hint k={pad ? '←→' : 'E'} label={t('起身', 'Stand up')} onPress={() => { input.interactCount++; }} />);
+  if (mode === 'sit') return chip(<Armchair size={20} aria-hidden />, t('坐着歇会儿', 'Taking a seat'), <Hint k={pad ? 'A' : 'E'} label={t('起身', 'Stand up')} onPress={() => { input.interactCount++; }} />);
   if (mode === 'transit') {
     const kind = ride?.kind ?? 'streetcar';
     const icon = kind === 'cable-car' ? <CableCar size={20} aria-hidden /> : kind === 'ferry' ? <Ship size={20} aria-hidden /> : <TramFront size={20} aria-hidden />;
