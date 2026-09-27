@@ -12,7 +12,7 @@ import { flow } from '../game/flowStore';
 import { currentRide } from '../game/ride';
 import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
-import { landmarkTallStructures } from '../world/sf/landmarks/context';
+import { cityModule } from '../world/cityLoader';
 import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
@@ -1044,9 +1044,10 @@ function tallStructures(): TallStructure[] {
  * City mode (checkpoint, lane E's request to lane D): landmarks at least 10 u tall with their modelled height, from lane
  * D2's world/sf/landmarks/context.ts landmarkTallStructures (day 0: the list this function used to build here, moved
  * verbatim; D2-10 refines radii and tops). 'terrain' bases are read from core/terrain when the first glide starts
- * (streamed ground, else the far DEM).
+ * (streamed ground, else the far DEM). Read through the city chunk (world/cityLoader cityModule, HC-1): the landmark
+ * table stays out of the main graph, and city mode always has the module before the world is built.
  */
 function cityTallStructures(): TallStructure[] {
-  return landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : heightAt(l.x, l.z)));
+  return cityModule()?.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : heightAt(l.x, l.z))) ?? [];
 }
 export function setTallStructures(list: TallStructure[]) { tallCache = [...tallStructures(), ...list]; }

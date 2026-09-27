@@ -1,6 +1,7 @@
 import { canStand, cityTerrain, groundPending, surfaceAt, type NavGrid } from '../../core/terrain';
 import type { Vec2 } from '../../core/types';
-import { findGraphPathAsync, polylineLength, type AsyncRouteOptions, type WalkGraphIndex } from '../../core/walkGraph';
+import { polylineLength } from '../../core/polyline';
+import type { AsyncRouteOptions, WalkGraphIndex } from '../../core/walkGraph';
 import { GRAPH_SNAP, graphNodeFilter, navInside, navWindowFor, walkGraph } from '../nav';
 import { BIKE_SPEC } from './bike';
 import type { SurfaceRule } from './collide';
@@ -365,6 +366,7 @@ export async function driveRoute(from: Vec2, to: Vec2, kind: DriveKind, opts: As
   let nodes: number[] = [];
   const sameEdge = (a.u === b.u && a.v === b.v) || (a.u === b.v && a.v === b.u);
   if (!sameEdge) {
+    const { findGraphPathAsync } = await import('../../core/walkGraph');
     const path = await findGraphPathAsync(ix, a.u, b.u, { ...opts, accept: nodeOk, edgeAccept: driveEdgeAccept(ix, kind) });
     if (!path) return null;
     nodes = path.nodes.slice();
