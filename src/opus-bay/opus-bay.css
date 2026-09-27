@@ -866,6 +866,8 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-toast.tone-success { background: var(--ob-teal); border-color: var(--ob-teal); color: #fff; }
 
 .ob-debug { position: absolute; left: 8px; bottom: 8px; z-index: 70; margin: 0; padding: 6px 9px; border-radius: 8px; background: rgba(20, 28, 26, .82); color: #d7f5ee; font: 600 12px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre; pointer-events: none; }
+/* ?debug on a phone: the two lines wrap inside the screen, over the top stack instead of under the bottom bar */
+@media (max-width: 720px) { .ob-debug { left: 6px; right: 6px; bottom: auto; top: calc(116px + var(--ob-st)); white-space: pre-wrap; font-size: 10px; line-height: 1.35; opacity: .92; } }
 
 /* ==========================================================================
    Motion

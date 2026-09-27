@@ -46,7 +46,9 @@ function AreaLabel() {
   // city mode: a DataSF neighbourhood (game/brain AREA_NAMES), else the whole city, never "The Embarcadero" out there
   const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? (city ? SF_NAME : DISTRICT.name);
   // city mode (lane G1, G1-9): the nearest named street under the neighbourhood (never in district mode)
-  const street = useStreetName();
+  const streetName = useStreetName();
+  // a street named like the place it serves ("Pier 39" at PIER 39) would only say it twice
+  const street = streetName && streetName.toLowerCase() !== name.en.toLowerCase() ? streetName : null;
   const [fresh, setFresh] = useState(true);
   useEffect(() => {
     setFresh(true);
