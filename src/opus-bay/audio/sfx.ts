@@ -266,6 +266,19 @@ export function streetcarBell(e: AudioEngine) {
   }
 }
 
+/** The cable-car gripman's bell (lane F): a lower, brighter clang than the F-line gong, rung in quick strikes. */
+export function cableBell(e: AudioEngine, gain = 1, strikes = 3) {
+  const v = e.voice({ bus: 'sfx', dur: 1.4, gain: 0.26 * gain, priority: 3, reverb: 0.25, name: 'cable-bell' });
+  if (!v) return;
+  for (let i = 0; i < strikes; i++) {
+    const offset = i * 0.13 + (i === strikes - 1 && strikes > 2 ? 0.09 : 0);
+    for (const [ratio, g, d] of [[1, 0.42, 0.42], [2.02, 0.22, 0.3], [2.76, 0.16, 0.22], [3.9, 0.08, 0.14]] as const) {
+      e.tone(v, { type: 'sine', freq: 880 * ratio * vary(0.004), decay: d, peak: g, offset, attack: 0.001 });
+    }
+    e.noiseBurst(v, { attack: 0.001, decay: 0.012, peak: 0.3, offset, filter: { type: 'highpass', freq: 3000 } });
+  }
+}
+
 /** distant two-tone diaphone: "beeee-ohhh" */
 export function foghorn(e: AudioEngine, distance = 1, pan = 0) {
   const far = clamp(distance);

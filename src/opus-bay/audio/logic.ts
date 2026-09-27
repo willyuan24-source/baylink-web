@@ -648,3 +648,20 @@ export function bayWeekday(date: Date): number {
 
 /** Ferry Plaza Farmers Market runs Tue / Thu / Sat. */
 export const isMarketDay = (date: Date) => [2, 4, 6].includes(bayWeekday(date));
+
+/**
+ * City transit events (lane F, `transit` game events) → a sound: the gripman's bell (quieter for a car farther away),
+ * the grip clank when a car takes the cable, the turntable creak when someone pushes. Null = silent (board / depart /
+ * arrive / ride / turned are covered by the bell that comes with them, or by lines).
+ */
+export type TransitSound = { kind: 'cable-bell' | 'grip-clank' | 'turntable-creak'; gain: number; strikes: number };
+export function transitSound(what: string, kind: string, strength = 1): TransitSound | null {
+  if (kind !== 'cable-car') return null;
+  const k = clamp(strength, 0.15, 1);
+  switch (what) {
+    case 'bell': return { kind: 'cable-bell', gain: k, strikes: k > 0.6 ? 3 : 2 };
+    case 'grip': return { kind: 'grip-clank', gain: 0.35 * k, strikes: 1 };
+    case 'push': return { kind: 'turntable-creak', gain: 1, strikes: 1 };
+    default: return null;
+  }
+}

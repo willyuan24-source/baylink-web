@@ -15,7 +15,7 @@ import { DISTRICT } from '../data/district';
 import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld } from './ambience';
 import { AudioEngine, BUS_LEVELS } from './engine';
-import { createRateLimiter } from './logic';
+import { createRateLimiter, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
 import * as sfx from './sfx';
@@ -49,6 +49,7 @@ export function startAudio(): () => void {
   const footstepOk = createRateLimiter(6, 2);
   const hoverOk = createRateLimiter(10, 2);
   const areaOk = createRateLimiter(1 / 6, 1);
+  const cableBellOk = createRateLimiter(1 / 1.5, 1);
   const areasHeard = new Set<string>();
 
   const wantsSound = () => game.get().settings.sound && document.visibilityState === 'visible';
@@ -156,6 +157,14 @@ export function startAudio(): () => void {
       case 'wish': sfx.wish(e, ev.added); break;
       case 'bell': sfx.bell(e); break;
       case 'streetcar-bell': sfx.streetcarBell(e); break;
+      // city cable cars (lane F): the gripman's bell, the grip clank, the turntable creak
+      case 'transit': {
+        const s = transitSound(ev.what, ev.kind, ev.strength);
+        if (s?.kind === 'cable-bell') { if (cableBellOk(now)) sfx.cableBell(e, s.gain, s.strikes); }
+        else if (s?.kind === 'grip-clank') sfx.bump(e, 'metal', s.gain);
+        else if (s?.kind === 'turntable-creak') rides.sitCreak(e);
+        break;
+      }
       case 'foghorn': ambience.foghorn(); break;
       case 'sea-lion': ambience.seaLion(ev.intensity); break;
       case 'gull': ambience.gull(); break;

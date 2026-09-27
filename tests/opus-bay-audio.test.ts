@@ -130,3 +130,14 @@ test('F14: the three mis-heard Chinese barks stay muted until re-recorded (synth
   for (const id of ['zh-yay', 'zh-think', 'zh-arrived']) assert.ok(MUTED_CLIPS.has(id) || SF_VOICE_UNMUTE.includes(id), id);
   assert.ok(!MUTED_CLIPS.has('zh-hi') && !MUTED_CLIPS.has('en-yay'));
 });
+
+test('city cable cars: bell, grip clank and turntable creak from transit events; nothing for other kinds', async () => {
+  const { transitSound } = await import('../src/opus-bay/audio/logic');
+  assert.deepEqual(transitSound('bell', 'cable-car', 1), { kind: 'cable-bell', gain: 1, strikes: 3 });
+  assert.equal(transitSound('bell', 'cable-car', 0.3)!.strikes, 2, 'a far car rings shorter');
+  assert.ok(transitSound('bell', 'cable-car', 0)!.gain >= 0.15, 'never inaudible');
+  assert.equal(transitSound('grip', 'cable-car')!.kind, 'grip-clank');
+  assert.equal(transitSound('push', 'cable-car')!.kind, 'turntable-creak');
+  assert.equal(transitSound('board', 'cable-car'), null);
+  assert.equal(transitSound('bell', 'ferry'), null, 'the ferry has its own sounds (later)');
+});
