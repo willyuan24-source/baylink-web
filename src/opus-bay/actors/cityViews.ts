@@ -85,8 +85,10 @@ export function landmarkZoneView(id: string, ground: (x: number, z: number) => n
   const b = info.photo.bearing + l.yaw;
   const toPhoto = Math.atan2(Math.sin(b), Math.cos(b)), behind = Math.atan2(at.x - t.x, at.z - t.z);
   const off = wrap(toPhoto - behind);
-  const yaw = Math.abs(off) < 1.2 ? behind + clamp(off * 0.5, -0.35, 0.35) : behind;
-  const v: ZoneView = { anchor: `lm-${id}`, x: at.x, z: at.z, yaw, r: CITY_ZONE_R, near: 0.7, subject: info.name.en };
+  const lean = Math.abs(off) < 1.2 ? clamp(off * 0.5, -0.35, 0.35) : 0;
+  // (axis / lean: camera.ts shrinks the lean on a narrow portrait view, where a 0.35 rad lean
+  // puts the subject past the frame's edge: E2-review, the Golden Gate Bridge and Mission Dolores at 375 × 667)
+  const v: ZoneView = { anchor: `lm-${id}`, x: at.x, z: at.z, yaw: behind + lean, axis: behind, lean, r: CITY_ZONE_R, near: 0.7, subject: info.name.en };
   v.frame = g => { const f = zoneFrame(riseOf(g), d, info.photo.elevation, topOf(g)); v.pitch = f.pitch; v.dist = f.dist; v.lookUp = f.lookUp; };
   v.frame(ground);
   return v;

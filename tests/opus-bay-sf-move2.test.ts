@@ -13,7 +13,7 @@ import { DISTRICT, frameAt, stationOf } from '../src/opus-bay/data/district';
 import { project } from '../src/opus-bay/core/geo';
 import { SF_LANDMARKS, landmarkToWorld, sfLandmark } from '../src/opus-bay/world/sf/landmarks/index';
 import { sfLandmarkAnchor } from '../src/opus-bay/world/sf/landmarks/context';
-import { CameraController, chooseYaw, heroPoints, loadCityViews, yawCandidates, zoneViews } from '../src/opus-bay/actors/camera';
+import { CameraController, chooseYaw, heroPoints, loadCityViews, setViewHalfH, yawCandidates, zoneViews, zoneYaw } from '../src/opus-bay/actors/camera';
 import { RideCamera } from '../src/opus-bay/actors/cameraModes';
 import { zoneFrame } from '../src/opus-bay/actors/cityViews';
 import { VIEW_DIRS, VIEW_EYE, bestDir, preferredCameraYaw, preferredViewDir, resetViewField, viewScores, type ViewWorld } from '../src/opus-bay/actors/viewField';
@@ -615,6 +615,15 @@ test('E2-6 hero points and zone views: district keeps its 3 + 7, the city adds S
       assert.ok(z && Math.hypot(z.x - at.x, z.z - at.z) < 1e-9 && z.near && z.frame, id);
     }
     assert.ok(!zones.some(v => v.anchor === 'lm-twin-peaks' || v.anchor === 'lm-sutro-tower'), 'no zone for an overlook or the foot of a tower');
+    // E2-review: the lean toward the photo's side is desktop-sized; a portrait phone (horizontal half-FOV 18°) keeps the
+    // subject in frame (at 375 × 667 the Golden Gate Bridge and Mission Dolores were past the right edge)
+    const city = zones.filter(v => v.axis !== undefined);
+    assert.ok(city.length > 15 && city.some(v => Math.abs(v.lean ?? 0) > 0.3), 'city zones carry axis + lean');
+    for (const v of city) assert.ok(Math.abs(zoneYaw(v) - v.yaw) < 1e-12, `desktop: unchanged (${v.anchor})`);
+    try {
+      setViewHalfH(Math.PI / 10);
+      for (const v of city) assert.ok(Math.abs(zoneYaw(v) - v.axis!) <= 0.17, `portrait: ${v.anchor} leans ${(zoneYaw(v) - v.axis!).toFixed(2)} rad`);
+    } finally { setViewHalfH(0.55); }
     // the framing solver: a tall subject close by pulls the camera back and looks up; a low one keeps 15 u
     const tall = zoneFrame(9, 12.5, 0.12, 16), low = zoneFrame(3, 6, 0.1, 4.5);
     assert.ok(tall.dist >= 18 && tall.lookUp > 0, JSON.stringify(tall));

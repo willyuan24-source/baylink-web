@@ -151,6 +151,12 @@ export interface ZoneView {
   r?: number;
   /** a blocked view may turn up to this far (rad) to a clearer yaw instead of giving the zone up (city landmarks) */
   near?: number;
+  /**
+   * city landmarks: the line from the subject through the arrival spot (`axis`, a yaw) and the lean toward the photo's
+   * side (`yaw` = axis + lean on a desktop view); on a narrower view the lean shrinks (zoneYaw)
+   */
+  axis?: number;
+  lean?: number;
   /** re-solve pitch / dist / lookUp from the ground heights (city landmarks: called on entering the zone) */
   frame?: (ground: (x: number, z: number) => number) => void;
   /** what should be in frame (QA / docs) */
@@ -158,6 +164,28 @@ export interface ZoneView {
 }
 
 const yawToward = (from: { x: number; z: number }, to: { x: number; z: number }) => Math.atan2(from.x - to.x, from.z - to.z);
+
+/**
+ * The follow camera's horizontal half field of view (rad), set each frame by CameraController.update: ≈ 0.55 on a
+ * 16:10 desktop, ≈ 0.31 (MIN_HFOV / 2) on a portrait phone. A city landmark zone leans its camera up to 0.35 rad off the
+ * subject's line (the subject then sits that far off the frame's middle) — tuned on the desktop; on a portrait phone the
+ * lean shrinks with the view, so the subject stays in frame (E2-review).
+ */
+let viewHalfH = 0.55;
+const DESK_HALF_H = 0.55, ZONE_EDGE = 0.12;
+const zoneScale = () => clamp((viewHalfH - ZONE_EDGE) / (DESK_HALF_H - ZONE_EDGE), 0.25, 1);
+/** A zone's view yaw on this screen (district zones and desktops: `yaw` itself). */
+export function zoneYaw(z: ZoneView): number {
+  return z.axis !== undefined && z.lean ? z.axis + z.lean * zoneScale() : z.yaw;
+}
+/**
+ * A city landmark zone's search width (0: none). Not narrowed on a portrait view: a blocked zone that finds no clear yaw
+ * within it falls back to the plain chooser, which ignores the subject (tried: at 375 × 667 the Powell & Market
+ * turntable then left the frame).
+ */
+function zoneNear(z: ZoneView): number { return z.near ?? 0; }
+/** QA / tests: the horizontal half field of view the zone views assume (the camera sets it every frame). */
+export function setViewHalfH(rad: number) { if (Number.isFinite(rad) && rad > 0) viewHalfH = rad; }
 
 let zoneCache: ZoneView[] | null = null;
 let zoneKey = '';
@@ -274,13 +302,15 @@ export function chooseYaw(x: number, z: number, fallback: number, dist: number):
   const zone = zoneAt(x, z, null);
   if (zone) {
     zone.frame?.(heightAt);
-    if (occlusionBehind(x, z, zone.yaw, dist) < 2) return zone.yaw;
+    const zy = zoneYaw(zone);
+    if (occlusionBehind(x, z, zy, dist) < 2) return zy;
     // a landmark's zone (city): the clearest yaw near its view keeps the subject in frame (CS-10: it used to lose to
     // the occlusion rule and the camera turned away from City Hall / the rotunda)
     if (zone.near) {
-      let best = zone.yaw, bestScore = Infinity;
+      const near = zoneNear(zone);
+      let best = zy, bestScore = Infinity;
       for (let k = -4; k <= 4; k++) {
-        const yaw = zone.yaw + (k / 4) * zone.near;
+        const yaw = zy + (k / 4) * near;
         const score = occlusionBehind(x, z, yaw, dist) * 3 + Math.abs(k) * 0.75;
         if (score < bestScore) { bestScore = score; best = yaw; }
       }
@@ -427,6 +457,7 @@ export class CameraController {
     const aspect = camera.aspect || 1;
     this.portrait = aspect < 1;
     const baseFov = aspect >= 1 ? FOV_BASE : clamp((2 * Math.atan(Math.tan(MIN_HFOV / 2) / aspect) * 180) / Math.PI, FOV_BASE, FOV_MAX);
+    viewHalfH = Math.atan(Math.tan((baseFov * Math.PI) / 360) * aspect);
 
     if (!this.initialized) {
       this.initialized = true;
@@ -783,7 +814,7 @@ export class CameraController {
         // (b) entering after ≥ 10 s away: a gentle, non-locking turn toward the zone's view
         if (now - this.zoneLeftAt > 10 && idleMs > 2500 && !game.get().dialogue.nodeId) {
           const reduced = game.get().settings.reducedMotion;
-          this.startAssist(zone.near ? this.clearYawNear(view.x, view.z, zone.yaw, zone.near) : this.heroSafe(view.x, view.z, zone.yaw), now, reduced ? 6 : 1.2);
+          this.startAssist(zone.near ? this.clearYawNear(view.x, view.z, zoneYaw(zone), zoneNear(zone)) : this.heroSafe(view.x, view.z, zone.yaw), now, reduced ? 6 : 1.2);
         }
       } else this.zoneLeftAt = now;
       this.zone = zone;
@@ -795,9 +826,9 @@ export class CameraController {
     if (zone && !p.moving) { if (!this.zoneIdleSince) this.zoneIdleSince = now; }
     else this.zoneIdleSince = 0;
     // (a city landmark zone: only from outside its search width — inside it the clear yaw it chose stands)
-    const settled = !!zone?.near && Math.abs(wrap(zone.yaw - this.yaw)) < zone.near;
+    const settled = !!zone?.near && Math.abs(wrap(zoneYaw(zone) - this.yaw)) < zoneNear(zone);
     if (zone && !settled && this.zoneIdleSince && now - this.zoneIdleSince > 3 && idleMs > 2500 && this.assist === null && !game.get().dialogue.nodeId) {
-      this.yaw += wrap(zone.yaw - this.yaw) * Math.min(1, dt * 0.3);
+      this.yaw += wrap(zoneYaw(zone) - this.yaw) * Math.min(1, dt * 0.3);
     }
   }
 
@@ -879,7 +910,7 @@ export class CameraController {
           // a landmark's zone (city): only within its search width, the subject stays in frame (the dither thins what
           // is left in between)
           const z = this.zone && this.zone.near && this.zoneW > 0.5 ? this.zone : null;
-          const best = z ? this.clearYawNear(view.x, view.z, z.yaw, z.near!) : this.clearYaw(view.x, view.z, this.yaw, true);
+          const best = z ? this.clearYawNear(view.x, view.z, zoneYaw(z), zoneNear(z)) : this.clearYaw(view.x, view.z, this.yaw, true);
           if (occlusionBehind(view.x, view.z, best, this.distance) < occ * 0.5) this.startAssist(best, now, reduced ? 6 : 1.0);
           this.occlSince = 0;
         }
