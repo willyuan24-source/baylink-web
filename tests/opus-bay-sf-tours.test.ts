@@ -321,7 +321,8 @@ test('Metro narration: boarding, the stop approaches and arrivals by direction, 
   assert.equal(metroNarration({ what: 'board', line: 'n-judah' })?.id, 'metro-board-n');
   assert.equal(metroNarration({ what: 'board', line: 'm-ocean-view' })?.id, 'metro-board-m');
   assert.equal(metroNarration({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-winston' })?.id, 'metro-stonestown-next');
-  assert.equal(metroNarration({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-holloway' })?.id, 'metro-sfsu-next');
+  // part 2: the Holloway approach says the new line (the frozen metro-sfsu-next mixed 下一站 and 到了: review O2)
+  assert.equal(metroNarration({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-holloway' })?.id, 'metro-sfsu-next-2');
   assert.equal(metroNarration({ what: 'approach', line: 'n-judah', station: 'muni-carl-hillway' })?.id, 'metro-ucsf-window');
   assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-carl-cole', dir: 1 })?.id, 'metro-carl-cole');
   assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-carl-cole', dir: -1 })?.id, 'metro-sunset-tunnel');
@@ -347,5 +348,50 @@ test('Metro narration: boarding, the stop approaches and arrivals by direction, 
     const l = metroNarration({ what, line, station, dir }); if (l) said.add(l.id);
   }
   for (const [a, b] of [[569, 1164], [0, 300]]) said.add(tunnelNarration('m-ocean-view', a, b)!.id);
-  assert.deepEqual([...said].sort(), Object.values(METRO_LINES).map(l => l.id).sort());
+  // every Metro line but the retired ones, plus the lines that replaced them
+  const { RETIRED_LINES } = lines;
+  const expected = Object.values(METRO_LINES).map(l => RETIRED_LINES[l.id] ?? l.id);
+  assert.deepEqual([...said].sort(), expected.sort());
+  assert.ok(!said.has('metro-sfsu-next'), 'the retired line is never picked');
+});
+
+/** Snapshot of the lines added after the freeze (lane V records them next). */
+const ADDED_SNAPSHOT = 'a8b4566e2f65aa73';
+
+test('part 2 · lines added after the freeze: new ids only, same limits, snapshot; frozen ids are never reworded', () => {
+  const { TOUR_LINES_2, RETIRED_LINES, TOUR_LINES_2_ADDED, sayLine } = lines;
+  const frozenIds = new Set(TOUR_LINES.map(l => l.id));
+  for (const l of TOUR_LINES_2) {
+    assert.ok(!frozenIds.has(l.id), `${l.id} is a new id`);
+    assert.match(l.id, /^[a-z0-9-]+$/);
+    assert.ok(zhWidth(l.zh) <= 45 && l.en.length <= 110, `${l.id} limits`);
+    assert.ok(/[一-鿿]/.test(l.zh) && !/[一-鿿]/.test(l.en));
+    assert.equal(tourLine(l.id), l, `${l.id} resolves`);
+  }
+  for (const [old, now] of Object.entries(RETIRED_LINES)) {
+    assert.ok(frozenIds.has(old), `${old} is a recorded frozen line (kept, not picked)`);
+    assert.ok(TOUR_LINES_2.some(l => l.id === now), `${now} replaces it`);
+  }
+  // the Holloway line reads as one idea: next stop + what is there, no 到了
+  const h = tourLine('metro-sfsu-next-2')!;
+  assert.equal(h.zh, '下一站 Holloway，就是州立大学。');
+  assert.ok(!h.zh.includes('到了'));
+  assert.equal(TOUR_LINES_2_ADDED, '2026-09-27');
+  const snap = createHash('sha256').update(TOUR_LINES_2.map(l => `${l.id}\u0001${l.zh}\u0001${l.en}`).join('\u0002')).digest('hex').slice(0, 16);
+  assert.equal(snap, ADDED_SNAPSHOT, 'an added line changed its words: add a new id instead');
+  // sayLine: frozen / added ids carry their voice id; plain bubbles none; unknown ids are null (never a silent voice)
+  assert.deepEqual(sayLine('metro-sfsu-next-2'), { text: { zh: h.zh, en: h.en }, voice: 'metro-sfsu-next-2', mood: h.mood, key: 'metro-sfsu-next-2' });
+  assert.equal(sayLine('loop-castro-arrive', 8)?.ttl, 8);
+  assert.deepEqual(sayLine({ zh: '跟我来！', en: 'Follow me!' }), { text: { zh: '跟我来！', en: 'Follow me!' }, voice: null, mood: 'happy', key: 'text:跟我来！' });
+  assert.equal(sayLine('no-such-line'), null);
+});
+
+test('part 2 · the tour times use the one time rule (game/tripText.ts): subtitle, resume label = the timing model', async () => {
+  const { minutesLabel } = await import('../src/opus-bay/game/tripText');
+  assert.equal(SF_GRAND.subtitle.zh, `全城 5 章 · ${minutesLabel(SF_GRAND.minutes).zh} · 随时下车`);
+  assert.equal(SF_GRAND.subtitle.zh, '全城 5 章 · 约 26 分钟 · 随时下车');
+  assert.equal(SF_GRAND.subtitle.en, 'The whole city in 5 chapters · about 26 min · hop off anytime');
+  assert.equal(tourResumeLabel(SF_GRAND, undefined).zh, '环游旧金山 · 一日游（约 26 分钟）');
+  assert.equal(tourResumeLabel(SF_GRAND, undefined).en, 'San Francisco Grand Tour (about 26 min)');
+  assert.equal(minutesLabel(SF_GRAND.expressMinutes).zh, '约 18 分钟');
 });

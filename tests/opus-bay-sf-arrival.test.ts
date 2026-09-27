@@ -97,12 +97,75 @@ test('arrival: islands you cannot walk to get no anchor (standing at the Pier 33
   assert.notEqual(hit?.anchor.attraction, 'alcatraz');
 });
 
+test('part 2 · Corona Heights: the arrival at the museum door, the panorama at the summit (either order)', async () => {
+  const { PANORAMA_SPOTS, decodeArrivalSeen } = arrival;
+  const anchors = arrivalAnchors(ATTRACTIONS);
+  const id = 'corona-heights-randall-museum';
+  const door = anchors.find(a => a.attraction === id && !a.spot)!, top = anchors.find(a => a.attraction === id && a.spot)!;
+  assert.ok(door && top, 'the door anchor and the summit spot');
+  assert.equal(door.panorama, undefined, 'no panorama at the door');
+  assert.equal(top.panorama, true);
+  assert.equal(top.key, `${id}@summit`);
+  // the spot is the summit (Wikipedia 37.7646522, −122.4391379), on the walking graph, higher than the door
+  const { projectCity } = await import('../src/opus-bay/core/geo');
+  const summit = projectCity(37.7646522, -122.4391379);
+  assert.ok(Math.hypot(top.x - summit.x, top.z - summit.z) < 5, `the spot is at the summit (${summit.x.toFixed(1)}, ${summit.z.toFixed(1)})`);
+  assert.ok(Math.hypot(top.x - door.x, top.z - door.z) > ARRIVAL_MIN_R + 4, 'the door\'s trigger stops well short of the summit');
+  assert.ok(PANORAMA_SPOTS[id].radius < ARRIVAL_MIN_R, 'the summit spot is small: the top, not the path');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const gi = await sfDisk().graphIndex();
+  const main = gi.mainComponent();
+  const nTop = gi.nearestNode(top.x, top.z, 3, i => gi.component(i) === main), nDoor = gi.nearestNode(door.x, door.z, 3, i => gi.component(i) === main);
+  assert.ok(nTop >= 0 && nDoor >= 0, 'both on the main walking graph');
+  assert.ok(gi.y(nTop) > gi.y(nDoor) + 4, `the summit is higher (${gi.y(nTop).toFixed(1)} vs ${gi.y(nDoor).toFixed(1)})`);
+
+  // door first: the moment (no panorama); halfway up nothing; the summit: the panorama only
+  const w = new ArrivalWatcher(anchors);
+  const atDoor = w.step(sample(door.x, door.z, 0))!;
+  assert.equal(atDoor.anchor.attraction, id);
+  const b1 = arrivalBeats(atDoor);
+  assert.ok(b1.toast && b1.peek && b1.stamp, 'the arrival moment at the door');
+  assert.equal(b1.panorama, false, 'no panorama at the door');
+  const half = { x: (door.x + top.x) / 2, z: (door.z + top.z) / 2 };
+  assert.equal(w.step(sample(half.x, half.z, 1000)), null, 'half-way up: nothing');
+  const atTop = w.step(sample(top.x + 2, top.z, 2000))!;
+  assert.ok(atTop, 'the summit fires');
+  const b2 = arrivalBeats(atTop);
+  assert.equal(b2.panorama, true, 'the panorama at the summit');
+  assert.equal(atTop.first, false);
+  assert.equal(b2.toast, null, 'no second toast');
+  assert.equal(b2.stamp, false, 'no second stamp');
+  assert.equal(w.step(sample(top.x, top.z, 3000)), null, 'once');
+  // walk away and come back: no second panorama
+  w.step(sample(top.x + 40, top.z, 4000));
+  const again = w.step(sample(top.x, top.z, 5000))!;
+  assert.equal(arrivalBeats(again).panorama, false, 'the panorama plays once');
+  assert.deepEqual(w.seen().sort(), [id, `${id}@summit`]);
+
+  // summit first (the west path): the whole moment and the panorama there; the door later is quiet
+  const w2 = new ArrivalWatcher(anchors);
+  const first = w2.step(sample(top.x, top.z, 0))!;
+  const b3 = arrivalBeats(first);
+  assert.equal(first.first, true);
+  assert.ok(b3.toast && b3.panorama && b3.stamp, 'moment + panorama at the summit');
+  const later = w2.step(sample(door.x, door.z, 1000))!;
+  assert.equal(later.first, false, 'the door afterwards: a quiet later arrival');
+  assert.equal(arrivalBeats(later).panorama, false);
+
+  // the save keeps spot keys and drops junk
+  assert.deepEqual(decodeArrivalSeen([id, `${id}@summit`, 'BAD', 42, id, 'x@', '../y']), [id, `${id}@summit`]);
+  assert.deepEqual(decodeArrivalSeen('nope'), []);
+  assert.equal(decodeArrivalSeen(Array.from({ length: 600 }, (_, i) => `p-${i}`)).length, arrival.ARRIVAL_SAVE_MAX);
+  // the other viewpoints keep their panorama at the arrival spot
+  for (const a of anchors.filter(x => x.panorama && !x.spot)) assert.ok(!PANORAMA_SPOTS[a.attraction], a.attraction);
+});
+
 test('arrival lines: the built landmarks and the district places speak their card bark (not a silent moment)', async () => {
   await loadPlaceCards();
   const anchors = arrivalAnchors(ATTRACTIONS);
   const silent = anchors.filter(a => a.rank <= 2 && !defaultArrivalLine(a.attraction, a)).map(a => a.attraction).sort();
-  // the only T1 / T2 places with no card anywhere (Requests: cards at integration)
-  assert.deepEqual(silent, ['bay-bridge', 'marina-green']);
+  // part 2: Bay Bridge and Marina Green got their cards (placeCards2.ts CURATED_CARDS): no silent T1 / T2 left
+  assert.deepEqual(silent, []);
   const ggb = anchors.find(a => a.attraction === 'golden-gate-bridge')!;
   const line = arrivalBeats({ anchor: ggb, first: true, via: 'foot', event: { type: 'arrival', place: ggb.place, tier: 1, first: true, attraction: ggb.attraction } });
   assert.deepEqual(line.line, CITY_SUBJECT_FACTS['golden-gate-bridge'].fact, 'GGB: the landmark card bark, glossed');
@@ -137,7 +200,8 @@ test('arrival beats: T1 on foot gets the reveal; T2 no reveal; T3 and later arri
   const quiet = arrivalBeats(w.step(sample(400, 0, 3))!);
   assert.equal(quiet.stampSound, false); assert.equal(quiet.mood, 'thinking'); assert.equal(quiet.reveal, false);
   assert.equal(quiet.panorama, true);
-  assert.deepEqual(quiet.toast, bi('mount-davidson', 'mount-davidson'), 'no 抵达 fanfare');
+  // the one toast wording (game/tripText.ts arrivalToast = lane G's arrivalToastText): no 抵达 fanfare
+  assert.deepEqual(quiet.toast, bi('到了 · mount-davidson', 'Here: mount-davidson'), 'no 抵达 fanfare');
   // reduced motion / low quality: no reveal
   const w2 = new ArrivalWatcher([A('p', 0, 0, 1)]);
   assert.equal(arrivalBeats(w2.step(sample(0, 0, 0))!, { reducedMotion: true }).reveal, false);
@@ -149,7 +213,9 @@ test('arrival beats: T1 on foot gets the reveal; T2 no reveal; T3 and later arri
 
 test('arrival anchors from lane P\'s ATTRACTIONS: arrival spot, place id, tone', () => {
   const anchors = arrivalAnchors(ATTRACTIONS);
-  assert.equal(anchors.length, ATTRACTIONS.filter(a => !a.offWalk).length);
+  // one anchor per attraction you can walk to, plus the panorama spots (Corona Heights' summit)
+  assert.equal(anchors.length, ATTRACTIONS.filter(a => !a.offWalk).length + Object.keys(arrival.PANORAMA_SPOTS).length);
+  assert.equal(anchors.filter(a => !a.spot).length, new Set(anchors.map(a => a.attraction)).size, 'one arrival anchor per attraction');
   assert.equal(anchors.find(a => a.attraction === 'painted-ladies' || a.attraction === 'alamo-square-painted-ladies')!.landmark, 'painted-ladies');
   const stones = anchors.find(a => a.attraction === 'stonestown-galleria')!;
   const src = ATTRACTIONS.find(a => a.id === 'stonestown-galleria')!;

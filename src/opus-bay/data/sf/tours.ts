@@ -1,4 +1,5 @@
 import type { Bilingual } from '../../core/types';
+import { minutesLabel } from '../../game/tripText';
 import { LANDMARK_ARRIVALS } from './arrivals';
 import { CHAPTER_LINES, type GrandChapterId } from './tourLines';
 
@@ -457,13 +458,16 @@ const CHAPTERS: CityTourChapter[] = [
 ];
 
 const sum = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) * 10) / 10;
+const GRAND_MINUTES = sum(CHAPTERS.flatMap(c => c.stops.filter(s => !s.optional).map(s => s.minutes)));
+// the one time rule (game/tripText.ts): "约 26 分钟" / "about 26 min", from the timing model, never typed by hand
+const GRAND_TIME = minutesLabel(GRAND_MINUTES);
 
 export const SF_GRAND: CityTourDef = {
   id: GRAND_TOUR_ID,
   name: bi('环游旧金山 · 一日游', 'San Francisco Grand Tour'),
-  subtitle: bi('全城 5 章 · 约 26 分钟 · 随时下车', 'The whole city in 5 chapters · about 26 min · hop off anytime'),
+  subtitle: bi(`全城 5 章 · ${GRAND_TIME.zh} · 随时下车`, `The whole city in 5 chapters · ${GRAND_TIME.en} · hop off anytime`),
   chapters: CHAPTERS,
-  minutes: sum(CHAPTERS.flatMap(c => c.stops.filter(s => !s.optional).map(s => s.minutes))),
+  minutes: GRAND_MINUTES,
   expressMinutes: sum(CHAPTERS.flatMap(c => c.stops.map(s => s.expressMinutes))),
 };
 
@@ -508,7 +512,10 @@ export function expressRide(def: CityTourDef, stopId: string): { line: string; f
 
 /** "继续一日游 · 第 3 章" resume label, or the start label when nothing is done. */
 export function tourResumeLabel(def: CityTourDef, progress: TourProgress | undefined): Bilingual {
-  if (!progress || (progress.chapter === 0 && progress.completed.length === 0)) return { zh: `${def.name.zh}（约 ${Math.round(def.minutes)} 分钟）`, en: `${def.name.en} (about ${Math.round(def.minutes)} min)` };
+  if (!progress || (progress.chapter === 0 && progress.completed.length === 0)) {
+    const time = minutesLabel(def.minutes);
+    return { zh: `${def.name.zh}（${time.zh}）`, en: `${def.name.en} (${time.en})` };
+  }
   const n = Math.min(def.chapters.length, progress.chapter + 1);
   return { zh: `继续${def.name.zh.split(' · ').pop()} · 第 ${n} 章`, en: `Resume the ${def.name.en} · chapter ${n}` };
 }

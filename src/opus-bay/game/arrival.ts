@@ -5,6 +5,8 @@ import type { Attraction, AttractionRank } from '../data/sf/attractionTypes';
 import { CITY_SUBJECT_FACTS } from '../data/sf/cityPois';
 import { placeCardNow } from '../data/sf/placeCardTypes';
 import { ARRIVAL_LINES, QUIET_LINES } from '../data/sf/tourLines';
+import { LINE_TTL, type PacedLine } from './linePacer';
+import { arrivalToast } from './tripText';
 
 /**
  * Wave 4 · lane C · W4-C6: arrival moments (plan sf-w4-plan.md §4.2 "Arrival moments"). PURE: no store, no runtime, no
@@ -29,6 +31,12 @@ import { ARRIVAL_LINES, QUIET_LINES } from '../data/sf/tourLines';
  *
  * Places you cannot walk to (`Attraction.offWalk`: Alcatraz, Treasure Island, whose "arrival" spot is a telescope on
  * the waterfront) get no anchor: standing at Pier 33 is not arriving at Alcatraz (no toast, no reveal, no fly unlock).
+ *
+ * Panorama spots (`PANORAMA_SPOTS`, part 2): where a viewpoint's view is not where its trips end, the view gets its
+ * own small spot. Corona Heights arrives at the Randall Museum door (trips, the card) but the view is from the red
+ * chert summit 18 u west and 6 u higher: the door fires the arrival moment without the panorama, the summit fires the
+ * panorama (and the whole moment, when the player climbs there first). Spots neither swallow nor get swallowed by the
+ * arrival anchors around them; their seen key is `<attraction>@<spot>` (the save's `arrivals` keeps it).
  */
 
 export const ARRIVAL_MIN_R = 12;
@@ -56,6 +64,10 @@ export interface ArrivalAnchor {
   panorama?: boolean;
   /** the SF landmark registry id (Attraction.landmarkId): its card bark is the arrival line of a built landmark */
   landmark?: string;
+  /** a panorama spot (PANORAMA_SPOTS): fires the panorama on its own, never counts as a neighbour's visit */
+  spot?: 'panorama';
+  /** unique key of the anchor in the seen / inside sets (default: `attraction`; spots: `<attraction>@<spot>`) */
+  key?: string;
 }
 
 export interface ArrivalSample {
@@ -82,27 +94,57 @@ export interface ArrivalHit {
   /** how the player came: on foot, or just hopped off a vehicle / transit */
   via: 'foot' | 'hop-off';
   event: ArrivalEvent;
+  /** a panorama spot's hit: the first time at this spot (the panorama plays); undefined for an arrival anchor */
+  panorama?: boolean;
 }
+
+/**
+ * Viewpoints whose view is not at their arrival spot (attraction id → the spot). Corona Heights: the summit of
+ * Corona Heights Park, Wikipedia 37.7646522, −122.4391379 (checked 2026-09-27: "an unobstructed panoramic view of the
+ * city of San Francisco from downtown to the Twin Peaks"), projectCity → (84.8, 751.7); the spot is the highest node
+ * of the published walking graph next to it, (81.0, 749.0) at y 29.8 (the museum door's node: y 23.6), 18.4 u from
+ * the attraction's arrival (99.4, 748.1). Radius 7: the panorama waits for the top, not the path half-way up.
+ */
+export const PANORAMA_SPOTS: Readonly<Record<string, { spot: string; x: number; z: number; radius: number; name: Bilingual }>> = {
+  'corona-heights-randall-museum': { spot: 'summit', x: 81.0, z: 749.0, radius: 7, name: { zh: '科罗娜高地山顶', en: 'Corona Heights summit' } },
+};
 
 /**
  * Anchors from lane P's ATTRACTIONS (data/sf/attractions.ts): the arrival spot, rank, tone, place id, landmark. Places
  * off the walkable city (`offWalk`) are left out: their arrival spot is a viewpoint elsewhere, not the place.
  */
 export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAnchor[] {
-  return attractions.filter(a => !a.offWalk).map(a => ({
-    attraction: a.id,
-    place: a.placeId ?? a.id,
-    rank: a.rank,
-    x: a.arrival?.x ?? a.x,
-    z: a.arrival?.z ?? a.z,
-    name: a.name,
-    ...(a.quiet ? { quiet: true } : {}),
-    ...(a.panorama ? { panorama: true } : {}),
-    ...(a.landmarkId ? { landmark: a.landmarkId } : {}),
-  }));
+  return attractions.filter(a => !a.offWalk).flatMap(a => {
+    const spot = a.panorama ? PANORAMA_SPOTS[a.id] : undefined;
+    const anchor: ArrivalAnchor = {
+      attraction: a.id,
+      place: a.placeId ?? a.id,
+      rank: a.rank,
+      x: a.arrival?.x ?? a.x,
+      z: a.arrival?.z ?? a.z,
+      name: a.name,
+      ...(a.quiet ? { quiet: true } : {}),
+      // a viewpoint with a spot of its own: the panorama plays there, not at the door
+      ...(a.panorama && !spot ? { panorama: true } : {}),
+      ...(a.landmarkId ? { landmark: a.landmarkId } : {}),
+    };
+    if (!spot) return [anchor];
+    const { x, z, radius } = spot;
+    return [anchor, { ...anchor, x, z, radius, panorama: true, spot: 'panorama' as const, key: `${a.id}@${spot.spot}` }];
+  });
 }
 
-const radiusOf = (a: ArrivalAnchor) => Math.max(ARRIVAL_MIN_R, a.radius ?? 0);
+/** Trigger radius: max(12, radius) for arrival anchors; a panorama spot's own (small) radius. */
+const radiusOf = (a: ArrivalAnchor) => (a.spot ? a.radius ?? 7 : Math.max(ARRIVAL_MIN_R, a.radius ?? 0));
+const keyOf = (a: ArrivalAnchor) => a.key ?? a.attraction;
+
+/** Save v2 `arrivals` (untrusted): well-formed seen keys only (attraction ids, `<attraction>@<spot>`), unique, ≤ 512. */
+export const ARRIVAL_SAVE_MAX = 512;
+const SEEN_RE = /^[a-z0-9][a-z0-9-]{0,63}(@[a-z0-9-]{1,24})?$/;
+export function decodeArrivalSeen(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter((k): k is string => typeof k === 'string' && SEEN_RE.test(k)))].slice(0, ARRIVAL_SAVE_MAX);
+}
 const CELL = 64;
 const key = (cx: number, cz: number) => `${cx},${cz}`;
 
@@ -130,10 +172,13 @@ export class ArrivalWatcher {
       const list = this.grid.get(k);
       if (list) list.push(a); else this.grid.set(k, [a]);
     }
-    for (const id of [...this.inside]) if (!this.anchors.some(a => a.attraction === id)) this.inside.delete(id);
+    for (const k of [...this.inside]) if (!this.anchors.some(a => keyOf(a) === k)) this.inside.delete(k);
   }
 
-  /** Attraction ids arrived at so far (the save keeps them; `first: false` from then on). */
+  /**
+   * Attraction ids arrived at so far, plus the panorama spots reached (`<attraction>@<spot>`); the save keeps them
+   * (`first: false` from then on) and reads them back with `decodeArrivalSeen`.
+   */
   seen(): string[] { return [...this.seenIds]; }
   hasSeen(attraction: string): boolean { return this.seenIds.has(attraction); }
 
@@ -155,31 +200,42 @@ export class ArrivalWatcher {
   step(s: ArrivalSample): ArrivalHit | null {
     const candidates = this.near(s.x, s.z);
     // re-arm the anchors the player has left
-    for (const id of [...this.inside]) {
-      const a = candidates.find(c => c.attraction === id) ?? this.anchors.find(c => c.attraction === id);
-      if (!a || Math.hypot(a.x - s.x, a.z - s.z) > radiusOf(a) * ARRIVAL_REARM_FACTOR) this.inside.delete(id);
+    for (const k of [...this.inside]) {
+      const a = candidates.find(c => keyOf(c) === k) ?? this.anchors.find(c => keyOf(c) === k);
+      if (!a || Math.hypot(a.x - s.x, a.z - s.z) > radiusOf(a) * ARRIVAL_REARM_FACTOR) this.inside.delete(k);
     }
     if (s.travelling || s.busy) return null;
     const hopOff = s.hoppedOffAt !== undefined && s.now - s.hoppedOffAt >= 0 && s.now - s.hoppedOffAt <= HOP_OFF_GRACE_MS;
     if (!s.onFoot && !hopOff) return null;
-    // the higher tier first (T1 over T3), then the nearest
+    const via = s.onFoot && !hopOff ? 'foot' : 'hop-off';
+    // the higher tier first (T1 over T3), then the nearest; panorama spots stand apart
     let best: ArrivalAnchor | null = null, bestD = Infinity;
     for (const a of candidates) {
-      if (this.inside.has(a.attraction)) continue;
+      if (a.spot || this.inside.has(keyOf(a))) continue;
       const d = Math.hypot(a.x - s.x, a.z - s.z);
       if (d > radiusOf(a)) continue;
       if (!best || a.rank < best.rank || (a.rank === best.rank && d < bestD)) { best = a; bestD = d; }
     }
-    if (!best) return null;
-    // every anchor the player stands in now counts as visited-inside (no second hit from an overlapping neighbour)
-    for (const a of candidates) if (Math.hypot(a.x - s.x, a.z - s.z) <= radiusOf(a)) this.inside.add(a.attraction);
-    const first = !this.seenIds.has(best.attraction);
-    this.seenIds.add(best.attraction);
-    this.lastArrivalAt = s.now;
-    return {
-      anchor: best, first, via: s.onFoot && !hopOff ? 'foot' : 'hop-off',
-      event: { type: 'arrival', place: best.place, tier: best.rank, first, attraction: best.attraction },
-    };
+    if (best) {
+      // every anchor the player stands in now counts as visited-inside (no second hit from an overlapping neighbour)
+      for (const a of candidates) if (!a.spot && Math.hypot(a.x - s.x, a.z - s.z) <= radiusOf(a)) this.inside.add(keyOf(a));
+      const first = !this.seenIds.has(best.attraction);
+      this.seenIds.add(best.attraction);
+      this.lastArrivalAt = s.now;
+      return { anchor: best, first, via, event: { type: 'arrival', place: best.place, tier: best.rank, first, attraction: best.attraction } };
+    }
+    // a panorama spot: its own seen key; the attraction's first arrival too when the player climbed here first
+    for (const a of candidates) {
+      if (!a.spot || this.inside.has(keyOf(a)) || Math.hypot(a.x - s.x, a.z - s.z) > radiusOf(a)) continue;
+      this.inside.add(keyOf(a));
+      const first = !this.seenIds.has(a.attraction);
+      const panorama = !this.seenIds.has(keyOf(a));
+      this.seenIds.add(a.attraction);
+      this.seenIds.add(keyOf(a));
+      this.lastArrivalAt = s.now;
+      return { anchor: a, first, via, panorama, event: { type: 'arrival', place: a.place, tier: a.rank, first, attraction: a.attraction } };
+    }
+    return null;
   }
 }
 
@@ -246,7 +302,7 @@ export function arrivalBeats(hit: ArrivalHit, ctx: ArrivalContext = {}): Arrival
   const quiet = !!anchor.quiet;
   const line = moment ? (ctx.lineFor ?? defaultArrivalLine)(anchor.attraction, anchor) : null;
   return {
-    toast: moment ? (quiet ? { zh: anchor.name.zh, en: anchor.name.en } : { zh: `抵达 · ${anchor.name.zh}`, en: `Arrived · ${anchor.name.en}` }) : null,
+    toast: moment ? arrivalToast(anchor.name, quiet) : null,
     line: line?.text ?? null,
     voice: line?.voice ?? null,
     mood: quiet ? 'thinking' : line?.mood ?? 'happy',
@@ -255,7 +311,19 @@ export function arrivalBeats(hit: ArrivalHit, ctx: ArrivalContext = {}): Arrival
     stamp: first,
     stampSound: first && !quiet,
     postcardHint: moment && ctx.postcardNear ? POSTCARD_HINT : null,
-    panorama: first && !!anchor.panorama,
+    panorama: hit.panorama ?? (first && !!anchor.panorama),
     discover: true,
   };
+}
+
+/**
+ * The arrival line as a paced line (game/linePacer.ts): it waits for the tour clip that is still playing (lane V's
+ * rule) and is dropped after LINE_TTL.arrival seconds rather than said long after the moment. The postcard hint
+ * follows it as its own text bubble. Empty when the moment says nothing.
+ */
+export function arrivalPaced(beats: Pick<ArrivalBeats, 'line' | 'voice' | 'mood' | 'postcardHint'>, attraction: string): PacedLine[] {
+  const out: PacedLine[] = [];
+  if (beats.line) out.push({ text: beats.line, voice: beats.voice, mood: beats.mood, ttl: LINE_TTL.arrival, key: beats.voice ?? `arrive:${attraction}` });
+  if (beats.postcardHint) out.push({ text: beats.postcardHint, mood: 'point', ttl: LINE_TTL.arrival, key: `postcard-near:${attraction}` });
+  return out;
 }

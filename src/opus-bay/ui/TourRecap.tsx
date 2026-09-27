@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react';
 import { ArrowRight, Bird, Check, Mail, Map as MapIcon, Route, Sparkles, Stamp, X } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import type { CityTourDef } from '../data/sf/tours';
+import { minutesLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import { BaybayFace } from './common';
 import { RECAP_COLORS, tourRecapModel } from './tourRecapModel';
@@ -39,7 +40,8 @@ export function TourRecap({ tour, completed, postcards, stamps, express, stopNam
   const { t } = useT();
   // count and draw the version played: an express run is complete without the side stops it skips
   const model = useMemo(() => tourRecapModel(tour, completed, stopName, !!express), [tour, completed, stopName, express]);
-  const minutes = Math.round(express ? tour.expressMinutes : tour.minutes);
+  // the one time rule (game/tripText.ts): "约 18 分钟" / "about 18 min"
+  const time = minutesLabel(express ? tour.expressMinutes : tour.minutes);
   return (
     <div className="ob-recap-wrap" role="dialog" aria-modal="true" aria-labelledby="ob-tour-recap-title">
       <div className="ob-recap">
@@ -59,7 +61,7 @@ export function TourRecap({ tour, completed, postcards, stamps, express, stopNam
           })}
         </ol>
         <div className="ob-recap-stats">
-          <span><Route size={16} aria-hidden />{t(`${express ? '快速版' : '完整版'} · 约 ${minutes} 分钟`, `${express ? 'Express' : 'Full tour'} · about ${minutes} min`)}</span>
+          <span><Route size={16} aria-hidden />{t(`${express ? '快速版' : '完整版'} · ${time.zh}`, `${express ? 'Express' : 'Full tour'} · ${time.en}`)}</span>
           <span><Mail size={16} aria-hidden />{postcards.found}/{postcards.total} {t('明信片', 'postcards')}</span>
           <span><Stamp size={16} aria-hidden />{stamps.found}/{stamps.total} {t('盖章', 'stamps')}</span>
           <span><Sparkles size={16} aria-hidden />{model.done}/{model.total} {t('站', 'stops')}</span>

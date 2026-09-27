@@ -24,6 +24,8 @@ import type { LineSource } from './lines';
  *                     `bark` (data/sf/placeCards.ts; tested equal). The built landmarks keep their card barks as text
  *                     bubbles (not recorded in wave 4).
  * - QUIET_LINES       memorials and places of worship passed on the tour: said softly (mood 'thinking', no emote).
+ * - TOUR_LINES_2      lines added after the freeze (new ids; lane V records them later) and RETIRED_LINES, the
+ *                     recorded ids they replace in the narration (the frozen texts and clips stay).
  */
 
 export const TOUR_LINES_FROZEN = '2026-09-27';
@@ -257,9 +259,36 @@ export const TOUR_LINES: readonly TourLine[] = [
   ...Object.values(QUIET_LINES),
 ];
 
-const BY_ID = new Map(TOUR_LINES.map(line => [line.id, line]));
+/**
+ * Lines added AFTER the freeze (part 2, 2026-09-27): a new wording is a new id, never new words for a frozen id.
+ * Lane V records them as `<lang>-<id>`; until a clip exists they play as text bubbles (game/linePacer.ts sees no clip
+ * and emits no voice). Snapshot-tested like TOUR_LINES (tests/opus-bay-sf-tours.test.ts TOUR_LINES_2_SNAPSHOT).
+ */
+export const TOUR_LINES_2_ADDED = '2026-09-27';
+const SFSU_NEXT_2 = L('metro-sfsu-next-2', '下一站 Holloway，就是州立大学。', 'Next stop Holloway — that\'s SF State.', 'happy');
+export const TOUR_LINES_2: readonly TourLine[] = [
+  // replaces metro-sfsu-next ("下一站 Holloway，州立大学到了！" mixes 下一站 and 到了: lane C's review O2)
+  SFSU_NEXT_2,
+];
+
+/** Recorded frozen lines no longer picked by the narration, and the id that replaced each. */
+export const RETIRED_LINES: Readonly<Record<string, string>> = { 'metro-sfsu-next': SFSU_NEXT_2.id };
+
+const BY_ID = new Map([...TOUR_LINES, ...TOUR_LINES_2].map(line => [line.id, line]));
+/** A frozen or added tour line by id. */
 export const tourLine = (id: string): TourLine | undefined => BY_ID.get(id);
 export const tourLineText = (line: TourLine): Bilingual => ({ zh: line.zh, en: line.en });
+
+/**
+ * What a tour says, ready for the pacer (game/linePacer.ts `PacedLine`): a frozen / added line id → its text, voice id
+ * and mood; a plain bubble → text only (mood `happy`). Null for an unknown id (never a silent voice id).
+ */
+export function sayLine(say: string | Bilingual, ttl?: number): { text: Bilingual; voice: string | null; mood: Mood; ttl?: number; key: string } | null {
+  if (typeof say !== 'string') return { text: { zh: say.zh, en: say.en }, voice: null, mood: 'happy', key: `text:${say.zh}`, ...(ttl !== undefined ? { ttl } : {}) };
+  const line = BY_ID.get(say);
+  if (!line) return null;
+  return { text: tourLineText(line), voice: line.id, mood: line.mood, key: line.id, ...(ttl !== undefined ? { ttl } : {}) };
+}
 
 /**
  * The loop narration for a `transit` event on `sf-loop` (lane T emits `approach` ≈ 60 u before a stop and `arrive`
@@ -290,7 +319,7 @@ export function metroNarration(event: { what: string; line: string; station?: st
   if (what === 'board') return line === 'n-judah' ? METRO_LINES['board-n'] : METRO_LINES['board-m'];
   if (what === 'approach') {
     if (line === 'm-ocean-view' && station === 'muni-19th-winston') return METRO_LINES['stonestown-next'];
-    if (line === 'm-ocean-view' && station === 'muni-19th-holloway') return METRO_LINES['sfsu-next'];
+    if (line === 'm-ocean-view' && station === 'muni-19th-holloway') return SFSU_NEXT_2;
     if (line === 'n-judah' && station === 'muni-carl-hillway') return METRO_LINES['ucsf-window'];
     return null;
   }
