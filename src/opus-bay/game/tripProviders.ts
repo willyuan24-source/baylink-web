@@ -55,13 +55,19 @@ export function transitTripLine(line: TransitLine): TripLineInfo {
 
 const flat = (pts: readonly Vec2[]) => { const out: number[] = []; for (const p of pts) out.push(p.x, p.z); return out; };
 
+/**
+ * The kind of a rideable interactable: `ride:car-…` is the toy car, every other `ride:` id a bike (the Hud's rule).
+ * (Review: a bare /car/ test called a bike parked at "Carl & Cole" or "Oscar Alley" a car.)
+ */
+export const rideableKind = (id: string): 'bike' | 'car' => (/^(?:ride:)?car(?:-|$)/.test(id) ? 'car' : 'bike');
+
 /** The rideables near a point, from the interactables (the same rule as game/travel rideableNear). */
 export function rideablesFrom(list: readonly { id: string; source: string; x: number; z: number; name?: { zh: string; en: string } }[], near: Vec2, radius = RIDEABLE_R): TripRideable[] {
   const out: TripRideable[] = [];
   for (const it of list) {
     if (it.source !== 'vehicle') continue;
     if (Math.hypot(it.x - near.x, it.z - near.z) > radius) continue;
-    out.push({ id: it.id, kind: /car/.test(it.id) ? 'car' : 'bike', x: it.x, z: it.z, ...(it.name ? { name: it.name } : {}) });
+    out.push({ id: it.id, kind: rideableKind(it.id), x: it.x, z: it.z, ...(it.name ? { name: it.name } : {}) });
   }
   return out;
 }

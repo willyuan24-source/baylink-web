@@ -504,8 +504,11 @@ function flying(from: TripPoint, dest: TripDestination, to: TripPoint, p: TripPr
   return { mode: 'fly', legs: [leg], seconds: leg.seconds, note: FLY_NOTE };
 }
 
-/** The fly row's caveat: fast travel never counts for the climb / ride goals. */
-export const FLY_NOTE: Bilingual = { zh: '不算登顶 / 骑行成就', en: "Doesn't count for climbing or riding goals" };
+/**
+ * The fly row's caveat: fast travel never counts for the climb / ride goals. (Review: the plan's "不算登顶 / 骑行成就"
+ * said 骑行 (cycling) for the cable-car / metro / bus ride goals and 成就 where the game says 目标 everywhere.)
+ */
+export const FLY_NOTE: Bilingual = { zh: '不算登顶和坐车目标', en: "Doesn't count for the climbing or riding goals" };
 
 const modeRank = (m: TripMode) => TRIP_MODES.indexOf(m);
 const bySeconds = (a: TripOption, b: TripOption) => a.seconds - b.seconds || modeRank(a.mode) - modeRank(b.mode);

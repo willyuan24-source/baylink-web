@@ -402,6 +402,35 @@ test('TripRouteCache: estimates first, the real routes after the async search; q
   off();
 });
 
+test('(review) TripRouteCache: LRU capacity (a hit refreshes), a nonsense answer is "no route", keys on the quantum grid', async () => {
+  let calls = 0;
+  const cache = new TripRouteCache({
+    capacity: 2, quantum: 4,
+    walk: async (_a, b) => { calls++; return b.x === 66 ? { length: Number.NaN } : b.x === 77 ? { length: -5 } : { length: b.x }; },
+  });
+  const o = { x: 0, z: 0 };
+  const A = { x: 10, z: 0 }, B = { x: 20, z: 0 }, C = { x: 30, z: 0 };
+  cache.walk(o, A); cache.walk(o, B);
+  await cache.idle();
+  assert.equal(cache.walk(o, A)?.length, 10, 'a hit: A is now the newest');
+  cache.walk(o, C);
+  await cache.idle();
+  // capacity 2: B (the least recently used) went, A and C stay
+  assert.equal(cache.walk(o, A, false)?.length, 10);
+  assert.equal(cache.walk(o, C, false)?.length, 30);
+  assert.equal(cache.walk(o, B, false), undefined, 'evicted: unknown again (a peek does not search)');
+  assert.equal(calls, 3);
+  // positions on the same 4 u cell share the answer (a player shuffling 1 u does not start a new search)
+  const before = calls;
+  assert.equal(cache.walk({ x: 1, z: -1 }, { x: 31, z: 1 }, false)?.length, 30);
+  assert.equal(calls, before);
+  // NaN / negative lengths are "no route" (null), not a 0-second walk
+  cache.walk(o, { x: 66, z: 0 }); cache.walk(o, { x: 77, z: 0 });
+  await cache.idle();
+  assert.equal(cache.walk(o, { x: 66, z: 0 }, false), null);
+  assert.equal(cache.walk(o, { x: 77, z: 0 }, false), null);
+});
+
 test('live providers: cable-car and transit.json lines convert for the planner; rideables within 60 u', async () => {
   const { cableTripLine, rideablesFrom, transitTripLine } = await import('../src/opus-bay/game/tripProviders');
   const cable = cableTripLine({
@@ -431,4 +460,13 @@ test('live providers: cable-car and transit.json lines convert for the planner; 
     { id: 'poi-x', source: 'poi', x: 1, z: 1 },
   ];
   assert.deepEqual(rideablesFrom(list, { x: 0, z: 0 }).map(r => [r.id, r.kind]), [['ride:bike-ferry-gate', 'bike'], ['ride:car-ferry-plaza', 'car']]);
+  // (review) only a `car-…` id is the car: a bike parked at Carl & Cole or in Oscar Alley stays a bike
+  const { rideableKind } = await import('../src/opus-bay/game/tripProviders');
+  assert.deepEqual(['ride:car-ferry-plaza', 'car-x', 'ride:bike-carl-cole', 'ride:bike-oscar-alley', 'ride:bike-rack-3'].map(rideableKind), ['car', 'car', 'bike', 'bike', 'bike']);
+  assert.deepEqual(rideablesFrom([{ id: 'ride:bike-carl-cole', source: 'vehicle', x: 5, z: 0 }], { x: 0, z: 0 }).map(r => r.kind), ['bike']);
+});
+
+test('(review) the fly caveat speaks of goals (目标) and riding (坐车), as the rest of the game does', () => {
+  assert.deepEqual(FLY_NOTE, { zh: '不算登顶和坐车目标', en: "Doesn't count for the climbing or riding goals" });
+  assert.ok(!/骑行|成就/.test(FLY_NOTE.zh));
 });

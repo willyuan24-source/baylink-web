@@ -3,7 +3,7 @@ import test from 'node:test';
 import { REVEAL, RevealClock, photoPose, planReveal, revealAllowed, revealPose, revealShots } from '../src/opus-bay/actors/reveal';
 import { type TripLineInfo, planTrips } from '../src/opus-bay/game/tripPlan';
 import type { TripLeg, TripState } from '../src/opus-bay/game/tripTypes';
-import { ARRIVAL_CARD_MS, PILL_UNITS, arrivalToastText, fitText, legIcon, legLabel, textUnits, tripLegRows, tripPillText } from '../src/opus-bay/ui/guideText';
+import { ARRIVAL_CARD_MS, PILL_UNITS, arrivalToastText, fitText, legIcon, legLabel, pillName, textUnits, tripLegRows, tripPillText } from '../src/opus-bay/ui/guideText';
 
 /**
  * Lane G (W4-G10 / W4-G3): the arrival reveal camera path (pure math) and the words of the trip pill, trip card and
@@ -128,11 +128,17 @@ test('text units and fitting: CJK 1, Latin 0.55; cut with …', () => {
   assert.ok(cut.endsWith('…') && textUnits(cut) <= 8);
 });
 
-test('trip pill: "下一站 名称 · 约 N 分钟", ≤ 16 CJK on phones, the leg step, waiting at the stop', () => {
+test('trip pill: "下一站 名称 · 约 N 分钟" (on board a line: "坐到 名称"), ≤ 16 CJK on phones, the leg step, waiting at the stop', () => {
   const t = tripPillText(trip, 118, { lines, compact: true, phase: 'riding' });
   assert.equal(t.icon, 'metro');
-  assert.equal(t.title.zh, '下一站 海洋海滩');
-  assert.equal(t.title.en, 'Next: Judah & La Playa');
+  // (review) on board: the stop to get off at, never a second "下一站" next to the RideBanner's "下一站 9th & Irving"
+  assert.equal(t.title.zh, '坐到 海洋海滩');
+  assert.equal(t.title.en, 'Ride to Judah & La Playa');
+  // flow.ride.stage goes in as it is: braking / turning are on board too
+  assert.equal(tripPillText(trip, 118, { lines, compact: true, phase: 'braking' }).title.zh, '坐到 海洋海滩');
+  assert.equal(tripPillText(trip, 118, { lines, compact: true, phase: 'turning' }).title.zh, '坐到 海洋海滩');
+  // the walking legs keep "下一站"
+  assert.ok(tripPillText({ ...trip, leg: 2 }, 20, { lines, compact: true }).title.zh.startsWith('下一站 '));
   assert.deepEqual(t.time, { zh: '约 2 分钟', en: '~2 min' });
   assert.equal(t.step, '2/3');
   const wait = tripPillText({ ...trip, leg: 1 }, 118, { lines, compact: true, phase: 'waiting' });
@@ -144,6 +150,20 @@ test('trip pill: "下一站 名称 · 约 N 分钟", ≤ 16 CJK on phones, the l
   assert.ok(long.title.zh.endsWith('…'));
   assert.equal(long.step, null);
   assert.equal(tripPillText({ legs: longLegs, leg: 0 }, 300, { compact: false }).title.zh.endsWith('…'), false);
+});
+
+test('(review) the pill drops a bracketed gloss and prefers the short name, so a phone never shows "彩绘女士（…"', () => {
+  assert.deepEqual(pillName({ zh: '彩绘女士（明信片排屋）', en: 'Painted Ladies (Postcard Row)' }), { zh: '彩绘女士', en: 'Painted Ladies' });
+  assert.deepEqual(pillName({ zh: '九曲花街（伦巴底街）', en: 'Lombard Street' }), { zh: '九曲花街', en: 'Lombard Street' });
+  assert.deepEqual(pillName({ zh: '（龟山）', en: 'x' }), { zh: '（龟山）', en: 'x' }, 'a name that is only a gloss stays');
+  const legs: TripLeg[] = [{ via: 'walk', from: { x: 0, z: 0 }, to: { x: 1, z: 1, place: 'painted-ladies', name: { zh: '彩绘女士（明信片排屋）', en: 'Painted Ladies (Postcard Row)' } }, seconds: 130, length: 540 }];
+  const p = tripPillText({ legs, leg: 0 }, 130, { compact: true });
+  assert.equal(p.title.zh, '下一站 彩绘女士');
+  assert.ok(!p.title.zh.includes('（'));
+  // the short name (Attraction.short) wins for the leg that ends at the destination
+  assert.equal(tripPillText({ legs, leg: 0 }, 130, { compact: true, short: { zh: '彩绘女士', en: 'Painted Ladies' } }).title.en, 'Next: Painted Ladies');
+  const tooLong: TripLeg[] = [{ ...legs[0], to: { ...legs[0].to, name: { zh: '佛蒙特街弯道（比九曲花街更弯）', en: 'Vermont Street crooked block' } } }];
+  assert.equal(tripPillText({ legs: tooLong, leg: 0 }, 130, { compact: true }).title.zh, '下一站 佛蒙特街弯道');
 });
 
 test('trip card rows: icons, words, times, done / now / next, the wait line; icons per line kind', () => {

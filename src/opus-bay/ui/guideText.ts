@@ -62,24 +62,42 @@ export interface PillText {
 }
 
 /**
- * The trip pill (plan §4.2): "[icon] 下一站 名称 · 约 N 分钟". `secondsLeft` = tripRemainingSeconds (the live one);
- * `phase` of a line leg ('waiting' at the stop, 'riding'); `compact` = phones (≤ 16 CJK in all).
+ * A name for the pill: without a trailing gloss in brackets ("彩绘女士（明信片排屋）" → "彩绘女士", "九曲花街（伦巴底街）" →
+ * "九曲花街"), which would otherwise be cut mid-bracket on a phone ("彩绘女士（…").
  */
-export function tripPillText(trip: Pick<TripState, 'legs' | 'leg'> & { option?: { legs: TripLeg[] } }, secondsLeft: number, o: { lines?: ReadonlyMap<string, TripLineInfo>; phase?: 'waiting' | 'riding'; compact?: boolean; destination?: Bilingual } = {}): PillText {
+export function pillName(name: Bilingual): Bilingual {
+  const strip = (s: string) => { const t = s.replace(/\s*[（(][^（）()]*[）)]\s*$/u, '').trim(); return t || s; };
+  return { zh: strip(name.zh), en: strip(name.en) };
+}
+
+/** The ride stage (game/flowStore RideStage): waiting at the stop, or on board ('riding' / 'braking' / 'turning'). */
+export type PillPhase = 'waiting' | 'riding' | 'braking' | 'turning';
+
+/**
+ * The trip pill (plan §4.2): "[icon] 下一站 名称 · 约 N 分钟". `secondsLeft` = tripRemainingSeconds (the live one);
+ * `phase` of a line leg (flow.ride.stage as it is: 'waiting' at the stop, else on board); `compact` = phones (≤ 16 CJK
+ * in all); `short` = the destination's short name (Attraction.short), used when the current leg ends there.
+ * On board a line the pill says "坐到 名称" (the stop to get off at), not "下一站": the RideBanner right under it already
+ * says "下一站 …" for the vehicle's next stop, and two different 下一站 on one screen read as a contradiction (review).
+ */
+export function tripPillText(trip: Pick<TripState, 'legs' | 'leg'> & { option?: { legs: TripLeg[] } }, secondsLeft: number, o: { lines?: ReadonlyMap<string, TripLineInfo>; phase?: PillPhase | null; compact?: boolean; destination?: Bilingual; short?: Bilingual | null } = {}): PillText {
   const legs = trip.legs;
   const cur = legs[Math.min(trip.leg, legs.length - 1)];
   const time = tripTimeLabel(secondsLeft);
   const max = o.compact ? PILL_UNITS.phone : PILL_UNITS.desktop;
   if (!cur) return { icon: 'walk', title: { zh: '到了', en: 'Arrived' }, time, step: null };
   const icon = legIcon(cur as TripLeg & { line?: string }, o.lines);
-  const to = nameOf(cur.to) ?? o.destination ?? { zh: '目的地', en: 'destination' };
+  const to = pillName((cur.to.place && o.short) || (nameOf(cur.to) ?? o.destination ?? { zh: '目的地', en: 'destination' }));
   let zh: string, en: string;
   if (cur.via === 'line' && o.phase === 'waiting') {
     const l = o.lines?.get(cur.line);
     const n = l ? lineDisplayName(l) : TRIP_MODE_NAMES.line;
     const board = nameOf(cur.from);
-    zh = `等${zhJoin(n.zh)}${board ? ` · ${board.zh}` : ''}`;
-    en = `Wait for the ${n.en}${board ? ` · ${board.en}` : ''}`;
+    zh = `等${zhJoin(n.zh)}${board ? ` · ${pillName(board).zh}` : ''}`;
+    en = `Wait for the ${n.en}${board ? ` · ${pillName(board).en}` : ''}`;
+  } else if (cur.via === 'line') {
+    zh = `坐到 ${to.zh}`;
+    en = `Ride to ${to.en}`;
   } else {
     zh = `下一站 ${to.zh}`;
     en = `Next: ${to.en}`;
