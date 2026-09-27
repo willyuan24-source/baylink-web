@@ -56,8 +56,9 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   before the placement pass 54 of 66 props stood in a building or a roadway; after it **0 / 66**. The placed positions
   are the file's `props` (stop id → [x, z]); the stops' own x, z stay as pushed earlier because lane C's `TOUR_GEO` pins
   them (see Requests). Props over 8 u from their stop point: Montgomery kiosk 32.6 u (downtown has no free sidewalk
-  closer), Church kiosk 20.3 u, Castro 8.9 u, Duboce & Church 11.7 u, Judah & Sunset 11.6 u, Ocean Ave 12.5 u and four
-  more. Portal hoods touch the nearest building by ≤ 0.9 u (West
+  closer), Church kiosk 20.3 u, Civic Center kiosk 10.5 u, Castro 8.9 u, Duboce & Church 11.7 u, Judah & Sunset 11.6 u,
+  Ocean Ave 12.5 u and four more. Street furniture (27,347 chunk trees / lamps / benches) is avoided too: only the
+  Montgomery kiosk has two tree trunks 2.1 u from its centre (just outside its canopy). Portal hoods touch the nearest building by ≤ 0.9 u (West
   Portal: OSM's own portal building over the mouth; Sunset west: one Cole Valley house, 0.46 u).
 - **Times** (the systems' `rideSeconds`, the same numbers the boarding choices show): loop lap 913 s (15.2 min: 738 s
   driving + dwells); Ferry → Palace 107 s; Castro → Twin Peaks 86 s; N end to end 202 s; M end to end 208 s; Embarcadero →
@@ -180,8 +181,8 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
   approach, the N surfacing at Duboce, the Sunset west portal, the M at 19th & Winston, a Market St kiosk in the city, a
   loop pole, a night bus), the phone perf / portal-cut checks at 4× CPU, the goal detector data (W4-T12), the streamer
   prefetch.
-- Props are placed against buildings and car roads, not yet against street furniture (the chunks' trees, lamps,
-  benches) — verify in the city; the portal hoods overlap one or two houses by ≤ 0.9 u.
+- Props are placed against the chunks' buildings, car roads and street furniture, but not yet seen in the city (the
+  in-game shots come with the wiring); the portal hoods overlap one or two houses by ≤ 0.9 u.
 - The loop's last 45 u in the hero west end blend from the north lanes into Jefferson St across the promenade line
   (st 356 → 441): check in the city.
 - Bus × F-line on Market St (Dolores → Van Ness, 137 u of shared street) has no box yet (the F-line's city path and the

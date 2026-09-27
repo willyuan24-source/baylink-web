@@ -17,6 +17,8 @@ interface Seg { ax: number; az: number; bx: number; bz: number; half: number; cl
 export class Clearance {
   private rings: Ring[] = [];
   private segs: Seg[] = [];
+  /** street furniture of the chunks (trees, lamps, benches, racks, stop signs), x, z pairs */
+  private furn: number[] = [];
   private loaded = new Set<string>();
   private readonly dir: string;
 
@@ -51,6 +53,7 @@ export class Clearance {
         const a = B.vStart[i], b = i + 1 < B.count ? B.vStart[i + 1] : B.xz.length / 2;
         this.addRing(Array.from(B.xz.subarray(a * 2, b * 2)));
       }
+      for (let i = 0; i < c.props.count; i++) this.furn.push(c.props.xz[i * 2], c.props.xz[i * 2 + 1]);
       const R = c.roads;
       for (let i = 0; i < R.count; i++) {
         const cls = ROAD_CLASSES[R.cls[i]];
@@ -74,6 +77,18 @@ export class Clearance {
         d = Math.min(d, segDist(x, z, xi, zi, xj, zj));
       }
       best = Math.min(best, inside ? -d : d);
+    }
+    return best;
+  }
+
+  /** Distance from (x, z) to the nearest piece of street furniture (a tree trunk, a lamp, a bench …), up to `max`. */
+  furniture(x: number, z: number, max = 8): number {
+    let best = max;
+    const f = this.furn;
+    for (let i = 0; i < f.length; i += 2) {
+      const dx = f[i] - x, dz = f[i + 1] - z;
+      if (dx > max || dx < -max || dz > max || dz < -max) continue;
+      best = Math.min(best, Math.hypot(dx, dz));
     }
     return best;
   }
@@ -119,7 +134,7 @@ export function placePole(c: Clearance, at: (s: number) => { x: number; z: numbe
     const nx = -Math.cos(p.heading) * side, nz = Math.sin(p.heading) * side;
     for (let off = minOff; off <= 7; off += 0.2) {
       const x = p.x + nx * off, z = p.z + nz * off;
-      if (c.road(x, z).d >= r && c.building(x, z) >= r + 0.15) return { x, z, shift };
+      if (c.road(x, z).d >= r && c.building(x, z) >= r + 0.15 && c.furniture(x, z) >= r + 0.35) return { x, z, shift };
     }
   }
   return null;
@@ -137,6 +152,8 @@ export function placeKiosk(c: Clearance, x0: number, z0: number, r = 1.45, maxR 
       const road = c.road(x, z);
       if (road.d < r + 0.1 || road.d > r + 4) continue;
       if (c.building(x, z) < r + 0.15) continue;
+      // tree trunks / lamps: their canopies and heads would cut through the kiosk's canopy
+      if (c.furniture(x, z) < r + 0.8) continue;
       const score = d + 0.6 * Math.max(0, road.d - r - 0.6);
       if (!best || score < best.score) best = { x, z, d, score };
     }
