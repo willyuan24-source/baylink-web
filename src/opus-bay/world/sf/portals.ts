@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Polygon } from '../../core/types';
-import { PORTAL_NAMES, type PortalId } from '../../data/sf/stationNames';
+import { PORTAL_HOOD_SHIFT, PORTAL_NAMES, type PortalId } from '../../data/sf/stationNames';
 import { BOX, Batch, CYL, type Info, M } from '../builder';
 import type { TransitLine, TransitPortal } from './format';
 
@@ -47,7 +47,7 @@ const PORTAL_OF: Record<string, PortalId> = {
  * then sits in the Duboce Ave median, clear of Market St (the track dives from there: scripts/opus-sf/lib/metro.ts
  * `MOUTH_VISUAL_SHIFT`, the same numbers).
  */
-export const PORTAL_VISUAL_SHIFT: Readonly<Record<PortalId, number>> = { duboce: 8, 'sunset-east': 0, 'sunset-west': 0, 'west-portal': 0 };
+export const PORTAL_VISUAL_SHIFT: Readonly<Record<PortalId, number>> = PORTAL_HOOD_SHIFT;
 
 /** The point / heading / height at an arc of a path (clamped). */
 function pathArc(l: Pick<TransitLine, 'path'>) {

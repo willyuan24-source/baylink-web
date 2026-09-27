@@ -410,8 +410,105 @@ test('Metro boarding: the next stop each way, termini, ★ stops, ≤ 6 rides on
   const winston = rides.find(x => x.to === 'muni-19th-winston')!;
   assert.ok(winston.seconds! > 30 && winston.seconds! < 120, `Castro → Winston ${winston.seconds!.toFixed(0)} s`);
   const ug = choices.lineRideLabel(M, { phase: 'riding', eta: 0, nextStop: 'muni-forest-hill', nextEta: 16, underground: true }, 'muni-19th-winston');
-  assert.equal(ug.title.zh, 'M 线 · 开往 19th & Winston · 石镇 · 下一站 森林山站');
+  assert.equal(ug.title.zh, 'M 线 · 开往 石镇 · 下一站 森林山站');
   assert.equal(ug.icon, 'metro');
   assert.ok(!ug.canHopOff);
   assert.equal(ug.hopOffNote!.zh, '隧道里不能下车');
+});
+
+// ---------------------------------------------------------------------------
+// Review fixes (W4-T-review)
+// ---------------------------------------------------------------------------
+
+test('review: opposite trains never meet side by side in a one-track portal hood (single-track stretch round every mouth), 1 simulated hour', () => {
+  const sys = new LightRailSystem([TN, TM]);
+  let bad: string[] = [];
+  let waited = 0;
+  run(sys, 3600, 1 / 20, () => {
+    const v = sys.violations();
+    if (v.length && !bad.length) bad = v.map(x => `${sys.time.toFixed(1)} s ${x}`);
+    sys.events.length = 0;
+    // a train standing still just short of a single-track stretch while an opposite one is in it
+    for (const t of sys.trains) {
+      if (t.mode !== 'run' || t.v > 0.05) continue;
+      for (const g of sys.gauntletsOf(t.track)) {
+        const toEdge = ((t.dir > 0 ? g.a : g.b) - t.s) * t.dir;
+        if (toEdge > 0 && toEdge < 2) waited += 1 / 20;
+      }
+    }
+  });
+  assert.deepEqual(bad, []);
+  assert.ok(waited > 0, 'trains did take turns at a mouth');
+  for (const t of sys.trains) assert.ok(t.still < 40, `${t.track.id}#${t.index} stuck ${t.still.toFixed(1)} s`);
+  // the stretch covers the no-passing zone and the Duboce hood that stands 8 u out of the tunnel
+  const duboce = sys.gauntletsOf(TN).find(g => g.a < N.tunnels![0].toAt && g.b > N.tunnels![0].toAt)!;
+  assert.ok(duboce.b >= N.tunnels![0].toAt + 8 + 20 + TRAIN_LENGTH, `Duboce stretch ends at ${duboce.b.toFixed(1)}`);
+});
+
+test('review: no hop-off while any part of the train is in a tunnel or under a hood (the Duboce hood 8 u outside the tunnel too)', () => {
+  const sys = new LightRailSystem([TN]);
+  const end = N.tunnels![0].toAt;
+  // under the Duboce hood (the rear still inside the visible mouth 8 u out) / clear of it
+  assert.equal(sys.canHopOffAt(TN, end + 8 + TRAIN_LENGTH / 2 - 1), false);
+  assert.equal(sys.canHopOffAt(TN, end + 8 + TRAIN_LENGTH / 2 + 0.5), true);
+  // a surface stop right outside a mouth (West Portal, Duboce Park) is a place to get off
+  const wp = TM.stops.find(s => s.id === 'muni-west-portal')!;
+  assert.equal(new LightRailSystem([TM]).canHopOffAt(TM, wp.at), true, 'West Portal platform');
+  // riding out of the Sunset Tunnel: status.canHopOff flips only once the whole train is out, and a request inside is ignored
+  let ready = true;
+  const s2 = new LightRailSystem([TN], { portalReady: () => ready });
+  s2.request({ line: 'n-judah', station: 'muni-duboce-park', dir: 1, to: 'muni-carl-stanyan' });
+  until(s2, () => s2.rideStatus()!.phase !== 'coming', 60);
+  s2.board();
+  until(s2, () => s2.riderCarOf('n-judah')!.s > N.tunnels![1].fromAt + 30, 60);
+  assert.equal(s2.rideStatus()!.canHopOff, false);
+  platform.requestPlatformStop('n-judah', 1);
+  run(s2, 1);
+  const tr = s2.riderCarOf('n-judah')!;
+  assert.ok(tr.v > 3, `no braking in the tunnel (v ${tr.v.toFixed(1)})`);
+  platform.releasePlatformStop('n-judah');
+  until(s2, () => tr.s > N.tunnels![1].toAt + TRAIN_LENGTH / 2 + 1, 60);
+  assert.equal(s2.rideStatus()!.canHopOff, true);
+  ready = false;
+});
+
+test('review: LightRailSystem is a LineRideSystem (cars[status.car].pose = the lead car); ride banner short names', () => {
+  const sys = new LightRailSystem([TN, TM]);
+  const st = sys.request({ line: 'm-ocean-view', station: 'muni-castro', dir: 1, to: 'muni-19th-holloway' })!;
+  const t = sys.trains[st.car];
+  assert.equal(sys.cars[st.car].pose, sys.leadCar(t));
+  t.dir = -t.dir as 1 | -1;
+  assert.equal(sys.cars[st.car].pose, sys.leadCar(t), 'follows a reversal');
+  const label = choices.lineRideLabel(N, { phase: 'riding', eta: 0, nextStop: 'muni-carl-hillway', nextEta: 20, underground: false }, 'muni-judah-la-playa');
+  assert.equal(label.title.zh, 'N 线 · 开往 海洋海滩 · 下一站 Carl & Hillway · UCSF');
+  assert.deepEqual([label.lineTo.zh, label.dest!.zh, label.lineTo.en, label.dest!.en], ['N 线 · 开往', '海洋海滩', 'N Judah · to', 'Ocean Beach']);
+  assert.equal(choices.lineRideLabel(M, { phase: 'coming', eta: 9.2, nextStop: null, nextEta: 0 }, 'muni-san-jose-geneva').waiting.zh, '等 M 线进站…约 9 秒');
+  assert.equal(names.w4StationShort('muni-19th-holloway')!.zh, '州立大学');
+  assert.equal(names.w4StationShort('loop-wharf-hyde')!.zh, '渔人码头');
+  assert.equal(names.w4StationShort('muni-carl-cole')!.en, 'Carl & Cole');
+  // a portal-wait banner under the ground
+  const held = choices.lineRideLabel(M, { phase: 'riding', eta: 0, nextStop: 'muni-west-portal', nextEta: 9, underground: true, portalWait: true, canHopOff: false }, 'muni-19th-winston');
+  assert.equal(held.hopOffNote!.zh, '马上出隧道…');
+});
+
+test('review: the fleet publishes no platform pose for the rider\'s hidden train (no riding along under the street)', async () => {
+  (globalThis as unknown as Record<string, unknown>).window ??= globalThis;
+  const { LineFleet } = await import('../src/opus-bay/world/sf/lineFleet');
+  const fleet = new LineFleet({ loop: line('sf-loop') as TransitLine & { speeds?: [number, number, number][] }, metro: [N, M] }, { emitEvents: false });
+  const kiosk = M.stops.find(s => s.id === 'muni-castro')!;
+  fleet.rail.request({ line: 'm-ocean-view', station: 'muni-castro', dir: 1, to: 'muni-19th-winston' });
+  for (let k = 0; k < 400 && fleet.rail.rideStatus()!.phase === 'coming'; k++) fleet.update(0.1, kiosk, kiosk);
+  fleet.rail.board();
+  const p = platform.platforms.get('m-ocean-view')!;
+  let hiddenFor = 0, staleWhileHidden = 0;
+  for (let k = 0; k < 300; k++) {
+    fleet.update(0.1, kiosk, kiosk);
+    platform.agePlatforms(0.1);
+    const t = fleet.riderTrain()!;
+    hiddenFor = t.hidden ? hiddenFor + 1 : 0;
+    // three frames (0.3 s) after the last pose a platform is stale
+    if (hiddenFor > 3) { assert.ok(!p.live, 'the platform goes stale while the train is hidden'); staleWhileHidden++; }
+  }
+  assert.ok(staleWhileHidden > 20, `hidden and stale for ${staleWhileHidden} frames`);
+  fleet.dispose();
 });

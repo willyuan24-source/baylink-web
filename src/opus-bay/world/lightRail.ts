@@ -1,4 +1,6 @@
 import { platformStop } from '../actors/platform';
+import { PORTAL_HOOD_SHIFT, portalIdOf } from '../data/sf/stationNames';
+import type { LineRideSystem } from '../data/transit';
 import { type LineTrack, type TrackPoint, type TrackStop, buildLineTrack, limitAt, runSeconds, trackPoint, tunnelOf } from './lineTrack';
 import type { TransitLine, TransitPortal, TransitTunnel } from './sf/format';
 import type { CarPose, RideStatus } from './transitLine';
@@ -17,11 +19,16 @@ import type { CarPose, RideStatus } from './transitLine';
  *   the surface is ready there (`portalReady(portal)` = the streamer's whenReady, plan §3.3) or 8 s have passed; then it
  *   emerges (`portal-out` event: the host cuts the view to the LRV coming out).
  * - Two trains per line; same-direction trains keep a gap; opposite ones pass on the other track (a visual 1.25 u
- *   offset each to its right); one train at a time at a terminus.
+ *   offset each to its right); one train at a time at a terminus. The portal hoods are one track wide and nobody steps
+ *   aside within 20 u of a mouth, so the stretch round each mouth is single track (`GAUNTLET`): a train waits at its
+ *   edge while an opposite one is inside or has the right of way (the nearer one, or one that can no longer stop).
  * - Waiting-rider dispatch: if no train stops for the rider within 20 s, an unseen train (underground, or out of the
  *   camera's view and ≥ 22 u from the player) is moved upstream so it arrives within 15 s.
- * - A rider's hop-off request (actors/platform.ts `platformStop(line)`) brakes the train on the surface; underground it
- *   is ignored (`status.underground`: the HUD greys 提前下车 out, "隧道里不能下车").
+ * - A rider's hop-off request (actors/platform.ts `platformStop(line)`) brakes the train on the surface; while any part
+ *   of the train is in a tunnel or under a portal hood it is ignored (`status.canHopOff` false: the HUD greys 提前下车
+ *   out, "隧道里不能下车", and the Space / B hop-off must not start either).
+ * - `cars[train index].pose` is the lead car, so the system is a data/transit.ts `LineRideSystem` (game/ride.ts reads
+ *   `cars[status.car].pose` while riding).
  */
 
 export const LRV = {
@@ -63,6 +70,20 @@ export const TRAIN_LENGTH = LRV.carLength * 2 + LRV.coupler;
 const HALF = TRAIN_LENGTH / 2;
 /** car centres from the train centre */
 const CAR_OFF = LRV.carLength / 2 + LRV.coupler / 2;
+/** no stepping aside to pass within this far of a mouth (u, train centre): the hoods are one track wide */
+export const NO_PASS = 20;
+/**
+ * Half-length of the single-track stretch round a mouth (u): the no-passing zone plus a train and a margin, so a train
+ * waiting at its edge has stepped aside before the opposite one comes out beside it.
+ */
+export const GAUNTLET = NO_PASS + TRAIN_LENGTH + 4;
+/** a train looks this far ahead for a single-track stretch it must wait at (more than the virtual subway's braking) */
+const GAUNTLET_LOOK = 90;
+
+/** A single-track stretch [a, b] (arc, train centres) round one mouth. */
+interface Gauntlet { a: number; b: number }
+/** How far the visible hood of a mouth stands outward of the tunnel end (u; the Duboce hood: 8). */
+const hoodShift = (p: TransitPortal | null) => { const id = portalIdOf(p); return id ? PORTAL_HOOD_SHIFT[id] : 0; };
 
 export type TrainMode = 'run' | 'dwell' | 'hold';
 
@@ -124,6 +145,8 @@ export interface RailRideStatus extends RideStatus {
   dir: 1 | -1;
   /** waiting inside a mouth for the surface to stream in */
   portalWait: boolean;
+  /** 提前下车 is possible now: no part of the rider's train is in a tunnel or under a portal hood */
+  canHopOff: boolean;
 }
 
 /** Where a train's centre stands at a stop: the stop's arc, kept a half train inside the track ends (termini). */
@@ -146,8 +169,10 @@ export function railTrack(line: TransitLine): LineTrack {
   return buildLineTrack(line, { cruise: LRV.cruise, tunnelCruise: LRV.tunnelCruise, tunnelAccel: LRV.tunnelAccel, aLat: LRV.aLat, accel: LRV.accel, decel: LRV.decel, minCurve: 2.5 });
 }
 
-export class LightRailSystem {
+export class LightRailSystem implements LineRideSystem {
   readonly trains: Train[] = [];
+  /** per train (the RideStatus `car` index): the lead car's pose, as game/ride.ts reads a line system's cars */
+  readonly cars: { readonly pose: CarPose }[] = [];
   readonly events: RailEvent[] = [];
   readonly tracks: LineTrack[];
   private opts: RailOptions;
@@ -155,6 +180,9 @@ export class LightRailSystem {
   private riderTrain = -1;
   private status: RailRideStatus | null = null;
   private retry = 0;
+  /** per track: the single-track stretches round its mouths, and the no-hop-off spans (tunnels + the hoods outside them) */
+  private gauntlets = new Map<LineTrack, Gauntlet[]>();
+  private covered = new Map<LineTrack, Gauntlet[]>();
   time = 0;
 
   constructor(tracks: LineTrack[], opts: RailOptions = {}) {
@@ -163,10 +191,20 @@ export class LightRailSystem {
     const per = opts.perLine ?? LRV.perLine;
     for (const track of tracks) {
       if (track.loop || !track.doubleEnded) throw new Error(`${track.id}: light rail is double-ended`);
+      const gs: Gauntlet[] = [], cov: Gauntlet[] = [];
+      for (const u of track.tunnels) {
+        const shiftA = hoodShift(u.portalA), shiftB = hoodShift(u.portalB);
+        if (u.portalA) gs.push({ a: u.fromAt - shiftA - GAUNTLET, b: u.fromAt + GAUNTLET });
+        if (u.portalB) gs.push({ a: u.toAt - GAUNTLET, b: u.toAt + shiftB + GAUNTLET });
+        cov.push({ a: u.fromAt - (u.portalA ? shiftA : 0), b: u.toAt + (u.portalB ? shiftB : 0) });
+      }
+      this.gauntlets.set(track, gs);
+      this.covered.set(track, cov);
       for (let k = 0; k < per; k++) {
-        // train A at the outer surface terminus heading in, train B two fifths along heading out
-        const f = k === 0 ? 1 : 0.4;
-        const dir: 1 | -1 = k === 0 ? -1 : 1;
+        // train A at the outer surface terminus heading in, train B two fifths along heading out (more trains: further
+        // along, alternating directions, never two on one spot)
+        const f = k === 0 ? 1 : Math.min(0.9, 0.4 + 0.25 * (k - 1));
+        const dir: 1 | -1 = k % 2 === 0 ? -1 : 1;
         const stop = this.nearestMajor(track, f * track.length);
         const t: Train = {
           index: this.trains.length, track, s: stopPos(track, stop), dir, v: 0, mode: 'dwell', timer: 1 + k * 2.3 + this.trains.length * 0.6, station: stop.id,
@@ -174,6 +212,7 @@ export class LightRailSystem {
           approached: stop.id, portalOk: NaN, portalHeld: 0, holdingPortal: false, still: 0, gongAt: -99, hidden: false, cars: [pose0(), pose0()],
         };
         this.trains.push(t);
+        this.cars.push({ get pose() { return t.dir > 0 ? t.cars[0] : t.cars[1]; } });
         this.updatePose(t);
       }
     }
@@ -277,7 +316,7 @@ export class LightRailSystem {
     best.dropoff = req.to;
     this.status = {
       line: tr.id, car: best.index, phase: 'coming', eta: bestEta, station: null, arrivals: 0, lastStation: null, odometer: 0, turning: false, braking: false,
-      nextStop: req.station, nextEta: bestEta, underground: false, tunnel: null, at: best.s, dir: req.dir, portalWait: false,
+      nextStop: req.station, nextEta: bestEta, underground: false, tunnel: null, at: best.s, dir: req.dir, portalWait: false, canHopOff: true,
     };
     if (this.standingAt(best, stop, req.dir)) this.markHere(best);
     return this.status;
@@ -343,6 +382,48 @@ export class LightRailSystem {
     return s - HALF > lo && s + HALF < hi;
   }
 
+  /** Can a rider step off a train standing at `s`: no part of it in a tunnel span or under a hood outside one? */
+  canHopOffAt(tr: LineTrack, s: number): boolean {
+    for (const c of this.covered.get(tr) ?? []) if (s + HALF > c.a && s - HALF < c.b) return false;
+    return true;
+  }
+
+  /** The single-track stretches round the mouths of a track (arc spans of train centres). */
+  gauntletsOf(tr: LineTrack): readonly Gauntlet[] { return this.gauntlets.get(tr) ?? []; }
+
+  /** Can train `t` no longer stop short of an edge `toEdge` u ahead? */
+  private committed(t: Train, toEdge: number): boolean {
+    const dec = t.hidden ? LRV.tunnelAccel : LRV.decel;
+    return t.mode === 'run' && toEdge <= (t.v * t.v) / (2 * dec) + 1;
+  }
+
+  /**
+   * Must train `t`, `toEdge` u short of single-track stretch `g`, wait? Yes while an opposite train is inside it, or runs
+   * toward it with the right of way: one that can no longer stop, else the nearer one (ties: the lower index).
+   */
+  private gauntletBusy(t: Train, g: Gauntlet, toEdge: number): boolean {
+    const mine = this.committed(t, toEdge);
+    for (const o of this.trains) {
+      if (o === t || o.track !== t.track || o.dir === t.dir) continue;
+      if (o.s > g.a && o.s < g.b) return true;
+      if (o.mode !== 'run') continue;
+      const oTo = ((o.dir > 0 ? g.a : g.b) - o.s) * o.dir;
+      if (oTo <= 0 || oTo > GAUNTLET_LOOK) continue;
+      if (this.committed(o, oTo)) { if (!mine || o.index < t.index) return true; continue; }
+      if (!mine && (oTo < toEdge || (oTo === toEdge && o.index < t.index))) return true;
+    }
+    return false;
+  }
+
+  /** A train placed at `s` heading `dir` would share a single-track stretch with an opposite train already in it. */
+  private gauntletTaken(tr: LineTrack, s: number, dir: 1 | -1, self: Train): boolean {
+    for (const g of this.gauntletsOf(tr)) {
+      if (s <= g.a || s >= g.b) continue;
+      for (const o of this.trains) if (o !== self && o.track === tr && o.dir !== dir && o.s > g.a && o.s < g.b) return true;
+    }
+    return false;
+  }
+
   /**
    * Bring an unseen train in so it stops at `stop` (direction `dir`) within 15 s: upstream by a ≈ 11 s run, never behind
    * the previous stopping stop; at a terminus pickup the train arrives at the terminus itself. Out of sight or
@@ -367,7 +448,9 @@ export class LightRailSystem {
     const sp = stopPos(tr, stop);
     const room = Math.abs(sp - prev);
     for (const t of cands) {
-      const clear = (s: number, d: 1 | -1) => this.trains.every(o => o === t || o.track !== tr || o.dir !== d || Math.abs(o.s - s) > TRAIN_LENGTH + LRV.gap);
+      // clear of a same-direction train, of an opposite one it could not step aside for, of a taken single-track stretch
+      const clear = (s: number, d: 1 | -1) => !this.gauntletTaken(tr, s, d, t) && this.trains.every(o => o === t || o.track !== tr
+        || (o.dir === d ? Math.abs(o.s - s) > TRAIN_LENGTH + LRV.gap : Math.abs(o.s - s) > TRAIN_LENGTH * 3 || (o.hidden && this.isHidden(tr, s))));
       if (room < 12) {
         // a terminus pickup: the train arrives there and dwells, already facing the way out
         if (!unseen(sp) || !clear(sp, dir)) continue;
@@ -445,15 +528,23 @@ export class LightRailSystem {
       // one train at a time at a terminus: wait short of it while the other stands there
       if (Math.abs(o.s - end) < 1 && a > 0.01) d = Math.min(d, a - TRAIN_LENGTH - LRV.gap);
     }
+    // single track round the mouths: wait at the edge while an opposite train holds the stretch or has the right of way
+    for (const g of this.gauntletsOf(tr)) {
+      if (t.s > g.a && t.s < g.b) continue;
+      const toEdge = ((t.dir > 0 ? g.a : g.b) - t.s) * t.dir;
+      if (toEdge <= 0 || toEdge > GAUNTLET_LOOK) continue;
+      if (this.gauntletBusy(t, g, toEdge)) d = Math.min(d, toEdge - 0.5);
+    }
     // the rider's train waits inside a mouth for the surface (portal hand-over)
     t.holdingPortal = false;
     if (t.rider && this.opts.portalReady) {
       const tun = tunnelOf(tr, t.s);
-      const mouth = tun ? (t.dir > 0 ? tun.portalB && { at: tun.toAt, p: tun.portalB } : tun.portalA && { at: tun.fromAt, p: tun.portalA }) : null;
-      if (mouth && mouth.at !== t.portalOk) {
-        const toMouth = (mouth.at - t.s) * t.dir;
+      const mouth = tun ? (t.dir > 0 ? tun.portalB : tun.portalA) : null;
+      const mouthAt = tun ? (t.dir > 0 ? tun.toAt : tun.fromAt) : 0;
+      if (mouth && mouthAt !== t.portalOk) {
+        const toMouth = (mouthAt - t.s) * t.dir;
         if (toMouth > 0 && toMouth < LRV.portalWait + 40) {
-          if (this.opts.portalReady(mouth.p) || t.portalHeld >= LRV.portalHold) t.portalOk = mouth.at;
+          if (this.opts.portalReady(mouth) || t.portalHeld >= LRV.portalHold) t.portalOk = mouthAt;
           else { d = Math.min(d, toMouth - LRV.portalWait); t.holdingPortal = true; }
         }
       }
@@ -475,8 +566,9 @@ export class LightRailSystem {
   private stepTrain(t: Train, dt: number) {
     const tr = t.track;
     const s0 = t.s;
-    const underground = t.hidden;
-    const stopReq = t.rider && !underground ? platformStop(tr.id) : null;
+    // no hop-off brake while any part of the train is in a tunnel or under a hood (the rider would step out underground);
+    // a brake begun outside goes on
+    const stopReq = t.rider && (t.braking || this.canHopOffAt(tr, t.s)) ? platformStop(tr.id) : null;
     if (stopReq && !t.braking) t.brakeRate = Math.max(LRV.decel, t.v / Math.max(0.05, stopReq.within - stopReq.since));
     t.braking = !!stopReq;
     if (t.mode === 'dwell') {
@@ -522,13 +614,15 @@ export class LightRailSystem {
 
   /** The rider's train crossing a mouth: `portal-in` (the overlay starts), `portal-out` (the view cuts to the emerging LRV). */
   private portalEvents(t: Train, a: number, b: number) {
-    if (!t.rider) return;
+    if (!t.rider || a === b) return;
     for (const tun of t.track.tunnels) {
-      for (const [at, p, inward] of [[tun.fromAt, tun.portalA, t.dir > 0], [tun.toAt, tun.portalB, t.dir < 0]] as const) {
+      for (let end = 0; end < 2; end++) {
+        const p = end === 0 ? tun.portalA : tun.portalB;
         if (!p) continue;
+        const at = end === 0 ? tun.fromAt : tun.toAt, inward = end === 0 ? t.dir > 0 : t.dir < 0;
         // inward: the centre passes 8 u inside; outward: the centre passes the mouth
         const mark = inward ? at + (t.dir > 0 ? 8 : -8) : at;
-        if ((a - mark) * (b - mark) <= 0 && a !== b) this.events.push({ what: inward ? 'portal-in' : 'portal-out', train: t.index, line: t.track.id, portal: p });
+        if ((a - mark) * (b - mark) <= 0) this.events.push({ what: inward ? 'portal-in' : 'portal-out', train: t.index, line: t.track.id, portal: p });
       }
     }
   }
@@ -574,8 +668,10 @@ export class LightRailSystem {
   /** Passing: opposite trains of a line near each other step aside (each 1.25 u to its right, as on double track). */
   private stepLateral(t: Train, dt: number) {
     let want = 0;
-    // never beside the track within 20 u of a mouth (the hoods are one track wide)
-    const nearMouth = t.track.tunnels.some(u => (u.portalA && Math.abs(t.s - u.fromAt) < 20) || (u.portalB && Math.abs(t.s - u.toAt) < 20));
+    // never beside the track within NO_PASS u of a mouth (the hoods are one track wide; the GAUNTLET keeps opposite
+    // trains apart there)
+    let nearMouth = false;
+    for (const u of t.track.tunnels) if ((u.portalA && Math.abs(t.s - u.fromAt) < NO_PASS) || (u.portalB && Math.abs(t.s - u.toAt) < NO_PASS)) nearMouth = true;
     if (!nearMouth) for (const o of this.trains) {
       if (o === t || o.track !== t.track || o.dir === t.dir) continue;
       if (Math.abs(o.s - t.s) < TRAIN_LENGTH * 3) { want = LRV.passOffset; break; }
@@ -596,8 +692,9 @@ export class LightRailSystem {
       const c = t.s + face * CAR_OFF;
       const f = trackPoint(tr, c + face * LRV.bogie, tmpA);
       const r = trackPoint(tr, c - face * LRV.bogie, tmpB);
-      const yAt = (p: TrackPoint) => (hid || tunnelOf(tr, c) ? p.y : g?.(p.x, p.z) ?? p.y);
-      const yf = yAt(f), yr = yAt(r);
+      // the ground under a car on the surface; in a tunnel (or its ramp) the published track height
+      const onTrack = hid || !g || tunnelOf(tr, c) !== null;
+      const yf = onTrack ? f.y : g(f.x, f.z) ?? f.y, yr = onTrack ? r.y : g(r.x, r.z) ?? r.y;
       const pose = t.cars[k];
       const base = Math.hypot(f.x - r.x, f.z - r.z) || 1;
       pose.heading = Math.atan2(f.x - r.x, f.z - r.z);
@@ -626,8 +723,11 @@ export class LightRailSystem {
     const tun = tunnelOf(t.track, t.s);
     st.tunnel = tun;
     st.underground = !!tun && this.isHidden(t.track, t.s);
+    st.canHopOff = this.canHopOffAt(t.track, t.s);
     if (st.phase === 'coming' && this.req) {
-      const stop = t.track.stops.find(s => s.id === this.req!.station)!;
+      const req = this.req;
+      let stop = t.track.stops[0];
+      for (const s of t.track.stops) if (s.id === req.station) stop = s;
       st.eta = this.eta(t, stopPos(t.track, stop), this.req.dir);
       st.nextStop = stop.id; st.nextEta = st.eta;
     } else {
@@ -637,14 +737,19 @@ export class LightRailSystem {
     }
   }
 
-  /** Test helper: same-line trains overlapping on the same direction's track, or two at one terminus. */
+  /**
+   * Test helper: same-line trains overlapping on the same direction's track, two at one terminus, or opposite trains
+   * side by side without having stepped aside (both visible or one of them: e.g. meeting in a one-track portal hood).
+   */
   violations(): string[] {
     const out: string[] = [];
     for (let i = 0; i < this.trains.length; i++) for (let j = i + 1; j < this.trains.length; j++) {
       const a = this.trains[i], b = this.trains[j];
       if (a.track !== b.track) continue;
       const d = Math.abs(a.s - b.s);
-      if ((a.dir === b.dir && d < TRAIN_LENGTH - 0.1) || (atEnd(a.track, a.s) && atEnd(b.track, b.s) && d < TRAIN_LENGTH - 0.1)) out.push(`${a.track.id}#${a.index} ${a.s.toFixed(1)}/${a.dir} vs #${b.index} ${b.s.toFixed(1)}/${b.dir}`);
+      const tag = `${a.track.id}#${a.index} ${a.s.toFixed(1)}/${a.dir} vs #${b.index} ${b.s.toFixed(1)}/${b.dir}`;
+      if ((a.dir === b.dir && d < TRAIN_LENGTH - 0.1) || (atEnd(a.track, a.s) && atEnd(b.track, b.s) && d < TRAIN_LENGTH - 0.1)) out.push(tag);
+      else if (a.dir !== b.dir && d < TRAIN_LENGTH - 0.1 && !(a.hidden && b.hidden) && a.lateral + b.lateral < LRV.width - 0.05) out.push(`${tag}: side by side at ${(a.lateral + b.lateral).toFixed(2)} u`);
     }
     return out;
   }

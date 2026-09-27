@@ -6,6 +6,7 @@ import { BUS, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../b
 import { type LineTrack, proximitySpans } from '../lineTrack';
 import { LightRailSystem, type RailEvent, type Train, railTrack } from '../lightRail';
 import { patchToyShader } from '../materials';
+import type { CarPose } from '../transitLine';
 import { registerWarmup } from '../warmup';
 import type { TransitLine, TransitPortal } from './format';
 import { LRV_PLATFORM, lrvCarFarGeometry, lrvCarGeometry } from './lrv';
@@ -30,7 +31,8 @@ import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBu
  *   geometries join the same meshes: 2 fewer calls for F's layer), the turntable aprons into `props`.
  * Platforms: `sf-loop` (the upper deck), `n-judah`, `m-ocean-view` (the lead car) — the rider's vehicle, else the one
  * nearest the player. Events: the rider's approach / arrive / depart / board as `transit` game events with the station
- * and its attraction (lane C narrates, lane G biases the camera); doors, horns and gongs within earshot.
+ * and its attraction (lane C narrates, lane G biases the camera); other vehicles' arrivals / departures, horns and gongs
+ * within earshot (doors have no event: arrive / depart carry the door chime, `bell` is the stop request's ding).
  */
 
 /** vehicles farther than this from the camera draw the far version (no shadow) */
@@ -177,37 +179,57 @@ export class LineFleet {
   /** Portal events of the rider's train (`portal-in`: start the subway overlay, `portal-out`: cut to the LRV emerging). */
   onPortal(fn: (e: RailEvent) => void): () => void { this.portalListeners.add(fn); return () => { this.portalListeners.delete(fn); }; }
 
+  /** Draw one vehicle (near / far / hidden by its camera distance). No allocation: it runs for every vehicle every frame. */
+  private show(slot: VehicleSlot, pose: CarPose, hidden: boolean, cam: { x: number; z: number }) {
+    const d = Math.hypot(pose.x - cam.x, pose.z - cam.z);
+    const nearOn = !hidden && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
+    this.near.setVisibleAt(slot.near, nearOn);
+    this.far.setVisibleAt(slot.far, farOn);
+    if (!nearOn && !farOn) return;
+    tmpQ.setFromEuler(tmpE.set(-pose.pitch, pose.heading, pose.roll, 'YXZ'));
+    tmpM.compose(tmpP.set(pose.x, pose.y, pose.z), tmpQ, ONE);
+    if (nearOn) this.near.setMatrixAt(slot.near, tmpM);
+    else this.far.setMatrixAt(slot.far, tmpM);
+  }
+
   /** Step the systems and draw them for a camera at `cam` (xz), the player at `player`. */
   update(dt: number, cam: { x: number; z: number }, player: { x: number; z: number }) {
     this.bus.step(dt);
     this.rail.step(dt);
-    const put = (mesh: THREE.BatchedMesh, id: number, pose: { x: number; y: number; z: number; heading: number; pitch: number; roll: number }) => {
-      tmpQ.setFromEuler(tmpE.set(-pose.pitch, pose.heading, pose.roll, 'YXZ'));
-      mesh.setMatrixAt(id, tmpM.compose(tmpP.set(pose.x, pose.y, pose.z), tmpQ, ONE));
-    };
-    const show = (slot: VehicleSlot, pose: { x: number; y: number; z: number; heading: number; pitch: number; roll: number }, hidden: boolean) => {
-      const d = Math.hypot(pose.x - cam.x, pose.z - cam.z);
-      const nearOn = !hidden && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
-      this.near.setVisibleAt(slot.near, nearOn);
-      this.far.setVisibleAt(slot.far, farOn);
-      if (nearOn) put(this.near, slot.near, pose);
-      if (farOn) put(this.far, slot.far, pose);
-    };
-    this.bus.buses.forEach((b, i) => show(this.busSlots[i], b.pose, false));
-    this.rail.trains.forEach((t, i) => { show(this.carSlots[i][0], t.cars[0], t.hidden); show(this.carSlots[i][1], t.cars[1], t.hidden); });
+    const buses = this.bus.buses, trains = this.rail.trains;
+    for (let i = 0; i < buses.length; i++) this.show(this.busSlots[i], buses[i].pose, false, cam);
+    for (let i = 0; i < trains.length; i++) {
+      const t = trains[i];
+      this.show(this.carSlots[i][0], t.cars[0], t.hidden, cam);
+      this.show(this.carSlots[i][1], t.cars[1], t.hidden, cam);
+    }
     // props: hidden beyond 300 u (4 Hz, and at once after a jump of the camera: fast travel, a portal cut)
     if ((this.propT -= dt) <= 0 || Math.hypot(cam.x - this.propCam.x, cam.z - this.propCam.z) > 30) {
       this.propT = 0.25;
       this.propCam.x = cam.x; this.propCam.z = cam.z;
       for (const p of this.propSlots) this.staticMesh.setVisibleAt(p.id, Math.hypot(p.x - cam.x, p.z - cam.z) <= HIDE_BEYOND);
     }
-    // platforms: the rider's vehicle, else the one nearest the player
+    // platforms: the rider's vehicle, else the one nearest the player. A hidden train (the virtual subway) publishes
+    // nothing: the platform goes stale, so the rider is not carried along under the street (and nothing streams there);
+    // game/ride.ts keeps them at the boarding kiosk under the subway overlay (integration step 4).
     const busLine = this.bus.track.id;
-    const rb = this.bus.riderCarOf(busLine) ?? nearest(this.bus.buses, b => b.pose, player);
+    let rb = this.bus.riderCarOf(busLine);
+    if (!rb) {
+      let bd = Infinity;
+      for (const b of buses) { const d = Math.hypot(b.pose.x - player.x, b.pose.z - player.z); if (d < bd) { bd = d; rb = b; } }
+    }
     if (rb) setPlatformPose(busLine, rb.pose, dt);
     for (const tr of this.rail.tracks) {
-      const t = this.rail.riderCarOf(tr.id) ?? nearest(this.rail.trains.filter(q => q.track === tr && !q.hidden), q => this.rail.leadCar(q), player);
-      if (t) setPlatformPose(tr.id, this.rail.leadCar(t), dt);
+      let t = this.rail.riderCarOf(tr.id);
+      if (!t) {
+        let bd = Infinity;
+        for (const q of trains) {
+          if (q.track !== tr || q.hidden) continue;
+          const lead = this.rail.leadCar(q), d = Math.hypot(lead.x - player.x, lead.z - player.z);
+          if (d < bd) { bd = d; t = q; }
+        }
+      }
+      if (t && !t.hidden) setPlatformPose(tr.id, this.rail.leadCar(t), dt);
     }
     this.drain(player);
   }
@@ -230,7 +252,7 @@ export class LineFleet {
         case 'depart': if (mine) emit({ ...base, what: 'depart', station: e.station ?? undefined }); else if (d < HEAR) emit({ ...base, what: 'depart', strength: Math.max(0.2, 1 - d / HEAR) }); break;
         case 'board': emit({ ...base, what: 'board', station: e.station ?? undefined }); break;
         case 'horn': if (d < HEAR * 1.5) emit({ ...base, what: 'horn', strength: 0.9 }); break;
-        case 'door': if (mine || d < HEAR * 0.5) emit({ ...base, what: 'bell', strength: mine ? 0.7 : 0.4 }); break;
+        // doors: no event of their own (arrive / depart carry the door chime; a `bell` is the stop request's ding)
         default: break;
       }
     }
@@ -285,12 +307,6 @@ export class LineFleet {
   }
 }
 
-function nearest<T>(list: T[], pos: (t: T) => { x: number; z: number }, p: { x: number; z: number }): T | null {
-  let best: T | null = null, bd = Infinity;
-  for (const t of list) { const q = pos(t); const d = Math.hypot(q.x - p.x, q.z - p.z); if (d < bd) { bd = d; best = t; } }
-  return best;
-}
-
 /** Warm-up (plan: every new program registered): the three batched-mesh kinds exactly as the fleet builds them. */
 registerWarmup('w4-lines', () => {
   const geo = tourBusFarGeometry();
@@ -320,7 +336,8 @@ export function busInterlocks(bus: LineTrack, others: Pick<TransitLine, 'id' | '
       // underground stretches of a Metro line never conflict
       if ((o.tunnels ?? []).some(t => s.b0 >= t.fromAt && s.b1 <= t.toAt)) continue;
       const pad = BUS.length / 2;
-      out.push({ id: `${o.id}@${Math.round(s.a0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, s.b0 - 3, s.b1 + 3) });
+      const b0 = s.b0 - 3, b1 = s.b1 + 3;
+      out.push({ id: `${o.id}@${Math.round(s.a0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, b0, b1), other: { line: o.id, b0, b1 } });
     }
   }
   return out;

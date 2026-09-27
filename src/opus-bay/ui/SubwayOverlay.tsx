@@ -18,8 +18,9 @@ import './transit-ui.css';
 
 export interface SubwayOverlayProps {
   visible: boolean;
+  /** `name`: the short line name (W4_LINES[id].shortName: "N 线") */
   line: { short: string; name: Bilingual; color: string };
-  /** where the ride goes (the destination station) */
+  /** where the ride goes: the station's SHORT name (data/sf/stationNames.ts `w4StationShort`: "石镇", not "19th & Winston · 石镇") */
   destination: Bilingual;
   /** the tunnel span and its stations (TransitTunnel + the line's stops) */
   tunnel: { fromAt: number; toAt: number; name?: Bilingual; fact?: Bilingual; portalA?: Bilingual | null; portalB?: Bilingual | null };
@@ -55,7 +56,7 @@ export function SubwayOverlay(p: SubwayOverlayProps) {
   const style = { '--ob-line-color': p.line.color } as CSSProperties;
   const stoppedAt = p.stopped ? p.stations.find(s => s.id === p.stopped) : null;
   return (
-    <div ref={ref} className={`ob-subway ${p.visible ? 'is-on' : ''} ${p.moving ? 'is-moving' : ''}`} style={style} role="status" aria-live="polite" aria-hidden={!p.visible}>
+    <div ref={ref} className={`ob-subway ${p.visible ? 'is-on' : ''} ${p.moving ? 'is-moving' : ''}`} style={style} aria-hidden={!p.visible}>
       <div className="ob-subway-tunnel" aria-hidden>
         <i /><i /><i /><i /><i /><i />
       </div>
@@ -74,9 +75,10 @@ export function SubwayOverlay(p: SubwayOverlayProps) {
           <b className="ob-subway-disc">{p.line.short}</b>
           <span>{t(p.line.name)} · {t('开往', 'to')} {t(p.destination)}</span>
         </div>
+        {/* the live region announces the station only (the seconds tick every frame and stay out of it) */}
         {stoppedAt
-          ? <div className="ob-subway-next">{t({ zh: `${stoppedAt.name.zh}到了`, en: `${stoppedAt.name.en} — doors open` })}</div>
-          : p.next && <div className="ob-subway-next">{t('下一站', 'Next')} {t(p.next.name)} · {t(`约 ${Math.max(1, Math.round(p.next.eta))} 秒`, `~${Math.max(1, Math.round(p.next.eta))}s`)}</div>}
+          ? <div className="ob-subway-next" role="status">{t({ zh: `${stoppedAt.name.zh}到了`, en: `${stoppedAt.name.en} — doors open` })}</div>
+          : p.next && <div className="ob-subway-next" role="status">{t('下一站', 'Next')} {t(p.next.name)}<span aria-hidden> · {t(`约 ${Math.max(1, Math.round(p.next.eta))} 秒`, `~${Math.max(1, Math.round(p.next.eta))}s`)}</span></div>}
         {p.portalWait && <div className="ob-subway-note">{t('马上出隧道…', 'Coming out of the tunnel…')}</div>}
         {(p.tunnel.name || p.tunnel.fact) && (
           <div className="ob-subway-fact">
@@ -84,8 +86,8 @@ export function SubwayOverlay(p: SubwayOverlayProps) {
             {p.tunnel.fact && <span>{t(p.tunnel.fact)}</span>}
           </div>
         )}
-        {stoppedAt && p.onAlight
-          ? <button type="button" className="ob-subway-alight" onClick={p.onAlight}>{t('在这站下车', 'Get off here')}</button>
+        {stoppedAt
+          ? p.onAlight && <button type="button" className="ob-subway-alight" onClick={p.onAlight}>{t('在这站下车', 'Get off here')}</button>
           : <div className="ob-subway-note is-muted">{t('隧道里不能下车', 'No getting off inside the tunnel')}</div>}
       </div>
     </div>

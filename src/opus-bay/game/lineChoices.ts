@@ -1,5 +1,5 @@
 import type { Bilingual } from '../core/types';
-import { STOP_ATTRACTIONS, W4_LINES, type W4LineId } from '../data/sf/stationNames';
+import { STOP_ATTRACTIONS, W4_LINES, type W4LineId, w4StationShort } from '../data/sf/stationNames';
 
 /**
  * Wave 4 · lane T (plan §3.4), pure: what the boarding dialogue offers at a sightseeing-bus stop or a Muni Metro station,
@@ -41,10 +41,12 @@ export interface LineChoiceOptions {
 const star = (id: string) => (STOP_ATTRACTIONS[id]?.length ?? 0) > 0;
 const secs = (s: number) => Math.max(1, Math.round(s));
 const minutes = (s: number) => Math.max(1, Math.round(s / 60));
+/** "约 39 秒" under 90 s, else "约 2 分钟" (the boarding rows and the banner say it the same way) */
+const duration = (seconds: number): Bilingual => (seconds >= 90 ? { zh: `约 ${minutes(seconds)} 分钟`, en: `~${minutes(seconds)} min` } : { zh: `约 ${secs(seconds)} 秒`, en: `~${secs(seconds)}s` });
 
 function rideLabel(line: LineLite, to: LineStopLite, seconds: number, prefix?: Bilingual): Bilingual {
   const mark = star(to.id) ? '★ ' : '';
-  const t = seconds >= 90 ? { zh: `约 ${minutes(seconds)} 分钟`, en: `~${minutes(seconds)} min` } : { zh: `约 ${secs(seconds)} 秒`, en: `~${secs(seconds)}s` };
+  const t = duration(seconds);
   const lead = prefix ?? (line.kind === 'bus' ? { zh: '去', en: 'To' } : { zh: `${line.name.zh} · 去`, en: `${line.name.en} · to` });
   return { zh: `${lead.zh} ${mark}${to.name.zh}（${t.zh}）`, en: `${lead.en} ${mark}${to.name.en} (${t.en})` };
 }
@@ -103,32 +105,46 @@ export interface LineRideLabel {
   icon: 'bus' | 'metro';
   /** stage 'waiting' */
   waiting: Bilingual;
-  /** "观光环线 · 下一站 艺术宫 · 约 40 秒" / "N 线 · 开往 海洋海滩 · 下一站 Carl & Hillway · UCSF" */
+  /**
+   * The slots of today's RideBanner (game/transit.ts `RideLabel`: `lineTo` + <strong>`dest`</strong>), so `rideLabel()` can
+   * return this as is: "N 线 · 开往" + "海洋海滩"; the loop (hop on, hop off) leads with its next stop: "观光环线 · 下一站" + "艺术宫".
+   */
+  lineTo: Bilingual;
+  dest: Bilingual | null;
+  /** one line for a wider banner: "观光环线 · 下一站 艺术宫 · 约 39 秒" / "N 线 · 开往 海洋海滩 · 下一站 Carl & Hillway · UCSF" */
   title: Bilingual;
   next: Bilingual | null;
-  /** 提前下车 allowed (not underground) and the note when it is not */
+  /** 提前下车 allowed (no part of the train in a tunnel or under a hood) and the note when it is not */
   canHopOff: boolean;
   hopOffNote: Bilingual | null;
 }
 
-/** What the ride banner shows for a bus / Metro ride (status fields from BusRideStatus / RailRideStatus). */
-export function lineRideLabel(line: LineLite, s: { phase: string; eta: number; nextStop: string | null; nextEta: number; underground?: boolean; portalWait?: boolean }, destination: string): LineRideLabel {
+/**
+ * What the ride banner shows for a bus / Metro ride (status fields from BusRideStatus / RailRideStatus). Destinations use
+ * the stations' short names ("石镇", "海洋海滩": data/sf/stationNames.ts `w4StationShort`): the full names carry a
+ * " · gloss" that reads as another part of the "开往 … · 下一站 …" line on a phone.
+ */
+export function lineRideLabel(line: LineLite, s: { phase: string; eta: number; nextStop: string | null; nextEta: number; underground?: boolean; portalWait?: boolean; canHopOff?: boolean }, destination: string): LineRideLabel {
   const stopName = (id: string | null) => line.stops.find(q => q.id === id)?.name ?? null;
-  const dest = stopName(destination);
-  const next = stopName(s.nextStop);
+  const shortName = (id: string | null) => (id ? w4StationShort(id) ?? stopName(id) : null);
+  const dest = shortName(destination);
+  const next = stopName(s.nextStop), nextShort = shortName(s.nextStop);
   const bus = line.kind === 'bus';
-  const vehicle = bus ? { zh: '观光巴士', en: 'the tour bus' } : { zh: line.name.zh, en: line.name.en };
+  const lineName = W4_LINES[line.id as W4LineId]?.shortName ?? line.name;
   const eta = Math.max(1, Math.round(s.phase === 'coming' ? s.eta : s.nextEta));
-  const meta = W4_LINES[line.id as W4LineId];
+  const t = duration(eta);
   const title: Bilingual = bus
-    ? { zh: `${meta?.name.zh ?? line.name.zh}${next ? ` · 下一站 ${next.zh} · 约 ${eta} 秒` : ''}`, en: `${meta?.name.en ?? line.name.en}${next ? ` · next ${next.en} · ~${eta}s` : ''}` }
-    : { zh: `${line.name.zh} · 开往 ${dest?.zh ?? ''}${next ? ` · 下一站 ${next.zh}` : ''}`, en: `${line.name.en} · to ${dest?.en ?? ''}${next ? ` · next ${next.en}` : ''}` };
+    ? { zh: `${lineName.zh}${nextShort ? ` · 下一站 ${nextShort.zh} · ${t.zh}` : ''}`, en: `${lineName.en}${nextShort ? ` · next ${nextShort.en} · ${t.en}` : ''}` }
+    : { zh: `${lineName.zh} · 开往 ${dest?.zh ?? ''}${next ? ` · 下一站 ${next.zh}` : ''}`, en: `${lineName.en} · to ${dest?.en ?? ''}${next ? ` · next ${next.en}` : ''}` };
+  const canHopOff = s.canHopOff ?? !s.underground;
   return {
     icon: bus ? 'bus' : 'metro',
-    waiting: { zh: `等${vehicle.zh}进站…约 ${eta} 秒`, en: `Waiting for ${vehicle.en}… ~${eta}s` },
+    waiting: bus ? { zh: `等观光巴士进站…${t.zh}`, en: `Waiting for the tour bus… ${t.en}` } : { zh: `等 ${lineName.zh}进站…${t.zh}`, en: `Waiting for the ${lineName.en}… ${t.en}` },
+    lineTo: bus ? { zh: `${lineName.zh} · 下一站`, en: `${lineName.en} · next` } : { zh: `${lineName.zh} · 开往`, en: `${lineName.en} · to` },
+    dest: bus ? nextShort ?? dest : dest,
     title,
     next,
-    canHopOff: !s.underground,
-    hopOffNote: s.underground ? (s.portalWait ? { zh: '马上出隧道…', en: 'Coming out of the tunnel…' } : { zh: '隧道里不能下车', en: 'No getting off inside the tunnel' }) : null,
+    canHopOff,
+    hopOffNote: canHopOff ? null : s.portalWait ? { zh: '马上出隧道…', en: 'Coming out of the tunnel…' } : { zh: '隧道里不能下车', en: 'No getting off inside the tunnel' },
   };
 }

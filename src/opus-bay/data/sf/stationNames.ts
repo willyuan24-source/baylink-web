@@ -36,6 +36,8 @@ export interface W4LineMeta {
   id: W4LineId;
   kind: 'bus' | 'light-rail';
   name: Bilingual;
+  /** the short line name the ride banner / subway card lead with (VOICE.md: 观光环线, N 线 / M 线) */
+  shortName: Bilingual;
   /** map legend / line card: the whole route in a few words */
   route: Bilingual;
   /** disc / headsign / map letter (1–4 characters) */
@@ -50,20 +52,20 @@ export interface W4LineMeta {
 
 export const W4_LINES: Readonly<Record<W4LineId, W4LineMeta>> = {
   'sf-loop': {
-    id: 'sf-loop', kind: 'bus', name: { zh: '旧金山观光环线', en: 'SF Sightseeing Loop' },
+    id: 'sf-loop', kind: 'bus', name: { zh: '旧金山观光环线', en: 'SF Sightseeing Loop' }, shortName: { zh: '观光环线', en: 'Sightseeing Loop' },
     route: { zh: '观光巴士 · 16 站一圈 · 随上随下', en: 'Hop-on hop-off bus · 16 stops round the city' },
     short: '观光', color: '#e0563f', casing: '#f4e6c8', osmRelation: 0,
     // the loop is designed for the game on the car-legal OSM street graph (no single OSM relation)
     sourceUrl: 'https://www.openstreetmap.org/copyright',
   },
   'n-judah': {
-    id: 'n-judah', kind: 'light-rail', name: { zh: 'N 线', en: 'N Judah' },
+    id: 'n-judah', kind: 'light-rail', name: { zh: 'N 线', en: 'N Judah' }, shortName: { zh: 'N 线', en: 'N Judah' },
     route: { zh: 'N 线 · 市中心 → 海特区 → 金门公园南边 → 海洋海滩', en: 'N Judah · Downtown → Cole Valley → Inner Sunset → Ocean Beach' },
     short: 'N', color: '#2f6fb0', casing: '#e7eef7', osmRelation: 3435877,
     sourceUrl: 'https://www.openstreetmap.org/relation/3435877',
   },
   'm-ocean-view': {
-    id: 'm-ocean-view', kind: 'light-rail', name: { zh: 'M 线', en: 'M Ocean View' },
+    id: 'm-ocean-view', kind: 'light-rail', name: { zh: 'M 线', en: 'M Ocean View' }, shortName: { zh: 'M 线', en: 'M Ocean View' },
     route: { zh: 'M 线 · 市中心 → 卡斯特罗 → 西门 → 石镇 → 州立大学', en: 'M Ocean View · Downtown → Castro → West Portal → Stonestown → SF State' },
     short: 'M', color: '#2f8f5b', casing: '#e6f2ea', osmRelation: 3433314,
     sourceUrl: 'https://www.openstreetmap.org/relation/3433314',
@@ -262,6 +264,42 @@ export const PORTAL_NAMES: Readonly<Record<PortalId, Bilingual>> = {
   'sunset-west': { zh: '日落隧道西口', en: 'Sunset Tunnel west portal' },
   'west-portal': { zh: '西门隧道口', en: 'West Portal' },
 };
+
+/** The portal id of a published TransitPortal (by its English name), or null. */
+export function portalIdOf(p: { name?: Bilingual } | null | undefined): PortalId | null {
+  const en = p?.name?.en;
+  if (!en) return null;
+  for (const id of PORTAL_IDS) if (PORTAL_NAMES[id].en === en) return id;
+  return null;
+}
+
+/**
+ * The visible mouth (the portal hood, world/sf/portals.ts) stands this far outward of the OSM tunnel end (u): the Duboce
+ * hood sits in the Duboce Ave median, clear of Market St; the track already dives from there (scripts/opus-sf/lib/metro.ts
+ * uses the same numbers). Pure data here so the pure light-rail sim knows where the hood really begins.
+ */
+export const PORTAL_HOOD_SHIFT: Readonly<Record<PortalId, number>> = { duboce: 8, 'sunset-east': 0, 'sunset-west': 0, 'west-portal': 0 };
+
+// ---------------------------------------------------------------------------
+// Short station names (the ride banner, the subway card): the full names carry a " · gloss" that reads badly inside
+// a "开往 … · 下一站 …" line on a phone
+// ---------------------------------------------------------------------------
+
+/** Where the short form is not simply the name's first " · " part (the headsign / the attraction's own short name). */
+const SHORT_NAMES: Readonly<Record<string, Bilingual>> = {
+  'muni-19th-winston': { zh: '石镇', en: 'Stonestown' },
+  'muni-19th-holloway': { zh: '州立大学', en: 'SF State' },
+  'muni-judah-la-playa': { zh: '海洋海滩', en: 'Ocean Beach' },
+  'muni-san-jose-geneva': { zh: 'Balboa Park', en: 'Balboa Park' },
+};
+
+/** A wave-4 station's short name: "渔人码头" for "渔人码头 · 海德街", "石镇" for "19th & Winston · 石镇" (null: unknown id). */
+export function w4StationShort(id: string): Bilingual | null {
+  const full = w4StationName(id);
+  if (!full) return null;
+  const first = (s: string) => s.split(' · ')[0];
+  return SHORT_NAMES[id] ?? { zh: first(full.zh), en: first(full.en) };
+}
 
 // ---------------------------------------------------------------------------
 // Lookups

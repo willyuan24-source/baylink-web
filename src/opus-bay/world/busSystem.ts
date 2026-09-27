@@ -1,4 +1,5 @@
 import { platformStop } from '../actors/platform';
+import type { LineRideSystem } from '../data/transit';
 import { type LineTrack, type TrackPoint, type TrackStop, arcAhead, buildLineTrack, limitAt, normArc, runSeconds, trackPoint } from './lineTrack';
 import type { TransitLine } from './sf/format';
 import type { CarPose, RideStatus } from './transitLine';
@@ -97,6 +98,11 @@ export interface InterlockBox {
   a1: number;
   /** another vehicle is inside its part of the box right now */
   blocked: () => boolean;
+  /**
+   * The other line's part of the box (its transit.json path arcs, padded): what the other system checks before it moves a
+   * vehicle in (integration: CableSystem.free() refuses a span overlapping [b0, b1] while `occupies(id)`).
+   */
+  other?: { line: string; b0: number; b1: number };
 }
 
 export interface BusOptions {
@@ -129,7 +135,7 @@ export function busTrack(line: TransitLine & { speeds?: [number, number, number]
   return buildLineTrack(line, { cruise: 11, aLat: BUS.aLat, accel: BUS.accel, decel: BUS.decel, minCurve: 3.5 });
 }
 
-export class BusSystem {
+export class BusSystem implements LineRideSystem {
   readonly buses: Bus[] = [];
   readonly events: BusEvent[] = [];
   readonly track: LineTrack;
@@ -165,6 +171,8 @@ export class BusSystem {
   }
 
   get line(): string { return this.track.id; }
+  /** data/transit.ts `LineRideSystem`: game/ride.ts reads `cars[status.car].pose` while riding (the car index = the bus). */
+  get cars(): readonly Bus[] { return this.buses; }
 
   stopIndex(id: string): number { return this.track.stops.findIndex(s => s.id === id); }
 
@@ -177,8 +185,10 @@ export class BusSystem {
     const tr = this.track, stop = tr.stops[idx];
     if (bus.station === stop.id && (bus.mode === 'dwell' || bus.mode === 'hold')) return 0;
     let t = bus.mode === 'dwell' || bus.mode === 'hold' ? Math.max(0, bus.timer) : 0;
-    t += runSeconds(tr, bus.s, stop.at);
-    const d = arcAhead(tr, bus.s, stop.at);
+    let d = arcAhead(tr, bus.s, stop.at);
+    // a bus pulling away from this very stop is back only after a whole lap
+    if (d < 0.05) d = tr.length;
+    t += d >= tr.length ? runSeconds(tr, bus.s, bus.s - 0.01) : runSeconds(tr, bus.s, stop.at);
     let between = 0;
     for (const st of tr.stops) {
       if (st === stop || st.id === bus.station) continue;
@@ -267,7 +277,8 @@ export class BusSystem {
   requestNextStop(): string | null {
     const bus = this.buses[this.riderBus];
     if (!bus || !bus.rider) return null;
-    const st = bus.mode === 'run' ? this.track.stops[bus.next] : this.track.stops[(bus.next + 1) % this.track.stops.length];
+    // running (or held between stops by a hop-off brake): the stop it heads for; dwelling: the one after it
+    const st = bus.mode === 'dwell' ? this.track.stops[(bus.next + 1) % this.track.stops.length] : this.track.stops[bus.next];
     bus.dropoff = st.id;
     bus.lapFrom = null;
     return st.id;
@@ -368,12 +379,13 @@ export class BusSystem {
       if (a > 0.01 && a < 200) d = Math.min(d, a - BUS.length - BUS.gap);
     }
     b.waitBox = -1;
-    this.boxes.forEach((box, i) => {
+    for (let i = 0; i < this.boxes.length; i++) {
+      const box = this.boxes[i];
+      if (this.overlapsBox(b, box)) continue;
       const a = arcAhead(tr, b.s + HALF, box.a0);
-      if (this.overlapsBox(b, box)) return;
-      if (a > 60 || a < -0.5) return;
+      if (a > 60) continue;
       if (box.blocked()) { b.waitBox = i; d = Math.min(d, a - 1); }
-    });
+    }
     const viewer = this.opts.viewer?.();
     if (viewer?.onFoot) {
       const ahead = this.onRoadAhead(b, viewer.x, viewer.z);
@@ -479,11 +491,10 @@ export class BusSystem {
   updatePose(b: Bus) {
     const tr = this.track, pose = b.pose;
     const g = this.opts.groundY;
-    const yAt = (p: TrackPoint) => g?.(p.x, p.z) ?? p.y;
     const f = trackPoint(tr, b.s + BUS.axle, tmpA);
     const r = trackPoint(tr, b.s - BUS.axle, tmpB);
     const c = trackPoint(tr, b.s, tmpC);
-    const yf = yAt(f), yr = yAt(r);
+    const yf = g ? g(f.x, f.z) ?? f.y : f.y, yr = g ? g(r.x, r.z) ?? r.y : r.y;
     const heading = Math.atan2(f.x - r.x, f.z - r.z);
     const base = Math.hypot(f.x - r.x, f.z - r.z) || 1;
     pose.heading = Number.isFinite(heading) && base > 0.5 ? heading : c.heading;

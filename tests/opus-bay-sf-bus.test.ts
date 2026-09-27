@@ -344,7 +344,58 @@ test('loop boarding: next 3 stops with honest seconds and ★, 坐一圈 ≈ 14 
   assert.equal(pre.length, 2);
   assert.match(pre[0].label.zh, /^上车 · 坐到 ★ 双峰（约 \d+ 秒）$/);
   const label = choices.lineRideLabel(LOOP, { phase: 'riding', eta: 0, nextStop: 'loop-palace-of-fine-arts', nextEta: 38.6, underground: false }, 'loop-golden-gate-bridge');
-  assert.equal(label.title.zh, '旧金山观光环线 · 下一站 艺术宫 · 约 39 秒');
+  assert.equal(label.title.zh, '观光环线 · 下一站 艺术宫 · 约 39 秒');
   assert.equal(label.icon, 'bus');
   assert.ok(label.canHopOff);
+});
+
+test('review: the banner uses short stop names and minutes past 90 s; the label fills today\'s RideBanner slots (lineTo + dest)', () => {
+  // "渔人码头 · 海德街" inside "下一站 … · 约 …" read as three parts: the short name, and minutes for a long leg
+  const far = choices.lineRideLabel(LOOP, { phase: 'riding', eta: 0, nextStop: 'loop-wharf-hyde', nextEta: 131, underground: false }, 'loop-golden-gate-bridge');
+  assert.equal(far.title.zh, '观光环线 · 下一站 渔人码头 · 约 2 分钟');
+  assert.equal(far.title.en, "Sightseeing Loop · next Fisherman's Wharf · ~2 min");
+  assert.deepEqual([far.lineTo.zh, far.dest?.zh], ['观光环线 · 下一站', '渔人码头']);
+  const wait = choices.lineRideLabel(LOOP, { phase: 'coming', eta: 11.6, nextStop: 'loop-castro', nextEta: 0 }, 'loop-twin-peaks');
+  assert.equal(wait.waiting.zh, '等观光巴士进站…约 12 秒');
+  // every one-line banner stays short: ≤ 28 characters for every stop as the next one
+  for (const s of LOOP.stops) {
+    const l = choices.lineRideLabel(LOOP, { phase: 'riding', eta: 0, nextStop: s.id, nextEta: 45, underground: false }, s.id);
+    assert.ok([...l.title.zh].length <= 28, `${l.title.zh} (${[...l.title.zh].length})`);
+  }
+});
+
+test('review: the systems are data/transit.ts LineRideSystems (game/ride.ts reads cars[status.car].pose while riding)', () => {
+  const sys = new BusSystem(TRACK);
+  const st = sys.request({ line: 'sf-loop', station: 'loop-castro', to: 'loop-twin-peaks' })!;
+  assert.ok(st && sys.cars[st.car] === sys.buses[st.car] && Number.isFinite(sys.cars[st.car].pose.x));
+});
+
+test('review: a bus pulling away from a stop is not "1.5 s away" from it; 下一站下车 while held by a hop-off brake keeps the stop ahead', () => {
+  const sys = new BusSystem(TRACK, { count: 1 });
+  const b = sys.buses[0];
+  const idx = sys.stopIndex('loop-castro');
+  b.s = TRACK.stops[idx].at; b.mode = 'run'; b.v = 0.5; b.station = 'loop-castro'; b.next = (idx + 1) % TRACK.stops.length;
+  assert.ok(sys.eta(b, idx) > 10 * 60, `a lap away: ${sys.eta(b, idx).toFixed(0)} s`);
+  // riding, braked to a hold between two stops: the next stop is the one the bus heads for
+  sys.request({ line: 'sf-loop', station: 'loop-castro', to: 'loop-chinatown' });
+  sys.board();
+  b.mode = 'hold'; b.next = sys.stopIndex('loop-twin-peaks');
+  assert.equal(sys.requestNextStop(), 'loop-twin-peaks');
+});
+
+test('review: interlock boxes carry the other line\'s span (for CableSystem.free()); doors emit no bell', async () => {
+  const T2 = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as TransitFile;
+  const boxes = busInterlocks(TRACK, T2.lines.filter(l => l.kind === 'cable-car'), () => false);
+  for (const b of boxes) assert.ok(b.other && b.other.line === b.id.split('@')[0] && b.other.b1 > b.other.b0, b.id);
+  // the player stands at a loop stop for 10 simulated minutes: buses come and go (arrive / depart), never a bus bell
+  const { onEvent } = await import('../src/opus-bay/core/events');
+  const fleet = new LineFleet({ loop: LOOP, metro: FILE.lines.filter(l => l.kind === 'light-rail') });
+  const seen: string[] = [];
+  const off = onEvent(e => { if (e.type === 'transit' && e.kind === 'bus') seen.push(e.what); });
+  const stop = LOOP.stops.find(s => s.id === 'loop-castro')!;
+  for (let k = 0; k < 600 * 10; k++) fleet.update(0.1, stop, stop);
+  off();
+  fleet.dispose();
+  assert.ok(seen.includes('arrive') && seen.includes('depart'), `bus events heard: ${[...new Set(seen)].join(' ')}`);
+  assert.ok(!seen.includes('bell'), 'no door bells');
 });
