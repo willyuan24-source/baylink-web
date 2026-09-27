@@ -219,19 +219,62 @@ test('placeCardPoi: a PoiDef for PoiCard (status first among the tips), and the 
   assert.ok(!/^import .* from '\.\/placeCards2?'/m.test(src), 'placeCardTypes.ts has no static import of the cards');
 });
 
-test('the famous curated places get full cards too (Alcatraz, Golden Gate Park, Presidio, Crissy Field, PIER 39)', () => {
-  assert.deepEqual(CURATED_CARDS.map(c => c.id), ['alcatraz', 'golden-gate-park', 'presidio', 'crissy-field', 'pier-39']);
-  const ids = new Set(ATTRACTIONS.map(a => a.id));
+test('the famous curated places get full cards too (Alcatraz, Golden Gate Park, Presidio, Crissy Field, PIER 39; part 2: Bay Bridge, Marina Green, Treasure Island)', async () => {
+  assert.deepEqual(CURATED_CARDS.map(c => c.id), ['alcatraz', 'golden-gate-park', 'presidio', 'crissy-field', 'pier-39', 'bay-bridge', 'marina-green', 'treasure-island']);
   const photos = new Set<string>(readJson('src/data/sf-landmark-photo-assets.json').map((p: { id: string }) => p.id));
+  const guides = readJson('public/baybay-guides.json');
+  const guideSlugs = new Set<string>((Array.isArray(guides) ? guides : guides.guides).map((g: { slug: string }) => g.slug));
+  const { unprojectCity } = await import('../src/opus-bay/core/geo');
   for (const c of CURATED_CARDS) {
     assert.deepEqual(placeCardProblems(c), []);
     assert.equal(c.depth, 'full');
-    assert.ok(ids.has(c.id), `${c.id} is a lane P Attraction id`);
+    const a = ATTRACTIONS.find(x => x.id === c.id);
+    assert.ok(a, `${c.id} is a lane P Attraction id`);
     assert.ok(!byId.has(c.id), `${c.id} does not collide with a new attraction`);
-    assert.equal(cardPoiId(c), `sf:${c.id}`);
+    // the card decorates the attraction's place row (its own id, or the row lane P names: bay-bridge-sf-anchorage)
+    assert.equal(c.place ?? c.id, a.placeId ?? a.id, `${c.id} decorates ${a.placeId}`);
+    assert.equal(cardPoiId(c), `sf:${a.placeId ?? a.id}`);
+    // it stands where lane P's attraction is (the part-2 cards: ≤ 0.001°, taken from it; the big parks: ≤ 0.005°)
+    const ll = unprojectCity({ x: a.x, z: a.z });
+    const tol = ['bay-bridge', 'marina-green', 'treasure-island'].includes(c.id) ? 0.001 : 0.005;
+    assert.ok(Math.abs(c.lat - ll.lat) < tol && Math.abs(c.lng - ll.lng) < tol, `${c.id} lat / lng at the attraction (${ll.lat}, ${ll.lng})`);
     if (c.photoKey) assert.ok(photos.has(c.photoKey));
+    if (c.guideSlug) assert.ok(guideSlugs.has(c.guideSlug), `${c.id} guide ${c.guideSlug}`);
+    if (c.hours && /\d/.test(c.hours.zh)) assert.match(c.hours.zh, /约|官网|确认|现场/, `${c.id} hours are hedged`);
+    if (c.cost && /\d/.test(c.cost.zh)) assert.match(c.cost.zh, /约|官网|现场|确认/, `${c.id} a price is hedged`);
   }
-  // the Alcatraz card sends people to the right pier
-  assert.match(byIdCurated('alcatraz').bark.zh, /33 号码头/);
+  // the Alcatraz card and the PIER 39 tip name the pier by its one name (game/tripText.ts OFF_WALK_POINTS)
+  const { OFF_WALK_POINTS } = await import('../src/opus-bay/game/tripText');
+  const pier = OFF_WALK_POINTS.alcatraz.name;
+  assert.ok(byIdCurated('alcatraz').bark.zh.includes(pier.zh), 'Alcatraz bark: 恶魔岛渡轮码头 · 33 号码头');
+  assert.ok(byIdCurated('alcatraz').bark.en.includes(pier.en));
+  assert.ok(byIdCurated('pier-39').tips.some(t => t.zh.includes(pier.zh) && t.en.includes(pier.en)), 'PIER 39: the Alcatraz boats leave from Pier 33');
+  // no card calls the Alcatraz pier anything else ("33 号码头" appears only inside the full name)
+  for (const c of [...CARDS, ...CURATED_CARDS]) for (const b of [c.bark, c.summary, ...c.tips]) {
+    if (b.zh.includes('33 号码头')) assert.ok(b.zh.includes(pier.zh) || /游戏里/.test(b.zh), `${c.id}: the Alcatraz pier by its full name (${b.zh})`);
+  }
+  // the islands say where the game shows them (their trips end at a telescope)
+  for (const id of ['alcatraz', 'treasure-island']) assert.ok(byIdCurated(id).tips.some(t => /望远镜/.test(t.zh) && /telescope/.test(t.en)), `${id}: the telescope tip`);
+  // the Bay Lights are back since March 2026 and the west span has no path (facts of the part-2 check)
+  assert.match(byIdCurated('bay-bridge').tips.map(t => t.zh).join(' '), /2026 年 3 月/);
 });
 const byIdCurated = (id: string) => CURATED_CARDS.find(c => c.id === id)!;
+
+test('part 2 · every T1 / T2 attraction you can walk to has an arrival line (no silent moments left)', async () => {
+  const { arrivalAnchors, defaultArrivalLine } = await import('../src/opus-bay/game/arrival');
+  await loadPlaceCards();
+  const silent = arrivalAnchors(ATTRACTIONS).filter(a => a.rank <= 2 && !defaultArrivalLine(a.attraction, a)).map(a => a.attraction);
+  assert.deepEqual(silent, []);
+  assert.deepEqual(defaultArrivalLine('bay-bridge')?.text, byIdCurated('bay-bridge').bark);
+  assert.deepEqual(defaultArrivalLine('marina-green')?.text, byIdCurated('marina-green').bark);
+});
+
+test('part 2 · 克莱门街 is Clement St in every lane-C text; no ASCII quotes inside Chinese', () => {
+  const texts = [...CARDS, ...CURATED_CARDS].flatMap(c => [c.name, c.zone, c.bark, c.summary, ...c.tips, c.hours, c.cost, c.status?.text].filter((b): b is { zh: string; en: string } => !!b));
+  for (const b of texts) {
+    if (/Clement/.test(b.en)) assert.ok(b.zh.includes('克莱门街'), `Clement St = 克莱门街 (${b.zh})`);
+    assert.ok(!b.zh.includes('企李街') || /Clay St/.test(b.en), `企李街 is Clay St (${b.zh})`);
+  }
+  const clement = byId.get('clement-street')!;
+  for (const b of [clement.name, clement.bark, clement.summary]) assert.ok(!/"/.test(b.zh), `Chinese quotes in the Clement card (${b.zh})`);
+});

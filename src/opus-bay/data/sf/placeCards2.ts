@@ -10,7 +10,8 @@ import { CARD_VERIFIED_AT, type PlaceCard } from './placeCardTypes';
  * name year) the number is left out.
  *
  * CURATED_CARDS (end of file): full cards for the famous curated places that had no card (plan W4-C5: Alcatraz,
- * Golden Gate Park, the Presidio, Crissy Field, PIER 39), keyed by lane P's Attraction ids (= their place ids).
+ * Golden Gate Park, the Presidio, Crissy Field, PIER 39) and, since part 2, lane P's three tier-2 places with no card
+ * anywhere (Bay Bridge, Marina Green, Treasure Island), keyed by lane P's Attraction ids.
  */
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
@@ -118,7 +119,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
   short({
     id: 'wave-organ',
     name: bi('海浪风琴', 'Wave Organ'), zone: bi('马里纳区 · 防波堤尽头', 'The Marina · jetty tip'),
-    bark: bi('把耳朵凑近管口，听海浪在"弹琴"！涨潮时最好听。', 'Put your ear to a pipe and hear the bay play! Best at high tide.'),
+    bark: bi('把耳朵凑近管口，听海浪在“弹琴”！涨潮时最好听。', 'Put your ear to a pipe and hear the bay play! Best at high tide.'),
     summary: bi('马里纳防波堤尽头的声音装置，1986 年由 Peter Richards 和 George Gonzales 建成：25 根管子嵌在旧墓园的石料里，海浪一涌就会发声。', 'A sound sculpture at the tip of the Marina jetty, built in 1986 by Peter Richards and George Gonzales: 25 pipes set in stone salvaged from an old cemetery sound as the waves move.'),
     tips: [bi('涨潮前后声音最明显，退潮时几乎听不到。', 'It sings around high tide and goes nearly silent at low tide.')],
     sourceUrl: 'https://en.wikipedia.org/wiki/Wave_Organ', sources: ['https://www.nbcbayarea.com/news/local/san-francisco-wave-organ/4096076/'],
@@ -205,15 +206,15 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     id: 'mclaren-park', place: 'osm-w28716696',
     name: bi('麦克拉伦公园', 'John McLaren Park'), zone: bi('城南 · 访谷旁', 'The south · by Visitacion Valley'),
     bark: bi('麦克拉伦公园有 313 英亩，那个蓝色大水塔从高速上就能看到。', 'McLaren Park covers 313 acres — you can spot its blue water tank from the freeway.'),
-    summary: bi('城南 313.7 英亩的野趣大公园：有以 Jerry Garcia 命名的露天剧场、2.7 英里的"哲人之路"步道，还有 1956 年的蓝色"大水塔"。', 'A big wild southern park of 313.7 acres with the Jerry Garcia Amphitheater, the 2.7-mile Philosopher\'s Way and the blue "La Grande" water tank of 1956.'),
+    summary: bi('城南 313.7 英亩的野趣大公园：有以 Jerry Garcia 命名的露天剧场、2.7 英里的“哲人之路”步道，还有 1956 年的蓝色“大水塔”。', 'A big wild southern park of 313.7 acres with the Jerry Garcia Amphitheater, the 2.7-mile Philosopher\'s Way and the blue "La Grande" water tank of 1956.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/John_McLaren_Park', sources: ['https://www.openstreetmap.org/way/28716696'],
     lat: 37.7181, lng: -122.4192,
   }),
   short({
     id: 'mount-sutro-open-space', place: 'osm-n12056865382',
     name: bi('苏特罗山森林保护区', 'Mount Sutro Open Space Reserve'), zone: bi('内日落区 · UCSF 后山', 'Inner Sunset · above UCSF'),
-    bark: bi('苏特罗山的桉树林会"喝雾"，雾一来树上就滴水！', 'Mount Sutro\'s eucalyptus drinks the fog — the trees drip when Karl rolls in!'),
-    summary: bi('UCSF 后山 61 英亩的桉树"云雾森林"，三到四成水分来自雾滴，对公众开放；步道能走到山顶的 Rotary Meadow 原生植物园。', 'A 61-acre eucalyptus "cloud forest" above UCSF that gets 30–40% of its water from fog drip, open to the public, with trails up to the native-plant Rotary Meadow at the summit.'),
+    bark: bi('苏特罗山的桉树林会“喝雾”，雾一来树上就滴水！', 'Mount Sutro\'s eucalyptus drinks the fog — the trees drip when Karl rolls in!'),
+    summary: bi('UCSF 后山 61 英亩的桉树“云雾森林”，三到四成水分来自雾滴，对公众开放；步道能走到山顶的 Rotary Meadow 原生植物园。', 'A 61-acre eucalyptus "cloud forest" above UCSF that gets 30–40% of its water from fog drip, open to the public, with trails up to the native-plant Rotary Meadow at the summit.'),
     tips: [bi('UCSF 负责管理，请走在步道上。', 'UCSF manages it: stay on the trails.')],
     sourceUrl: 'https://en.wikipedia.org/wiki/Mount_Sutro', sources: ['https://www.ucsf.edu/about/locations/mission-bay'],
     lat: 37.75811, lng: -122.45718,
@@ -230,7 +231,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     id: 'noe-valley-town-square',
     name: bi('诺伊谷镇广场', 'Noe Valley Town Square'), zone: bi('诺伊谷 · 24 街', 'Noe Valley · 24th St'),
     bark: bi('诺伊谷的小广场，周六上午有街坊办的农夫市集！', 'Noe Valley\'s little square has a neighbours\' farmers market on Saturday mornings!'),
-    summary: bi('24 街上的街坊"客厅"，2016 年 10 月建成开放；周六上午有 2003 年就开办的志愿者农夫市集。', 'The neighbourhood\'s living room on 24th Street, opened in October 2016; on Saturday mornings it hosts the volunteer-run farmers market that began in 2003.'),
+    summary: bi('24 街上的街坊“客厅”，2016 年 10 月建成开放；周六上午有 2003 年就开办的志愿者农夫市集。', 'The neighbourhood\'s living room on 24th Street, opened in October 2016; on Saturday mornings it hosts the volunteer-run farmers market that began in 2003.'),
     hours: bi('农夫市集约周六 8:00–13:00；出发前查官网确认。', 'The farmers market runs about Sat 8am–1pm; check before you go.'),
     sourceUrl: 'https://sfrecpark.org/1685/Noe-Valley-Town-Square', sources: ['https://www.noevalleyfarmersmarket.com/'],
     lat: 37.75138, lng: -122.42898,
@@ -274,7 +275,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     id: 'boudin-bakery',
     name: bi('波丁酸面包（渔人码头旗舰店）', 'Boudin Bakery (Fisherman\'s Wharf)'), zone: bi('渔人码头', 'Fisherman\'s Wharf'),
     bark: bi('酸面包从 1849 年一直做到现在，隔着玻璃能看面包师干活。', 'Sourdough since 1849 — watch the bakers through the glass.'),
-    summary: bi('1849 年起做酸面包的老面包坊，说自己一直用同一种"老面"。渔人码头的旗舰店里能隔着窗看面包师做面包。', 'Sourdough bakers since 1849 who say they still use the same mother dough; at the Wharf flagship you can watch the bakers through the windows.'),
+    summary: bi('1849 年起做酸面包的老面包坊，说自己一直用同一种“老面”。渔人码头的旗舰店里能隔着窗看面包师做面包。', 'Sourdough bakers since 1849 who say they still use the same mother dough; at the Wharf flagship you can watch the bakers through the windows.'),
     officialUrl: 'https://boudinbakery.com/our-story/',
     sourceUrl: 'https://boudinbakery.com/our-story/', sources: ['https://en.wikipedia.org/wiki/Boudin_Bakery'],
     lat: 37.80852, lng: -122.4149, guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
@@ -451,7 +452,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     id: 'portsmouth-square', place: 'osm-r14547583',
     name: bi('花园角', 'Portsmouth Square'), zone: bi('唐人街', 'Chinatown'),
     bark: bi('花园角正在整修，要到 2028 年才重新开放。', 'Portsmouth Square is being rebuilt — it reopens in 2028.'),
-    summary: bi('唐人街的"客厅"，也是旧金山的发源地：1846 年蒙哥马利上尉在这里升起美国国旗。2026 年 6 月起封闭改造。', 'Chinatown\'s "living room" and the city\'s birthplace plaza, where Captain Montgomery raised the US flag in 1846. Closed for its rebuild since June 2026.'),
+    summary: bi('唐人街的“客厅”，也是旧金山的发源地：1846 年蒙哥马利上尉在这里升起美国国旗。2026 年 6 月起封闭改造。', 'Chinatown\'s "living room" and the city\'s birthplace plaza, where Captain Montgomery raised the US flag in 1846. Closed for its rebuild since June 2026.'),
     status: { kind: 'closed', text: bi('2026 年 6 月起封闭改造，预计 2028 年年中重新开放。', 'Closed for renovation since June 2026; reopening expected mid-2028.'), until: '2028' },
     officialUrl: 'https://sfrecpark.org/1166/Portsmouth-Square-Improvement-Project',
     sourceUrl: 'https://sfrecpark.org/1166/Portsmouth-Square-Improvement-Project', sources: ['https://sfist.com/2026/06/10/major-overhaul-of-chinatowns-portsmouth-square-begins-for-first-time-in-decades/', 'https://sfpublicworks.org/portsmouthsquare'],
@@ -580,16 +581,18 @@ export const CURATED_CARDS: PlaceCard[] = [
   full({
     id: 'alcatraz',
     name: bi('恶魔岛', 'Alcatraz Island'), zone: bi('旧金山湾', 'San Francisco Bay'),
-    bark: bi('那座岛就是恶魔岛！上岛的船从 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33, not PIER 39.'),
-    summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，"所有部落的印第安人"在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
+    // the pier by its one name (game/tripText.ts OFF_WALK_POINTS; "Pier 33 Alcatraz Landing", alcatrazcitycruises.com)
+    bark: bi('那座岛就是恶魔岛！船从恶魔岛渡轮码头 · 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 Alcatraz Landing, not PIER 39.'),
+    summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，“所有部落的印第安人”在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
     hours: bi('按船票上的班次；国家公园管理局建议提前订票。', 'Follow the sailing on your ticket; the National Park Service advises booking ahead.'),
     cost: bi('不收入岛门票，但要买往返渡轮票（以官网为准）。', 'No entrance fee, but you need a round-trip ferry ticket (see the official site).'),
     tips: [
       bi('只绕岛不靠岸的观光船，不算登岛票。', 'A cruise that only circles the island is not a landing ticket.'),
       bi('岛上码头到监狱要爬一段坡，穿好走的鞋。', 'It\'s an uphill walk from the island dock to the prison: wear good shoes.'),
+      bi('游戏里上不了岛：BAYBAY 带你到 33 号码头的望远镜看它。', 'You can\'t land in the game: BAYBAY takes you to the Pier 33 telescope to look.'),
     ],
     officialUrl: 'https://www.nps.gov/alca/index.htm',
-    sourceUrl: 'https://www.nps.gov/alca/index.htm', sources: ['https://www.nps.gov/alca/planyourvisit/fees.htm', 'https://en.wikipedia.org/wiki/Alcatraz_Federal_Penitentiary'],
+    sourceUrl: 'https://www.nps.gov/alca/index.htm', sources: ['https://www.nps.gov/alca/planyourvisit/fees.htm', 'https://en.wikipedia.org/wiki/Alcatraz_Federal_Penitentiary', 'https://www.alcatrazcitycruises.com/plan-your-visit/directions/'],
     lat: 37.8267, lng: -122.423, photoKey: 'alcatraz', guideSlug: 'sf-alcatraz-booking-day-guide', plannerPlaceId: 'alcatraz',
   }),
   full({
@@ -631,13 +634,56 @@ export const CURATED_CARDS: PlaceCard[] = [
     id: 'pier-39',
     name: bi('39 号码头', 'PIER 39'), zone: bi('渔人码头', 'Fisherman\'s Wharf'),
     bark: bi('39 号码头！1989 年起，海狮就爱趴在这儿的浮台上。', 'PIER 39! Sea lions have hauled out on its floats since 1989.'),
-    summary: bi('1978 年开业的码头商场，免费进入，有双层旋转木马和海湾水族馆。1989 年起海狮开始趴在码头西边的浮台上，成了旧金山最出名的"居民"之一。', 'A pier of shops opened in 1978, free to walk in, with a two-storey carousel and the Aquarium of the Bay. Since 1989 sea lions have hauled out on the floats on its west side.'),
+    summary: bi('1978 年开业的码头商场，免费进入，有双层旋转木马和海湾水族馆。1989 年起海狮开始趴在码头西边的浮台上，成了旧金山最出名的“居民”之一。', 'A pier of shops opened in 1978, free to walk in, with a two-storey carousel and the Aquarium of the Bay. Since 1989 sea lions have hauled out on the floats on its west side.'),
     cost: bi('进码头免费，水族馆等项目另外收费。', 'Free to walk in; the aquarium and other attractions charge separately.'),
     tips: [
       bi('海狮不保证在家，看缘分。', 'The sea lions keep their own hours — no promises.'),
-      bi('去恶魔岛的船在 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33, not here.'),
+      bi('去恶魔岛的船在恶魔岛渡轮码头 · 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33 Alcatraz Landing, not here.'),
     ],
     sourceUrl: 'https://en.wikipedia.org/wiki/Pier_39', sources: ['https://www.aquariumofthebay.org/'],
     lat: 37.8087, lng: -122.4098, photoKey: 'pier', guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
+  }),
+  // --- part 2 (lane C's early review O3): the tier-2 places of lane P with no card anywhere; lat / lng = lane P's
+  // attraction point unprojected (core/geo.ts unprojectCity), facts checked on the web on 2026-09-27 ---
+  full({
+    id: 'bay-bridge', place: 'bay-bridge-sf-anchorage',
+    name: bi('海湾大桥', 'Bay Bridge'), zone: bi('内河码头 · 海湾边', 'The Embarcadero · bayfront'),
+    bark: bi('海湾大桥 1936 年通车，比金门大桥还早半年！', 'The Bay Bridge opened in 1936 — six months before the Golden Gate!'),
+    summary: bi('连接旧金山和奥克兰的双层大桥，不算引桥全长约 4.5 英里。西段是两座相连的悬索桥；东段 2013 年换成了新的自锚式悬索桥。', 'The double-deck bridge between San Francisco and Oakland, about 4.5 miles without the approaches. The west span is two linked suspension bridges; the east span was replaced in 2013 by a new self-anchored suspension span.'),
+    tips: [
+      bi('2026 年 3 月起，桥上的灯光艺术重新亮了，天黑后在内河码头看。', 'Since March 2026 the Bay Lights shine again: watch from the Embarcadero after dark.'),
+      bi('西段只走汽车，不能步行骑车；东段有步行骑行道，从奥克兰那头上。', 'The west span is cars only; the east span has a walking and bike path, from the Oakland side.'),
+    ],
+    sourceUrl: 'https://en.wikipedia.org/wiki/San_Francisco%E2%80%93Oakland_Bay_Bridge',
+    sources: ['https://en.wikipedia.org/wiki/The_Bay_Lights', 'https://www.sfchronicle.com/sf/article/bay-bridge-lights-return-22084492.php', 'https://mtc.ca.gov/news/san-francisco-oakland-bay-bridge-bike-path-opens-yerba-buena-island'],
+    lat: 37.78585, lng: -122.38897,
+  }),
+  full({
+    id: 'marina-green',
+    name: bi('码头绿地', 'Marina Green'), zone: bi('马里纳区 · 海湾边', 'The Marina · bayfront'),
+    bark: bi('码头绿地又宽又有风，是城里放风筝的好地方！', 'Marina Green: wide open and windy — the city\'s kite-flying lawn!'),
+    summary: bi('梅森堡和要塞公园之间的一长条海边草地。这里原是潮汐沼泽，1906 年地震后填进瓦砾，为 1915 年世博会平整；1920 年代还当过航空邮件的机场。', 'A long bayside lawn between Fort Mason and the Presidio. Once a tidal marsh, it was filled with 1906 earthquake rubble and graded for the 1915 world\'s fair; in the 1920s it was an air-mail airfield.'),
+    tips: [
+      bi('往西走到游艇会后面的防波堤尽头，就是海浪风琴，涨潮时最好听。', 'Walk west to the tip of the jetty behind the yacht club for the Wave Organ: best at high tide.'),
+      bi('码头港区改造预计 2027 年开工，到时停车场和岸边步道可能部分围起。', 'The marina rebuild is due to start in 2027; parking and parts of the shore path may be fenced then.'),
+    ],
+    sourceUrl: 'https://en.wikipedia.org/wiki/Marina_Green',
+    sources: ['https://hoodline.com/2016/05/great-explorations-marina-green/', 'https://en.wikipedia.org/wiki/Wave_Organ', 'https://sfrecpark.org/1160/Marina-Improvement-and-Remediation-Proje'],
+    lat: 37.8066, lng: -122.43913, guideSlug: MARINA_GUIDE,
+  }),
+  full({
+    id: 'treasure-island',
+    name: bi('金银岛', 'Treasure Island'), zone: bi('旧金山湾 · 海湾大桥中段', 'San Francisco Bay · mid Bay Bridge'),
+    bark: bi('那座平平的岛是金银岛，为 1939 年世博会填出来的！', 'That flat island is Treasure Island — built for the 1939 world\'s fair!'),
+    summary: bi('1936–37 年为 1939 年金门国际博览会填出来的人工岛，约 393 英亩；1941–1997 年是海军基地，现在在建新住宅区。一条堤道把它连到海湾大桥中间的小岛上。', 'A 393-acre island made in 1936–37 for the 1939 Golden Gate International Exposition, a naval station from 1941 to 1997 and now a neighbourhood being built. A causeway ties it to the island in the middle of the Bay Bridge.'),
+    hours: bi('渡轮大约 7:30–20:00，周末班次不同；出发前查官网确认。', 'The ferry runs about 7:30am–8pm, with a different weekend timetable; check before you go.'),
+    cost: bi('渡轮单程约 5 美元，以官网为准。', 'The ferry is about $5 each way; see the official site.'),
+    tips: [
+      bi('渡轮从渡轮大厦 B 口开，大约 8 分钟就到。', 'The ferry leaves from Gate B of the Ferry Building: about 8 minutes across.'),
+      bi('游戏里去不了岛上：在 14 号码头的望远镜看它。', 'You can\'t go there in the game: look at it through the Pier 14 telescope.'),
+    ],
+    sourceUrl: 'https://en.wikipedia.org/wiki/Treasure_Island,_San_Francisco',
+    sources: ['https://www.tisf.com/ferry'],
+    lat: 37.82377, lng: -122.37099,
   }),
 ];
