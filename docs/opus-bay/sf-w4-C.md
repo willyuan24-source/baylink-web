@@ -17,7 +17,8 @@ Lane C of wave 4 (plan `sf-w4-plan.md` §5.6, lead note `sf-w4-lead.md`). Worktr
 
 All new files (early phase: no existing file edited). Commits on `opus-bay`: `eb3651c` (W4-C5 cards), `9d9dab9` (W4-C3 /
 W4-C4 frozen lines + tour, **tag `w4-tourlines-frozen`**), `cce8d8c` (arrival, trips, recap), `abc1b29` (ids follow lane
-P), `c5cc0fb` (tour geometry = lane T's published lines), and this report's commit (Metro narration + report).
+P), `d63856f` (tour geometry = lane T's published lines), `c308d86` (curated cards, Metro narration), `e8dc50f` (this
+report), `5fec3c4` (T's re-bake of the N / M termini, caught by the pin test and re-synced).
 
 | file | what | API |
 |---|---|---|
@@ -38,7 +39,7 @@ P), `c5cc0fb` (tour geometry = lane T's published lines), and this report's comm
 ### Evidence
 
 - Checks on the pushed head: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint src/opus-bay tests/opus-bay-*` 0 ·
-  full suite **513 / 513** at `abc1b29` (the first full run under load had the two known wall-clock flakes, `sf-citymap`
+  full suite **547 / 547** at `5fec3c4` (an earlier run under load had the two known wall-clock flakes, `sf-citymap`
   "draw … fast" and `sf-nav` A*, both green alone). Lane C's 3 files: 32 tests, all green.
 - **Facts re-checked on the web today** (about 110 fetches / searches of the primary pages: sfsu.edu, stonestowngalleria.com,
   ccsf / CCSF FAQ, realestate.ucsf.edu, calacademy.org, gggp.org (admissions page), sfzoo.org, sfmoma.org,
