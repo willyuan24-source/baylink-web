@@ -204,8 +204,8 @@ Relayed messages during part b: none.
 ### Evidence
 
 - **Checks** on the pushed head `5f6924e` (after rebasing on the D2 / G1 / W4 commits): `tsc` 0 errors, `eslint
-  src/opus-bay tests/opus-bay-*` 0 problems, **608 / 608** opus-bay tests (hero regression and contracts green).
-  Whole-repo `npx eslint . --quiet` (the lead's new note): 0 errors in tracked code; the only 12 errors are in the
+  src/opus-bay tests/opus-bay-*` 0 problems, **608 / 608** opus-bay tests (hero regression and contracts green);
+  on `87465a0` (this report, rebased over eight wave-4 commits) tsc 0, eslint 0, **624 / 624**. Whole-repo `npx eslint . --quiet` (the lead's new note): 0 errors in tracked code; the only 12 errors are in the
   untracked dev-server cache `.vite-opus/deps/` (not in CI).
 - **All six favours, every step, in the app** (dev 5206, RTX, city mode, zh): one fresh session per favour at 1440×900
   and at 390×844 `--mobile --dpr 3` — hi → ask (choices) → yes (toast) → done (toast + BAYBAY "完成啦！回去告诉 X 吧～") →
