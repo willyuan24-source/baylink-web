@@ -230,3 +230,14 @@ test('assets: the SF house kit is registered; the H2b modules merge in empty', (
   for (const [id, clip] of Object.entries(SF_VOICE_CLIPS)) assert.ok(urls.includes(clip.m4a) && urls.includes(clip.ogg), id);
   assert.equal(game.get().worldMode, 'district');
 });
+
+test('landmark helpers (D2, world/sf/landmarks/context.ts): glide tall structures, world arrival anchors, plaza spots', async () => {
+  const ctx = await import('../src/opus-bay/world/sf/landmarks/context');
+  const tall = ctx.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : 0));
+  assert.ok(tall.length > 0 && tall.every(t => typeof t.id === 'string' && Number.isFinite(t.x + t.z + t.top) && t.r > 0));
+  assert.ok(tall.filter(t => t.id === 'golden-gate-bridge').length >= 2, 'the Golden Gate Bridge by its towers');
+  const a = ctx.sfLandmarkAnchor('golden-gate-bridge');
+  assert.ok(a && Number.isFinite(a.x + a.z + a.heading));
+  assert.equal(ctx.sfLandmarkAnchor('no-such-landmark'), null);
+  assert.ok(Array.isArray(ctx.landmarkPlazaSpots()));
+});

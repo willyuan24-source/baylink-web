@@ -5,15 +5,13 @@ import { runtime } from '../core/runtime';
 import { game, type MoveState } from '../core/store';
 import { canStand, heightAt, nearestWalkable } from '../core/terrain';
 import { DISTRICT } from '../data/district';
-import { sfLandmarkInfo } from '../data/sf/landmarks';
 import { seatSpots, type SeatSpot } from '../data/vehicles';
 import { cancelRide, hopOffRide, say } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { currentRide } from '../game/ride';
 import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
-import { SF_LANDMARKS, landmarkToWorld } from '../world/sf/landmarks';
-import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
+import { landmarkTallStructures } from '../world/sf/landmarks/context';
 import type { RidePose } from './anim';
 import type { PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
@@ -862,22 +860,12 @@ function tallStructures(): TallStructure[] {
 }
 
 /**
- * City mode (checkpoint, lane E's request to lane D): landmarks at least 10 u tall with their modelled height
- * (data/sf/landmarks height.u; overlooks like Twin Peaks are terrain), the Golden Gate Bridge by its two towers.
- * 'terrain' bases are read from core/terrain when the first glide starts (streamed ground, else the far DEM).
+ * City mode (checkpoint, lane E's request to lane D): landmarks at least 10 u tall with their modelled height, from lane
+ * D2's world/sf/landmarks/context.ts landmarkTallStructures (day 0: the list this function used to build here, moved
+ * verbatim; D2-10 refines radii and tops). 'terrain' bases are read from core/terrain when the first glide starts
+ * (streamed ground, else the far DEM).
  */
 function cityTallStructures(): TallStructure[] {
-  const out: TallStructure[] = [];
-  for (const l of SF_LANDMARKS) {
-    const h = sfLandmarkInfo(l.id)?.height;
-    if (!h || h.rule === 'overlook' || h.u < 10) continue;
-    if (l.id === 'golden-gate-bridge') {
-      for (const x of [-GGB.TOWER, GGB.TOWER]) { const p = landmarkToWorld(l, { x, z: 0 }); out.push({ x: p.x, z: p.z, r: 4, top: GGB.TOP + 2 }); }
-      continue;
-    }
-    const base = typeof l.base === 'number' ? l.base : heightAt(l.x, l.z);
-    out.push({ x: l.x, z: l.z, r: 4, top: base + h.u + 2 });
-  }
-  return out;
+  return landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : heightAt(l.x, l.z)));
 }
 export function setTallStructures(list: TallStructure[]) { tallCache = [...tallStructures(), ...list]; }
