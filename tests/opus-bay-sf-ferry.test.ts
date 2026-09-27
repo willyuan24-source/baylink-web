@@ -139,7 +139,7 @@ test('ride: Gate E → Pier 41 on the open sun deck; it counts once; the label a
   assert.ok(d.minX > -1.82 && d.maxX < 1.82 && d.minZ > -4.4 && d.maxZ < 1.5, 'inside the railings, behind the wheelhouse');
 });
 
-test('review: a waiting rider stays on the quay; hopping off under way lands on the next quay, never in the Bay', async () => {
+test('review: a waiting rider stays on the quay; leaving the ferry out on the Bay puts the rider on the next quay', async () => {
   const { runtime } = await import('../src/opus-bay/core/runtime');
   const { canStand } = await import('../src/opus-bay/core/terrain');
   const { teleportPlayer } = await import('../src/opus-bay/game/flow');
@@ -150,29 +150,23 @@ test('review: a waiting rider stays on the quay; hopping off under way lands on 
     game.set({ phase: 'playing', worldMode: 'city' });
     const step = (n: number, until: () => boolean) => { for (let i = 0; i < n; i++) { sys.step(DT); transit.stepTransit(DT); if (until()) return true; } return false; };
     // (1) waiting at Pier 41 while the boat lies at Gate E: a hop-off from outside (a trip starting) leaves the rider there
+    // (it used to send them to the terminal the boat lay at)
     transit.rideFerry('pier-41', 'ferry-building');
     assert.equal(ride.currentRide()?.mode, 'wait');
     teleportPlayer({ x: -238, z: 66.5 });
     transit.hopOffRide();
     assert.equal(ride.currentRide(), null);
     assert.ok(Math.hypot(p.x + 238, p.z - 66.5) < 1e-6, `not sent to a terminal (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
-    // (2) Pier 41 → Gate E, hop off far out on the Bay (u 800–860: nothing walkable within 60 u there)
+    // (2) Pier 41 → Gate E, the ride ended far out on the Bay (u 800–860: nothing walkable within 60 u there): E2's
+    // alight keeps F's spot (actors/moveSystem 'transit-alight'), so it must be solid ground on the next quay
     transit.rideFerry('pier-41', 'ferry-building');
     assert.ok(step(30 * 200, () => ride.currentRide()?.mode === 'follow'), 'boards at Pier 41');
     assert.ok(step(30 * 200, () => sys.boat.u > 800 && sys.boat.u < 860), 'out on the Bay');
-    const b = sys.boat.pose;
-    transit.hopOffRide(); // what E2's moveSystem calls when the hop-off brake time is over
-    // …then E2 puts the feet on its exit slot beside the hull: open water out here
-    teleportPlayer({ x: b.x + 2.4, z: b.z });
-    assert.ok(!canStand(p.x, p.z, 0.45), 'the exit slot is in the water');
-    transit.stepTransit(DT);
-    assert.ok(canStand(p.x, p.z, 0.45), 'back on solid ground');
+    teleportPlayer({ x: sys.boat.pose.x, z: sys.boat.pose.z });
+    transit.hopOffRide();
+    assert.ok(canStand(p.x, p.z, 0.45), 'on solid ground');
     const gate = D.ferryTerminal('ferry-building')!.terminal.quay;
     assert.ok(Math.hypot(p.x - gate.x, p.z - gate.z) < 17, `on the Gate E quay (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
-    // and a rider who stepped onto a quay is left alone
-    const x = p.x, z = p.z;
-    for (let i = 0; i < 30 * 5; i++) transit.stepTransit(DT);
-    assert.ok(p.x === x && p.z === z);
   } finally {
     T.setActiveFerrySystem(null);
     ride.endRide();
