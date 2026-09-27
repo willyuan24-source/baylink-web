@@ -18,7 +18,10 @@ import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
 import { MoveChip } from './MoveChip';
 
-/** Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action. */
+/**
+ * Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action.
+ * (The ride banner lives in the Overlay's top stack with the night-view banner, the goals card and toasts: M1.)
+ */
 export function Hud() {
   const narrow = useMedia('(max-width: 600px)');
   return (
@@ -27,7 +30,6 @@ export function Hud() {
       <Objective />
       {narrow ? <PhoneBar /> : <HudButtons />}
       <ContextAction />
-      <RideBanner />
       <MoveChip />
     </div>
   );
@@ -204,6 +206,8 @@ function ContextAction() {
   // "news" = BAYBAY is calling you over (跟我来, a nudge) or coming because you called — not ambient chatter
   const baybayNews = useFlow(s => (s.bubble?.who === BAYBAY_ID && s.bubble.tone === 'call') || s.callPending);
   const panelId = useGame(s => s.panel.id);
+  // (DR-3) lane E2's move chip sits where the prompt does (keyboard / pad, riding a bike, the car, a cable car): lift it
+  const chip = useGame(s => s.move.mode !== 'foot');
   const it = interactableById(focus);
   if (!it || dialogue || fishing) return null;
   // F7: never prompt for the sheet that is already open
@@ -223,7 +227,7 @@ function ContextAction() {
     );
   }
   return (
-    <button type="button" className={`ob-context tone-${tone}`} onClick={() => requestInteract('button')}>
+    <button type="button" className={`ob-context tone-${tone} ${chip ? 'is-lifted' : ''}`} onClick={() => requestInteract('button')}>
       <Keycap className="ob-context-key">{device === 'gamepad' ? 'A' : 'E'}</Keycap>
       <InteractIcon kind={it.action} ride={ride} size={18} />
       <span className="ob-context-verb">{label}</span>
@@ -271,7 +275,8 @@ function PhoneBar() {
   );
 }
 
-function RideBanner() {
+/** The ride banner (line, destination, 提前下车 / 直接到站): rendered in the Overlay's top stack. */
+export function RideBanner() {
   const { t } = useT();
   const ride = useFlow(s => s.ride);
   if (!ride) return null;

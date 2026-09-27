@@ -21,7 +21,7 @@ import { Dialogue } from './Dialogue';
 import { EventCard } from './EventCard';
 import { CinematicLayer, DebugOverlay, LeadChip, LiveRegion, SpeechBubble, TimeOffer, Toasts, Waypoint } from './Floating';
 import { CoachMark, TapHint } from './CoachMark';
-import { Hud } from './Hud';
+import { Hud, RideBanner } from './Hud';
 import { FishGame, GoalsCard, PhotoMode, PostcardReward, Recap } from './Moments';
 import { PoiCard } from './PoiCard';
 
@@ -61,6 +61,10 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
   const sheetWidth = !panel.kind || panel.kind === 'recap' ? 0 : panel.kind === 'map' || (panel.kind === 'week' && wideWeek) ? 572 : 452;
   const mobile = useIsMobile();
   useEffect(() => { setRightInset(mobile ? 0 : sheetWidth); }, [mobile, sheetWidth]);
+  const offer = useFlow(s => !!s.timeOffer);
+  const hudOn = phase === 'playing' && !photo && !cinematic && !welcoming;
+  // the goals card: never over a cinematic or a trip (DR-4), and it waits while the night-view banner is up (M1)
+  const goalsOn = phase === 'playing' && !photo && !cinematic && !offer;
   return (
     <div
       className={`ob-overlay ${reduced ? 'is-reduced' : ''} ${photo ? 'is-photo' : ''} ${panel.kind ? 'has-panel' : ''} ${sheetWidth ? 'has-sheet' : ''} ${panel.kind === 'recap' ? 'is-modal' : ''} ${cinematic ? 'is-cinema' : ''} ${talking ? 'is-talking' : ''}`}
@@ -72,8 +76,8 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
           <TapHint />
           <SpeechBubble />
           <CinematicLayer />
-          {phase === 'playing' && !photo && !cinematic && !welcoming && <Hud />}
-          {phase === 'playing' && !photo && <GoalsCard />}
+          {hudOn && <Hud />}
+          {goalsOn && !mobile && <GoalsCard />}
           {phase === 'playing' && !photo && <CoachMark />}
           {phase === 'playing' && !photo && !welcoming && <LeadChip />}
           {panel.kind === 'poi' && <PoiCard key={panel.id} id={panel.id} />}
@@ -92,8 +96,13 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
           {phase === 'playing' && !photo && <TouchControls />}
         </>
       )}
-      <Toasts />
-      {phase === 'playing' && <TimeOffer />}
+      {/* (M1 / DR-3) one column under the top row: night-view banner, ride banner, goals card (phones), toasts */}
+      <div className="ob-topstack">
+        {phase === 'playing' && <TimeOffer />}
+        {hudOn && <RideBanner />}
+        {goalsOn && mobile && <GoalsCard />}
+        <Toasts />
+      </div>
       <LiveRegion />
       {debug && <DebugOverlay />}
     </div>

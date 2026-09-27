@@ -1090,3 +1090,48 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-title-actions:has(.ob-title-resume) { flex-wrap: wrap; }
 .ob-title-resume { order: 3; flex: 1 0 100%; justify-content: center; background: rgba(255, 250, 241, .92); }
 .ob-title-resume svg { color: var(--ob-terra); }
+
+/* ---- lane G1 (wave 3): M1 / DR-3 / DR-4 · no HUD element over another (390×844, 375×667, 960×600, 1440×900) ---- */
+/* one column under the top row: the night-view banner, the ride banner, the goals card (phones) and toasts stack */
+.ob-topstack {
+  position: absolute; left: 50%; top: calc(70px + var(--ob-st)); transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column;
+  align-items: center; gap: 8px; width: min(760px, calc(100% - 24px)); pointer-events: none;
+}
+.ob-overlay .ob-topstack > .ob-time-offer, .ob-overlay .ob-topstack > .ob-ride, .ob-overlay .ob-topstack > .ob-toasts { position: relative; left: auto; top: auto; transform: none; z-index: auto; }
+.ob-overlay .ob-topstack > .ob-toasts { width: min(460px, 100%); }
+@media (min-width: 721px) {
+  .ob-overlay.has-sheet .ob-topstack { left: calc((100% - var(--ob-sheet-w, 452px)) / 2); width: min(760px, calc(100% - var(--ob-sheet-w, 452px) - 32px)); }
+}
+@media (max-width: 720px) {
+  .ob-topstack { top: calc(62px + var(--ob-st)); gap: 6px; }
+  .ob-overlay .ob-topstack > .ob-time-offer { max-width: 100%; }
+  .ob-overlay .ob-topstack > .ob-goals-card { position: relative; left: auto; top: auto; width: min(300px, 100%); z-index: auto; }
+  /* the ride banner used to run off both edges (line + destination + 提前下车 + 直接到站 on one line): it wraps */
+  .ob-overlay .ob-topstack > .ob-ride { max-width: 100%; flex-wrap: wrap; justify-content: center; row-gap: 4px; white-space: normal; border-radius: 22px; padding: 6px 8px 6px 14px; }
+  .ob-topstack > .ob-ride > span { flex: 1 1 55%; min-width: 0; line-height: 1.3; text-wrap: balance; }
+  .ob-topstack > .ob-ride > .ob-btn { flex: none; }
+  .ob-topstack > .ob-ride:has(.ob-btn + .ob-btn) > span { flex-basis: calc(100% - 30px); text-align: center; }
+  /* the two top pills share the row: 12 + area + 8 + objective + 12 ≤ the screen width, down to 360 px */
+  .ob-area { max-width: 42vw; }
+  .ob-objective { max-width: min(48vw, 250px); }
+  /* a bottom sheet covers the world: the waypoint and the bubble wait under it instead of peeking over its edge */
+  .ob-overlay.has-sheet .ob-waypoint, .ob-overlay.has-sheet .ob-bubble-anchor { visibility: hidden; }
+  /* … and only the newest toast shows above it (the strip over a 78 % sheet holds one) */
+  .ob-overlay.has-sheet .ob-toast:not(:last-child) { display: none; }
+}
+/* cinematics (arrival, telescope, a trip): the stack starts under the letterbox and the 跳过 button */
+.ob-overlay.is-cinema .ob-topstack { top: calc(9vh + 66px + var(--ob-st)); }
+@media (max-aspect-ratio: 4/5) { .ob-overlay.is-cinema .ob-topstack { top: calc(7vh + 58px + var(--ob-st)); } }
+/* the waypoint label steps aside for BAYBAY's bubble (a pin on its target keeps its place, game/hudLayout.ts) */
+.ob-waypoint-label, .ob-waypoint-dismiss { transition: opacity .2s; }
+.ob-waypoint[data-covered='1'] .ob-waypoint-label, .ob-waypoint[data-covered='1'] .ob-waypoint-dismiss { opacity: 0; pointer-events: none; }
+/* DR-3 · lane E2's move chip (bike, car, cable car: keyboard / pad) owns the bottom centre: the prompt goes above it */
+.ob-context.is-lifted { bottom: calc(84px + var(--ob-sb)); }
+.ob-hud.is-narrow .ob-context.is-lifted { bottom: calc(max(6px, var(--ob-sb)) + 124px); }
+/* DR-3 · narrow desktop windows: the round buttons stand in a column on the right, the bottom centre stays free */
+@media (min-width: 721px) and (max-width: 1180px) {
+  .ob-hud-buttons { flex-direction: column-reverse; gap: 8px; }
+  .ob-hud-buttons .ob-round { width: 50px; height: 50px; }
+  .ob-hud-buttons .ob-round.is-baybay { width: 54px; height: 54px; }
+  .ob-hud-buttons .ob-round-label { left: auto; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+}

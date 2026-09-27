@@ -17,6 +17,7 @@ import { flow } from './flowStore';
 import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
 import { consumeShutter } from './photo';
 import { domAnchors, overlayInsets } from './projector';
+import { type Box, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, scanHudBoxes } from './hudLayout';
 import { gameTimeLabel } from './travel';
 import { stepTravel } from './fastTravel';
 import { parseAt, readQa } from './qa';
@@ -56,6 +57,18 @@ function SceneSystems() {
 /** City mode: items outside the hero stand on streamed ground that arrives after mount; re-sample within this radius. */
 const REHEIGHT_R = 200;
 const cityMode = () => game.get().worldMode === 'city';
+
+/**
+ * The objective target, refreshed by the 10 Hz tick (P8: not searched every frame): `objectiveNow` for the beacon,
+ * `objective` for the waypoint (none in photo mode, cinematics or dialogue).
+ */
+let objectiveNow: ReturnType<typeof objectiveTarget> = null;
+let objective: ReturnType<typeof objectiveTarget> = null;
+function refreshObjective() {
+  const s = game.get();
+  objectiveNow = objectiveTarget();
+  objective = s.photoMode || flow.get().cinematic || s.dialogue.nodeId ? null : objectiveNow;
+}
 
 // ---------------------------------------------------------------------------
 // Click / hover proxies (one instanced mesh + one for BAYBAY; invisible material)
@@ -400,7 +413,7 @@ function Beacon() {
   useFrame(({ clock }, dt) => {
     const m = mesh.current;
     if (!m) return;
-    const found = game.get().photoMode ? null : objectiveTarget();
+    const found = game.get().photoMode ? null : objectiveNow; // (10 Hz, refreshed by the Ticker)
     const target = found?.soft ? null : found; // soft free-roam hints get no light column
     const far = target ? Math.hypot(target.x - runtime.player.x, target.z - runtime.player.z) > 7 : false;
     fade.current += ((far ? 1 : 0) - fade.current) * Math.min(1, dt * 4);
@@ -416,12 +429,22 @@ function Beacon() {
 // Ticker
 // ---------------------------------------------------------------------------
 
+/** DEV / QA (P8): what the DOM projection costs, read as `__opusBay.g1.projectCost` (ms summed over `frames`; `runs` = frames that re-projected). */
+const projectCost = { frames: 0, ms: 0, runs: 0, reset() { this.frames = 0; this.ms = 0; this.runs = 0; } };
+
 const projected = new THREE.Vector3();
 const lastWrites = new WeakMap<HTMLElement, string>();
 function writeTransform(el: HTMLElement, value: string) {
   if (lastWrites.get(el) === value) return;
   lastWrites.set(el, value);
   el.style.transform = value;
+}
+/** style / dataset writes only when the value changes (a write per frame dirties the style of the subtree) */
+function writeProp(el: HTMLElement, name: string, value: string) {
+  if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+}
+function writeData(el: HTMLElement, key: string, value: string) {
+  if (el.dataset[key] !== value) el.dataset[key] = value;
 }
 
 function Ticker() {
@@ -430,7 +453,7 @@ function Ticker() {
   const scene = useThree(s => s.scene);
   const clock = useRef({ tenHz: 0, frames: 0, fpsAt: 0, objects: 0, objectsAt: 0 });
 
-  useFrame((_, rawDt) => {
+  useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
     const now = performance.now();
     const c = clock.current;
@@ -451,9 +474,13 @@ function Ticker() {
     stepFrameSystems(dt, now);
 
     c.tenHz += dt;
-    if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); }
+    if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); refreshObjective(); }
 
-    project(camera, gl.domElement, now);
+    // bubbles / waypoint / tap hint (P8: R3F's size instead of a layout read, and only when something moved)
+    const t0 = performance.now();
+    const { width, height } = state.size;
+    if (projectionChanged(camera, width, height, now, gl.domElement)) { project(camera, gl.domElement, width, height, now); projectCost.runs++; }
+    projectCost.frames++; projectCost.ms += performance.now() - t0;
     consumeShutter(gl.domElement);
 
     if (domAnchors.debug) {
@@ -484,16 +511,52 @@ let bubbleBoxKey = -1;
 const bubbleBox = { w: 250, h: 48 };
 let labelHalf = 60;
 const focusProj = new THREE.Vector3();
-function project(camera: THREE.Camera, canvas: HTMLCanvasElement, now: number) {
-  const fullW = canvas.clientWidth, h = canvas.clientHeight;
+
+/**
+ * P8 · "anything to redo?": the projection only runs when the camera, the size, an anchor (BAYBAY, you, the target),
+ * the bubble or the fixed HUD boxes changed since the last run. Standing still with a still camera costs nothing.
+ */
+const SIG = 38;
+const sigNow = new Float64Array(SIG);
+const sigLast = new Float64Array(SIG).fill(NaN);
+function projectionChanged(camera: THREE.Camera, w: number, h: number, now: number, canvas: HTMLCanvasElement): boolean {
+  const s = sigNow;
+  const m = camera.matrixWorld.elements, pm = camera.projectionMatrix.elements;
+  for (let i = 0; i < 16; i++) s[i] = m[i];
+  s[16] = pm[0]; s[17] = pm[5]; s[18] = pm[8]; s[19] = pm[9];
+  s[20] = w; s[21] = h; s[22] = overlayInsets.right;
+  const g = runtime.guide, p = runtime.player;
+  s[23] = g.x; s[24] = g.y; s[25] = g.z; s[26] = p.x; s[27] = p.y; s[28] = p.z;
+  s[29] = objective ? objective.x : -1e9; s[30] = objective ? objective.z : -1e9; s[31] = objective?.soft ? 1 : 0;
+  s[32] = flow.get().bubble?.key ?? -1;
+  s[33] = domAnchors.bubble?.firstElementChild ? 1 : 0;
+  s[34] = domAnchors.tapHint?.dataset.show === '1' ? 1 : 0;
+  s[35] = domAnchors.alert?.dataset.show === '1' ? 1 : 0;
+  const needed = s[33] === 1 || !!objective;
+  scanHudBoxes(canvas, now, needed, w * 10000 + h);
+  s[36] = hudBoxesVersion();
+  const focus = game.get().focus;
+  s[37] = focus ? interactableById(focus)?.x ?? 1 : 0;
+  let changed = false;
+  for (let i = 0; i < SIG; i++) {
+    if (Math.abs(s[i] - sigLast[i]) > 1e-5 || Number.isNaN(sigLast[i])) { changed = true; break; }
+  }
+  if (changed) sigLast.set(s);
+  return changed;
+}
+
+function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number, h: number, now: number) {
   // an open side sheet covers the right edge: keep bubbles and the waypoint in the visible part
   const w = Math.max(240, fullW - overlayInsets.right);
   const mobile = fullW <= 720;
   // the top HUD row (place name, objective pill) ends here; nothing projected may slide under it
   const topRow = mobile ? 58 : 70;
+  // (M1 / DR-3) the fixed HUD the bubble and the waypoint keep out of (pills, top stack, bar, prompt, …)
+  const boxes = scanHudBoxes(canvas, now, true, fullW * 10000 + h);
+  let bubbleRect: Box | null = null;
   // speech bubble over BAYBAY (or an NPC)
   const bubbleEl = domAnchors.bubble;
-  if (bubbleEl) {
+  if (bubbleEl && bubbleEl.firstElementChild) {
     const who = flow.get().bubble?.who;
     let wx = runtime.guide.x, wy = runtime.guide.y + BAYBAY_HEAD_Y + 0.25, wz = runtime.guide.z;
     if (who && who !== BAYBAY_ID) { const it = interactableById(who); if (it) { wx = it.x; wz = it.z; wy = heightAt(it.x, it.z) + 2.4; } }
@@ -507,16 +570,16 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, now: number) {
     }
     const offscreen = projected.z > 1 || rawX < 40 || rawX > w - 40 || rawY < 60 || rawY > h - 20;
     // (w already excludes an open side sheet, so "under the sheet" counts as off-screen)
-    const docked = offscreen ? '1' : '0';
-    if (bubbleEl.dataset.docked !== docked) bubbleEl.dataset.docked = docked;
+    writeData(bubbleEl, 'docked', offscreen ? '1' : '0');
     const minY = topRow + 10 + bubbleBox.h + 10; // the bubble sits above its anchor point
+    const half = bubbleBox.w / 2 + 8; // keep the whole bubble on screen
+    let x: number, y: number;
     if (offscreen) {
       // BAYBAY is off-screen: dock the bubble next to the "ask BAYBAY" button (phones: under the top row).
-      const dockX = w - (overlayInsets.right ? 250 : 190);
-      writeTransform(bubbleEl, mobile ? `translate3d(${(w / 2).toFixed(0)}px, ${Math.max(minY, h * 0.2).toFixed(0)}px, 0)` : `translate3d(${dockX.toFixed(0)}px, ${(h - 104).toFixed(0)}px, 0)`);
+      x = mobile ? w / 2 : w - (overlayInsets.right ? 250 : 190);
+      y = mobile ? Math.max(minY, h * 0.2) : h - 104;
     } else {
-      const half = bubbleBox.w / 2 + 8; // keep the whole bubble on screen
-      let x = rawX;
+      x = rawX;
       // F7: a focus ring close under the bubble — lean the bubble away from it so it never covers the target
       const s = game.get();
       const it = who === BAYBAY_ID && s.focus && s.focus !== BAYBAY_ID ? interactableById(s.focus) : undefined;
@@ -526,9 +589,12 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, now: number) {
         if (Math.abs(fx - rawX) < half + 40 && fy > rawY - bubbleBox.h - 20 && fy < rawY + 160) x = fx < rawX ? Math.max(rawX, fx + half + 36) : Math.min(rawX, fx - half - 36);
       }
       x = Math.min(w - half, Math.max(half, x));
-      const y = Math.min(h - 60, Math.max(minY, rawY));
-      writeTransform(bubbleEl, `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`);
+      y = rawY;
     }
+    // (M1) never over the fixed HUD: below a top box, above a bottom one
+    const placed = placeBubble(x, y, bubbleBox.w, bubbleBox.h, boxes, h, minY, h - 60);
+    bubbleRect = { l: placed.x - bubbleBox.w / 2, r: placed.x + bubbleBox.w / 2, t: placed.y - 10 - bubbleBox.h, b: placed.y - 10 };
+    writeTransform(bubbleEl, `translate3d(${placed.x.toFixed(offscreen ? 0 : 1)}px, ${placed.y.toFixed(offscreen ? 0 : 1)}px, 0)`);
   }
   // touch onboarding: tap marker on the ground between the player and BAYBAY
   const tap = domAnchors.tapHint;
@@ -547,12 +613,10 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, now: number) {
   // objective waypoint (edge arrow when off-screen)
   const wp = domAnchors.waypoint;
   if (wp) {
-    const target = game.get().photoMode || flow.get().cinematic || game.get().dialogue.nodeId ? null : objectiveTarget();
+    const target = objective;
     const d = target ? Math.hypot(target.x - runtime.player.x, target.z - runtime.player.z) : 0;
-    if (!target || d < 6) { if (wp.dataset.show !== '0') wp.dataset.show = '0'; return; }
-    if (wp.dataset.show !== '1') wp.dataset.show = '1';
-    const soft = target.soft ? '1' : '0';
-    if (wp.dataset.soft !== soft) wp.dataset.soft = soft;
+    if (!target || d < 6) { writeData(wp, 'show', '0'); return; }
+    writeData(wp, 'soft', target.soft ? '1' : '0');
     projected.set(target.x, heightAt(target.x, target.z) + 3.2, target.z).project(camera);
     let nx = projected.x, ny = projected.y;
     const behind = projected.z > 1;
@@ -568,23 +632,24 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, now: number) {
       x = cx + dx * k; y = cy + dy * k;
     }
     const angle = Math.atan2(y - cy, x - cx);
-    // keep the pin + label clear of the top HUD row (place name, objective pill)
-    y = Math.max(y, Math.max(topRow + 26, h * 0.1));
-    writeTransform(wp, `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`);
     // the label is centred under the pin: slide it (not the pin) so it stays inside the screen
     const margin = 10;
     const shift = Math.max(0, margin + labelHalf - x) + Math.min(0, w - margin - labelHalf - x);
-    const dx = `${shift.toFixed(0)}px`;
-    if (wp.style.getPropertyValue('--ob-label-dx') !== dx) wp.style.setProperty('--ob-label-dx', dx);
-    const edge = off ? '1' : '0';
-    if (wp.dataset.edge !== edge) wp.dataset.edge = edge;
-    wp.style.setProperty('--ob-angle', `${angle.toFixed(3)}rad`);
+    // (M1 / DR-3) clear of the fixed HUD (place name, objective pill, top stack, bar …) and of the bubble
+    const placed = placeWaypoint({ x, y, edge: off, labelHalf, labelDx: shift }, boxes, bubbleRect, h, Math.max(topRow + 26, h * 0.1), h - padY);
+    // no free spot (a tall goals card on a small phone): the waypoint waits, it never sits under the HUD
+    writeData(wp, 'show', placed.hidden ? '0' : '1');
+    writeTransform(wp, `translate3d(${x.toFixed(1)}px, ${placed.y.toFixed(1)}px, 0)`);
+    writeData(wp, 'covered', placed.hideLabel ? '1' : '0');
+    writeProp(wp, '--ob-label-dx', `${shift.toFixed(0)}px`);
+    writeData(wp, 'edge', off ? '1' : '0');
+    writeProp(wp, '--ob-angle', `${angle.toFixed(3)}rad`);
     if (domAnchors.waypointLabel && now - waypointTextAt > 250) {
       waypointTextAt = now;
       // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed)
       const locale = getLocale();
       const text = `${pick(target.name, locale)} · ${pick(gameTimeLabel(d), locale)}`;
-      if (domAnchors.waypointLabel.textContent !== text) { domAnchors.waypointLabel.textContent = text; labelHalf = (domAnchors.waypointLabel.offsetWidth || 120) / 2; wp.style.setProperty("--ob-label-half", `${labelHalf.toFixed(0)}px`); }
+      if (domAnchors.waypointLabel.textContent !== text) { domAnchors.waypointLabel.textContent = text; labelHalf = (domAnchors.waypointLabel.offsetWidth || 120) / 2; writeProp(wp, '--ob-label-half', `${labelHalf.toFixed(0)}px`); }
     }
   }
 }
@@ -621,7 +686,7 @@ function QaBridge() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover } };
+    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount } };
     w.__opusBay = { ...(w.__opusBay ?? {}), ...mine, renderer: (w.__opusBay?.renderer as unknown) ?? gl };
     // other modules re-publish the object on their own schedules: keep the flow hooks on it (QA scripts rely on them)
     const id = window.setInterval(() => { const o = w.__opusBay; if (o && o.actions !== flowActions) Object.assign(o, mine); }, 500);
