@@ -706,6 +706,17 @@ function figure(geo: THREE.BufferGeometry, max: number, name: string): Figure {
   return { mesh, phase, walk };
 }
 
+/** This frame's instance count of a figure mesh (and its upload flags). */
+function commitFigure(fig: Figure, count: number) {
+  fig.mesh.count = count;
+  fig.mesh.visible = count > 0;
+  if (!count) return;
+  fig.mesh.instanceMatrix.needsUpdate = true;
+  fig.mesh.instanceColor!.needsUpdate = true;
+  fig.phase.needsUpdate = true;
+  fig.walk.needsUpdate = true;
+}
+
 export class CrowdLayer {
   readonly group = new THREE.Group();
   readonly sim: CrowdSim;
@@ -713,12 +724,14 @@ export class CrowdLayer {
   private far: Figure;
   private colors: THREE.Color[] = SHIRTS.map(c => new THREE.Color(c).lerp(new THREE.Color('#e8dcc4'), 0.1));
   private dist: Float32Array;
+  private sorted: Float32Array;
 
   constructor(net: StreetNet, env: CrowdEnv, max: number = CROWD.count.high) {
     this.group.name = 'city-crowd';
     this.group.matrixAutoUpdate = false;
     this.sim = new CrowdSim(net, env, { max, seed: 0xc0ffee });
     this.dist = new Float32Array(max);
+    this.sorted = new Float32Array(max);
     this.near = figure(personGeometry(), max, 'crowd-near');
     this.far = figure(personFarGeometry(), max, 'crowd-far');
     this.group.add(this.near.mesh, this.far.mesh);
@@ -742,7 +755,8 @@ export class CrowdLayer {
       if (dist[i] <= CROWD.nearLod) within++;
     }
     let nearCut: number = CROWD.nearLod;
-    if (within > CROWD.nearMax) { const sorted = Array.from(dist).sort((a, b) => a - b); nearCut = sorted[CROWD.nearMax - 1]; }
+    // (a typed array sorts numerically in place: no garbage each frame)
+    if (within > CROWD.nearMax) { const sorted = this.sorted; sorted.set(dist); sorted.sort(); nearCut = sorted[CROWD.nearMax - 1]; }
     for (let j = 0; j < ws.length; j++) {
       const w = ws[j];
       if (!w.on) continue;
@@ -762,15 +776,8 @@ export class CrowdLayer {
       fig.phase.setX(i, w.ph);
       fig.walk.setX(i, w.walking);
     }
-    for (const [fig, c] of [[this.near, n], [this.far, nf]] as const) {
-      fig.mesh.count = c;
-      fig.mesh.visible = c > 0;
-      if (!c) continue;
-      fig.mesh.instanceMatrix.needsUpdate = true;
-      fig.mesh.instanceColor!.needsUpdate = true;
-      fig.phase.needsUpdate = true;
-      fig.walk.needsUpdate = true;
-    }
+    commitFigure(this.near, n);
+    commitFigure(this.far, nf);
   }
 
   /** Hide without stepping (travel mode, high views). */

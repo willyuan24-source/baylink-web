@@ -61,6 +61,8 @@ const HALF_W = TRAFFIC.width / 2;
 /** a turn sharper than this (rad) is taken at TRAFFIC.turnSpeed */
 const SHARP = 0.45;
 const JUMP = 90;
+/** a transit vehicle in the junction box now or at these times ahead (s) keeps a car at its stop line */
+const LOOK_AHEAD = [0, 0.7, 1.4, 2] as const;
 /** junction nodes closer than this (u) along an edge are one junction box */
 const BOX_JOIN = 6;
 
@@ -320,8 +322,8 @@ export class TrafficSim {
       for (const q of vehicles) {
         const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
         // in the box now, or within 2 s
-        for (const t of [0, 0.7, 1.4, 2]) {
-          const qx = q.x + fx * q.v * t, qz = q.z + fz * q.v * t;
+        for (let i = 0; i < LOOK_AHEAD.length; i++) {
+          const t = LOOK_AHEAD[i], qx = q.x + fx * q.v * t, qz = q.z + fz * q.v * t;
           if (Math.hypot(qx - nx, qz - nz) < R + q.halfL) return false;
         }
       }
@@ -352,7 +354,7 @@ export class TrafficSim {
     }
     for (const q of vehicles) {
       const qf = Math.sin(q.heading), qz = Math.cos(q.heading);
-      for (const k of [-1, 0, 1]) {
+      for (let k = -1; k <= 1; k++) {
         const px = q.x + qf * q.halfL * k, pz = q.z + qz * q.halfL * k;
         const rx = px - c.x, rz = pz - c.z;
         if (rx * rx + rz * rz > 256) continue;
@@ -577,6 +579,15 @@ function carMesh(geo: THREE.BufferGeometry, max: number, name: string, shadow: b
   return mesh;
 }
 
+/** This frame's instance count of a car mesh (and its upload flags). */
+function commit(mesh: THREE.InstancedMesh, count: number) {
+  mesh.count = count;
+  mesh.visible = count > 0;
+  if (!count) return;
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.instanceColor!.needsUpdate = true;
+}
+
 export class TrafficLayer {
   readonly group = new THREE.Group();
   readonly sim: TrafficSim;
@@ -612,13 +623,8 @@ export class TrafficLayer {
       mesh.setMatrixAt(i, _m);
       mesh.setColorAt(i, this.paints[c.color % this.paints.length]);
     }
-    for (const [mesh, c] of [[this.near, n], [this.far, nf]] as const) {
-      mesh.count = c;
-      mesh.visible = c > 0;
-      if (!c) continue;
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.instanceColor!.needsUpdate = true;
-    }
+    commit(this.near, n);
+    commit(this.far, nf);
   }
 
   hide() { this.near.visible = false; this.far.visible = false; }
