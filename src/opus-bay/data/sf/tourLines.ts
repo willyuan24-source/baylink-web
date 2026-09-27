@@ -280,7 +280,9 @@ export const loopHopOffTip = (station: string): TourLine | null => LOOP_STOP_LIN
 /**
  * The Metro narration for a `transit` event on the N / M (lane T emits `board`, `approach` ≈ 60 u before a stop and
  * `arrive`, with `station` = the stop id; `dir` = the ride's direction along the line's arc, +1 = outbound from
- * Embarcadero). Null when BAYBAY has nothing to say there.
+ * Embarcadero). Null when BAYBAY has nothing to say there. The portal lines ("出隧道啦" / "前面是日落隧道") need the
+ * direction: without `dir` (the frozen transit event has none until the lead adds it) she says nothing there rather
+ * than guess — the Grand Tour rides the N and the M inbound, where the outbound words would be wrong.
  */
 export function metroNarration(event: { what: string; line: string; station?: string; dir?: 1 | -1 }): TourLine | null {
   const { what, line, station, dir } = event;
@@ -296,11 +298,11 @@ export function metroNarration(event: { what: string; line: string; station?: st
   if (line === 'n-judah') {
     if (station === 'muni-9th-irving') return METRO_LINES['9th-irving'];
     if (station === 'muni-judah-la-playa') return METRO_LINES['la-playa'];
-    if (station === 'muni-carl-cole') return dir === -1 ? METRO_LINES['sunset-tunnel'] : METRO_LINES['carl-cole'];
-    if (station === 'muni-duboce-church' && dir !== -1) return METRO_LINES['duboce-portal'];
+    if (station === 'muni-carl-cole') return dir === -1 ? METRO_LINES['sunset-tunnel'] : dir === 1 ? METRO_LINES['carl-cole'] : null;
+    if (station === 'muni-duboce-church' && dir === 1) return METRO_LINES['duboce-portal'];
     return null;
   }
-  if (station === 'muni-west-portal' && dir !== -1) return METRO_LINES['west-portal'];
+  if (station === 'muni-west-portal' && dir === 1) return METRO_LINES['west-portal'];
   if (station === 'muni-san-jose-geneva') return METRO_LINES['balboa-park'];
   return null;
 }

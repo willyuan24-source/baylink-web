@@ -1,4 +1,5 @@
 import type { Bilingual } from '../../core/types';
+import { LANDMARK_ARRIVALS } from './arrivals';
 import { CHAPTER_LINES, type GrandChapterId } from './tourLines';
 
 /**
@@ -23,9 +24,14 @@ import { CHAPTER_LINES, type GrandChapterId } from './tourLines';
  *   + 15 s wait · light rail = surface arc / 10 + underground arc / 25 (the subway overlay) + 4 s per major stop passed
  *   (3 s underground) + 3 s per portal cut + 10 s wait · cable car = arc / 9 × 1.25 + 4 s per dwell stop passed + 20 s
  *   wait · 直接到站 (express Metro legs > 400 u; the bus and the cable car ride in real time, with the narration) =
- *   12 s veil · moments: arrive 20 s, photo 25 s, panorama 45 s, deck 120 s.
+ *   12 s veil, except a ride that completes a goal (the metro goal needs a real ride: today's 直接到站 never counts
+ *   one, game/transit.ts leaveLineRide) · moments: arrive 20 s, photo 25 s, panorama 45 s, deck 120 s.
  * Declared `minutes` / `expressMinutes` are that model rounded to 0.1 (tested within 0.15). The full tour models at
- * ≈ 26 min and the express at ≈ 17 min (plan §3.5: ≈ 25.5 / 18), chapter intros and outros not counted.
+ * ≈ 26 min and the express at ≈ 18 min (plan §3.5: ≈ 25.5 / 18), chapter intros and outros not counted.
+ *
+ * Goals: `goal` = the stop where a goal really completes (the sightseeing goal counts loop stops over all the real
+ * rides and reaches SIGHTSEEING_STOPS on the Twin Peaks ride, in both versions); `advances` = a counting goal the stop
+ * only moves on (campuses: SF State is 1 of the 3 campus arrivals, so the tour never completes it).
  */
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -53,6 +59,8 @@ export interface CityTourStop {
   moment?: CityTourMoment;
   /** a city goal this stop completes honestly (data/sf/goals.ts CITY_GOAL + the wave-4 goals) */
   goal?: string;
+  /** a counting goal this stop moves on without completing it (campuses: 1 of 3 arrivals) */
+  advances?: string;
   /** an SF postcard lying within ≈ 70 u of the stop (data/sf/postcards.ts id) */
   postcard?: string;
   /** a side trip the player may skip (not in the tour totals; "跳过这一站" is always there) */
@@ -61,7 +69,8 @@ export interface CityTourStop {
   express?: 'skip';
   /** express version of a ride: get off here instead (the skipped stops after it are on the way) */
   expressTo?: string;
-  lines: { lead?: TourSay; arrive: TourSay; done?: TourSay };
+  /** `expressArrive`: said instead of `arrive` when the express version gets off at `expressTo` (another station) */
+  lines: { lead?: TourSay; arrive: TourSay; expressArrive?: TourSay; done?: TourSay };
   /** honest minutes for this stop: its leg + its moment (stopSeconds / 60, rounded to 0.1) */
   minutes: number;
   /** the same in the express version (0 when skipped) */
@@ -180,20 +189,22 @@ export const TOUR_GEO: Readonly<Record<string, TourLineGeo>> = {
   },
 };
 
-/** Positions of the non-station targets the tour ends stops at (places.json / the landmark arrival spots / attractions.json). */
+/**
+ * Positions of the `place:` targets the tour ends stops at: the row's `arrival` (game/discovery.ts placeInteractable
+ * leads there: places.json rows arrive at their anchor, lane P's extraPlaces.ts rows at their own `arrival`); pinned
+ * in tests/opus-bay-sf-tours.test.ts. `sf:<landmark>` targets are the landmark cards' arrival spots
+ * (data/sf/arrivals.ts LANDMARK_ARRIVALS: the interactable the tour engine leads to), read live.
+ */
 export const TOUR_TARGET_AT: Readonly<Record<string, { x: number; z: number }>> = {
   'place:osm-w164569681': { x: -700.86, z: 604.59 },      // Golden Gate Bridge Welcome Center
-  'sf:fort-point': { x: -750.43, z: 595.06 },
-  'sf:golden-gate-bridge': { x: -700.86, z: 604.59 },      // the deck walk starts at the Welcome Center
-  'sf:sutro-baths': { x: -721.24, z: 1246.52 },
-  'sf:dutch-windmill': { x: -580.69, z: 1311.93 },
   'place:japanese-tea-garden': { x: -242.97, z: 964.38 },
-  'sf:painted-ladies': { x: -7.52, z: 586.51 },
-  'place:stonestown-galleria': { x: 165.9, z: 1479.9 },
-  'place:sf-state-university': { x: 198.2, z: 1555.6 },
-  'sf:twin-peaks': { x: 128.86, z: 922.72 },               // Christmas Tree Point overlook
+  'place:stonestown-galleria': { x: 172.1, z: 1474.1 },
+  'place:sf-state-university': { x: 198.4, z: 1555.9 },
   'place:ferry-building': { x: 132.11, z: 19.31 },
 };
+
+/** The sightseeing goal (W4-C8): loop stops reached over real rides (直接到站 counts, fast travel does not). */
+export const SIGHTSEEING_STOPS = 8;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The timing model
@@ -215,6 +226,7 @@ const dist = (a: XZ, b: XZ) => Math.hypot(a.x - b.x, a.z - b.z);
 /** Where a stop's target stands (null: unknown target). */
 export function targetAt(target: string): XZ | null {
   if (TOUR_TARGET_AT[target]) return TOUR_TARGET_AT[target];
+  if (target.startsWith('sf:')) { const at = LANDMARK_ARRIVALS[target.slice(3)]; return at ? { x: at.x, z: at.z } : null; }
   if (target.startsWith('transit-')) {
     const id = target.slice('transit-'.length);
     for (const line of Object.values(TOUR_GEO)) if (line.stations[id]) return line.stations[id];
@@ -276,7 +288,8 @@ export function stopSeconds(stop: CityTourStop, prev: XZ, opts: { express?: bool
     const board = TOUR_GEO[stop.leg.line]?.stations[from];
     if (!board) return NaN;
     if (!opts.stayOnBoard) s += walkSeconds(prev, board) + waitOf(stop.leg.line);
-    s += rideSeconds(stop.leg.line, from, to, !!opts.express);
+    // a ride that completes a goal is never veiled: 直接到站 would not count it
+    s += rideSeconds(stop.leg.line, from, to, !!opts.express && !stop.goal);
   }
   if (stop.moment) s += TOUR_MODEL.moment[stop.moment];
   return s;
@@ -305,7 +318,7 @@ const CHAPTERS: CityTourChapter[] = [
     },
     {
       id: 'bay-ride-ggb', target: 'transit-loop-golden-gate-bridge', leg: loop('ferry-building', 'golden-gate-bridge'),
-      goal: 'sightseeing',
+      advances: 'sightseeing',
       lines: { lead: bi('坐上层前排，风景最好！沿路我给你讲。', 'Front row on the top deck — best view! I\'ll tell you about the sights.'), arrive: 'loop-golden-gate-bridge-arrive' },
       minutes: 3.1, expressMinutes: 3.1,
     },
@@ -318,28 +331,28 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'bay-fort-point', target: 'sf:fort-point', leg: walk, moment: 'photo', optional: true, express: 'skip',
       lines: { lead: bi('往下看，桥下那座砖砌堡垒就是 Fort Point 炮台。', 'Look down — the brick fort under the bridge is Fort Point.'), arrive: bi('大桥的钢拱就是为了保住它才这样设计的。', 'The bridge\'s steel arch was designed to leave this fort standing.') },
-      minutes: 0.7, expressMinutes: 0.0,
+      minutes: 0.6, expressMinutes: 0.0,
     },
     {
       id: 'bay-deck', target: 'sf:golden-gate-bridge', leg: walk, moment: 'deck', goal: 'golden-gate', optional: true, express: 'skip',
       lines: { lead: bi('想走上桥吗？走东侧人行道，从南塔走到北塔。', 'Fancy walking the bridge? Take the east sidewalk from the south tower to the north.'), arrive: bi('走过金门大桥啦！', 'You crossed the Golden Gate Bridge!') },
-      minutes: 2.0, expressMinutes: 0.0,
+      minutes: 2.3, expressMinutes: 0.0,
     },
   ]),
   chapter('coast', bi('海岸', 'The Coast'), [
     {
       id: 'coast-ride-lands-end', target: 'transit-loop-lands-end-sutro', leg: loop('golden-gate-bridge', 'lands-end-sutro'),
-      expressTo: 'loop-ocean-beach-windmill',
-      lines: { lead: bi('回车站，下一班车往海边开！', 'Back to the stop — the next bus heads for the coast!'), arrive: 'loop-lands-end-sutro-arrive' },
+      expressTo: 'loop-ocean-beach-windmill', advances: 'sightseeing',
+      lines: { lead: bi('回车站，下一班车往海边开！', 'Back to the stop — the next bus heads for the coast!'), arrive: 'loop-lands-end-sutro-arrive', expressArrive: 'loop-ocean-beach-windmill-arrive' },
       minutes: 2.1, expressMinutes: 2.5,
     },
     {
       id: 'coast-sutro', target: 'sf:sutro-baths', leg: walk, attraction: 'sutro-baths', moment: 'arrive', express: 'skip',
       lines: { lead: 'loop-lands-end-sutro-tip', arrive: bi('这些混凝土墙，是当年巨大海水浴场留下的。', 'These concrete walls are all that\'s left of a huge saltwater bathhouse.') },
-      minutes: 0.5, expressMinutes: 0.0,
+      minutes: 0.4, expressMinutes: 0.0,
     },
     {
-      id: 'coast-ride-windmill', target: 'transit-loop-ocean-beach-windmill', leg: loop('lands-end-sutro', 'ocean-beach-windmill'), express: 'skip',
+      id: 'coast-ride-windmill', target: 'transit-loop-ocean-beach-windmill', leg: loop('lands-end-sutro', 'ocean-beach-windmill'), express: 'skip', advances: 'sightseeing',
       lines: { lead: bi('再坐一站，就到海洋海滩！', 'One more stop to Ocean Beach!'), arrive: 'loop-ocean-beach-windmill-arrive' },
       minutes: 0.7, expressMinutes: 0.0,
     },
@@ -378,25 +391,30 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'n-walk-church', target: 'transit-muni-church', leg: walk,
       lines: { lead: bi('去教堂街站换 M 线，从地铁口下去。', 'To Church station for the M — down the stairs at the kiosk.'), arrive: bi('这里就是教堂街站，下一章坐 M 线！', 'Church station — next chapter, the M!') },
-      minutes: 0.8, expressMinutes: 0.2,
+      minutes: 0.7, expressMinutes: 0.2,
     },
   ]),
   chapter('south-m', bi('M 线去石镇和州大', 'Stonestown & SF State'), [
     {
       id: 'm-ride-winston', target: 'transit-muni-19th-winston', leg: muni('m-ocean-view', 'church', '19th-winston'),
       expressTo: 'muni-19th-holloway', goal: 'metro',
-      lines: { lead: 'metro-board-m', arrive: 'metro-stonestown-next' },
-      minutes: 1.3, expressMinutes: 0.4,
+      // said on arrival, so not the frozen "下一站 …" approach line (the ride's own approach narration says that)
+      lines: {
+        lead: 'metro-board-m',
+        arrive: bi('19th Ave & Winston 到了，石镇购物中心就在门口！', '19th Ave & Winston — Stonestown is right by the door!'),
+        expressArrive: bi('Holloway 到了，州立大学就在路边！', 'Holloway — SF State is right by the street!'),
+      },
+      minutes: 1.3, expressMinutes: 1.5,
     },
     {
       id: 'm-stonestown', target: 'place:stonestown-galleria', leg: walk, attraction: 'stonestown-galleria', moment: 'arrive', express: 'skip',
       lines: { arrive: 'arrive-stonestown-galleria' },
-      minutes: 0.5, expressMinutes: 0.0,
+      minutes: 0.4, expressMinutes: 0.0,
     },
     {
-      id: 'm-sfsu', target: 'place:sf-state-university', leg: walk, attraction: 'sf-state-university', moment: 'arrive', goal: 'campuses',
+      id: 'm-sfsu', target: 'place:sf-state-university', leg: walk, attraction: 'sf-state-university', moment: 'arrive', advances: 'campuses',
       lines: { lead: bi('顺着 19 大道往南走，州立大学就在前面。', 'Down 19th Avenue — SF State is just ahead.'), arrive: 'arrive-sf-state-university' },
-      minutes: 0.7, expressMinutes: 0.6,
+      minutes: 0.8, expressMinutes: 0.6,
     },
     {
       id: 'm-ride-castro', target: 'transit-muni-castro', leg: muni('m-ocean-view', '19th-holloway', 'castro'),
@@ -406,7 +424,7 @@ const CHAPTERS: CityTourChapter[] = [
   ]),
   chapter('peaks-downtown', bi('双峰与市中心', 'Twin Peaks & Downtown'), [
     {
-      id: 'peaks-ride-twin-peaks', target: 'transit-loop-twin-peaks', leg: loop('castro', 'twin-peaks'),
+      id: 'peaks-ride-twin-peaks', target: 'transit-loop-twin-peaks', leg: loop('castro', 'twin-peaks'), goal: 'sightseeing',
       lines: { lead: bi('观光巴士就在卡斯特罗站上面，我们上山！', 'The bus stops right above the Castro station — up the hill we go!'), arrive: 'loop-twin-peaks-arrive' },
       minutes: 1.5, expressMinutes: 1.5,
     },

@@ -13,7 +13,9 @@ const readJson = (rel: string) => JSON.parse(fs.readFileSync(new URL(rel, ROOT),
 const lines = await import('../src/opus-bay/data/sf/tourLines');
 const { TOUR_LINES, TOUR_LINES_FROZEN, LOOP_STOP_LINES, METRO_LINES, CHAPTER_LINES, GRAND_CHAPTER_IDS, ARRIVAL_LINES, QUIET_LINES, tourLine, loopNarration, loopHopOffTip } = lines;
 const tours = await import('../src/opus-bay/data/sf/tours');
-const { SF_GRAND, TOUR_GEO, TOUR_MODEL, targetAt, rideArc, rideSeconds, stopSeconds, tourStops, chapterMinutes, expressRide, decodeTourSaves, tourResumeLabel, cityTour, GRAND_TOUR_ID, TOUR_SAVE_MAX_IDS } = tours;
+const { SF_GRAND, TOUR_GEO, TOUR_MODEL, TOUR_TARGET_AT, SIGHTSEEING_STOPS, targetAt, rideArc, rideSeconds, stopSeconds, tourStops, chapterMinutes, expressRide, decodeTourSaves, tourResumeLabel, cityTour, GRAND_TOUR_ID, TOUR_SAVE_MAX_IDS } = tours;
+const { LANDMARK_ARRIVALS } = await import('../src/opus-bay/data/sf/arrivals');
+const { EXTRA_PLACES, PLACE_REANCHORS } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
 const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 
@@ -196,7 +198,35 @@ test('declared minutes are the timing model\'s; chapters add up to ≈ 26 min, e
 
 test('goals are completed honestly on the way; postcards lie on the route', () => {
   const goals = new Set(allStops.map(f => f.stop.goal).filter(Boolean));
-  for (const g of ['sightseeing', 'metro', 'campuses', 'twin-peaks', 'cable-car', 'painted-ladies', 'golden-gate']) assert.ok(goals.has(g), `goal ${g}`);
+  // W4-C review: `goal` = where a goal really completes; campuses needs 3 campus arrivals, the tour has 1 (advances)
+  assert.deepEqual([...goals].sort(), ['cable-car', 'golden-gate', 'metro', 'painted-ladies', 'sightseeing', 'twin-peaks']);
+  assert.equal(allStops.find(f => f.stop.id === 'm-sfsu')!.stop.advances, 'campuses');
+  // sightseeing: loop stops reached over the real rides (passed or alighted at) reach SIGHTSEEING_STOPS on the stop
+  // that carries the goal, in both versions
+  for (const express of [false, true]) {
+    let reached = 0;
+    let at: string | null = null;
+    for (const { stop } of tourStops(SF_GRAND, { express })) {
+      if (stop.leg.via !== 'line' || stop.leg.line !== 'sf-loop') continue;
+      const ride = express ? expressRide(SF_GRAND, stop.id)! : stop.leg;
+      const geo = TOUR_GEO['sf-loop'], r = rideArc('sf-loop', ride.from, ride.to)!;
+      const before = reached;
+      reached += Object.values(geo.stations).filter(s => { const d = ((s.at - r.a) % geo.length + geo.length) % geo.length; return d > 0 && d <= r.arc + 1e-6; }).length;
+      if (before < SIGHTSEEING_STOPS && reached >= SIGHTSEEING_STOPS) at = stop.id;
+      if (stop.goal === 'sightseeing') assert.ok(reached >= SIGHTSEEING_STOPS, `${express ? 'express' : 'full'}: ${stop.id} completes sightseeing (${reached})`);
+      else assert.notEqual(at, stop.id);
+    }
+    assert.equal(at, 'peaks-ride-twin-peaks', `${express ? 'express' : 'full'}: the 8th loop stop`);
+  }
+  // metro: a real ride (≥ 150 u) to Stonestown / SF State, never 直接到站 (today's skip never counts a ride)
+  const metro = allStops.find(f => f.stop.goal === 'metro')!.stop;
+  assert.equal(metro.leg.via, 'line');
+  if (metro.leg.via === 'line') {
+    for (const to of [metro.leg.to, metro.expressTo!]) assert.ok(rideArc(metro.leg.line, metro.leg.from, to)!.arc >= 150);
+    const prev = targetAt('transit-muni-church')!;
+    const real = stopSeconds(metro, prev, { express: true, to: metro.expressTo }) / 60;
+    assert.ok(Math.abs(real - metro.expressMinutes) <= 0.15 && real > 1, `express rides the metro goal for real (${real.toFixed(2)} min)`);
+  }
   const cable = allStops.find(f => f.stop.goal === 'cable-car')!.stop;
   assert.equal(cable.leg.via, 'line');
   if (cable.leg.via === 'line') assert.ok(rideArc(cable.leg.line, cable.leg.from, cable.leg.to)!.arc > 150, 'the cable-car ride is > 150 u');
@@ -226,6 +256,40 @@ test('stop lines: frozen ids resolve, plain bubbles keep the limits', () => {
         assert.ok(say.en.length <= 110, `${stop.id}.${k} en ≤ 110`);
       }
     }
+  }
+});
+
+test('arrival lines fit where you really get off (express included) and are not "next stop" lines', () => {
+  const zhOf = (say: string | { zh: string }) => (typeof say === 'string' ? tourLine(say)!.zh : say.zh);
+  for (const { stop } of allStops) {
+    for (const say of [stop.lines.arrive, stop.lines.expressArrive]) if (say) assert.ok(!zhOf(say).startsWith('下一站'), `${stop.id}: an arrival line says 下一站 (${zhOf(say)})`);
+    if (!stop.expressTo) { assert.equal(stop.lines.expressArrive, undefined, `${stop.id}: expressArrive only with expressTo`); continue; }
+    const ex = stop.lines.expressArrive;
+    assert.ok(ex, `${stop.id}: the express version gets off at ${stop.expressTo} and needs its own arrival line`);
+    // a frozen loop arrival line must be the expressTo stop's own
+    if (typeof ex === 'string' && ex.startsWith('loop-')) assert.equal(ex, `${stop.expressTo}-arrive`);
+    if (typeof stop.lines.arrive === 'string' && stop.lines.arrive.startsWith('loop-') && stop.leg.via === 'line') assert.equal(stop.lines.arrive, `${stop.leg.to}-arrive`);
+  }
+});
+
+test('tour targets stand where the tour engine leads: landmark arrival spots and the place rows (pinned)', () => {
+  for (const { stop } of allStops) {
+    const t = stop.target;
+    if (t.startsWith('sf:')) {
+      const at = LANDMARK_ARRIVALS[t.slice(3)];
+      assert.ok(at, `${stop.id}: ${t} has a landmark arrival`);
+      assert.deepEqual(targetAt(t), { x: at.x, z: at.z }, `${stop.id}: ${t} = the landmark card's spot`);
+    }
+  }
+  for (const [t, at] of Object.entries(TOUR_TARGET_AT)) {
+    assert.ok(t.startsWith('place:'), `${t}: only place targets are copied`);
+    const id = t.slice(6);
+    // where game/discovery.ts placeInteractable leads: the row's arrival (a lane P re-anchor wins)
+    const json = PLACES.find(p => p.id === id) as { x: number; z: number } | undefined;
+    const extra = EXTRA_PLACES.find(p => p.id === id);
+    const arrival = PLACE_REANCHORS[id]?.arrival ?? extra?.arrival ?? (json ? { x: json.x, z: json.z } : null);
+    assert.ok(arrival, `${t} is a places.json / extraPlaces row`);
+    assert.ok(Math.hypot(arrival.x - at.x, arrival.z - at.z) <= 1, `${t} matches its row's arrival (${arrival.x}, ${arrival.z})`);
   }
 });
 
@@ -267,6 +331,12 @@ test('Metro narration: boarding, the stop approaches and arrivals by direction, 
   assert.equal(metroNarration({ what: 'arrive', line: 'n-judah', station: 'muni-judah-la-playa' })?.id, 'metro-la-playa');
   assert.equal(metroNarration({ what: 'arrive', line: 'm-ocean-view', station: 'muni-san-jose-geneva' })?.id, 'metro-balboa-park');
   assert.equal(metroNarration({ what: 'arrive', line: 'sf-loop', station: 'loop-castro' }), null);
+  // without a direction (the frozen transit event has no `dir` yet) the portal lines stay silent instead of guessing
+  // the outbound words on the tour's inbound rides
+  for (const [line, station] of [['n-judah', 'muni-carl-cole'], ['n-judah', 'muni-duboce-church'], ['m-ocean-view', 'muni-west-portal']]) {
+    assert.equal(metroNarration({ what: 'arrive', line, station }), null, `${station} without dir`);
+  }
+  assert.equal(metroNarration({ what: 'arrive', line: 'm-ocean-view', station: 'muni-west-portal', dir: -1 }), null, 'inbound at West Portal: going in, not out');
   assert.equal(tunnelNarration('m-ocean-view', 569.3, 1164.2)?.id, 'metro-twin-peaks-tunnel');
   assert.equal(tunnelNarration('m-ocean-view', 0, 300)?.id, 'metro-subway');
   assert.equal(tunnelNarration('n-judah', 0, 516)?.id, 'metro-subway');
