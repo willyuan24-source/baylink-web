@@ -1,7 +1,8 @@
 import type { Bilingual } from '../../core/types';
+import { LINE_TTL } from '../../game/linePacer';
 import { minutesLabel } from '../../game/tripText';
 import { LANDMARK_ARRIVALS } from './arrivals';
-import { CHAPTER_LINES, type GrandChapterId } from './tourLines';
+import { CHAPTER_LINES, sayLine, type GrandChapterId } from './tourLines';
 
 /**
  * Wave 4 · lane C · W4-C4: the city tours. `SF_GRAND` = 环游旧金山 · 一日游 (plan sf-w4-plan.md §3.5): 5 chapters by
@@ -509,6 +510,30 @@ export function expressRide(def: CityTourDef, stopId: string): { line: string; f
   }
   return { line: stop.leg.line, from, to: stop.expressTo ?? stop.leg.to };
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// What the tour says, paced (game/linePacer.ts: no line before the previous clip has finished, lane V's rule)
+// ---------------------------------------------------------------------------------------------------------------
+
+export type StopBeat = 'lead' | 'arrive' | 'done';
+export type PacedSay = NonNullable<ReturnType<typeof sayLine>>;
+
+/** How long each beat's line may wait for the one before it (s): a lead may wait for a ride's last line, an arrival less. */
+const BEAT_TTL: Readonly<Record<StopBeat, number>> = { lead: LINE_TTL.stop, arrive: LINE_TTL.arrival, done: LINE_TTL.arrival };
+
+/**
+ * What a stop says at a beat, ready for `LinePacer.offer()`: `lead` when BAYBAY starts leading to it, `arrive` on
+ * arrival (in the express version the `expressArrive` of a ride that gets off at `expressTo`), `done` after its moment.
+ * Frozen ids keep their voice id; plain bubbles are text only. Null when the stop says nothing then. The engine offers
+ * it, the pacer holds it until the clip before it has finished and drops a repeat of the transit narration's line.
+ */
+export function stopSay(stop: CityTourStop, beat: StopBeat, express = false): PacedSay | null {
+  const say = beat === 'arrive' ? (express && stop.expressTo ? stop.lines.expressArrive ?? stop.lines.arrive : stop.lines.arrive) : stop.lines[beat];
+  return say ? sayLine(say, BEAT_TTL[beat]) : null;
+}
+
+/** A chapter's intro or outro (frozen, recorded), ready for the pacer. */
+export const chapterSay = (chapter: CityTourChapter, beat: 'intro' | 'outro'): PacedSay | null => sayLine(chapter[beat], LINE_TTL.chapter);
 
 /** "继续一日游 · 第 3 章" resume label, or the start label when nothing is done. */
 export function tourResumeLabel(def: CityTourDef, progress: TourProgress | undefined): Bilingual {

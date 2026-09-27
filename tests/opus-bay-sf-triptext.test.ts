@@ -222,3 +222,33 @@ test('arrival lines go through the pacer: the voice id, the ttl, the postcard hi
   assert.equal(next.voice, 'arrive-sf-state-university');
   assert.deepEqual(arrivalPaced({ line: null, voice: null, mood: 'happy', postcardHint: null }, 'x'), []);
 });
+
+test('the whole Grand Tour through the pacer: every chapter / stop line is said, in order, never over another clip', async () => {
+  const { stopSay, chapterSay } = await import('../src/opus-bay/data/sf/tours');
+  for (const express of [false, true]) for (const lang of ['zh', 'en'] as const) {
+    const p = new LinePacer(clipsOf(lang));
+    const said: { id: string; at: number; end: number }[] = [];
+    let offered = 0, t = 0;
+    const offer = (l: ReturnType<typeof stopSay>) => { if (l && p.offer(l, t)) offered++; };
+    const run = (until: number) => {
+      for (; t <= until; t += 0.1) { const s = p.step(t); if (s) said.push({ id: s.voice ?? s.text.zh, at: s.at, end: s.at + s.seconds }); }
+    };
+    SF_GRAND.chapters.forEach((c, ci) => {
+      offer(chapterSay(c, 'intro'));
+      for (const { stop } of tourStops(SF_GRAND, { express }).filter(f => f.chapter === ci)) {
+        offer(stopSay(stop, 'lead', express));
+        run(t + (express ? stop.expressMinutes : stop.minutes) * 60);
+        offer(stopSay(stop, 'arrive', express));
+        offer(stopSay(stop, 'done', express));
+        run(t + 1);
+      }
+      offer(chapterSay(c, 'outro'));
+      run(t + 1);
+    });
+    run(t + 60);
+    assert.equal(said.length, offered, `${express ? 'express' : 'full'} ${lang}: nothing dropped (${said.length} / ${offered})`);
+    for (let i = 1; i < said.length; i++) assert.ok(said[i].at >= said[i - 1].end + PACER_GAP - 1e-6, `${said[i - 1].id} → ${said[i].id} overlap`);
+    // express rides that get off early say their own arrival
+    if (express) assert.ok(said.some(s => s.id === 'loop-ocean-beach-windmill-arrive'));
+  }
+});
