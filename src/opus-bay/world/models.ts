@@ -73,6 +73,13 @@ function loaders(): { gltf: GLTFLoader; draco: DRACOLoader } {
   return { gltf, draco };
 }
 
+/**
+ * The shared Draco-capable GLTFLoader (HC-4): for lanes that load their own GLBs (actors/system.ts BAYBAY, world/life.ts
+ * the district heroes) once those files move to Draco. Import this module dynamically (`await import('../world/models')`)
+ * so district mode keeps DRACOLoader out of its first load.
+ */
+export function heroGltfLoader(): GLTFLoader { return loaders().gltf; }
+
 /** Fetch the Draco decoder and prepare its worker source (idempotent; a no-op outside a browser). */
 export function preloadDraco(): void {
   if (!canLoadModels()) return;
