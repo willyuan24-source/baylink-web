@@ -144,6 +144,27 @@ test('the legs are reachable in order: walks stay short, rides board near the pr
   assert.equal(allStops.at(-1)!.stop.target, 'place:ferry-building');
 });
 
+test('TOUR_GEO is lane T\'s published geometry (transit-w4.json) and today\'s cable stations', () => {
+  const w4 = readJson('public/opus-bay/sf/v1/transit-w4.json');
+  for (const line of w4.lines as { id: string; length: number; stops: { id: string; at: number; x: number; z: number }[]; tunnels?: { fromAt: number; toAt: number }[] }[]) {
+    const geo = TOUR_GEO[line.id];
+    assert.ok(geo, `${line.id} is in TOUR_GEO`);
+    assert.ok(Math.abs(geo.length - line.length) <= 1, `${line.id} length`);
+    for (const [id, s] of Object.entries(geo.stations)) {
+      const js = line.stops.find(x => x.id === id);
+      assert.ok(js, `${line.id}: ${id} is a published stop`);
+      assert.ok(Math.abs(js.at - s.at) <= 1 && Math.hypot(js.x - s.x, js.z - s.z) <= 1, `${line.id}: ${id} matches (${js.at} ${js.x},${js.z})`);
+    }
+    for (const [i, t] of (line.tunnels ?? []).entries()) {
+      const g = geo.tunnels?.[i];
+      assert.ok(g && Math.abs(g[0] - t.fromAt) <= 1 && Math.abs(g[1] - t.toAt) <= 1, `${line.id} tunnel ${i}`);
+    }
+  }
+  const cable = readJson('public/opus-bay/sf/v1/transit.json').lines.find((l: { id: string }) => l.id === 'california');
+  const powell = cable.stops.find((s: { name: { en: string } }) => s.name.en === 'California Street & Powell Street');
+  assert.ok(Math.abs(TOUR_GEO.california.stations['powell-california'].at - powell.at) <= 4, 'the cable ride starts at California & Powell');
+});
+
 test('declared minutes are the timing model\'s; chapters add up to ≈ 26 min, express ≈ 17 min', () => {
   let prev = targetAt('transit-loop-ferry-building')!;
   for (const { stop } of allStops) {

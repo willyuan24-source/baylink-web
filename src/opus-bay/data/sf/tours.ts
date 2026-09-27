@@ -12,12 +12,11 @@ import { CHAPTER_LINES, type GrandChapterId } from './tourLines';
  * line leg (BAYBAY leads to the boarding station, boarding opens pre-filled "上车 · 坐到 …", she names the stop on the
  * approach). A `moment` plays on arrival (lane G's arrival card / photo / panorama).
  *
- * Station ids: lane T's data/sf/stationNames.ts (`loop-*` loop stops, `muni-*` Metro stations; draft read on
- * 2026-09-27) and today's cable stations (data/transit.ts `stationSlug`: `powell-california`, `california-drumm`).
- * TOUR_GEO copies the positions and arc positions this tour needs (plan §3.2 / §3.3 measured lines,
- * C:/Users/willy/opus-qa/w4/{plan/loop-route-final.json, geo/final-lines.json}; the N re-based to Embarcadero = 0), so the
- * timing model and the tests run without the published transit.json. At integration, a test checks TOUR_GEO against
- * T's published lines (± 12 u / ± 25 u of arc).
+ * Station ids: lane T's data/sf/stationNames.ts (`loop-*` loop stops, `muni-*` Metro stations) and today's cable
+ * stations (data/transit.ts `stationSlug`: `powell-california`, `california-drumm`). TOUR_GEO copies the positions and
+ * arc positions this tour needs from lane T's published public/opus-bay/sf/v1/transit-w4.json (W4-T3, 2026-09-27; the
+ * cable stations from transit.json), so the timing model runs synchronously; tests/opus-bay-sf-tours.test.ts checks
+ * TOUR_GEO against the published file (± 1 u, ± 1 u of arc) so a re-bake shows up.
  *
  * TIMES are honest (plan §4 "every time shown is the time it really takes"), from `stopSeconds()`:
  *   walk = straight distance × 1.25 / 4.2 u/s · bus = arc / 9.45 u/s (the plan's 14-min lap) + 8 s per stop passed
@@ -108,64 +107,64 @@ const st = (at: number, x: number, z: number, extra: Partial<TourStationGeo> = {
 
 export const TOUR_GEO: Readonly<Record<string, TourLineGeo>> = {
   'sf-loop': {
-    kind: 'bus', length: 6523, loop: true,
+    kind: 'bus', length: 6501.5, loop: true,
     stations: {
-      'loop-ferry-building': st(0, 128.2, 15.7),
-      'loop-pier-39': st(329, -151.3, 21.0),
-      'loop-wharf-hyde': st(470, -223.0, 136.3),
-      'loop-palace-of-fine-arts': st(878, -414.4, 403.7),
-      'loop-golden-gate-bridge': st(1398, -680.7, 613.9),
-      'loop-legion-of-honor': st(1969, -658.5, 1068.8),
-      'loop-lands-end-sutro': st(2295, -697.9, 1231.7),
-      'loop-ocean-beach-windmill': st(2512, -585.6, 1331.2),
-      'loop-golden-gate-park': st(3218, -228.0, 919.6),
-      'loop-haight-ashbury': st(3647, -40.7, 764.0),
-      'loop-painted-ladies': st(3905, 5.2, 570.4),
-      'loop-castro': st(4181, 142.5, 739.7),
-      'loop-twin-peaks': st(4855, 145.6, 956.7),
-      'loop-mission-dolores': st(5646, 194.2, 640.4),
-      'loop-civic-center': st(5968, 87.5, 400.6),
-      'loop-chinatown': st(6293, 89.7, 166.7),
+      'loop-ferry-building': st(0, 133, 10.1),
+      'loop-pier-39': st(290.9, -152.8, 13),
+      'loop-wharf-hyde': st(449.9, -225.4, 139.7),
+      'loop-palace-of-fine-arts': st(834.6, -432.3, 395.9),
+      'loop-golden-gate-bridge': st(1379.1, -685.5, 623.6),
+      'loop-legion-of-honor': st(1939.3, -660.2, 1072.6),
+      'loop-lands-end-sutro': st(2277.8, -702.1, 1230.8),
+      'loop-ocean-beach-windmill': st(2459.3, -588.5, 1334.7),
+      'loop-golden-gate-park': st(3135.8, -211.3, 932.9),
+      'loop-haight-ashbury': st(3587.1, -38.4, 765.6),
+      'loop-painted-ladies': st(3824.7, 24.5, 579.2),
+      'loop-castro': st(4099.8, 133.5, 737.5),
+      'loop-twin-peaks': st(4768, 155.2, 975.5),
+      'loop-mission-dolores': st(5585.9, 191.6, 648),
+      'loop-civic-center': st(5885.5, 85.6, 410.1),
+      'loop-chinatown': st(6219.7, 92.1, 168.4),
     },
   },
   'n-judah': {
-    kind: 'light-rail', length: 1580, tunnels: [[0, 516.1], [606.7, 787.0]],
+    kind: 'light-rail', length: 1580.1, tunnels: [[0, 516.1], [606.7, 787.0]],
     stations: {
-      'muni-embarcadero': st(0, 131.4, 78.9, { major: true, underground: true }),
-      'muni-montgomery': st(89.1, 132.7, 167.9, { major: true, underground: true }),
-      'muni-powell': st(189.2, 134.1, 268.1, { major: true, underground: true }),
-      'muni-civic-center': st(300.2, 135.5, 379.0, { major: true, underground: true }),
-      'muni-van-ness': st(389.2, 136.9, 468.1, { major: true, underground: true }),
-      'muni-duboce-church': st(537.3, 118.6, 609.0, { major: true }),
-      'muni-duboce-park': st(596.7, 79.4, 653.4),
-      'muni-carl-cole': st(804.2, -19.9, 833.7, { major: true }),
-      'muni-carl-stanyan': st(839.2, -39.8, 862.3),
-      'muni-carl-hillway': st(887.0, -67.2, 901.5, { major: true }),
-      'muni-irving-2nd': st(918.0, -79.4, 927.4, { major: true }),
-      'muni-irving-6th': st(971.4, -114.3, 967.7),
-      'muni-9th-irving': st(1022.3, -133.5, 1006.0, { major: true }),
-      'muni-judah-19th': st(1163.2, -200.3, 1111.5, { major: true }),
-      'muni-judah-sunset': st(1400.2, -355.2, 1290.8, { major: true }),
-      'muni-judah-la-playa': st(1567.7, -465.1, 1417.2, { major: true }),
+      'muni-embarcadero': st(0, 126.2, 78.9, { major: true, underground: true }),
+      'muni-montgomery': st(89.1, 127.5, 168, { major: true, underground: true }),
+      'muni-powell': st(189.2, 128.9, 268.1, { major: true, underground: true }),
+      'muni-civic-center': st(300.2, 130.3, 379.1, { major: true, underground: true }),
+      'muni-van-ness': st(389.3, 131.7, 468.1, { major: true, underground: true }),
+      'muni-duboce-church': st(543.2, 114.8, 613.5, { major: true }),
+      'muni-duboce-park': st(597.5, 78.9, 654),
+      'muni-carl-cole': st(804.2, -19.8, 833.7, { major: true }),
+      'muni-carl-stanyan': st(839.1, -39.8, 862.3),
+      'muni-carl-hillway': st(887, -67.2, 901.5, { major: true }),
+      'muni-irving-2nd': st(920.5, -81.1, 929.3, { major: true }),
+      'muni-irving-6th': st(971.3, -114.3, 967.7),
+      'muni-9th-irving': st(1022.3, -133.5, 1006, { major: true }),
+      'muni-judah-19th': st(1166.9, -202.7, 1114.3, { major: true }),
+      'muni-judah-sunset': st(1400.8, -355.7, 1291.4, { major: true }),
+      'muni-judah-la-playa': st(1580.1, -461.7, 1417, { major: true }),
     },
   },
   'm-ocean-view': {
-    kind: 'light-rail', length: 2028.3, tunnels: [[0, 1164.2]],
+    kind: 'light-rail', length: 2028.1, tunnels: [[0, 1164.2]],
     stations: {
-      'muni-embarcadero': st(0, 131.4, 78.9, { major: true, underground: true }),
-      'muni-montgomery': st(89.1, 132.7, 167.9, { major: true, underground: true }),
-      'muni-powell': st(189.2, 134.1, 268.1, { major: true, underground: true }),
-      'muni-civic-center': st(300.2, 135.5, 379.0, { major: true, underground: true }),
-      'muni-van-ness': st(389.3, 136.9, 468.1, { major: true, underground: true }),
-      'muni-church': st(569.3, 140.2, 648.1, { major: true, underground: true }),
-      'muni-castro': st(661.0, 140.4, 739.7, { major: true, underground: true }),
-      'muni-forest-hill': st(1040.9, 99.1, 1113.6, { major: true, underground: true }),
-      'muni-west-portal': st(1168.9, 119.8, 1239.6, { major: true }),
-      'muni-st-francis-circle': st(1278.0, 133.4, 1347.2, { major: true }),
+      'muni-embarcadero': st(0, 126.2, 78.9, { major: true, underground: true }),
+      'muni-montgomery': st(89.1, 127.5, 168, { major: true, underground: true }),
+      'muni-powell': st(189.2, 128.9, 268.1, { major: true, underground: true }),
+      'muni-civic-center': st(300.2, 130.3, 379.1, { major: true, underground: true }),
+      'muni-van-ness': st(389.3, 131.7, 468.1, { major: true, underground: true }),
+      'muni-church': st(569.3, 135, 648.2, { major: true, underground: true }),
+      'muni-castro': st(661, 141.9, 748.2, { major: true, underground: true }),
+      'muni-forest-hill': st(1040.8, 93.9, 1113.6, { major: true, underground: true }),
+      'muni-west-portal': st(1171.6, 120.4, 1242.3, { major: true }),
+      'muni-st-francis-circle': st(1282.2, 134.9, 1351.1, { major: true }),
       'muni-ocean-ave': st(1342.4, 152.1, 1408.7),
-      'muni-19th-winston': st(1420.1, 195.2, 1471.5, { major: true }),
+      'muni-19th-winston': st(1420, 195.2, 1471.5, { major: true }),
       'muni-19th-holloway': st(1509.5, 256.9, 1536.2, { major: true }),
-      'muni-san-jose-geneva': st(2028.3, 511.7, 1299.3, { major: true }),
+      'muni-san-jose-geneva': st(2028.1, 511.7, 1299.3, { major: true }),
     },
   },
   california: {
@@ -314,7 +313,7 @@ const CHAPTERS: CityTourChapter[] = [
       id: 'bay-vista', target: 'place:osm-w164569681', leg: walk, attraction: 'golden-gate-bridge', moment: 'arrive',
       postcard: 'sf-golden-gate-fog',
       lines: { lead: bi('下车！游客中心旁边就能看到大桥南塔。', 'Off we get! The south tower is right by the Welcome Center.'), arrive: bi('这就是金门大桥，1937 年通车！', 'The Golden Gate Bridge — open since 1937!') },
-      minutes: 0.4, expressMinutes: 0.4,
+      minutes: 0.5, expressMinutes: 0.5,
     },
     {
       id: 'bay-fort-point', target: 'sf:fort-point', leg: walk, moment: 'photo', optional: true, express: 'skip',
@@ -332,7 +331,7 @@ const CHAPTERS: CityTourChapter[] = [
       id: 'coast-ride-lands-end', target: 'transit-loop-lands-end-sutro', leg: loop('golden-gate-bridge', 'lands-end-sutro'),
       expressTo: 'loop-ocean-beach-windmill',
       lines: { lead: bi('回车站，下一班车往海边开！', 'Back to the stop — the next bus heads for the coast!'), arrive: 'loop-lands-end-sutro-arrive' },
-      minutes: 2.1, expressMinutes: 2.6,
+      minutes: 2.1, expressMinutes: 2.5,
     },
     {
       id: 'coast-sutro', target: 'sf:sutro-baths', leg: walk, attraction: 'sutro-baths', moment: 'arrive', express: 'skip',
@@ -342,7 +341,7 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'coast-ride-windmill', target: 'transit-loop-ocean-beach-windmill', leg: loop('lands-end-sutro', 'ocean-beach-windmill'), express: 'skip',
       lines: { lead: bi('再坐一站，就到海洋海滩！', 'One more stop to Ocean Beach!'), arrive: 'loop-ocean-beach-windmill-arrive' },
-      minutes: 0.8, expressMinutes: 0.0,
+      minutes: 0.7, expressMinutes: 0.0,
     },
     {
       id: 'coast-windmill', target: 'sf:dutch-windmill', leg: walk, attraction: 'dutch-windmill', moment: 'photo', postcard: 'sf-windmill', express: 'skip',
@@ -374,7 +373,7 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'n-painted-ladies', target: 'sf:painted-ladies', leg: walk, attraction: 'alamo-square-painted-ladies', moment: 'photo', goal: 'painted-ladies', postcard: 'sf-painted-ladies', express: 'skip',
       lines: { lead: bi('走上阿拉莫广场，给彩绘女士拍张照！', 'Up to Alamo Square for a photo of the Painted Ladies!'), arrive: 'loop-painted-ladies-arrive' },
-      minutes: 1.1, expressMinutes: 0.0,
+      minutes: 1.0, expressMinutes: 0.0,
     },
     {
       id: 'n-walk-church', target: 'transit-muni-church', leg: walk,
@@ -409,17 +408,17 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'peaks-ride-twin-peaks', target: 'transit-loop-twin-peaks', leg: loop('castro', 'twin-peaks'),
       lines: { lead: bi('观光巴士就在卡斯特罗站上面，我们上山！', 'The bus stops right above the Castro station — up the hill we go!'), arrive: 'loop-twin-peaks-arrive' },
-      minutes: 1.4, expressMinutes: 1.4,
+      minutes: 1.5, expressMinutes: 1.5,
     },
     {
       id: 'peaks-overlook', target: 'sf:twin-peaks', leg: walk, attraction: 'twin-peaks', moment: 'panorama', goal: 'twin-peaks', postcard: 'sf-twin-peaks-view',
       lines: { lead: 'loop-twin-peaks-tip', arrive: bi('我指给你看！今天去过的地方都在下面。', 'Let me show you! Everywhere we went today is down there.') },
-      minutes: 0.9, expressMinutes: 0.9,
+      minutes: 1.0, expressMinutes: 1.0,
     },
     {
       id: 'peaks-ride-chinatown', target: 'transit-loop-chinatown', leg: loop('twin-peaks', 'chinatown'),
       lines: { lead: bi('下山！经过多洛雷斯传教站和市政厅，去唐人街。', 'Downhill! Past Mission Dolores and City Hall to Chinatown.'), arrive: 'loop-chinatown-arrive' },
-      minutes: 3.2, expressMinutes: 3.2,
+      minutes: 3.4, expressMinutes: 3.4,
     },
     {
       id: 'peaks-cable-hill', target: 'transit-powell-california', leg: walk, moment: 'photo', postcard: 'sf-cable-car-hill',
