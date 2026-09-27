@@ -20,6 +20,7 @@ import { flow, initialFlowState, type Bubble } from './flowStore';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, subjectPosition, type Interactable } from './interactables';
 import { endRide } from './ride';
 import { goalTargets, initCityContent } from './cityContent';
+import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { gameTimeLabel } from './travel';
@@ -508,11 +509,23 @@ export function stageMark(poi: PoiDef, from: Vec2 = playerPos()): Vec2 {
   return nearestWalkable(want, 4) ?? { x: f.x, z: f.z };
 }
 
-/** Where BAYBAY should hold still while the current dialogue plays (welcome mark, stage mark), or null. */
+/** BAYBAY's spot beside the city resident you are chatting with, solved once per resident and player spot. */
+let aside: { key: string; x: number; z: number; mark: Vec2 | null } | null = null;
+
+/** Where BAYBAY should hold still while the current dialogue plays (welcome mark, stage mark, beside a resident), or null. */
 export function talkMark(): Vec2 | null {
   const s = game.get(), f = flow.get();
   if (s.dialogue.nodeId === START_NODE && game.get().mode === 'onboarding') return welcomeMark();
   if (s.tour.active && (f.tourPhase === 'arrived' || f.tourPhase === 'done-node')) { const cur = currentStop(); return cur ? stageMark(cur.poi) : null; }
+  // a chat with one of the six city residents (nodes npc.<key>.…): she steps beside them, out of the two-shot's line
+  const r = residentByKey(/^npc\.([a-z-]+)\./.exec(s.dialogue.nodeId ?? '')?.[1] ?? '');
+  const p = playerPos();
+  if (r && dist(p, r.at) < 7) {
+    if (!aside || aside.key !== r.key || Math.hypot(aside.x - p.x, aside.z - p.z) > 0.5) {
+      aside = { key: r.key, x: p.x, z: p.z, mark: asideMark(p, r, { x: runtime.guide.x, z: runtime.guide.z }, (x, z) => canStand(x, z, 0.45)) };
+    }
+    return aside.mark;
+  }
   return null;
 }
 
@@ -1318,7 +1331,21 @@ export function freeLeadArrived() {
   bubble({ zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
 }
 
-/** "附近有什么？": BAYBAY names the two nearest places (with honest game times) and offers to take you. */
+/** A city resident this close (u, about a minute's walk) whose favour you have not taken yet is named in "附近有什么？". */
+export const NEIGHBOUR_NEAR = 300;
+
+/** The nearest city resident within NEIGHBOUR_NEAR whose favour is still new (city mode only), or undefined. */
+export function neighbourNearby(p: Vec2 = playerPos()) {
+  const s = game.get();
+  if (s.worldMode !== 'city') return undefined;
+  return RESIDENTS.filter(r => taskState(s.goalsDone, r.key) === 'new' && dist(p, r.at) > 3 && dist(p, r.at) < NEIGHBOUR_NEAR)
+    .sort((a, b) => dist(p, a.at) - dist(p, b.at))[0];
+}
+
+/**
+ * "附近有什么？": BAYBAY names the two nearest places (with honest game times) and offers to take you; in the city she
+ * also mentions a neighbour close by who could use a hand (G2-6: the favours from the call menu), with "去找 TA".
+ */
 function nearbyNode(): string | null {
   const p = playerPos();
   const near = POIS.filter(poi => poi.interaction.kind !== 'postcard' && dist(p, poi.position) > (poi.radius || 3) + 1)
@@ -1326,14 +1353,21 @@ function nearbyNode(): string | null {
   if (near.length < 2) return null;
   const [a, b] = near;
   const ta = gameTimeLabel(dist(p, a.position)), tb = gameTimeLabel(dist(p, b.position));
+  const who = neighbourNearby(p);
+  const tw = who ? gameTimeLabel(dist(p, who.at)) : null;
+  const choices: DialogueNode['choices'] = [
+    { label: { zh: `去${a.name.zh}`, en: `${a.name.en}` }, next: `flow.goto.${a.id}` },
+    { label: { zh: `去${b.name.zh}`, en: `${b.name.en}` }, next: `flow.goto.${b.id}` },
+  ];
+  if (who && tw) choices.push({ label: { zh: `去找${who.name.zh}（${tw.zh}）`, en: `Find ${who.name.en} (${tw.en})` }, next: `flow.goto.${who.id}` });
+  choices.push({ label: { zh: '先不用', en: 'Not now' }, action: { type: 'end' } });
+  choices.forEach((choice, i) => { choice.hotkey = String(i + 1); });
   return defineNode({
     id: 'flow.nearby', speaker: 'baybay', mood: 'point',
-    text: { zh: `最近的是${a.name.zh}（${ta.zh}）和${b.name.zh}（${tb.zh}）。想去哪个？`, en: `Closest are ${a.name.en} (${ta.en}) and ${b.name.en} (${tb.en}). Which one?` },
-    choices: [
-      { hotkey: '1', label: { zh: `去${a.name.zh}`, en: `${a.name.en}` }, next: `flow.goto.${a.id}` },
-      { hotkey: '2', label: { zh: `去${b.name.zh}`, en: `${b.name.en}` }, next: `flow.goto.${b.id}` },
-      { hotkey: '3', label: { zh: '先不用', en: 'Not now' }, action: { type: 'end' } },
-    ],
+    text: who
+      ? { zh: `最近的是${a.name.zh}（${ta.zh}）和${b.name.zh}（${tb.zh}）。${who.short.zh} 就在附近，好像想找人帮个忙！`, en: `Closest are ${a.name.en} (${ta.en}) and ${b.name.en} (${tb.en}). And ${who.short.en} is close by — looks like they could use a hand!` }
+      : { zh: `最近的是${a.name.zh}（${ta.zh}）和${b.name.zh}（${tb.zh}）。想去哪个？`, en: `Closest are ${a.name.en} (${ta.en}) and ${b.name.en} (${tb.en}). Which one?` },
+    choices,
   });
 }
 

@@ -122,6 +122,13 @@ test('G2-6: every resident stands in the published city, off the road, in its ne
       assert.ok(n >= 0 && ix.component(n) === home, `${r.key}: reachable from ferry-gate`);
       for (const p of prompts) assert.ok(dist(r.at, p) >= 7.5, `${r.key}: ≥ 7.5 u from ${p.id} (${dist(r.at, p).toFixed(1)})`);
       for (const o of RESIDENTS) if (o !== r) assert.ok(dist(r.at, o.at) > 100, `${r.key} vs ${o.key}`);
+      // BAYBAY finds a spot beside them in the real street from wherever you can walk up to talk (2 u, 8 ways)
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2, p = { x: r.at.x + Math.sin(a) * 2, z: r.at.z + Math.cos(a) * 2 };
+        if (!canStand(p.x, p.z, 0.3)) continue;
+        const m = residents.asideMark(p, r, p, (x, z) => canStand(x, z, 0.45));
+        assert.ok(m, `${r.key}: a spot for BAYBAY when you talk from ${k * 45}°`);
+      }
     }
   } finally { setCityTerrain(null); }
 });
@@ -273,6 +280,70 @@ test('G2-7: city mode spawns the six at their spots; district mode unchanged', (
     assert.notEqual(d.talks, false);
   }
   assert.ok(RESIDENT_SHOW < RESIDENT_HIDE && RESIDENT_HIDE < RESIDENT_LOAD && RESIDENT_HIDE <= 160, 'hide by ~160 u, build before they show');
+});
+
+test('G2-6: in a chat BAYBAY stands beside the resident, never between the two-shot camera and them', () => {
+  const { asideMark, ASIDE_SPOTS } = residents;
+  const r = RESIDENTS[1];
+  const open = () => true;
+  // mirrors actors/camera.ts twoShotPose: behind the player, 0.43 / 0.66 / 0.99 rad off the player → speaker line,
+  // TWO_DIST 8 (6.4 in portrait) + 0.6 per u beyond 2.5 from the pair's midpoint
+  for (const L of [1.4, 2.2, 3.2]) {
+    for (let k = 0; k < 8; k++) {
+      const a0 = (k / 8) * Math.PI * 2, ax = -Math.sin(a0), az = -Math.cos(a0);
+      const p = { x: r.at.x - ax * L, z: r.at.z - az * L };
+      for (const guideSide of [1, -1]) {
+        const guide = { x: p.x + az * guideSide, z: p.z - ax * guideSide };
+        const m = asideMark(p, r, guide, open)!;
+        assert.ok(m, 'a mark on open ground');
+        assert.ok(dist(m, r.at) >= 1.1 && dist(m, r.at) <= 2, 'beside them');
+        assert.ok(dist(m, p) > L, 'not between you and them');
+        // she keeps the side she is on (no walk across the pair)
+        assert.ok(((m.x - r.at.x) * az - (m.z - r.at.z) * ax) * guideSide > 0, 'the side she is on');
+        for (const R0 of [8, 6.4]) {
+          for (const ang of [0.43, 0.66, 0.99]) {
+            for (const sign of [1, -1]) {
+              const mx = (p.x + r.at.x) / 2, mz = (p.z + r.at.z) / 2, R = R0 + Math.max(0, L - 2.5) * 0.6;
+              const c = Math.cos(sign * ang), s = Math.sin(sign * ang);
+              const cam = { x: mx + (-ax * c + az * s) * R, z: mz + (-ax * s - az * c) * R };
+              const dR = dist(cam, r.at), dB = dist(cam, m);
+              let sep = Math.abs(Math.atan2(m.x - cam.x, m.z - cam.z) - Math.atan2(r.at.x - cam.x, r.at.z - cam.z));
+              if (sep > Math.PI) sep = 2 * Math.PI - sep;
+              // in front of them only with clear air between (BAYBAY ≈ 0.45 u, a resident ≈ 0.4 u half-width)
+              if (dB < dR) assert.ok(sep > Math.asin(0.45 / dB) + Math.asin(0.4 / dR), `L ${L}, ${k * 45}°, camera ${R0} ${sign * ang}: BAYBAY blocks the resident`);
+            }
+          }
+        }
+      }
+    }
+  }
+  // no room on her side: the other side; no room anywhere: she stays put
+  const p = { x: r.at.x, z: r.at.z - 2 };
+  const westOnly = (x: number) => x < r.at.x;
+  const m = asideMark(p, r, { x: r.at.x + 1, z: p.z }, westOnly)!;
+  assert.ok(m.x < r.at.x);
+  assert.equal(asideMark(p, r, p, () => false), null);
+  assert.equal(ASIDE_SPOTS.length, 3);
+});
+
+test('G2-6: 附近有什么？ names a neighbour within a minute whose favour is new (city only)', async () => {
+  const { neighbourNearby, NEIGHBOUR_NEAR } = await import('../src/opus-bay/game/flow');
+  const rosa = residentByKey('baker')!, ray = residentByKey('gripman')!;
+  const near = { x: rosa.at.x + 6, z: rosa.at.z };
+  const was = game.get().worldMode;
+  try {
+    game.set({ worldMode: 'district', goalsDone: [] });
+    assert.equal(neighbourNearby(near), undefined, 'district: no city residents');
+    game.set({ worldMode: 'city' });
+    assert.equal(neighbourNearby(near)?.key, 'baker');
+    assert.ok(dist(rosa.at, ray.at) < NEIGHBOUR_NEAR);
+    game.set({ goalsDone: [taskOnId('baker')] });
+    assert.equal(neighbourNearby(near)?.key, 'gripman', 'Rosa said yes already: the next one in reach');
+    game.set({ goalsDone: [taskOnId('baker'), taskDoneId('gripman')] });
+    assert.equal(neighbourNearby(near), undefined, 'nobody new in reach');
+    game.set({ goalsDone: [] });
+    assert.equal(neighbourNearby({ x: rosa.at.x + 1, z: rosa.at.z })?.key, 'gripman', 'not the one you are standing next to');
+  } finally { game.set({ worldMode: was, goalsDone: [] }); }
 });
 
 test('G2-6: residents are talk interactables (the verb follows the loaf); accepted favours lead the waypoints', () => {

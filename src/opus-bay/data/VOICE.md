@@ -83,6 +83,9 @@ does), never reads a sign aloud, and never talks just to fill silence.
   Rules: a resident never asks for money, a purchase or a real shop visit; "带我去" is always offered in the reminder; a
   favour finishes the moment you do it (BAYBAY: "完成啦！回去告诉 X 吧～"), and the thanks can be heard any time after.
   Tulips: say when they bloom (usually March), never that they are in bloom now.
+  BAYBAY in a resident's chat: she steps beside them and listens (no lines of her own inside it). From the call menu,
+  "附近有什么？" names one neighbour within about a minute whose favour you have not taken yet ("Rosa 就在附近，好像想找人
+  帮个忙！") and offers "去找 …" — a hint, never a nag: once you said yes, the favour leads the "next goal" instead.
 
 ## Event and neighbourhood lines (`data/sf/lines.ts`, scheduled by `game/baybayLines.ts`)
 

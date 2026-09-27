@@ -179,6 +179,30 @@ export function finishTask(goalsDone: readonly string[], key: ResidentKey): stri
   return [...goalsDone.filter(id => id !== taskOnId(key)), taskDoneId(key)];
 }
 
+/** BAYBAY's spots beside a resident: [a step behind them (seen from you), to the side] in u, the first that has room. */
+export const ASIDE_SPOTS: readonly (readonly [number, number])[] = [[0.25, 1.5], [0.6, 1.2], [0, 1.8]];
+
+/**
+ * Where BAYBAY waits while you chat with a resident (game/flow talkMark): beside them, on the side she is already on,
+ * a quarter step behind. The conversation two-shot sits behind you, 25–57° off your line to them (actors/camera.ts
+ * twoShotPose), so from there she never stands in front of the resident (tested for both sides and every angle the
+ * camera solves). A spot `stand` rejects falls back to the next one, then the other side; null = she stays put.
+ */
+export function asideMark(player: Vec2, r: ResidentDef, guide: Vec2, stand: (x: number, z: number) => boolean): Vec2 | null {
+  let ax = r.at.x - player.x, az = r.at.z - player.z;
+  const L = Math.hypot(ax, az);
+  if (L < 0.3) { ax = Math.sin(r.at.heading); az = Math.cos(r.at.heading); } else { ax /= L; az /= L; }
+  const px = az, pz = -ax;
+  const side = (guide.x - r.at.x) * px + (guide.z - r.at.z) * pz < 0 ? -1 : 1;
+  for (const s of [side, -side]) {
+    for (const [back, lat] of ASIDE_SPOTS) {
+      const x = r.at.x + ax * back + px * s * lat, z = r.at.z + az * back + pz * s * lat;
+      if (stand(x, z)) return { x, z };
+    }
+  }
+  return null;
+}
+
 /** Favours done (Journal "邻居的小忙 3/6"). */
 export const tasksDone = (goalsDone: readonly string[]) => RESIDENTS.filter(r => goalsDone.includes(taskDoneId(r.key))).length;
 /** Favours accepted and not done yet, in RESIDENTS order. */

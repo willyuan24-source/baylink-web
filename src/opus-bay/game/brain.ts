@@ -222,16 +222,19 @@ function lead(now: number, dest: Vec2, radius: number, onArrive: () => void) {
 
 let freeSince = 0;
 let hintAt = 0;
+let hintGoals: readonly string[] | null = null;
 /**
  * F8: after ~8 s of free roam with nothing else on screen, a soft waypoint points at the nearest unfinished goal
- * (re-picked every couple of seconds as you move; dismissable; gone while a card / dialogue / goals list is up).
+ * (re-picked every couple of seconds as you move, and at once when a goal or favour is done; dismissable; gone while
+ * a card / dialogue / goals list is up).
  */
 function freeHint(now: number) {
   const s = game.get(), f = flow.get();
   if (s.mode !== 'free' || s.tour.active) { freeSince = 0; if (f.freeHint) flow.set({ freeHint: null }); return; }
   if (!freeSince) freeSince = now;
-  if (now - hintAt < 2000) return;
+  if (now - hintAt < 2000 && s.goalsDone === hintGoals) return;
   hintAt = now;
+  hintGoals = s.goalsDone;
   const allowed = now - freeSince > 8000 && performance.now() > f.freeHintOffUntil && !f.mapTarget && performance.now() > f.quietUntil;
   const next = allowed ? nextFreeGoal() : null;
   const cur = f.freeHint;
