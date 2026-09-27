@@ -1,7 +1,9 @@
 import { runtime } from '../core/runtime';
+import type { TransitKind } from '../core/events';
 import type { Vec2 } from '../core/types';
-import { riderWorld } from '../actors/platform';
+import { platformStop, riderWorld } from '../actors/platform';
 import { DISTRICT } from '../data/district';
+import { RIDE_MIN_ODOMETER, activeCableSystem } from '../data/transit';
 
 /**
  * Streetcar ride. Prefers the world's streetcar (runtime.streetcar): wait for it at the stop, ride along
@@ -22,6 +24,20 @@ export interface RideState {
   duration: number;
   carT0: number;
   leftStop: boolean;
+  // --- city lines (lane F, wave 2): absent on the hero F-line ride
+  /** transit line id (= move.line = the platform id) */
+  line?: string;
+  kind?: TransitKind;
+  /** direction along the line's path */
+  dir?: 1 | -1;
+  /** game/fastTravel travelEpoch() at boarding: a trip in between voids the count */
+  epoch?: number;
+  /** the ride already counted (a real stop-to-stop segment of ≥ RIDE_MIN_ODOMETER) */
+  counted?: boolean;
+  /** stops the car had made when last looked at */
+  seenArrivals?: number;
+  /** the rider is aboard (the car stopped at the pickup station and they stepped on) */
+  boarded?: boolean;
 }
 
 export function pathLength(path: Vec2[]): number {
@@ -104,7 +120,75 @@ export function beginRide(from: string, target?: string): RideState | null {
 
 export function endRide() { ride = null; }
 
-export type RideTick = { done: boolean; stage: 'waiting' | 'riding'; eta?: number };
+export type RideTick = {
+  done: boolean;
+  stage: 'waiting' | 'riding' | 'braking' | 'turning';
+  eta?: number;
+  /** city lines: the rider just stepped aboard */
+  boarded?: boolean;
+  /** city lines: the car just stopped at this station (while carrying the rider) */
+  arrivedAt?: string | null;
+  /** city lines: this stop completes a real stop-to-stop segment (count the ride once) */
+  count?: boolean;
+  /** city lines: the car serving the ride is gone (layer disposed): end the ride */
+  lost?: boolean;
+};
+
+/**
+ * City cable-car ride (lane F): ask the running cable-car system (world/transitLine.ts, driven by world/transitLayer.ts)
+ * for a car to `station` heading `dir` toward `to`. Null when no system runs (district mode, data not loaded).
+ */
+export function beginLineRide(line: string, from: string, to: string, dir: 1 | -1, epoch: number): RideState | null {
+  const sys = activeCableSystem();
+  if (!sys) return null;
+  const st = sys.request({ line, station: from, dir, to });
+  if (!st) return null;
+  ride = { from, to, fromT: 0, toT: 0, mode: 'wait', elapsed: 0, duration: 0, carT0: 0, leftStop: false, line, kind: 'cable-car', dir, epoch, counted: false, seenArrivals: 0, boarded: false };
+  return ride;
+}
+
+/** The pickup ETA of a waiting line ride (s), or null. */
+export function lineRideEta(): number | null {
+  const st = ride?.line ? activeCableSystem()?.rideStatus() : null;
+  return st && st.phase === 'coming' ? st.eta : null;
+}
+
+/** Is the car coming for the waiting rider turning on a turntable right now? */
+export function lineRideTurning(): boolean {
+  return !!(ride?.line && activeCableSystem()?.rideStatus()?.turning);
+}
+
+function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTick {
+  const sys = activeCableSystem();
+  const st = sys?.rideStatus();
+  if (!sys || !st || st.line !== r.line) return { done: false, stage: r.mode === 'wait' ? 'waiting' : 'riding', lost: true };
+  if (r.mode === 'wait') {
+    if (st.phase !== 'here') return { done: false, stage: 'waiting', eta: Math.max(1, Math.round(st.eta)) };
+    r.mode = 'follow';
+    r.elapsed = 0;
+    r.boarded = true;
+    sys.board();
+    return { done: false, stage: 'riding', boarded: true };
+  }
+  // aboard: the rider stands / sits on the car's platform (actors/moveSystem places them; mirror it here)
+  const at = riderWorld();
+  const car = sys.cars[st.car];
+  runtime.player.x = at ? at.x : car.pose.x;
+  runtime.player.z = at ? at.z : car.pose.z;
+  runtime.player.heading = at ? at.heading : car.pose.heading;
+  const tick: RideTick = { done: st.phase === 'arrived', stage: platformStop(r.line!) || st.braking ? 'braking' : st.turning ? 'turning' : 'riding' };
+  if (st.arrivals > (r.seenArrivals ?? 0)) {
+    r.seenArrivals = st.arrivals;
+    tick.arrivedAt = st.lastStation;
+    // a real stop-to-stop segment: another station, far enough along, no fast travel since boarding
+    if (!r.counted && st.lastStation && st.lastStation !== r.from && st.odometer >= RIDE_MIN_ODOMETER && travelEpochNow === r.epoch) {
+      r.counted = true;
+      tick.count = true;
+    }
+  }
+  void dt;
+  return tick;
+}
 
 /** Where a virtual ride is along DISTRICT.streetcar.path (0..1, eased in and out) — the world carries a car here. */
 export function virtualT(r: RideState): number {
@@ -113,11 +197,12 @@ export function virtualT(r: RideState): number {
   return r.fromT + (r.toT - r.fromT) * eased;
 }
 
-/** Advance the ride; writes the player position while riding. */
-export function stepRide(dt: number): RideTick | null {
+/** Advance the ride; writes the player position while riding. `travelEpochNow` (city lines): G1's travelEpoch(). */
+export function stepRide(dt: number, travelEpochNow = 0): RideTick | null {
   const r = ride;
   if (!r) return null;
   r.elapsed += dt;
+  if (r.line) return stepLineRide(r, dt, travelEpochNow);
   const car = runtime.streetcar;
   if (r.mode === 'wait') {
     if (car.atStop === r.from) { r.mode = 'follow'; r.elapsed = 0; return { done: false, stage: 'riding' }; }
