@@ -243,3 +243,144 @@ route QA, HC-4 hero GLB compression / preload (the pelican with E2); the kit nig
 - **C2** (budget): the Marina view (`__perf.go(-360, 330, -340, 320)`, quality high) is 421k triangles without the kit;
   the kit swap stays off wherever the view is over 396k.
 - **Lead** (`ASSETS-LEDGER.md`): nothing new from part b (0 credits).
+
+## Part c
+
+### 给主人的摘要
+
+- 十个主要地标的"周边"都做好了：龙门下的 Grant Ave 接上了，头顶挂了一串串红灯笼（晚上会亮）；艺术宫的湖不再像一块凸起的板子，湖边有步道、长椅、路灯、柳树和两只天鹅；金门大桥南端终于有路接上城市的 Merchant Road，旁边还有观景平台；Fort Point、花卉温室、迪扬博物馆、荷兰风车、市政厅、双峰、卡斯特罗剧院也都加了广场、花园、路灯和长椅；卡斯特罗剧院门前原来挡住它的两栋楼去掉了，现在正对 Castro St。
+- 被地标"切断"的街道都自动补回来了（例如市政厅旁的 Van Ness 大道、棒球场旁的 King St 和轻轨轨道）。F 线的游客已经站到这些广场上了。
+- 三条完整路线做好了：唐人街→北滩→科伊特塔（长 396）、码头绿地→艺术宫→克里西场→Fort Point→金门大桥南塔（1,051）、金门公园→海洋海滩（1,403），每两个有名字的地点之间都不超过 225。
+- 五个老的主角模型（BAYBAY、鹈鹕、帆船、两只海狮）文件从 1.36 MB 压到 0.91 MB，游戏里看起来一样。
+- 没花 Higgsfield 积分（整条线 0/80）；检查全绿（674 个测试通过）。还没达标的一项：路线上"屏幕里总能看到一个大地标"的比例实测 72–82%（目标 90%），金门公园那段要等第四波把公园里的新地标接进来。
+
+### What was built
+
+| task | files | what |
+|---|---|---|
+| D2-09 infra | `scripts/opus-sf/assets/{landmark-settings,settingsMeasure}.ts` → `world/sf/landmarks/settingData.ts` (generated) | For each landmark whose module reads it (15): its base exactly as the renderer computes it (numeric, or the chunk's `buildL1` 'terrain' base + baseLift), the **drawn** city ground on a local 2 u grid over the exclusion's box (+1 u; max-pooled ±0.5 u so draped ground never sinks into a kerb), and the city streets its exclusion clips (class, right-of-way, local centreline; y at the street's own height at the exclusion edge and on the sunk ground 2 u inside, never under the ground across the street's width). 30.9 KB raw, 9.2 KB gzip, city chunk only. |
+| D2-09 infra | `world/sf/landmarks/setting.ts` (new) | `settingGround(id)` (a lane-L `SiteGround`, so `siteKit`'s gfill / gstrip / crosswalk / benches / lamps / trees drape on it), `streetStrips(id, keep)` (the clipped streets drawn the city's way: sidewalk band, asphalt, kerbs, centre dashes, footways, rails; `keep` drops the segments under the landmark and a piece splits into the runs that stay), `streetGround(cls, w, pts, …, drape?)`, `ringBand(poly, d0, d1, y)` (a coping / bank round a polygon), `clearOf(blockers)`, `plazaSpots(polys)`. |
+| D2-09 infra | `world/sf/landmarks/index.ts`, `world/sf/sites.ts` | `LandmarkGround.ys` (draped polygons: one height per vertex) and `.angle` (pattern angle); `SfLandmark.sink` (the city ground's sink inside the exclusion, default 0.2; 0 where a setting restores streets at their own height); `buildGroundMesh` drapes (lane L's `SiteGroundPoly` draws draped too); `landmarkSink(l)`. |
+| D2-09 | `world/sf/landmarks/context.ts` | `landmarkPlazaSpots()` = each landmark's SiteHooks `plaza` polygons sampled on a 2.5 u grid (at least one row / column on a thin strip), ≤ 8 per landmark, spread, never within 0.25 u of the landmark's own blockers; computed once. 46 spots on 10 landmarks. **F consumes it** (F11, `09eee9a`: sightseers facing the landmark). |
+| D2-09 | 10 route / T1 landmarks | **Dragon Gate**: the frame 0.55 u south (its side bays cut 0.4 u into the north-west corner building), Grant Ave restored under the arch (sink 0), three red lantern strings over Grant Ave (lit, with light points), the Bush St sidewalk as its plaza. **Palace** (CS-13): water 0.18 u over the sunk lawn inside a pale stone coping and a bank down to the lawn (no rim wall); the shore walks, Palace Drive and the Presidio Parkway corner restored outside the lagoon and the buildings; 5 benches facing the rotunda, 5 lamps, 5 willows, 3 cypresses, 2 swans. **GGB** (CS-11): the deck end runs on as a street draped on the bluff into Merchant Road at its Lincoln Blvd junction; a paved viewing terrace west of the deck end (benches, lamps); the clipped Coastal Trail pieces. **Fort Point**: Marine Drive's end loop, a granite apron and a sea-wall walk, 4 lamps, 2 benches, bollards, 3 cannons on the barbette; the sea wall's top pinned (0.35). **Conservatory**: the exclusion takes in the parterre and the two park sheds the city drew as houses; lawn, 4 flower beds, the entrance walk, lamps, benches, 2 palms; base pinned 16.61. **de Young**: a forecourt under the tower (the exclusion 4 u further north), benches, lamps, 2 sculptures, a basin, trees. **Windmill**: the tulip garden (lawn, 6 beds, hedges, a gravel ring and walk, lamps, benches), the service drive restored; base pinned 1.22. **City Hall**: the exclusion is the block (Van Ness Ave and Goodlett Pl are no longer cut), 2 flagpoles, 4 lamps, 2 planters; base pinned 3.27. **Twin Peaks**: Christmas Tree Point Road's loop restored with a striped car park and 2 lamps. **Castro**: the two frontage buildings between the facade and Castro St drop; a forecourt to the kerb (sink 0) with planters and lamps; base pinned 8.9. |
+| D2-09 | 5 more T2 | Clipped streets restored outside their blockers: **Oracle Park** (King St + the Muni Metro tracks, 26 u), **Mission Dolores** (Chula Lane), **Painted Ladies** (Grove St), **Chase Center** (plaza walks), **Peace Pagoda** (the Peace Plaza walk). |
+| D2-11 | `data/sf/routes.ts` (new), `data/sf/routePaths.ts` (generated), `scripts/opus-sf/assets/routes-build.ts` | `SF_ROUTES`: R1 Chinatown → Coit (6 stops), R2 Marina Green → the GGB south tower (10), R3 Golden Gate Park → Ocean Beach (11). Stops: landmark stops at their arrival (sfLandmarkAnchor, written out), places on their places.json rows, the wave-4 extra places through lane P's attraction ids (their arrival); `via` waypoints steer a leg (R1 walks up Grant Ave toward Coit). BAYLINK per route: planner `chinatown` · `palace`, `presidio`, `golden-gate` · `golden-gate-park`; guides `sf-chinatown-north-beach-walk-guide` · `sf-palace-fine-arts-marina-guide`, `sf-golden-gate-bridge-fort-point-guide`, `presidio-picnic-day-guide` · `golden-gate-park-free-car-free-day-guide` (no month-tagged guide). The walks are the walk graph's A* from stop to stop (the game's own routing), 1 u simplified. |
+| D2-14 | `scripts/opus-sf/routes-qa.mjs` (new) | Walks each route in the app every 25 u (the city focused and ready, the player teleported onto the walk, the camera facing the walking direction) and records calls / triangles / programs, the AI parts in view (triangles, draws, shadow casters) and the landmarks on screen through the real camera (projected bounding boxes: the SF registry's T1 / T2 and the district's Coit / Transamerica / Salesforce / Ferry Building); JPEGs at every stop; a JSON per route and a gate summary. |
+| C2 request 2 | `world/sf/sites.ts` | `AI_R` = 220 u (+30 to leave): a shipped swap draws its GLB parts only that close to the focus and the procedural lod 0 beyond (it reads the same at that distance); crossing rebuilds the lod 0, the models stay retained. |
+| HC-4 | `docs/opus-bay/kit-jobs/hero_glb_pack.py`, `public/opus-bay/models/{baybay,pelican,sailboat,sea-lion,sea-lion-bark}.glb`, `data/assets.ts`, `world/models.ts` | The five district heroes packed for the **bare** GLTFLoader E2 and F use (no loader change): int8 normals, uint16 UVs (KHR_mesh_quantization), uint8 skin weights and int16 animation rotations (core glTF), WebP base colours (EXT_texture_webp); positions stay float (life.ts bakes the node matrix into a clone of the geometry, BAYBAY is skinned). **1,361,088 → 908,300 B** (BAYBAY 599,156 → 368,516). `heroGltfLoader()` = the shared Draco-capable loader for the Draco step (Requests 2). |
+| tests | `tests/opus-bay-sf-landmark-context.test.ts` (+5), `tests/opus-bay-sf-routes.test.ts` (new, 5), `tests/opus-bay-sf-models.test.ts` (+1) | settingData = a fresh measurement (5 landmarks) with exactly the 15 rows; every draped vertex of the 10 settings on the drawn ground (not buried, not floating > 0.8 u); City Hall clips no avenue, Grant Ave asphalt under the gate (sink 0), the Palace walks never cross the lagoon, King St restored, the GGB approach from the deck to Merchant Road; CS-13 water ≤ 0.25 u over the ground and no rim wall, the Castro frontage drops and its neighbours stay; plaza spots clear of blockers. Routes: ids exist (places.json, attractions, landmarks, planner, guides), stops on their anchors, the walks fresh and passing each stop ≤ 12 u, gaps ≤ 225 u, lengths within the plan's; the on-screen proxy. AI_R and its hysteresis. |
+
+**API for other lanes.** `landmarkPlazaSpots()` (F: in use). `SF_ROUTES`, `sfRoute(id)`, `routePath(id)`, `routeGaps(id)`,
+`routePointAt(id, s)`, `ROUTE_GAP_MAX` from `data/sf/routes.ts` (data only: GameRoot may import it) for G1 (discovery,
+map route lines), G2 (stop slots / lines) and F (crowds along a route). `heroGltfLoader()` from `world/models.ts`
+(import it dynamically). For lane L (wave 4, inherits these files): `LandmarkGround.ys` draws draped now,
+`SfLandmark.sink`, and `setting.ts` builds on `siteKit`.
+
+### Evidence
+
+- **Checks** on the pushed head `503fa8f` (rebased on `b87326e`): `tsc` 0 errors; `npx eslint . --ignore-pattern
+  ".vite-opus/**"` 0 errors (42 warnings, none in D2 files; `.vite-opus/` is the local dev cache, not in git);
+  **674 / 674** opus-bay tests (hero regression and contracts included).
+- **Settings, before / after** (golden, desktop 1440×900, quality high): `qa/w3/D2/d2-09-before-after-1.jpg` (Dragon
+  Gate, Palace lagoon, GGB south end, Conservatory) and `-2.jpg` (windmill, Castro, Twin Peaks, City Hall); **night**
+  (after): `d2-09-night-1.jpg`, `-2.jpg` (lanterns over Grant Ave, lamps round the lagoon, City Hall's flags and lamps,
+  the Conservatory lit, Castro's forecourt); **phone** 390×844 dpr 3, quality mid: `d2-09-phone-390.jpg`; the T2
+  streets (Oracle Park's King St): `d2-09-t2-streets.jpg`. Scratch (every take, the plan views of each setting, the QA
+  scripts `c/{set,plan,lmposes,…}`): `C:/Users/willy/opus-qa/w3/d2/c/`.
+- **Budget** (`window.__opusBay.city.stats()`, quality high): Chinatown at the gate 124 calls / 395.7k (before 121–124 /
+  395–400k at the same poses: the lanterns and the street strip cost < 1k), the Palace 67–72 / 183–190k, City Hall 80 /
+  316k, Castro 68 / 261k (phone, mid). Programs unchanged at every spot (the setting ground is the city's GROUND program,
+  the furniture the lod 0's TOY). Lod-0 triangles within every tier budget (Palace 5,374 / 6,000, Fort Point 2,188 /
+  2,500, Conservatory 2,088 / 2,500).
+- **AI parts within 220 u** (C2's request): Ocean Beach walk — AI parts 1 (the windmill), `city.landmarks` 17.3k (C2
+  measured 23–43k there); Alamo Square walk — AI 2 (City Hall, Mission Dolores), 12.7k AI triangles, 333.6k in all.
+- **Routes** (`routes-qa.mjs`, desktop, golden, quality high, RTX; `qa/w3/D2/d2-11-routes.jpg` = the stops):
+
+| route | length | stops | longest gap | samples | landmark on screen (in app) | max calls | max tris | programs | AI tris / draws / casters |
+|---|---|---|---|---|---|---|---|---|---|
+| R1 Chinatown → Coit | 396 u | 6 | 173 u | 17 | **76.5 %** | 116 | 365k | 41–42 | 11.8k / 2 / 0 |
+| R2 Marina Green → GGB | 1,051 u | 10 | 210 u | 44 | **81.8 %** | 93 | 251k | 41–42 | 5.9k / 2 / 1 |
+| R3 GGP → Ocean Beach | 1,403 u | 11 | 219 u | 58 | **72.4 %** | 103 | 297k | 40–42 | 11.8k / 2 / 0 |
+
+  Every budget gate passes (≤ 150 calls, ≤ 400k triangles, AI ≤ 60k / 12 / 6); the G5 on-screen gate (≥ 90 %) does not
+  in the app. The node proxy (a follow camera looking along the walk) gives ≥ 90 % on R1 and R2 and 60–70 % on R3
+  (≥ 90 % once lane L's park sites are counted). The app's camera does not always face the walking direction and sits
+  low among the roofs in narrow streets (CS-10); R1 turns away from Coit round Washington Square; R3's last 250 u run
+  south along Ocean Beach with no landmark ahead.
+- **HC-4** (district, `?at=sea-lion-viewpoint`, BAYBAY swapped in): the sea lions, the pelican and BAYBAY render as
+  before, no console error (`qa/w3/D2/hc4-district.jpg`). Bytes above; `ledger/w3-D2.md` part c.
+- Credits: **0** (lane total 0 / 80).
+
+### Decisions
+
+- **Measure the ground, do not guess it.** Settings drape on the renderer's own drawn ground (`chunkContext.height`,
+  the sink included) sampled offline, with the exact base the renderer will compute; a test re-measures five
+  landmarks, so a changed exclusion or published city fails loudly instead of burying a plaza.
+- **Restore clipped streets generically** instead of shrinking exclusions: the exclusion keeps its job (dropping city
+  buildings, props and street furniture under the landmark), the streets run on the city's way at their own heights,
+  and pieces under the landmark's own blockers stay out. By hand: City Hall's exclusion became the block (the circle cut
+  two avenues); Lombard, Ghirardelli, the turntable, the Legion, the Cliff House and Sutro Baths keep their own streets
+  and terraces (a restored city street there would fight them).
+- **Pinned numeric bases** where a setting widened an exclusion (Conservatory 16.61, windmill 1.22, City Hall 3.27,
+  Castro 8.9): the 'terrain' base is the lowest ground in the exclusion's circle, and the wider circle reached 0.1–1.3 u
+  lower ground, which would have sunk the buildings.
+- **The Dragon Gate moves 0.55 u** rather than shrinking: its 2.2 u walk-through passage needs the toy width, and the
+  shift clears the corner facades; its arrival moved 0.55 u back so its world spot (and G2's `arrivals.ts`) stays.
+- **Arrivals stay** where others would read better (Palace, Fort Point, de Young): `data/sf/arrivals.ts` (G2's P7
+  mirror, checked by G2's test) must change in the same commit — Requests 1, with the values.
+- **Routes as data + generated walks**: the stops are authored (BAYLINK ids, lines), the walks come from the game's own
+  A* on the published graph and the test re-checks them, so a re-baked graph shows up.
+- **HC-4 without Draco**: Draco needs a DRACOLoader in E2's and F's loaders; the packing above needs none and is safe
+  for district mode today. Draco would take the five to roughly 250–300 KB (Requests 2).
+- **AI parts within 220 u**: beyond it a 6k-triangle GLB is a few pixels tall and the procedural lod 0 (1–2k) reads the
+  same; the rebuild at the ring is one lod-0 build (already rate-limited to one a frame).
+
+### Known gaps
+
+- **G5 on-screen gate in the app: 72–82 % (target 90 %)** — see the routes table.
+- **Castro**: the forecourt opens the facade to Castro St, but a toy liberty remains: the theatre's lot (OSM's
+  auditorium way) is set back one building depth from the street, and the forecourt fills that depth.
+- Restored street edges can step by up to the sink (0.2 u) within 1–2 u of an exclusion edge (the drawn ground ramps
+  over one raster cell there).
+- Twin Peaks' terrace still reads as a raised block from downhill (its retaining wall is by design); only its setting
+  changed. Sutro Tower got no setting (its compound already reads; a fence would cut its arrival path).
+- Kit night-glass masks for marina-mediterranean / sunset-doelger / edwardian-flats (part b's finding): not done; their
+  SAM atlases have no bluish glass for the stencil, and a darkness rule needs a night pass on the `?solo=kit` sheet.
+- The route QA teleports along the walk; a real walk-through (click-to-walk, E2's RouteWalker) was not timed.
+
+### Not done (for the lead)
+
+1. The G5 on-screen gate for the three routes: re-run `routes-qa.mjs` after lane L's park sites are integrated (R3)
+   and after the CS-10 camera work (R1 / R2); if still short, add a T2 landmark near R1's Washington Square (Saints
+   Peter and Paul, W4 "defer") or re-route R1.
+2. The three arrival moves (Requests 1).
+3. Draco for the district heroes (Requests 2).
+4. Kit night-glass masks (three houses).
+5. The remaining T2 settings beyond street restoration: Grace Cathedral (Huntington Park steps), the Legion (the court's
+   approach), Ghirardelli, Fisherman's Wharf, Sutro Baths / Cliff House, Lombard, the turntable (F's aprons).
+
+### Requests
+
+1. **Lead** (`data/sf/landmarks.ts` is D2's, `data/sf/arrivals.ts` is G2's: change them in one commit; G2's `sf-content`
+   test prints the arrivals table to paste, and `tests/opus-bay-sf-routes` then asks for
+   `npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/assets/routes-build.ts`, since R2 / R3 stop on these):
+   - `palace-of-fine-arts` arrival `{ x: 1.5, z: 16.6, heading: Math.PI }` (world −409.64, 409.63, heading 5.498): on
+     the lagoon's south shore walk in front of the rotunda — E2's part-b request 2 (the old spot is a gap between the
+     Baker St houses); R2's `r2-palace` stop → x −409.64, z 409.63.
+   - `fort-point` arrival `{ x: 2.4, z: -4.9, heading: 0 }` (world −747.66, 598.89, heading −2.147): on the new apron at
+     the landward wall instead of 3.2 u up the bluff; R2's `r2-fort-point` stop → x −747.66, z 598.89.
+   - `de-young-tower` arrival `{ x: 3.2, z: -2.0, heading: -1.01 }` (world −243.90, 928.60, heading −1.010): in the
+     forecourt facing the tower instead of Music Concourse Drive; R3's `r3-de-young` stop → x −243.9, z 928.6.
+2. **E2** (`actors/system.ts` `loadGuideGlb`) and **F** (`world/life.ts` `loadModel`): load with
+   `(await import('../world/models')).heroGltfLoader()` instead of `new GLTFLoader()` (keeps DRACOLoader out of the
+   district's first load; the heroes load after Start anyway); then D2 or the lead can publish Draco + WebP versions of
+   the five heroes (≈ −70 % more). Until then the packed files work with the bare loader.
+3. **C2** (P5): programs drift from 40–41 to 42 along each route (`routes-qa.mjs` JSON in
+   `C:/Users/willy/opus-qa/w3/d2/routes/`): one or two programs link after the warm-up on the first route stop in city
+   mode.
+4. **Lane L (wave 4)**: `sites.ts` now drapes your `SiteGroundPoly.ys`; R3's on-screen gate counts on your Golden Gate
+   Park sites (their `w4.height` is what `tests/opus-bay-sf-routes` uses); `setting.ts` imports your `siteKit` (keep
+   `gfill`, `bench`, `lamp`, `tree`, `palm`, `conifer`, `planter`, `hedge`, `bollard`, `flagpole`, `GC`, `PAT` and
+   `SiteGround` stable, or update D2's callers when you inherit them).
+5. **G1 / G2**: the routes are ready to show (map lines, discovery chips, stop lines): `SF_ROUTES` in `data/sf/routes.ts`.
+6. **Lead** (`ASSETS-LEDGER.md`): merge `ledger/w3-D2.md` part c (0 credits; the HC-4 re-pack note).
