@@ -206,7 +206,7 @@ report); all on new lane-C files, no existing tracked file edited.
 
 1. C 线早期的新文件全部复查了一遍，并上网抽查了 26 条事实、4 个坐标、2 个街名：事实基本都对，只有一处用错了——“企李街”其实是唐人街的 Clay 街，Clement 街应叫“克莱门街”，卡片已改（P 线的地图名称也要跟着改）。
 2. 找到并修好 16 个问题，最要紧的几个：金门大桥、艺术宫等 28 个老地标“抵达”时 BAYBAY 一句话都不说；沿台阶走上科伊特塔时，旁边的小景点会把科伊特塔的抵达时刻和全景“抢走”；站在 33 号码头的望远镜旁会误报“抵达恶魔岛”；快速版把地铁那段“直接到站”，地铁目标就不算数了（现在这一段真坐，快速版约 18 分钟，正好是计划的时长）；快速版下车时 BAYBAY 会报错站名。
-3. 另有 10 件事要别的线或接线时处理，写在下面。检查全部通过：tsc 0、eslint 0、全套 593 个测试通过，Higgsfield 0 分。
+3. 另有 10 件事要别的线或接线时处理，写在下面。检查全部通过：tsc 0、eslint 0、全套 601 个测试通过，Higgsfield 0 分。
 
 ### What I checked
 
@@ -313,5 +313,5 @@ Tests: lane C's three files 32 → **42** tests (cards 12, tours 14, arrival 16)
 
 ### Checks
 
-On the rebased head (over `78b9094`, lane T's `0a86c3f` and lane L's `84c12e2` included): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
-`npx eslint src/opus-bay tests/opus-bay-*` 0 · full opus-bay suite **593 / 593** green. Higgsfield: 0 credits.
+On the rebased head (over `5f4afa6`: lane T's `0a86c3f`, lane L's `84c12e2` and lane G's review included): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+`npx eslint src/opus-bay tests/opus-bay-*` 0 · full opus-bay suite **601 / 601** green. Higgsfield: 0 credits.
