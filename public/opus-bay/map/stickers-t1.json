@@ -13,7 +13,7 @@
   "golden-gate-bridge",
   "alcatraz",
   "fishermans-wharf",
-  "ferry-building",
+  "ferry-building-marketplace",
   "coit-tower",
   "chinatown-dragon-gate",
   "lombard-crooked",
@@ -49,7 +49,7 @@
    "h": 124,
    "src": "main"
   },
-  "ferry-building": {
+  "ferry-building-marketplace": {
    "x": 386,
    "y": 2,
    "w": 124,
@@ -145,7 +145,7 @@
   "golden-gate-bridge": 458.5,
   "alcatraz": 458.5,
   "fishermans-wharf": 458.5,
-  "ferry-building": 458.5,
+  "ferry-building-marketplace": 458.5,
   "coit-tower": 460.5,
   "chinatown-dragon-gate": 458.0,
   "lombard-crooked": 459.0,

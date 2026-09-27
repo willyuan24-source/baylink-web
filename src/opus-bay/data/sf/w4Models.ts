@@ -38,8 +38,8 @@ export const W4_MODELS: Record<W4ModelId, SfModelAsset> = {
     scale: 1, yOffset: 0, triangles: 5879, bytes: 152_988, size: [7.5, 13.2, 11.15],
   },
   /**
-   * Holy Virgin Cathedral (geary-west site): the white body with rounded arched gables and red trim (the 2018 colour
-   * scheme), five gold onion domes on drums with small crosses. 38.1 m → H = 9.1 u. 1024 px texture. An active place
+   * Holy Virgin Cathedral (geary-west site): the white body with rounded arched gables and red trim (the red-and-white
+   * scheme of its 2015–16 restoration), five gold onion domes on drums with small crosses. 38.1 m → H = 9.1 u. 1024 px texture. An active place
    * of worship: no gameplay objects on or in it.
    */
   'sf-holy-virgin': {

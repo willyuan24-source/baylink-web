@@ -74,3 +74,30 @@ the hero palette grade (`grade.py`, per-asset hue remaps), Draco (level 6) + Web
 | models/sf/w4-holy-virgin.glb | 5,880 | 184,596 | 6.10 × 9.1 × 6.69 | 0.854 | 0.23 % / 2 | 0.41 → 0.85 | published, not registered |
 | models/sf/w4-chinese-pavilion.glb | 2,940 | 71,388 | 5.62 × 4.5 × 5.61 | 0.855 | 0 % / 1 | 0.25 → 0.86 | published, not registered |
 | map/stickers-t1.webp + .json | — | 74,150 | 512 × 512 atlas, 16 × 124 px circles | — | — | — | published (lane P draws it) |
+
+## Batch 3 · tour narration voice (W4-V6), 2026-09-27 18:29–19:30 UTC
+
+Lane C froze `TOUR_LINES` at 9d9dab9 (tag `w4-tourlines-frozen`): 107 lines. Model `qwen_audio_tts` (Qwen Audio 3.0 TTS
+Flash), preset "Pixie" `0178ef57-ada4-43d9-992b-8d9221045bb4` (every BAYBAY clip), wav 48 kHz, `language` zh / en,
+instruction = "Cute otter mascot tour guide: warm, cheerful, clear, friendly storytelling pace." + a mood note (quiet
+lines: "soft, gentle and respectful, quiet and slow"), ≤ 128 characters. Take list `scripts/opus-sf/voice/w4/takes.ts`;
+every take with its job id, text, rate, measurements and the pick: `docs/opus-bay/qa/w4/V/voice/tour-voice-report.json`.
+Preflight `get_cost`: 0.05 for a 110-character line (billed by length, 0.01–0.04 for these lines). Raw wavs:
+`C:/Users/willy/opus-qa/w4/w4-v/voice/raw/<take index>.wav`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-VO1 | 214 clips (107 lines × zh / en), take 1 | qwen_audio_tts, Pixie, speech_rate 1.0 | the frozen texts | (below) | tour-voice-report.json, `takes[].job_id` | voice/raw/<even index>.wav | 194 completed; 20 failed at the service ("failed", type image, as in wave 3); about 1 in 6 submissions answered 429 and were resubmitted |
+| W4V-VO2 | the 20 failed takes, resubmitted | same | same | (below) | jobs_retry (in the report) | same paths | all completed |
+| W4V-VO3 | 16 retakes at speech_rate 1.08 | same | the clips whose take missed a gate or the recogniser | (below) | jobs_r2 (in the report) | voice/raw/<odd index>.wav | 5 of them became the pick |
+
+Transactions 18:29:40–19:29:39 UTC: only "Qwen Audio 3.0 TTS Flash" spends (0.01–0.04 each) and refunds (the 429 /
+failed submissions), at the times of this lane's batches; no other lane spent in the window. **Subtotal 5.45 credits**
+(balance 420.58 → 415.13).
+
+**Wave-4 lane V total: 40.45 credits** (35.00 images + 3D, 5.45 voice) of the 120 cap. Balance 455.58 → **415.13**
+(`balance`, 2026-09-27 ≈ 20:05 UTC).
+
+Published: `public/opus-bay/voice/sf/tour/<lang>-<id>.m4a` + `.ogg` (214 × 2 files, 2.2–8.1 s, 17 MB), all picks pass the
+gates (no clipping, not cut, pauses, pitch, speaking rate with numbers counted as read), the recogniser heard 203 of 214
+right; `src/opus-bay/data/sf/voiceTour.ts` (generated); previews and the owner's sheet in `docs/opus-bay/qa/w4/V/voice/`.

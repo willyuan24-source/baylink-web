@@ -107,7 +107,7 @@ def vehicle_prompt(k):
 
 # the 16 map T1 attractions of plan §4.1, row by row in the sheet (lane P's attraction ids)
 STICKER_IDS = [
-    "golden-gate-bridge", "alcatraz", "fishermans-wharf", "ferry-building",
+    "golden-gate-bridge", "alcatraz", "fishermans-wharf", "ferry-building-marketplace",
     "coit-tower", "chinatown-dragon-gate", "lombard-crooked", "palace-of-fine-arts",
     "golden-gate-park", "alamo-square-painted-ladies", "twin-peaks", "city-hall",
     "union-square", "sutro-baths", "sf-state-university", "stonestown-galleria",

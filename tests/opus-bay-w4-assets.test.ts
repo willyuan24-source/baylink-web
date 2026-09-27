@@ -6,12 +6,15 @@ import test from 'node:test';
 import { SF_MODEL_IDS } from '../src/opus-bay/data/assets';
 import { W4_MODELS, W4_MODEL_IDS, w4ModelUrls } from '../src/opus-bay/data/sf/w4Models';
 import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
+import { T1_IDS } from '../src/opus-bay/data/sf/attractions';
+import { TOUR_LINES } from '../src/opus-bay/data/sf/tourLines';
+import { TOUR_VOICE_CHECK, TOUR_VOICE_CLIPS } from '../src/opus-bay/data/sf/voiceTour';
 
 /**
  * Lane V (wave 4, early phase): the new asset files against their data modules — the four AI landmark GLBs
  * (data/sf/w4Models.ts, not registered in data/assets.ts until the integration phase), the T1 map sticker atlas
- * (data/sf/mapStickers.ts + public/opus-bay/map/stickers-t1.json) and the wave-4 perf spots (scripts/opus-sf/qa/perf/
- * w4-spots.json). File checks only: no WebGL, no decoding.
+ * (data/sf/mapStickers.ts + public/opus-bay/map/stickers-t1.json), the tour narration clips (data/sf/voiceTour.ts, lane C's
+ * frozen TOUR_LINES) and the wave-4 perf spots (scripts/opus-sf/qa/perf/w4-spots.json). File checks only: no WebGL, no decoding.
  */
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -102,7 +105,7 @@ test('w4 models: the landmark height rule H = 3.2 + 0.155 · h (data/sf/landmark
 
 test('T1 stickers: 16 ids in the plan §4.1 order, atlas WebP 512 px with alpha, JSON = module (rects, bytes, sha256)', () => {
   assert.deepEqual([...MAP_STICKER_IDS], [
-    'golden-gate-bridge', 'alcatraz', 'fishermans-wharf', 'ferry-building', 'coit-tower', 'chinatown-dragon-gate',
+    'golden-gate-bridge', 'alcatraz', 'fishermans-wharf', 'ferry-building-marketplace', 'coit-tower', 'chinatown-dragon-gate',
     'lombard-crooked', 'palace-of-fine-arts', 'golden-gate-park', 'alamo-square-painted-ladies', 'twin-peaks', 'city-hall',
     'union-square', 'sutro-baths', 'sf-state-university', 'stonestown-galleria',
   ]);
@@ -128,6 +131,8 @@ test('T1 stickers: 16 ids in the plan §4.1 order, atlas WebP 512 px with alpha,
     const a = rs[i], b = rs[j];
     assert.ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `${MAP_STICKER_IDS[i]} / ${MAP_STICKER_IDS[j]}`);
   }
+  // one sticker per lane P's tier-1 attraction (data/sf/attractions.ts), no more, no less
+  assert.deepEqual([...MAP_STICKER_IDS].sort(), [...T1_IDS].sort(), 'stickers = lane P T1_IDS');
   assert.equal(mapStickerRect('twin-peaks'), MAP_STICKERS_T1.rects['twin-peaks']);
   assert.equal(mapStickerRect('sutro-tower'), null, 'T2 attractions have no sticker');
   assert.ok(isMapStickerId('stonestown-galleria') && !isMapStickerId('stonestown'));
@@ -170,5 +175,29 @@ test('w4 perf spots: the six old spots unchanged, the five new views of plan §2
       assert.ok(d > 0 && d <= 25, `${r.id} step ${i} = ${d.toFixed(1)} u`);
     }
     assert.ok(r.speed >= 8 && r.speed <= 14 && r.camH > 0 && r.lookAhead > 0, `${r.id} ride parameters`);
+  }
+});
+
+test('tour voice: every frozen TOUR_LINES line has its zh + en clip, word for word, files = the report (bytes, sha256), 1.5–9 s', () => {
+  assert.equal(Object.keys(TOUR_VOICE_CLIPS).length, TOUR_LINES.length * 2);
+  const report = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/opus-bay/qa/w4/V/voice/tour-voice-report.json'), 'utf8')) as {
+    clips: Record<string, { text: string; pick: { duration: number; passed: boolean; files: Record<'m4a' | 'ogg', { path: string; bytes: number; sha256: string }> } }>;
+  };
+  for (const line of TOUR_LINES) {
+    for (const lang of ['zh', 'en'] as const) {
+      const id = `${lang}-${line.id}`, c = TOUR_VOICE_CLIPS[id], r = report.clips[id];
+      assert.ok(c && r, `${id} recorded`);
+      assert.equal(c.text, line[lang], `${id} says the frozen text`);
+      assert.equal(c.lang, lang);
+      assert.equal(c.duration, r.pick.duration, `${id} duration`);
+      assert.ok(c.duration >= 1.5 && c.duration <= 9, `${id} ${c.duration} s`);
+      assert.equal(c.m4a, `/opus-bay/voice/sf/tour/${id}.m4a`);
+      for (const ext of ['m4a', 'ogg'] as const) {
+        const buf = fs.readFileSync(fileOf(c[ext]));
+        assert.equal(buf.length, r.pick.files[ext].bytes, `${id}.${ext} bytes`);
+        assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), r.pick.files[ext].sha256, `${id}.${ext} sha256`);
+      }
+      assert.equal(TOUR_VOICE_CHECK.includes(id), !r.pick.passed, `${id} muted exactly when its take missed a gate`);
+    }
   }
 });

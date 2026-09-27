@@ -42,6 +42,8 @@ function table(res) {
     '| spot / ride | calls | triangles | programs | fps idle / walk (ride) | p95 ms | frames > 100 ms | gate |', '|---|---|---|---|---|---|---|---|'];
   for (const r of res.rows) {
     const g = gateRow({ ...r, profile: res.profile });
+    const moved = r.m?.player && r.pos?.p && Math.hypot(r.m.player.x - r.pos.p.x, r.m.player.z - r.pos.p.z) > 40;
+    if (moved) g.fails.push(`void: player at ${r.m.player.x}, ${r.m.player.z}`);
     const fpsCol = r.ride ? `(${r.ride.fps})` : `${r.idle?.fps ?? '—'} / ${r.walk?.fps ?? '—'}`;
     const p95 = r.ride ? r.ride.p95 : r.walk?.p95;
     lines.push(`| ${r.id} | ${g.calls || '—'} | ${g.tris ? k(g.tris) : '—'} | ${r.m?.programs ?? r.ride?.programs ?? '—'} | ${fpsCol} | ${p95 ?? '—'} | ${g.over100} | ${g.fails.length ? 'fail: ' + g.fails.join(', ') : 'pass'} |`);
@@ -81,7 +83,9 @@ const HELPERS = `window.__w4 = {
     const ob = window.__opusBay; const r = ob.renderer.info; const s = ob.city.stats();
     return JSON.stringify({ calls: r.render.calls, triangles: r.render.triangles, programs: r.programs.length,
       city: { l0: s.l0, l1: s.l1, l2: s.l2, queued: s.queued, errors: s.errors, sites: s.sites },
-      quality: ob.game ? ob.game.get().settings.quality : null });
+      quality: ob.game ? ob.game.get().settings.quality : null,
+      // where the player really is when measured (a spot whose player was moved away, e.g. to the district, is void)
+      player: ob.game ? { x: +ob.game.get().playerPos.x.toFixed(1), z: +ob.game.get().playerPos.z.toFixed(1) } : null });
   },
   // a camera ride: along path [[x, z], ...] at speed u/s, camH above the ground, looking lookAhead u ahead
   async ride(rd) {
