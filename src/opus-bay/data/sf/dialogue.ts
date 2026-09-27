@@ -47,11 +47,11 @@ const bi = (zh: string, en: string): Bilingual => ({ zh, en });
 const SCRIPTS: Record<ResidentKey, Script> = {
   gripman: {
     hi: ['wave', '嘿，我是叮当车司机 Ray！转车台上的车，都是我们用手推着掉头的。', "Hey, I'm Ray, a gripman! We turn the cars on this turntable by hand — we push them round."],
-    ask: ['happy', '帮我个忙？坐一站叮当车，告诉我今天抓手稳不稳～', 'Do me a favour? Ride one stop and tell me how the grip feels today~'],
+    ask: ['happy', '帮我个忙？坐一段叮当车，告诉我今天抓手稳不稳～', 'Do me a favour? Take a ride and tell me how the grip feels today~'],
     accept: bi('包在我身上', "I'm on it"),
-    yes: ['excited', '好嘞！在转车台上车，抓紧扶杆，坐满一站才算哦。', 'Great! Board at the turntable and hold the pole — a full stop counts.'],
+    yes: ['excited', '好嘞！在转车台上车，抓紧扶杆，多坐几站再下哦。', 'Great! Board at the turntable, hold the pole and ride a few stops before you hop off.'],
     no: ['happy', '没关系，叮叮——我一直在这儿！', "No worries — ding ding, I'm always here!"],
-    remind: ['thinking', '还没坐吧？在转车台上车，坐满一站就行。', 'Not yet? Board at the turntable and ride one full stop.'],
+    remind: ['thinking', '还没坐吧？在转车台上车，多坐几站就行。', 'Not yet? Board at the turntable and ride a few stops.'],
     go: ['wave', '去吧，跟着路标走就到！', 'Off you go — follow the marker!'],
     thanks: ['excited', '坐过啦？地下的缆绳一直以每小时 9.5 英里在跑，抓手一抓车就走！', 'Rode it? The cable under the street runs at a steady 9.5 mph — grab it and the car goes!'],
     fact: ['proud', '全世界只剩旧金山的叮当车还靠人手开。谢谢你陪我试车！', "Ours are the world's last manually operated cable cars. Thanks for the test ride!"],

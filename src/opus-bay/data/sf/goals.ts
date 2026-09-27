@@ -28,7 +28,7 @@ export const HOOD_PREFIX = 'hood:';
 
 export const CITY_FREE_GOALS: FreeGoal[] = [
   { id: CITY_GOAL.postcards, label: bi('找齐 20 张旧金山明信片', 'Find all 20 San Francisco postcards'), hint: bi('留意发金光的小卡片，旅行本里有线索', 'Look for little golden glints — your journal has clues') },
-  { id: CITY_GOAL.cableCar, label: bi('坐一段真的叮当车', 'Ride a real cable car'), hint: bi('去 Powell & Market 转车台上车，坐满一站', 'Board at the Powell & Market turntable and ride at least one stop') },
+  { id: CITY_GOAL.cableCar, label: bi('坐一段真的叮当车', 'Ride a real cable car'), hint: bi('去 Powell & Market 转车台上车，多坐几站', 'Board at the Powell & Market turntable and ride a few stops') },
   { id: CITY_GOAL.twinPeaks, label: bi('自己爬上双峰', 'Climb Twin Peaks yourself'), hint: bi('走路、骑车或开小车上山都算，飞过去不算', 'On foot, by bike or in the toy car — flying there doesn’t count') },
   { id: CITY_GOAL.goldenGate, label: bi('走过金门大桥', 'Cross the Golden Gate Bridge'), hint: bi('在桥面上从一座桥塔走到另一座', 'On the deck, from one tower to the other') },
   { id: CITY_GOAL.paintedLadies, label: bi('给彩绘女士拍张照', 'Photograph the Painted Ladies'), hint: bi('去阿拉莫广场，对着那排彩色老房子拍一张', 'Head to Alamo Square and snap the row of colourful houses') },

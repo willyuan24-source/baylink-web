@@ -73,7 +73,7 @@ does), never reads a sign aloud, and never talks just to fill silence.
 
   | who | where | voice | favour |
   |---|---|---|---|
-  | 叮当车司机 Ray | Powell & Market turntable | the crews' brisk gripman, bell-proud, "叮叮" | ride one full stop |
+  | 叮当车司机 Ray | Powell & Market turntable | the crews' brisk gripman, bell-proud, "叮叮" | take a real ride (a few stops: lane F counts 150 u) |
   | 面包师 Rosa | by Washington Square, North Beach | warm, a little bossy about warm bread ("趁热") | take a loaf to Ray |
   | 画壁画的 Luz | Balmy Alley | bright, talks in colours and walls | find the mural postcard in Clarion Alley |
   | 园丁 Hank | Conservatory of Flowers | slow, patient ("花儿慢慢长") | check the tulip garden by the windmill |

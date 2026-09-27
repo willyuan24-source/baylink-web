@@ -475,7 +475,8 @@ seq('npc.deckhand', [
 // Glossary: 叮当车 for the cable cars in everything BAYBAY and the crews say.
 one({ id: 'cablecar.station', speaker: 'npc', npcName: crewName('gripman'), mood: 'happy', text: { zh: '叮叮！这里是 {station}。抓紧扶杆，想去哪儿？', en: 'Ding-ding! This is {station}. Hold on tight, where to?' } });
 seq('cablecar.board', [['excited', '上车啦！抓紧扶杆，叮当车要爬坡咯～', 'All aboard! Hold the pole, up the hill we go~']]);
-seq('cablecar.count', [['thinking', '从一站坐到下一站，才算坐过叮当车哦。', 'Ride from one stop to the next and it counts as a cable-car ride.']]);
+// lane F counts a ride after RIDE_MIN_ODOMETER (150 u, several stops) at the next station: "a few stops", not "one"
+seq('cablecar.count', [['thinking', '多坐几站再下车，才算坐过叮当车哦。', 'Ride a few stops before you hop off and it counts as a cable-car ride.']]);
 seq('cablecar.off', [['happy', '叮叮！下次还坐叮当车～', 'Ding-ding! Let’s ride again soon~']]);
 seq('cablecar.turned', [['proud', '转过来啦！我们是全城最棒的推车手！', 'Round she goes! Best pushers in the whole city!']]);
 one({ id: 'ferry.station', speaker: 'npc', npcName: crewName('deckhand'), mood: 'happy', text: { zh: '欢迎上船！这里是 {station}，想去哪个码头？', en: 'Welcome aboard! This is {station}. Which pier are we headed to?' } });
