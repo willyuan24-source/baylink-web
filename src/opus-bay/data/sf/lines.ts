@@ -202,7 +202,7 @@ export const NEIGHBOURHOOD_LINES: readonly NeighbourhoodLine[] = [
   hood('presidio', '你好，要塞公园！这里当了 218 年军营，现在是国家公园。', 'Hello, the Presidio! An army post for 218 years, now a national park.', 'https://www.nps.gov/prsf/index.htm'),
   hood('nob-hill', '你好，诺布山！山名来自当年住在山顶的铁路富豪。', "Hello, Nob Hill! It's named for the railroad tycoons who built mansions up top.", 'https://en.wikipedia.org/wiki/Nob_Hill,_San_Francisco'),
   hood('sunset-parkside', '你好，日落区！挨着大海，Karl 最爱来这儿。', "Hello, the Sunset! Right by the ocean — Karl the Fog's favourite spot.", 'https://en.wikipedia.org/wiki/Sunset_District,_San_Francisco'),
-  // not recorded yet (BARK_SCRIPT_TODO)
+  // greetings of the later block (BARK_SCRIPT_TODO, recorded by H2b as SF_VOICE_EXTRA)
   hood('hayes-valley', '你好，海斯谷！1989 年地震后拆了高架路，才有这条林荫大道。', 'Hello, Hayes Valley! A quake-damaged freeway came down, and a tree-lined boulevard went in.', 'https://en.wikipedia.org/wiki/Hayes_Valley,_San_Francisco'),
   hood('japantown', '你好，日本城！五层的和平塔是大阪人民送的礼物。', 'Hello, Japantown! The five-tiered Peace Pagoda was a gift from the people of Osaka.', 'https://en.wikipedia.org/wiki/Japantown,_San_Francisco'),
   hood('russian-hill', '你好，俄罗斯山！九曲花街就在这座山上，一共八个急弯。', 'Hello, Russian Hill! The crooked block of Lombard Street is up here: eight sharp turns.', 'https://en.wikipedia.org/wiki/Russian_Hill,_San_Francisco'),
