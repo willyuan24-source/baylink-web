@@ -87,3 +87,64 @@ Nothing from this part's list is left. For the lead / wave 4:
 2. **E2** (`tests/opus-bay-sf-nav.test.ts` line 180): `navWindowStats.lastMs < 200` flakes when six lanes share the machine; allow ≈ 600 ms or drop the wall-clock part (the build count is the real check).
 3. **C2** (`world/sf/stats.ts`, the `?debug` city-streaming panel): on ≤ 720 px screens it covers the coach mark and the Hop button; use `font-size: 10px; max-width: calc(100% - 12px); white-space: pre-wrap` and place it under G1's debug line (which now sits at `top: 116px + safe area` on phones), or show it only above 720 px.
 4. **G2** (`data/sf/copy.ts`, optional): add `greet?: Bilingual` to `CityCopy` (a city first-visit greeting for the title, e.g. "嗨～这次我们逛整座旧金山！"); `ui/TitleScreen.tsx` already shows it when present and falls back to today's line.
+
+## Review
+
+Adversarial review of lane G1's wave-3 part, 2026-09-27, in the lane's worktree (`w3-g1`, dev server 5205, real GPU).
+
+### 给主人的摘要
+
+- 把 G1 这一波的 11 个提交都读了一遍，又在电脑、手机和平板上实际玩了地图、"带我去"、足迹页和 HUD，找到 7 个问题，都修好了。
+- 最明显的三个：地图开着时"带我去"的剩余时间会跳（40→35→40→25 秒），现在地图、路线牌和头顶路牌说同一个数；搜出来还没去过的地方在地图上没有标记；平板和小窗口里目标卡盖住"坐渡轮"提示、大按钮压住"地图 / 问 BAYBAY"。
+- 另外修了路牌文字刚出现时一半跑出屏幕、离开游戏后旧界面没被释放。剩下几个小问题（都不影响正常玩）写在下面。
+
+### What was checked
+
+- **Code**: the diffs of all 11 wave-3 commits (`4002e25` `6bf5067` `eea5179` `738abd4` `c048ed2` `92419d8` `a7ab40f` `0445f37` `637bc2f` `dcd99c6` `9c89412`) and the code around them: `game/{hudLayout,mapRoute,travel,Systems,discovery}.ts(x)`, `ui/{CityMap,cityMapDraw,PlaceActions,Footprints,footprintsData,cityHooks,transitGlyph,Hud,Overlay,TitleScreen,Settings,icons}.ts(x)`, `data/save.ts`, the G1 block of `opus-bay.css`. Looked for races (rapid selection, superseded plans), leaks on unmount, per-frame work, district changes, touch paths, overflow on phones, and report claims.
+- **Checks**: `tsc -p tsconfig.app.json` 0 errors; `eslint .` 0 errors (the worktree's own `.vite-opus/deps` prebundle cache lints with 12 "rule not found" errors: a local artefact CI never sees, skipped with `--ignore-pattern`); `tests/opus-bay-*.test.ts` **601 / 601** before, **602 / 602** after the fixes, **642 / 642** after rebasing on the other lanes' pushes (`7ee36f1`; hero regression + contracts green). The trip series and the tablet / 800×600 sweeps were run again on the rebased tree: same results.
+- **Browser** (scripts in `C:/Users/willy/opus-qa/w3/g1/review/`: `run.mjs` scenarios, `hud.mjs` overlap sweep, `wpdebug.mjs`, `shot.mjs` = opus-shot + CDP touch tap / pinch / swipe):
+  - 1440×900: map open (7 place labels at city zoom, 19 once 唐人街龙门 is selected), route preview "沿路走约 40 秒 · 现实约 2.0 公里"; 8 list rows clicked in 400 ms (the last one wins, no stale route); 带我去 → the map closes, auto-walk on; the map reopened mid-trip (strip, gold route, framing); 不去了 (mapTarget null, auto-walk stopped); a per-second series of strip / chip / place card / waypoint over the whole 40 s trip; an undiscovered place picked from the search.
+  - 390×844 `--mobile --dpr 3`: the bar's 地图 by touch, pinch zoom, swipe pan, a tap on a landmark badge (selects 渔人码头 with route and time), Journal → 足迹 (four tabs 83×46 px, no text overflow in the sheet); 375×667 en: the trip strip truncates cleanly ("Heading to Chinatown Dragon…").
+  - P8 counters: standing still with a bubble and a clue **0 projection runs in 300 frames**, 1 HUD scan in 5 s (the only overlay mutations are the `?debug` text); walking 292 runs in 292 frames, 0.22 ms / frame, 9 scans in 5 s. Same after the fixes.
+  - `?debug` at the Ferry gate, 1440×900 mid: `82–93 calls · 270–274k tris · 37 prog · warm-up 825–1044 ms → 29–30, +7–8 since · q mid (url)` (the drift is other lanes' P5). G1 draws nothing new in 3D (its warm-up probe compiles no objects) and the map is DOM + 2D canvas, so the lane's "the map adds no draw calls" table was not re-measured.
+  - HUD overlap sweep (goals card + two toasts + clue waypoint; + BAYBAY's bubble; riding Powell–Hyde + toasts): 800×600, 960×600, 1180×800, 1440×900 (city and district), 768×1024 and 1366×1024 touch, 390×844 (city and district), 375×667.
+
+### Defects found
+
+| # | what | where | status |
+|---|---|---|---|
+| 1 | With the map open during 带我去 the plan went stale every 20 u from its **start**, so the map re-planned all along the way; each new A* from mid-street snapped elsewhere and began with a loop back, and the time read 40 → 35 → 40 → 25 → 30 s while the waypoint said 35 s (the "one number" claim failed). | `ui/CityMap.tsx` useRoutePlan, `game/mapRoute.ts` | **fixed** `953eb1b`: a plan serves while you are near its start **or its polyline** (`offRoute`, `cachedRoute`); the strip, chip and place card count the way back onto the route like `routeLeftTo`. Series after: strip = card = waypoint every second, 40 → 5 s. |
+| 2 | A place picked from the search that you had not found got **no marker and no label** (the marker filter skipped undiscovered places): the route and its time chip ended on nothing. The report's "the selected place's name always reads" did not hold for them. | `ui/CityMap.tsx` markers | **fixed** `953eb1b`: `markerShown()` (cityMapDraw, tested) keeps the selected place always. |
+| 3 | The waypoint label's slide (`--ob-label-dx`) was written with the **previous** label's width and the new text set after it; with P8's skip nothing re-ran while the view stood still, so a new clue label sat half off screen (−59 px at 768×1024). A regression of `6bf5067` (the old code re-ran every frame). The last "约 N 秒" after you stop could also stay one throttle step stale. | `game/Systems.tsx` project() | **fixed** `ffd3454`: text and width first; a throttled or unmeasured label asks for one more run (`labelRecheck`). Idle still 0 runs. |
+| 4 | `hudLayout` kept its MutationObserver and the **detached overlay** (and the React tree hanging off its nodes) after the Canvas unmounted (leaving /opus-bay). | `game/hudLayout.ts` | **fixed** `ffd3454`: `releaseHudLayout()` on Ticker unmount; a new Ticker projects on its first frame. |
+| 5 | 800×600 desktop: the city goals card (≈ 500 px) ran off the bottom, **covered the 坐渡轮 prompt**, and the toasts slid under it (41 px). The M1 sweep never had the card and toasts together (its card state had the night banner up, which hides the card). | `opus-bay.css` | **fixed** `0a6f572`: desktop card `max-height: 100dvh − 216 px` (scrolls inside); on 721–1180 px the top stack centres right of the card while it is up. |
+| 6 | Touch tablets: the big touch action sat **on the 地图 / BAYBAY buttons** (768×1024: 52×76 px; 1366×1024: 76×58 px). | `opus-bay.css` | **fixed** `0a6f572`: one column in under E2's Hop at 721–1180 px, left of the button row above 1180 px. |
+| 7 | The narrow-desktop column (721–1180 px, DR-3): BAYBAY's **问我** hint hid under the 地图 button above her. | `opus-bay.css` | **fixed** `0a6f572`: the column leaves room for it (clear of her Q keycap). |
+
+Sweep after the fixes: no overlaps at any of the sizes above. Shots: `docs/opus-bay/qa/w3/G1/review-trip-375-before-after.jpg` (1), `review-map-selected-undiscovered-after.jpg` (2), `review-hud-800x600-before-after.jpg` (5), `review-tablet-768-after.jpg` (6, 7).
+
+### Claims re-checked
+
+- 带我去 honesty: the 40 s trip arrived at ≈ 37–38 s here (map closed or open); "measured within 1 s" is fair.
+- P8 "the projection runs only when something moved": holds (0 / 300 idle).
+- 足迹: the fourth tab only in city mode (FOOTPRINTS_TAB is read once at load; the world mode is fixed per page, so that is correct); F-line / ferry rides named; the district journal keeps three tabs.
+- Save v2 rides: `reconcileRides` cannot double count (F's `countRide` bumps `rideLog` and calls `noteRide` in the same synchronous call).
+- "0 overlaps at 390×844 / 375×667 / 960×600 / 1440×900": true for the lane's states; false at 800×600 and on touch tablets (defects 5–7).
+
+### Open (minor)
+
+1. After the goals card closes, a waypoint that was waiting for it sometimes takes up to ≈ 1.1 s to come back (1 of 4 runs at 768×1024; the 4 Hz scan + settle logic); it heals by itself.
+2. `?discover=all` (QA only): the map shows every place found but 足迹 counts 0 (`discoveredIds()` does not include the flag). QA shots of 足迹 need a real walk or a save.
+3. A place with no walking route (走不过去) is not planned again when you walk elsewhere with the map open (only a found route goes stale).
+4. The touch action's spot above 1180 px assumes the five-button row (324 px); a sixth round button needs the offset changed (G1-review block of `opus-bay.css`).
+5. 足迹's ride list is read when the tab opens or a place is found; a ride that ends while the tab is open shows next time.
+6. Pre-existing (wave 2): the map list's 去过的 tab is in index order, not newest first.
+
+### Requests
+
+- **E2** (auto-walk, an observation): on Ferry gate → Dragon Gate the 带我去 auto-walk makes a ≈ 20 u excursion east and back near x 132–153, z 29–33 while its own `routeTo` plan goes straight south there (position log: `C:/Users/willy/opus-qa/w3/g1/review/tripseries-1440.log`); the map follows where you are, so its time reads 25 → 30 → 25 s at that spot. Worth a look at the give-way / local-grid steering there.
+- The lane's requests above: E2's pelican carry landed in `3890755` (E2-8; not re-verified by this review); the E2 nav-test wall-clock, the C2 debug panel on phones, G2's `greet` and the lead's `vercel.json` header still stand.
+
+### Commits (review)
+
+`953eb1b` (defects 1, 2), `ffd3454` (3, 4), `0a6f572` (5, 6, 7), and this report section with the shots.
