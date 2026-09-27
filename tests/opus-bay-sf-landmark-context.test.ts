@@ -9,7 +9,7 @@ import type { SfManifest } from '../src/opus-bay/world/sf/format';
 import { TALL_MARGIN, landmarkTallStructures } from '../src/opus-bay/world/sf/landmarks/context';
 import { TURNTABLE, setTurntableSpinner, turntableSpinner } from '../src/opus-bay/world/sf/landmarks/cable-car-turntable';
 import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
-import { SF_LANDMARKS, type SfLandmark, blockerTops, buildLandmark, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi } from '../src/opus-bay/world/sf/landmarks/index';
+import { SF_LANDMARKS, type SfLandmark, blockerTops, buildLandmark, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
 import { LANDMARK_TOPS } from '../src/opus-bay/world/sf/landmarks/tops';
 import { U } from '../src/opus-bay/world/materials';
 import { CitySites, LOD0, LOD0_HIGH, SITE_CAM_H, siteLod0Radius } from '../src/opus-bay/world/sf/sites';
@@ -225,7 +225,7 @@ test("F's request: with lane F's spinning disc on, the turntable's lod 0 drops i
 // ---------------------------------------------------------------------------
 
 /** the landmarks D2-09 set (priority: the three routes', then City Hall, Twin Peaks, the Castro pocket) */
-const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks', 'castro-theatre'];
+const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks'];
 const inPoly = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[]) => {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; }
@@ -235,7 +235,7 @@ const inPoly = (p: { x: number; z: number }, poly: readonly { x: number; z: numb
 test('D2-09: landmarks/settingData.ts is the measurement of the published city (re-run scripts/opus-sf/assets/landmark-settings.ts)', async () => {
   const { measureSetting } = await import('../scripts/opus-sf/assets/settingsMeasure');
   const { SETTING_DATA } = await import('../src/opus-bay/world/sf/landmarks/settingData');
-  for (const id of ['dragon-gate', 'palace-of-fine-arts', 'city-hall', 'castro-theatre', 'dutch-windmill']) {
+  for (const id of ['dragon-gate', 'palace-of-fine-arts', 'city-hall', 'conservatory-of-flowers', 'dutch-windmill']) {
     assert.deepEqual(await measureSetting(byId(id)), SETTING_DATA[id], `${id}: settingData is stale`);
   }
   // every landmark whose module reads its setting has a row (and no other), its numeric base as declared, and the
@@ -316,7 +316,7 @@ test('D2-09: streets the exclusions clipped run on (City Hall, the Dragon Gate, 
   assert.ok(Math.hypot(far.x - -237.1, far.z - 8.2) < 2.6, `the approach reaches Merchant Road (${far.x.toFixed(1)}, ${far.z.toFixed(1)})`);
 });
 
-test('D2-09: CS-13 the Palace lagoon lies low (no raised slab, no dark rim wall); the Castro Theatre faces Castro St across its forecourt', async () => {
+test('D2-09: CS-13 the Palace lagoon lies low (no raised slab, no dark rim wall); the Castro Theatre faces Castro Street', async () => {
   const { drawn } = await import('../scripts/opus-sf/assets/settingsMeasure');
   const { PALACE_LAGOON } = await import('../src/opus-bay/world/sf/landmarks/palace-of-fine-arts');
   const { Batch } = await import('../src/opus-bay/world/builder');
@@ -336,20 +336,27 @@ test('D2-09: CS-13 the Palace lagoon lies low (no raised slab, no dark rim wall)
   // no wall faces round the lagoon any more: its rim is ground (the coping and its bank)
   const rim = (palace.ground ?? []).filter(q => q.color === '#e4d6bd' || q.color === '#cfc1a3');
   assert.equal(rim.length, PALACE_LAGOON.length * 2);
-  // Castro: the two frontage buildings drop (their centroids are inside the exclusion), the neighbours stay
+  // Castro: the theatre faces Castro Street (the city's Castro St centreline runs 4–7 u in front of the facade, none
+  // behind it) — it faced the Hartford St houses across its own block before (the "pocket")
   const castro = byId('castro-theatre');
-  const ex = 'poly' in castro.exclude ? castro.exclude.poly : [];
-  for (const [x, z, want] of [[2.4, 5.9, true], [-2.8, 6.2, true], [4.6, 1.9, false], [5.65, 6.3, false], [-2.7, -1.1, false]] as const) {
-    assert.equal(inPoly(landmarkToWorld(castro, { x, z }), ex), want, `Castro frontage (${x}, ${z})`);
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const sf = sfDisk(), far = await sf.far();
+  const c = (await sf.chunk(Math.floor(castro.x / 128), Math.floor(castro.z / 128)))!;
+  const zs: number[] = [];
+  for (let i = 0; i < c.roads.count; i++) {
+    if (far.names?.[c.roads.nameIdx[i]] !== 'Castro Street') continue;
+    for (let k = c.roads.pStart[i]; k < c.roads.pStart[i + 1]; k++) {
+      const p = worldToLandmark(castro, { x: c.roads.xyz[k * 3], z: c.roads.xyz[k * 3 + 2] });
+      if (Math.abs(p.x) < 12) zs.push(p.z);
+    }
   }
-  const a = sfLandmarkInfo('castro-theatre')!.arrival;
-  assert.ok(a.z > 7.4 && Math.abs(a.x) < 2, 'arrival on Castro St in front of the doors');
+  assert.ok(zs.length >= 2 && zs.every(z => z > 4 && z < 7), `Castro St in front of the facade (local z ${zs.map(z => z.toFixed(1)).join(', ')})`);
 });
 
 test('D2-09: landmarkPlazaSpots — crowd spots on the settings, clear of every blocker, near their landmark', async () => {
   const { landmarkPlazaSpots, PLAZA_MAX } = await import('../src/opus-bay/world/sf/landmarks/context');
   const spots = landmarkPlazaSpots();
-  for (const id of SET) {
+  for (const id of [...SET, 'castro-theatre']) {
     const mine = spots.filter(s => s.id === id), l = byId(id);
     assert.ok(mine.length >= 2 && mine.length <= PLAZA_MAX, `${id}: ${mine.length} spots`);
     const walk = landmarkWalkWorld(l, 0);

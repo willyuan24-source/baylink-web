@@ -426,7 +426,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('卡斯特罗', 'The Castro'),
     plaza: bi('哈维·米尔克广场', 'Harvey Milk Plaza'),
     lat: 37.762, lng: -122.434748,
-    arrival: { x: 0, z: 8.5, heading: Math.PI },
+    arrival: { x: 0, z: -7.5, heading: 2 * Math.PI },
     photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 0.3 },
     height: { realM: 21.7, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,

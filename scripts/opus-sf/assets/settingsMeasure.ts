@@ -32,7 +32,7 @@ const BOX: Record<string, [number, number, number, number]> = {
 /** the landmarks whose modules read their setting (settingGround / streetStrips): the table keeps only their rows */
 export const SETTING_IDS = [
   'golden-gate-bridge', 'city-hall', 'de-young-tower', 'palace-of-fine-arts', 'twin-peaks', 'painted-ladies', 'dragon-gate',
-  'conservatory-of-flowers', 'dutch-windmill', 'mission-dolores', 'fort-point', 'castro-theatre', 'oracle-park', 'peace-pagoda', 'chase-center',
+  'conservatory-of-flowers', 'dutch-windmill', 'mission-dolores', 'fort-point', 'oracle-park', 'peace-pagoda', 'chase-center',
 ];
 
 const sf = sfDisk();

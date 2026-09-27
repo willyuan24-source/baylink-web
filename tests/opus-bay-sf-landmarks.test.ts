@@ -148,7 +148,9 @@ test('orientation: local +z maps to (sin yaw, cos yaw); world ↔ local round tr
   assert.ok(cosTo(facing('dragon-gate'), { x: -north.x, z: -north.z }) > Math.cos((15 * Math.PI) / 180), 'Dragon Gate faces south');
   assert.ok(cosTo(facing('painted-ladies'), { x: -east.x, z: -east.z }) > Math.cos((15 * Math.PI) / 180), 'Painted Ladies face west');
   assert.ok(cosTo(facing('city-hall'), east) > Math.cos((15 * Math.PI) / 180), 'City Hall faces east');
-  assert.ok(cosTo(facing('castro-theatre'), east) > Math.cos((15 * Math.PI) / 180), 'Castro Theatre faces Castro St (east)');
+  // the theatre stands on the EAST side of Castro St (OSM way 1206216224 spans lng −122.43504…−122.43445; Castro St's
+  // centreline runs at −122.4352): its facade faces west onto the street (lane D2, D2-09; it faced east before)
+  assert.ok(cosTo(facing('castro-theatre'), { x: -east.x, z: -east.z }) > Math.cos((15 * Math.PI) / 180), 'Castro Theatre faces Castro St (west)');
 });
 
 test('exclude zones contain the landmark, arrival anchors are clear of blockers and inside a sane radius', () => {

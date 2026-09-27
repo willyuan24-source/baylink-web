@@ -20,7 +20,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'grace-cathedral': { blockers: [7.9, 7.9], tall: [13, 9.9, 9.8] },
   'legion-of-honor': { blockers: [5.1, 4.9, 4.2, 4.2, 4, 4, 2], tall: [5.7] },
   'fort-point': { blockers: [8.7, 4.2, 6, 1.1], tall: [] },
-  'castro-theatre': { blockers: [5.9, 4.3, 1, 1.4], tall: [] },
+  'castro-theatre': { blockers: [5.9, 4.3], tall: [] },
   'oracle-park': { blockers: [7.5], tall: [12.4, 12.4, 12.4, 12.4] },
   'peace-pagoda': { blockers: [7.9], tall: [] },
   'ghirardelli-square': { blockers: [10.6, 10.8, 9.3, 14.2, 7, 7, 10.8, 6.2, 4.3, 6.2], tall: [14.2] },
