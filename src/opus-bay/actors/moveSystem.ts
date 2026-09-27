@@ -107,6 +107,8 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
   return d === 'touch' ? { zh: '点「起飞」', en: 'tap Glide' } : d === 'gamepad' ? { zh: '按 L3 起飞', en: 'press L3 to take off' } : { zh: '按 G 起飞', en: 'press G to take off' };
 }
 
+/** A transit hop-off farther than this from the rider (u) is a cut to the spot, not a 0.4 s hop (a ferry's quay). */
+const ALIGHT_HOP_MAX = 6;
 /** On a cable car BAYBAY sits on the rider's (camera-side) outward bench, this far along it from the rider's seat (u). */
 const CABLE_GUIDE_DZ = 0.62;
 /** The walkable rect of a platform the rider is in: the aisle, or one of `decks` (a running board, a sun deck). */
@@ -824,11 +826,23 @@ export class MoveSystem {
         // E2-10: the car is slow (or the brake time ran out): end the ride (lane F counts it and steps the player off
         // beside the car), put the feet on our clear exit slot, let the car go, and hop down over TIMING.transitAlight
         const line = this.machine.line ?? 'streetcar';
+        const ferry = currentRide()?.kind === 'ferry';
         this.alightFrom.set(this.rider.x, this.rider.y, this.rider.z);
         this.alightQuat.copy(this.rider.quat);
         hopOffRide();
         releasePlatformStop(line);
         platformRider.platform = null;
+        // E2-review: lane F has placed the player where its ride ends (game/transit leaveLineRide). Off a ferry that is
+        // always F's spot (only onto a quay: hopping off at sea goes to the next terminal — our slot beside the boat
+        // was open water), and F's spot also wins wherever our slot is no ground to stand on. Far from the car the step
+        // down is a cut, not a hop across the water.
+        if ((ferry || !canStand(o.slot.x, o.slot.z, 0.45)) && canStand(p.x, p.z, 0.45)) { o.slot.x = p.x; o.slot.z = p.z; }
+        else if (!canStand(o.slot.x, o.slot.z, 0.45) && !groundPending(o.slot.x, o.slot.z)) {
+          // (neither is ground — F found no quay spot resident yet: never leave the rider in the water)
+          const w = nearestWalkable(o.slot, 40);
+          if (w) { o.slot.x = w.x; o.slot.z = w.z; }
+        }
+        if (Math.hypot(o.slot.x - this.alightFrom.x, o.slot.z - this.alightFrom.z) > ALIGHT_HOP_MAX) this.alightFrom.set(o.slot.x, heightAt(o.slot.x, o.slot.z), o.slot.z);
         p.x = o.slot.x; p.z = o.slot.z; p.y = heightAt(o.slot.x, o.slot.z);
         p.pathTarget = null; p.pendingInteract = null;
         this.releaseGuide(true);
