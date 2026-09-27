@@ -627,10 +627,11 @@ export class ActorSystem {
       this.blobs.setMatrixAt(i++, tmpM);
     };
     // (on a vehicle / the pelican the blob sits under the rider; high up it shrinks away)
-    const high = move.mode === 'glide' && runtime.glide.height > 10;
+    const high = (move.mode === 'glide' || move.mode === 'travel') && runtime.glide.height > 10;
     blob(vx, vz, carried ? Math.max(heightAt(vx, vz), vy - (move.mode === 'glide' ? 0 : 0.6)) : p.y, 1.25 * CHAR_SCALE * (high ? 0.0001 : 1));
     blob(gx, gz, gy, 1.1 * CHAR_SCALE * (GP.active ? (high ? 0.0001 : 0.6) : 1));
-    for (const npc of this.npcs) blob(npc.x, npc.z, npc.y, (npc.def.scale ?? 1) * 1.05);
+    // (a city resident hidden at home draws no blob either: G2's request 1, sf-w3-G2.md)
+    for (const npc of this.npcs) if (npc.visible) blob(npc.x, npc.z, npc.y, (npc.def.scale ?? 1) * 1.05);
     this.blobs.count = i;
     this.blobs.instanceMatrix.needsUpdate = true;
 
