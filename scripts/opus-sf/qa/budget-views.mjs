@@ -34,6 +34,7 @@ export const VIEWS = [
   { id: 'sunset', note: 'Sunset district at 60 u → the ocean', cam: { p: [-60, 70, 1560], t: [-330, 0, 1520], f: [-150, 1545] } },
   { id: 'marina', note: 'Marina at 40 u → the Bay', cam: { p: [-280, 45, 420], t: [-400, 0, 320], f: [-360, 360] } },
   { id: 'ocean', note: 'Ocean Beach (walking)', go: { x: -478.1, z: 1416, fx: -530, fz: 1466, arrival: true } },
+  { id: 'hero-far', note: 'the hero district from Nob Hill, ≈ 400 u (hero far: L1 boxes + ground stand-in)', cam: { p: [-60, 55, 470], t: [20, 0, 70], f: [-40, 460] } },
 ];
 
 const HELPERS = `window.__qb = {
@@ -72,7 +73,7 @@ const HELPERS = `window.__qb = {
     const b = ob.city.breakdown();
     const round = rec => Object.fromEntries(Object.entries(rec).sort((a, b) => b[1].triangles - a[1].triangles));
     return JSON.stringify({ id, calls: r.render.calls, triangles: r.render.triangles, programs: r.programs.length,
-      city: { l0: s.l0, l1: s.l1, l2: s.l2, l0T: s.l0Triangles, l1T: s.l1Triangles, l2T: s.l2Triangles, queued: s.queued, inflight: s.inflight, errors: s.errors, heroFar: s.heroFar, props: s.props, sites: s.sites },
+      city: { l0: s.l0, l1: s.l1, l2: s.l2, l0T: s.l0Triangles, l1T: s.l1Triangles, l2T: s.l2Triangles, queued: s.queued, inflight: s.inflight, errors: s.errors, heroFar: s.heroFar, camH: s.camH, props: s.props, sites: s.sites },
       breakdown: b && { groups: round(b.groups), shadow: round(b.shadow), total: b.total, shadowTotal: b.shadowTotal },
       quality: ob.game ? ob.game.get().settings.quality : null, lost: ob.renderer.getContext().isContextLost() });
   },

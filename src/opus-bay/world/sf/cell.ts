@@ -29,6 +29,34 @@ export const RADII: Record<Quality, Radii> = {
 };
 /** one quality step down (hero near: the hand-made district already costs ~200k triangles) */
 export const LOWER_QUALITY: Record<Quality, Quality> = { high: 'mid', mid: 'low', low: 'low' };
+
+/**
+ * High-view budget (lane C2-5, plan §5.10: ≤ 150 calls / ≤ 400k triangles incl. shadows): radii by camera height
+ * above the ground. A high camera sees a wide disc, and the full toy houses of L0 (≈ 13k triangles per dense cell)
+ * are too small up there to be worth it, so the L0 disc shrinks to 60 / 90 u as camH goes 25 → 60 u, and above
+ * 80 u the L1 ring shrinks to 240 / 290 u (at 120 u) where the far prisms take over. Radii step by 5 u so a camera
+ * bobbing up and down does not re-select every frame. Gliding above 40 u keeps its old rule (L0 60 / 90).
+ */
+export const HIGH_VIEW = { l0: { h0: 25, h1: 60, in: 60, out: 90 }, l1: { h0: 80, h1: 120, in: 240, out: 290 }, glideH: 40, step: 5 } as const;
+export interface RadiiInput { heroNear: boolean; camH: number; glideH?: number | null }
+const ramp = (h: number, h0: number, h1: number) => Math.min(1, Math.max(0, (h - h0) / (h1 - h0)));
+const toward = (a: number, b: number, t: number) => Math.round((a + (Math.min(a, b) - a) * t) / HIGH_VIEW.step) * HIGH_VIEW.step;
+/** Tier radii for quality q (one step lower near the hero), shrunk for a high camera (see HIGH_VIEW). */
+export function radiiFor(q: Quality, o: RadiiInput): Radii {
+  const base = RADII[o.heroNear ? LOWER_QUALITY[q] : q];
+  const h = Number.isFinite(o.camH) ? o.camH : 0;
+  const H = HIGH_VIEW;
+  let t0 = ramp(h, H.l0.h0, H.l0.h1);
+  if (o.glideH != null && o.glideH > H.glideH) t0 = 1;
+  const t1 = ramp(h, H.l1.h0, H.l1.h1);
+  const r = {
+    l0In: toward(base.l0In, H.l0.in, t0), l0Out: toward(base.l0Out, H.l0.out, t0),
+    l1In: toward(base.l1In, H.l1.in, t1), l1Out: toward(base.l1Out, H.l1.out, t1),
+  };
+  r.l0Out = Math.max(r.l0Out, r.l0In + 20);
+  r.l1Out = Math.max(r.l1Out, r.l1In + 30);
+  return r;
+}
 /** walking rasters: attach within, detach beyond (u from the focus to the chunk square) */
 export const RESIDENCY = { in: 192, out: 256 } as const;
 /** re-select after the focus moved this far (u) or the view turned this much (rad) */

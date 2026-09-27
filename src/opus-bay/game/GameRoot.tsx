@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
+import { loadCity } from '../world/cityLoader';
 import { warmPrograms } from '../world/warmup';
 import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
@@ -21,6 +22,10 @@ function readSolo(): string | null {
 // Audio (~60 kB min) is its own chunk, fetched as soon as the game chunk runs: it is normally in by the time
 // Start is pressed (the title shows meanwhile); if not, it boots on the next gesture (audio/audio.ts).
 const audio = typeof window !== 'undefined' ? import('../audio/audio') : null;
+
+// City mode only: the streamed city is its own chunk (world/cityLoader.ts, HC-2), fetched in parallel with the
+// renderer setup; WorldScene waits for it. District mode never loads it.
+if (typeof window !== 'undefined' && game.get().worldMode === 'city') loadCity().catch(() => { /* WorldScene retries and reports */ });
 
 export interface GameRootProps {
   /** the page's title screen asked to start (the title lives in OpusBayPage so it paints before this chunk) */

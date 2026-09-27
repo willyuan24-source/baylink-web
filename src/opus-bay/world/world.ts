@@ -17,13 +17,9 @@ import { type ClockSpec, buildLandmarks, kDockSpots } from './landmarks';
 import { FERRY_LIGHTS, Life } from './life';
 import { GROUND, HALO, POOL, TOY, TOY_DYN, U, makeHeroMaterial } from './materials';
 import { BlobBatch, Floaters, type HaloSpec, type PoolSpec, buildProps } from './props';
-import { demSample } from './sf/format';
-import { attachMurals } from './sf/murals';
-import { mountCityDebug } from './sf/stats';
-import { heroLandRaster, heroProxy } from './sf/hero';
-import { CitySites } from './sf/sites';
-import { CityStreamer } from './sf/stream';
-import { CityWater } from './sf/water';
+import { type CityModule, cityModule } from './cityLoader';
+import type { CityStreamer } from './sf/stream';
+import type { CityWater } from './sf/water';
 import { Streetcars } from './streetcar';
 import { buildBuildingDistanceTexture, buildDistanceTexture, buildDistrictWater, buildLightMask, makeWaterMaterial } from './water';
 
@@ -40,6 +36,15 @@ import { buildBuildingDistanceTexture, buildDistanceTexture, buildDistrictWater,
 const CHUNK = 150;
 /** Water is cheap per vertex and costly per pixel: a few big chunks. */
 const WATER_CHUNK = 400;
+/** City mode: the backdrop (Bay Bridge, lighthouse, Angel Island, clouds) is seen whole from the city: big chunks. */
+const BACKDROP_CHUNK = 512;
+
+/** The city chunk (world/cityLoader.ts); city mode awaits it before building the world. */
+function requireCity(): CityModule {
+  const m = cityModule();
+  if (!m) throw new Error('[opus-bay] city mode: await loadCity() (world/cityLoader.ts) before building the world');
+  return m;
+}
 /** Moving halo slots at the end of the halo batch: ferry lights + sailboat mast tops. */
 const SAIL_LIGHTS = 6;
 const HERO_FADE = 0.35;
@@ -115,6 +120,9 @@ export class World {
   readonly cityWater: CityWater | null = null;
   private halosSpec: HaloSpec[] = [];
   private cityChunks: THREE.Mesh[] = [];
+  /** city mode: the hero's own ground chunks and its labels / contact blobs (hidden with its buildings when far) */
+  private heroGroundChunks: THREE.Mesh[] = [];
+  private heroFarExtras: THREE.Object3D[] = [];
   private unmountDebug: (() => void) | null = null;
   /** removes lane H2b's mural system (world/sf/murals.ts) with the city it was attached to */
   private detachMurals: (() => void) | null = null;
@@ -185,7 +193,7 @@ export class World {
     const lightMask = buildLightMask(halos.map(h => ({ x: h.x, z: h.z, w: h.size >= 3 ? 1 : h.size >= 1.3 && h.y < 14 ? 0.3 : 0 })).filter(l => l.w > 0), dist.box);
     let mergedWater: THREE.BufferGeometry | null = null;
     if (city) {
-      this.cityWater = new CityWater(dist.texture, dist.box);
+      this.cityWater = new (requireCity().CityWater)(dist.texture, dist.box);
       this.water = this.cityWater.material;
       this.water.uniforms.uLightTex.value = lightMask;
       const A = ANGEL_ISLAND, ai = CITY_BACKDROP['angel-island'];
@@ -219,12 +227,20 @@ export class World {
     addChunks(ground.build(), GROUND, 'ground');
     addChunks(toy.build(), TOY, 'city');
     this.cityChunks = chunks.filter(m => m.name.startsWith('city#'));
-    if (backToy !== toy) addChunks(backToy.build(), TOY, 'backdrop');
+    if (backToy !== toy) addChunks(backToy.build(), TOY, 'backdrop', 0, BACKDROP_CHUNK);
     if (mergedWater) addChunks(mergedWater, this.water, 'water', 1, WATER_CHUNK);
     const labelMesh = staticMesh(labels.build(), this.atlas.material, 'labels', true);
     const blobMesh = blobs.build();
     blobMesh.updateMatrix();
     this.root.add(this.env.group, labelMesh, blobMesh, ...chunks);
+    if (city) {
+      // the hero's ground chunks (not Angel Island's): their bbox meets the slab's
+      const sb = new THREE.Box3();
+      for (const p of DISTRICT.slab) sb.expandByPoint(this.tmp.set(p.x, 0, p.z));
+      sb.min.y = -Infinity; sb.max.y = Infinity;
+      this.heroGroundChunks = chunks.filter(m => m.name.startsWith('ground#') && (m.geometry.computeBoundingBox(), sb.intersectsBox(m.geometry.boundingBox!)));
+      this.heroFarExtras = [labelMesh, blobMesh];
+    }
     if (this.cityWater) this.root.add(this.cityWater.group);
     for (const h of lm.heroes) {
       let mat: THREE.Material = TOY;
@@ -379,10 +395,19 @@ export class World {
     if (this.mode !== 'city' || this.city || !this.cityWater) return;
     const water = this.cityWater;
     const ai = CITY_BACKDROP['angel-island'];
-    const sites = new CitySites();
-    this.city = new CityStreamer({
-      renderer, quality, slab: DISTRICT.slab, sites, pool: opts.pool, hero: { meshes: this.cityChunks, proxy: heroProxy },
-      farInit: { heroLand: heroLandRaster(), islands: [{ x: ai.x, z: ai.z, rx: ANGEL_ISLAND.rx * 0.95, rz: ANGEL_ISLAND.rz * 0.95, rot: ANGEL_ISLAND.rot }] },
+    const cm = requireCity();
+    const { demSample } = cm;
+    const sites = new cm.CitySites();
+    const sb = new THREE.Box3();
+    for (const m of this.heroGroundChunks) sb.union(m.geometry.boundingBox!);
+    const heroGround = this.heroGroundChunks;
+    this.city = new cm.CityStreamer({
+      renderer, quality, slab: DISTRICT.slab, sites, pool: opts.pool,
+      hero: {
+        meshes: [...this.cityChunks, ...this.heroFarExtras], proxy: cm.heroProxy,
+        ground: { meshes: heroGround, job: () => cm.heroGroundJob(heroGround, { box: { x0: sb.min.x, z0: sb.min.z, x1: sb.max.x, z1: sb.max.z } }) },
+      },
+      farInit: { heroLand: cm.heroLandRaster(), islands: [{ x: ai.x, z: ai.z, rx: ANGEL_ISLAND.rx * 0.95, rz: ANGEL_ISLAND.rz * 0.95, rot: ANGEL_ISLAND.rot }] },
       onFar: (r, far) => {
         const s = r.shore;
         const tex = new THREE.DataTexture(s.data, s.cols, s.rows, THREE.RedFormat, THREE.UnsignedByteType);
@@ -406,13 +431,13 @@ export class World {
     this.root.updateMatrixWorld(true);
     const streamer = this.city;
     // lane H2b's Mission murals (world/sf/murals.ts; null until they exist)
-    const murals = attachMurals(streamer);
+    const murals = cm.attachMurals(streamer);
     if (murals) this.detachMurals = this.addSystem(murals);
     void streamer.start().then(() => {
       const m = streamer.manifest;
       if (m?.heroDropLots.length) dropLotTriangles(this.cityChunks, m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
     });
-    this.unmountDebug = mountCityDebug(streamer, renderer);
+    this.unmountDebug = cm.mountCityDebug(streamer, renderer);
   }
 
   setTime(tod: TimeOfDay, instant: boolean) { this.env.setTime(tod, instant); }

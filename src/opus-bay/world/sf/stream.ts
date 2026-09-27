@@ -8,7 +8,7 @@ import type { Vec2 } from '../../core/types';
 import { GROUND, TOY } from '../materials';
 import { TypedBatch } from '../typedBatch';
 import type { CityInit, L0Result, L1Result } from './build';
-import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, LOWER_QUALITY, RADII, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN } from './cell';
+import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
 import type { FarCell, FarInit, FarResult } from './far';
 import { type FarData, SF_ROOT, type SfManifest, demSample, loadManifest } from './format';
 import type { PoolArrays } from './mesh';
@@ -43,8 +43,12 @@ export interface StreamOptions {
   farInit: Omit<FarInit, 'slab' | 'excludes'>;
   /** far arrived: shore texture, lakes, board edge (world wires them into the water) */
   onFar(r: FarResult, far: FarData): void;
-  /** the hero's own buildings + props (hidden beyond HERO_NEAR) and their L1 stand-in (plan §5.1) */
-  hero?: { meshes: THREE.Object3D[]; proxy: () => PoolArrays | null };
+  /**
+   * the hero's own buildings + props (hidden beyond HERO_NEAR) and their L1 stand-in (plan §5.1); `ground`: the hero
+   * ground chunks and the job that resamples them into a ground-pool stand-in (lane C2-5; run in 2 ms frame slices
+   * once streaming starts; until it is done the hand-made ground stays on screen when far)
+   */
+  hero?: { meshes: THREE.Object3D[]; proxy: () => PoolArrays | null; ground?: { meshes: THREE.Object3D[]; job: () => Generator<void, PoolArrays | null> } };
   pool?: 'batched' | 'tile';
   root?: string;
 }
@@ -65,6 +69,8 @@ export interface CityStats {
   l2Triangles: number;
   /** the hero's hand-made buildings are replaced by their L1 boxes (player far away) */
   heroFar: boolean;
+  /** camera height above the ground (u) that sized the radii and prop caps this frame (lane C2-5) */
+  camH: number;
   farMs: number;
   focus: Vec2;
 }
@@ -81,6 +87,8 @@ type WorkerOut =
 const HERO_NEAR = 300;
 const HERO_HYST = 24;
 const HERO_ID = 8_999_999;
+/** the hero ground stand-in (≡ 3 mod 4 like HERO_ID: never an l1Id / l2Id) */
+const HERO_GROUND_ID = 9_000_003;
 const FOCUS_AHEAD = 20;
 const INFLIGHT = 3;
 const l1Id = (key: number) => key * 4 + 1;
@@ -140,6 +148,9 @@ export class CityStreamer {
   private time = 0;
   private slabBox: { x0: number; z0: number; x1: number; z1: number };
   private _heroFar = false;
+  private heroGroundDone = false;
+  private heroGroundJob: Generator<void, PoolArrays | null> | null = null;
+  private camH = 0;
   private heroFarListeners = new Set<(far: boolean) => void>();
   private l0DropListeners = new Set<(cellKey: number) => void>();
   quality: Quality;
@@ -318,15 +329,43 @@ export class CityStreamer {
     this._heroFar = far;
     for (const m of hero.meshes) m.visible = !far;
     this.pool.setVisible(HERO_ID, far);
+    this.swapHeroGround();
     for (const fn of this.heroFarListeners) fn(far);
   }
 
+  /** The hero ground or its stand-in (only once the stand-in exists). */
+  private swapHeroGround() {
+    const g = this.opts.hero?.ground;
+    if (!g || !this.pool.has(HERO_GROUND_ID)) return;
+    for (const m of g.meshes) m.visible = !this._heroFar;
+    this.pool.setVisible(HERO_GROUND_ID, this._heroFar);
+  }
+
+  /** Advance the hero ground stand-in job by one ≈ 2 ms slice (from the first streaming frame on, once). */
+  private stepHeroGround() {
+    const g = this.opts.hero?.ground;
+    if (!g || this.heroGroundDone || this.status !== 'streaming') return;
+    this.heroGroundJob ??= g.job();
+    const t0 = performance.now();
+    while (performance.now() - t0 < 2) {
+      const r = this.heroGroundJob.next();
+      if (!r.done) continue;
+      this.heroGroundDone = true;
+      this.heroGroundJob = null;
+      if (r.value) { this.pool.add(HERO_GROUND_ID, { toy: null, ground: r.value }, false, false); this.swapHeroGround(); }
+      return;
+    }
+  }
+
   private radii(): Radii {
-    let q = this.quality;
-    if (this.heroDist() < HERO_NEAR) q = LOWER_QUALITY[q];
-    const r = { ...RADII[q] };
-    if (runtime.glide.active && runtime.glide.height > 40) { r.l0In = 60; r.l0Out = 90; }
-    return r;
+    return radiiFor(this.quality, { heroNear: this.heroDist() < HERO_NEAR, camH: this.camH, glideH: runtime.glide.active ? runtime.glide.height : null });
+  }
+
+  /** Camera height above the ground under it (the far DEM; sea level before it arrives). */
+  private cameraHeight(camera: THREE.Camera) {
+    const p = camera.position;
+    const g = this.far ? demSample(this.far.dem, p.x, p.z) : 0;
+    return Math.max(0, p.y - (Number.isFinite(g) ? g : 0));
   }
 
   private updateFocus(dt: number, camera: THREE.Camera) {
@@ -457,7 +496,9 @@ export class CityStreamer {
     const t = this.table;
     if (!t || this.status === 'error') return;
     this.updateFocus(dt, camera);
+    this.camH = this.cameraHeight(camera);
     this.updateHero();
+    this.stepHeroGround();
     // re-select
     const radii = this.radii();
     const rk = `${radii.l0In}/${radii.l1In}`;
@@ -485,7 +526,7 @@ export class CityStreamer {
     for (const ch of d.rasters) { this.terrain?.detach(ch.cx, ch.cz); ch.raster = 'none'; }
     this.applyVisibility();
     this.pool.update();
-    this.props.update(this.focus.x, this.focus.z, this.time);
+    this.props.update(this.focus.x, this.focus.z, this.time, this.camH);
     this.opts.sites.update(this.focus.x, this.focus.z, this.time);
     // teleport / fast-travel waits
     if (this.waits.length) this.waits = this.waits.filter(w => { if (t.ready(w.p.x, w.p.z, w.r)) { w.resolve(); return false; } return true; });
@@ -513,7 +554,7 @@ export class CityStreamer {
       status: this.status, ...n, queued: this.queued, inflight: this.inflight.size,
       workerMs: +this.workerMs.toFixed(1), attachMs: +this.attachMs.toFixed(2), attachMaxMs: +this.attachMax.toFixed(2),
       jobs: this.jobsDone, errors: this.errors, props: this.props.counts(), sites: this.opts.sites.counts(), pool: this.pool.stats(),
-      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
+      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, camH: Math.round(this.camH), farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
     };
   }
 
@@ -522,7 +563,7 @@ export class CityStreamer {
     this.workers = [];
     setCityTerrain(null);
     if (this.table) for (const c of this.table.cells) this.dropL0(c);
-    if (this._heroFar) for (const m of this.opts.hero?.meshes ?? []) m.visible = true;
+    if (this._heroFar) for (const m of [...(this.opts.hero?.meshes ?? []), ...(this.opts.hero?.ground?.meshes ?? [])]) m.visible = true;
     this.pool.dispose();
     this.props.dispose();
     this.opts.sites.dispose();

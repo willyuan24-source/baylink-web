@@ -7,6 +7,7 @@ import { game, useGame, type Quality, type TimeOfDay } from '../core/store';
 import { flow } from '../game/flowStore';
 import { readQa } from '../game/qa';
 import { setSessionSettings } from '../data/wishlist';
+import { suspendForCity } from './cityLoader';
 import { U } from './materials';
 import { PostFX, type PostParams } from './post';
 import { type World, getWorld } from './world';
@@ -68,6 +69,8 @@ export function WorldScene() {
   const gl = useThree(s => s.gl);
   const scene = useThree(s => s.scene);
   const camera = useThree(s => s.camera);
+  // city mode: the world's constructor needs the lazy city chunk (world/cityLoader.ts); suspend until it is in
+  if (game.get().worldMode === 'city') suspendForCity();
   const world = useMemo(() => getWorld(), []);
   const quality = useGame(s => s.settings.quality);
   const timeOfDay = useGame(s => s.timeOfDay);

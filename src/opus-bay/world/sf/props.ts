@@ -23,6 +23,21 @@ const GROW = 0.45;
 const CAP = { tree: 200, lolli: 600, lamp: 48 } as const;
 const R_FULL = 70, R_LOLLI = 140, R_LAMP = 120;
 
+/**
+ * Props capped by camera height above the ground (lane C2-5 high-view budget): from 25 u up, full trees and lamps
+ * thin out toward the focus (at 80 u: the nearest 50 full trees within 40 u, 350 lollipops, 12 lamps within 60 u:
+ * ≈ 20k instead of ≈ 45k triangles). Four steps, so a bobbing camera never re-selects every frame.
+ */
+export const PROP_HIGH = { h0: 25, h1: 80, steps: 4, tree: 50, lolli: 350, lamp: 12, rFull: 40, rLamp: 60 } as const;
+export interface PropCaps { tree: number; lolli: number; lamp: number; rFull: number; rLolli: number; rLamp: number; step: number }
+export function propCaps(camH: number): PropCaps {
+  const P = PROP_HIGH;
+  const t = Number.isFinite(camH) ? Math.min(1, Math.max(0, (camH - P.h0) / (P.h1 - P.h0))) : 0;
+  const step = Math.round(t * P.steps), k = step / P.steps;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * k);
+  return { tree: lerp(CAP.tree, P.tree), lolli: lerp(CAP.lolli, P.lolli), lamp: lerp(CAP.lamp, P.lamp), rFull: lerp(R_FULL, P.rFull), rLolli: R_LOLLI, rLamp: lerp(R_LAMP, P.rLamp), step };
+}
+
 /** Unit geometry from a Batch (keeps aInfo; TOY_INST reads it). */
 function geo(build: (b: Batch) => void): THREE.BufferGeometry {
   const b = new Batch();
@@ -148,7 +163,10 @@ export class CityProps {
 
   get sourceCount() { return this.sources.size; }
 
+  private caps: PropCaps = propCaps(0);
+
   private select(fx: number, fz: number, now: number) {
+    const cap = this.caps;
     const trees: Pick[] = [], lamps: Pick[] = [];
     for (const [key, p] of this.sources) {
       for (let i = 0; i < p.count; i++) {
@@ -156,19 +174,19 @@ export class CityProps {
         const d = Math.hypot(x - fx, z - fz);
         const k = p.kind[i];
         const pick = { d, x, y: p.xyzr[i * 4 + 1], z, rot: p.xyzr[i * 4 + 3], kind: k, variant: p.variant[i], id: key * 8192 + i };
-        if (k === K.lamp) { if (d < R_LAMP) lamps.push(pick); } else if (d < R_LOLLI) trees.push(pick);
+        if (k === K.lamp) { if (d < cap.rLamp) lamps.push(pick); } else if (d < cap.rLolli) trees.push(pick);
       }
     }
     trees.sort((a, b) => a.d - b.d);
     lamps.sort((a, b) => a.d - b.d);
-    const want: Record<keyof typeof this.layers, Pick[]> = { round: [], cypress: [], pine: [], palm: [], lolli: [], lamp: lamps.slice(0, CAP.lamp) };
+    const want: Record<keyof typeof this.layers, Pick[]> = { round: [], cypress: [], pine: [], palm: [], lolli: [], lamp: lamps.slice(0, cap.lamp) };
     let full = 0;
     for (const t of trees) {
-      if (t.d < R_FULL && full < CAP.tree) {
+      if (t.d < cap.rFull && full < cap.tree) {
         const layer = t.kind === K.palm ? 'palm' : t.kind === K.pine ? (t.variant === 0 ? 'cypress' : 'pine') : 'round';
         if (want[layer].length < this.layers[layer].cap) { want[layer].push(t); full++; continue; }
       }
-      if (want.lolli.length < CAP.lolli) want.lolli.push(t);
+      if (want.lolli.length < cap.lolli) want.lolli.push(t);
     }
     let n = 0;
     for (const name of Object.keys(this.layers) as (keyof typeof this.layers)[]) {
@@ -190,8 +208,8 @@ export class CityProps {
       n += list.length;
     }
     // lamp light
-    this.halos.count = lamps.length ? Math.min(CAP.lamp, lamps.length) * 2 : 0;
-    this.pools.count = Math.min(CAP.lamp, lamps.length);
+    this.halos.count = want.lamp.length * 2;
+    this.pools.count = want.lamp.length;
     want.lamp.forEach((p, i) => {
       this.halos.setMatrixAt(i * 2, this.m4.makeTranslation(p.x, p.y + 3.8, p.z));
       this.halos.setMatrixAt(i * 2 + 1, this.m4.makeTranslation(p.x, p.y + 3.78, p.z));
@@ -223,7 +241,10 @@ export class CityProps {
     return growing;
   }
 
-  update(fx: number, fz: number, now: number) {
+  /** Per frame: re-select after 12 u of focus movement, a new source or a new height step (camH = camera height above the ground). */
+  update(fx: number, fz: number, now: number, camH = 0) {
+    const caps = propCaps(camH);
+    if (caps.step !== this.caps.step) { this.caps = caps; this.dirty = true; }
     if (this.dirty || Math.hypot(fx - this.lastX, fz - this.lastZ) > RESELECT) {
       this.lastX = fx; this.lastZ = fz; this.dirty = false;
       this.select(fx, fz, now);

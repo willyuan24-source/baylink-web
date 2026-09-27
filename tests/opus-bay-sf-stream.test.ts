@@ -365,6 +365,9 @@ test('the city code stays worker-safe: the worker graph imports no DOM, React or
 
 test('city-mode World builds headless: hero first, backdrop in its own chunks, no district water; district unchanged', async () => {
   const { World } = await import('../src/opus-bay/world/world');
+  // city mode builds only once the lazy city chunk is in (world/cityLoader.ts, HC-2)
+  const { loadCity } = await import('../src/opus-bay/world/cityLoader');
+  await loadCity();
   const city = new World('city');
   const names = new Set<string>();
   city.root.traverse(o => { if (o.name) names.add(o.name.replace(/#\d+$/, '#')); });
