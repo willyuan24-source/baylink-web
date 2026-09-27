@@ -49,9 +49,12 @@ export function photoPose(site: SiteFrame, photo: PhotoSpec): CamPose {
   return { pos: { x: target.x + lx * c + lz * s, y: target.y + ly, z: target.z - lx * s + lz * c }, target };
 }
 
-/** The reveal plays only for the first on-foot arrival at a T1, never twice, not under reduced motion or quality low. */
-export function revealAllowed(o: { tier: number; onFoot: boolean; first: boolean; reducedMotion: boolean; quality: 'low' | 'mid' | 'high'; seen?: boolean }): boolean {
-  return o.tier === 1 && o.onFoot && o.first && !o.reducedMotion && o.quality !== 'low' && !o.seen;
+/**
+ * The reveal plays only for the first on-foot arrival at a T1, never twice, not at quiet places, not under reduced
+ * motion or quality low (the same rule as lane C's game/arrival.ts arrivalBeats().reveal, which the Overlay follows).
+ */
+export function revealAllowed(o: { tier: number; onFoot: boolean; first: boolean; reducedMotion: boolean; quality: 'low' | 'mid' | 'high'; seen?: boolean; quiet?: boolean }): boolean {
+  return o.tier === 1 && o.onFoot && o.first && !o.reducedMotion && o.quality !== 'low' && !o.seen && !o.quiet;
 }
 
 export interface RevealPlan {

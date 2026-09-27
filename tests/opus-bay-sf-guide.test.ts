@@ -41,6 +41,7 @@ test('the reveal plays only for the first on-foot arrival at a T1, never twice, 
   assert.equal(revealAllowed({ ...ok, reducedMotion: true }), false);
   assert.equal(revealAllowed({ ...ok, quality: 'low' }), false);
   assert.equal(revealAllowed({ ...ok, seen: true }), false);
+  assert.equal(revealAllowed({ ...ok, quiet: true }), false);
 });
 
 const player = { x: -420, y: 4, z: 360 };

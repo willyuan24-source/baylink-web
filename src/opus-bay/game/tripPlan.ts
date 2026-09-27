@@ -19,7 +19,7 @@ import {
  *   bike / car   only with one parked within 60 u (game/travel RIDEABLE_R) or while riding it: walk to it / 4.2 + 3 s to
  *          mount + drive-graph length / 6.5 (bike) or / 8.5 (car) (the autopilot's cruise 7 / 10 u/s less its corner
  *          caps) + a last walk when the drive route ends away from the arrival
- *   line   offered when both ends are within 150 u of walking of stops on one line: walk + wait (the system's ETA; the
+ *   line   offered when both ends are within 150 u of walking (straight × 1.25) of stops on one line: walk + wait (the system's ETA; the
  *          dispatch caps it near 15 s) + ride (the system's estimate, else arc / speed + dwells + accel / brake, the
  *          tunnel spans at the subway overlay's 25 u/s) + 2 s to step off + walk
  *   fly    discovered places only: 0.8 + 1.0 + clamp(d / 400, 0.6, 3.5) + ≈ 2 + 1.2 s (game/fastTravel phases; the
@@ -48,8 +48,13 @@ export const RUN_AFTER_S = 90;
 export const MOUNT_S = 3;
 /** A parked bike / the toy car counts when it is this close to the start (u; game/travel.ts RIDEABLE_R). */
 export const RIDEABLE_R = 60;
-/** A line is offered when both ends are within this much walking of its stops (u). */
+/**
+ * A line is offered when both ends are within this much walking of its stops (u), judged on the straight line × 1.25
+ * so the rows do not come and go as the A* answers land; a known route longer than LINE_WALK_CAP (a detour round a
+ * canyon or the hero roadway gone wrong) still rules the stop out. The times always use the real route.
+ */
 export const LINE_WALK_MAX = 150;
+export const LINE_WALK_CAP = 300;
 /** Stepping off a vehicle at the alighting stop (s). */
 export const ALIGHT_S = 2;
 /** Closer than this the destination is "right here": no options (u). */
@@ -418,8 +423,9 @@ function lineOptions(from: TripPoint, dest: TripDestination, to: TripPoint, p: T
   for (const line of lines) {
     if (line.stops.length < 2) continue;
     const near = (q: Vec2) => line.stops
+      .filter(s => dist(q, s) * STREET_FACTOR <= LINE_WALK_MAX)
       .map(s => ({ s, m: peek(q, s) }))
-      .filter((e): e is { s: TripLineStop; m: NonNullable<ReturnType<typeof peek>> } => !!e.m && e.m.length <= LINE_WALK_MAX);
+      .filter((e): e is { s: TripLineStop; m: NonNullable<ReturnType<typeof peek>> } => !!e.m && (e.m.estimate || e.m.length <= LINE_WALK_CAP));
     const boards = near(from), alights = near(dest);
     let top: LineCandidate | null = null;
     for (const b of boards) {
@@ -438,7 +444,10 @@ function lineOptions(from: TripPoint, dest: TripDestination, to: TripPoint, p: T
     // a ride that saves nothing over walking straight there is not a way to go
     if (top && top.seconds < walkAll) best.push(top);
   }
-  return best.map(c => lineOption(c, from, dest, to, p)).filter((o): o is TripOption => !!o);
+  // lines sharing a track and its stations (N and M under Market St) give the same ride: one row, the faster
+  const seen = new Set<string>();
+  const rows = best.sort((a, b) => a.seconds - b.seconds).filter(c => { const k = `${c.board.id}>${c.alight.id}`; if (seen.has(k)) return false; seen.add(k); return true; });
+  return rows.map(c => lineOption(c, from, dest, to, p)).filter((o): o is TripOption => !!o);
 }
 
 function waitSeconds(line: TripLineInfo, stop: TripLineStop, dir: 1 | -1, p: TripProviders): number {

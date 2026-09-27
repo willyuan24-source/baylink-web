@@ -32,11 +32,12 @@ export interface ArrivalView {
   color?: string;
 }
 
-export function ArrivalToast({ arrival }: { arrival: Pick<ArrivalView, 'name' | 'quiet'> }) {
+/** `text` = lane C's arrivalBeats().toast when given (game/arrival.ts), else "抵达 · 名称" / "到了 · 名称". */
+export function ArrivalToast({ arrival, text }: { arrival: Pick<ArrivalView, 'name' | 'quiet'>; text?: Bilingual | null }) {
   const { t, locale } = useT();
   return (
     <div className={`ob-toast ob-arrival-toast ${arrival.quiet ? 'is-quiet' : ''}`} role="status">
-      <strong>{t(arrivalToastText(arrival.name, arrival.quiet))}</strong>
+      <strong>{t(text ?? arrivalToastText(arrival.name, arrival.quiet))}</strong>
       {locale !== 'en' && <small translate="no">{arrival.name.en}</small>}
     </div>
   );

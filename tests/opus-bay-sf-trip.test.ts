@@ -191,6 +191,10 @@ test('line: offered only when both ends are within 150 u of walking of stops on 
   assert.equal(rb.board, 'n8');
   assert.equal(rb.alight, 'n4');
   assert.equal(rb.underground, undefined);
+  // a second line on the same track and stations (N and M under Market St): one row
+  const twin: TripLineInfo = { ...N_LINE, id: 'm-ocean-view', short: 'M' };
+  const both = planTrips(from, to, { ...p, lines: () => [N_LINE, twin] });
+  assert.equal(both.filter(o => o.mode === 'line').length, 1);
 });
 
 test('line: a one-way loop only runs forward and wraps; a ride that saves nothing over walking is not offered', () => {
