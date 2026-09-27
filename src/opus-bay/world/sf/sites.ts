@@ -48,6 +48,12 @@ import type { CellPool } from './pools';
 
 /** GLB loads start this much before a landmark's lod-0 ring (u). */
 const PRELOAD = 150;
+/**
+ * AI parts only this close to the focus (u; C2's part-b request 2): beyond it a shipped swap's lod 0 is the
+ * procedural model (1–2k triangles instead of ≈ 6k per GLB), which reads the same at that distance; +AI_HYST to leave.
+ */
+export const AI_R = 220;
+const AI_HYST = 30;
 /** hero fade strength (world.ts HERO_FADE: the district heroes thin the same way) */
 const HERO_FADE = 0.35;
 
@@ -138,6 +144,8 @@ interface Site {
   rebuild: boolean;
   /** the landmark's buildKey() when the lod 0 was built (a change rebuilds it: the turntable under F's disc) */
   key: number;
+  /** within AI_R of the focus: the lod 0 may draw its AI parts */
+  aiNear: boolean;
 }
 
 /** Group the AI parts by model (one InstancedMesh per model with several parts, else a plain Mesh). */
@@ -308,7 +316,7 @@ export class CitySites {
     this.group.name = 'city-landmarks';
     this.sites = SF_LANDMARKS.map((l, i) => ({
       l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null,
-      fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false, key: 0,
+      fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false, key: 0, aiNear: false,
     }));
   }
 
@@ -403,7 +411,7 @@ export class CitySites {
 
   /** The AI parts' models when every one is decoded (null: not all ready yet, or no swap / AI off / failed). */
   private readyModels(s: Site): Map<string, LoadedModel> | null {
-    if (!this.aiEnabled || !usesAi(s.l) || this.aiFailed.has(s.l.id) || !modelsMod) return null;
+    if (!this.aiEnabled || !usesAi(s.l) || !s.aiNear || this.aiFailed.has(s.l.id) || !modelsMod) return null;
     const out = new Map<string, LoadedModel>();
     for (const p of s.l.swap!.parts) {
       const m = modelsMod.peekModel(p.model);
@@ -421,7 +429,7 @@ export class CitySites {
     void modelsModule().then(m => Promise.all(ids.map(id => m.loadModel(id)))).then(list => {
       if (list.some(x => !x)) { this.aiFailed.add(s.l.id); return; }
       // decoded after a procedural fallback build: swap it in (update() rebuilds, one lod-0 build per frame)
-      if (s.mesh && !s.ai) s.rebuild = true;
+      if (s.mesh && !s.ai && s.aiNear) s.rebuild = true;
     }, () => { this.aiFailed.add(s.l.id); });
   }
 
@@ -545,6 +553,9 @@ export class CitySites {
       const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = radius[s.l.tier];
       const near = s.near ? d < r + HYST : d < r;
       if (!s.requested && s.l.swap && d < r + PRELOAD) this.requestModels(s);
+      // AI parts near the focus only: crossing AI_R rebuilds the lod 0 (the procedural model beyond it)
+      const aiNear = s.aiNear ? d < AI_R + AI_HYST : d < AI_R;
+      if (aiNear !== s.aiNear) { s.aiNear = aiNear; if (s.mesh && usesAi(s.l) && this.aiEnabled && (s.ai !== aiNear) && (!aiNear || this.readyModels(s))) s.rebuild = true; }
       if (near && !s.mesh && !built && (s.refined || this.pool)) { this.buildMesh(s); built = true; }
       if (near && s.mesh && (s.rebuild || (s.l.buildKey && s.l.buildKey() !== s.key)) && !built) { this.dropMesh(s, true); this.buildMesh(s); built = true; }
       if (near && s.mesh && !s.near) { s.near = true; this.pool?.setVisible(SITE_ID0 + s.i, false); }
@@ -596,7 +607,7 @@ export class CitySites {
     const ai = { on: 0, pending: 0, failed: this.aiFailed.size, triangles: 0, draws: 0 };
     for (const s of this.sites) {
       if (s.near) near++;
-      if (s.ai) { ai.on++; ai.triangles += s.aiTris; ai.draws += s.aiDraws; } else if (s.mesh && usesAi(s.l) && this.aiEnabled && !this.aiFailed.has(s.l.id)) ai.pending++;
+      if (s.ai) { ai.on++; ai.triangles += s.aiTris; ai.draws += s.aiDraws; } else if (s.mesh && s.aiNear && usesAi(s.l) && this.aiEnabled && !this.aiFailed.has(s.l.id)) ai.pending++;
     }
     return { sites: this.sites.length, near, triangles: this.triangles, ai, camH: Math.round(this.camH), lod0: siteLod0Radius(1, this.camH), kit: this.kit?.counts() ?? null };
   }

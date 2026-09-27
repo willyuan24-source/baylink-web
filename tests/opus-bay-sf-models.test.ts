@@ -7,7 +7,7 @@ import { ASSETS, SF_DRACO_DECODER_PATH, SF_KIT, SF_KIT_IDS, SF_MODELS, SF_MODEL_
 import { TOY, U, makeHeroMaterial } from '../src/opus-bay/world/materials';
 import { MODEL_INST_ATTR, MODEL_TINT_ATTR, MODEL_VARIANTS, keyLuminance, makeModelMaterial, modelInstanceGeometry, modelWarmupSet, setModelInstance } from '../src/opus-bay/world/modelMaterial';
 import * as models from '../src/opus-bay/world/models';
-import { CitySites, LOD0, buildGroundMesh, buildSwapObjects, disposeSwapObjects, fadeOccludes } from '../src/opus-bay/world/sf/sites';
+import { AI_R, CitySites, LOD0, buildGroundMesh, buildSwapObjects, disposeSwapObjects, fadeOccludes } from '../src/opus-bay/world/sf/sites';
 import { pointInPolygon } from '../src/opus-bay/core/terrain';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { SF_LANDMARKS, type SfLandmark, landmarkToWorld } from '../src/opus-bay/world/sf/landmarks/index';
@@ -385,4 +385,23 @@ test('AI budget per view: the shipped AI parts inside any lod-0 ring stay ≤ 60
     assert.ok(tris <= 60_000 && draws <= 12, `at ${at.id}: ${tris} AI triangles, ${draws} draws`);
   }
   assert.ok(worst.tris > 0, `worst view ${JSON.stringify(worst)}`);
+});
+
+test('AI parts near the focus only (C2 request 2): within AI_R the lod 0 may draw its GLBs, past AI_R + 30 it is procedural', () => {
+  const sites = new CitySites();
+  const inner = sites as unknown as { sites: { l: SfLandmark; aiNear: boolean; ai: boolean }[] };
+  const s = inner.sites.find(x => x.l.id === 'city-hall')!, l = s.l;
+  const at = (d: number) => { sites.update(l.x + d, l.z, 0); return s.aiNear; };
+  try {
+    assert.equal(at(AI_R - 20), true, 'near: AI allowed');
+    assert.equal(at(AI_R + 20), true, 'hysteresis holds it');
+    assert.equal(at(AI_R + 40), false, 'past AI_R + 30: procedural');
+    assert.equal(at(AI_R + 10), false, 'needs AI_R to come back');
+    assert.equal(at(AI_R - 10), true);
+    // no GLBs in node: the lod 0 is procedural either way, and a far site never counts as pending
+    at(AI_R + 40);
+    assert.equal(s.ai, false);
+    assert.equal(sites.counts().ai.pending, 0);
+  } finally { sites.dispose(); }
+  assert.ok(AI_R < LOD0[2], 'inside the T2 lod-0 ring');
 });
