@@ -241,7 +241,7 @@ nothing from anyone (World already attaches them).
   `disableCity`, D2's `makeModelMaterial` (program key, instancing), G2's `data/sf/lines.ts` + its test. The offline
   scripts (`render-base.ts`, `paper_post.py`, `voice_post.py`, `place.ts`, `murals_post.py`) only skimmed: their outputs
   are pinned by bytes / sha256 in the tests.
-- Checks: before the fixes `tsc` 0, `eslint` 0, **381 / 381**; after them `tsc` 0, `eslint` 0, **384 / 384**, and **392 / 392** after rebasing on `71f2bff` (hero
+- Checks: before the fixes `tsc` 0, `eslint` 0, **381 / 381**; after them `tsc` 0, `eslint` 0, **384 / 384**, and **393 / 393** after rebasing on `fdef292` (one full run on the shared machine failed `opus-bay-sf-nav` "local A* window …" on its wall-clock budget `navWindowStats.lastMs < 200`; the file alone twice and the full suite again: green. Not this lane's code; a flaky budget for the lead to know about) (hero
   regression and contracts green).
 - In the app (own dev server 5207, RTX; scripted with `scripts/opus-shot.mjs`, every image read):
   - **Murals, lifecycle** (`?start=free&world=city&time=day`, QA camera): at the start (Ferry, > 300 u) the group is
