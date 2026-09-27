@@ -1,7 +1,7 @@
 // Headless visual QA for /opus-bay. Launches its own Chrome (unique port + profile), runs actions, screenshots.
 // Usage:
 //   node scripts/opus-shot.mjs --out shot.png [--url http://localhost:5174/opus-bay?start=free] [--w 1440 --h 900]
-//        [--mobile] [--wait 6000] [--actions '[{"do":"key","key":"KeyW","ms":1500},{"do":"shot","name":"b.png"}]']
+//        [--mobile] [--dpr 3] [--wait 6000] [--actions '[{"do":"key","key":"KeyW","ms":1500},{"do":"shot","name":"b.png"}]']
 // Actions: {do:'wait',ms} {do:'key',key:'KeyW'|'ShiftLeft'|'Space'|'KeyE'|'Enter'|'Escape'|'Digit1',ms} {do:'keys',keys:[..],ms}
 //          {do:'click',x,y} {do:'drag',from:[x,y],to:[x,y]} {do:'wheel',x,y,dy} {do:'eval',expr} {do:'shot',name}  (a name ending in .jpg saves a JPEG at q82)
 //          {do:'fps',ms} {do:'throttle',rate}
@@ -44,7 +44,7 @@ try {
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => { const mid = ++id; pending.set(mid, { resolve, reject }); ws.send(JSON.stringify({ id: mid, method, params })); });
   await send('Runtime.enable'); await send('Page.enable');
-  await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: !!args.mobile });
+  await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: Number(args.dpr || 1), mobile: !!args.mobile });
   if (args.mobile) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await send('Page.navigate', { url });
   await sleep(Number(args.wait || 6000));

@@ -413,61 +413,146 @@ for (const [name, [x, z, fx, fz]] of Object.entries(spots)) {
 }
 ```
 
-### 4.2 City table (G2 gate)
+### 4.2 City table (G2 gate) — measured 2026-09-26 23:00–23:58 PDT on the owner's machine
 
-Idle and walk are 10 s each. p95/p99 are for the walk window.
+Machine: Ryzen 9 5900HX (16 threads), RTX 3070 Laptop GPU (driver 610.60) + AMD Radeon Vega iGPU, Windows 11, Chrome
+153.0.8010.54 headless (`--headless=new`, vsync-capped at 60), dev server (`vite.opus.config.ts`), branch `opus-bay` @
+`4610ee2` (wave-2 head, **Karl / night light field not applied yet**), `?start=free&world=city&quality=high&time=golden`.
+Runs are sequential (one Chrome at a time, nothing else running). Scripts (copies in `scripts/opus-sf/qa/perf/`) and raw logs: `C:/Users/willy/opus-qa/w2-perf/`
+(`perf-helpers.js`, `perf-gen.mjs`, `run-all.sh`, `run-extra.sh`, `table.mjs`, `opus-prof.mjs`; logs in `nv/`, `amd/`,
+`extra/`). The RTX runs pass `--force_high_performance_gpu` (without it headless Chrome picks the iGPU). "programs" is
+1× idle → 4× walk. Idle and walk are 10 s each; p95 / p99 are for the walk window; a row fails on the rules in 4.1.
+
+**RTX 3070 (the owner's GPU)**
 
 | spot | viewport | throttle | calls | tris | programs | objects | fps idle | fps walk | p95 ms | p99 ms | frames > 50 / > 100 ms | pass |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ferry gate | desktop 1440×900 | 1× | | | | | | | | | | |
-| Ferry gate | desktop 1440×900 | 4× | | | | | | | | | | |
-| Ferry gate | 390×844 | 1× | | | | | | | | | | |
-| Ferry gate | 390×844 | 4× | | | | | | | | | | |
-| Chinatown (Dragon Gate) | desktop 1440×900 | 1× | | | | | | | | | | |
-| Chinatown (Dragon Gate) | desktop 1440×900 | 4× | | | | | | | | | | |
-| Chinatown (Dragon Gate) | 390×844 | 1× | | | | | | | | | | |
-| Chinatown (Dragon Gate) | 390×844 | 4× | | | | | | | | | | |
-| Twin Peaks | desktop 1440×900 | 1× | | | | | | | | | | |
-| Twin Peaks | desktop 1440×900 | 4× | | | | | | | | | | |
-| Twin Peaks | 390×844 | 1× | | | | | | | | | | |
-| Twin Peaks | 390×844 | 4× | | | | | | | | | | |
-| Ocean Beach (Judah) | desktop 1440×900 | 1× | | | | | | | | | | |
-| Ocean Beach (Judah) | desktop 1440×900 | 4× | | | | | | | | | | |
-| Ocean Beach (Judah) | 390×844 | 1× | | | | | | | | | | |
-| Ocean Beach (Judah) | 390×844 | 4× | | | | | | | | | | |
-| GGB south anchorage | desktop 1440×900 | 1× | | | | | | | | | | |
-| GGB south anchorage | desktop 1440×900 | 4× | | | | | | | | | | |
-| GGB south anchorage | 390×844 | 1× | | | | | | | | | | |
-| GGB south anchorage | 390×844 | 4× | | | | | | | | | | |
-| Mission (Mission Dolores) | desktop 1440×900 | 1× | | | | | | | | | | |
-| Mission (Mission Dolores) | desktop 1440×900 | 4× | | | | | | | | | | |
-| Mission (Mission Dolores) | 390×844 | 1× | | | | | | | | | | |
-| Mission (Mission Dolores) | 390×844 | 4× | | | | | | | | | | |
-| extra: Twin Peaks `&pool=tile` | desktop 1440×900 | 1× / 4× | | | | | | | | | | |
+| Ferry gate | desktop 1440×900 | 1x | 121 | 386k | 48→49 | 300 | 60.1 | 57.9 | 16.8 | 16.9 | 2 / 2 | fail: programs, >100ms |
+| Ferry gate | desktop 1440×900 | 4x | 103 | 385k | 48→50 | 304 | 39.6 | 30 | 50 | 50.1 | 6 / 0 | fail: fps<45, programs |
+| Ferry gate | 390×844 | 1x | 99 | 338k | 46→49 | 300 | 60.1 | 58.1 | 16.8 | 16.9 | 2 / 2 | fail: programs, >100ms |
+| Ferry gate | 390×844 | 4x | 89 | 334k | 46→50 | 304 | 41.7 | 31.7 | 49.9 | 50.1 | 5 / 0 | fail: fps<45, programs |
+| Chinatown (Dragon Gate) | desktop 1440×900 | 1x | 124 | 432k | 40→40 | 319 | 60.1 | 58.5 | 16.8 | 16.8 | 2 / 1 | fail: tris, >100ms |
+| Chinatown (Dragon Gate) | desktop 1440×900 | 4x | 127 | 431k | 40→40 | 319 | 47.5 | 34.6 | 33.4 | 50 | 1 / 0 | fail: fps<45, tris |
+| Chinatown (Dragon Gate) | 390×844 | 1x | 107 | 371k | 50→50 | 321 | 60.1 | 58.3 | 16.8 | 16.8 | 2 / 2 | fail: >100ms |
+| Chinatown (Dragon Gate) | 390×844 | 4x | 109 | 365k | 50→50 | 321 | 39.7 | 35.4 | 33.4 | 50 | 1 / 0 | fail: fps<45 |
+| Twin Peaks | desktop 1440×900 | 1x | 112 | 397k | 40→40 | 325 | 60.1 | 58.4 | 16.8 | 16.8 | 2 / 2 | fail: >100ms |
+| Twin Peaks | desktop 1440×900 | 4x | 112 | 396k | 40→40 | 325 | 35.9 | 26.6 | 50.1 | 66.4 | 16 / 0 | fail: fps<45 |
+| Twin Peaks | 390×844 | 1x | 102 | 330k | 50→50 | 325 | 60.1 | 56.7 | 16.8 | 16.8 | 2 / 2 | fail: >100ms |
+| Twin Peaks | 390×844 | 4x | 97 | 322k | 50→50 | 325 | 53.2 | 52.1 | 33.3 | 33.4 | 0 / 0 | pass |
+| Ocean Beach (Judah) | desktop 1440×900 | 1x | 58 | 148k | 50→50 | 309 | 60.1 | 56.9 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| Ocean Beach (Judah) | desktop 1440×900 | 4x | 59 | 148k | 50→50 | 311 | 59.9 | 52.7 | 33.3 | 33.4 | 0 / 0 | pass |
+| Ocean Beach (Judah) | 390×844 | 1x | 50 | 143k | 48→50 | 309 | 60.1 | 56.8 | 16.8 | 16.8 | 2 / 2 | fail: programs, >100ms |
+| Ocean Beach (Judah) | 390×844 | 4x | 53 | 143k | 48→50 | 311 | 58.8 | 52.9 | 33.3 | 33.4 | 0 / 0 | fail: programs |
+| GGB south anchorage | desktop 1440×900 | 1x | 52 | 125k | 50→50 | 302 | 60.1 | 56.7 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| GGB south anchorage | desktop 1440×900 | 4x | 52 | 125k | 50→50 | 302 | 60.1 | 60.1 | 16.7 | 16.8 | 0 / 0 | pass |
+| GGB south anchorage | 390×844 | 1x | 51 | 124k | 48→50 | 302 | 60.1 | 56.7 | 16.7 | 16.8 | 2 / 2 | fail: programs, >100ms |
+| GGB south anchorage | 390×844 | 4x | 51 | 124k | 48→50 | 302 | 60 | 60.1 | 16.7 | 16.8 | 0 / 0 | fail: programs |
+| Mission (Mission Dolores) | desktop 1440×900 | 1x | 87 | 346k | 50→50 | 326 | 60.1 | 57 | 16.8 | 16.8 | 2 / 2 | fail: >100ms |
+| Mission (Mission Dolores) | desktop 1440×900 | 4x | 87 | 354k | 50→50 | 326 | 60 | 56.4 | 33.3 | 33.4 | 0 / 0 | pass |
+| Mission (Mission Dolores) | 390×844 | 1x | 73 | 290k | 40→40 | 326 | 60.1 | 56.6 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| Mission (Mission Dolores) | 390×844 | 4x | 75 | 305k | 40→40 | 326 | 60 | 56.8 | 33.2 | 33.4 | 1 / 0 | pass |
+| extra: Twin Peaks `&pool=tile` | desktop 1440×900 | 1x | 130 | **519k** | 49→49 | 367 | 60.1 | 58.4 | 16.7 | 16.8 | 2 / 2 | fail: tris, >100ms |
+| extra: Twin Peaks `&pool=tile` | desktop 1440×900 | 4x | 129 | **519k** | 49→49 | 367 | 37.2 | 33.5 | 49.9 | 66.7 | 7 / 1 | fail: fps<45, tris |
 
-The Twin Peaks, Chinatown and Mission rows are expected to fail the triangle budget until C2-2 and C2-5 land (cloud: 454k, 385k and 409k at 960×600).
+**AMD Radeon iGPU (a weak-GPU stand-in, closer to a phone GPU)**
 
-### 4.3 District re-measure (replaces the stale STATUS.md table, DR-2)
+| spot | viewport | throttle | calls | tris | programs | objects | fps idle | fps walk | p95 ms | p99 ms | frames > 50 / > 100 ms | pass |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Ferry gate | desktop 1440×900 | 1x | 113 | 408k | 48→48 | 303 | 60.1 | 57.1 | 16.7 | 16.8 | 2 / 2 | fail: tris, programs, >100ms |
+| Ferry gate | desktop 1440×900 | 4x | 102 | 386k | 48→50 | 304 | 57.9 | 47.9 | 33.4 | 33.4 | 0 / 0 | fail: programs |
+| Ferry gate | 390×844 | 1x | 93 | 336k | 47→50 | 304 | 60.1 | 57.2 | 16.7 | 16.8 | 2 / 2 | fail: programs, >100ms |
+| Ferry gate | 390×844 | 4x | 88 | 333k | 47→50 | 304 | 60.1 | 56.5 | 33.3 | 33.4 | 0 / 0 | fail: programs |
+| Chinatown (Dragon Gate) | desktop 1440×900 | 1x | 124 | 433k | 40→40 | 319 | 60.1 | 57.1 | 16.7 | 16.8 | 2 / 2 | fail: tris, >100ms |
+| Chinatown (Dragon Gate) | desktop 1440×900 | 4x | 127 | 432k | 40→40 | 319 | 50.2 | 47.3 | 33.3 | 33.4 | 0 / 0 | fail: tris |
+| Chinatown (Dragon Gate) | 390×844 | 1x | 107 | 371k | 50→50 | 321 | 58.3 | 53.3 | 33.3 | 33.5 | 2 / 2 | fail: >100ms |
+| Chinatown (Dragon Gate) | 390×844 | 4x | 105 | 361k | 50→50 | 321 | 32.1 | 22.6 | 66.6 | 83.2 | 37 / 1 | fail: fps<45, >100ms |
+| Twin Peaks | desktop 1440×900 | 1x | 112 | 397k | 50→50 | 325 | 50.1 | 48.7 | 33.3 | 33.4 | 3 / 2 | fail: p95/p99, >100ms |
+| Twin Peaks | desktop 1440×900 | 4x | 112 | 396k | 50→50 | 325 | 32.3 | 31.2 | 33.5 | 50 | 1 / 0 | fail: fps<45 |
+| Twin Peaks | 390×844 | 1x | 102 | 330k | 49→49 | 325 | 60.1 | 58.3 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| Twin Peaks | 390×844 | 4x | 97 | 322k | 49→49 | 325 | 42.3 | 40.5 | 33.4 | 33.4 | 0 / 0 | fail: fps<45 |
+| Ocean Beach (Judah) | desktop 1440×900 | 1x | 58 | 148k | 40→40 | 309 | 60.1 | 55.9 | 16.8 | 33.5 | 2 / 2 | fail: p95/p99, >100ms |
+| Ocean Beach (Judah) | desktop 1440×900 | 4x | 58 | 148k | 40→40 | 309 | 41.5 | 37.8 | 33.4 | 50 | 4 / 0 | fail: fps<45 |
+| Ocean Beach (Judah) | 390×844 | 1x | 50 | 143k | 47→49 | 309 | 60.1 | 58.4 | 16.7 | 16.8 | 2 / 2 | fail: programs, >100ms |
+| Ocean Beach (Judah) | 390×844 | 4x | 53 | 144k | 47→49 | 311 | 54.4 | 48.6 | 33.4 | 33.4 | 0 / 0 | fail: programs |
+| GGB south anchorage | desktop 1440×900 | 1x | 52 | 125k | 50→50 | 302 | 60.1 | 58.5 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| GGB south anchorage | desktop 1440×900 | 4x | 52 | 125k | 50→50 | 302 | 43.7 | 42.5 | 33.4 | 33.4 | 1 / 0 | fail: fps<45 |
+| GGB south anchorage | 390×844 | 1x | 50 | 124k | 38→40 | 302 | 60.1 | 58.4 | 16.8 | 16.8 | 2 / 2 | fail: programs, >100ms |
+| GGB south anchorage | 390×844 | 4x | 50 | 124k | 38→40 | 302 | 46.3 | 45.6 | 33.4 | 33.4 | 0 / 0 | fail: programs |
+| Mission (Mission Dolores) | desktop 1440×900 | 1x | 86 | 347k | 40→40 | 326 | 53.5 | 46 | 33.4 | 49.9 | 2 / 2 | fail: p95/p99, >100ms |
+| Mission (Mission Dolores) | desktop 1440×900 | 4x | 86 | 354k | 40→40 | 326 | 38 | 28.5 | 50.1 | 66.7 | 16 / 0 | fail: fps<45 |
+| Mission (Mission Dolores) | 390×844 | 1x | 73 | 290k | 49→49 | 326 | 60.1 | 58.1 | 16.7 | 16.8 | 2 / 2 | fail: >100ms |
+| Mission (Mission Dolores) | 390×844 | 4x | 76 | 305k | 49→49 | 326 | 40 | 41.5 | 33.4 | 33.4 | 1 / 0 | fail: fps<45 |
 
-Use URL `http://localhost:5174/opus-bay?start=free&quality=high&time=<time>&at=<anchor>` and the same `frames()` helper (no `go`). Wait 30 s after load.
+**What the table says (lead, 2026-09-27)**
+
+1. **1× is 60 fps everywhere on the RTX**, calls ≤ 127 (130 with `pool=tile`), objects ≤ 367. The iGPU is GPU-bound at
+   1440×900 in Twin Peaks (48.7 walk) and the Mission (46.0 walk); at 390×844 it holds 53+.
+2. **Every run has exactly 2 frames > 100 ms in its first walk window, district included.** Cause (CPU profile,
+   `extra/firstwalk.cpuprofile`): the first key / tap is the first user gesture, and the audio rig boots synchronously in
+   it (`audio/audio.ts boot`: `new AudioContext` + the `AudioEngine` noise / impulse buffers ≈ 370 ms of main thread);
+   900 ms later `ambience.setWorld(describeWorld(DISTRICT, true))` builds the shore distance field (`audio/logic.ts
+   distToSegment` ≈ 135 ms). No shader compile is involved in city mode (the program list is identical before and after
+   the first walk; district compiles 2 unnamed programs on its first walk). **Lane F owns the fix** (create the context
+   suspended at load and only `resume()` + play the silent unlock sample in the gesture; noise / impulse / shore field in
+   idle slices or a worker). On a phone this is a 1–2 s freeze on the first touch.
+3. **4× CPU fails in the dense views** (Ferry gate, Chinatown, Twin Peaks desktop: 27–40 fps walking). The frame is
+   main-thread bound (≈ 4–5 ms at 1× → 16–20 ms at 4×, which vsync quantises to 30). CPU profile at Twin Peaks, 4× walk
+   (`extra/tp-4x-walk.cpuprofile`): 46 % inside three.js — `getParameters` + `getProgram` + `setProgram` ≈ 9 % (programs are
+   re-looked-up every frame, the usual sign of one material instance shared between object kinds — mesh / instanced /
+   batched / skinned, or different `receiveShadow` / fog — which flips `needsProgramChange` on each draw),
+   `onBeforeRender` (BatchedMesh per-item culling and sorting) + `projectObject` + `updateMatrixWorld` ≈ 9 %, native GL ≈
+   30 %. Ours: `game/Systems.tsx project` (click proxies, every frame) 2 %, `world/sf/stream.ts applyVisibility` 1.5 %,
+   actors ≈ 2 %. Owners: C2 (materials, pools, stream), G1 (Systems), E2 (actors).
+4. **Triangles:** Chinatown (Dragon Gate) desktop 432k and the iGPU Ferry gate 408k are over 400k. **`pool=tile` (the no-
+   `WEBGL_multi_draw` fallback) draws 519k at Twin Peaks vs 396k batched for the same cells** (14 L0 / 61 L1): the tile
+   path loses the per-item culling, and a phone without multi-draw would pay it (C2).
+5. **`programs` drifts** by 1–3 between 1× idle and 4× walk at the Ferry gate, Ocean Beach and GGB (late compiles; C2's
+   CS-6 warm-up registrations).
+6. JS heap 166–341 MB (the high reading is right after load); `geometries` ≤ 159, `textures` ≤ 40, 0 streaming errors.
+
+### 4.3 District re-measure (replaces the stale STATUS.md table, DR-2) — RTX 3070, 2026-09-26
+
+`?start=free&quality=high&time=<time>&at=<anchor>`, 30 s after load, then 10 s each of 1× idle, 4× idle, 4× walk. The
+4× walk window is the page's **first** walk, so it includes the audio-boot hitch of 4.2 item 2 (2 frames > 100 ms in
+every row).
 
 | spot (`at`, `time`) | viewport | calls | tris | objects | fps 1× | fps 4× idle | fps 4× walk | STATUS 2026-09-25 |
 |---|---|---|---|---|---|---|---|---|
-| `ferry-gate`, golden | 1440×900 | | | | | | | 55–56 / 144k; 60 / 59 / 59 |
-| `sea-lion-viewpoint`, golden | 1440×900 | | | | | | | 53–57 / 179–186k; 60 / 60 / 58 |
-| `coit-view`, golden | 1440×900 | | | | | | | 61 / 190–191k; 60 / 49 / 53 |
-| `ferry-clock`, night | 1440×900 | | | | | | | 63–64 / 220–223k; 60 / 60 / 54 |
-| `pier39-entrance`, day | 390×844 | | | | | | | 52–54 / 157k; 60 / 60 / 60 |
-| `coit-view`, night | 390×844 | | | | | | | 57–58 / 155k; 60 / 60 / 60 |
+| `ferry-gate`, golden | 1440×900 | 77 | 250k | 264 | 60.1 | 60.1 | 47.5 | 55–56 / 144k; 60 / 59 / 59 |
+| `sea-lion-viewpoint`, golden | 1440×900 | 63 | 235k | 264 | 60.1 | 59.2 | 46.3 | 53–57 / 179–186k; 60 / 60 / 58 |
+| `coit-view`, golden | 1440×900 | 90 | 320k | 264 | 60.1 | 55.4 | 31.4 | 61 / 190–191k; 60 / 49 / 53 |
+| `ferry-clock`, night | 1440×900 | 80 | 244k | 264 | 60.1 | 47.8 | 28.4 | 63–64 / 220–223k; 60 / 60 / 54 |
+| `pier39-entrance`, day | 390×844 | 57 | 293k | 264 | 60.1 | 59.9 | 40.7 | 52–54 / 157k; 60 / 60 / 60 |
+| `coit-view`, night | 390×844 | 76 | 293k | 264 | 60.1 | 59.8 | 38.0 | 57–58 / 155k; 60 / 60 / 60 |
 
-### 4.4 Phone (iPhone Safari over the LAN)
+The STATUS numbers were taken at auto quality (the monitor had lowered it); these are `quality=high`, so the triangle
+counts are not comparable. District 1× is 60 fps everywhere.
 
-- Run `npx vite --config vite.opus.config.ts --host`.
-- Open `http://<LAN-IP>:5174/opus-bay?start=free&world=city&quality=high&debug=1`.
-- The overlay's `pool` line says `batched` (`WEBGL_multi_draw` present) or `tile` (fallback, plan open question 1).
-- Note fps, calls and triangles from the debug line at the Ferry gate and Twin Peaks.
-- `--mobile` emulation uses DPR 1; the phone is DPR 3, so its numbers can differ.
-- Then rebuild the phone package (RESUME.md).
+### 4.4 Phone
+
+**Emulated here** (the owner's iPhone is the real test): `--mobile --dpr 3` (390×844, touch; the game caps the pixel
+ratio at 1.5 on high → a 585×1266 canvas), 4× CPU the whole run, auto quality (no `?quality`), city, golden.
+
+| run | GPU | windows | quality | calls | tris | fps |
+|---|---|---|---|---|---|---|
+| Ferry gate, first minute | iGPU | idle / first walk / idle / walk | high (never lowered) | 71–75 | 221–227k | 51.2 / 33.6 / 39.9 / 40.5 |
+| Twin Peaks, first minute | iGPU | same | high (never lowered) | 95–100 | 322–325k | 41.5 / 30.2 / 39.6 / 37.5 |
+| Ferry gate, first minute | RTX | same | high (never lowered) | 95–102 | 317–337k | 51.6 / 28.7 / 46.7 / 43.1 |
+| Twin Peaks, first minute | RTX | same | high (never lowered) | 95–100 | 322–325k | 45.3 / 33.3 / 51.9 / 59.3 |
+| Ferry gate, after a warm-up walk | iGPU | idle – walk | `high` / `mid` / `low` | 97 / 86 / 85 | 314k / 279k / 294k | 51.7–51.8 / **60.1–60.1** / 59.7–59.1 |
+| Twin Peaks, after a warm-up walk | iGPU | idle – walk | `high` / `mid` / `low` | 105 / 93 / 95 | 337k / 304k / 285k | 56.7–57.6 / **60.0–60.0** / 59.2–50.3 |
+
+Findings:
+- **The world runs on the phone profile**: it loads, streams, walks and renders at 390×844 with touch emulation, 0
+  streaming errors, heap ≤ 218 MB, `WEBGL_multi_draw` present in Chrome (pool `batched`).
+- **Auto quality never steps down** although the phone profile runs 30–45 fps on `high`: drei's `PerformanceMonitor`
+  declines only when 7 of 8 half-second windows are < 40 fps (default `bounds` `[40, 60]`, `threshold` 0.75), and vsync
+  holds the average at 35–45. `mid` is a solid 60 at both spots; `low` buys nothing over `mid`. → C2 (CS-7): start touch /
+  high-DPR devices at `mid` unless `?quality` or a saved choice says otherwise, and decline at ≈ 50 fps.
+- The first-touch audio boot (4.2 item 2) is the worst hitch on the phone profile (p99 117 ms in the first walk).
+- **Still to check on the real iPhone** (Safari over the LAN, RESUME.md): the debug line's `pool` (`batched` or `tile`; if
+  Safari lacks `WEBGL_multi_draw`, the tile path costs +30 % triangles, 4.2 item 4), fps / calls / tris at the Ferry gate
+  and Twin Peaks, touch feel, the HUD at 390 wide, memory (no reload or crash after 5 minutes of walking).
 
 ---
 
