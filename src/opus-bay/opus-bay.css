@@ -1148,3 +1148,22 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
   .ob-hud-buttons .ob-round.is-baybay { width: 54px; height: 54px; }
   .ob-hud-buttons .ob-round-label { left: auto; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
 }
+/* G1-review · desktop / tablet goals card: it keeps above the prompt row (scrolls inside on short windows) and, on
+   narrow windows, the top stack centres in the space right of it — at 800×600 and 768×1024 the toasts slid under the
+   card and the card covered the 坐渡轮 prompt and ran off the bottom (the phone card already lives in the stack) */
+@media (min-width: 721px) {
+  .ob-overlay > .ob-goals-card { max-height: calc(100dvh - var(--ob-st) - var(--ob-sb) - 216px); overflow-y: auto; overscroll-behavior: contain; }
+}
+@media (min-width: 721px) and (max-width: 1180px) {
+  .ob-overlay:has(> .ob-goals-card) .ob-topstack { left: calc((100% + 320px + var(--ob-sl)) / 2); width: min(760px, calc(100% - 344px - var(--ob-sl))); }
+}
+/* G1-review · touch tablets: the big action button sat on the round buttons (地图 / BAYBAY). With the buttons in a
+   column (721–1180 px) it moves one column in, under E2's 跳 / Hop; beside the row of buttons on wider screens */
+@media (min-width: 721px) and (max-width: 1180px) { .ob-touch-action { right: calc(84px + var(--ob-sr)); } }
+@media (min-width: 1181px) { .ob-touch-action { right: calc(354px + var(--ob-sr)); } }
+/* G1-review · the column (721–1180 px): BAYBAY's "问我" hint sat under the 地图 button stacked above her. While it
+   shows, the column leaves room for it above her (clear of her Q keycap too); left of her is the touch action's spot */
+@media (min-width: 721px) and (max-width: 1180px) {
+  .ob-hud-buttons .ob-round.is-baybay:has(.ob-ask-me) { margin-top: 38px; }
+  .ob-hud-buttons .ob-ask-me { bottom: calc(100% + 14px); }
+}
