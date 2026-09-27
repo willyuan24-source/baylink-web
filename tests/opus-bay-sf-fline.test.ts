@@ -233,3 +233,53 @@ test('ride: Ferry Building → 17th & Castro end to end; it counts once; the hop
     flow.set({ ride: null });
   }
 });
+
+test('review: a hero ride that began before the city F-line came in keeps its car; the F-line waits hidden, then takes over', async () => {
+  const { FLineLayer } = await import('../src/opus-bay/world/flineLayer');
+  const { Streetcars } = await import('../src/opus-bay/world/streetcar');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const layer = new FLineLayer(LINE, () => false, () => null);
+  const cars = new Streetcars();
+  // the transit layer the city loads lazily, reduced to its F-line (world/transitLayer.ts hosts it the same way)
+  (cars as unknown as { layer: unknown }).layer = { fline: layer, group: layer.group, update: (dt: number) => layer.update(dt), dispose: () => layer.dispose() };
+  try {
+    game.set({ phase: 'playing', worldMode: 'city' });
+    const heroPos = () => (cars as unknown as { positions(): { x: number; z: number; heading: number }[] }).positions();
+    // as world/streetcar.ts does when the layer comes in: the F-line cars start where the hero cars are
+    layer.sys.seedFrom(heroPos().map(p => ({ x: p.x, z: p.z, heading: p.heading })));
+    // the rider boarded the hero loop's car before the layer existed (a district-style ride: no `line`)
+    assert.ok(ride.beginRide('ferry', 'pier39'));
+    const heroCar = () => (cars as unknown as { cars: { mesh: { visible: boolean } }[] }).cars;
+    let maxOff = 0;
+    for (let i = 0; i < 30 * 40; i++) {
+      cars.update(DT, i * DT);
+      platform.agePlatforms(DT);
+      if (!ride.currentRide()) break;
+      // the platform 'streetcar' (the rider's car) and the mirror stay the hero loop's: the F-line never moves them
+      const pl = platform.platforms.get('streetcar')!, sc = runtime.streetcar;
+      const toHero = Math.min(...heroPos().map(h => Math.hypot(pl.x - h.x, pl.z - h.z)));
+      maxOff = Math.max(maxOff, toHero, Math.hypot(pl.x - sc.x, pl.z - sc.z));
+    }
+    assert.ok(maxOff < 0.05, `the rider's platform stays on a hero car (${maxOff.toFixed(2)} u off at worst)`);
+    assert.equal(layer.active, false, 'F-line waits while the hero ride runs');
+    assert.equal(layer.group.visible, false, 'its cars are not drawn over the hero cars');
+    assert.ok(heroCar().every(c => c.mesh.visible), 'the hero cars stay');
+    // the hero ride ends: the F-line takes over where the hero cars are now
+    const hero = heroPos();
+    ride.endRide();
+    cars.update(DT, 20);
+    assert.equal(layer.active, true);
+    assert.equal(layer.group.visible, true);
+    assert.ok(heroCar().every(c => !c.mesh.visible), 'hero cars hidden once the F-line runs');
+    const near = hero.map(h => Math.min(...layer.sys.cars.map(c => Math.hypot(c.pose.x - h.x, c.pose.z - h.z))));
+    assert.ok(near.every(d => d < 6), `an F-line car where each hero car was (${near.map(d => d.toFixed(1)).join(', ')} u)`);
+    assert.deepEqual(layer.sys.violations(), []);
+  } finally {
+    ride.endRide();
+    cars.dispose();
+    layer.dispose();
+    T.setActiveStreetcarSystem(null);
+    game.set({ riding: null, worldMode: 'district' });
+    flow.set({ ride: null });
+  }
+});

@@ -158,6 +158,8 @@ export class Streetcars {
   private layer: TransitLayer | null = null;
   /** the city F-line (the layer's) runs instead of the hero loop */
   private cityLine = false;
+  /** the hero loop is finishing a ride that started before the layer came in (the F-line waits, hidden) */
+  private legacyRide = false;
   private disposed = false;
 
   constructor() {
@@ -368,11 +370,18 @@ export class Streetcars {
     // city mode: once the transit layer runs the F-line to the Castro (world/flineLayer.ts), it owns the cars, the
     // platform 'streetcar' and runtime.streetcar; the hero loop only finishes a ride that started on it
     const r = currentRide();
-    const city = !!this.layer?.fline && !(r && !r.line);
+    const fline = this.layer?.fline ?? null;
+    const city = !!fline && !(r && !r.line);
+    // (review) a hero ride that started before the layer came in: the F-line keeps simulating but stays hidden and off
+    // the platform 'streetcar' / runtime.streetcar until that ride ends, then takes over where the hero cars are by then
+    if (fline && !city) this.legacyRide = true;
     if (city !== this.cityLine) {
       this.cityLine = city;
       for (const c of this.cars) { c.mesh.visible = !city; c.pole.visible = !city; }
+      if (city && this.legacyRide) fline!.sys.seedFrom(this.cars.map(c => { const p = this.sample(c.u); return { x: p.x, z: p.z, heading: p.heading }; }));
+      if (city) this.legacyRide = false;
     }
+    fline?.setActive(city);
     if (city) { this.layer!.update(dt, t); return; }
     const ride = this.handleRide();
     const carrying = !!ride && ride.mode === 'follow';

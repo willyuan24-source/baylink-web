@@ -106,13 +106,31 @@ export class FLineLayer {
     this.update(0);
   }
 
+  /**
+   * (review) False while the hero loop (world/streetcar.ts) still carries a ride that began before this layer came in:
+   * the cars keep running but are not drawn, and the platform 'streetcar', runtime.streetcar and the bells stay the
+   * hero loop's (two sets of cars on the hero track, and the rider switched onto another car, otherwise).
+   */
+  get active(): boolean { return this.isActive; }
+  setActive(on: boolean) {
+    if (on === this.isActive) return;
+    this.isActive = on;
+    this.group.visible = on;
+  }
+  private isActive = true;
+  /** instances per livery this frame (near / far), reused */
+  private readonly nNear = [0, 0];
+  private readonly nFar = [0, 0];
+
   update(dt: number) {
     const sys = this.sys;
     // a ride the game ended some other way (a trip, a reset): the cars forget the rider
     if (sys.rideStatus() && currentRide()?.line !== FLINE_ID) sys.cancel();
     sys.step(dt);
+    if (!this.isActive) { sys.events.length = 0; return; }
     const cam = U.uCam.value, p = runtime.player;
-    const n = this.near.map(() => 0), nf = this.far.map(() => 0);
+    const n = this.nNear, nf = this.nFar;
+    n.fill(0); nf.fill(0);
     for (const car of sys.cars) {
       const q = car.pose, liv = car.index % LIVERIES.length;
       const d = Math.hypot(q.x - cam.x, q.z - cam.z);
@@ -121,8 +139,11 @@ export class FLineLayer {
       tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE);
       if (d > FAR_LOD) this.far[liv].setMatrixAt(nf[liv]++, tmpM); else this.near[liv].setMatrixAt(n[liv]++, tmpM);
     }
-    this.near.forEach((m, i) => { m.count = n[i]; m.visible = n[i] > 0; m.instanceMatrix.needsUpdate = true; });
-    this.far.forEach((m, i) => { m.count = nf[i]; m.visible = nf[i] > 0; m.instanceMatrix.needsUpdate = true; });
+    for (let i = 0; i < LIVERIES.length; i++) {
+      const m = this.near[i], f = this.far[i];
+      m.count = n[i]; m.visible = n[i] > 0; m.instanceMatrix.needsUpdate = true;
+      f.count = nf[i]; f.visible = nf[i] > 0; f.instanceMatrix.needsUpdate = true;
+    }
     // the platform and the runtime mirror: the car serving the rider, else the car nearest the player
     let car = sys.riderCarOf(FLINE_ID);
     if (!car) {
