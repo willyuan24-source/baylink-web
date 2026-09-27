@@ -320,6 +320,19 @@ export class ActorSystem {
     const dx = x - this.camPos.x, dz = z - this.camPos.z;
     return dx * dx + dz * dz < ACTOR_SHADOW_R * ACTOR_SHADOW_R;
   }
+  /**
+   * castShadow on / off; a skinned caster turned on takes the player's shadow-depth material (C2's kindSweep gives
+   * casters their kind's one once a second and skips those not casting: before it, three drew the caster with its own
+   * depth material and linked a skinned depth program on its first shadowed frame — P5; that was the "+1 program on the
+   * first city glide": a pooled city bike, E2-12)
+   */
+  private castNear(mesh: THREE.Mesh, on: boolean) {
+    mesh.castShadow = on;
+    if (on && !mesh.customDepthMaterial && (mesh as THREE.SkinnedMesh).isSkinnedMesh) {
+      const depth = this.player.mesh.customDepthMaterial;
+      if (depth) mesh.customDepthMaterial = depth;
+    }
+  }
   /** vehicles, glide, benches, the streetcar platform */
   readonly move = new MoveSystem();
   private seenPant = -10;
@@ -486,7 +499,7 @@ export class ActorSystem {
     const move = this.move;
     move.update(dt, t, { cameraYaw: moveBasis.yaw, frozen: flowFrozen, playing: s.phase === 'playing', controller: this.controller, frustum, precompile: this.precompile ?? undefined });
     // parked rides cast a real shadow only near the camera (C2 part b request 1; the one you ride always does)
-    for (const r of move.fleet.rides) r.rig.mesh.castShadow = r === move.ride || this.nearCamera(r.sim.x, r.sim.z);
+    for (const r of move.fleet.rides) this.castNear(r.rig.mesh, r === move.ride || this.nearCamera(r.sim.x, r.sim.z));
     const carried = move.carried || riding;
 
     // soft obstacles for the player
@@ -625,7 +638,7 @@ export class ActorSystem {
       npc.talking = !!this.talkingNpc && npc.def.id === this.talkingNpc && (npcTalking || t < this.npcTalkUntil);
       npc.update(dt, t);
       // (a resident's real shadow only near the camera, its blob always: C2 part b request 1)
-      npc.rig.mesh.castShadow = this.nearCamera(npc.x, npc.z);
+      this.castNear(npc.rig.mesh, this.nearCamera(npc.x, npc.z));
       const r = residents[k] ?? (residents[k] = { x: 0, z: 0 });
       r.x = npc.x; r.z = npc.z;
     }
