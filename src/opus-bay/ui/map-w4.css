@@ -1,0 +1,75 @@
+/* Imported once by ui/CityMap.tsx (integration phase); the components themselves import no CSS so node tests can render them. */
+/* Wave 4 · city map components (lane P): filter chips, trip option rows, station card, legend, badges.
+   Toy-paper palette of opus-bay.css (--ob-*); touch targets ≥ 44 px (rows 48 px); laid out for 390 / 375 px phones. */
+
+/* --- filter chips: a horizontally scrolling row of 32 px chips in a 44 px band ---------------------------------- */
+.mw-chips { display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 6px 2px; margin: 0 -2px; min-height: 44px; align-items: center; -webkit-overflow-scrolling: touch; }
+.mw-chips::-webkit-scrollbar { display: none; }
+.mw-chip { --mw-chip: var(--ob-ink-2); flex: none; display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--ob-line-2); background: var(--ob-cream); color: var(--ob-ink-2); font: 700 13px/1 var(--ob-font); cursor: pointer; white-space: nowrap; transition: background .15s var(--ob-ease), border-color .15s var(--ob-ease); }
+.mw-chip svg { color: var(--mw-chip); }
+.mw-chip:hover { background: var(--ob-cream-2); }
+.mw-chip.is-on { background: var(--mw-chip); border-color: var(--mw-chip); color: #fff; }
+.mw-chip.is-on svg { color: #fff; }
+.mw-chip:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 2px; }
+
+/* --- trip option rows (TripOptions, StationActions) --------------------------------------------------------------- */
+.mw-trip { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mw-trip-row { width: 100%; min-height: 48px; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 14px; border: 1px solid var(--ob-line); background: #fff; color: var(--ob-ink); font: inherit; text-align: left; cursor: pointer; transition: background .15s var(--ob-ease), transform .15s var(--ob-ease); }
+.mw-trip-row:hover { background: var(--ob-cream-2); }
+.mw-trip-row:active { transform: scale(.985); }
+.mw-trip-row:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 2px; }
+.mw-trip-row.is-rec { border-color: var(--ob-teal); box-shadow: inset 0 0 0 1px var(--ob-teal); }
+.mw-trip-row.is-on { background: var(--ob-teal-l); }
+.mw-trip-ico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--ob-cream-3); color: var(--ob-ink-2); }
+.mw-trip-ico.m-walk, .mw-trip-ico.m-run { background: var(--ob-gold-l); color: var(--ob-gold-d); }
+.mw-trip-ico.m-bike, .mw-trip-ico.m-car { background: var(--ob-teal-l); color: var(--ob-teal-d); }
+.mw-trip-ico.m-line { background: #fde6df; color: #b8432f; }
+.mw-trip-ico.m-fly { background: #e9eef7; color: #3f5f9f; }
+.mw-trip-text { display: grid; gap: 2px; min-width: 0; }
+.mw-trip-text strong { font-size: 14.5px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.mw-trip-text small { font-size: 12px; color: var(--ob-ink-3); line-height: 1.3; overflow-wrap: anywhere; }
+.mw-trip-time { font-size: 14px; font-weight: 800; color: var(--ob-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mw-trip-rec { font-size: 11px; font-weight: 800; color: #fff; background: var(--ob-teal); padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+.mw-trip-row:not(.is-rec) { grid-template-columns: 36px minmax(0, 1fr) auto; }
+.mw-trip-go { color: var(--ob-ink-3); }
+.mw-trip-busy, .mw-trip-empty { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; font-size: 13px; color: var(--ob-ink-3); }
+.mw-spin { animation: mw-spin 1s linear infinite; }
+@keyframes mw-spin { to { transform: rotate(360deg); } }
+
+/* --- station card ---------------------------------------------------------------------------------------------------- */
+.mw-station { display: grid; gap: 8px; padding: 10px; border-radius: var(--ob-r-m); background: var(--ob-cream); border: 1px solid var(--ob-line); }
+.mw-station-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mw-station-head strong { font-size: 15.5px; font-weight: 800; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.mw-discs { display: inline-flex; gap: 3px; }
+.mw-discs i { min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; display: inline-grid; place-items: center; font: 800 11px/1 var(--ob-font); font-style: normal; color: #fff; }
+.mw-next { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); background: var(--ob-teal-l); padding: 4px 8px; border-radius: 999px; }
+.mw-station-note { margin: 0; font-size: 12.5px; color: var(--ob-ink-3); }
+.mw-trip-row.is-go { border-style: dashed; }
+
+/* --- legend -------------------------------------------------------------------------------------------------------- */
+.mw-legend { display: grid; gap: 6px; padding: 12px; border-radius: var(--ob-r-m); background: var(--ob-cream); border: 1px solid var(--ob-line); max-height: min(70vh, 560px); overflow-y: auto; overscroll-behavior: contain; }
+.mw-legend header { display: flex; align-items: center; justify-content: space-between; }
+.mw-legend h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.mw-legend h4 { margin: 8px 0 2px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--ob-ink-3); }
+.mw-legend-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; }
+.mw-legend-grid li, .mw-legend-rows li { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 13px; color: var(--ob-ink-2); }
+.mw-legend-grid svg, .mw-legend-rows svg { flex: none; overflow: visible; }
+.mw-legend-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.mw-legend-note { margin: 8px 0 0; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ob-ink-3); }
+.mw-fog-chip { width: 22px; height: 14px; border-radius: 4px; background: rgba(241, 232, 216, .85); border: 1.2px solid rgba(168, 146, 112, .55); }
+.mw-disc-t { font: 800 8px/1 var(--ob-font); fill: #fff; text-anchor: middle; }
+
+/* --- badges (SVG overlay) ------------------------------------------------------------------------------------------- */
+.mw-badge text, .mw-pip text, .mw-tour text { font-family: var(--ob-font); }
+.mw-pip text { font-size: 9px; font-weight: 800; fill: var(--ob-ink-2); }
+.mw-tour text { font-size: 8.5px; font-weight: 800; fill: #fff; text-anchor: middle; }
+.mw-target-pulse { transform-origin: 0 0; animation: mw-pulse 1.6s var(--ob-ease) infinite; }
+@keyframes mw-pulse { from { transform: scale(.6); opacity: .9; } to { transform: scale(1.7); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .mw-target-pulse, .mw-spin { animation: none; } }
+
+/* --- phones ------------------------------------------------------------------------------------------------------ */
+@media (max-width: 420px) {
+  .mw-trip-row { gap: 8px; padding-right: 10px; }
+  .mw-trip-text strong { font-size: 14px; }
+  .mw-legend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

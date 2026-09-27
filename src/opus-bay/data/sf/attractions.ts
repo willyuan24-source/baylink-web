@@ -238,10 +238,12 @@ export class AttractionIndex {
   readonly list: readonly Attraction[];
   private readonly ids = new Map<string, Attraction>();
   private readonly places = new Map<string, Attraction[]>();
+  private readonly landmarks = new Map<string, Attraction>();
   constructor(list: readonly Attraction[]) {
     this.list = list;
     for (const a of list) {
       this.ids.set(a.id, a);
+      if (a.landmarkId && !this.landmarks.has(a.landmarkId)) this.landmarks.set(a.landmarkId, a);
       const key = a.placeId ?? a.id;
       const arr = this.places.get(key);
       if (arr) arr.push(a); else this.places.set(key, [a]);
@@ -249,6 +251,14 @@ export class AttractionIndex {
     for (const arr of this.places.values()) arr.sort(byMapPriority);
   }
   get(id: string): Attraction | undefined { return this.ids.get(id); }
+  /**
+   * The attraction for an attraction id, else for an SF landmark registry id (`dragon-gate` → `chinatown-dragon-gate`,
+   * `painted-ladies`, `lombard-crooked-street`, `cable-car-turntable`): data written against landmark ids still
+   * resolves. Events, flags and cards use the canonical `Attraction.id`.
+   */
+  resolve(id: string): Attraction | undefined { return this.ids.get(id) ?? this.landmarks.get(id); }
+  /** the attraction standing for SF landmark `landmarkId` */
+  ofLandmark(landmarkId: string): Attraction | undefined { return this.landmarks.get(landmarkId); }
   /** the attractions decorating place `placeId`, most important first */
   ofPlace(placeId: string): readonly Attraction[] { return this.places.get(placeId) ?? []; }
   /** the attraction that speaks for place `placeId` on the map (badge, label, tier), if any */
@@ -259,6 +269,8 @@ export class AttractionIndex {
 
 export const ATTRACTION_INDEX = new AttractionIndex(ATTRACTIONS);
 export const attractionById = (id: string) => ATTRACTION_INDEX.get(id);
+/** Canonical attraction id of an attraction id or an SF landmark id (undefined when neither). */
+export const canonicalAttractionId = (id: string): string | undefined => ATTRACTION_INDEX.resolve(id)?.id;
 /** The 16 T1 ids (flags, stickers, "必看"). */
 export const T1_IDS: readonly string[] = ATTRACTIONS.filter(a => a.rank === 1).map(a => a.id);
 

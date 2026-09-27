@@ -261,3 +261,48 @@ test('places sidecar lib: wave-4 OSM kinds, name matching, reviewed additions, s
   assert.deepEqual(stableMerge(pub, pub.slice(1), []).diff.lost, [pub[0].id]);
   assert.throws(() => stableMerge(pub, pub, [pub[0]]), /not new/);
 });
+
+test('search: every alias finds its attraction; the plan\'s queries rank as asked (大学 / 石镇 / SFSU / UCSF / N 线 / muni)', async () => {
+  const { prepareSearch, rankSearch, groupHits, attractionEntries, lineEntries, stationEntries, placeEntries, SEARCH_SUGGESTIONS, normalizeSearch } = await import('../src/opus-bay/data/sf/placeSearch');
+  const { LINE_STYLES, mapStations } = await import('../src/opus-bay/ui/mapLines');
+  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const stations = mapStations(w4.lines);
+  const rows = applyW4Places(places);
+  const covered = new Set(ATTRACTIONS.map(a => a.placeId ?? a.id));
+  const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(rows, covered)]);
+  const ids = (q: string, n = 5) => rankSearch(ix, q, n).map(h => h.entry.id);
+  const t0 = performance.now();
+  for (let k = 0; k < 20; k++) rankSearch(ix, k % 2 ? '金门' : 'stones');
+  const perQuery = (performance.now() - t0) / 20;
+  assert.ok(perQuery < 25, `${perQuery.toFixed(1)} ms per keystroke`);
+  for (const a of ATTRACTIONS) for (const w of a.aliases ?? []) assert.ok(ids(w, 80).includes(a.id), `alias "${w}" does not find ${a.id}`);
+  for (const a of ATTRACTIONS) assert.ok(ids(a.name.zh, 3).includes(a.id), `zh name finds ${a.id}`);
+  // 大学: ≥ 4 campuses, SF State first
+  const uni = rankSearch(ix, '大学', 12);
+  assert.equal(uni[0].entry.id, 'sf-state-university');
+  assert.ok(uni.filter(h => h.entry.cat === 'campus').length >= 4);
+  assert.equal(rankSearch(ix, 'university', 3)[0].entry.id, 'sf-state-university');
+  for (const q of ['石镇', '石头城', 'Stonestown', 'stonestown galleria', '商场']) assert.equal(ids(q)[0], 'stonestown-galleria', q);
+  for (const q of ['SF State', 'SFSU', '州大', '旧金山州立', 'sf state']) assert.equal(ids(q)[0], 'sf-state-university', q);
+  assert.deepEqual(ids('UCSF', 2).sort(), ['ucsf-mission-bay', 'ucsf-parnassus']);
+  assert.deepEqual(ids('加大旧金山', 2).sort(), ['ucsf-mission-bay', 'ucsf-parnassus']);
+  for (const q of ['N 线', 'N线', 'n judah']) assert.equal(ids(q)[0], 'n-judah', q);
+  for (const q of ['muni', '地铁', '轻轨']) assert.deepEqual(ids(q, 2).sort(), ['m-ocean-view', 'n-judah'], q);
+  assert.equal(ids('观光巴士')[0], 'sf-loop');
+  assert.equal(ids('金门大桥')[0], 'golden-gate-bridge');
+  assert.deepEqual(ids('叮当车', 3).sort(), ['california', 'powell-hyde', 'powell-mason'], 'the cable lines answer 叮当车 first');
+  assert.ok(ids('叮当车', 6).includes('cable-car-powell-market') && ids('叮当车', 6).includes('cable-car-museum'));
+  assert.ok(ids('卡斯特罗站', 3).includes('muni-castro'));
+  assert.ok(ids('Embarcadero', 5).includes('muni-embarcadero'));
+  // groups in the order 景点 / 车站 / 线路 / 地点
+  const g = groupHits(rankSearch(ix, 'castro', 30)).map(x => x.group);
+  assert.deepEqual(g, [...g].sort((a, b) => ['attraction', 'station', 'line', 'place'].indexOf(a) - ['attraction', 'station', 'line', 'place'].indexOf(b)));
+  assert.ok(g.includes('attraction') && g.includes('station'));
+  // every suggestion finds something, empty queries find nothing
+  for (const s of SEARCH_SUGGESTIONS) { assert.ok(rankSearch(ix, s.zh, 1).length === 1, s.zh); assert.ok(rankSearch(ix, s.en, 1).length === 1, s.en); }
+  assert.deepEqual(rankSearch(ix, '  '), []);
+  assert.equal(normalizeSearch('Fisherman’s Wharf'), 'fishermanswharf');
+  // hidden rows are not searchable, the fixed names are
+  assert.ok(!ids('Main pool house', 30).includes('osm-w32776540'));
+  assert.equal(ids('苏特罗浴场', 1)[0], 'sutro-baths');
+});
