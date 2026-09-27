@@ -8,8 +8,8 @@
  * Not registered yet (early phase: new files only). Integration (lane V, data/assets.ts): append `W4_MODEL_IDS` to
  * `SF_MODEL_IDS` and spread `W4_MODELS` into `SF_MODELS`; lane L then swaps them in through the SoloView gate.
  * `landmarkId` = the id of the site whose `w4.aiSlot` the model fills (lane L's W4Site ids: `cal-academy`,
- * `st-ignatius-church`; the plan's `geary-west` / `blue-heron-lake` until those sites exist), as D2's swaps require
- * (`SF_MODELS[part.model].landmarkId === site.id`).
+ * `st-ignatius-church`, `geary-west`, `blue-heron-lake`), as D2's swaps require (`SF_MODELS[part.model].landmarkId ===
+ * site.id`). The swap rows (placement, scale, walk data, the gate's verdict) are in data/sf/w4Swaps.ts.
  * Dependency-free at runtime (the type import is erased).
  */
 import type { SfModelAsset } from '../assets';
@@ -41,13 +41,16 @@ export const W4_MODELS: Record<W4ModelId, SfModelAsset> = {
     scale: 1, yOffset: 0, triangles: 5879, bytes: 152_988, size: [7.5, 13.2, 11.15],
   },
   /**
-   * Holy Virgin Cathedral (geary-west site): the white body with rounded arched gables and red trim (the red-and-white
-   * scheme of its 2015–16 restoration), five gold onion domes on drums with small crosses. 38.1 m → H = 9.1 u. 1024 px texture. An active place
-   * of worship: no gameplay objects on or in it.
+   * Holy Virgin Cathedral (lane L's `geary-west` site): the white body with rounded kokoshnik gables and red trim (the
+   * red-and-white scheme of its 2015–16 restoration), a narrow front porch, five gold onion domes on drums with small
+   * crosses. Part 2 (2026-09-27): re-made from a narrow, tall concept for the cathedral's "narrow urban lot" and fitted
+   * to lane L's lot on Geary Blvd (OSM way 286435447: the footprint's 2.8 u width along the boulevard, 3.2 u deep
+   * between the neighbour behind and the sidewalk); 38.1 m → H = 9.1 u. Ground footprint (decoded): body x ±1.34,
+   * z −1.54…1.24, porch |x| ≤ 0.6 to z 1.6. 1024 px texture. An active place of worship: no gameplay objects on or in it.
    */
   'sf-holy-virgin': {
     url: file('w4-holy-virgin.glb'), draco: true, kind: 'hero', landmarkId: 'geary-west',
-    scale: 1, yOffset: 0, triangles: 5880, bytes: 184_596, size: [6.1, 9.1, 6.686],
+    scale: 1, yOffset: 0, triangles: 5879, bytes: 179_372, size: [2.8, 9.1, 3.2],
   },
   /**
    * The Chinese Pavilion on Blue Heron Lake (blue-heron-lake site; a 1981 gift from Taipei): an open octagonal pavilion,

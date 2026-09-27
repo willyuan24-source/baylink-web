@@ -71,7 +71,7 @@ the hero palette grade (`grade.py`, per-asset hue remaps), Draco (level 6) + Web
 |---|---|---|---|---|---|---|---|
 | models/sf/w4-cal-academy.glb (+ -mask.webp 7,592 B, R = glass) | 5,880 | 93,120 | 24.4 × 7.9 × 16.6 (fitted to lane L's procedural block + canopy) | 0.908 native / 0.894 as published | 0 % / 1 | 0.66 → 0.99 | published, not registered (integration) |
 | models/sf/w4-st-ignatius.glb | 5,879 | 152,988 | 7.5 × 13.2 × 11.15 (fitted to lane L's procedural church) | 0.863 native / 0.807 as published (fit waiver) | 0.08 % / 1 | 0.21 → 0.92 | published, not registered |
-| models/sf/w4-holy-virgin.glb | 5,880 | 184,596 | 6.10 × 9.1 × 6.69 | 0.854 | 0.23 % / 2 | 0.41 → 0.85 | published, not registered |
+| models/sf/w4-holy-virgin.glb | 5,879 | 179,372 | 2.8 × 9.1 × 3.2 (part 2: the W4V-C5b retake, fitted to lane L's lot on Geary Blvd) | 0.906 native / 0.666 as published (lot-fit waiver) | 0.03 % / 1 | 0.30 → 0.87 | published, not registered (replaces the part-1 file of W4V-C3a: 5,880 tris, 184,596 B, 6.10 × 9.1 × 6.69, IoU 0.854) |
 | models/sf/w4-chinese-pavilion.glb | 2,940 | 71,388 | 5.62 × 4.5 × 5.61 | 0.855 | 0 % / 1 | 0.25 → 0.86 | published, not registered |
 | map/stickers-t1.webp + .json | — | 74,150 | 512 × 512 atlas, 16 × 124 px circles | — | — | — | published (lane P draws it) |
 
@@ -104,3 +104,44 @@ failed submissions), at the times of this lane's batches; no other lane spent in
 Published: `public/opus-bay/voice/sf/tour/<lang>-<id>.m4a` + `.ogg` (214 × 2 files, 2.2–8.1 s, 17 MB), all picks pass the
 gates (no clipping, not cut, pauses, pitch, speaking rate with numbers counted as read), the recogniser heard 203 of 214
 right; `src/opus-bay/data/sf/voiceTour.ts` (generated); previews and the owner's sheet in `docs/opus-bay/qa/w4/V/voice/`.
+
+## Part 2 · Batch 4 · Holy Virgin retake, 4 postcards (W4-V4b, W4-C9 / H-7), 2026-09-27 22:16–22:20 UTC
+
+Balance before: 415.13 (the last spend on the account was this lane's voice batch at 19:29:39 UTC). Holy Virgin: lane L's
+lot on Geary Blvd is 2.6–2.9 × 3.0–3.3 u (OSM way 286435447) and the part-1 concept is squat (6.1 × 9.1 × 6.7 u): squeezed
+into the lot its onion domes turned into spikes (the gate, `docs/opus-bay/qa/w4/V/v-gate-holy-virgin.jpg`), so a narrow,
+tall concept pair (`holy-virgin-tall` in prompts.py; the cathedral stands on "a narrow urban lot", Orthodox Arts Journal).
+Postcards: the recipe of the 12 shipped SF postcards (ASSETS-LEDGER T1-1…13: nano_banana_pro 4:3 2k, refs P5
+`df659275-cf2a-4352-8166-1934f9945e0f` + P13 `d756b0c4-46f1-4761-9e58-0d5d78bc2433`, subject + "Full-bleed illustration
+… NOT a card, NOT on a mat …" + the look line + the style contract; prompts.py `POSTCARDS`).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-C5a | Holy Virgin tall concept a | nano_banana_pro 1:1 2k, refs K6 + L2-C1 | narrow city lot: tall narrow white body, kokoshniks, red trim, narrow porch, five round gold onion domes; "about three times as tall as it is wide" | 2 | 15da86c6-6765-43fb-b0aa-2d06a0997141 | ai/raw/holy-virgin-tall-a.png | not meshed (still nearly as wide as part 1's) |
+| W4V-C5b | Holy Virgin tall concept b | nano_banana_pro 1:1 2k, ref K6 | same | 2 | 1ebf72db-3660-4184-938d-dfca6bb3ad53 | ai/raw/holy-virgin-tall-b.png | **USED** (tallest, round domes, no text, no base) |
+| W4V-3D8 | Holy Virgin mesh from C5b | sam_3_3d textured, "the toy cathedral" | — | 1 | 58f802b8-aa4d-41b6-8c5b-5a4010825b0c | ai/raw/holy-virgin-tall-b-sam.glb | **USED** (native 4.94 × 9.1 × 5.52 u, IoU 0.906) |
+| W4V-P1 | postcard sf-state-quad | nano_banana_pro 4:3 2k, refs P5 + P13 | the SF State Quad: lawn, students, low concrete buildings, the angled student centre roof, the lake beyond | 2 | 2a9083c4-6649-48e5-ae40-e7083b2e2a77 | postcards/sf-state-quad-a.png | **USED** (read at full size: no signs, no lettering) |
+| W4V-P2 | postcard sf-music-concourse | same | the sunken concourse, pollarded plane trees, fountains, the bandshell, the de Young tower, the Academy's living roof | 2 | 9ca0df6e-1f88-4b90-bb56-21fd0b320121 | postcards/sf-music-concourse-a.png | **USED** (the bandshell's cartouche is blank) |
+| W4V-P3 | postcard sf-lands-end | same | the cliff trail through wind-bent cypress, hikers, a rocky cove, the Golden Gate Bridge in soft mist | 2 | 0f211b8e-ce67-45de-831a-b3b9febfa624 | postcards/sf-lands-end-a.png | **USED** |
+| W4V-P4a | postcard sf-west-portal, draw a | same | a silver-and-red LRV leaving a round-arched tunnel portal onto a shopping street with awnings | 2 | 9d2945b5-fe8b-41ff-9ce7-1411bb762b56 | postcards/sf-west-portal-a.png | rejected (a floating diorama slab on the cream background, the fault of T1-8) |
+| W4V-P4b | postcard sf-west-portal, draw b | same + "seen from within the street … fills the whole frame … no floating slab, no base edge, no cream void" | same | 2 | a68d158e-a118-4532-b8d8-3738765ebf00 | postcards/sf-west-portal-b.png | **USED** after a local fix: a logo-like red mark on each car side and a lit display text on the front were painted out (diffusion fill, 1,773 px; `postcards/sf-west-portal-b-clean.png`) |
+
+Transactions 22:16:37 UTC (Nano Banana Pro −2 × 6), 22:18:37 (3D Objects −1), 22:20:16 (Nano Banana Pro −2); no refunds,
+no other spend in the window. **Subtotal 15.00.** **Wave-4 lane V total: 55.45 credits** (35.00 + 5.45 part 1, 15.00 part
+2) of the 120 cap. Balance 415.13 → **400.13** (`balance`, 2026-09-27 ≈ 22:40 UTC). H-8 (generated SFX): not spent (see
+the report).
+
+Published from batch 4 (local post-processing, free): the Holy Virgin GLB (the row above; `specs.json`
+`holy-virgin-tall-fit`: the part-1 cleanup + texel re-bake, `--box 2.8,9.1,3.2`), and the postcards (`postcards.py`:
+centre-crop to 4:3, 1200 + 600 WebP q82, as the shipped 12):
+
+| file | tris | bytes | size w x h x d (u) | IoU | non-manifold / islands | palette ΔE12 (before -> after) | status |
+|---|---|---|---|---|---|---|---|
+| postcards/sf-state-quad-1200.webp | - | 71,116 | 1200 x 900 | - | - | - | published, not registered (data/sf/w4Postcards.ts) |
+| postcards/sf-state-quad-600.webp | - | 28,124 | 600 x 450 | - | - | - | published, not registered |
+| postcards/sf-music-concourse-1200.webp | - | 88,882 | 1200 x 900 | - | - | - | published, not registered |
+| postcards/sf-music-concourse-600.webp | - | 32,444 | 600 x 450 | - | - | - | published, not registered |
+| postcards/sf-lands-end-1200.webp | - | 64,372 | 1200 x 900 | - | - | - | published, not registered |
+| postcards/sf-lands-end-600.webp | - | 27,074 | 600 x 450 | - | - | - | published, not registered |
+| postcards/sf-west-portal-1200.webp | - | 54,460 | 1200 x 900 | - | - | - | published, not registered |
+| postcards/sf-west-portal-600.webp | - | 23,064 | 600 x 450 | - | - | - | published, not registered |

@@ -72,6 +72,22 @@ LANDMARKS = {
         depth="The pavilion is about as tall as it is wide. ",
         colours="Vermilion-red columns, beams and bench walls (#b8463c) with small gold and teal painted details, grey-green glazed "
                 "tile roof (#7f9c8f) with cream ridges, light grey stone floor (#bdb3a2)."),
+    # part 2 (2026-09-27): the retake for lane L's lot on Geary Blvd (2.6 x 3.0 u, 9.1 u to the cross): the part-1 concept is
+    # squat (6.1 x 9.1 x 6.7 u) and squeezing it into the lot turns the onion domes into spikes; the real cathedral stands on
+    # "a narrow urban lot" (Orthodox Arts Journal) with a 19 m body under 38 m crosses (OSM way 286435447: 18 x 29 m)
+    "holy-virgin-tall": dict(
+        what="cathedral", view="showing the front and its right side",
+        subject="San Francisco's Holy Virgin Cathedral, a Russian Orthodox cathedral of 1961-65 on a narrow city lot, as a chunky toy: "
+                "a tall narrow white church body, much taller than it is wide, with rounded arched kokoshnik gables along the tops of "
+                "its walls, deep red painted trim bands, arches and window surrounds, tall round-arched windows and a narrow front "
+                "entrance porch with a big round-arched doorway; above the roof five round drums with arched windows, each crowned by "
+                "a shiny gold onion dome topped by a small chunky gold cross: a big tall central drum and dome, and four smaller drums "
+                "and domes close around it at the four corners",
+        depth="The cathedral is narrow and tall: a little deeper than it is wide, the white body alone is about one and a half "
+              "times as tall as it is wide, and with its drums, domes and crosses the whole cathedral is about three times as tall "
+              "as it is wide. The onion domes are round and full, not pointed spikes. ",
+        colours="Walls flat white (#f4f1e6) with deep red trim, bands and arches (#b8463c), gold onion domes (#e0a94a) with warm "
+                "highlights, silver-grey roofs (#a7b0a8), teal-grey window glass."),
 }
 
 
@@ -142,6 +158,55 @@ STICKER_PROMPT = (
     + " No text, no letters, no numbers, no labels, no logos, no signs anywhere, no people.")
 
 
+# ---- part 2 (W4-C9 / H-7): 4 postcards for the wave-4 areas, the recipe of the 12 shipped SF postcards (ASSETS-LEDGER T1-1..13:
+# nano_banana_pro 4:3 2k, refs P5 + P13, subject + FULL_BLEED + LOOK + CONTRACT, verbatim from
+# C:/Users/willy/opus-qa/assets-work/sf/postcards/requests.json; P13 with its real job id, not the mistyped one of T1-0)
+P5 = "df659275-cf2a-4352-8166-1934f9945e0f"
+P13 = "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+FULL_BLEED = "Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing."
+LOOK = ("Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not "
+        "copy their subjects.")
+POSTCARDS = {
+    "sf-state-quad": (
+        "San Francisco State University's campus quad as a handmade miniature diorama: a wide green lawn crossed by curving paths, "
+        "tiny clay students sitting on the grass and walking with backpacks, rows of tall leafy trees, low modern campus buildings "
+        "of cream and sand concrete with long rows of windows around the lawn, a low student centre with a sharply angled sloping "
+        "roof, dark cypress trees and a glimpse of a calm blue lake beyond, warm golden-hour light. No banners, no flags, no signs, "
+        "no lettering on any building."),
+    "sf-music-concourse": (
+        "The Music Concourse of Golden Gate Park as a handmade miniature diorama: a sunken oval plaza with neat rows of pollarded "
+        "plane trees with knobbly branches and small round leafy crowns, round stone fountains and benches, a classical stone "
+        "bandshell with a big arched shell between columns at the far end, along one side a modern museum clad in copper-brown "
+        "metal with a tall twisting observation tower, along the other side a long low glass museum under a thin white roof topped by a "
+        "green living roof with two round grassy domes, tiny clay visitors strolling, soft golden light. No signs, no lettering."),
+    "sf-lands-end": (
+        "The Lands End coastal trail in San Francisco as a handmade miniature diorama: a winding dirt trail along high green "
+        "cliffs through wind-bent cypress trees, a few tiny clay hikers, a small rocky cove with white surf far below, and in the "
+        "distance across the teal strait the terracotta-orange Golden Gate Bridge peeking through a soft mist, calm afternoon "
+        "light."),
+    "sf-west-portal": (
+        "A San Francisco light-rail train coming out of a tunnel as a handmade miniature diorama: a silver-grey two-car light-rail "
+        "train with a red stripe rolling out of the round-arched mouth of a cream classical stone tunnel portal set into a green "
+        "hillside with pastel houses on top, onto a small neighbourhood shopping street with low shops with striped awnings and "
+        "round trees, a tiny clay person waiting on a platform island, warm late-afternoon light. The train has no numbers and a "
+        "blank headsign; the portal and the shops have no inscription, no signs, no lettering."),
+}
+# retake of sf-west-portal (draw a came out as a floating diorama slab on the cream background, the fault the shipped
+# sf-dolores-park v-b fixed with this kind of wording)
+POSTCARDS["sf-west-portal-b"] = (
+    "A San Francisco light-rail train coming out of a tunnel as a handmade miniature diorama, seen from within the neighbourhood "
+    "shopping street itself so that the scene fills the whole frame edge to edge: a silver-grey two-car light-rail train with "
+    "a red stripe rolling out of the round-arched mouth of a cream classical stone tunnel portal at the end of the street, "
+    "a green hillside with pastel houses and trees rising above the portal, the street lined on both sides with low shops "
+    "with striped awnings and round trees, a tiny clay person waiting on a platform island in the foreground, warm "
+    "late-afternoon light. The train has no numbers and a blank headsign; the portal and the shops have no inscription, no "
+    "signs, no lettering. No floating slab, no base edge, no cream void around the scene.")
+
+
+def postcard_prompt(k):
+    return f"{POSTCARDS[k]} {FULL_BLEED} {LOOK} {CONTRACT}"
+
+
 def build():
     out = {"refs": {"K6": K6, "ROT": ROT, "PAPER": PAPER}, "landmarks": {}, "vehicles": {}, "stickers": {}}
     for k in LANDMARKS:
@@ -150,6 +215,8 @@ def build():
     for k in VEHICLES:
         out["vehicles"][k] = {"refs": [K6], "prompt": vehicle_prompt(k)}
     out["stickers"] = {"ids": STICKER_IDS, "refs": [K6, PAPER], "prompt": STICKER_PROMPT}
+    out["refs"].update({"P5": P5, "P13": P13})
+    out["postcards"] = {k: {"refs": [P5, P13], "prompt": postcard_prompt(k)} for k in POSTCARDS}
     return out
 
 
