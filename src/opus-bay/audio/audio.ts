@@ -12,6 +12,7 @@ import { onEvent, type GameEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game, type GameState } from '../core/store';
 import { DISTRICT } from '../data/district';
+import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld } from './ambience';
 import { AudioEngine, BUS_LEVELS } from './engine';
 import { createRateLimiter } from './logic';
@@ -125,7 +126,12 @@ export function startAudio(): () => void {
     engine.setMuffled(s.paused);
     // heavier setup off the gesture: the shore distance field and voice clip probing
     timers.push(window.setTimeout(() => { if (rig && !disposed) rig.ambience.setWorld(describeWorld(DISTRICT, true)); }, 900));
-    timers.push(window.setTimeout(() => { if (rig && !disposed) void rig.voice.preload(); }, 3500));
+    timers.push(window.setTimeout(() => {
+      if (!rig || disposed) return;
+      const voice = rig.voice;
+      // city mode: lane H2b's recorded lines after the barks (data/voiceLinesSf.ts; nothing while it is empty)
+      void voice.preload().then(() => { if (!disposed && game.get().worldMode === 'city') void voice.preloadLines(); });
+    }, 3500));
     loop = window.setInterval(tick, 100);
     ctx.addEventListener?.('statechange', () => { if (rig) rig.engine.log(`ctx:${rig.ctx.state}`); });
   };
@@ -174,6 +180,8 @@ export function startAudio(): () => void {
       case 'glide:unlock': sfx.goal(e); break;
       case 'sit': rides.sitCreak(e); break;
       case 'pant': rides.pant(e); break;
+      // recorded city lines (lane H2b data, lane G2 triggers): the clip, else the line's chirp
+      case 'voice-line': voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi'); break;
     }
   };
 

@@ -6,6 +6,7 @@
 import type { Mood, Speaker } from '../core/types';
 import { ASSETS } from '../data/assets';
 import { NODES } from '../data/script';
+import { SF_VOICE_LINES, SF_VOICE_UNMUTE } from '../data/voiceLinesSf';
 import { getLocale } from '../../i18n/locale';
 import type { AudioEngine, Voice } from './engine';
 import { CLIP_MOODS, blipPlan, hashString, mulberry32, voiceClipForMood, type VoiceLang, type Voicing } from './logic';
@@ -18,7 +19,10 @@ const SAME_CLIP_GAP = 25;
  * Recorded barks that listeners mis-hear (zh-yay → "讨厌", zh-think untranscribable, zh-arrived → "到了"): muted
  * until they are re-recorded — the synth chirp and the text bubble carry the moment instead (polish round 1, F14).
  */
-export const MUTED_CLIPS: ReadonlySet<string> = new Set(['zh-yay', 'zh-think', 'zh-arrived']);
+export const MUTED_CLIPS: ReadonlySet<string> = new Set(['zh-yay', 'zh-think', 'zh-arrived'].filter(id => !SF_VOICE_UNMUTE.includes(id)));
+
+/** How long voice.line waits for a clip still loading before it falls back to the chirp (s). */
+export const LINE_WAIT = 0.7;
 
 type ProbeState = 'unknown' | 'present' | 'absent';
 
@@ -113,6 +117,45 @@ export class VoicePlayer {
     this.lastClip = now;
     this.lastById[id] = now;
     return buffer.duration;
+  }
+
+  /**
+   * Day-0 contract (lane H2b's recorded city lines, `voice-line` event): play `<lang>-<id>`. Bypasses CLIP_GAP (a line is
+   * a deliberate moment) but keeps SAME_CLIP_GAP; waits up to LINE_WAIT for a clip still loading; otherwise (missing,
+   * muted, rate-limited) plays the `fallback` chirp. Volume and mute follow the voice bus like every clip.
+   */
+  line(id: string, fallback: ChirpKind = 'hi') {
+    const clipId = `${VoicePlayer.lang()}-${id}`;
+    const chirp = () => {
+      const now = this.e.now;
+      if (now - (this.lastById[`chirp:${fallback}`] ?? -Infinity) < 3) return;
+      this.lastById[`chirp:${fallback}`] = now;
+      otterChirp(this.e, fallback);
+    };
+    const play = (buffer: AudioBuffer | null) => {
+      if (this.disposed) return;
+      if (!buffer || MUTED_CLIPS.has(clipId)) { chirp(); return; }
+      const now = this.e.now;
+      if (now - (this.lastById[clipId] ?? -Infinity) < SAME_CLIP_GAP) { chirp(); return; }
+      const v = this.e.voice({ bus: 'voice', at: now, dur: buffer.duration, gain: 0.95, priority: 3, reverb: 0.06, name: `voice-clip:${clipId}` });
+      if (!v) return;
+      this.e.buffer(v, buffer);
+      this.lastClip = now;
+      this.lastById[clipId] = now;
+    };
+    if (this.clips.has(clipId)) { play(this.clips.get(clipId) ?? null); return; }
+    let settled = false;
+    const timer = setTimeout(() => { if (!settled) { settled = true; chirp(); } }, LINE_WAIT * 1000);
+    void this.load(clipId).then(buffer => { if (settled) return; settled = true; clearTimeout(timer); play(buffer); });
+  }
+
+  /** City mode: warm the current language's line clips (after preload(); sequential, low priority). */
+  async preloadLines() {
+    const lang = VoicePlayer.lang();
+    for (const id of Object.keys(SF_VOICE_LINES)) {
+      if (this.disposed) return;
+      await this.load(`${lang}-${id}`);
+    }
   }
 
   /** A short bark (recorded if available, synth chirp otherwise). */

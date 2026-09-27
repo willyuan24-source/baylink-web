@@ -125,6 +125,8 @@ test('farmers market days follow the Bay Area calendar', () => {
 
 test('F14: the three mis-heard Chinese barks stay muted until re-recorded (synth chirp + text instead)', async () => {
   const { MUTED_CLIPS } = await import('../src/opus-bay/audio/voice');
-  for (const id of ['zh-yay', 'zh-think', 'zh-arrived']) assert.ok(MUTED_CLIPS.has(id), id);
+  // (wave 2: a re-record the owner approved is unmuted through lane H2b's data/voiceLinesSf.ts SF_VOICE_UNMUTE)
+  const { SF_VOICE_UNMUTE } = await import('../src/opus-bay/data/voiceLinesSf');
+  for (const id of ['zh-yay', 'zh-think', 'zh-arrived']) assert.ok(MUTED_CLIPS.has(id) || SF_VOICE_UNMUTE.includes(id), id);
   assert.ok(!MUTED_CLIPS.has('zh-hi') && !MUTED_CLIPS.has('en-yay'));
 });
