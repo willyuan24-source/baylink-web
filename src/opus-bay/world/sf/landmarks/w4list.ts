@@ -8,7 +8,10 @@ import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { gearyWest } from './geary-west';
 import { haightAshbury } from './haight-ashbury';
+import { hippieHill } from './hippie-hill';
 import { japaneseTeaGarden } from './japanese-tea-garden';
+import { kezarStadium } from './kezar-stadium';
+import { koretCarousel } from './koret-carousel';
 import { landsEnd } from './lands-end';
 import { murphyWindmill } from './murphy-windmill';
 import { musicConcourse } from './music-concourse';
@@ -61,5 +64,8 @@ export const W4_SITES: readonly W4Site[] = [
   // P3 · tier 2 on the lines
   bisonPaddock,
   blueHeronLake,
+  kezarStadium,
+  koretCarousel,
+  hippieHill,
   gearyWest,
 ];
