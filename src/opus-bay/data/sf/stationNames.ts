@@ -15,9 +15,8 @@ import type { Bilingual } from '../../core/types';
  *   or the English corner name). The zh line names follow VOICE.md (观光巴士, N 线 / M 线). SFMTA's own Chinese names
  *   differ in places (卡斯楚, 雲尼斯): plan R11, lane C records them in VOICE.md.
  * - `attractions`: attraction ids (data/sf/attractionTypes.ts, lane P's `ATTRACTIONS`) served on foot from the stop,
- *   the main one first. New attractions use the ids of docs/opus-bay/sf-w4-attractions.json; existing landmarks use
- *   their landmark ids (data/sf/landmarks.ts: `golden-gate-bridge`, `painted-ladies`, `dragon-gate` …). Lane P may map
- *   them at integration (see `STOP_ATTRACTIONS`: one table to adjust).
+ *   the main one first, exactly as lane P's `ATTRACTIONS` names them (`alamo-square-painted-ladies`,
+ *   `chinatown-dragon-gate` …; the sf-bus test pins that every id exists there).
  *
  * Facts (checked 2026-09-27): Market Street subway Muni Metro service from 18 Feb 1980 (Embarcadero … Castro);
  * Twin Peaks Tunnel opened 3 Feb 1918, 3.65 km, West Portal Ave & Ulloa St to Castro; Sunset Tunnel opened
@@ -194,7 +193,7 @@ export const STOP_ATTRACTIONS: Readonly<Record<string, readonly string[]>> = {
   // loop (plan §3.2 "serves")
   'loop-ferry-building': ['ferry-building-marketplace', 'salesforce-park', 'salesforce-tower'],
   'loop-pier-39': ['pier-39', 'aquarium-of-the-bay'],
-  'loop-wharf-hyde': ['ghirardelli-square', 'maritime-museum-bathhouse', 'musee-mecanique', 'uss-pampanito', 'lombard-crooked-street'],
+  'loop-wharf-hyde': ['ghirardelli-square', 'maritime-museum-bathhouse', 'musee-mecanique', 'uss-pampanito', 'lombard-crooked'],
   'loop-palace-of-fine-arts': ['palace-of-fine-arts', 'wave-organ', 'lyon-street-steps'],
   'loop-golden-gate-bridge': ['golden-gate-bridge', 'fort-point'],
   'loop-legion-of-honor': ['legion-of-honor'],
@@ -202,16 +201,16 @@ export const STOP_ATTRACTIONS: Readonly<Record<string, readonly string[]>> = {
   'loop-ocean-beach-windmill': ['dutch-windmill', 'beach-chalet', 'murphy-windmill', 'ocean-beach'],
   'loop-golden-gate-park': ['de-young-tower', 'cal-academy', 'japanese-tea-garden', 'sf-botanical-garden', 'blue-heron-lake'],
   'loop-haight-ashbury': ['haight-ashbury', 'buena-vista-park', 'hippie-hill'],
-  'loop-painted-ladies': ['painted-ladies'],
+  'loop-painted-ladies': ['alamo-square-painted-ladies'],
   'loop-castro': ['castro-theatre', 'harvey-milk-plaza', 'corona-heights-randall-museum'],
   'loop-twin-peaks': ['twin-peaks', 'sutro-tower'],
   'loop-mission-dolores': ['mission-dolores', 'dolores-park', 'clarion-alley', 'womens-building'],
   'loop-civic-center': ['city-hall', 'asian-art-museum', 'war-memorial-opera-house', 'uc-law-sf'],
-  'loop-chinatown': ['dragon-gate', 'union-square', 'maiden-lane', 'old-st-marys-cathedral'],
+  'loop-chinatown': ['chinatown-dragon-gate', 'union-square', 'maiden-lane', 'old-st-marys-cathedral'],
   // Metro
   'muni-embarcadero': ['ferry-building-marketplace', 'salesforce-tower'],
   'muni-montgomery': ['sfmoma', 'yerba-buena-gardens', 'palace-hotel', 'moad'],
-  'muni-powell': ['union-square', 'cable-car-turntable'],
+  'muni-powell': ['union-square', 'cable-car-powell-market'],
   'muni-civic-center': ['city-hall', 'asian-art-museum', 'uc-law-sf'],
   'muni-van-ness': ['sf-conservatory-of-music', 'sfjazz-center', 'war-memorial-opera-house'],
   'muni-church': ['mission-dolores', 'dolores-park'],
@@ -221,7 +220,7 @@ export const STOP_ATTRACTIONS: Readonly<Record<string, readonly string[]>> = {
   'muni-19th-winston': ['stonestown-galleria'],
   'muni-19th-holloway': ['sf-state-university', 'lake-merced'],
   'muni-san-jose-geneva': ['ccsf-ocean-campus'],
-  'muni-duboce-church': ['painted-ladies'],
+  'muni-duboce-church': ['alamo-square-painted-ladies'],
   'muni-carl-cole': ['haight-ashbury'],
   'muni-carl-stanyan': ['kezar-stadium', 'koret-carousel'],
   'muni-carl-hillway': ['ucsf-parnassus', 'kezar-stadium', 'koret-carousel'],

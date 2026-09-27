@@ -53,8 +53,15 @@ test('stops sit near their measured kerb points (plan §3.2) and serve the right
   }
   const at = (id: string) => LOOP.stops.find(s => s.id === id)!;
   assert.equal(at('loop-golden-gate-bridge').attractions![0], 'golden-gate-bridge');
-  assert.equal(at('loop-painted-ladies').attractions![0], 'painted-ladies');
+  assert.equal(at('loop-painted-ladies').attractions![0], 'alamo-square-painted-ladies');
   assert.ok(at('loop-golden-gate-park').attractions!.includes('cal-academy'));
+});
+
+test('every stop attraction id exists in lane P ATTRACTIONS (data/sf/attractions.ts)', async () => {
+  const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
+  const ids = new Set(ATTRACTIONS.map(a => a.id));
+  for (const [stop, list] of Object.entries(names.STOP_ATTRACTIONS)) for (const a of list) assert.ok(ids.has(a), `${stop}: ${a}`);
+  for (const l of FILE.lines) for (const s of l.stops) for (const a of s.attractions ?? []) assert.ok(ids.has(a), `${l.id} ${s.id}: ${a}`);
 });
 
 test('hero: the Embarcadero stops use the hand-made lanes (bayside north lanes, pole on the promenade kerb)', () => {
