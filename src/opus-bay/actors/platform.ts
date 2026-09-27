@@ -110,18 +110,37 @@ export function agePlatforms(dt: number) {
   for (const p of platforms.values()) { p.age += dt; if (p.age > 0.25) p.live = false; }
 }
 
-/** Platform-local point → world (roll is visual only and ignored here). */
+/**
+ * Platform-local point → world. Pitch (nose up, cable-car grades) tilts the deck: local forward goes up the slope and
+ * local up leans back, exactly like the car body (three.js Euler(−pitch, heading, roll, 'YXZ')); roll is visual only and
+ * ignored here. Without pitch this is the flat transform the F-line always used.
+ */
 export function toWorld(p: PlatformPose, lx: number, ly: number, lz: number): { x: number; y: number; z: number } {
   const s = Math.sin(p.heading), c = Math.cos(p.heading);
-  return { x: p.x + s * lz + c * lx, y: p.y + ly, z: p.z + c * lz - s * lx };
+  const pitch = p.pitch ?? 0;
+  if (!pitch) return { x: p.x + s * lz + c * lx, y: p.y + ly, z: p.z + c * lz - s * lx };
+  const sp = Math.sin(pitch), cp = Math.cos(pitch);
+  // forward component along the ground and height of the tilted local (ly, lz)
+  const f = lz * cp - ly * sp, y = ly * cp + lz * sp;
+  return { x: p.x + s * f + c * lx, y: p.y + y, z: p.z + c * f - s * lx };
 }
 
-/** World point → platform-local (x = its left, z = forward). */
-export function toLocal(p: PlatformPose, wx: number, wz: number): { x: number; z: number } {
+/**
+ * World point → platform-local (x = its left, z = forward). With pitch, `ly` (default 0, e.g. the floor) says at which
+ * height above the deck origin the point lies, so z comes back as the deck coordinate toWorld takes.
+ */
+export function toLocal(p: PlatformPose, wx: number, wz: number, ly = 0): { x: number; z: number } {
   const s = Math.sin(p.heading), c = Math.cos(p.heading);
   const dx = wx - p.x, dz = wz - p.z;
-  return { x: dx * c - dz * s, z: dx * s + dz * c };
+  const x = dx * c - dz * s, f = dx * s + dz * c;
+  const pitch = p.pitch ?? 0;
+  if (!pitch) return { x, z: f };
+  const sp = Math.sin(pitch), cp = Math.cos(pitch);
+  return { x, z: (f + ly * sp) / cp };
 }
+
+/** Outward lean of a rider hanging on a cable car's running board (plan §6.5: 12°). */
+export const RAIL_LEAN = (12 * Math.PI) / 180;
 
 /** Clamp a rider disc of radius r into the deck rectangle. */
 export function clampToDeck(deck: DeckRect, x: number, z: number, r: number): { x: number; z: number } {
@@ -131,8 +150,16 @@ export function clampToDeck(deck: DeckRect, x: number, z: number, r: number): { 
   };
 }
 
-/** The spot for a transit rider: the rail, or the bench on the side away from the camera (facing the aisle). */
+/**
+ * The spot for a transit rider. Streetcar: the rail, or the bench on the side away from the camera (facing the aisle).
+ * Cable car (railMirror): the running board on the camera's side (the body never hides the rider, DR-5), or the
+ * outward bench on that side (facing the camera). `cameraSide` +1 = the camera is on the platform's left (+x).
+ */
 export function spotFor(p: Platform, spot: MoveSpot, cameraSide: 1 | -1): PlatformSpot {
+  if (p.railMirror) {
+    if (spot === 'seat') return cameraSide > 0 ? p.seatLeft : p.seatRight;
+    return (cameraSide > 0 ? p.railLeft : p.railRight) ?? p.rail;
+  }
   if (spot === 'seat') return cameraSide > 0 ? p.seatRight : p.seatLeft;
   return p.rail;
 }
