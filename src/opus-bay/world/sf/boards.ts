@@ -4,7 +4,7 @@ import type { Polygon, Vec2 } from '../../core/types';
 import { C, type Info, hash2, mixColor, rng, shade } from '../builder';
 import { CITY_PAL, PAL } from '../palette';
 import { WIN } from '../recipes/shapes';
-import { BOARD_SEA, type BoardGrid, type BoardIndex, GGB_NORTH, boardDem, convexSdf, decodeBoard, worldPolygon } from './boardData';
+import { BOARD_SEA, type BoardGrid, type BoardIndex, type BoardRoad, GGB_NORTH, boardDem, convexSdf, decodeBoard, worldPolygon } from './boardData';
 import { gunzip } from './format';
 import type { LightSpec } from './lights';
 import { hillMix, slopeEarth } from './look';
@@ -291,6 +291,46 @@ function tree(b: CityBatch, x: number, y: number, z: number, h: number, r: numbe
 // the build
 // ---------------------------------------------------------------------------------------------------------------------
 
+/** US-101 leaves the Golden Gate Bridge on a viaduct (OSM bridge ways, not in the file): a carriageway run that starts or
+ *  ends within 70 u of the north deck end is carried on to it. */
+function toBridgeEnd(r: BoardRoad): BoardRoad {
+  const G = GGB_NORTH, n = r.pts.length;
+  const d0 = Math.hypot(r.pts[0] - G.x, r.pts[1] - G.z), d1 = Math.hypot(r.pts[n - 2] - G.x, r.pts[n - 1] - G.z);
+  if (Math.min(d0, d1) > 70) return r;
+  // the two carriageways stay apart: land 1.8 u either side of the deck's centre line, on the run's side
+  const end = d0 < d1 ? 0 : n - 2, side = Math.sign(-(r.pts[end] - G.x) * G.dz + (r.pts[end + 1] - G.z) * G.dx) || 1;
+  const x = G.x - G.dz * side * 1.8, z = G.z + G.dx * side * 1.8;
+  return { ...r, pts: d0 < d1 ? [x, z, ...r.pts] : [...r.pts, x, z] };
+}
+
+/** Segments of the freeways on the East Bay board in 64 u buckets: no low block of the flats is set on a freeway. */
+function roadIndex(roads: readonly BoardRoad[]) {
+  const B = 64, map = new Map<number, number[]>();
+  for (const r of roads) for (let k = 0; k + 3 < r.pts.length; k += 2) {
+    const ax = r.pts[k], az = r.pts[k + 1], bx = r.pts[k + 2], bz = r.pts[k + 3];
+    for (let j = Math.floor(Math.min(az, bz) / B); j <= Math.floor(Math.max(az, bz) / B); j++) for (let i = Math.floor(Math.min(ax, bx) / B); i <= Math.floor(Math.max(ax, bx) / B); i++) {
+      const key = (i + 512) * 1024 + j + 512;
+      let l = map.get(key);
+      if (!l) { l = []; map.set(key, l); }
+      l.push(ax, az, bx, bz);
+    }
+  }
+  /** distance from (x, z) to the nearest freeway within r (Infinity beyond) */
+  return (x: number, z: number, r: number) => {
+    let best = Infinity;
+    for (let j = Math.floor((z - r) / B); j <= Math.floor((z + r) / B); j++) for (let i = Math.floor((x - r) / B); i <= Math.floor((x + r) / B); i++) {
+      const l = map.get((i + 512) * 1024 + j + 512);
+      if (!l) continue;
+      for (let k = 0; k < l.length; k += 4) {
+        const ax = l[k], az = l[k + 1], dx = l[k + 2] - ax, dz = l[k + 3] - az, L2 = dx * dx + dz * dz || 1e-9;
+        const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / L2));
+        best = Math.min(best, Math.hypot(ax + dx * t - x, az + dz * t - z));
+      }
+    }
+    return best;
+  };
+}
+
 const LED = [1.0, 0.84, 0.62] as const;
 const SODIUM = [1.0, 0.6, 0.28] as const;
 const RED = [1.0, 0.12, 0.08] as const;
@@ -367,8 +407,9 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
     const asphalt = C(CITY_PAL.motorway);
     // (resampled every 24 u so they follow the hills; cut 3 u + half their width inside the world polygon)
     const inside = (x: number, z: number, w: number) => convexSdf(world, x, z) > 3 + w;
-    for (const r of data.index.roads) {
-      if (!(boardDem(g, r.pts[0], r.pts[1]) > BOARD_SEA)) continue;
+    for (const road of data.index.roads) {
+      if (!(boardDem(g, road.pts[0], road.pts[1]) > BOARD_SEA)) continue;
+      const r = g.id === 'marin' ? toBridgeEnd(road) : road;
       const lines: number[][] = [[]];
       const put = (x: number, z: number) => {
         if (inside(x, z, r.w)) lines[lines.length - 1].push(x, height(x, z), z);
@@ -396,7 +437,7 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
     yield;
     const part = (key: string) => mark(tiles, `${g.id}.${key}`, last);
     if (g.id === 'marin') yield* marinTown(g, tiles, lights, part);
-    else yield* eastBayTown(g, tiles, lights, part);
+    else yield* eastBayTown(g, tiles, lights, part, roadIndex(data.index.roads));
     flush(tiles);
     yield;
   }
@@ -520,7 +561,7 @@ const OAK_TOWERS: [number, number, number, number, number][] = [
   [37.8012, -122.2742, 58, 34, WIN.office],
 ];
 
-function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (key: string) => void): Generator<void> {
+function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (key: string) => void, nearRoad: (x: number, z: number, r: number) => number): Generator<void> {
   const r = rng(5101);
   const at = (x: number, z: number) => { const h = boardDem(g, x, z); return h > BOARD_SEA ? terrainY(h) : null; };
   // the flats: low blocks on a true-north lattice (the East Bay street grid), walls toward the city only
@@ -543,6 +584,7 @@ function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (ke
       if (inPoly(px, pz, downtown) || r() < 0.12) continue; // the towers' own; a gap here and there
       const k = 0.55 + r() * 0.75, tall = r() < 0.1;
       const w = (20 + r() * 14) * k, d = (17 + r() * 12) * k, h = tall ? 3.5 + r() * 4 : 1.1 + r() * r() * 2.6;
+      if (nearRoad(px, pz, 30) < Math.max(w, d) * 0.6 + 4) continue; // never on a freeway (the toll plaza, the Maze)
       const wall = C(HOUSE_WALLS[Math.floor(r() * HOUSE_WALLS.length)]), roof = mixColor(C('#d8d2c7'), C('#b3aea5'), r());
       block(t.toy, px, pz, y, w, d, h, yaw + (r() - 0.5) * 0.2, wall, roof, [tall ? WIN.office : WIN.res, y, -(0.05 + 0.9 * r()), 0], TO_CITY);
       if (r() < 0.45) lights.push({ x: px + (r() - 0.5) * 12, y: y + 1.6, z: pz + (r() - 0.5) * 12, level: 0.45, color: r() < 0.7 ? SODIUM : LED });
@@ -684,8 +726,23 @@ function polyline(pts: readonly number[]) {
   return { L, at, nearest };
 }
 
+/** Chaikin corner cutting (keeps the ends): the OSM decks bend sharply on Yerba Buena. */
+export function chaikin(pts: readonly number[], rounds = 2): number[] {
+  let p = [...pts];
+  for (let r = 0; r < rounds; r++) {
+    const q = [p[0], p[1]];
+    for (let k = 0; k + 3 < p.length; k += 2) {
+      const ax = p[k], az = p[k + 1], bx = p[k + 2], bz = p[k + 3];
+      q.push(ax * 0.75 + bx * 0.25, az * 0.75 + bz * 0.25, ax * 0.25 + bx * 0.75, az * 0.25 + bz * 0.75);
+    }
+    q.push(p[p.length - 2], p[p.length - 1]);
+    p = q;
+  }
+  return p;
+}
+
 function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
-  const decks = data.index.eastSpan.map(e => polyline(e.pts)).filter(p => p.L > 100);
+  const decks = data.index.eastSpan.map(e => polyline(chaikin(e.pts))).filter(p => p.L > 100);
   if (!decks.length) return;
   const white = C('#e6e3dc'), under = C('#b7b3ab'), tower = C('#eeeae2'), cable = C('#d9d6cf');
   const eb = data.grids.find(g => g.id === 'eastbay');
@@ -701,8 +758,12 @@ function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
     const yAt = (t: number) => (t <= tt + SAS.east ? SAS.deck : SAS.deck + (yEnd - SAS.deck) * smooth(tt + SAS.east, tEnd, t));
     const tile = tiles.at(d.at(d.L / 2).x, d.at(d.L / 2).z).toy;
     const step = 6;
+    // the span starts at the suspension span's west end, on Yerba Buena's shore (the island's own viaduct streams
+    // with the city); a pier carries the end down to the island
+    const t0 = Math.max(0, tt - SAS.west - 4);
+    { const p = d.at(t0); tile.beam(new THREE.Vector3(p.x, -1.2, p.z), new THREE.Vector3(p.x, SAS.deck - DEPTH, p.z), 2.4, 4.2, under); }
     let prev: { x: number; z: number; y: number; nx: number; nz: number } | null = null;
-    for (let t = 0; t <= tEnd + 0.01; t += step) {
+    for (let t = t0; t <= tEnd + 0.01; t += step) {
       const p = d.at(Math.min(t, tEnd)), y = yAt(t), nx = -p.dz, nz = p.dx;
       if (prev) {
         const A = (o: number, h: number) => new THREE.Vector3(prev!.x + prev!.nx * o, prev!.y + h, prev!.z + prev!.nz * o);

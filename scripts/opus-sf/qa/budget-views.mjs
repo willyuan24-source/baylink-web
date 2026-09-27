@@ -49,6 +49,8 @@ export const VIEWS = [
   { id: 'world-high', note: 'high over the Presidio → the whole Bay (the world edges, the far fade)', cam: { p: [-500, 420, 900], t: [300, 0, -700], f: [-400, 700] } },
   { id: 'oakland', note: 'a glide over the Port of Oakland → downtown Oakland and the hills (the board dressing up close)', cam: { p: [560, 70, -560], t: [1080, 10, -1180], f: [300, -300] } },
   { id: 'sausalito-close', note: 'low over Richardson Bay → Sausalito and Belvedere', cam: { p: [-1180, 22, 20], t: [-1330, 12, 140], f: [-900, 250] } },
+  { id: 'ybi-east', note: 'above Treasure Island → the east span leaving Yerba Buena (the SAS tower)', cam: { p: [120, 45, -380], t: [240, 5, -520], f: [180, -420] } },
+  { id: 'touchdown', note: 'the skyway coming down to the Oakland touchdown and the toll plaza', cam: { p: [380, 30, -700], t: [520, 2, -900], f: [300, -300] } },
 ];
 
 const HELPERS = `window.__qb = {

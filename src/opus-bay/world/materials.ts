@@ -259,11 +259,11 @@ ${TIER_FADE_FRAG}
     // per block, the grid turned by aInfo.y; the streets glow faintly at night (the flats read as a lit grid)
     vec2 q = obRot(p, vInfo.y) / max(vInfo.z, 4.0);
     vec2 id = floor(q);
-    float g = obGrout(q, vec2(0.16)) * (1.0 - obTiny(q));
+    float g = obGrout(q, vec2(0.13)) * (1.0 - obTiny(q));
     float v = mix(0.86, 1.12, obHash(id + 7.7)), h = (obHash(id + 3.1) - 0.5) * 0.12;
     // a quarter of the blocks keep their gardens (a green cast), the streets are grey asphalt
     vec3 roof = vec3(v * (1.0 + h), v, v * (1.0 - h)) * mix(vec3(1.0), vec3(0.84, 0.98, 0.8), step(0.75, obHash(id + 11.3)) * 0.7);
-    k = mix(roof, vec3(0.7, 0.71, 0.73), g);
+    k = mix(roof, vec3(0.74, 0.75, 0.77), g);
     if (uNight > 0.01) totalEmissiveRadiance += vec3(1.0, 0.64, 0.32) * g * uNight * 0.16;
   }
   diffuseColor.rgb *= k * (0.965 + 0.07 * macro);
