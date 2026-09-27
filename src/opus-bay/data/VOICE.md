@@ -67,9 +67,22 @@ does), never reads a sign aloud, and never talks just to fill silence.
 - **Gripman (叮当车司机)**: brisk, proud of the bell, safety first ("抓紧扶杆！"). Talks about the grip and the bell, never
   about fares (they change; the card links the official page). Lines: `npc.gripman`, `cablecar.station`.
 - **Deckhand (渡轮水手)**: breezy, sea-minded, points at gulls and the rail. Lines: `npc.deckhand`, `ferry.station`.
-- **Residents** (part b: baker, muralist, gardener, ranger, record-store owner, a gripman at the turntable): first names
-  only, no business names, no real people; each has one small favour and one line about their corner of the city.
-  They never state a fact that is not sourced in the data.
+- **Residents** (`data/sf/residents.ts`, words in `data/sf/dialogue.ts`): first names only, no business names, no real
+  people; each introduces themself with one sourced fact about their corner, asks one small favour, and thanks you with
+  a second fact. They never state a fact that is not in `RESIDENT_SOURCES` with its URL and date.
+
+  | who | where | voice | favour |
+  |---|---|---|---|
+  | 叮当车司机 Ray | Powell & Market turntable | the crews' brisk gripman, bell-proud, "叮叮" | ride one full stop |
+  | 面包师 Rosa | by Washington Square, North Beach | warm, a little bossy about warm bread ("趁热") | take a loaf to Ray |
+  | 画壁画的 Luz | Balmy Alley | bright, talks in colours and walls | find the mural postcard in Clarion Alley |
+  | 园丁 Hank | Conservatory of Flowers | slow, patient ("花儿慢慢长") | check the tulip garden by the windmill |
+  | 巡护员 Dana | Crissy Field | outdoorsy, practical ("抓好帽子") | walk the bridge deck to the south tower |
+  | 唱片店老板 Marcus | Haight & Ashbury | laid-back, music first, calls the fog Karl | look from Twin Peaks for Karl |
+
+  Rules: a resident never asks for money, a purchase or a real shop visit; "带我去" is always offered in the reminder; a
+  favour finishes the moment you do it (BAYBAY: "完成啦！回去告诉 X 吧～"), and the thanks can be heard any time after.
+  Tulips: say when they bloom (usually March), never that they are in bloom now.
 
 ## Event and neighbourhood lines (`data/sf/lines.ts`, scheduled by `game/baybayLines.ts`)
 

@@ -65,9 +65,8 @@ export const BARK_SCRIPT_RECORDED: readonly BarkLine[] = [
 
 /**
  * The later block (written after H2b's first recording pass). H2b recorded it the same day, word for word, as
- * data/voiceLinesSf.ts SF_VOICE_EXTRA (commit e60eec4; its clips are in SF_VOICE_CLIPS, so they play). The two blocks
- * stay apart until the lead merges SF_VOICE_EXTRA into SF_VOICE_LINES (H2b's request 1; then they preload too): H2b's
- * test pins this block to SF_VOICE_EXTRA. A line without a clip would still be a bubble with a chirp.
+ * data/voiceLinesSf.ts SF_VOICE_EXTRA (commit e60eec4), and its review merged SF_VOICE_EXTRA into SF_VOICE_LINES
+ * (8940dd5), so these preload and keep their own fallback chirps too. H2b's test pins this block to SF_VOICE_EXTRA.
  */
 export const BARK_SCRIPT_TODO: readonly BarkLine[] = [
   // reactions (repeat, 60 s per key)
