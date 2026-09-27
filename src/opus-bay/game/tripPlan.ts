@@ -23,7 +23,7 @@ import {
  *          dispatch caps it near 15 s) + ride (the system's estimate, else arc / speed + dwells + accel / brake, the
  *          tunnel spans at the subway overlay's 25 u/s) + 2 s to step off + walk
  *   fly    discovered places only: 0.8 + 1.0 + clamp(d / 400, 0.6, 3.5) + ≈ 2 + 1.2 s (game/fastTravel phases; the
- *          hold is the typical streaming wait), note "不算登顶 / 骑行成就"
+ *          hold is the typical streaming wait), note "不算登顶和坐车目标" (FLY_NOTE)
  *
  * 推荐 = the fastest non-fly option, or the fastest option that completes an open goal (the goal rules the caller
  * passes: "顺便完成叮当车目标") when it costs at most GOAL_SLACK more. Ties keep the TRIP_MODES order.

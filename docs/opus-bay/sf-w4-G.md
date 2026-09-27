@@ -172,3 +172,101 @@ Status: early phase complete (7 commits pushed; the last one carries this report
 - **Owner decision (G owns actors/** from the integration phase)**: the toy-bike autopilot cruise (7 u/s,
   `actors/vehicles/autopilot.ts` BIKE_PURSUIT) makes running faster than riding on most trips; G can raise it if the bike
   should be the quick choice (default: leave it, the times stay honest either way).
+
+## Early review
+
+Written 2026-09-27 by lane G's adversarial reviewer (same worktree, branch `w4-g`). Scope: every file of the seven W4-G
+commits (`7777cc6` … `a4b9557`), the report above, the plan (§4.2, §5.5) and the lead note; the existing files the
+integration plan names (`game/Systems.tsx` project(), `game/hudLayout.ts`, `game/cinema.ts`, `actors/camera.ts`,
+`core/runtime.ts`, `game/flowStore.ts`, `opus-bay.css`), lane C's `game/arrival.ts` / `game/trips.ts` and lane P's
+`ui/tripRows.ts` / `TripOptions.tsx`.
+
+### 给主人的摘要
+
+1. G 线早期做的东西（算路线时间、景点小旗、屏幕边的目标箭头、行程胶囊和卡片、抵达卡片、观景台地名标签）我逐个查过，还上网核对了 18 条事实和坐标，全部对得上。
+2. 修了 12 个问题并补了测试：坐车时胶囊写"下一站 海洋海滩"，和乘车横幅的"下一站 9th & Irving"打架，改成"坐到 海洋海滩"；手机上长名字被切成"彩绘女士（…"；行程卡片每秒把键盘焦点抢回第一个按钮；"飞过去"的提示"骑行成就"用词不对；目标箭头和小旗每一帧都在产生垃圾对象（手机上会卡）。
+3. 还要别的线或接线阶段处理：金门大桥没设"到达点"，所以从不推荐观光巴士；"步行到恶魔岛 约 1 分钟"其实是走到 33 号码头；三套"约 N 分钟"的写法要统一成一套。
+
+### What I checked
+
+- **Early-phase rule**: `git show --stat` of all seven W4-G commits and of the three review commits: only lane G's new
+  files (and the new test, report and QA files) are touched; no existing tracked file was edited.
+- **Checks re-run**: the four lane test files (50 / 50 before the review), `flag-glyphs.mjs --check` (up to date),
+  tsc, eslint, the full suite; the lane's real-data outputs (`real-trips.txt`, `flags-real.txt`) re-read against the
+  published `transit-w4.json` and lane P's `attractions.ts` (world points unprojected with `core/geo.ts`).
+- **Budgets**: flags 1 draw call, 1 program, 32 tris a flag × capacity 16 = 512 tris (plan: ≈ 60 × ≤ 16, 1 call,
+  1 program), one 256² atlas: within budget. Nothing else of lane G draws yet.
+- **Wiring**: every call of the integration plan against the real signatures (`runtime.camera.yaw`, `isDiscovered`,
+  `heightAt` / `groundPending`, `registerWarmup`, cinema `Shot` / `playShots` / `faceCameraToward`, `hudLayout.Box` /
+  `HUD_BOX_SELECTOR` / `IGNORE`, C's `arrivalBeats()` / `tripRemaining(trip, progress)`, `FlowRide.stage`).
+- **Facts** (18, web-checked; world points unprojected to lat / lng; Δ = distance to the source's point):
+
+| # | fact in lane G's inputs / outputs | source | result |
+|---|---|---|---|
+| 1 | Coit Tower 37.80238, −122.40583 (a panorama viewpoint) | [Wikipedia](https://en.wikipedia.org/wiki/Coit_Tower) 37.80250, −122.40583 | ✓ Δ 13 m |
+| 2 | Twin Peaks overlook 37.75440, −122.44770 | [Wikipedia](https://en.wikipedia.org/wiki/Twin_Peaks_(San_Francisco)), Christmas Tree Point ≈ 37.7547, −122.4464 | ✓ ≈ 120 m, on the summit ridge |
+| 3 | de Young Hamon Observation Tower as a panorama viewpoint (free, closed Mondays) | [SF Travel](https://www.sftravel.com/article/discover-san-francisco-de-young-museum), [guide](https://thebettervacation.com/de-young-museum/) | ✓ 9th floor, 360°, free |
+| 4 | Grand View Park 37.75645, −122.47184 | [Wikipedia](https://en.wikipedia.org/wiki/Grandview_Park) 37.75646, −122.47180 | ✓ Δ 4 m |
+| 5 | Corona Heights 37.76439, −122.43818 | [Wikipedia](https://en.wikipedia.org/wiki/Corona_Heights_Park): summit 37.76465, −122.43914; Randall Museum 37.76439, −122.43813 | ⚠ the point is the museum door; the summit (the view) is ≈ 90 m W (open O3) |
+| 6 | Bernal Heights 37.74299, −122.41580 | [Wikipedia](https://en.wikipedia.org/wiki/Bernal_Heights_Summit) 37.74299, −122.41580 | ✓ Δ 0 |
+| 7 | M stop 19th Ave & Holloway (SF State) 37.72144, −122.47525 | [Wikipedia](https://en.wikipedia.org/wiki/San_Francisco_State_University_station) 37.72167, −122.47514 | ✓ Δ 27 m |
+| 8 | M stop 19th Ave & Winston (Stonestown) 37.72721, −122.47496 | [Wikipedia](https://en.wikipedia.org/wiki/Stonestown_Galleria_station) 37.72722, −122.47472 | ✓ Δ 21 m |
+| 9 | Stonestown Galleria 37.72820, −122.47710 | [topozone](https://www.topozone.com/california/san-francisco-ca/locale/stonestown-galleria-shopping-center/) 37.72826, −122.47664 | ✓ Δ 41 m |
+| 10 | M Ocean View runs Embarcadero ↔ Balboa Park, with the 19th Ave right of way and its two stations | [Wikipedia](https://en.wikipedia.org/wiki/M_Ocean_View), [SFMTA](https://www.sfmta.com/routes/m-ocean-view) | ✓ |
+| 11 | N Judah: Sunset Tunnel west portal at Carl & Cole, east portal at Duboce & Noe; terminus loop at Judah / La Playa | [Sunset Tunnel](https://en.wikipedia.org/wiki/Sunset_Tunnel), [N Judah](https://en.wikipedia.org/wiki/N_Judah) | ✓ |
+| 12 | Embarcadero station (the N / M start) 37.79293, −122.39750 | [Wikipedia](https://en.wikipedia.org/wiki/Embarcadero_station) 37.79306, −122.39722 | ✓ Δ 29 m |
+| 13 | Alcatraz trips end at 37.80783, −122.40428 | [Alcatraz City Cruises](https://alcatrazcitycruises.com/plan-your-visit/directions): ferries only from Pier 33 Alcatraz Landing | ✓ it is Pier 33, but the row reads "步行到恶魔岛" (open O2) |
+| 14 | loop stop Golden Gate Bridge 37.80621, −122.47511 | [Presidio](https://presidio.gov/explore/attractions/golden-gate-bridge-welcome-center): Welcome Center ≈ 37.80650, −122.47457 | ✓ Δ 58 m |
+| 15 | Sutro Baths 37.78014, −122.51379 | [Wikipedia](https://en.wikipedia.org/wiki/Sutro_Baths) 37.78000, −122.51361 | ✓ Δ 22 m |
+| 16 | City Hall 37.77928, −122.41923 (its flag "over the dome") | [Wikipedia](https://en.wikipedia.org/wiki/San_Francisco_City_Hall) 37.77919, −122.41914; dome 93.7 m | ✓ Δ 13 m |
+| 17 | 叮当车 as the zh name of the cable car (`lineDisplayName`) | [新浪旅游](http://travel.sina.com/article/toutiao/2304184b91608a0102vk7c), [BringYou](https://www.bring-you.info/zh-hans/san-francisco-cable-car) | ✓ common usage |
+| 18 | lucide-react 0.460.0 glyphs under ISC, the notice in `flagGlyphs.ts` | `node_modules/lucide-react/LICENSE` | ✓ same copyright and permission notice |
+
+### Defects found and fixed (commits `W4-G-review:`)
+
+| # | where | defect | fix (test) |
+|---|---|---|---|
+| 1 | `ui/TripPill.tsx` TripCard | the key / focus effect depended on `onClose`: the Overlay's 1 Hz re-render with an inline callback re-ran it and pulled the focus back to 跳过这一站 every second (结束 was unreachable by keyboard) | the callback lives in a ref, the first action is focused once on open (`sf-guide-ui`; fails on the lane's file) |
+| 2 | `ui/guide-ui.css` | `.ob-waypoint[data-label] .ob-waypoint-label { top: var(--ob-label-dy) }` tied in specificity with opus-bay.css `[data-edge='1'] … { top: 24px }`: the load order decided whether a label beside an edge arrow fell 24 px under it | `[data-label][data-label]` (`sf-guide-ui` computes the specificity of both sheets' rules) |
+| 3 | `ui/guideText.ts` pill, zh | on board the pill said "下一站 海洋海滩" right above the RideBanner's "下一站 9th & Irving" (`early-hud-390.jpg`): two different 下一站 on one screen | "坐到 海洋海滩" / "Ride to …" on a line leg (`sf-guide`) |
+| 4 | same, phones | full names with a bracketed gloss were cut mid-bracket: "下一站 彩绘女士（…" (7 attractions have one) | `pillName` drops a trailing gloss; an optional `short` (Attraction.short) names the destination leg (`sf-guide`) |
+| 5 | same, wiring | `phase: 'waiting' / 'riding'` would not accept `flow.ride.stage` (it is also 'braking' / 'turning'): the Hud step would not type-check | `PillPhase` = the ride stages; braking and turning read as on board (`sf-guide`) |
+| 6 | `game/tripPlan.ts` FLY_NOTE, zh | "不算登顶 / 骑行成就": 骑行 means cycling (the goals are cable-car, metro and bus rides) and the game says 目标, not 成就 | "不算登顶和坐车目标" (`sf-trip`) |
+| 7 | `game/waypoint.ts` layoutWaypoint, per frame | the search built 51–71 spot tuples on every call and a new box per candidate (up to ≈ 600 objects a call, on every projection change = every frame while the camera moves) | a precomputed slide table and scratch boxes, the results copied; identical to the lane's version on 80,000 fuzzed inputs covering every mode (`review/wpfuzz.mts` in scratch); a test pins that a result never changes after later calls (`sf-waypoint`) |
+| 8 | `world/sf/flags.ts` FlagLayer.update, per frame | `forEach` closures in sweep, writeAlpha and the ground re-check every frame | plain loops |
+| 9 | `ui/panoramaPlace.ts`, per frame for 10 s | a Map and a NodeList per call and two unconditional `setProperty` writes per tag | the root's children, compare before write (`sf-guide-ui`: an unchanged frame writes nothing) |
+| 10 | `game/flags.ts` pickPanoramaTags, wiring | tags anchored at the attraction centre (up to ≈ 10 u off the flag pole, e.g. de Young) and carried no pole height, which the projector needs | `x, z` = the pole foot (as in pickFlags), `h` = the pole top (`sf-flags`) |
+| 11 | `game/tripProviders.ts` rideablesFrom (latent) | `/car/.test(id)` made any bike id containing "car" a car (`ride:bike-carl-cole`) | `rideableKind`: only `car-…` ids (`sf-trip`) |
+| 12 | tests (missing) | TripRouteCache capacity, LRU refresh, NaN or negative lengths and quantum keys, and the ArrivalCard timer were untested | `sf-trip` (the cache), `sf-guide-ui` (the card times out, holds while hovered, closes on Esc and on its buttons) |
+
+### Open (not lane G's files, or for the integration phase)
+
+- **O1 · lane P**: the Golden Gate Bridge attraction has no `arrival`, so trips aim at mid-span (`ggb-deck-mid`), 214 u
+  past the loop's GGB stop (the line rule is ≤ 150 u of walking): the planner can never offer the bus to the bridge.
+  An `arrival` at the south-end vista / Welcome Center (22 u from stop 5, plan §3.2) fixes it.
+- **O2 · lane P / C**: Alcatraz's arrival is Pier 33 (correct), but every row and the pill say "步行到恶魔岛 约 1 分钟".
+  Give the arrival point its own name ("恶魔岛渡轮码头 · 33 号码头") and pass it as the destination name, or add a note.
+- **O3 · lane P / C**: Corona Heights' point is the Randall Museum door; the panorama should fire at the summit ≈ 90 m W.
+- **O4 · G / C / P at integration**: three time wordings now exist (G `tripTimeLabel` "~6s", C `durationText`
+  "不到 10 秒", P `tripSecondsLabel` "~6 s" / "约 1 小时 5 分") and two pill texts (G and C `tripPillText`): pick one each.
+- **O5 · integration (TripOptions)**: plan from the position captured when the sheet opens; re-reading `playerPos` in
+  every `tripRouteCache().subscribe` callback while the player moves (a bus ride, an auto-walk) starts new A* searches
+  on every landing (the live cache keys on a 1 u grid).
+- **O6 · integration (Systems.tsx)**: `layoutWaypoint` takes the raw projection plus `behind` (now documented): remove
+  the NDC mirroring in the same change, or the arrow points backwards. `placeEdge` mirrors about the safe-area centre
+  (≤ 26 px from the canvas centre on phones): only visible for targets just behind the camera plane.
+- **O7 · integration (flags)**: the target flag is depth-tested and a far pennant tops out near 48 u, so the plan's shot
+  "the gold target flag over the downtown towers" may lose it behind towers: check in game (depthTest off for the
+  target role if so).
+- **O8**: `YawTurn` / `turnYawToward` are not used by the integration plan (it uses cinema `faceCameraToward` with a
+  0.6 s duration): use them or drop them at integration. Panorama tag widths: measure the displayed locale
+  (`tagWidth(t(tag.name))`); rank-1 tags are 13 px (the estimate is 12.5 px a CJK character; the 4 px pad covers it).
+- Unchanged from the lane's list: the bike-autopilot owner decision, FLAG_TOPS all `h 30` (lane L),
+  `settings.landmarkFlags` (lead).
+
+### Checks (review)
+
+tsc 0, eslint 0 (`src/opus-bay tests/opus-bay-*`); the full opus-bay suite 555 / 555 before the rebase and 589 / 589 on
+the rebased tree (`a9b87cb` + the review commits); lane G's tests 50 → 54, plus 4 in the new
+`tests/opus-bay-sf-guide-ui.test.ts` (58 / 58). No Higgsfield spend, no dev server. Scratch:
+`C:/Users/willy/opus-qa/w4/w4-g/review/` (geo, fuzz and cache scripts, suite logs).
