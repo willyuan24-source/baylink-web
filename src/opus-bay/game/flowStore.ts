@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { createStore } from '../core/store';
+import type { TransitKind } from '../core/events';
 import type { Bilingual } from '../core/types';
 import type { WeekResult } from '../data/catalog';
 
@@ -10,7 +11,21 @@ import type { WeekResult } from '../data/catalog';
 
 export type TourPhase = 'idle' | 'intro' | 'leading' | 'arrived' | 'await' | 'done-node' | 'card' | 'outro' | 'finished';
 export type WeekStage = 'idle' | 'asking' | 'walking' | 'board';
-export type Cinematic = null | 'arrival' | 'viewpoint' | 'telescope';
+/** 'travel' = G1's fast travel (飞过去) shots */
+export type Cinematic = null | 'arrival' | 'viewpoint' | 'telescope' | 'travel';
+/** HUD ride stage: waiting at the stop, riding, braking for a hop-off (E2-10 / F6), turning on a turntable (F4) */
+export type RideStage = 'waiting' | 'riding' | 'braking' | 'turning';
+/** The HUD's ride status (game/transit.ts writes it; ui/Hud RideBanner reads it through transit.rideLabel). */
+export interface FlowRide {
+  stage: RideStage;
+  /** boarding / destination stop or station ids */
+  from: string;
+  to: string;
+  eta?: number;
+  /** transit line id (move.line); absent = the hero F-line streetcar */
+  line?: string;
+  kind?: TransitKind;
+}
 
 export interface Bubble { who: string; text: Bilingual; key: number; tone?: 'call' | 'bark' | 'npc' }
 
@@ -36,8 +51,8 @@ export interface FlowState {
   captionSub: Bilingual | null;
   goalsCard: boolean;
   callPending: boolean;
-  /** streetcar ride status for the HUD */
-  ride: null | { stage: 'waiting' | 'riding'; from: string; to: string; eta?: number };
+  /** transit ride status for the HUD (see FlowRide) */
+  ride: null | FlowRide;
   lastPhoto: { url: string; name: string } | null;
   photoFlash: number;
   /** aria-live announcement */

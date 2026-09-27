@@ -52,8 +52,9 @@ export interface GameState {
   panel: { kind: PanelKind; id?: string };
   photoMode: boolean;
   /**
-   * Legacy mirror of `move`: 'streetcar' exactly while move is { mode: 'transit', line: 'streetcar' }. The store keeps
-   * the two consistent whichever one a writer sets (game/flow.ts still writes `riding`); new code reads `move`.
+   * Legacy "on transit" flag, mirrored from `move`: 'streetcar' exactly while move.mode is 'transit', whatever the line
+   * (the F-line, a cable car, the ferry: read move.line for which). The store keeps the two consistent whichever one a
+   * writer sets (game/transit.ts still writes `riding` for the hero F-line); new code reads `move`.
    */
   riding: 'streetcar' | null;
   /** movement mode (changes on transitions only, never per frame; per-frame vehicle / glide state is in runtime) */
@@ -135,10 +136,11 @@ export const initialGameState = (): GameState => ({
 export function syncMovePatch(state: GameState, patch: Partial<GameState>): Partial<GameState> {
   let out = patch;
   if ('riding' in patch && !('move' in patch)) {
-    if (patch.riding === 'streetcar' && !(state.move.mode === 'transit' && state.move.line === 'streetcar')) out = { ...out, move: { mode: 'transit', line: 'streetcar', spot: 'rail' } };
+    if (patch.riding === 'streetcar' && state.move.mode !== 'transit') out = { ...out, move: { mode: 'transit', line: 'streetcar', spot: 'rail' } };
     else if (patch.riding === null && state.move.mode === 'transit') out = { ...out, move: FOOT };
   } else if ('move' in patch && patch.move && !('riding' in patch)) {
-    const riding = patch.move.mode === 'transit' && patch.move.line === 'streetcar' ? 'streetcar' : null;
+    // day-0 contract (wave 2): any transit line locks like the F-line (cable cars, the ferry)
+    const riding = patch.move.mode === 'transit' ? 'streetcar' : null;
     if (riding !== state.riding) out = { ...out, riding };
   }
   if ('photoMode' in patch && !('move' in patch)) {

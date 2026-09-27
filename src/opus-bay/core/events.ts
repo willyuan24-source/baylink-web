@@ -57,7 +57,30 @@ export type GameEvent =
   /** G pressed with no safe landing within 40 u (never water) — keep flying */
   | { type: 'glide:no-landing' }
   /** transit: E switched rail ↔ seat */
-  | { type: 'transit:spot'; line: string; spot: 'rail' | 'seat' | 'deck' };
+  | { type: 'transit:spot'; line: string; spot: 'rail' | 'seat' | 'deck' }
+  /**
+   * Transit (wave 2, lane F emits; audio, G2 lines and goals, H2b listen). One member for every line kind:
+   * - bell: the gripman's / motorman's bell (H on a cable car too); `streetcar-bell` above stays for the hero F-line
+   * - board / depart / arrive: at a station (`line` = transit line id, e.g. 'powell-hyde', 'f-line', 'ferry')
+   * - ride: one real stop-to-stop segment finished; `real` = it counts (not fast travel, odometer rule met), never
+   *   emitted in travel mode
+   * - grip / push / turned: cable grip clank, a push on a turntable, the car finished turning
+   * - horn: ferry horn; hop-aside: a crowd walker stepped out of a vehicle's way
+   * `strength` 0..1 is an optional loudness / intensity hint.
+   */
+  | { type: 'transit'; what: TransitWhat; line: string; kind: TransitKind; real?: boolean; strength?: number }
+  /** play a recorded BAYBAY line (H2b's data/voiceLinesSf.ts ids); the bubble text is shown by the caller (G2) */
+  | { type: 'voice-line'; id: string }
+  /** tap-to-drive autopilot (E2): started, arrived, gave up (stuck) or cancelled by manual input */
+  | { type: 'vehicle:auto'; vehicle: 'bike' | 'car'; state: 'start' | 'arrive' | 'stuck' | 'cancel' }
+  /** fast travel (G1): lift-off, the cloud cut on long trips, touch-down at the destination (place / landmark id) */
+  | { type: 'travel'; what: 'start' | 'cloud' | 'land'; to: string }
+  /** a place or neighbourhood seen for the first time (G1 discovery); `id` is the place / zone id */
+  | { type: 'discover'; id: string; kind: 'place' | 'zone' | 'landmark' };
+
+/** Transit line kinds (the store's move.line holds the line id; this is its vehicle kind). */
+export type TransitKind = 'streetcar' | 'cable-car' | 'ferry';
+export type TransitWhat = 'bell' | 'board' | 'depart' | 'arrive' | 'ride' | 'grip' | 'push' | 'turned' | 'horn' | 'hop-aside';
 
 type Handler = (event: GameEvent) => void;
 const handlers = new Set<Handler>();
