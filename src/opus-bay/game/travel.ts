@@ -1,3 +1,4 @@
+import { WALK_SPEED } from '../actors/controller';
 import type { Bilingual, PoiDef, Vec2 } from '../core/types';
 import { distanceKm } from '../data/catalog';
 import { POIS } from '../data/pois';
@@ -9,8 +10,8 @@ import { unproject as unprojectCity } from '../core/geo';
  * takes in the game, and — for real places — how long it is in the real city (lat/lng of the two places).
  */
 
-/** Player walking speed in the game (actors/controller.ts WALK_SPEED). */
-const GAME_WALK = 4.2;
+/** Player walking speed in the game (G1-13: the controller's own constant, not a copy). */
+const GAME_WALK = WALK_SPEED;
 /** Streets are not straight lines: real walking distance ≈ 1.25 × the crow-flies distance. */
 const STREET_FACTOR = 1.25;
 
@@ -74,10 +75,15 @@ export function cityTravelLabel(from: Vec2, to: Vec2): Bilingual {
   const d = Math.hypot(to.x - from.x, to.z - from.z);
   if (d < 4) return { zh: '就在这', en: 'right here' };
   const game = gameTimeLabel(d);
-  const km = distanceKm(unprojectCity(from), unprojectCity(to)) * STREET_FACTOR;
-  const kmZh = km < 1 ? `${Math.round(km * 100) * 10} 米` : `${km.toFixed(1)} 公里`;
-  const kmEn = km < 1 ? `${Math.round(km * 100) * 10} m` : `${km.toFixed(1)} km`;
-  return { zh: `游戏里${game.zh} · 现实约 ${kmZh}`, en: `${game.en} in the game · ${kmEn} for real` };
+  const real = kmLabel(distanceKm(unprojectCity(from), unprojectCity(to)) * STREET_FACTOR);
+  return { zh: `游戏里${game.zh} · 现实约 ${real.zh}`, en: `${game.en} in the game · ${real.en} for real` };
+}
+
+/** Real metres (zh / en) for a km figure: "850 米" / "1.2 公里". */
+function kmLabel(km: number): Bilingual {
+  return km < 1
+    ? { zh: `${Math.round(km * 100) * 10} 米`, en: `${Math.round(km * 100) * 10} m` }
+    : { zh: `${km.toFixed(1)} 公里`, en: `${km.toFixed(1)} km` };
 }
 
 /** The nearest bike / toy car within RIDEABLE_R of p (its interactable), or null. */
