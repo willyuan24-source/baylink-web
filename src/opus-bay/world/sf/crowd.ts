@@ -60,6 +60,8 @@ export const CROWD = {
   r: 0.28,
   /** night keeps this share of the crowd */
   night: 0.55,
+  /** too many walkers and all in view: the ones farther than this from the focus may fade out (u) */
+  dropSeenBeyond: 16,
 } as const;
 
 const TAU = Math.PI * 2;
@@ -122,6 +124,8 @@ export interface Walker {
   grow: number;
   /** recently on the roadway (crossing): the traffic yields */
   onRoad: boolean;
+  /** fading out (more walkers than wanted, all in view): off once `grow` reaches 0 */
+  leave: boolean;
 }
 
 /**
@@ -150,7 +154,7 @@ export interface CrowdEnv {
 const newWalker = (id: number): Walker => ({
   id, on: false, mode: 'walk', e: -1, s: 0, side: 1, lane: CROWD.laneIn, laneT: CROWD.laneIn, v: 1, ph: 0, color: 0, scale: 1,
   x0: 0, z0: 0, x1: 0, z1: 0, ne: -1, ns: 0, nside: 1, standT: 0, face: 0, px: 0, pz: 0, pushHold: 0,
-  hopT: -1, hx0: 0, hz0: 0, hx1: 0, hz1: 0, hopCool: 0, pause: 0, pace: 1, check: 0, x: 0, y: 0, z: 0, heading: 0, walking: 0, grow: 1, onRoad: false,
+  hopT: -1, hx0: 0, hz0: 0, hx1: 0, hz1: 0, hopCool: 0, pause: 0, pace: 1, check: 0, x: 0, y: 0, z: 0, heading: 0, walking: 0, grow: 1, onRoad: false, leave: false,
 });
 
 const _p = { x: 0, z: 0 };
@@ -218,14 +222,21 @@ export class CrowdSim {
         if (d > bd && !this.env.visible(w.x, w.z)) { bd = d; thin = w; }
       }
     }
+    // (review) more than wanted and all of them in view (a plaza the camera rests on, then night or a lower quality): one
+    // walker in view, not right by the player, fades out every third of a second (the crowd stayed at ~50 of 'low's 24)
+    let dropSeen = this.frame % 20 === 0;
     for (const w of this.walkers) {
       if (!w.on) continue;
       if (w === thin) { w.on = false; this.stats.recycled++; continue; }
-      const far = Math.hypot(w.x - f.x, w.z - f.z) > this.radius + 12;
+      const d = Math.hypot(w.x - f.x, w.z - f.z);
+      const far = d > this.radius + 12;
       const lost = w.mode !== 'stand' && w.mode !== 'cross' && !this.net.edge(w.e);
       const done = w.mode === 'stand' && w.standT <= 0 && !this.env.visible(w.x, w.z);
-      // more than wanted (night came): the unseen ones go first
-      const extra = on >= want && (this.filling || !this.env.visible(w.x, w.z));
+      // more than wanted (night came, the quality went down): the unseen ones go first
+      let extra = false;
+      if (on < want) w.leave = false;
+      else if (this.filling || !this.env.visible(w.x, w.z)) extra = true;
+      else if (dropSeen && !w.leave && d > CROWD.dropSeenBeyond) { w.leave = true; dropSeen = false; }
       if (far || lost || done || extra) { w.on = false; this.stats.recycled++; continue; }
       on++;
     }
@@ -352,6 +363,7 @@ export class CrowdSim {
     w.px = w.pz = 0; w.pushHold = 0; w.hopT = -1; w.hopCool = 0; w.pause = 0; w.check = 0;
     w.grow = fade ? 0 : 1;
     w.onRoad = false;
+    w.leave = false;
     w.lane += (r() - 0.5) * 0.16;
     this.stats.spawned++;
   }
@@ -643,7 +655,10 @@ export class CrowdSim {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     w.heading += d * (1 - Math.exp(-dt * 9));
     w.y = this.net.probe.height(w.x, w.z);
-    if (w.grow < 1) w.grow = Math.min(1, w.grow + dt * 1.6);
+    if (w.leave) {
+      w.grow -= dt * 1.6;
+      if (w.grow <= 0) { w.on = false; w.leave = false; this.stats.recycled++; }
+    } else if (w.grow < 1) w.grow = Math.min(1, w.grow + dt * 1.6);
   }
 
   /** The smoothed offset (laneT is the offset past the kerb, eased toward `lane`). */

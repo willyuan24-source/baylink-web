@@ -183,6 +183,30 @@ test('F11 crowd: 64 walkers on the sidewalks round the player, on the roadway on
   });
 });
 
+test('F11 (review): a lower quality or the night thins the crowd even while every walker is in view', async () => {
+  await withCity(net => {
+    const focus = { ...SPOT };
+    // the camera rests on a busy spot: everyone counts as seen
+    const crowd = new CrowdSim(net, { focus: () => focus, avoid: () => {}, visible: () => true, vehicles: () => [] }, { seed: 11 });
+    const dt = 1 / 30;
+    for (let i = 0; i < 30 * 10; i++) crowd.step(dt);
+    assert.equal(crowd.active, CROWD.count.high);
+    crowd.target = CROWD.count.low;
+    let fadingNear = 0, fading = 0;
+    for (let i = 0; i < 30 * 60; i++) {
+      crowd.step(dt);
+      // the ones in view fade out, never one right by the player
+      for (const w of crowd.walkers) {
+        if (!w.on || !w.leave) continue;
+        fading++;
+        if (Math.hypot(w.x - focus.x, w.z - focus.z) < CROWD.dropSeenBeyond - 2) fadingNear++;
+      }
+    }
+    assert.ok(crowd.active <= CROWD.count.low, `quality low: ${crowd.active} walkers (it stayed near 50 before)`);
+    assert.ok(fading > 0 && fadingNear === 0, `${fading} fading samples, ${fadingNear} of them close by`);
+  });
+});
+
 test('F11 crowd: sightseers on landmark plaza spots (lane D2) stand one to a spot, facing the sight', async () => {
   const { landmarkPlazaSpots } = await import('../src/opus-bay/world/sf/landmarks/context');
   const { sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
