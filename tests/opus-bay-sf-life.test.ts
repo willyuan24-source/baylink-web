@@ -158,6 +158,30 @@ test('F11 crowd: 64 walkers on the sidewalks round the player, on the roadway on
   });
 });
 
+test('F11 crowd: sightseers on landmark plaza spots (lane D2) stand one to a spot, facing the sight', async () => {
+  const { landmarkPlazaSpots } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const spots = landmarkPlazaSpots().filter(s => s.id === 'dragon-gate');
+  assert.ok(spots.length >= 2, 'the Dragon Gate has plaza spots');
+  const gate = sfLandmark('dragon-gate')!;
+  await withCity(net => {
+    const focus = { x: gate.x, z: gate.z + 10 };
+    const crowd = new CrowdSim(net, {
+      focus: () => focus, avoid: () => {}, visible: () => false, vehicles: () => [],
+      standSpots: () => spots.map(s => ({ x: s.x, z: s.z, r: 0.6, exact: true, face: { x: gate.x, z: gate.z } })),
+    }, { seed: 21 });
+    for (let i = 0; i < 30 * 5; i++) crowd.step(1 / 30);
+    const standers = crowd.walkers.filter(w => w.on && w.mode === 'stand');
+    assert.ok(standers.length >= 1, `standers ${standers.length}`);
+    for (const w of standers) {
+      assert.ok(spots.some(p => Math.hypot(p.x - w.x, p.z - w.z) <= 0.61), 'on a plaza spot');
+      const toGate = Math.atan2(gate.x - w.x, gate.z - w.z), off = Math.abs(Math.atan2(Math.sin(w.face - toGate), Math.cos(w.face - toGate)));
+      assert.ok(off <= 0.61, `facing the gate (${off.toFixed(2)} rad off)`);
+    }
+    for (const s of spots) assert.ok(standers.filter(w => Math.abs(w.x - s.x) < 1 && Math.abs(w.z - s.z) < 1).length <= 1, 'one to a spot');
+  });
+});
+
 test('F11 crowd: a vehicle about to reach a walker makes them hop aside off its path; a passing car does not', async () => {
   await withCity(net => {
     const focus = { ...SPOT };

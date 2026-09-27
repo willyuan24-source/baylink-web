@@ -124,6 +124,12 @@ export interface Walker {
   onRoad: boolean;
 }
 
+/**
+ * Where people stand about: around (x, z) within `r` (a place: a sightseer 1.5 u + up to r from it, facing it), or on
+ * the spot itself (`exact`, a landmark plaza spot: within r of it, facing the sight at `face`).
+ */
+export interface StandSpot { x: number; z: number; r: number; exact?: boolean; face?: { x: number; z: number } }
+
 export interface CrowdEnv {
   /** where the crowd lives around (the player) */
   focus(): { x: number; z: number };
@@ -134,7 +140,7 @@ export interface CrowdEnv {
   /** moving road vehicles near the focus (the crowd hops out of their way) */
   vehicles(): readonly RoadVehicle[];
   /** sights within r of (x, z) where people stand about: a spot and how far around it (u) */
-  standSpots?(x: number, z: number, r: number): { x: number; z: number; r: number }[];
+  standSpots?(x: number, z: number, r: number): StandSpot[];
   /** night 0 … 1 */
   night?(): number;
   /** a walker hopped out of a vehicle's way */
@@ -311,20 +317,24 @@ export class CrowdSim {
     const spots = this.env.standSpots!(this.fx, this.fz, this.radius * 0.8);
     if (!spots.length) return false;
     const spot = spots[Math.floor(r() * spots.length)];
+    // (a landmark plaza spot is taken by one stander at a time)
+    if (spot.exact && this.walkers.some(o => o.on && o.mode === 'stand' && Math.abs(o.x - spot.x) < 1 && Math.abs(o.z - spot.z) < 1)) return false;
     for (let k = 0; k < 4; k++) {
-      const a = r() * TAU, d = 1.5 + r() * spot.r;
+      const a = r() * TAU, d = spot.exact ? r() * spot.r : 1.5 + r() * spot.r;
       const x = spot.x + Math.cos(a) * d, z = spot.z + Math.sin(a) * d;
       const dd = Math.hypot(x - this.fx, z - this.fz);
       if (dd > this.radius) continue;
+      // (a landmark plaza spot is curated: any walkable ground; round a place, not on the roadway)
       const surf = this.net.probe.surface(x, z);
-      if (surf !== 'plaza' && surf !== 'pavement' && surf !== 'grass' && surf !== 'wood') continue;
+      if (!spot.exact && surf !== 'plaza' && surf !== 'pavement' && surf !== 'grass' && surf !== 'wood') continue;
       if (!this.net.probe.stand(x, z, 0.3)) continue;
       const seen = this.env.visible(x, z);
       if (!anywhere && seen && dd < CROWD.spawnInView) continue;
       this.init(w, seen);
       w.mode = 'stand'; w.e = -1;
       w.x = x; w.z = z;
-      w.face = Math.atan2(spot.x - x, spot.z - z) + (r() - 0.5) * 1.2;
+      const f = spot.face ?? spot;
+      w.face = Math.atan2(f.x - x, f.z - z) + (r() - 0.5) * 1.2;
       w.heading = w.face;
       w.standT = 20 + r() * 40;
       return true;

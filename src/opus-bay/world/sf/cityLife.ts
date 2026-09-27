@@ -9,7 +9,9 @@ import { canStand, cityChunkEpoch, heightAt, surfaceAt } from '../../core/terrai
 import { placesNear } from '../../data/sf/places';
 import { travelActive } from '../../game/fastTravel';
 import { U } from '../materials';
-import { CROWD, CrowdLayer, type CrowdEnv } from './crowd';
+import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
+import { sfLandmark } from './landmarks/index';
+import { landmarkPlazaSpots } from './landmarks/context';
 import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
 import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
 
@@ -89,8 +91,14 @@ export class CityLife {
       visible: vis,
       vehicles: () => this.all,
       standSpots: (x, z, r) => {
-        const out: { x: number; z: number; r: number }[] = [];
+        const out: StandSpot[] = [];
         for (const pl of placesNear(x, z, r)) { const k = STAND_KINDS[pl.kind]; if (k && !pl.hero) out.push({ x: pl.x, z: pl.z, r: k }); }
+        // lane D2's landmark plaza spots (the setting's paved plazas), facing the landmark
+        for (const s of landmarkPlazaSpots()) {
+          if (Math.abs(s.x - x) > r || Math.abs(s.z - z) > r) continue;
+          const lm = sfLandmark(s.id);
+          out.push({ x: s.x, z: s.z, r: 0.6, exact: true, face: lm ? { x: lm.x, z: lm.z } : undefined });
+        }
         return out;
       },
       night: () => U.uNight.value,
