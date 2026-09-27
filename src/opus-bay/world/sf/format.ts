@@ -368,18 +368,54 @@ export interface SfManifest {
 
 export interface TransitStop {
   id: string;
+  /** wave 4: for Metro stops the English sign name stays primary and zh carries the gloss (data/sf/stationNames.ts) */
   name: { zh: string; en: string };
   /** arc length along TransitLine.path (u) */
   at: number;
   x: number;
   z: number;
   osmId: number | null;
+  /** wave 4: a major stop (transfers, ★ attraction stops, termini): light rail dwells here; minor stops on request */
+  major?: boolean;
+  /** wave 4: attraction ids this stop serves on foot (data/sf/attractionTypes.ts), the main one first */
+  attractions?: string[];
+}
+
+/** Line kinds in transit.json (wave 4 adds the sightseeing loop 'bus' and the Muni Metro 'light-rail'). */
+export const TRANSIT_LINE_KINDS = ['cable-car', 'streetcar', 'bus', 'light-rail'] as const;
+export type TransitLineKind = (typeof TRANSIT_LINE_KINDS)[number];
+
+/** A tunnel mouth: where the track goes underground / comes back up (world city frame; y = surface height there). */
+export interface TransitPortal { x: number; y: number; z: number; name?: { zh: string; en: string } }
+
+/**
+ * Wave 4: an underground span of a line, [fromAt, toAt] in arc length along `path` (no tunnel geometry is built: the
+ * ride runs under the subway overlay there). `portalA` is the mouth at fromAt, `portalB` at toAt; null = the span
+ * starts / ends underground at the line's own end (the N and M start underground at Embarcadero). `stations` = ids of
+ * the line's stops inside the span, in arc order (boarded at their street kiosks).
+ */
+export interface TransitTunnel {
+  fromAt: number;
+  toAt: number;
+  portalA: TransitPortal | null;
+  portalB: TransitPortal | null;
+  stations: string[];
+  name?: { zh: string; en: string };
 }
 
 export interface TransitLine {
   id: string;
-  kind: 'cable-car' | 'streetcar';
+  kind: TransitLineKind;
   name: { zh: string; en: string };
+  /** wave 4: the letter / short name on discs, headsigns and the map ('N', 'M', '观光'); ≤ 4 characters */
+  short?: string;
+  /**
+   * wave 4: a one-way loop (the sightseeing bus): the path ends where it starts (≤ 2 u) so `length` is the full lap and
+   * arc positions wrap modulo `length`; never doubleEnded
+   */
+  loop?: boolean;
+  /** wave 4: underground spans in arc order, non-overlapping (Metro lines) */
+  tunnels?: TransitTunnel[];
   /** OSM route relation used (sourceUrl = https://www.openstreetmap.org/relation/<id>) */
   osmRelation: number;
   sourceUrl: string;
@@ -398,10 +434,77 @@ export interface TransitLine {
 }
 export interface TransitFile { version: string; source: string; lines: TransitLine[] }
 
+/** Wave 4: the tunnel span containing arc position `at` (loops wrap modulo length), or null on the surface. */
+export function tunnelAt(line: Pick<TransitLine, 'length' | 'loop' | 'tunnels'>, at: number): TransitTunnel | null {
+  if (!line.tunnels?.length) return null;
+  const s = line.loop && line.length > 0 ? ((at % line.length) + line.length) % line.length : at;
+  for (const t of line.tunnels) if (s >= t.fromAt && s <= t.toAt) return t;
+  return null;
+}
+
+/**
+ * Wave 4: structural problems of one transit.json line (empty = valid). Pure; the frozen sf-data / sf-format tests and
+ * lane T's sidecar use it. Checks: known kind, path triples, stops in arc order inside [0, length], `short` 1–4
+ * characters, a loop closes on itself (≤ 2 u) and is not double-ended, tunnel spans ordered / non-overlapping / inside
+ * the path with a null portal only at the line's own end, and every tunnel station a stop of the line inside its span.
+ */
+export function transitLineProblems(l: TransitLine): string[] {
+  const out: string[] = [];
+  const bad = (m: string) => out.push(`${l.id}: ${m}`);
+  if (!(TRANSIT_LINE_KINDS as readonly string[]).includes(l.kind)) bad(`unknown kind ${String(l.kind)}`);
+  if (l.path.length < 6 || l.path.length % 3) bad(`path has ${l.path.length} numbers (xyz triples, ≥ 2 points)`);
+  if (!l.path.every(Number.isFinite)) bad('path has a non-finite number');
+  if (!(l.length > 0)) bad(`length ${l.length}`);
+  const tol = 0.5;
+  for (let i = 0; i < l.stops.length; i++) {
+    const s = l.stops[i];
+    if (!(s.at >= -tol && s.at <= l.length + tol)) bad(`stop ${s.id} at ${s.at} outside [0, ${l.length}]`);
+    if (i > 0 && s.at < l.stops[i - 1].at) bad(`stop ${s.id} before ${l.stops[i - 1].id}`);
+    if (!s.name?.en || !s.name?.zh) bad(`stop ${s.id} needs zh + en names`);
+  }
+  if (new Set(l.stops.map(s => s.id)).size !== l.stops.length) bad('duplicate stop ids');
+  if (l.short !== undefined && !(l.short.length >= 1 && l.short.length <= 4)) bad(`short "${l.short}" must be 1–4 characters`);
+  if (l.loop) {
+    if (l.doubleEnded) bad('a loop is never double-ended');
+    const n = l.path.length;
+    if (n >= 6 && Math.hypot(l.path[n - 3] - l.path[0], l.path[n - 1] - l.path[2]) > 2) bad('a loop path must end where it starts (≤ 2 u)');
+  }
+  const stopAt = new Map(l.stops.map(s => [s.id, s.at]));
+  let prevTo = -Infinity;
+  for (const t of l.tunnels ?? []) {
+    const what = `tunnel [${t.fromAt}, ${t.toAt}]`;
+    if (!(t.fromAt < t.toAt)) bad(`${what}: fromAt must be < toAt`);
+    if (t.fromAt < -tol || t.toAt > l.length + tol) bad(`${what}: outside [0, ${l.length}]`);
+    if (t.fromAt < prevTo) bad(`${what}: overlaps or precedes the previous span`);
+    prevTo = t.toAt;
+    if (t.portalA === null && t.fromAt > tol) bad(`${what}: portalA may be null only when the span starts at the line start`);
+    if (t.portalB === null && t.toAt < l.length - tol) bad(`${what}: portalB may be null only when the span ends at the line end`);
+    for (const p of [t.portalA, t.portalB]) if (p && !Number.isFinite(p.x + p.y + p.z)) bad(`${what}: portal position`);
+    let prevAt = -Infinity;
+    for (const id of t.stations) {
+      const at = stopAt.get(id);
+      if (at === undefined) { bad(`${what}: station ${id} is not a stop of the line`); continue; }
+      if (at < t.fromAt - 1 || at > t.toAt + 1) bad(`${what}: station ${id} (at ${at}) outside the span`);
+      if (at < prevAt) bad(`${what}: stations out of arc order at ${id}`);
+      prevAt = at;
+    }
+  }
+  return out;
+}
+
 export type SfPlaceKind =
   | 'landmark' | 'bridge' | 'island' | 'skyscraper' | 'park' | 'museum' | 'waterfront' | 'transit' | 'street' | 'plaza'
   | 'civic' | 'stadium' | 'historic' | 'neighbourhood' | 'garden' | 'beach' | 'trail' | 'hill' | 'tower' | 'water'
   | 'attraction' | 'viewpoint' | 'peak';
+/**
+ * Wave 4 place kinds (plan §3.7: campus, shopping mall, zoo, church / temple / cathedral). Kept OUT of `SfPlaceKind`
+ * until the wave-4 integration phase, because data/sf/cityPois.ts `PLACE_KIND_NAMES: Record<SfPlaceKind, …>` (a
+ * wave-3 lane's file) must gain their names in the same commit. Until then new wave-4 code types place kinds as
+ * `SfPlaceKindAll`; after the integration `SfPlaceKind` includes these and `SfPlaceKindAll` is the same type.
+ */
+export const SF_PLACE_KINDS_W4 = ['campus', 'shopping', 'zoo', 'religious'] as const;
+export type SfPlaceKindW4 = (typeof SF_PLACE_KINDS_W4)[number];
+export type SfPlaceKindAll = SfPlaceKind | SfPlaceKindW4;
 
 export interface SfPlace {
   id: string;

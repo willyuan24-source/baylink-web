@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   AREA_FLAG, CHUNK_FLAG, DEM_N, type ChunkData, type FarData, SfFormatError, type WalkGraph, computeDistrictHash, decodeChunk, decodeChunkFile, decodeFar, decodeGraph,
   decodeGraphFile, demSample, encodeChunk, encodeFar, encodeGraph, gunzip, gzip,
+  SF_PLACE_KINDS_W4, TRANSIT_LINE_KINDS, type TransitLine, transitLineProblems, tunnelAt,
 } from '../src/opus-bay/world/sf/format';
 
 // deterministic pseudo-random numbers
@@ -147,6 +148,89 @@ test('OBF1 far city and OBG1 graph round trip', async () => {
   assert.equal(viaGz.nodeCount, 4);
   const bad = encodeGraph(g); bad[4] = 9;
   assert.throws(() => decodeGraph(bad), /version mismatch/);
+});
+
+// --- wave 4 (day 0): transit.json lines gain kind bus / light-rail, loop, short, tunnels; stops major / attractions ---
+const stop = (id: string, at: number, x: number, z: number, extra: Partial<TransitLine['stops'][number]> = {}): TransitLine['stops'][number] =>
+  ({ id, name: { zh: `${id} 站`, en: id }, at, x, z, osmId: null, ...extra });
+function sampleMetro(): TransitLine {
+  // a straight 1,000 u line along z: underground 0–300 (starts under the city), a 100 u tunnel at 600–700
+  const path: number[] = [];
+  for (let z = 0; z <= 1000; z += 50) path.push(0, 5 + z / 100, z);
+  return {
+    id: 'metro-test', kind: 'light-rail', name: { zh: '测试线', en: 'Test line' }, short: 'T', osmRelation: 1, sourceUrl: 'https://www.openstreetmap.org/relation/1',
+    color: '#2f6fb0', path, length: 1000, turntables: [], doubleEnded: true, heroSpans: [],
+    stops: [stop('a', 0, 0, 0, { major: true }), stop('b', 150, 0, 150), stop('c', 280, 0, 280, { attractions: ['city-hall'] }), stop('d', 450, 0, 450), stop('e', 1000, 0, 1000, { major: true })],
+    tunnels: [
+      { fromAt: 0, toAt: 300, portalA: null, portalB: { x: 0, y: 8, z: 300 }, stations: ['a', 'b', 'c'] },
+      { fromAt: 600, toAt: 700, portalA: { x: 0, y: 11, z: 600, name: { zh: '东口', en: 'East portal' } }, portalB: { x: 0, y: 12, z: 700 }, stations: [] },
+    ],
+  };
+}
+function sampleLoop(): TransitLine {
+  // a 400 u square lap that ends where it starts
+  const path = [0, 1, 0, 100, 1, 0, 100, 1, 100, 0, 1, 100, 0, 1, 0];
+  return {
+    id: 'loop-test', kind: 'bus', name: { zh: '环线', en: 'Loop' }, short: '观光', loop: true, osmRelation: 0, sourceUrl: 'https://www.openstreetmap.org/',
+    color: '#e0563f', path, length: 400, turntables: [], doubleEnded: false, heroSpans: [],
+    stops: [stop('s1', 0, 0, 0), stop('s2', 150, 100, 50), stop('s3', 320, 0, 80)],
+  };
+}
+
+test('wave 4: transit lines with loop / short / tunnels survive JSON and validate; wave-2 lines stay valid', () => {
+  assert.deepEqual([...TRANSIT_LINE_KINDS], ['cable-car', 'streetcar', 'bus', 'light-rail']);
+  assert.deepEqual([...SF_PLACE_KINDS_W4], ['campus', 'shopping', 'zoo', 'religious']);
+  for (const l of [sampleMetro(), sampleLoop()]) {
+    const back = JSON.parse(JSON.stringify(l)) as TransitLine;
+    assert.deepEqual(back, l, `${l.id} JSON round trip`);
+    assert.deepEqual(transitLineProblems(back), [], `${l.id} valid`);
+  }
+  // a wave-2 shaped line (none of the new fields) is still valid
+  const plain = sampleMetro();
+  delete plain.tunnels; delete plain.short; plain.kind = 'cable-car'; plain.doubleEnded = false;
+  plain.stops = plain.stops.map(s => { const c = { ...s }; delete c.major; delete c.attractions; return c; });
+  assert.deepEqual(transitLineProblems(plain), []);
+});
+
+test('wave 4: transitLineProblems names each broken invariant', () => {
+  const broken: [string, (l: TransitLine) => void, RegExp][] = [
+    ['unknown kind', l => { (l as { kind: string }).kind = 'monorail'; }, /unknown kind/],
+    ['stops out of order', l => { l.stops[1].at = 900; }, /before/],
+    ['duplicate stop', l => { l.stops[1].id = 'a'; }, /duplicate stop ids/],
+    ['short too long', l => { l.short = 'N Judah'; }, /short/],
+    ['empty tunnel', l => { l.tunnels![1].toAt = 600; }, /fromAt must be < toAt/],
+    ['overlapping tunnels', l => { l.tunnels![1].fromAt = 250; }, /overlaps/],
+    ['tunnel past the end', l => { l.tunnels![1].toAt = 1200; }, /outside \[0/],
+    ['null portal mid-line', l => { l.tunnels![1].portalA = null; }, /portalA may be null only/],
+    ['null exit mid-line', l => { l.tunnels![0].portalB = null; }, /portalB may be null only/],
+    ['unknown tunnel station', l => { l.tunnels![0].stations.push('zz'); }, /not a stop of the line/],
+    ['station outside its span', l => { l.tunnels![0].stations.push('d'); }, /outside the span/],
+    ['stations out of order', l => { l.tunnels![0].stations.reverse(); }, /out of arc order/],
+  ];
+  for (const [what, breakIt, re] of broken) {
+    const l = sampleMetro();
+    breakIt(l);
+    const problems = transitLineProblems(l);
+    assert.ok(problems.some(p => re.test(p)), `${what}: ${problems.join(' | ') || 'no problem found'}`);
+  }
+  const open = sampleLoop(); open.path = open.path.slice(0, -3);
+  assert.ok(transitLineProblems(open).some(p => /must end where it starts/.test(p)));
+  const twoWay = sampleLoop(); twoWay.doubleEnded = true;
+  assert.ok(transitLineProblems(twoWay).some(p => /never double-ended/.test(p)));
+});
+
+test('wave 4: tunnelAt finds the span (loops wrap), null on the surface or without tunnels', () => {
+  const m = sampleMetro();
+  assert.equal(tunnelAt(m, 0), m.tunnels![0]);
+  assert.equal(tunnelAt(m, 280), m.tunnels![0]);
+  assert.equal(tunnelAt(m, 450), null);
+  assert.equal(tunnelAt(m, 650), m.tunnels![1]);
+  assert.equal(tunnelAt(m, 999), null);
+  assert.equal(tunnelAt(sampleLoop(), 10), null);
+  const loop = { ...sampleLoop(), tunnels: [{ fromAt: 100, toAt: 120, portalA: { x: 100, y: 1, z: 0 }, portalB: { x: 100, y: 1, z: 20 }, stations: [] }] };
+  assert.deepEqual(transitLineProblems(loop), []);
+  assert.equal(tunnelAt(loop, 510), loop.tunnels[0], 'a loop wraps modulo its length');
+  assert.equal(tunnelAt(loop, -290), loop.tunnels[0]);
 });
 
 test('districtHash is stable and changes with the hero lots', () => {

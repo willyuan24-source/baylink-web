@@ -8,7 +8,7 @@ import { pointInPolygon } from '../src/opus-bay/core/terrain';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import {
   AREA_CLASSES, BUILDING_FLAG, CHUNK_FLAG, type ChunkData, DEM_N, FORMAT_VERSION, type PlacesFile, type SfCurrent, type SfManifest, type TransitFile,
-  computeDistrictHash, decodeChunkFile, decodeFarFile, decodeGraphFile,
+  type TransitLineKind, computeDistrictHash, decodeChunkFile, decodeFarFile, decodeGraphFile, transitLineProblems,
 } from '../src/opus-bay/world/sf/format';
 
 const ROOT = path.resolve(import.meta.dirname, '../public/opus-bay/sf');
@@ -179,15 +179,49 @@ test('walking graph: connected from the Ferry Building to Twin Peaks, Ocean Beac
   assert.ok(snapped.length >= places.places.filter(p => !p.hero).length * 0.9);
 });
 
-test('transit and far city', async () => {
-  const want: Record<string, number> = { 'powell-hyde': 456, 'powell-mason': 346, california: 320, 'f-line': 1136 };
-  assert.deepEqual(transit.lines.map(l => l.id).sort(), Object.keys(want).sort());
+test('transit (the wave-2 lines ⊆ ids ⊆ them + the wave-4 loop / N / M) and far city', async () => {
+  const want: Record<string, { length: number; kind: TransitLineKind }> = {
+    'powell-hyde': { length: 456, kind: 'cable-car' }, 'powell-mason': { length: 346, kind: 'cable-car' },
+    california: { length: 320, kind: 'cable-car' }, 'f-line': { length: 1136, kind: 'streetcar' },
+  };
+  // wave 4 day 0 (sf-w4-plan.md §3.1 / §3.7): lane T may publish exactly these three more, lengths ± 20 %
+  const wave4: Record<string, { length: number; kind: TransitLineKind; loop: boolean }> = {
+    'sf-loop': { length: 6522, kind: 'bus', loop: true },
+    'n-judah': { length: 1580, kind: 'light-rail', loop: false },
+    'm-ocean-view': { length: 2028, kind: 'light-rail', loop: false },
+  };
+  const ids = transit.lines.map(l => l.id);
+  assert.equal(new Set(ids).size, ids.length, 'unique line ids');
+  for (const id of Object.keys(want)) assert.ok(ids.includes(id), `wave-2 line ${id} kept`);
+  for (const id of ids) assert.ok(id in want || id in wave4, `unexpected line ${id}`);
   for (const l of transit.lines) {
-    assert.ok(Math.abs(l.length - want[l.id]) < want[l.id] * 0.15, `${l.id} length ${l.length}`);
+    assert.deepEqual(transitLineProblems(l), [], `${l.id} is structurally valid`);
     assert.ok(l.stops.length >= 10, `${l.id} stops`);
     for (let i = 1; i < l.stops.length; i++) assert.ok(l.stops[i].at >= l.stops[i - 1].at);
-    for (let i = 1; i < l.path.length; i += 3) assert.ok(l.path[i] >= 0 && l.path[i] < 60, `${l.id} y`);
-    assert.match(l.sourceUrl, /openstreetmap\.org\/relation\//);
+    const w2 = want[l.id];
+    if (w2) {
+      assert.equal(l.kind, w2.kind, `${l.id} kind`);
+      assert.ok(Math.abs(l.length - w2.length) < w2.length * 0.15, `${l.id} length ${l.length}`);
+      assert.ok(!l.loop && !l.tunnels?.length, `${l.id}: the wave-2 lines stay surface lines`);
+      for (let i = 1; i < l.path.length; i += 3) assert.ok(l.path[i] >= 0 && l.path[i] < 60, `${l.id} y`);
+      assert.match(l.sourceUrl, /openstreetmap\.org\/relation\//);
+      continue;
+    }
+    const w4 = wave4[l.id];
+    assert.equal(l.kind, w4.kind, `${l.id} kind`);
+    assert.equal(l.loop === true, w4.loop, `${l.id} loop`);
+    assert.ok(Math.abs(l.length - w4.length) < w4.length * 0.2, `${l.id} length ${l.length}`);
+    assert.ok(l.short, `${l.id} has a short name`);
+    // underground spans are interpolated between the portals, not sampled from the terrain: allow below 0 there
+    for (let i = 1; i < l.path.length; i += 3) assert.ok(l.path[i] >= -30 && l.path[i] < 60, `${l.id} y ${l.path[i]}`);
+    if (l.kind === 'light-rail') {
+      assert.ok(l.doubleEnded, `${l.id} reverses at its termini`);
+      assert.ok(l.tunnels?.length && l.tunnels[0].fromAt <= 1, `${l.id} starts underground at Embarcadero`);
+      assert.match(l.sourceUrl, /openstreetmap\.org\/relation\//);
+    } else {
+      assert.ok(!l.tunnels?.length, 'the loop runs on the surface');
+      assert.match(l.sourceUrl, /^https:\/\//);
+    }
   }
   assert.ok(transit.lines.find(l => l.id === 'powell-hyde')!.turntables.length >= 1);
   const far = await decodeFarFile(file('far.obc'));

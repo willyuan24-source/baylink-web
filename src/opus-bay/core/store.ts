@@ -47,7 +47,12 @@ export interface GameState {
   /** interactable under the mouse (hover highlight) */
   hover: string | null;
   dialogue: { nodeId: string | null };
-  tour: { active: boolean; stop: number; completed: string[] };
+  /**
+   * The guided tour. `id` (wave 4) names which one: DEFAULT_TOUR_ID = the district's FIRST_TOUR, or a city tour
+   * ('sf-grand' …). Optional in the type so the older writers compile unchanged; the store fills it in (a patch that
+   * sets `tour` without an id means the first lesson), so at runtime it is always set: read it with tourIdOf().
+   */
+  tour: { active: boolean; stop: number; completed: string[]; id?: string };
   week: { companions: string | null; vibe: string | null; region: string | null; results: string[]; step: number };
   panel: { kind: PanelKind; id?: string };
   photoMode: boolean;
@@ -103,6 +108,10 @@ export function readWorldMode(search: string = typeof location !== 'undefined' ?
 
 const FOOT: MoveState = { mode: 'foot' };
 
+/** Wave 4: the tour a `tour` without an id means (the district's first lesson, data/tours.ts FIRST_TOUR). */
+export const DEFAULT_TOUR_ID = 'first-lesson';
+export const tourIdOf = (tour: GameState['tour']): string => tour.id ?? DEFAULT_TOUR_ID;
+
 export const initialGameState = (): GameState => ({
   phase: 'title',
   mode: 'onboarding',
@@ -113,7 +122,7 @@ export const initialGameState = (): GameState => ({
   focus: null,
   hover: null,
   dialogue: { nodeId: null },
-  tour: { active: false, stop: 0, completed: [] },
+  tour: { active: false, stop: 0, completed: [], id: DEFAULT_TOUR_ID },
   week: { companions: null, vibe: null, region: null, results: [], step: 0 },
   panel: { kind: null },
   photoMode: false,
@@ -132,9 +141,11 @@ export const initialGameState = (): GameState => ({
 /**
  * Keeps `riding` (legacy) and `move` consistent: a patch that sets only one of them gets the other derived.
  * Photo mode taken on foot shows as move 'photo' (and back to 'foot'); in a vehicle it only freezes (the mode stays).
+ * Wave 4: a `tour` patch without an id gets DEFAULT_TOUR_ID (the district writers predate tour ids).
  */
 export function syncMovePatch(state: GameState, patch: Partial<GameState>): Partial<GameState> {
   let out = patch;
+  if (patch.tour && patch.tour.id === undefined) out = { ...out, tour: { ...patch.tour, id: DEFAULT_TOUR_ID } };
   if ('riding' in patch && !('move' in patch)) {
     if (patch.riding === 'streetcar' && state.move.mode !== 'transit') out = { ...out, move: { mode: 'transit', line: 'streetcar', spot: 'rail' } };
     else if (patch.riding === null && state.move.mode === 'transit') out = { ...out, move: FOOT };

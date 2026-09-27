@@ -231,6 +231,84 @@ test('assets: the SF house kit is registered; the H2b modules merge in empty', (
   assert.equal(game.get().worldMode, 'district');
 });
 
+// --- wave 4 day 0 (docs/opus-bay/sf-w4-lead.md §4): the new frozen hooks ---
+
+test('wave 4: transit kinds + approach, the arrival / trip events travel the bus', async () => {
+  const events = await import('../src/opus-bay/core/events');
+  assert.deepEqual([...events.TRANSIT_KINDS], ['streetcar', 'cable-car', 'ferry', 'bus', 'light-rail']);
+  assert.deepEqual([...events.TRANSIT_WHATS], ['bell', 'board', 'depart', 'arrive', 'ride', 'grip', 'push', 'turned', 'horn', 'hop-aside', 'approach']);
+  const got: import('../src/opus-bay/core/events').GameEvent[] = [];
+  const off = events.onEvent(e => { if (e.type === 'arrival' || e.type === 'trip' || (e.type === 'transit' && e.what === 'approach')) got.push(e); });
+  events.emit({ type: 'arrival', place: 'sf-state-university', tier: 1, first: true, attraction: 'sf-state-university' });
+  events.emit({ type: 'trip', what: 'start', place: 'palace-of-fine-arts', mode: 'line' });
+  events.emit({ type: 'trip', what: 'leg', place: 'palace-of-fine-arts', mode: 'line', leg: 1 });
+  events.emit({ type: 'transit', what: 'approach', line: 'sf-loop', kind: 'bus', station: 'palace-of-fine-arts', attraction: 'palace-of-fine-arts' });
+  off();
+  assert.deepEqual(got.map(e => e.type), ['arrival', 'trip', 'trip', 'transit']);
+});
+
+test('wave 4: game.tour.id defaults to the first lesson whoever writes `tour`; FIRST_TOUR is unchanged', async () => {
+  const { DEFAULT_TOUR_ID, tourIdOf } = await import('../src/opus-bay/core/store');
+  const { FIRST_TOUR, FIRST_TOUR_PASSES } = await import('../src/opus-bay/data/tours');
+  assert.equal(DEFAULT_TOUR_ID, 'first-lesson');
+  assert.equal(FIRST_TOUR.id, DEFAULT_TOUR_ID);
+  const s = initialGameState();
+  assert.deepEqual(s.tour, { active: false, stop: 0, completed: [], id: 'first-lesson' });
+  assert.equal(syncMovePatch(s, { tour: { active: true, stop: 2, completed: [] } }).tour?.id, 'first-lesson', 'a district writer (no id)');
+  assert.equal(syncMovePatch(s, { tour: { active: true, stop: 0, completed: [], id: 'sf-grand' } }).tour?.id, 'sf-grand');
+  assert.equal('tour' in syncMovePatch(s, { focus: 'x' }), false, 'no tour key is added to other patches');
+  assert.equal(tourIdOf({ active: false, stop: 0, completed: [] }), 'first-lesson');
+  assert.equal(tourIdOf({ active: false, stop: 0, completed: [], id: 'sf-grand' }), 'sf-grand');
+  const before = game.get().tour;
+  game.set({ tour: { active: false, stop: 1, completed: ['x'] } });
+  assert.equal(game.get().tour.id, 'first-lesson');
+  game.set(st => ({ tour: { ...st.tour, id: 'sf-grand' } }));
+  game.set(st => ({ tour: { ...st.tour, active: false } }));
+  assert.equal(game.get().tour.id, 'sf-grand', 'a spread keeps the id');
+  game.set({ tour: before });
+
+  const stop = (poiId: string) => ({ poiId, arriveNode: `tour.${poiId}.arrive`, doneNode: `tour.${poiId}.done` });
+  assert.equal(JSON.stringify(FIRST_TOUR), JSON.stringify({
+    id: 'first-lesson', name: { zh: '湾区第一课', en: 'Bay 101' }, introNode: 'tour.intro', outroNode: 'tour.outro',
+    stops: ['ferry-building', 'farmers-market', 'pier7', 'exploratorium', 'filbert-steps', 'coit-tower', 'sea-lions'].map(stop),
+  }), 'FIRST_TOUR byte-identical (hero regression of the district tour)');
+  assert.deepEqual([...FIRST_TOUR_PASSES], ['levis-plaza', 'pier33']);
+});
+
+test('wave 4: trip types (game/tripTypes.ts) and attraction types (data/sf/attractionTypes.ts) are exported', async () => {
+  const trip = await import('../src/opus-bay/game/tripTypes');
+  assert.deepEqual([...trip.TRIP_MODES], ['walk', 'run', 'bike', 'car', 'line', 'fly']);
+  assert.deepEqual(Object.keys(trip.TRIP_MODE_NAMES), [...trip.TRIP_MODES]);
+  for (const m of trip.TRIP_MODES) assert.ok(trip.TRIP_MODE_NAMES[m].zh && trip.TRIP_MODE_NAMES[m].en, m);
+  // the shapes lanes G / C / P / T code against (types are erased here; this documents a valid value)
+  const walk: import('../src/opus-bay/game/tripTypes').TripLeg = { via: 'walk', from: { x: 128, z: 16, place: 'ferry-building' }, to: { x: 132, z: 80, station: 'embarcadero' }, seconds: 16, length: 66 };
+  const ride: import('../src/opus-bay/game/tripTypes').TripLeg = { via: 'line', line: 'm-ocean-view', board: 'embarcadero', alight: 'winston', from: walk.to, to: { x: 195.2, z: 1471.5 }, seconds: 75, length: 1420, wait: 12, stops: 12, dir: 1, underground: true };
+  const option: import('../src/opus-bay/game/tripTypes').TripOption = { mode: 'line', legs: [walk, ride], seconds: 91, recommended: true };
+  const state: import('../src/opus-bay/game/tripTypes').TripState = { placeId: 'stonestown-galleria', attraction: 'stonestown-galleria', option, legs: option.legs, leg: 0, startedAt: 0, source: 'map' };
+  assert.equal(state.legs.reduce((sum, l) => sum + l.seconds, 0), option.seconds);
+
+  const at = await import('../src/opus-bay/data/sf/attractionTypes');
+  assert.deepEqual([...at.ATTRACTION_RANKS], [1, 2, 3]);
+  assert.deepEqual([...at.ATTRACTION_CATS], ['landmark', 'museum', 'park', 'viewpoint', 'coast', 'campus', 'shopping', 'sports', 'culture', 'neighbourhood']);
+  assert.deepEqual(Object.keys(at.ATTRACTION_CAT_STYLE), [...at.ATTRACTION_CATS]);
+  assert.deepEqual(Object.keys(at.ATTRACTION_AREAS), ['north-downtown', 'bridge-presidio', 'coast', 'park-sunset', 'twin-peaks-mission', 'south']);
+  assert.deepEqual([...at.ATTRACTION_TREATMENTS], ['ai', 'proc', 'plaza', 'card', 'stop', 'defer']);
+  assert.deepEqual({ ...at.ATTRACTION_FLAG_H }, { min: 28, max: 70 });
+  const lucide = await import('lucide-react') as unknown as Record<string, unknown>;
+  for (const glyph of at.ATTRACTION_GLYPHS) assert.ok(lucide[glyph], `lucide-react exports ${glyph}`);
+  for (const cat of at.ATTRACTION_CATS) {
+    const st = at.ATTRACTION_CAT_STYLE[cat];
+    assert.match(st.color, /^#[0-9a-f]{6}$/, cat);
+    assert.ok((at.ATTRACTION_GLYPHS as readonly string[]).includes(st.glyph) && st.name.zh && st.name.en, cat);
+  }
+  const sfsu: import('../src/opus-bay/data/sf/attractionTypes').Attraction = {
+    id: 'sf-state-university', name: { zh: '旧金山州立大学', en: 'San Francisco State University' }, short: { zh: '州立大学', en: 'SF State' },
+    cat: 'campus', rank: 1, x: 198.2, z: 1555.6, arrival: { x: 198.4, z: 1555.9 }, aliases: ['SFSU', '州大', '大学'], flag: { x: 198.2, z: 1555.6, h: 30 },
+    area: 'south', siteId: 'sfsu', treatment: 'proc', priority: 1,
+  };
+  assert.ok(sfsu.flag!.h >= at.ATTRACTION_FLAG_H.min && sfsu.flag!.h <= at.ATTRACTION_FLAG_H.max);
+});
+
 test('landmark helpers (D2, world/sf/landmarks/context.ts): glide tall structures, world arrival anchors, plaza spots', async () => {
   const ctx = await import('../src/opus-bay/world/sf/landmarks/context');
   const tall = ctx.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : 0));

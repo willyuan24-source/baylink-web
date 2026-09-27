@@ -1,3 +1,4 @@
+import type { TripMode } from '../game/tripTypes';
 import type { InteractionKind, SurfaceKind } from './types';
 
 /** Typed fire-and-forget event bus: gameplay → audio / fx / analytics. */
@@ -66,9 +67,13 @@ export type GameEvent =
    *   emitted in travel mode
    * - grip / push / turned: cable grip clank, a push on a turntable, the car finished turning
    * - horn: ferry horn; hop-aside: a crowd walker stepped out of a vehicle's way
+   * - approach (wave 4): the vehicle the player rides is ≈ 60 u before its next stop (the loop narration's look-at
+   *   bias, "下一站" barks); arrive / depart / approach may carry the stop and its attraction
    * `strength` 0..1 is an optional loudness / intensity hint.
+   * `station` (wave 4) = the TransitStop id (transit.json) the event is about; `attraction` = the attraction id the stop
+   * serves (data/sf/attractionTypes.ts `Attraction.id`), when it serves one.
    */
-  | { type: 'transit'; what: TransitWhat; line: string; kind: TransitKind; real?: boolean; strength?: number }
+  | { type: 'transit'; what: TransitWhat; line: string; kind: TransitKind; real?: boolean; strength?: number; station?: string; attraction?: string }
   /** play a recorded BAYBAY line (H2b's data/voiceLinesSf.ts ids); the bubble text is shown by the caller (G2) */
   | { type: 'voice-line'; id: string }
   /** tap-to-drive autopilot (E2): started, arrived, gave up (stuck) or cancelled by manual input */
@@ -76,11 +81,27 @@ export type GameEvent =
   /** fast travel (G1): lift-off, the cloud cut on long trips, touch-down at the destination (place / landmark id) */
   | { type: 'travel'; what: 'start' | 'cloud' | 'land'; to: string }
   /** a place or neighbourhood seen for the first time (G1 discovery); `id` is the place / zone id */
-  | { type: 'discover'; id: string; kind: 'place' | 'zone' | 'landmark' };
+  | { type: 'discover'; id: string; kind: 'place' | 'zone' | 'landmark' }
+  /**
+   * Wave 4 · arrival moment (lane C's game/arrival.ts emits; lane G shows the toast / reveal / ArrivalCard, audio plays
+   * the stamp). `place` = the place-index id arrived at; `attraction` = its Attraction id when that differs or is
+   * known; `tier` = the attraction's map rank (AttractionRank: 1 = T1 … 3 = T3); `first` = the first arrival ever
+   * (the full moment); later arrivals only emit with first: false (quiet, no reveal).
+   */
+  | { type: 'arrival'; place: string; tier: 1 | 2 | 3; first: boolean; attraction?: string }
+  /**
+   * Wave 4 · a trip (跟 BAYBAY 去 / TripOptions; lane C's flow.trip emits, lanes G / P / T / audio listen):
+   * start = a trip option was chosen; leg = leg `leg` (0-based index into TripOption.legs) just started; end = arrived
+   * at `place`; cancel = ended early (结束, a new trip, a tour taking over). `mode` = the chosen TripOption.mode.
+   */
+  | { type: 'trip'; what: 'start' | 'leg' | 'end' | 'cancel'; place: string; mode: TripMode; leg?: number };
 
-/** Transit line kinds (the store's move.line holds the line id; this is its vehicle kind). */
-export type TransitKind = 'streetcar' | 'cable-car' | 'ferry';
-export type TransitWhat = 'bell' | 'board' | 'depart' | 'arrive' | 'ride' | 'grip' | 'push' | 'turned' | 'horn' | 'hop-aside';
+/** Transit line kinds (the store's move.line holds the line id; this is its vehicle kind). Wave 4 adds the sightseeing
+ * bus loop ('bus') and the Muni Metro lines ('light-rail'). The lists are runtime values so the contracts test pins them. */
+export const TRANSIT_KINDS = ['streetcar', 'cable-car', 'ferry', 'bus', 'light-rail'] as const;
+export type TransitKind = (typeof TRANSIT_KINDS)[number];
+export const TRANSIT_WHATS = ['bell', 'board', 'depart', 'arrive', 'ride', 'grip', 'push', 'turned', 'horn', 'hop-aside', 'approach'] as const;
+export type TransitWhat = (typeof TRANSIT_WHATS)[number];
 
 type Handler = (event: GameEvent) => void;
 const handlers = new Set<Handler>();
