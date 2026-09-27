@@ -279,3 +279,145 @@ projects inline (no tuple per vertex on every pan step); `mapLinesFrom` (the run
 No owner messages were relayed during the review.
 
 Checks after the rebase onto `3302149` (W4-V): tsc 0, eslint 0, full opus-bay suite **621 / 621**, sidecar `--check` OK.
+
+## Early phase · part 2 (lane P2)
+
+Lane P2 (early phase part 2), 2026-09-27: the open place and map items of lane P's and lane G's early reviews. Worktree
+`C:/Users/willy/wt/w4-p`, scratch `C:/Users/willy/opus-qa/w4/w4-p/`. Only lane P's own new files were edited (plus
+plan §2.4 row 59 and `sf-w4-attractions.json` for 克莱门街, which the lead allowed); no other lane's file and no existing
+tracked file. No Higgsfield spend. No owner messages were relayed.
+
+### 给主人的摘要
+
+1. 金门大桥：跟 BAYBAY 去的终点改到南端游客中心广场，也就是观光巴士"金门大桥 · 游客中心"站（离车站 25 单位）服务的地方。现在规划器会推荐坐观光巴士去金门大桥（以前终点在桥中间，从来不推荐巴士）。
+2. 恶魔岛和金银岛：路线终点有了自己的名字——"恶魔岛渡轮码头 · 33 号码头"和"14 号码头"，不会再出现"步行到恶魔岛"。科罗娜高地改成到山顶才算到达（全景在山顶放），植物园改到正门（L 线在等这个，最先推送）。
+3. "企李街"其实是唐人街的 Clay 街，Clement 街改成"克莱门街"，数据和计划文档一起改了。
+4. 地图：同一个地方的不同线路车站合成一个换乘站（卡斯特罗 = 观光·M·F，鲍威尔 = N·M·叮当·F，共 10 个），"观光""叮当"两个字用加宽的圆角标签；小景点的点叠在一起时也显示"+n"；搜"golden bridge""gate bri"这种多个词也能搜到。
+5. 顺带发现：手机上 SVG 数量上限装不下市中心约 70 个车站，所以车站改成画在底图（canvas）上，站名和景点名字互相避开。全部检查通过；这些还没接进游戏，接线步骤在下面。
+
+### What was built (commits `a09d859`, `564c68a`, `9a62916`, `d17d928`, `fc175d0` and the one adding this section)
+
+| file | what changed | API |
+|---|---|---|
+| `data/sf/attractions.ts` | `ARRIVAL_OVERRIDES` (win over `LANDMARK_ARRIVALS` and the scouting's point): the Golden Gate Bridge at the Welcome Center plaza (−702.4, 605.6, facing the south tower), Corona Heights at its summit (81, 749), the Botanical Garden at its main gate (−178.3, 970.9); `ARRIVAL_PLACES` (Alcatraz → `alcatraz-landing` 恶魔岛渡轮码头 · 33 号码头, Treasure Island → `pier-14` 14 号码头) + `tripDestination(a)`; `clement-street` 克莱门街 (name, short, aliases) | `ARRIVAL_OVERRIDES`, `ArrivalPlace`, `ARRIVAL_PLACES`, `AttractionDestination`, `tripDestination(a)` (= lane G's `TripDestination`) |
+| `data/sf/extraPlaces.ts` | `PLACE_REANCHORS['osm-w120480164']` = the Botanical Garden's main gate (row anchor + arrival); a re-anchored row keeps its attraction's facing; `ARRIVAL_PLACE_ROWS` (the two named piers as runtime rows, hero, snapped) and `RUNTIME_PLACES` (47 extras + 2), appended by `applyW4Places`; the clement row's name | `ARRIVAL_PLACE_ROWS`, `RUNTIME_PLACES`, `EXTRA_PLACE_SNAPS` (+ `alcatraz-landing`, `pier-14`) |
+| `scripts/opus-sf/places-sidecar.ts` | snaps and `--check`s every runtime row (`RUNTIME_PLACES`) | — |
+| `ui/mapLines.ts` | `mapStations` merges by id, then one line's two directions (same name ≤ 12 u: the F-line's pairs, at their midpoint), then lines sharing none within 16 u of a primary stop (Metro → loop → cable → F); `MapStation.ids` / `names`; discs measured per locale (`discWidth`: 12 px for a letter, a capsule for 观光 / 叮当 / Tour / Cable); `stationMarkGeometry` (shared by SVG and canvas); `drawStationMarks` (the canvas pass) | `mapStations(lines, { mergeR, sameNameR })`, `STATION_RULES` (+ `discFont`, `discPad`, `mergeR` 16, `sameNameR` 12), `StationDisc`, `StationSymbol.locale`, `stationSymbol(st, s, { tourStop, terminus, locale })`, `discWidth`, `stationMarkGeometry`, `StationCtx`, `drawStationMarks(ctx, marks, { alpha })` |
+| `ui/MapBadge.tsx` | `MapStationMark` draws circles for letters and capsules for words in the symbol's locale (the `zh` prop is gone: `sym.locale`); a T3 dot that hosts a cluster draws its "+n" pip (dimmed with it) | `<MapStationMark sym x y />` |
+| `ui/mapBadges.ts` | `badgeNodes` counts a dot's pip (1 + 2): the budget is exact | — |
+| `ui/mapLayout.ts` | box-shaped items (`hw` / `hh`: obstacles, label gaps and overlap tests use the box), `host: false` (nothing merges into it), `yieldBelow` (labels of more important items may cover it); `stationItem` (a station as a layout item: box, band 30, no merging either way, `canvas: true` = 0 nodes, T1 labels may cover it) | `LayoutItem.hw / hh / host / yieldBelow`, `labelCandidates(…, box?)`, `stationItem(st, sym, x, y, label?, fontPx?, { canvas })`, `stationLayoutId` |
+| `data/sf/placeSearch.ts` | multi-word queries score as word start when every query word starts a word of one name or alias, in order (prefix / exact keep their better scores); `stationEntries` adds a merged station's other stop names as aliases | signatures unchanged (`names?` optional on station inputs) |
+| `tests/opus-bay-sf-attractions.test.ts` | + 6 tests: moved arrivals (walkable, place rows agree), the Botanical gate, 克莱门街 everywhere, the GGB Welcome Center + lane G's planner offering the loop, the Corona summit, the named island piers (POI merge, planner row text), multi-word search | — |
+| `tests/opus-bay-sf-map-w4.test.ts` | + 5 tests: transfer merging on the real lines, disc widths and the rendered capsules, the T3 dot pip + exact budget, stations as box items on the real downtown, the canvas pass | — |
+| `docs/opus-bay/sf-w4-plan.md` row 59, `docs/opus-bay/sf-w4-attractions.json` | 企李街 → 克莱门街（列治文区“新华埠”） | — |
+| `docs/opus-bay/qa/w4/P/p2-*` | the GGB arrival plot, the station pills at 3×, downtown at s 0.7 on a 390 px phone | — |
+
+### Evidence
+
+- **Checks** (worktree, before each push): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · full
+  opus-bay suite green on every pushed tree (676, 684, 692, 710; the final count at the end of this section). One
+  wall-clock flake under the parallel load: `sf-nav` "window build 211 ms" (passes alone). Sidecar `--check`: OK (49
+  runtime rows, 0 off the walking graph, hero flags = `inSlab`).
+- **Facts checked on the web (2026-09-27)**: the Golden Gate Bridge Welcome Center is at the south end of the bridge,
+  open 9–6 ([presidio.gov](https://presidio.gov/explore/attractions/golden-gate-bridge-welcome-center),
+  [parksconservancy.org](https://www.parksconservancy.org/parks/golden-gate-bridge)); OSM way 164569681 "Welcome
+  Center" (first node 37.80765, −122.47494) = the published row `osm-w164569681`, 1.8 u from the new arrival ·
+  Alcatraz ferries leave only from "Pier 33 Alcatraz Landing" on the Embarcadero near Bay St and Sansome St
+  ([Alcatraz City Cruises](https://alcatrazcitycruises.com/plan-your-visit/directions)); OSM's Pier 33 (way 91913158,
+  37.80790, −122.40459) and the Alcatraz Landing taxi stand (37.80655, −122.40515) bracket the arrival point (37.80783,
+  −122.40428, the district POI `pier33`) · Pier 14 is a 637-foot public pier / breakwater at the foot of Mission St
+  looking at the Bay Bridge and Treasure Island ([ROMA](https://www.romacollaborative.com/pier-14)) · the Botanical
+  Garden's main gate: OSM node 7838369891 `entrance=main` (37.767047, −122.4667863), reached from 9th Ave & Lincoln
+  Way ([sfrecpark entrance map](https://sfrecpark.org/DocumentCenter/View/26304/20250815-GGPBG-Entrance-Map?bidId=),
+  [gggp.org](https://gggp.org/visit/admissions-hours/)); its projection is 0.0 u from the re-anchored row · Corona
+  Heights' summit 37.76465, −122.43914 (Wikipedia, lane G's review) is 6 u from the DEM's highest cell (79, 749); the
+  new arrival is walking-graph node 19640, the highest main-graph node within 25 u (y 29.8), 15.7 u from the Randall
+  Museum door · 克莱门街 for Clement St, 企李街 = Clay St (lane C's review: zh.wikipedia 列治文區, the Chinatown street
+  table).
+- **Golden Gate Bridge** (`p2-ggb-welcome-center.png`, a plot of the published chunks and walking graph, read): the new
+  arrival is 24.7 u from the published loop stop `loop-golden-gate-bridge` (× 1.25 = 31 ≤ lane G's 150 u line rule);
+  the old landmark anchor was the Golden Gate Overlook 31 u south of the stop, before that mid-span 214 u. Lane G's
+  `planTrips` from the Ferry Building with the published lines now returns a loop option alighting at
+  `loop-golden-gate-bridge` (tested); the mid-span destination returns none (tested). The walking graph reaches the
+  plaza round the toll plaza: 140 u from the stop's node (the planner's time uses it: honest).
+- **Islands**: `planTrips` → the walk row's last leg reads "步行到恶魔岛渡轮码头 · 33 号码头" (tested); in the
+  integration index `alcatraz-landing` merges the district POI `pier33` (telescope, bark, the Alcatraz booking guide),
+  `pier-14` merges `pier14`. Lane C2 already reads `ARRIVAL_PLACES` / `tripDestination` (`86ba716`).
+- **Stations**: 167 stops on the runtime lines → 139 stations; 10 transfer stations formed by distance: Castro (观光 · M
+  · F), Powell (N M · 叮当 · F, 80 px with the stair), Embarcadero (N M · 叮当), Montgomery / Civic Center / Van Ness (N
+  M · F), Church (M · F), the Ferry Building (观光 · F), Hyde & Beach (观光 · 叮当), California & Drumm (叮当 · F); 9
+  F-line direction pairs merged. Stops a short walk apart stay separate (the loop's Civic Center 54 u from the Metro's,
+  Golden Gate Park 107 u from 9th & Irving). `p2-station-pills.png` (3×, read): 观光 / 叮当 / Tour / Cable fit their
+  capsules, the dot pips "+2" / "+1" sit at 2 o'clock.
+- **Budget**: downtown at s 0.7 on a 352 × 388 phone map has 73 stations in view while the attraction badges take ≈ 115
+  of the 120 SVG nodes: with SVG station marks 72 of 73 fell over budget (tested). With `canvas: true` all 73 stay as
+  obstacles, 11 labels are placed (T1: 渡轮大厦, 科伊特塔, 唐人街, 市政厅), the station names 鲍威尔站 / 市政中心站 show,
+  109 nodes (`p2-market-0.7-390.jpg`: a static render of the modules with the real data over H2b's paper, read).
+- **Search**: "gate bri" / "ladies post" / "baths ruins" / "college ocean" → word start; "golden bridge" (a word skipped)
+  → the bridge first (nothing before); "17th castro" → the Castro transfer station; per keystroke < 25 ms (tested).
+
+### Decisions
+
+- **The W4 row's arrival wins over the landmark anchor** at the integration (`buildPlaceIndex`): every landmark row
+  carries its attraction's arrival (23 equal the anchor, tested); only the bridge differs. Simpler than a second table.
+- **Golden Gate Bridge**: the Welcome Center plaza, not the overlook: the loop stop's name says 游客中心, the plaza is
+  the south-end vista (the tower in view), and the planner judges the line rule on the straight line (25 u).
+- **Named arrival places are runtime rows** with new ids (`alcatraz-landing`, `pier-14`, not the POI ids: city
+  discovery keys never collide with district ones); their English names contain the district POIs' (`Pier 33 ·
+  Alcatraz Landing`, `Pier 14`), which is how `buildPlaceIndex` merges a POI into a hero row. The trip's `placeId` is the
+  pier (fly lands there too); `attraction` stays the island.
+- **Botanical Garden**: the row (discovery, card, arrival) moves to the gate; the badge stays at the garden's centre (the
+  JSON point: the whole garden on the map).
+- **Transfers by distance**: 16 u (≈ 110 m) joins the stops that stand at one place (Castro 13.6 u, Powell 12.1 u);
+  lane T's declared "short walk" transfers (54–148 u) stay separate. A primary never takes a second stop of a line it
+  has (no chains down a cable line). A station keeps every stop id for lane T's rides.
+- **Disc widths per locale**: the symbol records its locale; `MapStationMark` no longer takes `zh` (a mismatched prop
+  would draw the wrong widths).
+- **Stations on the canvas** at the phone budget; the labels of the T1 band (and selected / target / tour) may cover a
+  pill, every other label keeps off.
+- **Search**: word order matters ("bridge golden" is no word start); prefix and exact keep their better scores.
+
+### Integration plan (changes to the steps above and to "Integration corrections"; after "wave 3 verified")
+
+1. **`data/sf/places.ts` `buildPlaceIndex`**: `arrival: src.arrival ? { ...src.arrival } : { x, z }` for each row; in
+   the landmark block `if (lm.anchor) { if (!rowHadArrival) hit.arrival = { ...lm.anchor }; hit.walkable = true; }`
+   (remember per row whether the W4 row brought an arrival). `loadPlaces` builds from `applyW4Places(file)` (now
+   `RUNTIME_PLACES`: 47 + 2). `opus-bay-sf-places` changes on purpose: index length `places − 1 + 49`; `ggb-deck-mid`
+   arrives at (−702.4, 605.6); the new hero rows `alcatraz-landing` / `pier-14` with the merged POIs `pier33` /
+   `pier14`.
+2. **Trips from attractions** (PlaceActions 跟 BAYBAY 去 and 其他方式, tours, panorama): the destination is
+   `tripDestination(a)` (lane G's `TripDestination`), never `{ placeId: a.placeId, … }` by hand. CityMap's target: when
+   `flow.trip.placeId` is not the attraction's `placeId` (the islands), draw `<MapTargetPin>` at the destination place
+   (the pier) and keep the island's badge selected.
+3. **Stations** (replaces "stations from mapStations(lines) (prio band 30, stationSymbol from s 0.45)" and
+   "`<MapStationMark sym x y />`"): `const stations = mapStations(mapLinesFrom(transitData(), flineJson(), laneTLines))`
+   (memo on the lines); per view `sym = stationSymbol(st, s, { locale, tourStop: st.lines.includes('sf-loop'), terminus })`;
+   draw the marks on the canvas: `drawStationMarks(ctx, marks)` right after `drawTransitLines` (the map's 2D context
+   is a `StationCtx`); layout: `stationItem(st, sym, x, y, t(st.name), 10, { canvas: true })` next to the attraction
+   items; tap: the nearest mark within 22 px (plain JS over `marks`); `<StationActions station={st}
+   rides={st.ids.flatMap(id => laneT.stationRides(id))} … />` (lane T's rides and ETAs are per stop id).
+   `MapStationMark` stays for the legend or a desktop SVG variant.
+4. **Search**: unchanged call (`stationEntries(stations)` takes the merged stations; their `names` become aliases).
+5. **Dots**: CityMap passes `cluster: k.members.length` to every `<MapBadge>`, dots included: the pip renders.
+6. **places.json**: the sidecar is used as before (`--check`, then copy `<out>/places.json`); the two named piers stay
+   runtime rows like the extras.
+
+### Not done / known gaps
+
+- Markers still overlap markers: the layout places labels and merges clusters, it does not move badges; a badge can sit
+  over a transfer pill (转车台 over Powell at s 0.7). Draw the canvas stations under the SVG badges; the station is
+  tappable where uncovered, from s 1.2 (no clusters) and through search.
+- The bridge's auto-walk from the loop stop is 140 u on the walking graph (no mapped footway crosses the toll plaza
+  between Lincoln Blvd and the plaza); a crossing in the walk graph is a city-data change (Requests).
+- Capsule text is 8 px (legible at 3×, `p2-station-pills.png`); for 9 px words change `.mw-disc-t` for capsules and
+  `STATION_RULES.discFont` together (`discWidth` measures with it).
+- A cluster pip can overlap a neighbouring badge that did not merge (de Young / Cal Academy at s 0.6; pre-existing).
+- In-game shots need the wiring.
+
+### Requests
+
+- **Lead / city data (optional)**: a footway from the loop stop on Lincoln Blvd to the Welcome Center plaza (the
+  published graph goes round the toll plaza: 140 u for 25 u straight).
+- **Lane T**: keep `stationRides(stopId)` / ETAs per stop id; merged stations call them for each `station.ids` entry.
+- **Lane G**: the review's O1 (bridge arrival), O2 (the island piers' names) and O3 (Corona summit) are done in lane
+  P's files; pass `tripDestination(a)` to `planTrips`.
