@@ -10,6 +10,8 @@ import targetFreebies from './target-freebie-media.json';
 import readingRouteMedia from './reading-route-media.json';
 import sfAttractionMedia from './attractions-sf-media.json';
 import regionalAttractionMedia from './attractions-regions-media.json';
+import expandedInlandMedia from './attractions-expanded-inland-media.json';
+import expandedCoastMedia from './attractions-expanded-coast-media.json';
 import freshSeptemberMedia from './fresh-september-media.json';
 import septemberUpdateMedia from './september-update-media.json';
 import octoberMedia from './october-media.json';
@@ -18,6 +20,7 @@ import communityOpeningMedia from './community-opening-media.json';
 import communityPlaceMedia from './community-place-media.json';
 import autumnGuideMedia from './autumn-guide-media.json';
 import contentCoverageMedia from './content-coverage-media.json';
+import dailyLifeMedia from './daily-life-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -63,7 +66,28 @@ for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, 
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
+// Reuse verified regional photographs with their original attribution intact.
+for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, ...dailyLifeMedia]) {
+  GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
+}
+
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-street-parking-first-time-guide': ['coverage-classic-car', 'neighborhood'],
+  'bay-area-fastrak-bridge-express-lanes-guide': ['daily-bridge', 'digital-safety'],
+  'bay-area-bulky-items-ewaste-hhw-guide': ['daily-recycling', 'settling'],
+  'bay-area-alerts-outages-first-day-checklist': ['daily-alerts', 'settling'],
+  'bay-area-free-esl-adult-learning-guide': ['daily-learning', 'coverage-laptop'],
+  'bay-area-311-211-local-help-guide': ['daily-city-hall', 'neighborhood'],
+  'sf-lands-end-sutro-baths-walk-guide': ['expanded-lands-end', 'expanded-sutro'],
+  'sf-mission-dolores-murals-walk-guide': ['expanded-dolores-park', 'culture-visit'],
+  'point-reyes-bear-valley-first-visit-guide': ['expanded-point-reyes', 'weekend'],
+  'angel-island-ferry-first-day-guide': ['expanded-angel-island', 'weekend'],
+  'san-carlos-hiller-aviation-half-day-guide': ['expanded-peninsula-hiller', 'culture-visit'],
+  'san-mateo-coyote-point-bayfront-guide': ['expanded-peninsula-coyote-point', 'weekend'],
+  'mountain-view-computer-history-shoreline-guide': ['expanded-south-bay-computer-history', 'expanded-south-bay-shoreline'],
+  'san-jose-egyptian-museum-rose-garden-guide': ['expanded-south-bay-rosicrucian', 'garden-walk'],
+  'alameda-uss-hornet-shoreline-day-guide': ['expanded-east-bay-hornet', 'expanded-east-bay-alameda-beach'],
+  'fremont-coyote-hills-short-walk-guide': ['expanded-coyote-hills', 'weekend'],
   'bart-october-access-parking-update-2026': ['community-accessible-transit', 'bart'],
   'san-jose-digital-help-sj-access-update-2026': ['everyday', 'coverage-laptop'],
   'sccld-sharks-library-card-september-2026': ['community-library-card', 'library'],

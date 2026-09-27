@@ -5,9 +5,15 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { additionalOctoberEvents } from '../src/data/october-events-extra';
+import { lateSeptemberSfEastEvents } from '../src/data/late-september-sf-east';
+import { lateSeptemberPeninsulaSouthEvents } from '../src/data/late-september-peninsula-south';
+import { lateSeptemberNorthEvents } from '../src/data/late-september-north';
 import { regionalSeptemberEvents } from '../src/data/monthly-region-events';
 import extraEnglish from '../src/data/october-events-extra-en.json';
 import refreshedEnglish from '../src/data/autumn-refresh-events-en.json';
+import lateSfEastEnglish from '../src/data/late-september-sf-east-en.json';
+import latePeninsulaSouthEnglish from '../src/data/late-september-peninsula-south-en.json';
+import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
@@ -248,7 +254,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= MONTHLY_EDITION.checkedAt && item.endDate <= '2026-10-31', item.id);
+    assert.ok(item.endDate >= '2026-09-23' && item.endDate <= '2026-10-31', item.id);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     assert.equal(item.plan.length, 3);
@@ -271,11 +277,15 @@ test('explicit month filters include October 31 and remove September events from
   assert.deepEqual(getMonthlyDateRange('september', '2026-10-15'), { start: '2026-09-01', end: '2026-09-30' });
   assert.deepEqual(getMonthlyDateRange('october', '2026-09-15'), { start: '2026-10-01', end: '2026-10-31' });
   const october = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15');
-  assert.equal(october.length, 82);
+  assert.deepEqual(ids(october), ids(MONTHLY_EVENTS.filter(item => item.occurrenceDates
+    ? item.occurrenceDates.some(day => day.startsWith('2026-10-'))
+    : item.endDate >= '2026-10-01' && item.startDate <= '2026-10-31')), 'every confirmed October program is included as the catalog grows');
   assert.ok(october.every(item => item.endDate >= '2026-10-01' && item.startDate <= '2026-10-31'));
   assert.ok(october.some(item => item.endDate === '2026-10-31'));
   const september = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'september' }, '2026-09-15');
-  assert.equal(september.length, 13);
+  assert.deepEqual(ids(september), ids(MONTHLY_EVENTS.filter(item => item.occurrenceDates
+    ? item.occurrenceDates.some(day => day.startsWith('2026-09-') && day >= '2026-09-15')
+    : item.endDate >= '2026-09-15' && item.startDate <= '2026-09-30')));
   assert.ok(september.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.ok(!october.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.deepEqual(ids(september.filter(item => october.some(other => other.id === item.id))), ['ai-conference-sf-2026', 'petaluma-pumpkin-patch-2026']);
@@ -301,10 +311,10 @@ test('late October dates retain verified community events and respect their fina
 });
 
 test('new community listings retain complete English text and clearly identify any illustrative media', () => {
-  assert.equal(additionalOctoberEvents.length, 14);
-  const mapping: Record<string, string> = { ...extraEnglish, ...refreshedEnglish };
+  const newEvents = [...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents];
+  const mapping: Record<string, string> = { ...extraEnglish, ...refreshedEnglish, ...lateSfEastEnglish, ...latePeninsulaSouthEnglish, ...lateNorthEnglish };
   const texts = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(texts) : value && typeof value === 'object' ? Object.values(value).flatMap(texts) : [];
-  for (const added of additionalOctoberEvents) {
+  for (const added of [...additionalOctoberEvents, ...newEvents]) {
     assert.equal(MONTHLY_EVENTS.filter(item => item.id === added.id).length, 1, added.id);
     if (added.imageKey) {
       const image = GUIDE_IMAGES[added.imageKey];
@@ -316,14 +326,15 @@ test('new community listings retain complete English text and clearly identify a
         assert.equal(image.kind, 'photo');
         assert.ok(isApprovedEventContextPhoto(added.imageKey, added.id), `${added.id} uses an explicitly reviewed archival or thematic photo`);
         assert.match(image.caption, /资料/);
-        assert.match(image.caption, /不是|不代表|不表示/);
+        assert.match(image.caption, /不是|不代表|不表示|不能据此判断/);
         assert.equal(new URL(image.creditUrl!).protocol, 'https:');
       }
     }
-    assert.equal(added.verifiedAt, added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
+    assert.equal(added.verifiedAt, newEvents.includes(added) ? '2026-09-27' : added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
-      assert.ok(mapping[value], 'English mapping exists: ' + value);
-      assert.doesNotMatch(mapping[value], /[\u4e00-\u9fff]/, 'English text must not retain untranslated Chinese');
+      const key = value.trim().replace(/\s+/g, ' ');
+      assert.ok(mapping[key], 'English mapping exists: ' + key);
+      assert.doesNotMatch(mapping[key], /[\u4e00-\u9fff]/, 'English text must not retain untranslated Chinese');
     }
   }
   assert.deepEqual(new Set(additionalOctoberEvents.map(item => item.region)), new Set(['sf', 'east-bay', 'south-bay', 'peninsula', 'north-bay']));

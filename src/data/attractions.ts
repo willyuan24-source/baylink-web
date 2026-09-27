@@ -1,4 +1,7 @@
 import type { PageMetadata } from '../lib/seo';
+import { sfEastExpandedAttractions } from './guides-attractions-sf-east-expanded';
+import { peninsulaSouthExpandedAttractions } from './guides-attractions-peninsula-south-expanded';
+import { northExpandedAttractions } from './guides-attractions-north-expanded';
 
 export const EXPLORE_METADATA: PageMetadata = {
   title: '湾区景点探索与出游清单｜BAYLINK',
@@ -24,6 +27,8 @@ export type Attraction = {
   region: Exclude<(typeof ATTRACTION_REGIONS)[number]['id'], 'all'>;
   themes: Exclude<(typeof ATTRACTION_THEMES)[number]['id'], 'all'>[];
   cost: 'free' | 'mixed' | 'paid'; duration: string; note: string; mapQuery: string;
+  /** A place source can differ from its related editorial guide's first source. */
+  officialUrl?: string;
 };
 
 /** Cost describes admission to the featured outing, excluding transport, parking and food. */
@@ -46,4 +51,7 @@ export const ATTRACTIONS: Attraction[] = [
   { id: 'hakone', slug: 'hakone-gardens-saratoga-half-day', title: 'Saratoga 的 Hakone Gardens', city: 'Saratoga', region: 'south-bay', themes: ['nature', 'culture'], cost: 'paid', duration: '1.5–2 小时', note: '日式庭园短程，先确认坡道、池塘整修与优惠资格。', mapQuery: 'Hakone Estate Gardens Saratoga' },
   { id: 'muir-woods', slug: 'muir-woods-reservation-day-trip', title: 'Muir Woods 红杉森林', city: 'Mill Valley', region: 'north-bay', themes: ['nature'], cost: 'paid', duration: '1.5–2.5 小时', note: '停车或接驳需预约，与公园门票分开；提前安排返程。', mapQuery: 'Muir Woods Visitor Center Mill Valley' },
   { id: 'sausalito', slug: 'sausalito-waterfront-ferry-half-day', title: 'Sausalito 渡轮与海滨', city: 'Sausalito', region: 'north-bay', themes: ['waterfront', 'culture'], cost: 'free', duration: '2–3 小时', note: '海滨散步免费，船票另付；先确认返程码头和班次。', mapQuery: 'Sausalito Ferry Terminal' },
+  ...sfEastExpandedAttractions,
+  ...peninsulaSouthExpandedAttractions,
+  ...northExpandedAttractions,
 ];

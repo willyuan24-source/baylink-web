@@ -1,0 +1,12 @@
+.regional-bulletins { margin:40px 0 54px; scroll-margin-top:100px; }
+.regional-bulletins-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.regional-bulletins-grid article { display:flex; flex-direction:column; align-items:flex-start; padding:24px; background:#fffdf8; border:1px solid #dfe5d8; border-radius:16px; }
+.regional-bulletin-region { font-size:11px; letter-spacing:.08em; color:#42604b; background:#edf3e4; padding:5px 10px; border-radius:20px; }
+.regional-bulletins h3 { margin:16px 0 10px; font-size:20px; line-height:1.45; color:#254b3e; }
+.regional-bulletins-grid p { font-size:13px; line-height:1.85; color:#54615a; margin:0 0 16px; }
+.regional-bulletins-grid .regional-bulletin-date { font-size:11px; font-weight:650; color:#79603b; }
+.regional-bulletins-grid a { display:inline-flex; align-items:center; gap:6px; margin-top:auto; font-size:12px; color:#254b3e; text-decoration:underline; text-underline-offset:4px; }
+.regional-bulletins-grid a:focus-visible { outline:3px solid #547c48; outline-offset:4px; }
+.regional-bulletins-grid small { margin-top:12px; font-size:10px; color:#6d786d; }
+@media(max-width:1023px) { .regional-bulletins-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:639px) { .regional-bulletins-grid { grid-template-columns:1fr; gap:12px; } .regional-bulletins-grid article { padding:20px; } .regional-bulletins { margin:28px 0 36px; } }

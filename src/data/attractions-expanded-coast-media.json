@@ -1,0 +1,120 @@
+[
+  {
+    "key": "expanded-lands-end",
+    "src": "/guides/sf-map/lands-end.webp",
+    "srcSet": "/guides/sf-map/lands-end-small.webp 480w, /guides/sf-map/lands-end.webp 1280w",
+    "width": 1280,
+    "height": 960,
+    "credit": "Another Believer · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Lands_End_Park,_coastal_trail_and_stairs,_SF.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/4/43/Lands_End_Park%2C_coastal_trail_and_stairs%2C_SF.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "captured": "Taken on 28 September 2018, 22:50:03",
+    "reviewed": "2026-09-24",
+    "kind": "photo",
+    "alt": "Lands End 海岸步道、阶梯与海湾景色",
+    "caption": "Lands End 海岸步道、阶梯与海湾景色。2018 年资料照片。",
+    "provenance": {
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/4/43/Lands_End_Park%2C_coastal_trail_and_stairs%2C_SF.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "captured": "Taken on 28 September 2018, 22:50:03",
+      "reviewed": "2026-09-26",
+      "reusedFrom": "/guides/sf-map/lands-end.webp",
+      "changes": "Reused existing resized WebP photograph. No scene edits. Cards may crop via CSS.",
+      "photographLicenseChecked": true
+    }
+  },
+  {
+    "key": "expanded-sutro",
+    "src": "/guides/sf-map/sutro.webp",
+    "srcSet": "/guides/sf-map/sutro-small.webp 480w, /guides/sf-map/sutro.webp 1280w",
+    "width": 1280,
+    "height": 853,
+    "credit": "Dietmar Rabich · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:San_Francisco_(CA,_USA),_Sutro_Baths_--_2022_--_3045.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a2/San_Francisco_%28CA%2C_USA%29%2C_Sutro_Baths_--_2022_--_3045.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "captured": "Taken on 1 July 2022, 11:33",
+    "reviewed": "2026-09-24",
+    "kind": "photo",
+    "alt": "Sutro Baths 海岸浴场遗迹与太平洋",
+    "caption": "Sutro Baths 海岸浴场遗迹与太平洋。2022 年资料照片。",
+    "provenance": {
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a2/San_Francisco_%28CA%2C_USA%29%2C_Sutro_Baths_--_2022_--_3045.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "captured": "Taken on 1 July 2022, 11:33",
+      "reviewed": "2026-09-26",
+      "reusedFrom": "/guides/sf-map/sutro.webp",
+      "changes": "Reused existing resized WebP photograph. No scene edits. Cards may crop via CSS.",
+      "photographLicenseChecked": true
+    }
+  },
+  {
+    "key": "expanded-point-reyes",
+    "src": "/guides/attractions/expanded-point-reyes.webp",
+    "srcSet": "/guides/attractions/expanded-point-reyes-small.webp 480w, /guides/attractions/expanded-point-reyes.webp 1400w",
+    "width": 1400,
+    "height": 1867,
+    "kind": "photo",
+    "alt": "Point Reyes 的 Bear Valley 游客中心外墙、纪念牌与旗杆",
+    "caption": "Bear Valley Visitor Center 外部，2021 年 11 月资料照片。用于辨认出发区，路面与开放情况须另查。",
+    "credit": "Harry Cutts · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Bear_Valley_Visitor_Center_plaque_and_flagpole.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "provenance": {
+      "title": "File:Bear Valley Visitor Center plaque and flagpole.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/db/Bear_Valley_Visitor_Center_plaque_and_flagpole.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "author": "Harry Cutts",
+      "license": "CC BY-SA 4.0",
+      "captured": "2021-11-26 14:54:56",
+      "reviewed": "2026-09-26",
+      "changes": "Rotated for EXIF orientation, resized and encoded as WebP. No scene edits. Cards may crop via CSS. Derivatives retain the source license.",
+      "photographLicenseChecked": true
+    },
+    "fullFrame": true
+  },
+  {
+    "key": "expanded-angel-island",
+    "src": "/guides/attractions/expanded-angel-island.webp",
+    "srcSet": "/guides/attractions/expanded-angel-island-small.webp 480w, /guides/attractions/expanded-angel-island.webp 1400w",
+    "width": 1400,
+    "height": 820,
+    "kind": "photo",
+    "alt": "Angel Island 的 Ayala Cove 周边树林与旧金山湾水面",
+    "caption": "Angel Island 的 Ayala Cove 周边湾景，2017 年 7 月资料照片。天气、能见度与渡轮安排以出行当天为准。",
+    "credit": "Rhododendrites · CC BY-SA 4.0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Ayala_Cove_(40173).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "provenance": {
+      "title": "File:Ayala Cove (40173).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Ayala_Cove_%2840173%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "author": "Rhododendrites",
+      "license": "CC BY-SA 4.0",
+      "captured": "2017-07-14 14:04:16",
+      "reviewed": "2026-09-26",
+      "changes": "Rotated for EXIF orientation, resized and encoded as WebP. No scene edits. Cards may crop via CSS. Derivatives retain the source license.",
+      "photographLicenseChecked": true
+    }
+  },
+  {
+    "key": "expanded-dolores-park",
+    "src": "/guides/attractions/expanded-dolores-park.webp",
+    "srcSet": "/guides/attractions/expanded-dolores-park-small.webp 480w, /guides/attractions/expanded-dolores-park.webp 1400w",
+    "width": 1400,
+    "height": 1050,
+    "kind": "photo",
+    "alt": "Mission Dolores Park 草坡上的游客、棕榈树与远处旧金山天际线",
+    "caption": "Mission Dolores Park，2025 年 5 月资料照片。照片呈现公园坡地与城市景观，不代表当天人流。",
+    "credit": "Alexwennerberg · CC0 · 已缩放压缩",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Dolores_Park_May_2025.jpg",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "provenance": {
+      "title": "File:Dolores Park May 2025.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Dolores_Park_May_2025.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "author": "Alexwennerberg",
+      "license": "CC0",
+      "captured": "2025-05-24 13:04:55",
+      "reviewed": "2026-09-26",
+      "changes": "Rotated for EXIF orientation, resized and encoded as WebP. No scene edits. Cards may crop via CSS. Derivatives retain the source license.",
+      "photographLicenseChecked": true
+    }
+  }
+]

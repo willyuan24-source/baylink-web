@@ -13,6 +13,9 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   precision: 'city' | 'area';
   sourceUrl: string;
 }> = {
+  // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
+  'American Canyon': { lat: 38.179, lng: -122.260, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Rohnert Park': { lat: 38.348, lng: -122.701, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Benicia': { lat: 38.073, lng: -122.155, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Berkeley': { lat: 37.866, lng: -122.299, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Burlingame': { lat: 37.590, lng: -122.363, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -40,6 +43,7 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   // Wikidata's preferred city coordinate avoids the offshore Census reference.
   'San Francisco': { lat: 37.775, lng: -122.419, precision: 'city', sourceUrl: 'https://www.wikidata.org/wiki/Q62#P625' },
   'San Jose': { lat: 37.296, lng: -121.815, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'San José': { lat: 37.296, lng: -121.815, precision: 'city', sourceUrl: CENSUS_PLACES },
   'San Mateo': { lat: 37.560, lng: -122.311, precision: 'city', sourceUrl: CENSUS_PLACES },
   'San Rafael': { lat: 37.981, lng: -122.507, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Santa Rosa': { lat: 38.446, lng: -122.706, precision: 'city', sourceUrl: CENSUS_PLACES },

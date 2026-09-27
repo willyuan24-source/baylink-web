@@ -4,6 +4,8 @@ import { septemberFreebies } from './september-freebies';
 import { additionalOctoberOffers } from './october-offers-extra';
 import { autumnRefreshOffers } from './autumn-refresh-offers';
 import { communityDiscoveryOffers } from './community-discovery-offers';
+import { lateSeptemberLocalOffers } from './late-september-local';
+import { lateSeptemberNorthOffers } from './late-september-north';
 
 // Official sources checked 2026-09-15. Monthly-rule dates are identified in the text.
 export const newOctoberOffers: FreebieOffer[] = [
@@ -119,7 +121,7 @@ export const octoberOffers: FreebieOffer[] = [
   ...septemberFreebies.filter(offer => offer.availability === 'ongoing' || offer.startDate?.startsWith('2026-10')),
 ];
 
-export const currentFreebies: FreebieOffer[] = [...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers].map(offer => [offer.id, offer])).values()]
+export const currentFreebies: FreebieOffer[] = [...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers].map(offer => [offer.id, offer])).values()]
   .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23');
 
 export const octoberOfferSources: GuideSource[] = [...new Map([

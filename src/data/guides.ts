@@ -8,6 +8,9 @@ import { monthlyDealsGuides } from './guides-deals';
 import { slowWeekendGuides } from './guides-slow-weekends';
 import { sfAttractionGuides } from './guides-attractions-sf';
 import { regionalAttractionGuides } from './guides-attractions-regions';
+import { sfEastExpandedGuides } from './guides-attractions-sf-east-expanded';
+import { peninsulaSouthExpandedGuides } from './guides-attractions-peninsula-south-expanded';
+import { northExpandedGuides } from './guides-attractions-north-expanded';
 import { freshSeptemberGuides } from './guides-fresh-september';
 import { septemberOpeningGuides } from './guides-september-openings';
 import { octoberLocalGuides } from './guides-october-local';
@@ -15,6 +18,9 @@ import { octoberDealsGuides } from './guides-october-deals';
 import { aiWeekGuides } from './guides-ai-week';
 import { autumnRefreshGuides } from './guides-autumn-refresh';
 import { communityDiscoveryGuides } from './guides-community-discovery';
+import { dailyTransportGuides } from './guides-daily-transport';
+import { dailyHomeGuides } from './guides-daily-home';
+import { dailyCommunityGuides } from './guides-daily-community';
 import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
@@ -1873,6 +1879,9 @@ export const guides: Guide[] = [
   ...slowWeekendGuides,
   ...sfAttractionGuides,
   ...regionalAttractionGuides,
+  ...sfEastExpandedGuides,
+  ...peninsulaSouthExpandedGuides,
+  ...northExpandedGuides,
   ...freshSeptemberGuides,
   ...septemberOpeningGuides,
   ...octoberLocalGuides,
@@ -1880,6 +1889,9 @@ export const guides: Guide[] = [
   ...autumnRefreshGuides,
   ...communityDiscoveryGuides,
   ...aiWeekGuides,
+  ...dailyTransportGuides,
+  ...dailyHomeGuides,
+  ...dailyCommunityGuides,
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
@@ -1897,7 +1909,7 @@ const cityAttractionRegions: Record<string, string> = {
 for (const guide of guides) {
   const region = cityAttractionRegions[guide.slug];
   if (!region) continue;
-  guide.updatedAt = '2026-09-09';
+  guide.updatedAt = '2026-09-26';
   const outings = ATTRACTIONS.filter(item => item.region === region && getGuideBySlug(item.slug));
   guide.blocks.push(
     { type: 'heading', text: '接下来，挑一份具体景点攻略' },
