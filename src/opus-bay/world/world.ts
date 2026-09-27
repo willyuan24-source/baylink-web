@@ -11,7 +11,7 @@ import { Batch, C, freezeStatic, splitGeometry } from './builder';
 import { buildCity } from './city';
 import { Environment } from './environment';
 import { FxPool, attachFx } from './fx';
-import { buildGround, buildSkirtWater, slabEdge } from './ground';
+import { buildGround, buildSkirtWater, slabEdgeColumns } from './ground';
 import { LabelAtlas, LabelBatch } from './labels';
 import { type ClockSpec, buildLandmarks, kDockSpots } from './landmarks';
 import { FERRY_LIGHTS, Life } from './life';
@@ -444,7 +444,7 @@ export class World {
       onBoards: r => {
         if (r) { water.setBoardLand(r.landTiles); lightField.setExtra(r.lights); }
         const city = cityGround;
-        water.setEdge((x, z) => r?.groundAt(x, z) ?? city?.(x, z) ?? null, slabEdge);
+        water.setEdge((x, z) => r?.groundAt(x, z) ?? city?.(x, z) ?? null, slabEdgeColumns);
       },
     });
     this.root.add(this.city.group);

@@ -238,15 +238,18 @@ function paint(id: string, x: number, z: number, y: number, slope: number): Grou
 
 interface Cell { ix: number; iz: number; step: number; coast: boolean }
 
-/** Every land cell of a board with its step. */
-function boardCells(g: BoardGrid): Map<number, Cell> {
+/** Every land cell of a board with its step (a generator: one row of cells per step). */
+function* boardCells(g: BoardGrid): Generator<void, Map<number, Cell>> {
   const cfg = CFG[g.id] ?? CFG.eastbay;
   const cells = new Map<number, Cell>();
   const i0 = Math.floor(g.originX / CELL), i1 = Math.ceil((g.originX + (g.cols - 1) * g.step) / CELL);
   const j0 = Math.floor(g.originZ / CELL), j1 = Math.ceil((g.originZ + (g.rows - 1) * g.step) / CELL);
-  for (let iz = j0; iz < j1; iz++) for (let ix = i0; ix < i1; ix++) {
-    const st = cellStep(g, cfg, ix * CELL, iz * CELL);
-    if (st.step) cells.set(ix * 65536 + iz, { ix, iz, step: st.step, coast: st.coast });
+  for (let iz = j0; iz < j1; iz++) {
+    for (let ix = i0; ix < i1; ix++) {
+      const st = cellStep(g, cfg, ix * CELL, iz * CELL);
+      if (st.step) cells.set(ix * 65536 + iz, { ix, iz, step: st.step, coast: st.coast });
+    }
+    yield;
   }
   return cells;
 }
@@ -381,7 +384,8 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
   const parts: Record<string, number> = {};
   const mark = (tiles: Tiles, key: string, last: [number, number]) => { const [t, g] = tiles.tris(); parts[key] = (parts[key] ?? 0) + (t - last[0]) + (g - last[1]); last[0] = t; last[1] = g; };
   let nextId = BOARD_ID0;
-  const flush = (tiles: Tiles) => {
+  function* flush(tiles: Tiles): Generator<void> {
+    let n = 0;
     for (const [k, t] of tiles.entries) {
       const tile = t.bin * 65536 + k;
       const put = (lod: BoardItem['lod'], toy: PoolArrays | null, ground: PoolArrays | null) => {
@@ -390,11 +394,12 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
       put('all', t.toy.toPool(), null);
       put('near', t.detail.toPool(), t.ground.toPool());
       put('far', null, t.far.toPool());
+      if (++n % 2 === 0) yield;
     }
-  };
+  }
   for (const g of data.grids) {
     const tiles = new Tiles(g.id === 'marin' ? 0 : 1);
-    const cells = boardCells(g);
+    const cells = yield* boardCells(g);
     cellsN[g.id as 'marin' | 'eastbay'] = cells.size;
     for (const c of cells.values()) parts[`${g.id}.step${c.step}`] = (parts[`${g.id}.step${c.step}`] ?? 0) + 1;
     const last: [number, number] = [0, 0];
@@ -426,7 +431,7 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
           lip: 1.4, lipColor: () => C(CITY_PAL.lip), skirt: sides ? 3 : 0, skirtSides: sides,
         });
       }
-      if (++n % 16 === 0) yield;
+      if (++n % 4 === 0) yield;
     }
     mark(tiles, `${g.id}.ground`, last);
     // freeways on this board (OSM carriageways): ribbons 0.35 u over the ground
@@ -458,20 +463,22 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
           for (let s = 0; s < L; s += 22) lights.push({ x: ax + ((bx - ax) * s) / L, y: height(ax, az) + 3.2, z: az + ((bz - az) * s) / L, level: 0.8, color: SODIUM });
         }
       }
+      yield;
     }
     mark(tiles, `${g.id}.roads`, last);
     yield;
     const part = (key: string) => mark(tiles, `${g.id}.${key}`, last);
     if (g.id === 'marin') yield* marinTown(g, tiles, lights, part);
     else yield* eastBayTown(g, tiles, lights, part, roadIndex(data.index.roads));
-    flush(tiles);
+    yield* flush(tiles);
     yield;
   }
   // C2-13: the Bay Bridge east span
   const bridge = new Tiles(2);
-  eastSpan(data, bridge, lights);
+  yield* eastSpan(data, bridge, lights);
   const bridgeStart = out.length;
-  flush(bridge);
+  yield;
+  yield* flush(bridge);
   const tri = (a: PoolArrays | null) => (a ? a.indexCount / 3 : 0);
   let ground = 0, toy = 0, bridgeTris = 0, far = 0;
   out.forEach((it, i) => {
@@ -492,7 +499,7 @@ export function* boardsJob(data: BoardsData): Generator<void, BoardsBuild> {
       let all = true;
       for (let z = tz * WATER_TILE - 16; z <= tz * WATER_TILE + WATER_TILE + 16 && all; z += 8) for (let x = tx * WATER_TILE - 16; x <= tx * WATER_TILE + WATER_TILE + 16; x += 8) if (!land(x, z)) { all = false; break; }
       if (all) landTiles.push(tx, tz);
-      if (++k % 120 === 0) yield;
+      if (++k % 30 === 0) yield;
     }
   }
   const grids = data.grids;
@@ -551,13 +558,16 @@ function* marinTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (key:
   part('houses');
   // cypress / eucalyptus groves: the woods of the paint, as trees
   const wood = C(CITY_PAL.forest), wood2 = C(PAL.pine);
-  for (let z = g.originZ; z < g.originZ + g.rows * g.step; z += 13) for (let x = g.originX; x < g.originX + g.cols * g.step; x += 13) {
-    const px = x + (hash2(x, z) - 0.5) * 10, pz = z + (hash2(z, x) - 0.5) * 10;
-    const y = at(px, pz);
-    if (y === null || y < 1.5) continue;
-    const zn = zoneOf('marin', px, pz, y);
-    if (zn.wood < 0.55 || hash2(px * 0.7, pz * 0.3) > zn.wood * 0.5) continue;
-    tree(tiles.at(px, pz).detail, px, y, pz, 3 + hash2(pz, px) * 3, 1.4 + hash2(px, 1) * 0.8, hash2(px, pz) < 0.5 ? wood : wood2, hash2(pz, 3) * 3);
+  for (let z = g.originZ; z < g.originZ + g.rows * g.step; z += 13) {
+    for (let x = g.originX; x < g.originX + g.cols * g.step; x += 13) {
+      const px = x + (hash2(x, z) - 0.5) * 10, pz = z + (hash2(z, x) - 0.5) * 10;
+      const y = at(px, pz);
+      if (y === null || y < 1.5) continue;
+      const zn = zoneOf('marin', px, pz, y);
+      if (zn.wood < 0.55 || hash2(px * 0.7, pz * 0.3) > zn.wood * 0.5) continue;
+      tree(tiles.at(px, pz).detail, px, y, pz, 3 + hash2(pz, px) * 3, 1.4 + hash2(px, 1) * 0.8, hash2(px, pz) < 0.5 ? wood : wood2, hash2(pz, 3) * 3);
+    }
+    yield;
   }
   part('trees');
   yield;
@@ -629,13 +639,16 @@ function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (ke
   part('flats');
   // trees: the wooded hills and the parks on the crest
   const wood = C(CITY_PAL.forest), wood2 = C(PAL.pine);
-  for (let z = g.originZ; z < g.originZ + g.rows * g.step; z += 28) for (let x = g.originX; x < g.originX + g.cols * g.step; x += 28) {
-    const px = x + (hash2(x, z) - 0.5) * 20, pz = z + (hash2(z, x) - 0.5) * 20;
-    const y = at(px, pz);
-    if (y === null || y < 8) continue;
-    const zn = zoneOf('eastbay', px, pz, y);
-    if (zn.wood < 0.5 || hash2(px * 0.3, pz * 0.7) > zn.wood * 0.75) continue;
-    tree(tiles.at(px, pz).detail, px, y, pz, 6 + hash2(pz, px) * 5, 3.6 + hash2(px, 7) * 2, hash2(px, pz) < 0.6 ? wood : wood2, hash2(pz, 5) * 3);
+  for (let z = g.originZ, row = 0; z < g.originZ + g.rows * g.step; z += 28, row++) {
+    if (row % 4 === 3) yield;
+    for (let x = g.originX; x < g.originX + g.cols * g.step; x += 28) {
+      const px = x + (hash2(x, z) - 0.5) * 20, pz = z + (hash2(z, x) - 0.5) * 20;
+      const y = at(px, pz);
+      if (y === null || y < 8) continue;
+      const zn = zoneOf('eastbay', px, pz, y);
+      if (zn.wood < 0.5 || hash2(px * 0.3, pz * 0.7) > zn.wood * 0.75) continue;
+      tree(tiles.at(px, pz).detail, px, y, pz, 6 + hash2(pz, px) * 5, 3.6 + hash2(px, 7) * 2, hash2(px, pz) < 0.6 ? wood : wood2, hash2(pz, 5) * 3);
+    }
   }
   part('trees');
   yield;
@@ -668,18 +681,25 @@ function* eastBayTown(g: BoardGrid, tiles: Tiles, lights: LightSpec[], part: (ke
   const port = TOWNS.port;
   const cranes: { x: number; z: number; nx: number; nz: number }[] = [];
   const st = g.step;
-  for (let j = 1; j < g.rows - 1; j++) for (let i = 1; i < g.cols - 1; i++) {
-    const x = g.originX + i * st, z = g.originZ + j * st;
-    if (!inPoly(x, z, port)) continue;
-    const h = g.h[j * g.cols + i] / 10;
-    if (!(h > BOARD_SEA)) continue;
-    // a wharf edge: water right beside it
-    let wx = 0, wz = 0, wet = 0;
-    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (g.h[(j + dj) * g.cols + i + di] / 10 <= BOARD_SEA) { wx += di; wz += dj; wet++; }
-    if (!wet || (wx === 0 && wz === 0)) continue;
-    const L = Math.hypot(wx, wz);
-    if (cranes.some(c => Math.hypot(c.x - x, c.z - z) < 13)) continue;
-    cranes.push({ x, z, nx: wx / L, nz: wz / L });
+  // (only the rows and columns of the port's bounding box: the scan over the whole grid was one ≈ 15–25 ms step)
+  let pi0 = Infinity, pi1 = -Infinity, pj0 = Infinity, pj1 = -Infinity;
+  for (const p of port) { pi0 = Math.min(pi0, (p.x - g.originX) / st); pi1 = Math.max(pi1, (p.x - g.originX) / st); pj0 = Math.min(pj0, (p.z - g.originZ) / st); pj1 = Math.max(pj1, (p.z - g.originZ) / st); }
+  const ia = Math.max(1, Math.floor(pi0)), ib = Math.min(g.cols - 2, Math.ceil(pi1)), ja = Math.max(1, Math.floor(pj0)), jb = Math.min(g.rows - 2, Math.ceil(pj1));
+  for (let j = ja; j <= jb; j++) {
+    for (let i = ia; i <= ib; i++) {
+      const x = g.originX + i * st, z = g.originZ + j * st;
+      if (!inPoly(x, z, port)) continue;
+      const h = g.h[j * g.cols + i] / 10;
+      if (!(h > BOARD_SEA)) continue;
+      // a wharf edge: water right beside it
+      let wx = 0, wz = 0, wet = 0;
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (g.h[(j + dj) * g.cols + i + di] / 10 <= BOARD_SEA) { wx += di; wz += dj; wet++; }
+      if (!wet || (wx === 0 && wz === 0)) continue;
+      const L = Math.hypot(wx, wz);
+      if (cranes.some(c => Math.hypot(c.x - x, c.z - z) < 13)) continue;
+      cranes.push({ x, z, nx: wx / L, nz: wz / L });
+    }
+    if ((j - ja) % 16 === 15) yield;
   }
   const craneCol = C('#e9e4da'), craneRed = C('#c2503f'), dark = C('#5c6166');
   for (const c of cranes.slice(0, 24)) {
@@ -772,7 +792,7 @@ export function chaikin(pts: readonly number[], rounds = 2): number[] {
   return p;
 }
 
-function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
+function* eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]): Generator<void> {
   const decks = data.index.eastSpan.map(e => polyline(chaikin(e.pts))).filter(p => p.L > 100);
   if (!decks.length) return;
   const white = C('#e6e3dc'), under = C('#b7b3ab'), tower = C('#eeeae2'), cable = C('#d9d6cf');
@@ -794,7 +814,8 @@ function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
     const t0 = Math.max(0, tt - SAS.west - 4);
     { const p = d.at(t0); tile.beam(new THREE.Vector3(p.x, -1.2, p.z), new THREE.Vector3(p.x, SAS.deck - DEPTH, p.z), 2.4, 4.2, under); }
     let prev: { x: number; z: number; y: number; nx: number; nz: number } | null = null;
-    for (let t = t0; t <= tEnd + 0.01; t += step) {
+    for (let t = t0, seg = 0; t <= tEnd + 0.01; t += step, seg++) {
+      if (seg % 48 === 47) yield;
       const p = d.at(Math.min(t, tEnd)), y = yAt(t), nx = -p.dz, nz = p.dx;
       if (prev) {
         const A = (o: number, h: number) => new THREE.Vector3(prev!.x + prev!.nx * o, prev!.y + h, prev!.z + prev!.nz * o);
@@ -811,6 +832,7 @@ function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
       }
       if (Math.round(t) % 12 < step) for (const s of [-1, 1]) lights.push({ x: p.x + nx * s * HALF, y: y + 1.1, z: p.z + nz * s * HALF, level: 0.75, color: LED });
     }
+    yield;
   }
   // the SAS tower between the decks: four tapering legs joined by shear links, and its main cables
   const d0 = decks[0], at0 = d0.at(d0.nearest(SAS.x, SAS.z).t);
@@ -825,6 +847,7 @@ function eastSpan(data: BoardsData, tiles: Tiles, lights: LightSpec[]) {
   lights.push({ x: SAS.x, y: SAS.top + 0.8, z: SAS.z, level: BLINK + 0.3, color: RED }, { x: SAS.x, y: 2, z: SAS.z, level: 1, color: WHITE });
   // cables: from the tower top down to each deck's outer edge, west over the main span and east over the back span
   for (const d of decks) {
+    yield;
     const tt = d.nearest(SAS.x, SAS.z).t;
     const p0 = d.at(tt), side = Math.sign((p0.x - SAS.x) * sx + (p0.z - SAS.z) * sz) || 1;
     const top = new THREE.Vector3(SAS.x + sx * side * 0.5, SAS.top - 1, SAS.z + sz * side * 0.5);

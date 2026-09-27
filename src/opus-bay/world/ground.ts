@@ -487,7 +487,21 @@ function edgeColumn(g: Batch, x0: number, z0: number, x1: number, z1: number, n:
  * (`column(i)` for the edge from poly[i] to poly[i + 1]).
  */
 export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column: number | ((edge: number) => number) = 1.6, underside = true) {
+  const job = slabEdgeColumns(() => g, poly, top, water, bottom, seed, column);
+  while (!job.next().done) { /* all at once */ }
+  // underside (the city's world board leaves it out: its fan spans the whole board and is never seen from above)
+  if (underside) g.polygon(poly, bottom, C('#6d5f52'), info(P.none), true);
+}
+
+/**
+ * slabEdge's cut face as a generator (no underside), a yield after every `every` columns; each column goes into the
+ * batch `target(x, z)` returns for its middle. The city's world board builds its edge this way in frame slices, straight
+ * into its ≤ 1,024 u pieces (wave-3 review: the whole edge plus splitGeometry was one 20–40 ms step in the frame the
+ * satellite boards arrived). slabEdge runs it at once into one batch: the district's output is unchanged.
+ */
+export function* slabEdgeColumns(target: (x: number, z: number) => Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom = SLAB_BOTTOM, seed = 1, column: number | ((edge: number) => number) = 1.6, every = Infinity): Generator<void> {
   const s = signedArea(poly) >= 0 ? 1 : -1;
+  let done = 0;
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i], b = poly[(i + 1) % poly.length];
     const L = Math.hypot(b.x - a.x, b.z - a.z);
@@ -501,11 +515,10 @@ export function slabEdge(g: Batch, poly: Polygon, top: (x: number, z: number) =>
       const x1 = a.x + (b.x - a.x) * u1, z1 = a.z + (b.z - a.z) * u1;
       const wet = water((x0 + x1) / 2 - nx * 0.8, (z0 + z1) / 2 - nz * 0.8);
       const t0 = wet ? WATER : top(x0 - nx * 0.8, z0 - nz * 0.8), t1 = wet ? WATER : top(x1 - nx * 0.8, z1 - nz * 0.8);
-      edgeColumn(g, x0, z0, x1, z1, n, t0, t1, wet, bottom, seed);
+      edgeColumn(target((x0 + x1) / 2, (z0 + z1) / 2), x0, z0, x1, z1, n, t0, t1, wet, bottom, seed);
+      if (++done % every === 0) yield;
     }
   }
-  // underside (the city's world board leaves it out: its fan spans the whole board and is never seen from above)
-  if (underside) g.polygon(poly, bottom, C('#6d5f52'), info(P.none), true);
 }
 
 // ---------------------------------------------------------------------------

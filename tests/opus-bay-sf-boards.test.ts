@@ -6,10 +6,10 @@ import zlib from 'node:zlib';
 import * as THREE from 'three';
 import { projectCity, terrainY } from '../src/opus-bay/core/geo';
 import {
-  BOARD_NONE, BOARD_SEA, type BoardGrid, type BoardIndex, BoardFormatError, GGB_NORTH, HAWK_HILL, SAUSALITO_FERRY, WORLD_LL,
+  BOARD_NONE, BOARD_POOL, BOARD_SEA, type BoardGrid, type BoardIndex, BoardFormatError, GGB_NORTH, HAWK_HILL, SAUSALITO_FERRY, WORLD_LL,
   boardDem, boardY, convexSdf, decodeBoard, encodeBoard, worldPolygon,
 } from '../src/opus-bay/world/sf/boardData';
-import { BOARD_ID0, BOARD_LOD, boardsGroundAt, buildBoards, farStep, SAS } from '../src/opus-bay/world/sf/boards';
+import { BOARD_ID0, BOARD_LOD, boardsGroundAt, boardsJob, buildBoards, farStep, SAS } from '../src/opus-bay/world/sf/boards';
 import { CITY_FAR_FADE, FAR_FADE, patchFog } from '../src/opus-bay/world/fogShader';
 import { TilePool } from '../src/opus-bay/world/sf/pools';
 import { boardPolygon } from '../src/opus-bay/world/sf/water';
@@ -174,10 +174,18 @@ test('the world board edge: no underside fan, pieces of ≤ 1,024 u (one draw ca
   g.window ??= globalThis;
   g.document ??= { createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => ({ addColorStop: () => undefined, data: new Uint8ClampedArray(4) }), set: () => true }), width: 0, height: 0 }) };
   const { CityWater } = await import('../src/opus-bay/world/sf/water');
-  const { slabEdge } = await import('../src/opus-bay/world/ground');
+  const { slabEdgeColumns } = await import('../src/opus-bay/world/ground');
   const water = new CityWater(new THREE.DataTexture(new Uint8Array(4), 1, 1), new THREE.Vector4(0, 0, 1, 1));
-  water.setEdge(() => null, slabEdge);
-  const pieces = water.group.children.filter(o => o.name.startsWith('city-board-edge')) as THREE.Mesh[];
+  water.setEdge(() => null, slabEdgeColumns);
+  // built in frame slices (wave-3 review: it was one 20–40 ms step in the frame the boards arrived)
+  const edgePieces = () => water.group.children.filter(o => o.name.startsWith('city-board-edge')) as THREE.Mesh[];
+  assert.ok(water.edgePending && edgePieces().length === 0, 'setEdge only starts the job');
+  const job = (water as unknown as { edgeJob: Generator<void> }).edgeJob;
+  let steps = 0;
+  while (!job.next().done) steps++;
+  (water as unknown as { edgeJob: null }).edgeJob = null;
+  assert.ok(steps >= 30, `${steps} steps`);
+  const pieces = edgePieces();
   let tris = 0;
   for (const m of pieces) {
     const geo = m.geometry;
@@ -188,6 +196,25 @@ test('the world board edge: no underside fan, pieces of ≤ 1,024 u (one draw ca
   assert.ok(pieces.length >= 8 && pieces.length <= 24, `${pieces.length} pieces`);
   assert.ok(tris > 8000 && tris < 20000, `${tris} triangles`);
   water.dispose();
+});
+
+test('wave-3 review: the boards fit the pool reserve the streamer adds for them (no pool growth at runtime)', () => {
+  let toy = 0, ground = 0, toyI = 0, groundI = 0;
+  for (const it of build.items) { toy += it.toy?.vertexCount ?? 0; ground += it.ground?.vertexCount ?? 0; toyI += it.toy?.indexCount ?? 0; groundI += it.ground?.indexCount ?? 0; }
+  assert.ok(toy <= BOARD_POOL.toy && ground <= BOARD_POOL.ground, `toy ${toy} / ${BOARD_POOL.toy}, ground ${ground} / ${BOARD_POOL.ground}`);
+  // within the pools' index reserve per vertex (sf/pools.ts: 1.6 TOY, 3.2 GROUND)
+  assert.ok(toyI <= BOARD_POOL.toy * 1.6 && groundI <= BOARD_POOL.ground * 3.2, `indices ${toyI} / ${groundI}`);
+  // and the stream reserves them on top of the city's share (stream.ts)
+  const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/world/sf/stream.ts'), 'utf8');
+  assert.match(src, /toyVerts: Math\.round\(600_000 \* scale\) \+ BOARD_POOL\.toy/);
+  assert.match(src, /groundVerts: Math\.round\(260_000 \* scale\) \+ BOARD_POOL\.ground/);
+});
+
+test('wave-3 review: the boards job yields often (the streamer runs it in ≈ 2 ms slices; one step was 14–34 ms)', () => {
+  const job = boardsJob({ index, grids });
+  let steps = 0;
+  for (;;) { const r = job.next(); if (r.done) break; steps++; }
+  assert.ok(steps >= 1000, `${steps} steps (was 132)`);
 });
 
 test('near / far: the dressing always on, the fine ground and the trees near only, a coarse ground (≥ 32 u) far', () => {

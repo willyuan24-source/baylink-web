@@ -8,7 +8,7 @@ import type { Vec2 } from '../../core/types';
 import { GROUND, TOY, type TierFadePair, makeTierFadePair, tierFadeIn, tierFadeOut } from '../materials';
 import { freezeStatic } from '../builder';
 import { TypedBatch } from '../typedBatch';
-import { BOARD_LOD } from './boardData';
+import { BOARD_LOD, BOARD_POOL } from './boardData';
 import type { BoardsBuild, BoardsData } from './boards';
 import type { CityInit, L0Result, L1Result } from './build';
 import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
@@ -186,7 +186,7 @@ export class CityStreamer {
   private camH = 0;
   private heroFarListeners = new Set<(far: boolean) => void>();
   /** C2-7b: the satellite boards, loaded (their own lazy chunk) once the far city is in, built in ≈ 2 ms slices */
-  private boards: { status: 'none' | 'loading' | 'building' | 'done' | 'error'; job: Generator<void, BoardsBuild> | null; result: BoardsBuild | null } = { status: 'none', job: null, result: null };
+  private boards: { status: 'none' | 'loading' | 'building' | 'done' | 'error'; job: Generator<'frame' | void, BoardsBuild> | null; result: BoardsBuild | null } = { status: 'none', job: null, result: null };
   /** the boards' near / far tiles (BOARD_LOD): one sphere per 256 u tile, its near and far item ids, near on? */
   private boardLod: { x: number; y: number; z: number; r: number; near: number[]; far: number[]; on: boolean }[] = [];
   /** camera position at the last near / far pass (re-run after 16 u of camera travel) */
@@ -231,9 +231,10 @@ export class CityStreamer {
     freezeStatic(this.l0Group);
     freezeStatic(opts.sites.group);
     // reserved up front (grows if needed): far city ≈ 123k toy + 79k ground vertices, the L1 ring ≈ 2.2–4k + 0.7k per
-    // cell (measured: ≤ 460k toy / 170k ground live on high)
+    // cell (measured: ≤ 460k toy / 170k ground live on high), plus the satellite boards' static items at every quality
+    // (BOARD_POOL: without it the ground pool grew mid-walk at `mid`)
     const scale = opts.quality === 'high' ? 1 : opts.quality === 'mid' ? 0.8 : 0.7;
-    this.pool = createCellPool(opts.renderer, { toyVerts: Math.round(600_000 * scale), groundVerts: Math.round(260_000 * scale), instances: 3000 }, opts.pool);
+    this.pool = createCellPool(opts.renderer, { toyVerts: Math.round(600_000 * scale) + BOARD_POOL.toy, groundVerts: Math.round(260_000 * scale) + BOARD_POOL.ground, instances: 3000 }, opts.pool);
     this.canFade = this.pool.setFade(-1, 1);
     this.group.add(this.pool.group, this.l0Group, this.props.group, opts.sites.group);
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
@@ -356,7 +357,7 @@ export class CityStreamer {
       const data: BoardsData | null = await m.loadBoards(this.base);
       if (this.disposed) return;
       if (!data) { this.boards.status = 'error'; this.opts.onBoards?.(null); return; }
-      this.boards.job = m.boardsJob(data);
+      this.boards.job = this.boardsRun(m.boardsJob(data));
       this.boards.status = 'building';
     }).catch(e => {
       this.boards.status = 'error';
@@ -365,30 +366,44 @@ export class CityStreamer {
     });
   }
 
+  /**
+   * The build (boards.ts boardsJob), then its items into the pools a few at a time, then the world's part (onBoards: the
+   * water's edge, the light field) on a frame of its own. Wave-3 review: the 294 adds and onBoards ran in the frame that
+   * finished the build (28–56 ms at 1× CPU on the RTX laptop, ≈ 4× that on a phone).
+   */
+  private *boardsRun(build: Generator<void, BoardsBuild>): Generator<'frame' | void, BoardsBuild> {
+    const r: BoardsBuild = yield* build;
+    // static items (the pools cull them per item; the tile pool merges them into a few bins): the dressing always on,
+    // the near / far ground switched per tile by updateBoardLod (far to begin with)
+    const tiles = new Map<number, { near: number[]; far: number[]; parts: (PoolArrays | null)[] }>();
+    let n = 0;
+    for (const it of r.items) {
+      this.pool.add(it.id, { toy: it.toy, ground: it.ground, bin: it.bin }, false, it.lod !== 'near');
+      if (it.lod !== 'all') {
+        let t = tiles.get(it.tile);
+        if (!t) tiles.set(it.tile, (t = { near: [], far: [], parts: [] }));
+        (it.lod === 'near' ? t.near : t.far).push(it.id);
+        t.parts.push(it.toy, it.ground);
+      }
+      if (++n % 32 === 0) yield;
+    }
+    const sph = new Float32Array(4);
+    this.boardLod = [...tiles.values()].map(t => { boundsSphere(t.parts, sph); return { x: sph[0], y: sph[1], z: sph[2], r: Math.max(0, sph[3]), near: t.near, far: t.far, on: false }; });
+    this.boardLodAt.set(Infinity, 0, 0);
+    yield 'frame';
+    return r;
+  }
+
   private stepBoards() {
     const b = this.boards;
     if (b.status !== 'building' || !b.job || this.farQueue.length) return;
     const t0 = performance.now();
     while (performance.now() - t0 < 2) {
       const r = b.job.next();
-      if (!r.done) continue;
+      if (!r.done) { if (r.value === 'frame') return; continue; }
       b.job = null;
       b.result = r.value;
       b.status = 'done';
-      // static items (the pools cull them per item; the tile pool merges them into a few bins): the dressing always on,
-      // the near / far ground switched per tile by updateBoardLod (far to begin with)
-      const tiles = new Map<number, { near: number[]; far: number[]; parts: (PoolArrays | null)[] }>();
-      for (const it of r.value.items) {
-        this.pool.add(it.id, { toy: it.toy, ground: it.ground, bin: it.bin }, false, it.lod !== 'near');
-        if (it.lod === 'all') continue;
-        let t = tiles.get(it.tile);
-        if (!t) tiles.set(it.tile, (t = { near: [], far: [], parts: [] }));
-        (it.lod === 'near' ? t.near : t.far).push(it.id);
-        t.parts.push(it.toy, it.ground);
-      }
-      const sph = new Float32Array(4);
-      this.boardLod = [...tiles.values()].map(t => { boundsSphere(t.parts, sph); return { x: sph[0], y: sph[1], z: sph[2], r: Math.max(0, sph[3]), near: t.near, far: t.far, on: false }; });
-      this.boardLodAt.set(Infinity, 0, 0);
       this.opts.onBoards?.(r.value);
       return;
     }

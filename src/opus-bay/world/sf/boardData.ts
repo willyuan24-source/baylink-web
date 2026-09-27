@@ -72,6 +72,15 @@ export function worldPolygon(): Polygon {
  */
 export const BOARD_LOD = { near: 1100, hyst: 80 } as const;
 
+/**
+ * Vertices the boards take in the streamer's L1 / L2 pools (static slots, every quality: the near and the far set are
+ * both resident; measured 40.4k TOY + 50.6k GROUND). The streamer reserves them on top of the city's own share, so the
+ * pools never grow at runtime for them (a BatchedMesh growth reallocates and re-uploads the whole pool: at `mid`, the
+ * phone default, the ground pool grew 208k → 312k on a walk from the Ferry gate to Twin Peaks before this reserve;
+ * wave-3 review). The boards test checks that the build stays inside it.
+ */
+export const BOARD_POOL = { toy: 46_000, ground: 58_000 } as const;
+
 /** The Golden Gate Bridge's north deck end (world/sf/landmarks/golden-gate-bridge.ts END_N) and its deck height. */
 export const GGB_NORTH = { x: -1015.7, z: 388.6, y: 15.2, /** deck direction north → south */ dx: 0.7812, dz: 0.6243 } as const;
 /** Marin Headlands · Hawk Hill (landmarks.json backdrop point) */

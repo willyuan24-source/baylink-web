@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { projectCity } from '../../core/geo';
 import type { Polygon, Vec2 } from '../../core/types';
-import { Batch, freezeStatic, splitGeometry } from '../builder';
+import { Batch, freezeStatic } from '../builder';
 import { GROUND } from '../materials';
 import { CITY_PAL } from '../palette';
 import { makeWaterMaterial } from '../water';
@@ -52,6 +52,10 @@ const WATER_Y = -0.6;
 const EDGE_COLUMN = 6, EDGE_COLUMN_FAR = 12;
 /** the edge's pieces (u): each is one draw call when any of it is in view */
 const EDGE_PIECE = 1024;
+/** the edge build's share of a frame (ms; update() steps it) */
+const EDGE_SLICE_MS = 2;
+/** world/ground.ts slabEdgeColumns (passed in by the world: ground.ts is in the main graph, this module in the city chunk) */
+export type SlabEdgeColumns = (target: (x: number, z: number) => Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number | ((edge: number) => number), every?: number) => Generator<void>;
 /**
  * The far tiles are cut to a widened copy of the view (wave 3: the world board is ≈ 4,000 far tiles since the boards
  * came): re-cut when the camera changes tile or the view turns by more than CUT_TURN (less than CUT_WIDEN, so nothing
@@ -323,23 +327,50 @@ export class CityWater {
    * The board's cut edge: glass through the water, layered earth where it crosses land (`groundAt` → ground top, or
    * null for water). Built once the far data is in (ground heights along the county line).
    */
-  setEdge(groundAt: (x: number, z: number) => number | null, slabEdge: (g: Batch, poly: Polygon, top: (x: number, z: number) => number, water: (x: number, z: number) => boolean, bottom?: number, seed?: number, column?: number | ((edge: number) => number), underside?: boolean) => void) {
-    if (this.edges.length) return;
-    const g = new Batch();
-    // 6 u columns along the county line (the city's own cut), 12 u on the far edges round the boards (the board is
-    // ≈ 13 km round and seen from afar: 1.6 u columns would cost ~100k triangles); no underside (its fan spans the
-    // whole board: split, every triangle was a draw call in almost every view); split in EDGE_PIECE u pieces so only
-    // the stretch in view is drawn (≈ 14k triangles round the board, ≈ 20 pieces)
-    // (WORLD_LL starts with the county line: edge 0)
-    slabEdge(g, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, (edge: number) => (edge === 0 ? EDGE_COLUMN : EDGE_COLUMN_FAR), false);
-    splitGeometry(g.build(), EDGE_PIECE).forEach((geo, i) => {
+  setEdge(groundAt: (x: number, z: number) => number | null, columns: SlabEdgeColumns) {
+    if (this.edges.length || this.edgeJob) return;
+    this.edgeJob = this.edgeBuild(groundAt, columns);
+  }
+
+  /** The edge is still being built (setEdge → frame slices in update, or finishEdge). */
+  get edgePending(): boolean { return !!this.edgeJob; }
+
+  /** Build the rest of the edge now (tests, QA). */
+  finishEdge() { while (this.edgeJob && !this.edgeJob.next().done) { /* all at once */ } this.edgeJob = null; }
+
+  private edgeJob: Generator<void> | null = null;
+
+  /**
+   * 6 u columns along the county line (the city's own cut), 12 u on the far edges round the boards (the board is ≈ 13 km
+   * round and seen from afar: 1.6 u columns would cost ~100k triangles); no underside (its fan spans the whole board:
+   * split, every triangle was a draw call in almost every view); in EDGE_PIECE u pieces so only the stretch in view is
+   * drawn (≈ 14k triangles round the board, ≈ 20 pieces). Built in frame slices (update(), ≤ EDGE_SLICE_MS): 48 columns
+   * a step straight into the piece of their middle, then one piece's mesh a step (wave-3 review: the whole edge and its
+   * splitGeometry were one 20–40 ms step in the frame the satellite boards arrived).
+   * (WORLD_LL starts with the county line: edge 0)
+   */
+  private *edgeBuild(groundAt: (x: number, z: number) => number | null, columns: SlabEdgeColumns): Generator<void> {
+    const pieces = new Map<number, Batch>();
+    const at = (x: number, z: number) => {
+      const k = (Math.floor(x / EDGE_PIECE) + 512) * 1024 + Math.floor(z / EDGE_PIECE) + 512;
+      let b = pieces.get(k);
+      if (!b) { b = new Batch(); pieces.set(k, b); }
+      return b;
+    };
+    yield* columns(at, this.board, (x, z) => groundAt(x, z) ?? WATER_Y, (x, z) => groundAt(x, z) === null, undefined, 1, (edge: number) => (edge === 0 ? EDGE_COLUMN : EDGE_COLUMN_FAR), 48);
+    let i = 0;
+    for (const b of pieces.values()) {
+      yield;
+      const geo = b.build();
+      geo.computeBoundingSphere();
+      geo.computeBoundingBox();
       const m = new THREE.Mesh(geo, GROUND);
-      m.name = `city-board-edge#${i}`;
-      m.matrixAutoUpdate = false;
+      m.name = `city-board-edge#${i++}`;
+      freezeStatic(m);
       m.receiveShadow = true;
       this.edges.push(m);
       this.group.add(m);
-    });
+    }
   }
 
   /**
@@ -347,6 +378,10 @@ export class CityWater {
    * index when the view turned by more than CUT_TURN degrees (the far tiles outside a CUT_WIDEN° wider view are skipped).
    */
   update(camera: THREE.Camera) {
+    if (this.edgeJob) {
+      const t0 = performance.now();
+      while (performance.now() - t0 < EDGE_SLICE_MS) if (this.edgeJob.next().done) { this.edgeJob = null; break; }
+    }
     const ctx = Math.floor(camera.position.x / TILE), ctz = Math.floor(camera.position.z / TILE);
     const key = this.key(ctx, ctz);
     const cam = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? (camera as THREE.PerspectiveCamera) : null;
@@ -373,6 +408,7 @@ export class CityWater {
   }
 
   dispose() {
+    this.edgeJob = null;
     for (const m of [this.near, this.far, this.lakes, ...this.edges]) m?.geometry.dispose();
     this.material.dispose();
   }
