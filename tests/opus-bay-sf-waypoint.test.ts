@@ -93,8 +93,9 @@ for (const [w, h] of [[390, 844], [375, 667]] as const) {
       }
     }
     // the rules must not make the waypoint useless: almost always shown, mostly with its full label
-    assert.ok(hidden / n < 0.12, `hidden ${hidden} / ${n}`);
-    assert.ok(full / (n - hidden) > 0.8, `full labels ${full} / ${n - hidden}`);
+    // (measured: ≥ 99 % full labels, ≤ 1 % hidden — a pin on its target right under the bubble waits a frame)
+    assert.ok(hidden / n < 0.03, `hidden ${hidden} / ${n}`);
+    assert.ok(full / (n - hidden) > 0.95, `full labels ${full} / ${n - hidden}`);
   });
 }
 

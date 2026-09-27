@@ -175,11 +175,18 @@ function labelBox(x: number, y: number, edge: boolean, w: number, area: Box, dro
   return { l: cx - half, t: top, r: cx + half, b: top + WAYPOINT.labelH };
 }
 
+/** A label beside an edge arrow (vertically centred on it), to its right or left. */
+function sideBox(x: number, y: number, w: number, right: boolean): Box {
+  const gap = WAYPOINT.arrowR + WAYPOINT.gap;
+  const l = right ? x + gap : x - gap - w;
+  return { l, t: y - WAYPOINT.labelH / 2, r: l + w, b: y + WAYPOINT.labelH / 2 };
+}
+
 /**
  * The whole waypoint: pin / arrow + label, inside the safe area, out of the fixed HUD boxes, never under BAYBAY's
  * bubble. Order of retreat (plan §4.2, "fixes M1 for good"): the label under the pin → an edge arrow slides along its
- * edge (below the bubble, else above) → the label drops below the bubble (≤ 90 px) → the label collapses to the time
- * alone → the pin / arrow alone. A pin that itself sits under the bubble or a fixed box hides (`hidden`).
+ * edge (below the bubble, else above), its label under it or beside it → the label drops below the bubble (≤ 90 px) →
+ * the label collapses to the time alone → the pin / arrow alone. A pin that itself sits under the bubble or a fixed box hides (`hidden`).
  */
 export function layoutWaypoint(i: WaypointLayoutInput): WaypointLayout {
   const { area } = i;
@@ -196,21 +203,32 @@ export function layoutWaypoint(i: WaypointLayoutInput): WaypointLayout {
 
   // an edge arrow may slide along its edge: find a y (or x on the top / bottom edges) where the arrow + label fit
   if (e.edge) {
-    const vertical = Math.abs(x - (area.l + WAYPOINT.arrowR)) < 1 || Math.abs(x - (area.r - WAYPOINT.arrowR)) < 1;
+    const R = WAYPOINT.arrowR;
+    const vertical = Math.abs(x - (area.l + R)) < 1 || Math.abs(x - (area.r - R)) < 1;
     const tries: number[] = [0];
     for (let s = 16; s <= 400; s += 16) tries.push(s, -s);
+    const yMax = area.b - WAYPOINT.labelBelowArrow - WAYPOINT.labelH, yMin = area.t + R;
+    // candidate arrow spots: along its own edge (nearest first), then round the nearer corner down / up the side edge
+    const spots: [number, number][] = tries.map(s => (vertical ? [x, Math.min(yMax, Math.max(yMin, y + s))] : [Math.min(area.r - R, Math.max(area.l + R, x + s)), y]));
+    if (!vertical) {
+      const sx = x < (area.l + area.r) / 2 ? area.l + R : area.r - R;
+      const down = y < (area.t + area.b) / 2 ? 1 : -1;
+      for (let s = 16; s <= 320; s += 16) spots.push([sx, Math.min(yMax, Math.max(yMin, y + down * s))]);
+    }
     for (const w of [i.labelW, shortW]) {
-      for (const s of tries) {
-        const nx = vertical ? x : Math.min(area.r - WAYPOINT.arrowR, Math.max(area.l + WAYPOINT.arrowR, x + s));
-        const ny = vertical ? Math.min(area.b - WAYPOINT.labelBelowArrow - WAYPOINT.labelH, Math.max(area.t + WAYPOINT.arrowR, y + s)) : y;
-        const p = pinBox(nx, ny, true), l = labelBox(nx, ny, true, w, area);
-        if (!blocked(p) && !blocked(l)) { x = nx; y = ny; return result(w === i.labelW ? 'full' : 'short', l); }
+      for (const [nx, ny] of spots) {
+        const p = pinBox(nx, ny, true);
+        if (blocked(p)) continue;
+        // the label under the arrow, else beside it (toward the screen centre first: a top-edge arrow under a docked
+        // bubble keeps its words on the row beside it)
+        const toRight = nx < (area.l + area.r) / 2;
+        for (const l of [labelBox(nx, ny, true, w, area), sideBox(nx, ny, w, toRight), sideBox(nx, ny, w, !toRight)]) {
+          if (!blocked(l)) { x = nx; y = ny; return result(w === i.labelW ? 'full' : 'short', l); }
+        }
       }
     }
     // no place with a label: the arrow alone where it is, else slid
-    for (const s of tries) {
-      const nx = vertical ? x : Math.min(area.r - WAYPOINT.arrowR, Math.max(area.l + WAYPOINT.arrowR, x + s));
-      const ny = vertical ? Math.min(area.b - WAYPOINT.arrowR, Math.max(area.t + WAYPOINT.arrowR, y + s)) : y;
+    for (const [nx, ny] of spots) {
       if (!blocked(pinBox(nx, ny, true))) { x = nx; y = ny; return result('none', null); }
     }
     return { ...result('none', null), hidden: true };

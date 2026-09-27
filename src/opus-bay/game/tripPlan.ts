@@ -305,6 +305,9 @@ export function linePathSlice(line: TripLineInfo, a: number, b: number, dir: 1 |
   return out;
 }
 
+/** A name after a CJK verb: a space before Latin ("坐 N 线"), none before CJK ("坐观光巴士"). */
+export const zhJoin = (name: string) => (/^[A-Za-z0-9]/.test(name) ? ` ${name}` : name);
+
 /** "约 8 秒" / "约 2 分钟" (the same rounding as the waypoint: game/travel gameSeconds). */
 export function tripTimeLabel(seconds: number): Bilingual {
   const s0 = Math.max(0, seconds);
@@ -471,9 +474,10 @@ function lineOption(c: LineCandidate, from: TripPoint, dest: TripDestination, to
   if (path) leg.path = path;
   const name = lineDisplayName(line);
   const stopName = alight.name;
+  const rideZh = `坐${zhJoin(name.zh)} ${leg.stops} 站`;
   leg.label = stopName
-    ? { zh: `坐${name.zh} ${leg.stops} 站到${stopName.zh}`, en: `${name.en} ${leg.stops} stop${leg.stops === 1 ? '' : 's'} to ${stopName.en}` }
-    : { zh: `坐${name.zh} ${leg.stops} 站`, en: `${name.en} · ${leg.stops} stop${leg.stops === 1 ? '' : 's'}` };
+    ? { zh: `${rideZh}到${stopName.zh}`, en: `${name.en} ${leg.stops} stop${leg.stops === 1 ? '' : 's'} to ${stopName.en}` }
+    : { zh: rideZh, en: `${name.en} · ${leg.stops} stop${leg.stops === 1 ? '' : 's'}` };
   legs.push(leg);
   if (dist(alight, dest) >= LEG_MIN) {
     const m = measure(p.walk, alight, dest, true);

@@ -298,7 +298,7 @@ test('panorama tags: T1 then T2 in view within 2,000 u, at most 8; laid out with
   assert.ok(placed.some(p => p.lead), 'crowded tags lift with a leader line');
   // behind the camera / off screen: dropped
   assert.equal(layoutPanoramaTags([{ id: 'x', x: 100, y: 300, w: 60, h: 26, rank: 1, behind: true }, { id: 'y', x: -40, y: 300, w: 60, h: 26, rank: 1 }], area).length, 0);
-  assert.equal(tagWidth('双峰'), 25 + 22);
+  assert.equal(tagWidth('双峰'), 25 + 32);
   assert.equal(isPanoramaViewpoint({ id: 'twin-peaks' }), true);
   assert.equal(isPanoramaViewpoint({ id: 'twin-peaks', panorama: false }), false);
   assert.equal(isPanoramaViewpoint({ id: 'x', panorama: true }), true);

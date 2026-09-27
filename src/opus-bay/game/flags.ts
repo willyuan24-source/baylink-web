@@ -214,11 +214,12 @@ export interface TagInput { id: string; x: number; y: number; w: number; h: numb
 export interface TagBox { l: number; t: number; r: number; b: number }
 export interface PlacedTag { id: string; x: number; y: number; box: TagBox; lead: boolean }
 
-/** Tag width estimate (CSS px): 12 px per CJK character, 7 per Latin one, + the 10 px dot and padding (22). */
+/** Tag width estimate (CSS px, ui/guide-ui.css .ob-pano-tag): 12.5 px per CJK character, 7 per Latin one, + the dot,
+ * gap, padding and border (7 + 8 + 6 + 9 + 2 = 32). */
 export function tagWidth(text: string): number {
   let w = 0;
   for (const ch of text) { const c = ch.codePointAt(0) ?? 0; w += (c >= 0x3000 && c <= 0x9fff) || (c >= 0xff00 && c <= 0xffef) ? 12.5 : 7; }
-  return Math.ceil(w + 22);
+  return Math.ceil(w + 32);
 }
 
 const hit = (a: TagBox, b: TagBox, pad = 4) => a.l < b.r + pad && a.r > b.l - pad && a.t < b.b + pad && a.b > b.t - pad;
