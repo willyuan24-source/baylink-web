@@ -19,8 +19,9 @@ const args = process.argv.slice(2);
 const only = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;
 const check = args.includes('--check');
 const STEP = 2;
-/** each grid point takes the highest walked ground within ±POOL u (kerbs and corridor edges never poke through draped ground) */
-const POOL = 0.5;
+/** each grid point takes the highest walked ground within ±pool u (kerbs and corridor edges never poke through draped
+ * ground): 0.5 u on the 2 u grid, a quarter step on finer grids (steep terraced sites) */
+const poolOf = (step: number) => Math.min(0.5, step / 4);
 const sf = sfDisk();
 const rasters = new Map<string, GroundRaster | null>();
 async function walked(x: number, z: number): Promise<number> {
@@ -52,19 +53,19 @@ for (const s of W4_SITES) {
   }
   for (const p of ex) lo = Math.min(lo, await walked(p.x, p.z));
   const base = Math.floor(lo * 100) / 100;
-  const [x0, z0, x1, z1] = s.w4.terrain;
-  const cols = Math.ceil((x1 - x0) / STEP) + 1, rows = Math.ceil((z1 - z0) / STEP) + 1, h: number[] = [];
+  const [x0, z0, x1, z1] = s.w4.terrain, step = s.w4.terrainStep ?? STEP, POOL = poolOf(step);
+  const cols = Math.ceil((x1 - x0) / step) + 1, rows = Math.ceil((z1 - z0) / step) + 1, h: number[] = [];
   // each grid height is the HIGHEST walked ground within ±POOL (0.25 u samples): draped plazas and furniture
   // interpolated between the grid points never sink into a bump (kerb embankments, the corridor flattening)
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
     let hi = -Infinity;
     for (let dv = -POOL; dv <= POOL + 1e-9; dv += 0.25) for (let du = -POOL; du <= POOL + 1e-9; du += 0.25) {
-      const w = landmarkToWorld(s, { x: x0 + i * STEP + du, z: z0 + j * STEP + dv });
+      const w = landmarkToWorld(s, { x: x0 + i * step + du, z: z0 + j * step + dv });
       hi = Math.max(hi, await walked(w.x, w.z));
     }
     h.push(Math.round((hi - base) * 100));
   }
-  const grid: SiteTerrainGrid = { base, x0, z0, step: STEP, cols, rows, h };
+  const grid: SiteTerrainGrid = { base, x0, z0, step, cols, rows, h };
   const old = SITE_TERRAIN[s.id];
   const changed = !old || JSON.stringify(old) !== JSON.stringify(grid);
   if (changed) diffs++;

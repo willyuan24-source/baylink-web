@@ -56,6 +56,8 @@ export interface W4SiteMeta {
   osm: readonly string[];
   /** the local box (x0, z0, x1, z1) scripts/opus-sf/sites-terrain.mts bakes the ground heights over */
   terrain: readonly [number, number, number, number];
+  /** grid step of the baked ground (u, default 2; 1 on terraced slopes whose walks are flattened steps) */
+  terrainStep?: number;
   /** lane V's AI mesh planned for this site (the swap lands in integration, through the SoloView gate) */
   aiSlot?: { model: string; note: string };
   /** attractions of this site that stay card-only here, and why (quiet memorials, closures, the downtown diet) */

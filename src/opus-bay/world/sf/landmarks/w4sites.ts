@@ -5,6 +5,8 @@ import type { W4Site } from './siteKit';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { ccsfOcean } from './ccsf-ocean';
+import { doloresPark } from './dolores-park';
+import { haightAshbury } from './haight-ashbury';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { musicConcourse } from './music-concourse';
 import { sfState } from './sf-state';
@@ -50,6 +52,8 @@ export const W4_SITES: readonly W4Site[] = [
   unionSquare,
   sfmoma,
   yerbaBuenaGardens,
+  haightAshbury,
+  doloresPark,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));

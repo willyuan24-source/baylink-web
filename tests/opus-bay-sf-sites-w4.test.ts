@@ -117,7 +117,8 @@ test('exclusions: contain the origin and every toy vertex, never overlap another
   const others = SF_LANDMARKS.map(l => ({ id: l.id, poly: exPoly(l) }));
   for (const s of W4_SITES) {
     const ex = exPoly(s);
-    assert.ok(inPoly({ x: s.x, z: s.z }, ex), `${s.id} exclude contains the origin`);
+    // the origin is inside the footprint, except a street-corner site whose origin is the crossing (it says so)
+    assert.ok(inPoly({ x: s.x, z: s.z }, ex) || /origin at the crossing/.test(s.w4.notes ?? ''), `${s.id} exclude contains the origin`);
     for (const o of others) assert.ok(!polysOverlap(ex, o.poly), `${s.id} overlaps ${o.id}`);
     for (const o of W4_SITES) if (o !== s) assert.ok(!polysOverlap(ex, exPoly(o)), `${s.id} overlaps ${o.id}`);
     assert.ok(!polysOverlap(ex, DISTRICT.slab), `${s.id} overlaps the hero slab`);
@@ -148,7 +149,8 @@ test('terrain: the baked grid and base match the published rasters (re-run scrip
     for (let k = 0; k < t.h.length; k += 7) {
       const i = k % t.cols, j = Math.floor(k / t.cols);
       let hi = -Infinity;
-      for (let dv = -0.5; dv <= 0.5 + 1e-9; dv += 0.25) for (let du = -0.5; du <= 0.5 + 1e-9; du += 0.25) {
+      const pool = Math.min(0.5, t.step / 4);
+      for (let dv = -pool; dv <= pool + 1e-9; dv += 0.25) for (let du = -pool; du <= pool + 1e-9; du += 0.25) {
         const w = landmarkToWorld(s, { x: t.x0 + i * t.step + du, z: t.z0 + j * t.step + dv });
         hi = Math.max(hi, await walked(w.x, w.z));
       }
