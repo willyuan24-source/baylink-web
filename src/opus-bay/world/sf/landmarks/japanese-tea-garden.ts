@@ -125,11 +125,11 @@ function build(b: BatchLike, lod: 0 | 2) {
 
 function ground(): SiteGroundPoly[] {
   return [
-    ...gfill(GROUNDS, GC.lawnDeep, PAT.grass, g, 2, 0.18),
-    ...gfill(POND, WATER, PAT.none, g, 2, 0.23),
+    ...gfill(GROUNDS, GC.lawnDeep, PAT.grass, g, 1.5, 0.08),
+    ...gfill(POND, WATER, PAT.none, g, 1.5, 0.13),
     // raked-gravel walk from the gate past the pond to the pagoda and the tea house
-    ...gfill([{ x: 6.2, z: -4.2 }, { x: 6.2, z: -1.8 }, { x: 3.6, z: -1.4 }, { x: 3.6, z: -3.6 }], GC.path, PAT.earth, g, 2, 0.25),
-    ...gfill([{ x: -6.0, z: 4.6 }, { x: 4.2, z: 4.6 }, { x: 4.2, z: 5.6 }, { x: -6.0, z: 5.6 }], GC.path, PAT.earth, g, 2, 0.25),
+    ...gfill([{ x: 6.2, z: -4.2 }, { x: 6.2, z: -1.8 }, { x: 3.6, z: -1.4 }, { x: 3.6, z: -3.6 }], GC.path, PAT.earth, g, 1.5, 0.13),
+    ...gfill([{ x: -6.0, z: 4.6 }, { x: 4.2, z: 4.6 }, { x: 4.2, z: 5.6 }, { x: -6.0, z: 5.6 }], GC.path, PAT.earth, g, 1.5, 0.13),
   ];
 }
 
@@ -168,5 +168,6 @@ export const japaneseTeaGarden: W4Site = {
     height: { realM: 15, u: 7.4, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way (grass) around place japanese-tea-garden'],
     terrain: [-9, -11, 10, 12],
+    terrainStep: 1,
   },
 };
