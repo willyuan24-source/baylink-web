@@ -777,6 +777,8 @@ export class ActorSystem {
   guideSeen = true;
 
   dispose() {
+    // (a city resident whose body is still loading never builds it now: G2's review request 7, sf-w3-G2.md)
+    this.npcs.forEach(n => n.release());
     this.disposed = true;
     this.unsub();
     bindMoveApi(null);
