@@ -1,0 +1,203 @@
+import * as THREE from 'three';
+import { walkGraph } from '../../actors/nav';
+import { registerObstacleSource } from '../../actors/view';
+import { cityHooks, clearCityHooks, emitAt, pushPass } from '../../audio/cityHooks';
+import { CHUNK } from '../../core/geo';
+import { runtime } from '../../core/runtime';
+import { game } from '../../core/store';
+import { canStand, cityChunkEpoch, heightAt, surfaceAt } from '../../core/terrain';
+import { placesNear } from '../../data/sf/places';
+import { travelActive } from '../../game/fastTravel';
+import { U } from '../materials';
+import { CROWD, CrowdLayer, type CrowdEnv } from './crowd';
+import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
+import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
+
+/**
+ * City life host (lane F, wave 3 part b): the crowd (F11) and the toy traffic (F12) around the player, created by the
+ * transit layer (world/transitLayer.ts, the lazy city chunk) once the walking graph is in. It
+ *
+ * - gives both simulations the ground (core/terrain: surface, stand, height, the chunk epochs), the camera's rough view
+ *   test, the people to step round / stop for, and every road vehicle (streetNet `registerRoadVehicles`: the transit
+ *   layer's cable cars and F-line cars, the traffic's own cars, the player's bike / car registered here);
+ * - registers both as obstacle sources for the walker and for the player's vehicle (actors/view.ts, E2's consumer:
+ *   'crowd' walkers get a "whoa", 'traffic' a soft bump);
+ * - pauses both (hidden, not stepped) in fast-travel mode, and refills around the landing spot afterwards; the crowd also
+ *   hides while the camera is high over the streets (a glide), where people are specks;
+ * - follows the quality level (walkers 64 / 44 / 24, cars 24 / 16 / 8) and the night (fewer of both);
+ * - feeds the audio (audio/cityHooks.ts): the crowd around the listener, cars passing close by, the hop-aside squeak.
+ */
+
+const PLAYER_BIKE = { halfL: 0.85, halfW: 0.35 };
+const PLAYER_CAR = { halfL: 1.05, halfW: 0.6 };
+/** sights people stand about at (places.json kinds) and how far around them (u) */
+const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint: 6, attraction: 7, museum: 6, historic: 5 };
+/** the crowd hides while the camera is this far above the player (u) */
+const CROWD_HIGH = 55;
+
+export interface CityLifeOptions {
+  /** rough "could the player see this" (the transit layer's view cone) */
+  visible(x: number, z: number): boolean;
+}
+
+export const cityProbe: StreetProbe = {
+  surface: (x, z) => surfaceAt(x, z),
+  stand: (x, z, r) => canStand(x, z, r),
+  height: (x, z) => heightAt(x, z),
+  epoch: (x, z) => cityChunkEpoch(Math.floor(x / CHUNK), Math.floor(z / CHUNK)),
+};
+
+export class CityLife {
+  readonly group = new THREE.Group();
+  crowd: CrowdLayer | null = null;
+  traffic: TrafficLayer | null = null;
+  net: StreetNet | null = null;
+  private opts: CityLifeOptions;
+  private offs: (() => void)[] = [];
+  private all: RoadVehicle[] = [];
+  private others: RoadVehicle[] = [];
+  private traveling = false;
+  private hopAt = -9;
+  private clock = 0;
+  private qualityAt = -9;
+  private disposed = false;
+
+  constructor(opts: CityLifeOptions) {
+    this.opts = opts;
+    this.group.name = 'city-life';
+    this.group.matrixAutoUpdate = false;
+    void walkGraph().then(ix => { if (!this.disposed) this.start(new StreetNet(ix, cityProbe)); }).catch(error => {
+      if (import.meta.env?.DEV) console.warn('[opus-bay city life] walking graph', error);
+    });
+    // QA (DEV): window.__opusCityLife.stats() / .life
+    if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __opusCityLife?: unknown }).__opusCityLife = { stats: () => this.stats(), life: this };
+  }
+
+  /** Build both layers on a street network (tests pass their own). */
+  start(net: StreetNet) {
+    this.net = net;
+    const vis = this.opts.visible;
+    const crowdEnv: CrowdEnv = {
+      focus: () => focus(),
+      avoid: out => {
+        const p = runtime.player, g = runtime.guide;
+        if (!runtime.vehicle.occupied) out.push({ x: p.x, z: p.z });
+        out.push({ x: g.x, z: g.z });
+      },
+      visible: vis,
+      vehicles: () => this.all,
+      standSpots: (x, z, r) => {
+        const out: { x: number; z: number; r: number }[] = [];
+        for (const pl of placesNear(x, z, r)) { const k = STAND_KINDS[pl.kind]; if (k && !pl.hero) out.push({ x: pl.x, z: pl.z, r: k }); }
+        return out;
+      },
+      night: () => U.uNight.value,
+      onHop: (w, q) => this.hopped(w.x, w.z, q),
+    };
+    const trafficEnv: TrafficEnv = {
+      focus: () => focus(),
+      visible: vis,
+      vehicles: () => this.others,
+      people: out => {
+        const p = runtime.player, g = runtime.guide;
+        if (!runtime.vehicle.occupied && surfaceAt(p.x, p.z) === 'road') out.push({ x: p.x, z: p.z, r: 0.45 });
+        if (surfaceAt(g.x, g.z) === 'road') out.push({ x: g.x, z: g.z, r: 0.4 });
+        for (const w of this.crowd?.sim.walkers ?? []) if (w.on && (w.onRoad || w.hopT >= 0)) out.push({ x: w.x, z: w.z, r: CROWD.r });
+      },
+      transitStreet: (x, z, dx, dz) => onTransitStreet(x, z, dx, dz),
+      night: () => U.uNight.value,
+    };
+    this.crowd = new CrowdLayer(net, crowdEnv, CROWD.count.high);
+    this.traffic = new TrafficLayer(net, trafficEnv, TRAFFIC.count.high);
+    this.group.add(this.crowd.group, this.traffic.group);
+    const traffic = this.traffic, crowd = this.crowd;
+    this.offs.push(
+      registerRoadVehicles(out => traffic.sim.vehicles(out)),
+      registerRoadVehicles(out => {
+        const v = runtime.vehicle;
+        if (!v.occupied || !v.kind) return;
+        const d = v.kind === 'car' ? PLAYER_CAR : PLAYER_BIKE;
+        out.push({ x: v.x, z: v.z, heading: v.speed < 0 ? v.heading + Math.PI : v.heading, v: Math.abs(v.speed), halfL: d.halfL, halfW: d.halfW, kind: 'player', line: 'player' });
+      }),
+      registerObstacleSource((out, x, z, r) => { crowd.sim.obstacles(out, x, z, r); traffic.sim.obstacles(out, x, z, r); }),
+    );
+    this.applyQuality();
+  }
+
+  private applyQuality() {
+    const q = game.get().settings.quality;
+    if (this.crowd) this.crowd.sim.target = CROWD.count[q];
+    if (this.traffic) this.traffic.sim.target = TRAFFIC.count[q];
+  }
+
+  update(dt: number) {
+    const crowd = this.crowd, traffic = this.traffic;
+    if (!crowd || !traffic) return;
+    this.clock += dt;
+    if (this.clock - this.qualityAt > 1) { this.qualityAt = this.clock; this.applyQuality(); }
+    // fast travel: nothing moves under the cloud; the crowd and the cars refill round the landing spot
+    if (travelActive()) {
+      if (!this.traveling) { this.traveling = true; crowd.hide(); traffic.hide(); crowd.sim.reset(); traffic.sim.reset(); clearCityHooks(); }
+      return;
+    }
+    this.traveling = false;
+    collectRoadVehicles(this.all);
+    this.others.length = 0;
+    for (const q of this.all) if (q.kind !== 'traffic') this.others.push(q);
+    const cam = U.uCam.value;
+    traffic.update(dt, cam);
+    const high = cam.y - runtime.player.y > CROWD_HIGH;
+    if (high) crowd.hide();
+    else crowd.update(dt, cam);
+    this.listen(high);
+  }
+
+  /** The sound side: the crowd around the listener, the cars that just passed (audio/cityHooks.ts). */
+  private listen(high: boolean) {
+    const p = runtime.player;
+    let n = 0, sx = 0, sz = 0;
+    if (!high) for (const w of this.crowd!.sim.walkers) {
+      if (!w.on) continue;
+      const d = Math.hypot(w.x - p.x, w.z - p.z);
+      if (d < 18) { n++; sx += w.x; sz += w.z; }
+    }
+    cityHooks.crowd.n = n;
+    if (n) { cityHooks.crowd.x = sx / n; cityHooks.crowd.z = sz / n; }
+    let cars = 0;
+    for (const c of this.traffic!.sim.cars) if (c.on && Math.hypot(c.x - p.x, c.z - p.z) < 40) cars++;
+    cityHooks.cars = cars;
+    const passes = this.traffic!.sim.passes;
+    for (const q of passes) pushPass(q);
+    passes.length = 0;
+  }
+
+  /** A walker hopped out of a vehicle's way: the hop-aside event near the player (a squeak), at most every 1.5 s. */
+  private hopped(x: number, z: number, q: RoadVehicle) {
+    const p = runtime.player, d = Math.hypot(x - p.x, z - p.z);
+    if (d > 30 || this.clock - this.hopAt < 1.5) return;
+    this.hopAt = this.clock;
+    // road vehicles that are not transit report as the rubber-tyred kind ('bus'); `line` says which ('traffic' / 'player')
+    const kind = q.kind === 'traffic' || q.kind === 'player' ? 'bus' : q.kind;
+    emitAt({ type: 'transit', what: 'hop-aside', line: q.line, kind, strength: Math.max(0.2, 1 - d / 30) }, x, z);
+  }
+
+  stats() {
+    return { crowd: this.crowd?.stats() ?? null, traffic: this.traffic?.stats() ?? null, vehicles: this.all.length };
+  }
+
+  dispose() {
+    this.disposed = true;
+    if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusCityLife?: unknown }).__opusCityLife;
+    for (const off of this.offs) off();
+    this.offs.length = 0;
+    this.crowd?.dispose();
+    this.traffic?.dispose();
+    clearCityHooks();
+  }
+}
+
+/** The crowd and the traffic live around the player (the vehicle while driving). */
+function focus(): { x: number; z: number } {
+  const v = runtime.vehicle;
+  return v.occupied ? { x: v.x, z: v.z } : { x: runtime.player.x, z: runtime.player.z };
+}

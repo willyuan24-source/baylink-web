@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { definePlatform, setPlatformPose } from '../actors/platform';
+import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { CABLE, type TransitData, type Turntable, flineJson, loadTransit, pointAt } from '../data/transit';
@@ -10,6 +11,8 @@ import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
 import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
+import { CityLife } from './sf/cityLife';
+import { type RoadVehicle, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
 import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeometry } from './turntable';
 
@@ -27,7 +30,9 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  *   nearest the player, with pitch;
  * - the cars' events as `transit` game events near the player (bells, grip clank, turntable push / turned);
  * - the city F-line to the Castro (world/flineLayer.ts: its four streetcars, the platform 'streetcar', its rails);
- * - the rideable ferry (world/ferry.ts: life's ferry 0 after the arrival, Ferry Building ⇄ Pier 41, platform 'ferry').
+ * - the rideable ferry (world/ferry.ts: life's ferry 0 after the arrival, Ferry Building ⇄ Pier 41, platform 'ferry');
+ * - the city's crowd and toy traffic (world/sf/cityLife.ts, F11 / F12): the cable cars and the F-line are published to
+ *   them as road vehicles (walkers hop aside, cars wait) and their streets as transit streets (no toy traffic along them).
  *
  * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, far cars 1, discs 1 (+ shadow 1),
  * aprons 1, rails 1, ring 1 while pushing: ≤ 8 calls. Triangles: 2,124 a near car (again in the shadow pass), 156 a far
@@ -72,6 +77,9 @@ export class TransitLayer {
   /** the city F-line (null without the published route) */
   readonly fline: FLineLayer | null;
   readonly ferry = new FerryLayer();
+  /** the crowd and the toy traffic (built once the walking graph is in) */
+  readonly life: CityLife;
+  private offs: (() => void)[] = [];
 
   constructor(data: TransitData) {
     this.data = data;
@@ -123,6 +131,12 @@ export class TransitLayer {
     if (this.discs.some(d => d.tt.landmark)) setTurntableSpinner(true);
     this.group.add(this.cars, this.carsFar, this.discMesh, this.ring, this.rails.mesh);
     if (this.fline) this.group.add(this.fline.group);
+    // the crowd and the traffic: the transit streets are theirs to cross, not to drive along; the cars are road vehicles
+    this.life = new CityLife({ visible: visibleFromCamera });
+    this.group.add(this.life.group);
+    for (const line of data.lines) this.offs.push(registerTransitStreet(line.xyz));
+    if (this.fline) this.offs.push(registerTransitStreet(this.fline.line.cxyz));
+    this.offs.push(registerRoadVehicles(out => this.roadVehicles(out)));
     this.refreshDiscHeights(true);
     this.update(0, 0);
     this.group.updateMatrixWorld(true);
@@ -208,7 +222,23 @@ export class TransitLayer {
     this.drainEvents();
     this.fline?.update(dt);
     this.ferry.update(dt);
+    this.life.update(dt);
     void t;
+  }
+
+  /** The cable cars and the F-line cars within 250 u of the player as road vehicles (crowd hop, traffic give-way). */
+  private roadVehicles(out: RoadVehicle[]) {
+    const p = runtime.player;
+    for (const c of this.sys.cars) {
+      const q = c.pose;
+      if (Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
+      out.push({ x: q.x, z: q.z, heading: q.heading, v: c.mode === 'turn' ? 0 : Math.abs(c.v), halfL: CABLE.length / 2, halfW: CABLE.width / 2, kind: 'cable-car', line: c.line.id });
+    }
+    for (const c of this.fline?.sys.cars ?? []) {
+      const q = c.pose;
+      if (Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
+      out.push({ x: q.x, z: q.z, heading: q.heading, v: Math.abs(c.v), halfL: 4.3, halfW: 1.1, kind: 'streetcar', line: 'f-line' });
+    }
   }
 
   /** The cars' events → `transit` game events: the rider's car always, other cars within earshot. */
@@ -221,16 +251,18 @@ export class TransitLayer {
       const mine = !!rider && rider.car === e.car && car.rider;
       const heard = mine || d < HEAR;
       const base = { type: 'transit' as const, line: e.line, kind: 'cable-car' as const };
+      // another car's bell / clank comes from where that car is (audio pans it); the rider's own is centred
+      const at = (ev: Parameters<typeof emit>[0]) => { if (mine) emit(ev); else emitAt(ev, car.pose.x, car.pose.z); };
       switch (e.what) {
         case 'depart':
           if (mine) emit({ ...base, what: 'depart' });
-          if (heard) emit({ ...base, what: 'bell', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) });
+          if (heard) at({ ...base, what: 'bell', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) });
           break;
-        case 'grip': if (heard) emit({ ...base, what: 'grip', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) }); break;
+        case 'grip': if (heard) at({ ...base, what: 'grip', strength: mine ? 1 : Math.max(0.2, 1 - d / HEAR) }); break;
         case 'arrive': if (mine) emit({ ...base, what: 'arrive' }); break;
-        case 'bell': if (heard) emit({ ...base, what: 'bell', strength: 0.8 }); break;
+        case 'bell': if (heard) at({ ...base, what: 'bell', strength: mine ? 1 : 0.8 }); break;
         case 'push': emit({ ...base, what: 'push', strength: 1 }); break;
-        case 'turned': if (d < HEAR * 1.5) { emit({ ...base, what: 'turned' }); emit({ ...base, what: 'bell', strength: 0.9 }); } break;
+        case 'turned': if (d < HEAR * 1.5) { at({ ...base, what: 'turned' }); at({ ...base, what: 'bell', strength: 0.9 }); } break;
         case 'board': emit({ ...base, what: 'board' }); break;
         default: break;
       }
@@ -240,7 +272,7 @@ export class TransitLayer {
 
   /** Per-car draw data for QA. */
   stats() {
-    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats(), fline: this.fline?.stats() ?? null };
+    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats(), fline: this.fline?.stats() ?? null, life: this.life.stats() };
   }
 
   dispose() {
@@ -253,6 +285,9 @@ export class TransitLayer {
     this.rails.dispose();
     this.fline?.dispose();
     this.ferry.dispose();
+    for (const off of this.offs) off();
+    this.offs.length = 0;
+    this.life.dispose();
     setTurntableSpinner(false);
     if (LAYER === this) LAYER = null;
   }

@@ -223,8 +223,11 @@ function tintLionMaterial(m: THREE.Material) {
 const LION_WET = new THREE.Color('#4f3a2c'), LION_DRY = new THREE.Color('#9a744f');
 
 let CAPSULE: THREE.BufferGeometry | null = null;
-/** Promenade walkers in the heroes' rounded shape language: capsule torso, round head, nub arms, bean feet. */
-function personGeometry(): THREE.BufferGeometry {
+/**
+ * Promenade walkers in the heroes' rounded shape language: capsule torso, round head, nub arms, bean feet. Also the city
+ * crowd's near figure (world/sf/crowd.ts). aInfo.x 9 = the shirt (tinted per instance), aInfo.y ±1 = the legs (swing).
+ */
+export function personGeometry(): THREE.BufferGeometry {
   CAPSULE ??= new THREE.CapsuleGeometry(1, 1, 2, 8);
   const b = new Batch();
   const pants = '#4b5563', skin = '#e9c3a0';
@@ -335,6 +338,16 @@ if (aInfo.x > 8.5) vColor.rgb *= instanceColor.rgb;
 if (abs(aInfo.y) > 0.5) transformed.z += sin(uTime * 7.5 + aPhase) * aInfo.y * aWalk * (0.55 - transformed.y) * 0.55;`);
   };
   return m;
+}
+
+let CROWD_MAT: THREE.MeshStandardMaterial | null = null;
+/**
+ * The city crowd's people material (lane F11, world/sf/crowd.ts): its own instance of the walkers' material (the same
+ * onBeforeCompile, so the same program as the promenade's), made once so the warm-up (world/streetcar.ts 'f-crowd') and
+ * the crowd share it and the program stays linked. Instanced with instanceColor only.
+ */
+export function crowdPeopleMaterial(): THREE.MeshStandardMaterial {
+  return (CROWD_MAT ??= peopleMaterial());
 }
 
 // ---------------------------------------------------------------------------

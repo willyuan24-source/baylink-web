@@ -7,7 +7,8 @@ import { DISTRICT } from '../data/district';
 import { MAX_WAIT, currentRide, virtualT } from '../game/ride';
 import { BOX, Batch, CYL, M, shade } from './builder';
 import { definePlatform, setPlatformPose } from '../actors/platform';
-import { TOY_DYN, TOY_INST } from './materials';
+import { crowdPeopleMaterial } from './life';
+import { TOY_DYN, TOY_INST, TOY_INST_TINT } from './materials';
 import { registerWarmup } from './warmup';
 import type { TransitLayer } from './transitLayer';
 
@@ -241,6 +242,27 @@ export class Streetcars {
       const geo = new THREE.BoxGeometry(1, 1, 1);
       geo.setAttribute('aInfo', new THREE.Float32BufferAttribute(new Float32Array(geo.getAttribute('position').count * 4), 4));
       const mesh = new THREE.InstancedMesh(geo, TOY_INST, 1);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return { objects: [mesh], dispose: () => geo.dispose() };
+    });
+    // the city crowd (F11): its own people-material instance, instanced with instanceColor (world/sf/crowd.ts); the toy
+    // traffic (F12) is TOY_INST_TINT, instanced with instanceColor, casting shadows (world/sf/traffic.ts)
+    registerWarmup('f-crowd', () => {
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      const n = geo.getAttribute('position').count;
+      geo.setAttribute('aInfo', new THREE.Float32BufferAttribute(new Float32Array(n * 4), 4));
+      geo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
+      geo.setAttribute('aWalk', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
+      const mesh = new THREE.InstancedMesh(geo, crowdPeopleMaterial(), 1);
+      mesh.setColorAt(0, new THREE.Color('#ffffff'));
+      return { objects: [mesh], dispose: () => geo.dispose() };
+    });
+    registerWarmup('f-traffic', () => {
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      geo.setAttribute('aInfo', new THREE.Float32BufferAttribute(new Float32Array(geo.getAttribute('position').count * 4), 4));
+      const mesh = new THREE.InstancedMesh(geo, TOY_INST_TINT, 1);
+      mesh.setColorAt(0, new THREE.Color('#ffffff'));
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       return { objects: [mesh], dispose: () => geo.dispose() };
