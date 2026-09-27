@@ -301,11 +301,12 @@ test('settings: plazas ≥ 30 u², lamps light the night, no text or logo parts,
     // declarative records only: no materials, textures or labels (every surface is the shared TOY / GROUND)
     for (const k of Object.keys(s)) assert.ok(!/material|texture|label|sign|logo/i.test(k), `${s.id}.${k}`);
     for (const p of s.swap?.parts ?? []) assert.ok(!/logo|sign|text/i.test(p.model), `${s.id}: ${p.model}`);
-    // an AI slot names lane V's registry id, and that model names this site (D2's swaps: SF_MODELS[model].landmarkId)
+    // an AI slot names one of lane V's GLB stems (w4-*, until the integration renames them to the registry ids), and
+    // that model names this site (D2's swaps: SF_MODELS[model].landmarkId === site id)
     if (s.w4.aiSlot) {
-      const m = s.w4.aiSlot.model as (typeof W4_MODEL_IDS)[number];
-      assert.ok(W4_MODEL_IDS.includes(m), `${s.id}: ${m} is one of lane V's W4_MODEL_IDS`);
-      assert.equal(W4_MODELS[m].landmarkId, s.id, `${s.id}: ${m} names the site`);
+      const m = W4_MODEL_IDS.map(id => W4_MODELS[id]).find(x => x.url.endsWith(`/${s.w4.aiSlot!.model}.glb`));
+      assert.ok(m, `${s.id}: ${s.w4.aiSlot.model} is one of lane V's W4_MODELS files`);
+      assert.equal(m.landmarkId, s.id, `${s.id}: ${s.w4.aiSlot.model} names the site`);
     }
   }
 });
