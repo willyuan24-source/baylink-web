@@ -180,3 +180,107 @@ cheer, the fanfare and the sparkle already follow it).
    `{ zh: '多坐几站再下车，才算坐过叮当车哦', en: 'Ride a few stops before you hop off and it counts as a cable-car ride' }`.
 
 Relayed messages during part b: none.
+
+## Part b (relaunch, 2026-09-27 afternoon)
+
+### 给主人的摘要
+
+- 第 b 部分（六位邻居、他们的小忙、旅行本里的“邻居的小忙”）上一轮已经做完并推送；这一轮在真机上从头到尾重玩了一遍，电脑和手机各走完六件小忙的每一步（打招呼、答应、完成、回去道谢、听小知识），都有截图。
+- 修了一个看得见的问题：以前和邻居聊天时，BAYBAY 常常挡在镜头和邻居之间（Luz、Marcus 被挡住）。现在她会走到邻居身边站好，邻居总是露脸。
+- “问 BAYBAY → 附近有什么？”现在会顺便提一句附近需要帮忙的邻居（约一分钟路程内），点“去找 Rosa”就由 BAYBAY 带路；主菜单仍是 6 个选项，小屏手机放得下。
+- 小忙完成的那一刻，路标立即换成下一个目标（以前会多停留约 2 秒）。
+- 全部检查通过（608/608），街区模式没有变化。
+
+### What was built (files, API for other lanes)
+
+| file | what |
+|---|---|
+| `data/sf/residents.ts` | `asideMark(player, resident, guide, stand)` + `ASIDE_SPOTS`: where BAYBAY waits in a resident's chat — beside them on the side she is already on, 0.25 u behind them (seen from you) and 1.5 u to the side (then 0.6 / 1.2, then level / 1.8; then the other side; `null` = she stays put). Pure, tested. |
+| `game/flow.ts` | `talkMark()` returns that mark while an `npc.<key>.…` node of one of the six is open and you are within 7 u (solved once per resident and player spot); the brain's existing `setTarget(talkMark())` walks her there. `neighbourNearby(p)` / `NEIGHBOUR_NEAR` (300 u): the nearest city resident whose favour is still new (not the one you stand next to; none in district). `nearbyNode()` ("附近有什么？") names them and adds "去找 X（约 N 秒）" → `flow.goto.npc-<key>` (BAYBAY leads). The call menu itself is unchanged (six choices). |
+| `game/brain.ts` | `freeHint` re-picks at once when `goalsDone` changes (a finished favour's "小忙 · …" waypoint lingered up to 2 s); otherwise every 2 s as before. |
+| `data/VOICE.md` | BAYBAY in residents' chats; the neighbour hint's wording and rule. |
+| `tests/opus-bay-sf-tasks.test.ts` | +2 tests (11 now): the aside mark against the two-shot camera (both sides, the three solved angles, landscape and portrait distance, 1.4–3.2 u apart, 8 approach directions: never in front of the resident; keeps her side; falls back); `neighbourNearby` (district none; city nearest new; skips accepted / done / the one beside you). The published-city test now also finds BAYBAY a standable spot beside each resident from every walkable approach (8 directions, `canStand` 0.45). |
+
+### Evidence
+
+- **Checks** on the pushed head `5f6924e` (after rebasing on the D2 / G1 / W4 commits): `tsc` 0 errors, `eslint
+  src/opus-bay tests/opus-bay-*` 0 problems, **608 / 608** opus-bay tests (hero regression and contracts green).
+  Whole-repo `npx eslint . --quiet` (the lead's new note): 0 errors in tracked code; the only 12 errors are in the
+  untracked dev-server cache `.vite-opus/deps/` (not in CI).
+- **All six favours, every step, in the app** (dev 5206, RTX, city mode, zh): one fresh session per favour at 1440×900
+  and at 390×844 `--mobile --dpr 3` — hi → ask (choices) → yes (toast) → done (toast + BAYBAY "完成啦！回去告诉 X 吧～") →
+  the waypoint moves on → thanks → fact; Rosa → Ray takes the loaf; Luz's postcard reward card; Dana on the deck at the
+  south tower; Marcus at the Twin Peaks lookout (the explorer goal and the favour complete together). Ray's ride on these
+  runs is F's `transit` ride event emitted by the QA script (the real Powell-Hyde ride that finishes it was played in
+  part b: `g2-real-ride-finishes-ray-favour.jpg`). 90 shots + contact sheets in `C:/Users/willy/opus-qa/w3/g2/one/`.
+- **BAYBAY beside the resident**: in every chat her position ends 1.1–1.6 u from the resident (logged), and the resident
+  is unobstructed in all 12 hi / thanks shots checked (6 desktop, 6 phone). Before / after with Luz:
+  `g2-b2-luz-chat-before-after.jpg`.
+- **附近有什么？** at 1440×900 and 375×667 from Stockton St: "…Rosa 就在附近，好像想找人帮个忙！" with four choices in two
+  rows (fits 375×667); "去找面包师 Rosa（约 12 秒）" starts BAYBAY's lead (`freeLead: npc-baker`, waypoint "面包师 Rosa ·
+  约 12 秒").
+- **Budget, quality high, 1440×900** (current tree incl. D2's kit swap): Rosa at Washington Square **88 calls / 316,954
+  triangles** (86 / 307,106 with her hidden: she costs 2 calls, 9.8k), 60 fps in the chat. Ray at the turntable **117 /
+  404,168** (115 / 397,015 without him: 2 calls, 7.2k); in his chat's two-shot 122 / 419,915. Programs 39–40, no new
+  program (residents share the player's material, tested). The downtown base is already at the 400k edge (P6, C2 / D2);
+  Ray adds 1.8 %.
+- **Shots** (`docs/opus-bay/qa/w3/G2/`): `g2-b2-ray-chat-baybay-beside.jpg`, `g2-b2-luz-chat-before-after.jpg`,
+  `g2-b2-phone390-six-residents-chat.jpg` (all six chats on the phone), `g2-b2-phone390-luz-favour-steps.jpg` (every step
+  of Luz's favour on the phone, incl. the postcard card), `g2-b2-phone375-nearby-neighbour.jpg` (menu → 附近有什么？ →
+  BAYBAY leads).
+
+### Decisions
+
+- **BAYBAY keeps her side.** Flow cannot see which side the two-shot camera takes (E2's scoring plus a sticky side), so
+  the mark is chosen never to block the resident from either camera side (tested numerically); she stays on the side
+  she is on, so she never walks between you and them. From the far side she can end up hidden behind the player (the
+  resident stays clear): Request 5 lets the camera take her side.
+- **The neighbour lives in "附近有什么？", not as a 7th menu choice**: the city call menu already fills a 375×667 screen
+  with six; the nearby answer has room (4 choices, 2 rows). Once you said yes, "带我去下一个目标：小忙 · …" leads anyway.
+- **Luz stands in Balmy Alley, her favour is in Clarion Alley** (the plan put her in Clarion): next to the Clarion card
+  the favour would finish before it began; the two alleys are the Mission's two mural lanes, about 200 u apart.
+- **The waypoint refresh on `goalsDone`** is generic (district too): a finished goal's waypoint goes at once instead of
+  up to 2 s later; nothing else changes in district (hero regression green).
+
+### Known gaps
+
+- From the far camera side BAYBAY stands hidden behind the player in a resident's chat (Hank and Dana on desktop and
+  phone, Rosa on desktop). Request 5.
+- Phone portrait two-shot: the player's backpack overlaps part of the resident (Ray, Marcus): E2's framing (6.4 u,
+  38°); faces stay visible.
+- Ray's corner is over 400k triangles in his chat's two-shot (420k; 397k base without him): P6 (C2 / D2 LOD downtown).
+- Once, both of my headless Chromes (desktop and phone) failed at the same moment in a 7-minute session that teleported
+  across the whole city: every WebGL program failed validation on desktop ("Shader Error 1282 … VALIDATE_STATUS false",
+  then "Unable to capture screenshot") and the phone page stopped answering. Both at once, with other lanes' Chromes on
+  the same GPU, points at a GPU reset rather than the page; the per-favour sessions afterwards ran clean. Worth a look in
+  the final verify: a long cross-city session on the phone build, and whether the page recovers from
+  `webglcontextlost` (it hung here).
+- Requests 1–4 of part b are still open on the current tree (the blob of a hidden resident; the 64-entry `goalsDone`
+  cap; the `LANDMARK_EDGES_PENDING` list; F's fallback text, now at `transit.ts` l.440).
+
+### Not done (for the lead)
+
+- **Residents' voices**: residents are text + portrait (G2 has no Higgsfield cap; BAYBAY's recorded voice is one
+  preset). If wanted: H2b records six short greetings in six distinct voices, the phrase = the start of each
+  `npc.<key>.hi` line (`嘿，我是叮当车司机 Ray！` · `早呀，我是面包师 Rosa！` · `嗨！我是画壁画的 Luz。` ·
+  `你好，我是园丁 Hank。` · `嗨，我是巡护员 Dana！` · `嘿，我是开唱片店的 Marcus。`, and the en starts of the same lines),
+  adds them to `SF_VOICE_LINES` as `npc-<key>-hi`, and `game/residentTasks.ts` needs one line in `setResidentTalk` after
+  `playDialogue(node, afterChat)`: ``if (node === nodeIds(r.key).hi) emit({ type: 'voice-line', id: `npc-${r.key}-hi` });``
+- Nothing else of G2's task list is open (G2-4, G2-6, G2-7, G2-9, G2-11, G2-12, F's hooks, G1's place cards: done).
+
+### Requests
+
+5. **E2, `src/opus-bay/actors/camera.ts` `twoShotPose`** (l.818–831): in a resident's chat take BAYBAY's side (she
+   waits beside the resident, `game/flow talkMark`, on the side she was on when the chat began), so she is in the shot
+   instead of behind the player. Before the loop:
+   ```ts
+   // a resident's chat: BAYBAY waits beside them (G2 talkMark) — prefer her side so she is in the shot
+   const gs = view.speaker === 2 ? Math.sign((runtime.guide.x - sx) * az - (runtime.guide.z - sz) * ax) : 0;
+   const prefer = gs || this.twoSide;
+   ```
+   then use `prefer` instead of `this.twoSide` in `let best = …`, `for (const sign of [prefer, -prefer])` and
+   `(sign === prefer ? 0 : 0.3)` (occlusion still wins). The sign matches `camAt`: a positive angle puts the camera on
+   the `(az, −ax)` side, the side `asideMark` calls +1.
+6. Requests 1–4 above (part b) stand unchanged.
+
+Relayed messages during this run: none.
