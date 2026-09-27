@@ -387,3 +387,92 @@ map route lines), G2 (stop slots / lines) and F (crowds along a route). `heroGlt
    `SiteGround` stable, or update D2's callers when you inherit them).
 5. **G1 / G2**: the routes are ready to show (map lines, discovery chips, stop lines): `SF_ROUTES` in `data/sf/routes.ts`.
 6. **Lead** (`ASSETS-LEDGER.md`): merge `ledger/w3-D2.md` part c (0 credits; the HC-4 re-pack note).
+
+## Review
+
+Adversarial review of lane D2's wave-3 work (parts a, b, c: D2-12, D2-15, D2-10, C2-5 Sites, the turntable flag and
+base, D2-08 / D2-13, D2-09 incl. CS-11 / CS-13, D2-11, D2-14, C2's AI_R request, HC-4), 2026-09-27, in the lane's worktree
+(`C:/Users/willy/wt/d2`, dev server 5202).
+
+### 给主人的摘要
+
+- 找到一个明显的 bug 并修好了：快速旅行"去了又回来"之后，市政厅、花卉温室、卡斯特罗剧院等 AI 精模地标会一直停在粗糙的手工版（模型缓存把它们挤掉后不会再换回来）。现在回去几秒内就换回精模，十个地标巡一圈没有一个卡住。
+- 修了鹈鹕滑翔的高度数据：恩典大教堂的尖顶和荣勋宫的圆顶原来被当成地面 0 高度上的东西（低了约 20 米），鹈鹕会从尖顶里穿过去；现在按真实地基算。
+- 近处房屋换精模在日落区一整条街同款房子时会短暂超出实例容量（13 > 12），已加大容量并加了测试；另外两处每帧分配内存的小问题也顺手去掉了。
+- 仍未解决（已由主管分派到第四波）：卡斯特罗等到达点要挪、路线"屏幕里总有地标"比例 72–82%（目标 90%）、唐人街龙门视角三角形 401–408k 略超 400k（C2 的预算，AI 部分只占约 3k）。
+
+### What was checked
+
+- **Code**, every wave-3 commit of the lane (`9691bc2` … `531c37d`): `world/sf/sites.ts` (lod 0 / AI swap / AI_R / Sites
+  LOD / kit start / frame sampling / dispose), `world/sf/kitSwap.ts` (selection, hysteresis, fades, slots, cell drop,
+  budget, dispose), `core/sfTerrain.ts` (Blocker.top, setLandmarkBase, landmarkBase), `landmarks/{index, context, setting,
+  tops, cable-car-turntable, palace-of-fine-arts, …}.ts`, `data/sf/routes.ts`, `world/models.ts` (LRU, heroGltfLoader).
+  Looked for: lifecycle and teardown, per-frame allocations, instance-buffer bounds, program drift, cross-lane readers of
+  D2 data (E2's `actors/glideTall.ts` reads `landmarkBase`), and report claims the code does not back.
+- **Checks** before the fixes (on `531c37d`): tsc 0, **679 / 679**. After the fixes, rebased on `e753cb5`: tsc 0,
+  `npx eslint .` 0 errors (43 warnings, none in `src/opus-bay`), **742 / 742** opus-bay tests. One full run under
+  machine load failed E2's timing assertion in `opus-bay-sf-nav` ("window build 219.5 ms", limit 200 ms); it passes
+  alone and in the re-run (flaky under load, not D2's code).
+- **In the app** (headless Chrome on the RTX via `scripts/opus-shot.mjs`; scenarios in
+  `C:/Users/willy/opus-qa/w3/d2/review/`): desktop 1440×900 golden and night, phone 390×844 dpr 3 at quality mid; the ten
+  D2-09 settings (street and aerial each); fast-travel round trips (`evict.mjs`, `pending.mjs`); a 40 s walk on a Sunset
+  street with 12 kit houses of one model (`kitwalk.mjs`: per-frame instance counts against the slots, `gl.getError()`);
+  quality high → mid → low → high and a 60 u camera rise with the kit on (`quality.mjs`); the glide's tall list for
+  'terrain' landmarks (`glide.mjs`); district mode at `?at=sea-lion-viewpoint` for HC-4; a tap on the phone. Every
+  screenshot was read.
+
+### Defects
+
+| # | severity | what | status |
+|---|---|---|---|
+| R1 | **high** | **AI landmarks stuck procedural after a round trip.** `requestModels` runs once per landmark and its callback fires for the first load only. The model LRU (`KEEP_UNUSED` 6) is shared with the kit's 11 house models, so a landmark's GLB is evicted between visits; `buildMesh`'s `retainModel` reloaded it, but nothing rebuilt the lod 0. A lod 0 built before `world/models.ts` had arrived never retained its model at all, and since `AI_R` the first-load callback skips far landmarks (`aiNear` false). In the app: City Hall → Ocean Beach → City Hall left City Hall procedural for good; the ten-landmark tour had `ai.pending` 1 that never cleared at City Hall, the de Young (the Conservatory), the Conservatory, Twin Peaks and the Castro. | **fixed** `6dfb8c3`: `awaitModels` (on the AI_R flip and at build, whenever the lod 0 may draw AI parts but has none) holds the models and rebuilds when they are decoded; `holdModels` retains for a lod 0 built before the loader arrived. After the fix the round trip brings the AI City Hall back and the tour has pending 0 at all ten stops (`qa/w3/D2/review-ai-roundtrip-ab.jpg`). There is no node test because the loader only runs in a browser; the scenarios above are the evidence. |
+| R2 | medium | **Glide tall parts on base 0.** `CityTerrainProvider.landmarkBase(id)` answered the walkInputs hint (0) for 'terrain' landmarks without deferred decks, even after `setLandmarkBase` (its own interface says "numeric base, pinned, or resolved"). E2's `glideTall.landmarkBaseY` reads it for every 'terrain' landmark, so D2-10's tall parts stood about 20 u too low. In the city, Grace Cathedral stands on base 20.44 but its flèche and towers were at 13.5 / 10.4 / 10.3 instead of 33.9 / 30.8 / 30.7; the Legion's dome was at 6.2 instead of 29.9. Part b's note "nothing else reads it in the city" was no longer true. | **fixed** `93b3d92` in `core/sfTerrain.ts` (D2's additive file): the pinned base comes first. Deferred landmarks and the unpinned answer are unchanged, and the frozen `sf-terrain` test passes. New assertions in `sf-landmark-context` fail without the fix. After the fix, in the app: Grace 33.9 / 30.8 / 30.7, the Legion 29.9, the Dragon Gate and Mission Dolores on their bases. This also settles the lead's routed request "G: `cityTallStructures` on the renderer's base": `glideTall` already reads the provider, which now answers correctly. |
+| R3 | low-medium | **Kit instance buffer overflow.** Each kit model's mesh had 12 slots (the cap), but a house fading out keeps its slot for 0.3 s while the next one joins. A street of one model reached `mesh.count` 13 in a 12-instance mesh: 96 frames in a 60 s node walk; in the app at the Sunset spot (−199, 1518), which has 18 sunset-doelger candidates, 5 frames in a 40 s walk. Writes past the buffers are dropped, and the WebGL spec lets such a draw fail (no GL error on this RTX / ANGLE). | **fixed** `e56e20e`: `KIT_SLOTS` = 2 × the cap, and a join waits while its model's mesh is full. After the fix, in the app: worst 13 of 24 slots, 0 frames over. New test (fails with 12 slots). |
+| R4 | low | **Kit frame budget blind until a landmark lod 0 renders.** `sites.ts` caught the renderer only from a lod-0 mesh's `onBeforeRender`, so until a landmark had been drawn the kit had no ≤ 396k gate (part b calls it a hard gate). | **fixed** `e56e20e`: the kit meshes hand over the renderer too (`onRender`). |
+| R5 | low | Per-frame allocations: `KitSwap.step` spread the entry map into an array every frame, and `CitySites.update` built a radius object every frame. | **fixed** `6dfb8c3`, `e56e20e`. |
+| R6 | observation (C2) | Chinatown at the Dragon Gate arrival (golden, quality high): 124 calls and **401–408k** triangles in four runs (395k at night). With `?ai=0` it is 404.5k, so the AI parts add only about 3k, and the kit correctly stays off. This is over P6's 400k line, but the excess is outside D2 (part b: landmarks ≈ 9.5k in view). | open → C2 / lane V's perf table |
+| R7 | observation | AI models are requested at the lod-0 ring + 150 u (670 u for T1) and retained while the lod 0 is mounted, but since `AI_R` their parts only draw within 220 u. So decoded GLBs (1024 px textures) are held for landmarks up to 520 u away, and they churn the shared LRU (the reason R1 happened so often). Suggestion: request at `AI_R + PRELOAD` and retain only while `aiNear`. This is a design change, so the review did not make it. | open (suggestion for the files' next owner) |
+| R8 | known (report) | Castro's arrival is still behind the theatre on Hartford St (the camera frames roofs). The Palace arrival is in a gap between Baker St houses, and Fort Point's is up on the bluff. The values are in part c Requests 1. | open → routed by the lead (W4 note §8: lane L with C / P, one push) |
+| R9 | known (report) | G5 on-screen gate 72–82 % in the app (target 90 %). | open → re-run `routes-qa.mjs` after W4-L / CS-10 (lead note §8) |
+| R10 | known (report) | Kit night-glass masks for three houses. | open → lane V (lead note §8) |
+
+Checked and fine:
+
+- **Kit through quality changes.** The kit runs on game time, and a quality switch recompiles programs, so the first
+  seconds after a switch pass slowly. Once time ran: mid went 12 → 8, low went to 0 with every toy range restored,
+  high went back to 12, and the kit switched off with the camera above 40 u.
+- **Kit teardown.** `?kit=0` and cell drops work; `dispose` restores the toy ranges byte for byte (tested).
+- **Programs.** 41 at every one of the ten setting stops, with or without the kit.
+- **Turntable.** The spinner rebuild and `baseLift` are right.
+- **Settings.** At golden hour and at night: the lantern strings over Grant Ave are lit, City Hall has its flags and
+  lamps, the Palace lagoon lies 0.18 u over the lawn with no rim wall, the tulip garden is in place. On the phone:
+  Dragon Gate, Palace, the GGB south approach and the Conservatory. Nowhere did furniture float or sink, and there was
+  no z-fighting.
+- **HC-4.** District mode draws the packed BAYBAY, pelican and sea lions with no console error.
+
+### Evidence
+
+- Shot: `qa/w3/D2/review-ai-roundtrip-ab.jpg`: City Hall and the Conservatory at the end of the same Dragon Gate →
+  Palace → … tour, before the fix (procedural, stuck) and after it (AI parts back).
+- Tour after the fix (`settings.mjs`, golden, quality high), calls / triangles / AI on·pending: Dragon Gate 124 / 407k /
+  2·0, Palace 71 / 248k / 1·0, GGB south 58 / 118k, Fort Point 46 / 100k, City Hall 77 / 284k / 2·0, windmill 106 /
+  348k / 1·0, de Young 76 / 253k / 1·0, Conservatory 81 / 273k / 1·0, Twin Peaks 101 / 344k / 1·0, Castro 76 / 325k /
+  2·0. The kit showed 0–12 houses; the budget guard kept it off at the Dragon Gate. Phone (quality mid): 53–103 calls,
+  110k–334k triangles.
+- Scenario logs and shots: `C:/Users/willy/opus-qa/w3/d2/review/`. `run.mjs` drives `scripts/opus-shot.mjs` with a
+  scenario file, and `sheet-*.jpg` are the contact sheets of the settings, night and phone passes.
+
+### Commits
+
+- `6dfb8c3` D2-review: a shipped AI landmark swaps its GLB parts back in after the model cache let them go
+- `e56e20e` D2-review: kit meshes hold twice the cap …; they catch the renderer too
+- `93b3d92` D2-review: landmarkBase answers the renderer's pinned base … (the glide's tall parts)
+- this report
+
+### Requests
+
+- **C2 / lane V (perf table):** R6, the Dragon Gate view at 401–408k.
+- **Lane G (glide), for information:** the lead's routed request "the renderer's base for 'terrain' landmarks" (lead
+  note §8) needs no change: `glideTall.landmarkBaseY` already asks the provider, which now answers the pinned base (R2).
+- **Whoever inherits `sites.ts` (lane L):** consider R7 if the phone shows memory pressure, and call `awaitModels` on
+  any new path that mounts a lod 0 without its AI parts.
