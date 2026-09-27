@@ -241,6 +241,9 @@ const TURNTABLE_NAMES: Record<string, Bilingual> = {
   'taylor-bay': { zh: 'Taylor & Bay 转车台', en: 'Taylor & Bay turntable' },
 };
 
+/** zh glossary (G2): transit.json says 缆车; everything the player reads says 叮当车 ("鲍威尔-海德线叮当车"). */
+export const glossName = (name: Bilingual): Bilingual => ({ zh: name.zh.replace(/缆车/g, '叮当车'), en: name.en });
+
 /** Build the cable-car network from transit.json (the F-line entry is left to world/streetcar.ts). */
 export function buildTransit(file: TransitFileJson): TransitData {
   const cableJson = file.lines.filter(l => l.kind === 'cable-car');
@@ -287,7 +290,7 @@ export function buildTransit(file: TransitFileJson): TransitData {
       return { station: '', at, dwell: terminus || i % 2 === 0, terminus, near: 0 };
     });
     return {
-      id: j.id, kind: 'cable-car', name: j.name, color: j.color, sourceUrl: j.sourceUrl, doubleEnded: j.doubleEnded,
+      id: j.id, kind: 'cable-car', name: glossName(j.name), color: j.color, sourceUrl: j.sourceUrl, doubleEnded: j.doubleEnded,
       xyz, cum, length, osmLength: j.length, s0, stops, turntableStart: ttStart, turntableEnd: ttEnd,
       heroSpans: j.heroSpans.map(([a, b]) => [a + s0, b + s0] as [number, number]),
       crossings: [], shared: [],

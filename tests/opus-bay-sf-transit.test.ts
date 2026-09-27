@@ -384,3 +384,23 @@ test('stations: interactables only in city mode, the push prompt only at a turni
     T.setTransitData(null);
   }
 });
+
+test('G2 glossary: the player reads 叮当车 / 叮当车司机 for the cable cars, never 缆车', () => {
+  const old = /(?<!叮当)缆车/;
+  for (const l of DATA.lines) assert.ok(l.name.zh.includes('叮当车') && !old.test(l.name.zh), l.name.zh);
+  T.setTransitData(DATA);
+  game.set({ worldMode: 'city' });
+  try {
+    for (const it of transit.transitInteractables()) assert.ok(!old.test(it.verb?.zh ?? ''), it.id);
+    for (const stage of ['waiting', 'riding'] as const) {
+      const label = transit.rideLabel({ stage, from: 'powell-market', to: 'hyde-beach', line: 'powell-hyde', kind: 'cable-car' });
+      for (const t of [label.waiting, label.lineTo]) assert.ok(!old.test(t.zh), t.zh);
+    }
+  } finally {
+    game.set({ worldMode: 'district' });
+    T.setTransitData(null);
+  }
+  // every zh literal in the transit flow (inline fallbacks included)
+  const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/game/transit.ts'), 'utf8');
+  assert.deepEqual(src.split('\n').filter(s => old.test(s)), []);
+});

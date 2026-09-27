@@ -9,7 +9,7 @@ import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { noteRide } from '../data/save';
 import { CABLE, type CableLine, type TransitData, activeCableSystem, cableLine, loadTransit, onTransitData, stopPos, transitData, transitStation } from '../data/transit';
-import { hookText, nodeText, npcLine } from './content';
+import { hookFill, hookText, nodeText, npcLine } from './content';
 import { travelEpoch } from './fastTravel';
 import { announce, bubble, completeGoal, defineNode, playDialogue, refreshLock, say, teleportPlayer } from './flow';
 import { flow, type FlowRide } from './flowStore';
@@ -197,9 +197,9 @@ export function rideLabel(ride: FlowRide): RideLabel {
     return {
       icon: 'cable-car',
       waiting: turning
-        ? { zh: `缆车正在转车台上掉头…按 E 帮忙推！${eta.zh}`, en: `The cable car is turning on the turntable… press E to help push!${eta.en}` }
-        : { zh: `等缆车进站…${eta.zh}`, en: `Waiting for the cable car…${eta.en}` },
-      lineTo: { zh: `${line?.name.zh ?? '缆车'} · 开往`, en: `${line?.name.en ?? 'Cable car'} · to` },
+        ? { zh: `叮当车正在转车台上掉头…按 E 帮忙推！${eta.zh}`, en: `The cable car is turning on the turntable… press E to help push!${eta.en}` }
+        : { zh: `等叮当车进站…${eta.zh}`, en: `Waiting for the cable car…${eta.en}` },
+      lineTo: { zh: `${lineName(line).zh} · 开往`, en: `${lineName(line).en} · to` },
       dest: dest ? dest.name : null,
     };
   }
@@ -218,7 +218,10 @@ const PUSH_PREFIX = 'transit-push-';
 const STATION_RADIUS = 4.2;
 /** wide on purpose: while a car turns, pushing wins the E prompt over BAYBAY and the station (brain: score = d / radius) */
 const PUSH_RADIUS = 12;
-const GRIPMAN: Bilingual = { zh: '缆车司机', en: 'Gripman' };
+/** zh glossary (G2): the cable cars are 叮当车 in everything the player reads; the crew's name comes from G2's NPC_LINES */
+const CABLE_CAR: Bilingual = { zh: '叮当车', en: 'Cable car' };
+const gripman = (): Bilingual => npcLine('gripman').name ?? { zh: '叮当车司机', en: 'Gripman' };
+const NO_CAR: [string, string] = ['这一站暂时没有叮当车', 'No cable car at this stop right now'];
 const rides: Record<string, number> = {};
 let seenHorn = input.hornCount;
 let seenInteract = input.interactCount;
@@ -227,7 +230,7 @@ let pushedAt: string | null = null;
 let pollT = 0;
 
 const isCity = () => game.get().worldMode === 'city';
-const lineName = (line: CableLine | undefined): Bilingual => line?.name ?? { zh: '缆车', en: 'Cable car' };
+const lineName = (line: CableLine | undefined): Bilingual => line?.name ?? CABLE_CAR;
 
 /** Seconds a ride from station `from` to `to` takes on `line` (cable speed, dwells at the stops in between). */
 export function cableRideSeconds(line: CableLine, from: string, to: string): number {
@@ -255,9 +258,9 @@ export function cableChoices(data: TransitData, stationId: string): { line: Cabl
 /** E at a cable-car station: the gripman asks where to (each line's terminus both ways). */
 export function boardCable(stationId: string) {
   const data = transitData(), station = transitStation(stationId);
-  if (!data || !station) { say('这一站暂时没有缆车', 'No cable car at this stop right now'); return; }
+  if (!data || !station) { say(...NO_CAR); return; }
   const options = cableChoices(data, stationId);
-  if (!options.length) { say('这一站暂时没有缆车', 'No cable car at this stop right now'); return; }
+  if (!options.length) { say(...NO_CAR); return; }
   const choices: NonNullable<DialogueNode['choices']> = options.map((o, i) => {
     const dest = transitStation(o.to)!;
     return {
@@ -268,8 +271,9 @@ export function boardCable(stationId: string) {
   });
   choices.push({ hotkey: String(choices.length + 1), label: { zh: '先不坐了', en: 'Not now' }, action: { type: 'end' } });
   playDialogue(defineNode({
-    id: 'flow.cablecar', speaker: 'npc', npcName: GRIPMAN, mood: 'happy',
-    text: { zh: `叮叮！这里是 ${station.name.zh}。抓紧扶杆，想去哪儿？`, en: `Ding-ding! This is ${station.name.en}. Hold on tight, where to?` },
+    id: 'flow.cablecar', speaker: 'npc', npcName: gripman(), mood: 'happy',
+    text: hookFill('cablecarStation', { station: station.name })
+      ?? { zh: `叮叮！这里是 ${station.name.zh}。抓紧扶杆，想去哪儿？`, en: `Ding-ding! This is ${station.name.en}. Hold on tight, where to?` },
     choices,
   }));
 }
@@ -278,16 +282,16 @@ export function boardCable(stationId: string) {
 export function rideCable(lineId: string, from: string, to: string) {
   const line = cableLine(lineId);
   const a = line?.stops.find(st => st.station === from), b = line?.stops.find(st => st.station === to);
-  if (!line || !a || !b || a === b) { say('这一站暂时没有缆车', 'No cable car at this stop right now'); return; }
+  if (!line || !a || !b || a === b) { say(...NO_CAR); return; }
   const dir: 1 | -1 = b.at > a.at ? 1 : -1;
   const r = beginLineRide(lineId, from, to, dir, travelEpoch());
-  if (!r) { say('缆车还没开过来，稍等一下', 'The cable cars are not running here yet, try again in a moment'); return; }
+  if (!r) { say('叮当车还没开过来，稍等一下', 'The cable cars are not running here yet, try again in a moment'); return; }
   game.set({ move: { mode: 'transit', line: lineId, spot: 'rail' }, panel: { kind: null } });
   refreshLock();
   const eta = lineRideEta();
   flow.set({ ride: { stage: 'waiting', from, to, line: lineId, kind: 'cable-car', eta: eta ? Math.max(1, Math.round(eta)) : undefined } });
   const dest = transitStation(to);
-  announce({ zh: `等缆车：${line.name.zh} 开往 ${dest?.name.zh ?? ''}`, en: `Waiting for the ${line.name.en} to ${dest?.name.en ?? ''}` });
+  announce({ zh: `等叮当车：${lineName(line).zh} 开往 ${dest?.name.zh ?? ''}`, en: `Waiting for the ${line.name.en} to ${dest?.name.en ?? ''}` });
   seenInteract = input.interactCount;
 }
 
@@ -314,7 +318,7 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
   const line = cableLine(r.line!);
   if (tick.boarded) {
     emit({ type: 'transit', what: 'board', line: r.line!, kind: 'cable-car' });
-    bubble({ zh: '上车啦！抓紧扶杆，缆车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
+    bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
     announce({ zh: `上车：${lineName(line).zh}`, en: `Aboard the ${lineName(line).en}` });
   }
   if (tick.count) countRide(r);
@@ -365,8 +369,8 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   emit({ type: 'transit', what: 'bell', line: r.line!, kind: 'cable-car', strength: 0.8 });
   const dest = transitStation(r.to);
   if (finishing && dest) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
-  if (r.counted && !skip) bubble(hookText('cablecarOff') ?? { zh: '叮叮！下次还坐缆车', en: 'Ding-ding! Let’s ride again soon' }, 2800);
-  else if (r.mode === 'follow') bubble({ zh: '从一站坐到下一站，才算坐过缆车哦', en: 'Ride from one stop to the next and it counts as a cable-car ride' }, 3200);
+  if (r.counted && !skip) bubble(hookText('cablecarOff') ?? { zh: '叮叮！下次还坐叮当车', en: 'Ding-ding! Let’s ride again soon' }, 2800);
+  else if (r.mode === 'follow') bubble(hookText('cablecarCount') ?? { zh: '从一站坐到下一站，才算坐过叮当车哦', en: 'Ride from one stop to the next and it counts as a cable-car ride' }, 3200);
   refreshLock();
 }
 
@@ -388,7 +392,7 @@ function pollTurntables(dt: number) {
   const now = data.turntables.filter(tt => sys.turningAt(tt.id) && Math.hypot(tt.x - p.x, tt.z - p.z) < 40).map(tt => tt.id);
   if (pushedAt && !sys.turningAt(pushedAt)) {
     pushedAt = null;
-    bubble({ zh: '转过来啦！我们是全城最棒的推车手', en: 'Round she goes! Best pushers in the whole city' }, 3200);
+    bubble(hookText('turntableTurned') ?? { zh: '转过来啦！我们是全城最棒的推车手', en: 'Round she goes! Best pushers in the whole city' }, 3200);
     emit({ type: 'emote', who: 'baybay', emote: 'clap' });
   }
   if (now.join() !== turningNear.join()) { turningNear = now; invalidateInteractables(); }
@@ -400,7 +404,7 @@ export function transitInteractables(): Interactable[] {
   if (!isCity() || !data) return [];
   const out: Interactable[] = data.stations.map(st => ({
     id: `transit-${st.id}`, source: 'transit' as const, action: 'streetcar' as const,
-    verb: { zh: '坐缆车', en: 'Ride the cable car' },
+    verb: { zh: '坐叮当车', en: 'Ride the cable car' },
     name: st.name, x: st.x, z: st.z, radius: STATION_RADIUS, refId: st.id,
   }));
   for (const id of turningNear) {
