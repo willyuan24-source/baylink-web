@@ -315,3 +315,22 @@ export const HILL = { y0: 30, y1: 60, max: 0.55, slope0: 0.95, slopeMax: 0.35, s
 export const hillMix = (h: number) => (h <= HILL.y0 ? 0 : Math.min(HILL.max, ((h - HILL.y0) / (HILL.y1 - HILL.y0)) * HILL.max));
 /** share of bare earth at a slope (gradient magnitude) */
 export const slopeEarth = (slope: number) => (slope <= HILL.slope0 ? 0 : Math.min(HILL.slopeMax, (slope - HILL.slope0) * HILL.slopeGain));
+
+/**
+ * Night street lamps (lane C2-9): lamp level per road class, primary 1 / secondary 0.7 / tertiary 0.5 (motorways 0.8,
+ * residential streets 0: their light comes from the windows). The city ground bakes it into the asphalt ribbons'
+ * aInfo.w (GROUND_CITY + level, with the arc length in y and the side in z) for the GROUND street glow, and the light
+ * field (world/sf/lights.ts) puts a lamp every LAMP_STEP u along the same streets.
+ */
+export const STREET_LAMP: Readonly<Record<string, number>> = { motorway: 0.8, trunk: 1, primary: 1, secondary: 0.7, tertiary: 0.5 };
+export const LAMP_STEP = 9;
+
+/**
+ * aInfo of an asphalt ribbon `half` u wide on each side (worker-safe): the street glow's (pattern, arc length, side
+ * −1 … 1, GROUND_CITY + lamp level) for a lit class, else plain city asphalt.
+ */
+export function asphaltInfo(roadClass: string | undefined, half: number, pattern: number, cityFlag: number): readonly [number, number, number, number] | ((s: number, o: number) => readonly [number, number, number, number]) {
+  const lvl = roadClass ? STREET_LAMP[roadClass] ?? 0 : 0;
+  if (!(lvl > 0) || !(half > 0)) return [pattern, 0, 0, cityFlag];
+  return (s, o) => [pattern, s, o / half, cityFlag + lvl];
+}

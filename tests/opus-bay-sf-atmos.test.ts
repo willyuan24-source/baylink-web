@@ -84,3 +84,164 @@ test('fog stays a uniform: the city Environment scales FogExp2.density, THREE.Sh
   assert.equal(d.fog.density, TIME_PRESETS.golden.fogDensity);
   assert.equal(JSON.stringify(THREE.ShaderChunk), CHUNKS_BEFORE);
 });
+
+// ---------------------------------------------------------------------------
+// Karl the Fog (C2-8) and the night light field (C2-9)
+// ---------------------------------------------------------------------------
+
+const { KARL, KARL_TIME, KarlState, karlCover, karlTarget, parseKarlFlag, patchFog } = await import('../src/opus-bay/world/sf/fog');
+const { GROUND, TOY, patchToyShader } = await import('../src/opus-bay/world/materials');
+
+const P = {
+  sunset: [-243, 12, 1306], richmond: [-436, 18, 949], oceanBeach: [-400, 4, 1480], downtown: [137, 10, 133], mission: [195, 12, 648],
+  tpSummit: [126, 55, 938], ggbDeck: [-865.8, 15.2, 508.6], ggbTop: [-796.1, 42.2, 564.4], offshore: [-900, 2, 1900],
+} as const;
+const cover = (k: keyof typeof P, tod: (typeof TODS)[number]) => karlCover(P[k][0], P[k][1], P[k][2], karlTarget(tod, null));
+
+test('Karl: patchFog edits one material\'s own shader (THREE.ShaderChunk byte-identical), once, keeping three\'s fog after it', () => {
+  const std = () => ({ vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} as Record<string, THREE.IUniform> });
+  const toy = std();
+  patchToyShader(toy, { sway: true });
+  const ground = std();
+  GROUND.onBeforeCompile(ground as never, undefined as never);
+  const generic = std();
+  patchFog(generic);
+  patchFog(generic);
+  for (const [name, s] of [['toy', toy], ['ground', ground], ['generic', generic]] as const) {
+    assert.equal(s.fragmentShader.split('obKarlCover(vec3 w)').length, 2, `${name}: Karl's GLSL once`);
+    assert.equal(s.fragmentShader.split('#include <fog_fragment>').length, 2, `${name}: three's fog include kept`);
+    assert.ok(s.fragmentShader.indexOf('obKarl(') < s.fragmentShader.lastIndexOf('#include <fog_fragment>'), `${name}: Karl, then the haze`);
+    assert.equal(s.uniforms.uKarl, KARL.uKarl, `${name}: shared uniform`);
+  }
+  assert.ok(toy.fragmentShader.includes('obKarl(vWPos, vFogDepth)') && ground.fragmentShader.includes('obKarl(vWPos, vFogDepth)'));
+  assert.ok(generic.vertexShader.includes('vObKarlW = cameraPosition + mvPosition.xyz * mat3(viewMatrix);') && generic.fragmentShader.includes('obKarl(vObKarlW, vFogDepth)'));
+  // TOY ≡ patchToyShader still holds (the frozen contract), with Karl inside
+  const a = std();
+  TOY.onBeforeCompile(a as never, undefined as never);
+  assert.equal(a.fragmentShader, toy.fragmentShader);
+  // no fog include → untouched
+  const none = { vertexShader: 'void main() {}', fragmentShader: 'void main() {}', uniforms: {} };
+  patchFog(none);
+  assert.equal(none.fragmentShader, 'void main() {}');
+  assert.equal(JSON.stringify(THREE.ShaderChunk), CHUNKS_BEFORE);
+});
+
+test('Karl: time table (morning 1, day 0.15, golden 0.6, night 0.35) and ?karl=0|1', () => {
+  assert.deepEqual(TODS.map(t => KARL_TIME[t].level), [1, 0.15, 0.6, 0.35]);
+  for (const t of TODS) {
+    assert.equal(karlTarget(t, 0).level, 0, `${t}: ?karl=0 is off`);
+    assert.ok(karlTarget(t, 1).level >= 0.6, `${t}: ?karl=1 is on`);
+    assert.equal(karlTarget(t, null).level, KARL_TIME[t].level);
+  }
+  assert.ok(karlTarget('day', 1).front > 0, '?karl=1 by day: the bank comes in');
+  assert.deepEqual(['0', '1', 'x', null].map(parseKarlFlag), [0, 1, null, null]);
+});
+
+test('Karl: pools over the Sunset / Richmond, through the Gate at golden hour, never downtown or on the summit', () => {
+  for (const k of ['sunset', 'richmond', 'oceanBeach'] as const) assert.ok(cover(k, 'morning') > 0.9, `morning ${k} ${cover(k, 'morning')}`);
+  for (const t of TODS) for (const k of ['downtown', 'mission', 'tpSummit'] as const) assert.equal(cover(k, t), 0, `${t} ${k}`);
+  assert.ok(cover('ggbDeck', 'golden') > 0.9 && cover('ggbDeck', 'morning') > 0.7, 'the deck is in the Gate tongue');
+  assert.equal(cover('ggbTop', 'golden'), 0, 'the towers stand above it');
+  assert.ok(cover('oceanBeach', 'golden') > 0.5 && cover('richmond', 'golden') < 0.05, 'golden: only the outer avenues');
+  assert.ok(cover('sunset', 'day') === 0 && cover('offshore', 'day') > 0.9, 'day: waits offshore');
+});
+
+test('Karl: district never turns it on; the city slides between layouts in KARL_SLIDE s', () => {
+  const cam = new THREE.PerspectiveCamera();
+  KARL.uKarl.value = 0; // a page is one mode (the city Environment above wrote the shared uniform)
+  const d = new Environment('district');
+  d.setTime('morning', true);
+  for (let i = 0; i < 20; i++) d.update(0.1, cam, new THREE.Vector3());
+  assert.equal(KARL.uKarl.value, 0, 'district: uKarl stays 0');
+  const k = new KarlState();
+  k.setTime('golden', true);
+  k.update(0.016);
+  assert.equal(k.cur.level, 0.6);
+  const epoch = k.epoch;
+  k.setTime('morning', false);
+  assert.equal(k.epoch, epoch + 1);
+  k.update(10);
+  assert.ok(k.cur.front > KARL_TIME.golden.front && k.cur.front < KARL_TIME.morning.front, `sliding: ${k.cur.front}`);
+  for (let i = 0; i < 40; i++) k.update(1);
+  assert.equal(k.t, 1);
+  assert.equal(k.cur.front, KARL_TIME.morning.front);
+  assert.equal(KARL.uKarl.value, 1);
+  assert.equal(KARL.uKarlA.value.x, KARL_TIME.morning.front);
+  k.setFlag(0);
+  assert.equal(KARL.uKarl.value, 0, '?karl=0 is off at once');
+  k.setFlag(null);
+  KARL.uKarl.value = 0;
+});
+
+const { CLOUD_BANK, CloudBank, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
+
+test('Karl: the cloud bank is 40–80 clusters on one TOY_INST InstancedMesh, ≤ 12k triangles, sitting inside Karl', async () => {
+  const { TOY_INST } = await import('../src/opus-bay/world/materials');
+  assert.ok(CLOUD_BANK.count >= 40 && CLOUD_BANK.count <= 80);
+  const k = new KarlState();
+  k.setTime('morning', true);
+  const bank = new CloudBank(k);
+  assert.equal(bank.mesh.material, TOY_INST);
+  assert.equal(bank.mesh.count, CLOUD_BANK.count);
+  assert.equal(bank.mesh.castShadow, false);
+  assert.equal(bank.mesh.instanceColor, null, 'the props\' instanced program (no instanceColor)');
+  assert.ok(bank.mesh.geometry.getAttribute('aInfo'), 'TOY_INST reads aInfo');
+  assert.ok(bank.triangles <= 12000 && bank.triangles >= 8000, `triangles ${bank.triangles}`);
+  const cam = new THREE.PerspectiveCamera();
+  cam.position.set(140, 115, 1000);
+  bank.update(0.016, 0, cam);
+  assert.ok(bank.mesh.visible);
+  for (const tod of TODS) {
+    const t = karlTarget(tod, null);
+    const slots = cloudSlots(t);
+    assert.equal(slots.length, CLOUD_BANK.count);
+    const inside = slots.filter(s => karlCover(s.x, t.top - 12, s.z, t) > 0.5).length;
+    assert.ok(inside >= slots.length * 0.9, `${tod}: ${inside}/${slots.length} clusters over Karl`);
+    // never over downtown / the Mission (east of the front by far)
+    assert.ok(slots.every(s => (s.x - 137) ** 2 + (s.z - 133) ** 2 > 400 ** 2 && (s.x - 195) ** 2 + (s.z - 648) ** 2 > 250 ** 2), `${tod}: clear of downtown`);
+  }
+  k.setFlag(0);
+  bank.update(0.016, 0, cam);
+  assert.equal(bank.mesh.visible, false, '?karl=0: no clouds, no draw call');
+  bank.dispose();
+  KARL.uKarl.value = 0;
+});
+
+const { streetLamps, ggbLights, LightField, LIGHT_FIELD } = await import('../src/opus-bay/world/sf/lights');
+const { asphaltInfo, STREET_LAMP } = await import('../src/opus-bay/world/sf/look');
+const { sfDisk } = await import('./opus-bay-sf-disk');
+
+test('night light field: ≥ 10k street lamps from far.lines + the GGB, one Points draw, hidden by day', async () => {
+  const far = await sfDisk().far();
+  const lamps = streetLamps(far.lines);
+  assert.ok(lamps.length >= 10000 && lamps.length <= 20000, `lamps ${lamps.length}`);
+  const ggb = ggbLights();
+  assert.ok(ggb.length >= 100, `GGB lights ${ggb.length}`);
+  // the deck lights run between the two towers at the deck height
+  const deck = ggb.filter(l => Math.abs(l.y - 17.5) < 0.1);
+  assert.ok(deck.some(l => Math.hypot(l.x + 865.8, l.z - 508.6) < 8), 'a deck light at mid-span');
+  assert.ok(ggb.some(l => l.level >= 2 && l.y > 42), 'blinking aviation lights on the tower tops');
+  const renderer = { getDrawingBufferSize: (v: THREE.Vector2) => v.set(960, 600) } as unknown as THREE.WebGLRenderer;
+  const field = new LightField(renderer, { siteLights: () => [] });
+  field.setFar(far);
+  assert.equal(field.count, lamps.length + ggb.length);
+  assert.equal(field.group.children.length, 1, 'one Points object');
+  const cam = new THREE.PerspectiveCamera(50);
+  field.update(0.1, 0, cam, 0);
+  assert.equal(field.visible, false, 'by day: hidden (0 calls)');
+  field.update(0.1, 0, cam, 1);
+  assert.equal(field.visible, true, 'at night: on');
+  assert.ok((LIGHT_FIELD.uniforms.uPx.value as number) > 500);
+  field.dispose();
+});
+
+test('night street glow: lit classes bake (arc length, side, GROUND_CITY + lamp level) into the asphalt', () => {
+  assert.deepEqual([STREET_LAMP.primary, STREET_LAMP.secondary, STREET_LAMP.tertiary], [1, 0.7, 0.5]);
+  const lit = asphaltInfo('primary', 4, 5, 1);
+  assert.equal(typeof lit, 'function');
+  assert.deepEqual((lit as (s: number, o: number) => readonly number[])(12, -4), [5, 12, -1, 2]);
+  assert.deepEqual(asphaltInfo('residential', 4, 5, 1), [5, 0, 0, 1], 'unlit: plain city asphalt');
+  const g = { vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader, uniforms: {} };
+  GROUND.onBeforeCompile(g as never, undefined as never);
+  assert.ok(g.fragmentShader.includes('vInfo.w > 1.05'), 'the glow only runs on lit city streets (hero ground has w = 0)');
+});

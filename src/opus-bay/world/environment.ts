@@ -3,7 +3,7 @@ import type { Polygon } from '../core/types';
 import type { Quality, TimeOfDay, WorldMode } from '../core/store';
 import { MOON_DIR, TIME_PRESETS, type TimePreset } from './palette';
 import { U } from './materials';
-import { cityFogK } from './sf/fog';
+import { KARL, KARL_GEO, KarlState, cityFogK } from './sf/fog';
 
 /**
  * Sky dome, sun + hemisphere light, fog, the cream "table" under the floating diorama boards and their
@@ -71,6 +71,8 @@ uniform float uSunDisc;
 uniform float uNight;
 uniform float uGolden;
 uniform float uTime;
+uniform float uKarl;
+uniform vec3 uKarlColor;
 varying vec3 vDir;
 float h1(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 void main() {
@@ -104,6 +106,12 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  // Karl the Fog (city, lane C2-8): the bank on the western horizon, mixed where the materials mix it (after the
+  // colour-space step, like three's fog); uKarl stays 0 in district mode
+  if (uKarl > 0.0) {
+    float kw = max(dot(normalize(d.xz + 1e-5), vec2(${(-KARL_GEO.east.x).toFixed(4)}, ${(-KARL_GEO.east.z).toFixed(4)})), 0.0);
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, uKarlColor, uKarl * 0.8 * kw * kw * (1.0 - smoothstep(0.015, 0.11, y)));
+  }
 }`;
 
 export class Environment {
@@ -130,6 +138,8 @@ export class Environment {
   /** ground height under the camera (city mode fog), set by the world */
   groundAt: ((x: number, z: number) => number) | null = null;
   private fogK = 1;
+  /** Karl the Fog (city mode only; district keeps uKarl = 0): the world sets its `?karl` flag, the cloud bank reads it */
+  readonly karl = new KarlState();
 
   constructor(mode: WorldMode = 'district') {
     this.mode = mode;
@@ -141,6 +151,7 @@ export class Environment {
         uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uBottom: { value: new THREE.Color() },
         uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunColor: { value: new THREE.Color() }, uSunDisc: { value: 1 }, uNight: U.uNight,
         uMoonDir: { value: MOON.clone() }, uGolden: { value: 0 }, uTime: U.uTime,
+        uKarl: KARL.uKarl, uKarlColor: KARL.uKarlColor,
       },
       vertexShader: SKY_VERT,
       fragmentShader: SKY_FRAG,
@@ -241,6 +252,7 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
   setTime(tod: TimeOfDay, instant: boolean) {
     if (tod === this.tod && this.blend >= 1) return;
     this.tod = tod;
+    if (this.mode === 'city') this.karl.setTime(tod, instant);
     this.target = toLive(TIME_PRESETS[tod]);
     this.blend = instant ? 1 : 0;
     if (instant) { this.live = toLive(TIME_PRESETS[tod]); this.apply(); }
@@ -279,6 +291,7 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
       const k = cityFogK(camera.position.y, ground, this.tod);
       this.fogK += (k - this.fogK) * Math.min(1, dt * 3);
       this.fog.density = this.live.fogDensity * this.fogK;
+      this.karl.update(dt);
     }
     this.sky.position.copy(camera.position);
     this.sky.updateMatrix();

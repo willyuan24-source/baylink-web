@@ -8,6 +8,8 @@ export { CityWater } from './water';
 export { heroLandRaster, heroProxy } from './hero';
 export { heroGroundJob, heroGroundProxy } from './heroGround';
 export { attachMurals } from './murals';
+export { CloudBank } from './cloudBank';
+export { LightField, siteLightSpecs } from './lights';
 export { mountCityDebug } from './stats';
 export { demSample } from './format';
 // for actors/moveSystem.ts (lane E2 request in docs/opus-bay/sf-w2-C2.md): once it reads the glide obstacles through

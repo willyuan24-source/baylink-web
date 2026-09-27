@@ -20,6 +20,7 @@ import { BlobBatch, Floaters, type HaloSpec, type PoolSpec, buildProps } from '.
 import { type CityModule, cityModule } from './cityLoader';
 import type { CityStreamer } from './sf/stream';
 import type { CityWater } from './sf/water';
+import type { KarlFlag } from './sf/fog';
 import { Streetcars } from './streetcar';
 import { buildBuildingDistanceTexture, buildDistanceTexture, buildDistrictWater, buildLightMask, makeWaterMaterial } from './water';
 
@@ -126,6 +127,8 @@ export class World {
   private unmountDebug: (() => void) | null = null;
   /** removes lane H2b's mural system (world/sf/murals.ts) with the city it was attached to */
   private detachMurals: (() => void) | null = null;
+  /** removes Karl's cloud bank and the night light field (city mode, lane C2-8 / C2-9) */
+  private detachAtmos: (() => void)[] = [];
   readonly atlas = new LabelAtlas();
   readonly water: THREE.ShaderMaterial;
   readonly heroes: THREE.Mesh[] = [];
@@ -391,13 +394,18 @@ export class World {
    * City mode: start streaming the whole city (plan §5.1). The hero is already on screen; the manifest and the far city
    * load during the arrival cinematic, then chunks stream around the player. Idempotent.
    */
-  enableCity(renderer: THREE.WebGLRenderer, quality: Quality, opts: { pool?: 'batched' | 'tile' } = {}) {
+  enableCity(renderer: THREE.WebGLRenderer, quality: Quality, opts: { pool?: 'batched' | 'tile'; karl?: KarlFlag } = {}) {
     if (this.mode !== 'city' || this.city || !this.cityWater) return;
     const water = this.cityWater;
     const ai = CITY_BACKDROP['angel-island'];
     const cm = requireCity();
     const { demSample } = cm;
     const sites = new cm.CitySites();
+    // Karl the Fog (?karl=0|1, else the time table) with its cloud bank, and the night light field
+    if (opts.karl !== undefined) this.env.karl.setFlag(opts.karl);
+    const clouds = new cm.CloudBank(this.env.karl);
+    const lightField = new cm.LightField(renderer, { slab: DISTRICT.slab, siteLights: () => cm.siteLightSpecs(sites.siteLights()) });
+    this.detachAtmos = [this.addSystem(clouds), this.addSystem(lightField)];
     const sb = new THREE.Box3();
     for (const m of this.heroGroundChunks) sb.union(m.geometry.boundingBox!);
     const heroGround = this.heroGroundChunks;
@@ -425,6 +433,8 @@ export class World {
         };
         water.setEdge((x, z) => (land(x, z) ? demSample(far.dem, x, z) : null), slabEdge);
         this.env.groundAt = (x, z) => demSample(far.dem, x, z);
+        clouds.setGround(this.env.groundAt);
+        lightField.setFar(far);
       },
     });
     this.root.add(this.city.group);
@@ -448,6 +458,8 @@ export class World {
     this.unmountDebug = null;
     this.detachMurals?.();
     this.detachMurals = null;
+    for (const detach of this.detachAtmos) detach();
+    this.detachAtmos = [];
     if (!this.city) return;
     this.root.remove(this.city.group);
     this.city.dispose();

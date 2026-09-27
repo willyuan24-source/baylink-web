@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { patchFog } from './sf/fog';
 
 /**
  * Shared materials + uniforms for the world. Almost everything static uses one of two
@@ -132,6 +133,7 @@ GROUND.name = 'ob-ground';
 GROUND.onBeforeCompile = shader => {
   Object.assign(shader.uniforms, U);
   patchCommonVertex(shader, false);
+  patchFog(shader, { world: 'vWPos' });
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${COMMON_FRAG_PARS}
 uniform sampler2D uBDist;
@@ -216,6 +218,18 @@ vec2 obHerring(vec2 p) {
     k = vec3(0.92 + 0.16 * n);
   }
   diffuseColor.rgb *= k * (0.965 + 0.07 * macro);
+  // night street glow (lane C2-9): city main streets carry their lamp level in aInfo.w (GROUND_CITY + 0.5 … 1), the
+  // arc length in aInfo.y and the side (−1 … 1 across the asphalt) in aInfo.z: a warm pool every 9 u on alternate
+  // curbs, their mean once the pools shrink below a few pixels (the street reads as a lit ribbon from the hills),
+  // fading out within ≈ 45–110 u of the camera, where the real lamps and their light pools take over
+  if (pat == 5.0 && vInfo.w > 1.05 && uNight > 0.01) {
+    float sq = vInfo.y / 9.0 + (vInfo.z > 0.0 ? 0.0 : 0.5);
+    float ds = (fract(sq) - 0.5) * 9.0;
+    float unres = smoothstep(0.25, 0.8, fwidth(sq));
+    float glow = mix(exp(-ds * ds / 5.0), 0.44, unres) * (0.3 + 0.7 * smoothstep(0.0, 1.0, abs(vInfo.z)));
+    float away = smoothstep(45.0, 110.0, distance(vWPos, uCam));
+    totalEmissiveRadiance += vec3(1.0, 0.62, 0.3) * glow * (vInfo.w - 1.0) * uNight * away * 0.9;
+  }
   // contact shadow next to buildings, stalls and kiosks (baked distance field; hero ground only, see GROUND_CITY)
   if (uBDistOn > 0.5 && vInfo.w < 0.5) {
     vec2 buv = (p - uBDistBox.xy) / uBDistBox.zw;
@@ -346,6 +360,8 @@ export function patchToyShader(shader: THREE.WebGLProgramParametersWithUniforms,
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${COMMON_FRAG_PARS}${hero ? '\nuniform float uHeroFade;' : ''}`)
     .replace('#include <color_fragment>', TOY_FRAG);
+  // Karl the Fog (lane C2-8): TOY-wide, so the hero and D2's model material (which call this) get it too
+  patchFog(shader, { world: 'vWPos' });
 }
 
 function makeToy({ sway, name, hero }: ToyOpts) {

@@ -11,6 +11,7 @@ import { suspendForCity } from './cityLoader';
 import { U } from './materials';
 import { PostFX, type PostParams } from './post';
 import { type World, getWorld } from './world';
+import { parseKarlFlag } from './sf/fog';
 
 export { FERRY_ARRIVAL_SECONDS } from './life';
 
@@ -81,8 +82,10 @@ export function WorldScene() {
   // city mode: start streaming San Francisco once the hero is on screen (manifest + far load during the arrival)
   useEffect(() => {
     if (world.mode !== 'city') return;
-    const pool = new URLSearchParams(location.search).get('pool');
-    world.enableCity(gl, game.get().settings.quality, { pool: pool === 'tile' || pool === 'batched' ? pool : undefined });
+    const q = new URLSearchParams(location.search);
+    const pool = q.get('pool');
+    // ?karl=0|1: Karl the Fog off / forced on (lane C2-8); without it, the time table (on in the morning and golden hour)
+    world.enableCity(gl, game.get().settings.quality, { pool: pool === 'tile' || pool === 'batched' ? pool : undefined, karl: q.has('karl') ? parseKarlFlag(q.get('karl')) : undefined });
   }, [gl, world]);
   useEffect(() => applyTime(world, timeOfDay, reduced), [timeOfDay, reduced, world]);
 

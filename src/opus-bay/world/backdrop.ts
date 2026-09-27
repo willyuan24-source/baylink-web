@@ -537,7 +537,8 @@ function buildCityBackdrop(g: Batch, b: Batch, halos: HaloSpec[]): BackdropOut {
     else if (def.kind === 'alcatraz') alcatrazLighthouse(b, halos, beams);
     else if (def.kind === 'angel-island') buildTile(g, angelIsland(b, def, true), 3 * 17, true);
   }
-  clouds(b);
+  // no hand-hung clouds in city mode (CS-12: from high views they rested on the waterfront): Karl the Fog's cloud
+  // bank (world/sf/cloudBank.ts) is the city's
   return { boards: [], water: [], beams, bridge };
 }
 

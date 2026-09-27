@@ -8,7 +8,7 @@ import { CITY_ROOFS, CITY_STYLES, type CityBuildingSpec, type CityPalette, toyBu
 import { WIN } from '../recipes/shapes';
 import type { TypedBatchArrays } from '../typedBatch';
 import { type L0Buildings, L0Recorder, l0Desc } from './l0index';
-import { HILL, type LookStyle, type LookZones, hillMix, sfLook, slopeEarth, zoneAt } from './look';
+import { HILL, type LookStyle, type LookZones, asphaltInfo, hillMix, sfLook, slopeEarth, zoneAt } from './look';
 import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
 import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
 import { type Raster, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
@@ -506,7 +506,7 @@ function streetsL0(ctx: ChunkContext, g: CityBatch, t: CityBatch, x0: number, z0
   }
   for (const [l, aw, k] of asphalt) {
     const st = STREET[k]!;
-    ribbon(g, l, aw, LIFT.asphalt, C(st.asphalt!), gInfo(P.asphalt));
+    ribbon(g, l, aw, LIFT.asphalt, C(st.asphalt!), asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY));
     ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), aw / 2 - 0.06);
     ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), -aw / 2 + 0.06);
     if (st.dash && aw > 3.2) dashes(g, l, 0.14, LIFT.dash, C(CITY_PAL.dash), 1.6, 4, gInfo(P.none));
@@ -527,7 +527,8 @@ function streetsL1(ctx: ChunkContext, g: CityBatch, x0: number, z0: number) {
     for (const l of streetPieces(ctx, i, x0, z0, CELL)) {
       const w = rd.width[i];
       if (!elevated) ribbon(g, l, w, lift - 0.02, C(st.walk === CITY_PAL.sidewalk ? CITY_PAL.sidewalk : st.walk), gInfo(P.none), 0, onGround);
-      ribbon(g, l, st.asphalt ? Math.max(1.6, w - CURB_BAND * 2) : w, lift, C(st.asphalt ?? st.walk), gInfo(st.asphalt ? P.asphalt : P.stone), 0, elevated ? undefined : onGround);
+      const aw = st.asphalt ? Math.max(1.6, w - CURB_BAND * 2) : w;
+      ribbon(g, l, aw, lift, C(st.asphalt ?? st.walk), st.asphalt && !elevated ? asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY) : gInfo(st.asphalt ? P.asphalt : P.stone), 0, elevated ? undefined : onGround);
     }
   }
 }

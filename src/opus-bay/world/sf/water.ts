@@ -5,6 +5,7 @@ import { Batch, splitGeometry } from '../builder';
 import { GROUND } from '../materials';
 import { CITY_PAL } from '../palette';
 import { makeWaterMaterial } from '../water';
+import { patchFog } from './fog';
 
 /**
  * City-mode water and the edges of the big board (plan §5.8): one water material (the district's shader, with a deeper,
@@ -123,6 +124,8 @@ export class CityWater {
     this.board = boardPolygon();
     this.material = makeWaterMaterial(distTex, box);
     patchPacific(this.material);
+    // Karl the Fog (lane C2-8) on the city water (vW: the water's world position)
+    patchFog(this.material, { world: 'vW' });
     this.near = this.nearGrid();
     this.far = this.farGrid();
     this.group.add(this.far, this.near);

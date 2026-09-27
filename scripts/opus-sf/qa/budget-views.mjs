@@ -34,6 +34,10 @@ export const VIEWS = [
   { id: 'sunset', note: 'Sunset district at 60 u → the ocean', cam: { p: [-60, 70, 1560], t: [-330, 0, 1520], f: [-150, 1545] } },
   { id: 'marina', note: 'Marina at 40 u → the Bay', cam: { p: [-280, 45, 420], t: [-400, 0, 320], f: [-360, 360] } },
   { id: 'ocean', note: 'Ocean Beach (walking)', go: { x: -478.1, z: 1416, fx: -530, fz: 1466, arrival: true } },
+  // Karl the Fog / night light field (lane C2-8 / C2-9)
+  { id: 'tp-west', note: 'Twin Peaks high → the Sunset / Richmond and the Pacific (Karl)', cam: { p: [150, 120, 1000], t: [-420, 0, 1180], f: [128.9, 922.7] } },
+  { id: 'tp-gate', note: 'Twin Peaks high → the Golden Gate (Karl pours in at golden hour)', cam: { p: [150, 120, 1000], t: [-865, 0, 505], f: [128.9, 922.7] } },
+  { id: 'ggb-crissy', note: 'the Golden Gate Bridge from above Crissy Field (deck and tower lights at night)', cam: { p: [-500, 38, 470], t: [-865, 15, 508], f: [-560, 520] } },
   { id: 'hero-far', note: 'the hero district from Nob Hill, ≈ 400 u (hero far: L1 boxes + ground stand-in)', cam: { p: [-60, 55, 470], t: [20, 0, 70], f: [-40, 460] } },
 ];
 

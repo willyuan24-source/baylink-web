@@ -1,10 +1,10 @@
 import { CELL, STREET_ROW } from '../../core/geo';
 import type { Vec2 } from '../../core/types';
-import { C, type Info, hash2, mixColor, shade } from '../builder';
+import { C, hash2, mixColor, shade } from '../builder';
 import { CITY_PAL } from '../palette';
 import { WIN } from '../recipes/shapes';
 import { AREA_CLASSES, AREA_FLAG, type FarData, ROAD_CLASSES, demSample } from './format';
-import { HILL, type LookZones, farPrismColors, hillMix, lookZones, slopeEarth, zoneAt } from './look';
+import { HILL, type LookZones, asphaltInfo, farPrismColors, hillMix, lookZones, slopeEarth, zoneAt } from './look';
 import { CityBatch, GROUND_CITY, type PoolArrays, buildGround, clipOutside, clipPolyline, ribbon } from './mesh';
 import { type Raster, chamfer, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
 
@@ -180,7 +180,7 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
         if (heroCell) pieces = pieces.flatMap(l => clipOutside(l, init.slab, (x, z) => inPoly(x, z, init.slab)));
         const w = (LINE_W[k] ?? STREET_ROW.tertiary as number) * 0.85;
         const col = C(k === R.motorway ? CITY_PAL.motorway : k === R.trunk || k === R.primary ? CITY_PAL.asphaltMajor : CITY_PAL.asphalt);
-        const info: Info = [P.asphalt, 0, 0, GROUND_CITY];
+        const info = asphaltInfo(ROAD_CLASSES[k], w / 2, P.asphalt, GROUND_CITY);
         for (const l of pieces) ribbon(g, l, w, 0.4, col, info, 0, (x, z, y) => Math.max(y, demAt(x, z)));
       }
     }
