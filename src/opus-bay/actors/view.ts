@@ -40,8 +40,10 @@ export const rideables: { id: string; kind: 'bike' | 'car'; x: number; z: number
 /**
  * Day-0 obstacle registry (wave 2): moving things other lanes own (F's crowd walkers and toy traffic) add soft
  * obstacles for the walker and the ride code without editing actors files. `fn(out, x, z, r)` pushes the obstacles
- * within r of (x, z) into `out` (kind e.g. 'crowd' | 'traffic'); it runs once per frame per consumer, so keep it cheap
- * (a grid lookup). Returns the unregister function.
+ * within r of (x, z) into `out`; it runs once per frame per consumer, so keep it cheap (a grid lookup). Returns the
+ * unregister function. Kinds: 'crowd' / 'person' (a person: a vehicle stops short and they say "whoa"), 'traffic'
+ * (another vehicle: a soft bump), anything else — e.g. 'static' for a board or a bollard — a soft bump, no voice. The
+ * walker treats every kind as a soft obstacle.
  */
 export type ObstacleSource = (out: Obstacle[], x: number, z: number, r: number) => void;
 const obstacleSources: ObstacleSource[] = [];

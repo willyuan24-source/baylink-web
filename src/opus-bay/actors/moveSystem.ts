@@ -84,6 +84,8 @@ export interface RideAnim {
 type GuideSeat = 'none' | 'in' | 'seated' | 'out';
 
 const SLOTS: SlotWorld = { canStand, heightAt };
+/** obstacle kinds that are people: a vehicle stopping short of one gets a "whoa" (giveWay) */
+const PERSON_KINDS: ReadonlySet<string> = new Set(['npc', 'crowd', 'person', 'resident', 'baybay']);
 const UPY = new THREE.Vector3(0, 1, 0);
 const tmpV = new THREE.Vector3();
 const tmpV2 = new THREE.Vector3();
@@ -624,7 +626,8 @@ export class MoveSystem {
    * People never get knocked over: a vehicle about to touch a resident stops with a soft bump. The same holds for the
    * moving things other lanes register as obstacle sources (actors/view.ts registerObstacleSource: F's crowd walkers
    * and toy traffic), each with its own radius. The step that reached them is undone (x0, y0, z0: the pose before the
-   * drive step), so holding the throttle never creeps the vehicle into anyone.
+   * drive step), so holding the throttle never creeps the vehicle into anyone. Only people (PERSON_KINDS) say "whoa";
+   * traffic and static sources (any other kind, e.g. a mural board) just give the soft bump.
    */
   private giveWay(ride: Ride, t: number, x0: number, y0: number, z0: number) {
     const s = ride.sim;
@@ -651,8 +654,8 @@ export class MoveSystem {
     if (speed >= 0.5 && t - this.giveWayAt > 0.8) {
       this.giveWayAt = t;
       emit({ type: 'vehicle:bump', vehicle: ride.kind, strength, hard: false, kind: 'wall' });
-      // a person (resident, crowd walker) says "whoa"; another vehicle just bumps
-      if (hit !== 'traffic' && hit !== 'car') emit({ type: 'bump', kind: 'npc', strength: 0.3 });
+      // a person (resident, crowd walker) says "whoa"; other traffic and static things (a mural board …) just bump
+      if (PERSON_KINDS.has(hit)) emit({ type: 'bump', kind: 'npc', strength: 0.3 });
     }
   }
   private giveWayAt = -9;

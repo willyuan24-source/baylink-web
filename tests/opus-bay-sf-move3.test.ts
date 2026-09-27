@@ -147,6 +147,17 @@ test('E2-16 giveWay: a vehicle stops short of a registered crowd walker (soft bu
     assert.ok(cabGap > car.length * 0.5 + 0.9, `stopped short of the other car (gap ${cabGap.toFixed(2)} u)`);
     assert.ok(events.some(e => e.type === 'vehicle:bump'), 'traffic: a soft bump');
     assert.ok(!events.some(e => e.type === 'bump' && e.kind === 'npc'), 'traffic: no whoa');
+    // a static source (a mural board) ahead: stops the car too, no voice
+    unregister(); unregister = () => {};
+    for (let k = 0; k < 60 * 2; k++, t += DT) ms.update(DT, t, moveEnv(c));
+    events.length = 0;
+    const board = { x: car.sim.x + Math.sin(car.sim.heading) * 5, z: car.sim.z + Math.cos(car.sim.heading) * 5 };
+    unregister = registerObstacleSource((out, x, z, r) => { if (Math.hypot(board.x - x, board.z - z) <= r + 1) out.push({ x: board.x, z: board.z, r: 0.5, kind: 'static' }); });
+    let boardGap = Infinity;
+    for (let k = 0; k < 60 * 2; k++, t += DT) { ms.update(DT, t, moveEnv(c)); boardGap = Math.min(boardGap, Math.hypot(board.x - car.sim.x, board.z - car.sim.z)); }
+    assert.ok(boardGap > car.length * 0.5, `stopped short of the board (gap ${boardGap.toFixed(2)} u)`);
+    assert.ok(events.some(e => e.type === 'vehicle:bump'), 'static: a soft bump');
+    assert.ok(!events.some(e => e.type === 'bump' && e.kind === 'npc'), 'static: no whoa');
   } finally { runtime.input.moveY = 0; unregister(); off(); moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title' }); }
 });
 
