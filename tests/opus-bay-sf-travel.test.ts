@@ -158,3 +158,55 @@ test('G1-8 planner: one plan at a time, kept plans serve the map again, the wayp
   assert.equal(routeLeftTo({ x: 1200, z: 1050 }, { x: 1100, z: 1040 }), null, 'more than 25 u off the route');
   assert.equal(routeLeftTo({ x: 5, z: 5 }, from), null);
 });
+
+test('E2 w3 part b request 1: a city arrival lands in a large open area (never a pocket or a slot between house rows); district unchanged', async () => {
+  const { arrivalSpot, OPEN_ARRIVAL_R } = await import('../src/opus-bay/game/fastTravel');
+  const nav = await import('../src/opus-bay/actors/nav');
+  const { canStand, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  assert.equal(OPEN_ARRIVAL_R, 30);
+  // district (no city terrain): the open-area rule is never asked
+  let asked = 0;
+  const spy = (p: { x: number; z: number }, r: number) => { asked++; return nav.arrivalSpot(p, r); };
+  const d = arrivalSpot({ x: 0, z: 0 }, spy);
+  assert.equal(asked, 0);
+  assert.ok(Number.isFinite(d.x) && Number.isFinite(d.z));
+  // the city around (0, 420) (Western Addition: house rows with sealed backyards)
+  const sf = sfDisk();
+  const LMS = landmarkWalkInputs(SF_LANDMARKS);
+  const city = createCityTerrain(sf.manifest, { landmarks: LMS });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, 0, 420, 250, LMS);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    const start = nav.arrivalSpot({ x: 0, z: 420 }, 20)!;
+    assert.ok(start && canStand(start.x, start.z, 0.4));
+    // sealed pockets: small walkable regions (backyards, slots between rows) the old rule kept you in (canStand = true)
+    const g = nav.navGrid();
+    const at = (i: number) => ({ x: g.minX + ((i % g.cols) + 0.5) * g.cell, z: g.minZ + (Math.floor(i / g.cols) + 0.5) * g.cell });
+    const seen = new Uint8Array(g.cols * g.rows), pockets: { x: number; z: number }[] = [];
+    for (let s0 = 0; s0 < seen.length && pockets.length < 12; s0++) {
+      if (seen[s0] || g.walkable[s0] !== 1) continue;
+      const st = [s0], cells = [s0]; seen[s0] = 1;
+      while (st.length) {
+        const u = st.pop()!, c = u % g.cols;
+        for (const v of [c > 0 ? u - 1 : -1, c < g.cols - 1 ? u + 1 : -1, u - g.cols, u + g.cols]) if (v >= 0 && v < seen.length && !seen[v] && g.walkable[v] === 1) { seen[v] = 1; st.push(v); cells.push(v); }
+      }
+      const p = at(cells[0]);
+      if (cells.length >= 4 && cells.length < 60 && Math.hypot(p.x - start.x, p.z - start.z) < 120 && canStand(p.x, p.z)) pockets.push(p);
+    }
+    assert.ok(pockets.length >= 5, `standable pockets near (0, 420): ${pockets.length}`);
+    let moved = 0;
+    for (const p of pockets) {
+      const s = arrivalSpot(p);
+      const open = nav.arrivalSpot(p, OPEN_ARRIVAL_R);
+      if (open) { assert.deepEqual(s, open, 'the open-area spot first'); moved++; } else assert.deepEqual(s, p, 'no open area within 30 u: the spot itself');
+      assert.ok(Math.hypot(s.x - p.x, s.z - p.z) <= OPEN_ARRIVAL_R + g.cell, 'moves at most 30 u');
+      assert.ok(canStand(s.x, s.z));
+      if (open) assert.ok(nav.findPath(start, s, 1), 'lands where the street network reaches');
+    }
+    assert.ok(moved >= 5, `pockets left for an open area: ${moved}`);
+  } finally { setCityTerrain(null); }
+});

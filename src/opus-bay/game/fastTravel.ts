@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { canStand, heightAt, nearestWalkable } from '../core/terrain';
+import { arrivalSpot as openArrivalSpot } from '../actors/nav';
+import { canStand, cityTerrain, heightAt, nearestWalkable } from '../core/terrain';
 import type { Bilingual, Vec2 } from '../core/types';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { flow } from './flowStore';
@@ -159,8 +160,18 @@ const subscribe = (fn: () => void) => { subs.add(fn); return () => { subs.delete
 const getView = () => view;
 export function useTravelView(): TravelView { return useSyncExternalStore(subscribe, getView, getView); }
 
-/** Walkable, standable spot for arriving at p (ground must be resident: call after whenReady). */
-export function arrivalSpot(p: Vec2): Vec2 {
+/** How far the city arrival may move to reach a large open area (actors/nav arrivalSpot). */
+export const OPEN_ARRIVAL_R = 30;
+
+/**
+ * Walkable, standable spot for arriving at p (ground must be resident: call after whenReady). In the city the spot of
+ * a large open area within 30 u comes first (actors/nav `arrivalSpot`, the glide's and the tap's rule: never a backyard
+ * pocket or a slot between two house rows, E2 w3 part b request 1 / CS-10); then p itself when it is standable, then
+ * the nearest walkable spot within 40 u. District mode: p or the nearest walkable spot, as before.
+ */
+export function arrivalSpot(p: Vec2, open: (p: Vec2, r: number) => Vec2 | null = openArrivalSpot): Vec2 {
+  const o = cityTerrain() ? open(p, OPEN_ARRIVAL_R) : null;
+  if (o) return o;
   if (canStand(p.x, p.z)) return { x: p.x, z: p.z };
   return nearestWalkable(p, 40) ?? { x: p.x, z: p.z };
 }
