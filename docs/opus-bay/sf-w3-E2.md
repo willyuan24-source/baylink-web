@@ -186,10 +186,11 @@ Relayed messages during part a: none.
 | E2-7 | `5bafb91` | Glide world: a live tall list, the Bay Bridge, a 64 u hash, city landing (below). |
 | E2-8 + G1 request 1 | `3890755` | The procedural flying pelican; fast travel rides it (below). |
 | G2 request 1 | `23a31fc` | `sf-w3-G2.md` request 1: a hidden city resident draws no blob shadow (`if (npc.visible)`); the rider's blob also shrinks away high up in fast travel. |
-| E2-12 | `6d0e23e` | City bike racks and benches (below). |
-| E2-6 / DR-5 | `6c49f05` | The seated cable-car camera looks level under the roof's overhang (the roof edge cut the sitter's head off). |
+| E2-12 | `4c996e9` | City bike racks and benches (below). |
+| E2-6 / DR-5 | `3af4f27` | The seated cable-car camera looks level under the roof's overhang (the roof edge cut the sitter's head off). |
+| G2 review request 7 | (after the report) | `sf-w3-G2.md` "## Review" request 7: `ActorSystem.dispose()` releases the residents first (a city body still loading never builds). |
 
-(Hashes as pushed to `opus-bay`.)
+(Hashes as pushed to `opus-bay`; the E2-12 / DR-5 / report commits were rebased a few times while other lanes pushed — find them by subject if these moved again.)
 
 **E2-5 — the view field** (`actors/viewField.ts`, new):
 - `preferredViewDir(x, z)` (the direction to look toward) and `preferredCameraYaw(x, z)` (the follow camera's yaw for
@@ -220,7 +221,7 @@ additive):
   they attach (≤ 8 s, the player standing, the camera untouched) it is chosen again and turned to. The fast-travel
   descent hands over at its own yaw (as the arrival cinematic does).
 - Glide rig: 14 u at pitch 0.3 (was 16.8 / 0.4): the new pelican bigger in frame, the horizon in it. Seated on a city
-  cable car: pitch 0.03 (`6c49f05`, DR-5).
+  cable car: pitch 0.03 (`3af4f27`, DR-5).
 - No per-frame allocation: `RideCamera.update` reuses its vectors; blocker queries go through the new allocation-free
   `core/terrain.forEachBlockerNear` (additive, re-entrant).
 
@@ -318,7 +319,7 @@ additive):
     the bench next to it: E sits ([rack](qa/w3/E2/e2-12-city-bike-rack.jpg), [bench](qa/w3/E2/e2-12-city-bench.jpg)).
   - seated on a Powell-Hyde car ([the level view](qa/w3/E2/dr5-seated-cable-car.jpg)).
 - Bundle (`npx vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/w3/e2/dist`): GameRoot
-  **309.46 KB** gzip at `645e7f9` (`6c49f05` before its rebase; 301.49 KB at part a's end — the other lanes' wave-3 /
+  **309.46 KB** gzip at `645e7f9` (`3af4f27` before its rebase; 301.49 KB at part a's end — the other lanes' wave-3 /
   wave-4 work landed in between). E2's city-only code went to lazy chunks: `cityViews` 1.43 KB, `cityBikes` (with the
   spot table) 3.31 KB gzip.
 
@@ -348,6 +349,9 @@ additive):
 - Only 6 of the 24 landmark arrivals and 3 street spots were shot; 375 × 667 was not re-shot for the camera (no UI
   change in this part).
 - Save v2 claiming a pooled bike for a saved rack is covered by the pool code and review, not by a test of its own.
+- G1's review (`sf-w3-G1.md` "## Review", an observation): on Ferry gate → Dragon Gate the 带我去 auto-walk makes a
+  ≈ 20 u excursion east and back near x 132–153, z 29–33 while its `routeTo` plan goes straight south there. Not looked
+  at in this part (the give-way / local-grid steering of the RouteWalker legs there is the place to start).
 
 ### Not done
 
@@ -379,6 +383,7 @@ ones (G1 1–2, F 4).
 
 Relayed messages during part b: none.
 
-Checks of the tree pushed as `4908f1d`, run before its last rebase: `tsc` 0, `eslint` 0, **644 / 644** opus-bay tests, hero
+Checks of the pushed tree, run before its last rebases: `tsc` 0, `eslint` 0, **644 / 644** opus-bay tests, hero
 regression and contracts green; after the last rebase onto `515fb30` (lane T's wave-4 files only) `tsc`, `eslint` and
-`opus-bay-sf-bus` / `-metro` were re-run green.
+`opus-bay-sf-bus` / `-metro` were re-run green, and after G1's and G2's reviews (`af3715b`) plus E2's last fix `tsc`,
+`eslint`, actors / content / hero regression / contracts (62 / 62).
