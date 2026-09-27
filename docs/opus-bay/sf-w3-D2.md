@@ -9,7 +9,7 @@ Lane plan: `sf-w1-checkpoint.md` §5.9 and the wave-3 brief. File ownership: `sf
 - 八个 AI 地标模型（荣勋宫、吉尔德利、要塞点、多洛雷斯传教站、卡斯特罗剧院、风车塔身、恩典大教堂、市政厅）都在本机清理、压缩并放进游戏了。
 - 逐个和原来的手工模型对比（单独看、64 像素缩略图、黄昏和夜晚、城市里、手机上）：**六个换成 AI 版**，要塞点和吉尔德利 AI 版反而更丑，**保留手工版**。
 - 顺手修了两处：多洛雷斯的教堂 AI 贴图偏黄，已调成奶油色；恩典大教堂的蓝色玫瑰窗原来贴歪到左边塔上，现在按实测位置放回正中。
-- 这一段没有花 Higgsfield 积分（0/80），检查全绿（395 个测试通过）。
+- 这一段没有花 Higgsfield 积分（0/80），检查全绿（400 个测试通过）。
 - 发现卡斯特罗剧院在城市里被楼房围住、正面对着一个小角落，要在后面“地标周边布置”（D2-09）一起修。
 
 ### What was built
@@ -48,8 +48,8 @@ concept the mesh was made from (variant b; the earlier run had compared with var
 
 ### Evidence
 
-- Checks on the final tree (rebased on `45327e4`): `tsc` 0 errors, `eslint src/opus-bay tests/opus-bay-*` 0 problems,
-  **395 / 395** opus-bay tests (hero regression and contracts included).
+- Checks on the pushed tree (rebased on `92419d8`): `tsc` 0 errors, `eslint src/opus-bay tests/opus-bay-*` 0 problems,
+  **400 / 400** opus-bay tests (hero regression and contracts included).
 - City counts, `?quality=high`, desktop, RTX (`window.__opusBay.city.stats()`; triangles include shadows):
 
 | view | `?ai=0` calls / tris | AI calls / tris | AI drawn |
