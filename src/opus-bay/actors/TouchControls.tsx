@@ -1,10 +1,10 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { Bell, Bird, LogOut, Megaphone, PlaneLanding } from 'lucide-react';
 import { input } from '../core/input';
 import { useGame } from '../core/store';
-import { readQa } from '../game/qa';
 import { useT } from '../i18n';
 import { useDevice } from '../ui/hooks';
+import { glideUnlocked, subscribeGlide } from './moveApi';
 import { setStickRenderer, stickView } from './pointer';
 
 /**
@@ -54,7 +54,7 @@ function Btn({ size, tone, label, onPress, children }: { size: number; tone: 'te
 function MoveButtons() {
   const { t } = useT();
   const mode = useGame(s => s.move.mode);
-  const unlocked = useGame(s => s.viewpointUnlocked) || readQa().debug;
+  const unlocked = useSyncExternalStore(subscribeGlide, glideUnlocked, glideUnlocked);
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
   const focus = useGame(s => s.focus);

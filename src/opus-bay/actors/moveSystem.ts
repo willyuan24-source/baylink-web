@@ -26,7 +26,7 @@ import { driveRoute } from './vehicles/driveRoute';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
-import type { FleetSnapshot } from './moveApi';
+import { notifyGlide, type FleetSnapshot } from './moveApi';
 import { collectObstacles, residents, rideables } from './view';
 
 /**
@@ -335,6 +335,7 @@ export class MoveSystem {
     // glide unlock (the Coit viewpoint sets viewpointUnlocked; ?debug=1 unlocks from the start)
     if (!this.glideUnlocked && s.viewpointUnlocked) {
       this.glideUnlocked = true;
+      notifyGlide();
       this.pelican.load(env.precompile);
       emit({ type: 'glide:unlock' });
       const k = keyName('glide');

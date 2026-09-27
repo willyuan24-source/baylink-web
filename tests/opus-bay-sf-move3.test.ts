@@ -58,6 +58,29 @@ test('moveApi.setGlideUnlocked: applied at the bind when called before it, quiet
   try { assert.equal(ms2.glideUnlocked, false, 'the pending value is used once'); } finally { moveApi.bindMoveApi(null); ms2.dispose(); }
 });
 
+test('moveApi.subscribeGlide: the UI hears the bind, a restore and the viewpoint unlock', async () => {
+  let calls = 0;
+  const off = moveApi.subscribeGlide(() => { calls++; });
+  const ms = new MoveSystem();
+  try {
+    moveApi.bindMoveApi(ms);
+    assert.equal(calls, 0, 'the bind notifies after the render that built the system');
+    await Promise.resolve();
+    assert.equal(calls, 1);
+    moveApi.setGlideUnlocked(true);
+    assert.equal(calls, 2);
+    moveApi.setGlideUnlocked(false);
+    game.set({ phase: 'playing', viewpointUnlocked: true });
+    // (the unlock line is a toast: core/store toast times out through window.setTimeout)
+    const g = globalThis as { window?: unknown };
+    const hadWindow = 'window' in g;
+    if (!hadWindow) g.window = { setTimeout: () => 0 };
+    try { ms.update(DT, 0, moveEnv(new PlayerController())); } finally { if (!hadWindow) delete g.window; }
+    assert.equal(ms.glideUnlocked, true);
+    assert.equal(calls, 4, 'the Coit viewpoint unlock notifies too');
+  } finally { off(); moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', viewpointUnlocked: false }); }
+});
+
 // ---------------------------------------------------------------------------
 // E2-16 · obstacle sources in giveWay (F's crowd walkers and toy traffic)
 // ---------------------------------------------------------------------------

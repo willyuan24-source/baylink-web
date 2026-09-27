@@ -23,6 +23,8 @@ import type { Vec2 } from '../core/types';
  *   setGlideUnlocked(v)                 G1's save v2 restore (unlocked.glide): unlock quietly (no "Unlocked" line, no
  *                                       sound; the pelican model starts loading) or lock again (Settings reset). Safe
  *                                       before the bind: the last value is applied when the ActorSystem binds.
+ *   subscribeGlide(fn)                  the glide unlock changed (bind, viewpoint, restore): UI re-reads glideUnlocked()
+ *                                       (ui/MoveChip, actors/TouchControls via useSyncExternalStore)
  *   isRiding(): boolean                 carried by anything (bike, car, glide, transit, bench)
  */
 
@@ -44,12 +46,18 @@ export interface MoveApiImpl {
 }
 
 let impl: MoveApiImpl | null = null;
+const glideListeners = new Set<() => void>();
+/** The MoveSystem calls this when its glideUnlocked changes (also done here at the bind and on setGlideUnlocked). */
+export function notifyGlide() { for (const fn of glideListeners) fn(); }
+export function subscribeGlide(fn: () => void): () => void { glideListeners.add(fn); return () => { glideListeners.delete(fn); }; }
 /** a setGlideUnlocked call that came before the bind (resume runs while the world is still mounting) */
 let pendingGlide: boolean | null = null;
 /** actors/system.ts at construction (and null on dispose). */
 export function bindMoveApi(m: MoveApiImpl | null) {
   impl = m;
   if (m && pendingGlide !== null) { applyGlide(m, pendingGlide); pendingGlide = null; }
+  // (the ActorSystem is built inside a render: tell the UI afterwards)
+  queueMicrotask(notifyGlide);
 }
 function applyGlide(m: MoveApiImpl, v: boolean) { if (m.setGlideUnlocked) m.setGlideUnlocked(v); else m.glideUnlocked = v; }
 
@@ -63,5 +71,6 @@ export function glideUnlocked(): boolean { return impl?.glideUnlocked ?? pending
 export function setGlideUnlocked(v: boolean) {
   if (typeof v !== 'boolean') return;
   if (impl) applyGlide(impl, v); else pendingGlide = v;
+  notifyGlide();
 }
 export function isRiding(): boolean { return impl?.carried ?? false; }
