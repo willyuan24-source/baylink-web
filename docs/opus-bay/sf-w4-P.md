@@ -164,3 +164,118 @@ tower, chip scroll-into-view, legend wording).
 - **Lane L**: `siteFlagTop` already answers for 27 of 64 T1 / T2; the rest fall back to 30 u poles — please cover the
   campus sites and Union Square as they land.
 - **Lane V**: the T1 sticker sheet keyed by `T1_IDS` (the 16 ids above), for `MapBadge` at s ≥ 0.45.
+
+## Early review
+
+Adversarial review of the early phase (commits `ab4d250`, `bb78a08`, `5cb0fde`, `83ff3c0`), 2026-09-27. Fixes:
+`W4-P-review:` map modules and data commits (hashes in `git log --grep W4-P-review`). Scratch: `C:/Users/willy/opus-qa/w4/w4-p/`.
+
+### 给主人的摘要
+
+1. 检查了这条线的全部新文件，找出 8 个实在的问题并都修好了：最重要的是"到达地点"对不上——跟 BAYBAY 走到金门大桥、艺术宫、双峰等地标时，路线终点和"抵达时刻"的触发点差 12–147 个单位，抵达提示会不出现；现在两者统一了。
+2. 地图上的名字原来会压在自己的图标上（之前的截图里每个名字都这样），现在都在图标旁边；图标的 SVG 数量原来少算了约 2.5 倍，改成每个图标只画一条路径，预算按真实数量算，名字不会被挤掉。
+3. 上网核对了 22 条事实：传教站其实每天开放（原来写"周一闭馆"是错的），悬崖屋改成"翻修中、重开未定"，其余开放时间、关闭、改名日期都对。
+4. 全部检查通过；还没接进游戏，接线步骤已按修正后的接口更新（见下面 Integration corrections）。
+
+### What I checked
+
+- **Read**: the lead note, plan §4.1 / §5.2, the lane report, every file the lane created (attractions.ts, extraPlaces.ts,
+  placeSearch.ts, mapLines.ts, mapBadges.ts, MapBadge.tsx, mapLayout.ts, mapFilterRules.ts, MapFilters.tsx, tripRows.ts,
+  TripOptions.tsx, StationActions.tsx, MapLegend.tsx, mapIcons.ts, map-w4.css, places-sidecar.ts, lib/placesW4.ts, both
+  tests) and the files the integration plan names (data/sf/places.ts, data/transit.ts, ui/CityMap.tsx, ui/cityMapDraw.ts,
+  ui/city-ui.css, lane C's game/arrival.ts, lane G's game/tripPlan.ts, lane T's data/sf/stationNames.ts).
+- **Existing tracked files**: none edited by the lane (its four commits touch only its own new files). The review edits
+  only lane P's new files.
+- **Integration simulated**: `buildPlaceIndex(applyW4Places(places.json), landmarks, pois)` as the plan wires it, then
+  every attraction against its place row (landmark matcher, anchor, arrival, walkability, duplicates under badges); the
+  real rendered SVG of MapBadge and of whole layouts counted element by element; the runtime transit shapes against
+  `MapLineInput`.
+- **Visual**: the lane's harness re-run with the fixed components at 390 px (`docs/opus-bay/qa/w4/P/review-map-390.jpg`:
+  SF fit, first open at the Ferry, and the 15 glyphs, old lucide `<Icon>` vs new one-path side by side at 3×, identical)
+  and the legend at 375 px. I read every image.
+- **Facts re-checked on the web (22)**: Conservatory of Flowers closed Wednesdays ✔ (gggp.org); **Mission Dolores open
+  daily, guided tours unavailable** (missiondolores.org: Mon–Fri 10–4, Sat–Sun 10–5) ✗ the note said "closed Mondays";
+  Cable Car Museum free, closed Mondays ✔ (cablecarmuseum.org); CHSA open Wed and Sat only ✔ (chsa.org/visit); Walt
+  Disney Family Museum Thu–Sun ✔ (waltdisney.org); Maritime Museum free, Wed–Sun ✔ (nps.gov/safr); Hyde Street Pier
+  closed since 4 Nov 2024 ✔; SFMOMA closed Wednesdays, free ≤ 18 ✔ (sfmoma.org); Presidio Officers' Club gallery Fri–Sun
+  ✔ (presidio.gov); Portsmouth Square reopening fall 2028 ✔ (sfrecpark.org); Castro Theatre reopened 6 Feb 2026 ✔
+  (sfstandard.com); Asian Art Museum closed Tue–Wed ✔; Stow Lake → Blue Heron Lake on 18 Jan 2024 ✔ (sfrecpark.org);
+  Twin Peaks Promenade works since May 2026, the Christmas Tree Point road open ✔; CCA closes after 2026-27, Vanderbilt
+  takes the campus ✔ (cca.edu); CCSF Rivera mural in the new arts center, fall 2028 ✔ (ccsf.edu); CCSF Downtown /
+  Mission / Evans / Chinatown centres operating ✔ (ccsf.edu; Evans renovated in summer 2026); India Basin shoreline
+  fenced to early 2028 ✔ (sfrecpark.org); Stonestown's Emporium opened 16 Jul 1952 ✔ (outsidelands.org); **Cliff House**:
+  new operator, reopening announced for late 2026, not open yet (sfist.com, sfgate.com) ~ note reworded; de Young and
+  Legion closed Mondays ✔. Coordinates: the JSON lat/lng project to the attraction x, z within 0.07 u (all 134); 12
+  sampled against independent coordinates within 0–22 u (campus centroids differ, no error). Irving Street 尔文街 vs
+  爾灣街 in the SF Chinese press: inconclusive, left as the lead's JSON has it.
+
+### Defects found and fixed (with tests)
+
+1. **Arrivals disagreed (high)** — the place index ends trips, fly and discovery of the 24 landmark rows at the landmark
+   anchor, but the attractions kept the scouting's points 2–19 u away (GGB 147 u: badge on the south tower, anchor at
+   the visitor plaza); OSM rows kept their centroid (Fort Funston 71 u, Corona Heights 19, Blue Heron Lake 15). Lane C
+   fires the arrival moment within 12 u, so 跟 BAYBAY 去 to Palace, Twin Peaks, Painted Ladies, City Hall … would end with
+   no arrival moment. Fix: `LANDMARK_ARRIVALS` (= `sfLandmarkAnchor`; a test prints the new values when an anchor moves)
+   and `applyW4Places` gives every decorated row its attraction's arrival (`attractionArrivals()`). Test: the
+   integration index, all 157 primary attractions within 1 u; T3 arrivals checked walkable too.
+2. **SVG node budget undercounted ~2.5× (high)** — a badge counted 3 nodes but rendered 6–14 (a nested lucide `<svg>`
+   with one element per stroke, wrapper groups). Fix: one path per glyph (`ui/glyphPaths.ts`, derived from lucide-react
+   0.460, drift-tested), flat extras; `badgeNodes` equals the rendered markup for every glyph × state (tested); the
+   dense-index budget test renders and counts.
+3. **Labels starved under honest counts** — the budget admitted badges first, so crowded views had no node left for
+   labels. Fix: each badge enters with its label's node reserved. Test: ≥ 6 T1 labels at the Ferry first open, no T1
+   pushed to the canvas.
+4. **Every label drawn over its own badge (high, visible in `early-map-modules-390.jpg`)** — `city-ui.css`
+   `.ob-citymap-overlay text { text-anchor: middle }` overrides the SVG attribute the plan and the harness used. Fix:
+   `MapLabel` (inline anchor); pip / tour / disc texts centred inline (the "+1" spilled out of its pill); labels keep off
+   cluster pips. Tests: markup style, pip centring, a label never covers its own pip.
+5. **Blocked storage crashes the map** — `loadMapFilter()`'s default parameter read `localStorage` outside the try.
+   Fix, and a test with a throwing global.
+6. **Second dot under the GGB badge** — the curated `ggb-south-tower` row sits exactly on it. `BADGE_ALSO_COVERS` /
+   `coveredPlaceIds()`; a test fails for any uncovered curated row within 2 u of a badge.
+7. **Wrong visit note** (Mission Dolores "closed Mondays"), a stale Cliff House note, awkward CCSF wording.
+8. **zh names** of the 6 reviewed OSM campus additions were English (`W4_OSM_ZH`, tested).
+
+Also: a T1 dimmed by a category chip now draws at the rule's 40 %; `drawTransitLines` splits pieces once per line and
+projects inline (no tuple per vertex on every pan step); `mapLinesFrom` (the runtime adapter) and `MapStationMark` /
+`stationNodes` added so the integration has tested pieces.
+
+### Evidence (after the fixes)
+
+- Layout on the real data, rendered and counted: phone SF fit 13 badges, **12 T1 labels**, 83 nodes; first open at the
+  Ferry (s 0.34) 21 badges + 7 as canvas dots, 7 labels, 118 / 120; downtown 1.3 20 badges, 15 labels, 115; desktop Ferry
+  0.5 21 badges, 16 labels, 145 / 150. (The lane's "111 nodes" first open rendered ≈ 280.)
+- tsc 0 · eslint 0 · full opus-bay suite green (numbers in the review's final line below) · sidecar `--check` OK (1,033
+  rows, 6 additions, 0 lost; output in my scratch, not published).
+
+### Integration corrections (replace the matching steps above)
+
+- **Lines**: `mapLinesFrom(transitData(), flineJson(), laneTLines)` — `transitData().lines` are `CableLine`s (`xyz`,
+  stops that only name a station), not `TransitLine`s; the F-line is `flineJson()`.
+- **Labels**: render `<MapLabel label={k.label} text={k.text} fontPx weight selected />`, never a `textAnchor` attribute.
+- **Stations**: `<MapStationMark sym x y />`, layout item `nodes: stationNodes(sym)`.
+- **Search and T3 dots**: skip `coveredPlaceIds()` (not `new Set(ATTRACTIONS.map(a => a.placeId))`).
+- **PlaceActions / trips**: the tapped badge's attraction wins over `primary(place.id)` (Japan Center shares the Peace
+  Pagoda's row); the trip destination is `{ placeId, x, z: (a.arrival ?? a), attraction: a.id }`.
+- `buildPlaceIndex`: `arrival = src.arrival ?? { x, z }` now covers every decorated row (the 24 landmark rows still take
+  the landmark anchor, which equals their attraction's arrival).
+
+### Open (not fixed)
+
+- Transfer pills only form for stations that share an id (the five N + M Market St stations); loop ↔ Metro / cable
+  transfers (Castro, Civic Center, Chinatown …) draw as separate neighbouring dots, and 2-character discs (观光, 叮当)
+  would not fit a 12 px disc. Needs a merge by distance and wider discs at the integration (lane P).
+- A T3 dot that hosts a cluster draws no pip (its label still says "+n"); the budget counts the pip anyway (safe side).
+- Multi-word queries never score as "word start" in `rankSearch` (the raw query keeps its space); they still match as
+  prefix / substring.
+- The Cliff House may reopen late 2026: lane C's card should be re-checked before release.
+
+### Requests
+
+- **Lane L**: when you move a landmark anchor, `tests/opus-bay-sf-attractions.test.ts` prints the new
+  `LANDMARK_ARRIVALS` lines for `data/sf/attractions.ts`; paste them (or tell lane P).
+- **Lane C**: Mission Dolores is open daily (guided tours unavailable), not closed Mondays — check the card text.
+
+No owner messages were relayed during the review.
+
+Checks after the rebase onto `3302149` (W4-V): tsc 0, eslint 0, full opus-bay suite **621 / 621**, sidecar `--check` OK.
