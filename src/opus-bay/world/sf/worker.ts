@@ -1,11 +1,12 @@
 /// <reference lib="webworker" />
 import { type ChunkRasters, type LandmarkWalkInput, rasterizeChunk, transferables as rasterTransferables } from '../../core/sfTerrain';
 import { TypedBatch } from '../typedBatch';
-import { type ChunkContext, type CityInit, buildL0, buildL1, chunkContext } from './build';
+import { type ChunkContext, type CityInit, buildL0, buildL1, chunkContext, dropSeamBuildings } from './build';
 import { Lru } from './cell';
 import { l0Transferables } from './l0index';
 import { buildFar, type FarInit } from './far';
 import { type ChunkData, decodeChunk, decodeFar, gunzip, chunkPath } from './format';
+import type { LookZones } from './look';
 import { poolTransferables } from './mesh';
 
 /**
@@ -15,13 +16,16 @@ import { poolTransferables } from './mesh';
  *   - decoded chunk contexts (rasters + street index), the last 10.
  * Every result is transferred (no copies): render arrays, props, the walking rasters of lane B's rasterizeChunk.
  *
- * Messages in:  init { init, base, far?, farInit?, landmarks } · l1 { id, cx, cz } · l0 { id, cx, cz, sub } · raster { id, cx, cz }
+ * Messages in:  init { init, base, far?, farInit?, landmarks } · zones { zones } (the DataSF neighbourhoods for the SF look,
+ *               posted by stream.ts once far.obc is in, before any chunk job) · l1 { id, cx, cz } · l0 { id, cx, cz, sub }
+ *               · raster { id, cx, cz }
  * Messages out: ready · far { result, far } · l1 { id, cx, cz, result } · l0 { id, cx, cz, result } · raster { id, cx, cz, r }
  *               · error { id, message }
  */
 
 export type WorkerIn =
   | { t: 'init'; init: CityInit; base: string; far?: string; farInit?: FarInit; landmarks: LandmarkWalkInput[] }
+  | { t: 'zones'; zones: LookZones }
   | { t: 'l1'; id: number; cx: number; cz: number }
   | { t: 'l0'; id: number; cx: number; cz: number; sub: number }
   | { t: 'raster'; id: number; cx: number; cz: number };
@@ -49,7 +53,10 @@ async function chunkData(cx: number, cz: number): Promise<ChunkData> {
         raw = new Uint8Array(await res.arrayBuffer());
         bytes.set(k, raw, raw.byteLength);
       }
-      return decodeChunk(await gunzip(raw));
+      // seam buildings standing in the hero's water go before anything reads the chunk: no drawing, no collision
+      const chunk = decodeChunk(await gunzip(raw));
+      if (INIT) dropSeamBuildings(chunk, INIT);
+      return chunk;
     })();
     decoded.set(k, p);
     p.finally(() => decoded.delete(k)).catch(() => {});
@@ -89,6 +96,7 @@ ctx.onmessage = async (ev: MessageEvent<WorkerIn>) => {
     if (m.far && m.farInit) loadFar(m.far, m.farInit).catch(e => ctx.postMessage({ t: 'error', id: -1, message: String(e) }));
     return;
   }
+  if (m.t === 'zones') { if (INIT) INIT.zones = m.zones; return; }
   try {
     if (m.t === 'l1') {
       const result = buildL1(await context(m.cx, m.cz));

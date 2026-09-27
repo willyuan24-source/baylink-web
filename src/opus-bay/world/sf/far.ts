@@ -1,10 +1,10 @@
-import * as THREE from 'three';
 import { CELL, STREET_ROW } from '../../core/geo';
 import type { Vec2 } from '../../core/types';
 import { C, type Info, hash2, mixColor, shade } from '../builder';
 import { CITY_PAL } from '../palette';
 import { WIN } from '../recipes/shapes';
 import { AREA_CLASSES, AREA_FLAG, type FarData, ROAD_CLASSES, demSample } from './format';
+import { HILL, type LookZones, farPrismColors, hillMix, lookZones, slopeEarth, zoneAt } from './look';
 import { CityBatch, GROUND_CITY, type PoolArrays, buildGround, clipOutside, clipPolyline, ribbon } from './mesh';
 import { type Raster, chamfer, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
 
@@ -47,16 +47,9 @@ export interface FarResult {
 }
 
 const P = { none: 0, grass: 4, asphalt: 5, earth: 7 } as const;
-const FAR_CLASS: Record<number, string> = { [A.park]: CITY_PAL.park, [A.golf]: CITY_PAL.golf, [A.forest]: CITY_PAL.forest, [A.sand]: CITY_PAL.sand, [A.grass]: CITY_PAL.grass };
+const FAR_CLASS: Record<number, string> = { [A.park]: CITY_PAL.park, [A.golf]: CITY_PAL.golf, [A.forest]: CITY_PAL.forest, [A.sand]: CITY_PAL.sand, [A.grass]: CITY_PAL.grass, [A.scrub]: CITY_PAL.scrub };
 const LINE_W: Partial<Record<number, number>> = { [R.motorway]: STREET_ROW.motorway, [R.trunk]: STREET_ROW.trunk, [R.primary]: STREET_ROW.primary, [R.secondary]: STREET_ROW.secondary, [R.tertiary]: STREET_ROW.tertiary };
-const FAR_CREAM = C('#efe5d3');
-const _hsl = { h: 0, s: 0, l: 0 };
-/** scale saturation and lightness (HSL) */
-function vivid(c: THREE.Color, s: number, l: number) {
-  c.getHSL(_hsl);
-  return c.setHSL(_hsl.h, Math.min(1, _hsl.s * s), Math.min(0.92, _hsl.l * l));
-}
-const srgb = (b: Uint8Array, i: number) => new THREE.Color().setRGB(b[i * 3] / 255, b[i * 3 + 1] / 255, b[i * 3 + 2] / 255, THREE.SRGBColorSpace);
+const hexOf = (b: Uint8Array, i: number) => `#${((b[i * 3] << 16) | (b[i * 3 + 1] << 8) | b[i * 3 + 2]).toString(16).padStart(6, '0')}`;
 
 export function buildFar(far: FarData, init: FarInit): FarResult {
   const t0 = performance.now();
@@ -152,14 +145,16 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
   }
 
   const cells: FarCell[] = [];
+  const zones = lookZones(far);
   let triangles = 0;
   const demAt = (x: number, z: number) => demSample(far.dem, x, z);
   const paint = (x: number, z: number, h: number, slope: number) => {
     const k = sampleNearest(cls, r, x, z);
     let col = C(FAR_CLASS[k] ?? CITY_PAL.land);
     col = mixColor(col, shade(col, 0.93), hash2(Math.floor(x / 16), Math.floor(z / 16)) * 0.5);
-    if (slope > 0.6) col = mixColor(col, CITY_PAL.earth, Math.min(0.5, (slope - 0.6)));
-    if (!FAR_CLASS[k] && h > 30) col = mixColor(col, CITY_PAL.scrub, Math.min(0.35, (h - 30) / 40));
+    // green hills: the rules of the near tiers (look.ts HILL) on the 16 u grid
+    if (!FAR_CLASS[k] && h > HILL.y0) col = mixColor(col, CITY_PAL.hillGrass, hillMix(h));
+    if (slope > HILL.slope0) col = mixColor(col, CITY_PAL.earth, slopeEarth(slope));
     return { color: col, pattern: FAR_CLASS[k] ? P.grass : P.earth };
   };
   const slabClamp = pushOutOf([init.slab]);
@@ -189,7 +184,7 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
         for (const l of pieces) ribbon(g, l, w, 0.4, col, info, 0, (x, z, y) => Math.max(y, demAt(x, z)));
       }
     }
-    if (prisms) for (const i of prisms) prism(t, far, i, heroCellAny ? slabClamp : null);
+    if (prisms) for (const i of prisms) prism(t, far, i, heroCellAny ? slabClamp : null, zones);
     const toy = t.toPool(), ground = g.toPool();
     triangles += (toy?.indexCount ?? 0) / 3 + (ground?.indexCount ?? 0) / 3;
     if (toy || ground) cells.push({ ix, iz, toy, ground });
@@ -203,15 +198,19 @@ const _pc = { x: 0, z: 0 };
  * One far prism: walls (sunk 1.2 u) with procedural windows and a flat roof in the block's roof tint. A block
  * straddling the hero slab (its centroid outside) stops at the slab edge (`clamp`), the hero owns the inside.
  */
-function prism(t: CityBatch, far: FarData, i: number, clamp: CityBatch['clampXZ']) {
+function prism(t: CityBatch, far: FarData, i: number, clamp: CityBatch['clampXZ'], zones: LookZones) {
   const pr = far.prisms;
   const poly: Vec2[] = [];
+  let cx = 0, cz = 0;
   for (let k = pr.vStart[i]; k < pr.vStart[i + 1]; k++) {
+    cx += pr.xz[k * 2]; cz += pr.xz[k * 2 + 1];
     if (clamp) { clamp(pr.xz[k * 2], pr.xz[k * 2 + 1], _pc); poly.push({ x: _pc.x, z: _pc.z }); } else poly.push({ x: pr.xz[k * 2], z: pr.xz[k * 2 + 1] });
   }
-  // averaged block colours drift to brown-grey (terracotta gables + grey flat roofs): give them back some chroma and
-  // light (towers' flat roofs go toward the toy cream, like the L0 / L1 flat roofs)
-  const wall = vivid(srgb(pr.wallRgb, i), 1.1, 1.04), roof = pr.kind[i] === 1 ? srgb(pr.roofRgb, i).lerp(FAR_CREAM, 0.45) : vivid(srgb(pr.roofRgb, i), 1.22, 1.06);
+  cx /= poly.length; cz /= poly.length;
+  // the SF look (look.ts) from the same tables as L0 / L1: lane A's averaged walls lifted toward the white / pastel
+  // city, the top = the neighbourhood's expected mix of flat tops and pitched roofs
+  const look = farPrismColors({ wall: hexOf(pr.wallRgb, i), roof: hexOf(pr.roofRgb, i), kind: pr.kind[i], tall: pr.height[i] > 12, zone: zoneAt(zones, cx, cz), u: hash2(cx * 0.37, cz * 0.53) });
+  const wall = C(look.wall), roof = C(look.roof);
   const base = pr.baseY[i], top = base + pr.height[i];
   const tower = pr.kind[i] === 1;
   const style = tower ? (pr.height[i] > 20 ? WIN.glass : WIN.office) : pr.height[i] > 9 ? WIN.office : WIN.res;

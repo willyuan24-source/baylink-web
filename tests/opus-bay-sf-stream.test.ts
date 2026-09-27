@@ -377,3 +377,82 @@ test('city-mode World builds headless: hero first, backdrop in its own chunks, n
   district.root.traverse(o => { if (o.name) dn.add(o.name.replace(/#\d+$/, '#')); });
   assert.ok(dn.has('water#') && !dn.has('backdrop#') && !dn.has('city-water'));
 });
+
+// ---------------------------------------------------------------------------
+// lane C2 (wave 2): SF look budget, drawn = walked ground, seam buildings
+// ---------------------------------------------------------------------------
+
+test('SF look: every L0 cell of the city stays ≤ 18,500 triangles with the flat-roof remap (cheap flat tops)', async () => {
+  const { lookZones } = await import('../src/opus-bay/world/sf/look');
+  const zinit = { ...init, zones: lookZones(await sf.far()) };
+  let max = 0, at = '', total = 0;
+  for (const k of sf.manifest.chunks) {
+    const c = await sf.chunk(k.cx, k.cz);
+    if (!c) continue;
+    const ctx = chunkContext(c, zinit);
+    for (let sub = 0; sub < 4; sub++) {
+      const t = buildL0(ctx, sub).triangles;
+      total += t;
+      if (t > max) { max = t; at = `${k.cx}_${k.cz}/${sub}`; }
+    }
+  }
+  assert.ok(max <= 18500, `densest L0 cell ${at}: ${max}`);
+  assert.ok(total > 1_000_000, `${total} L0 triangles in all`);
+});
+
+test('drawn ground = walked ground: L0 height is groundRaster − sink (within 0.02 u) away from bridges and decks', async () => {
+  const { groundRaster, rasterHeight } = await import('../src/opus-bay/core/sfTerrain');
+  const { BRIDGE_KEEP } = await import('../src/opus-bay/world/sf/build');
+  const { ROAD_FLAG } = await import('../src/opus-bay/world/sf/format');
+  let n = 0, kept = 0;
+  // Mission, Twin Peaks, Painted Ladies (sink), Lombard (sink), the Embarcadero freeway ramps, a hero seam chunk
+  for (const [cx, cz] of [[2, 6], [1, 7], [0, 4], [-1, 2], [2, -1], [-2, 0]]) {
+    const c = await sf.chunk(cx, cz);
+    assert.ok(c, `${cx}_${cz}`);
+    const ctx = chunkContext(c, init), gr = groundRaster(c);
+    const nearBridge = (x: number, z: number) => {
+      const rd = c.roads;
+      for (let i = 0; i < rd.count; i++) {
+        if (!(rd.flags[i] & (ROAD_FLAG.bridge | ROAD_FLAG.deckOnly))) continue;
+        for (let k = rd.pStart[i]; k + 1 < rd.pStart[i + 1]; k++) {
+          const ax = rd.xyz[k * 3], az = rd.xyz[k * 3 + 2], dx = rd.xyz[k * 3 + 3] - ax, dz = rd.xyz[k * 3 + 5] - az, L2 = dx * dx + dz * dz;
+          const t = L2 > 0 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)) : 0;
+          if (Math.hypot(x - ax - dx * t, z - az - dz * t) <= rd.width[i] / 2 + BRIDGE_KEEP + 1) return true;
+        }
+      }
+      return false;
+    };
+    const sinkAt = (x: number, z: number) => ctx.exclusions.find(e => inPoly(x, z, e.poly))?.sink ?? 0;
+    for (let z = cz * 128 + 0.3; z < cz * 128 + 128; z += 3.1) for (let x = cx * 128 + 0.7; x < cx * 128 + 128; x += 3.1) {
+      if (nearBridge(x, z)) { kept++; continue; }
+      const want = rasterHeight(gr, x, z) - sinkAt(x, z);
+      assert.ok(Math.abs(ctx.height(x, z) - want) <= 0.02, `${cx}_${cz} (${x.toFixed(1)}, ${z.toFixed(1)}): drawn ${ctx.height(x, z).toFixed(3)} walked ${want.toFixed(3)}`);
+      n++;
+    }
+  }
+  assert.ok(n > 8000 && kept > 0, `${n} samples, ${kept} near bridges`);
+});
+
+test('seam buildings in the hero water are dropped before rasterising: no invisible walls at the west seam', async () => {
+  const { dropSeamBuildings } = await import('../src/opus-bay/world/sf/build');
+  const { rasterizeChunk, SF_CELL, BLOCK_BIT } = await import('../src/opus-bay/core/sfTerrain');
+  const heroLand = heroLandRaster();
+  const c = (await sf.chunk(-2, 0))!;
+  const before = c.buildings.count;
+  const rBefore = rasterizeChunk(c);
+  const dropped = dropSeamBuildings(c, { ...init, heroLand });
+  assert.ok(dropped.includes(288472567) && dropped.includes(1092477935), `dropped ${dropped.join(', ')}`);
+  assert.equal(c.buildings.count, before - dropped.length);
+  assert.equal(c.buildings.vStart.length, c.buildings.count + 1);
+  const r = rasterizeChunk(c);
+  // (−201, 57.5): a wall before, none after
+  const at = (rr: typeof r, x: number, z: number) => rr.stand[Math.floor((z - rr.cz * 128) / SF_CELL) * rr.n + Math.floor((x - rr.cx * 128) / SF_CELL)];
+  assert.ok(at(rBefore, -201, 57.5) & BLOCK_BIT, 'the seam building blocked before');
+  assert.equal(at(r, -201, 57.5) & BLOCK_BIT, 0, 'no wall after');
+  assert.ok(r.blockers.count < rBefore.blockers.count);
+  // idempotent, and chunks away from the slab are untouched
+  assert.deepEqual(dropSeamBuildings(c, { ...init, heroLand }), []);
+  const far = (await sf.chunk(2, 6))!, n0 = far.buildings.count;
+  assert.deepEqual(dropSeamBuildings(far, { ...init, heroLand }), []);
+  assert.equal(far.buildings.count, n0);
+});

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { WALL_SINK } from '../../core/geo';
 import type { Polygon, Vec2 } from '../../core/types';
-import { BOX, type BatchLike, CBOX, Frame, type Info, inset, rng, shade, signedArea, v3 } from '../builder';
+import { BOX, type BatchLike, CBOX, Frame, type Info, inset, mixColor, rng, shade, signedArea, v3 } from '../builder';
 import { CHINATOWN_ACCENT, CITY_WALLS, GLASS_WALL, IRON, RELIEF, ROOF_VIC, SLATE, STONE, TILE, VIC_ACCENT } from './palettes';
 import { WIN, type Obb, flatRoof, gableRoof, hipRoof, obb, winInfo } from './shapes';
 
@@ -78,6 +78,8 @@ export interface CityLook {
   wallHex: string;
   roof: string;
   coping: string;
+  /** the flat roof's rim as L0 draws it (coping / cornice / parapet colour); L1 blends it into its flat cap */
+  rim: string;
   trim: string;
   accent: string;
   /** TOY window style (WIN.*) */
@@ -88,6 +90,7 @@ export interface CityLook {
   rand: () => number;
 }
 
+const BRICK_RIM = '#dcc9ad', CIVIC_RIM = '#e2d7c3';
 const pick = <T>(pool: readonly T[], i: number) => pool[((Math.floor(i) % pool.length) + pool.length) % pool.length];
 const hex = (c: THREE.Color) => `#${c.getHexString()}`;
 const TALL = (s: CityStyle) => s === 'office' || s === 'tower';
@@ -131,7 +134,9 @@ export function cityLook(spec: CityBuildingSpec): CityLook {
   if (explicit?.roof) roof = explicit.roof;
   if (explicit?.accent) accent = explicit.accent;
   const coping = TALL(spec.style) ? trim : hex(shade(wall, 1.05));
-  return { wall, wallHex, roof, coping, trim, accent, win, winSeed: -(0.05 + 0.9 * R()), rand: R };
+  const s = spec.style;
+  const rim = s === 'victorian' || s === 'edwardian' || s === 'sunset' || s === 'chinatown' ? trim : s === 'brick' ? BRICK_RIM : s === 'deco' || s === 'civic' ? CIVIC_RIM : coping;
+  return { wall, wallHex, roof, coping, rim, trim, accent, win, winSeed: -(0.05 + 0.9 * R()), rand: R };
 }
 
 // ---------------------------------------------------------------------------
@@ -210,10 +215,23 @@ function awning(b: BatchLike, f: Side, y: number, stripe: string) {
   }
 }
 
-function roofCap(b: BatchLike, spec: CityBuildingSpec, r: Obb, poly: Polygon, top: number, look: CityLook, info: Info, clutter: number) {
+/** Rooftop boxes only on roofs of at least this area (u²): the SF flat-roof city stays within the L0 budget. */
+export const ROOF_CLUTTER_AREA = 20;
+
+/**
+ * SF flat top (lane C2-2's cheap flat-roof variant): a coping rim in the parapet colour and the inset membrane; the
+ * mechanical boxes of shapes.ts flatRoof only on big roofs (`big`).
+ */
+function flatTop(b: BatchLike, poly: Polygon, y: number, coping: string, roof: string, clutter: number, big: boolean) {
+  if (big) { flatRoof(b, poly, y, coping, roof, clutter); return; }
+  b.polygon(poly, y, coping);
+  b.polygon(inset(poly, 0.3), y + 0.02, roof);
+}
+
+function roofCap(b: BatchLike, spec: CityBuildingSpec, r: Obb, poly: Polygon, top: number, look: CityLook, info: Info, clutter: number, big: boolean) {
   if (spec.roof === 'gable') gableRoof(b, r, top, Math.min(2.2, 0.9 + r.hv * 0.55), look.roof, look.wallHex, info);
   else if (spec.roof === 'hip') hipRoof(b, r, top, Math.min(1.8, 0.7 + r.hv * 0.35), look.roof);
-  else flatRoof(b, poly, top, look.coping, look.roof, clutter);
+  else flatTop(b, poly, top, look.coping, look.roof, clutter, big);
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +248,7 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
   const front = frontSide(spec, r, R);
   const shop = (spec.flags & CITY_FLAG.shop) !== 0;
   const clutter = spec.flags & CITY_FLAG.noClutter ? 0 : R();
+  const big = Math.abs(signedArea(poly)) >= ROOF_CLUTTER_AREA;
   const info = winInfo(look.win, base, look.winSeed);
   // offices / towers step back near the top (the outer walls stop at the setback)
   const tiered = (spec.style === 'tower' || (spec.style === 'office' && (h > 16 || (spec.flags & SF_FLAG.tall) !== 0))) && r.hu > 2.5 && r.hv > 2.5;
@@ -244,8 +263,9 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
     case 'victorian':
     case 'edwardian': {
       const vic = spec.style === 'victorian';
-      // eave trim + porch band (accent paint on some Victorians, "painted ladies")
-      b.walls(inset(poly, -0.04), top - 0.28, top - 0.05, look.trim);
+      // eave trim (under a pitched roof; a flat roof's cornice covers it) + porch band (accent paint on some
+      // Victorians, "painted ladies")
+      if (spec.roof !== 'flat') b.walls(inset(poly, -0.04), top - 0.28, top - 0.05, look.trim);
       if (!shop) b.walls(inset(poly, -0.04), base + 2.45, base + 2.62, vic && R() < 0.35 ? look.accent : look.trim);
       // bay windows on the street side: one, or two on a wide front
       if (front.len > 2.2 && h > 3.2) {
@@ -258,8 +278,8 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       if (spec.roof === 'flat') {
         // Italianate / Edwardian false front: a projecting cornice ring, then the roof
         b.walls(inset(poly, -0.14), top - 0.4, top, look.trim);
-        flatRoof(b, inset(poly, -0.14), top, look.trim, look.roof, clutter);
-      } else roofCap(b, spec, r, poly, top, look, info, clutter);
+        flatTop(b, inset(poly, -0.14), top, look.trim, look.roof, clutter, big);
+      } else roofCap(b, spec, r, poly, top, look, info, clutter, big);
       break;
     }
     case 'sunset': {
@@ -272,10 +292,10 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       }
       if (spec.roof === 'flat') {
         b.walls(inset(poly, -0.04), top - 0.3, top + 0.3, look.trim);
-        flatRoof(b, poly, top + 0.3, look.trim, look.roof, clutter);
+        flatTop(b, poly, top + 0.3, look.trim, look.roof, clutter, big);
       } else {
         b.walls(inset(poly, -0.04), top - 0.25, top, look.trim);
-        roofCap(b, spec, r, poly, top, look, info, clutter);
+        roofCap(b, spec, r, poly, top, look, info, clutter, big);
       }
       break;
     }
@@ -283,14 +303,14 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       // Mediterranean stucco: iron balcony on the street side, relief band, tile roof
       if (h > 4.5 && front.len > 1.6) b.add(BOX(), onSide(front, base + 3.1, 0.3).at(0, 0, 0, 0, front.len * 0.7, 0.14, 0.6), IRON);
       b.walls(inset(poly, -0.04), top - 0.25, top, look.trim);
-      roofCap(b, spec, r, poly, top, look, info, clutter);
+      roofCap(b, spec, r, poly, top, look, info, clutter, big);
       break;
     }
     case 'chinatown': {
       // painted balcony bands at each floor, accent parapet, sometimes a green pagoda-roof pavilion
       for (let y = base + 5.3; y < top - 1.2; y += 2.5) b.walls(inset(poly, -0.1), y, y + 0.16, look.accent);
       b.walls(inset(poly, -0.05), top - 0.35, top + 0.25, look.accent);
-      flatRoof(b, poly, top + 0.25, look.trim, look.roof, spec.flags & CITY_FLAG.noClutter ? 0 : 0.2);
+      flatTop(b, poly, top + 0.25, look.trim, look.roof, spec.flags & CITY_FLAG.noClutter ? 0 : 0.2, big);
       const pr = obb(inset(poly, 0.9));
       if (R() < 0.35 && pr.hu > 1.2 && pr.hv > 1.0) {
         b.add(BOX(), new Frame(pr.cx, top + 0.25, pr.cz, Math.atan2(pr.ux, pr.uz)).at(0, 0, 0, 0, pr.hv * 1.4, 0.9, pr.hu * 1.4), look.wallHex, [WIN.none, top, 0, 0]);
@@ -301,7 +321,7 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
     case 'brick': {
       // SoMa warehouse: stone cornice band, flat roof with clutter
       b.walls(inset(poly, -0.06), top - 0.45, top + 0.15, look.trim);
-      flatRoof(b, poly, top + 0.15, '#dcc9ad', look.roof, clutter);
+      flatTop(b, poly, top + 0.15, look.rim, look.roof, clutter, big);
       break;
     }
     case 'industrial':
@@ -309,7 +329,7 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       // sheds and warehouses (cargo doors + clerestory from TOY style 8): trim band, gable with a skylight
       // ridge like the district's pier sheds, or a flat roof with clutter
       b.walls(inset(poly, -0.03), Math.max(base + 1, top - 0.8), Math.max(base + 1.2, top - 0.45), look.trim);
-      if (spec.roof === 'flat') { flatRoof(b, poly, top, look.coping, look.roof, clutter); break; }
+      if (spec.roof === 'flat') { flatTop(b, poly, top, look.coping, look.roof, clutter, big); break; }
       const rise = Math.min(1.6, r.hv * 0.3);
       gableRoof(b, r, top, rise, look.roof, look.wallHex, [WIN.none, 0, 0, 0], 0.25);
       if (r.hu > 3) b.add(BOX(), new Frame(r.cx, top + rise, r.cz, Math.atan2(r.ux, r.uz)).at(0, -0.1, 0, 0, 0.9, 0.55, r.hu * 1.7), '#dfe6e2', [WIN.none, 0, 0, 1.12]);
@@ -317,10 +337,16 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
     }
     case 'deco':
     case 'civic': {
-      // stepped crown; civic buildings get a heavier cornice and a second, narrower step
+      // stepped crown; civic buildings get a heavier cornice and a second, narrower step. A pitched civic building
+      // (church, hall, school: the look keeps lane A's roof) gets its roof, as on L1
       const civic = spec.style === 'civic';
+      if (spec.roof !== 'flat') {
+        b.walls(inset(poly, -0.05), top - 0.3, top, look.trim);
+        roofCap(b, spec, r, poly, top, look, info, clutter, big);
+        break;
+      }
       b.walls(inset(poly, civic ? -0.12 : -0.05), top - (civic ? 0.6 : 0.35), top, look.trim);
-      flatRoof(b, civic ? inset(poly, -0.12) : poly, top, '#e2d7c3', look.roof, clutter);
+      flatTop(b, civic ? inset(poly, -0.12) : poly, top, look.rim, look.roof, clutter, big);
       const up = inset(poly, 0.9);
       if (r.hu > 1.5 && r.hv > 1.5) {
         b.walls(up, top, top + 1.1, look.wall, upper); b.polygon(up, top + 1.1, look.trim);
@@ -333,11 +359,11 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       // the district's plain residential lot: trim + hip / gable, or a flat roof
       if (spec.roof === 'hip') b.walls(inset(poly, -0.05), top - 0.25, top, look.trim);
       if (spec.roof === 'gable') gableRoof(b, r, top, Math.min(2, 0.8 + r.hv * 0.5), look.roof, look.wallHex, info);
-      else roofCap(b, spec, r, poly, top, look, info, clutter);
+      else roofCap(b, spec, r, poly, top, look, info, clutter, big);
       break;
     }
     default: { // office, tower: setback tier, a crown on some, roof boxes; towers add a penthouse (+ a mast when tall)
-      if (!tiered) { flatRoof(b, poly, top, look.coping, look.roof, clutter); break; }
+      if (!tiered) { flatTop(b, poly, top, look.coping, look.roof, clutter, big); break; }
       flatRoof(b, poly, setback, look.coping, look.roof, 0.1);
       const up = inset(poly, 1.1);
       b.walls(up, setback, top, look.wall, upper);
@@ -378,6 +404,12 @@ export function toyBuildingL1(b: BatchLike, spec: CityBuildingSpec) {
   } else if (spec.roof === 'hip' && !TALL(spec.style)) {
     hipRoof(b, r, top, Math.min(1.8, 0.7 + r.hv * 0.35), look.roof);
   } else {
-    b.polygon(box, top, look.roof);
+    // seen from the hills L0's flat top is the rim (0.3 u) around the membrane: blend both by area so the tier swap
+    // keeps the same roof tone
+    const inner = (d: number) => (Math.max(0, 2 * r.hu - 2 * d) * Math.max(0, 2 * r.hv - 2 * d)) / Math.max(1e-6, 4 * r.hu * r.hv);
+    let cap = mixColor(look.roof, look.rim, 1 - inner(0.3));
+    // deco / civic: L0's stepped crown (trim-capped, 0.9 u in) covers the middle of the roof
+    if ((spec.style === 'deco' || spec.style === 'civic') && r.hu > 1.5 && r.hv > 1.5) cap = mixColor(cap, look.trim, inner(0.9));
+    b.polygon(box, top, TALL(spec.style) ? look.roof : cap);
   }
 }

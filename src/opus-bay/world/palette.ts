@@ -131,7 +131,10 @@ export const CITY_PAL = {
   golf: '#abcd86',
   pitch: '#95c070',
   sand: '#eedcb0',
-  scrub: '#b8b98a',
+  /** OSM natural=scrub (Twin Peaks, Bernal, Glen Canyon): a dry-grass green, not olive (C2-3) */
+  scrub: '#a9bf7e',
+  /** plain land high on the hills mixes toward this (look.ts HILL) */
+  hillGrass: '#a3c27c',
   rock: '#bba88c',
   plaza: '#ede3d0',
   parking: '#d2cabd',

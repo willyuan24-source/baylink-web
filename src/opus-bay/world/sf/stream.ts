@@ -15,6 +15,7 @@ import type { PoolArrays } from './mesh';
 import { type CellPool, createCellPool } from './pools';
 import { CityProps } from './props';
 import { type L0BuildingView, type L0Buildings, type L0Hidden, l0Building, l0Near, setRangeHidden } from './l0index';
+import { lookZones } from './look';
 import { CitySites } from './sites';
 import type { WorkerIn } from './worker';
 
@@ -276,6 +277,9 @@ export class CityStreamer {
 
   private onFar(r: FarResult, far: FarData) {
     this.far = far;
+    // the SF look needs the neighbourhoods: every chunk job is dispatched after this (status 'streaming' below)
+    const zones: WorkerIn = { t: 'zones', zones: lookZones(far) };
+    for (const w of this.workers) w.postMessage(zones);
     this.farMs = r.ms;
     this.farQueue = r.cells;
     this.terrain?.setFar(far);
