@@ -8,6 +8,7 @@ import { clementStreet } from './clement-street';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { gearyWest } from './geary-west';
+import { grandViewPark } from './grand-view-park';
 import { haightAshbury } from './haight-ashbury';
 import { hippieHill } from './hippie-hill';
 import { irvingStreet } from './irving-street';
@@ -21,6 +22,7 @@ import { oceanBeach } from './ocean-beach';
 import { sfState } from './sf-state';
 import { sfZoo } from './sf-zoo';
 import { sfmoma } from './sfmoma';
+import { tiledSteps } from './tiled-steps';
 import { stIgnatius } from './st-ignatius';
 import { stonestown } from './stonestown';
 import { ucsfMissionBay } from './ucsf-mission-bay';
@@ -72,4 +74,6 @@ export const W4_SITES: readonly W4Site[] = [
   gearyWest,
   clementStreet,
   irvingStreet,
+  tiledSteps,
+  grandViewPark,
 ];

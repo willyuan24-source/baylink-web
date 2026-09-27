@@ -16,6 +16,7 @@ import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLand
 import { LIFT, LIFT_STRIPE, type W4Site, polyArea, siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
 import { W4_SITES as W4_LIST } from '../src/opus-bay/world/sf/landmarks/w4list';
+import { W4_SITES_T3 } from '../src/opus-bay/world/sf/landmarks/w4list3';
 import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, isMainSite, siteFlagTop, w4Site, w4SiteByPlace, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
 import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 import { sfDisk } from './opus-bay-sf-disk';
@@ -134,6 +135,8 @@ test('exclusions: contain the origin and every toy vertex, never overlap another
     assert.ok(inPoly({ x: s.x, z: s.z }, ex) || /origin at the crossing/.test(s.w4.notes ?? ''), `${s.id} exclude contains the origin`);
     for (const o of others) assert.ok(!polysOverlap(ex, o.poly), `${s.id} overlaps ${o.id}`);
     for (const o of W4_SITES) if (o !== s) assert.ok(!polysOverlap(ex, exPoly(o)), `${s.id} overlaps ${o.id}`);
+    // and the tier-3 lane's sites (w4list3.ts)
+    for (const o of W4_SITES_T3) assert.ok(!polysOverlap(ex, exPoly(o)), `${s.id} overlaps the tier-3 site ${o.id}`);
     assert.ok(!polysOverlap(ex, DISTRICT.slab), `${s.id} overlaps the hero slab`);
     // the model stays inside its footprint (+0.8 u: eaves, canopies, lamp heads)
     const local = ex.map(p => worldToLandmark(s, p));
