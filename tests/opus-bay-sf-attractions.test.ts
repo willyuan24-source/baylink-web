@@ -12,7 +12,7 @@ import { sfDisk } from './opus-bay-sf-disk';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const { ATTRACTIONS, ATTRACTION_INDEX, AttractionIndex, FLAG_TOPS, T1_IDS, attractionGlyph, attractionColor, attractionShort, byMapPriority, flagFor, nearStops, placeTier, withNearStops,
-  LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds } = await import('../src/opus-bay/data/sf/attractions');
+  LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds, ARRIVAL_OVERRIDES } = await import('../src/opus-bay/data/sf/attractions');
 const { ATTRACTION_CATS, ATTRACTION_CAT_STYLE, ATTRACTION_AREAS, ATTRACTION_FLAG_H, ATTRACTION_GLYPHS, ATTRACTION_TREATMENTS } = await import('../src/opus-bay/data/sf/attractionTypes');
 const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { SF_PLACE_KINDS_W4 } = await import('../src/opus-bay/world/sf/format');
@@ -60,8 +60,10 @@ test('attractions: every JSON attraction is here with its names, position, map r
     if (!hero && j.site) assert.equal(a.siteId, j.site, `${j.id} site`);
     const arr = a.arrival ?? { x: a.x, z: a.z };
     // the existing landmarks arrive at the landmark's walkable anchor (LANDMARK_ARRIVALS, review fix); the scouting's
-    // point is a sanity bound there, the exact spot everywhere else
-    if (a.landmarkId) assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 20, `${j.id} landmark arrival far from the scouting's`);
+    // point is a sanity bound there, the exact spot everywhere else, except the arrivals moved on purpose (ARRIVAL_OVERRIDES)
+    const moved = ARRIVAL_OVERRIDES[j.id];
+    if (moved) { assert.deepEqual({ x: arr.x, z: arr.z }, { x: moved.x, z: moved.z }, `${j.id} moved arrival`); assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 70, `${j.id} moved arrival far from the scouting's`); }
+    else if (a.landmarkId) assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 20, `${j.id} landmark arrival far from the scouting's`);
     else assert.ok(Math.hypot(arr.x - j.arrival.x, arr.z - j.arrival.z) <= 0.55, `${j.id} arrival`);
   }
   // the 24 non-JSON rows are the existing landmarks and famous curated places, at their places.json rows
@@ -221,7 +223,7 @@ test('extra places: applyW4Places hides, renames, re-anchors, re-kinds and appen
   assert.ok(!/缆车/.test(by.get('cable-car-powell-market')!.name.zh) && !/缆车/.test(by.get('cable-car-museum')!.name.zh), 'glossary: 叮当车');
   for (const [id, re] of Object.entries(PLACE_REANCHORS)) {
     const r = by.get(id)!;
-    assert.deepEqual(r.arrival, re.arrival);
+    assert.deepEqual({ x: r.arrival!.x, z: r.arrival!.z }, re.arrival);
     if (re.x !== undefined) assert.equal(r.x, re.x);
   }
   for (const [id, kind] of Object.entries(PLACE_KIND_FIXES)) assert.equal(by.get(id)!.kind, kind);
@@ -399,4 +401,47 @@ test('attractions: no second dot under a badge — the south-tower row is covere
     if (covered.has(r.id) || !r.curated) continue;
     for (const a of ATTRACTIONS) assert.ok(Math.hypot(r.x - a.x, r.z - a.z) > 2, `${r.id} sits under the ${a.id} badge: add it to BADGE_ALSO_COVERS`);
   }
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Lane P2 (wave 4, early phase part 2): the open place items of lane P's and lane G's early reviews
+// ---------------------------------------------------------------------------------------------------------------------
+
+test('P2: moved arrivals are walkable and their place rows end travel there; the Botanical Garden row stands at its main gate (lane L2)', async () => {
+  const gi = await sf.graphIndex();
+  const main = gi.mainComponent();
+  const rows = applyW4Places(places);
+  const by = new Map(rows.map(r => [r.id, r]));
+  assert.ok(Object.keys(ARRIVAL_OVERRIDES).length >= 1);
+  for (const [id, o] of Object.entries(ARRIVAL_OVERRIDES)) {
+    const a = ATTRACTION_INDEX.get(id)!;
+    assert.ok(a, id);
+    assert.deepEqual(a.arrival, { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) }, `${id}: the override is the arrival`);
+    assert.ok(gi.nearestNode(o.x, o.z, 3, i => gi.component(i) === main) >= 0, `${id}: moved arrival within 3 u of the main walking graph`);
+    const row = by.get(a.placeId!)!;
+    assert.deepEqual({ x: row.arrival!.x, z: row.arrival!.z }, { x: o.x, z: o.z }, `${id}: its place row ends travel there`);
+    assert.equal(row.arrival!.heading, o.heading, `${id}: and faces the same way`);
+    assert.ok(o.why.length > 10, id);
+  }
+  // the San Francisco Botanical Garden: row anchor + arrival at OSM node 7838369891 (entrance=main), badge at the centre
+  const { projectCity } = await import('../src/opus-bay/core/geo');
+  const gate = projectCity(37.767047, -122.4667863);
+  const bg = by.get('osm-w120480164')!;
+  assert.ok(Math.hypot(gate.x - bg.x, gate.z - bg.z) < 0.5, `row at the gate (${bg.x}, ${bg.z})`);
+  assert.ok(Math.hypot(gate.x - bg.arrival!.x, gate.z - bg.arrival!.z) < 0.5);
+  const garden = ATTRACTION_INDEX.get('sf-botanical-garden')!;
+  assert.equal(garden.placeId, 'osm-w120480164');
+  assert.ok(Math.hypot(garden.x - bg.x, garden.z - bg.z) > 50, 'the badge stays at the garden centre (the JSON point)');
+  assert.ok(Math.hypot(garden.arrival!.x - gate.x, garden.arrival!.z - gate.z) < 0.5, 'the attraction arrives at the gate');
+});
+
+test('P2: Clement St is 克莱门街 (企李街 is Clay St in Chinatown) in the list, the extra row, the JSON and the plan', () => {
+  const a = ATTRACTION_INDEX.get('clement-street')!;
+  assert.match(a.name.zh, /^克莱门街/);
+  assert.equal(a.short!.zh, '克莱门街');
+  assert.ok(a.aliases!.includes('克莱门街'));
+  for (const x of ATTRACTIONS) assert.ok(![x.name.zh, x.short?.zh ?? '', ...(x.aliases ?? [])].some(s => s.includes('企李')), `${x.id} says 企李街`);
+  assert.deepEqual(EXTRA_PLACES.find(e => e.id === 'clement-street')!.name, a.name);
+  assert.equal(J.attractions.find(j => j.id === 'clement-street')!.zh, a.name.zh);
+  assert.ok(!fs.readFileSync(path.join(ROOT, 'docs/opus-bay/sf-w4-plan.md'), 'utf8').includes('企李街'), 'plan §2.4 row 59');
 });

@@ -72,7 +72,7 @@ export const EXTRA_PLACES: readonly ExtraPlace[] = [
   { id: 'sing-chong-sing-fat-buildings', name: bi('都板街宝塔楼', 'Sing Chong & Sing Fat pagoda buildings (Grant Ave & California St)'), kind: 'historic', x: 56.5, z: 158.7, arrival: { x: 56.6, z: 158.6 }, sourceUrl: 'https://theclio.com/entry/186932' },
   { id: 'st-marys-cathedral', name: bi('圣玛利亚大教堂', 'Cathedral of Saint Mary of the Assumption'), kind: 'religious', x: -12.8, z: 421.2, arrival: { x: -16.1, z: 426.4 }, sourceUrl: 'https://smcsf.org/visit', replaces: 'way/7814696' },
   { id: 'tiled-steps-16th-avenue', name: bi('第16大道马赛克阶梯', '16th Avenue Tiled Steps (Moraga Steps)'), kind: 'attraction', x: -113.3, z: 1143.4, arrival: { x: -113.6, z: 1143.4 }, sourceUrl: 'https://en.wikipedia.org/wiki/16th_Avenue_Tiled_Steps' },
-  { id: 'clement-street', name: bi('企李街（列治文区“新华埠”）', 'Clement Street (Inner Richmond)'), kind: 'street', x: -331, z: 775.8, arrival: { x: -331.1, z: 775.9 }, sourceUrl: 'https://www.sfexaminer.com/news/the-city/how-richmond-district-became-second-san-francisco-chinatown/article_a7783c70-e034-11ef-8c71-3b9f0e67a124.html' },
+  { id: 'clement-street', name: bi('克莱门街（列治文区“新华埠”）', 'Clement Street (Inner Richmond)'), kind: 'street', x: -331, z: 775.8, arrival: { x: -331.1, z: 775.9 }, sourceUrl: 'https://www.sfexaminer.com/news/the-city/how-richmond-district-became-second-san-francisco-chinatown/article_a7783c70-e034-11ef-8c71-3b9f0e67a124.html' },
   { id: 'irving-street', name: bi('尔文街（日落区华人商业街）', 'Irving Street (Sunset District)'), kind: 'street', x: -248.7, z: 1120.6, arrival: { x: -247.9, z: 1121.6 }, sourceUrl: 'https://www.sfchronicle.com/restaurants/article/The-Middle-Sunset-s-vibrant-food-scene-captures-7381518.php' },
   { id: 'national-aids-memorial-grove', name: bi('国家艾滋病纪念园', 'National AIDS Memorial Grove'), kind: 'garden', x: -168.5, z: 902.3, arrival: { x: -168.4, z: 902.6 }, sourceUrl: 'https://en.wikipedia.org/wiki/National_AIDS_Memorial_Grove' },
   { id: 'saints-peter-and-paul-church', name: bi('圣彼得圣保罗教堂（华盛顿广场）', 'Saints Peter and Paul Church & Washington Square'), kind: 'religious', x: -79.5, z: 98.2, arrival: { x: -76.1, z: 100.1 }, sourceUrl: 'https://www.salesiansspp.org/our-history', hero: true },
@@ -175,6 +175,10 @@ export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
 export const PLACE_REANCHORS: Readonly<Record<string, { x?: number; z?: number; arrival: { x: number; z: number } }>> = {
   'lands-end': { x: -703.2, z: 1231.2, arrival: { x: -701.6, z: 1229.6 } },
   'lake-merced': { arrival: { x: 88.9, z: 1704.4 } },
+  // the San Francisco Botanical Garden row (OSM way 120480164, its centre) moves to the main gate on MLK Dr at 9th Ave
+  // (OSM node 7838369891, entrance=main): discovery, the card and the arrival happen at the gate, where lane L builds
+  // the gate plaza; the attraction's badge stays at the garden's centre (sf-w4-attractions.json)
+  'osm-w120480164': { x: -178.3, z: 970.9, arrival: { x: -178.3, z: 970.9 } },
 };
 
 /** Wave-4 kinds for existing rows (the OSM rows get theirs from the sidecar's poiKind). */
@@ -251,7 +255,12 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
     const arr = arrivals[src.id];
     if (arr && Math.hypot(arr.x - row.x, arr.z - row.z) > 0.05) row.arrival = { ...arr };
     const re = reanchors[src.id];
-    if (re) { row.x = re.x ?? row.x; row.z = re.z ?? row.z; row.arrival = { ...re.arrival }; }
+    if (re) {
+      row.x = re.x ?? row.x; row.z = re.z ?? row.z;
+      // the attraction's facing survives when the re-anchor names the same spot (the tests pin that they agree)
+      const heading = arr && arr.heading !== undefined && Math.hypot(arr.x - re.arrival.x, arr.z - re.arrival.z) <= 0.05 ? arr.heading : undefined;
+      row.arrival = { ...re.arrival, ...(heading !== undefined ? { heading } : {}) };
+    }
     out.push(row);
   }
   for (const e of extras) {

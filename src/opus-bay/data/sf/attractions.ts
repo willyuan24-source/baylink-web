@@ -99,7 +99,7 @@ const ROWS: Attraction[] = [
   { id: 'lake-merced', placeId: 'lake-merced', name: bi('默塞德湖', 'Lake Merced'), short: bi('默塞德湖', 'Lake Merced'), cat: 'park', glyph: 'Waves', rank: 2, fame: 46, x: 104.1, z: 1726.6, arrival: { x: 88.9, z: 1704.4 }, area: 'south', aliases: ['默塞德湖', 'Lake Merced', '湖'], siteId: 'lake-merced', treatment: 'plaza', priority: 3 },
   { id: 'presidio-tunnel-tops', placeId: 'osm-w91114607', name: bi('要塞公园隧道顶公园', 'Presidio Tunnel Tops & Presidio Visitor Center'), short: bi('隧道顶公园', 'Tunnel Tops'), cat: 'park', rank: 2, fame: 55, x: -484.4, z: 489.1, area: 'bridge-presidio', aliases: ['隧道顶', 'Tunnel Tops', '要塞公园', 'Presidio'], photoKey: 'presidio', siteId: 'presidio', treatment: 'plaza', priority: 3, officialUrl: 'https://presidio.gov/explore/attractions/presidio-tunnel-tops/' },
   { id: 'stern-grove', placeId: 'osm-w103637554', name: bi('斯特恩林（Stern Grove）', 'Stern Grove (Sigmund Stern Recreation Grove)'), short: bi('斯特恩林', 'Stern Grove'), cat: 'park', rank: 2, fame: 45, x: 65.6, z: 1408.4, area: 'south', aliases: ['斯特恩', 'Stern Grove', '音乐节'], siteId: 'stern-grove', treatment: 'plaza', priority: 3 },
-  { id: 'clement-street', placeId: 'clement-street', name: bi('企李街（列治文区“新华埠”）', 'Clement Street (Inner Richmond)'), short: bi('企李街', 'Clement St'), cat: 'neighbourhood', rank: 3, fame: 34, x: -331, z: 775.8, area: 'park-sunset', aliases: ['企李街', 'Clement', '新华埠', '列治文', 'Richmond'], siteId: 'clement', treatment: 'plaza', priority: 3 },
+  { id: 'clement-street', placeId: 'clement-street', name: bi('克莱门街（列治文区“新华埠”）', 'Clement Street (Inner Richmond)'), short: bi('克莱门街', 'Clement St'), cat: 'neighbourhood', rank: 3, fame: 34, x: -331, z: 775.8, area: 'park-sunset', aliases: ['克莱门街', '克莱门', 'Clement', 'Clement Street', '新华埠', '列治文', 'Richmond'], siteId: 'clement', treatment: 'plaza', priority: 3 },
   { id: 'fort-funston', placeId: 'osm-w404851503', name: bi('芬斯顿堡', 'Fort Funston'), short: bi('芬斯顿堡', 'Fort Funston'), cat: 'coast', rank: 3, fame: 36, x: 101, z: 1842, area: 'south', aliases: ['滑翔伞', 'hang glider', 'Fort Funston'], siteId: 'fort-funston', treatment: 'plaza', priority: 3 },
   { id: 'fort-mason-center', placeId: 'fort-mason', name: bi('梅森堡艺术文化中心', 'Fort Mason Center for Arts & Culture'), short: bi('梅森堡', 'Fort Mason'), cat: 'culture', glyph: 'Theater', rank: 3, fame: 40, x: -320.8, z: 234.6, arrival: { x: -319.1, z: 238.9 }, area: 'bridge-presidio', aliases: ['梅森堡', 'Fort Mason', '艺术中心'], siteId: 'fort-mason', treatment: 'plaza', priority: 3, officialUrl: 'https://fortmason.org/' },
   { id: 'grand-view-park', placeId: 'osm-n7707827583', name: bi('格兰维尤公园（龟山）', 'Grand View Park (Turtle Hill)'), short: bi('龟山', 'Grand View'), cat: 'viewpoint', rank: 3, fame: 34, x: -103.6, z: 1129.6, area: 'park-sunset', aliases: ['龟山', '格兰维尤', 'Grand View', 'Turtle Hill'], siteId: 'golden-gate-heights', treatment: 'plaza', priority: 3, panorama: true },
@@ -263,10 +263,22 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
   'cliff-house': { x: -711.12, z: 1261.59, heading: -0.323 },
 };
 
+/**
+ * Arrivals moved on purpose (lane P2, the early reviews' open items): they win over LANDMARK_ARRIVALS and over the
+ * scouting's point. `why` says what stands there; tests/opus-bay-sf-attractions.test.ts checks each one is walkable and
+ * that the place row the attraction speaks for ends travel there too (data/sf/extraPlaces.ts `applyW4Places`).
+ */
+export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; heading?: number; why: string }>> = {
+  // lane L2 builds the gate plaza here; OSM node 7838369891 (entrance=main, 37.76705, −122.46679), the main gate on
+  // MLK Dr reached from 9th Ave & Lincoln Way (gggp.org); the JSON point is the garden's centre, 58 u inside
+  'sf-botanical-garden': { x: -178.3, z: 970.9, heading: 5.43, why: 'the main gate (MLK Dr at 9th Ave), not the middle of the garden' },
+};
+
 /** Every attraction, T1 and T2 with their flag. Sorted by map priority (rank, then fame). */
 export const ATTRACTIONS: readonly Attraction[] = ROWS.map(row => {
-  const lm = row.landmarkId ? LANDMARK_ARRIVALS[row.landmarkId] : undefined;
-  const a = lm ? { ...row, arrival: { ...lm } } : row;
+  const o = ARRIVAL_OVERRIDES[row.id];
+  const arr = o ? { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) } : row.landmarkId ? LANDMARK_ARRIVALS[row.landmarkId] : undefined;
+  const a = arr ? { ...row, arrival: { ...arr } } : row;
   const flag = flagFor(a);
   return flag ? { ...a, flag } : a;
 }).sort((a, b) => byMapPriority(a, b));
