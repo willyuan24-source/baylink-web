@@ -368,7 +368,13 @@ export class MoveSystem {
     if (!env.playing && m.mode !== 'foot' && m.mode !== 'transit') this.toFoot();
     // fast travel (game flow): the store says 'travel' → everything parked, the pelican picks the player (and BAYBAY) up
     // and flies G1's sky path (travelPose, E2-8 / G1 request 1); back on foot at the arrival spot after
-    if (s.move.mode === 'travel' && m.mode !== 'travel') { this.toFoot(); m.beginTravel(); this.beginTravelRide(); }
+    // (a trip started mid-glide — the map's 飞过去 while flying — keeps the pelican and both riders aloft: E2-review)
+    if (s.move.mode === 'travel' && m.mode !== 'travel') {
+      const aloft = m.mode === 'glide' && this.pelican.visible;
+      if (aloft) { this.approach = null; m.toFoot(); } else this.toFoot();
+      m.beginTravel();
+      this.beginTravelRide(aloft);
+    }
     else if (s.move.mode !== 'travel' && m.mode === 'travel') { m.endTravel(); this.endTravelRide(); }
 
     // someone else moved the player (flow teleport, ?at=, QA) while we carried them: park and let the teleport stand
@@ -730,16 +736,29 @@ export class MoveSystem {
   // Fast travel on the pelican (E2-8, G1 request 1)
   // ---------------------------------------------------------------------------
 
-  /** the travel ride: the pose last frame (pitch from the climb / descent), the phase for the hops */
-  private travel = { on: false, phase: '' as TravelPose['phase'] | '', t: 0, x: 0, y: 0, z: 0 };
+  /**
+   * the travel ride: the pose last frame (pitch from the climb / descent), the phase for the hops; `aloft` = the trip
+   * began mid-glide (the riders are already on the pelican at `ay` u: no pickup hop, it holds its height until G1's
+   * rise passes it)
+   */
+  private travel = { on: false, aloft: false, ay: 0, phase: '' as TravelPose['phase'] | '', t: 0, x: 0, y: 0, z: 0 };
 
-  private beginTravelRide() {
+  private beginTravelRide(aloft = false) {
     const p = runtime.player;
+    if (aloft) {
+      // E2-review: the glide pelican flies on (before, it was reset to the player's feet: the rider stood in mid-air for
+      // the pickup and BAYBAY dropped to the ground)
+      const g = this.pelican.sim;
+      g.stage = 'flight';
+      this.travel = { on: true, aloft: true, ay: g.y, phase: '', t: 0, x: g.x, y: g.y, z: g.z };
+      this.pelican.show();
+      return;
+    }
     this.boardFrom.set(p.x, p.y, p.z);
     this.boardHeading = p.heading;
     const g = this.pelican.sim;
     g.x = p.x; g.y = p.y + GLIDE.perch; g.z = p.z; g.heading = p.heading; g.pitch = 0; g.roll = 0; g.speed = 0; g.stage = 'flight';
-    this.travel = { on: true, phase: '', t: 0, x: p.x, y: g.y, z: p.z };
+    this.travel = { on: true, aloft: false, ay: 0, phase: '', t: 0, x: p.x, y: g.y, z: p.z };
     this.pelican.show();
     this.startGuideIn();
   }
@@ -760,11 +779,16 @@ export class MoveSystem {
   private flyTravel(dt: number) {
     const pose = travelPose(), tr = this.travel, g = this.pelican.sim;
     if (!pose || !tr.on) return;
-    const x = pose.x, y = pose.y + GLIDE.perch, z = pose.z;
+    const x = pose.x, z = pose.z;
+    // (a trip begun mid-glide holds its height over the pickup until the rise climbs past it: never down between roofs)
+    const early = pose.phase === 'pickup' || pose.phase === 'rise';
+    const y = tr.aloft && early ? Math.max(tr.ay, pose.y + GLIDE.perch) : pose.y + GLIDE.perch;
     const d = Math.hypot(x - tr.x, z - tr.z), vy = dt > 0 ? (y - tr.y) / dt : 0, vh = dt > 0 ? d / dt : 0;
     const wantPitch = pose.phase === 'hold' ? 0 : clamp(Math.atan2(vy, Math.max(vh, 6)), -0.45, 0.5);
     g.pitch += (wantPitch - g.pitch) * Math.min(1, dt * 5);
-    g.heading = d > 0.05 ? Math.atan2(x - tr.x, z - tr.z) : pose.heading;
+    const wantHeading = d > 0.05 ? Math.atan2(x - tr.x, z - tr.z) : pose.heading;
+    // (the glide pelican is on screen: it turns onto the trip's heading instead of snapping)
+    g.heading = tr.aloft && early ? g.heading + wrap(wantHeading - g.heading) * Math.min(1, dt * 4) : wantHeading;
     g.roll = Math.sin(pose.t * Math.PI * 2) * (pose.phase === 'pan' || pose.phase === 'hold' ? 0.06 : 0);
     g.x = x; g.y = y; g.z = z; g.speed = vh;
     tr.x = x; tr.y = y; tr.z = z; tr.phase = pose.phase; tr.t = pose.t;
@@ -1122,7 +1146,7 @@ export class MoveSystem {
     R.active = true;
     R.quat.copy(this.pelican.quaternion);
     A.ride = 'glide';
-    if (tr.phase === 'pickup' || tr.phase === '') {
+    if (!tr.aloft && (tr.phase === 'pickup' || tr.phase === '')) {
       const kk = ease(clamp((tr.t - 0.3) / 0.6, 0, 1));
       R.x = lerp(this.boardFrom.x, seat.x, kk); R.z = lerp(this.boardFrom.z, seat.z, kk);
       R.y = lerp(this.boardFrom.y, seat.y, kk) + Math.sin(Math.PI * kk) * 0.6;

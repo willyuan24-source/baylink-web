@@ -3,6 +3,7 @@ import test from 'node:test';
 import * as THREE from 'three';
 import { onEvent, type GameEvent } from '../src/opus-bay/core/events';
 import { runtime } from '../src/opus-bay/core/runtime';
+import { input } from '../src/opus-bay/core/input';
 import { game } from '../src/opus-bay/core/store';
 import { canStand, forEachBlockerNear, groundPending, heightAt, isWater, nearestWalkable, setCityTerrain, standAt, surfaceAt } from '../src/opus-bay/core/terrain';
 import { createCityTerrain, landmarkWalkInputs, type CityTerrainProvider } from '../src/opus-bay/core/sfTerrain';
@@ -840,6 +841,48 @@ test('E2-8 the ride pelican flaps and banks with its bones; G1 request 1: fast t
     for (let i = 0; i < 30; i++) ms.update(DT, t + i * DT, moveEnv(c));
     assert.equal(ms.mode, 'foot');
     assert.equal(ms.rider.active, false, 'on foot again');
+    assert.ok(Math.hypot(runtime.player.x - dest.x, runtime.player.z - dest.z) < 8, 'at the destination');
+  } finally { moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
+});
+
+test('E2-review fast travel started mid-glide (the map’s 飞过去 while flying): the riders stay on the pelican, which never drops below its height before the rise', () => {
+  game.set({ phase: 'playing', worldMode: 'district' });
+  const ms = new MoveSystem();
+  moveApi.bindMoveApi(ms);
+  try {
+    const c = new PlayerController();
+    resetPlayer(FERRY);
+    c.sync();
+    ms.setGlideUnlocked(true);
+    input.glideCount++;
+    let t = 0;
+    for (; t < 4; t += DT) ms.update(DT, t, moveEnv(c));
+    assert.equal(ms.mode, 'glide');
+    const y0 = ms.pelican.sim.y;
+    assert.ok(y0 > heightAt(ms.pelican.sim.x, ms.pelican.sim.z) + 5, 'aloft');
+    const dest = DISTRICT.anchors['sea-lion-viewpoint'];
+    assert.ok(startTravel({ id: 'test', name: { zh: '测试', en: 'Test' }, x: dest.x, z: dest.z }));
+    const seat = new THREE.Vector3();
+    let early = 0, worst = 0, low = Infinity, unseated = 0;
+    for (const end = t + 20; t < end && travelActive(); t += DT) {
+      stepTravel(DT);
+      ms.update(DT, t, moveEnv(c));
+      const pose = travelPose();
+      if (!pose || ms.mode !== 'travel' || (pose.phase !== 'pickup' && pose.phase !== 'rise')) continue;
+      early++;
+      ms.pelican.seat('rider', seat);
+      worst = Math.max(worst, Math.hypot(ms.rider.x - seat.x, ms.rider.y - seat.y, ms.rider.z - seat.z));
+      low = Math.min(low, ms.pelican.sim.y);
+      if (!(ms.guide.active && ms.guideAnim.sitting)) unseated++;
+    }
+    // (before: the pelican was reset to the player's feet — the rider stood 20 u up in the air for the pickup and
+    // BAYBAY dropped to the ground)
+    assert.ok(early > 30, `${early} pickup / rise frames`);
+    assert.ok(worst < 0.05, `the rider stays in the seat (${worst.toFixed(2)} u off)`);
+    assert.ok(low > y0 - 0.5, `holds its height (${low.toFixed(1)} vs ${y0.toFixed(1)})`);
+    assert.equal(unseated, 0, 'BAYBAY stays seated');
+    for (let i = 0; i < 30; i++) ms.update(DT, t + i * DT, moveEnv(c));
+    assert.equal(ms.mode, 'foot');
     assert.ok(Math.hypot(runtime.player.x - dest.x, runtime.player.z - dest.z) < 8, 'at the destination');
   } finally { moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
 });
