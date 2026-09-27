@@ -79,6 +79,9 @@ export function rigFromGltf(scene: THREE.Object3D, height = 1.3): { rig: Rig; ob
   src.dispose();
   found.material = mat;
   found.castShadow = true;
+  // no alpha test on BAYBAY: her shadow needs no texture. three hands the material's map to the shared shadow depth
+  // material, which would link a second skinned depth program (USE_MAP) on her first shadowed frame (C2's P5)
+  found.onBeforeShadow = (_r, _o, _c, _sc, _g, depth) => { (depth as THREE.MeshDepthMaterial).map = null; };
   found.frustumCulled = false;
   const rest: Record<string, THREE.Vector3> = {};
   for (const [name, bone] of Object.entries(bones)) { rest[name] = bone.position.clone(); bone.rotation.set(0, 0, 0); }

@@ -1,11 +1,23 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
+import * as THREE from 'three';
 import { installInput, padActions } from '../core/input';
 import { openPanel, togglePanel } from '../game/flow';
 import { flow } from '../game/flowStore';
-import { game } from '../core/store';
+import { game, useGame } from '../core/store';
 import { attachPointer } from './pointer';
 import { ActorSystem } from './system';
+
+/** renderer.compileAsync for the render path the world uses (the tilt-shift post target or the screen). */
+function precompileFor(gl: THREE.WebGLRenderer, object: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene, offscreen: boolean) {
+  const prev = gl.getRenderTarget();
+  const target = offscreen ? new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }) : null;
+  try {
+    gl.setRenderTarget(target);
+    const pending = gl.compileAsync(object, camera, scene);
+    return pending.finally(() => target?.dispose());
+  } finally { gl.setRenderTarget(prev); }
+}
 
 /**
  * Actors entry (imported by GameRoot): the newcomer, BAYBAY, the residents, click / tap-to-walk and input.
@@ -17,10 +29,14 @@ export function Actors() {
   const camera = useThree(s => s.camera);
   const system = useMemo(() => new ActorSystem(), []);
 
+  // the render path is part of each program's key (world/warmup.ts): with the tilt-shift post (quality high, motion on)
+  // the world draws into a half-float target without tone mapping, so late models (the BAYBAY GLB, the pelican) compile
+  // for that target too — else their first frame on screen links new programs (C2's P5)
+  const offscreen = useGame(s => s.settings.quality === 'high' && !s.settings.reducedMotion);
   useEffect(() => {
-    system.setPrecompile(object => gl.compileAsync(object, camera, scene));
+    system.setPrecompile(object => precompileFor(gl, object, camera, scene, offscreen));
     return () => system.setPrecompile(null);
-  }, [system, gl, camera, scene]);
+  }, [system, gl, camera, scene, offscreen]);
 
   useEffect(() => {
     const offKeys = installInput();

@@ -753,6 +753,9 @@ export class ActorSystem {
     const next = this.glbPending;
     if (!next) return false;
     const old = this.guide, oldObject = this.guideObject;
+    // the skinned shadow-depth material C2's kind sweep gave the procedural BAYBAY (world/materials kindSweep): on the
+    // first shadowed frame too, so the swap links no program (C2's P5)
+    if (old.mesh.customDepthMaterial && !next.rig.mesh.customDepthMaterial) next.rig.mesh.customDepthMaterial = old.mesh.customDepthMaterial;
     next.object.position.copy(oldObject.position);
     next.object.rotation.copy(oldObject.rotation);
     this.root.remove(oldObject);
