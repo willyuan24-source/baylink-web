@@ -2,11 +2,15 @@ import type { AttractionFlag } from '../../../data/sf/attractionTypes';
 import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
+import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { ccsfOcean } from './ccsf-ocean';
+import { japaneseTeaGarden } from './japanese-tea-garden';
+import { musicConcourse } from './music-concourse';
 import { sfState } from './sf-state';
 import { stIgnatius } from './st-ignatius';
 import { stonestown } from './stonestown';
+import { ucsfMissionBay } from './ucsf-mission-bay';
 import { ucsfParnassus } from './ucsf-parnassus';
 import { usfLoneMountain } from './usf-lone-mountain';
 
@@ -35,6 +39,11 @@ export const W4_SITES: readonly W4Site[] = [
   stIgnatius,
   ccsfOcean,
   ccsfDrpac,
+  ucsfMissionBay,
+  // P2 · tier-1 attractions
+  calAcademy,
+  musicConcourse,
+  japaneseTeaGarden,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));

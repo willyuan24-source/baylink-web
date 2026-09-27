@@ -68,7 +68,8 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
     assert.ok(t, `${s.id} has baked terrain (scripts/opus-sf/sites-terrain.mts)`);
     assert.equal(s.base, t.base, `${s.id} stands on its baked base`);
     const m = s.w4;
-    assert.ok(m.placeId && m.attractions.length, s.id);
+    // a shared setting (the Music Concourse bowl) models no attraction of its own and names an existing place row
+    assert.ok(m.placeId && (m.attractions.length || placeById.has(m.placeId)), s.id);
     for (const a of m.attractions) {
       const rec = attractionById.get(a);
       assert.ok(rec, `${s.id}: attraction ${a} is in sf-w4-attractions.json`);
@@ -157,7 +158,7 @@ test('terrain: the baked grid and base match the published rasters (re-run scrip
     for (const q of s.ground ?? []) {
       assert.ok(q.ys && q.ys.length === q.poly.length, `${s.id} ground has per-vertex heights`);
       assert.ok(![1, 8, 9].includes(q.pattern), `${s.id} ground uses an angle pattern`);
-      const lift = q.color === '#f4efe2' ? LIFT_STRIPE : LIFT;
+      const lift = q.lift ?? (q.color === '#f4efe2' ? LIFT_STRIPE : LIFT);
       for (let i = 0; i < q.poly.length; i++) {
         const w = landmarkToWorld(s, q.poly[i]);
         const d = q.ys![i] - ((await walked(w.x, w.z)) - s.base);

@@ -38,7 +38,8 @@ export interface SitePhoto { target: [number, number, number]; distance: number;
 export interface W4SiteMeta {
   /** its places.json row (existing id), or lane P's new extraPlaces row (= the attraction id) */
   placeId: string;
-  /** attraction ids (sf-w4-attractions.json / lane P's ATTRACTIONS) this record models, the main one first */
+  /** attraction ids (sf-w4-attractions.json / lane P's ATTRACTIONS) this record models, the main one first; empty for a
+   *  shared setting whose attractions are its neighbours' records (the Music Concourse bowl) */
   attractions: readonly string[];
   /** lod-0 ring (u) when it differs from the tier's 520 / 340 / 220 (downtown diet 200, low sites less) */
   lod0R?: number;
@@ -63,8 +64,8 @@ export interface W4SiteMeta {
   ringMin?: number;
 }
 
-/** A ground polygon with per-vertex local heights (the draped form of LandmarkGround). */
-export interface SiteGroundPoly extends LandmarkGround { ys?: number[] }
+/** A ground polygon with per-vertex local heights (the draped form of LandmarkGround) and the lift it was draped with. */
+export interface SiteGroundPoly extends LandmarkGround { ys?: number[]; lift?: number }
 
 /** A wave-4 landmark site: an SfLandmark (numeric base) with the SiteHooks and its wave-4 metadata. */
 export type W4Site = SfLandmark & SiteHooks & { base: number; ground?: SiteGroundPoly[]; w4: W4SiteMeta };
@@ -128,7 +129,7 @@ const meanY = (ys: number[]) => ys.reduce((s, y) => s + y, 0) / ys.length;
 /** One ground polygon draped on the site ground (`lift` over it). */
 export function gpoly(poly: Vec2[], color: string, pattern: number, g: SiteGround, lift = LIFT): SiteGroundPoly {
   const ys = poly.map(p => +(g.at(p.x, p.z) + lift).toFixed(3));
-  return { poly, y: +meanY(ys).toFixed(3), ys, color, pattern };
+  return { poly, y: +meanY(ys).toFixed(3), ys, color, pattern, lift };
 }
 
 /** A rectangle (centre x, z, size w × d, yaw ry) as ground cells of ≤ `cell` u, draped. */
@@ -213,7 +214,7 @@ export function crosswalk(a: Vec2, b: Vec2, g: SiteGround, width = 2.4, yRoad?: 
     const p0 = { x: a.x + ux * s0, z: a.z + uz * s0 }, p1 = { x: a.x + ux * s1, z: a.z + uz * s1 };
     const poly = [{ x: p0.x - px, z: p0.z - pz }, { x: p1.x - px, z: p1.z - pz }, { x: p1.x + px, z: p1.z + pz }, { x: p0.x + px, z: p0.z + pz }];
     if (yRoad === undefined) out.push(gpoly(poly, GC.stripe, PAT.none, g, LIFT_STRIPE));
-    else { const y = +(yRoad + LIFT_STRIPE).toFixed(3); out.push({ poly, y, ys: poly.map(() => y), color: GC.stripe, pattern: PAT.none }); }
+    else { const y = +(yRoad + LIFT_STRIPE).toFixed(3); out.push({ poly, y, ys: poly.map(() => y), color: GC.stripe, pattern: PAT.none, lift: LIFT_STRIPE }); }
   }
   return out;
 }
