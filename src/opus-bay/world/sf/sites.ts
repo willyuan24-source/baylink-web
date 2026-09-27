@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import type { LandmarkWalkInput } from '../../core/sfTerrain';
 import type { SurfaceKind, Vec2 } from '../../core/types';
-import { TOY, TOY_DYN } from '../materials';
+import { C } from '../builder';
+import { GROUND, GROUND_CITY, TOY, TOY_DYN, U, makeHeroMaterial } from '../materials';
+import { type ModelMaterial, makeModelMaterial, modelInstanceGeometry, setModelInstance } from '../modelMaterial';
+import type { LoadedModel } from '../models';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
-import { SF_LANDMARKS, type SfLandmark, landmarkMatrix } from './landmarks';
+import { type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, landmarkMatrix, usesAi } from './landmarks';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
 
@@ -19,7 +22,33 @@ import type { CellPool } from './pools';
  *   lod 2   the far silhouette as an item of the far pool (one draw call for all of them), shown otherwise
  *
  * Exclusions go to the stream workers (city buildings inside are dropped) and the walk data to lane B's rasters.
+ *
+ * Lane D2 (wave 2, checkpoint D2-05):
+ *   AI swaps   a landmark whose `swap.ship` is set draws its lod 0 as the procedural remainder (`swap.build`) plus the
+ *              AI parts (world/models.ts GLBs with world/modelMaterial.ts). The GLBs start loading PRELOAD u before the
+ *              lod-0 ring; until they are decoded (or if they fail) the full procedural model stands in, and the site
+ *              is rebuilt once they arrive (still at most one lod-0 build per frame). The loader module (DRACOLoader)
+ *              is imported lazily, so district mode never loads it; the Draco decoder is preloaded when the far city
+ *              attaches. Models are retained while mounted and released (LRU-cached) when the lod 0 is dropped.
+ *   hero fade  a landmark with `fade` thins as a whole (TOY OB_HERO, one uniform per landmark, the same program as the
+ *              district's heroes) while it stands between the camera and the player, instead of getting occlusion
+ *              dither holes (the Dragon Gate, the rotunda). `fade.procedural === false` fades only the AI parts.
+ *   ground     `ground` polygons (street strips, plazas) are drawn with the city GROUND material inside the lod 0.
+ *   counts     counts().ai: AI parts drawn, pending, failed, their triangles and draw calls.
  */
+
+/** GLB loads start this much before a landmark's lod-0 ring (u). */
+const PRELOAD = 150;
+/** hero fade strength (world.ts HERO_FADE: the district heroes thin the same way) */
+const HERO_FADE = 0.35;
+
+type ModelsModule = typeof import('../models');
+let modelsMod: ModelsModule | null = null;
+let modelsP: Promise<ModelsModule> | null = null;
+/** world/models.ts, imported on first use (keeps DRACOLoader out of district mode). */
+function modelsModule(): Promise<ModelsModule> {
+  return (modelsP ??= import('../models').then(m => (modelsMod = m)));
+}
 
 /**
  * Day-0 contract (wave 2): optional per-landmark hooks, read structurally from the registry records (lane D2 types its
@@ -63,6 +92,116 @@ interface Site {
   tris: number;
   /** SiteHooks.mount's unmount */
   unmount: (() => void) | null;
+  /** the landmark's hero fade uniform (null without `fade`); its TOY hero material while the lod 0 is built */
+  fade: { value: number } | null;
+  heroMat: THREE.Material | null;
+  /** lod 0 currently drawn with the AI parts; AI triangles / draw calls in it */
+  ai: boolean;
+  aiTris: number;
+  aiDraws: number;
+  /** models retained by the mounted lod 0 */
+  retained: string[] | null;
+  /** GLB loads requested (preload ring) */
+  requested: boolean;
+  /** the AI models arrived after a procedural fallback build: rebuild the lod 0 */
+  rebuild: boolean;
+}
+
+/** Group the AI parts by model (one InstancedMesh per model with several parts, else a plain Mesh). */
+function partsByModel(parts: readonly LandmarkSwapPart[]): Map<string, LandmarkSwapPart[]> {
+  const out = new Map<string, LandmarkSwapPart[]>();
+  for (const p of parts) out.set(p.model, [...(out.get(p.model) ?? []), p]);
+  return out;
+}
+
+/** Model geometry with a per-axis scale baked in (normals through the normal matrix: TOY's vWN stays right). */
+function scaledGeometry(g: THREE.BufferGeometry, s: readonly [number, number, number]): THREE.BufferGeometry {
+  const out = new THREE.BufferGeometry();
+  for (const name of ['position', 'normal', 'uv']) { const a = g.getAttribute(name); if (a) out.setAttribute(name, a.clone()); }
+  out.setIndex(g.getIndex()?.clone() ?? null);
+  out.applyMatrix4(new THREE.Matrix4().makeScale(s[0], s[1], s[2]));
+  out.computeBoundingBox();
+  out.computeBoundingSphere();
+  return out;
+}
+
+/**
+ * The AI parts of a landmark as objects in its local frame (shared by sites.ts and SoloView). One plain Mesh
+ * ('ob-model-hero', sharing `fade`) per single part, one InstancedMesh ('ob-model-inst', tint and occupancy per
+ * instance) per model with several parts. Geometry and materials are the caller's to dispose (disposeSwapObjects).
+ */
+export function buildSwapObjects(parts: readonly LandmarkSwapPart[], models: ReadonlyMap<string, LoadedModel>, fade: { value: number } | null, name: string): { objects: THREE.Mesh[]; triangles: number } {
+  const objects: THREE.Mesh[] = [];
+  let triangles = 0;
+  for (const [id, group] of partsByModel(parts)) {
+    const model = models.get(id);
+    if (!model) continue;
+    const s = group[0].scale;
+    const geo = scaledGeometry(model.geometry, s);
+    const tintKey = (model.asset as { tintKey?: string | null }).tintKey ?? null;
+    if (group.length === 1) {
+      const p = group[0];
+      const mat = makeModelMaterial({
+        map: model.map, mask: model.mask, variant: 'ob-model-hero', fade: fade ?? { value: 0 }, tintKey,
+        tint: p.tint ? [...C(p.tint).toArray(), 1] as [number, number, number, number] : undefined,
+        inst: [p.occupancy ?? 0.55, 1, 0, p.glow ?? 0], glass: p.glass, name: `ob-model:${name}:${id}`,
+      });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(p.x, p.y, p.z);
+      m.rotation.y = p.yaw ?? 0;
+      m.castShadow = !!p.castShadow;
+      m.receiveShadow = true;
+      m.name = `${name}:ai:${id}`;
+      m.matrixAutoUpdate = false;
+      m.updateMatrix();
+      objects.push(m);
+    } else {
+      const ig = modelInstanceGeometry(geo, group.length);
+      const mat = makeModelMaterial({ map: model.map, mask: model.mask, variant: 'ob-model-inst', tintKey, name: `ob-model:${name}:${id}` });
+      const m = new THREE.InstancedMesh(ig, mat, group.length);
+      const o = new THREE.Object3D();
+      group.forEach((p, i) => {
+        o.position.set(p.x, p.y, p.z);
+        o.rotation.set(0, p.yaw ?? 0, 0);
+        o.updateMatrix();
+        m.setMatrixAt(i, o.matrix);
+        setModelInstance(ig, i, p.tint ?? null, p.tint ? 1 : 0, p.occupancy ?? 0.55, 1, 0.1 + 0.8 * ((i * 0.618) % 1), p.glow ?? 0);
+      });
+      m.instanceMatrix.needsUpdate = true;
+      m.computeBoundingSphere();
+      m.castShadow = group.some(p => p.castShadow);
+      m.receiveShadow = true;
+      m.name = `${name}:ai:${id}`;
+      m.userData.obShared = geo;
+      objects.push(m);
+    }
+    triangles += model.triangles * group.length;
+  }
+  return { objects, triangles };
+}
+
+/** Dispose what buildSwapObjects made (not the cached model's own geometry / textures). */
+export function disposeSwapObjects(objects: readonly THREE.Object3D[]) {
+  for (const o of objects) {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) continue;
+    m.geometry.dispose();
+    (m.userData.obShared as THREE.BufferGeometry | undefined)?.dispose();
+    (m.material as ModelMaterial).dispose();
+    if ((m as THREE.InstancedMesh).isInstancedMesh) (m as THREE.InstancedMesh).dispose();
+  }
+}
+
+/** A landmark's `ground` polygons as one GROUND mesh (city-flagged: the L0 ground program), local frame. */
+export function buildGroundMesh(l: SfLandmark): THREE.Mesh | null {
+  if (!l.ground?.length) return null;
+  const b = new TypedBatch(256);
+  for (const g of l.ground) b.polygon(g.poly, g.y, C(g.color), [g.pattern, l.yaw, 0, GROUND_CITY]);
+  const m = new THREE.Mesh(TypedBatch.toGeometry(b.toArrays()), GROUND);
+  m.name = `sf:${l.id}:ground`;
+  m.receiveShadow = true;
+  m.matrixAutoUpdate = false;
+  return m;
 }
 
 /** Local batch → world-space pool arrays (identity instance matrix), aInfo.y lifted by the base. */
@@ -90,8 +229,15 @@ export class CitySites {
 
   constructor() {
     this.group.name = 'city-landmarks';
-    this.sites = SF_LANDMARKS.map((l, i) => ({ l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null }));
+    this.sites = SF_LANDMARKS.map((l, i) => ({
+      l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null,
+      fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false,
+    }));
   }
+
+  /** false: every landmark stays procedural (a QA switch; the default follows each swap's `ship`). */
+  aiEnabled = true;
+  private aiFailed = new Set<string>();
 
   /** Exclusion shapes for the stream workers (city buildings / props inside are dropped). */
   excludes(): Exclude[] {
@@ -124,6 +270,7 @@ export class CitySites {
   /** Far pool ready: estimate 'terrain' bases from the far DEM, add every lod-2 silhouette. */
   attach(pool: CellPool, farGround: (x: number, z: number) => number) {
     this.pool = pool;
+    if (this.aiEnabled && this.sites.some(s => usesAi(s.l))) void modelsModule().then(m => m.preloadDraco(), () => undefined);
     for (const s of this.sites) {
       if (!s.refined) {
         const e = s.l.exclude, r = 'r' in e ? e.r : Math.max(...e.poly.map(p => Math.hypot(p.x - s.l.x, p.z - s.l.z)));
@@ -158,21 +305,52 @@ export class CitySites {
     if (s.mesh) { this.dropMesh(s); }
   }
 
+  /** The AI parts' models when every one is decoded (null: not all ready yet, or no swap / AI off / failed). */
+  private readyModels(s: Site): Map<string, LoadedModel> | null {
+    if (!this.aiEnabled || !usesAi(s.l) || this.aiFailed.has(s.l.id) || !modelsMod) return null;
+    const out = new Map<string, LoadedModel>();
+    for (const p of s.l.swap!.parts) {
+      const m = modelsMod.peekModel(p.model);
+      if (!m) return null;
+      out.set(p.model, m);
+    }
+    return out;
+  }
+
+  /** Start the GLB loads of an AI landmark (once); a failure keeps it procedural for this session. */
+  private requestModels(s: Site) {
+    if (s.requested || !this.aiEnabled || !usesAi(s.l)) return;
+    s.requested = true;
+    const ids = [...new Set(s.l.swap!.parts.map(p => p.model))];
+    void modelsModule().then(m => Promise.all(ids.map(id => m.loadModel(id)))).then(list => {
+      if (list.some(x => !x)) { this.aiFailed.add(s.l.id); return; }
+      // decoded after a procedural fallback build: swap it in (update() rebuilds, one lod-0 build per frame)
+      if (s.mesh && !s.ai) s.rebuild = true;
+    }, () => { this.aiFailed.add(s.l.id); });
+  }
+
   private buildMesh(s: Site) {
     const g = new THREE.Group();
     g.name = `sf:${s.l.id}`;
+    const models = this.readyModels(s);
     const b = new TypedBatch(8192);
-    s.l.build(b, 0);
+    if (models) s.l.swap!.build(b);
+    else s.l.build(b, 0);
     const a = b.toArrays();
     for (let i = 0; i < a.vertexCount; i++) a.info[i * 4 + 1] += s.baseY;
-    const m = new THREE.Mesh(TypedBatch.toGeometry(a), TOY);
+    // the landmark's own hero material when it fades as a whole (one per landmark, the shared 'ob-toy-hero' program)
+    if (s.l.fade && s.l.fade.procedural !== false) {
+      const hero = makeHeroMaterial(`sf:${s.l.id}`);
+      s.heroMat = hero.material;
+      s.fade = hero.fade;
+    }
+    const m = new THREE.Mesh(TypedBatch.toGeometry(a), s.heroMat ?? TOY);
     m.name = `sf:${s.l.id}:lod0`;
     m.castShadow = !!s.l.castShadow;
     m.receiveShadow = true;
     m.matrixAutoUpdate = false;
     g.add(m);
     s.tris = a.indexCount / 3;
-    this.triangles += s.tris;
     if (s.l.animate) {
       const ab = new TypedBatch(1024);
       s.l.animate.build(ab);
@@ -183,6 +361,25 @@ export class CitySites {
       s.anim.receiveShadow = true;
       g.add(s.anim);
     }
+    const ground = buildGroundMesh(s.l);
+    if (ground) { g.add(ground); s.tris += (ground.geometry.getIndex()?.count ?? 0) / 3; }
+    s.ai = false;
+    s.aiTris = 0;
+    s.aiDraws = 0;
+    if (models) {
+      const swap = buildSwapObjects(s.l.swap!.parts, models, s.fade, `sf:${s.l.id}`);
+      for (const o of swap.objects) { g.add(o); s.aiDraws += o.castShadow ? 2 : 1; }
+      s.ai = true;
+      s.aiTris = swap.triangles;
+      s.tris += swap.triangles;
+    }
+    // hold the models while mounted (LRU-cached after the drop); an AI landmark not decoded yet starts loading here
+    if (usesAi(s.l) && this.aiEnabled && !s.retained && modelsMod) {
+      s.retained = [...new Set(s.l.swap!.parts.map(p => p.model))];
+      for (const id of s.retained) void modelsMod.retainModel(id);
+    }
+    this.requestModels(s);
+    this.triangles += s.tris;
     g.matrixAutoUpdate = false;
     g.matrix.copy(landmarkMatrix(s.l, s.baseY));
     // SiteHooks.mount (GLB swaps, dressing): extra objects in the landmark's local frame
@@ -193,29 +390,72 @@ export class CitySites {
     s.mesh = g;
   }
 
-  private dropMesh(s: Site) {
+  /** Drop the lod 0 (`rebuild`: it is rebuilt right away, so the far silhouette stays hidden and the models held). */
+  private dropMesh(s: Site, rebuild = false) {
     if (!s.mesh) return;
     s.unmount?.();
     s.unmount = null;
     this.group.remove(s.mesh);
-    s.mesh.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); });
+    const ai: THREE.Object3D[] = [];
+    s.mesh.traverse(o => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      if (m.name.includes(':ai:')) ai.push(m);
+      else m.geometry.dispose();
+    });
+    disposeSwapObjects(ai);
+    s.heroMat?.dispose();
+    s.heroMat = null;
+    if (s.fade) s.fade.value = 0;
     this.triangles -= s.tris;
     s.tris = 0;
     s.mesh = null;
     s.anim = null;
+    s.ai = false;
+    s.aiTris = 0;
+    s.aiDraws = 0;
+    s.rebuild = false;
+    if (rebuild) return;
+    if (s.retained && modelsMod) for (const id of s.retained) modelsMod.releaseModel(id);
+    s.retained = null;
     s.near = false;
     this.pool?.setVisible(SITE_ID0 + s.i, true);
   }
 
+  /** Whole-landmark fades (world.ts updateHeroFades, per city landmark): camera → player segment near the landmark. */
+  private updateFade(s: Site, dt: number) {
+    const f = s.fade, cfg = s.l.fade;
+    if (!f || !cfg) return;
+    let target = 0;
+    if (U.uFade.value > 0.5) {
+      const c = U.uCam.value, p = U.uPlayer.value;
+      const px = p.x, py = p.y + 0.2, pz = p.z;
+      const dx = px - c.x, dz = pz - c.z, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(0.92, ((s.l.x - c.x) * dx + (s.l.z - c.z) * dz) / L2));
+      const d = Math.hypot(c.x + dx * t - s.l.x, c.z + dz * t - s.l.z);
+      const y = c.y + (py - c.y) * t;
+      if (y > s.baseY - 1 && y < s.baseY + cfg.y1) target = HERO_FADE * (1 - Math.min(1, Math.max(0, (d - cfg.r) / 1.2)));
+    }
+    f.value += (target - f.value) * (1 - Math.exp(-dt * 8));
+    if (f.value < 0.002) f.value = 0;
+  }
+
+  private lastT = 0;
+
   /** At most one lod-0 build per frame (they cost 2–12k triangles to write). */
   update(fx: number, fz: number, t: number) {
     let built = false;
+    const dt = Math.min(0.1, Math.max(0, t - this.lastT));
+    this.lastT = t;
     for (const s of this.sites) {
       const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = LOD0[s.l.tier];
       const near = s.near ? d < r + HYST : d < r;
+      if (!s.requested && s.l.swap && d < r + PRELOAD) this.requestModels(s);
       if (near && !s.mesh && !built && (s.refined || this.pool)) { this.buildMesh(s); built = true; }
+      if (near && s.mesh && s.rebuild && !built) { this.dropMesh(s, true); this.buildMesh(s); built = true; }
       if (near && s.mesh && !s.near) { s.near = true; this.pool?.setVisible(SITE_ID0 + s.i, false); }
       if (!near && s.mesh) this.dropMesh(s);
+      if (s.mesh && s.fade) this.updateFade(s, dt);
       if (s.anim && s.l.animate && s.near && d < ANIM_R) {
         s.l.animate.update(s.anim, t);
         s.anim.updateMatrix();
@@ -238,8 +478,12 @@ export class CitySites {
 
   counts() {
     let near = 0;
-    for (const s of this.sites) if (s.near) near++;
-    return { sites: this.sites.length, near, triangles: this.triangles };
+    const ai = { on: 0, pending: 0, failed: this.aiFailed.size, triangles: 0, draws: 0 };
+    for (const s of this.sites) {
+      if (s.near) near++;
+      if (s.ai) { ai.on++; ai.triangles += s.aiTris; ai.draws += s.aiDraws; } else if (s.mesh && usesAi(s.l) && this.aiEnabled && !this.aiFailed.has(s.l.id)) ai.pending++;
+    }
+    return { sites: this.sites.length, near, triangles: this.triangles, ai };
   }
 
   dispose() {

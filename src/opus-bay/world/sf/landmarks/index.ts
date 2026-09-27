@@ -53,6 +53,51 @@ export type LandmarkLod = 0 | 2;
 export type WalkBlocker = { x: number; z: number; r: number } | { poly: Vec2[] };
 export interface WalkSurface { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }
 
+/**
+ * One AI mesh (lane D2, D2-06/07) placed in the landmark's LOCAL frame: `model` is an ASSETS.models id (SF_MODELS /
+ * SF_KIT, data/assets.ts), at (x, y, z) with a local yaw and a per-axis scale (the GLB's origin is its ground centre,
+ * front +z). Declarative only: world/sf/sites.ts and SoloView load and draw it (world/models.ts, world/modelMaterial.ts).
+ */
+export interface LandmarkSwapPart {
+  model: string;
+  x: number; y: number; z: number;
+  yaw?: number;
+  scale: readonly [number, number, number];
+  /** wall tint (mask.g) as an sRGB hex, e.g. a Painted Lady's body colour */
+  tint?: string;
+  /** night windows lit (mask.r), 0…1 (default 0.55) */
+  occupancy?: number;
+  /** night glass as one steady colour instead of windows (a greenhouse lit from inside) */
+  glass?: { color: string; strength: number };
+  /** TOY glow code (world/materials.ts aInfo.w): (0, 1] floodlit at night, like the procedural stone's GLOW() */
+  glow?: number;
+  castShadow?: boolean;
+}
+
+/**
+ * The AI version of a landmark (lane D2's decision gate in SoloView `?solo=<id>&ai=0|1`): the AI parts plus the
+ * procedural remainder they sit in. `ship` = the city uses it (the walk data is then authored to the AI layout, and the
+ * full procedural model is only the fallback while the GLB loads or when it fails).
+ */
+export interface LandmarkSwap {
+  parts: LandmarkSwapPart[];
+  /** lod-0 procedural remainder drawn with the AI parts (everything they do not replace) */
+  build(b: BatchLike): void;
+  ship: boolean;
+  /** why the gate went this way (QA note, shown in SoloView) */
+  note?: string;
+}
+
+/**
+ * Whole-landmark hero fade (TOY OB_HERO): it thins as one while it stands between the camera and the player instead of
+ * getting occlusion dither holes. `r` = radius around the origin (local), `y1` = top (local y); `procedural: false` =
+ * only the AI parts fade (a large landmark whose procedural wings keep the per-fragment dither).
+ */
+export interface LandmarkFade { r: number; y1: number; procedural?: boolean }
+
+/** Street / plaza ground drawn by the landmark with the city GROUND material (local polygon at local height y). */
+export interface LandmarkGround { poly: Vec2[]; y: number; color: string; pattern: number }
+
 export interface SfLandmark {
   id: string;                       // kebab-case, e.g. 'golden-gate-bridge'
   tier: 1 | 2 | 3;
@@ -64,7 +109,13 @@ export interface SfLandmark {
   castShadow?: boolean;             // T1 only
   animate?: { update(obj: THREE.Object3D, t: number): void; build(b: BatchLike): void };  // optional separately-built moving parts (windmill sails, flags)
   walk?: { blockers: ({ x: number; z: number; r: number } | { poly: Vec2[] })[]; surfaces?: { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }[] };  // LOCAL-space collision + walkable decks for lane B
+  swap?: LandmarkSwap;              // lane D2: AI mesh version (see LandmarkSwap)
+  fade?: LandmarkFade;              // lane D2: whole-mesh hero fade radius (local, around the origin) and top (local y)
+  ground?: LandmarkGround[];        // lane D2: street strips / plazas in GROUND (lod 0)
 }
+
+/** Does the city draw landmark `l` with its AI parts (`swap.ship`), unless `ai` overrides it (SoloView ?ai=0|1)? */
+export const usesAi = (l: SfLandmark, ai?: boolean | null) => !!l.swap && (ai ?? l.swap.ship);
 
 /** Triangle budgets per tier (plan §7); the Golden Gate Bridge has its own. */
 export const TIER_TRIANGLES: Record<LandmarkTier, number> = { 1: 6000, 2: 2500, 3: 800 };

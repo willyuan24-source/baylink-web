@@ -1,0 +1,192 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+import * as THREE from 'three';
+import { ASSETS, SF_DRACO_DECODER_PATH, SF_KIT, SF_KIT_IDS, SF_MODELS, SF_MODEL_IDS, listAssetUrls } from '../src/opus-bay/data/assets';
+import { TOY, makeHeroMaterial } from '../src/opus-bay/world/materials';
+import { MODEL_INST_ATTR, MODEL_TINT_ATTR, MODEL_VARIANTS, keyLuminance, makeModelMaterial, modelInstanceGeometry, modelWarmupSet, setModelInstance } from '../src/opus-bay/world/modelMaterial';
+import * as models from '../src/opus-bay/world/models';
+import { CitySites, buildGroundMesh, buildSwapObjects, disposeSwapObjects } from '../src/opus-bay/world/sf/sites';
+import { SF_LANDMARKS } from '../src/opus-bay/world/sf/landmarks/index';
+
+/**
+ * Lane D2 (wave 2): the AI-mesh runtime — world/models.ts (shared GLTF + Draco loader, cache), world/modelMaterial.ts
+ * (the TOY look on a textured GLB, its program variants and warm-up set), the registry in data/assets.ts against the
+ * files on disk, and the swap objects world/sf/sites.ts builds. No WebGL here: shader strings are checked as text.
+ */
+
+const PUBLIC = path.resolve(import.meta.dirname, '../public');
+const fileOf = (url: string) => path.join(PUBLIC, url);
+
+interface GlbInfo { bytes: number; json: { extensionsRequired?: string[]; accessors: { count: number; min?: number[]; max?: number[] }[]; meshes: { primitives: { attributes: Record<string, number>; indices: number; extensions?: Record<string, unknown> }[] }[]; images?: { mimeType?: string }[] } }
+function glb(url: string): GlbInfo {
+  const buf = fs.readFileSync(fileOf(url));
+  assert.equal(buf.readUInt32LE(0), 0x46546c67, `${url} is a GLB`);
+  const len = buf.readUInt32LE(12);
+  return { bytes: buf.length, json: JSON.parse(buf.subarray(20, 20 + len).toString('utf8')) };
+}
+const isWebp = (url: string) => { const b = fs.readFileSync(fileOf(url)); return b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP'; };
+
+test('models.ts is node-safe: importing touches no DOM, every load resolves null without a browser', async () => {
+  assert.equal(models.canLoadModels(), false);
+  models.preloadDraco();
+  assert.equal(await models.loadModel('sf-dragon-gate'), null);
+  assert.equal(await models.loadModel('no-such-model'), null);
+  assert.equal(await models.retainModel('sf-conservatory'), null);
+  models.releaseModel('sf-conservatory');
+  assert.equal(models.peekModel('sf-dragon-gate'), null);
+  assert.equal(models.modelState('sf-dragon-gate'), null, 'nothing cached outside a browser');
+  assert.deepEqual(models.modelStats(), { ready: 0, loading: 0, failed: 0, retained: 0, triangles: 0, failures: 0 });
+  assert.ok(models.KEEP_UNUSED >= 4);
+  models.disposeModels();
+});
+
+test('registry: every SF model / kit house matches its file (bytes, triangles, bounds within 2 %), Draco + WebP, masks, size caps', () => {
+  const all = [...SF_MODEL_IDS.map(id => [id, SF_MODELS[id]] as const), ...SF_KIT_IDS.map(id => [id, SF_KIT[id]] as const)];
+  assert.equal(all.length, 16);
+  for (const [id, a] of all) {
+    const g = glb(a.url);
+    assert.equal(g.bytes, a.bytes, `${id} bytes`);
+    const prim = g.json.meshes[0].primitives[0];
+    assert.equal(g.json.accessors[prim.indices].count / 3, a.triangles, `${id} triangles`);
+    assert.deepEqual([...(g.json.extensionsRequired ?? [])].sort(), ['EXT_texture_webp', 'KHR_draco_mesh_compression'], `${id} Draco + WebP`);
+    assert.ok(prim.extensions?.KHR_draco_mesh_compression, `${id} Draco primitive`);
+    assert.ok(g.json.images?.every(i => i.mimeType === 'image/webp'), `${id} WebP texture`);
+    const pos = g.json.accessors[prim.attributes.POSITION];
+    const size = [0, 1, 2].map(k => pos.max![k] - pos.min![k]);
+    for (let k = 0; k < 3; k++) assert.ok(Math.abs(size[k] - a.size[k]) <= a.size[k] * 0.02, `${id} size[${k}] ${size[k].toFixed(2)} vs ${a.size[k]}`);
+    // origin at the ground centre: rests on y = 0, centred in x and z
+    assert.ok(Math.abs(pos.min![1]) < 1e-3 && Math.abs(pos.min![0] + pos.max![0]) < 0.02 && Math.abs(pos.min![2] + pos.max![2]) < 0.02, `${id} origin`);
+    const mask = (a as { mask?: string }).mask;
+    if (mask) assert.ok(isWebp(mask), `${id} mask is a WebP`);
+    const cap = a.kind === 'hero' ? 250_000 : 90_000;
+    assert.ok(a.bytes <= cap, `${id} ${a.bytes} B ≤ ${cap}`);
+    assert.ok(a.triangles <= (a.kind === 'hero' ? 10_000 : 3_500), `${id} triangles`);
+    assert.equal(ASSETS.models[id], a);
+  }
+  const urls = listAssetUrls();
+  for (const f of ['draco_decoder.wasm', 'draco_wasm_wrapper.js']) {
+    assert.ok(fs.statSync(fileOf(`${SF_DRACO_DECODER_PATH}${f}`)).size > 10_000, f);
+    assert.ok(urls.includes(`${SF_DRACO_DECODER_PATH}${f}`), f);
+  }
+});
+
+/** onBeforeCompile on MeshStandardMaterial's real shader sources (what three hands the hook). */
+function compile(m: THREE.Material) {
+  const shader = { uniforms: {} as Record<string, { value: unknown }>, vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader } as unknown as THREE.WebGLProgramParametersWithUniforms;
+  m.onBeforeCompile(shader, undefined as unknown as THREE.WebGLRenderer);
+  return shader;
+}
+const count = (s: string, sub: string) => s.split(sub).length - 1;
+
+test('model material: two program variants on the TOY patch (applied once), map + mask + tint + glass, shared programs', () => {
+  assert.deepEqual([...MODEL_VARIANTS], ['ob-model-hero', 'ob-model-inst']);
+  const map = new THREE.Texture();
+  const fade = { value: 0.2 };
+  const hero = makeModelMaterial({ map, variant: 'ob-model-hero', fade, tintKey: '#cfe0d0', glass: { color: '#ffe2b0', strength: 0.9 } });
+  const inst = makeModelMaterial({ map, variant: 'ob-model-inst' });
+  assert.equal(hero.customProgramCacheKey(), 'ob-model-hero');
+  assert.equal(inst.customProgramCacheKey(), 'ob-model-inst');
+  assert.ok(hero.defines && 'OB_HERO' in hero.defines, 'hero: whole-mesh fade');
+  assert.ok(!inst.defines || !('OB_HERO' in inst.defines), 'houses: per-fragment occlusion dither');
+  assert.equal(hero.map, map);
+  assert.equal(hero.vertexColors, false);
+  const h = compile(hero), i = compile(inst);
+  for (const s of [h, i]) {
+    assert.equal(count(s.fragmentShader, 'float obBayer8('), 1, 'TOY patch applied exactly once');
+    assert.equal(count(s.vertexShader, 'vWPos = obWp.xyz;'), 1);
+    assert.ok(s.fragmentShader.includes('texture2D(uObMask, vMapUv)'), 'mask sampled with the map UVs');
+    assert.ok(s.fragmentShader.indexOf('#include <map_fragment>') < s.fragmentShader.indexOf('uObMask, vMapUv'), 'tint after the map');
+    assert.ok(s.vertexShader.includes('vInfo = vec4(0.0, obO.y, -obSeed, vObInst.w);'), 'aInfo synthesized after the TOY vertex patch');
+    assert.ok(s.vertexShader.indexOf('vInfo = aInfo;') < s.vertexShader.indexOf('vInfo = vec4(0.0, obO.y'));
+  }
+  assert.ok(h.fragmentShader.includes('uniform float uHeroFade;') && !i.fragmentShader.includes('uniform float uHeroFade;'));
+  assert.equal(h.uniforms.uHeroFade, fade, 'the landmark fade uniform is shared, not copied');
+  assert.equal((h.uniforms.uObGlass.value as THREE.Vector4).w, 0.9);
+  assert.ok(Math.abs((h.uniforms.uObKeyLum.value as number) - keyLuminance('#cfe0d0')) < 1e-9);
+  // a second material of the same variant compiles to the same source (three shares one program per key)
+  const hero2 = makeModelMaterial({ map: new THREE.Texture(), variant: 'ob-model-hero' });
+  const h2 = compile(hero2);
+  assert.equal(h2.vertexShader, h.vertexShader);
+  assert.equal(h2.fragmentShader, h.fragmentShader);
+  assert.notEqual(h2.uniforms.uObMask, h.uniforms.uObMask, 'per-material uniforms');
+  // without a mask: a black 1×1 one (no tint, no glass), same program
+  assert.ok((h2.uniforms.uObMask.value as THREE.DataTexture).isDataTexture);
+  for (const m of [hero, inst, hero2]) m.dispose();
+});
+
+test('model instances: aObTint / aObInst per instance, sharing the model geometry', () => {
+  const box = new THREE.BoxGeometry(1, 2, 1);
+  const g = modelInstanceGeometry(box, 3);
+  assert.equal(g.getAttribute('position'), box.getAttribute('position'), 'positions shared, not copied');
+  const t = g.getAttribute(MODEL_TINT_ATTR) as THREE.InstancedBufferAttribute, a = g.getAttribute(MODEL_INST_ATTR) as THREE.InstancedBufferAttribute;
+  assert.ok(t.isInstancedBufferAttribute && a.isInstancedBufferAttribute && t.count === 3 && a.count === 3);
+  assert.deepEqual([a.getX(1), a.getY(1)], [0, 1], 'default: solid (fade 1)');
+  setModelInstance(g, 2, '#ffffff', 0.8, 0.4, 0.5, 0.3, 0.08);
+  assert.ok(Math.abs(t.getX(2) - 1) < 1e-6 && Math.abs(t.getW(2) - 0.8) < 1e-6);
+  assert.deepEqual([a.getX(2), a.getY(2), a.getZ(2), a.getW(2)].map(v => +v.toFixed(3)), [0.4, 0.5, 0.3, 0.08]);
+  setModelInstance(g, 0, null, 1);
+  assert.equal(t.getW(0), 0, 'no tint');
+});
+
+test('warm-up set: one object per model variant plus the per-landmark hero TOY program, built like the real meshes', () => {
+  const set = modelWarmupSet();
+  const keys = set.objects.map(o => ((o as THREE.Mesh).material as THREE.Material).customProgramCacheKey());
+  assert.deepEqual(keys, ['ob-model-hero', 'ob-model-inst', 'ob-toy-hero']);
+  const [hero, inst, toy] = set.objects as THREE.Mesh[];
+  assert.ok(!(hero as THREE.InstancedMesh).isInstancedMesh && (inst as THREE.InstancedMesh).isInstancedMesh && !(toy as THREE.InstancedMesh).isInstancedMesh);
+  for (const m of [hero, inst]) {
+    assert.ok((m.material as THREE.MeshStandardMaterial).map, 'USE_MAP like a GLB');
+    assert.ok(m.geometry.getAttribute('normal') && m.geometry.getAttribute('uv'));
+  }
+  assert.ok(inst.geometry.getAttribute(MODEL_TINT_ATTR) && inst.geometry.getAttribute(MODEL_INST_ATTR));
+  assert.equal((toy.material as THREE.MeshStandardMaterial).vertexColors, true);
+  assert.ok(toy.geometry.getAttribute('aInfo'));
+  assert.equal(makeHeroMaterial('x').material.customProgramCacheKey(), 'ob-toy-hero');
+  set.dispose();
+});
+
+function fakeModel(id: string, w: number, h: number, d: number): models.LoadedModel {
+  const geometry = new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0);
+  geometry.computeBoundingBox();
+  return { id, asset: ASSETS.models[id] ?? SF_MODELS['sf-dragon-gate'], geometry, map: new THREE.Texture(), mask: null, triangles: geometry.getIndex()!.count / 3 };
+}
+
+test('swap objects: one hero mesh per single part (sharing the landmark fade), one InstancedMesh per repeated model; scale baked', () => {
+  const fade = { value: 0 };
+  const map = new Map([['sf-dragon-gate', fakeModel('sf-dragon-gate', 2, 1, 1)], ['sf-victorian-a', fakeModel('sf-victorian-a', 4, 5, 4)]]);
+  const { objects, triangles } = buildSwapObjects([
+    { model: 'sf-dragon-gate', x: 1, y: 0.5, z: 0, yaw: 0.3, scale: [0.5, 2, 1], castShadow: true, glow: 0.08 },
+    { model: 'sf-victorian-a', x: -2, y: 0, z: 0, scale: [0.4, 1, 0.85], tint: '#e8c6cf' },
+    { model: 'sf-victorian-a', x: 2, y: 0.3, z: 0, scale: [0.4, 1, 0.85], tint: '#c9d6e8' },
+  ], map, fade, 'test');
+  assert.equal(objects.length, 2);
+  const [gate, row] = objects as [THREE.Mesh, THREE.InstancedMesh];
+  assert.equal((gate.material as THREE.Material).customProgramCacheKey(), 'ob-model-hero');
+  assert.equal((gate.material as ReturnType<typeof makeModelMaterial>).userData.obModel.fade, fade);
+  assert.ok(gate.castShadow && gate.receiveShadow && !gate.matrixAutoUpdate);
+  assert.ok(Math.abs(gate.rotation.y - 0.3) < 1e-9 && gate.position.x === 1);
+  gate.geometry.computeBoundingBox();
+  const s = gate.geometry.boundingBox!.getSize(new THREE.Vector3());
+  assert.ok(Math.abs(s.x - 1) < 1e-6 && Math.abs(s.y - 2) < 1e-6 && Math.abs(s.z - 1) < 1e-6, 'per-axis scale baked into the geometry');
+  assert.equal((gate.material as ReturnType<typeof makeModelMaterial>).userData.obModel.inst.value.w, 0.08, 'floodlight glow');
+  assert.ok(row.isInstancedMesh && row.count === 2);
+  assert.equal((row.material as THREE.Material).customProgramCacheKey(), 'ob-model-inst');
+  const tint = row.geometry.getAttribute(MODEL_TINT_ATTR) as THREE.InstancedBufferAttribute;
+  assert.equal(tint.getW(0), 1);
+  assert.notEqual(tint.getX(0), tint.getX(1), 'per-house tint');
+  assert.equal(triangles, 12 + 12 * 2);
+  disposeSwapObjects(objects);
+});
+
+test('sites: AI counts start empty; ground strips use the city GROUND program; every swap part is a registered model', () => {
+  const sites = new CitySites();
+  assert.deepEqual(sites.counts().ai, { on: 0, pending: 0, failed: 0, triangles: 0, draws: 0 });
+  for (const l of SF_LANDMARKS) {
+    const g = buildGroundMesh(l);
+    if (g) assert.equal((g.material as THREE.Material).name, 'ob-ground');
+    for (const p of l.swap?.parts ?? []) assert.ok(ASSETS.models[p.model], `${l.id}: ${p.model}`);
+  }
+  assert.notEqual(TOY.customProgramCacheKey(), 'ob-model-hero');
+});
