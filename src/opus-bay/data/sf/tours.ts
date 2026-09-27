@@ -128,7 +128,7 @@ export const TOUR_GEO: Readonly<Record<string, TourLineGeo>> = {
     },
   },
   'n-judah': {
-    kind: 'light-rail', length: 1580.1, tunnels: [[0, 516.1], [606.7, 787.0]],
+    kind: 'light-rail', length: 1569.1, tunnels: [[0, 516.1], [606.7, 787.0]],
     stations: {
       'muni-embarcadero': st(0, 126.2, 78.9, { major: true, underground: true }),
       'muni-montgomery': st(89.1, 127.5, 168, { major: true, underground: true }),
@@ -145,11 +145,11 @@ export const TOUR_GEO: Readonly<Record<string, TourLineGeo>> = {
       'muni-9th-irving': st(1022.3, -133.5, 1006, { major: true }),
       'muni-judah-19th': st(1166.9, -202.7, 1114.3, { major: true }),
       'muni-judah-sunset': st(1400.8, -355.7, 1291.4, { major: true }),
-      'muni-judah-la-playa': st(1580.1, -461.7, 1417, { major: true }),
+      'muni-judah-la-playa': st(1569.1, -466, 1418.4, { major: true }),
     },
   },
   'm-ocean-view': {
-    kind: 'light-rail', length: 2028.1, tunnels: [[0, 1164.2]],
+    kind: 'light-rail', length: 1987.7, tunnels: [[0, 1164.2]],
     stations: {
       'muni-embarcadero': st(0, 126.2, 78.9, { major: true, underground: true }),
       'muni-montgomery': st(89.1, 127.5, 168, { major: true, underground: true }),
@@ -164,7 +164,7 @@ export const TOUR_GEO: Readonly<Record<string, TourLineGeo>> = {
       'muni-ocean-ave': st(1342.4, 152.1, 1408.7),
       'muni-19th-winston': st(1420, 195.2, 1471.5, { major: true }),
       'muni-19th-holloway': st(1509.5, 256.9, 1536.2, { major: true }),
-      'muni-san-jose-geneva': st(2028.1, 511.7, 1299.3, { major: true }),
+      'muni-san-jose-geneva': st(1987.7, 513.9, 1305.7, { major: true }),
     },
   },
   california: {
