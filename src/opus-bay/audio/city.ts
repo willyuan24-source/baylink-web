@@ -208,15 +208,18 @@ export class CityLayers {
     }
 
     // --- the ferry's engine: aboard, or near the boat
-    const ferry = activeFerrySystem()?.cars[0]?.pose ?? null;
+    const ferrySys = activeFerrySystem();
+    const ferry = ferrySys?.cars[0]?.pose ?? null;
     if (ferry) {
       if (this.ferryPrev && dt > 0) {
         const v = Math.hypot(ferry.x - this.ferryPrev.x, ferry.z - this.ferryPrev.z) / Math.max(1e-3, now - this.ferryPrev.t);
         this.ferrySpeed += (clamp(v, 0, 15) - this.ferrySpeed) * 0.3;
       }
       this.ferryPrev = { x: ferry.x, z: ferry.z, t: now };
-      const move = game.get().move;
-      const aboard = move.mode === 'transit' && move.line === 'ferry';
+      // aboard once the boat carries you (review: the ride's move mode is 'transit' from the moment you start waiting on
+      // the quay, which played the engine centred at full level with the boat 385 u away at the other terminal)
+      const move = game.get().move, phase = ferrySys?.rideStatus()?.phase;
+      const aboard = move.mode === 'transit' && move.line === 'ferry' && (phase === 'riding' || phase === 'arrived');
       const d = Math.hypot(ferry.x - L.x, ferry.z - L.z);
       const engine = aboard ? 1 : proximity(d, 8, 60);
       this.last.engine = +engine.toFixed(2);

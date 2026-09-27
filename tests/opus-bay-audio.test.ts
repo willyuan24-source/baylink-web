@@ -432,3 +432,48 @@ test('F10: the city layers run on a context (surf, birds, buskers, cable hum, fe
     g.window = saved;
   }
 });
+
+test('F10 (review): the ferry engine plays aboard only once the boat carries you, not while you wait on the quay', async () => {
+  const fake = fakeAudio();
+  const { drain } = await import('../src/opus-bay/audio/slices');
+  const { AudioEngine, engineBuffersJob } = await import('../src/opus-bay/audio/engine');
+  const { Ambience, describeWorld } = await import('../src/opus-bay/audio/ambience');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const T = await import('../src/opus-bay/data/transit');
+  const { FerrySystem } = await import('../src/opus-bay/world/ferry');
+  const ctx = new fake.FakeContext() as unknown as BaseAudioContext & { currentTime: number };
+  const engine = new AudioEngine(ctx, drain(engineBuffersJob(ctx)));
+  const g = globalThis as unknown as Record<string, unknown>;
+  const saved = g.window;
+  g.window = fake.win;
+  const prev = game.get();
+  const sys = new FerrySystem(T.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
+  T.setActiveFerrySystem(sys);
+  try {
+    game.set({ worldMode: 'city', timeOfDay: 'day' } as never);
+    const amb = new Ambience(engine, describeWorld(DISTRICT, false));
+    amb.update(0.1);
+    await amb.cityReady;
+    const level = () => (amb.debugCity().city as { engine: number }).engine;
+    // waiting at Pier 41 for the boat lying at Gate E (the ride's move mode is 'transit' from the start of the wait)
+    runtime.player.x = -238; runtime.player.z = 66.5;
+    sys.request({ line: 'ferry', station: 'pier-41', dir: 1, to: 'ferry-building' });
+    game.set({ move: { mode: 'transit', line: 'ferry', spot: 'deck' } } as never);
+    for (let i = 0; i < 10; i++) { ctx.currentTime += 0.1; amb.update(0.1); }
+    assert.equal(sys.rideStatus()?.phase, 'coming');
+    assert.ok(level() < 0.05, `engine while waiting ${level()}`);
+    // aboard: the engine is all round you
+    sys.board();
+    const b = sys.boat.pose;
+    runtime.player.x = b.x; runtime.player.z = b.z;
+    for (let i = 0; i < 3; i++) { ctx.currentTime += 0.1; amb.update(0.1); }
+    assert.equal(level(), 1);
+    amb.dispose();
+  } finally {
+    T.setActiveFerrySystem(null);
+    game.set({ worldMode: prev.worldMode, move: prev.move } as never);
+    g.window = saved;
+  }
+});
