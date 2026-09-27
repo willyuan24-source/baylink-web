@@ -10,7 +10,7 @@ Landed by the lead's day-0 commit on `opus-bay` (2026-09-27). Everything below e
 
 Contents: [1 Ownership](#1-ownership) · [2 Protocol](#2-worktree-commit-push-ports) · [3 Decisions](#3-decisions) ·
 [4 Events](#4-event-contract) · [5 Hooks and stubs](#5-hooks-and-stubs) · [6 Routed requests](#6-cross-lane-requests-already-known) ·
-[7 What day 0 changed](#7-what-day-0-changed-and-checks)
+[7 What day 0 changed](#7-what-day-0-changed-and-checks) · [8 Review](#8-day-0-review-2026-09-27)
 
 ---
 
@@ -26,14 +26,14 @@ Contents: [1 Ownership](#1-ownership) · [2 Protocol](#2-worktree-commit-push-po
 - G2 (city content): OB/game/{flow,brain,content,interactables,photo,projector,cityContent,cityGoals,residentTasks,baybayLines}.ts, OB/data/{postcards,script,pois,tours,catalog,links,contentMode,VOICE.md}(.ts), OB/data/sf/{cityPois,copy,dialogue,goals,lines,postcards,residents}.ts, OB/actors/{npcs,residentLooks}.ts, OB/ui/{Journal,Moments,PoiCard,Dialogue,EventCard,format}.ts(x), OB/i18n.ts, tests/opus-bay-{content,flow-brain,flow-data,flow-logic,sf-content,sf-lines,sf-tasks}.test.ts.
 - H2b (Higgsfield part 2b: painted map, voice barks, murals): OB/data/{mapPaper,murals,voiceLinesSf}.ts, OB/ui/{MapPaperLayer.tsx,mapPaper.ts}, OB/world/sf/murals.ts, scripts/opus-sf/{map,murals,voice}/**, public/opus-bay/{map,murals,voice}/**, public/opus-bay/README.md, docs/opus-bay/h2b/**, tests/opus-bay-h2b-assets.test.ts.
 - FROZEN after day 0 (nobody edits in wave 2; a lane that needs a change writes it under "Requests" in its report): OB/core/{types,store,events,runtime,geo}.ts, OB/world/sf/format.ts, OB/data/district.ts, tests/opus-bay-sf-disk.ts, tests/opus-bay-sf-{format,data,geo,terrain}.test.ts, tests/opus-bay-district.test.ts, OB/ASSETS-LEDGER.md (append-only, lead only), OB/DESIGN.md, OB/STATUS.md, OB/RESUME.md, package.json, package-lock.json, vite.config.ts, everything outside the Opus Bay paths in CLOUD.md.
-- Every lane also owns: its report docs/opus-bay/sf-w2-<LANE>.md and its credit ledger docs/opus-bay/ledger/w2-<LANE>.md (Higgsfield rows, same columns as ASSETS-LEDGER.md; the lead merges them later).
+- Every lane also owns: its report docs/opus-bay/sf-w2-<LANE>.md and its credit ledger docs/opus-bay/ledger/w2-<LANE>.md (Higgsfield rows, same columns as ASSETS-LEDGER.md; the lead merges them later), and its QA images under docs/opus-bay/qa/w2/<LANE>/ (a few key JPEGs; scratch shots stay in /tmp).
 - New files a lane creates are owned by that lane. A file not listed above: ask yourself which lane's subject it is; if unclear, it is frozen.
 
 ### 1.2 Files day 0 placed (new files and the ones the list above does not name)
 
 | file | owner | what it is |
 |---|---|---|
-| `OB/game/systemsRegistry.ts` | **frozen** | per-frame / scene-component / click-proxy registry that `game/Systems.tsx` consumes (§5.4) |
+| `OB/game/systemsRegistry.ts` | **frozen** | per-frame / scene-component / click-proxy registry that `game/Systems.tsx` consumes (§5.4; `invalidateProxies` added by the day-0 review) |
 | `tests/opus-bay-contracts.test.ts` | **frozen** | pins every day-0 hook (lanes test their fillings in their own files) |
 | `docs/opus-bay/sf-w2-contracts.md` (this file), `docs/opus-bay/ledger/README.md` | lead | |
 | `OB/game/transit.ts` | F | the ride section moved out of `flow.ts` + hooks (§5.2) |
@@ -41,6 +41,7 @@ Contents: [1 Ownership](#1-ownership) · [2 Protocol](#2-worktree-commit-push-po
 | `OB/game/resume.ts`, `OB/game/fastTravel.ts`, `OB/data/save.ts`, `OB/data/cityZones.ts`, `OB/ui/Footprints.tsx` | G1 | stubs / moved code (§5.3, §5.5) |
 | `OB/actors/moveApi.ts`, `OB/ui/MoveChip.tsx` | E2 | new API; MoveChip moved verbatim out of `Hud.tsx` |
 | `OB/world/sf/l0index.ts` | D2 | per-building L0 index (implemented, §5.6) |
+| `OB/world/sf/landmarks/context.ts` | D2 | D2-01 helpers other lanes code against: `landmarkTallStructures`, `sfLandmarkAnchor`, `landmarkPlazaSpots` (added by the day-0 review, §5.6) |
 | `OB/data/{mapPaper,murals,voiceLinesSf}.ts`, `OB/ui/{mapPaper.ts,MapPaperLayer.tsx}`, `OB/world/sf/murals.ts` | H2b | stubs (§5.7) |
 | `OB/actors/models.ts` | E2 | day 0 exported `NPC_BONES` for G2 (no other change) |
 
@@ -83,6 +84,20 @@ npx eslint src/opus-bay tests/opus-bay-*                                 # 0 pro
 `tests/opus-bay-hero-regression.test.ts` must stay green (district mode is bit-for-bit unchanged), and so must
 `tests/opus-bay-contracts.test.ts`.
 
+**Tests that pin another lane's module** (keep them green; if a legitimate change of yours breaks one, do not edit it:
+write the exact test change under Requests in your report and tell the owner):
+
+| test (owner) | pins (owner) |
+|---|---|
+| `opus-bay-world` (C2) | `world/streetcar.ts` `new Streetcars()` district loop, `world/life.ts` (F) |
+| `opus-bay-flow-logic` (G2) | `game/ride.ts` `stepRide` / `sortedStops` + `finishRide` (F), `game/cinema.ts` (G1), `actors/view.ts` (E2) |
+| `opus-bay-flow-brain` (G2) | `game/qa.ts` `readQa` / `bayTimeOfDay`, `game/cinema.ts` `cinemaActive` / `stepCinema`, `ui/format`, `ui/hooks`, `ui/mapLabels` (G1) |
+| `opus-bay-sf-stream` (C2) | `world/sf/sites.ts` exclusions: Palace lagoon is ground, `sink`, city buildings dropped (D2) |
+| `opus-bay-sf-nav` (E2), `opus-bay-sf-terrain` (frozen) | `world/sf/landmarks/index.ts`, `core/sfTerrain.ts` (D2): GGB deck at 15.2, City Hall blockers, terrain-based decks |
+| `opus-bay-audio` (F) | `data/voiceLinesSf.ts` `SF_VOICE_UNMUTE` (H2b) |
+| `opus-bay-hero-regression` (C2) | `world/recipes/city.ts`, `world/materials.ts`, `world/typedBatch.ts` (C2 itself) |
+| `opus-bay-contracts` (frozen) | every day-0 hook: `TypedBatch.vert` / `toArrays` / `toGeometry` (C2), TOY ≡ `patchToyShader` (C2), the district F-line `rideLabel` text and `goalIdsFor('cable-car' \| 'ferry') = []` in district (F, G2), district residents (G2), `SF_KIT` (D2) |
+
 **Commit and push** — small logical commits; every message ends with the two lines
 
 ```
@@ -118,6 +133,9 @@ by editing their file.
   `build.ts` / `worker.ts` / `stream.ts` edits to the few lines day 0 landed; C2-12 is dropped.
 - **AI GLB material** is D2-03 (`world/modelMaterial.ts`) on C2's exported shader helpers (§5.6); C2-11 is dropped.
 - **Obstacles**: one mechanism, `registerObstacleSource` in `actors/view.ts` (not a `movers` array).
+- **Hop-off brake** (E2-10 and F6 both named it; one owner per side, decided by the day-0 review): **E2 runs the rider
+  side** (every input path: Space, pad B, F, the HUD's 提前下车 via `moveApi.requestHopOff`), **F runs the car side**
+  (`platformStop`, the HUD `'braking'` stage). The handshake is in §5.2.
 - **`platform.ts`** is F's; the E2-0 stop-request API is in it (§5.8).
 - **Hero-life pause** (F13) is F's in `life.ts`, reading `cityStreamer()?.heroFar` / `onHeroFar`; C2 does not toggle
   `life.group`.
@@ -205,7 +223,7 @@ finishRide(): void
 boardFrom(it: Interactable): void                // flow's 'streetcar' action
 openRideNode(rest: string): void                 // flow's `flow.ride.<rest>` dialogue nodes
 stepTransit(dt: number): void                    // game/Systems.tsx Ticker, right after stepCinema (was inline stepRide)
-requestHopOff(): void                            // day 0 = hopOffRide(); F adds the 1.2 s brake (E2-10 / F6)
+requestHopOff(): void                            // immediate programmatic hop-off (QA, a trip start while riding); = hopOffRide()
 rideLabel(ride: FlowRide): RideLabel             // HUD RideBanner; RideLabel { icon: 'tram'|'cable-car'|'ferry'; waiting; lineTo; dest }
 transitInteractables(): Interactable[]           // day 0 []; F registers them in initTransit via registerInteractables
 rideLog(): Record<string, number>                // rides per line id this visit, for G1's save v2; day 0 {}
@@ -215,6 +233,32 @@ initTransit(): () => void                        // once per page from flow.init
 `transit.ts` imports `say, bubble, announce, playDialogue, defineNode, teleportPlayer, refreshLock, completeGoal`
 from `flow.ts` (a module cycle that is safe: neither side uses the other at load time; keep it that way). F calls
 G1's `noteRide(lineId)` (`data/save.ts`) after a counted ride and compares G1's `travelEpoch()` (`game/fastTravel.ts`).
+
+More of F's surface that other lanes already read (added by the day-0 review; the code is unchanged):
+
+- **`currentRide(): RideState | null`** (`game/ride.ts`, F) is what E2's `moveSystem` keys the transit input and the
+  rider placement on (`moveSystem.ts` ≈ l.360 and l.749: no ride → Space / B / the HUD button do nothing and the rider is
+  not put on `platforms.get(move.line)`; `mode === 'wait'` = still at the stop). F keeps it answering for **every**
+  line (cable car, ferry, city F-line) with `mode: 'wait'` until the car is at the stop and `elapsed` counting, and
+  keeps `hopOffRide()` / `cancelRide()` working for every line, so E2's consumer needs no new API. `stepRide`,
+  `sortedStops`, `MAX_WAIT`, `virtualT` keep their district behaviour (`world/streetcar.ts`, flow-logic test).
+- **`boardFrom(it)`** receives every interactable whose action is `'streetcar'`, whatever its source or id.
+  `InteractionKind` (`core/types.ts`) is frozen, so non-boarding station actions (the F4 turntable push by E, a ferry
+  gangway) are registered with `action: 'streetcar'` and their own `verb`, and F dispatches them in `boardFrom` by id
+  prefix or `refId`. (The HUD prompt icon for them is G1's: see §6.)
+- **Hop-off handshake** (§3). One path for every input: Space / pad B / F in the car and the HUD's 提前下车
+  (`moveApi.requestHopOff()` → `input.hopOffCount`) all reach E2's `moveSystem` transit branch.
+  1. Waiting at the stop → `cancelRide()` at once (unchanged).
+  2. Moving → E2 calls `requestPlatformStop(move.line, 1.2)` and enters its `'braking'` phase (E2-10). F's car
+     honours `platformStop(id)` (brake to 0 within `within` s, hold), and F's `stepTransit` shows
+     `flow.ride.stage = 'braking'` while a stop is pending for the ride's line (F writes `flow.ride`; nobody else does,
+     since `stepTransit` rewrites the stage every frame).
+  3. Speed < ALIGHT or 1.2 s → E2 calls `hopOffRide()` (F: ends the ride, counts it, steps off beside the car), places
+     the player at a clear door slot, then `releasePlatformStop(move.line)`. F's `hopOffRide` / `finishRide` /
+     `cancelRide` also release any stop pending on the ride's line, so a 直接到站 during the brake never leaves a car
+     holding forever.
+  `transit.requestHopOff()` is **not** part of this path: it is the immediate hop-off for code that is not the rider
+  (QA, G1 starting a trip while riding) and stays `hopOffRide()` plus the release.
 
 ### 5.3 Interactables, brain, content (`game/interactables.ts`, `game/brain.ts`: G2; `data/cityZones.ts`: G1)
 
@@ -263,27 +307,31 @@ allPostcardsFound(collected: readonly string[]): boolean
 registerFrameSystem(key: string, step: (dt: number, now: number) => void, order = 0): () => void
 registerSceneSystem(key: string, Component: React.ComponentType): () => void   // mounted inside <Systems/> (R3F)
 registerProxySource(fn: (it: Interactable) => {x,y,z,r}[] | null): () => void   // extra click spheres (e.g. an SF landmark body)
+invalidateProxies(): void                                                       // a source's answers changed → Systems re-asks (review)
 ```
 
 Frame steps run every frame in the Ticker after `stepTransit` and the input edges, before the 10 Hz focus / guide
 brain (dt clamped to 0.1 s, `now` = `performance.now()`); a throwing step is logged and skipped. Re-registering a key
 replaces it. `Systems.tsx` also re-samples, **in city mode only**, the ground height of click proxies and postcard
 glints within 200 u of the player once a second (G2's cards on hills; district unchanged). `QaBridge` stays G1's.
-World-side systems use `getWorld().addSystem` (§5.6) instead.
+World-side systems use `getWorld().addSystem` (§5.6) instead. Register from your own init code (`initCityContent`,
+`initTransit`, a lane boot hook), not as a side effect of importing a data module: node tests import those modules.
+Sources whose content changes call `invalidateInteractables()` / `invalidateProxies()` (E2's pooled city bikes and
+benches through `vehicleSpots()` / `seatSpots()` included).
 
 ### 5.5 UI (`ui/Hud.tsx`, `TitleScreen.tsx`, `Overlay.tsx`, `Footprints.tsx`: G1; `MoveChip.tsx`: E2; `Journal.tsx`: G2)
 
 | hook | where | day 0 |
 |---|---|---|
 | `<MoveChip />` | `ui/MoveChip.tsx` (E2) with `Hint` and the 3 style objects, moved verbatim | Hud renders it |
-| RideBanner | `rideLabel(ride)` from `game/transit.ts` (F); icon `Ship` for `'ferry'`, else `TramFront` | the old F-line strings exactly |
+| RideBanner | `rideLabel(ride)` from `game/transit.ts` (F); icon `Ship` for `'ferry'`, `CableCar` for `'cable-car'`, else `TramFront` | the old F-line strings exactly |
 | "提前下车" | calls `requestHopOff()` from `actors/moveApi.ts` (E2) → `input.hopOffCount++` → moveSystem hops off like Space / pad B | the button now takes the Space path |
 | objective pill | `activePostcardCount(s.postcards)` / `activePostcardTotal()` | same in district |
 | title subtitle | `CITY_COPY.titleSub` from `data/sf/copy.ts` (G2, dependency-free) in city mode, else the district line | `titleSub: null` |
 | start | `Overlay` calls `startOrResume()` from `game/resume.ts` (G1) | = `startGame()` |
 | 足迹 tab | `Journal` adds a tab when `FOOTPRINTS_TAB` (from `ui/Footprints.tsx`, G1) is set and renders `<Footprints />` | `null`, no tab |
 | G1 save / resume | `data/save.ts`: `readSave(): SaveV2 \| null`, `noteRide(lineId)`, `requestResume()`, `takeResumeRequest(): boolean` | null / no-ops; dependency-free (the title imports it) |
-| G1 fast travel | `game/fastTravel.ts`: `travelActive(): boolean`, `travelEpoch(): number`, `travelPose(): TravelPose \| null` | false / 0 / null |
+| G1 fast travel | `game/fastTravel.ts`: `travelActive(): boolean`, `travelEpoch(): number`, `travelPose(): TravelPose \| null` with `TravelPose { phase: 'pickup' \| 'rise' \| 'pan' \| 'hold' \| 'descent'; t /* 0..1 in the phase */; x; y; z; heading }` | false / 0 / null |
 
 Never import three.js (or `data/script.ts`, `game/*`) into the title chunk (`OpusBayPage` → `TitleScreen`):
 `data/sf/copy.ts`, `data/save.ts`, `data/assets.ts` and the H2b data modules stay dependency-free.
@@ -310,8 +358,28 @@ onL0Drop(fn: (cellKey: number) => void): () => void    // before a cell's L0 mes
 // world/sf/sites.ts (D2) — type read structurally by C2
 interface SiteHooks { lights?: {x,y,z,size,color}[]; mount?(group: THREE.Group, baseY: number): void | (() => void); plaza?: {poly, surface}[] }
 CitySites.siteLights(): {x,y,z,size,color}[]          // world-space lights of every landmark (C2's light field)
+// world/sf/landmarks/context.ts (D2) — declarative (no loader / material imports: moveSystem and node tests import it)
+landmarkTallStructures(baseOf: (l: SfLandmark) => number): { id; x; z; r; top }[]   // glide obstacles, world space
+sfLandmarkAnchor(id: string): { x: number; z: number; heading: number } | null      // world arrival spot (heading = world yaw)
+landmarkPlazaSpots(): { id: string; x: number; z: number }[]                         // crowd / prop spots on plazas; day 0 []
 ```
 
+`landmarkTallStructures` is already what E2's `moveSystem` glide uses in city mode (the review moved moveSystem's own
+list there verbatim, so D2-10's better radii and tops reach the glide without an E2 edit). `sfLandmarkAnchor` is the
+D2-12 export G1 (`?at=lm-<id>`, fast travel) and G2 (card positions) read. D2 adds the registry fields themselves
+(`swap?`, `dress?`, `tall?`, `WalkBlocker.top?`) in its own files; nobody else reads them directly.
+
+- **TOY ≡ `patchToyShader`.** `TOY`'s `onBeforeCompile` must stay exactly `patchToyShader(shader, { sway: true })` (the
+  frozen contract test compares the two shader strings). C2 therefore puts every new TOY-wide shader feature (Karl the
+  Fog's `patchFog`, the C2-10 tier fade) **inside** `patchToyShader`, and D2's model material, which calls it, inherits
+  them; D2 must not apply the same patch a second time. Features for other materials (GROUND, water, hero) stay
+  C2-internal.
+- **`CityStreamer` public members stay stable** (C2): `cityStreamer()`, `far`, `manifest`, `whenReady(p, r)`,
+  `focusOverride`, `heroFar` / `onHeroFar`, `stats()`, the L0 building API above. G1 (map, fast travel, resume, streets),
+  D2, F and H2b read them.
+- **Landmark LOD by camera height** (C2-5 "Sites") is D2's, in `sites.ts` (checkpoint §5.1). `sites.update(fx, fz, t)`
+  has no camera argument and needs none: read the camera from `U.uCam.value` (`world/materials.ts`, written by
+  `World.update` before the streamer updates) and the ground under it with `heightAt`.
 - `registerWarmup`: the objects must match the real ones (material, mesh type, instancing / batching, cast /
   receive shadow, defines). Register at module load of a module that is imported before the world mounts (D2: from
   `sites.ts` → `modelMaterial.ts`); the warm-up runs ~250 ms after mount and again after a quality change.
@@ -323,7 +391,7 @@ CitySites.siteLights(): {x,y,z,size,color}[]          // world-space lights of e
   the worker transfers its buffers; the hide swaps a range to degenerate triangles and restores the saved copy
   (`setRangeHidden`, update range only). Zone ids are not in the descriptor: use `zoneAt` on the main thread.
 - H2b's murals attach through `world/sf/murals.ts attachMurals(streamer: CityStreamer): WorldSystem | null`, which
-  `World.enableCity` calls once and adds (day 0: null).
+  `World.enableCity` calls once and adds (day 0: null); `disableCity` removes it again (review fix).
 - F's world entry stays `Streetcars` (`world/streetcar.ts`), which `world.ts` already constructs and updates; it can
   also `addSystem`.
 
@@ -409,18 +477,21 @@ Put these in your brief; if you depend on one, say so in your report.
 
 | from → to | request |
 |---|---|
-| E2 → F | `world/streetcar.ts` and the cable cars honour `platformStop(id)` (brake to 0 within 1.2 s, hold, resume on release); cable-car platform ids equal `move.line` |
-| F → E2 | consume `pitch`, `kind`, `railMirror` / running boards, the ferry `'deck'` spot, `transit.requestHopOff()` (brake first, E2-10) and obstacle sources in `giveWay`; the ride camera looks up `platforms.get(move.line)` |
+| E2 → F | `world/streetcar.ts` and the cable cars honour `platformStop(id)` (brake to 0 within 1.2 s, hold, resume on release); cable-car platform ids equal `move.line`; `currentRide()` answers for every line; `stepTransit` shows `'braking'` while a stop is pending; `hopOffRide` / `finishRide` / `cancelRide` release it (§5.2 handshake) |
+| F → E2 | consume `pitch`, `kind`, `railMirror` / running boards, the ferry `'deck'` spot, the rider side of the hop-off handshake (E2-10: `requestPlatformStop` → brake → `hopOffRide()` → door slot → `releasePlatformStop`, §5.2) and obstacle sources in `giveWay`; the ride camera looks up `platforms.get(move.line)` |
 | G1 → E2 | long click-to-walk (`routeTo` + RouteWalker beyond 150 u); pose pelican / rider / BAYBAY from `travelPose()` in travel mode; `restoreFleet` |
-| D2 → E2 | switch `moveSystem` city tall structures to D2's `landmarkTallStructures()` |
-| D2 → G1 | `?at=lm-<id>` via `sfLandmarkAnchor(id)` in `qa.ts` / QaBridge |
+| D2 → E2 | ~~switch `moveSystem` city tall structures to D2's `landmarkTallStructures()`~~ done by the day-0 review (`moveSystem.cityTallStructures` calls it) |
+| D2 → G1 | `?at=lm-<id>` via `sfLandmarkAnchor(id)` (`world/sf/landmarks/context.ts`) in `qa.ts` / QaBridge, on the city `whenReady` + `arrivalSpot` path (G1-12) |
 | G2 → G1 | `?at=` accepts `:` ids (e.g. `postcard:sf-painted-ladies`) |
 | G2 → D2 | zh glossary in `data/sf/landmarks.ts` (双峰 not 双子峰…) and the month-tagged cable-car guide link (or G2 overrides them in `cityPois.ts`) |
-| F → G1 | transit icons / lines on the city map from `data/transit.ts` (read-only import); `rideLog()` into save v2 |
+| F → G1 | transit icons / lines on the city map from `data/transit.ts` (read-only import); `rideLog()` into save v2; the E-prompt icon for `source: 'transit'` stations by line kind (`ui/icons.tsx` `InteractIcon`: a cable-car / ferry glyph instead of the tram; the kind is in F's `data/transit.ts` by `refId`) |
+| G1 → G2 | `ui/PoiCard.tsx` accepts `openPanel('poi', 'sf:<placeId>')` and renders the SF landmark / place card from `sfLandmarkInfo` + G1's `data/sf/places.ts` (read-only import); until then G1's `PlaceActions` hides 详情 for non-POI places |
+| F → D2 | (optional) a flag or export so `landmarks/cable-car-turntable.ts` can omit its static disc top when F's turning disc is present; Hyde & Beach and Taylor & Bay turntable sites (F otherwise draws its disc 0.005 u above the static one and the other two sites itself) |
 | F → G2 | gripman / deckhand lines, `hookText('cablecarOff' / 'ferryOff')`, first-bell and turntable-push lines, city `FREE_GOALS` for `cable-car` / `ferry` (F falls back to inline lines) |
 | H2b → G1 | mount `<MapPaperLayer />` (or `drawMapPaper`) in the city map, keep the ODbL credit |
 | H2b → G2 | `emit({ type: 'voice-line', id })` next to each voiced bubble; bubble text starts with the recorded phrase |
-| C2 → D2 | the model material also takes Karl the Fog: call C2's fog patch (C2 publishes its name in its report) |
+| C2 → D2 | Karl the Fog reaches the model material through `patchToyShader` (§5.6: C2 keeps TOY ≡ `patchToyShader`, D2 does not patch fog again); landmark LOD0 radius by camera height in `sites.ts` (C2-5 "Sites", from `U.uCam.value`, §5.6) |
+| C2 → E2, F | (optional) Karl on your own non-TOY materials (actors, crowd, cable cars if not TOY_INST): call C2's fog patch (C2 publishes its name and signature in its report) |
 | C2 ↔ F | the high-view budget needs F13 (hero-life pause) |
 | E2 → D2 | a `MODELS` entry for `pelican-glide.glb` if E2 wants it listed (else a local URL constant) |
 
@@ -443,3 +514,40 @@ Checks at the day-0 commit (worktree `/home/user/wt/day0`):
   and counts the streetcar goal.
 - Production build: GameRoot 295,079 B gzip (was 293,086), OpusBayPage (title) 16,791 (was 16,250; the SF_KIT table in
   `assets.ts`), worker 57,624 (was 56,950). No three.js in the title chunk.
+
+---
+
+## 8. Day-0 review (2026-09-27)
+
+An adversarial review of the day-0 commits (`c7068d9..06069e9`) re-ran every check and closed the gaps below. Every
+item is in the sections above; this is the list.
+
+**Verified, unchanged**
+- District: hero regression 11/11; the `?start=free&time=golden&quality=high` ferry-gate frame at 960×600 is the same
+  at `c7068d9` and after day 0 (pixel differences only on animated things: sailboat, gull, idle poses) with identical
+  `renderer.info` in three samples each: **76 calls / 228,982 triangles / 44 programs** (the numbers of the checkpoint's
+  district table; the day-0 note's 58 / 190,355 / 90 was an auto-quality run).
+- The one district behaviour change is the intended HUD 提前下车 path: a scripted F-line hop-off at `c7068d9` and after
+  puts the player on the same spot (132.8, 16.8), ends the ride and frees the player; only BAYBAY's placement differs
+  (beside you instead of hopping out), as §7 says.
+- City `?start=free&world=city`: streams (0 errors, 74 calls at the gate) and the L0 building API answers live
+  (`forEachL0Building` found buildings, `setL0BuildingHidden` hid and restored one).
+- The ownership table has no file claimed twice and no source or test file without an owner (checked by expanding the
+  globs over `git ls-files`; only `scripts/opus-sf/{build,publish}.ts`, `lib/**` and `fetch/**` are unowned → frozen).
+
+**Fixed**
+- The frozen contract test pinned things lanes are meant to change: `Object.keys(ASSETS.voice).length === 10` (would
+  fail on H2b's first clip), empty registries (would fail once a lane registers from import-time code), the identity of
+  `NPC_DEFS`, and G2's goal-word order. It now checks the contracts themselves (the voice merge, relative registry
+  counts with ids no lane uses, the district resident ids).
+- D2-01 was a day-0 item that had not landed: `world/sf/landmarks/context.ts` now has `landmarkTallStructures`,
+  `sfLandmarkAnchor`, `landmarkPlazaSpots`; `moveSystem`'s city glide list moved there verbatim (closes the D2 → E2
+  request).
+- `systemsRegistry.invalidateProxies()` (frozen file: a proxy source whose answers change had no way to say so).
+- `World.disableCity` now removes the murals system `enableCity` added.
+- RideBanner draws `CableCar` for `icon: 'cable-car'` (the contract returned it; the HUD drew a tram).
+- Contract gaps written down: the hop-off handshake and brake ownership (§3, §5.2; `transit.requestHopOff` is not the
+  rider path), `currentRide()` must answer for every line (§5.2), `boardFrom` receives every `'streetcar'` action
+  (§5.2), TOY ≡ `patchToyShader` (§5.6), the stable `CityStreamer` members (§5.6), landmark LOD by camera height is
+  D2's (§5.6), `TravelPose` (§5.5), cross-lane test pins (§2), and the §6 rows G1 → G2 (PoiCard `sf:`), F → G1 (station
+  prompt icons), F → D2 (turntable disc, optional), C2 → E2 / F (Karl on own materials, optional).
