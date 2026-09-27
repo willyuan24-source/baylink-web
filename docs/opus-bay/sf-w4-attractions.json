@@ -1,0 +1,5777 @@
+{
+ "version": "w4-plan-2026-09-27",
+ "note": "Wave-4 attraction list (deduplicated). Coordinates in the city frame (projectCity); facts + sources from the scouting (checked 2026-09-27). priority 1 owner request, 2 tier 1, 3 tier 2 on a line, 4 tier 3 / cards. treatment: ai | proc | plaza | card | stop (already built) | defer (card now, model later).",
+ "attractions": [
+  {
+   "id": "st-ignatius-church",
+   "en": "St Ignatius Church",
+   "zh": "圣依纳爵堂",
+   "candTier": 2,
+   "priority": 1,
+   "treatment": "ai",
+   "mapRank": 2,
+   "site": "usf-lone-mountain",
+   "note": "twin spires + dome, a west-side skyline cue; replaces OSM 225193440",
+   "x": -150.9,
+   "z": 752.8,
+   "arrival": {
+    "x": -152.6,
+    "z": 756.4
+   },
+   "walkDist": 3.9,
+   "inHeroSlab": false,
+   "zone": "lone-mountain-usf",
+   "near": {
+    "loop": {
+     "d": 111,
+     "name": "haight-ashbury"
+    },
+    "N": {
+     "d": 154,
+     "name": "Carl Street & Cole Street"
+    }
+   },
+   "fact": "A twin-spired Jesuit church (1914) on the USF campus, visible across the west side.",
+   "why": "A twin-spired Jesuit church (1914) on the USF campus, visible across the west side. A roughly $25M restoration of the roof, cladding and 43 stained-glass windows finished in 2024.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Saint_Ignatius_Church_(San_Francisco)",
+    "https://www.sfchronicle.com/bayarea/article/st-ignatius-church-renovation-19507070.php"
+   ],
+   "caution": "Active parish: respectful card, no gameplay inside.",
+   "category": "religious",
+   "lat": 37.77556,
+   "lng": -122.4525,
+   "checkedOn": "2026-09-27",
+   "rank": 1,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "sf-state-university",
+   "en": "San Francisco State University",
+   "zh": "旧金山州立大学",
+   "candTier": 1,
+   "priority": 1,
+   "treatment": "proc",
+   "mapRank": 1,
+   "site": "sfsu",
+   "note": "quad lawn, angular student-centre roof (Cesar Chavez), library block, Holloway gate; M 19th Ave & Holloway platform; no marks or mascot",
+   "x": 198.2,
+   "z": 1555.6,
+   "arrival": {
+    "x": 198.4,
+    "z": 1555.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "lakeshore",
+   "near": {
+    "M": {
+     "d": 62,
+     "name": "19th Avenue & Holloway Avenue"
+    }
+   },
+   "fact": "A CSU campus of about 21,000 students by Lake Merced, founded in 1899 and here since 1953.",
+   "why": "A CSU campus of about 21,000 students by Lake Merced, founded in 1899 and here since 1953. The 1968–69 student strike, the longest in US history, created the nation's first College of Ethnic Studies, and the Sutro Library is in its J. Paul Leonard Library.",
+   "sources": [
+    "https://www.sfsu.edu/about",
+    "https://en.wikipedia.org/wiki/San_Francisco_State_University"
+   ],
+   "caution": "Working campus: no named people. University marks and the Gator mascot are the university's: no logos.",
+   "category": "university",
+   "lat": 37.7233,
+   "lng": -122.4797,
+   "checkedOn": "2026-09-27",
+   "rank": 2,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "stonestown-galleria",
+   "en": "Stonestown Galleria",
+   "zh": "石镇购物中心",
+   "candTier": 1,
+   "priority": 1,
+   "treatment": "proc",
+   "mapRank": 1,
+   "site": "stonestown",
+   "note": "low 2-storey mall wings, glass entrance canopy, parking fields, 20th Ave plaza; replaces OSM 1154799336; M 19th Ave & Winston platform; no store names",
+   "x": 165.9,
+   "z": 1479.9,
+   "arrival": {
+    "x": 172.1,
+    "z": 1474.1
+   },
+   "walkDist": 8.5,
+   "inHeroSlab": false,
+   "zone": "lakeshore",
+   "near": {
+    "M": {
+     "d": 30,
+     "name": "19th Avenue & Winston Drive"
+    }
+   },
+   "fact": "One of America's early shopping centres (opened 16 July 1952 as Stonestown Shopping Center) and now the west side's busiest mall, with a Sunday farmers market.",
+   "why": "One of America's early shopping centres (opened 16 July 1952 as Stonestown Shopping Center) and now the west side's busiest mall, with a Sunday farmers market. The M Ocean View stops at its door and SF State is next door.",
+   "sources": [
+    "https://www.stonestowngalleria.com/en/visit/",
+    "https://en.wikipedia.org/wiki/Stonestown_Galleria",
+    "https://www.singtaousa.com/2026/08/25/news/usa/san-francisco-shopping-centers/",
+    "https://www.sfchronicle.com/sf/article/stonestown-galleria-extends-hours-22398875.php"
+   ],
+   "caution": "BRAND: 'Stonestown Galleria' is Brookfield Properties' centre name, and the anchor stores are trademarks: no signage or logos. The 'Stonestown' town-centre redevelopment (about 3,500 homes) is future: do not model it. Hours changed in Aug 2026.",
+   "category": "shopping",
+   "lat": 37.7282,
+   "lng": -122.4771,
+   "checkedOn": "2026-09-27",
+   "rank": 3,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "ccsf-ocean-campus",
+   "en": "City College of San Francisco · Ocean Campus",
+   "zh": "旧金山城市学院（Ocean 校区）",
+   "candTier": 2,
+   "priority": 1,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "ccsf-ocean",
+   "note": "hilltop campus blocks + a crane over the Diego Rivera centre site (mural NOT on show until ~2028); 95 u from M Balboa Park",
+   "x": 421.9,
+   "z": 1268.3,
+   "arrival": {
+    "x": 424.9,
+    "z": 1265.6
+   },
+   "walkDist": 3.8,
+   "inHeroSlab": false,
+   "zone": "west-of-twin-peaks",
+   "near": {
+    "M": {
+     "d": 95,
+     "name": "San Jose Avenue & Geneva Avenue"
+    }
+   },
+   "fact": "San Francisco's only community college (1935), free for city residents and attended each year by about 1 in 35 San Franciscans.",
+   "why": "San Francisco's only community college (1935), free for city residents and attended each year by about 1 in 35 San Franciscans. Diego Rivera's 1940 Pan American Unity mural will go on show in the new Diego Rivera Performing Arts Center, under construction since January 2026 and due in fall 2028.",
+   "sources": [
+    "https://ccsf.libanswers.com/patrons/faq/432269",
+    "https://www.ccsf.edu/news/diego-rivera-performing-arts-center-groundbreaking",
+    "https://www.bdcnetwork.com/home/news/55355865/construction-begins-on-diego-rivera-performing-arts-center-at-city-college-of-san-francisco",
+    "https://en.wikipedia.org/wiki/City_College_of_San_Francisco"
+   ],
+   "caution": "The mural is in storage and NOT viewable until about 2028: never describe it as on show. It is a copyrighted Rivera work: no reproduction.",
+   "category": "university",
+   "lat": 37.7258,
+   "lng": -122.4503,
+   "checkedOn": "2026-09-27",
+   "rank": 4,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "ucsf-parnassus",
+   "en": "UCSF Parnassus Heights",
+   "zh": "加州大学旧金山分校 · 帕纳萨斯校区",
+   "candTier": 2,
+   "priority": 1,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "ucsf-parnassus",
+   "note": "stepped hospital / research slabs against the Mt Sutro forest + one construction crane (Helen Diller Hospital, due 2030); replaces OSM 288632172; N Irving & 2nd",
+   "x": -56.8,
+   "z": 939.6,
+   "arrival": {
+    "x": -60.4,
+    "z": 934.9
+   },
+   "walkDist": 2.4,
+   "inHeroSlab": false,
+   "zone": "inner-sunset",
+   "near": {
+    "loop": {
+     "d": 172,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 26,
+     "name": "Irving Street & 2nd Avenue"
+    }
+   },
+   "fact": "UCSF's flagship health-science campus, here since 1898 on land donated by Mayor Adolph Sutro.",
+   "why": "UCSF's flagship health-science campus, here since 1898 on land donated by Mayor Adolph Sutro. The 15-storey, $4.3B Helen Diller Hospital being built on the campus is due to open in 2030.",
+   "sources": [
+    "https://realestate.ucsf.edu/projects/ucsf-health-helen-diller-hospital-hdh",
+    "https://en.wikipedia.org/wiki/University_of_California,_San_Francisco",
+    "https://www.ucsf.edu/maps/parnassus"
+   ],
+   "caution": "A working hospital and campus, not a tourist interior; no medical scenes. Construction runs to 2029.",
+   "category": "university",
+   "lat": 37.7628,
+   "lng": -122.4581,
+   "checkedOn": "2026-09-27",
+   "rank": 5,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "university-of-san-francisco",
+   "en": "University of San Francisco (USF)",
+   "zh": "旧金山大学",
+   "candTier": 2,
+   "priority": 1,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "usf-lone-mountain",
+   "note": "hillside campus blocks on Lone Mountain + Fulton St frontage; one site with St Ignatius",
+   "x": -188.5,
+   "z": 706.2,
+   "arrival": {
+    "x": -184.1,
+    "z": 711.4
+   },
+   "walkDist": 6.5,
+   "inHeroSlab": false,
+   "zone": "lone-mountain-usf",
+   "near": {
+    "loop": {
+     "d": 159,
+     "name": "haight-ashbury"
+    }
+   },
+   "fact": "The city's Jesuit university, founded in 1855, on Lone Mountain and Fulton Street next to St Ignatius Church.",
+   "why": "The city's Jesuit university, founded in 1855, on Lone Mountain and Fulton Street next to St Ignatius Church. Its 1956 basketball team was the first undefeated national champion.",
+   "sources": [
+    "https://www.usfca.edu/about",
+    "https://en.wikipedia.org/wiki/University_of_San_Francisco"
+   ],
+   "caution": "Working campus: no named people. 'USF' and 'Dons' marks are the university's: no logos.",
+   "category": "university",
+   "lat": 37.7794,
+   "lng": -122.4519,
+   "checkedOn": "2026-09-27",
+   "rank": 6,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "ucsf-mission-bay",
+   "en": "UCSF Mission Bay campus",
+   "zh": "加州大学旧金山分校 · 米慎湾校区",
+   "candTier": 2,
+   "priority": 1,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "ucsf-mission-bay",
+   "note": "campus quad + generic lab blocks (T3); card anchor at the Community Center (441.7, 308.5)",
+   "x": 441,
+   "z": 292.5,
+   "arrival": {
+    "x": 440.6,
+    "z": 292.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "mission-bay",
+   "near": {},
+   "fact": "UCSF's 57.9-acre research and hospital campus, built on an old rail yard from 1999; its children's, women's and cancer hospitals opened in 2015, right next to Chase Center.",
+   "why": "UCSF's 57.9-acre research and hospital campus, built on an old rail yard from 1999; its children's, women's and cancer hospitals opened in 2015, right next to Chase Center.",
+   "sources": [
+    "https://www.ucsf.edu/about/locations/mission-bay",
+    "https://realestate.ucsf.edu/campus-sites/mission-bay-campus-site",
+    "https://www.ucsf.edu/news/2025/02/429426/mission-bay-hospitals-celebrate-10-years-impact-and-care"
+   ],
+   "caution": "A hospital campus: no ambulance drama. UCSF's main Parnassus campus is in the west half (N Judah). Card anchor at the Community Center, 1675 Owens St (37.767960, -122.393113).",
+   "category": "university",
+   "lat": 37.768711,
+   "lng": -122.392219,
+   "checkedOn": "2026-09-27",
+   "rank": 7,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "academy-of-art-university",
+   "en": "Academy of Art University",
+   "zh": "旧金山艺术大学",
+   "candTier": 3,
+   "priority": 1,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "",
+   "note": "neutral wording; no single campus",
+   "x": 154.1,
+   "z": 162,
+   "arrival": {
+    "x": 153.4,
+    "z": 162.4
+   },
+   "walkDist": 0.9,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 65,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 22,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 22,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Founded in 1929, it calls itself the largest privately owned art and design school in the US (about 5,500 students in 2024); its headquarters is 79 New Montgomery and its buildings are…",
+   "why": "Founded in 1929, it calls itself the largest privately owned art and design school in the US (about 5,500 students in 2024); its headquarters is 79 New Montgomery and its buildings are spread across the city.",
+   "sources": [
+    "https://www.academyart.edu/",
+    "https://en.wikipedia.org/wiki/Academy_of_Art_University"
+   ],
+   "caution": "No single campus; for-profit school: neutral wording.",
+   "category": "university",
+   "lat": 37.787903,
+   "lng": -122.400781,
+   "checkedOn": "2026-09-27",
+   "rank": 8,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "california-college-of-the-arts",
+   "en": "California College of the Arts (San Francisco campus)",
+   "zh": "加州艺术学院",
+   "candTier": 3,
+   "priority": 1,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "",
+   "note": "closing after 2026-27; Vanderbilt later",
+   "x": 394.5,
+   "z": 355.2,
+   "arrival": {
+    "x": 394.9,
+    "z": 355.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "mission-bay",
+   "near": {},
+   "fact": "The 119-year-old art and design school's campus near Potrero Hill; CCA ends operations after the 2026-27 academic year and Vanderbilt University takes over the campus.",
+   "why": "The 119-year-old art and design school's campus near Potrero Hill; CCA ends operations after the 2026-27 academic year and Vanderbilt University takes over the campus.",
+   "sources": [
+    "https://www.cca.edu/about/vanderbilt-agreement/",
+    "https://sfstandard.com/2026/01/13/california-college-arts-close/"
+   ],
+   "caution": "CLOSING after 2026-27; Vanderbilt's San Francisco programme starts no sooner than 2027-28.",
+   "category": "university",
+   "lat": 37.768054,
+   "lng": -122.398504,
+   "checkedOn": "2026-09-27",
+   "rank": 9,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "sf-conservatory-of-music",
+   "en": "San Francisco Conservatory of Music (and Bowes Center)",
+   "zh": "旧金山音乐学院",
+   "candTier": 3,
+   "priority": 1,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "",
+   "note": "card at 50 Oak St",
+   "x": 124,
+   "z": 468.7,
+   "arrival": {
+    "x": 125.6,
+    "z": 470.6
+   },
+   "walkDist": 2.5,
+   "inHeroSlab": false,
+   "zone": "hayes-valley",
+   "near": {
+    "loop": {
+     "d": 77,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 13,
+     "name": "Van Ness"
+    },
+    "N": {
+     "d": 13,
+     "name": "Van Ness"
+    }
+   },
+   "fact": "The conservatory's 50 Oak St home is joined by the 12-storey Bowes Center at 200 Van Ness (opened November 2023, $200M), with housing for 400 students and public concert spaces.",
+   "why": "The conservatory's 50 Oak St home is joined by the 12-storey Bowes Center at 200 Van Ness (opened November 2023, $200M), with housing for 400 students and public concert spaces.",
+   "sources": [
+    "https://sfcm.edu/discover/campus-life/bowes-center",
+    "https://www.cbsnews.com/sanfrancisco/news/san-francisco-conservatory-music-bowes-center-opens/",
+    "https://en.wikipedia.org/wiki/San_Francisco_Conservatory_of_Music"
+   ],
+   "caution": "Two addresses: pick 50 Oak St for the card.",
+   "category": "university",
+   "lat": 37.775539,
+   "lng": -122.420394,
+   "checkedOn": "2026-09-27",
+   "rank": 10,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "uc-law-sf",
+   "en": "UC Law San Francisco (University of California College of the Law, San Francisco)",
+   "zh": "加州大学旧金山法学院",
+   "candTier": 3,
+   "priority": 1,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "",
+   "note": "never \"Hastings\" (renamed 2023)",
+   "x": 102.7,
+   "z": 368.3,
+   "arrival": {
+    "x": 104.6,
+    "z": 366.4
+   },
+   "walkDist": 2.6,
+   "inHeroSlab": false,
+   "zone": "tenderloin",
+   "near": {
+    "loop": {
+     "d": 36,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 35,
+     "name": "Civic Center"
+    },
+    "N": {
+     "d": 35,
+     "name": "Civic Center"
+    }
+   },
+   "fact": "Founded in 1878 as the University of California's first law school; renamed from 'UC Hastings' to UC Law San Francisco on 1 January 2023.",
+   "why": "Founded in 1878 as the University of California's first law school; renamed from 'UC Hastings' to UC Law San Francisco on 1 January 2023.",
+   "sources": [
+    "https://www.uclawsf.edu/2023/01/03/welcome-to-university-of-california-college-of-the-law-san-francisco/",
+    "https://www.cbsnews.com/sanfrancisco/news/uc-hastings-college-of-the-law-renamed-in-2023/",
+    "https://en.wikipedia.org/wiki/University_of_California_College_of_the_Law,_San_Francisco"
+   ],
+   "caution": "NAME CHANGE 2023: never use 'Hastings'. Golden Gate University classes also meet here since GGU sold its campus.",
+   "category": "university",
+   "lat": 37.781036,
+   "lng": -122.415732,
+   "checkedOn": "2026-09-27",
+   "rank": 11,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "cal-academy",
+   "en": "California Academy of Sciences",
+   "zh": "加州科学院",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "ai",
+   "mapRank": 2,
+   "site": "music-concourse",
+   "note": "living roof with two domes + glass canopy; replaces OSM 28695389 (landmark-flagged); no sponsor names",
+   "x": -203.7,
+   "z": 934.5,
+   "arrival": {
+    "x": -211.1,
+    "z": 934.1
+   },
+   "walkDist": 7.6,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 29,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 95,
+     "name": "Irving Street & 6th Avenue"
+    }
+   },
+   "fact": "An aquarium, a planetarium, a four-storey rainforest dome and a natural history museum share one building under a 2.5-acre living roof of native plants.",
+   "why": "An aquarium, a planetarium, a four-storey rainforest dome and a natural history museum share one building under a 2.5-acre living roof of native plants. Renzo Piano's building opened in 2008; the Academy was founded in 1853.",
+   "sources": [
+    "https://www.calacademy.org/visit",
+    "https://en.wikipedia.org/wiki/California_Academy_of_Sciences",
+    "https://www.openstreetmap.org/way/28695389"
+   ],
+   "caution": "Ticketed, advance booking advised; closed 2026-09-29 for a private event; Thursday NightLife is 21+. No sponsor names on the model.",
+   "category": "museum",
+   "lat": 37.76986,
+   "lng": -122.46609,
+   "checkedOn": "2026-09-27",
+   "rank": 12,
+   "placeId": "cal-academy",
+   "placeMatch": "curated cal-academy \"California Academy of Sciences\" 0 u"
+  },
+  {
+   "id": "japanese-tea-garden",
+   "en": "Japanese Tea Garden",
+   "zh": "日本茶园",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "music-concourse",
+   "note": "five-tier pagoda (Peace Pagoda roof kit) + drum bridge + gate; AI pagoda set only if procedural reads weak",
+   "x": -242.9,
+   "z": 964.4,
+   "arrival": {
+    "x": -242.6,
+    "z": 964.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 47,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 117,
+     "name": "9th Avenue & Irving Street"
+    }
+   },
+   "fact": "The oldest public Japanese garden in the US.",
+   "why": "The oldest public Japanese garden in the US. It was built for the 1894 Midwinter Fair and enlarged by gardener Makoto Hagiwara, and it has a five-tier pagoda from the 1915 exposition, a steep drum bridge and a tea house. Cherry blossom runs from mid-March to early April.",
+   "sources": [
+    "https://gggp.org/visit",
+    "https://www.japaneseteagardensf.com/",
+    "https://en.wikipedia.org/wiki/Japanese_Tea_Garden_(San_Francisco)",
+    "https://www.openstreetmap.org/way/30900516"
+   ],
+   "caution": "Ticketed through the Gardens of Golden Gate Park, and free days and resident rates change, so link the official page. The claim that the fortune cookie was invented here is disputed; do not state it as fact. The Hagiwara family was interned in WWII: say so respectfully if at all.",
+   "category": "park",
+   "lat": 37.77034,
+   "lng": -122.47005,
+   "checkedOn": "2026-09-27",
+   "rank": 13,
+   "placeId": "japanese-tea-garden",
+   "placeMatch": "curated japanese-tea-garden \"Japanese Tea Garden\" 0 u"
+  },
+  {
+   "id": "sf-zoo",
+   "en": "San Francisco Zoo & Gardens",
+   "zh": "旧金山动物园",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "sf-zoo",
+   "note": "entrance plaza + low enclosures + instanced toy animals seen from the path; NEVER pandas",
+   "x": -110.3,
+   "z": 1657.6,
+   "arrival": {
+    "x": -109.9,
+    "z": 1657.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "lakeshore",
+   "near": {},
+   "fact": "A 100-acre zoo by the ocean with more than 1,000 animals (gorillas, penguins, an African savanna) and a 1921 Dentzel carousel.",
+   "why": "A 100-acre zoo by the ocean with more than 1,000 animals (gorillas, penguins, an African savanna) and a 1921 Dentzel carousel. It is open every day from 10 to 5.",
+   "sources": [
+    "https://www.sfzoo.org/",
+    "https://en.wikipedia.org/wiki/San_Francisco_Zoo",
+    "https://sfstandard.com/2026/05/30/lurie-letter-zoo-pandas/"
+   ],
+   "caution": "GIANT PANDAS were announced in 2024 but are NOT here and have no date (May 2026): never show pandas. A 2026 city audit and an $8.5M city loan: keep the card neutral. The Little Puffer train is out of service.",
+   "category": "other",
+   "lat": 37.73306,
+   "lng": -122.50306,
+   "checkedOn": "2026-09-27",
+   "rank": 14,
+   "placeId": "sf-zoo",
+   "placeMatch": "curated sf-zoo \"San Francisco Zoo\" 9 u"
+  },
+  {
+   "id": "sfmoma",
+   "en": "SFMOMA (San Francisco Museum of Modern Art)",
+   "zh": "旧金山现代艺术博物馆",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "yerba-buena",
+   "note": "stepped brick block + striped cylindrical oculus + wavy white slab behind; replaces OSM 41692824",
+   "x": 176.6,
+   "z": 183,
+   "arrival": {
+    "x": 171.4,
+    "z": 182.6
+   },
+   "walkDist": 4.9,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 88,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 46,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 46,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "One of the largest modern-art museums in the US: Mario Botta's striped-oculus building (1995) plus Snohetta's rippled white 2016 wing; free for visitors 18 and under.",
+   "why": "One of the largest modern-art museums in the US: Mario Botta's striped-oculus building (1995) plus Snohetta's rippled white 2016 wing; free for visitors 18 and under.",
+   "sources": [
+    "https://www.sfmoma.org/visit/",
+    "https://en.wikipedia.org/wiki/San_Francisco_Museum_of_Modern_Art"
+   ],
+   "caution": "Only a curated places.json label (sfmoma). Closed Wednesdays; adults $30; hours change.",
+   "category": "museum",
+   "lat": 37.785915,
+   "lng": -122.400736,
+   "checkedOn": "2026-09-27",
+   "rank": 15,
+   "placeId": "sfmoma",
+   "placeMatch": "curated sfmoma \"SFMOMA\" 1 u"
+  },
+  {
+   "id": "union-square",
+   "en": "Union Square",
+   "zh": "联合广场",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 1,
+   "site": "union-square",
+   "note": "open plaza, Dewey column with Victory, palms, generic store blocks, no signage; one of the 16 map T1",
+   "x": 96.1,
+   "z": 221.3,
+   "arrival": {
+    "x": 96.4,
+    "z": 221.6
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 55,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 60,
+     "name": "Powell Street"
+    },
+    "N": {
+     "d": 60,
+     "name": "Powell Street"
+    }
+   },
+   "fact": "The city's main shopping and theatre-district plaza; the 1903 Dewey Monument column topped by a Victory statue stands in the middle, the Powell St cable cars pass one block west, and a…",
+   "why": "The city's main shopping and theatre-district plaza; the 1903 Dewey Monument column topped by a Victory statue stands in the middle, the Powell St cable cars pass one block west, and a holiday ice rink and giant tree appear each winter.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Union_Square,_San_Francisco",
+    "https://en.wikipedia.org/wiki/Dewey_Monument",
+    "https://unionsquareicerink.com/"
+   ],
+   "caution": "Only a curated places.json label and the cable-car-turntable card's zone text. Department stores around it are brands: no signage. The Westfield San Francisco Centre mall on Market St closed in 2026. Rink dates change yearly.",
+   "category": "shopping",
+   "lat": 37.787936,
+   "lng": -122.407517,
+   "checkedOn": "2026-09-27",
+   "rank": 16,
+   "placeId": "union-square",
+   "placeMatch": "curated union-square \"Union Square\" 0 u"
+  },
+  {
+   "id": "dolores-park",
+   "en": "Mission Dolores Park",
+   "zh": "多洛雷斯公园",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "mission-dolores",
+   "note": "lawn terraces with the downtown view; extends the Mission Dolores site",
+   "x": 242,
+   "z": 698,
+   "arrival": {
+    "x": 241.9,
+    "z": 697.9
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "castro-upper-market",
+   "near": {
+    "loop": {
+     "d": 75,
+     "name": "mission-dolores"
+    },
+    "M": {
+     "d": 110,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 152,
+     "name": "Duboce Avenue & Church Street"
+    }
+   },
+   "fact": "The Mission's sunny 16-acre lawn with a postcard downtown view from its south-west slope.",
+   "why": "The Mission's sunny 16-acre lawn with a postcard downtown view from its south-west slope. It was a Jewish cemetery until 1894 and a camp for 1,600 homeless families after 1906, and the J Church runs along its edge.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mission_Dolores_Park",
+    "https://www.openstreetmap.org/way/23871270"
+   ],
+   "caution": "",
+   "category": "park",
+   "lat": 37.75976,
+   "lng": -122.42713,
+   "checkedOn": "2026-09-27",
+   "rank": 17,
+   "placeId": "dolores-park",
+   "placeMatch": "curated dolores-park \"Mission Dolores Park\" 0 u"
+  },
+  {
+   "id": "haight-ashbury",
+   "en": "Haight-Ashbury",
+   "zh": "海特-阿什伯里（嬉皮区）",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "haight",
+   "note": "corner plaza, painted Victorians (kit), street-sign pole; loop stop 1 u",
+   "x": -41.3,
+   "z": 763.5,
+   "arrival": {
+    "x": -41.6,
+    "z": 763.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "haight-ashbury",
+   "near": {
+    "loop": {
+     "d": 1,
+     "name": "haight-ashbury"
+    },
+    "M": {
+     "d": 183,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 73,
+     "name": "Carl Street & Cole Street"
+    }
+   },
+   "fact": "The corner that gave its name to the 1967 Summer of Love.",
+   "why": "The corner that gave its name to the 1967 Summer of Love. Haight Street still runs down to Golden Gate Park past Victorian houses, murals and vintage shops.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Haight-Ashbury",
+    "https://www.openstreetmap.org/node/140982670"
+   ],
+   "caution": "Shop names are brands. Famous musicians' former houses are private homes: do not point players to them.",
+   "category": "neighbourhood-icon",
+   "lat": 37.76999,
+   "lng": -122.44694,
+   "checkedOn": "2026-09-27",
+   "rank": 18,
+   "placeId": "haight-ashbury",
+   "placeMatch": "curated haight-ashbury \"Haight & Ashbury\" 0 u"
+  },
+  {
+   "id": "lands-end",
+   "en": "Lands End (Lookout & Coastal Trail)",
+   "zh": "天涯海角（Lands End）",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "lands-end",
+   "note": "Lookout visitor centre plaza + cliff trail head; replaces OSM 250216260; labyrinth never promised",
+   "x": -703.2,
+   "z": 1231.2,
+   "arrival": {
+    "x": -701.6,
+    "z": 1229.6
+   },
+   "walkDist": 2,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 5,
+     "name": "lands-end-sutro"
+    }
+   },
+   "fact": "A cliff-top trail with Golden Gate Bridge views, shipwreck remains at low tide and the USS San Francisco memorial.",
+   "why": "A cliff-top trail with Golden Gate Bridge views, shipwreck remains at low tide and the USS San Francisco memorial. The free Lands End Lookout visitor centre (daily 9–5, 680 Point Lobos Ave) marks the trailhead.",
+   "sources": [
+    "https://www.nps.gov/goga/planyourvisit/landsend.htm",
+    "https://www.parksconservancy.org/location/lands-end-lookout-visitor-center"
+   ],
+   "caution": "Cliff edges: stay on the trails. The Eagle's Point labyrinth (Eduardo Aguilera, 2004) is vandalised and rebuilt again and again, so never promise it is there.",
+   "category": "viewpoint",
+   "lat": 37.7797604,
+   "lng": -122.5116041,
+   "checkedOn": "2026-09-27",
+   "rank": 19,
+   "placeId": "lands-end",
+   "placeMatch": "curated lands-end \"Lands End (Lookout & Mile Rock)\" 144 u"
+  },
+  {
+   "id": "ocean-beach",
+   "en": "Ocean Beach",
+   "zh": "海洋海滩",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "ocean-beach-west",
+   "note": "fire rings, N Judah terminus marker, no swimming prompts",
+   "x": -431,
+   "z": 1475,
+   "arrival": {
+    "x": -430.9,
+    "z": 1474.9
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "sunset-parkside",
+   "near": {
+    "N": {
+     "d": 66,
+     "name": "Judah Street & La Playa Street"
+    }
+   },
+   "fact": "3.5 miles of surf along the city's whole western edge, with bonfire rings and big sunsets.",
+   "why": "3.5 miles of surf along the city's whole western edge, with bonfire rings and big sunsets. The N Judah ends in the middle of it at Judah & La Playa.",
+   "sources": [
+    "https://www.nps.gov/places/000/ocean-beach.htm",
+    "https://www.parksconservancy.org/park-e-ventures-article/hidden-dangers-ocean-beach",
+    "https://sf-fire.org/safety-resources-and-information/coastal-safety-tips"
+   ],
+   "caution": "Among the most dangerous urban surf in the US, with strong rip currents: never suggest swimming. Fires only in the provided rings.",
+   "category": "park",
+   "lat": 37.75616,
+   "lng": -122.51049,
+   "checkedOn": "2026-09-27",
+   "rank": 20,
+   "placeId": "ocean-beach",
+   "placeMatch": "curated ocean-beach \"Ocean Beach\" 0 u"
+  },
+  {
+   "id": "yerba-buena-gardens",
+   "en": "Yerba Buena Gardens (MLK Memorial, YBCA, carousel)",
+   "zh": "芳草地花园",
+   "candTier": 2,
+   "priority": 2,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "yerba-buena",
+   "note": "lawn, esplanade, waterfall wall (no quotation text), LeRoy King carousel prop at (193.4, 222.9)",
+   "x": 176.9,
+   "z": 210.8,
+   "arrival": {
+    "x": 176.6,
+    "z": 211.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 98,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 62,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 62,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "A two-block green in SoMa ringed by museums: the Martin Luther King Jr. Memorial waterfall (restored 2026), an ice rink and bowling centre, a carousel, YBCA's galleries and new Chinese…",
+   "why": "A two-block green in SoMa ringed by museums: the Martin Luther King Jr. Memorial waterfall (restored 2026), an ice rink and bowling centre, a carousel, YBCA's galleries and new Chinese medicinal and Japanese gardens; open daily 6am-10pm.",
+   "sources": [
+    "https://yerbabuenagardens.org/",
+    "https://ybca.org/visit/",
+    "https://en.wikipedia.org/wiki/Yerba_Buena_Gardens"
+   ],
+   "caution": "Only a curated places.json label. Do not render the memorial's quotation text. YBCA galleries Wed 11-8, Thu-Sun 11-5.",
+   "category": "park",
+   "lat": 37.78465,
+   "lng": -122.402345,
+   "checkedOn": "2026-09-27",
+   "rank": 21,
+   "placeId": "yerba-buena-gardens",
+   "placeMatch": "curated yerba-buena-gardens \"Yerba Buena Gardens\" 1 u"
+  },
+  {
+   "id": "sutro-baths",
+   "en": "Sutro Baths ruins",
+   "zh": "苏特罗浴场遗址",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 1,
+   "site": "lands-end",
+   "note": "existing; map T1; the loop stop is named for it (the Cliff House is closed)",
+   "x": -726.2,
+   "z": 1246.5,
+   "arrival": {
+    "x": -720.4,
+    "z": 1240.9
+   },
+   "walkDist": 2.7,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 32,
+     "name": "lands-end-sutro"
+    }
+   },
+   "fact": "Concrete ruins of Adolph Sutro's huge public saltwater bathhouse from the late 1800s, on the shore below Lands End; free to walk.",
+   "why": "Concrete ruins of Adolph Sutro's huge public saltwater bathhouse from the late 1800s, on the shore below Lands End; free to walk.",
+   "sources": [
+    "https://www.nps.gov/places/000/sutro-baths.htm",
+    "https://www.nps.gov/goga/planyourvisit/landsend.htm"
+   ],
+   "caution": "Slippery rocks and sneaker waves.",
+   "category": "historic",
+   "lat": 37.780142,
+   "lng": -122.513796,
+   "checkedOn": "2026-09-27",
+   "rank": 22,
+   "placeId": "sutro-baths",
+   "placeMatch": "curated sutro-baths \"Sutro Baths ruins\" 5 u"
+  },
+  {
+   "id": "twin-peaks",
+   "en": "Twin Peaks overlook",
+   "zh": "双峰观景台",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 1,
+   "site": "twin-peaks",
+   "note": "existing; loop stop + panorama; card gets the 2026-27 Promenade construction note",
+   "x": 125.7,
+   "z": 937.8,
+   "arrival": {
+    "x": 125.6,
+    "z": 937.9
+   },
+   "walkDist": 0,
+   "inHeroSlab": false,
+   "zone": "twin-peaks",
+   "near": {
+    "loop": {
+     "d": 27,
+     "name": "twin-peaks"
+    },
+    "M": {
+     "d": 178,
+     "name": "Forest Hill"
+    },
+    "N": {
+     "d": 179,
+     "name": "Carl Street & Cole Street"
+    }
+   },
+   "fact": "About 925 ft high, with the whole-city view from the Christmas Tree Point overlook.",
+   "why": "About 925 ft high, with the whole-city view from the Christmas Tree Point overlook. The north (Burnett Ave) gate of Twin Peaks Blvd is car-free for good.",
+   "sources": [
+    "https://www.sfrecpark.org/634/Twin-Peaks-Trails-Improvement-Promenade-",
+    "https://sfrecpark.org/m/newsflash/Home/Detail/2876",
+    "https://www.sfmta.com/projects/twin-peaks-all"
+   ],
+   "caution": "CONSTRUCTION: the Twin Peaks Promenade works began in early May 2026 and close the project area for about nine months (Crestline Trail closed; Rec & Park lists opening in mid-2027). The road and the Christmas Tree Point overlook stay open. The current card has no construction note: add one.",
+   "category": "viewpoint",
+   "lat": 37.7544,
+   "lng": -122.4477,
+   "checkedOn": "2026-09-27",
+   "rank": 23,
+   "placeId": "twin-peaks",
+   "placeMatch": "curated twin-peaks \"Twin Peaks\" 17 u"
+  },
+  {
+   "id": "castro-theatre",
+   "en": "The Castro Theatre",
+   "zh": "卡斯特罗剧院",
+   "candTier": 2,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "castro",
+   "note": "existing; reopened 6 Feb 2026",
+   "x": 151.9,
+   "z": 741.4,
+   "arrival": {
+    "x": 151.9,
+    "z": 745.9
+   },
+   "walkDist": 3,
+   "inHeroSlab": false,
+   "zone": "castro-upper-market",
+   "near": {
+    "loop": {
+     "d": 10,
+     "name": "castro"
+    },
+    "M": {
+     "d": 12,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 114,
+     "name": "Sunset Tunnel East Portal"
+    }
+   },
+   "fact": "Timothy Pflueger's 1922 movie palace with its 1937 vertical sign.",
+   "why": "Timothy Pflueger's 1922 movie palace with its 1937 vertical sign. It reopened on 6 Feb 2026 after a roughly $41M renovation and now hosts films, concerts and drag.",
+   "sources": [
+    "https://localnewsmatters.org/2026/02/05/sf-castro-theatre-reopening-friday-after-rehabilitation/",
+    "https://en.wikipedia.org/wiki/Castro_Theatre"
+   ],
+   "caution": "Tickets per event; the sign stays blank in the model.",
+   "category": "historic",
+   "lat": 37.762,
+   "lng": -122.434748,
+   "checkedOn": "2026-09-27",
+   "rank": 24,
+   "placeId": "castro-theatre",
+   "placeMatch": "curated castro-theatre \"Castro Theatre\" 0 u"
+  },
+  {
+   "id": "conservatory-of-flowers",
+   "en": "Conservatory of Flowers",
+   "zh": "花卉温室",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "park-east",
+   "note": "existing AI model; closed Wednesdays",
+   "x": -184.2,
+   "z": 852.9,
+   "arrival": {
+    "x": -184.1,
+    "z": 856.1
+   },
+   "walkDist": 3.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 80,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 127,
+     "name": "Carl Street & Hillway Avenue"
+    }
+   },
+   "fact": "The oldest public wood-and-glass conservatory in North America, full of tropical and rare plants.",
+   "why": "The oldest public wood-and-glass conservatory in North America, full of tropical and rare plants.",
+   "sources": [
+    "https://gggp.org/visit",
+    "https://gggp.org/visit/admissions-hours/"
+   ],
+   "caution": "Open Thu–Tue 10–4:30, closed Wednesdays; annual maintenance closure in late January to early February.",
+   "category": "park",
+   "lat": 37.772615,
+   "lng": -122.460224,
+   "checkedOn": "2026-09-27",
+   "rank": 25,
+   "placeId": "conservatory-of-flowers",
+   "placeMatch": "curated conservatory-of-flowers \"Conservatory of Flowers\" 0 u"
+  },
+  {
+   "id": "de-young-tower",
+   "en": "de Young Museum · Hamon Observation Tower",
+   "zh": "迪扬博物馆 · 观景塔",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "music-concourse",
+   "note": "existing; loop stop; name 迪扬博物馆 everywhere",
+   "x": -244.4,
+   "z": 940.2,
+   "arrival": {
+    "x": -250.1,
+    "z": 940.1
+   },
+   "walkDist": 5.8,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 26,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 129,
+     "name": "9th Avenue & Irving Street"
+    }
+   },
+   "fact": "The Fine Arts Museums' copper-clad building in Golden Gate Park.",
+   "why": "The Fine Arts Museums' copper-clad building in Golden Gate Park. The observation level of its Hamon Tower is free for everyone (Tue–Sun to 4:30 pm), and Saturdays are free for Bay Area residents.",
+   "sources": [
+    "https://www.famsf.org/",
+    "https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c",
+    "https://www.famsf.org/press-room/the-de-young-legion-of-honor-museums-announce-free-saturday-admission-for-all-san-francisco-residents"
+   ],
+   "caution": "Closed Mondays. zh name differs between landmarks.ts (迪扬博物馆) and places.json (笛洋美术馆); zh Wikipedia uses 笛洋美术馆.",
+   "category": "museum",
+   "lat": 37.771498,
+   "lng": -122.46872,
+   "checkedOn": "2026-09-27",
+   "rank": 26,
+   "placeId": "de-young",
+   "placeMatch": "curated de-young \"de Young Museum (Hamon tower)\" 0 u"
+  },
+  {
+   "id": "dutch-windmill",
+   "en": "Dutch Windmill & Queen Wilhelmina Tulip Garden",
+   "zh": "荷兰风车与威廉明娜女王郁金香花园",
+   "candTier": 2,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "ocean-beach-west",
+   "note": "existing; loop stop \"Ocean Beach · Windmill\"",
+   "x": -580.7,
+   "z": 1311.9,
+   "arrival": {
+    "x": -579.4,
+    "z": 1313.6
+   },
+   "walkDist": 2.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 20,
+     "name": "ocean-beach-windmill"
+    },
+    "N": {
+     "d": 156,
+     "name": "Judah Street & La Playa Street"
+    }
+   },
+   "fact": "The windmill was built to pump water for the park.",
+   "why": "The windmill was built to pump water for the park. The free Queen Wilhelmina Tulip Garden at its foot (1690 JFK Dr) is planted with donated Dutch bulbs and usually blooms in March.",
+   "sources": [
+    "https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard",
+    "https://en.wikipedia.org/wiki/Murphy_Windmill"
+   ],
+   "caution": "Only the grounds are open; the windmill interior is closed.",
+   "category": "historic",
+   "lat": 37.770441,
+   "lng": -122.509406,
+   "checkedOn": "2026-09-27",
+   "rank": 27,
+   "placeId": "dutch-windmill",
+   "placeMatch": "curated dutch-windmill \"Dutch Windmill (Queen Wilhelmina Garden)\" 0 u"
+  },
+  {
+   "id": "legion-of-honor",
+   "en": "Legion of Honor",
+   "zh": "荣勋宫美术馆",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "legion",
+   "note": "existing; loop stop",
+   "x": -663.6,
+   "z": 1083.4,
+   "arrival": {
+    "x": -658.9,
+    "z": 1083.4
+   },
+   "walkDist": 0.7,
+   "inHeroSlab": false,
+   "zone": "lincoln-park",
+   "near": {
+    "loop": {
+     "d": 15,
+     "name": "legion-of-honor"
+    }
+   },
+   "fact": "The Fine Arts Museums' Beaux-Arts palace in Lincoln Park above the Golden Gate.",
+   "why": "The Fine Arts Museums' Beaux-Arts palace in Lincoln Park above the Golden Gate. The permanent collection is free for Bay Area residents on Saturdays and for everyone after 4:30 pm.",
+   "sources": [
+    "https://www.famsf.org/visit/legion-tickets-hours",
+    "https://www.famsf.org/events/free-saturdays-legion-of-honor"
+   ],
+   "caution": "Tue–Sun 9:30–5:15, closed Mondays.",
+   "category": "museum",
+   "lat": 37.78455,
+   "lng": -122.500735,
+   "checkedOn": "2026-09-27",
+   "rank": 28,
+   "placeId": "legion-of-honor",
+   "placeMatch": "curated legion-of-honor \"Legion of Honor\" 0 u"
+  },
+  {
+   "id": "mission-dolores",
+   "en": "Mission Dolores (Mission San Francisco de Asís)",
+   "zh": "多洛雷斯传教站",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "mission-dolores",
+   "note": "existing; loop stop",
+   "x": 195.5,
+   "z": 647.6,
+   "arrival": {
+    "x": 199.1,
+    "z": 646.9
+   },
+   "walkDist": 3.3,
+   "inHeroSlab": false,
+   "zone": "mission",
+   "near": {
+    "loop": {
+     "d": 7,
+     "name": "mission-dolores"
+    },
+    "M": {
+     "d": 55,
+     "name": "Church"
+    },
+    "N": {
+     "d": 86,
+     "name": "Duboce Avenue & Church Street"
+    }
+   },
+   "fact": "Founded on 29 June 1776, it is the oldest intact building in San Francisco, with a small museum, a historic cemetery and the 1918 basilica next door.",
+   "why": "Founded on 29 June 1776, it is the oldest intact building in San Francisco, with a small museum, a historic cemetery and the 1918 basilica next door.",
+   "sources": [
+    "https://www.missiondolores.org/",
+    "https://www.missiondolores.org/old-mission"
+   ],
+   "caution": "Tue–Sun 10–4, closed Mondays; guided tours suspended. The cemetery holds a mass grave of Native Americans: keep the tone respectful.",
+   "category": "religious",
+   "lat": 37.764185,
+   "lng": -122.426812,
+   "checkedOn": "2026-09-27",
+   "rank": 29,
+   "placeId": "mission-dolores",
+   "placeMatch": "curated mission-dolores \"Mission Dolores\" 0 u"
+  },
+  {
+   "id": "sutro-tower",
+   "en": "Sutro Tower",
+   "zh": "苏特罗塔",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "stop",
+   "mapRank": 2,
+   "site": "twin-peaks",
+   "note": "existing; no public access",
+   "x": 73.2,
+   "z": 973.7,
+   "arrival": {
+    "x": 73.1,
+    "z": 973.9
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "twin-peaks",
+   "near": {
+    "loop": {
+     "d": 74,
+     "name": "twin-peaks"
+    },
+    "M": {
+     "d": 142,
+     "name": "Forest Hill"
+    },
+    "N": {
+     "d": 158,
+     "name": "Carl Street & Hillway Avenue"
+    }
+   },
+   "fact": "The 977-ft three-legged broadcast tower that punctuates the skyline and the fog.",
+   "why": "The 977-ft three-legged broadcast tower that punctuates the skyline and the fog.",
+   "sources": [
+    "https://sutrotower.org/",
+    "https://en.wikipedia.org/wiki/Sutro_Tower"
+   ],
+   "caution": "Private and fenced, with no public access; view it from the Summit Reservoir path or Twin Peaks.",
+   "category": "other",
+   "lat": 37.75523,
+   "lng": -122.45276,
+   "checkedOn": "2026-09-27",
+   "rank": 30,
+   "placeId": "sutro-tower",
+   "placeMatch": "curated sutro-tower \"Sutro Tower\" 0 u"
+  },
+  {
+   "id": "ferry-building-marketplace",
+   "en": "Ferry Building Marketplace & Ferry Plaza Farmers Market",
+   "zh": "渡轮大厦市集",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "card",
+   "mapRank": 1,
+   "site": "hero",
+   "note": "refresh the district ferry-building / farmers-market cards (Foodwise, Tue/Thu/Sat)",
+   "x": 131.5,
+   "z": 15.1,
+   "arrival": {
+    "x": 131.6,
+    "z": 15.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 3,
+     "name": "ferry-building"
+    },
+    "M": {
+     "d": 64,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 64,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "The 1898 Ferry Building's nave holds nearly 50 local food merchants, and the Ferry Plaza Farmers Market (run by Foodwise) sets up outside Tue and Thu 10-2 and Sat 8-2.",
+   "why": "The 1898 Ferry Building's nave holds nearly 50 local food merchants, and the Ferry Plaza Farmers Market (run by Foodwise) sets up outside Tue and Thu 10-2 and Sat 8-2.",
+   "sources": [
+    "https://www.ferrybuildingmarketplace.com/",
+    "https://www.ferrybuildingmarketplace.com/farmers-market/",
+    "https://cuesa.org/markets/ferry-plaza-farmers-market-tuesday"
+   ],
+   "caution": "CUESA now operates as Foodwise; market hours change seasonally; merchant names are brands.",
+   "category": "food-market",
+   "lat": 37.795549,
+   "lng": -122.393475,
+   "checkedOn": "2026-09-27",
+   "rank": 31,
+   "placeId": "ferry-building",
+   "placeMatch": "curated ferry-building \"Ferry Building\" 4 u"
+  },
+  {
+   "id": "salesforce-tower",
+   "en": "Salesforce Tower",
+   "zh": "Salesforce 大楼",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "card",
+   "mapRank": 2,
+   "site": "hero",
+   "note": "hero model already; card + a generic warm crown glow in the night light field",
+   "x": 166.2,
+   "z": 107.8,
+   "arrival": {
+    "x": 166.1,
+    "z": 112.1
+   },
+   "walkDist": 4.5,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 97,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 45,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 45,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "At 1,070 ft (326 m) and 61 floors (2018, Pelli Clarke Pelli) it is San Francisco's tallest building; Jim Campbell's 'Day for Night' LED crown (11,000 LEDs) glows at night and is visible…",
+   "why": "At 1,070 ft (326 m) and 61 floors (2018, Pelli Clarke Pelli) it is San Francisco's tallest building; Jim Campbell's 'Day for Night' LED crown (11,000 LEDs) glows at night and is visible from far across the bay.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Salesforce_Tower"
+   ],
+   "caution": "Company name (renamed from Transbay Tower in 2014): name in card text only, no logo, no reproduction of the LED artwork imagery. The 61st-floor Ohana Floor is not regularly open to the public.",
+   "category": "neighbourhood-icon",
+   "lat": 37.789774,
+   "lng": -122.396932,
+   "checkedOn": "2026-09-27",
+   "rank": 32,
+   "placeId": "salesforce-tower",
+   "placeMatch": "curated salesforce-tower \"Salesforce Tower\" 0 u"
+  },
+  {
+   "id": "transamerica-pyramid",
+   "en": "Transamerica Pyramid",
+   "zh": "泛美金字塔",
+   "candTier": 1,
+   "priority": 2,
+   "treatment": "card",
+   "mapRank": 2,
+   "site": "hero",
+   "note": "hero model already; card + map label + arrival at Redwood Park",
+   "x": 55.8,
+   "z": 101.5,
+   "arrival": {
+    "x": 51.4,
+    "z": 99.4
+   },
+   "walkDist": 4.8,
+   "inHeroSlab": true,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 74,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 79,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 79,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "William Pereira's 853 ft (260 m), 48-floor pyramid of 1972 is the skyline's signature shape; the 2024 Foster + Partners restoration reopened its ground floor and the half-acre Redwood…",
+   "why": "William Pereira's 853 ft (260 m), 48-floor pyramid of 1972 is the skyline's signature shape; the 2024 Foster + Partners restoration reopened its ground floor and the half-acre Redwood Park at its base to the public.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Transamerica_Pyramid",
+    "https://www.archdaily.com/1021110/foster-plus-partners-completes-long-awaited-renovation-of-transamerica-pyramid-in-san-fransisco-united-states",
+    "https://www.7x7.com/transamerica-pyramid-reopening-2669160071.html"
+   ],
+   "caution": "Name contains a company name: no logos. Official site transamericapyramid.com reset the connection at check time. Owner changes often: do not state it. ICA SF's 2026 shows in the lobby / Redwood Park are temporary.",
+   "category": "neighbourhood-icon",
+   "lat": 37.795188,
+   "lng": -122.40279,
+   "checkedOn": "2026-09-27",
+   "rank": 33,
+   "placeId": "transamerica-pyramid",
+   "placeMatch": "curated transamerica-pyramid \"Transamerica Pyramid\" 0 u"
+  },
+  {
+   "id": "holy-virgin-cathedral",
+   "en": "Holy Virgin Cathedral (Joy of All Who Sorrow)",
+   "zh": "圣母大教堂（俄罗斯东正教）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "ai",
+   "mapRank": 3,
+   "site": "geary-west",
+   "note": "gold onion domes on Geary (the loop passes); active church, respectful card",
+   "x": -493.6,
+   "z": 999.4,
+   "arrival": {
+    "x": -495.4,
+    "z": 998.6
+   },
+   "walkDist": 1.7,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 179,
+     "name": "legion-of-honor"
+    }
+   },
+   "fact": "Gold onion domes over Geary Boulevard.",
+   "why": "Gold onion domes over Geary Boulevard. It is the largest cathedral of the Russian Orthodox Church Outside Russia (1961–65), and St John of Shanghai and San Francisco rests in a shrine inside.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Holy_Virgin_Cathedral",
+    "https://richmondsunsetnews.com/2023/08/07/outer-richmonds-landmark-cathedral-is-home-to-saints-relics/"
+   ],
+   "caution": "Active place of worship: no gameplay inside and a respectful card; it has its own photo and dress rules.",
+   "category": "religious",
+   "lat": 37.780425,
+   "lng": -122.4862361,
+   "checkedOn": "2026-09-27",
+   "rank": 34,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "cable-car-museum",
+   "en": "Cable Car Museum (Washington-Mason powerhouse)",
+   "zh": "叮当车博物馆",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "cable-car-museum",
+   "note": "brick barn + chimney + turning winding wheels; replaces OSM 30029681; Powell-Hyde passes the door",
+   "x": -16.9,
+   "z": 186.4,
+   "arrival": {
+    "x": -13.9,
+    "z": 183.4
+   },
+   "walkDist": 4.1,
+   "inHeroSlab": false,
+   "zone": "nob-hill",
+   "near": {
+    "loop": {
+     "d": 108,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 151,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 151,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "The working powerhouse and carbarn: from the gallery you watch the giant winding wheels that pull the cables for all three cable-car lines, alongside historic cars; admission is free.",
+   "why": "The working powerhouse and carbarn: from the gallery you watch the giant winding wheels that pull the cables for all three cable-car lines, alongside historic cars; admission is free.",
+   "sources": [
+    "https://www.cablecarmuseum.org/",
+    "https://en.wikipedia.org/wiki/San_Francisco_Cable_Car_Museum"
+   ],
+   "caution": "Closed Mondays. Only a curated places.json label (cable-car-museum). Use the glossary word 叮当车.",
+   "category": "transit-icon",
+   "lat": 37.79476,
+   "lng": -122.411853,
+   "checkedOn": "2026-09-27",
+   "rank": 35,
+   "placeId": "cable-car-museum",
+   "placeMatch": "curated cable-car-museum \"Cable Car Museum (powerhouse)\" 4 u"
+  },
+  {
+   "id": "mount-davidson",
+   "en": "Mount Davidson",
+   "zh": "戴维森山",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 2,
+   "site": "mount-davidson",
+   "note": "forested cone + a plain concrete cross silhouette; memorial, respectful",
+   "x": 257.5,
+   "z": 1160.9,
+   "arrival": {
+    "x": 257.6,
+    "z": 1160.6
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "west-of-twin-peaks",
+   "near": {
+    "M": {
+     "d": 159,
+     "name": "West Portal"
+    }
+   },
+   "fact": "At 928 ft, the highest natural point in San Francisco.",
+   "why": "At 928 ft, the highest natural point in San Francisco. It is crowned by a 103-ft concrete cross (1934), owned since 1997 by the Council of Armenian American Organizations of Northern California as a genocide memorial, with an Easter sunrise service.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mount_Davidson_(California)",
+    "https://www.openstreetmap.org/node/358806322"
+   ],
+   "caution": "Religious symbol and memorial: model it plain and respectful. The 0.38-acre summit around the cross is private land.",
+   "category": "viewpoint",
+   "lat": 37.73826,
+   "lng": -122.4533,
+   "checkedOn": "2026-09-27",
+   "rank": 36,
+   "placeId": "mount-davidson",
+   "placeMatch": "curated mount-davidson \"Mount Davidson\" 0 u"
+  },
+  {
+   "id": "asian-art-museum",
+   "en": "Asian Art Museum",
+   "zh": "亚洲艺术博物馆",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "civic-center",
+   "note": "granite Beaux-Arts block closing Civic Center Plaza; merged into the City Hall site budget",
+   "x": 108.5,
+   "z": 378.3,
+   "arrival": {
+    "x": 106.1,
+    "z": 375.4
+   },
+   "walkDist": 3.7,
+   "inHeroSlab": false,
+   "zone": "tenderloin",
+   "near": {
+    "loop": {
+     "d": 31,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 27,
+     "name": "Civic Center"
+    },
+    "N": {
+     "d": 27,
+     "name": "Civic Center"
+    }
+   },
+   "fact": "One of the largest collections of Asian art in the West, in the former 1917 Main Library facing City Hall across Civic Center Plaza; free on the first Sunday of each month.",
+   "why": "One of the largest collections of Asian art in the West, in the former 1917 Main Library facing City Hall across Civic Center Plaza; free on the first Sunday of each month.",
+   "sources": [
+    "https://asianart.org/",
+    "https://en.wikipedia.org/wiki/Asian_Art_Museum_(San_Francisco)"
+   ],
+   "caution": "Closed Tuesday-Wednesday; Thursday 1-8, Friday-Monday 10-5.",
+   "category": "museum",
+   "lat": 37.780315,
+   "lng": -122.415992,
+   "checkedOn": "2026-09-27",
+   "rank": 37,
+   "placeId": "osm-w24588037",
+   "placeMatch": "osm osm-w24588037 \"Asian Art Museum of San Francisco\" 1 u"
+  },
+  {
+   "id": "beach-chalet",
+   "en": "Beach Chalet (Golden Gate Park Visitor Center)",
+   "zh": "海滩小屋（金门公园游客中心）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "ocean-beach-west",
+   "note": "white Spanish Revival block, red roof, blank signs; frescoes never reproduced",
+   "x": -576.9,
+   "z": 1329.5,
+   "arrival": {
+    "x": -578.6,
+    "z": 1330.9
+   },
+   "walkDist": 2.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 9,
+     "name": "ocean-beach-windmill"
+    },
+    "N": {
+     "d": 142,
+     "name": "Judah Street & La Playa Street"
+    }
+   },
+   "fact": "A 1925 Willis Polk building at the park's ocean end.",
+   "why": "A 1925 Willis Polk building at the park's ocean end. Its ground-floor visitor centre is wrapped in Lucien Labaudt's 1936–37 WPA frescoes of 1930s San Francisco life.",
+   "sources": [
+    "https://www.beachchalet.com/visitors-center",
+    "https://en.wikipedia.org/wiki/Beach_Chalet",
+    "https://sfrecpark.org/facilities/facility/details/beachchalet-223"
+   ],
+   "caution": "The upstairs brewpub is a private business: keep its signs blank. The frescoes are artworks: do not reproduce them.",
+   "category": "historic",
+   "lat": 37.7694735,
+   "lng": -122.5102178,
+   "checkedOn": "2026-09-27",
+   "rank": 38,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "bison-paddock",
+   "en": "Golden Gate Park Bison Paddock",
+   "zh": "金门公园野牛围场",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "park-west",
+   "note": "fenced meadow + ~10 instanced low-poly bison on an idle loop (JFK Dr)",
+   "x": -476,
+   "z": 1219.8,
+   "arrival": {
+    "x": -475.9,
+    "z": 1219.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 156,
+     "name": "ocean-beach-windmill"
+    },
+    "N": {
+     "d": 140,
+     "name": "Judah Street & 40th Avenue"
+    }
+   },
+   "fact": "Bison have lived in the park since 1892 and in this meadow since 1899.",
+   "why": "Bison have lived in the park since 1892 and in this meadow since 1899. About ten all-female bison, fed and cared for by SF Zoo staff, graze beside JFK Drive and can be watched free through the fence.",
+   "sources": [
+    "https://www.sfzoo.org/historic-sites-golden-gate-park-bison/",
+    "https://sfrecpark.org/facilities/facility/details/bison-paddock-224",
+    "https://www.openstreetmap.org/way/161707029"
+   ],
+   "caution": "Herd size changes, so say 'about ten'. Not in places.json yet: add a label.",
+   "category": "park",
+   "lat": 37.7697091,
+   "lng": -122.4981167,
+   "checkedOn": "2026-09-27",
+   "rank": 39,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "kezar-stadium",
+   "en": "Kezar Stadium",
+   "zh": "基泽体育场",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "park-east",
+   "note": "oval stand around a track, no team marks",
+   "x": -84.4,
+   "z": 877.1,
+   "arrival": {
+    "x": -84.4,
+    "z": 877.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 121,
+     "name": "haight-ashbury"
+    },
+    "N": {
+     "d": 30,
+     "name": "Carl Street & Hillway Avenue"
+    }
+   },
+   "fact": "Opened in 1925, the 49ers' original home from 1946 to 1970 and the Raiders' first home in 1960.",
+   "why": "Opened in 1925, the 49ers' original home from 1946 to 1970 and the Raiders' first home in 1960. It was rebuilt in 1989 with 10,000 seats and hosts the city's high-school Turkey Bowl.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kezar_Stadium",
+    "https://www.openstreetmap.org/way/30675203"
+   ],
+   "caution": "Team names are trademarks: no logos or team colours on the model.",
+   "category": "sports",
+   "lat": 37.76689,
+   "lng": -122.45601,
+   "checkedOn": "2026-09-27",
+   "rank": 40,
+   "placeId": "osm-w30675203",
+   "placeMatch": "osm osm-w30675203 \"Kezar Stadium\" 0 u"
+  },
+  {
+   "id": "koret-carousel",
+   "en": "Koret Children's Quarter & Golden Gate Park Carousel",
+   "zh": "科雷特儿童乐园与旋转木马",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "park-east",
+   "note": "small spinning carousel (TOY_DYN) + playground mound",
+   "x": -109.9,
+   "z": 873.4,
+   "arrival": {
+    "x": -109.9,
+    "z": 873.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 127,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 51,
+     "name": "Carl Street & Hillway Avenue"
+    }
+   },
+   "fact": "One of the first public playgrounds in the US (1888).",
+   "why": "One of the first public playgrounds in the US (1888). Its 1914 Herschell-Spillman carousel, with 62 menagerie animals, has turned here since 1940.",
+   "sources": [
+    "https://sfrecpark.org/Facilities/Facility/Details/Koret-Childrens-Quarter-and-Carousel-414/",
+    "https://goldengatepark.com/golden-gate-park-carousel.html"
+   ],
+   "caution": "Carousel hours and fares change and it closes at times.",
+   "category": "park",
+   "lat": 37.7682429,
+   "lng": -122.4572332,
+   "checkedOn": "2026-09-27",
+   "rank": 41,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "maritime-museum-bathhouse",
+   "en": "San Francisco Maritime Museum (Aquatic Park Bathhouse)",
+   "zh": "旧金山海事博物馆（水上公园浴场大楼）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "wharf-west",
+   "note": "white streamline \"ocean liner\" block; merged into the Ghirardelli site",
+   "x": -249.6,
+   "z": 167.8,
+   "arrival": {
+    "x": -250.9,
+    "z": 166.1
+   },
+   "walkDist": 1.9,
+   "inHeroSlab": false,
+   "zone": "russian-hill",
+   "near": {
+    "loop": {
+     "d": 41,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "The 1939 Streamline Moderne bathhouse, shaped like an ocean liner on the Aquatic Park beach, is the national park's free Maritime Museum (Wed-Sun 10-4).",
+   "why": "The 1939 Streamline Moderne bathhouse, shaped like an ocean liner on the Aquatic Park beach, is the national park's free Maritime Museum (Wed-Sun 10-4).",
+   "sources": [
+    "https://www.nps.gov/safr/learn/historyculture/aquatic-park-bathhouse.htm",
+    "https://www.nps.gov/safr/planyourvisit/basicinfo.htm",
+    "https://en.wikipedia.org/wiki/San_Francisco_Maritime_National_Historical_Park"
+   ],
+   "caution": "Part of the curated places.json label aquatic-park-hyde-pier. The Hyde Street Pier next door is closed (see hyde-street-pier).",
+   "category": "museum",
+   "lat": 37.806408,
+   "lng": -122.423897,
+   "checkedOn": "2026-09-27",
+   "rank": 42,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "murphy-windmill",
+   "en": "Murphy Windmill",
+   "zh": "墨菲风车",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "ocean-beach-west",
+   "note": "Dutch windmill recipe, other cap + sail colour",
+   "x": -514.1,
+   "z": 1364.2,
+   "arrival": {
+    "x": -514.1,
+    "z": 1366.1
+   },
+   "walkDist": 2.1,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 79,
+     "name": "ocean-beach-windmill"
+    },
+    "N": {
+     "d": 72,
+     "name": "Judah Street & La Playa Street"
+    }
+   },
+   "fact": "Built in 1908 to pump up to 40,000 gallons of groundwater an hour for the park.",
+   "why": "Built in 1908 to pump up to 40,000 gallons of groundwater an hour for the park. It was restored between 2002 and 2012 with motorised sails and is an SF Designated Landmark, and the Dutch community marks King's Day here each April.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Murphy_Windmill",
+    "https://www.openstreetmap.org/way/287927026"
+   ],
+   "caution": "Only the grounds are open.",
+   "category": "historic",
+   "lat": 37.765,
+   "lng": -122.5087,
+   "checkedOn": "2026-09-27",
+   "rank": 43,
+   "placeId": "murphy-windmill",
+   "placeMatch": "curated murphy-windmill \"Murphy Windmill\" 0 u"
+  },
+  {
+   "id": "old-st-marys-cathedral",
+   "en": "Old St. Mary's Cathedral",
+   "zh": "老圣玛利亚教堂",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "chinatown-pagodas",
+   "note": "brick nave + square clock tower (no inscription); GATED on the Chinatown view budget",
+   "x": 56.8,
+   "z": 153.8,
+   "arrival": {
+    "x": 55.9,
+    "z": 155.6
+   },
+   "walkDist": 1.8,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 35,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 77,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 77,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "California's first cathedral (dedicated 1854), a brick Gothic church whose clock tower reads 'Son, observe the time and fly from evil'; Saint Mary's Square with Bufano's Sun Yat-sen…",
+   "why": "California's first cathedral (dedicated 1854), a brick Gothic church whose clock tower reads 'Son, observe the time and fly from evil'; Saint Mary's Square with Bufano's Sun Yat-sen statue is across California St, where the cable cars climb.",
+   "sources": [
+    "http://www.osmsf.org/",
+    "https://en.wikipedia.org/wiki/Old_St._Mary%27s_Cathedral"
+   ],
+   "caution": "Active parish (masses Sat 5pm; Sun 9 and 11am; Tue-Fri 12:05pm). No inscription text on the model.",
+   "category": "religious",
+   "lat": 37.792794,
+   "lng": -122.405787,
+   "checkedOn": "2026-09-27",
+   "rank": 44,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "sing-chong-sing-fat-buildings",
+   "en": "Sing Chong & Sing Fat pagoda buildings (Grant Ave & California St)",
+   "zh": "都板街宝塔楼",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "chinatown-pagodas",
+   "note": "two corner towers with stacked flared roofs (pagoda kit); GATED",
+   "x": 56.5,
+   "z": 158.7,
+   "arrival": {
+    "x": 56.6,
+    "z": 158.6
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 34,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 77,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 77,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "The pagoda-crowned corner buildings of 1907-08, commissioned by merchant Look Tin Eli to rebuild Chinatown in a Chinese style after the quake, are the neighbourhood's most photographed…",
+   "why": "The pagoda-crowned corner buildings of 1907-08, commissioned by merchant Look Tin Eli to rebuild Chinatown in a Chinese style after the quake, are the neighbourhood's most photographed rooflines.",
+   "sources": [
+    "https://theclio.com/entry/186932",
+    "https://en.wikipedia.org/wiki/Look_Tin_Eli",
+    "https://medium.com/@dougchan/before-the-pagodas-the-fancy-goods-bazaars-of-old-chinatown-3c5f030a45cd"
+   ],
+   "caution": "Sing Chong is on the NW corner, Sing Fat across California St; partly vacant (SF Chronicle, 2024). Shop signs are businesses: no text. zh is descriptive (Grant Ave = 都板街).",
+   "category": "historic",
+   "lat": 37.79259,
+   "lng": -122.40609,
+   "checkedOn": "2026-09-27",
+   "rank": 45,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "st-marys-cathedral",
+   "en": "Cathedral of Saint Mary of the Assumption",
+   "zh": "圣玛利亚大教堂",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "cathedral-hill",
+   "note": "four hypar shells meeting in a cross (exact maths); Belluschi + Nervi, not I.M. Pei; replaces OSM 7814696",
+   "x": -12.8,
+   "z": 421.2,
+   "arrival": {
+    "x": -16.1,
+    "z": 426.4
+   },
+   "walkDist": 6.1,
+   "inHeroSlab": false,
+   "zone": "western-addition",
+   "near": {
+    "loop": {
+     "d": 102,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 154,
+     "name": "Civic Center"
+    },
+    "N": {
+     "d": 154,
+     "name": "Civic Center"
+    }
+   },
+   "fact": "The 1971 cathedral by Pietro Belluschi and Pier Luigi Nervi: four hyperbolic-paraboloid shells rise 190 ft into a cross, a white landmark seen from much of the city.",
+   "why": "The 1971 cathedral by Pietro Belluschi and Pier Luigi Nervi: four hyperbolic-paraboloid shells rise 190 ft into a cross, a white landmark seen from much of the city.",
+   "sources": [
+    "https://smcsf.org/visit",
+    "https://www.docomomo-us.org/register/cathedral-of-saint-mary-of-the-assumption",
+    "https://en.wikipedia.org/wiki/Cathedral_of_Saint_Mary_of_the_Assumption_(San_Francisco)"
+   ],
+   "caution": "Chinese travel sites wrongly credit I.M. Pei; the architects are Belluschi and Nervi. Open from the first Mass to 5pm (Saturdays 6:30pm).",
+   "category": "religious",
+   "lat": 37.784024,
+   "lng": -122.425338,
+   "checkedOn": "2026-09-27",
+   "rank": 46,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "tiled-steps-16th-avenue",
+   "en": "16th Avenue Tiled Steps (Moraga Steps)",
+   "zh": "第16大道马赛克阶梯",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "golden-gate-heights",
+   "note": "stairs with an abstract blue-sand-sky vertex gradient (never a copy of the mosaic)",
+   "x": -113.3,
+   "z": 1143.4,
+   "arrival": {
+    "x": -113.6,
+    "z": 1143.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "inner-sunset",
+   "near": {
+    "N": {
+     "d": 87,
+     "name": "Judah Street & 16th Avenue"
+    }
+   },
+   "fact": "163 steps covered in a sea-to-sky mosaic of about 2,000 handmade tiles (2005, Aileen Barr and Colette Crutcher), climbing to Grand View Park.",
+   "why": "163 steps covered in a sea-to-sky mosaic of about 2,000 handmade tiles (2005, Aileen Barr and Colette Crutcher), climbing to Grand View Park.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/16th_Avenue_Tiled_Steps",
+    "https://www.sfgate.com/local/article/hidden-garden-steps-18108794.php"
+   ],
+   "caution": "The mosaic is copyrighted artwork: abstract colour only. It sits on a residential street.",
+   "category": "viewpoint",
+   "lat": 37.756278,
+   "lng": -122.473194,
+   "checkedOn": "2026-09-27",
+   "rank": 47,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "uss-pampanito",
+   "en": "USS Pampanito",
+   "zh": "潘帕尼托号潜艇",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "wharf-west",
+   "note": "toy submarine hull moored at Pier 45; card anchor on the pier deck",
+   "x": -225.8,
+   "z": 63.3,
+   "arrival": {
+    "x": -205.9,
+    "z": 73.9
+   },
+   "walkDist": 1.9,
+   "inHeroSlab": false,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 73,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "A WWII fleet submarine at Pier 45 that you can climb through, both museum and memorial; open daily 10-6.",
+   "why": "A WWII fleet submarine at Pier 45 that you can climb through, both museum and memorial; open daily 10-6.",
+   "sources": [
+    "https://maritime.org/",
+    "https://www.nps.gov/places/uss-pampanito.htm",
+    "https://en.wikipedia.org/wiki/USS_Pampanito"
+   ],
+   "caution": "The Nov-2024 'indefinitely closed' notice on maritime.org is about Hyde Street Pier, not the Pampanito.",
+   "category": "museum",
+   "lat": 37.809988,
+   "lng": -122.416445,
+   "checkedOn": "2026-09-27",
+   "rank": 48,
+   "placeId": "osm-w165601339",
+   "placeMatch": "osm osm-w165601339 \"USS Pampanito\" 3 u"
+  },
+  {
+   "id": "war-memorial-opera-house",
+   "en": "War Memorial Opera House (with Davies Symphony Hall)",
+   "zh": "战争纪念歌剧院",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "civic-center",
+   "note": "twin Beaux-Arts blocks + Davies Hall curved glass; merged into the City Hall site budget",
+   "x": 86,
+   "z": 441.2,
+   "arrival": {
+    "x": 89.6,
+    "z": 442.9
+   },
+   "walkDist": 4.1,
+   "inHeroSlab": false,
+   "zone": "hayes-valley",
+   "near": {
+    "loop": {
+     "d": 41,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 58,
+     "name": "Van Ness"
+    },
+    "N": {
+     "d": 58,
+     "name": "Van Ness"
+    }
+   },
+   "fact": "The 1932 home of SF Opera and SF Ballet (3,006 seats) faces City Hall across Van Ness; the UN Charter was signed in 1945 in the Herbst Theatre of the twin Veterans Building next door…",
+   "why": "The 1932 home of SF Opera and SF Ballet (3,006 seats) faces City Hall across Van Ness; the UN Charter was signed in 1945 in the Herbst Theatre of the twin Veterans Building next door, and Davies Symphony Hall (2,739 seats) is beside it.",
+   "sources": [
+    "https://www.sfwarmemorial.org/",
+    "https://en.wikipedia.org/wiki/War_Memorial_Opera_House",
+    "https://en.wikipedia.org/wiki/Louise_M._Davies_Symphony_Hall"
+   ],
+   "caution": "Only an uncurated places.json label (osm-w32865161). Davies Hall is at 37.777647, -122.420458.",
+   "category": "historic",
+   "lat": 37.778537,
+   "lng": -122.420928,
+   "checkedOn": "2026-09-27",
+   "rank": 49,
+   "placeId": "osm-w32865161",
+   "placeMatch": "osm osm-w32865161 \"War Memorial Opera House\" 1 u"
+  },
+  {
+   "id": "west-portal",
+   "en": "West Portal (Twin Peaks Tunnel)",
+   "zh": "西门站（West Portal）",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "west-portal",
+   "note": "M tunnel mouth, trains emerging (lane T portal prop)",
+   "x": 119.4,
+   "z": 1244.9,
+   "arrival": {
+    "x": 119.6,
+    "z": 1244.6
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "west-of-twin-peaks",
+   "near": {
+    "M": {
+     "d": 5,
+     "name": "West Portal"
+    }
+   },
+   "fact": "Muni's K, L and M trains come out of the 1918 Twin Peaks Tunnel here onto West Portal Avenue, a small-town main street of local shops.",
+   "why": "Muni's K, L and M trains come out of the 1918 Twin Peaks Tunnel here onto West Portal Avenue, a small-town main street of local shops.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/West_Portal_station",
+    "https://en.wikipedia.org/wiki/West_Portal,_San_Francisco"
+   ],
+   "caution": "Shops are brands.",
+   "category": "transit-icon",
+   "lat": 37.7409083,
+   "lng": -122.4659944,
+   "checkedOn": "2026-09-27",
+   "rank": 50,
+   "placeId": "osm-n2094547200",
+   "placeMatch": "osm osm-n2094547200 \"West Portal\" 10 u"
+  },
+  {
+   "id": "baker-beach",
+   "en": "Baker Beach",
+   "zh": "贝克海滩",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "baker-beach",
+   "note": "battery prop + bridge-view photo spot at the SOUTH end",
+   "x": -614,
+   "z": 849.3,
+   "arrival": {
+    "x": -613.9,
+    "z": 849.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {},
+   "fact": "A half-mile beach with the classic low-angle view of the Golden Gate Bridge.",
+   "why": "A half-mile beach with the classic low-angle view of the Golden Gate Bridge. Battery Chamberlin (1904) still shows a 'disappearing gun', and Burning Man began here from 1986 to 1990.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Baker_Beach",
+    "https://www.openstreetmap.org/relation/6260732"
+   ],
+   "caution": "The north end is clothing-optional, so keep BAYBAY's photo spot at the south or centre. Cold water and rip currents: no swimming prompts.",
+   "category": "park",
+   "lat": 37.79276,
+   "lng": -122.48426,
+   "checkedOn": "2026-09-27",
+   "rank": 51,
+   "placeId": "baker-beach",
+   "placeMatch": "curated baker-beach \"Baker Beach\" 0 u"
+  },
+  {
+   "id": "bernal-heights-park",
+   "en": "Bernal Heights Park",
+   "zh": "伯纳尔高地公园",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "bernal",
+   "note": "bare summit, telescope, procedural microwave mast; panorama point",
+   "x": 525.6,
+   "z": 777.9,
+   "arrival": {
+    "x": 525.4,
+    "z": 778.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "bernal-heights",
+   "near": {},
+   "fact": "A bare hilltop with a 360° skyline view, a one-mile loop and off-leash dogs, topped by a microwave tower.",
+   "why": "A bare hilltop with a 360° skyline view, a one-mile loop and off-leash dogs, topped by a microwave tower. The land was part of an 1839 grant to José Cornelio Bernal.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Bernal_Heights,_San_Francisco",
+    "https://www.openstreetmap.org/node/358806089"
+   ],
+   "caution": "",
+   "category": "viewpoint",
+   "lat": 37.74299,
+   "lng": -122.4158,
+   "checkedOn": "2026-09-27",
+   "rank": 52,
+   "placeId": "bernal-heights",
+   "placeMatch": "curated bernal-heights \"Bernal Heights Park\" 0 u"
+  },
+  {
+   "id": "blue-heron-lake",
+   "en": "Blue Heron Lake (formerly Stow Lake) & Strawberry Hill",
+   "zh": "蓝鹭湖（原斯托湖）与草莓山",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "blue-heron-lake",
+   "note": "rename from Stow Lake; bridge walk strips to Strawberry Hill; Chinese Pavilion (AI, small) at (-251.5, 1017.0)",
+   "x": -269.8,
+   "z": 1032.3,
+   "arrival": {
+    "x": -262.1,
+    "z": 1045.1
+   },
+   "walkDist": 0,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 120,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 105,
+     "name": "Judah Street & 16th Avenue"
+    }
+   },
+   "fact": "A 12-acre boating lake (1893) that rings Strawberry Hill.",
+   "why": "A 12-acre boating lake (1893) that rings Strawberry Hill. It has the 110-ft Huntington Falls and the red Chinese Pavilion, a gift from sister city Taipei (dedicated 1981), and rents row and pedal boats from the Blue Heron Lake Boathouse.",
+   "sources": [
+    "https://sfrecpark.org/facilities/facility/details/Stow-Lake-410",
+    "https://sfrecpark.org/CivicAlerts.aspx?AID=1696",
+    "https://sfrecpark.org/901/Golden-Gate-Park---Chinese-Pavilion"
+   ],
+   "caution": "RENAMED 2024-01-18 (Rec & Park Commission vote 4-3, because W.W. Stow was antisemitic); the drive and boathouse were renamed too. places.json 'stow-lake' still reads 'Stow Lake & Strawberry Hill / 斯托湖与草莓山': rename it. Rec & Park pages give the pavilion as 1976 and 1981; use 'gift from Taipei, dedicated 1981'.",
+   "category": "park",
+   "lat": 37.76854,
+   "lng": -122.47553,
+   "checkedOn": "2026-09-27",
+   "rank": 53,
+   "placeId": "stow-lake",
+   "placeMatch": "curated stow-lake \"Stow Lake & Strawberry Hill\" 0 u"
+  },
+  {
+   "id": "corona-heights-randall-museum",
+   "en": "Corona Heights Park & Randall Museum",
+   "zh": "科罗娜高地与兰德尔博物馆",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "corona-heights",
+   "note": "red-rock summit viewpoint + museum block; panorama point",
+   "x": 95.9,
+   "z": 746.1,
+   "arrival": {
+    "x": 99.4,
+    "z": 748.1
+   },
+   "walkDist": 3.9,
+   "inHeroSlab": false,
+   "zone": "castro-upper-market",
+   "near": {
+    "loop": {
+     "d": 47,
+     "name": "castro"
+    },
+    "M": {
+     "d": 45,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 94,
+     "name": "Sunset Tunnel East Portal"
+    }
+   },
+   "fact": "A free city-run kids' science museum with live animals and a model railroad, under a red-rock summit with one of the best close views of downtown.",
+   "why": "A free city-run kids' science museum with live animals and a model railroad, under a red-rock summit with one of the best close views of downtown.",
+   "sources": [
+    "https://randallmuseum.org/about-us/directions-hours/",
+    "https://sfrecpark.org/facilities/facility/details/Randall-Museum-104",
+    "https://www.openstreetmap.org/way/705309578"
+   ],
+   "caution": "Museum open Tue–Sat 10–5.",
+   "category": "museum",
+   "lat": 37.76439,
+   "lng": -122.43818,
+   "checkedOn": "2026-09-27",
+   "rank": 54,
+   "placeId": "corona-heights",
+   "placeMatch": "curated corona-heights \"Corona Heights\" 16 u"
+  },
+  {
+   "id": "harvey-milk-plaza",
+   "en": "Harvey Milk Plaza & Castro rainbow crosswalks",
+   "zh": "哈维·米尔克广场与彩虹斑马线",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "castro",
+   "note": "generic six-stripe rainbow flag on a pole + rainbow crosswalks; the M Castro kiosk",
+   "x": 140.7,
+   "z": 746.7,
+   "arrival": {
+    "x": 140.6,
+    "z": 746.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "castro-upper-market",
+   "near": {
+    "loop": {
+     "d": 7,
+     "name": "castro"
+    },
+    "M": {
+     "d": 7,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 112,
+     "name": "Sunset Tunnel East Portal"
+    }
+   },
+   "fact": "The giant rainbow flag over the Castro Muni station is a city landmark, and the rainbow crosswalks at Castro & 18th (2014) and the Rainbow Honor Walk plaques mark the world's best-known…",
+   "why": "The giant rainbow flag over the Castro Muni station is a city landmark, and the rainbow crosswalks at Castro & 18th (2014) and the Rainbow Honor Walk plaques mark the world's best-known LGBTQ+ neighbourhood. The GLBT Historical Society Museum is a block away at 4127 18th St.",
+   "sources": [
+    "https://sfpublicworks.org/index.php/HarveyMilkPlaza",
+    "https://sf.streetsblog.org/2014/03/13/castro-street-redesign-breaks-ground-rainbow-crosswalks-unveiled/",
+    "https://en.wikipedia.org/wiki/Rainbow_Honor_Walk",
+    "https://www.glbthistory.org/museum-about-visitor-info"
+   ],
+   "caution": "A $25M plaza redesign is expected to break ground in late 2026 and reopen for Pride 2028, so parts may be fenced. The GLBT museum will later move to 2280 Market St.",
+   "category": "neighbourhood-icon",
+   "lat": 37.76228,
+   "lng": -122.43569,
+   "checkedOn": "2026-09-27",
+   "rank": 55,
+   "placeId": "osm-w225526801",
+   "placeMatch": "osm osm-w225526801 \"Harvey Milk Plaza\" 0 u"
+  },
+  {
+   "id": "lake-merced",
+   "en": "Lake Merced",
+   "zh": "默塞德湖",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "lake-merced",
+   "note": "boathouse dock + loop path; anchor moves to the Harding Rd shore (the point is in the lake)",
+   "x": 104.1,
+   "z": 1726.6,
+   "arrival": {
+    "x": 88.9,
+    "z": 1704.4
+   },
+   "walkDist": 26.8,
+   "inHeroSlab": false,
+   "zone": "lakeshore",
+   "near": {},
+   "fact": "The city's largest lake: a freshwater reservoir ringed by a walking loop and golf courses, of which TPC Harding Park is public.",
+   "why": "The city's largest lake: a freshwater reservoir ringed by a walking loop and golf courses, of which TPC Harding Park is public. Rowing clubs and SF State's boathouse sit on its shore.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Lake_Merced",
+    "https://www.openstreetmap.org/relation/16308125"
+   ],
+   "caution": "Fish advisories apply. The Olympic Club and SF Golf Club are private.",
+   "category": "park",
+   "lat": 37.72,
+   "lng": -122.495,
+   "checkedOn": "2026-09-27",
+   "rank": 56,
+   "placeId": "lake-merced",
+   "placeMatch": "curated lake-merced \"Lake Merced\" 17 u"
+  },
+  {
+   "id": "presidio-tunnel-tops",
+   "en": "Presidio Tunnel Tops & Presidio Visitor Center",
+   "zh": "要塞公园隧道顶公园",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "presidio",
+   "note": "lawn deck sloping to Crissy Field; loop passes 18 u (request stop)",
+   "x": -484.4,
+   "z": 489.1,
+   "arrival": {
+    "x": -484.1,
+    "z": 489.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {
+    "loop": {
+     "d": 110,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "Fourteen acres of free parkland over the Presidio Parkway tunnels (opened July 2022) with the Outpost nature playground, the Campfire Circle and big Golden Gate Bridge views; the…",
+   "why": "Fourteen acres of free parkland over the Presidio Parkway tunnels (opened July 2022) with the Outpost nature playground, the Campfire Circle and big Golden Gate Bridge views; the Presidio Visitor Center is beside it.",
+   "sources": [
+    "https://presidio.gov/explore/attractions/presidio-tunnel-tops/",
+    "https://www.parksconservancy.org/news/presidio-tunnel-tops-opening-day-2022",
+    "https://www.sfgate.com/local/article/San-Francisco-Tunnel-Tops-park-open-in-presidio-17309797.php"
+   ],
+   "caution": "Only an uncurated places.json label (osm-w91114607). Facility hours are seasonal.",
+   "category": "park",
+   "lat": 37.802899,
+   "lng": -122.455911,
+   "checkedOn": "2026-09-27",
+   "dup": "listed twice (NE + SW lists)",
+   "rank": 57,
+   "placeId": "osm-w91114607",
+   "placeMatch": "osm osm-w91114607 \"Presidio Tunnel Tops\" 5 u"
+  },
+  {
+   "id": "stern-grove",
+   "en": "Stern Grove (Sigmund Stern Recreation Grove)",
+   "zh": "斯特恩林（Stern Grove）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 2,
+   "site": "stern-grove",
+   "note": "amphitheatre meadow in a eucalyptus ravine; no performer names",
+   "x": 65.6,
+   "z": 1408.4,
+   "arrival": {
+    "x": 65.6,
+    "z": 1408.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "sunset-parkside",
+   "near": {
+    "M": {
+     "d": 86,
+     "name": "Right of Way & Ocean Avenue"
+    }
+   },
+   "fact": "A eucalyptus-and-redwood ravine donated in 1931.",
+   "why": "A eucalyptus-and-redwood ravine donated in 1931. Its Stern Grove Festival is the longest-running free music festival in the US (89th season, 14 June–16 Aug 2026), and Pine Lake, one of the city's three natural lakes, lies at its west end.",
+   "sources": [
+    "https://www.prnewswire.com/news-releases/longest-running-free-music-festival-in-america-returns-for-its-89th-season-with-al-green-public-enemy-patti-labelle-major-lazer-japanese-breakfast--more-302735986.html",
+    "https://en.wikipedia.org/wiki/Sigmund_Stern_Recreation_Grove",
+    "https://www.openstreetmap.org/way/103637554"
+   ],
+   "caution": "Free tickets are by lottery and the line-up changes yearly: no performer names in the world.",
+   "category": "park",
+   "lat": 37.73607,
+   "lng": -122.47858,
+   "checkedOn": "2026-09-27",
+   "rank": 58,
+   "placeId": "osm-w103637554",
+   "placeMatch": "osm osm-w103637554 \"Sigmund Stern Recreation Grove\" 0 u"
+  },
+  {
+   "id": "clement-street",
+   "en": "Clement Street (Inner Richmond)",
+   "zh": "企李街（列治文区“新华埠”）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "clement",
+   "note": "street strip of blank-sign shopfronts (\"New Chinatown\")",
+   "x": -331,
+   "z": 775.8,
+   "arrival": {
+    "x": -331.1,
+    "z": 775.9
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "inner-richmond",
+   "near": {
+    "loop": {
+     "d": 177,
+     "name": "golden-gate-park"
+    }
+   },
+   "fact": "The Richmond's 'New Chinatown'.",
+   "why": "The Richmond's 'New Chinatown'. As Chinese families moved west after the late 1940s, Clement St filled with dim sum houses, Cantonese delis and grocers, alongside Burmese, Thai, Korean and Russian places.",
+   "sources": [
+    "https://www.sfexaminer.com/news/the-city/how-richmond-district-became-second-san-francisco-chinatown/article_a7783c70-e034-11ef-8c71-3b9f0e67a124.html",
+    "https://www.nems.org/ch/locationsRichmondClement.html"
+   ],
+   "caution": "Shop names are brands: blank signs, no real business names.",
+   "category": "neighbourhood-icon",
+   "lat": 37.7829,
+   "lng": -122.464,
+   "checkedOn": "2026-09-27",
+   "rank": 59,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "fort-funston",
+   "en": "Fort Funston",
+   "zh": "芬斯顿堡",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "fort-funston",
+   "note": "bluff deck + one looping hang-glider (TOY_DYN), never player-flyable",
+   "x": 101,
+   "z": 1842,
+   "arrival": {
+    "x": 100.9,
+    "z": 1842.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "lakeshore",
+   "near": {},
+   "fact": "Sandstone bluffs where hang-gliders launch over the Pacific, with the old Battery Davis (1936–39) bunker.",
+   "why": "Sandstone bluffs where hang-gliders launch over the Pacific, with the old Battery Davis (1936–39) bunker. It is the only GGNRA park where dogs may run off-leash.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fort_Funston",
+    "https://www.openstreetmap.org/way/404851503"
+   ],
+   "caution": "Bluffs erode and close in places. Hang gliding is for certified pilots: don't let the player 'try' it.",
+   "category": "park",
+   "lat": 37.714958,
+   "lng": -122.501915,
+   "checkedOn": "2026-09-27",
+   "rank": 60,
+   "placeId": "osm-w404851503",
+   "placeMatch": "osm osm-w404851503 \"Fort Funston\" 71 u"
+  },
+  {
+   "id": "fort-mason-center",
+   "en": "Fort Mason Center for Arts & Culture",
+   "zh": "梅森堡艺术文化中心",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "fort-mason",
+   "note": "pier sheds + apron; loop passes 23 u (request stop)",
+   "x": -320.8,
+   "z": 234.6,
+   "arrival": {
+    "x": -319.1,
+    "z": 238.9
+   },
+   "walkDist": 2.6,
+   "inHeroSlab": false,
+   "zone": null,
+   "near": {
+    "loop": {
+     "d": 139,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "Old Army port piers turned arts campus: theatres such as the Magic Theatre, galleries, Museo Italo Americano and night markets, with Golden Gate Bridge and Alcatraz views; about 1.5…",
+   "why": "Old Army port piers turned arts campus: theatres such as the Magic Theatre, galleries, Museo Italo Americano and night markets, with Golden Gate Bridge and Alcatraz views; about 1.5 million visitors a year.",
+   "sources": [
+    "https://fortmason.org/",
+    "https://en.wikipedia.org/wiki/Fort_Mason"
+   ],
+   "caution": "Only the curated places.json label fort-mason. Event names and dates change.",
+   "category": "other",
+   "lat": 37.806722,
+   "lng": -122.431809,
+   "checkedOn": "2026-09-27",
+   "rank": 61,
+   "placeId": "fort-mason",
+   "placeMatch": "curated fort-mason \"Fort Mason\" 9 u"
+  },
+  {
+   "id": "grand-view-park",
+   "en": "Grand View Park (Turtle Hill)",
+   "zh": "格兰维尤公园（龟山）",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "golden-gate-heights",
+   "note": "summit clearing + telescope; panorama point",
+   "x": -103.6,
+   "z": 1129.6,
+   "arrival": {
+    "x": -103.9,
+    "z": 1129.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "inner-sunset",
+   "near": {
+    "N": {
+     "d": 88,
+     "name": "Judah Street & 16th Avenue"
+    }
+   },
+   "fact": "A tiny chert summit about 666 ft high with a 360° view from the Pacific to downtown and Sutro Tower.",
+   "why": "A tiny chert summit about 666 ft high with a 360° view from the Pacific to downtown and Sutro Tower. The Tiled Steps lead up to it.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Grand_View_Park",
+    "https://www.openstreetmap.org/way/402061421"
+   ],
+   "caution": "Rare native plants: stay on the paths.",
+   "category": "viewpoint",
+   "lat": 37.75645,
+   "lng": -122.47184,
+   "checkedOn": "2026-09-27",
+   "rank": 62,
+   "placeId": "osm-n7707827583",
+   "placeMatch": "osm osm-n7707827583 \"Grand View Hill\" 2 u"
+  },
+  {
+   "id": "hippie-hill",
+   "en": "Hippie Hill",
+   "zh": "嬉皮山",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "park-east",
+   "note": "meadow, a few instanced drummers, weekend drum audio (sound hook)",
+   "x": -141.8,
+   "z": 852.7,
+   "arrival": {
+    "x": -141.4,
+    "z": 852.4
+   },
+   "walkDist": 0,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 109,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 89,
+     "name": "Carl Street & Hillway Avenue"
+    }
+   },
+   "fact": "The meadow where the 1967 Summer of Love gathered.",
+   "why": "The meadow where the 1967 Summer of Love gathered. A drum circle that anyone can join still plays there on weekend days.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hippie_Hill",
+    "https://www.openstreetmap.org/way/272711313"
+   ],
+   "caution": "The official 4/20 event was cancelled in 2024 and 2025; keep cannabis out of the family card.",
+   "category": "neighbourhood-icon",
+   "lat": 37.77065,
+   "lng": -122.45782,
+   "checkedOn": "2026-09-27",
+   "rank": 63,
+   "placeId": "osm-w272711313",
+   "placeMatch": "osm osm-w272711313 \"Hippie Hill\" 12 u"
+  },
+  {
+   "id": "irving-street",
+   "en": "Irving Street (Sunset District)",
+   "zh": "尔文街（日落区华人商业街）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "irving",
+   "note": "street strip of blank-sign shopfronts + market crates",
+   "x": -248.7,
+   "z": 1120.6,
+   "arrival": {
+    "x": -247.9,
+    "z": 1121.6
+   },
+   "walkDist": 1.2,
+   "inHeroSlab": false,
+   "zone": "sunset-parkside",
+   "near": {
+    "N": {
+     "d": 38,
+     "name": "Judah Street & 23rd Avenue"
+    }
+   },
+   "fact": "The Sunset's main street, with a long run of Chinese bakeries, roast-meat shops, grocers and Vietnamese and Thai cafés serving one of the city's largest Chinese-American neighbourhoods.",
+   "why": "The Sunset's main street, with a long run of Chinese bakeries, roast-meat shops, grocers and Vietnamese and Thai cafés serving one of the city's largest Chinese-American neighbourhoods. The N Judah stops at 9th & Irving.",
+   "sources": [
+    "https://www.sfchronicle.com/restaurants/article/The-Middle-Sunset-s-vibrant-food-scene-captures-7381518.php",
+    "https://www.sfgate.com/travel/streetdate/article/Irving-Street-in-S-F-s-Sunset-District-4882355.php",
+    "https://dq.yam.com/post/15486"
+   ],
+   "caution": "Shop names are brands. The 2023 Irving night-market idea was a proposal: don't present it as a regular event.",
+   "category": "neighbourhood-icon",
+   "lat": 37.7636,
+   "lng": -122.4795,
+   "checkedOn": "2026-09-27",
+   "rank": 64,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "japan-center",
+   "en": "Japan Center Malls (Japantown)",
+   "zh": "日本城购物中心",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "japantown",
+   "note": "mall blocks + Webster St bridge around the Peace Pagoda (extends that site)",
+   "x": -69.2,
+   "z": 454.7,
+   "arrival": {
+    "x": -73.1,
+    "z": 453.4
+   },
+   "walkDist": 3.9,
+   "inHeroSlab": false,
+   "zone": "japantown",
+   "near": {
+    "loop": {
+     "d": 138,
+     "name": "painted-ladies"
+    }
+   },
+   "fact": "Minoru Yamasaki's 1968 mall complex (Japan Center East and West plus the Kinokuniya building, joined by a bridge) around Peace Plaza: ramen, manga and Japanese goods in one of the oldest…",
+   "why": "Minoru Yamasaki's 1968 mall complex (Japan Center East and West plus the Kinokuniya building, joined by a bridge) around Peace Plaza: ramen, manga and Japanese goods in one of the oldest Japantowns in the US.",
+   "sources": [
+    "https://www.sfjapantown.org/japan-center-malls/",
+    "https://en.wikipedia.org/wiki/Japan_Center_(San_Francisco)"
+   ],
+   "caution": "The Peace Pagoda is already modelled and its card mentions the malls. Store names are brands (Kinokuniya): no signage.",
+   "category": "shopping",
+   "lat": 37.785147,
+   "lng": -122.430475,
+   "checkedOn": "2026-09-27",
+   "rank": 65,
+   "placeId": "japantown-peace-pagoda",
+   "placeMatch": "curated japantown-peace-pagoda \"Japantown Peace Pagoda\" 8 u"
+  },
+  {
+   "id": "sf-botanical-garden",
+   "en": "San Francisco Botanical Garden",
+   "zh": "旧金山植物园",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "music-concourse",
+   "note": "entrance-gate plaza at MLK Dr & 9th Ave, tree clusters",
+   "x": -223.4,
+   "z": 1010.3,
+   "arrival": {
+    "x": -223.1,
+    "z": 1010.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 91,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 84,
+     "name": "Judah Street & Funston Avenue"
+    }
+   },
+   "fact": "55 acres holding more than 8,000 kinds of plants.",
+   "why": "55 acres holding more than 8,000 kinds of plants. Magnolias bloom from January to March, Flower Piano runs in September and the Lightscape light show in winter.",
+   "sources": [
+    "https://gggp.org/visit",
+    "https://www.openstreetmap.org/way/120480164"
+   ],
+   "caution": "Admission rules for non-residents change; event dates change every year.",
+   "category": "park",
+   "lat": 37.76737,
+   "lng": -122.47163,
+   "checkedOn": "2026-09-27",
+   "rank": 66,
+   "placeId": "osm-w120480164",
+   "placeMatch": "osm osm-w120480164 \"San Francisco Botanical Garden\" 0 u"
+  },
+  {
+   "id": "sunset-dunes",
+   "en": "Sunset Dunes",
+   "zh": "日落沙丘公园",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "ocean-beach-west",
+   "note": "car-free promenade strip; neutral card, Prop G (3 Nov 2026) may change it",
+   "x": -341.7,
+   "z": 1525,
+   "arrival": {
+    "x": -341.6,
+    "z": 1525.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "sunset-parkside",
+   "near": {
+    "N": {
+     "d": 161,
+     "name": "Judah Street & La Playa Street"
+    }
+   },
+   "fact": "The former Upper Great Highway between Lincoln Way and Sloat Blvd became a car-free coastal park on 12 April 2025, the largest pedestrianisation project in California.",
+   "why": "The former Upper Great Highway between Lincoln Way and Sloat Blvd became a car-free coastal park on 12 April 2025, the largest pedestrianisation project in California.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sunset_Dunes",
+    "https://www.kqed.org/news/12079238/one-year-of-san-franciscos-controversial-beachside-park",
+    "https://growsf.org/voter-guide/san-francisco-voter-guide-november-2026-election/measures/prop-g/",
+    "https://missionlocal.org/2026/07/great-highway-compromise-cost/"
+   ],
+   "caution": "Politically contested and may change: Proposition G on the 3 Nov 2026 ballot would reopen it to cars on weekdays. Keep the card neutral, re-check after the election, and do not hard-code it as permanently car-free.",
+   "category": "park",
+   "lat": 37.74977,
+   "lng": -122.50837,
+   "checkedOn": "2026-09-27",
+   "rank": 67,
+   "placeId": "osm-w609650218",
+   "placeMatch": "osm osm-w609650218 \"Sunset Dunes\" 0 u"
+  },
+  {
+   "id": "cliff-house",
+   "en": "Cliff House & Camera Obscura",
+   "zh": "悬崖屋与暗箱相机",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "stop",
+   "mapRank": 3,
+   "site": "lands-end",
+   "note": "existing; card: closed since 2020, reopening not confirmed; add the Camera Obscura label",
+   "x": -710.1,
+   "z": 1265.2,
+   "arrival": {
+    "x": -709.9,
+    "z": 1263.4
+   },
+   "walkDist": 1.9,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 36,
+     "name": "lands-end-sutro"
+    }
+   },
+   "fact": "The third Cliff House (1909) above Seal Rocks has been closed since 2020 and is being restored to reopen around late 2026.",
+   "why": "The third Cliff House (1909) above Seal Rocks has been closed since 2020 and is being restored to reopen around late 2026. Beside it, the 1946 Camera Obscura projects the seascape inside and is open daily 11–5, weather permitting.",
+   "sources": [
+    "https://www.nps.gov/goga/learn/news/nps-announces-lessee-for-food-and-beverage-operations-for-lands-end-restaurant-properties.htm",
+    "https://sfist.com/2025/11/07/the-cliff-house-will-still-be-called-cliff-house-when-it-reopens-but-probably-wont-reopen-until-late-2026/",
+    "http://www.giantcamera.com/"
+   ],
+   "caution": "The late-2026 reopening is not confirmed: re-check before calling it open. The name is kept (its trademarks were donated to the Western Neighborhoods Project).",
+   "category": "historic",
+   "lat": 37.778557,
+   "lng": -122.513978,
+   "checkedOn": "2026-09-27",
+   "rank": 68,
+   "placeId": "cliff-house",
+   "placeMatch": "curated cliff-house \"Cliff House\" 0 u"
+  },
+  {
+   "id": "city-lights-bookstore",
+   "en": "City Lights Booksellers & Publishers",
+   "zh": "城市之光书店",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "Jack Kerouac Alley plaza is hero data: card only",
+   "x": -4.3,
+   "z": 108.9,
+   "arrival": {
+    "x": -4.1,
+    "z": 109.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": true,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 110,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 139,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 139,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "Founded in 1953 by poet Lawrence Ferlinghetti and Peter D. Martin as the first all-paperback bookstore, it published Ginsberg's 'Howl' and became a city landmark in 2001; Jack Kerouac…",
+   "why": "Founded in 1953 by poet Lawrence Ferlinghetti and Peter D. Martin as the first all-paperback bookstore, it published Ginsberg's 'Howl' and became a city landmark in 2001; Jack Kerouac Alley runs beside it.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/City_Lights_Bookstore",
+    "https://www.tripadvisor.com/Attraction_Review-g60713-d104544-Reviews-City_Lights_Booksellers-San_Francisco_California.html"
+   ],
+   "caution": "citylights.com returned a redirect at check time; open daily 10-10 per listings. Only an uncurated places.json label (osm-w32858754).",
+   "category": "shopping",
+   "lat": 37.797652,
+   "lng": -122.406617,
+   "checkedOn": "2026-09-27",
+   "rank": 69,
+   "placeId": "osm-w32858754",
+   "placeMatch": "osm osm-w32858754 \"City Lights Booksellers\" 1 u"
+  },
+  {
+   "id": "musee-mecanique",
+   "en": "Musée Mécanique",
+   "zh": "机械博物馆（古董投币游戏机）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "coin-op prop at the Pier 45 door",
+   "x": -211.9,
+   "z": 65.5,
+   "arrival": {
+    "x": -205.9,
+    "z": 73.9
+   },
+   "walkDist": 2.8,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 72,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "A free-entry hall on Pier 45 packed with 300+ antique coin-operated arcade machines that still play for coins; open every day.",
+   "why": "A free-entry hall on Pier 45 packed with 300+ antique coin-operated arcade machines that still play for coins; open every day.",
+   "sources": [
+    "https://secretsanfrancisco.com/musee-mecanique/",
+    "https://en.wikipedia.org/wiki/Mus%C3%A9e_M%C3%A9canique"
+   ],
+   "caution": "The official site (museemecaniquesf.com) refused the connection; hours of 10-8 come from secondary sources. Only an uncurated places.json label.",
+   "category": "museum",
+   "lat": 37.809246,
+   "lng": -122.415794,
+   "checkedOn": "2026-09-27",
+   "rank": 70,
+   "placeId": "osm-n368166365",
+   "placeMatch": "osm osm-n368166365 \"Musée Mécanique\" 0 u"
+  },
+  {
+   "id": "national-aids-memorial-grove",
+   "en": "National AIDS Memorial Grove",
+   "zh": "国家艾滋病纪念园",
+   "candTier": 3,
+   "priority": 3,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "park-east",
+   "note": "quiet memorial: no gameplay objects, BAYBAY speaks softly",
+   "x": -168.5,
+   "z": 902.3,
+   "arrival": {
+    "x": -168.4,
+    "z": 902.6
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "golden-gate-park",
+   "near": {
+    "loop": {
+     "d": 62,
+     "name": "golden-gate-park"
+    },
+    "N": {
+     "d": 85,
+     "name": "Irving Street & 6th Avenue"
+    }
+   },
+   "fact": "A 7.5-acre dell planted by volunteers from 1991 and made a National Memorial in 1996.",
+   "why": "A 7.5-acre dell planted by volunteers from 1991 and made a National Memorial in 1996. Names are added to the Circle of Friends every year before World AIDS Day.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/National_AIDS_Memorial_Grove",
+    "https://nominatim.openstreetmap.org/search?q=National+AIDS+Memorial+Grove&format=json"
+   ],
+   "caution": "Memorial: no collectibles or photo gags, and BAYBAY should speak quietly here.",
+   "category": "historic",
+   "lat": 37.7696696,
+   "lng": -122.4622203,
+   "checkedOn": "2026-09-27",
+   "rank": 71,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "walt-disney-family-museum",
+   "en": "The Walt Disney Family Museum",
+   "zh": "华特·迪士尼家族博物馆",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "presidio",
+   "note": "trademark: plain barracks, name in card text only",
+   "x": -491.4,
+   "z": 530.5,
+   "arrival": {
+    "x": -494.6,
+    "z": 530.6
+   },
+   "walkDist": 3.4,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {
+    "loop": {
+     "d": 148,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "A museum of Walt Disney's life, opened in 2009 in an 1897 Army barracks on the Presidio's parade ground; open Thursday-Sunday.",
+   "why": "A museum of Walt Disney's life, opened in 2009 in an 1897 Army barracks on the Presidio's parade ground; open Thursday-Sunday.",
+   "sources": [
+    "https://www.waltdisney.org/visit",
+    "https://en.wikipedia.org/wiki/Walt_Disney_Family_Museum"
+   ],
+   "caution": "DISNEY TRADEMARK: no characters, logos or signature art in the world; name in card text only.",
+   "category": "museum",
+   "lat": 37.801363,
+   "lng": -122.458721,
+   "checkedOn": "2026-09-27",
+   "dup": "listed twice (NE + SW lists)",
+   "rank": 72,
+   "placeId": "osm-w288340246",
+   "placeMatch": "osm osm-w288340246 \"Walt Disney Family Museum\" 0 u"
+  },
+  {
+   "id": "salesforce-park",
+   "en": "Salesforce Park",
+   "zh": "Salesforce 屋顶公园",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "defer",
+   "mapRank": 2,
+   "site": "hero-seam",
+   "note": "the deck crosses the hero seam: card now, deck model after a hero sign-off",
+   "x": 175.9,
+   "z": 112.4,
+   "arrival": {
+    "x": 175.9,
+    "z": 112.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 102,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 56,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 56,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "A free 5.4-acre, ~1,400 ft long park on the Transit Center roof, 70 ft above the street, with 600 trees, Ned Kahn's bus-triggered 'Bus Fountain' and a free gondola up from Mission & Fremont.",
+   "why": "A free 5.4-acre, ~1,400 ft long park on the Transit Center roof, 70 ft above the street, with 600 trees, Ned Kahn's bus-triggered 'Bus Fountain' and a free gondola up from Mission & Fremont.",
+   "sources": [
+    "https://www.tjpa.org/salesforce-park/",
+    "https://www.sftravel.com/article/guide-to-san-franciscos-salesforce-park",
+    "https://www.510families.com/salesforce-park-free-gondola/"
+   ],
+   "caution": "Only a curated places.json label (salesforce-park), no card or model. Hours 6am-9pm May-Oct, 6am-8pm Nov-Apr; gondola about 8am-8pm (summer) / 8am-7pm (winter); subject to change.",
+   "category": "park",
+   "lat": 37.789115,
+   "lng": -122.396655,
+   "checkedOn": "2026-09-27",
+   "rank": 73,
+   "placeId": "salesforce-park",
+   "placeMatch": "curated salesforce-park \"Salesforce Park (Transit Center roof)\" 3 u"
+  },
+  {
+   "id": "saints-peter-and-paul-church",
+   "en": "Saints Peter and Paul Church & Washington Square",
+   "zh": "圣彼得圣保罗教堂（华盛顿广场）",
+   "candTier": 2,
+   "priority": 3,
+   "treatment": "defer",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "on hero lot 211: card now; model needs heroDropLots",
+   "x": -79.5,
+   "z": 98.2,
+   "arrival": {
+    "x": -76.1,
+    "z": 100.1
+   },
+   "walkDist": 3.9,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 105,
+     "name": "pier-39"
+    }
+   },
+   "fact": "The white twin-spired (191 ft) Italian Gothic church of 1924 faces Washington Square, the heart of North Beach's Little Italy; Joe DiMaggio and Marilyn Monroe posed for photos on its…",
+   "why": "The white twin-spired (191 ft) Italian Gothic church of 1924 faces Washington Square, the heart of North Beach's Little Italy; Joe DiMaggio and Marilyn Monroe posed for photos on its steps in 1954.",
+   "sources": [
+    "https://www.salesiansspp.org/our-history",
+    "https://en.wikipedia.org/wiki/Saints_Peter_and_Paul_Church,_San_Francisco",
+    "https://en.wikipedia.org/wiki/Washington_Square_(San_Francisco)"
+   ],
+   "caution": "Active parish. Washington Square exists only as the curated places.json label north-beach-washington-sq and in BAYLINK walk text.",
+   "category": "religious",
+   "lat": 37.801627,
+   "lng": -122.410229,
+   "checkedOn": "2026-09-27",
+   "rank": 74,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "balmy-alley",
+   "en": "Balmy Alley",
+   "zh": "巴尔米巷壁画街",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "mission-24th",
+   "note": "garage doors in abstract colour fields, or H2b original murals if shipped",
+   "x": 456.8,
+   "z": 653.4,
+   "arrival": {
+    "x": 457.1,
+    "z": 653.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "mission",
+   "near": {},
+   "fact": "One block of fences and garage doors painted since 1972–73, the heart of the Mission's mural tradition, including the 1984–85 PLACA murals about Central America.",
+   "why": "One block of fences and garage doors painted since 1972–73, the heart of the Mission's mural tradition, including the 1984–85 PLACA murals about Central America. Precita Eyes runs mural walks from 24th St.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Balmy_Alley",
+    "https://nominatim.openstreetmap.org/search?q=Precita+Eyes,+24th+Street,+San+Francisco&format=json"
+   ],
+   "caution": "The murals are copyrighted works by named artists: abstract colour only. People live here.",
+   "category": "neighbourhood-icon",
+   "lat": 37.751777,
+   "lng": -122.412406,
+   "checkedOn": "2026-09-27",
+   "rank": 75,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "bayview-opera-house",
+   "en": "Bayview Opera House (Ruth Williams Memorial Theatre)",
+   "zh": "湾景歌剧院",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "bayview",
+   "note": "Victorian false-front hall from kit parts; the south-east anchor",
+   "x": 832.4,
+   "z": 635.3,
+   "arrival": {
+    "x": 834.4,
+    "z": 634.1
+   },
+   "walkDist": 2.1,
+   "inHeroSlab": false,
+   "zone": "bayview-hunters-point",
+   "near": {},
+   "fact": "Built in 1888, the oldest surviving theatre in San Francisco: a Victorian hall on Third Street named for producer Ruth Williams.",
+   "why": "Built in 1888, the oldest surviving theatre in San Francisco: a Victorian hall on Third Street named for producer Ruth Williams. It is now a community arts centre with an outdoor stage added in the 2014–16 renovation.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Bayview_Opera_House",
+    "https://www.openstreetmap.org/way/288836717"
+   ],
+   "caution": "",
+   "category": "historic",
+   "lat": 37.73513,
+   "lng": -122.39016,
+   "checkedOn": "2026-09-27",
+   "rank": 76,
+   "placeId": "osm-w288836717",
+   "placeMatch": "osm osm-w288836717 \"Bayview Opera House Ruth Williams Memorial Theatre\" 0 u"
+  },
+  {
+   "id": "chinese-telephone-exchange",
+   "en": "Chinese Telephone Exchange building (743 Washington St)",
+   "zh": "华人电话局旧址",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "chinatown-pagodas",
+   "note": "small 3-tier pagoda on Washington St; GATED",
+   "x": 27.4,
+   "z": 133.5,
+   "arrival": {
+    "x": 27.4,
+    "z": 133.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 71,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 111,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 111,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "A three-tier pagoda built in 1909, the city's first Chinese-style building, that housed the Chinese Telephone Exchange for 800 phones until 1949; it was then restored by the Bank of Canton.",
+   "why": "A three-tier pagoda built in 1909, the city's first Chinese-style building, that housed the Chinese Telephone Exchange for 800 phones until 1949; it was then restored by the Bank of Canton.",
+   "sources": [
+    "https://www.foundsf.org/Chinese_Telephone_Exchange",
+    "https://theclio.com/entry/13490",
+    "https://hoodline.com/2016/04/plugged-in-the-fascinating-history-of-the-chinese-telephone-exchange/"
+   ],
+   "caution": "Now a bank branch (OSM: East West Bank): exterior only, no bank name. places.json label osm-n2579643653 (English only).",
+   "category": "historic",
+   "lat": 37.79507,
+   "lng": -122.406264,
+   "checkedOn": "2026-09-27",
+   "rank": 77,
+   "placeId": "osm-n2579643653",
+   "placeMatch": "osm osm-n2579643653 \"Bank of Canton (former Chinese Telephone Exchange)\" 0 u"
+  },
+  {
+   "id": "crane-cove-park",
+   "en": "Crane Cove Park",
+   "zh": "鹤湾公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "dogpatch",
+   "note": "two gantry cranes (Nick and Nora) + small beach",
+   "x": 553.3,
+   "z": 313.5,
+   "arrival": {
+    "x": 553.1,
+    "z": 313.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "potrero-hill",
+   "near": {},
+   "fact": "A 7-acre park (2020) on the historic Pier 70 shipyard, with a sandy kayak beach and two restored gantry cranes nicknamed Nick and Nora.",
+   "why": "A 7-acre park (2020) on the historic Pier 70 shipyard, with a sandy kayak beach and two restored gantry cranes nicknamed Nick and Nora.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Crane_Cove_Park",
+    "https://hoodline.com/2020/10/crane-cove-park-opens-in-the-dogpatch-with-sandy-beaches-and-grassy-lawns/",
+    "https://sfbaywatertrail.org/trailhead/crane-cove-park/"
+   ],
+   "caution": "None.",
+   "category": "park",
+   "lat": 37.762551,
+   "lng": -122.387112,
+   "checkedOn": "2026-09-27",
+   "rank": 78,
+   "placeId": "osm-w853562207",
+   "placeMatch": "osm osm-w853562207 \"Crane Cove Park\" 5 u"
+  },
+  {
+   "id": "haas-lilienthal-house",
+   "en": "Haas-Lilienthal House",
+   "zh": "哈斯-利连塔尔故居",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "pacific-heights",
+   "note": "the Queen Anne kit house at full size",
+   "x": -112.8,
+   "z": 318.6,
+   "arrival": {
+    "x": -111.4,
+    "z": 318.4
+   },
+   "walkDist": 1.5,
+   "inHeroSlab": false,
+   "zone": "pacific-heights",
+   "near": {},
+   "fact": "An 1886 Queen Anne Victorian that survived the 1906 earthquake and fire, now the city's Victorian house museum (a National Trust 'National Treasure').",
+   "why": "An 1886 Queen Anne Victorian that survived the 1906 earthquake and fire, now the city's Victorian house museum (a National Trust 'National Treasure').",
+   "sources": [
+    "https://www.haas-lilienthalhouse.org/house-tours",
+    "https://www.sfheritage.org/haas-lilienthal-house/",
+    "https://en.wikipedia.org/wiki/Haas%E2%80%93Lilienthal_House"
+   ],
+   "caution": "Docent tours on select Wednesdays and Saturdays, $10.",
+   "category": "historic",
+   "lat": 37.793276,
+   "lng": -122.424985,
+   "checkedOn": "2026-09-27",
+   "rank": 79,
+   "placeId": "osm-w256993595",
+   "placeMatch": "osm osm-w256993595 \"Haas-Lilienthal House\" 0 u"
+  },
+  {
+   "id": "ingleside-terraces-sundial",
+   "en": "Ingleside Terraces Sundial",
+   "zh": "英格塞德日晷",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "ingleside",
+   "note": "28-ft gnomon whose shadow follows the game sun",
+   "x": 283.8,
+   "z": 1438,
+   "arrival": {
+    "x": 284.6,
+    "z": 1437.4
+   },
+   "walkDist": 0.5,
+   "inHeroSlab": false,
+   "zone": "west-of-twin-peaks",
+   "near": {
+    "M": {
+     "d": 95,
+     "name": "19th Avenue & Winston Drive"
+    }
+   },
+   "fact": "Built as a sales gimmick and dedicated on 10 Oct 1913 as the world's largest sundial: a 28-ft gnomon on a 33-ft dial.",
+   "why": "Built as a sales gimmick and dedicated on 10 Oct 1913 as the world's largest sundial: a 28-ft gnomon on a 33-ft dial.",
+   "sources": [
+    "https://www.outsidelands.org/sundial.php",
+    "https://www.inglesidelight.com/a-unique-hidden-gem-ingleside-terraces-sundial-put-forth-for-historic-landmark-designation/",
+    "https://nominatim.openstreetmap.org/search?q=Entrada+Court,+San+Francisco&format=json"
+   ],
+   "caution": "It sits in a residential court: no NPC crowds. Its landmark designation was proposed; check the status.",
+   "category": "historic",
+   "lat": 37.7246,
+   "lng": -122.468,
+   "checkedOn": "2026-09-27",
+   "rank": 80,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "lyon-street-steps",
+   "en": "Lyon Street Steps",
+   "zh": "里昂街台阶",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "pacific-heights",
+   "note": "stair flights + hedges, photo pose to the Palace dome",
+   "x": -291.8,
+   "z": 513.8,
+   "arrival": {
+    "x": -292.1,
+    "z": 514.1
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {
+    "loop": {
+     "d": 165,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "About 288 hedge-lined steps drop from Broadway to Green St along the Presidio wall, looking straight down at the Palace of Fine Arts dome, the Marina and the bay.",
+   "why": "About 288 hedge-lined steps drop from Broadway to Green St along the Presidio wall, looking straight down at the Palace of Fine Arts dome, the Marina and the bay.",
+   "sources": [
+    "https://www.sfgate.com/local/article/lyon-street-steps-17901439.php",
+    "https://www.sftourismtips.com/lyon-street-steps.html"
+   ],
+   "caution": "Residential; step counts vary by source. Coordinate is the top of the steps at Broadway (OSM viewpoint node 7221410485).",
+   "category": "viewpoint",
+   "lat": 37.792841,
+   "lng": -122.446487,
+   "checkedOn": "2026-09-27",
+   "rank": 81,
+   "placeId": "osm-n7221410485",
+   "placeMatch": "osm osm-n7221410485 \"Lyon Steps\" 0 u"
+  },
+  {
+   "id": "octagon-house",
+   "en": "Octagon House",
+   "zh": "八角屋",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "cow-hollow",
+   "note": "octagonal prism + cupola",
+   "x": -184.1,
+   "z": 291.8,
+   "arrival": {
+    "x": -183.4,
+    "z": 290.6
+   },
+   "walkDist": 1.3,
+   "inHeroSlab": false,
+   "zone": "marina",
+   "near": {
+    "loop": {
+     "d": 160,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "An eight-sided house of 1861, saved from demolition in 1952 by the Colonial Dames and now a small museum of early American decorative arts.",
+   "why": "An eight-sided house of 1861, saved from demolition in 1952 by the Colonial Dames and now a small museum of early American decorative arts.",
+   "sources": [
+    "https://www.nscda-ca.org/octagon-house/"
+   ],
+   "caution": "Only open on the 2nd and 4th Sundays, 12-3, February-November.",
+   "category": "historic",
+   "lat": 37.7978,
+   "lng": -122.42744,
+   "checkedOn": "2026-09-27",
+   "rank": 82,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "seward-street-slides",
+   "en": "Seward Street Slides",
+   "zh": "西沃德街滑梯",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "castro",
+   "note": "two chute ramps (a ride interaction for player + BAYBAY)",
+   "x": 154.7,
+   "z": 832.4,
+   "arrival": {
+    "x": 154.9,
+    "z": 832.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "twin-peaks",
+   "near": {
+    "loop": {
+     "d": 94,
+     "name": "castro"
+    },
+    "M": {
+     "d": 94,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 175,
+     "name": "Carl Street & Cole Street"
+    }
+   },
+   "fact": "Two steep concrete slides in a tiny park above the Castro, built in the 1960s after neighbourhood activism: sit on cardboard and go.",
+   "why": "Two steep concrete slides in a tiny park above the Castro, built in the 1960s after neighbourhood activism: sit on cardboard and go.",
+   "sources": [
+    "https://sfrecpark.org/facilities/facility/details/sewardminipark-203",
+    "https://www.atlasobscura.com/places/seward-street-slides",
+    "https://www.openstreetmap.org/way/1364891448"
+   ],
+   "caution": "Slides open Tue–Sun 10–5; adults must come with a child; closed in wet weather.",
+   "category": "park",
+   "lat": 37.75778,
+   "lng": -122.43991,
+   "checkedOn": "2026-09-27",
+   "rank": 83,
+   "placeId": "osm-w1364891448",
+   "placeMatch": "osm osm-w1364891448 \"Seward Street Slides\" 0 u"
+  },
+  {
+   "id": "vermont-street-crooked-block",
+   "en": "Vermont Street crooked block",
+   "zh": "佛蒙特街弯道（比九曲花街更弯）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "potrero",
+   "note": "Lombard hairpin kit on OSM way 799023220",
+   "x": 454.3,
+   "z": 506.2,
+   "arrival": {
+    "x": 454.1,
+    "z": 505.9
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "potrero-hill",
+   "near": {},
+   "fact": "Seven hairpins between 20th and 22nd Streets by McKinley Square, measured more crooked than Lombard (sinuosity 1.56 vs 1.2) but free of crowds.",
+   "why": "Seven hairpins between 20th and 22nd Streets by McKinley Square, measured more crooked than Lombard (sinuosity 1.56 vs 1.2) but free of crowds.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Vermont_Street_(San_Francisco)",
+    "https://www.potreroview.net/san-franciscos-most-or-second-most-crooked-street/"
+   ],
+   "caution": "Residential; it runs next to the US-101 freeway.",
+   "category": "neighbourhood-icon",
+   "lat": 37.7585,
+   "lng": -122.40395,
+   "checkedOn": "2026-09-27",
+   "rank": 84,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "wave-organ",
+   "en": "Wave Organ",
+   "zh": "海浪风琴",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "marina",
+   "note": "stone terraces + pipe mouths at the jetty tip; needs a jetty walk strip",
+   "x": -412.3,
+   "z": 290,
+   "arrival": {
+    "x": -393.4,
+    "z": 303.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": null,
+   "near": {
+    "loop": {
+     "d": 114,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "At the tip of the Marina jetty, 25 pipes set in salvaged cemetery granite let the bay 'play' (best at high tide); Peter Richards and George Gonzalez built it with the Exploratorium in…",
+   "why": "At the tip of the Marina jetty, 25 pipes set in salvaged cemetery granite let the bay 'play' (best at high tide); Peter Richards and George Gonzalez built it with the Exploratorium in 1986, and it turned 40 in 2026.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Wave_Organ",
+    "https://www.nbcbayarea.com/news/local/san-francisco-wave-organ/4096076/",
+    "https://www.exploratorium.edu/visit/wave-organ"
+   ],
+   "caution": "The exploratorium.edu page reset the connection at check time; the facts come from Wikipedia and NBC. It is only audible around high tide.",
+   "category": "other",
+   "lat": 37.808487,
+   "lng": -122.44021,
+   "checkedOn": "2026-09-27",
+   "rank": 85,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "womens-building",
+   "en": "The Women's Building (MaestraPeace mural)",
+   "zh": "女性大楼（MaestraPeace 壁画）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "proc",
+   "mapRank": 3,
+   "site": "mission-18th",
+   "note": "facade colour wash on the existing lot (no mural copy)",
+   "x": 262.1,
+   "z": 640,
+   "arrival": {
+    "x": 263.6,
+    "z": 639.4
+   },
+   "walkDist": 1.7,
+   "inHeroSlab": false,
+   "zone": "mission",
+   "near": {
+    "loop": {
+     "d": 68,
+     "name": "mission-dolores"
+    },
+    "M": {
+     "d": 122,
+     "name": "Church"
+    },
+    "N": {
+     "d": 147,
+     "name": "Duboce Avenue & Church Street"
+    }
+   },
+   "fact": "A 1910 hall covered by MaestraPeace (1994), a mural of about 12,000 sq ft by seven women artists honouring women's contributions around the world.",
+   "why": "A 1910 hall covered by MaestraPeace (1994), a mural of about 12,000 sq ft by seven women artists honouring women's contributions around the world.",
+   "sources": [
+    "https://www.womensbuilding.org/our-building/the-mural",
+    "https://en.wikipedia.org/wiki/The_Women's_Building_(San_Francisco)"
+   ],
+   "caution": "Copyrighted mural; a nonprofit community centre.",
+   "category": "historic",
+   "lat": 37.7614267,
+   "lng": -122.4226102,
+   "checkedOn": "2026-09-27",
+   "rank": 86,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "alta-plaza-park",
+   "en": "Alta Plaza Park",
+   "zh": "阿尔塔广场公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "pacific-heights",
+   "note": "stepped terraces + viewpoint",
+   "x": -198,
+   "z": 453.6,
+   "arrival": {
+    "x": -197.6,
+    "z": 453.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "pacific-heights",
+   "near": {},
+   "fact": "A 12.9-acre hilltop park of stepped terraces with city views; its grand stairs hosted the car chase in 'What's Up, Doc?' (1972).",
+   "why": "A 12.9-acre hilltop park of stepped terraces with city views; its grand stairs hosted the car chase in 'What's Up, Doc?' (1972).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Alta_Plaza_Park",
+    "https://www.sfchronicle.com/bayarea/article/Whats-Up-Doc-chase-Alta-Plaza-17068539.php"
+   ],
+   "caution": "None.",
+   "category": "park",
+   "lat": 37.791181,
+   "lng": -122.437674,
+   "checkedOn": "2026-09-27",
+   "rank": 87,
+   "placeId": "osm-w16751737",
+   "placeMatch": "osm osm-w16751737 \"Alta Plaza Park\" 0 u"
+  },
+  {
+   "id": "buena-vista-park",
+   "en": "Buena Vista Park",
+   "zh": "布埃纳维斯塔公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "haight",
+   "note": "forest hill + summit clearing",
+   "x": 30,
+   "z": 727.2,
+   "arrival": {
+    "x": 30.4,
+    "z": 727.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "haight-ashbury",
+   "near": {
+    "loop": {
+     "d": 80,
+     "name": "haight-ashbury"
+    },
+    "M": {
+     "d": 111,
+     "name": "Castro"
+    },
+    "N": {
+     "d": 89,
+     "name": "Sunset Tunnel East Portal"
+    }
+   },
+   "fact": "The city's oldest official park (1867), a wooded 575-ft hill.",
+   "why": "The city's oldest official park (1867), a wooded 575-ft hill. Its WPA-era gutters reuse old Victorian headstones, and on clear days the view reaches the ocean.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Buena_Vista_Park",
+    "https://www.openstreetmap.org/way/7459901"
+   ],
+   "caution": "",
+   "category": "park",
+   "lat": 37.7683,
+   "lng": -122.4408,
+   "checkedOn": "2026-09-27",
+   "rank": 88,
+   "placeId": "osm-w7459901",
+   "placeMatch": "osm osm-w7459901 \"Buena Vista Park\" 4 u"
+  },
+  {
+   "id": "calle-24",
+   "en": "Calle 24 Latino Cultural District (24th Street)",
+   "zh": "24街拉丁裔文化区（Calle 24）",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "mission-24th",
+   "note": "gateway marker + generic cut-paper banners over 24th St (label near 24th & Harrison)",
+   "x": 455.5,
+   "z": 637.1,
+   "arrival": {
+    "x": 454.9,
+    "z": 637.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "mission",
+   "near": {},
+   "fact": "Recognised by the city in May 2014 as 'the heart of the Mission', the long-time centre of the city's Latino activism, arts and commerce, covering about 55 blocks around 24th Street.",
+   "why": "Recognised by the city in May 2014 as 'the heart of the Mission', the long-time centre of the city's Latino activism, arts and commerce, covering about 55 blocks around 24th Street.",
+   "sources": [
+    "https://www.calle24sf.org/ourhistory",
+    "https://en.wikipedia.org/wiki/Calle_24_Latino_Cultural_District"
+   ],
+   "caution": "The curated label 'mission-24th-valencia' sits at Valencia & 24th, which is outside Calle 24 (east of Mission St): put the new label near 24th & Harrison. Blank shop signs.",
+   "category": "neighbourhood-icon",
+   "lat": 37.75257,
+   "lng": -122.41153,
+   "checkedOn": "2026-09-27",
+   "rank": 89,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "china-beach",
+   "en": "China Beach",
+   "zh": "中国海滩",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "china-beach",
+   "note": "tiny cove + the 1982 marker stone",
+   "x": -622.3,
+   "z": 960.9,
+   "arrival": {
+    "x": -616.1,
+    "z": 961.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "seacliff",
+   "near": {
+    "loop": {
+     "d": 114,
+     "name": "legion-of-honor"
+    }
+   },
+   "fact": "A small cove named for the Chinese fishermen who camped here from Gold Rush times.",
+   "why": "A small cove named for the Chinese fishermen who camped here from Gold Rush times. A monument put up by Chinese Americans in 1982 honours them.",
+   "sources": [
+    "https://www.parksconservancy.org/parks/china-beach",
+    "https://www.hmdb.org/m.asp?m=52925",
+    "https://home.nps.gov/goga/learn/historyculture/vestiges-china-beach.htm"
+   ],
+   "caution": "Formerly 'James D. Phelan Beach'. Keep to the documented history.",
+   "category": "historic",
+   "lat": 37.78813,
+   "lng": -122.49125,
+   "checkedOn": "2026-09-27",
+   "rank": 90,
+   "placeId": "osm-r2142591",
+   "placeMatch": "osm osm-r2142591 \"China Beach\" 0 u"
+  },
+  {
+   "id": "glen-canyon-park",
+   "en": "Glen Canyon Park",
+   "zh": "格伦峡谷公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "glen-park",
+   "note": "canyon trail + chert boulders",
+   "x": 347.9,
+   "z": 1053,
+   "arrival": {
+    "x": 347.6,
+    "z": 1053.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "glen-park",
+   "near": {},
+   "fact": "A wild 70-acre canyon with Islais Creek, the largest creek in SF with public access, and chert boulders for climbing.",
+   "why": "A wild 70-acre canyon with Islais Creek, the largest creek in SF with public access, and chert boulders for climbing. The first US dynamite factory worked here from 1868 (California Historical Landmark 1002).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Glen_Canyon_Park",
+    "https://www.openstreetmap.org/way/35800082"
+   ],
+   "caution": "",
+   "category": "park",
+   "lat": 37.7389,
+   "lng": -122.4419,
+   "checkedOn": "2026-09-27",
+   "rank": 91,
+   "placeId": "osm-w35800082",
+   "placeMatch": "osm osm-w35800082 \"Glen Canyon Park\" 33 u"
+  },
+  {
+   "id": "huntington-park",
+   "en": "Huntington Park",
+   "zh": "亨廷顿公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "nob-hill",
+   "note": "fountain in the Grace Cathedral forecourt (extends that site)",
+   "x": 9.1,
+   "z": 217,
+   "arrival": {
+    "x": 9.4,
+    "z": 217.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "nob-hill",
+   "near": {
+    "loop": {
+     "d": 95,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 133,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 133,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Nob Hill's formal square opposite Grace Cathedral, with a copy of Rome's Fountain of the Tortoises donated by the Crocker children in 1954.",
+   "why": "Nob Hill's formal square opposite Grace Cathedral, with a copy of Rome's Fountain of the Tortoises donated by the Crocker children in 1954.",
+   "sources": [
+    "https://sfrecpark.org/Facilities/Facility/Details/Huntington-Park-438",
+    "https://www.hmdb.org/m.asp?m=63532"
+   ],
+   "caution": "Mentioned in grace-cathedral.ts only as the direction of the entrance; no model or card.",
+   "category": "park",
+   "lat": 37.792175,
+   "lng": -122.412177,
+   "checkedOn": "2026-09-27",
+   "rank": 92,
+   "placeId": "osm-w32946958",
+   "placeMatch": "osm osm-w32946958 \"Huntington Park\" 0 u"
+  },
+  {
+   "id": "ina-coolbrith-park",
+   "en": "Ina Coolbrith Park",
+   "zh": "伊娜·库尔布里斯公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "russian-hill",
+   "note": "terraced viewpoint",
+   "x": -68.7,
+   "z": 162.7,
+   "arrival": {
+    "x": -68.6,
+    "z": 162.4
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "nob-hill",
+   "near": {
+    "loop": {
+     "d": 157,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "A 0.8-acre terraced hillside park named for California's first poet laureate, with views of the Bay Bridge, Alcatraz and downtown.",
+   "why": "A 0.8-acre terraced hillside park named for California's first poet laureate, with views of the Bay Bridge, Alcatraz and downtown.",
+   "sources": [
+    "https://sfrecpark.org/Facilities/Facility/Details/Ina-Coolbrith-Park-175",
+    "https://www.sfchronicle.com/totalsf/article/ina-coolbrith-park-sf-19524580.php"
+   ],
+   "caution": "Steep stairs; small park.",
+   "category": "viewpoint",
+   "lat": 37.798225,
+   "lng": -122.413389,
+   "checkedOn": "2026-09-27",
+   "rank": 93,
+   "placeId": "osm-w114151121",
+   "placeMatch": "osm osm-w114151121 \"Ina Coolbrith Park\" 1 u"
+  },
+  {
+   "id": "lafayette-park",
+   "en": "Lafayette Park",
+   "zh": "拉法叶公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "pacific-heights",
+   "note": "terraced hilltop",
+   "x": -117.1,
+   "z": 363.7,
+   "arrival": {
+    "x": -117.4,
+    "z": 363.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "pacific-heights",
+   "near": {},
+   "fact": "A four-block terraced hilltop park among Pacific Heights mansions, with views to the bay and the Golden Gate.",
+   "why": "A four-block terraced hilltop park among Pacific Heights mansions, with views to the bay and the Golden Gate.",
+   "sources": [
+    "https://sfrecpark.org/facilities/facility/details/Lafayette-Park-182",
+    "https://en.wikipedia.org/wiki/Lafayette_Park_(San_Francisco)"
+   ],
+   "caution": "None.",
+   "category": "park",
+   "lat": 37.791455,
+   "lng": -122.427861,
+   "checkedOn": "2026-09-27",
+   "rank": 94,
+   "placeId": "osm-w16751838",
+   "placeMatch": "osm osm-w16751838 \"Lafayette Park\" 3 u"
+  },
+  {
+   "id": "mclaren-park",
+   "en": "John McLaren Park",
+   "zh": "麦克拉伦公园",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "mclaren",
+   "note": "blue \"La Grande\" tank as a procedural cylinder + amphitheatre bowl",
+   "x": 773.6,
+   "z": 1075.6,
+   "arrival": {
+    "x": 773.6,
+    "z": 1075.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "mclaren-park",
+   "near": {},
+   "fact": "A big wild southern park (313.7 acres) with the Jerry Garcia Amphitheater, named for the musician who grew up nearby, the 2.7-mile Philosopher's Way and the blue 'La Grande' water tank…",
+   "why": "A big wild southern park (313.7 acres) with the Jerry Garcia Amphitheater, named for the musician who grew up nearby, the 2.7-mile Philosopher's Way and the blue 'La Grande' water tank visible from I-280.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/John_McLaren_Park",
+    "https://www.openstreetmap.org/way/28716696"
+   ],
+   "caution": "Band names are trademarks: no band imagery.",
+   "category": "park",
+   "lat": 37.7181,
+   "lng": -122.4192,
+   "checkedOn": "2026-09-27",
+   "rank": 95,
+   "placeId": "osm-w28716696",
+   "placeMatch": "osm osm-w28716696 \"John McLaren Park\" 16 u"
+  },
+  {
+   "id": "mount-sutro-open-space",
+   "en": "Mount Sutro Open Space Reserve",
+   "zh": "苏特罗山森林保护区",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "ucsf-parnassus",
+   "note": "forest cone + trail loop + summit meadow (a fog scene)",
+   "x": 3.3,
+   "z": 981.9,
+   "arrival": {
+    "x": 3.4,
+    "z": 982.1
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "inner-sunset",
+   "near": {
+    "loop": {
+     "d": 145,
+     "name": "twin-peaks"
+    },
+    "M": {
+     "d": 163,
+     "name": "Forest Hill"
+    },
+    "N": {
+     "d": 99,
+     "name": "Irving Street & 2nd Avenue"
+    }
+   },
+   "fact": "A 61-acre eucalyptus 'cloud forest' fed by fog drip on the 909-ft hill above UCSF.",
+   "why": "A 61-acre eucalyptus 'cloud forest' fed by fog drip on the 909-ft hill above UCSF. It is open to the public, with trails to the native-plant Rotary Meadow at the summit.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mount_Sutro",
+    "https://www.openstreetmap.org/node/12056865382"
+   ],
+   "caution": "UCSF owns and manages it: trails only.",
+   "category": "park",
+   "lat": 37.75811,
+   "lng": -122.45718,
+   "checkedOn": "2026-09-27",
+   "rank": 96,
+   "placeId": "osm-n12056865382",
+   "placeMatch": "osm osm-n12056865382 \"Mount Sutro\" 0 u"
+  },
+  {
+   "id": "mountain-lake-park",
+   "en": "Mountain Lake Park",
+   "zh": "山湖公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "presidio",
+   "note": "lake-edge path + Anza plaque",
+   "x": -410.6,
+   "z": 769.1,
+   "arrival": {
+    "x": -410.6,
+    "z": 769.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "inner-richmond",
+   "near": {},
+   "fact": "One of the last natural lakes in San Francisco.",
+   "why": "One of the last natural lakes in San Francisco. The Anza expedition camped here in 1776 while choosing the site of the Presidio.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mountain_Lake_(San_Francisco)",
+    "https://www.openstreetmap.org/way/401354283"
+   ],
+   "caution": "",
+   "category": "park",
+   "lat": 37.7869,
+   "lng": -122.4681,
+   "checkedOn": "2026-09-27",
+   "rank": 97,
+   "placeId": "osm-w401354283",
+   "placeMatch": "osm osm-w401354283 \"Mountain Lake Park\" 17 u"
+  },
+  {
+   "id": "noe-valley-town-square",
+   "en": "Noe Valley Town Square",
+   "zh": "诺伊谷镇广场",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "noe",
+   "note": "small plaza, Saturday stalls",
+   "x": 319.4,
+   "z": 804.4,
+   "arrival": {
+    "x": 319.1,
+    "z": 804.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "noe-valley",
+   "near": {
+    "loop": {
+     "d": 188,
+     "name": "castro"
+    },
+    "M": {
+     "d": 190,
+     "name": "Castro"
+    }
+   },
+   "fact": "A former parking lot on 24th Street that became the neighbourhood's living room in 2016.",
+   "why": "A former parking lot on 24th Street that became the neighbourhood's living room in 2016. It hosts the volunteer-run Saturday Noe Valley Farmers Market (since 2003).",
+   "sources": [
+    "https://sfrecpark.org/1685/Noe-Valley-Town-Square",
+    "https://www.cbsnews.com/sanfrancisco/news/san-franciscos-noe-valley-gets-a-new-park-farmers-market/"
+   ],
+   "caution": "Stall names are brands.",
+   "category": "food-market",
+   "lat": 37.7513831,
+   "lng": -122.4289801,
+   "checkedOn": "2026-09-27",
+   "rank": 98,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "patricias-green",
+   "en": "Patricia's Green (Hayes Valley)",
+   "zh": "帕特里夏绿地（海斯谷）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "hayes-valley",
+   "note": "green strip + a generic sculpture plinth",
+   "x": 81.7,
+   "z": 497,
+   "arrival": {
+    "x": 81.4,
+    "z": 496.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "hayes-valley",
+   "near": {
+    "loop": {
+     "d": 97,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 62,
+     "name": "Van Ness"
+    },
+    "N": {
+     "d": 62,
+     "name": "Van Ness"
+    }
+   },
+   "fact": "Hayes Valley's small central green on Octavia Blvd, created in 2005 on land freed when the quake-damaged Central Freeway came down; it shows a rotating large art piece, often from…",
+   "why": "Hayes Valley's small central green on Octavia Blvd, created in 2005 on land freed when the quake-damaged Central Freeway came down; it shows a rotating large art piece, often from Burning Man.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hayes_Valley,_San_Francisco",
+    "https://hayesvalleysf.org/committees/arts-culture-and-environment/"
+   ],
+   "caution": "The artwork changes: do not model a specific piece.",
+   "category": "park",
+   "lat": 37.77623,
+   "lng": -122.424435,
+   "checkedOn": "2026-09-27",
+   "rank": 99,
+   "placeId": "osm-w28015862",
+   "placeMatch": "osm osm-w28015862 \"Patricia's Green\" 0 u"
+  },
+  {
+   "id": "sutro-heights-park",
+   "en": "Sutro Heights Park",
+   "zh": "苏特罗高地公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "plaza",
+   "mapRank": 3,
+   "site": "lands-end",
+   "note": "parapet viewpoint, empty plinths",
+   "x": -676.1,
+   "z": 1254.1,
+   "arrival": {
+    "x": -676.1,
+    "z": 1254.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 31,
+     "name": "lands-end-sutro"
+    }
+   },
+   "fact": "The former garden estate of mayor Adolph Sutro, bought in 1881, given to the city in 1938 and now in the GGNRA.",
+   "why": "The former garden estate of mayor Adolph Sutro, bought in 1881, given to the city in 1938 and now in the GGNRA. Its old parapet looks down on the Cliff House, Seal Rocks and Ocean Beach.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sutro_Heights_Park",
+    "https://www.nps.gov/goga/planyourvisit/landsend.htm",
+    "https://www.openstreetmap.org/way/160025743"
+   ],
+   "caution": "The mansion was demolished in 1939; only the gardens and parapet remain.",
+   "category": "viewpoint",
+   "lat": 37.77747,
+   "lng": -122.51141,
+   "checkedOn": "2026-09-27",
+   "rank": 100,
+   "placeId": "osm-w160025743",
+   "placeMatch": "osm osm-w160025743 \"Sutro Heights Park\" 0 u"
+  },
+  {
+   "id": "aquarium-of-the-bay",
+   "en": "Aquarium of the Bay",
+   "zh": "海湾水族馆",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "attach to the PIER 39 area",
+   "x": -151.1,
+   "z": 13.2,
+   "arrival": {
+    "x": -151.1,
+    "z": 13.1
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 8,
+     "name": "pier-39"
+    }
+   },
+   "fact": "At the foot of PIER 39: two clear tunnels totalling about 300 ft run through 750,000 gallons of bay water holding 200+ local species such as sharks, rays and sturgeon; open daily 10-5.",
+   "why": "At the foot of PIER 39: two clear tunnels totalling about 300 ft run through 750,000 gallons of bay water holding 200+ local species such as sharks, rays and sturgeon; open daily 10-5.",
+   "sources": [
+    "https://www.aquariumofthebay.org/"
+   ],
+   "caution": "PIER 39 is inside the hand-made hero. Ticketed; the exterior elevator was out of service at check time.",
+   "category": "museum",
+   "lat": 37.808769,
+   "lng": -122.409305,
+   "checkedOn": "2026-09-27",
+   "rank": 101,
+   "placeId": "osm-w288396169",
+   "placeMatch": "osm osm-w288396169 \"Aquarium of the Bay\" 1 u"
+  },
+  {
+   "id": "balboa-theatre",
+   "en": "Balboa Theatre",
+   "zh": "巴尔博亚戏院",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "outer-richmond",
+   "note": "blank vertical sign if modelled later",
+   "x": -542.6,
+   "z": 1152.9,
+   "arrival": {
+    "x": -541.9,
+    "z": 1153.1
+   },
+   "walkDist": 0.5,
+   "inHeroSlab": false,
+   "zone": "outer-richmond",
+   "near": {
+    "loop": {
+     "d": 143,
+     "name": "legion-of-honor"
+    }
+   },
+   "fact": "A neighbourhood movie house open since 1926, run by the nonprofit CinemaSF and still showing films in 2026.",
+   "why": "A neighbourhood movie house open since 1926, run by the nonprofit CinemaSF and still showing films in 2026.",
+   "sources": [
+    "https://www.balboamovies.com/",
+    "https://en.wikipedia.org/wiki/Balboa_Theater_(San_Francisco)"
+   ],
+   "caution": "The sign text is the business name: keep it blank.",
+   "category": "historic",
+   "lat": 37.7758105,
+   "lng": -122.4979651,
+   "checkedOn": "2026-09-27",
+   "rank": 102,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "boudin-bakery",
+   "en": "Boudin Bakery (Fisherman's Wharf flagship)",
+   "zh": "波丁酸面包（渔人码头旗舰店）",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "brand: name in card text only",
+   "x": -196.2,
+   "z": 65.4,
+   "arrival": {
+    "x": -196.1,
+    "z": 65.6
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 63,
+     "name": "pier-39"
+    }
+   },
+   "fact": "Sourdough bakers since 1849; the 2005 Jefferson St flagship has a working bakery behind windows, a small museum and cafe, and still uses the same mother dough.",
+   "why": "Sourdough bakers since 1849; the 2005 Jefferson St flagship has a working bakery behind windows, a small museum and cafe, and still uses the same mother dough.",
+   "sources": [
+    "https://boudinbakery.com/our-story/",
+    "https://boudinbakery.com/",
+    "https://en.wikipedia.org/wiki/Boudin_Bakery"
+   ],
+   "caution": "BRAND: no logo or sign; the name may appear only in card text.",
+   "category": "food-market",
+   "lat": 37.808522,
+   "lng": -122.414897,
+   "checkedOn": "2026-09-27",
+   "rank": 103,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "buena-vista-cafe",
+   "en": "The Buena Vista Cafe",
+   "zh": "Buena Vista 咖啡馆（爱尔兰咖啡）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "wharf-west",
+   "note": "family-neutral card",
+   "x": -224.1,
+   "z": 138,
+   "arrival": {
+    "x": -223.9,
+    "z": 137.6
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "russian-hill",
+   "near": {
+    "loop": {
+     "d": 2,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "By the Hyde St cable-car turnaround, it introduced Irish coffee to the US on 10 Nov 1952 and says it has served over 30 million since.",
+   "why": "By the Hyde St cable-car turnaround, it introduced Irish coffee to the US on 10 Nov 1952 and says it has served over 30 million since.",
+   "sources": [
+    "https://www.thebuenavista.com/home/irishcoffee.html",
+    "https://en.wikipedia.org/wiki/Buena_Vista_Cafe"
+   ],
+   "caution": "A bar serving alcohol: keep the card family-neutral. The name is a business.",
+   "category": "food-market",
+   "lat": 37.80656,
+   "lng": -122.420712,
+   "checkedOn": "2026-09-27",
+   "rank": 104,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "candlestick-point-sra",
+   "en": "Candlestick Point State Recreation Area",
+   "zh": "烛台角州立休闲区",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "bayview",
+   "note": "the stadium is gone: never model it",
+   "x": 1093.8,
+   "z": 765.1,
+   "arrival": {
+    "x": 1093.9,
+    "z": 765.4
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "bayview-hunters-point",
+   "near": {},
+   "fact": "California's first urban state recreation area (1977): windy shoreline trails, fishing piers and windsurfing beside the site of the old Candlestick Park stadium.",
+   "why": "California's first urban state recreation area (1977): windy shoreline trails, fishing piers and windsurfing beside the site of the old Candlestick Park stadium.",
+   "sources": [
+    "https://www.parks.ca.gov/candlestickpoint/",
+    "https://en.wikipedia.org/wiki/Candlestick_Point_State_Recreation_Area",
+    "https://www.openstreetmap.org/way/40060675"
+   ],
+   "caution": "The stadium was demolished: never model it as standing. Redevelopment work starts in 2026. Team names are trademarks.",
+   "category": "park",
+   "lat": 37.71715,
+   "lng": -122.383,
+   "checkedOn": "2026-09-27",
+   "rank": 105,
+   "placeId": "osm-w40060675",
+   "placeMatch": "osm osm-w40060675 \"Candlestick Point State Recreation Area\" 0 u"
+  },
+  {
+   "id": "childrens-creativity-museum",
+   "en": "Children's Creativity Museum & LeRoy King Carousel",
+   "zh": "儿童创意博物馆与旋转木马",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "yerba-buena",
+   "note": "check-before-you-go wording",
+   "x": 200.2,
+   "z": 221.8,
+   "arrival": {
+    "x": 199.9,
+    "z": 218.6
+   },
+   "walkDist": 3.1,
+   "inHeroSlab": false,
+   "zone": "south-of-market",
+   "near": {
+    "loop": {
+     "d": 123,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 81,
+     "name": "Powell Street"
+    },
+    "N": {
+     "d": 81,
+     "name": "Powell Street"
+    }
+   },
+   "fact": "A hands-on media and art museum for kids aged 2-12 on the Yerba Buena Gardens rooftop, next to the LeRoy King Carousel (carousel at 37.783343, -122.402124).",
+   "why": "A hands-on media and art museum for kids aged 2-12 on the Yerba Buena Gardens rooftop, next to the LeRoy King Carousel (carousel at 37.783343, -122.402124).",
+   "sources": [
+    "https://creativity.org/hours-admission/",
+    "https://creativity.org/",
+    "https://en.wikipedia.org/wiki/Children%27s_Creativity_Museum"
+   ],
+   "caution": "Wed-Sun 10-4, $20 for age 1+. A listing mentions an annual refresh closure (Sep 3-Oct 10, grand reopening Oct 12) without a year: phrase the card as check-before-you-go.",
+   "category": "museum",
+   "lat": 37.783074,
+   "lng": -122.401674,
+   "checkedOn": "2026-09-27",
+   "rank": 106,
+   "placeId": "osm-w288716388",
+   "placeMatch": "osm osm-w288716388 \"Children's Creativity Museum\" 0 u"
+  },
+  {
+   "id": "chinese-historical-society-of-america",
+   "en": "Chinese Historical Society of America Museum",
+   "zh": "美国华人历史学会博物馆",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "chinatown",
+   "note": "open Wed + Sat only",
+   "x": 19.1,
+   "z": 169.2,
+   "arrival": {
+    "x": 18.4,
+    "z": 169.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 71,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 114,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 114,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "The museum of Chinese American history, housed in Julia Morgan's 1932 Chinatown YWCA building.",
+   "why": "The museum of Chinese American history, housed in Julia Morgan's 1932 Chinatown YWCA building.",
+   "sources": [
+    "https://chsa.org/visit/",
+    "https://en.wikipedia.org/wiki/Chinese_Historical_Society_of_America"
+   ],
+   "caution": "Open only Wednesdays and Saturdays 10-5.",
+   "category": "museum",
+   "lat": 37.793857,
+   "lng": -122.40882,
+   "checkedOn": "2026-09-27",
+   "rank": 107,
+   "placeId": "osm-n806240639",
+   "placeMatch": "osm osm-n806240639 \"Chinese Historical Society of America\" 0 u"
+  },
+  {
+   "id": "clarion-alley",
+   "en": "Clarion Alley",
+   "zh": "克拉里恩巷壁画",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "mission-18th",
+   "note": "changing political street art: card only",
+   "x": 261.4,
+   "z": 605.9,
+   "arrival": {
+    "x": 258.4,
+    "z": 602.6
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "mission",
+   "near": {
+    "loop": {
+     "d": 76,
+     "name": "mission-dolores"
+    },
+    "M": {
+     "d": 128,
+     "name": "Church"
+    },
+    "N": {
+     "d": 143,
+     "name": "Duboce Avenue & Church Street"
+    }
+   },
+   "fact": "Since 1992 the Clarion Alley Mural Project has turned this block into a constantly changing outdoor gallery of political street art.",
+   "why": "Since 1992 the Clarion Alley Mural Project has turned this block into a constantly changing outdoor gallery of political street art.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Clarion_Alley",
+    "https://www.openstreetmap.org/way/8916752"
+   ],
+   "caution": "The content changes constantly and is often political; copyrighted art: no copies.",
+   "category": "neighbourhood-icon",
+   "lat": 37.76299,
+   "lng": -122.42066,
+   "checkedOn": "2026-09-27",
+   "rank": 108,
+   "placeId": "osm-w8916752",
+   "placeMatch": "osm osm-w8916752 \"Clarion Alley\" 0 u"
+  },
+  {
+   "id": "cupids-span",
+   "en": "Cupid's Span (Rincon Park)",
+   "zh": "丘比特之箭",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "no replica of the artwork",
+   "x": 205.8,
+   "z": 27.7,
+   "arrival": {
+    "x": 205.9,
+    "z": 35.6
+   },
+   "walkDist": 8,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 79,
+     "name": "ferry-building"
+    },
+    "M": {
+     "d": 90,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 90,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "Claes Oldenburg and Coosje van Bruggen's giant bow and arrow (2002) in Rincon Park frames the Bay Bridge, a favourite Embarcadero photo stop.",
+   "why": "Claes Oldenburg and Coosje van Bruggen's giant bow and arrow (2002) in Rincon Park frames the Bay Bridge, a favourite Embarcadero photo stop.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cupid%27s_Span",
+    "https://datebook.sfchronicle.com/art-exhibits/cupids-span-in-s-f-reveals-what-claes-oldenburgs-pop-art-was-all-about"
+   ],
+   "caution": "Copyrighted artwork: no recognisable replica. Sources differ on its size (bow about 60 ft; overall 64-70 ft).",
+   "category": "other",
+   "lat": 37.791527,
+   "lng": -122.390024,
+   "checkedOn": "2026-09-27",
+   "rank": 109,
+   "placeId": "osm-w32862802",
+   "placeMatch": "osm osm-w32862802 \"Rincon Park\" 7 u"
+  },
+  {
+   "id": "glide-memorial-church",
+   "en": "Glide Memorial Church",
+   "zh": "格莱德纪念教堂",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "tenderloin",
+   "note": "respectful tone",
+   "x": 92.4,
+   "z": 285.4,
+   "arrival": {
+    "x": 94.1,
+    "z": 285.4
+   },
+   "walkDist": 1.6,
+   "inHeroSlab": false,
+   "zone": "tenderloin",
+   "near": {
+    "loop": {
+     "d": 115,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 45,
+     "name": "Powell Street"
+    },
+    "N": {
+     "d": 45,
+     "name": "Powell Street"
+    }
+   },
+   "fact": "A Tenderloin church founded in 1929 and made famous by Rev.",
+   "why": "A Tenderloin church founded in 1929 and made famous by Rev. Cecil Williams (from 1963) for its open-to-all Sunday celebrations and daily free meals.",
+   "sources": [
+    "https://www.glide.org/about/"
+   ],
+   "caution": "A social-services site: respectful tone, no crowd staging.",
+   "category": "religious",
+   "lat": 37.785232,
+   "lng": -122.411468,
+   "checkedOn": "2026-09-27",
+   "rank": 110,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "golden-gate-fortune-cookie-factory",
+   "en": "Golden Gate Fortune Cookie Factory (Ross Alley)",
+   "zh": "金门签语饼厂",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "chinatown",
+   "note": "Ross Alley card",
+   "x": 11.1,
+   "z": 136.4,
+   "arrival": {
+    "x": 10.9,
+    "z": 136.9
+   },
+   "walkDist": 0.4,
+   "inHeroSlab": false,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 84,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 126,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 126,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "A tiny shop in Ross Alley where fortune cookies have been folded by hand since 1962; visitors watch the process and buy bags warm.",
+   "why": "A tiny shop in Ross Alley where fortune cookies have been folded by hand since 1962; visitors watch the process and buy bags warm.",
+   "sources": [
+    "https://www.goldengatefortunecookies.com/visit",
+    "https://en.wikipedia.org/wiki/Golden_Gate_Fortune_Cookie_Company"
+   ],
+   "caution": "Small private business; hours about 9-7 per listings.",
+   "category": "food-market",
+   "lat": 37.795699,
+   "lng": -122.407349,
+   "checkedOn": "2026-09-27",
+   "rank": 111,
+   "placeId": "osm-n1308317902",
+   "placeMatch": "osm osm-n1308317902 \"Golden Gate Fortune Cookie Factory\" 0 u"
+  },
+  {
+   "id": "greenwich-steps",
+   "en": "Greenwich Steps",
+   "zh": "格林威治台阶",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "linked to the Filbert Steps card",
+   "x": -51.7,
+   "z": 42.1,
+   "arrival": {
+    "x": -51.4,
+    "z": 43.1
+   },
+   "walkDist": 1.2,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 102,
+     "name": "pier-39"
+    },
+    "M": {
+     "d": 187,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 187,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "Garden-lined stairs down Telegraph Hill's east face from Coit Tower, a gentler twin one block north of the Filbert Steps, where the hill's wild parrots are often heard.",
+   "why": "Garden-lined stairs down Telegraph Hill's east face from Coit Tower, a gentler twin one block north of the Filbert Steps, where the hill's wild parrots are often heard.",
+   "sources": [
+    "https://www.foundsf.org/Greenwich_Steps",
+    "https://inspiredimperfection.com/adventures/greenwich-steps/"
+   ],
+   "caution": "Probably inside the hand-made Embarcadero hero (next to filbert-steps): check the hero bounds. Private homes line the steps.",
+   "category": "viewpoint",
+   "lat": 37.80285,
+   "lng": -122.405383,
+   "checkedOn": "2026-09-27",
+   "rank": 112,
+   "placeId": "osm-w28839856",
+   "placeMatch": "osm osm-w28839856 \"Greenwich Steps\" 1 u"
+  },
+  {
+   "id": "herons-head-park",
+   "en": "Heron's Head Park",
+   "zh": "苍鹭头公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "bayview",
+   "note": "marsh boardwalk later",
+   "x": 923.3,
+   "z": 457.4,
+   "arrival": {
+    "x": 923.6,
+    "z": 457.1
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "bayview-hunters-point",
+   "near": {},
+   "fact": "A 22-acre finger of restored marsh on the old Pier 98 and one of the Bay's best urban birding spots, home to the EcoCenter environmental education building.",
+   "why": "A 22-acre finger of restored marsh on the old Pier 98 and one of the Bay's best urban birding spots, home to the EcoCenter environmental education building.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Heron%27s_Head_Park",
+    "https://www.openstreetmap.org/node/1306296013"
+   ],
+   "caution": "Run by the Port of SF.",
+   "category": "park",
+   "lat": 37.7388922,
+   "lng": -122.3746431,
+   "checkedOn": "2026-09-27",
+   "rank": 113,
+   "placeId": "osm-n1306296013",
+   "placeMatch": "osm osm-n1306296013 \"Heron's Head Park Bird Blinds\" 24 u"
+  },
+  {
+   "id": "hidden-garden-steps",
+   "en": "Hidden Garden Steps",
+   "zh": "隐秘花园阶梯",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "golden-gate-heights",
+   "note": "bonus card on the tiled-steps stop",
+   "x": -153.9,
+   "z": 1111.5,
+   "arrival": {
+    "x": -154.1,
+    "z": 1111.9
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "inner-sunset",
+   "near": {
+    "N": {
+     "d": 35,
+     "name": "Judah Street & 16th Avenue"
+    }
+   },
+   "fact": "148 tiled steps by the same two artists (2013), a mosaic garden of salamanders, butterflies and flowers, five minutes from the Moraga Steps.",
+   "why": "148 tiled steps by the same two artists (2013), a mosaic garden of salamanders, butterflies and flowers, five minutes from the Moraga Steps.",
+   "sources": [
+    "https://www.sfgate.com/local/article/hidden-garden-steps-18108794.php",
+    "https://www.aaa.com/travelinfo/california/san-francisco/attractions/hidden-garden-steps-565980.html"
+   ],
+   "caution": "Copyrighted artwork on a residential street.",
+   "category": "viewpoint",
+   "lat": 37.7595999,
+   "lng": -122.4736253,
+   "checkedOn": "2026-09-27",
+   "rank": 114,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "hyde-street-pier",
+   "en": "Hyde Street Pier (historic ships)",
+   "zh": "海德街码头（历史船只）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "wharf-west",
+   "note": "CLOSED since Nov 2024: empty pier + fence, no ships",
+   "x": -267.4,
+   "z": 116.7,
+   "arrival": {
+    "x": -248.6,
+    "z": 119.6
+   },
+   "walkDist": 5.7,
+   "inHeroSlab": false,
+   "zone": null,
+   "near": {
+    "loop": {
+     "d": 48,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "Correction to a well-known Wharf sight: the national park's historic-ship pier CLOSED on 4 Nov 2024 for a rebuild, and its fleet was moved to Mare Island in Vallejo for an expected 3-5…",
+   "why": "Correction to a well-known Wharf sight: the national park's historic-ship pier CLOSED on 4 Nov 2024 for a rebuild, and its fleet was moved to Mare Island in Vallejo for an expected 3-5 years.",
+   "sources": [
+    "https://www.nps.gov/safr/planyourvisit/basicinfo.htm",
+    "https://www.nps.gov/places/000/san-francisco-maritime-hyde-street-pier.htm",
+    "https://www.sfchronicle.com/bayarea/article/hyde-pier-fishermans-wharf-close-18605120.php"
+   ],
+   "caution": "CLOSED, with no reopening date and no construction contract yet. The curated places.json label aquatic-park-hyde-pier should not promise the ships.",
+   "category": "historic",
+   "lat": 37.809529,
+   "lng": -122.421911,
+   "checkedOn": "2026-09-27",
+   "rank": 115,
+   "placeId": "aquatic-park-hyde-pier",
+   "placeMatch": "curated aquatic-park-hyde-pier \"Aquatic Park & Hyde Street Pier\" 10 u"
+  },
+  {
+   "id": "india-basin-waterfront-park",
+   "en": "India Basin Waterfront Park",
+   "zh": "印度湾滨水公园",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "bayview",
+   "note": "phase 3 fenced until early 2028",
+   "x": 988.2,
+   "z": 539.1,
+   "arrival": {
+    "x": 988.1,
+    "z": 538.9
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "bayview-hunters-point",
+   "near": {},
+   "fact": "A former industrial shoreline that reopened in October 2024 with piers, a floating dock and the restored Shipwright's Cottage (SF Landmark #250).",
+   "why": "A former industrial shoreline that reopened in October 2024 with piers, a floating dock and the restored Shipwright's Cottage (SF Landmark #250). The shoreline park next door is being rebuilt with a boathouse until early 2028.",
+   "sources": [
+    "https://sfrecpark.org/1153/India-Basin-Waterfront-Park",
+    "https://baynature.org/2024/10/29/explore/india-basin-waterfront-park-opening/"
+   ],
+   "caution": "Phase 3 construction until early 2028, so parts are fenced.",
+   "category": "park",
+   "lat": 37.7322046,
+   "lng": -122.3757572,
+   "checkedOn": "2026-09-27",
+   "rank": 116,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "macondray-lane",
+   "en": "Macondray Lane",
+   "zh": "麦康德雷巷",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "russian-hill",
+   "note": "quiet residential lane",
+   "x": -94.9,
+   "z": 168,
+   "arrival": {
+    "x": -94.9,
+    "z": 168.4
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "nob-hill",
+   "near": {
+    "loop": {
+     "d": 132,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "An ivy-covered, car-free lane with wooden steps down to Taylor St; Armistead Maupin's model for 'Barbary Lane' in Tales of the City.",
+   "why": "An ivy-covered, car-free lane with wooden steps down to Taylor St; Armistead Maupin's model for 'Barbary Lane' in Tales of the City.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Macondray_Lane",
+    "https://www.sfstairways.com/stairways/macondray-lane-taylor-street-to-jones-street/"
+   ],
+   "caution": "Residential lane: keep it quiet.",
+   "category": "historic",
+   "lat": 37.799208,
+   "lng": -122.415182,
+   "checkedOn": "2026-09-27",
+   "rank": 117,
+   "placeId": "osm-n358805395",
+   "placeMatch": "osm osm-n358805395 \"Russian Hill-Macondray Lane Historic District\" 3 u"
+  },
+  {
+   "id": "maiden-lane",
+   "en": "Maiden Lane (V.C. Morris Gift Shop)",
+   "zh": "少女巷",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "union-square",
+   "note": "card on the lane; gates 11-5",
+   "x": 106.9,
+   "z": 206.1,
+   "arrival": {
+    "x": 106.9,
+    "z": 205.9
+   },
+   "walkDist": 0.2,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 43,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 46,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 46,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "A two-block gated pedestrian lane off Union Square; No. 140 is the V.C. Morris Gift Shop, San Francisco's only Frank Lloyd Wright building (1948-49), whose spiral ramp predates the…",
+   "why": "A two-block gated pedestrian lane off Union Square; No. 140 is the V.C. Morris Gift Shop, San Francisco's only Frank Lloyd Wright building (1948-49), whose spiral ramp predates the Guggenheim.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Maiden_Lane_(San_Francisco)",
+    "https://default.sfplanning.org/Preservation/landmarks_designation/hp_VCMorrisGiftShop_DesignationReport_FINAL.pdf",
+    "https://www.sfgate.com/sfhistory/article/frank-lloyd-wright-building-san-francisco-vcmorris-14830042.php"
+   ],
+   "caution": "Gates close the lane to cars 11am-5pm. The Wright building now houses a fashion brand: no store names.",
+   "category": "shopping",
+   "lat": 37.78812,
+   "lng": -122.40602,
+   "checkedOn": "2026-09-27",
+   "rank": 118,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "moad",
+   "en": "Museum of the African Diaspora (MoAD)",
+   "zh": "非洲侨民博物馆",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "yerba-buena",
+   "note": "reopens 30 Sep 2026",
+   "x": 164.1,
+   "z": 183.6,
+   "arrival": {
+    "x": 162.4,
+    "z": 183.4
+   },
+   "walkDist": 1.4,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 76,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 35,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 35,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Its three-storey 'Face of the African Diaspora' mosaic, 2,000+ photos forming one girl's portrait from Chester Higgins Jr.'s 'Girl From Tamale', is visible from Mission St.",
+   "why": "Its three-storey 'Face of the African Diaspora' mosaic, 2,000+ photos forming one girl's portrait from Chester Higgins Jr.'s 'Girl From Tamale', is visible from Mission St.",
+   "sources": [
+    "https://www.moadsf.org/visit"
+   ],
+   "caution": "Closed 17 Aug-29 Sep 2026 for installation, reopens 30 Sep 2026. It occupies the base of the St. Regis tower (hotel brand: no signage). Adults $15.",
+   "category": "museum",
+   "lat": 37.786469,
+   "lng": -122.401473,
+   "checkedOn": "2026-09-27",
+   "rank": 119,
+   "placeId": "osm-n415567060",
+   "placeMatch": "osm osm-n415567060 \"Museum of the African Diaspora\" 0 u"
+  },
+  {
+   "id": "moscone-center",
+   "en": "Moscone Center",
+   "zh": "莫斯康展览中心",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "yerba-buena",
+   "note": "no event names",
+   "x": 194.8,
+   "z": 197.9,
+   "arrival": {
+    "x": 190.9,
+    "z": 197.6
+   },
+   "walkDist": 4,
+   "inHeroSlab": false,
+   "zone": "south-of-market",
+   "near": {
+    "loop": {
+     "d": 110,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 69,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 69,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "San Francisco's convention centre, home of the big tech conferences: North and South halls lie under Yerba Buena Gardens and Moscone West sits across 4th St (740,000 sq ft of exhibit…",
+   "why": "San Francisco's convention centre, home of the big tech conferences: North and South halls lie under Yerba Buena Gardens and Moscone West sits across 4th St (740,000 sq ft of exhibit space); named for Mayor George Moscone.",
+   "sources": [
+    "https://www.moscone.com/",
+    "https://en.wikipedia.org/wiki/Moscone_Center"
+   ],
+   "caution": "Event and conference names are third-party brands.",
+   "category": "other",
+   "lat": 37.784399,
+   "lng": -122.400584,
+   "checkedOn": "2026-09-27",
+   "rank": 120,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "palace-hotel",
+   "en": "Palace Hotel (Garden Court)",
+   "zh": "皇宫酒店",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "market-st",
+   "note": "no brand names",
+   "x": 138.1,
+   "z": 167.5,
+   "arrival": {
+    "x": 138.4,
+    "z": 166.1
+   },
+   "walkDist": 1.2,
+   "inHeroSlab": false,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 48,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 5,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 5,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Opened in 1875 as the world's largest hotel and rebuilt in 1909 after the quake; its glass-roofed Garden Court and Maxfield Parrish's 'Pied Piper' mural are San Francisco icons.",
+   "why": "Opened in 1875 as the world's largest hotel and rebuilt in 1909 after the quake; its glass-roofed Garden Court and Maxfield Parrish's 'Pied Piper' mural are San Francisco icons.",
+   "sources": [
+    "https://www.sfpalace.com/history/",
+    "https://www.historichotels.org/us/hotels-resorts/palace-hotel/history.php",
+    "https://en.wikipedia.org/wiki/Palace_Hotel,_San_Francisco"
+   ],
+   "caution": "Operates under a Marriott brand (Luxury Collection): no brand names or logos. A working hotel: public lobby spaces only.",
+   "category": "historic",
+   "lat": 37.7884,
+   "lng": -122.402,
+   "checkedOn": "2026-09-27",
+   "rank": 121,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "portsmouth-square",
+   "en": "Portsmouth Square",
+   "zh": "花园角",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "chinatown",
+   "note": "CLOSED to 2028: construction fence + card; no footbridge",
+   "x": 37.2,
+   "z": 128.7,
+   "arrival": {
+    "x": 37.1,
+    "z": 128.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 65,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 103,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 103,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Chinatown's 'living room' and the city's birthplace plaza: Captain Montgomery raised the US flag here in 1846.",
+   "why": "Chinatown's 'living room' and the city's birthplace plaza: Captain Montgomery raised the US flag here in 1846.",
+   "sources": [
+    "https://sfrecpark.org/1166/Portsmouth-Square-Improvement-Project",
+    "https://sfist.com/2026/06/10/major-overhaul-of-chinatowns-portsmouth-square-begins-for-first-time-in-decades/",
+    "https://sfpublicworks.org/portsmouthsquare",
+    "https://chsa.org/wp-content/uploads/2022/08/CHSA-ChinatownWalkingTourMap.pdf"
+   ],
+   "caution": "CLOSED since June 2026 for the $73M rebuild, reopening expected 2028; the Kearny St footbridge was demolished in Aug 2026: do not model the bridge.",
+   "category": "park",
+   "lat": 37.794831,
+   "lng": -122.405427,
+   "checkedOn": "2026-09-27",
+   "rank": 122,
+   "placeId": "osm-r14547583",
+   "placeMatch": "osm osm-r14547583 \"Portsmouth Square\" 1 u"
+  },
+  {
+   "id": "presidio-officers-club",
+   "en": "Presidio Officers' Club",
+   "zh": "要塞公园军官俱乐部",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "presidio",
+   "note": "gallery Fri-Sun",
+   "x": -450.9,
+   "z": 575.6,
+   "arrival": {
+    "x": -447.4,
+    "z": 576.4
+   },
+   "walkDist": 3.7,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {
+    "loop": {
+     "d": 176,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "Its adobe core traces back to the Spanish presidio founded in 1776, the start of San Francisco; its free heritage gallery tells the Presidio's story from Ohlone times to the Army.",
+   "why": "Its adobe core traces back to the Spanish presidio founded in 1776, the start of San Francisco; its free heritage gallery tells the Presidio's story from Ohlone times to the Army.",
+   "sources": [
+    "https://presidio.gov/explore/attractions/presidio-officers-club/"
+   ],
+   "caution": "Gallery open Fri-Sun 11-4. The restaurant inside is a business.",
+   "category": "historic",
+   "lat": 37.797459,
+   "lng": -122.459074,
+   "checkedOn": "2026-09-27",
+   "rank": 123,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "sf-railway-museum",
+   "en": "San Francisco Railway Museum",
+   "zh": "旧金山铁路博物馆",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "attach to the F stop Don Chee Way & Steuart",
+   "x": 149.2,
+   "z": 35.6,
+   "arrival": {
+    "x": 148.9,
+    "z": 35.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 29,
+     "name": "ferry-building"
+    },
+    "M": {
+     "d": 47,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 47,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "A free little museum of Market Street Railway history at the F-line's Steuart St stop, opposite the Ferry Building, ideal for tying the F-line streetcars to their story.",
+   "why": "A free little museum of Market Street Railway history at the F-line's Steuart St stop, opposite the Ferry Building, ideal for tying the F-line streetcars to their story.",
+   "sources": [
+    "https://www.streetcar.org/museum/"
+   ],
+   "caution": "Only an uncurated places.json label (osm-n386591692). Open Tue-Sun 12-5, closed on major holidays.",
+   "category": "transit-icon",
+   "lat": 37.793802,
+   "lng": -122.393674,
+   "checkedOn": "2026-09-27",
+   "rank": 124,
+   "placeId": "osm-n386591692",
+   "placeMatch": "osm osm-n386591692 \"San Francisco Railway Museum\" 0 u"
+  },
+  {
+   "id": "sfjazz-center",
+   "en": "SFJAZZ Center",
+   "zh": "旧金山爵士中心",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hayes-valley",
+   "note": "",
+   "x": 104.6,
+   "z": 470.1,
+   "arrival": {
+    "x": 102.4,
+    "z": 469.1
+   },
+   "walkDist": 2.2,
+   "inHeroSlab": false,
+   "zone": "hayes-valley",
+   "near": {
+    "loop": {
+     "d": 72,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 32,
+     "name": "Van Ness"
+    },
+    "N": {
+     "d": 32,
+     "name": "Van Ness"
+    }
+   },
+   "fact": "Opened in January 2013 as the first free-standing US building made for jazz; it hosts 400+ performances a season.",
+   "why": "Opened in January 2013 as the first free-standing US building made for jazz; it hosts 400+ performances a season.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/SFJAZZ_Center",
+    "https://www.sfjazz.org/tickets/productions/26-27/season-preview-party/"
+   ],
+   "caution": "sfjazz.org/visit returned 403 at check time; the 2026-27 season is listed.",
+   "category": "other",
+   "lat": 37.776378,
+   "lng": -122.421569,
+   "checkedOn": "2026-09-27",
+   "rank": 125,
+   "placeId": "osm-w256720482",
+   "placeMatch": "osm osm-w256720482 \"SFJAZZ Center\" 0 u"
+  },
+  {
+   "id": "tadich-grill",
+   "en": "Tadich Grill",
+   "zh": "塔迪奇烧烤餐厅",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "business: no sign art",
+   "x": 103.9,
+   "z": 91.1,
+   "arrival": {
+    "x": 104.6,
+    "z": 91.1
+   },
+   "walkDist": 0.7,
+   "inHeroSlab": true,
+   "zone": "financial-district-south-beach",
+   "near": {
+    "loop": {
+     "d": 77,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 30,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 30,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "Started in 1849 as a coffee stand on Long Wharf and named Tadich Grill since 1912, it is California's oldest continuously run restaurant, famous for seafood and cioppino in a…",
+   "why": "Started in 1849 as a coffee stand on Long Wharf and named Tadich Grill since 1912, it is California's oldest continuously run restaurant, famous for seafood and cioppino in a wood-panelled room.",
+   "sources": [
+    "https://tadichgrillsf.com/",
+    "https://en.wikipedia.org/wiki/Tadich_Grill",
+    "https://www.sftravel.com/article/everything-you-need-to-know-about-san-franciscos-historic-tadich-grill"
+   ],
+   "caution": "A private business (the name is the brand): no sign art. Closed Sundays; hours change.",
+   "category": "food-market",
+   "lat": 37.79342,
+   "lng": -122.399472,
+   "checkedOn": "2026-09-27",
+   "rank": 126,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "tenderloin-museum",
+   "en": "Tenderloin Museum",
+   "zh": "田德隆博物馆",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "tenderloin",
+   "note": "recheck the address (move planned 2026)",
+   "x": 84.4,
+   "z": 323.1,
+   "arrival": {
+    "x": 84.4,
+    "z": 323.6
+   },
+   "walkDist": 0.7,
+   "inHeroSlab": false,
+   "zone": "tenderloin",
+   "near": {
+    "loop": {
+     "d": 78,
+     "name": "civic-center"
+    },
+    "M": {
+     "d": 74,
+     "name": "Powell Street"
+    },
+    "N": {
+     "d": 74,
+     "name": "Powell Street"
+    }
+   },
+   "fact": "Tells the story of one of San Francisco's oldest and densest neighbourhoods; open Tue-Sat 10-5, adults $10, children free.",
+   "why": "Tells the story of one of San Francisco's oldest and densest neighbourhoods; open Tue-Sat 10-5, adults $10, children free.",
+   "sources": [
+    "https://www.tenderloinmuseum.org/"
+   ],
+   "caution": "A move to a larger site is planned for 2026: recheck the address before building.",
+   "category": "museum",
+   "lat": 37.783915,
+   "lng": -122.414121,
+   "checkedOn": "2026-09-27",
+   "rank": 127,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "the-fillmore",
+   "en": "The Fillmore",
+   "zh": "菲尔莫尔音乐厅",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "fillmore",
+   "note": "no posters",
+   "x": -80.5,
+   "z": 490,
+   "arrival": {
+    "x": -80.6,
+    "z": 490.1
+   },
+   "walkDist": 0.4,
+   "inHeroSlab": false,
+   "zone": "western-addition",
+   "near": {
+    "loop": {
+     "d": 118,
+     "name": "painted-ladies"
+    }
+   },
+   "fact": "Bill Graham's 1960s rock hall, birthplace of the psychedelic-poster era (Wes Wilson, Rick Griffin), still a 1,200-capacity venue with chandeliers.",
+   "why": "Bill Graham's 1960s rock hall, birthplace of the psychedelic-poster era (Wes Wilson, Rick Griffin), still a 1,200-capacity venue with chandeliers.",
+   "sources": [
+    "https://www.thefillmore.com/shows",
+    "https://en.wikipedia.org/wiki/The_Fillmore"
+   ],
+   "caution": "Operated by Live Nation (a brand). Show names are third-party; do not reproduce the posters.",
+   "category": "other",
+   "lat": 37.784084,
+   "lng": -122.433171,
+   "checkedOn": "2026-09-27",
+   "rank": 128,
+   "placeId": "osm-n368171371",
+   "placeMatch": "osm osm-n368171371 \"The Fillmore\" 0 u"
+  },
+  {
+   "id": "tin-how-temple",
+   "en": "Tin How Temple (Waverly Place)",
+   "zh": "天后古庙",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "chinatown",
+   "note": "place of worship, respectful",
+   "x": 26.7,
+   "z": 145.6,
+   "arrival": {
+    "x": 26.6,
+    "z": 145.1
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 66,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 108,
+     "name": "Montgomery Street"
+    },
+    "N": {
+     "d": 108,
+     "name": "Montgomery Street"
+    }
+   },
+   "fact": "Founded in 1852 and dedicated to Mazu (Tin How), it is one of the oldest Chinese temples in the US; Waverly Place with its painted balconies is known in Chinese as Tin How Temple Street.",
+   "why": "Founded in 1852 and dedicated to Mazu (Tin How), it is one of the oldest Chinese temples in the US; Waverly Place with its painted balconies is known in Chinese as Tin How Temple Street.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Tin_How_Temple",
+    "https://www.bestofsfchinatown.com/destinations/tin-how-temple/",
+    "https://chsa.org/wp-content/uploads/2022/08/CHSA-ChinatownWalkingTourMap.pdf"
+   ],
+   "caution": "A place of worship: respectful tone. Open about 10-3, free with donation; no photography inside.",
+   "category": "religious",
+   "lat": 37.794561,
+   "lng": -122.407007,
+   "checkedOn": "2026-09-27",
+   "rank": 129,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "union-street-shopping",
+   "en": "Union Street (Cow Hollow shopping street)",
+   "zh": "联合街（牛谷购物街）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "cow-hollow",
+   "note": "no store names",
+   "x": -221.5,
+   "z": 334.8,
+   "arrival": {
+    "x": -221.6,
+    "z": 334.9
+   },
+   "walkDist": 0.3,
+   "inHeroSlab": false,
+   "zone": "marina",
+   "near": {
+    "loop": {
+     "d": 199,
+     "name": "wharf-hyde"
+    }
+   },
+   "fact": "Cow Hollow's boutique street, with shops and cafes in Victorian and Edwardian houses densest between Fillmore and Octavia; the Union Street Festival takes it over each June.",
+   "why": "Cow Hollow's boutique street, with shops and cafes in Victorian and Edwardian houses densest between Fillmore and Octavia; the Union Street Festival takes it over each June.",
+   "sources": [
+    "https://www.sf.gov/perfect-day-along-union-st",
+    "https://en.wikipedia.org/wiki/Union_Street_(San_Francisco)",
+    "https://sf.funcheap.com/union-street-festival-2026-june-6-june-7/"
+   ],
+   "caution": "No real store names. The Cow Hollow neighbourhood label exists only in places.json (osm-n1680446980).",
+   "category": "shopping",
+   "lat": 37.797605,
+   "lng": -122.432065,
+   "checkedOn": "2026-09-27",
+   "rank": 130,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "visitacion-valley-greenway",
+   "en": "Visitacion Valley Greenway",
+   "zh": "访谷绿道",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "visitacion",
+   "note": "community gardens, no harvesting gags",
+   "x": 934.6,
+   "z": 1000.8,
+   "arrival": {
+    "x": 934.9,
+    "z": 1000.9
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": false,
+   "zone": "visitacion-valley",
+   "near": {},
+   "fact": "Six themed one-block gardens (herbs, native plants, a farm lot, a playground) built by neighbours in Visitacion Valley (訪谷), home to a large Chinese-American community.",
+   "why": "Six themed one-block gardens (herbs, native plants, a farm lot, a playground) built by neighbours in Visitacion Valley (訪谷), home to a large Chinese-American community.",
+   "sources": [
+    "https://visvalleygreenway.com/visitacion-valley",
+    "https://sfrecpark.org/facilities/facility/details/Visitacion-Valley-Greenway-Agriculture-L-407",
+    "https://zh.wikipedia.org/wiki/%E8%A8%AA%E8%B0%B7%E5%8D%80"
+   ],
+   "caution": "Community gardens: no harvesting gags.",
+   "category": "park",
+   "lat": 37.71397,
+   "lng": -122.40575,
+   "checkedOn": "2026-09-27",
+   "rank": 131,
+   "placeId": "osm-w257182717",
+   "placeMatch": "osm osm-w257182717 \"Visitacion Valley Greenway Community Garden\" 0 u"
+  },
+  {
+   "id": "yoda-fountain",
+   "en": "Yoda Fountain (Letterman Digital Arts Center)",
+   "zh": "尤达喷泉（卢卡斯影业园区）",
+   "candTier": 3,
+   "priority": 4,
+   "treatment": "card",
+   "mapRank": 3,
+   "site": "presidio",
+   "note": "text-only card, NEVER a statue",
+   "x": -392.6,
+   "z": 484.9,
+   "arrival": {
+    "x": -387.4,
+    "z": 484.9
+   },
+   "walkDist": 5.1,
+   "inHeroSlab": false,
+   "zone": "presidio",
+   "near": {
+    "loop": {
+     "d": 84,
+     "name": "palace-of-fine-arts"
+    }
+   },
+   "fact": "A bronze Yoda on a fountain outside Lucasfilm's Presidio offices is a pilgrimage for Star Wars fans, near the Lombard Gate and the Palace of Fine Arts.",
+   "why": "A bronze Yoda on a fountain outside Lucasfilm's Presidio offices is a pilgrimage for Star Wars fans, near the Lombard Gate and the Palace of Fine Arts.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Yoda_Fountain",
+    "https://en.wikipedia.org/wiki/Letterman_Digital_Arts_Center"
+   ],
+   "caution": "TRADEMARKED CHARACTER: no statue, no character art. It is a working office; the lobby opens only on weekdays during business hours.",
+   "category": "other",
+   "lat": 37.79882,
+   "lng": -122.450486,
+   "checkedOn": "2026-09-27",
+   "rank": 132,
+   "placeId": null,
+   "placeMatch": "NEW row (extraPlaces.ts)"
+  },
+  {
+   "id": "sentinel-building",
+   "en": "Sentinel Building (Columbus Tower)",
+   "zh": "哨兵大厦（哥伦布塔）",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "defer",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "inside the hero slab: card now",
+   "x": 21.3,
+   "z": 106.9,
+   "arrival": {
+    "x": 20.6,
+    "z": 106.9
+   },
+   "walkDist": 0.4,
+   "inHeroSlab": true,
+   "zone": "chinatown",
+   "near": {
+    "loop": {
+     "d": 91,
+     "name": "chinatown"
+    },
+    "M": {
+     "d": 114,
+     "name": "Embarcadero"
+    },
+    "N": {
+     "d": 114,
+     "name": "Embarcadero"
+    }
+   },
+   "fact": "The copper-green 1907 flatiron at Columbus and Kearny, owned by Francis Ford Coppola since 1973 and home of American Zoetrope; framed with the Transamerica Pyramid behind it, it is one…",
+   "why": "The copper-green 1907 flatiron at Columbus and Kearny, owned by Francis Ford Coppola since 1973 and home of American Zoetrope; framed with the Transamerica Pyramid behind it, it is one of San Francisco's classic photos.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Columbus_Tower_(San_Francisco)",
+    "https://noehill.com/sf/landmarks/sf033.asp"
+   ],
+   "caution": "Private offices; the ground-floor cafe is a business: no signage. places.json label osm-w288485994.",
+   "category": "historic",
+   "lat": 37.79655,
+   "lng": -122.405049,
+   "checkedOn": "2026-09-27",
+   "rank": 133,
+   "placeId": "osm-w288485994",
+   "placeMatch": "osm osm-w288485994 \"Sentinel Building\" 0 u"
+  },
+  {
+   "id": "ss-jeremiah-obrien",
+   "en": "SS Jeremiah O'Brien",
+   "zh": "奥布莱恩号自由轮",
+   "candTier": 2,
+   "priority": 4,
+   "treatment": "defer",
+   "mapRank": 3,
+   "site": "hero",
+   "note": "Pier 35 is hero: card now (moved from Pier 45)",
+   "x": -130.1,
+   "z": -8.3,
+   "arrival": {
+    "x": -130.1,
+    "z": -8.6
+   },
+   "walkDist": 0.1,
+   "inHeroSlab": true,
+   "zone": "north-beach",
+   "near": {
+    "loop": {
+     "d": 36,
+     "name": "pier-39"
+    }
+   },
+   "fact": "The last unaltered WWII Liberty ship and a D-Day veteran whose triple-expansion steam engine still runs on steaming weekends; open daily 10-4.",
+   "why": "The last unaltered WWII Liberty ship and a D-Day veteran whose triple-expansion steam engine still runs on steaming weekends; open daily 10-4.",
+   "sources": [
+    "https://ssjeremiahobrien.org/visit-us/",
+    "https://ssjeremiahobrien.org/",
+    "https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien"
+   ],
+   "caution": "MOVED: now at the north end of Pier 35, not Pier 45 as older guides say. Pier 35 lies between Pier 33 and PIER 39, so it is likely inside the hand-made hero. Adults $20.",
+   "category": "museum",
+   "lat": 37.808759,
+   "lng": -122.406865,
+   "checkedOn": "2026-09-27",
+   "rank": 134,
+   "placeId": "osm-w1280748838",
+   "placeMatch": "osm osm-w1280748838 \"SS Jeremiah O'Brien\" 3 u"
+  }
+ ]
+}
