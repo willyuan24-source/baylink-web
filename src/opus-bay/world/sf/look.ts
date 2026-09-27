@@ -113,17 +113,17 @@ const CHINATOWN_WALLS = ['#efe6d4', '#ece0c8', '#f1e9da'];
 
 /** Flat tops (membrane / gravel): weights sum to 1; darker than every wall of the house styles. */
 const FLAT_TOPS: readonly (readonly [string, number])[] = [
-  ['#d6d1c7', 0.24], // white membrane (a shade under the white walls)
-  ['#c8c2b7', 0.3], // light grey
-  ['#bcb5a9', 0.2], // gravel
-  ['#aba59b', 0.14], // grey
-  ['#8e8982', 0.05], // tar
-  ['#b7c3a2', 0.03], // roof garden
+  ['#e2ddd4', 0.26], // white membrane (a shade under the white walls)
+  ['#d5d0c7', 0.3], // light grey
+  ['#c9c3b8', 0.2], // gravel
+  ['#b9b4ab', 0.12], // grey
+  ['#99948d', 0.05], // tar
+  ['#bccaa5', 0.03], // roof garden
   ['#c9a386', 0.04], // terracotta deck
 ];
 /** Downtown / civic flat tops: a touch lighter and cooler (big roofs read as pale slabs among the towers). */
 const COMMERCIAL_TOPS: readonly (readonly [string, number])[] = [
-  ['#d9d5cd', 0.3], ['#cdc8bf', 0.3], ['#c1bbb1', 0.2], ['#b1aca3', 0.12], ['#c9d3cf', 0.04], ['#c9a386', 0.04],
+  ['#e3dfd8', 0.3], ['#d6d2ca', 0.3], ['#cac5bc', 0.2], ['#bbb6ad', 0.12], ['#cfd9d5', 0.04], ['#c9a386', 0.04],
 ];
 const TILES = ['#c46a4a', '#c9714f', '#b8674a', '#cf7a56'];
 const SLATES = ['#8c9aa6', '#9aa3a4', '#7f8b93', '#a0928a'];
@@ -234,7 +234,7 @@ export function flatTopColor(b: LookInput, wall = wallFor(b)): string {
   const list = HOUSE.has(b.style) ? FLAT_TOPS : COMMERCIAL_TOPS;
   let c = pickW(list, lookRand(b.seed, 5));
   const lw = lightness(wall);
-  for (let k = 0; k < 4 && lightness(c) > lw - 0.04; k++) c = mixHex(c, '#8e8982', 0.25);
+  for (let k = 0; k < 4 && lightness(c) > lw - 0.04; k++) c = mixHex(c, '#99948d', 0.25);
   return c;
 }
 
@@ -296,7 +296,7 @@ export function farPrismColors(p: { wall: string; roof: string; kind: number; ta
   const wall = warmDark ? mixHex(p.wall, '#e9dccb', 0.15) : mixHex(p.wall, LOOK_MEANS.white, 0.4);
   const flat = mixHex(LOOK_MEANS.flat, mixHex(wall, '#fbf7ee', 0.5), FAR_RIM);
   const top = mixHex(flat, pitchedColor, Math.min(1, pitched * 1.1));
-  return { wall, roof: mixHex(top, p.u < 0.5 ? '#c4beb3' : '#dcd8d0', 0.06 + p.u * 0.08) };
+  return { wall, roof: mixHex(top, p.u < 0.5 ? '#cdc8be' : '#e2ded6', 0.1 + p.u * 0.08) };
 }
 /** share of a house's flat top that is rim or cornice seen from above (L0: 0.3 u around a ≈ 2 × 3 u roof, bays) */
 const FAR_RIM = 0.45;
