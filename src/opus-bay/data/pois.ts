@@ -1,5 +1,7 @@
 import type { Bilingual, PoiDef, RealInfo, Vec2 } from '../core/types';
+import { byMode } from './contentMode';
 import { DISTRICT } from './district';
+import { CITY_PHOTO_SOURCE_PAGES, CITY_POIS, CITY_POI_EXTRA_SOURCES, CITY_POI_OFFICIAL_URLS, CITY_SUBJECT_FACTS } from './sf/cityPois';
 
 /**
  * Opus Bay points of interest (content-owned).
@@ -116,13 +118,15 @@ const PHOTOS = {
 } satisfies Record<string, Photo>;
 
 /** Original file pages for the reused photos (RealInfo.photo has no creditUrl field). Keyed by photo src. */
-export const PHOTO_SOURCE_PAGES: Record<string, string> = {
+export const DISTRICT_PHOTO_SOURCE_PAGES: Record<string, string> = {
   [PHOTOS.ferryMarket.src]: 'https://commons.wikimedia.org/wiki/File:Farmers_Market_at_the_Ferry_Building_20220528_-_1.jpg',
   [PHOTOS.exploratorium.src]: 'https://commons.wikimedia.org/wiki/File:San_Francisco_Exploratorium_-_South_Side.jpg',
   [PHOTOS.coit.src]: 'https://commons.wikimedia.org/wiki/File:Coit_Tower_1.jpg',
   [PHOTOS.seaLions.src]: 'https://commons.wikimedia.org/wiki/File:California,_San_Francisco,_Pier_39,_sea_lions.jpg',
   [PHOTOS.alcatraz.src]: 'https://commons.wikimedia.org/wiki/File:Alcatraz_recreation_yard,_NW_view.jpg',
 };
+/** Active world's photo pages (city mode adds the SF landmark photos, data/sf/cityPois.ts). */
+export const PHOTO_SOURCE_PAGES: Record<string, string> = byMode(DISTRICT_PHOTO_SOURCE_PAGES, { ...DISTRICT_PHOTO_SOURCE_PAGES, ...CITY_PHOTO_SOURCE_PAGES });
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
 
@@ -169,7 +173,7 @@ export const EMBARCADERO_INFO: RealInfo = {
 // POIs (walking order along the waterfront, then the hill, then PIER 39)
 // ---------------------------------------------------------------------------
 
-export const POIS: PoiDef[] = [
+export const DISTRICT_POIS: PoiDef[] = [
   {
     id: 'ferry-building',
     name: bi('渡轮大厦钟楼', 'Ferry Building clock tower'),
@@ -530,10 +534,16 @@ export const POIS: PoiDef[] = [
 ];
 
 /**
+ * The active world's POIs (plan G2-0): the district's in district mode (v1, unchanged); in city mode the district's
+ * (the hero waterfront is part of the city) plus the 24 SF landmark cards (data/sf/cityPois.ts, ids `sf:<landmarkId>`).
+ */
+export const POIS: PoiDef[] = byMode(DISTRICT_POIS, [...DISTRICT_POIS, ...CITY_POIS]);
+
+/**
  * The places' own official sites (shown as 官网). Only real official homes — a fact-check source (a Port PDF, the
  * CDFW pier list, a landscape archive) is never labelled 官网. POIs without an entry simply have no 官网 button.
  */
-export const POI_OFFICIAL_URLS: Record<string, string> = {
+export const DISTRICT_POI_OFFICIAL_URLS: Record<string, string> = {
   'ferry-building': 'https://www.ferrybuildingmarketplace.com/',
   'farmers-market': 'https://foodwise.org/markets/ferry-plaza-farmers-market/',
   exploratorium: 'https://www.exploratorium.edu/',
@@ -546,9 +556,10 @@ export const POI_OFFICIAL_URLS: Record<string, string> = {
   'streetcar-green': SRC.sfmtaFLine,
   'streetcar-pier39': SRC.sfmtaFLine,
 };
+export const POI_OFFICIAL_URLS: Record<string, string> = byMode(DISTRICT_POI_OFFICIAL_URLS, { ...DISTRICT_POI_OFFICIAL_URLS, ...CITY_POI_OFFICIAL_URLS });
 
 /** Secondary sources behind a POI's summary/tips (the primary one is realInfo.sourceUrl). */
-export const POI_EXTRA_SOURCES: Record<string, string[]> = {
+export const DISTRICT_POI_EXTRA_SOURCES: Record<string, string[]> = {
   'ferry-building': [SRC.ferryAbout, SRC.ferryChime, SRC.portGettingAround],
   'farmers-market': [SRC.ferryVisit],
   pier14: [SRC.portGettingAround, SRC.mtcBayBridge],
@@ -562,6 +573,7 @@ export const POI_EXTRA_SOURCES: Record<string, string[]> = {
   'streetcar-green': [SRC.sfmtaFares, SRC.sfmtaHistoric],
   'streetcar-pier39': [SRC.sfmtaFares, SRC.sfmtaHistoric],
 };
+export const POI_EXTRA_SOURCES: Record<string, string[]> = byMode(DISTRICT_POI_EXTRA_SOURCES, { ...DISTRICT_POI_EXTRA_SOURCES, ...CITY_POI_EXTRA_SOURCES });
 
 export const POI_BY_ID: Record<string, PoiDef> = Object.fromEntries(POIS.map(poi => [poi.id, poi]));
 export const getPoi = (id: string | null | undefined): PoiDef | undefined => (id ? POI_BY_ID[id] : undefined);
@@ -585,7 +597,7 @@ export interface SubjectFact {
   verifiedAt: string;
 }
 
-export const SUBJECT_FACTS: Record<string, SubjectFact> = {
+export const DISTRICT_SUBJECT_FACTS: Record<string, SubjectFact> = {
   'bay-bridge': {
     name: bi('海湾大桥', 'Bay Bridge'),
     fact: bi('1936 年 11 月 12 日通车，比金门大桥早半年。', 'Opened on Nov 12, 1936 — six months before the Golden Gate Bridge.'),
@@ -617,6 +629,8 @@ export const SUBJECT_FACTS: Record<string, SubjectFact> = {
     verifiedAt: VERIFIED_AT,
   },
 };
+/** Active world's subject facts: city mode adds a caption per SF landmark (keyed by landmark id). */
+export const SUBJECT_FACTS: Record<string, SubjectFact> = byMode(DISTRICT_SUBJECT_FACTS, { ...DISTRICT_SUBJECT_FACTS, ...CITY_SUBJECT_FACTS });
 
 // ---------------------------------------------------------------------------
 // Farmers market days (the world shows stalls only on these days)

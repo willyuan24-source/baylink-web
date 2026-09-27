@@ -1,5 +1,8 @@
 import type { PostcardDef } from '../core/types';
+import { byMode } from './contentMode';
 import { anchorAt, SRC } from './pois';
+import { CITY_POSTCARDS, CITY_POSTCARD_NEAR } from './sf/postcards';
+import { cityPoiId } from './sf/cityPois';
 
 /**
  * Eight illustrated postcards (virtual collectibles — a game item, not a real souvenir).
@@ -21,7 +24,7 @@ const card = (id: PostcardId, def: Omit<PostcardDef, 'id' | 'position' | 'image'
   ...def,
 });
 
-export const POSTCARDS: PostcardDef[] = [
+export const DISTRICT_POSTCARDS: PostcardDef[] = [
   card('ferry-building-dawn', {
     title: { zh: '清晨的渡轮大厦', en: 'Ferry Building at Dawn' },
     fact: {
@@ -95,6 +98,37 @@ export const POSTCARDS: PostcardDef[] = [
     sourceUrl: SRC.sfmtaHistoric,
   }),
 ];
+
+/**
+ * The active world's postcards (plan G2-0 / G2-2): the district's 8 in district mode (v1, unchanged); in city mode the
+ * district's 8 plus the 12 whole-SF cards (data/sf/postcards.ts), 20 in all.
+ */
+export const POSTCARDS: PostcardDef[] = byMode(DISTRICT_POSTCARDS, [...DISTRICT_POSTCARDS, ...CITY_POSTCARDS]);
+
+/**
+ * Which postcard illustrates a place card that has no licensed photo (moved here from ui/format.ts, plan G2-2). The card
+ * shows the art once that postcard is collected. City mode adds each SF landmark card → its city postcard.
+ */
+export const DISTRICT_POSTCARD_FOR_POI: Record<string, string> = {
+  'ferry-building': 'ferry-building-dawn',
+  'farmers-market': 'ferry-building-dawn',
+  'weekly-board': 'ferry-building-dawn',
+  pier14: 'bay-bridge-night',
+  pier7: 'pier7-sunset',
+  exploratorium: 'exploratorium',
+  'filbert-steps': 'filbert-steps',
+  'levis-plaza': 'filbert-steps',
+  'coit-tower': 'coit-tower',
+  'coit-murals': 'coit-tower',
+  'sea-lions': 'sea-lions',
+  'pier39-carousel': 'sea-lions',
+  'streetcar-ferry': 'streetcar',
+  'streetcar-green': 'streetcar',
+  'streetcar-pier39': 'streetcar',
+};
+/** SF landmark card (`sf:<landmarkId>`) → the city postcard that stands beside it (the last one wins for shared landmarks). */
+export const CITY_POSTCARD_FOR_POI: Record<string, string> = Object.fromEntries(Object.entries(CITY_POSTCARD_NEAR).map(([card, landmark]) => [cityPoiId(landmark), card]));
+export const POSTCARD_FOR_POI: Record<string, string> = byMode(DISTRICT_POSTCARD_FOR_POI, { ...DISTRICT_POSTCARD_FOR_POI, ...CITY_POSTCARD_FOR_POI });
 
 /** Postcard facts are verified on this date (see data/pois.ts VERIFIED_AT). */
 export { VERIFIED_AT as POSTCARDS_VERIFIED_AT } from './pois';

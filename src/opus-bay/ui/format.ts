@@ -1,7 +1,7 @@
 import type { Locale } from '../../i18n/locale';
 import { addDays, todayInBay } from '../data/catalog';
 import { ASSETS, POSTCARD_ART } from '../data/assets';
-import { POSTCARDS } from '../data/postcards';
+import { POSTCARDS, POSTCARD_FOR_POI } from '../data/postcards';
 
 const WEEK_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEK_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -72,27 +72,10 @@ export function postcardArt(id: string): { src: string; srcSet?: string } | unde
 }
 
 /**
- * Which postcard illustrates a place card that has no licensed photo. Only ids that exist in POSTCARDS are
- * returned; the card shows the art once that postcard is collected (a small reason to go find it).
+ * Which postcard illustrates a place card that has no licensed photo (data/postcards POSTCARD_FOR_POI). Only ids that
+ * exist in POSTCARDS are returned; the card shows the art once that postcard is collected (a small reason to go find it).
  */
-const POI_POSTCARD: Record<string, string> = {
-  'ferry-building': 'ferry-building-dawn',
-  'farmers-market': 'ferry-building-dawn',
-  'weekly-board': 'ferry-building-dawn',
-  pier14: 'bay-bridge-night',
-  pier7: 'pier7-sunset',
-  exploratorium: 'exploratorium',
-  'filbert-steps': 'filbert-steps',
-  'levis-plaza': 'filbert-steps',
-  'coit-tower': 'coit-tower',
-  'coit-murals': 'coit-tower',
-  'sea-lions': 'sea-lions',
-  'pier39-carousel': 'sea-lions',
-  'streetcar-ferry': 'streetcar',
-  'streetcar-green': 'streetcar',
-  'streetcar-pier39': 'streetcar',
-};
 export function postcardForPoi(poiId: string | undefined): string | undefined {
-  const id = poiId ? POI_POSTCARD[poiId] ?? (poiId.startsWith('streetcar') ? 'streetcar' : undefined) : undefined;
+  const id = poiId ? POSTCARD_FOR_POI[poiId] ?? (poiId.startsWith('streetcar') ? 'streetcar' : undefined) : undefined;
   return id && POSTCARDS.some(card => card.id === id) ? id : undefined;
 }

@@ -4,6 +4,7 @@ import type { PoiDef } from '../core/types';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
 import { guideUrl, mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
 import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS } from '../data/pois';
+import { CITY_POI_ZONES } from '../data/sf/cityPois';
 import { closePanel, openEvent, toggleWish, tourStops } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { poiById, postcardById } from '../game/interactables';
@@ -17,6 +18,7 @@ import { formatDay, postcardArt, postcardForPoi } from './format';
  * Real-info card for a landmark. F10: BAYLINK leads — the matching guide sits right under the summary (pinned in
  * the footer on phones); 官网 only when it really is the official site (never the fact-check source); every source
  * is listed; a still-locked postcard illustration is a slim strip, not a blurred quarter of the screen.
+ * City mode (lane G2, G2-1): `openPanel('poi', 'sf:<landmarkId>')` renders the SF landmark card the same way.
  */
 export function PoiCard({ id }: { id?: string }) {
   const poi = poiById(id);
@@ -40,6 +42,8 @@ function PoiCardInner({ poi }: { poi: PoiDef }) {
   const photoPage = info?.photo ? safeHref(PHOTO_SOURCE_PAGES[info.photo.src]) : undefined;
   const near = info ? eventsNear(catalog, { lat: info.lat, lng: info.lng }, todayInBay(), 1.0, 7, new Date()).slice(0, 3) : [];
   const title = t(poi.name);
+  // city landmark cards (`sf:<landmarkId>`, data/sf/cityPois.ts) name their neighbourhood in the eyebrow
+  const zone = CITY_POI_ZONES[poi.id];
   const cardId = info?.photo ? undefined : postcardForPoi(poi.id);
   const card = postcardById(cardId);
   const art = cardId ? postcardArt(cardId) : undefined;
@@ -55,7 +59,7 @@ function PoiCardInner({ poi }: { poi: PoiDef }) {
 
   return (
     <Sheet
-      eyebrow={<><InteractIcon kind={poi.interaction.kind} size={14} />{t('真实地点', 'Real place')}</>}
+      eyebrow={<><InteractIcon kind={poi.interaction.kind} size={14} />{t('真实地点', 'Real place')}{zone && <> · {t(zone)}</>}</>}
       title={title}
       onClose={closePanel}
       className="ob-poi"
