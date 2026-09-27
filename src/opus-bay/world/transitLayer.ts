@@ -6,6 +6,7 @@ import { CABLE, type TransitData, type Turntable, flineJson, loadTransit, pointA
 import { Batch } from './builder';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
 import { FerryLayer } from './ferry';
+import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
 import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
@@ -118,6 +119,8 @@ export class TransitLayer {
 
     this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround);
     this.rails = new RailLayer(data, this.fline ? flineRailTracks(this.fline.line) : []);
+    // D2's Powell & Market landmark drops its static disc top under F's spinning disc (its lod 0 rebuilds)
+    if (this.discs.some(d => d.tt.landmark)) setTurntableSpinner(true);
     this.group.add(this.cars, this.carsFar, this.discMesh, this.ring, this.rails.mesh);
     if (this.fline) this.group.add(this.fline.group);
     this.refreshDiscHeights(true);
@@ -250,6 +253,7 @@ export class TransitLayer {
     this.rails.dispose();
     this.fline?.dispose();
     this.ferry.dispose();
+    setTurntableSpinner(false);
     if (LAYER === this) LAYER = null;
   }
 }
