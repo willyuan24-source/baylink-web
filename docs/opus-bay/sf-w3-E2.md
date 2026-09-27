@@ -12,7 +12,7 @@ the E2 requests in `sf-w2-C2.md`, `sf-w2-F.md`, `sf-w2-G1.md`, and C2's wave-3 r
 - 手柄：A 同时算 E（缆车上坐下/站起、长椅起身），View 键开关地图，跑步猛推摇杆误按 L3 不再起飞，撞墙/鹈鹕落地有轻微震动。
 - 爬坡喘气改成按爬升高度：爬 6 u 以上、到坡顶才喘一次，45 秒内不重复；从 Filbert Steps 一路爬到 Coit Tower 只在山顶喘一次。
 - BAYBAY 换成正式模型的那一帧不再临时编译着色器（原来 +4 个程序，现在 0 个）。之前被打断的那次已经推上去的：存档恢复滑翔、车辆给行人让路、主包瘦身、等车提示、缆车刹车下车。
-- 检查：tsc 0、eslint 0、opus-bay 测试全过（最后一次 523/523）；手机 390×844、375×667 和平板 768×1024 实机截图都看过。
+- 检查：tsc 0、eslint 0、opus-bay 测试全过（最后一次 534/534）；手机 390×844、375×667 和平板 768×1024 实机截图都看过。
 
 ### What was built
 
@@ -30,7 +30,7 @@ All on `origin/opus-bay` (hashes as pushed; a rebase may have changed the last o
 | E2-11 | `5917f0c` | Gamepad (below). |
 | E2-13 | `6c30416` | Crest pant by climb height (below). |
 | P5 (C2 request 3) | `ee2b765` | The BAYBAY GLB swap links no shader program (below). |
-| E2-16 follow-up (H2b's question) | "E2-16 (H2b's question): static obstacle sources are fine" | Only person kinds say "whoa" in `giveWay`; `'traffic'` and any other kind (e.g. `'static'` for a mural board) give the soft bump without a voice. |
+| E2-16 follow-up (H2b's question) | `3dde7a2` | Only person kinds say "whoa" in `giveWay`; `'traffic'` and any other kind (e.g. `'static'` for a mural board) give the soft bump without a voice. |
 
 **M2 — tap on a facade** (`actors/tapTarget.ts`, new; `actors/system.ts`):
 - The ground picker's ray (`heightfieldRaycast`) now also stops at the first city building wall below its top
@@ -87,7 +87,7 @@ All on `origin/opus-bay` (hashes as pushed; a rebase may have changed the last o
 
 ### Evidence
 
-- Checks on the last push: `tsc` 0, `eslint` 0, **523 / 523** opus-bay tests (hero regression and contracts
+- Checks on the last push: `tsc` 0, `eslint` 0, **534 / 534** opus-bay tests (hero regression and contracts
   included). Under the shared machine load the wall-clock assert in `opus-bay-sf-citymap` "draw … fast" failed twice
   (171–337 ms > 150 ms) and passes alone (36–77 ms), and one full run had 1 failure that did not repeat (the wave-4 note
   lists the same wall-clock flakes); my check script re-runs a failing file alone before it calls a run red.
@@ -117,8 +117,9 @@ All on `origin/opus-bay` (hashes as pushed; a rebase may have changed the last o
   not from the swap.)
 - P7 / GameRoot gzip (`npx vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/w3/e2/dist`):
   HC-1 312.26 → 310.72 KB (walkGraph + format became a 2.6 KB lazy chunk; 283.5 KB measured with G2's static landmark
-  imports stubbed). Now **328.26 KB** at `6c30416` (the growth since came from other lanes' wave-3 / wave-4 work); E2's
-  part-a additions to the main graph are ≈ 1.5 KB (`tapTarget` 0.84 KB gzip).
+  imports stubbed). 328.26 KB at `6c30416` (the growth came from other lanes' wave-3 / wave-4 work), **301.49 KB** at
+  `fe4d427` after G2 moved the landmark library out (`88ed44f`). E2's part-a additions to the main graph are ≈ 1.5 KB
+  (`tapTarget` 0.84 KB gzip).
 
 ### Decisions
 
@@ -158,11 +159,8 @@ bike racks and benches.
    [`e2-9-tablet768-zh.jpg`](qa/w3/E2/e2-9-tablet768-zh.jpg) (坐叮当车 over the map / Ask buttons). Move it one column in,
    like the movement column:
    `@media (min-width: 601px) and (max-width: 1180px) { .ob-hud:not(.is-narrow) .ob-touch-action { right: calc(84px + var(--ob-sr)); } }`
-3. **G2 (+ D2), P7**: same as C2's request 4 — `data/sf/cityPois.ts`, `game/cityGoals.ts`, `game/cityContent.ts`,
-   `game/baybayLines.ts` and `game/residentTasks.ts` import `world/sf/landmarks/index` / `golden-gate-bridge` /
-   `context` statically, which keeps every landmark recipe in GameRoot (HC-1 measured 310.72 → 283.5 KB without them).
-   They only need placement data (`sfLandmark`, `worldToLandmark`, `sfLandmarkAnchor`, the GGB frame): read it through
-   `cityModule()` in the city-only paths, or D2 splits a recipe-free `world/sf/landmarks/placement.ts` they can import.
+3. ~~G2 (+ D2), P7: the static landmark imports in G2's files~~ — done by G2 in `88ed44f` (C2's request 4) while this
+   report was being written: GameRoot's static graph reaches no `world/sf/landmarks` module now (301.49 KB at `fe4d427`).
 4. **F, `src/opus-bay/world/streetcar.ts` + `game/transit.ts`**: the district / hero F-line ride has no `line`, so E2's
    rider hops off at once (as before). For the braked hop-off there too, give that ride `line: 'streetcar'` and honour
    `requestPlatformStop('streetcar', 1.2)` / `releasePlatformStop` in the hero streetcar (brake to 0 within 1.2 s, like the
