@@ -8,6 +8,7 @@ import type { Vec2 } from '../src/opus-bay/core/types';
 import { findPath } from '../src/opus-bay/actors/nav';
 import { ATTRACTION_FLAG_H } from '../src/opus-bay/data/sf/attractionTypes';
 import { EXTRA_PLACES, PLACE_REANCHORS } from '../src/opus-bay/data/sf/extraPlaces';
+import { W4_MODELS, W4_MODEL_IDS } from '../src/opus-bay/data/sf/w4Models';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
 import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
@@ -300,6 +301,11 @@ test('settings: plazas ≥ 30 u², lamps light the night, no text or logo parts,
     // declarative records only: no materials, textures or labels (every surface is the shared TOY / GROUND)
     for (const k of Object.keys(s)) assert.ok(!/material|texture|label|sign|logo/i.test(k), `${s.id}.${k}`);
     for (const p of s.swap?.parts ?? []) assert.ok(!/logo|sign|text/i.test(p.model), `${s.id}: ${p.model}`);
-    if (s.w4.aiSlot) assert.match(s.w4.aiSlot.model, /^w4-[a-z0-9-]+$/, s.id);
+    // an AI slot names lane V's registry id, and that model names this site (D2's swaps: SF_MODELS[model].landmarkId)
+    if (s.w4.aiSlot) {
+      const m = s.w4.aiSlot.model as (typeof W4_MODEL_IDS)[number];
+      assert.ok(W4_MODEL_IDS.includes(m), `${s.id}: ${m} is one of lane V's W4_MODEL_IDS`);
+      assert.equal(W4_MODELS[m].landmarkId, s.id, `${s.id}: ${m} names the site`);
+    }
   }
 });

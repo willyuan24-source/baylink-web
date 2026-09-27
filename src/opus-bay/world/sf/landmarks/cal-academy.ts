@@ -106,7 +106,7 @@ export const calAcademy: W4Site = {
     height: { realM: 25, u: 7.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/28695389'],
     terrain: [-13, -10, 13, 11],
-    aiSlot: { model: 'w4-cal-academy', note: 'lane V: living roof with the two domes and the glass canopy (H-1); ≤ 6k, ≤ 4k if the Music Concourse view is over 395k' },
+    aiSlot: { model: 'sf-cal-academy', note: 'lane V (data/sf/w4Models.ts): living roof with the two domes and the glass canopy (H-1); ≤ 6k, ≤ 4k if the Music Concourse view is over 395k' },
   },
 };
 
