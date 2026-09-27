@@ -167,3 +167,213 @@ bike racks and benches.
    city cars); E2's side needs no change.
 
 Relayed messages during part a: none.
+
+## Part b
+
+### 给主人的摘要
+
+- 城市里到达地标时镜头会对准地标了：市政厅圆顶、九曲花街的弯道、金门大桥都在画面里（以前常常背对着）；在日落区、卡斯特罗这些窄街上，镜头会抬到屋顶上方往下看整条街，不再卡在房子中间。
+- 鹈鹕换成了程序化的“正在飞的鹈鹕”：长身子、头缩在肩上、长嘴朝前、脚收在尾巴下、翅膀张开有“指尖”，只占 1 个绘制调用（原来 2 个，还要下载 1 MB 模型）；地图上“飞过去”时，小人和 BAYBAY 真的骑在鹈鹕背上飞过去。
+- 滑翔会飞越/绕开金门大桥塔、湾区大桥（新加了桥塔和钢缆）、苏特罗塔等，城市加载进来以后也生效（以前只认第一次起飞时的名单）；在城市里降落会落在开阔的地方。
+- 城市自行车架旁会停着小单车（身边最多 4 辆，走远了就挪到你附近的车架），城市里 126 张长椅都能坐。
+- 检查：tsc 0、eslint 0、opus-bay 测试全过；桌面 1440×900 和手机 390×844 实机截图都看过。没有花 Higgsfield 额度（程序化鹈鹕效果够好）。
+
+### What was built
+
+| task | commit | what |
+|---|---|---|
+| E2-5 / E2-6 | `58922d2` | The view field and the city camera (below). |
+| E2-7 | `5bafb91` | Glide world: a live tall list, the Bay Bridge, a 64 u hash, city landing (below). |
+| E2-8 + G1 request 1 | `3890755` | The procedural flying pelican; fast travel rides it (below). |
+| G2 request 1 | `23a31fc` | `sf-w3-G2.md` request 1: a hidden city resident draws no blob shadow (`if (npc.visible)`); the rider's blob also shrinks away high up in fast travel. |
+| E2-12 | `17c8b03` | City bike racks and benches (below). |
+| E2-6 / DR-5 | `645e7f9` | The seated cable-car camera looks level under the roof's overhang (the roof edge cut the sitter's head off). |
+
+(Hashes of the local commits; the final push may rebase the last three.)
+
+**E2-5 — the view field** (`actors/viewField.ts`, new):
+- `preferredViewDir(x, z)` (the direction to look toward) and `preferredCameraYaw(x, z)` (the follow camera's yaw for
+  it). Hero slab (district mode everywhere, city mode on the Embarcadero slab): exactly today's rule, the promenade
+  frame's normal. City: a lazy openness field on a 16 u lattice — 16 directions sampled at 24 / 48 / 96 u (open water
+  +0.5 / 0.8 / 1, lower ground up to +0.6, roofs above the 6 u eye line up to −1 / −0.7 / −0.4, outside the model
+  −0.25), smoothed [¼ ½ ¼]; a cell is computed on first use and again when a chunk under its samples attaches / detaches.
+- Used by `chooseYaw` (camera.ts), the side a city transit ride's camera takes (toward the view, as the F-line's water
+  side) and the sit rig (a city bench's heading turns ≤ 0.6 rad toward the view).
+
+**E2-6 — the city camera** (`actors/camera.ts`, `actors/cameraModes.ts`, `actors/cityViews.ts` new, `core/terrain.ts`
+additive):
+- `heroPoints()` in city mode adds Salesforce Tower (r 5), the Golden Gate Bridge's two towers (r 5) and Sutro (r 7);
+  district keeps its 3 (test). `HeroPoint.r` is the keep-out radius.
+- Landmark zone views (`cityViews.ts`, a dynamic import: the landmark library stays out of GameRoot, the P7 guard is
+  green): one per landmark arrival spot (`sfLandmarkAnchor`), the camera behind the player on the line to D2's photo
+  target, leaning ≤ 0.35 rad toward the photo's side; pitch / distance / look-up from a small solver (`zoneFrame`: the
+  player's chest at 55–78 % of the frame, the feet in it, the photo target above the middle, the landmark's top in
+  frame, as close as that allows), re-run from the ground heights when the camera enters the zone. None for overlooks
+  (Twin Peaks) or the foot of a tower (Sutro). A blocked zone view may turn ≤ 0.7 rad to a clearer yaw instead of losing
+  to the occlusion rule (CS-10); the occlusion auto-turn and the idle bias stay inside that width.
+- Occlusion reads `Blocker.top`: a roof below the sight line (chest → camera at that zoom) hides nothing (`occlusion`,
+  `occlusionBehind`, the ride rigs' pull-in). District blockers carry no tops: unchanged.
+- Roof lift (city, on foot): the follow camera rises over the roofs the ray passes below (≥ 35 % of the way out) and out
+  of a gap between two houses (≤ 0.6 × its distance) — the diorama view down a narrow Sunset / Castro street instead of
+  a camera among the roofs. (A GTA-style pull-in was tried first: at 5 u behind BAYBAY's head it read worse.)
+- Arrival look-again: after a city teleport (`?at=`, resume) the yaw was chosen before the chunks there were in; while
+  they attach (≤ 8 s, the player standing, the camera untouched) it is chosen again and turned to. The fast-travel
+  descent hands over at its own yaw (as the arrival cinematic does).
+- Glide rig: 14 u at pitch 0.3 (was 16.8 / 0.4): the new pelican bigger in frame, the horizon in it. Seated on a city
+  cable car: pitch 0.03 (`645e7f9`, DR-5).
+- No per-frame allocation: `RideCamera.update` reuses its vectors; blocker queries go through the new allocation-free
+  `core/terrain.forEachBlockerNear` (additive, re-entrant).
+
+**E2-7 — the glide world** (`actors/glideTall.ts` new, `actors/glide.ts`, `actors/moveSystem.ts`):
+- `LiveTall`: the hero towers; D2's landmark tall parts (through `cityModule()`) on the base collision uses
+  (`provider.landmarkBase`, else the far city's proxy, else the ground); the Bay Bridge's west crossing as
+  `world/backdrop.ts` draws it (4 towers r 5 top 31.5, the SF and centre anchorages, circles every 6 u along the deck
+  whose tops follow the main cables, ≥ deck + 0.6); and `setTallStructures` extras. Rebuilt when the mode, the city
+  chunk or the extras change and (≤ 1 / s) as the city streams — the old list was captured on the first glide, before
+  the city module or the bases were in. `TallHash`: 64 u buckets (exactly the scan's answer, test).
+  `terrainGlideWorld(array | getter)`, no allocation in `roofAt`. City landing: `nav.arrivalSpot` (a large open area);
+  district: `nearestWalkable` as before.
+
+**E2-8 — the flying pelican** (`actors/vehicles/models.ts buildPelicanRig`, `actors/vehicles/pelican.ts`):
+- One SkinnedMesh on the characters' clay material, 2,348 triangles: a long body (grey-brown mantle, darker belly), the
+  head drawn back onto the shoulders on an S-folded neck (white head, straw crown, chestnut hindneck, cream fore-neck),
+  the long bill laid forward with a warm tip and the dark pouch, broad wings with a pale leading edge and four fingered
+  primaries, the short tail with the feet tucked under it. Bones root / body / head / tail / wingL / wingR / tipL / tipR
+  (the flap and bank code's names); `PELICAN_SEATS` for the rider and BAYBAY. The hands lag the arms, the head
+  counter-nods, the tail follows the pitch; `registerWarmup('e2-pelican')`. It replaces the tilted standing pelican.glb +
+  the separate wing rig (2 draws + 2 shadow draws, a textured program, a 1 MB fetch at the first glide).
+- G1 request 1: in `move.mode === 'travel'` the pelican flies `travelPose()`: the seat `perch` over the sky path, the
+  nose on the climb / descent, the wings beating at the pickup, the rise and the flare; the rider hops on over 0.3–0.9 of
+  the pickup and off in the last quarter of the descent at the arrival spot; BAYBAY rides on its shoulders and hops out
+  beside the player; the pelican flies off.
+- The Higgsfield fallback was not used (0 credits): the contact sheet reads as a pelican in flight (side,
+  three-quarter, chase, bank; `qa/w3/E2/e2-8-*`).
+
+**E2-12 — city bike racks and benches** (`scripts/opus-sf/ride-spots.ts` new, `data/sf/rideSpots.ts` generated,
+`actors/vehicles/cityBikes.ts` new, `actors/vehicles/fleet.ts`, `actors/moveSystem.ts`):
+- The script reads the published chunk props the renderer draws (not on the hero slab, not in a landmark exclusion),
+  attaches every chunk, and keeps a bike beside a rack only if `poseCheck` passes with a clear door slot, a bench only if
+  its front is standable: **26 racks, 126 benches** (11 props in exclusions, 3 racks with no fit, 9 benches with a
+  blocked front). `--check` compares the committed file.
+- `CityBikePool` (loaded by a dynamic import in city mode): ≤ 4 pooled bikes at the racks nearest the player (within
+  120 u, on resident ground), recycled once both the bike and its rack are beyond 160 u and it is out of view; never a
+  ridden or called bike. A pooled bike takes its rack's id (`city-bike-<n>`): the interactables (source
+  `e2-city-rides`), `rideables` (now keyed by id: `syncRideables` republishes when an id moved) and save v2 name the
+  rack; a restore claims a pooled bike for its rack. The city benches (`seat:city-bench-<n>`) join the movement system's
+  seats.
+
+**API for other lanes**
+- `actors/viewField`: `preferredViewDir`, `preferredCameraYaw`, `heroView`, `viewScores`, `bestDir`, `TERRAIN_VIEW`,
+  `resetViewField`, `VIEW_*`.
+- `actors/camera`: `HeroPoint.r`; `ZoneView.r / near / frame`; `loadCityViews()`; `yawCandidates()`.
+- `actors/cityViews` (lazy): `cityHeroPoints`, `cityZoneViews`, `landmarkZoneView`, `zoneFrame`, `CITY_ZONE_R`.
+- `core/terrain`: `forEachBlockerNear(x, z, r, fn)` (additive).
+- `actors/glide`: `TallHash`, `TallSource`, `terrainGlideWorld(array | getter)`. `actors/glideTall`: `LiveTall`,
+  `tallNow`, `heroTall`, `bayBridgeTall`, `landmarkBaseY`. `moveSystem`: `setTallStructures` (kept),
+  `tallStructuresNow()`.
+- `actors/vehicles/models`: `buildPelicanRig`, `PELICAN_SEATS`, `PELICAN_PAL` (`buildWingsRig` and `PELICAN_RIDE`
+  removed). `Pelican.rig`, `Pelican.beating`.
+- `actors/vehicles/cityBikes`: `CityBikePool`, `cityBenchSeats`, `POOL_SIZE` / `PARK_R` / `RECYCLE_R`;
+  `data/sf/rideSpots`: `CITY_BIKE_SPOTS`, `CITY_BENCHES`; `Fleet.add` / `reassign`; `MoveSystem.cityBikes`.
+- DEV QA: `__opusBay.cameraApi` (chooseYaw, yawCandidates, zoneViews, heroPoints, preferredViewDir) and
+  `__opusBay.fastTravel` — the game's own module instances (a page script's own `import()` can load a second copy of a
+  module under dev HMR; that cost an hour here).
+
+### Evidence
+
+- Checks on the local head before the last rebase: `tsc` 0, `eslint` 0, **635 / 636** opus-bay tests with
+  `opus-bay-sf-nav` "window build < 200 ms" failing once under the shared machine load and green alone (the known
+  wall-clock flake); hero regression and contracts green. The pushed tree's numbers are in the last line below.
+- New tests in `tests/opus-bay-sf-move2.test.ts` (11): E2-5 on synthetic worlds + the hero rule exact at 4 anchors; E2-5
+  in the city (Twin Peaks looks downhill, Ocean Beach and the Marina at the water, Russian Hill down toward the Bay;
+  1,000 cached lookups < 50 ms); E2-6 hero points / zone views (district 3 + 7; city 7 hero points and a zone per
+  landmark; none for Twin Peaks / Sutro; the framing solver); E2-6 `chooseYaw` faces City Hall's dome, low roofs hide
+  less (every candidate's occlusion ≤ before, the total < ½); E2-6 the follow camera over the roofs on a Sunset street,
+  no `clone()` per ride-rig frame; E2-7 the live list (the city chunk, extras and provider bases reach a world built
+  before them) and the hash against a scan (3,000 queries); E2-7 the glide never passes through the GGB tower or a Bay
+  Bridge tower and lands via `arrivalSpot`; E2-8 the rig (≤ 3.5k, one material, bones, the shape by bone, seats on the
+  back) and fast travel (pickup → descent carried, BAYBAY seated, up at the cruise height, on foot at the destination);
+  E2-12 every generated spot re-checked on the attached city; the pool (≤ 4 at the nearest racks, recycled, the ridden
+  one kept, rideables follow the ids, a city bench to sit on). `tests/opus-bay-sf-vehicles` budget: the ride pelican
+  ≤ 3,500 (was the wings ≤ 700).
+- In the app (dev server 5203, RTX; 1440 × 900 and 390 × 844 `--mobile --dpr 3`; `?start=free&world=city`):
+  - arrivals (`goToCitySpot`): City Hall — before, the camera faced the buildings behind the player; after, the dome and
+    the steps are in frame on desktop and phone ([before](qa/w3/E2/e2-6-city-hall-before.jpg),
+    [after](qa/w3/E2/e2-6-city-hall-after.jpg), [phone](qa/w3/E2/e2-6-city-hall-phone390.jpg)); Lombard's hairpins
+    ([after](qa/w3/E2/e2-6-lombard-after.jpg)); the Golden Gate Bridge along its deck; Grace Cathedral's towers; the
+    Palace rotunda at the frame's right edge (its arrival is in a gap between the Baker St houses: request 2).
+  - narrow streets: at the Sunset (28th Ave) the camera sat among the roofs and a palm
+    ([before](qa/w3/E2/e2-6-sunset-before.jpg)) and now looks down the street from over the roofs
+    ([after](qa/w3/E2/e2-6-sunset-after.jpg)); the Castro ([roof lift](qa/w3/E2/e2-6-castro-roof-lift.jpg)).
+  - glide: the pelican at 11 u, 25 u and 45 u, chase / side / three-quarter / bank
+    ([chase](qa/w3/E2/e2-8-pelican-chase.jpg), [side](qa/w3/E2/e2-8-pelican-side.jpg),
+    [three-quarter](qa/w3/E2/e2-8-pelican-front34.jpg)); across the Bay Bridge from 60 u west at 26 u: the closest it
+    came to any roof or tall structure was 7.2 u, climbing to 39 u over the 31.5 u towers.
+  - programs on the first take-off: district 43 → 43; city 38 → 39 — a plain depth program (no skinning, so not the
+    pelican, whose shadow uses C2's skinned depth material) when a city object first enters the shadow map from the
+    air (request 3).
+  - fast travel Palace → Lombard: pickup 0.8 s → rise → pan → descent, the rider and BAYBAY on the pelican throughout,
+    on foot at Lombard facing the hairpins ([pickup](qa/w3/E2/g1r1-travel-pickup.jpg)).
+  - a city bike at the Union Square rack: parked beside the hoops, the "Ride the bike" prompt, F rides it, F gets off;
+    the bench next to it: E sits ([rack](qa/w3/E2/e2-12-city-bike-rack.jpg), [bench](qa/w3/E2/e2-12-city-bench.jpg)).
+  - seated on a Powell-Hyde car ([the level view](qa/w3/E2/dr5-seated-cable-car.jpg)).
+- Bundle (`npx vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/w3/e2/dist`): GameRoot
+  **309.46 KB** gzip at `645e7f9` (301.49 KB at part a's end; the other lanes' wave-3 / wave-4 work landed in between).
+  E2's city-only code went to lazy chunks: `cityViews` 1.43 KB, `cityBikes` (with the spot table) 3.31 KB gzip.
+
+### Decisions
+
+- The view field is coarse (16 u cells) on purpose: it says where the scenery is; the occlusion scoring picks the clear
+  street next to it. The transit camera takes the view's side once per ride (a swing across the car mid-ride is worse
+  than a fixed side). A swing toward the car's front on narrow streets was tried and dropped (BAYBAY hid the rider).
+- Roof lift, not pull-in, for the on-foot camera: the toy diorama reads best from above; the lift is ≤ 0.6 × the
+  distance.
+- Zone views are solved from the heights when the camera enters them (the far DEM at boot is too rough) and have a
+  ±0.7 rad search width, so a landmark stays in frame even with a house behind the player.
+- The Bay Bridge's glide shape copies `world/backdrop.ts`'s constants and formula (C2's file): request 4 keeps them in
+  step.
+- The pelican stays procedural: it reads as flying, costs one draw and no download.
+- Pooled bikes carry their rack's id, not a pool id, so every consumer (interactables, rideables, save v2) sees a stable
+  name per place.
+
+### Known gaps
+
+- The Palace of Fine Arts arrival spot is in a narrow gap between the Baker St houses: the camera lifts over the roofs
+  and the rotunda sits at the frame's edge (request 2). `?at=` / fast travel still place the player with G1's
+  `canStand || nearestWalkable` rather than `nav.arrivalSpot` (CS-10's third point: request 1).
+- Seated on a cable car in a canyon street (Powell) the camera is still 4 u out (the houses leave no room); the view is
+  level now and the face visible.
+- 4 pooled bikes add up to 4 skinned draws + 4 shadow draws when all are in view.
+- Only 6 of the 24 landmark arrivals and 3 street spots were shot; 375 × 667 was not re-shot for the camera (no UI
+  change in this part).
+- Save v2 claiming a pooled bike for a saved rack is covered by the pool code and review, not by a test of its own.
+
+### Not done
+
+Nothing from part b's list (E2-5, E2-6, E2-7, E2-8, E2-12, plus G1 request 1 and G2 request 1). For the lead or a later
+pass: a contact sheet of all 24 landmark arrivals on desktop and 375 × 667; the requests below and part a's still-open
+ones (G1 1–2, F 4).
+
+### Requests
+
+1. **G1, `src/opus-bay/game/fastTravel.ts` `arrivalSpot`** (CS-10: "arrivalSpot puts the player in narrow slots between
+   house rows"): in city mode use the movement system's large-open-area rule (never a backyard pocket or a slot
+   between two houses):
+   `import { arrivalSpot as openSpot } from '../actors/nav';` and
+   `export function arrivalSpot(p: Vec2): Vec2 { const o = cityTerrain() ? openSpot(p, 30) : null; if (o) return o; if (canStand(p.x, p.z)) return { x: p.x, z: p.z }; return nearestWalkable(p, 40) ?? { x: p.x, z: p.z }; }`
+   (`resume.ts` and `goToCitySpot` already go through it). Check with `?at=lm-palace-of-fine-arts` and
+   `?at=ll:37.7536,-122.4862`.
+2. **D2, `src/opus-bay/data/sf/landmarks.ts` palace-of-fine-arts `arrival` (3, 18.5)**: it lands in a gap between the
+   Baker St houses (`?at=lm-palace-of-fine-arts`, world ≈ (−408.8, 407.5)); move it onto the open lagoon walk in front of
+   the rotunda (the camera's zone view follows the arrival automatically).
+3. **C2** (P5): in city mode one plain `MeshDepthMaterial` program links on the first high glide (38 → 39 at the Marina;
+   district 43 → 43): a non-instanced, non-skinned city mesh with `castShadow` enters the shadow map from the air. Warm
+   that variant (a plain `Mesh` with `castShadow = true` in `world/warmup.ts`'s dummy set) or give it a kind depth
+   material in `kindSweep`.
+4. **C2, `src/opus-bay/world/backdrop.ts` `bayBridge`**: the glide's copy of the west crossing is
+   `actors/glideTall.ts bayBridgeTall()` (DECK 10, TOP 30, the piers of `CITY_BACKDROP['bay-bridge-piers']`, the cable
+   curves). If the bridge changes, change both — or export the tower / cable stations from backdrop.ts and E2 reads them.
+5. Still open from part a: **G1** requests 1 (`HUD_BOX_SELECTOR` + `'.ob-move-buttons > *'`) and 2 (the 601–1180 px
+   `.ob-touch-action` one column in); **F** request 4 (the hero F-line's braked hop-off).
+
+Relayed messages during part b: none.
