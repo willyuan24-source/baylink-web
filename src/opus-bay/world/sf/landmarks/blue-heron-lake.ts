@@ -87,7 +87,7 @@ export const blueHeronLake: W4Site = {
     height: { realM: 8.5, u: 4.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/120479810'],
     terrain: [-6, -5, 6, 6],
-    aiSlot: { model: 'w4-chinese-pavilion', note: 'lane V (data/sf/w4Models.ts, sf-chinese-pavilion): 2,940 triangles, 5.62 × 4.5 × 5.61 u, placed at the origin with scale 1 at local y BASE; the column blockers match its ring' },
+    aiSlot: { model: 'w4-chinese-pavilion', id: 'sf-chinese-pavilion', at: [0, BASE, 0], note: 'lane V (data/sf/w4Models.ts, sf-chinese-pavilion): 2,940 triangles, 5.62 × 4.5 × 5.61 u, placed at the origin with scale 1 at local y BASE; the column blockers match its ring' },
     notes: 'The bridges to Strawberry Hill are the city\'s paths (their walk strips wait for the island fix and the integration).',
   },
 };

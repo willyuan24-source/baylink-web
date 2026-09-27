@@ -141,7 +141,7 @@ export const stIgnatius: W4Site = {
     height: { realM: 64, u: 12.9, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/225193440'],
     terrain: [-5, -8, 15, 8],
-    aiSlot: { model: 'w4-st-ignatius', note: 'lane V (data/sf/w4Models.ts, sf-st-ignatius): twin spires + dome (H-1); swap through the SoloView gate, same footprint and blockers' },
+    aiSlot: { model: 'w4-st-ignatius', id: 'sf-st-ignatius', at: [CX, +g.at(CX, 5.4).toFixed(2), -0.18], note: 'lane V (data/sf/w4Models.ts, sf-st-ignatius): twin spires + dome (H-1); swap through the SoloView gate, same footprint and blockers' },
     notes: 'Active parish: respectful card, no gameplay objects on the church.',
   },
 };

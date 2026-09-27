@@ -88,7 +88,7 @@ export const gearyWest: W4Site = {
     osm: ['way/286435447'],
     terrain: [-4, -4, 4, 5],
     terrainStep: 1,
-    aiSlot: { model: 'w4-holy-virgin', note: 'lane V (data/sf/w4Models.ts, sf-holy-virgin): five gold onion domes, white with red trim; to be re-fitted to this lot (2.6 × 3.0 u, 9.1 u to the cross), front +Z = Geary Blvd' },
+    aiSlot: { model: 'w4-holy-virgin', id: 'sf-holy-virgin', at: [0, +g.at(0, 0).toFixed(2), CZ], note: 'lane V (data/sf/w4Models.ts, sf-holy-virgin): five gold onion domes, white with red trim; to be re-fitted to this lot (2.6 × 3.0 u, 9.1 u to the cross), front +Z = Geary Blvd' },
     notes: 'Active cathedral: quiet card, no gameplay objects.',
   },
 };

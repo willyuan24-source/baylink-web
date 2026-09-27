@@ -58,8 +58,13 @@ export interface W4SiteMeta {
   terrain: readonly [number, number, number, number];
   /** grid step of the baked ground (u, default 2; 1 on terraced slopes whose walks are flattened steps) */
   terrainStep?: number;
-  /** lane V's AI mesh planned for this site (the swap lands in integration, through the SoloView gate) */
-  aiSlot?: { model: string; note: string };
+  /**
+   * lane V's AI mesh planned for this site (the swap lands in integration, through the SoloView gate): `model` = the
+   * GLB stem (`w4-holy-virgin`, lane V's test pairs it with the file), `id` = the SF_MODELS registry id the swap part
+   * names (`sf-holy-virgin`, data/sf/w4Models.ts W4_MODEL_IDS), `at` = the part's placement in the LOCAL frame (y over
+   * the base), yaw 0 and scale 1 unless stated
+   */
+  aiSlot?: { model: string; id: string; at: [number, number, number]; note: string };
   /** attractions of this site that stay card-only here, and why (quiet memorials, closures, the downtown diet) */
   notes?: string;
   /** the walk-around ring's open share when an existing building or the shore closes one side (default 0.75; say why in `notes`) */

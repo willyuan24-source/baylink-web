@@ -360,6 +360,10 @@ test('settings: plazas ≥ 30 u², lamps light the night, no text or logo parts,
       const m = W4_MODEL_IDS.map(id => W4_MODELS[id]).find(x => x.url.endsWith(`/${s.w4.aiSlot!.model}.glb`));
       assert.ok(m, `${s.id}: ${s.w4.aiSlot.model} is one of lane V's W4_MODELS files`);
       assert.equal(m.landmarkId, s.id, `${s.id}: ${s.w4.aiSlot.model} names the site`);
+      // the registry id the integration's swap part names is that same model, placed on the site's ground
+      assert.equal(W4_MODELS[s.w4.aiSlot.id as keyof typeof W4_MODELS], m, `${s.id}: ${s.w4.aiSlot.id} is the model of ${s.w4.aiSlot.model}`);
+      const [ax, ay, az] = s.w4.aiSlot.at;
+      assert.ok(inPoly(landmarkToWorld(s, { x: ax, z: az }), exPoly(s)) && Math.abs(ay - siteGround(s.id).at(ax, az)) < 0.8, `${s.id}: the AI part stands on the site's ground`);
     }
   }
 });
