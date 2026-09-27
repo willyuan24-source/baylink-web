@@ -199,14 +199,14 @@ report), `5fec3c4` (T's re-bake of the N / M termini, caught by the pin test and
 ## Early review
 
 Adversarial review of the early phase (2026-09-27), worktree `C:/Users/willy/wt/w4-c`, scratch
-`C:/Users/willy/opus-qa/w4/w4-c/review/`. Commits `656386f` (cards), `b099469` (Grand Tour), `14e1dce` (arrival, trips,
-recap) and this section; all on new lane-C files, no existing tracked file edited.
+`C:/Users/willy/opus-qa/w4/w4-c/review/`. Four `W4-C-review:` commits (cards; Grand Tour; arrival, trips, recap; this
+report); all on new lane-C files, no existing tracked file edited.
 
 ### 给主人的摘要
 
 1. C 线早期的新文件全部复查了一遍，并上网抽查了 26 条事实、4 个坐标、2 个街名：事实基本都对，只有一处用错了——“企李街”其实是唐人街的 Clay 街，Clement 街应叫“克莱门街”，卡片已改（P 线的地图名称也要跟着改）。
 2. 找到并修好 16 个问题，最要紧的几个：金门大桥、艺术宫等 28 个老地标“抵达”时 BAYBAY 一句话都不说；沿台阶走上科伊特塔时，旁边的小景点会把科伊特塔的抵达时刻和全景“抢走”；站在 33 号码头的望远镜旁会误报“抵达恶魔岛”；快速版把地铁那段“直接到站”，地铁目标就不算数了（现在这一段真坐，快速版约 18 分钟，正好是计划的时长）；快速版下车时 BAYBAY 会报错站名。
-3. 另有 9 件事要别的线或接线时处理，写在下面。检查全部通过：tsc 0、eslint 0、全套 591 个测试通过，Higgsfield 0 分。
+3. 另有 10 件事要别的线或接线时处理，写在下面。检查全部通过：tsc 0、eslint 0、全套 593 个测试通过，Higgsfield 0 分。
 
 ### What I checked
 
@@ -288,6 +288,10 @@ Tests: lane C's three files 32 → **42** tests (cards 12, tours 14, arrival 16)
 - **O9 · note:** the Twin Peaks goal counts after the bus ride because `createSummitDetector` stays armed across a
   transit ride (armed on foot ≥ 150 u away at the Castro). That is plan R4's intent; if G / E ever disarm on transit, the
   tour must walk up from ≥ 150 u instead.
+- **O10 · timing vs lane T (landed during this review, `0a86c3f`):** T's simulated subway brakes and pulls away at
+  7 u/s² and measures Embarcadero → Church 42 s and Castro → West Portal 34 s; `TOUR_MODEL.rail` gives ≈ 35 s / 27 s, so
+  each underground leg models ≈ 7 s short (≈ 0.3 min over the tour, inside the tests' tolerance). At integration take
+  the ride seconds from T's `lightRail.rideSeconds` (or lane G's line model) and re-derive the declared minutes.
 
 ### Integration changes (supersede the early plan where they differ)
 
@@ -309,5 +313,5 @@ Tests: lane C's three files 32 → **42** tests (cards 12, tours 14, arrival 16)
 
 ### Checks
 
-On the rebased head (`14e1dce` + this report, over `a9b87cb`): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
-`npx eslint src/opus-bay tests/opus-bay-*` 0 · full opus-bay suite **591 / 591** green. Higgsfield: 0 credits.
+On the rebased head (over `78b9094`, lane T's `0a86c3f` and lane L's `84c12e2` included): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+`npx eslint src/opus-bay tests/opus-bay-*` 0 · full opus-bay suite **593 / 593** green. Higgsfield: 0 credits.
