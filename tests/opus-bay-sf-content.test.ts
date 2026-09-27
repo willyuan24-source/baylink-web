@@ -115,7 +115,7 @@ test('G2-1: 24 landmark cards with verified info, live BAYLINK ids only, no stal
     assert.equal(poi.interaction.kind, 'info', `${poi.id}: an info card, never the Coit viewpoint sweep`);
     assert.equal(poi.radius, 4);
     const at = sfLandmarkAnchor(lm)!;
-    assert.ok(dist(poi.position, at) < 1e-9, `${poi.id}: at D2's arrival spot`);
+    assert.ok(dist(poi.position, at) < 0.01, `${poi.id}: at D2's arrival spot`);
     const info = poi.realInfo!;
     assert.match(info.sourceUrl, /^https:\/\//);
     assert.match(info.verifiedAt, /^\d{4}-\d{2}-\d{2}$/);
@@ -378,4 +378,29 @@ test('G1 request 3: sf:<placeId> resolves to the landmark card, the merged POI c
   assert.equal(placeCardTarget('sf:no-such-place', lookup), null);
   assert.equal(placeCardTarget('ferry-building', lookup), null, 'not an sf: id');
   for (const kind of new Set(ix.list.map(p => p.kind))) assert.ok(PLACE_KIND_NAMES[kind], `kind ${kind} named`);
+});
+
+test('P7: data/sf/arrivals.ts is D2’s sfLandmarkAnchor, written out (the landmark library stays out of GameRoot)', async () => {
+  const { LANDMARK_ARRIVALS } = await import('../src/opus-bay/data/sf/arrivals');
+  const r = (v: number, k = 100) => Math.round(v * k) / k;
+  const table = SF_LANDMARKS.map(l => { const a = sfLandmarkAnchor(l.id)!; return `  '${l.id}': { x: ${r(a.x)}, z: ${r(a.z)}, heading: ${r(a.heading, 1000)} },`; }).join('\n');
+  const hint = `D2 moved a landmark or its arrival: paste this into data/sf/arrivals.ts\n${table}`;
+  assert.deepEqual(Object.keys(LANDMARK_ARRIVALS).sort(), SF_LANDMARKS.map(l => l.id).sort(), hint);
+  for (const l of SF_LANDMARKS) {
+    const a = sfLandmarkAnchor(l.id)!, b = LANDMARK_ARRIVALS[l.id];
+    assert.ok(Math.hypot(a.x - b.x, a.z - b.z) < 0.01 && Math.abs(a.heading - b.heading) < 0.001, `${l.id}\n${hint}`);
+  }
+});
+
+test('P7: game/cityLive.ts (lazy) registers the SF landmark subjects and the goal detectors, and unregisters them', async () => {
+  const { initCityLive } = await import('../src/opus-bay/game/cityLive');
+  const { subjectPosition } = await import('../src/opus-bay/game/interactables');
+  assert.equal(subjectPosition('golden-gate-bridge'), null, 'no SF subjects before city mode loads them');
+  const off = initCityLive({ done: () => {}, heightAt: () => 5 });
+  try {
+    const p = subjectPosition('golden-gate-bridge')!, l = sfLandmark('golden-gate-bridge')!;
+    assert.ok(p && Math.hypot(p.x - l.x, p.z - l.z) < 1e-6 && p.y > 2, 'the bridge resolves to a point up its model');
+    assert.ok(subjectPosition('dragon-gate')!.y >= 5 + 2, 'terrain-based landmarks stand on the ground');
+  } finally { off(); }
+  assert.equal(subjectPosition('golden-gate-bridge'), null, 'disposed');
 });

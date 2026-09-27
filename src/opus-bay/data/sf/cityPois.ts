@@ -1,6 +1,6 @@
 import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
 import type { SfPlaceKind } from '../../world/sf/format';
-import { sfLandmarkAnchor } from '../../world/sf/landmarks/context';
+import { LANDMARK_ARRIVALS } from './arrivals';
 import { SF_LANDMARK_INFO, type SfLandmarkInfo } from './landmarks';
 
 /**
@@ -10,7 +10,8 @@ import { SF_LANDMARK_INFO, type SfLandmarkInfo } from './landmarks';
  *
  * - id `sf:<landmarkId>`: `openPanel('poi', 'sf:<id>')` opens the card (ui/PoiCard.tsx), the interactable has the same id
  *   (so G1's `?at=` and "带我去" resolve it) and it never collides with a district POI id;
- * - position: D2's arrival spot (`sfLandmarkAnchor`, walkable, outside the blockers), radius 4; kind 'info' (never
+ * - position: D2's arrival spot (`sfLandmarkAnchor`, walkable, outside the blockers; written out in data/sf/arrivals.ts
+ *   so the landmark library stays out of GameRoot, P7), radius 4; kind 'info' (never
  *   'viewpoint': that runs the Coit-only sweep), no reaction node: E opens the card;
  * - planner / guide ids are copied only when they exist in /planner-catalog.json and /baybay-guides.json (tested);
  *   a month-tagged guide (e.g. an October 2026 payment update) goes stale, so it falls back to the general SF guide;
@@ -70,7 +71,7 @@ export const CITY_PHOTOS: Record<string, Photo & { page: string }> = {
 };
 
 function cityPoi(info: SfLandmarkInfo): PoiDef {
-  const at = sfLandmarkAnchor(info.id) ?? { x: 0, z: 0 };
+  const at = LANDMARK_ARRIVALS[info.id] ?? { x: 0, z: 0 };
   const photo = CITY_PHOTOS[info.id];
   const guideSlug = info.guideSlug && isMonthTagged(info.guideSlug) ? SF_GUIDE_SLUG : info.guideSlug;
   const real = info.realInfo;

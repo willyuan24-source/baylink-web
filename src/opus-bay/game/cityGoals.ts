@@ -1,24 +1,17 @@
 import type { MoveMode } from '../core/store';
 import type { Vec2 } from '../core/types';
-import { onEvent } from '../core/events';
-import { runtime } from '../core/runtime';
-import { game } from '../core/store';
-import { zoneAt } from '../core/terrain';
 import { DISTRICT } from '../data/district';
 import { CITY_GOAL, HOOD_PREFIX, NEIGHBOURHOOD_TARGET, neighbourhoodsVisited } from '../data/sf/goals';
+import { LANDMARK_ARRIVALS } from '../data/sf/arrivals';
 import { cityPoiId } from '../data/sf/cityPois';
-import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
-import { sfLandmark, worldToLandmark } from '../world/sf/landmarks/index';
-import { sfLandmarkAnchor } from '../world/sf/landmarks/context';
-import { travelActive, travelEpoch } from './fastTravel';
-import { registerFrameSystem } from './systemsRegistry';
 import type { GoalTarget } from './cityContent';
 
 /**
  * City goal detectors (lane G2, plan G2-5). The goals themselves are data/sf/goals.ts; `postcards`, `cable-car` (lane F
  * calls completeGoal after a counted ride) and `viewpoint` (Coit's sweep) complete through game/flow. The detectors
- * below are pure state machines (tested with synthetic input in tests/opus-bay-sf-content.test.ts); `initCityGoals`
- * feeds them from the runtime at 5 Hz and completes goals through the `done` callback flow passes in.
+ * below are pure state machines (tested with synthetic input in tests/opus-bay-sf-content.test.ts); game/cityLive.ts
+ * (its own chunk, with the landmark library: P7) feeds them from the runtime at 5 Hz and completes goals through the
+ * `done` callback flow passes in. This module stays in the main graph (the waypoints), so it imports no world/sf code.
  */
 
 /** Modes that count as getting somewhere yourself (not the pelican, fast travel or a transit car). */
@@ -85,18 +78,11 @@ export function neighbourhoodVisit(goalsDone: readonly string[], id: string): st
 /** A photo taken within `r` u of the Painted Ladies row counts (Alamo Square's slope is ≈ 30–60 u away). */
 export const PAINTED_LADIES_PHOTO_R = 70;
 
-/** World y of a landmark's ground, from the placed base or the city ground. */
-function landmarkY(id: string, ground: (x: number, z: number) => number): { x: number; z: number; y: number } | null {
-  const l = sfLandmark(id);
-  if (!l) return null;
-  return { x: l.x, z: l.z, y: typeof l.base === 'number' ? l.base : ground(l.x, l.z) };
-}
-
 /** Soft waypoints for unfinished city goals (game/cityContent goalTargets): the landmark card of each place goal. */
 export function cityGoalTargets(): GoalTarget[] {
   const out: GoalTarget[] = [];
   const add = (goal: string, landmark: string, name: GoalTarget['name']) => {
-    const at = sfLandmarkAnchor(landmark);
+    const at = LANDMARK_ARRIVALS[landmark];
     if (at) out.push({ id: cityPoiId(landmark), goal, x: at.x, z: at.z, name, radius: 4 });
   };
   add(CITY_GOAL.cableCar, 'cable-car-turntable', { zh: '叮当车 · Powell & Market 转车台', en: 'Cable car · Powell & Market turntable' });
@@ -104,42 +90,4 @@ export function cityGoalTargets(): GoalTarget[] {
   add(CITY_GOAL.goldenGate, 'golden-gate-bridge', { zh: '走过金门大桥', en: 'Cross the Golden Gate Bridge' });
   add(CITY_GOAL.paintedLadies, 'painted-ladies', { zh: '给彩绘女士拍张照', en: 'Photograph the Painted Ladies' });
   return out;
-}
-
-export interface CityGoalHooks {
-  /** mark goalsDone ids (flow: set + the "goal complete" toast for FREE_GOALS ids) */
-  done(ids: string[]): void;
-  heightAt(x: number, z: number): number;
-}
-
-/** City mode: wire the detectors to the runtime (5 Hz frame system) and the shutter / transit events. */
-export function initCityGoals(hooks: CityGoalHooks): () => void {
-  const summitAt = landmarkY('twin-peaks', hooks.heightAt);
-  const summit = summitAt ? createSummitDetector(summitAt) : null;
-  const bridge = sfLandmark('golden-gate-bridge');
-  const deck = createDeckCrossing({ end: Math.floor(GGB.TOWER), deckY: GGB.DECK - 3.2 });
-  const ladies = sfLandmark('painted-ladies');
-  const has = (id: string) => game.get().goalsDone.includes(id);
-  let acc = 0, lastZone: string | null = null;
-  const offFrame = registerFrameSystem('g2-city-goals', dt => {
-    if ((acc += dt) < 0.2) return;
-    acc = 0;
-    if (game.get().phase !== 'playing') return;
-    const p = runtime.player;
-    const s: GoalSample = { x: p.x, y: p.y, z: p.z, mode: runtime.move.mode, epoch: travelEpoch(), travelling: travelActive() };
-    if (summit && !has(CITY_GOAL.twinPeaks) && summit.step(s)) hooks.done([CITY_GOAL.twinPeaks]);
-    if (bridge && !has(CITY_GOAL.goldenGate) && deck.step(worldToLandmark(bridge, p), s)) hooks.done([CITY_GOAL.goldenGate]);
-    const zone = s.travelling ? null : zoneAt(p.x, p.z)?.id ?? null;
-    if (zone !== lastZone) {
-      lastZone = zone;
-      if (isNeighbourhoodId(zone)) { const ids = neighbourhoodVisit(game.get().goalsDone, zone); if (ids.length) hooks.done(ids); }
-    }
-  });
-  const offEvents = onEvent(event => {
-    if (event.type === 'shutter' && ladies && !has(CITY_GOAL.paintedLadies)) {
-      const p = runtime.player;
-      if (Math.hypot(p.x - ladies.x, p.z - ladies.z) <= PAINTED_LADIES_PHOTO_R) hooks.done([CITY_GOAL.paintedLadies]);
-    }
-  });
-  return () => { offFrame(); offEvents(); };
 }

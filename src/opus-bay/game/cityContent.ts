@@ -8,19 +8,18 @@ import { DISTRICT_POIS } from '../data/pois';
 import { DISTRICT_POSTCARDS } from '../data/postcards';
 import { CITY_FREE_GOALS } from '../data/sf/goals';
 import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/script';
-import { sfLandmark } from '../world/sf/landmarks/index';
-import { sfLandmarkInfo } from '../data/sf/landmarks';
 import { RESIDENTS, taskDoneId, taskState } from '../data/sf/residents';
-import { cityGoalTargets, initCityGoals } from './cityGoals';
+import { cityGoalTargets } from './cityGoals';
 import { markGoalsDone } from './flow';
-import { registerInteractables, registerSubjectResolver, type Interactable } from './interactables';
+import { registerInteractables, type Interactable } from './interactables';
 
 /**
  * City content entry (lane G2 owns this file from wave 2).
  *
  *   initCityContent()   called once per page by game/flow.ts initFlowListeners (the Overlay's boot), in BOTH world
- *                       modes: returns early in district mode. City mode: the goal detectors (game/cityGoals.ts) and
- *                       the telescope / photo subject resolver for the SF landmarks, and BAYBAY's event and
+ *                       modes: returns early in district mode. City mode: the goal detectors and the telescope / photo
+ *                       subject resolver for the SF landmarks (game/cityLive.ts, its own chunk: it needs the landmark
+ *                       library, which stays out of GameRoot, P7), BAYBAY's event and
  *                       neighbourhood lines (game/baybayLines.ts, its own chunk), the six residents' interactables
  *                       and their favours (game/residentTasks.ts, its own chunk; the bodies are actors/npcs.ts').
  *   goalTargets()       soft waypoints for unfinished city goals, read by flow.nextFreeGoal (free roam hint and the
@@ -59,22 +58,16 @@ const isCity = () => game.get().worldMode === 'city';
 
 export function initCityContent(): () => void {
   if (!isCity()) return () => {};
-  const offGoals = initCityGoals({ done: markGoalsDone, heightAt });
-  // telescope / photo subjects: an SF landmark id resolves to a point about 60 % up its model
-  const offSubjects = registerSubjectResolver(subject => {
-    const l = sfLandmark(subject), info = sfLandmarkInfo(subject);
-    if (!l || !info) return null;
-    const base = typeof l.base === 'number' ? l.base : heightAt(l.x, l.z);
-    return { x: l.x, y: base + Math.max(2, info.height.u * 0.6), z: l.z };
-  });
-  // BAYBAY's event and neighbourhood lines (plan G2-4): their own chunk, fetched only in city mode
-  let offLines: (() => void) | null = null, offTasks: (() => void) | null = null, disposed = false;
+  let offLive: (() => void) | null = null, offLines: (() => void) | null = null, offTasks: (() => void) | null = null, disposed = false;
   const fail = (what: string) => (e: unknown) => { if (import.meta.env?.DEV) console.error(`[opus-bay ${what}]`, e); };
+  // the goal detectors and the SF landmark subjects (plan G2-5): their own chunk with the landmark library
+  void import('./cityLive').then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt }); }, fail('city goals'));
+  // BAYBAY's event and neighbourhood lines (plan G2-4): their own chunk, fetched only in city mode
   void import('./baybayLines').then(m => { if (!disposed) offLines = m.initBaybayLines(); }, fail('lines'));
   // the six residents (plan G2-6): talkable at once, their favours and words in their own chunk
   const offResidents = registerInteractables('g2-residents', () => residentInteractables(game.get().goalsDone));
   void import('./residentTasks').then(m => { if (!disposed) offTasks = m.initResidentTasks(); }, fail('residents'));
-  return () => { disposed = true; offGoals(); offSubjects(); offLines?.(); offResidents(); offTasks?.(); };
+  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); };
 }
 
 let targets: GoalTarget[] | null = null;
