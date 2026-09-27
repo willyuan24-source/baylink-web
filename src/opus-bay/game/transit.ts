@@ -216,7 +216,8 @@ export function rideLabel(ride: FlowRide): RideLabel {
 
 const PUSH_PREFIX = 'transit-push-';
 const STATION_RADIUS = 4.2;
-const PUSH_RADIUS = 7;
+/** wide on purpose: while a car turns, pushing wins the E prompt over BAYBAY and the station (brain: score = d / radius) */
+const PUSH_RADIUS = 12;
 const GRIPMAN: Bilingual = { zh: '缆车司机', en: 'Gripman' };
 const rides: Record<string, number> = {};
 let seenHorn = input.hornCount;
