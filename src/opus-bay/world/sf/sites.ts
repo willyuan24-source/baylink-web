@@ -436,6 +436,30 @@ export class CitySites {
     }, () => { this.aiFailed.add(s.l.id); });
   }
 
+  /** Hold the AI models while the lod 0 is mounted (dropMesh releases them); retainModel loads one the LRU let go. */
+  private holdModels(s: Site) {
+    if (s.retained || !usesAi(s.l) || !this.aiEnabled || !modelsMod) return;
+    s.retained = [...new Set(s.l.swap!.parts.map(p => p.model))];
+    for (const id of s.retained) void modelsMod.retainModel(id);
+  }
+
+  /**
+   * D2-review: a mounted lod 0 that may draw its AI parts (aiNear) but has none: hold its models and rebuild once they
+   * are decoded. requestModels' callback fires for the first load only, so a model the LRU evicted since then
+   * (KEEP_UNUSED 6, shared with the kit's 11 houses) came back without a rebuild, or never came back when the lod 0 had
+   * been built before world/models.ts arrived (nothing retained): after a fast-travel round trip City Hall stayed
+   * procedural for good.
+   */
+  private awaitModels(s: Site) {
+    if (!modelsMod || !usesAi(s.l) || !this.aiEnabled || this.aiFailed.has(s.l.id)) return;
+    this.holdModels(s);
+    const m = modelsMod;
+    void Promise.all(s.retained!.map(id => m.loadModel(id))).then(list => {
+      if (list.some(x => !x)) { this.aiFailed.add(s.l.id); return; }
+      if (s.mesh && !s.ai && s.aiNear) s.rebuild = true;
+    }, () => { this.aiFailed.add(s.l.id); });
+  }
+
   private buildMesh(s: Site) {
     const g = new THREE.Group();
     g.name = `sf:${s.l.id}`;
@@ -483,11 +507,10 @@ export class CitySites {
       s.tris += swap.triangles;
     }
     // hold the models while mounted (LRU-cached after the drop); an AI landmark not decoded yet starts loading here
-    if (usesAi(s.l) && this.aiEnabled && !s.retained && modelsMod) {
-      s.retained = [...new Set(s.l.swap!.parts.map(p => p.model))];
-      for (const id of s.retained) void modelsMod.retainModel(id);
-    }
+    this.holdModels(s);
     this.requestModels(s);
+    // may draw its AI parts but they are not decoded (the LRU let them go since the first request): swap in on arrival
+    if (!models && s.aiNear) this.awaitModels(s);
     this.triangles += s.tris;
     g.matrixAutoUpdate = false;
     g.matrix.copy(landmarkMatrix(s.l, s.baseY));
@@ -545,20 +568,30 @@ export class CitySites {
   /** camera height above the ground at the last update (C2-5 "Sites"), for QA */
   camH = 0;
 
+  /** lod-0 radius per tier this frame (reused: no per-frame allocation) */
+  private readonly radius: Record<1 | 2 | 3, number> = { 1: LOD0[1], 2: LOD0[2], 3: LOD0[3] };
+
   /** At most one lod-0 build per frame (they cost 2–12k triangles to write). */
   update(fx: number, fz: number, t: number) {
     let built = false;
     const dt = Math.min(0.1, Math.max(0, t - this.lastT));
     this.lastT = t;
     this.camH = cameraHeight();
-    const radius = { 1: siteLod0Radius(1, this.camH), 2: siteLod0Radius(2, this.camH), 3: siteLod0Radius(3, this.camH) };
+    const radius = this.radius;
+    radius[1] = siteLod0Radius(1, this.camH); radius[2] = siteLod0Radius(2, this.camH); radius[3] = siteLod0Radius(3, this.camH);
     for (const s of this.sites) {
       const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = radius[s.l.tier] * s.lodK;
       const near = s.near ? d < r + HYST : d < r;
       if (!s.requested && s.l.swap && d < r + PRELOAD) this.requestModels(s);
       // AI parts near the focus only: crossing AI_R rebuilds the lod 0 (the procedural model beyond it)
       const aiNear = s.aiNear ? d < AI_R + AI_HYST : d < AI_R;
-      if (aiNear !== s.aiNear) { s.aiNear = aiNear; if (s.mesh && usesAi(s.l) && this.aiEnabled && (s.ai !== aiNear) && (!aiNear || this.readyModels(s))) s.rebuild = true; }
+      if (aiNear !== s.aiNear) {
+        s.aiNear = aiNear;
+        if (s.mesh && usesAi(s.l) && this.aiEnabled && s.ai !== aiNear) {
+          if (!aiNear || this.readyModels(s)) s.rebuild = true;
+          else this.awaitModels(s);
+        }
+      }
       if (near && !s.mesh && !built && (s.refined || this.pool)) { this.buildMesh(s); built = true; }
       if (near && s.mesh && (s.rebuild || (s.l.buildKey && s.l.buildKey() !== s.key)) && !built) { this.dropMesh(s, true); this.buildMesh(s); built = true; }
       if (near && s.mesh && !s.near) { s.near = true; this.pool?.setVisible(SITE_ID0 + s.i, false); }
