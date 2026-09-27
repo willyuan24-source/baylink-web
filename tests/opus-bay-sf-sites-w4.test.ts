@@ -7,7 +7,7 @@ import { canStand, heightAt, pointInPolygon, setCityTerrain } from '../src/opus-
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { findPath } from '../src/opus-bay/actors/nav';
 import { ATTRACTION_FLAG_H } from '../src/opus-bay/data/sf/attractionTypes';
-import { EXTRA_PLACES, PLACE_REANCHORS } from '../src/opus-bay/data/sf/extraPlaces';
+import { EXTRA_PLACES, PLACE_REANCHORS, attractionArrivals } from '../src/opus-bay/data/sf/extraPlaces';
 import { W4_MODELS, W4_MODEL_IDS } from '../src/opus-bay/data/sf/w4Models';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
@@ -29,6 +29,7 @@ const attractions = (JSON.parse(readFileSync(new URL('../docs/opus-bay/sf-w4-att
 const places = (JSON.parse(readFileSync(new URL('../public/opus-bay/sf/v1/places.json', import.meta.url), 'utf8')) as { places: { id: string; x: number; z: number }[] }).places;
 const placeById = new Map(places.map(p => [p.id, p]));
 const attractionById = new Map(attractions.map(a => [a.id, a]));
+const TRAVEL_ENDS = attractionArrivals();
 
 const triCount = (g: THREE.BufferGeometry) => (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
 const inPoly = (p: Vec2, poly: Vec2[]) => pointInPolygon(p, poly);
@@ -91,7 +92,11 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
     assert.ok(row || extra, `${s.id}: place ${m.placeId} is a places.json row or a lane-P extra row`);
     const px = re?.x ?? (row ?? extra)!.x, pz = re?.z ?? (row ?? extra)!.z;
     const ar = landmarkToWorld(s, m.arrival);
-    assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
+    // the row's anchor, or where lane P ends travel to it (its attraction's arrival: Fort Funston's OSM centroid is 71 u
+    // from the bluff), is near the site
+    const trip = TRAVEL_ENDS[m.placeId] ?? re?.arrival;
+    const near = (x: number, z: number) => Math.min(Math.hypot(x - s.x, z - s.z), Math.hypot(x - ar.x, z - ar.z));
+    assert.ok(Math.min(near(px, pz), trip ? near(trip.x, trip.z) : Infinity) < 45, `${s.id}: place ${m.placeId} near the site`);
     if (extra) assert.ok(m.attractions.includes(m.placeId) || W4_SITES.some(o => o.w4.attractions.includes(m.placeId)), `${s.id}: ${m.placeId} is modelled`);
     assert.ok(Number.isFinite(m.height.u) && m.height.u > 0, s.id);
     assert.ok(['H = 3.2 + 0.155·h', 'terrainY', 'overlook'].includes(m.height.rule), `${s.id}: a rule SfLandmarkInfo knows`);

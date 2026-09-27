@@ -2,6 +2,7 @@ import type { W4Site } from './siteKit';
 import { beachChalet } from './beach-chalet';
 import { bisonPaddock } from './bison-paddock';
 import { blueHeronLake } from './blue-heron-lake';
+import { botanicalGardenGate } from './botanical-garden-gate';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { clementStreet } from './clement-street';
@@ -16,6 +17,7 @@ import { japaneseTeaGarden } from './japanese-tea-garden';
 import { kezarStadium } from './kezar-stadium';
 import { koretCarousel } from './koret-carousel';
 import { landsEnd } from './lands-end';
+import { mountDavidson } from './mount-davidson';
 import { murphyWindmill } from './murphy-windmill';
 import { musicConcourse } from './music-concourse';
 import { oceanBeach } from './ocean-beach';
@@ -24,6 +26,7 @@ import { sfZoo } from './sf-zoo';
 import { sfmoma } from './sfmoma';
 import { tiledSteps } from './tiled-steps';
 import { stIgnatius } from './st-ignatius';
+import { sternGrove } from './stern-grove';
 import { stonestown } from './stonestown';
 import { ucsfMissionBay } from './ucsf-mission-bay';
 import { unionSquare } from './union-square';
@@ -55,6 +58,7 @@ export const W4_SITES: readonly W4Site[] = [
   calAcademy,
   musicConcourse,
   japaneseTeaGarden,
+  botanicalGardenGate,
   unionSquare,
   sfmoma,
   yerbaBuenaGardens,
@@ -76,4 +80,6 @@ export const W4_SITES: readonly W4Site[] = [
   irvingStreet,
   tiledSteps,
   grandViewPark,
+  mountDavidson,
+  sternGrove,
 ];
