@@ -65,12 +65,17 @@ export function TripCard({ trip, title, left, lines, onSkip, onChange, onEnd, on
   const { t } = useT();
   const rows = tripLegRows(trip, lines);
   const ref = useRef<HTMLElement>(null);
+  // (review) the Overlay re-renders the card every second (the time left) with a fresh inline onClose: keep the
+  // latest callback in a ref and focus the first action once, on open — re-running the effect per render pulled the
+  // focus back to 跳过这一站 every second, so a keyboard user could never reach 结束
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); closeRef.current(); } };
     window.addEventListener('keydown', onKey, true);
     ref.current?.querySelector<HTMLButtonElement>('.ob-trip-card-actions button')?.focus({ preventScroll: true });
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClose]);
+  }, []);
   const last = trip.leg >= trip.legs.length - 1;
   return (
     <section ref={ref} className="ob-trip-card" role="dialog" aria-label={t(title)}>

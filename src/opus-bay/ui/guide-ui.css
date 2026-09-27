@@ -129,8 +129,10 @@
 
 /* ---------- waypoint additions (written by the projector: data-label, data-notch; the arrow turns the camera) ---------- */
 /* game/waypoint.ts layoutWaypoint places the label box: --ob-label-dy = its top below the pin (under it, dropped below the
-   bubble, or beside an edge arrow); only once the projector writes data-label (the wave-3 projector never does) */
-.ob-waypoint[data-label] .ob-waypoint-label { top: var(--ob-label-dy, 16px); }
+   bubble, or beside an edge arrow); only once the projector writes data-label (the wave-3 projector never does).
+   [data-label] twice (review): opus-bay.css `.ob-waypoint[data-edge='1'] .ob-waypoint-label { top: 24px }` has the same
+   specificity, so the load order of the two sheets decided whether a label beside an edge arrow fell 24 px under it */
+.ob-waypoint[data-label][data-label] .ob-waypoint-label { top: var(--ob-label-dy, 16px); }
 .ob-waypoint[data-label='none'] .ob-waypoint-label, .ob-waypoint[data-label='none'] .ob-waypoint-dismiss { opacity: 0; pointer-events: none; }
 .ob-waypoint[data-label='short'] .ob-waypoint-label { padding: 3px 8px; }
 .ob-waypoint[data-notch='1'] { opacity: .7; }
