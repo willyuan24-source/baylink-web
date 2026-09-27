@@ -1,4 +1,6 @@
 import type { Bilingual, DialogueAction, DialogueChoice, DialogueNode, FreeGoal, Mood, Speaker, WeekQuestions } from '../core/types';
+import { byMode } from './contentMode';
+import { CITY_FREE_GOALS } from './sf/goals';
 
 /**
  * Opus Bay dialogue (content-owned). Voice: data/VOICE.md. Facts: sources live in data/pois.ts (SRC, realInfo).
@@ -52,7 +54,7 @@ const choice = (hotkey: string, zh: string, en: string, rest: Omit<DialogueChoic
 // Welcome
 // ---------------------------------------------------------------------------
 
-export const START_NODE = one({
+export const DISTRICT_START_NODE = one({
   id: 'intro.hello',
   speaker: 'baybay',
   mood: 'wave',
@@ -64,6 +66,23 @@ export const START_NODE = one({
     choice('4', '我是本地人，直接开始', "I'm a local — let's just go", { action: { type: 'skip-intro' }, next: 'local.intro' }),
   ],
 });
+
+/** City mode's welcome (plan G2-8): the same four choices; "I'll explore" leads to the city goals. */
+export const CITY_START_NODE = one({
+  id: 'intro.hello.city',
+  speaker: 'baybay',
+  mood: 'wave',
+  text: { zh: '嗨！欢迎来到旧金山～我是 BAYBAY。第一次来吗？', en: "Hi! Welcome to San Francisco — I'm BAYBAY. First time here?" },
+  choices: [
+    choice('1', '刚来湾区，带我认识一下', "I'm new — show me around", { action: { type: 'start-tour' }, next: 'tour.intro' }),
+    choice('2', '这周有什么好玩的？', "What's on this week?", { action: { type: 'start-week' }, next: 'week.intro' }),
+    choice('3', '我自己逛逛', "I'll explore on my own", { action: { type: 'free-roam' }, next: 'free.intro.city' }),
+    choice('4', '我是本地人，直接开始', "I'm a local — let's just go", { action: { type: 'skip-intro' }, next: 'local.intro' }),
+  ],
+});
+
+/** The welcome node of the active world (plan G2-0). */
+export const START_NODE = byMode(DISTRICT_START_NODE, CITY_START_NODE);
 
 seq('local.intro', [
   ['wave', '老湾区人你好！那我不啰嗦了，随便逛，有事随时叫我。', "Hey, local! I'll keep it short — roam freely and call me anytime."],
@@ -238,13 +257,29 @@ seq('free.goals', [
   ['happy', '再给海狮拍张照、在市集尝一口。明信片会发金光，留意哦！', 'Then snap the sea lions and taste something at the market. Postcards glint gold — keep an eye out!'],
 ]);
 
-export const FREE_GOALS: FreeGoal[] = [
+export const DISTRICT_FREE_GOALS: FreeGoal[] = [
   { id: 'postcards', label: { zh: '找齐 8 张湾区明信片', en: 'Find all 8 Bay postcards' }, hint: { zh: '留意发金光的小东西，旅行本里有提示', en: 'Look for little golden glints — your journal has hints' } },
   { id: 'streetcar', label: { zh: '坐一次 F 线老电车', en: 'Ride the F-line streetcar' }, hint: { zh: '渡轮大厦、Green St 和 PIER 39 都有站', en: 'Stops at the Ferry Building, Green St and PIER 39' } },
   { id: 'viewpoint', label: { zh: '登上 Coit Tower 观景点', en: "Reach Coit Tower's viewpoint" }, hint: { zh: "从 Levi's Plaza 旁的 Filbert Steps 往上爬", en: "Climb the Filbert Steps by Levi's Plaza" } },
   { id: 'sea-lions', label: { zh: '给海狮拍张照', en: 'Photograph the sea lions' }, hint: { zh: '去 PIER 39，跟着「嗷嗷」声走', en: 'Head to PIER 39 and follow the barking' } },
   { id: 'taste', label: { zh: '在市集尝一口', en: 'Taste something at the market' }, hint: { zh: '渡轮大厦门前的摊位', en: 'The stalls in front of the Ferry Building' } },
 ];
+
+// city mode (plan G2-5 / G2-8): the whole city's goals (data/sf/goals.ts)
+seq('free.intro.city', [
+  ['happy', '好嘞，整座旧金山都给你逛！我跟着你，再给你几个小目标～', "Okay — all of San Francisco is yours! I'll tag along, with a few little goals."],
+], { next: 'free.goals.city' });
+seq('free.goals.city', [
+  ['point', '全城藏着 20 张明信片，会发金光！再坐一段真的叮当车。', 'Twenty postcards hide around the city — they glint gold! And ride a real cable car.'],
+  ['excited', '自己爬上双峰看全城，走过金门大桥，再逛 8 个街区。', 'Climb Twin Peaks for the whole view, walk the Golden Gate, and wander 8 neighbourhoods.'],
+  ['happy', '想去哪儿，打开地图或者叫我带路都行～', 'Want to go somewhere? Open the map, or ask me to lead the way~'],
+]);
+seq('guide.edge.city', [
+  ['thinking', '再往外就出了我们的旧金山啦，桌子边可没有路！', "That's the edge of our San Francisco — no roads past the table!"],
+]);
+
+/** The active world's explorer goals (plan G2-0): the district's 5 or the city's 7 (data/sf/goals.ts). */
+export const FREE_GOALS: FreeGoal[] = byMode(DISTRICT_FREE_GOALS, CITY_FREE_GOALS);
 
 // ---------------------------------------------------------------------------
 // POI micro-interactions (InteractionDef.nodeId, free roam)
@@ -421,8 +456,8 @@ seq('guide.edge', [
 ]);
 
 /** Entry nodes the game systems can play for each situation. */
-export const SCRIPT_HOOKS = {
-  start: START_NODE,
+export const DISTRICT_SCRIPT_HOOKS = {
+  start: DISTRICT_START_NODE,
   localIntro: 'local.intro',
   tourIntro: 'tour.intro',
   tourResume: 'tour.resume',
@@ -447,6 +482,17 @@ export const SCRIPT_HOOKS = {
   goodbye: 'goodbye',
   edge: 'guide.edge',
 } as const;
+type ScriptHooks = { readonly [K in keyof typeof DISTRICT_SCRIPT_HOOKS]: (typeof DISTRICT_SCRIPT_HOOKS)[K] extends string ? string : Readonly<Record<string, string>> };
+/** City mode: the city welcome, free-roam intro and goals, and the city edge line; everything else is shared. */
+export const CITY_SCRIPT_HOOKS: ScriptHooks = {
+  ...DISTRICT_SCRIPT_HOOKS,
+  start: CITY_START_NODE,
+  freeIntro: 'free.intro.city',
+  freeGoals: 'free.goals.city',
+  edge: 'guide.edge.city',
+};
+/** Entry nodes of the active world (plan G2-0). */
+export const SCRIPT_HOOKS: ScriptHooks = byMode<ScriptHooks>(DISTRICT_SCRIPT_HOOKS, CITY_SCRIPT_HOOKS);
 
 /**
  * Second line under each welcome choice, keyed `${nodeId}:${hotkey}` — sets expectations before you pick
@@ -457,6 +503,10 @@ export const CHOICE_SUBS: Record<string, Bilingual> = {
   'intro.hello:2': { zh: '3 个小问题 · 这周真实活动', en: '3 quick questions · real events this week' },
   'intro.hello:3': { zh: '随便走 · 找 8 张明信片', en: 'Wander · find 8 postcards' },
   'intro.hello:4': { zh: '不打扰，直接逛', en: 'No chatter — just explore' },
+  'intro.hello.city:1': { zh: '海边 7 站 · 约 5 分钟 · 我带路', en: '7 waterfront stops · ~5 min · I lead' },
+  'intro.hello.city:2': { zh: '3 个小问题 · 这周真实活动', en: '3 quick questions · real events this week' },
+  'intro.hello.city:3': { zh: '全城 20 张明信片 · 叮当车 · 双峰', en: '20 postcards citywide · cable cars · Twin Peaks' },
+  'intro.hello.city:4': { zh: '不打扰，直接逛', en: 'No chatter — just explore' },
 };
 
 /** What BAYBAY says once you arrive at a tour stop: a natural nudge toward its micro-interaction. */
@@ -471,7 +521,8 @@ export const STOP_PROMPTS: Record<string, Bilingual> = {
 };
 
 /** One-off BAYBAY speech bubbles (not dialogue nodes): pick one at random. */
-export const GUIDE_BARKS: Record<'wait' | 'nudge' | 'nudgeTouch' | 'called' | 'edge' | 'idle' | 'morning' | 'day' | 'golden' | 'night', Bilingual[]> = {
+type BarkKind = 'wait' | 'nudge' | 'nudgeTouch' | 'called' | 'edge' | 'idle' | 'morning' | 'day' | 'golden' | 'night';
+export const DISTRICT_GUIDE_BARKS: Record<BarkKind, Bilingual[]> = {
   wait: [
     { zh: '这边这边！我等你～', en: "Over here! I'll wait for you~" },
     { zh: '慢慢来，风景又不会跑。', en: "Take your time — the view isn't going anywhere." },
@@ -499,3 +550,25 @@ export const GUIDE_BARKS: Record<'wait' | 'nudge' | 'nudgeTouch' | 'called' | 'e
   golden: [{ zh: '金色时刻！这光拍什么都好看。', en: 'Golden hour! Everything looks good in this light.' }],
   night: [{ zh: '码头的灯亮起来了，好温柔。', en: 'The pier lights are on — so cozy.' }],
 };
+
+/**
+ * City mode (plan G2-0, CS-9): no waterfront-only lines (sea lions, pier lights) while you stand in Dolores Park or on
+ * Ocean Beach; the rest (waiting, nudges, being called, morning fog, golden hour) is shared.
+ */
+export const CITY_GUIDE_BARKS: Record<BarkKind, Bilingual[]> = {
+  ...DISTRICT_GUIDE_BARKS,
+  edge: [
+    { zh: '再往外就出了我们的旧金山啦！', en: "That's the edge of our San Francisco!" },
+    { zh: '前面是模型边缘，再走就到桌子上咯～', en: "Model's edge ahead — one more step and you're on the table!" },
+  ],
+  idle: [
+    { zh: 'Karl 今天好像请假了——雾都没来上班。', en: 'Looks like Karl the Fog called in sick today.' },
+    { zh: '要是我有口袋，一定装满酸面包。', en: "If I had pockets, they'd be full of sourdough." },
+    { zh: '这座城的坡，走着走着就成了风景。', en: 'In this city, every hill turns into a view if you keep walking.' },
+    { zh: '每个街区都有自己的颜色，慢慢看。', en: 'Every neighbourhood has its own colours — take it slow.' },
+  ],
+  day: [{ zh: '今天的风刚刚好，适合一直走下去。', en: "Perfect breeze today — let's keep walking." }],
+  night: [{ zh: '城里的灯一盏盏亮起来了，好温柔。', en: 'The city lights are coming on, one by one — so cozy.' }],
+};
+/** One-off bubbles of the active world (plan G2-0). */
+export const GUIDE_BARKS: Record<BarkKind, Bilingual[]> = byMode(DISTRICT_GUIDE_BARKS, CITY_GUIDE_BARKS);

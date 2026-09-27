@@ -8,7 +8,7 @@ import { spawnFx } from '../world/fx';
 import { getCatalog, isExpired, loadCatalog, recommendEvents, todayInBay, weekday } from '../data/catalog';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
-import { POSTCARDS, activePostcardCount, allPostcardsFound } from '../data/postcards';
+import { POSTCARDS, activePostcardCount, activePostcardTotal, allPostcardsFound } from '../data/postcards';
 import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/script';
 import { FIRST_TOUR } from '../data/tours';
 import { markProgress, wishlist } from '../data/wishlist';
@@ -719,6 +719,23 @@ export function completeGoal(key: GoalKey) {
   if (goal) say(`目标完成：${goal.label.zh}`, `Goal complete: ${goal.label.en}`, 'gold', 3200);
 }
 
+/**
+ * Mark goalsDone ids that are not GoalKeys (lane G2's city detectors, game/cityGoals.ts: `twin-peaks`, `golden-gate`,
+ * `painted-ladies`, `neighbourhoods`, and the `hood:<id>` visit marks). A FREE_GOALS id gets the goal event and toast.
+ */
+export function markGoalsDone(ids: readonly string[]) {
+  const done = game.get().goalsDone;
+  const fresh = [...new Set(ids)].filter(id => !done.includes(id));
+  if (!fresh.length) return;
+  game.set({ goalsDone: [...done, ...fresh] });
+  for (const id of fresh) {
+    const goal = FREE_GOALS.find(item => item.id === id);
+    if (!goal) continue;
+    emit({ type: 'goal', id });
+    say(`目标完成：${goal.label.zh}`, `Goal complete: ${goal.label.en}`, 'gold', 3200);
+  }
+}
+
 export function collectPostcard(id: string) {
   const card = postcardById(id);
   const s = game.get();
@@ -734,8 +751,8 @@ export function collectPostcard(id: string) {
   momentTimers.push(setTimeout(revealPostcard, reduced ? 120 : 600));
   freshPostcard = true;
   // (counts go through data/postcards: only the active world mode's cards count, G2-3)
-  const count = activePostcardCount(postcards);
-  announce({ zh: `收集到明信片：${card.title.zh}（${count}/${POSTCARDS.length}）`, en: `Postcard collected: ${card.title.en} (${count}/${POSTCARDS.length})` });
+  const count = activePostcardCount(postcards), total = activePostcardTotal();
+  announce({ zh: `收集到明信片：${card.title.zh}（${count}/${total}）`, en: `Postcard collected: ${card.title.en} (${count}/${total})` });
   if (allPostcardsFound(postcards)) completeGoal('postcards');
 }
 
@@ -1247,10 +1264,12 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
   const s = game.get();
   const out: (Vec2 & { id: string; name: Bilingual })[] = [];
   const add = (id: string, name?: Bilingual) => { const it = interactableById(id); if (it && dist(from, it) > it.radius + 1) out.push({ id: it.id, x: it.x, z: it.z, name: name ?? it.name }); };
-  if (!goalDone('taste')) add('farmers-market');
-  if (!goalDone('viewpoint')) add('coit-tower');
-  if (!goalDone('sea-lions')) add('sea-lions');
-  if (!goalDone('streetcar')) {
+  // only goals of the active world (city mode has no market / sea-lion / F-line goals: CS-9)
+  const open = (id: string) => !goalDone(id) && FREE_GOALS.some(goal => goal.id === id);
+  if (open('taste')) add('farmers-market');
+  if (open('viewpoint')) add('coit-tower');
+  if (open('sea-lions')) add('sea-lions');
+  if (open('streetcar')) {
     const stops = interactables().filter(it => it.action === 'streetcar').sort((a, b) => dist(from, a) - dist(from, b));
     if (stops[0]) add(stops[0].id);
   }

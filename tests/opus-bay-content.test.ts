@@ -4,9 +4,15 @@ import path from 'node:path';
 import test from 'node:test';
 import type { Bilingual, DialogueNode } from '../src/opus-bay/core/types';
 import { DISTRICT } from '../src/opus-bay/data/district';
-import { CONTENT_POI_ANCHORS, EMBARCADERO_INFO, FARMERS_MARKET_DAYS, POIS, POI_EXTRA_SOURCES, PHOTO_SOURCE_PAGES, SUBJECT_FACTS, VERIFIED_AT, isFarmersMarketDay } from '../src/opus-bay/data/pois';
-import { POSTCARDS, POSTCARD_IDS } from '../src/opus-bay/data/postcards';
-import { FREE_GOALS, GUIDE_BARKS, NODES, NPC_LINES, SCRIPT_HOOKS, START_NODE, WEEK_QUESTIONS } from '../src/opus-bay/data/script';
+// pinned to the district (v1) tables, whatever world mode resolves (lane G2, G2-0/G2-10; the city side: opus-bay-sf-content)
+import {
+  CONTENT_POI_ANCHORS, EMBARCADERO_INFO, FARMERS_MARKET_DAYS, DISTRICT_POIS as POIS, DISTRICT_POI_EXTRA_SOURCES as POI_EXTRA_SOURCES,
+  DISTRICT_PHOTO_SOURCE_PAGES as PHOTO_SOURCE_PAGES, DISTRICT_SUBJECT_FACTS as SUBJECT_FACTS, VERIFIED_AT, isFarmersMarketDay,
+} from '../src/opus-bay/data/pois';
+import { DISTRICT_POSTCARDS as POSTCARDS, POSTCARD_IDS } from '../src/opus-bay/data/postcards';
+import {
+  DISTRICT_FREE_GOALS as FREE_GOALS, DISTRICT_GUIDE_BARKS as GUIDE_BARKS, NODES, NPC_LINES, DISTRICT_SCRIPT_HOOKS as SCRIPT_HOOKS, DISTRICT_START_NODE as START_NODE, WEEK_QUESTIONS,
+} from '../src/opus-bay/data/script';
 import { FIRST_TOUR, FIRST_TOUR_PASSES } from '../src/opus-bay/data/tours';
 
 const root = path.resolve(import.meta.dirname, '..');
