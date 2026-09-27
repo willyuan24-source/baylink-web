@@ -271,6 +271,9 @@ function follow(now: number) {
 
 function barks(now: number) {
   if (now - lastBarkAt < 12000) return;
+  // city mode: a pass-by bark waits for the bubble on screen (a neighbourhood greeting, an event line) instead of
+  // cutting it short; district timing is unchanged
+  if (game.get().worldMode === 'city' && flow.get().bubble) return;
   const p = P();
   for (const poi of POIS) {
     if (!poi.bark) continue;

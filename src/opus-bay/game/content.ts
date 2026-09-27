@@ -34,6 +34,18 @@ export function hookText(name: string, sub?: string): Bilingual | undefined {
   return nodeText(hook(name, sub));
 }
 
+/** `{key}` placeholders of a text filled per language (e.g. `{station}` in the city transit hooks). */
+export function fillText(text: Bilingual, vars: Readonly<Record<string, Bilingual>>): Bilingual {
+  const fill = (s: string, lang: 'zh' | 'en') => s.replace(/\{(\w+)\}/g, (all, key: string) => vars[key]?.[lang] ?? all);
+  return { zh: fill(text.zh, 'zh'), en: fill(text.en, 'en') };
+}
+
+/** hookText with its placeholders filled: `hookFill('cablecarStation', { station: st.name })`. */
+export function hookFill(name: string, vars: Readonly<Record<string, Bilingual>>): Bilingual | undefined {
+  const text = hookText(name);
+  return text ? fillText(text, vars) : undefined;
+}
+
 /** Random one-off bubble line for a situation (wait, called, edge, idle, morning, day, golden, night). */
 export function bark(kind: string): Bilingual | undefined {
   const list = S.GUIDE_BARKS?.[kind];

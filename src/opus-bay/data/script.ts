@@ -185,6 +185,18 @@ one({
     choice('3', '先歇会儿', "I'll take a break", { action: { type: 'end' } }),
   ],
 });
+// city mode: the same, pointing at the whole city's goals (plan G2-8)
+one({
+  id: 'tour.after.city',
+  speaker: 'baybay',
+  mood: 'happy',
+  text: { zh: '接下来想做什么？全城还藏着好多明信片哦。', en: 'What next? Plenty more postcards are hiding around the city.' },
+  choices: [
+    choice('1', '我自己逛逛', "I'll explore on my own", { action: { type: 'free-roam' }, next: 'free.goals.city' }),
+    choice('2', '这周有什么好玩的？', "What's on this week?", { action: { type: 'start-week' }, next: 'week.intro' }),
+    choice('3', '先歇会儿', "I'll take a break", { action: { type: 'end' } }),
+  ],
+});
 
 // ---------------------------------------------------------------------------
 // This week (values must stay in sync with data/catalog.ts filters)
@@ -376,6 +388,20 @@ one({
     choice('5', '没事啦', 'Never mind', { action: { type: 'end' } }),
   ],
 });
+/** City mode's call menu (game/flow builds `flow.call` itself today; kept in step so a hook reader never lands in the district goals). */
+one({
+  id: 'call.menu.city',
+  speaker: 'baybay',
+  mood: 'happy',
+  text: { zh: '我在呢！想做什么？', en: "I'm here! What would you like to do?" },
+  choices: [
+    choice('1', '继续导览', 'Continue the tour', { action: { type: 'start-tour' } }),
+    choice('2', '这周活动', "What's on this week", { action: { type: 'start-week' }, next: 'week.intro' }),
+    choice('3', '自己逛', 'Explore on my own', { action: { type: 'free-roam' }, next: 'free.goals.city' }),
+    choice('4', '打开地图', 'Open the map', { action: { type: 'open-map' } }),
+    choice('5', '没事啦', 'Never mind', { action: { type: 'end' } }),
+  ],
+});
 
 // ---------------------------------------------------------------------------
 // NPCs (fictional residents). Keys match game/interactables.ts NPC_POSTS + the jogger.
@@ -383,14 +409,14 @@ one({
 
 export interface NpcLine { key: string; anchor: string; name: Bilingual; nodeId: string }
 
-export const NPC_LINES: NpcLine[] = [
+export const DISTRICT_NPC_LINES: NpcLine[] = [
   { key: 'vendor', anchor: 'npc-vendor', name: { zh: '摊主 Maya', en: 'Maya, stallholder' }, nodeId: 'npc.vendor' },
   { key: 'fisher', anchor: 'npc-fisher', name: { zh: '钓鱼的老陈', en: 'Old Chen, angler' }, nodeId: 'npc.fisher' },
   { key: 'streetcar', anchor: 'npc-streetcar', name: { zh: '电车司机 Lou', en: 'Lou, streetcar operator' }, nodeId: 'npc.streetcar' },
   { key: 'family', anchor: 'npc-family', name: { zh: '来玩的 Kim 一家', en: 'The Kims, visiting' }, nodeId: 'npc.family' },
   { key: 'jogger', anchor: 'npc-jogger-a', name: { zh: '跑步的 Sam', en: 'Sam, out for a run' }, nodeId: 'npc.jogger' },
 ];
-const npcName = (key: string): Bilingual => NPC_LINES.find(item => item.key === key)!.name;
+const npcName = (key: string): Bilingual => DISTRICT_NPC_LINES.find(item => item.key === key)!.name;
 
 seq('npc.vendor', [
   ['happy', '尝一口吧！喜欢再买，不喜欢也没关系～', 'Have a taste! Buy it if you love it — no pressure.'],
@@ -424,6 +450,38 @@ seq('npc.jogger', [
   ['happy', '它还是湾区步道 Bay Trail 的一段，慢慢跑～', "It's part of the Bay Trail, too. Pace yourself!"],
 ], END, 'npc', npcName('jogger'));
 
+/**
+ * City transit crews (lane F's cable cars and ferry, plan G2-4 / F's requests): fictional, no names, no fares (fares
+ * change; the landmark card links the official page). `anchor` is empty: they ride with their car, not at a post.
+ */
+export const CITY_NPC_LINES: NpcLine[] = [
+  { key: 'gripman', anchor: '', name: { zh: '叮当车司机', en: 'Gripman' }, nodeId: 'npc.gripman' },
+  { key: 'deckhand', anchor: '', name: { zh: '渡轮水手', en: 'Deckhand' }, nodeId: 'npc.deckhand' },
+];
+/** The active world's residents with lines (city: the district's plus the transit crews). */
+export const NPC_LINES: NpcLine[] = byMode(DISTRICT_NPC_LINES, [...DISTRICT_NPC_LINES, ...CITY_NPC_LINES]);
+const crewName = (key: string): Bilingual => CITY_NPC_LINES.find(item => item.key === key)!.name;
+
+seq('npc.gripman', [
+  ['happy', '叮叮！这根大手柄就是「抓手」：抓住缆绳就走，松开再靠刹车停。', 'Ding ding! This big lever is the grip: grab the cable and we go, let go and the brakes stop us.'],
+  ['wave', '路口我会摇铃，大家让一让～抓紧扶杆哦！', "I ring at every crossing so folks make way. Hold on tight!"],
+], END, 'npc', crewName('gripman'));
+seq('npc.deckhand', [
+  ['happy', '欢迎上船！海上风大，扶好栏杆～', 'Welcome aboard! It gets breezy out on the water, so hold the rail~'],
+  ['wave', '想看海鸥就去船尾，它们最爱跟船飞。', 'Want gulls? Head to the stern, they love to follow the boat.'],
+], END, 'npc', crewName('deckhand'));
+
+// the cable cars and the ferry (lane F reads these through content.hookText; `{station}` = the station's name).
+// Glossary: 叮当车 for the cable cars in everything BAYBAY and the crews say.
+one({ id: 'cablecar.station', speaker: 'npc', npcName: crewName('gripman'), mood: 'happy', text: { zh: '叮叮！这里是 {station}。抓紧扶杆，想去哪儿？', en: 'Ding-ding! This is {station}. Hold on tight, where to?' } });
+seq('cablecar.board', [['excited', '上车啦！抓紧扶杆，叮当车要爬坡咯～', 'All aboard! Hold the pole, up the hill we go~']]);
+seq('cablecar.count', [['thinking', '从一站坐到下一站，才算坐过叮当车哦。', 'Ride from one stop to the next and it counts as a cable-car ride.']]);
+seq('cablecar.off', [['happy', '叮叮！下次还坐叮当车～', 'Ding-ding! Let’s ride again soon~']]);
+seq('cablecar.turned', [['proud', '转过来啦！我们是全城最棒的推车手！', 'Round she goes! Best pushers in the whole city!']]);
+one({ id: 'ferry.station', speaker: 'npc', npcName: crewName('deckhand'), mood: 'happy', text: { zh: '欢迎上船！这里是 {station}，想去哪个码头？', en: 'Welcome aboard! This is {station}. Which pier are we headed to?' } });
+seq('ferry.board', [['excited', '上船啦！找个靠栏杆的位置看海～', 'All aboard! Grab a spot by the rail and watch the water~']]);
+seq('ferry.off', [['happy', '靠岸啦！下船小心脚下～', "We've docked! Watch your step~"]]);
+
 // ---------------------------------------------------------------------------
 // Collectibles, handoff, misc
 // ---------------------------------------------------------------------------
@@ -436,6 +494,13 @@ seq('postcard.found', [
 ]);
 seq('postcard.all', [
   ['proud', '8 张全收齐了！这片海滨，你比很多本地人还熟。', 'All 8 collected! You know this waterfront better than a lot of locals.'],
+], { next: 'handoff.plan' });
+// city mode: 20 cards (the waterfront's 8 + 12 around the city)
+seq('postcard.first.city', [
+  ['excited', '第一张明信片！全城一共藏了 20 张，旅行本里有线索。', 'Your first postcard! 20 are hidden around the city — your journal has clues.'],
+]);
+seq('postcard.all.city', [
+  ['proud', '20 张全收齐了！整座旧金山，你比很多本地人还熟。', 'All 20 collected! You know San Francisco better than a lot of locals.'],
 ], { next: 'handoff.plan' });
 
 one({
@@ -483,13 +548,32 @@ export const DISTRICT_SCRIPT_HOOKS = {
   edge: 'guide.edge',
 } as const;
 type ScriptHooks = { readonly [K in keyof typeof DISTRICT_SCRIPT_HOOKS]: (typeof DISTRICT_SCRIPT_HOOKS)[K] extends string ? string : Readonly<Record<string, string>> };
-/** City mode: the city welcome, free-roam intro and goals, and the city edge line; everything else is shared. */
-export const CITY_SCRIPT_HOOKS: ScriptHooks = {
+/**
+ * City-only hooks (lane F's cable cars and ferry read them with content.hookText; in district mode they resolve to
+ * nothing and F keeps its inline line). `cablecarStation` / `ferryStation` carry a `{station}` placeholder.
+ */
+export const CITY_TRANSIT_HOOKS = {
+  cablecarStation: 'cablecar.station',
+  cablecarBoard: 'cablecar.board',
+  cablecarCount: 'cablecar.count',
+  cablecarOff: 'cablecar.off',
+  turntableTurned: 'cablecar.turned',
+  ferryStation: 'ferry.station',
+  ferryBoard: 'ferry.board',
+  ferryOff: 'ferry.off',
+} as const;
+/** City mode: the city welcome, free-roam intro and goals, card counts, call menu, edge line and transit hooks. */
+export const CITY_SCRIPT_HOOKS: ScriptHooks & typeof CITY_TRANSIT_HOOKS = {
   ...DISTRICT_SCRIPT_HOOKS,
   start: CITY_START_NODE,
+  tourAfter: 'tour.after.city',
   freeIntro: 'free.intro.city',
   freeGoals: 'free.goals.city',
+  call: 'call.menu.city',
+  postcardFirst: 'postcard.first.city',
+  postcardAll: 'postcard.all.city',
   edge: 'guide.edge.city',
+  ...CITY_TRANSIT_HOOKS,
 };
 /** Entry nodes of the active world (plan G2-0). */
 export const SCRIPT_HOOKS: ScriptHooks = byMode<ScriptHooks>(DISTRICT_SCRIPT_HOOKS, CITY_SCRIPT_HOOKS);

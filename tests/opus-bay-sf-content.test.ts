@@ -316,3 +316,36 @@ test('G2-8: city welcome mirrors the district choices; subs, goals line and edge
   const src = fs.readFileSync(path.join(root, 'src/opus-bay/data/sf/copy.ts'), 'utf8');
   for (const line of src.split('\n').filter(l => /^import /.test(l))) assert.match(line, /^import type /, 'copy.ts stays dependency-free (title chunk)');
 });
+
+// ---------------------------------------------------------------------------
+// Wave 3 · the city hooks (call menu, card counts) and lane F's transit hooks
+// ---------------------------------------------------------------------------
+
+test('G2 w3: city hooks resolve; the city call menu / tour-after lead to the city goals; cards say 20', async () => {
+  const { fillText } = await import('../src/opus-bay/game/content');
+  for (const [name, id] of Object.entries(script.CITY_SCRIPT_HOOKS)) {
+    if (typeof id !== 'string') continue;
+    assert.ok(script.NODES[id], `hook ${name} → node ${id}`);
+  }
+  const roam = (id: string) => script.NODES[id].choices?.find(ch => ch.action?.type === 'free-roam')?.next;
+  assert.equal(roam('call.menu.city'), 'free.goals.city');
+  assert.equal(roam('tour.after.city'), 'free.goals.city');
+  assert.equal(roam('call.menu'), 'free.goals', 'district unchanged');
+  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardFirst].text.zh.includes('20'));
+  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardAll].text.zh.startsWith('20 张'));
+  assert.equal(script.NODES[script.CITY_SCRIPT_HOOKS.postcardAll].next, 'handoff.plan');
+  // lane F's hooks: 叮当车 in every cable-car line, `{station}` in the station greetings, crews are fictional names
+  for (const id of Object.values(script.CITY_TRANSIT_HOOKS)) {
+    const n = script.NODES[id];
+    filled(n.text, id);
+    assert.ok(!n.text.zh.includes('缆车'), `${id}: 叮当车, not 缆车`);
+    assert.ok(bubbleWidth(n.text.zh) <= 45, `${id}: ≤ 45`);
+  }
+  for (const id of [script.CITY_TRANSIT_HOOKS.cablecarStation, script.CITY_TRANSIT_HOOKS.ferryStation]) {
+    const t = fillText(script.NODES[id].text, { station: { zh: '海德街', en: 'Hyde St' } });
+    assert.ok(t.zh.includes('海德街') && t.en.includes('Hyde St') && !/[{}]/.test(t.zh + t.en), `${id}: {station} filled`);
+  }
+  assert.deepEqual(script.CITY_NPC_LINES.map(l => l.key), ['gripman', 'deckhand']);
+  for (const l of script.CITY_NPC_LINES) assert.ok(script.NODES[l.nodeId] && script.NODES[`${l.nodeId}.2`], `${l.key} has lines`);
+  assert.deepEqual(script.NPC_LINES.map(l => l.key), script.DISTRICT_NPC_LINES.map(l => l.key), 'node tests resolve district: residents unchanged');
+});
