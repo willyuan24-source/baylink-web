@@ -18,8 +18,9 @@ import { game, type GameState } from '../core/store';
 import { DISTRICT } from '../data/district';
 import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld, shoreJob } from './ambience';
+import { soundAt } from './cityHooks';
 import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
-import { createRateLimiter, transitSound } from './logic';
+import { clamp, createRateLimiter, panFor, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
 import * as sfx from './sfx';
@@ -62,6 +63,14 @@ export function startAudio(): () => void {
   const hoverOk = createRateLimiter(10, 2);
   const areaOk = createRateLimiter(1 / 6, 1);
   const cableBellOk = createRateLimiter(1 / 1.5, 1);
+  const hornOk = createRateLimiter(1 / 4, 1);
+  const hopOk = createRateLimiter(1 / 4, 1);
+  /** where an event emitted with audio/cityHooks emitAt happened: its pan and distance from the listener */
+  const located = () => {
+    if (!soundAt.set) return { pan: 0, d: 0 };
+    const p = runtime.player;
+    return { pan: panFor(p, runtime.camera.yaw, soundAt, 0.8), d: Math.hypot(soundAt.x - p.x, soundAt.z - p.z) };
+  };
   const areasHeard = new Set<string>();
 
   const wantsSound = () => game.get().settings.sound && document.visibilityState === 'visible';
@@ -175,7 +184,9 @@ export function startAudio(): () => void {
     rig = { ctx: c, engine, ambience, music, voice: new VoicePlayer(engine), loops: new rides.RideLoops(engine) };
     if (activated) goLive();
     yield;
-    // the shore distance field: the district's, as before (the city field is F10, lane F part b)
+    // the shore distance field: the district's; in city mode the ambience builds the whole city's round the listener
+    // (audio/city.ts CityShore) once the streamed terrain is in
+    if (game.get().worldMode === 'city') return;
     const shore = yield* shoreJob(DISTRICT);
     if (rig && !disposed) rig.ambience.setShore(shore);
   }
@@ -221,13 +232,22 @@ export function startAudio(): () => void {
       case 'goal': sfx.goal(e); voice.bark('yay', 0.8); break;
       case 'wish': sfx.wish(e, ev.added); break;
       case 'bell': sfx.bell(e); break;
-      case 'streetcar-bell': sfx.streetcarBell(e); break;
-      // city cable cars (lane F): the gripman's bell, the grip clank, the turntable creak
+      // (city mode: another F-line car's bell comes from where it is)
+      case 'streetcar-bell': { const at = located(); if (soundAt.set) sfx.streetcarBell(e, clamp(1 - at.d / 70, 0.25, 1), at.pan); else sfx.streetcarBell(e); break; }
+      // city transit (lane F): cable-car bells, grip, turntable; the ferry's horn; a walker hopping out of the way —
+      // panned from where they happened (audio/cityHooks emitAt), the loudness already in `strength`
       case 'transit': {
         const s = transitSound(ev.what, ev.kind, ev.strength);
-        if (s?.kind === 'cable-bell') { if (cableBellOk(now)) sfx.cableBell(e, s.gain, s.strikes); }
-        else if (s?.kind === 'grip-clank') sfx.bump(e, 'metal', s.gain);
-        else if (s?.kind === 'turntable-creak') rides.sitCreak(e);
+        if (!s) break;
+        const { pan } = located();
+        switch (s.kind) {
+          case 'cable-bell': if (cableBellOk(now)) sfx.cableBell(e, s.gain, s.strikes, pan); break;
+          case 'grip-clank': sfx.gripClank(e, s.gain, pan); break;
+          case 'turntable-creak': sfx.turntableCreak(e, s.gain, pan); break;
+          case 'turntable-rumble': sfx.turntableRumble(e, s.gain, pan); break;
+          case 'ferry-horn': if (hornOk(now)) sfx.ferryHorn(e, s.gain, pan); break;
+          case 'hop-squeak': if (hopOk(now)) sfx.hopSqueak(e, s.gain, pan); break;
+        }
         break;
       }
       case 'foghorn': ambience.foghorn(); break;
@@ -305,6 +325,7 @@ export function startAudio(): () => void {
         prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null,
         ...rig.engine.stats,
         counts: { ...rig.engine.stats.counts },
+        city: rig.ambience.debugCity(),
       } : { state: ctx ? 'preparing' : 'not-started', activated, prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
       boot: activate,
     };

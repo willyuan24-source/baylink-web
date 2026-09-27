@@ -145,14 +145,77 @@ export interface ShoreField {
 }
 
 /**
- * Coarse land/water classification of the diorama, then a chamfer distance transform.
- * Contract (DESIGN.md / district seed): the Bay is north (−z) of the waterfront, the city south.
+ * A shore field from a land test over a window (city mode, lane F10): each `cell` of `bounds` is land when
+ * `isLand(centre)` says so (the streamed city's terrain: resident chunks, else the far 8 u map; pier decks and open water
+ * are water), then the same chamfer distance transform. No assumption about where the water is: the Bay, the Golden Gate
+ * and the Pacific all work. Water that does not reach the window's edge (Stow Lake, a reservoir, a park pond) counts as
+ * land: the waves are the sea's.
+ */
+export interface ShoreGridSource {
+  bounds: { minX: number; minZ: number; maxX: number; maxZ: number };
+  cell: number;
+  isLand(x: number, z: number): boolean;
+}
+
+/**
+ * The shore distance field. District (ShoreSource): coarse land/water classification of the diorama, then a chamfer
+ * distance transform. Contract (DESIGN.md / district seed): the Bay is north (−z) of the waterfront, the city south.
  * A cell is land if it is covered by a non-pier walk area, hill, road, ramp, building or landmark
  * collider; everything south of the northern-most land cell of a column is filled as land (the city),
  * everything else on the slab is water. Pier decks count as water — you are standing over it.
+ * City (ShoreGridSource `{bounds, cell, isLand}`): see shoreGridJob.
  */
-export function buildShoreField(src: ShoreSource, cell = 3): ShoreField {
-  return drain(shoreFieldJob(src, cell));
+export function buildShoreField(src: ShoreSource | ShoreGridSource, cell = 3): ShoreField {
+  return drain('isLand' in src ? shoreGridJob(src) : shoreFieldJob(src, cell));
+}
+
+/** Land tests between two yields of shoreGridJob (a city land test is a raster lookup, well under a microsecond). */
+export const SHORE_GRID_CHUNK = 256;
+
+/** The city shore field as a sliced job: classify the window (yield every SHORE_GRID_CHUNK tests), then the transform. */
+export function* shoreGridJob(src: ShoreGridSource): Job<ShoreField> {
+  const { bounds: b, cell } = src;
+  const cols = Math.max(1, Math.ceil((b.maxX - b.minX) / cell));
+  const rows = Math.max(1, Math.ceil((b.maxZ - b.minZ) / cell));
+  const land = new Uint8Array(cols * rows);
+  let tests = 0;
+  for (let r = 0; r < rows; r++) {
+    const z = b.minZ + (r + 0.5) * cell;
+    for (let c = 0; c < cols; c++) {
+      if (src.isLand(b.minX + (c + 0.5) * cell, z)) land[r * cols + c] = 1;
+      if (++tests % SHORE_GRID_CHUNK === 0) yield;
+    }
+  }
+  // the sea reaches the window's edge: flood it in from there; enclosed water (lakes, ponds) becomes land
+  const sea = new Uint8Array(cols * rows), stack: number[] = [];
+  const seed = (i: number) => { if (!land[i] && !sea[i]) { sea[i] = 1; stack.push(i); } };
+  for (let c = 0; c < cols; c++) { seed(c); seed((rows - 1) * cols + c); }
+  for (let r = 0; r < rows; r++) { seed(r * cols); seed(r * cols + cols - 1); }
+  let visits = 0;
+  while (stack.length) {
+    const i = stack.pop()!, c = i % cols;
+    if (c > 0) seed(i - 1);
+    if (c < cols - 1) seed(i + 1);
+    if (i >= cols) seed(i - cols);
+    if (i < (rows - 1) * cols) seed(i + cols);
+    if (++visits % (SHORE_GRID_CHUNK * 4) === 0) yield;
+  }
+  for (let i = 0; i < land.length; i++) if (!land[i] && !sea[i]) land[i] = 1;
+  return yield* fieldFromLand(land, cols, rows, cell, b.minX, b.minZ);
+}
+
+/** The city's windowed shore field: ±256 u round the listener in 4 u cells, rebuilt after 96 u of movement. */
+export const CITY_SHORE = { half: 256, cell: 4, rebuildAfter: 96 } as const;
+
+/** The window of the city shore field round (x, z), snapped to its cell grid (so rebuilds line up). */
+export function shoreWindow(x: number, z: number, o: { half: number; cell: number } = CITY_SHORE) {
+  const cx = Math.round(x / o.cell) * o.cell, cz = Math.round(z / o.cell) * o.cell;
+  return { minX: cx - o.half, minZ: cz - o.half, maxX: cx + o.half, maxZ: cz + o.half };
+}
+
+/** Whether the listener has moved far enough from the field's centre (or there is none yet) to build a new one. */
+export function shoreRebuildDue(centre: Vec2 | null, x: number, z: number, after: number = CITY_SHORE.rebuildAfter): boolean {
+  return !centre || Math.hypot(x - centre.x, z - centre.z) > after;
 }
 
 /** Land tests between two yields of shoreFieldJob (a land test is a few microseconds on the district). */
@@ -212,7 +275,11 @@ export function* shoreFieldJob(src: ShoreSource, cell = 3): Job<ShoreField> {
     if (frontier >= 0) for (let r = frontier; r < rows; r++) land[r * cols + c] = 1;
     yield;
   }
+  return yield* fieldFromLand(land, cols, rows, cell, minX, minZ);
+}
 
+/** Chamfer distance transform of a land / water grid (1 = land) and the field's lookups; yields every row. */
+function* fieldFromLand(land: Uint8Array, cols: number, rows: number, cell: number, minX: number, minZ: number): Job<ShoreField> {
   // two-pass chamfer distance (cells), 8-neighbourhood with weights 1 / √2
   const INF = 1e9, D = Math.SQRT2;
   const dist = new Float32Array(cols * rows);
@@ -670,17 +737,63 @@ export const isMarketDay = (date: Date) => [2, 4, 6].includes(bayWeekday(date));
 
 /**
  * City transit events (lane F, `transit` game events) → a sound: the gripman's bell (quieter for a car farther away),
- * the grip clank when a car takes the cable, the turntable creak when someone pushes. Null = silent (board / depart /
- * arrive / ride / turned are covered by the bell that comes with them, or by lines).
+ * the grip clank when a car takes the cable, the turntable creak when someone pushes and its rumble when a car has
+ * turned, the ferry's horn, a walker's squeak as they hop out of a vehicle's way. Null = silent (board / depart /
+ * arrive / ride are covered by the bell that comes with them, or by lines). Where the event happened (audio/cityHooks
+ * emitAt) sets the pan; `strength` is already the distance.
  */
-export type TransitSound = { kind: 'cable-bell' | 'grip-clank' | 'turntable-creak'; gain: number; strikes: number };
+export type TransitSoundKind = 'cable-bell' | 'grip-clank' | 'turntable-creak' | 'turntable-rumble' | 'ferry-horn' | 'hop-squeak';
+export type TransitSound = { kind: TransitSoundKind; gain: number; strikes: number };
 export function transitSound(what: string, kind: string, strength = 1): TransitSound | null {
-  if (kind !== 'cable-car') return null;
   const k = clamp(strength, 0.15, 1);
+  if (what === 'hop-aside') return { kind: 'hop-squeak', gain: 0.5 * k, strikes: 1 };
+  if (kind === 'ferry') return what === 'horn' ? { kind: 'ferry-horn', gain: k, strikes: 1 } : null;
+  if (kind !== 'cable-car') return null;
   switch (what) {
     case 'bell': return { kind: 'cable-bell', gain: k, strikes: k > 0.6 ? 3 : 2 };
     case 'grip': return { kind: 'grip-clank', gain: 0.35 * k, strikes: 1 };
     case 'push': return { kind: 'turntable-creak', gain: 1, strikes: 1 };
+    case 'turned': return { kind: 'turntable-rumble', gain: 0.6 * k, strikes: 1 };
     default: return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// City soundscape (lane F10): pure level helpers
+// ---------------------------------------------------------------------------
+
+/** How much of a ring of ground samples is park (grass, woodland dirt): 0 … 1. */
+export function parkShare(samples: readonly (SurfaceKind | null)[]): number {
+  if (!samples.length) return 0;
+  let n = 0;
+  for (const s of samples) if (s === 'grass' || s === 'dirt') n++;
+  return n / samples.length;
+}
+
+/**
+ * The Pacific side from the signed distance to the Golden Gate Bridge's line (negative seaward: Baker Beach, Lands End,
+ * Ocean Beach): 1 out there, 0 inside the Bay, smooth over 100 u across the strait.
+ */
+export function pacificSide(signedDist: number): number {
+  return smoothstep(30, -70, signedDist);
+}
+
+/** The cable's hum and the sheaves' clack under the slot: loud over it, gone 16 u away. */
+export const cableHumLevel = (d: number) => proximity(d, 1.5, 16);
+
+/** A busker's music: close by at 5 u, a hint at 30 u, gone at 40 u. */
+export const buskerLevel = (d: number) => proximity(d, 5, 40);
+
+/** Distance from (px, pz) to a polyline stored flat (x, y, z triples with stride 3, or x, z pairs with stride 2). */
+export function distToFlatPolyline(px: number, pz: number, pts: ArrayLike<number>, stride = 3): number {
+  const n = Math.floor(pts.length / stride);
+  let best = Infinity;
+  for (let i = 1; i < n; i++) {
+    const ax = pts[(i - 1) * stride], az = pts[(i - 1) * stride + stride - 1], bx = pts[i * stride], bz = pts[i * stride + stride - 1];
+    const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
+    const t = L2 > 0 ? clamp(((px - ax) * dx + (pz - az) * dz) / L2) : 0;
+    const d = Math.hypot(px - ax - dx * t, pz - az - dz * t);
+    if (d < best) best = d;
+  }
+  return best;
 }

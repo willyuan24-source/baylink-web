@@ -255,8 +255,9 @@ export function bell(e: AudioEngine) {
   bellStrike(e, v, 294, 0.85, 0.9, 3.6);
 }
 
-export function streetcarBell(e: AudioEngine) {
-  const v = e.voice({ bus: 'sfx', dur: 1.6, gain: 0.3, priority: 3, reverb: 0.2, name: 'streetcar-bell' });
+/** The F-line's "clang-clang"; `gain` / `pan` place another car's bell in the city (defaults: the district's). */
+export function streetcarBell(e: AudioEngine, gain = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.6, gain: 0.3 * gain, pan, priority: 3, reverb: 0.2, name: 'streetcar-bell' });
   if (!v) return;
   for (const offset of [0, 0.16]) {
     for (const [ratio, g, d] of [[1, 0.4, 0.6], [1.52, 0.25, 0.45], [2.13, 0.18, 0.35], [2.94, 0.12, 0.25], [4.1, 0.06, 0.18]] as const) {
@@ -267,8 +268,8 @@ export function streetcarBell(e: AudioEngine) {
 }
 
 /** The cable-car gripman's bell (lane F): a lower, brighter clang than the F-line gong, rung in quick strikes. */
-export function cableBell(e: AudioEngine, gain = 1, strikes = 3) {
-  const v = e.voice({ bus: 'sfx', dur: 1.4, gain: 0.26 * gain, priority: 3, reverb: 0.25, name: 'cable-bell' });
+export function cableBell(e: AudioEngine, gain = 1, strikes = 3, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.4, gain: 0.26 * gain, pan, priority: 3, reverb: 0.25, name: 'cable-bell' });
   if (!v) return;
   for (let i = 0; i < strikes; i++) {
     const offset = i * 0.13 + (i === strikes - 1 && strikes > 2 ? 0.09 : 0);
@@ -496,3 +497,103 @@ export function chatter(e: AudioEngine, pan: number, gain: number) {
   e.tone(v, { wave: e.waves.reed, freq: f, freqTo: f * rand(R, 0.8, 1.25), glide: 0.15, decay: rand(R, 0.1, 0.22), peak: 0.3, attack: 0.02, filter: { type: 'bandpass', freq: rand(R, 600, 1400), Q: 2.5 } });
 }
 
+
+// ---------------------------------------------------------------------------
+// City (lane F10): the cable cars, the ferry, the crowd, the parks, the ocean
+// ---------------------------------------------------------------------------
+
+/** The gripman takes the cable: a lever ratchet, the heavy clank of the grip jaws, a short scrape. */
+export function gripClank(e: AudioEngine, gain: number, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 0.8, gain: 0.34 * clamp(gain, 0.1, 1), pan, priority: 2, reverb: 0.12, name: 'grip-clank' });
+  if (!v) return;
+  const p = vary(0.05);
+  // ratchet: three quick ticks
+  for (let i = 0; i < 3; i++) e.noiseBurst(v, { attack: 0.0005, decay: 0.012, peak: 0.35, offset: i * 0.035, filter: { type: 'bandpass', freq: 3200 * p, Q: 3 } });
+  // the jaws: an inharmonic iron clank
+  for (const [ratio, g, d] of [[1, 0.5, 0.35], [2.31, 0.24, 0.22], [3.87, 0.12, 0.14]] as const) e.tone(v, { type: 'sine', freq: 196 * p * ratio, decay: d, peak: g, offset: 0.12, attack: 0.001 });
+  e.noiseBurst(v, { color: 'brown', attack: 0.002, decay: 0.08, peak: 0.5, offset: 0.12, filter: { type: 'lowpass', freq: 600 } });
+  // the cable scraping through the jaws
+  e.noiseBurst(v, { color: 'pink', attack: 0.02, decay: 0.3, peak: 0.12, offset: 0.16, filter: { type: 'bandpass', freq: 1500, freqTo: 900, glide: 0.3, Q: 1.5 } });
+}
+
+/** Someone leans into the turntable: a long wooden groan and the iron wheels under the disc. */
+export function turntableCreak(e: AudioEngine, gain = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.1, gain: 0.3 * clamp(gain, 0.1, 1), pan, priority: 2, reverb: 0.15, name: 'turntable-creak' });
+  if (!v) return;
+  const f = rand(R, 180, 240);
+  e.tone(v, { type: 'sawtooth', freq: f, freqTo: f * rand(R, 1.25, 1.45), glide: 0.55, decay: 0.7, peak: 0.28, attack: 0.05, vibrato: { rate: rand(R, 18, 26), depth: 0.04 }, filter: { type: 'bandpass', freq: 900, Q: 3.5 } });
+  e.noiseBurst(v, { color: 'brown', attack: 0.05, decay: 0.6, peak: 0.35, filter: { type: 'lowpass', freq: 260 } });
+}
+
+/** The car is round on the turntable: a rolling rumble settling with a thud. */
+export function turntableRumble(e: AudioEngine, gain = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.2, gain: 0.3 * clamp(gain, 0.1, 1), pan, priority: 1, reverb: 0.1, name: 'turntable-rumble' });
+  if (!v) return;
+  e.noiseBurst(v, { color: 'brown', attack: 0.15, decay: 0.7, peak: 0.6, filter: { type: 'lowpass', freq: 180, freqTo: 120, glide: 0.8 } });
+  e.tone(v, { type: 'sine', freq: 70, freqTo: 52, glide: 0.2, decay: 0.25, peak: 0.5, offset: 0.75 });
+}
+
+/** A Bay ferry's horn: a deep major third on two reeds, rising a touch into the blast; a far one is duller and roomier. */
+export function ferryHorn(e: AudioEngine, gain = 1, pan = 0) {
+  const k = clamp(gain, 0.1, 1);
+  const v = e.voice({ bus: 'sfx', dur: 3.4, gain: 0.3 * k, pan, priority: 3, reverb: 0.35 + 0.35 * (1 - k), name: 'ferry-horn' });
+  if (!v) return;
+  const lp = 500 + 900 * k;
+  for (const [f, g] of [[146.8, 0.3], [185, 0.22]] as const) {
+    for (const d of [-5, 5]) e.tone(v, { type: 'sawtooth', freq: f * 0.97, freqTo: f, glide: 0.25, decay: 2.1, peak: g, attack: 0.1, detune: d, filter: { type: 'lowpass', freq: lp, Q: 1.1 }, vibrato: { rate: 4.5, depth: 0.003 } });
+  }
+  e.tone(v, { type: 'sine', freq: 73.4, decay: 2, peak: 0.25, attack: 0.2 });
+}
+
+/** A walker hopping out of a vehicle's way: a quick "eep!" and a shoe scuff. */
+export function hopSqueak(e: AudioEngine, gain: number, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 0.35, gain: 0.22 * clamp(gain, 0.1, 1), pan, priority: 1, reverb: 0.05, name: 'hop-squeak' });
+  if (!v) return;
+  const p = vary(0.12);
+  e.tone(v, { type: 'sine', freq: 820 * p, freqTo: 1500 * p, glide: 0.07, decay: 0.12, peak: 0.45, attack: 0.004, fm: { ratio: 2, index: 0.2 } });
+  e.noiseBurst(v, { color: 'pink', attack: 0.002, decay: 0.05, peak: 0.25, offset: 0.1, filter: { type: 'bandpass', freq: 2600, Q: 1.3 } });
+}
+
+export type BirdKind = 'chirp' | 'warble' | 'coo';
+
+/** A park bird: a sparrow's chirps, a finch's warble, or a dove's coo. */
+export function birdCall(e: AudioEngine, pan: number, gain: number, kind: BirdKind = pickOne(R, ['chirp', 'chirp', 'warble', 'coo'] as const)) {
+  const v = e.voice({ bus: 'ambience', dur: 1.6, gain, pan, priority: 0, reverb: 0.3, name: `bird:${kind}` });
+  if (!v) return;
+  if (kind === 'coo') {
+    // mourning dove: "coo-OO-oo-oo"
+    const f = rand(R, 470, 540);
+    for (const [at, len, k] of [[0, 0.22, 1], [0.3, 0.38, 1.15], [0.78, 0.22, 1], [1.08, 0.22, 0.97]] as const) {
+      e.tone(v, { type: 'sine', freq: f * k * 0.95, freqTo: f * k, glide: len * 0.3, decay: len, peak: 0.4, offset: at, attack: 0.04, filter: { type: 'lowpass', freq: 1200 } });
+    }
+    return;
+  }
+  if (kind === 'warble') {
+    const f = rand(R, 2800, 3900);
+    e.tone(v, { type: 'sine', freq: f, freqTo: f * rand(R, 0.8, 1.2), glide: 0.5, decay: 0.55, peak: 0.35, attack: 0.02, vibrato: { rate: rand(R, 22, 34), depth: 0.06 } });
+    return;
+  }
+  const n = 2 + Math.floor(R() * 4), f = rand(R, 3200, 4800);
+  let at = 0;
+  for (let i = 0; i < n; i++) {
+    e.tone(v, { type: 'sine', freq: f * vary(0.05), freqTo: f * rand(R, 1.15, 1.4), glide: 0.04, decay: 0.05, peak: 0.4, offset: at, attack: 0.003 });
+    at += rand(R, 0.09, 0.14);
+  }
+}
+
+/** A cricket in the grass at night: a trill of three quick pulses. */
+export function cricket(e: AudioEngine, pan: number, gain: number) {
+  const v = e.voice({ bus: 'ambience', dur: 0.5, gain, pan, priority: 0, name: 'cricket' });
+  if (!v) return;
+  const f = rand(R, 4300, 4700);
+  for (let i = 0; i < 3; i++) e.tone(v, { type: 'sine', freq: f, decay: 0.035, peak: 0.4, offset: i * 0.05, attack: 0.004 });
+}
+
+/** A Pacific breaker at Ocean Beach: the curl, the crash and the long hiss of the wash. */
+export function surfCrash(e: AudioEngine, pan: number, gain: number) {
+  const v = e.voice({ bus: 'ambience', dur: 4.5, gain, pan, priority: 1, reverb: 0.2, name: 'surf-crash' });
+  if (!v) return;
+  e.noiseBurst(v, { color: 'pink', attack: 0.5, decay: 1.2, peak: 0.45, filter: { type: 'lowpass', freq: 500, freqTo: 2600, glide: 0.6, Q: 0.5 } });
+  e.noiseBurst(v, { color: 'brown', attack: 0.08, decay: 1.4, peak: 0.7, offset: 0.55, filter: { type: 'lowpass', freq: 420 } });
+  e.noiseBurst(v, { color: 'white', attack: 0.4, decay: 2.4, peak: 0.18, offset: 0.9, filter: { type: 'bandpass', freq: 3200, freqTo: 1400, glide: 2.4, Q: 0.6 } });
+}

@@ -1,4 +1,5 @@
 import { definePlatform, platformStop, setPlatformPose } from '../actors/platform';
+import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { currentRide } from '../game/ride';
 import { runtime } from '../core/runtime';
@@ -233,7 +234,11 @@ export class FerryLayer {
     const d = Math.hypot(b.pose.x - p.x, b.pose.z - p.z), mine = b.rider;
     for (const e of sys.events) {
       const base = { type: 'transit' as const, line: FERRY_ID, kind: 'ferry' as const };
-      if (e.what === 'depart' && (mine || d < HEAR)) { emit({ ...base, what: 'horn', strength: mine ? 1 : Math.max(0.3, 1 - d / HEAR) }); emit({ type: 'foghorn' }); }
+      // the horn on leaving (the ferry's own: audio F10), from out on the water when you are not aboard
+      if (e.what === 'depart' && (mine || d < HEAR)) {
+        const horn = { ...base, what: 'horn' as const, strength: mine ? 1 : Math.max(0.3, 1 - d / HEAR) };
+        if (mine) emit(horn); else emitAt(horn, b.pose.x, b.pose.z);
+      }
       if (e.what === 'depart' && mine) emit({ ...base, what: 'depart' });
       if (e.what === 'arrive' && mine) emit({ ...base, what: 'arrive' });
       if (e.what === 'board') emit({ ...base, what: 'board' });

@@ -281,3 +281,151 @@ test('P1: the sliced jobs keep every unit of work small (4 ms slices hold on a 4
   const b = describeWorld(DISTRICT, true).shore!;
   assert.deepEqual([a.cols, a.rows, a.distanceAt(60, 120)], [b.cols, b.rows, b.distanceAt(60, 120)]);
 });
+
+// ---------------------------------------------------------------------------
+// F10: the city's soundscape
+// ---------------------------------------------------------------------------
+
+test('F10: buildShoreField({bounds, cell, isLand}): distances and the way to the water from any land test', async () => {
+  const { buildShoreField: build, shoreGridJob, SHORE_GRID_CHUNK } = await import('../src/opus-bay/audio/logic');
+  // land east of x = 0 with a round island at (−60, 0) r 10 and a lake in the land at (60, 40) r 8
+  const isLand = (x: number, z: number) => (x > 0 && Math.hypot(x - 60, z - 40) > 8) || Math.hypot(x + 60, z) < 10;
+  const f = build({ bounds: { minX: -128, minZ: -128, maxX: 128, maxZ: 128 }, cell: 4, isLand });
+  assert.equal(f.cols, 64);
+  assert.ok(f.distanceAt(-30, -80) < 1, 'open water');
+  const coast = f.distanceAt(20, -80);
+  assert.ok(coast > 14 && coast < 26, `20 u inland from the coast: ${coast.toFixed(1)}`);
+  // a lake inside the land is not the sea (no waves by a pond); the island in the sea is land
+  const lake = f.distanceAt(60, 52);
+  assert.ok(lake > 40, `by the lake, far from the sea: ${lake.toFixed(1)}`);
+  assert.ok(f.distanceAt(-60, 0) > 4 && f.distanceAt(-60, 0) < 14, 'the island\'s middle');
+  const dir = f.waterDirAt(20, -80);
+  assert.ok(dir.x < -0.9, `the water lies west: ${JSON.stringify(dir)}`);
+  // the job yields every SHORE_GRID_CHUNK land tests and every transform row
+  let tests = 0, yields = 0, maxRun = 0, run = 0;
+  const job = shoreGridJob({ bounds: { minX: -128, minZ: -128, maxX: 128, maxZ: 128 }, cell: 4, isLand: (x, z) => { tests++; run++; return isLand(x, z); } });
+  for (let r = job.next(); !r.done; r = job.next()) { yields++; maxRun = Math.max(maxRun, run); run = 0; }
+  assert.equal(tests, 64 * 64);
+  assert.ok(maxRun <= SHORE_GRID_CHUNK && yields > 64, `≤ ${SHORE_GRID_CHUNK} tests between yields (${maxRun}), ${yields} yields`);
+  // a unit of the job stays small (4 ms slices; the city's 128 × 128 window): p95 of the units, best of three runs (the
+  // suite runs files in parallel: one GC pause must not fail it)
+  const big = { bounds: { minX: -256, minZ: -256, maxX: 256, maxZ: 256 }, cell: 4, isLand };
+  let p95 = Infinity;
+  for (let run = 0; run < 3; run++) {
+    const units: number[] = [];
+    const it = shoreGridJob(big);
+    for (;;) { const t = performance.now(); const r = it.next(); units.push(performance.now() - t); if (r.done) break; }
+    units.sort((a, b) => a - b);
+    p95 = Math.min(p95, units[Math.floor(units.length * 0.95)]);
+  }
+  assert.ok(p95 < 1, `p95 unit ${p95.toFixed(3)} ms`);
+});
+
+test('F10: the city shore window (±256 u, 4 u cells, rebuilt after 96 u)', async () => {
+  const { CITY_SHORE, shoreWindow, shoreRebuildDue } = await import('../src/opus-bay/audio/logic');
+  assert.deepEqual([CITY_SHORE.half, CITY_SHORE.cell, CITY_SHORE.rebuildAfter], [256, 4, 96]);
+  const w = shoreWindow(101, -37);
+  assert.deepEqual(w, { minX: 100 - 256, minZ: -36 - 256, maxX: 100 + 256, maxZ: -36 + 256 });
+  assert.equal(shoreRebuildDue(null, 0, 0), true);
+  assert.equal(shoreRebuildDue({ x: 0, z: 0 }, 60, 60), false);
+  assert.equal(shoreRebuildDue({ x: 0, z: 0 }, 80, 60), true);
+});
+
+test('F10: the whole city\'s shore field on the published terrain; the Pacific side of the Golden Gate', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { isLand, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { drain } = await import('../src/opus-bay/audio/slices');
+  const { shoreGridJob, shoreWindow } = await import('../src/opus-bay/audio/logic');
+  const { pacific, gateSide, GOLDEN_GATE } = await import('../src/opus-bay/audio/city');
+  const sf = sfDisk();
+  const city = createCityTerrain(sf.manifest, { landmarks: landmarkWalkInputs(SF_LANDMARKS) });
+  city.setFar(await sf.far());
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    const at = (x: number, z: number) => drain(shoreGridJob({ bounds: shoreWindow(x, z), cell: 4, isLand })).distanceAt(x, z);
+    // (far 8 u map: no chunk attached) Ocean Beach's sand by the surf, Twin Peaks far from any water, Crissy Field's shore
+    const beach = at(-455, 1470), peaks = at(140, 947), crissy = at(-576, 546);
+    assert.ok(beach < 40, `Ocean Beach ${beach.toFixed(0)} u from the water`);
+    assert.ok(peaks > 200, `Twin Peaks ${peaks.toFixed(0)} u from the water`);
+    assert.ok(crissy < 40, `Crissy Field ${crissy.toFixed(0)} u from the water`);
+    // the ocean side of the bridge line
+    assert.ok(Math.abs(gateSide(GOLDEN_GATE.mid.x, GOLDEN_GATE.mid.z)) < 1, 'the bridge is the line');
+    for (const [name, x, z] of [['Ocean Beach', -431, 1475], ['Baker Beach', -614, 849], ['Lands End', -741, 1093]] as const) assert.equal(pacific(x, z), 1, name);
+    for (const [name, x, z] of [['Crissy Field', -576, 546], ['Alcatraz', -468, -58], ['Ferry Building', 128, 15], ['Mission Bay', 427, 261]] as const) assert.equal(pacific(x, z), 0, name);
+  } finally { setCityTerrain(null); }
+});
+
+test('F10: transit sounds for the city (ferry horn, hop-aside squeak, turntable rumble) and located events', async () => {
+  const { transitSound, parkShare, cableHumLevel, buskerLevel, distToFlatPolyline } = await import('../src/opus-bay/audio/logic');
+  const { emitAt, soundAt } = await import('../src/opus-bay/audio/cityHooks');
+  const { onEvent } = await import('../src/opus-bay/core/events');
+  assert.deepEqual(transitSound('horn', 'ferry', 0.5), { kind: 'ferry-horn', gain: 0.5, strikes: 1 });
+  assert.equal(transitSound('horn', 'cable-car'), null);
+  assert.equal(transitSound('hop-aside', 'bus', 1)!.kind, 'hop-squeak');
+  assert.equal(transitSound('turned', 'cable-car')!.kind, 'turntable-rumble');
+  assert.equal(transitSound('bell', 'ferry'), null);
+  assert.equal(parkShare(['grass', 'grass', 'road', 'dirt']), 0.75);
+  assert.equal(parkShare([]), 0);
+  assert.equal(cableHumLevel(1), 1);
+  assert.equal(cableHumLevel(20), 0);
+  assert.ok(buskerLevel(30) > 0 && buskerLevel(30) < 0.3 && buskerLevel(45) === 0);
+  assert.equal(distToFlatPolyline(5, 3, [0, 0, 0, 10, 0, 0]), 3);
+  assert.equal(distToFlatPolyline(5, 3, [0, 0, 10, 0], 2), 3);
+  // emitAt: listeners see where the event happened, only during the emit
+  const seen: { x: number; z: number; set: boolean }[] = [];
+  const off = onEvent(ev => { if (ev.type === 'foghorn') seen.push({ ...soundAt }); });
+  emitAt({ type: 'foghorn' }, 12, -4);
+  off();
+  assert.deepEqual(seen, [{ x: 12, z: -4, set: true }]);
+  assert.equal(soundAt.set, false);
+});
+
+test('F10: the city layers run on a context (surf, birds, buskers, cable hum, ferry engine, passes) and stay quiet in the district', async () => {
+  const fake = fakeAudio();
+  const { drain } = await import('../src/opus-bay/audio/slices');
+  const { AudioEngine, engineBuffersJob } = await import('../src/opus-bay/audio/engine');
+  const { Ambience, describeWorld } = await import('../src/opus-bay/audio/ambience');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { cityHooks, pushPass } = await import('../src/opus-bay/audio/cityHooks');
+  const ctx = new fake.FakeContext() as unknown as BaseAudioContext & { currentTime: number };
+  const engine = new AudioEngine(ctx, drain(engineBuffersJob(ctx)));
+  const g = globalThis as unknown as Record<string, unknown>;
+  const saved = g.window;
+  g.window = fake.win;
+  const prevMode = game.get().worldMode;
+  try {
+    // district: no city layers
+    game.set({ worldMode: 'district', timeOfDay: 'day' } as never);
+    const district = new Ambience(engine, describeWorld(DISTRICT, false));
+    runtime.player.x = 345; runtime.player.z = 590;
+    for (let i = 0; i < 20; i++) { ctx.currentTime += 0.1; district.update(0.1); }
+    assert.equal(district['cityLayers'], null, 'the district builds no city layer');
+    assert.equal(engine.stats.counts.busker ?? 0, 0);
+    district.dispose();
+
+    game.set({ worldMode: 'city', timeOfDay: 'day' } as never);
+    const amb = new Ambience(engine, describeWorld(DISTRICT, false));
+    const counts = () => engine.stats.counts;
+    // a Mission busker's spot (Valencia & 24th)
+    runtime.player.x = 345; runtime.player.z = 590;
+    for (let i = 0; i < 60; i++) { ctx.currentTime += 0.1; amb.update(0.1); }
+    assert.ok((counts().busker ?? 0) > 10, `busker notes ${counts().busker}`);
+    // a toy car passing close by → one pass-by sound
+    const cars = counts().car ?? 0;
+    pushPass({ x: 346, z: 592, heading: 0, v: 7, d: 2 });
+    ctx.currentTime += 0.1; amb.update(0.1);
+    assert.equal(counts().car ?? 0, cars + 1);
+    assert.equal(cityHooks.passes.length, 0, 'drained');
+    // the foghorn comes from the Golden Gate in city mode
+    amb.foghorn();
+    assert.ok((counts().foghorn ?? 0) >= 1);
+    amb.dispose();
+  } finally {
+    game.set({ worldMode: prevMode } as never);
+    g.window = saved;
+  }
+});

@@ -32,6 +32,8 @@ const PLAYER_BIKE = { halfL: 0.85, halfW: 0.35 };
 const PLAYER_CAR = { halfL: 1.05, halfW: 0.6 };
 /** sights people stand about at (places.json kinds) and how far around them (u) */
 const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint: 6, attraction: 7, museum: 6, historic: 5 };
+/** a hop-aside is heard within this of the player (u) */
+const HOP_HEARD = 22;
 /** the crowd hides while the camera is this far above the player (u) */
 const CROWD_HIGH = 55;
 
@@ -171,14 +173,14 @@ export class CityLife {
     passes.length = 0;
   }
 
-  /** A walker hopped out of a vehicle's way: the hop-aside event near the player (a squeak), at most every 1.5 s. */
+  /** A walker hopped out of a vehicle's way: the hop-aside event near the player (a squeak), at most every 5 s. */
   private hopped(x: number, z: number, q: RoadVehicle) {
     const p = runtime.player, d = Math.hypot(x - p.x, z - p.z);
-    if (d > 30 || this.clock - this.hopAt < 1.5) return;
+    if (d > HOP_HEARD || this.clock - this.hopAt < 5) return;
     this.hopAt = this.clock;
     // road vehicles that are not transit report as the rubber-tyred kind ('bus'); `line` says which ('traffic' / 'player')
     const kind = q.kind === 'traffic' || q.kind === 'player' ? 'bus' : q.kind;
-    emitAt({ type: 'transit', what: 'hop-aside', line: q.line, kind, strength: Math.max(0.2, 1 - d / 30) }, x, z);
+    emitAt({ type: 'transit', what: 'hop-aside', line: q.line, kind, strength: Math.max(0.2, 1 - d / HOP_HEARD) }, x, z);
   }
 
   stats() {

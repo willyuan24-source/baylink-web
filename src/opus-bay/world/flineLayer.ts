@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { setPlatformPose } from '../actors/platform';
+import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { currentRide } from '../game/ride';
 import { runtime } from '../core/runtime';
@@ -147,12 +148,14 @@ export class FLineLayer {
       const mine = !!rider && rider.car === e.car && car.rider;
       const base = { type: 'transit' as const, line: FLINE_ID, kind: 'streetcar' as const };
       switch (e.what) {
+        // another car's bell comes from where that car is (audio pans it: audio/cityHooks emitAt)
         case 'depart':
-          if (mine || d < HEAR) emit({ type: 'streetcar-bell' });
+          if (mine) emit({ type: 'streetcar-bell' });
+          else if (d < HEAR) emitAt({ type: 'streetcar-bell' }, car.pose.x, car.pose.z);
           if (mine) emit({ ...base, what: 'depart' });
           break;
         case 'arrive': if (mine) emit({ ...base, what: 'arrive' }); break;
-        case 'bell': if (d < HEAR) emit({ type: 'streetcar-bell' }); break;
+        case 'bell': if (d < HEAR) { if (mine) emit({ type: 'streetcar-bell' }); else emitAt({ type: 'streetcar-bell' }, car.pose.x, car.pose.z); } break;
         case 'board': emit({ ...base, what: 'board' }); break;
         default: break;
       }

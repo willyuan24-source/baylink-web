@@ -2,11 +2,16 @@
  * Living soundscape: persistent looping layers (waves, wind, city, crowd, streetcar) whose levels
  * follow the player through the district, plus a light scheduler for ambient one-shots
  * (gulls, sea lions, pier splashes, bell buoy, passing cars, foghorn in the morning / golden hour).
+ * City mode (lane F10) adds audio/city.ts: the whole city's shore field, Ocean Beach surf, park birds, the Mission's
+ * buskers, the cable hum, the ferry's engine; the crowd murmur and the passing cars come from the city's walkers and
+ * toy traffic (audio/cityHooks.ts), the foghorn from the real Golden Gate.
  * Runs at ~10 Hz off the audio clock; never touches React state.
  */
 import type { District, Vec2 } from '../core/types';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
+import { CityLayers, CityShore, GOLDEN_GATE } from './city';
+import { cityHooks } from './cityHooks';
 import type { AudioEngine } from './engine';
 import {
   clamp, distToPolyline, isMarketDay, panFor, proximity, rand, shoreFieldJob, smoothstep, type ShoreField,
@@ -76,6 +81,9 @@ export class Ambience {
   private tramSpeed = 0;
   private clackAcc = 0;
   private marketDay = isMarketDay(new Date());
+  /** city mode (F10): the windowed shore field and the city layers, made on the first city tick */
+  private cityShore: CityShore | null = null;
+  private cityLayers: CityLayers | null = null;
 
   constructor(e: AudioEngine, world: WorldInfo) {
     this.e = e;
@@ -206,8 +214,13 @@ export class Ambience {
     const e = this.e;
     const now = e.now;
     const L = this.listener();
-    const { timeOfDay, riding } = game.get();
+    const { timeOfDay, riding, worldMode } = game.get();
     const night = timeOfDay === 'night';
+    if (worldMode === 'city' && !this.cityLayers) {
+      this.cityShore = new CityShore(f => this.setShore(f));
+      this.cityLayers = new CityLayers(e, this.out);
+    }
+    this.cityShore?.update(L.x, L.z);
     const shoreD = this.shoreDistance(L.x, L.z, L.y);
     const waterNear = proximity(shoreD, 1.5, 55);
 
@@ -244,7 +257,9 @@ export class Ambience {
     let roadD = Infinity;
     for (const road of this.world.roads) roadD = Math.min(roadD, distToPolyline(L.x, L.z, road));
     const roadNear = proximity(roadD, 4, 34);
-    const cityLevel = (0.05 + 0.14 * smoothstep(6, 60, shoreD) + 0.12 * roadNear) * (night ? 0.7 : 1) * (1 - 0.5 * smoothstep(8, 22, L.y));
+    // (city mode: the toy traffic round the listener thickens the wash)
+    const traffic = this.cityLayers ? 0.07 * clamp(cityHooks.cars / 6) : 0;
+    const cityLevel = (0.05 + 0.14 * smoothstep(6, 60, shoreD) + 0.12 * roadNear + traffic) * (night ? 0.7 : 1) * (1 - 0.5 * smoothstep(8, 22, L.y));
     this.set(this.city.gain, cityLevel, 0.8, 'city');
 
     // --- crowd murmur
@@ -256,6 +271,8 @@ export class Ambience {
       const level = proximity(Math.hypot(L.x - c.at.x, L.z - c.at.z), 6, 48) * w;
       if (level > crowd) { crowd = level; crowdAt = c.at; }
     }
+    // city mode: the walkers round the listener
+    if (this.cityLayers) { const c = this.cityLayers.crowd(L); if (c.level > crowd) { crowd = c.level; crowdAt = c.at; } }
     crowd *= crowdTime;
     this.set(this.crowd.gain.gain, crowd * 0.22, 0.7, 'crowd');
     if (crowdAt) this.set(this.crowd.pan.pan, panFor(L, L.yaw, crowdAt, 0.6), 0.4, 'crowdPan');
@@ -313,6 +330,18 @@ export class Ambience {
       if (roadNear > 0.05) sfx.carPass(e, 0.1 * roadNear * (night ? 0.6 : 1), R() < 0.5 ? 1 : -1);
       T.car = now + rand(R, 4, 11) * (night ? 2 : 1);
     }
+    // city mode: the toy cars that just passed close by, left to right or right to left as they went
+    if (cityHooks.passes.length) {
+      const right = { x: Math.cos(L.yaw), z: -Math.sin(L.yaw) };
+      for (const p of cityHooks.passes.splice(0)) {
+        const across = Math.sin(p.heading) * right.x + Math.cos(p.heading) * right.z;
+        sfx.carPass(e, 0.12 * proximity(p.d, 2, 10) * clamp(p.v / 7, 0.4, 1) * (night ? 0.6 : 1), across >= 0 ? 1 : -1);
+      }
+    }
+    if (this.cityLayers) {
+      const dir = this.world.shore ? this.world.shore.waterDirAt(L.x, L.z) : { x: 0, z: 0 };
+      this.cityLayers.update(dt, L, shoreD, dir, timeOfDay);
+    }
     if (now > T.chatter) {
       if (crowd > 0.35) sfx.chatter(e, crowdAt ? panFor(L, L.yaw, crowdAt, 0.7) + rand(R, -0.25, 0.25) : 0, 0.05 * crowd);
       T.chatter = now + rand(R, 0.25, 0.8) / Math.max(0.35, crowd);
@@ -324,9 +353,21 @@ export class Ambience {
     if (now > T.market) { this.marketDay = isMarketDay(new Date()); T.market = now + 300; }
   }
 
+  /** QA (DEV stats): the shore field in use and the city layers' state. */
+  debugCity() {
+    const f = this.world.shore;
+    return { shore: f ? { minX: f.minX, minZ: f.minZ, cols: f.cols, rows: f.rows } : null, city: this.cityLayers?.debug() ?? null };
+  }
+
   foghorn() {
     const L = this.listener();
     this.timers.foghorn = Math.max(this.timers.foghorn, this.e.now + 25);
+    if (this.cityLayers) {
+      // city mode: from the Golden Gate itself, nearer = louder and brighter
+      const g = GOLDEN_GATE.mid, d = Math.hypot(g.x - L.x, g.z - L.z);
+      sfx.foghorn(this.e, clamp(d / 1500, 0.1, 1), panFor(L, L.yaw, g, 0.7));
+      return;
+    }
     // Golden Gate side of the Bay: north-west of the district
     sfx.foghorn(this.e, 0.75, panFor(L, L.yaw, { x: L.x - 200, z: L.z - 200 }, 0.6));
   }
@@ -347,6 +388,8 @@ export class Ambience {
   }
 
   dispose() {
+    this.cityShore?.dispose();
+    this.cityLayers?.dispose();
     for (const s of this.sources) { try { s.stop(); } catch { /* ignore */ } }
     try { this.out.disconnect(); } catch { /* ignore */ }
   }

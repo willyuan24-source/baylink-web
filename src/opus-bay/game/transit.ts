@@ -341,7 +341,7 @@ function stepCity(r: RideState, dt: number) {
     seenHorn = input.hornCount;
     if (r.mode === 'follow') {
       if (r.kind === 'streetcar') emit({ type: 'streetcar-bell' });
-      if (r.kind === 'ferry') { emit({ type: 'foghorn' }); emit({ type: 'transit', what: 'horn', line: r.line!, kind: 'ferry', strength: 1 }); return; }
+      if (r.kind === 'ferry') { emit({ type: 'transit', what: 'horn', line: r.line!, kind: 'ferry', strength: 1 }); return; }
       emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 1 });
     }
   }
