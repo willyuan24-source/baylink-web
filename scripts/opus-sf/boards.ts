@@ -63,7 +63,7 @@ async function tile(x: number, y: number): Promise<Float32Array> {
         fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
         break;
       } catch (e) {
-        if (attempt >= 4) throw new Error(`tile ${Z}/${x}/${y}: ${String(e)}`);
+        if (attempt >= 4) throw new Error(`tile ${Z}/${x}/${y}: ${String(e)}`, { cause: e });
         await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
       }
     }
@@ -230,7 +230,6 @@ function fillInlandWater(value: Float32Array, raw: Float32Array, cols: number, r
   const wet = (k: number) => !Number.isNaN(value[k]) && value[k] <= BOARD_SEA;
   for (let k = 0; k < n; k++) {
     if (!wet(k)) continue;
-    const i = k % cols, j = (k - i) / cols;
     // real bathymetry (terrarium voids decode far below it)
     if (raw[k] < -1 && raw[k] > -200) { sea[k] = 1; queue.push(k); }
   }

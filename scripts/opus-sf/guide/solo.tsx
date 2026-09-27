@@ -68,6 +68,30 @@ function Hud() {
   const bx = phone ? w / 2 : w - 190, by0 = phone ? Math.max(58 + 10 + bh + 10, h * 0.2) : h - 104;
   const bubbleRef = useRef<HTMLDivElement>(null);
 
+  const check = (L: ReturnType<typeof layoutWaypoint>, el: HTMLElement, label: HTMLElement) => {
+    // the game re-reads the HUD boxes once their entrance animations settle (hudLayout SETTLE_MS): place the bubble again
+    const settled = [...document.querySelectorAll('.ob-hud > *, .ob-topstack > *, .ob-arrival-card, .ob-move-buttons')].map(rectOf).filter(r => r.r - r.l > 2);
+    // (measured like Systems.tsx does: the bubble's own size, a 2-line bubble is taller than 48 px)
+    const inner = bubbleRef.current!.firstElementChild as HTMLElement;
+    const mw = inner.offsetWidth || bw, mh = inner.offsetHeight || bh;
+    const bp = placeBubble(bx, by0, mw, mh, settled, h, 58 + 10 + mh + 10, h - 60);
+    bubbleRef.current!.style.transform = `translate3d(${bp.x}px, ${bp.y}px, 0)`;
+    const named: [string, Element | null][] = [
+      ['area', document.querySelector('.ob-area')], ['trip-pill', document.querySelector('.ob-trip-pill')],
+      ['ride', document.querySelector('.ob-ride')], ['arrival-toast', document.querySelector('.ob-arrival-toast')],
+      ['arrival-card', document.querySelector('.ob-arrival-card')], ['bar', document.querySelector('.ob-bar')],
+      ['touch-action', document.querySelector('.ob-touch-action')], ['hop', document.querySelector('.ob-move-buttons')],
+      ['bubble', document.querySelector('.ob-bubble')], ['waypoint-pin', L.hidden ? null : el.querySelector(L.edge ? '.ob-waypoint-arrow' : '.ob-waypoint-pin')],
+      ['waypoint-label', L.hidden || L.label.mode === 'none' ? null : label], ['hud-buttons', document.querySelector('.ob-hud-buttons')],
+      ...[...document.querySelectorAll('.ob-pano-tag[data-show="1"]')].map((e, i): [string, Element] => [`tag-${i}`, e]),
+    ];
+    const boxes = named.filter(([, e]) => !!e).map(([n, e]) => ({ n, ...rectOf(e!) }));
+    const overlaps: string[] = [];
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (!(boxes[i].n.startsWith('waypoint') && boxes[j].n.startsWith('waypoint')) && hit(boxes[i], boxes[j])) overlaps.push(`${boxes[i].n} × ${boxes[j].n}`);
+    (window as unknown as { __guideQa: unknown }).__guideQa = { w, h, overlaps, waypoint: { mode: L.label.mode, edge: L.edge, hidden: L.hidden }, boxes };
+    console.log('guideQa', JSON.stringify({ w, h, overlaps }));
+  };
+
   useLayoutEffect(() => {
     // the waypoint, laid out by game/waypoint.ts against the fixed HUD boxes measured here
     const fixed = [...document.querySelectorAll('.ob-hud > *, .ob-topstack > *, .ob-arrival-card, .ob-move-buttons')].map(rectOf).filter(r => r.r - r.l > 2);
@@ -97,30 +121,6 @@ function Hud() {
     // the no-overlap check (plan §4.2): every pair of these must be disjoint (read once the entrances have settled)
     window.setTimeout(() => check(L, el, label), 900);
   });
-
-  const check = (L: ReturnType<typeof layoutWaypoint>, el: HTMLElement, label: HTMLElement) => {
-    // the game re-reads the HUD boxes once their entrance animations settle (hudLayout SETTLE_MS): place the bubble again
-    const settled = [...document.querySelectorAll('.ob-hud > *, .ob-topstack > *, .ob-arrival-card, .ob-move-buttons')].map(rectOf).filter(r => r.r - r.l > 2);
-    // (measured like Systems.tsx does: the bubble's own size, a 2-line bubble is taller than 48 px)
-    const inner = bubbleRef.current!.firstElementChild as HTMLElement;
-    const mw = inner.offsetWidth || bw, mh = inner.offsetHeight || bh;
-    const bp = placeBubble(bx, by0, mw, mh, settled, h, 58 + 10 + mh + 10, h - 60);
-    bubbleRef.current!.style.transform = `translate3d(${bp.x}px, ${bp.y}px, 0)`;
-    const named: [string, Element | null][] = [
-      ['area', document.querySelector('.ob-area')], ['trip-pill', document.querySelector('.ob-trip-pill')],
-      ['ride', document.querySelector('.ob-ride')], ['arrival-toast', document.querySelector('.ob-arrival-toast')],
-      ['arrival-card', document.querySelector('.ob-arrival-card')], ['bar', document.querySelector('.ob-bar')],
-      ['touch-action', document.querySelector('.ob-touch-action')], ['hop', document.querySelector('.ob-move-buttons')],
-      ['bubble', document.querySelector('.ob-bubble')], ['waypoint-pin', L.hidden ? null : el.querySelector(L.edge ? '.ob-waypoint-arrow' : '.ob-waypoint-pin')],
-      ['waypoint-label', L.hidden || L.label.mode === 'none' ? null : label], ['hud-buttons', document.querySelector('.ob-hud-buttons')],
-      ...[...document.querySelectorAll('.ob-pano-tag[data-show="1"]')].map((e, i): [string, Element] => [`tag-${i}`, e]),
-    ];
-    const boxes = named.filter(([, e]) => !!e).map(([n, e]) => ({ n, ...rectOf(e!) }));
-    const overlaps: string[] = [];
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (!(boxes[i].n.startsWith('waypoint') && boxes[j].n.startsWith('waypoint')) && hit(boxes[i], boxes[j])) overlaps.push(`${boxes[i].n} × ${boxes[j].n}`);
-    (window as unknown as { __guideQa: unknown }).__guideQa = { w, h, overlaps, waypoint: { mode: L.label.mode, edge: L.edge, hidden: L.hidden }, boxes };
-    console.log('guideQa', JSON.stringify({ w, h, overlaps }));
-  };
 
   return (
     <div className="ob-page">

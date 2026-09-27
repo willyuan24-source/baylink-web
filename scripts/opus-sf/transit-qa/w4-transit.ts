@@ -42,7 +42,7 @@ scene.add(fleet.group);
 // run the lines for a while (camera far away: everything is 'far'), then frame the subject
 for (let t = 0; t < simT; t += 1 / 30) fleet.update(1 / 30, { x: 0, z: 0 }, { x: 0, z: 0 });
 
-let target = new THREE.Vector3(), eye = new THREE.Vector3();
+const target = new THREE.Vector3(), eye = new THREE.Vector3();
 const bus = fleet.bus.buses[0];
 const at = (x: number, y: number, z: number, h: number, back: number, side: number, up: number, look = 1.4) => {
   target.set(x, y + look, z);
