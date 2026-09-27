@@ -96,7 +96,7 @@ async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: numbe
     for (const s of l.stops) {
       if (done.has(s.id)) continue;
       const round2 = (v: number) => Math.round(v * 100) / 100;
-      let spot: { x: number; z: number } | null = null;
+      let spot: { x: number; z: number } | null;
       if (l.kind === 'bus') {
         if (s.id === 'loop-ferry-building' || s.id === 'loop-pier-39') continue;
         spot = placePole(c, at, s.at, 1, 0.3, 1.6);
