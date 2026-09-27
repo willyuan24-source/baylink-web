@@ -100,7 +100,7 @@ cheer, the fanfare and the sparkle already follow it).
 ### Evidence
 
 - **Checks** (rebased on origin before each push): `tsc` 0 errors, `eslint src/opus-bay tests/opus-bay-*` 0 problems,
-  **523 / 523** opus-bay tests on `a738b5e` (hero regression and contracts green). Two wall-clock asserts in G1's citymap
+  **523 / 523** opus-bay tests on `a738b5e`, **561 / 561** on `715102b` (the part b report commit, after rebasing on the wave-4 lanes) (hero regression and contracts green). Two wall-clock asserts in G1's citymap
   and sf-nav tests failed once while six lanes loaded the machine and passed on rerun (G1 has since loosened the citymap
   one).
 - **sf-tasks** (9): the six spots stand with 0.9 u of room in the published city, off the road, in their far.zones
