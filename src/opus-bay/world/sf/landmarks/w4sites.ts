@@ -3,6 +3,8 @@ import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
 import { beachChalet } from './beach-chalet';
+import { bisonPaddock } from './bison-paddock';
+import { blueHeronLake } from './blue-heron-lake';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { ccsfOcean } from './ccsf-ocean';
@@ -64,6 +66,9 @@ export const W4_SITES: readonly W4Site[] = [
   sfZoo,
   murphyWindmill,
   beachChalet,
+  // P3 · tier 2 on the lines
+  bisonPaddock,
+  blueHeronLake,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));
