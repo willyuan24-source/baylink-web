@@ -4,9 +4,10 @@ import type { WorldMode } from '../core/store';
 import { canStand, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { DISTRICT, at, frameAt, stationOf } from '../data/district';
+import { RESIDENTS, type ResidentIdle, type ResidentKey } from '../data/sf/residents';
 import { Animator, type Emote } from './anim';
 import { dampAngle, wrapAngle, type Obstacle } from './controller';
-import { buildNpc, type NpcLook, type Rig } from './models';
+import { NPC_BONES, box, buildNpc, buildRig, type NpcLook, type Rig, type Vec3 } from './models';
 import { joggerState } from './view';
 
 /**
@@ -14,9 +15,13 @@ import { joggerState } from './view';
  * kid) and the F-line operator. Light behaviours: face the player when near, wave hello once in a while,
  * talk while their dialogue is open, and a signature idle (arranging produce, fishing, jogging the promenade,
  * pointing at the bay, ringing the bell when a streetcar leaves).
+ *
+ * City mode adds lane G2's six residents (data/sf/residents.ts, plan G2-7): placed at their `at` spot, hidden beyond
+ * RESIDENT_HIDE u (no update, no obstacle), their bodies (actors/residentLooks.ts, its own chunk) built the first time
+ * the player comes within RESIDENT_LOAD u; until then a hidden 12-triangle stand-in holds the place.
  */
 
-export type NpcBehavior = 'vendor' | 'fisher' | 'jogger' | 'parent' | 'kid' | 'operator';
+export type NpcBehavior = 'vendor' | 'fisher' | 'jogger' | 'parent' | 'kid' | 'operator' | ResidentIdle;
 
 export interface NpcDef {
   /** interactable id when the NPC can be talked to (anchor name, matches game/interactables NPC_POSTS) */
@@ -34,6 +39,8 @@ export interface NpcDef {
   at?: { x: number; z: number; heading?: number };
   /** false = never the "talking" resident (the family's kid); default true */
   talks?: boolean;
+  /** lane G2's city resident: the body is actors/residentLooks.ts buildResident(key) (`look` is only a fallback label) */
+  resident?: ResidentKey;
 }
 
 export const NPC_DEFS: NpcDef[] = [
@@ -45,11 +52,33 @@ export const NPC_DEFS: NpcDef[] = [
   { id: 'npc-streetcar', look: 'operator', behavior: 'operator', anchor: 'npc-streetcar' },
 ];
 
+/** The six city residents (data/sf/residents.ts): ids `npc-<key>` = their interactables (game/cityContent.ts). */
+export const CITY_NPC_DEFS: NpcDef[] = RESIDENTS.map(r => ({
+  id: r.id, look: 'parent', behavior: r.idle, anchor: r.id, at: { x: r.at.x, z: r.at.z, heading: r.at.heading }, resident: r.key,
+}));
+
 /**
- * The residents the ActorSystem spawns for a world mode (lane G2 owns this file from wave 2: city residents go here,
- * e.g. NPC_DEFS.concat(CITY_NPC_DEFS) in city mode). A def spawns when it has `at` or its DISTRICT anchor exists.
+ * The residents the ActorSystem spawns for a world mode (lane G2 owns this file from wave 2). A def spawns when it has
+ * `at` or its DISTRICT anchor exists. City mode keeps the waterfront's residents and adds the six city ones.
  */
-export const npcDefsFor: (mode: WorldMode) => NpcDef[] = () => NPC_DEFS;
+export const npcDefsFor = (mode: WorldMode): NpcDef[] => (mode === 'city' ? [...NPC_DEFS, ...CITY_NPC_DEFS] : NPC_DEFS);
+
+/** City residents: hidden beyond this distance from the player (u), shown again inside RESIDENT_SHOW. */
+export const RESIDENT_HIDE = 160;
+export const RESIDENT_SHOW = 150;
+/** …and their bodies are built the first time the player comes this close. */
+export const RESIDENT_LOAD = 220;
+
+type LooksModule = typeof import('./residentLooks');
+let looks: Promise<LooksModule> | null = null;
+const loadLooks = () => (looks ??= import('./residentLooks').catch((e: unknown) => { looks = null; throw e; }));
+/** a body fetch that has not answered in this long is started again (a stalled request must not hide a resident) */
+const LOOKS_RETRY_MS = 8000;
+
+/** A 12-triangle stand-in rig on the resident skeleton (hidden) until the real body is built. */
+function standInRig(): Rig {
+  return buildRig(NPC_BONES.map(b => ({ ...b, pos: [...b.pos] as Vec3 })), [{ geo: box(0.02, 0.02, 0.02, [0, 0.5, 0]), color: '#000000', bone: 'body' }]);
+}
 
 const JOG_SPEED = 3.3;
 const GREET_RADIUS = 4.6;
@@ -68,8 +97,9 @@ function faceWalk(p: Vec2): number {
 
 export class Npc {
   readonly def: NpcDef;
-  readonly rig: Rig;
-  readonly anim: Animator;
+  /** the body (a city resident's changes once, from the stand-in to its built look) */
+  rig: Rig;
+  anim: Animator;
   readonly object: THREE.Object3D;
   x = 0;
   z = 0;
@@ -90,12 +120,23 @@ export class Npc {
   private pauseStart = 0;
   private passWaveAt = -100;
   private sidestep = 0;
+  // city residents
+  private bodyState: 'none' | 'loading' | 'ready' = 'none';
+  private bodyAsked = 0;
+  private shown = false;
 
   constructor(def: NpcDef) {
     this.def = def;
-    this.rig = buildNpc(def.look);
+    this.rig = def.resident ? standInRig() : buildNpc(def.look);
     this.anim = new Animator(this.rig, 'npc');
-    this.object = this.rig.mesh;
+    if (def.resident) {
+      // a group the body can be swapped into (the ActorSystem adds `object` once and never looks inside)
+      const group = new THREE.Group();
+      group.name = `opus-resident-${def.resident}`;
+      group.add(this.rig.mesh);
+      group.visible = false;
+      this.object = group;
+    } else this.object = this.rig.mesh;
     const s = def.scale ?? 1;
     this.object.scale.setScalar(s);
     const a = def.at ?? DISTRICT.anchors[def.anchor] ?? DISTRICT.spawn;
@@ -153,16 +194,53 @@ export class Npc {
     this.routeT = 0;
   }
 
+  /** False while a city resident is hidden (far away, or its body is not built yet). */
+  get visible(): boolean { return !this.def.resident || this.shown; }
+
   /** soft obstacle for the player controller */
   obstacle(out: Obstacle[]) {
+    if (!this.visible) return;
     out.push({ x: this.x, z: this.z, r: 0.42 * (this.def.scale ?? 1), kind: `npc-${this.def.behavior}` });
   }
 
   play(e: Emote) { this.anim.play(e); }
 
+  /** City resident: build the body when first near, show it inside RESIDENT_SHOW, hide it beyond RESIDENT_HIDE. */
+  private residentVisible(d: number): boolean {
+    const key = this.def.resident!;
+    if (this.bodyState === 'loading' && performance.now() - this.bodyAsked > LOOKS_RETRY_MS) { looks = null; this.bodyState = 'none'; }
+    if (this.bodyState === 'none' && d < RESIDENT_LOAD) {
+      this.bodyState = 'loading';
+      this.bodyAsked = performance.now();
+      loadLooks().then(m => { if (this.bodyState === 'loading') this.setBody(m.buildResident(key)); }).catch((e: unknown) => {
+        this.bodyState = 'none';
+        if (import.meta.env?.DEV) console.warn('[opus-bay residents] body', key, e);
+      });
+    }
+    const want = this.bodyState === 'ready' && (this.shown ? d < RESIDENT_HIDE : d < RESIDENT_SHOW);
+    if (want !== this.shown) { this.shown = want; this.object.visible = want; }
+    return want;
+  }
+
+  /** Swap the stand-in for the built body (same skeleton layout, so a fresh Animator picks up from rest). */
+  private setBody(rig: Rig) {
+    const old = this.rig;
+    this.object.remove(old.mesh);
+    old.mesh.geometry.dispose();
+    old.mesh.skeleton.dispose();
+    rig.mesh.castShadow = true;
+    rig.mesh.name = `opus-resident-${this.def.resident}-body`;
+    this.object.add(rig.mesh);
+    this.rig = rig;
+    this.anim = new Animator(rig, 'npc');
+    this.bodyState = 'ready';
+  }
+
   update(dt: number, t: number) {
     const p = runtime.player;
     const dx = p.x - this.x, dz = p.z - this.z, d = Math.hypot(dx, dz);
+    // far city residents cost nothing (no animation, no ground lookup)
+    if (this.def.resident && !this.residentVisible(d)) { this.talking = false; return; }
     const wasNear = this.near;
     this.near = d < GREET_RADIUS;
     let face = this.homeHeading;
@@ -196,7 +274,10 @@ export class Npc {
     // signature idles
     if (!this.anim.playing() && t > this.nextIdleAt && !this.talking) {
       this.nextIdleAt = t + 5 + Math.random() * 6;
-      const idle: Partial<Record<NpcBehavior, Emote>> = { vendor: 'work', fisher: 'reel', parent: 'point', kid: 'hop', operator: 'tap' };
+      const idle: Partial<Record<NpcBehavior, Emote>> = {
+        vendor: 'work', fisher: 'reel', parent: 'point', kid: 'hop', operator: 'tap',
+        bell: 'bell', knead: 'taste', paint: 'think', dig: 'work', spot: 'look', groove: 'tap',
+      };
       const e = idle[this.def.behavior];
       if (e && !(this.def.behavior === 'vendor' && this.near)) this.anim.play(e);
     }
@@ -213,13 +294,31 @@ export class Npc {
       // hold the rod out over the water, with a lazy bob
       b.armR.rotation.set(-0.95 + Math.sin(t * 1.7) * 0.05, 0, -0.05);
     }
-    if (this.def.behavior === 'vendor' && !this.anim.playing()) {
-      // both hands under the produce crate
+    if ((this.def.behavior === 'vendor' || this.def.behavior === 'knead') && !this.anim.playing()) {
+      // both hands under the produce crate (the baker: around her loaf)
       b.armL.rotation.set(-0.95 + Math.sin(t * 1.3) * 0.03, 0, -0.35);
       b.armR.rotation.set(-0.95 + Math.sin(t * 1.3) * 0.03, 0, 0.35);
     }
+    if (this.def.resident && !this.anim.playing() && !this.talking) this.residentHold(b, t);
     this.object.position.set(this.x, this.y, this.z);
     this.object.rotation.y = this.heading;
+  }
+
+  /** The city residents' held poses between idles: the brush up at the wall, the pot and the record held out. */
+  private residentHold(b: Rig['bones'], t: number) {
+    switch (this.def.behavior) {
+      case 'paint':
+        b.armR.rotation.set(-1.75 + Math.sin(t * 2.6) * 0.12, 0, 0.25 + Math.sin(t * 1.7) * 0.12);
+        b.armL.rotation.set(-0.55, 0, -0.1);
+        break;
+      case 'dig':
+        b.armL.rotation.set(-0.5 + Math.sin(t * 1.1) * 0.03, 0, -0.1);
+        break;
+      case 'groove':
+        b.armR.rotation.set(-0.35, 0, -1.05 + Math.sin(t * 4.2) * 0.06);
+        b.head.rotation.x += Math.sin(t * 4.2) * 0.06;
+        break;
+    }
   }
 
   private jog(dt: number, t: number, playerDist: number): boolean {
