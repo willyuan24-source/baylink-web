@@ -1,0 +1,76 @@
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { setPageMetadata } from '../lib/seo';
+import { useGame, type GameState } from './core/store';
+import { initPersistence } from './data/wishlist';
+import { readQa } from './game/qa';
+import { TitleScreen } from './ui/TitleScreen';
+import './opus-bay.css';
+
+// The game chunk (three, R3F, the world, actors, UI) — requested once the title has painted.
+const GameRoot = lazy(() => import('./game/GameRoot'));
+
+type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+
+let persisted = false;
+/** Saved progress + settings (the title's "welcome back" needs them); URL-forced settings stay per visit. */
+function initPersistenceOnce() {
+  if (persisted) return;
+  persisted = true;
+  const qa = readQa();
+  const locked: (keyof GameState['settings'])[] = [];
+  if (qa.quality) locked.push('quality');
+  if (qa.time) locked.push('timeOfDay');
+  initPersistence({ lockedSettings: locked });
+}
+
+/**
+ * /opus-bay — standalone full-screen world. The title screen is DOM and lives in this (tiny) route chunk so it
+ * paints before three / R3F / the game download; the game chunk loads on idle right after, or at once for QA
+ * deep links (?start=, ?solo=), which skip the title.
+ */
+export default function OpusBayPage() {
+  const phase = useGame(s => s.phase);
+  const [direct] = useState(() => { try { return !!readQa().start || new URLSearchParams(location.search).has('solo'); } catch { return false; } });
+  const [load, setLoad] = useState(direct);
+  const [wantStart, setWantStart] = useState(false);
+
+  useLayoutEffect(() => initPersistenceOnce(), []);
+  useEffect(() => {
+    setPageMetadata({
+      title: '湾区小旅 · 跟 BAYBAY 逛 Embarcadero｜BAYLINK',
+      description: '刚来湾区？让 BAYBAY 带你从渡轮大厦走到 PIER 39：真实景点、这周活动和出游计划，一个可以边玩边查的迷你湾区。',
+      path: '/opus-bay',
+    });
+    const html = document.documentElement;
+    html.classList.add('ob-lock');
+    return () => html.classList.remove('ob-lock');
+  }, []);
+  // after the title's first paint, when the main thread is idle (≤ 1.2 s)
+  useEffect(() => {
+    if (load) return;
+    const w = window as IdleWindow;
+    let idle = 0, timer = 0;
+    const raf = requestAnimationFrame(() => {
+      if (w.requestIdleCallback) idle = w.requestIdleCallback(() => setLoad(true), { timeout: 1200 });
+      else timer = window.setTimeout(() => setLoad(true), 300);
+    });
+    return () => { cancelAnimationFrame(raf); if (idle) w.cancelIdleCallback?.(idle); window.clearTimeout(timer); };
+  }, [load]);
+
+  const start = useCallback(() => { setLoad(true); setWantStart(true); }, []);
+  const showTitle = !direct && phase === 'title';
+  return (
+    <main className="ob-page">
+      {load && (
+        <Suspense fallback={direct ? <div className="ob-boot"><span className="ob-boot-dot" /></div> : null}>
+          <GameRoot startRequested={wantStart} />
+        </Suspense>
+      )}
+      {showTitle && (
+        <div className="ob-overlay ob-title-layer" style={{ zIndex: 3 }}>
+          <TitleScreen onStart={start} waiting={wantStart} />
+        </div>
+      )}
+    </main>
+  );
+}

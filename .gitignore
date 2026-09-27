@@ -31,3 +31,6 @@ coverage
 
 # Branded editorial cards are rebuilt deterministically before Vite.
 /public/share-cards/
+
+# Opus Bay dev server cache (vite.opus.config.ts)
+/.vite-opus/
