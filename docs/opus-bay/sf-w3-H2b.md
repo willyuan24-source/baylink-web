@@ -223,3 +223,78 @@ nothing from anyone (World already attaches them).
    file; a one-line change).
 3. **F (optional)**: in `audio/audio.ts` `glide:start`, skip `voice.bark('wow')` when G2's `first-glide` / `glide-again`
    line is about to play (or G2 delays those lines ≈ 0.8 s).
+
+## Review
+
+### 给主人的摘要
+
+- 复查了手绘地图、BAYBAY 的城市语音和教会区壁画，在电脑（1440×900）和手机（390×844，3 倍屏）上都实际跑过、截图看过。
+- 找到并修好 3 个问题：① G2 后来加的 18 句台词（"哎呀！""安全降落！"等）没有提前加载，播不了录音时还会发出错的提示音；② 打开地图、或在电脑上放大地图时，手绘图会"闪白"约 0.3 秒；③ 壁画图片加载失败时每秒重试两次。
+- 其余都正常：壁画白天夜晚都好看，只多 1 次绘制、用的是预热好的着色器；手机上地图最多只加载 2048 版；原来的街区（district）模式不受影响。还有一个小问题没修：贴着墙走时，人物身体会和壁画板重叠一点点。
+
+### What I checked
+
+- Rebased on `origin/opus-bay` @ `5eba6f0` (11 commits after the lane's last push). Read the code of all 9 lane commits
+  (`data/mapPaper.ts`, `ui/mapPaper.ts`, `ui/MapPaperLayer.tsx`, `data/voiceLinesSf.ts`, `data/murals.ts`,
+  `world/sf/murals.ts`, both test files) and the code around it: G1's `ui/CityMap.tsx` mount, the `voice-line` path in
+  `audio/audio.ts` + `audio/voice.ts` (`line`, `preloadLines`, `MUTED_CLIPS`), `world/world.ts` `addSystem` /
+  `disableCity`, D2's `makeModelMaterial` (program key, instancing), G2's `data/sf/lines.ts` + its test. The offline
+  scripts (`render-base.ts`, `paper_post.py`, `voice_post.py`, `place.ts`, `murals_post.py`) only skimmed: their outputs
+  are pinned by bytes / sha256 in the tests.
+- Checks: before the fixes `tsc` 0, `eslint` 0, **381 / 381**; after them `tsc` 0, `eslint` 0, **384 / 384** (hero
+  regression and contracts green).
+- In the app (own dev server 5207, RTX; scripted with `scripts/opus-shot.mjs`, every image read):
+  - **Murals, lifecycle** (`?start=free&world=city&time=day`, QA camera): at the start (Ferry, > 300 u) the group is
+    in the scene, hidden, no mesh; at Clarion the mesh is built, visible, and the program is the warm-up one
+    (`ob-murals:warmup` usedTimes 1 → 2, no program of its own); Balmy the same; back beyond 300 u hidden (mesh kept);
+    `world.disableCity()` removes group, mesh and texture (textures 29 → 22); `enableCity()` + Clarion again builds it
+    again. Eye-level shots along both alleys, day / night / golden, desktop and phone (`--mobile --dpr 3`,
+    `quality=mid`). Player placed 0.35 u in front of a board: reads well (shot below).
+  - **Numbers**: Clarion (game camera) 63–64 calls, 272–274 k triangles; Balmy night desktop 105 calls, 341 k;
+    Balmy golden phone (`quality=mid`) 65 calls, 243 k. The boards are 1 call (+ 1 shadow) and 96 triangles.
+  - **Map paper**: desktop side sheet and phone sheet, a per-frame DOM trace of `.ob-map-paper` (images and their
+    computed opacity) on opening and on zooming past 4×; phone zoom with the + button ×5 stays on the 2048 (touch
+    profile: coarse pointer, 5 touch points); 8 rapid in / out wheel storms across the 4× threshold settle on exactly
+    one image (2048 out, 4096 in); `?paper=0` → no paper images, the vector map alone.
+  - **Voice** (`__opusAudio.boot()`, `__opusBay.emit`): preload counts, a line twice within `SAME_CLIP_GAP`, first
+    pass vs later block.
+  - **District** (`?world=district`): 0 mural objects, 4 en barks ready (unchanged), no console errors.
+
+### Defects
+
+| # | what | status |
+|---|---|---|
+| 1 | **G2's 18 later lines played the wrong chirp and were never preloaded.** `audio.ts` takes the fallback from `SF_VOICE_LINES[id]?.fallback ?? 'hi'` and `voice.preloadLines` walks `SF_VOICE_LINES`, but the later block lived only in `SF_VOICE_EXTRA`. In the app: a second `bump-hard` within 25 s → `chirp:hi` (its line says `think`); `voice-clip:ready` 24 (en). The report called this "Request 1 (G2 + lead)", but the change is in H2b's own file and G2's test already allows it ("SF_VOICE_LINES may grow by the later block"). | **fixed** `9b4c27f`: `SF_VOICE_LINES = { ...CORE_LINES, ...SF_VOICE_EXTRA }`; now `chirp:think`, ready 42 (en: 4 barks + 38 lines; zh 41). Tests: `SF_VOICE_LINES` = `BARK_SCRIPT` (order, words, moods); every voice id G2 emits resolves there; all 20 greetings on real `far.zones`. |
+| 2 | **The map paper blinked to the bare table on every opening and every desktop zoom past 4×.** `MapPaperLayer` dropped the smaller paper the moment the sharper one was decoded, while that one was still at opacity 0 → 1 (0.3 s). Trace before: 1024 removed at 463 ms, 2048 at 0.00 … 1.00 until 800 ms; zoom: 2048 removed at 508 ms, 4096 at 0.00 … 1.00 until 823 ms. The component's own comment claimed the smaller one stays underneath. | **fixed** `9b4c27f`: `paperLayers()` (pure, `ui/mapPaper.ts`) keeps the one under until the fade has ended (a timer, not `transitionend`); a paper already decoded when it becomes the target shows at once, alone. Trace after: phone 1024 @ 1.00 under the 2048 until it reaches 1.00 (922 ms), removed at 932 ms; desktop zoom 2048 under the 4096 until 2133 ms, removed at 2166 ms. `isPhoneLike()` once per page (it ran on every pan step). Test added. |
+| 3 | **A failed mural atlas was re-requested twice a second** (`onError` → `loading = false` → the next 0.5 s check loads again) for as long as the camera stays within 300 u of an alley (offline, a 404). | **fixed** `9b4c27f`: `MURAL_RETRY` 20 s after a failure; node test with a failing `TextureLoader` (2 requests in 30 s, was 61). |
+| 4 | **The player's body can overlap a board by ≈ 0.1 u** when hugging the wall: boards stand 0.12 u in front of the wall (front face ≈ 0.22 u), the walk keeps the player's centre ≥ `PLAYER_RADIUS` 0.45 u from the wall, the body is drawn ≈ 0.35 u wide. The boards are not obstacles. Small; seen fine at 0.35 u. | **open** (Request 3) |
+
+Not defects, noted:
+- At the maximum zoom (≥ 10×) near the Ferry Building the paper is soft and its painted piers sit off G1's vector
+  pier outlines (the coast p95 of 12 px at 2048 ≈ 18 u shows as ~50 px at 15×): the known limit of a raster; the vector
+  coast on top carries the geometry there.
+- Preloading 38 lines instead of 20 costs ≈ 12 MB of decoded audio at 48 kHz instead of ≈ 6 MB; the mural atlas stays
+  on the GPU for the session after the first visit (≈ 11 MB with mips), as designed.
+- Claims checked and true: 1 draw call / 96 triangles; warm-up program reused; atlas fetched only within 300 u; phones
+  never request the 4096; `?paper=0`; re-records muted; district mode untouched.
+- Part b's Request 3 (F, the `glide:start` "wow" over `first-glide`) is obsolete: G2 already delays the glide lines by
+  0.9 s (`after: 0.9`, `6447b1a`).
+
+Evidence (in `docs/opus-bay/qa/w3/H2b/`): `review-mural-clarion-board-desktop.jpg` (the player at a Clarion board),
+`review-murals-balmy-night-desktop.jpg` (night, game camera), `review-map-phone-390-after-fix.jpg` (phone map after
+the fix). Scratch traces and the other shots: `C:/Users/willy/opus-qa/w3/h2b/review/`.
+
+### Requests
+
+1. **G2 (comment only)** — `src/opus-bay/data/sf/lines.ts` lines 66–70: the blocks no longer "stay apart until the lead
+   merges"; replace with "H2b recorded it word for word as data/voiceLinesSf.ts SF_VOICE_EXTRA, which is part of
+   SF_VOICE_LINES since 9b4c27f (fallback chirps and city preload included); H2b's test pins this block to
+   SF_VOICE_EXTRA."
+2. **Lead** — Part b's Request 1 is done (`9b4c27f`), Request 3 is withdrawn. Request 2 stands: merge
+   `docs/opus-bay/ledger/w3-H2b.md` into `src/opus-bay/ASSETS-LEDGER.md` including the dated CDN correction of line 300
+   (H2b-12: the CDN returns 200 now, K6 6,390,343 B, 2026-09-27), and `SF_VOICE_UNMUTE` after the owner has listened.
+3. **Lead (design call, optional)** — defect 4: either H2b moves the boards flush to the walls (0.06 u instead of
+   0.12 u; `scripts/opus-sf/murals/place.ts`, re-run, the placement test stays), or the boards become soft obstacles
+   (H2b's `world/sf/murals.ts` could register a source with `actors/view.ts registerObstacleSource`, a few small discs
+   along each board; not done in the review because those discs are "crowd / traffic"-kind obstacles that E2's ride
+   code reacts to, so E2 should say whether a static kind is fine).
