@@ -58,7 +58,6 @@ export class TransitLayer {
   private ring: THREE.Mesh;
   private ringFor: string | null = null;
   private discYDirty = 0;
-  private near = new Set<string>();
 
   readonly data: TransitData;
 
@@ -207,17 +206,9 @@ export class TransitLayer {
         case 'board': emit({ ...base, what: 'board' }); break;
         default: break;
       }
-      // the push prompt appears / disappears with a turn near the player
-      if ((e.what === 'turn' || e.what === 'turned') && e.turntable) {
-        if (e.what === 'turn' && d < 40) this.near.add(e.turntable); else this.near.delete(e.turntable);
-        onTurntableChange?.();
-      }
     }
     sys.events.length = 0;
   }
-
-  /** Turntables with a car turning near the player right now (the push interactables). */
-  turningNear(): string[] { return [...this.near]; }
 
   /** Per-car draw data for QA. */
   stats() {
@@ -231,12 +222,9 @@ export class TransitLayer {
     this.ring.geometry.dispose();
     this.aprons?.geometry.dispose();
     this.rails.dispose();
+    if (LAYER === this) LAYER = null;
   }
 }
-
-let onTurntableChange: (() => void) | null = null;
-/** game/transit.ts: rebuild the interactables when a turn starts / ends near the player. */
-export function setTurntableListener(fn: (() => void) | null) { onTurntableChange = fn; }
 
 let LAYER: TransitLayer | null = null;
 /** The live layer (city mode, once transit.json is in), for game/transit.ts and QA. */
