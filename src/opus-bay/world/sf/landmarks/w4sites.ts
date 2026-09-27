@@ -2,8 +2,13 @@ import type { AttractionFlag } from '../../../data/sf/attractionTypes';
 import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
+import { ccsfDrpac } from './ccsf-drpac';
+import { ccsfOcean } from './ccsf-ocean';
 import { sfState } from './sf-state';
+import { stIgnatius } from './st-ignatius';
 import { stonestown } from './stonestown';
+import { ucsfParnassus } from './ucsf-parnassus';
+import { usfLoneMountain } from './usf-lone-mountain';
 
 /**
  * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): the new site records, NOT registered yet. The integration phase
@@ -25,6 +30,11 @@ export const W4_SITES: readonly W4Site[] = [
   // P1 · owner requests
   stonestown,
   sfState,
+  ucsfParnassus,
+  usfLoneMountain,
+  stIgnatius,
+  ccsfOcean,
+  ccsfDrpac,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));

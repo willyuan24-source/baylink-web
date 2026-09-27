@@ -124,7 +124,7 @@ function ground(): SiteGroundPoly[] {
   return [
     ...gfill(PLAZA, GC.plaza, PAT.stone, g, 5),
     ...gfill(QUAD, GC.lawn, PAT.grass, g, 4),
-    ...WALKS.flatMap(w => gstrip(w, 1.5, GC.path, PAT.earth, g, 3, 0.075)),
+    ...WALKS.flatMap(w => gstrip(w, 1.6, GC.pavers, PAT.stone, g, 3, 0.075)),
   ];
 }
 

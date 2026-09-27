@@ -19,6 +19,8 @@ const args = process.argv.slice(2);
 const only = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;
 const check = args.includes('--check');
 const STEP = 2;
+/** each grid point takes the highest walked ground within ±POOL u (kerbs and corridor edges never poke through draped ground) */
+const POOL = 0.5;
 const sf = sfDisk();
 const rasters = new Map<string, GroundRaster | null>();
 async function walked(x: number, z: number): Promise<number> {
@@ -52,11 +54,11 @@ for (const s of W4_SITES) {
   const base = Math.floor(lo * 100) / 100;
   const [x0, z0, x1, z1] = s.w4.terrain;
   const cols = Math.ceil((x1 - x0) / STEP) + 1, rows = Math.ceil((z1 - z0) / STEP) + 1, h: number[] = [];
-  // each grid height is the HIGHEST walked ground within ±STEP/2 (0.5 u samples): draped plazas and furniture
+  // each grid height is the HIGHEST walked ground within ±POOL (0.25 u samples): draped plazas and furniture
   // interpolated between the grid points never sink into a bump (kerb embankments, the corridor flattening)
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
     let hi = -Infinity;
-    for (let dv = -STEP / 2; dv <= STEP / 2 + 1e-9; dv += 0.5) for (let du = -STEP / 2; du <= STEP / 2 + 1e-9; du += 0.5) {
+    for (let dv = -POOL; dv <= POOL + 1e-9; dv += 0.25) for (let du = -POOL; du <= POOL + 1e-9; du += 0.25) {
       const w = landmarkToWorld(s, { x: x0 + i * STEP + du, z: z0 + j * STEP + dv });
       hi = Math.max(hi, await walked(w.x, w.z));
     }

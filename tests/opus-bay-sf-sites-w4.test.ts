@@ -147,7 +147,7 @@ test('terrain: the baked grid and base match the published rasters (re-run scrip
     for (let k = 0; k < t.h.length; k += 7) {
       const i = k % t.cols, j = Math.floor(k / t.cols);
       let hi = -Infinity;
-      for (let dv = -t.step / 2; dv <= t.step / 2 + 1e-9; dv += 0.5) for (let du = -t.step / 2; du <= t.step / 2 + 1e-9; du += 0.5) {
+      for (let dv = -0.5; dv <= 0.5 + 1e-9; dv += 0.25) for (let du = -0.5; du <= 0.5 + 1e-9; du += 0.25) {
         const w = landmarkToWorld(s, { x: t.x0 + i * t.step + du, z: t.z0 + j * t.step + dv });
         hi = Math.max(hi, await walked(w.x, w.z));
       }
@@ -210,7 +210,9 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
       }
       const f = land ? open / land : 0;
       console.log(`  ${s.id.padEnd(24)} arrival ok · ring r ${(rmax + 3).toFixed(1)} u: ${(f * 100).toFixed(0)} % open`);
-      assert.ok(f >= 0.75, `${s.id} walk-around ring ${(f * 100).toFixed(0)} % ≥ 75 %`);
+      const min = s.w4.ringMin ?? 0.75;
+      if (min < 0.75) assert.ok(min >= 0.6 && /ring/i.test(s.w4.notes ?? ''), `${s.id} explains its lower ring`);
+      assert.ok(f >= min, `${s.id} walk-around ring ${(f * 100).toFixed(0)} % ≥ ${(min * 100).toFixed(0)} %`);
     } finally { setCityTerrain(null); }
   }
 });
@@ -259,8 +261,9 @@ test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u;
     const f = siteFlagTop(s.id);
     assert.ok(f, s.id);
     assert.ok(f.h >= ATTRACTION_FLAG_H.min && f.h <= ATTRACTION_FLAG_H.max, `${s.id} flag ${f.h}`);
-    for (const a of s.w4.attractions) assert.deepEqual(siteFlagTop(a), f, a);
-    assert.deepEqual(siteFlagTop(s.w4.placeId), f);
+    // an attraction or place id answers with its primary record (the first that models it)
+    for (const a of s.w4.attractions) if (w4SiteOf(a) === s) assert.deepEqual(siteFlagTop(a), f, a);
+    if (w4SiteOf(s.w4.placeId) === s) assert.deepEqual(siteFlagTop(s.w4.placeId), f);
     // over the site: the pole foot inside the exclusion, the top over the model's skyline
     assert.ok(inPoly(f, exPoly(s)), `${s.id} flag foot inside the site`);
     const g = buildLandmark(s, 0, 0);

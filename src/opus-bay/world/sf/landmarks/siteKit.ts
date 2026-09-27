@@ -59,6 +59,8 @@ export interface W4SiteMeta {
   aiSlot?: { model: string; note: string };
   /** attractions of this site that stay card-only here, and why (quiet memorials, closures, the downtown diet) */
   notes?: string;
+  /** the walk-around ring's open share when an existing building or the shore closes one side (default 0.75; say why in `notes`) */
+  ringMin?: number;
 }
 
 /** A ground polygon with per-vertex local heights (the draped form of LandmarkGround). */
@@ -352,6 +354,61 @@ export function fence(b: BatchLike, pts: Vec2[], yAt: (x: number, z: number) => 
 export function flagpole(b: BatchLike, x: number, y: number, z: number, h: number, color = '#c9473a', ry = 0) {
   b.add(CYL(5), M(x, y, z, 0, 0.07, h, 0.07), '#dcd8cf');
   b.add(CBOX(), M(x + Math.cos(ry) * 0.7, y + h - 0.45, z - Math.sin(ry) * 0.7, ry, 1.3, 0.8, 0.03), color, SWAY_I(0.5));
+}
+
+// ---------------------------------------------------------------------------
+// construction sites (UCSF Parnassus, CCSF's Diego Rivera Performing Arts Center)
+// ---------------------------------------------------------------------------
+
+const CRANE_YELLOW = '#e0b04e';
+const BEACON: Info = [0, 0, 0, 1];
+
+/** A tower crane's lattice mast from the ground y0 to `top` (local y); lod 2: one post and a fixed jib bar. */
+export function craneMast(b: BatchLike, x: number, y0: number, z: number, top: number, lod: 0 | 2, jib = 11, counter = 4.2) {
+  if (lod === 2) {
+    box6(b, x, y0, z, 0.6, top - y0 + 0.9, 0.6, CRANE_YELLOW);
+    b.add(CBOX(), M(x + (jib - counter) / 2, top + 0.6, z, 0.6, jib + counter, 0.4, 0.4), CRANE_YELLOW);
+    return;
+  }
+  box6(b, x, y0 - 0.4, z, 1.2, 0.6, 1.2, '#8d8983');
+  for (const [ox, oz] of [[-0.3, -0.3], [0.3, -0.3], [0.3, 0.3], [-0.3, 0.3]]) box6(b, x + ox, y0, z + oz, 0.1, top - y0, 0.1, CRANE_YELLOW);
+  for (let k = 1; k < 9; k++) b.add(CBOX(), M(x, y0 + (k * (top - y0)) / 9, z, 0, 0.66, 0.08, 0.66), CRANE_YELLOW);
+}
+
+/**
+ * The crane's slewing part (the `animate` mesh, LOCAL to the mast top): slewing unit, cab, tower head, jib,
+ * counter-jib with weights, pendant lines, hoist line and hook, a red tip light. Turn it about +y.
+ */
+export function craneJib(b: BatchLike, jib = 11, counter = 4.2) {
+  box6(b, 0, 0, 0, 0.9, 0.5, 0.9, '#c9a23f');
+  box6(b, -0.55, 0.05, 0.45, 0.5, 0.45, 0.45, '#e9e4d8', [0, 0, 0, 0.3]);
+  box6(b, 0, 0.5, 0, 0.18, 1.6, 0.18, CRANE_YELLOW);
+  b.add(CBOX(), M(jib / 2, 0.62, 0, 0, jib, 0.34, 0.34), CRANE_YELLOW);
+  b.add(CBOX(), M(-counter / 2, 0.62, 0, 0, counter, 0.3, 0.42), CRANE_YELLOW);
+  box6(b, -counter + 0.7, 0.2, 0, 1.2, 0.5, 0.6, '#9a958c');
+  b.add(CBOX(), M(jib * 0.35, 1.25, 0, 0, jib * 0.72, 0.05, 0.05, 0, -0.18), '#6b5e4c');
+  b.add(CBOX(), M(-counter * 0.45, 1.25, 0, 0, counter * 0.95, 0.05, 0.05, 0, 0.35), '#6b5e4c');
+  box6(b, jib * 0.62, -3.4, 0, 0.04, 3.9, 0.04, '#3e3a34');
+  box6(b, jib * 0.62, -3.75, 0, 0.3, 0.35, 0.3, '#c9473a');
+  b.add(CBOX(), M(jib, 0.62, 0, 0, 0.16, 0.16, 0.16), '#ff5a44', BEACON);
+}
+
+/** a slow working swing of ±`amp` about `mid` (radians), never a full turn */
+export const craneSwing = (t: number, mid: number, amp = 0.62, rate = 0.09) => mid + Math.sin(t * rate) * amp;
+
+/** Site hoarding (blue plywood, 1.9 u) along a local polyline, stepping with the ground. */
+export function hoarding(b: BatchLike, pts: Vec2[], yAt: (x: number, z: number) => number, color = '#5f86a6') {
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const a = pts[i], c = pts[i + 1], dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz);
+    if (L < 0.2) continue;
+    const ya = yAt(a.x, a.z), yc = yAt(c.x, c.z);
+    b.add(BOX(), M((a.x + c.x) / 2, Math.min(ya, yc) - 0.3, (a.z + c.z) / 2, Math.atan2(dx, dz), 0.12, Math.abs(ya - yc) + 1.9, L), color);
+  }
+}
+
+/** box from its bottom centre (the kit's box without importing kit.ts here) */
+function box6(b: BatchLike, x: number, y: number, z: number, w: number, h: number, d: number, color: string, info: Info = NONE) {
+  b.add(BOX(), M(x, y, z, 0, w, h, d), color, info);
 }
 
 /** Night light points of the site's lamps (SiteHooks.lights) collected while building. */
