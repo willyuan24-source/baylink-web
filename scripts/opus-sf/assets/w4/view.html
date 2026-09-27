@@ -1,0 +1,90 @@
+<!doctype html>
+<!--
+  Lane V (W4-V4) GLB check page: decodes a published Draco + WebP model with three's own GLTFLoader / DRACOLoader (the
+  decoder the game uses, /opus-bay/models/sf/draco/) and renders it lit like a golden-hour city day (warm key light,
+  sky / ground hemisphere, cream ground, soft shadow) or at night (?night=1). Not part of the game.
+  Dev server:  npx vite --config vite.opus.config.ts --port 5306 --strictPort
+  Open:        http://localhost:5306/scripts/opus-sf/assets/w4/view.html?m=w4-st-ignatius.glb&az=30&el=22
+  Params:      m (file in /opus-bay/models/sf/), az / el (degrees; az 0 = the model's front, +Z), fill (frame fill, 0.8),
+               mask=1 (show the mask WebP as the colour), night=1, bg (hex without #).
+  window.__view = { ready, tris, size: [w, h, d], bytes, error }
+-->
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>w4 GLB view</title>
+  <style>html, body { margin: 0; height: 100%; overflow: hidden; background: #f3ecdf; } canvas { display: block; }</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+
+const q = new URLSearchParams(location.search);
+const file = q.get('m') || 'w4-st-ignatius.glb';
+const az = THREE.MathUtils.degToRad(Number(q.get('az') ?? 30));
+const el = THREE.MathUtils.degToRad(Number(q.get('el') ?? 22));
+const fill = Number(q.get('fill') ?? 0.8);
+const night = q.get('night') === '1';
+const bg = new THREE.Color('#' + (q.get('bg') || (night ? '1f2a3a' : 'f3ecdf')));
+window.__view = { ready: false };
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = night ? 0.9 : 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = bg;
+scene.add(new THREE.HemisphereLight(night ? 0x5a6f96 : 0xfff3df, night ? 0x2a2a30 : 0xcdbb9c, night ? 0.5 : 1.35));
+const sun = new THREE.DirectionalLight(night ? 0x9fb4e0 : 0xffd9a8, night ? 0.35 : 2.2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshLambertMaterial({ color: night ? 0x3a4250 : 0xe9dcc4 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const draco = new DRACOLoader();
+draco.setDecoderPath('/opus-bay/models/sf/draco/');
+const loader = new GLTFLoader();
+loader.setDRACOLoader(draco);
+const url = `/opus-bay/models/sf/${file}`;
+const bytes = await fetch(url).then(r => r.arrayBuffer()).then(b => b.byteLength).catch(() => 0);
+loader.load(url, gltf => {
+  const root = gltf.scene;
+  let tris = 0;
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = true; o.receiveShadow = true;
+    tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+    o.material.roughness = 0.9; o.material.metalness = 0;
+    if (q.get('mask') === '1') {
+      new THREE.TextureLoader().load(url.replace('.glb', '-mask.webp'), t => { t.flipY = false; o.material.map = t; o.material.needsUpdate = true; });
+    }
+  });
+  scene.add(root);
+  const box = new THREE.Box3().setFromObject(root);
+  const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const r = size.length() / 2;
+  const aspect = innerWidth / innerHeight;
+  const cam = new THREE.PerspectiveCamera(26, aspect, r / 20, r * 40);
+  const dist = r / Math.sin(THREE.MathUtils.degToRad(13)) / fill * (aspect < 1 ? 1 / aspect : 1);
+  cam.position.set(c.x + Math.sin(az) * Math.cos(el) * dist, c.y + Math.sin(el) * dist, c.z + Math.cos(az) * Math.cos(el) * dist);
+  cam.lookAt(c);
+  sun.position.set(c.x + r * 2.2, c.y + r * 2.6, c.z + r * 1.6);
+  sun.target.position.copy(c); scene.add(sun.target);
+  const sc = sun.shadow.camera; sc.left = sc.bottom = -r * 1.6; sc.right = sc.top = r * 1.6; sc.near = 0.1; sc.far = r * 10; sc.updateProjectionMatrix();
+  renderer.render(scene, cam);
+  window.__view = { ready: true, tris, size: [size.x, size.y, size.z].map(v => +v.toFixed(3)), bytes, file };
+}, undefined, err => { window.__view = { ready: false, error: String(err) }; });
+</script>
+</body>
+</html>

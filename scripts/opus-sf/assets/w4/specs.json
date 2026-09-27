@@ -1,0 +1,261 @@
+{
+ "st-ignatius": {
+  "file": "w4-st-ignatius.glb",
+  "raw": "st-ignatius-b-sam.glb",
+  "concept": "st-ignatius-b.png",
+  "mask": false,
+  "note": "fitted to lane L's procedural church (world/sf/landmarks/st-ignatius.ts, OSM way 225193440): 7.5 x 13.2 x 11.15 u, towers 61-65 m by the landmark rule",
+  "args": {
+   "box": "7.5,13.2,11.15",
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0,
+   "lift": 0.04,
+   "remap": [
+    {
+     "hue": [
+      345,
+      24
+     ],
+     "to": "#d07a55",
+     "min_s": 0.38,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      24,
+      75
+     ],
+     "to": "#e5cca3",
+     "min_s": 0.1,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f3e6cc",
+     "min_s": 0,
+     "contrast": 0.6,
+     "min_v": 0.05
+    }
+   ]
+  }
+ },
+ "st-ignatius-alt": {
+  "file": "w4-st-ignatius.glb",
+  "raw": "st-ignatius-a-sam.glb",
+  "concept": "st-ignatius-a.png",
+  "mask": false,
+  "args": {
+   "height": 13.3,
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0,
+   "lift": 0.04,
+   "remap": [
+    {
+     "hue": [
+      345,
+      24
+     ],
+     "to": "#d07a55",
+     "min_s": 0.38,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      24,
+      75
+     ],
+     "to": "#e7d4b4",
+     "min_s": 0.1,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f3e6cc",
+     "min_s": 0,
+     "contrast": 0.6,
+     "min_v": 0.05
+    }
+   ]
+  }
+ },
+ "holy-virgin": {
+  "file": "w4-holy-virgin.glb",
+  "raw": "holy-virgin-a-sam.glb",
+  "concept": "holy-virgin-a.png",
+  "mask": false,
+  "note": "125 ft (38.1 m) -> H = 3.2 + 0.155 h = 9.1 u",
+  "args": {
+   "height": 9.1,
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0,
+   "lift": 0.03,
+   "remap": [
+    {
+     "hue": [
+      330,
+      22
+     ],
+     "to": "#b8463c",
+     "min_s": 0.3,
+     "contrast": 0.7
+    },
+    {
+     "hue": [
+      28,
+      72
+     ],
+     "to": "#e0a94a",
+     "min_s": 0.28,
+     "min_v": 0.2,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4f1e6",
+     "min_s": 0,
+     "min_v": 0.62,
+     "contrast": 0.5
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#b8c0c4",
+     "min_s": 0,
+     "min_v": 0.05,
+     "contrast": 0.6
+    }
+   ]
+  }
+ },
+ "cal-academy": {
+  "file": "w4-cal-academy.glb",
+  "raw": "cal-academy-b-sam.glb",
+  "concept": "cal-academy-b.png",
+  "mask": true,
+  "note": "fitted to lane L's procedural block + canopy (world/sf/landmarks/cal-academy.ts, OSM way 28695389): 24.4 x 7.9 x 16.6 u; the sand base band is cut off (flatten 0.07)",
+  "args": {
+   "box": "24.4,7.9,16.6",
+   "flatten": 0.07,
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.5,
+   "white_lift": 0,
+   "lift": 0.03,
+   "glass_rule": [
+    6,
+    4
+   ],
+   "glass_to": "#bfdbe6",
+   "remap": [
+    {
+     "hue": [
+      55,
+      160
+     ],
+     "to": "#9fbf7a",
+     "min_s": 0.15,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f4f1e6",
+     "min_s": 0,
+     "min_v": 0.05,
+     "contrast": 0.5
+    }
+   ]
+  }
+ },
+ "chinese-pavilion": {
+  "file": "w4-chinese-pavilion.glb",
+  "raw": "chinese-pavilion-a-sam.glb",
+  "concept": "chinese-pavilion-a.png",
+  "mask": false,
+  "note": "28 ft (8.5 m) incl. the 4.5 ft spire -> H = 3.2 + 0.155 h = 4.5 u (the rule keeps the eaves above the player)",
+  "max_tris": 3000,
+  "args": {
+   "height": 4.5,
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0,
+   "lift": 0.03,
+   "remap": [
+    {
+     "hue": [
+      340,
+      25
+     ],
+     "to": "#b8463c",
+     "min_s": 0.3,
+     "contrast": 0.45
+    },
+    {
+     "hue": [
+      35,
+      70
+     ],
+     "to": "#e0a94a",
+     "min_s": 0.35,
+     "min_v": 0.35,
+     "contrast": 0.6
+    },
+    {
+     "hue": [
+      100,
+      230
+     ],
+     "to": "#7f9c8f",
+     "min_s": 0.06,
+     "contrast": 0.45
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#f3e6cc",
+     "min_s": 0,
+     "min_v": 0.7,
+     "contrast": 0.5
+    },
+    {
+     "hue": [
+      0,
+      360
+     ],
+     "to": "#bdb3a2",
+     "min_s": 0,
+     "min_v": 0.05,
+     "contrast": 0.6
+    }
+   ]
+  },
+  "tex": 512
+ }
+}

@@ -1,0 +1,164 @@
+{
+ "version": 1,
+ "image": "stickers-t1.webp",
+ "size": [
+  512,
+  512
+ ],
+ "cell": 128,
+ "pad": 2,
+ "shape": "circle",
+ "note": "round die-cut stickers (cream rim included, alpha outside the circle); draw each rect centred on the T1 badge, diameter = the badge diameter + 4 px (plan \u00a74.1, s >= 0.45)",
+ "ids": [
+  "golden-gate-bridge",
+  "alcatraz",
+  "fishermans-wharf",
+  "ferry-building",
+  "coit-tower",
+  "chinatown-dragon-gate",
+  "lombard-crooked",
+  "palace-of-fine-arts",
+  "golden-gate-park",
+  "alamo-square-painted-ladies",
+  "twin-peaks",
+  "city-hall",
+  "union-square",
+  "sutro-baths",
+  "sf-state-university",
+  "stonestown-galleria"
+ ],
+ "rects": {
+  "golden-gate-bridge": {
+   "x": 2,
+   "y": 2,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "alcatraz": {
+   "x": 130,
+   "y": 2,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "fishermans-wharf": {
+   "x": 258,
+   "y": 2,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "ferry-building": {
+   "x": 386,
+   "y": 2,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "coit-tower": {
+   "x": 2,
+   "y": 130,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "chinatown-dragon-gate": {
+   "x": 130,
+   "y": 130,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "lombard-crooked": {
+   "x": 258,
+   "y": 130,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "palace-of-fine-arts": {
+   "x": 386,
+   "y": 130,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "golden-gate-park": {
+   "x": 2,
+   "y": 258,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "alamo-square-painted-ladies": {
+   "x": 130,
+   "y": 258,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "twin-peaks": {
+   "x": 258,
+   "y": 258,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "city-hall": {
+   "x": 386,
+   "y": 258,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "union-square": {
+   "x": 2,
+   "y": 386,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "sutro-baths": {
+   "x": 130,
+   "y": 386,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "sf-state-university": {
+   "x": 258,
+   "y": 386,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  },
+  "stonestown-galleria": {
+   "x": 386,
+   "y": 386,
+   "w": 124,
+   "h": 124,
+   "src": "main"
+  }
+ },
+ "sourceRadiusPx": {
+  "golden-gate-bridge": 458.5,
+  "alcatraz": 458.5,
+  "fishermans-wharf": 458.5,
+  "ferry-building": 458.5,
+  "coit-tower": 460.5,
+  "chinatown-dragon-gate": 458.0,
+  "lombard-crooked": 459.0,
+  "palace-of-fine-arts": 459.0,
+  "golden-gate-park": 459.0,
+  "alamo-square-painted-ladies": 459.0,
+  "twin-peaks": 459.5,
+  "city-hall": 460.0,
+  "union-square": 459.5,
+  "sutro-baths": 458.5,
+  "sf-state-university": 458.5,
+  "stonestown-galleria": 459.0
+ },
+ "bytes": 74150,
+ "sha256": "fcd25db7d28f4faff3e17484f0138354c8f00f53de6f2f744e5bf4b39ff190fd"
+}
