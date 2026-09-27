@@ -128,7 +128,7 @@ test('HC-2: the city code stays out of the main graph (import it through world/c
       if (e.isDirectory()) { walk(p); continue; }
       if (!/\.tsx?$/.test(e.name)) continue;
       const rel = path.relative(root, p).replace(/\\/g, '/');
-      // the city chunk itself (world/sf; the landmark library, still in the main graph, is guarded by the P7 test below)
+      // the city chunk itself (world/sf; the P7 test below walks the whole static graph of GameRoot)
       if (rel.startsWith('world/sf/') && !rel.startsWith('world/sf/landmarks/')) continue;
       if (rel === 'world/cityLoader.ts') continue;
       for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
@@ -166,35 +166,13 @@ function mainGraph(root: string): Map<string, string> {
   return seen;
 }
 
-/**
- * The landmark library (world/sf/landmarks: D2's recipes and context, ≈ 40 KB gzip) is city-only too. These static
- * edges still pull it into GameRoot (C2's P7 request to G2 in sf-w3-C2.md: read it through cityModule() or a dynamic
- * import); the list may only shrink — delete an entry when its import is gone.
- */
-const LANDMARK_EDGES_PENDING = [
-  'data/sf/cityPois.ts -> world/sf/landmarks/context.ts',
-  'game/cityGoals.ts -> world/sf/landmarks/golden-gate-bridge.ts',
-  'game/cityGoals.ts -> world/sf/landmarks/index.ts',
-  'game/cityGoals.ts -> world/sf/landmarks/context.ts',
-  'game/cityContent.ts -> world/sf/landmarks/index.ts',
-];
-
-test('P7: GameRoot\'s static graph reaches no city module; the landmark library only through the pending edges', () => {
+test('P7: the static graph of GameRoot reaches no city module, the landmark library included (only the tile format)', () => {
   const root = path.resolve('src/opus-bay');
   const graph = mainGraph(root);
   assert.ok(graph.size > 100 && graph.has('world/WorldScene.tsx') && graph.has('world/fogShader.ts'), `the walk follows the imports (${graph.size} modules)`);
-  // world/sf in the main graph: only the tile format (G1's streets) and the landmark library
+  // world/sf in the main graph: only the tile format (G1's streets read it). The landmark library (D2's recipes and
+  // context, ≈ 28 KB gzip) left with G2's C2 request 4 (88ed44f): read it through cityModule() or a dynamic import
   const sf = [...graph.keys()].filter(m => m.startsWith('world/sf/') || m === 'core/sfTerrain.ts');
-  assert.deepEqual(sf.filter(m => m !== 'world/sf/format.ts' && !m.startsWith('world/sf/landmarks/')), [], 'city modules in the main graph');
-  // the landmark library enters the main graph only through the pending edges (from outside it)
-  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
-  const edges: string[] = [];
-  for (const m of graph.keys()) {
-    if (m.startsWith('world/sf/landmarks/')) continue;
-    for (const [, s] of src(m).matchAll(/^\s*(?:import|export)\s+(?!type\s)(?:[^'";]*?\sfrom\s+)?['"](\.[^'"]+landmarks\/[^'"]+)['"]/gm)) {
-      const target = path.relative(root, path.resolve(path.dirname(path.join(root, m)), s)).split(path.sep).join('/');
-      edges.push(`${m} -> ${target.endsWith('.ts') ? target : `${target}.ts`}`);
-    }
-  }
-  assert.deepEqual(edges.filter(e => !LANDMARK_EDGES_PENDING.includes(e)), [], 'new static imports of the landmark library in the main graph (use cityModule() or a dynamic import)');
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.deepEqual(sf.filter(m => m !== 'world/sf/format.ts').map(why), [], 'city modules in the main graph (use cityLoader.ts cityModule() or a dynamic import)');
 });
