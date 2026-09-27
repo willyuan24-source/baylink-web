@@ -174,6 +174,8 @@ export const palaceOfFineArts: SfLandmark = {
   swap: SWAP,
   // only the rotunda thins as one (no dither holes under it); the wings and the hall keep the per-fragment fade
   fade: { r: 4.8, y1: 11.5, procedural: false },
+  // D2-10: the rotunda (piers, entablature, dome) on its deck
+  tall: [{ x: 0, z: 0, r: 4.6 }],
 };
 
 export const PALACE_LAGOON = LAGOON;

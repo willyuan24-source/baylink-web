@@ -92,5 +92,7 @@ export const cityHall: SfLandmark = {
   swap: SWAP,
   // the AI hall thins as one (the procedural keeps the per-fragment occlusion dither)
   fade: { r: 9, y1: 18, box: [9, 7], procedural: false },
+  // D2-10: the colonnaded drum, dome and lantern (the block's roof is its blockers' top)
+  tall: [{ x: 0, z: -0.6, r: 3.6 }],
 };
 

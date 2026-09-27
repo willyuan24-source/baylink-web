@@ -109,5 +109,7 @@ export const graceCathedral: SfLandmark = {
   walk: { blockers: blockers(SWAP.ship) },
   swap: SWAP,
   fade: { r: 7, y1: 13.2, box: [3.3, 6.6], procedural: false },
+  // D2-10: the crossing flèche and the twin west towers
+  tall: [{ x: 0.1, z: -2.6, r: 0.9 }, { x: -1.4, z: 5.1, r: 1.4 }, { x: 1.6, z: 5.1, r: 1.4 }],
 };
 

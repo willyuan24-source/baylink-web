@@ -136,4 +136,6 @@ export const oraclePark: SfLandmark = {
   build,
   // the ballpark is ticketed: its whole OSM outline (relation 7325085, local) blocks; the plaza gate is outside
   walk: { blockers: [{ poly: OUTLINE }] },
+  // D2-10: the four light standards over the upper deck
+  tall: [{ x: -13.5, z: 4.7, r: 0.9 }, { x: -10.4, z: 8.0, r: 0.9 }, { x: -7.9, z: 10.3, r: 1.0 }, { x: 0.6, z: 16.2, r: 0.9 }],
 };

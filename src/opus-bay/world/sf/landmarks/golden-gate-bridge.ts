@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { GLOW, NONE, SF, box, cbox, lathe, rect, sweepX, tube, worldPoly } from './kit';
-import type { SfLandmark, WalkBlocker, WalkSurface } from './index';
+import type { LandmarkTallPart, SfLandmark, WalkBlocker, WalkSurface } from './index';
 
 /**
  * Golden Gate Bridge (T1, ≤ 12k triangles). Local frame: origin on the deck line half-way between the towers,
@@ -234,9 +234,26 @@ function walk(): NonNullable<SfLandmark['walk']> {
   // railings with gaps where the sidewalk steps out onto the tower balconies
   const cuts = [END_S, -TOWER - 1.8, -TOWER + 1.8, TOWER - 1.8, TOWER + 1.8, END_N];
   for (const zs of [-1, 1]) {
-    for (let i = 0; i < cuts.length; i += 2) blockers.push({ poly: rect((cuts[i] + cuts[i + 1]) / 2, zs * (RAIL + 0.05), cuts[i + 1] - cuts[i], 0.16) });
+    // (their tops are the balustrade's: the cables above them are the tall parts' business, see tall())
+    for (let i = 0; i < cuts.length; i += 2) blockers.push({ poly: rect((cuts[i] + cuts[i + 1]) / 2, zs * (RAIL + 0.05), cuts[i + 1] - cuts[i], 0.16), top: DECK + 0.8 });
   }
   return { blockers, surfaces };
+}
+
+/**
+ * Glide obstacles (D2-10): the four tower legs, and the main cables as a row of circles on the deck axis every 5 u from
+ * anchorage to anchorage, each wide enough for both cable planes (their tops come from the drawn cables: 42.2 u at
+ * the saddles, ≈ 16.3 u at mid-span), so the pelican climbs over the cables instead of through them.
+ */
+function tall(): LandmarkTallPart[] {
+  const out: LandmarkTallPart[] = [];
+  for (const sx of [-TOWER, TOWER]) for (const zs of [-1, 1]) out.push({ x: sx, z: zs * CZ, r: 1.4 });
+  const n = Math.ceil((ANCH_N - ANCH_S) / 5);
+  for (let i = 0; i <= n; i++) {
+    const s = ANCH_S + ((ANCH_N - ANCH_S) * i) / n;
+    out.push({ x: Math.round(s * 100) / 100, z: 0, r: Math.round((cableZ(s) + 0.45) * 100) / 100 });
+  }
+  return out;
 }
 
 const EXCLUDE: Vec2[] = worldPoly(X0, Z0, YAW, [{ x: END_S - 3, z: -5.5 }, { x: END_N + 3, z: -5.5 }, { x: END_N + 3, z: 5.5 }, { x: END_S - 3, z: 5.5 }]);
@@ -252,6 +269,7 @@ export const goldenGateBridge: SfLandmark = {
   castShadow: true,
   build,
   walk: walk(),
+  tall: tall(),
 };
 
 /** exported for tests / other lanes: deck height, tower stations and the south anchorage (local x) */

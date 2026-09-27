@@ -103,7 +103,10 @@ export const sutroTower: SfLandmark = {
   walk: {
     blockers: [
       ...LEG_A.map(a => { const f = legAt(a, 0); return { x: f.x, z: f.z, r: 0.9 }; }),
-      { poly: [{ x: -5.8, z: -3.7 }, { x: -1.4, z: -3.7 }, { x: -1.4, z: -1.1 }, { x: -5.8, z: -1.1 }] },
+      // the transmitter building (its roof, 1.6 + 0.18: it stands mostly inside the mast's tall circle, which would lend it 49.7)
+      { poly: [{ x: -5.8, z: -3.7 }, { x: -1.4, z: -3.7 }, { x: -1.4, z: -1.1 }, { x: -5.8, z: -1.1 }], top: 1.8 },
     ],
   },
+  // D2-10: the glide steers round the whole mast (legs, platforms, antenna arms): r 6 about the upper cluster
+  tall: [{ x: 0, z: 0.8, r: 6 }],
 };

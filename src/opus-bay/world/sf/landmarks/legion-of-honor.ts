@@ -108,5 +108,7 @@ export const legionOfHonor: SfLandmark = {
   swap: SWAP,
   // the AI complex thins as one while it stands between the camera and the player (walking into the court)
   fade: { r: 6, y1: 5.8, box: [4.5, 6.4], procedural: false },
+  // D2-10: the dome over the museum block
+  tall: [{ x: 0, z: -3.9, r: 1.1 }],
 };
 

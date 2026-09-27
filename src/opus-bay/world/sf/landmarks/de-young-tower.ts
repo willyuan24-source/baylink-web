@@ -91,5 +91,7 @@ export const deYoungTower: SfLandmark = {
   castShadow: true,
   build,
   walk: { blockers: [{ poly: MUSEUM.map(([x, z]) => ({ x, z })) }, { poly: ringAt(0, 0, 0.2).map(p => ({ x: p.x, z: p.z })) }] },
+  // D2-10: the twisted Hamon tower (the museum wings are its blockers' top)
+  tall: [{ x: 0, z: -0.1, r: 3.6 }],
 };
 

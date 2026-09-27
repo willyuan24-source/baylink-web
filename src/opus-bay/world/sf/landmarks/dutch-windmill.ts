@@ -118,5 +118,7 @@ export const dutchWindmill: SfLandmark = {
   walk: { blockers: [{ x: 0, z: 0, r: SWAP.ship ? 1.85 : 1.6 }, ...BEDS] },
   swap: SWAP,
   fade: { r: 2.2, y1: 6.6, procedural: false },
+  // D2-10: the disc the sails sweep about the windshaft (the glide never cuts through a turning sail)
+  tall: [{ x: 0, z: hub.z, r: SAIL_R + 0.3 }],
 };
 

@@ -7,7 +7,7 @@ import { type ModelMaterial, makeModelMaterial, modelInstanceGeometry, setModelI
 import type { LoadedModel } from '../models';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
-import { type LandmarkFade, type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, landmarkMatrix, usesAi } from './landmarks';
+import { type LandmarkFade, type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, blockerTops, landmarkMatrix, usesAi } from './landmarks';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
 
@@ -284,16 +284,23 @@ export class CitySites {
     });
   }
 
-  /** Walk data for lane B's rasteriser (plain data, structured-cloneable), with the same exclusion the renderer uses. */
+  /**
+   * Walk data for lane B's rasteriser (plain data, structured-cloneable), with the same exclusion the renderer uses.
+   * Blockers carry their tops (LOCAL y; D2-10 blockerTops: own `top` or the measured table), which the terrain
+   * provider turns into world Blocker.top once the base is known.
+   */
   walkInputs(): LandmarkWalkInput[] {
     return this.sites.map(s => {
-      const e = s.l.exclude;
+      const e = s.l.exclude, w = s.l.walk, tops = blockerTops(s.l);
       return {
         id: s.l.id, x: s.l.x, z: s.l.z, yaw: s.l.yaw, base: s.l.base, baseY: s.baseY,
         exclude: 'r' in e ? { r: e.r } : { poly: e.poly.map(p => ({ x: p.x, z: p.z })) },
         // collision follows the drawn ground's sink inside the exclusion (lane B's LandmarkWalkInput.sink)
         sink: NO_SINK.has(s.l.id) ? 0 : SINK,
-        walk: s.l.walk ? JSON.parse(JSON.stringify(s.l.walk)) : undefined,
+        walk: w ? {
+          ...JSON.parse(JSON.stringify(w)),
+          blockers: w.blockers.map((b, i) => ({ ...JSON.parse(JSON.stringify(b)), ...(tops[i] !== undefined ? { top: tops[i] } : {}) })),
+        } : undefined,
       };
     });
   }

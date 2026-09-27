@@ -24,6 +24,7 @@ import { palaceOfFineArts } from './palace-of-fine-arts';
 import { peacePagoda } from './peace-pagoda';
 import { sutroBaths } from './sutro-baths';
 import { sutroTower } from './sutro-tower';
+import { LANDMARK_TOPS } from './tops';
 import { twinPeaks } from './twin-peaks';
 
 /**
@@ -50,8 +51,20 @@ import { twinPeaks } from './twin-peaks';
 
 export type LandmarkTier = 1 | 2 | 3;
 export type LandmarkLod = 0 | 2;
-export type WalkBlocker = { x: number; z: number; r: number } | { poly: Vec2[] };
+/**
+ * A collision shape (LOCAL). `top` (local y above the base, lane D2 D2-10) is the roof of what stands on it: the glide
+ * flies over it and a tap on its wall walks to its front (core/terrain Blocker.top). Left out, the measured table
+ * (landmarks/tops.ts, generated from the drawn lod 0) supplies it: see blockerTops().
+ */
+export type WalkBlocker = { x: number; z: number; r: number; top?: number } | { poly: Vec2[]; top?: number };
 export interface WalkSurface { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }
+
+/**
+ * A tall part the pelican glide steers round (lane D2, D2-10; context.ts landmarkTallStructures): a LOCAL circle whose
+ * top (local y) is measured from the drawn lod 0 (landmarks/tops.ts). For what rises above the landmark's blockers or
+ * reaches beyond them: bridge towers and cables, a dome's drum, masts, spires, windmill sails.
+ */
+export interface LandmarkTallPart { x: number; z: number; r: number }
 
 /**
  * One AI mesh (lane D2, D2-06/07) placed in the landmark's LOCAL frame: `model` is an ASSETS.models id (SF_MODELS /
@@ -109,7 +122,8 @@ export interface SfLandmark {
   build(b: BatchLike, lod: 0 | 2): void;       // LOCAL space: origin at ground centre, +y up, front faces +z; lod 2 = silhouette version ≤ 10 % triangles for far view
   castShadow?: boolean;             // T1 only
   animate?: { update(obj: THREE.Object3D, t: number): void; build(b: BatchLike): void };  // optional separately-built moving parts (windmill sails, flags)
-  walk?: { blockers: ({ x: number; z: number; r: number } | { poly: Vec2[] })[]; surfaces?: { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }[] };  // LOCAL-space collision + walkable decks for lane B
+  walk?: { blockers: WalkBlocker[]; surfaces?: { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }[] };  // LOCAL-space collision + walkable decks for lane B
+  tall?: LandmarkTallPart[];        // lane D2: glide obstacles (see LandmarkTallPart)
   swap?: LandmarkSwap;              // lane D2: AI mesh version (see LandmarkSwap)
   fade?: LandmarkFade;              // lane D2: whole-mesh hero fade radius (local, around the origin) and top (local y)
   ground?: LandmarkGround[];        // lane D2: street strips / plazas in GROUND (lod 0)
@@ -204,13 +218,30 @@ export function buildLandmarkWorld(l: SfLandmark, lod: LandmarkLod, baseY: numbe
   return buildLandmark(l, lod, baseY).applyMatrix4(landmarkMatrix(l, baseY));
 }
 
-/** Blockers and walkable surfaces in WORLD space (base 'terrain' surfaces keep 'terrain'; numeric y gets baseY added). */
+/**
+ * Each blocker's top (LOCAL y), in `walk.blockers` order: its own `top`, else the measured row of landmarks/tops.ts
+ * (undefined when the table has no row for it, e.g. a landmark added after the last run of landmark-tops.ts).
+ */
+export function blockerTops(l: SfLandmark): (number | undefined)[] {
+  const row = LANDMARK_TOPS[l.id]?.blockers;
+  return (l.walk?.blockers ?? []).map((b, i) => b.top ?? row?.[i]);
+}
+
+/** The landmark's tall parts with their measured tops (LOCAL; parts the table has no top for are left out). */
+export function tallParts(l: SfLandmark): (LandmarkTallPart & { top: number })[] {
+  const row = LANDMARK_TOPS[l.id]?.tall;
+  return (l.tall ?? []).flatMap((t, i) => (row?.[i] !== undefined ? [{ ...t, top: row[i] }] : []));
+}
+
+/** Blockers and walkable surfaces in WORLD space (base 'terrain' surfaces keep 'terrain'; numeric y gets baseY added; blocker tops are world y). */
 export function landmarkWalkWorld(l: SfLandmark, baseY: number) {
   const w = l.walk;
   if (!w) return { blockers: [] as WalkBlocker[], surfaces: [] as WalkSurface[] };
   const P = (p: Vec2) => landmarkToWorld(l, p);
+  const tops = blockerTops(l);
+  const top = (i: number) => (tops[i] === undefined ? {} : { top: baseY + tops[i]! });
   return {
-    blockers: w.blockers.map((bl): WalkBlocker => ('poly' in bl ? { poly: bl.poly.map(P) } : { ...P(bl), r: bl.r })),
+    blockers: w.blockers.map((bl, i): WalkBlocker => ('poly' in bl ? { poly: bl.poly.map(P), ...top(i) } : { ...P(bl), r: bl.r, ...top(i) })),
     surfaces: (w.surfaces ?? []).map((s): WalkSurface => ({ poly: s.poly.map(P), y: s.y === 'terrain' ? 'terrain' : s.y + baseY, surface: s.surface })),
   };
 }

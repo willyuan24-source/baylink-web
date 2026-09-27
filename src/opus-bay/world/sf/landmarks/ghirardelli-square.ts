@@ -132,4 +132,6 @@ export const ghirardelliSquare: SfLandmark = {
   build,
   walk: { blockers: blockers(SWAP.ship), surfaces: [{ poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), y: TERRACE.y, surface: 'plaza' }] },
   swap: SWAP,
+  // D2-10: the clock tower and its spire
+  tall: [{ x: -7.2, z: -4.1, r: 1.6 }],
 };

@@ -146,7 +146,8 @@ export interface ChunkRasters {
   ms: number;
 }
 
-type LocalBlocker = { x: number; z: number; r: number } | { poly: Vec2[] };
+/** `top`: LOCAL y above the base of what stands on the blocker (lane D2, D2-10): the provider's Blocker.top = base + top. */
+type LocalBlocker = { x: number; z: number; r: number; top?: number } | { poly: Vec2[]; top?: number };
 interface LocalSurface { poly: Vec2[]; y: number | 'terrain'; surface: SurfaceKind }
 
 /**
@@ -214,7 +215,7 @@ export function landmarkWalkInputs(list: readonly LandmarkWalkInput[], ground?: 
     ...(l.sink ? { sink: l.sink } : {}),
     ...(l.walk ? {
       walk: {
-        blockers: l.walk.blockers.map(b => ('poly' in b ? { poly: b.poly.map(p => ({ x: p.x, z: p.z })) } : { x: b.x, z: b.z, r: b.r })),
+        blockers: l.walk.blockers.map(b => ({ ...('poly' in b ? { poly: b.poly.map(p => ({ x: p.x, z: p.z })) } : { x: b.x, z: b.z, r: b.r }), ...(b.top !== undefined ? { top: b.top } : {}) })),
         ...(l.walk.surfaces ? { surfaces: l.walk.surfaces.map(s => ({ poly: s.poly.map(p => ({ x: p.x, z: p.z })), y: s.y, surface: s.surface })) } : {}),
       },
     } : {}),
@@ -297,7 +298,8 @@ const flatPoly = (poly: readonly Vec2[]) => { const a = new Float64Array(poly.le
 // Landmarks (world space)
 // ---------------------------------------------------------------------------
 
-interface LmBlocker { poly: Float64Array | null; x: number; z: number; r: number; bbox: [number, number, number, number]; obj: Blocker }
+/** `lm` = index of its landmark in the prepared list; `top` = its LOCAL top (D2-10), obj.top = base + top */
+interface LmBlocker { poly: Float64Array | null; x: number; z: number; r: number; bbox: [number, number, number, number]; obj: Blocker; lm: number; top?: number }
 interface LmSurface { poly: Float64Array; y: number | null; code: number; bbox: [number, number, number, number] }
 interface PreparedLandmarks {
   blockers: LmBlocker[];
@@ -329,7 +331,7 @@ const fixedBase = (l: LandmarkWalkInput, ground: (x: number, z: number) => numbe
  */
 function prepareLandmarks(list: readonly LandmarkWalkInput[], baseOf: (l: LandmarkWalkInput) => number, withSurfaces: (l: LandmarkWalkInput) => boolean = () => true): PreparedLandmarks {
   const out: PreparedLandmarks = { blockers: [], surfaces: [], excludes: [], extents: [] };
-  for (const l of list) {
+  for (const [li, l] of list.entries()) {
     const c = Math.cos(l.yaw), s = Math.sin(l.yaw);
     const W = (p: Vec2): Vec2 => ({ x: l.x + p.x * c + p.z * s, z: l.z - p.x * s + p.z * c });
     const baseY = baseOf(l), keep = withSurfaces(l);
@@ -343,11 +345,11 @@ function prepareLandmarks(list: readonly LandmarkWalkInput[], baseOf: (l: Landma
     for (const b of l.walk?.blockers ?? []) {
       if ('poly' in b) {
         const wp = b.poly.map(W), poly = flatPoly(wp), bbox = polyBBox(poly);
-        out.blockers.push({ poly, x: 0, z: 0, r: 0, bbox, obj: { kind: 'polygon', polygon: wp } });
+        out.blockers.push({ poly, x: 0, z: 0, r: 0, bbox, obj: { kind: 'polygon', polygon: wp, ...(b.top !== undefined ? { top: baseY + b.top } : {}) }, lm: li, top: b.top });
         grow(bbox);
       } else {
         const p = W(b), bbox: [number, number, number, number] = [p.x - b.r, p.z - b.r, p.x + b.r, p.z + b.r];
-        out.blockers.push({ poly: null, x: p.x, z: p.z, r: b.r, bbox, obj: { kind: 'circle', x: p.x, z: p.z, r: b.r } });
+        out.blockers.push({ poly: null, x: p.x, z: p.z, r: b.r, bbox, obj: { kind: 'circle', x: p.x, z: p.z, r: b.r, ...(b.top !== undefined ? { top: baseY + b.top } : {}) }, lm: li, top: b.top });
         grow(bbox);
       }
     }
@@ -886,6 +888,8 @@ class Provider implements CityTerrainProvider {
     if (li === undefined) return false;
     if (typeof this.lmInput[li].base === 'number') return true;
     this.lmBase[li] = y; this.lmBaseSrc[li] = 2;
+    // blocker tops follow the renderer's base (D2-10; prepared with the walkInputs hint before the base was known)
+    for (const b of this.lm?.blockers ?? []) if (b.lm === li && b.top !== undefined) b.obj.top = y + b.top;
     this.refreshDeferred(li, -1);
     return true;
   }
