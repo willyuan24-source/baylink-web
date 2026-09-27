@@ -484,15 +484,23 @@ edited.
   cal-academy / st-ignatius gate (step 5).
 - **Lane T / lead**: after lane T's integration step 7 (bus / LRV sounds wired), a listening pass; lane V generates SFX
   only if they sound cheap (≤ 5 credits).
+- **Lead**: merge the ledger's batch 4 (the 15 credits at 22:16–22:20 UTC your §8.2 reconciliation found: 6 Nano Banana
+  Pro + 1 SAM + 1 Nano Banana Pro, all this lane's) and the replaced `w4-holy-virgin.glb` published row into
+  ASSETS-LEDGER.md.
+- Seen: the lead-merge's §8.4 items routed to lane V (the water-hole fill in `build.ts` / `far.ts` for Strawberry Hill,
+  the mural boards at 0.06 u, `opus-prof.mjs`'s port, the `?debug` panel on phones, the route warm-up drift, Draco + WebP
+  for the district heroes and the kit masks) are integration-phase work: they start once "wave 3 verified" is announced
+  to this lane (the early rule held for part 2).
 
 ### Checks
 
 - `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
-- `npx eslint . --ignore-pattern .vite-opus`: 0 errors, 43 warnings (the repo's; none in lane V's files: ai-gate.tsx
-  mounts the page with `createElement` so react-refresh's rule stays quiet).
-- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **717 / 717** green (on `9a62916` + this
-  part's commits), incl. hero regression and contracts; lane V's `w4-assets` 7 / 7, `w4-swaps` 4 / 4, `w4-postcards`
-  3 / 3. The swap checks fail on the old data (tried: with the part-1 Holy Virgin GLB put back, the exclusion and the
+- `npx eslint .`: 0 errors, 43 warnings (the repo's; none in lane V's files: ai-gate.tsx mounts the page with
+  `createElement` so react-refresh's rule stays quiet; the lead-merge now ignores `.vite-opus`).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **717 / 717** green on `9a62916` + this part's
+  commits; after the rebase onto the lead-merge (`32eda15`): 719 / 720, the one failure E2-5's wall-clock assert "a
+  cached cell is cheap" (`opus-bay-sf-move2`) under the load of the full run, green on its own re-run (24 / 24), so
+  **720 / 720**; incl. hero regression and contracts; lane V's `w4-assets` 7 / 7, `w4-swaps` 4 / 4, `w4-postcards` 3 / 3. The swap checks fail on the old data (tried: with the part-1 Holy Virgin GLB put back, the exclusion and the
   lot-fit tests fail). The spot search rejected West Portal candidates inside the shops (`canStand` false) and left out
   those on the carriageway (surface `road`).
 - No relayed owner message arrived during part 2.
