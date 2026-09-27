@@ -211,3 +211,110 @@ Written 2026-09-27 by the lane-T agent (worktree `C:/Users/willy/wt/w4-t`, branc
 - **Lane L**: the M platforms at 19th & Winston / Holloway: T places a simple island + pole 3.4 u right of the outbound
   track at each surface stop; if your Stonestown / SF State sites build real platforms there, tell me the station ids and
   T skips its props there. The West Portal site (#50) can use T's portal hood (`portalGeometry('west-portal')`).
+
+## Early review
+
+Written 2026-09-27 by the lane-T adversarial reviewer (worktree `C:/Users/willy/wt/w4-t`). Commits `9423db5` (lint) and
+`515fb30` (fixes + tests) on `opus-bay`; this section is the third commit.
+
+### 给主人的摘要
+
+1. 查了 T 线全部新文件（数据、巴士 / 轻轨模拟、车辆、站牌、隧道口、地铁界面、音效、测试），在网上核对了 22 条事实和坐标，全部对得上。
+2. 找到并修好 9 个问题，最要紧的三个：两列 N 线列车会在日落隧道口"穿过彼此"（现在隧道口一段改成单线、轮流通过，模拟 3 小时 0 次）；列车一半还在隧道口时就能"提前下车"（现在整列车出洞才行）；T 线的一个脚本让整个仓库的检查（CI）失败了（已先修好推送）。
+3. 横幅文字改短了：以前是"M 线 · 开往 19th & Winston · 石镇 · 下一站 …"，现在是"M 线 · 开往 石镇 · 下一站 森林山站"。
+4. 还有 8 条留给接线阶段的注意事项写在下面（主要是 ride.ts 和移动系统里要加的判断）。全部 649 个测试通过。
+
+### What was checked
+
+- **Scope:** every file of the eight W4-T commits (`88562d7` … `c434f57`): `data/sf/stationNames.ts`,
+  `scripts/opus-sf/lib/{metro,busLoop,lineGeom,stopPlace}.ts`, `transit-sidecar.ts`, `transit-qa/*`,
+  `world/{lineTrack,busSystem,lightRail}.ts`, `world/sf/{tourBus,lrv,stations,portals,lineFleet}.ts`, `game/lineChoices.ts`,
+  `ui/{SubwayOverlay.tsx,subwayStrip.ts,transit-ui.css}`, `audio/lines.ts`, both tests, this report.
+- **Early-phase rule:** `git show --name-status` of all eight commits: every file was added by the lane and only its own
+  files were modified later. No existing tracked file was edited. ✓
+- **Wiring:** read what the integration plan names — `game/ride.ts` (`stepLineRide` reads `sys.cars[st.car].pose`),
+  `data/transit.ts` (`LineRideSystem`, `rideSystemFor`), `game/transit.ts` (`RideLabel` = `lineTo` + `dest`), `ui/Hud.tsx`
+  `RideBanner`, `actors/moveSystem.ts` + `actors/modes.ts` (the hop-off handshake: `brakeTransit` alights after 1.2 s
+  whatever the speed), `actors/platform.ts`, `audio/{audio,logic}.ts` (`transitSound` plays cable-car kinds only),
+  `world/materials.ts` (`patchToyShader` under the `ob-toy` key: the fleet materials link the same program as
+  `TOY_BATCH`), `world/warmup.ts`.
+- **Behaviour probes** (scratch `C:/Users/willy/opus-qa/w4/w4-t/probe-*.mts`): 1–3 simulated hours of the light rail with
+  a side-by-side check; stop → attraction distances against lane P's `ATTRACTIONS`; station and portal coordinates
+  against Wikipedia (`projectCity`).
+- **Budgets:** near / far / props batched meshes (≤ 3 calls + 1 shadow, 7.5k tris worst) and the geometries (bus 1,060,
+  LRV car 396, portals 168–324): within plan §3.7. **Per-frame allocations** found and removed (R9). **zh text** read on
+  every label the lane builds (R8).
+
+### Facts re-checked on the web (22, all ✓)
+
+Twin Peaks Tunnel opened 3 Feb 1918 · 3.65 km · West Portal Ave & Ulloa St to Castro (en.wikipedia Twin_Peaks_Tunnel);
+Sunset Tunnel opened 21 Oct 1928 · 4,232 ft = 1,290 m · N Judah only · east portal Duboce & Noe on Duboce Park · west
+portal near Carl & Cole (Sunset_Tunnel); Muni Metro in the Market Street subway from 18 Feb 1980 · the N leaves it at the
+Duboce portal, Church & Duboce (Market_Street_subway); OSM 3435877 = "Muni Metro N outbound: Caltrain => Ocean Beach"
+(King & 4th → Judah & La Playa), OSM 3433314 = "M outbound: Embarcadero => Balboa Park" (openstreetmap.org); M stops West
+Portal → West Portal & 14th → St Francis Circle → Right of Way/Ocean → Right of Way/Eucalyptus → Stonestown (19th Ave at
+Winston Dr) → SF State (Holloway) → Randolph / Broad / San Jose → Balboa Park (M_Ocean_View,
+Stonestown_Galleria_station); N serves UCSF Parnassus at Irving & 2nd / Arguello (N_Judah); Sunset Dunes opened 12 Apr
+2025 on the Upper Great Highway between Lincoln Way and Sloat (Sunset_Dunes); Twin Peaks Blvd closed to cars at the
+Burnett (north) gate since March 2021, Portola entrance open (sfmta.com, SF Chronicle) — the loop enters from Portola ✓;
+JFK Promenade car-free Kezar → Transverse, western MLK Dr closed from the Metson / Middle Dr loop to Lincoln Way
+(sfrecpark.org "Driving Around the Closure") — the loop joins MLK at Crossover Dr, east of the closure ✓; Embarcadero =
+內河碼頭站 (zh.wikipedia). Coordinates: West Portal station 2.8 u, Stonestown 2.9 u, Judah & La Playa 0.9 u from the
+Wikipedia points (≈ 20 m).
+
+### Defects found and fixed
+
+| # | defect | fix | test |
+|---|---|---|---|
+| R1 | `transit-sidecar.ts` line 99 (`let spot = null`, never read) failed `npx eslint .`, i.e. CI's `npm run check` on `opus-bay` (the lane linted `src/opus-bay tests/…` only) | initialiser dropped (`9423db5`, pushed first) | whole-repo lint 0 errors |
+| R2 | **Opposite trains drove through each other near the mouths**: nobody steps aside within 20 u of a mouth (one-track hoods) and nothing kept two trains from meeting there — ≈ 15 s per simulated hour, e.g. two N trains overlapping at the Sunset Tunnel west portal (the landmark mouth); `violations()` did not look at opposite trains | a single-track stretch round every mouth (`GAUNTLET` = 20 u + a train + 4 u, the Duboce hood's 8 u shift included): wait at the edge while an opposite train is inside or has the right of way (one that can no longer stop, else the nearer); dispatch never places a train into a taken stretch or beside an opposite one; `violations()` reports side-by-side passes. 0 in 3 simulated hours with 2 and 3 trains a line (`515fb30`) | sf-metro "review: opposite trains never meet side by side …" (1 h); the 10-min test now checks it too |
+| R3 | **Hop-off inside a mouth**: the brake was ignored only while the train was wholly hidden, so a rider could step off with the train half in the tunnel or under the Duboce hood (8 u outside the OSM tunnel end); the HUD only knew `underground` | ignored while any part of the train is in a tunnel span or under a hood (`canHopOffAt`; a brake begun outside goes on); `RailRideStatus.canHopOff`, read by `lineRideLabel` | sf-metro "review: no hop-off while any part …" |
+| R4 | **The sims did not fit `game/ride.ts`**: `stepLineRide` reads `rideSystemFor(line).cars[st.car].pose` (`LineRideSystem`); BusSystem has `buses`, LightRailSystem `trains` with two poses each — the report's "stepLineRide already fits all three" was wrong | both `implements LineRideSystem` (tsc proves it): `BusSystem.cars` = the buses, `LightRailSystem.cars[i].pose` = train i's lead car (follows reversals) | sf-bus / sf-metro "review: … LineRideSystem" |
+| R5 | **The rider rode along under the street**: `LineFleet` published the platform pose of the rider's hidden train (the report said it did not), so the rider and the streamer would follow the virtual subway at 25 u/s | no platform pose for a hidden train (the platform goes stale; ride.ts keeps the rider at the kiosk, integration step 4) | sf-metro "review: the fleet publishes no platform pose …" |
+| R6 | Bus `door` events were emitted as transit `bell` (the plan's stop-request ding): after integration step 7 every stop would ring the stop bell twice on top of the air brake + door chime | doors emit nothing (arrive / depart carry the chime) | sf-bus "review: … doors emit no bell" (10 min at the Castro stop) |
+| R7 | Bus sim: a bus pulling away from a stop reported a ≈ 1.5 s ETA for that same stop (it is a lap away), so a request there picked it; `requestNextStop()` during a hop-off hold skipped a stop | ETA = a lap; the held bus keeps the stop ahead | sf-bus "review: a bus pulling away …" |
+| R8 | **Banner text too long and ambiguous on a phone**: "M 线 · 开往 19th & Winston · 石镇 · 下一站 森林山站", "旧金山观光环线 · 下一站 渔人码头 · 海德街 · 约 131 秒", "等N 线进站"; `LineRideLabel` had no `lineTo` / `dest`, so today's RideBanner could not show it | short names (`w4StationShort`: 石镇, 州立大学, 海洋海滩, Balboa Park, else the part before " · "), `W4_LINES[id].shortName` (观光环线 / N 线 / M 线), minutes past 90 s, "等 M 线进站…", `lineTo` + `dest` in today's RideBanner shape: "M 线 · 开往 石镇 · 下一站 森林山站", "观光环线 · 下一站 渔人码头 · 约 2 分钟" | sf-bus / sf-metro "review: … short names" (every loop banner ≤ 28 characters) |
+| R9 | Per-frame allocations: `LineFleet.update` built 2 closures + 2 `forEach` closures + a `filter` array per Metro line per frame; the sims a closure per vehicle per step (`yAt`), one per bus (`boxes.forEach`), an object per rider-train step (the mouth), tuple arrays per tunnel (portal events), a closure per train (`tunnels.some`). Also: `SubwayOverlay` was one `aria-live` region whose seconds change every frame; stopped at a station without `onAlight` it said 隧道里不能下车; `perLine > 2` put two trains on one spot at start | loops and private methods, nothing allocated per frame; only the station line is a live region; start positions spread | the 10-min / 1-h sims (3 trains a line in the probe), the fleet budget test |
+
+Also: `InterlockBox.other = { line, b0, b1 }` (the other line's part of a box) so `CableSystem.free()` can test its span
+at integration; `PORTAL_HOOD_SHIFT` + `portalIdOf` live in `stationNames.ts` (pure; `portals.ts` reads it).
+
+### Open (not fixed, with a default)
+
+1. **Lane G (`actors/moveSystem.ts`), integration:** the Space / B / F hop-off calls `requestPlatformStop` + `brakeTransit`,
+   and `modes.ts` alights after 1.2 s whatever the car's speed. In a tunnel or a mouth the LRV ignores the brake, so the
+   rider would step off a moving (or hidden) train. Guard: no hop-off while `rideStatus().canHopOff === false` (say
+   `lineRideLabel(...).hopOffNote`).
+2. **Lane T (`game/ride.ts`), integration:** `rideSystemFor(line)` returns the cable system for any other id — it must
+   return `activeLineFleet().bus` / `.rail` for `sf-loop` / `n-judah` / `m-ocean-view`; and while
+   `rideStatus().underground`, `stepLineRide` must not copy `cars[st.car].pose` (the hidden train) into the player: hold
+   them at the boarding kiosk.
+3. `RideLabel.icon` (game/transit.ts) widens to `'bus' | 'metro'`; Hud.tsx falls back to `TramFront` for an unknown icon,
+   so nothing breaks before lane G adds the glyphs; `rideLabel()` can return `lineRideLabel(...)` as is.
+4. `audio/logic.ts transitSound` plays cable-car kinds only: bus / LRV events stay silent until integration step 7.
+5. **Hagiwara Tea Garden Drive** (the loop's GG Park → Haight leg: Music Concourse Dr > Hagiwara Tea Garden Dr > MLK Dr) is
+   not in Rec & Park's car-free list, but not confirmed open either; OSM tags it car-legal. Check at integration.
+6. `muni-19th-holloway` lists `lake-merced` 240 u (≈ 1.7 km) away as served on foot; Kezar / Koret are listed under both
+   Carl & Stanyan (49 / 72 u) and Carl & Hillway (26 / 46 u). Default: keep (★ and the approach use the first attraction).
+7. Ride-time estimates do not include a wait at a single-track stretch (rare, ≤ ≈ 10 s); rides stay within the tests'
+   15 % + 4 s. `LineLoops` keeps its oscillators running at gain 0 after the first ride (`dispose()` stops them).
+8. Report text: the Requests to lane L above still say "a simple island + pole"; the code places a pole only (the lane's
+   final note is right). `scripts/opus-sf/lib/metro.ts MOUTH_VISUAL_SHIFT` duplicates `PORTAL_HOOD_SHIFT` (same numbers).
+
+### Integration changes (supersede the early plan where they differ)
+
+- Step 3: `CableSystem.free()` refuses a span overlapping `box.other.b0 … b1` (plus the line's `s0`) while
+  `bus.occupies(box.id)`.
+- Step 4 (`ride.ts`): `rideSystemFor` routes the three ids to the fleet; `stepLineRide` holds the player at the kiosk while
+  `underground` (Open 2; the fleet no longer publishes a hidden train's platform).
+- Steps 5 / 6: the RideBanner keeps its `lineTo` + `dest` layout (`lineRideLabel` fills both); the SubwayOverlay gets
+  `line.name = W4_LINES[id].shortName` and `destination = w4StationShort(to)`; moveSystem guards the hop-off with
+  `canHopOff` (Open 1).
+- Step 7: bus doors send no `bell` any more; `bell` (bus) = the stop request (`requestNextStop` → `stopBell`).
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (42 warnings, none in lane-T files) · full suite
+**649 / 649** on the pushed tree (`515fb30`, after rebasing) · the lane-T scripts type-check under a temporary file-only
+config (only the unrelated `src/i18n` declaration errors) · sf-bus 21 tests, sf-metro 21 tests (8 new review tests, 4
+each; the `515fb30` message says "9 … sf-bus 5": it is 4) · no Higgsfield credits.
