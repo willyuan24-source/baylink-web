@@ -9,6 +9,7 @@ import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
+import { gearyWest } from './geary-west';
 import { haightAshbury } from './haight-ashbury';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { landsEnd } from './lands-end';
@@ -69,6 +70,7 @@ export const W4_SITES: readonly W4Site[] = [
   // P3 · tier 2 on the lines
   bisonPaddock,
   blueHeronLake,
+  gearyWest,
 ];
 
 const byId = new Map(W4_SITES.map(s => [s.id, s]));
