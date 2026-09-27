@@ -629,8 +629,10 @@ export class CityStreamer {
 
   private endPart(p: FadePart) {
     if (p.pair && p.l0) {
-      if (p.l0.toy) p.l0.toy.material = TOY;
-      if (p.l0.ground) p.l0.ground.material = GROUND;
+      // only while the mesh still wears this pair: a quick flip (in, then out within TIER_FADE) has put the newer fade's
+      // pair on it, and settling the older fade here must not make the fading-out cell solid (wave-3 review)
+      if (p.l0.toy && p.l0.toy.material === p.pair.toy) p.l0.toy.material = TOY;
+      if (p.l0.ground && p.l0.ground.material === p.pair.ground) p.l0.ground.material = GROUND;
       this.pairs.push(p.pair);
     } else if (p.pool !== undefined) this.pool.setFade(p.pool, 1);
     p.end?.();
@@ -792,6 +794,9 @@ export class CityStreamer {
     this.disposed = true;
     this.boards.job = null;
     for (const key of [...this.fading.keys()]) this.finishFades(key, true);
+    // the fade pairs are this streamer's own material instances (the next city makes its own)
+    for (const p of this.pairs) { p.toy.dispose(); p.ground.dispose(); }
+    this.pairs = [];
     for (const w of this.workers) w.terminate();
     this.workers = [];
     setCityTerrain(null);

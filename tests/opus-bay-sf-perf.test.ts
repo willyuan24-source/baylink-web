@@ -340,6 +340,38 @@ test('C2-10: the batched pool fades an item through its colour alpha (texture fr
   tiles.dispose();
 });
 
+test('wave-3 review, C2-10: a quick flip (in, then out within TIER_FADE) keeps the newer fade on the L0 cell; the pairs die with the streamer', async () => {
+  const { CityStreamer } = await import('../src/opus-bay/world/sf/stream');
+  const sites = { group: new THREE.Group(), dispose: noop };
+  const s = new CityStreamer({ renderer: { extensions: { has: () => true } } as never, quality: 'high', slab: [{ x: 0, z: 0 }, { x: 1, z: 0 }, { x: 1, z: 1 }], sites: sites as never, farInit: {} as never, onFar: noop });
+  type Rec = { toy: THREE.Mesh; ground: THREE.Mesh; tris: number; buildings: null; hidden: Map<number, unknown> };
+  const priv = s as unknown as { time: number; fadeL0(key: number, rec: Rec, out: boolean, end?: () => void): void; finishFades(key: number): void; stepFades(): void; pairs: { toy: THREE.Material; ground: THREE.Material }[] };
+  const rec: Rec = { toy: new THREE.Mesh(new THREE.BufferGeometry(), M.TOY), ground: new THREE.Mesh(new THREE.BufferGeometry(), M.GROUND), tris: 0, buildings: null, hidden: new Map() };
+  // the cell comes in: its L0 dithers in on fade pair A
+  priv.fadeL0(7, rec, false);
+  const a = rec.toy.material;
+  assert.notEqual(a, M.TOY);
+  // 0.1 s later it goes out again: dropL0 fades it out on pair B, then applyVisibility settles the older fade (A)
+  priv.time += 0.1;
+  let freed = false;
+  priv.fadeL0(7, rec, true, () => { freed = true; });
+  const b = rec.toy.material, bg = rec.ground.material;
+  assert.notEqual(b, a);
+  priv.finishFades(7);
+  assert.equal(rec.toy.material, b, 'the fading-out cell keeps pair B (was: back on TOY, solid until it popped)');
+  assert.equal(rec.ground.material, bg);
+  priv.time += 0.31;
+  priv.stepFades();
+  assert.ok(freed, 'the fade out ends and frees the cell');
+  assert.equal(rec.toy.material, M.TOY);
+  // the pairs are the streamer's own material instances: disposed with it
+  let disposed = 0;
+  assert.equal(priv.pairs.length, 2);
+  for (const p of priv.pairs) for (const m of [p.toy, p.ground]) m.addEventListener('dispose', () => { disposed++; });
+  s.dispose();
+  assert.equal(disposed, 4);
+});
+
 test('P5 (E2 request 3): the warm-up carries the shadow pass depth programs of plain casters, kept alive', async () => {
   const { shadowDepthSet } = await import('../src/opus-bay/world/warmup');
   const a = shadowDepthSet();
