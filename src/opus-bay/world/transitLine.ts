@@ -115,7 +115,7 @@ const TERMINUS_BOARD = 2.5;
 /** a car carrying the rider waits at least this long after boarding before it grips */
 const BOARD_MIN = 1.6;
 /** upstream placements tried for a brought-in car (u, preferred first) */
-const TELEPORT_BACK = [30, 22, 15, 42, 60];
+const TELEPORT_BACK = [30, 22, 15, 45, 70, 100];
 /** a rider waiting longer than this (s) gets a new dispatch attempt every second */
 const REDISPATCH_ETA = 20;
 
@@ -257,25 +257,30 @@ export class CableSystem {
   // Rider API (game/transit.ts via game/ride.ts)
   // -------------------------------------------------------------------------
 
-  /** Seconds until `car` stops at arc `target` travelling in `dir` (rough: cable speed, dwells, one turn-around). */
+  /** Seconds until `car` stops at arc `target` travelling in `dir` (rough: cable speed, dwells, up to two turn-arounds). */
   eta(car: CableCar, target: number, dir: 1 | -1): number {
     const line = car.line;
+    const reverse = line.turntableStart || line.turntableEnd ? CABLE.turnSeconds + TERMINUS_BOARD : TERMINUS_BOARD;
     let t = car.mode === 'dwell' || car.mode === 'hold' ? Math.max(0, car.timer) : 0;
     if (car.mode === 'turn') t += (Math.PI - car.turn) / (TURN_RATE + car.boost) + TERMINUS_BOARD;
     const dwellsBetween = (from: number, to: number) => line.stops.filter(st => st.dwell && (st.at - from) * Math.sign(to - from) > 0.5 && (to - st.at) * Math.sign(to - from) > 0.5).length;
     const leg = (from: number, to: number) => Math.abs(to - from) / CABLE.speed + dwellsBetween(from, to) * (CABLE.dwell + 3) + (Math.abs(to - from) > 0.5 ? 3 : 0);
-    let dirNow = car.mode === 'turn' ? (-car.dir as 1 | -1) : car.dir;
+    let d = car.mode === 'turn' ? (-car.dir as 1 | -1) : car.dir;
     let s = car.s;
-    if (car.mode !== 'turn' && car.turned === false && this.isTerminus(line, s) && Number.isNaN(car.authority) && car.mode === 'dwell'
-      && ((s < 0.5 && dirNow < 0) || (s > line.length - 0.5 && dirNow > 0))) {
-      t += (line.turntableStart || line.turntableEnd ? CABLE.turnSeconds : 0) + TERMINUS_BOARD;
-      dirNow = -dirNow as 1 | -1;
+    // standing at a terminus still facing out: it turns (or the gripman changes ends) first
+    if (car.mode !== 'turn' && !car.turned && this.isTerminus(line, s) && Number.isNaN(car.authority) && car.mode === 'dwell'
+      && ((s < 0.5 && d < 0) || (s > line.length - 0.5 && d > 0))) {
+      t += reverse;
+      d = -d as 1 | -1;
     }
-    if (dirNow === dir && (target - s) * dir >= -0.3) return t + leg(s, target);
-    const end = dirNow > 0 ? line.length : 0;
-    t += leg(s, end) + CABLE.dwell + (line.doubleEnded ? TERMINUS_BOARD : CABLE.turnSeconds + TERMINUS_BOARD);
-    s = end;
-    return t + leg(s, target);
+    for (let k = 0; k < 3; k++) {
+      if (d === dir && (target - s) * d >= -0.3) return t + leg(s, target);
+      const end = d > 0 ? line.length : 0;
+      t += leg(s, end) + CABLE.dwell + reverse;
+      s = end;
+      d = -d as 1 | -1;
+    }
+    return t;
   }
 
   /** A rider waits at `station` to ride toward `to` (direction `dir`). Picks (or brings in) the car. */
@@ -290,7 +295,7 @@ export class CableSystem {
     for (const c of cars) { const e = this.eta(c, target, req.dir); if (e < bestEta) { bestEta = e; best = c; } }
     if (!best) return null;
     if (bestEta > CABLE.dispatchSeconds) {
-      const moved = this.bringIn(cars, line, stop, req.dir);
+      const moved = this.bringIn(cars, line, stop, req.dir, bestEta);
       if (moved) { best = moved; bestEta = this.eta(moved, target, req.dir); }
     }
     this.req = req;
@@ -300,46 +305,93 @@ export class CableSystem {
     best.dropoff = req.to;
     this.status = { line: line.id, car: best.index, phase: 'coming', eta: bestEta, station: null, arrivals: 0, lastStation: null, odometer: 0, turning: false, braking: false };
     // a car already standing at the station facing the right way (turned, at a terminus): board now
-    const facingOut = (best.s < 0.5 && best.dir < 0) || (best.s > line.length - 0.5 && best.dir > 0);
-    if (best.station === req.station && best.dir === req.dir && best.mode === 'dwell' && !facingOut && Math.abs(best.s - stopPos(stop, best.dir)) < 0.3) this.markHere(best);
+    if (this.standingAt(best, stop, req.dir)) this.markHere(best);
     return this.status;
   }
 
+  /** Is `car` standing at `stop`, ready to leave in `dir` (a turned car at a terminus included)? */
+  private standingAt(car: CableCar, stop: CableStop, dir: 1 | -1): boolean {
+    const line = car.line;
+    const facingOut = (car.s < 0.5 && car.dir < 0) || (car.s > line.length - 0.5 && car.dir > 0);
+    return car.station === stop.station && car.dir === dir && car.mode === 'dwell' && !facingOut && Math.abs(car.s - stopPos(stop, car.dir)) < 0.3;
+  }
+
+  /** Once a second while the rider waits: hand the pickup to another car of the line that now gets there clearly sooner. */
+  private reassign() {
+    const req = this.req, st = this.status, cur = this.cars[this.riderCar];
+    if (!req || !st || !cur) return;
+    const stop = cur.line.stops.find(s => s.station === req.station);
+    if (!stop) return;
+    const target = stopPos(stop, req.dir);
+    let best = cur, bestEta = this.eta(cur, target, req.dir);
+    for (const c of this.cars) {
+      if (c.line !== cur.line || c === cur || c.rider) continue;
+      const e = this.eta(c, target, req.dir);
+      if (e < bestEta - 3) { best = c; bestEta = e; }
+    }
+    st.eta = bestEta;
+    if (best === cur) return;
+    cur.pickup = null; cur.dropoff = null;
+    best.pickup = { station: req.station, dir: req.dir };
+    best.dropoff = req.to;
+    this.riderCar = best.index;
+    st.car = best.index;
+    if (this.standingAt(best, stop, req.dir)) this.markHere(best);
+  }
+
   /**
-   * Bring an unseen car in upstream of the stop (30 u preferred, then nearer or farther placements; at a terminus: before
-   * it, arriving to turn). Every placement must be out of sight, away from the player and on a free block.
+   * Bring an unseen car in toward the stop: first 30, 22 or 15 u upstream (never behind a dwell stop before the pickup,
+   * so it arrives within 5 s), else from farther back (45 … 100 u, through the dwell stops in between), and near the
+   * line's end also from beyond the stop heading out (it turns round at the terminus and comes back) when that still
+   * beats `maxEta`. At a terminus pickup the car arrives to turn. Every placement is out of sight, away from the player,
+   * between two stops (never on one), and on a free block with nobody right behind it.
    */
-  private bringIn(cars: CableCar[], line: CableLine, stop: CableStop, dir: 1 | -1): CableCar | null {
+  private bringIn(cars: CableCar[], line: CableLine, stop: CableStop, dir: 1 | -1, maxEta = Infinity): CableCar | null {
     const vis = this.opts.visible ?? (() => false);
     const viewer = this.opts.viewer?.();
     const arriveDir = (stop.terminus && ((stop.at < 0.5 && dir > 0) || (stop.at > line.length - 0.5 && dir < 0)) ? -dir : dir) as 1 | -1;
     const target = stopPos(stop, arriveDir);
-    for (const back of TELEPORT_BACK) {
-      let place = Math.max(0, Math.min(line.length, target - arriveDir * back));
-      // never behind a dwell stop that lies before the pickup (the car would stop there first)
-      for (const st of line.stops) {
-        if (!st.dwell || st === stop) continue;
-        const pos = stopPos(st, arriveDir);
-        if ((pos - place) * arriveDir >= 0 && (target - pos) * arriveDir > 0.5) place = pos + arriveDir * 0.5;
+    const cands: { place: number; pdir: 1 | -1; near: boolean }[] = TELEPORT_BACK.map(back => ({ place: target - arriveDir * back, pdir: arriveDir, near: back <= 30 }));
+    const upEnd = arriveDir > 0 ? 0 : line.length;
+    if (!stop.terminus && Math.abs(target - upEnd) < TELEPORT_BACK[3]) for (const back of [45, 70]) cands.push({ place: target + arriveDir * back, pdir: -arriveDir as 1 | -1, near: false });
+    for (const cand of cands) {
+      const pdir = cand.pdir;
+      let place = cand.place;
+      if (place < 0 || place > line.length) { if (!cand.near) continue; place = Math.max(0, Math.min(line.length, place)); }
+      if (cand.near) {
+        // never behind a dwell stop before the pickup (the car would stop there first)
+        for (const st of line.stops) {
+          const pos = stopPos(st, pdir);
+          if (st !== stop && st.dwell && (pos - place) * pdir >= 0 && (target - pos) * pdir > 0.5) place = pos + pdir * 0.5;
+        }
+        if (Math.abs(target - place) < 8) continue;
+      } else {
+        // halfway between the two stops around the spot, never on one
+        let lo = 0, hi = line.length;
+        for (const st of line.stops) { const pos = stopPos(st, pdir); if (pos <= place) lo = Math.max(lo, pos); else hi = Math.min(hi, pos); }
+        if (place - lo < HALF + 1 || hi - place < HALF + 1) place = (lo + hi) / 2;
+        if (place - lo < HALF + 1 || hi - place < HALF + 1) continue;
       }
-      const dist = Math.abs(target - place);
-      if (dist < 8) continue;
       const at = pointAt(line, place, tmpA);
       if (vis(at.x, at.z)) continue;
       if (viewer && Math.hypot(at.x - viewer.x, at.z - viewer.z) < 22) continue;
       for (const c of cars) {
         if (c.rider || c.mode === 'turn') continue;
         if (vis(c.pose.x, c.pose.z) || (viewer && Math.hypot(c.pose.x - viewer.x, c.pose.z - viewer.z) < 60)) continue;
-        // the block the car is placed into runs to the next dwell stop at or beyond the pickup
-        const probe: CableCar = { ...c, s: place, dir: arriveDir, station: null, authority: NaN };
-        const end = stop.dwell ? stop : this.nextDwell(probe, target - arriveDir * 0.6);
+        // the block the car is placed into runs to the first dwell stop ahead (the pickup, one before it, the next one
+        // beyond a request-stop pickup, or the terminus it turns at)
+        const probe: CableCar = { ...c, s: place, dir: pdir, station: null, authority: NaN, mode: 'run', timer: 0, turned: false, pickup: null, dropoff: null };
+        const end = this.nextDwell(probe, place);
         if (!end) continue;
-        const endPos = stopPos(end, arriveDir);
-        const a = Math.min(place - arriveDir * HALF, endPos + arriveDir * HALF), b = Math.max(place - arriveDir * HALF, endPos + arriveDir * HALF);
+        const endPos = stopPos(end, pdir);
+        const toStop = this.nextStop(probe);
+        probe.v = Math.min(CABLE.speed, Math.sqrt(2 * CABLE.brake * Math.abs((toStop ? stopPos(toStop, pdir) : endPos) - place)));
+        if (!cand.near && this.eta(probe, target, dir) >= maxEta - 3) continue;
+        const a = Math.min(place - pdir * HALF, endPos + pdir * HALF), b = Math.max(place - pdir * HALF, endPos + pdir * HALF);
         // and a car length behind it: nobody may be right behind the placement
-        const behind = place - arriveDir * HALF * 2;
-        if (!this.free(probe, Math.min(a, behind), Math.max(b, behind), endPos, end.station, c.index)) continue;
-        c.s = place; c.dir = arriveDir; c.v = Math.min(CABLE.speed, Math.sqrt(2 * CABLE.brake * dist)); c.mode = 'run'; c.timer = 0; c.authority = endPos; c.authStation = end.station; c.turned = false; c.turn = 0;
+        const behind = place - pdir * HALF * 2;
+        if (Math.abs(endPos - place) < 0.5 || !this.free(probe, Math.min(a, behind), Math.max(b, behind), endPos, end.station, c.index)) continue;
+        c.s = place; c.dir = pdir; c.v = probe.v; c.mode = 'run'; c.timer = 0; c.authority = endPos; c.authStation = end.station; c.turned = false; c.turn = 0;
         c.station = null; c.lateral = 0; c.still = 0;
         this.updatePose(c);
         return c;
@@ -354,7 +406,7 @@ export class CableSystem {
     if (!req || !st || !cur) return;
     const line = cur.line, stop = line.stops.find(s => s.station === req.station);
     if (!stop) return;
-    const moved = this.bringIn(this.cars.filter(c => c.line === line), line, stop, req.dir);
+    const moved = this.bringIn(this.cars.filter(c => c.line === line), line, stop, req.dir, st.eta);
     if (!moved) return;
     if (moved !== cur) { cur.pickup = null; cur.dropoff = null; }
     moved.pickup = { station: req.station, dir: req.dir };
@@ -612,7 +664,11 @@ export class CableSystem {
 
   private updateStatus(dt: number) {
     const st = this.status;
-    if (st?.phase === 'coming' && st.eta > REDISPATCH_ETA && (this.retry -= dt) <= 0) { this.retry = 1; this.redispatch(); }
+    if (st?.phase === 'coming' && (this.retry -= dt) <= 0) {
+      this.retry = 1;
+      this.reassign();
+      if (st.phase === 'coming' && st.eta > REDISPATCH_ETA) this.redispatch();
+    }
     const car = this.cars[this.riderCar];
     if (!st || !car) return;
     st.turning = car.mode === 'turn';

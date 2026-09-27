@@ -176,6 +176,27 @@ test('dispatch: a waiting rider gets a car within 5 s (an unseen car is brought 
   assert.deepEqual(sys.violations(), []);
 });
 
+test('dispatch: with the street around the stop in view and cars in the way, the rider boards within 40 s (most within 20 s)', () => {
+  const waits: number[] = [];
+  for (const [line0, station, dir, to] of [['powell-hyde', 'hyde-greenwich', 1, 'hyde-beach'], ['powell-mason', 'powell-sutter', 1, 'taylor-bay'], ['california', 'california-polk', -1, 'california-drumm']] as const) {
+    const st = DATA.stations.find(s => s.id === station)!;
+    for (const warm of [40, 130, 220, 310, 400]) {
+      // the player stands at the station; the camera sees 40 u around it (a car never pops in there)
+      const sys = new CableSystem(DATA, { viewer: () => ({ x: st.x + 3, z: st.z + 3, onFoot: false }), visible: (x, z) => Math.hypot(x - st.x, z - st.z) < 40 });
+      for (let t = 0; t < warm; t += DT) sys.step(DT);
+      sys.events.length = 0;
+      assert.ok(sys.request({ line: line0, station, dir, to }), `${station} request`);
+      let t = 0;
+      while (t < 200 && sys.rideStatus()!.phase !== 'here') { sys.step(DT); t += DT; }
+      assert.equal(sys.rideStatus()!.phase, 'here', `${station} after ${warm} s`);
+      waits.push(t);
+      assert.deepEqual(sys.violations(), []);
+    }
+  }
+  const sorted = [...waits].sort((a, b) => a - b);
+  assert.ok(sorted[sorted.length - 1] <= 40 && sorted[Math.floor(sorted.length / 2)] <= 20, `waits ${waits.map(w => w.toFixed(1)).join(' ')}`);
+});
+
 test('pose: car pitch equals the track grade (over the bogie base), heading follows travel', () => {
   const sys = new CableSystem(DATA);
   const mason = line('powell-mason');
