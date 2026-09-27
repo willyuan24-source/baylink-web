@@ -145,6 +145,7 @@ export type SfPlaceKindAll = SfPlaceKind | SfPlaceKindW4;
 
 `SfPlaceKind` itself is **not** widened yet (§6 item 2): type wave-4 place kinds as `SfPlaceKindAll` until the
 integration phase; afterwards `SfPlaceKindAll` is the same type as `SfPlaceKind`, so the code keeps compiling.
+(**Done** at the integration, `W4-I0a`, §8: `SfPlaceKind` now includes the four kinds.)
 
 ### 4.3 `src/opus-bay/core/store.ts`
 
@@ -281,12 +282,13 @@ neighbourhood-icon → neighbourhood, transit-icon → landmark, …); the JSON'
 ## 6. Deferred to the integration phase (lead / frozen items)
 
 1. `game/flowStore.ts` gains `trip: TripState | null` (initial `null`) in `FlowState`; from then on lane C owns the field
-   (G1 owns the file in wave 3). Contracts pin: `flow.get().trip === null` at start.
+   (G1 owns the file in wave 3). Contracts pin: `flow.get().trip === null` at start. **Done** (`W4-I0a`, §8), with
+   lane C's `flow.arrival` beside it.
 2. `SfPlaceKind` absorbs `SfPlaceKindW4` (`'campus' | 'shopping' | 'zoo' | 'religious'`), in the same commit as
    `data/sf/cityPois.ts` `PLACE_KIND_NAMES` gains their names (校园 Campus · 购物中心 Shopping centre · 动物园 Zoo ·
    宗教场所 Place of worship): that `Record<SfPlaceKind, Bilingual>` is a wave-3 lane's file, so widening the union at
-   day 0 would break its compile. `SfPlaceKindAll` stays as an alias.
-3. The integration items each lane lists in its report (§2).
+   day 0 would break its compile. `SfPlaceKindAll` stays as an alias. **Done** (`W4-I0a`, §8).
+3. The integration items each lane lists in its report (§2). The lead / frozen ones: §8.2 (applied) and §8.3 (decided).
 
 ## 7. Day-0 decisions (why the types look like this)
 
