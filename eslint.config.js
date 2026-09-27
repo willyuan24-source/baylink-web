@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // .vite-opus: the Opus Bay dev server's optimizer cache (vite.opus.config.ts cacheDir, git-ignored)
+  globalIgnores(['dist', '.vite-opus']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

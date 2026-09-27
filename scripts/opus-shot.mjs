@@ -20,19 +20,26 @@ const W = Number(args.w || (args.mobile ? 390 : 1440)), H = Number(args.h || (ar
 const out = args.out || 'opus-shot.png';
 const outDir = path.dirname(path.resolve(out));
 const actions = args.actions ? JSON.parse(args.actions) : [];
-const port = 9400 + Math.floor(Math.random() * 500);
+// The debugging port: Chrome picks a free one (--remote-debugging-port=0) and writes it to <profile>/DevToolsActivePort.
+// A random fixed port collided when lanes ran screenshots in parallel: the second Chrome failed to bind and its script
+// drove the first lane's page (sf-w3-C2.md part b request 5).
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'opus-shot-'));
 const chromePath = process.env.CHROME || (fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : 'C:/Program Files/Google/Chrome/Application/chrome.exe');
 // Linux containers run as root without a GPU: Chrome needs --no-sandbox there, and WebGL falls back to SwiftShader.
 const extraFlags = [...(process.getuid?.() === 0 ? ['--no-sandbox'] : []), ...(process.env.CHROME_FLAGS ? process.env.CHROME_FLAGS.split(' ') : [])];
-const chrome = spawn(chromePath, [...extraFlags, '--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+const chrome = spawn(chromePath, [...extraFlags, '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = obj => console.log(JSON.stringify(obj));
 let exitCode = 0;
 try {
+  let port = 0;
+  const portFile = path.join(profile, 'DevToolsActivePort');
+  for (let i = 0; i < 100 && !port; i++) { try { port = Number(fs.readFileSync(portFile, 'utf8').split('\n')[0]) || 0; } catch { /* not written yet */ } if (!port) await sleep(100); }
+  if (!port) throw new Error(`Chrome wrote no ${portFile} (did it start?)`);
   let targets;
   for (let i = 0; i < 50; i++) { try { targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); if (targets.find(t => t.type === 'page')) break; } catch { /* retry */ } await sleep(200); }
-  const page = targets.find(t => t.type === 'page');
+  const page = targets?.find(t => t.type === 'page');
+  if (!page) throw new Error(`no page target on the debugging port ${port}`);
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise(r => ws.addEventListener('open', r, { once: true }));
   let id = 0; const pending = new Map();
