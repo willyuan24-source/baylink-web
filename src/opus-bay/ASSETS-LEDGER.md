@@ -353,3 +353,313 @@ Subtotal part a-look: **8 credits** (5 spends of 2, 1 refund of 2). Balance 519.
 `transactions` shows **22 × "Voiceover" at −0.6 = 13.20 credits** (03:55:13 ×5, 03:55:27, 04:23:32 ×6, 04:24:01 ×2, 04:29:06, 04:55:57–58 ×5, 05:00:14). No lane logged them and no voice file was committed in wave 2, so they were test or audition TTS runs by one of the running lanes (F, G1, G2, D2 or C2 part d). Their job ids can be found with `show_generations` (type audio). Nothing shipped from them.
 
 **Wave-2 total: 8.00 (C2) + 13.20 (Voiceover) = 21.20 credits.** Balance 519.48 → **498.28** (checked with `balance` at 05:25 UTC). Whole-SF round so far: 229 + 21.20 = 250.20 credits.
+
+## Wave 3 and wave 4 (local)
+
+Merged by the lead (the lead-merge agent of the wave-4 integration, worktree `C:/Users/willy/wt/i4-lead`, 2026-09-27)
+from `docs/opus-bay/ledger/w3-*.md` and `w4-*.md` as they stand on `origin/opus-bay` at `7c6e6e2`. Every lane row is copied
+verbatim under its lane (the lane files stay as they are); the balance trail and the reconciliation with the
+Higgsfield `transactions` tool follow at the end. Wave 3 ran with per-lane caps (`sf-w3-lead.md` §4), wave 4 with a
+cap of 120 for lane V only (`sf-w4-plan.md` §6). Lanes that logged no file spent nothing: wave 3 C2 0 / 20, E2 0 / 50,
+F 0 / 25, G1 0, G2 0 (their reports say so); wave 4 C, G, L, P, T 0 (their reports say so).
+
+- **CDN note, dated (H2b-12, 2026-09-27).** The part 2a note above ("the cloud session cannot fetch the CDN (the proxy
+  returns 403)") no longer holds: `d8j0ntlcm91z4.cloudfront.net` answers HTTP 200 on the owner's machine (K6
+  `hf_20260925_223758_3617006b-….png`, 6,390,343 B, checked by lane H2b on 2026-09-27 07:35 UTC and by lane V at
+  17:10 UTC; the cloud allow-list is in the wave-2 note above). Downloads sometimes reset the connection (curl error
+  35) and succeed on a retry.
+
+### Wave 3 · lane D2 (from docs/opus-bay/ledger/w3-D2.md)
+
+Columns as in `src/opus-bay/ASSETS-LEDGER.md`. Lane cap in wave 3: **80 credits**. The lead merges this file into the
+ledger after the wave.
+
+#### Part a · D2-15 (the eight part-2a SAM landmark meshes) — 2026-09-27
+
+No new generation in this part: the eight raw SAM 3 meshes of part 2a (LM1-3D … LM8-3D, already paid there) were
+cleaned, graded and gated locally. Raw files: `C:/Users/willy/opus-qa/assets-work/sf/lm/raw/<name>-sam.glb` (the
+Legion of Honor raw was fetched again on 2026-09-27 02:46 PDT from the result of its retry job, 38ca4559-…).
+Cleanup: `docs/opus-bay/kit-jobs/kit_cleanup.py --grader hero --tex 1024 --draco 1 --max-tris 6000` in Blender 5.2
+(working folders `C:/Users/willy/opus-qa/w3/d2/lm/<name>/v*`); IoU against the concept the mesh was made from
+(variant b; `iou.py`, rembg mask).
+
+Balance before: **455.58** (`balance`, 2026-09-27 09:45 PDT). `transactions` (newest 10:07 UTC): no "3D Objects"
+charge in wave 3; the image and TTS charges of 09:22–10:07 UTC belong to other lanes (D2 started no job). Credits spent
+by D2 in part a: **0**.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W3-LM1 | Legion of Honor, cleaned | from LM1-3D; weld, dissolve, 5,880 tris, court stretched in depth (`--box`), gateway widened to 1.6 u (`--gate`), graded, Draco + WebP 1024 | — | 0 | 38ca4559-cc62-4974-8e1a-066ce7035611 | legion-of-honor-sam.glb | published `models/sf/legion-of-honor.glb` (120,288 B); **shipped** |
+| W3-LM2 | Ghirardelli clock tower, cleaned | from LM2-3D; 5,879 tris | — | 0 | eff7a796-6189-4920-ba4f-a152fc28fb60 | ghirardelli-clock-tower-sam.glb | published `models/sf/ghirardelli-clock-tower.glb` (133,520 B); **prototype, not shipped** (palette 59 % < 80 %; the slim tower reads weaker than the procedural clock stage) |
+| W3-LM3 | Fort Point, cleaned | from LM3-3D; 5,879 tris | — | 0 | 33906fb6-5410-42d3-8529-5e8bd181f6a1 | fort-point-sam.glb | published `models/sf/fort-point.glb` (162,588 B); **prototype, not shipped** (palette 30 %; hot orange box, ragged gun ports) |
+| W3-LM4 | Mission Dolores, cleaned | from LM4-3D; 5,880 tris; basilica re-graded toward cream (`regrade_glb.py`, hue 30–70°, sat × 0.55) | — | 0 | 1b2b296e-5b33-43bc-967c-dadfe94a14ab | mission-dolores-sam.glb | published `models/sf/mission-dolores.glb` (98,936 B); **shipped** |
+| W3-LM5 | Castro Theatre, cleaned | from LM5-3D; 5,880 tris | — | 0 | f924e7e0-e8f0-4626-a787-9b1619d5e1dc | castro-theatre-sam.glb | published `models/sf/castro-theatre.glb` (87,048 B); **shipped** |
+| W3-LM6 | Dutch windmill body, cleaned | from LM6-3D; 5,880 tris; sails stay procedural | — | 0 | 2c4615b0-8d00-42cc-aa3e-b3bbe010e3c2 | dutch-windmill-sam.glb | published `models/sf/windmill-body.glb` (91,692 B); **shipped** |
+| W3-LM7 | Grace Cathedral, cleaned | from LM7-3D; 5,880 tris | — | 0 | e70a3dfe-cd66-4a9b-be55-49fec8396d55 | grace-cathedral-sam.glb | published `models/sf/grace-cathedral.glb` (118,076 B); **shipped** |
+| W3-LM8 | City Hall, cleaned | from LM8-3D; 6,860 tris | — | 0 | 06674d67-43e6-466c-bb1e-c9155b44c064 | city-hall-sam.glb | published `models/sf/city-hall.glb` (151,068 B); **shipped** |
+
+Subtotal part a: **0 credits**. Balance after: 455.58 (unchanged by D2).
+
+#### Part b · D2-10, C2-5 Sites, the turntable flag, D2-08 / D2-13 (house kit) — 2026-09-27
+
+No Higgsfield job: the kit swap uses the eleven part-2a kit houses as published (their masks were checked on the
+`?solo=kit` sheet and needed no re-grade). Credits spent by D2 in part b: **0** (lane total in wave 3: 0 / 80).
+
+#### Part c · D2-09, D2-11, D2-14, HC-4 — 2026-09-27
+
+No Higgsfield job. HC-4 re-packs the five district hero GLBs locally (`docs/opus-bay/kit-jobs/hero_glb_pack.py`: int8
+normals, uint16 UVs, uint8 skin weights, int16 animation rotations, WebP base colours): `baybay.glb` 599,156 → 368,516 B,
+`pelican.glb` 223,224 → 160,248 B, `sailboat.glb` 177,796 → 127,060 B, `sea-lion.glb` 175,584 → 122,368 B,
+`sea-lion-bark.glb` 185,328 → 130,108 B (1,361,088 → 908,300 B; same meshes, same textures re-encoded). Credits spent
+by D2 in part c: **0** (lane total in wave 3: **0 / 80**).
+
+### Wave 3 · lane H2b (from docs/opus-bay/ledger/w3-H2b.md)
+
+Cap 150 credits for the lane (lead note §4). Columns as `src/opus-bay/ASSETS-LEDGER.md`. The account is shared by the
+parallel wave-3 lanes: charges are attributed by job id and time from `transactions`, never by the balance difference
+alone.
+
+#### Part a · preflight (H2b-1), 2026-09-27 07:35–07:40 UTC
+
+- `balance` 498.28 (ultra plan); newest transaction before this lane: Voiceover −0.6 at 2026-09-27 05:00:14 UTC (the
+  wave-2 mark).
+- CDN: `curl` of K6 (`hf_20260925_223758_3617006b-….png`) → HTTP 200, 6,390,343 B (same bytes as
+  `C:/Users/willy/opus-qa/assets-work/raw/key-wide-d.png`).
+- Upload path: `media_upload` → presigned S3 PUT (`fast-and-furious-input-prod-….s3.amazonaws.com`, eu-north-1) → HTTP
+  200 → `media_confirm` "uploaded" (1 × 1 PNG, media a1ea32a2-253e-496c-9a45-c52e3b7fef9a). Free.
+- Scratch venv `C:/Users/willy/opus-qa/w3/h2b/venv` (Python 3.14): imageio-ffmpeg 0.x (ffmpeg 7.1), Pillow 12.3 (WebP
+  on), numpy 2.5, scipy 1.18, opencv-python-headless 5.0.
+- Preflight costs (`get_cost`): nano_banana_pro 4k = 4, seedream_v4_5 high = 1, seedream_v5_pro 2k inpaint = 2.5.
+
+Reference media (free uploads): base render `388a9f83-d610-4dea-957c-a7e7b26ab43a` (base-4096 as JPEG q95, from
+`scripts/opus-sf/map/render-base.ts` at c10f28f), `90a9210d-f106-4d9e-9b2b-e9c1259c94d1` (base-2048 PNG, spare);
+style reference K6 = prior job `3617006b-483d-4ea7-9e72-39b681f8264f` (passed as a job id, no upload).
+
+#### Part a · T2 painted whole-SF map (H2b-3)
+
+Balance before the batch: 498.28 (07:53 UTC).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-T2-1 | painted map, diorama variant A | nano_banana_pro (served nano_banana_2), 1:1, 4k; refs: base 388a9f83 + K6 3617006b | "repaint the FIRST image as a handcrafted miniature clay diorama seen straight from above; keep every coast / pier / park / street; cream table, teal resin board; K6 = materials + palette only; no text" | 4 | ad933d4f-91a6-4e1d-9635-8057dfcf7490 | C:/Users/willy/opus-qa/w3/h2b/cand/c1.png (4096²) | passed the coast gate (p95 15.0 / 9.8 px) but 3D towers and extrusions lean over the streets and the GGB runs on to the board edge: runner-up, not shipped |
+| H2b-T2-2 | painted map, diorama variant A (second draw) | same as T2-1 | same | 4 | 4089cdee-3396-4122-8bf1-69f67a3270d5 | cand/c2.png | rejected: invented a Marin headland for the Golden Gate Bridge (coast p95 293 px) |
+| H2b-T2-3 | painted map, gouache / watercolour variant B | nano_banana_pro (served nano_banana_2), 1:1, 4k; refs: base + K6 | "trace the FIRST image into a hand-painted illustrated map, gouache and soft watercolour on cream paper; exact base map; cozy toy town of tiny house dabs; K6 = palette + charm only; no text of any kind" | 4 | ad4bd486-a8f1-44e6-809c-852317157ff7 | cand/c3.png | rejected narrowly: two invented piers off Ocean Beach (coast p95 33.3 px > 30.7) |
+| H2b-T2-4 | painted map, gouache / watercolour variant B (second draw) | same as T2-3 | same | 4 | aebf64b4-e9c9-4931-9959-dc0499974082 | cand/c4.png | **USED -> public/opus-bay/map/paper-v1-{1024,2048,4096}.webp** (coast p95 12.0 / 6.4 px; pseudo-letters on the hero lots and one Bayview lot wiped by paper_post.py --smooth-hero --declutter) |
+| H2b-T2-5 | painted map, diorama (Seedream) | seedream_v4_5, quality high, 1:1; refs: base + K6 | variant A wording for Seedream ("image 1" / "image 2") | 1 | 1cab5a86-851e-4267-823f-ff355db6a5ab | cand/c5.png | rejected: a perspective toy diorama that ignores the layout |
+| H2b-T2-6 | painted map, watercolour (Seedream) | seedream_v4_5, quality high, 1:1; refs: base + K6 | variant B wording for Seedream | 1 | e5f7bdeb-4a96-4fc5-bf1c-63703ea1d23b | cand/c6.png | rejected: re-imagined city, bridges moved, wrong outline |
+| H2b-T2-7 | painted map, clay inpaint | seedream_v5_pro, 2k, is_inpaint, 1:1; ref: base only | "restyle this top-down map as a handcrafted miniature clay diorama without moving anything …; no text" | 2.5 | 2b6de989-b9c6-42d8-85b7-0b590d96112b | cand/c7.png (2048²) | passed the gate (p95 24.3 / 22.0 px) but blobby clay at 2048: not shipped |
+
+Transactions (07:54:55–07:54:56 UTC, no other spend in between): Nano Banana Pro −4 ×4, Seedream 4.5 −1 ×2,
+Seedream 5.0 Pro −2.5 ×1. **Subtotal T2: 20.5 credits.** Balance 498.28 → 477.78. No retake round (c4 passed).
+Downloads: the CDN reset the connection on 5 of the first 7 GETs (curl error 35) and served all of them on retry.
+
+#### Part b · voice lines (H2b-6/7/8), 2026-09-27 08:37–09:06 UTC
+
+Model qwen_audio_tts (Qwen Audio 3.0 TTS Flash), preset "Pixie" `0178ef57-ada4-43d9-992b-8d9221045bb4`, wav 48 kHz,
+`language` zh / en, instruction = the shipped district instruction ("Cute otter mascot: warm, cheerful, bright but not
+shrill; snappy playful delivery.") + one mood note (the service caps an instruction at 128 characters). `get_cost`
+0.01 per job (longer texts are billed 0.02). Take list: `scripts/opus-sf/voice/takes.ts`; every job id with its text,
+instruction, seed and speech rate: `docs/opus-bay/h2b/voice-takes.json`; measurements and picks:
+`docs/opus-bay/h2b/voice-report.json`. Raw wavs: `C:/Users/willy/opus-qa/w3/h2b/voice/raw/<index>.wav`.
+
+Balance before: 477.78 (08:37 UTC; the last spend before was H2b-T2 at 07:54:56).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-V1 | 20 city lines × zh / en, 3 takes each | qwen_audio_tts, Pixie, wav 48k, seeds 11 / 22 / 33 (one retry on seed 44) | 8 mode firsts + 12 neighbourhood greetings (data/voiceLinesSf.ts SF_VOICE_LINES) | 120 jobs | voice-takes.json #0–119 | raw/0–119.wav | picks below |
+| H2b-V2 | re-records zh-yay / zh-think / zh-arrived, 2 phrasings × 3 seeds | same, note per word ("crisp 好 (hǎo), bright high 耶" …) | 好耶！ 好耶～！ · 嗯…让我想想 嗯——让我想想。 · 到啦！ 到啦～！ | 18 jobs | voice-takes.json #120–137 | raw/120–137.wav | picks below |
+| H2b-V3 | round 2: 14 clips over 2 s or with < 2 distinct passing takes, 3 speech rates each; re-record phrasings | same, seed 11, speech_rate 1.1 / 1.2 / 1.3 (re-records 0.9–1.15) | the same texts; 好耶好耶！, 我们到啦！, 嗯，让我想想。 | 53 jobs | voice-takes.json #138–190 | raw/138–190.wav | picks below |
+| H2b-V-fail | 33 submissions the service failed (status failed, 'type image' in the job record) | same | retried with the same parameters (#20 on seed 44) | 0 (all refunded) | 3082fe18, 90ffa0a1, 7400876e, 4a44ea29, a2539c81, c3d824ef, e3b84649, fdc26e9b, a7069b0b, ad95281e, d6c1e6f8, 2edfb3a3, 1482ddc8, 33a80f19, 7177f00e, f9d20872, ced9009f, 6668e867, 6f7d8ac7, 01ee342b, b1c573b5, cf1b5001, ee36947e, 77d48a36, 3d9e685f, 48e55218, 825353cd, 248106ce, ec41663a, bc312beb, cd12c904, 776077e5, c766f287 | - | refunded |
+
+Picks (clip → job id prefix): zh-first-bike 6a826864, zh-first-car 5919e43c, zh-first-cable-car 8edbea5b, zh-first-streetcar aea6933b, zh-first-ferry a698a207, zh-first-glide fc43304a, zh-first-hill 4e6c0b5c, zh-first-crest a8ea813c; en-first-bike db9a068e, en-first-car b349ce05, en-first-cable-car 4c63bd08, en-first-streetcar 851acf7f, en-first-ferry e0a6e81e, en-first-glide 6e400d50, en-first-hill d96dd651, en-first-crest 859b1e91; zh-zone-chinatown cb837ad5, zh-zone-north-beach 43da724b, zh-zone-mission 5b2ecdb2, zh-zone-castro-upper-market e3c79b4a, zh-zone-haight-ashbury 0497bd1b, zh-zone-marina 23922e5e, zh-zone-twin-peaks 72f1e530, zh-zone-golden-gate-park 325c70a8, zh-zone-financial-district-south-beach 54c19945, zh-zone-presidio b05ef19a, zh-zone-nob-hill bdb7f4cd, zh-zone-sunset-parkside 8682a5cb; en-zone-chinatown 9974cc47, en-zone-north-beach 5073e4df, en-zone-mission 08c00c54, en-zone-castro-upper-market 7cf37dba, en-zone-haight-ashbury b1231999, en-zone-marina d2f81d27, en-zone-twin-peaks a2d56d95, en-zone-golden-gate-park 83d5a94f, en-zone-financial-district-south-beach 40b86cad, en-zone-presidio d4a9c9a6, en-zone-nob-hill 1825efe1, en-zone-sunset-parkside f82c740e; zh-yay 0a4d3369, zh-think d41595dc, zh-arrived f1b2ead6. Full ids in voice-report.json.
+
+Transactions 08:37:56–09:05:45 UTC: only "Qwen Audio 3.0 TTS Flash" (224 submitted jobs at 0.01–0.02 each: 191 completed, 33 failed and refunded); no other lane spent in between. **Subtotal voice: 2.06 credits.** Balance 477.78 → 475.72 (`balance` at 09:07 UTC). Notes: the service often ignores the seed (byte-identical files for two or three of the seeds 11 / 22 / 33 on 14 of 46 text groups), so round 2 varied `speech_rate`; batches of 12 hit HTTP 429 (rate limit) — batches of 10 mostly pass.
+
+#### Part b · Mission murals (H2b-10), 2026-09-27 09:22–09:25 UTC
+
+Balance before: 475.72 (09:07 UTC). Shared prompt (every job): "An original community mural in the spirit of the painted
+alleys of San Francisco's Mission District, but an entirely new design that copies no existing mural. Square,
+full-bleed flat artwork only … Subject: {subject}. Style: hand-painted acrylic, bold flat shapes with a soft visible
+brush texture, warm folk-art patterns, a cozy toy-town palette of cream, sand, sage green, terracotta, teal, marigold
+and soft rose; friendly and calm. Strictly no people, no human faces, no text, no letters, no numbers, no signature, no
+logos, no watermark." The nano_banana_pro variant adds K6 (`3617006b-…`) "only for its colour palette and warmth".
+Raw files: `C:/Users/willy/opus-qa/w3/h2b/murals/raw/`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-M-A1 | A/B: sun + hummingbird | gpt_image_2_5 (Flare), high, 1k, 1:1 | radiant sun, hummingbird at a giant marigold, cut-paper bunting | 1.5 | 76baf3e7-c419-4cb2-adc6-41bb856b162f | raw/ab-gpt-sun.png | **USED** → sun-hummingbird |
+| H2b-M-A2 | A/B: pelicans | gpt_image_2_5 (Flare), high, 1k, 1:1 | three brown pelicans over curling waves, tiny bridge towers in fog | 1.5 | 99ff5d30-d6b9-4fe2-8d2c-bbf04a618d3d | raw/ab-gpt-pelican.png | **USED** → pelican-bay |
+| H2b-M-B1 | A/B: sun + hummingbird | nano_banana_pro (served nano_banana_2), 2k, 1:1, ref K6 | same subject | 2 | d8b6b8f8-33cd-4b73-a970-e66b5820347c | raw/ab-nano-sun.png | A/B loser: softer pastel, busy dot patterns that turn to noise at 512 px |
+| H2b-M-B2 | A/B: pelicans | nano_banana_pro (served nano_banana_2), 2k, 1:1, ref K6 | same subject | 2 | 98383df7-80b5-433d-bb1f-678cfe7644d0 | raw/ab-nano-pelican.png | A/B loser (pink pelicans, same softness) |
+| H2b-M-3 | flower cable car | gpt_image_2_5 (Flare), high, 1k, 1:1 | a cable car made of flowers climbing a hill of pastel row houses (no numbers, no signs) | 1.5 | 90fae8d5-f281-465a-a14a-6e200f075f3f | raw/m-cable-a.png | **USED** → flower-cable-car (zoomed: no numbers or letters) |
+| H2b-M-4 | poppies + monarchs | same | poppies and lupines on green hills, monarch butterflies | 1.5 | 1602341c-b13c-4261-890d-080b17229fa0 | raw/m-poppies.png | **USED** → poppy-hills |
+| H2b-M-5 | fruit stand | same | baskets of mangoes, papayas, limes, chiles, corn, watermelon; cut-paper bunting | 1.5 | 1ecf7748-fc9b-4071-b2e0-c7b31004d402 | raw/m-market-a.png | runner-up |
+| H2b-M-6 | night bay | same | moon, stars, ribbon fog, a hill of houses with glowing windows | 1.5 | 042154ba-b1f9-47c0-9178-bb444aefb7a2 | raw/m-night.png | **USED** → night-bay |
+| H2b-M-7 | music garden | same | guitar, accordion, drum among roses, marigolds and vines (no written notes) | 1.5 | 82dacccc-855b-4eac-8318-08c860f244a5 | raw/m-music.png | **USED** → music-garden |
+| H2b-M-8 | under the bay | same | octopus, fish, sea stars in a kelp forest, sunbeams | 1.5 | 76869d60-f9e9-407b-b299-2e3b7ac79cb5 | raw/m-ocean.png | **USED** → kelp-forest |
+| H2b-M-9 | flower cable car (second draw) | same | as M-3 | 1.5 | c4976a53-6727-462f-807c-69cde7152976 | raw/m-cable-b.png | runner-up |
+| H2b-M-10 | fruit stand (second draw) | same | as M-5 | 1.5 | cdc779dd-c2e6-4b92-a9ca-9ca9eb5662d2 | raw/m-market-b.png | **USED** → fruit-stand |
+
+Every used image was read at full size for text, numbers, signatures and faces: none (animals only, in profile or as
+folk-art shapes). Transactions 09:22:02–09:24:27 UTC: GPT Image 2.5 Flare −1.5 × 10, Nano Banana Pro −2 × 2; no other
+spend in between. **Subtotal murals: 19.00 credits.** Balance 475.72 → 456.72 (`balance` at 09:40 UTC).
+Post-processing (free, `scripts/opus-sf/murals/murals_post.py`): 480 px art + 16 px edge gutter per 512 tile, atlas
+WebP q48 = 256,124 B; singles 512 px WebP q82.
+
+Lane subtotal at this point: 20.5 (map) + 2.06 (voice) + 19.0 (murals) = 41.56 credits; balance 456.72 (the final
+total is after round 3 below).
+
+#### Part b · voice round 3: G2's later lines (H2b-7), 2026-09-27 09:56–10:07 UTC
+
+G2 froze `BARK_SCRIPT` (commit d4631e6) while this part ran: the 20 recorded lines word for word plus a
+`BARK_SCRIPT_TODO` block of 18 lines "for the next H2b pass". This is the lane's last part, so they were recorded now
+(`SF_VOICE_EXTRA` in `data/voiceLinesSf.ts`). Same model, preset and instruction scheme (moods: + "thinking" = "A little
+puzzled, playful, not upset."), three speech rates (1.0 / 1.1 / 1.2) per clip from the start. Balance before: 456.72.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| H2b-V4 | 18 later lines × zh / en, 3 takes each | qwen_audio_tts, Pixie, wav 48k, seed 11, speech_rate 1.0 / 1.1 / 1.2 | bump-hard, stairs, pant, crest-again, glide-again, glide-land, glide-no-landing, cable-bell, turntable-push, zone-new + 8 greetings (G2's `BARK_SCRIPT_TODO`, word for word) | 108 jobs | voice-takes.json #191–298 | raw/191–298.wav | picks below |
+| H2b-V4-fail | 10 submissions the service failed | same | retried with the same parameters | 0 (all refunded) | 2a5ad752, c887ce85, 03e943b8, cf2f21ec, 31849266, c67c4c7d, a65c48cd, 0f91fb13, a3f80a60, d6aefa9e | - | refunded |
+
+Picks: zh-bump-hard 7f30be8a, en-bump-hard 76418af7, zh-stairs c93c5819, en-stairs a91cdbde, zh-pant fc2463e4, en-pant 50db92b8, zh-crest-again 3083fd63, en-crest-again 04a4a1e9, zh-glide-again 4db34b3c, en-glide-again 5d62331c, zh-glide-land 2167449a, en-glide-land 64c5415e, zh-glide-no-landing 83ee6ba0, en-glide-no-landing 2eb29411, zh-cable-bell baea99d7, en-cable-bell 26eac3b8, zh-turntable-push 27e4af15, en-turntable-push f8fed7ba, zh-zone-new 83e1253e, en-zone-new 31a6027a, zh-zone-hayes-valley 44cdb2ef, en-zone-hayes-valley 6dbd005b, zh-zone-japantown e8eea529, en-zone-japantown 6664fbcc, zh-zone-russian-hill 819651d0, en-zone-russian-hill 4b0968dc, zh-zone-south-of-market 38d48182, en-zone-south-of-market 006766dc, zh-zone-potrero-hill 4095f95a, en-zone-potrero-hill 88f00e20, zh-zone-lincoln-park 628ae892, en-zone-lincoln-park 77c9daca, zh-zone-mission-bay c9650ad1, en-zone-mission-bay 37d3e767, zh-zone-outer-richmond 76fab452, en-zone-outer-richmond 9422f9a0. Full ids in voice-report.json.
+
+Transactions 09:56:01–10:07:13 UTC: only "Qwen Audio 3.0 TTS Flash" (118 submitted jobs: 108 completed, 10 failed and
+refunded). **Subtotal round 3: 1.14 credits.** Balance 456.72 → 455.58 (`balance` at 10:12 UTC).
+
+**Lane H2b total, wave 3 (final): 20.5 (map) + 3.20 (voice: 2.06 + 1.14) + 19.0 (murals) = 42.70 credits** of the 150 cap.
+Balance 498.28 → 455.58.
+
+### Wave 4 · lane V (from docs/opus-bay/ledger/w4-V.md)
+
+Cap **120** credits for wave 4 (plan §6, lead note §5), lane V only; keep ≥ 50 of the balance for the final polish.
+Columns as `src/opus-bay/ASSETS-LEDGER.md`. The account is shared: charges are attributed by job id and time from
+`transactions`, never by the balance difference alone. Prompts (verbatim, with their references): 
+`scripts/opus-sf/assets/w4/prompts.py` → `prompts.json`. Raw downloads: `C:/Users/willy/opus-qa/w4/w4-v/{ai/raw,vehicles,stickers}/`.
+
+#### Preflight (W4-V2), 2026-09-27 17:10 UTC
+
+- `balance` **455.58** (ultra). Newest transaction before this lane: Qwen Audio 3.0 TTS Flash −0.01 at 10:07:13 UTC (wave 3,
+  H2b voice) — the wave-4 mark.
+- CDN: `curl` of K6 (`hf_20260925_223758_3617006b-….png`) → HTTP 200, 6,390,343 B. Downloads reset the connection now and
+  then (curl error 35) and succeed on a retry (the download helper retries 4–6 times).
+- Upload path: `media_upload` → S3 PUT 200 → `media_confirm` "uploaded": `588c24e4-8abb-4ad9-92ac-f98b5283b1a1` = a 1024 px
+  crop of `public/opus-bay/map/paper-v1-2048.webp` (the painted-map style reference for the stickers). Free.
+- Style references (prior jobs, no upload): K6 `3617006b-483d-4ea7-9e72-39b681f8264f`, rotunda concept L2-C1
+  `fba12f36-5e33-435f-9944-be12f183acf9`.
+
+#### Batch 1 · concepts, vehicle references, sticker sheets (17:17 UTC)
+
+Balance before: 455.58. Model `nano_banana_pro` (served `nano_banana_2`, billed "Nano Banana Pro"). Landmark variant a =
+refs K6 + L2-C1 with the "match the look, make a different building" prefix; variant b = ref K6 only. Every landmark and
+vehicle prompt = subject + the part-1 3D concept add-on + the style contract; the sticker prompt uses the painted-map
+style instead of the (tilt-shift photo) contract.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-C1a | Cal Academy concept a | nano_banana_pro 1:1 2k, refs K6 + L2-C1 | long low glass museum under a thin white overhanging roof on slim columns; green living roof with two big porthole domes + small humps | 2 | 6c79ad6f-7731-44e7-aa65-da82b6a125ee | ai/raw/cal-academy-a.png | runner-up (left dome without portholes); its SAM failed (below) |
+| W4V-C1b | Cal Academy concept b | nano_banana_pro 1:1 2k, ref K6 | same | 2 | 194ef1d0-31a2-40d0-94af-8235ab5c4985 | ai/raw/cal-academy-b.png | **USED** (both domes with portholes, humps between) |
+| W4V-C2a | St Ignatius concept a | same as C1a | twin four-stage towers (square → octagonal, open belfry, domed lantern + chunky cross), columned front + pediment, tile nave, dome on a drum | 2 | 00c95970-261f-4fda-aa90-a57ab1a31742 | ai/raw/st-ignatius-a.png | meshed (W4V-3D4), IoU 0.805: not used |
+| W4V-C2b | St Ignatius concept b | same as C1b | same | 2 | 708c7169-7186-4ee4-8f81-ca3502c5a78b | ai/raw/st-ignatius-b.png | **USED** (bigger dome, cleaner towers) |
+| W4V-C3a | Holy Virgin Cathedral concept a | same as C1a | white body, rounded arched gables, deep red trim, five gold onion domes on drums with chunky crosses, arched porch | 2 | 1b8c2abe-8a9b-44bb-9a17-84e0c4bf7a3c | ai/raw/holy-virgin-a.png | **USED** |
+| W4V-C3b | Holy Virgin Cathedral concept b | same as C1b | same | 2 | e1303403-1f9e-4d34-bcc7-fa25db9f5ba3 | ai/raw/holy-virgin-b.png | not meshed (domes crowded, narrow) |
+| W4V-C4a | Chinese Pavilion concept a | same as C1a | open octagonal pavilion, 8 red columns, low red bench walls, grey-green glazed tile roof with upturned corners, finial, low stone floor | 2 | 9b698354-4462-445d-b6b8-d6588aa22808 | ai/raw/chinese-pavilion-a.png | **USED** (chunkier, SAM-friendly) |
+| W4V-C4b | Chinese Pavilion concept b | same as C1b | same | 2 | c8c9b7d8-6c82-4cfe-a25e-afb80d5ee905 | ai/raw/chinese-pavilion-b.png | not meshed (fine fretwork beams) |
+| W4V-R1 | toy open-top double-decker reference sheet | nano_banana_pro 16:9 2k, ref K6 | coral body, cream band, teal-grey windows, open upper deck with 4 bench rows, rear stair; side / front / back / top | 2 | 58a2c071-3d7c-4b48-b10e-e5b080844ef2 | vehicles/ref-tour-bus.png | USED as reference (3/4 main view; a tiny K6 streetcar leaked in beside the front wheel: ignore it) — front and back views |
+| W4V-R2 | toy two-car LRV reference sheet | same | silver body, red belt line, teal-grey windows, 2 double doors per car, bellows, blank headsign, solid pantograph arm; side / front / back / top | 2 | 1641a3fd-7757-45ab-a7a7-238fbad63922 | vehicles/ref-lrv.png | **USED** as reference (all four views clean, no text) |
+| W4V-S1 | T1 sticker sheet, draw 1 | nano_banana_pro 1:1 4k, refs K6 + paper crop 588c24e4 | 16 round die-cut gouache stickers, 4 × 4 in the order of STICKER_IDS | 4 | 846efbec-f889-495f-b8ad-8f7dcccff79a | stickers/sheet-1.png | runner-up (all 16 right; SF State / Stonestown weaker) |
+| W4V-S2 | T1 sticker sheet, draw 2 | same | same | 4 | f313e2ed-e191-46c0-b461-7ac2612eb71b | stickers/sheet-2.png | **USED -> public/opus-bay/map/stickers-t1.{webp,json}** (read at full size row by row: no text, no letters, no logos) |
+
+Transactions 17:17:30.765–17:17:32.769 UTC: Nano Banana Pro −2 × 10, −4 × 2 (no other spend in between). **Subtotal 28.**
+
+#### Batch 2 · SAM 3 3D meshes + one bus retake (17:22–17:24 UTC)
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-3D1 | Cal Academy mesh from C1b, try 1 | sam_3_3d textured, prompt "the toy museum building" | — | 0 (failed, refunded) | a859fafe-cbb1-480b-a9e4-616b6c897a11 | — | failed (no detection), refunded |
+| W4V-3D2 | Cal Academy mesh from C1a | same | — | 0 (failed, refunded) | 07c0e940-793d-4ba0-8ebb-bc5b8eb9d98f | — | failed, refunded |
+| W4V-3D3 | St Ignatius mesh from C2b | sam_3_3d, "the toy church" | 21,844 tris raw | 1 | cc596ca6-c9c4-4ded-a6d8-2daff7021918 | ai/raw/st-ignatius-b-sam.glb | **USED** |
+| W4V-3D4 | St Ignatius mesh from C2a | same | 24,210 tris raw | 1 | a352bdd1-461c-4324-8b2c-c09438f6c77f | ai/raw/st-ignatius-a-sam.glb | not used (IoU 0.805 < 0.85) |
+| W4V-3D5 | Holy Virgin mesh from C3a | sam_3_3d, "the toy cathedral" | 18,402 tris raw | 1 | 78e206f5-9c5b-4ede-82b2-108da5b772f8 | ai/raw/holy-virgin-a-sam.glb | **USED** |
+| W4V-3D6 | Chinese Pavilion mesh from C4a | sam_3_3d, "the toy pavilion" | 27,718 tris raw | 1 | 580b0015-df30-41eb-9d11-1572a21326a3 | ai/raw/chinese-pavilion-a-sam.glb | **USED** |
+| W4V-R1b | tour-bus reference retake | nano_banana_pro 16:9 2k, refs K6 + R2 (layout) | "laid out like the train sheet", orthographic side / top, nothing but the bus | 2 | 9c78c22e-92a6-4e73-958f-b69dd8853db4 | vehicles/ref-tour-bus-b.png | **USED** as reference: the clean side and top views (its second view repeats the side and the "front" is the back: use R1 for front / back) |
+| W4V-3D7 | Cal Academy mesh from C1b, try 2 | sam_3_3d, "the green-roofed toy building", detection_threshold 0.3 | 13,908 tris raw | 1 | 4d8799df-4fd4-4caa-9fc8-6dfc96164e85 | ai/raw/cal-academy-b-sam.glb | **USED** |
+
+Transactions 17:22:05–17:23:46 UTC: 3D Objects −1 × 7 with +1 × 2 refunds (17:22:08, 17:22:11 = the two failed Cal
+Academy jobs), Nano Banana Pro −2 at 17:22:30. **Subtotal 7.**
+
+**Wave-4 lane V total so far: 35.00 credits** (28 + 7) of the 120 cap. Balance 455.58 → **420.58** (`balance` at 18:20 UTC,
+equal to the tally: no other lane spent in the window).
+
+#### Published from these jobs (local cleanup, free)
+
+Pipeline `scripts/opus-sf/assets/w4/` (Blender 5.2 headless; `build.py NAME TAG`, settings in `specs.json`): D2's wave-3
+landmark cleanup (weld, flat base, planar dissolve + collapse to the cap, origin at the ground centre, front → +Z) plus a
+**texel re-bake** (`--rebake 1`: smart-UV-project the decimated mesh and transfer the raw colour texel by texel with a
+BVH ray along the face normal; it removes the diagonal roof-tile streaks the collapse decimation smeared over side walls),
+the hero palette grade (`grade.py`, per-asset hue remaps), Draco (level 6) + WebP q82, IoU sweep against the concept.
+
+| file | tris | bytes | size w × h × d (u) | IoU | non-manifold / islands | palette ΔE12 (before → after) | status |
+|---|---|---|---|---|---|---|---|
+| models/sf/w4-cal-academy.glb (+ -mask.webp 7,592 B, R = glass) | 5,880 | 93,120 | 24.4 × 7.9 × 16.6 (fitted to lane L's procedural block + canopy) | 0.908 native / 0.894 as published | 0 % / 1 | 0.66 → 0.99 | published, not registered (integration) |
+| models/sf/w4-st-ignatius.glb | 5,879 | 152,988 | 7.5 × 13.2 × 11.15 (fitted to lane L's procedural church) | 0.863 native / 0.807 as published (fit waiver) | 0.08 % / 1 | 0.21 → 0.92 | published, not registered |
+| models/sf/w4-holy-virgin.glb | 5,880 | 184,596 | 6.10 × 9.1 × 6.69 | 0.854 | 0.23 % / 2 | 0.41 → 0.85 | published, not registered |
+| models/sf/w4-chinese-pavilion.glb | 2,940 | 71,388 | 5.62 × 4.5 × 5.61 | 0.855 | 0 % / 1 | 0.25 → 0.86 | published, not registered |
+| map/stickers-t1.webp + .json | — | 74,150 | 512 × 512 atlas, 16 × 124 px circles | — | — | — | published (lane P draws it) |
+
+The Cal Academy and St Ignatius rows were first written before the fit to lane L's bounds (`--box`); the lane-V review
+(2026-09-27) set them to the published files (tests/opus-bay-w4-assets.test.ts checks this table against `W4_MODELS`).
+
+#### Batch 3 · tour narration voice (W4-V6), 2026-09-27 18:29–19:30 UTC
+
+Lane C froze `TOUR_LINES` at 9d9dab9 (tag `w4-tourlines-frozen`): 107 lines. Model `qwen_audio_tts` (Qwen Audio 3.0 TTS
+Flash), preset "Pixie" `0178ef57-ada4-43d9-992b-8d9221045bb4` (every BAYBAY clip), wav 48 kHz, `language` zh / en,
+instruction = "Cute otter mascot tour guide: warm, cheerful, clear, friendly storytelling pace." + a mood note (quiet
+lines: "soft, gentle and respectful, quiet and slow"), ≤ 128 characters. Take list `scripts/opus-sf/voice/w4/takes.ts`;
+every take with its job id, text, rate, measurements and the pick: `docs/opus-bay/qa/w4/V/voice/tour-voice-report.json`.
+Preflight `get_cost`: 0.05 for a 110-character line (billed by length, 0.01–0.04 for these lines). Raw wavs:
+`C:/Users/willy/opus-qa/w4/w4-v/voice/raw/<take index>.wav`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-VO1 | 214 clips (107 lines × zh / en), take 1 | qwen_audio_tts, Pixie, speech_rate 1.0 | the frozen texts | (below) | tour-voice-report.json, `takes[].job_id` | voice/raw/<even index>.wav | 194 completed; 20 failed at the service ("failed", type image, as in wave 3); about 1 in 6 submissions answered 429 and were resubmitted |
+| W4V-VO2 | the 20 failed takes, resubmitted | same | same | (below) | jobs_retry (in the report) | same paths | all completed |
+| W4V-VO3 | 16 retakes at speech_rate 1.08 | same | the clips whose take missed a gate or the recogniser | (below) | jobs_r2 (in the report) | voice/raw/<odd index>.wav | 5 of them became the pick |
+
+Transactions 18:29:40–19:29:39 UTC: only "Qwen Audio 3.0 TTS Flash" spends (0.01–0.04 each) and refunds (the 429 /
+failed submissions), at the times of this lane's batches; no other lane spent in the window. **Subtotal 5.45 credits**
+(balance 420.58 → 415.13).
+
+**Wave-4 lane V total: 40.45 credits** (35.00 images + 3D, 5.45 voice) of the 120 cap. Balance 455.58 → **415.13**
+(`balance`, 2026-09-27 ≈ 20:05 UTC).
+
+Published: `public/opus-bay/voice/sf/tour/<lang>-<id>.m4a` + `.ogg` (214 × 2 files, 2.2–8.1 s, 17 MB), all picks pass the
+gates (no clipping, not cut, pauses, pitch, speaking rate with numbers counted as read), the recogniser heard 203 of 214
+right; `src/opus-bay/data/sf/voiceTour.ts` (generated); previews and the owner's sheet in `docs/opus-bay/qa/w4/V/voice/`.
+
+### Balance trail and reconciliation (lead-merge, 2026-09-27 ≈ 22:25 UTC)
+
+| step | charges (`transactions`, UTC) | credits | balance after |
+|---|---|---|---|
+| end of wave 2 | — | — | 498.28 (`balance` 05:25) |
+| wave 3 · H2b painted map | Nano Banana Pro −4 × 4, Seedream 4.5 −1 × 2, Seedream 5.0 Pro −2.5 (07:54:55–56) | 20.50 | 477.78 |
+| wave 3 · H2b voice rounds 1–2 | Qwen Audio 3.0 TTS Flash only (08:37:56–09:05:45; 33 failed jobs refunded) | 2.06 | 475.72 (`balance` 09:07) |
+| wave 3 · H2b murals | GPT Image 2.5 Flare −1.5 × 10, Nano Banana Pro −2 × 2 (09:22:02–09:24:27) | 19.00 | 456.72 (`balance` 09:40) |
+| wave 3 · H2b voice round 3 | Qwen Audio 3.0 TTS Flash only (09:56:01–10:07:13; 10 refunded) | 1.14 | 455.58 (`balance` 10:12) |
+| wave 3 · D2 parts a–c, C2, E2, F, G1, G2 | none | 0 | 455.58 |
+| wave 4 · V batch 1 (concepts, vehicle sheets, sticker sheets) | Nano Banana Pro −2 × 10, −4 × 2 (17:17:30.765–17:17:32.769) | 28.00 | 427.58 |
+| wave 4 · V batch 2 (SAM meshes, bus retake) | 3D Objects −1 × 7 with +1 × 2 refunds (17:22:05–17:23:46), Nano Banana Pro −2 (17:22:30) | 7.00 | 420.58 (`balance` 18:20) |
+| wave 4 · V tour voice | Qwen Audio 3.0 TTS Flash spends and refunds only (18:29:40–19:29:39) | 5.45 | 415.13 (`balance` ≈ 20:05) |
+| after the lane ledgers (**not yet in a lane ledger**) | Nano Banana Pro −2 × 6 (22:16:37.078–.675), 3D Objects −1 (22:18:37), Nano Banana Pro −2 (22:20:16) | 15.00 | **400.13** (`balance` ≈ 22:25) |
+
+Reconciliation: `transactions` was read newest first in pages of 100 down to H2b's last charge (10:07:13.112 UTC).
+There is no transaction between 10:07:13 and V's batch 1 at 17:17:30 (D2's part a found none either); V's two image /
+3D batches match its ledger rows one to one (28 + 7, the two refunds are the two failed Cal Academy SAM jobs); the
+18:29:40–19:29:39 window holds only TTS spends and refunds and the lane's `balance` checks bracket it (420.58 → 415.13 =
+5.45, its subtotal); nothing between 19:29:39 and 22:16:37. The 15 credits of 22:16–22:20 UTC came after every ledger
+on the branch: at the time of this merge lane V's worktree holds uncommitted work on the Holy Virgin re-fit (lane L's
+request in `sf-w4-L.md`: its prompts, specs and GLB), so they are most likely lane V's; its ledger attributes them by
+job id and the lead's next merge copies those rows here. Sum check: 498.28 − 400.13 = 98.15 = 42.70 + 40.45 + 15.00.
+
+**Wave 3 total: 42.70 credits** (H2b 42.70 of 150; D2 0 of 80; C2 0 of 20; E2 0 of 50; F 0 of 25). **Wave 4 so far:
+55.45 credits** of the 120 cap (V 40.45 logged + 15.00 pending attribution); balance **400.13**, well above the ≥ 50 kept
+for the final polish. Whole-SF round so far: 250.20 (to the end of wave 2) + 42.70 + 55.45 = **348.35 credits**.
