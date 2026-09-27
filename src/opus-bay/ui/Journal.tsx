@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { BookOpen, CalendarPlus, Check, CircleHelp, Footprints, Heart, ListChecks, Mail, MapPinned, Route, Trash2 } from 'lucide-react';
+import { BookOpen, CalendarPlus, Check, CircleHelp, Footprints, HandHeart, Heart, ListChecks, Mail, MapPinned, Navigation, Route, Trash2 } from 'lucide-react';
 import { FOOTPRINTS_TAB, Footprints as FootprintsTab } from './Footprints';
 import { useGame } from '../core/store';
 import type { WishItem } from '../core/types';
@@ -8,9 +8,10 @@ import { eventUrl, guideUrl, mapsUrl, pickPlanDate, planStopTitles, planUrl, wal
 import { POIS } from '../data/pois';
 import { POSTCARDS, activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { goalProgress } from '../data/sf/goals';
+import { RESIDENTS, taskState, tasksDone } from '../data/sf/residents';
 import { FREE_GOALS } from '../data/script';
 import { wishlist } from '../data/wishlist';
-import { closePanel, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
+import { closePanel, navigateTo, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { poiById } from '../game/interactables';
 import { useT } from '../i18n';
@@ -95,6 +96,7 @@ function Goals() {
   const done = useGame(s => s.goalsDone);
   const completed = useGame(s => s.tour.completed);
   const active = useGame(s => s.tour.active);
+  const city = useGame(s => s.worldMode === 'city');
   const stops = tourStops();
   return (
     <>
@@ -126,7 +128,37 @@ function Goals() {
           })}
         </ul>
       </section>
+      {city && <Favours done={done} />}
     </>
+  );
+}
+
+/**
+ * 邻居的小忙 (city, plan G2-11): the six residents' favours. Not met yet → who and where (去找 TA); said yes → what to
+ * do (带我去 walks to the favour's target); done → ticked. The buttons are big enough for a thumb.
+ */
+function Favours({ done }: { done: readonly string[] }) {
+  const { t } = useT();
+  return (
+    <section className="ob-block">
+      <h3 className="ob-h3"><HandHeart size={15} aria-hidden />{t('邻居的小忙', 'Neighbour favours')} · {tasksDone(done)}/{RESIDENTS.length}</h3>
+      <ul className="ob-goals">
+        {RESIDENTS.map(r => {
+          const state = taskState(done, r.key);
+          const go = state === 'on' ? r.task.target.id : state === 'new' ? r.id : null;
+          return (
+            <li key={r.key} className={state === 'done' ? 'is-done' : ''}>
+              <span className="ob-check">{state === 'done' && <Check size={13} aria-hidden />}</span>
+              <div>
+                <strong>{state === 'new' ? t(r.task.teaser) : t(r.task.title)}</strong>
+                <small>{state === 'new' ? t(`${r.short.zh} 有件小事想请你帮忙`, `${r.short.en} has a small favour to ask`) : state === 'on' ? t(r.task.hint) : t(`${r.short.zh} 说谢谢你！`, `${r.short.en} says thank you!`)}</small>
+                {go && <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={() => navigateTo(go)}><Navigation size={14} aria-hidden />{state === 'new' ? t(`去找 ${r.short.zh}`, `Find ${r.short.en}`) : t('带我去', 'Take me there')}</button>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

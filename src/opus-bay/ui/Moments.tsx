@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Aperture, ArrowRight, BookOpen, CalendarPlus, Check, Download, Footprints, Heart, Mail, Route, Sparkles, X } from 'lucide-react';
+import { Aperture, ArrowRight, BookOpen, CalendarPlus, Check, Download, Footprints, HandHeart, Heart, Mail, Route, Sparkles, X } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
 import { DISTRICT } from '../data/district';
@@ -7,6 +7,7 @@ import { eventById, guideTitle, placeById, useCatalog } from '../data/catalog';
 import { guideUrl, planStopTitles, planUrl, sourceDomain, validPlanStops, walkingRouteUrl, type PlanStop } from '../data/links';
 import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { goalProgress } from '../data/sf/goals';
+import { RESIDENTS, tasksDone, tasksOpen } from '../data/sf/residents';
 import { FREE_GOALS } from '../data/script';
 import {
   FISH_CATCHES, closeFishing, closePanel, closePostcardReward, exitPhotoMode, notePhotoTaken, reel, retryFishing, startWeek, tourStops,
@@ -185,6 +186,7 @@ export function GoalsCard() {
   const done = useGame(s => s.goalsDone);
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
+  const city = useGame(s => s.worldMode === 'city');
   const visible = open && !dialogue && !panel && !bubbleUp;
   useEffect(() => {
     if (!visible) return;
@@ -205,7 +207,24 @@ export function GoalsCard() {
       <ul>
         {FREE_GOALS.map(goal => { const progress = goalProgress(goal.id, done); return <li key={goal.id} className={done.includes(goal.id) ? 'is-done' : ''}><span className="ob-check">{done.includes(goal.id) && <Check size={12} aria-hidden />}</span><span>{t(goal.label)}{progress && ` · ${progress}`}<small>{t(goal.hint)}</small></span></li>; })}
       </ul>
+      {city && <FavoursMini done={done} />}
     </aside>
+  );
+}
+
+/** 邻居的小忙 in the goals card (city, plan G2-11): the count and the favours you said yes to (two at most). */
+function FavoursMini({ done }: { done: readonly string[] }) {
+  const { t } = useT();
+  const open = tasksOpen(done);
+  const count = tasksDone(done);
+  return (
+    <>
+      <header style={{ marginTop: 8 }}><strong><HandHeart size={16} aria-hidden />{t('邻居的小忙', 'Neighbour favours')} · {count}/{RESIDENTS.length}</strong></header>
+      <ul>
+        {open.slice(0, 2).map(r => <li key={r.key}><span className="ob-check" /><span>{t(r.task.title)}<small>{t(r.task.hint)}</small></span></li>)}
+        {!open.length && count < RESIDENTS.length && <li><span className="ob-check" /><span>{t('城里有六位邻居，各有一件小事想请你帮忙', 'Six neighbours around the city each have a small favour to ask')}<small>{t('旅行本 · 目标里有他们在哪', 'Your journal’s Goals tab says where they are')}</small></span></li>}
+      </ul>
+    </>
   );
 }
 
