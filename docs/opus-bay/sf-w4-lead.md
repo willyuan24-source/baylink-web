@@ -251,7 +251,7 @@ neighbourhood-icon → neighbourhood, transit-icon → landmark, …); the JSON'
 ## 5. Protocol
 
 - **Checks before every push** (from your worktree root): `npx tsc -p tsconfig.app.json --noEmit` (0),
-  `npx eslint src/opus-bay tests/opus-bay-*` (0), `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  `npx eslint .` (0 errors: the whole repo, as CI's `npm run check` does; it covers scripts/opus-sf), `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
   (all green, incl. hero regression and contracts). Tests are not type-checked by tsc (it covers `src/` only).
 - **Commits:** small and logical; messages start with the task id (`W4-P2: …`, `W4-T3: …`) and end with
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Stage explicit paths only (**never `git add -A` / `.`**;

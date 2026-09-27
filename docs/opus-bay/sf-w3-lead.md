@@ -60,7 +60,7 @@ describe it.**
 
 ```bash
 npx tsc -p tsconfig.app.json --noEmit                                   # 0 errors
-npx eslint src/opus-bay tests/opus-bay-*                                 # 0 problems
+npx eslint .                                                             # 0 errors (whole repo: CI runs `npm run check`, which lints scripts/opus-sf too)
 npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts     # all green, incl. hero regression + contracts
 ```
 
