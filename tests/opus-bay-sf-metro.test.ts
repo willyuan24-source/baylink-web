@@ -385,3 +385,30 @@ test('line sounds: every one-shot builds a voice, the loops start / stop without
   loops.update({ bus: false, busSpeed: 0, lrv: false, lrvSpeed: 0, tunnel: false });
   loops.dispose();
 });
+
+// ---------------------------------------------------------------------------
+// Metro boarding choices and the ride banner (game/lineChoices.ts)
+// ---------------------------------------------------------------------------
+
+const choices = await import('../src/opus-bay/game/lineChoices');
+
+test('Metro boarding: the next stop each way, termini, ★ stops, ≤ 6 rides on a phone; banner underground says no hop-off', () => {
+  const sys = new LightRailSystem([TN, TM]);
+  const rs = (line: string, a: string, b: string) => sys.rideSeconds(line, a, b);
+  const c = choices.lineChoices(M, 'muni-castro', { rideSeconds: rs, max: 6 });
+  const rides = c.filter(x => x.kind === 'ride');
+  assert.ok(rides.length <= 6);
+  assert.deepEqual(rides.slice(0, 2).map(x => x.to), ['muni-forest-hill', 'muni-church']);
+  assert.ok(rides.some(x => x.to === 'muni-san-jose-geneva') && rides.some(x => x.to === 'muni-embarcadero'), 'both termini');
+  assert.ok(rides.some(x => x.to === 'muni-19th-winston' && x.star), 'Stonestown ★');
+  assert.equal(c[c.length - 1].kind, 'cancel');
+  assert.equal(c[c.length - 2].kind, 'map');
+  for (const r of rides) assert.equal(r.dir, M.stops.find(s => s.id === r.to)!.at > M.stops.find(s => s.id === 'muni-castro')!.at ? 1 : -1);
+  const winston = rides.find(x => x.to === 'muni-19th-winston')!;
+  assert.ok(winston.seconds! > 30 && winston.seconds! < 120, `Castro → Winston ${winston.seconds!.toFixed(0)} s`);
+  const ug = choices.lineRideLabel(M, { phase: 'riding', eta: 0, nextStop: 'muni-forest-hill', nextEta: 16, underground: true }, 'muni-19th-winston');
+  assert.equal(ug.title.zh, 'M 线 · 开往 19th & Winston · 石镇 · 下一站 森林山站');
+  assert.equal(ug.icon, 'metro');
+  assert.ok(!ug.canHopOff);
+  assert.equal(ug.hopOffNote!.zh, '隧道里不能下车');
+});

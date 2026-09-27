@@ -318,3 +318,29 @@ test('interlocks from data: the bus track shares Bush × Powell, California St a
   assert.ok(!ids.includes('m-ocean-view') && !ids.includes('n-judah'), `no Metro box: ${ids.join(' ')}`);
   for (const b of boxes) assert.ok(b.a1 - b.a0 < 90, `${b.id} ${b.a0.toFixed(0)}–${b.a1.toFixed(0)}`);
 });
+
+// ---------------------------------------------------------------------------
+// Boarding choices and the ride banner (game/lineChoices.ts)
+// ---------------------------------------------------------------------------
+
+const choices = await import('../src/opus-bay/game/lineChoices');
+
+test('loop boarding: next 3 stops with honest seconds and ★, 坐一圈 ≈ 14 min, 看线路图, 先不坐; pre-filled trip boarding', () => {
+  const sys = new BusSystem(TRACK);
+  const rs = (_line: string, a: string, b: string) => sys.rideSeconds(a, b);
+  const c = choices.lineChoices(LOOP, 'loop-pier-39', { rideSeconds: rs });
+  assert.deepEqual(c.map(x => x.kind), ['ride', 'ride', 'ride', 'lap', 'map', 'cancel']);
+  assert.deepEqual(c.slice(0, 3).map(x => x.to), ['loop-wharf-hyde', 'loop-palace-of-fine-arts', 'loop-golden-gate-bridge']);
+  assert.ok(c[1].star && c[1].label.zh.includes('★ 艺术宫'), c[1].label.zh);
+  assert.ok(c[0].seconds! < c[1].seconds! && c[1].seconds! < c[2].seconds!);
+  const lap = c.find(x => x.kind === 'lap')!;
+  assert.ok(lap.seconds! > 12 * 60 && lap.seconds! < 16 * 60, `lap ${(lap.seconds! / 60).toFixed(1)} min`);
+  assert.match(lap.label.zh, /^坐一圈（约 1[3-5] 分钟，BAYBAY 讲解）$/);
+  const pre = choices.lineChoices(LOOP, 'loop-castro', { rideSeconds: rs, to: 'loop-twin-peaks' });
+  assert.equal(pre.length, 2);
+  assert.match(pre[0].label.zh, /^上车 · 坐到 ★ 双峰（约 \d+ 秒）$/);
+  const label = choices.lineRideLabel(LOOP, { phase: 'riding', eta: 0, nextStop: 'loop-palace-of-fine-arts', nextEta: 38.6, underground: false }, 'loop-golden-gate-bridge');
+  assert.equal(label.title.zh, '旧金山观光环线 · 下一站 艺术宫 · 约 39 秒');
+  assert.equal(label.icon, 'bus');
+  assert.ok(label.canHopOff);
+});

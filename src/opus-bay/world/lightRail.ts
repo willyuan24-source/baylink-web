@@ -50,9 +50,13 @@ export const LRV = {
   portalWait: 25,
   portalHold: 8,
   gap: 8,
+  /** the virtual subway (hidden trains) brakes and pulls away this much harder: the overlay compresses the ride */
+  tunnelAccel: 7,
   hideBeyond: 300,
   farLod: 110,
   stopPenalty: 3,
+  /** time lost per underground station besides the dwell (the virtual subway accelerates at tunnelAccel) */
+  stopPenaltyUnderground: 1.2,
 } as const;
 
 export const TRAIN_LENGTH = LRV.carLength * 2 + LRV.coupler;
@@ -126,6 +130,8 @@ export interface RailRideStatus extends RideStatus {
 export function stopPos(track: Pick<LineTrack, 'length'>, st: Pick<TrackStop, 'at'>): number {
   return Math.min(track.length - HALF - 0.2, Math.max(HALF + 0.2, st.at));
 }
+/** Seconds a stop costs a passing train that stops there: the dwell plus braking and pulling away. */
+const stopCost = (st: Pick<TrackStop, 'underground'>) => (st.underground ? LRV.dwellUnderground + LRV.stopPenaltyUnderground : LRV.dwell + LRV.stopPenalty);
 /** Is arc s at (or beyond) a terminus stand? */
 const atEnd = (track: Pick<LineTrack, 'length'>, s: number) => s <= HALF + 0.7 || s >= track.length - HALF - 0.7;
 
@@ -137,7 +143,7 @@ const DISPATCH_RUN = [11, 9, 13, 7, 5];
 
 /** The light-rail track for a transit.json Metro line (plan §3.3 profile). */
 export function railTrack(line: TransitLine): LineTrack {
-  return buildLineTrack(line, { cruise: LRV.cruise, tunnelCruise: LRV.tunnelCruise, aLat: LRV.aLat, accel: LRV.accel, decel: LRV.decel, minCurve: 2.5 });
+  return buildLineTrack(line, { cruise: LRV.cruise, tunnelCruise: LRV.tunnelCruise, tunnelAccel: LRV.tunnelAccel, aLat: LRV.aLat, accel: LRV.accel, decel: LRV.decel, minCurve: 2.5 });
 }
 
 export class LightRailSystem {
@@ -201,12 +207,13 @@ export class LightRailSystem {
     return best;
   }
 
+  /** Seconds lost at the stopping stops strictly between a and b (dwell + braking / pulling away). */
   private stopsBetween(t: Train, a: number, b: number, dir: 1 | -1): number {
     let n = 0;
     for (const st of t.track.stops) {
       const p = stopPos(t.track, st);
       const da = (p - a) * dir, db = (b - p) * dir;
-      if (da > 0.5 && db > 0.5 && this.stopsAt(t, st, dir)) n++;
+      if (da > 0.5 && db > 0.5 && this.stopsAt(t, st, dir)) n += stopCost(st);
     }
     return n;
   }
@@ -221,10 +228,10 @@ export class LightRailSystem {
     for (let k = 0; k < 3; k++) {
       if (d === dir && (target - s) * d >= -0.3) {
         if (Math.abs(target - s) < 0.3 && (t.mode === 'dwell' || t.mode === 'hold') && k === 0) return time;
-        return time + runSeconds(tr, s, target, d) + this.stopsBetween(t, s, target, d) * (LRV.dwell + LRV.stopPenalty) + (Math.abs(target - s) > 0.5 ? 2 : 0);
+        return time + runSeconds(tr, s, target, d) + this.stopsBetween(t, s, target, d) + (Math.abs(target - s) > 0.5 ? 2 : 0);
       }
       const end = d > 0 ? tr.length - HALF - 0.2 : HALF + 0.2;
-      time += runSeconds(tr, s, end, d) + this.stopsBetween(t, s, end, d) * (LRV.dwell + LRV.stopPenalty) + LRV.terminus;
+      time += runSeconds(tr, s, end, d) + this.stopsBetween(t, s, end, d) + LRV.terminus;
       s = end; d = -d as 1 | -1;
     }
     return time;
@@ -238,8 +245,8 @@ export class LightRailSystem {
     const dir: 1 | -1 = b.at > a.at ? 1 : -1;
     const pa = stopPos(tr, a), pb = stopPos(tr, b);
     let between = 0;
-    for (const st of tr.stops) if ((st.at - a.at) * dir > 0.5 && (b.at - st.at) * dir > 0.5 && st.major) between++;
-    return runSeconds(tr, pa, pb, dir) + between * (LRV.dwell + LRV.stopPenalty) + 2;
+    for (const st of tr.stops) if ((st.at - a.at) * dir > 0.5 && (b.at - st.at) * dir > 0.5 && st.major) between += stopCost(st);
+    return runSeconds(tr, pa, pb, dir) + between + 2;
   }
 
   // -------------------------------------------------------------------------
@@ -481,15 +488,17 @@ export class LightRailSystem {
       const target = next ? stopPos(tr, next) : t.dir > 0 ? tr.length - HALF - 0.2 : HALF + 0.2;
       const toStop = Math.max(0, (target - t.s) * t.dir);
       const obst = this.obstacle(t);
-      let limit = Math.min(limitAt(tr, t.s), LRV.tunnelCruise, Math.sqrt(2 * LRV.decel * toStop));
-      if (obst < Infinity) limit = Math.min(limit, Math.sqrt(2 * LRV.decel * Math.max(0, obst)));
+      // the virtual subway (hidden) brakes and pulls away harder; near a mouth the train is visible and runs as normal
+      const acc = t.hidden ? LRV.tunnelAccel : LRV.accel, dec = t.hidden ? LRV.tunnelAccel : LRV.decel;
+      let limit = Math.min(limitAt(tr, t.s), LRV.tunnelCruise, Math.sqrt(2 * dec * toStop));
+      if (obst < Infinity) limit = Math.min(limit, Math.sqrt(2 * dec * Math.max(0, obst)));
       if (t.holdingPortal && t.v < 0.05) t.portalHeld += dt;
       if (stopReq) {
         t.v = Math.max(0, t.v - t.brakeRate * dt);
         t.mode = t.v <= 0.02 ? 'hold' : 'run';
       } else {
         if (t.mode === 'hold') t.mode = 'run';
-        t.v = t.v < limit ? Math.min(limit, t.v + LRV.accel * (limit > LRV.cruiseCap ? 2 : 1) * dt) : Math.max(limit, t.v - LRV.decel * 2.5 * dt);
+        t.v = t.v < limit ? Math.min(limit, t.v + acc * dt) : Math.max(limit, t.v - dec * 2.5 * dt);
       }
       let step = t.v * dt;
       if (step >= toStop) step = toStop;

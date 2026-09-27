@@ -62,6 +62,8 @@ export interface TrackOptions {
   decel: number;
   /** slowest the curve limit goes (u/s) */
   minCurve?: number;
+  /** accel / decel deep inside a tunnel (the virtual subway, away from the mouths) */
+  tunnelAccel?: number;
 }
 
 type LineIn = Pick<TransitLine, 'id' | 'kind' | 'name' | 'short' | 'color' | 'loop' | 'doubleEnded' | 'path' | 'stops' | 'tunnels'> & { speeds?: [number, number, number][] };
@@ -99,6 +101,7 @@ export function buildLineTrack(line: LineIn, opts: TrackOptions): LineTrack {
   };
   // heading change over ±6 u (a shorter window reads the polyline's small kinks as curves)
   const W = 6;
+  const deep = new Uint8Array(m);
   for (let i = 0; i < m; i++) {
     const s = Math.min(length, i * PROFILE_STEP);
     let v = cruiseAt(s);
@@ -106,7 +109,7 @@ export function buildLineTrack(line: LineIn, opts: TrackOptions): LineTrack {
     if (t && opts.tunnelCruise) {
       // near a mouth the train is still visible: surface cruise within 25 u of it
       const nearMouth = (t.portalA && s - t.fromAt < 25) || (t.portalB && t.toAt - s < 25);
-      if (!nearMouth) v = opts.tunnelCruise;
+      if (!nearMouth) { v = opts.tunnelCruise; deep[i] = 1; }
     }
     // curve limit from the heading change over ±W u
     const a = hdg[Math.max(0, i - W)], b = hdg[Math.min(m - 1, i + W)];
@@ -117,10 +120,12 @@ export function buildLineTrack(line: LineIn, opts: TrackOptions): LineTrack {
   }
   // accel / decel smoothing (loops wrap: two passes each way settle it)
   const passes = track.loop ? 2 : 1;
+  const dec = (i: number) => (deep[i] && opts.tunnelAccel ? opts.tunnelAccel : opts.decel);
+  const acc = (i: number) => (deep[i] && opts.tunnelAccel ? opts.tunnelAccel : opts.accel);
   for (let pass = 0; pass < passes; pass++) {
-    for (let i = m - 2; i >= 0; i--) limit[i] = Math.min(limit[i], Math.sqrt(limit[i + 1] ** 2 + 2 * opts.decel * PROFILE_STEP));
+    for (let i = m - 2; i >= 0; i--) limit[i] = Math.min(limit[i], Math.sqrt(limit[i + 1] ** 2 + 2 * dec(i) * PROFILE_STEP));
     if (track.loop) limit[m - 1] = Math.min(limit[m - 1], limit[0]);
-    for (let i = 1; i < m; i++) limit[i] = Math.min(limit[i], Math.sqrt(limit[i - 1] ** 2 + 2 * opts.accel * PROFILE_STEP));
+    for (let i = 1; i < m; i++) limit[i] = Math.min(limit[i], Math.sqrt(limit[i - 1] ** 2 + 2 * acc(i) * PROFILE_STEP));
     if (track.loop) limit[0] = Math.min(limit[0], limit[m - 1]);
   }
   const time = new Float32Array(m);
