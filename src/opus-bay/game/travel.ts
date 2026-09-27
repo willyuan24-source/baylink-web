@@ -2,6 +2,7 @@ import type { Bilingual, PoiDef, Vec2 } from '../core/types';
 import { distanceKm } from '../data/catalog';
 import { POIS } from '../data/pois';
 import { unproject } from '../data/district';
+import { unproject as unprojectCity } from '../core/geo';
 
 /**
  * F8 · honest travel times. The little map is compressed, so metres on it mean nothing: show how long the walk
@@ -59,4 +60,33 @@ export function travelLabel(from: Vec2, to: PoiDef): Bilingual {
     zh: `游戏里${game.zh} · 现实步行约 ${real.minutes} 分钟 / ${km}`,
     en: `${game.en} in the game · ~${real.minutes} min / ${kmEn} on foot for real`,
   };
+}
+
+// ---------------------------------------------------------------------------
+// City places (lane G1, G1-6 / G1-7): the map's 飞过去 / 带我去 / 开车去
+// ---------------------------------------------------------------------------
+
+/** How far the player may be from a rideable for 骑车去 / 开车去 (plan §6.7). */
+export const RIDEABLE_R = 60;
+
+/** "游戏里约 1 分钟 · 现实约 2.5 公里" for a city place (the city frame's own inverse projection). */
+export function cityTravelLabel(from: Vec2, to: Vec2): Bilingual {
+  const d = Math.hypot(to.x - from.x, to.z - from.z);
+  if (d < 4) return { zh: '就在这', en: 'right here' };
+  const game = gameTimeLabel(d);
+  const km = distanceKm(unprojectCity(from), unprojectCity(to)) * STREET_FACTOR;
+  const kmZh = km < 1 ? `${Math.round(km * 100) * 10} 米` : `${km.toFixed(1)} 公里`;
+  const kmEn = km < 1 ? `${Math.round(km * 100) * 10} m` : `${km.toFixed(1)} km`;
+  return { zh: `游戏里${game.zh} · 现实约 ${kmZh}`, en: `${game.en} in the game · ${kmEn} for real` };
+}
+
+/** The nearest bike / toy car within RIDEABLE_R of p (its interactable), or null. */
+export function rideableNear(p: Vec2, list: readonly { id: string; source: string; x: number; z: number }[]): { id: string; x: number; z: number } | null {
+  let best: { id: string; x: number; z: number } | null = null, bestD = RIDEABLE_R;
+  for (const it of list) {
+    if (it.source !== 'vehicle') continue;
+    const d = Math.hypot(it.x - p.x, it.z - p.z);
+    if (d <= bestD) { bestD = d; best = it; }
+  }
+  return best;
 }

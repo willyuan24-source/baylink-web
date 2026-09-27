@@ -18,7 +18,9 @@ import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactabl
 import { consumeShutter } from './photo';
 import { domAnchors, overlayInsets } from './projector';
 import { gameTimeLabel } from './travel';
-import { readQa } from './qa';
+import { stepTravel } from './fastTravel';
+import { parseAt, readQa } from './qa';
+import { goToCitySpot } from './resume';
 import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
 import { stepTransit } from './transit';
 
@@ -435,6 +437,8 @@ function Ticker() {
     runtime.time += dt;
 
     stepCinema(dt);
+    // 飞过去 fast travel (lane G1): the trip's camera and phases
+    stepTravel(dt);
 
     // rides (lane F, game/transit.ts): advance the ride, keep the HUD banner in step, finish at the stop
     stepTransit(dt);
@@ -606,6 +610,10 @@ function QaBridge() {
           placed = true;
           timers.push(setTimeout(() => teleportPlayer({ x: at.x, z: at.z }), 50));
         });
+      } else if (game.get().worldMode === 'city') {
+        // G1-12: place / landmark ids (lm-<id>), ll:<lat>,<lng>, xz:<x>,<z> — after the city is on screen there
+        const spec = parseAt(qa.at);
+        if (spec) void goToCitySpot(spec);
       }
     }
     return () => { timers.forEach(clearTimeout); unsub(); };
