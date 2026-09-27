@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { LandmarkWalkInput } from '../../core/sfTerrain';
+import type { SurfaceKind, Vec2 } from '../../core/types';
 import { TOY, TOY_DYN } from '../materials';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
@@ -19,6 +20,22 @@ import type { CellPool } from './pools';
  *
  * Exclusions go to the stream workers (city buildings inside are dropped) and the walk data to lane B's rasters.
  */
+
+/**
+ * Day-0 contract (wave 2): optional per-landmark hooks, read structurally from the registry records (lane D2 types its
+ * records as `SfLandmark & SiteHooks` in world/sf/landmarks/**; this file is D2's from wave 2 and keeps the CitySites API
+ * that world/sf/stream.ts calls). Local space = the landmark's (origin at the ground centre, front +z); y is above baseY.
+ *
+ *   lights   night light points (lane C2's world/sf/lights.ts light field reads them through CitySites.siteLights())
+ *   mount    called when the lod-0 mesh is built: add extra objects to its group (GLB swaps, dressing); return an
+ *            unmount function (called when the lod-0 mesh is dropped)
+ *   plaza    walkable plaza polygons around the landmark (lane D2's dressing; lane F's crowd reads plazaSpots)
+ */
+export interface SiteHooks {
+  lights?: { x: number; y: number; z: number; size: number; color: string }[];
+  mount?(group: THREE.Group, baseY: number): void | (() => void);
+  plaza?: { poly: Vec2[]; surface: SurfaceKind }[];
+}
 
 /** lod-0 radius per tier (lane D: inside the L1 ring; tier 1 a little beyond it, they read from several districts) */
 const LOD0: Record<1 | 2 | 3, number> = { 1: 520, 2: 340, 3: 220 };
@@ -44,6 +61,8 @@ interface Site {
   near: boolean;
   lod2: boolean;
   tris: number;
+  /** SiteHooks.mount's unmount */
+  unmount: (() => void) | null;
 }
 
 /** Local batch → world-space pool arrays (identity instance matrix), aInfo.y lifted by the base. */
@@ -71,7 +90,7 @@ export class CitySites {
 
   constructor() {
     this.group.name = 'city-landmarks';
-    this.sites = SF_LANDMARKS.map((l, i) => ({ l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0 }));
+    this.sites = SF_LANDMARKS.map((l, i) => ({ l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null }));
   }
 
   /** Exclusion shapes for the stream workers (city buildings / props inside are dropped). */
@@ -166,6 +185,9 @@ export class CitySites {
     }
     g.matrixAutoUpdate = false;
     g.matrix.copy(landmarkMatrix(s.l, s.baseY));
+    // SiteHooks.mount (GLB swaps, dressing): extra objects in the landmark's local frame
+    const hooks = s.l as SfLandmark & SiteHooks;
+    if (hooks.mount) { const off = hooks.mount(g, s.baseY); s.unmount = typeof off === 'function' ? off : null; }
     this.group.add(g);
     g.updateMatrixWorld(true);
     s.mesh = g;
@@ -173,6 +195,8 @@ export class CitySites {
 
   private dropMesh(s: Site) {
     if (!s.mesh) return;
+    s.unmount?.();
+    s.unmount = null;
     this.group.remove(s.mesh);
     s.mesh.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); });
     this.triangles -= s.tris;
@@ -198,6 +222,18 @@ export class CitySites {
         s.anim.updateMatrixWorld(true);
       }
     }
+  }
+
+  /** Every landmark's SiteHooks.lights in world space (lane C2's night light field; call after the bases settle). */
+  siteLights(): { x: number; y: number; z: number; size: number; color: string }[] {
+    const out: { x: number; y: number; z: number; size: number; color: string }[] = [];
+    for (const s of this.sites) {
+      const lights = (s.l as SfLandmark & SiteHooks).lights;
+      if (!lights?.length) continue;
+      const c = Math.cos(s.l.yaw), sn = Math.sin(s.l.yaw);
+      for (const p of lights) out.push({ x: s.l.x + p.x * c + p.z * sn, y: s.baseY + p.y, z: s.l.z - p.x * sn + p.z * c, size: p.size, color: p.color });
+    }
+    return out;
   }
 
   counts() {

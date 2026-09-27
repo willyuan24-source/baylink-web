@@ -6,6 +6,7 @@ import { CITY_PAL } from '../palette';
 import { CITY_ROOFS, CITY_STYLES, type CityBuildingSpec, type CityPalette, toyBuildingL0, toyBuildingL1 } from '../recipes/city';
 import { WIN } from '../recipes/shapes';
 import type { TypedBatchArrays } from '../typedBatch';
+import { type L0Buildings, L0Recorder, l0Desc } from './l0index';
 import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
 import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
 import { type Raster, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
@@ -555,14 +556,16 @@ export function buildL1(ctx: ChunkContext): L1Result {
   return { cells, props: propsOf(ctx), bases, ms: performance.now() - t0 };
 }
 
-export interface L0Result { sub: number; toy: TypedBatchArrays | null; ground: TypedBatchArrays | null; triangles: number; ms: number }
+/** `buildings`: per-building toy index ranges + descriptors (lane D2's kit swap, world/sf/l0index.ts), null when none */
+export interface L0Result { sub: number; toy: TypedBatchArrays | null; ground: TypedBatchArrays | null; triangles: number; ms: number; buildings: L0Buildings | null }
 
 export function buildL0(ctx: ChunkContext, sub: number): L0Result {
   const t0 = performance.now();
   const ox = ctx.chunk.cx * CHUNK + (sub & 1) * CELL, oz = ctx.chunk.cz * CHUNK + (sub >> 1) * CELL;
   const t = new CityBatch(16384), g = new CityBatch(8192);
   g.clampXZ = ctx.clampXZ;
-  for (const r of buildingsOf(ctx)) if (r.sub === sub) toyBuildingL0(t, specOf(ctx, r, true));
+  const rec = new L0Recorder();
+  for (const r of buildingsOf(ctx)) if (r.sub === sub) { const spec = specOf(ctx, r, true); rec.begin(t); toyBuildingL0(t, spec); rec.end(t, l0Desc(ctx.chunk.buildings, r.i, spec, ctx.height)); }
   furniture(ctx, t, ox, oz);
   buildGround(g, {
     x0: ox, z0: oz, size: CELL, step: 2,
@@ -571,7 +574,7 @@ export function buildL0(ctx: ChunkContext, sub: number): L0Result {
   });
   streetsL0(ctx, g, t, ox, oz);
   piers(ctx, g, ox, oz, CELL);
-  return { sub, toy: t.arrays(), ground: g.arrays(), triangles: t.triangleCount + g.triangleCount, ms: performance.now() - t0 };
+  return { sub, toy: t.arrays(), ground: g.arrays(), triangles: t.triangleCount + g.triangleCount, ms: performance.now() - t0, buildings: rec.result() };
 }
 
 /** Sea-level check used by tests and the far builder: is (x, z) city ground of this chunk? */

@@ -34,7 +34,12 @@ export const U = {
 /** Range (world units) encoded in the building-distance texture. */
 export const BDIST_MAX = 2;
 
-const COMMON_VERT_PARS = /* glsl */ `
+/**
+ * Day-0 exports (wave 2): the TOY shader pieces, for lane D2's world/modelMaterial.ts (AI GLB material) and anyone
+ * who patches a MeshStandardMaterial the same way. C2 keeps these names and their behaviour stable; the strings are
+ * the ones TOY / TOY_DYN / TOY_INST / hero materials compile (district programs must not change).
+ */
+export const COMMON_VERT_PARS = /* glsl */ `
 attribute vec4 aInfo;
 varying vec4 vInfo;
 varying vec3 vWPos;
@@ -43,7 +48,7 @@ uniform float uTime;
 uniform float uWind;
 `;
 
-const COMMON_FRAG_PARS = /* glsl */ `
+export const COMMON_FRAG_PARS = /* glsl */ `
 varying vec4 vInfo;
 varying vec3 vWPos;
 varying vec3 vWN;
@@ -67,7 +72,8 @@ float obBayer8(vec2 p) {
 }
 `;
 
-function patchCommonVertex(shader: THREE.WebGLProgramParametersWithUniforms, sway: boolean) {
+/** Vertex half of the TOY patch: aInfo / vInfo / vWPos / vWN varyings (batching + instancing aware), optional wind sway. */
+export function patchCommonVertex(shader: THREE.WebGLProgramParametersWithUniforms, sway: boolean) {
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', `#include <common>\n${COMMON_VERT_PARS}`)
     .replace('#include <beginnormal_vertex>', /* glsl */ `#include <beginnormal_vertex>
@@ -230,7 +236,7 @@ vec2 obHerring(vec2 p) {
  * contact AO, lit-opening gradient), z = sway weight (> 0) or −building seed (< 0, window occupancy),
  * w = glow ((0,1] at night, (1,2] always); w ≤ −1 marks "never dither-fade" with glow −w − 1.
  */
-const TOY_FRAG = /* glsl */ `#include <color_fragment>
+export const TOY_FRAG = /* glsl */ `#include <color_fragment>
 float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
 {
   bool obKeep = vInfo.w < -0.5;
@@ -329,18 +335,24 @@ else if (obGlowW > 0.0) totalEmissiveRadiance += diffuseColor.rgb * uNight * 2.4
 
 interface ToyOpts { sway: boolean; name: string; hero?: { value: number } }
 
+/**
+ * The whole TOY patch for an onBeforeCompile: shared uniforms (U), vertex half, fragment pars + TOY_FRAG. With `hero`
+ * the material must also define OB_HERO (whole-mesh dither fade driven by hero.value). Day-0 export for other lanes.
+ */
+export function patchToyShader(shader: THREE.WebGLProgramParametersWithUniforms, { sway, hero }: { sway: boolean; hero?: { value: number } }) {
+  Object.assign(shader.uniforms, U);
+  if (hero) shader.uniforms.uHeroFade = hero;
+  patchCommonVertex(shader, sway);
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', `#include <common>\n${COMMON_FRAG_PARS}${hero ? '\nuniform float uHeroFade;' : ''}`)
+    .replace('#include <color_fragment>', TOY_FRAG);
+}
+
 function makeToy({ sway, name, hero }: ToyOpts) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0 });
   m.name = name;
   if (hero) m.defines = { OB_HERO: '' };
-  m.onBeforeCompile = shader => {
-    Object.assign(shader.uniforms, U);
-    if (hero) shader.uniforms.uHeroFade = hero;
-    patchCommonVertex(shader, sway);
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\n${COMMON_FRAG_PARS}${hero ? '\nuniform float uHeroFade;' : ''}`)
-      .replace('#include <color_fragment>', TOY_FRAG);
-  };
+  m.onBeforeCompile = shader => { patchToyShader(shader, { sway, hero }); };
   const key = hero ? 'ob-toy-hero' : name;
   m.customProgramCacheKey = () => key;
   return m;

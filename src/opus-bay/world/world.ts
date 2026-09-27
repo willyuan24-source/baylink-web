@@ -18,6 +18,7 @@ import { FERRY_LIGHTS, Life } from './life';
 import { GROUND, HALO, POOL, TOY, TOY_DYN, U, makeHeroMaterial } from './materials';
 import { BlobBatch, Floaters, type HaloSpec, type PoolSpec, buildProps } from './props';
 import { demSample } from './sf/format';
+import { attachMurals } from './sf/murals';
 import { mountCityDebug } from './sf/stats';
 import { heroLandRaster, heroProxy } from './sf/hero';
 import { CitySites } from './sf/sites';
@@ -54,6 +55,19 @@ function staticMesh(geo: THREE.BufferGeometry, mat: THREE.Material, name: string
 }
 
 interface HeroFade { fade: { value: number }; x: number; z: number; r: number; y0: number; y1: number }
+
+/**
+ * Day-0 contract (wave 2): a world-side system another lane plugs in (F's transit / crowd layers, H2b's murals, D2's
+ * GLB groups) without editing this file. `group` is added under the world root (matrixAutoUpdate is yours to manage);
+ * `update` runs every frame at the end of World.update (after life, before fx), with the camera and the night level
+ * (0 day … 1 night); `dispose` runs when it is removed. Add one with getWorld().addSystem(sys) → returns the remover.
+ */
+export interface WorldSystem {
+  name: string;
+  group?: THREE.Object3D;
+  update?(dt: number, t: number, camera: THREE.Camera, night: number): void;
+  dispose?(): void;
+}
 
 /**
  * City mode: remove the triangles of hero lots that the streamed city replaces (manifest.heroDropLots) from the
@@ -123,6 +137,20 @@ export class World {
   private tmp = new THREE.Vector3();
   readonly buildMs: number;
   readonly stats = { vertices: 0, triangles: 0, chunks: 0 };
+  private systems: WorldSystem[] = [];
+
+  /** Plug in a world-side system (see WorldSystem). Returns the function that removes and disposes it. */
+  addSystem(sys: WorldSystem): () => void {
+    this.systems.push(sys);
+    if (sys.group) { this.root.add(sys.group); sys.group.updateMatrixWorld(true); }
+    return () => {
+      const i = this.systems.indexOf(sys);
+      if (i < 0) return;
+      this.systems.splice(i, 1);
+      if (sys.group) this.root.remove(sys.group);
+      sys.dispose?.();
+    };
+  }
 
   constructor(mode: WorldMode = 'district') {
     const t0 = performance.now();
@@ -375,6 +403,9 @@ export class World {
     this.root.add(this.city.group);
     this.root.updateMatrixWorld(true);
     const streamer = this.city;
+    // lane H2b's Mission murals (world/sf/murals.ts; null until they exist)
+    const murals = attachMurals(streamer);
+    if (murals) this.addSystem(murals);
     void streamer.start().then(() => {
       const m = streamer.manifest;
       if (m?.heroDropLots.length) dropLotTriangles(this.cityChunks, m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
@@ -420,6 +451,7 @@ export class World {
     this.floaters.update(dt, t);
     this.streetcars.update(dt, t);
     this.life.update(dt, t, this.env.night);
+    for (const sys of this.systems) sys.update?.(dt, t, camera, this.env.night);
     if (this.dynHaloDirty) {
       const a = this.halos.instanceMatrix;
       a.clearUpdateRanges();

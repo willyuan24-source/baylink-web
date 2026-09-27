@@ -24,6 +24,21 @@ import { TypedBatch } from './typedBatch';
 
 export interface WarmupResult { ms: number; before: number; after: number }
 
+/**
+ * Day-0 hook (wave 2): other lanes add their program variants to the warm-up set from their own files (D2's model
+ * material, F's cable-car / crowd materials, C2's new layers). `make()` returns objects built exactly like the real ones
+ * (same material, same mesh type / instancing / batching, same castShadow / receiveShadow, same defines) plus an
+ * optional dispose; they are compiled with the dummies and never added to the scene. Register at module load (before
+ * the first warm-up, ~250 ms after the world mounts); a later registration is picked up by the next warm-up (quality
+ * change). Returns the unregister function.
+ */
+export interface WarmupSet { objects: THREE.Object3D[]; dispose?: () => void }
+const extraWarmups = new Map<string, () => WarmupSet>();
+export function registerWarmup(key: string, make: () => WarmupSet): () => void {
+  extraWarmups.set(key, make);
+  return () => { if (extraWarmups.get(key) === make) extraWarmups.delete(key); };
+}
+
 /** Number of linked shader programs (for the ?debug overlay; constant after warm-up while walking). */
 export function programsCount(renderer: THREE.WebGLRenderer): number {
   return renderer.info.programs?.length ?? 0;
@@ -64,11 +79,17 @@ function dummySet(): { group: THREE.Group; dispose: () => void } {
   tinted.receiveShadow = true;
 
   group.add(toyMesh, groundMesh, toyPool, groundPool, props, tinted);
+  // other lanes' variants (registerWarmup)
+  const extras: WarmupSet[] = [];
+  for (const [key, make] of extraWarmups) {
+    try { const set = make(); extras.push(set); if (set.objects.length) group.add(...set.objects); } catch (error) { if (import.meta.env?.DEV) console.warn(`[opus-bay warmup ${key}]`, error); }
+  }
   return {
     group,
     dispose: () => {
       toyGeo.dispose(); groundGeo.dispose(); propGeo.dispose();
       toyPool.dispose(); groundPool.dispose(); props.dispose(); tinted.dispose();
+      for (const set of extras) set.dispose?.();
     },
   };
 }

@@ -14,6 +14,7 @@ import { type FarData, SF_ROOT, type SfManifest, demSample, loadManifest } from 
 import type { PoolArrays } from './mesh';
 import { type CellPool, createCellPool } from './pools';
 import { CityProps } from './props';
+import { type L0BuildingView, type L0Buildings, type L0Hidden, l0Building, l0Near, setRangeHidden } from './l0index';
 import { CitySites } from './sites';
 import type { WorkerIn } from './worker';
 
@@ -108,7 +109,7 @@ export class CityStreamer {
   private inflight = new Map<number, { job: Job; w: number }>();
   private perWorker = [0, 0];
   private nextId = 1;
-  private l0 = new Map<number, { toy: THREE.Mesh | null; ground: THREE.Mesh | null; tris: number }>();
+  private l0 = new Map<number, { toy: THREE.Mesh | null; ground: THREE.Mesh | null; tris: number; buildings: L0Buildings | null; hidden: L0Hidden }>();
   private l0Ready = new Map<number, L0Result>();
   private l1Ready = new Map<number, { toy: L1Result['cells'][number]['toy']; ground: L1Result['cells'][number]['ground'] }>();
   private shown = new Map<number, number>();
@@ -137,8 +138,36 @@ export class CityStreamer {
   private l2Static = 0;
   private time = 0;
   private slabBox: { x0: number; z0: number; x1: number; z1: number };
-  private heroFar = false;
+  private _heroFar = false;
+  private heroFarListeners = new Set<(far: boolean) => void>();
+  private l0DropListeners = new Set<(cellKey: number) => void>();
   quality: Quality;
+
+  /** The hero's hand-made buildings are replaced by their L1 boxes (focus beyond HERO_NEAR of the slab). Day-0 API. */
+  get heroFar(): boolean { return this._heroFar; }
+  /** Called with the new value whenever heroFar flips (lane F's hero-life pause, C2's hero-far budget). Returns the unsubscribe. */
+  onHeroFar(fn: (far: boolean) => void): () => void { this.heroFarListeners.add(fn); return () => { this.heroFarListeners.delete(fn); }; }
+
+  /**
+   * Day-0 L0 building API (lane D2's kit swap; world/sf/l0index.ts): every attached L0 cell's building whose centre is
+   * within r of (x, z). `fn(cellKey, k, view)`; cellKey identifies the cell for setL0BuildingHidden / onL0Drop.
+   */
+  forEachL0Building(x: number, z: number, r: number, fn: (cellKey: number, k: number, b: L0BuildingView) => void) {
+    for (const [key, rec] of this.l0) {
+      const b = rec.buildings;
+      if (!b || !rec.toy) continue;
+      const bb = rec.toy.geometry.boundingBox;
+      if (bb && (x + r < bb.min.x || x - r > bb.max.x || z + r < bb.min.z || z - r > bb.max.z)) continue;
+      l0Near(b, x, z, r, k => fn(key, k, l0Building(b, k)));
+    }
+  }
+  /** Hide (or restore) building k of an attached L0 cell; false when the cell is gone or nothing changed. */
+  setL0BuildingHidden(cellKey: number, k: number, hidden: boolean): boolean {
+    const rec = this.l0.get(cellKey);
+    return !!rec?.toy && !!rec.buildings && setRangeHidden(rec.toy.geometry, rec.buildings, k, hidden, rec.hidden);
+  }
+  /** Called with the cell key just before an L0 cell's meshes are dropped (its hidden ranges die with it). */
+  onL0Drop(fn: (cellKey: number) => void): () => void { this.l0DropListeners.add(fn); return () => { this.l0DropListeners.delete(fn); }; }
 
   constructor(opts: StreamOptions) {
     this.opts = opts;
@@ -280,11 +309,12 @@ export class CityStreamer {
     const hero = this.opts.hero;
     if (!hero) return;
     const d = this.heroDist();
-    const far = this.heroFar ? d > HERO_NEAR - HERO_HYST : d > HERO_NEAR + HERO_HYST;
-    if (far === this.heroFar) return;
-    this.heroFar = far;
+    const far = this._heroFar ? d > HERO_NEAR - HERO_HYST : d > HERO_NEAR + HERO_HYST;
+    if (far === this._heroFar) return;
+    this._heroFar = far;
     for (const m of hero.meshes) m.visible = !far;
     this.pool.setVisible(HERO_ID, far);
+    for (const fn of this.heroFarListeners) fn(far);
   }
 
   private radii(): Radii {
@@ -356,7 +386,7 @@ export class CityStreamer {
       this.l0Group.add(m);
       return m;
     };
-    const rec = { toy: mk(r.toy, TOY, 'city-l0-toy'), ground: mk(r.ground, GROUND, 'city-l0-ground'), tris: r.triangles };
+    const rec = { toy: mk(r.toy, TOY, 'city-l0-toy'), ground: mk(r.ground, GROUND, 'city-l0-ground'), tris: r.triangles, buildings: r.buildings ?? null, hidden: new Map() as L0Hidden };
     this.l0.set(c.key, rec);
     c.l0 = 'attached';
   }
@@ -365,6 +395,7 @@ export class CityStreamer {
     this.l0Ready.delete(c.key);
     const rec = this.l0.get(c.key);
     if (rec) {
+      for (const fn of this.l0DropListeners) fn(c.key);
       for (const m of [rec.toy, rec.ground]) if (m) { this.l0Group.remove(m); m.geometry.dispose(); }
       this.l0.delete(c.key);
     }
@@ -478,7 +509,7 @@ export class CityStreamer {
       status: this.status, ...n, queued: this.queued, inflight: this.inflight.size,
       workerMs: +this.workerMs.toFixed(1), attachMs: +this.attachMs.toFixed(2), attachMaxMs: +this.attachMax.toFixed(2),
       jobs: this.jobsDone, errors: this.errors, props: this.props.counts(), sites: this.opts.sites.counts(), pool: this.pool.stats(),
-      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this.heroFar, farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
+      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
     };
   }
 
@@ -487,7 +518,7 @@ export class CityStreamer {
     this.workers = [];
     setCityTerrain(null);
     if (this.table) for (const c of this.table.cells) this.dropL0(c);
-    if (this.heroFar) for (const m of this.opts.hero?.meshes ?? []) m.visible = true;
+    if (this._heroFar) for (const m of this.opts.hero?.meshes ?? []) m.visible = true;
     this.pool.dispose();
     this.props.dispose();
     this.opts.sites.dispose();

@@ -3,6 +3,7 @@ import { type ChunkRasters, type LandmarkWalkInput, rasterizeChunk, transferable
 import { TypedBatch } from '../typedBatch';
 import { type ChunkContext, type CityInit, buildL0, buildL1, chunkContext } from './build';
 import { Lru } from './cell';
+import { l0Transferables } from './l0index';
 import { buildFar, type FarInit } from './far';
 import { type ChunkData, decodeChunk, decodeFar, gunzip, chunkPath } from './format';
 import { poolTransferables } from './mesh';
@@ -99,6 +100,7 @@ ctx.onmessage = async (ev: MessageEvent<WorkerIn>) => {
       const list: ArrayBuffer[] = [];
       if (result.toy) list.push(...TypedBatch.transferables(result.toy));
       if (result.ground) list.push(...TypedBatch.transferables(result.ground));
+      list.push(...l0Transferables(result.buildings));
       ctx.postMessage({ t: 'l0', id: m.id, cx: m.cx, cz: m.cz, result }, list);
     } else if (m.t === 'raster') {
       const t0 = performance.now();
