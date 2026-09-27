@@ -404,14 +404,17 @@ test('F10: the city layers run on a context (surf, birds, buskers, cable hum, fe
     runtime.player.x = 345; runtime.player.z = 590;
     for (let i = 0; i < 20; i++) { ctx.currentTime += 0.1; district.update(0.1); }
     assert.equal(district['cityLayers'], null, 'the district builds no city layer');
+    assert.equal(district.cityReady, null, 'nor loads their chunk');
     assert.equal(engine.stats.counts.busker ?? 0, 0);
     district.dispose();
 
     game.set({ worldMode: 'city', timeOfDay: 'day' } as never);
     const amb = new Ambience(engine, describeWorld(DISTRICT, false));
     const counts = () => engine.stats.counts;
-    // a Mission busker's spot (Valencia & 24th)
+    // a Mission busker's spot (Valencia & 24th); the city layers load with the first city tick
     runtime.player.x = 345; runtime.player.z = 590;
+    amb.update(0.1);
+    await amb.cityReady;
     for (let i = 0; i < 60; i++) { ctx.currentTime += 0.1; amb.update(0.1); }
     assert.ok((counts().busker ?? 0) > 10, `busker notes ${counts().busker}`);
     // a toy car passing close by → one pass-by sound

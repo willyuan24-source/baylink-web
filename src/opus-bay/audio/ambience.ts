@@ -10,7 +10,7 @@
 import type { District, Vec2 } from '../core/types';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { CityLayers, CityShore, GOLDEN_GATE } from './city';
+import type * as CityAudio from './city';
 import { cityHooks } from './cityHooks';
 import type { AudioEngine } from './engine';
 import {
@@ -82,8 +82,12 @@ export class Ambience {
   private clackAcc = 0;
   private marketDay = isMarketDay(new Date());
   /** city mode (F10): the windowed shore field and the city layers, made on the first city tick */
-  private cityShore: CityShore | null = null;
-  private cityLayers: CityLayers | null = null;
+  private cityShore: CityAudio.CityShore | null = null;
+  private cityLayers: CityAudio.CityLayers | null = null;
+  private cityMod: typeof CityAudio | null = null;
+  private disposed = false;
+  /** city mode: resolves once the city layers (a lazy chunk: audio/city.ts) run */
+  cityReady: Promise<void> | null = null;
 
   constructor(e: AudioEngine, world: WorldInfo) {
     this.e = e;
@@ -216,9 +220,14 @@ export class Ambience {
     const L = this.listener();
     const { timeOfDay, riding, worldMode } = game.get();
     const night = timeOfDay === 'night';
-    if (worldMode === 'city' && !this.cityLayers) {
-      this.cityShore = new CityShore(f => this.setShore(f));
-      this.cityLayers = new CityLayers(e, this.out);
+    if (worldMode === 'city' && !this.cityReady) {
+      // the city's layers load with the first city tick (their own chunk: nothing of it in the district)
+      this.cityReady = import('./city').then(m => {
+        if (this.disposed) return;
+        this.cityMod = m;
+        this.cityShore = new m.CityShore(f => this.setShore(f));
+        this.cityLayers = new m.CityLayers(e, this.out);
+      }, error => { if (import.meta.env?.DEV) console.warn('[opus-audio] city layers', error); });
     }
     this.cityShore?.update(L.x, L.z);
     const shoreD = this.shoreDistance(L.x, L.z, L.y);
@@ -362,9 +371,9 @@ export class Ambience {
   foghorn() {
     const L = this.listener();
     this.timers.foghorn = Math.max(this.timers.foghorn, this.e.now + 25);
-    if (this.cityLayers) {
+    if (this.cityMod) {
       // city mode: from the Golden Gate itself, nearer = louder and brighter
-      const g = GOLDEN_GATE.mid, d = Math.hypot(g.x - L.x, g.z - L.z);
+      const g = this.cityMod.GOLDEN_GATE.mid, d = Math.hypot(g.x - L.x, g.z - L.z);
       sfx.foghorn(this.e, clamp(d / 1500, 0.1, 1), panFor(L, L.yaw, g, 0.7));
       return;
     }
@@ -388,6 +397,7 @@ export class Ambience {
   }
 
   dispose() {
+    this.disposed = true;
     this.cityShore?.dispose();
     this.cityLayers?.dispose();
     for (const s of this.sources) { try { s.stop(); } catch { /* ignore */ } }
