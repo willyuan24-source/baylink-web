@@ -174,6 +174,8 @@ function sampleLoop(): TransitLine {
     id: 'loop-test', kind: 'bus', name: { zh: '环线', en: 'Loop' }, short: '观光', loop: true, osmRelation: 0, sourceUrl: 'https://www.openstreetmap.org/',
     color: '#e0563f', path, length: 400, turntables: [], doubleEnded: false, heroSpans: [],
     stops: [stop('s1', 0, 0, 0), stop('s2', 150, 100, 50), stop('s3', 320, 0, 80)],
+    // integration (lane T's request): cruise-speed spans, contiguous over the lap like the baked sf-loop
+    speeds: [[0, 150, 12], [150, 260, 9], [260, 400, 11]],
   };
 }
 
@@ -217,6 +219,29 @@ test('wave 4: transitLineProblems names each broken invariant', () => {
   assert.ok(transitLineProblems(open).some(p => /must end where it starts/.test(p)));
   const twoWay = sampleLoop(); twoWay.doubleEnded = true;
   assert.ok(transitLineProblems(twoWay).some(p => /never double-ended/.test(p)));
+});
+
+test('integration: speed spans (lane T) are optional, ordered, inside the path, with a speed > 0', () => {
+  const none = sampleLoop(); delete none.speeds;
+  assert.deepEqual(transitLineProblems(none), [], 'a line without speeds is valid');
+  const partial = sampleMetro(); partial.speeds = [[300, 600, 10], [700, 1000, 12]];
+  assert.deepEqual(transitLineProblems(partial), [], 'spans may leave gaps (the default cruise there)');
+  const broken: [string, [number, number, number][], RegExp][] = [
+    ['empty span', [[150, 150, 12]], /speed span \[150, 150\]: fromAt must be < toAt/],
+    ['reversed span', [[200, 100, 12]], /speed span \[200, 100\]: fromAt must be < toAt/],
+    ['overlapping spans', [[0, 200, 12], [150, 400, 9]], /speed span \[150, 400\]: overlaps/],
+    ['out of order', [[150, 400, 9], [0, 150, 12]], /speed span \[0, 150\]: overlaps or precedes/],
+    ['past the end', [[0, 450, 12]], /speed span \[0, 450\]: outside \[0, 400\]/],
+    ['zero speed', [[0, 400, 0]], /speed 0 must be > 0/],
+    ['not numbers', [[0, Number.NaN, 12]], /not \[fromAt, toAt, speed\] numbers/],
+  ];
+  for (const [what, speeds, re] of broken) {
+    const l = sampleLoop(); l.speeds = speeds;
+    const problems = transitLineProblems(l);
+    assert.ok(problems.some(p => re.test(p)), `${what}: ${problems.join(' | ') || 'no problem found'}`);
+  }
+  const short = sampleLoop(); (short as { speeds: unknown }).speeds = [[0, 400]];
+  assert.ok(transitLineProblems(short).some(p => /not \[fromAt, toAt, speed\] numbers/.test(p)), 'a pair is not a span');
 });
 
 test('wave 4: tunnelAt finds the span (loops wrap), null on the surface or without tunnels', () => {

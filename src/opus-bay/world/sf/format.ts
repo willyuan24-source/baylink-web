@@ -416,6 +416,12 @@ export interface TransitLine {
   loop?: boolean;
   /** wave 4: underground spans in arc order, non-overlapping (Metro lines) */
   tunnels?: TransitTunnel[];
+  /**
+   * wave 4 (lane T's request): cruise-speed spans `[fromAt, toAt, speed u/s]` along `path`, in arc order and not
+   * overlapping (the sightseeing loop bakes contiguous spans over the whole lap: 12 / 11 / 9 u/s by street); arc
+   * positions outside every span use the line system's default cruise. world/lineTrack.ts reads them.
+   */
+  speeds?: [number, number, number][];
   /** OSM route relation used (sourceUrl = https://www.openstreetmap.org/relation/<id>) */
   osmRelation: number;
   sourceUrl: string;
@@ -446,7 +452,8 @@ export function tunnelAt(line: Pick<TransitLine, 'length' | 'loop' | 'tunnels'>,
  * Wave 4: structural problems of one transit.json line (empty = valid). Pure; the frozen sf-data / sf-format tests and
  * lane T's sidecar use it. Checks: known kind, path triples, stops in arc order inside [0, length], `short` 1–4
  * characters, a loop closes on itself (≤ 2 u) and is not double-ended, tunnel spans ordered / non-overlapping / inside
- * the path with a null portal only at the line's own end, and every tunnel station a stop of the line inside its span.
+ * the path with a null portal only at the line's own end, and every tunnel station a stop of the line inside its span;
+ * speed spans (`speeds`) ordered / non-overlapping / inside the path with a finite speed > 0.
  */
 export function transitLineProblems(l: TransitLine): string[] {
   const out: string[] = [];
@@ -489,22 +496,34 @@ export function transitLineProblems(l: TransitLine): string[] {
       prevAt = at;
     }
   }
+  let prevSpeedTo = -Infinity;
+  for (const sp of l.speeds ?? []) {
+    const [a, b, v] = Array.isArray(sp) ? sp : [NaN, NaN, NaN];
+    const what = `speed span [${a}, ${b}]`;
+    if (!Array.isArray(sp) || sp.length !== 3 || !Number.isFinite(a + b + v)) { bad(`${what}: not [fromAt, toAt, speed] numbers`); continue; }
+    if (!(a < b)) bad(`${what}: fromAt must be < toAt`);
+    if (a < -tol || b > l.length + tol) bad(`${what}: outside [0, ${l.length}]`);
+    if (a < prevSpeedTo - 0.05) bad(`${what}: overlaps or precedes the previous span`);
+    if (!(v > 0)) bad(`${what}: speed ${v} must be > 0`);
+    prevSpeedTo = b;
+  }
   return out;
 }
 
-export type SfPlaceKind =
-  | 'landmark' | 'bridge' | 'island' | 'skyscraper' | 'park' | 'museum' | 'waterfront' | 'transit' | 'street' | 'plaza'
-  | 'civic' | 'stadium' | 'historic' | 'neighbourhood' | 'garden' | 'beach' | 'trail' | 'hill' | 'tower' | 'water'
-  | 'attraction' | 'viewpoint' | 'peak';
 /**
- * Wave 4 place kinds (plan §3.7: campus, shopping mall, zoo, church / temple / cathedral). Kept OUT of `SfPlaceKind`
- * until the wave-4 integration phase, because data/sf/cityPois.ts `PLACE_KIND_NAMES: Record<SfPlaceKind, …>` (a
- * wave-3 lane's file) must gain their names in the same commit. Until then new wave-4 code types place kinds as
- * `SfPlaceKindAll`; after the integration `SfPlaceKind` includes these and `SfPlaceKindAll` is the same type.
+ * Wave 4 place kinds (plan §3.7: campus, shopping mall, zoo, church / temple / cathedral). Part of `SfPlaceKind` since
+ * the wave-4 integration phase (lead note §6 item 2; data/sf/cityPois.ts `PLACE_KIND_NAMES` names them in the same
+ * commit: 校园 · 购物中心 · 动物园 · 宗教场所).
  */
 export const SF_PLACE_KINDS_W4 = ['campus', 'shopping', 'zoo', 'religious'] as const;
 export type SfPlaceKindW4 = (typeof SF_PLACE_KINDS_W4)[number];
-export type SfPlaceKindAll = SfPlaceKind | SfPlaceKindW4;
+export type SfPlaceKind =
+  | 'landmark' | 'bridge' | 'island' | 'skyscraper' | 'park' | 'museum' | 'waterfront' | 'transit' | 'street' | 'plaza'
+  | 'civic' | 'stadium' | 'historic' | 'neighbourhood' | 'garden' | 'beach' | 'trail' | 'hill' | 'tower' | 'water'
+  | 'attraction' | 'viewpoint' | 'peak'
+  | SfPlaceKindW4;
+/** The early-phase alias for wave-4 code (the same type as `SfPlaceKind` since the integration; kept so it compiles). */
+export type SfPlaceKindAll = SfPlaceKind;
 
 export interface SfPlace {
   id: string;

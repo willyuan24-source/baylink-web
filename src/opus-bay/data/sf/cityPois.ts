@@ -125,6 +125,9 @@ export const PLACE_KIND_NAMES: Record<SfPlaceKind, Bilingual> = {
   beach: { zh: '海滩', en: 'Beach' }, trail: { zh: '步道', en: 'Trail' }, hill: { zh: '山丘', en: 'Hill' }, tower: { zh: '塔', en: 'Tower' },
   water: { zh: '水域', en: 'Water' }, attraction: { zh: '景点', en: 'Attraction' }, viewpoint: { zh: '观景点', en: 'Viewpoint' },
   peak: { zh: '山顶', en: 'Peak' },
+  // wave 4 (lead note §6 item 2: SfPlaceKind absorbed SF_PLACE_KINDS_W4 in the same commit)
+  campus: { zh: '校园', en: 'Campus' }, shopping: { zh: '购物中心', en: 'Shopping centre' }, zoo: { zh: '动物园', en: 'Zoo' },
+  religious: { zh: '宗教场所', en: 'Place of worship' },
 };
 
 /** The fields of G1's CityPlace (data/sf/places.ts) a place card reads. */

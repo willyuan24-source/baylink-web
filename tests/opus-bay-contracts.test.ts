@@ -309,6 +309,42 @@ test('wave 4: trip types (game/tripTypes.ts) and attraction types (data/sf/attra
   assert.ok(sfsu.flag!.h >= at.ATTRACTION_FLAG_H.min && sfsu.flag!.h <= at.ATTRACTION_FLAG_H.max);
 });
 
+// --- wave 4 integration (docs/opus-bay/sf-w4-lead.md §6 + §8): the deferred frozen items the lead landed ---
+
+test('wave 4 integration: flow.trip and flow.arrival start null; the transit event carries dir; start-tour takes a tour id', async () => {
+  const { initialFlowState } = await import('../src/opus-bay/game/flowStore');
+  assert.equal(initialFlowState().trip, null);
+  assert.equal(initialFlowState().arrival, null);
+  assert.equal(flow.get().trip, null, 'no trip at start');
+  assert.equal(flow.get().arrival, null, 'no arrival moment at start');
+  assert.ok('trip' in flow.get() && 'arrival' in flow.get(), 'both keys exist on the live store');
+
+  const events = await import('../src/opus-bay/core/events');
+  const got: import('../src/opus-bay/core/events').GameEvent[] = [];
+  const off = events.onEvent(e => { if (e.type === 'transit') got.push(e); });
+  events.emit({ type: 'transit', what: 'approach', line: 'n-judah', kind: 'light-rail', station: 'muni-carl-cole', dir: -1 });
+  events.emit({ type: 'transit', what: 'arrive', line: 'sf-loop', kind: 'bus', station: 'loop-palace-of-fine-arts' });
+  off();
+  assert.deepEqual(got.map(e => (e.type === 'transit' ? e.dir : 'x')), [-1, undefined], 'dir travels the bus; absent when unknown');
+
+  // the shapes lane C codes against (types are erased here; this documents valid values)
+  const tourChoice: import('../src/opus-bay/core/types').DialogueAction = { type: 'start-tour', tourId: 'sf-grand' };
+  const districtChoice: import('../src/opus-bay/core/types').DialogueAction = { type: 'start-tour' };
+  assert.equal(tourChoice.type, districtChoice.type);
+});
+
+test('wave 4 integration: SfPlaceKind absorbed the wave-4 kinds and every kind has a card name', async () => {
+  const { SF_PLACE_KINDS_W4 } = await import('../src/opus-bay/world/sf/format');
+  const { PLACE_KIND_NAMES } = await import('../src/opus-bay/data/sf/cityPois');
+  assert.deepEqual([...SF_PLACE_KINDS_W4], ['campus', 'shopping', 'zoo', 'religious']);
+  assert.deepEqual(SF_PLACE_KINDS_W4.map(k => PLACE_KIND_NAMES[k]), [
+    { zh: '校园', en: 'Campus' }, { zh: '购物中心', en: 'Shopping centre' }, { zh: '动物园', en: 'Zoo' }, { zh: '宗教场所', en: 'Place of worship' },
+  ]);
+  for (const [kind, name] of Object.entries(PLACE_KIND_NAMES)) assert.ok(name.zh && name.en, kind);
+  const zoo: import('../src/opus-bay/world/sf/format').SfPlace['kind'] = 'zoo';
+  assert.equal(zoo, 'zoo');
+});
+
 test('landmark helpers (D2, world/sf/landmarks/context.ts): glide tall structures, world arrival anchors, plaza spots', async () => {
   const ctx = await import('../src/opus-bay/world/sf/landmarks/context');
   const tall = ctx.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : 0));

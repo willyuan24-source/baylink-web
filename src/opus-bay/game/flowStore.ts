@@ -3,6 +3,8 @@ import { createStore } from '../core/store';
 import type { TransitKind } from '../core/events';
 import type { Bilingual } from '../core/types';
 import type { WeekResult } from '../data/catalog';
+import type { ArrivalBeats } from './arrival';
+import type { TripState } from './tripTypes';
 
 /**
  * Flow-UI private state (≤ 10 Hz, on change only). Complements core/store with things only the
@@ -77,6 +79,17 @@ export interface FlowState {
   goldenFirstVisit: boolean;
   /** F11: the one-tap offer to switch to the real Bay time right now (this visit only) */
   timeOffer: null | 'morning' | 'day' | 'golden' | 'night';
+  /**
+   * Wave 4 · the running trip (跟 BAYBAY 去 / TripOptions / a tour stop / startFreeLead as a one-leg trip), null when
+   * none. Lane C's game/trips.ts reducer writes it; lanes G (trip pill, waypoint), P (map route) and T (pre-filled
+   * boarding) read it. The contracts test pins null at start.
+   */
+  trip: TripState | null;
+  /**
+   * Wave 4 · the arrival moment on screen: lane C's `arrivalBeats()` for an `arrival` hit, with its attraction and
+   * place-index ids; null when none. Lane G's arrival toast / ArrivalCard / reveal read it. Null at start (contracts).
+   */
+  arrival: (ArrivalBeats & { attraction: string; place: string }) | null;
 }
 
 export const initialFlowState = (): FlowState => ({
@@ -108,6 +121,8 @@ export const initialFlowState = (): FlowState => ({
   quietUntil: 0,
   goldenFirstVisit: false,
   timeOffer: null,
+  trip: null,
+  arrival: null,
 });
 
 export const flow = createStore<FlowState>(initialFlowState());

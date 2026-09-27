@@ -245,7 +245,9 @@ export type Speaker = 'baybay' | 'player' | 'npc' | 'narrator';
 export type Mood = 'happy' | 'thinking' | 'excited' | 'wave' | 'point' | 'proud';
 
 export type DialogueAction =
-  | { type: 'start-tour' }
+  /** `tourId` (wave 4, lane C's request): which tour to start (`'sf-grand'` from the city welcome choice); absent = the
+   * district's first lesson (core/store.ts DEFAULT_TOUR_ID), so every existing node keeps its meaning */
+  | { type: 'start-tour'; tourId?: string }
   | { type: 'start-week' }
   | { type: 'free-roam' }
   | { type: 'skip-intro' }

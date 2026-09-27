@@ -72,8 +72,11 @@ export type GameEvent =
    * `strength` 0..1 is an optional loudness / intensity hint.
    * `station` (wave 4) = the TransitStop id (transit.json) the event is about; `attraction` = the attraction id the stop
    * serves (data/sf/attractionTypes.ts `Attraction.id`), when it serves one.
+   * `dir` (wave 4, lane C's request) = the ridden vehicle's direction along the line's arc: 1 = increasing `at` (the
+   * path order: outbound from Embarcadero on the N / M), −1 = decreasing (inbound); absent when unknown (a loop runs
+   * one way). Lane C's `metroNarration` says a portal line ("钻出日落隧道") only with an explicit `dir`.
    */
-  | { type: 'transit'; what: TransitWhat; line: string; kind: TransitKind; real?: boolean; strength?: number; station?: string; attraction?: string }
+  | { type: 'transit'; what: TransitWhat; line: string; kind: TransitKind; real?: boolean; strength?: number; station?: string; attraction?: string; dir?: 1 | -1 }
   /** play a recorded BAYBAY line (H2b's data/voiceLinesSf.ts ids); the bubble text is shown by the caller (G2) */
   | { type: 'voice-line'; id: string }
   /** tap-to-drive autopilot (E2): started, arrived, gave up (stuck) or cancelled by manual input */
