@@ -39,7 +39,7 @@ export const PROP_HIGH = { h0: 25, h1: 80, steps: 4, tree: 50, lolli: 350, lamp:
 export interface PropCaps { tree: number; lolli: number; lamp: number; rFull: number; rLolli: number; rLamp: number; step: number }
 
 /** View-aware selection (see the header): near = always kept (u from the camera), widen / yaw / pitch in degrees, k = cap share. */
-export const PROP_VIEW = { near: 25, widen: 40, yaw: 20, pitch: 12, k: 0.6, minGap: 0.1 } as const;
+export const PROP_VIEW = { near: 25, widen: 40, yaw: 20, pitch: 12, k: 0.5, minGap: 0.1 } as const;
 
 /** The camera's frustum widened by `deg` degrees on every side (same position and orientation), into `out`. */
 export function widenedFrustum(camera: THREE.PerspectiveCamera, deg: number, out: THREE.Frustum, tmp = new THREE.PerspectiveCamera()): THREE.Frustum {
