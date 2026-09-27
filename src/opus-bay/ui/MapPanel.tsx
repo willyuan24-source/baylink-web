@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, CalendarPlus, ChevronDown, Info, LocateFixed, Lock, Maximize2, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -48,8 +48,16 @@ function jitter(id: string, amount: number): Vec2 {
   return { x: ((h & 0xff) / 255 - 0.5) * amount, z: (((h >> 8) & 0xff) / 255 - 0.5) * amount };
 }
 
-/** Top-down SVG map of the district with "带我去", plus the rest of the Bay from the catalog. */
+const CityMapPanel = lazy(() => import('./CityMap').then(m => ({ default: m.CityMapPanel })));
+
+/** City mode: the whole-city map (ui/CityMap.tsx, lane G1); district mode: the waterfront map below, unchanged. */
 export function MapPanel() {
+  const city = useGame(s => s.worldMode === 'city');
+  return city ? <Suspense fallback={null}><CityMapPanel /></Suspense> : <DistrictMapPanel />;
+}
+
+/** Top-down SVG map of the district with "带我去", plus the rest of the Bay from the catalog. */
+function DistrictMapPanel() {
   const { t, locale } = useT();
   const [selected, setSelected] = useState<string | null>(null);
   const [zoom, setZoom] = useState<'all' | 'near'>(() => (window.matchMedia?.('(max-width: 720px)').matches ? 'near' : 'all'));

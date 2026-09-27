@@ -3,6 +3,7 @@ import { Footprints, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
 import { skipCinema } from '../game/cinema';
+import { skipTravel, travelActive, useTravelView } from '../game/fastTravel';
 import { acceptRealTime, dismissFreeHint, objectiveTarget, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
 import { BAYBAY_ID, interactableById } from '../game/interactables';
@@ -92,10 +93,12 @@ export function CinematicLayer() {
   const caption = useFlow(s => s.caption);
   const sub = useFlow(s => s.captionSub);
   const device = useDevice();
+  const travel = useTravelView();
   if (!cinematic) return null;
   return (
     <div className={`ob-cinema kind-${cinematic}`}>
       {cinematic === 'telescope' && <div className="ob-telescope" aria-hidden />}
+      {cinematic === 'travel' && <div className={`ob-travel-veil ${travel.veil ? 'is-on' : ''}`} aria-hidden><i /><i /><i /><i /></div>}
       <div className="ob-letterbox top" aria-hidden />
       <div className="ob-letterbox bottom" aria-hidden />
       {caption && (
@@ -104,7 +107,7 @@ export function CinematicLayer() {
           {sub && <span>{t(sub)}</span>}
         </div>
       )}
-      <button type="button" className="ob-cinema-skip" onClick={skipCinema}>
+      <button type="button" className="ob-cinema-skip" onClick={() => (travelActive() ? skipTravel() : skipCinema())}>
         {t('跳过', 'Skip')}{device === 'keyboard' && <Keycap className="on-dark">Esc</Keycap>}
       </button>
     </div>

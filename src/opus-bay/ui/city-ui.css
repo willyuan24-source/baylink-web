@@ -1,0 +1,33 @@
+/* City map (lane G1, ui/CityMap.tsx): loaded with the map chunk. */
+.ob-citymap-frame { position: relative; height: min(56vh, 430px); border-radius: var(--ob-r-m); overflow: hidden; background: #9fd0cb; border: 1px solid var(--ob-line); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45); touch-action: none; user-select: none; cursor: grab; }
+.ob-citymap-frame:active { cursor: grabbing; }
+.ob-citymap-paper, .ob-citymap-canvas, .ob-citymap-overlay { position: absolute; left: 0; top: 0; display: block; }
+.ob-citymap-paper { width: 100%; height: 100%; }
+.ob-citymap-overlay { pointer-events: none; overflow: visible; }
+.ob-citymap-overlay text { font-family: var(--ob-font); text-anchor: middle; paint-order: stroke; stroke: rgba(255, 250, 241, .95); stroke-linejoin: round; }
+.cm-zone { font-size: 11px; font-weight: 700; fill: #6f5f47; stroke-width: 3px; letter-spacing: .02em; }
+.cm-label { font-size: 11.5px; font-weight: 800; fill: var(--ob-ink); stroke-width: 3.2px; }
+.cm-lm circle { fill: #fffaf1; stroke: #b5a58a; stroke-width: 1.6px; }
+.cm-lm svg { color: #9c8f7a; }
+.cm-lm.is-found circle { fill: var(--ob-terra); stroke: #fffaf1; stroke-width: 2px; }
+.cm-lm.is-found svg { color: #fffaf1; }
+.cm-lm.is-on circle, .cm-dot.is-on circle { stroke: var(--ob-gold); stroke-width: 3px; }
+.cm-dot circle { fill: #fffaf1; stroke: #a99a80; stroke-width: 1.4px; }
+.cm-dot.is-found circle { fill: var(--ob-teal); stroke: #fffaf1; }
+.cm-baybay { fill: var(--ob-gold); stroke: #fffaf1; stroke-width: 2px; }
+.cm-you circle { fill: var(--ob-terra); stroke: #fffaf1; stroke-width: 2.5px; }
+.cm-you path { fill: #fffaf1; }
+.ob-citymap-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-weight: 700; color: var(--ob-ink-2); }
+.ob-citymap-tools { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.ob-citymap-tools .ob-icon-btn { width: 34px; height: 34px; background: rgba(255, 250, 241, .94); box-shadow: var(--ob-shadow-s); }
+.ob-citymap-credit { position: absolute; left: 6px; bottom: 4px; margin: 0; padding: 1px 6px; border-radius: 6px; background: rgba(255, 250, 241, .82); font-size: 10px; color: var(--ob-ink-3); }
+.ob-citymap-credit a { color: inherit; }
+.ob-place-pop { flex-wrap: wrap; }
+.ob-place-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ob-place-locked { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ob-ink-3); padding: 0 6px; }
+.ob-citymap-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid var(--ob-line); color: var(--ob-ink-3); }
+.ob-citymap-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ob-ink); }
+.ob-citymap-tabs { margin: 10px 0 6px; }
+.ob-place-num.is-found { background: var(--ob-teal); color: #fff; }
+.ob-citymap-empty { padding: 10px 4px; color: var(--ob-ink-3); font-size: 13px; }
+@media (max-width: 600px) { .ob-citymap-frame { height: 46vh; } }

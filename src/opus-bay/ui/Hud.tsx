@@ -8,6 +8,7 @@ import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { FREE_GOALS } from '../data/script';
 import { callBaybay, cancelRide, currentStop, enterPhotoMode, finishRide, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
+import { useStreetName } from '../game/streets';
 import { flow, useFlow } from '../game/flowStore';
 import { BAYBAY_ID, interactableById } from '../game/interactables';
 import { rideLabel } from '../game/transit';
@@ -41,12 +42,28 @@ function AreaLabel() {
   const zone = DISTRICT.zones?.find(item => item.id === area);
   // city mode: a DataSF neighbourhood (game/brain AREA_NAMES), else the whole city, never "The Embarcadero" out there
   const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? (city ? SF_NAME : DISTRICT.name);
+  // city mode (lane G1, G1-9): the nearest named street under the neighbourhood (never in district mode)
+  const street = useStreetName();
   const [fresh, setFresh] = useState(true);
   useEffect(() => {
     setFresh(true);
     const id = window.setTimeout(() => setFresh(false), 4000);
     return () => window.clearTimeout(id);
   }, [area]);
+  if (city) {
+    return (
+      <div className={`ob-area ob-area-city ${fresh ? 'is-fresh' : ''} ${street ? 'has-street' : ''}`} key={area ?? 'default'}>
+        <MapPin size={15} aria-hidden />
+        <span className="ob-area-lines">
+          <span className="ob-area-top">
+            <span className="ob-area-name">{t(name)}</span>
+            {locale !== 'en' && <span className="ob-area-en" translate="no">{name.en}</span>}
+          </span>
+          {street && <span className="ob-area-street" translate="no">{street}</span>}
+        </span>
+      </div>
+    );
+  }
   return (
     <div className={`ob-area ${fresh ? 'is-fresh' : ''}`} key={area ?? 'default'}>
       <MapPin size={15} aria-hidden />

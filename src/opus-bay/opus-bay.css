@@ -1071,3 +1071,21 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
   box-shadow: 0 12px 26px -10px rgba(31, 111, 105, .8); animation: ob-pop .35s var(--ob-spring); white-space: nowrap;
 }
 @media (max-width: 600px) { .ob-lead-chip { bottom: calc(max(6px, var(--ob-sb)) + 140px); } }
+
+/* ---- lane G1 (wave 2): city HUD street line, fast-travel cloud veil, title resume ---- */
+.ob-area-city .ob-area-lines { display: flex; flex-direction: column; min-width: 0; line-height: 1.12; }
+.ob-area-city .ob-area-top { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ob-area-city.has-street { height: 46px; border-radius: 18px; }
+.ob-area-street { font-size: 12px; font-weight: 700; color: var(--ob-teal-d); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .01em; }
+@media (max-width: 600px) { .ob-area-city.has-street { height: 42px; } .ob-area-street { font-size: 11.5px; } }
+.ob-travel-veil { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .45s var(--ob-ease); background: radial-gradient(ellipse at 50% 55%, rgba(255, 252, 246, .98) 0 40%, rgba(247, 241, 230, .96) 70%, rgba(236, 226, 208, .94) 100%); overflow: hidden; }
+.ob-travel-veil.is-on { opacity: 1; }
+.ob-travel-veil i { position: absolute; width: 46vmax; height: 22vmax; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0)); animation: ob-cloud-drift 6s linear infinite; }
+.ob-travel-veil i:nth-child(1) { left: -10%; top: 12%; }
+.ob-travel-veil i:nth-child(2) { left: 40%; top: 30%; animation-duration: 7.5s; animation-delay: -2s; }
+.ob-travel-veil i:nth-child(3) { left: 5%; top: 58%; animation-duration: 8s; animation-delay: -4s; }
+.ob-travel-veil i:nth-child(4) { left: 55%; top: 66%; animation-duration: 6.5s; animation-delay: -1s; }
+@keyframes ob-cloud-drift { from { transform: translateX(-8vmax); } to { transform: translateX(8vmax); } }
+@media (prefers-reduced-motion: reduce) { .ob-travel-veil i { animation: none; } }
+.ob-title-resume { background: rgba(255, 250, 241, .92); }
+.ob-title-resume svg { color: var(--ob-terra); }

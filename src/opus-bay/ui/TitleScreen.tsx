@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { ArrowRight, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
 import { ASSETS, keyArtAlt } from '../data/assets';
 import { guidesUrl } from '../data/links';
+import { requestResume, resumeSpot } from '../data/save';
 import { CITY_COPY } from '../data/sf/copy';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
@@ -27,7 +28,10 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   const artOk = useImageState(keyArt?.wide) !== 'error';
   const returning = useVisited();
   // city mode: lane G2's subtitle (data/sf/copy.ts, dependency-free); null keeps the district line
-  const citySub = useGame(s => s.worldMode === 'city') ? CITY_COPY.titleSub : null;
+  const city = useGame(s => s.worldMode === 'city');
+  const citySub = city ? CITY_COPY.titleSub : null;
+  // lane G1 (G1-10): a saved city spot → "继续上次的位置" (data/save.ts only: the title chunk stays small)
+  const resume = city ? resumeSpot('city') : null;
 
   useEffect(() => { startRef.current?.focus({ preventScroll: true }); }, []);
   // Enter / Space start from anywhere on the title (not while on another control)
@@ -76,6 +80,11 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
             <span>{returning ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
             {waiting ? <span className="ob-boot-dot" style={{ background: 'currentColor' }} aria-hidden /> : device === 'touch' ? <ArrowRight size={20} aria-hidden /> : <Keycap className="on-dark">Enter</Keycap>}
           </button>
+          {resume && (
+            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={() => { requestResume(); onStart(); }}>
+              <MapPin size={18} aria-hidden /><span>{t('继续上次的位置', 'Back where I left off')}</span>
+            </button>
+          )}
           <button type="button" className="ob-icon-btn ob-title-sound" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? t('关闭声音', 'Mute sound') : t('打开声音', 'Turn sound on')} title={sound ? t('声音：开', 'Sound: on') : t('声音：关', 'Sound: off')}>
             {sound ? <Volume2 size={22} aria-hidden /> : <VolumeX size={22} aria-hidden />}
           </button>
