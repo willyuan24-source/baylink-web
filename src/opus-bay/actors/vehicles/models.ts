@@ -7,7 +7,7 @@ import { box, buildRig, cyl, sphere, xf, type BoneDef, type Part, type Rig, type
  * bone rotations. Shared clay material (vertex colours + rim light). Brand palette only, no logos.
  *
  * Budgets (plan: ≤ 3 draw calls, ≤ 3k triangles per vehicle): bike ≈ 2.6k tris / 1 draw; toy car ≈ 2.9k / 1 draw;
- * pelican wings ≈ 0.6k / 1 draw (the pelican body is the existing GLB, 2.9k, 1 draw).
+ * the ride pelican ≈ 2.9k / 1 draw (buildPelicanRig, E2-8).
  *
  * Frames: +z forward, local +x = the vehicle's left (three.js convention), y up, origin on the ground between the
  * wheels. `seats` are the anchor points the movement system puts riders on.
@@ -238,41 +238,79 @@ export function buildToyCarRig(): VehicleRig {
 }
 
 // ---------------------------------------------------------------------------
-// Pelican wings (the body is the existing pelican.glb, tilted into a glide)
+// The ride pelican (lane E2, wave 3, E2-8): one procedural skinned mesh that reads as a brown pelican in flight
 // ---------------------------------------------------------------------------
 
-export function buildWingsRig(): Rig {
+/**
+ * Brown pelican palette (toy-soft): grey-brown mantle and wings with a pale leading edge, dark primaries, a white head
+ * with a straw-yellow crown, a chestnut hindneck over a cream fore-neck, a long grey-tan bill with a warm tip and the
+ * dark pouch under it, dark feet tucked back under the tail.
+ */
+export const PELICAN_PAL = {
+  mantle: '#8f8070', belly: '#6b5f53', wing: '#857767', edge: '#dccfb3', secondaries: '#6d6155', hand: '#6f6357',
+  primaries: '#2f2926', head: '#f4ecdc', crown: '#f0cf6a', hindneck: '#7b4a32', foreneck: '#efe7d6', bill: '#cdb294',
+  tip: '#d8744a', pouch: '#5c4a3e', eye: '#211d1c', feet: '#3a332e',
+};
+
+/**
+ * Anchors in the pelican frame (+z forward, y up, +x its left; the glide sim's point is the origin, on the middle of
+ * the back): the rider's rig root on the back, BAYBAY on the shoulders in front of them.
+ */
+export const PELICAN_SEATS = {
+  rider: new THREE.Vector3(0, -0.06, -0.45),
+  baybay: new THREE.Vector3(0, -0.08, 0.55),
+};
+
+/**
+ * The ride pelican as it flies (E2-8): a long body, the head drawn back onto the shoulders on an S-folded neck, the
+ * bill laid forward along the breast, the feet tucked back under the tail, broad wings with fingered primaries. ONE
+ * SkinnedMesh (the characters' clay material: no new program) ≤ 3.5k triangles. Bones: root → body (the flap bob) →
+ * head (a small counter-nod), tail, wingL / wingR (shoulders: rotation.z flaps, + = up) → tipL / tipR (the hands) —
+ * the names the flap / bank code drives. Replaces the tilted standing pelican.glb + a separate wing rig (2 draws).
+ */
+export function buildPelicanRig(): Rig {
+  const P = PELICAN_PAL, SX = 0.62, SY = -0.28, SZ = 0.2, ARM = 1.6;
   const bones: BoneDef[] = [
     { name: 'root', parent: null, pos: [0, 0, 0] },
-    { name: 'wingL', parent: 'root', pos: [0.35, 0, 0] },
-    { name: 'wingR', parent: 'root', pos: [-0.35, 0, 0] },
-    { name: 'tipL', parent: 'wingL', pos: [1.6, 0.02, -0.12] },
-    { name: 'tipR', parent: 'wingR', pos: [-1.6, 0.02, -0.12] },
+    { name: 'body', parent: 'root', pos: [0, -0.5, 0] },
+    { name: 'head', parent: 'body', pos: [0, -0.1, 1.45] },
+    { name: 'tail', parent: 'body', pos: [0, -0.45, -1.55] },
+    { name: 'wingL', parent: 'body', pos: [SX, SY, SZ] },
+    { name: 'wingR', parent: 'body', pos: [-SX, SY, SZ] },
+    { name: 'tipL', parent: 'wingL', pos: [SX + ARM, SY + 0.02, SZ - 0.12] },
+    { name: 'tipR', parent: 'wingR', pos: [-SX - ARM, SY + 0.02, SZ - 0.12] },
   ];
-  // brown pelican upper wing: grey-brown arm with a pale leading edge, a darker hand, three black "finger" primaries
+  const e = (pos: Vec3, scale: Vec3, color: string, bone: string, rot: Vec3 = [0, 0, 0], w = 12, h = 7): Part => ({ geo: sphere(1, pos, scale, rot, w, h), color, bone });
   const wing = (s: number): Part[] => {
-    const side = s > 0 ? 'L' : 'R';
-    const arm = `wing${side}`, hand = `tip${side}`;
+    const side = s > 0 ? 'L' : 'R', arm = `wing${side}`, hand = `tip${side}`;
+    const x = (d: number) => s * (SX + d);
     return [
-      { geo: sphere(1, [s * 0.98, 0, 0], [0.72, 0.07, 0.42], [0, s * 0.06, 0], 10, 5), color: '#857767', bone: arm },
-      { geo: sphere(1, [s * 0.95, 0.035, 0.2], [0.66, 0.045, 0.16], [0, s * 0.06, 0], 8, 4), color: '#d9ccb0', bone: arm },
-      { geo: sphere(1, [s * 0.9, -0.01, -0.28], [0.62, 0.05, 0.2], [0, s * 0.1, 0], 8, 4), color: '#6d6155', bone: arm },
-      { geo: sphere(1, [s * 2.05, 0, -0.08], [0.55, 0.06, 0.33], [0, s * 0.16, 0], 8, 4), color: '#6f6357', bone: hand },
-      ...[-0.18, 0, 0.18].map((dz, i): Part => ({ geo: sphere(1, [s * (2.62 + i * 0.05), 0, -0.2 + dz], [0.34, 0.035, 0.08], [0, s * (0.3 + dz * 1.2), 0], 6, 3), color: '#2f2926', bone: hand })),
+      e([x(0.95), SY, SZ], [0.98, 0.1, 0.5], P.wing, arm, [0, s * 0.05, s * 0.05], 12, 5),
+      e([x(0.9), SY + 0.06, SZ + 0.26], [0.9, 0.06, 0.18], P.edge, arm, [0, s * 0.05, s * 0.05], 10, 4),
+      e([x(0.85), SY - 0.012, SZ - 0.3], [0.86, 0.05, 0.22], P.secondaries, arm, [0, s * 0.1, 0], 10, 4),
+      e([x(ARM + 0.5), SY + 0.01, SZ - 0.1], [0.62, 0.08, 0.36], P.hand, hand, [0, s * 0.16, 0], 10, 5),
+      ...[-0.24, -0.08, 0.08, 0.24].map((dz, i): Part => e([x(ARM + 1.15 + i * 0.05), SY + 0.01, SZ - 0.2 + dz], [0.38, 0.035, 0.085], P.primaries, hand, [0, s * (0.32 + dz * 1.3), 0], 6, 3)),
     ];
   };
-  return buildRig(bones, [...wing(1), ...wing(-1)], { ao: false });
+  const parts: Part[] = [
+    // body: the mantle on top (where the riders sit), the darker belly under it
+    e([0, -0.55, -0.12], [0.66, 0.5, 1.72], P.mantle, 'body', [0, 0, 0], 16, 10),
+    e([0, -0.72, 0.02], [0.58, 0.38, 1.46], P.belly, 'body', [0, 0, 0], 14, 8),
+    // the S-folded neck in front of the shoulders: cream fore-neck, chestnut hindneck
+    e([0, -0.42, 1.18], [0.46, 0.46, 0.56], P.foreneck, 'body', [0.2, 0, 0], 12, 8),
+    e([0, -0.2, 1.08], [0.24, 0.3, 0.42], P.hindneck, 'body', [0.25, 0, 0], 10, 6),
+    // the head drawn back onto the neck: white, a yellow crown, dark eyes
+    e([0, 0.02, 1.62], [0.3, 0.29, 0.4], P.head, 'head', [0.1, 0, 0], 12, 8),
+    e([0, 0.24, 1.57], [0.2, 0.09, 0.27], P.crown, 'head', [0.1, 0, 0], 8, 5),
+    ...[-1, 1].map((sx): Part => e([sx * 0.235, 0.08, 1.8], [0.055, 0.06, 0.05], P.eye, 'head', [0, 0, 0], 8, 5)),
+    // the bill laid forward along the breast (flat, tapering), its warm hooked tip, the pouch under it
+    { geo: cyl(0.05, 0.15, 1.75, [0, -0.08, 2.72], [Math.PI / 2 + 0.12, 0, 0], 12, [1.15, 1, 0.55]), color: P.bill, bone: 'head' },
+    e([0, -0.2, 3.6], [0.085, 0.07, 0.11], P.tip, 'head', [0, 0, 0], 8, 5),
+    e([0, -0.25, 2.55], [0.13, 0.12, 0.72], P.pouch, 'head', [0.12, 0, 0], 10, 6),
+    // the short tail fan and the feet tucked back under it
+    ...[-0.18, 0, 0.18].map((dx): Part => e([dx, -0.44, -1.78], [0.2, 0.05, 0.44], P.hand, 'tail', [0, dx * 0.8, 0], 8, 4)),
+    ...[-1, 1].map((sx): Part => e([sx * 0.2, -0.86, -1.42], [0.13, 0.05, 0.32], P.feet, 'tail', [0.1, 0, 0], 8, 4)),
+    ...wing(1), ...wing(-1),
+  ];
+  return buildRig(bones, parts, { ao: false });
 }
-
-/** Pelican GLB placement inside the glide rig: tilted into a glide (body level, beak tucked), scaled up to carry two. */
-export const PELICAN_RIDE = {
-  scale: 3.4,
-  /** tilt about x (rad): the standing model leans forward until its back is level (beak tucked on the breast) */
-  tilt: 1.2,
-  /** model offset (after tilt / scale) so the middle of the back is at the rig origin */
-  offset: new THREE.Vector3(0, -1.45, -1.15),
-  /** shoulders (wings root) and seats in the glide frame */
-  wings: new THREE.Vector3(0, -0.12, 0.35),
-  rider: new THREE.Vector3(0, -0.05, -0.45),
-  baybay: new THREE.Vector3(0, 0.02, 0.55),
-};

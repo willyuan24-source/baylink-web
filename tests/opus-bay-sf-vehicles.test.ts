@@ -268,10 +268,10 @@ test('on foot: grade model — uphill slower (≥ 0.55), downhill a touch faster
 });
 
 test('budgets: each rideable is one skinned draw under 3k triangles; the camera near plane rides with height', async () => {
-  const { buildBikeRig, buildToyCarRig, buildWingsRig } = await import('../src/opus-bay/actors/vehicles/models');
+  const { buildBikeRig, buildToyCarRig, buildPelicanRig } = await import('../src/opus-bay/actors/vehicles/models');
   const { nearPlane } = await import('../src/opus-bay/actors/camera');
   const tris = (g: { index: { count: number } | null; attributes: { position: { count: number } } }) => (g.index ? g.index.count : g.attributes.position.count) / 3;
-  for (const [name, rig, max] of [['bike', buildBikeRig(1), 3000], ['toy car', buildToyCarRig(), 3000], ['pelican wings', buildWingsRig(), 700]] as const) {
+  for (const [name, rig, max] of [['bike', buildBikeRig(1), 3000], ['toy car', buildToyCarRig(), 3000], ['ride pelican (E2-8: body, head, bill, wings, tail, feet)', buildPelicanRig(), 3500]] as const) {
     const n = tris(rig.mesh.geometry as never);
     assert.ok(n <= max, `${name}: ${n} triangles`);
     assert.ok(!Array.isArray(rig.mesh.material), `${name}: one material → one draw`);

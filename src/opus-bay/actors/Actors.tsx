@@ -53,6 +53,8 @@ export function Actors() {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
     w.__opusBay = { ...(w.__opusBay ?? {}), actors: system };
+    // (QA: G1's fast travel as the game runs it — a page script's own import can load a second copy under dev HMR)
+    void import('../game/fastTravel').then(ft => { w.__opusBay = { ...(w.__opusBay ?? {}), fastTravel: ft }; });
   }, [system]);
 
   useFrame((state, dt) => system.update(dt, state.clock.elapsedTime, state.camera));

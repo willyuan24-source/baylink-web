@@ -21,6 +21,10 @@ import { GLIDE, GlideSim, NO_GLIDE_INPUT, TallHash, terrainGlideWorld } from '..
 import { LiveTall, bayBridgeTall } from '../src/opus-bay/actors/glideTall';
 import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
 import { cityModule } from '../src/opus-bay/world/cityLoader';
+import { PELICAN_SEATS, buildPelicanRig } from '../src/opus-bay/actors/vehicles/models';
+import { Pelican } from '../src/opus-bay/actors/vehicles/pelican';
+import { characterMaterial } from '../src/opus-bay/actors/models';
+import { startTravel, stepTravel, travelActive, travelPose } from '../src/opus-bay/game/fastTravel';
 import { PlayerController } from '../src/opus-bay/actors/controller';
 import { GuideMover } from '../src/opus-bay/actors/guide';
 import { arrivalSpot, graphNodeFilter, setWalkGraph } from '../src/opus-bay/actors/nav';
@@ -751,4 +755,87 @@ test('E2-7 glide over the city: the pelican never passes through the Golden Gate
   // district: the nearest standable spot, as before
   const f = DISTRICT.anchors['ferry-clock'];
   assert.deepEqual(terrainGlideWorld().landingSpot(f.x, f.z, 40), nearestWalkable(f, 40));
+});
+
+// ---------------------------------------------------------------------------
+// Wave 3, part b: the flying pelican (E2-8) and fast travel on it (G1 request 1)
+// ---------------------------------------------------------------------------
+
+test('E2-8 pelican rig: one skinned clay draw ≤ 3.5k triangles that reads as flying (bill forward, head drawn back, feet tucked, broad wings); seats on its back', () => {
+  const rig = buildPelicanRig();
+  const g = rig.mesh.geometry;
+  const tris = (g.index ? g.index.count : g.attributes.position.count) / 3;
+  assert.ok(tris <= 3500, `${tris} triangles`);
+  assert.equal(rig.mesh.material, characterMaterial(), 'the characters\' material: no new program');
+  for (const b of ['root', 'body', 'head', 'tail', 'wingL', 'wingR', 'tipL', 'tipR']) assert.ok(rig.bones[b], `bone ${b} (the flap / bank code drives these)`);
+  // shape, from the bound vertices per bone (bind pose)
+  const pos = g.attributes.position as THREE.BufferAttribute, si = g.attributes.skinIndex as THREE.BufferAttribute;
+  const names = Object.keys(rig.bones), box = new Map<string, THREE.Box3>();
+  for (let i = 0; i < pos.count; i++) {
+    const b = rig.mesh.skeleton.bones[si.getX(i)].name;
+    if (!box.has(b)) box.set(b, new THREE.Box3());
+    box.get(b)!.expandByPoint(new THREE.Vector3().fromBufferAttribute(pos, i));
+  }
+  assert.ok(names.every(n => n === 'root' || box.has(n)), 'every bone carries geometry');
+  const body = box.get('body')!, head = box.get('head')!, tail = box.get('tail')!, wl = box.get('wingL')!, tl = box.get('tipL')!, tr = box.get('tipR')!;
+  assert.ok(head.max.z > body.max.z + 1.5, `the bill reaches well forward (${head.max.z.toFixed(2)})`);
+  assert.ok(head.max.y < 0.5, 'the head is drawn back low on the shoulders, not up on a long neck');
+  assert.ok(tail.min.z < body.min.z + 0.3 && tail.min.y < body.min.y + 0.4, 'tail and tucked feet behind and below');
+  assert.ok(tl.max.x - tr.min.x > 7, `wingspan ${(tl.max.x - tr.min.x).toFixed(2)} u`);
+  assert.ok(wl.min.x > 0.3, 'the left wing starts at its shoulder');
+  // seats: on the back (just above the mantle), BAYBAY in front of the rider
+  assert.ok(PELICAN_SEATS.baybay.z > PELICAN_SEATS.rider.z + 0.6);
+  for (const s of [PELICAN_SEATS.rider, PELICAN_SEATS.baybay]) assert.ok(s.y > body.max.y - 0.2 && s.y < body.max.y + 0.15, `seat y ${s.y} on the back (${body.max.y.toFixed(2)})`);
+  rig.mesh.geometry.dispose();
+});
+
+test('E2-8 the ride pelican flaps and banks with its bones; G1 request 1: fast travel carries the rider and BAYBAY on it, pickup to descent', () => {
+  const pel = new Pelican();
+  pel.sim.x = 0; pel.sim.y = 20; pel.sim.z = 0; pel.sim.heading = 0; pel.sim.stage = 'flight';
+  pel.show();
+  for (let i = 0; i < 30; i++) pel.update(DT, i * DT);
+  const soar = pel.rig.bones.wingL.rotation.z;
+  pel.sim.roll = 0.5;
+  pel.update(DT, 0.6);
+  assert.ok(pel.rig.bones.wingL.rotation.z < soar - 0.08 && pel.rig.bones.wingR.rotation.z < 0, 'wings follow the bank');
+  pel.beating = true;
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < 60; i++) { pel.update(DT, 1 + i * DT); lo = Math.min(lo, pel.rig.bones.wingL.rotation.z); hi = Math.max(hi, pel.rig.bones.wingL.rotation.z); }
+  assert.ok(hi - lo > 0.6, `a strong beat (${(hi - lo).toFixed(2)} rad)`);
+  pel.dispose();
+
+  // fast travel (district is enough: G1's trip needs no city), ferry gate → Pier 39 area
+  game.set({ phase: 'playing', worldMode: 'district' });
+  const ms = new MoveSystem();
+  moveApi.bindMoveApi(ms);
+  try {
+    const c = new PlayerController();
+    resetPlayer(FERRY);
+    c.sync();
+    const dest = DISTRICT.anchors['sea-lion-viewpoint'];
+    assert.ok(startTravel({ id: 'test', name: { zh: '测试', en: 'Test' }, x: dest.x, z: dest.z }));
+    const seen = new Set<string>();
+    let t = 0, carried = 0, guideSeated = 0, maxY = -Infinity;
+    for (; t < 20 && travelActive(); t += DT) {
+      stepTravel(DT);
+      ms.update(DT, t, moveEnv(c));
+      const pose = travelPose();
+      if (!pose) continue;
+      seen.add(pose.phase);
+      if (ms.mode === 'travel') {
+        assert.ok(ms.pelican.visible, `the pelican is out (${pose.phase})`);
+        if (ms.rider.active) carried++;
+        if (ms.guide.active && ms.guideAnim.sitting) guideSeated++;
+        if (pose.phase === 'pan') { maxY = Math.max(maxY, ms.rider.y); assert.ok(Math.abs(ms.pelican.sim.y - (pose.y + GLIDE.perch)) < 1e-6, 'on the sky path'); }
+      }
+    }
+    assert.deepEqual([...seen], ['pickup', 'rise', 'pan', 'hold', 'descent'].filter(p => seen.has(p)));
+    assert.ok(seen.has('pickup') && seen.has('rise') && seen.has('pan') && seen.has('descent'), [...seen].join());
+    assert.ok(carried > 100 && guideSeated > 60, `rider carried ${carried} frames, BAYBAY seated ${guideSeated}`);
+    assert.ok(maxY > heightAt(FERRY.x, FERRY.z) + 40, 'up at the cruise height');
+    for (let i = 0; i < 30; i++) ms.update(DT, t + i * DT, moveEnv(c));
+    assert.equal(ms.mode, 'foot');
+    assert.equal(ms.rider.active, false, 'on foot again');
+    assert.ok(Math.hypot(runtime.player.x - dest.x, runtime.player.z - dest.z) < 8, 'at the destination');
+  } finally { moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
 });

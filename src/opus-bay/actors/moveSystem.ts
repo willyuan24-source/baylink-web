@@ -9,13 +9,14 @@ import { seatSpots, type SeatSpot } from '../data/vehicles';
 import { cancelRide, hopOffRide, say } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { currentRide } from '../game/ride';
+import { travelPose, type TravelPose } from '../game/fastTravel';
 import { readQa } from '../game/qa';
 import { spawnFx } from '../world/fx';
 import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
-import { NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
+import { GLIDE, NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
 import { LiveTall } from './glideTall';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
@@ -357,9 +358,10 @@ export class MoveSystem {
     // (the hop-off's 0.4 s step down from the car runs on after the flow ended the ride: E2-10)
     else if (s.move.mode !== 'transit' && m.mode === 'transit' && m.phase !== 'alighting') { m.endTransit(); platformRider.platform = null; this.releaseGuide(true); }
     if (!env.playing && m.mode !== 'foot' && m.mode !== 'transit') this.toFoot();
-    // fast travel (game flow): the store says 'travel' → everything parked, the flow carries the player; back to foot after
-    if (s.move.mode === 'travel' && m.mode !== 'travel') { this.toFoot(); m.beginTravel(); }
-    else if (s.move.mode !== 'travel' && m.mode === 'travel') m.endTravel();
+    // fast travel (game flow): the store says 'travel' → everything parked, the pelican picks the player (and BAYBAY) up
+    // and flies G1's sky path (travelPose, E2-8 / G1 request 1); back on foot at the arrival spot after
+    if (s.move.mode === 'travel' && m.mode !== 'travel') { this.toFoot(); m.beginTravel(); this.beginTravelRide(); }
+    else if (s.move.mode !== 'travel' && m.mode === 'travel') { m.endTravel(); this.endTravelRide(); }
 
     // someone else moved the player (flow teleport, ?at=, QA) while we carried them: park and let the teleport stand
     if ((m.mode === 'bike' || m.mode === 'car' || m.mode === 'glide' || m.mode === 'sit') && Number.isFinite(this.wroteX)
@@ -432,6 +434,7 @@ export class MoveSystem {
     const ride = this.ride;
     if ((mode === 'bike' || mode === 'car') && ride) this.driveRide(ride, dt, frozen, t);
     if (mode === 'glide') this.flyGlide(dt, frozen);
+    if (mode === 'travel') this.flyTravel(dt);
     for (const r of this.fleet.rides) {
       if (r === this.ride && this.carried) continue;
       const visible = env.frustum.intersectsSphere(tmpS.set(tmpV.set(r.sim.x, r.sim.y + 0.5, r.sim.z), 1.4));
@@ -700,6 +703,51 @@ export class MoveSystem {
   }
 
   /** The glide world (built once; its tall structures are looked up live, E2-7). */
+  // ---------------------------------------------------------------------------
+  // Fast travel on the pelican (E2-8, G1 request 1)
+  // ---------------------------------------------------------------------------
+
+  /** the travel ride: the pose last frame (pitch from the climb / descent), the phase for the hops */
+  private travel = { on: false, phase: '' as TravelPose['phase'] | '', t: 0, x: 0, y: 0, z: 0 };
+
+  private beginTravelRide() {
+    const p = runtime.player;
+    this.boardFrom.set(p.x, p.y, p.z);
+    this.boardHeading = p.heading;
+    const g = this.pelican.sim;
+    g.x = p.x; g.y = p.y + GLIDE.perch; g.z = p.z; g.heading = p.heading; g.pitch = 0; g.roll = 0; g.speed = 0; g.stage = 'flight';
+    this.travel = { on: true, phase: '', t: 0, x: p.x, y: g.y, z: p.z };
+    this.pelican.show();
+    this.startGuideIn();
+  }
+
+  private endTravelRide() {
+    if (!this.travel.on) return;
+    this.travel.on = false;
+    this.pelican.beating = false;
+    this.pelican.flyOff();
+    this.releaseGuide(true);
+  }
+
+  /**
+   * Pose the pelican on G1's sky path (game/fastTravel travelPose: pickup 2.5 u up, rise to +48 u, pan, the cloud hold,
+   * descent to the arrival spot): the seat rides `perch` over the path, the nose follows the climb and the descent, the
+   * wings beat through the pickup, the rise and the flare at the end and soar in between.
+   */
+  private flyTravel(dt: number) {
+    const pose = travelPose(), tr = this.travel, g = this.pelican.sim;
+    if (!pose || !tr.on) return;
+    const x = pose.x, y = pose.y + GLIDE.perch, z = pose.z;
+    const d = Math.hypot(x - tr.x, z - tr.z), vy = dt > 0 ? (y - tr.y) / dt : 0, vh = dt > 0 ? d / dt : 0;
+    const wantPitch = pose.phase === 'hold' ? 0 : clamp(Math.atan2(vy, Math.max(vh, 6)), -0.45, 0.5);
+    g.pitch += (wantPitch - g.pitch) * Math.min(1, dt * 5);
+    g.heading = d > 0.05 ? Math.atan2(x - tr.x, z - tr.z) : pose.heading;
+    g.roll = Math.sin(pose.t * Math.PI * 2) * (pose.phase === 'pan' || pose.phase === 'hold' ? 0.06 : 0);
+    g.x = x; g.y = y; g.z = z; g.speed = vh;
+    tr.x = x; tr.y = y; tr.z = z; tr.phase = pose.phase; tr.t = pose.t;
+    this.pelican.beating = pose.phase === 'pickup' || pose.phase === 'rise' || (pose.phase === 'descent' && pose.t > 0.7);
+  }
+
   private world(): GlideWorld {
     this.glideWorld ??= terrainGlideWorld(() => liveTall.get());
     return this.glideWorld;
@@ -834,7 +882,7 @@ export class MoveSystem {
       out.copy(r.kind === 'bike' ? r.rig.seats.basket : r.rig.seats.front).applyMatrix4(r.rig.mesh.matrixWorld);
       return { scale: GUIDE_SEAT_SCALE[r.kind], sitting: true, pole: false };
     }
-    if (m.mode === 'glide') { this.pelican.seat('baybay', out); return { scale: GUIDE_SEAT_SCALE.glide, sitting: true, pole: false }; }
+    if (m.mode === 'glide' || (m.mode === 'travel' && this.travel.on)) { this.pelican.seat('baybay', out); return { scale: GUIDE_SEAT_SCALE.glide, sitting: true, pole: false }; }
     if (m.mode === 'transit') {
       const plat = platforms.get(m.line ?? 'streetcar');
       if (!plat || !plat.live || !platformRider.platform) return null;
@@ -917,6 +965,8 @@ export class MoveSystem {
         if (kk > 0.5) { A.ride = null; R.quat.setFromAxisAngle(UPY, g.heading); }
       } else { R.x = seat.x; R.y = seat.y; R.z = seat.z; }
       p.x = g.x; p.z = g.z; p.heading = g.heading;
+    } else if (m.mode === 'travel' && this.travel.on) {
+      this.placeTravel();
     } else if (m.mode === 'sit' && this.seat) {
       const st = this.seat, gy = heightAt(st.x, st.z);
       const sy = gy + st.y + 0.22;
@@ -982,7 +1032,7 @@ export class MoveSystem {
   private guideSeatInfo(): { scale: number; sitting: boolean; pole: boolean } {
     const m = this.machine;
     if ((m.mode === 'bike' || m.mode === 'car') && this.ride) return { scale: GUIDE_SEAT_SCALE[this.ride.kind], sitting: true, pole: false };
-    if (m.mode === 'glide') return { scale: GUIDE_SEAT_SCALE.glide, sitting: true, pole: false };
+    if (m.mode === 'glide' || m.mode === 'travel') return { scale: GUIDE_SEAT_SCALE.glide, sitting: true, pole: false };
     if (m.mode === 'transit' && platforms.get(m.line ?? 'streetcar')?.kind === 'cable-car') return { scale: 1, sitting: true, pole: false };
     return { scale: 1, sitting: m.spot === 'seat', pole: m.spot !== 'seat' };
   }
@@ -1018,12 +1068,36 @@ export class MoveSystem {
   private seatQuat(): THREE.Quaternion {
     const m = this.machine;
     if ((m.mode === 'bike' || m.mode === 'car') && this.ride) return this.ride.rig.mesh.quaternion;
-    if (m.mode === 'glide') return this.pelican.quaternion;
+    if (m.mode === 'glide' || m.mode === 'travel') return this.pelican.quaternion;
     if (m.mode === 'transit') {
       const plat = platforms.get(m.line ?? 'streetcar');
       if (plat) return tmpQ.setFromEuler(tmpE.set(0, plat.heading + this.deck.heading, plat.roll, 'YXZ'));
     }
     return tmpQ.setFromAxisAngle(UPY, runtime.player.heading);
+  }
+
+  /**
+   * Fast travel: the rider on the pelican's back — hopping on during the pickup (0.3–0.9 of it) from where they stood,
+   * hopping off in the last quarter of the descent to the arrival spot (the flow put the logical player there when the
+   * descent began).
+   */
+  private placeTravel() {
+    const tr = this.travel, p = runtime.player, R = this.rider, A = this.riderAnim;
+    const seat = this.pelican.seat('rider', tmpV);
+    R.active = true;
+    R.quat.copy(this.pelican.quaternion);
+    A.ride = 'glide';
+    if (tr.phase === 'pickup' || tr.phase === '') {
+      const kk = ease(clamp((tr.t - 0.3) / 0.6, 0, 1));
+      R.x = lerp(this.boardFrom.x, seat.x, kk); R.z = lerp(this.boardFrom.z, seat.z, kk);
+      R.y = lerp(this.boardFrom.y, seat.y, kk) + Math.sin(Math.PI * kk) * 0.6;
+      if (kk < 0.5) { A.ride = null; R.quat.setFromAxisAngle(UPY, this.boardHeading); }
+    } else if (tr.phase === 'descent' && tr.t > 0.75) {
+      const kk = ease((tr.t - 0.75) / 0.25), gy = heightAt(p.x, p.z);
+      R.x = lerp(seat.x, p.x, kk); R.z = lerp(seat.z, p.z, kk);
+      R.y = lerp(seat.y, gy, kk) + Math.sin(Math.PI * kk) * 0.7;
+      if (kk > 0.5) { A.ride = null; R.quat.setFromAxisAngle(UPY, p.heading); }
+    } else { R.x = seat.x; R.y = seat.y; R.z = seat.z; }
   }
 
   /** E2-10: stepping down from a transit car to the exit slot (TIMING.transitAlight), turning away from the car. */

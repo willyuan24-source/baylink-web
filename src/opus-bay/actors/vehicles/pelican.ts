@@ -1,36 +1,31 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MODELS } from '../../data/assets';
+import { registerWarmup } from '../../world/warmup';
 import { GlideSim } from '../glide';
-import { buildWingsRig, PELICAN_RIDE } from './models';
-import { sphere, buildRig, type Rig } from '../models';
+import { PELICAN_SEATS, buildPelicanRig } from './models';
+import type { Rig } from '../models';
 
 /**
- * The ride pelican: the existing pelican.glb (standing; "for glide use the same mesh tilted", ASSETS-LEDGER) tilted
- * into a glide and scaled up to carry the newcomer + BAYBAY, plus procedural spread wings (one skinned draw) that
- * bank and flap. Loaded lazily the first time the glide is unlocked / used; until then a clay stand-in body.
- * The flight itself is actors/glide.ts (GlideSim); this only draws it.
+ * The ride pelican (lane E2, wave 3, E2-8): the procedural brown pelican of vehicles/models.ts buildPelicanRig — one
+ * skinned draw (+ its shadow) that reads as flying: a long body, the head drawn back, the bill laid forward, the feet
+ * tucked, wings that soar with a slow flex, beat on take-off and climbs and lift into the bank. It carries the
+ * newcomer on its back and BAYBAY on its shoulders (PELICAN_SEATS). The flight itself is actors/glide.ts (GlideSim);
+ * this only draws it. Fast travel (G1's 飞过去) poses it along the trip's sky path (`travel`).
  */
 
 const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
 
-function standInBody(): Rig {
-  // a soft clay pelican body (only until the GLB arrives)
-  return buildRig([{ name: 'root', parent: null, pos: [0, 0, 0] }], [
-    { geo: sphere(0.55, [0, -0.35, -0.1], [1, 0.7, 1.9]), color: '#7a6d60', bone: 'root' },
-    { geo: sphere(0.3, [0, -0.05, 1.05], [1, 1, 1.1]), color: '#e8d9b0', bone: 'root' },
-    { geo: sphere(0.16, [0, -0.2, 1.45], [0.8, 0.6, 2.4]), color: '#c97a50', bone: 'root' },
-  ], { ao: false });
-}
+// the pelican's program is the characters' clay material on a skinned mesh (the player's own): warm it with the rest
+registerWarmup('e2-pelican', () => {
+  const rig = buildPelicanRig();
+  rig.mesh.castShadow = true;
+  return { objects: [rig.mesh], dispose: () => { rig.mesh.geometry.dispose(); rig.mesh.skeleton.dispose(); } };
+});
 
 export class Pelican {
   readonly group = new THREE.Group();
   readonly sim = new GlideSim();
-  private body = new THREE.Group();
-  private wings: Rig;
-  private standIn: Rig | null;
-  private glb: THREE.Mesh | null = null;
-  private loading = false;
+  readonly rig: Rig;
+  private compiled = false;
   /** 0..1 appear / leave scale */
   private shown = 0;
   private want = 0;
@@ -38,47 +33,23 @@ export class Pelican {
   /** after landing: flies off ahead for a moment */
   private leaving = -1;
   private leave = { x: 0, y: 0, z: 0, heading: 0 };
+  /** fast travel: a strong beat (pickup / climb / the flare at the end) instead of the soaring flex */
+  beating = false;
 
   constructor() {
     this.group.name = 'opus-pelican-ride';
     this.group.visible = false;
-    this.wings = buildWingsRig();
-    this.wings.mesh.position.copy(PELICAN_RIDE.wings);
-    this.wings.mesh.castShadow = true;
-    this.standIn = standInBody();
-    this.standIn.mesh.castShadow = true;
-    this.body.add(this.standIn.mesh);
-    this.group.add(this.body, this.wings.mesh);
+    this.rig = buildPelicanRig();
+    this.rig.mesh.name = 'opus-pelican-ride-body';
+    this.rig.mesh.castShadow = true;
+    this.group.add(this.rig.mesh);
   }
 
-  /** Start fetching the GLB (once). */
+  /** Compile its program ahead of the first flight (once; the same program as the characters', so usually a no-op). */
   load(precompile?: (o: THREE.Object3D) => Promise<unknown>) {
-    if (this.loading) return;
-    this.loading = true;
-    new GLTFLoader().loadAsync(MODELS.pelican.url).then(gltf => {
-      let mesh: THREE.Mesh | null = null;
-      gltf.scene.traverse(o => { if (!mesh && (o as THREE.Mesh).isMesh) mesh = o as THREE.Mesh; });
-      const found = mesh as THREE.Mesh | null;
-      if (!found) return;
-      found.updateWorldMatrix(true, false);
-      const geo = found.geometry.clone().applyMatrix4(found.matrixWorld);
-      const mat = (Array.isArray(found.material) ? found.material[0] : found.material) as THREE.MeshStandardMaterial;
-      if ('roughness' in mat) { mat.roughness = 0.85; mat.metalness = 0; }
-      const m = new THREE.Mesh(geo, mat);
-      m.name = 'opus-pelican-ride-body';
-      m.castShadow = true;
-      // stand the model on its tail and lean it forward into a glide, scaled up to carry two
-      m.scale.setScalar(PELICAN_RIDE.scale);
-      m.rotation.x = PELICAN_RIDE.tilt;
-      m.position.copy(PELICAN_RIDE.offset);
-      const swap = () => {
-        this.glb = m;
-        if (this.standIn) { this.body.remove(this.standIn.mesh); this.standIn.mesh.geometry.dispose(); this.standIn.mesh.skeleton.dispose(); this.standIn = null; }
-        this.body.add(m);
-      };
-      const pre = precompile?.(m);
-      if (pre) pre.then(swap, swap); else swap();
-    }).catch(() => { /* keep the clay stand-in */ });
+    if (this.compiled || !precompile) return;
+    this.compiled = true;
+    void precompile(this.rig.mesh).catch(() => { this.compiled = false; });
   }
 
   get visible() { return this.group.visible; }
@@ -93,7 +64,7 @@ export class Pelican {
 
   /** Rider seat / BAYBAY seat in world space (after update). */
   seat(which: 'rider' | 'baybay', out: THREE.Vector3): THREE.Vector3 {
-    return out.copy(which === 'rider' ? PELICAN_RIDE.rider : PELICAN_RIDE.baybay).applyMatrix4(this.group.matrixWorld);
+    return out.copy(which === 'rider' ? PELICAN_SEATS.rider : PELICAN_SEATS.baybay).applyMatrix4(this.group.matrixWorld);
   }
   get quaternion() { return this.group.quaternion; }
 
@@ -115,25 +86,27 @@ export class Pelican {
     tmpE.set(-pitch, heading, roll, 'YXZ');
     this.group.quaternion.setFromEuler(tmpE);
     this.group.scale.setScalar(Math.max(0.01, this.shown));
-    // wings: slow soaring flex, a few strong beats on take-off / climbing, dihedral into the bank
-    const beating = s.stage === 'takeoff' || this.leaving >= 0 || pitch > 0.3;
-    const rate = beating ? 7 : 1.3;
+    // wings: slow soaring flex, a few strong beats on take-off / climbing, lifted into the bank
+    const beating = this.beating || s.stage === 'takeoff' || this.leaving >= 0 || pitch > 0.3;
+    const rate = beating ? 6.5 : 1.3;
     this.flap += dt * rate;
-    const amp = beating ? 0.45 : 0.06;
+    const amp = beating ? 0.5 : 0.06;
     const beat = Math.sin(this.flap) * amp;
-    const b = this.wings.bones;
+    const b = this.rig.bones, rest = this.rig.rest;
     b.wingL.rotation.z = beat - roll * 0.25;
     b.wingR.rotation.z = -beat - roll * 0.25;
-    b.tipL.rotation.z = beat * 0.6 + Math.sin(t * 1.7) * 0.03;
-    b.tipR.rotation.z = -beat * 0.6 - Math.sin(t * 1.7) * 0.03;
-    this.body.position.y = -Math.sin(this.flap) * amp * 0.12;
+    // the hands lag the arms (a soft wave through the wing), the soaring tips flex with the air
+    b.tipL.rotation.z = Math.sin(this.flap - 0.7) * amp * 0.7 + Math.sin(t * 1.7) * 0.03;
+    b.tipR.rotation.z = -Math.sin(this.flap - 0.7) * amp * 0.7 - Math.sin(t * 1.7) * 0.03;
+    // the body rides the beat, the head holds still in the air (a small counter-nod)
+    b.body.position.y = rest.body.y - Math.sin(this.flap) * amp * 0.12;
+    b.head.rotation.x = Math.sin(this.flap) * amp * 0.15;
+    b.tail.rotation.x = -pitch * 0.2;
     this.group.updateMatrixWorld();
   }
 
   dispose() {
-    this.wings.mesh.geometry.dispose();
-    this.wings.mesh.skeleton.dispose();
-    if (this.standIn) { this.standIn.mesh.geometry.dispose(); this.standIn.mesh.skeleton.dispose(); }
-    if (this.glb) { this.glb.geometry.dispose(); }
+    this.rig.mesh.geometry.dispose();
+    this.rig.mesh.skeleton.dispose();
   }
 }

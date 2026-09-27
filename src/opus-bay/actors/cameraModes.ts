@@ -8,7 +8,7 @@ import { forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/ter
  * | mode    | distance            | pitch                         | FOV              | follow                                   |
  * | bike    | 9 + 0.25v (≤ 12)    | 0.24 (+0.2 when the road drops) | 44 + 0.4v (≤ 50) | carried by the vehicle's delta, exp 8; behind the heading 1 s after a drag |
  * | car     | 10 + 0.25v (≤ 13)   | 0.26 + 0.25·max(0, −g 8 u ahead) | 44 + 0.6v (≤ 52) | carried by the delta (GTA_SZ src/city-world.ts), 2 s hold after a drag, rate 3 |
- * | glide   | eye p − f·16 + 5 up | —                             | 50 + 0.4(v − 14) | exp 6                                    |
+ * | glide   | 14, pitch 0.3       | —                             | 50 + 0.4(v − 14) | exp 6                                    |
  * | transit | rail 7 / seat 8     | window height                 | 46               | fixed to the car frame, the chosen side  |
  * | sit     | 9 behind the seat   | 0.22                          | 42               | over the shoulder toward the view        |
  *
@@ -107,10 +107,11 @@ export class RideCamera {
         rate = 8;
         break;
       case 'glide':
-        // (a little above the plan's eye so BAYBAY up front clears the rider's hat)
-        dist = 16.8; pitch = 0.4;
+        // (E2-6 / E2-8 tuning: closer and lower than the first 16.8 u / 0.4 — the procedural pelican fills more of the
+        // frame and the horizon stays in it; still above the rider's hat so BAYBAY up front shows)
+        dist = 14; pitch = 0.3;
         fov = clamp(50 + 0.4 * (v - 14), 46, 56);
-        lookUp = 0.5; ahead = 12; rate = 6;
+        lookUp = 0.9; ahead = 10; rate = 6;
         break;
       case 'transit': {
         // side-on through the open windows, at window height, a little ahead of the rider
