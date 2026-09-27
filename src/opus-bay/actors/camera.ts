@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { blockersNear, canStand, heightAt, inWorld } from '../core/terrain';
+import { blockersNear, canStand, cityEpoch, cityTerrain, forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { cinemaKind, currentFraming, measureBottomCover, takeFaceRequest, type Framing } from '../game/cinema';
 import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
+import { heroView, preferredCameraYaw, preferredViewDir } from './viewField';
 import { moveBasis, residents, view } from './view';
 
 /**
@@ -23,6 +24,12 @@ import { moveBasis, residents, view } from './view';
  * rig in cameraModes.ts instead (framings and two-shots wait until you are on foot). The near plane rides with the
  * camera's height: near = clamp(0.5 + 0.02·(camY − ground), 0.5, 8) (GTA_SZ's cure for land / sea z-fighting from
  * high up); camera.far is set by GameRoot per world mode.
+ *
+ * City mode (lane E2, wave 3, E2-5 / E2-6): the arrival yaw starts from the view field (actors/viewField.ts: out over
+ * the Bay on the hero slab as before, the city's openness field elsewhere); the hero points add the Golden Gate
+ * Bridge's towers, Sutro and Salesforce and every landmark's arrival spot has a zone view built from its photo pose
+ * (actors/cityViews.ts, loaded lazily: the landmark library stays out of the main graph); occlusion reads the blockers'
+ * tops (a roof below the sight line does not hide the player); a fast-travel landing hands over at the descent's yaw.
  */
 
 export const DIST_MIN = 7, DIST_MAX = 30;
@@ -42,6 +49,13 @@ const FRAME_IN = 0.8, FRAME_OUT = 0.9;
 const HERO_CLEAR = 4;
 /** automatic conversation two-shot (A3): distance from the pair's midpoint, height, angle off the player → speaker axis */
 const TWO_DIST = 8, TWO_HEIGHT = 2.3, TWO_ANGLE = 0.66;
+/** city: after an arrival the yaw is chosen again (as the ground streams in) for this long (s), while nobody moves */
+const SETTLE_S = 8;
+/** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
+const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
+// (roofLiftStep's blocker test writes here: module state, no closure per sample)
+let roofTopMax = -Infinity;
+const roofMax = (b: Blocker) => { if (b.top !== undefined && b.top > roofTopMax) roofTopMax = b.top; };
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -63,11 +77,35 @@ export const PITCH_DEFAULT = basePitch(15);
 // Hero landmarks and preferred zone views (A2)
 // ---------------------------------------------------------------------------
 
-export interface HeroPoint { id: string; x: number; z: number }
+/** A point the camera never looks at the player through; `r` = keep-out radius (default HERO_CLEAR). */
+export interface HeroPoint { id: string; x: number; z: number; r?: number }
 let heroCache: HeroPoint[] | null = null;
-/** Coit Tower, the Ferry Building clock tower and Transamerica: the camera never looks at the player through them. */
+let heroKey = '';
+
+// --- city-mode camera data (actors/cityViews.ts): a dynamic import, so the landmark library stays out of GameRoot
+type CityViews = typeof import('./cityViews');
+let cityViews: CityViews | null = null;
+let cityViewsLoad: Promise<CityViews> | null = null;
+/** Load the city camera data (camera.ts starts it on its own in city mode; tests await it). */
+export function loadCityViews(): Promise<CityViews> {
+  cityViewsLoad ??= import('./cityViews').then(m => { cityViews = m; return m; }, e => { cityViewsLoad = null; throw e; });
+  return cityViewsLoad;
+}
+/** The city camera data in city mode once loaded (null in district mode / while loading). */
+function cityViewsNow(): CityViews | null {
+  if (game.get().worldMode !== 'city') return null;
+  if (!cityViews) void loadCityViews().catch(() => { /* retried on the next call */ });
+  return cityViews;
+}
+
+/**
+ * Coit Tower, the Ferry Building clock tower and Transamerica: the camera never looks at the player through them.
+ * City mode adds Salesforce Tower, the Golden Gate Bridge's two towers and Sutro Tower (E2-6).
+ */
 export function heroPoints(): HeroPoint[] {
-  if (heroCache) return heroCache;
+  const cv = cityViewsNow(), city = game.get().worldMode === 'city';
+  const key = city ? (cv ? 'city' : 'city-') : 'district';
+  if (heroCache && heroKey === key) return heroCache;
   const out: HeroPoint[] = [];
   for (const l of DISTRICT.landmarks) {
     if (l.kind === 'coit-tower' || l.kind === 'transamerica') out.push({ id: l.kind, x: l.position.x, z: l.position.z });
@@ -76,7 +114,10 @@ export function heroPoints(): HeroPoint[] {
       const k = 2.9 * (l.scale || 1);
       out.push({ id: 'ferry-clock-tower', x: l.position.x + Math.sin(l.rotationY) * k, z: l.position.z + Math.cos(l.rotationY) * k });
     }
+    if (city && l.kind === 'salesforce-tower') out.push({ id: l.kind, x: l.position.x, z: l.position.z, r: 5 });
   }
+  if (cv) out.push(...cv.cityHeroPoints());
+  heroKey = key;
   return (heroCache = out);
 }
 
@@ -91,7 +132,7 @@ export function heroClear(x: number, z: number, yaw: number, dist: number): bool
   const cx = x + Math.sin(yaw) * dist, cz = z + Math.cos(yaw) * dist;
   for (const h of heroPoints()) {
     // standing right beside a hero: only the part of the line away from the player counts
-    const r = Math.min(HERO_CLEAR, Math.hypot(h.x - x, h.z - z) * 0.8);
+    const r = Math.min(h.r ?? HERO_CLEAR, Math.hypot(h.x - x, h.z - z) * 0.8);
     if (segDist(cx, cz, x, z, h.x, h.z) < r) return false;
   }
   return true;
@@ -106,6 +147,12 @@ export interface ZoneView {
   pitch?: number;
   dist?: number;
   lookUp?: number;
+  /** enter radius (u; default 10), left 4 u farther out */
+  r?: number;
+  /** a blocked view may turn up to this far (rad) to a clearer yaw instead of giving the zone up (city landmarks) */
+  near?: number;
+  /** re-solve pitch / dist / lookUp from the ground heights (city landmarks: called on entering the zone) */
+  frame?: (ground: (x: number, z: number) => number) => void;
   /** what should be in frame (QA / docs) */
   subject: string;
 }
@@ -113,9 +160,19 @@ export interface ZoneView {
 const yawToward = (from: { x: number; z: number }, to: { x: number; z: number }) => Math.atan2(from.x - to.x, from.z - to.z);
 
 let zoneCache: ZoneView[] | null = null;
-/** Preferred views per anchor, active within 10–14 u (hysteresis). */
+let zoneKey = '';
+/** Preferred views per anchor, active within 10–14 u (hysteresis); city mode adds one per landmark arrival (E2-6). */
 export function zoneViews(): ZoneView[] {
-  if (zoneCache) return zoneCache;
+  const cv = cityViewsNow();
+  const key = cv ? 'city' : 'district';
+  if (zoneCache && zoneKey === key) return zoneCache;
+  zoneKey = key;
+  zoneCache = districtZoneViews();
+  if (cv) zoneCache = [...zoneCache, ...cv.cityZoneViews(heightAt)];
+  return zoneCache;
+}
+
+function districtZoneViews(): ZoneView[] {
   const A = DISTRICT.anchors;
   const bridgeA = DISTRICT.backdrop.find(b => b.kind === 'bay-bridge')?.position, ybi = DISTRICT.backdrop.find(b => b.kind === 'yerba-buena')?.position;
   const span = bridgeA && ybi ? { x: bridgeA.x + (ybi.x - bridgeA.x) * 0.55, z: bridgeA.z + (ybi.z - bridgeA.z) * 0.55 } : null;
@@ -128,35 +185,60 @@ export function zoneViews(): ZoneView[] {
     { anchor: 'pier7-end', yaw: ybi && A['pier7-end'] ? yawToward(A['pier7-end'], ybi) + 0.25 : -0.4, subject: 'Treasure Island + Bay Bridge' },
     { anchor: 'exploratorium-front', yaw: -0.62, subject: 'Exploratorium facade (three-quarters)' },
   ];
-  zoneCache = table.filter(v => !!A[v.anchor]).map(v => ({ ...v, x: A[v.anchor].x, z: A[v.anchor].z }));
-  return zoneCache;
+  return table.filter(v => !!A[v.anchor]).map(v => ({ ...v, x: A[v.anchor].x, z: A[v.anchor].z }));
 }
 
 // ---------------------------------------------------------------------------
 // Occlusion
 // ---------------------------------------------------------------------------
 
-/** Weight of the static blocker at (x, z): buildings 1, round colliders (towers, kiosks, palms) 1 + 0.2 r. */
-function blockWeight(x: number, z: number): number {
-  let w = 0;
-  for (const b of blockersNear(x, z, 0.25)) w = Math.max(w, b.kind === 'polygon' ? 1 : 1 + 0.2 * b.r);
-  return w;
+let bwMax = 0, bwBelow = -Infinity;
+const weighBlocker = (b: Blocker) => {
+  // a roof below the sight line hides nothing (E2-6; blockers without a known top — the hero's — always count)
+  if (b.top !== undefined && b.top < bwBelow) return;
+  const w = b.kind === 'polygon' ? 1 : 1 + 0.2 * b.r;
+  if (w > bwMax) bwMax = w;
+};
+/**
+ * Weight of the static blocker at (x, z): buildings 1, round colliders (towers, kiosks, palms) 1 + 0.2 r; one whose
+ * known top (Blocker.top: city buildings, landmarks) is below `below` does not count. No allocation.
+ */
+function blockWeight(x: number, z: number, below = -Infinity): number {
+  bwMax = 0; bwBelow = below;
+  forEachBlockerNear(x, z, 0.25, weighBlocker);
+  return bwMax;
+}
+
+/**
+ * The line from the player's chest up to a follow camera `dist` away at that zoom's pitch, as world y at horizontal
+ * distance d from the player: `sightY0 + sightK·d` (set by sightLine). A roof under it does not hide the player.
+ */
+let sightY0 = 0, sightK = 0;
+function sightLine(x: number, z: number, dist: number) {
+  const p = basePitch(dist), rise = 0.13 * dist + Math.sin(p) * dist;
+  sightY0 = heightAt(x, z) + FOCUS_Y;
+  sightK = rise / Math.max(1, Math.cos(p) * dist);
 }
 
 /** How much mass sits between the player at (x, z) and a camera at yaw (plus a wall right in front of the player). */
 function occlusion(x: number, z: number, yaw: number, dist: number): number {
   const dx = Math.sin(yaw), dz = Math.cos(yaw), reach = Math.min(dist * 0.9, 16);
+  sightLine(x, z, dist);
+  const y0 = sightY0, k = sightK;
   let hits = 0;
-  for (let d = 1.2; d <= reach; d += 1.2) { const w = blockWeight(x + dx * d, z + dz * d); if (w) hits += w * (1 + (reach - d) * 0.15); }
-  for (let d = 1.5; d <= 7.5; d += 1.5) { const w = blockWeight(x - dx * d, z - dz * d); if (w) hits += w * (0.5 + (7.5 - d) * 0.08); }
+  for (let d = 1.2; d <= reach; d += 1.2) { const w = blockWeight(x + dx * d, z + dz * d, y0 + k * d - 0.3); if (w) hits += w * (1 + (reach - d) * 0.15); }
+  // (in front of the player: anything taller than a low wall blocks the view past them)
+  for (let d = 1.5; d <= 7.5; d += 1.5) { const w = blockWeight(x - dx * d, z - dz * d, y0 - FOCUS_Y + 1.5); if (w) hits += w * (0.5 + (7.5 - d) * 0.08); }
   return hits + (heroClear(x, z, yaw, dist) ? 0 : 6);
 }
 
 /** Mass between the player at (x, z) and a camera at yaw (camera side only, for the auto-turn). */
 function occlusionBehind(x: number, z: number, yaw: number, dist: number): number {
   const dx = Math.sin(yaw), dz = Math.cos(yaw), reach = Math.min(dist * 0.9, 16);
+  sightLine(x, z, dist);
+  const y0 = sightY0, k = sightK;
   let hits = 0;
-  for (let d = 1.2; d <= reach; d += 1.2) { const w = blockWeight(x + dx * d, z + dz * d); if (w) hits += w * (1 + (reach - d) * 0.15); }
+  for (let d = 1.2; d <= reach; d += 1.2) { const w = blockWeight(x + dx * d, z + dz * d, y0 + k * d - 0.3); if (w) hits += w * (1 + (reach - d) * 0.15); }
   return hits + (heroClear(x, z, yaw, dist) ? 0 : 6);
 }
 
@@ -184,26 +266,47 @@ function segmentBlocked(ax: number, az: number, bx: number, bz: number, skipEnd 
   return hits;
 }
 
-/** Best orbit yaw at (x, z): the zone's preferred view, else out over the Bay, never from behind a building or hero. */
+/**
+ * Best orbit yaw at (x, z): the zone's preferred view, else toward the view (the hero slab: out over the Bay; the city:
+ * the openness field, actors/viewField.ts), never from behind a building or hero.
+ */
 export function chooseYaw(x: number, z: number, fallback: number, dist: number): number {
   const zone = zoneAt(x, z, null);
-  if (zone && occlusionBehind(x, z, zone.yaw, dist) < 2) return zone.yaw;
-  const f = frameAt(stationOf({ x, z }).st);
-  const bay = Math.atan2(-f.nx, -f.nz); // camera on the city side, looking toward the water
-  const candidates = [bay, fallback];
-  for (let k = 1; k <= 6; k++) candidates.push(bay + k * 0.5, bay - k * 0.5);
-  let best = bay, bestScore = Infinity;
-  candidates.forEach((yaw, i) => {
-    const score = occlusion(x, z, yaw, dist) * 3 + i * 0.12;
-    if (score < bestScore) { bestScore = score; best = yaw; }
-  });
+  if (zone) {
+    zone.frame?.(heightAt);
+    if (occlusionBehind(x, z, zone.yaw, dist) < 2) return zone.yaw;
+    // a landmark's zone (city): the clearest yaw near its view keeps the subject in frame (CS-10: it used to lose to
+    // the occlusion rule and the camera turned away from City Hall / the rotunda)
+    if (zone.near) {
+      let best = zone.yaw, bestScore = Infinity;
+      for (let k = -4; k <= 4; k++) {
+        const yaw = zone.yaw + (k / 4) * zone.near;
+        const score = occlusionBehind(x, z, yaw, dist) * 3 + Math.abs(k) * 0.75;
+        if (score < bestScore) { bestScore = score; best = yaw; }
+      }
+      if (bestScore < 9) return best;
+    }
+  }
+  let best = fallback, bestScore = Infinity;
+  for (const c of yawCandidates(x, z, fallback, dist)) if (c.score < bestScore) { bestScore = c.score; best = c.yaw; }
   return best;
 }
 
+/**
+ * The yaws chooseYaw weighs when no zone view applies, with their occlusion and score (lowest wins): toward the view
+ * first, the fallback second, then ±0.5 rad steps round the view. Exported for tests / QA.
+ */
+export function yawCandidates(x: number, z: number, fallback: number, dist: number): { yaw: number; occ: number; score: number }[] {
+  const bay = preferredCameraYaw(x, z); // camera on the far side, looking along the view past the player
+  const candidates = [bay, fallback];
+  for (let k = 1; k <= 6; k++) candidates.push(bay + k * 0.5, bay - k * 0.5);
+  return candidates.map((yaw, i) => { const occ = occlusion(x, z, yaw, dist); return { yaw, occ, score: occ * 3 + i * 0.12 }; });
+}
+
 function zoneAt(x: number, z: number, current: ZoneView | null): ZoneView | null {
-  if (current && Math.hypot(current.x - x, current.z - z) < 14) return current;
-  let best: ZoneView | null = null, bestD = 10;
-  for (const v of zoneViews()) { const d = Math.hypot(v.x - x, v.z - z); if (d < bestD) { bestD = d; best = v; } }
+  if (current && Math.hypot(current.x - x, current.z - z) < (current.r ?? 10) + 4) return current;
+  let best: ZoneView | null = null, bestD = Infinity;
+  for (const v of zoneViews()) { const d = Math.hypot(v.x - x, v.z - z); if (d < (v.r ?? 10) && d < bestD) { bestD = d; best = v; } }
   return best;
 }
 
@@ -469,11 +572,15 @@ export class CameraController {
         this.pitchS = this.effectivePitch(false);
         this.distS = this.zoneDistance(false);
       }
+      // city: that yaw was chosen before the ground there streamed in (?at=, resume, a teleport) — look again as it does
+      this.roofCut = true;
+      if (cityTerrain()) { this.settleUntil = now + SETTLE_S; this.settleEpoch = cityEpoch(); this.settleAt = now; this.settleX = vx; this.settleZ = vz; }
       this.placed = true;
       this.blendT = 1;
       this.returnT = 1;
     }
     else smoothDamp(this.focus, want, this.focusVel, reduced ? 0.08 : 0.2, dt);
+    if (this.settleUntil > now) this.settleCheck(now, idleMs, !!cam.shot || photo || talking, reduced);
 
     // --- follow pose
     const riding = !!rideMode;
@@ -501,6 +608,7 @@ export class CameraController {
       this.rideCam.reset();
       fp.target.set(this.focus.x, this.focus.y + lookUp, this.focus.z);
       fp.pos.set(fp.target.x + offX, fp.target.y + offY, fp.target.z + offZ);
+      this.roofLiftStep(fp.target, fp.pos, dt);
       this.avoidTerrain(fp.target, fp.pos, dt);
       fp.fov = baseFov + RUN_FOV * this.runW;
       fp.cover = 0;
@@ -559,7 +667,8 @@ export class CameraController {
     const shot = cam.shot;
     if (shot && shot !== this.shotRef) {
       this.shotRef = shot;
-      this.shotKind = cinemaKind();
+      // (G1's fast travel sets its shots directly: its descent ends behind the player facing the destination)
+      this.shotKind = cinemaKind() ?? (s.move.mode === 'travel' && s.worldMode === 'city' ? 'travel' : null);
       this.shotFrom.pos.copy(this.initializedPose ? this.pos : resolved.pos);
       this.shotFrom.target.copy(this.initializedPose ? this.target : resolved.target);
       this.shotTo.pos.set(shot.position[0], shot.position[1], shot.position[2]);
@@ -575,7 +684,7 @@ export class CameraController {
       this.returnDur = reduced ? 0.3 : 0.95;
       this.returnFrom.pos.copy(this.pos);
       this.returnFrom.target.copy(this.target);
-      if (this.shotKind === 'arrival') {
+      if (this.shotKind === 'arrival' || this.shotKind === 'travel') {
         // adopt the closing shot's heading so the hand-off is a gentle push-in, not a swing
         const dx = this.pos.x - this.target.x, dz = this.pos.z - this.target.z;
         if (Math.hypot(dx, dz) > 1) this.yaw = this.yawS = Math.atan2(dx, dz);
@@ -668,12 +777,13 @@ export class CameraController {
     const zone = off ? this.zone : zoneAt(view.x, view.z, this.zone);
     if (zone !== this.zone) {
       if (zone) {
+        zone.frame?.(heightAt);
         this.zoneZoomed = false;
         this.zoneIdleSince = 0;
         // (b) entering after ≥ 10 s away: a gentle, non-locking turn toward the zone's view
         if (now - this.zoneLeftAt > 10 && idleMs > 2500 && !game.get().dialogue.nodeId) {
           const reduced = game.get().settings.reducedMotion;
-          this.startAssist(this.heroSafe(view.x, view.z, zone.yaw), now, reduced ? 6 : 1.2);
+          this.startAssist(zone.near ? this.clearYawNear(view.x, view.z, zone.yaw, zone.near) : this.heroSafe(view.x, view.z, zone.yaw), now, reduced ? 6 : 1.2);
         }
       } else this.zoneLeftAt = now;
       this.zone = zone;
@@ -684,7 +794,9 @@ export class CameraController {
     // (c) idle in the zone for 3 s: a weak bias toward its view
     if (zone && !p.moving) { if (!this.zoneIdleSince) this.zoneIdleSince = now; }
     else this.zoneIdleSince = 0;
-    if (zone && this.zoneIdleSince && now - this.zoneIdleSince > 3 && idleMs > 2500 && this.assist === null && !game.get().dialogue.nodeId) {
+    // (a city landmark zone: only from outside its search width — inside it the clear yaw it chose stands)
+    const settled = !!zone?.near && Math.abs(wrap(zone.yaw - this.yaw)) < zone.near;
+    if (zone && !settled && this.zoneIdleSince && now - this.zoneIdleSince > 3 && idleMs > 2500 && this.assist === null && !game.get().dialogue.nodeId) {
       this.yaw += wrap(zone.yaw - this.yaw) * Math.min(1, dt * 0.3);
     }
   }
@@ -704,6 +816,31 @@ export class CameraController {
   private talkEndedAt = -100;
   private occlSince = 0;
   private occlCheckAt = 0;
+  // the arrival look-again (city, E2-6)
+  private settleUntil = 0;
+  private settleEpoch = -1;
+  private settleAt = 0;
+  private settleCheckAt = 0;
+  private settleX = 0;
+  private settleZ = 0;
+
+  /**
+   * City arrivals (?at=, resume, a teleport): the snap chose the yaw before the chunks there were resident (no roofs,
+   * rough heights). Every 0.5 s while chunks keep attaching (cityEpoch), the player stands where they arrived and nobody
+   * touched the camera, choose again and turn there (a zone's landmark view, a clear street).
+   */
+  private settleCheck(now: number, idleMs: number, busy: boolean, reduced: boolean) {
+    const p = runtime.player;
+    const touched = idleMs < (now - this.settleAt) * 1000;
+    if (busy || touched || p.moving || Math.hypot(view.x - this.settleX, view.z - this.settleZ) > 2) { this.settleUntil = 0; return; }
+    if (now < this.settleCheckAt) return;
+    this.settleCheckAt = now + 0.5;
+    const e = cityEpoch();
+    if (e === this.settleEpoch) return;
+    this.settleEpoch = e;
+    const yaw = chooseYaw(view.x, view.z, p.heading + Math.PI, this.distance);
+    if (Math.abs(wrap(yaw - (this.assist ?? this.yaw))) > 0.3) this.startAssist(yaw, now, reduced ? 6 : 2, true);
+  }
 
   private assists(now: number, talking: boolean, idleMs: number) {
     const p = runtime.player, g = runtime.guide;
@@ -739,7 +876,10 @@ export class CameraController {
       if (occ > 2.5) {
         if (!this.occlSince) this.occlSince = now;
         if (now - this.occlSince > 0.6) {
-          const best = this.clearYaw(view.x, view.z, this.yaw, true);
+          // a landmark's zone (city): only within its search width, the subject stays in frame (the dither thins what
+          // is left in between)
+          const z = this.zone && this.zone.near && this.zoneW > 0.5 ? this.zone : null;
+          const best = z ? this.clearYawNear(view.x, view.z, z.yaw, z.near!) : this.clearYaw(view.x, view.z, this.yaw, true);
           if (occlusionBehind(view.x, view.z, best, this.distance) < occ * 0.5) this.startAssist(best, now, reduced ? 6 : 1.0);
           this.occlSince = 0;
         }
@@ -783,6 +923,17 @@ export class CameraController {
       return;
     }
     moveBasis.yaw = this.yawS;
+  }
+
+  /** The clearest yaw within ±`near` of `centre` (a city landmark zone's view). */
+  private clearYawNear(x: number, z: number, centre: number, near: number): number {
+    let best = centre, bestScore = Infinity;
+    for (let k = -4; k <= 4; k++) {
+      const yaw = centre + (k / 4) * near;
+      const score = occlusionBehind(x, z, yaw, this.distance) * 3 + Math.abs(k) * 0.75;
+      if (score < bestScore) { bestScore = score; best = yaw; }
+    }
+    return best;
   }
 
   /** The yaw nearest to `want` whose view of (x, z) is not blocked by buildings / heroes (wide: search further). */
@@ -1009,6 +1160,42 @@ export class CameraController {
     if (c.y < floor) c.y = floor;
   }
 
+  /**
+   * City (E2-6, CS-10): lift the follow camera over the roofs the ray from the focus would pass below (Blocker.top:
+   * city buildings and landmarks) — the diorama view down onto a narrow Sunset or Mission street instead of a camera
+   * among the roofs. Only buildings ≥ 35 % of the way out count (next to the player the dither and the occlusion turn
+   * handle it), at most ROOF_LIFT_MAX of the distance; rises fast, settles slowly. District mode and the hero slab's
+   * blockers carry no tops: nothing changes there.
+   */
+  private roofLiftStep(target: THREE.Vector3, pos: THREE.Vector3, dt: number) {
+    let need = 0;
+    if (cityTerrain()) {
+      const dx = pos.x - target.x, dy = pos.y - target.y, dz = pos.z - target.z, L = Math.hypot(dx, dz);
+      const n = Math.ceil(L / 0.8);
+      for (let i = Math.ceil(n * 0.35); i <= n; i++) {
+        const f = i / n;
+        roofTopMax = -Infinity;
+        forEachBlockerNear(target.x + dx * f, target.z + dz * f, 0.4, roofMax);
+        if (roofTopMax === -Infinity) continue;
+        const clear = roofTopMax + ROOF_CLEAR;
+        if (target.y + dy * f < clear) need = Math.max(need, (clear - target.y) / f - dy);
+      }
+      // the camera itself between two houses (the ray clear down the gap): above their roofs too
+      roofTopMax = -Infinity;
+      forEachBlockerNear(pos.x, pos.z, 1.8, roofMax);
+      if (roofTopMax > -Infinity) need = Math.max(need, roofTopMax + ROOF_CLEAR - pos.y);
+      need = Math.min(need, L * ROOF_LIFT_MAX);
+    }
+    const k = this.roofCut ? 1 : need > this.roofLift ? 1 - Math.exp(-8 * dt) : 1 - Math.exp(-1.5 * dt);
+    this.roofCut = false;
+    this.roofLift += (need - this.roofLift) * k;
+    if (this.roofLift < 1e-3) { this.roofLift = 0; return; }
+    pos.y += this.roofLift;
+  }
+  private roofLift = 0;
+  /** a cut (teleport): the next roof lift applies at once */
+  private roofCut = false;
+
   /** Raise the camera when Telegraph Hill (or any terrain) would sit between it and the player. */
   private avoidTerrain(target: THREE.Vector3, pos: THREE.Vector3, dt: number) {
     let need = 0;
@@ -1091,11 +1278,12 @@ function rideSubject(mode: RideCamMode, now: number): import('./cameraModes').Ri
     const plat = transitPlatform()!;
     const seated = runtime.move.spot === 'seat';
     if (plat.id !== 'streetcar') {
-      // a city line (cable car): the side the camera already looks in from, kept for the ride; the rider hangs off the
-      // running board on that side (lane F railMirror) and the rig pulls in before a building (occlude)
+      // a city line (cable car): the side toward the view (actors/viewField, E2-5: as the F-line's water side), chosen
+      // when the ride starts and kept for it; the rider hangs off the running board on that side (lane F railMirror)
+      // and the rig pulls in before a building (occlude)
       if (transitSide.id !== plat.id || now - transitSide.t > 1) {
-        const cam = runtime.camera;
-        transitSide.side = toLocal(plat, p.x + Math.sin(cam.yaw) * 10, p.z + Math.cos(cam.yaw) * 10).x >= 0 ? 1 : -1;
+        const dir = preferredViewDir(p.x, p.z);
+        transitSide.side = toLocal(plat, p.x + Math.sin(dir) * 10, p.z + Math.cos(dir) * 10).x >= 0 ? 1 : -1;
         transitSide.id = plat.id;
       }
       transitSide.t = now;
@@ -1109,6 +1297,9 @@ function rideSubject(mode: RideCamMode, now: number): import('./cameraModes').Ri
     rideCamInfo.side = side;
     return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side, seated };
   }
-  // sit: over the shoulder toward the view the bench faces
-  return { mode, x: view.x, y: view.y + 0.3, z: view.z, heading: p.heading, speed: 0, gradeAhead: 0 };
+  // sit: over the shoulder toward the view the bench faces (city: turned up to 0.6 rad toward the view field's
+  // direction, E2-5 — a street bench faces the kerb, the Bay may be off to one side)
+  let h = p.heading;
+  if (!heroView(view.x, view.z)) { const d = wrap(preferredViewDir(view.x, view.z) - h); if (Math.abs(d) < 2) h += clamp(d, -0.6, 0.6); }
+  return { mode, x: view.x, y: view.y + 0.3, z: view.z, heading: h, speed: 0, gradeAhead: 0 };
 }

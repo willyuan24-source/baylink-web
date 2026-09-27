@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { blockersNear, heightAt, inWorld } from '../core/terrain';
+import { forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/terrain';
 
 /**
  * Camera rigs per movement mode (plan §6.8). actors/camera.ts keeps the on-foot rig (zoom-coupled pitch, zone views,
@@ -60,6 +60,7 @@ export class RideCamera {
   private mode: RideCamMode | null = null;
   private pos = new THREE.Vector3();
   private last = new THREE.Vector3();
+  private want = new THREE.Vector3();
   private pull = 99;
   private lastDragAt = -99;
   private fov = 44;
@@ -131,21 +132,20 @@ export class RideCamera {
     const fx = Math.sin(sub.heading), fz = Math.cos(sub.heading);
     out.target.set(sub.x + fx * ahead, sub.y + lookUp, sub.z + fz * ahead);
     const cp = Math.cos(pitch);
-    const want = new THREE.Vector3(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist + (sub.mode === 'glide' ? 1.5 : 0), sub.z + Math.cos(yaw) * cp * dist);
+    const want = this.want.set(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist + (sub.mode === 'glide' ? 1.5 : 0), sub.z + Math.cos(yaw) * cp * dist);
     // occlusion: pull in in front of a building (≥ 4 u; the glide to the hit − 1.2)
     const hit = this.occluded(sub, want, dist);
     const pullTo = hit === null ? dist : Math.max(sub.mode === 'glide' ? 3 : MIN_PULL, hit - (sub.mode === 'glide' ? 1.2 : 0.6));
     this.pull += (pullTo - this.pull) * (pullTo < this.pull ? 1 - Math.exp(-14 * dt) : 1 - Math.exp(-1.5 * dt));
     const d = Math.min(dist, this.pull);
     if (d < dist) want.lerpVectors(out.target, want, d / dist);
-    // carried by the subject's delta (no lag with speed), then eased toward the ideal spot
-    const subject = new THREE.Vector3(sub.x, sub.y, sub.z);
+    // carried by the subject's delta (no lag with speed), then eased toward the ideal spot (no allocation per frame)
     if (fresh) this.pos.copy(want);
     else {
-      this.pos.add(subject.clone().sub(this.last));
+      this.pos.x += sub.x - this.last.x; this.pos.y += sub.y - this.last.y; this.pos.z += sub.z - this.last.z;
       this.pos.lerp(want, 1 - Math.exp(-rate * dt));
     }
-    this.last.copy(subject);
+    this.last.set(sub.x, sub.y, sub.z);
     this.fov += (fov + baseFovDelta - this.fov) * (fresh ? 1 : 1 - Math.exp(-3 * dt));
     out.pos.copy(this.pos);
     out.fov = this.fov;
@@ -160,11 +160,19 @@ export class RideCamera {
       const k = i / n;
       const x = tx + (want.x - tx) * k, z = tz + (want.z - tz) * k, y = ty + (want.y - ty) * k;
       if (!inWorld(x, z)) continue;
-      // a building below the ray does not block it (roofs are not known: assume 18 u over the ground here)
-      if (y > heightAt(x, z) + 18) continue;
-      const b = blockersNear(x, z, 0.35);
-      if (b.some(o => o.kind === 'polygon' || o.r > 1)) return dist * k;
+      // a building below the ray does not block it: its known top (Blocker.top, city buildings and landmarks, E2-6), else
+      // an assumed 18 u over the ground here (the hero's blockers carry no roof heights)
+      rayY = y; rayGround = heightAt(x, z); hitB = false;
+      forEachBlockerNear(x, z, 0.35, blocksRay);
+      if (hitB) return dist * k;
     }
     return null;
   }
 }
+
+// (the ray sample the blocker test reads: module state instead of a closure per sample)
+let rayY = 0, rayGround = 0, hitB = false;
+const blocksRay = (o: Blocker) => {
+  if (hitB || !(o.kind === 'polygon' || o.r > 1)) return;
+  hitB = o.top !== undefined ? rayY <= o.top + 0.3 : rayY <= rayGround + 18;
+};

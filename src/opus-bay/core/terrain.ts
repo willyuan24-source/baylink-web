@@ -391,6 +391,30 @@ export function blockersNear(x: number, z: number, r: number): Blocker[] {
   return out;
 }
 
+/**
+ * blockersNear without allocating (lane E2, E2-6 / E2-7: the camera occlusion and the glide query blockers many times
+ * a frame): calls `fn` for every blocker whose shape intersects the disc, hero hash first, then the city (the same set
+ * blockersNear returns). Re-entrant (fn may query again).
+ */
+export function forEachBlockerNear(x: number, z: number, r: number, fn: (b: Blocker) => void): void {
+  const h = CH?.hash ?? blockerHash();
+  const start = FE_SCRATCH.length;
+  h.near(x, z, r + 0.01, FE_SCRATCH);
+  const end = FE_SCRATCH.length;
+  for (let k = start; k < end; k++) { const b = h.items[FE_SCRATCH[k]]; if (overlaps(b, x, z, r)) fn(b); }
+  FE_SCRATCH.length = start;
+  if (CITY === null) return;
+  // (the city callback reads the query from a reused frame stack: no closure per call)
+  const f = FE_STACK[FE_DEPTH] ?? (FE_STACK[FE_DEPTH] = { fn, x, z, r });
+  f.fn = fn; f.x = x; f.z = z; f.r = r;
+  FE_DEPTH++;
+  try { CITY.forEachBlockerNear(x, z, r + 0.01, feCity); } finally { FE_DEPTH--; }
+}
+const FE_SCRATCH: number[] = [];
+const FE_STACK: { fn: (b: Blocker) => void; x: number; z: number; r: number }[] = [];
+let FE_DEPTH = 0;
+const feCity = (b: Blocker) => { const f = FE_STACK[FE_DEPTH - 1]; if (overlaps(b, f.x, f.z, f.r)) f.fn(b); };
+
 /** Push a disc out of static blockers (a few relaxation passes). Returns the corrected position. */
 export function pushOutOfBlockers(x: number, z: number, r: number): Vec2 {
   let px = x, pz = z;

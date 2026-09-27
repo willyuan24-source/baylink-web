@@ -4,12 +4,19 @@ import * as THREE from 'three';
 import { onEvent, type GameEvent } from '../src/opus-bay/core/events';
 import { runtime } from '../src/opus-bay/core/runtime';
 import { game } from '../src/opus-bay/core/store';
-import { canStand, groundPending, heightAt, nearestWalkable, setCityTerrain, standAt, surfaceAt } from '../src/opus-bay/core/terrain';
+import { canStand, forEachBlockerNear, groundPending, heightAt, isWater, nearestWalkable, setCityTerrain, standAt, surfaceAt } from '../src/opus-bay/core/terrain';
 import { createCityTerrain, landmarkWalkInputs, type CityTerrainProvider } from '../src/opus-bay/core/sfTerrain';
 import { GRAPH_EDGE } from '../src/opus-bay/world/sf/format';
 import { findGraphPath, polylineLength, type WalkGraphIndex } from '../src/opus-bay/core/walkGraph';
-import { DISTRICT } from '../src/opus-bay/data/district';
+import { DISTRICT, frameAt, stationOf } from '../src/opus-bay/data/district';
+import { project } from '../src/opus-bay/core/geo';
 import { SF_LANDMARKS, landmarkToWorld, sfLandmark } from '../src/opus-bay/world/sf/landmarks/index';
+import { sfLandmarkAnchor } from '../src/opus-bay/world/sf/landmarks/context';
+import { CameraController, chooseYaw, heroPoints, loadCityViews, yawCandidates, zoneViews } from '../src/opus-bay/actors/camera';
+import { RideCamera } from '../src/opus-bay/actors/cameraModes';
+import { zoneFrame } from '../src/opus-bay/actors/cityViews';
+import { VIEW_DIRS, VIEW_EYE, bestDir, preferredCameraYaw, preferredViewDir, resetViewField, viewScores, type ViewWorld } from '../src/opus-bay/actors/viewField';
+import { view } from '../src/opus-bay/actors/view';
 import { PlayerController } from '../src/opus-bay/actors/controller';
 import { GuideMover } from '../src/opus-bay/actors/guide';
 import { arrivalSpot, graphNodeFilter, setWalkGraph } from '../src/opus-bay/actors/nav';
@@ -524,4 +531,135 @@ test('save v2 fleet hooks: snapshot of the last-ridden bike, validated restore (
     moveApi.restoreFleet({ bike: { id: other.id, x: cx, z: cz, heading: 0 } });
     assert.ok(poseCheck(TERRAIN_WORLD, other.sim.spec, other.sim.x, other.sim.z, other.sim.heading).ok, 'wherever it is, it fits');
   } finally { moveApi.bindMoveApi(null); ms.dispose(); }
+});
+
+// ---------------------------------------------------------------------------
+// Wave 3, part b: the view field (E2-5) and the city camera (E2-6)
+// ---------------------------------------------------------------------------
+
+const flatWorld = (o: Partial<ViewWorld> = {}): ViewWorld => ({ heightAt: () => 0, inWorld: () => true, isWater: () => false, roofNear: () => -Infinity, ...o });
+const dirOf = (k: number) => (k / VIEW_DIRS) * Math.PI * 2;
+const angleGap = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+
+test('E2-5 view field: water draws the eye, higher ground and roofs over the eye line push it away; the hero rule is unchanged', () => {
+  // open water to the west (x < −40): the view points west
+  const west = bestDir(viewScores(0, 0, flatWorld({ isWater: x => x < -40 })));
+  assert.ok(angleGap(dirOf(west), -Math.PI / 2) < 0.45, `water west → ${dirOf(west).toFixed(2)}`);
+  // a slope rising toward +z: look down it (−z)
+  const down = bestDir(viewScores(0, 0, flatWorld({ heightAt: (_x, z) => z * 0.3 })));
+  assert.ok(angleGap(dirOf(down), Math.PI) < 0.45, `downhill → ${dirOf(down).toFixed(2)}`);
+  // tall roofs everywhere east of x = 10: never look east
+  const s = viewScores(0, 0, flatWorld({ roofNear: x => (x > 10 ? VIEW_EYE + 12 : -Infinity) }));
+  assert.ok(Math.sin(dirOf(bestDir(s))) < 0.5, 'not into the roofs');
+  assert.ok(s[4] < s[12] - 1, `east ${s[4].toFixed(2)} < west ${s[12].toFixed(2)}`);
+  // a roof below the eye line does not count
+  const low = viewScores(0, 0, flatWorld({ roofNear: x => (x > 10 ? VIEW_EYE - 1 : -Infinity) }));
+  assert.ok(Math.abs(low[4] - low[12]) < 1e-6, 'a low roof is no block');
+  // district: exactly today's rule (out over the Bay along the promenade normal)
+  for (const a of ['ferry-clock', 'coit-view', 'pier14-end', 'levis-plaza']) {
+    const p = DISTRICT.anchors[a];
+    const f = frameAt(stationOf(p).st);
+    assert.equal(preferredViewDir(p.x, p.z), Math.atan2(f.nx, f.nz), a);
+    assert.equal(preferredCameraYaw(p.x, p.z), Math.atan2(-f.nx, -f.nz), a);
+  }
+});
+
+test('E2-5 view field in the city: downhill from Twin Peaks, the ocean at Ocean Beach, the Bay from Russian Hill and the Marina; cached per 16 u cell', async () => {
+  const tp = sfLandmarkAnchor('twin-peaks')!, ob = project(37.7599, -122.5095), rh = project(37.8021, -122.4187), mg = project(37.8065, -122.443);
+  await cityAround([tp, ob, rh, mg], 130);
+  resetViewField();
+  try {
+    const along = (p: { x: number; z: number }, r: number) => { const d = preferredViewDir(p.x, p.z); return { x: p.x + Math.sin(d) * r, z: p.z + Math.cos(d) * r }; };
+    const t48 = along(tp, 48);
+    assert.ok(heightAt(t48.x, t48.z) < heightAt(tp.x, tp.z) - 8, `Twin Peaks looks downhill (${heightAt(t48.x, t48.z).toFixed(1)} vs ${heightAt(tp.x, tp.z).toFixed(1)})`);
+    for (const [name, p] of [['Ocean Beach', ob], ['the Marina', mg]] as const) { const w = along(p, 96); assert.ok(isWater(w.x, w.z), `${name} looks at the water`); }
+    const r48 = along(rh, 48);
+    assert.ok(heightAt(r48.x, r48.z) < heightAt(rh.x, rh.z) - 8, 'Russian Hill looks down toward the Bay');
+    // the same 16 u cell answers the same; the camera yaw is the view turned round
+    assert.equal(preferredViewDir(rh.x + 0.3, rh.z + 0.2), preferredViewDir(rh.x, rh.z));
+    assert.ok(angleGap(preferredCameraYaw(rh.x, rh.z), preferredViewDir(rh.x, rh.z) + Math.PI) < 1e-9);
+    const t0 = performance.now();
+    for (let i = 0; i < 1000; i++) preferredViewDir(rh.x, rh.z);
+    assert.ok(performance.now() - t0 < 50, 'a cached cell is cheap');
+  } finally { setCityTerrain(null); resetViewField(); }
+});
+
+test('E2-6 hero points and zone views: district keeps its 3 + 7, the city adds Salesforce, the bridge towers, Sutro and one view per landmark arrival', async () => {
+  game.set({ worldMode: 'district' });
+  assert.deepEqual(heroPoints().map(h => h.id).sort(), ['coit-tower', 'ferry-clock-tower', 'transamerica']);
+  const districtZones = zoneViews().length;
+  assert.ok(zoneViews().every(z => !z.anchor.startsWith('lm-')));
+  game.set({ worldMode: 'city' });
+  try {
+    await loadCityViews();
+    const ids = heroPoints().map(h => h.id);
+    for (const id of ['coit-tower', 'ferry-clock-tower', 'transamerica', 'salesforce-tower', 'ggb-tower-s', 'ggb-tower-n', 'sutro-tower']) assert.ok(ids.includes(id), id);
+    const zones = zoneViews();
+    assert.ok(zones.length > districtZones + 15, `${zones.length} zones`);
+    for (const id of ['city-hall', 'palace-of-fine-arts', 'lombard-crooked-street', 'golden-gate-bridge']) {
+      const z = zones.find(v => v.anchor === `lm-${id}`);
+      const at = sfLandmarkAnchor(id)!;
+      assert.ok(z && Math.hypot(z.x - at.x, z.z - at.z) < 1e-9 && z.near && z.frame, id);
+    }
+    assert.ok(!zones.some(v => v.anchor === 'lm-twin-peaks' || v.anchor === 'lm-sutro-tower'), 'no zone for an overlook or the foot of a tower');
+    // the framing solver: a tall subject close by pulls the camera back and looks up; a low one keeps 15 u
+    const tall = zoneFrame(9, 12.5, 0.12, 16), low = zoneFrame(3, 6, 0.1, 4.5);
+    assert.ok(tall.dist >= 18 && tall.lookUp > 0, JSON.stringify(tall));
+    assert.equal(low.dist, 15);
+  } finally { game.set({ worldMode: 'district' }); }
+  assert.equal(heroPoints().length, 3, 'back in the district');
+});
+
+test('E2-6 chooseYaw in the city: the City Hall arrival faces the dome; occlusion ignores roofs below the sight line', async () => {
+  const at = sfLandmarkAnchor('city-hall')!, hall = sfLandmark('city-hall')!;
+  const spot = project(37.7609, -122.435);
+  await cityAround([at, spot], 120);
+  game.set({ worldMode: 'city' });
+  try {
+    await loadCityViews();
+    const yaw = chooseYaw(at.x, at.z, 0, 15);
+    // the camera behind the player, the dome ahead: the view (camera → player) points at the landmark
+    const toHall = Math.atan2(hall.x - at.x, hall.z - at.z);
+    assert.ok(angleGap(yaw + Math.PI, toHall) < 0.75, `yaw ${yaw.toFixed(2)} vs dome ${toHall.toFixed(2)}`);
+    // occlusion: push every roof round a Castro street spot below the sight line → nothing much hides the player
+    const walk = nearestWalkable(spot, 10)!;
+    const before = yawCandidates(walk.x, walk.z, 0, 15);
+    assert.ok(before.some(c => c.occ > 0), 'a street between house rows has occluded yaws');
+    const touched: [{ top?: number }, number | undefined][] = [];
+    forEachBlockerNear(walk.x, walk.z, 20, b => { touched.push([b, b.top]); if (b.top !== undefined) b.top = heightAt(walk.x, walk.z) + 0.5; });
+    try {
+      const flat = yawCandidates(walk.x, walk.z, 0, 15);
+      for (let i = 0; i < flat.length; i++) assert.ok(flat[i].occ <= before[i].occ, 'never more');
+      assert.ok(flat.reduce((a, c) => a + c.occ, 0) < before.reduce((a, c) => a + c.occ, 0) * 0.5, 'low roofs hide much less');
+    } finally { for (const [b, t] of touched) b.top = t; }
+  } finally { setCityTerrain(null); game.set({ worldMode: 'district' }); }
+});
+
+test('E2-6 follow camera on a narrow city street: over the roofs round it, not among them; the ride rig allocates nothing per frame', async () => {
+  const spot = project(37.7536, -122.4862);
+  await cityAround([spot], 120);
+  game.set({ worldMode: 'city', phase: 'playing' });
+  const walk = nearestWalkable(spot, 20)!;
+  try {
+    resetPlayer(walk);
+    Object.assign(view, { x: walk.x, y: heightAt(walk.x, walk.z), z: walk.z, ground: heightAt(walk.x, walk.z), vx: 0, vz: 0, ready: true });
+    const cam = new THREE.PerspectiveCamera(42, 1440 / 900, 0.5, 4000);
+    const rig = new CameraController();
+    for (let i = 0; i < 90; i++) rig.update(cam, DT, i * DT, 900, 1440);
+    // no house round the camera reaches above it
+    let top = -Infinity;
+    forEachBlockerNear(cam.position.x, cam.position.z, 1.8, b => { if (b.top !== undefined) top = Math.max(top, b.top); });
+    assert.ok(top === -Infinity || cam.position.y >= top + 1, `camera y ${cam.position.y.toFixed(1)} vs roofs ${top.toFixed(1)}`);
+    rig.dispose();
+    // the ride rig reuses its vectors (E2-6: no per-frame allocation)
+    const rc = new RideCamera();
+    const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 44 };
+    const sub = { mode: 'bike' as const, x: walk.x, y: heightAt(walk.x, walk.z) + 1, z: walk.z, heading: 0, speed: 3, gradeAhead: 0 };
+    rc.update(sub, DT, 0, pose);
+    let made = 0;
+    const clone = THREE.Vector3.prototype.clone;
+    THREE.Vector3.prototype.clone = function (this: THREE.Vector3) { made++; return clone.call(this); };
+    try { for (let i = 1; i < 30; i++) rc.update({ ...sub, z: sub.z + i * 0.05 }, DT, i * DT, pose); } finally { THREE.Vector3.prototype.clone = clone; }
+    assert.equal(made, 0, 'no clone() per frame');
+  } finally { setCityTerrain(null); game.set({ worldMode: 'district', phase: 'title' }); }
 });
