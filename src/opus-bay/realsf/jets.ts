@@ -34,8 +34,9 @@ import { atMinute } from './todayRows';
  *   - six toy jets (four at quality mid / low, i.e. phones) in blue-and-gold toy paint, no insignia, no logos, no
  *     lettering, flying one closed spline loop in formation over the water off Crissy Field, Marina Green and Aquatic
  *     Park: a low pass along the shore, a climbing turn over the top, the far line back and a banked turn home. The
- *     path is over open water, ≥ 20 u above everything, ≥ 150 u from the bridge towers and Alcatraz (tests), so nothing
- *     can collide; the position follows the Bay clock, so every player sees the same pass at the same minute.
+ *     path is over open water, ≥ 5 u over the water and ≥ 12 u over the running ferry's loop (the low pass flies 7–12 u
+ *     up), ≥ 150 u from the bridge towers and Alcatraz (tests/opus-bay-w5-jets.test.ts), so nothing can collide; the
+ *     position follows the Bay clock, so every player sees the same pass at the same minute.
  *   - one smoke-ribbon mesh (a white trail behind each jet, tapering to nothing).
  *   - ≤ 2 draw calls and ≤ 2.5k triangles: the jets are ONE InstancedMesh on a toy material keyed like TOY_INST (no new
  *     program), the smoke one plain Mesh on its own transparent basic material (the one new program), both warmed

@@ -633,3 +633,145 @@ The mid-wave checkpoint listed no findings for lane R, so the shoulds started ri
    tide's spray) and any low tide at Lands End (the wrecks).
 7. **Site editors (via the lead)**: the 2026 Día de los Muertos date when the organisers post it (the row then unhides with its
    date and source).
+
+## Review
+
+Adversarial review of lane R's wave-5 work (W5-R1 … R8, parts a–c), written 2026-09-28 (PDT) in the lane's worktree after
+rebasing on `origin/opus-bay`. Read: the twelve W5-R commits, every file under `realsf/`, the lane's changes to
+`game/qa.ts`, `data/{catalog,links}.ts`, `ui/{WeekPanel,EventCardBody}.tsx`, `ui/event-go.css`, the export scripts, the five
+test files, plan §1, §2, §3.3, §4.1–4.3, §4.13, §4.14, §6, the lead note and the owner's feedback.
+
+### 给主人的摘要
+
+1. 旧金山"联动现实"这条线整体可用：活动出现在真实场地、"今天"页、今日三件小事、舰队周飞机、潮汐和万圣节，我都在真实游戏里试过，桌面和手机都正常；重新上网核对了 20 多条事实，基本都对。
+2. 修了 7 个问题：日出日落时间原来会早 1 分钟（现在和美国海军天文台一致，例如万圣节日落 18:12）；过了午夜 BAYBAY 会念昨天的三件小事、重复说"都做完啦"和"纪念章收好啦"；你走远后她还会说"飞机编队来啦"；拍飞机时镜头太低，飞机总被切在画面最上沿（现在在画面上方三分之一）；万圣节那行写了来源里没有的话；手机上传单的"带我去"太小不好点。
+3. 还有几件在别的线的文件里，写在下面的请求里（例如右上角的目标胶囊还不能直接打开"今天"页）。
+
+### What I did in the real game (dev server 5510, headless Chrome `--force_high_performance_gpu`, every image read)
+
+- **HSB, desktop, `?date=2026-10-03T10:30`, Hellman Hollow**: `presence()` = HSB open, the music kit (520 triangles) built,
+  the crowd pinned, BAYBAY's line on screen (Golden Gate Park has the bluegrass festival today (free), 9:00–19:00 …), the
+  souvenir paid on arrival (coins 0 → 15). Calls 72, triangles 195k, programs 91 on that view.
+- **Jets, phone 390 × 844 dpr 3, quality mid, `?date=2026-10-09T12:40`, Marina Green**: `jets()` = up, built, 4 jets,
+  1,096 triangles, 15 soft boxes; the daily three's event task paid by walking onto the lawn; the formation and its smoke
+  in the sky over the water.
+- **Warm-up**: loaded at 11:59 at Marina Green; the jets came up at 12:00 in place and the program count stayed
+  **92 → 92** (6 jets, 1,644 triangles). The smoke and toy programs were linked before the show.
+- **Jets photo, desktop**: 拍飞机编队 (the interactable's `act`) opened photo mode facing the formation; one Space shot paid
+  `event:fleet-week-2026-jets` (coins 25 → 40). Before the fix the formation sat clipped at the top edge
+  (`r6-jets-photo-mode-desktop.jpg`); after it, the formation flies across the frame's upper third
+  (`review-jets-photo-pitch-desktop.jpg`).
+- **今天 tab**: desktop zh at YBG on 10-03 10:30 (19 带我去 buttons: the goal, the daily three, today's rows, the week, the
+  guides); tapping the Hellman Hollow row's 带我去 closed the Journal and started lane N's trip (`flow.trip` set,
+  BAYBAY 带路中, 下一站 金门公园 Hellman Hollow). Phone zh on 10-31 17:20 at the Painted Ladies: 日落 18:12 (was 18:11),
+  the fixed Halloween note, the renamed fire-ring task (`review-today-sunset-1812-phone.jpg`,
+  `review-today-halloween-phone.jpg`). The tab bar fits on a phone in Chinese; in English it overlaps (see Open).
+- **District mode** is not changed by lane R: `bayTimeOfDay` keeps the fixed bands there, the venue hooks are never
+  registered (no 带我去, no HowToGo, `eventsNear` unchanged), and `event-go.css`'s `.ob-flyer { position: relative }` moves
+  nothing (the flyer's only positioned children sit inside its button). The contracts and district tests pass.
+
+### Facts re-checked on the web (2026-09-28)
+
+| fact in the game | source | result |
+|---|---|---|
+| Japanese Tea Garden free Mon / Wed / Fri 9–10 am; last entry 5:30 pm Mar–Oct, 4:30 pm Nov–Feb | https://gggp.org/visit/admissions-hours/ | correct |
+| Conservatory of Flowers free on the first Tuesday, closed Wednesdays, 10–4:30 (last entry 4) | same | correct |
+| the Conservatory's light show "Photosynthesis" 30 min after sunset, about 30 min, free | same | correct |
+| Botanical Garden free daily 7:30–9, the 2nd Tuesday, Thanksgiving, Christmas, New Year's Day | same | correct |
+| Ferry Plaza Farmers Market Tue & Thu 10–2, Sat 8–2 | https://foodwise.org/markets/ferry-plaza-farmers-market/ | correct |
+| Ocean Beach fires March–October, curfew 9:30 pm | https://www.nps.gov/articles/ocean-beach-fire-program.htm | correct |
+| Hardly Strictly 2026: Oct 2–4, gates 11 am Fri / 9 am Sat–Sun, music ends 7 pm, Hellman Hollow, Lindley & Marx meadows | https://hardlystrictlybluegrass.com/info-faq-2026/ | correct |
+| Fleet Week air show Oct 9–11, 12–4 pm, between the Golden Gate Bridge and Alcatraz; Marina Green festival centre, free | https://fleetweeksf.org/air-show/ | correct |
+| Castro Street Fair Sun Oct 4, 11 am–6 pm | https://www.sfmta.com/travel-updates/castro-street-fair-sunday-october-4-2026 | correct |
+| King tides Nov 24–26, Dec 23–25, 2026, Jan 21–22, 2027 | https://www.coastal.ca.gov/kingtides/ | correct |
+| tides.json on Nov 24–26 (all eleven highs and lows) | NOAA CO-OPS API, station 9414290, MLLW | identical (times to the minute, heights to 0.01 ft) |
+| new moon Oct 10 15:50 UT; full moon Oct 26 04:12 UT (the evening of Oct 25 in SF) | https://aa.usno.navy.mil/api/moon/phases/date?date=2026-09-01&nump=12 | correct |
+| Nov 2: sunrise 06:36, sunset 17:10, civil 06:09 / 17:37 | https://aa.usno.navy.mil/api/rstt/oneday (37.7749, −122.4194) | the maths is right; the **display truncated** (17:09, 06:08, 17:36): fixed |
+| N Judah 24 h; 10 min weekday, 12 weekend, late night 20 | https://www.sfmta.com/routes/n-judah | correct |
+| F Market & Wharves 7 am–12 am; 20 / 12 / 12 | https://www.sfmta.com/routes/f-market-wharves | correct |
+| M Ocean View 6 am–12 am; weekday 10, weekend 15 / 12 / 10 | https://www.sfmta.com/routes/m-ocean-view | correct |
+| Powell–Hyde 7 am–11 pm; weekday 20 / 10 / 7 / 20, weekend 20 / 9 / 12 / 20 | https://www.sfmta.com/routes/powell-hyde-cable-car | correct |
+| Powell–Mason weekday 10 / – / 12 / 20, weekend 10 / 10 / 10 / 20 | https://www.sfmta.com/routes/powell-mason-cable-car | correct (a first summary of the page misread its columns; the table read again matches the code) |
+| California cable car 7 am–9 pm; 20 / 10 / 10 | https://www.sfmta.com/routes/california-cable-car | correct |
+| Cable Car Museum free; Tue–Thu 10–4, Fri–Sun 10–5, closed Monday | https://www.cablecarmuseum.org/info.html | correct (live.json) |
+| Randall Museum free, Tue–Sat 10–5 | https://randallmuseum.org/faqs/ | correct |
+| Museo Italo Americano free on Thursdays (12–4) and the first Sunday (10–2) | https://sfmuseo.org/ | correct |
+| Asian Art Museum free on the first Sunday, open 10–5 | https://about.asianart.org/ticketing/ | correct |
+| the Frank H. Buck (1937) and Lyman Stewart (1922): engines visible at low tide | https://oceanservice.noaa.gov/news/oct14/shipwrecks.html | correct |
+| Halloween: Waller St, Scott to Steiner, decorated houses | https://localnewsmatters.org/2025/10/27/skeletons-fangs-lost-souls-heres-where-to-find-sfs-best-halloween-decorated-homes/ | the source names Waller St's decorations, **not** the pumpkins on the Painted Ladies' stoops the note claimed: fixed |
+
+### Defects found and fixed (pushed: `99eb2585`, `1ed4462f`; the comment fix with this report)
+
+1. **Sun times a minute early** (`realsf/sun.ts`). `bayHm` truncates seconds; of the 56 USNO times in the lane's own test
+   table only 29 matched to the minute (Halloween's sunset showed 18:11 for USNO's 18:12, Dec 21 dusk 17:23 for 17:24).
+   New `sunHm` / `roundMinute` round as the almanacs do: 55 of 56 match, and every sunrise and sunset does. Used by BAYBAY's
+   sunset line, the SF Today line, the tab's 日出 / 日落, the light show's start and the daily sunset task's hours.
+2. **Lines that outlived their day.** The daily three kept its lines for the whole session: after midnight BAYBAY named
+   *yesterday's* three (the intro was never rebuilt) and said 今天的三件小事都做完啦！ again on a day with nothing done (the
+   scheduler's memory had rolled over). The event souvenir line (…纪念章收好啦！) waited across midnight the same way and was
+   said the next day with no stamp. Both now drop their waiting lines on a new Bay day.
+3. **飞机编队来啦！打开拍照… latched** (`realsf/jets.ts`). `nearLine` was set once within 400 u and never cleared: if a panel
+   or photo mode held the line back and the player then flew away, BAYBAY said it across the city; on the next show day it
+   was offered at the first tick wherever the player stood. It is now offered only while the formation is within 400 u, and
+   the photo line forgets a past day.
+4. **The jets photo framed** (`realsf/jets.ts`). Lane F landed `faceCameraToward(x, z, { pitch })` (W5-F6, this lane's
+   request 3); 拍飞机编队 now passes a nearly level pitch, so the formation is in the frame instead of clipped at its top
+   edge. The stamp still pays on the first shot (checked in the game).
+5. **Per-frame garbage.** `poseAt` built a closure per call (≈ 160 calls a frame during the show: 6 jets and 156 smoke
+   samples); the king-tide spray built ≈ 100 small arrays a frame. Both now write straight into their buffers.
+6. **The once-a-day memory dropped a malformed key** (`realsf/lines.ts`): an event id the catalog spelled with `_` or `.`
+   would never be remembered, and the scheduler would say that line every 20 s. It is now remembered for the page (only
+   well-formed keys are saved). Today's 104 catalog ids are all well formed, so this was latent.
+7. **Words.** The Halloween note says only what its source says (Waller 街（Scott 到 Steiner）有很多人家做万圣节装饰 ·
+   通常如此); the fire-ring task reads 去海洋海滩的篝火圈看看 (the toy rings glow only after dusk, and "看篝火" promised flames
+   at 10 am); 现在不开 → 现在停运 on 现实中怎么去; the jets' header comment said the loop flies ≥ 20 u above everything (the
+   low pass flies at 7–12 u; the tests hold ≥ 5 u over the water and ≥ 12 u over the ferry).
+
+Also: a teardown while the eggs chunk loads no longer wires the Wave Organ afterwards; the flyer's 带我去 chip keeps its
+look and gets a ≈ 40 px tap area (it drew ≈ 21 px tall on a phone); DEV `__opusRealSF.offered()` lists the line keys on
+offer. Tests: `tests/opus-bay-w5-r-review.test.ts` (5), all five red on the previous code and green now;
+`tests/opus-bay-w5-calendar.test.ts` follows the 现在停运 wording.
+
+### Checked and sound
+
+- Budgets as reported: kits ≤ 520 triangles, at most 2, none downtown; jets 2 calls, 1,644 / 1,096 triangles; pumpkins,
+  spray and wrecks one call each. Every new material is its own instance with a warm-up (`r-event-kit`, `r-jets`,
+  `r-jets-smoke`, `r-pumpkins`, `r-tide-spray`, `r-wrecks`), and the jets appearing linked no program (92 → 92).
+- Teardown: every `init*` returns an `off` that removes its frame system, sources, flags, crowds, meshes, loops, warm-ups
+  and materials.
+- Economy: every reward goes through lane E's ledger by source (`event:<id>`, `event:fleet-week-2026-jets`,
+  `daily:<date>:1..3`, `:all`); a second visit, a second shutter or a second completion pays nothing; nothing spends coins.
+  `?date=` (which could farm the daily three date by date) works only in DEV / QA builds.
+- No third-party fetch: the game reads only `/opus-bay/sf/<version>/{tides,live}.json` and the catalog (test and grep).
+- zh lines ≤ 45 characters (tests over every event, the daily lines, the jets, the calendar).
+
+### Open (other lanes' files, or not worth the risk now)
+
+- **E · `economy/today.ts`** prints the notebook's sunset with `bayHm(sunTimes(now).sunset)`: use `sunHm` from
+  `realsf/sun.ts` (one word), or it stays a minute early.
+- **F · `ui/Hud.tsx`**: the E prompt resolves the focused interactable only when the focus changes, so a label that changes
+  in place goes stale: standing at Marina Green at 12:00 the prompt still read 看看飞行表演 after the jets were up (pressing
+  E did the right thing: photo mode). Re-read it on `interactablesEpoch`. Still open from part b: the objective pill →
+  `openJournal('today')` in city mode.
+- **C · `ui/Journal.tsx`**: still open from part b, J / 旅行本 opening on 今天 in city mode. In English on a 390 px phone the
+  six tab labels run into each other (Today 1/3Notebook, Postcards 0/24Goals); Chinese fits.
+- **F · `ui/Overlay.tsx` `useTimeOfDay`** does not re-run when `worldMode` changes: after a switch to the city the sky can
+  keep the district band for up to a minute.
+- Unchanged from the lane's own list: kits have no walk blockers; no person has heard the loops or the roar; the jets are
+  not in lane V's gate table; if the catalog arrives after a failed load the daily three are dealt again (sources go by
+  index, so a done slot may show a different task — never more than the three payments and `:all`).
+
+### Process
+
+- **I broke the PERF-LOCK rule once**: at about 13:57 PDT one phone screenshot (≈ 45 s of headless Chrome) ran while lane
+  V's W5-V11 part-c gate held `PERF-LOCK` (my check printed the lock but did not stop the command). I told the lead at once;
+  any fps lane V measured in that minute should be re-run. No Chrome ran after that.
+- No third-party call carried any personal data; web checks went only through the search and fetch tools.
+- npx tsc, tsx and eslint all worked; nothing in `node_modules` was touched. The dev server on 5510 is stopped.
+
+### Checks
+
+- Code head `1ed4462f` (after three rebases onto a moving upstream): `npx tsc -p tsconfig.app.json --noEmit` 0 errors;
+  `npx eslint .` 0 errors (43 old warnings outside `src/opus-bay`); the full suite
+  `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1300 / 1300** on that exact tree before its push
+  (earlier runs: 1267 / 1267 and 1298 / 1298 on the previous bases).
