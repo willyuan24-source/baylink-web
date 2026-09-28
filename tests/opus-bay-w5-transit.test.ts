@@ -1288,3 +1288,14 @@ test('W5-T7 plaza pigeons: in city mode the flock flies to the plaza nearest the
     });
   } finally { U.uCam.value.copy(prevCam); game.set({ phase: 'title' } as never); runtime.player.running = false; }
 });
+
+test('W5-T7 the station rows and lane R\'s 现实中怎么去 rows read the same SFMTA pages: same hours, same sources (two copies may not drift)', async () => {
+  const { LINE_SERVICE } = await import('../src/opus-bay/data/sf/serviceHours');
+  const { REAL_LINES } = await import('../src/opus-bay/realsf/transitReal');
+  for (const [id, s] of Object.entries(LINE_SERVICE)) {
+    const r = REAL_LINES[id];
+    assert.ok(r, `${id} in both`);
+    assert.deepEqual(s.span ? [...s.span] : null, r.hours ? [...r.hours] : null, `${id} hours`);
+    assert.equal(s.sourceUrl, r.sourceUrl, `${id} source`);
+  }
+});

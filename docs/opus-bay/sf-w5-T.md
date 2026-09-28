@@ -306,3 +306,200 @@ Blvd and the 直接到站 phone banner are in part a; the phone 4× gate is lane
 **Final checks** (the pushed tree `5e5cb20` + this report, rebased on `da331c9`: lane F's deck steering and lane V's lit nights came in): tsc 0 · eslint 0 errors · the suite **1139 / 1139** with the Bay clock pinned to 05:30 (the fire-ring tests above); the hashes after that rebase: W5-T4 follow-up `a5b4b8e`, W5-T5 follow-up `5e5cb20` (the lane step allocates nothing per frame).
 
 No relayed owner message arrived during this part. No Higgsfield credits used (no ledger rows).
+
+## Part c
+
+Written 2026-09-28 by lane T's implementer (worktree `wt/w5-t` → `opus-bay`). Part c = the mid-wave checkpoint's two
+lane-T findings first (**CP-3** 18 transit targets stuck, **CP-11** the loop bus held at the cable-car boxes and by the
+rider who just got off), then **W5-T7** (the three shoulds) and **W5-T8** (tests, shots, this report). Commits: `f1a8b71e`
+(CP-3), `26421691` (CP-11 + W5-T7 + the part-c tests) and the one carrying this section.
+
+### 给主人的摘要
+
+1. **检查点说的"下车就卡住"的车站修好了。** N 线、M 线有 17 个站牌以前立在两栋房子之间的窄缝里，坐车直接到站或飞过去就被困住；现在全部挪到了人行道上（按游戏里真实走路的测试来选位置）。实地走动测试：手机 17 个全过，电脑 16 个过（第 17 个是朱达街 34 大道，某个镜头方向只能走两个方向，但不会被困）。索萨利托渡轮码头本来就没开航线、游戏里去不了，不算卡点。
+2. **观光巴士不再在叮当车路口干等半分钟。** 以前在加州街尽头和海德街转盘最长要等 46 秒；现在叮当车看到巴士快到了会先让一让，已经在路口里的叮当车停站变短、转盘转得快，模拟 3 小时最长只等 14.7 秒。下车后你站在站牌旁边，巴士不会再因为你挡路停着不走（16 个站都测过）。
+3. **车站卡片多了"现实中的班次"。** 每条真实线路的运营时间和大约几分钟一班（9 月 28 日在 SFMTA 官网核对），按旧金山当地时间显示"现在有车 / 现在收车了"；游戏里的车一直开，不影响坐车。
+4. **晚上 11 点以后（加州街线 9 点以后）**，多出来的叮当车会趁你看不见时回车厂，每条线留一辆，照样能坐；早上 7 点再出来。
+5. **城里的广场有鸽子了。** 走近联合广场、唐人街花园角、华盛顿广场、渔人码头等，原来那群鸽子会飞过来落地啄食，一跑过去就扑棱飞走（不增加任何绘制）。全部测试通过；Higgsfield 花费 0。
+
+### What was built (files, API)
+
+**CP-3 · the stops you can walk away from** (`scripts/opus-sf/transit-sidecar.ts`, `public/opus-bay/sf/v1/transit.json`,
+`transit-w4.json`)
+
+- `--fix-props` (new sidecar mode): reads the published file, keeps every line **byte for byte** (checked before writing),
+  keeps every prop the sweep already passes, and stands the others again with the wave-4 placement (`placePole` /
+  `placeKiosk` / `placeOnStreet`: off the roadway where there is room, clear of buildings, furniture and every vehicle path)
+  plus the sweep's own judge as the acceptance.
+- `openJudge(points)` / `openPass(j, min, turned)` (exported): the city as the game streams it (the published chunks + the
+  landmark sites with their bases, exactly as `sweep-static.mts` builds it); a spot passes when a nav path from the walk
+  graph's main component ends within 1.1 u and the real `PlayerController`, pushed 1.5 s in four directions, moves ≥ 3.5 u
+  in 3 of 4 (`OPEN_MOVE`, `OPEN_DIRS`). A new spot is first asked to pass **for any camera** (the four directions turned by
+  0°, 22.5°, 45°, 67.5°, each set ≥ 4.2 u: `OPEN_MOVE_ANY`), else for 0° and 45°. The tests' bounds are part of the rule
+  (a surface pole 2.6–7.2 u from its track, a loop pole 1.6–7.2 u right of the bus, a kiosk < 34 u from the track and < 45 u
+  from the stop); a stop the sweep calls a CORRIDOR only moves within 8 u (a kiosk 200 m from its station would be worse).
+- Result: **26 props moved** — the 17 stuck N / M stops of CP-3 plus Carl & Cole, Carl & Hillway, Judah & 12th / 23rd / 31st /
+  46th, Eucalyptus, Broad & Capitol / Plymouth, San Jose & Lakeview, Chinatown · Union Square. Four corridors stay where
+  they were (nothing open within 8 u): the loop's Haight-Ashbury and Castro poles, the Church and Castro kiosks (two ways
+  off, never boxed).
+- Map arrivals, the E prompts, the pole meshes, 直接到站 and the station places all read the props, so they follow.
+
+**CP-11 · the bus at the boxes and after getting off** (`world/busSystem.ts`, `world/transitLine.ts`,
+`world/sf/lineInterlocks.ts`, `game/lineRides.ts`)
+
+- Cause (node sim of the loop with the cable cars, as `transitLayer.ts` wires them): the loop shares **70 u of California
+  St** with the cable cars down to their Drumm terminus and **43 u of Hyde St** with the Hyde St turntable; the bus waits
+  outside the whole shared part while any car is in it, and a car that started down there went to the terminus, reversed
+  or turned, and came back: 8 holds ≥ 6 s an hour, up to 46.3 s.
+- `BusSystem.boxDue(id, within)`: a bus not in the box, not standing at a stop, its nose within `within` u of the box.
+  `CableSystem.free()`: a car still outside a box's part leaves it to a bus due within `BOX_DUE` 160 u, for `YIELD_MAX` 20 s
+  at most (longer only while the bus is within 40 u); the car carrying or fetching the rider never yields, a dispatch
+  probe never yields, a car inside the part goes on. While a bus waits at the box: a car standing in the part cuts its
+  stop to `HURRY_DWELL` 1 s, and a car turning on the Hyde St turntable gets the push kept up (`HURRY_BOOST` = the turn in
+  ≈ 4.5 s instead of 9).
+- Off at a loop / Metro surface stop (`leaveSpot`): to the stop's pole when it stands within `POLE_STEP` 9 u of the vehicle,
+  pushed straight away from the line until it is `PATH_CLEAR` 2.3 u off it (`clearOfPath`, standable ground only); a hop-off
+  between stops keeps the beside-the-vehicle rule.
+- `BusSystem.onRoadAhead`: "someone in the bus's way" is now measured **along the track ahead** (1.5 u of it, 0.5 u steps
+  up to 18 u) instead of down a straight ray from the nose, which on a bend counted someone standing beside the road.
+
+**W5-T7 · the shoulds**
+
+- **Honest service rows** — `data/sf/serviceHours.ts` (new): `LINE_SERVICE` (the six real lines: span, midday headway,
+  `sourceUrl`, `verifiedAt`) and `serviceRow(line, { hour, minute })` → `{ text, running, state, sourceUrl, verifiedAt }`; the
+  loop (the game's own line) has none. `ui/serviceRows.tsx` (new) `ServiceRows({ lines })` renders them under lane N's
+  `StationActions` in `ui/StationPanel.tsx`: one row per line (colour dot, `海德线 7:00–23:00 · 约9–10分钟一班`,
+  `现在有车` / `现在收车了` by `bayParts()`), then `来源：SFMTA 线路页（2026-09-28 核对）· 游戏里的车一直开 · 出门前再查一下` (the middle part
+  only when a line is off). Styles in `ui/transit-ui.css` (`.ob-svc`). No link (a tap on a map link opened a new tab in the
+  checkpoint and backgrounded the game).
+- **The barn** — `CableOptions.realService(line)` (the transit layer passes `serviceRow(line, bayParts()).running`): once a
+  second, outside the real line's hours each line keeps one car out and sends one idle car at a time into the barn (standing
+  at a stop, no rider, not fetching one, **unseen**: not in view and ≥ 60 u from the player). A parked car (`CableCar.parked`)
+  is not stepped, drawn, counted in any block, box or road-vehicle list, and its `eta` is ∞. A rider's `request` brings the
+  line's parked cars out first (unseen, their stretch free) and the dispatch may place one; in the real hours they all come
+  back where they went in. `parkedCars()` for QA.
+- **Plaza pigeons** — `world/life.ts`: in city mode (`cullFar()`), every 2 s the district's flock of 8 pigeons (instances of
+  the gull mesh: **0 new calls, meshes or materials**) goes to the plaza nearest the player within `PIGEON_REACH` 120 u
+  (`PIGEON_PLAZAS`: Union Square, Hallidie Plaza, Portsmouth Square, Washington Square, Yerba Buena Gardens, Civic Center,
+  Ghirardelli Square, PIER 39, Harvey Milk Plaza; the Ferry Building plaza stays home) once every pigeon sits and the new
+  plaza is ≥ 45 u from the camera; they fly in from above and land on standable ground off the roadway (a 1.2–4.2 u ring),
+  and scatter when you run through as they do at home. District mode never moves them.
+
+### Evidence
+
+**Checks** — see the final line of this section.
+
+**CP-3**
+
+- Static sweep (lane F's `sweep-static.mts --only station`, city v1): before (the checkpoint's `static.json`) lane T 175
+  targets: ok 126 · CORRIDOR 30 · BOXED 7 · UNREACHABLE 11 · OFF 1; after: **ok 153 · CORRIDOR 21 · BOXED 0 ·
+  UNREACHABLE 0** · OFF 1 (Sausalito, below). The 21 corridors: the 4 named above, 9 cable-car kerbs and 8 F-line platforms
+  (a sidewalk between the houses and the rails the walk terrain keeps you off: two ways along it), unchanged since wave 4.
+- Live walker (`walker-sweep.mjs --only all`, dev server 5504, the 26 moved props): desktop 1440 × 900 **23 / 26 pass**
+  (fails: Judah & 34th [0.48, 6.47, 5.54, 2.15], and two old corridors, Chinatown · Union Square and Carl & Hillway);
+  phone 390 × 844 **24 / 26 pass** (fails: the same two old corridors). Of the 17 CP-3 stops: phone 17 / 17, desktop 16 / 17.
+  The first placements (the sweep's rule, then with the 45° set) passed 13 / 17 and 15 / 17 live; the live keys follow the camera (and turn the player
+  first), which is why new spots are now asked to pass for any camera with 4.2 u.
+- The Sausalito quay: `FERRY_ROUTES` `ferry-sausalito` is `running: false` (data only, "a later boat"); `ferryTerminal()` and
+  the ferry prompts skip it, no trip or place ends there. It is not a place the player can land (tested).
+- Shots: `qa/w5/T/c-cp3-judah-19th-desktop.jpg`, `c-cp3-judah-19th-phone.jpg` (the pole on the sidewalk by the N tracks,
+  坐 N 线; W moved 7 u, S back). The checkpoint's shot had the player on a building ledge there.
+
+**CP-11**
+
+- Node sim, the loop + the cable cars as the transit layer wires them, no F-line / traffic: **before** 8 holds ≥ 6 s in an
+  hour, max 46.3 s (California 23.7 / 32.9 / 25.1 / 46.3; Hyde St 38.1 / 22.8 / 31 / 13); **after**, 3 hours: 5 holds ≥ 6 s,
+  **max 14.7 s** (California 14 / 10.4 / 14.7, Hyde St 12.7 / 10.4); no overlaps (`violations()` empty); the longest a cable
+  car stood at a stop 36.5 s (a car leaving the box to a bus that stopped on the way).
+- Off at every loop stop (node sim with the game's crowd and toy traffic, all 16 legs, 30 s standing still after getting
+  off): **0 holds by the rider at all 16 stops**; Twin Peaks (the checkpoint's 12 s) 0; the Golden Gate Bridge stop was
+  held 22 s by the rider at its pole before the along-the-track check. The legs themselves: no stall over 5.1 s, the ETA
+  never unchanged more than 5 s.
+- In the game (desktop, 23:30 via `?date=`): after 30 s the three lines each had one car out and one in the barn
+  (`parked 3`); `ride('powell-hyde', 'powell-market', 'hyde-beach')` was served (the barn car came out, `parked 2`, ETA 139 s).
+
+**W5-T7**
+
+- Facts (read 2026-09-28 on each SFMTA route page): Powell–Hyde "7 a.m. - 11 p.m. daily", weekday midday 10 min, weekend 9
+  (https://www.sfmta.com/routes/powell-hyde-cable-car); Powell–Mason "7 a.m. - 11 p.m. daily", 12 / 10
+  (https://www.sfmta.com/routes/powell-mason-cable-car); California "7 a.m. - 9 p.m. daily", 10
+  (https://www.sfmta.com/routes/california-cable-car); F Market & Wharves "7 a.m. - 12 a.m. daily", 12
+  (https://www.sfmta.com/routes/f-market-wharves); N Judah "24 hours daily", 10, "Between subway hours and Owl service, use
+  the N Bus" (https://www.sfmta.com/routes/n-judah); M Ocean View "6 a.m. - 12 a.m. daily", 10
+  (https://www.sfmta.com/routes/m-ocean-view). SFMTA's older weekday frequency guide (effective June 17, 2023) still says
+  7–10 p.m. for the cable cars; the route pages are newer and win.
+- Shots: `c-t7-service-rows-desktop-2230.jpg` (Powell: N, M, 海德线, 梅森线, F all 现在有车), `c-t7-service-rows-phone-2330.jpg`
+  (phone 390 × 844 zh at 23:30: 海德线 / 梅森线 现在收车了, the rows fit), and California & Van Ness at 22:30 (加州街线 现在收车了,
+  scratch). `c-t7-pigeons-union-square-scatter.jpg` (desktop: the flock at Union Square round the Dewey column, bursting up as
+  the player runs in; `pigeonAt` = `union-square`, 8 perched → 2+ fleeing).
+- Tests (8 new in `tests/opus-bay-w5-transit.test.ts`, 32 in all): CP-11 the hour of loop + cable cars (≤ 15 s at a box,
+  ≤ 40 s a car, no overlap; red on the old code: 46 s); the yield / hurry / rider-never-yields rules; off at every loop stop
+  by the pole and clear of the path, the bus not held by someone beside the bend but held by someone on the road ahead;
+  CP-3 every loop / Metro pole and kiosk reached and walkable 3 of 4 (the four named corridors 2) + the Sausalito quay;
+  T7 the service rows (every source URL + date, hours at 22:30 / 23:05 / 05:30 / 07:00, the rendered card, zh ≤ 45); the
+  barn (one car out per line after hours, parked cars still, a rider served, all back at 7:00, no overlap); the pigeons
+  (fly to Union Square from 70 u, not under the camera, land, scatter on a run, no new mesh, stay put beyond 120 u,
+  district mode never); the station rows and lane R's `realsf/transitReal.ts` rows agree (same hours, same source per
+  line: two copies may not drift). `tests/opus-bay-sf-lines-int.test.ts`: the fake fleet gained `boxDue` (on purpose).
+
+### Decisions
+
+1. **Only the props the sweep fails move** (26 of 66), and a corridor only within 8 u: fewer surprises for lanes that pin
+   positions; the lines stay byte-identical (lane C's TOUR_GEO pins the stop points, not the props).
+2. **The sweep's judge is the placement rule** (same terrain, same controller) instead of the wave-4 flood fill, which let
+   a 2 u alley count as "joined to the street".
+3. **The bus gets the box first, the car never waits forever**: yielding is cheap for a background cable car (they stand at
+   stops anyway), the loop bus is where the rider usually is; the rider's own car never yields.
+4. **Off at a stop = by its pole**, pushed clear of the path, rather than 2.3 u beside the door: the poles are now all on open
+   ground, and people waiting at a stop is where you expect to stand.
+5. **The barn happens unseen** (no door animation, no new mesh): the owner sees fewer cars late at night, never a car
+   vanishing; one car per line always stays out so a ride is never "not available".
+6. **Service rows are facts with a date, not a promise**: the rows sit under the rides, say 出门前再查一下, and never change what
+   the game's cars do.
+7. **Pigeons move only where you are about to arrive** (≥ 45 u from the camera) and fly in; plaza centres are projected
+   from the squares' coordinates and land only on standable, non-road ground.
+
+### Known gaps
+
+- Judah & 34th failed one desktop live run in two camera directions (0.48 / 2.15 u) and passed on the phone; the live
+  walker's keys follow whatever the camera faces after the teleport, so a narrow sidewalk can pass one run and fail the
+  next. Chinatown · Union Square (loop) and Carl & Hillway (N) were corridors before and still fail the live walker in two
+  directions (two ways along the sidewalk stay open).
+- Four corridors stay (loop Haight-Ashbury and Castro poles, the Church and Castro kiosks); cable-car kerbs (9) and F-line
+  platforms (8) are corridors by the city's design (rails you do not walk on).
+- The California St shared part still holds a bus up to ≈ 15 s when a car has just left Drumm westbound (its trip through
+  70 u with two stops); only a different loop route would remove that.
+- One node alight run had the Ocean Beach windmill → Golden Gate Park leg at 100 s against a 78 s quote (1.28 ×; no stall
+  over 5 s, the toy traffic on the park roads); the lead's quiet-machine lap is the judge.
+- The barn is invisible (cars go in unseen); no barn door or "rolling in" animation.
+- A lane-A heave-ho on the Hyde St turntable while a bus waits at the box turns faster (the kept-up push).
+
+### Not done
+
+- Nothing of W5-T1–T8 is left open in code. The perf gate and fps numbers are lane V's and the lead's (no new call, mesh or
+  material in part c; `life.ts` grew by the pigeon move only).
+
+### Requests
+
+- **Lane F** (sweep tools): skip `FERRY_ROUTES` entries with `running: false` in `sweep-static.mts` (the Sausalito quay is data
+  for a later boat, never a landing). For the live walker, teleporting with the static sweep's open heading (or turning the
+  camera to it) before the four pushes would make runs repeatable; today the same spot can pass or fail with the camera.
+- **Lane N**: nothing to do — the station places, map arrivals and E prompts read `transit.json` props (26 moved). The
+  station card now shows `ServiceRows` under your `StationActions` (in lane T's `StationPanel`).
+- **Lane R**: your `realsf/transitReal.ts` (landed while I worked) and my `data/sf/serviceHours.ts` carry the same SFMTA facts
+  (same pages, same date, same hours); a test now fails if the two drift. At W5-Z one of them could import the other (the
+  lead's call: the station card lives in the map chunk and the barn rule in the transit chunk, both outside `realsf/`).
+- **Lane A**: while a loop bus waits at the Hyde St box, the turntable there gets a kept-up push (`HURRY_BOOST`, the turn in
+  ≈ 4.5 s); `turntableBeat()` still reads the turn's real progress.
+- **Lane V**: no new call, material or program; the pigeons reuse the gull instances. Please include one plaza view in a gate
+  run (Union Square with the flock) when convenient.
+- **The lead**: CP-3 and CP-11 are ready for re-check (the live walker on the moved stops, a loop lap past California &
+  Drumm); the SFMTA rows carry `verifiedAt` 2026-09-28 for the W5-Z re-check.
+
+**Final checks** (the pushed code `26421691`, rebased on `504b3da7`; this report adds one test): tsc 0 · eslint 0 errors (43 old
+warnings outside `src/opus-bay`) · the suite **1269 / 1269** on the pushed tree (1259 / 1259 on the first rebase; one run
+under load had `sf-move2` "E2-5 view field in the city", a wall-clock test, fail and pass alone) · vite build: GameRoot
+**300.06 kB gzip** (lane V's moves came in since part b's 303.96; part c adds only the pigeon move to the main graph),
+lineRides 10.74 kB, transitLayer 49.57 kB, CityMap 41.73 kB. In-game checks on dev server 5504 (stopped at the end), one
+headless Chrome at a time, no PERF-LOCK present; every image read. npx tsc / eslint / tsx all worked (no node_modules
+fallback needed). No relayed owner message arrived during this part. No Higgsfield credits used.
