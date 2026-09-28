@@ -764,3 +764,121 @@ riddles are paper, lane A's facts are spoken).
   "P1" asserts, sf-move2 "E2-5 … cached per 16 u cell", actors "A* … planned in 499 ms".
 - Higgsfield: **25.07 credits** in wave 5 (ledger `docs/opus-bay/ledger/w5-V.md`), balance 375.00 (never under 250).
 - The PERF-LOCK was held 20:34–21:30 UTC and removed; the dev servers on 5506 and 5516 are stopped.
+
+## Review
+
+Adversarial review of lane V's wave 5 (the 29 `W5-V*` commits from `1f7629b` to `cf5168de`), 2026-09-28 22:10–23:40 UTC,
+worktree `C:/Users/willy/wt/w5-v` rebased on `origin/opus-bay` (`cf5168de`: nothing new upstream), dev server 5506,
+scratch `C:/Users/willy/opus-qa/w5/w5-v/review/`.
+
+### 给主人的摘要
+
+1. V 线这一波做的东西在游戏里都能用：BAYBAY 的新录音跟着气泡播放、夜里金币会闪、海湾大桥的 Bay Lights、今晚真实的月相、远处街区的"远景版"、城市数据包（街区模式完全不下载）；电脑和手机（390×844）都实际看过，12 条现实事实上网复核全部对得上。
+2. 修了一个小问题：金门大桥雾笛彩蛋的明信片和城里那张"雾里的金门大桥"同名，手帐里会出现两张同名卡片；已改名"雾笛响起的时候"，大丽花那张改成"市花大丽花一百岁"，并加了测试防止以后重名。
+3. 还需要总负责人安排的：首屏包 GameRoot 仍是 300 KB（目标 265，剩下的在其他线的代码里）；手机 4 倍降速的帧数这次又被别的线的无头浏览器干扰，仍要安静机器复测；正式站的安全设置（CSP）和 /opus-bay 路由要改 vercel.json；鹈鹕解锁时 BAYBAY 那几句录音（C 线的 11 句）还没接上，仍然没有声音。
+
+### What was checked
+
+- **Every lane V commit read** with the code around it: the gate table and runner (`w4-perf.mjs`, `w5-spots.json`), the
+  warm-up helpers, the flag atlas and its shader mirror, `splitGeometryCells`, the waterfront residents' hide, the label
+  guard, the far hero tiles (`farHero.ts`, the streamer's tile swap, cross-fade and dispose), the signs atlas, the outer
+  lamps and residential glow, the glints, the voice inventory / table / binder, the secret postcards, `csp-serve.mjs`, the
+  clock default, the city data chunk (top-level await), the Bay Lights, the crown drift, tonight's moon, Karl by month.
+- **In the real game** (dev server, a fresh Chrome profile per run, every image read):
+  - phone 390 × 844 dpr 3 touch, city: a BAYBAY bubble with a recorded text emits `voice-line w5-a-b058d5c1` once; the
+    same text from a resident emits nothing; lane D's foghorn egg revealed → "The story & postcard" opens its secret
+    postcard (the name clash below was seen there); night at the Filbert Steps: 16 coin glints drawn, the light field
+    14,378 points, the crown drift on 240 hero vertices; night at the Ferry gate: the lamps and halos.
+  - phone, district mode at night: `uMoonPhase` −1, no `city-far#` chunk, no city streamer, no request for
+    `cityDataChunk` / `landmarks` / `voiceW5` / `signsAtlas`: the district is untouched.
+  - desktop 1440 × 900 high, city, `?date=2026-10-09T12:40`, at the Marina Green spot, a QA camera aimed at lane R's lead
+    jet six times as the formation loops: **max 91 calls · 235k triangles**, programs 59 → 59 (the gate's own Marina Green
+    view looks over the Marina roofs and never had the jets in frame; now measured with them).
+  - the label atlas in city mode: `used` 0.758, `overflow` 0 (the far detail's second `buildCity` draws no new label).
+- **Production build** (`vite build` into scratch, plus a `--sourcemap` build for the per-module breakdown): GameRoot
+  **299.98 KB gzip**, as reported; `cityDataChunk` 4.33 KB + `landmarks` 16.63 KB; GameRoot's
+  `await import("./cityDataChunk")` preloads exactly those two chunks and `landmarks` imports nothing, so no module is
+  shared with GameRoot (no deadlock). The moved postcard texts and photo table are byte-identical to `2bda42fb~1`. The
+  city worker's graph (an esbuild walk from `world/sf/worker.ts`: 17 modules) holds none of the city data modules.
+- **Budgets**: every desktop figure reported, and the jets view above, within 150 calls / 400k triangles; programs stable
+  (58 → 58 phone, 59 → 59 desktop). Every new material has its warm-up (`v-signs`; the far chunks, lamps, glints, Bay
+  Lights and crown reuse TOY, the lamp layer and the light field). The other lanes' registrations were checked against
+  their real meshes (the jets with their geometry's colour attribute, smoke, pumpkins, spray, wrecks, event kit): flags
+  and geometry match.
+- **Teardown and frames**: CrownDrift restores the vertex colours on dispose; the light field ignores its late economy
+  import after dispose; the binder unsubscribes on detach; the hero tiles go back to their near chunks. Per frame: the
+  tile test exits early (4 u / quality), the crown and glints run at ≤ 5 Hz (the glints build a ≤ 16-item list at 5 Hz,
+  harmless), the real sky once a minute. Lane V's code writes nothing to the economy (the glints only read `coinWorld`).
+- **Voice overlap**: no recorded wave-5 text (non-`own`) is also a wave-4 voiced line (`data/sf/lines.ts`,
+  `tourLines.ts`: 180 texts), so the binder never doubles `baybayLines`' own `voice-line`; lanes E, R and C's `own`
+  lines are skipped as designed. The longest recorded zh line is 35 characters (≤ 45).
+- **Higgsfield**: `balance` 375.00 now; the newest transactions are batch 4's TTS at 21:43–21:52 UTC: the ledger's 25.07
+  of 130 and 400.07 → 375.00 are right. Nothing spent in this review.
+
+**Facts re-checked on the web (2026-09-28):**
+
+| fact (where) | result | source |
+|---|---|---|
+| The Bay Lights returned Fri 20 Mar 2026 with 48,000 LEDs (lights.ts, the report) | ✓ | illuminate.org/projects/thebaylights/ ; illuminate.org/2026/02/19/the-bay-lights-to-return-friday-march-20-2026/ |
+| on the northern cable plane of the west span (`bayLights`) | ✓ (the 2026 strands add the plane's inward face, so they show from the south too; the dots are billboards, seen both ways) | illuminate.org/projects/thebaylights/ ; en.wikipedia.org/wiki/The_Bay_Lights |
+| lit from dusk to dawn (the light field at night) | ✓ | en.wikipedia.org/wiki/The_Bay_Lights |
+| Salesforce Tower crown: Jim Campbell's "Day for Night", 11,000 LEDs, low-resolution moving images (not copied) | ✓ | salesforcetower.com/artwork/ ; 7x7.com (Campbell installation) |
+| Moon, Oct 2026: new 10th, first quarter 18th, full 25th 21:12 PDT, last quarter 1 Nov (the five-date shot) | ✓ | astronomy.com full-moon calendar 2026 ; timeanddate.com moon phases |
+| Karl: July the foggiest, September–October the clearest (fog.ts with R's factor) | ✓ | sfbayweather.com/learn/when-does-sf-fog-peak ; sfbayweather.com/learn/best-time-to-visit-san-francisco-no-fog |
+| Ferry Plaza market Tue & Thu 10–14, Sat 8–14 (clock.ts) | ✓ | foodwise.org/markets/ferry-plaza-farmers-market/ |
+| The dahlia named SF's official flower on 4 Oct 1926, 100 in 2026 (secret postcard) | ✓ | kqed.org/news/12094987 ; dahliadell.org/history |
+| The Dahlia Dell lies east of the Conservatory of Flowers (postcard alt) | ✓ | dahliadell.org |
+| The wild parrots voted SF's official animal in 2023 (recorded line `w5-d-064b2e94`) | ✓ (June 2023) | sfchronicle.com (wild parrots official animal) ; hoodline.com 2023/06 |
+| The Wave Organ sounds best at high tide (postcard, recorded line) | ✓ | exploratorium.edu/visit/wave-organ ; en.wikipedia.org/wiki/Wave_Organ |
+| GGB foghorns: the south tower pier's long low tone, the two-toned mid-span horns (the "duet" postcard) | ✓ | goldengate.org foghorns page (lane D's source) ; parksconservancy.org fog facts |
+
+### Defects found and fixed
+
+1. **Two cards with one name** (`data/sf/eggPostcards.ts`, W5-V8). The foghorn egg's secret postcard was titled
+   雾里的金门大桥 / "The Golden Gate in the fog", the exact title of the city postcard `sf-golden-gate-fog`
+   (`data/sf/postcardCards.ts`). The 手帐's secret-postcard shelf (lane E) and the Journal's postcards (lane C) then named
+   two different pictures alike, and the egg card read "The foghorn duet · Secret postcard · The Golden Gate in the fog"
+   (seen on the phone). Renamed **雾笛响起的时候 / When the foghorns sound**. Its zh alt said 红色桥塔 where the en says
+   orange: now 橙红色. The dahlia card's 大丽花一百岁 / "The dahlia turns 100" read as the plant's age: now **市花大丽花一百岁 /
+   The city flower turns 100** (lane D's egg says 市花大丽花 100 岁). New test in `tests/opus-bay-w5-perf.test.ts`
+   ("W5-V-review: a secret postcard never shares its name …"): the six are named apart and never like any of the city's
+   16 art postcards or the district's 8, in zh and in en; red on the old titles, green now.
+
+No other defect in lane V's code survived verification: the far tiles, the residents' hide, the guard, the atlases, the
+lamps, the glints, the binder, the data chunk and the V10 shoulds behave as the report says, and district mode is
+unchanged (the sky shader is pixel-identical at `uMoonPhase` −1; the garden refactor and `splitGeometryCells` keep the
+district bytes: the hero regression is green). The report's claims checked above hold.
+
+### Open (not fixed here; owners named)
+
+1. **GameRoot 299.98 KB vs ≤ 265** (plan MF9 / D16). Lane V moved ≈ 21 KB; its remaining main-graph code is district code
+   (world/*, `actors/npcs.ts`, `warmup.ts`). The levers are other lanes' (part c Requests 1: F's city-only actor modules
+   ≈ 8 KB and vehicles 12.8 KB, C's `pois.ts` bodies / `script.ts` / residents ≈ 29 KB, N's city-only modules ≈ 7 KB):
+   the lead's call.
+2. **The phone fps gate is still unproven on this head.** My phone subset (PERF-LOCK held 22:55:45–23:01 UTC; 390 × 844
+   dpr 3, mid, 4× CPU; raw `C:/Users/willy/opus-qa/w5/w5-v/review/gate-phone/`) ran while lane F's `opus-walker` headless
+   Chrome (started 22:55:33 UTC, just before the lock) played the game in parallel: the fps are **void** (Ferry gate walk
+   38.6, Chinatown 35.4, Music Concourse idle 14.4 with 25 frames > 100 ms). Calls / triangles / programs are valid and
+   match lane V's: Ferry gate 85 · 272k, Chinatown 96 · 230k, Twin Peaks 81 · 211k, Music Concourse 70 · 169k, Ocean Beach
+   52 · 108k, the bus 53 · 164k; programs 58 → 58. The lead's quiet W5-Z run decides (part b's quiet run: Ferry gate 46.7).
+3. **`vercel.json`** (frozen): the CSP (`'wasm-unsafe-eval'`, `blob:` in connect-src) and an `/opus-bay` route, still open
+   from part b; confirmed: the route list ends with the SPA routes and the 404, with no `/opus-bay`.
+4. **The pelican moment is still silent**: lane C's 11 paced `w5c-*` clips are recorded, but `game/cityMoments.ts` reads
+   only `TOUR_VOICE_CLIPS` and `tests/opus-bay-w5-tours.test.ts` still pins `lineRecorded('w5c-pelican-ask') === false`
+   (lane C's files; part b / c request 4b).
+5. **The Marina Green gate spot** stands 18 u east of lane R's venue (`realsf/eventVenues.ts` −382.1, 300.7): the arrival
+   snaps it onto Retiro Way and its view is roofs, not the air show. The numbers with the jets in view are above
+   (91 · 235k); the runner can aim at the lead jet (`realsf/jets.ts jetPoses`) as this review did.
+6. **Risk note (no change)**: in city mode `data/sf/cityData.ts` awaits the data chunk while GameRoot evaluates, so a failed
+   request for `cityDataChunk` / `landmarks` now fails the whole city page (that text used to be inside GameRoot). A
+   fallback to `null` would run the city without its landmark cards and with 0 of its 16 art postcards, so the hard failure
+   stays (the same failure class as GameRoot's own chunk); named for the lead.
+7. Report wording (part c 摘要 2): "9–10 月最淡". Lane R's table has October and November as the clearest (0.35) and
+   September at 0.45; the game follows the table.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors · `npx eslint .`: 0 errors (43 old warnings).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: 1,331 / 1,331 on `cf5168de` before the fix;
+  **1,332 / 1,332** with it (the new review test included); **1,342 / 1,342** after the rebase on `5989563a` (lanes A and F).
+- The dev server on 5506 stopped at the end; the PERF-LOCK released at 23:01 UTC; no Higgsfield spend.
