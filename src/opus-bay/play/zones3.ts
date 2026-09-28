@@ -17,6 +17,7 @@ import { fireRingSeason } from '../realsf/seasons';
 import { registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { CREST_KEY, CREST_SPOTS, crestAt } from './crestSpots';
+import { CROOKED, crookedTop } from './crookedCourses';
 import { bestOf, currentActivity } from './kit';
 import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
 
@@ -31,6 +32,7 @@ import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch 
  *   frisbee.ts       问 BAYBAY → 玩飞盘 on a lawn or a beach
  *   ball.ts          问 BAYBAY → 玩沙滩球 on the sand
  *   sled.ts          滑草 offered standing on a lawn steeper than 1 in 4
+ *   crooked.ts       riding into the top of Lombard's or Vermont's crooked block: the gentle descent
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -190,6 +192,7 @@ export function initZones3(): () => void {
     if (i >= 0) void import('./crests').then(m => { m.crestHop(i); });
   }));
   let crestsOn = false, crestHintAt = -Infinity;
+  const walkFrom = new Map<string, number>();
   offs.push(() => { if (crestsOn) void import('./crests').then(m => { m.setCrestsNear(false); }); });
   let acc = 0;
   offs.push(registerFrameSystem('a-play-zones3', dt => {
@@ -218,6 +221,18 @@ export function initZones3(): () => void {
         && !interactables().some(it => it !== sledIt && it.source !== 'baybay' && it.id !== 'play:sit' && Math.hypot(p.x - it.x, p.z - it.z) < it.radius + 0.5);
       sledIt.x = on ? p.x : 1e7; sledIt.z = on ? p.z : 1e7;
       if (on) zonePrefetch('sled', () => import('./sled'));
+    }
+    // the crooked blocks: a rider coming into the top, going down, starts the gentle descent; on foot, top → bottom, the facts
+    for (const c of CROOKED) {
+      const t = crookedTop(c), b = c.line[c.line.length - 1];
+      if (runtime.move.mode === 'foot' && nearPlayer(t.x, t.z, 3)) walkFrom.set(c.id, runtime.time);
+      if (runtime.move.mode === 'foot' && nearPlayer(b.x, b.z, 2.5) && runtime.time - (walkFrom.get(c.id) ?? -1e9) < 120) { walkFrom.delete(c.id); void import('./crooked').then(m => { m.walkedDown(c.id); }); }
+    }
+    if (runtime.vehicle.occupied && !currentActivity()) for (const c of CROOKED) {
+      const t = crookedTop(c), n = c.line[Math.min(3, c.line.length - 1)], v = runtime.vehicle;
+      if (Math.hypot(v.x - t.x, v.z - t.z) < PREFETCH_R) zonePrefetch('crooked', () => import('./crooked'));
+      const dx = n.x - t.x, dz = n.z - t.z, L = Math.hypot(dx, dz) || 1;
+      if (Math.hypot(v.x - t.x, v.z - t.z) < 3 && (Math.sin(v.heading) * dx + Math.cos(v.heading) * dz) / L > 0.3) void import('./crooked').then(m => { m.startDescent(c.id); });
     }
     // the crests: the pennants while one is near (the crests chunk), BAYBAY's hint riding toward one not hopped yet
     const near = CREST_SPOTS.some(s => nearPlayer(s.x, s.z, CREST_NEAR));

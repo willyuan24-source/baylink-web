@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts', 'ball.ts', 'sled.ts'];
+  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts', 'ball.ts', 'sled.ts', 'crooked.ts'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1606,4 +1606,71 @@ test('W5-A9 grass sled: 滑草 offered on a lawn steeper than 1 in 4 (Dolores Pa
       for (const line of Object.values(S.SLED_LINES)) assert.ok([...line.zh].length <= 45);
     } finally { mock.timers.reset(); S.__resetSled(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
   } finally { T.setCityTerrain(null); }
+});
+
+test('W5-A9 crooked blocks: Lombard and Vermont on the published city (walkable, downhill), the gentle descent in a vehicle (the speed band, bumps, the card), on foot BAYBAY\'s facts and her verdict once both are done', async () => {
+  const CC = await import('../src/opus-bay/play/crookedCourses');
+  const CR = await import('../src/opus-bay/play/crooked');
+  const chip = await import('../src/opus-bay/play/chip');
+  for (const c of CC.CROOKED) {
+    await cityAround([CC.crookedTop(c)], 70);
+    try {
+      let bad = 0, n = 0;
+      for (let i = 1; i < c.line.length; i++) {
+        const a = c.line[i - 1], b = c.line[i], L = Math.hypot(b.x - a.x, b.z - a.z);
+        for (let s = 0; s < L; s += 0.4) { n++; if (!T.canStand(a.x + ((b.x - a.x) * s) / L, a.z + ((b.z - a.z) * s) / L, 0.3)) bad++; }
+      }
+      assert.ok(bad / n < 0.1, `${c.id}: ${bad} of ${n} samples not standable`);
+      const top = CC.crookedTop(c), bot = CC.crookedBottom(c);
+      assert.ok(T.heightAt(top.x, top.z) > T.heightAt(bot.x, bot.z) + 3, `${c.id}: downhill`);
+      assert.ok(CC.progressOn(c, top.x, top.z) < 0.02 && CC.progressOn(c, bot.x, bot.z) > 0.98);
+    } finally { T.setCityTerrain(null); }
+  }
+  assert.equal(CR.crookedTier(0, 0), 3);
+  assert.equal(CR.crookedTier(1, 1), 2);
+  assert.equal(CR.crookedTier(3, 0), 1);
+  for (const line of Object.values(CR.CROOKED_LINES)) assert.ok([...line.zh].length <= 45, line.zh);
+  playing();
+  stubBody();
+  kit.__resetKit();
+  const written: Record<string, number> = {};
+  kit.__setBestWriter((k, v) => { written[k] = v; });
+  CR.__resetDescent();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  const v = runtime.vehicle;
+  try {
+    // on foot, never; in the toy car, down the Lombard lane slowly with one bump: ◆
+    v.occupied = false;
+    assert.equal(CR.startDescent('lombard'), false);
+    const c = CC.CROOKED[0];
+    v.occupied = true; v.kind = 'car';
+    assert.equal(CR.startDescent('lombard'), true);
+    assert.equal(chip.chipState()?.id, 'crooked-lombard');
+    assert.ok(chip.chipState()?.meter);
+    for (let i = 0; i < c.line.length; i++) {
+      v.x = c.line[i].x; v.z = c.line[i].z; v.speed = 2.4;
+      if (i === 10) emit({ type: 'vehicle:bump', vehicle: 'car', strength: 0.2, hard: false, kind: 'wall' });
+      for (let k = 0; k < 8 && CR.descentState(); k++) stepFrameSystems(1 / 60, 0);
+    }
+    assert.equal(CR.descentState(), null);
+    let card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'crooked-lombard');
+    assert.equal(card.tier, 2);
+    assert.match(card.detail!.zh, /碰撞 1 次 · 超速 0\.0 秒$/);
+    assert.equal(written['crooked-lombard'], 1);
+    // too fast all the way, and off the lane: nothing
+    assert.equal(CR.startDescent('vermont'), true);
+    v.x = CC.CROOKED[1].line[2].x + 20; v.z = CC.CROOKED[1].line[2].z;
+    stepFrameSystems(1 / 60, 0);
+    assert.equal(CR.descentState(), null);
+    assert.equal(kit.lastResultShown(), card);
+    // on foot: Vermont walked after Lombard → the verdict
+    v.occupied = false;
+    flow.set({ bubble: null });
+    CR.walkedDown('vermont');
+    mock.timers.tick(1500);
+    assert.deepEqual(flow.get().bubble?.text, CR.CROOKED_LINES.verdict);
+    card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'crooked-lombard', 'no card on foot');
+  } finally { v.occupied = false; v.kind = null; v.speed = 0; mock.timers.reset(); CR.__resetDescent(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
 });
