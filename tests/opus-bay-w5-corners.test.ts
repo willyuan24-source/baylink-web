@@ -20,9 +20,10 @@ import { type SfLandmark, sfLandmark, worldToLandmark } from '../src/opus-bay/wo
 import type { SiteHooks } from '../src/opus-bay/world/sf/sites';
 import { sfDisk } from './opus-bay-sf-disk';
 
-// Wave 5 · lane L · the signature corners (W5-L4 corners 1–4, W5-L5 corners 5–8; plan §3.6 / §4.8 "w5-corners"): each
-// ≤ 2.5k triangles and ≤ 2 draw calls, in the outer city only, no text meshes, its coin cache standable, its crowd spots
-// on its site's plaza; the Bay-time windows switch the ambient.
+// Wave 5 · lane L · the signature corners (W5-L4 corners 1–4, W5-L5 corners 5–8, W5-L6 Chinatown; plan §3.6 / §4.8
+// "w5-corners"): each ≤ 2.5k triangles and ≤ 2 draw calls, in the outer city only (Chinatown within lane V's published
+// downtown headroom), no text meshes, its coin cache standable, its crowd spots on its site's plaza; the Bay-time windows
+// switch the ambient.
 
 type Site = SfLandmark & SiteHooks;
 const siteOf = (c: CornerDef) => sfLandmark(c.site) as Site;
@@ -38,8 +39,8 @@ const pip = (p: Vec2, poly: readonly Vec2[]) => {
   return inside;
 };
 
-test('W5-L4 / L5: the corners are the plan\'s, in order, each on its site (same frame) and mounted through it', () => {
-  assert.equal(CORNERS.length, 8, 'the eight corners of the plan');
+test('W5-L4 / L5 / L6: the corners are the plan\'s, in order, each on its site (same frame) and mounted through it', () => {
+  assert.equal(CORNERS.length, 9, 'the eight corners of the plan\'s table, then Chinatown (W5-L6)');
   CORNERS.forEach((c, i) => {
     assert.equal(c.order, i + 1, `${c.id} is row ${i + 1} of the plan's table`);
     const s = siteOf(c);
@@ -72,7 +73,15 @@ test('W5-L4 / L5: every corner stays within 2 draw calls and 2.5k triangles in e
   }
 });
 
-test('W5-L4 / L5: the corners are in the outer city — none reaches a downtown gate spot', () => {
+/**
+ * W5-L6: the downtown gate spots a corner may reach, with lane V's published headroom there (sf-w5-V.md part a, "The
+ * downtown headroom" after the levers, per view at quality high: Chinatown ≈ 50k, Union Square ≈ 45k, Powell & Market
+ * ≈ 15k, Grace / Nob Hill ≈ 60k, the Financial District ≈ 90k, calls ≥ 25; part b's gate: 37 calls and 128k of headroom
+ * at Chinatown). A corner is ≤ 2 calls and ≤ 2.5k triangles; the Ferry gate (≤ 1 call, ≤ 2k) is never reached.
+ */
+const DOWNTOWN_OK: Record<string, readonly string[]> = { chinatown: ['chinatown', 'union-square', 'grace-nob-hill', 'powell-market', 'fidi'] };
+
+test('W5-L4 / L5 / L6: the corners are in the outer city — none reaches a downtown gate spot but Chinatown\'s (lane V\'s published headroom)', () => {
   const spots = (JSON.parse(readFileSync(new URL('../scripts/opus-sf/qa/perf/w5-spots.json', import.meta.url), 'utf8')) as { spots: { id: string; go?: { x?: number; z?: number; anchor?: string } }[] }).spots;
   const at = (id: string): Vec2 => {
     const g = spots.find(s => s.id === id)!.go!;
@@ -85,9 +94,11 @@ test('W5-L4 / L5: the corners are in the outer city — none reaches a downtown 
     const pts = [{ x: x0, z: z0 }, { x: x1, z: z0 }, { x: x1, z: z1 }, { x: x0, z: z1 }].map(p => cornerToWorld(c, p));
     for (const d of DOWNTOWN) {
       const p = at(d), near = Math.min(...pts.map(q => Math.hypot(q.x - p.x, q.z - p.z)));
-      // the corner's meshes are drawn within CORNER_CULL of the camera (measured at the site's origin)
+      // the corner's meshes are drawn within CORNER_CULL of the camera (measured at the corner's middle)
+      if (DOWNTOWN_OK[c.id]?.includes(d)) continue;
       assert.ok(near > CORNER_CULL + 20, `${c.id}: ${near.toFixed(0)} u from the ${d} gate spot`);
     }
+    assert.ok(!DOWNTOWN_OK[c.id]?.includes('ferry-gate'), `${c.id}: never the Ferry gate`);
   }
 });
 
@@ -104,6 +115,10 @@ test('W5-L4 / L5: mounting builds the LOD, the Bay-time windows switch the crowd
         assert.ok(st, `${c.id}: mounted`);
         const lod = g.children.find(o => (o as THREE.LOD).isLOD) as THREE.LOD;
         assert.ok(lod && lod.levels.length === 2 && lod.levels[1].distance === CORNER_CULL, `${c.id}: one LOD culled at ${CORNER_CULL} u`);
+        // (W5-L6) the LOD measures from the corner's middle, the meshes stay in the site's frame
+        assert.deepEqual([lod.position.x, lod.position.z], [(c.box[0] + c.box[2]) / 2, (c.box[1] + c.box[3]) / 2], `${c.id}: the LOD stands at the corner's middle`);
+        const near = lod.levels[0].object;
+        assert.deepEqual([near.position.x + lod.position.x, near.position.z + lod.position.z], [0, 0], `${c.id}: the meshes keep the site's frame`);
         // only plain meshes of the two materials under it: no text meshes, no sprites
         lod.traverse(o => { if (o !== lod && !(o instanceof THREE.Group) && o.type !== 'Object3D') { assert.ok((o as THREE.Mesh).isMesh, `${c.id}: ${o.type}`); assert.ok([TOY, signsMaterial()].includes((o as THREE.Mesh).material as THREE.Material)); } });
         const [h, m] = hhmm.split(':').map(Number);
@@ -190,7 +205,8 @@ test('W5-L4 / L5: the crowd spots stand on the site\'s plaza, on ground a walker
           addCrowdSpots(`corner:${c.id}:${cr.key}`, cr.spots.map(p => ({ ...W(p), r: p.r })), { face: cr.face ? W(cr.face) : undefined, count: cr.count, lane });
         }
       }
-      const plaza = (s.plaza ?? []).map(p => p.poly);
+      // (a corner's own standing strips, `plazaOwn`: its crowd only, not the site's sightseers)
+      const plaza = [...(s.plaza ?? []).map(p => p.poly), ...(c.plazaOwn ? (c.plaza ?? []).map(p => [...p]) : [])];
       for (const p of crowdPins()) {
         const l = worldToLandmark(s, p);
         if (!plaza.some(poly => pip(l, poly))) bad.push(`${p.id}: local (${l.x.toFixed(2)}, ${l.z.toFixed(2)}) is not on ${s.id}'s plaza`);
@@ -199,6 +215,7 @@ test('W5-L4 / L5: the crowd spots stand on the site\'s plaza, on ground a walker
         if (inSiteBlocker(s, p)) bad.push(`${p.id}: inside a blocker of ${s.id}`);
       }
       for (const poly of c.plaza ?? []) assert.ok(plaza.includes(poly as Vec2[]) || plaza.some(q => JSON.stringify(q) === JSON.stringify(poly)), `${c.id}: its plaza additions are in ${s.id}'s plaza`);
+      if (c.plazaOwn) for (const poly of c.plaza ?? []) assert.ok(!(s.plaza ?? []).some(q => JSON.stringify(q.poly) === JSON.stringify(poly)), `${c.id}: its own strips stay out of ${s.id}'s sightseer plaza`);
       if (c.cache) {
         const k = COIN_CACHES.find(q => q.id === c.cache);
         assert.ok(k, `${c.id}: lane E's cache ${c.cache}`);

@@ -9,12 +9,13 @@ import { TypedBatch } from '../../typedBatch';
 import { type CrowdLane, addCrowdSpots } from '../crowdSpots';
 import { SignBatch, signCell, signsMaterial } from '../signsAtlas';
 import { CORNER_GROUND } from './cornerGround';
-import { GLOW, LIT, NONE, SWAY, box, cbox, cyl } from './kit';
+import { GLOW, LIT, NONE, SWAY, box, cbox, cyl, pyramid } from './kit';
 
 /**
- * Wave 5 · lane L · the signature corners' kit (W5-L4 / W5-L5, plan §3.6): the dressing a neighbourhood corner adds to
- * the site it stands in (Irving St, Clement St, 24th St, 3rd St, Haight, Japantown, Noe Valley, the Castro), drawn when
- * that site's lod 0 is (world/sf/sites.ts SiteHooks.mount) and only within CORNER_CULL u of the camera:
+ * Wave 5 · lane L · the signature corners' kit (W5-L4 / W5-L5 / W5-L6, plan §3.6): the dressing a neighbourhood corner
+ * adds to the site it stands in (Irving St, Clement St, 24th St, 3rd St, Haight, Japantown, Noe Valley, the Castro, and
+ * Chinatown's Grant Ave from the Dragon Gate), drawn when that site's lod 0 is (world/sf/sites.ts SiteHooks.mount) and
+ * only within CORNER_CULL u of the camera (measured from the corner's middle):
  *
  *   toy     ONE Mesh of the site's own TOY material: sign brackets, lanterns, a bus-stop seat row, a busker on his crate,
  *           market stalls … in the site's LOCAL frame (the same program as every site's lod 0: no new material)
@@ -86,6 +87,11 @@ export interface CornerDef {
   cache: string | null;
   /** the crowd's plaza additions of the corner (LOCAL polygons, already in the site's `plaza`: the tests check the spots) */
   plaza?: readonly Vec2[][];
+  /**
+   * `plaza` stays the corner's own (W5-L6): its crowd stands there, but the site's sightseers do not (they face the site:
+   * Grant Ave's window shoppers stand 30–50 u up the street from the Dragon Gate). The tests check the spots the same way.
+   */
+  plazaOwn?: true;
 }
 
 /** the corner meshes stand only this close to the camera (u): their plaques are unreadable beyond, the site's lod 0 stays */
@@ -191,6 +197,11 @@ export function cornerMount(def: CornerDef): (group: THREE.Group, baseY: number)
     const lod = new THREE.LOD();
     lod.name = `sf:${def.site}:corner`;
     const near = new THREE.Group(), far = new THREE.Object3D();
+    // the LOD measures its distance from the corner's own middle (a corner may stand 40 u from its site's origin: the
+    // Chinatown corner up Grant Ave from the Dragon Gate); the meshes keep the site's local frame
+    const cx = (def.box[0] + def.box[2]) / 2, cz = (def.box[1] + def.box[3]) / 2;
+    lod.position.set(cx, 0, cz);
+    near.position.set(-cx, 0, -cz);
     lod.addLevel(near, 0);
     lod.addLevel(far, CORNER_CULL);
     group.add(lod);
@@ -239,6 +250,9 @@ export function cornerMount(def: CornerDef): (group: THREE.Group, baseY: number)
     };
   };
 }
+
+/** A batch that draws nothing: a corner's `signs` asks `blade` where its plaques go without drawing the hardware. */
+export const NO_BATCH = { add() { return this; }, beam() { return this; }, quad() { return this; } } as unknown as BatchLike;
 
 /** Known plaque ids only (a corner's table is checked against the atlas: an unknown id would silently draw nothing). */
 export const signKnown = (id: string) => signCell(id) >= 0;
@@ -454,6 +468,44 @@ export function cafeTable(b: BatchLike, x: number, y: number, z: number, ry: num
     for (const [dx, dz] of [[-0.1, -0.1], [0.1, -0.1], [0.1, 0.1], [-0.1, 0.1]]) cyl(b, cx + dx, y - 0.05, cz + dz, 0.02, 0.4, CK.iron, NONE, 4);
     cbox(b, cx, y + 0.36, cz, 0.3, 0.04, 0.3, top, NONE, ry);
     cbox(b, cx + Math.cos(ry) * s * 0.14, y + 0.55, cz - Math.sin(ry) * s * 0.14, 0.03, 0.34, 0.3, top, NONE, ry);
+  }
+}
+
+/**
+ * A Chinatown dragon lamp (toy of the 1925 Grant Avenue design: a cast base, a green shaft with gold bands, two gold
+ * dragons under a pagoda lantern hung with bells, a red roof and a gold finial; the lantern glows at night), its foot at
+ * local (x, y, z), turned `ry`. 134 triangles.
+ */
+export function dragonLamp(b: BatchLike, x: number, y: number, z: number, ry = 0) {
+  const GREEN = '#2f6b4f', GOLD = '#d7a53c', RED = '#b8432f', rx = Math.cos(ry), rz = -Math.sin(ry);
+  cyl(b, x, y - 0.05, z, 0.12, 0.42, '#2b3531', NONE, 6);
+  cyl(b, x, y + 0.37, z, 0.055, 2.28, GREEN, NONE, 5);
+  for (const h of [0.9, 1.85]) cyl(b, x, y + h, z, 0.075, 0.07, GOLD, NONE, 5);
+  // the two dragons: gold curls leaning out either side of the shaft's head
+  for (const s of [-1, 1]) cbox(b, x + rx * s * 0.12, y + 2.6, z + rz * s * 0.12, 0.25, 0.07, 0.07, GOLD, NONE, ry, 0, s * 0.65);
+  // the lantern in its gold frame, two bells under the frame's corners
+  cbox(b, x, y + 2.98, z, 0.28, 0.4, 0.28, '#ffb45e', GLOW(1), ry);
+  cbox(b, x, y + 2.76, z, 0.36, 0.05, 0.36, GOLD, NONE, ry);
+  for (const s of [-1, 1]) cbox(b, x + (rx + rz) * s * 0.15, y + 2.68, z + (rz - rx) * s * 0.15, 0.05, 0.09, 0.05, GOLD, NONE, ry);
+  // the red pagoda roof and its finial
+  pyramid(b, x, y + 3.18, z, 0.6, 0.6, 0.26, RED, ry);
+  cbox(b, x, y + 3.5, z, 0.06, 0.14, 0.06, GOLD, NONE, ry);
+}
+
+/**
+ * A row of red paper lanterns with gold caps on a wire strung between two fronts: from local a to c (the wire's ends,
+ * `y` over the ground at both), sagging `sag` in the middle, a lantern at each of `at` (0..1 along the wire), glowing at
+ * night. 24 triangles a lantern, 6 a wire segment.
+ */
+export function lanternWire(b: BatchLike, a: Vec2, c: Vec2, y: number, at: readonly number[], sag = 0.35, color: ColorLike = '#c8322a') {
+  const P = (t: number) => new THREE.Vector3(a.x + (c.x - a.x) * t, y - sag * 4 * t * (1 - t), a.z + (c.z - a.z) * t);
+  const ry = Math.atan2(c.x - a.x, c.z - a.z);
+  const ts = [0, ...at, 1];
+  for (let k = 0; k + 1 < ts.length; k++) b.beam(P(ts[k]), P(ts[k + 1]), 0.018, 0.018, '#3a2c22');
+  for (const t of at) {
+    const p = P(t);
+    cbox(b, p.x, p.y - 0.3, p.z, 0.26, 0.3, 0.26, color, GLOW(0.85), ry);
+    box(b, p.x, p.y - 0.17, p.z, 0.14, 0.06, 0.14, '#d7a53c', NONE, ry);
   }
 }
 

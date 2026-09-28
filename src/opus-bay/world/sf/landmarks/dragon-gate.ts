@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { BatchLike } from '../../builder';
 import type { SiteHooks } from '../sites';
+import { type CornerDef, type CornerSign, NO_BATCH, awning, blade, cornerGroundWorld, cornerMount, dragonLamp, lanternWire } from './cornerKit';
 import { GLOW, NONE, SF, box, cbox, pyramid, rect, tube, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
 import { settingGround, streetStrips } from './setting';
@@ -76,6 +77,8 @@ function build(b: BatchLike, lod: 0 | 2) {
 // ---------------------------------------------------------------------------
 
 const G = settingGround('dragon-gate');
+/** the setting's base (the ground at the gate): the corner's night lights are local heights over it */
+const Z_BASE = G.base;
 /** lantern strings across Grant Ave (local z, north of the gate), the wire this high over the street */
 const STRINGS = [-3.4, -6.8, -10.2], WIRE = 3.5, GRANT_HALF = 1.72;
 
@@ -95,7 +98,101 @@ function lanterns(b: BatchLike) {
   }
 }
 
-const LIGHTS: NonNullable<SiteHooks['lights']> = STRINGS.map(z => ({ x: 0, y: G.at(0, z) + WIRE - 0.5, z, size: 0.55, color: '#ff8a5c' }));
+// ---------------------------------------------------------------------------
+// W5-L6 · the Chinatown corner (plan §3.6): Grant Avenue from California Street to Clay Street
+// ---------------------------------------------------------------------------
+//
+// Grant Avenue's heart between California and Clay: red paper lanterns strung across the street (180 new ones went up in
+// August 2023 after the winter storms: sfist.com 2023-08-08; they hang "up and down Grant Avenue": abc7news.com
+// 2024-02-01), the dragon lamps (43 designed by D'Arcy Ryan for the 1925 Diamond Jubilee along Grant Ave from Bush St
+// to Broadway, red, gold and green, a pagoda lantern with bells under a red roof: SFPUC, "A Look Back in History:
+// Chinatown Decorative Streetlights", 2019), shop signs (generic trade words of lane V's atlas, never a shop's name) and
+// window shoppers by day. Portsmouth Square, a block east, is closed for its rebuild (June 2026 to 2028: sfrecpark.org),
+// so the corner stays on Grant Ave. Facts checked on 2026-09-28. Lane V's measured downtown headroom (sf-w5-V.md: ≈ 50k
+// at the Chinatown gate spot after the levers) clears the plan's 20k for this corner (≤ 2 calls, 1.8k triangles).
+
+/**
+ * Grant Ave north of the gate, in the gate's frame: its axis turns 2.74° west from the gate's (the fronts of the
+ * published city's L0 buildings, measured every 1 u: 3.6 u apart, the west front at x −1.87 at z −2 and −4.74 at z −62).
+ * `along` = u north of z −2 on the axis, `across` = u east of the street's middle. California St crosses at along
+ * 25…28, Sacramento St at 40…42, Clay St at 53…56; Commercial St opens the east front at along 47…49.
+ */
+const GA_T = Math.atan(0.0478), GA_HALF = 1.8;
+function grant(along: number, across: number): { x: number; z: number } {
+  const s = Math.sin(GA_T), c = Math.cos(GA_T);
+  return { x: -0.07 - along * s + across * c, z: -2 - along * c - across * s };
+}
+/** the yaw a front faces: the west front looks east (side −1), the east front west (side 1) */
+const frontYaw = (side: -1 | 1) => (side < 0 ? Math.PI / 2 + GA_T : -Math.PI / 2 + GA_T);
+/** red lantern strings across Grant Ave (along), the wire this high over the street at the fronts */
+const CT_STRINGS = [30.2, 33.4, 36.6, 44.6, 51.2], CT_WIRE = 3.7;
+/** dragon lamps at the kerb [along, side] (the 1925 lamps line Grant Ave from Bush St to Broadway) */
+const CT_LAMPS: readonly [number, -1 | 1][] = [[31.8, -1], [35.2, 1], [47.8, -1], [51.8, 1]];
+const CT_KERB = 1.52;
+/** blade signs on the fronts [along, side, plaque] and flat plaques over doors */
+const CT_BLADES: readonly [number, -1 | 1, string][] = [
+  [30.9, -1, 'dim-sum'], [34.9, -1, 'tea'], [44.2, -1, 'noodles'], [49.6, -1, 'laundry'],
+  [32.3, 1, 'bakery'], [37.6, 1, 'grocery'], [45.2, 1, 'flowers'], [50.7, 1, 'books'],
+];
+const CT_PLAQUES: readonly [number, -1 | 1, string][] = [[33.2, -1, 'grocery'], [46.4, -1, 'tea'], [30.9, 1, 'noodles'], [36.2, 1, 'dim-sum']];
+/** shop awnings over the sidewalks [along, side, colour] */
+const CT_AWNINGS: readonly [number, -1 | 1, string][] = [[37.3, -1, SF.chinaRed], [33.9, 1, SF.chinaGreen], [51.0, -1, '#d9a441']];
+/**
+ * window shoppers (10:00–20:00) at the east front's shop windows (along), on its sidewalk strip (the published city's
+ * sidewalks along Grant Ave are 0.4–0.5 u wide); the clear lane (3 u, lane T's rule) runs up the street west of them,
+ * so the way up Grant Ave stays open
+ */
+const CT_SHOPPERS: readonly number[] = [30.9, 34.5, 37.0, 45.0, 52.5];
+const CT_SHOP_AT = 1.3, CT_LANE_AT = -0.3;
+
+export const CHINATOWN_CORNER: CornerDef = {
+  id: 'chinatown',
+  order: 9,
+  site: 'dragon-gate',
+  frame: { x: X0, z: Z0, yaw: YAW },
+  name: { zh: '都板街 · 唐人街', en: 'Grant Avenue, Chinatown' },
+  ambient: { zh: '在店铺橱窗前逛街的人', en: 'shoppers at the shop windows' },
+  box: [-4.9, -55, 0.9, -30],
+  windows: { shops: { from: 10 * 60, to: 20 * 60 } },
+  signs: (g) => [
+    ...CT_BLADES.flatMap(([along, side, id]) => {
+      const p = grant(along, side * GA_HALF);
+      return blade(NO_BATCH, id, p.x, p.z, g.at(p.x, p.z) + 2.78, frontYaw(side), 0.56);
+    }),
+    ...CT_PLAQUES.map(([along, side, id]): CornerSign => {
+      const p = grant(along, side * (GA_HALF - 0.03)), ry = frontYaw(side);
+      return { id, x: p.x, y: g.at(p.x, p.z) + 2.2, z: p.z, ry, w: 0.96 };
+    }),
+  ],
+  build: (b, g) => {
+    for (const along of CT_STRINGS) {
+      const a = grant(along, -GA_HALF), c = grant(along, GA_HALF), m = grant(along, 0);
+      lanternWire(b, a, c, g.at(m.x, m.z) + CT_WIRE, [0.161, 0.383, 0.617, 0.839], 0.35, SF.chinaRed);
+    }
+    for (const [along, side] of CT_LAMPS) { const p = grant(along, side * CT_KERB); dragonLamp(b, p.x, g.at(p.x, p.z), p.z, frontYaw(side)); }
+    for (const [along, side, id] of CT_BLADES) { const p = grant(along, side * GA_HALF); blade(b, id, p.x, p.z, g.at(p.x, p.z) + 2.78, frontYaw(side), 0.56); }
+    for (const [along, side, color] of CT_AWNINGS) { const p = grant(along, side * GA_HALF); awning(b, p.x, p.z, 1.15, frontYaw(side), g.at(p.x, p.z) + 2.0, 0.32, color); }
+  },
+  crowds: CT_SHOPPERS.map((along, i) => ({
+    key: `shoppers-${i + 1}`,
+    when: 'shops',
+    spots: [grant(along, CT_SHOP_AT)],
+    face: grant(along, GA_HALF + 1),
+    lane: (() => { const a = grant(28, CT_LANE_AT), c = grant(55, CT_LANE_AT); return { ax: a.x, az: a.z, bx: c.x, bz: c.z }; })(),
+  })),
+  soft: CT_LAMPS.map(([along, side]) => ({ ...grant(along, side * CT_KERB), r: 0.12 })),
+  // (lane E has no coin cache on Grant Ave yet: Requests)
+  cache: null,
+  plaza: CT_SHOPPERS.map(along => { const p = grant(along, CT_SHOP_AT); return rect(p.x, p.z, 0.3, 0.3); }),
+  plazaOwn: true,
+};
+
+const LIGHTS: NonNullable<SiteHooks['lights']> = [
+  ...STRINGS.map(z => ({ x: 0, y: G.at(0, z) + WIRE - 0.5, z, size: 0.55, color: '#ff8a5c' })),
+  // W5-L6: the Chinatown corner's lantern strings and dragon lamps (drawn by CHINATOWN_CORNER), at their baked ground
+  ...CT_STRINGS.map(along => { const m = grant(along, 0); return { ...m, y: cornerGroundWorld('chinatown', m.x, m.z) - Z_BASE + CT_WIRE - 0.5, size: 0.55, color: '#ff8a5c' }; }),
+  ...CT_LAMPS.map(([along, side]) => { const p = grant(along, side * CT_KERB); return { ...p, y: cornerGroundWorld('chinatown', p.x, p.z) - Z_BASE + 3.0, size: 0.8, color: '#ffc27a' }; }),
+];
 /**
  * Where people stop for the photo: Grant Ave's west sidewalk south of Bush St, the gate across the street.
  * W4-L-int-review: the old strip under the gate (z 0.5–1.4) lay on Bush St's asphalt 0.1 u from the sightseeing loop's
@@ -155,6 +252,8 @@ export const dragonGate: SfLandmark & SiteHooks = {
   ground: streetStrips('dragon-gate'),
   lights: LIGHTS,
   plaza: PLAZA.map(poly => ({ poly, surface: 'pavement' as const })),
+  // W5-L6: Grant Avenue's corner — lantern strings, dragon lamps, shop signs, window shoppers (landmarks/cornerKit.ts)
+  mount: cornerMount(CHINATOWN_CORNER),
   walk: { blockers: blockers(SWAP.ship) },
   swap: SWAP,
   // the whole gate thins as one while the player walks under it (no dither holes in the roofs)
