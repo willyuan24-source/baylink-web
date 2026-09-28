@@ -426,3 +426,178 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 
 Checks: tsc 0, eslint 0 errors (whole repo), full opus-bay suite **722 / 722** on `60b3a05` + lane P2, **726 / 726** on `492c517`
 (lane P2 on `a7750d6`; what was pushed after it is report text only), sidecar `--check` OK.
+
+## Early review 2
+
+This is the adversarial review of lane P2 (commits `a09d859`, `564c68a`, `9a62916`, `a428867`, `128aab1` and the
+report commits after them), done on 2026-09-27. The fixes are in `b53b1ba`, `d89179c` and `e48d470` (`W4-P-review:`).
+Scratch files are in `C:/Users/willy/opus-qa/w4/w4-p/r2-*`. No owner messages were relayed. No Higgsfield credits were
+spent.
+
+### 给主人的摘要
+
+1. P2 线改的东西都看过了：金门大桥的终点、恶魔岛和金银岛的码头、科罗娜高地的山顶、植物园正门、换乘站合并、多词搜索。我核对了 17 条事实（其中 15 条上网查的），全部正确。
+2. 找到 6 个问题，都修好了，每个都加了测试：
+   - 手机上放大看市中心时，约三分之一的车站会从排版里掉出去，别的名字就会压在车站上。
+   - 内河码头站原来是两个换乘标签叠在一起，现在合成一个“N M 叮当 F”。
+   - 51 个景点地点在中文界面里显示英文名，比如“发现新地点：San Francisco Botanical Garden”。现在显示“旧金山植物园”。
+   - 手机行程条上，去恶魔岛原来显示“下一站 恶魔岛渡轮…”，现在显示“下一站 33 号码头”。
+   - 必看景点的名字会先找不压车站的位置。
+   - 车站圆标上的字改用和地图其他文字一样的字体。
+3. 还没修的：景点图标仍可能盖住车站标签。从观光巴士站走到金门大桥游客中心要绕 140 单位，这要改城市数据才能解决。
+
+### What I checked
+
+- **What I read:**
+  - the lead note, plan §4.1 and §5.2, lane P's report, and lane G's and lane C's open items;
+  - the diffs of the five P2 code commits, and the current versions of `attractions.ts`, `extraPlaces.ts`,
+    `mapLayout.ts`, the station part of `mapLines.ts`, `MapBadge.tsx`, `mapBadges.ts`, `placeSearch.ts`, `map-w4.css`,
+    `places-sidecar.ts` and both lane tests.
+- **Code the integration plan names:**
+  - `data/sf/places.ts` (already wired by `W4-P-I1`);
+  - `ui/cityMapDraw.ts` (`Ctx2D`, `labelWidth`) and the `drawCityMap` call in `ui/CityMap.tsx`;
+  - lane G's `TripDestination` and `tripPillText`;
+  - lane C's `game/tripText.ts`, `arrivalAnchors` / `PANORAMA_SPOTS`, the tour stop `bay-vista`, and its Requests in
+    `sf-w4-C.md`.
+- **Existing tracked files:** P2 edited only lane P's own new files, plus plan row 59 and the JSON for 克莱门街. Lane C's
+  O1 asked for that JSON and plan edit, and lead note §8.4 lists it as done. This review also edited only lane P's new
+  files and tests.
+- **Simulations on the real data:**
+  - stations: 167 stops → 139 stations (138 after the Embarcadero join); every pair of final stations within 30 u;
+  - the SVG node budget with canvas stations, over 3 frames × 7 scales × 340 view centres;
+  - T1 labels over station marks, over 3 frames × 5 scales × 340 view centres;
+  - 13 searches, with merged and unmerged stations (no ranking changed except the intended merges);
+  - the two new pier rows: no published row duplicates them; the district POIs `pier33` / `pier14` merge into them;
+    both are walkable, 12.7 u and 17.6 u from the main walking graph;
+  - the arrival headings (atan2(dx, dz)): the GGB faces the south tower (4.30), Corona faces downtown (3.01), the
+    garden gate faces the garden's centre (5.43);
+  - `places-sidecar.ts --check`: OK (1,033 rows, 0 lost).
+- **Facts re-checked (17, all correct: the first 15 on the web, the last 2 in the published data):**
+  - OSM node 7838369891 has `entrance=main` at 37.7670470, −122.4667863.
+  - The SF Botanical Garden's address is 1199 9th Ave; there is a second entrance at MLK Dr & Tea Garden Dr
+    ([gggp.org](https://gggp.org/visit/admissions-hours/)).
+  - OSM way 164569681 is "Welcome Center", open 09:00–18:00.
+  - The Welcome Center is at the south end of the bridge, open 9 a.m. – 6 p.m. daily
+    ([presidio.gov](https://presidio.gov/explore/attractions/golden-gate-bridge-welcome-center)).
+  - OSM way 91913158 is "Pier 33". Its nodes span 37.8064–37.8089, −122.4058…−122.4040, which contains the landing
+    point 37.80783, −122.40428.
+  - Alcatraz ferries leave only from "Pier 33 Alcatraz Landing", near Sansome / Bay St and The Embarcadero
+    ([alcatrazcitycruises.com](https://alcatrazcitycruises.com/plan-your-visit/directions)).
+  - Pier 14 is a 637-foot public pier and breakwater
+    ([sanfranciscobay.com](https://www.sanfranciscobay.com/attractions/pier-14/)), at The Embarcadero & Mission St.
+  - Pier 14 has views of the bay and the Bay Bridge ([ROMA](https://www.romacollaborative.com/pier-14)).
+  - Corona Heights Park is at 37.7646522, −122.4391379 (4.7 u from the new arrival); its peak is 520 ft
+    ([Wikipedia](https://en.wikipedia.org/wiki/Corona_Heights_Park)).
+  - Clement St is written 克萊門(特)街 in the Chinese press
+    ([World Journal](https://www.worldjournal.com/wj/story/121368/9778654)), so 克莱门街 is right (企李街 is Clay St).
+  - The N Judah leaves the subway at the Duboce portal and does not stop at Church or Castro, so Church is M · F and
+    Castro is 观光 · M · F ([N Judah](https://en.wikipedia.org/wiki/N_Judah)).
+  - The California cable car runs from California & Market (Drumm) to Van Ness.
+  - The Powell–Hyde line ends at Hyde & Beach
+    ([SF cable car system](https://en.wikipedia.org/wiki/San_Francisco_cable_car_system)).
+  - The F line's terminals are Jones & Beach and 17th & Castro
+    ([F Market & Wharves](https://en.wikipedia.org/wiki/F_Market_%26_Wharves)).
+  - An Embarcadero station entrance comes up at the end of California St, at the California cable car's terminus
+    ([SubwayNut](https://subwaynut.com/california/bart/embarcadero/index.php)).
+  - The GGB arrival is 24.7 u from the published stop `loop-golden-gate-bridge` ("金门大桥 · 游客中心") and 2.5 u from
+    the Welcome Center's first OSM node.
+  - The GGB arrival is walking-graph node 3970 (0.0 u). The Corona arrival is node 19640 (0.0 u), 4.7 u from the
+    summit. The garden gate is 0.6 u from node 9092.
+- **Visual check:** `docs/opus-bay/qa/w4/P/review2-market-0.7-390.jpg`. It is the lane's own static harness, adapted
+  to the published `transit.json`, rendered at 390 px with dpr 3. I read it: one Embarcadero pill; 科伊特塔 moved off
+  the loop's stop dots; 市政厅 +1 still covers the Civic Center pill (no clear box there). I also read the lane's
+  `p2-market-0.7-390.jpg`, which shows the two stacked Embarcadero pills and 市政厅 over the Civic Center pill, and
+  `p2-station-pills.png`.
+
+### Defects found and fixed (with tests)
+
+1. **Canvas stations fell out of the layout past the node budget (high, `mapLayout.ts`).** A station drawn on the
+   canvas costs 0 SVG nodes, but its label costs 1. Past the budget, the whole item went to `overBudget`. It then
+   stopped being an obstacle, so lower-priority labels could cover the pill. It was also listed in `overBudget`, whose
+   ids the integration draws a second time as plain dots. On a phone over Nob Hill / downtown at s 1.2, 22 of 70
+   stations dropped out.
+   - Fix: a marker that costs no node stays in the layout without its label.
+   - Tests: a synthetic case (and the SVG case still goes to `overBudget`); the real s 1.2 view keeps all its stations
+     and no label below T1 covers a pill.
+2. **Two transfer pills stacked at Embarcadero (medium, `mapLines.ts`).** The 16 u rule gave the Metro station the
+   next cable stop (California & Davis, 9.7 u). The California terminus and the F line's Market & Drumm stop stood
+   19.9 u away and formed a second pill [叮当 F] touching [N M 叮当]. It is visible in the lane's own shot.
+   - Fix: `STATION_JOINS`, step 4 of `mapStations`. It is data: a missing id skips the join, and it is off when the
+     transfer merge is off. The result is one pill, N M 叮当 F.
+   - Tests: the Embarcadero ids, lines and names; no two transfer pills stand within 30 u; the join can be switched
+     off.
+3. **51 decorated place rows had English as their zh name (medium, `extraPlaces.ts`).** OSM rows that an attraction
+   speaks for (Botanical Garden, Asian Art Museum, Stern Grove, Fort Funston …) kept the English name as zh. The place
+   index is now live (`W4-P-I1`), so the discovery toast, the 附近 / 去过的 lists and the fly list showed English in zh.
+   P2's move of the garden row to the gate made it read "发现新地点：San Francisco Botanical Garden".
+   - Fix: `attractionZhNames` + `applyW4Places` give such a row its primary attraction's zh. The English name stays,
+     because the district POIs merge by it.
+   - Test: every decorated row has a Chinese name; rows that already had one are unchanged; the input is not mutated.
+4. **The phone trip pill could not show an island trip whole (medium, lane C's open Request).** It showed
+   "下一站 恶魔岛渡轮…", or "下一站 恶魔岛" if the attraction's own short name was passed.
+   - Fix: `ArrivalPlace.short` (33 号码头 / Pier 33, 14 号码头 / Pier 14). `tripDestination(a).short` is the pier's
+     short for an island and the attraction's own short otherwise.
+   - Test: through lane G's real `tripPillText`, the phone pill reads "下一站 33 号码头", whole.
+5. **A must-see label took its first box even when it covered a pill (medium, `mapLayout.ts`).** Another box was
+   often free. An example is 科伊特塔 over the loop's stop dots in the lane's shot.
+   - Fix: when yielding markers are around, labels are placed in two passes: first a box clear of every marker, then
+     the old rule.
+   - Scan of the real data: T1 labels stay at 11,099; T1 labels over a station drop from 5,388 to 3,480; all labels go
+     from 42,641 to 42,594.
+   - Tests: a free box beats covering; with pills on all sides the fallback still covers; T2 labels never cover.
+6. **Two small text-style problems (low, `mapLines.ts` / `map-w4.css`).**
+   - The canvas drew the disc letters in `system-ui`, while every other map text uses `--ob-font`. Fix:
+     `MAP_FONT_FAMILY`, tested against `opus-bay.css`.
+   - White disc and tour-number texts in the overlay got city-ui.css's cream halo, which blurs 8 px text. Fix: the halo
+     is turned off for those texts.
+
+### Open (not fixed)
+
+- **Badges still cover pills.** The layout never moves markers. Examples: the turntable badge over Powell's 叮当 disc,
+  the 唐人街 badge over Montgomery's N, the 渡轮大厦 badge over the Ferry Building's loop + F pill. Where no clear box
+  exists, a T1 label still covers a pill (市政厅 +1 over Civic Center at s 0.7 on a phone). Fixing this needs a
+  marker-nudge pass or a rule about which mark hides which, at the CityMap wiring.
+- **The two-pass labels cost a label here and there.** In the downtown 0.7 phone view the T2 label 泛美金字塔 is lost,
+  because 科伊特塔's label moved into its space. Over the whole scan, 47 of 42,641 labels were lost.
+- **The GGB auto-walk.** From the loop stop to the Welcome Center is 140 u on the walking graph. Lane P2's request for
+  a footway through the toll-plaza area stands.
+- **Per-draw allocations.** `drawStationMarks` builds one geometry object per mark per draw, about 70–140 per pan
+  frame of the 2D map. That is the same order as the per-view `stationSymbol` objects and is not in the 3D frame loop.
+  If the map's profile shows GC, reuse a scratch object.
+- **A stair dot's layout box is too wide on the left.** `stationItem` widens a dot with a stair by 12 px on both sides,
+  but the stair is on the right. Labels therefore keep 12 px further off the left side than needed. This is cosmetic.
+- **Church uses the Sanchez stop for its F transfer.** The Church transfer takes the F line's Market & Sanchez stop
+  (11.5 u; Church station also has an entrance there), not Market & Church (24–28 u). The F line's Church St stop
+  stays a separate dot.
+- **One zh / en mismatch from the rename rule.** Rincon Park's row is decorated by Cupid's Span, so it now reads
+  丘比特之箭 in zh but "Rincon Park" in en.
+- **Capsule text is still 8 px.** The lane's note stands.
+
+### Integration corrections (replace the matching P2 steps)
+
+- **Station drawing:** call `drawStationMarks(ctx, marks)` in `ui/CityMap.tsx` right after `drawCityMap(ctx, …)`; the
+  real 2D context satisfies `StationCtx`. Inside `drawCityMap` the context is typed `Ctx2D`, which has no `arc`,
+  `fillText` or `font`. If the call goes in there, widen that parameter to `StationCtx`.
+- **Station rides:** `st.ids.flatMap(id => laneT.stationRides(id))` can now list a line twice, because Embarcadero holds
+  both California & Davis and California & Drumm. Keep the first ride per line and direction; ids come primary first,
+  then nearest first.
+- **`overBudget`:** `layoutMap(...).overBudget` now holds only SVG items. Canvas stations never appear in it; every
+  mark is drawn by `drawStationMarks`.
+- **Trip pill (lane G, with lane C's step 6):** use `tripPillText(trip, s, { destination: d.name, short: d.short })`
+  with `d = tripDestination(a)`. This replaces `short: a.offWalk ? null : a.short`.
+- **Place names:** nothing to wire. `data/sf/places.ts` already builds from `applyW4Places`, so the 51 zh names are
+  live.
+- **Transfer count:** there are 9 transfer stations now; California & Drumm is inside Embarcadero.
+
+### Requests
+
+- **Lane G:** pass `short: d.short` from `tripDestination(a)` to the trip pill (above).
+- **Lane C:** your Request (a short name for the piers) is done: `ARRIVAL_PLACES[id].short` /
+  `tripDestination(a).short`.
+
+Checks:
+- On `48e37b2`: tsc 0; `npx eslint .` 0 errors (43 warnings, none in lane P files); the full opus-bay suite
+  **767 / 767**; sidecar `--check` OK.
+- After rebasing onto lane V / L commits (pushed as `e48d470`): tsc 0 and the three lane P suites 59 / 59.
+- One wall-clock flake during the review, with the CPU at 100 %: sf-move2 "a cached cell is cheap". It passed alone,
+  twice.
