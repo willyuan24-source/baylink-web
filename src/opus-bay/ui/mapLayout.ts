@@ -148,16 +148,21 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
         const right = cands[0], dy = k.y + pipBox(k.r, k.members.length)[3] + pad - right.y;
         if (dy > 0) cands.push({ ...right, y: right.y + dy, ty: right.ty + dy });
       }
-      for (const c of cands) {
-        const b: Box = [c.x - pad / 2, c.y - pad / 2, c.x + c.w + pad / 2, c.y + c.h + pad / 2];
-        if (b[0] < frame[0] || b[1] < frame[1] || b[2] > frame[2] || b[3] > frame[3]) continue;
-        if (placed.some(p => hit(p, b))) continue;
-        // never against its own badge; a marker that yields (a station) only blocks the labels less important than its band
-        if (discs.some((d, j) => j !== i && !(k.prio < (within[j].yieldBelow ?? -Infinity)) && hit(d, b))) continue;
-        label = c;
-        placed.push(b);
-        break;
-      }
+      // never against its own badge; a marker that yields (a station) only blocks the labels less important than its
+      // band — and even those try every box clear of it first (review 2: a must-see's name took its first box over a
+      // pill while another box was free, hiding the pill's discs: 市政厅 over the Civic Center pill)
+      const pick = (strict: boolean): LabelBox | null => {
+        for (const c of cands) {
+          const b: Box = [c.x - pad / 2, c.y - pad / 2, c.x + c.w + pad / 2, c.y + c.h + pad / 2];
+          if (b[0] < frame[0] || b[1] < frame[1] || b[2] > frame[2] || b[3] > frame[3]) continue;
+          if (placed.some(p => hit(p, b))) continue;
+          if (discs.some((d, j) => j !== i && (strict || !(k.prio < (within[j].yieldBelow ?? -Infinity))) && hit(d, b))) continue;
+          placed.push(b);
+          return c;
+        }
+        return null;
+      };
+      label = pick(true) ?? (within.some((o, j) => j !== i && k.prio < (o.yieldBelow ?? -Infinity)) ? pick(false) : null);
       if (!label) { text = null; nodes--; }
     }
     out.push({ id: k.id, x: k.x, y: k.y, r: k.r, members: k.members, label, text });

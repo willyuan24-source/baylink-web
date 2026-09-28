@@ -811,3 +811,20 @@ test('review 2 stations: the canvas disc letters use the map font (--ob-font), a
   const w4css = fs.readFileSync(path.join(root, 'src/opus-bay/ui/map-w4.css'), 'utf8');
   assert.match(w4css, /\.ob-citymap-overlay text\.mw-disc-t, \.ob-citymap-overlay text\.mw-tour-t \{ stroke: none; \}/);
 });
+
+test('review 2 layout: a must-see label tries every box clear of the station pills before it covers one', () => {
+  const pill = (id: string, x: number, y: number) => ({ id, x, y, r: 8, hw: 30, hh: 8, prio: 30.3, clusterable: false, host: false, yieldBelow: 20, nodes: 0 });
+  const t1 = { id: 't1', x: 150, y: 150, r: 13, prio: 10.2, label: '市政厅', fontPx: 12 };
+  // a pill right of the badge: the first (right) box would cover it, the left box is free → left
+  const a = layoutMap([t1, pill('station:e', 200, 150)], { w: 400, h: 300 });
+  assert.equal(a.kept.find(k => k.id === 't1')!.label!.pos, 'left');
+  // pills on all four sides: no clear box, the must-see still keeps its name (over a pill, as before)
+  const all = [pill('station:e', 200, 150), pill('station:w', 100, 150), pill('station:n', 150, 122), pill('station:s', 150, 178)];
+  const b = layoutMap([t1, ...all], { w: 400, h: 300 });
+  assert.ok(b.kept.find(k => k.id === 't1')!.label, 'the fallback covers a pill');
+  // a T2 label never covers a pill (unchanged): with pills all round it has no name
+  const c = layoutMap([{ ...t1, id: 't2', prio: 20.3 }, ...all], { w: 400, h: 300 });
+  assert.equal(c.kept.find(k => k.id === 't2')!.label, null);
+  // no pill in the way: the first box, as before
+  assert.equal(layoutMap([t1], { w: 400, h: 300 }).kept[0].label!.pos, 'right');
+});
