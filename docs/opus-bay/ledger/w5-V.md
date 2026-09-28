@@ -112,3 +112,27 @@ Transactions 14:32:30.647–14:32:51.600 UTC: 20 "Qwen Audio 3.0 TTS Flash" spen
 
 **Wave-5 lane V total: 22.90 credits** (4.54 + 16.00 + 0.18 + 1.75 + 0.43) of the 130 cap. Balance 400.07 → **377.17**
 (`balance` at 14:45 UTC, equal to the tally). Voice in all (H5-3): 6.90 of the plan's 9 expected; H5-2 16 of 21.
+
+## Batch 6 · H5-3 voice, the lanes' part-c lines (W5-V7, part c), 2026-09-28 20:51–21:52 UTC
+
+Balance before: **377.17** (`balance` at 20:50 UTC). Lines: `scripts/opus-sf/voice/w5/lines.ts` on `2506d3c4` + lane D's
+batch 2 (`508d4f06`, eggs 25–33): **53 lines × zh / en = 106 clips** (report batch 4) — lane A's marshmallow and fire-ring
+lines (13), lane D's pebbles, city sounds, batch-2 eggs and the renamed Wave Organ rumour (26), lane E's 12 `E_LINES`
+under lane E's own ids `e-<key>` (lane E plays them with its `voice-line` event) and one shop line. The inventory now
+skips paper under `riddle` / `how` / `name` / `hint` … keys (lane D's city-sound riddles and hints) and three lane-A button
+labels. Same recipe as batch 1 (Pixie, wav 48 kHz, speech_rate 1.0, the bubble instruction + mood); work dir `voice4/`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO6 | 106 clips (53 lines × zh / en), one take each | qwen_audio_tts, Pixie, speech_rate 1.0 | the lanes' fixed bubble lines, verbatim | 1.92 | w5-voice-report.json `takes[].job_id` (batch 4) | voice4/raw/0–105.wav | 106 completed after 5 re-runs (jobs 3, 48, 63, 64, 68 failed and were refunded; 3 submissions hit a 429 and created no job) |
+| W5V-VO7 | 18 retakes | same, speech_rate 1.08 (14) then 1.15 (4) | the clips that missed a gate (8) or the recogniser (6) | 0.25 | same (indices 106–123) | voice4/raw/106–123.wav | 6 of 8 gate misses fixed; `zh-e-bought` (好看！买下啦。) and `en-w5-a-dbc137fe` (Golden! Crisp outside, gooey inside!) stay muted until the owner's ear |
+
+Transactions 20:51:06.917–21:01:14.092 UTC: 111 "Qwen Audio 3.0 TTS Flash" spends and 5 refunds (the 5 failed jobs),
+nothing else on the account in the window: **net 1.92**. 21:43:49.537–21:44:05.463 UTC: 14 spends (0.20); 21:52:17.445–
+21:52:17.932 UTC: 4 spends (0.05). **Subtotal 2.17.** CDN check: every pick is
+`d8j0ntlcm91z4.cloudfront.net/user_…/hf_20260928_<hhmmss>_<job id>.wav` (the timestamps from `jobs_wait`), 124 / 124
+downloaded. Balance **375.00** (`balance` at 21:53 UTC, equal to the tally).
+
+**Wave-5 lane V total: 25.07 credits** (22.90 + 2.17) of the 130 cap. Balance 400.07 → **375.00**. Voice in all (H5-3):
+9.07 of the plan's 9 expected (15 worst); H5-2 16 of 21. Nothing else spent in part c (H5-1 shop tiles not made:
+Decisions in the report).

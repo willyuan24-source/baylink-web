@@ -565,6 +565,19 @@ test('W5-V7: the line inventory — spoken sentences only (no labels, templates,
   const takes = L.takesFor(lines.slice(0, 3));
   assert.equal(takes.length, 6);
   for (const t of takes) assert.ok(t.instruction.length <= L.MAX_INSTRUCTION && t.clip === `${t.language}-${t.line}`);
+  // part c: lane E's E_LINES (written with bi()) under lane E's own voice-line ids; the city sounds' riddles and hints
+  // (paper) are not lines, their spoken `line`s are; lane A's `fact`s stay spoken
+  const { E_LINES } = await import('../src/opus-bay/economy/lines');
+  for (const [key, t] of Object.entries(E_LINES)) {
+    const l = lines.find(x => x.zh === t.zh && x.en === t.en);
+    assert.ok(l && l.id === `e-${key}` && l.voiceId === `e-${key}`, `E_LINES.${key}`);
+  }
+  const { CITY_SOUNDS } = await import('../src/opus-bay/eggs/citySounds');
+  for (const s of CITY_SOUNDS) {
+    assert.ok(!lines.some(l => l.zh === s.riddle.zh || l.zh === s.how.zh), `${s.id}: its riddle / how is paper`);
+    if (L.isSentence(s.line.zh, s.line.en)) assert.ok(lines.some(l => l.zh === s.line.zh), `${s.id}: its line is spoken`);
+  }
+  assert.ok(lines.some(l => l.zh === '菲尔伯特台阶大约 400 级，两边都是花园！'), 'lane A\'s stair fact is spoken');
 });
 
 test('W5-V7: the recorded table — every clip on disk as the report says (bytes, sha256, duration), muted exactly when its pick missed a gate', async () => {

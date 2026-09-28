@@ -65,7 +65,18 @@ export const EXCLUDE: Record<string, string> = {
   '几点开？': 'the slides prompt’s verb outside the hours (lane A, a button label)',
   '你领先！': 'the stair race chip’s status (lane A)',
   '按住 空格 躺下，滑得更快': 'the slides chip’s hint (lane A)',
+  // part c
+  '按住「烤」，金黄就松手': 'the marshmallow chip’s hint on a phone (lane A)',
+  '按住 E 烤，金黄就松手': 'the marshmallow chip’s hint on a keyboard (lane A)',
+  '几点能生火？': 'the fire ring’s prompt verb outside the hours (lane A, a button label)',
+  '48 块小石子全找齐啦！这块金色的是 BAYBAY 最宝贝的一块，她会一直带着。': 'the golden pebble’s card fact (lane D, third person)',
 };
+
+/**
+ * Part c: a literal under one of these keys is paper, not speech (lane D's city sounds' `riddle` / `how`, a card's
+ * `fact`, a place's `name` …), wherever it sits.
+ */
+const NOT_SPOKEN_KEYS = /(?:^|[\s,{(])(riddle|how|name|title|hint|teaser|label|verb|short|note|place|caption|alt)\s*:\s*$/;
 
 const LIT = /(?:export\s+const\s+([A-Z0-9_]+)\s*(?::\s*[A-Za-z<>[\]]+)?\s*=\s*)?\{\s*zh:\s*'((?:[^'\\]|\\.)*)'\s*,\s*en:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")\s*\}/g;
 const unesc = (s: string) => s.replace(/\\(.)/g, '$1');
@@ -113,6 +124,7 @@ function scan(): W5Line[] {
       for (const m of text.matchAll(LIT)) {
         const name = m[1];
         if (s.only && (!name || !s.only.includes(name))) continue;
+        if (!name && NOT_SPOKEN_KEYS.test(text.slice(Math.max(0, m.index - 24), m.index))) continue;
         add(s.lane, unesc(m[2]), unesc(m[3] ?? m[4]), `${f}${name ? ` ${name}` : ''}`, name ? VOICE_IDS[name] : undefined);
       }
     }
@@ -143,8 +155,26 @@ async function laneCLines(): Promise<W5Line[]> {
   return C.W5_C_LINES.map(l => ({ id: l.id, lane: 'c', zh: l.zh, en: l.en, source: `data/sf/linesW5.ts ${l.id}`, mood: moodOf(l.zh), voiceId: l.id, paced: 1 as const }));
 }
 
+/**
+ * Part c · lane E's lines (economy/lines.ts `E_LINES`, written with `bi(…)`): lane E says them with `bubble()` and plays
+ * `voice-line` `e-<key>` itself, so the clips take those ids (`own`).
+ */
+function laneELines(): W5Line[] {
+  const file = path.join(ROOT, 'src/opus-bay/economy/lines.ts');
+  if (!fs.existsSync(file)) return [];
+  const text = fs.readFileSync(file, 'utf8');
+  const block = text.slice(text.indexOf('export const E_LINES'), text.indexOf('} as const;', text.indexOf('export const E_LINES')));
+  const out: W5Line[] = [];
+  for (const m of block.matchAll(/(\w+):\s*bi\('((?:[^'\\]|\\.)*)',\s*'((?:[^'\\]|\\.)*)'\)/g)) {
+    const zh = unesc(m[2]), en = unesc(m[3]);
+    if (!isSentence(zh, en) || EXCLUDE[zh]) continue;
+    out.push({ id: `e-${m[1]}`, lane: 'e', zh, en, source: `economy/lines.ts E_LINES.${m[1]}`, mood: moodOf(zh), voiceId: `e-${m[1]}` });
+  }
+  return out;
+}
+
 export async function w5Lines(): Promise<W5Line[]> {
-  const all = [...await laneCLines(), ...scan(), ...await eggLines()];
+  const all = [...await laneCLines(), ...laneELines(), ...scan(), ...await eggLines()];
   const byText = new Map<string, W5Line>();
   for (const l of all) if (!byText.has(`${l.zh}\n${l.en}`)) byText.set(`${l.zh}\n${l.en}`, l);
   return [...byText.values()];
