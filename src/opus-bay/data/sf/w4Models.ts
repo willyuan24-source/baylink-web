@@ -5,8 +5,9 @@
  * one matte material, origin at the ground centre, front faces +Z, `size` = the GLB bounds in world units, `triangles` /
  * `bytes` = the files. Provenance and QA numbers: docs/opus-bay/ledger/w4-V.md, docs/opus-bay/sf-w4-V.md.
  *
- * Not registered yet (early phase: new files only). Integration (lane V, data/assets.ts): append `W4_MODEL_IDS` to
- * `SF_MODEL_IDS` and spread `W4_MODELS` into `SF_MODELS`; lane L then swaps them in through the SoloView gate.
+ * Registered (integration, lane V): data/assets.ts spreads `W4_MODELS` into `SF_MODELS` (so `ASSETS.models` and
+ * listAssetUrls carry them) and `SfModelId` includes `W4ModelId`; `SF_MODEL_IDS` stays the wave-2 / wave-3 list that
+ * lane L's `opus-bay-sf-models` counts (these four are checked file by file in lane V's `opus-bay-w4-assets`).
  * `landmarkId` = the id of the site whose `w4.aiSlot` the model fills (lane L's W4Site ids: `cal-academy`,
  * `st-ignatius-church`, `geary-west`, `blue-heron-lake`), as D2's swaps require (`SF_MODELS[part.model].landmarkId ===
  * site.id`). The swap rows (placement, scale, walk data, the gate's verdict) are in data/sf/w4Swaps.ts.

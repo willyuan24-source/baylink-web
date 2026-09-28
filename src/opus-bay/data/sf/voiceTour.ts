@@ -3,9 +3,10 @@
  * BAYBAY's recorded tour narration (lane V, W4-V6): every line of lane C's frozen TOUR_LINES (data/sf/tourLines.ts),
  * zh + en, qwen_audio_tts preset "Pixie", trimmed, two-pass loudnorm −18 LUFS / TP −1.5, AAC 64k .m4a + Opus 48k .ogg.
  * Clip id `<lang>-<line id>` like the wave-3 city lines. Measurements and picks: docs/opus-bay/qa/w4/V/voice/.
- * Not registered yet (early phase): at integration spread TOUR_VOICE_CLIPS into data/voiceLinesSf.ts SF_VOICE_CLIPS.
+ * Registered on import (data/assets.ts registerVoiceClips): the table loads with the tour / audio code, never in the main
+ * chunk; the TOUR_VOICE_CHECK takes stay unregistered (they chirp) until the owner approves them.
  */
-import type { VoiceClip } from '../assets';
+import { type VoiceClip, registerVoiceClips } from '../assets';
 
 const DIR = '/opus-bay/voice/sf/tour';
 const clip = (id: string, text: string, duration: number): VoiceClip => ({ m4a: `${DIR}/${id}.m4a`, ogg: `${DIR}/${id}.ogg`, lang: id.startsWith('en-') ? 'en' : 'zh', text, duration });
@@ -229,3 +230,5 @@ export const TOUR_VOICE_CLIPS: Record<string, VoiceClip> = {
 
 /** clips whose take did not pass every gate (the listening sheet marks them "check"): muted until the owner approves */
 export const TOUR_VOICE_CHECK: readonly string[] = [];
+
+registerVoiceClips(TOUR_VOICE_CLIPS, TOUR_VOICE_CHECK);

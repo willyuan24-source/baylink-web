@@ -12,6 +12,7 @@ import type { CityStyle } from '../world/recipes/city';
 import { mapPaperUrls } from './mapPaper';
 import { muralUrls } from './murals';
 import type { PostcardId } from './postcards';
+import { W4_MODELS, type W4ModelId } from './sf/w4Models';
 import { SF_VOICE_CLIPS } from './voiceLinesSf';
 
 const BASE = '/opus-bay';
@@ -264,13 +265,18 @@ export interface SfModelAsset extends ModelAsset {
   passage?: { width: number; clearHeight: number };
 }
 
+/**
+ * The wave-2 / wave-3 models (lane D2's `opus-bay-sf-models` test walks this list with the kit: 13 + 11). The wave-4 AI
+ * landmarks (lane V, data/sf/w4Models.ts: Cal Academy, St Ignatius, Holy Virgin, the Chinese Pavilion) are
+ * `W4_MODEL_IDS`, registered in `SF_MODELS` / `ASSETS.models` below and checked file by file in `opus-bay-w4-assets`.
+ */
 export const SF_MODEL_IDS = [
   'sf-victorian-a', 'sf-victorian-b', 'sf-palace-rotunda', 'sf-dragon-gate', 'sf-conservatory',
   // wave 3 (D2-15): the eight part-2a SAM landmark meshes
   'sf-legion-of-honor', 'sf-ghirardelli-clock-tower', 'sf-fort-point', 'sf-mission-dolores', 'sf-castro-theatre',
   'sf-windmill-body', 'sf-grace-cathedral', 'sf-city-hall',
 ] as const;
-export type SfModelId = (typeof SF_MODEL_IDS)[number];
+export type SfModelId = (typeof SF_MODEL_IDS)[number] | W4ModelId;
 
 const sfFile = (name: string) => `${BASE}/models/sf/${name}`;
 
@@ -356,6 +362,8 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
     url: sfFile('city-hall.glb'), draco: true, kind: 'hero', landmarkId: 'city-hall',
     scale: 1, yOffset: 0, triangles: 6860, bytes: 151_068, size: [17.7, 14.24, 11.29],
   },
+  // ---- wave 4 (lane V, W4-V4 / W4-V4b): the four AI landmarks of lane L's sites (landmarkId = the site holding the slot)
+  ...W4_MODELS,
 };
 
 // ---------------------------------------------------------------------------
@@ -478,6 +486,22 @@ export const ASSETS: AssetManifest = {
   voice: Object.fromEntries(Object.entries({ ...VOICE_CLIPS, ...SF_VOICE_CLIPS }).map(([id, c]) => [id, c[voiceFormat]])),
   models: { ...MODELS, ...SF_MODELS, ...SF_KIT },
 };
+
+/**
+ * Lazily loaded voice tables add their clips to `ASSETS.voice` (audio/voice.ts plays listed ids only): lane V's tour
+ * narration (data/sf/voiceTour.ts, 214 clips ≈ 10 KB gzip of table) registers itself when the tour / audio code imports
+ * it, so the table stays out of the main chunk. `skip` = ids left unregistered (the takes that await the owner's ear:
+ * they play the chirp, like MUTED_CLIPS). An id already in the manifest is kept. Returns how many were added.
+ */
+export function registerVoiceClips(clips: Readonly<Record<string, VoiceClip>>, skip: readonly string[] = []): number {
+  let added = 0;
+  for (const [id, c] of Object.entries(clips)) {
+    if (skip.includes(id) || ASSETS.voice[id]) continue;
+    ASSETS.voice[id] = c[voiceFormat];
+    added++;
+  }
+  return added;
+}
 
 /** Every distinct file URL in the manifest (for preloading or an existence check in tests). */
 export function listAssetUrls(): string[] {

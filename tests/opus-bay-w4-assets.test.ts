@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { SF_MODEL_IDS } from '../src/opus-bay/data/assets';
+import { ASSETS, SF_MODELS, SF_MODEL_IDS, listAssetUrls, registerVoiceClips } from '../src/opus-bay/data/assets';
 import { W4_MODELS, W4_MODEL_IDS, w4ModelUrls } from '../src/opus-bay/data/sf/w4Models';
 import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerSvg, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
 import { T1_IDS } from '../src/opus-bay/data/sf/attractions';
@@ -15,7 +15,7 @@ import { LOD0 } from '../src/opus-bay/world/sf/sites';
 
 /**
  * Lane V (wave 4, early phase): the new asset files against their data modules — the four AI landmark GLBs
- * (data/sf/w4Models.ts, not registered in data/assets.ts until the integration phase), the T1 map sticker atlas
+ * (data/sf/w4Models.ts, registered in data/assets.ts SF_MODELS at the integration), the T1 map sticker atlas
  * (data/sf/mapStickers.ts + public/opus-bay/map/stickers-t1.json), the tour narration clips (data/sf/voiceTour.ts, lane C's
  * frozen TOUR_LINES) and the wave-4 perf spots (scripts/opus-sf/qa/perf/w4-spots.json). File checks only: no WebGL, no decoding.
  * The lane-V review added the wiring checks: each model's `landmarkId` = the lane L site that holds its AI slot, the ledger
@@ -59,6 +59,13 @@ function glbTextures(g: Glb): [number, number, boolean][] {
 test('w4 models: four new ids, no clash with SF_MODEL_IDS, each file matches its row (bytes, triangles, bounds ±2 %, origin)', () => {
   assert.deepEqual([...W4_MODEL_IDS], ['sf-cal-academy', 'sf-st-ignatius', 'sf-holy-virgin', 'sf-chinese-pavilion']);
   for (const id of W4_MODEL_IDS) assert.ok(!(SF_MODEL_IDS as readonly string[]).includes(id), `${id} is new`);
+  // integration (lane V step 1): registered as the rows themselves, loadable by id (world/models.ts reads ASSETS.models)
+  const urls = new Set(listAssetUrls());
+  for (const id of W4_MODEL_IDS) {
+    assert.equal(SF_MODELS[id], W4_MODELS[id], `${id} in SF_MODELS`);
+    assert.equal(ASSETS.models[id], W4_MODELS[id], `${id} in ASSETS.models`);
+    assert.ok(urls.has(W4_MODELS[id].url) && (!W4_MODELS[id].mask || urls.has(W4_MODELS[id].mask!)), `${id} files listed`);
+  }
   for (const id of W4_MODEL_IDS) {
     const a = W4_MODELS[id];
     assert.match(a.url, /^\/opus-bay\/models\/sf\/w4-[a-z-]+\.glb$/, `${id} url`);
@@ -261,6 +268,19 @@ test('tour voice: every frozen TOUR_LINES line has its zh + en clip, word for wo
         assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), r.pick.files[ext].sha256, `${id}.${ext} sha256`);
       }
       assert.equal(TOUR_VOICE_CHECK.includes(id), !r.pick.passed, `${id} muted exactly when its take missed a gate`);
+      // integration: importing voiceTour registered the clip (audio/voice.ts plays listed ids only), unless it awaits the ear
+      assert.equal(ASSETS.voice[id], TOUR_VOICE_CHECK.includes(id) ? undefined : c[ASSETS.voice['zh-hi']?.endsWith('.ogg') ? 'ogg' : 'm4a'], `${id} registered`);
     }
   }
+});
+
+test('registerVoiceClips: adds the missing ids in this device’s container, keeps listed ones, skips the held-back takes', () => {
+  const clip = (id: string) => ({ m4a: `/opus-bay/voice/x/${id}.m4a`, ogg: `/opus-bay/voice/x/${id}.ogg`, lang: 'zh' as const, text: id, duration: 2 });
+  const before = ASSETS.voice['zh-hi'];
+  assert.equal(registerVoiceClips({ 'zh-v-test-a': clip('a'), 'zh-v-test-b': clip('b'), 'zh-hi': clip('hi') }, ['zh-v-test-b']), 1);
+  assert.match(ASSETS.voice['zh-v-test-a'], /^\/opus-bay\/voice\/x\/a\.(m4a|ogg)$/);
+  assert.equal(ASSETS.voice['zh-v-test-b'], undefined, 'held back');
+  assert.equal(ASSETS.voice['zh-hi'], before, 'a listed id is kept');
+  assert.equal(registerVoiceClips({ 'zh-v-test-a': clip('a') }), 0, 'twice is a no-op');
+  delete ASSETS.voice['zh-v-test-a'];
 });
