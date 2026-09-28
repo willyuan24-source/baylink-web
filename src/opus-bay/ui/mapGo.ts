@@ -137,6 +137,10 @@ const nearest = <T extends Vec2>(list: readonly T[], p: Vec2): T | null => {
   return best;
 };
 
+/** A zh name with Chinese in it (most OSM rows copy their English name into zh: 'Win Yen Co.', 'Filbert Steps'). */
+const HAN = /[㐀-鿿豈-﫿]/;
+export const hasZhName = (n: Bilingual | null | undefined): boolean => !!n && HAN.test(n.zh);
+
 /** The words of a pressed spot: near a place → "科伊特塔附近", else the area, else 这里. */
 export function pressName(near: Bilingual | null, area: Bilingual | null): Bilingual {
   if (near) return { zh: `${near.zh}附近`, en: `Near ${near.en}` };
@@ -163,7 +167,10 @@ export function pressSpot(p: Vec2, lk: PressLookups): PressSpot | null {
     }
   }
   if (!spot || !Number.isFinite(spot.x) || !Number.isFinite(spot.z)) return null;
-  const near = nearest(lk.placesNear(spot.x, spot.z, PRESS_SNAP.nearName), spot);
+  // (W5-N review, the checkpoint's CP-13 rule: no English in the zh HUD) only a place with a real zh name names the spot —
+  // 8 in 10 presses near a place were "Filbert Steps附近" / "Win Yen Co.附近" on the card, the pill and BAYBAY's line;
+  // without one the area speaks (金融区 · 南滩)
+  const near = nearest(lk.placesNear(spot.x, spot.z, PRESS_SNAP.nearName).filter(q => hasZhName(q.name)), spot);
   const area = lk.area(spot.x, spot.z);
   const nearName = near?.name ?? null;
   return { x: spot.x, z: spot.z, moved: Math.hypot(spot.x - p.x, spot.z - p.z), near: nearName, area, name: pressName(nearName, area) };

@@ -1208,3 +1208,24 @@ test('W5-N review: 让 BAYBAY 接着飞 shows only where lane F\'s auto-glide ta
   const src = readFileSync(new URL('../src/opus-bay/ui/GuideLayer.tsx', import.meta.url), 'utf8');
   assert.match(src, /setOwnWings\(scenicResumeOffered\(/, 'the chip asks it');
 });
+
+test('W5-N review: a long-pressed spot is named in zh — never "Filbert Steps附近" from an OSM row whose zh is its English name (CP-13\'s rule)', () => {
+  type PL = import('../src/opus-bay/ui/mapGo').PressLookups;
+  const places = [
+    { id: 'osm-steps', name: bi('Filbert Steps', 'Filbert Steps'), x: 102, z: 100, arrival: { x: 102, z: 100 } },
+    { id: 'coit', name: bi('科伊特塔', 'Coit Tower'), x: 130, z: 100, arrival: { x: 130, z: 100 } },
+  ];
+  const lk = (list: typeof places): PL => ({
+    stand: () => 1, nearestWalkable: p => p, placesNear: (x, z, r) => list.filter(p => Math.hypot(p.x - x, p.z - z) <= r), onLand: () => true, area: () => bi('电报山', 'Telegraph Hill'),
+  });
+  // the nearer place has no zh name: the one with a real zh name speaks
+  const a = MG.pressSpot({ x: 100, z: 100 }, lk(places))!;
+  assert.deepEqual(a.name, { zh: '科伊特塔附近', en: 'Near Coit Tower' });
+  // only English-named places near: the area
+  const b = MG.pressSpot({ x: 100, z: 100 }, lk([places[0]]))!;
+  assert.deepEqual(b.name, bi('电报山', 'Telegraph Hill'));
+  assert.equal(b.near, null);
+  assert.equal(MG.hasZhName(bi('Win Yen Co.')), false);
+  assert.equal(MG.hasZhName(bi('城市之光书店', 'City Lights')), true);
+  assert.equal(MG.hasZhName(null), false);
+});
