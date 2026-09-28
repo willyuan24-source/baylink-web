@@ -73,7 +73,8 @@ export class GuideMover {
   private stillT = 0;
   private frame: (Vec2 & { yaw: number; px: number; pz: number }) | null = null;
   private hiddenFarT = 0;
-  private hop: { fx: number; fz: number; tx: number; tz: number; t: number } | null = null;
+  /** a scripted move in progress: the hop-in arc, or (W5-F5) a dash to the pull spot (`dur` s, running legs, no arc) */
+  private hop: { fx: number; fz: number; tx: number; tz: number; t: number; dur?: number } | null = null;
   private gateT = 0;
   /** city mode: the long route of the current target (E2-2) */
   readonly route = new RouteFollower();
@@ -128,24 +129,52 @@ export class GuideMover {
     this.lastX = g.x; this.lastZ = g.z;
   }
 
+  /**
+   * W5-F5 (BAYBAY's pull): run to `to` in `seconds` (a straight dash at running pace; seen from far off or out of view,
+   * she hops in beside it instead). Her own path and route are dropped; the brain takes over again when she is there.
+   */
+  dash(to: Vec2, seconds: number, visible = true) {
+    const g = runtime.guide;
+    if (!visible || Math.hypot(to.x - g.x, to.z - g.z) > 14) {
+      const yaw = runtime.camera.yaw;
+      const back = { x: to.x + Math.sin(yaw) * 6, z: to.z + Math.cos(yaw) * 6 };
+      const from = canStand(back.x, back.z, GUIDE_RADIUS) ? back : nearestWalkable(back, 6) ?? to;
+      g.x = from.x; g.z = from.z; g.y = heightAt(from.x, from.z);
+      this.hop = { fx: from.x, fz: from.z, tx: to.x, tz: to.z, t: 0 };
+      this.hops++;
+    } else this.hop = { fx: g.x, fz: g.z, tx: to.x, tz: to.z, t: 0, dur: Math.max(0.05, seconds) };
+    this.vx = this.vz = 0;
+    this.resetPath();
+    this.hiddenFarT = 0;
+    this.lastX = g.x; this.lastZ = g.z;
+  }
+
+  /** a dash or a hop-in is under way */
+  get dashing(): boolean { return this.hop !== null; }
+
   step(dt: number, now: number, opts: GuideStepOptions) {
     const g = runtime.guide, p = runtime.player;
     if (!this.placed) this.place();
     // external moves (flow puts BAYBAY next to you after a ride)
     if (Math.abs(g.x - this.lastX) > 1e-4 || Math.abs(g.z - this.lastZ) > 1e-4) { this.resetPath(); this.vx = this.vz = 0; this.hop = null; }
 
-    // --- hop-in arc in progress
+    // --- hop-in arc (or a dash) in progress
     if (this.hop) {
       const h = this.hop;
       h.t += dt;
-      const k = clamp(h.t / HOP_TIME, 0, 1);
-      const e = k * k * (3 - 2 * k);
+      const dash = h.dur !== undefined;
+      const k = clamp(h.t / (h.dur ?? HOP_TIME), 0, 1);
+      const e = dash ? k : k * k * (3 - 2 * k);
+      const x0 = g.x, z0 = g.z;
       g.x = h.fx + (h.tx - h.fx) * e; g.z = h.fz + (h.tz - h.fz) * e;
-      g.y = heightAt(g.x, g.z) + Math.sin(k * Math.PI) * 0.9;
-      g.heading = Math.atan2(h.tx - h.fx, h.tz - h.fz);
-      g.speed = 0; this.animSpeed = 0;
+      g.y = heightAt(g.x, g.z) + (dash ? 0 : Math.sin(k * Math.PI) * 0.9);
+      if (Math.hypot(h.tx - h.fx, h.tz - h.fz) > 0.05) g.heading = Math.atan2(h.tx - h.fx, h.tz - h.fz);
+      const moved = Math.hypot(g.x - x0, g.z - z0);
+      g.speed = dash && dt > 0 ? moved / dt : 0;
+      this.animSpeed = dash && k < 1 ? GUIDE_RUN : 0;
+      if (dash) this.stride += moved / 0.95;
       g.arrived = k >= 1;
-      if (k >= 1) { this.hop = null; g.y = heightAt(g.x, g.z); }
+      if (k >= 1) { this.hop = null; g.y = heightAt(g.x, g.z); this.vx = this.vz = 0; }
       this.lastX = g.x; this.lastZ = g.z;
       return;
     }

@@ -8,7 +8,7 @@ import { MAX_GROUND_Y, canStand, heightAt, inWorld, nearestWalkable } from '../c
 import type { Vec2 } from '../core/types';
 import { MODELS } from '../data/assets';
 import { DISTRICT } from '../data/district';
-import { nodeById, say } from '../game/flow';
+import { bubble, nodeById, say } from '../game/flow';
 import { interactableById } from '../game/interactables';
 import { flow } from '../game/flowStore';
 import { Animator, GLB_BAYBAY_TUNING, type Emote } from './anim';
@@ -23,6 +23,7 @@ import { MoveSystem } from './moveSystem';
 import { bindMoveApi } from './moveApi';
 import { FACADE_REACH, facadeAlongRay, frontSpot, type FacadeIntersection } from './tapTarget';
 import { CharImpl, type CharHost } from './charImpl';
+import { StuckHelper, type PullStart } from './stuckHelper';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -380,6 +381,10 @@ export class ActorSystem {
   readonly char: CharImpl;
   private lastSelfTap = -10;
   private seenPant = -10;
+  /** wave 5 (W5-F5): BAYBAY's pull for a player stuck on something unseen (QA: `__opusBay.actors.feet.pulls`) */
+  readonly feet = new StuckHelper();
+  private feetReset = input.resetCount;
+  private feetPhase: StuckHelper['phase'] = 'idle';
   // A9 · idle life
   private idleT = 0;
   private idleStage = 0;
@@ -570,6 +575,13 @@ export class ActorSystem {
 
   // ---------------------------------------------------------------------------
 
+  /** W5-F5: stage BAYBAY's pull — she runs over (or hops in when far / out of view) and says 嘿咻！ */
+  private stagePull(pull: PullStart) {
+    const move = this.move;
+    if (!move.guideCarried && !move.guide.active) this.mover.dash(pull.baybay, pull.rush, this.guideSeen);
+    bubble({ zh: '嘿咻！', en: 'Heave-ho!' }, 1800);
+  }
+
   /** QA (`__opusBay.actors.qaScreen('baybay')`): where a hero's middle shows, in normalised device coordinates (−1..1) */
   qaScreen(who: 'player' | 'baybay'): { x: number; y: number } | null {
     const cam = this.lastCamera;
@@ -619,7 +631,25 @@ export class ActorSystem {
     // other lanes' moving things (F's crowd and traffic, actors/view.ts registerObstacleSource)
     collectObstacles(this.obstacles, p.x, p.z, 8);
 
-    this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen, riding: carried, obstacles: this.obstacles });
+    // W5-F5: BAYBAY's pull (a push that gets nowhere for 1.2 s, or R with the feet boxed in); the feet wait while it runs
+    const pc0 = this.controller;
+    const resetPress = input.resetCount !== this.feetReset;
+    this.feetReset = input.resetCount;
+    const pull = this.feet.update({
+      dt, now: t, reset: resetPress, obstacles: this.obstacles,
+      free: s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && pc0.grounded && !pc0.vault && !p.pathTarget,
+      pushing: pc0.manualWish && input.manualMove, dirX: pc0.wishX, dirZ: pc0.wishZ,
+    });
+    if (pull) this.stagePull(pull);
+    const pulling = this.feet.active;
+    this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen: frozen || pulling, riding: carried, obstacles: this.obstacles });
+    if (pulling) p.y += this.feet.lift();
+    if (this.feet.phase !== this.feetPhase) {
+      // her paws out while she pulls, a happy hop when you are through
+      if (this.feet.phase === 'pull' && !move.guideCarried && !move.guide.active) this.guideAnim.play('reach', 0.7);
+      else if (this.feet.phase === 'idle' && this.feetPhase === 'pull') { this.playerAnim.land(0.35); if (!move.guideCarried && !move.guide.active) this.guideAnim.play('hop'); }
+      this.feetPhase = this.feet.phase;
+    }
     move.finishPlayer();
     // wave 5 (W5-F2): emote loops end on a move; the ridden bike wears its paint; the body can be tapped when free
     this.char.update(dt);
@@ -679,6 +709,7 @@ export class ActorSystem {
       grounded: carried ? true : pc.grounded, vy: carried ? 0 : pc.vy, crouch: pc.anticipation >= 0 ? Math.min(1, pc.anticipation / 0.07) : 0,
       turnRate: carried ? 0 : pc.turnRate, accel: carried ? 0 : pc.accel,
       lookYaw: look.yaw, lookWeight: look.w, wallLean: pc.wallLean, skid: pc.skid, stairs: pc.onStairs && !carried, sitting: this.idleStage >= 3 || RA.sitting,
+      vault: carried ? 0 : Math.max(pc.vaultK, Math.sin(this.feet.pullK * Math.PI)),
       talking: inDialogue && guideNode?.speaker === 'player' && t < this.playerTalkUntil,
       riding: RA.pole && !deckWalk,
       ride: RA.ride, pedal: RA.pedal, standing: RA.standing,

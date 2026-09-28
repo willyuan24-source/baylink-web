@@ -4,6 +4,8 @@ import { runtime } from '../core/runtime';
 import { canStand, cityTerrain, groundPending, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
 import type { SurfaceKind, Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
+import { deckAt, deckWish } from './deckSteer';
+import { FEET, corridorAt, vaultPlan, type VaultPlan } from './feet';
 import { findPath, pathLength } from './nav';
 import { RouteFollower, isLongRoute } from './routeFollow';
 
@@ -24,6 +26,11 @@ import { RouteFollower, isLongRoute } from './routeFollow';
  * a stall and asks for a fresh route after 3 stalls. District mode never takes that branch (findPath only, as before).
  * City ground that is not resident yet (standAt −1) is unknown, not stuck: the stuck timer pauses there and the rescue
  * never throws the player back to the Ferry gate (checkpoint CS-4).
+ *
+ * Wave 5 · W5-F5 / W5-F6 forgiving feet (actors/feet.ts, actors/deckSteer.ts): in a corridor (a deck, a pier, a narrow
+ * path, a stair landing) a push into the rail keeps walking along it (full speed within 35° of the rail, sliding down to
+ * FEET.corridorSlideMin before it stops); running or jumping into a low blocker with a measured top vaults it in a
+ * 0.35 s hop (guarded: feet.vaultPlan); on a bridge deck forward input follows the deck and steers round the tower legs.
  */
 
 /** = terrain STAND_RADIUS, so A* paths on the nav grid stay valid for the body (A8) */
@@ -137,6 +144,10 @@ const FAR_FAIL = 14;
 const SLIDE_MIN = 0.35;
 /** minimum time a press lasts before sliding can resume (s) */
 const PRESS_HOLD = 0.25;
+/** W5-F5: a vault needs a push this head-on (cos of the angle between the wish and the blocker's normal) … */
+const VAULT_HEAD_ON = Math.cos((45 * Math.PI) / 180);
+/** … and a run into it (u/s; or a jump) */
+export const VAULT_SPEED = WALK_SPEED + 0.8;
 
 export interface Obstacle { x: number; z: number; r: number; kind: string }
 
@@ -326,6 +337,21 @@ export class PlayerController {
   private pressing = false;
   private pressSince = -10;
   private releaseAt = -10;
+  /** W5-F5: sliding along a corridor's wall last frame (the contact probe keeps it alive) */
+  private sliding = false;
+  /**
+   * W5-F5: the last frame's wish direction (world, unit) and whether it came from the stick / keys (the stuck helper
+   * watches a manual push; the vault and the pull go that way)
+   */
+  wishX = 0;
+  wishZ = 0;
+  manualWish = false;
+  /** W5-F5: the auto-vault in progress (null when none), its 0..1 weight for the animation, and the count (QA) */
+  vault: (VaultPlan & { x0: number; z0: number; y0: number; t: number; lift: number; speed: number; dirX: number; dirZ: number }) | null = null;
+  vaultK = 0;
+  vaults = 0;
+  /** W5-F6: the wish was steered along a bridge deck this frame (QA / tests) */
+  deckSteered = false;
 
   /** Put the controller in sync with runtime.player (after teleports). */
   sync() {
@@ -338,7 +364,8 @@ export class PlayerController {
     this.clearPath();
     this.climb.reset();
     this.stuckT = 0;
-    this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.wallLean = 0;
+    this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.sliding = false; this.wallLean = 0;
+    this.vault = null; this.vaultK = 0;
   }
 
   clearPath() {
@@ -406,16 +433,21 @@ export class PlayerController {
       this.vx = this.vz = this.vy = 0;
       this.grounded = true;
       this.anticipation = -1;
+      this.vault = null; this.vaultK = 0;
       p.y = heightAt(p.x, p.z);
       p.speed = 0; p.moving = false; p.running = false; p.grounded = true;
       this.clearPath();
       this.lastX = p.x; this.lastZ = p.z;
       return;
     }
+    // W5-F5: a vault in progress carries the body over the blocker (input waits for the landing)
+    if (this.vault) { this.stepVault(ctx); return; }
 
     // 2. desired horizontal velocity
     let wx = 0, wz = 0, wantSpeed = 0;
     const mx = runtime.input.moveX, my = runtime.input.moveY, mag = Math.min(1, Math.hypot(mx, my));
+    this.manualWish = false;
+    this.deckSteered = false;
     if (!ctx.frozen && mag > 0.05) {
       if (p.pathTarget || this.path.length) this.cancelPath();
       const yaw = ctx.cameraYaw;
@@ -424,7 +456,13 @@ export class PlayerController {
       wx = rx * mx + fx * my; wz = rz * mx + fz * my;
       const L = Math.hypot(wx, wz) || 1;
       wx /= L; wz /= L;
+      this.wishX = wx; this.wishZ = wz; this.manualWish = true;
       wantSpeed = (runtime.input.run ? RUN_SPEED : WALK_SPEED) * (mag < 0.35 ? 0.35 + mag : Math.min(1, mag * 1.08));
+      // W5-F6: on a bridge deck forward input follows the deck and steers round the tower legs
+      if (this.grounded) {
+        const dk = deckAt(p.x, p.z, p.y);
+        if (dk) { const s = deckWish(dk, wx, wz, PLAYER_RADIUS); if (s.steered) { wx = s.x; wz = s.z; this.deckSteered = true; } }
+      }
     } else if (!ctx.frozen && p.pathTarget) {
       const dir = this.followPath(dt);
       if (dir) { wx = dir.x; wz = dir.z; wantSpeed = dir.speed; }
@@ -441,25 +479,34 @@ export class PlayerController {
     // 2b. wall contact (A8): slide along the averaged wall normal with the full wish projected onto the tangent;
     //     pushing nearly straight in = stop, face the wish, lean into the wall (no sideways crawl, no twitching)
     this.contactAge += dt;
-    if (this.pressing && wantSpeed > 0) {
-      // still pushing: probe a short step along the wish so the contact stays alive while we stand at the wall
+    if ((this.pressing || this.sliding) && wantSpeed > 0) {
+      // still pushing: probe a short step along the wish so the contact stays alive while we stand at (slide along) the wall
       const probe = moveDisc(p.x, p.z, wx * 0.06, wz * 0.06, PLAYER_RADIUS, heightAt(p.x, p.z));
       if (probe.blocked && (probe.nx || probe.nz)) this.noteWall(probe.nx, probe.nz);
     }
-    let pressing = false;
+    let pressing = false, sliding = false;
     const wishX = wx, wishZ = wz;
     if (wantSpeed > 0 && this.grounded && this.contactAge < 0.15) {
       const n = this.wallN;
       const into = wx * n.x + wz * n.z;
       if (into > 0.05) {
         const tgx = wx - n.x * into, tgz = wz - n.z * into, ratio = Math.hypot(tgx, tgz);
-        // hysteresis: start pressing below SLIDE_MIN, only start sliding again well above it (the averaged normal of an
-        // irregular edge still wobbles a little)
-        const limit = this.pressing ? SLIDE_MIN + 0.2 : SLIDE_MIN;
+        // W5-F5 slide along: in a corridor (deck, pier, narrow path, stair landing) the slide goes on down to a steeper
+        // push, and within FEET.steerCone of the wall it runs along it at full speed; open ground keeps SLIDE_MIN
+        const corridor = corridorAt(p.x, p.z, n.x, n.z);
+        const min = corridor ? FEET.corridorSlideMin : SLIDE_MIN;
+        // hysteresis: start pressing below the minimum, only start sliding again well above it (the averaged normal of
+        // an irregular edge still wobbles a little)
+        const limit = this.pressing ? min + 0.2 : min;
         if (ratio < limit || (this.pressing && ctx.now - this.pressSince < PRESS_HOLD)) pressing = true;
-        else { wx = tgx / ratio; wz = tgz / ratio; wantSpeed *= ratio; }
+        else {
+          wx = tgx / ratio; wz = tgz / ratio;
+          if (!(corridor && ratio >= Math.cos(FEET.steerCone))) wantSpeed *= ratio;
+          sliding = corridor;
+        }
       }
     }
+    this.sliding = sliding;
     if (pressing && !this.pressing) {
       this.pressSince = ctx.now;
       // one bump per contact
@@ -540,6 +587,14 @@ export class PlayerController {
         ground = this.grounded ? heightAt(p.x, p.z) : ground;
       }
       if (blocked && (hitX || hitZ)) {
+        // W5-F5 auto-vault: running (or jumping) head-on into a low blocker with a measured top hops over it
+        if (this.manualWish && !ctx.frozen && wishX * hitX + wishZ * hitZ > VAULT_HEAD_ON) {
+          const jumping = !this.grounded && this.jumpedAt >= this.lastGroundedAt - 0.05;
+          if (jumping || prevSpeed >= VAULT_SPEED || (runtime.input.run && prevSpeed > WALK_SPEED * 0.6)) {
+            const plan = vaultPlan(p.x, p.z, heightAt(p.x, p.z), wishX, wishZ, PLAYER_RADIUS);
+            if (plan) { this.startVault(plan, p.x, p.z, p.y, wishX, wishZ, Math.max(prevSpeed, WALK_SPEED)); return; }
+          }
+        }
         // remove the velocity component into the wall so we slide instead of grinding
         const into = this.vx * hitX + this.vz * hitZ;
         if (into > 0) { this.vx -= hitX * into; this.vz -= hitZ * into; }
@@ -626,6 +681,48 @@ export class PlayerController {
     p.moving = speed > 0.3;
     p.running = speed > WALK_SPEED + 0.8;
     p.grounded = this.grounded;
+    const surf = surfaceAt(p.x, p.z);
+    if (surf) p.surface = surf;
+    this.onStairs = surf === 'stairs';
+    this.lastX = p.x; this.lastZ = p.z;
+  }
+
+  /** W5-F5: begin the hop over a low blocker (feet.vaultPlan passed every guard). */
+  private startVault(plan: VaultPlan, x0: number, z0: number, y0: number, dirX: number, dirZ: number, speed: number) {
+    const p = runtime.player;
+    // the feet clear the top by FEET.vaultClear half-way over (a parabola on top of the straight line)
+    const lift = Math.max(0.25, plan.top + FEET.vaultClear - (y0 + plan.y) / 2);
+    this.vault = { ...plan, x0, z0, y0, t: 0, lift, speed: Math.min(speed, RUN_SPEED), dirX, dirZ };
+    this.vaults++;
+    this.grounded = false;
+    this.anticipation = -1;
+    this.jumpedAt = this.stepNow;
+    this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.sliding = false; this.wallLean = 0;
+    emit({ type: 'jump' });
+    p.grounded = false;
+    this.lastX = p.x; this.lastZ = p.z;
+  }
+
+  /** W5-F5: one frame of the vault: over the blocker in FEET.vaultTime, landing still running. */
+  private stepVault(ctx: StepContext) {
+    const p = runtime.player, v = this.vault!;
+    v.t += ctx.dt;
+    const k = clamp(v.t / FEET.vaultTime, 0, 1), e = k * k * (3 - 2 * k);
+    p.x = v.x0 + (v.x - v.x0) * e; p.z = v.z0 + (v.z - v.z0) * e;
+    p.y = v.y0 + (v.y - v.y0) * e + v.lift * 4 * k * (1 - k);
+    p.heading = dampAngle(p.heading, Math.atan2(v.dirX, v.dirZ), TURN_RATE, ctx.dt);
+    this.vaultK = Math.sin(k * Math.PI);
+    this.vx = v.dirX * v.speed; this.vz = v.dirZ * v.speed;
+    this.vy = k < 0.5 ? 2 : -2;
+    this.airTime += ctx.dt;
+    p.speed = v.speed; p.moving = true; p.running = v.speed > WALK_SPEED + 0.8; p.grounded = false;
+    if (k >= 1) {
+      this.vault = null; this.vaultK = 0;
+      this.grounded = true; this.vy = 0;
+      p.y = heightAt(p.x, p.z); p.grounded = true;
+      this.landedAt = ctx.now; this.landImpact = 0.3;
+      emit({ type: 'land', impact: 0.3 });
+    }
     const surf = surfaceAt(p.x, p.z);
     if (surf) p.surface = surf;
     this.onStairs = surf === 'stairs';

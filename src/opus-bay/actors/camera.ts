@@ -6,6 +6,7 @@ import { blockersNear, canStand, cityEpoch, cityTerrain, forEachBlockerNear, hei
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { cinemaKind, currentFraming, measureBottomCover, takeFaceRequest, type Framing } from '../game/cinema';
 import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
+import { deckAt, deckCameraYaw, heroRelaxed, type DeckAt } from './deckSteer';
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
 import { heroView, preferredCameraYaw, preferredViewDir } from './viewField';
@@ -31,6 +32,11 @@ import type { Obstacle } from './controller';
  * Bridge's towers, Sutro and Salesforce and every landmark's arrival spot has a zone view built from its photo pose
  * (actors/cityViews.ts, loaded lazily: the landmark library stays out of the main graph); occlusion reads the blockers'
  * tops (a roof below the sight line does not hide the player); a fast-travel landing hands over at the descent's yaw.
+ *
+ * Wave 5 · W5-F6 (plan §2 MF2 "The GGB deck"): on a bridge deck (actors/deckSteer) the follow camera stays behind the
+ * player along the deck's axis (the alignment nearest the current view, the one behind the player on a tie), the
+ * towers' hero points are relaxed (you walk through the portals) and the occlusion swing waits: it used to turn the
+ * camera 83° across the deck at the south end, so holding forward walked into the rail.
  */
 
 export const DIST_MIN = 7, DIST_MAX = 30;
@@ -56,6 +62,8 @@ const TWO_ANGLES = [TWO_ANGLE, TWO_ANGLE * 0.65, TWO_ANGLE * 1.5, TWO_ANGLE * 1.
 const SETTLE_S = 8;
 /** W5-F7: how long an arrival's open-ground turn outranks the snap / settle yaw (s) */
 const OPEN_HOLD_S = 3;
+/** W5-F6: on a deck, a camera more than this off the axis turns firmly (rate DECK_TURN), else it follows gently */
+const DECK_FAR = 0.44, DECK_TURN = 3, DECK_FOLLOW = 2.2;
 /** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
 const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
 // (roofLiftStep's blocker test writes here: module state, no closure per sample)
@@ -136,6 +144,8 @@ function segDist(ax: number, az: number, bx: number, bz: number, px: number, pz:
 export function heroClear(x: number, z: number, yaw: number, dist: number): boolean {
   const cx = x + Math.sin(yaw) * dist, cz = z + Math.cos(yaw) * dist;
   for (const h of heroPoints()) {
+    // (W5-F6: on the bridge deck its towers are what you walk through, not what hides you)
+    if (heroRelaxed(h.id, x, z)) continue;
     // standing right beside a hero: only the part of the line away from the player counts
     const r = Math.min(h.r ?? HERO_CLEAR, Math.hypot(h.x - x, h.z - z) * 0.8);
     if (segDist(cx, cz, x, z, h.x, h.z) < r) return false;
@@ -326,6 +336,9 @@ function segmentBlocked(ax: number, az: number, bx: number, bz: number, skipEnd 
  * the openness field, actors/viewField.ts), never from behind a building or hero.
  */
 export function chooseYaw(x: number, z: number, fallback: number, dist: number): number {
+  // W5-F6: on a bridge deck, along the axis (behind the player: `fallback` is the yaw behind them)
+  const deck = deckAt(x, z);
+  if (deck) return deckYaw(deck, fallback, fallback);
   const zone = zoneAt(x, z, null);
   if (zone) {
     zone.frame?.(heightAt);
@@ -369,6 +382,16 @@ export function yawCandidates(x: number, z: number, fallback: number, dist: numb
   const candidates = [bay, fallback];
   for (let k = 1; k <= 6; k++) candidates.push(bay + k * 0.5, bay - k * 0.5);
   return candidates.map((yaw, i) => { const occ = occlusion(x, z, yaw, dist); return { yaw, occ, score: occ * 3 + i * 0.12 }; });
+}
+
+/**
+ * W5-F6: the deck-aligned camera yaw for a player on a deck — of the two alignments (behind a walk one way or the other)
+ * the one nearest `yaw`, the one behind the player (`behind` = heading + π) winning unless the other is ≥ 0.7 rad nearer.
+ */
+export function deckYaw(at: DeckAt, yaw: number, behind: number): number {
+  const a = deckCameraYaw(at.deck, 1), b = deckCameraYaw(at.deck, -1);
+  const score = (c: number) => Math.abs(wrap(c - yaw)) + (Math.abs(wrap(c - behind)) < Math.PI / 2 ? 0 : 0.7);
+  return score(a) <= score(b) ? a : b;
 }
 
 function zoneAt(x: number, z: number, current: ZoneView | null): ZoneView | null {
@@ -554,6 +577,7 @@ export class CameraController {
     if (input.resetCount !== this.resetSeen) {
       this.resetSeen = input.resetCount;
       this.yaw = p.heading + Math.PI;
+      this.deckDir = 0; // (W5-F6: on a deck, R lines the camera up behind the heading too)
       this.pitchOffset = 0;
       if (photo) this.pitch = PITCH_DEFAULT;
       else this.distance = clamp(s.settings.cameraDistance || 15, DIST_MIN, DIST_MAX);
@@ -591,7 +615,30 @@ export class CameraController {
       if (!photo) this.assists(now, talking, idleMs);
       this.applyAssist(now, dt, idleMs);
     } else this.assist = null;
-    if (!photo && idleCam && p.moving && !talking && p.speed > 1.2 && this.zoneW < 0.5) {
+    // W5-F6: on a bridge deck the camera stays behind the player along the axis (hands off while the player turns it).
+    // Which way: behind the heading when the player comes onto the deck (walking on, or once the deck's chunk is in
+    // after a landing / teleport); then that alignment holds (walking back toward the camera never flips it) until the
+    // player turns the camera themselves: it then keeps the alignment nearest their view.
+    const deck = !photo && !cam.shot && !rideMode && !talking ? deckAt(view.x, view.z, view.ground) : null;
+    if (deck) {
+      const ax = Math.sin(deck.deck.heading), az = Math.cos(deck.deck.heading);
+      // (a jump of more than 1.2 u in a frame is a teleport or a landing: behind the heading again)
+      const jumped = Math.hypot(view.x - this.deckX, view.z - this.deckZ) > 1.2;
+      if (!this.onDeck || this.deckDir === 0 || jumped) this.deckDir = Math.sin(p.heading) * ax + Math.cos(p.heading) * az >= 0 ? 1 : -1;
+      if (idleMs <= 1800) this.deckManual = true;
+      else {
+        if (this.deckManual) {
+          this.deckManual = false;
+          this.deckDir = Math.abs(wrap(deckCameraYaw(deck.deck, 1) - this.yaw)) <= Math.abs(wrap(deckCameraYaw(deck.deck, -1) - this.yaw)) ? 1 : -1;
+        }
+        const d = wrap(deckCameraYaw(deck.deck, this.deckDir) - this.yaw);
+        this.assist = null;
+        this.yaw += d * Math.min(1, dt * (Math.abs(d) > DECK_FAR ? (reduced ? 6 : DECK_TURN) : DECK_FOLLOW));
+      }
+    } else { this.deckDir = 0; this.deckManual = false; }
+    this.onDeck = !!deck;
+    this.deckX = view.x; this.deckZ = view.z;
+    if (!deck && !photo && idleCam && p.moving && !talking && p.speed > 1.2 && this.zoneW < 0.5) {
       const behind = p.heading + Math.PI;
       const d = wrap(behind - this.yaw);
       // only while travelling mostly away from the camera: strafing must not spiral, walking toward the
@@ -894,6 +941,12 @@ export class CameraController {
   private occlCheckAt = 0;
   // the arrival look-again (city, E2-6)
   private settleUntil = 0;
+  /** W5-F6: the player was on a bridge deck last frame; the alignment the camera keeps there (±1 along the axis, 0 none) */
+  private onDeck = false;
+  private deckDir = 0;
+  private deckManual = false;
+  private deckX = NaN;
+  private deckZ = NaN;
   /** W5-F7: the open-ground yaw an arrival asked for (faceCameraToward open) and until when it outranks the arrival yaw */
   private openYaw = 0;
   private openUntil = 0;
@@ -949,7 +1002,8 @@ export class CameraController {
     if (talking) this.talkEndedAt = Infinity;
     else if (this.talkEndedAt === Infinity) this.talkEndedAt = now;
     // 2) a building / hero landmark has sat between the camera and the player for a moment: swing to a clear view
-    if (!talking && !manualRecently && this.assist === null && now >= this.occlCheckAt) {
+    //    (not on a bridge deck: the deck rule keeps the camera on the axis, W5-F6)
+    if (!talking && !manualRecently && this.assist === null && !this.onDeck && now >= this.occlCheckAt) {
       this.occlCheckAt = now + 0.3;
       const occ = occlusionBehind(view.x, view.z, this.yaw, this.distance);
       if (occ > 2.5) {

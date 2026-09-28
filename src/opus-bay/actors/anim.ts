@@ -57,6 +57,8 @@ export interface Motion {
   wallLean?: number;
   /** 0..1 skidding after a sharp reversal: lean back (A10) */
   skid?: number;
+  /** 0..1 a hands-on hop (W5-F5: the auto-vault, BAYBAY's pull): lean in, hands reaching forward, feet tucked */
+  vault?: number;
   /** climbing stairs: higher knees (A10) */
   stairs?: boolean;
   /** riding pose (no walk cycle; arms to the bars / wheel / the pelican's neck) */
@@ -237,6 +239,13 @@ export class Animator {
       pose.armLz += -0.42 * k; pose.armRz += 0.42 * k;
     }
     if (m.crouch > 0) { pose.armLx += 0.6 * m.crouch; pose.armRx += 0.6 * m.crouch; }
+    // W5-F5: over a low wall (or pulled by BAYBAY) hands first, body leaning in
+    const vw = m.vault ?? 0;
+    if (vw > 0.001) {
+      pose.lean += 0.35 * vw;
+      pose.armLx += (-1.3 - pose.armLx) * vw; pose.armRx += (-1.3 - pose.armRx) * vw;
+      pose.armLz += (-0.2 - pose.armLz) * vw; pose.armRz += (0.2 - pose.armRz) * vw;
+    }
     // sitting on the ground (idle ladder): settle down, lean back a touch, feet out front, hands on the knees
     this.sitW = damp(this.sitW, (m.sitting || this.emote === 'sit') && this.kind !== 'npc' ? 1 : 0, 5, dt);
     const sw = this.sitW;
@@ -308,7 +317,7 @@ export class Animator {
       // (the dance steps in place on the beat, one foot then the other)
       const step = pose.danceStep > 0 ? Math.sin(ea * Math.PI * DANCE_BPS) : 0;
       const liftL = Math.max(0, -s) * mw + Math.max(0, step) * pose.danceStep, liftR = Math.max(0, s) * mw + Math.max(0, -step) * pose.danceStep;
-      const tuck = aw * 0.12;
+      const tuck = aw * 0.12 + vw * 0.14;
       const sitF = this.sitW;
       b.footL.position.set(r.footL.x, r.footL.y + (L * liftL + tuck) + 0.22 * sitF, r.footL.z + A * c * mw + 0.24 * sitF);
       b.footR.position.set(r.footR.x, r.footR.y + (L * liftR + tuck) + 0.22 * sitF, r.footR.z - A * c * mw + 0.24 * sitF);

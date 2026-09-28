@@ -1,8 +1,11 @@
 import { SF_LANDMARK_INFO } from '../data/sf/landmarks';
 import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
+import { oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { sfLandmarkAnchor } from '../world/sf/landmarks/context';
 import { landmarkToWorld, sfLandmark } from '../world/sf/landmarks/index';
 import type { HeroPoint, ZoneView } from './camera';
+import { registerDeck, type Deck } from './deckSteer';
+import { registerNoVault } from './feet';
 import { PLAYER_HEIGHT } from './dims';
 
 /**
@@ -15,6 +18,8 @@ import { PLAYER_HEIGHT } from './dims';
  *   带我去 end on), built from D2's photo pose (data/sf/landmarks `photo`): the camera stands behind the player on the
  *   line to the photo target, low (the photo's elevation) and a little farther back and looking up for a tall subject,
  *   so City Hall's dome, the Palace rotunda or the Lombard hairpins are in frame when you arrive (CS-10).
+ * - wave 5 (W5-F6): the Golden Gate Bridge's deck (`ggbDeck`) for the feet and the follow camera (actors/deckSteer),
+ *   registered when this module loads (city mode only), so the landmark library stays out of the main graph.
  */
 
 /** zone radius (u) around a landmark's arrival spot (the district zones use 10; a city arrival area is larger) */
@@ -27,6 +32,28 @@ export function cityHeroPoints(): HeroPoint[] {
   const sutro = sfLandmark('sutro-tower');
   if (sutro) out.push({ id: 'sutro-tower', x: sutro.x, z: sutro.z, r: 7 });
   return out;
+}
+
+/**
+ * W5-F6: the walk between the Golden Gate Bridge's railings — the deck from its south end on the Presidio bluff to its
+ * north end, the rails' inner faces 2.62 u off the axis (the landmark's railings stand at ±2.65, 0.16 thick; the road
+ * and sidewalks reach ±2.65). On it the camera may look through the two towers' portals.
+ */
+export const GGB_DECK_HALF = 2.62;
+export function ggbDeck(): Deck | null {
+  const l = sfLandmark('golden-gate-bridge');
+  if (!l) return null;
+  const a = landmarkToWorld(l, { x: GGB.END_S, z: 0 }), b = landmarkToWorld(l, { x: GGB.END_N, z: 0 });
+  return {
+    id: 'golden-gate-bridge', x: a.x, z: a.z, heading: Math.atan2(b.x - a.x, b.z - a.z), length: Math.hypot(b.x - a.x, b.z - a.z),
+    half: GGB_DECK_HALF, y: GGB.DECK, relax: ['ggb-tower-s', 'ggb-tower-n'],
+  };
+}
+registerDeck('golden-gate-bridge', ggbDeck());
+// W5-F5 (plan D22, the wildlife and safety tone): nobody hops over the Ocean Beach fire rings — they burn in season
+{
+  const ex = oceanBeachFireRings.exclude;
+  if (ex && 'poly' in ex) registerNoVault('ocean-beach-fire-rings', [ex.poly]);
 }
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
