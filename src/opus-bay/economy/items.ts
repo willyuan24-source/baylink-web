@@ -68,7 +68,7 @@ export const ITEMS: readonly ItemDef[] = [
   // --- BAYBAY's scarves (a tint of her scarf) · 40 ------------------------------------------------------------------
   { id: 'scarf-fog', shelf: 'baybay', slot: 'baybay-scarf', name: bi('雾灰围巾', 'Karl-grey scarf'), short: bi('雾灰', 'Karl grey'), price: 40, color: 0xa9b2b7, note: bi('和 Karl 一个颜色', 'The colour of Karl the Fog') },
   { id: 'scarf-maroon', shelf: 'baybay', slot: 'baybay-scarf', name: bi('缆车栗红围巾', 'Cable-car maroon scarf'), short: bi('缆车栗红', 'Maroon'), price: 40, color: 0x8e2f3c },
-  { id: 'scarf-orange', shelf: 'baybay', slot: 'baybay-scarf', name: bi('国际橘围巾', 'International Orange scarf'), short: bi('国际橘', 'Int’l Orange'), price: 40, color: 0xc0362c, note: bi('金门大桥的颜色就叫国际橘', 'The Golden Gate’s own colour'), source: GGB_ORANGE },
+  { id: 'scarf-orange', shelf: 'baybay', slot: 'baybay-scarf', name: bi('国际橘围巾', 'International Orange scarf'), short: bi('国际橘', 'Int’l Orange'), price: 40, color: 0xc44a31, note: bi('金门大桥的颜色就叫国际橘', 'The Golden Gate’s own colour'), source: GGB_ORANGE },
   { id: 'scarf-cream', shelf: 'baybay', slot: 'baybay-scarf', name: bi('酸面包奶油围巾', 'Sourdough-cream scarf'), short: bi('酸面包奶油', 'Sourdough'), price: 40, color: 0xe9d6ae },
   { id: 'scarf-dahlia', shelf: 'baybay', slot: 'baybay-scarf', name: bi('大丽花粉围巾', 'Dahlia-pink scarf'), short: bi('大丽花粉', 'Dahlia pink'), price: 40, color: 0xd8668f, note: bi('大丽花是旧金山的市花', 'The dahlia is the city’s flower'), source: CITY_FLOWER },
   // --- BAYBAY's hats (on her head) · 80 ---------------------------------------------------------------------------
@@ -79,17 +79,17 @@ export const ITEMS: readonly ItemDef[] = [
   { id: 'my-hat-fog', shelf: 'me', slot: 'player-hat', name: bi('雾灰帽子', 'Fog-grey hat'), short: bi('雾灰', 'Fog grey'), price: 30, color: 0xa9b2b7 },
   { id: 'my-hat-maroon', shelf: 'me', slot: 'player-hat', name: bi('栗红帽子', 'Maroon hat'), short: bi('栗红', 'Maroon'), price: 30, color: 0x8e2f3c },
   { id: 'my-hat-cream', shelf: 'me', slot: 'player-hat', name: bi('奶油帽子', 'Cream hat'), short: bi('奶油', 'Cream'), price: 30, color: 0xe9d6ae },
-  { id: 'my-pack-orange', shelf: 'me', slot: 'player-pack', name: bi('国际橘背包', 'Orange backpack'), short: bi('国际橘', 'Orange'), price: 30, color: 0xc0362c },
+  { id: 'my-pack-orange', shelf: 'me', slot: 'player-pack', name: bi('国际橘背包', 'Orange backpack'), short: bi('国际橘', 'Orange'), price: 30, color: 0xc44a31 },
   { id: 'my-pack-gold', shelf: 'me', slot: 'player-pack', name: bi('暖金背包', 'Warm-gold backpack'), short: bi('暖金', 'Warm gold'), price: 30, color: 0xe0a94a },
   { id: 'my-pack-dahlia', shelf: 'me', slot: 'player-pack', name: bi('大丽花背包', 'Dahlia backpack'), short: bi('大丽花', 'Dahlia'), price: 30, color: 0xd8668f },
   // --- rides: bike liveries, toy-car paints, the pelican's ribbon · 60 / 50 -----------------------------------------
   { id: 'bike-maroon', shelf: 'rides', slot: 'bike', name: bi('栗红单车', 'Maroon bike'), short: bi('栗红', 'Maroon'), price: 60, paint: 'maroon', swatch: '#8e2f3c' },
-  { id: 'bike-orange', shelf: 'rides', slot: 'bike', name: bi('国际橘单车', 'Orange bike'), short: bi('国际橘', 'Orange'), price: 60, paint: 'orange', swatch: '#c0362c' },
+  { id: 'bike-orange', shelf: 'rides', slot: 'bike', name: bi('国际橘单车', 'Orange bike'), short: bi('国际橘', 'Orange'), price: 60, paint: 'orange', swatch: '#c44a31' },
   { id: 'bike-dahlia', shelf: 'rides', slot: 'bike', name: bi('大丽花单车', 'Dahlia bike'), short: bi('大丽花', 'Dahlia'), price: 60, paint: 'dahlia', swatch: '#d8668f' },
   { id: 'car-teal', shelf: 'rides', slot: 'car', name: bi('海湾青小车', 'Bay-teal toy car'), short: bi('海湾青', 'Bay teal'), price: 60, paint: 'teal', swatch: '#2f8f88' },
   { id: 'car-gold', shelf: 'rides', slot: 'car', name: bi('暖金小车', 'Warm-gold toy car'), short: bi('暖金', 'Warm gold'), price: 60, paint: 'gold', swatch: '#e0a94a' },
   { id: 'car-fog', shelf: 'rides', slot: 'car', name: bi('雾灰小车', 'Fog-grey toy car'), short: bi('雾灰', 'Fog grey'), price: 60, paint: 'fog', swatch: '#a9b2b7' },
-  { id: 'ribbon-orange', shelf: 'rides', slot: 'pelican', name: bi('鹈鹕丝带', 'Pelican ribbon'), short: bi('鹈鹕丝带', 'Ribbon'), price: 50, paint: 'orange', swatch: '#c0362c', note: bi('系在鹈鹕脖子上', 'Tied round the pelican’s neck') },
+  { id: 'ribbon-orange', shelf: 'rides', slot: 'pelican', name: bi('鹈鹕丝带', 'Pelican ribbon'), short: bi('鹈鹕丝带', 'Ribbon'), price: 50, paint: 'orange', swatch: '#c44a31', note: bi('系在鹈鹕脖子上', 'Tied round the pelican’s neck') },
   // --- photo frames (the polaroid's border; lane C's decorator) · 30 -----------------------------------------------
   { id: 'frame-fog', shelf: 'photos', slot: 'frame', name: bi('雾相框', 'Fog frame'), short: bi('雾', 'Fog'), price: 30, frame: 'fog' },
   { id: 'frame-night', shelf: 'photos', slot: 'frame', name: bi('夜相框', 'Night frame'), short: bi('夜', 'Night'), price: 30, frame: 'night' },

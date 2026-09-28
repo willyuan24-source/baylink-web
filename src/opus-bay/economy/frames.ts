@@ -116,10 +116,10 @@ export function drawPreview(kind: FrameKind | null, canvas: HTMLCanvasElement): 
   sky.addColorStop(0, '#8fc4d6'); sky.addColorStop(0.62, '#f3d9a4'); sky.addColorStop(0.63, '#3f8aa0'); sky.addColorStop(1, '#2f6f86');
   ctx.fillStyle = sky; ctx.fillRect(photo.x, photo.y, photo.w, photo.h);
   // a tiny bridge on the horizon
-  ctx.fillStyle = '#c0362c';
+  ctx.fillStyle = '#c44a31';
   const hy = photo.y + photo.h * 0.62;
   for (const k of [0.3, 0.7]) ctx.fillRect(photo.x + photo.w * k - 1, hy - photo.h * 0.34, 2.2, photo.h * 0.34);
-  ctx.strokeStyle = '#c0362c'; ctx.lineWidth = 1;
+  ctx.strokeStyle = '#c44a31'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(photo.x, hy - photo.h * 0.06); ctx.quadraticCurveTo(photo.x + photo.w * 0.5, hy + photo.h * 0.02, photo.x + photo.w, hy - photo.h * 0.06); ctx.stroke();
   ctx.fillStyle = '#3b3531';
   ctx.fillRect(pad, photo.y + photo.h + band * 0.42, photo.w * 0.4, Math.max(1.5, band * 0.14));

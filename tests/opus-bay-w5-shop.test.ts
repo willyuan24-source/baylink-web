@@ -245,7 +245,7 @@ test('W5-E7 the looks through charApi: only what differs from the default, again
   W.buy('bike-dahlia', { pelican: false });
   W.buy('ribbon-orange', { pelican: false });
   wearMod.syncLooks(api);
-  assert.deepEqual(calls.sort(), ['attach baybay head ob-hat-sun', 'paint bike dahlia', 'paint pelican orange', 'tint baybay scarf c0362c', 'tint player pack e0a94a'].sort());
+  assert.deepEqual(calls.sort(), ['attach baybay head ob-hat-sun', 'paint bike dahlia', 'paint pelican orange', 'tint baybay scarf c44a31', 'tint player pack e0a94a'].sort());
   calls.length = 0;
   assert.equal(wearMod.syncLooks(api), 0, 'unchanged: nothing sent again');
   // try-on in the shop, then close
@@ -261,7 +261,7 @@ test('W5-E7 the looks through charApi: only what differs from the default, again
     assert.equal(wearMod.lookOf('baybay-hat')?.id, 'hat-beanie');
     calls.length = 0;
     wearMod.clearPreview();
-    assert.deepEqual(calls.sort(), ['attach baybay head ob-hat-sun', 'tint baybay scarf c0362c'].sort(), 'the worn looks come back');
+    assert.deepEqual(calls.sort(), ['attach baybay head ob-hat-sun', 'tint baybay scarf c44a31'].sort(), 'the worn looks come back');
     wearMod.setPreview('baybay-hat', 'scarf-fog');
     assert.equal(wearMod.lookOf('baybay-hat')?.id, 'hat-sun', 'an item of another slot is not tried on');
     // a new implementation (the actors remount) gets every worn look again

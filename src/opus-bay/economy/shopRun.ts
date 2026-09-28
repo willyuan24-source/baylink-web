@@ -11,7 +11,7 @@ import { readSave } from '../data/save';
 import { startTravel, travelActive } from '../game/fastTravel';
 import { closePanel } from '../game/flow';
 import { flow } from '../game/flowStore';
-import { registerFlagSource } from '../game/flags';
+import { FLAG_RULES, registerFlagSource } from '../game/flags';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
 import { isDiscovered } from '../game/discovery';
 import { requestHopOff } from '../game/transit';
@@ -105,11 +105,15 @@ export function compassTarget(from = { x: runtime.player.x, z: runtime.player.z 
 
 // --- the magnifier ------------------------------------------------------------------------------------------------
 
-/** The nearest unfound postcards (city postcards not collected yet) for the magnifier's pennants. */
+/**
+ * The nearest unfound postcards for the magnifier's pennants: the ones past the flag layer's near ring (FLAG_RULES.near,
+ * 60 u — a pennant is for finding your way from afar; a closer postcard already glints gold in view).
+ */
 export function magnifierSpots(n = 2, from = { x: runtime.player.x, z: runtime.player.z }): { id: string; x: number; z: number }[] {
   const got = new Set(game.get().postcards);
   return POSTCARDS.filter(c => !got.has(c.id))
     .map(c => ({ id: c.id, x: c.position.x, z: c.position.z, d: Math.hypot(c.position.x - from.x, c.position.z - from.z) }))
+    .filter(c => c.d >= FLAG_RULES.near)
     .sort((a, b) => a.d - b.d).slice(0, n).map(({ id, x, z }) => ({ id, x, z }));
 }
 

@@ -65,7 +65,7 @@ export const STAMPS: readonly StampDef[] = [
   t1('sf-state-university', '州立大学', 'SF State', 'GraduationCap', CAMPUS),
   t1('stonestown-galleria', '石镇', 'Stonestown', 'ShoppingBag', SHOP),
   { id: 'pelican', name: bi('鹈鹕朋友', 'The pelican'), glyph: 'Bird', ink: '#1f8f8a', group: 'journey' },
-  { id: 'golden-gate', name: bi('走过金门大桥', 'Crossed the Gate'), glyph: 'Landmark', ink: '#c0362c', group: 'journey' },
+  { id: 'golden-gate', name: bi('走过金门大桥', 'Crossed the Gate'), glyph: 'Landmark', ink: '#c44a31', group: 'journey' },
   { id: 'cable-car', name: bi('叮当车', 'Cable car'), glyph: 'CableCar', ink: '#8e2f3c', group: 'journey' },
   { id: 'f-line', name: bi('F 线电车', 'F-line'), glyph: 'TramFront', ink: '#2f8f88', group: 'journey' },
   { id: 'sightseeing', name: bi('观光巴士', 'Sightseeing bus'), glyph: 'BusFront', ink: '#e0563f', group: 'journey' },
