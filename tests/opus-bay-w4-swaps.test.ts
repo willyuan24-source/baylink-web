@@ -102,10 +102,21 @@ test('w4 swaps: Holy Virgin fits lane L\'s lot at the landmark height; its block
   const dz = row.part.z;
   for (let x = -1.3; x <= 1.3; x += 0.1) for (let z = -1.5; z <= 1.2; z += 0.1) assert.ok(inBlocker({ x, z: z + dz }), `body (${x.toFixed(1)}, ${z.toFixed(1)})`);
   for (let x = -0.55; x <= 0.55; x += 0.1) for (let z = 1.2; z <= 1.58; z += 0.04) assert.ok(inBlocker({ x, z: z + dz }), `porch (${x.toFixed(2)}, ${z.toFixed(2)})`);
-  // the arrival spot (lane L: local (0, 2.6), facing the cathedral) stays outside the blockers, on the sidewalk
+  // the arrival spot (lane L's, facing the cathedral) keeps the walk's stand radius (0.4 u) from every blocker, on the
+  // Geary side of the facade. Integration review: the old "≥ 0.9 u in front of the porch" pinned it on Geary Blvd's
+  // asphalt (the carriageway starts ≈ 0.7 u before the porch; lane L's part b request): the frontage beside the doors
+  // qualifies, the doorway does not
+  const edgeDist = (p: Vec2, poly: Vec2[]) => Math.min(...poly.map((a, i) => {
+    const b = poly[(i + 1) % poly.length], ex = b.x - a.x, ez = b.z - a.z, L2 = ex * ex + ez * ez;
+    const t = L2 ? Math.max(0, Math.min(1, ((p.x - a.x) * ex + (p.z - a.z) * ez) / L2)) : 0;
+    return Math.hypot(p.x - a.x - ex * t, p.z - a.z - ez * t);
+  }));
+  const clearance = (p: Vec2) => Math.min(...row.blockers.map(bl => ('poly' in bl ? (inside(p, bl.poly) ? -edgeDist(p, bl.poly) : edgeDist(p, bl.poly)) : Math.hypot(p.x - bl.x, p.z - bl.z) - bl.r)));
+  const arrivalOk = (p: Vec2) => clearance(p) >= 0.4 && p.z > 1.24 + dz;
   const ar = w4Site('geary-west')!.w4.arrival;
-  assert.ok(!inBlocker(ar), 'arrival outside the blockers');
-  assert.ok(ar.z - 1.6 >= 0.9, 'arrival ≥ 0.9 u in front of the porch');
+  assert.ok(!inBlocker(ar) && arrivalOk(ar), `arrival (${ar.x}, ${ar.z}): ${clearance(ar).toFixed(2)} u from the blockers, in front of the facade`);
+  assert.ok(arrivalOk({ x: -1.5, z: 2.0 }) && arrivalOk({ x: 1.5, z: 2.0 }), 'the frontage beside the doors (lane L\'s proposed arrival, off the asphalt)');
+  assert.ok(!arrivalOk({ x: 0, z: 1.8 }) && !arrivalOk({ x: -1.5, z: 0 }) && !arrivalOk({ x: 0, z: -2.0 }), 'not in the doorway, against the side wall or behind');
 });
 
 test('w4 swaps: Holy Virgin porch meets the Geary sidewalk and a plinth fills the fall of the lot toward the back (review 2)', () => {
