@@ -286,7 +286,7 @@ seq('free.intro.city', [
   ['happy', '好嘞，整座旧金山都给你逛！我跟着你，再给你几个小目标～', "Okay — all of San Francisco is yours! I'll tag along, with a few little goals."],
 ], { next: 'free.goals.city' });
 seq('free.goals.city', [
-  ['point', '全城藏着 20 张明信片，会发金光！再坐一段真的叮当车。', 'Twenty postcards hide around the city — they glint gold! And ride a real cable car.'],
+  ['point', '全城藏着 24 张明信片，会发金光！再坐一段真的叮当车。', 'Twenty-four postcards hide around the city — they glint gold! And ride a real cable car.'],
   ['excited', '自己爬上双峰看全城，走过金门大桥，再逛 8 个街区。', 'Climb Twin Peaks for the whole view, walk the Golden Gate, and wander 8 neighbourhoods.'],
   ['happy', '想去哪儿，打开地图或者叫我带路都行～', 'Want to go somewhere? Open the map, or ask me to lead the way~'],
 ]);
@@ -504,10 +504,10 @@ seq('postcard.all', [
 ], { next: 'handoff.plan' });
 // city mode: 20 cards (the waterfront's 8 + 12 around the city)
 seq('postcard.first.city', [
-  ['excited', '第一张明信片！全城一共藏了 20 张，旅行本里有线索。', 'Your first postcard! 20 are hidden around the city — your journal has clues.'],
+  ['excited', '第一张明信片！全城一共藏了 24 张，旅行本里有线索。', 'Your first postcard! 24 are hidden around the city — your journal has clues.'],
 ]);
 seq('postcard.all.city', [
-  ['proud', '20 张全收齐了！整座旧金山，你比很多本地人还熟。', 'All 20 collected! You know San Francisco better than a lot of locals.'],
+  ['proud', '24 张全收齐了！整座旧金山，你比很多本地人还熟。', 'All 24 collected! You know San Francisco better than a lot of locals.'],
 ], { next: 'handoff.plan' });
 
 one({
@@ -598,7 +598,7 @@ export const CHOICE_SUBS: Record<string, Bilingual> = {
   // wave 4: the Grand Tour (= data/sf/tours.ts SF_GRAND.subtitle, tested)
   'intro.hello.city:1': GRAND_TOUR.subtitle,
   'intro.hello.city:2': { zh: '3 个小问题 · 这周真实活动', en: '3 quick questions · real events this week' },
-  'intro.hello.city:3': { zh: '全城 20 张明信片 · 叮当车 · 双峰', en: '20 postcards citywide · cable cars · Twin Peaks' },
+  'intro.hello.city:3': { zh: '全城 24 张明信片 · 叮当车 · 双峰', en: '24 postcards citywide · cable cars · Twin Peaks' },
   'intro.hello.city:4': { zh: '不打扰，直接逛', en: 'No chatter — just explore' },
 };
 

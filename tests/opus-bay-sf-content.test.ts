@@ -88,8 +88,9 @@ test('G2-0: node runs in district mode and every resolved export is the district
 test('G2-0: city mode = district waterfront + city content; no waterfront-only barks (CS-9)', () => {
   const c = contentFor('city');
   assert.equal(c.pois.length, pois.DISTRICT_POIS.length + 24);
-  assert.equal(c.postcards.length, 20);
-  assert.equal(new Set(c.postcards.map(card => card.id)).size, 20);
+  // wave 4 (lane C, W4-C9, on purpose): lane V's four postcards for the new areas (8 + 16 = 24)
+  assert.equal(c.postcards.length, 24);
+  assert.equal(new Set(c.postcards.map(card => card.id)).size, 24);
   // wave 4 (lane C, W4-C8, on purpose): the sightseeing bus, the Metro and the campuses join the seven (7 → 10)
   assert.deepEqual(c.freeGoals.map(goal => goal.id), ['postcards', 'cable-car', 'twin-peaks', 'golden-gate', 'painted-ladies', 'neighbourhoods', 'viewpoint', 'sightseeing', 'metro', 'campuses']);
   assert.equal(c.startNode, 'intro.hello.city');
@@ -160,25 +161,35 @@ test('G2-1 / CS-8: the glossary names match the neighbourhood labels in far.zone
 // G2-2 · the 12 SF postcards
 // ---------------------------------------------------------------------------
 
-test('G2-2: 12 city postcards with art on disk, a verified fact and a short hint', () => {
-  assert.deepEqual(CITY_POSTCARDS.map(card => card.id), [...SF_POSTCARD_ART_IDS]);
-  const verified = new Set(SF_LANDMARK_INFO.flatMap(info => [info.realInfo.sourceUrl, ...info.sources]));
+test('G2-2: 16 city postcards (wave 4: + lane V’s four) with art on disk, a verified fact and a short hint', async () => {
+  const { W4_POSTCARD_IDS, W4_POSTCARDS } = await import('../src/opus-bay/data/sf/w4Postcards');
+  const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
+  const { loadPlaceCards, cardPoiId } = await import('../src/opus-bay/data/sf/placeCardTypes');
+  const cards = await loadPlaceCards();
+  assert.deepEqual(CITY_POSTCARDS.map(card => card.id), [...SF_POSTCARD_ART_IDS, ...W4_POSTCARD_IDS]);
+  // the wave-4 four were checked on the web on W4_POSTCARDS_VERIFIED_AT (data/sf/w4Postcards.ts, lane V): their sources count
+  const verified = new Set([...SF_LANDMARK_INFO.flatMap(info => [info.realInfo.sourceUrl, ...info.sources]), ...Object.values(W4_POSTCARDS).map(c => c.sourceUrl)]);
   for (const card of CITY_POSTCARDS) {
     for (const size of [600, 1200]) assert.ok(fs.existsSync(path.join(root, `public/opus-bay/postcards/${card.id}-${size}.webp`)), `${card.id}-${size}.webp`);
     assert.equal(card.image, `/opus-bay/postcards/${card.id}-600.webp`);
     filled(card.title, card.id); filled(card.fact, `${card.id} fact`); filled(card.hint, `${card.id} hint`);
     assert.ok(bubbleWidth(card.hint.zh) <= 45, `${card.id}: hint ≤ 45 (${bubbleWidth(card.hint.zh)})`);
     assert.ok(verified.has(card.sourceUrl!), `${card.id}: fact source ${card.sourceUrl} is one of D2's verified landmark sources`);
-    assert.ok(sfLandmark(CITY_POSTCARD_NEAR[card.id]), `${card.id}: near a real landmark`);
-    // near its landmark's arrival spot; the beach, the mural alley, the park and Nob Hill are subjects of their own (their
-    // landmark is only the card that shows the art: the Cliff House, Mission Dolores, the turntable)
+    const near = CITY_POSTCARD_NEAR[card.id];
+    const w4 = (W4_POSTCARD_IDS as readonly string[]).includes(card.id) ? W4_POSTCARDS[card.id as keyof typeof W4_POSTCARDS] : null;
+    // the card that shows the art: a landmark card, or (wave 4) a place card whose POI is sf:<near>
+    assert.ok(sfLandmark(near) || cards.cards.some(pc => cardPoiId(pc) === cityPoiId(near)), `${card.id}: near a real card (${near})`);
+    // near its landmark's arrival spot (the four: their attraction's arrival); the beach, the mural alley, the park and
+    // Nob Hill are subjects of their own (their landmark is only the card that shows the art)
     const limit = ['sf-ocean-beach', 'sf-mission-murals', 'sf-dolores-park', 'sf-cable-car-hill'].includes(card.id) ? 400 : 70;
-    assert.ok(dist(card.position, sfLandmarkAnchor(CITY_POSTCARD_NEAR[card.id])!) < limit, `${card.id}: within ${limit} u of ${CITY_POSTCARD_NEAR[card.id]}`);
+    const a = w4 ? ATTRACTIONS.find(x => x.id === w4.attraction) : undefined;
+    const anchor = w4 ? (a?.arrival ?? a)! : sfLandmarkAnchor(near)!;
+    assert.ok(dist(card.position, anchor) < limit, `${card.id}: within ${limit} u of ${near}`);
     for (const poi of CITY_POIS) assert.ok(dist(card.position, poi.position) >= 6.5, `${card.id}: ≥ 6.5 u from ${poi.id} (no competing prompts)`);
     for (const other of CITY_POSTCARDS) if (other !== card) assert.ok(dist(card.position, other.position) > 20, `${card.id} vs ${other.id}`);
   }
   // the card art strip on a landmark card without a photo
-  assert.equal(contentFor('city').postcards.filter(card => card.id.startsWith('sf-')).length, 12);
+  assert.equal(contentFor('city').postcards.filter(card => card.id.startsWith('sf-')).length, 16);
 });
 
 test('G2-2: every city postcard spot stands in the published city and joins the walking network of ferry-gate', async () => {
@@ -231,7 +242,7 @@ test('G2-5: goal ids — only the three shared keys map to a GoalKey', () => {
   assert.equal(goalKeyOf(CITY_GOAL.viewpoint), 'viewpoint');
   for (const id of [CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies, CITY_GOAL.neighbourhoods, CITY_GOAL.sightseeing, CITY_GOAL.metro, CITY_GOAL.campuses]) assert.equal(goalKeyOf(id), null, `${id}: no other key completes it`);
   CITY_FREE_GOALS.forEach(goal => { filled(goal.label, goal.id); filled(goal.hint, goal.id); });
-  assert.ok(CITY_FREE_GOALS[0].label.zh.includes('20'));
+  assert.ok(CITY_FREE_GOALS[0].label.zh.includes('24'));
 });
 
 test('G2-5: Twin Peaks counts only when climbed on your own (fast travel and the pelican disarm it)', () => {
@@ -311,7 +322,7 @@ test('G2-8: city welcome mirrors the district choices; subs, goals line and edge
   assert.deepEqual(c.choices?.map(ch => ch.next), [undefined, 'week.intro', 'free.intro.city', 'local.intro']);
   assert.deepEqual(script.CHOICE_SUBS['intro.hello.city:1'], CITY_GRAND.subtitle, 'the welcome sub is the Grand Tour subtitle');
   for (const k of [1, 2, 3, 4]) filled(script.CHOICE_SUBS[`intro.hello.city:${k}`], `sub ${k}`);
-  assert.equal(script.CHOICE_SUBS['intro.hello.city:3'].zh, '全城 20 张明信片 · 叮当车 · 双峰');
+  assert.equal(script.CHOICE_SUBS['intro.hello.city:3'].zh, '全城 24 张明信片 · 叮当车 · 双峰');
   assert.equal(script.NODES['free.intro.city'].next, 'free.goals.city');
   assert.ok(script.NODES['guide.edge.city']);
   assert.equal(script.CITY_SCRIPT_HOOKS.edge, 'guide.edge.city');
@@ -325,7 +336,7 @@ test('G2-8: city welcome mirrors the district choices; subs, goals line and edge
 // Wave 3 · the city hooks (call menu, card counts) and lane F's transit hooks
 // ---------------------------------------------------------------------------
 
-test('G2 w3: city hooks resolve; the city call menu / tour-after lead to the city goals; cards say 20', async () => {
+test('G2 w3: city hooks resolve; the city call menu / tour-after lead to the city goals; cards say 24 (wave 4)', async () => {
   const { fillText } = await import('../src/opus-bay/game/content');
   for (const [name, id] of Object.entries(script.CITY_SCRIPT_HOOKS)) {
     if (typeof id !== 'string') continue;
@@ -335,8 +346,8 @@ test('G2 w3: city hooks resolve; the city call menu / tour-after lead to the cit
   assert.equal(roam('call.menu.city'), 'free.goals.city');
   assert.equal(roam('tour.after.city'), 'free.goals.city');
   assert.equal(roam('call.menu'), 'free.goals', 'district unchanged');
-  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardFirst].text.zh.includes('20'));
-  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardAll].text.zh.startsWith('20 张'));
+  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardFirst].text.zh.includes('24'));
+  assert.ok(script.NODES[script.CITY_SCRIPT_HOOKS.postcardAll].text.zh.startsWith('24 张'));
   assert.equal(script.NODES[script.CITY_SCRIPT_HOOKS.postcardAll].next, 'handoff.plan');
   // lane F's hooks: 叮当车 in every cable-car line, `{station}` in the station greetings, crews are fictional names
   for (const id of Object.values(script.CITY_TRANSIT_HOOKS)) {

@@ -6,12 +6,14 @@ import { arrivalSeen } from '../game/cityContent';
 import { lastCityTour, playedStop, savedProgress } from '../game/cityTour';
 import { closePanel, openPanel } from '../game/flow';
 import { interactableById } from '../game/interactables';
+import { RecapMap } from './RecapMap';
 import { TourRecap } from './TourRecap';
 
 /**
  * Wave 4 · lane C · W4-C4: the Grand Tour's recap in the game (ui/Moments Recap mounts it lazily when `game.tour` holds
  * a city tour). Reads the store and hands ui/TourRecap its props: the stops done (game.tour.completed), the version
- * played (the run that just ended, else the save), postcards, and the arrival stamps of the tour's attractions.
+ * played (the run that just ended, else the save), postcards, the arrival stamps of the tour's attractions, and lane P's
+ * recap map over the painted city (ui/RecapMap.tsx, in this lazy chunk) as its map.
  */
 export default function CityTourRecap() {
   const tourState = useGame(s => s.tour);
@@ -34,6 +36,7 @@ export default function CityTourRecap() {
       stopName={stopName}
       onClose={closePanel}
       onOpenMap={() => openPanel('map')}
+      mapSlot={<RecapMap tour={def} completed={tourState.completed} express={express} stopName={stopName} />}
     />
   );
 }
