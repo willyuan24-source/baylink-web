@@ -181,3 +181,176 @@ test('W5-V2: the label atlas never draws past its edge: a label that does not fi
   assert.equal(w.atlas.overflow, 0);
   assert.ok(w.atlas.used < 0.95, `district atlas used ${w.atlas.used}`);
 });
+
+test('W5-V2: the hero far detail keeps every building triangle for triangle, ≤ 30 % of the near toy triangles, one far chunk per near tile; district mode builds none', async () => {
+  const { loadCity } = await import('../src/opus-bay/world/cityLoader');
+  await loadCity();
+  const { World } = await import('../src/opus-bay/world/world');
+  const { Batch } = await import('../src/opus-bay/world/builder');
+  const { buildCity } = await import('../src/opus-bay/world/city');
+  const { LabelBatch } = await import('../src/opus-bay/world/labels');
+  const F = await import('../src/opus-bay/world/sf/farHero');
+  const tris = (m: THREE.Mesh) => (m.geometry.getIndex()?.count ?? 0) / 3;
+  const city = new World('city');
+  const tiles = (city as unknown as { heroTiles: import('../src/opus-bay/world/sf/farHero').HeroTile[] }).heroTiles;
+  const paired = tiles.filter(t => t.near && t.far);
+  assert.ok(paired.length >= 6, `${paired.length} tiles with near and far chunks`);
+  assert.equal(tiles.filter(t => t.far && !t.near).length, 0, 'no far chunk without its near tile');
+  let near = 0, far = 0;
+  for (const t of tiles) { if (t.near) near += tris(t.near); if (t.far) far += tris(t.far); }
+  assert.ok(near > 100_000 && far < near * 0.3, `near ${near}, far ${far}`);
+  for (const t of paired) {
+    assert.equal(t.far!.visible, false, 'the far chunks start hidden');
+    assert.equal(t.far!.material, t.near!.material, 'the same TOY material (same program; the fade pairs dress both)');
+    assert.deepEqual([t.far!.castShadow, t.far!.receiveShadow], [t.near!.castShadow, t.near!.receiveShadow]);
+    assert.ok(/^city-far#\d+$/.test(t.far!.name) && t.far!.parent === city.root);
+    assert.ok(t.box.x1 - t.box.x0 <= 150 + 60 && t.box.z1 - t.box.z0 <= 150 + 60, 'about one 150 u tile');
+  }
+  // the far geometry starts with buildCity's triangles, byte for byte (the skyline never changes at the swap)
+  const lots = new Batch();
+  buildCity(lots, new LabelBatch(), city.atlas);
+  const farGeo = F.heroFarGeometry(city.atlas);
+  const n = lots.idx.length, pos = farGeo.getAttribute('position') as THREE.BufferAttribute, idx = farGeo.getIndex()!;
+  for (let i = 0; i < n; i += 97) {
+    const a = lots.idx[i], b = idx.getX(i);
+    assert.deepEqual([pos.getX(b), pos.getY(b), pos.getZ(b)].map(v => Math.fround(v)), [lots.pos[a * 3], lots.pos[a * 3 + 1], lots.pos[a * 3 + 2]].map(v => Math.fround(v)), `vertex of index ${i}`);
+  }
+  assert.ok(idx.count / 3 - n / 3 < 12_000, `the planting stand-ins: ${(idx.count - n) / 3} triangles`);
+  // district mode: no far chunk, no tile
+  const district = new World('district');
+  let farMeshes = 0;
+  district.root.traverse(o => { if (o.name.startsWith('city-far#')) farMeshes++; });
+  assert.equal(farMeshes, 0);
+  assert.equal((district as unknown as { heroTiles: unknown[] }).heroTiles.length, 0);
+});
+
+test('W5-V2: the streamer swaps a hero tile to its far detail beyond HERO_TILE_FAR with the dither cross-fade, back inside it (hysteresis), and hides both while the whole hero is far', async () => {
+  const { CityStreamer, HERO_TILE_FAR, HERO_TILE_HYST, TIER_FADE } = await import('../src/opus-bay/world/sf/stream');
+  const M = await import('../src/opus-bay/world/materials');
+  const near = new THREE.Mesh(new THREE.BufferGeometry(), M.TOY), far = new THREE.Mesh(new THREE.BufferGeometry(), M.TOY);
+  far.visible = false;
+  const tile = { near, far, box: { x0: 0, z0: 0, x1: 150, z1: 150 } };
+  const sites = { group: new THREE.Group(), dispose: noop, counts: () => ({ near: 0, triangles: 0 }) };
+  const s = new CityStreamer({ renderer: { extensions: { has: () => true } } as never, quality: 'high', slab: [{ x: 0, z: 0 }, { x: 1, z: 0 }, { x: 1, z: 1 }], sites: sites as never, farInit: {} as never, onFar: noop, hero: { meshes: [], proxy: () => null, tiles: [tile] } });
+  const priv = s as unknown as { focus: { x: number; z: number }; time: number; _heroFar: boolean; updateHeroTiles(): void; applyHeroTiles(): void; stepFades(): void };
+  const at = (d: number) => { priv.focus.x = 150 + d; priv.focus.z = 75; priv.updateHeroTiles(); };
+  const settle = () => { priv.time += TIER_FADE + 0.01; priv.stepFades(); };
+  at(HERO_TILE_FAR.high - 10);
+  assert.deepEqual([near.visible, far.visible], [true, false], 'near inside the radius');
+  at(HERO_TILE_FAR.high + 10);
+  assert.deepEqual([near.visible, far.visible], [true, true], 'both drawn while they cross-fade');
+  assert.notEqual(far.material, M.TOY, 'the far chunk dithers in on a fade pair');
+  assert.notEqual(near.material, M.TOY, 'the near chunk dithers out on another');
+  settle();
+  assert.deepEqual([near.visible, far.visible], [false, true]);
+  assert.deepEqual([near.material, far.material], [M.TOY, M.TOY], 'the plain material back after the fade');
+  assert.deepEqual(s.stats().heroTiles, { far: 1, of: 1 });
+  // hysteresis: between R − HYST and R it stays far; inside R − HYST it comes back
+  at(HERO_TILE_FAR.high - HERO_TILE_HYST / 2);
+  settle();
+  assert.deepEqual([near.visible, far.visible], [false, true]);
+  at(HERO_TILE_FAR.high - HERO_TILE_HYST - 5);
+  settle();
+  assert.deepEqual([near.visible, far.visible], [true, false]);
+  // a quick flip (out, then back within the fade) ends on the newer state
+  at(HERO_TILE_FAR.high + 30);
+  priv.time += 0.1; priv.stepFades();
+  at(HERO_TILE_FAR.high - HERO_TILE_HYST - 30);
+  settle();
+  assert.deepEqual([near.visible, far.visible, near.material, far.material], [true, false, M.TOY, M.TOY]);
+  // the whole hero far (the L1 boxes stand in): both hidden; back near: the tile's own state
+  at(HERO_TILE_FAR.high + 50); settle();
+  priv._heroFar = true; priv.applyHeroTiles();
+  assert.deepEqual([near.visible, far.visible], [false, false]);
+  priv._heroFar = false; priv.applyHeroTiles();
+  assert.deepEqual([near.visible, far.visible], [false, true]);
+  // mid quality swaps sooner
+  assert.ok(HERO_TILE_FAR.mid < HERO_TILE_FAR.high && HERO_TILE_FAR.low < HERO_TILE_FAR.mid);
+  s.dispose();
+  assert.deepEqual([near.visible, far.visible], [true, false], 'dispose: back to the near chunk');
+});
+
+test('W5-V4: the signs atlas — 1024² of 256 × 128 plaques, append-only ids, generic trade words only, each plaque painted in its own cell', async () => {
+  const S = await import('../src/opus-bay/world/sf/signsAtlas');
+  assert.equal(S.SIGN_ATLAS.size, 1024);
+  assert.equal(S.SIGN_ATLAS.cols * S.SIGN_ATLAS.cellW, 1024);
+  assert.equal(S.SIGN_ATLAS.rows * S.SIGN_ATLAS.cellH, 1024);
+  assert.ok(S.SIGNS.length <= S.SIGN_ATLAS.cols * S.SIGN_ATLAS.rows);
+  // append only: the first ids never move (lane L's corners name them)
+  assert.deepEqual(S.SIGNS.slice(0, 13).map(s => s.id), ['bakery', 'dim-sum', 'books', 'flowers', 'coffee', 'grocery', 'produce', 'tea', 'noodles', 'hardware', 'taqueria', 'panaderia', 'mercado']);
+  assert.equal(new Set(S.SIGNS.map(s => s.id)).size, S.SIGNS.length);
+  // generic trade words only (plan §3.6 / D24: never a brand or a shop's name): the whole vocabulary is this list
+  const WORDS = new Set(['面包', 'Bakery', '点心', 'Dim Sum', '书店', 'Books', '花店', 'Flowers', '咖啡', 'Coffee', '杂货', 'Grocery', '蔬果', 'Produce', '茶', 'Tea', '面馆', 'Noodles', '五金', 'Hardware', 'Taquería', 'Tacos · Burritos', 'Panadería', 'Mercado', 'Market', 'Café', 'Records', 'Vintage', 'Barber', 'Deli', 'Soul Food', '洗衣', 'Laundry']);
+  for (const s of S.SIGNS) {
+    for (const l of s.lines) if (l) assert.ok(WORDS.has(l.text), `${s.id}: "${l.text}" is not in the generic vocabulary`);
+    const z = s.lines.find(l => l?.script === 'zh');
+    if (z) assert.ok([...z.text].length <= 4, `${s.id}: short Chinese`);
+    assert.ok(S.SIGN_STYLES[s.style]);
+  }
+  // cells: inside the canvas, distinct, uv rectangles inside their plaque (v up)
+  const boxes = new Set<string>();
+  for (let i = 0; i < S.SIGNS.length; i++) {
+    const b = S.signCellBox(i);
+    assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.w <= 1024 && b.y + b.h <= 1024 && b.w === 2 * b.h, `plaque ${i}: 2 : 1 inside the canvas`);
+    boxes.add(`${b.x},${b.y}`);
+    const r = S.signRect(S.SIGNS[i].id)!;
+    assert.ok(r.u0 * 1024 > b.x && r.u1 * 1024 < b.x + b.w && (1 - r.v1) * 1024 > b.y && (1 - r.v0) * 1024 < b.y + b.h, `uv of ${S.SIGNS[i].id}`);
+  }
+  assert.equal(boxes.size, S.SIGNS.length);
+  assert.equal(S.signRect('no-such-sign'), null);
+  // painting: every plaque's words drawn inside its own box
+  const texts: { text: string; x: number; y: number; tx: number; ty: number }[] = [];
+  let tx = 0, ty = 0;
+  const stack: [number, number][] = [];
+  const ctx = {
+    save() { stack.push([tx, ty]); }, restore() { [tx, ty] = stack.pop()!; }, beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, arc() {}, quadraticCurveTo() {},
+    fill() {}, stroke() {}, fillRect() {}, clearRect() {}, translate(x: number, y: number) { tx += x; ty += y; }, scale() {},
+    fillText(text: string, x: number, y: number) { texts.push({ text, x, y, tx, ty }); }, measureText: (t: string) => ({ width: t.length * 30 }),
+    createLinearGradient: () => ({ addColorStop() {} }),
+    font: '', fillStyle: '' as unknown, strokeStyle: '' as unknown, lineWidth: 1, textAlign: 'left' as CanvasTextAlign, textBaseline: 'alphabetic' as CanvasTextBaseline, globalAlpha: 1,
+  };
+  S.drawSignsAtlas(ctx);
+  S.SIGNS.forEach((s, i) => {
+    const b = S.signCellBox(i);
+    for (const l of s.lines) {
+      if (!l) continue;
+      const want = l.script === 'zh' ? [...l.text].join(' ') : l.text;
+      const t = texts.find(e => e.text === want && e.x + e.tx >= b.x && e.x + e.tx <= b.x + b.w && e.y + e.ty >= b.y && e.y + e.ty <= b.y + b.h);
+      assert.ok(t, `${s.id}: "${want}" drawn inside its plaque`);
+    }
+  });
+});
+
+test('W5-V4: SignBatch quads face their yaw, carry the plaque\'s uvs, 2 : 1; signsMaterial is one own instance, warmed as \'v-signs\'', async () => {
+  const S = await import('../src/opus-bay/world/sf/signsAtlas');
+  const sb = new S.SignBatch();
+  assert.equal(sb.plaque('bakery', 10, 3, 20, 0, 2.4), true);
+  assert.equal(sb.plaque('nope', 0, 0, 0, 0, 1), false);
+  assert.equal(sb.count, 1);
+  const geo = sb.build();
+  const pos = geo.getAttribute('position'), nor = geo.getAttribute('normal'), uv = geo.getAttribute('uv');
+  assert.equal(pos.count, 4);
+  assert.deepEqual([nor.getX(0), nor.getY(0), nor.getZ(0)], [0, 0, 1], 'ry 0 faces +z');
+  const xs = [0, 1, 2, 3].map(i => pos.getX(i)), ys = [0, 1, 2, 3].map(i => pos.getY(i));
+  assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 2.4) < 1e-5 && Math.abs(Math.max(...ys) - Math.min(...ys) - 1.2) < 1e-5);
+  assert.ok(Math.abs(pos.getZ(0) - 20.02) < 1e-5, 'lifted 0.02 u off its wall');
+  const r = S.signRect('bakery')!;
+  assert.deepEqual([uv.getX(0), uv.getY(0), uv.getX(2), uv.getY(2)], [r.u0, r.v0, r.u1, r.v1]);
+  const m = S.signsMaterial();
+  assert.equal(S.signsMaterial(), m, 'one instance');
+  assert.equal(m.name, 'ob-signs');
+  assert.ok(m.map && m.emissiveMap === m.map);
+  // the warm-up registration: a late pass after a boot warm-up compiles a plain Mesh with this very material
+  const compiled: THREE.Object3D[] = [];
+  let target: unknown = null;
+  const renderer = {
+    info: { programs: [] as unknown[] }, shadowMap: { enabled: true },
+    getRenderTarget: () => target, setRenderTarget: (t: unknown) => { target = t; },
+    compileAsync: (group: THREE.Object3D) => { group.traverse(o => { if (o !== group) compiled.push(o); }); renderer.info.programs.push({}); return Promise.resolve(); },
+  } as unknown as THREE.WebGLRenderer;
+  warm.resetWarmupState();
+  await warm.warmPrograms(renderer, new THREE.Scene(), new THREE.PerspectiveCamera(), { offscreen: false });
+  const sign = compiled.find(o => (o as THREE.Mesh).material === m) as THREE.Mesh | undefined;
+  assert.ok(sign && !(sign as unknown as THREE.InstancedMesh).isInstancedMesh && sign.receiveShadow && !sign.castShadow, 'the sign program is in the boot pass (registered at module load)');
+  warm.resetWarmupState();
+});
