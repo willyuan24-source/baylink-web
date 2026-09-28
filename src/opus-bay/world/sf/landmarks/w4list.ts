@@ -8,6 +8,7 @@ import { ccsfDrpac } from './ccsf-drpac';
 import { clementStreet } from './clement-street';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
+import { fortFunston } from './fort-funston';
 import { gearyWest } from './geary-west';
 import { grandViewPark } from './grand-view-park';
 import { haightAshbury } from './haight-ashbury';
@@ -16,6 +17,7 @@ import { irvingStreet } from './irving-street';
 import { japaneseTeaGarden } from './japanese-tea-garden';
 import { kezarStadium } from './kezar-stadium';
 import { koretCarousel } from './koret-carousel';
+import { lakeMerced } from './lake-merced';
 import { landsEnd } from './lands-end';
 import { mountDavidson } from './mount-davidson';
 import { murphyWindmill } from './murphy-windmill';
@@ -82,4 +84,6 @@ export const W4_SITES: readonly W4Site[] = [
   grandViewPark,
   mountDavidson,
   sternGrove,
+  lakeMerced,
+  fortFunston,
 ];
