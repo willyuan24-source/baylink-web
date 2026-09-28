@@ -450,3 +450,95 @@ section (`nextArrival` for cable stations).
 - **Lead**: drop `transit-w4.json` once no test reads it; `manifest.json` `transitLines` 4 → 7 at the next data touch.
 
 Relayed owner message during this part — "现在进度如何" — answered by the first line of the summary above.
+
+## Integration part b
+
+Written 2026-09-27 by lane T's integration implementer (worktree `wt/i4-t` → `opus-bay`). Commits: `a742dc8` (W4-T16,
+D2), `359edea` (W4-T17, D3), `9025867` (W4-T18, D3 / M2 / D11 / m5), `b1ce881` (W4-T19, m6 / F4), `d118962` (W4-T20, C13
+and the part-b tests), `b5248ac` (W4-T18b), `31fbc29` (W4-T18c), `d8330c8` (W4-T21, the shots), `f5da536` (W4-T18d) and
+the one carrying this section.
+
+### 给主人的摘要
+
+**进度（回答"现在进度如何"）：T 组（公交 / 地铁 / 叮当车 / 渡轮）第 b 部分完成并推送：验收找到的、归 T 组的 8 个问题全部修好，每个都有测试和游戏内截图；剩下的是别的组的活和需要空闲机器的手机测速。**
+
+1. **渡轮到 41 号码头不再被困住。** 原来的下船点在 45 号码头的棚屋平台上，四周被棚屋堵死，只能坐船离开。现在渡轮停靠在渔人码头的海滨步道边，下船就是步道，能走到全城（自动测试检查过）。
+2. **叮当车不会再"卡"在终点站前。** 站在转车台旁边（地标卡片的位置）时，车会正常开进站、掉头；如果真的站在轨道上挡路，响铃几秒后 BAYBAY 会提醒"往路边站一站吧"。全部 56 个叮当车站的上车点都挪到了轨道旁边，不会站在铁轨上等车。
+3. **"直接到站"一定把人送到站。** 目的地还没加载时，屏幕先暗一下，等那一片城市加载好再把你放到站台旁（手机上实测 Hyde & Beach 正确落在轨道旁的人行道上），不会再出现"提示到站、人却留在半路"。渡轮等船时也能直接到站（按钮请 G 组加在横幅上）。
+4. **渡轮报时变诚实。** 选项里写明"约 186 秒，船约 85 秒后到"，不再只写航程。
+5. **景点落地时路人不再挤在你身边或挡住脸**；你走近站着的游客，他们会让开。N 线的路线说明中英文一致（市中心 → 科尔谷 → 内日落区 → 海洋海滩）。所有测试 880 个全部通过，Higgsfield 花费 0。
+
+### Findings fixed (lane T's files)
+
+| finding | fix | evidence |
+|---|---|---|
+| **D2** (major) Pier 41 landing traps the player | `data/ferry.ts`: the berth moves to the Wharf promenade (−194.9, 46.4, the hull alongside the stones, heading −30°) and the quay onto the promenade (−186.5, 48.4); the loop comes round north of Pier 39 (19 u clear of the K-Dock floats, 32 before) and leaves west past the pier heads, 1,232 u (was 1,133), Gate E → Pier 41 543 u of arc. The old quay's walkable region was 605 cells of 0.75 u (x −267…−213, z 67…83: the Pier 45 shed deck, walled in by the shed buildings at the pier root) | `opus-bay-sf-ferry` "verify D2" (floods the quay's ground: > 10,000 cells reaching 140 u; the loop-over-water test passes the new loop); in game the flood from the quay reaches x −233…−126 within 60 u; `i-ferry-pier41-quay.jpg` (the boat alongside the promenade, "Take the ferry · Pier 41") |
+| **D3** (major) a cable car never pulls into Powell & Market while the player stands at the terminus | `data/transit.ts PERSON_CLEAR` (0.8 u): a cable car (`world/transitLine.ts`), F-line car (`flineSystem.ts`), bus (`busSystem.ts`) or Metro train (`lightRail.ts`) runs in to its stop past someone standing beyond its resting nose (the turntable card spot is 2.8 u past it; the car used to stand 0.4 u short for good); someone on the stop itself still holds it, `viewerHeld()` counts how long, and after 4 s BAYBAY asks them to step aside (once in 40 s). Every cable-car station's prompt stands beside the track: the nearest standable spot 2.6–5.5 u round the station ≥ 2.45 u from every track there (a passing car reaches 2.05 u), 5–7 u from a turntable's centre; all 56 stations get one (a search that finds none is tried again 5 s later) | `opus-bay-sf-transit-verify` (pull-in, held + the ask, 56 prompts on walkable ground off the track; the pull-in test fails with the old rule); in game: the car reaches s 0, dwells and turns with the player on the card spot (`i-cable-turntable-pullin.jpg`); BAYBAY "The cable car is waiting for us. Let's step to the side" (`i-step-aside.jpg`); the Powell & Market prompt at (135.6, 257.6), 5.2 u from the disc |
+| **M2** (major) 直接到站 on a cable car leaves the player mid-route with "到站" | `game/transit.ts leaveLineRide`: a skip on any city line to a stop that is far (> 250 u) or not streamed in (ground pending / nothing walkable within 16 u) waits under the veil (`lineRides.ts veiledSkip`, now "stream, then jump": whenReady 150 u, 8 s cap), then puts the rider at the stop — a cable-car stop's prompt beside the track, never on the rails; "到站" only once the rider stands there; a second tap starts no second veil | test (veil, one veil for two taps, nothing said until landed, landed at the stop); phone 390 × 844 zh: Powell & Market → Hyde & Beach skip lands at (−222.3, 133.3), standable, "到站：Hyde & Beach" (`i-skip-veil-phone.jpg`, `i-skip-landed-phone.jpg`) |
+| **D11 / m5** (minor) the ferry offer leaves out the 80–140 s wait; no skip while waiting | the offer counts the wait (`ferryWaitSeconds`: the boat's eta with the dwell a waiting rider cuts): "去渡轮大厦 · E 号登船口（约 186 秒，船约 85 秒后到）" / "(~186s · boat in ~85s)"; `RideLabel.skipWhileWaiting` on the ferry, and finishRide while waiting puts the rider on the other quay (under the veil), never a ride | tests (the label's numbers, the boat boards within 20 % of the said wait; the skip while waiting); `i-ferry-offer-phone.jpg` |
+| **m6** (minor) characters crowd the player at arrival spots | `world/sf/crowd.ts`: no walker or sightseer spawns within 2.5 u of the player, BAYBAY or a resident; a sightseer the player walks up to shuffles back to 1.5 u (a stander's spot is now its base: the push — and a hop out of a bus's way — used to be cancelled out every frame, so standers never moved) | test (plaza spots on the player stay empty; a sightseer 0.4 u away shuffles to ≥ 1.2 u); phone Twin Peaks arrival: 0 walkers within 2.5 u over 17 s (`i-twin-peaks-arrival-phone.jpg`). Lane L's W4-IL15 keeps the plaza spots off the site arrivals too |
+| **F4** (minor) per-frame allocations | `world/sf/recordPool.ts` (new): the obstacle and road-vehicle sources reuse their records, one pool per consumer array (traffic, crowd, the cable / F-line cars, the fleet's buses, trains and stops); city life's focus, avoid and people lists reuse theirs. (crowd's sort and the F-line layer's counters were already clean; kitSwap / sites are lane L's) | test (the same records frame after frame; another consumer's array does not overwrite this one) |
+| **C13** (minor) the N route text differs in zh / en | `data/sf/stationNames.ts`: "市中心 → 科尔谷 → 内日落区 → 海洋海滩" and Carl & Cole glossed 科尔谷 (Cole Valley, south of the Haight; the recorded line already says "海特街在北边不远"); transit.json and transit-w4.json re-published (only that gloss changes, checked byte for byte) | `opus-bay-sf-metro` pins 科尔谷 (on purpose) |
+
+Checked, not lane T's (in their owners' lists): D1 (L, fixed W4-IL11), F1 kit swap and F3 quality (L / V), F2 the touch
+seat button (G: 坐下 now shows on the bus deck, `i-bus-banner-phone.jpg`), D2's give-up message (G, W4-IG13), D4 / F6 /
+C3–C10 (L / C), B1 / M1 / M3 / m1–m4 (P / G / C), the visual sweep (V).
+
+### Part a's leftovers
+
+- **Plan §5.3 shots, in the real game**: RideBanner on a phone (`i-bus-banner-phone.jpg`: "观光环线 · 下一站 双峰",
+  下一站下车 · 直接到站 · ⋯), the N out of the Sunset Tunnel west portal (`i-n-sunset-west.jpg`, a QA camera over the cut), the
+  M on 19th Ave at Winston (`i-m-19th-winston-ext.jpg`, from outside the train), a loop stop pole (`i-loop-pole.jpg`, Castro);
+  with part a's bus deck, subway overlay, Duboce, Winston-from-the-train, Embarcadero kiosk and night bus the list is
+  complete. Rendering was not touched in part b (calls / triangles / programs as in part a's gate: max 124 / 386k / 48).
+- **Phone 4× CPU gate**: still only indicative — the machine sat at 37–63 % load with other lanes' Chromes: an N ride
+  Van Ness → Carl & Hillway at 390 × 844 mid 24.5 fps (p95 116 ms, 52 calls, 171k tris, 54 programs); the portal-cut
+  sample at 63 % load read 9.7 fps even under the subway overlay (frames there cost as much as on the surface; lane V's
+  background "live" warm-up ran 11.3 s during it). Official run: lane V / the lead on a quiet machine.
+- **GameRoot**: part b's city-only helpers (kerb spots, the step-aside ask, the veil test, the ferry wait) live in the
+  lazy `game/lineRides.ts` chunk (7.73 kB gzip); GameRoot 296.16 kB gzip on `83d73a6` (296.75 before moving them; ≈ 295.8
+  without part b's main-graph changes).
+
+### Decisions
+
+- **The Pier 41 landing moved, not the pier fixed**: the shed deck's way ashore is walled by the chunk's building
+  footprints (lane L / V data; a chunk rebuild is out of scope); the promenade berth keeps the loop's ≥ 1 u / 3 u
+  clearances. The terminal keeps its id and name (41 号码头).
+- **A person past the stop is not in the way (0.8 u past the nose); a person on the stop is**: the vehicle never runs
+  into anyone; BAYBAY asks instead of pushing the player.
+- **"Stream, then jump"** for every veiled skip (the ride goes on under the veil): the rider lands on ground that has
+  loaded, and the kerb spot of a cable-car stop can be found.
+- **The skip while waiting** lives in the flow and the label; the button is lane G's banner (request below).
+
+### Known gaps
+
+- The LRV ride camera still sits inside the train (lane G); the §5.3 Metro shots are from outside.
+- Pier 45's shed deck stays walled in (the walk graph thinks a leg exists there: lane G's walker gives up now).
+- The 3D scene keeps rendering under the opaque subway overlay (see Requests).
+- A skipped cable-car ride says "多坐几站再下车，才算坐过叮当车哦" (lane C's hook): true (a skip never counts) but a little
+  preachy after 直接到站.
+
+### Not done
+
+- The phone 4× gate on a quiet machine (above); the dark Sunset Tunnel tube (plan R5, later polish); moving the loop's
+  Wharf stop off the Powell–Hyde turnaround (a loop re-bake + lane C's pins; ≤ 39 s box waits an hour).
+
+### Requests
+
+- **Lane G**: (1) `ui/RideBanner.tsx`: in the waiting stage show 直接到站 when `rideLabel(ride).skipWhileWaiting` (the
+  ferry: finishRide already puts the waiting rider on the other quay); (2) the LRV ride camera (part a's request, open).
+- **Lane V**: `world/WorldScene.tsx`: skip the draw (not `world.update`) while the subway overlay covers the view
+  (`subwayView()?.visible` from game/transit.ts, or `lineRideUnderground()` in game/ride.ts): on a phone the frames under
+  the overlay cost as much as on the surface; the phone 4× gate as above.
+- **Lane L / V**: Pier 45's shed deck has no walkable way ashore in the published city (the building blockers at the pier
+  root, x −216…−205, z 70…80): open a gap if the pier should be walkable.
+- **Lead**: part a's two items stand (`transit-w4.json`, `manifest.json transitLines`).
+
+### Checks
+
+On the pushed tree `f5da536` (rebased on `0325f32`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors
+(43 warnings, none in lane-T files) · full opus-bay suite **880 / 880** (`sf-move2` "E2-5 view field" failed once under
+load on an earlier run and passed alone, lane G's wall-clock test) · `opus-bay-sf-transit-verify` 8 tests, `sf-ferry` 6 ·
+no Higgsfield credits.
+
+Relayed owner message during this part — "现在进度如何" — answered by the first line of the summary above.
