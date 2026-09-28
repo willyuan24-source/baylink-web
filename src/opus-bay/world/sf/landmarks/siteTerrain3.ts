@@ -234,6 +234,18 @@ export const SITE_TERRAIN3: Readonly<Record<string, SiteTerrainGrid>> = {
       9, 23, 25, 27, 47, 64, 71, 77, 79, 81, 87,
     ],
   },
+  'noe-valley-town-square': {
+    base: 11.76, x0: -3, z0: -3, step: 1, cols: 7, rows: 7,
+    h: [
+      -13, -3, 3, 6, 6, 5, 1,
+      2, 15, 19, 26, 27, 23, 17,
+      15, 27, 34, 39, 38, 36, 30,
+      25, 36, 42, 43, 43, 44, 40,
+      33, 40, 41, 43, 43, 44, 44,
+      37, 40, 41, 42, 43, 44, 45,
+      39, 40, 41, 42, 43, 44, 45,
+    ],
+  },
   'octagon-house': {
     base: 6.16, x0: -2, z0: -2, step: 1, cols: 5, rows: 5,
     h: [
