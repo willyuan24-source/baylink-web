@@ -1,0 +1,101 @@
+import type { MonthlyEvent } from './monthly-types';
+import type { SeptemberOpening } from './september-openings';
+
+// Sources and booking-page caveats: docs/late-september-peninsula-south-sources-2026-09-27.md.
+export const lateSeptemberPeninsulaSouthEvents: MonthlyEvent[] = [
+  {
+    id: 'san-mateo-curiodyssey-spooky-science-2026',
+    title: 'CuriOdyssey 十月科学夜：动物、幻觉与南瓜实验',
+    startDate: '2026-10-02', endDate: '2026-10-02', dateLabel: '10 月 2 日 · 17:00–20:00',
+    region: 'peninsula', city: 'San Mateo', venue: 'CuriOdyssey · 1651 Coyote Point Drive',
+    category: 'family', cost: 'paid', costLabel: '需预约入场 · 按会员或普通票入口选择，餐饮另付',
+    summary: '十月 First Friday Nights 以 Spooky Science 为主题，在下班后的三小时里看动物展示、做季节科学活动，认识墨西哥民间艺术中的彩绘奇兽。适合把亲子出游安排在周五傍晚。',
+    plan: [
+      '从活动官网进入会员或非会员订票页，确认选中 2026 年 10 月 2 日及入场时段；若显示旧日期，重新选日或联系场馆。票价与余票以正确日期为准。',
+      '活动包括南瓜实验、化石清理和季节手工等，具体体验按现场安排；餐车和饮品另付，先为全家预留用餐预算。',
+      '导航到 Coyote Point 内的 CuriOdyssey，提前核对公园车辆入园收费和晚间离园安排；编辑建议带防风外套，并安排好 20:00 后返程。',
+    ],
+    audience: ['亲子家庭', '周五夜出游'],
+    officialUrl: 'https://curiodyssey.org/exhibits-events/first-friday-nights/',
+    sourceLabel: 'CuriOdyssey · 十月活动及官方日历', verifiedAt: '2026-09-27', imageKey: 'family-workshop',
+    relatedGuideSlug: 'san-mateo-coyote-point-bayfront-guide',
+  },
+  {
+    id: 'san-carlos-hiller-halloween-paint-plane-2026',
+    title: 'Hiller 万圣节 Paint-A-Plane：给飞机添上节日颜色',
+    startDate: '2026-10-24', endDate: '2026-10-25', occurrenceDates: ['2026-10-24', '2026-10-25'],
+    dateLabel: '10 月 24–25 日 · 每天 10:00–12:00',
+    region: 'peninsula', city: 'San Carlos', venue: 'Hiller Aviation Museum · 601 Skyway Road',
+    category: 'family', cost: 'paid', costLabel: '活动含在博物馆入场资格内 · 另收费体验分开计算',
+    summary: '航空博物馆用飞机彩绘、幽灵纸直升机和万圣节手工作为周末开场。两小时活动结束后，还可继续看机库里的飞机；适合喜欢动手和交通工具的孩子。',
+    plan: [
+      '选 10 月 24 日或 25 日上午场，按官网购买博物馆门票或使用有效会员入场资格；活动含在入场内，不代表其他模拟体验也免费。',
+      '万圣节项目包括飞机彩绘、风洞和手工；户外彩绘及充气设施会受天气影响。编辑建议穿可清洗的衣服，雨天先查馆方更新。',
+      '馆方提供免费停车；搭 Caltrain 到 San Carlos 后仍约需步行一英里，并经过跨 101 的路段，带幼儿时先评估接驳或步行安排。',
+    ],
+    audience: ['亲子家庭', '航空爱好者'],
+    officialUrl: 'https://www.hiller.org/event/paint-a-plane/2026-10-24/',
+    sourceLabel: 'Hiller Aviation Museum · 十月日历与 Paint-A-Plane', verifiedAt: '2026-09-27', imageKey: 'family-workshop',
+    relatedGuideSlug: 'san-carlos-hiller-aviation-half-day-guide',
+  },
+  {
+    id: 'san-jose-waterways-art-climate-2026',
+    title: 'San José 水道与气候艺术论坛：从展厅走向 Coyote Creek',
+    startDate: '2026-10-16', endDate: '2026-10-17', dateLabel: '10 月 16–17 日 · 两天场地不同',
+    region: 'south-bay', city: 'San José', venue: 'San José Museum of Art / Coyote Creek',
+    category: 'culture', cost: 'paid', costLabel: '普通登记 $20 · SJMA 会员 $15，须提前报名',
+    summary: '艺术家与科学、生态及城市工作者讨论人和水道的关系。首日在美术馆听案例，次日前往 Coyote Creek 的场外活动，适合关注本地环境、公共艺术与城市生活的居民。',
+    plan: [
+      '须提前登记；官方列普通票 $20、会员 $15，包含餐饮午餐与博物馆入场。报名时核对会员资格及两天参加安排。',
+      '10 月 16 日主议程 09:30–17:00，在 110 S Market Street，之后有交流活动；售票页显示更长时间范围，签到时间按报名通知确认。',
+      '10 月 17 日 10:30–14:00 为 Coyote Creek 场外活动，9/27 核验时集合点尚待公布；收到地点后再规划交通，并先问清步行与无障碍条件。',
+    ],
+    audience: ['公共艺术', '环境与城市生活'],
+    officialUrl: 'https://sjmusart.org/reimagining-our-waterways',
+    sourceLabel: 'San José Museum of Art / City of San José Climate Art Program',
+    verifiedAt: '2026-09-27', imageKey: 'culture-visit',
+  },
+  {
+    id: 'san-jose-sjma-dia-muertos-community-2026',
+    title: 'San José 美术馆免费社区日：亡灵节艺术与文化',
+    startDate: '2026-10-24', endDate: '2026-10-24', dateLabel: '10 月 24 日 · 11:00–16:00',
+    region: 'south-bay', city: 'San José', venue: 'San José Museum of Art · 110 S Market Street',
+    category: 'culture', cost: 'free', costLabel: '当天免费入场 · 预登记可加快签到，也接受现场到访',
+    summary: '美术馆与本地艺术家和社区组织合作，通过表演、文化展示和艺术创作迎接亡灵节。适合不同年龄同行，也可用一个下午认识市中心的美术馆。',
+    plan: [
+      '官网确认当天免费入场；可提前登记以便快速签到，也欢迎现场到访。咖啡馆消费、购物及停车另计。',
+      '截至 9 月 27 日，具体手工、演出和活动地图仍待公布；出发前复查，不把往年节目当作本届日程。',
+      '从馆方 Getting Here 查看公共交通与 ParkSJ 停车选择；编辑建议预留市中心步行时间，需要辅助设备时到入场柜台咨询。',
+    ],
+    audience: ['亲子家庭', '社区文化'],
+    officialUrl: 'https://sjmusart.org/programs-at-sjma/community-days/dia-de-los-muertos',
+    sourceLabel: 'San José Museum of Art · 2026 社区日公告', verifiedAt: '2026-09-27', imageKey: 'culture-visit',
+  },
+];
+
+export const lateSeptemberPeninsulaSouthOpenings: SeptemberOpening[] = [
+  {
+    id: 'yutori-palo-alto-restaurant', name: 'Yutori · Restaurant & Bar', city: 'Palo Alto', region: 'peninsula',
+    category: '新餐厅 · 日式晚餐', status: 'open', openingType: 'new-restaurant', openedOn: '2026-09-24',
+    dateLabel: '餐厅部分 9 月 24 日开业 · 咖啡与市场此前已营业',
+    summary: 'Yutori 在原有咖啡、便利食品与选物空间之外，新加入晚餐餐厅和酒吧。餐厅以加州视角呈现日式分享菜；此次新开的是 Restaurant & Bar，并非整个园区首次营业。',
+    editorTip: '用官网 Restaurant & Bar 的订位入口安排晚餐；咖啡、热食柜台、市场与晚餐各有营业时段，不能按咖啡店时间前往用晚餐。官网列后方另有停车位。',
+    address: '3375 El Camino Real, Palo Alto, CA 94306',
+    officialUrl: 'https://www.yutori-pa.com/restaurant-bar/',
+    sourceUrl: 'https://www.sfchronicle.com/food/restaurants/article/yutori-restaurant-opening-palo-alto-22442762.php',
+    sourceLabel: 'San Francisco Chronicle · 9/24 开业报道 / Yutori 官方',
+    verifiedAt: '2026-09-27', imageKey: 'neighborhood-table',
+  },
+  {
+    id: 'ignite-san-pedro-square', name: 'IGNITE', city: 'San José', region: 'south-bay',
+    category: '新餐厅 · 烧烤与露台聚餐', status: 'open', openingType: 'new-restaurant',
+    dateLabel: '9 月已营业 · 首次接客日未单独核实',
+    summary: 'San Pedro Square 原 Sushi Confidential 空间迎来 IGNITE，主打火烤串、汉堡、鸡尾酒和露台聚餐。9 月本地报道确认新餐厅接手营业，官网已提供菜单和订位入口。',
+    editorTip: '先从官网核对菜单、订位与当天营业安排，再把晚餐和市中心散步串起来。本文未将开业活动当作首次营业日期，也未核实仍有效的开业折扣。',
+    address: '26 N San Pedro Street, San Jose, CA 95113',
+    officialUrl: 'https://www.eatatignite.com/',
+    sourceUrl: 'https://www.bizjournals.com/sanjose/news/2026/09/15/ignite-replaces-sushi-confidential-san-jose.html',
+    sourceLabel: 'Silicon Valley Business Journal · 9/15 报道 / IGNITE 官方',
+    verifiedAt: '2026-09-27', imageKey: 'neighborhood-table',
+  },
+];

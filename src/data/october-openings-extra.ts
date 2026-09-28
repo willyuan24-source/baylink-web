@@ -46,11 +46,11 @@ export const additionalOctoberOpenings: SeptemberOpening[] = [
   {
     id: 'marufuku-burlingame-announced', name: 'Marufuku Ramen · Burlingame', city: 'Burlingame', region: 'peninsula',
     category: '拉面新店预告', status: 'announced', openingType: 'new-restaurant',
-    dateLabel: '已宣布 · 开业日期尚未公布',
-    summary: 'Marufuku 官网已为 Burlingame 新店设立专页，并在门店列表标注 Coming Soon。截至 9/15，品牌仍未公布具体开业日与街道地址。',
-    editorTip: '先收藏官方门店页，等地址与营业日期确认后再安排前往；目前没有可核实的十月开业承诺。',
+    dateLabel: '官宣 10/11 11:00 开业庆典 · 仍为预告',
+    summary: 'Marufuku 官网首页现已公布 Burlingame 新店的 Grand Opening 为 10/11 11:00。9/27 核验时门店页仍标注 Coming Soon，街道地址尚未公布，目前仍列为新店预告。',
+    editorTip: '先收藏官方门店页，等街道地址和当天安排确认后再前往。首页公告未印年份；庆典日期也不等于已核实的首次接客日。',
     address: 'Burlingame, CA · 街道地址待官方公布',
-    officialUrl: 'https://www.marufukuramen.com/burlingame', sourceUrl: 'https://www.marufukuramen.com/burlingame',
-    sourceLabel: 'Marufuku 官方 Burlingame 新店预告', verifiedAt: '2026-09-15', imageKey: 'opening-marufuku-burlingame',
+    officialUrl: 'https://www.marufukuramen.com/burlingame', sourceUrl: 'https://www.marufukuramen.com/',
+    sourceLabel: 'Marufuku 官方首页开业庆典公告与 Burlingame 门店页', verifiedAt: '2026-09-27', imageKey: 'opening-marufuku-burlingame',
   },
 ];

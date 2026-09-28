@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   Armchair,
   BookOpen,
+  GraduationCap,
   Clock3,
   House,
   MapPin,
@@ -47,6 +48,7 @@ const categoryIcons = {
   city: MapPin,
   safety: ShieldCheck,
   events: BookOpen,
+  education: GraduationCap,
 };
 
 export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSection }: GuideCardProps) => {

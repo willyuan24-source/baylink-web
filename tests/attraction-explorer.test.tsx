@@ -20,7 +20,7 @@ const { setLocale } = await import('../src/i18n/locale');
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 
 test('every attraction leads to a published guide with a distinct real photo and every region has coverage', () => {
-  assert.equal(ATTRACTIONS.length, 18);
+  assert.equal(ATTRACTIONS.length, 28);
   assert.equal(new Set(ATTRACTIONS.map(item => item.id)).size, ATTRACTIONS.length);
   const images = new Set<string>();
   for (const item of ATTRACTIONS) {
@@ -52,11 +52,22 @@ test('shared lists accept only known IDs, deduplicate, cap stops, and never carr
 test('admission filters exclude ticketed places from free results and combine with region and interest', async () => {
   const free = filterAttractions(ATTRACTIONS, { cost: 'free', locale: 'zh-Hans' });
   for (const id of ['alcatraz', 'filoli', 'hakone', 'muir-woods']) assert.ok(!free.some(item => item.id === id));
-  assert.deepEqual(filterAttractions(ATTRACTIONS, { region: 'north-bay', theme: 'nature', cost: 'paid', locale: 'zh-Hans' }).map(item => item.id), ['muir-woods']);
+  assert.deepEqual(filterAttractions(ATTRACTIONS, { region: 'north-bay', theme: 'nature', cost: 'paid', locale: 'zh-Hans' }).map(item => item.id), ['muir-woods', 'angel-island']);
   await setLocale('zh-Hant');
   assert.ok(filterAttractions(ATTRACTIONS, { query: '舊金山 金門', locale: 'zh-Hant' }).some(item => item.id === 'golden-gate'));
   await setLocale('en');
   assert.deepEqual(filterAttractions(ATTRACTIONS, { query: 'Chinatown North Beach', locale: 'en' }).map(item => item.id), ['chinatown']);
+});
+
+test('regional orientation follows filters and is fully readable in English', async () => {
+  await setLocale('en');
+  const view = render(<MemoryRouter initialEntries={['/explore?region=peninsula&lang=en']}><AttractionExplorer /></MemoryRouter>);
+  assert.ok(view.getByRole('heading', { name: 'Peninsula: gardens, aviation and two coastlines' }));
+  const copy = view.container.querySelector('.attraction-region-intro')!;
+  assert.doesNotMatch(copy.textContent!, /[\u3400-\u9fff]/);
+  fireEvent.click(view.getByRole('button', { name: 'North Bay', exact: true }));
+  assert.ok(view.getByRole('heading', { name: 'North Bay: ferry days and drives into nature' }));
+  assert.equal(view.getAllByRole('article').length, ATTRACTIONS.filter(place => place.region === 'north-bay').length);
 });
 
 test('add, reorder and remove persist the exact user order; a shared link does not overwrite an existing local plan', () => {
@@ -114,7 +125,7 @@ test('English filters produce empty states without losing the outing or language
   assert.equal(view.queryAllByRole('article').length, 0);
   assert.ok(view.getByRole('button', { name: 'Remove: Presidio Tunnel Tops' }));
   fireEvent.click(view.getByRole('button', { name: 'Reset place filters' }));
-  assert.equal(view.getAllByRole('article').length, 18);
+  assert.equal(view.getAllByRole('article').length, ATTRACTIONS.length);
 });
 
 test('BayBay planning starts only on a click and receives a bounded localized list', async () => {

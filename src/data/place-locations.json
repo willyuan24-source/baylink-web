@@ -124,5 +124,75 @@
     "label": "Sausalito Ferry Terminal area",
     "sourceUrl": "https://www.wikidata.org/wiki/Q30642905",
     "precision": "area"
+  },
+  "lands-end": {
+    "lat": 37.779732,
+    "lng": -122.511586,
+    "label": "Lands End Lookout area",
+    "sourceUrl": "https://www.openstreetmap.org/way/250216260",
+    "precision": "area"
+  },
+  "angel-island": {
+    "lat": 37.87288,
+    "lng": -122.45591,
+    "label": "Angel Island State Park arrival area",
+    "sourceUrl": "https://www.parks.ca.gov/?page_id=468",
+    "precision": "area"
+  },
+  "hiller-aviation": {
+    "lat": 37.5118,
+    "lng": -122.2526,
+    "label": "Hiller Aviation Museum area",
+    "sourceUrl": "https://www.hiller.org/visit/general-information/",
+    "precision": "area"
+  },
+  "coyote-point": {
+    "lat": 37.5865,
+    "lng": -122.3161,
+    "label": "Coyote Point Recreation Area",
+    "sourceUrl": "https://www.smcgov.org/parks/coyote-point-recreation-area",
+    "precision": "area"
+  },
+  "computer-history": {
+    "lat": 37.4143,
+    "lng": -122.0776,
+    "label": "Computer History Museum area",
+    "sourceUrl": "https://computerhistory.org/visit/",
+    "precision": "area"
+  },
+  "rosicrucian": {
+    "lat": 37.3333,
+    "lng": -121.9235,
+    "label": "Rosicrucian Egyptian Museum area",
+    "sourceUrl": "https://www.egyptianmuseum.org/plan-your-visit",
+    "precision": "area"
+  },
+  "uss-hornet": {
+    "lat": 37.7727,
+    "lng": -122.3024,
+    "label": "USS Hornet Museum area",
+    "sourceUrl": "https://uss-hornet.org/visit-hornet/",
+    "precision": "area"
+  },
+  "mission-dolores": {
+    "lat": 37.759851,
+    "lng": -122.426001,
+    "label": "Mission Dolores Park",
+    "sourceUrl": "https://sfrecpark.org/facilities/facility/details/missiondolorespark-188",
+    "precision": "area"
+  },
+  "coyote-hills": {
+    "lat": 37.553623,
+    "lng": -122.076027,
+    "label": "Coyote Hills main entrance area",
+    "sourceUrl": "https://www.ebparks.org/parks/coyote-hills",
+    "precision": "area"
+  },
+  "point-reyes": {
+    "lat": 38.040643,
+    "lng": -122.799708,
+    "label": "Bear Valley Visitor Center area",
+    "sourceUrl": "https://www.nps.gov/planyourvisit/event-details.htm?id=6D8EBBB0-C198-DF22-5334984EC50153E5",
+    "precision": "area"
   }
 }

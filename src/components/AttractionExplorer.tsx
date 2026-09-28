@@ -6,6 +6,7 @@ import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { attractionMapUrl, filterAttractions, loadOuting, MAX_OUTING_STOPS, outingShareUrl, outingText, parseSharedOuting, saveOuting } from '../lib/attraction-plan';
 import { translateText, useLocale } from '../i18n/locale';
+import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 
@@ -27,6 +28,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   const cost = ATTRACTION_COSTS.some(item => item.id === params.get('cost')) ? params.get('cost')! : 'all';
   const query = (params.get('q') || '').slice(0, 150);
   const filtered = filterAttractions(available, { region, theme, cost, query, locale });
+  const regionIntro = ATTRACTION_REGION_INTROS[region as keyof typeof ATTRACTION_REGION_INTROS];
   const selections = plan.map(id => ATTRACTIONS.find(item => item.id === id)!);
   const updateFilter = (key: string, value: string) => setParams(current => {
     const next = new URLSearchParams(current);
@@ -85,6 +87,11 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       </div>
       <p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p>
     </section>
+    {regionIntro && <section className="attraction-region-intro" aria-labelledby="attraction-region-title">
+      <h2 id="attraction-region-title">{regionIntro.title}</h2>
+      <p>{regionIntro.text}</p>
+      <p><strong>安排这一区</strong> · {regionIntro.planning}</p>
+    </section>}
     <div className="attraction-results-heading"><h2>选一个想去的地方</h2><span role="status">{locale === 'en' ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'} to explore` : `${filtered.length} ${translateText('处可探索', locale)}`}</span></div>
     {plan.length >= MAX_OUTING_STOPS && <p className="attraction-cap-note">清单最多放 6 处。先移除一处，或把剩下的留给下次。</p>}
     {filtered.length ? <div className="attraction-grid">{filtered.map(item => {

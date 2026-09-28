@@ -6,6 +6,7 @@ import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-
 import { MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
+import { regionalBulletins } from '../src/data/late-september-local';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 
 type CoverageRow = { id: string; image?: GuideImage };
@@ -18,6 +19,7 @@ export function auditMediaCoverage() {
     events: MONTHLY_EVENTS.map(event => ({ id: event.id, image: GUIDE_IMAGES[event.imageKey] })),
     offers: currentFreebies.map(offer => ({ id: offer.id, image: GUIDE_IMAGES[offer.imageKey] })),
     openings: currentOpenings.map(shop => ({ id: shop.id, image: GUIDE_IMAGES[shop.imageKey] })),
+    bulletins: regionalBulletins.map(item => ({ id: item.id, image: GUIDE_IMAGES[item.imageKey] })),
     places: MONTHLY_PLACES.map(place => ({ id: place.id, image: GUIDE_IMAGES[place.imageKey] })),
   };
   const issues: string[] = [];

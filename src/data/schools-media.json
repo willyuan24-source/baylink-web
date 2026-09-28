@@ -1,0 +1,57 @@
+[
+  {
+    "key": "school-sf",
+    "src": "/guides/schools/sf.webp",
+    "alt": "家长与孩子来到山坡街区的虚构校园，与老师见面",
+    "caption": "AI 原创学校主题插图；校园与人物均为虚构，不代表实际学校、学区边界或招生承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/schools/sf-small.webp 480w, /guides/schools/sf.webp 1536w"
+  },
+  {
+    "key": "school-east",
+    "src": "/guides/schools/east.webp",
+    "alt": "橡树庭院里，家长与孩子和学校工作人员一起查看空白入学文件",
+    "caption": "AI 原创学校主题插图；校园与人物均为虚构，不代表实际学校、学区边界或招生承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/schools/east-small.webp 480w, /guides/schools/east.webp 1536w"
+  },
+  {
+    "key": "school-peninsula",
+    "src": "/guides/schools/peninsula.webp",
+    "alt": "家长陪伴不同年龄的学生走过橡树下的虚构校园",
+    "caption": "AI 原创学校主题插图；校园与人物均为虚构，不代表实际学校、学区边界或招生承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/schools/peninsula-small.webp 480w, /guides/schools/peninsula.webp 1536w"
+  },
+  {
+    "key": "school-south",
+    "src": "/guides/schools/south.webp",
+    "alt": "一家人在虚构学习空间与老师讨论入学安排",
+    "caption": "AI 原创学校主题插图；校园与人物均为虚构，不代表实际学校、学区边界或招生承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/schools/south-small.webp 480w, /guides/schools/south.webp 1536w"
+  },
+  {
+    "key": "school-north",
+    "src": "/guides/schools/north.webp",
+    "alt": "红杉与丘陵环绕的虚构校园里，老师迎接家长和孩子",
+    "caption": "AI 原创学校主题插图；校园与人物均为虚构，不代表实际学校、学区边界或招生承诺。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/guides/schools/north-small.webp 480w, /guides/schools/north.webp 1536w"
+  }
+]

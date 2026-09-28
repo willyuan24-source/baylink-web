@@ -287,7 +287,7 @@ test('next seven days shows its inclusive date range and invalid date parameters
   assert.ok(view.getByText('包含今天'));
   assert.equal(queryParams(view).get('when'), 'next7');
   assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-10-25', '2026-10-31']);
-  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'santa-rosa-pumpkins-parks-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'emeryville-art-exhibition-closing-2026', 'menlo-park-trunk-or-treat-2026', 'benicia-farmers-market-final-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026', 'napa-harvest-after-dark-2026', 'oakland-omca-dia-muertos-2026', 'oakland-omca-friday-finale-2026', 'palo-alto-addams-family-opening-2026', 'sunnyvale-spooky-storywalk-2026', 'sf-apature-film-2026', 'sf-world-of-dumplings-2026']);
+  assertResultTitles(view, ['petaluma-pumpkin-patch-2026', 'santa-rosa-pumpkins-parks-2026', 'san-jose-short-film-festival-2026', 'bay-area-musical-improv-festival-2026', 'emeryville-art-exhibition-closing-2026', 'menlo-park-trunk-or-treat-2026', 'benicia-farmers-market-final-2026', 'sf-halloween-hoopla-2026', 'san-jose-avenida-altares-2026', 'napa-harvest-after-dark-2026', 'oakland-omca-dia-muertos-2026', 'oakland-omca-friday-finale-2026', 'palo-alto-addams-family-opening-2026', 'sunnyvale-spooky-storywalk-2026', 'sf-apature-film-2026', 'sf-world-of-dumplings-2026', 'san-carlos-hiller-halloween-paint-plane-2026', 'srsymphony-boo-dance-oct25-2026']);
 });
 
 test('new regional activities keep mixed-cost registration and ticketed events out of free-admission results', () => {

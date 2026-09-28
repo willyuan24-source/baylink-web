@@ -26,7 +26,7 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid September anchors and includes both October benefit batches', () => {
-  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length + communityDiscoveryOffers.length);
+  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length + communityDiscoveryOffers.length + 6);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
@@ -226,8 +226,8 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-09-23');
-  assert.match(guide.sourceNote || '', /部分页面读取受限，相关条款保留 9 月 8–15 日的核查记录/);
+  assert.equal(guide.updatedAt, '2026-09-27');
+  assert.match(guide.sourceNote || '', /其他条目保留原有核查记录（9 月 8–23 日）/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);
   assert.ok(guide.sources.every(source => source.title && source.description && new URL(source.url).protocol === 'https:'));
 });

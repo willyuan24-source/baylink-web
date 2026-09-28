@@ -5,9 +5,12 @@ import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
 import { EditorialShareActions } from './EditorialShareActions';
 import { offerShare } from '../lib/editorial-share';
+import type { MonthlyRegion } from '../data/monthly-types';
 
 export type FreebieOffer = {
   id: string;
+  region?: MonthlyRegion;
+  verifiedAt?: string;
   brand: string;
   title: string;
   dateLabel: string;

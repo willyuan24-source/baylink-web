@@ -8,6 +8,9 @@ import { monthlyDealsGuides } from './guides-deals';
 import { slowWeekendGuides } from './guides-slow-weekends';
 import { sfAttractionGuides } from './guides-attractions-sf';
 import { regionalAttractionGuides } from './guides-attractions-regions';
+import { sfEastExpandedGuides } from './guides-attractions-sf-east-expanded';
+import { peninsulaSouthExpandedGuides } from './guides-attractions-peninsula-south-expanded';
+import { northExpandedGuides } from './guides-attractions-north-expanded';
 import { freshSeptemberGuides } from './guides-fresh-september';
 import { septemberOpeningGuides } from './guides-september-openings';
 import { octoberLocalGuides } from './guides-october-local';
@@ -15,6 +18,12 @@ import { octoberDealsGuides } from './guides-october-deals';
 import { aiWeekGuides } from './guides-ai-week';
 import { autumnRefreshGuides } from './guides-autumn-refresh';
 import { communityDiscoveryGuides } from './guides-community-discovery';
+import { dailyTransportGuides } from './guides-daily-transport';
+import { dailyHomeGuides } from './guides-daily-home';
+import { dailyCommunityGuides } from './guides-daily-community';
+import { schoolSfEastGuides } from './guides-schools-sf-east';
+import { schoolPeninsulaSouthNorthGuides } from './guides-schools-peninsula-south-north';
+import { SCHOOL_REGIONS } from './school-regions';
 import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
@@ -25,6 +34,7 @@ export type GuideCategory =
   | 'service'
   | 'commute'
   | 'newcomer'
+  | 'education'
   | 'city'
   | 'safety'
   | 'events';
@@ -1873,6 +1883,9 @@ export const guides: Guide[] = [
   ...slowWeekendGuides,
   ...sfAttractionGuides,
   ...regionalAttractionGuides,
+  ...sfEastExpandedGuides,
+  ...peninsulaSouthExpandedGuides,
+  ...northExpandedGuides,
   ...freshSeptemberGuides,
   ...septemberOpeningGuides,
   ...octoberLocalGuides,
@@ -1880,6 +1893,10 @@ export const guides: Guide[] = [
   ...autumnRefreshGuides,
   ...communityDiscoveryGuides,
   ...aiWeekGuides,
+  ...dailyTransportGuides,
+  ...dailyHomeGuides,
+  ...dailyCommunityGuides,
+  ...SCHOOL_REGIONS.flatMap(region => [...schoolSfEastGuides, ...schoolPeninsulaSouthNorthGuides].filter(guide => guide.slug === region.slug)),
 ];
 
 export const getGuideBySlug = (slug: string): Guide | undefined =>
@@ -1894,10 +1911,20 @@ const cityAttractionRegions: Record<string, string> = {
   'east-bay-first-weekend-guide': 'east-bay',
   'north-bay-car-free-day-guide': 'north-bay',
 };
+const regionalSchoolSlugs: Record<string, string> = {
+  sf: 'sf-school-district-enrollment-guide', peninsula: 'peninsula-school-district-enrollment-guide',
+  'south-bay': 'south-bay-school-district-enrollment-guide', 'east-bay': 'east-bay-school-district-enrollment-guide',
+  'north-bay': 'north-bay-school-district-enrollment-guide',
+};
 for (const guide of guides) {
   const region = cityAttractionRegions[guide.slug];
   if (!region) continue;
-  guide.updatedAt = '2026-09-09';
+  guide.updatedAt = '2026-09-27';
+  const schoolGuide = getGuideBySlug(regionalSchoolSlugs[region]);
+  if (schoolGuide) guide.blocks.push(
+    { type: 'heading', text: '在这里上学：学区与校园入口' },
+    { type: 'link', title: schoolGuide.title, text: '查询负责学区、申请与转学步骤，另看本区大学和社区学院资源。', url: `https://www.baylink.us/guides/${schoolGuide.slug}` },
+  );
   const outings = ATTRACTIONS.filter(item => item.region === region && getGuideBySlug(item.slug));
   guide.blocks.push(
     { type: 'heading', text: '接下来，挑一份具体景点攻略' },
@@ -1967,6 +1994,7 @@ export const getGuidesForCategorySlug = (
 
 export const GUIDE_CATEGORY_TABS: { id: 'all' | GuideCategory; label: string }[] = [
   { id: 'all', label: '全部' },
+  { id: 'education', label: '学校与学区' },
   { id: 'rent', label: '租房' },
   { id: 'roommate', label: '找室友' },
   { id: 'used', label: '二手' },

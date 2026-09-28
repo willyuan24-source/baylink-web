@@ -8,6 +8,7 @@ import { clearReadingHistory, rememberGuide, toggleSavedGuide, useReaderLibrary 
 import { useLocale } from '../i18n/locale';
 import { EditorialShareActions } from './EditorialShareActions';
 import { guideShare } from '../lib/editorial-share';
+import { bayBayPageQuestions } from '../lib/baybay-conversation';
 
 export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
   useLocale();
@@ -25,7 +26,7 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
     <div className="reader-actions" aria-label="文章操作">
       <button type="button" onClick={save} aria-pressed={isSaved}>{isSaved ? <Check size={16} /> : <Bookmark size={16} />}{isSaved ? '已收藏' : '收藏 · 稍后读'}</button>
       <EditorialShareActions item={guideShare(guide)} />
-      {onAsk && <button type="button" onClick={() => onAsk(`我正在读《${guide.title}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。`)}><Sparkles size={16} />让 BayBay 帮我整理</button>}
+      {onAsk && <button type="button" onClick={() => onAsk(guide.category === 'education' ? bayBayPageQuestions(`/guides/${guide.slug}`)[1].question : `我正在读《${guide.title}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。`)}><Sparkles size={16} />{guide.category === 'education' ? '让 BayBay 整理入学步骤' : '让 BayBay 帮我整理'}</button>}
       <Link to="/guides?view=saved">我的收藏<ChevronRight size={14} /></Link>
     </div>
     {status && <p className="reader-status" role="status">{status}</p>}

@@ -2,7 +2,7 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 
-const catalog = MONTHLY_EVENTS.map(({ id, title, startDate, endDate }) => ({ id, title, startDate, endDate }));
+const catalog = MONTHLY_EVENTS.map(({ id, title, startDate, endDate, occurrenceDates }) => ({ id, title, startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}) }));
 if (new Set(catalog.map(event => event.id)).size !== catalog.length) throw new Error('Duplicate event IDs');
 const destinations = [resolve('public/event-catalog.json'), ...(process.argv[2] ? [resolve(process.argv[2])] : [])];
 for (const destination of destinations) {

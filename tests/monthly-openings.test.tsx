@@ -6,6 +6,9 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { septemberOpenings } from '../src/data/september-openings';
 import { additionalOctoberOpenings } from '../src/data/october-openings-extra';
+import { lateSeptemberSfEastOpenings } from '../src/data/late-september-sf-east';
+import { lateSeptemberPeninsulaSouthOpenings } from '../src/data/late-september-peninsula-south';
+import { lateSeptemberNorthOpenings } from '../src/data/late-september-north';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { guides, getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
@@ -52,19 +55,21 @@ after(() => {
 const edition = (today = '2026-09-15') => <MemoryRouter><MonthlyOpenings today={today} /></MemoryRouter>;
 const names = (view: ReturnType<typeof render>) => view.queryAllByRole('article').map(article => within(article).getByRole('heading', { level: 3 }).textContent);
 const statusFilters = (view: ReturnType<typeof render>) => within(view.getByRole('group', { name: '按开业状态筛选' }));
-const firstSix = ['Asia Live · Valley Fair', 'CHICHA San Chen · Pleasanton', 'Hey Yogurt · San Mateo', 'Broken Dreams', 'Hijau Coffee', 'Kaiyō Handroll Bar'];
-const sfOpen = ['Kaiyō Handroll Bar', 'La Boulangerie at ERIA Marina', 'The Mess Hall · Breadwinner', 'Sergeant Ma'];
+const lateSeptemberOpenings = [...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings];
+const openShops = currentOpenings.filter(shop => shop.status === 'open');
+const announcedShops = currentOpenings.filter(shop => shop.status === 'announced');
+const firstSix = openShops.slice(0, 6).map(shop => shop.name);
+const sfOpen = openShops.filter(shop => shop.region === 'sf').map(shop => shop.name);
 
 test('opening status and region use confirmed business status without reviving an ended celebration', () => {
   const view = render(edition());
   assert.deepEqual(names(view), firstSix);
-  assert.equal(currentOpenings.length, 14);
-  assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, 14);
-  assert.equal(currentOpenings.filter(shop => shop.status === 'open').length, 9);
-  assert.equal(currentOpenings.filter(shop => shop.status === 'announced').length, 5);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).textContent, '全部新店14');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, '已开业9');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, '预告与庆典5');
+  assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, currentOpenings.length);
+  for (const shop of lateSeptemberOpenings) assert.equal(currentOpenings.filter(item => item.id === shop.id).length, 1, `${shop.id} is registered once`);
+  assert.equal(openShops.length + announcedShops.length, currentOpenings.length);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).textContent, `全部新店${currentOpenings.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, `已开业${openShops.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, `预告与庆典${announcedShops.length}`);
   assert.ok(view.getByText(/尚未实地探店/));
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'sf' } });
@@ -85,7 +90,7 @@ test('opening status and region use confirmed business status without reviving a
 test('an empty status-region combination offers a reset that restores both filters and every available opening', () => {
   const view = render(edition());
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'peninsula' } });
-  assert.deepEqual(names(view), ['Hey Yogurt · San Mateo', 'Marufuku Ramen · Burlingame']);
+  assert.deepEqual(names(view), currentOpenings.filter(shop => shop.region === 'peninsula').map(shop => shop.name));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'east-bay' } });
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
   assert.deepEqual(names(view), []);
@@ -101,15 +106,23 @@ test('an empty status-region combination offers a reset that restores both filte
 test('six recently verified open shops appear first, expanding reveals every announcement and filtering collapses the list', () => {
   const view = render(edition());
   assert.deepEqual(names(view), firstSix);
+  assert.equal(firstSix.length, 6, 'the initial page shows six confirmed open shops');
+  for (let index = 1; index < openShops.length; index += 1) {
+    const previous = openShops[index - 1];
+    const shop = openShops[index];
+    assert.ok(previous.verifiedAt >= shop.verifiedAt, 'recent verification comes first');
+    if (previous.verifiedAt === shop.verifiedAt) assert.ok((previous.openedOn || '') >= (shop.openedOn || ''), 'first-service dates break verification-date ties');
+  }
   assert.ok(!view.queryByRole('article', { name: 'Marufuku Ramen · Burlingame' }));
   fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  assert.equal(names(view).length, 14);
+  assert.equal(names(view).length, currentOpenings.length);
   assert.deepEqual(new Set(names(view)), new Set(currentOpenings.map(shop => shop.name)));
   assert.deepEqual(names(view).slice(0, 6), firstSix);
-  assert.equal(names(view)[9], 'Florecita Panadería', 'Newly verified announcements follow all open shops');
+  assert.deepEqual(names(view).slice(0, openShops.length), openShops.map(shop => shop.name), 'all confirmed open shops precede announcements');
+  assert.deepEqual(names(view).slice(openShops.length), announcedShops.map(shop => shop.name));
   assert.ok(!view.queryByRole('button', { name: '展开其余新店' }));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'south-bay' } });
-  assert.deepEqual(names(view), ['Asia Live · Valley Fair', 'Hijau Coffee', 'The Hedley Club & Palm Court']);
+  assert.deepEqual(names(view), currentOpenings.filter(shop => shop.region === 'south-bay').map(shop => shop.name));
   fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'all' } });
   assert.deepEqual(names(view), firstSix, 'Changing filters resets the expanded state');
   assert.ok(view.getByRole('button', { name: '展开其余新店' }));
@@ -177,12 +190,11 @@ test('every opening exposes its merchant, encoded map destination and independen
 test('new opening cards retain official evidence, attributable media and verified operating status', () => {
   const view = render(edition());
   fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  const officialHosts = new Set(['www.kaiyosf.com', 'www.messhallpresidio.com', 'www.brokendreamsoakland.com', 'kemlu.go.id', 'www.marufukuramen.com']);
-  assert.equal(additionalOctoberOpenings.length, 5);
-  for (const shop of additionalOctoberOpenings) {
+  const sourceHosts = new Set(['www.kaiyosf.com', 'www.messhallpresidio.com', 'www.brokendreamsoakland.com', 'kemlu.go.id', 'www.marufukuramen.com', 'sfist.com', 'richmondside.org', 'www.sfchronicle.com', 'www.bizjournals.com', 'panamahotel.com', 'downtownsanrafael.org']);
+  for (const shop of [...additionalOctoberOpenings, ...lateSeptemberOpenings]) {
     assert.ok(shop.imageKey, `${shop.id} has an editorially selected picture`);
-    assert.equal(shop.verifiedAt, '2026-09-15');
-    assert.ok(officialHosts.has(new URL(shop.sourceUrl).hostname), shop.id);
+    assert.equal(shop.verifiedAt, lateSeptemberOpenings.includes(shop) || shop.id === 'marufuku-burlingame-announced' ? '2026-09-27' : '2026-09-15');
+    assert.ok(sourceHosts.has(new URL(shop.sourceUrl).hostname), shop.id);
     const article = view.getByRole('article', { name: shop.name, exact: true });
     const card = within(article);
     const image = GUIDE_IMAGES[shop.imageKey];
@@ -222,7 +234,10 @@ test('new opening cards retain official evidence, attributable media and verifie
   assert.match(brokenDreams.editorTip, /周末暂休/);
   const marufuku = additionalOctoberOpenings.find(shop => shop.id === 'marufuku-burlingame-announced')!;
   assert.equal(marufuku.status, 'announced');
-  assert.match(marufuku.dateLabel, /日期尚未公布/);
+  assert.match(marufuku.dateLabel, /10\/11 11:00.*庆典.*预告/);
+  assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
+  assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/');
+  assert.equal(marufuku.officialUrl, 'https://www.marufukuramen.com/burlingame');
   assert.match(marufuku.address, /待官方公布/);
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
 });

@@ -32,7 +32,7 @@ export const PLANNER_PLACES: PlannerPlace[] = ATTRACTIONS.map(place => ({
   id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,
   guideSlug: place.slug, cost: place.cost,
   location: placeLocations[place.id],
-  officialUrl: guides.find(guide => guide.slug === place.slug)?.sources[0]?.url || '',
-  planning: { admissionUsd: place.cost === 'free' ? 0 : null, setting: ['golden-gate', 'chinatown', 'palace', 'presidio', 'redwood', 'half-moon-bay', 'baylands', 'hakone', 'muir-woods', 'sausalito'].includes(place.id) ? 'outdoor' : 'mixed' },
+  officialUrl: place.officialUrl || guides.find(guide => guide.slug === place.slug)?.sources[0]?.url || '',
+  planning: { admissionUsd: place.cost === 'free' ? 0 : null, setting: ['golden-gate', 'chinatown', 'palace', 'presidio', 'redwood', 'half-moon-bay', 'baylands', 'hakone', 'muir-woods', 'sausalito', 'lands-end', 'mission-dolores', 'coyote-hills', 'angel-island'].includes(place.id) ? 'outdoor' : 'mixed' },
 }));
 export const PLANNER_CATALOG = { version: 1, checkedAt: MONTHLY_EDITION.checkedAt, events: PLANNER_EVENTS, places: PLANNER_PLACES, guides: guides.map(({ slug, title }) => ({ slug, title })) };

@@ -10,6 +10,8 @@ import targetFreebies from './target-freebie-media.json';
 import readingRouteMedia from './reading-route-media.json';
 import sfAttractionMedia from './attractions-sf-media.json';
 import regionalAttractionMedia from './attractions-regions-media.json';
+import expandedInlandMedia from './attractions-expanded-inland-media.json';
+import expandedCoastMedia from './attractions-expanded-coast-media.json';
 import freshSeptemberMedia from './fresh-september-media.json';
 import septemberUpdateMedia from './september-update-media.json';
 import octoberMedia from './october-media.json';
@@ -18,6 +20,9 @@ import communityOpeningMedia from './community-opening-media.json';
 import communityPlaceMedia from './community-place-media.json';
 import autumnGuideMedia from './autumn-guide-media.json';
 import contentCoverageMedia from './content-coverage-media.json';
+import dailyLifeMedia from './daily-life-media.json';
+import schoolMedia from './schools-media.json';
+import schoolCampusMedia from './schools-campus-media.json';
 import { septemberOpenings } from './september-openings';
 
 export type GuideImage = {
@@ -58,12 +63,33 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
+// Reuse verified regional photographs with their original attribution intact.
+for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, ...dailyLifeMedia]) {
+  GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
+}
+
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-street-parking-first-time-guide': ['coverage-classic-car', 'neighborhood'],
+  'bay-area-fastrak-bridge-express-lanes-guide': ['daily-bridge', 'digital-safety'],
+  'bay-area-bulky-items-ewaste-hhw-guide': ['daily-recycling', 'settling'],
+  'bay-area-alerts-outages-first-day-checklist': ['daily-alerts', 'settling'],
+  'bay-area-free-esl-adult-learning-guide': ['daily-learning', 'coverage-laptop'],
+  'bay-area-311-211-local-help-guide': ['daily-city-hall', 'neighborhood'],
+  'sf-lands-end-sutro-baths-walk-guide': ['expanded-lands-end', 'expanded-sutro'],
+  'sf-mission-dolores-murals-walk-guide': ['expanded-dolores-park', 'culture-visit'],
+  'point-reyes-bear-valley-first-visit-guide': ['expanded-point-reyes', 'weekend'],
+  'angel-island-ferry-first-day-guide': ['expanded-angel-island', 'weekend'],
+  'san-carlos-hiller-aviation-half-day-guide': ['expanded-peninsula-hiller', 'culture-visit'],
+  'san-mateo-coyote-point-bayfront-guide': ['expanded-peninsula-coyote-point', 'weekend'],
+  'mountain-view-computer-history-shoreline-guide': ['expanded-south-bay-computer-history', 'expanded-south-bay-shoreline'],
+  'san-jose-egyptian-museum-rose-garden-guide': ['expanded-south-bay-rosicrucian', 'garden-walk'],
+  'alameda-uss-hornet-shoreline-day-guide': ['expanded-east-bay-hornet', 'expanded-east-bay-alameda-beach'],
+  'fremont-coyote-hills-short-walk-guide': ['expanded-coyote-hills', 'weekend'],
   'bart-october-access-parking-update-2026': ['community-accessible-transit', 'bart'],
   'san-jose-digital-help-sj-access-update-2026': ['everyday', 'coverage-laptop'],
   'sccld-sharks-library-card-september-2026': ['community-library-card', 'library'],
@@ -142,7 +168,18 @@ const bySlug: Record<string, [string, string]> = {
   'california-driver-license-id-preparation-guide': ['driver-id-prep', 'translation-documents'],
 };
 
-const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend' };
+Object.assign(bySlug, {
+  'sf-school-district-enrollment-guide': ['school-sf', 'school-campus-sf-state'],
+  'east-bay-school-district-enrollment-guide': ['school-east', 'region-berkeley-campus'],
+  'peninsula-school-district-enrollment-guide': ['school-peninsula', 'region-stanford-quad'],
+  'south-bay-school-district-enrollment-guide': ['school-south', 'school-east'],
+  'north-bay-school-district-enrollment-guide': ['school-north', 'school-peninsula'],
+});
+for (const { key, ...asset } of schoolCampusMedia) {
+  if (!Object.values(GUIDE_IMAGES).some(image => image.src === asset.src)) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
+}
+
+const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
   if (guide.slug === 'bay-area-new-openings-2026-09') {
@@ -152,5 +189,6 @@ export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afte
   const mapped = bySlug[guide.slug];
   const cover = GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]];
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;
-  return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(2, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };
+  const headingPosition = ['sf-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide'].includes(guide.slug) ? 3 : 2;
+  return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };
 };

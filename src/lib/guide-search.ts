@@ -3,6 +3,8 @@ import { guideBlockText } from './guide-content';
 import { getLocale, simplifySearch, translateEditorial, type Locale } from '../i18n/locale';
 
 const synonyms = [
+  ['学区', 'school districts', 'school district', 'districts', 'district'], ['学校', 'schools', 'school'],
+  ['校区', '校园', 'campuses', 'campus'], ['入学', 'enrollment', 'enrolment'],
   ['租房', '租屋', '租賃', '租赁'], ['二手', '闲置', '閒置'],
   ['驾照', '驾驶证', '駕照'], ['宽带', '寬帶', '网络', '網路'],
   ['打印', '列印'], ['公证', '公證'], ['维修', '維修', '修理'],
