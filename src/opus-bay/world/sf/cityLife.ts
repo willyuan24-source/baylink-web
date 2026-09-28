@@ -129,8 +129,11 @@ export class CityLife {
         const p = runtime.player, g = runtime.guide;
         let n = 0;
         const put = (x: number, z: number, r: number) => { const o = peoplePts[n] ?? (peoplePts[n] = { x: 0, z: 0, r: 0 }); n++; o.x = x; o.z = z; o.r = r; out.push(o); };
-        if (!runtime.vehicle.occupied && surfaceAt(p.x, p.z) === 'road') put(p.x, p.z, 0.45);
-        if (surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
+        // (W5-T2) riding a bus / tram / cable car, the player (and BAYBAY beside them) is on board, not on the roadway:
+        // the toy car ahead of the bus waited at its stop line for the rider on the deck (Lincoln Blvd, 38 s)
+        const aboard = runtime.move.mode === 'transit' || game.get().move.mode === 'transit';
+        if (!runtime.vehicle.occupied && !aboard && surfaceAt(p.x, p.z) === 'road') put(p.x, p.z, 0.45);
+        if (!(aboard && Math.hypot(g.x - p.x, g.z - p.z) < 6) && surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
         if (this.crowd) for (const w of this.crowd.sim.walkers) if (w.on && (w.onRoad || w.hopT >= 0)) put(w.x, w.z, CROWD.r);
       },
       transitStreet: (x, z, dx, dz) => onTransitStreet(x, z, dx, dz),

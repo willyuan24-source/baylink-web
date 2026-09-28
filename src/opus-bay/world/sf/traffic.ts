@@ -21,6 +21,11 @@ import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
  *   walker is crossing there, a transit vehicle or the player is in the box or will be within 2 s, or its exit lane has
  *   no room. The turn is a smooth curve from its lane to the next; straight on is likelier than a turn; a dead end is a
  *   U-turn.
+ * - **Never in a bus's way** (W5-T2, plan MF2: the loop bus stood 38 s behind a toy car at a stop line on Mason St and on
+ *   Lincoln Blvd, each waiting for the other): a car at its stop line never waits for a road vehicle queued behind it in
+ *   its own lane (that one waits for the car), never turns into a lane a transit vehicle's body stands in, drives at the
+ *   bus's pace with one close behind it (TRAFFIC.hurry), and a car that still holds a transit vehicle up behind it for
+ *   TRAFFIC.giveWay s — or finds itself inside one's body — shrinks away (a toy pop, recycled) — even in view.
  * - **Around the player only.** Cars live within 220 u of the focus (TRAFFIC.radius); a car left behind, lost with its
  *   ground, or stuck for 14 s out of view (40 s in view) is recycled to a spot out of view or far away, and fades in.
  * - **Drawn** as two InstancedMeshes on TOY_INST_TINT (the paint is the instance colour): the near car (≈ 300 triangles,
@@ -54,6 +59,10 @@ export const TRAFFIC = {
   stuck: 14,
   /** night keeps this share */
   night: 0.7,
+  /** (W5-T2) a stopped car holding a transit vehicle up right behind it for this long (s) shrinks away */
+  giveWay: 5,
+  /** (W5-T2) with a transit vehicle close behind (≤ 12 u), a car drives at up to this speed (the bus's pace, u/s) */
+  hurry: 11.5,
 } as const;
 
 const TAU = Math.PI * 2;
@@ -92,6 +101,11 @@ export interface Car {
   /** for the pass-by sound: last distance to the listener and whether it was closing */
   lastD: number;
   closing: boolean;
+  /** (W5-T2) seconds this car has stood with a transit vehicle queued right behind it; leaving: shrinking away */
+  holdUp: number;
+  leaving: boolean;
+  /** (W5-T2) a transit vehicle is close behind it in its lane (last frame): it drives at the bus's pace */
+  hurry: boolean;
 }
 
 export interface TrafficEnv {
@@ -112,6 +126,7 @@ export interface CarPass { x: number; z: number; heading: number; v: number; d: 
 const newCar = (id: number): Car => ({
   id, on: false, mode: 'lane', e: -1, s: 0, v: 0, vmax: 7, color: 0, next: -1, node: -1,
   p0x: 0, p0z: 0, cx: 0, cz: 0, p1x: 0, p1z: 0, tl: 0, tt: 0, x: 0, y: 0, z: 0, heading: 0, pitch: 0, still: 0, grow: 1, lastD: Infinity, closing: false,
+  holdUp: 0, leaving: false, hurry: false,
 });
 
 const _p = { x: 0, z: 0 };
@@ -125,7 +140,7 @@ export class TrafficSim {
   radius: number = TRAFFIC.radius;
   /** cars that passed the listener since the host last drained them */
   readonly passes: CarPass[] = [];
-  readonly stats = { spawned: 0, recycled: 0, stuck: 0, turns: 0, waits: 0, overlaps: 0 };
+  readonly stats = { spawned: 0, recycled: 0, stuck: 0, turns: 0, waits: 0, overlaps: 0, gaveWay: 0 };
   private rng: () => number;
   private held = new Map<number, number>();
   private boxes = new Map<number, number>();
@@ -219,7 +234,9 @@ export class TrafficSim {
       const seen = this.env.visible(c.x, c.z);
       const stuck = c.still > (seen ? 40 : TRAFFIC.stuck);
       const extra = on >= want && !seen;
-      if (far || lost || stuck || extra) { if (stuck) this.stats.stuck++; this.off(c); this.stats.recycled++; continue; }
+      // (W5-T2) shrunk away after holding a bus up
+      const gone = c.leaving && c.grow <= 0;
+      if (far || lost || stuck || extra || gone) { if (stuck) this.stats.stuck++; this.off(c); this.stats.recycled++; continue; }
       on++;
     }
     let budget = this.filling ? 8 : 2;
@@ -234,7 +251,7 @@ export class TrafficSim {
     _people.length = 0;
     this.env.people(_people);
     const vehicles = this.env.vehicles();
-    for (const c of this.cars) if (c.on) this.drive(c, dt, vehicles);
+    for (const c of this.cars) if (c.on) { this.drive(c, dt, vehicles); this.watchHoldUp(c, dt, vehicles); }
     for (const c of this.cars) if (c.on) this.pose(c, dt, f);
   }
 
@@ -267,6 +284,7 @@ export class TrafficSim {
       c.x = _p.x; c.z = _p.z; c.heading = Math.atan2(s.dx, s.dz);
       c.y = net.probe.height(c.x, c.z); c.pitch = 0;
       c.still = 0; c.grow = seen && !anywhere ? 0 : 1; c.lastD = Infinity; c.closing = false;
+      c.holdUp = 0; c.leaving = false; c.hurry = false;
       this.stats.spawned++;
       return true;
     }
@@ -321,6 +339,8 @@ export class TrafficSim {
       const nx = net.ix.x(node), nz = net.ix.z(node), R = net.setback(node) + 1.6;
       for (const p of _people) if (Math.hypot(p.x - nx, p.z - nz) < R + p.r) return false;
       for (const q of vehicles) {
+        // (W5-T2) one queued behind this car in its lane waits for it: waiting for it in turn locked both for good
+        if (queuedBehind(c, q)) continue;
         const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
         // in the box now, or within 2 s
         for (let i = 0; i < LOOK_AHEAD.length; i++) {
@@ -335,6 +355,12 @@ export class TrafficSim {
       if (!o.on || o === c) continue;
       if (o.e === next.e && o.mode === 'lane' && o.s < a0 + TRAFFIC.gap) return false;
       if (o.mode === 'turn' && o.next === next.e) return false;
+    }
+    // (W5-T2) nor a transit vehicle's body over the exit lane's first few units (a car turned into a bus standing at its
+    // stop, right inside it, and the bus waited for the car inside it)
+    for (let k = 0; k < 3; k++) {
+      this.lanePoint(next, a0 + k * 2, _p);
+      for (const q of vehicles) if (q.kind !== 'traffic' && bodyDistance(q, _p.x, _p.z) < q.halfW + HALF_W + 0.4) return false;
     }
     return true;
   }
@@ -370,7 +396,9 @@ export class TrafficSim {
       if (along > 0 && lat < p.r + HALF_W + 0.25) gapObs = Math.min(gapObs, along - HALF_L - p.r);
     }
     const B = TRAFFIC.brake;
-    let target = Math.min(c.vmax, Math.sqrt(2 * B * Math.max(0, gapCar - TRAFFIC.gap)), Math.sqrt(2 * B * Math.max(0, gapObs - TRAFFIC.clear)));
+    // (W5-T2) a bus close behind: keep its pace (a toy car at 5 u/s held the loop bus to half its speed down Marina Blvd)
+    const vmax = c.hurry ? Math.max(c.vmax, TRAFFIC.hurry) : c.vmax;
+    let target = Math.min(vmax, Math.sqrt(2 * B * Math.max(0, gapCar - TRAFFIC.gap)), Math.sqrt(2 * B * Math.max(0, gapObs - TRAFFIC.clear)));
 
     if (c.mode === 'lane') {
       const [, end] = this.span(s);
@@ -409,6 +437,27 @@ export class TrafficSim {
     if (c.v < target) c.v = Math.min(target, c.v + TRAFFIC.accel * dt);
     else c.v = Math.max(target, c.v - TRAFFIC.brake * 1.6 * dt);
     c.still = c.v < 0.15 ? c.still + dt : 0;
+  }
+
+  /**
+   * (W5-T2) A stopped car with a stopped transit vehicle (a bus, a train, a cable car: not another toy car, not the
+   * player's) queued right behind it counts how long it holds that one up; after TRAFFIC.giveWay s it shrinks away.
+   */
+  private watchHoldUp(c: Car, dt: number, vehicles: readonly RoadVehicle[]) {
+    if (c.leaving) return;
+    let held = false, hurry = false, inside = false;
+    for (const q of vehicles) {
+      if (q.kind === 'traffic' || q.kind === 'player') continue;
+      if (Math.abs(q.x - c.x) > 20 || Math.abs(q.z - c.z) > 20) continue;
+      // inside its body (turned into it, or it came over the car): no car ever stays there
+      if (bodyDistance(q, c.x, c.z) < q.halfW + HALF_W * 0.5) { inside = true; break; }
+      if (!queuedBehind(c, q)) continue;
+      if (Math.hypot(q.x - c.x, q.z - c.z) < 12 + q.halfL) hurry = true;
+      if (c.v < 0.15 && Math.abs(q.v) < 0.5) held = true;
+    }
+    c.hurry = hurry;
+    c.holdUp = held ? c.holdUp + dt : 0;
+    if (inside || c.holdUp > TRAFFIC.giveWay) { c.leaving = true; this.stats.gaveWay++; }
   }
 
   private startTurn(c: Car, s: StreetEdge, g: StreetEdge) {
@@ -460,7 +509,8 @@ export class TrafficSim {
     const hf = pr.height(x + fx, z + fz), hb = pr.height(x - fx, z - fz);
     c.y = (hf + hb) / 2;
     c.pitch += (Math.atan2(hf - hb, 1.7) - c.pitch) * (1 - Math.exp(-dt * 10));
-    if (c.grow < 1) c.grow = Math.min(1, c.grow + dt * 1.2);
+    if (c.leaving) c.grow = Math.max(0, c.grow - dt * 2.4);
+    else if (c.grow < 1) c.grow = Math.min(1, c.grow + dt * 1.2);
     // pass-by: the closest approach to the listener, within 10 u, at speed
     const dd = Math.hypot(x - f.x, z - f.z);
     if (c.closing && dd > c.lastD && c.lastD < 10 && c.v > 3) this.passes.push({ x, z, heading: c.heading, v: c.v, d: c.lastD });
@@ -488,13 +538,41 @@ export class TrafficSim {
   /** The cars as road vehicles (for the crowd's hop; pooled records, F4). */
   vehicles(out: RoadVehicle[]) {
     const pool = this.vehiclePool.begin(out);
-    for (const c of this.cars) if (c.on) out.push(setVehicle(pool.next(), c.x, c.z, c.heading, c.v, HALF_L, HALF_W, 'traffic', 'traffic'));
+    // (a car shrinking away out of a bus's way is no longer in anyone's way)
+    for (const c of this.cars) if (c.on && !c.leaving) out.push(setVehicle(pool.next(), c.x, c.z, c.heading, c.v, HALF_L, HALF_W, 'traffic', 'traffic'));
   }
   private readonly vehiclePool = vehiclePool();
 }
 
 /** a car's two obstacle discs: half a unit ahead of and behind its centre */
 const FRONT_BACK = [1, -1] as const;
+
+/** (W5-T2) Distance from (x, z) to road vehicle q's centre segment (its body's long axis, ± halfL − halfW). */
+export function bodyDistance(q: Pick<RoadVehicle, 'x' | 'z' | 'heading' | 'halfL' | 'halfW'>, x: number, z: number): number {
+  const fx = Math.sin(q.heading), fz = Math.cos(q.heading), h = Math.max(0, q.halfL - q.halfW);
+  const t = Math.max(-h, Math.min(h, (x - q.x) * fx + (z - q.z) * fz));
+  return Math.hypot(x - q.x - fx * t, z - q.z - fz * t);
+}
+
+/**
+ * (W5-T2) Is road vehicle `q` queued behind car `c` in its lane — so it waits for the car (the bus's `roadAhead`) and the
+ * car must never wait for it at a junction? Either seen from the car (behind it within its body + 14 u, within a lane
+ * sideways, going the same way ± 60°) or seen from `q` the way the bus looks ahead (the car within 30 u ahead of it,
+ * within 1.7 u of its line, ± 60°: world/sf/lineFleet.ts roadAhead) — on a curve only the second holds (Ocean Beach:
+ * the car at its stop line 43° off the bus's heading waited for the bus 40 s).
+ */
+export function queuedBehind(c: Pick<Car, 'x' | 'z' | 'heading'>, q: Pick<RoadVehicle, 'x' | 'z' | 'heading' | 'halfL' | 'halfW'>): boolean {
+  if (Math.cos(q.heading - c.heading) <= 0.5) return false;
+  const rx = q.x - c.x, rz = q.z - c.z;
+  // seen from the car
+  const fx = Math.sin(c.heading), fz = Math.cos(c.heading);
+  const along = rx * fx + rz * fz;
+  if (along < 0 && along > -(q.halfL + HALF_L + 14) && Math.abs(rx * fz - rz * fx) < q.halfW + 1.2) return true;
+  // seen from q (its lane ahead, as the bus looks)
+  const qx = Math.sin(q.heading), qz = Math.cos(q.heading);
+  const ahead = -(rx * qx + rz * qz);
+  return ahead > 0 && ahead < 30 && Math.abs(rx * qz - rz * qx) < 1.7;
+}
 
 function bezierLength(ax: number, az: number, cx: number, cz: number, bx: number, bz: number): number {
   let L = 0, px = ax, pz = az;

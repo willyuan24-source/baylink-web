@@ -154,7 +154,7 @@ export class LineFleet {
     const bt = busTrack(input.loop);
     this.bus = new BusSystem(bt, {
       groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, boxes: typeof opts.boxes === 'function' ? opts.boxes(bt) : opts.boxes,
-      roadAhead: opts.roadUsers ? b => this.roadAhead(b) : undefined,
+      roadAhead: opts.roadUsers ? (b, who) => this.roadAhead(b, who) : undefined,
     });
     this.rail = new LightRailSystem(input.metro.map(railTrack), { groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, portalReady: opts.portalReady });
     definePlatform(input.loop.id, TOUR_BUS_PLATFORM);
@@ -243,7 +243,7 @@ export class LineFleet {
    * than a lane (1.7 u) to the side of the bus's line, heading the same way (± 60°). The road users are collected once a
    * frame for all buses.
    */
-  private roadAhead(b: Bus): number {
+  private roadAhead(b: Bus, who?: { kind: string }): number {
     if (this.roadT !== this.bus.time) { this.roadT = this.bus.time; this.opts.roadUsers!(this.road); }
     const q = b.pose, fx = Math.sin(q.heading), fz = Math.cos(q.heading);
     let best = Infinity;
@@ -254,7 +254,7 @@ export class LineFleet {
       const along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx);
       if (along <= 0 || side > 1.7) continue;
       if (Math.cos(v.heading - q.heading) < 0.5) continue;
-      best = Math.min(best, along - v.halfL);
+      if (along - v.halfL < best) { best = along - v.halfL; if (who) who.kind = v.kind; }
     }
     return best;
   }

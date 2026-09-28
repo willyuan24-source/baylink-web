@@ -1,4 +1,4 @@
-import { platformStop, releasePlatformStop, rider as platformRider, toWorld } from '../actors/platform';
+import { platformStop, releasePlatformStop, requestPlatformStop, rider as platformRider, toWorld } from '../actors/platform';
 import { audioNow } from '../audio/hooks';
 import { emit } from '../core/events';
 import { input } from '../core/input';
@@ -13,7 +13,7 @@ import { noteRide } from '../data/save';
 import type { FLineStation } from '../data/fline';
 import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
 import { hookFill, hookText, nodeText, npcLine } from './content';
-import { travelEpoch } from './fastTravel';
+import { travelActive, travelEpoch } from './fastTravel';
 import { announce, bubble, completeGoal, defineNode, openPanel, playDialogue, refreshLock, say, teleportPlayer } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import { interactableById, invalidateInteractables, registerInteractables, type Interactable } from './interactables';
@@ -77,6 +77,7 @@ export function rideTo(stopId: string, target: string) {
 
 /** Cancel while waiting at the stop (no teleport). */
 export function cancelRide() {
+  dropVeil();
   releaseStop();
   const r = currentRide();
   if (isLineRide(r)) rideSystemFor(r.line)?.cancel();
@@ -538,6 +539,14 @@ function countRide(r: RideState, station?: string | null) {
 
 /** The ride whose 直接到站 waits under the veil for its destination to stream in (a second tap does not start another). */
 let veiledRide: RideState | null = null;
+/** (W5-T2) that veil's handle: a hop-off or a fly-to during it drops the jump and lifts it */
+let veilHandle: { cancel(): void } | null = null;
+function dropVeil() {
+  const h = veilHandle;
+  veilHandle = null;
+  veiledRide = null;
+  h?.cancel();
+}
 
 /**
  * Leave a city line ride: at the stop (arrived) or anywhere (hop off, "skip to stop"). Steps off beside the car.
@@ -545,7 +554,12 @@ let veiledRide: RideState | null = null;
  * of the city is walkable, then puts the rider there; "到站" is only said once the rider stands at the stop.
  */
 function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightAt: string | null = null) {
-  if (!veiled && veiledRide === r) return;
+  // (W5-T2) under the 直接到站 veil: a second 直接到站 does nothing; a hop-off (提前下车, a trip's fly leg hopping off
+  // first) wins — the veil lifts and the rider gets off where the vehicle is now (the ride went on under the veil)
+  if (!veiled && veiledRide === r) {
+    if (finishing) return;
+    dropVeil();
+  }
   const sys = rideSystemFor(r.line!);
   const st = sys?.rideStatus();
   const car = st && sys ? sys.cars[st.car] : null;
@@ -569,13 +583,17 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightA
   if (skipTo && !veiled && W4G && W4G.skipNeedsVeil(skipTo)) {
     const dest = w4?.station ?? r.to;
     veiledRide = r;
-    W4G.veiledSkip(skipTo, stationOf(r, dest)?.name ?? null, () => {
-      if (veiledRide === r) veiledRide = null;
-      if (currentRide() === r) leaveLineRide(r, true, true, alightAt);
+    veilHandle = W4G.veiledSkip(skipTo, stationOf(r, dest)?.name ?? null, () => {
+      if (veiledRide !== r) return;
+      veiledRide = null; veilHandle = null;
+      if (currentRide() !== r) return;
+      // (W5-T2) a fly-to began under the veil without hopping off first: the flight wins, the ride just ends
+      if (travelActive()) { endLineRideQuietly(r); return; }
+      leaveLineRide(r, true, true, alightAt);
     });
     return;
   }
-  if (veiledRide === r) veiledRide = null;
+  if (veiledRide === r) { veiledRide = null; veilHandle = null; }
   const side = w4 ? w4.side : platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
   // (review) where the rider gets off: the destination, or the station 在这站下车 was tapped at
   const offAt = w4?.station ?? r.to;
@@ -631,6 +649,16 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightA
     else if (r.mode === 'follow') bubble({ zh: '坐到下一站再下车，才算坐过 F 线电车哦', en: 'Ride to the next stop and it counts as a streetcar ride' }, 3200);
   } else if (r.counted && !skip) bubble(hookText('cablecarOff') ?? { zh: '叮叮！下次还坐叮当车', en: 'Ding-ding! Let’s ride again soon' }, 2800);
   else if (r.mode === 'follow') bubble(hookText('cablecarCount') ?? { zh: '从一站坐到下一站，才算坐过叮当车哦', en: 'Ride from one stop to the next and it counts as a cable-car ride' }, 3200);
+  refreshLock();
+}
+
+/** (W5-T2) End a line ride without moving the rider (a flight took them): the system lets the vehicle go, the HUD clears. */
+function endLineRideQuietly(r: RideState) {
+  releaseStop();
+  if (isLineRide(r)) rideSystemFor(r.line)?.cancel();
+  endRide();
+  game.set({ riding: null });
+  flow.set({ ride: null });
   refreshLock();
 }
 
@@ -892,6 +920,10 @@ export function initTransit(): () => void {
       /** wave 4 (lane T): the loop / Metro fleet, E at a pole / kiosk, a ride, 下一站下车, the subway view */
       fleet: () => activeLineFleet(), boardLine, rideLine: (line: string, from: string, to: string) => W4G?.rideLine(line, from, to),
       nextStop: requestNextStop, subway: subwayView, stationRides, nextArrival, stationPoint: (id: string) => W4G?.stationPoint(id) ?? null,
+      /** (W5-T2) the loop buses now (where, how fast, why they stand) and the stalls logged; the ride's ETA */
+      busWatch: () => W4G?.busWatchReport() ?? null, eta: rideEta,
+      /** QA: hold the ridden vehicle where it is (its hop-off brake without the hop-off), or let it go */
+      hold: (on: boolean) => { const l = currentRide()?.line; if (l) { if (on) requestPlatformStop(l, 1); else releasePlatformStop(l); } },
       finish: finishRide, hopOff: hopOffRide, cancel: cancelRide,
       me: () => ({ x: +runtime.player.x.toFixed(1), z: +runtime.player.z.toFixed(1), move: game.get().move, ride: flow.get().ride, label: flow.get().ride ? rideLabel(flow.get().ride!) : null }),
       /** QA: stand at a station (x, z); where its prompt stands (beside the track once the ground there is in) */
@@ -924,9 +956,10 @@ export const lineRides = (): LineRidesModule | null => W4G;
 
 /**
  * Board a sightseeing-loop / Metro line at `station` (E at its pole / kiosk; lane C's trip and tour legs pass `to` for
- * the pre-filled "上车 · 坐到 …" row). Lanes C / P call this; it waits for the lazy module when needed.
+ * the pre-filled "上车 · 坐到 …" row). Lanes C / P call this; it waits for the lazy module when needed. (W5-T3) A Grand
+ * Tour leg (flow.trip.source 'tour') or `auto: true` boards at once, without the driver's question.
  */
-export function boardLine(station: string, o: { to?: string; line?: string } = {}) {
+export function boardLine(station: string, o: { to?: string; line?: string; auto?: boolean } = {}) {
   if (W4G) { W4G.boardLine(station, o); return; }
   void loadLineRides().then(m => m.boardLine(station, o), () => say(...W4_NOT_READY));
 }

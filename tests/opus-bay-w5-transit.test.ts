@@ -18,7 +18,10 @@ const ctx2d = new Proxy({}, {
   set: () => true,
 });
 g.window ??= globalThis;
-g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
+// (the 直接到站 veil is plain DOM: a stub element that takes a style, an attribute and goes away)
+const el = () => ({ width: 0, height: 0, style: {} as Record<string, string>, textContent: '', getContext: () => ctx2d, setAttribute: noop, remove: noop, appendChild: noop });
+g.document ??= { createElement: el, querySelector: () => null, body: el() };
+g.requestAnimationFrame ??= (fn: () => void) => setTimeout(fn, 0);
 
 const CS = await import('../src/opus-bay/world/sf/crowdSpots');
 const { CrowdSim, CrowdLayer, WAVE_TIME } = await import('../src/opus-bay/world/sf/crowd');
@@ -36,7 +39,19 @@ const { runtime } = await import('../src/opus-bay/core/runtime');
 const transit = await import('../src/opus-bay/game/transit');
 const ride = await import('../src/opus-bay/game/ride');
 const slots = await import('../src/opus-bay/ui/rideSlots');
+const { flow } = await import('../src/opus-bay/game/flowStore');
+const { TRAFFIC, TrafficSim, bodyDistance, queuedBehind } = await import('../src/opus-bay/world/sf/traffic');
+const { CityLife, cityProbe } = await import('../src/opus-bay/world/sf/cityLife');
+const { registerRoadVehicles, collectRoadVehicles } = await import('../src/opus-bay/world/sf/streetNet');
+const { BUS, BusSystem, busTrack } = await import('../src/opus-bay/world/busSystem');
+const busWatch = await import('../src/opus-bay/game/busWatch');
+const { startTravel, stepTravel, travelActive } = await import('../src/opus-bay/game/fastTravel');
+const { requestPlatformStop, releasePlatformStop } = await import('../src/opus-bay/actors/platform');
+const { U } = await import('../src/opus-bay/world/materials');
+const { createElement: h } = await import('react');
+const { renderToStaticMarkup } = await import('react-dom/server');
 type TransitLine = import('../src/opus-bay/world/sf/format').TransitLine;
+type RoadVehicle = import('../src/opus-bay/world/sf/streetNet').RoadVehicle;
 type StreetProbe = import('../src/opus-bay/world/sf/streetNet').StreetProbe;
 type FlowRide = import('../src/opus-bay/game/flowStore').FlowRide;
 
@@ -352,4 +367,336 @@ test('W5-T1 ride banner pads: registered by order, replaced by id, removed; a pa
     unsub();
   } finally { offB(); offC(); }
   assert.equal(slots.ridePads().length, 0);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// W5-T2 · the bus stalls: the toy traffic never waits for the bus behind it, gives way, the caps, the watch
+// ---------------------------------------------------------------------------------------------------------------------
+
+test('W5-T2 queuedBehind / bodyDistance: behind in the lane (from the car, or from the bus looking ahead on a curve), a body\'s long axis', () => {
+  const car = { x: 0, z: 0, heading: 0 };
+  const bus = (x: number, z: number, heading = 0): RoadVehicle => ({ x, z, heading, v: 0, halfL: BUS.length / 2, halfW: BUS.width / 2, kind: 'bus', line: 'sf-loop' });
+  assert.equal(queuedBehind(car, bus(0, -7)), true, 'right behind in the lane');
+  assert.equal(queuedBehind(car, bus(0, 7)), false, 'ahead of the car');
+  assert.equal(queuedBehind(car, bus(0, -7, Math.PI)), false, 'coming the other way');
+  assert.equal(queuedBehind(car, bus(4, -7)), false, 'in another lane');
+  assert.equal(queuedBehind(car, bus(0, -40)), false, 'far back');
+  // a curve: the bus 7.2 u behind, heading 43° off the car, looking at it straight ahead (Ocean Beach, 40 s)
+  const a = 0.76, b = bus(-Math.sin(a) * 7.2, -Math.cos(a) * 7.2, a);
+  assert.equal(queuedBehind(car, b), true, 'the bus looks at the car ahead of it');
+  // bodyDistance: along the body's long axis (a car beside the middle of the bus is inside it)
+  assert.ok(bodyDistance(bus(0, 0), 0.5, 2) < 0.6 && bodyDistance(bus(0, 0), 3, 0) > 2.9);
+});
+
+/** A fresh traffic sim round Union Square with a crafted set of road vehicles and people, stepped until a car waits at a stop line. */
+async function carAtStopLine(net: InstanceType<typeof StreetNet>, vehicles: RoadVehicle[], people: { x: number; z: number; r: number }[]) {
+  const focus = { ...SPOT };
+  const sim = new TrafficSim(net, { focus: () => focus, visible: () => true, vehicles: () => vehicles, people: out => { out.push(...people); } }, { seed: 21 });
+  const internal = sim as unknown as { canEnter(c: unknown, node: number, next: unknown, v: readonly RoadVehicle[]): boolean; span(s: unknown): [number, number] };
+  for (let i = 0; i < 30 * 30; i++) {
+    sim.step(DT);
+    for (const c of sim.cars) {
+      if (!c.on || c.mode !== 'lane' || c.next < 0) continue;
+      const e = net.edge(c.e)!, g = sim.usable(c.next);
+      if (!g || net.degree(e.v) < 3 || internal.span(e)[1] - c.s > 0.3) continue;
+      return { sim, car: c, e, g, internal };
+    }
+  }
+  throw new Error('no car reached a stop line');
+}
+
+test('W5-T2 traffic: a toy car at its stop line never waits for the bus queued behind it; one still holding a bus up 5 s (or inside its body) shrinks away', async () => {
+  await withCity(SPOT, 260, async net => {
+    const vehicles: RoadVehicle[] = [];
+    const people: { x: number; z: number; r: number }[] = [];
+    const { sim, car, e, g, internal } = await carAtStopLine(net, vehicles, people);
+    // a bus closing in behind the car at 6 u/s: where it will be within 2 s reaches the junction box, so the old rule kept
+    // the car at its line while the bus braked for the car (Marina Blvd by Mason St: both stood 38.8 s)
+    const fx = Math.sin(car.heading), fz = Math.cos(car.heading);
+    const nx = net.ix.x(e.v), nz = net.ix.z(e.v);
+    const back = TRAFFIC.length / 2 + 2.2 + BUS.length / 2 + 6;
+    const bus: RoadVehicle = { x: car.x - fx * back, z: car.z - fz * back, heading: car.heading, v: 6, halfL: BUS.length / 2, halfW: BUS.width / 2, kind: 'bus', line: 'sf-loop' };
+    const box = net.setback(e.v) + 1.6 + bus.halfL;
+    assert.ok([0, 0.7, 1.4, 2].some(t => Math.hypot(bus.x + fx * 6 * t - nx, bus.z + fz * 6 * t - nz) < box), 'the bus would be in the box within 2 s');
+    assert.equal(internal.canEnter(car, e.v, g, [bus]), true, 'the car goes: the bus waits for it, not the other way round');
+    // the bus now stands right behind it (its front 2.2 u short of the car's tail)
+    bus.v = 0; bus.x += fx * 6; bus.z += fz * 6;
+    assert.ok(bodyDistance(bus, car.x, car.z) > BUS.width / 2 + TRAFFIC.width, 'not touching the car');
+    // someone in the junction keeps the car at its line; with the bus stopped behind it, after 5 s it shrinks away
+    people.push({ x: nx, z: nz, r: 0.45 });
+    vehicles.push(bus);
+    const id = car.id;
+    let left = -1;
+    for (let t = 0; t < 8; t += DT) {
+      sim.step(DT);
+      const c = sim.cars[id];
+      if (left < 0 && c.leaving) left = t;
+      if (!c.on || c.e !== e.e && !c.leaving) break;
+    }
+    assert.ok(left >= TRAFFIC.giveWay - 0.2 && left <= TRAFFIC.giveWay + 0.5, `gave way after ${left.toFixed(1)} s`);
+    assert.ok(sim.stats.gaveWay >= 1);
+    // a car inside a transit vehicle's body leaves at once
+    people.length = 0; vehicles.length = 0;
+    const other = sim.cars.find(c => c.on && !c.leaving)!;
+    vehicles.push({ x: other.x, z: other.z, heading: other.heading + 1.2, v: 0, halfL: BUS.length / 2, halfW: BUS.width / 2, kind: 'bus', line: 'sf-loop' });
+    sim.step(DT);
+    assert.equal(other.leaving, true, 'inside the bus: gone');
+    // a car leaving is nobody's obstacle any more (the bus behind it moves at once)
+    const out: RoadVehicle[] = [];
+    sim.vehicles(out);
+    assert.ok(!out.some(v => Math.hypot(v.x - other.x, v.z - other.z) < 1e-6));
+  });
+});
+
+test('W5-T2 the rider on the bus deck (and BAYBAY beside them) is not a pedestrian on the roadway for the toy traffic', async () => {
+  await withCity(SPOT, 200, net => {
+    const life = new CityLife({ visible: () => true });
+    try {
+      life.start(net);
+      const env = (life.traffic!.sim as unknown as { env: { people(out: { x: number; z: number; r: number }[]): void } }).env;
+      // a roadway point by Union Square
+      let road: { x: number; z: number } | null = null;
+      for (let k = 0; k < 4000 && !road; k++) { const x = SPOT.x + (k % 60) - 30, z = SPOT.z + Math.floor(k / 60) - 30; if (surfaceAt(x, z) === 'road') road = { x, z }; }
+      assert.ok(road);
+      runtime.player.x = road.x; runtime.player.z = road.z;
+      runtime.guide.x = road.x + 0.8; runtime.guide.z = road.z;
+      const people = (): { x: number; z: number; r: number }[] => { const out: { x: number; z: number; r: number }[] = []; env.people(out); return out; };
+      game.set({ move: { mode: 'foot' } });
+      runtime.move.mode = 'foot';
+      assert.ok(people().some(p => Math.hypot(p.x - road!.x, p.z - road!.z) < 0.01), 'on foot on the roadway: the cars stop for the player');
+      game.set({ move: { mode: 'transit', line: 'sf-loop', spot: 'seat' } });
+      runtime.move.mode = 'transit';
+      assert.equal(people().filter(p => Math.hypot(p.x - road!.x, p.z - road!.z) < 1.5).length, 0, 'aboard: neither the player nor BAYBAY beside them');
+    } finally { life.dispose(); game.set({ move: { mode: 'foot' } }); runtime.move.mode = 'foot'; }
+  });
+});
+
+test('W5-T2 the waiting rider at the Ferry Building: a bus is brought in although the stretch before the stop is in view (relaxed after 12 s) — picked up within 45 s', () => {
+  const pole = T.boardAt(W4, W4.loop.stops.find(s => s.id === 'loop-ferry-building')!);
+  const cam = { x: pole.x, z: pole.z - 12 };
+  // the camera looks north up the approach: everything within 170 u in front of it is in view (world/transitLayer.ts's cone)
+  const visible = (x: number, z: number) => { const dx = x - cam.x, dz = z - cam.z, d = Math.hypot(dx, dz); return d <= 170 && (d < 25 || dz / d > 0.25); };
+  const sys = new BusSystem(busTrack(W4.loop as TransitLine & { speeds?: [number, number, number][] }), { visible, viewer: () => ({ x: pole.x, z: pole.z, onFoot: true }) });
+  // run the buses until none is due at the Ferry Building within 60 s
+  const idx = sys.stopIndex('loop-ferry-building');
+  for (let i = 0; i < 30 * 900 && Math.min(...sys.buses.map(b => sys.eta(b, idx))) < 60; i++) sys.step(DT);
+  assert.ok(Math.min(...sys.buses.map(b => sys.eta(b, idx))) >= 60, 'no bus due soon');
+  sys.request({ line: 'sf-loop', station: 'loop-ferry-building', to: 'loop-pier-39' });
+  let t = 0;
+  for (; t < 90 && sys.rideStatus()?.phase === 'coming'; t += DT) sys.step(DT);
+  assert.equal(sys.rideStatus()?.phase, 'here');
+  assert.ok(t <= 45, `picked up after ${t.toFixed(1)} s`);
+  assert.ok(sys.events.some(e => e.what === 'dispatch'), 'a bus was brought in');
+  const b = sys.buses[sys.rideStatus()!.car];
+  assert.equal(b.station, 'loop-ferry-building');
+});
+
+test('W5-T2 bus watch: every bus says why it stands; a hold of 6 s off its stop is a stall, logged with the reason, closed when it moves', () => {
+  let blocked = true;
+  // a toy car standing on the road 30 u past where bus 0 pulls away (its tail at that arc)
+  let carAt = NaN;
+  const sys = new BusSystem(busTrack(W4.loop as TransitLine & { speeds?: [number, number, number][] }), {
+    roadAhead: (b, who) => {
+      if (!blocked || b.index !== 0 || b.mode !== 'run') return Infinity;
+      if (Number.isNaN(carAt)) carAt = b.s + 30;
+      who.kind = 'traffic';
+      return carAt - b.s;
+    },
+  });
+  const fleet = { bus: sys } as unknown as InstanceType<typeof LineFleet>;
+  busWatch.resetBusWatch();
+  // bus 0 leaves its stop, then a toy car stands 3 u ahead of it for 12 s
+  let poll = 0;
+  for (let t = 0; t < 60 && !(sys.buses[0].mode === 'run' && sys.buses[0].v < 0.3 && sys.buses[0].why === 'road' && t > 12); t += DT) {
+    sys.step(DT);
+    if ((poll += DT) >= 0.25) { poll = 0; busWatch.watchBuses(0.25, fleet); }
+  }
+  for (let t = 0; t < 12; t += DT) { sys.step(DT); if ((poll += DT) >= 0.25) { poll = 0; busWatch.watchBuses(0.25, fleet); } }
+  assert.equal(sys.buses[0].why, 'road');
+  assert.equal(sys.buses[0].whyOf, 'traffic');
+  const stall = busWatch.busStalls().find(s => s.bus === 0);
+  assert.ok(stall && stall.open && stall.why === 'road' && stall.of === 'traffic' && stall.seconds >= 10, JSON.stringify(stall));
+  assert.ok(busWatch.busWatchNow(fleet).find(n => n.bus === 0)!.still >= 10);
+  blocked = false;
+  for (let t = 0; t < 3; t += DT) { sys.step(DT); if ((poll += DT) >= 0.25) { poll = 0; busWatch.watchBuses(0.25, fleet); } }
+  assert.equal(stall.open, false, 'closed once it moves');
+  assert.ok(['run', 'stop', 'bus-ahead'].includes(sys.buses[0].why));
+  // a dwell at a stop is never a stall (the other buses dwelt at theirs meanwhile)
+  assert.ok(!busWatch.busStalls().some(s => s.why === 'dwell' || s.why === 'stop' || s.why === 'board'));
+  busWatch.resetBusWatch();
+});
+
+test('W5-T2 the loop on the real streets with the crowd and the toy traffic: Ferry Building → Golden Gate Bridge → Lands End, no stall over 6 s, each leg within 1.3 × its quote, the ETA never frozen 15 s', async () => {
+  // (on the wave-4 code this ride stood 38.8 s on Marina Blvd by Mason St and 38 s on Lincoln Blvd: a toy car waiting at
+  // its stop line for the bus behind it, and for the rider and BAYBAY on its deck)
+  T.setTransitW4(W4);
+  T.setTransitData(DATA);
+  const legs: [string, string][] = [['loop-ferry-building', 'loop-golden-gate-bridge'], ['loop-golden-gate-bridge', 'loop-lands-end-sutro']];
+  const LMS2 = LMS;
+  const city = createCityTerrain(sf.manifest, { landmarks: LMS2 });
+  city.setFar(await sf.far());
+  const start = T.boardAt(W4, W4.loop.stops.find(s => s.id === legs[0][0])!);
+  await sf.attachAround(city, start.x, start.z, 240, LMS2);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  const net = new StreetNet(await sf.graphIndex(), cityProbe);
+  const visible = (x: number, z: number) => {
+    const c = U.uCam.value, p = runtime.player, dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz);
+    if (d > 170) return false;
+    if (d < 25) return true;
+    const fx = p.x - c.x, fz = p.z - c.z, fl = Math.hypot(fx, fz) || 1;
+    return (dx * fx + dz * fz) / (d * fl) > 0.25;
+  };
+  game.set({ phase: 'playing', worldMode: 'city', settings: { ...game.get().settings, quality: 'mid' } } as never);
+  const fleet = new LineFleet({ loop: W4.loop as TransitLine & { speeds?: [number, number, number][] }, metro: W4.metro, props: W4.props }, {
+    groundY: (x, z) => heightAt(x, z), visible,
+    viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+    roadUsers: out => collectRoadVehicles(out), emitEvents: false,
+  });
+  T.setActiveLineFleet(fleet);
+  const offFleet = registerRoadVehicles(out => fleet.roadVehicles(out, runtime.player));
+  const life = new CityLife({ visible });
+  life.start(net);
+  const lr = await transit.loadLineRides();
+  busWatch.resetBusWatch();
+  let last = { ...start };
+  try {
+    for (const [from, to] of legs) {
+      const at = T.boardAt(W4, W4.loop.stops.find(s => s.id === from)!);
+      runtime.player.x = at.x; runtime.player.z = at.z;
+      await sf.attachAround(city, at.x, at.z, 240, LMS2);
+      const quote = lr.lineRideSeconds('sf-loop', from, to);
+      lr.rideLine('sf-loop', from, to);
+      let boarded = -1, t = 0, lastEta = -1, same = 0, worst = 0, poll = 0;
+      for (let k = 0; k < 30 * 600 && ride.currentRide(); k++, t += DT) {
+        const p = runtime.player, hd = p.heading ?? 0;
+        U.uCam.value.set(p.x - Math.sin(hd) * 12, heightAt(p.x, p.z) + 6, p.z - Math.cos(hd) * 12);
+        runtime.guide.x = p.x + 0.8; runtime.guide.z = p.z + 0.6;
+        runtime.move.mode = game.get().move.mode;
+        fleet.update(DT, { x: U.uCam.value.x, z: U.uCam.value.z }, p);
+        transit.stepTransit(DT);
+        life.update(DT);
+        if ((poll += DT) >= 0.25) { poll = 0; busWatch.watchBuses(0.25, fleet); }
+        if (boarded < 0 && ride.currentRide()?.mode === 'follow') boarded = t;
+        if (k % 30 === 0) { const e = transit.rideEta(); if (e && e.stage === 'riding') { same = Math.abs(e.seconds - lastEta) < 0.25 ? same + 1 : 0; worst = Math.max(worst, same); lastEta = e.seconds; } }
+        if (k % 15 === 0 && Math.hypot(p.x - last.x, p.z - last.z) > 50) { last = { x: p.x, z: p.z }; await sf.attachAround(city, p.x, p.z, 240, LMS2); }
+      }
+      assert.equal(ride.currentRide(), null, `${from} → ${to} arrived`);
+      const rideT = t - boarded;
+      assert.ok(rideT <= 1.3 * quote, `${from} → ${to}: ${rideT.toFixed(0)} s aboard, quote ${quote.toFixed(0)} s`);
+      assert.ok(worst < 15, `${from} → ${to}: the ETA stood ${worst} s at most`);
+    }
+    const stalls = busWatch.busStalls().filter(s => s.rider);
+    assert.equal(stalls.length, 0, `the rider's bus never stood 6 s off a stop: ${JSON.stringify(stalls)}`);
+  } finally {
+    transit.cancelRide(); offFleet(); life.dispose(); T.setActiveLineFleet(null); fleet.dispose(); setCityTerrain(null);
+    game.set({ phase: 'title', worldMode: 'district' } as never); runtime.move.mode = 'foot'; busWatch.resetBusWatch();
+  }
+});
+
+/** A loop ride from the Castro to Civic Center (330 u: 直接到站 goes under the veil), boarded. */
+async function boardedFarRide() {
+  T.setTransitW4(W4);
+  T.setTransitData(DATA);
+  const fleet = makeFleet();
+  const lr = await transit.loadLineRides();
+  game.set({ phase: 'playing', worldMode: 'city' } as never);
+  const at = T.boardAt(W4, W4.loop.stops.find(s => s.id === 'loop-castro')!);
+  runtime.player.x = at.x; runtime.player.z = at.z;
+  lr.rideLine('sf-loop', 'loop-castro', 'loop-civic-center');
+  assert.ok(stepAll(fleet, 40, () => ride.currentRide()?.mode === 'follow'), 'boarded');
+  stepAll(fleet, 12);
+  return fleet;
+}
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+test('W5-T2 直接到站 under the veil: a hop-off wins (off beside the bus, no jump later); a fly-to started under it wins (the ride ends where it is)', async () => {
+  const civic = T.boardAt(W4, W4.loop.stops.find(s => s.id === 'loop-civic-center')!);
+  let fleet = await boardedFarRide();
+  try {
+    transit.finishRide();
+    assert.ok(ride.currentRide(), 'the veil waits for the city to stream in: the ride goes on');
+    const r0 = ride.currentRide()!;
+    stepAll(fleet, 0.1);
+    transit.hopOffRide();
+    assert.equal(ride.currentRide(), null, 'the hop-off is honoured under the veil');
+    const bus = fleet.bus.buses.reduce((a, b) => (Math.hypot(b.pose.x - runtime.player.x, b.pose.z - runtime.player.z) < Math.hypot(a.pose.x - runtime.player.x, a.pose.z - runtime.player.z) ? b : a));
+    assert.ok(Math.hypot(bus.pose.x - runtime.player.x, bus.pose.z - runtime.player.z) < 8, 'off beside the bus');
+    const off = { x: runtime.player.x, z: runtime.player.z };
+    await sleep(550);
+    assert.deepEqual({ x: runtime.player.x, z: runtime.player.z }, off, 'the veil\'s jump never came');
+    assert.ok(Math.hypot(off.x - civic.x, off.z - civic.z) > 50);
+    void r0;
+  } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); }
+  fleet = await boardedFarRide();
+  try {
+    transit.finishRide();
+    assert.ok(ride.currentRide());
+    const at = { x: runtime.player.x, z: runtime.player.z };
+    assert.equal(startTravel({ id: 'test-dest', name: { zh: '测试', en: 'Test' }, x: at.x + 300, z: at.z }), true);
+    await sleep(550);
+    assert.equal(ride.currentRide(), null, 'the flight ended the ride');
+    assert.equal(flow.get().ride, null);
+    assert.ok(Math.hypot(runtime.player.x - civic.x, runtime.player.z - civic.z) > 50, 'never put at the stop mid-flight');
+    for (let t = 0; t < 60 && travelActive(); t += 0.25) stepTravel(0.25);
+    assert.equal(travelActive(), false);
+  } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title', worldMode: 'district' } as never); }
+});
+
+test('W5-T2 the ride banner: after 10 s without the bus moving, 直接到站 is the big button and it says the ride is held up', async () => {
+  const fleet = await boardedFarRide();
+  const { default: RideBanner } = await import('../src/opus-bay/ui/RideBanner');
+  try {
+    const before = renderToStaticMarkup(h(RideBanner));
+    assert.doesNotMatch(before, /is-big/);
+    assert.match(before, /直接到站/);
+    // the rider's hop-off brake holds the bus (anything that stands it still will do)
+    const bus = fleet.bus.riderCarOf('sf-loop')!;
+    requestPlatformStop('sf-loop', 1);
+    stepAll(fleet, 3);
+    assert.ok(bus.v < 0.05);
+    stepAll(fleet, transit.STALL_BIG);
+    assert.ok((transit.rideEta()?.stalled ?? 0) >= transit.STALL_BIG);
+    const held = renderToStaticMarkup(h(RideBanner));
+    assert.match(held, /ob-ride-skip is-big/);
+    assert.match(held, /车停住了/);
+    assert.doesNotMatch(held, /ob-btn ob-btn-primary ob-btn-sm"[^>]*>.*下一站下车/, 'the bell steps back to a soft button');
+    releasePlatformStop('sf-loop');
+    stepAll(fleet, 4);
+    assert.ok((transit.rideEta()?.stalled ?? 0) < 1, 'moving again');
+    assert.doesNotMatch(renderToStaticMarkup(h(RideBanner)), /is-big/);
+  } finally { releasePlatformStop('sf-loop'); transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title', worldMode: 'district' } as never); }
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// W5-T3 · the tour's own bus boards without the driver question
+// ---------------------------------------------------------------------------------------------------------------------
+
+test('W5-T3 a Grand Tour leg boards the loop bus at once (no driver question); a plain trip still gets the pre-filled question', async () => {
+  T.setTransitW4(W4);
+  T.setTransitData(DATA);
+  const fleet = makeFleet();
+  await transit.loadLineRides();
+  const savedTrip = flow.get().trip;
+  try {
+    game.set({ phase: 'playing', worldMode: 'city', dialogue: { nodeId: null } } as never);
+    const at = T.boardAt(W4, W4.loop.stops.find(s => s.id === 'loop-castro')!);
+    runtime.player.x = at.x; runtime.player.z = at.z;
+    flow.set({ trip: { placeId: 'twin-peaks', legs: [], leg: 0, startedAt: 0, option: { mode: 'line', legs: [], seconds: 0 }, source: 'tour' } as never });
+    transit.boardLine('loop-castro', { to: 'loop-twin-peaks', line: 'sf-loop' });
+    assert.equal(game.get().dialogue.nodeId, null, 'no dialogue on a tour leg');
+    assert.equal(flow.get().ride?.stage, 'waiting');
+    assert.equal(flow.get().ride?.to, 'loop-twin-peaks');
+    assert.equal(ride.currentRide()?.line, 'sf-loop');
+    assert.ok(stepAll(fleet, 40, () => ride.currentRide()?.mode === 'follow'), 'and rides the bus');
+    transit.cancelRide();
+    // a trip the player planned on the map: the one pre-filled row, as before (an explicit auto: true skips it too)
+    flow.set({ trip: { placeId: 'twin-peaks', legs: [], leg: 0, startedAt: 0, option: { mode: 'line', legs: [], seconds: 0 }, source: 'map' } as never });
+    transit.boardLine('loop-castro', { to: 'loop-twin-peaks', line: 'sf-loop' });
+    assert.equal(game.get().dialogue.nodeId, 'flow.bus');
+    assert.equal(ride.currentRide(), null);
+    game.set({ dialogue: { nodeId: null } } as never);
+    transit.boardLine('loop-castro', { to: 'loop-twin-peaks', line: 'sf-loop', auto: true });
+    assert.equal(game.get().dialogue.nodeId, null);
+    assert.equal(flow.get().ride?.stage, 'waiting');
+  } finally { transit.cancelRide(); flow.set({ trip: savedTrip }); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title', worldMode: 'district', dialogue: { nodeId: null } } as never); }
 });

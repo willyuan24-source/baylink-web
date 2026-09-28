@@ -20,7 +20,10 @@ import type { CarPose, RideStatus } from './transitLine';
  *   hero U-turn); the bus enters one only while `blocked()` is false, else it waits before it. `occupies(box)` lets
  *   the other system yield to a bus already inside (integration: CableSystem.free()).
  * - Waiting-rider dispatch: if no bus gets to the rider's stop within 20 s, an unseen bus (out of the camera's view,
- *   ≥ 22 u from the player, a clear gap on the road) is moved in upstream so it arrives within 15 s.
+ *   ≥ 22 u from the player, a clear gap on the road) is moved in upstream so it arrives within 15 s. (W5-T2) Where the
+ *   stretch just before the stop is in view (the Ferry Building: the loop U-turns past the pole, the rider waited 155 s)
+ *   placements farther back are tried (up to ≈ 31 s of running); after `waitRelax` s of waiting, one in view but ≥ 100 u
+ *   from the player (the far look, ≥ 110 u from a camera behind them) is allowed: the rider's wait is capped (≈ 45 s).
  * - A rider's hop-off request (actors/platform.ts `platformStop(line)`) brakes the bus to 0 within the asked time and
  *   pulls it 0.6 u to the kerb; it holds until released.
  * - Poses: the body stands on its two axles (height from `groundY`, else the published path), pitch = grade, a little
@@ -45,6 +48,13 @@ export const BUS = {
   /** a stopped rider waits: pick-up within this many seconds (an unseen bus is brought in when the wait is longer) */
   dispatchWithin: 15,
   dispatchIfOver: 20,
+  /** (W5-T2) a brought-in bus farther back may take this long to arrive (s) */
+  dispatchMax: 33,
+  /** (W5-T2) after this long waiting (s), a bus may be brought in within view beyond the far LOD (relaxDistance u) */
+  waitRelax: 12,
+  relaxDistance: 100,
+  /** (W5-T2) a bus coming for the rider that has not moved for this long (s) counts its stand in its ETA (a dispatch then) */
+  stallCounts: 6,
   /** approach event distance before a stop (u) */
   approach: 60,
   /** pulled to the kerb for a hop-off (u, to the right) */
@@ -57,6 +67,15 @@ export const BUS = {
 } as const;
 
 export type BusMode = 'run' | 'dwell' | 'hold';
+
+/**
+ * (W5-T2, plan MF2 "instrument the loop buses") What holds a bus back right now: 'run' nothing (it runs at its speed
+ * profile), 'stop' braking into the stop it heads for, 'dwell' doors open at a stop, 'board' waiting at the pickup for its
+ * rider, 'stop-ahead' ready to leave but a bus dwells right in front, 'bus-ahead' keeping the gap to the bus ahead, 'box'
+ * waiting at an interlock box another line is in, 'road' behind a toy car / the player's vehicle in its lane, 'person'
+ * short of someone on foot in its path, 'hop-off' the rider's hop-off brake. game/busWatch.ts logs the long ones.
+ */
+export type BusWhy = 'run' | 'stop' | 'dwell' | 'board' | 'stop-ahead' | 'bus-ahead' | 'box' | 'road' | 'person' | 'hop-off';
 
 export interface Bus {
   index: number;
@@ -87,6 +106,9 @@ export interface Bus {
   hornAt: number;
   /** seconds the bus has stood short of someone on foot in its path (game/transit.ts asks them to step aside) */
   held: number;
+  /** (W5-T2) what holds it back now, and who: a box id, the road user's kind, `bus#<i>`, 'viewer' ('' = nothing) */
+  why: BusWhy;
+  whyOf: string;
   pose: CarPose;
 }
 
@@ -116,8 +138,9 @@ export interface BusOptions {
   /**
    * Integration (world/sf/lineFleet.ts): the distance (u) from a bus's centre to the nearest other road user in its lane
    * ahead (the toy traffic, the player's car / bike), ∞ / undefined if none. The bus keeps a car's gap behind it.
+   * (W5-T2) `who.kind` is set to that road user's kind (the bus watch's reason).
    */
-  roadAhead?: (b: Bus) => number;
+  roadAhead?: (b: Bus, who: { kind: string }) => number;
 }
 
 export interface BusRequest { line: string; station: string; to: string }
@@ -134,8 +157,8 @@ const tmpA: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpB: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpC: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
-/** placements tried for a brought-in bus: seconds of running before the pickup (preferred first) */
-const DISPATCH_RUN = [11, 9, 13, 7, 5];
+/** placements tried for a brought-in bus: seconds of running before the pickup (preferred first; W5-T2: then farther back) */
+const DISPATCH_RUN = [11, 9, 13, 7, 5, 16, 19, 22, 25, 28, 31];
 
 /** The bus track for a transit.json loop line (the profile of plan §3.2). */
 export function busTrack(line: TransitLine & { speeds?: [number, number, number][] }): LineTrack {
@@ -152,6 +175,8 @@ export class BusSystem implements LineRideSystem {
   private riderBus = -1;
   private status: BusRideStatus | null = null;
   private retry = 0;
+  /** (W5-T2) seconds the rider has waited for the current request */
+  private waited = 0;
   /** simulated seconds */
   time = 0;
 
@@ -170,7 +195,7 @@ export class BusSystem implements LineRideSystem {
       const bus: Bus = {
         index: k, s: st.at, v: 0, mode: 'dwell', timer: 1 + k * 1.7, station: st.id, next, rider: false, pickup: null, dropoff: null,
         lapFrom: null, odometer: 0, arrivals: 0, braking: false, brakeRate: 0, lateral: 0, approached: st.id, waitBox: -1, still: 0, hornAt: -99, held: 0,
-        pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
+        why: 'dwell', whyOf: '', pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
       };
       this.buses.push(bus);
       this.updatePose(bus);
@@ -237,6 +262,7 @@ export class BusSystem implements LineRideSystem {
     }
     this.req = req;
     this.retry = 1;
+    this.waited = 0;
     this.riderBus = best.index;
     this.assign(best, req);
     this.status = { line: this.track.id, car: best.index, phase: 'coming', eta: bestEta, station: null, arrivals: 0, lastStation: null, odometer: 0, turning: false, braking: false, nextStop: req.station, nextEta: bestEta };
@@ -337,12 +363,16 @@ export class BusSystem implements LineRideSystem {
    * for a ≈ 11 s run (never behind the previous stop), out of sight, away from the player, with a clear road ahead and
    * behind. The bus nearest to being useless (out of sight, not the rider's) is the one moved.
    */
-  private bringIn(idx: number): Bus | null {
+  private bringIn(idx: number, relaxed = false): Bus | null {
     const tr = this.track, stop = tr.stops[idx];
     const prev = tr.stops[(idx - 1 + tr.stops.length) % tr.stops.length];
     const room = arcAhead(tr, prev.at, stop.at);
     const vis = this.opts.visible ?? (() => false);
     const viewer = this.opts.viewer?.();
+    // (W5-T2) relaxed (the rider has waited WAIT_RELAX s): a spot in view is fine once it lies beyond the far LOD
+    const hidden = (x: number, z: number) => !vis(x, z) || (relaxed && !!viewer && Math.hypot(x - viewer.x, z - viewer.z) >= BUS.relaxDistance);
+    const cur = this.buses[this.riderBus];
+    const now = cur ? this.eta(cur, idx) + (cur.mode === 'run' && cur.still > BUS.stallCounts ? cur.still : 0) : Infinity;
     for (const secs of DISPATCH_RUN) {
       // walk back from the stop until the unhindered run takes `secs`
       let back = 20;
@@ -351,17 +381,21 @@ export class BusSystem implements LineRideSystem {
       if (back < 12) continue;
       const place = normArc(tr, stop.at - back);
       const at = trackPoint(tr, place, tmpA);
-      if (vis(at.x, at.z)) continue;
+      if (!hidden(at.x, at.z)) continue;
       if (viewer && Math.hypot(at.x - viewer.x, at.z - viewer.z) < 22) continue;
-      const cands = this.buses.filter(b => !b.rider && !vis(b.pose.x, b.pose.z) && !(viewer && Math.hypot(b.pose.x - viewer.x, b.pose.z - viewer.z) < 60));
+      const cands = this.buses.filter(b => !b.rider && hidden(b.pose.x, b.pose.z) && !(viewer && Math.hypot(b.pose.x - viewer.x, b.pose.z - viewer.z) < 60));
       for (const b of cands) {
         const clear = this.buses.every(o => o === b || Math.min(arcAhead(tr, place, o.s), arcAhead(tr, o.s, place)) > BUS.length + BUS.gap + 4);
         if (!clear) continue;
-        b.s = place; b.v = limitAt(tr, place); b.mode = 'run'; b.timer = 0; b.station = null; b.next = idx; b.lateral = 0; b.still = 0;
+        // (W5-T2) never a placement that arrives later than the bus already coming (the farther spots are a fallback)
+        const v0 = limitAt(tr, place), was = { s: b.s, v: b.v, mode: b.mode, timer: b.timer, station: b.station, next: b.next, lateral: b.lateral, still: b.still, approached: b.approached, waitBox: b.waitBox };
+        b.s = place; b.v = v0; b.mode = 'run'; b.timer = 0; b.station = null; b.next = idx; b.lateral = 0; b.still = 0;
         b.approached = null; b.waitBox = -1;
+        const e = this.eta(b, idx);
+        if (e > BUS.dispatchMax || e >= now - 3) { Object.assign(b, was); continue; }
         this.updatePose(b);
         this.events.push({ what: 'dispatch', bus: b.index, line: tr.id, station: stop.id });
-        if (this.eta(b, idx) <= BUS.dispatchWithin + 0.5) return b;
+        return b;
       }
     }
     return null;
@@ -372,14 +406,17 @@ export class BusSystem implements LineRideSystem {
     const req = this.req, st = this.status, cur = this.buses[this.riderBus];
     if (!req || !st || !cur) return;
     const idx = this.stopIndex(req.station);
-    let best = cur, bestEta = this.eta(cur, idx);
+    // (W5-T2) a bus coming for the rider that stands still (held up on the way) is not "19 s away" for good: its stand
+    // counts, so another bus takes over or one is brought in (Lands End: quoted 19 s, the rider waited > 50 s)
+    const stood = cur.mode === 'run' && cur.still > BUS.stallCounts ? cur.still : 0;
+    let best = cur, bestEta = this.eta(cur, idx) + stood;
     for (const b of this.buses) {
       if (b === cur || b.rider) continue;
       const e = this.eta(b, idx);
       if (e < bestEta - 3) { best = b; bestEta = e; }
     }
     if (bestEta > BUS.dispatchIfOver) {
-      const moved = this.bringIn(idx);
+      const moved = this.bringIn(idx, this.waited >= BUS.waitRelax);
       if (moved) { best = moved; bestEta = this.eta(moved, idx); }
     }
     st.eta = bestEta;
@@ -405,6 +442,10 @@ export class BusSystem implements LineRideSystem {
 
   /** set by obstacle(): the person on foot is what the bus stops short of */
   private viewerBinds = false;
+  /** set by obstacle(): what the nearest obstacle is (W5-T2) */
+  private obWhy: BusWhy = 'run';
+  private obOf = '';
+  private readonly roadWho = { kind: '' };
 
   /**
    * Distance from the bus centre to the nearest obstacle ahead (the bus ahead's tail, a blocked box, a person), ∞ if none.
@@ -413,10 +454,11 @@ export class BusSystem implements LineRideSystem {
   private obstacle(b: Bus, toStop = Infinity): number {
     const tr = this.track;
     let d = Infinity;
+    this.obWhy = 'run'; this.obOf = '';
     for (const o of this.buses) {
       if (o === b) continue;
       const a = arcAhead(tr, b.s, o.s);
-      if (a > 0.01 && a < 200) d = Math.min(d, a - BUS.length - BUS.gap);
+      if (a > 0.01 && a < 200 && a - BUS.length - BUS.gap < d) { d = a - BUS.length - BUS.gap; this.obWhy = 'bus-ahead'; this.obOf = `bus#${o.index}`; }
     }
     b.waitBox = -1;
     for (let i = 0; i < this.boxes.length; i++) {
@@ -424,16 +466,17 @@ export class BusSystem implements LineRideSystem {
       if (this.overlapsBox(b, box)) continue;
       const a = arcAhead(tr, b.s + HALF, box.a0);
       if (a > 60) continue;
-      if (box.blocked()) { b.waitBox = i; d = Math.min(d, a - 1); }
+      if (box.blocked()) { b.waitBox = i; if (a - 1 < d) { d = a - 1; this.obWhy = 'box'; this.obOf = box.id; } }
     }
-    const road = this.opts.roadAhead?.(b);
-    if (road !== undefined && road < Infinity) d = Math.min(d, road - HALF - 2.2);
+    this.roadWho.kind = '';
+    const road = this.opts.roadAhead?.(b, this.roadWho);
+    if (road !== undefined && road < Infinity && road - HALF - 2.2 < d) { d = road - HALF - 2.2; this.obWhy = 'road'; this.obOf = this.roadWho.kind; }
     const viewer = this.opts.viewer?.();
     this.viewerBinds = false;
     if (viewer?.onFoot) {
       const ahead = this.onRoadAhead(b, viewer.x, viewer.z);
       if (ahead !== null && ahead - toStop < PERSON_CLEAR) {
-        if (ahead - 3 <= d) this.viewerBinds = true;
+        if (ahead - 3 <= d) { this.viewerBinds = true; this.obWhy = 'person'; this.obOf = 'viewer'; }
         d = Math.min(d, ahead - 3);
         if (ahead < 12 && b.v > 1 && this.time - b.hornAt > 4) { b.hornAt = this.time; this.events.push({ what: 'horn', bus: b.index, line: tr.id }); }
       }
@@ -467,13 +510,22 @@ export class BusSystem implements LineRideSystem {
     if (b.mode === 'dwell') {
       b.v = 0;
       b.timer -= dt;
+      if (b.why !== 'board' && b.why !== 'stop-ahead' && b.why !== 'hop-off') { b.why = 'dwell'; b.whyOf = b.station ?? ''; }
       if (b.timer <= 0) this.leave(b);
     } else {
       const stop = tr.stops[b.next];
       const toStop = Math.max(0, arcAhead(tr, b.s, stop.at));
       const obst = this.obstacle(b, toStop);
-      let limit = Math.min(limitAt(tr, b.s), Math.sqrt(2 * BUS.decel * toStop));
-      if (obst < Infinity) limit = Math.min(limit, Math.sqrt(2 * BUS.decel * Math.max(0, obst)));
+      const profile = limitAt(tr, b.s), braking = Math.sqrt(2 * BUS.decel * toStop);
+      let limit = Math.min(profile, braking);
+      // (W5-T2) the reason: the nearest obstacle when it is what limits the speed, else the stop ahead, else nothing
+      b.why = braking < profile ? 'stop' : 'run'; b.whyOf = braking < profile ? stop.id : '';
+      if (obst < Infinity) {
+        const ob = Math.sqrt(2 * BUS.decel * Math.max(0, obst));
+        if (ob <= limit + 1e-6) { b.why = this.obWhy; b.whyOf = this.obOf; }
+        limit = Math.min(limit, ob);
+      }
+      if (stopReq) b.why = 'hop-off';
       if (stopReq) {
         b.v = Math.max(0, b.v - b.brakeRate * dt);
         b.mode = b.v <= 0.02 ? 'hold' : 'run';
@@ -521,11 +573,13 @@ export class BusSystem implements LineRideSystem {
 
   private leave(b: Bus) {
     // a rider still boarding / the bus waiting for its rider: hold
-    if (this.status && this.riderBus === b.index && this.status.phase === 'here') { b.timer = 0.3; return; }
-    if (b.rider && platformStop(this.track.id)) { b.timer = 0.3; return; }
+    if (this.status && this.riderBus === b.index && this.status.phase === 'here') { b.timer = 0.3; b.why = 'board'; b.whyOf = b.station ?? ''; return; }
+    if (b.rider && platformStop(this.track.id)) { b.timer = 0.3; b.why = 'hop-off'; b.whyOf = ''; return; }
     // the stop ahead must be clear before pulling out (a bus dwelling right in front)
     const tr = this.track;
-    if (this.buses.some(o => o !== b && arcAhead(tr, b.s, o.s) > 0.01 && arcAhead(tr, b.s, o.s) < BUS.length + BUS.gap)) { b.timer = 0.5; return; }
+    const front = this.buses.find(o => o !== b && arcAhead(tr, b.s, o.s) > 0.01 && arcAhead(tr, b.s, o.s) < BUS.length + BUS.gap);
+    if (front) { b.timer = 0.5; b.why = 'stop-ahead'; b.whyOf = `bus#${front.index}`; return; }
+    b.why = 'run'; b.whyOf = '';
     b.mode = 'run';
     b.next = (tr.stops.findIndex(s => s.id === b.station) + 1) % tr.stops.length;
     if (b.station === null) b.next = this.nextStopAhead(b.s);
@@ -562,6 +616,7 @@ export class BusSystem implements LineRideSystem {
 
   private updateStatus(dt: number) {
     const st = this.status;
+    if (st?.phase === 'coming') this.waited += dt;
     if (st?.phase === 'coming' && (this.retry -= dt) <= 0) { this.retry = 1; this.reassign(); }
     const b = this.buses[this.riderBus];
     if (!st || !b) return;

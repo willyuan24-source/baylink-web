@@ -21,6 +21,7 @@ import { flow, type FlowRide } from './flowStore';
 import type { Interactable } from './interactables';
 import { type LineChoice, type LineLite, lineChoices, lineRideLabel } from './lineChoices';
 import { LINE_TTL } from './linePacer';
+import { busStalls, busWatchNow, watchBuses } from './busWatch';
 import { type RideState, beginLineRide, currentRide, isLineRide, lineRideEta } from './ride';
 import { registerLineEstimator, registerTripLines, transitTripLine } from './tripProviders';
 
@@ -202,12 +203,25 @@ export function nextArrival(station: string, line?: string, dir?: 1 | -1): numbe
 // Boarding and riding
 // ---------------------------------------------------------------------------
 
-/** E at a loop pole / Metro kiosk: the driver asks where to (or confirms a trip / tour leg's pre-filled ride). */
-export function boardLine(station: string, o: { to?: string; line?: string } = {}) {
+/**
+ * E at a loop pole / Metro kiosk: the driver asks where to (or confirms a trip / tour leg's pre-filled ride).
+ * (W5-T3, plan MF2 "the tour's own bus boards without the driver question") A pre-filled leg of the Grand Tour (or any
+ * caller passing `auto: true`) boards at once: BAYBAY says where to, and the rider waits for the bus / train with the
+ * ride banner's 不坐了 — no dialogue (the scout's tour: 自动跟上 → the driver asked 上车 · 坐到 … again at every stop).
+ */
+export function boardLine(station: string, o: { to?: string; line?: string; auto?: boolean } = {}) {
   const ls = stationLines(station);
   if (!ls.length || !activeLineFleet()) { say(...NOT_RUNNING); return; }
   const bus = ls.every(l => l.kind === 'bus');
   const name = w4StationName(station) ?? ls[0].stops.find(s => s.id === station)!.name;
+  const auto = !!o.to && (o.auto ?? flow.get().trip?.source === 'tour');
+  const pre = auto ? stationChoices(station, o).find(c => c.kind === 'ride' && c.to === o.to && c.line) : undefined;
+  if (pre?.line && pre.to) {
+    const to = w4StationShort(pre.to) ?? w4StationName(pre.to);
+    if (to) bubble({ zh: `上车！坐到${to.zh}`, en: `All aboard — we ride to ${to.en}!` }, 2600);
+    rideLine(pre.line, station, pre.to);
+    return;
+  }
   const choices: NonNullable<DialogueNode['choices']> = stationChoices(station, o).map((c, i) => {
     const hotkey = String(i + 1);
     if (c.kind === 'cancel') return { hotkey, label: c.label, action: { type: 'end' as const } };
@@ -359,9 +373,11 @@ export const SKIP_VEIL_OVER = 250;
  * fades in over the view (0.35 s) while the streamer brings the destination in (whenReady 150 u, at most 8 s; the ride
  * goes on under the veil), then `jump` ends the ride and puts the rider there on walkable ground, and the veil fades out
  * (0.5 s). Plain DOM (no React root): one element over the canvas, under the HUD's toasts.
+ * (W5-T2) Returns a handle: `cancel()` drops the jump and lifts the veil at once — a hop-off or a fly-to during the veil
+ * wins (game/transit.ts leaveLineRide / the jump's travel check).
  */
-export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void) {
-  if (typeof document === 'undefined') { jump(); return; }
+export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void): { cancel(): void } {
+  if (typeof document === 'undefined') { jump(); return { cancel() {} }; }
   const host = document.querySelector('.ob-overlay') ?? document.body;
   const veil = document.createElement('div');
   veil.className = 'ob-line-veil';
@@ -378,14 +394,20 @@ export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null,
   const streamer = cityStreamerLazy();
   const ready = streamer ? streamer.whenReady(to, 150) : Promise.resolve();
   const shown = new Promise(r => window.setTimeout(r, 380));
+  let done = false;
+  const lift = () => {
+    veil.style.pointerEvents = 'none';
+    veil.style.transition = 'opacity .5s ease';
+    requestAnimationFrame(() => { veil.style.opacity = '0'; });
+    window.setTimeout(() => veil.remove(), 650);
+  };
   void Promise.all([shown, Promise.race([ready, new Promise(r => window.setTimeout(r, 8000))])]).then(() => {
+    if (done) return;
+    done = true;
     // (review) the veil takes the pointer: it always lifts, even if the jump throws (a torn-down world)
-    try { jump(); } finally {
-      veil.style.transition = 'opacity .5s ease';
-      requestAnimationFrame(() => { veil.style.opacity = '0'; });
-      window.setTimeout(() => veil.remove(), 650);
-    }
+    try { jump(); } finally { lift(); }
   }).catch((e: unknown) => { console.error('[opus-bay] 直接到站', e); });
+  return { cancel() { if (done) return; done = true; lift(); } };
 }
 
 /**
@@ -565,6 +587,8 @@ const STEP_ASIDE_EVERY = 40;
 export function pollCity(dt: number): boolean {
   cityClock += dt;
   const fleet = activeLineFleet();
+  // (W5-T2) the sightseeing buses: where, how fast, why they stand (the stall log)
+  watchBuses(dt, fleet);
   const held: [number, Bilingual][] = [
     [activeCableSystem()?.viewerHeld() ?? 0, { zh: '叮当车在等我们让路呢，往路边站一站吧', en: 'The cable car is waiting for us. Let’s step to the side' }],
     [activeStreetcarSystem()?.viewerHeld() ?? 0, { zh: '电车在等我们让路呢，往路边站一站吧', en: 'The streetcar is waiting for us. Let’s step to the side' }],
@@ -764,3 +788,6 @@ export function ferryWaitSeconds(from: string): number {
 }
 /** world/ferry.ts: a rider waiting at the other terminal cuts the boat's dwell to this (s) */
 const FERRY_DWELL_RIDER = 4;
+
+/** (W5-T2, QA) the bus watch: every bus now and the stalls logged (window.__opusBay.transit.busWatch()). */
+export function busWatchReport() { return { now: busWatchNow(), stalls: busStalls() }; }
