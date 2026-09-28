@@ -87,7 +87,7 @@ export const sewardStreetSlides: W4Site = {
   w4: {
     placeId: 'osm-w1364891448',
     attractions: ['seward-street-slides'],
-    arrival: { x: 0.75, z: -2.3, heading: 0 },
+    arrival: { x: -0.15, z: 6.3, heading: Math.PI },
     photo: { target: [-0.1, 1.8, 2.0], distance: 11, elevation: 0.35, bearing: 2.7 },
     flag: { x: -0.1, z: 3.0, h: 30 },
     height: { realM: 0, u: 1.0, top: 7.48, rule: 'overlook' },
