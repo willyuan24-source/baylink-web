@@ -7,7 +7,7 @@
 // The append happens in this process only (the survey imports w4sites.ts' list and finds the same array).
 import type { W4Site } from '../../src/opus-bay/world/sf/landmarks/siteKit';
 import { W4_SITES } from '../../src/opus-bay/world/sf/landmarks/w4sites';
-import { W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
+import { W4_SITES_T3_ALL as W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
 
 (W4_SITES as W4Site[]).push(...W4_SITES_T3);
 await import('./sites-survey.mts');

@@ -61,8 +61,9 @@ function ground(): SiteGroundPoly[] {
 }
 
 /** exclusion: round the block's line (the city's ribbon goes wherever its centreline is inside), clear of the houses
- *  (x > 1.1), the east sidewalk steps' line (x ≈ 0.8–0.9) and McKinley Square's lower steps (x −2.9) */
-const EXCLUDE: Vec2[] = [{ x: -2.75, z: -8.5 }, { x: 0.74, z: -8.5 }, { x: 0.74, z: 8.3 }, { x: -2.75, z: 8.3 }];
+ *  (x > 1.1) and McKinley Square's lower steps (x −2.9); the city's east sidewalk steps (x ≈ 0.8–1.0, drawn flat and
+ *  floating over the bends) are inside and dropped: the lane is the block's one surface */
+const EXCLUDE: Vec2[] = [{ x: -2.75, z: -8.5 }, { x: 1.04, z: -8.5 }, { x: 1.04, z: 8.3 }, { x: -2.75, z: 8.3 }];
 
 export const vermontStreetCrookedBlock: W4Site = {
   id: ID,

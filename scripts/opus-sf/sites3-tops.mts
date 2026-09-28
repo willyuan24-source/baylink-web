@@ -3,7 +3,7 @@
 //
 //   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/sites3-tops.mts [--site <id>]
 import { buildLandmark } from '../../src/opus-bay/world/sf/landmarks/index';
-import { W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
+import { W4_SITES_T3_ALL as W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
 
 const args = process.argv.slice(2);
 const only = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;

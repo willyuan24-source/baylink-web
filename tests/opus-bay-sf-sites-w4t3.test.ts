@@ -17,7 +17,7 @@ import { site3Ground } from '../src/opus-bay/world/sf/landmarks/siteKit3';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
 import { SITE_TERRAIN3 } from '../src/opus-bay/world/sf/landmarks/siteTerrain3';
 import { W4_SITES } from '../src/opus-bay/world/sf/landmarks/w4list';
-import { W4_SITES_T3 } from '../src/opus-bay/world/sf/landmarks/w4list3';
+import { W4_SITES_T3, W4_SITES_T3_ALL, W4_SITES_T3_NEXT } from '../src/opus-bay/world/sf/landmarks/w4list3';
 import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 import { sfDisk } from './opus-bay-sf-disk';
 
@@ -33,7 +33,8 @@ const attractions = (JSON.parse(readFileSync(new URL('../docs/opus-bay/sf-w4-att
 const places = (JSON.parse(readFileSync(new URL('../public/opus-bay/sf/v1/places.json', import.meta.url), 'utf8')) as { places: { id: string; x: number; z: number }[] }).places;
 const placeById = new Map(places.map(p => [p.id, p]));
 const attractionById = new Map(attractions.map(a => [a.id, a]));
-const T3 = W4_SITES_T3;
+/** every tier-3 record: the registered ones (W4_SITES_T3, drawn since W4-IL1) and the ones waiting for their tops rows */
+const T3 = W4_SITES_T3_ALL;
 
 const triCount = (g: THREE.BufferGeometry) => (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
 const inPoly = (p: Vec2, poly: Vec2[]) => pointInPolygon(p, poly);
@@ -74,7 +75,10 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
   const laneL = new Set(W4_SITES.map(s => s.id)), laneLAttr = new Set(W4_SITES.flatMap(s => s.w4.attractions));
   for (const s of T3) {
     assert.match(s.id, /^[a-z0-9]+(-[a-z0-9]+)*$/);
-    assert.ok(!SF_LANDMARKS.some(l => l.id === s.id) && sfLandmark(s.id) === s, `${s.id}: registered (SF_SITES), not one of the 24 landmark ids`);
+    assert.ok(!SF_LANDMARKS.some(l => l.id === s.id), `${s.id}: not one of the 24 landmark ids`);
+    // registered (SF_SITES) since W4-IL1, or waiting in W4_SITES_T3_NEXT (the integration moves it with its tops row)
+    if (W4_SITES_T3.includes(s)) assert.equal(sfLandmark(s.id), s, `${s.id}: registered (SF_SITES)`);
+    else assert.ok(W4_SITES_T3_NEXT.includes(s) && sfLandmark(s.id) === undefined, `${s.id}: waiting, not registered yet`);
     assert.ok(!laneL.has(s.id), `${s.id} is not one of lane L's sites`);
     assert.equal(s.tier, 3, `${s.id} is a tier-3 site`);
     const t = SITE_TERRAIN3[s.id];
@@ -235,6 +239,27 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
       }
     } finally { setCityTerrain(null); }
   }
+});
+
+test('decks over the water: the Wave Organ\'s tip is reachable on foot from the West Harbor\'s land along its spit', async () => {
+  const s = T3.find(x => x.id === 'wave-organ');
+  if (!s) return;
+  const lms = [...landmarkWalkInputs(SF_LANDMARKS), ...W4_SITES.map(walkInput), ...T3.map(walkInput)];
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, s.x, s.z, 140, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    // from the Yacht Road side (land, local (−31, 60)) to the upper terrace at the tip (local (−0.7, −0.2))
+    const a = landmarkToWorld(s, { x: -31, z: 60 }), b = landmarkToWorld(s, { x: -0.7, z: -0.2 });
+    assert.ok(canStand(a.x, a.z, 0.3) && canStand(b.x, b.z, 0.3), 'both ends standable');
+    const p = findPath(a, b, 1);
+    assert.ok(p, 'a path along the spit');
+    const end = p.points[p.points.length - 1];
+    assert.ok(Math.hypot(end.x - b.x, end.z - b.z) < 0.8, `the path reaches the terrace (ends ${Math.hypot(end.x - b.x, end.z - b.z).toFixed(2)} u from it)`);
+    // the deck stands over the water, not in it
+    assert.ok(heightAt(b.x, b.z) > s.base + 0.4, 'the terrace is above the water');
+  } finally { setCityTerrain(null); }
 });
 
 test('integration safety: the tier-3 list is cycle-free, the sites keep an unsunk ground, the tops generator measures them', () => {

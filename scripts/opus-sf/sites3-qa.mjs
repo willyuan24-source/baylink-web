@@ -31,12 +31,12 @@ const HELPERS = `window.__sq = {
     while (performance.now() - t0 < timeout) { const ob = window.__opusBay; if (ob && ob.city && ob.world && ob.city.stats().status === 'streaming') return true; await this.sleep(500); }
     return false;
   },
-  async sites() { const m = await this.mods(); return JSON.stringify(m.w4.W4_SITES_T3.map(s => s.id)); },
+  async sites() { const m = await this.mods(); return JSON.stringify(m.w4.W4_SITES_T3_ALL.map(s => s.id)); },
   /** local → world for a site */
   w(s, x, z) { const c = Math.cos(s.yaw), n = Math.sin(s.yaw); return { x: s.x + x * c + z * n, z: s.z - x * n + z * c }; },
   extent(s) { let r = 0; for (const p of s.exclude.poly) r = Math.max(r, Math.hypot(p.x - s.x, p.z - s.z)); return r; },
   async view(id, kind, k, n) {
-    const m = await this.mods(); const s = m.w4.W4_SITES_T3.find(x => x.id === id); const ob = window.__opusBay;
+    const m = await this.mods(); const s = m.w4.W4_SITES_T3_ALL.find(x => x.id === id); const ob = window.__opusBay;
     if (!s) return JSON.stringify({ error: 'unknown site ' + id });
     const R = Math.max(30, this.extent(s) * 1.5), top = s.base + (s.w4.height ? Math.min(s.w4.height.u, 14) : 6) * 0.45;
     let p, t;

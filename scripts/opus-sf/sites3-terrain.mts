@@ -14,7 +14,7 @@ import type { Vec2 } from '../../src/opus-bay/core/types';
 import { landmarkToWorld } from '../../src/opus-bay/world/sf/landmarks/index';
 import type { SiteTerrainGrid } from '../../src/opus-bay/world/sf/landmarks/siteTerrain';
 import { SITE_TERRAIN3 } from '../../src/opus-bay/world/sf/landmarks/siteTerrain3';
-import { W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
+import { W4_SITES_T3_ALL as W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
 import { sfDisk } from '../../tests/opus-bay-sf-disk';
 
 const args = process.argv.slice(2);

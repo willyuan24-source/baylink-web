@@ -98,3 +98,20 @@ export function lowWall(b: BatchLike, a: Vec2, c: Vec2, ya: number, yc: number, 
   const y0 = Math.min(ya, yc) - 0.25;
   b.add(BOX(), M((a.x + c.x) / 2, y0, (a.z + c.z) / 2, Math.atan2(dx, dz), t, Math.max(ya, yc) + h - y0, L), color);
 }
+
+/**
+ * The outline of a band `half` u either side of a gently bending polyline (an exclusion or a crowd strip along a
+ * path): the left offsets forward, the right offsets back, each vertex offset along the mean of its two segments'
+ * normals (mitred), the ends squared off `ext` u past the first and last points.
+ */
+export function bandPoly(points: Vec2[], half: number, ext = 0): Vec2[] {
+  const n = points.length, left: Vec2[] = [], right: Vec2[] = [];
+  const dir = (i: number) => { const a = points[Math.max(0, i - 1)], c = points[Math.min(n - 1, i + 1)], L = Math.hypot(c.x - a.x, c.z - a.z) || 1; return { x: (c.x - a.x) / L, z: (c.z - a.z) / L }; };
+  for (let i = 0; i < n; i++) {
+    const d = dir(i), e = i === 0 ? -ext : i === n - 1 ? ext : 0;
+    const p = { x: points[i].x + d.x * e, z: points[i].z + d.z * e };
+    left.push({ x: +(p.x - d.z * half).toFixed(3), z: +(p.z + d.x * half).toFixed(3) });
+    right.push({ x: +(p.x + d.z * half).toFixed(3), z: +(p.z - d.x * half).toFixed(3) });
+  }
+  return [...left, ...right.reverse()];
+}
