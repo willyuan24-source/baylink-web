@@ -1,3 +1,5 @@
+import { createElement } from 'react';
+import { CalendarHeart, Sun } from 'lucide-react';
 import { glideUnlocked } from '../actors/moveApi';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
@@ -13,12 +15,16 @@ import { flow } from '../game/flowStore';
 import { BAYBAY_ID, registerPrefixResolver, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { requestHopOff } from '../game/transit';
+import { lastWelcome, onWelcome } from '../game/welcome';
+import { openJournal, registerAskItem, registerJournalTab } from '../ui/slots';
+import { initDaily } from './daily';
 import { worldEvent } from './events';
 import { venueLatLng, type EventVenue } from './eventVenues';
 import { createDayMemory, RealLineScheduler, type OfferedLine } from './lines';
 import { initPresence } from './presence';
 import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunTimes, sunsetLine } from './sun';
+import { todayLine } from './todayLine';
 
 /**
  * Wave 5 · lane R — the real San Francisco: the sun, events at their venues, 今天 · SF Today, 今日三件小事, Fleet Week.
@@ -33,6 +39,9 @@ import { sunTimes, sunsetLine } from './sun';
  *          (the waypoint and navigateTo walk there)
  *   W5-R3  realsf/presence.ts: during an event's real window its pennant, crowd, toy kit, loop, BAYBAY's line and the
  *          souvenir stamp; BAYBAY's fire-season line at Ocean Beach on 31 October
+ *   W5-R4  今天 · SF Today: a Journal tab (realsf/TodayTab.tsx, loaded on first view) and 今天旧金山有什么？ in the 问
+ *          BAYBAY menu; BAYBAY's SF Today line after lane C's welcome back (realsf/todayLine.ts)
+ *   W5-R5  今日三件小事 (realsf/daily.ts): three small things seeded by the Bay date, paid by lane E's ledger
  *
  * The hooks other lanes read (plan §4.3) are their own small modules: realsf/sun.ts (sunBandAt, sunTimes, sunPosition),
  * realsf/seasons.ts (isFireRingLit, fireRingSeason, karlMonthFactor), realsf/moon.ts (moonPhase),
@@ -79,6 +88,12 @@ const SUNSET_LEAD = 150 * 60_000;
 /** Ocean Beach's fire rings (the season's last-day line is offered within this of them, u). */
 const FIRE_RINGS_AT = { x: -564.83, z: 1363.73 }, FIRE_LINE_NEAR = 220;
 
+/** The 今天 tab's icon and the ask item's (the Journal draws slot icons bare: size them here). */
+const TodayIcon = () => createElement(Sun, { size: 16, 'aria-hidden': true });
+const AskIcon = () => createElement(CalendarHeart, { size: 18, 'aria-hidden': true });
+/** a welcome back this recent (ms) still gets BAYBAY's SF Today line when this chunk loads after it */
+const WELCOME_LATE = 60_000;
+
 export function init(): () => void {
   const offVenues = setEventVenueHooks({
     locate: event => { const v = worldEvent(event); return v ? spotOf(v) : null; },
@@ -87,7 +102,25 @@ export function init(): () => void {
   const offResolver = registerPrefixResolver('event:', eventInteractable);
   // W5-R3: the open events in the world (pennants, crowds, kits, loops, lines, souvenirs)
   const presence = initPresence();
-  if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = { presence: () => presence.stats() };
+  // W5-R5 / R4: the daily three, the 今天 tab, the ask item, the welcome-back line
+  const daily = initDaily();
+  const offTab = registerJournalTab({
+    id: 'today', order: 5, label: { zh: '今天', en: 'Today' }, icon: TodayIcon,
+    count: () => { const list = daily.tasks(); return list ? `${list.filter(t => daily.done(t)).length}/${list.length}` : undefined; },
+    load: () => import('./TodayTab'),
+  });
+  const offAsk = registerAskItem({ id: 'realsf-today', order: 40, label: { zh: '今天旧金山有什么？', en: 'What’s on in SF today?' }, icon: AskIcon, onSelect: () => openJournal('today') });
+  let welcomeSaid = false;
+  const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; return todayLine(); });
+  const lw = lastWelcome();
+  let welcomeLate = !!lw && lw.kind === 'returning' && performance.now() - lw.at < WELCOME_LATE;
+  if (import.meta.env?.DEV && typeof window !== 'undefined') {
+    (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
+      presence: () => presence.stats(),
+      daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
+      complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
+    };
+  }
 
   // BAYBAY's real-SF lines (once per key per Bay day), gated like her city lines
   const sched = new RealLineScheduler(createDayMemory());
@@ -97,7 +130,8 @@ export function init(): () => void {
     acc = 0;
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
-    const offered: OfferedLine[] = [...presence.offered()];
+    const offered: OfferedLine[] = [...presence.offered(), ...daily.offered()];
+    if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });
     const p = bayParts(now);
@@ -110,12 +144,13 @@ export function init(): () => void {
       quiet: performance.now() < f.quietUntil,
     }, offered);
     if (!line) return;
+    if (line.key === 'today-welcome') welcomeLate = false;
     bubble(line.text, 4600, BAYBAY_ID, 'bark');
     emit({ type: 'voice-line', id: `realsf-${line.key}` });
   }, 5);
 
   return () => {
-    offLines(); presence.off(); offResolver(); offVenues();
+    offLines(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
 }

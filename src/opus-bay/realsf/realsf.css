@@ -1,0 +1,58 @@
+/* Wave 5 · lane R · 今天 · SF Today (a Journal tab, lazy chunk; city mode only). Tokens from opus-bay.css. */
+
+.ob-today { display: flex; flex-direction: column; }
+
+/* the Bay clock card */
+.ob-today-now {
+  padding: 14px 14px 10px; border-radius: var(--ob-r-m);
+  background: linear-gradient(135deg, #fff4dc 0%, #fde6c8 55%, #f7d7c4 100%);
+  box-shadow: inset 0 0 0 1px rgba(168, 116, 31, .14);
+}
+.ob-today-clock { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.ob-today-clock strong { font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: .01em; color: var(--ob-ink); font-variant-numeric: tabular-nums; }
+.ob-today-clock span { font-size: 13px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-today-sky { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px !important; }
+.ob-today-sky li {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px;
+  background: rgba(255, 255, 255, .72); font-size: 12.5px; font-weight: 700; color: var(--ob-ink-2); font-variant-numeric: tabular-nums;
+}
+.ob-today-sky li svg { color: var(--ob-gold-d); flex: none; }
+.ob-today-note { display: flex; align-items: center; gap: 6px; margin-top: 8px !important; font-size: 12.5px; font-weight: 600; color: var(--ob-ink-2); }
+.ob-today-note svg { color: var(--ob-ink-3); flex: none; }
+
+/* rows */
+.ob-today-rows { display: flex; flex-direction: column; }
+.ob-today-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-top: 1px dashed var(--ob-line); }
+.ob-today-rows > li:first-child { border-top: 0; padding-top: 2px; }
+.ob-today-ico {
+  display: grid; place-items: center; flex: none; width: 28px; height: 28px; margin-top: 1px; border-radius: 9px;
+  background: var(--ob-cream-3); color: var(--ob-ink-2);
+}
+.ob-today-row.is-now .ob-today-ico { background: var(--ob-teal-l); color: var(--ob-teal-d); }
+.ob-today-row.is-done .ob-today-ico { background: var(--ob-teal); color: #fff; }
+.ob-today-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.ob-today-main strong { font-size: 14px; font-weight: 800; line-height: 1.35; color: var(--ob-ink); }
+.ob-today-main small { font-size: 12.5px; line-height: 1.45; color: var(--ob-ink-3); }
+.ob-today-row.is-done .ob-today-main strong { text-decoration: line-through; color: var(--ob-ink-3); }
+.ob-today-row.is-over .ob-today-main { opacity: .62; }
+.ob-today-side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: none; }
+.ob-today-go { min-height: 32px; padding: 0 11px; gap: 4px; font-size: 13px; }
+.ob-today-state { font-size: 11.5px; font-weight: 800; color: var(--ob-ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ob-today-state.is-now { color: var(--ob-teal-d); }
+.ob-today-state.is-over { color: var(--ob-ink-3); }
+.ob-today-src { font-size: 11.5px !important; }
+.ob-today-src a { display: inline-flex; align-items: center; gap: 2px; color: var(--ob-teal-d); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.ob-today-link {
+  padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  text-decoration: underline; text-decoration-color: rgba(47, 143, 136, .45); text-underline-offset: 3px;
+}
+.ob-source .ob-today-link { color: var(--ob-teal-d); font-weight: 700; }
+.ob-today-count { margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--ob-gold-l); color: var(--ob-gold-d); font-size: 12px; font-weight: 800; }
+.ob-today-foot { margin-top: 6px !important; font-size: 12px; }
+
+@media (max-width: 420px) {
+  .ob-today-now { padding: 12px 12px 9px; }
+  .ob-today-clock strong { font-size: 26px; }
+  .ob-today-row { gap: 8px; }
+  .ob-today-go { padding: 0 9px; }
+}
