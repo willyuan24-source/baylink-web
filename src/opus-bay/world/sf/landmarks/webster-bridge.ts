@@ -14,10 +14,11 @@ import { GC, LIFT, PAT, type SiteGroundPoly, type W4Site, grect, siteGround } fr
  * Frame: origin (−75.7, 462.7) at the bridge's centre, yaw −124.8°: the bridge runs along local x (the West mall's
  * wall at x −2.8), Webster St along local z, Post St at z 4.6, Geary Blvd at z −5.5. Webster St is a DUAL carriageway
  * in the published data: two one-way ribbons 4.4 wide with their centrelines at x −0.6 and 1.1, which the city draws
- * (outside the exclusion) as asphalt x −2.2…−1.1 and −0.5…2.7 either side of a paved median x −1.1…−0.5, between the
- * sidewalks x −2.8…−2.2 and 2.7…3.3. W4-L-review: the site had re-laid only the x 1.1 ribbon and the median, leaving
- * the west carriageway x −2.2…−1.1 bare under the bridge; now it continues all five strips. The crowd spots and the
- * arrival are on the two sidewalks, never on the carriageway.
+ * (outside the exclusion, seen from above on both sides of the bridge) as asphalt x −2.2…1.0 and 1.6…2.7 either side
+ * of a paved median x 1.0…1.6 (the west ribbon's kerb band), between the sidewalks x −2.8…−2.2 and 2.7…3.3.
+ * W4-L-review: the site had re-laid only the east ribbon and a paved strip at x −1.1…−0.5 (the east ribbon's west
+ * band, which the city covers), leaving x −2.2…−1.1 bare under the bridge and its median off the city's; now the five
+ * strips continue the city's. The crowd spots and the arrival are on the two sidewalks, never on the carriageway.
  */
 
 const ID = 'webster-bridge';
@@ -26,7 +27,7 @@ const g = siteGround(ID, 9.2);
 
 const X_0 = -2.7, X_1 = 3.5, W = 2.1, DECK = 2.6, HALL = 1.5;
 /** the street under the span as the city draws it: asphalt x0…x1 with the median m0…m1, a sidewalk `walk` wide either side */
-const STREET = { x0: -2.2, x1: 2.7, m0: -1.1, m1: -0.5, walk: 0.6 };
+const STREET = { x0: -2.2, x1: 2.7, m0: 1.0, m1: 1.6, walk: 0.6 };
 /** the deck's ground reference (the east ribbon's centreline, where its height was set) */
 const REF_X = 1.08;
 
