@@ -25,7 +25,7 @@ import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatfo
 import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
 import { drivableAt, driveRoute, findDrivePath, PARK_CLEAR, stopShortOf } from './vehicles/driveRoute';
-import { DRIVE_TALK, DriveTalk, driveCueLine } from './vehicles/driveTalk';
+import type { DriveTalk } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
@@ -88,6 +88,8 @@ export interface RideAnim {
 type GuideSeat = 'none' | 'in' | 'seated' | 'out';
 
 const SLOTS: SlotWorld = { canStand, heightAt };
+/** vehicles/driveTalk, loaded with the first drive (W4-G4: BAYBAY's cues from the basket) */
+let driveTalkMod: typeof import('./vehicles/driveTalk') | null = null;
 /** a stuck autopilot tries this many ways round per drive, each to the route this far (u) past where it stands (D6) */
 const DETOURS = 2, DETOUR_AHEAD = 14;
 /** the autopilot waits this long (s) for someone in front to walk on before its back-up-and-retry (verify-desktop D6) */
@@ -597,7 +599,8 @@ export class MoveSystem {
       // (part b, verify-desktop D5) park short of a card / resident / place at the end, never on top of it
       const points = stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1]));
       this.auto = new PursuitDriver(r.sim.spec, points);
-      this.driveTalk = new DriveTalk(points);
+      this.driveTalk = null;
+      this.talk(points, true);
       this.detours = 0;
       this.drivePath = points;
       this.driveTarget = points[points.length - 1];
@@ -638,7 +641,7 @@ export class MoveSystem {
     const cue = this.guideSeat === 'seated' && auto.state === 'drive' ? this.driveTalk?.step(auto.s, t) : null;
     if (cue && (ride.kind === 'bike' || ride.kind === 'car')) {
       if (cue.kind === 'turn') emit({ type: 'emote', who: 'baybay', emote: 'point' });
-      bubble(driveCueLine(cue, ride.kind), 2600);
+      bubble(driveTalkMod!.driveCueLine(cue, ride.kind), 2600);
     }
     if (auto.state === 'arrived' && Math.abs(s.v) < 0.3) {
       emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'arrive' });
@@ -679,10 +682,22 @@ export class MoveSystem {
     if (pts.length < 2) return false;
     this.detours++;
     this.auto = new PursuitDriver(s.spec, pts);
-    this.driveTalk = new DriveTalk(pts, DRIVE_TALK, false);
+    this.driveTalk = null;
+    this.talk(pts, false);
     this.drivePath = pts;
     this.driveTarget = pts[pts.length - 1];
     return true;
+  }
+
+  /**
+   * BAYBAY's cues for this drive (W4-G4): the module is its own chunk (fetched with the first drive; GameRoot does not
+   * carry it). `thirds`: the 1/3 and 2/3 lines (not for a detour's rest of a drive).
+   */
+  private talk(points: Vec2[], thirds: boolean) {
+    const auto = this.auto;
+    const make = (m: typeof import('./vehicles/driveTalk')) => { if (this.auto === auto) this.driveTalk = new m.DriveTalk(points, m.DRIVE_TALK, thirds); };
+    if (driveTalkMod) make(driveTalkMod);
+    else void import('./vehicles/driveTalk').then(m => { driveTalkMod = m; make(m); }, () => { /* offline: a quiet drive */ });
   }
 
   /** Save v2 (G1): the last-ridden bike and the toy car, when they are away from their spots (or ridden). */
