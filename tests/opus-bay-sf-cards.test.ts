@@ -248,14 +248,22 @@ test('the famous curated places get full cards too (Alcatraz, Golden Gate Park, 
   const pier = ARRIVAL_PLACES.alcatraz.name;
   const pierEn = /Pier 33 \(Alcatraz Landing\)/;
   assert.equal(pier.zh, '恶魔岛渡轮码头 · 33 号码头');
-  assert.ok(byIdCurated('alcatraz').bark.zh.includes(pier.zh), 'Alcatraz bark: 恶魔岛渡轮码头 · 33 号码头');
-  assert.match(byIdCurated('alcatraz').bark.en, pierEn);
+  // review 2: the bark is spoken, so it says the pier number (the " · " label inside a sentence read as a map label and
+  // said 恶魔岛 twice); the telescope tip, where the trip ends, carries the full name
+  const alca = byIdCurated('alcatraz');
+  assert.ok(alca.bark.zh.includes('33 号码头') && !alca.bark.zh.includes(' · '), `Alcatraz bark says the pier number in a sentence (${alca.bark.zh})`);
+  assert.equal(alca.bark.zh.split('恶魔岛').length - 1, 1, 'the bark names the island once');
+  assert.match(alca.bark.en, pierEn);
+  assert.ok(alca.tips.some(t => t.zh.includes(pier.zh) && /望远镜/.test(t.zh) && pierEn.test(t.en)), 'the telescope tip: the full pier name, where the trip ends');
   assert.ok(byIdCurated('pier-39').tips.some(t => t.zh.includes(pier.zh) && pierEn.test(t.en)), 'PIER 39: the Alcatraz boats leave from Pier 33');
   assert.ok(byIdCurated('treasure-island').tips.some(t => t.zh.includes(ARRIVAL_PLACES['treasure-island'].name.zh)), 'Treasure Island: the Pier 14 telescope');
-  // no card calls the Alcatraz pier anything else ("33 号码头" appears only inside the full name)
+  // no card calls the Alcatraz pier anything else: "33 号" only as "33 号码头", in English "Pier 33"
   for (const c of [...CARDS, ...CURATED_CARDS]) for (const b of [c.bark, c.summary, ...c.tips]) {
-    if (b.zh.includes('33 号码头')) assert.ok(b.zh.includes(pier.zh) || /游戏里/.test(b.zh), `${c.id}: the Alcatraz pier by its full name (${b.zh})`);
+    for (const m of b.zh.matchAll(/(?<!\d)33 ?号(.{0,2})/g)) assert.equal(m[1], '码头', `${c.id}: the Alcatraz pier is 33 号码头 (${b.zh})`);
+    if (b.zh.includes('恶魔岛渡轮码头')) assert.ok(b.zh.includes(pier.zh), `${c.id}: 恶魔岛渡轮码头 only with its number (${b.zh})`);
   }
+  // Marina: 马里纳 (VOICE.md glossary; 码头区 is the Embarcadero piers) — no 码头港区 for the yacht harbour
+  assert.ok(!byIdCurated('marina-green').tips.some(t => /码头港区/.test(t.zh)));
   // the islands say where the game shows them (their trips end at a telescope)
   for (const id of ['alcatraz', 'treasure-island']) assert.ok(byIdCurated(id).tips.some(t => /望远镜/.test(t.zh) && /telescope/.test(t.en)), `${id}: the telescope tip`);
   // the Bay Lights are back since March 2026 and the west span has no path (facts of the part-2 check)

@@ -582,15 +582,17 @@ export const CURATED_CARDS: PlaceCard[] = [
     id: 'alcatraz',
     name: bi('恶魔岛', 'Alcatraz Island'), zone: bi('旧金山湾', 'San Francisco Bay'),
     // the pier by its one name (lane P's ARRIVAL_PLACES, where the trips end; "Pier 33 Alcatraz Landing",
-    // alcatrazcitycruises.com/plan-your-visit/directions, checked 2026-09-27)
-    bark: bi('那座岛就是恶魔岛！船从恶魔岛渡轮码头 · 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 (Alcatraz Landing), not PIER 39.'),
+    // alcatrazcitycruises.com/plan-your-visit/directions, checked 2026-09-27). The bark is spoken (review 2): it says
+    // the pier number ("恶魔岛渡轮码头 · 33 号码头" is a map label, not a sentence, and said 恶魔岛 twice); the full
+    // name the trips use is in the telescope tip below.
+    bark: bi('那座岛就是恶魔岛！上岛的船从 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 (Alcatraz Landing), not PIER 39.'),
     summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，“所有部落的印第安人”在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
     hours: bi('按船票上的班次；国家公园管理局建议提前订票。', 'Follow the sailing on your ticket; the National Park Service advises booking ahead.'),
     cost: bi('不收入岛门票，但要买往返渡轮票（以官网为准）。', 'No entrance fee, but you need a round-trip ferry ticket (see the official site).'),
     tips: [
       bi('只绕岛不靠岸的观光船，不算登岛票。', 'A cruise that only circles the island is not a landing ticket.'),
       bi('岛上码头到监狱要爬一段坡，穿好走的鞋。', 'It\'s an uphill walk from the island dock to the prison: wear good shoes.'),
-      bi('游戏里上不了岛：BAYBAY 带你到 33 号码头的望远镜看它。', 'You can\'t land in the game: BAYBAY takes you to the Pier 33 telescope to look.'),
+      bi('游戏里上不了岛：BAYBAY 带你到恶魔岛渡轮码头 · 33 号码头，用望远镜看它。', 'You can\'t land in the game: BAYBAY takes you to Pier 33 (Alcatraz Landing) to look through the telescope.'),
     ],
     officialUrl: 'https://www.nps.gov/alca/index.htm',
     sourceUrl: 'https://www.nps.gov/alca/index.htm', sources: ['https://www.nps.gov/alca/planyourvisit/fees.htm', 'https://en.wikipedia.org/wiki/Alcatraz_Federal_Penitentiary', 'https://www.alcatrazcitycruises.com/plan-your-visit/directions/'],
@@ -666,7 +668,7 @@ export const CURATED_CARDS: PlaceCard[] = [
     summary: bi('梅森堡和要塞公园之间的一长条海边草地。这里原是潮汐沼泽，1906 年地震后填进瓦砾，为 1915 年世博会平整；1920 年代还当过航空邮件的机场。', 'A long bayside lawn between Fort Mason and the Presidio. Once a tidal marsh, it was filled with 1906 earthquake rubble and graded for the 1915 world\'s fair; in the 1920s it was an air-mail airfield.'),
     tips: [
       bi('往西走到游艇会后面的防波堤尽头，就是海浪风琴，涨潮时最好听。', 'Walk west to the tip of the jetty behind the yacht club for the Wave Organ: best at high tide.'),
-      bi('码头港区改造预计 2027 年开工，到时停车场和岸边步道可能部分围起。', 'The marina rebuild is due to start in 2027; parking and parts of the shore path may be fenced then.'),
+      bi('马里纳游艇港改造预计 2027 年开工，到时停车场和岸边步道可能部分围起。', 'The marina rebuild is due to start in 2027; parking and parts of the shore path may be fenced then.'),
     ],
     sourceUrl: 'https://en.wikipedia.org/wiki/Marina_Green',
     sources: ['https://hoodline.com/2016/05/great-explorations-marina-green/', 'https://en.wikipedia.org/wiki/Wave_Organ', 'https://sfrecpark.org/1160/Marina-Improvement-and-Remediation-Proje'],
