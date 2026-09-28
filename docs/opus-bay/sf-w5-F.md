@@ -245,3 +245,218 @@ badge; C's goals card covers the pill's second line on the phone right after the
 - **L**: route r2's Fort Point stop (BOXED) and the Wave Organ jetty's reachability (lanes A, D, E's spots there); lane F's vault scan found low hedges and walls at City Hall, the de Young, the Palace, Lombard, the windmill, the Legion of Honor and Sutro Baths — tell me any that must not be vaulted and I register them as noVault.
 - **C**: `ui/goals-step.css`: `align-items: safe center` (or `start` when taller than the screen) so the step never opens with its end below the fold at 375 × 667.
 - **Lead / V**: `actors/feet.ts`, `actors/stuckHelper.ts` and `actors/deckSteer.ts` are in GameRoot's main graph (the controller and the actor system use them): 1.3 + 1.4 + 0.9 KB gzip standalone (esbuild --minify), plus the additions to the controller, camera, models and actor system — please count them in the next bundle measurement. The deck and the fire-ring noVault ride on the lazy `actors/cityViews.ts`.
+
+## Part c (2026-09-28): the checkpoint's CP-12, lane C's pelicanGreet, W5-F10, W5-F11
+
+### 给主人的摘要
+
+1. 检查点给 F 线的问题修好了：坐观光巴士到双峰下车，现在人面朝马路而不是悬崖，按"前"就能走（以前只挪了 0.14 u）；手机上 6 秒的到达卡片不再挡住左手拇指——手指按在卡片上一拖就能走路，轻点按钮照样能用。
+2. 解锁飞行那一刻，大鹈鹕会从天上飞下来，落在你和 BAYBAY 身后、收好翅膀等你；选"试试起飞"它就带你飞，选"以后再说"它自己飞走（C 线已接进解锁那一刻）。
+3. 新的手感：跳起来碰到比你高的台阶（0.45–1.6 u）会用手扒住边缘翻上去；坐观光巴士和地铁时，镜头在车后上方，你和 BAYBAY 在画面下方，城市在前面展开；新增"自动飞"：告诉鹈鹕去哪（60–900 u），它自己飞过去降落，推一下摇杆就换你来飞（N 线的"看风景飞过去"已经用上）。
+4. 全城巡检第 2 轮：684 个点，卡住的从第 1 轮 56 个、上次 39 个降到 2 个（模型外的索萨利托码头归 T 线；点按走到 SS Jeremiah O'Brien 会差 4.8 u，归 N 线）；坐巴士或地铁下车会把你放在旁边开阔的人行道上，也不会面朝还停在站上的车；金门大桥来回、三条步行路线在电脑和手机上都走通。
+5. 巡检顺带抓到一个真问题：BAYBAY 带路时会被停在墙边的共享单车卡死（渡轮大厦门口），现在带路和点按走路会从停着的车旁穿过去。
+6. 从渡轮大厦步行到一级、二级景点的计时结果见下文 Evidence。
+
+### What was built
+
+**Checkpoint CP-12** (`d56438d3`, pushed first with the hook)
+- `actors/moveSystem.ts`: when the flow ends a line ride at its stop (game/transit `leaveLineRide`: the loop bus's lap at
+  Twin Peaks, an arrival, 直接到站), the move system now faces the rider to the open ground like a hop-off (city mode).
+  Before, only the rider's own hop-off (`transit-alighted`) did: the lap left the rider facing the drop at Twin Peaks.
+- `actors/pointer.ts THUMB_PASS` + `opus-bay.css`: on touch screens lane N's arrival card (6 s, bottom left, css y ≈ 599–710
+  at 390 × 844) shares its touches with the stick: its body passes touches to the canvas, and a drag that starts on one of its
+  buttons (看介绍 · 拍照 · 下一站 · ×) steers (window-level capture listeners feed the same stick code; the click that
+  would end the drag is swallowed; a tap stays the button's). While the stick steers the card steps back to 30 % opacity
+  (`actors/TouchControls` sets `.is-sticking` on the overlay).
+
+**Lane C's request: `pelicanGreet`** (`1c27890b`)
+- `actors/moveApi.pelicanGreet(x?, z?, { seconds? })` → `MoveSystem.pelicanGreet` → `Pelican.startGreet`: the ride pelican
+  glides in from ahead of the camera (`greetFrom`: a steeper drop when a roof or a hill stands in that line), settles behind
+  the player and BAYBAY as the camera sees them (`greetSpot`: the middle of the pair, 3.2–3.8 u across their line away from
+  the camera; else beside the player, away from BAYBAY; open ground for its body at the feet's level, ≥ 2.4 u from both),
+  faces them with its wings folded (the wing and hand bones swept back), waits while a dialogue is open (the moment's
+  先试试起飞？, ≤ 14 s), then takes off and is gone. 起飞 while it waits hands the bird to the glide; a fast travel or a
+  restart flies it off from where it sits. No new draw call, material or program (the ride pelican's own mesh).
+
+**W5-F10 (should)** (`755f55ab`)
+- **Mantle** (`actors/controller.ts startMantle / stepMantle`, `feet.ts FEET.mantle*`): a hop that meets a ledge standing
+  above the body, 0.45–1.6 u over the take-off feet, climbs it hands first in 0.23–0.42 s (up the face, then onto the
+  ledge; the vault's hands-first weight drives the arms). A hop that clears the edge lands on top as before. In the city a
+  ledge higher than 1.6 u is a wall even in a jump: before, any jump popped the body onto any height (a 2 u step in a test
+  world). A roof is never ground (buildings are blockers), so the mantle never lands on one.
+- **The designed ride shot** (`actors/cameraModes.ts RIDE_TOUR`; `camera.ts` passes the platform's kind): the
+  sightseeing bus's open deck (14 u back, pitch 0.38, a 0.35 rad turn toward the view side, looking 6 u ahead) and the
+  Metro's LRV (15 u, 0.46, nearly straight behind, 6 u ahead) — the riders small in the lower third, the city opening in
+  front. The side-on window shot (cable cars, the F-line, the ferry) is unchanged; the stop look-at bias still applies.
+- **The scenic auto-glide** (`actors/glide.ts AUTO_GLIDE, autoGlideInput`; `MoveSystem.startAutoGlide / cancelAutoGlide`;
+  `moveApi.autoGlide(to, { onEnd }) / autoGliding() / cancelAutoGlide()`): for 60–900 u the pelican takes off toward
+  the destination, holds 14 u over the soft floor (roofs + 6), boosts on a straight stretch farther than 180 u, eases
+  down from 110 u and starts its landing 20 u out (the landing curve's own lead carries it to the spot; the landing faces
+  open ground). A stick push past 0.25 hands the wings over (`onEnd('taken')`, BAYBAY: 好，你来飞！); G / 降落 lands early;
+  a fast travel or a restart ends it (`'cancelled'`); `'landed'` when it set the player down. BAYBAY says
+  坐稳啦～想自己飞，动一下就接管 2.8 s after the take-off line. Lane N's 看风景飞过去 rides it (`dd19cf15`, W5-N9).
+
+**W5-F11 · sweep run 2** (`f8ddb7fc`, `9882ac38`, `5989563a`)
+- `actors/faceOpen.ts openSpot / openAround` (+ `OPEN_SPOT`): the nearest spot within 6 u with walkable ground (standable,
+  no uphill step steeper than 0.85) ≥ 3 u in 3 of 4 directions on the sweep's own axes; `faceOpen` / `openHeading` take an
+  optional blocker.
+- `actors/moveSystem.ts`: a loop-bus or Metro ride the flow ends at its stop sets the rider down on open ground near it (`openSpot`; only those two
+  kinds: a cable car's kerb spot lies between the tracks and the houses), and `faceOpen` counts the bus or train still at
+  the stop as a wall (`vehicleBlock`: its deck widened by 1.4 u each side).
+- `scripts/opus-sf/qa/sweep-static.mts` judges a loop / Metro stop where the game now sets a rider down (`setDown`,
+  `sx / sz` in targets.json); `walker-sweep.mjs` replays that spot, answers a dialogue met on a route (the pelican's
+  moment at Coit stalled r1), and gains the **trips phase** (`--trips t1|t12 --budget <min>`: the Ferry Building → every
+  T1 / T2 attraction on foot with lane N's planner's walk option, started as the map's 跟 BAYBAY 去 so BAYBAY carries the
+  player; pass = arrived within 1.3 × the planner's quote; gives up at max(1.6 × quote, quote + 40 s) or 30 s without
+  progress, with a shot).
+- `actors/system.ts` (found by the trips phase): a parked bike or the toy car stays a soft obstacle for the walker, but
+  not while the player auto-walks (a tap-to-walk, BAYBAY carrying a trip): the path does not know them, and the first
+  trip (Ferry gate → the marketplace) wedged for good between the pooled city bike parked by the Ferry Building's wall and
+  the wall (Can't get through this way); now 7.2 s against a 9.6 s quote.
+
+### Evidence
+
+- Checks on the last push `5989563a` (rebased on `a6fcb6f4`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .`
+  0 errors (43 old warnings outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1341 / 1341**, fail 0. The pushes before it ran full suites of 1199, 1223, 1252 and 1292, all green; two other full
+  runs had one wall-clock assert each fail under the ten-lane load (lane T's 直接到站 veil R5 — lane T since gave it 2.5 s,
+  `01d8e2d6` — and sf-move2's "E2-5 … cached per 16 u cell"); each passed alone and the next full run was green. After
+  the rebases that only brought lane D's egg batch and lane T's re-stood poles, tsc and the touched test files (eggs,
+  eggs-c, transit, w5-transit, feet, char, contracts, district, audio, transit-review) ran green before the push; the full
+  suite ran again for the last push.
+- New tests: `tests/opus-bay-w5-feet.test.ts` +8 (the mantle in synthetic worlds: 1.45 / 1.55 u climbed hands first,
+  0.8 u landed on, 2 u a wall in the city, a roof never; the ride shot's framing at 390 × 844 and 1440 × 900 and the cable
+  car's side-on shot kept; the auto-glide stick; a full auto-glide in the move system — refused locked / too near / too
+  far, takes off, lands near the target on standable ground, a stick push hands it over; openSpot on a boarding island;
+  the CP-12 / set-down / parked-ride source checks) · `tests/opus-bay-w5-char.test.ts` +2 (greetSpot / greetFrom; the
+  greeting's life: in, folded, held, max, gone, a take-off, a fly-off).
+- npx, tsx, tsc and eslint worked from the junctioned node_modules. PERF-LOCK: lane V's gate held it 13:34–14:30 PDT —
+  no Chrome and no suite of mine ran then; one Chrome of mine at a time otherwise. Dev server 5501 stopped at the end.
+
+**In the game** (dev 5501, headless Chrome with the RTX flag; every shot read; the key ones in `docs/opus-bay/qa/w5/F/`)
+- CP-12 Twin Peaks: `boardLine('loop-castro', { to: 'loop-twin-peaks' })` on desktop — before the fix the rider stood at
+  (150.8, 977.8) facing 2.52 rad with the camera over the view, W moved **1.06 u**; after: heading 0.79 (up the road), the
+  camera swinging behind, W moved **5.91 u** (`cp12-twin-peaks-alight-walk-desktop.jpg`).
+- CP-12 thumb zone, phone 390 × 844 dpr 3, zh: 飞过去 the Palace of Fine Arts, the arrival card at y 599–710; a stick drag
+  from (110, 665) — on its 看介绍 button — moved the player (2.6 u in 1.6 s against the lagoon's edge; before: 0), the
+  card faded while steering, and a tap on 看介绍 right after still opened the Palace's card (panel `poi`)
+  (`cp12-arrival-card-stick-phone.jpg`).
+- pelicanGreet at the Coit unlock moment (called on the moment's dialogue, as lane C now does): desktop and phone — it lands
+  3.3 u away behind the pair, wings folded, waits through the dialogue, and after 以后再说 flies off and is hidden
+  (`pelican-greet-coit-desktop.jpg`, `pelican-greet-coit-phone.jpg`).
+- Auto-glide Ferry gate → Lombard (367 u): desktop 23.4 s, cruising at y ≈ 44 over the Financial District at 20 u/s,
+  landed 10 u from the target on Russian Hill, W walked 4.2 u at once; a push of A 4 s into a second flight ended it
+  `'taken'` with the player still gliding; phone: the same flight landed in 17.7 s (`f10-auto-glide-cruise-desktop.jpg`,
+  `f10-auto-glide-phone.jpg`: 坐稳啦～想自己飞，动一下就接管 in the bubble).
+- Ride shots: the loop bus Castro → Twin Peaks and the N Judah Judah & 12th → 19th on desktop, the loop bus on the phone
+  (`f10-bus-ride-camera-desktop.jpg`, `f10-bus-ride-camera-phone.jpg`, `f10-lrv-ride-camera-desktop.jpg`). A first LRV
+  try with a 0.55 rad turn put the rig over the houses and it pulled in to a wall at the 9th & Irving corner; nearly
+  straight behind keeps the street open.
+- Metro set-down: the N to Judah & 19th (the pole was BOXED in run 2): set down on the corner, first facing the train
+  still at the stop (W 1.35 u); with the train counted as a wall the rider faces down 19th Ave and W walks **6.35 u**
+  (`f11-metro-setdown-walk-desktop.jpg`).
+- Mantle: a scan of every landmark site found only two terrain ledges of 0.9 u next to a walk (Twin Peaks, Alamo
+  Square), which a hop clears (a normal landing); the mantle is proven in synthetic worlds (tests), not seen live.
+
+**Sweep run 2** (`C:/Users/willy/opus-qa/w5/sweep/run2`, `run2b`, `run2c`, `run2d`: static.json, targets.json,
+live-*/live.json and sheet.html)
+
+| | run 1 (part a) | part b | run 2 (head at 12:40) | run 2b (+ the set-down) | run 2c / 2d (+ lane T's re-stood poles, lane D's batch 2) |
+|---|---|---|---|---|---|
+| static targets | 672 | 673 | 675 | 675 | 675 / **684** |
+| ok · CORRIDOR | 454 · 162 | 483 · 153 | 496 · 159 | 523 · 146 | 538 · 135 / **547 · 135** |
+| BOXED · SNAG · UNREACHABLE · OFF | 26 · 5 · 21 · 4 | 14 · 2 · 19 · 2 | 7 · 0 · 12 · 1 | 0 · 0 · 5 · 1 | **0 · 0 · 1 · 1** |
+| live desktop: stuck of the flagged | 41 / 56 | 31 / 37 (checkpoint) | 19 / 20 | 2 / 6 | **1 / 2** |
+| live phone: stuck of the flagged | — | — | 17 / 20 | 2 / 6 | **1 / 2** |
+
+- Every lane's fixes since part b landed: E's coins and caches, D's eggs (all 35 of both batches), L's route stops and the
+  Wave Organ, A's view spot, N's trip ends (Fort Point, the bison paddock), T's 26 re-stood Muni poles and kiosks (CP-3) —
+  all pass. **Left: 2, both lane T's or N's to decide**: `ferry:sausalito` (OFF: the quay is off the model — a waiver or
+  a quay on it) and N's `trip:ss-jeremiah-obrien` (T3, UNREACHABLE: it moves 3 of 4 ways and passes the live walker on
+  desktop and phone, but the nav path ends 4.8 u short, so a tap-to-walk stops short of it). Before T's poles moved, run 2b had
+  `muni-irving-2nd` stuck live (no open ground within 6 u) — gone in run 2c. The plan's STUCK also counts the 135
+  CORRIDORs (decks, piers, stairs, narrow paths; the deck's 21 points are all corridors); as in part a they are reported,
+  not failures.
+- The set-down (`setDown` in static.json): on run 2c's poles 32 of 71 loop / Metro stops move the rider 0.75–3 u to open
+  ground (on run 2b's poles 45 of 71, up to 5.25 u).
+- The GGB deck, holding W (walker `--deck`): run 2 desktop south → north 4.12 u/s slowest 3 s, camera ≤ 0°; north →
+  south 3.52, ≤ 1°; phone 4.15 / 0° and 4.02 / 1°; run 2c desktop 4.06 / 0° and 4.16 / 1°; both ends reached both ways
+  (95 s each).
+- The three routes stop to stop (tap-to-walk): run 2 phone **24 / 24** legs; run 2 desktop 23 / 24 (r1 Peter & Paul →
+  Coit: the walker did not yet answer the pelican's moment there); run 2c desktop 23 / 24: r2 Welcome Center → overlook
+  stalled once on Lincoln Blvd behind the loop bus standing at its stop (BAYBAY: The tour bus is waiting for us. Let's
+  step to the side; the toast Can't get through this way), a leg that passed in run 2 on desktop and phone (Requests: T).
+  r3 de Young → Tea Garden passes (lane L moved the stop off the pond, CP-8).
+
+**Trips phase** (`walker-sweep.mjs --trips t12 --budget 60`, desktop, BAYBAY carrying every trip from the Ferry gate;
+`C:/Users/willy/opus-qa/w5/sweep/run2c/trips/live.json`) — 41 trips in the hour, **0 BAYBAY pulls**, mean 0.95 × the
+quote, the longest 237.6 s:
+
+| | trips | within 1.3 × the quote | ratio (min · mean · max) |
+|---|---|---|---|
+| T1 (all 16) | 16 | **16** | 0.78 · 0.93 · 1.30 (Coit: 79.7 s / 61.4 s, the pelican's moment on arrival) |
+| T2 (nearest 25 of 48) | 25 | **24** | 0.70 · 0.96 · 1.34 |
+
+- The one over: the Powell & Market turntable (T2) 63 s against a 47 s quote (1.34 ×), arriving 9.8 u short with a cable
+  car on the turntable's track in the way (Requests: N — the quote round the turntable's queue).
+- Every T1: the marketplace 7.5 / 9.6 s, Chinatown 30.5 / 38.9, Coit 79.7 / 61.4, Union Square 38.4 / 44.6, Alcatraz (its
+  view on the waterfront) 47.5 / 61.1, Lombard 56 / 66.9, Fisherman's Wharf 64.9 / 74.4, City Hall 64.3 / 69.8, the
+  Painted Ladies 92.7 / 100.7, the Palace 130.4 / 124.2, Twin Peaks 147.3 / 153.6, the Golden Gate Bridge 158.4 / 170.2,
+  Golden Gate Park 173 / 180.3, Stonestown 221.9 / 224.3, Sutro Baths 212.5 / 220.8, SF State 237.6 / 240.9.
+- The first try of the phase found a real stuck: the carried walk to the marketplace wedged for good between the pooled
+  city bike parked by the Ferry Building's wall and the wall (fixed, above).
+- 22 far T2 (the Sunset, the Richmond, the Presidio's west, ≥ 794 u straight) were left by the hour's budget: the lead's
+  verify can run them all with `--trips t12 --budget 150`.
+
+### Decisions
+
+1. **The arrival card shares its touches instead of moving.** The phone's thumb zone is the whole lower left; any peek card
+   there is in the way. Its body passes touches through, and a drag that starts on a button steers (a tap is still a tap),
+   so lane N's layout stays as it is (`THUMB_PASS` can take other cards).
+2. **The greeting pelican lands behind the pair** (as the camera sees them), so the moment's two-shot shows it between and
+   behind them; beside the player only when there is no room.
+3. **The mantle replaces a pop, and caps the jump in the city.** Before, the airborne move skipped the rise check and any
+   jump snapped the body onto any height; now 0.45–1.6 u is a hands-first climb and higher is a wall (city only; the
+   district is unchanged). A hop that clears the edge lands as before.
+4. **Two ride shots only**: the open-top bus and the LRV. The cable car, the F-line and the ferry keep the side-on shot
+   (their riders stand at the rail or the window, where it reads best). The phone's narrow frame set the bus's turn
+   (0.35 rad): at 0.62 the riders sat at its edge (checked by projection at 390 × 844 and 1440 × 900 in the tests).
+5. **Auto-glide ends through a callback**, not an event: `vehicle:auto` is frozen as bike / car. It lands about 20 u from
+   the target (the glide's own landing spot rules), then faceOpen.
+6. **Set down only off the bus and the Metro**, within 6 u, only when the stop's spot is not open already; the sweep judges
+   those stops at the same spot (`setDown` in static.json says how far from the pole: on lane T's re-stood poles 0.75–3 u,
+   32 of 71 stops).
+7. **The stopped vehicle is a wall for faceOpen** (the ground does not know it) — only at the ride's end, while its platform
+   is live.
+8. **Parked rides do not block an auto-walk** (a toy bike passed through for a moment is better than a trip stuck for
+   good); a player steering by hand still bumps into them.
+
+### Known gaps
+
+- The mantle is not seen live: no ledge between 1.2 and 1.6 u next to a walk was found near the landmarks.
+- pelicanGreet and the auto-glide were checked driven from the console; since then lane C calls the greet in the moment
+  (`game/pelicanFirst.ts`, once the two-shot has turned and `greetBehind()` agrees) and lane N's 看风景飞过去 rides the
+  auto-glide (`dd19cf15`). I have not re-shot them through those callers.
+- The greeting pelican can stand partly behind the player in the two-shot (its head and bill show; seen on desktop and
+  phone).
+- The live walker pushes along the camera's axes, the static sweep along the most open heading: a spot can pass one and
+  not the other (run 2: SS Jeremiah O'Brien passed on desktop, not on the phone; in run 2d it passes on both).
+
+### Not done (this part)
+
+- The trips phase's 22 farthest T2 destinations (the hour's budget; the tool runs them).
+- The phone profile's trips phase (the carried walk is the same code; the desktop run only).
+
+### Requests
+
+- **C / N**: FYI — both hooks are already wired on origin (pelicanFirst's greet; `dd19cf15` 看风景飞过去 on the auto-glide).
+- **N**: SS Jeremiah O'Brien's trip end (T3): the walk graph's nav path ends 4.8 u short of it (a tap-to-walk stops
+  short); it passes the live walker on desktop and phone. The Powell & Market turntable's walk quote (47 s) came in at
+  63 s with a cable car on the turntable's track in the way (1.34 ×).
+- **T**: the Sausalito quay (OFF: off the model — a waiver in your report, or a quay on the model); the loop bus standing
+  at the Welcome Center stop blocked r2's walk on Lincoln Blvd once for > 5 s (run 2c desktop). FYI: off the bus / Metro the
+  rider is now set down on open ground by lane F (`openSpot`, ≤ 3 u on your re-stood poles), and the static sweep judges
+  the stops there.
+- **Lead / V**: new in GameRoot's main graph: the pelican greeting (vehicles/pelican.ts), the mantle (controller), the
+  auto-glide (glide.ts, moveSystem), openSpot (faceOpen.ts), `RIDE_TOUR` (cameraModes.ts), `THUMB_PASS` (pointer.ts) —
+  a few KB gzip in all; please count them in the next bundle measurement. No draw call, triangle, material or program.
