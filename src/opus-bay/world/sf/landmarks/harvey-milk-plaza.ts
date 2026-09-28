@@ -81,7 +81,7 @@ const at18 = (u: number, v: number): Vec2 => ({ x: +(I18.x + CASTRO.x * u + EIGH
  * stand at the ribbons' edges: W4-L-review, the spots had been 3.3–5.9 u out, inside those buildings)
  */
 const CORNERS: { poly: Vec2[]; surface: 'pavement' }[] = [[1, 1], [1, -1], [-1, 1], [-1, -1]].flatMap(([a, c]) => {
-  const w0 = ASPHALT + 0.05, w1 = RIBBON - 0.05, far = 4.4;
+  const w0 = ASPHALT + 0.05, w1 = RIBBON - 0.25, far = 4.4;
   const rect = (u0: number, u1: number, v0: number, v1: number) => ({ poly: [at18(a * u0, c * v0), at18(a * u1, c * v0), at18(a * u1, c * v1), at18(a * u0, c * v1)], surface: 'pavement' as const });
   return [rect(w0, far, w0, w1), rect(w0, w1, w1, far)];
 });
@@ -115,7 +115,7 @@ export const harveyMilkPlaza: W4Site = {
     height: { realM: 25, u: 7.1, top: 7.4, rule: 'H = 3.2 + 0.155·h' },
     osm: ['node/12863137601', 'node/7166033408', 'way/225526801'],
     terrain: [-5, -4, 24, 17],
-    plazaMin: 10,
-    notes: 'The crowd plaza is sidewalk only (the Castro St corner below the flag and the eight corner sidewalks of Castro & 18th, ≈ 13 u²): Market St, Castro St and the corner house take the rest. A memorial plaza (Harvey Milk): quiet tone, no memorial texts copied. The Rainbow Honor Walk plaques and the Muni station are cards / lane T. The rainbow crosswalks at Castro & 18th are ground only.',
+    plazaMin: 7,
+    notes: 'The crowd plaza is sidewalk only (the Castro St corner below the flag and the eight corner sidewalks of Castro & 18th, ≈ 7 u²): Market St, Castro St and the corner house take the rest. A memorial plaza (Harvey Milk): quiet tone, no memorial texts copied. The Rainbow Honor Walk plaques and the Muni station are cards / lane T. The rainbow crosswalks at Castro & 18th are ground only.',
   },
 };

@@ -33,6 +33,13 @@ const places = (JSON.parse(readFileSync(new URL('../public/opus-bay/sf/v1/places
 const placeById = new Map(places.map(p => [p.id, p]));
 const attractionById = new Map(attractions.map(a => [a.id, a]));
 const TRAVEL_ENDS = attractionArrivals();
+/**
+ * Part-1 records (lane L's early phase, before this review) with the same faults, routed to the integration lane in
+ * docs/opus-bay/sf-w4-L.md "Early review 2" (open items): crowd spots or the arrival on a carriageway or in a building,
+ * and USF's dropped east wing. Every other wave-4 record is checked.
+ */
+const OPEN_P1 = new Set(['sfmoma', 'haight-ashbury', 'geary-west', 'st-ignatius-church', 'lands-end', 'bison-paddock', 'ccsf-drpac']);
+const OPEN_HOLES = new Set(['usf-lone-mountain']);
 
 const triCount = (g: THREE.BufferGeometry) => (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
 const inPoly = (p: Vec2, poly: Vec2[]) => pointInPolygon(p, poly);
@@ -247,6 +254,12 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
       const min = s.w4.ringMin ?? 0.75;
       if (min < 0.75) assert.ok(min >= 0.6 && /ring/i.test(s.w4.notes ?? ''), `${s.id} explains its lower ring`);
       assert.ok(f >= min, `${s.id} walk-around ring ${(f * 100).toFixed(0)} % ≥ ${(min * 100).toFixed(0)} %`);
+      // the crowd skips a plaza spot it cannot stand on (crowd.ts spawnStander, r 0.3): at least two it can (W4-L-review:
+      // the street sites' whole-sidewalk strips put their spots against a facade or a kerb tree, Harvey Milk's in houses)
+      if (!OPEN_P1.has(s.id) && s.plaza?.length) {
+        const mine = landmarkPlazaSpots().filter(p => p.id === s.id), usable = mine.filter(p => canStand(p.x, p.z, 0.3)).length;
+        assert.ok(usable >= 2, `${s.id}: ${usable} / ${mine.length} crowd spots standable`);
+      }
       // feet on the draped ground: where a walker can stand on a ground piece, the walk height (with the integration's
       // exclusion sink, landmarkSink) is just under the drawn surface — the piece's lift plus the max-pooling of the bake,
       // never the renderer's default 0.2 u sink on top (which would bury a sixth of the player in every plaza)
@@ -381,13 +394,6 @@ async function carriageway(p: Vec2): Promise<string | null> {
   }
   return null;
 }
-/**
- * Part-1 records (lane L's early phase, before this review) with the same faults, routed to the integration lane in
- * docs/opus-bay/sf-w4-L.md "Early review 2" (open items): crowd spots or the arrival on a carriageway or in a building,
- * and USF's dropped east wing. Every other wave-4 record is checked.
- */
-const OPEN_P1 = new Set(['sfmoma', 'haight-ashbury', 'geary-west', 'st-ignatius-church', 'lands-end', 'bison-paddock', 'ccsf-drpac']);
-const OPEN_HOLES = new Set(['usf-lone-mountain']);
 
 test('crowd spots and arrivals: never on a street carriageway, never inside a city building (W4-L-review)', async () => {
   const spots = landmarkPlazaSpots();
@@ -479,7 +485,8 @@ test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u;
 test('settings: plazas ≥ 30 u² (or the stated sidewalks), never a roadway; lamps light the night, no text or logo parts, AI slots for lane V', () => {
   for (const s of W4_SITES) {
     const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0), min = s.w4.plazaMin ?? 30;
-    if (min < 30) assert.ok(min >= 5 && /sidewalk|plaza/i.test(s.w4.notes ?? ''), `${s.id} explains its smaller plaza`);
+    // (a street site's plaza is its chosen sidewalk spots: 1 u pieces by the kerb, clear of its stands, trees and lamps)
+    if (min < 30) assert.ok((s.w4.street ? min >= 1 : min >= 5) && /sidewalk|plaza/i.test(s.w4.notes ?? ''), `${s.id} explains its smaller plaza`);
     assert.ok(plaza >= min, `${s.id} plaza ${plaza.toFixed(1)} u² ≥ ${min}`);
     // the crowd stands exactly on plaza spots (world/sf/crowd.ts spawnStander skips its roadway check for them)
     for (const p of s.plaza ?? []) assert.notEqual(p.surface, 'road', `${s.id}: a plaza polygon on the roadway`);

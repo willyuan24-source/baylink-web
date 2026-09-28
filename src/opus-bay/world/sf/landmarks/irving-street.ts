@@ -29,6 +29,12 @@ const BLOCK: ShopBlock = {
   signs: ['#f4efe2', '#c9473a', '#e0b04e', '#2f6f4a', '#4f7fbf'],
 };
 
+/**
+ * the crowd's spots on the two sidewalks (plaza pieces 1 u long by the kerb, clear of the stands, trees and lamps: a
+ * whole-sidewalk strip put its spots against the facades and the kerb items, where no walker fits; W4-L-review)
+ */
+const SIDEWALK_SPOTS: [number, -1 | 1][] = [[-4.2, -1], [-2.0, -1], [3.3, -1], [-3.4, 1], [1.2, 1]];
+
 function build(b: BatchLike, lod: 0 | 2) { shopFronts(b, BLOCK, g, lod); }
 
 export const irvingStreet: W4Site = {
@@ -45,7 +51,7 @@ export const irvingStreet: W4Site = {
   ground: shopGround(BLOCK, g),
   lights: shopLights(BLOCK, g),
   // the two sidewalks (a crowd spot is never on the carriageway: the crowd stands exactly there)
-  plaza: [{ poly: [{ x: -4.6, z: -1.75 }, { x: 4.5, z: -1.75 }, { x: 4.5, z: -1.2 }, { x: -4.6, z: -1.2 }], surface: 'pavement' }, { poly: [{ x: -4.6, z: 1.2 }, { x: 4.5, z: 1.2 }, { x: 4.5, z: 1.75 }, { x: -4.6, z: 1.75 }], surface: 'pavement' }],
+  plaza: SIDEWALK_SPOTS.map(([x, side]) => ({ poly: [{ x: x - 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.5 }, { x: x - 0.5, z: side * 1.5 }], surface: 'pavement' as const })),
   w4: {
     placeId: 'irving-street',
     attractions: ['irving-street'],
@@ -57,7 +63,7 @@ export const irvingStreet: W4Site = {
     terrain: [-7, -3, 7, 3],
     terrainStep: 1,
     street: { x0: BLOCK.x0, x1: BLOCK.x1, half: BLOCK.half },
-    plazaMin: 10,
-    notes: 'The crowd plaza is the two sidewalks of the block (10 u²: the shops close both sides); the arrival is on the south sidewalk. A shopping street: no shop names, signs or characters anywhere (blank boards); the shops are the city\'s buildings.',
+    plazaMin: 1.2,
+    notes: 'The crowd plaza is five sidewalk spots of the block (the shops close both sides); the arrival is on the south sidewalk. A shopping street: no shop names, signs or characters anywhere (blank boards); the shops are the city\'s buildings.',
   },
 };
