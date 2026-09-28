@@ -443,3 +443,110 @@ album, the second favours, the letters, the otter), `7d06b800` (CP-14: the pair 
   keeps its photos after closing and reopening the tab.
 
 Status (no relayed owner message arrived): 进度——检查点的鹈鹕镜头和中文名字已修好，相册、六位邻居的第二个小忙和来信都做完并推送，报告已写。
+
+## Review
+
+Adversarial review of lane C (W5-C1 → W5-C8, parts a–c), 2026-09-28, worktree `C:/Users/willy/wt/w5-c`, dev port 5503,
+scratch `C:/Users/willy/opus-qa/w5/w5-c/review/` (QA action scripts `qa-*.json`, every shot, suite logs). Read: every
+W5-C commit (18), the code around them, plan §1–§2, §4.1–§4.3, §4.6, §4.14, §6 and `sf-w5-lead.md`, and the other lanes'
+Requests to lane C. Played in the real game on desktop 1440 × 900 and phone 390 × 844 dpr 3 (touch) and 375 × 667, zh
+and en. Commits: five `W5-C-review:` commits (under Fixed) and this report.
+
+### 给主人的摘要
+
+1. **第一分钟更顺了**：目标卡上的「跟 BAYBAY 去找鹈鹕 · 约 40 秒」现在和路上显示的时间一致；鹈鹕时刻不再在菲尔伯特台阶半路弹出，而是等 BAYBAY 把你带到科伊特塔山顶——背后是渡轮大厦和海湾大桥，手机上鹈鹕也真的落了下来；点「试试起飞」后不会再同时冒出「带路中」和「到啦！试试…」。
+2. **BAYBAY 的新台词会说话了**：V 线早就录好了 C 线 11 句（鹈鹕、欢迎回来、目标卡、金门大桥），一直没接上，现在接上了。
+3. **旅行本**：城市里按 J 或点「旅行本」直接打开「今天」；英文手机上六个标签不再挤成一团；「这周去哪」在城市里直接给传单，不再带你走几公里去码头的公告板。
+4. **事实和中文**：Hank 九月不会再说"球根在土里睡觉"（花园 10 月才种球根，5 月和 10 月整月关门——风车卡片也写上了，10/1 就开始关）；Luz 的巷子用地图上的名字：巴尔米巷、克拉里恩巷。另外 11 条真实信息上网核对过，都对。
+
+### What was checked
+
+- **Code**: the four hooks (rumours, photo frames, welcome, rewards), the pelican unlock and moment, the goals step, the
+  welcome back, the reward events, the deck crossing, the carried Grand Tour and its re-timing, the frozen lines, the
+  album, the second favours and letters, the otter board, CP-14's names. Teardown: every `register*` is undone by the
+  city disposer, and the goals step, letter and album overlays close when unregistered, so their `holdLock('panel')`
+  is released. Per-frame work: the new systems run at 1–4 Hz; the otter board's `useFrame` returns at once between its
+  2 Hz steps. The save: goalsDone holds at most ≈ 101 ids in a full city + district save, under `readProgress`'s 128.
+  The economy: every source lane C emits is paid once by lane E's ledger (a re-emit after a trimmed `arrivals`, a
+  replayed favour or a second viewpoint pays 0), and nothing lane C emits can make the balance negative. District mode:
+  every change is city-gated; the district's barks have no duplicate text, so brain.ts' text de-dup changes nothing there.
+- **In the game** (every screen read): the whole first minute of a new player on both devices — the welcome →
+  我自己逛逛 → the goals step → 跟 BAYBAY 去找鹈鹕 (carried) → Coit → the pelican moment → 试试起飞 → lane A's first
+  flight, with the events logged (`arrive:coit-tower` 10 and `goal:pelican` 20 once each; the `voice-line` ids); J and
+  the phone's 旅行本 in zh and en; the goals step at 375 × 667 (the card 85–606 of 667 px: fits); Luz's second favour in
+  the Journal.
+- **Facts re-checked on the web on 2026-09-28** (11): the 55th Cable Car Bell Ringing Contest was on 10 Oct 2019 in
+  Union Square (sfmta.com press release), so "已经比了五十多届 · 在联合广场" holds; the Ferry Plaza Farmers Market is Sat
+  8 am–2 pm, Tue & Thu 10 am–2 pm (foodwise.org); the Queen Wilhelmina tulips "are usually in full bloom in March" and
+  the garden "is closed every year the entire months of May and October, for annual re-planting" (sfrecpark.org/908);
+  Crissy Field's marsh "was opened to the tides in November 1999" (home.nps.gov/articles/crissy-field-restoration.htm);
+  the Golden Gate Bridge's towers are 4,200 ft (1,280 m) apart (goldengate.org, design & construction stats); the Seward
+  Street slides open 10–5 Tue–Sun, "adults must be accompanied by children", bring cardboard (sfrecpark.org, Seward
+  mini park); Hippie Hill lies between the Conservatory of Flowers and Haight Street, a focal point of the 1967 Summer
+  of Love, with a weekend drum circle anyone can join (en.wikipedia.org/wiki/Hippie_Hill); the Clarion Alley Mural
+  Project was founded in October 1992, the alley between 17th and 18th Streets (clarionalleymuralproject.org/about,
+  en.wikipedia.org/wiki/Clarion_Alley_Mural_Project); Balmy Alley's first murals were painted in 1972
+  (en.wikipedia.org/wiki/Balmy_Alley); Coit Tower was not designed to look like a fire-hose nozzle (sfrecpark.org Coit
+  Tower brochure). All eleven stand; one sentence built on them did not (Hank's, #5).
+
+### Defects found and fixed
+
+| # | defect (how it showed) | fix | commit |
+|---|---|---|---|
+| 1 | **Lane C's 11 recorded lines never spoke.** Lane V recorded `W5_C_LINES` (`data/sf/voiceW5.ts` `W5_PACED_CLIPS`, 44 files) and asked lane C to read the table (lane V's request 4); the pacer read `TOUR_VOICE_CLIPS` alone, so the pelican moment, 欢迎回来, the goals step and the deck lines stayed text. | `game/cityMoments.ts`: the clip table is TOUR_VOICE_CLIPS + W5_PACED_CLIPS. In the game `voice-line` `w5c-goals-intro`, `w5c-pelican-ask` and `w5c-pelican-go` now fire (event log). The test that pinned "not recorded yet" pins all 11 recorded in both languages with the frozen words. With it `marketOpenNow()` reads `bayNow()` like the stalls (the request's second half). | `W5-C-review: lane C's 11 frozen wave-5 lines speak …` |
+| 2 | **The goals step's time was not the trip's.** The big button showed the straight walk (约 50 秒 at the Ferry Building) while the carried trip it starts, the pill and 带我去下一个目标 show the auto-travel time (约 40 秒). | `game/goalsStep.ts goalsStepEta` = `cityMoments.carriedTime`. In the game: button 约 40 秒 = pill 约 40 秒 on desktop and phone. | `W5-C-review: the goals step's button says the carried time …` |
+| 3 | **The pelican moment opened half-way up the Filbert Steps** (Coit's arrival anchor is on the steps). The dialogue paused the carried lead, which then walked on under the first flight: the 带路中 chip, the Coit beam and "Coit Tower · ~3s" over 按 G 起飞 (desktop shot), and its 到啦！试试「…」 bubble would have replaced the take-off line. | `game/pelicanFirst.ts`: the moment waits (≤ 15 s) while the goals step's lead to `pelican:coit` is still carried; `flow.freeLeadArrived` says no 试试「…」 for that lead once the pelican is met. In the game the moment now plays on the summit plaza with the Ferry Building and the Bay Bridge behind the pair, and lane F's pelican lands on the phone (`rv-pelican-summit-390.jpg`, `rv-pelican-summit-desk.jpg`). After 试试起飞 only lane A's chip and line show (`rv-first-flight-390.jpg`). | `W5-C-review: the pelican moment waits for the goals step's lead …` |
+| 4 | The lead's arrival line named a verb no prompt shows: 到啦！试试「看看海湾」～ above Coit's 眺望海湾 prompt. | `pelican:coit` uses the viewpoint's verb (眺望海湾 / Take in the view), tested equal to the prompt. | the commit of #2 |
+| 5 | **Hank contradicted himself this week.** In September his fact2 said 球根在土里睡觉呢 while his ask2 says 花园每年十月重新种球根 (sfrecpark: the garden closes all of May and October to replant). | fact2 by month: Feb–Apr in bloom; October 这个月花园关门种新球根; May–Sep 花园每年十月种新球根; Nov–Jan asleep in the soil. The windmill card (where Hank's favours and the Grand Tour send players) gains 旁边的郁金香花园每年 5 月和 10 月整月关闭、重新种花；出发前查官网确认。 — the October closure starts in three days. | the commit of #2 |
+| 6 | Luz's alleys had two names: her favour, its toast (拍到啦 1/3 · Balmy 巷), the waypoint (小忙 · Clarion 巷) and her letter, against the map, the cards and the attractions (巴尔米巷 · 克拉里恩巷). | The residents' texts use the game's names; a VOICE.md row; a test pins the spot names to the attractions' `short`. | the commit of #2 |
+| 7 | **J / 旅行本 opened on 明信片 in the city** (plan MF6 and §3.3 item 5: the Journal opens on 今天; lane R's request, open since its part b). | `ui/journalDefault.ts`: in the city a registered tab ordered before the built-ins (lane R's 今天, order 5) is the default; the district as before. Seen: J (desktop) and 旅行本 (phone) open on 今天, whose first row is the pelican goal with 带我去 (`rv-journal-today-desk.jpg`). | `W5-C-review: in the city J and the 旅行本 button open the Journal on 今天 …` |
+| 8 | 这周去哪 in the city led you on foot to the district's week board (from Twin Peaks: across the city) before the flyers (plan §3.3 item 1: the flyers right after the three questions; lane R's request). | In the city the board opens at once (the district unchanged; both tested). With it the week board, the real-time offer and the cards' 附近这周 read `bayNow()`, so `?date=` moves them (DEV / QA builds; production is the same real time). | the commit of #7 |
+| 9 | **The city Journal's six tabs ran into each other in English on a phone** ("Today 0/3Notebook", "Postcards 0/24Goals"; lane R's report). | With five or more tabs each keeps its width and the row scrolls sideways, the chosen tab kept in view (`content-ui.css .is-many`, `Journal.tsx`); zh fits unchanged (64 · 44 · 83 · 44 · 44 · 44 px, no scroll); the district's 3–4 tabs untouched (`rv-journal-tabs-en-390.jpg`, `rv-journal-tabs-zh-390.jpg`). | `W5-C-review: the city Journal's six tabs no longer run into each other …` |
+
+Tests: `tests/opus-bay-w5-content.test.ts` (+3 tests and new asserts: the carried time equal to the call menu's and not
+the straight walk's; the verb equal to the prompt; the moment waiting for the lead, then opening on arrival or after
+LEAD_WAIT_MS with no 试试「…」; the market on the Bay clock under `?date=`; the Journal default tab and the week board,
+city vs district), `tests/opus-bay-w5-favours.test.ts` (Hank for all 12 months, the windmill card, Luz's names),
+`tests/opus-bay-w5-tours.test.ts` (the 11 lines recorded). The key asserts were checked red against the old code.
+
+### Not fixed (reasons) and notes
+
+- **A double `voice-line` for the goals step's intro in DEV**: React StrictMode runs the step's mount effect twice, and
+  the second emit, inside the voice player's same-clip gap, plays the fallback chirp over the clip. Production mounts
+  once (no StrictMode double effects); left as is.
+- **Lane E's 飞行券 in the first minute** (every run): 送你一张飞行券！… comes a second after 跟 BAYBAY 去找鹈鹕, and
+  有鹈鹕啦，飞行券用不上了，还你 10 金币。 40 s later at Coit — two lines about a ticket the player never uses. Request below.
+- **A resume shows 发现 4 个新地点 above 欢迎回来** (lane C's own `pa-welcome-back-390.jpg`): lane N's discovery batch on
+  the resumed spot. Request below.
+- **The tour quote** (约 34 分钟; measured 36.1 with a 1-min snag at the GGB Welcome Center): the lead's W5-Z re-time, as
+  part b says.
+- **GameRoot size**: part c's second-favour titles, hints and spots in `data/sf/residents.ts` sit in the main graph (a
+  few KB raw) while GameRoot is 307.7 KB against 265 (lane V); they move with W5-V3's city-data move (the lead's window).
+- **The photo caption fit** (`fitCaption`) also applies to district photos: a caption that used to run into BAYLINK on a
+  narrow portrait card now shrinks (a caption that fits is drawn as before). A fix, but a tiny district change: noted.
+- Still open from the lane's own list: lane R's 今天免费 chips and the coast cards' tide row; the real-iPhone album pass
+  (W5-Z); part c's resident lines as voice.
+
+### Evidence
+
+- Checks on the pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
+  the full opus-bay suite **1334 / 1334** after the last rebase (over lane E's review; `review/suite3.log`); 1332 / 1332
+  and 1327 / 1327 on the trees before. No wall-clock flake.
+- Budgets: no draw call, triangle, material or program added. The new code is in lane C's lazy city chunks
+  (`goalsStep.ts`, `pelicanFirst.ts`, `cityMoments.ts`) plus a few lines in `flow.ts` and `Journal.tsx` and the small
+  `ui/journalDefault.ts`; `data/sf/voiceW5.ts` was already in the city chunk (lane V's binder imports it).
+- Shots in `docs/opus-bay/qa/w5/C/`: `rv-goals-step-desk.jpg` (约 40 秒), `rv-goals-step-375.jpg`,
+  `rv-pelican-summit-desk.jpg`, `rv-pelican-summit-390.jpg` (the pelican landing), `rv-first-flight-390.jpg`,
+  `rv-journal-today-desk.jpg`, `rv-journal-tabs-en-390.jpg`, `rv-journal-tabs-zh-390.jpg`; the rest in scratch.
+- One headless Chrome at a time; lane V's PERF-LOCK (its part-c gate) was waited out before the dev server and every
+  Chrome run; no vite build. `npx tsc`, `eslint` and `tsx` worked (no node_modules workaround). Higgsfield: 0.
+
+### Requests
+
+- **E** (`economy/`): don't give the first 飞行券 while goal #1 is being led (the goals step's 跟 BAYBAY 去找鹈鹕: trip source
+  `free-lead` to `pelican:coit`) — it is refunded 40 s later at Coit; e.g. give it once the player dismisses the lead, or
+  far (> 60 s) from every viewpoint.
+- **N** (`game/resume.ts` / discovery): a resumed player's first discovery batch (发现 4 个新地点：…) should be quiet — the
+  player stood there last time, and 欢迎回来 is the greeting.
+
+Status (no relayed owner message arrived): 进度——C 线复查完成：修好 9 个问题（鹈鹕时刻、配音、目标时间、旅行本、事实与中文），测试全绿，已推送。
