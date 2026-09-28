@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
@@ -33,8 +33,10 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   const citySub = city ? CITY_COPY.titleSub : null;
   // G2's optional city greeting (sf-w2-G2 request to G1): shown as soon as data/sf/copy.ts has a `greet` line
   const cityGreet = city ? (CITY_COPY as { greet?: Bilingual | null }).greet ?? null : null;
-  // lane G1 (G1-10): a saved city spot → "继续上次的位置" (data/save.ts only: the title chunk stays small)
+  // lane G1 (G1-10): a saved city spot (data/save.ts only: the title chunk stays small). W5-N6 (plan MF6): then the
+  // primary 继续旅程 resumes there (Enter too); the secondary starts over at the Ferry Building (progress kept)
   const resume = city ? resumeSpot('city') : null;
+  const primary = useMemo(() => (resume ? () => { requestResume(); onStart(); } : onStart), [resume, onStart]);
 
   useEffect(() => { startRef.current?.focus({ preventScroll: true }); }, []);
   // Enter / Space start from anywhere on the title (not while on another control)
@@ -43,11 +45,11 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       const el = e.target as HTMLElement | null;
       if (typing(el) || (e.code !== 'Enter' && e.code !== 'Space')) return;
-      if (!onControl(el) || !!el?.closest('.ob-title-start')) { e.preventDefault(); onStart(); }
+      if (!onControl(el) || !!el?.closest('.ob-title-start')) { e.preventDefault(); primary(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onStart]);
+  }, [primary]);
 
   const toggleSound = () => {
     game.set(s => ({ settings: { ...s.settings, sound: !s.settings.sound, music: !s.settings.sound ? s.settings.music : false } }));
@@ -76,16 +78,16 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
         <div className="ob-title-greet">
           <BaybayFace mood="wave" size={52} />
-          <p>{returning ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : cityGreet ? t(cityGreet) : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
+          <p>{returning || resume ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : cityGreet ? t(cityGreet) : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
         </div>
         <div className="ob-title-actions">
-          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={onStart} aria-busy={waiting || undefined}>
-            <span>{returning ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
+          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || undefined}>
+            <span>{returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
             {waiting ? <span className="ob-boot-dot" style={{ background: 'currentColor' }} aria-hidden /> : device === 'touch' ? <ArrowRight size={20} aria-hidden /> : <Keycap className="on-dark">Enter</Keycap>}
           </button>
           {resume && (
-            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={() => { requestResume(); onStart(); }}>
-              <MapPin size={18} aria-hidden /><span>{t('继续上次的位置', 'Back where I left off')}</span>
+            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={onStart}>
+              <MapPin size={18} aria-hidden /><span>{t('从头开始 · 渡轮大厦', 'Start over · Ferry Building')}</span>
             </button>
           )}
           <button type="button" className="ob-icon-btn ob-title-sound" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? t('关闭声音', 'Mute sound') : t('打开声音', 'Turn sound on')} title={sound ? t('声音：开', 'Sound: on') : t('声音：关', 'Sound: off')}>

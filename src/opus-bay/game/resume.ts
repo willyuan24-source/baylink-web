@@ -6,17 +6,18 @@ import { readSave, resumeSpot, takeResumeRequest } from '../data/save';
 import { loadPlaces } from '../data/sf/places';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { arrivalSpot, bumpTravelEpoch, placePlayer } from './fastTravel';
-import { beginPlaying, noteInteractHandled, say, startGame } from './flow';
+import { canStand } from '../core/terrain';
+import { beginPlaying, noteInteractHandled, startGame } from './flow';
 import type { AtSpec } from './qa';
 
 /**
  * 继续上次的位置 and city spots from the URL (lane G1, G1-10 / G1-12).
  *
- * startOrResume(): the title's Start. With a pending resume request (the title's "继续上次的位置" button, data/save.ts
- * requestResume) and a saved city spot, the arrival cinematic is skipped: the player waits at the saved spot until the
- * city is on screen there (streamer whenReady, ≤ 8 s — CS-14), is placed on the arrival spot (walkable, resident
- * ground), the bike / car come back (moveApi.restoreFleet) and play starts as a local ('local' start). Anything else is
- * exactly the old startGame().
+ * startOrResume(): the title's Start. With a pending resume request (W5-N6: the title's primary 继续旅程 whenever a
+ * city spot is saved; data/save.ts requestResume) and a saved city spot, the arrival cinematic is skipped: the player
+ * waits at the saved spot until the city is on screen there (streamer whenReady, ≤ 8 s — CS-14), is placed back on
+ * that very spot (`resumePlace`: standable, else the arrival rule), the bike / car come back (moveApi.restoreFleet) and
+ * play starts as a local ('local' start: BAYBAY's welcome back). Anything else is exactly the old startGame().
  *
  * goToCitySpot(): the same wait-and-place for `?at=` place / landmark / ll: / xz: targets in city mode.
  */
@@ -47,11 +48,20 @@ async function resumeAt(spot: { x: number; z: number; heading: number }) {
   bumpTravelEpoch();
   placePlayer(spot, spot.heading);
   await cityReadyAt(spot);
-  placePlayer(arrivalSpot(spot), spot.heading);
+  placePlayer(resumePlace(spot), spot.heading);
   const fleet = readSave()?.vehicles;
   if (fleet) restoreFleet(fleet);
+  // (W5-N6) BAYBAY's welcome back is the greeting (flow's local start; lane C's onWelcome 'returning'): no toast on top
   beginPlaying('local');
-  say('回到上次的位置啦', 'Back where you left off', 'success', 2600);
+}
+
+/**
+ * W5-N6 · where a resume puts the player (the city is streamed there): the saved spot itself when it is standable (it
+ * was when the sampler saved it: the player comes back exactly where they stood), else the arrival rule (an open area
+ * within 30 u, then the nearest walkable spot). Pure over its terrain lookups (tests).
+ */
+export function resumePlace(spot: Vec2, stand: (x: number, z: number) => boolean = canStand, fallback: (p: Vec2) => Vec2 = arrivalSpot): Vec2 {
+  return stand(spot.x, spot.z) ? { x: spot.x, z: spot.z } : fallback(spot);
 }
 
 /** Resolve a parsed ?at= target to a world spot in city mode (null: unknown). */
