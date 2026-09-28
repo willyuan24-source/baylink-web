@@ -76,3 +76,146 @@ Status: no relayed owner message reached this lane during part a.
 - **C:** none now — the rumour texts are ready (`EGGS[i].rumour`, framed 听说… ≤ 45, with `eggSpots` for `at`) and D5 registers `eggs/rumourSource.ts` with your `registerRumourSource` in part b.
 - **R:** egg 7 takes the tide through `setOrganTide(() => 0…1)` (`eggs/marina.ts`) once `tides.json` ships; egg 8's dusk will follow your sun band if you export one I can read (`sunBandAt(bayNow()) === 'golden' | 'dusk'`).
 - **F:** none — egg 9 calls `charApi()?.emote('baybay', 'float', { seconds: 7 })`, which your W5-F2 now provides.
+
+## Part b
+
+### 给主人的摘要
+
+1. 24 个"小发现"全部能玩了。新的 12 个：金门海峡的座头鲸（4–11 月，过海峡大约六次碰到一次）、天涯海角时有时无的石头迷宫（走到中心，镜头转向金门大桥）、中国海滩黄金时刻海面升起三艘旧帆船的影子、大丽花 100 岁（花圃和"100"小牌子）、第 16 大道马赛克台阶一口气爬到顶、双峰上看 Karl、英格塞德日晷的影子跟着旧金山真实的太阳走（晚上没有影子，BAYBAY 打哈欠）、金色消防栓（4 月 18 日清晨有刷子刷金漆）、卡斯特罗彩虹斑马线后的彩虹脚印、骑鹈鹕从天上看苍鹭头公园、旧金山 250 岁生日小路（三个 1776 年的地方，每次都说到奥隆尼人）、开玩具小车到阿尔塔广场台阶顶。
+2. 不用地图针也能找：BAYBAY 会悄悄说一句"听说……"（只说你还没找到、今天真能找到的那个，5 分钟最多一句）；小铺的寻宝罗盘也会指向最近的一个。要骑鹈鹕才能找的三个，解锁飞行以后才提示。
+3. 顺手修了：几个小发现的位置挪到了真正走得到的空地上；道具现在贴着真实地面（以前有的埋在地下看不见）；市中心的诺顿"圣旨"纸卷也立起来了（V 线公布了余量）。
+4. 电脑和手机都实际看过截图；着色器数量没变（电脑 58、手机 55）；全部测试通过（1150 项，见下面关于火圈测试的说明）。
+
+### What was built (W5-D4, W5-D5)
+
+Pushed as `7f0d8c7` (W5-D4 / W5-D5) and the follow-up commit that carries this section (the downtown release, the whale kept
+clear of the deck, the QA images). All in lane D's folder, lazy (`game/w5Features.ts` → `eggs/index.ts`); nothing enters the
+GameRoot graph.
+
+| file | what |
+|---|---|
+| `eggs/presidio.ts` | Egg 13 **humpback**: a crossing of the Gate (past mid-span on the deck, or through / across the Gate on the pelican, within 320 u of mid-span) rolls one in six (`WHALE_ODDS`) in April–November (`WHALE_MONTHS`), at most one roll a minute; `whaleSpot` finds open water 38–85 u ahead (or to the side), clear for its 10 u and ≥ 32 u from the deck's line (`DECK_CLEAR`); 9 s: the blow (spout sound, white puff), the back rolling, the dive with the fluke up; on foot a 6 s look from behind and above (a beat), on the pelican a glance that never holds the controls; the card after the look. Egg 23 **SF 250 trail**: three stops (the Officers' Club, Mountain Lake, Mission Dolores; any order, a per-viewer mark each), each with its 1776 line **and the Ohlone line**, "还差 n 个"; pennants at the unvisited stops through lane N's `registerFlagSource('eggs-250')` all of 2026 and every 17 September (`bannerDay`), gone once found. Egg 24 **Alta Plaza**: the toy car or the bike stopping (≤ 2.5 u/s) within 3.4 u of the south stairway's top → a squeak, a look down the stairs from uphill behind the car (`beat(…, { vehicle: true })`: only a vehicle that already stands), the 1972 line (the bike has its own 别骑下去); chipped-lip prop. |
+| `eggs/west.ts` | Egg 14 **labyrinth**: laid out on ≈ 70 % of Bay days (`labyrinthToday`: the day roll), scattered stones and BAYBAY's line on the others; walking in from outside 2.8 u to within 0.6 u of the centre → a chime, sparkles and a look from inland over the rings to the Golden Gate. Egg 15 **China Beach**: at golden hour, on foot on the lawn above the cove (the site's benches) or on its sand → three junks rise from the water for 6.4 s (`JUNKS`, broadside to the lawn) with a 4.5 s look out over the cove; BAYBAY's 据说 line + "这些帆影只是我的想象哦". |
+| `eggs/park.ts` | Egg 16 **Dahlia Dell**: three beds in bloom June–October (`DAHLIA_MONTHS`), the "100" sign all of 2026 (`dahliaSignUp`), both re-checked every minute; walking up (4.5 u) → the find (off season: "通常六到十月开" first). Egg 17 **Tiled Steps**: the climb from the foot (16th Ave) to the top (15th Ave) along the stair (≤ 2.6 u off it) in one go (a 25 s pause or dropping back 18 % starts over): bubbles at 12 %, birds at 45 %, star chimes at 76 %, the find at the top. |
+| `eggs/mission.ts` | Egg 18 **Karl**: standing still 2.5 s within 16 u of the Twin Peaks summit; Karl in (`karlIn`: the bank's level ≥ 0.5 and its front ≥ 350 u — the morning and golden layouts) → a look over his bank to Sutro Tower, the lines (the tower line, the 2010 account, the July line only June–August, the Twain myth); away → the month's words (Sep–Oct "Karl often takes time off", else "come back morning or dusk"). Egg 20 **golden hydrant** (OSM node at 20th & Church): a prompt 看看小金栓, a gold glint every few seconds, on **18 April 05:00–09:00** a brush circling it with strokes (`paintMorning`). Egg 21 **Castro**: walking over the 18th & Castro crossing → 12 rainbow prints dropped every 0.7 u, each gone after 6 s (props), the find. |
+| `eggs/south.ts` | Egg 19 **sundial**: a prompt 看看日晷; the dial's shadow wedge points away from lane R's real sun (`sunPosition`, azimuth + 180°, shorter when the sun is high), none when the sun is down; by day a look down on the dial and "现在旧金山是 15:04，影子指向东北" (the Bay clock); at night a yawn and "日晷也睡啦". The city frame's compass (`NORTH`, `EAST`, `azimuthDir`, `dirAzimuth`) from `core/geo project`. Egg 22 **Heron's Head**: on the pelican ≥ 10 u above the park within 70 u of its middle → a 2.4 s glance straight down (`hosts.glance`: `runtime.camera.shot` only, no lock), the OSM outline (20 points) glows, marsh birds; once per 40 s. |
+| `eggs/rumourSource.ts` (W5-D5) | `eggRumour(ctx, found, { zone?, canFly? })` for lane C's `registerRumourSource`: an unfound egg of the player's zone first (`cityAreaAt`, the same ids as `store.area`), else the nearest within 260 u; never a found or told id; only what can happen today (`liveSpots`: no humpback outside April–November, the labyrinth only on its days, unvisited 1776 stops) and the pelican's three (Crissy landing, Alcatraz loop, Heron's Head) only once `glideUnlocked()`. The text is the registry's own 听说… (C says it as it is). `eggHintSpots(found, canFly?)` for lane E's `registerHintSource('egg')`: every live spot of every unfound egg (the compass picks the nearest). |
+| `eggs/hosts.ts` | `vehicleStill`, `beat(…, { vehicle })`, `glance(shot, s)` / `glancing()` (a camera look without the lock, cleared only if still ours), `SEA_Y`; a host arriving gets one step's dt (not the time since it last woke: a still-timer must not jump on arrival). |
+| `eggs/props.ts` | New recipes: `labyrinth` (three stone rings with openings, a cairn), `labyrinth-scattered`, `dahlias` (1.5×), `sign100` (digits on both faces), `hydrant` (1.3×), `brush`, `shadow`, `print`, `chips` — all ≤ 200 tris; flat pieces follow the slope. **The pool follows the ground as it streams in** (a prop placed at start stood on the coarse far terrain: the dahlia beds were under the lawn). New flock kinds `whale` (≈ 170 tris, 10 u) and `junk` (≈ 144 tris, two-sided battened sails), own InstancedMeshes on TOY_INST's program. **`DOWNTOWN_PROPS_HELD` = false** (lane V published the downtown headroom: "D's egg props … fit everywhere, the Ferry gate included"): Norton's scroll now stands at the Bay Bridge's foot. |
+| `eggs/sounds.ts` | 11 more synthesized recipes: `egg:spout`, `marsh`, `bubbles`, `birds`, `stars`, `chime`, `ting`, `brush`, `yawn`, `squeak`, `sails`. |
+| `eggs/gates.ts` | `mark` / `marked`: a per-viewer "been there" (the 1776 stops; localStorage with a memory fallback, like the daily memory). |
+| `eggs/registry.ts` | Spots snapped / moved (below); Karl gains the sfbayweather.com source; the Lands End and Tiled Steps names in Chinese as the city uses them (天涯海角, 第 16 大道); `how` of China Beach says the lawn. |
+| `eggs/index.ts` | 24 hosts in the registry's order; the rumour and hint sources; DEV / QA `__opusBay.d.rumour()`, `.hints()`, `.pool()` (the pool mesh as drawn). |
+
+**Spots on open, reachable ground** (lane F's sweep run 1 listed five of mine; `scripts/opus-sf/qa/sweep-static.mts --only egg`
+now: 26 targets, **0 BOXED, 0 SNAG, 1 UNREACHABLE** — the Wave Organ tip, lane L's jetty — 7 CORRIDOR, i.e. streets, the
+deck, alleys): the laughing lady (−212.7, 69.3) → (−214.7, 71.3); the otter roots (−747.3, 598.5) → (−747.3, 595.5) on the
+Fort Point apron; the labyrinth → (−743, 1093.7); **China Beach → the lawn above the cove (−614.8, 969)**: its sand strip is cut
+off from the stairway in the published city (nav ends 3–6 u short and the controller stops at the road's edge, both checked),
+so the lawn is where the egg is found (the sand still counts); **the Wave Organ → (−413, 289.8)** as lane L asked.
+
+### Evidence
+
+- **Checks** on the pushed code `7f0d8c7` (rebased on `c5c5462`): `tsc -p tsconfig.app.json --noEmit` 0 · `eslint .` 0 errors
+  (43 old warnings outside `src/opus-bay`) · the suite **1150 / 1150** with the Bay clock pinned to 05:30 (lane T's `--import`
+  preload calling `__setBayNowForTests`); on the real clock **1148 / 1150**: the two failures are lane L's fire-ring tests
+  (`sf-landmark-context` "D2-10 tops", `sf-sites-w4` "flags … the landmark table matches the models"), which fail from 06:00 to
+  21:30 PDT in the fire season whatever the code — **reproduced on a clean checkout of `origin/opus-bay` (`da331c9`) without
+  my commit** (a scratch worktree, removed after; its empty admin folder `.git/worktrees/wt-origin` could not be deleted:
+  "Permission denied", like several older ones there). I pushed with that known failure (C and E wait on D5's hooks); lane T
+  reported the same thing, and lane L fixed it in `e889335` (the tables no longer follow the wall clock). **The follow-up
+  commit (this section), rebased on `c45502a` (lane A part b): tsc 0 · eslint 0 errors · the suite 1186 / 1186 on the real
+  clock** (1179 / 1179 on `0143dab` before lane A's commits came in).
+- **Tests** (`tests/opus-bay-w5-eggs.test.ts`, 28): the plan's list — the humpback only April–November, the dahlia sign only
+  in 2026 (and the beds June–October), the hydrant brush only 18 April 05:00–09:00, the labyrinth on ≈ 70 % of 365 seeded days,
+  **the sundial's drawn shadow against lane R's `sunPosition` within 2°** (six dates, the prop's geometry itself), the 250
+  pennants in 2026 and every 17 September; every new egg's trigger on the real host code (a Gate crossing on the pelican and
+  on the deck, a failed roll and the one-minute wait, never under the span; walking into the labyrinth vs standing in it,
+  the scattered day's line; golden hour on the lawn vs midday; the Dell's props by month / year; the Tiled Steps in one go vs
+  a 26 s rest; Karl in / away with the September words; the hydrant prompt and its brush; the Castro prints that fade; the
+  sundial by day and at night; Heron's Head from above vs too low; the 1776 stops in any order, twice at one stop, the
+  pennants; Alta Plaza on foot vs the car rolling vs stopped); props ≤ 200 tris, the whale < 500, the junks ×3 < 500; props on
+  open ground and the junks on open water in the published city; **the rumours through lane C's real `registerRumourSource`
+  / `pickRumour` / `frameRumour`** (zone first, found / told / out of season / pelican-before-glide skipped, every egg's
+  rumour said as it is, ≤ 45); **the compass through lane E's real `hintTarget`**.
+- **In the real game** (dev server 5509, headless Chrome with the RTX flag, one Chrome at a time, zh; every image read):
+  desktop 1440 × 900 quality high; phone 390 × 844 dpr 3 quality mid. Natural triggers seen working: China Beach on arrival
+  at golden hour, Karl after standing still on the summit, the Tiled Steps climbed with W, the Castro crossing walked with W,
+  Heron's Head after taking off (G) over the park, the 1776 stop at Mountain Lake, the sundial and hydrant prompts (E), the
+  toy car boarded at Alta Plaza's top step, **BAYBAY's 听说 from lane C's teller** (the teller's start moved back through
+  `__opusBay.c.rumours.state`: "听说花卉温室东边的大丽花圃，今年有个特别的生日。" 3.2 s later). Key images in
+  `docs/opus-bay/qa/w5/D/`: `d4-china-beach-junks-desktop`, `d4-china-beach-junks-phone`, `d4-china-beach-card-phone`,
+  `d4-humpback-from-deck-desktop`, `d4-humpback-fluke-desktop`, `d4-labyrinth-to-the-gate-desktop`,
+  `d4-dahlia-dell-100-desktop`, `d4-tiled-steps-top-desktop`, `d4-karl-sutro-fog-desktop`, `d4-sundial-1500-desktop`
+  (?date=2026-09-28T15:00: the wedge to the north-east), `d4-sundial-1500-phone`, `d4-hydrant-brush-0418-desktop`
+  (?date=2027-04-18T06:10), `d4-castro-rainbow-prints-desktop`, `d4-herons-head-from-above-desktop` (the glowing outline,
+  the pelican, the line), `d4-sf250-mountain-lake-desktop`, `d4-alta-plaza-steps-desktop`, `d4-norton-scroll-downtown-desktop`,
+  `d5-rumour-dahlia-desktop`; the two part-a re-shoots `d3-foghorn-caption-deck-fog-desktop` (golden-hour Karl on the deck,
+  the two-horn line) and `d3-otter-float-fort-point-desktop` (BAYBAY on her back through lane F's float).
+- **Budgets** (read in the browser; fps are lane V's): programs **58 desktop / 55 phone** in every run with the whale, the
+  junks, every new prop and the glance on screen (two runs out of ≈ 40 read 76 from their first state on, before any egg
+  moment ran — the same kind of downtown-edge reading lane R noted; the next runs at the same spots read 58). Calls /
+  triangles at the new spots, desktop high: the China Beach lawn 50–61 / 95–129k, the GGB deck with the whale 33–68 /
+  93–178k, Lands End 44–53 / 77–101k, the Dahlia Dell 67–73 / 231–239k, Twin Peaks 67–83 / 218–251k, Heron's Head flying
+  40–47 / 70–86k, the sundial 65–70 / 213–218k, the hydrant 76–80 / 310–320k, the Castro 60–63 / 292–295k, the Tiled Steps
+  83–84 / 353–355k, Mountain Lake 61–62 / 227–233k, Alta Plaza 63–100 / 234–340k, Norton downtown 64 / 167k, the Ferry gate
+  with the scroll in the pool 73 / 226k; phone mid: China Beach 45–55 / 87–106k, the sundial 43–50 / 149–163k. The flock adds
+  one call only during a flight (whale 9 s, junks 6.4 s); the pool one call only within 110 u of a prop.
+- **Chunk** (a production build to scratch): the eggs init chunk **93.4 KB raw / 38.3 KB gzip** (lazy, after the city starts;
+  part a: 27.4), the cards 5.8 / 2.4 + 1.8 CSS; nothing in GameRoot.
+- **Facts read on the web on 2026-09-28** (part b additions): sfbayweather.com "When does SF fog peak" (July statistically
+  the foggiest month; September–October the clearest) → Karl's July line and a fourth source on egg 18; en.wikipedia.org
+  Golden Fire Hydrant (repainted every 18 April, before sunrise; 1906) → the brush's morning. The other facts of eggs 13–24
+  were read in part a (sources in the registry: baynature.org humpbacks 2018-11-13; localwiki + richmondsfblog labyrinth;
+  nps.gov China Beach; abc7news + sfdahlias.org; Wikipedia Tiled Steps; kqed + currentresults + quoteinvestigator; outsidelands
+  + noehill sundial; Wikipedia + sfstandard hydrant; sf.streetsblog + Wikipedia Rainbow Honor Walk; sfport + Wikipedia Heron's
+  Head; presidio.gov ×2 + missiondolores.org; Wikipedia Alta Plaza Park).
+
+### Decisions
+
+1. **China Beach is found from the lawn above the cove** (the site's benches): the published city's sand is cut off from the
+   stair; the sand still counts if a player gets there. The junks rise broadside to the lawn, with a short look out.
+2. **Every sea / sky moment gets a look** (whale, junks, labyrinth, Karl, sundial, Alta Plaza): without it the thing happened
+   off screen in most camera angles (seen: the first junks were behind the hill, the whale under the span). On the pelican
+   the look is a *glance* (no lock, the controls stay yours); on foot a beat (the feet come back however it ends); cards wait
+   for the letterbox to go.
+3. **The sundial's shadow is the gnomon's vertical north edge's shadow**: away from the real sun's azimuth (what the plan's
+   test pins). The toy fin is steeper than a true 37.7° style (lane L's note), so a style-edge shadow would not read true hours
+   either; the line names the Bay clock time and the shadow's compass direction, both true.
+4. **The Heron's Head look needs ≥ 10 u above the ground** (a landing in the park is not "from above"); once per 40 s.
+5. **The whale is 10 u long (1.4×) and the junks 1.35×**, dahlias 1.5×, the hydrant 1.3×, the prints 0.3 u: toy sizes that read
+   from the follow camera (each checked in a shot).
+6. **The pelican's three eggs are hinted only after the glide unlocks**; the humpback is hinted (it is found from the deck too).
+7. **Karl's line says what the view shows** ("Karl 从海那边漫过来了，苏特罗塔在前面站岗"): in the game his bank lies behind the
+   tower, not round its legs (the first wording claimed the tips poked out of him).
+8. **Downtown released** on lane V's published headroom (props.ts is lane D's file; V's request was addressed to the lead).
+9. **Dusk stays the sky's golden band** (`game.timeOfDay`), which in city mode follows lane R's real sun under Settings › 自动 —
+   so egg 8 and China Beach follow the real sun without a direct call to `sunBandAt`.
+
+### Not done
+
+- The Dahlia Dell and the labyrinth are toy-sized patches (three beds; three stone rings), not the full dell or the real
+  stone pattern.
+- The Castro prints are hidden behind BAYBAY when the camera follows directly behind; they show when you turn or stop.
+- Lane A's `FLOAT_LINE` ("海獭亲戚也这样仰面漂…") plays over egg 9's first line when BAYBAY floats at Fort Point (both are
+  otter-cousin lines; the fact card carries the story) — see Requests.
+- W5-D6 (should: batch 2, the pebbles, 城市之声) not started.
+- Voice clips for the part-b lines (lane V, H5-3).
+
+Status: no relayed owner message reached this lane during part b.
+
+### Requests
+
+- **L:** (the fire-ring tests: done in your `e889335`.) The China Beach sand strip is not reachable from the site's stairway
+  (nav ends 3–6 u short; the walker stops at the road's edge by the stair): if the stair should reach the sand, its last
+  flight needs a walkable link. The Wave Organ spot is at your (−413, 289.8): register the site when you are ready.
+- **A:** skip `FLOAT_LINE` when the float comes from `charApi().emote('baybay', 'float')` outside the pet flow (egg 9 says its
+  own lines), e.g. only say it from `pet.ts`'s own trigger.
+- **T:** still open from part a — skip `ambience.foghorn()` while the duet plays (a `setFoghornOwner`-like flag) and
+  `setSeaLionDensity(k)` for the PIER 39 dock by month.
+- **V:** voice (H5-3) for the part-b lines: `EGGS[12..23].lines`, `presidio.BIKE_LINE`, `west.SCATTERED_LINE` /
+  `IMAGINED_LINE`, `park.OFF_SEASON_LINE`, `mission.SUTRO_LINE` / `SUMMER_LINE` / `AWAY_LINE` / `TODAY_18_LINE`,
+  `south.NIGHT_LINE` (and `sundialNowLine` is built from the clock: text only). The eggs chunk is 38 KB gzip lazy: if you want it
+  smaller, moving `fact` / `sources` into the card chunk is the lever (an API change for E / C, only on request).
+- **E:** the compass list is live (`registerHintSource('egg')`: live spots of unfound eggs; the pelican's three after the glide).
+- **C:** the rumour source is live; your teller told the dahlia rumour in the game.

@@ -18,9 +18,9 @@ import { registerWarmup } from '../world/warmup';
  * mesh) and TOY_INST (instanced, no instanceColor) — same onBeforeCompile, same cache key, same flags as the warm-up's
  * dummies — and registered with world/warmup.ts so they link before they are first seen.
  *
- * Downtown (the Ferry gate, Chinatown, the Financial District, Union Square) gets no new geometry until lane V publishes
- * the measured headroom (plan MF9 / D15): `DOWNTOWN_PROPS_HELD` keeps those props out of the pool (their eggs still work
- * through the prompt, the sound and the card).
+ * Downtown (the Ferry gate, Chinatown, the Financial District, Union Square) got no new geometry until lane V published
+ * the measured headroom (plan MF9 / D15): `DOWNTOWN_PROPS_HELD` kept those props out of the pool. V's headroom (sf-w5-V.md,
+ * 2026-09-28: "D's egg props … fit everywhere, the Ferry gate included") released it; the switch stays for a later hold.
  */
 
 export type PropKind =
@@ -41,8 +41,8 @@ export interface PropSpec {
 export const PROP_RANGE = 110;
 /** Downtown's box (city frame): the hero waterfront by the Ferry Building, the Financial District, Chinatown, Union Square. */
 export const DOWNTOWN = { minX: -5, maxX: 330, minZ: -70, maxZ: 300 } as const;
-/** true until lane V's downtown headroom is published (then the lead flips it). */
-export const DOWNTOWN_PROPS_HELD = true;
+/** Downtown props held back (false since lane V published the downtown headroom: Norton's scroll, 140 tris, +1 call within 110 u). */
+export const DOWNTOWN_PROPS_HELD: boolean = false;
 export const isDowntown = (x: number, z: number) => x >= DOWNTOWN.minX && x <= DOWNTOWN.maxX && z >= DOWNTOWN.minZ && z <= DOWNTOWN.maxZ;
 
 function toyMaterial(key: 'ob-toy-dyn' | 'ob-toy-inst', name: string): THREE.MeshStandardMaterial {

@@ -5,8 +5,8 @@ import { eggById } from './registry';
 
 /**
  * Wave 5 · lane D (W5-D3) · Chinatown and downtown: egg 4 (the old telephone exchange's phone) and egg 6 (Emperor
- * Norton's bridge decree). Downtown gets no new geometry until lane V publishes the headroom (plan MF9 / D15): both are a
- * prompt, a sound and paper on screen; Norton's post + scroll prop waits in the pool (eggs/props.ts DOWNTOWN_PROPS_HELD).
+ * Norton's bridge decree): a prompt, a sound and paper on screen; Norton's post + scroll (140 tris) stands in the prop
+ * pool since lane V published the downtown headroom (eggs/props.ts DOWNTOWN_PROPS_HELD, released 2026-09-28).
  */
 
 // --- egg 4 · the phone at 743 Washington St ---------------------------------------------------------------------

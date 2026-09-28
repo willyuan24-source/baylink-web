@@ -185,7 +185,7 @@ test('W5-D2 gates: months, a day window, the year, the ≈ 70 % day roll, sea-li
   } finally { __setBayNowForTests(null); gates.__resetDailyForTests(); }
 });
 
-test('W5-D2 props: ≤ 200 triangles each; one mesh with only the props within range; downtown held; hidden (0 calls) when none is near', () => {
+test('W5-D2 props: ≤ 200 triangles each; one mesh with only the props within range; downtown released (V\'s headroom); hidden (0 calls) when none is near', () => {
   for (const k of ['decree', 'tin', 'windsock', 'cookie'] as const) {
     const n = P.propTriangles(k);
     assert.ok(n > 0 && n <= 200, `${k}: ${n} triangles`);
@@ -194,10 +194,12 @@ test('W5-D2 props: ≤ 200 triangles each; one mesh with only the props within r
   pool.set('a', { kind: 'tin', x: -184.4, z: 290.7, y: 6 });
   pool.set('b', { kind: 'windsock', x: -558.5, z: 529.5, y: 0.2 });
   pool.set('down', { kind: 'decree', x: 240, z: 16, y: 0 });
-  assert.equal(P.DOWNTOWN_PROPS_HELD, true);
+  // released on 2026-09-28: lane V's published downtown headroom takes D's props everywhere, the Ferry gate included
+  assert.equal(P.DOWNTOWN_PROPS_HELD, false);
   assert.ok(P.isDowntown(240, 16) && P.isDowntown(27, 134) && P.isDowntown(157, -21), 'Norton, Chinatown and the Ferry gate are downtown');
   assert.ok(!P.isDowntown(-30, 38) && !P.isDowntown(-184, 290), 'Telegraph Hill and Cow Hollow are not');
-  assert.ok(!pool.has('down'), 'held downtown');
+  assert.ok(pool.has('down'), 'Norton’s scroll stands downtown');
+  pool.set('down', null);
   pool.step(0, -180, 290);
   assert.deepEqual(pool.visibleKeys(), ['a']);
   assert.ok(pool.mesh.visible);
@@ -861,6 +863,11 @@ test('W5-D4 the humpback: about one Gate crossing in six (April–November only)
     assert.equal(H.flock.active, null, 'the next roll waits a minute');
     // the whale needs clear water ahead: none found → nothing drawn
     assert.equal(presidio.whaleSpot({ x: 0, z: 0 }, 0, () => false), null);
+    // never under the span (seen in the game: hidden by the deck): looking along the deck, it surfaces off to one side
+    for (const h of [Math.atan2(marina.AX.x, marina.AX.z), Math.atan2(-marina.AX.x, -marina.AX.z)]) {
+      const s = presidio.whaleSpot(marina.MID, h, () => true)!;
+      assert.ok(s && Math.abs(marina.deckCoords(s.x, s.z).across) >= presidio.DECK_CLEAR, `clear of the deck (${s && marina.deckCoords(s.x, s.z).across.toFixed(1)})`);
+    }
   } finally { Math.random = rnd; stop(); w.cleanup(); }
 });
 

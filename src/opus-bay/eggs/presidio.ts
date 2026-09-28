@@ -6,7 +6,7 @@ import { registerFlagSource } from '../game/flags';
 import { bayParts } from '../game/bayNow';
 import { inMonths, mark, marked } from './gates';
 import { type EggHost, SEA_Y, beat, flock, fx, glance, isFound, momentFree, props, reveal, say, sound } from './hosts';
-import { deckCoords, MID, onDeck } from './marina';
+import { deckCoords, GGB, MID, onDeck } from './marina';
 import type { BirdPath } from './props';
 import { eggById } from './registry';
 
@@ -34,15 +34,27 @@ export function gateSides(x: number, z: number): { ns: number; ew: number } {
   return { ns: Math.sign(c.along), ew: Math.sign(c.across) };
 }
 
-/** A water spot about 40–85 u ahead of `from` along `dir` (rad, heading convention), clear for the whale's length. */
+/** Never under the bridge: a whale spot keeps this far (u) from the deck's line while it is between the anchorages. */
+export const DECK_CLEAR = 32;
+const clearOfDeck = (x: number, z: number) => {
+  const c = deckCoords(x, z);
+  return Math.abs(c.across) >= DECK_CLEAR || c.along < GGB.deck.from - DECK_CLEAR || c.along > GGB.deck.to + DECK_CLEAR;
+};
+
+/**
+ * A water spot about 40–85 u ahead of `from` along `dir` (rad, heading convention; the nearest open water to either side
+ * when the view runs along the bridge), clear for the whale's length and never under the deck (seen in the game: a
+ * whale under the span was hidden by it).
+ */
 export function whaleSpot(from: { x: number; z: number }, heading: number, water: (x: number, z: number) => boolean = isWater): { x: number; z: number; swim: number } | null {
-  for (const d of [55, 45, 70, 38, 85]) {
-    for (const a of [0, 0.35, -0.35, 0.7, -0.7]) {
+  for (const a of [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4]) {
+    for (const d of [55, 45, 70, 38, 85]) {
       const h = heading + a;
       const x = from.x + Math.sin(h) * d, z = from.z + Math.cos(h) * d;
       // it swims across the view: its body along the perpendicular
       const swim = h + Math.PI / 2;
-      const clear = [-6, -3, 0, 3, 6].every(k => water(x + Math.sin(swim) * k, z + Math.cos(swim) * k)) && water(x + Math.sin(h) * 5, z + Math.cos(h) * 5);
+      const clear = [-8, -4, 0, 4, 8].every(k => water(x + Math.sin(swim) * k, z + Math.cos(swim) * k) && clearOfDeck(x + Math.sin(swim) * k, z + Math.cos(swim) * k))
+        && water(x + Math.sin(h) * 5, z + Math.cos(h) * 5);
       if (clear) return { x, z, swim };
     }
   }
