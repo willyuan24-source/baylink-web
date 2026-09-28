@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import type * as THREE from 'three';
-import { coinGeometry, coinMaterial, makeMesh, writeCoin } from './coinMesh';
+import { coinGeo, coinMat, makeMesh, writeCoin } from './coinMesh';
 import { coinWorld, MAX_DRAWN } from './coins';
 
 /**
@@ -12,13 +12,12 @@ export function CoinLayer() {
   const scene = useThree(s => s.scene);
   const ref = useRef<{ mesh: THREE.InstancedMesh; at: number } | null>(null);
   useEffect(() => {
-    const geo = coinGeometry(), mat = coinMaterial();
-    const mesh = makeMesh(geo, mat, MAX_DRAWN + 8);
+    const mesh = makeMesh(coinGeo(), coinMat(), MAX_DRAWN + 8);
     mesh.count = 0;
     mesh.visible = false;
     scene.add(mesh);
     ref.current = { mesh, at: -1e9 };
-    return () => { mesh.removeFromParent(); geo.dispose(); mat.dispose(); mesh.dispose(); ref.current = null; };
+    return () => { mesh.removeFromParent(); mesh.dispose(); ref.current = null; };
   }, [scene]);
   useFrame(() => {
     const r = ref.current, w = coinWorld;

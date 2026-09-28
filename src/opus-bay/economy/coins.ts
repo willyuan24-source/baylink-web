@@ -21,6 +21,7 @@ import { game } from '../core/store';
 import { registerFrameSystem, registerSceneSystem } from '../game/systemsRegistry';
 import { playSound, registerSound } from '../audio/hooks';
 import { spawnFx } from '../world/fx';
+import { registerWarmup } from '../world/warmup';
 import { COIN_CACHES, COIN_RINGS, COIN_TRAILS, SLOT_COINS, cacheIds, ringCoinIds, trailCoinIds } from './coinSpots';
 import { isPaid, registerRewardIds, subscribeLedger, todayKey } from './ledger';
 import { registerHintSource } from './hints';
@@ -268,7 +269,12 @@ export function initCoins(): () => void {
   }, 40));
   // the 寻宝罗盘 (shop, W5-E6) points at the nearest unfound cache
   offs.push(registerHintSource('cache', () => world.items.filter((c, i) => c.kind === 'cache' && !world.isTaken(i)).map(c => ({ id: c.entry, x: c.x, z: c.z }))));
-  void import('./CoinLayer').then(m => { if (!gone) offs.push(registerSceneSystem('e-coins', m.CoinLayer)); });
+  // the layer and its warm-up set (world/warmup recipe: registered here, before the first coin is drawn)
+  void Promise.all([import('./coinMesh'), import('./CoinLayer')]).then(([mesh, layer]) => {
+    if (gone) return;
+    offs.push(registerWarmup('e-coins', mesh.coinWarmup));
+    offs.push(registerSceneSystem('e-coins', layer.CoinLayer));
+  }).catch(error => { if (import.meta.env?.DEV) console.error('[opus-bay coins] layer', error); });
   return () => {
     gone = true;
     for (const off of offs.splice(0).reverse()) off();

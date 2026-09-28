@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { patchToyShader } from '../world/materials';
-import { registerWarmup } from '../world/warmup';
+import { instancedWarmup, type WarmupSet } from '../world/warmup';
 import { CACHE_STACK, type CoinItem } from './coins';
 
 /**
@@ -64,14 +64,16 @@ export function makeMesh(geo: THREE.BufferGeometry, mat: THREE.Material, n: numb
   return mesh;
 }
 
-// the warm-up set: the same geometry / material kind (a lazy chunk: compiled ≈ 30 ms after registering)
-let warmGeo: THREE.BufferGeometry | null = null;
-registerWarmup('e-coins', () => {
-  warmGeo ??= coinGeometry();
-  const mat = coinMaterial(), mesh = makeMesh(warmGeo, mat, 1);
-  mesh.setMatrixAt(0, new THREE.Matrix4());
-  return { objects: [mesh], dispose: () => { mat.dispose(); mesh.dispose(); } };
-});
+/**
+ * The ONE material instance and geometry of the coin mesh (world/warmup.ts recipe, W5-V6: one instance per object kind,
+ * the warm-up object built from the same instance): made on first use, kept for the page (small; never disposed).
+ */
+let MAT: THREE.MeshStandardMaterial | null = null, GEO: THREE.BufferGeometry | null = null;
+export const coinMat = (): THREE.MeshStandardMaterial => (MAT ??= coinMaterial());
+export const coinGeo = (): THREE.BufferGeometry => (GEO ??= coinGeometry());
+
+/** The warm-up set (registered by coins.ts initCoins): one InstancedMesh like the real one — no instance colour, no cast shadow. */
+export const coinWarmup = (): WarmupSet => instancedWarmup(coinMat(), { geometry: coinGeo(), receiveShadow: true });
 
 const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), P = new THREE.Vector3(), S = new THREE.Vector3();
 const phaseOf = (c: CoinItem) => (c.x * 0.37 + c.z * 0.61) % (Math.PI * 2);
