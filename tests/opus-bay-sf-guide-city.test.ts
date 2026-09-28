@@ -102,18 +102,20 @@ test('trip time from where the player stands: the walking leg along its route, a
   assert.equal(G.tripSecondsLeft({ ...trip, leg: 2 }, { x: 0, z: 0 }, false), 0);
 });
 
-test('trip names: lane P\'s trip destination (the island\'s pier), the short name only on foot', () => {
+test('trip names: lane P\'s trip destination (the island\'s pier with its own short name), the attraction\'s short name otherwise', () => {
   const alcatraz = ATTRACTION_INDEX.get('alcatraz');
   assert.ok(alcatraz);
   const n = G.tripNames({ placeId: 'alcatraz-landing', attraction: 'alcatraz', option: { mode: 'walk', legs: [], seconds: 0 }, legs: [], leg: 0, startedAt: 0 });
   assert.match(n.destination?.zh ?? '', /33 号码头/);
-  assert.equal(n.short, null, 'an offWalk island never names itself on a pier');
+  assert.equal(n.short?.zh, '33 号码头', 'the pier\'s own short name (lane P), never the island\'s');
   const sfsu = G.tripNames({ placeId: 'sf-state-university', attraction: 'sf-state-university', option: { mode: 'walk', legs: [], seconds: 0 }, legs: [], leg: 0, startedAt: 0 });
   assert.equal(sfsu.short?.zh, '州立大学');
 });
 
 test('arrival beats (lane C flow.arrival) → the toast now, the card, the panorama after it; a quiet arrival without toast shows nothing', async () => {
-  G.initGuideCity();
+  // (the guide watches the ride fleet with an interval: dispose it, or this file never exits)
+  const off = G.initGuideCity();
+  try {
   const beats = { toast: { zh: '抵达 · 双峰', en: 'Arrived · Twin Peaks' }, line: null, voice: null, mood: 'happy' as const, reveal: false, peek: true, stamp: true, stampSound: true, postcardHint: null, panorama: true, discover: true as const };
   runtime.player.x = -60; runtime.player.z = 700; runtime.camera.yaw = 0;
   flow.set({ arrival: { ...beats, attraction: 'twin-peaks', place: 'twin-peaks' } });
@@ -130,6 +132,7 @@ test('arrival beats (lane C flow.arrival) → the toast now, the card, the panor
   assert.equal(G.guideUi.get().toast, null);
   assert.equal(G.guideUi.get().card, null);
   flow.set({ arrival: null });
+  } finally { off(); }
 });
 
 test('chevrons use their own material on the warmed TOY_INST program (no new program, no shared instance)', () => {

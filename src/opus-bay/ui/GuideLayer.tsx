@@ -4,9 +4,9 @@ import PHOTO_ASSETS from '../../data/sf-landmark-photo-assets.json';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
-import { enterPhotoMode, objectiveTarget, openPanel, walkTo } from '../game/flow';
+import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { type GuideUiState, endTripFromCard, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
+import { type GuideUiState, TOAST_MS, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
 import { type TripLineInfo, tripTimeLabel } from '../game/tripPlan';
 import type { TripState } from '../game/tripTypes';
@@ -72,6 +72,13 @@ export function TripPillSlot() {
 
 export function GuideToasts() {
   const toast = useGuide(s => s.toast);
+  // 3.2 s from when it is on screen (an arrival in the first moments of play can come before this chunk)
+  const key = toast?.key ?? -1;
+  useEffect(() => {
+    if (key < 0) return;
+    const id = window.setTimeout(() => { if (guideUi.get().toast?.key === key) guideUi.set({ toast: null }); }, TOAST_MS);
+    return () => window.clearTimeout(id);
+  }, [key]);
   if (!toast) return null;
   return <ArrivalToast key={toast.key} arrival={{ name: toast.name, quiet: toast.quiet }} text={toast.text} />;
 }
@@ -90,16 +97,16 @@ export function GuideOverlay() {
     <>
       {card && (
         <ArrivalCard
-          key={card.key}
+          key={`card-${card.key}`}
           arrival={{ place: card.place, name: card.name, tier: card.tier, photo: card.photo, quiet: card.quiet, color: card.color }}
           onInfo={() => openPanel('poi', `sf:${card.place}`)}
           onPhoto={() => { enterPhotoMode(); faceCameraToward(card.x, card.z, { uncapped: true }); }}
-          onClose={() => { if (guideUi.get().card?.key === card.key) guideUi.set({ card: null }); }}
+          onClose={() => { if (guideUi.get().card?.key === card.key) guideUi.set({ card: null }); dismissArrival(); }}
         />
       )}
       {pano && (
         <PanoramaTags
-          key={pano.key}
+          key={`pano-${pano.key}`}
           tags={pano.tags}
           register={registerPanoramaRoot}
           onPick={id => { const a = ATTRACTION_INDEX.get(id); openPanel('map', a?.placeId ?? id); }}
@@ -175,8 +182,9 @@ function TripCardSlot({ trip }: { trip: TripState }) {
       title={title}
       left={{ zh: `还要${left.zh}`, en: `${left.en} to go` }}
       lines={lines}
+      onSkip={skipTripLeg}
       onChange={() => { close(); openPanel('map', trip.placeId); }}
-      onEnd={() => { void endTripFromCard(); }}
+      onEnd={() => { close(); endTrip(); }}
       onClose={close}
     />
   );

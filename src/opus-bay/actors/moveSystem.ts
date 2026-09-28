@@ -112,6 +112,8 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
 const ALIGHT_HOP_MAX = 6;
 /** On a cable car BAYBAY sits on the rider's (camera-side) outward bench, this far along it from the rider's seat (u). */
 const CABLE_GUIDE_DZ = 0.62;
+/** On the sightseeing bus BAYBAY sits this far toward the aisle from the rider's bench seat (lane T's TOUR_BUS_SPOTS). */
+const BUS_GUIDE_DX = 0.46;
 /** The walkable rect of a platform the rider is in: the aisle, or one of `decks` (a running board, a sun deck). */
 function deckRectAt(plat: Platform, x: number, z: number): DeckRect {
   let best = plat.deck, bestD = rectDist(plat.deck, x, z);
@@ -967,9 +969,22 @@ export class MoveSystem {
         out.set(w.x, w.y, w.z);
         return { scale: 1, sitting: true, pole: false };
       }
+      if (plat.kind === 'bus') {
+        // W4-G4 · the sightseeing bus's open top deck (lane T's TOUR_BUS_PLATFORM): BAYBAY sits beside the rider on the
+        // same front bench, its aisle half (lane T's TOUR_BUS_SPOTS.baybaySeat: 0.46 u in from the rider's seat); when
+        // the rider stands at the front rail she keeps the bench on the camera's side
+        const seat = spotFor(plat, 'seat', this.cameraSide);
+        const w = toWorld(plat, seat.x - Math.sign(seat.x || 1) * BUS_GUIDE_DX, plat.floor + plat.seatY + 0.2, seat.z);
+        out.set(w.x, w.y, w.z);
+        return { scale: 1, sitting: true, pole: false };
+      }
       const seated = m.spot === 'seat';
       const lx = seated ? (this.cameraSide > 0 ? plat.seatRight.x : plat.seatLeft.x) : clamp(this.deck.x - 0.1, plat.deck.minX + 0.3, plat.deck.maxX - 0.3);
-      const lz = clamp(this.deck.z + 0.95, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
+      let lz = clamp(this.deck.z + 0.95, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
+      // (E2 w3 review open) the ferry's sun deck: the rider at the bow rail is at the deck's front edge, so "0.95 u
+      // ahead" clamped onto the rider (0.05 u apart: in the side-on ride shot BAYBAY covered the player). There she
+      // stands 1.1 u aft of the rider instead: beside them in the frame
+      if (!seated && plat.kind === 'ferry' && Math.abs(lz - this.deck.z) < 0.8) lz = clamp(this.deck.z - 1.1, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
       const w = toWorld(plat, lx, plat.floor + (seated ? plat.seatY + 0.2 : 0), lz);
       out.set(w.x, w.y, w.z);
       return { scale: 1, sitting: seated, pole: !seated };

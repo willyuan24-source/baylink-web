@@ -504,6 +504,13 @@ export async function routeTo(from: Vec2, to: Vec2, opts: AsyncRouteOptions & { 
   return { points, legs: splitLegs(points, LEG_MAX), length: polylineLength(points), via: 'graph', snapped };
 }
 
+/** A graph route's walker may cut to one of the next legs' ends (RouteWalker.refine) … */
+const CUT_LEGS = 2;
+/** … when that end is this close in a straight line (u; inside the local window) … */
+const CUT_REACH = 130;
+/** … and the whole way gets at least this much shorter (u). */
+const CUT_GAIN = 4;
+
 /**
  * Follows a Route leg by leg: `update(pos)` returns local grid waypoints toward the end of the current leg (refined
  * with findPath when a leg starts; the leg's own points if the grid finds nothing), or null once the goal is reached.
@@ -557,9 +564,42 @@ export class RouteWalker {
     return L;
   }
 
+  /**
+   * The local path for the current leg. A graph route (wave 4 integration, lane G; G1's wave-3 review observation):
+   * the graph can reach a crossing the local grid makes better elsewhere — Ferry gate → Dragon Gate, the graph crossed
+   * the Embarcadero at x ≈ 159 and came back west to x ≈ 132, while the local path of leg 0 crossed at x ≈ 132, walked
+   * east to the leg's end at x ≈ 154 and back: a 20 u excursion in the auto-walk. So a later leg end (the next
+   * CUT_LEGS) that the local grid reaches directly, with a shorter total (local path + the route after it), is taken
+   * instead and the legs in between are skipped. Local routes (a single A* path already) never cut.
+   */
   private refine(pos: Vec2) {
-    const leg = this.route.legs[this.leg], end = leg[leg.length - 1];
-    this.path = findPath(pos, end, 12)?.points ?? leg.slice(1);
+    const legs = this.route.legs;
+    const leg = legs[this.leg], end = leg[leg.length - 1];
+    const base = findPath(pos, end, 12);
+    let bestLeg = this.leg, bestPath = base?.points ?? leg.slice(1);
+    if (this.route.via === 'graph' && base) {
+      let bestCost = polylineLength([pos, ...base.points]) + this.after(this.leg);
+      for (let k = this.leg + 1; k < Math.min(legs.length, this.leg + 1 + CUT_LEGS); k++) {
+        const e = legs[k][legs[k].length - 1];
+        const straight = Math.hypot(e.x - pos.x, e.z - pos.z);
+        if (straight > CUT_REACH || straight + this.after(k) >= bestCost - CUT_GAIN) continue;
+        const r = findPath(pos, e, 12);
+        const got = r?.points[r.points.length - 1];
+        // it has to get there (a goal snapped a few units onto walkable ground is fine, one snapped elsewhere is not)
+        if (!r || !got || Math.hypot(got.x - e.x, got.z - e.z) > 3) continue;
+        const cost = polylineLength([pos, ...r.points]) + this.after(k);
+        if (cost < bestCost - CUT_GAIN) { bestCost = cost; bestLeg = k; bestPath = r.points; }
+      }
+    }
+    this.leg = bestLeg;
+    this.path = bestPath;
     this.pathLeg = this.leg;
+  }
+
+  /** The route's length after leg k's end (u). */
+  private after(k: number): number {
+    let L = 0;
+    for (let i = k + 1; i < this.route.legs.length; i++) L += polylineLength(this.route.legs[i]);
+    return L;
   }
 }

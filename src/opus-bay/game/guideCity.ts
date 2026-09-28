@@ -9,8 +9,11 @@ import { ATTRACTIONS, ATTRACTION_INDEX, attractionColor, tripDestination, withSi
 import type { Attraction } from '../data/sf/attractionTypes';
 import { patchToyShader } from '../world/materials';
 import { FlagLayer, flagScaleDistance } from '../world/sf/flags';
-import { warmPrograms } from '../world/warmup';
+import { lateWarmups } from '../world/warmup';
+import { rideLookAt } from '../actors/cameraModes';
 import { landmarkBaseY } from '../actors/glideTall';
+import { onEvent } from '../core/events';
+import { activeLineFleet } from '../data/transit';
 import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from '../actors/reveal';
 import { playShots } from './cinema';
 import { isDiscovered } from './discovery';
@@ -76,7 +79,7 @@ export interface GuideUiState {
 export const guideUi = createStore<GuideUiState>({ toast: null, card: null, panorama: null, tripCard: false });
 
 /** ARRIVAL_TOAST_MS of ui/guideText (kept here as a number: this module does not import the UI words) */
-const TOAST_MS = 3200;
+export const TOAST_MS = 3200;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Shared inputs
@@ -150,7 +153,9 @@ export function tripSecondsLeft(trip: TripState, pos: Vec2, riding = !!flow.get(
 export function tripNames(trip: TripState): { destination?: Bilingual; short: Bilingual | null } {
   const a = trip.attraction ? ATTRACTION_INDEX.get(trip.attraction) : undefined;
   if (!a) return { short: null };
-  return { destination: tripDestination(a).name, short: a.offWalk ? null : a.short ?? null };
+  // lane P's trip destination: an island's pier by its own name and short name, never the island's
+  const d = tripDestination(a);
+  return { destination: d.name, short: d.short ?? null };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -315,7 +320,6 @@ const panoramaInputs: TagInput[] = [];
 
 function GuideScene() {
   const scene = useThree(s => s.scene);
-  const gl = useThree(s => s.gl);
   const camera = useThree(s => s.camera) as THREE.PerspectiveCamera;
   const layer = useRef<FlagLayer | null>(null);
   const chev = useRef<THREE.InstancedMesh | null>(null);
@@ -340,24 +344,23 @@ function GuideScene() {
     chev.current = mesh;
     let gone = false;
     void flagSources().then(list => { if (!gone) tick.current.sources = list; });
-    // the flag program: registered at this module's load ('g-flags'); the boot warm-up (GameRoot, 250 ms after the
-    // canvas) may have run before this lazy module came in, so warm once more after it (programs already linked are
-    // reused: only the new one compiles, asynchronously, before the first flag is picked)
-    const t = window.setTimeout(() => {
-      const s = game.get().settings;
-      const ready = () => { if (!gone) tick.current.warm = true; };
-      void warmPrograms(gl, scene, camera, { offscreen: s.quality === 'high' && !s.reducedMotion }).then(ready, ready);
-    }, 1200);
+    // the flag program: registered at this module's load ('g-flags'). Before the boot warm-up (GameRoot, 250 ms after
+    // the canvas) it is in that pass; after it, lane V's late warm-up (world/warmup, W4-V-I5) compiles it by itself
+    // ≈ 30 ms later. The first flag waits for that pass (or 3 s), so no flag draw ever links a program on a frame.
+    const t0 = performance.now();
+    const t = window.setInterval(() => {
+      if (lateWarmups.some(w => w.keys.includes('g-flags')) || performance.now() - t0 > 3000) { tick.current.warm = true; window.clearInterval(t); }
+    }, 100);
     return () => {
       gone = true;
-      window.clearTimeout(t);
+      window.clearInterval(t);
       flags.dispose();
       layer.current = null;
       mesh.removeFromParent(); geo.dispose(); mat.dispose(); mesh.dispose();
       chev.current = null;
       if (revealCamera === camera) revealCamera = null;
     };
-  }, [scene, gl, camera]);
+  }, [scene, camera]);
 
   useFrame((state) => {
     const now = performance.now();
@@ -503,8 +506,10 @@ function onArrival(a: NonNullable<ReturnType<typeof flow.get>['arrival']>) {
   const quiet = !!attr?.quiet;
   const key = ++arrivalKey;
   if (a.toast) {
+    // (ui/GuideLayer GuideToasts times the 3.2 s from when it is on screen — the layer's chunk may still be coming in;
+    // this is only the fallback that clears a toast nobody showed)
     guideUi.set({ toast: { key, text: a.toast, name, quiet } });
-    window.setTimeout(() => { if (guideUi.get().toast?.key === key) guideUi.set({ toast: null }); }, TOAST_MS);
+    window.setTimeout(() => { if (guideUi.get().toast?.key === key) guideUi.set({ toast: null }); }, TOAST_MS * 3);
   }
   const card: ArrivalCardView | null = a.peek && attr ? {
     key, place: a.place, attraction: attr.id, name, tier: attr.rank, quiet, color: attractionColor(attr), photo: photoOf(attr.photoKey), x: attr.x, z: attr.z,
@@ -523,8 +528,14 @@ function reveal(a: Attraction, camera: THREE.PerspectiveCamera, done: () => void
   const spec = revealSpec(a);
   if (!spec) return false;
   const p = runtime.player;
-  const start: CamPose = { pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, target: { x: p.x, y: p.y + 1.6, z: p.z } };
-  const plan = planReveal(start, photoPose(spec.frame, spec.photo), { x: p.x, y: p.y, z: p.z }, groundOrNull);
+  // the city around the player still streaming in (an arrival right after ?at= / a resume): no stage for a reveal
+  const g = groundOrNull(p.x, p.z);
+  if (g === null) return false;
+  // (the feet as the ground has them: right after a teleport runtime.player.y can still be 0, and the follow pose the
+  // reveal hands back to would sit inside the hill — seen at Twin Peaks: the camera at y 4.6 under the 46 u summit)
+  const feet = Math.max(p.y, g);
+  const start: CamPose = { pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, target: { x: p.x, y: feet + 1.6, z: p.z } };
+  const plan = planReveal(start, photoPose(spec.frame, spec.photo), { x: p.x, y: feet, z: p.z }, groundOrNull);
   playShots('arrival', revealShots(plan), done);
   return true;
 }
@@ -549,13 +560,13 @@ function revealSpec(a: Attraction): { frame: { x: number; y: number; z: number; 
 
 /**
  * DEV / QA only (`__opusBay.guide.qaTrip('palace-of-fine-arts', 'walk')`): plan a trip from where the player stands with
- * the live providers and put it in flow.trip the way lane C's startTrip does (source 'qa'), for shots of the pill, the
- * card, the waypoint and the chevrons. Resolves the option taken (the recommended one, else the mode asked for).
+ * the live providers and start it through lane C's startTrip (source 'qa': BAYBAY leads it like any trip), for shots of
+ * the pill, the card, the waypoint and the chevrons. Resolves the option taken (the mode asked for, else the recommended one).
  */
 async function qaTrip(attraction: string, mode?: string) {
   const a = ATTRACTION_INDEX.get(attraction);
   if (!a) return null;
-  const [{ planTrips }, { tripProviders }, { tripReducer }] = await Promise.all([import('./tripPlan'), import('./tripProviders'), import('./trips')]);
+  const [{ planTrips }, { tripProviders }, { startTrip }] = await Promise.all([import('./tripPlan'), import('./tripProviders'), import('./flow')]);
   const d = tripDestination(a);
   let options = planTrips(runtime.player, { placeId: d.placeId, x: d.x, z: d.z, name: d.name, attraction: a.id }, tripProviders());
   // the walking routes land a moment later: plan again once they did
@@ -565,23 +576,40 @@ async function qaTrip(attraction: string, mode?: string) {
   }
   const option = options.find(o => o.mode === mode) ?? options.find(o => o.recommended) ?? options[0];
   if (!option) return null;
-  flow.set({ trip: tripReducer(flow.get().trip, { type: 'start', placeId: d.placeId, attraction: a.id, option, now: performance.now(), source: 'qa' }) });
+  startTrip(option, { placeId: d.placeId, attraction: a.id, name: d.name, x: d.x, z: d.z }, 'qa');
   return option;
 }
 
 /**
- * 结束 on the trip card: lane C's trip reducer and events (game/trips.ts), the same transition lane C's flow uses for a
- * cancel. (Kept to the reducer: the lead, the boarding and the map strip follow flow.trip.)
+ * W4-G9 · the ride camera's looks (actors/cameraModes rideLookAt): lane T's 'approach' of the ridden bus / train turns
+ * the view toward the stop's attraction for 4 s (the flag foot: the landmark's tall part), and the rider's train coming
+ * out of a portal ('portal-out', LineFleet.onPortal) looks back at the mouth for 2.5 s. Only for the ride you are on.
  */
-export async function endTripFromCard() {
-  const { tripReducer, tripEvents } = await import('./trips');
-  const { emit } = await import('../core/events');
-  const prev = flow.get().trip;
-  const next = tripReducer(prev, { type: 'cancel' });
-  if (next === prev) return;
-  flow.set({ trip: next });
-  for (const e of tripEvents(prev, next, { type: 'cancel' })) emit(e);
-  guideUi.set({ tripCard: false });
+function watchRideLooks(): () => void {
+  const offEvents = onEvent(e => {
+    if (e.type !== 'transit' || e.what !== 'approach' || !e.attraction) return;
+    const ride = flow.get().ride;
+    if (!ride || ride.line !== e.line || ride.stage === 'waiting') return;
+    const a = ATTRACTION_INDEX.resolve(e.attraction);
+    if (!a) return;
+    const f = a.flag ?? a;
+    const d = Math.hypot(f.x - runtime.player.x, f.z - runtime.player.z);
+    if (d > 25 && d < 700) rideLookAt(f.x, f.z, 4);
+  });
+  // the fleet comes with lane T's lazy transit layer: attach once it is there (and again if it is rebuilt)
+  let fleet: ReturnType<typeof activeLineFleet> = null;
+  let offPortal: (() => void) | null = null;
+  const poll = window.setInterval(() => {
+    const now = activeLineFleet();
+    if (now === fleet) return;
+    offPortal?.();
+    fleet = now;
+    offPortal = now ? now.onPortal(ev => {
+      const ride = flow.get().ride;
+      if (ev.what === 'portal-out' && ev.portal && ride && ride.line === ev.line) rideLookAt(ev.portal.x, ev.portal.z, 2.5);
+    }) : null;
+  }, 1000);
+  return () => { offEvents(); window.clearInterval(poll); offPortal?.(); };
 }
 
 let inited = false;
@@ -590,6 +618,7 @@ export function initGuideCity(): () => void {
   if (inited) return () => {};
   inited = true;
   const offScene = registerSceneSystem('g-guide', GuideScene);
+  const offRide = watchRideLooks();
   lastArrival = flow.get().arrival;
   const offFlow = flow.subscribe(() => {
     const a = flow.get().arrival;
@@ -602,5 +631,5 @@ export function initGuideCity(): () => void {
     w.__opusBay = { ...(w.__opusBay ?? {}), guide: { stats: guideStats, ui: guideUi, startPanorama, flow, qaTrip } };
   }
   void import('../world/sf/landmarks/context').then(m => { siteContext = m; }, () => { /* no reveal without the site data */ });
-  return () => { offScene(); offFlow(); inited = false; };
+  return () => { offScene(); offFlow(); offRide(); inited = false; };
 }

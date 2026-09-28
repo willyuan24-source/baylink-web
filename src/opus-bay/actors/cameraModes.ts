@@ -44,6 +44,25 @@ export interface RidePose { pos: THREE.Vector3; target: THREE.Vector3; fov: numb
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
+/**
+ * W4-G9 · a look-at bias for the ride camera (transit): lane T's 'approach' event of the ridden bus / train (the stop's
+ * attraction, 4 s) and the train coming out of a portal (the mouth behind it, 2.5 s) swing the camera round the rider
+ * toward the point — 85 % of the way, the rider stays in frame — easing in and out over 0.8 s. A drag cancels it.
+ * Performance-clock seconds (the callers are event handlers, not the camera's frame clock).
+ */
+const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9 };
+const perfNow = () => performance.now() / 1000;
+export function rideLookAt(x: number, z: number, seconds = 4) {
+  const now = perfNow();
+  lookBias.x = x; lookBias.z = z; lookBias.t0 = now; lookBias.t1 = now + Math.max(0.5, seconds);
+}
+/** The bias weight now (0–1, smooth in and out over 0.8 s). */
+export function rideLookWeight(now = perfNow()): number {
+  if (now < lookBias.t0 || now >= lookBias.t1) return 0;
+  const k = Math.min(1, (now - lookBias.t0) / 0.8, (lookBias.t1 - now) / 0.8);
+  return k * k * (3 - 2 * k);
+}
+
 /** Distance (u) the camera may pull in to, and the hold after a manual drag before re-centring (s). */
 const MIN_PULL = 4;
 const HOLD = { bike: 1.0, car: 2.0, glide: 1.5, transit: 2.5, sit: 3 } as const;
@@ -63,6 +82,8 @@ export class RideCamera {
   private want = new THREE.Vector3();
   private pull = 99;
   private lastDragAt = -99;
+  /** performance-clock time of the last drag (a drag cancels the look-at bias) */
+  private dragPerf = -1e9;
   private fov = 44;
 
   /** Manual orbit (px from the pointer, or stick deltas already scaled to rad). */
@@ -70,6 +91,7 @@ export class RideCamera {
     this.yawOff = wrap(this.yawOff + dYaw);
     this.pitchOff = clamp(this.pitchOff + dPitch, -0.25, 0.7);
     this.lastDragAt = now;
+    this.dragPerf = perfNow();
   }
 
   cyclePreset() { this.preset = (this.preset + 1) % PRESETS.length; }
@@ -123,6 +145,13 @@ export class RideCamera {
         // worst when a narrow street pulls the rig in)
         if (sub.occlude) { dist += 1.5; pitch = sub.seated ? 0.03 : 0.2; lookUp = sub.seated ? -0.1 : 0.15; }
         yaw = sub.heading + (Math.PI / 2) * side - 0.35 * side + this.yawOff + Math.sin(now * 0.15) * 0.05;
+        // W4-G9: toward the stop's attraction / the portal (behind the rider on the line to it), unless dragged since
+        const w = this.dragPerf >= lookBias.t0 ? 0 : rideLookWeight();
+        if (w > 0) {
+          const look = Math.atan2(sub.x - lookBias.x, sub.z - lookBias.z);
+          yaw += wrap(look - yaw) * 0.85 * w;
+          pitch += 0.06 * w;
+        }
         break;
       }
       case 'sit':

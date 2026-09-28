@@ -265,3 +265,34 @@ test('pockets and separate networks: a goal in a sealed backyard snaps to the ne
     assert.deepEqual(route.points[route.points.length - 1], trail);
   } finally { setCityTerrain(null); setWalkGraph(null); }
 });
+
+test('W4 integration (G1 w3 review): a graph route\'s walker cuts to a later leg the local grid reaches directly — Ferry gate → Dragon Gate never walks east to the graph\'s crossing and back', async () => {
+  const city = createCityTerrain(sf.manifest, { landmarks: LMS });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, 130, 120, 300, LMS);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  setWalkGraph(await sf.graphIndex());
+  try {
+    const gate = { x: 86.29, z: 178.06 }; // the Dragon Gate's arrival (data/sf/attractions LANDMARK_ARRIVALS)
+    const route = await routeTo(FERRY, gate, { schedule: fn => setImmediate(fn) });
+    assert.ok(route && route.via === 'graph', 'graph route');
+    // the case this guards: the graph crosses the Embarcadero east of the Ferry plaza (x > 155) and comes back west
+    assert.ok(route.points.some(p => p.x > 155 && p.z > 20 && p.z < 40), 'the graph\'s own crossing is east');
+    const w = new RouteWalker(route);
+    let pos = { x: FERRY.x, z: FERRY.z };
+    const walked = [pos];
+    for (let i = 0; i < 12; i++) {
+      const path = w.update(pos);
+      if (!path) break;
+      walked.push(...path);
+      pos = { ...path[path.length - 1] };
+    }
+    const east = Math.max(...walked.filter(p => p.z > 24 && p.z < 45).map(p => p.x));
+    assert.ok(east < 140, `no excursion east across the road (max x ${east.toFixed(1)} at z 24–45; was 153.4)`);
+    assert.ok(Math.hypot(pos.x - gate.x, pos.z - gate.z) < 4, `reaches the gate (${pos.x.toFixed(1)}, ${pos.z.toFixed(1)})`);
+    for (let k = 1; k < walked.length; k++) {
+      const A = walked[k - 1], B = walked[k], L = Math.hypot(B.x - A.x, B.z - A.z);
+      for (let t = 0; t <= L; t += 0.75) { const x = A.x + ((B.x - A.x) * t) / (L || 1), z = A.z + ((B.z - A.z) * t) / (L || 1); assert.ok(canStand(x, z, 0.3), `walked point (${x.toFixed(1)}, ${z.toFixed(1)}) walkable`); }
+    }
+  } finally { setCityTerrain(null); setWalkGraph(null); }
+});
