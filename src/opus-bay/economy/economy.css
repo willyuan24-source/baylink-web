@@ -1,0 +1,13 @@
+/* Wave 5 · lane E · the economy's own styles (loaded with its lazy chunk). */
+
+/* W5-E4 · the 🪙 n pill badge */
+.ob-coin-badge { display: inline-flex; align-items: baseline; gap: 3px; font-variant-numeric: tabular-nums; }
+.ob-coin-glyph { font-size: 0.95em; line-height: 1; }
+.ob-coin-count { font-style: normal; font-weight: 700; color: var(--ob-gold-d, #a8741f); }
+.ob-coin-badge[data-pulse] .ob-coin-count { animation: ob-coin-pulse 0.6s ease-out; }
+.ob-coin-badge[data-pulse] .ob-coin-glyph { display: inline-block; animation: ob-coin-flip 0.6s ease-out; }
+@keyframes ob-coin-pulse { 0% { color: #d98a14; text-shadow: 0 0 6px rgba(240, 190, 80, 0.9); } 100% { color: var(--ob-gold-d, #a8741f); text-shadow: none; } }
+@keyframes ob-coin-flip { 0% { transform: scale(1.35) rotateY(0deg); } 60% { transform: scale(1.1) rotateY(300deg); } 100% { transform: scale(1) rotateY(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ob-coin-badge[data-pulse] .ob-coin-count, .ob-coin-badge[data-pulse] .ob-coin-glyph { animation: none; }
+}
