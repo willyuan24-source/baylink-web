@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { BOX, C } from './builder';
+import { BOX, Batch, C, M } from './builder';
 import { GROUND, GROUND_BATCH, GROUND_CITY, TOY, TOY_BATCH, TOY_DYN, TOY_INST, TOY_INST_TINT } from './materials';
-import { toyBuildingL1 } from './recipes/city';
-import { TypedBatch } from './typedBatch';
 
 /**
  * Shader warm-up (plan §5.5 "shader-stable contract"): compile, at boot and off the critical path, every
@@ -10,9 +8,9 @@ import { TypedBatch } from './typedBatch';
  * A hidden dummy set (never added to the scene) is compiled with renderer.compileAsync against the real scene
  * (its lights, fog and shadow state are part of each program's key):
  *
- *   TOY           · plain Mesh, TypedBatch geometry, receiveShadow   → city L0 cells (same program as the district's)
+ *   TOY           · plain Mesh, receiveShadow                        → city L0 cells (same program as the district's)
  *   TOY_BATCH     · BatchedMesh with a colour texture, receiveShadow off → L1 / L2 pools (USE_BATCHING(_COLOR))
- *   GROUND        · plain Mesh, city-flagged TypedBatch geometry      → L0 ground (same program as the district's)
+ *   GROUND        · plain Mesh, city-flagged geometry                 → L0 ground (same program as the district's)
  *   GROUND_BATCH  · BatchedMesh with a colour texture                   → far ground pool (USE_BATCHING(_COLOR))
  *   TOY_INST      · InstancedMesh without instanceColor              → untinted instanced props
  *   TOY_INST_TINT · InstancedMesh with instanceColor                 → city trees / lamps, Karl's cloud bank
@@ -171,12 +169,15 @@ function dummySet(base: boolean, keys: readonly string[] | null): { group: THREE
   group.name = 'ob-warmup';
   const disposers: (() => void)[] = [];
   if (base) {
-    const toyBatch = new TypedBatch(64);
-    toyBuildingL1(toyBatch, { poly: [{ x: 0, z: 0 }, { x: 2, z: 0 }, { x: 2, z: 2 }, { x: 0, z: 2 }], baseY: 0, H: 3, style: 'victorian', roof: 'gable', palette: 0, seed: 1, flags: 0 });
-    const toyGeo = TypedBatch.toGeometry(toyBatch.toArrays());
-    const groundBatch = new TypedBatch(8);
+    // (wave 5, W5-V3: plain Batch geometry, not the city's TypedBatch + L1 recipe, so neither module sits in the main
+    // graph for this. The program key is the same: position / normal / colour (3 components: no vertexAlphas) / aInfo,
+    // no uv, no morphs; attribute storage formats are not part of a program's key.)
+    const toyBatch = new Batch();
+    toyBatch.add(BOX(), M(1, 0, 1, 0, 2, 3, 2), '#e9dccb', [1, 0, 0, 0]);
+    const toyGeo = toyBatch.build();
+    const groundBatch = new Batch();
     groundBatch.polygon([{ x: 0, z: 0 }, { x: 2, z: 0 }, { x: 2, z: 2 }, { x: 0, z: 2 }], 0, C('#ebe2cf'), [4, 0, 0, GROUND_CITY]);
-    const groundGeo = TypedBatch.toGeometry(groundBatch.toArrays());
+    const groundGeo = groundBatch.build();
 
     const toyMesh = new THREE.Mesh(toyGeo, TOY);
     toyMesh.receiveShadow = true;
