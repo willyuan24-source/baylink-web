@@ -26,7 +26,9 @@ import { registerWarmup } from '../world/warmup';
 export type PropKind =
   | 'decree' | 'tin' | 'windsock' | 'cookie'
   // part b (W5-D4)
-  | 'labyrinth' | 'labyrinth-scattered' | 'dahlias' | 'sign100' | 'hydrant' | 'brush' | 'shadow' | 'print' | 'chips';
+  | 'labyrinth' | 'labyrinth-scattered' | 'dahlias' | 'sign100' | 'hydrant' | 'brush' | 'shadow' | 'print' | 'chips'
+  // part c (W5-D6): BAYBAY's pebbles; batch 2's semaphore pole, the pet cemetery's picket fence and its flower
+  | 'pebble' | 'semaphore' | 'picket' | 'flower';
 export interface PropSpec {
   kind: PropKind; x: number; z: number; heading?: number;
   /** world y; default: the ground */
@@ -208,6 +210,45 @@ const RECIPES: Readonly<Record<PropKind, Recipe>> = {
     b.add(BOX(), f.at(0.36, -0.02, 0, 0.5, 0.12, 0.05, 0.07), C('#6f6a62'));
     b.add(BOX(), f.at(0.02, -0.03, -0.06, 0, 0.9, 0.04, 0.03), C('#d8d2c5'));
   },
+  // --- part c (W5-D6) ---
+  // one of BAYBAY's pebbles: a smooth grey-blue stone half in the ground and a small pale one beside it (1.6× toy
+  // scale so it reads from the follow camera; ≈ 100 tris)
+  pebble: (b, f) => {
+    const S = 1.6;
+    b.add(ICO(1), f.at(0, 0.04 * S, 0, 0, 0.2 * S, 0.1 * S, 0.16 * S), C('#a9b6c0'));
+    b.add(ICO(0), f.at(0.24 * S, 0.02 * S, 0.1 * S, 0.6, 0.08 * S, 0.05 * S, 0.07 * S), C('#d3ccbf'));
+  },
+  // the 1849 semaphore (our toy): a weathered pole, a cap, two white arms with red tips hinged at the top; `size` picks
+  // the pose — 0 both down, 1 "a steamer" (one up, one level), 2 "a sailing ship" (both up in a V) (≈ 110 tris)
+  semaphore: (b, f, s) => {
+    const H = 3.1, pose = Math.round(s.size ?? 0);
+    b.add(CYL(6), f.at(0, 0, 0, 0, 0.07, H + 0.25, 0.07), C('#8a6a48'));
+    b.add(BOX(), f.at(0, H + 0.25, 0, 0, 0.22, 0.08, 0.22), C('#5d4630'));
+    b.add(BOX(), f.at(0, 0, 0, 0.4, 0.4, 0.12, 0.4), C('#6e5a44'));
+    // arms: [left, right] angles about the pole's facing axis (0 = straight up, π = hanging down)
+    const poses: readonly [number, number][] = [[Math.PI * 0.96, -Math.PI * 0.96], [Math.PI / 4, -Math.PI / 2], [Math.PI / 5, -Math.PI / 5]];
+    const [la, ra] = poses[pose] ?? poses[0];
+    for (const [side, a] of [[-1, la], [1, ra]] as const) {
+      b.add(BOX(), f.at(side * 0.1, H, 0.06, 0, 0.12, 1.0, 0.05, 0, a), C('#f2ece0'));
+      b.add(BOX(), f.at(side * 0.1, H, 0.061, 0, 0.13, 0.26, 0.055, 0, a), C('#c8553d'));
+      b.add(BOX(), f.at(side * 0.1 - Math.sin(a) * 0.74, H + Math.cos(a) * 0.74, 0.062, 0, 0.13, 0.26, 0.055, 0, a), C('#c8553d'));
+    }
+  },
+  // a short white picket fence (the Presidio pet cemetery's, toy-sized): seven pickets with pointed tops on two rails (≈ 120 tris)
+  picket: (b, f) => {
+    for (let i = 0; i < 7; i++) {
+      const x = -1.2 + i * 0.4;
+      b.add(BOX(), f.at(x, 0, 0, 0, 0.14, 0.62, 0.05), C('#f4f1ea'));
+      b.add(BOX(), f.at(x, 0.62, 0, Math.PI / 4, 0.1, 0.1, 0.1, 0, 0), C('#f4f1ea'));
+    }
+    for (const y of [0.18, 0.46]) b.add(BOX(), f.at(0, y, -0.05, 0, 2.7, 0.07, 0.04), C('#e7e2d8'));
+  },
+  // a small posy left by the fence: three blooms on a short stem, two leaves (≈ 80 tris)
+  flower: (b, f) => {
+    b.add(CYL(4), f.at(0, 0, 0, 0, 0.02, 0.34, 0.02, 0.35, 0), C('#4d7f3f'));
+    for (const [x, y, z, col] of [[0, 0.36, 0.1, '#f4a6b8'], [0.07, 0.33, 0.06, '#fff4e6'], [-0.06, 0.31, 0.05, '#fcc419']] as const) b.add(ICO(0), f.at(x, y, z, 0, 0.06, 0.05, 0.06), C(col));
+    for (const s of [-1, 1]) b.add(BOX(), f.at(s * 0.04, 0.1, 0.02, 0, 0.09, 0.02, 0.04, 0, s * 0.6), C('#5e9a4c'));
+  },
 };
 
 /** The triangles a prop adds (tests: ≤ 200 each). */
@@ -309,8 +350,8 @@ export class PropPool {
  * its flight): the parrots, the pelicans, (part b) the Golden Gate humpback and China Beach's three junk-sail
  * silhouettes. One flight at a time (they never share a place).
  */
-export type FlockKind = 'parrot' | 'pelican' | 'whale' | 'junk';
-export const FLOCK_KINDS: readonly FlockKind[] = ['parrot', 'pelican', 'whale', 'junk'];
+export type FlockKind = 'parrot' | 'pelican' | 'whale' | 'junk' | 'yacht' | 'glider';
+export const FLOCK_KINDS: readonly FlockKind[] = ['parrot', 'pelican', 'whale', 'junk', 'yacht', 'glider'];
 const FLOCK_MAX = 16;
 
 function birdGeometry(kind: FlockKind): THREE.BufferGeometry {
@@ -352,6 +393,28 @@ function birdGeometry(kind: FlockKind): THREE.BufferGeometry {
         both([[yb, luff(k + 1)], [yb + lift(k + 1), leech(k + 1)], [yb + 0.07 + lift(k + 1), leech(k + 1)], [yb + 0.07, luff(k + 1)]], '#8f7457');
       }
     }
+    return TypedBatch.toGeometry(b.toArrays());
+  }
+  if (kind === 'yacht') {
+    // (part c) a model sailboat, toy-sized so it reads across Spreckels Lake: a red hull with a white deck, a mast, a big
+    // mainsail and a jib (flattened three-sided cones: thin triangles seen from both sides) (≈ 60 tris); bow +z
+    const f = new Frame(0, 0, 0);
+    b.add(BOX(), f.at(0, -0.08, 0, 0, 0.26, 0.16, 0.95), C('#c8553d'));
+    b.add(BOX(), f.at(0, 0.08, 0, 0, 0.22, 0.02, 0.8), C('#f4f1ea'));
+    b.add(CYL(4), f.at(0, 0.08, 0.08, 0, 0.018, 1.05, 0.018), C('#6b5946'));
+    b.add(CONE(3), f.at(0, 0.14, -0.14, 0, 0.012, 0.95, 0.42, 0, 0), C('#fbf7ee'));
+    b.add(CONE(3), f.at(0, 0.14, 0.3, 0, 0.01, 0.7, 0.22, 0, 0), C('#f1e7d2'));
+    return TypedBatch.toGeometry(b.toArrays());
+  }
+  if (kind === 'glider') {
+    // (part c) a toy hang glider: a bright delta wing (a flattened cone lying flat, nose +z), the keel, the control
+    // frame and a small pilot hanging under it — no marks, no faces (≈ 50 tris)
+    const f = new Frame(0, 0, 0, 0, 1.3);
+    b.add(CONE(3), f.at(0, 0, -0.7, 0, 1.1, 1.3, 0.03, Math.PI / 2, 0), C('#e8a33a'));
+    b.add(CONE(3), f.at(0, -0.01, -0.62, 0, 0.7, 1.0, 0.03, Math.PI / 2, 0), C('#f4f1ea'));
+    b.add(BOX(), f.at(0, -0.02, -0.5, 0, 0.03, 0.03, 1.2), C('#5b5f66'));
+    b.add(BOX(), f.at(0, -0.5, -0.05, 0, 0.5, 0.03, 0.03), C('#5b5f66'));
+    b.add(BOX(), f.at(0, -0.46, -0.2, 0, 0.14, 0.12, 0.42), C('#3b5a7a'));
     return TypedBatch.toGeometry(b.toArrays());
   }
   // toy scale: a parrot about a third of the player's height, a pelican with a 3 u span (they read from the follow camera)
@@ -401,6 +464,8 @@ export class Flock {
       pelican: this.make('pelican'),
       whale: this.make('whale'),
       junk: this.make('junk'),
+      yacht: this.make('yacht'),
+      glider: this.make('glider'),
     };
   }
 
@@ -462,6 +527,32 @@ export class Flock {
   }
 }
 
+// --- (part c) the pebble BAYBAY holds in a trick -----------------------------------------------------------------
+
+let heldMaterial: THREE.MeshStandardMaterial | null = null;
+const heldMeshes: Partial<Record<'grey' | 'gold', THREE.Mesh>> = {};
+/** The held pebble's own material (one object kind: never shared with the pool or the flock; TOY_DYN's program). */
+const heldMat = () => (heldMaterial ??= toyMaterial('ob-toy-dyn', 'ob-egg-pebble-held'));
+
+/**
+ * The stone BAYBAY shows off (charApi attach: character units on her slot), grey or golden; one mesh per colour, made
+ * once and reused. Not in the prop pool: it rides on her body.
+ */
+export function heldPebbleMesh(gold: boolean): THREE.Mesh {
+  const key = gold ? 'gold' : 'grey';
+  const hit = heldMeshes[key];
+  if (hit) { hit.position.set(0, 0, 0); return hit; }
+  const b = new TypedBatch(64);
+  const f = new Frame(0, 0, 0);
+  b.add(ICO(1), f.at(0, 0.07, 0, 0, 0.13, 0.08, 0.11), C(gold ? '#f1c14a' : '#a9b6c0'));
+  const mesh = new THREE.Mesh(TypedBatch.toGeometry(b.toArrays()), heldMat());
+  mesh.name = `ob-egg-pebble-${key}`;
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  heldMeshes[key] = mesh;
+  return mesh;
+}
+
 /** The warm-up set: objects built exactly like the live ones (same materials, same kinds, same flags). */
 export function registerEggWarmup(pool: PropPool, flock: Flock): () => void {
   return registerWarmup('eggs', () => {
@@ -471,6 +562,7 @@ export function registerEggWarmup(pool: PropPool, flock: Flock): () => void {
     const tinGeo = TypedBatch.toGeometry(b.toArrays());
     geo.copy(tinGeo);
     const prop = new THREE.Mesh(geo, pool.mesh.material);
+    const held = new THREE.Mesh(tinGeo, heldMat());
     const birds = flock.group.children.map(c => {
       const src = c as THREE.InstancedMesh;
       const inst = new THREE.InstancedMesh(src.geometry, src.material, 1);
@@ -478,6 +570,9 @@ export function registerEggWarmup(pool: PropPool, flock: Flock): () => void {
       inst.castShadow = false;
       return inst;
     });
-    return { objects: [prop, ...birds], dispose: () => { geo.dispose(); tinGeo.dispose(); for (const i of birds) i.dispose(); } };
+    // (the held pebble: castShadow / receiveShadow off like the live one — the depth pass never sees it)
+    held.castShadow = false;
+    held.receiveShadow = false;
+    return { objects: [prop, held, ...birds], dispose: () => { geo.dispose(); tinGeo.dispose(); for (const i of birds) i.dispose(); } };
   });
 }

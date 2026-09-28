@@ -294,3 +294,161 @@ test('W5-D6 城市之声 card and ring: the sound card says 城市之声 · +5 �
   assert.match(ring, /竖起耳朵听/);
   assert.match(ring, /苏特罗浴场的石洞/);
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-D6 · BAYBAY's pebbles
+// ---------------------------------------------------------------------------------------------------------------
+
+const PS = await import('../src/opus-bay/eggs/pebbleSpots');
+const PB = await import('../src/opus-bay/eggs/pebbles');
+const PR = await import('../src/opus-bay/eggs/props');
+const { setCharApi } = await import('../src/opus-bay/actors/charApi');
+const THREE_MOD = await import('three');
+type CharApi = import('../src/opus-bay/actors/charApi').CharApi;
+
+/** A charApi that records what it was asked, with a head slot that can hold a hat (lane E's). */
+function fakeChar() {
+  const emotes: string[] = [];
+  const held = new Map<string, import('three').Object3D | null>();
+  const api = {
+    emote: (who: string, name: string) => { emotes.push(`${who}:${name}`); },
+    sitGround: () => false, stand: () => {},
+    attach: (who: string, slot: string, obj: import('three').Object3D | null) => { held.set(`${who}:${slot}`, obj); },
+    tint: () => {}, vehiclePaint: () => {}, glideSoftBox: () => {},
+    attachedAt: (who: string, slot: string) => held.get(`${who}:${slot}`) ?? null,
+  };
+  return { api: api as unknown as CharApi, emotes, held };
+}
+
+const AREA_PREFIX = { 'north-beach': 'nb', wharf: 'wf', downtown: 'dt', 'marina-presidio': 'mp', 'golden-gate-park': 'gp', 'west-coast': 'wc', 'mission-castro': 'mc', south: 'so' } as const;
+
+test('W5-D6 pebbles registry: 48 append-only ids (bit i of play.g.pebble), six in each of the eight areas, spread out, tricks at 10 / 25 / 40, the golden one at 48', () => {
+  const order = EGG_AREAS.flatMap(a => [1, 2, 3, 4, 5, 6].map(n => `${AREA_PREFIX[a]}-${n}`));
+  assert.deepEqual(PS.PEBBLE_IDS, order, 'the append-only order');
+  assert.equal(PS.PEBBLES.length, 48);
+  for (const a of EGG_AREAS) assert.equal(PS.PEBBLES.filter(q => q.area === a).length, 6, `${a}: six`);
+  for (const q of PS.PEBBLES) {
+    bilingual(q.near, `${q.id} near`);
+    assert.ok(zhLen(q.near.zh) <= 14, `${q.id}: a short place name`);
+    const source = PS.pebbleRewardSource(q.id);
+    assert.ok(REWARD_SOURCE.test(source) && rewardPrefix(source) === 'pebble', source);
+    for (const o of PS.PEBBLES) if (o !== q) assert.ok(Math.hypot(o.x - q.x, o.z - q.z) >= 10, `${q.id} / ${o.id}: spread out`);
+  }
+  assert.equal(PS.PEBBLE_COINS, 3);
+  assert.deepEqual(PS.PEBBLE_TRICKS.map(tr => tr.at), [10, 25, 40]);
+  assert.equal(PS.GOLDEN_AT, 48);
+  assert.deepEqual(PS.tricksAt(9), []);
+  assert.deepEqual(PS.tricksAt(25), ['tap', 'balance']);
+  // the card says only what the aquarium says; the pouch is BAYBAY's own
+  assert.match(PS.PEBBLE_CARD.fact.zh, /BAYBAY 自己的爱好/);
+  sourced(PS.PEBBLE_CARD.sources, 'pebble card');
+  assert.equal(cardEntry('pebble', 'first')?.coins, 3);
+  assert.ok(cardEntry('pebble', 'golden'));
+  assert.equal(cardEntry('pebble', 'nb-1'), null, 'no card per pebble');
+  for (const l of [...PB.SNIFF_LINES, PB.FIRST_LINE, PB.GOLDEN_LINE, PB.SHOW_LINE, ...Object.values(PB.TRICK_LINES), PB.countLine(47)]) {
+    bilingual(l, l.en);
+    assert.ok(zhLen(l.zh) <= 45, l.zh);
+  }
+});
+
+test('W5-D6 pebbles spots: every pebble lies on standable ground of the published city (landmarks registered), on the walking network, off the water', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { canStand, isWater, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const sf = sfDisk();
+  const lms = landmarkWalkInputs(SF_SITES);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  for (const q of PS.PEBBLES) await sf.attachAround(city, q.x, q.z, 12, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    const ix = await sf.graphIndex();
+    for (const q of PS.PEBBLES) {
+      assert.ok(canStand(q.x, q.z, 0.4), `${q.id}: (${q.x}, ${q.z}) standable`);
+      assert.ok(!isWater(q.x, q.z), `${q.id}: not water`);
+      assert.ok(ix.nearestNode(q.x, q.z, 20) >= 0, `${q.id}: a walking-graph node near`);
+    }
+  } finally { setCityTerrain(null); }
+});
+
+test('W5-D6 pebbles on the real host: BAYBAY wiggles at 25 u and points at 8 u; walking over one pays 3 金币 (lane E\'s ledger); 10 / 25 teach a trick, never taking her hat off; 问 BAYBAY → 玩石子 from 10', t => {
+  const w = world(t, '2026-09-28T11:00');
+  const offIds = ledger.registerRewardIds('pebble', PS.PEBBLE_IDS);
+  const ch = fakeChar();
+  setCharApi(ch.api);
+  PB.__resetPebblesForTests();
+  let stop = () => {};
+  try {
+    stop = H.startHosts(makeHosts());
+    const q = PS.pebbleById('mp-1')!;
+    const g = runtime.guide;
+    const at = (d: number) => { w.put(q.x + d, q.z); g.x = q.x + d + 1.5; g.z = q.z; };
+    assert.ok(H.props.has('pebble:mp-1'), 'the stone lies in the pool');
+    at(20); run(0.3);
+    assert.ok(ch.emotes.includes('baybay:pet'), 'a happy wiggle within 25 u');
+    assert.ok(!ch.emotes.includes('baybay:point'));
+    at(6); run(0.3);
+    assert.ok(ch.emotes.includes('baybay:point'), 'she points within 8 u');
+    assert.equal(w.firsts('pebble').length, 0);
+    const before = ledger.coinsTotal();
+    at(0.5); run(0.3);
+    assert.deepEqual(w.firsts('pebble'), ['mp-1']);
+    assert.equal(ledger.coinsTotal() - before, 3, 'lane E pays 3');
+    assert.ok(ledger.isPaid('pebble:mp-1') && PB.pebbleFound('mp-1'));
+    assert.ok(!H.props.has('pebble:mp-1'), 'gone from the ground');
+    for (let i = 0; i < 6; i++) t.mock.timers.tick(400);
+    assert.deepEqual(w.overlay('egg-card')?.props, { id: 'first', kind: 'pebble', coins: 3 }, 'the first pebble\'s card');
+    slots.closeOverlay('egg-card');
+    // no tricks yet: the ask item waits
+    const ask = () => slots.askItems.list().find(a => a.id === 'eggs-pebbles');
+    assert.ok(ask() && !ask()!.visible!(), '玩石子 hidden before 10');
+    // the tenth pebble teaches the tummy tap: the stone on her chest (neck slot), then gone
+    while (PB.pebbleCount() < 10) PB.pickPebble(PS.PEBBLE_IDS.find(id => !PB.pebbleFound(id))!);
+    t.mock.timers.tick(1300);
+    assert.ok(ch.emotes.includes('baybay:float'), 'on her back');
+    assert.ok(ch.held.get('baybay:neck'), 'a stone on her chest');
+    t.mock.timers.tick(5000);
+    assert.equal(ch.held.get('baybay:neck') ?? null, null, 'put away after the trick');
+    assert.ok(ask()!.visible!(), '玩石子 from 10');
+    // she wears a hat (lane E's): the balancing trick puts the stone ON the hat, and the hat stays
+    const hat = new THREE_MOD.Group();
+    ch.held.set('baybay:head', hat);
+    while (PB.pebbleCount() < 25) PB.pickPebble(PS.PEBBLE_IDS.find(id => !PB.pebbleFound(id))!);
+    t.mock.timers.tick(1300);
+    assert.equal(ch.held.get('baybay:head'), hat, 'the hat stays on');
+    assert.equal(hat.children.length, 1, 'the stone sits on the hat');
+    t.mock.timers.tick(4000);
+    assert.equal(hat.children.length, 0, 'and comes off again');
+    assert.equal(ch.held.get('baybay:head'), hat);
+    // 玩石子 shows the known tricks in turn
+    assert.equal(PB.showNextTrick(), true);
+  } finally { stop(); offIds(); setCharApi(null); PB.__resetPebblesForTests(); w.cleanup(); }
+});
+
+test('W5-D6 pebbles and batch-2 props and flock: every recipe within its budget (props ≤ 200, the yacht and the glider small), the held stone on its own material', () => {
+  for (const kind of ['pebble', 'semaphore', 'picket', 'flower'] as const) {
+    const n = PR.propTriangles(kind, kind === 'semaphore' ? { size: 1 } : {});
+    assert.ok(n > 0 && n <= 200, `${kind}: ${n} tris`);
+  }
+  for (const pose of [0, 1, 2]) assert.ok(PR.propTriangles('semaphore', { size: pose }) <= 200);
+  assert.ok(PR.FLOCK_KINDS.includes('yacht') && PR.FLOCK_KINDS.includes('glider'));
+  const f = new PR.Flock();
+  try {
+    for (const c of f.group.children) {
+      const m = c as import('three').InstancedMesh;
+      const tris = (m.geometry.index ? m.geometry.index.count : m.geometry.getAttribute('position').count) / 3;
+      if (m.name === 'ob-egg-yachts' || m.name === 'ob-egg-gliders') assert.ok(tris <= 120, `${m.name}: ${tris}`);
+    }
+  } finally { f.dispose(); }
+  const a = PR.heldPebbleMesh(false), b = PR.heldPebbleMesh(true);
+  assert.notEqual(a, b);
+  assert.equal(PR.heldPebbleMesh(false), a, 'one mesh per colour, reused');
+  assert.equal(a.material, b.material, 'one material for the held stone');
+  const pool = new PR.PropPool();
+  try {
+    assert.notEqual(a.material, pool.mesh.material, 'never the pool\'s material');
+    assert.equal((a.material as import('three').Material & { customProgramCacheKey(): string }).customProgramCacheKey(), 'ob-toy-dyn', 'TOY_DYN\'s program');
+    assert.equal(a.castShadow, false);
+  } finally { pool.dispose(); }
+});

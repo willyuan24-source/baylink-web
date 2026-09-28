@@ -19,6 +19,8 @@ import { altaHost, humpbackHost, trailHost } from './presidio';
 import { registerEggWarmup } from './props';
 import { SOUND_IDS } from './citySounds';
 import { heard, soundFound, soundHosts } from './listen';
+import { PEBBLE_IDS } from './pebbleSpots';
+import { pebbleCount, pebbleHintSpots, pebblesHost, pickPebble, showNextTrick } from './pebbles';
 import { EGG_IDS } from './registry';
 import { eggHintSpots, eggRumour } from './rumourSource';
 import { makeEggScene } from './scene';
@@ -51,15 +53,16 @@ const NoteCard = lazy(() => import('./FactCard').then(m => ({ default: m.NoteCar
 const OperatorBubble = lazy(() => import('./FactCard').then(m => ({ default: m.OperatorBubble })));
 const ListenRing = lazy(() => import('./FactCard').then(m => ({ default: m.ListenRing })));
 
-/** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24). */
+/** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24), then 城市之声 and the pebbles (W5-D6). */
 export function makeHosts(): EggHost[] {
   return [
     parrotsHost(), seaLionsHost(), laughingLadyHost(), phoneHost(), cookiesHost(), nortonHost(),
     waveOrganHost(), crissyHost(), otterHost(), octagonHost(), alcatrazHost(), foghornHost(),
     humpbackHost(), labyrinthHost(), chinaBeachHost(), dahliaHost(), tiledStepsHost(), karlHost(),
     sundialHost(), hydrantHost(), castroHost(), heronsHost(), trailHost(), altaHost(),
-    // W5-D6: 城市之声 (the listening and one 听一听 prompt per sound)
+    // W5-D6: 城市之声 (the listening and one 听一听 prompt per sound), BAYBAY's pebbles
     ...soundHosts(),
+    pebblesHost(),
   ];
 }
 
@@ -68,6 +71,7 @@ export function init(): () => void {
   const add = (off: () => void) => { offs.push(off); };
   add(registerRewardIds('egg', EGG_IDS));
   add(registerRewardIds('sound', SOUND_IDS));
+  add(registerRewardIds('pebble', PEBBLE_IDS));
   add(registerEggSounds());
   add(registerOverlay({ id: 'egg-card', Component: FactCard }));
   add(registerOverlay({ id: 'egg-note', Component: NoteCard }));
@@ -88,6 +92,7 @@ export function init(): () => void {
   add(startHosts(hosts));
   // W5-D5: the compass (lane E) points at the nearest spot of an unfound egg that can happen today; BAYBAY's 听说… (lane C)
   add(registerHintSource('egg', () => eggHintSpots(isFound)));
+  add(registerHintSource('pebble', pebbleHintSpots));
   add(registerRumourSource(ctx => eggRumour(ctx, isFound)));
 
   if (typeof window !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_OPUS_QA === '1')) {
@@ -114,6 +119,10 @@ export function init(): () => void {
         // W5-D6: 城市之声 — heard?, collect one now (as its moment would)
         soundFound,
         heard,
+        // W5-D6: BAYBAY's pebbles — how many, put one in the pouch now, show her next trick
+        pebbles: pebbleCount,
+        pick: pickPebble,
+        trick: showNextTrick,
       },
     };
   }

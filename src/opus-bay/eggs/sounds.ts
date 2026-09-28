@@ -358,6 +358,57 @@ function wind(e: AudioEngine, o?: SoundOpts) {
   e.noiseBurst(v, { color: 'brown', attack: 1.2, decay: 4.5, peak: 0.3, filter: { type: 'lowpass', freq: 200 } });
 }
 
+/** Two pebbles clicking together as one goes into BAYBAY's pouch. */
+function pebbleClack(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 0.7, gain: g0(o, 0.3), pan: pan(o), priority: 2, reverb: 0.15, name: 'egg:pebble' });
+  if (!v) return;
+  for (const [at, f] of [[0, 2300], [0.11, 2750]] as const) {
+    e.noiseBurst(v, { attack: 0.001, decay: 0.025, peak: 0.55, offset: at, filter: { type: 'bandpass', freq: f * pitch(o), Q: 5 } });
+    e.tone(v, { type: 'sine', freq: f * 1.9 * pitch(o), decay: 0.06, peak: 0.12, offset: at, attack: 0.001 });
+  }
+}
+
+/** BAYBAY sniffing the air: three quick soft snuffles. */
+function sniff(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'voice', dur: 0.8, gain: g0(o, 0.18), pan: pan(o), priority: 2, name: 'egg:sniff' });
+  if (!v) return;
+  for (let i = 0; i < 3; i++) e.noiseBurst(v, { color: 'pink', attack: 0.02, decay: 0.07, peak: 0.5, offset: i * 0.13, filter: { type: 'bandpass', freq: 2600 + i * 200, Q: 1.4 } });
+}
+
+/** A pebble tapped on another (the otter's old trick on her tummy). */
+function tap(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 0.4, gain: g0(o, 0.3), pan: pan(o), priority: 2, name: 'egg:tap' });
+  if (!v) return;
+  e.noiseBurst(v, { attack: 0.001, decay: 0.03, peak: 0.6, filter: { type: 'bandpass', freq: 1900 * pitch(o), Q: 4 } });
+  e.tone(v, { type: 'sine', freq: 620 * pitch(o), freqTo: 480, glide: 0.05, decay: 0.07, peak: 0.25, attack: 0.001 });
+}
+
+/** A wooden arm swinging on its pin (the semaphore). */
+function creak(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 1.2, gain: g0(o, 0.24), pan: pan(o), priority: 2, reverb: 0.2, name: 'egg:creak' });
+  if (!v) return;
+  e.tone(v, { type: 'sawtooth', freq: 210 * pitch(o), freqTo: 160, glide: 0.6, decay: 0.7, peak: 0.22, attack: 0.05, filter: { type: 'bandpass', freq: 900, Q: 5 }, vibrato: { rate: 31, depth: 0.05 } });
+  e.noiseBurst(v, { attack: 0.001, decay: 0.03, peak: 0.35, offset: 0.72, filter: { type: 'bandpass', freq: 1500, Q: 2 } });
+}
+
+/**
+ * A theatre organ's little welcome: our own tune (never a song the theatre plays) — a rising arpeggio and a held chord
+ * on stacked sine and square "pipes" with a slow tremulant.
+ */
+function theatreOrgan(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 6.5, gain: g0(o, 0.2), pan: pan(o), priority: 3, reverb: 0.65, name: 'egg:theatre-organ' });
+  if (!v) return;
+  const pipe = (m: number, at: number, len: number, peak: number) => {
+    const f = midi(m) * pitch(o);
+    e.tone(v, { type: 'sine', freq: f, decay: len, peak, offset: at, attack: 0.06, vibrato: { rate: 6.2, depth: 0.006 } });
+    e.tone(v, { type: 'square', freq: f * 2, decay: len, peak: peak * 0.18, offset: at, attack: 0.06, filter: { type: 'lowpass', freq: f * 5, Q: 0.7 }, vibrato: { rate: 6.2, depth: 0.006 } });
+  };
+  [60, 64, 67, 72, 76].forEach((m, i) => pipe(m, i * 0.28, 0.5, 0.3));
+  for (const m of [65, 69, 72, 77]) pipe(m, 1.5, 1.2, 0.2);
+  for (const m of [67, 71, 74, 79]) pipe(m, 2.8, 1.0, 0.2);
+  for (const m of [48, 60, 64, 67, 72]) pipe(m, 3.9, 2.4, 0.22);
+}
+
 export const EGG_SOUNDS = {
   'egg:find': find, 'egg:parrots': parrots, 'egg:sealions': seaLions, 'egg:cackle': cackle, 'egg:giggle': giggle, 'egg:phone': phone,
   'egg:plug': plug, 'egg:cookie': cookie, 'egg:fanfare': fanfare, 'egg:organ': organ, 'egg:propeller': propeller, 'egg:splash': splash,
@@ -365,6 +416,7 @@ export const EGG_SOUNDS = {
   'egg:spout': spout, 'egg:marsh': marsh, 'egg:bubbles': bubbles, 'egg:birds': birds, 'egg:stars': stars, 'egg:chime': chime,
   'egg:ting': ting, 'egg:brush': brush, 'egg:yawn': yawn, 'egg:squeak': squeak, 'egg:sails': sails,
   'egg:cable-bell': cableBellRiff, 'egg:ferry-horn': ferryBlast, 'egg:cave': caveBoom, 'egg:banjo': banjoRoll, 'egg:taiko': taiko, 'egg:wind': wind,
+  'egg:pebble': pebbleClack, 'egg:sniff': sniff, 'egg:tap': tap, 'egg:creak': creak, 'egg:theatre-organ': theatreOrgan,
 } as const satisfies Record<string, (e: AudioEngine, o?: SoundOpts) => void>;
 export type EggSound = keyof typeof EGG_SOUNDS;
 

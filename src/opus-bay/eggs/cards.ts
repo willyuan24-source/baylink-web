@@ -1,6 +1,7 @@
 import type { Bilingual } from '../core/types';
 import { eggPostcard, type EggPostcard } from '../data/sf/eggPostcards';
 import { SOUND_COINS, soundById } from './citySounds';
+import { GOLDEN_CARD, PEBBLE_CARD, PEBBLE_COINS } from './pebbleSpots';
 import { EGG_COINS, eggById, type EggSource } from './registry';
 
 /**
@@ -32,6 +33,13 @@ const lookups: Partial<Record<CardKind, Lookup>> = {
   sound: id => {
     const s = soundById(id);
     return s ? { kicker: { zh: '城市之声', en: 'City sounds' }, name: s.name, fact: s.fact, sources: s.sources, coins: SOUND_COINS, postcard: null } : null;
+  },
+  // the first pebble's card (what the aquarium says about otters and rocks) and the golden pebble's
+  pebble: id => {
+    const kicker = { zh: 'BAYBAY 的小石子', en: 'BAYBAY’s pebbles' };
+    if (id === 'first') return { kicker, name: PEBBLE_CARD.name, fact: PEBBLE_CARD.fact, sources: PEBBLE_CARD.sources, coins: PEBBLE_COINS, postcard: null };
+    if (id === 'golden') return { kicker, name: GOLDEN_CARD.name, fact: GOLDEN_CARD.fact, sources: [], coins: PEBBLE_COINS, postcard: null };
+    return null;
   },
 };
 
