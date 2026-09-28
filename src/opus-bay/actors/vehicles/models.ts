@@ -49,7 +49,9 @@ export const PAINTS = {
   terracotta: { name: { zh: '陶土橘', en: 'Terracotta' }, color: PALETTE.terracotta, dark: PALETTE.terracottaDark },
   gold: { name: { zh: '暖金', en: 'Warm gold' }, color: PALETTE.gold, dark: '#b9832f' },
   maroon: { name: { zh: '缆车栗红', en: 'Cable-car maroon' }, color: '#8e2f3c', dark: '#68212b' },
-  orange: { name: { zh: '国际橘', en: 'International Orange' }, color: '#c0362c', dark: '#8f2720' },
+  // the bridge's colour is named International Orange (goldengate.org "Color & Art Deco Styling", CMYK 0/69/100/6,
+  // read 2026-09-28); the toy paint is the softened tone the game's own bridge wears (landmarks/kit.ts SF.ggb)
+  orange: { name: { zh: '国际橘', en: 'International Orange' }, color: '#c44a31', dark: '#9b3a27' },
   fog: { name: { zh: '雾灰', en: 'Karl fog grey' }, color: '#a9b2b7', dark: '#7f888e' },
   cream: { name: { zh: '酸面包奶油', en: 'Sourdough cream' }, color: '#e9d6ae', dark: '#c4ad80' },
   dahlia: { name: { zh: '大丽花粉', en: 'Dahlia pink' }, color: '#d8668f', dark: '#a8476a' },
@@ -57,8 +59,8 @@ export const PAINTS = {
 export type PaintId = keyof typeof PAINTS;
 export const PAINT_IDS = Object.keys(PAINTS) as PaintId[];
 export const isPaintId = (id: string | null | undefined): id is PaintId => !!id && Object.prototype.hasOwnProperty.call(PAINTS, id);
-/** the ribbon's own colour in the pelican rig (International Orange; recoloured by `vehiclePaint('pelican', id)`) */
-export const PELICAN_RIBBON = '#c0362c';
+/** the ribbon's own colour in the pelican rig (the International Orange paint; recoloured by `vehiclePaint('pelican', id)`) */
+export const PELICAN_RIBBON = '#c44a31';
 
 const UP = new THREE.Vector3(0, 1, 0);
 /** A capsule (radius r) from a to b. */
