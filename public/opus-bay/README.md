@@ -75,3 +75,12 @@ map 20.5 + voice 3.20 + murals 19.0 = **42.70 credits**.
 
 Every paid job of wave 4 is in `docs/opus-bay/ledger/w4-V.md` (merged into `src/opus-bay/ASSETS-LEDGER.md` by the lead):
 **55.51 credits** of the 120 cap (images and 3D 50.00, voice 5.51).
+
+## Whole San Francisco, wave 5 (2026-09-28, lane V)
+
+| folder | contents | notes |
+|---|---|---|
+| `w5/voice/` | 190 clips (`zh-` / `en-` × 95 of the lanes' wave-5 BAYBAY lines: activities, the pelican, the eggs and their rumours, the fortune slips, the fire season) | Qwen TTS (`qwen_audio_tts`, preset "Pixie", a chatty variant of BAYBAY's instruction), picked by measured checks (`scripts/opus-sf/voice/w5/post.py`), −18 LUFS / TP −1.5, `.m4a` AAC 64k + `.ogg` Opus 48k. The lines are found by `scripts/opus-sf/voice/w5/lines.ts`; `src/opus-bay/data/sf/voiceW5.ts` registers the clips and `src/opus-bay/game/voiceW5.ts` plays one whenever BAYBAY's bubble says a recorded line. The owner's listening sheet: `docs/opus-bay/qa/w5/V/voice/listening.md`. |
+| `w5/postcards/<egg id>-{1200,600}.webp` | six 彩蛋明信片 (secret postcards) for lane D's eggs | Nano Banana Pro with the shipped postcards' references; no text, logos or faces (checked at full size). `src/opus-bay/data/sf/eggPostcards.ts`. |
+
+Every paid job of wave 5 is in `docs/opus-bay/ledger/w5-V.md`.

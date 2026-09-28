@@ -1,0 +1,88 @@
+{
+ "refs": {
+  "P5": "df659275-cf2a-4352-8166-1934f9945e0f",
+  "P13": "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+ },
+ "secret_postcards": {
+  "china-beach-fishermen": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "China Beach, a small sandy cove below the Sea Cliff bluffs of San Francisco, as a handmade miniature diorama at golden hour: a curved strip of pale sand under steep sandstone-and-green cliffs topped by cypress trees, gentle white surf, and out on the calm teal water the dark silhouettes of two old Chinese fishing junks with ribbed, battened sails, the low sun warm over the ocean, the terracotta-orange Golden Gate Bridge small in the far distance. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "telegraph-hill-parrots": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The Filbert Street Steps on Telegraph Hill in San Francisco as a handmade miniature diorama: weathered wooden stairs climbing through lush overgrown cottage gardens full of flowers, ferns and small palms, little pastel wooden cottages beside the stairs, and a flock of bright green parrots with red heads flying between the trees and perching on a branch, soft morning light, the white fluted top of Coit Tower peeking above the hill. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "wave-organ-high-tide": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The tip of the Marina jetty in San Francisco at high tide as a handmade miniature diorama: a small terrace of old carved granite and marble blocks and stone benches at the end of a rocky breakwater, short grey pipes ending among the stones at the water's edge, lively teal waves splashing up against the rocks, a few sailboats on the bay and the terracotta-orange Golden Gate Bridge in the distance, fresh afternoon light. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "lands-end-labyrinth": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "A stone labyrinth on a rocky headland at Lands End in San Francisco as a handmade miniature diorama: a round path of small pale stones laid in concentric rings on a flat point of the cliff above the ocean, wind-bent cypress trees at the edge, white surf far below, and across the strait the terracotta-orange Golden Gate Bridge framed between the headland and the Marin hills, clear late-afternoon light. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "dahlia-dell-100": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The dahlia garden beside the Conservatory of Flowers in Golden Gate Park as a handmade miniature diorama in full bloom: a garden bed packed with big dahlias of every colour - pink, red, orange, yellow, purple and white pompoms and large dinner-plate blooms on tall stems - a string of little plain paper pennants between two garden posts for a birthday, and behind it the white Victorian glass conservatory with its central dome, sunny afternoon light. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "ggb-foghorn-duet": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The Golden Gate Bridge in thick summer fog as a handmade miniature diorama: the two terracotta-orange towers rising out of a soft rolling bank of white fog that hides the deck and the water, only the tops of the towers and the sweep of the main cables showing above it, the green Marin headlands behind, gentle blue-grey morning light, a quiet dreamy mood. No signs, no lettering, no numbers anywhere; no faces. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "china-beach-fishermen-b": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "China Beach, a small sandy cove below the Sea Cliff bluffs of San Francisco, as a handmade miniature diorama at golden hour, seen from the sand of the cove itself so that the scene fills the whole frame edge to edge: a curved strip of pale sand under steep sandstone-and-green cliffs topped by cypress trees, gentle white surf, and out on the calm teal water the dark silhouettes of two old Chinese fishing junks with ribbed, battened sails, the low sun warm over the ocean, the terracotta-orange Golden Gate Bridge small in the far distance. No signs, no lettering, no numbers anywhere; no faces. No floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "lands-end-labyrinth-b": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "A stone labyrinth on a rocky headland at Lands End in San Francisco as a handmade miniature diorama, seen from the cliff path beside it so that the scene fills the whole frame edge to edge: a round path of small pale stones laid in concentric rings on a flat point of the cliff above the ocean, wind-bent cypress trees at the edge, white surf far below, and across the strait the terracotta-orange Golden Gate Bridge framed between the headland and the Marin hills, clear late-afternoon light. No signs, no lettering, no numbers anywhere; no faces. No floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm golden-hour light, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  }
+ }
+}

@@ -195,9 +195,14 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
     if (m?.heroDropLots.length) dropLotTriangles([...host.cityChunks, ...far], m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
   });
   const unmountDebug = mountCityDebug(streamer, renderer);
+  // W5-V7: BAYBAY's recorded wave-5 lines play with her bubbles (game/voiceW5.ts, its own small chunk)
+  let offVoice: (() => void) | null = null, detached = false;
+  void import('../../game/voiceW5').then(m => { if (!detached) offVoice = m.initW5Voice(); }, () => { /* text bubbles only */ });
   return {
     city: streamer,
     detach: () => {
+      detached = true;
+      offVoice?.();
       unmountDebug();
       detachMurals?.();
       for (const d of detachAtmos) d();

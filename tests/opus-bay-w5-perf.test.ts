@@ -499,3 +499,117 @@ test('W5-V5: coin glints — the field keeps 16 glint slots after its lights (sa
   assert.ok(vs.includes('aLevel >= 3.0') && vs.indexOf('aLevel >= 3.0') < vs.indexOf('aLevel >= 2.0'));
   assert.ok(vs.includes('varying float vStar') && fs.includes('varying float vStar'));
 });
+
+// ---------------------------------------------------------------------------
+// Part b · W5-V8: the six secret postcards (H5-2)
+// ---------------------------------------------------------------------------
+
+/** A WebP's size from its first chunk (VP8 / VP8L / VP8X). */
+function webpSize(b: Uint8Array): [number, number] {
+  const tag = String.fromCharCode(b[12], b[13], b[14], b[15]);
+  assert.equal(String.fromCharCode(b[0], b[1], b[2], b[3], b[8], b[9], b[10], b[11]), 'RIFFWEBP');
+  if (tag === 'VP8 ') return [(b[26] | (b[27] << 8)) & 0x3fff, (b[28] | (b[29] << 8)) & 0x3fff];
+  if (tag === 'VP8L') { const v = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24); return [(v & 0x3fff) + 1, ((v >> 14) & 0x3fff) + 1]; }
+  return [1 + (b[24] | (b[25] << 8) | (b[26] << 16)), 1 + (b[27] | (b[28] << 8) | (b[29] << 16))];
+}
+
+test('W5-V8: the six secret postcards — one per egg of lane D\'s registry, 1200 × 900 and 600 × 450 WebP on disk, small, bilingual titles', async () => {
+  const fsm = await import('node:fs');
+  const P = await import('../src/opus-bay/data/sf/eggPostcards');
+  const { EGG_IDS } = await import('../src/opus-bay/eggs/registry');
+  assert.equal(P.EGG_POSTCARDS.length, 6);
+  assert.deepEqual(P.EGG_POSTCARDS.map(p => p.egg).sort(), ['china-beach-fishermen', 'dahlia-dell-100', 'ggb-foghorn-duet', 'lands-end-labyrinth', 'telegraph-hill-parrots', 'wave-organ-high-tide']);
+  for (const p of P.EGG_POSTCARDS) {
+    assert.ok(EGG_IDS.includes(p.egg), `${p.egg} is an egg`);
+    assert.equal(P.eggPostcard(p.egg), p);
+    assert.ok(p.title.zh.length <= 12 && p.title.en.length <= 40 && [...p.alt.zh].length <= 45);
+    for (const [url, size, max] of [[p.large, [1200, 900], 160_000], [p.small, [600, 450], 60_000]] as const) {
+      const buf = new Uint8Array(fsm.readFileSync(`public${url}`));
+      assert.deepEqual(webpSize(buf), size, url);
+      assert.ok(buf.length <= max, `${url} ${buf.length} B`);
+    }
+  }
+  assert.equal(P.eggPostcard('not-an-egg'), null);
+});
+
+// ---------------------------------------------------------------------------
+// Part b · W5-V7: BAYBAY's recorded wave-5 lines
+// ---------------------------------------------------------------------------
+
+test('W5-V7: the line inventory — spoken sentences only (no labels, templates, speaker prefixes or paper notes), a stable id from both texts', async () => {
+  const L = await import('../scripts/opus-sf/voice/w5/lines');
+  assert.ok(L.isSentence('嘿嘿，好痒！', 'Hehe, that tickles!'));
+  assert.ok(!L.isSentence('再试试', 'Try again'), 'a label');
+  assert.ok(!L.isSentence('想飞的时候${key.zh}就行～', 'x'), 'a template');
+  assert.ok(!L.isSentence('街坊：你好呀！天气这么好，下次来喝茶！', 'Neighbour: Hello there!'), 'another speaker');
+  assert.ok(!L.isSentence('一'.repeat(46) + '！', 'x'), 'longer than a bubble');
+  assert.equal(L.lineId('d', '甲', 'A'), L.lineId('d', '甲', 'A'));
+  assert.notEqual(L.lineId('d', '甲', 'A'), L.lineId('d', '甲', 'B'), 'a changed English word is a new line');
+  assert.match(L.lineId('a', '甲', 'A'), /^w5-a-[0-9a-f]{8}$/);
+  const lines = await L.w5Lines();
+  assert.ok(lines.length >= 90, `${lines.length} lines`);
+  for (const l of lines) {
+    assert.ok(L.isSentence(l.zh, l.en), l.zh);
+    assert.ok(!L.EXCLUDE[l.zh], `excluded: ${l.zh}`);
+    assert.equal(l.id, l.voiceId ?? L.lineId(l.lane, l.zh, l.en));
+  }
+  assert.equal(new Set(lines.map(l => l.id)).size, lines.length, 'one id per line');
+  for (const lane of ['a', 'c', 'd', 'n', 'r']) assert.ok(lines.some(l => l.lane === lane), `lane ${lane}`);
+  assert.ok(lines.some(l => l.voiceId === 'realsf-fire-season-end'), 'lane R voices its own line: its id is kept');
+  // takes: zh + en per line, the Pixie preset, an instruction within the service's cap
+  const takes = L.takesFor(lines.slice(0, 3));
+  assert.equal(takes.length, 6);
+  for (const t of takes) assert.ok(t.instruction.length <= L.MAX_INSTRUCTION && t.clip === `${t.language}-${t.line}`);
+});
+
+test('W5-V7: the recorded table — every clip on disk as the report says (bytes, sha256, duration), muted exactly when its pick missed a gate', async () => {
+  const fsm = await import('node:fs');
+  const crypto = await import('node:crypto');
+  const V = await import('../src/opus-bay/data/sf/voiceW5');
+  const report = JSON.parse(fsm.readFileSync('docs/opus-bay/qa/w5/V/voice/w5-voice-report.json', 'utf8')) as { clips: Record<string, { text: string; line: string; language: string; pick: { duration: number; passed: boolean; files: Record<string, { path: string; bytes: number; sha256: string }> } }> };
+  assert.ok(V.W5_VOICE_LINES.length >= 90);
+  assert.equal(Object.keys(V.W5_VOICE_CLIPS).length, V.W5_VOICE_LINES.length * 2);
+  for (const l of V.W5_VOICE_LINES) {
+    for (const [k, lang] of (['zh', 'en'] as const).entries()) {
+      const id = `${lang}-${l.id}`, e = report.clips[id];
+      assert.ok(e, `${id} in the report`);
+      assert.equal(e.text, l[lang]);
+      assert.equal(l.s[k], e.pick.duration);
+      assert.ok(l.s[k] >= 0.5 && l.s[k] <= 9, `${id} ${l.s[k]} s`);
+      const clip = V.W5_VOICE_CLIPS[id];
+      assert.equal(clip.m4a, `/opus-bay/w5/voice/${id}.m4a`);
+      for (const ext of ['m4a', 'ogg']) {
+        const f = e.pick.files[ext];
+        const buf = fsm.readFileSync(f.path);
+        assert.equal(buf.length, f.bytes, f.path);
+        assert.equal(crypto.createHash('sha256').update(buf).digest('hex'), f.sha256, f.path);
+      }
+      assert.equal(V.W5_VOICE_CHECK.includes(id), !e.pick.passed, `${id} muted exactly when it missed a gate`);
+    }
+  }
+});
+
+test('W5-V7: a BAYBAY bubble with a recorded text plays its clip (once per bubble); residents, other texts, lane-voiced and unapproved lines stay text', async () => {
+  const W = await import('../src/opus-bay/game/voiceW5');
+  const V = await import('../src/opus-bay/data/sf/voiceW5');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { onEvent } = await import('../src/opus-bay/core/events');
+  const line = V.W5_VOICE_LINES.find(l => !l.own && !V.W5_VOICE_CHECK.includes(`zh-${l.id}`))!;
+  const own = V.W5_VOICE_LINES.find(l => l.own);
+  assert.equal(W.w5VoiceFor({ zh: line.zh, en: line.en }), line.id);
+  assert.equal(W.w5VoiceFor({ zh: ` ${line.zh}`, en: line.en }), line.id, 'trimmed like the rumour frames');
+  assert.equal(W.w5VoiceFor({ zh: line.zh, en: 'something else' }), null, 'both texts must match');
+  if (own) assert.equal(W.w5VoiceFor({ zh: own.zh, en: own.en }), null, 'a line its lane voices itself');
+  const heard: string[] = [];
+  const offEv = onEvent(e => { if (e.type === 'voice-line') heard.push(e.id); });
+  const off = W.initW5Voice();
+  flow.set({ bubble: { who: 'baybay', text: { zh: line.zh, en: line.en }, key: 9001, tone: 'bark' } });
+  flow.set({ postcardFly: null, bubble: { who: 'baybay', text: { zh: line.zh, en: line.en }, key: 9001, tone: 'bark' } });
+  flow.set({ bubble: { who: 'hank', text: { zh: line.zh, en: line.en }, key: 9002, tone: 'npc' } });
+  flow.set({ bubble: { who: 'baybay', text: { zh: '随便说说。', en: 'Just chatting.' }, key: 9003, tone: 'bark' } });
+  off();
+  flow.set({ bubble: { who: 'baybay', text: { zh: line.zh, en: line.en }, key: 9004, tone: 'bark' } });
+  offEv();
+  flow.set({ bubble: null });
+  assert.deepEqual(heard, [line.id], 'one voice-line, for BAYBAY\'s recorded bubble only, none after off');
+});
