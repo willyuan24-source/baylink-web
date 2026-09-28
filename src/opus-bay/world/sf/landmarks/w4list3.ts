@@ -31,8 +31,8 @@ import { sutroHeightsPark } from './sutro-heights-park';
  * this list; w4sites.ts W4_ALL_SITES): the city draws, excludes and walks these, and landmarks/tops.ts has a row for
  * each. `W4_SITES_T3_NEXT` holds the tier-3 sites built after that, which wait for their tops rows: the integration
  * moves them into `W4_SITES_T3` and re-runs scripts/opus-sf/assets/landmark-tops.ts in the same commit
- * (docs/opus-bay/sf-w4-L3.md "Integration"; lane L3 edits no existing file in its early phase). `W4_SITES_T3_ALL` is
- * both, for the tests and the tier-3 scripts.
+ * (docs/opus-bay/sf-w4-L3.md "Integration"; W5-L1 moved 14 of the 15). `W4_SITES_T3_ALL` is both, for the tests and
+ * the tier-3 scripts.
  *
  * Same rule as w4list.ts: this module, the site modules, siteKit3.ts and siteTerrain3.ts never import './index',
  * './w4sites', './context' or '../sites' at runtime (type imports are erased); tests/opus-bay-sf-sites-w4t3.test.ts
@@ -48,10 +48,8 @@ export const W4_SITES_T3: readonly W4Site[] = [
   octagonHouse,
   sewardStreetSlides,
   vermontStreetCrookedBlock,
-];
-
-/** built after the registration: not drawn by the city until the integration moves them (with their tops rows) */
-export const W4_SITES_T3_NEXT: readonly W4Site[] = [
+  // wave 5 (W5-L1): 14 of the 15 sites built after W4-IL1, registered with their tops rows. The tier-3 trip ends of
+  // plan MF2 (McLaren's La Grande, Mountain Lake's overlook, the Wave Organ's spit) are these records' own arrivals.
   waveOrgan,
   womensBuilding,
   altaPlazaPark,
@@ -59,7 +57,6 @@ export const W4_SITES_T3_NEXT: readonly W4Site[] = [
   calle24,
   chinaBeach,
   glenCanyonPark,
-  inaCoolbrithPark,
   lafayettePark,
   mclarenPark,
   mountSutroOpenSpace,
@@ -67,6 +64,15 @@ export const W4_SITES_T3_NEXT: readonly W4Site[] = [
   noeValleyTownSquare,
   patriciasGreen,
   sutroHeightsPark,
+];
+
+/**
+ * Built and tested, not drawn yet. Ina Coolbrith Park stands 96 u from the Grace / Nob Hill gate spot and 157 u from
+ * Chinatown's, the downtown views at 398k of the 400k triangles (sf-w5-lead.md §6: nothing new downtown until lane V
+ * publishes the measured headroom). Registering it = moving it up and re-running landmark-tops.ts in one commit.
+ */
+export const W4_SITES_T3_NEXT: readonly W4Site[] = [
+  inaCoolbrithPark,
 ];
 
 export const W4_SITES_T3_ALL: readonly W4Site[] = [...W4_SITES_T3, ...W4_SITES_T3_NEXT];

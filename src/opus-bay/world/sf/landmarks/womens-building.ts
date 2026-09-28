@@ -80,7 +80,9 @@ export const womensBuilding: W4Site = {
   w4: {
     placeId: 'womens-building',
     attractions: ['womens-building'],
-    arrival: { x: -2.9, z: 2.5, heading: 2.5 },
+    // W5-L1: across Lapidge St at the 18th Street corner, both painted faces in view (the old spot stood in 18th Street's
+    // lane, where the toy traffic stops for the player)
+    arrival: { x: -4.9, z: 1.5, heading: 1.87 },
     photo: { target: [-0.4, 2.8, 0], distance: 13, elevation: 0.15, bearing: -0.75 },
     flag: { x: -0.4, z: -0.3, h: 30 },
     height: { realM: 17, u: 5.84, top: 5.9, rule: 'H = 3.2 + 0.155·h' },

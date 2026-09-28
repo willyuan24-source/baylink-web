@@ -99,9 +99,9 @@ export const gearyWest: W4Site = {
   w4: {
     placeId: 'holy-virgin-cathedral',
     attractions: ['holy-virgin-cathedral'],
-    // (on Geary's asphalt edge, 1.6 u from the centreline: lane V's swap test pins it ≥ 0.9 u before the porch, where
-    // the carriageway starts — sites test OPEN_ARRIVALS, Requests)
-    arrival: { x: 0, z: 2.6, heading: Math.PI },
+    // W5-L1: the frontage east of the doors, looking up at the domes (lane V's swap test allows it since 5a5523b; the old
+    // spot stood on Geary's asphalt, and the west frontage's fly-in landing snaps into the lane)
+    arrival: { x: 1.5, z: 2.0, heading: -2.5 },
     photo: { target: [0, 5, 0], distance: 22, elevation: 0.25, bearing: 0.3 },
     flag: { x: 0, z: 0, h: 30 },
     height: { realM: 38.1, u: 9.1, top: 9.6, rule: 'H = 3.2 + 0.155·h' },

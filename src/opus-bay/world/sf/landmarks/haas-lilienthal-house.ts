@@ -105,7 +105,8 @@ export const haasLilienthalHouse: W4Site = {
     placeId: 'osm-w256993595',
     attractions: ['haas-lilienthal-house'],
     // (W4-L-int-review: across Franklin St on its far sidewalk, the whole front in view; it stood on Franklin St's asphalt)
-    arrival: { x: 2.6, z: 6.6, heading: -2.75 },
+    // (W5-L1: 0.75 u toward Jackson St on the same sidewalk, where a fly-in lands on it, not in Franklin St's lane)
+    arrival: { x: 3.35, z: 6.6, heading: -2.64 },
     photo: { target: [0.2, 3, 0.8], distance: 15, elevation: 0.2, bearing: -0.35 },
     flag: { x: 0, z: -0.8, h: 30 },
     height: { realM: 20, u: 6.3, top: 7.03, rule: 'H = 3.2 + 0.155·h' },

@@ -219,7 +219,10 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
     const blocked = (p: Vec2) => (s.walk?.blockers ?? []).some(b => ('poly' in b ? inPoly(p, b.poly) : Math.hypot(p.x - b.x, p.z - b.z) < b.r + 0.3));
     const ar = s.w4.arrival;
     assert.ok(!blocked(ar), `${s.id} arrival is clear of its blockers`);
-    assert.ok(Math.hypot(ar.x, ar.z) < 45, `${s.id} arrival within reach of the site`);
+    // (W5-L1: the Wave Organ arrives at its spit's root on Yacht Road, 69 u from the tip: the spit has no walking-graph
+    // node on its side of the water, so the walk out is part of the visit, and its notes say so)
+    const arrivalReach = /arrival is at the spit's root/.test(s.w4.notes ?? '') ? 75 : 45;
+    assert.ok(Math.hypot(ar.x, ar.z) < arrivalReach, `${s.id} arrival within reach of the site`);
     await sf.attachAround(city, s.x, s.z, 110, lms);
     setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
     try {

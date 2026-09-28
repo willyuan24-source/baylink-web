@@ -87,7 +87,8 @@ export const calle24: W4Site = {
   w4: {
     placeId: 'calle-24',
     attractions: ['calle-24'],
-    arrival: { x: -0.8, z: 1.1, heading: Math.PI / 2 },
+    // W5-L1: on the north sidewalk under the flag strings (the old spot stood in 24th Street's lane)
+    arrival: { x: -0.8, z: 0.35, heading: Math.PI / 2 },
     photo: { target: [1.6, 2.4, 0], distance: 12, elevation: 0.15, bearing: 2.4 },
     flag: { x: 1.6, z: 0, h: 30 },
     height: { realM: 0, u: 3.7, top: 3.8, rule: 'overlook' },

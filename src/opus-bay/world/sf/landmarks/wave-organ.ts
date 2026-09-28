@@ -17,8 +17,10 @@ import { bandPoly, box3, site3Ground, standSpot } from './siteKit3';
  * mouths at their rim and a few carved blocks as seats. No sound hook here (the pipes are stubs).
  *
  * Frame: origin (−412.3, 290) at the tip, yaw 0 (the city frame): the spit runs from the tip south-west to the West
- * Harbor's land at (−29, 55); water everywhere else. The arrival is lane P's viewing spot on the Marina Green shore
- * (local (18.9, 13.4), across the harbour mouth), where trips end; the walk out starts at Yacht Road.
+ * Harbor's land at (−29, 55); water everywhere else. The arrival (W5-L1) is the spit's root on Yacht Road, looking out
+ * along the breakwater to the terraces 69 u away: lane P's viewing spot on the Marina Green shore (local (18.9, 13.4))
+ * lay across the harbour mouth, and a spot on the spit itself has its nearest walking-graph node across the water (trips
+ * and fly-ins would end on the far shore).
  */
 
 const ID = 'wave-organ';
@@ -101,12 +103,12 @@ export const waveOrgan: W4Site = {
   w4: {
     placeId: 'wave-organ',
     attractions: ['wave-organ'],
-    arrival: { x: 18.9, z: 13.4, heading: -2.19 },
+    arrival: { x: -30, z: 62, heading: 2.69 },
     photo: { target: [-0.7, 0.6, -1.0], distance: 12, elevation: 0.35, bearing: 0.4 },
     flag: { x: -0.7, z: -0.2, h: 30 },
     height: { realM: 0, u: 1.0, top: 1.4, rule: 'overlook' },
     osm: [],
     terrain: [-31, -4, 2, 56],
-    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so). The crowd spots are the upper terrace and points along the spit.',
+    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so). The crowd spots are the upper terrace and points along the spit. The arrival is at the spit\'s root on Yacht Road (69 u from the tip: the walk out is the visit).',
   },
 };

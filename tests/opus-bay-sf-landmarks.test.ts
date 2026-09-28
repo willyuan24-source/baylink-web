@@ -572,9 +572,9 @@ test('W4-L-int-review: every site\'s arrival stands on walkable pavement off the
     }
     return null;
   };
-  // Holy Virgin's arrival: lane V's swap test pins it ≥ 0.9 u before the porch, on Geary's asphalt (lane L's Requests);
-  // Balmy Alley is the site's own alley (its murals are on the garage doors either side: the crowd stands in it)
-  const OPEN = new Set(['geary-west', 'balmy-alley']);
+  // Balmy Alley is the site's own alley (its murals are on the garage doors either side: the crowd stands in it); Holy
+  // Virgin left the list in W5-L1 (lane V's swap test allows the frontage beside the doors since 5a5523b)
+  const OPEN = new Set(['balmy-alley']);
   // the Dragon Gate's arrival is on Grant Ave's 0.6 u east sidewalk (the only spot that frames the gate up the street): its
   // fly-in landing snaps 0.4 u onto the kerb lane (actors/nav arrivalSpot keeps the nearest 0.75 u cell centre, not p;
   // lane L's Request to the nav's owner). Any other card landing on the asphalt fails.

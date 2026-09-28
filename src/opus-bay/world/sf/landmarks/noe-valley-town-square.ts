@@ -87,7 +87,8 @@ export const noeValleyTownSquare: W4Site = {
   w4: {
     placeId: 'noe-valley-town-square',
     attractions: ['noe-valley-town-square'],
-    arrival: { x: 0.0, z: 2.4, heading: Math.PI },
+    // W5-L1: at the square's mouth between the two stalls (the old spot stood in 24th Street's lane)
+    arrival: { x: 0.0, z: 1.2, heading: Math.PI },
     photo: { target: [0, 1.0, -0.5], distance: 11, elevation: 0.3, bearing: 0.3 },
     flag: { x: -0.2, z: -0.8, h: 30 },
     height: { realM: 0, u: 2.0, top: 4.71, rule: 'overlook' },

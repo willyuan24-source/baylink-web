@@ -78,7 +78,8 @@ export const websterBridge: W4Site = {
   w4: {
     placeId: 'osm-w546510348',
     attractions: ['japan-center'],
-    arrival: { x: -2.35, z: -2.2, heading: 0 },
+    // W5-L1: 2 u further toward Geary on the same west sidewalk, where a fly-in lands on it (not in Webster St's lane)
+    arrival: { x: -2.35, z: -4.2, heading: 0 },
     photo: { target: [0.4, 3, 0], distance: 14, elevation: 0.12, bearing: 0.2 },
     flag: { x: 0.4, z: 0, h: 30 },
     height: { realM: 10, u: 4.4, top: 5.2, rule: 'H = 3.2 + 0.155·h' },

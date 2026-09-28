@@ -69,6 +69,8 @@ export const lafayettePark: W4Site = {
   w4: {
     placeId: 'osm-w16751838',
     attractions: ['lafayette-park'],
+    // W5-L1: 188 u from the Grace / Nob Hill gate spot (398k of the 400k triangles): the full model only within 170 u
+    lod0R: 170,
     arrival: { x: 2.6, z: -0.6, heading: -2.6 },
     photo: { target: [0.3, 1.0, -0.6], distance: 12, elevation: 0.45, bearing: 0.6 },
     flag: { x: 0.3, z: -0.8, h: 30 },
