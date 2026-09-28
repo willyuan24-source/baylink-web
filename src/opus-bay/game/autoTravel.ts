@@ -23,9 +23,15 @@ export interface AutoState {
   fails: number;
   /** the leg the counters belong to */
   legKey: string;
+  /**
+   * (checkpoint CP-1) stepping aside for a line vehicle that waits for the player: the spot and since when (ms). A car
+   * standing short of someone on its track waits for good; the auto-walk pressed the player into it at the Green St stop
+   * (a streetcar held 72 s, the walk gave up, 自动跟上 walked back into it).
+   */
+  yielding: { p: Vec2; since: number } | null;
 }
 
-export const AUTO_IDLE: AutoState = { on: false, issued: null, issuedAt: 0, fails: 0, legKey: '' };
+export const AUTO_IDLE: AutoState = { on: false, issued: null, issuedAt: 0, fails: 0, legKey: '', yielding: null };
 
 /** Where auto-travel walks now: a point, the arrival radius, and an interactable to use on arrival (a parked bike). */
 export interface AutoWant { p: Vec2; r: number; interact?: string }
@@ -42,11 +48,16 @@ export interface AutoInput {
   /** the player cannot walk now (a dialogue, a panel, a cinematic, the pelican, a ride, not on foot): wait */
   blocked: boolean;
   legKey: string;
+  /** a line vehicle has waited ≥ YIELD_AFTER_S for the player on its track: the spot to step aside to (yieldSpot) */
+  yieldTo?: Vec2 | null;
+  /** a line vehicle is within YIELD_CLEAR_R of the player (the stepping aside lasts until none is) */
+  vehicleNear?: boolean;
 }
 
 export type AutoDecision =
   | { type: 'none' }
-  | { type: 'issue'; p: Vec2; interact?: string }
+  /** walk to `p` (`yield`: stepping aside for a vehicle that waits — BAYBAY says so once) */
+  | { type: 'issue'; p: Vec2; interact?: string; yield?: true }
   /** the player took over (stick / WASD / a tap elsewhere): auto-travel is off, the trip goes on */
   | { type: 'takeover' }
   /** the auto-walk kept stopping short: off, BAYBAY says "这段你来走" */
@@ -59,7 +70,47 @@ export const AUTO_MAX_FAILS = 3;
 /** The leg's target moved this far from the issued one: walk to the new one (u). */
 export const AUTO_RETARGET = 1;
 
+/** A line vehicle has stood this long (s) short of the carried player on its track: step aside (CP-1). */
+export const YIELD_AFTER_S = 1;
+/** Stepping aside ends once no vehicle is within this of the player (u; the cars are ≤ 8.4 u long) … */
+export const YIELD_CLEAR_R = 7;
+/** … and no sooner than this after it began (ms) … */
+export const YIELD_MIN_MS = 1500;
+/** … and at the latest after this (ms): a car that stays (a long dwell) is walked past. */
+export const YIELD_MAX_MS = 20000;
+/**
+ * How far from the waiting vehicle's axis the step aside goes (u): clear of its 1.4 u "on the track" band and of a
+ * neighbouring track (the double track's centres are ≤ 3.8 u apart), so no other car waits for us there.
+ */
+export const YIELD_SIDE = 4.5;
+/** A player further than this ahead of a vehicle's centre is clear of its nose (u; the longest half body is 4.2). */
+export const YIELD_BODY_CLEAR = 5.4;
+
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
+
+/**
+ * Where to step aside for a vehicle at `car` (heading = its travel direction, world yaw: forward = (sin h, cos h)) that
+ * waits for the player: straight across its axis to YIELD_SIDE from it. Pressed against its body, on the player's own
+ * side first (never round its nose); clear ahead of its nose, on the side of `toward` (where the walk goes) first. The
+ * other side next; null when neither is standable (the old behaviour: wait for the car).
+ */
+export function yieldSpot(player: Vec2, car: { x: number; z: number; heading: number }, stand: (p: Vec2) => boolean, toward?: Vec2 | null, side = YIELD_SIDE): Vec2 | null {
+  const fx = Math.sin(car.heading), fz = Math.cos(car.heading);
+  const dx = player.x - car.x, dz = player.z - car.z;
+  // the lateral offset along the right normal (fz, −fx), and how far ahead of the car's centre
+  const lat = dx * fz - dz * fx, along = dx * fx + dz * fz;
+  let own = lat < 0 ? -1 : 1;
+  if (toward && along > YIELD_BODY_CLEAR) {
+    const tl = (toward.x - car.x) * fz - (toward.z - car.z) * fx;
+    if (Math.abs(tl - lat) > 0.5) own = tl < lat ? -1 : 1;
+  }
+  for (const sgn of [own, -own]) {
+    const step = sgn * side - lat;
+    const p = { x: player.x + fz * step, z: player.z - fx * step };
+    if (stand(p)) return p;
+  }
+  return null;
+}
 
 /** One step of auto-travel (pure): the next state and what to do. */
 export function autoStep(s: AutoState, i: AutoInput): { state: AutoState; decision: AutoDecision } {
@@ -70,9 +121,18 @@ export function autoStep(s: AutoState, i: AutoInput): { state: AutoState; decisi
     return { state: { ...AUTO_IDLE }, decision: { type: 'takeover' } };
   }
   let st = s;
-  if (i.legKey !== st.legKey) st = { ...st, legKey: i.legKey, fails: 0, issued: null };
-  if (!i.want) return none(st.issued ? { ...st, issued: null } : st);
+  if (i.legKey !== st.legKey) st = { ...st, legKey: i.legKey, fails: 0, issued: null, yielding: null };
+  if (!i.want) return none(st.issued || st.yielding ? { ...st, issued: null, yielding: null } : st);
   if (i.blocked) return none(st);
+  // CP-1: a vehicle waits for us — step aside, let it pass, then walk on (the fails are not counted meanwhile)
+  if (st.yielding) {
+    const y = st.yielding, age = i.now - y.since;
+    if (age < YIELD_MAX_MS && (age < YIELD_MIN_MS || i.yieldTo || i.vehicleNear)) return none(st);
+    st = { ...st, yielding: null };
+  } else if (i.yieldTo) {
+    const p = { x: i.yieldTo.x, z: i.yieldTo.z };
+    return { state: { ...st, issued: p, issuedAt: i.now, yielding: { p, since: i.now } }, decision: { type: 'issue', p, yield: true } };
+  }
   const w = i.want;
   const issue = (fails: number) => {
     const p = { x: w.p.x, z: w.p.z };

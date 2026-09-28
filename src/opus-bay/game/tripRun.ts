@@ -7,10 +7,12 @@ import { game } from '../core/store';
 import { canStand, nearestWalkable } from '../core/terrain';
 import type { Bilingual, DialogueNode, Vec2 } from '../core/types';
 import { ATTRACTION_INDEX } from '../data/sf/attractions';
-import { rideSystemFor } from '../data/transit';
+import { activeCableSystem, activeLineFleet, activeStreetcarSystem, rideSystemFor } from '../data/transit';
 import { isDiscovered } from './discovery';
 import { registerAskItem } from '../ui/slots';
-import { type AutoWant, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState } from './autoTravel';
+import {
+  type AutoWant, YIELD_AFTER_S, YIELD_CLEAR_R, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState, yieldSpot,
+} from './autoTravel';
 import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
 import {
@@ -392,6 +394,34 @@ export function autoWant(leg: TripLeg, player: Vec2 & { y: number }, stand: (p: 
   return want;
 }
 
+/** A line vehicle's pose (world yaw heading) and how long it has stood short of the player on its track (s). */
+export interface LineVehicle { x: number; z: number; heading: number; held: number }
+
+/** Every running line vehicle near enough to matter (cable cars, F-line cars, the sightseeing buses, the Metro cars). */
+export function lineVehicles(): LineVehicle[] {
+  const out: LineVehicle[] = [];
+  const add = (held: number, p: { x: number; z: number; heading: number }) => out.push({ x: p.x, z: p.z, heading: p.heading, held });
+  for (const c of activeCableSystem()?.cars ?? []) add(c.held, c.pose);
+  for (const c of activeStreetcarSystem()?.cars ?? []) add(c.held, c.pose);
+  const fleet = activeLineFleet();
+  for (const b of fleet?.bus.buses ?? []) add(b.held, b.pose);
+  for (const tr of fleet?.rail.trains ?? []) for (const c of tr.cars) add(tr.held, c);
+  return out;
+}
+
+/**
+ * CP-1 (the mid-wave checkpoint): the carried player standing in a line vehicle's way. The one that has waited longest
+ * (≥ YIELD_AFTER_S) gives the spot to step aside to; `near` = any vehicle within YIELD_CLEAR_R.
+ */
+export function vehicleYield(player: Vec2, vehicles: readonly LineVehicle[], toward: Vec2 | null, stand: (p: Vec2) => boolean = p => canStand(p.x, p.z)): { to: Vec2 | null; near: boolean } {
+  let holder: LineVehicle | null = null, near = false;
+  for (const v of vehicles) {
+    if (Math.hypot(v.x - player.x, v.z - player.z) < YIELD_CLEAR_R) near = true;
+    if (v.held >= YIELD_AFTER_S && (!holder || v.held > holder.held) && Math.hypot(v.x - player.x, v.z - player.z) < 24) holder = v;
+  }
+  return { to: holder ? yieldSpot(player, holder, stand, toward) : null, near };
+}
+
 /** 10 Hz (and at a trip's start): step auto-travel and apply its decision. */
 function autoTick(now: number) {
   const st = autoState();
@@ -401,14 +431,18 @@ function autoTick(now: number) {
   const s = game.get(), f = flow.get(), pl = runtime.player;
   const blocked = s.phase !== 'playing' || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || travelActive() || s.riding !== null
     || s.move.mode !== 'foot' || s.photoMode;
+  const player = { x: pl.x, z: pl.z };
+  const want = autoWant(leg, pl);
+  const y = blocked || !want ? { to: null, near: false } : vehicleYield(player, lineVehicles(), want.p);
   const { state, decision } = autoStep(st, {
-    now, manualAt, pathTarget: pl.pathTarget, player: { x: pl.x, z: pl.z }, want: autoWant(leg, pl), blocked, legKey: keyOf(t),
+    now, manualAt, pathTarget: pl.pathTarget, player, want, blocked, legKey: keyOf(t), yieldTo: y.to, vehicleNear: y.near,
   });
   setAutoState(state);
   if (decision.type === 'issue') {
     // (our own object: the reducer tells ours from a tap by identity)
     pl.pathTarget = decision.p;
     pl.pendingInteract = decision.interact ?? null;
+    if (decision.yield) bubble({ zh: '有车来，我们先让一让～', en: 'A car is coming. Let’s step aside' }, 2600, BAYBAY_ID, 'call');
   } else if (decision.type === 'giveup') {
     bubble({ zh: '这段路有点难走，你来带路吧！', en: 'This bit is tricky — you steer for a moment!' }, 3000, BAYBAY_ID, 'call');
   }
