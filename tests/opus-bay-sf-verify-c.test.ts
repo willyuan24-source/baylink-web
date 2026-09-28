@@ -81,9 +81,9 @@ test('verify C1 / D7: a city card links only its own official site; the plan but
   for (const id of ['fort-point', 'de-young-tower', 'conservatory-of-flowers', 'palace-of-fine-arts', 'dragon-gate', 'fishermans-wharf-sign']) {
     assert.notEqual(cardOfficialUrl(`sf:${id}`, 'https://planner.example/', CITY_POI_OFFICIAL_URLS), 'https://planner.example/', id);
   }
-  assert.match(src('ui/PoiCard.tsx'), /cardOfficialUrl\(poi\.id, place\?\.officialUrl, POI_OFFICIAL_URLS\)/);
+  assert.match(src('ui/PoiCardBody.tsx'), /cardOfficialUrl\(poi\.id, place\?\.officialUrl, POI_OFFICIAL_URLS\)/);
   // D7: the English label never prints the zh-only planner title; the label wraps (content-ui.css)
-  assert.match(src('ui/PoiCard.tsx'), /`Put \$\{poi\.name\.en\} in a BAYLINK plan`/);
+  assert.match(src('ui/PoiCardBody.tsx'), /`Put \$\{poi\.name\.en\} in a BAYLINK plan`/);
   assert.match(src('ui/PlaceCard.tsx'), /`Put \$\{name\.en\} in a BAYLINK plan`/);
   assert.match(src('ui/content-ui.css'), /\.ob-poi \.ob-lede \+ \.ob-btn,[^{]*\{[^}]*white-space: normal/);
 });

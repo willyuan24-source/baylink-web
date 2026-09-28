@@ -10,7 +10,7 @@ import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { LinkButton, Sheet } from './common';
 import { useIsMobile } from './hooks';
-import { GuideRow, NearEvents } from './PoiCard';
+import { GuideRow, NearEvents } from './PoiCardBody';
 
 /**
  * A city place that is not a landmark (G1's place index, OpenStreetMap names; G1's request 3): what it is and where,
