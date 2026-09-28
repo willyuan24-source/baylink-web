@@ -601,3 +601,97 @@ Checks:
 - After rebasing onto lane V / L commits (pushed as `e48d470`): tsc 0 and the three lane P suites 59 / 59.
 - One wall-clock flake during the review, with the CPU at 100 %: sf-move2 "a cached cell is cheap". It passed alone,
   twice.
+
+## Integration part a
+
+Lane P's wave-4 integration (wire it in), 2026-09-27, worktree `C:/Users/willy/wt/i4-p` (branch `i4-p`), dev server 5401,
+scratch `C:/Users/willy/opus-qa/w4i/i4-p/`. Commits `W4-P-I1` … `W4-P-I10` on `opus-bay`. No Higgsfield spend.
+
+### 给主人的摘要
+
+**进度（主人问"现在进度如何"）：P 线的接线已经做完并推送了，新地图现在在游戏里能用了；下面是做了什么。**
+
+1. 新地图接进游戏了：158 个景点按"必看 / 热门 / 小景点"三级、按类别用不同颜色的图标显示（16 个必看放大后换成 V 线画的贴纸），名字排在图标旁边，挤在一起的合成"+2"（点一下自动放大）；观光巴士、N 线、M 线、叮当车、F 线都画在地图上（地下段是虚线），车站画成小圆点或换乘胶囊。
+2. 地图下面一排筛选按钮（全部 / 必看 / 博物馆 / 公园 / 观景 / 校园 / 购物 / 交通；点"校园"全城的大学都会亮出来）、图例、左上角指北针（北在左上）；列表分"景点 · 线路 · 附近 · 去过的"，景点带照片缩略图；搜"大学""石镇""N 线"都能搜到。
+3. 选中一个地方：名字完整显示，一个大按钮"跟 BAYBAY 去"（G 线算出的最快方式），"其他方式"展开步行 / 跑 / 骑车 / 坐车 / 飞过去，每种都写游戏里真实要多久；出发后由 C 线带路，地图上有目标小旗、路线和"艺术宫 · 跑过去 约 2 分钟"，顶部一条"当前：去艺术宫 [结束]"。点车站能看到"坐 M 线 → 森林山站 约 19 秒""坐一圈（约 14 分钟）"、下一班车还有多久、带我去车站，去过后可以飞过去。
+4. 车站也算"地点"了：走到车站 12 单位内就会点亮，能搜、能飞。地点数据 places.json 发布了新版（多了 6 所确认还在办学的学校校区），威廉明娜女王郁金香花园有了中文名；飞过去 / 读档落地会落在开阔的地方，不会卡在两排房子中间。
+5. 足迹页改成：必看 x/16、景点 x/158、街区、坐过的线路；"线路"页里还有 D2 做的三条步行路线（点开是金色虚线加编号站点）；给 C 线的"一日游回顾"做好了真实地图版（等 C 线挂上）。
+6. 检查：tsc 0、全仓 eslint 0 错误、全套测试通过（802 / 802，之后又加的测试也通过）；手机 390、375 和桌面 1440 都截图看过；GameRoot 主包没有因为地图变大（地图全在按需加载的分包里）。
+
+### What was wired (lane P's files per plan §5.1 unless noted)
+
+| step | commit | what |
+|---|---|---|
+| place index | `W4-P-I1` | `data/sf/places.ts` builds from `extraPlaces.applyW4Places(file)` (loaded on demand: the 47 attraction rows, the island landing places, name fixes, re-anchors, wave-4 kinds, arrivals, the hidden duplicate); a row's own `arrival` wins over the landmark anchor (the Golden Gate Bridge ends at the Welcome Center); wave-4 site records (lane L's `w4` metadata) never become place-index landmarks (their rows keep lane C's cards). G2 w3 review 10: `osm-w120483945` = 威廉明娜女王郁金香花园. |
+| arrivals | `W4-P-I2` | `game/fastTravel.ts arrivalSpot`: in the city `actors/nav arrivalSpot(p, 30)` first (E2 w3 part b request 1): fly, resume and `?at=` never land in a backyard pocket or a slot between house rows. |
+| places.json | `W4-P-I3` | `scripts/opus-sf/lib/places.ts`: `poiKind` asks `poiKindW4` first, `takesPoi` adds only the reviewed new rows (`W4_OSM_ADDS`, zh from `W4_OSM_ZH`); the sidecar uses the build's rules (identical output, byte for byte). **`public/opus-bay/sf/v1/places.json` published: 1,033 rows** (v1's 1,027 at their indices, 6 reviewed campuses, the zoo row kind `zoo`). The map / attraction tests read lane T's lines from transit.json once published there (they are now). |
+| the map | `W4-P-I4` | `ui/CityMap.tsx` rebuilt on the early modules: `ui/cityMapModel.ts` (new: `buildScene` = attraction badges + other places + stations + zone names through one `layoutMap`; `hitTest`; `firstOpenView` / `sfLandView` / `fitAbs`; `drawMapExtras`), `ui/CityMapList.tsx` (new: search + tabs), `ui/StationPanel.tsx`, `ui/mapTrips.ts`, `ui/mapData.ts`, `ui/mapListData.ts` (new), `data/sf/mapTransit.ts` (new: the wave-4 lines from the published file), `data/sf/stationPlaces.ts` (new: stations as place rows), `game/mapPanel.ts` (new: `openMapOn`, `openMapLine`, `parseMapPanelId`); `ui/cityMapDraw.ts` `MAX_SCALE` 4 (a phone only reached s ≈ 2); `ui/tripRows.ts` uses lane C's `timeLabel` (C part 2 step 2). Lane T's 看线路图 → `setLineMapOpener`, set at the discovery boot (the helper loaded lazily). |
+| footprints / recap | `W4-P-I5` | `ui/Footprints.tsx` + `footprintsData.ts`: 必看 x / 16, 景点 x / 158, 街区, 线路 ridden / known (the lists load with the tab); the must-see grid opens the map on each. `ui/RecapMap.tsx` (new): the Grand Tour over the paper for lane C's `TourRecap mapSlot`. |
+| trips | `W4-P-I6` | 跟 BAYBAY 去 / 其他方式 / a station's ride start lane C's runner (`flow.startTrip` via `game/placeTrips.ts startPlaceTrip`); the trip strip 当前：去 X · 约 N 分钟 [结束] (`flow.endTrip`); the station card takes lane T's `stationRides` / `nextArrival` and boards with `boardLine` at the stop; the Grand Tour's current stop wears its coral number (`cityTourRun`). |
+| stickers, routes | `W4-P-I7` | lane V's T1 stickers from s 0.45 (`ui/mapData.ts useStickersReady`: the atlas decoded once, the glyph until then and under `?stickers=0`; `badgeNodes` counts the crop exactly); lane D2's `SF_ROUTES` in the 线路 tab (the walk dashed gold with numbered stops, the stops listed) and as 步行路线 chips on a stop's card (D2 w3 c5); a shared-row attraction (Japan Center) opens its own card. |
+| QA fixes | `W4-P-I8`, `W4-P-I9` | the route chip is a label obstacle; a stop named for the attraction beside it stays quiet while the badge is named; each line once per station (lane P's review 2: Embarcadero's two California stops); list discs keep their size; the place card's row fits 375 px; the trip's ETA chip at its destination ("艺术宫 · 跑过去 约 2 分钟", kept inside the frame); no walking preview under a running trip. |
+
+Tests: `tests/opus-bay-sf-map-int.test.ts` (new, 15: framing; the phone SF fit ≥ 11 of 16 T1 named, no overlapping
+labels, ≤ 120 nodes; downtown with stations and taps; the 校园 chip and a highlighted line; plain places; panel ids;
+stations as places; station rides; trip destinations; 足迹; the recap map; stickers; walking routes; quiet stops);
+`tests/opus-bay-sf-discovery.test.ts` (new: stations found at 12 u, the save cap); `sf-places` (on purpose: the runtime
+index, `places − 1 + 49` rows, the landmark arrival rule, wave-4 kinds, the tulip garden); `sf-travel` (city arrivals in
+an open area; fly to a discovered station); `sf-attractions` (the published places.json, `poiKind` / `takesPoi`);
+`sf-map-w4` (the one time rule); in lane C's `sf-triptext` one assertion (`tripSecondsLabel(6).en` is `~6s` after the
+switch lane C's own plan asked for).
+
+### Evidence
+
+- **Checks** on the pushed trees: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
+  the full opus-bay suite **802 / 802** on `41c3b6b` (earlier pushes 714, 722, 727, 759, 780 green; one run before
+  `79b04ec` had two lane-L / lane-V failures from `b967512` (Holy Virgin tops / swap), fixed upstream by lane L's
+  `94badf8` before that push; both files green alone after the rebase).
+- **Shots** (`docs/opus-bay/qa/w4/P/`, all read): `int-map-390.jpg` (first open at the Ferry with the stickers, the SF-land
+  fit, the 校园 chip, search 大学, the Palace with 其他方式), `int-map-375.jpg` (the same five), `int-map-desktop.jpg`
+  (fit; 线路 with N highlighted; the legend; mid-trip with the pin, the route, the ETA chip and the strip),
+  `int-walk-route-390.jpg` (R2 Marina Green → the Golden Gate), `int-station-card-desktop.jpg` (卡斯特罗站: 坐一圈, the
+  loop and M rides, the underground note). Measured in the page: the place card's button row 315 / 315 px at 375 (the go
+  button unclipped); at 390 the rows had stretched to 372 px past a 330 px card (a wrapping flex column) — fixed.
+- **Numbers**: phone SF fit (352 × 388) s ≈ 0.17, 12 T1 named on screen; desktop frame fit s ≈ 0.29; the 校园 chip shows
+  9 campus badges at the fit; downtown at s 0.7 ≥ 10 stations on the canvas within the 120-node budget. 139 stations join
+  the place index (1,075 place rows + 139 = 1,214 ≤ the 2,000 save cap).
+- **Bundle** (`npx vite build` to scratch): GameRoot **298.39 KB** gzip (310.83 at the lead-merge baseline `32eda15`; the
+  drop is other lanes'); lane P adds only lazy-import stubs to it. The map chunk `CityMap` 34.6 KB gzip + `mapTransit`
+  6.8 KB (shared with the station rows) + `attractions` 19.9 KB, loaded with the map / the place index. The map is DOM +
+  2D canvas: no draw call, no program, no material.
+
+### Decisions
+
+- **Wave-4 sites are not place-index landmarks**: a `landmark` row asks for a G2 landmark card and hides lane C's
+  (`placeCardForPlace` returns null for landmark rows); their rows stay the attraction's.
+- **The map reads lane T's lines from the published file** (`data/sf/mapTransit.ts`), not from T's runtime registry: the
+  map and the station places work before the fleet runs and never wait on the city chunk.
+- **Stations are canvas marks + layout obstacles** everywhere (lane P2's phone budget); taps find them in JS. A
+  highlighted line shows its stations at every scale; a category chip shows its own T2 / T3 at every scale.
+- **Stations as place rows** keep their stop ids (`loop-…`, `muni-…`, cable stations, `f-line-…`): discovery, search and
+  fly reuse the place machinery; the map draws them as stations, never as place dots.
+- **Trips** go through lane C's runner only: the map shows `flow.trip` (strip, pin, legs, chip).
+- **Zoom-in limit** is absolute (s 4): 18× the frame fit is s ≈ 2 on a phone, short of the T4 labels (s ≥ 3).
+
+### Known gaps / not done
+
+- **Badges can still cover station pills** (the turntable over Powell's 叮当 disc): the layout places labels and clusters,
+  it does not move markers (lane P's review 2 open item).
+- **A walking route's numbered discs are on the canvas**, under an attraction badge standing on the same stop.
+- **The tour on the map** numbers only the Grand Tour's current stop (lane C's `cityTourRun` exposes the current stop);
+  finished trip legs grey out.
+- `?discover=all` still counts 0 in 足迹 (G1 review open 2, unchanged).
+- The 375 × 667 frame is short (≈ 305 px): the tool column stays single.
+- Not re-measured here: fps (the map adds no 3D work); the flags are lane G's mount (`guideCity.ts` already feeds
+  `withSiteFlags`).
+
+### Requests
+
+- **Lane C**: pass lane P's recap map to the Grand Tour recap — `const RecapMap = lazy(() => import('./RecapMap'))` in
+  `ui/CityTourRecap.tsx`, then `mapSlot={<Suspense fallback={null}><RecapMap tour={def} completed={tourState.completed}
+  express={express} stopName={stopName} /></Suspense>}`. Optional: expose the played stop list with the current index so
+  the map can number every remaining stop.
+- **Lane T**: nothing blocking (`setLineMapOpener` is set). Optional: `nextArrival` for the cable lines.
+- **Lead**: lane P2's GGB footway request stands (the walk from the loop stop to the Welcome Center is 140 u).
+
+Owner messages relayed during this part: "现在进度如何" (answered in the summary's first line).
