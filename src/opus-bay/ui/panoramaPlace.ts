@@ -20,7 +20,10 @@ export function placePanoramaTags(root: HTMLElement, placed: readonly PlacedTag[
     if (el.style.transform !== tr) el.style.transform = tr;
     if (el.dataset.show !== '1') el.dataset.show = '1';
     const a = anchors.get(p.id);
-    const lead = p.lead && a ? Math.max(0, a.y - p.box.b) : 0;
+    // a tag under its anchor (game/flags layoutPanoramaTags `below`): the leader goes up from its top edge
+    const below = p.below ? '1' : '0';
+    if (el.dataset.below !== below) el.dataset.below = below;
+    const lead = p.lead && a ? Math.max(0, p.below ? p.box.t - a.y : a.y - p.box.b) : 0;
     setVar(el, '--ob-lead', `${lead.toFixed(0)}px`);
     setVar(el, '--ob-lead-x', `${a ? (a.x - p.box.l).toFixed(0) : 0}px`);
   }

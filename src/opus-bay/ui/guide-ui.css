@@ -125,6 +125,8 @@
 .ob-pano-tag.rank-1 { font-size: 13px; }
 .ob-pano-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ob-tag-color, var(--ob-terra)); box-shadow: 0 0 0 2px #fff; flex: none; }
 .ob-pano-lead { position: absolute; top: 100%; left: var(--ob-lead-x, 50%); width: 0; height: var(--ob-lead, 0px); border-left: 1.5px solid rgba(34, 50, 47, .45); pointer-events: none; }
+/* (part b) a tag hung under its anchor: the leader goes up to the flag */
+.ob-pano-tag[data-below='1'] .ob-pano-lead { top: auto; bottom: 100%; }
 /* (the projector owns `transform`: the entrance uses the separate translate / scale properties) */
 @keyframes ob-pano-in { from { opacity: 0; translate: 0 6px; scale: .9; } }
 

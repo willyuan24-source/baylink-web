@@ -217,7 +217,8 @@ export function pickPanoramaTags(eye: Vec2, yaw: number, attractions: readonly F
 /** A tag projected to the screen: anchor (the attraction's top) in CSS px; `w` / `h` = the tag's size estimate. */
 export interface TagInput { id: string; x: number; y: number; w: number; h: number; rank: AttractionRank; behind?: boolean }
 export interface TagBox { l: number; t: number; r: number; b: number }
-export interface PlacedTag { id: string; x: number; y: number; box: TagBox; lead: boolean }
+/** `below`: the tag hangs under its anchor (the leader line goes up to it) — the horizon near the top of the frame */
+export interface PlacedTag { id: string; x: number; y: number; box: TagBox; lead: boolean; below?: boolean }
 
 /** Tag width estimate (CSS px, ui/guide-ui.css .ob-pano-tag): 12.5 px per CJK character, 7 per Latin one, + the dot,
  * gap, padding and border (7 + 8 + 6 + 9 + 2 = 32). */
@@ -236,8 +237,9 @@ const hit = (a: TagBox, b: TagBox, pad = 4) => a.l < b.r + pad && a.r > b.l - pa
  * Place the tags greedily (T1 first, then T2; nearer screen centre first inside a rank): each tag tries above its
  * anchor, then nudged sideways (the anchor stays under the tag, 10 px in from its end), then lifted row by row up to
  * TAG_LIFTS rows (a leader line joins a moved tag to its anchor: `lead`), and is dropped when none of those fits inside
- * `area` without touching a placed tag or a fixed HUD box. Tags behind the camera or off screen drop.
- * (part b: with two rows and no nudge, 3 of the 8 Twin Peaks tags found room at 1440 × 900 — they crowd at the horizon.)
+ * `area` without touching a placed tag or a fixed HUD box; then the same rows under the anchor (`below`: from a summit
+ * the far skyline sits near the top of the frame, where there is no room above it). Tags behind the camera or off screen
+ * drop. (part b: with two rows above and no nudge, 3 of the 8 Twin Peaks tags found room at 1440 × 900.)
  */
 export function layoutPanoramaTags(tags: readonly TagInput[], area: TagBox, fixed: readonly TagBox[] = [], max: number = PANORAMA.max): PlacedTag[] {
   const cx = (area.l + area.r) / 2, cy = (area.t + area.b) / 2;
@@ -249,16 +251,18 @@ export function layoutPanoramaTags(tags: readonly TagInput[], area: TagBox, fixe
     if (placed.length >= max) break;
     const nudge = Math.max(0, t.w / 2 - 10);
     let done = false;
-    for (let lift = 0; lift < TAG_LIFTS && !done; lift++) {
-      const y = t.y - 10 - lift * (t.h + 8);
-      if (y - t.h < area.t) break;
+    // rows above the anchor (row 0 right over it), then rows under it
+    for (let row = 0; row < 2 * TAG_LIFTS && !done; row++) {
+      const below = row >= TAG_LIFTS, k = below ? row - TAG_LIFTS : row;
+      const top = below ? t.y + 16 + k * (t.h + 8) : t.y - 10 - t.h - k * (t.h + 8);
+      if (top < area.t || top + t.h > area.b) { if (!below) row = TAG_LIFTS - 1; continue; }
       for (const dx of [0, nudge, -nudge]) {
         const l = Math.min(area.r - t.w, Math.max(area.l, t.x - t.w / 2 + dx));
         // (the clamp to the area may push the anchor off the tag: then only the tag's own column counts)
         if (t.x < l + 6 || t.x > l + t.w - 6) continue;
-        const box: TagBox = { l, t: y - t.h, r: l + t.w, b: y };
+        const box: TagBox = { l, t: top, r: l + t.w, b: top + t.h };
         if (placed.some(p => hit(p.box, box)) || fixed.some(f => hit(f, box, 2))) continue;
-        placed.push({ id: t.id, x: l + t.w / 2, y, box, lead: lift > 0 });
+        placed.push({ id: t.id, x: l + t.w / 2, y: below ? top : top + t.h, box, lead: below || k > 0, ...(below ? { below: true } : {}) });
         done = true;
         break;
       }

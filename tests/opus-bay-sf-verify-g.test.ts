@@ -273,3 +273,23 @@ test('W4-G4 (part b): no drive cue in the first seconds (the trip\'s "骑车出�
   assert.ok(cues.length >= 1, 'the later corners still get their cue');
   assert.ok(cues[0] >= DRIVE_TALK.hold, `first cue after ${DRIVE_TALK.hold} s (${cues[0].toFixed(2)})`);
 });
+
+test('part b: from a summit the skyline sits near the top of the frame — panorama tags hang under their anchors there (leader up), all 8, no overlaps', async () => {
+  const { layoutPanoramaTags, tagWidth } = await import('../src/opus-bay/game/flags');
+  const area = { l: 12, t: 80, r: 1428, b: 780 };
+  const names = ['Painted Ladies', 'City Hall', 'Union Square', 'The Palace', 'Chinatown', 'Lombard St', 'Coit Tower', 'The Wharf'];
+  // the Twin Peaks shot at 1440 × 900: the flags' tops at y 117–160 over x 250–660
+  const inputs = names.map((n, i) => ({ id: `t${i}`, x: 250 + i * 58, y: 118 + (i % 3) * 20, w: tagWidth(n), h: 26, rank: 1 as const }));
+  const placed = layoutPanoramaTags(inputs, area, []);
+  assert.equal(placed.length, 8, `placed ${placed.length} of 8 (3 in game before)`);
+  assert.ok(placed.some(p => p.below), 'some hang under their anchor');
+  for (const p of placed) {
+    const anchor = inputs.find(t => t.id === p.id)!;
+    if (p.below) assert.ok(p.box.t > anchor.y && p.lead, 'under it, with a leader');
+    else assert.ok(p.box.b <= anchor.y);
+  }
+  for (let i = 0; i < placed.length; i++) for (let j = i + 1; j < placed.length; j++) {
+    const a = placed[i].box, b = placed[j].box;
+    assert.ok(!(a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t), `${placed[i].id} overlaps ${placed[j].id}`);
+  }
+});
