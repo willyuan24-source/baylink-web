@@ -61,15 +61,15 @@ const mural = (k: number, id: string, zh: string, en: string, site: MuralSiteId,
 
 export const MURALS: MuralDef[] = [
   // Balmy Alley (from the 25th Street end)
-  mural(0, 'sun-hummingbird', '太阳与蜂鸟', 'Sun and Hummingbird', 'balmy', 461.86, 655.38, -0.6919),
-  mural(1, 'poppy-hills', '花菱草与帝王蝶', 'Poppies and Monarchs', 'balmy', 456.76, 656.44, 2.4497),
-  mural(2, 'fruit-stand', '水果摊', 'The Fruit Stand', 'balmy', 456.17, 649.92, -0.6918),
-  mural(3, 'music-garden', '花园里的乐器', 'A Garden of Music', 'balmy', 449.04, 649.13, 2.4498),
+  mural(0, 'sun-hummingbird', '太阳与蜂鸟', 'Sun and Hummingbird', 'balmy', 461.9, 655.34, -0.6919),
+  mural(1, 'poppy-hills', '花菱草与帝王蝶', 'Poppies and Monarchs', 'balmy', 456.73, 656.49, 2.4497),
+  mural(2, 'fruit-stand', '水果摊', 'The Fruit Stand', 'balmy', 456.21, 649.87, -0.6918),
+  mural(3, 'music-garden', '花园里的乐器', 'A Garden of Music', 'balmy', 449, 649.18, 2.4498),
   // Clarion Alley (from the Valencia Street end)
-  mural(4, 'pelican-bay', '鹈鹕飞过海湾', 'Pelicans over the Bay', 'clarion', 256.59, 613.03, -2.2696),
-  mural(5, 'flower-cable-car', '开满花的叮当车', 'The Flower Cable Car', 'clarion', 259.66, 606.79, 0.872),
-  mural(6, 'night-bay', '海湾之夜', 'The Bay at Night', 'clarion', 263.71, 605.94, -2.2696),
-  mural(7, 'kelp-forest', '海底的巨藻林', 'Under the Bay', 'clarion', 265.45, 599.9, 0.872),
+  mural(4, 'pelican-bay', '鹈鹕飞过海湾', 'Pelicans over the Bay', 'clarion', 256.64, 613.07, -2.2696),
+  mural(5, 'flower-cable-car', '开满花的叮当车', 'The Flower Cable Car', 'clarion', 259.61, 606.75, 0.872),
+  mural(6, 'night-bay', '海湾之夜', 'The Bay at Night', 'clarion', 263.75, 605.98, -2.2696),
+  mural(7, 'kelp-forest', '海底的巨藻林', 'Under the Bay', 'clarion', 265.41, 599.86, 0.872),
 ];
 
 /** the 2048×1024 atlas, or null */

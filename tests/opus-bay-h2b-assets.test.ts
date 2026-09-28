@@ -347,6 +347,21 @@ test('murals: every board stands in its alley, in front of the walls, facing the
         assert.ok(!inside, `${m.id} corner inside building ${i}`);
       }
     }
+    // flush to the wall (lead-merge 8.3, the player's body no longer overlaps a board hugging the wall): the back face
+    // is 0.06 u from the nearest wall point (was 0.12)
+    let gap = Infinity;
+    for (let k = 0; k <= 20; k++) {
+      const u = k / 20 - 0.5, px = m.at.x + ax * 2 * u - tx, pz = m.at.z + az * 2 * u - tz;
+      for (let i = 0; i < b.count; i++) {
+        const n = b.vStart[i + 1] - b.vStart[i];
+        for (let v = 0, w = n - 1; v < n; w = v++) {
+          const x0 = b.xz[(b.vStart[i] + w) * 2], z0 = b.xz[(b.vStart[i] + w) * 2 + 1], x1 = b.xz[(b.vStart[i] + v) * 2], z1 = b.xz[(b.vStart[i] + v) * 2 + 1];
+          const L2 = (x1 - x0) ** 2 + (z1 - z0) ** 2, t = L2 > 0 ? Math.max(0, Math.min(1, ((px - x0) * (x1 - x0) + (pz - z0) * (z1 - z0)) / L2)) : 0;
+          gap = Math.min(gap, Math.hypot(px - x0 - (x1 - x0) * t, pz - z0 - (z1 - z0) * t));
+        }
+      }
+    }
+    assert.ok(gap > 0.03 && gap < 0.09, `${m.id} back face ${gap.toFixed(3)} u from the wall`);
   }
 });
 

@@ -12,7 +12,7 @@
 import { NO_NAME } from '../../../src/opus-bay/world/sf/format';
 import { sfDisk } from '../../../tests/opus-bay-sf-disk';
 
-export const PANEL = { width: 2.6, thick: 0.1, clear: 0.12 } as const;
+export const PANEL = { width: 2.6, thick: 0.1, clear: 0.06 } as const;
 const STEP = 0.25;
 /** where along the alley (fraction of its length) the four panels aim, alternating left / right */
 const TARGETS = [0.2, 0.4, 0.62, 0.84];
