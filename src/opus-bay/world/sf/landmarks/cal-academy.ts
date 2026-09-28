@@ -1,6 +1,7 @@
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { C, GLOW, LIT, NONE, box, disc, lathe, rect, worldPoly } from './kit';
+import type { LandmarkSwap } from './index';
 import { GC, PAT, type SiteGroundPoly, type W4Site, bench, bollard, gfill, lamp, plazaOf, siteGround, tree } from './siteKit';
 
 /**
@@ -80,6 +81,21 @@ function ground(): SiteGroundPoly[] {
 
 const EXCLUDE: Vec2[] = [{ x: -12.2, z: -8.4 }, { x: 12.2, z: -8.4 }, { x: 12.2, z: 9.7 }, { x: -12.2, z: 9.7 }];
 
+/**
+ * Lane V's AI building (W4-L4, `sf-cal-academy`: glass hall, the thin roof slab on slim columns, the living roof with
+ * its two porthole domes and five small hills; published at this block's bounds, scale 1) at the block's ground. The
+ * remainder is the forecourt and a glass plinth under the model where the ground falls away. Gate: see SWAP.note.
+ */
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-cal-academy', x: 0, y: +g.at(0, 0).toFixed(2), z: 0, yaw: 0, scale: [1, 1, 1], glass: { color: '#ffe3b0', strength: 0.35 }, castShadow: true }],
+  build(b) {
+    box(b, 0, -1.2, 0, B.x1 - B.x0 - 0.6, g.at(0, 0) + 1.2, B.z1 - B.z0 - 0.6, GLASS);
+    forecourt(b);
+  },
+  ship: true,
+  note: 'AI (SoloView gate, golden: porthole skylights on the two domes, rolling hills, the rounded slab on slim columns) vs the procedural hills',
+};
+
 export const calAcademy: W4Site = {
   id: ID,
   tier: 2,
@@ -90,6 +106,7 @@ export const calAcademy: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
+  swap: SWAP,
   walk: {
     blockers: [{ poly: rect(0, 0, B.x1 - B.x0, B.z1 - B.z0) }, ...TREES.map(([x, z]) => ({ x, z, r: 0.3 }))],
     surfaces: [{ poly: COURT, y: 'terrain', surface: 'plaza' }],

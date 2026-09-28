@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { GLOW, LIT, NONE, SF, arch, box, cbox, disc, gable, lathe, pyramid, rect, worldPoly } from './kit';
+import type { LandmarkSwap } from './index';
 import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, gstrip, lamp, plazaOf, siteGround, tree } from './siteKit';
 
 /**
@@ -113,6 +114,23 @@ const BLOCKERS = [
 /** exclusion: the church and the lawn east of it (Fulton St, Parker Ave and the campus halls stay the city's) */
 const EXCLUDE: Vec2[] = [{ x: -3.6, z: -6.5 }, { x: 13.2, z: -6.5 }, { x: 13.2, z: 5.4 }, { x: -3.6, z: 5.4 }];
 
+/**
+ * Lane V's AI church (W4-L4, `sf-st-ignatius`: twin four-stage towers with domed lanterns and crosses, the columned
+ * front and pediment, the tile nave and the dome on its drum; published at this church's bounds, scale 1), placed where
+ * the slot planned it (front on Fulton St at the steps' ground). The remainder is the campus lawn and a stone plinth
+ * under the church where the slope falls toward Fulton St. Gate: see SWAP.note.
+ */
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-st-ignatius', x: CX, y: +g.at(CX, 5.4).toFixed(2), z: -0.18, yaw: 0, scale: [1, 1, 1], glow: 0.12, castShadow: true }],
+  build(b) {
+    const fy = g.at(CX, 5.4);
+    box(b, CX, -1.2, (NAVE.z0 + 4.9) / 2, NAVE.x1 - NAVE.x0, fy + 1.2, 4.9 - NAVE.z0, BUFF_SHADE);
+    lawn(b);
+  },
+  ship: true,
+  note: 'AI (SoloView gate, golden: crosses on the towers, the columned front and pediment, red tile roofs, the dome on its drum with a lantern) vs a plainer box church',
+};
+
 export const stIgnatius: W4Site = {
   id: ID,
   tier: 2,
@@ -123,6 +141,7 @@ export const stIgnatius: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
+  swap: SWAP,
   walk: { blockers: BLOCKERS, surfaces: [{ poly: LAWN, y: 'terrain', surface: 'grass' }] },
   ground: ground(),
   fade: { r: 5, y1: 13, box: [3.8, 5.8] },

@@ -1,4 +1,5 @@
 import type { Vec2 } from '../../../core/types';
+import { w4Swap, w4SwapPart } from '../../../data/sf/w4Swaps';
 import type { BatchLike } from '../../builder';
 import { LIT, NONE, box, cyl, disc, lathe, worldPoly } from './kit';
 import { type W4Site, hipRoof, siteGround } from './siteKit';
@@ -61,6 +62,14 @@ function build(b: BatchLike, lod: 0 | 2) {
 /** exclusion: the cathedral's lot (the neighbours on three sides and Geary Blvd stay) */
 const EXCLUDE: Vec2[] = [{ x: -1.45, z: -1.65 }, { x: 1.5, z: -1.65 }, { x: 1.5, z: 1.62 }, { x: -1.45, z: 1.62 }];
 
+/**
+ * Lane V's AI cathedral (W4-L4; data/sf/w4Swaps.ts, the gate's verdict "ship": kokoshniks, red trim, porch and five
+ * gold domes against the procedural box): the GLB is the whole cathedral, so the remainder draws nothing (the
+ * sidewalks are the city's). While it ships, its blockers are the measured body and porch.
+ */
+const SWAP_ROW = w4Swap('geary-west')!;
+const PROC_BLOCKERS = [{ poly: [{ x: -1.3, z: -1.55 }, { x: 1.3, z: -1.55 }, { x: 1.3, z: 1.45 }, { x: -1.3, z: 1.45 }] }];
+
 export const gearyWest: W4Site = {
   id: ID,
   tier: 3,
@@ -71,7 +80,10 @@ export const gearyWest: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
-  walk: { blockers: [{ poly: [{ x: -1.3, z: -1.55 }, { x: 1.3, z: -1.55 }, { x: 1.3, z: 1.45 }, { x: -1.3, z: 1.45 }] }] },
+  swap: { parts: [w4SwapPart(SWAP_ROW, g.at)], build: () => undefined, ship: SWAP_ROW.ship, note: SWAP_ROW.note },
+  walk: { blockers: SWAP_ROW.ship ? SWAP_ROW.blockers : PROC_BLOCKERS },
+  // the glide: the domes rise 9.6 u over the base (lane V's step 3)
+  tall: [{ x: 0, z: -0.1, r: 1.4 }],
   lights: [{ x: 0, y: g.at(0, 0) + WALL + 3.2, z: CZ, size: 1.6, color: '#ffe2a0' }],
   plaza: [
     // the sidewalks of Geary Blvd in front of it and across the boulevard (no gameplay objects on the cathedral)

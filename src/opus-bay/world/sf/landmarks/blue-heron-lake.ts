@@ -1,4 +1,5 @@
 import type { Vec2 } from '../../../core/types';
+import { w4Swap, w4SwapPart } from '../../../data/sf/w4Swaps';
 import { BOX, type BatchLike, M } from '../../builder';
 import { NONE, cyl, lathe, rect, worldPoly } from './kit';
 import { type W4Site, siteGround } from './siteKit';
@@ -40,16 +41,30 @@ function build(b: BatchLike, lod: 0 | 2) {
     return;
   }
   // the stone base down into the lake, the floor platform, eight red columns and the beam ring
-  lathe(b, [[R_FLOOR + 0.15, -1.2], [R_FLOOR + 0.15, 0]], 0, BASE, 0, STONE, NONE, 8);
+  stoneBase(b);
   lathe(b, [[R_FLOOR, 0], [R_FLOOR, 0.3], [R_FLOOR - 0.1, 0.3]], 0, BASE, 0, FLOOR_C, NONE, 8);
   for (const p of oct(R_COL)) cyl(b, p.x, FLOOR, p.z, 0.2, 2.0, RED, NONE, 6);
   lathe(b, [[R_COL + 0.25, 0], [R_COL + 0.25, 0.3], [R_COL - 0.25, 0.3], [R_COL - 0.25, 0]], 0, FLOOR + 1.85, 0, RED, NONE, 8);
   // the upswept roof (eaves turned up at the rim), the finial
   lathe(b, [[EAVE, 0.25], [EAVE - 0.3, 0.1], [2.0, 0.35], [1.2, 0.95], [0.45, 1.45], [0.08, 1.6]], 0, BASE + 2.3, 0, ROOF, NONE, 8);
   lathe(b, [[0.16, 0], [0.12, 0.25], [0.2, 0.36], [0.02, 0.6]], 0, BASE + 3.9, 0, GOLD, NONE, 6);
-  // the causeways: stone slabs from the lake bed up to the path
+  causeways(b);
+}
+
+function stoneBase(b: BatchLike) {
+  lathe(b, [[R_FLOOR + 0.15, -1.2], [R_FLOOR + 0.15, 0]], 0, BASE, 0, STONE, NONE, 8);
+}
+/** the causeways: stone slabs from the lake bed up to the path */
+function causeways(b: BatchLike) {
   for (const [x, z, len, ry] of CAUSEWAYS) b.add(BOX(), M(x, BASE - 1.2, z, ry, 1.3, 1.4, len), STONE);
 }
+
+/**
+ * Lane V's AI pavilion (W4-L4; data/sf/w4Swaps.ts, verdict "ship": upturned eaves, tile ribs and finial against a
+ * plain cone) on this stone base: the remainder is the base and the two causeways; the column blockers and the decks
+ * stay (the model was fitted to them), and the roof thins as one while the player walks under it.
+ */
+const SWAP_ROW = w4Swap('blue-heron-lake')!;
 
 /** exclusion: the base, the roof's reach and the causeways (the island path around them stays the city's) */
 const EXCLUDE: Vec2[] = [
@@ -67,8 +82,10 @@ export const blueHeronLake: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
+  swap: { parts: [w4SwapPart(SWAP_ROW, g.at)], build: b => { stoneBase(b); causeways(b); }, ship: SWAP_ROW.ship, note: SWAP_ROW.note },
+  ...(SWAP_ROW.ship && SWAP_ROW.fade ? { fade: SWAP_ROW.fade } : {}),
   walk: {
-    blockers: oct(R_COL).map(p => ({ x: p.x, z: p.z, r: 0.25 })),
+    blockers: SWAP_ROW.ship ? SWAP_ROW.blockers : oct(R_COL).map(p => ({ x: p.x, z: p.z, r: 0.25 })),
     surfaces: [
       { poly: oct(R_FLOOR), y: FLOOR, surface: 'plaza' },
       ...CAUSEWAYS.map(c => ({ poly: causeway(c), y: BASE + 0.2, surface: 'plaza' as const })),

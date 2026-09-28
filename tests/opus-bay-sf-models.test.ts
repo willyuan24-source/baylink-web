@@ -11,6 +11,7 @@ import { AI_R, CitySites, LOD0, buildGroundMesh, buildSwapObjects, disposeSwapOb
 import { pointInPolygon } from '../src/opus-bay/core/terrain';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { SF_LANDMARKS, type SfLandmark, landmarkToWorld } from '../src/opus-bay/world/sf/landmarks/index';
+import { Batch } from '../src/opus-bay/world/builder';
 
 /**
  * Lane D2 (wave 2): the AI-mesh runtime — world/models.ts (shared GLTF + Draco loader, cache), world/modelMaterial.ts
@@ -404,4 +405,37 @@ test('AI parts near the focus only (C2 request 2): within AI_R the lod 0 may dra
     assert.equal(sites.counts().ai.pending, 0);
   } finally { sites.dispose(); }
   assert.ok(AI_R < LOD0[2], 'inside the T2 lod-0 ring');
+});
+
+test('W4-IL5 (W4-L4): the wave-4 AI swaps — registered models of their own site, gate verdicts, placements at the slots, AI budget', async () => {
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { W4_ALL_SITES } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
+  const { siteGround } = await import('../src/opus-bay/world/sf/landmarks/siteKit');
+  const swapped = W4_ALL_SITES.filter(s => s.swap);
+  assert.deepEqual(swapped.map(s => s.id).sort(), ['blue-heron-lake', 'cal-academy', 'geary-west', 'st-ignatius-church']);
+  // every one ships (lane V's gate for Holy Virgin and the pavilion, lane L's SoloView gate for the two others)
+  assert.deepEqual(swapped.filter(s => s.swap!.ship).map(s => s.id).sort(), swapped.map(s => s.id).sort());
+  for (const s of swapped) {
+    assert.ok(SF_SITES.includes(s));
+    for (const p of s.swap!.parts) {
+      const m = ASSETS.models[p.model];
+      assert.ok(m, `${s.id}: ${p.model} registered`);
+      assert.equal((m as { landmarkId?: string }).landmarkId, s.id, `${p.model} names its site (D2's swap rule)`);
+      assert.equal(p.scale.length, 3);
+      // the part stands where the site's AI slot planned it (lane L's d6d8c24 / lane V's rows allow 0.05 u)
+      const at = s.w4.aiSlot!.at;
+      assert.equal(s.w4.aiSlot!.id, p.model);
+      assert.ok(Math.abs(p.x - at[0]) <= 0.05 && Math.abs(p.y - at[1]) <= 0.05 && Math.abs(p.z - at[2]) <= 0.05, `${s.id} part at the slot`);
+      // on the site's ground (or on its stone base: the pavilion)
+      const gy = siteGround(s.id, s.base).at(p.x, p.z);
+      assert.ok(p.y >= gy - 0.05 && p.y <= gy + 0.5, `${s.id}: part y ${p.y} over ground ${gy.toFixed(2)}`);
+    }
+    const tris = s.swap!.parts.reduce((t, p) => t + ASSETS.models[p.model].triangles, 0);
+    assert.ok(tris <= 6_000 && s.swap!.parts.length === 1, `${s.id}: one AI part ≤ 6k triangles`);
+    // the remainder is small (the site's setting): the AI part carries the building
+    const b = new Batch();
+    s.swap!.build(b);
+    const g = b.build(), n = (g.getIndex()?.count ?? g.getAttribute('position')?.count ?? 0) / 3;
+    assert.ok(n <= 1200, `${s.id}: remainder ${n} triangles`);
+  }
 });
