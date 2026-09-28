@@ -1,4 +1,5 @@
 import { glideUnlocked, isRiding } from '../actors/moveApi';
+import { type RideEta, rideEta } from './transit';
 import { routeTo } from '../actors/nav';
 import { driveRoute } from '../actors/vehicles/driveRoute';
 import { game } from '../core/store';
@@ -24,7 +25,7 @@ import { RIDEABLE_R, type TripGoalRule, type TripLineInfo, type TripProviders, t
  *   discovered  game/discovery isDiscovered (fast travel is offered to discovered places only …)
  *   flyUnlocked (W5-N2) … until the pelican is unlocked (actors/moveApi glideUnlocked): then to every place
  *   autoPace    (W5-N3) true: trips carry the player, on-foot legs are timed at the auto-walk's pace
- *   registerRideEta / liveRideEta (W5-N2) lane T's ride ETA from real progress, for the pill and the waypoint
+ *   liveRideEta (W5-N2) lane T's rideEta() from real progress, for the pill and the waypoint aboard
  *   goals       open-goal rules registered by lane C (`registerTripGoals`)
  */
 
@@ -123,18 +124,12 @@ export function tripProviders(): TripProviders {
 }
 
 /**
- * W5-N2 · one ETA source: lane T's `rideEta()` (seconds until the ridden vehicle reaches the stop the rider gets off
- * at, from its real progress; null / undefined = unknown). T registers it once its systems run; the pill, the waypoint
- * and the trip card use it while aboard (else the share of the planned ride left). Returns the unregister.
+ * W5-N2 · one ETA source: lane T's `rideEta()` (game/transit.ts, W5-T1: the ride left from where the vehicle really is).
+ * Aboard, the pill, the waypoint and the trip card count its `rideLeft` (else the share of the planned ride left); while
+ * waiting they already take the vehicle's live ETA (flow.ride.eta). Undefined: not riding / unknown.
  */
-let rideEtaSource: (() => number | null | undefined) | null = null;
-export function registerRideEta(fn: () => number | null | undefined): () => void {
-  rideEtaSource = fn;
-  return () => { if (rideEtaSource === fn) rideEtaSource = null; };
-}
-/** The live ride ETA (s) when T gives one, else undefined. */
-export function liveRideEta(): number | undefined {
-  let v: number | null | undefined;
-  try { v = rideEtaSource?.(); } catch { v = undefined; }
-  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : undefined;
+export function liveRideEta(src: () => Pick<RideEta, 'stage' | 'rideLeft'> | null = rideEta): number | undefined {
+  let e: Pick<RideEta, 'stage' | 'rideLeft'> | null;
+  try { e = src(); } catch { e = null; }
+  return e && e.stage === 'riding' && Number.isFinite(e.rideLeft) && e.rideLeft >= 0 ? e.rideLeft : undefined;
 }

@@ -23,7 +23,7 @@ const tick = (ms: number) => { clock += ms; };
 const { resolveGoToTarget, chooseGoToOption, goToSource, pointPlaceId, POINT_NAME } = await import('../src/opus-bay/game/goToRun');
 const { ATTRACTION_INDEX, tripDestination } = await import('../src/opus-bay/data/sf/attractions');
 const flags = await import('../src/opus-bay/game/flags');
-const { ROLE_CODE } = await import('../src/opus-bay/world/sf/flags');
+const { ROLE_CODE, makeFlagMaterial } = await import('../src/opus-bay/world/sf/flags');
 type Opt = import('../src/opus-bay/game/tripTypes').TripOption;
 type Lk = import('../src/opus-bay/game/goToRun').GoToLookups;
 
@@ -175,6 +175,13 @@ test('W5-N1 flags: extras follow the view cone (unless near the target), their o
   assert.equal(ROLE_CODE.extra, ROLE_CODE.target);
 });
 
+test('W5-N1 flags: the flag fragment shader declares its colour once (a float col in the atlas block math broke the program)', () => {
+  const frag = makeFlagMaterial().fragmentShader;
+  const decls = [...frag.matchAll(/\b(float|vec[234]|int)\s+col\b/g)].map(m => m[0]);
+  assert.deepEqual(decls, ['vec3 col'], 'col is declared once, as the vec3 colour (the lead\'s 4fb3e6e: acol / arow)');
+  assert.match(frag, /float acol = /);
+});
+
 // ---------------------------------------------------------------------------------------------------------------
 // W5-N1 · FootprintsTab
 // ---------------------------------------------------------------------------------------------------------------
@@ -286,13 +293,13 @@ test('W5-N2 aboard, lane T\'s live ride ETA drives the pill (+ stepping off); wi
   const leg = { via: 'line' as const, line: 'sf-loop', board: 'a', alight: 'b', wait: 10, stops: 2, from: { x: 0, z: 0 }, to: { x: 400, z: 0 }, seconds: 70, length: 400 };
   assert.equal(G.legSecondsLeft(leg, { x: 200, z: 0 }, true), 30, 'half way: half of the 60 s ride');
   assert.equal(G.legSecondsLeft(leg, { x: 200, z: 0 }, true, undefined, { rideEta: 41 }), 41 + TP.ALIGHT_S);
-  const off = TPV.registerRideEta(() => 12.5);
-  assert.equal(TPV.liveRideEta(), 12.5);
-  off();
-  assert.equal(TPV.liveRideEta(), undefined);
-  const off2 = TPV.registerRideEta(() => NaN);
-  assert.equal(TPV.liveRideEta(), undefined, 'a bad answer is no answer');
-  off2();
+  // lane T's rideEta(): its rideLeft while riding; nothing while waiting (the pill takes the vehicle's ETA then)
+  assert.equal(TPV.liveRideEta(() => ({ stage: 'riding', rideLeft: 12.5 })), 12.5);
+  assert.equal(TPV.liveRideEta(() => ({ stage: 'waiting', rideLeft: 80 })), undefined);
+  assert.equal(TPV.liveRideEta(() => null), undefined);
+  assert.equal(TPV.liveRideEta(() => ({ stage: 'riding', rideLeft: NaN })), undefined, 'a bad answer is no answer');
+  assert.equal(TPV.liveRideEta(() => { throw new Error('x'); }), undefined);
+  assert.equal(TPV.liveRideEta(), undefined, 'not riding in node');
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -506,18 +513,18 @@ test('W5-N3 the go button says the way and its time', async () => {
 
 const FT = await import('../src/opus-bay/game/fastTravel');
 
-test('W5-N5 landing heading: a first sight faces its landmark; else F\'s open-ground facer; else the place\'s heading; else the travel way', () => {
+test('W5-N5 landing heading: a first sight faces its landmark; else the most open ground (F\'s openHeading), preferring the place\'s heading, else the travel way', () => {
   const spot = { x: 0, z: 0 };
-  assert.ok(Math.abs(FT.landingHeading(spot, { look: { x: 10, z: 0 } }, 1.2, () => 3) - Math.PI / 2) < 1e-9, 'faces the landmark (+x)');
-  assert.equal(FT.landingHeading(spot, { look: { x: 1, z: 0 } }, 1.2, () => 3), 3, 'a landmark right here: the facer');
-  assert.equal(FT.landingHeading(spot, { heading: 0.5 }, 1.2, () => 3), 3, 'the facer before the place heading');
+  const seen: number[] = [];
+  const facer = (_x: number, _z: number, prefer: number) => { seen.push(prefer); return 3; };
+  assert.ok(Math.abs(FT.landingHeading(spot, { look: { x: 10, z: 0 } }, 1.2, facer) - Math.PI / 2) < 1e-9, 'faces the landmark (+x)');
+  assert.equal(FT.landingHeading(spot, { look: { x: 1, z: 0 } }, 1.2, facer), 3, 'a landmark right here: open ground');
+  assert.equal(FT.landingHeading(spot, { heading: 0.5 }, 1.2, facer), 3, 'open ground first');
+  assert.deepEqual(seen, [1.2, 0.5], 'the place heading (else the travel way) is the preference on ties');
   assert.equal(FT.landingHeading(spot, { heading: 0.5 }, 1.2, () => null), 0.5);
   assert.equal(FT.landingHeading(spot, {}, 1.2, null), 1.2);
-  // the registered facer (lane F's faceOpen) is the default
-  const off = FT.setLandingFacer(() => -2);
-  assert.equal(FT.landingHeading(spot, {}, 1.2), -2);
-  off();
-  assert.equal(FT.landingHeading(spot, {}, 1.2), 1.2);
+  // the default facer is lane F's openHeading: nothing standable round a point far off the world → the preference
+  assert.equal(FT.landingHeading({ x: 1e6, z: 1e6 }, {}, 1.2), 1.2);
 });
 
 test('W5-N5 the descent camera: behind the player; a first sight pulls back and looks past them toward the landmark', () => {

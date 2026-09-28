@@ -2,7 +2,9 @@ import { useSyncExternalStore } from 'react';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
+import { faceOpen, openHeading } from '../actors/faceOpen';
 import { arrivalSpot as openArrivalSpot } from '../actors/nav';
+import { faceCameraToward } from './cinema';
 import { canStand, cityTerrain, heightAt, nearestWalkable } from '../core/terrain';
 import type { Bilingual, Vec2 } from '../core/types';
 import { cityStreamerLazy } from '../world/cityLoader';
@@ -45,7 +47,7 @@ export interface TravelDest {
   name: Bilingual;
   x: number;
   z: number;
-  /** facing on arrival (world yaw); default: open ground (lane F's faceOpen, when registered), else the travel direction */
+  /** facing on arrival (world yaw) when nothing is more open (W5-F7 / N5: the most open ground wins), else the travel way */
   heading?: number;
   /**
    * W5-N5 · a first sight: the landmark to see on landing (an attraction's anchor, set by the trip runner for a place not
@@ -184,28 +186,24 @@ export function arrivalSpot(p: Vec2, open: (p: Vec2, r: number) => Vec2 | null =
 }
 
 /**
- * W5-N5 · the landing heading: a first sight faces its landmark; else lane F's open-ground facer (`faceOpen(x, z)`,
- * registered with setLandingFacer: the longest free direction, so the first step is never into a wall); else the
- * place's own arrival heading; else the travel direction. Pure (tests).
+ * W5-N5 · the landing heading: a first sight faces its landmark; else the most open ground (lane F's W5-F7
+ * actors/faceOpen `openHeading`: the longest run of walkable ground, so the first push never walks into a wall; ties
+ * and a spot with nothing open go to the place's own arrival heading, else the travel direction). Pure over `facer`.
  */
-export function landingHeading(spot: Vec2, dest: Pick<TravelDest, 'heading' | 'look'>, travelYaw: number, facer: LandingFacer | null = landingFacer): number {
+export function landingHeading(spot: Vec2, dest: Pick<TravelDest, 'heading' | 'look'>, travelYaw: number, facer: LandingFacer | null = openFacer): number {
   if (dest.look) {
     const dx = dest.look.x - spot.x, dz = dest.look.z - spot.z;
     if (Math.hypot(dx, dz) > 2) return Math.atan2(dx, dz);
   }
-  const open = facer?.(spot.x, spot.z);
-  if (typeof open === 'number' && Number.isFinite(open)) return open;
-  return dest.heading !== undefined && Number.isFinite(dest.heading) ? dest.heading : travelYaw;
+  const prefer = dest.heading !== undefined && Number.isFinite(dest.heading) ? dest.heading : travelYaw;
+  const open = facer?.(spot.x, spot.z, prefer);
+  return typeof open === 'number' && Number.isFinite(open) ? open : prefer;
 }
 
-/** lane F's `faceOpen(x, z)` → a world yaw (null: no preference). */
-export type LandingFacer = (x: number, z: number) => number | null | undefined;
-let landingFacer: LandingFacer | null = null;
-/** Lane F (W5-F7) registers its open-ground facer for every landing (returns the unregister). */
-export function setLandingFacer(fn: LandingFacer | null): () => void {
-  landingFacer = fn;
-  return () => { if (landingFacer === fn) landingFacer = null; };
-}
+/** A landing facer: the heading to face at (x, z), `prefer` on ties / nothing open (null: no opinion). */
+export type LandingFacer = (x: number, z: number, prefer: number) => number | null | undefined;
+/** lane F's open-ground rule (actors/faceOpen openHeading; the ground is streamed at the descent: the hold waited). */
+const openFacer: LandingFacer = (x, z, prefer) => openHeading(x, z, prefer).heading;
 
 /**
  * The descent's closing camera (W5-N5): behind the player along the heading. A first sight pulls back and up a little
@@ -297,6 +295,11 @@ function finish(tr: Trip) {
   // after the store says 'foot' and the cinematic is gone: the refresher derives the lock from what is still open
   tr.release();
   setView({ active: false, veil: false, to: null });
+  // W5-N5 / W5-F7: the follow camera swings in behind the player — toward the landmark of a first sight, else toward
+  // the open ground they face (actors/faceOpen: it outranks the camera's own arrival yaw for a moment)
+  const at = tr.landed;
+  if (at && tr.dest.look) faceCameraToward(tr.dest.look.x, tr.dest.look.z, { uncapped: true, open: true });
+  else if (at) faceOpen(at.x, at.z);
   emit({ type: 'travel', what: 'land', to: tr.dest.id });
 }
 
