@@ -1,6 +1,6 @@
-import type { Vec2 } from '../../../core/types';
+import type { SurfaceKind, Vec2 } from '../../../core/types';
 import { BOX, type BatchLike, CBOX, type ColorLike, ICO, type Info, M, mixColor } from '../../builder';
-import { FC, type SiteGround } from './siteKit';
+import { FC, type SiteGround, plazaOf } from './siteKit';
 import type { SiteTerrainGrid } from './siteTerrain';
 import { SITE_TERRAIN3 } from './siteTerrain3';
 
@@ -97,6 +97,18 @@ export function lowWall(b: BatchLike, a: Vec2, c: Vec2, ya: number, yc: number, 
   if (L < 0.05) return;
   const y0 = Math.min(ya, yc) - 0.25;
   b.add(BOX(), M((a.x + c.x) / 2, y0, (a.z + c.z) / 2, Math.atan2(dx, dz), t, Math.max(ya, yc) + h - y0, L), color);
+}
+
+/**
+ * One crowd stand spot on the city's ground (SiteHooks.plaza): a 0.3 u square centred on local `p`, which is exactly
+ * the one point context.ts landmarkPlazaSpots samples in it (its PLAZA_SPACING grid puts a polygon smaller than a cell
+ * at its centre). For the house museums and street sites whose crowd stands on the city's thin sidewalks, where a plaza
+ * polygon's grid would fall on the carriageway or on a driveway cut (W4-L3-review): the spots are chosen on the walk
+ * raster (pavement, standable at 0.3 u) and tests/opus-bay-sf-sites-w4t3.test.ts checks them.
+ */
+export function standSpot(p: Vec2, surface: SurfaceKind = 'pavement') {
+  const h = 0.15;
+  return plazaOf([{ x: p.x - h, z: p.z - h }, { x: p.x + h, z: p.z - h }, { x: p.x + h, z: p.z + h }, { x: p.x - h, z: p.z + h }], surface);
 }
 
 /**

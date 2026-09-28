@@ -2,7 +2,7 @@ import type { Vec2 } from '../../../core/types';
 import { BOX, type BatchLike, CBOX, M } from '../../builder';
 import { worldPoly } from './kit';
 import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, planter, plazaOf } from './siteKit';
-import { box3, site3Ground } from './siteKit3';
+import { box3, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Patricia's Green (wave 4, P4 · map T3, Hayes Valley): the small central green at the north end of Octavia Boulevard,
@@ -64,7 +64,9 @@ export const patriciasGreen: W4Site = {
     ],
   },
   ground: ground(),
-  plaza: [plazaOf(STRIP, 'grass'), plazaOf([{ x: -11.0, z: -3.1 }, { x: 1.5, z: -3.1 }, { x: 1.5, z: -0.97 }, { x: -11.0, z: -0.97 }], 'pavement')],
+  // the green (its grid point falls on the plinth) and points on the frontage street's pedestrian half between the two
+  // cross streets, x −8…−6 and −1…1, which are carriageway: the early record's strip ran over both (W4-L3-review)
+  plaza: [plazaOf(STRIP, 'grass'), ...[{ x: -5.0, z: -2.0 }, { x: -3.5, z: -2.0 }, { x: -2.0, z: -2.0 }, { x: -2.7, z: -1.3 }].map(p => standSpot(p, 'plaza'))],
   w4: {
     placeId: 'osm-w28015862',
     attractions: ['patricias-green'],
@@ -75,6 +77,6 @@ export const patriciasGreen: W4Site = {
     osm: ['way/28015862'],
     terrain: [-7, -4, 7, 3],
     terrainStep: 1,
-    notes: 'The changing artwork is never modelled (a generic abstract form stands for it). The crowd spots are the green and its pedestrian side.',
+    notes: 'The changing artwork is never modelled (a generic abstract form stands for it). The crowd spots are the green and points on its pedestrian side (never the carriageway of the cross streets).',
   },
 };

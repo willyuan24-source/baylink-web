@@ -1,7 +1,7 @@
 import type { BatchLike } from '../../builder';
 import { CONE, CYL, M } from '../../builder';
 import { ngon, worldPoly } from './kit';
-import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gstrip, plazaOf } from './siteKit';
+import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, plazaOf } from './siteKit';
 import { box3, signBoard, site3Ground } from './siteKit3';
 
 /**
@@ -9,24 +9,34 @@ import { box3, signBoard, site3Ground } from './siteKit3';
  * named for Golden Gate Park's John McLaren in 1926, with the 2.7-mile Philosopher's Way (2013, fourteen stone "musing
  * stations" by the mason George Gonzalez), the Jerry Garcia Amphitheater (built 1970, renamed in 2005 for the musician
  * who grew up nearby) and "La Grande", the Tiffany-blue water tank of 1956 (350,000 gallons, 80 ft) that became the
- * Excelsior's unofficial landmark, seen from I-280; a 2008 seismic upgrade gave it a new steel tank (Wikipedia "John
+ * Excelsior's unofficial landmark, seen from I-280; the SFPUC completed a seismic upgrade in 2008 (Wikipedia "John
  * McLaren Park"; SF Heritage "La Grande Water Tank"; SFGate).
  *
- * Toy: the blue tank on the OSM water tower in the park's hills (way 290539043; the city's data carries a second water
- * tower next to it, way 290539044, which stays the city's: which of the two OSM ways is La Grande is not in the data),
- * its base ring, a ladder, a gravel apron with two benches and a blank board. No band imagery at the amphitheatre (not
- * modelled here).
+ * Where: La Grande is OSM way 424957085 (man_made=water_tower, height 23 m, wikidata Q118533874 "La Grande Tank";
+ * Wikimedia Commons 37°43′23.17″ N 122°25′27.24″ W) on the hilltop at the park's north-western edge, ringed by its
+ * service drive, with the "Watertower View" viewpoint (osm-n4265327050) beside it. W4-L3-review: the early record stood
+ * on way 290539043, one of two 13 m tanks ≈ 100 u to the east in the middle of the park (ways 290539043 / 290539044, both
+ * the city's), which is also where the scouting JSON's and lane P's map point for the PARK lies.
  *
- * Frame: origin (773.4, 1072.1) at the tank's centre, yaw 0 (the city frame); the ground falls from the west (28) to the
- * east (26.8); the park's paths pass outside r 3.6.
+ * Toy: the tall blue tank (the footprint is ≈ 10.8 m across, r 0.76 u; the toy is r 1.3 so the height policy's 7 u reads
+ * as a tank, not a pipe) with its conical roof, the concrete base ring, the band under the roof and a ladder, the gravel
+ * apron over the service drive, two benches facing the views over the Excelsior and a blank board. No band imagery
+ * anywhere (the amphitheatre is not modelled here).
+ *
+ * Frame: origin (674.79, 1065.88) at the tank's centre (the OSM footprint's), yaw 0 (the city frame); the hilltop is ≈ 30.6
+ * over the sea in the city data; the service drive leaves the ring to the east (x > 3), footways leave it to the north,
+ * south-west and south; the viewpoint is at local (−3.6, 2.3), Ina Court's houses beyond x ≈ −7.
  */
 
 const ID = 'mclaren-park';
-const X0 = 773.4, Z0 = 1072.1, YAW = 0;
-const g = site3Ground(ID, 26.8);
+const X0 = 674.79, Z0 = 1065.88, YAW = 0;
+const g = site3Ground(ID, 29.8);
 
 const BLUE = '#6fcfc8', BLUE_DARK = '#4fb0aa', STEEL = '#8d9491';
-const R = 2.45, H = 7.0;
+const R = 1.3, H = 7.0;
+/** the apron: the gravel over the service drive's ring and the footways' ends inside the site */
+const APRON_R = 3.1;
+const BENCHES: [number, number][] = [[-0.55, 2.35], [0.95, 2.4]];
 
 function build(b: BatchLike, lod: 0 | 2) {
   const y0 = g.at(0, 0);
@@ -34,20 +44,19 @@ function build(b: BatchLike, lod: 0 | 2) {
   b.add(CONE(lod === 0 ? 14 : 5), M(0, y0 + H - 0.9, 0, 0, R + 0.08, 0.9, R + 0.08), BLUE_DARK);
   if (lod === 2) return;
   // the concrete base ring, the band under the roof, a ladder up the south face
-  b.add(CYL(14), M(0, y0 - 0.6, 0, 0, R + 0.25, 0.85, R + 0.25), '#c9c3b6');
+  b.add(CYL(14), M(0, y0 - 0.6, 0, 0, R + 0.2, 0.85, R + 0.2), '#c9c3b6');
   b.add(CYL(14), M(0, y0 + H - 1.25, 0, 0, R + 0.06, 0.18, R + 0.06), '#e8efee');
-  for (const dx of [-0.2, 0.2]) box3(b, dx, y0, R + 0.1, 0.05, H - 1.0, 0.05, STEEL);
-  for (const [k, a] of [2.3, 3.9].entries()) {
-    const r = R + 1.2, x = Math.sin(a) * r, z = Math.cos(a) * r;
-    bench(b, x, g.at(x, z), z, a + (k ? 0.1 : -0.1));
+  for (const dx of [-0.2, 0.2]) box3(b, dx, y0, R + 0.08, 0.05, H - 1.0, 0.05, STEEL);
+  // two benches on the apron facing out (south-west and west: over the Excelsior), a blank board at the east drive
+  for (const [a, r] of BENCHES) {
+    const x = Math.sin(a) * r, z = Math.cos(a) * r;
+    bench(b, x, g.at(x, z), z, a);
   }
-  signBoard(b, 0.9, g.at(0.9, R + 1.3), R + 1.3, 0, 0.9, 0.55, 0.6, '#e2d8c0', '#5d4a38');
+  signBoard(b, 2.4, g.at(2.4, -1.0), -1.0, Math.PI / 2, 0.9, 0.55, 0.6, '#e2d8c0', '#5d4a38');
 }
 
 function ground(): SiteGroundPoly[] {
-  // the gravel apron round the base
-  const ring = Array.from({ length: 17 }, (_, k) => ({ x: Math.sin((k / 16) * Math.PI * 2) * (R + 0.8), z: Math.cos((k / 16) * Math.PI * 2) * (R + 0.8) }));
-  return gstrip(ring, 1.0, GC.earth, PAT.earth, g, 1.5, 0.08);
+  return gfill(ngon(0, 0, APRON_R, 14), GC.earth, PAT.earth, g, 2.2, 0.08);
 }
 
 export const mclarenPark: W4Site = {
@@ -58,22 +67,22 @@ export const mclarenPark: W4Site = {
   yaw: YAW,
   base: g.base,
   sink: 0,
-  exclude: { poly: worldPoly(X0, Z0, YAW, ngon(0, 0, 4.1, 16)) },
+  exclude: { poly: worldPoly(X0, Z0, YAW, ngon(0, 0, 3.3, 16)) },
   build,
-  walk: { blockers: [{ x: 0, z: 0, r: R + 0.25 }, { x: 0.9, z: R + 1.3, r: 0.2 }] },
+  walk: { blockers: [{ x: 0, z: 0, r: R + 0.2 }, { x: 2.4, z: -1.0, r: 0.2 }] },
   tall: [{ x: 0, z: 0, r: R + 0.1 }],
   ground: ground(),
-  plaza: [plazaOf(ngon(0, 0, 5.2, 16), 'grass')],
+  plaza: [plazaOf(ngon(0, 0, 3.2, 14), 'dirt')],
   w4: {
     placeId: 'osm-w28716696',
     attractions: ['mclaren-park'],
-    arrival: { x: 3.4, z: 3.0, heading: -2.3 },
-    photo: { target: [0, 3.5, 0], distance: 18, elevation: 0.2, bearing: 2.3 },
+    arrival: { x: -2.4, z: 1.3, heading: 2.07 },
+    photo: { target: [0, 3.5, 0], distance: 16, elevation: 0.25, bearing: -1.0 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 24.4, u: H, top: 7.19, rule: 'H = 3.2 + 0.155·h' },
-    osm: ['way/290539043'],
-    terrain: [-5, -5, 5, 5],
+    height: { realM: 24.4, u: H, top: 7.71, rule: 'H = 3.2 + 0.155·h' },
+    osm: ['way/424957085'],
+    terrain: [-4, -4, 4, 4],
     terrainStep: 1,
-    notes: 'La Grande is drawn on one of the two OSM water towers here (the data does not say which is it); the other stays the city\'s. No band imagery anywhere. The crowd spots are the ground round the tank.',
+    notes: 'La Grande on its own OSM footprint (way 424957085) at the park\'s north-western edge; the two 13 m tanks in the middle of the park stay the city\'s. The park\'s map point (lane P\'s attraction x, z) and its place row stand ≈ 100 u east, in the middle of the park: the map point is the park\'s, the site is La Grande. No band imagery anywhere. The crowd spots are the gravel round the tank.',
   },
 };

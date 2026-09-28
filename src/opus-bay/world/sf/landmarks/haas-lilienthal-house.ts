@@ -1,8 +1,8 @@
 import type { Vec2 } from '../../../core/types';
 import { type BatchLike, CONE, CYL, M } from '../../builder';
 import { LIT, NONE, box, gable, rect, worldPoly } from './kit';
-import { GC, PAT, type SiteGroundPoly, type W4Site, gfill, hipRoof, plazaOf } from './siteKit';
-import { signBoard, site3Ground } from './siteKit3';
+import { GC, PAT, type SiteGroundPoly, type W4Site, gfill, hipRoof } from './siteKit';
+import { signBoard, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Haas-Lilienthal House (wave 4, P4 · map T3, Pacific Heights): 2007 Franklin Street, a redwood Queen Anne-Eastlake
@@ -72,8 +72,12 @@ const BLOCKERS = [
   { x: TOWER.x, z: TOWER.z, r: TOWER.r },
 ];
 
-/** the Franklin Street sidewalk and parking lane along the block front (the museum's queue for the tours) */
-const FRONT_WALK: Vec2[] = [{ x: -9.0, z: 2.95 }, { x: 9.0, z: 2.95 }, { x: 9.0, z: 4.65 }, { x: -9.0, z: 4.65 }];
+/**
+ * the crowd's stand spots (the tour queue) on the Franklin Street sidewalk in front of the house and its neighbours: the
+ * city's sidewalk is a strip ≈ 0.5 u wide at z ≈ 3.1 with driveway cuts, the carriageway starts at z ≈ 3.3 (the early
+ * record's 18 × 1.7 u strip put every spot in the traffic lanes; W4-L3-review)
+ */
+const QUEUE: Vec2[] = [{ x: -2.5, z: 3.1 }, { x: -1.2, z: 3.1 }, { x: 2.2, z: 3.1 }];
 function ground(): SiteGroundPoly[] {
   // a paved path beside the house to the plaque
   return gfill([{ x: 1.7, z: 2.3 }, { x: 2.2, z: 2.3 }, { x: 2.2, z: 3.1 }, { x: 1.7, z: 3.1 }], GC.pavers, PAT.stone, g, 3, 0.07);
@@ -96,7 +100,7 @@ export const haasLilienthalHouse: W4Site = {
   tall: [{ x: TOWER.x, z: TOWER.z, r: TOWER.r + 0.15 }],
   ground: ground(),
   lights: [{ x: 0.3, y: g.at(0.3, 2.9) + 1.8, z: 2.9, size: 1.2, color: '#ffe0b0' }],
-  plaza: [plazaOf(FRONT_WALK, 'pavement')],
+  plaza: QUEUE.map(p => standSpot(p)),
   w4: {
     placeId: 'osm-w256993595',
     attractions: ['haas-lilienthal-house'],
@@ -107,6 +111,6 @@ export const haasLilienthalHouse: W4Site = {
     osm: ['way/256993595'],
     terrain: [-3, -3, 4, 4],
     ringMin: 0.7,
-    notes: 'A house museum on its own narrow lot between row neighbours (they close the walk-around ring to 72 %): the crowd spot is the Franklin Street sidewalk and parking lane along the block front (the tour queue). Paint colours are a toy choice, not a claim.',
+    notes: 'A house museum on its own narrow lot between row neighbours (they close the walk-around ring to 72 %): the crowd spots are three points on the Franklin Street sidewalk in front of it (the tour queue), never the carriageway. Paint colours are a toy choice, not a claim.',
   },
 };

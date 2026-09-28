@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import * as THREE from 'three';
 import { type GroundRaster, type LandmarkWalkInput, createCityTerrain, groundRaster, landmarkWalkInputs, rasterHeight } from '../src/opus-bay/core/sfTerrain';
-import { canStand, heightAt, pointInPolygon, setCityTerrain } from '../src/opus-bay/core/terrain';
+import { canStand, heightAt, pointInPolygon, setCityTerrain, surfaceAt } from '../src/opus-bay/core/terrain';
+import { projectCity } from '../src/opus-bay/core/geo';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { findPath } from '../src/opus-bay/actors/nav';
 import { ATTRACTION_FLAG_H } from '../src/opus-bay/data/sf/attractionTypes';
@@ -12,6 +13,8 @@ import { DISTRICT } from '../src/opus-bay/data/district';
 import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
 import { landmarkSink } from '../src/opus-bay/world/sf/sites';
 import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
+import { PLAZA_MAX, PLAZA_SPACING } from '../src/opus-bay/world/sf/landmarks/context';
+import { plazaSpots } from '../src/opus-bay/world/sf/landmarks/setting';
 import { LIFT, LIFT_STRIPE, type W4Site, polyArea } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { site3Ground } from '../src/opus-bay/world/sf/landmarks/siteKit3';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
@@ -65,6 +68,17 @@ const walkInput = (s: W4Site): LandmarkWalkInput => ({
   walk: s.walk ? JSON.parse(JSON.stringify(s.walk)) : undefined,
 });
 const groundTris = (s: W4Site) => (s.ground ?? []).reduce((a, q) => a + Math.max(0, q.poly.length - 2), 0);
+/**
+ * The crowd's stand spots of a site (LOCAL), exactly as world/sf/landmarks/context.ts landmarkPlazaSpots makes them once
+ * the site is registered: its plaza polygons on a PLAZA_SPACING grid, clear of its blockers by 0.25 u. `all` = every
+ * candidate, `picked` = the at most PLAZA_MAX the crowd gets.
+ */
+function crowdSpots(s: W4Site): { all: Vec2[]; picked: Vec2[] } {
+  const clear = (p: Vec2) => !(s.walk?.blockers ?? []).some(b => ('poly' in b ? inPoly(p, b.poly) || b.poly.some((a, k) => distToSeg(p, a, b.poly[(k + 1) % b.poly.length]) < 0.25) : Math.hypot(p.x - b.x, p.z - b.z) < b.r + 0.25));
+  const all = plazaSpots((s.plaza ?? []).map(q => q.poly), PLAZA_SPACING, 400).filter(clear);
+  const n = Math.min(PLAZA_MAX, all.length);
+  return { all, picked: Array.from({ length: n }, (_, k) => all[Math.floor(((k + 0.5) * all.length) / n)]) };
+}
 /** the plan §4.2 flag pole in world coordinates (w4sites.ts siteFlagTop does the same once the list is merged) */
 const flagWorld = (s: W4Site) => { const w = landmarkToWorld(s, s.w4.flag); return { x: +w.x.toFixed(2), z: +w.z.toFixed(2), h: s.w4.flag.h }; };
 
@@ -87,6 +101,9 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
     assert.equal(s.base, t.base, `${s.id} stands on its baked base`);
     const m = s.w4;
     assert.ok(m.attractions.length >= 1, `${s.id} models an attraction`);
+    // a big park whose site is its famous feature away from the park's middle (McLaren's La Grande, ≈ 100 u from the
+    // park's map point and place row) may stand farther from them, and says so in its notes (W4-L3-review)
+    const reach = /the map point is the park's/.test(m.notes ?? '') ? 130 : 70;
     for (const a of m.attractions) {
       const rec = attractionById.get(a);
       assert.ok(rec, `${s.id}: attraction ${a} is in sf-w4-attractions.json`);
@@ -94,7 +111,7 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
       assert.ok(!laneLAttr.has(a), `${s.id}: ${a} is not modelled by one of lane L's sites`);
       assert.ok(T3.filter(o => o.w4.attractions.includes(a)).length === 1, `${a} has one tier-3 record`);
       const d = Math.hypot(rec.x - s.x, rec.z - s.z);
-      assert.ok(d < 70, `${s.id}: ${a} is ${d.toFixed(0)} u from the site`);
+      assert.ok(d < reach, `${s.id}: ${a} is ${d.toFixed(0)} u from the site`);
     }
     const row = placeById.get(m.placeId), extra = EXTRA_PLACES.find(e => e.id === m.placeId), re = PLACE_REANCHORS[m.placeId];
     assert.ok(row || extra, `${s.id}: place ${m.placeId} is a places.json row or a lane-P extra row`);
@@ -102,7 +119,7 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
     assert.equal(m.placeId, rec0.placeId ?? rec0.id, `${s.id}: the place row is the attraction's (sf-w4-attractions.json placeId, or its id for a new row)`);
     const px = re?.x ?? (row ?? extra)!.x, pz = re?.z ?? (row ?? extra)!.z;
     const ar = landmarkToWorld(s, m.arrival);
-    assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < 45, `${s.id}: place ${m.placeId} near the site`);
+    assert.ok(Math.min(Math.hypot(px - s.x, pz - s.z), Math.hypot(px - ar.x, pz - ar.z)) < (reach > 70 ? reach : 45), `${s.id}: place ${m.placeId} near the site`);
     assert.ok(Number.isFinite(m.height.u) && m.height.u > 0, s.id);
     assert.ok(['H = 3.2 + 0.155·h', 'terrainY', 'overlook'].includes(m.height.rule), `${s.id}: a rule SfLandmarkInfo knows`);
     if (m.lod0R !== undefined) assert.ok(m.lod0R >= 120 && m.lod0R <= 520, s.id);
@@ -237,6 +254,20 @@ test('walk data: valid blockers; arrivals clear, standable and reachable from th
         const mean = over.reduce((a, d) => a + d, 0) / over.length, worst = Math.max(...over);
         assert.ok(mean <= 0.15 && worst <= 0.5, `${s.id} draped ground over the walk height beyond its lift: mean ${mean.toFixed(3)}, worst ${worst.toFixed(3)} u (${over.length} pieces)`);
       }
+      // W4-L3-review: the crowd's stand spots (lane F's sightseers stand still at them, facing the site: the toy traffic
+      // never waits for a standing walker) are standable and never on a city CARRIAGEWAY — a sidewalk, a lawn, a
+      // terrace, or the site's own ground inside its exclusion (Balmy's alley, which the site draws). The early records
+      // put the house museums' and the street sites' spots in the traffic lanes of Franklin, Gough, 18th and 24th Streets.
+      if (s.plaza?.length) {
+        const { all, picked } = crowdSpots(s);
+        const ex = exPoly(s), stand = (p: Vec2) => { const w = landmarkToWorld(s, p); return canStand(w.x, w.z, 0.3); };
+        const road = all.filter(p => { const w = landmarkToWorld(s, p); return surfaceAt(w.x, w.z) === 'road' && !inPoly(w, ex); });
+        assert.equal(road.length, 0, `${s.id} crowd spots on the carriageway: ${road.map(p => `(${p.x.toFixed(2)}, ${p.z.toFixed(2)})`).join(' ')}`);
+        // the crowd itself skips a spot it cannot stand on (crowd.ts), so a site needs at least two it can (the W4-IL1
+        // test wants every plaza site to have spots)
+        const usable = picked.filter(stand);
+        assert.ok(usable.length >= 2, `${s.id}: ${usable.length} / ${picked.length} crowd spots standable`);
+      }
     } finally { setCityTerrain(null); }
   }
 });
@@ -260,6 +291,26 @@ test('decks over the water: the Wave Organ\'s tip is reachable on foot from the 
     // the deck stands over the water, not in it
     assert.ok(heightAt(b.x, b.z) > s.base + 0.4, 'the terrace is above the water');
   } finally { setCityTerrain(null); }
+});
+
+test('W4-L3-review: the features stand where OSM / Wikidata put them (La Grande is not one of the park\'s two 13 m tanks; the sundial is not the neighbourhood label)', () => {
+  // [site id, OSM ref the record must cite, lat, lng (the feature's centre), what]
+  const REAL: [string, string, number, number, string][] = [
+    // La Grande Tank: OSM way 424957085 (man_made=water_tower, height 23, wikidata Q118533874, Commons 37°43′23.17″ N
+    // 122°25′27.24″ W) at the park's north-western edge by the "Watertower View" viewpoint; ways 290539043 / 290539044
+    // (13 m) are two other tanks ≈ 700 m to the south-east
+    ['mclaren-park', 'way/424957085', 37.7231279, -122.4242084, 'La Grande'],
+    // the Ingleside Sundial: OSM node 6691138540 (amenity=clock) in Entrada Court; node 11903199250 is the place label of
+    // the Ingleside Terraces neighbourhood (and the scouting JSON's lat / lng)
+    ['ingleside-terraces-sundial', 'node/6691138540', 37.7246917, -122.4687758, 'the sundial'],
+  ];
+  for (const [id, ref, lat, lng, what] of REAL) {
+    const s = T3.find(x => x.id === id)!;
+    assert.ok(s.w4.osm.includes(ref), `${id} cites ${ref}`);
+    const p = projectCity(lat, lng), d = Math.hypot(p.x - s.x, p.z - s.z);
+    assert.ok(d < 1.5, `${id}: ${what} is at (${p.x.toFixed(1)}, ${p.z.toFixed(1)}), the site's origin ${d.toFixed(1)} u from it`);
+  }
+  assert.ok(!T3.some(s => s.w4.osm.includes('node/11903199250')), 'no record cites the neighbourhood label as its feature');
 });
 
 test('integration safety: the tier-3 list is cycle-free, the sites keep an unsunk ground, the tops generator measures them', () => {
@@ -339,9 +390,16 @@ test('flags (plan §4.2) and settings: poles 28–70 u over the site, plazas ≥
     assert.ok(Math.abs(s.w4.height.top - top) <= 0.1, `${s.id} height.top ${s.w4.height.top} vs the model's top ${top.toFixed(2)}`);
     const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0);
     // a site in a residential court the plan says keeps no crowds (the sundial, #80) has NO crowd spots at all and says
-    // so in its notes; every other site offers ≥ 30 u² of them (lane L's rule)
+    // so in its notes; every other site offers ≥ 30 u² of them (lane L's rule), or — a house museum or a street whose
+    // crowd stands at chosen points on the city's thin sidewalks (siteKit3 standSpot: the walk test keeps them off the
+    // carriageway), the Wave Organ's spit — at least three spots, and its notes say "the crowd spots are … points"
     if (/no crowd spots/i.test(s.w4.notes ?? '')) assert.equal(plaza, 0, `${s.id} says it has no crowd spots`);
+    else if (/crowd spots are[^.]*points/i.test(s.w4.notes ?? '') && plaza < 30) assert.ok(crowdSpots(s).picked.length >= 3, `${s.id}: ${crowdSpots(s).picked.length} crowd spots at chosen points`);
     else assert.ok(plaza >= 30, `${s.id} plaza ${plaza.toFixed(0)} u²`);
+    // the height record follows its rule: H = 3.2 + 0.155·h (plan §2.2) from the real height, unless the notes say the
+    // toy keeps its own height (W4-L3-review: Octagon 12 m / 4.4 u, the Women's Building 18 m / 5.6 u, Bayview 4.95 u)
+    const h = s.w4.height;
+    if (h.rule === 'H = 3.2 + 0.155·h' && !/toy height/i.test(s.w4.notes ?? '')) assert.ok(Math.abs(h.u - (3.2 + 0.155 * h.realM)) <= 0.1, `${s.id}: ${h.realM} m → ${(3.2 + 0.155 * h.realM).toFixed(2)} u by the rule, the record says ${h.u}`);
     for (const l of s.lights ?? []) assert.ok([l.x, l.y, l.z, l.size].every(Number.isFinite) && /^#[0-9a-f]{6}$/i.test(l.color), s.id);
     for (const k of Object.keys(s)) assert.ok(!/material|texture|label|sign|logo/i.test(k), `${s.id}.${k}`);
     assert.equal(s.swap, undefined, s.id);

@@ -2,7 +2,7 @@ import type { Vec2 } from '../../../core/types';
 import { BOX, type BatchLike, CYL, M } from '../../builder';
 import { worldPoly } from './kit';
 import { GC, PAT, type SiteGroundPoly, type W4Site, gstrip, plazaOf } from './siteKit';
-import { bandPoly, box3, site3Ground } from './siteKit3';
+import { bandPoly, box3, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Wave Organ (wave 4, P4 · map T3, the Marina): at the end of the spit that runs out from the Golden Gate Yacht Club,
@@ -95,7 +95,9 @@ export const waveOrgan: W4Site = {
     surfaces: deckSurfaces(),
   },
   ground: ground(),
-  plaza: [plazaOf(TERRACE_POLYS[0]), ...deckSurfaces().slice(TERRACES.length, TERRACES.length + 6).map(s => plazaOf(s.poly, 'dirt'))],
+  // the upper terrace and spots on the spit's line (its first stretches): the deck quads' own grid points fell near their
+  // edges, two of them where a walker cannot stand (W4-L3-review)
+  plaza: [plazaOf(TERRACE_POLYS[0]), ...SPIT.slice(0, 6).map((a, i) => standSpot({ x: (a.x + SPIT[i + 1].x) / 2, z: (a.z + SPIT[i + 1].z) / 2 }, 'dirt'))],
   w4: {
     placeId: 'wave-organ',
     attractions: ['wave-organ'],
@@ -105,6 +107,6 @@ export const waveOrgan: W4Site = {
     height: { realM: 0, u: 1.0, top: 1.4, rule: 'overlook' },
     osm: [],
     terrain: [-31, -4, 2, 56],
-    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so).',
+    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so). The crowd spots are the upper terrace and points along the spit.',
   },
 };

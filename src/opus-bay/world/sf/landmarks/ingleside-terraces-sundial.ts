@@ -91,9 +91,11 @@ export const inglesideTerracesSundial: W4Site = {
     photo: { target: [0, 1.4, 0.2], distance: 11, elevation: 0.3, bearing: 2.6 },
     flag: { x: 0, z: 0.4, h: 30 },
     height: { realM: 8.5, u: 3.4, top: 3.63, rule: 'H = 3.2 + 0.155·h' },
-    osm: ['node/11903199250'],
+    // W4-L3-review: the dial is OSM node 6691138540 (amenity=clock, "Ingleside Sundial"); node 11903199250 — the scouting
+    // JSON's lat / lng, and lane P's map point 10 u north-east of the dial — is the Ingleside Terraces neighbourhood label
+    osm: ['node/6691138540'],
     terrain: [-3, -3, 3, 3],
     terrainStep: 1,
-    notes: 'A residential court: no crowd spots (plan caution), only the monument. The gnomon is steeper than the true style angle (toy proportions); its shadow is the renderer\'s (tier-3 sites cast none today).',
+    notes: 'A residential court: no crowd spots (plan caution), only the monument. The gnomon is steeper than the true style angle (toy proportions); its shadow is the renderer\'s (tier-3 sites cast none today). A toy height: the gnomon is drawn 3.4 u, under the policy\'s 4.5 u for its 28 ft, so the court\'s houses still frame it.',
   },
 };

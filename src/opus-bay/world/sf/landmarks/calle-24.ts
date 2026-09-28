@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { worldPoly } from './kit';
-import { type W4Site, plazaOf } from './siteKit';
-import { box3, site3Ground } from './siteKit3';
+import type { W4Site } from './siteKit';
+import { box3, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Calle 24 Latino Cultural District (wave 4, P4 · map T3, the Mission): 24th Street's long-time centre of the city's
  * Latino activism, arts and commerce, established as a cultural district in May 2014 by the Board of Supervisors and
  * Mayor Ed Lee after the Calle 24 merchants' and neighbours' advocacy (calle24sf.org "Our History"; Wikipedia "Calle
- * 24 Latino Cultural District"). Balmy Alley opens off the same block.
+ * 24 Latino Cultural District"). Balmy Alley opens off 24th Street one block west, between Treat Avenue and Harrison.
  *
  * Toy: the north side of 24th Street between Harrison and Alabama — a corner marker at Harrison (a plinth with a
  * tiled cap in plain colour fields, no plaque text), three poles with vertical banners and strings of generic cut-paper
@@ -64,11 +64,11 @@ function build(b: BatchLike, lod: 0 | 2) {
   for (const [k, dx] of [-0.18, 0, 0.18].entries()) box3(b, mx + dx, my + 1.2, ZP, 0.19, 0.28, 0.32, PAPER[(k + 2) % PAPER.length]);
 }
 
-/** both sidewalks of the block (the crowd spots) */
-const WALKS: Vec2[][] = [
-  [{ x: -2.1, z: -0.1 }, { x: 12.0, z: -0.1 }, { x: 12.0, z: 1.3 }, { x: -2.1, z: 1.3 }],
-  [{ x: -2.1, z: 2.7 }, { x: 12.0, z: 2.7 }, { x: 12.0, z: 4.1 }, { x: -2.1, z: 4.1 }],
-];
+/**
+ * the crowd's stand spots on both sidewalks of the block (each ≈ 0.5 u, with driveway cuts; the carriageway runs z
+ * ≈ 0.45…3.7): the early record's 1.4 u strips put 9 of their 10 spots in the traffic lanes (W4-L3-review)
+ */
+const WALKS: Vec2[] = [{ x: -1.0, z: 0.2 }, { x: 0.5, z: 0.2 }, { x: 3.0, z: 0.2 }, { x: 0.5, z: 3.85 }, { x: 4.2, z: 3.85 }];
 
 export const calle24: W4Site = {
   id: ID,
@@ -83,7 +83,7 @@ export const calle24: W4Site = {
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -2.6, z: -0.18 }, { x: 5.4, z: -0.18 }, { x: 5.4, z: 0.1 }, { x: -2.6, z: 0.1 }]) },
   build,
   walk: { blockers: [...POLES.map(x => ({ x, z: ZP, r: 0.1 })), { poly: [{ x: -2.48, z: -0.15 }, { x: -1.92, z: -0.15 }, { x: -1.92, z: 0.15 }, { x: -2.48, z: 0.15 }] }] },
-  plaza: WALKS.map(p => plazaOf(p, 'pavement')),
+  plaza: WALKS.map(p => standSpot(p)),
   w4: {
     placeId: 'calle-24',
     attractions: ['calle-24'],
@@ -94,6 +94,6 @@ export const calle24: W4Site = {
     osm: [],
     terrain: [-4, -2, 7, 2],
     ringMin: 0.65,
-    notes: 'Generic cut-paper colours only (no words or figures), blank shop signs; the Calle 24 murals and Balmy Alley\'s are never copied. The crowd spots are both sidewalks of the block; the row houses on both sides close the walk-around ring to 68 %.',
+    notes: 'Generic cut-paper colours only (no words or figures), blank shop signs; the Calle 24 murals and Balmy Alley\'s are never copied. The crowd spots are points on both sidewalks of the block (never the carriageway); the row houses on both sides close the walk-around ring to 67 %.',
   },
 };

@@ -2,7 +2,7 @@ import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { worldPoly } from './kit';
 import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, lamp, planter, plazaOf, tree } from './siteKit';
-import { box3, site3Ground } from './siteKit3';
+import { box3, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Noe Valley Town Square (wave 4, P4 · map T3): a former parking lot on 24th Street between Vicksburg and Sanchez that
@@ -81,7 +81,9 @@ export const noeValleyTownSquare: W4Site = {
   },
   ground: ground(),
   lights: [{ x: -1.6, y: g.at(-1.6, 0.5) + 3.8, z: 0.5, size: 1, color: '#ffd9a0' }],
-  plaza: [plazaOf(LOT, 'plaza'), plazaOf([{ x: -5.0, z: 1.6 }, { x: 5.0, z: 1.6 }, { x: 5.0, z: 3.3 }, { x: -5.0, z: 3.3 }], 'pavement')],
+  // the square, and three spots on the 24th Street sidewalk in front of it (≈ 0.55 u, the carriageway from z ≈ 1.95: the
+  // early record's 1.7 u strip put four of its five spots in the traffic lanes; W4-L3-review)
+  plaza: [plazaOf(LOT, 'plaza'), ...[{ x: -3.5, z: 1.75 }, { x: 0.5, z: 1.75 }, { x: 4.3, z: 1.75 }].map(p => standSpot(p))],
   w4: {
     placeId: 'noe-valley-town-square',
     attractions: ['noe-valley-town-square'],
@@ -93,6 +95,6 @@ export const noeValleyTownSquare: W4Site = {
     terrain: [-3, -3, 3, 3],
     terrainStep: 1,
     ringMin: 0.62,
-    notes: 'Market stalls are generic (no stall names). The crowd spots are the square and the 24th Street sidewalk in front; a mid-block lot, so the houses either side and behind close the walk-around ring to 65 %.',
+    notes: 'Market stalls are generic (no stall names). The crowd spots are the square and points on the 24th Street sidewalk in front (never the carriageway); a mid-block lot, so the houses either side and behind close the walk-around ring to 65 %.',
   },
 };

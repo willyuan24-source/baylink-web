@@ -2,7 +2,7 @@ import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { worldPoly } from './kit';
 import { GC, PAT, type SiteGroundPoly, type W4Site, bench, gfill, lamp, planter, plazaOf } from './siteKit';
-import { box3, lowWall, signBoard, site3Ground } from './siteKit3';
+import { box3, lowWall, signBoard, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Ina Coolbrith Park (wave 4, P4 · map T3, Russian Hill): a 0.8-acre terraced hillside park at Vallejo and Taylor
@@ -61,7 +61,9 @@ export const inaCoolbrithPark: W4Site = {
   },
   ground: ground(),
   lights: [{ x: 2.6, y: g.at(2.6, -0.6) + 3.8, z: -0.6, size: 1, color: '#ffd9a0' }],
-  plaza: [plazaOf([{ x: -3.5, z: -3.0 }, { x: 3.5, z: -3.0 }, { x: 3.5, z: 2.1 }, { x: -3.5, z: 2.1 }], 'pavement')],
+  // the terrace's back half with the Taylor Street sidewalk (the early polygon reached z −3.0, into the carriageway at
+  // z < −1.7) and two points in front of the benches (W4-L3-review)
+  plaza: [plazaOf([{ x: -3.5, z: -1.55 }, { x: 3.5, z: -1.55 }, { x: 3.5, z: 0.7 }, { x: -3.5, z: 0.7 }], 'pavement'), standSpot({ x: -1.0, z: 0.95 }), standSpot({ x: 1.0, z: 0.95 })],
   w4: {
     placeId: 'osm-w114151121',
     attractions: ['ina-coolbrith-park'],
@@ -72,6 +74,6 @@ export const inaCoolbrithPark: W4Site = {
     osm: ['way/114151121'],
     terrain: [-4, -3, 4, 3],
     terrainStep: 1,
-    notes: 'A viewpoint on a steep slope: the crowd spots are the terrace and the Taylor Street sidewalk and lane beside it.',
+    notes: 'A viewpoint on a steep slope: the crowd spots are the terrace, the Taylor Street sidewalk beside it (never the carriageway) and points in front of the benches.',
   },
 };

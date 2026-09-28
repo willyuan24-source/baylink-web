@@ -21,7 +21,8 @@ import { boulder, box3, site3Ground } from './siteKit3';
  * Newcomb Avenue (centreline z −4.0, 3.6 u), +z south to Oakdale Avenue (z 7.95; its north kerb z 6.15); 3rd Street
  * cuts the grid diagonally on the west (its east kerb from (−2.19, −1.82) to (0.09, 4.17), then (0.75, 6.0)), and the
  * hall's west wall stands on that kerb. The block east of x 4.4 (a sliver building and the recreation hall) stays the
- * city's. 12 m → 5.06 u (H = 3.2 + 0.155·h): walls 3.2 u, the false front to 4.6 u, the ridge to 4.3 u.
+ * city's. 10 m (the footprint's OSM height tag) → 4.75 u (H = 3.2 + 0.155·h): walls 3.2 u, the false front to 4.6 u,
+ * the ridge to 4.3 u.
  */
 
 const ID = 'bayview-opera-house';
@@ -115,14 +116,16 @@ export const bayviewOperaHouse: W4Site = {
   walk: { blockers: BLOCKERS },
   ground: ground(),
   lights: [{ x: 3.6, y: g.at(3.6, 2.6) + 3.8, z: 2.6, size: 1, color: '#ffd9a0' }, { x: 0.7, y: g.at(0.7, 3.5) + 2.2, z: 3.6, size: 1.4, color: '#ffe0b0' }],
-  plaza: [plazaOf(LOT)],
+  // the crowd: the plaza by the stage and the forecourt east of the hall (the lot as one polygon left a single spot on
+  // the crowd's 2.5 u grid: the hall, the stage and the rocks take the rest; W4-L3-review)
+  plaza: [plazaOf(LOT), plazaOf([{ x: 1.6, z: -1.9 }, { x: 4.1, z: -1.9 }, { x: 4.1, z: 2.9 }, { x: 1.6, z: 2.9 }])],
   w4: {
     placeId: 'osm-w288836717',
     attractions: ['bayview-opera-house'],
     arrival: { x: 3.0, z: 4.6, heading: Math.PI },
     photo: { target: [-0.6, 2.2, 1.2], distance: 17, elevation: 0.18, bearing: -1.22 },
     flag: { x: 0.4, z: 0.4, h: 30 },
-    height: { realM: 12, u: 4.95, top: 5.42, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 10, u: 4.75, top: 5.42, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/288836717'],
     terrain: [-3, -4, 8, 8],
     notes: 'No name board text on the false front; the stage and seats are the 2016 plaza (Walter Hood), the rock garden a few boulders.',

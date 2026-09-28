@@ -7,10 +7,12 @@ import { box3, markerStone, signBoard, site3Ground } from './siteKit3';
 /**
  * China Beach (wave 4, P4 · map T3, Sea Cliff): a tiny sheltered cove between Lands End and Baker Beach looking at the
  * Marin Headlands and the Golden Gate, named for the Chinese fishermen who anchored their junks in the cove and camped
- * on the beach from Gold Rush times; a monument that Chinese Americans put up in 1982 honours them at the trailhead by
- * the parking at the end of Sea Cliff Avenue. A paved drive and a stairway lead down to the water; picnic tables and
- * grills; no lifeguards, swimming not recommended (parksconservancy.org "China Beach"; hmdb 52925; NPS "Vestiges of
- * China Beach"). It was long called James D. Phelan Beach.
+ * on the beach from Gold Rush times; a monument honours them at the trailhead by the parking at the end of Sea Cliff
+ * Avenue (its plate reads "Gift of Henry & Diana Chung Family 1981", hmdb 52925 and Wikipedia; NPS "Vestiges of China
+ * Beach" dates its erection by Chinese Americans to 1982: a card says "early 1980s" or names both). A paved drive and
+ * a stairway lead down to the water; picnic tables and grills; no lifeguards, swimming not recommended
+ * (parksconservancy.org "China Beach"; hmdb 52925; NPS "Vestiges of China Beach"). It was long called James D. Phelan
+ * Beach.
  *
  * Toy: the lawn above the cove by the trailhead — the monument (a stone with a plain plaque, no inscription) on a paved
  * pad, a picnic table and a grill, two benches looking over the cove, a blank board by the head of the stair (no swim

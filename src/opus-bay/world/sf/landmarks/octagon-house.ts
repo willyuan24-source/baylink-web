@@ -1,8 +1,8 @@
 import type { Vec2 } from '../../../core/types';
 import { type BatchLike, CONE, CYL, M } from '../../builder';
 import { LIT, box, ngon, worldPoly } from './kit';
-import { type W4Site, plazaOf } from './siteKit';
-import { box3, signBoard, site3Ground } from './siteKit3';
+import type { W4Site } from './siteKit';
+import { box3, signBoard, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Octagon House (wave 4, P4 · map T3, Cow Hollow): an eight-sided wooden house of 1861 built for William C. McElroy and
@@ -54,11 +54,12 @@ function build(b: BatchLike, lod: 0 | 2) {
   signBoard(b, -0.95, g.at(-0.95, 0.75), 0.75, 0, 0.5, 0.35, 0.5, '#6d5b3f', '#3f3a33');
 }
 
-/** the corner's sidewalks: Gough Street in front, Union Street at the side */
-const WALKS: Vec2[][] = [
-  [{ x: -7.0, z: 0.65 }, { x: 2.7, z: 0.65 }, { x: 2.7, z: 2.4 }, { x: -7.0, z: 2.4 }],
-  [{ x: 2.75, z: -7.0 }, { x: 4.5, z: -7.0 }, { x: 4.5, z: 2.4 }, { x: 2.75, z: 2.4 }],
-];
+/**
+ * the crowd's stand spots on the Gough Street sidewalk (a strip ≈ 0.4 u wide at z ≈ 0.95 along Allyne Park and the
+ * house; the carriageway starts at z ≈ 1.1, and the Union Street side has no free sidewalk beside the neighbours): the
+ * early record's strips put every spot in the traffic lanes of Gough and Union (W4-L3-review)
+ */
+const WALKS: Vec2[] = [{ x: -6.0, z: 0.95 }, { x: -4.0, z: 0.95 }, { x: -2.2, z: 0.95 }, { x: 1.2, z: 0.95 }, { x: 2.2, z: 0.95 }];
 
 export const octagonHouse: W4Site = {
   id: ID,
@@ -73,17 +74,17 @@ export const octagonHouse: W4Site = {
   walk: { blockers: [{ poly: ngon(0, 0, R + 0.02, 8, Math.PI / 8) }, { x: -0.95, z: 0.75, r: 0.2 }] },
   tall: [{ x: 0, z: 0, r: 0.5 }],
   lights: [{ x: 0, y: g.at(0, 1.2) + 1.6, z: 1.2, size: 1.2, color: '#ffe0b0' }],
-  plaza: WALKS.map(p => plazaOf(p, 'pavement')),
+  plaza: WALKS.map(p => standSpot(p)),
   w4: {
     placeId: 'octagon-house',
     attractions: ['octagon-house'],
     arrival: { x: 1.4, z: 1.6, heading: -2.5 },
     photo: { target: [0, 2.0, 0], distance: 12, elevation: 0.2, bearing: 0.6 },
     flag: { x: 0, z: -0.3, h: 30 },
-    height: { realM: 12, u: 4.4, top: 4.81, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 8, u: 4.44, top: 4.81, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/243512313'],
     terrain: [-2, -2, 2, 2],
     terrainStep: 1,
-    notes: 'A small house museum on a corner: the crowd spots are the Gough and Union Street sidewalks. Paint colours are a toy choice.',
+    notes: 'A small house museum on a corner: the crowd spots are points on the Gough Street sidewalk (never the carriageway). The height is the footprint\'s OSM tag (8 m, two storeys). Paint colours are a toy choice.',
   },
 };

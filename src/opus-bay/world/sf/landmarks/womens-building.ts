@@ -1,8 +1,8 @@
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { LIT, box, worldPoly } from './kit';
-import { type W4Site, plazaOf } from './siteKit';
-import { box3, colourPanel, site3Ground } from './siteKit3';
+import type { W4Site } from './siteKit';
+import { box3, colourPanel, site3Ground, standSpot } from './siteKit3';
 
 /**
  * The Women's Building (wave 4, P4 · map T3, the Mission): 3543 18th Street at Lapidge Street, a 1910 hall that is
@@ -18,7 +18,7 @@ import { box3, colourPanel, site3Ground } from './siteKit3';
  *
  * Frame: origin (261.6, 640.96) at the building's centre, yaw −129.7°: local +z faces 18th Street (centreline z 3.47,
  * 4.4 u wide), −x faces Lapidge Street (x −3.64), Linda Street runs at x 3.0; the neighbour behind (z < −1.94) is the
- * city's. Height: the city's 5.84 u, the mural's five storeys.
+ * city's. Height: 17 m (the footprint's OSM tag) → 5.84 u, as the city drew it; the mural covers all five storeys.
  */
 
 const ID = 'womens-building';
@@ -57,11 +57,12 @@ function build(b: BatchLike, lod: 0 | 2) {
   box3(b, B.x1 + 0.03, y0 + 2.2, 0.6, 0.05, 1.4, 0.3, CORNICE);
 }
 
-/** the sidewalks and the near lanes of 18th and Lapidge Streets along the painted faces */
-const WALKS: Vec2[][] = [
-  [{ x: -4.6, z: 1.35 }, { x: 3.6, z: 1.35 }, { x: 3.6, z: 3.1 }, { x: -4.6, z: 3.1 }],
-  [{ x: -3.6, z: -8.5 }, { x: -1.9, z: -8.5 }, { x: -1.9, z: 1.3 }, { x: -3.6, z: 1.3 }],
-];
+/**
+ * the crowd's stand spots on the sidewalks along the painted faces: 18th Street's (≈ 0.6 u at z 1.4…2.0, carriageway
+ * from 2.1) and Lapidge Street's (≈ 0.45 u at x ≈ −2.2, driveway cuts): the early record's strips put every spot in
+ * the near lanes of both streets (W4-L3-review)
+ */
+const WALKS: Vec2[] = [{ x: 0.6, z: 1.8 }, { x: -2.2, z: -1.5 }, { x: -2.2, z: -4.2 }, { x: -2.2, z: -5.5 }];
 
 export const womensBuilding: W4Site = {
   id: ID,
@@ -75,18 +76,18 @@ export const womensBuilding: W4Site = {
   build,
   walk: { blockers: [{ poly: [{ x: B.x0, z: B.z0 }, { x: B.x1, z: B.z0 }, { x: B.x1, z: B.z1 }, { x: B.x0, z: B.z1 }] }] },
   lights: [{ x: B.x0 + 1.07, y: g.at(-1.1, 1.6) + 1.4, z: 1.6, size: 1.2, color: '#ffe0b0' }],
-  plaza: WALKS.map(p => plazaOf(p, 'pavement')),
+  plaza: WALKS.map(p => standSpot(p)),
   w4: {
     placeId: 'womens-building',
     attractions: ['womens-building'],
     arrival: { x: -2.9, z: 2.5, heading: 2.5 },
     photo: { target: [-0.4, 2.8, 0], distance: 13, elevation: 0.15, bearing: -0.75 },
     flag: { x: -0.4, z: -0.3, h: 30 },
-    height: { realM: 18, u: 5.6, top: 5.9, rule: 'H = 3.2 + 0.155·h' },
+    height: { realM: 17, u: 5.84, top: 5.9, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/260194175'],
     terrain: [-3, -3, 2, 3],
     terrainStep: 1,
     ringMin: 0.7,
-    notes: 'MaestraPeace is never copied: the painted faces are abstract colour fields. The crowd spots are the sidewalks and near lanes of 18th and Lapidge Streets; the attached neighbour behind closes the walk-around ring to 72 %.',
+    notes: 'MaestraPeace is never copied: the painted faces are abstract colour fields. The crowd spots are points on the 18th and Lapidge Street sidewalks (never the carriageway); the attached neighbour behind closes the walk-around ring to 72 %.',
   },
 };
