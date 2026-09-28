@@ -278,3 +278,84 @@ test('D2-12: every landmark names its places.json row; zh follows the city gloss
   // D2-04: the AI models name registry landmarks
   for (const [id, m] of Object.entries(SF_MODELS)) assert.ok(sfLandmark(m.landmarkId), `${id} → ${m.landmarkId}`);
 });
+
+// ---------------------------------------------------------------------------
+// Wave-4 integration (lane L): the sites are registered and drawn
+// ---------------------------------------------------------------------------
+
+test('W4-IL1: SF_SITES = the 24 landmarks + every wave-4 record; sfLandmark finds each; CitySites draws, excludes and walks them all', async () => {
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { W4_ALL_SITES, W4_SITES, siteLod0R } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
+  const { W4_SITES_T3 } = await import('../src/opus-bay/world/sf/landmarks/w4list3');
+  const { CitySites, LOD0 } = await import('../src/opus-bay/world/sf/sites');
+  assert.equal(SF_LANDMARKS.length, 24, 'SF_LANDMARKS stays the 24 records with an info card (cards, arrivals, place rows)');
+  assert.deepEqual(SF_SITES.map(l => l.id), [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3].map(l => l.id));
+  assert.deepEqual(W4_ALL_SITES.map(l => l.id), [...W4_SITES, ...W4_SITES_T3].map(l => l.id));
+  assert.equal(new Set(SF_SITES.map(l => l.id)).size, SF_SITES.length, 'unique ids across the landmarks and the sites');
+  for (const l of SF_SITES) assert.equal(sfLandmark(l.id), l, l.id);
+  const sites = new CitySites();
+  try {
+    assert.equal(sites.counts().sites, SF_SITES.length);
+    assert.deepEqual(sites.excludes().map(e => e.id), SF_SITES.map(l => l.id), 'every site excludes its footprint from the city');
+    const walk = sites.walkInputs();
+    for (const s of W4_ALL_SITES) {
+      const w = walk.find(q => q.id === s.id)!;
+      assert.equal(w.sink, 0, `${s.id}: the city ground under a draped site is not sunk`);
+      assert.equal(w.walk?.blockers.length, s.walk?.blockers.length ?? 0, `${s.id}: blockers reach the walk raster`);
+      assert.ok((w.walk?.blockers ?? []).every(b => typeof b.top === 'number' && b.top > 0), `${s.id}: every blocker carries its measured top`);
+    }
+    // the lod-0 ring of each site: its w4.lod0R where set (the downtown diet), else the tier's
+    const ring = (sites as unknown as { sites: { l: SfLandmark; lodK: number }[] }).sites;
+    for (const s of ring) assert.equal(Math.round(LOD0[s.l.tier] * s.lodK), siteLod0R(s.l) ?? LOD0[s.l.tier], s.l.id);
+  } finally { sites.dispose(); }
+});
+
+test('W4-IL1: no wave-4 site excludes ground another site does (every pair with a wave-4 or tier-3 site)', async () => {
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const ring = (l: SfLandmark): Vec2[] => ('poly' in l.exclude ? l.exclude.poly : Array.from({ length: 32 }, (_, k) => ({ x: l.x + Math.cos((k / 32) * Math.PI * 2) * (l.exclude as { r: number }).r, z: l.z + Math.sin((k / 32) * Math.PI * 2) * (l.exclude as { r: number }).r })));
+  const cross = (a: Vec2, b: Vec2, c: Vec2, d: Vec2) => {
+    const o = (p: Vec2, q: Vec2, r: Vec2) => (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x);
+    return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+  };
+  const overlap = (A: Vec2[], B: Vec2[]) => A.some(p => inPoly(p, B)) || B.some(p => inPoly(p, A)) || A.some((p, i) => B.some((q, j) => cross(p, A[(i + 1) % A.length], q, B[(j + 1) % B.length])));
+  const polys = SF_SITES.map(l => ({ l, p: ring(l), r: Math.max(...ring(l).map(q => Math.hypot(q.x - l.x, q.z - l.z))) }));
+  for (let i = 0; i < polys.length; i++) for (let j = i + 1; j < polys.length; j++) {
+    const a = polys[i], b = polys[j];
+    // the 24 landmarks' own pairs are wave-2 decisions (the bridge's exclusion takes in Fort Point's bluff)
+    if (SF_LANDMARKS.includes(a.l) && SF_LANDMARKS.includes(b.l)) continue;
+    if (Math.hypot(a.l.x - b.l.x, a.l.z - b.l.z) > a.r + b.r) continue;
+    assert.ok(!overlap(a.p, b.p), `${a.l.id} and ${b.l.id} exclude the same ground`);
+  }
+});
+
+test('W4-IL1: the landmark helpers answer for the wave-4 sites (anchor, frame, photo, flags, plaza spots, tall parts)', async () => {
+  const ctx = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { W4_ALL_SITES } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
+  for (const s of W4_ALL_SITES) {
+    const a = ctx.sfLandmarkAnchor(s.id)!, w = landmarkToWorld(s, s.w4.arrival);
+    assert.ok(a && Math.hypot(a.x - w.x, a.z - w.z) < 1e-9 && Math.abs(a.heading - (s.w4.arrival.heading + s.yaw)) < 1e-9, `${s.id}: anchor = w4.arrival placed`);
+    assert.deepEqual(ctx.sitePhoto(s.id), { ...s.w4.photo, target: [...s.w4.photo.target] }, `${s.id}: photo`);
+    assert.deepEqual(ctx.siteFrame(s.id, l => (l.base as number) + 1), { x: s.x, y: s.base + 1, z: s.z, yaw: s.yaw }, `${s.id}: frame with the caller's base`);
+    const f = ctx.siteFlagTop(s.id)!;
+    assert.ok(f.h >= 28 && f.h <= 70, `${s.id}: flag ${f.h}`);
+  }
+  // the 24 landmarks keep their info poses
+  const info = sfLandmarkInfo('city-hall')!;
+  assert.deepEqual(ctx.sitePhoto('city-hall'), { ...info.photo, target: [...info.photo.target] });
+  assert.equal(ctx.sitePhoto('no-such-site'), null);
+  assert.equal(ctx.siteFrame('no-such-site', () => 0), null);
+  // F's crowd stands on the new plazas too, never inside a site's blockers
+  const spots = ctx.landmarkPlazaSpots();
+  const withPlaza = W4_ALL_SITES.filter(s => s.plaza?.length);
+  assert.ok(withPlaza.length >= 10, `${withPlaza.length} sites with plazas`);
+  for (const s of withPlaza) assert.ok(spots.some(p => p.id === s.id), `${s.id}: plaza spots`);
+  for (const p of spots) {
+    const l = sfLandmark(p.id)!, walk = landmarkWalkWorld(l, 0);
+    for (const b of walk.blockers) assert.ok('poly' in b ? !inPoly(p, b.poly) : Math.hypot(p.x - b.x, p.z - b.z) >= b.r, `${p.id}: spot (${p.x.toFixed(1)}, ${p.z.toFixed(1)}) in a blocker`);
+  }
+  // the glide: a site taller than 10 u over its base without tall parts gets the day-0 circle over its measured top
+  const tall = ctx.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : 0));
+  const ucsf = tall.find(t => t.id === 'ucsf-parnassus');
+  assert.ok(ucsf && ucsf.top >= (sfLandmark('ucsf-parnassus')!.base as number) + 17, 'the UCSF crane stands in the glide');
+  assert.ok(!tall.some(t => t.id === 'dolores-park'), 'an overlook site is flown over');
+});

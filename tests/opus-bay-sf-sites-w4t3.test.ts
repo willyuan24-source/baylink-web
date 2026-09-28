@@ -74,7 +74,7 @@ test('registry: tier-3 ids, numeric bases from the baked terrain, priority-4 att
   const laneL = new Set(W4_SITES.map(s => s.id)), laneLAttr = new Set(W4_SITES.flatMap(s => s.w4.attractions));
   for (const s of T3) {
     assert.match(s.id, /^[a-z0-9]+(-[a-z0-9]+)*$/);
-    assert.equal(sfLandmark(s.id), undefined, `${s.id} is not an existing landmark id`);
+    assert.ok(!SF_LANDMARKS.some(l => l.id === s.id) && sfLandmark(s.id) === s, `${s.id}: registered (SF_SITES), not one of the 24 landmark ids`);
     assert.ok(!laneL.has(s.id), `${s.id} is not one of lane L's sites`);
     assert.equal(s.tier, 3, `${s.id} is a tier-3 site`);
     const t = SITE_TERRAIN3[s.id];

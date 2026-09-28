@@ -30,7 +30,7 @@ const HELPERS = `window.__sq = {
     while (performance.now() - t0 < timeout) { const ob = window.__opusBay; if (ob && ob.city && ob.world && ob.city.stats().status === 'streaming') return true; await this.sleep(500); }
     return false;
   },
-  async sites() { const m = await this.mods(); return JSON.stringify(m.w4.W4_SITES.map(s => s.id)); },
+  async sites() { const m = await this.mods(); return JSON.stringify((m.w4.W4_ALL_SITES ?? m.w4.W4_SITES).map(s => s.id)); },
   /** local → world for a site */
   w(s, x, z) { const c = Math.cos(s.yaw), n = Math.sin(s.yaw); return { x: s.x + x * c + z * n, z: s.z - x * n + z * c }; },
   extent(s) { let r = 0; for (const p of s.exclude.poly) r = Math.max(r, Math.hypot(p.x - s.x, p.z - s.z)); return r; },

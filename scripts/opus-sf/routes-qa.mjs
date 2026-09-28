@@ -49,10 +49,11 @@ measure: async () => {
   const sites = ob.city.streamer.opts.sites;
   const baseOf = new Map(sites.sites.map(s => [s.l.id, s.baseY]));
   const targets = [];
-  for (const l of lm.SF_LANDMARKS) {
+  // every drawn T1 / T2 site (the landmarks and lane L's wave-4 sites: SF_SITES); a site's height is its measured top
+  for (const l of lm.SF_SITES) {
     if (l.tier === 3) continue;
     const e = l.exclude, r = Math.min(40, 'r' in e ? e.r : Math.max(...e.poly.map(p => Math.hypot(p.x - l.x, p.z - l.z))));
-    const b = baseOf.get(l.id) ?? 0, h = Math.max(4, info.sfLandmarkInfo(l.id)?.height.u ?? 6);
+    const b = baseOf.get(l.id) ?? 0, h = Math.max(4, info.sfLandmarkInfo(l.id)?.height.u ?? l.w4?.height.top ?? 6);
     if (l.id === 'golden-gate-bridge') {
       const c = Math.cos(l.yaw), s = Math.sin(l.yaw);
       for (let x = -230; x <= 192; x += 40) targets.push({ id: l.id, x: l.x + x * c, z: l.z - x * s, r: 3, y0: 0, y1: Math.abs(Math.abs(x) - 89.3) < 25 ? 42.2 : 16.2, far: 1000 });

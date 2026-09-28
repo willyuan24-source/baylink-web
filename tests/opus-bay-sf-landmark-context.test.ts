@@ -9,8 +9,9 @@ import type { SfManifest } from '../src/opus-bay/world/sf/format';
 import { TALL_MARGIN, landmarkTallStructures } from '../src/opus-bay/world/sf/landmarks/context';
 import { TURNTABLE, setTurntableSpinner, turntableSpinner } from '../src/opus-bay/world/sf/landmarks/cable-car-turntable';
 import { GGB } from '../src/opus-bay/world/sf/landmarks/golden-gate-bridge';
-import { SF_LANDMARKS, type SfLandmark, blockerTops, buildLandmark, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
+import { SF_LANDMARKS, SF_SITES, type SfLandmark, blockerTops, buildLandmark, landmarkToWorld, landmarkWalkWorld, sfLandmark, tallParts, usesAi, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
 import { LANDMARK_TOPS } from '../src/opus-bay/world/sf/landmarks/tops';
+import { w4Site } from '../src/opus-bay/world/sf/landmarks/w4sites';
 import { U } from '../src/opus-bay/world/materials';
 import { CitySites, LOD0, LOD0_HIGH, SITE_CAM_H, siteLod0Radius } from '../src/opus-bay/world/sf/sites';
 import { type GlbMesh, readGlbMesh } from '../scripts/opus-sf/assets/glbNode';
@@ -35,10 +36,10 @@ async function modelsFor(l: SfLandmark): Promise<Map<string, GlbMesh>> {
 const byId = (id: string) => sfLandmark(id)!;
 const tallOf = (id: string) => tallParts(byId(id));
 
-test('D2-10: landmarks/tops.ts is the measurement of the drawn lod 0 (re-run scripts/opus-sf/assets/landmark-tops.ts)', async () => {
-  for (const l of SF_LANDMARKS) {
+test('D2-10: landmarks/tops.ts is the measurement of the drawn lod 0 of every site (re-run scripts/opus-sf/assets/landmark-tops.ts)', async () => {
+  for (const l of SF_SITES) {
     const row = LANDMARK_TOPS[l.id];
-    assert.ok(row, `${l.id}: a row in tops.ts`);
+    assert.ok(row, `${l.id}: a row in tops.ts (a new site: re-run npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/assets/landmark-tops.ts)`);
     const m = measureTops(l, await modelsFor(l));
     assert.deepEqual([...row.blockers], m.blockers, `${l.id}: blocker tops`);
     assert.deepEqual([...row.tall], m.tall, `${l.id}: tall-part tops`);
@@ -86,12 +87,14 @@ test('D2-10: the tall parts the brief names (GGB legs, Sutro r ≈ 6, City Hall 
   assert.ok(mill.r >= 4.15 && mill.top >= 9.9 && mill.top <= 10.8, `windmill r ${mill.r} top ${mill.top}`);
 });
 
-test('D2-10: landmarkTallStructures = the measured tall parts in world space; every landmark ≥ 10 u tall is covered', () => {
+test('D2-10: landmarkTallStructures = the measured tall parts in world space; every site ≥ 10 u tall is covered', () => {
   const base = (l: SfLandmark) => (typeof l.base === 'number' ? l.base : 3);
   const tall = landmarkTallStructures(base);
-  for (const l of SF_LANDMARKS) {
+  for (const l of SF_SITES) {
     const mine = tall.filter(t => t.id === l.id), parts = tallParts(l);
-    const h = sfLandmarkInfo(l.id)?.height;
+    // a wave-4 site answers with its measured top over the base (w4.height.top), a landmark with its info height
+    const w = w4Site(l.id)?.w4.height;
+    const h = w ? { rule: w.rule, u: w.top } : sfLandmarkInfo(l.id)?.height;
     if (parts.length) {
       assert.equal(mine.length, parts.length, l.id);
       parts.forEach((p, i) => {

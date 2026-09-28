@@ -70,7 +70,7 @@ test('registry: ids, tiers, numeric bases from the baked terrain, metadata, attr
   assert.equal(new Set(ids).size, ids.length);
   for (const s of W4_SITES) {
     assert.match(s.id, /^[a-z0-9]+(-[a-z0-9]+)*$/);
-    assert.equal(sfLandmark(s.id), undefined, `${s.id} is not an existing landmark id`);
+    assert.ok(!SF_LANDMARKS.some(l => l.id === s.id) && sfLandmark(s.id) === s, `${s.id}: registered (SF_SITES), not one of the 24 landmark ids`);
     assert.ok([1, 2, 3].includes(s.tier), s.id);
     assert.equal(w4Site(s.id), s);
     const t = SITE_TERRAIN[s.id];

@@ -3,16 +3,17 @@ import type { Vec2 } from '../../../core/types';
 import { type SfLandmark, landmarkToWorld, sfLandmark } from './index';
 import type { W4Site } from './siteKit';
 import { W4_SITES } from './w4list';
+import { W4_SITES_T3 } from './w4list3';
 
 /**
- * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): lookups over the new site records, NOT registered yet. The
- * records themselves are listed in w4list.ts, which is what the registry imports at the integration
- * (`SF_LANDMARKS = [...existing, ...W4_SITES]` in landmarks/index.ts): this file reads the registry (sfLandmark,
- * landmarkToWorld), so index.ts must never import it (a cycle that throws at load; see w4list.ts). See
- * docs/opus-bay/sf-w4-L.md "Integration".
+ * Wave-4 landmark sites (lane L, plan §2.3 / §5.4): lookups over the new site records. The records themselves are
+ * listed in w4list.ts (P1–P3) and w4list3.ts (tier 3), which the registry imports (landmarks/index.ts `SF_SITES`):
+ * this file reads the registry (sfLandmark, landmarkToWorld), so index.ts must never import it (a cycle that throws at
+ * load; see w4list.ts). See docs/opus-bay/sf-w4-L.md "Integration".
  *
- *   W4_SITES                 the records (re-exported from w4list.ts; SfLandmark + SiteHooks + `w4` metadata: placeId,
- *                            attractions, arrival, photo, flag, lod0R, budget, terrain box, AI slot)
+ *   W4_SITES                 the P1–P3 records (re-exported from w4list.ts; SfLandmark + SiteHooks + `w4` metadata:
+ *                            placeId, attractions, arrival, photo, flag, lod0R, budget, terrain box, AI slot)
+ *   W4_ALL_SITES             W4_SITES then the tier-3 records (w4list3.ts): every lookup below runs over it
  *   w4Site(id)               by site id
  *   w4SiteOf(id)             the site that models an attraction id or a place id
  *   w4SiteByPlace(placeId)   the MAIN record of a place row (several records may share one: CCSF), isMainSite(s)
@@ -27,15 +28,17 @@ import { W4_SITES } from './w4list';
  */
 
 export { W4_SITES };
+/** every wave-4 record: P1–P3 (w4list.ts) then tier 3 (w4list3.ts) */
+export const W4_ALL_SITES: readonly W4Site[] = [...W4_SITES, ...W4_SITES_T3];
 
-const byId = new Map(W4_SITES.map(s => [s.id, s]));
+const byId = new Map(W4_ALL_SITES.map(s => [s.id, s]));
 const byRef = new Map<string, W4Site>();
-for (const s of W4_SITES) {
+for (const s of W4_ALL_SITES) {
   for (const a of s.w4.attractions) if (!byRef.has(a)) byRef.set(a, s);
   if (!byRef.has(s.w4.placeId)) byRef.set(s.w4.placeId, s);
 }
 
-export const W4_SITE_IDS: readonly string[] = W4_SITES.map(s => s.id);
+export const W4_SITE_IDS: readonly string[] = W4_ALL_SITES.map(s => s.id);
 export function w4Site(id: string): W4Site | undefined { return byId.get(id); }
 export function w4SiteOf(ref: string): W4Site | undefined { return byId.get(ref) ?? byRef.get(ref); }
 
@@ -46,7 +49,7 @@ export function w4SiteOf(ref: string): W4Site | undefined { return byId.get(ref)
  */
 export function w4SiteByPlace(placeId: string): W4Site | undefined { return byPlace.get(placeId); }
 const byPlace = new Map<string, W4Site>();
-for (const s of W4_SITES) if (!byPlace.has(s.w4.placeId)) byPlace.set(s.w4.placeId, s);
+for (const s of W4_ALL_SITES) if (!byPlace.has(s.w4.placeId)) byPlace.set(s.w4.placeId, s);
 /** is this record the main one of its place row (see w4SiteByPlace)? */
 export const isMainSite = (s: W4Site) => byPlace.get(s.w4.placeId) === s;
 

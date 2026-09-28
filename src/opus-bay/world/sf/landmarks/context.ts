@@ -1,7 +1,12 @@
 import { sfLandmarkInfo } from '../../../data/sf/landmarks';
 import type { SiteHooks } from '../sites';
-import { SF_LANDMARKS, type SfLandmark, landmarkToWorld, sfLandmark, tallParts } from './index';
+import { SF_SITES, type SfLandmark, landmarkToWorld, sfLandmark, tallParts } from './index';
 import { plazaSpots } from './setting';
+import type { SitePhoto } from './siteKit';
+import { w4Site } from './w4sites';
+
+// lane L's flag poles and lookups (plan §4.2), for lanes P and G: one import path for the landmark helpers
+export { HERO_FLAGS, LANDMARK_FLAGS, flagHeight, siteFlagTop, w4Site, w4SiteByPlace, w4SiteOf } from './w4sites';
 
 /**
  * Landmark helpers other lanes code against (lane D2 owns this file from wave 2; plan D2-01 / D2-10 / D2-12, landed as
@@ -22,6 +27,12 @@ import { plazaSpots } from './setting';
  *   landmarkPlazaSpots()             world points on landmark plazas where F's crowd may stand / walk (D2-09): each
  *                                    landmark's SiteHooks `plaza` polygons sampled on a PLAZA_SPACING grid, at most
  *                                    PLAZA_MAX per landmark, spread over its plazas
+ *   siteFrame(id, baseOf)            a site's world frame (x, base y, z, yaw) for camera work (lane G's reveal)
+ *   sitePhoto(id)                    its photo pose (SfLandmarkInfo.photo, or the wave-4 record's `w4.photo`)
+ *   siteFlagTop(id) …                re-exported from w4sites.ts (flag poles of sites, landmarks and the two heroes)
+ *
+ * Lane L (wave-4 integration): every helper runs over SF_SITES (the 24 landmarks and the wave-4 sites); a wave-4 site
+ * answers from its `w4` block where a landmark answers from data/sf/landmarks.ts (arrival, photo, height).
  */
 
 /** A vertical obstacle for the pelican glide: world centre, radius and top (world y). */
@@ -30,28 +41,57 @@ export interface LandmarkTall { id: string; x: number; z: number; r: number; top
 /** Clearance added to a measured tall-part top (u): sway of the sails, rounding; the glide keeps its own clearances. */
 export const TALL_MARGIN = 0.5;
 
+/**
+ * A site's height over its base for the glide's day-0 circle: a landmark's modelled height (data/sf/landmarks
+ * height.u), a wave-4 site's measured top over its base (`w4.height.top`); null for an overlook (no building to fly round).
+ */
+function siteHeight(l: SfLandmark): number | null {
+  const w = w4Site(l.id)?.w4.height;
+  if (w) return w.rule === 'overlook' ? null : w.top;
+  const h = sfLandmarkInfo(l.id)?.height;
+  return !h || h.rule === 'overlook' ? null : h.u;
+}
+
 export function landmarkTallStructures(baseOf: (l: SfLandmark) => number): LandmarkTall[] {
   const out: LandmarkTall[] = [];
-  for (const l of SF_LANDMARKS) {
+  for (const l of SF_SITES) {
     const parts = tallParts(l);
     if (parts.length) {
       const base = baseOf(l);
       for (const t of parts) { const p = landmarkToWorld(l, t); out.push({ id: l.id, x: p.x, z: p.z, r: t.r, top: base + t.top + TALL_MARGIN }); }
       continue;
     }
-    const h = sfLandmarkInfo(l.id)?.height;
-    if (!h || h.rule === 'overlook' || h.u < 10) continue;
-    out.push({ id: l.id, x: l.x, z: l.z, r: 4, top: baseOf(l) + h.u + 2 });
+    const h = siteHeight(l);
+    if (h === null || h < 10) continue;
+    out.push({ id: l.id, x: l.x, z: l.z, r: 4, top: baseOf(l) + h + 2 });
   }
   return out;
 }
 
-/** World arrival spot of landmark `id` (walkable, outside its blockers), or null for an unknown id. */
+/** The local arrival pose of a landmark (data/sf/landmarks) or a wave-4 site (`w4.arrival`). */
+const arrivalOf = (id: string) => sfLandmarkInfo(id)?.arrival ?? w4Site(id)?.w4.arrival ?? null;
+
+/** World arrival spot of landmark or site `id` (walkable, outside its blockers), or null for an unknown id. */
 export function sfLandmarkAnchor(id: string): { x: number; z: number; heading: number } | null {
-  const l = sfLandmark(id), info = sfLandmarkInfo(id);
-  if (!l || !info) return null;
-  const p = landmarkToWorld(l, info.arrival);
-  return { x: p.x, z: p.z, heading: info.arrival.heading + l.yaw };
+  const l = sfLandmark(id), a = arrivalOf(id);
+  if (!l || !a) return null;
+  const p = landmarkToWorld(l, a);
+  return { x: p.x, z: p.z, heading: a.heading + l.yaw };
+}
+
+/** A site's world frame: origin (x, base y, z) and yaw (landmarkMatrix), with the caller's base (glideTall landmarkBaseY). */
+export interface SiteFrame { x: number; y: number; z: number; yaw: number }
+export function siteFrame(id: string, baseOf: (l: SfLandmark) => number): SiteFrame | null {
+  const l = sfLandmark(id);
+  return l ? { x: l.x, y: baseOf(l), z: l.z, yaw: l.yaw } : null;
+}
+
+/** A site's photo pose in its LOCAL frame (target, distance, elevation, bearing: the SoloView formula), or null. */
+export function sitePhoto(id: string): SitePhoto | null {
+  const info = sfLandmarkInfo(id);
+  if (info) return { target: [...info.photo.target], distance: info.photo.distance, elevation: info.photo.elevation, bearing: info.photo.bearing };
+  const w = w4Site(id)?.w4.photo;
+  return w ? { target: [...w.target], distance: w.distance, elevation: w.elevation, bearing: w.bearing } : null;
 }
 
 /** A spot on a landmark plaza (world), for crowds and props. */
@@ -80,7 +120,7 @@ let spots: LandmarkPlazaSpot[] | null = null;
 export function landmarkPlazaSpots(): LandmarkPlazaSpot[] {
   if (spots) return spots;
   spots = [];
-  for (const l of SF_LANDMARKS) {
+  for (const l of SF_SITES) {
     const plaza = (l as SfLandmark & SiteHooks).plaza;
     if (!plaza?.length) continue;
     // never inside the landmark's own blockers (a bench, a bed, the mill's foot), with 0.25 u to spare

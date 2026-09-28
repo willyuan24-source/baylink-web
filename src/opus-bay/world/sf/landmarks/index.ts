@@ -26,6 +26,8 @@ import { sutroBaths } from './sutro-baths';
 import { sutroTower } from './sutro-tower';
 import { LANDMARK_TOPS } from './tops';
 import { twinPeaks } from './twin-peaks';
+import { W4_SITES } from './w4list';
+import { W4_SITES_T3 } from './w4list3';
 
 /**
  * San Francisco landmark registry (lane D). Each record is a procedural toy model authored in LOCAL space plus the
@@ -174,7 +176,24 @@ export const SF_LANDMARKS: SfLandmark[] = [
   chaseCenter,
 ];
 
-const byId = new Map(SF_LANDMARKS.map(l => [l.id, l]));
+/**
+ * Every site the city draws (lane L, wave-4 integration): the 24 landmarks above, then the wave-4 sites (w4list.ts: P1–P3
+ * in the plan's build order; w4list3.ts: the tier-3 sites). The renderer (world/sf/sites.ts: lod 0 / lod 2, exclusions,
+ * walk data, lights), the glide's tall parts and the crowd's plaza spots (context.ts), the tops table and SoloView run
+ * over this list.
+ *
+ * `SF_LANDMARKS` stays the 24 records with an info card (data/sf/landmarks.ts SF_LANDMARK_INFO: the city cards
+ * `sf:<id>`, the written-out arrivals, the place index's landmark rows); the wave-4 sites carry their card data in
+ * their `w4` block and lane C's place cards (keyed by attraction / place id). `sfLandmark(id)` answers for every site.
+ *
+ * Import rule: w4list.ts / w4list3.ts (and the site modules, siteKit, the baked terrains) never import this file at
+ * runtime, and this file never imports w4sites.ts or context.ts (both read the registry): a cycle there throws at load
+ * (tests/opus-bay-sf-sites-w4.test.ts "integration safety").
+ */
+export const SF_SITES: readonly SfLandmark[] = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3];
+
+const byId = new Map(SF_SITES.map(l => [l.id, l]));
+/** A landmark or a wave-4 site by id (SF_SITES). */
 export function sfLandmark(id: string): SfLandmark | undefined { return byId.get(id); }
 
 /** Local → world placement matrix. */

@@ -9,13 +9,14 @@ import { type ModelMaterial, makeModelMaterial, modelInstanceGeometry, setModelI
 import type { LoadedModel } from '../models';
 import { TypedBatch } from '../typedBatch';
 import type { Exclude } from './build';
-import { type LandmarkFade, type LandmarkSwapPart, SF_LANDMARKS, type SfLandmark, blockerTops, landmarkMatrix, usesAi } from './landmarks';
+import { type LandmarkFade, type LandmarkSwapPart, SF_SITES, type SfLandmark, blockerTops, landmarkMatrix, usesAi } from './landmarks';
+import { siteLod0R } from './landmarks/w4sites';
 import type { KitSwap } from './kitSwap';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
 
 /**
- * The San Francisco landmarks (lane D's registry, world/sf/landmarks) placed in the streamed city:
+ * The San Francisco landmarks and the wave-4 sites (world/sf/landmarks SF_SITES) placed in the streamed city:
  *
  *   base    a number, or 'terrain' = the lowest city ground inside the exclusion (+ the landmark's baseLift): first
  *           estimated from the far 16 u DEM, then refined when the landmark's chunk arrives (buildL1 bases); the
@@ -120,6 +121,8 @@ export const landmarkSink = (l: SfLandmark) => l.sink ?? (NO_SINK.has(l.id) ? 0 
 interface Site {
   l: SfLandmark;
   i: number;
+  /** the site's lod-0 ring as a share of its tier's (wave-4 `w4.lod0R`: the downtown diet 200 u, low sites less) */
+  lodK: number;
   baseY: number;
   refined: boolean;
   mesh: THREE.Group | null;
@@ -314,8 +317,8 @@ export class CitySites {
 
   constructor() {
     this.group.name = 'city-landmarks';
-    this.sites = SF_LANDMARKS.map((l, i) => ({
-      l, i, baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null,
+    this.sites = SF_SITES.map((l, i) => ({
+      l, i, lodK: (siteLod0R(l) ?? LOD0[l.tier]) / LOD0[l.tier], baseY: typeof l.base === 'number' ? l.base : 0, refined: typeof l.base === 'number', mesh: null, anim: null, near: false, lod2: false, tris: 0, unmount: null,
       fade: l.fade ? { value: 0 } : null, heroMat: null, ai: false, aiTris: 0, aiDraws: 0, retained: null, requested: false, rebuild: false, key: 0, aiNear: false,
     }));
   }
@@ -550,7 +553,7 @@ export class CitySites {
     this.camH = cameraHeight();
     const radius = { 1: siteLod0Radius(1, this.camH), 2: siteLod0Radius(2, this.camH), 3: siteLod0Radius(3, this.camH) };
     for (const s of this.sites) {
-      const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = radius[s.l.tier];
+      const d = Math.hypot(s.l.x - fx, s.l.z - fz), r = radius[s.l.tier] * s.lodK;
       const near = s.near ? d < r + HYST : d < r;
       if (!s.requested && s.l.swap && d < r + PRELOAD) this.requestModels(s);
       // AI parts near the focus only: crossing AI_R rebuilds the lod 0 (the procedural model beyond it)

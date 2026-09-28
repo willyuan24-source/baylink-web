@@ -9,9 +9,9 @@ import { Environment } from '../../environment';
 import { GROUND, GROUND_PATTERN, TOY, TOY_DYN, U } from '../../materials';
 import { makeModelMaterial, modelInstanceGeometry, setModelInstance } from '../../modelMaterial';
 import { type LoadedModel, loadModel } from '../../models';
-import { sfLandmarkInfo } from '../../../data/sf/landmarks';
 import { buildGroundMesh, buildSwapObjects } from '../sites';
-import { SF_LANDMARKS, type SfLandmark, buildLandmark, buildLandmarkAnimated, sfLandmark, triangleBudget, usesAi } from './index';
+import { sitePhoto } from './context';
+import { SF_LANDMARKS, SF_SITES, type SfLandmark, buildLandmark, buildLandmarkAnimated, sfLandmark, triangleBudget, usesAi } from './index';
 
 /**
  * ?solo=<landmarkId> — standalone landmark turntable for QA (lane D). The game's TOY / GROUND materials, the
@@ -97,9 +97,10 @@ function buildOne(l: SfLandmark, aiParam: boolean | null): Built {
 
 /** Camera pose for a named view around a bounding box (local frame: front = +z). */
 function viewPose(box: THREE.Box3, view: ViewName, aspect: number, id = '') {
-  const info = view === 'photo' ? sfLandmarkInfo(id) : undefined;
-  if (info) {
-    const { target: [tx, ty, tz], distance: d, elevation: e, bearing: b } = info.photo;
+  // a landmark's info pose or a wave-4 site's w4.photo
+  const photo = view === 'photo' ? sitePhoto(id) : null;
+  if (photo) {
+    const { target: [tx, ty, tz], distance: d, elevation: e, bearing: b } = photo;
     const tgt = new THREE.Vector3(tx, ty, tz);
     const pos = tgt.clone().add(new THREE.Vector3(Math.sin(b) * Math.cos(e), Math.sin(e), Math.cos(b) * Math.cos(e)).multiplyScalar(d));
     return { pos, tgt, far: d * 4 + 400 };
@@ -329,7 +330,7 @@ class SoloStage {
     return {
       thumb: (size?: number) => this.thumb(size),
       silhouette: (size?: number) => this.silhouette(size),
-      ids: SF_LANDMARKS.map(l => l.id),
+      ids: SF_SITES.map(l => l.id),
       view: (v: ViewName) => { this.view = v; this.apply(); return this.stats(); },
       lod: (n: 0 | 2) => { this.lod = n; this.apply(); return this.stats(); },
       time: (t: TimeOfDay) => { this.time = t; this.env.setTime(t, true); return t; },

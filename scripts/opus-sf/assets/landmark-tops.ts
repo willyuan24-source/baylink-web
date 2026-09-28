@@ -1,4 +1,4 @@
-// Measured blocker tops and tall-part tops of every San Francisco landmark (lane D2, D2-10), written to
+// Measured blocker tops and tall-part tops of every San Francisco landmark and wave-4 site (SF_SITES; lane D2, D2-10), written to
 // src/opus-bay/world/sf/landmarks/tops.ts. Re-run after changing a landmark's model, AI swap or walk data (the
 // landmark-context test fails until you do):
 //
@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ASSETS } from '../../../src/opus-bay/data/assets';
-import { SF_LANDMARKS, usesAi } from '../../../src/opus-bay/world/sf/landmarks/index';
+import { SF_SITES, usesAi } from '../../../src/opus-bay/world/sf/landmarks/index';
 import { type GlbMesh, readGlbMesh } from './glbNode';
 import { measureTops } from './topsMeasure';
 
@@ -18,7 +18,7 @@ const OUT = path.join(ROOT, 'src/opus-bay/world/sf/landmarks/tops.ts');
 
 async function main() {
   const rows: string[] = [];
-  for (const l of SF_LANDMARKS) {
+  for (const l of SF_SITES) {
     const models = new Map<string, GlbMesh>();
     if (usesAi(l)) for (const p of l.swap!.parts) if (!models.has(p.model)) models.set(p.model, await readGlbMesh(ASSETS.models[p.model].url, path.join(ROOT, 'public')));
     const t = measureTops(l, models);
