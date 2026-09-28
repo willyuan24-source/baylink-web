@@ -62,7 +62,9 @@ export function offerLine(say: string | Bilingual, ttl?: number, now = clock()):
 export const offerPaced = (line: PacedLine, now = clock()) => pacer.offer(line, now);
 /** The tour was cancelled / ended: drop what waits. */
 export const clearLines = () => pacer.clear();
-/** BAYBAY is still saying a paced line (the tour waits for it before leading on). */
+/** BAYBAY is saying a paced line right now (the tour lets her finish it before leading on; waiting lines keep their ttl). */
+export const lineSpeaking = (now = clock()) => pacer.isBusy(now);
+/** Lines queued or being said (tests). */
 export const linesBusy = (now = clock()) => pacer.isBusy(now) || pacer.pending() > 0;
 
 /** Lane T's subway overlay, when a ride goes under ground on the arc span [fromAt, toAt]. */

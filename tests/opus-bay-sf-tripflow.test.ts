@@ -275,6 +275,9 @@ test('the Grand Tour: welcome → 完整版 / 快速版 → each stop a tour tri
   assert.equal(game.get().mode, 'tour');
   assert.equal(flow.get().trip?.source, 'tour', 'the first stop is a tour trip');
   assert.equal(cityTour.cityTourRun()?.stop, 'bay-start');
+  // the objective pill's words for lane G (the Grand Tour: 5 chapter dots, the next stop)
+  const pill = flowMod.tourPill()!;
+  assert.equal(pill.id, GRAND_TOUR.id); assert.equal(pill.name.zh, '一日游 · 海湾'); assert.equal(pill.total, 5); assert.equal(pill.step, 1); assert.equal(pill.done, 0);
   flowMod.closeDialogue();
   // the first stop's trip ends (the brain lead): arrive line, dwell, then the next stop's trip (the bus leg)
   tripRun.dispatchTrip({ type: 'leg-arrived' });
@@ -319,6 +322,7 @@ test('the Grand Tour: welcome → 完整版 / 快速版 → each stop a tour tri
   flowMod.startTour();
   assert.equal(game.get().tour.id, DEFAULT_TOUR_ID);
   assert.ok(flowMod.currentStop(), 'Bay 101 runs');
+  assert.equal(flowMod.tourPill()?.name.zh, '湾区第一课'); assert.equal(flowMod.tourPill()?.total, 7);
   flowMod.endTour();
 });
 

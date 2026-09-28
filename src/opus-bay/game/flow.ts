@@ -455,6 +455,21 @@ export interface CityTourApi {
   end(quiet?: boolean): void;
   /** the call menu's tour rows while the tour runs */
   callChoices(): NonNullable<DialogueNode['choices']>;
+  /** the objective pill's words (tourPill) */
+  pill(): TourPill | null;
+}
+
+/**
+ * What the objective pill shows for the running tour (lane G's Hud / TripPill): the tour's name, the progress dots
+ * (the first lesson: its 7 stops; the Grand Tour: its 5 chapters), the next stop's name. Null without a tour.
+ */
+export interface TourPill { id: string; name: Bilingual; step: number; total: number; done: number; next: Bilingual | null }
+export function tourPill(): TourPill | null {
+  const s = game.get();
+  if (!s.tour.active) return null;
+  if (cityTourActive()) return cityTourApi?.pill() ?? null;
+  const cur = currentStop(), total = tourStops().length;
+  return { id: DEFAULT_TOUR_ID, name: FIRST_TOUR.name, step: Math.min(s.tour.stop + 1, total), total, done: s.tour.completed.length, next: cur?.poi.name ?? null };
 }
 let cityTourApi: CityTourApi | null = null;
 export function setCityTourApi(api: CityTourApi | null) { cityTourApi = api; }

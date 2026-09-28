@@ -7,9 +7,9 @@ import { GRAND_TOUR } from '../data/sf/copy';
 import {
   chapterSay, cityTour, decodeTourSaves, expressRide, stopSay, tourStops, type CityTourDef, type CityTourStop, type FlatStop, type TourProgress,
 } from '../data/sf/tours';
-import { clearLines, linesBusy, offerPaced } from './cityMoments';
+import { clearLines, lineSpeaking, offerPaced } from './cityMoments';
 import {
-  announce, bubble, closePanel, defineNode, dialogueOpen, endTrip, openPanel, playDialogue, say, setCityTourApi, startFree, startTrip, type CityTourApi,
+  announce, bubble, closePanel, defineNode, dialogueOpen, endTrip, openPanel, playDialogue, say, setCityTourApi, startFree, startTrip, type CityTourApi, type TourPill,
 } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById } from './interactables';
@@ -254,6 +254,16 @@ function callChoices(): NonNullable<DialogueNode['choices']> {
   return out;
 }
 
+/** The objective pill: 一日游 · the chapter, 5 dots (one per chapter), the next stop. */
+function pill(): TourPill | null {
+  const r = run;
+  const flat = r?.stops[Math.min(r.i, r.stops.length - 1)];
+  if (!r || !flat) return null;
+  const chapter = r.def.chapters[flat.chapter];
+  const done = r.def.chapters.filter((_, ci) => { const mine = r.stops.filter(f => f.chapter === ci); return mine.length > 0 && mine.every(f => r.completed.includes(f.stop.id)); }).length;
+  return { id: r.def.id, name: { zh: `一日游 · ${chapter.name.zh}`, en: `Grand Tour · ${chapter.name.en}` }, step: flat.chapter + 1, total: r.def.chapters.length, done, next: r.phase === 'leading' ? nameOf(playedStop(r.def, flat.stop, r.express).target) : null };
+}
+
 /** 2 Hz: the dwell's end, a tour that something else ended (the week, a restart). */
 function tick(now: number) {
   const r = run;
@@ -263,7 +273,7 @@ function tick(now: number) {
   if (r.phase !== 'dwell' || dialogueOpen()) return;
   const elapsed = now - r.dwellAt;
   const left = r.at ? Math.hypot(runtime.player.x - r.at.x, runtime.player.z - r.at.z) > DWELL_LEAVE_R : false;
-  if ((elapsed >= r.dwell || (left && elapsed >= DWELL_MIN_S)) && !linesBusy(now)) nextStop(r);
+  if ((elapsed >= r.dwell || (left && elapsed >= DWELL_MIN_S)) && !lineSpeaking(now)) nextStop(r);
 }
 
 let booted = false;
@@ -271,7 +281,7 @@ let booted = false;
 export function initCityTour(): void {
   if (booted) return;
   booted = true;
-  const api: CityTourApi = { start, next, skip: skipCityTourStop, end, callChoices };
+  const api: CityTourApi = { start, next, skip: skipCityTourStop, end, callChoices, pill };
   setCityTourApi(api);
   // the call menu's 跳过这一站
   defineNode({ id: 'flow.tour.skip', speaker: 'baybay', mood: 'point', text: { zh: '好，这站先跳过，去下一站！', en: 'OK, we skip this one — on to the next!' }, action: { type: 'end' } });
