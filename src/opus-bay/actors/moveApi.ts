@@ -43,6 +43,7 @@ export interface MoveApiImpl {
   cancelDrive?(): void;
   fleetSnapshot?(): FleetSnapshot;
   restoreFleet?(s: FleetSnapshot): void;
+  pelicanGreet?(x?: number, z?: number, opts?: { seconds?: number }): boolean;
 }
 
 let impl: MoveApiImpl | null = null;
@@ -95,3 +96,12 @@ export function isRiding(): boolean { return impl?.carried ?? false; }
 export function pulseGlideButton() { glidePulse++; notifyGlide(); }
 /** the pulse count (actors/TouchControls restarts the pulse when it changes) */
 export function glidePulseSeq(): number { return glidePulse; }
+
+/**
+ * Wave 5 (lane C's request, the unlock moment: game/pelicanFirst stepPelican, right before the dialogue) · the ride
+ * pelican flies in and lands on the ground by (x, z) — the player when omitted — behind the player and BAYBAY as the
+ * camera sees them (else beside, away from her), facing them, wings folded; it stays `seconds` (default 3), waits on while a dialogue is open (the moment's
+ * 先试试起飞？, at most 14 s in all), then takes off ahead and is gone. 起飞 while it waits: the glide takes the bird. False
+ * (nothing happens) when the player is not on foot, the pelican is already out, or no open ground near fits it.
+ */
+export function pelicanGreet(x?: number, z?: number, opts?: { seconds?: number }): boolean { return impl?.pelicanGreet?.(x, z, opts) ?? false; }

@@ -27,7 +27,7 @@ import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
 import type { DriveTalk } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
-import { Pelican } from './vehicles/pelican';
+import { Pelican, greetFrom, greetSpot } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
 import type { CityBikePool } from './vehicles/cityBikes';
 import { notifyGlide, type FleetSnapshot } from './moveApi';
@@ -368,6 +368,25 @@ export class MoveSystem {
       emit({ type: 'vehicle:call', vehicle: r.kind, id: r.id });
       say(r.kind === 'car' ? '小车开过来啦' : '单车骑过来啦', r.kind === 'car' ? 'Here comes your toy car' : 'Here comes your bike', 'success');
     }
+  }
+
+  /**
+   * W5-F (lane C's request, the unlock moment; actors/moveApi pelicanGreet): the ride pelican lands by (x, z) — the
+   * player when omitted — behind the player and BAYBAY as the camera sees them (else beside, away from her), and waits
+   * (Pelican.startGreet). Only on foot, with the pelican not already out; false when no open ground near fits its body.
+   */
+  pelicanGreet(x?: number, z?: number, opts: { seconds?: number } = {}): boolean {
+    if (this.machine.mode !== 'foot' || this.pelican.visible) return false;
+    const p = runtime.player, ax = x ?? p.x, az = z ?? p.z;
+    if (!Number.isFinite(ax) || !Number.isFinite(az)) return false;
+    const view = runtime.camera.yaw + Math.PI;
+    const spot = greetSpot(ax, az, heightAt(ax, az), view, runtime.guide, { canStand, heightAt });
+    if (!spot) return false;
+    const from = greetFrom(spot, view, this.world());
+    this.pelican.load(this.precompile ?? undefined);
+    const seconds = Math.min(10, Math.max(1, opts.seconds ?? 3));
+    this.pelican.startGreet(from, spot, spot.face, view, seconds);
+    return true;
   }
 
   /** Fast travel / restarts (lane G): everything back on foot, the vehicle parked where it is. */

@@ -395,3 +395,73 @@ test('lane A\'s request 2: posing in photo mode, BAYBAY turns her whole body to 
   const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
   assert.match(src, /else if \(s\.photoMode && this\.guideAnim\.playing\('pose'\)\) g\.heading = dampAngle\(g\.heading, Math\.atan2\(this\.camPos\.x - g\.x, this\.camPos\.z - g\.z\), 6, dt\);/);
 });
+
+test('lane C\'s request: pelicanGreet — the pelican settles behind the player and BAYBAY as the camera sees them (else beside, away from her), on open ground at the feet\'s level, facing them', async () => {
+  const { greetSpot, greetFrom, GREET } = await import('../src/opus-bay/actors/vehicles/pelican');
+  const flat = { canStand: () => true, heightAt: () => 2 };
+  // the camera looks along +z (view 0): its position is behind the player (−z); BAYBAY 1.5 u to the player's +x
+  const s = greetSpot(0, 0, 2, 0, { x: 1.5, z: 0 }, flat)!;
+  assert.ok(s, 'a spot on open ground');
+  assert.ok(s.z > 3, `behind the pair from the camera (+z): ${s.z.toFixed(2)}`);
+  assert.ok(Math.abs(s.x - 0.75) < 0.01, 'between them (the middle of the pair)');
+  assert.ok(Math.abs(Math.atan2(0.75 - s.x, 0 - s.z) - s.face) < 1e-9, 'it faces the pair');
+  assert.equal(s.y, 2);
+  // the camera turned round (view π): behind the pair is now −z
+  assert.ok(greetSpot(0, 0, 2, Math.PI, { x: 1.5, z: 0 }, flat)!.z < -3);
+  // no room behind them (a wall at z > 1): beside the player, away from BAYBAY (−x), never within 2.4 u of either
+  const wall = { canStand: (_x: number, z: number) => z < 1, heightAt: () => 2 };
+  const b = greetSpot(0, 0, 2, 0, { x: 1.5, z: 0 }, wall)!;
+  assert.ok(b && b.x < -2 && b.z < 1, `beside, away from BAYBAY: ${b?.x.toFixed(2)}, ${b?.z.toFixed(2)}`);
+  assert.ok(Math.hypot(b.x, b.z) >= 2.4 && Math.hypot(b.x - 1.5, b.z) >= 2.4);
+  // BAYBAY far away: beside the player (her side decides nothing more)
+  assert.ok(greetSpot(0, 0, 2, 0, { x: 30, z: 0 }, flat));
+  // never onto a terrace or a drop (> 0.8 u from the feet), never nowhere
+  assert.equal(greetSpot(0, 0, 2, 0, { x: 1.5, z: 0 }, { canStand: () => true, heightAt: (x: number, z: number) => (x === 0 && z === 0 ? 2 : 3.2) }), null);
+  assert.equal(greetSpot(0, 0, 2, 0, { x: 1.5, z: 0 }, { canStand: () => false, heightAt: () => 2 }), null);
+  // the approach: from ahead and to the side, 9 u up; a roof in that line → a steeper drop
+  const open = greetFrom(s, 0, { heightAt: () => 2, roofAt: () => -Infinity });
+  assert.ok(open.z > s.z + 10 && open.y === s.y + 9, 'glides in from ahead of the camera');
+  const roofed = greetFrom(s, 0, { heightAt: () => 2, roofAt: (_x: number, z: number) => (z > s.z + 2 ? 30 : -Infinity) });
+  assert.ok(roofed.z <= s.z + 4.01 && roofed.y > s.y + GREET.sit, 'round the roof');
+});
+
+test('lane C\'s request: the greeting pelican flies in, sits with its wings folded, waits while the dialogue holds (≤ GREET.maxS), then flies off and is gone; a take-off takes the bird at once', async () => {
+  const { Pelican, GREET } = await import('../src/opus-bay/actors/vehicles/pelican');
+  const run = (P: InstanceType<typeof Pelican>, s: number) => { for (let t = 0; t < s; t += 1 / 30) P.update(1 / 30, t); };
+  const P = new Pelican();
+  P.startGreet({ x: 10, y: 12, z: 20 }, { x: 0, y: 2, z: 4 }, Math.PI, 0, 3);
+  assert.ok(P.greeting && P.visible);
+  run(P, GREET.inS + 0.6);
+  const q = P.group.position;
+  assert.ok(Math.hypot(q.x, q.z - 4) < 1e-6 && Math.abs(q.y - (2 + GREET.sit)) < 0.05, `settled on the spot: ${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}`);
+  assert.ok(P.rig.bones.wingL.rotation.y > 1.2 && P.rig.bones.wingR.rotation.y < -1.2, 'wings folded back');
+  P.greetHold = true;
+  run(P, 5);
+  assert.ok(P.greeting, 'waits on while the dialogue is open');
+  run(P, GREET.maxS);
+  assert.ok(!P.greeting, 'never past GREET.maxS');
+  run(P, 2.5);
+  assert.ok(!P.visible, 'flown off and hidden');
+  assert.equal(P.rig.bones.wingL.rotation.y, 0, 'wings spread again');
+  // released as soon as the dialogue closes (after its seconds)
+  const Q = new Pelican();
+  Q.startGreet({ x: 10, y: 12, z: 20 }, { x: 0, y: 2, z: 4 }, 0, 0, 1);
+  Q.greetHold = true; run(Q, GREET.inS + 3);
+  assert.ok(Q.greeting);
+  Q.greetHold = false; run(Q, 0.1);
+  assert.ok(!Q.greeting);
+  // 起飞 while it waits: show() hands the bird to the glide (no greeting pose left)
+  const R = new Pelican();
+  R.startGreet({ x: 10, y: 12, z: 20 }, { x: 0, y: 2, z: 4 }, 0, 0, 3);
+  run(R, 2);
+  R.sim.x = 5; R.sim.y = 3; R.sim.z = 5;
+  R.show();
+  run(R, 0.1);
+  assert.ok(!R.greeting && Math.hypot(R.group.position.x - 5, R.group.position.z - 5) < 1e-6, 'the glide pose');
+  // flyOff (a fast travel, a restart) while greeting leaves from where it sits
+  const S = new Pelican();
+  S.startGreet({ x: 10, y: 12, z: 20 }, { x: 0, y: 2, z: 4 }, 0, 0, 3);
+  run(S, 2.5);
+  S.flyOff(); run(S, 0.05);
+  assert.ok(!S.greeting && Math.hypot(S.group.position.x, S.group.position.z - 4) < 1.5, 'leaves from its spot');
+});
