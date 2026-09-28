@@ -39,14 +39,17 @@ function resetPlayer(p: { x: number; z: number }, heading = 0) {
   runtime.input.moveX = 0; runtime.input.moveY = 0; runtime.input.run = false; runtime.input.jump = false;
 }
 
-test('verify-desktop D2: a long walk that stops getting closer gives up (≤ LONG_NO_PROGRESS s without progress) and marks the failure far — from the Pier 41 landing it never paces for a minute', async () => {
-  const quay = FERRY_ROUTES[0].terminals.find(t => t.id === 'pier-41')!.quay;
+test('verify-desktop D2: a long walk that stops getting closer gives up (≤ LONG_NO_PROGRESS s without progress) and marks the failure far — from the walled-in Pier 45 shed deck (the old Pier 41 landing) it never paces for a minute', async () => {
+  // the ferry used to land here (lane T moved the landing to the Wharf promenade in W4-T16); the deck is still walled
+  // in by the shed buildings, so it stands for any spot a walk cannot leave
+  const quay = { x: -238, z: 66.5 };
+  assert.ok(Math.hypot(FERRY_ROUTES[0].terminals.find(t => t.id === 'pier-41')!.quay.x - quay.x, FERRY_ROUTES[0].terminals.find(t => t.id === 'pier-41')!.quay.z - quay.z) > 20, 'the landing itself moved ashore (lane T)');
   const coit = { x: -50.2, z: 51.1 };
   await cityAround([quay, coit], 220);
   setWalkGraph(await sf.graphIndex());
   try {
     const at = nearestWalkable(quay, 16)!;
-    assert.ok(at, 'the ferry puts the rider here (game/transit leaveLineRide: nearestWalkable(quay, 16))');
+    assert.ok(at, 'a spot on the shed deck');
     const c = new PlayerController();
     resetPlayer(at, Math.PI / 2);
     c.sync();
