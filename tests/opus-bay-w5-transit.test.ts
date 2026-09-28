@@ -290,8 +290,10 @@ test('W5-T1 rideEta: a loop ride — waiting = the bus ETA + the quote; aboard i
     const first = transit.rideEta()!;
     assert.equal(first.stage, 'riding');
     // sample once a second: the ETA falls; the longest stretch it stays put is a dwell (8 s), never 15 s
-    let last = first.seconds, same = 0, worst = 0, lastProgress = 0;
+    let last = first.seconds, same = 0, worst = 0, lastProgress = 0, stalledMost = 0;
     const done = stepAll(fleet, 400, () => !ride.currentRide(), t => {
+      // (W5-T review) a normal ride — its dwells at the stops on the way included — never raises the big 直接到站
+      stalledMost = Math.max(stalledMost, transit.rideEta()?.stalled ?? 0);
       if (Math.abs((t % 1) - 0) > DT / 2 && Math.abs((t % 1) - 1) > DT / 2) return;
       const e = transit.rideEta();
       if (!e) return;
@@ -305,6 +307,7 @@ test('W5-T1 rideEta: a loop ride — waiting = the bus ETA + the quote; aboard i
     assert.ok(done, 'arrived');
     const took = fleet.bus.time - t0;
     assert.ok(worst <= 10, `the ETA stood still for ${worst} s at most`);
+    assert.ok(stalledMost < transit.STALL_BIG, `stood ${stalledMost.toFixed(1)} s at most aboard (the big 直接到站 needs ${transit.STALL_BIG})`);
     assert.ok(Math.abs(first.seconds - took) / took < 0.2, `the ETA at boarding (${first.seconds.toFixed(0)} s) is the ride (${took.toFixed(0)} s) within 20 %`);
     assert.ok(lastProgress > 0.9, `progress reached ${lastProgress.toFixed(2)}`);
   } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title' }); }
