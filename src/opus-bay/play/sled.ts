@@ -95,7 +95,7 @@ export function startSled(): boolean {
   ride = { run, s: { x: p.x, z: p.z, vx: sl.dx * 0.8, vz: sl.dz * 0.8, dist: 0, top: 0 }, t: 0, phase: 'sit' };
   p.heading = Math.atan2(sl.dx, sl.dz);
   charApi()?.emote('player', 'sit', { loop: true });
-  showChip({ id: SLED_ID, title: SLED_NAME, icon: 'slide', big: '0 u', line: runtime.input.device === 'touch' ? { zh: '摇杆转向 · 按住「跳」躺下更快', en: 'Stick to steer · hold Hop to go faster' } : { zh: 'A D 转向 · 按住 空格 更快', en: 'A D to steer · hold Space to go faster' } });
+  showChip({ id: SLED_ID, title: SLED_NAME, icon: 'slide', big: '0 m', line: runtime.input.device === 'touch' ? { zh: '摇杆转向 · 按住「跳」躺下更快', en: 'Stick to steer · hold Hop to go faster' } : { zh: 'A D 转向 · 按住 空格 更快', en: 'A D to steer · hold Space to go faster' } });
   bubble(SLED_LINES.go, 1800);
   sledIt.radius = 0;
   flow.set({ quietUntil: performance.now() + 15000 });
@@ -126,7 +126,7 @@ function step(dt: number) {
   p.x = r.s.x; p.z = r.s.z; p.y = heightAt(r.s.x, r.s.z);
   const sp = Math.hypot(r.s.vx, r.s.vz);
   if (sp > 0.3) p.heading = Math.atan2(r.s.vx, r.s.vz);
-  patchChip(SLED_ID, { big: `${r.s.dist.toFixed(0)} u` });
+  patchChip(SLED_ID, { big: `${r.s.dist.toFixed(0)} m` });
   if (Math.random() < dt * sp * 0.6) spawnFx('dust', p.x, p.y, p.z, { scale: 0.35, color: '#9bbf73' });
   if (res === 'stop' || r.t > 20) { r.phase = 'done'; r.t = 0; spawnFx('dust', p.x, p.y, p.z, { scale: 0.7 }); }
 }
@@ -137,8 +137,8 @@ function finish(r: Ride) {
   r.run.end({
     tier: tierFor(d, SLED_TIERS),
     score: +d.toFixed(1),
-    detail: { zh: `滑了 ${d.toFixed(0)} u · 最快 ${r.s.top.toFixed(1)} u/s`, en: `${d.toFixed(0)} u slid · top ${r.s.top.toFixed(1)} u/s` },
-    bestText: v => ({ zh: `最远滑过 ${v.toFixed(0)} u！`, en: `Your longest: ${v.toFixed(0)} u!` }),
+    detail: { zh: `滑了 ${d.toFixed(0)} 米 · 最快每秒 ${r.s.top.toFixed(1)} 米`, en: `${d.toFixed(0)} m slid · top ${r.s.top.toFixed(1)} m/s` },
+    bestText: v => ({ zh: `最远滑过 ${v.toFixed(0)} 米！`, en: `Your longest: ${v.toFixed(0)} m!` }),
   });
   bubble(d >= SLED_TIERS[1] ? SLED_LINES.far : d < SLED_TIERS[0] ? SLED_LINES.short : SLED_LINES.go, 2400);
   if (first) charApi()?.emote('baybay', 'clap');

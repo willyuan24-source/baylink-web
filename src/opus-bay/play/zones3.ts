@@ -166,13 +166,30 @@ export function slopeAt(x: number, z: number): { grade: number; dx: number; dz: 
   const grade = Math.hypot(gx, gz);
   return { grade, dx: grade > 1e-6 ? -gx / grade : 0, dz: grade > 1e-6 ? -gz / grade : 0 };
 }
-/** A slide can start at (x, z): grass or earth, steep enough, and grass for a few steps down the fall line. */
+/** A slide offered here runs at least this far (u: the ● medal), else 滑草 is not offered. */
+export const SLED_RUN = 6;
+/**
+ * A slide can start at (x, z): grass or earth, steep enough, and a run of SLED_RUN u down the fall line — every 0.5 u on
+ * grass and standable (a lamp post, a bench, a path in the way stops the cardboard), and the slope's pull beats the
+ * sitting rub all the way (the sled's own energy: v² += 2·g·(grade − μ)·ds from the start push). (Review 2026-09-28: with
+ * only two points checked, half of the offers on Dolores Park and most on Buena Vista slid under 6 u into a 再试试 card.)
+ */
 export function sledOffer(x: number, z: number): boolean {
   const s = surfaceAt(x, z);
   if (!s || !SLEDDABLE.has(s)) return false;
-  const sl = slopeAt(x, z);
+  let sl = slopeAt(x, z);
   if (sl.grade < SLED.minGrade) return false;
-  for (const d of [2, 4]) { const px = x + sl.dx * d, pz = z + sl.dz * d; if (!canStand(px, pz, 0.35) || !SLEDDABLE.has(surfaceAt(px, pz) ?? '')) return false; }
+  // the sled's own motion (play/sled.ts sledStep, sitting, no steer) in ≤ 0.5 u steps: the pull down the slope less the rub
+  let vx = sl.dx * 0.8, vz = sl.dz * 0.8;
+  for (let d = 0; d < SLED_RUN;) {
+    const sp = Math.hypot(vx, vz);
+    if (sp < 0.25) return false;
+    const dt = Math.min(0.1, 0.5 / sp), k = SLED.g * SLED.mu / sp;
+    vx += (SLED.g * sl.grade * sl.dx - k * vx) * dt; vz += (SLED.g * sl.grade * sl.dz - k * vz) * dt;
+    x += vx * dt; z += vz * dt; d += Math.hypot(vx, vz) * dt;
+    if (!canStand(x, z, 0.35) || !SLEDDABLE.has(surfaceAt(x, z) ?? '')) return false;
+    sl = slopeAt(x, z);
+  }
   return true;
 }
 export const sledIt: Interactable = {

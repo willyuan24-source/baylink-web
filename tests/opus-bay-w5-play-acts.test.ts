@@ -1587,6 +1587,21 @@ test('W5-A9 grass sled: 滑草 offered on a lawn steeper than 1 in 4 (Dolores Pa
     };
     const sit = slide(false), lean = slide(true);
     assert.ok(sit.dist >= S.SLED_TIERS[1], `slid ${sit.dist.toFixed(1)} u`);
+    // (review 2026-09-28) offered only where the slide runs at least a ● medal's 6 u: every offer round the lawn slides
+    // that far sitting still (half of them slid < 6 u into a 再试试 card before, one 1 u into a lamp post at 248, 712)
+    assert.equal(z3.SLED_RUN, S.SLED_TIERS[0]);
+    assert.equal(z3.sledOffer(248, 712), false, 'a lamp post a step down the slope');
+    let offered = 0;
+    for (let dx = -30; dx <= 30; dx += 2) for (let dz = -30; dz <= 30; dz += 2) {
+      const x = DOLORES.x + dx, z = DOLORES.z + dz;
+      if (!z3.sledOffer(x, z)) continue;
+      offered++;
+      const sl = z3.slopeAt(x, z), s = { x, z, vx: sl.dx * 0.8, vz: sl.dz * 0.8, dist: 0, top: 0 };
+      let t = 0;
+      while (t < 20 && S.sledStep(s, 1 / 60, 0, false) === 'go') t += 1 / 60;
+      assert.ok(s.dist >= S.SLED_TIERS[0], `offered at ${x}, ${z}: slid ${s.dist.toFixed(1)} u`);
+    }
+    assert.ok(offered >= 10, `${offered} spots on the lawn`);
     assert.ok(lean.top > sit.top, `leaning back is faster (${lean.top.toFixed(1)} vs ${sit.top.toFixed(1)})`);
     assert.ok(T.canStand(sit.x, sit.z, 0.35), 'ends on standable ground');
     // the ride in the game loop
@@ -1609,7 +1624,10 @@ test('W5-A9 grass sled: 滑草 offered on a lawn steeper than 1 in 4 (Dolores Pa
       const card = kit.lastResultShown()!;
       assert.equal(card.activity, 'sled');
       assert.ok(card.tier >= 2, `tier ${card.tier}: ${card.detail?.zh}`);
-      assert.match(card.detail!.zh, /^滑了 \d+ u · 最快 [\d.]+ u\/s$/);
+      // the player reads metres, never the city's u (review 2026-09-28: the card said 滑了 1 u · 最快 1.6 u/s)
+      assert.match(card.detail!.zh, /^滑了 \d+ 米 · 最快每秒 [\d.]+ 米$/);
+      assert.match(card.detail!.en, /^\d+ m slid · top [\d.]+ m\/s$/);
+      assert.equal(chip.chipState(), null, 'the chip went');
       assert.ok(dist(runtime.player, DOLORES) > 10, 'you end down the slope');
       assert.equal(lockHeld(), false);
       assert.equal(z3.sledIt.radius, z3.SLED_PROMPT_R);
