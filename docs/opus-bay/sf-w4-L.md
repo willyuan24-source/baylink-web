@@ -853,3 +853,100 @@ D2-review's Dragon Gate (401–408k): lane V's perf table (Requests). Grace's ar
   the `cityMode` chunk and the route text into a lazy chunk, the other edits are numbers and text in modules GameRoot
   already had; `W4-IL17` touched only the site modules (the landmark index chunk). No new shader program.
 - Programs: 47–48 by day and 50 at night on desktop, 45 on the phone, at every QA pose above.
+
+## Integration review
+
+Written 2026-09-27 by lane L's adversarial integration reviewer (worktree `C:/Users/willy/wt/i4-l`, dev port 5403,
+scratch `C:/Users/willy/opus-qa/w4i/i4-l/rev/`), on the lane's integration commits `W4-IL1` … `W4-IL18` (parts a and b).
+Commits: `W4-L-int-review:` × 4 and this report. Higgsfield: 0 credits.
+
+### 给主人的摘要
+
+1. 查出一个 b 部分带进来的走路问题并修好：为了去掉金门大桥桥面的"隐形墙"加的新规则，在城市分块的后台计算里拿不到某些地标的真实高度，结果日本城和平塔、传教站的一面墙在寻路图上变成"能走"，人会被引着往塔上撞。现在只在高度确定时才用这条规则；桥面照样一路走到南塔（实测 12 秒）。
+2. 24 个地标里有 7 个的"到达点"站在马路上（卡斯特罗剧院是 b 部分新挪的，报告说在人行道，其实在车道上；传教站在街心线上，和平塔在 Geary 大道的车道里……），小车会停在你面前；还有几处围观人群站在车道上或楼里（九曲花街顶、渔人码头螃蟹摊前、龙门下、叮当车转车台）。全部挪到人行道或广场，电脑和手机逐个实拍确认画面，并加测试盯住全部 80 个地点。
+3. 全套测试 887 个通过。还剩：龙门的到达点"飞过去"落地时会被寻路网格吸到路边 0.4 米（已请负责寻路的组改）；圣母大教堂和 Fort Point 的到达点仍等 V 组、C 组放宽测试。
+
+Status（回答主人"现在进度如何"）：L 线接线的复查完成并已推送——修了 1 个寻路回归、7 个站在马路上的地标到达点、6 处站在车道上或楼里的人群点、4 个小地点的到达点，新增 2 个测试；电脑和手机截图都逐张看过。
+
+### What was checked
+
+- **Every commit of the run** (`git show` of `W4-IL1` … `W4-IL17` and the code around it): the registration (`SF_SITES`,
+  `CitySites`, `context.ts`, `tops.ts`), the arrival moves and their tables, `kit.pyramid`, the seven T2 settings, the AI
+  swaps (materials: `glass` / `glow` are uniforms, one program per variant, both variants warmed), Strawberry Hill's walk
+  decks, `core/sfTerrain.ts` (W4-IL11) end to end (the worker rasters, the provider's deferred stamps, `applyLandmarks`,
+  `visit`), the arrival / text / plaza commits, the part-1 site fixes.
+- **Probes** (scratch `rev/`, node against the published city): each landmark blocker's raster cells in the game's
+  streaming order; every site's arrival and crowd spot against the rasters' surface, the driven streets' asphalt, the
+  kept city buildings and the transit lines; where the game actually lands the player (`actors/nav` `arrivalSpot`).
+- **Real game** (dev server 5403, RTX, every image read): the Peace Pagoda's raster after an approach from 1,400 u
+  (before / after the fix); top-down views of every flagged spot with markers (red arrival, yellow crowd spots); the
+  moved arrivals at 1440 × 900 high, 390 × 844 dpr 3 mid and 375 × 667; the D1 deck walk again (desktop: the old wall at
+  x −757 passed at 3 s, the south tower reached at 12 s).
+- **Facts / links** of the part-b text commit: Portsmouth Square fenced from June 2026 to about 2028 (SF Rec & Park
+  "Portsmouth Square Improvements": groundbreaking 9 June 2026, closed two years); the Cliff House's operator aiming at
+  late 2026 (SFGATE, SFist); the new sfexaminer URL answers 200 (nps.gov times out from this machine, as the lane noted);
+  the zh names used in the cards all exist in the game's place data (天涯海角, 威廉明娜女王郁金香花园, 圣诞树观景点 …).
+
+### Defects found and fixed (4 commits)
+
+| # | defect | where | fix | commit |
+|---|---|---|---|---|
+| 1 | **W4-IL11 regression (the landmark base is not known where the rule runs).** The under-deck rule compares the ground with the blocker's WORLD top (base + local top), but the stream workers get `sites.walkInputs()` at start, before the far DEM: a `'terrain'` landmark's `baseY` is 0 there. The worker rasters therefore dropped every blocker cell whose ground stood more than top + 1 over 0: the Peace Pagoda (top 7.9, ground 10.1) and a Mission Dolores wall. The provider re-stamps only the chunks resident when the renderer pins the base; a chunk streaming in afterwards kept the hole. In the game, after walking in from 1,400 u: the pagoda's centre cell stand 1, blocked false (the collision query still blocked: the path planner routed into the pagoda and the walker hit it). | `core/sfTerrain.ts` | The rule only where the top is a world height: numeric bases in the rasters (`rasterizeChunk`, `applyLandmarks`), numeric or pinned bases in the queries (`visit`). Fort Point (numeric 0.3) is unchanged: the D1 test and the real-game deck walk pass. After the fix the same real-game probe: blocked true, stand 0. | `437d836`, test `a8f094f` |
+| 2 | **Castro's arrival on Castro St's asphalt** (W4-IL12; the report says "on the theatre's own sidewalk"; its own after-shot has a car stopped by the player). Found with it: **six more of the 24 arrivals stood on a driven street's asphalt** — Mission Dolores on Dolores St's centre line, the Peace Pagoda in Geary Blvd's lanes, Lombard in the Leavenworth junction, Ghirardelli on North Point St, Oracle Park on King St, the Dragon Gate in Grant Ave. The toy traffic stops for the player exactly where the terrain says `road` (cityLife `people`), so each card spot parked a car in front of the player. The lane's W4-IL12 test looked at transit lines only. | `data/sf/landmarks.ts` (+ C's `arrivals.ts`, P's `LANDMARK_ARRIVALS`, R1's first stop, `routePaths.ts` re-built) | Each moved onto pavement and checked by looking (desktop and phone): Castro on the theatre's sidewalk (5.5, 4.0), Mission Dolores across the street on the photo's axis (1, 9.7), the pagoda on the Peace Plaza (0.5, −4.5), Lombard at the foot of the east stairs (4, 8.35), Ghirardelli on the lawn across North Point St (0, 9.2), Oracle Park on Willie Mays Plaza (1, 19), the Dragon Gate on Grant Ave's east sidewalk (1, 4.7: the only spot that frames the gate; further south the camera sees walls). | `afabb3a`, `51216d4` |
+| 3 | **Crowd spots in the traffic** (a standing sightseer is never in the traffic's people list: the cars drive through them). W4-IL6 put Lombard's top spots on Hyde St's asphalt by the Powell–Hyde rails ("Hyde St's far sidewalk" in the report) and the Wharf's spot on Jefferson St ("the sidewalk in front of them": the stands fill the 1 u sidewalk); D2's Castro strip (both spots) and the Dragon Gate's strip under the gate (on Bush St, 0.1 u from the sightseeing loop's line) too. W4-IL6's turntable west bench and west spot stood inside the corner building the city keeps; Lombard's foot strip lay over the road and the corner houses. | the site modules | Chosen points on the pavement (Castro: the marquee's two ends; Dragon Gate: Grant Ave's west sidewalk; Wharf: west of the stands; Lombard: Hyde St's far corner); the turntable's west bench and spot moved south of the building's face; Lombard's foot strip dropped. | `afabb3a` |
+| 4 | **Four tier-3 arrivals on the street** (lane L3's early review 2 left arrivals to lane P): Haas-Lilienthal on Franklin St, the Octagon House on Gough St, the sundial in its circle's roadway, Vermont St's top in the block's roadway. | the site modules | Across Franklin / Gough on the far sidewalks, on the circle's island, on the west sidewalk at the block's top. | `afabb3a` |
+| 5 | **Missing test.** | `tests/opus-bay-sf-landmarks.test.ts` | "every site's arrival stands on walkable pavement off the traffic's asphalt, and no crowd spot stands on it": all 80 sites, in the game's streaming order; a point fails where the rasters paint `road` AND it lies on a driven street's asphalt (the rasters' own curb rule); a card's fly-in landing (`actors/nav` `arrivalSpot`) is checked too. Open list: Holy Virgin (lane V's pin), Balmy Alley (the site's own alley, lane L3's decision), the Dragon Gate's landing (below). Red before `afabb3a` (11 arrivals, 8 crowd spots), green after. | `afabb3a` |
+
+Shots (`docs/opus-bay/qa/w4/L/`): `i4r-arrivals-before-after.jpg` (top-down before / after with the markers, and the
+moved arrivals at 1440 × 900), `i4r-arrivals-phone.jpg` (390 × 844 and 375 × 667). Calls / triangles at the moved
+arrivals, desktop high: castro 110 / 375k, mission-dolores 80 / 342k, peace-pagoda 80 / 309k, lombard 86 / 342k,
+dragon-gate 120 / 385k, ghirardelli 99 / 393k, oracle-park 64 / 176k; phone 390 mid: 61–106 calls, 223–315k.
+
+### Report claims the code does not bear out
+
+- Part b, D4 / F6: "Up Castro St on the theatre's own sidewalk (6.5, 4.6)" — on the asphalt (fixed, #2).
+- Part a, W4-IL6: Lombard's "crowd spots at the classic views: Hyde St's far sidewalk" and the Wharf's "the sidewalk in
+  front of them is a crowd spot" — both on the carriageway (fixed, #3).
+- Part b, W4-IL17 ("the arrival on the corner sidewalk", "on the verge" …): the points are off the asphalt, but the game
+  lands the player on the nearest 0.75 u nav cell of a large open area, which beside a 0.6 u sidewalk is usually the
+  kerb lane: haight-ashbury, clement-street, irving-street, harvey-milk-plaza, cable-car-museum and webster-bridge land
+  0.3–0.7 u into their street. Only `?at=` uses these wave-4 arrivals today (trips end at lane P's), so they stay open
+  (Requests), not moved.
+- Part b, "Programs 47–50 on desktop, 45 on the phone": at every arrival shot here the renderer reports 58 on desktop
+  and 55 on the phone, on the tree with lanes G / T / V's later commits. Lane L's commits add no material (checked
+  above); the count is lane V's perf table's to settle.
+
+### Checked and fine
+
+The pyramid fix (square caps unchanged, the tops test), the registration (80 sites, lod rings, lights, tops for every
+site), the T2 settings' draped ground, the AI swaps (models ↔ sites, remainders), Strawberry Hill's decks (the lane's
+path test), the St Ignatius / Koret / Corona Heights arrivals, the part-b texts (above), district mode (no lane-L code
+outside the city chunks; `arrivals.ts` stays data only), the D1 walk on the deck after fix #1.
+
+### Open
+
+- **Dragon Gate landing**: the arrival is on the sidewalk, but a fly-in lands 0.4 u into Grant Ave's kerb lane
+  (`arrivalSpot` picks the nearest cell centre, not p). In the test's open list; Request below.
+- **Holy Virgin** (lane V's `w4-swaps` pin) and **Fort Point** (lane C's verify-D12 pin): unchanged, the part-b Requests
+  stand.
+- **The Wharf's crab stands** fill Jefferson St's 1 u sidewalk (walkers and the player go round them in the street);
+  **Lombard's foot on a 390 phone**: the corner houses between camera and player dither over half the lane; **unstandable
+  crowd spots** at the GGB terrace, the turntable's east plaza, Grace, Stonestown, USF, Union Square and others spawn no
+  stander (harmless: fewer people).
+- SF State's wave-4 arrival lands 17.5 u away (its spot is not in a "large open area" of the nav); trips use lane P's.
+
+### Requests
+
+- **Lane E2 / G (`actors/nav.ts` `arrivalSpot`, `game/fastTravel.ts`)**: when `canStand(p)` and p's own cell belongs to
+  a large open area, land at p itself (today the nearest 0.75 u cell centre, often the kerb lane beside a sidewalk
+  arrival); then drop `dragon-gate` from the new test's `LANDING_OPEN`.
+- **Lane P**: the wave-4 / tier-3 trip ends are still lane P's own arrivals (lane L3's early-review request): take
+  `sfLandmarkAnchor(siteId)` for the site-backed attractions, as `LANDMARK_ARRIVALS` does for the 24.
+- **Lanes V and C**: the part-b requests (Holy Virgin, Fort Point) are unchanged.
+
+### Checks
+
+- On the pushed tree `afabb3a` (rebased over lanes G / T / V to `86aaa3e`): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **887 / 887**; with `51216d4` 887 / 887 again. Each new test fails on the code before its fix (checked by reverting
+  the fix: `mission-dolores #1, peace-pagoda #0`; 11 arrivals and 8 crowd spots).
