@@ -46,7 +46,9 @@ export const coronaHeights: W4Site = {
   w4: {
     placeId: 'corona-heights',
     attractions: ['corona-heights-randall-museum'],
-    arrival: { x: 0.2, z: -0.8, heading: Math.PI },
+    // on the crown's west side (W4-L-review: from the middle, the 2.5 u arrival clearance of the crowd spots, W4-IL15,
+    // left the summit one unstandable spot)
+    arrival: { x: -1.0, z: -0.5, heading: Math.PI },
     photo: { target: [-0.5, 1.2, 0.5], distance: 11, elevation: 0.35, bearing: 2.4 },
     flag: { x: -0.6, z: 0.4, h: 30 },
     height: { realM: 1.5, u: 1.3, top: 2.6, rule: 'overlook' },

@@ -38,7 +38,7 @@ const TRAVEL_ENDS = attractionArrivals();
  * docs/opus-bay/sf-w4-L.md "Early review 2" (open items): crowd spots or the arrival on a carriageway or in a building,
  * and USF's dropped east wing. Every other wave-4 record is checked.
  */
-const OPEN_P1 = new Set(['sfmoma', 'haight-ashbury', 'geary-west', 'st-ignatius-church', 'lands-end', 'bison-paddock', 'ccsf-drpac']);
+const OPEN_P1 = new Set(['sfmoma', 'haight-ashbury', 'geary-west', 'lands-end', 'bison-paddock', 'ccsf-drpac']);
 const OPEN_HOLES = new Set(['usf-lone-mountain']);
 
 const triCount = (g: THREE.BufferGeometry) => (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
