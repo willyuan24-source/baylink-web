@@ -218,6 +218,7 @@ test('W5-E9 the should pages: 我的记录 from lane A\'s play.b (today only for
     assert.match(finds, new RegExp(`彩蛋明信片<small class="ob-nb-h-count">1/${EGG_POSTCARDS.length}</small>`));
     assert.match(finds, /<img src="\/opus-bay\/w5\/postcards\/telegraph-hill-parrots-600\.webp"/, 'the parrots\' postcard, found');
     assert.equal((finds.match(/ob-nb-card is-blank/g) ?? []).length, EGG_POSTCARDS.length - 1, 'the others still hidden');
+    assert.match(finds, /BAYBAY 的小石子 0\/48/, 'lane D\'s pebbles, counted');
     assert.ok(L.pay('sound:ggb-foghorns', 5) > 0);
     N.checkNotebook(world(), false);
     const sounds = page('sounds');

@@ -66,8 +66,8 @@ test('W5-E6 items: append-only order pinned, ids well formed and unique, every w
 });
 
 test('W5-E8 prices LOCKED by the scripted economy run (plan MF5 / D21) and nothing sells speed, access or places', () => {
-  // scripts/opus-sf/economy-run.mts (the typical profile: hour 1 = 430 coins ≈ 5 cosmetics at the average price 85.7,
-  // one about every 12 minutes; the whole wardrobe, 1,970, after 7–8 hours): the plan's ratios × ≈ 1.8
+  // scripts/opus-sf/economy-run.mts (the typical profile: hour 1 = 449 coins ≈ 5.2 cosmetics at the average price 85.7,
+  // one about every 11–12 minutes; the whole wardrobe, 1,970, after about 7 hours): the plan's ratios × ≈ 1.8
   const price = (slot: string) => [...new Set(I.ITEMS.filter(it => it.slot === slot && I.forSale(it)).map(it => it.price))];
   assert.deepEqual(price('baybay-scarf'), [70]);
   assert.deepEqual(price('baybay-hat'), [150]);

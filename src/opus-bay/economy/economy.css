@@ -179,6 +179,10 @@
 .ob-nb-big img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 .ob-nb-big-foot { display: flex; align-items: center; gap: 8px; padding: 6px 4px 2px 8px; }
 .ob-nb-big-foot strong { flex: 1; min-width: 0; font-size: 14px; color: var(--ob-ink); }
+.ob-nb-pebbles { display: flex; align-items: center; gap: 8px; margin-top: 14px !important; padding: 8px 12px; border-radius: 12px; background: var(--ob-cream-2); border: 1px solid var(--ob-line); font-size: 13px; color: var(--ob-ink-2); }
+.ob-nb-pebbles svg { color: var(--ob-teal); flex: none; }
+.ob-nb-pebbles span { font-weight: 800; color: var(--ob-ink); font-variant-numeric: tabular-nums; }
+.ob-nb-pebbles small { margin-left: auto; font-size: 12px; color: var(--ob-ink-3); text-align: right; }
 .ob-nb-records { margin-top: 4px; margin-bottom: 14px; }
 .ob-nb-rec { list-style: none; margin: 0; padding: 4px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--ob-line); }
 .ob-nb-rec li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; font-size: 13px; color: var(--ob-ink-2); }

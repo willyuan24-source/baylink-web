@@ -313,3 +313,181 @@ flight through `fastTravel.startTravel` (a first sight when not found yet), 10 b
   three lines with the coin and compass badges (`明信片 0/24` · `🪙 220 · 🧭 ➤ 700米` · `目标`) — W5-F9's layout.
 - **Lane R**: `registerRewardIds('event', …)` is still needed for event souvenirs.
 - **Lead**: nothing frozen needs changing. `npx` resolved everywhere.
+
+## Part c
+
+### 给主人的摘要
+
+1. 检查点找到的 9 个"金币卡住"的地方都修好了：市政码头和海浪风琴防波堤的远端寻路到不了，那两条金币路改到岸边步道和去风琴的路上；克兰湾、24 街等"金币小堆"挪到三面都走得开的地方。现在每个金币点都用 F 线同一套走路检测来放，静态检测 0 个卡住。
+2. 用真实地图、真实账本跑了"一小时典型玩法"（快、普通、慢三种节奏）：普通玩家第一小时大约攒 450 金币，够买 5 件装扮，第一件 5 分钟内就买得起；23 件装扮全部买齐大约要玩 7 小时。
+3. 价格按这个结果定了：BAYBAY 围巾 70、帽子 150，你的帽子和背包 50，单车/小车漆 110，鹈鹕丝带 90，相框 60；罗盘和放大镜 20、飞行券 10 不变。金币永远买不到速度、地方或交通。
+4. 手帐新增「城市之声」页（D 线的 12 种城市声音，没听到时是谜语和去哪儿听，集满送"城市之声相框"），小发现页多了 6 张彩蛋明信片（找到彩蛋才出现，点开看大图）和 BAYBAY 的小石子数，印章页多了活动纪念章，足迹页多了「我的记录」（爬台阶级数、滑梯/摇铃/台阶赛最好成绩；只看今天，没有连续打卡）。
+5. 电脑和手机上都实际打开看过；全部 1291 个测试通过，改动都已推上去。
+
+### What was built
+
+| task | commits | files |
+|---|---|---|
+| **CP-4** part b on origin | `7d43e5b` … `2d994f0` (the five part-b commits, rebased on `dfb02f3`, checks 1221 / 1221; the part-b table above names their pre-rebase ids) | — |
+| **CP-5** stuck coin spots (W5-E2) | `58d674d`, `88722c2`, `3a8f086` | `scripts/opus-sf/coins-place.mts`, `economy/coinSpots.ts` (generated), `tests/opus-bay-w5-coins.test.ts` |
+| **W5-E8** the economy run, prices locked | `8d71207` | `scripts/opus-sf/economy-run.mts`, `economy/items.ts` (prices), `tests/opus-bay-w5-economy.test.ts`, `tests/opus-bay-w5-shop.test.ts` |
+| **W5-E9** the should pages | `08b5e1b`, `9b21f1a`, and the commit with this report (the pebbles row) | `economy/{Notebook.tsx,records.ts,stamps.ts,notebookRun.ts,items.ts,frames.ts,lines.ts,economy.css}`, `tests/opus-bay-w5-notebook.test.ts` |
+
+**CP-5 · every coin where the walker can leave it.** `coins-place.mts` now judges every ground spot the way lane F's
+sweep does (`walkProblems`): the real `PlayerController` pushed 1.5 s in four directions (the most open first), the
+game's path finder (`actors/nav findPath`) from the walking graph's main network, on the city as the game streams it
+(`CitySites` walk inputs with their tops, sinks and measured bases; before, the script used the postcard test's
+`landmarkWalkInputs`). A trail coin must move ≥ 3 u two ways (a pier, a stairway or a sidewalk is a corridor), never
+snag, and be reached by the path finder within 1.1 u; a cache must move three ways **at two turns of the cross (0° and
+45°)** (the live sweep pushes along the camera's axes, whatever way it faces), and a street-corner cache takes the most
+open of its first 24 good points. A published spot that still passes every rule is **kept** (players learn where the
+coins lie); only failing ones move (`--replace a,b` / `--fresh` force it; `COINS_DEBUG=<trail>` prints each refusal).
+What moved:
+
+- the checkpoint's nine: `lyon-street-steps:1` (the trail now starts one landing up), `municipal-pier` (the pier is off
+  the walking network: its slot now leads along Aquatic Park's promenade to the pier's foot, 6 coins; its end cache sits
+  at the foot), `wave-organ-jetty` (the jetty's far half is off the network too: Yacht Road out toward the Wave Organ, 6
+  coins), `ina-coolbrith` (a boxed-in top terrace and paths that hold only 3–4 walkable coins: **retired**, its slot kept;
+  `fort-mason-meadow` appended in its place), `crane-cove-end`, `calle-24`;
+- lane N's request: every coin keeps **4 u from the trip ends and landings** (the attractions' arrivals and lane L's
+  site arrivals, `data/sf/siteArrivals.ts`): buena-vista-park #5 / #6, bison-paddock #1, stop-haight #1, the caches
+  sutro-heights-top and seward-slides-top moved (lane N wired four more site arrivals on it: `97012a6`);
+- lane L's request: the corner caches `castro` and `haight` appended (lane L's corners use them: `2a474f1`);
+- the stricter cache rule moved 11 caches (lands-end-overlook, crane-cove-end, india-basin, clarion-alley,
+  irving-street, clement-street, calle-24, noe-valley, japantown, haight, castro).
+
+Now: 60 trails (1 retired) with **363 coins**, **42 caches**, 15 rings (unchanged).
+
+**W5-E8 · the scripted economy run** (`scripts/opus-sf/economy-run.mts`; `runEconomy()`, `priceCheck()` and `supply()`
+are exported for the test). What is real: the published city and walking graph (the player walks graph paths at 0.95 ×
+`WALK_SPEED` = 4.0 u/s; the GGB deck walker measured 4.16), lane E's coin spots and `CoinWorld` pickup (radii, heights,
+the Bay-day refill), lane C's `ArrivalWatcher` over `ATTRACTIONS` (a first arrival pays T1 10 · T2 5 · T3 3, as
+`game/cityMoments.ts` does), lane D's egg spots and `EGG_COINS`, lane A's view spots and `VIEW_COINS`, the first flight
+(8 × `RING_COINS` + the three medals, 45 s as lane A measured), lane C's `REWARD_COINS`, lane R's `dailyThree` for each
+Bay date over `public/planner-catalog.json`, and the ledger paying each source once. What is a model (three profiles
+bracket it): 飞过去 6 s for a place farther than `walkMax`, the arrival card (T1 20 s · T2 10 s · T3 5 s) and a stay
+(typical T1 120 s · T2 45 s · T3 20 s) with a short wander at each place, the must-sees first; noticing a trail or cache
+within 40 u and an egg, postcard or view within 45 u (at most 2 eggs, 2 postcards, 2 views an hour); 15 coin-free
+minutes an hour for the typical player (a bus leg (the lap is 17.8 min), a ride, chatting, emotes, photos; 5 brisk,
+18 relaxed); one hour a day. Hour 1 opens as the checkpoint's phone script did (the goals step, carried up the Filbert
+Steps with the parrots egg, the pelican, the first flight, PIER 39 and its end cache, the cable car). Favours, the Metro
+/ campus / sightseeing goals, activities other than the first flight, souvenirs and notebook pages are left out, so the
+run is on the low side.
+
+| profile | hour 1 | by minute (5′ · 15′ · 30′ · 60′) | after 2 h · 4 h · 8 h | places in hour 1 |
+|---|---|---|---|---|
+| typical | **449** (arrivals 134, goals 80, trail coins 61, the first flight 54, caches 50, eggs 20, postcards 20, the daily three 20, views 10) | 115 · 206 · 285 · 449 | 743 · 1,282 · 2,002 | 23 |
+| brisk | 559 | 115 · 206 · 303 · 559 | 946 · 1,696 · 1,856 (runs out of places after hour 4) | 32 |
+| relaxed | 404 | 115 · 206 · 257 · 404 | 647 · 1,099 · 1,820 | 18 |
+
+The city holds **2,547 one-off coins** (arrivals 667, caches 420, event souvenirs 270, eggs 240, goals 200, postcards
+160, favours 150, ring coins 120, medals ≈ 120, pages 120) plus 351 trail coins and the daily three's 50 each Bay day.
+
+**Prices locked** (the plan's ratios × ≈ 1.8, round numbers): BAYBAY scarves **70**, BAYBAY hats **150**, your hat /
+backpack colours **50**, bike / toy-car paints **110**, the pelican ribbon **90**, frames **60**; the compass and the
+magnifier stay **20** (one outing each, not cosmetics), the 飞行券 **10** (its refund stays 10). The wardrobe is **1,970**
+coins for 23 wearables (average 85.7): the typical first hour buys **5.2** of them (relaxed 4.7, brisk 6.5), one about
+every **11–13 minutes**, the first within **five minutes** (115 coins at 5′); the typical player has bought everything
+after **about 7 hours** (1,982 after hour 7; the relaxed run 1,820 after 8, with the sources the run leaves out ≈ 8–9 h).
+The wardrobe is 77 % of the one-off coins: nobody needs the daily refills to buy it all. Coins still never buy speed,
+access or places (the grep test in `w5-shop`).
+
+**W5-E9 · the should pages and the ladder.**
+
+- **城市之声** (lane D's W5-D6, delivered during this part): a fifth notebook page with the twelve sounds grouped by lane
+  D's eight areas; until heard, the riddle and where / when to listen (lane D's `how`); once heard, the name and its
+  fact. A full page pays `page:sounds` (30 金币; `PAGE_IDS` bit 3, append-only) and gives a new earned cosmetic, the
+  **城市之声相框** (item 30: a bay-teal ring with a foghorn's sound rings and little notes, painted only in the polaroid's
+  border like the others); BAYBAY says 城市之声都听全啦！送你一个城市之声相框。 (zh 20). The notebook registers lane D's
+  `sound` ids too (the same append-only list).
+- **小发现**: lane V's six secret postcards (W5-V8) on top: a blank card until its egg is found, then the 600 × 450
+  picture and its title; a tap shows the 1200 × 900 one. Then **BAYBAY 的小石子 n/48** (lane D's pebbles: a count, never a
+  page to fill).
+- **印章**: lane R's event souvenirs (`SOUVENIR_IDS`, names from `EVENT_SAY`) as stamps once earned at a real event in its
+  window, never part of the full page (22 stamps stay 22).
+- **足迹**: **我的记录** above lane N's page: lane A's stair steps (today's count only for today's Bay date, and in all)
+  and the activity bests (纸板滑梯 · 台阶赛跑 × 2 · 缆车摇铃); nothing is compared, nothing is a streak.
+- A new page opens at its top (the Journal kept the scroll between pages).
+- **The unlock ladder** (plan §3.5): the four pages each unlock an earned cosmetic (邮戳相框, 寻宝金围巾, 金色时刻相框,
+  城市之声相框), shown locked in the shop with how to get them; souvenirs are never sold; no street, line or place is locked
+  by coins. The toys shelf ("lent free the first time, then sold") waits for lane A's toys (none exist; the Seward
+  slides' cardboard stays free: coins never buy access).
+
+### Evidence
+
+- **Checks** on the pushed head `9b21f1a` (rebased on `508d4f0`): `npx tsc -p tsconfig.app.json --noEmit` 0 errors ·
+  `npx eslint .` 0 errors (the 43 old warnings, none in economy/) · `npx tsx --tsconfig tsconfig.app.json --test
+  tests/opus-bay-*.test.ts` **1291 / 1291**; the report commit re-ran them. New or changed tests: `w5-economy` (2: hour 1
+  of the typical profile on the real ledger buys 3–5.5 cosmetics, the first within ten minutes, each source paid once,
+  what hour 1 is made of; the one-off coins cover the wardrobe with room to spare and the wardrobe is 6–8 hours at the
+  run's pace), `w5-shop` (the locked prices, the wardrobe 1,970, item 30, the sounds frame clipped to the ring),
+  `w5-notebook` (`PAGE_IDS`, the sounds page pays once with its frame, 我的记录 from `play.b` with yesterday's count
+  hidden, the souvenir, the secret postcards and the pebbles rendered in node, never a streak), `w5-coins` (every ground
+  spot passes the walk rule: two ways for trail coins, three ways at two turns for caches; the append-only order with
+  `fort-mason-meadow`, `castro`, `haight`; Ina Coolbrith retired).
+- **Lane F's static sweep** (`scripts/opus-sf/qa/sweep-static.mts --only coin,cache`) on E's targets: before, 5 BOXED,
+  2 SNAG and 5 UNREACHABLE (the checkpoint's list); now coins 140 ok + 40 CORRIDOR (stairways, piers, sidewalks), caches
+  **40 ok**, **0 BOXED / SNAG / UNREACHABLE / OFF**.
+- **Lane F's live walker** (`walker-sweep.mjs`, dev 5507, desktop, headless Chrome `--force_high_performance_gpu`,
+  PERF-LOCK respected, `--only all`; stuck = fewer than 3 of 4 camera-relative directions moving 3 u):
+  - the moved trails and caches (61 targets): the checkpoint's nine are no longer boxed; 3 flags were the walker's own
+    artifact (after 8 neighbourhoods the goals step opened and held the player: 0 u, or 712 u once it closed),
+    `crane-cove-end` moved only one way (a strip between a wall and the water: then moved by the stricter cache rule),
+    the rest were two-way corridors (stairway and promenade coins, the Haight stop's sidewalk);
+  - all 40 ground caches in batches of ≤ 6 (to stay under the neighbourhood goal): 33 moved three or four ways, 7 two
+    ways (none boxed); the two-turn rule then moved india-basin and irving-street and the open-spot rule calle-24; the six
+    moved caches walked again: 5 pass, `calle-24` two ways (a 24th Street sidewalk where the live traffic lane, which the
+    static city does not have, closes the kerb side). Contact sheets in `C:/Users/willy/opus-qa/w5/w5-e/c/walk-*`.
+- **In the game** (dev 5507, `?start=free&world=city&time=golden&save=off`, `--lang=zh-CN`, every image read; QA copies
+  in `docs/opus-bay/qa/w5/E/c-*.jpg`):
+  - desktop 1440 × 900: the shop with a first hour's balance (430 when the shot was taken): scarves 70, hats 150
+    (`c-e8-shop-hour1-balance-desktop.jpg`); the frames shelf with the locked 城市之声 frame (`c-e9-shop-frames-desktop.jpg`);
+    小发现 with the parrots' secret postcard opened big (`c-e9-notebook-postcard-big-desktop.jpg`); 印章 with the Fleet Week
+    jets' souvenir (`c-e9-notebook-souvenir-desktop.jpg`); 城市之声 2/12 with two heard (`c-e9-notebook-sounds-desktop.jpg`).
+  - phone 390 × 844 dpr 3: the shop's 坐骑 shelf at 110 (`c-e8-shop-rides-phone.jpg`); 小发现 with two secret postcards
+    (`c-e9-notebook-secret-postcards-phone.jpg`); 我的记录 (`c-e9-notebook-records-phone.jpg`); 城市之声, the five page tabs
+    fitting at 66 px each (`c-e9-notebook-sounds-phone.jpg`); the Journal's own six tabs fit too (今天 · 手帐 · 明信片 · 目标 ·
+    想去 · 足迹). The `c-cp5-walker-crane-cove-end-before.jpg` shot is the one-way cache before it moved. No fps numbers
+    (lane V / the lead).
+- **Sizes** (vite build to scratch, gzip): Notebook 7.7 KB (was 6.0: the souvenir names, the postcards, the sounds and
+  the records), notebookRun 2.7, Shop 5.4, shopRun 6.2, wear 3.0, coins 7.7, economy.css 3.1; nothing of lane E in
+  GameRoot (searched the chunk). The run and the placement are scripts (not shipped).
+- **Facts**: no new real-world fact of lane E's in part c; the sounds' and souvenirs' facts and names are lane D's and
+  lane R's, shown as they wrote them, with their sources.
+
+### Decisions
+
+1. **The walk rule is lane F's verdicts**, not a new one: trail coins may lie on corridors (the plan's stairways and piers
+   are corridors by nature); caches, being single spots, must be leavable three ways at two turns of the cross.
+2. **Keep what passes**: re-running the placement moves only failing spots, so a new rule never reshuffles the city.
+3. **Off-network piers are not coin places**: the municipal pier and the Wave Organ jetty's far half cannot be reached
+   by the path finder (lane L's sites); their trail slots were re-laid on reachable ground next to them instead of
+   retired; the Ina Coolbrith trail was retired (append-only) and replaced.
+4. **The run is a model with real parts**, bracketed by three profiles; it leaves sources out rather than invent them,
+   so its totals are a floor. The checkpoint's live sessions (phone 188 in ≈ 50 min of QA, desktop 161 in 35 min) sit
+   below the model's typical hour because they were mostly testing time.
+5. **Prices: 5 cosmetics in hour 1 and everything after ≈ 7 h**: the plan's two targets pull against each other (the
+   first hour is front-loaded: the pelican, the first flight and the first arrivals give 115 coins in five minutes);
+   these prices meet both for the typical player and keep the first purchase within minutes.
+6. **Souvenirs and pebbles never fill a page** (time-limited / a count of 48); the 城市之声 page does, with an earned frame.
+
+### Not done
+
+- The toys shelf (needs lane A's toys); a real 60-minute live run by hand (the lead's verify; the model and the
+  checkpoint's live data stand in).
+- `calle-24` stays a two-way sidewalk spot in the live walk (24th Street's kerb lane is traffic); the lead's standard
+  (BOXED / UNREACHABLE) passes.
+- The shop tiles are still drawn (lane V's H5-1 painted tiles not delivered); BAYBAY's `pageSounds` line has no clip yet.
+- Not tried on a real iPhone (the lead's verify).
+
+### Requests
+
+- **Lane F**: the live walker could close the goals step when it opens (after 8 neighbourhoods the modal held the
+  player: 0 u in every direction).
+- **Lane L**: the Aquatic Park municipal pier and the Wave Organ jetty's far half are not reached by `findPath` from the
+  walking graph (lane A's `view:wave-organ` moved for the same reason); if they should be walkable, a graph edge out
+  along each would let the coins go back.
+- **Lane V**: a voice clip for `e-pageSounds` (城市之声都听全啦！送你一个城市之声相框。); the shop item ids are frozen
+  (append-only, `economy/items.ts`, 31 items: 26 for sale + 4 earned + 1 hidden) for H5-1.
+- **Lane A**: toys for the ladder when they exist (lent free the first time, then 15–25 on a 玩具 shelf).
+- **Lead**: nothing frozen needs changing; `npx` resolved everywhere. The dev server on 5507 is stopped.

@@ -12,6 +12,7 @@ import { bayParts } from '../game/bayNow';
 import { discoveredIds, visitedZoneIds } from '../game/discovery';
 import { goTo } from '../game/goTo';
 import { CITY_SOUNDS } from '../eggs/citySounds';
+import { PEBBLE_IDS, pebbleRewardSource } from '../eggs/pebbleSpots';
 import { EGG_AREAS, EGG_AREA_NAMES, EGGS } from '../eggs/registry';
 import { useT } from '../i18n';
 import { VIEW_SPOTS } from '../play/viewSpots';
@@ -210,11 +211,25 @@ function RecordsBlock() {
   );
 }
 
+/** Lane D's pebbles (W5-D6): how many are in BAYBAY's pouch — a count, never a page to fill. */
+function Pebbles() {
+  const { t } = useT();
+  const n = PEBBLE_IDS.filter(id => isPaid(pebbleRewardSource(id))).length;
+  return (
+    <p className="ob-nb-pebbles">
+      <Shell size={15} aria-hidden />
+      <span>{t(`BAYBAY 的小石子 ${n}/${PEBBLE_IDS.length}`, `BAYBAY’s pebbles ${n}/${PEBBLE_IDS.length}`)}</span>
+      <small>{t('她闻到石头会扭一扭', 'She wiggles when she smells one')}</small>
+    </p>
+  );
+}
+
 function FindsPage({ seen }: { seen: (k: string) => boolean }) {
   const { t } = useT();
   return (
     <>
       <SecretPostcards />
+      <Pebbles />
       {EGG_AREAS.map(area => {
         const eggs = EGGS.filter(e => e.area === area);
         if (!eggs.length) return null;
