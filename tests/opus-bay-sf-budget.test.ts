@@ -175,6 +175,11 @@ test('P7: the static graph of GameRoot reaches no city module, the landmark libr
   const sf = [...graph.keys()].filter(m => m.startsWith('world/sf/') || m === 'core/sfTerrain.ts');
   const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
   assert.deepEqual(sf.filter(m => m !== 'world/sf/format.ts').map(why), [], 'city modules in the main graph (use cityLoader.ts cityModule() or a dynamic import)');
+  // wave 5 (W5-V3): the four feature folders are lazy chunks (game/w5Features.ts imports them dynamically; a type import
+  // is fine), and the city's warm-up dummies no longer pull the city recipes / TypedBatch into the main graph
+  const w5 = [...graph.keys()].filter(m => /^(economy|play|eggs|realsf)\//.test(m));
+  assert.deepEqual(w5.map(why), [], 'wave-5 feature modules in the main graph (import them through their index.ts init, lazily)');
+  for (const m of ['world/recipes/city.ts', 'world/typedBatch.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
 });
 
 test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {

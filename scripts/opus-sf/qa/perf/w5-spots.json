@@ -229,6 +229,18 @@
    "note": "lane L's request: the Powell & Market turntable looking up Market St to the towers (its street QA pose read 404k)"
   },
   {
+   "id": "fidi",
+   "since": "w5",
+   "go": {
+    "x": 82.1,
+    "z": 125.3,
+    "fx": 120,
+    "fz": 40,
+    "arrival": true
+   },
+   "note": "the Financial District: Montgomery & California (37.7929, -122.4027), facing down to the Embarcadero over the towers and the hero waterfront (plan MF9: nothing new downtown until the headroom is measured)"
+  },
+  {
    "id": "ggb-deck",
    "since": "w5",
    "go": {
