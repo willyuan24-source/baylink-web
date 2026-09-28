@@ -321,6 +321,16 @@ export function CityMapPanel() {
       setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.2, 2, toolRight) : v));
     }
   };
+  // a pick from the list under the map (search, 景点 · 线路 · 附近 · 去过的, a card's 步行路线 chip): bring the map back into
+  // view when the sheet has scrolled past it (integration review: on the phone a highlighted line or a framed place
+  // changed nothing you could see — the map sat above the fold)
+  const reduced = useGame(st => st.settings.reducedMotion);
+  const revealMap = () => {
+    const el = frameRef.current, body = el?.closest('.ob-sheet-body') as HTMLElement | null;
+    if (!el || !body) return;
+    const top = el.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 8;
+    if (top < body.scrollTop - 1) body.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : 'smooth' });
+  };
   useEffect(() => {
     if (!openId || !view || openedOn.current === openId) return;
     const on = parseMapPanelId(openId);
@@ -557,14 +567,15 @@ export function CityMapPanel() {
 
       <MapFilters value={filter} onChange={setFilter} />
 
-      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} onRoute={pickRoute} />}
+      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} onRoute={id => { pickRoute(id); revealMap(); }} />}
       {selStation && (
         <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null} />
       )}
 
       <CityMapList
         ix={ix} lines={lines} stations={stations} pos={pos} query={query} setQuery={setQuery} tab={tab} setTab={setTab} selected={sel} highlight={highlight} epoch={epoch}
-        onAttraction={pickAttraction} onPlace={pickPlace} onStation={st => pickStation(st.id)} onLine={pickLine} onRoute={pickRoute}
+        onAttraction={a => { pickAttraction(a); revealMap(); }} onPlace={p => { pickPlace(p); revealMap(); }} onStation={st => { pickStation(st.id); revealMap(); }}
+        onLine={id => { pickLine(id); revealMap(); }} onRoute={id => { pickRoute(id); revealMap(); }}
       />
     </Sheet>
   );
