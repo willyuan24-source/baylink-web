@@ -1016,6 +1016,8 @@ export class MoveSystem {
         p.x = o.slot.x; p.z = o.slot.z;
         c.sync();
         this.lean = 0;
+        // W5-F7: off the car, facing the open pavement (not the car's side or a wall)
+        faceOpen(o.slot.x, o.slot.z);
         break;
     }
   }

@@ -60,3 +60,57 @@ test('faceOpen: turns the player standing there and asks the camera to swing beh
   assert.equal(p.heading, 0.3);
   takeFaceRequest();
 });
+
+test('faceOpen at a glide landing (W5-F7): the pelican sets the player down facing the open ground, and the camera is asked to swing behind them', async () => {
+  const THREE = await import('three');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { input } = await import('../src/opus-bay/core/input');
+  const { heightAt } = await import('../src/opus-bay/core/terrain');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const { MoveSystem } = await import('../src/opus-bay/actors/moveSystem');
+  const moveApi = await import('../src/opus-bay/actors/moveApi');
+  const g = globalThis as unknown as Record<string, unknown>;
+  g.window ??= globalThis;
+  game.set({ phase: 'playing', worldMode: 'district', move: { mode: 'foot' }, riding: null, dialogue: { nodeId: null }, panel: { kind: null } });
+  const ms = new MoveSystem(), c = new PlayerController();
+  moveApi.bindMoveApi(ms);
+  try {
+    const gate = DISTRICT.anchors['ferry-gate'], p = runtime.player;
+    p.x = gate.x; p.z = gate.z; p.y = heightAt(gate.x, gate.z); p.heading = 0; p.locked = false;
+    c.sync();
+    ms.setGlideUnlocked(true);
+    // fly inland (west, over the Embarcadero) for 2.5 s, then land
+    runtime.camera.yaw = Math.PI / 2;
+    const yaw = runtime.camera.yaw;
+    let t = 0;
+    const step = (s: number, until?: () => boolean) => {
+      for (let i = 0; i < s * 30; i++) {
+        t += 1 / 30;
+        ms.update(1 / 30, t, { cameraYaw: yaw, frozen: false, playing: true, controller: c, frustum: new THREE.Frustum() });
+        c.step({ dt: 1 / 30, now: t, cameraYaw: yaw, frozen: p.locked, riding: ms.carried });
+        ms.finishPlayer();
+        if (until?.()) return true;
+      }
+      return false;
+    };
+    input.glideCount++;
+    step(2.5);
+    assert.equal(ms.mode, 'glide');
+    takeFaceRequest();
+    input.glideCount++;
+    assert.ok(step(12, () => ms.mode === 'foot'), 'landed');
+    const req = takeFaceRequest();
+    assert.ok(req?.open, 'the camera is asked to face the open ground');
+    const { heading, run } = openHeading(p.x, p.z, p.heading);
+    assert.ok(Math.abs(wrap(p.heading - heading)) < 1e-6 && run > 0, `facing the open ground (${p.heading.toFixed(2)} vs ${heading.toFixed(2)}, run ${run})`);
+    for (const d of [1.4, 2.8].filter(d => d <= run)) assert.ok(canStand(p.x + Math.sin(p.heading) * d, p.z + Math.cos(p.heading) * d, FACE_OPEN.radius), `walkable ${d} u ahead`);
+  } finally { moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
+});
+
+test('faceOpen at a transit hop-off (W5-F7): actors/moveSystem faces the open pavement once the rider has stepped down', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/moveSystem.ts'), 'utf8');
+  assert.match(src, /case 'transit-alighted':[\s\S]{0,260}faceOpen\(o\.slot\.x, o\.slot\.z\);/);
+  assert.match(src, /c\.sync\(\);\s*\/\/ W5-F7: face the open ground[^\n]*\n\s*faceOpen\(spot\.x, spot\.z\);/);
+});
