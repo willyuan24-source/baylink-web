@@ -3,6 +3,7 @@ import { heightAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { inMonths, inYear } from './gates';
 import { type EggHost, fx, momentFree, props, reveal, sound } from './hosts';
+import { heard } from './listen';
 import { eggById } from './registry';
 
 /**
@@ -99,6 +100,8 @@ export function tiledStepsHost(): EggHost {
   const top = () => {
     reset();
     reveal(STEPS, { repeatLine: true, cardDelay: 1.8 });
+    // (part c) the whole crossfade heard, sea to stars: the steps join 城市之声
+    heard('tiled-steps');
   };
   return {
     id: STEPS,

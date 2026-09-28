@@ -51,8 +51,12 @@ export interface HostCtx {
 }
 
 export interface EggHost {
-  /** the egg (registry id) */
+  /** the egg (registry id); (part c) a city sound's host is `sound:<id>`, the pebbles' `pebbles` */
   id: string;
+  /** (part c) where it happens when it is not an egg of the registry (a city sound, the pebbles) */
+  spots?: () => readonly { x: number; z: number }[];
+  /** (part c) found, when it is not an egg (ctx.found) */
+  isFound?: () => boolean;
   /** update() runs while the player is within this distance of one of the egg's spots (Infinity: always) */
   range: number;
   enter?(ctx: HostCtx): void;
@@ -90,6 +94,8 @@ const lastUpdate = new Map<string, number>();
 let clock = 0;
 let acc = 0;
 let lineTimers: ReturnType<typeof setTimeout>[] = [];
+/** when BAYBAY's current queue of lines ends (performance clock, ms) */
+let lineEnd = 0;
 let cardTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const props = new PropPool();
@@ -115,7 +121,47 @@ export function say(lines: readonly Bilingual[] | Bilingual, gapMs = 250): void 
     else lineTimers.push(setTimeout(() => bubble(line, ms), at));
     at += ms + gapMs;
   }
+  lineEnd = nowMs() + at;
 }
+
+const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+/** (part c) BAYBAY's lines after the ones she is saying now (a sound collected with an egg: its line follows the egg's). */
+export function sayMore(lines: readonly Bilingual[] | Bilingual, gapMs = 250): void {
+  const wait = lineEnd - nowMs();
+  if (wait <= 0) { say(lines, gapMs); return; }
+  const list = Array.isArray(lines) ? lines : [lines as Bilingual];
+  let at = wait;
+  for (const line of list) {
+    const ms = lineMs(line);
+    lineTimers.push(setTimeout(() => bubble(line, ms), at));
+    at += ms + gapMs;
+  }
+  lineEnd = nowMs() + at;
+}
+
+/**
+ * (part c) Open a find card now, or — while another find card is up — when it goes (the one-card rule: a sound heard
+ * with an egg shows its card after the egg's). Gives up after `maxWaitMs`.
+ */
+export function queueCard(props: FactCardProps, delayMs = 0, maxWaitMs = 30000): void {
+  const open = () => {
+    if (game.get().toasts.length) game.set({ toasts: [] });
+    openOverlay('egg-card', props);
+  };
+  // another card up, or an egg's card about to open (reveal's timer): wait, and leave a breath after it goes
+  const busyCard = () => cardTimer !== null || openOverlays().some(o => o.id === 'egg-card');
+  let waited = 0, wasBusy = false;
+  const check = () => {
+    const b = busyCard();
+    if (b && waited < maxWaitMs) { wasBusy = true; waited += CARD_POLL; queueTimers.push(setTimeout(check, CARD_POLL)); return; }
+    if (wasBusy && !b) { wasBusy = false; queueTimers.push(setTimeout(check, 600)); return; }
+    open();
+  };
+  queueTimers.push(setTimeout(check, Math.max(0, delayMs)));
+}
+const CARD_POLL = 400;
+let queueTimers: ReturnType<typeof setTimeout>[] = [];
 
 /** A registered egg sound; placed at `at` (gain by distance near…far, pan by the camera's yaw) or at the player. */
 export function sound(id: EggSound, at?: { x: number; z: number } | null, o: { near?: number; far?: number; gain?: number; pitch?: number } = {}): void {
@@ -231,14 +277,19 @@ export function reveal(id: string, opts: RevealOpts = {}): boolean {
 
 function ctxFor(h: EggHost, px: number, py: number, pz: number, dist: number, isBusy: boolean): HostCtx {
   const prev = lastUpdate.get(h.id) ?? clock;
-  return { t: clock, dt: clock - prev, px, py, pz, dist, found: isFound(h.id), busy: isBusy };
+  return { t: clock, dt: clock - prev, px, py, pz, dist, found: h.isFound ? h.isFound() : isFound(h.id), busy: isBusy };
 }
 
 function distTo(h: EggHost, x: number, z: number): number {
-  const egg = eggById(h.id);
-  if (!egg) return Infinity;
+  let spots: readonly { x: number; z: number }[];
+  if (h.spots) spots = h.spots();
+  else {
+    const egg = eggById(h.id);
+    if (!egg) return Infinity;
+    spots = eggSpots(egg);
+  }
   let d = Infinity;
-  for (const s of eggSpots(egg)) d = Math.min(d, Math.hypot(s.x - x, s.z - z));
+  for (const s of spots) d = Math.min(d, Math.hypot(s.x - x, s.z - z));
   return d;
 }
 
@@ -295,6 +346,9 @@ export function startHosts(list: readonly EggHost[]): () => void {
     offFrame(); offEvents(); offPrompts();
     for (const t of lineTimers) clearTimeout(t);
     lineTimers = [];
+    lineEnd = 0;
+    for (const q of queueTimers) clearTimeout(q);
+    queueTimers = [];
     if (cardTimer) clearTimeout(cardTimer);
     cardTimer = null;
     endGlance();
@@ -308,7 +362,9 @@ export function startHosts(list: readonly EggHost[]): () => void {
 
 /** tests: forget the session state */
 export function __resetHostsForTests(): void {
-  sessionFound.clear(); repeatSaid.clear(); active.clear(); lastUpdate.clear(); clock = 0; acc = 0; hosts = [];
+  sessionFound.clear(); repeatSaid.clear(); active.clear(); lastUpdate.clear(); clock = 0; acc = 0; hosts = []; lineEnd = 0;
+  for (const q of queueTimers) clearTimeout(q);
+  queueTimers = [];
   endGlance();
 }
 

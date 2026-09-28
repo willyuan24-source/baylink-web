@@ -17,6 +17,8 @@ import { parrotsHost } from './north';
 import { dahliaHost, tiledStepsHost } from './park';
 import { altaHost, humpbackHost, trailHost } from './presidio';
 import { registerEggWarmup } from './props';
+import { SOUND_IDS } from './citySounds';
+import { heard, soundFound, soundHosts } from './listen';
 import { EGG_IDS } from './registry';
 import { eggHintSpots, eggRumour } from './rumourSource';
 import { makeEggScene } from './scene';
@@ -47,6 +49,7 @@ import { chinaBeachHost, labyrinthHost } from './west';
 const FactCard = lazy(() => import('./FactCard').then(m => ({ default: m.FactCard })));
 const NoteCard = lazy(() => import('./FactCard').then(m => ({ default: m.NoteCard })));
 const OperatorBubble = lazy(() => import('./FactCard').then(m => ({ default: m.OperatorBubble })));
+const ListenRing = lazy(() => import('./FactCard').then(m => ({ default: m.ListenRing })));
 
 /** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24). */
 export function makeHosts(): EggHost[] {
@@ -55,6 +58,8 @@ export function makeHosts(): EggHost[] {
     waveOrganHost(), crissyHost(), otterHost(), octagonHost(), alcatrazHost(), foghornHost(),
     humpbackHost(), labyrinthHost(), chinaBeachHost(), dahliaHost(), tiledStepsHost(), karlHost(),
     sundialHost(), hydrantHost(), castroHost(), heronsHost(), trailHost(), altaHost(),
+    // W5-D6: 城市之声 (the listening and one 听一听 prompt per sound)
+    ...soundHosts(),
   ];
 }
 
@@ -62,10 +67,12 @@ export function init(): () => void {
   const offs: (() => void)[] = [];
   const add = (off: () => void) => { offs.push(off); };
   add(registerRewardIds('egg', EGG_IDS));
+  add(registerRewardIds('sound', SOUND_IDS));
   add(registerEggSounds());
   add(registerOverlay({ id: 'egg-card', Component: FactCard }));
   add(registerOverlay({ id: 'egg-note', Component: NoteCard }));
   add(registerOverlay({ id: 'egg-operator', Component: OperatorBubble }));
+  add(registerOverlay({ id: 'egg-listen', Component: ListenRing }));
 
   const root = new THREE.Group();
   root.name = 'ob-eggs';
@@ -104,6 +111,9 @@ export function init(): () => void {
         // W5-D5: the rumour lane C would get here now, and the compass's list
         rumour: () => eggRumour({ x: runtime.player.x, z: runtime.player.z, zone: game.get().area, now: bayNow(), told: new Set() }, isFound),
         hints: () => eggHintSpots(isFound),
+        // W5-D6: 城市之声 — heard?, collect one now (as its moment would)
+        soundFound,
+        heard,
       },
     };
   }

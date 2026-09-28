@@ -68,6 +68,23 @@
 .ob-egg-operator-choices { display: flex; flex-wrap: wrap; gap: 8px; }
 @keyframes ob-egg-note-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.95); } }
 
+/* (part c) listening to a city sound: a ring that fills while you stand still, above the prompt */
+.ob-egg-listen {
+  position: absolute; z-index: 13; left: 50%; bottom: calc(96px + var(--ob-sb, 0px)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 999px;
+  width: max-content; max-width: calc(100vw - 32px); white-space: nowrap;
+  background: rgba(255, 250, 241, .96); border: 1px solid #bfe0da; box-shadow: var(--ob-shadow); color: var(--ob-ink);
+  pointer-events: none; animation: ob-egg-in .35s var(--ob-spring);
+}
+.ob-egg-listen-ring { position: relative; display: grid; place-items: center; width: 48px; height: 48px; color: #2b6f68; }
+.ob-egg-listen-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ob-egg-listen-track { fill: #e8f4f1; stroke: #d3e9e4; stroke-width: 4; }
+.ob-egg-listen-fill { fill: none; stroke: #3f9e91; stroke-width: 4; stroke-linecap: round; animation: ob-egg-listen var(--ob-listen-s, 3s) linear forwards; }
+@keyframes ob-egg-listen { to { stroke-dashoffset: 0; } }
+.ob-egg-listen-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.ob-egg-listen-text b { font-size: 14.5px; font-weight: 800; }
+.ob-egg-listen-text small { font-size: 12px; color: var(--ob-ink-3); overflow: hidden; text-overflow: ellipsis; }
+
 @media (min-width: 721px) and (max-width: 900px) { .ob-egg-card { bottom: calc(150px + var(--ob-sb, 0px)); } }
 @media (max-width: 720px) {
   .ob-egg-card { left: calc(12px + var(--ob-sl, 0px)); right: calc(84px + var(--ob-sr, 0px)); width: auto; bottom: calc(max(6px, var(--ob-sb, 0px)) + 56px + 72px); padding: 9px 32px 11px 9px; }
@@ -78,10 +95,11 @@
   .ob-egg-key { display: none; }
   .ob-egg-card.is-open { max-height: 58vh; overflow-y: auto; }
   .ob-egg-postcard img { max-height: 30vh; object-fit: cover; }
+  .ob-egg-listen { bottom: calc(max(6px, var(--ob-sb, 0px)) + 56px + 150px); }
 }
 @media (pointer: coarse) {
   .ob-egg-close { width: 36px; height: 36px; top: 2px; right: 2px; }
   .ob-egg-key { display: none; }
   .ob-egg-operator-choices .ob-btn { min-height: 44px; }
 }
-.is-reduced .ob-egg-card, .is-reduced .ob-egg-badge, .is-reduced .ob-egg-note, .is-reduced .ob-egg-operator { animation: none; }
+.is-reduced .ob-egg-card, .is-reduced .ob-egg-badge, .is-reduced .ob-egg-note, .is-reduced .ob-egg-operator, .is-reduced .ob-egg-listen { animation: none; }

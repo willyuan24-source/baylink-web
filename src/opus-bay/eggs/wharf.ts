@@ -3,6 +3,7 @@ import type { Bilingual } from '../core/types';
 import { seaLionMonth, type SeaLionMonth } from './gates';
 import { type EggHost, flock, fx, isFound, momentFree, reveal, say, sound } from './hosts';
 import type { BirdPath } from './props';
+import { heard } from './listen';
 import { eggById } from './registry';
 
 /**
@@ -71,6 +72,8 @@ export function laughingLadyHost(): EggHost {
     const giggle = first || Math.random() < 0.2;
     if (giggle) setTimeout(() => sound('egg:giggle', { x: runtime.guide.x, z: runtime.guide.z }, { near: 6, far: 40 }), 1400);
     if (!reveal(LADY, { lines: [egg.lines[0], egg.lines[1]], cardDelay: 3 }) && giggle) say(egg.lines[1]);
+    // (part c) listening at the door: once the laugh has rung out, it joins 城市之声 (its card after the egg's)
+    setTimeout(() => { heard('laughing-lady'); }, 2600);
   };
   return {
     id: LADY,

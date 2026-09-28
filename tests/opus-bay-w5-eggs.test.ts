@@ -332,11 +332,15 @@ const { KARL_TIME } = await import('../src/opus-bay/world/sf/fog');
 
 const shortZh = (b: { zh: string; en: string }, where: string) => { bilingual(b, where); assert.ok(zhLen(b.zh) <= 45, `${where}: ≤ 45 in zh (${zhLen(b.zh)})`); };
 
-test('W5-D3 / W5-D4 hosts: all 24 eggs have one host each (registry order); prompts are find-source `egg:` ids with an act, within reach of their egg', () => {
+test('W5-D3 / W5-D4 hosts: every egg has one host (registry order); prompts are find-source `egg:` ids with an act, within reach of their egg', () => {
   H.__resetHostsForTests();
-  const hosts = makeHosts();
+  const all = makeHosts();
+  // (part c) after the eggs: the hosts of 城市之声 (the listening, one per 听一听 sound) and the pebbles — they have spots of their own
+  const hosts = all.filter(h => eggById(h.id));
   try {
     assert.deepEqual(hosts.map(h => h.id), [...EGG_IDS], 'one host per egg, in the registry order');
+    assert.deepEqual(all.slice(0, hosts.length), hosts, 'the eggs first');
+    assert.ok(all.slice(hosts.length).every(h => h.spots && h.isFound), 'the others bring their spots and their found');
     for (const h of hosts) {
       assert.ok(h.range > 0, `${h.id}: range`);
       assert.ok(typeof h.qa === 'function', `${h.id}: a QA trigger for the screenshots`);
@@ -351,7 +355,7 @@ test('W5-D3 / W5-D4 hosts: all 24 eggs have one host each (registry order); prom
         assert.ok(d <= 3, `${it.id}: ${d.toFixed(1)} u from its egg`);
       }
     }
-  } finally { for (const h of hosts) h.dispose?.(); }
+  } finally { for (const h of all) h.dispose?.(); }
 });
 
 test('W5-D3 words: month lines, operator replies, the notes and the cookie slips are short, bilingual and claim only what the sources say', () => {

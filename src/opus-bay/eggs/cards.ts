@@ -1,5 +1,6 @@
 import type { Bilingual } from '../core/types';
 import { eggPostcard, type EggPostcard } from '../data/sf/eggPostcards';
+import { SOUND_COINS, soundById } from './citySounds';
 import { EGG_COINS, eggById, type EggSource } from './registry';
 
 /**
@@ -27,6 +28,10 @@ const lookups: Partial<Record<CardKind, Lookup>> = {
   egg: id => {
     const e = eggById(id);
     return e ? { kicker: { zh: '小发现', en: 'A find' }, name: e.name, fact: e.fact, sources: e.sources, coins: EGG_COINS, postcard: eggPostcard(id) } : null;
+  },
+  sound: id => {
+    const s = soundById(id);
+    return s ? { kicker: { zh: '城市之声', en: 'City sounds' }, name: s.name, fact: s.fact, sources: s.sources, coins: SOUND_COINS, postcard: null } : null;
   },
 };
 

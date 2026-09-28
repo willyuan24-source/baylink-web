@@ -9,6 +9,7 @@ import { bayParts } from '../game/bayNow';
 import type { Shot } from '../game/cinema';
 import { KARL } from '../world/fogShader';
 import { type EggHost, beat, fx, hostClock, isFound, momentFree, note, props, reveal, say, sound } from './hosts';
+import { heard as heardSound, soundFound } from './listen';
 import { eggById } from './registry';
 
 /**
@@ -55,7 +56,8 @@ export function waveOrganHost(): EggHost {
     }];
     sound('egg:organ', null, { gain: 0.45 + 0.55 * organTide() });
     fx('splash', p.x + fx0 * 3, p.y - 0.2, p.z + fz0 * 3, { count: 6 });
-    const after = () => { reveal(ORGAN, { repeatLine: true, cardDelay: 1.8 }); };
+    // (part c) the ear at the pipe is listening: the organ joins 城市之声 (its card after the egg's)
+    const after = () => { reveal(ORGAN, { repeatLine: true, cardDelay: 1.8 }); heardSound('wave-organ'); };
     if (!beat(shots, after)) after();
   };
   return {
@@ -255,9 +257,10 @@ export function foghornHost(): EggHost {
       if (s.south) { sound('egg:horn-south', GGB.south, { near: 40, far: 700 }); if (heard(GGB.south)) heardSouth = ctx.t; }
       if (s.mid) { sound('egg:horn-mid', MID, { near: 40, far: 700 }); if (heard(MID)) heardMid = ctx.t; }
       // both heard within the last 45 s while standing on the deck: the find
-      if (onDeck(ctx.px, ctx.py, ctx.pz) && ctx.t - heardSouth < 45 && ctx.t - heardMid < 45 && !ctx.found && momentFree()) {
-        reveal(FOG, { cardDelay: 3.5 });
-      }
+      const both = onDeck(ctx.px, ctx.py, ctx.pz) && ctx.t - heardSouth < 45 && ctx.t - heardMid < 45 && momentFree();
+      if (both && !ctx.found) reveal(FOG, { cardDelay: 3.5 });
+      // (part c) both horns heard on the deck: the duet joins 城市之声 too
+      if (both && !soundFound('ggb-foghorns')) heardSound('ggb-foghorns');
     },
     leave: () => { fogT = -1; },
     qa: () => {

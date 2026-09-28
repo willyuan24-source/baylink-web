@@ -1,4 +1,4 @@
-import type { AudioEngine } from '../audio/engine';
+import type { AudioEngine, Voice } from '../audio/engine';
 import { registerSound, type SoundOpts } from '../audio/hooks';
 import { seaLionBark } from '../audio/sfx';
 
@@ -281,12 +281,90 @@ function sails(e: AudioEngine, o?: SoundOpts) {
   for (const at of [0.7, 1.5]) e.tone(v, { type: 'sawtooth', freq: 190, freqTo: 150, glide: 0.4, decay: 0.45, peak: 0.1, offset: at, attack: 0.08, filter: { type: 'bandpass', freq: 700, Q: 3 } });
 }
 
+// --- part c (W5-D6): 城市之声 ------------------------------------------------------------------------------------------
+
+/** One bell strike: a bright clang with its inharmonic partials. */
+function strike(e: AudioEngine, v: Voice, base: number, offset: number, peak: number) {
+  for (const [ratio, g, d] of [[1, 0.42, 0.5], [2.02, 0.22, 0.34], [2.76, 0.16, 0.24], [3.9, 0.08, 0.15]] as const) {
+    e.tone(v, { type: 'sine', freq: base * ratio * rand(0.997, 1.003), decay: d, peak: g * peak, offset, attack: 0.001 });
+  }
+  e.noiseBurst(v, { attack: 0.001, decay: 0.012, peak: 0.28 * peak, offset, filter: { type: 'highpass', freq: 3000 } });
+}
+
+/** A cable car gripman's bell: our own little rhythm, "ding-ding · ding-ding-ding · ding" (never a contest pattern). */
+function cableBellRiff(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 3, gain: g0(o, 0.28), pan: pan(o), priority: 3, reverb: 0.3, name: 'egg:cable-bell' });
+  if (!v) return;
+  const base = 880 * pitch(o);
+  [[0, 1], [0.14, 0.8], [0.6, 1], [0.72, 0.8], [0.84, 0.9], [1.3, 1.1]].forEach(([at, k]) => strike(e, v, base, at, k));
+}
+
+/** A ferry leaving the dock: one prolonged blast (the rule's 4–6 s: ours is 5 s), a deep two-note horn, then the echo. */
+function ferryBlast(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 7.5, gain: g0(o, 0.5), pan: pan(o), priority: 3, reverb: 0.6, name: 'egg:ferry-horn' });
+  if (!v) return;
+  for (const [f, g] of [[110, 0.3], [138.6, 0.22]] as const) {
+    for (const d of [-5, 5]) e.tone(v, { type: 'sawtooth', freq: f * 0.97, freqTo: f, glide: 0.3, decay: 5.2, peak: g, attack: 0.25, detune: d, filter: { type: 'lowpass', freq: 900, Q: 1 }, vibrato: { rate: 4, depth: 0.003 } });
+  }
+  e.tone(v, { type: 'sine', freq: 55, decay: 5, peak: 0.25, attack: 0.4 });
+}
+
+/** The Sutro Baths tunnel: the sea booming at its far end — three waves, a deep thud and a long hiss in the rock. */
+function caveBoom(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 7.5, gain: g0(o, 0.55), pan: pan(o), priority: 3, reverb: 0.9, name: 'egg:cave' });
+  if (!v) return;
+  for (const at of [0, 2.3, 4.4]) {
+    e.noiseBurst(v, { color: 'brown', attack: 0.05, decay: 1.6, peak: 0.7, offset: at, filter: { type: 'lowpass', freq: 240 } });
+    e.tone(v, { type: 'sine', freq: rand(42, 52), freqTo: 34, glide: 1.2, decay: 1.4, peak: 0.4, offset: at, attack: 0.03 });
+    e.noiseBurst(v, { color: 'pink', attack: 0.3, decay: 1.8, peak: 0.25, offset: at + 0.35, filter: { type: 'bandpass', freq: 1400, freqTo: 600, glide: 1.6, Q: 0.6 } });
+  }
+}
+
+/** A banjo's forward roll over G · C · D (our own two bars, like lane R's festival loop — never a real song). */
+function banjoRoll(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 3.2, gain: g0(o, 0.26), pan: pan(o), priority: 3, reverb: 0.2, name: 'egg:banjo' });
+  if (!v) return;
+  const chords = [[67, 71, 74, 79], [72, 76, 79, 84], [74, 78, 81, 86], [67, 71, 74, 79]];
+  const roll = [0, 1, 3, 0, 1, 3, 0, 2];
+  for (let i = 0; i < 16; i++) {
+    const chord = chords[Math.floor(i / 4)];
+    const f = midi(chord[roll[i % 8]]) * pitch(o);
+    e.tone(v, { type: 'triangle', freq: f, decay: 0.35, peak: i % 4 === 0 ? 0.5 : 0.36, offset: i * 0.16, attack: 0.002, fm: { ratio: 3, index: 1.4, indexTo: 0.1 } });
+  }
+  for (const at of [0, 0.64, 1.28, 1.92]) e.tone(v, { type: 'sine', freq: midi(43) * pitch(o), decay: 0.4, peak: 0.3, offset: at, attack: 0.01 });
+}
+
+/** Taiko: big drums "don · don · doko don", a small rim "ka" (festival drums, our own pattern). */
+function taiko(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 3.4, gain: g0(o, 0.5), pan: pan(o), priority: 3, reverb: 0.45, name: 'egg:taiko' });
+  if (!v) return;
+  const don = (at: number, k: number) => {
+    e.tone(v, { type: 'sine', freq: 92 * pitch(o), freqTo: 58, glide: 0.18, decay: 0.55, peak: 0.8 * k, offset: at, attack: 0.002 });
+    e.noiseBurst(v, { color: 'brown', attack: 0.002, decay: 0.2, peak: 0.5 * k, offset: at, filter: { type: 'lowpass', freq: 380 } });
+  };
+  const ka = (at: number) => e.noiseBurst(v, { attack: 0.001, decay: 0.035, peak: 0.35, offset: at, filter: { type: 'bandpass', freq: 2600, Q: 3 } });
+  [[0, 1], [0.55, 0.9], [1.1, 0.8], [1.32, 0.7], [1.65, 1.1], [2.4, 1]].forEach(([at, k]) => don(at, k));
+  for (const at of [0.3, 0.85, 2.05]) ka(at);
+}
+
+/** Karl's wind on the summit: two gusts of whistling air with a low rumble under them. */
+function wind(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 6, gain: g0(o, 0.45), pan: pan(o), priority: 3, reverb: 0.4, name: 'egg:wind' });
+  if (!v) return;
+  for (const [at, len] of [[0, 2.6], [2.2, 3.2]] as const) {
+    e.noiseBurst(v, { color: 'pink', attack: len * 0.4, decay: len, peak: 0.55, offset: at, filter: { type: 'bandpass', freq: 500, freqTo: 1300, glide: len * 0.7, Q: 1.6 } });
+    e.noiseBurst(v, { color: 'white', attack: len * 0.5, decay: len * 0.8, peak: 0.12, offset: at + 0.3, filter: { type: 'bandpass', freq: 2400, freqTo: 3100, glide: len * 0.6, Q: 6 } });
+  }
+  e.noiseBurst(v, { color: 'brown', attack: 1.2, decay: 4.5, peak: 0.3, filter: { type: 'lowpass', freq: 200 } });
+}
+
 export const EGG_SOUNDS = {
   'egg:find': find, 'egg:parrots': parrots, 'egg:sealions': seaLions, 'egg:cackle': cackle, 'egg:giggle': giggle, 'egg:phone': phone,
   'egg:plug': plug, 'egg:cookie': cookie, 'egg:fanfare': fanfare, 'egg:organ': organ, 'egg:propeller': propeller, 'egg:splash': splash,
   'egg:tin': tin, 'egg:whoosh': whoosh, 'egg:horn-south': hornSouth, 'egg:horn-mid': hornMid,
   'egg:spout': spout, 'egg:marsh': marsh, 'egg:bubbles': bubbles, 'egg:birds': birds, 'egg:stars': stars, 'egg:chime': chime,
   'egg:ting': ting, 'egg:brush': brush, 'egg:yawn': yawn, 'egg:squeak': squeak, 'egg:sails': sails,
+  'egg:cable-bell': cableBellRiff, 'egg:ferry-horn': ferryBlast, 'egg:cave': caveBoom, 'egg:banjo': banjoRoll, 'egg:taiko': taiko, 'egg:wind': wind,
 } as const satisfies Record<string, (e: AudioEngine, o?: SoundOpts) => void>;
 export type EggSound = keyof typeof EGG_SOUNDS;
 

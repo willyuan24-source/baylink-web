@@ -179,6 +179,34 @@ export function NoteCard({ props, close }: OverlayProps) {
   );
 }
 
+/**
+ * (part c, 城市之声) Listening: a small ring that fills over `seconds` while you stand still, the ear and the sound's name
+ * (the `egg-listen` overlay; eggs/listen.ts opens and closes it). Stands above the prompt, under the player.
+ */
+export interface ListenProps { name: Bilingual; seconds: number }
+
+export function ListenRing({ props }: OverlayProps) {
+  const { t } = useT();
+  const p = props as ListenProps | undefined;
+  if (!p) return null;
+  const R = 20, C = 2 * Math.PI * R;
+  return (
+    <section className="ob-egg-listen" role="status" aria-live="polite" style={{ ['--ob-listen-s' as string]: `${p.seconds}s`, ['--ob-listen-c' as string]: `${C}` }}>
+      <span className="ob-egg-listen-ring" aria-hidden>
+        <svg viewBox="0 0 48 48" width="48" height="48">
+          <circle cx="24" cy="24" r={R} className="ob-egg-listen-track" />
+          <circle cx="24" cy="24" r={R} className="ob-egg-listen-fill" strokeDasharray={C} strokeDashoffset={C} />
+        </svg>
+        <Ear size={20} />
+      </span>
+      <span className="ob-egg-listen-text">
+        <b>{t('竖起耳朵听……', 'Listening…')}</b>
+        <small>{t(p.name)} · {t('站着别动', 'stay still')}</small>
+      </span>
+    </section>
+  );
+}
+
 /** The phone rings (egg 4): the operator's question and the people to put through (props: `{ choices, onPick(i) }`). */
 export interface OperatorProps { choices: readonly Bilingual[]; onPick: (i: number) => void }
 
