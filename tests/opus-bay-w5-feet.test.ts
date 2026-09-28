@@ -751,3 +751,10 @@ test('W5-F10 scenic auto-glide in the move system: takes off toward the destinat
     step(12, () => ms.mode === 'foot');
   } finally { runtime.input.moveX = 0; moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
 });
+
+test('W5-F11 (the trips phase): parked bikes and the toy car stay solid to the walker, but not to an auto-walk (a tap-to-walk or BAYBAY carrying a trip: its path does not know them)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(src, /for \(const r of move\.fleet\.rides\) \{\s*if \(r\.occupied \|\| p\.pathTarget \|\| [^\n]*continue;\s*this\.obstacles\.push\(\{ x: r\.sim\.x, z: r\.sim\.z, r: r\.kind === 'car' \? 0\.8 : 0\.45/);
+});

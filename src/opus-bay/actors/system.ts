@@ -637,9 +637,11 @@ export class ActorSystem {
     this.obstacles.length = 0;
     for (const npc of this.npcs) npc.obstacle(this.obstacles);
     if (s.phase === 'playing' && !carried && !move.guideCarried) this.obstacles.push({ x: g.x, z: g.z, r: 0.42, kind: 'baybay' });
-    // parked bikes / the toy car are solid to the walker (soft obstacles, like the residents)
+    // parked bikes / the toy car are solid to the walker (soft obstacles, like the residents) — not to an auto-walk
+    // (W5-F11: a tap-to-walk or BAYBAY's carried trip follows a path that does not know them; the sweep's trips phase
+    // found the pooled city bike parked by the Ferry Building's wall wedging the carried walk there for good)
     for (const r of move.fleet.rides) {
-      if (r.occupied || Math.abs(r.sim.x - p.x) > 8 || Math.abs(r.sim.z - p.z) > 8) continue;
+      if (r.occupied || p.pathTarget || Math.abs(r.sim.x - p.x) > 8 || Math.abs(r.sim.z - p.z) > 8) continue;
       this.obstacles.push({ x: r.sim.x, z: r.sim.z, r: r.kind === 'car' ? 0.8 : 0.45, kind: r.kind === 'car' ? 'car' : 'bike-rack' });
     }
     // other lanes' moving things (F's crowd and traffic, actors/view.ts registerObstacleSource)

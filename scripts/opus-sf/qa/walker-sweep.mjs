@@ -249,6 +249,7 @@ try {
         const p=${Q}.runtime.player; const plan=()=>TP.planTrips({x:p.x,z:p.z},dest,PR.tripProviders());
         let o=plan(); if(o.some(TP.optionPending)){await Promise.race([PR.tripRouteCache().idle(),new Promise(r=>setTimeout(r,2500))]); o=plan();}
         const w=o.find(x=>x.mode==='walk'); if(!w) return {none:o.map(x=>x.mode)};
+        const E=await import('/src/opus-bay/core/events.ts'); window.__sweepTrip=[]; if(window.__sweepTripOff) window.__sweepTripOff(); window.__sweepTripOff=E.onEvent(e=>{if(e.type==='trip') window.__sweepTrip.push(e.what);});
         RUN.initTripRun(); F.startTrip(w,dest,'map');
         return {seconds:w.seconds,pending:o.some(TP.optionPending),x:dest.x,z:dest.z};
       })()`);
@@ -261,7 +262,9 @@ try {
         const p = await pos();
         const left = Math.hypot(p.x - plan.x, p.z - plan.z);
         const trip = await evaluate(`!!${Q}.flow.get().trip`);
-        if (left < 12 || (!trip && left < 25)) { arrived = true; break; }
+        // (the game's own end: the trip's `end` event — the destination's arrival may fire before its exact end point)
+        const ended = await evaluate(`(window.__sweepTrip||[]).includes('end')`);
+        if (left < 12 || ended || (!trip && left < 25)) { arrived = true; break; }
         // a dialogue / card on the way (an arrival, a pass-by, a moment) waits for a tap in the game: the sweep closes it
         if (await evaluate(`!!${Q}.game.get().dialogue.nodeId || !!${Q}.game.get().panel.kind`)) await tidy();
         if (!trip) await evaluate(`(async()=>{const RUN=await import('/src/opus-bay/game/tripRun.ts');return RUN.resumeAutoTravel()})()`).catch(() => null);
