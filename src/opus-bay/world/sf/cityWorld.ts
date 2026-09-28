@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import type { Quality } from '../../core/store';
 import { pointInPolygon } from '../../core/terrain';
 import type { Polygon } from '../../core/types';
-import { DISTRICT } from '../../data/district';
+import { DISTRICT, stationOf } from '../../data/district';
 import { ANGEL_ISLAND, CITY_BACKDROP } from '../backdrop';
-import type { Batch } from '../builder';
+import { type Batch, CYL, M, resample, v3 } from '../builder';
 import type { Environment } from '../environment';
 import type { KarlFlag } from '../fogShader';
 import { slabEdgeColumns } from '../ground';
+import { PAL } from '../palette';
 import type { HaloSpec } from '../props';
 import { buildLightMask } from '../water';
 import type { WorldSystem } from '../world';
@@ -41,6 +42,32 @@ export function westSeawall(b: Batch) {
   const A = o(a, 0.2), B = o(c, 0.2);
   b.quad(A.clone().setY(0.35), B.clone().setY(0.35), B.clone().setY(-1.8), A.clone().setY(-1.8), n, ['#cfc5b3', '#cfc5b3', '#a99f8e', '#a99f8e']);
   b.quad(o(a, -0.6).setY(0.35), o(c, -0.6).setY(0.35), B.clone().setY(0.35), A.clone().setY(0.35), new THREE.Vector3(0, 1, 0), '#ddd3c1');
+}
+
+/**
+ * The F-line catenary past the district's poles (verify-visual F9; world/ground.ts overheadWires stops its poles at station
+ * 368 while the wires run on to the track ends on Jefferson St: a black bar over the Wharf at walking height). City mode
+ * carries the poles on, every ~21 u like the district's and one just short of the wires' end, each arm across both
+ * tracks along the median's own direction. District mode keeps its geometry (the hero regression).
+ */
+export function wharfPoles(t: Batch) {
+  const median = DISTRICT.roads.find(r => r.id === 'embarcadero-median');
+  if (!median) return;
+  const WIRE_Y = 5.1; // world/ground.ts overheadWires
+  const mp = resample(median.points, 1);
+  let acc = 0, wharf = false;
+  for (let i = 1; i < mp.length; i++) {
+    acc += Math.hypot(mp[i].x - mp[i - 1].x, mp[i].z - mp[i - 1].z);
+    if (acc < 21 && !(wharf && i === mp.length - 2 && acc >= 6)) continue;
+    acc = 0;
+    const p = mp[i];
+    if (stationOf(p).st <= 368) continue;
+    wharf = true;
+    const a = mp[i - 1], b = mp[Math.min(i + 1, mp.length - 1)], dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1;
+    const nx = -dz / L, nz = dx / L;
+    t.add(CYL(6), M(p.x, 0, p.z, 0, 0.09, WIRE_Y + 0.5, 0.09), PAL.lampPost);
+    t.beam(v3(p.x + nx * 1.9, WIRE_Y + 0.3, p.z + nz * 1.9), v3(p.x - nx * 1.9, WIRE_Y + 0.3, p.z - nz * 1.9), 0.07, 0.07, PAL.lampPost);
+  }
 }
 
 /** Angel Island's board (a 24-gon on the backdrop's ellipse): the table under the city water. */

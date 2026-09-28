@@ -166,7 +166,7 @@ function buildWalk(g: Batch) {
 
 const roadY = (x: number, z: number) => { const h = heightAt(x, z); return h > 0.05 ? h + 0.1 : 0.045; };
 
-function buildRoads(g: Batch, t: Batch, wharfPoles = false) {
+function buildRoads(g: Batch, t: Batch) {
   for (const r of DISTRICT.roads) {
     if (r.kind === 'crosswalk') { zebra(g, r); continue; }
     if (r.kind === 'track') { rails(g, r); continue; }
@@ -177,7 +177,7 @@ function buildRoads(g: Batch, t: Batch, wharfPoles = false) {
     if (r.id === 'embarcadero-north-lanes' || r.id === 'embarcadero-south-lanes') laneDashes(g, r);
     if (r.kind === 'roadway' && !median && r.width < 4) curbs(g, r);
   }
-  overheadWires(t, wharfPoles);
+  overheadWires(t);
 }
 
 function laneDashes(g: Batch, r: RoadDef) {
@@ -227,13 +227,8 @@ function rails(g: Batch, r: RoadDef) {
   }
 }
 
-/**
- * F-line catenary: poles in the median every ~20 u with arms over both tracks, wires at 5 u. The district's poles stop
- * at station 368 while the wires run on to the track ends on Jefferson St; city mode (`wharfPoles`, wave 4 lane V,
- * verify-visual F9: a black bar floating over the Wharf at walking height) carries the poles on to the end, turned to
- * the median's own direction there. District mode keeps its geometry (hero regression).
- */
-function overheadWires(t: Batch, wharfPoles = false) {
+/** F-line catenary: poles in the median every ~20 u with arms over both tracks, wires at 5 u. */
+function overheadWires(t: Batch) {
   const tracks = DISTRICT.roads.filter(r => r.kind === 'track');
   const median = DISTRICT.roads.find(r => r.id === 'embarcadero-median');
   const WIRE_Y = 5.1;
@@ -243,26 +238,18 @@ function overheadWires(t: Batch, wharfPoles = false) {
   }
   if (!median) return;
   const mp = resample(median.points, 1);
-  const pole = (p: Vec2, nx: number, nz: number) => {
-    t.add(CYL(6), M(p.x, 0, p.z, 0, 0.09, WIRE_Y + 0.5, 0.09), PAL.lampPost);
-    // arm across both tracks (normal direction)
-    t.beam(v3(p.x + nx * 1.9, WIRE_Y + 0.3, p.z + nz * 1.9), v3(p.x - nx * 1.9, WIRE_Y + 0.3, p.z - nz * 1.9), 0.07, 0.07, PAL.lampPost);
-  };
-  let acc = 0, wharf = false;
+  let acc = 0;
   for (let i = 1; i < mp.length; i++) {
     acc += Math.hypot(mp[i].x - mp[i - 1].x, mp[i].z - mp[i - 1].z);
-    const last = i === mp.length - 2;
-    if (acc < 21 && !(wharf && last && acc >= 6)) continue;
+    if (acc < 21) continue;
     acc = 0;
     const p = mp[i];
     const st = stationOf(p);
-    if (st.st < 30) continue;
-    if (st.st <= 368) { const f = frameAt(st.st); pole(p, f.nx, f.nz); continue; }
-    if (!wharfPoles) continue;
-    // Jefferson St (city mode): the normal of the median's own polyline, and a last pole just short of its end
-    wharf = true;
-    const a = mp[i - 1], b = mp[Math.min(i + 1, mp.length - 1)], dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1;
-    pole(p, -dz / L, dx / L);
+    if (st.st < 30 || st.st > 368) continue;
+    const f = frameAt(st.st);
+    t.add(CYL(6), M(p.x, 0, p.z, 0, 0.09, WIRE_Y + 0.5, 0.09), PAL.lampPost);
+    // arm across both tracks (normal direction)
+    t.beam(v3(p.x + f.nx * 1.9, WIRE_Y + 0.3, p.z + f.nz * 1.9), v3(p.x - f.nx * 1.9, WIRE_Y + 0.3, p.z - f.nz * 1.9), 0.07, 0.07, PAL.lampPost);
   }
 }
 
@@ -648,10 +635,10 @@ export function buildSkirtWater(): THREE.BufferGeometry {
 
 /** The hero district's ground. City mode (opts.slab false) skips the slab's cut edges and underside: the streamed city
  *  continues the land past the slab and the city board has its own edge (world/sf/water.ts). */
-export function buildGround(g: Batch, t: Batch, opts: { slab?: boolean; wharfPoles?: boolean } = {}) {
+export function buildGround(g: Batch, t: Batch, opts: { slab?: boolean } = {}) {
   buildLand(g);
   buildWalk(g);
-  buildRoads(g, t, opts.wharfPoles);
+  buildRoads(g, t);
   buildRamps(g, t);
   buildPiers(g, t);
   buildSeawalls(g, t);

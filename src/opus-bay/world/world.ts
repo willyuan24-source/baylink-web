@@ -137,7 +137,8 @@ export class World {
     const blobs = new BlobBatch();
 
     // city mode: the hero is built first and exactly as in district mode, minus its slab edges (the city continues)
-    buildGround(ground, toy, { slab: !city, wharfPoles: city });
+    buildGround(ground, toy, { slab: !city });
+    if (city) requireCity().wharfPoles(toy);
     buildCity(toy, labels, this.atlas);
     const props = buildProps(toy, blobs);
     const lm = buildLandmarks(labels, this.atlas);

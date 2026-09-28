@@ -399,26 +399,20 @@ test('TOY / GROUND patches apply to the standard shader (instancing + batching n
   assert.match(ground.fragmentShader, /uBDistOn > 0\.5 && vInfo\.w < 0\.5/);
 });
 
-test('W4-V part b (verify-visual F9): city mode carries the F-line poles on along Jefferson St to the wires\' end; district mode draws exactly what it did', async () => {
-  const { buildGround } = await import('../src/opus-bay/world/ground');
+test('W4-V part b (verify-visual F9): city mode carries the F-line poles on along Jefferson St to the end of the wires (world/sf/cityWorld.ts); district mode draws exactly what it did', async () => {
+  const { wharfPoles } = await import('../src/opus-bay/world/sf/cityWorld');
   const { Batch } = await import('../src/opus-bay/world/builder');
   const { DISTRICT, stationOf } = await import('../src/opus-bay/data/district');
-  const run = (wharfPoles?: boolean) => { const g = new Batch(), t = new Batch(); buildGround(g, t, { slab: false, wharfPoles }); return { g: g.vertexCount, t: t.vertexCount, pos: (t as unknown as { pos: number[] }).pos }; };
-  const plain = run(), again = run(false), city = run(true);
-  assert.deepEqual([again.g, again.t], [plain.g, plain.t], 'the option off is the district path');
-  assert.equal(city.g, plain.g, 'no ground change');
-  const added = city.t - plain.t;
-  assert.ok(added > 0 && added < 400, `${added} vertices of poles`);
-  // the new vertices are poles (0 … 5.6 u high) beyond station 368 on the median, and the last stands within 7 u of the wires' end
+  const t = new Batch();
+  wharfPoles(t);
+  const pos = (t as unknown as { pos: number[] }).pos, n = t.vertexCount;
+  assert.ok(n > 0 && n < 400, `${n} vertices of poles`);
+  // poles (0 … 5.6 u high) beyond the district's last pole (station 368) on the median, the last within 7 u of the wires' end
   const median = DISTRICT.roads.find(r => r.id === 'embarcadero-median')!;
   const end = median.points[median.points.length - 1];
-  // the poles go in where the district's stop (buildRoads, before the ramps and piers): the first differing vertex
-  let at = 0;
-  while (at < plain.t && plain.pos[at * 3] === city.pos[at * 3] && plain.pos[at * 3 + 1] === city.pos[at * 3 + 1] && plain.pos[at * 3 + 2] === city.pos[at * 3 + 2]) at++;
-  for (let i = at; i < plain.t; i++) for (let k = 0; k < 3; k++) assert.equal(city.pos[(i + added) * 3 + k], plain.pos[i * 3 + k], 'the rest follows unchanged');
   let near = Infinity, maxY = 0, beyond = true;
-  for (let i = at; i < at + added; i++) {
-    const x = city.pos[i * 3], y = city.pos[i * 3 + 1], z = city.pos[i * 3 + 2];
+  for (let i = 0; i < n; i++) {
+    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
     maxY = Math.max(maxY, y);
     if (stationOf({ x, z }).st < 360) beyond = false;
     near = Math.min(near, Math.hypot(x - end.x, z - end.z));
@@ -426,4 +420,5 @@ test('W4-V part b (verify-visual F9): city mode carries the F-line poles on alon
   assert.ok(beyond, 'only beyond the district poles');
   assert.ok(maxY < 5.8, `top ${maxY}`);
   assert.ok(near < 7, `last pole ${near.toFixed(1)} u from the wires' end`);
+  // the district World itself is pinned above (BASELINE): world/ground.ts draws no Wharf poles
 });
