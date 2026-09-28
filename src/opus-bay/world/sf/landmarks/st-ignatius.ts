@@ -154,7 +154,9 @@ export const stIgnatius: W4Site = {
   w4: {
     placeId: 'st-ignatius-church',
     attractions: ['st-ignatius-church'],
-    arrival: { x: 0.9, z: 6.4, heading: Math.PI },
+    // W4-IL14: on the campus lawn at the front's east corner, facing the towers (the front stands on Fulton St's
+    // sidewalk line with no forecourt to stand on: the early spot was the Fulton St kerb)
+    arrival: { x: 5.5, z: 4.4, heading: -1.844 },
     photo: { target: [0.4, 6.5, 0], distance: 34, elevation: 0.2, bearing: 0.35 },
     flag: { x: CX, z: CROSS_Z, h: 30 },
     height: { realM: 64, u: 12.9, top: 13.5, rule: 'H = 3.2 + 0.155·h' },
