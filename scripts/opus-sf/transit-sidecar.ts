@@ -22,7 +22,11 @@ import path from 'node:path';
 import { type TransitFile, type TransitLine, transitLineProblems } from '../../src/opus-bay/world/sf/format';
 import { METRO_STATIONS } from '../../src/opus-bay/data/sf/stationNames';
 import { loadDem } from './lib/io';
-import { Clearance, placeKiosk, placePole } from './lib/stopPlace';
+import { Clearance, placeKiosk, placeOnStreet, placePole } from './lib/stopPlace';
+import { createCityTerrain, landmarkWalkInputs } from '../../src/opus-bay/core/sfTerrain';
+import { canStand, setCityTerrain } from '../../src/opus-bay/core/terrain';
+import { SF_SITES } from '../../src/opus-bay/world/sf/landmarks/index';
+import { sfDisk } from '../../tests/opus-bay-sf-disk';
 import { buildTerrain } from './lib/terrain';
 import { W4_SOURCE_NOTE, buildW4Lines } from './lib/transit';
 
@@ -87,10 +91,70 @@ function pathSampler(l: TransitLine): (s: number) => { x: number; z: number; hea
  * (Early phase: written as the file's `props` beside the unchanged stop x, z, which lane C's TOUR_GEO pins; at the
  * integration T moves stop x, z onto the props in the same commit as C's TOUR_GEO follow-up.)
  */
-async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: number; z: number }>, log: (s: string) => void): Promise<Record<string, [number, number]>> {
+/** A prop's spot is joined to the street when the walkable ground from it reaches this far (u). */
+export const JOIN_REACH = 24;
+
+/**
+ * (integration review) Is (x, z) ground the player can stand on and walk away from? The game's own walk terrain (the
+ * published chunks rasterised with the city's sites, as the streamer does: tests/opus-bay-sf-disk.ts) flooded from the
+ * spot in 0.5 u steps with the player's radius must reach JOIN_REACH u. 21 of the 60 wave-4 props (the Castro and
+ * Church kiosks, the La Playa pole, the Palace of Fine Arts / Haight / Painted Ladies poles …) stood in walled gaps
+ * behind the kerb: 直接到站 and an underground arrival put the rider there with no way out.
+ */
+export async function walkJoined(points: { x: number; z: number }[]): Promise<(x: number, z: number) => boolean> {
+  const sf = sfDisk(path.join(REPO, 'public/opus-bay/sf'));
+  const lms = landmarkWalkInputs(SF_SITES);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  for (const p of points) await sf.attachAround(city, p.x, p.z, 60, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  return (x0, z0) => {
+    if (!canStand(x0, z0, 0.45)) return false;
+    const step = 0.5, key = (i: number, j: number) => (i + 1000) * 4000 + (j + 1000);
+    const seen = new Set<number>([key(0, 0)]), stack: [number, number][] = [[0, 0]];
+    while (stack.length) {
+      const [i, j] = stack.pop()!;
+      if (Math.hypot(i * step, j * step) >= JOIN_REACH) return true;
+      for (const [a, b] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) {
+        const k = key(a, b);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (canStand(x0 + a * step, z0 + b * step, 0.45)) stack.push([a, b]);
+      }
+    }
+    return false;
+  };
+}
+
+/** A pole on the roadway stands this far from a vehicle path at least (u): the bus's half width 1.25 + its 0.6 kerb pull + the pole + room (and sf-metro's 2.5 u for a passing train). */
+const POLE_CLEAR = 2.6;
+
+/** The vehicles' centrelines as x, y, z triples (a line's tunnels left out: nothing runs on the surface there). */
+function surfacePaths(lines: readonly TransitLine[]): number[][] {
+  const out: number[][] = [];
+  for (const l of lines) {
+    let cur: number[] = [], at = 0;
+    for (let i = 0; i + 2 < l.path.length; i += 3) {
+      if (i) at += Math.hypot(l.path[i] - l.path[i - 3], l.path[i + 2] - l.path[i - 1]);
+      if (l.tunnels?.some(t => at > t.fromAt && at < t.toAt)) { if (cur.length > 3) out.push(cur); cur = []; continue; }
+      cur.push(l.path[i], l.path[i + 1], l.path[i + 2]);
+    }
+    if (cur.length > 3) out.push(cur);
+  }
+  return out;
+}
+
+async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: number; z: number }>, log: (s: string) => void, others: readonly TransitLine[] = []): Promise<Record<string, [number, number]>> {
   const props: Record<string, [number, number]> = {};
   const c = new Clearance(path.join(REPO, 'public/opus-bay/sf/v1/c'));
   await c.prepare(lines.flatMap(l => l.stops.map(s => ({ x: s.x, z: s.z }))));
+  const walk = await walkJoined(lines.flatMap(l => l.stops.map(s => ({ x: s.x, z: s.z }))));
+  // (review) judged where the prop is published (rounded to 0.01 u) and firm round it: a spot on a raster edge passed
+  // unrounded and was not standable once rounded (San Jose & Niagara)
+  const r2 = (v: number) => Math.round(v * 100) / 100;
+  const FIRM = [[0.25, 0], [-0.25, 0], [0, 0.25], [0, -0.25]];
+  const joined = (x: number, z: number) => { const a = r2(x), b = r2(z); return FIRM.every(([dx, dz]) => canStand(a + dx, b + dz, 0.45)) && walk(a, b); };
+  const paths = surfacePaths([...lines, ...others]);
   const done = new Map<string, { x: number; z: number }>();
   for (const l of lines) {
     const at = pathSampler(l);
@@ -98,14 +162,16 @@ async function placeStops(lines: TransitLine[], metroRaw: Map<string, { x: numbe
       if (done.has(s.id)) continue;
       const round2 = (v: number) => Math.round(v * 100) / 100;
       let spot: { x: number; z: number } | null;
+      // (integration review) every prop on ground joined to the street (`joined`); where the buildings stand at the kerb,
+      // on the roadway's edge clear of the vehicles (placeOnStreet)
       if (l.kind === 'bus') {
         if (s.id === 'loop-ferry-building' || s.id === 'loop-pier-39') continue;
-        spot = placePole(c, at, s.at, 1, 0.3, 1.6);
+        spot = placePole(c, at, s.at, 1, 0.3, 1.6, joined) ?? placeOnStreet(c, s.x, s.z, 0.3, POLE_CLEAR, paths, joined);
       } else if (METRO_STATIONS.find(m => m.id === s.id)?.underground) {
         const o = metroRaw.get(s.id) ?? { x: s.x, z: s.z };
-        spot = placeKiosk(c, o.x, o.z) ?? placeKiosk(c, o.x, o.z, 1.3, 48);
+        spot = placeKiosk(c, o.x, o.z, 1.45, 30, joined) ?? placeKiosk(c, o.x, o.z, 1.3, 48, joined) ?? placeOnStreet(c, o.x, o.z, 1.3, POLE_CLEAR + 1, paths, joined, 20, 0.8);
       } else {
-        spot = placePole(c, at, s.at, 1, 0.3, 2.7) ?? placePole(c, at, s.at, -1, 0.3, 2.7);
+        spot = placePole(c, at, s.at, 1, 0.3, 2.7, joined) ?? placePole(c, at, s.at, -1, 0.3, 2.7, joined) ?? placeOnStreet(c, s.x, s.z, 0.3, POLE_CLEAR, paths, joined);
       }
       if (!spot) { log(`place: no room for ${s.id} (kept at ${s.x}, ${s.z})`); spot = { x: s.x, z: s.z }; }
       const moved = Math.hypot(spot.x - s.x, spot.z - s.z);
@@ -133,7 +199,7 @@ async function main() {
   // the OSM station positions (under Market St) before the kiosks move
   const metroRaw = new Map<string, { x: number; z: number }>();
   for (const l of w4) if (l.kind === 'light-rail') for (const st of l.stops) if (!metroRaw.has(st.id)) metroRaw.set(st.id, { x: st.x, z: st.z });
-  const props = await placeStops(w4, metroRaw, log);
+  const props = await placeStops(w4, metroRaw, log, wave2);
   const problems = checkW4Lines(w4);
   if (problems.length) { for (const p of problems) console.error(`PROBLEM ${p}`); throw new Error(`${problems.length} problems: nothing written`); }
   const source = `${published.source.split('; wave 4:')[0]}; ${W4_SOURCE_NOTE}`;

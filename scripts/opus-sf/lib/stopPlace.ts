@@ -126,23 +126,29 @@ function segDist(px: number, pz: number, ax: number, az: number, bx: number, bz:
 /**
  * A pole beside a vehicle stopped at arc `at` of a path: right of the path direction (`side` 1) or left (−1), just
  * outside the road the vehicle is on, clear of buildings and other roads. Tries shifts along the path (near-side first)
- * and offsets outward; returns null when nothing within ±12 u fits.
+ * and offsets outward; returns null when nothing within ±12 u fits. `ok` (integration review): the spot must also be
+ * ground the player can walk to from the street (transit-sidecar.ts floods the game's own walk terrain): a gap between
+ * two building footprints behind the kerb passed the clearances and walled the pole in (21 of the 60 wave-4 stops).
  */
-export function placePole(c: Clearance, at: (s: number) => { x: number; z: number; heading: number }, s0: number, side: 1 | -1, r = 0.3, minOff = 1.4): { x: number; z: number; shift: number } | null {
+export function placePole(c: Clearance, at: (s: number) => { x: number; z: number; heading: number }, s0: number, side: 1 | -1, r = 0.3, minOff = 1.4, ok?: (x: number, z: number) => boolean): { x: number; z: number; shift: number } | null {
   for (const shift of [0, -2, 2, -4, 4, -6, 6, -8, 8, -10, 10, -12, 12]) {
     const p = at(s0 + shift);
     const nx = -Math.cos(p.heading) * side, nz = Math.sin(p.heading) * side;
     for (let off = minOff; off <= 7; off += 0.2) {
       const x = p.x + nx * off, z = p.z + nz * off;
-      if (c.road(x, z).d >= r && c.building(x, z) >= r + 0.15 && c.furniture(x, z) >= r + 0.35) return { x, z, shift };
+      if (c.road(x, z).d >= r && c.building(x, z) >= r + 0.15 && c.furniture(x, z) >= r + 0.35 && (!ok || ok(x, z))) return { x, z, shift };
     }
   }
   return null;
 }
 
-/** A free spot for a kiosk of radius `r` near (x0, z0) (≤ `maxR` u), by a sidewalk: closest first, near a street. */
-export function placeKiosk(c: Clearance, x0: number, z0: number, r = 1.45, maxR = 30): { x: number; z: number; d: number; heading: number } | null {
-  let best: { x: number; z: number; d: number; score: number } | null = null;
+/**
+ * A free spot for a kiosk of radius `r` near (x0, z0) (≤ `maxR` u), by a sidewalk: closest first, near a street. `ok`: as
+ * placePole's (the best-scoring spots are tried in turn until one is joined to the street; the Castro kiosk stood in a
+ * walled courtyard).
+ */
+export function placeKiosk(c: Clearance, x0: number, z0: number, r = 1.45, maxR = 30, ok?: (x: number, z: number) => boolean): { x: number; z: number; d: number; heading: number } | null {
+  const all: { x: number; z: number; d: number; score: number }[] = [];
   const step = maxR > 32 ? 1 : 0.5;
   for (let dx = -maxR; dx <= maxR; dx += step) {
     for (let dz = -maxR; dz <= maxR; dz += step) {
@@ -155,11 +161,40 @@ export function placeKiosk(c: Clearance, x0: number, z0: number, r = 1.45, maxR 
       // tree trunks / lamps: their canopies and heads would cut through the kiosk's canopy
       if (c.furniture(x, z) < r + 0.8) continue;
       const score = d + 0.6 * Math.max(0, road.d - r - 0.6);
-      if (!best || score < best.score) best = { x, z, d, score };
+      all.push({ x, z, d, score });
     }
   }
+  all.sort((a, b) => a.score - b.score || a.x - b.x || a.z - b.z);
+  const best = ok ? all.find(q => ok(q.x, q.z)) : all[0];
   if (!best) return null;
   const q = c.nearestRoadPoint(best.x, best.z);
   const heading = q ? Math.atan2(q.x - best.x, q.z - best.z) : 0;
   return { x: best.x, z: best.z, d: best.d, heading };
+}
+
+/**
+ * (integration review) The fallback when no spot off the road is joined to the street (the toy streets' buildings stand
+ * right at the kerb: the Haight, the Painted Ladies, Duboce & Church and the outer Judah stops had none): the nearest
+ * spot within `maxR` of (x0, z0) that `ok` accepts (joined walkable ground, the roadway included), at least `clear` u
+ * from every vehicle path (`paths`: the vehicle's body and the prop's radius), clear of buildings and street furniture.
+ */
+export function placeOnStreet(c: Clearance, x0: number, z0: number, r: number, clear: number, paths: readonly (readonly number[])[], ok: (x: number, z: number) => boolean, maxR = 12, canopy = 0.35): { x: number; z: number } | null {
+  // the path segments near (x0, z0), as [ax, az, bx, bz] quads
+  const m = maxR + clear + 1, near: number[] = [];
+  for (const p of paths) {
+    for (let i = 3; i + 2 < p.length; i += 3) {
+      const ax = p[i - 3], az = p[i - 1], bx = p[i], bz = p[i + 2];
+      if (Math.max(ax, bx) < x0 - m || Math.min(ax, bx) > x0 + m || Math.max(az, bz) < z0 - m || Math.min(az, bz) > z0 + m) continue;
+      near.push(ax, az, bx, bz);
+    }
+  }
+  const toPath = (x: number, z: number) => { let d = Infinity; for (let i = 0; i < near.length; i += 4) d = Math.min(d, segDist(x, z, near[i], near[i + 1], near[i + 2], near[i + 3])); return d; };
+  const cands: { x: number; z: number; d: number }[] = [];
+  for (let dx = -maxR; dx <= maxR; dx += 0.5) for (let dz = -maxR; dz <= maxR; dz += 0.5) { const d = Math.hypot(dx, dz); if (d <= maxR) cands.push({ x: x0 + dx, z: z0 + dz, d }); }
+  cands.sort((a, b) => a.d - b.d || a.x - b.x || a.z - b.z);
+  for (const q of cands) {
+    if (toPath(q.x, q.z) < clear || c.building(q.x, q.z) < r + 0.15 || c.furniture(q.x, q.z) < r + canopy || !ok(q.x, q.z)) continue;
+    return { x: q.x, z: q.z };
+  }
+  return null;
 }
