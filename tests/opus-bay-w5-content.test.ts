@@ -584,3 +584,16 @@ test('lane N’s requests: a flight’s landing arrives like a hop-off (no on-fo
   const { timeLabel } = await import('../src/opus-bay/game/tripText');
   assert.deepEqual(moments.carriedTime(400), timeLabel(autoTravelSeconds(400 * STREET_FACTOR)));
 });
+
+test('review (lane V’s request 4): BAYBAY’s taste lines read the Bay clock the stalls read — `?date=` moves both', async () => {
+  const { __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
+  const { isMarketOpen } = await import('../src/opus-bay/world/clock');
+  try {
+    // Sat 3 Oct 2026 10:30 (the market 8–14), Mon 5 Oct 10:30 (no market), Thu 8 Oct 9:30 (opens at 10), Thu 11:00
+    for (const [spec, open] of [['2026-10-03T10:30', true], ['2026-10-05T10:30', false], ['2026-10-08T09:30', false], ['2026-10-08T11:00', true]] as const) {
+      assert.ok(__setBayNowForTests(spec), spec);
+      assert.equal(flowMod.marketOpenNow(), open, `${spec}: BAYBAY`);
+      assert.equal(isMarketOpen(), open, `${spec}: the stalls`);
+    }
+  } finally { __setBayNowForTests(null); }
+});

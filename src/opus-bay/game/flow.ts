@@ -28,6 +28,7 @@ import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArriv
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
+import { bayNow } from './bayNow';
 import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
@@ -1147,8 +1148,11 @@ function afterFeedback(it: Interactable) {
 /** Ferry Plaza Farmers Market days (Tue, Thu, Sat) in Bay Area time. */
 export const marketDay = (day = todayInBay()) => [2, 4, 6].includes(weekday(day));
 
-/** The farmers market is set up right now (Tue & Thu 10–14, Sat 8–14, Bay time — Foodwise). */
-export function marketOpenNow(now = new Date()): boolean {
+/**
+ * The farmers market is set up right now (Tue & Thu 10–14, Sat 8–14, Bay time — Foodwise). Review (lane V's request 4):
+ * on the frozen Bay clock like the stalls (world/clock.ts isMarketOpen), so `?date=` moves both (DEV / QA builds).
+ */
+export function marketOpenNow(now = bayNow()): boolean {
   const day = todayInBay(now);
   if (!marketDay(day)) return false;
   const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(now);

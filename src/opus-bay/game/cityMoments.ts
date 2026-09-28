@@ -12,6 +12,7 @@ import { placeIndex } from '../data/sf/places';
 import { sayLine, tunnelNarration } from '../data/sf/tourLines';
 import { TOUR_GEO, rideArc, transitSay } from '../data/sf/tours';
 import { TOUR_VOICE_CLIPS } from '../data/sf/voiceTour';
+import { W5_PACED_CLIPS } from '../data/sf/voiceW5';
 import { ARRIVAL_CARD_MS } from '../ui/guideText';
 import { ArrivalWatcher, arrivalAnchors, arrivalBeats, arrivalPaced, decodeArrivalSeen, type ArrivalHit } from './arrival';
 import { registerGoalTargets, type GoalTarget } from './cityContent';
@@ -54,8 +55,11 @@ export { unlockPelican };
 // The pacer
 // ---------------------------------------------------------------------------------------------------------------
 
-// the clip lengths of the current voice language (read per line: a language switch mid-tour times the next line right)
-const clipSeconds = clipSecondsFrom(TOUR_VOICE_CLIPS, () => voiceLang(getLocale()));
+// the clip lengths of the current voice language (read per line: a language switch mid-tour times the next line right);
+// review (lane V's request 4, W5-V7): lane C's 11 frozen wave-5 lines were recorded (data/sf/voiceW5.ts W5_PACED_CLIPS,
+// the approved clips only) but this table did not have them, so the pelican moment, the welcome back, the goals step and
+// the deck lines stayed text only — they speak now (the pacer times them by their clips, speakRecorded plays them)
+const clipSeconds = clipSecondsFrom({ ...TOUR_VOICE_CLIPS, ...W5_PACED_CLIPS }, () => voiceLang(getLocale()));
 const pacer = new LinePacer(clipSeconds);
 let lastSaid: SaidLine | null = null;
 const clock = () => performance.now() / 1000;

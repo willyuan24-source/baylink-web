@@ -259,12 +259,25 @@ test('W5-C6 a frozen line shown as text plays its clip only once lane V has reco
   const voices: string[] = [];
   const off = onEvent(e => { if (e.type === 'voice-line') voices.push(e.id); });
   try {
-    assert.equal(moments.lineRecorded('w5c-pelican-ask'), false, 'not recorded yet');
-    assert.equal(moments.speakRecorded('w5c-pelican-ask'), false);
+    assert.equal(moments.lineRecorded('nope-not-a-line'), false, 'no clip');
+    assert.equal(moments.speakRecorded('nope-not-a-line'), false);
     assert.deepEqual(voices, []);
+    // (review, lane V's request 4) lane V recorded the 11 frozen lines (data/sf/voiceW5.ts W5_PACED_CLIPS): the pacer and
+    // speakRecorded have their clips in both languages, so the pelican moment, the welcome back, the goals step and the
+    // deck lines speak (before, the table was TOUR_VOICE_CLIPS alone and they stayed text only)
+    const { W5_PACED_CLIPS, W5_VOICE_LINES } = await import('../src/opus-bay/data/sf/voiceW5');
+    const { W5_C_LINES } = await import('../src/opus-bay/data/sf/linesW5');
+    for (const line of W5_C_LINES) {
+      for (const lang of ['zh', 'en'] as const) assert.ok(W5_PACED_CLIPS[`${lang}-${line.id}`]?.duration > 0, `${lang}-${line.id}: an approved clip`);
+      assert.equal(moments.lineRecorded(line.id), true, `${line.id} recorded (the page's voice language)`);
+      const rec = W5_VOICE_LINES.find(l => l.id === line.id)!;
+      assert.deepEqual([rec.zh, rec.en], [line.zh, line.en], `${line.id}: the clip says the frozen words`);
+    }
+    assert.equal(moments.speakRecorded('w5c-pelican-ask'), true);
+    assert.deepEqual(voices, ['w5c-pelican-ask']);
     assert.equal(moments.lineRecorded('loop-pier-39-arrive'), true, 'a recorded wave-4 line');
     assert.equal(moments.speakRecorded('loop-pier-39-arrive'), true);
-    assert.deepEqual(voices, ['loop-pier-39-arrive']);
+    assert.deepEqual(voices, ['w5c-pelican-ask', 'loop-pier-39-arrive']);
     // offered by id: the frozen line; an unknown id falls back to the text
     moments.clearLines();
     assert.equal(moments.offerLineOr('w5c-deck-half', { zh: 'x', en: 'x' }, 10), true);
