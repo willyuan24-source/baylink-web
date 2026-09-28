@@ -520,8 +520,8 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
 - SS Jeremiah O'Brien stays UNREACHABLE in the static sweep (passes live).
 - Dev server only: after HMR the probes' bare `import()` of a module on an HMR chain is a second instance
   (`flow.endTrip` did nothing from the console once); `window.__opusBay.actions` / `.fastTravel` are the app's.
-- District lines in city zh bubbles still say English names (lane C's `data/pois.ts`: Exploratorium 里全是…, 这一站就在
-  Exploratorium 门口…).
+- ~~District lines in city zh bubbles say English names~~ — lane C's CP-14 (`6f50f97`) gives the waterfront POIs
+  their city names in the city (Exploratorium → 探索馆 in their barks too).
 
 ### Not done
 
@@ -542,8 +542,7 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
   how many); N then offers 陪 BAYBAY 散步过去 along the nearest one on the way.
 - **L**: Haight & Ashbury's site arrival (−42.2, 760.64) SNAGs in the sweep (moves 2 / 4, one way stopped at once);
   Irving St's as before.
-- **C** (`data/pois.ts` barks shown in the city): English in zh bubbles — Exploratorium 里全是能动手玩的实验…, 这一站就在
-  Exploratorium 门口… (探索馆).
+- ~~**C**: English in the city's zh bubbles~~ — done by lane C (CP-14, `6f50f97`).
 - **V**: the main graph grows by ≈ 0.4 KB gzip (above); the two new BAYBAY lines if they should be voiced.
 - **Lead**: none frozen.
 
