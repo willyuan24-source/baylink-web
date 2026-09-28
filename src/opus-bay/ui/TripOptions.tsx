@@ -2,7 +2,7 @@ import { Loader } from 'lucide-react';
 import type { TripOption } from '../game/tripTypes';
 import { useT } from '../i18n';
 import { LINE_ICONS, MODE_ICONS } from './mapIcons';
-import { optionAria, optionDetail, optionLineGlyph, optionTitle, orderOptions, tripSecondsLabel } from './tripRows';
+import { optionAria, optionDetail, optionKey, optionLineGlyph, optionTitle, orderOptions, tripSecondsLabel } from './tripRows';
 
 /**
  * Wave 4 · the ways to get to a place (lane P, W4-P11; plan §4.1 "Phone", §4.2 "带我去 → 跟 BAYBAY 去"): the rows under
@@ -28,7 +28,7 @@ export function TripOptions({ options, onPick, busy = false, max = 4, picked }: 
         const Icon = lineGlyph ? LINE_ICONS[lineGlyph] : MODE_ICONS[o.mode];
         const detail = optionDetail(o);
         return (
-          <li key={`${o.mode}:${o.legs.map(l => (l.via === 'line' ? l.line : l.via)).join('+')}`}>
+          <li key={optionKey(o)}>
             <button type="button" className={`mw-trip-row${o.recommended ? ' is-rec' : ''}${picked === o.mode ? ' is-on' : ''}`} onClick={() => onPick(o)} aria-label={t(optionAria(o))}>
               <span className={`mw-trip-ico m-${o.mode}`} aria-hidden><Icon size={20} strokeWidth={2.2} /></span>
               <span className="mw-trip-text">

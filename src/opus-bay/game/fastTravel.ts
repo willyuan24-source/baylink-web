@@ -73,7 +73,41 @@ export const TOP_DIST = 90;
 /** pelican cruise height above the ground (u) */
 export const CRUISE_Y = 48;
 
-export interface TripPlan { d: number; pan: number; cloud: boolean; yaw: number }
+export interface TripPlan {
+  d: number; pan: number; cloud: boolean; yaw: number;
+  /** W5-N9: the descent's length (s) when not DESCENT_S (a scenic flight's landing curve) */
+  descent?: number;
+}
+
+/** A camera shot (runtime.camera.shot without its duration). */
+export interface ScenicShot { position: [number, number, number]; target: [number, number, number] }
+
+/**
+ * W5-N9 · 看风景飞过去 (game/scenicFlight.ts, loaded with the trip runner): after the pickup and the rise the driver flies
+ * the pelican itself (a GlideSim: the autopilot or the player's controls) until it asks to land; the trip keeps the
+ * lock, the cinematic, the streaming, the landing and the events. Poses use TravelPose's convention (y = the seat − the
+ * perch, as the fast hop's path).
+ */
+export interface ScenicDriver {
+  /** the rise is over: fly on from this pose */
+  begin(x: number, y: number, z: number, heading: number): void;
+  /** one frame: 'fly' on; 'land' at the destination; 'here' where the pelican is (G); 'skip' the fast way from here */
+  step(dt: number, ready: boolean): 'fly' | 'land' | 'here' | 'skip';
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly heading: number;
+  /** 0..1 of the way */
+  readonly progress: number;
+  /** where the city streams (a little ahead of the pelican) */
+  focus(): Vec2;
+  /** the camera this frame */
+  shot(dt: number): ScenicShot;
+  /** the rise's closing camera behind a pose */
+  chaseAt(x: number, y: number, z: number, heading: number): ScenicShot;
+  /** the flight is over (landed, skipped, cancelled) */
+  end(): void;
+}
 
 export function planTrip(from: Vec2, to: Vec2): TripPlan {
   const d = Math.hypot(to.x - from.x, to.z - from.z);
@@ -88,7 +122,7 @@ export class TripClock {
   readonly plan: TripPlan;
   constructor(plan: TripPlan) { this.plan = plan; }
   duration(phase: TravelPhase = this.phase): number {
-    return phase === 'pickup' ? PICKUP_S : phase === 'rise' ? RISE_S : phase === 'pan' ? this.plan.pan : phase === 'hold' ? HOLD_MAX_S : DESCENT_S;
+    return phase === 'pickup' ? PICKUP_S : phase === 'rise' ? RISE_S : phase === 'pan' ? this.plan.pan : phase === 'hold' ? HOLD_MAX_S : this.plan.descent ?? DESCENT_S;
   }
   /** 0..1 in the current phase */
   get t(): number { return Math.min(1, this.elapsed / this.duration()); }
@@ -149,7 +183,18 @@ export function topShot(p: Vec2, gy: number, yaw: number, dist = TOP_DIST, pitch
 // ---------------------------------------------------------------------------
 
 let epoch = 0;
-interface Trip { dest: TravelDest; from: Vec2; clock: TripClock; ready: boolean; landed: Vec2 | null; veil: boolean; release: () => void }
+interface Trip {
+  dest: TravelDest; from: Vec2; clock: TripClock; ready: boolean; landed: Vec2 | null; veil: boolean; release: () => void;
+  /** W5-N9: the scenic flight's driver (null: the fast hop, or a scenic flight skipped to it) */
+  scenic: ScenicDriver | null;
+  /** W5-N9: where a scenic flight lands when not at the destination (G: where the pelican is) */
+  landAt: Vec2 | null;
+  /** W5-N9: the scenic landing curve (from the pelican, ahead at its height, down to the spot) */
+  curve: ScenicCurve | null;
+}
+
+/** W5-N9 · the scenic landing: a quadratic curve a → b → c (TravelPose y) and the heading along it. */
+export interface ScenicCurve { ax: number; ay: number; az: number; bx: number; by: number; bz: number; cx: number; cy: number; cz: number; heading: number }
 let trip: Trip | null = null;
 
 export function travelActive(): boolean { return trip !== null; }
@@ -157,8 +202,23 @@ export function travelEpoch(): number { return epoch; }
 /** ?at= teleports and resume also void rides in progress */
 export function bumpTravelEpoch() { epoch++; }
 export function travelPose(): TravelPose | null {
-  return trip ? tripPose(trip.clock, trip.from, trip.landed ?? trip.dest, heightAt) : null;
+  if (!trip) return null;
+  const c = trip.clock, sc = trip.scenic;
+  // W5-N9: a scenic flight is the driver's between the rise and the landing, then the landing curve
+  if (sc && c.phase === 'pan') return { phase: 'pan', t: sc.progress, x: sc.x, y: sc.y, z: sc.z, heading: sc.heading };
+  if (trip.curve && c.phase === 'descent') return curvePose(trip.curve, c.t);
+  return tripPose(c, trip.from, trip.landed ?? trip.dest, heightAt);
 }
+
+/** A point of the scenic landing curve at t (0..1, eased) as a pose. Pure. */
+export function curvePose(k: ScenicCurve, t: number): TravelPose {
+  const e = smooth(Math.min(1, Math.max(0, t)));
+  const q = (a: number, b: number, c: number) => (1 - e) * (1 - e) * a + 2 * (1 - e) * e * b + e * e * c;
+  return { phase: 'descent', t, x: q(k.ax, k.bx, k.cx), y: q(k.ay, k.by, k.cy), z: q(k.az, k.bz, k.cz), heading: k.heading };
+}
+
+/** The scenic landing's length (s): 11 u/s along the way down, 2–3.2 s. */
+export const scenicDescentSeconds = (d: number, drop: number): number => Math.min(3.2, Math.max(2, Math.hypot(d, drop) / 11));
 
 /** DOM view of the trip (the cloud veil and the caption): changes a few times per trip. */
 interface TravelView { active: boolean; veil: boolean; to: Bilingual | null }
@@ -235,17 +295,24 @@ export function placePlayer(p: Vec2, heading?: number) {
   pl.pendingInteract = null;
 }
 
-/** Start a trip (the caller closed the map and got the player off transit). False when one is running already. */
-export function startTravel(dest: TravelDest): boolean {
+/**
+ * Start a trip (the caller closed the map and got the player off transit). False when one is running already.
+ * `scenic` (W5-N9): the driver that flies the way itself after the rise (看风景飞过去).
+ */
+export function startTravel(dest: TravelDest, scenic: ScenicDriver | null = null): boolean {
   if (trip || !Number.isFinite(dest.x) || !Number.isFinite(dest.z)) return false;
   const from = { x: runtime.player.x, z: runtime.player.z };
+  const plan = planTrip(from, dest);
+  // a scenic flight's sky part ends when its driver asks to land, never on the clock
+  if (scenic) { plan.pan = Infinity; plan.cloud = false; }
   // (W5-0b) the trip holds the feet through game/playerLock: a lock re-derived mid-trip (a line's dialogue closing, a
   // ride ending) keeps the rider on the pelican, and the landing's release lets the refresher free them
-  trip = { dest, from, clock: new TripClock(planTrip(from, dest)), ready: false, landed: null, veil: false, release: holdLock('travel', dest.id) };
+  trip = { dest, from, clock: new TripClock(plan), ready: false, landed: null, veil: false, release: holdLock('travel', dest.id), scenic, landAt: null, curve: null };
   epoch++;
   game.set({ move: { mode: 'travel' } });
   runtime.player.pathTarget = null;
-  flow.set({ cinematic: 'travel', caption: { zh: `飞往 · ${dest.name.zh}`, en: `Flying to ${dest.name.en}` }, captionSub: null, mapTarget: null });
+  const caption = scenic ? { zh: `看风景 · 飞往${dest.name.zh}`, en: `Scenic flight to ${dest.name.en}` } : { zh: `飞往 · ${dest.name.zh}`, en: `Flying to ${dest.name.en}` };
+  flow.set({ cinematic: 'travel', caption, captionSub: null, mapTarget: null });
   setView({ active: true, veil: false, to: dest.name });
   emit({ type: 'travel', what: 'start', to: dest.id });
   // the city around the destination: resolves once it is on screen and walkable
@@ -262,18 +329,42 @@ export function startTravel(dest: TravelDest): boolean {
 /** Esc / Skip during a trip: straight into the cloud (the landing still waits for the city). */
 export function skipTravel() {
   if (!trip) return;
+  // W5-N9: a scenic flight skipped takes the fast way from where it is (the cloud hides the jump to the destination)
+  if (trip.scenic && trip.clock.phase !== 'descent') { dropScenic(trip); trip.clock.plan.cloud = true; }
   trip.clock.skip();
   enterPhase(trip, trip.clock.phase);
+}
+
+/** The scenic flight hands the rest of the trip to the fast hop (skipped, or the autopilot cannot get there). */
+function dropScenic(tr: Trip) {
+  tr.scenic?.end();
+  tr.scenic = null;
+  tr.landAt = null;
+  tr.clock.plan.pan = 0;
+}
+
+/** A scenic flight lands: at the destination, or where the pelican is (G). Its descent is the landing curve. */
+function scenicLand(tr: Trip, sc: ScenicDriver, here: boolean) {
+  if (here) {
+    const f = 14;
+    tr.landAt = { x: sc.x + Math.sin(sc.heading) * f, z: sc.z + Math.cos(sc.heading) * f };
+  }
+  tr.clock.phase = 'descent';
+  tr.clock.elapsed = 0;
+  enterPhase(tr, 'descent');
 }
 
 function enterPhase(tr: Trip, phase: TravelPhase) {
   const { plan } = tr.clock;
   const s = cityStreamerLazy();
   if (phase === 'rise') {
-    const top = topShot(tr.from, heightAt(tr.from.x, tr.from.z), plan.yaw);
-    runtime.camera.shot = { ...top, duration: RISE_S };
+    // W5-N9: a scenic flight rises into the glide's own camera behind the pelican (not the top view)
+    const gy = heightAt(tr.from.x, tr.from.z);
+    const shot = tr.scenic ? tr.scenic.chaseAt(tr.from.x, gy + CRUISE_Y, tr.from.z, plan.yaw) : topShot(tr.from, gy, plan.yaw);
+    runtime.camera.shot = { ...shot, duration: RISE_S };
   } else if (phase === 'pan') {
-    if (s) s.focusOverride = { x: tr.dest.x, z: tr.dest.z };
+    if (tr.scenic) tr.scenic.begin(tr.from.x, heightAt(tr.from.x, tr.from.z) + CRUISE_Y, tr.from.z, plan.yaw);
+    else if (s) s.focusOverride = { x: tr.dest.x, z: tr.dest.z };
   } else if (phase === 'hold') {
     if (s) s.focusOverride = { x: tr.dest.x, z: tr.dest.z };
     // long trips and a destination still streaming: the cloud hides the jump / the pop-in
@@ -282,21 +373,38 @@ function enterPhase(tr: Trip, phase: TravelPhase) {
     const top = topShot(tr.dest, heightAt(tr.dest.x, tr.dest.z), plan.yaw);
     runtime.camera.shot = { ...top, duration: veil ? 0.001 : 0.6 };
   } else if (phase === 'descent') {
-    const spot = arrivalSpot(tr.dest);
-    const heading = landingHeading(spot, tr.dest, plan.yaw);
+    // (W5-N9: a scenic flight landing where the pelican is: that spot, facing on — no destination heading or first sight)
+    const sc = tr.scenic, at = tr.landAt;
+    const spot = arrivalSpot(at ?? tr.dest);
+    const dest = at ? {} : tr.dest;
+    const heading = landingHeading(spot, dest, sc ? sc.heading : plan.yaw);
     tr.landed = spot;
     placePlayer(spot, heading);
-    // the top view straight over the landing spot, then down to behind the player (a first sight: its landmark ahead)
     const gy = heightAt(spot.x, spot.z);
     tr.veil = false;
     setView({ ...view, veil: false });
-    runtime.camera.shot = { ...descentShot(spot, gy, heading, tr.dest.look), duration: DESCENT_S };
-    if (tr.dest.look) flow.set({ caption: { zh: `第一次来 · ${tr.dest.name.zh}`, en: `First time here · ${tr.dest.name.en}` } });
+    let dur = DESCENT_S;
+    if (sc) {
+      // the landing curve from the pelican, ahead at its height, down onto the spot (the pose's y: the seat − the perch)
+      const d = Math.hypot(spot.x - sc.x, spot.z - sc.z), k = Math.min(d * 0.55, 18);
+      const fx = Math.sin(sc.heading), fz = Math.cos(sc.heading);
+      dur = scenicDescentSeconds(d, sc.y - gy);
+      tr.curve = { ax: sc.x, ay: sc.y, az: sc.z, bx: sc.x + fx * k, by: sc.y, bz: sc.z + fz * k, cx: spot.x, cy: gy, cz: spot.z, heading: d > 1 ? Math.atan2(spot.x - sc.x, spot.z - sc.z) : sc.heading };
+      tr.clock.plan.descent = dur;
+      sc.end();
+      tr.scenic = null;
+    }
+    // the top view straight over the landing spot (a scenic flight: from behind the pelican), then down to behind the
+    // player (a first sight: its landmark ahead)
+    const look = at ? undefined : tr.dest.look;
+    runtime.camera.shot = { ...descentShot(spot, gy, heading, look), duration: dur };
+    if (look) flow.set({ caption: { zh: `第一次来 · ${tr.dest.name.zh}`, en: `First time here · ${tr.dest.name.en}` } });
   }
 }
 
 function finish(tr: Trip) {
   trip = null;
+  tr.scenic?.end();
   const s = cityStreamerLazy();
   if (s) s.focusOverride = null;  // CS-4: never leave the streamer pinned
   runtime.camera.shot = null;
@@ -318,6 +426,17 @@ export function stepTravel(dt: number) {
   const tr = trip;
   if (!tr) return;
   const c = tr.clock;
+  // W5-N9: the scenic flight flies itself (the autopilot or the player) until it asks to land
+  const sc = tr.scenic;
+  if (sc && c.phase === 'pan') {
+    const r = sc.step(dt, tr.ready);
+    const s = cityStreamerLazy();
+    if (s) s.focusOverride = sc.focus();
+    runtime.camera.shot = { ...sc.shot(dt), duration: 0.001 };
+    if (r === 'land' || r === 'here') scenicLand(tr, sc, r === 'here');
+    else if (r === 'skip') skipTravel();
+    return;
+  }
   if (c.phase === 'pan') {
     // the camera flies with the pelican: target along the path
     const p = panPoint(tr.from, tr.dest, c.plan, c.t);

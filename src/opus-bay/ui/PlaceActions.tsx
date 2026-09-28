@@ -15,6 +15,7 @@ import { isDiscovered, useDiscoveryEpoch } from '../game/discovery';
 import { openPanel } from '../game/flow';
 import { type PlaceTripDest, startPlaceTrip } from '../game/placeTrips';
 import { planTrips } from '../game/tripPlan';
+import { withScenic } from '../game/scenicTrip';
 import { tripProviders, tripRouteCache } from '../game/tripProviders';
 import type { TripOption } from '../game/tripTypes';
 import { cityTravelLabel } from '../game/travel';
@@ -47,7 +48,9 @@ export function useTripOptions(dest: PlaceTripDest | null): { options: TripOptio
   useEffect(() => tripRouteCache().subscribe(() => setRev(r => r + 1)), []);
   return useMemo(() => {
     if (!dest) return { options: [], busy: false };
-    const options = planTrips(from, dest, tripProviders());
+    const providers = tripProviders();
+    // W5-N9: 看风景飞过去 right after the fast 飞过去 (mid distances, the pelican unlocked; never 推荐)
+    const options = withScenic(planTrips(from, dest, providers), !!providers.flyUnlocked?.());
     return { options, busy: options.some(o => o.legs.some(l => l.estimate)) };
   }, [dest, from, rev]); // eslint-disable-line react-hooks/exhaustive-deps
 }

@@ -1,6 +1,7 @@
 import type { Bilingual } from '../core/types';
 import { timeLabel } from '../game/tripText';
 import { TRIP_MODE_NAMES, TRIP_MODES, type TripLeg, type TripLineLeg, type TripOption } from '../game/tripTypes';
+import { SCENIC_NAME, isScenicOption } from '../game/scenicTrip';
 import { LINE_STYLES, type LineGlyph } from './mapLines';
 
 /**
@@ -22,6 +23,8 @@ const firstLine = (o: TripOption): TripLineLeg | undefined => o.legs.find((l): l
 
 /** The row's title: the mode name, or for a line option what you ride and how many stops ("观光巴士 2 站"). */
 export function optionTitle(o: TripOption): Bilingual {
+  // W5-N9: the scenic flight has its own name (看风景飞过去)
+  if (isScenicOption(o)) return SCENIC_NAME;
   const ride = firstLine(o);
   if (o.mode !== 'line' || !ride) return TRIP_MODE_NAMES[o.mode];
   const st = LINE_STYLES[ride.line];
@@ -69,10 +72,20 @@ export function optionDetail(o: TripOption): Bilingual | null {
   return { zh: parts.map(p => p.zh).join(' · '), en: parts.map(p => p.en).join(' · ') };
 }
 
-/** Rows in display order: recommended first, then by seconds, then the TRIP_MODES tie-break; at most `max`. */
+/**
+ * Rows in display order: recommended first, then by seconds, then the TRIP_MODES tie-break; at most `max`. W5-N9: the
+ * scenic flight is not counted and stands right after the fast 飞过去 (without that row shown, not at all).
+ */
 export function orderOptions(options: readonly TripOption[], max = 4): TripOption[] {
-  return [...options].sort((a, b) => Number(!!b.recommended) - Number(!!a.recommended) || a.seconds - b.seconds || TRIP_MODES.indexOf(a.mode) - TRIP_MODES.indexOf(b.mode)).slice(0, max);
+  const scenic = options.find(isScenicOption);
+  const rows = options.filter(o => o !== scenic)
+    .sort((a, b) => Number(!!b.recommended) - Number(!!a.recommended) || a.seconds - b.seconds || TRIP_MODES.indexOf(a.mode) - TRIP_MODES.indexOf(b.mode)).slice(0, max);
+  const i = scenic ? rows.findIndex(o => o.mode === 'fly') : -1;
+  return i >= 0 && scenic ? [...rows.slice(0, i + 1), scenic, ...rows.slice(i + 1)] : rows;
 }
+
+/** A row's React key: the mode and its legs (W5-N9: the scenic flight apart from the fast one). */
+export const optionKey = (o: TripOption): string => `${o.mode}${isScenicOption(o) ? '-scenic' : ''}:${o.legs.map(l => (l.via === 'line' ? l.line : l.via)).join('+')}`;
 
 /**
  * W5-N3 · the big go button's words (plan MF4 "🐦 飞过去 · 8 秒 / 🚶 BAYBAY 带路 · 3 分钟 / 🚲 骑车 · 2 分钟"): what

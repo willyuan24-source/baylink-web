@@ -15,6 +15,8 @@ import {
 } from './autoTravel';
 import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
+import { ScenicFlight } from './scenicFlight';
+import { isScenicLeg } from './scenicTrip';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
 } from './flow';
@@ -54,6 +56,11 @@ export const STOP_R = 3.5;
 export const ALIGHT_R = 40;
 /** a drive leg ends this close to its end point */
 export const DRIVE_R = 10;
+/**
+ * a flight that landed this close to its leg's end arrived (the landing spot is an open area within 30 u, else the
+ * nearest walkable ground within 40 u); farther (W5-N9: G on a scenic flight lands where the pelican is) the rest walks
+ */
+export const FLY_END_R = 60;
 
 type Stage = 'lead' | 'board' | 'ride' | 'drive' | 'fly';
 
@@ -124,7 +131,8 @@ function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   const name = destName(t);
   if (source !== 'tour' && source !== 'free-lead') {
     const first = t.legs[0];
-    const line = first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
+    const line = isScenicLeg(first) ? { zh: '抓紧！我们低低地飞，看看风景～', en: 'Hold on — we fly low and see the sights!' }
+      : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
       : first.via === 'line' || t.legs.some(l => l.via === 'line') ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
         : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
           : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
@@ -154,7 +162,9 @@ function onLegStart(t: TripState) {
     // off a cable car / the bus first; bikes and the car park when the move mode turns 'travel'
     if (game.get().move.mode === 'transit' || game.get().riding) requestHopOff();
     closePanel();
-    if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z, ...firstSight(t) })) arrived();
+    // W5-N9: 看风景飞过去 — the pelican flies the way itself (the autopilot, or the player's controls)
+    const scenic = isScenicLeg(leg) ? new ScenicFlight({ x: leg.to.x, z: leg.to.z }) : null;
+    if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z, ...firstSight(t) }, scenic)) arrived();
   }
 }
 
@@ -352,7 +362,10 @@ function tick(now: number) {
     }
     case 'fly':
       if (travelActive()) { travelSeen = true; return; }
-      if (travelSeen) arrived();
+      if (!travelSeen) return;
+      // W5-N9: landed where the pelican was (G on a scenic flight): the rest is a walk from there
+      if (dist(p, leg.to) <= FLY_END_R) arrived();
+      else walkRest(t, { zh: '就在这儿降落啦，我们走过去！', en: 'We landed here — let’s walk the rest!' });
       return;
   }
 }
