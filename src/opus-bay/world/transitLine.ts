@@ -128,6 +128,16 @@ const BOARD_MIN = 1.6;
 const TELEPORT_BACK = [30, 22, 15, 45, 70, 100];
 /** a rider waiting longer than this (s) gets a new dispatch attempt every second */
 const REDISPATCH_ETA = 20;
+/**
+ * (W5-T review) A rider who has waited this long (s) at a stop whose approach lies in view — the Hyde & Beach, Taylor & Bay
+ * and Powell & Market turntables look straight down their streets — may have a car brought in within view once the spot is
+ * RELAX_DISTANCE from them (the car drawn with its far look), from RELAX_BACK u back as well; the car moved still comes
+ * from out of view. The loop bus has the same rule (world/busSystem.ts BUS.waitRelax). With 250 u round a terminus in
+ * view a rider waited 23–203 s in node (median 68) and 88–127 s in the game at Hyde & Beach.
+ */
+export const WAIT_RELAX = 12;
+export const RELAX_DISTANCE = 110;
+const RELAX_BACK = [130, 160, 190];
 /** (W5-T part c) a bus this close (u) to an interlock box it shares with a cable line has it first (CableSystem.free) */
 export const BOX_DUE = 160;
 /** (W5-T part c) a car's stop inside a box's part while a bus waits there (s): the reversal at Drumm included */
@@ -155,6 +165,8 @@ export class CableSystem {
   private readonly yieldSince = new Map<number, number>();
   private status: RideStatus | null = null;
   private retry = 0;
+  /** (W5-T review) seconds the rider has waited for the current request */
+  private waited = 0;
   /** simulated seconds (tests) */
   time = 0;
 
@@ -347,6 +359,7 @@ export class CableSystem {
     }
     this.req = req;
     this.retry = 1;
+    this.waited = 0;
     this.riderCar = best.index;
     best.pickup = { station: req.station, dir: req.dir };
     best.dropoff = req.to;
@@ -393,12 +406,14 @@ export class CableSystem {
    * beats `maxEta`. At a terminus pickup the car arrives to turn. Every placement is out of sight, away from the player,
    * between two stops (never on one), and on a free block with nobody right behind it.
    */
-  private bringIn(cars: CableCar[], line: CableLine, stop: CableStop, dir: 1 | -1, maxEta = Infinity): CableCar | null {
+  private bringIn(cars: CableCar[], line: CableLine, stop: CableStop, dir: 1 | -1, maxEta = Infinity, relaxed = false): CableCar | null {
     const vis = this.opts.visible ?? (() => false);
     const viewer = this.opts.viewer?.();
+    // (W5-T review) relaxed (the rider has waited WAIT_RELAX s): a spot in view is fine RELAX_DISTANCE from the rider
+    const hidden = (x: number, z: number) => !vis(x, z) || (relaxed && !!viewer && Math.hypot(x - viewer.x, z - viewer.z) >= RELAX_DISTANCE);
     const arriveDir = (stop.terminus && ((stop.at < 0.5 && dir > 0) || (stop.at > line.length - 0.5 && dir < 0)) ? -dir : dir) as 1 | -1;
     const target = stopPos(stop, arriveDir);
-    const cands: { place: number; pdir: 1 | -1; near: boolean }[] = TELEPORT_BACK.map(back => ({ place: target - arriveDir * back, pdir: arriveDir, near: back <= 30 }));
+    const cands: { place: number; pdir: 1 | -1; near: boolean }[] = (relaxed ? [...TELEPORT_BACK, ...RELAX_BACK] : TELEPORT_BACK).map(back => ({ place: target - arriveDir * back, pdir: arriveDir, near: back <= 30 }));
     const upEnd = arriveDir > 0 ? 0 : line.length;
     if (!stop.terminus && Math.abs(target - upEnd) < TELEPORT_BACK[3]) for (const back of [45, 70]) cands.push({ place: target + arriveDir * back, pdir: -arriveDir as 1 | -1, near: false });
     for (const cand of cands) {
@@ -420,7 +435,7 @@ export class CableSystem {
         if (place - lo < HALF + 1 || hi - place < HALF + 1) continue;
       }
       const at = pointAt(line, place, tmpA);
-      if (vis(at.x, at.z)) continue;
+      if (!hidden(at.x, at.z)) continue;
       if (viewer && Math.hypot(at.x - viewer.x, at.z - viewer.z) < 22) continue;
       for (const c of cars) {
         if (c.rider || c.mode === 'turn') continue;
@@ -453,7 +468,7 @@ export class CableSystem {
     if (!req || !st || !cur) return;
     const line = cur.line, stop = line.stops.find(s => s.station === req.station);
     if (!stop) return;
-    const moved = this.bringIn(this.cars.filter(c => c.line === line), line, stop, req.dir, st.eta);
+    const moved = this.bringIn(this.cars.filter(c => c.line === line), line, stop, req.dir, st.eta, this.waited >= WAIT_RELAX);
     if (!moved) return;
     if (moved !== cur) { cur.pickup = null; cur.dropoff = null; }
     moved.pickup = { station: req.station, dir: req.dir };
@@ -803,6 +818,7 @@ export class CableSystem {
 
   private updateStatus(dt: number) {
     const st = this.status;
+    if (st?.phase === 'coming') this.waited += dt;
     if (st?.phase === 'coming' && (this.retry -= dt) <= 0) {
       this.retry = 1;
       this.reassign();

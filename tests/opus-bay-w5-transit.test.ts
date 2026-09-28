@@ -34,6 +34,7 @@ const { sfDisk } = await import('./opus-bay-sf-disk');
 const T = await import('../src/opus-bay/data/transit');
 const { LineFleet } = await import('../src/opus-bay/world/sf/lineFleet');
 const { CableSystem, PUSH_BOOST, setActiveCableSystem } = await import('../src/opus-bay/world/transitLine');
+const TL = await import('../src/opus-bay/world/transitLine');
 const { game } = await import('../src/opus-bay/core/store');
 const { runtime } = await import('../src/opus-bay/core/runtime');
 const transit = await import('../src/opus-bay/game/transit');
@@ -1154,6 +1155,40 @@ test('W5-T part c (CP-11) the loop and the cable cars for an hour: no bus stands
     assert.ok(worstCar <= 40, `longest cable car stand ${worstCar.toFixed(1)} s`);
     assert.deepEqual(bad, []);
   } finally { T.setActiveLineFleet(null); fleet.dispose(); }
+});
+
+test('W5-T review: a rider at a turntable terminus with the whole approach in view gets a car within 90 s (after 12 s a car may be brought in within view, ≥ 110 u away, from out of view)', () => {
+  // (the review's probe on 3d113a97, the same camera: Hyde & Beach 37–191 s, Taylor & Bay 44–143, Powell & Market
+  // 23–203; in the game 88–127 s at Hyde & Beach on desktop and on the phone)
+  const { WAIT_RELAX, RELAX_DISTANCE } = TL;
+  assert.ok(WAIT_RELAX <= 15 && RELAX_DISTANCE >= 100);
+  const waits: string[] = [];
+  let worst = 0;
+  for (const [line0, station, dir, to] of [['powell-hyde', 'hyde-beach', -1, 'powell-market'], ['powell-mason', 'taylor-bay', -1, 'powell-market'], ['powell-hyde', 'powell-market', 1, 'hyde-beach']] as const) {
+    const st = DATA.stations.find(s => s.id === station)!;
+    for (const warm of [40, 130, 220, 310, 400]) {
+      // the player stands at the stop; the camera sees 250 u round it (the whole street down to the turntable)
+      const sys = new CableSystem(DATA, { viewer: () => ({ x: st.x + 3, z: st.z + 3, onFoot: false }), visible: (x, z) => Math.hypot(x - st.x, z - st.z) < 250 });
+      for (let t = 0; t < warm; t += DT) sys.step(DT);
+      assert.ok(sys.request({ line: line0, station, dir, to }));
+      let t = 0;
+      const was = sys.cars.map(c => ({ x: c.pose.x, z: c.pose.z }));
+      while (t < 240 && sys.rideStatus()!.phase !== 'here') {
+        sys.step(DT); t += DT;
+        // a car brought in within view lands ≥ RELAX_DISTANCE from the rider, and only after WAIT_RELAX s of waiting
+        sys.cars.forEach((c, k) => {
+          const jump = Math.hypot(c.pose.x - was[k].x, c.pose.z - was[k].z), d = Math.hypot(c.pose.x - st.x - 3, c.pose.z - st.z - 3);
+          if (jump > 5 && d < 250) assert.ok(d >= RELAX_DISTANCE && t >= WAIT_RELAX, `${station}@${warm}: a car popped in ${d.toFixed(0)} u away after ${t.toFixed(1)} s`);
+          was[k].x = c.pose.x; was[k].z = c.pose.z;
+        });
+      }
+      assert.equal(sys.rideStatus()!.phase, 'here', `${station} after ${warm} s`);
+      assert.deepEqual(sys.violations(), []);
+      worst = Math.max(worst, t);
+      waits.push(`${station}@${warm}: ${t.toFixed(0)}`);
+    }
+  }
+  assert.ok(worst <= 90, `waits ${waits.join(', ')}`);
 });
 
 test('W5-T part c (CP-11) a car outside a box part leaves it to a bus due there; the car carrying the rider never yields; a car inside hurries its stop', () => {
