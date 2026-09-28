@@ -143,7 +143,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('金门公园 · 音乐广场', 'Golden Gate Park · Music Concourse'),
     plaza: bi('音乐广场', 'Music Concourse'),
     lat: 37.771498, lng: -122.46872,
-    arrival: { x: 11.5, z: 8, heading: -Math.PI / 2 },
+    // in the forecourt under the tower, facing it (D2-09), not on Music Concourse Drive (wave-4 L, D2's request 1)
+    arrival: { x: 3.2, z: -2.0, heading: -1.01 },
     photo: { target: [1, 6, 3], distance: 36, elevation: 0.18, bearing: 1.25 },
     height: { realM: 51, u: 11.2, rule: 'H = 3.2 + 0.155·h' },
     plannerPlaceId: 'golden-gate-park',
@@ -169,7 +170,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('艺术宫', 'Palace of Fine Arts'),
     zone: bi('马里纳区', 'The Marina'),
     lat: 37.802918, lng: -122.448385,
-    arrival: { x: 3, z: 18.5, heading: Math.PI },
+    // on the lagoon's south shore walk in front of the rotunda (D2-09's shore walks; wave-4 L, D2's request 1)
+    arrival: { x: 1.5, z: 16.6, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 58, elevation: 0.1, bearing: 0.15 },
     height: { realM: 49, u: 10.8, rule: 'H = 3.2 + 0.155·h' },
     plannerPlaceId: 'palace',
@@ -399,7 +401,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('Fort Point 炮台', 'Fort Point'),
     zone: bi('要塞公园 · 金门大桥南端', 'Presidio · south end of the bridge'),
     lat: 37.810509, lng: -122.477104,
-    arrival: { x: 0.5, z: -8, heading: 0 },
+    // on the granite apron at the landward wall (D2-09), no longer 3.2 u up the bluff (wave-4 L, D2's request 1)
+    arrival: { x: 2.4, z: -4.9, heading: 0 },
     photo: { target: [0, 4, 0], distance: 32, elevation: 0.22, bearing: 1.35 },
     height: { realM: 15, u: 5.5, rule: 'H = 3.2 + 0.155·h' },
     plannerPlaceId: 'golden-gate',
@@ -426,7 +429,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('卡斯特罗', 'The Castro'),
     plaza: bi('哈维·米尔克广场', 'Harvey Milk Plaza'),
     lat: 37.762, lng: -122.434748,
-    arrival: { x: 0, z: -7.5, heading: 2 * Math.PI },
+    // across Castro St from the turned facade (D2-09 Castro), no longer behind the theatre on Hartford St (wave-4 L)
+    arrival: { x: 0, z: 7.3, heading: Math.PI },
     photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 0.3 },
     height: { realM: 21.7, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
