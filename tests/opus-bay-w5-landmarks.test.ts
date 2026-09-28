@@ -19,12 +19,19 @@ import { sfDisk } from './opus-bay-sf-disk';
 // Wave 5 · lane L (landmarks & streets): W5-L1 (the tier-3 sites registered, the sweep over every site-backed
 // attraction's trip end, the site arrivals table for lane N), W5-L3 (the Seward Street Slides for lane A).
 
-/** the 13 tier-3 sites W5-L1 registered (built by lane L3 after W4-IL1) */
-const REGISTERED_W5 = ['womens-building', 'alta-plaza-park', 'buena-vista-park', 'calle-24', 'china-beach', 'glen-canyon-park', 'lafayette-park', 'mclaren-park', 'mount-sutro-open-space', 'mountain-lake-park', 'noe-valley-town-square', 'patricias-green', 'sutro-heights-park'];
+/** the 15 tier-3 sites W5-L1 registered (built by lane L3 after W4-IL1): 13 in part a, the last two in part c */
+const REGISTERED_W5 = ['womens-building', 'alta-plaza-park', 'buena-vista-park', 'calle-24', 'china-beach', 'glen-canyon-park', 'lafayette-park', 'mclaren-park', 'mount-sutro-open-space', 'mountain-lake-park', 'noe-valley-town-square', 'patricias-green', 'sutro-heights-park', 'wave-organ', 'ina-coolbrith-park'];
 /** the downtown gate spots (sf-w5-lead.md §6: nothing new there until lane V publishes the measured headroom) */
 const DOWNTOWN = ['ferry-gate', 'chinatown', 'union-square', 'grace-nob-hill', 'powell-market'];
+/**
+ * Registered within a downtown gate spot's reach after lane V published the measured headroom (sf-w5-V.md part a, "The
+ * downtown headroom" after the levers: Chinatown ≈ 50k, Union Square ≈ 45k, Grace / Nob Hill ≈ 60k; part b's gate
+ * measured 128k, 121k and 142k there): the site and the spots its lod-0 ring (220 u) reaches. A tier-3 site stays
+ * ≤ 800 triangles and ≤ 2 calls (tests/opus-bay-sf-sites-w4t3).
+ */
+const DOWNTOWN_OK: Record<string, readonly string[]> = { 'ina-coolbrith-park': ['chinatown', 'union-square', 'grace-nob-hill'] };
 
-test('W5-L1: the tier-3 sites built after W4-IL1 are registered with their tops rows; none reaches a downtown gate spot (Ina Coolbrith waits)', () => {
+test('W5-L1: the tier-3 sites built after W4-IL1 are registered with their tops rows; only Ina Coolbrith reaches a downtown gate spot (lane V\'s published headroom)', () => {
   const spots = (JSON.parse(readFileSync(new URL('../scripts/opus-sf/qa/perf/w4-spots.json', import.meta.url), 'utf8')) as { spots: { id: string; go?: { x?: number; z?: number; anchor?: string } }[] }).spots;
   const at = (id: string): Vec2 => {
     const g = spots.find(s => s.id === id)!.go!;
@@ -38,17 +45,27 @@ test('W5-L1: the tier-3 sites built after W4-IL1 are registered with their tops 
     assert.ok(s && w4Site(id) === s, `${id} answers sfLandmark / w4Site`);
     assert.ok(LANDMARK_TOPS[id], `${id} has its tops row (scripts/opus-sf/assets/landmark-tops.ts)`);
     const r = siteLod0R(s) ?? LOD0[s.tier];
-    for (const d of DOWNTOWN) {
-      const p = at(d), dist = Math.hypot(p.x - s.x, p.z - s.z);
-      assert.ok(dist > r, `${id}: its lod-0 ring (${r} u) reaches the ${d} gate spot (${dist.toFixed(0)} u)`);
-    }
+    const reached = DOWNTOWN.filter(d => { const p = at(d); return Math.hypot(p.x - s.x, p.z - s.z) <= r; });
+    assert.deepEqual(reached, [...(DOWNTOWN_OK[id] ?? [])], `${id}: the downtown gate spots its lod-0 ring (${r} u) reaches`);
   }
-  // two wait: the Wave Organ for lane D's egg spot at its tip (w4list3.ts), Ina Coolbrith for lane V's downtown
-  // headroom (it is inside the Grace / Nob Hill spot's ring)
-  assert.deepEqual(W4_SITES_T3_NEXT.map(s => s.id), ['wave-organ', 'ina-coolbrith-park']);
-  const ina = W4_SITES_T3_NEXT[1], g = at('grace-nob-hill');
-  assert.ok(Math.hypot(g.x - ina.x, g.z - ina.z) < LOD0[3], 'Ina Coolbrith would reach the Grace / Nob Hill spot');
-  for (const s of W4_SITES_T3_NEXT) assert.equal(sfLandmark(s.id), undefined, `${s.id} not registered yet`);
+  // none waits any more: the Wave Organ registered once lane D's egg spot moved onto the upper terrace, Ina Coolbrith
+  // once lane V published the downtown headroom
+  assert.deepEqual(W4_SITES_T3_NEXT.map(s => s.id), []);
+});
+
+test('W5-L1 (CP-8): the Wave Organ\'s jetty is walked — from the spit\'s root on Yacht Road along the deck to the terraces, lane D\'s egg, lane A\'s view spot and lane E\'s jetty coins', async () => {
+  const w = await world();
+  const S = sfLandmark('wave-organ')!, root = SITE_ARRIVALS['wave-organ'];
+  try {
+    assert.ok(root && root.site === 'wave-organ', 'the trip ends at the spit\'s root (the site table)');
+    await w.attach(S.x - 15, S.z + 30, 90);
+    // the tip's terraces (the egg's and the view's spots stand there) and two points of the jetty (lane E's coins)
+    for (const p of [{ x: -413, z: 289.8 }, { x: -413, z: 296 }, { x: -425.1, z: 314.7 }, { x: -438.4, z: 340.4 }]) {
+      assert.ok(w.T.canStand(p.x, p.z, 0.4), `(${p.x}, ${p.z}) standable`);
+      const path = w.nav.findPath({ x: root.x, z: root.z }, p, 1), e = path?.points[path.points.length - 1];
+      assert.ok(path && e && Math.hypot(e.x - p.x, e.z - p.z) < 1.1, `(${p.x}, ${p.z}) walked from the root: ${path ? `ends ${Math.hypot(e!.x - p.x, e!.z - p.z).toFixed(2)} u short` : 'no path'}`);
+    }
+  } finally { w.T.setCityTerrain(null); worldP = null; }
 });
 
 // ---------------------------------------------------------------------------
@@ -184,6 +201,57 @@ test('W5-L1: the walk sweep — every site-backed attraction ends its trip where
     }
   } finally { w.T.setCityTerrain(null); worldP = null; }
   assert.ok(n >= 60, `${n} attractions swept`);
+  assert.deepEqual(bad, []);
+});
+
+/**
+ * Route stops where only two ways are open because of what stands there (the walk sweep's CORRIDOR: reported, not a
+ * failure), with the reason. Every other stop and via point must let the walker go three of four ways (plan MF2).
+ */
+const ROUTE_CORRIDORS: Record<string, string> = {
+  'r1-dragon-gate': 'the Dragon Gate\'s arch on Grant Avenue: the street runs through it (the landmark\'s arrival)',
+  'r1-tin-how': 'Waverly Place is an alley between shopfronts',
+  'r2-south-tower': 'the bridge deck, between its railings',
+  'r3-de-young': 'the de Young\'s forecourt between the tower\'s wall and the concourse\'s planting (the landmark\'s arrival)',
+  'r3-windmill': 'the windmill\'s path between its tulip beds (the landmark\'s arrival)',
+};
+
+test('W5-L1 (CP-8): every walking-route stop and via point passes the walk sweep\'s judge — standable, reached from the walking graph, three of four ways open (the checkpoint\'s r2 Fort Point and r3 Tea Garden stalls)', async () => {
+  const { SF_ROUTES } = await import('../src/opus-bay/data/sf/routes');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const { openHeading } = await import('../src/opus-bay/actors/faceOpen');
+  const g = globalThis as unknown as Record<string, unknown>;
+  g.window ??= globalThis;
+  const w = await world();
+  const ctl = new PlayerController(), DT = 1 / 30;
+  /** lane F's static sweep (scripts/opus-sf/qa/sweep-static.mts): the real controller pushed 1.5 s one way */
+  const push = (x: number, z: number, h: number) => {
+    const p = runtime.player;
+    p.x = x; p.z = z; p.y = w.T.heightAt(x, z); p.heading = h; p.pathTarget = null; p.locked = false;
+    ctl.sync();
+    const yaw = Math.atan2(-Math.sin(h), -Math.cos(h));
+    runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
+    for (let i = 0; i < 1.5 / DT; i++) ctl.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false });
+    runtime.input.moveY = 0;
+    return Math.hypot(p.x - x, p.z - z);
+  };
+  const bad: string[] = [];
+  try {
+    for (const r of SF_ROUTES) for (const s of r.stops) {
+      for (const [id, x, z] of [[s.id, s.x, s.z] as const, ...(s.via ?? []).map(([vx, vz], i) => [`${s.id}:via${i + 1}`, vx, vz] as const)]) {
+        await w.attach(x, z, 48);
+        if (!w.T.canStand(x, z, 0.4)) { bad.push(`${id}: not standable`); continue; }
+        const n = w.ix.nearestNode(x, z, 60, k => w.ix.component(k) === w.main);
+        const path = n < 0 ? null : w.nav.findPath({ x: w.ix.x(n), z: w.ix.z(n) }, { x, z }, 8), e = path?.points[path.points.length - 1];
+        if (!path || !e || Math.hypot(e.x - x, e.z - z) > 1.1) bad.push(`${id}: not reached from the walking graph`);
+        const h0 = openHeading(x, z, 0).heading;
+        const moved = [0, 1, 2, 3].map(k => push(x, z, h0 + (k * Math.PI) / 2));
+        const ways = moved.filter(d => d >= 3).length;
+        if (ways < (ROUTE_CORRIDORS[id] ? 2 : 3)) bad.push(`${id}: ${ways} of 4 ways open (${moved.map(d => d.toFixed(1)).join(' / ')} u)`);
+      }
+    }
+  } finally { w.T.setCityTerrain(null); worldP = null; }
   assert.deepEqual(bad, []);
 });
 

@@ -16,6 +16,7 @@ import { W4_ALL_SITES } from '../../src/opus-bay/world/sf/landmarks/w4sites';
 import { W4_SITES_T3 } from '../../src/opus-bay/world/sf/landmarks/w4list3';
 import { SEWARD_SLIDES, sewardStreetSlides } from '../../src/opus-bay/world/sf/landmarks/seward-street-slides';
 import { ATTRACTIONS, tripDestination } from '../../src/opus-bay/data/sf/attractions';
+import { SITE_ARRIVALS } from '../../src/opus-bay/data/sf/siteArrivals';
 import { arrivalSpot, findPath } from '../../src/opus-bay/actors/nav';
 import { ROAD_CLASSES, demSample } from '../../src/opus-bay/world/sf/format';
 import { sfDisk } from '../../tests/opus-bay-sf-disk';
@@ -73,7 +74,10 @@ for (const s of W4_ALL_SITES) {
     const d = tripDestination(a), dist = Math.hypot(d.x - sa.x, d.z - sa.z);
     const jt = dist < 0.05 ? js : await judge(s, d);
     const far = W4_SITES_T3.includes(s) && dist > 8;
-    const want = bad(jt) || far;
+    // a row already in the table stays while its site's arrival passes: lane N wires the table into the attractions
+    // (data/sf/attractions.ts), so `tripDestination` is the site's spot itself for a listed row, and the raw trip end
+    // that failed (N's own row) does not change
+    const want = aid in SITE_ARRIVALS || bad(jt) || far;
     const siteOk = good(js, LANDING_OPEN.has(s.id));
     const verdict = !want ? 'keep' : siteOk ? 'TABLE' : 'OPEN';
     report.push(`${verdict.padEnd(5)} ${aid.padEnd(30)} site ${s.id.padEnd(28)} trip→site ${dist.toFixed(1).padStart(6)} u  trip ${JSON.stringify(jt)}  site ${JSON.stringify(js)}`);

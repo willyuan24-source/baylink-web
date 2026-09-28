@@ -162,7 +162,9 @@ export const japaneseTeaGarden: W4Site = {
   w4: {
     placeId: 'japanese-tea-garden',
     attractions: ['japanese-tea-garden'],
-    arrival: { x: 8.0, z: -3.0, heading: -Math.PI / 2 },
+    // on the gate's threshold, looking in (W5-L, the checkpoint's CP-8): 1 u further out, on the drive, the gate posts
+    // and the fence closed two of the four ways (the sweep's CORRIDOR)
+    arrival: { x: 7.0, z: -3.0, heading: -Math.PI / 2 },
     photo: { target: [-1, 2, 1], distance: 26, elevation: 0.5, bearing: 1.2 },
     flag: { x: PAGODA.x, z: PAGODA.z, h: 30 },
     height: { realM: 15, u: 7.4, top: 8.2, rule: 'H = 3.2 + 0.155·h' },

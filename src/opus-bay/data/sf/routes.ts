@@ -12,8 +12,11 @@ import { ROUTE_PATHS } from './routePaths';
  *
  * DATA ONLY (no landmark library: GameRoot may import it). A stop's (x, z) is a walkable world spot on the route: a
  * landmark stop is its arrival (world/sf/landmarks/context.ts sfLandmarkAnchor, written out; the sf-routes test checks
- * them), a place stop its places.json point (or, for a big place such as the Polo Field, the walk's spot beside it,
- * ≤ 20 u away), an attraction-only stop the attraction's arrival. `placeId` = its places.json row
+ * them) — except Fort Point, whose arrival slot beside the bridge deck is boxed in (W5-L, the mid-wave checkpoint's
+ * CP-8: its stop stands on Marine Drive's end loop in front of the fort, 7.9 u away, where every way is open) —, a place
+ * stop its places.json point (or, for a big place such as the Polo Field, the walk's spot beside it, ≤ 20 u away; the
+ * Tea Garden's is its gate, not the pond's middle), an attraction-only stop the attraction's arrival. Every stop passes
+ * the walk sweep's judge (tests/opus-bay-w5-landmarks.test.ts). `placeId` = its places.json row
  * (lane G1's map, discovery, fast travel); `attraction` = its row in lane P's data/sf/attractions.ts when places.json has
  * none yet (the wave-4 extra places). Consumers: G1 (discovery / map lines), G2 (stop slots, lines), F (crowd).
  *
@@ -75,7 +78,7 @@ export const SF_ROUTES: readonly SfRoute[] = [
       { id: 'r1-portsmouth', kind: 'place', placeId: 'osm-r14547583', attraction: 'portsmouth-square', name: bi('花园角', 'Portsmouth Square'), x: 37.73, z: 128.11, line: bi('花园角是唐人街的客厅，2026 年 6 月起封闭整修，预计 2028 年重开，这回隔着围栏看看。', 'Portsmouth Square, Chinatown\'s living room, is fenced off for its rebuild from June 2026 until about 2028: a look through the fence this time.') },
       { id: 'r1-washington-sq', kind: 'place', placeId: 'north-beach-washington-sq', name: bi('北滩 · 华盛顿广场', 'North Beach · Washington Square'), x: -69.19, z: 105.91, via: [[4.3, 120.6], [-9.8, 110.7], [-31.3, 95.8], [-45.3, 86.0]], line: bi('到北滩了：华盛顿广场的草坪，对面是白色双塔教堂。', 'North Beach: the lawn of Washington Square, the white twin-spired church across it.') },
       { id: 'r1-peter-paul', kind: 'filler', attraction: 'saints-peter-and-paul-church', name: bi('圣彼得圣保罗教堂', 'Saints Peter and Paul Church'), x: -76.1, z: 100.1, line: bi('从教堂门前往东，朝电报山的坡走。', 'From the church steps, head east for the slope of Telegraph Hill.') },
-      { id: 'r1-coit', kind: 'landmark', placeId: 'coit-tower', attraction: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), x: -50.25, z: 51.1, line: bi('电报山顶的科伊特塔：回头看，唐人街和海湾都在脚下。', 'Coit Tower on Telegraph Hill: look back over Chinatown and the Bay.') },
+      { id: 'r1-coit', kind: 'landmark', placeId: 'coit-tower', attraction: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), x: -52.75, z: 53.1, line: bi('电报山顶的科伊特塔：回头看，唐人街和海湾都在脚下。', 'Coit Tower on Telegraph Hill: look back over Chinatown and the Bay.') },
     ],
   },
   {
@@ -90,10 +93,10 @@ export const SF_ROUTES: readonly SfRoute[] = [
       { id: 'r2-east-beach', kind: 'filler', placeId: 'osm-w69342329', name: bi('克里西场东滩', 'Crissy Field East Beach'), x: -482.45, z: 414.18, line: bi('东滩：沙滩从这里开始，沿水边一路往西。', 'East Beach: the sand starts here; follow the water west.') },
       { id: 'r2-crissy', kind: 'place', placeId: 'crissy-field', attraction: 'crissy-field', name: bi('克里西场', 'Crissy Field'), x: -576.15, z: 546.38, line: bi('克里西场：以前的机场跑道，现在是海边的草地和沙滩。', 'Crissy Field: a former airfield, now meadow and beach by the water.') },
       { id: 'r2-coast-guard', kind: 'filler', placeId: 'osm-w934681747', name: bi('海岸警卫队旧站', 'Fort Point Coast Guard Station'), x: -610.94, z: 553.41, line: bi('海岸警卫队旧站：白色木楼，桥越来越近了。', 'The old Coast Guard station: white timber houses, the bridge getting close.') },
-      { id: 'r2-fort-point', kind: 'landmark', landmark: 'fort-point', placeId: 'fort-point', name: bi('Fort Point 炮台', 'Fort Point'), x: -747.66, z: 598.89, line: bi('Fort Point 炮台就在大桥的拱下，砖墙上还有炮位。', 'Fort Point sits right under the bridge\'s arch, cannons still on its roof.') },
+      { id: 'r2-fort-point', kind: 'landmark', landmark: 'fort-point', placeId: 'fort-point', name: bi('Fort Point 炮台', 'Fort Point'), x: -743.94, z: 591.88, line: bi('Fort Point 炮台就在大桥的拱下，砖墙上还有炮位。', 'Fort Point sits right under the bridge\'s arch, cannons still on its roof.') },
       { id: 'r2-battery-east', kind: 'filler', placeId: 'osm-n11991078747', name: bi('东炮台', 'Battery East'), x: -679.54, z: 586.43, line: bi('东炮台：沿步道往上，去桥头。', 'Battery East: take the trail up toward the bridge.') },
-      { id: 'r2-welcome', kind: 'filler', placeId: 'osm-w164569681', name: bi('大桥游客中心', 'Bridge Welcome Center'), x: -700.86, z: 604.59, line: bi('桥头的游客中心，前面就是大桥的人行道。', 'The bridge\'s welcome center; the walkway starts just ahead.') },
-      { id: 'r2-overlook', kind: 'filler', placeId: 'osm-n10682270352', landmark: 'golden-gate-bridge', name: bi('金门大桥观景台', 'Golden Gate Bridge overlook'), x: -684.81, z: 670.43, line: bi('桥头观景台：从这里走上桥面。', 'The overlook at the bridge end: step onto the deck from here.') },
+      { id: 'r2-welcome', kind: 'filler', placeId: 'osm-w164569681', name: bi('大桥游客中心', 'Bridge Welcome Center'), x: -700.36, z: 604.59, line: bi('桥头的游客中心，前面就是大桥的人行道。', 'The bridge\'s welcome center; the walkway starts just ahead.') },
+      { id: 'r2-overlook', kind: 'filler', placeId: 'osm-n10682270352', landmark: 'golden-gate-bridge', name: bi('金门大桥观景台', 'Golden Gate Bridge overlook'), x: -681, z: 670, line: bi('桥头观景台：从这里走上桥面。', 'The overlook at the bridge end: step onto the deck from here.') },
       { id: 'r2-south-tower', kind: 'place', placeId: 'ggb-south-tower', landmark: 'golden-gate-bridge', attraction: 'golden-gate-bridge', name: bi('金门大桥 · 南塔', 'Golden Gate Bridge · south tower'), x: -796.12, z: 564.38, line: bi('南塔脚下：抬头看塔，低头看海峡。', 'At the foot of the south tower: the tower above, the strait below.') },
     ],
   },
@@ -106,14 +109,14 @@ export const SF_ROUTES: readonly SfRoute[] = [
     stops: [
       { id: 'r3-conservatory', kind: 'landmark', landmark: 'conservatory-of-flowers', placeId: 'conservatory-of-flowers', name: bi('花卉温室', 'Conservatory of Flowers'), x: -177.51, z: 858.11, line: bi('从花卉温室前的花坛出发，往西走进公园。', 'Start at the flower beds before the Conservatory and head west into the park.') },
       { id: 'r3-de-young', kind: 'landmark', landmark: 'de-young-tower', placeId: 'de-young', name: bi('迪扬博物馆 · 观景塔', 'de Young Museum · Hamon Tower'), x: -243.9, z: 928.6, line: bi('迪扬博物馆：扭转的铜塔，对面是音乐广场。', 'The de Young: the twisting copper tower across the Music Concourse.') },
-      { id: 'r3-tea-garden', kind: 'filler', placeId: 'japanese-tea-garden', attraction: 'japanese-tea-garden', name: bi('日本茶园', 'Japanese Tea Garden'), x: -242.97, z: 964.38, line: bi('日本茶园的门口，再往西就是湖。', 'The Japanese Tea Garden\'s gate; the lake lies further west.') },
+      { id: 'r3-tea-garden', kind: 'filler', placeId: 'japanese-tea-garden', attraction: 'japanese-tea-garden', name: bi('日本茶园', 'Japanese Tea Garden'), x: -236, z: 962, line: bi('日本茶园的门口，再往西就是湖。', 'The Japanese Tea Garden\'s gate; the lake lies further west.') },
       { id: 'r3-lake', kind: 'place', placeId: 'stow-lake', attraction: 'blue-heron-lake', name: bi('蓝鹭湖（原斯托湖）', 'Blue Heron Lake (Stow Lake)'), x: -269.74, z: 1032.25, line: bi('蓝鹭湖：绕着草莓山的湖，可以租船。', 'Blue Heron Lake circles Strawberry Hill; the boathouse is on the shore.') },
       { id: 'r3-meadows', kind: 'filler', placeId: 'golden-gate-park', name: bi('金门公园草地', 'Golden Gate Park meadows'), x: -334.84, z: 1080.6, line: bi('公园的中段：一片片草地和小湖，继续往西。', 'The middle of the park: meadows and small lakes; keep heading west.') },
       { id: 'r3-polo', kind: 'filler', placeId: 'osm-w476267889', name: bi('马球场', 'Polo Field'), x: -427.7, z: 1181.1, line: bi('马球场的看台，野牛就在前面。', 'The Polo Field\'s stands; the bison are just ahead.') },
       { id: 'r3-bison', kind: 'filler', attraction: 'bison-paddock', name: bi('野牛围场', 'Bison Paddock'), x: -464.9, z: 1220, line: bi('野牛围场：公园里养着一小群美洲野牛。', 'The Bison Paddock: the park keeps a small herd of American bison.') },
       { id: 'r3-windmill', kind: 'landmark', landmark: 'dutch-windmill', placeId: 'dutch-windmill', name: bi('荷兰风车', 'Dutch Windmill'), x: -584.3, z: 1315.67, line: bi('荷兰风车和郁金香花园，海风从西边吹来。', 'The Dutch Windmill and its tulip garden, the sea wind from the west.') },
       { id: 'r3-beach-chalet', kind: 'filler', attraction: 'beach-chalet', name: bi('海滩小屋', 'Beach Chalet'), x: -578.6, z: 1330.9, line: bi('海滩小屋就在公园的西头，对面就是大海。', 'The Beach Chalet at the park\'s west end, the ocean across the road.') },
-      { id: 'r3-murphy', kind: 'filler', placeId: 'murphy-windmill', attraction: 'murphy-windmill', name: bi('墨菲风车', 'Murphy Windmill'), x: -514.09, z: 1364.11, line: bi('公园南角的墨菲风车，沿海边往南走。', 'The Murphy Windmill in the park\'s south corner; walk south by the sea.') },
+      { id: 'r3-murphy', kind: 'filler', placeId: 'murphy-windmill', attraction: 'murphy-windmill', name: bi('墨菲风车', 'Murphy Windmill'), x: -515.02, z: 1367.36, line: bi('公园南角的墨菲风车，沿海边往南走。', 'The Murphy Windmill in the park\'s south corner; walk south by the sea.') },
       { id: 'r3-ocean-beach', kind: 'place', placeId: 'ocean-beach', attraction: 'ocean-beach', name: bi('海洋海滩', 'Ocean Beach'), x: -430.99, z: 1474.99, line: bi('到太平洋了：海洋海滩的沙滩一眼望不到头。', 'The Pacific: Ocean Beach runs on as far as you can see.') },
     ],
   },

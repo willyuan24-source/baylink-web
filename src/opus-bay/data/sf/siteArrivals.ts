@@ -17,7 +17,7 @@
  * data/sf/attractions.ts (ARRIVAL_OVERRIDES win, then LANDMARK_ARRIVALS, then this table).
  */
 export const SITE_ARRIVALS: Readonly<Record<string, { x: number; z: number; heading: number; site: string }>> = {
-  'japanese-tea-garden': { x: -235, z: 962, heading: -1.571, site: 'japanese-tea-garden' },
+  'japanese-tea-garden': { x: -236, z: 962, heading: -1.571, site: 'japanese-tea-garden' },
   'union-square': { x: 96.84, z: 225.53, heading: 3.36, site: 'union-square' },
   'sfmoma': { x: 169.1, z: 188.6, heading: 1.649, site: 'sfmoma' },
   'haight-ashbury': { x: -42.2, z: 760.64, heading: 1.252, site: 'haight-ashbury' },
@@ -46,4 +46,5 @@ export const SITE_ARRIVALS: Readonly<Record<string, { x: number; z: number; head
   'noe-valley-town-square': { x: 318.47, z: 803.74, heading: 0.881, site: 'noe-valley-town-square' },
   'patricias-green': { x: 81.03, z: 494.1, heading: -0.607, site: 'patricias-green' },
   'sutro-heights-park': { x: -687.16, z: 1254.64, heading: 0.2, site: 'sutro-heights-park' },
+  'wave-organ': { x: -442.3, z: 352, heading: 2.69, site: 'wave-organ' },
 };

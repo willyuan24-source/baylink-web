@@ -97,9 +97,11 @@ export const waveOrgan: W4Site = {
     surfaces: deckSurfaces(),
   },
   ground: ground(),
-  // the upper terrace and spots on the spit's line (its first stretches): the deck quads' own grid points fell near their
-  // edges, two of them where a walker cannot stand (W4-L3-review)
-  plaza: [plazaOf(TERRACE_POLYS[0]), ...SPIT.slice(0, 6).map((a, i) => standSpot({ x: (a.x + SPIT[i + 1].x) / 2, z: (a.z + SPIT[i + 1].z) / 2 }, 'dirt'))],
+  // the crowd listens at the tip: the upper terrace, the two steps down to the water and the spit's last stretch (the
+  // deck quads' own grid points fell near their edges, two of them where a walker cannot stand: W4-L3-review). Spots
+  // further along the spit (wave 4) sent sightseers back and forth across Marina Blvd once the site was registered, and
+  // the toy cars stopping for them held the sightseeing bus 9.5 s (lane T's W5-T2 loop test, W5-L part c)
+  plaza: [plazaOf(TERRACE_POLYS[0]), standSpot({ x: TERRACES[1].x, z: TERRACES[1].z }, 'plaza'), standSpot({ x: TERRACES[2].x, z: TERRACES[2].z }, 'plaza'), standSpot({ x: (SPIT[1].x + SPIT[2].x) / 2, z: (SPIT[1].z + SPIT[2].z) / 2 }, 'dirt')],
   w4: {
     placeId: 'wave-organ',
     attractions: ['wave-organ'],
@@ -109,6 +111,6 @@ export const waveOrgan: W4Site = {
     height: { realM: 0, u: 1.0, top: 1.4, rule: 'overlook' },
     osm: [],
     terrain: [-31, -4, 2, 56],
-    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so). The crowd spots are the upper terrace and points along the spit. The arrival is at the spit\'s root on Yacht Road (69 u from the tip: the walk out is the visit).',
+    notes: 'The walk out along the spit is a deck over the water (walk surfaces). Heard best at high tide (the card says so). The crowd spots are the terraces and points at the tip. The arrival is at the spit\'s root on Yacht Road (69 u from the tip: the walk out is the visit).',
   },
 };

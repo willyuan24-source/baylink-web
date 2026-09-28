@@ -52,11 +52,19 @@ test('D2-11: three routes, unique stop ids, every stop a real place: places.json
   }
 });
 
+/**
+ * Landmark stops that stand beside their landmark's arrival instead of on it (W5-L, the mid-wave checkpoint's CP-8): the
+ * arrival is boxed in, and a stop is where the walk pauses. Fort Point's arrival is the slot between the bridge deck's
+ * edge and the bluff (lane C's verify D12 keeps it under the deck's line; Requests); its stop is Marine Drive's end loop
+ * in front of the fort's landward wall. tests/opus-bay-w5-landmarks.test.ts judges every stop with the walk sweep's pushes.
+ */
+const BESIDE_ARRIVAL: Record<string, number> = { 'r2-fort-point': 10 };
+
 test('D2-11: landmark stops stand at the landmark\'s arrival (sfLandmarkAnchor), place stops on their places.json point', () => {
   for (const r of SF_ROUTES) for (const s of r.stops) {
     if (s.kind === 'landmark' && s.landmark) {
-      const a = sfLandmarkAnchor(s.landmark)!;
-      assert.ok(Math.hypot(a.x - s.x, a.z - s.z) < 0.02, `${s.id} at ${s.landmark}'s arrival (${a.x.toFixed(2)}, ${a.z.toFixed(2)})`);
+      const a = sfLandmarkAnchor(s.landmark)!, max = BESIDE_ARRIVAL[s.id] ?? 0.02;
+      assert.ok(Math.hypot(a.x - s.x, a.z - s.z) < max, `${s.id} at ${s.landmark}'s arrival (${a.x.toFixed(2)}, ${a.z.toFixed(2)})`);
     } else if (s.placeId) {
       // its places.json point, or the walk's spot beside a big place (the Polo Field's stands)
       const p = PLACES.get(s.placeId)!;

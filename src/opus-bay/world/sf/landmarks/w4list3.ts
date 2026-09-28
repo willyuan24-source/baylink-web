@@ -63,19 +63,18 @@ export const W4_SITES_T3: readonly W4Site[] = [
   noeValleyTownSquare,
   patriciasGreen,
   sutroHeightsPark,
-];
-
-/**
- * Built and tested, not drawn yet. Registering one = moving it up and re-running landmark-tops.ts in one commit.
- * - The Wave Organ (its arrival already at the spit's root on Yacht Road): lane D's egg `wave-organ-high-tide` stands at
- *   the tip's origin, 0.6 u from a carved-block seat, which its test wants standable once the site's walk data is in;
- *   it registers when lane D's spot moves onto the upper terrace (local (−0.7, −0.2): Requests).
- * - Ina Coolbrith Park stands 96 u from the Grace / Nob Hill gate spot and 157 u from Chinatown's, the downtown views at
- *   398k of the 400k triangles (sf-w5-lead.md §6: nothing new downtown until lane V publishes the measured headroom).
- */
-export const W4_SITES_T3_NEXT: readonly W4Site[] = [
+  // wave 5 part c (W5-L1, the mid-wave checkpoint's CP-8): the last two. The Wave Organ once lane D's egg spot moved onto
+  // the upper terrace (its walk deck is what makes the jetty walkable: the city draws the spit as a 1.2 u path with gaps
+  // in its walk raster); Ina Coolbrith Park once lane V published the downtown headroom (sf-w5-V.md: Grace / Nob Hill
+  // ≈ 60k, Chinatown ≈ 50k after the levers; the site is ≤ 800 triangles and ≤ 2 calls, 96 u from the Grace spot).
   waveOrgan,
   inaCoolbrithPark,
 ];
+
+/**
+ * Built and tested, not drawn yet. Registering one = moving it up and re-running landmark-tops.ts in one commit. Empty
+ * since wave 5 part c (the Wave Organ and Ina Coolbrith Park moved up).
+ */
+export const W4_SITES_T3_NEXT: readonly W4Site[] = [];
 
 export const W4_SITES_T3_ALL: readonly W4Site[] = [...W4_SITES_T3, ...W4_SITES_T3_NEXT];

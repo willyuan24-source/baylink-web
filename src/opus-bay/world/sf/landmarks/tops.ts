@@ -101,4 +101,6 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'noe-valley-town-square': { blockers: [2.3, 2.7, 3.4, 4.8, 1.4, 4.7, 3.6], tall: [] },
   'patricias-green': { blockers: [2, 1, 0.7], tall: [] },
   'sutro-heights-park': { blockers: [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 2.2], tall: [] },
+  'wave-organ': { blockers: [1.3, 1, 1.4, 1.1, 0.9, 1.1, 0.9, 1, 1.1, 1.4], tall: [] },
+  'ina-coolbrith-park': { blockers: [2.8, 5.8], tall: [] },
 };
