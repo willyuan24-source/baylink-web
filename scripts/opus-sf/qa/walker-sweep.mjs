@@ -157,10 +157,14 @@ try {
       await teleport(from.x, from.z, heading);
       await sleep(1500);
       await tidy();
+      // R: the camera behind the heading (a player turning round at a deck end does the same; a short teleport onto the
+      // spot they already stood on does not move the camera by itself)
+      await hold('KeyR', 80);
+      await sleep(900);
       const samples = [];
       await key('keyDown', 'KeyW');
       const t0 = Date.now();
-      let reached = false;
+      let reached = false, midShot = null;
       while (Date.now() - t0 < 150000) {
         await sleep(500);
         const p = await pos();
@@ -168,6 +172,8 @@ try {
         const camFwd = Math.atan2(-Math.sin(p.cam), -Math.cos(p.cam));
         const off = Math.abs(Math.atan2(Math.sin(camFwd - heading), Math.cos(camFwd - heading)));
         samples.push({ t: (Date.now() - t0) / 1000, along: +along.toFixed(1), camOffDeg: Math.round((off * 180) / Math.PI), across: +(((p.x - s.x) * -az + (p.z - s.z) * ax)).toFixed(1) });
+        // (W5-F6: one shot half-way over, the camera behind along the deck — the report's evidence)
+        if (!midShot && along >= L / 2) { midShot = await shot(path.join(OUT, `deck_mid_${sign > 0 ? 'northbound' : 'southbound'}.jpg`)); }
         if (along >= L - 3) { reached = true; break; }
         const k = samples.length;
         if (k > 12 && samples[k - 1].along - samples[k - 11].along < 1) break;   // no progress for 5 s
@@ -176,7 +182,8 @@ try {
       let slowest = Infinity;
       for (let i = 6; i < samples.length; i++) slowest = Math.min(slowest, (samples[i].along - samples[i - 6].along) / (samples[i].t - samples[i - 6].t));
       const worstCam = Math.max(...samples.map(q => q.camOffDeg));
-      const r = { dir: sign > 0 ? 'south → north' : 'north → south', length: +L.toFixed(1), reached, seconds: samples.at(-1)?.t ?? 0, slowest3s: +slowest.toFixed(2), worstCamDeg: worstCam, last: samples.at(-1) };
+      const pulls = await evaluate(`${Q}.actors.feet ? ${Q}.actors.feet.count : -1`);
+      const r = { dir: sign > 0 ? 'south → north' : 'north → south', length: +L.toFixed(1), reached, seconds: samples.at(-1)?.t ?? 0, slowest3s: +slowest.toFixed(2), worstCamDeg: worstCam, pulls, midShot, last: samples.at(-1) };
       if (!reached || slowest < 3 || worstCam > 25) { r.shot = await shot(path.join(OUT, `deck_${sign > 0 ? 'north' : 'south'}.jpg`)); failures.push({ phase: 'deck', id: `deck ${r.dir}`, owner: 'F', ...r }); }
       results.deck.push({ ...r, samples });
       log({ deck: r.dir, reached, slowest3s: r.slowest3s, worstCamDeg: worstCam });
