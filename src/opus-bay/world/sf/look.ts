@@ -342,11 +342,43 @@ export const STREET_LAMP: Readonly<Record<string, number>> = { motorway: 0.8, tr
 export const LAMP_STEP = 9;
 
 /**
- * aInfo of an asphalt ribbon `half` u wide on each side (worker-safe): the street glow's (pattern, arc length, side
- * −1 … 1, GROUND_CITY + lamp level) for a lit class, else plain city asphalt.
+ * Lit nights in the outer city (wave 5, lane V, W5-V5; plan §3.6 "Lit nights", MF10). The gaps scout's night pass
+ * found the outer neighbourhoods dark at street level: their residential streets had no lamp level (no street glow, no
+ * light-field lamps) and OpenStreetMap maps few lamps there, so the instanced lamp posts (world/sf/props.ts, the
+ * nearest 48 within 120 u) had nothing to show. In the lit zones (every DataSF neighbourhood but the downtown core):
+ *
+ *   residential   the street glow at `residential` lamp level, one warm pool per side every 24 u (the shader's 9 u
+ *                 pattern read along `resScale` × the arc length), staggered by 12 u like the lamps
+ *   lamp posts    build.ts adds a lamp every `step` u on alternate kerbs of every primary … residential street (the
+ *                 same posts, halos and light pools as the mapped ones), never within `osmClear` u of a mapped lamp,
+ *                 on another street's asphalt, on a tree, in the hero slab or a landmark's footprint
+ *
+ * The Financial District and SoMa keep their lights as they were: the Ferry gate (≤ 2k triangles of headroom) and
+ * Powell & Market (≈ 15k) are the tightest views of the gate (plan MF9 / D15; lane V's published headroom), and SoMa's
+ * streets are mapped with lamps already. Chinatown, Nob Hill, North Beach and the Tenderloin (≥ 60k of headroom after
+ * the levers) take the lamps like the outer city. The posts are drawn by the existing lamp layer (≤ 48 instances, ≈ 24 in view: ≤ 3.5k triangles, no new draw call where a lamp
+ * already stood; three where none did). Worker-safe like the rest of this file.
  */
-export function asphaltInfo(roadClass: string | undefined, half: number, pattern: number, cityFlag: number): readonly [number, number, number, number] | ((s: number, o: number) => readonly [number, number, number, number]) {
-  const lvl = roadClass ? STREET_LAMP[roadClass] ?? 0 : 0;
+export const NIGHT_STREETS = {
+  residential: 0.35,
+  resScale: 0.375,
+  step: { arterial: 9, residential: 12 },
+  osmClear: 10,
+  downtown: ['financial-district-south-beach', 'south-of-market'] as readonly string[],
+} as const;
+
+/** A DataSF zone whose streets get the outer-city night lights (not the downtown core, not outside the zones). */
+export const litOuterZone = (zone: string | null): boolean => !!zone && !NIGHT_STREETS.downtown.includes(zone);
+
+/**
+ * aInfo of an asphalt ribbon `half` u wide on each side (worker-safe): the street glow's (pattern, arc length, side
+ * −1 … 1, GROUND_CITY + lamp level) for a lit class, else plain city asphalt. `outer` (a lit outer zone, W5-V5):
+ * residential streets glow too, at NIGHT_STREETS.residential with the pools spread along resScale × the arc length.
+ */
+export function asphaltInfo(roadClass: string | undefined, half: number, pattern: number, cityFlag: number, outer = false): readonly [number, number, number, number] | ((s: number, o: number) => readonly [number, number, number, number]) {
+  const res = outer && roadClass === 'residential';
+  const lvl = res ? NIGHT_STREETS.residential : roadClass ? STREET_LAMP[roadClass] ?? 0 : 0;
   if (!(lvl > 0) || !(half > 0)) return [pattern, 0, 0, cityFlag];
+  if (res) return (s, o) => [pattern, s * NIGHT_STREETS.resScale, o / half, cityFlag + lvl];
   return (s, o) => [pattern, s, o / half, cityFlag + lvl];
 }

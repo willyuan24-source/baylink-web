@@ -8,7 +8,7 @@ import { CITY_ROOFS, CITY_STYLES, type CityBuildingSpec, type CityPalette, toyBu
 import { WIN } from '../recipes/shapes';
 import type { TypedBatchArrays } from '../typedBatch';
 import { type L0Buildings, L0Recorder, l0Desc } from './l0index';
-import { HILL, type LookStyle, type LookZones, asphaltInfo, hillMix, landPatchAt, sfLook, slopeEarth, zoneAt } from './look';
+import { HILL, type LookStyle, type LookZones, NIGHT_STREETS, asphaltInfo, hillMix, landPatchAt, litOuterZone, sfLook, slopeEarth, zoneAt } from './look';
 import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
 import { type FarWater, inFarWater } from './far';
 import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
@@ -95,7 +95,8 @@ const CLASS_PAINT: Record<number, { color: string; pattern: number }> = {
 // shared per-chunk context
 // ---------------------------------------------------------------------------
 
-interface Seg { ax: number; az: number; ay: number; bx: number; bz: number; by: number; hw: number }
+/** hw: half the right of way; ahw: half the asphalt (0 for paths, steps, service lanes) */
+interface Seg { ax: number; az: number; ay: number; bx: number; bz: number; by: number; hw: number; ahw: number }
 
 /** Street centreline segments in 8 u buckets (flattened height, street-facing side of buildings). */
 class SegIndex {
@@ -183,6 +184,8 @@ const bboxOf = (poly: readonly Vec2[]) => {
 
 /** Road classes that are corridors on the ground (flattened, walkable); tram / rail lie inside streets. */
 const CORRIDOR = new Set([R.motorway, R.trunk, R.primary, R.secondary, R.tertiary, R.residential, R.service, R.pedestrian, R.footway, R.path, R.cycleway, R.steps, R.track]);
+/** Classes drawn with an asphalt carriageway (STREET[k].asphalt) */
+const CARRIAGEWAY = new Set([R.motorway, R.trunk, R.primary, R.secondary, R.tertiary, R.residential]);
 
 export function chunkContext(chunk: ChunkData, init: CityInit): ChunkContext {
   const ox = chunk.cx * CHUNK, oz = chunk.cz * CHUNK, M4 = 4;
@@ -232,10 +235,10 @@ export function chunkContext(chunk: ChunkData, init: CityInit): ChunkContext {
   const rd = chunk.roads;
   for (let i = 0; i < rd.count; i++) {
     if (!CORRIDOR.has(rd.cls[i]) || rd.flags[i] & (ROAD_FLAG.bridge | ROAD_FLAG.deckOnly)) continue;
-    const hw = rd.width[i] / 2;
+    const hw = rd.width[i] / 2, ahw = CARRIAGEWAY.has(rd.cls[i]) ? Math.max(1.6, rd.width[i] - CURB_BAND * 2) / 2 : 0;
     for (let k = rd.pStart[i]; k + 1 < rd.pStart[i + 1]; k++) {
       const p = rd.xyz;
-      segs.add({ ax: p[k * 3], ay: p[k * 3 + 1], az: p[k * 3 + 2], bx: p[k * 3 + 3], by: p[k * 3 + 4], bz: p[k * 3 + 5], hw }, hw + BLEND);
+      segs.add({ ax: p[k * 3], ay: p[k * 3 + 1], az: p[k * 3 + 2], bx: p[k * 3 + 3], by: p[k * 3 + 4], bz: p[k * 3 + 5], hw, ahw }, hw + BLEND);
     }
   }
   const dem = (x: number, z: number) => demSample(chunk.dem, x, z);
@@ -465,6 +468,12 @@ const STREET: Partial<Record<number, StreetStyle>> = {
 const LIFT = { walk: 0.035, asphalt: 0.055, rail: 0.075, dash: 0.07 } as const;
 const gInfo = (pattern: number): Info => [pattern, 0, 0, GROUND_CITY];
 
+/** A street piece in a lit outer zone (W5-V5, look.ts NIGHT_STREETS): the zone at its middle vertex. */
+function outerPiece(ctx: ChunkContext, l: Line3): boolean {
+  const k = Math.floor(l.length / 6) * 3;
+  return litOuterZone(zoneAt(ctx.init.zones, l[k], l[k + 2]));
+}
+
 /** Street pieces of the chunk inside the square [x0, x0 + s]² (and outside the hero slab). */
 function streetPieces(ctx: ChunkContext, i: number, x0: number, z0: number, s: number): Line3[] {
   const rd = ctx.chunk.roads;
@@ -545,7 +554,7 @@ function streetsL0(ctx: ChunkContext, g: CityBatch, t: CityBatch, x0: number, z0
   }
   for (const [l, aw, k] of asphalt) {
     const st = STREET[k]!;
-    ribbon(g, l, aw, LIFT.asphalt, C(st.asphalt!), asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY));
+    ribbon(g, l, aw, LIFT.asphalt, C(st.asphalt!), asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY, k === R.residential && outerPiece(ctx, l)));
     ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), aw / 2 - 0.06);
     ribbon(g, l, 0.12, LIFT.asphalt + 0.002, C(CITY_PAL.curb), gInfo(P.none), -aw / 2 + 0.06);
     if (st.dash && aw > 3.2) dashes(g, l, 0.14, LIFT.dash, C(CITY_PAL.dash), 1.6, 4, gInfo(P.none));
@@ -567,7 +576,7 @@ function streetsL1(ctx: ChunkContext, g: CityBatch, x0: number, z0: number) {
       const w = rd.width[i];
       if (!elevated) ribbon(g, l, w, lift - 0.02, C(st.walk === CITY_PAL.sidewalk ? CITY_PAL.sidewalk : st.walk), gInfo(P.none), 0, onGround);
       const aw = st.asphalt ? Math.max(1.6, w - CURB_BAND * 2) : w;
-      ribbon(g, l, aw, lift, C(st.asphalt ?? st.walk), st.asphalt && !elevated ? asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY) : gInfo(st.asphalt ? P.asphalt : P.stone), 0, elevated ? undefined : onGround);
+      ribbon(g, l, aw, lift, C(st.asphalt ?? st.walk), st.asphalt && !elevated ? asphaltInfo(ROAD_CLASSES[k], aw / 2, P.asphalt, GROUND_CITY, k === R.residential && outerPiece(ctx, l)) : gInfo(st.asphalt ? P.asphalt : P.stone), 0, elevated ? undefined : onGround);
     }
   }
 }
@@ -609,7 +618,69 @@ function propsOf(ctx: ChunkContext): PropArrays {
     if (ctx.inSlab(x, z) || ctx.excluded(x, z) || sampleField(ctx.sdf, ctx.mask, x, z) < 0.3) continue;
     kind.push(k); variant.push(p.variant[i]); xyzr.push(x, ctx.height(x, z), z, p.rot[i]);
   }
+  for (const l of outerLamps(ctx)) { kind.push(PK.lamp); variant.push(0); xyzr.push(l.x, ctx.height(l.x, l.z), l.z, 0); }
   return { count: kind.length, kind: Uint8Array.from(kind), variant: Uint8Array.from(variant), xyzr: Float32Array.from(xyzr) };
+}
+
+/** outerLamps: the classes that get lamp posts, and the step between two lamps (alternate kerbs) */
+const LAMP_CLASSES = new Map([[R.primary, NIGHT_STREETS.step.arterial], [R.secondary, NIGHT_STREETS.step.arterial], [R.tertiary, NIGHT_STREETS.step.arterial], [R.residential, NIGHT_STREETS.step.residential]]);
+
+/**
+ * Lamp posts along the streets of the lit outer zones (wave 5, lane V, W5-V5; look.ts NIGHT_STREETS): every `step` u
+ * on alternate kerbs (first at half a step from the way's start, on the sidewalk just past the kerb), inside this
+ * chunk's square only (a way shared by two chunks places each lamp once), never in the hero slab, a landmark's
+ * footprint, the water, on another street's carriageway, on a mapped tree or within `osmClear` u of a mapped lamp.
+ * Needs the zones (stream.ts posts them before any chunk job); without them: none.
+ */
+export function outerLamps(ctx: ChunkContext): { x: number; z: number }[] {
+  const zones = ctx.init.zones;
+  if (!zones) return [];
+  const rd = ctx.chunk.roads, pr = ctx.chunk.props;
+  const ox = ctx.chunk.cx * CHUNK, oz = ctx.chunk.cz * CHUNK;
+  const mapped: number[] = [], trees: number[] = [];
+  for (let i = 0; i < pr.count; i++) {
+    const k = pr.kind[i];
+    if (k === PK.lamp) mapped.push(pr.xz[i * 2], pr.xz[i * 2 + 1]);
+    else if (k === PK.tree || k === PK.pine || k === PK.palm) trees.push(pr.xz[i * 2], pr.xz[i * 2 + 1]);
+  }
+  const near = (list: number[], x: number, z: number, r: number) => { for (let i = 0; i < list.length; i += 2) if ((list[i] - x) ** 2 + (list[i + 1] - z) ** 2 < r * r) return true; return false; };
+  const onCarriageway = (x: number, z: number) => {
+    const list = ctx.segs.near(x, z);
+    if (!list) return false;
+    for (const s of list) {
+      if (!(s.ahw > 0)) continue;
+      const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz;
+      let t = L2 > 0 ? ((x - s.ax) * dx + (z - s.az) * dz) / L2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.ahw + 0.3) return true;
+    }
+    return false;
+  };
+  const out: { x: number; z: number }[] = [];
+  for (let i = 0; i < rd.count; i++) {
+    const step = LAMP_CLASSES.get(rd.cls[i]);
+    if (!step || rd.flags[i] & (ROAD_FLAG.bridge | ROAD_FLAG.deckOnly | ROAD_FLAG.tunnel)) continue;
+    const off = Math.max(1.6, rd.width[i] - CURB_BAND * 2) / 2 + CURB_BAND * 0.55;
+    let next = step / 2, s = 0, side = 1;
+    for (let k = rd.pStart[i] + 1; k < rd.pStart[i + 1]; k++) {
+      const ax = rd.xyz[k * 3 - 3], az = rd.xyz[k * 3 - 1], bx = rd.xyz[k * 3], bz = rd.xyz[k * 3 + 2];
+      const L = Math.hypot(bx - ax, bz - az);
+      if (L < 1e-6) continue;
+      const nx = -(bz - az) / L, nz = (bx - ax) / L;
+      while (next <= s + L) {
+        const f = (next - s) / L;
+        const x = ax + (bx - ax) * f + nx * off * side, z = az + (bz - az) * f + nz * off * side;
+        next += step;
+        side = -side;
+        if (x < ox || z < oz || x >= ox + CHUNK || z >= oz + CHUNK) continue;
+        if (!litOuterZone(zoneAt(zones, x, z)) || ctx.inSlab(x, z) || ctx.excluded(x, z) || sampleField(ctx.sdf, ctx.mask, x, z) < 0.6) continue;
+        if (near(mapped, x, z, NIGHT_STREETS.osmClear) || near(trees, x, z, 1.1) || onCarriageway(x, z)) continue;
+        out.push({ x, z });
+      }
+      s += L;
+    }
+  }
+  return out;
 }
 
 /** Street furniture baked into the L0 toy batch: benches, bike racks, stop poles. */

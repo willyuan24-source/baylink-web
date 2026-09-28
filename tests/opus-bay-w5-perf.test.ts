@@ -354,3 +354,148 @@ test('W5-V4: SignBatch quads face their yaw, carry the plaque\'s uvs, 2 : 1; sig
   assert.ok(sign && !(sign as unknown as THREE.InstancedMesh).isInstancedMesh && sign.receiveShadow && !sign.castShadow, 'the sign program is in the boot pass (registered at module load)');
   warm.resetWarmupState();
 });
+
+// ---------------------------------------------------------------------------
+// Part b · W5-V5: lit nights in the outer city, coin glints
+// ---------------------------------------------------------------------------
+
+test('W5-V5: residential streets glow in the lit outer zones only (level 0.35, one pool per side every 24 u); FiDi and SoMa keep their lights', async () => {
+  const L = await import('../src/opus-bay/world/sf/look');
+  assert.deepEqual(L.asphaltInfo('residential', 4, 5, 1), [5, 0, 0, 1], 'default (and district / downtown): unlit');
+  const res = L.asphaltInfo('residential', 4, 5, 1, true) as (s: number, o: number) => readonly number[];
+  assert.equal(typeof res, 'function');
+  assert.deepEqual(res(24, -4), [5, 24 * L.NIGHT_STREETS.resScale, -1, 1 + L.NIGHT_STREETS.residential]);
+  // the shader's pool pattern is 9 u: read along 0.375 × the arc length, a pool per side every 24 u
+  assert.equal(9 / L.NIGHT_STREETS.resScale, 24);
+  assert.deepEqual((L.asphaltInfo('primary', 4, 5, 1, true) as (s: number, o: number) => readonly number[])(12, 4), [5, 12, 1, 2], 'lit classes unchanged');
+  assert.ok(L.NIGHT_STREETS.residential < L.STREET_LAMP.tertiary, 'dimmer than any main street');
+  for (const z of ['sunset-parkside', 'outer-richmond', 'bayview-hunters-point', 'excelsior', 'haight-ashbury', 'marina', 'glen-park', 'chinatown', 'tenderloin', 'nob-hill', 'north-beach']) assert.ok(L.litOuterZone(z), z);
+  for (const z of ['financial-district-south-beach', 'south-of-market', null, '']) assert.ok(!L.litOuterZone(z), String(z));
+});
+
+test('W5-V5: lamp posts on the published streets of the lit zones — inside their chunk, off every carriageway, clear of mapped lamps and trees; none downtown, none without zones', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const B = await import('../src/opus-bay/world/sf/build');
+  const L = await import('../src/opus-bay/world/sf/look');
+  const F = await import('../src/opus-bay/world/sf/format');
+  const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const { CHUNK, CURB_BAND } = await import('../src/opus-bay/core/geo');
+  const { inPoly } = await import('../src/opus-bay/world/sf/raster');
+  const sf = sfDisk();
+  const zones = L.lookZones(await sf.far());
+  const init = { palettes: sf.manifest.palettes, slab: DISTRICT.slab, excludes: new CitySites().excludes(), zones };
+  const LAMP = F.PROP_KINDS.indexOf('lamp');
+  const TREES = new Set(['tree', 'pine', 'palm'].map(k => F.PROP_KINDS.indexOf(k as (typeof F.PROP_KINDS)[number])));
+  const CARRIAGEWAY = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
+  // the Sunset (-3_10), the Outer Richmond (-4_8), the Haight (-1_6), the Mission (3_5); FiDi / SoMa (1_0, 1_-1, 1_1, 1_2)
+  let total = 0;
+  for (const [cx, cz] of [[-3, 10], [-4, 8], [-1, 6], [3, 5]]) {
+    const c = (await sf.chunk(cx, cz))!;
+    const ctx = B.chunkContext(c, init);
+    const lamps = B.outerLamps(ctx);
+    assert.ok(lamps.length >= 20, `${cx}_${cz}: ${lamps.length} lamps`);
+    assert.deepEqual(B.outerLamps(B.chunkContext(c, init)), lamps, 'deterministic');
+    total += lamps.length;
+    const mapped: [number, number][] = [], trees: [number, number][] = [];
+    for (let i = 0; i < c.props.count; i++) {
+      if (c.props.kind[i] === LAMP) mapped.push([c.props.xz[i * 2], c.props.xz[i * 2 + 1]]);
+      else if (TREES.has(c.props.kind[i])) trees.push([c.props.xz[i * 2], c.props.xz[i * 2 + 1]]);
+    }
+    for (const l of lamps) {
+      assert.ok(l.x >= cx * CHUNK && l.z >= cz * CHUNK && l.x < (cx + 1) * CHUNK && l.z < (cz + 1) * CHUNK, 'inside its chunk');
+      assert.ok(L.litOuterZone(L.zoneAt(zones, l.x, l.z)), 'in a lit zone');
+      assert.ok(!inPoly(l.x, l.z, DISTRICT.slab));
+      assert.ok(mapped.every(([x, z]) => Math.hypot(x - l.x, z - l.z) >= L.NIGHT_STREETS.osmClear), 'clear of the mapped lamps');
+      assert.ok(trees.every(([x, z]) => Math.hypot(x - l.x, z - l.z) >= 1.1), 'not in a tree');
+      // off every carriageway of the chunk (the asphalt half width + 0.3 u)
+      const rd = c.roads;
+      for (let i = 0; i < rd.count; i++) {
+        const k = F.ROAD_CLASSES[rd.cls[i]];
+        if (!CARRIAGEWAY.includes(k) || rd.flags[i] & (F.ROAD_FLAG.bridge | F.ROAD_FLAG.deckOnly)) continue;
+        const ahw = Math.max(1.6, rd.width[i] - CURB_BAND * 2) / 2;
+        for (let p = rd.pStart[i]; p + 1 < rd.pStart[i + 1]; p++) {
+          const ax = rd.xyz[p * 3], az = rd.xyz[p * 3 + 2], bx = rd.xyz[p * 3 + 3], bz = rd.xyz[p * 3 + 5];
+          const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
+          const t = L2 > 0 ? Math.max(0, Math.min(1, ((l.x - ax) * dx + (l.z - az) * dz) / L2)) : 0;
+          assert.ok(Math.hypot(l.x - ax - dx * t, l.z - az - dz * t) >= ahw + 0.29, `a lamp on the carriageway of a ${k}`);
+        }
+      }
+    }
+    // the chunk's instanced props carry them as lamps
+    const props = B.buildL1(ctx).props;
+    const lampsInProps = Array.from(props.kind).filter(k => k === LAMP).length;
+    assert.ok(lampsInProps >= lamps.length, `${lampsInProps} lamp props`);
+  }
+  assert.ok(total >= 150, `${total} lamps in four outer chunks`);
+  for (const [cx, cz] of [[1, 0], [1, -1], [1, 1], [1, 2]]) {
+    const c = (await sf.chunk(cx, cz))!;
+    assert.equal(B.outerLamps(B.chunkContext(c, init)).length, 0, `downtown ${cx}_${cz}: none`);
+  }
+  const c = (await sf.chunk(-3, 10))!;
+  assert.equal(B.outerLamps(B.chunkContext(c, { ...init, zones: null })).length, 0, 'no zones: none');
+});
+
+test('W5-V5: the lamp layer stays capped (48 posts, ≈ 24 in view: ≤ 3.5k triangles), so the outer posts add no draw call where a lamp already stood', async () => {
+  const P = await import('../src/opus-bay/world/sf/props');
+  assert.equal(P.propCaps(0).lamp, 48);
+  assert.equal(P.PROP_VIEW.k, 0.5);
+  const cp = new P.CityProps();
+  const lampMesh = cp.group.children.find(o => o.name === 'city-lamps') as THREE.InstancedMesh;
+  const tris = (lampMesh.geometry.getIndex()?.count ?? lampMesh.geometry.getAttribute('position').count) / 3;
+  assert.ok(tris * 24 <= 3500, `${tris} triangles a post`);
+  assert.equal(lampMesh.castShadow, false, 'no shadow pass');
+});
+
+test('W5-V5: coin glints — the field keeps 16 glint slots after its lights (same Points draw), fills them from the drawn coins at night, clears them by day', async () => {
+  const Li = await import('../src/opus-bay/world/sf/lights');
+  assert.equal(Li.GLINT_SLOTS, 16);
+  // where a glint sits: a trail coin's centre bobs 0.8 u up, a cache's top coin 1.15 u, an air coin is its own centre
+  const world = {
+    items: [
+      { kind: 'trail', x: 1, y: 2, z: 3, air: false }, { kind: 'cache', x: 4, y: 5, z: 6, air: false },
+      { kind: 'cache', x: 7, y: 8, z: 9, air: true }, { kind: 'ring', x: 10, y: 11, z: 12, air: true },
+    ],
+    visible: [3, 0, 1, 2],
+  };
+  const spots = Li.coinGlints(world);
+  assert.deepEqual(spots.map(s => +s.y.toFixed(3)), [11.45, 3.25, 6.6, 9]);
+  assert.deepEqual(spots.map(s => s.x), [10, 1, 4, 7], 'in the draw order (nearest first)');
+  assert.equal(Li.coinGlints(null).length, 0);
+  assert.equal(Li.coinGlints({ items: world.items, visible: Array(40).fill(0) }).length, Li.GLINT_SLOTS);
+  const renderer = { getDrawingBufferSize: (v: THREE.Vector2) => v.set(960, 600) } as unknown as THREE.WebGLRenderer;
+  let live: { x: number; y: number; z: number }[] = spots;
+  const field = new Li.LightField(renderer, { siteLights: () => [], glints: () => live });
+  field.setExtra([{ x: 0, y: 5, z: 0, level: 1, color: [1, 0.6, 0.3] }]);
+  field.setFar({ lines: { count: 0, cls: new Uint8Array(0), flags: new Uint8Array(0), width: new Float32Array(0), pStart: new Uint32Array([0]), xyz: new Float32Array(0) } } as never);
+  const base = field.count;
+  const pts = field.group.children[0] as THREE.Points;
+  assert.equal(pts.geometry.getAttribute('position').count, base + Li.GLINT_SLOTS, 'the slots follow the lights');
+  const cam = new THREE.PerspectiveCamera(50);
+  field.update(0.3, 0, cam, 1);
+  assert.equal(field.glintCount, 4);
+  const lvl = pts.geometry.getAttribute('aLevel'), pos = pts.geometry.getAttribute('position');
+  for (let k = 0; k < Li.GLINT_SLOTS; k++) {
+    if (k < 4) { assert.ok(lvl.getX(base + k) >= 3 && lvl.getX(base + k) < 4, 'a glint level'); assert.equal(pos.getX(base + k), spots[k].x); }
+    else assert.equal(lvl.getX(base + k), 0, 'unused: culled');
+  }
+  // a coin picked up: its glint goes at the next refresh (≤ 5 Hz)
+  live = spots.slice(1);
+  field.update(0.1, 0, cam, 1);
+  assert.equal(field.glintCount, 4, 'not before 0.2 s');
+  field.update(0.15, 0, cam, 1);
+  assert.equal(field.glintCount, 3);
+  // a rebuild (landmark lights streaming in) keeps them
+  field.setExtra([]);
+  assert.equal(field.glintCount, 3);
+  assert.ok((field.group.children[0] as THREE.Points).geometry.getAttribute('aLevel').getX(field.count) >= 3);
+  // by day: the field is hidden and the glints are cleared
+  field.update(0.3, 0, cam, 0);
+  assert.equal(field.visible, false);
+  assert.equal(field.glintCount, 0);
+  field.dispose();
+  // the shader: a glint branch (star, no near fade) before the blinking aviation lights, one program
+  const vs = Li.LIGHT_FIELD.vertexShader, fs = Li.LIGHT_FIELD.fragmentShader;
+  assert.ok(vs.includes('aLevel >= 3.0') && vs.indexOf('aLevel >= 3.0') < vs.indexOf('aLevel >= 2.0'));
+  assert.ok(vs.includes('varying float vStar') && fs.includes('varying float vStar'));
+});

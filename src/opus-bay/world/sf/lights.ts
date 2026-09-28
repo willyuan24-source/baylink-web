@@ -120,6 +120,19 @@ export function salesforceCrownLights(): LightSpec[] {
   return out;
 }
 
+/**
+ * Coin glints at night (wave 5, lane V, W5-V5): GLINT_SLOTS points at the end of the field, moved at ≤ 5 Hz onto the
+ * coins lane E draws (economy/coins.ts `coinWorld.visible`, nearest first), so a trail, a cache or a ring twinkles in
+ * the dark. aLevel ≥ GLINT (fract = phase): a slow gold twinkle, a four-ray star of a fixed world size, shown from the
+ * camera out to ≈ 170 u (the lamps fade in only beyond 60 u); unused slots have level 0 and are culled in the vertex
+ * shader. Same Points draw: no call, no program.
+ */
+export const GLINT_SLOTS = 16;
+const GLINT = 3;
+const GOLD = [1.0, 0.82, 0.42] as const;
+/** a glint sits this far above a coin's centre (its rim: the disc is 0.42 u across its radius) */
+const GLINT_LIFT = 0.45;
+
 const VERT = /* glsl */ `
 attribute float aLevel;
 attribute vec3 aColor;
@@ -128,25 +141,41 @@ uniform float uTime;
 uniform float uPx;
 uniform vec2 uObFar;
 varying vec3 vCol;
+varying float vStar;
 ${KARL_GLSL}
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vec4 mv = viewMatrix * wp;
   float d = max(-mv.z, 1.0);
-  float lvl = aLevel, blink = 1.0;
-  if (aLevel >= ${BLINK.toFixed(1)}) { lvl = 1.0; blink = 0.12 + 0.88 * step(0.55, fract(uTime * 0.5 + fract(aLevel))); }
-  float a = uNight * smoothstep(60.0, 150.0, d) * blink * (0.4 + 0.6 * lvl);
+  float lvl = aLevel, blink = 1.0, reach = smoothstep(60.0, 150.0, d), star = 0.0;
+  if (aLevel >= ${GLINT.toFixed(1)}) {
+    lvl = 1.0; star = 1.0;
+    blink = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * 2.2 + fract(aLevel) * 6.2832), 3.0);
+    reach = 1.0 - smoothstep(140.0, 180.0, d);
+  } else if (aLevel >= ${BLINK.toFixed(1)}) { lvl = 1.0; blink = 0.12 + 0.88 * step(0.55, fract(uTime * 0.5 + fract(aLevel))); }
+  float a = uNight * reach * blink * (0.4 + 0.6 * lvl);
   a *= (1.0 - 0.85 * obKarl(wp.xyz, d)) * (1.0 - smoothstep(uObFar.x, uObFar.y, d));
   vCol = aColor * a;
-  gl_PointSize = clamp(1.6 * uPx / d, 1.5, 4.5) * (0.75 + 0.35 * lvl);
+  vStar = star;
+  gl_PointSize = star > 0.5
+    ? clamp(1.3 * uPx / d, 0.01 * uPx, 0.034 * uPx) * (0.7 + 0.4 * blink)
+    : clamp(1.6 * uPx / d, 1.5, 4.5) * (0.75 + 0.35 * lvl);
   gl_Position = projectionMatrix * mv;
   if (a < 0.004) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
 }`;
 const FRAG = /* glsl */ `
 varying vec3 vCol;
+varying float vStar;
 void main() {
-  float r = length(gl_PointCoord - 0.5) * 2.0;
-  float k = pow(max(0.0, 1.0 - r), 1.4);
+  vec2 q = (gl_PointCoord - 0.5) * 2.0;
+  float r = length(q);
+  float k;
+  if (vStar > 0.5) {
+    // a coin glint: a small hot core and four thin rays
+    float core = pow(max(0.0, 1.0 - r * 2.2), 2.0);
+    float rays = pow(max(0.0, 1.0 - abs(q.x) * 9.0), 2.0) * max(0.0, 1.0 - abs(q.y)) + pow(max(0.0, 1.0 - abs(q.y) * 9.0), 2.0) * max(0.0, 1.0 - abs(q.x));
+    k = core * 1.2 + rays * 0.8;
+  } else k = pow(max(0.0, 1.0 - r), 1.4);
   if (k < 0.01) discard;
   gl_FragColor = vec4(vCol * k * 1.7, 1.0);
   #include <colorspace_fragment>
@@ -186,6 +215,28 @@ export function siteLightSpecs(list: readonly { x: number; y: number; z: number;
   return list.map(l => { c.set(l.color); return { x: l.x, y: l.y, z: l.z, level: Math.min(1, Math.max(0.3, l.size)), color: [c.r, c.g, c.b] as const }; });
 }
 
+/** A glint's position (world). */
+export interface GlintSpot { x: number; y: number; z: number }
+
+/**
+ * The coins lane E draws right now, as glint spots (nearest first, at most `max`): economy/coins.ts `coinWorld` (null
+ * outside city mode or before the economy feature starts). Pure; the rim lift is GLINT_LIFT.
+ */
+export function coinGlints(world: { items: readonly { kind: string; x: number; y: number; z: number; air: boolean }[]; visible: readonly number[] } | null, max = GLINT_SLOTS): GlintSpot[] {
+  if (!world) return [];
+  const out: GlintSpot[] = [];
+  for (const i of world.visible) {
+    const c = world.items[i];
+    if (!c) continue;
+    const centre = c.kind === 'ring' ? c.y : c.kind === 'cache' ? (c.air ? c.y - 0.6 : c.y) + 1.15 : c.y + 0.8;
+    out.push({ x: c.x, y: centre + GLINT_LIFT, z: c.z });
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+type CoinsModule = { coinWorld: Parameters<typeof coinGlints>[0] };
+
 /** The light field as a world system (world.ts adds it in city mode; `setFar` once the far data is in). */
 export class LightField implements WorldSystem {
   readonly name = 'light-field';
@@ -198,15 +249,54 @@ export class LightField implements WorldSystem {
   private siteCount = -1;
   private siteAt = 0;
   private size = new THREE.Vector2();
+  /** W5-V5: the first glint slot (the field's last GLINT_SLOTS points), the spots shown, the coins module once loaded */
+  private glintBase = 0;
+  private glints: GlintSpot[] = [];
+  private glintAt = 0;
+  private coins: CoinsModule | null = null;
+  private coinsAsked = false;
+  private disposed = false;
 
   private renderer: THREE.WebGLRenderer;
-  private opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[] };
+  private opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[] };
 
-  constructor(renderer: THREE.WebGLRenderer, opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[] } = {}) {
+  /**
+   * `glints` (tests / QA): where the coin glints go; by default the coins of economy/coins.ts, imported on the first
+   * night (the economy feature's own chunk: nothing is loaded by day, and nothing enters the main graph).
+   */
+  constructor(renderer: THREE.WebGLRenderer, opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[] } = {}) {
     this.renderer = renderer;
     this.opts = opts;
     this.group.name = 'light-field';
     freezeStatic(this.group);
+  }
+
+  /** the coin glints drawn right now (QA / tests) */
+  get glintCount(): number { return this.glints.length; }
+
+  private glintSpots(): readonly GlintSpot[] {
+    if (this.opts.glints) return this.opts.glints();
+    if (!this.coins && !this.coinsAsked) {
+      this.coinsAsked = true;
+      import('../../economy/coins').then(m => { if (!this.disposed) this.coins = m as unknown as CoinsModule; }, () => { /* no economy: no glints */ });
+    }
+    return coinGlints(this.coins?.coinWorld ?? null);
+  }
+
+  /** Move the glint slots onto `spots` (the rest: level 0, culled). */
+  private writeGlints(spots: readonly GlintSpot[]) {
+    const p = this.points;
+    if (!p) return;
+    const pos = p.geometry.getAttribute('position') as THREE.BufferAttribute, lvl = p.geometry.getAttribute('aLevel') as THREE.BufferAttribute;
+    const n = Math.min(spots.length, GLINT_SLOTS);
+    for (let k = 0; k < GLINT_SLOTS; k++) {
+      const i = this.glintBase + k, s = spots[k];
+      if (k < n) { pos.setXYZ(i, s.x, s.y, s.z); lvl.setX(i, GLINT + (((s.x * 0.37 + s.z * 0.61) % 1) + 1) % 1 * 0.999); }
+      else { pos.setXYZ(i, 0, -1e4, 0); lvl.setX(i, 0); }
+    }
+    pos.clearUpdateRanges(); pos.addUpdateRange(this.glintBase * 3, GLINT_SLOTS * 3); pos.needsUpdate = true;
+    lvl.clearUpdateRanges(); lvl.addUpdateRange(this.glintBase, GLINT_SLOTS); lvl.needsUpdate = true;
+    this.glints = spots.slice(0, n);
   }
 
   /** the far data arrived: build the street lamps (≈ 13k points, a few ms) */
@@ -222,12 +312,15 @@ export class LightField implements WorldSystem {
     if (this.street.length) this.rebuild(this.sites);
   }
 
-  get count(): number { return this.points?.geometry.getAttribute('position').count ?? 0; }
+  /** the lights in the field (the glint slots not counted) */
+  get count(): number { return this.points ? this.points.geometry.getAttribute('position').count - GLINT_SLOTS : 0; }
   get visible(): boolean { return !!this.points?.visible; }
 
   private rebuild(sites: LightSpec[]) {
     this.sites = sites;
-    const g = pointsGeometry([...this.street, ...this.extra, ...sites]);
+    const lights = [...this.street, ...this.extra, ...sites];
+    this.glintBase = lights.length;
+    const g = pointsGeometry([...lights, ...Array.from({ length: GLINT_SLOTS }, (): LightSpec => ({ x: 0, y: -1e4, z: 0, level: 0, color: GOLD }))]);
     if (this.points) { this.points.geometry.dispose(); this.points.geometry = g; }
     else {
       this.points = new THREE.Points(g, LIGHT_FIELD);
@@ -238,6 +331,7 @@ export class LightField implements WorldSystem {
       this.group.add(this.points);
     }
     this.points.updateMatrixWorld(true);
+    if (this.glints.length) this.writeGlints(this.glints);
   }
 
   update(dt: number, _t: number, camera: THREE.Camera, night: number) {
@@ -245,7 +339,14 @@ export class LightField implements WorldSystem {
     if (!p) return;
     // on from dusk (golden hour's 0.05 would cost a call for lamps nobody can see)
     p.visible = night > 0.15;
-    if (!p.visible) return;
+    if (!p.visible) { if (this.glints.length) this.writeGlints([]); return; }
+    // coin glints: ≤ 5 Hz (coins do not move; lane E's draw list itself refreshes at ≤ 5 Hz)
+    this.glintAt -= dt;
+    if (this.glintAt <= 0) {
+      this.glintAt = 0.2;
+      const spots = this.glintSpots();
+      if (spots.length || this.glints.length) this.writeGlints(spots);
+    }
     // landmark lights settle as the city streams in: pick up new ones every few seconds
     this.siteAt -= dt;
     if (this.opts.siteLights && this.siteAt <= 0) {
@@ -261,6 +362,7 @@ export class LightField implements WorldSystem {
   }
 
   dispose() {
+    this.disposed = true;
     this.points?.geometry.dispose();
     this.group.clear();
     this.points = null;
