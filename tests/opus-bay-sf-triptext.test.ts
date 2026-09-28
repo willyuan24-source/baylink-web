@@ -318,7 +318,7 @@ test('review 2 · the clip lookup: TOUR_VOICE_CLIPS in the voice language withou
   assert.equal(clip('grand-bay-intro'), TOUR_VOICE_CLIPS['zh-grand-bay-intro'].duration);
   lang = 'en';
   assert.equal(clip('grand-bay-intro'), TOUR_VOICE_CLIPS['en-grand-bay-intro'].duration, 'a language switch times the next line by its clip');
-  assert.equal(clip('metro-sfsu-next-2'), undefined, 'not recorded yet: text only');
+  assert.equal(clip('no-such-line'), undefined, 'no clip: text only');
   // linePacer stays light: type imports only
   const { readFileSync } = await import('node:fs');
   const src = readFileSync(new URL('../src/opus-bay/game/linePacer.ts', import.meta.url), 'utf8');
