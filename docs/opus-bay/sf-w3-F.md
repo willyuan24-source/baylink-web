@@ -153,3 +153,58 @@ Commits on `opus-bay`: `7ee36f1` F11 / F12, `78b21ed` F10, `5d470d3` F10 (city a
 | C2 / lane V | (optional) Karl on non-TOY materials | If Karl looks wrong on walkers, publish the fog patch for plain MeshStandardMaterials; F would apply it in `crowdPeopleMaterial()` (its program is shared with the promenade walkers, so both change together). |
 
 Relayed messages during part b: none.
+
+## Review
+
+### 给主人的摘要
+
+- 我把 F 线电车、渡轮、城市里的人群和小汽车、城市声音都读了代码，并在浏览器里（电脑 1440×900 和手机 390×844）一个个试过，找到 9 个真问题，其中 8 个由我修好并推上去了：刚进城马上坐电车会被"换"到另一辆车上、城市里的渡轮偶尔要多等一整圈（约 95 秒）才能坐、在码头等船就听到船上的发动机、降低画质或天黑时人群不变少、高空滑翔时人群不隐藏、远处叮当车掉头的声音太响等。
+- 第 9 个（渡轮开到海湾中间时跳船会被困在水面上）E2 的复查同时修好了（现在会提示"等船靠岸"），我确认过。
+- 剩下几个小问题要别的线处理（渡轮开动时仍显示"下车"按钮、F 线车站的提示图标是叮当车的），写在下面的 Requests 里。全部检查通过。
+
+### What I checked
+
+- Every lane-F wave-3 commit (P1 `a0ad530`, F13 `582573a`, glossary `ee5b38a`, F7 `15da86f`, F8 `17ef41a`, `a9b87cb`, F11 / F12 `7ee36f1`, F10 `78b21ed` + `5d470d3`, `79ccd27`, `53211af`, `270f250`, `09eee9a`, `b87326e`) and the code around it: audio prep / activation, the F-line system and layer, the hero-loop handover in `world/streetcar.ts`, the ferry system / layer and its hand-over in `world/life.ts`, the ride flow in `game/transit.ts` / `game/ride.ts`, crowd, traffic, street net, city life, the city audio layers. Every file the lane touched is F's (no frozen file).
+- Browser (own dev server 5204, RTX, desktop 1440×900 and phone 390×844 `--mobile --dpr 3`): ferry hand-over timing at load (1× and 4× CPU), ferry rides both ways with hop-off under way (near Gate E and on the open-water return leg) and "Skip to stop", a hero-streetcar ride started before the transit layer came in, F-line boarding dialogue / ride / HUD-tap hop-off on the phone, crowd + traffic at Union Square (budget with and without, quality high → low, night), fast travel Union Square → City Hall (hidden in flight, refilled at the landing), a glide off Twin Peaks, city audio at nine spots (Ocean Beach, the Bayview shore, Stow Lake, Golden Gate Park, Powell St, Valencia & 24th, the Ferry gate, Twin Peaks, Hunters Point), the district for regressions. Every screenshot read.
+
+### Defects
+
+| # | what (evidence) | status |
+|---|---|---|
+| 1 | **A hero streetcar ride begun before the lazy transit layer came in** (city mode, first ~15 s) was hijacked once the layer arrived: `FLineLayer.update` wrote the platform `'streetcar'` and `runtime.streetcar` after the hero loop every frame, so the rider rode whichever F-line car was nearest (it dwelt 7 s at Green St while the hero car drove on), and both the 2 hero cars and the 4 F-line cars were drawn on the hero track. Node repro: the rider's platform up to 104.8 u from any hero car. | fixed `08f6353`: `FLineLayer.setActive` (inactive = simulated, not drawn, publishes nothing); `Streetcars` keeps the F-line inactive until that ride ends and re-seeds it where the hero cars are then. Browser: platform = hero car 0 for the whole 41 s ride, F-line hidden; afterwards hero cars hidden, F-line cars at their spots. Test in sf-fline. |
+| 2 | **The arrival ferry could miss its hand-over**: `life.ts` handed ferry 0 to the ride system only during its 22 s at Gate E; the transit layer arrives 12–25 s after load (lane F's own number), after which the boat left on the district's harbour loop, unrideable and with no terminal prompts, for the whole loop (node: 242 u away after 90 s). | fixed `073605b`: in city mode ferry 0 waits at Gate E until the ride system takes it. Test in sf-life (fails on the old code). |
+| 3 | **Hopping off the ferry under way left the rider standing on the Bay, unable to move** (b87326e, Space at u ≈ 830 on the Pier 41 → Gate E leg: player at (−144.5, −87.6), `isWater`, W did nothing; `review-ferry-stranded-on-bay-before.jpg`). ~35 % of the loop is > 60 u from walkable ground, beyond the controller's unstick. | fixed by **E2's review** (`6bb6e16` + its transit-alight change, pushed while this review ran): refused under way ("等船靠岸"), F's quay kept when docked. My interim guard (`073605b`) was dropped again in `60b3a05`; the sf-ferry test pins F's side (leaving the ride out on the Bay puts the rider on solid ground on the next quay). Browser on the rebased head: Space under way refused, still riding; "Skip to stop" → Pier 41 quay (−238.2, 66.5). |
+| 4 | A rider **still waiting** for the ferry and taken off by `hopOffRide` (a trip starting, QA) was teleported to the terminal the boat lay at (Pier 41 → the Gate E quay). | fixed `073605b` (only a rider aboard is moved). Test in sf-ferry (fails on the old code). |
+| 5 | Since F10 a cable car that had turned played the turntable rumble at 0.6 and its bell at 0.9 anywhere within 90 u (never quieter), a stop bell 0.8 within 60 u; BAYBAY's "a bell close by" line (strength ≥ 0.4) fired for bells 60 u away. | fixed `88b8d9d`: strengths by distance, the rider's own car full. Test in sf-transit through the real `TransitLayer`. |
+| 6 | **The ferry engine played at the aboard level while you waited on the quay** (Pier 41, boat 385 u away at Gate E: `__opusAudio.stats().city.engine` 1). `53211af`'s message says the engine plays "aboard only once the boat carries you", but that commit only touched `traffic.ts`. | fixed `58591f8`: aboard = ride phase `riding` / `arrived`. Test in audio. |
+| 7 | **The crowd never hid while gliding high** (the report's claim): `cityLife` compared the camera with `runtime.player.y`, which rides the pelican, so the camera stayed 7 u "above the player" at 55 u over the streets. | fixed `14619f9`: height above the ground under the player, 10 u hysteresis (without it the crowd popped in and out at 54–56 u). Browser: hidden from 55 u, back below 45 u. |
+| 8 | **A lower quality or the night did not thin a crowd in view**: extras went only where the view cone did not reach, so with the camera resting on Union Square the `low` crowd (24) stayed at 49 after 40 s (node, all in view: 62 after 60 s). | fixed `fd7e057`: while there are more walkers than wanted and all in view, one more than 16 u from the player fades out (shrinks) every ⅓ s; steady crowds never churn. Browser 64 → 37 (10 s) → 28 (40 s, the rest within 16 u); `review-crowd-low-quality-40s.jpg`. Test in sf-life. |
+| 9 | Per-frame garbage: `traffic.ts` built `[0, 0.7, 1.4, 2]` and `[-1, 0, 1]` inside the per-car × per-vehicle loops (≈ 24 × 35 arrays a frame); `crowd.ts` `Array.from(dist).sort(...)` every crowded frame; both draws and `FLineLayer.update` built small arrays each frame. | fixed `cf98cf4`, `08f6353`. |
+
+Open (not fixed here):
+
+- Smaller per-frame objects remain: the road-vehicle registry pushes new objects (≈ 35 a frame: cable cars, F-line, traffic, the player's vehicle), `focus()`, the traffic's `people` entries, `span()` tuples, `life.ts` `ferryState`. Pooling needs the `registerRoadVehicles` shape to change, which wave 4 lane T is starting to use: left.
+- The toy traffic thins only out of view (a quality step down reached 8 cars after ~40 s): acceptable, noted.
+- Audio P1 under this machine's load: opening the AudioContext at load took 0.3–1.2 s (the one unsliceable task, as designed) and the sliced prep finished 10–19 s after load (idle callbacks are scarce while the city streams); a Start pressed before that is silent until the prep ends. The lead's quiet-machine perf run should look at the first-walk rows again.
+- The lane's known gaps stand (walkers brush lamp posts, dark silhouettes at night, Sausalito data only, the 4× CPU row).
+- The quality step down itself (C2's) re-links programs: 41 → 69–72 at Union Square; not F's materials (F's warm-ups hold: 51 with and without the crowd and traffic at day).
+
+### Evidence
+
+- Checks on the pushed head `60b3a05`: `tsc` 0, `eslint .` 0 errors (43 warnings, none in lane F files), **719 / 719** opus-bay tests in the run before the last rebase; on the rebased tree 720 tests, 719 pass and 1 failure, E2's wall-clock assert "a cached cell is cheap" (`opus-bay-sf-move2`) under load, 24 / 24 when that file is re-run. New tests: sf-fline (legacy hero ride), sf-ferry (waiting rider, leaving on the Bay), sf-life (ferry waits at Gate E; crowd thins in view), sf-transit (turned / bell by distance), audio (engine while waiting / aboard). Each fails on the code before its fix.
+- Budget at Union Square (1440×900, high, day): with / without crowd + traffic 105 / 100 calls, 404.9k / 389.9k triangles, programs 51 / 51. Crowd 64 (near 18, far 46), traffic 24 (near 7), 0 overlaps. Night: 57 walkers, 19 cars.
+- Ferry hand-over at load: layer in at 15.3 s (1×), 19.4 s (4× CPU phone), within the dock window on these runs; with the fix the window no longer matters.
+- City audio: Ocean Beach `ocean 1` + surf crashes, Bayview shore `ocean 0` (the Pacific test holds on the Bay side), Golden Gate Park `park 0.81` + birds, Valencia & 24th `busk 1` (46 busker notes), Stow Lake no surf; the district builds no city layer and fetches none of the city chunks.
+- Phone (390×844 dpr 3, mid): the motorman's dialogue (6 destinations + Not now) fits; the ride banner's "Hop off here" tapped on Market St → the car braked, the rider stood on Market St with the "ride to the next stop" hint (`review-phone-fline-hopoff-tap.jpg`).
+- Fast travel Union Square → City Hall: crowd and traffic meshes hidden in flight, the city hooks cleared; 43 walkers within 40 u and 16 cars within 120 u 1.5 s after landing.
+- Scratch (all runs and scripts): `C:/Users/willy/opus-qa/w3/f-review/`.
+
+### Requests
+
+| to | file | change |
+|---|---|---|
+| wave 4 lane G | `ui/Hud.tsx` RideBanner, `ui/MoveChip.tsx` | On the ferry under way (`rideSystemFor('ferry').rideStatus()?.station == null`) moveSystem refuses the hop-off (等船靠岸), yet the banner still offers 提前下车 / Hop off here and the chip "SPACE Hop off": grey them or say "at the next dock". On spot `'deck'` the chip reads "Walk the aisle": "Walk the deck" (走走甲板). |
+| wave 4 lane T | `world/streetcar.ts`, `game/ride.ts` | §8.4 gives the hero F-line ride `line: 'streetcar'`. `Streetcars.update` tells a hero-loop ride from a city F-line ride by `r.line` (`city = fline && !(r && !r.line)`, plus the review's `legacyRide` / `fline.setActive`), and `rideSystemFor('streetcar')` answers the city F-line: keep a separate marker for a ride that runs on the hero loop (e.g. `kind` / a flag), or a hero ride begun before the layer came in is handed to the F-line system mid-ride again. |
+| (already routed by the lead, §8.4) | `ui/transitGlyph.ts` (G), `game/transit.ts` `?? quay` (T) | unchanged; confirmed still open in the code (F-line stations and `pier-41` show the cable-car glyph). |
+
+Relayed messages during the review: none.
