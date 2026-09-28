@@ -92,7 +92,6 @@ export const tiledSteps: W4Site = {
     osm: [],
     terrain: [-3, -9, 3, 5],
     terrainStep: 1,
-    ringMin: 0.6,
-    notes: 'A stair between houses: the walk-around ring crosses the houses on both sides (60 %). Never a copy of the mosaic (Aileen Barr and Colette Crutcher\'s artwork): an abstract colour run on the risers only. The Hidden Garden Steps (16th Ave, Kirkham to Lawton) are a card.',
+    notes: 'Never a copy of the mosaic (Aileen Barr and Colette Crutcher\'s artwork): an abstract colour run on the risers only. The Hidden Garden Steps (16th Ave, Kirkham to Lawton) are a card.',
   },
 };

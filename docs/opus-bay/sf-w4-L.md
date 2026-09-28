@@ -331,3 +331,145 @@ Not defects, noted: `siteKit.ts` is now imported by ten D2-09 landmark modules, 
   preview measured the same on screen for the three it shot (Union Square 598, Bison Paddock 790, Ocean Beach 488).
 
 Status (2026-09-27): 复查完成，4 个修复提交 + 本报告已推送到 opus-bay；剩下 3 个待办（高度规则 'ground' 的接线映射、城市学院两个记录共用一个地点、篝火圈要在北段另做一个小地点）写在上面。
+
+## Early phase, part 2 (lane L2)
+
+Written 2026-09-27 by the lane-L2 agent (worktree `C:/Users/willy/wt/w4-l`, branch `w4-l` → `opus-bay`). Rule: new files
+only, plus lane L's own wave-4 files (`siteKit.ts`, `w4list.ts`, `w4sites.ts`, `siteTerrain.ts`, the site modules, the
+sites test). One exception, forced by the integration that landed meanwhile (W4-IL1 registered `w4list.ts` in
+`SF_SITES` at 17:09): every new record needs its row in the generated `landmarks/tops.ts`, so each site commit re-runs
+`scripts/opus-sf/assets/landmark-tops.ts` (a generated file under lane L's `landmarks/**`). No other existing file and
+no other lane's file was edited. Higgsfield: 0 credits.
+
+### 给主人的摘要
+
+1. 这一轮又做了 **23 个**新地点（接线阶段已经把 L 线的地点表接进游戏，所以都已经在城市里画出来了）：基泽体育场、金门公园旋转木马和游乐场、嬉皮山鼓圈、克莱门街和尔文街两段商店街、第16大道马赛克阶梯、格兰维尤公园山顶、植物园正门、戴维森山十字架、斯特恩林音乐草坪、默塞德湖钓鱼栈桥、芬斯顿堡观景台（天上有一架绕圈的滑翔伞）、哈维·米尔克广场彩虹旗和 18 街彩虹斑马线、要塞隧道顶公园的游乐场、梅森堡艺术中心的红瓦仓库和市集、贝克海滩看金门大桥的位置、科罗娜高地山顶红岩、伯纳尔高地山顶信号塔、圣玛利亚大教堂（四片双曲抛物面屋顶按真实几何算）、叮当车博物馆（门口大轮子会转）、战争纪念歌剧院和退伍军人大楼、亚洲艺术博物馆、日本城韦伯斯特街天桥。
+2. 每个地点都在三角形预算内（最多 772 / 800），都有能走到的到达点、地图旗杆、照片机位；全套测试 807 个全部通过，每个地点都截图看过。
+3. 上一轮复查留下的 3 件事做了 2 件：高度规则（'ground' 改成 'overlook'，并记下实测高度）、一个地点只对应一个主记录（城市学院）；北段篝火圈还没做。
+4. 圣母大教堂和中国亭的 AI 模型摆放数据补齐了（V 组已经用上）；草莓山岛现在画成陆地了（V 组修的），中国亭保留石台基（V 组的模型就放在上面）。
+5. 没做：渔人码头西（海事博物馆、潜艇——潜艇离手工码头区只有 3.7 单位，放不下）、唐人街宝塔群（主程序已定本波只做卡片）、北段篝火圈。
+
+### What was built (files, API)
+
+| file | what |
+|---|---|
+| `landmarks/siteKit.ts` | `W4SiteMeta.aiSlot` gains `id` (the `SF_MODELS` id the swap part names) and `at` (the part's local placement); `height` gains `top` (the lod-0 model's measured top over the base: what cityViews / cityLive add to the base) and its `rule` is SfLandmarkInfo's union (`'ground'` → `'overlook'`); `street?: { x0, x1, half }` for a street site |
+| `landmarks/w4sites.ts` | `w4SiteByPlace(placeId)` (the MAIN record of a place row: the first in build order), `isMainSite(s)` |
+| `landmarks/shopStreet.ts` (new) | a shopping block as a site: `shopExclude`, `shopGround` (carriageway, sidewalks, centre dashes, zebra corners), `shopFronts` (awnings, blank signboards, produce stands, kerb trees / palms / lamps), `shopBlockers`, `shopLights` |
+| `landmarks/civicKit.ts` (new) | `civicBlock(b, k, y, lod)`: a Beaux-Arts civic block (rusticated base, colonnade on one front, entablature, parapet, lit arches) |
+| 23 site modules (new) | below; each a declarative `W4Site` record with its facts, sources and frame in the header |
+| `landmarks/w4list.ts` | the 23 records appended (P3 order; the Botanical Garden gate with the Music Concourse group) |
+| `landmarks/siteTerrain.ts`, `landmarks/tops.ts` | generated (`sites-terrain.mts --site`, `landmark-tops.ts`) |
+| `tests/opus-bay-sf-sites-w4.test.ts` | + the AI slot's id and placement, the height rule and measured top, one main record per place, no overlap with the tier-3 lane's sites (`w4list3`), lane P's travel ends (`attractionArrivals`) in the place check, the street sites' walk check along the block |
+
+The sites (T = map tier; the test's numbers: model + draped ground + animate part / cap; walk = the ring's open share,
+or along the block for a street site):
+
+| site id | what the toy shows | T | tris / cap | walk |
+|---|---|---|---|---|
+| `kezar-stadium` | the two stepped grandstands on their OSM footprints, the terracotta track with lane lines, the field markings (no team marks) | 3 | 550 / 800 | 93 % |
+| `koret-carousel` | the carousel house opened up, the 1914 carousel turning inside (animate), a play mound with two slides, a climbing tower | 3 | 772 / 800 | 93 % |
+| `hippie-hill` | a drum circle of seven toy drummers on the meadow (beating hands, animate), blankets, a guitar case; the drum-loop sound hook at `DRUM_CIRCLE` | 3 | 606 / 800 | 100 % |
+| `clement-street` | the 5th–6th Ave block: carriageway and sidewalks re-laid, zebra corners, awnings, blank signboards, produce stands, trees, lamps | 3 | 702 / 800 | 90 % (street) |
+| `irving-street` | the 21st–22nd Ave block, the same kit, a tree and two palms | 3 | 730 / 800 | 85 % (street) |
+| `tiled-steps` | fourteen toy steps whose risers run sea → surf → sand → hills → sky → sun (abstract, never the mosaic), garden walls and planting | 3 | 464 / 800 | 78 % |
+| `grand-view-park` | the summit: coin telescope, two benches, a rail, two cypresses (panorama) | 3 | 224 / 800 | 100 % |
+| `botanical-garden-gate` | the main gate on MLK Dr (lane P's re-anchor): forecourt, stone piers under a timber lintel, kiosk, magnolias in flower | 3 | 504 / 800 | 97 % |
+| `mount-davidson` | the 1934 concrete cross (31.4 m → 8.1 u), plinth, stone kerb, two benches at a distance, eucalyptus; a memorial | 2 | 288 / 2500 | 73 % (stated) |
+| `stern-grove` | the concert meadow: timber stage with canopy and speakers, blankets, log benches on the terraces | 2 | 582 / 2500 | 79 % |
+| `lake-merced` | the Harding Rd shore: a timber fishing pier over the water, a moored rowboat rocking (animate), a heron, benches, a path | 2 | 476 / 2500 | 91 % |
+| `fort-funston` | the observation deck on the bluff, rail, bench, windsock, one hang-glider circling over the beach (animate, never flyable) | 3 | 254 / 800 | 96 % |
+| `harvey-milk-plaza` | the tall pole with the six-stripe rainbow flag; the four rainbow crosswalks at Castro & 18th (ground) | 2 | 176 / 2500 | 94 % |
+| `presidio-tunnel-tops` | the Outpost playground: timber lookout fort with a slide, a woven-branch nest, logs, boulders, sand, picnic tables | 2 | 428 / 2500 | 100 % |
+| `fort-mason-center` | the four 1910–14 storehouses in white stucco under red tile (loading doors, awnings), a market courtyard | 3 | 732 / 800 | 90 % |
+| `baker-beach` | the view spot on the sand: driftwood logs facing the Golden Gate, rocks, a blank post (no people) | 2 | 132 / 2500 | 96 % |
+| `corona-heights` | the red chert outcrops of the summit (lane C's panorama spot), a survey post | 2 | 212 / 2500 | 73 % (stated) |
+| `bernal-heights` | the summit relay: equipment building, the 50 ft lattice mast with horns and a red light, the fenced compound | 2 | 336 / 2500 | 92 % |
+| `st-marys-cathedral` | four hyperbolic-paraboloid shells as exact bilinear patches from the pylons to the top, the glass cross, the gold cross, the wing | 3 | 276 / 800 | 81 % |
+| `cable-car-museum` | the 1907–08 brick barn, the stack at the rear, arched openings on Mason St with a big sheave turning (animate); diet ≤ 1.0k, lod0R 200 | 2 | 251 / 1000 | 71 % (stated) |
+| `war-memorial` | the Opera House and the Veterans Building (colonnades to Van Ness, the fly tower), the Memorial Court | 3 | 422 / 800 | 72 % (stated) |
+| `asian-art-museum` | the 1917 library block with its colonnade on the Larkin St front | 3 | 256 / 800 | 93 % |
+| `webster-bridge` | Japan Center's glazed bridge over Webster St (curved roof, mullions, lit), the street re-laid under it | 3 | 208 / 800 | 86 % |
+
+Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id` / `.at` first, as lane V asked.
+
+### Evidence
+
+- **Checks** before every push: `tsc -p tsconfig.app.json --noEmit` 0; eslint on lane L's files 0 (the whole repo had 0
+  errors / 42–43 old warnings at the part's start); the full opus-bay suite green (last: **807 / 807**), re-run on the
+  rebased tree before the push (a failing file re-run once on its own: `sf-nav` "A* is time-sliced" and `sf-move2`
+  "E2-5 view field" flake under load and pass alone).
+- **Incident, fixed:** `35df065` / `fc27bff` (Lake Merced, Fort Funston) reached origin without their `tops.ts` rows
+  (the re-check filter missed `✖ D2-10 …` once W4-IL1 had registered the list): `D2-10` and `W4-IL1` were red on origin
+  for about ten minutes until `ebdc3a7` re-ran `landmark-tops.ts`. The push helper now requires `tsc exit 0` and
+  `ℹ fail 0` literally.
+- **Shots** (read before describing), key ones in `docs/opus-bay/qa/w4/L/p2/`: the Tiled Steps' colour run between the
+  houses; Kezar from above (track, stands, field lines); the carousel in its house; Lake Merced's pier and rowboat;
+  Fort Mason's red roofs and the market; the rainbow crosswalks at Castro & 18th; the Golden Gate from Baker Beach;
+  St Mary's shells and cross; Strawberry Hill drawn as land around the pavilion (after W4-V-I1); the Webster St bridge.
+- **Facts checked on the web this part** (each module header names its sources): Kezar opened 2 May 1925 (59,942
+  seats), rebuilt 1990 for 10,000 with an eight-lane track (Wikipedia); the carousel (Herschell-Spillman 1914, 62
+  animals, in the park since 1940, restored 1984) and the playground (1888, the Sharon Quarters); Clement St as "New
+  Chinatown" (SF Examiner); Mount Davidson's cross 103 ft, 1934, George Kelham, arms 39 ft, an Armenian memorial since
+  1997, OSM node 633021134 (mtdavidson.org, noehill.com, KQED); Stern Grove given in 1931 by Rosalie Stern, the festival
+  since 1938 (sterngrove.org); the Lake Merced piers and slipway (OSM); Fort Funston's Observation Deck (OSM node
+  3101265351); Harvey Milk Plaza's 20 × 30 ft flag (1997, a landmark) and the rainbow crosswalks at Castro & 18th (Sept
+  2014) (SF Chronicle, hoodline, SF Public Works); Tunnel Tops' Outpost and Field Station (presidio.gov); Fort Mason's
+  1910–14 Mission Revival warehouses (NPS, TCLF); Bernal's 50 ft relay tower "Sutrito", 1962 (Wikipedia, Bernalwood);
+  St Mary's by Belluschi and Nervi, 190 ft, 255 ft square (smcsf.org, Docomomo); the Cable Car barn 1907–08, electric
+  since 1911, the stack at the rear (cablecarmuseum.org, Wikipedia); the Webster Street Bridge (OSM way 148481441).
+
+### Decisions
+
+- **One record per attraction** where the plan grouped several (park east = Kezar, carousel, Hippie Hill; Golden Gate
+  Heights = Tiled Steps, Grand View; Civic Center = War Memorial, Asian Art): one flag and one arrival per attraction;
+  the plan's group names stay in the headers.
+- **Street sites** (Clement, Irving): the published residential ribbons include their sidewalks, so a block site
+  re-lays the carriageway and sidewalks inside its exclusion (continued 1.6 u into the crossings) and dresses the
+  shopfronts on both sides; its walk check samples the block's length (`w4.street`): a ring would cross the shops.
+- **Stated rings** (≥ 60 %, the reason in `notes`): Mount Davidson (steep knoll), Corona Heights (rocky sides, the dog
+  run), the Cable Car Museum (a corner building between row houses), the War Memorial (two big blocks).
+- **The pavilion keeps its raised stone base (BASE 0.45).** Lowering it to the island ground (0.25) after W4-V-I1
+  broke lane V's swap row (`data/sf/w4Swaps.ts` places the AI pavilion at y 0.45 and its test pins the fade): kept (the
+  real pavilion stands a step up too); the header now says why.
+- **Harvey Milk Plaza:** Market St's two carriageway ribbons cover the plaza and the OSM flag spot, so the pole stands
+  at the plaza's south corner 2.4 u away and the flag flies over the corner house (the only side with room in the
+  exclusion). **The Webster bridge** takes the Peace Plaza row as its place: the curated `japantown-peace-pagoda` row
+  stays the pagoda's (else `w4SiteOf` / `siteFlagTop` would answer the pagoda's place with the bridge).
+- **Lake Merced** is built where lane P ends the trips (the Harding Rd shore, `PLACE_REANCHORS`); the boat piers are
+  85 u west. **Fort Funston's** OSM place row is 71 u from the bluff: the test takes lane P's travel end.
+- **Chinatown pagoda cluster: not built** (lead §8.3: card-only in wave 4). **USS Pampanito: not built** (3.7 u from the
+  hero slab's edge: a 13 u hull would cross it).
+
+### Integration plan (the records are registered already, by W4-IL1)
+
+1. `data/sf/landmarks.ts` `sfLandmarkInfo` fallback for a wave-4 record: `height: { realM, u: w4.height.top, rule:
+   w4.height.rule }` (the rule is SfLandmarkInfo's union now; `top` is over the base, as cityViews / cityLive read it);
+   key `sfLandmarkInfoByPlace` on `w4SiteByPlace(placeId)` (one main record per place).
+2. Swaps: `w4.aiSlot.id` / `.at` are the swap part (`model = aiSlot.id`, `x, y, z = aiSlot.at`); the IL5 test checks
+   the parts against them.
+3. Lane T (city audio): a weekend drum loop at Hippie Hill's `DRUM_CIRCLE` (exported from `hippie-hill.ts`).
+4. Adding or moving a site: `sites-terrain.mts --site <id>`, then `landmark-tops.ts` (D2-10 / W4-IL1 need the row),
+   then the sites test.
+
+### Not done
+
+- `wharf-west`: the Maritime Museum's Aquatic Park Bathhouse (OSM way 32839686 and two parts) and the USS Pampanito
+  (the hero-slab conflict above).
+- The Early review's open item 16: the fire-ring record on the Stairwell 15–20 stretch of Ocean Beach.
+- `chinatown-pagodas` (the lead's decision); P4 is the tier-3 lane's (`w4list3.ts`).
+- The items routed to lane L in lead §8.4 (the `kit.pyramid` turn, D2's remaining T2 settings): existing files, left to
+  the integration lane.
+
+### Requests
+
+- **Lane C:** cards for the 23 records (their place rows are each module's `w4.placeId`; the headers carry the
+  facts); Mount Davidson, Harvey Milk Plaza and St Mary's are quiet cards; Baker Beach and Lake Merced never prompt a
+  swim; Fort Funston's glider is never flyable.
+- **Lane T:** the Hippie Hill drum loop (integration step 3).
+- **Lead:** `C:/Users/willy/OneDrive/Desktop/baylink-web/node_modules/.bin` went empty at about 19:29 (another
+  checkout's install?), so `npx tsx / tsc / eslint` fail with "not recognized"; lane L2 ran
+  `node node_modules/tsx/dist/cli.mjs`, `node node_modules/typescript/bin/tsc` and
+  `node node_modules/eslint/bin/eslint.js` instead (never an npm install).
+
+Status (2026-09-27): 第二轮 23 个新地点已推送；篝火圈和渔人码头西没做（原因见上）。
