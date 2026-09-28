@@ -1,5 +1,6 @@
 import type { Bilingual } from '../../core/types';
 import { LINE_TTL, NARRATION_REPEAT } from '../../game/linePacer';
+import { autoTravelSeconds } from '../../game/tripPlan';
 import { minutesLabel } from '../../game/tripText';
 import { LANDMARK_ARRIVALS } from './arrivals';
 import { CHAPTER_LINES, loopNarration, metroNarration, sayLine, type GrandChapterId } from './tourLines';
@@ -22,14 +23,21 @@ import { CHAPTER_LINES, loopNarration, metroNarration, sayLine, type GrandChapte
  * TOUR_GEO against the published file (± 1 u, ± 1 u of arc) so a re-bake shows up.
  *
  * TIMES are honest (plan §4 "every time shown is the time it really takes"), from `stopSeconds()`:
- *   walk = straight distance × 1.25 / 4.2 u/s · bus = arc / 9.45 u/s (the plan's 14-min lap) + 8 s per stop passed
- *   + 15 s wait · light rail = surface arc / 10 + underground arc / 25 (the subway overlay) + 4 s per major stop passed
- *   (3 s underground) + 3 s per portal cut + 10 s wait · cable car = arc / 9 × 1.25 + 4 s per dwell stop passed + 20 s
- *   wait · 直接到站 (express Metro legs > 400 u; the bus and the cable car ride in real time, with the narration) =
- *   12 s veil, except a ride that completes a goal (the metro goal needs a real ride: today's 直接到站 never counts
- *   one, game/transit.ts leaveLineRide) · moments: arrive 20 s, photo 25 s, panorama 45 s, deck 120 s.
+ *   on foot = BAYBAY carries the player (W5-C5): game/tripPlan autoTravelSeconds(straight distance × 1.25) · bus =
+ *   arc / 6.85 u/s + 8 s per stop passed + 15 s wait · light rail = surface arc / 7 + underground arc / 14.5 + 4 s per
+ *   major stop passed (3 s underground) + 3 s per portal cut + 60 s wait (two trains a line) · cable car = arc / 9 ×
+ *   2.15 + 4 s per dwell stop passed + 20 s wait · 直接到站 (express Metro legs > 400 u; the bus and the cable car ride
+ *   in real time, with the narration) = 12 s veil, except a ride that completes a goal (the metro goal needs a real
+ *   ride: today's 直接到站 never counts one, game/transit.ts leaveLineRide) · moments: arrive 20 s, photo 25 s, panorama
+ *   45 s, deck 120 s; a stop without one still waits ≈ 6 s for BAYBAY's lines.
+ * Wave 5 (W5-C5, plan §4.6 "re-time the Grand Tour end to end … the express run timed"): the vehicle paces and waits are
+ * the ones measured in the running game on 2026-09-28 (desktop 1440 × 900, the tour carried end to end, no steering;
+ * logs in docs/opus-bay/sf-w5-C.md part b): the full tour took 36.1 min (≈ 1 min of it a snag at the GGB Welcome
+ * Center, 29 u in 40 s each way), the express 28.5 min riding its two long Metro legs (≈ 24.4 min with 直接到站 there).
+ * Wave 4 modelled 9.45 u/s buses (the plan's 14-min lap) and 10 s Metro waits: the game's bus rides at ≈ 6.85 u/s with
+ * traffic, and a line runs two trains (one wait at La Playa was 187 s).
  * Declared `minutes` / `expressMinutes` are that model rounded to 0.1 (tested within 0.15). The full tour models at
- * ≈ 26 min and the express at ≈ 18 min (plan §3.5: ≈ 25.5 / 18), chapter intros and outros not counted.
+ * ≈ 34 min and the express at ≈ 25 min, chapter intros and outros not counted.
  *
  * Goals: `goal` = the stop where a goal really completes (the sightseeing goal counts loop stops over all the real
  * rides and reaches SIGHTSEEING_STOPS on the Twin Peaks ride, in both versions); `advances` = a counting goal the stop
@@ -91,7 +99,7 @@ export interface CityTourChapter {
 export interface CityTourDef {
   id: string;
   name: Bilingual;
-  /** welcome-choice subtitle ("全城 5 章 · 约 26 分钟 · 随时下车") */
+  /** welcome-choice subtitle ("全城 5 章 · 约 34 分钟 · 随时下车") */
   subtitle: Bilingual;
   chapters: CityTourChapter[];
   /** total minutes of the non-optional stops (= Σ chapter minutes) and of the express version */
@@ -213,10 +221,14 @@ export const SIGHTSEEING_STOPS = 8;
 // ---------------------------------------------------------------------------------------------------------------
 
 export const TOUR_MODEL = {
+  // (walkSpeed: the plain walking pace, kept for reference; since W5-C5 BAYBAY carries the tour: game/tripPlan autoTravelSeconds)
   walkSpeed: 4.2, streetFactor: 1.25,
-  bus: { speed: 9.45, dwell: 8, wait: 15 },
-  rail: { surface: 10, underground: 25, dwell: 4, dwellUnder: 3, portal: 3, wait: 10 },
-  cable: { speed: 9, factor: 1.25, dwell: 4, wait: 20 },
+  // W5-C5 re-timed on the measured run of 2026-09-28 (desktop, the tour carried end to end: 36.1 min; see the header)
+  bus: { speed: 6.85, dwell: 8, wait: 15 },
+  rail: { surface: 7, underground: 14.5, dwell: 4, dwellUnder: 3, portal: 3, wait: 60 },
+  cable: { speed: 9, factor: 2.15, dwell: 4, wait: 20 },
+  /** a stop without a moment still waits for BAYBAY's lines before leading on (s; measured 3–10, 6 on average) */
+  settle: 6,
   /** 直接到站 in the express version: Metro legs over 400 u only (the bus and the cable car keep their narration) */
   veil: 12, veilOver: 400, veilKinds: ['light-rail'] as readonly TourLineGeo['kind'][],
   moment: { arrive: 20, photo: 25, panorama: 45, deck: 120 } as Record<CityTourMoment, number>,
@@ -273,7 +285,8 @@ const waitOf = (lineId: string) => {
   const kind = TOUR_GEO[lineId]?.kind;
   return kind === 'bus' ? TOUR_MODEL.bus.wait : kind === 'cable-car' ? TOUR_MODEL.cable.wait : TOUR_MODEL.rail.wait;
 };
-const walkSeconds = (a: XZ, b: XZ) => (dist(a, b) * TOUR_MODEL.streetFactor) / TOUR_MODEL.walkSpeed;
+/** On foot: BAYBAY carries the player (W5-C5) at the auto-travel pace over the street distance. */
+const walkSeconds = (a: XZ, b: XZ) => autoTravelSeconds(dist(a, b) * TOUR_MODEL.streetFactor);
 
 /**
  * Seconds a stop takes from `prev` (the previous stop's end point): the walk to the boarding station and the wait
@@ -293,7 +306,7 @@ export function stopSeconds(stop: CityTourStop, prev: XZ, opts: { express?: bool
     // a ride that completes a goal is never veiled: 直接到站 would not count it
     s += rideSeconds(stop.leg.line, from, to, !!opts.express && !stop.goal);
   }
-  if (stop.moment) s += TOUR_MODEL.moment[stop.moment];
+  s += stop.moment ? TOUR_MODEL.moment[stop.moment] : TOUR_MODEL.settle;
   return s;
 }
 
@@ -316,13 +329,15 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'bay-start', target: 'transit-loop-ferry-building', leg: walk,
       lines: { arrive: bi('观光巴士就在渡轮大厦门口上车，车来了我们就上！', 'The sightseeing bus stops right outside the Ferry Building — hop on when it comes!') },
-      minutes: 0.0, expressMinutes: 0.0,
+      minutes: 0.1, expressMinutes: 0.1,
     },
     {
       id: 'bay-ride-ggb', target: 'transit-loop-golden-gate-bridge', leg: loop('ferry-building', 'golden-gate-bridge'),
       advances: 'sightseeing',
-      lines: { lead: bi('坐上层前排，风景最好！沿路我给你讲。', 'Front row on the top deck — best view! I\'ll tell you about the sights.'), arrive: 'loop-golden-gate-bridge-arrive' },
-      minutes: 3.1, expressMinutes: 3.1,
+      // (W5-C5: no lead line — lane T's auto-boarding says 上车！坐到金门大桥 and the bus's own boarding line the front row
+      // and the narration; the tour's old lead said the same a third time in the game)
+      lines: { arrive: 'loop-golden-gate-bridge-arrive' },
+      minutes: 4.1, expressMinutes: 4.1,
     },
     {
       id: 'bay-vista', target: 'place:osm-w164569681', leg: walk, attraction: 'golden-gate-bridge', moment: 'arrive',
@@ -338,7 +353,7 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'bay-deck', target: 'sf:golden-gate-bridge', leg: walk, moment: 'deck', goal: 'golden-gate', optional: true, express: 'skip',
       lines: { lead: bi('想走上桥吗？走东侧人行道，从南塔走到北塔。', 'Fancy walking the bridge? Take the east sidewalk from the south tower to the north.'), arrive: bi('走过金门大桥啦！', 'You crossed the Golden Gate Bridge!') },
-      minutes: 2.3, expressMinutes: 0.0,
+      minutes: 2.2, expressMinutes: 0.0,
     },
   ]),
   chapter('coast', bi('海岸', 'The Coast'), [
@@ -346,7 +361,7 @@ const CHAPTERS: CityTourChapter[] = [
       id: 'coast-ride-lands-end', target: 'transit-loop-lands-end-sutro', leg: loop('golden-gate-bridge', 'lands-end-sutro'),
       expressTo: 'loop-ocean-beach-windmill', advances: 'sightseeing', postcard: 'sf-lands-end',
       lines: { lead: bi('回车站，下一班车往海边开！', 'Back to the stop — the next bus heads for the coast!'), arrive: 'loop-lands-end-sutro-arrive', expressArrive: 'loop-ocean-beach-windmill-arrive' },
-      minutes: 2.1, expressMinutes: 2.5,
+      minutes: 2.8, expressMinutes: 3.4,
     },
     {
       id: 'coast-sutro', target: 'sf:sutro-baths', leg: walk, attraction: 'sutro-baths', moment: 'arrive', express: 'skip',
@@ -356,7 +371,7 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'coast-ride-windmill', target: 'transit-loop-ocean-beach-windmill', leg: loop('lands-end-sutro', 'ocean-beach-windmill'), express: 'skip', advances: 'sightseeing',
       lines: { lead: bi('再坐一站，就到海洋海滩！', 'One more stop to Ocean Beach!'), arrive: 'loop-ocean-beach-windmill-arrive' },
-      minutes: 0.7, expressMinutes: 0.0,
+      minutes: 0.9, expressMinutes: 0.0,
     },
     {
       id: 'coast-windmill', target: 'sf:dutch-windmill', leg: walk, attraction: 'dutch-windmill', moment: 'photo', postcard: 'sf-windmill', express: 'skip',
@@ -366,34 +381,34 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'coast-walk-n', target: 'transit-muni-judah-la-playa', leg: walk, attraction: 'ocean-beach', postcard: 'sf-ocean-beach',
       lines: { lead: bi('跟我来，N 线的终点站就在南边！', 'Follow me — the N line\'s last stop is just south!'), arrive: bi('这就是 N 线终点，我们坐它穿过日落区。', 'This is the end of the N — we\'ll ride it across the Sunset.') },
-      minutes: 0.8, expressMinutes: 0.7,
+      minutes: 0.6, expressMinutes: 0.6,
     },
   ]),
   chapter('sunset-n', bi('N 线穿越日落区', 'The Sunset by N'), [
     {
       id: 'n-ride-9th-irving', target: 'transit-muni-9th-irving', leg: muni('n-judah', 'judah-la-playa', '9th-irving'), express: 'skip',
       lines: { lead: 'metro-board-n', arrive: 'metro-9th-irving' },
-      minutes: 1.2, expressMinutes: 0.0,
+      minutes: 2.5, expressMinutes: 0.0,
     },
     {
       id: 'n-tea-garden', target: 'place:japanese-tea-garden', leg: walk, attraction: 'japanese-tea-garden', moment: 'arrive', express: 'skip', postcard: 'sf-music-concourse',
       lines: { lead: bi('走过加州科学院，就到日本茶园！', 'Past the Cal Academy to the Japanese Tea Garden!'), arrive: 'arrive-japanese-tea-garden' },
-      minutes: 0.9, expressMinutes: 0.0,
+      minutes: 0.7, expressMinutes: 0.0,
     },
     {
       id: 'n-ride-duboce', target: 'transit-muni-duboce-church', leg: muni('n-judah', '9th-irving', 'duboce-church'),
       lines: { lead: bi('回 N 线，往城里坐，窗外看 UCSF！', 'Back on the N into town — watch for UCSF out the window!'), arrive: 'metro-duboce-portal' },
-      minutes: 1.7, expressMinutes: 0.4,
+      minutes: 2.7, expressMinutes: 1.3,
     },
     {
       id: 'n-painted-ladies', target: 'sf:painted-ladies', leg: walk, attraction: 'alamo-square-painted-ladies', moment: 'photo', goal: 'painted-ladies', postcard: 'sf-painted-ladies', express: 'skip',
       lines: { lead: bi('走上阿拉莫广场，给彩绘女士拍张照！', 'Up to Alamo Square for a photo of the Painted Ladies!'), arrive: 'loop-painted-ladies-arrive' },
-      minutes: 1.0, expressMinutes: 0.0,
+      minutes: 0.8, expressMinutes: 0.0,
     },
     {
       id: 'n-walk-church', target: 'transit-muni-church', leg: walk,
       lines: { lead: bi('去教堂街站换 M 线，从地铁口下去。', 'To Church station for the M — down the stairs at the kiosk.'), arrive: bi('这里就是教堂街站，下一章坐 M 线！', 'Church station — next chapter, the M!') },
-      minutes: 0.7, expressMinutes: 0.2,
+      minutes: 0.6, expressMinutes: 0.3,
     },
   ]),
   chapter('south-m', bi('M 线去石镇和州大', 'Stonestown & SF State'), [
@@ -406,7 +421,7 @@ const CHAPTERS: CityTourChapter[] = [
         arrive: bi('19th Ave & Winston 到了，石镇购物中心就在门口！', '19th Ave & Winston — Stonestown is right by the door!'),
         expressArrive: bi('Holloway 到了，州立大学就在路边！', 'Holloway — SF State is right by the street!'),
       },
-      minutes: 1.3, expressMinutes: 1.5,
+      minutes: 2.7, expressMinutes: 3.0,
     },
     {
       id: 'm-stonestown', target: 'place:stonestown-galleria', leg: walk, attraction: 'stonestown-galleria', moment: 'arrive', express: 'skip',
@@ -416,19 +431,19 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'm-sfsu', target: 'place:sf-state-university', leg: walk, attraction: 'sf-state-university', moment: 'arrive', advances: 'campuses', postcard: 'sf-state-quad',
       lines: { lead: bi('顺着 19 大道往南走，州立大学就在前面。', 'Down 19th Avenue — SF State is just ahead.'), arrive: 'arrive-sf-state-university' },
-      minutes: 0.8, expressMinutes: 0.6,
+      minutes: 0.6, expressMinutes: 0.6,
     },
     {
       id: 'm-ride-castro', target: 'transit-muni-castro', leg: muni('m-ocean-view', '19th-holloway', 'castro'),
       lines: { lead: bi('从 Holloway 站坐 M 线回城，到卡斯特罗下车。', 'Back on the M at Holloway, off at the Castro.'), arrive: bi('卡斯特罗站到了，上去就是彩虹旗！', 'Castro station — the rainbow flag is right upstairs!') },
-      minutes: 1.7, expressMinutes: 0.7,
+      minutes: 3.0, expressMinutes: 1.5,
     },
   ]),
   chapter('peaks-downtown', bi('双峰与市中心', 'Twin Peaks & Downtown'), [
     {
       id: 'peaks-ride-twin-peaks', target: 'transit-loop-twin-peaks', leg: loop('castro', 'twin-peaks'), goal: 'sightseeing',
       lines: { lead: bi('观光巴士就在卡斯特罗站上面，我们上山！', 'The bus stops right above the Castro station — up the hill we go!'), arrive: 'loop-twin-peaks-arrive' },
-      minutes: 1.5, expressMinutes: 1.5,
+      minutes: 2.0, expressMinutes: 2.0,
     },
     {
       id: 'peaks-overlook', target: 'sf:twin-peaks', leg: walk, attraction: 'twin-peaks', moment: 'panorama', goal: 'twin-peaks', postcard: 'sf-twin-peaks-view',
@@ -438,17 +453,17 @@ const CHAPTERS: CityTourChapter[] = [
     {
       id: 'peaks-ride-chinatown', target: 'transit-loop-chinatown', leg: loop('twin-peaks', 'chinatown'),
       lines: { lead: bi('下山！经过多洛雷斯传教站和市政厅，去唐人街。', 'Downhill! Past Mission Dolores and City Hall to Chinatown.'), arrive: 'loop-chinatown-arrive' },
-      minutes: 3.4, expressMinutes: 3.4,
+      minutes: 4.4, expressMinutes: 4.4,
     },
     {
       id: 'peaks-cable-hill', target: 'transit-powell-california', leg: walk, moment: 'photo', postcard: 'sf-cable-car-hill',
       lines: { lead: bi('往坡上走到加州街和鲍威尔街路口，叮当车在那儿交叉。', 'Up the hill to California & Powell, where the cable lines cross.'), arrive: bi('这个路口，两条叮当车线在这儿十字交叉！', 'Right here, two cable-car lines cross each other!') },
-      minutes: 0.7, expressMinutes: 0.7,
+      minutes: 0.6, expressMinutes: 0.6,
     },
     {
       id: 'peaks-cable-ride', target: 'transit-california-drumm', leg: { via: 'line', line: 'california', from: 'powell-california', to: 'california-drumm' }, goal: 'cable-car',
       lines: { lead: bi('坐加州街叮当车下山，抓紧扶杆！', 'Down California St by cable car — hold on tight!'), arrive: bi('终点 Drumm 街，渡轮大厦就在前面！', 'End of the line at Drumm — the Ferry Building is just ahead!') },
-      minutes: 1.0, expressMinutes: 1.0,
+      minutes: 1.3, expressMinutes: 1.3,
     },
     {
       id: 'peaks-ferry', target: 'place:ferry-building', leg: walk, attraction: 'ferry-building-marketplace', moment: 'arrive',
@@ -460,7 +475,7 @@ const CHAPTERS: CityTourChapter[] = [
 
 const sum = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) * 10) / 10;
 const GRAND_MINUTES = sum(CHAPTERS.flatMap(c => c.stops.filter(s => !s.optional).map(s => s.minutes)));
-// the one time rule (game/tripText.ts): "约 26 分钟" / "about 26 min", from the timing model, never typed by hand
+// the one time rule (game/tripText.ts): "约 34 分钟" / "about 34 min", from the timing model, never typed by hand
 const GRAND_TIME = minutesLabel(GRAND_MINUTES);
 
 export const SF_GRAND: CityTourDef = {

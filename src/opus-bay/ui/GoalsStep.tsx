@@ -4,7 +4,8 @@ import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
 import { CITY_GOAL, GOAL_REWARDS, GOALS_STEP_ID, goalProgress } from '../data/sf/goals';
 import { FREE_GOALS } from '../data/script';
-import { goalTargets } from '../game/cityContent';
+import { W5_WELCOME, w5Text } from '../data/sf/linesW5';
+import { goalTargets, speakRecorded } from '../game/cityContent';
 import { afterGoalsStep } from '../game/goalsStep';
 import { holdLock } from '../game/playerLock';
 import { gameTimeLabel } from '../game/travel';
@@ -21,7 +22,8 @@ import './goals-step.css';
  * backdrop) starts free roam: the button leads, anything else leaves BAYBAY's pelican line and the soft waypoint.
  */
 
-const INTRO = { zh: '好嘞，整座旧金山都给你逛！先看看这几个小目标～', en: 'All of San Francisco is yours! Here are a few little goals~' };
+/** BAYBAY's line: lane C's frozen wave-5 line (W5-C6), its clip plays when the step opens once lane V has recorded it */
+const INTRO = w5Text(W5_WELCOME.goalsIntro);
 
 export default function GoalsStep({ close }: OverlayProps) {
   const { t } = useT();
@@ -35,7 +37,7 @@ export default function GoalsStep({ close }: OverlayProps) {
 
   // the player stays put while the step is up (released on every way out: unmount)
   useEffect(() => holdLock('panel', 'goals-step'), []);
-  useEffect(() => { primary.current?.focus({ preventScroll: true }); }, []);
+  useEffect(() => { primary.current?.focus({ preventScroll: true }); speakRecorded(W5_WELCOME.goalsIntro.id); }, []);
   // after it closed (not a StrictMode re-mount: the overlay must really be gone), free roam begins
   useEffect(() => () => {
     if (openOverlays().some(o => o.id === GOALS_STEP_ID)) return;

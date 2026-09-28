@@ -3,9 +3,8 @@ import { game } from '../core/store';
 import { CITY_GOAL, GOALS_STEP_ID, GOALS_STEP_SEEN } from '../data/sf/goals';
 import { registerOverlay } from '../ui/slots';
 import { goalTargets } from './cityContent';
-import { bubble, FREE_AGAIN, PELICAN_NUDGE, startFreeLead } from './flow';
+import { sayFreeLine, startFreeLead } from './flow';
 import { flow } from './flowStore';
-import { BAYBAY_ID } from './interactables';
 
 /**
  * Wave 5 · lane C · W5-C3 (plan sf-w5-plan.md MF6 "goals once", MF3 "the pelican first"): the goals step.
@@ -37,8 +36,8 @@ export function initGoalsStep(): () => void {
  */
 export function afterGoalsStep(how: 'lead' | 'self', pelicanTarget: string | null) {
   if (how === 'lead' && pelicanTarget) { startFreeLead(pelicanTarget); return; }
-  if (!pelicanTarget || game.get().goalsDone.includes(CITY_GOAL.pelican)) { bubble(FREE_AGAIN, 4200); return; }
-  bubble(PELICAN_NUDGE, 4600, BAYBAY_ID, 'call');
+  if (!pelicanTarget || game.get().goalsDone.includes(CITY_GOAL.pelican)) { sayFreeLine(false, 4200); return; }
+  sayFreeLine(true, 4600);
   const t = goalTargets().find(g => g.goal === CITY_GOAL.pelican);
   if (t && !flow.get().freeHint) flow.set({ freeHint: { id: t.id, x: t.x, z: t.z, name: t.name } });
 }

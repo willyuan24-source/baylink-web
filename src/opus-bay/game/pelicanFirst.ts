@@ -7,6 +7,7 @@ import type { Bilingual } from '../core/types';
 import { readQa } from './qa';
 import { ATTRACTIONS } from '../data/sf/attractions';
 import { CITY_GOAL } from '../data/sf/goals';
+import { W5_PELICAN, w5Text } from '../data/sf/linesW5';
 import type { ArrivalHit } from './arrival';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
@@ -45,15 +46,17 @@ export const PELICAN_VIEWPOINTS: ReadonlySet<string> = new Set(ATTRACTIONS.filte
 /** Does this arrival hit unlock the pelican? (pure: a panorama viewpoint's arrival anchor or its summit spot) */
 export const unlocksAt = (hit: Pick<ArrivalHit, 'anchor'>): boolean => PELICAN_VIEWPOINTS.has(hit.anchor.attraction);
 
+/** The moment's words; BAYBAY's spoken lines are lane C's frozen wave-5 set (data/sf/linesW5.ts, W5-C6: voice ids). */
 export const PELICAN_LINES = {
   /** the toast: "解锁：随时飞！" + the take-off key of this device */
   toast: (key: Bilingual): Bilingual => ({ zh: `解锁：随时飞！${key.zh}`, en: `Unlocked: fly anytime! ${key.en}` }),
-  ask: { zh: '以后想去哪都能飞啦！先试试起飞？', en: 'Now we can fly anywhere! Want to try a take-off?' },
+  ask: w5Text(W5_PELICAN.ask),
   yes: { zh: '试试起飞', en: "Let's fly!" },
   later: { zh: '以后再说', en: 'Maybe later' },
-  go: { zh: '抓稳啦，我们出发！', en: 'Hold on tight — here we go!' },
+  go: w5Text(W5_PELICAN.go),
+  /** (names the device's control: text only, never recorded) */
   laterBubble: (key: Bilingual): Bilingual => ({ zh: `想飞的时候${key.zh}就行～`, en: `Whenever you want to fly, just ${key.en}.` }),
-  tour: { zh: '送你一位鹈鹕朋友！以后想去哪都能飞～', en: 'Meet your pelican friend — now we can fly anywhere!' },
+  tour: w5Text(W5_PELICAN.tour),
 } as const;
 
 /** Take-off in the words of this device (= actors/moveSystem.ts keyName('glide')). */
@@ -94,15 +97,17 @@ export function unlockPelican(reason: UnlockReason, now = performance.now()): bo
   return true;
 }
 
-/** BAYBAY's pacer (game/cityMoments.ts registers it at boot); a plain bubble before that (tests). */
-type Offer = (line: Bilingual, ttl?: number) => boolean;
+/** BAYBAY's pacer (game/cityMoments.ts registers it at boot): a frozen line id (its voice once recorded) or a text. */
+type Offer = (line: string | Bilingual, ttl?: number) => boolean;
 let offerFn: Offer | null = null;
+/** Plays a recorded clip of a frozen line with a dialogue that shows its text (game/cityMoments.ts; none: text only). */
+let voiceFn: ((id: string) => void) | null = null;
 
 /** The tour's version of the moment: the toast and one paced line, queued behind the stop's arrive line. */
 function tourMoment() {
   const key = takeOffKey();
   say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
-  if (!offerFn?.(PELICAN_LINES.tour, 60)) bubble(PELICAN_LINES.tour, 4200);
+  if (!offerFn?.(W5_PELICAN.tour.id, 60)) bubble(PELICAN_LINES.tour, 4200);
 }
 
 /** A save that had the glide before wave 5 (or ?debug=1): tick goal #1 quietly — no reward, no moment. */
@@ -121,7 +126,7 @@ function quiet(now: number, p: Pending): boolean {
 }
 
 /** City frame system (≈ 4 Hz, game/cityMoments.ts): play the moment once the screen is free. `offer` = BAYBAY's pacer. */
-export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) => boolean) {
+export function stepPelican(now: number, offer: Offer) {
   const p = pending;
   if (!p) return;
   const inTour = game.get().tour.active || p.reason === 'tour';
@@ -130,7 +135,7 @@ export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) 
   pending = null;
   const key = takeOffKey();
   say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
-  if (inTour) { if (!offer(PELICAN_LINES.tour, 60)) bubble(PELICAN_LINES.tour, 4200); return; }
+  if (inTour) { if (!offer(W5_PELICAN.tour.id, 60)) bubble(PELICAN_LINES.tour, 4200); return; }
   // waited too long for a quiet screen (a trip, a ride): a bubble, never a dialogue over something else
   if (late && !quiet(now, { ...p, since: -Infinity })) { bubble(PELICAN_LINES.laterBubble(key), 4200); return; }
   wantFlight = false;
@@ -143,8 +148,9 @@ export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) 
   });
   defineNode({ id: GO_NODE, speaker: 'baybay', mood: 'excited', text: PELICAN_LINES.go });
   runtime.guide.emote = 'hop';
+  voiceFn?.(W5_PELICAN.ask.id);
   playDialogue(ask, () => {
-    if (wantFlight) { wantFlight = false; takeOff(); return; }
+    if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); takeOff(); return; }
     bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200, BAYBAY_ID, 'call');
     // (phones: lane F's 起飞 pulses once more, where the line points)
     pulseGlideButton();
@@ -169,12 +175,13 @@ function takeOff() {
 onEvent(e => { if (e.type === 'dialogue' && (e.nodeId === GO_NODE || e.nodeId === ASK_NODE)) wantFlight = e.nodeId === GO_NODE; });
 
 /** The city chunk's boot: BAYBAY's pacer for the tour's line; tick an old save's goal #1. Returns the disposer. */
-export function initPelicanFirst(offer: Offer | null = null): () => void {
+export function initPelicanFirst(offer: Offer | null = null, voice: ((id: string) => void) | null = null): () => void {
   offerFn = offer;
+  voiceFn = voice;
   syncPelicanGoal();
-  return () => { pending = null; wantFlight = false; offerFn = null; };
+  return () => { pending = null; wantFlight = false; offerFn = null; voiceFn = null; };
 }
 
 /** Tests: forget the moment and lane A's starter; `offer` stands in for BAYBAY's pacer. */
-export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; }
+export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; voiceFn = voice; }
 

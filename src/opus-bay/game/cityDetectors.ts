@@ -36,23 +36,43 @@ export function createSummitDetector(summit: { x: number; z: number; y: number }
 }
 
 /**
- * Golden Gate crossing on the deck: local x (bridge frame, towers at ±GGB.TOWER) from ≤ −`end` to ≥ +`end` or back,
- * staying on the deck (y > `deckY`) on your own the whole way; leaving the deck, gliding or fast travel resets it.
+ * What a step of the deck crossing brought (W5-C5, plan MF2 "says its progress on the deck"): the first tower passed
+ * (`tower`: −1 south, +1 north, local x), mid-span on the way to the other one, the crossing done.
  */
-export function createDeckCrossing(opts: { end?: number; deckY?: number; halfWidth?: number } = {}) {
-  const end = opts.end ?? 89, deckY = opts.deckY ?? 12, halfWidth = opts.halfWidth ?? 8;
-  let from: -1 | 1 | 0 = 0, epoch: number | null = null;
+export type DeckStep = { what: 'tower'; tower: -1 | 1 } | { what: 'half' } | { what: 'done' };
+
+/** A tower counts as passed within this distance of it on the deck (u; plan MF2 "within 10 u of both towers"). */
+export const DECK_TOWER_NEAR = 10;
+
+/**
+ * Golden Gate crossing on the deck (wave 5, W5-C5; plan MF2): passing within `near` u of one tower and then of the other
+ * (local frame: towers at x = ±`tower`, z = 0), on the deck (y > `deckY`, |z| ≤ `halfWidth`) on your own the whole way;
+ * leaving the deck, gliding or fast travel starts it again. Both ways count. Each step says what it brought (the first
+ * tower, mid-span, done) so BAYBAY can say the progress; null otherwise. At 5 Hz a 20 u window cannot be skipped on foot,
+ * by bike or by car (≤ 8.5 u/s).
+ */
+export function createDeckCrossing(opts: { tower?: number; near?: number; deckY?: number; halfWidth?: number } = {}) {
+  const tower = opts.tower ?? 89.29, near = opts.near ?? DECK_TOWER_NEAR, deckY = opts.deckY ?? 12, halfWidth = opts.halfWidth ?? 8;
+  let from: -1 | 1 | 0 = 0, half = false, epoch: number | null = null;
+  const reset = () => { from = 0; half = false; };
   return {
+    /** the tower passed first in this attempt (−1 south, +1 north, 0 none) */
     get from() { return from; },
     /** `local`: the player in the bridge's local frame (x along the deck, z across it) */
-    step(local: Vec2, s: Pick<GoalSample, 'y' | 'mode' | 'epoch' | 'travelling'>): boolean {
-      if (epoch !== null && s.epoch !== epoch) from = 0;
+    step(local: Vec2, s: Pick<GoalSample, 'y' | 'mode' | 'epoch' | 'travelling'>): DeckStep | null {
+      if (epoch !== null && s.epoch !== epoch) reset();
       epoch = s.epoch;
-      const onDeck = s.y > deckY && Math.abs(local.z) <= halfWidth && Math.abs(local.x) <= end + 60;
-      if (!onDeck || s.travelling || !OWN_WAY.has(s.mode)) { from = 0; return false; }
-      if (local.x <= -end) { if (from === 1) { from = 0; return true; } from = -1; }
-      else if (local.x >= end) { if (from === -1) { from = 0; return true; } from = 1; }
-      return false;
+      const onDeck = s.y > deckY && Math.abs(local.z) <= halfWidth && Math.abs(local.x) <= tower + near + 50;
+      if (!onDeck || s.travelling || !OWN_WAY.has(s.mode)) { reset(); return null; }
+      const at = (side: -1 | 1) => Math.hypot(local.x - side * tower, local.z) <= near;
+      if (from === 0) {
+        if (at(-1)) { from = -1; return { what: 'tower', tower: -1 }; }
+        if (at(1)) { from = 1; return { what: 'tower', tower: 1 }; }
+        return null;
+      }
+      if (at(from === -1 ? 1 : -1)) { reset(); return { what: 'done' }; }
+      if (!half && local.x * from <= 0) { half = true; return { what: 'half' }; }
+      return null;
     },
   };
 }

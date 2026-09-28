@@ -2,11 +2,13 @@ import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { zoneAt } from '../core/terrain';
+import type { Bilingual } from '../core/types';
 import { CITY_GOAL } from '../data/sf/goals';
+import { W5_DECK, w5Text } from '../data/sf/linesW5';
 import { sfLandmarkInfo } from '../data/sf/landmarks';
 import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
 import { sfLandmark, worldToLandmark } from '../world/sf/landmarks/index';
-import { PAINTED_LADIES_PHOTO_R, createDeckCrossing, createSummitDetector, isNeighbourhoodId, neighbourhoodVisit, type GoalSample } from './cityDetectors';
+import { PAINTED_LADIES_PHOTO_R, createDeckCrossing, createSummitDetector, isNeighbourhoodId, neighbourhoodVisit, type DeckStep, type GoalSample } from './cityDetectors';
 import { travelActive, travelEpoch } from './fastTravel';
 import { registerSubjectResolver } from './interactables';
 import { registerFrameSystem } from './systemsRegistry';
@@ -30,6 +32,17 @@ export interface CityGoalHooks {
   /** mark goalsDone ids (flow: set + the "goal complete" toast for FREE_GOALS ids) */
   done(ids: string[]): void;
   heightAt(x: number, z: number): number;
+  /** BAYBAY says a line through her pacer (`id`: its frozen wave-5 line, for the voice); W5-C5's deck progress */
+  say?(text: Bilingual, id?: string): void;
+}
+
+/**
+ * Wave 5 · W5-C5 (plan MF2 "走过金门大桥 … says its progress on the deck"): what BAYBAY says for a step of the deck
+ * crossing (the first tower, mid-span, done) — lane C's frozen lines (data/sf/linesW5.ts). Pure.
+ */
+export function deckLine(step: DeckStep): { text: Bilingual; id: string } {
+  const line = step.what === 'tower' ? (step.tower < 0 ? W5_DECK.south : W5_DECK.north) : step.what === 'half' ? W5_DECK.half : W5_DECK.done;
+  return { text: w5Text(line), id: line.id };
 }
 
 /** City mode: wire the detectors to the runtime (5 Hz frame system) and the shutter / transit events. */
@@ -37,7 +50,7 @@ export function initCityGoals(hooks: CityGoalHooks): () => void {
   const summitAt = landmarkY('twin-peaks', hooks.heightAt);
   const summit = summitAt ? createSummitDetector(summitAt) : null;
   const bridge = sfLandmark('golden-gate-bridge');
-  const deck = createDeckCrossing({ end: Math.floor(GGB.TOWER), deckY: GGB.DECK - 3.2 });
+  const deck = createDeckCrossing({ tower: GGB.TOWER, deckY: GGB.DECK - 3.2 });
   const ladies = sfLandmark('painted-ladies');
   const has = (id: string) => game.get().goalsDone.includes(id);
   let acc = 0, lastZone: string | null = null;
@@ -48,7 +61,12 @@ export function initCityGoals(hooks: CityGoalHooks): () => void {
     const p = runtime.player;
     const s: GoalSample = { x: p.x, y: p.y, z: p.z, mode: runtime.move.mode, epoch: travelEpoch(), travelling: travelActive() };
     if (summit && !has(CITY_GOAL.twinPeaks) && summit.step(s)) hooks.done([CITY_GOAL.twinPeaks]);
-    if (bridge && !has(CITY_GOAL.goldenGate) && deck.step(worldToLandmark(bridge, p), s)) hooks.done([CITY_GOAL.goldenGate]);
+    const crossing = bridge && !has(CITY_GOAL.goldenGate) ? deck.step(worldToLandmark(bridge, p), s) : null;
+    if (crossing) {
+      if (crossing.what === 'done') hooks.done([CITY_GOAL.goldenGate]);
+      const line = deckLine(crossing);
+      hooks.say?.(line.text, line.id);
+    }
     const zone = s.travelling ? null : zoneAt(p.x, p.z)?.id ?? null;
     if (zone !== lastZone) {
       lastZone = zone;

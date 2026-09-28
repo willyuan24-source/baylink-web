@@ -1,5 +1,6 @@
 import type { Bilingual, Mood } from '../../core/types';
 import type { LineSource } from './lines';
+import { W5_C_LINES } from './linesW5';
 
 /**
  * Wave 4 · lane C · W4-C3: what BAYBAY says on the new lines and the Grand Tour (plan sf-w4-plan.md §3.2 narration,
@@ -274,8 +275,10 @@ export const TOUR_LINES_2: readonly TourLine[] = [
 /** Recorded frozen lines no longer picked by the narration, and the id that replaced each. */
 export const RETIRED_LINES: Readonly<Record<string, string>> = { 'metro-sfsu-next': SFSU_NEXT_2.id };
 
-const BY_ID = new Map([...TOUR_LINES, ...TOUR_LINES_2].map(line => [line.id, line]));
-/** A frozen or added tour line by id. */
+// wave 5 (lane C, W5-C6): lane C's frozen wave-5 lines (data/sf/linesW5.ts) resolve by id too, so the pacer gives them
+// their voice id once lane V records them
+const BY_ID = new Map([...TOUR_LINES, ...TOUR_LINES_2, ...W5_C_LINES].map(line => [line.id, line]));
+/** A frozen or added tour line (or a wave-5 lane-C line) by id. */
 export const tourLine = (id: string): TourLine | undefined => BY_ID.get(id);
 export const tourLineText = (line: TourLine): Bilingual => ({ zh: line.zh, en: line.en });
 

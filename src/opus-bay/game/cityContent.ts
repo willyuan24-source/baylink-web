@@ -68,7 +68,7 @@ export function initCityContent(): () => void {
   let offTrips: (() => void) | null = null, offMoments: (() => void) | null = null, offCards: (() => void) | null = null;
   const fail = (what: string) => (e: unknown) => { if (import.meta.env?.DEV) console.error(`[opus-bay ${what}]`, e); };
   // the goal detectors and the SF landmark subjects (plan G2-5): their own chunk with the landmark library
-  void import('./cityLive').then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt }); }, fail('city goals'));
+  void import('./cityLive').then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt, say: (text, id) => baybayLine(text, { ttl: 12, id }) }); }, fail('city goals'));
   // BAYBAY's event and neighbourhood lines (plan G2-4): their own chunk, fetched only in city mode
   void import('./baybayLines').then(m => { if (!disposed) offLines = m.initBaybayLines(); }, fail('lines'));
   // the six residents (plan G2-6): talkable at once, their favours and words in their own chunk
@@ -95,8 +95,9 @@ export const arrivalSeen = (attraction: string): boolean => moments?.arrivalSeen
  * few minutes. Before the city chunk lands (or in district mode) it is a plain bubble. zh ≤ 45 characters. Returns
  * false when the pacer refused it (a repeat).
  */
-export function baybayLine(text: Bilingual, opts: { ttl?: number } = {}): boolean {
-  if (moments) return moments.offerLine(text, opts.ttl ?? 30);
+export function baybayLine(text: Bilingual, opts: { ttl?: number; id?: string } = {}): boolean {
+  // (W5-C6: `id` = a frozen line of data/sf/linesW5.ts with the same text: the pacer plays its clip once recorded)
+  if (moments) return opts.id ? moments.offerLineOr(opts.id, text, opts.ttl ?? 30) : moments.offerLine(text, opts.ttl ?? 30);
   // (no pacer yet: after the bubble on screen, never over it)
   if (flow.get().bubble) setTimeout(() => bubble(text, 4200), 4600); else bubble(text, 4200);
   return true;
@@ -107,6 +108,12 @@ export function baybayLine(text: Bilingual, opts: { ttl?: number } = {}): boolea
  * chunk lands, in district mode or once unlocked (the move system's own unlock stands in). True when it unlocked.
  */
 export const unlockPelican = (reason: 'viewpoint' | 'sweep' | 'tour'): boolean => moments?.unlockPelican(reason) ?? false;
+
+/**
+ * Wave 5 · W5-C6: a frozen line (data/sf/linesW5.ts id) shown as a plain bubble or a dialogue: its recorded clip plays with
+ * it once lane V has recorded it (nothing before the city chunk lands, or without a clip).
+ */
+export const speakRecorded = (id: string): boolean => moments?.speakRecorded(id) ?? false;
 
 /** Lane N's request: a carried trip's time label (the auto-travel pace), null before the city chunk lands. */
 export const carriedTimeLabel = (d: number): Bilingual | null => moments?.carriedTime(d) ?? null;

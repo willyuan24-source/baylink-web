@@ -55,7 +55,8 @@ export { unlockPelican };
 // ---------------------------------------------------------------------------------------------------------------
 
 // the clip lengths of the current voice language (read per line: a language switch mid-tour times the next line right)
-const pacer = new LinePacer(clipSecondsFrom(TOUR_VOICE_CLIPS, () => voiceLang(getLocale())));
+const clipSeconds = clipSecondsFrom(TOUR_VOICE_CLIPS, () => voiceLang(getLocale()));
+const pacer = new LinePacer(clipSeconds);
 let lastSaid: SaidLine | null = null;
 const clock = () => performance.now() / 1000;
 
@@ -65,6 +66,22 @@ const EMOTES: Partial<Record<Mood, Emote>> = { point: 'point', excited: 'hop', w
 export function offerLine(say: string | Bilingual, ttl?: number, now = clock()): boolean {
   const line = sayLine(say, ttl);
   return line ? pacer.offer(line, now) : false;
+}
+/** Queue a frozen line by id (its voice once recorded), or `text` when the id is unknown (wave 5, W5-C6). */
+export function offerLineOr(id: string, text: Bilingual, ttl?: number, now = clock()): boolean {
+  const line = sayLine(id, ttl) ?? sayLine(text, ttl);
+  return line ? pacer.offer(line, now) : false;
+}
+/** The clip of a frozen line in the current voice language exists (lane V's table). */
+export const lineRecorded = (id: string): boolean => (clipSeconds(id) ?? 0) > 0;
+/**
+ * A frozen line shown as text somewhere else (a dialogue node, a flow bubble): play its recorded clip with it, when there
+ * is one (wave 5, W5-C6). No clip: nothing (the bubble's own chirp stands).
+ */
+export function speakRecorded(id: string): boolean {
+  if (!lineRecorded(id)) return false;
+  emit({ type: 'voice-line', id });
+  return true;
 }
 /** Queue a ready paced line (the arrival beats). */
 export const offerPaced = (line: PacedLine, now = clock()) => pacer.offer(line, now);
@@ -301,7 +318,7 @@ export function initCityMoments(): () => void {
   if (booted) return () => {};
   booted = true;
   watcher = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS), decodeArrivalSeen(readSave()?.arrivals));
-  const offPelican = initPelicanFirst((line, ttl) => offerLine(line, ttl));
+  const offPelican = initPelicanFirst((line, ttl) => offerLine(line, ttl), speakRecorded);
   let accA = 0, accP = 0, accR = 0, riding = false;
   const offFrame = registerFrameSystem('c-moments', (dt, now) => {
     // hopping off transit counts as arriving on foot for a moment (the ride's end is a hop-off)

@@ -24,7 +24,7 @@ import { flow, initialFlowState, type Bubble } from './flowStore';
 import { deriveLock, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
-import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, unlockPelican } from './cityContent';
+import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, speakRecorded, unlockPelican } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
@@ -443,10 +443,26 @@ export function welcomeBack(): void {
   const zone = readSave()?.lastSafe?.zone ?? game.get().area ?? null;
   const name = zoneName(zone);
   const known = name !== SF_NAME && !!zone;
-  bubble(known ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : { zh: '欢迎回来！我们接着逛吧。', en: "Welcome back! Let's keep exploring." }, 4400, BAYBAY_ID, 'call');
+  bubble(known ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : WELCOME_BACK, 4400, BAYBAY_ID, 'call');
+  if (!known) speakRecorded(W5_LINE_IDS.welcomeBack);
   const extra = runWelcome({ kind: 'returning', zone, at: performance.now() });
   const next = extra ?? (goalDone(CITY_GOAL.pelican) ? null : PELICAN_NUDGE);
-  if (next) baybayLine(next, { ttl: 60 });
+  if (next) baybayLine(next, { ttl: 60, ...(next === PELICAN_NUDGE ? { id: W5_LINE_IDS.nudge } : {}) });
+}
+
+/**
+ * W5-C6: the ids of lane C's frozen wave-5 lines said from this module (data/sf/linesW5.ts, which stays out of the main
+ * graph: the texts here are the frozen texts, tested equal); their recorded clips play with the bubbles once lane V has
+ * them (cityContent.speakRecorded / baybayLine `id`).
+ */
+export const W5_LINE_IDS = { nudge: 'w5c-pelican-nudge', freeAgain: 'w5c-free-again', welcomeBack: 'w5c-welcome-back' } as const;
+/** 欢迎回来 when the area has no name. */
+export const WELCOME_BACK: Bilingual = { zh: '欢迎回来！我们接着逛吧。', en: "Welcome back! Let's keep exploring." };
+
+/** BAYBAY's goal #1 line or her "you lead" line as a bubble (with its clip once recorded). */
+export function sayFreeLine(pelicanOpen: boolean, ms: number) {
+  bubble(pelicanOpen ? PELICAN_NUDGE : FREE_AGAIN, ms, BAYBAY_ID, 'call');
+  speakRecorded(pelicanOpen ? W5_LINE_IDS.nudge : W5_LINE_IDS.freeAgain);
 }
 
 /** BAYBAY's first free-roam suggestion while goal #1 is open (plan MF3). */
@@ -501,7 +517,7 @@ export function startFree(opts: { local?: boolean; quiet?: boolean; back?: boole
   if (opts.back) welcomeBack();
   else if (opts.local) bubble(hookText('localIntro') ?? { zh: '欢迎回来！M 看地图，Q 随时叫我。', en: 'Welcome back! M opens the map, Q calls me anytime.' }, 4200);
   else if (step) return; // (the step carries BAYBAY's intro; her pelican line follows when it closes)
-  else if (!opts.quiet && city && !card) bubble(goalDone(CITY_GOAL.pelican) ? FREE_AGAIN : PELICAN_NUDGE, 4600, BAYBAY_ID, 'call');
+  else if (!opts.quiet && city && !card) sayFreeLine(!goalDone(CITY_GOAL.pelican), 4600);
   else if (!opts.quiet) bubble(hookText('freeIntro') ?? { zh: '我就跟在你后面～想问什么按 Q 叫我！', en: "I'll tag along — press Q whenever you need me!" }, 4200);
 }
 /** City free roam once the goals were shown (W5-C3): no "here are some goals" again. */

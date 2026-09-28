@@ -268,23 +268,24 @@ test('G2-5: Twin Peaks counts only when climbed on your own (fast travel and the
   assert.equal(d.step(s(5, 47, 'foot', 1)), true);
 });
 
-test('G2-5: Golden Gate crossing tower to tower on the deck', () => {
+test('G2-5: Golden Gate crossing tower to tower on the deck (wave 5, W5-C5: within 10 u of both towers; tests/opus-bay-w5-tours.test.ts has the rest)', () => {
   const on = { y: 15.2, mode: 'foot' as const, epoch: 0, travelling: false };
+  const done = (s: ReturnType<ReturnType<typeof cityGoals.createDeckCrossing>['step']>) => s?.what === 'done';
   let d = cityGoals.createDeckCrossing();
-  assert.equal(d.step({ x: -120, z: 0 }, on), false);
-  assert.equal(d.step({ x: 0, z: 1 }, on), false);
-  assert.equal(d.step({ x: 95, z: -1 }, on), true, 'south tower → north tower');
+  assert.equal(done(d.step({ x: -95, z: 0 }, on)), false);
+  assert.equal(done(d.step({ x: 0, z: 1 }, on)), false);
+  assert.equal(done(d.step({ x: 95, z: -1 }, on)), true, 'south tower → north tower');
   d = cityGoals.createDeckCrossing();
-  d.step({ x: 100, z: 0 }, on);
-  assert.equal(d.step({ x: -95, z: 0 }, on), true, 'either direction');
+  d.step({ x: 92, z: 0 }, on);
+  assert.equal(done(d.step({ x: -95, z: 0 }, on)), true, 'either direction');
   d = cityGoals.createDeckCrossing();
   d.step({ x: -95, z: 0 }, on);
   d.step({ x: 0, z: 0 }, { ...on, y: 2 });
-  assert.equal(d.step({ x: 95, z: 0 }, on), false, 'leaving the deck resets');
+  assert.equal(done(d.step({ x: 95, z: 0 }, on)), false, 'leaving the deck resets');
   d.step({ x: -95, z: 0 }, on);
-  assert.equal(d.step({ x: 95, z: 0 }, { ...on, epoch: 1 }), false, 'fast travel resets');
+  assert.equal(done(d.step({ x: 95, z: 0 }, { ...on, epoch: 1 })), false, 'fast travel resets');
   d.step({ x: -95, z: 0 }, on);
-  assert.equal(d.step({ x: 95, z: 0 }, { ...on, mode: 'glide' as never }), false, 'gliding over does not count');
+  assert.equal(done(d.step({ x: 95, z: 0 }, { ...on, mode: 'glide' as never })), false, 'gliding over does not count');
 });
 
 test('G2-5: 8 of 41 neighbourhoods, hero zones not counted; progress text', () => {

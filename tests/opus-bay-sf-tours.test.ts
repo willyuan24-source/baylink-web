@@ -167,7 +167,7 @@ test('TOUR_GEO is lane T\'s published geometry (transit-w4.json) and today\'s ca
   assert.ok(Math.abs(TOUR_GEO.california.stations['powell-california'].at - powell.at) <= 4, 'the cable ride starts at California & Powell');
 });
 
-test('declared minutes are the timing model\'s; chapters add up to ≈ 26 min, express ≈ 17 min', () => {
+test('declared minutes are the timing model\'s; chapters add up to ≈ 34 min, express ≈ 25 min (W5-C5: re-timed on the measured run)', () => {
   let prev = targetAt('transit-loop-ferry-building')!;
   for (const { stop } of allStops) {
     const s = stopSeconds(stop, prev);
@@ -185,13 +185,17 @@ test('declared minutes are the timing model\'s; chapters add up to ≈ 26 min, e
   for (const { stop } of allStops) if (stop.express === 'skip') assert.equal(stop.expressMinutes, 0, `${stop.id} skipped in express`);
   const chapters = SF_GRAND.chapters.map(c => chapterMinutes(c));
   assert.ok(Math.abs(chapters.reduce((a, b) => a + b, 0) - SF_GRAND.minutes) < 0.05, 'chapters add up to the total');
-  assert.ok(SF_GRAND.minutes >= 23 && SF_GRAND.minutes <= 28, `full ≈ 26 min (${SF_GRAND.minutes})`);
-  assert.ok(SF_GRAND.expressMinutes >= 15 && SF_GRAND.expressMinutes <= 21, `express ≈ 17 min (${SF_GRAND.expressMinutes})`);
-  assert.ok(chapters.every(m => m >= 3 && m <= 9), `each chapter 3–9 min (${chapters.join(' / ')})`);
+  // wave 5 (W5-C5): the measured desktop runs of 2026-09-28, carried end to end — full 36.1 min (≈ 1 min of it a snag at
+  // the GGB Welcome Center), express 28.5 min riding the two long Metro legs (≈ 24.4 min with 直接到站 there,
+  // as the express offers); the model now uses the measured vehicle paces and waits
+  assert.ok(SF_GRAND.minutes >= 31 && SF_GRAND.minutes <= 37, `full ≈ 34 min (${SF_GRAND.minutes})`);
+  assert.ok(SF_GRAND.expressMinutes >= 22 && SF_GRAND.expressMinutes <= 28, `express ≈ 25 min (${SF_GRAND.expressMinutes})`);
+  assert.ok(chapters.every(m => m >= 3 && m <= 10), `each chapter 3–10 min (${chapters.join(' / ')})`);
   assert.ok(SF_GRAND.subtitle.zh.includes(`约 ${Math.round(SF_GRAND.minutes)} 分钟`), 'the subtitle shows the honest total');
-  // the model: a whole loop lap ≈ 14 min (plan §3.2), subway at the compressed speed
+  // the model: a whole loop lap at the measured pace (wave 4 modelled the plan's 14 min; the bus in the running game rides
+  // at ≈ 6.85 u/s between its stops, traffic included: ≈ 18 min)
   const lap = rideSeconds('sf-loop', 'loop-ferry-building', 'loop-chinatown') + rideSeconds('sf-loop', 'loop-chinatown', 'loop-ferry-building') + TOUR_MODEL.bus.dwell;
-  assert.ok(lap / 60 > 12.5 && lap / 60 < 14.5, `lap ${(lap / 60).toFixed(1)} min`);
+  assert.ok(lap / 60 > 16.5 && lap / 60 < 19.5, `lap ${(lap / 60).toFixed(1)} min`);
   assert.equal(rideSeconds('m-ocean-view', 'muni-church', 'muni-19th-holloway', true), TOUR_MODEL.veil, 'express veils long Metro legs');
   assert.ok(rideSeconds('sf-loop', 'loop-ferry-building', 'loop-golden-gate-bridge', true) > 100, 'the bus keeps its narration in express');
 });
@@ -396,9 +400,9 @@ test('part 2 · lines added after the freeze: new ids only, same limits, snapsho
 test('part 2 · the tour times use the one time rule (game/tripText.ts): subtitle, resume label = the timing model', async () => {
   const { minutesLabel } = await import('../src/opus-bay/game/tripText');
   assert.equal(SF_GRAND.subtitle.zh, `全城 5 章 · ${minutesLabel(SF_GRAND.minutes).zh} · 随时下车`);
-  assert.equal(SF_GRAND.subtitle.zh, '全城 5 章 · 约 26 分钟 · 随时下车');
-  assert.equal(SF_GRAND.subtitle.en, 'The whole city in 5 chapters · about 26 min · hop off anytime');
-  assert.equal(tourResumeLabel(SF_GRAND, undefined).zh, '环游旧金山 · 一日游（约 26 分钟）');
-  assert.equal(tourResumeLabel(SF_GRAND, undefined).en, 'San Francisco Grand Tour (about 26 min)');
-  assert.equal(minutesLabel(SF_GRAND.expressMinutes).zh, '约 18 分钟');
+  assert.equal(SF_GRAND.subtitle.zh, '全城 5 章 · 约 34 分钟 · 随时下车', 'W5-C5: re-timed on the measured run');
+  assert.equal(SF_GRAND.subtitle.en, 'The whole city in 5 chapters · about 34 min · hop off anytime');
+  assert.equal(tourResumeLabel(SF_GRAND, undefined).zh, '环游旧金山 · 一日游（约 34 分钟）');
+  assert.equal(tourResumeLabel(SF_GRAND, undefined).en, 'San Francisco Grand Tour (about 34 min)');
+  assert.equal(minutesLabel(SF_GRAND.expressMinutes).zh, '约 25 分钟');
 });

@@ -267,8 +267,9 @@ test('the Grand Tour: welcome → 完整版 / 快速版 → each stop a tour tri
   flowMod.startTour(GRAND_TOUR.id);
   assert.equal(game.get().dialogue.nodeId, 'flow.tour.sf-grand', '完整版 / 快速版 first');
   const node = flowMod.nodeById('flow.tour.sf-grand')!;
-  assert.match(node.choices![0].label.zh, /^完整版 · 约 26 分钟/);
-  assert.match(node.choices![1].label.zh, /^快速版 · 约 18 分钟/);
+  // (W5-C5, lane C: the tour times come from the re-timed model, not typed here)
+  assert.ok(node.choices![0].label.zh.startsWith(`完整版 · ${minutesLabel(SF_GRAND.minutes).zh}`), node.choices![0].label.zh);
+  assert.ok(node.choices![1].label.zh.startsWith(`快速版 · ${minutesLabel(SF_GRAND.expressMinutes).zh}`), node.choices![1].label.zh);
   flowMod.chooseDialogue(0);
   assert.equal(game.get().tour.id, GRAND_TOUR.id);
   assert.equal(game.get().tour.active, true);

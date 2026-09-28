@@ -330,15 +330,16 @@ test('W5-C2 以后再说 leaves a take-off hint; without lane A the take-off its
   reset();
   game.set({ tour: { active: true, id: 'sf-grand', stop: 0, completed: [] } });
   const offered: string[] = [];
-  pelican.resetPelicanForTests(null, line => { offered.push(line.zh); return true; });
+  const said = (line: string | Bilingual) => { offered.push(typeof line === 'string' ? line : line.zh); return true; };
+  pelican.resetPelicanForTests(null, said);
   pelican.unlockPelican('tour', clock);
   // at once, queued right behind the stop's own line on BAYBAY's pacer (the QA run lost a line that waited behind
-  // the tour's next lead line and the bus boarding), with the toast
-  assert.deepEqual(offered, ['送你一位鹈鹕朋友！以后想去哪都能飞～']);
+  // the tour's next lead line and the bus boarding), with the toast; by its frozen id (W5-C6: the voice once recorded)
+  assert.deepEqual(offered, ['w5c-pelican-tour']);
   assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')));
   assert.equal(pelican.pelicanPending(), null, 'nothing waits');
   tick(pelican.MOMENT_MIN_MS + 1);
-  pelican.stepPelican(clock, line => { offered.push(line.zh); return true; });
+  pelican.stepPelican(clock, said);
   assert.equal(offered.length, 1, 'said once');
   assert.equal(game.get().dialogue.nodeId, null, 'the tour goes on');
   // a viewpoint unlock that happens while a tour runs is the tour's kind of moment too

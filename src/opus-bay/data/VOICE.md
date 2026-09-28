@@ -180,3 +180,21 @@ in zh; the tone is warm and never pushes (no "快来", no "别错过", no "明�
 | a view spot / the slow look | 看风景 | 观景 · 风景点 (as the verb) | the 手帐 page and the prompt 坐下看风景; the place itself may be a 观景台 |
 | the daily three | 今日三件小事 | 每日任务 · 签到 | three small things for today's Bay date; skipping a day loses nothing |
 | the flight ticket | 飞行券 | 机票 · 传送券 | one 飞过去 before the pelican unlock (the first is free); hidden after the unlock, an unused one gives back 10 金币 |
+
+### Wave 5 additions (lane C: the pelican first, the welcome back, the goals step, the deck, rumours)
+
+Lane C's recorded wave-5 lines are `W5_C_LINES` in `data/sf/linesW5.ts` (FROZEN 2026-09-28, git tag `w5-c-lines-frozen`,
+11 lines: a new wording is a new id). Text only, never recorded: a line that names the device's control (想飞的时候点「起飞」
+就行～ · 按 G 起飞, the HUD's words for the key), a line with a place filled in (欢迎回来！上次我们走到唐人街了。), rumours
+(lane D's texts in the frames below) and button labels.
+
+| en | zh (say this) | not | note |
+|---|---|---|---|
+| the pelican (the glide's friend) | 鹈鹕朋友 · 鹈鹕 | 鸟 · 大鸟 · 坐骑 | goal #1 先去科伊特塔找鹈鹕朋友; the brown pelican of the bay; the Alcatraz name line is lane D's |
+| flying anytime (the glide unlock) | 随时飞 · 解锁：随时飞 | 传送 · 瞬移 | the goal's reward text and the gold toast 解锁：随时飞！ |
+| take-off / to land | 起飞 · 降落 | 滑翔 (in speech) | the button's word (lane F); 鹈鹕滑翔 stays the district's toast |
+| the little goals / the goals step | 小目标 · 这几个小目标 | 任务 · 成就 | the goals step once per player: 好嘞，整座旧金山都给你逛！先看看这几个小目标～ |
+| welcome back | 欢迎回来！上次我们走到<area>了。 | 第一次来吗？ (to a returning player) | the HUD's area name (far.zones / hero zones); no name → 欢迎回来！我们接着逛吧。 |
+| the south / north tower (GGB) | 南塔 · 北塔 | 南桥塔 · 桥墩 | 走过金门大桥 = from one tower to the other on the deck (within 10 u of each) |
+| the Golden Gate strait | 金门海峡 | 金门湾 | under the main span; the bridge is 金门大桥, the park 金门公园 |
+| a rumour's frame | 听说，… · 悄悄说：… · 据说… | 小道消息 · 八卦 | BAYBAY's frames round lane D's text; a text that brings its own 听说… is said as it is |

@@ -104,7 +104,7 @@ test('a trip elsewhere pauses the Grand Tour: it never takes the trip over, says
   assert.equal(flow.get().trip?.source, 'tour', '继续一日游 leads to the stop again');
   assert.equal(cityTour.cityTourRun()?.paused, false);
   assert.equal(cityTour.cityTourRun()?.stop, 'bay-start');
-  assert.equal(callRows()[0].action?.type, 'end', 'led again: 继续 just closes the menu');
+  assert.equal(callRows()[0].action?.type, 'tour-next', 'led again: 继续：带我去 hands the walking back to BAYBAY (W5-C5)');
 });
 
 test('the trip card’s 结束 (or a fast travel) on a tour trip pauses the tour; reaching the stop anyway counts', () => {

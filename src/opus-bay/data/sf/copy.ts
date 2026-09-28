@@ -33,9 +33,9 @@ export const GRAND_TOUR = {
   id: 'sf-grand',
   name: { zh: '环游旧金山 · 一日游', en: 'San Francisco Grand Tour' } as Bilingual,
   /** the welcome choice's second line (= SF_GRAND.subtitle) */
-  subtitle: { zh: '全城 5 章 · 约 26 分钟 · 随时下车', en: 'The whole city in 5 chapters · about 26 min · hop off anytime' } as Bilingual,
+  subtitle: { zh: '全城 5 章 · 约 34 分钟 · 随时下车', en: 'The whole city in 5 chapters · about 34 min · hop off anytime' } as Bilingual,
   /** the call menu row before the tour was started (or after it was finished) */
-  call: { zh: '带我环游旧金山（约 26 分钟）', en: 'Take me round San Francisco (about 26 min)' } as Bilingual,
+  call: { zh: '带我环游旧金山（约 34 分钟）', en: 'Take me round San Francisco (about 34 min)' } as Bilingual,
   /** the call menu row with a tour left half way (= tourResumeLabel) */
   resume: (chapter: number): Bilingual => ({ zh: `继续一日游 · 第 ${chapter} 章`, en: `Resume the San Francisco Grand Tour · chapter ${chapter}` }),
 } as const;

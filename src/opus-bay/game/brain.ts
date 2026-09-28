@@ -351,8 +351,12 @@ function barks(now: number) {
   for (const poi of POIS) {
     if (!poi.bark) continue;
     if (dist(p, poi.position) > (poi.radius || 3) + 5) continue;
-    if (now - (barkedAt.get(poi.id) ?? -Infinity) < 120000) continue;
+    // (W5-C5: the same words under two POIs — a landmark's card and its arrival spot — count as one bark: the Grand
+    // Tour's QA run heard Sutro Baths, the windmill, the Painted Ladies and Twin Peaks twice within 16 s)
+    const said = `text:${poi.bark.zh}`;
+    if (now - (barkedAt.get(poi.id) ?? -Infinity) < 120000 || now - (barkedAt.get(said) ?? -Infinity) < 120000) continue;
     barkedAt.set(poi.id, now);
+    barkedAt.set(said, now);
     lastBarkAt = now;
     bubble(poi.bark, 3800);
     emote('point');

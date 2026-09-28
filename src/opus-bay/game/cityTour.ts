@@ -13,9 +13,11 @@ import {
 } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById } from './interactables';
+import { autoOn, subscribeAuto } from './autoTravel';
 import { unlockPelican } from './pelicanFirst';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
+import { resumeAutoTravel } from './tripRun';
 import { minutesLabel } from './tripText';
 import { isArrived } from './trips';
 import type { TripState } from './tripTypes';
@@ -41,6 +43,11 @@ import type { TripState } from './tripTypes';
  *   end        the recap (ui/Moments Recap → ui/CityTourRecap.tsx) when stops were done; the progress is kept for
  *              "继续一日游 · 第 N 章" unless the tour was finished
  * Optional stops (Fort Point, the deck walk) are not led in wave 4: the Welcome Center's lines point them out.
+ * Wave 5 (W5-C5, plan MF4 "one tap … BAYBAY leading" on every device): BAYBAY carries the player along every stop's
+ * on-foot legs like any trip (lane N's auto-travel, game/tripRun resumeAutoTravel) — to the stop, the station, on from
+ * the ride — and lane T's riders board the tour's bus / train without the driver's question (W5-T3). A takeover (the
+ * stick, WASD, a tap on the ground) lasts for the rest of the tour; the call menu's 继续：带我去… (or the chip's 自动跟上)
+ * hands the walking back to her.
  * Part b: a photo moment waits for the shutter (photo mode holds the dwell, a shot ends it 3 s later with "拍得真好"); the
  * express version points at 直接到站 when your train leaves on a Metro leg > 400 u.
  * Int-review: the player's own trip never strands the tour — 换个方式 to the same stop stays the tour's trip
@@ -89,6 +96,8 @@ interface Run {
   lostAt: number;
   /** the player's own trip took over (int-review): the tour waits until the call menu's 继续一日游 */
   paused: boolean;
+  /** W5-C5: BAYBAY carries the player on the stops' on-foot legs (off after a takeover, on again with 继续：带我去 / 自动跟上) */
+  carry: boolean;
 }
 
 let run: Run | null = null;
@@ -130,7 +139,7 @@ function begin(def: CityTourDef, express: boolean, completed: string[]) {
   const stops = tourStops(def, { express });
   const firstOpen = stops.findIndex(f => !completed.includes(f.stop.id));
   const i = firstOpen < 0 ? 0 : firstOpen;
-  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1, shotAt: 0, hinted: false, target: null, lostAt: 0, paused: false };
+  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1, shotAt: 0, hinted: false, target: null, lostAt: 0, paused: false, carry: true };
   lastRun = run;
   endTrip();
   closePanel();
@@ -167,6 +176,8 @@ function startStop(r: Run) {
   setTourState(r, true);
   const target = stop.target.startsWith('place:') ? stop.target.slice(6) : stop.target;
   startTrip(option, { placeId: target, ...(stop.attraction ? { attraction: stop.attraction } : {}), ...(nameOf(stop.target) ? { name: nameOf(stop.target)! } : {}) }, 'tour');
+  // W5-C5: BAYBAY carries the player (unless they took over earlier in this tour)
+  if (r.carry && flow.get().trip?.source === 'tour') resumeAutoTravel();
 }
 
 /** The stop's trip ended: its arrive line, the dwell. */
@@ -245,7 +256,10 @@ function end(quiet = false) {
 export function skipCityTourStop() {
   const r = run;
   if (!r || r.phase === 'done') return;
+  // (ending the stop's trip stops its auto-walk: that is not the player taking over)
+  const carry = r.carry;
   endTrip();
+  r.carry = carry;
   clearLines();
   nextStop(r);
 }
@@ -291,12 +305,14 @@ function next() {
   if (!r) return;
   // 继续一日游 after the player's own trip: lead to the stop again (or on from the stop it waited at)
   if (waiting(r)) {
-    r.paused = false; r.lostAt = 0;
+    r.paused = false; r.lostAt = 0; r.carry = true;
     if (r.phase === 'dwell') nextStop(r); else startStop(r);
     return;
   }
   if (r.phase === 'dwell') { nextStop(r); return; }
-  // leading: 下一站 from the call menu means "keep going" (the trip leads on); nothing to skip
+  // leading: 继续：带我去… from the call menu — BAYBAY carries the player again (W5-C5)
+  r.carry = true;
+  resumeAutoTravel();
 }
 
 function callChoices(): NonNullable<DialogueNode['choices']> {
@@ -311,7 +327,7 @@ function callChoices(): NonNullable<DialogueNode['choices']> {
       action: { type: 'tour-next' },
     });
   } else if (r.phase === 'dwell') out.push({ label: { zh: '继续下一站', en: 'On to the next stop' }, action: { type: 'tour-next' } });
-  else out.push({ label: name ? { zh: `继续：带我去${name.zh}`, en: `Keep going: take me to ${name.en}` } : { zh: '继续跟你走', en: 'Keep following you' }, action: { type: 'end' } });
+  else out.push({ label: name ? { zh: `继续：带我去${name.zh}`, en: `Keep going: take me to ${name.en}` } : { zh: '继续跟你走', en: 'Keep following you' }, action: { type: 'tour-next' } });
   out.push({ label: { zh: '跳过这一站', en: 'Skip this stop' }, next: 'flow.tour.skip' });
   out.push({ label: { zh: '先不逛了，结束一日游', en: 'End the Grand Tour for now' }, action: { type: 'tour-end' } });
   return out;
@@ -400,6 +416,12 @@ export function initCityTour(): void {
   defineNode({ id: 'flow.tour.skip', speaker: 'baybay', mood: 'point', text: { zh: '好，这站先跳过，去下一站！', en: 'OK, we skip this one — on to the next!' }, action: { type: 'end' } });
   let acc = 0;
   registerFrameSystem('c-city-tour', (dt, now) => { if ((acc += dt) >= 0.5) { acc = 0; tick(now / 1000); } });
+  // W5-C5: a takeover on a stop's leg (auto-travel off while the stop's trip still runs) lasts for the tour; 自动跟上 on
+  // the chip turns carrying back on (a trip's own end switches it off with the trip already arrived: no change)
+  subscribeAuto(() => {
+    const r = run, trip = flow.get().trip;
+    if (r && r.phase === 'leading' && trip?.source === 'tour' && !isArrived(trip)) r.carry = autoOn();
+  });
   // Settings → reset progress (verify F5): a running tour stops without writing its progress back into the new save
   onSaveCleared(() => { if (run) clearLines(); run = null; lastRun = null; pendingPick = null; });
   onEvent(e => {
@@ -421,8 +443,8 @@ export function initCityTour(): void {
 }
 
 /** Tests / QA: the running tour (read-only view). */
-export const cityTourRun = (): Readonly<Pick<Run, 'express' | 'i' | 'completed' | 'phase' | 'paused'>> & { stop?: string; chapter?: number } | null =>
-  (run ? { express: run.express, i: run.i, completed: run.completed, phase: run.phase, paused: run.paused, stop: run.stops[run.i]?.stop.id, chapter: run.stops[run.i]?.chapter } : null);
+export const cityTourRun = (): Readonly<Pick<Run, 'express' | 'i' | 'completed' | 'phase' | 'paused' | 'carry'>> & { stop?: string; chapter?: number } | null =>
+  (run ? { express: run.express, i: run.i, completed: run.completed, phase: run.phase, paused: run.paused, carry: run.carry, stop: run.stops[run.i]?.stop.id, chapter: run.stops[run.i]?.chapter } : null);
 
 /** The Grand Tour's id (= data/sf/copy GRAND_TOUR.id), for the flow's first-lesson checks. */
 export const GRAND_ID = GRAND_TOUR.id;
