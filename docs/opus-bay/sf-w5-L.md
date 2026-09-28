@@ -325,3 +325,150 @@ whole scenes (≤ 99 calls, ≤ 335k triangles on desktop high). fps is lane V's
   rule, lane C's verify D12.
 
 Status（进度）：B 部分完成——八个街角（L4、L5）已推送（`861a273`、`a119a59`），篝火测试的时钟问题已修（`e889335`）；下一步 L6（唐人街 / 北滩，V 已公布余量）与 L7。
+
+## Part c
+
+Written 2026-09-28 by lane L's part-c implementer (worktree `C:/Users/willy/wt/w5-l`, dev port 5505, scratch
+`C:/Users/willy/opus-qa/w5/w5-l/`). The mid-wave checkpoint's finding CP-8 first, then W5-L6 (Chinatown / North Beach
+corners, should) and W5-L7 (tests, shots, report). Higgsfield: 0 credits. No relayed owner message reached this part.
+
+### 给主人的摘要
+
+1. **检查点指出的三处"走不动"都修好了**：金门路线的 Fort Point 站挪到炮台正面的空地上（原来夹在桥面边和山坡之间，只有一条路能走）；公园路线的日本茶园站从池塘中间挪到茶园大门口（以前走到鼓桥边就停住）；海浪风琴正式上线，防波堤现在能一路走到尽头的石台。用真实游戏重走三条路线：金门、公园两条全程走通。
+2. **伊娜·库尔布里斯公园也上线了**（俄罗斯山上看海湾的小公园），V 线公布的市中心余量够用。
+3. **唐人街街角做好了**：都板街（加州街到企李街）横挂一串串红灯笼，街边立着 1925 年样式的龙灯，挂着点心、茶、面包、杂货、面馆、洗衣、花店、书店的招牌，白天有人在橱窗前逛街；晚上灯笼和龙灯都会亮。只多 2 次绘制、约 1.8k 个三角形。
+4. **北滩街角暂时没做**：游戏里华盛顿广场到哥伦布大道一带整片是空地（没有房子也没有公园），是城市和老街区拼接处的缺口，已交给 V 线和主线；补好之前在那儿挂招牌没有意义。
+5. 全部测试通过（推送后的最终版本 1,252 / 1,252）；电脑和手机截图逐张看过。
+
+### What was built
+
+| commit | what |
+|---|---|
+| `8000e8a` W5-L1 (CP-8) | **Route stops that walk.** `data/sf/routes.ts`: r2 Fort Point stands on Marine Drive's end loop in front of the fort's landward wall (world (−743.94, 591.88), 7.9 u from the landmark's arrival: that arrival is the slot between the bridge deck's edge and the bluff, 1 of 4 ways open, and lane C's verify D12 keeps it under the deck's line); r3 Tea Garden on the gate's threshold (−236, 962) instead of the pond's middle; the Coit Tower, Welcome Center, overlook and Murphy Windmill stops moved ≤ 3.8 u onto standable ground (their points stood 0.5–2.2 u off it). `routePaths.ts` rebuilt (r1 389 u, r2 1,107 u, r3 1,370 u; every gap ≤ 212 u). **The Wave Organ and Ina Coolbrith Park registered** (`w4list3.ts`, `W4_SITES_T3_NEXT` now empty; `tops.ts` rows): the Wave Organ's walk deck (3.4 u wide over the water) makes the jetty walkable from the spit's root — lane D's egg, lane A's old view spot and lane E's jetty coins all get a nav path from `SITE_ARRIVALS['wave-organ']`; its crowd spots are the terraces and the tip (spots along the spit sent sightseers back and forth across Marina Blvd, and a toy car stopping for one held the sightseeing bus 9.5 s in lane T's W5-T2 loop test). The Tea Garden's own arrival moved 1 u onto the gate's threshold (the drive spot was a corridor). `scripts/opus-sf/site-arrivals.mts` keeps a listed row while its site's arrival passes (lane N wired the table, so an attraction's trip end is the site's spot itself now: the old generator dropped 23 rows). Tests: `opus-bay-w5-landmarks` +2 (the jetty walked from the root; every route stop and via point judged with lane F's sweep pushes — standable, reached, ≥ 3 of 4 ways, five named corridors), `opus-bay-sf-routes` (Fort Point's stop beside its arrival). |
+| `2a474f1` W5-L5 | the Haight and Castro corners take lane E's new caches `haight` and `castro` (appended at part b's request). |
+| `90291cb` W5-L6 | **The Chinatown corner** (`CHINATOWN_CORNER` in `landmarks/dragon-gate.ts`, mounted through the Dragon Gate's `mount`; row 9 of `corners.ts`): Grant Ave from California St to Clay St, laid out on the published city's L0 fronts (the street's axis turns 2.74° from the gate's; 3.6 u between the fronts). Five strings of red paper lanterns across the street (4 each), four dragon lamps at the kerb (lit at night; soft obstacles r 0.12), eight blade signs and four flat plaques of lane V's atlas (点心 Dim Sum, 茶 Tea, 面包 Bakery, 杂货 Grocery, 面馆 Noodles, 洗衣 Laundry, 花店 Flowers, 书店 Books), three awnings; window shoppers 10:00–20:00 on the east sidewalk strip (five lane T pins facing the shop windows, the 3 u clear lane up the street west of them); nine night lights (the strings and the lamps). **`cornerKit.ts`**: `dragonLamp`, `lanternWire`, `NO_BATCH` (sign positions without drawing), `CornerDef.plazaOwn` (a corner's own standing strips, kept out of the site's sightseer plaza: Grant Ave's shoppers stand 30–50 u from the gate), and every corner's LOD now measures from the corner's middle (the Chinatown corner is 42 u up the street from the gate). `cornerGround.ts` baked for it. |
+
+The Chinatown corner: 2 meshes (the sites' `TOY`; the signs material, warmed as `v-signs`), 1,788 triangles in every
+window (budget 2.5k), 20 plaques, 0 new programs (60 desktop / 58 phone in the shots of this part; one night run read
+78 at Chinatown and a re-run of the same views read 60, the corner mounted both times, 60 without it: the warm-up
+artefact I also saw once in part a).
+
+### Evidence
+
+**Checks** (pushed tree `90291cb`, on origin after lane F's `755f55a`): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+`npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`:
+before the CP-8 push 1,223 / 1,223 (an earlier run had two failures: the known `sf-move2` "a cached cell is cheap"
+wall-clock assert, which passed alone, and lane T's W5-T2 loop test, which failed every time with the Wave Organ's spit
+spots and passes with the tip spots); before the L6 push 1,246 / 1,247 (lane C's `sf-transit-review` "R5 … the veil
+lifts" wall-clock assert: alone 1 / 1, its file 7 / 7); after the rebase over lane F's controller change the affected
+files (w5-landmarks, w5-corners, w5-corners-view, sf-routes, w5-feet, sf-sites-w4t3) 51 / 51. The final full run on the
+pushed tree `90291cb`: **1,252 / 1,252**, fail 0. `npx` works for tsc, eslint and tsx on this machine.
+
+**CP-8 in the game.** Lane F's static sweep on the pushed code (`sweep-static.mts --only route,view,egg`): 73 targets,
+0 BOXED / SNAG / UNREACHABLE / OFF; the routes' 31 targets are 26 ok + 5 CORRIDOR (the Dragon Gate's arch, Waverly
+Place, the bridge deck at the south tower, the de Young's and the windmill's arrivals — named in the new test); lane D's
+Wave Organ egg is reached (UNREACHABLE at the checkpoint). **Lane F's live walker** (`walker-sweep.mjs --routes`,
+desktop 1440 × 900, dev server 5505): r2 all 9 legs done (coast guard → Fort Point 22.1 s, 2.5 u from the stop; Fort
+Point → Battery East 15.8 s), r3 all 11 legs done (de Young → Tea Garden 8.6 s, 1.1 u from the gate stop; it stalled
+3.8 u short by the drum bridge at the checkpoint), r1 4 of 5 (peter-paul → Coit stops when the pelican moment opens its
+dialogue, "Now we can fly anywhere! …", the walker artefact the checkpoint named; read in its shot).
+
+Shots (every image read; the key ones in `docs/opus-bay/qa/w5/L/`):
+- `l1c-fort-point-arrival-slot-desk.jpg` (the old arrival: the slot between the deck's pier and the bluff),
+  `l1c-fort-point-route-stop-desk.jpg` / `-phone.jpg` (the new stop on the loop: the fort's wall, the lamps, open on
+  every side).
+- `l1c-wave-organ-jetty-desk.jpg` (the spit's root: the walk deck out to the terraces, lane E's coins on it),
+  `l1c-wave-organ-tip-phone.jpg` (390 × 844 at the terraces, listeners there).
+- `l1c-tea-garden-gate-desk.jpg` (the gate's threshold; the drum bridge and the pagoda inside),
+  `l1c-ina-coolbrith-desk.jpg` (the terrace, Alcatraz and the Bay).
+- `l6-chinatown-golden-desk.jpg` (up Grant Ave from California St), `l6-chinatown-lamps-golden-desk.jpg` (south from
+  Sacramento St: lanterns, a dragon lamp, 杂货 / 点心 / 茶), `l6-chinatown-night-desk.jpg` and `-night-close-desk.jpg`
+  (the lanterns and lamps lit), `l6-chinatown-golden-phone.jpg` and `-night-phone.jpg` (390 × 844, dpr 3, mid),
+  `l6-chinatown-shoppers-desk.jpg` (Saturday 15:00: five pins registered, a shopper at the east windows; lane T's city
+  life reports `pinnedNow 5`).
+- `l6-north-beach-seam-gap-top-desk.jpg` and `-street-desk.jpg` (the gap under Known gaps).
+
+Draw cost at the Chinatown gate spot (86.3, 178.1), the corner's LOD switched off and on in one session (renderer info,
+Saturday 15:00): 119 · 285.3k on → 117 · 282.9k off; 116 · 282.3k on → 116 · 281.3k off (crowd and traffic move between
+frames): ≤ 2 calls and ≤ 1.8k triangles, as built. Lane V's part-b gate at Chinatown: 113 · 272k.
+
+**Facts checked on the web on 2026-09-28**:
+- Dragon lamps: 43 designed by D'Arcy Ryan for the 1925 Diamond Jubilee, along Grant Ave from Bush St to Broadway; red,
+  gold and green; a pagoda lantern with bells under a red roof, dragons on the shaft; 71 lamps today — SFPUC, "A Look
+  Back in History: Chinatown Decorative Streetlights" (2019),
+  https://waterpowersewer.wordpress.com/2019/11/14/a-look-back-in-history-chinatown-decorative-streetlights/
+- Red lanterns across Grant Ave: 180 new ones restored in August 2023 after the winter storms —
+  https://sfist.com/2023/08/08/red-lanterns-return-to-sf-chinatown-after-being-destroyed-in-winter-storms/ ; still "up
+  and down Grant Avenue" in 2024, with Bre Gipson's contemporary lanterns added —
+  https://abc7news.com/post/san-francisco-chinatown-lanterns-lunar-new-year-edge-on-the-square-sf/14366509/
+- Portsmouth Square is closed for its rebuild from June 2026 to about 2028 (the corner stays on Grant Ave) —
+  https://sfrecpark.org/1166/Portsmouth-Square-Improvement-Project ,
+  https://sfist.com/2026/06/10/major-overhaul-of-chinatowns-portsmouth-square-begins-for-first-time-in-decades/
+- North Beach's light poles in the Italian flag's colours (1990s "Little Italy of the West" campaign) —
+  https://www.kqed.org/news/12074121/ciao-bella-do-italians-still-live-in-san-franciscos-north-beach (for the North Beach
+  corner once there are fronts to dress; not built).
+- Not modelled: a car-free Grant Ave (the "Walkway Weekends" I found were a pilot I could not confirm for 2026).
+
+### Decisions
+
+- **Fort Point: the route stop moves, the landmark's arrival stays.** Every spot within lane C's |z| < 4 of the bridge's
+  line (verify D12) is the slot beside the deck: the deck is the terrain over the fort's east third (2.5D), the fort and
+  the bluff close the rest, and no spot there opens more than 2 ways even with the bluff cut back. Lane N moved the trip
+  end the same way meanwhile (`4c1fc4b`: the seawall promenade, 3.7 u from my stop). The landmark's own arrival (lane
+  C's goal waypoints, `lm-fort-point`) needs D12 relaxed first (Requests).
+- **Route stops follow the sweep's rule**, in a lane L test: standable, reached from the walking graph, ≥ 3 of 4 ways
+  (lane F's pushes), five corridors named with their reason. The de Young's and the windmill's arrivals stay corridors:
+  moving them ripples through lanes C's and N's mirror tables for a reported, not failed, verdict.
+- **The Wave Organ's crowd stays at the tip.** The spit spots were what tripped the bus test; listeners at the pipes are
+  the scene anyway.
+- **Chinatown hangs on the Dragon Gate's mount**: the only site on Grant Ave; its lod 0 reaches 340 u, the corner's own
+  LOD 140 u from the corner's middle. The corner is in the gate spot's view up Grant Ave by design (lane V's published
+  headroom there ≈ 50k after the levers, 128k at part b's gate; the corner costs 2 calls and 1.8k).
+- **Window shoppers on one sidewalk.** The published Grant Ave is 3.6 u front to front with 0.4–0.5 u sidewalk strips:
+  standers on both would leave no 3 u lane; on the east strip, with the lane west of them, the way up the street stays
+  open (2.4 u of roadway and the west strip).
+- **No North Beach corner.** North Beach's heart lies in the district slab's south band, where neither the district's
+  blocks nor the city's buildings stand (Known gaps): plaques need fronts. The dressing waits for the band (Italian-flag
+  poles on Columbus Ave, café tables, 咖啡 / Café, 面包 / Bakery, 书店 / Books).
+
+### Known gaps
+
+- **The North Beach seam gap (pre-existing, not lane L's files).** In city mode the district slab's south band — about
+  z 90–114, x −110…50: Washington Square, Columbus Ave, upper Grant Ave, the Saints Peter and Paul block — is fallback
+  pavement: the district draws no blocks there and the city draws no buildings inside the slab
+  (`l6-north-beach-seam-gap-top-desk.jpg`: an empty band two blocks deep between the Telegraph Hill houses and the
+  Chinatown blocks; `-street-desk.jpg`: the player on bare paving where Washington Square's lawn should be). Route r1's
+  Washington Square and Peter & Paul stops stand in it.
+- Lane E's jetty coins 3–8 (`wave-organ-jetty`) were placed on the city's thin path at y 0–0.2; the walk deck is at
+  0.5, so they float 0.3 u over it instead of 0.8 (still picked up: `footDy` 1.8).
+- The static sweep's `reach` for the middle of the jetty starts from the nearest walking-graph node, which lies across
+  the harbour mouth, and reports it UNREACHABLE although the nav walks there from the root (the new test checks that).
+- Fort Point's landmark arrival itself is still the boxed slot (lane C's D12).
+
+### Not done (this part)
+
+- W5-L6's North Beach corner (the gap above).
+- A lane E cache on the Chinatown corner (`cache: null`).
+
+### Requests
+
+- **Lane V + lead** (C2's world files: the district / city seam): build the slab's south band in city mode — the city's
+  own buildings where the district has no block (Washington Square as a park, Saints Peter and Paul's, Columbus Ave's
+  fronts). Shots: `qa/w5/L/l6-north-beach-seam-gap-*.jpg`. Lane L then dresses Columbus Ave (the North Beach corner).
+- **Lane V** (the gate): the Chinatown, Union Square, Grace / Nob Hill, Powell & Market and FiDi spots now include the
+  Chinatown corner (≤ 2 calls, 1.8k triangles) and Ina Coolbrith Park (≤ 2 calls, ≤ 800); please re-measure them, and
+  the phone Chinatown walk (its long frame predates this; the corner builds once on the gate's lod-0 mount).
+- **Lane C** (`tests/opus-bay-sf-verify-c.test.ts`, verify D12): relax `Math.abs(local(fort).z) < 4` to `< 14` (the
+  leadStep assertions stay); lane L then moves Fort Point's landmark arrival onto the loop (fort local (−5.5, −4.2) =
+  world (−743.94, 591.88)) and pastes the anchor tables (`data/sf/arrivals.ts`, lane N's `LANDMARK_ARRIVALS` in
+  `attractions.ts`), as their headers ask.
+- **Lane E** (`coins-place.mts`): the `wave-organ-jetty` coins 3–8 at the walk deck's height (the deck is y 0.5 now the
+  site is registered); a cache on Grant Ave between California and Clay (the corner's box, world ≈ (34…58, 142…159)).
+- **Lane F** (`sweep-static.mts` reach): try the next nearest nodes (or the one the nav window reaches) before calling a
+  target UNREACHABLE — the jetty's middle is walked from its root.
+- **Lane A** (optional): the Wave Organ's tip is walkable now; the view spot may go back out to the terraces if your
+  rule accepts a jetty's corridor there (2 of 4 ways: the spit's nature).
+- **Lane T** (a note): the W5-T2 loop test is sensitive to sightseer spots near Marina Blvd (the Wave Organ's spit spots
+  added one 9.5 s wait behind a car that stopped for a crossing sightseer); nothing to change unless it recurs.
+
+Status（进度）：C 部分完成——检查点 CP-8 已修并推送（`8000e8a`），唐人街街角（L6）已推送（`90291cb`），海特 / 卡斯特罗街角已接上 E 线的宝箱（`2a474f1`）；北滩街角等城市拼接缺口补上后再做。
