@@ -524,3 +524,19 @@ test('W5-C3 a resume is not an arrival: settle() marks the anchors around the sp
   assert.equal(at(dragon.x, dragon.z, 3000)?.anchor.attraction, 'chinatown-dragon-gate', 'walking back in is the first arrival');
   assert.match(src('game/flow.ts').replace(/\r\n/g, '\n'), /export function welcomeBack\(\): void \{\n[^\n]*\n {2}settleArrivals\(\);/, 'the welcome back settles first');
 });
+
+test('W5-C2 lane A’s first flight refusing (it resolves false: not unlocked yet, riding …) falls back to the plain take-off', async () => {
+  reset();
+  const { input } = await import('../src/opus-bay/core/input');
+  let asked = 0;
+  pelican.unlockPelican('viewpoint', clock);
+  tick(pelican.MOMENT_MIN_MS + 1);
+  pelican.stepPelican(clock, () => true);
+  pelican.resetPelicanForTests(async () => { asked++; return false; });
+  const before = input.glideCount;
+  flowMod.chooseDialogue(0);
+  flowMod.advanceDialogue();
+  for (let i = 0; i < 50 && input.glideCount === before; i++) await new Promise(r => setTimeout(r, 10));
+  assert.equal(asked, 1);
+  assert.equal(input.glideCount, before + 1);
+});

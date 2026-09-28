@@ -149,13 +149,18 @@ export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) 
   }, { kind: 'two-shot', subject: null });
 }
 
-/** 试试起飞: lane A's first flight when its chunk has it, else a plain take-off (the 起飞 press). */
+/**
+ * 试试起飞: lane A's first flight (play/index.ts `startFirstFlight`, a live export while the play feature runs; it
+ * resolves false when it cannot start), else — or when it refuses — a plain take-off (the 起飞 press).
+ */
 function takeOff() {
-  if (flightStarter) { try { flightStarter(); return; } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); } }
-  void import('../play/index').then(m => {
-    const start = (m as { startFirstFlight?: () => unknown }).startFirstFlight;
-    if (typeof start === 'function') { flightStarter = start; start(); } else input.glideCount++;
-  }, () => { input.glideCount++; });
+  const plain = () => { input.glideCount++; };
+  const run = (start: (() => unknown) | undefined) => {
+    if (typeof start !== 'function') { plain(); return; }
+    try { void Promise.resolve(start()).then(ok => { if (ok === false) plain(); }, plain); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); plain(); }
+  };
+  if (flightStarter) { run(flightStarter); return; }
+  void import('../play/index').then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
 }
 
 // 试试起飞 opens GO_NODE: remembered for the moment's end (module level: this module lives in the city chunk only)
