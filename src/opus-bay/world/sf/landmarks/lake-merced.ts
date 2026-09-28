@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import { BOX, type BatchLike, CBOX, M } from '../../builder';
 import { worldPoly } from './kit';
-import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, bin, gstrip, siteGround } from './siteKit';
+import { GC, PAT, type SiteGroundPoly, type W4Site, bench, bin, gstrip, siteGround } from './siteKit';
 
 /**
  * Lake Merced (wave 4, P3 · map T2, the lake-merced site): the city's largest lake, a freshwater reservoir in the
