@@ -186,6 +186,23 @@ export function spend(item: string, price: number): boolean {
   return true;
 }
 
+/**
+ * Lane E's own writes beyond pay / spend (the 小铺's items and wear, the notebook's stamps; economy/wallet.ts, stamps.ts):
+ * `fn` gets the play block and returns the next one, or null for no change. The balance is clamped to 0 … 999,999; when
+ * it changes and `coinsSource` is given a `coins` event follows (a purchase: `shop:<item>`, delta < 0). LANE-E-INTERNAL:
+ * other lanes emit `reward` or call pay / spend / recordBest. Returns whether anything was written.
+ */
+export function commitPlay(fn: (p: Readonly<PlaySaveV1>) => PlaySaveV1 | null, coinsSource?: string): boolean {
+  const p = playState();
+  const next = fn(p);
+  if (!next || next === p) return false;
+  next.c = Math.max(0, Math.min(MAX_COINS, Math.floor(Number.isFinite(next.c) ? next.c : p.c)));
+  write(next);
+  notify();
+  if (coinsSource && next.c !== p.c) emit({ type: 'coins', total: next.c, delta: next.c - p.c, source: coinsSource });
+  return true;
+}
+
 /** Start listening: `reward` events are paid; a reset (Settings) tells the subscribers. Returns the off. */
 export function initLedger(): () => void {
   const offEvent = onEvent(e => { if (e.type === 'reward') pay(e.source, e.coins); });

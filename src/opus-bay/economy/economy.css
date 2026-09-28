@@ -11,3 +11,156 @@
 @media (prefers-reduced-motion: reduce) {
   .ob-coin-badge[data-pulse] .ob-coin-count, .ob-coin-badge[data-pulse] .ob-coin-glyph { animation: none; }
 }
+
+/* W5-E6 · the 寻宝罗盘 pill badge (while on) */
+.ob-compass-badge { display: inline-flex; align-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
+.ob-compass-arrow { color: var(--ob-teal-d, #1f6f69); transition: transform .25s linear; }
+.ob-compass-dist { font-weight: 700; color: var(--ob-teal-d, #1f6f69); font-size: .92em; }
+
+/* W5-E6 · the BAYBAY 小铺 sheet */
+.ob-shop .ob-sheet-body { padding-bottom: 12px; }
+.ob-shop-balance {
+  display: inline-flex; align-items: center; gap: 4px; align-self: center; margin-right: 4px; padding: 5px 11px; border-radius: 999px;
+  background: var(--ob-gold-l); color: var(--ob-gold-d); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+.ob-shop-note { margin: 0 0 10px !important; padding: 7px 11px; border-radius: 10px; background: var(--ob-gold-l); color: #7a5617; font-size: 13px; line-height: 1.45; }
+.ob-shop-shelves { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -2px 12px; padding: 0 2px; }
+.ob-shop-shelves::-webkit-scrollbar { display: none; }
+.ob-shop-shelves button {
+  flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; font-weight: 700; font-size: 14px; color: var(--ob-ink-2);
+  background: var(--ob-cream-3); border: 1px solid transparent; transition: background-color .15s, color .15s;
+}
+.ob-shop-shelves button.is-on { background: #fff; color: var(--ob-ink); border-color: var(--ob-line-2); box-shadow: var(--ob-shadow-s); }
+/* one row of tiles, the slot groups side by side (a dashed line between), scrolled sideways */
+.ob-shop-groups { display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; margin: 0 -22px; padding: 2px 22px 6px; }
+.ob-shop-group { flex: none; }
+.ob-shop-group + .ob-shop-group { padding-left: 10px; border-left: 1px dashed var(--ob-line-2); }
+.ob-shop-group-h { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; color: var(--ob-ink-3); margin-bottom: 6px !important; }
+.ob-shop-tiles { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+.ob-shop-tile {
+  position: relative; width: 92px; min-height: 112px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px 7px;
+  border-radius: 16px; background: #fff; border: 1.5px solid var(--ob-line); color: var(--ob-ink); transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.ob-shop-tile:hover { border-color: var(--ob-line-2); }
+.ob-shop-tile.is-sel { border-color: var(--ob-teal); box-shadow: 0 0 0 3px var(--ob-teal-l); transform: translateY(-1px); }
+.ob-shop-tile.is-worn::after {
+  content: ""; position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--ob-teal); box-shadow: 0 0 0 2px #fff;
+}
+.ob-shop-tile.is-locked .ob-shop-art { filter: grayscale(.85) opacity(.55); }
+.ob-shop-art { display: grid; place-items: center; width: 64px; height: 54px; }
+.ob-shop-glyph { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; color: #fff; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .14); }
+.ob-shop-frame-art { width: 62px; height: 52px; border-radius: 4px; box-shadow: 0 2px 6px -2px rgba(74, 52, 22, .35); }
+.ob-shop-name { font-size: 13px; font-weight: 700; line-height: 1.2; text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ob-shop-price { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; font-weight: 800; color: var(--ob-gold-d); font-variant-numeric: tabular-nums; }
+.ob-shop-tile.is-worn .ob-shop-price { color: var(--ob-teal-d); }
+.ob-shop-hint { margin: 0; font-size: 13.5px; color: var(--ob-ink-3); text-align: center; }
+.ob-shop-foot { display: flex; align-items: center; gap: 12px; }
+.ob-shop-foot-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ob-shop-foot-text strong { font-size: 15px; color: var(--ob-ink); }
+.ob-shop-foot-text small { font-size: 12.5px; color: var(--ob-ink-3); line-height: 1.4; }
+.ob-shop-src { display: inline-flex; vertical-align: -2px; margin-left: 4px; color: var(--ob-teal); }
+.ob-shop-on { font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); text-align: right; max-width: 45%; }
+.ob-shop-foot .ob-btn { flex: none; }
+.ob-shop-foot .ob-btn:disabled { opacity: .6; cursor: default; }
+/* desktop: a counter along the bottom (the HUD, the pill and BAYBAY stay in view above it) */
+@media (min-width: 721px) {
+  .ob-sheet.ob-shop {
+    top: auto; right: auto; left: max(16px, calc(50% - 400px)); bottom: calc(16px + var(--ob-sb)); width: min(800px, calc(100vw - 32px)); max-height: min(420px, 52vh);
+    animation: ob-shop-up .34s var(--ob-ease);
+  }
+  .ob-shop .ob-sheet-head { padding-top: 14px; padding-bottom: 8px; }
+  .ob-shop-shelves { margin-bottom: 10px; }
+}
+@keyframes ob-shop-up { from { opacity: 0; transform: translateY(24px); } }
+@media (max-width: 720px) {
+  .ob-shop .ob-sheet-head { padding-bottom: 6px; }
+  .ob-shop-shelves { margin-bottom: 8px; }
+  .ob-shop-groups { margin: 0 -18px; padding: 2px 18px 4px; scrollbar-width: none; }
+  .ob-shop-groups::-webkit-scrollbar { display: none; }
+  .ob-shop-group + .ob-shop-group { padding-left: 8px; }
+  .ob-shop-tile { width: 86px; min-height: 104px; }
+}
+
+/* W5-E6 · the 飞行券 picker */
+.ob-ticket-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ob-ticket-list button {
+  width: 100%; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 14px; background: #fff;
+  border: 1px solid var(--ob-line); color: var(--ob-ink); font-weight: 700; font-size: 15px; text-align: left;
+}
+.ob-ticket-list button:hover:not(:disabled) { border-color: var(--ob-teal); }
+.ob-ticket-list button:disabled { opacity: .5; }
+.ob-ticket-list button svg { color: var(--ob-teal); }
+.ob-ticket-name { flex: 1; min-width: 0; }
+.ob-ticket-new { font-size: 11.5px; font-weight: 800; color: var(--ob-terra); background: var(--ob-terra-l); padding: 2px 8px; border-radius: 999px; }
+
+/* W5-E5 · the 旅行手帐 notebook tab */
+.ob-nb-head {
+  margin: 0 0 12px; padding: 10px 14px 11px; border-radius: 14px; border: 1px dashed var(--ob-line-2);
+  background: repeating-linear-gradient(180deg, transparent 0 21px, rgba(217, 202, 178, .35) 21px 22px), var(--ob-cream-2);
+}
+.ob-nb-today { font-size: 13.5px; font-weight: 700; color: var(--ob-ink-2); line-height: 1.55; }
+.ob-nb-tomorrow { margin-top: 2px !important; font-size: 13px; color: var(--ob-teal-d); font-style: italic; }
+.ob-nb-pages { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--ob-cream-3); margin-bottom: 12px; }
+.ob-nb-pages button {
+  flex: 1; min-width: 0; min-height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  border-radius: 11px; font-weight: 700; font-size: 13.5px; color: var(--ob-ink-2); line-height: 1.2;
+}
+.ob-nb-pages button small { font-size: 11px; font-weight: 800; color: var(--ob-ink-3); font-variant-numeric: tabular-nums; }
+.ob-nb-pages button.is-on { background: #fff; color: var(--ob-ink); box-shadow: var(--ob-shadow-s); }
+.ob-nb-bar { padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--ob-line); }
+.ob-nb-bar.is-full { border-color: var(--ob-gold); background: var(--ob-gold-l); }
+.ob-nb-bar-top { display: flex; align-items: center; gap: 10px; }
+.ob-nb-bar-top strong { font-size: 20px; font-weight: 800; color: var(--ob-ink); font-variant-numeric: tabular-nums; }
+.ob-nb-bar-top strong small { font-size: 13px; color: var(--ob-ink-3); }
+.ob-nb-bar-top > span { flex: 1; min-width: 0; font-size: 12.5px; color: var(--ob-ink-2); line-height: 1.4; }
+.ob-nb-meter { display: block; height: 6px; margin-top: 8px; border-radius: 6px; background: var(--ob-cream-3); overflow: hidden; }
+.ob-nb-meter > span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--ob-teal), var(--ob-gold)); transition: width .5s var(--ob-ease); }
+.ob-nb-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 12px 6px; }
+.ob-nb-grid li { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
+.ob-nb-cap { font-size: 12px; font-weight: 700; line-height: 1.3; color: var(--ob-ink-2); }
+.ob-nb-grid li:not(.is-on) .ob-nb-cap { color: var(--ob-ink-3); font-weight: 600; }
+.ob-nb-grid.is-finds li.is-riddle .ob-nb-cap { font-style: italic; font-size: 11.5px; }
+.ob-nb-disc {
+  --ink: #2f8f88; --tilt: 0deg; position: relative; flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
+  transform: rotate(var(--tilt));
+}
+.ob-nb-disc.is-on {
+  color: var(--ink); border: 2.5px solid var(--ink);
+  box-shadow: inset 0 0 0 3px #fffaf1, inset 0 0 0 4.5px var(--ink);
+  background: radial-gradient(circle at 35% 30%, #fffdf8, #fbf3e3 70%);
+}
+.ob-nb-disc.is-on::after {
+  /* ink that did not quite take: a few pale specks */
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 70% 25%, rgba(255, 250, 241, .8) 0 2px, transparent 3px), radial-gradient(circle at 22% 72%, rgba(255, 250, 241, .7) 0 1.5px, transparent 2.5px);
+}
+.ob-nb-disc.is-off { color: rgba(34, 50, 47, .22); border: 2px dashed var(--ob-line-2); background: var(--ob-cream-2); }
+.ob-nb-grid.is-finds .ob-nb-disc.is-off { color: rgba(34, 50, 47, .55); background: var(--ob-cream-3); }
+.ob-nb-grid.is-finds .ob-nb-disc.is-off svg { filter: blur(.6px); }
+.ob-nb-disc.is-new { animation: ob-nb-thud .55s var(--ob-spring) both; }
+@keyframes ob-nb-thud {
+  0% { transform: rotate(calc(var(--tilt) - 14deg)) scale(1.7); opacity: 0; }
+  55% { transform: rotate(var(--tilt)) scale(.92); opacity: 1; }
+  75% { transform: rotate(var(--tilt)) scale(1.04); }
+  100% { transform: rotate(var(--tilt)) scale(1); }
+}
+.ob-nb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ob-nb-list li { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 4px; border-radius: 14px; }
+.ob-nb-list li.is-on { background: #fff; }
+.ob-nb-list .ob-nb-disc { width: 46px; height: 46px; }
+.ob-nb-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ob-nb-row-text strong { font-size: 14px; color: var(--ob-ink); }
+.ob-nb-row-text small { font-size: 12.5px; color: var(--ob-ink-3); }
+.ob-nb-more {
+  width: 100%; margin-top: 18px; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px;
+  background: var(--ob-cream-2); border: 1px solid var(--ob-line); color: var(--ob-ink-2); font-size: 13px; text-align: left;
+}
+.ob-nb-more span { flex: 1; min-width: 0; }
+.ob-nb-more small { font-weight: 800; color: var(--ob-teal-d); }
+.ob-nb .ob-footprints.is-embedded { margin-top: 4px; }
+
+.ob-overlay.is-reduced .ob-nb-disc.is-new, .ob-overlay.is-reduced .ob-compass-arrow { animation: none; transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ob-nb-disc.is-new { animation: none; }
+  .ob-compass-arrow { transition: none; }
+}
