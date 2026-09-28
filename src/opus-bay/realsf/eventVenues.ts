@@ -20,8 +20,10 @@ import { eventById, getCatalog } from '../data/catalog';
  */
 
 /** music → toy stage + speakers · fair → stall tents · festival → bunting + tents · parade → bunting at the route
- *  start · board → a sandwich board at the door (indoor events, and downtown until lane V publishes the headroom) */
-export type KitKind = 'music' | 'fair' | 'festival' | 'parade' | 'board';
+ *  start · street → a tall festival arch over a narrow street (a street fair where the toy street has no room for stalls;
+ *  traffic passes under it) · board → a sandwich board at the door (indoor events, and downtown until lane V publishes
+ *  the headroom) */
+export type KitKind = 'music' | 'fair' | 'festival' | 'parade' | 'street' | 'board';
 
 export interface EventVenue {
   id: string;
@@ -50,6 +52,9 @@ export interface EventVenue {
 }
 
 const H = (h: number, m = 0) => h * 60 + m;
+/** kit spots and facings: chosen so the kit and its crowd stand on open ground, clear of the streamed trees, lamps and
+ *  benches (a probe over the published city, 2026-09-28) */
+const deg = (d: number) => (d * Math.PI) / 180;
 
 export const EVENT_VENUES: readonly EventVenue[] = [
   {
@@ -59,7 +64,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Hellman Hollow|Lindley|Marx Meadow/i,
     events: ['hardly-strictly-bluegrass-2026'],
     kit: 'music',
-    kitAt: { x: -378.2, z: 1118.8, yaw: 0 },
+    kitAt: { x: -366.5, z: 1117.5, yaw: deg(255) },
     // gates 11:00 on Friday, 9:00 on Saturday and Sunday; performances end at 19:00 daily
     hours: { 'hardly-strictly-bluegrass-2026': { '2026-10-02': [H(11), H(19)], '2026-10-03': [H(9), H(19)], '2026-10-04': [H(9), H(19)] } },
     hoursSource: 'https://hardlystrictlybluegrass.com/info-faq-2026/',
@@ -74,17 +79,22 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Yerba Buena Gardens/i,
     events: ['sf-african-arts-festival-2026', 'litquake-out-loud-2026', 'sf-quinteto-latino-lunchtime-2026', 'sf-ybg-dance-day-2026', 'sf-indigenous-peoples-day-2026', 'sf-halloween-hoopla-2026'],
     kit: 'festival',
+    kitAt: { x: 168.9, z: 210.8, yaw: deg(105) },
     sourceUrl: 'https://www.openstreetmap.org/way/28842443',
     verifiedAt: '2026-09-28',
   },
   {
     id: 'castro-market',
-    name: { zh: '卡斯特罗街 · Market 街口', en: 'Castro & Market' },
-    x: 143.3, z: 739.1,
+    name: { zh: '卡斯特罗街 · 18 街口', en: 'Castro St at 18th' },
+    // the fair fills Market, Castro and 18th Streets (castrostreetfair.org, checked 2026-09-28). Castro & Market itself
+    // carries the F-line terminal and the sightseeing loop, and the toy Castro St is ≈ 3 u of roadway between building
+    // fronts: the arch spans Castro St just south of 18th (24 u from any line), the pennant stands on its east sidewalk
+    x: 164.7, z: 760.1,
     match: /Castro/i,
     events: ['sf-castro-street-fair-2026'],
-    kit: 'fair',
-    sourceUrl: 'https://www.openstreetmap.org/way/188964530',
+    kit: 'street',
+    kitAt: { x: 165.5, z: 758.2, yaw: deg(231.9) },
+    sourceUrl: 'https://www.openstreetmap.org/node/6376930275',
     verifiedAt: '2026-09-28',
   },
   {
@@ -95,6 +105,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Marina Green/i,
     events: ['san-francisco-fleet-week-2026'],
     kit: 'festival',
+    kitAt: { x: -388.1, z: 306.7, yaw: deg(0) },
     // the air show days (12:00–16:00) with the Marina Green festival centre; the week's other programmes vary
     hours: { 'san-francisco-fleet-week-2026': { '2026-10-09': [H(12), H(16)], '2026-10-10': [H(12), H(16)], '2026-10-11': [H(12), H(16)] } },
     hoursSource: 'https://fleetweeksf.org/air-show/',
@@ -108,6 +119,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Jefferson & Powell/i,
     events: ['sf-italian-heritage-parade-2026'],
     kit: 'parade',
+    kitAt: { x: -180.0, z: 51.0, yaw: deg(240) },
     sourceUrl: 'https://www.openstreetmap.org/node/6371296695',
     verifiedAt: '2026-09-28',
   },
@@ -119,6 +131,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Little Embarcadero|Fisherman/i,
     events: ['sf-fishermans-wharf-chowder-fest-2026'],
     kit: 'fair',
+    kitAt: { x: -206.3, z: 92.6, yaw: deg(30) },
     sourceUrl: 'https://www.openstreetmap.org/node/11283438662',
     verifiedAt: '2026-09-28',
   },
@@ -130,6 +143,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Ferry Building/i,
     events: ['sf-world-of-dumplings-2026'],
     kit: 'board',
+    kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
     sourceUrl: 'https://www.openstreetmap.org/way/558731934',
     verifiedAt: '2026-09-28',
@@ -141,27 +155,30 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /UCSF|Koret/i,
     events: ['sf-bay-area-science-festival-2026'],
     kit: 'fair',
+    kitAt: { x: 448.6, z: 292.1, yaw: deg(135) },
     sourceUrl: 'https://www.openstreetmap.org/way/84821725',
     verifiedAt: '2026-09-28',
   },
   {
     id: 'main-library',
     name: { zh: '旧金山总图书馆', en: 'SF Main Library' },
-    // the Larkin St doors (the building's centre is at 122.8, 388.6)
-    x: 129.1, z: 382.1,
+    // beside the building, off the street (its centre is at 122.8, 388.6; the doors face Larkin St, a car street here)
+    x: 117.1, z: 382.1,
     match: /Main Library|100 Larkin/i,
     events: ['sf-filbookfest-2026'],
     kit: 'board',
+    kitAt: { x: 117.1, z: 382.1, yaw: deg(195) },
     sourceUrl: 'https://www.openstreetmap.org/way/24446086',
     verifiedAt: '2026-09-28',
   },
   {
     id: 'roxie',
     name: { zh: 'Roxie 影院', en: 'Roxie Theater' },
-    x: 225.5, z: 602.8,
+    x: 225.5, z: 594.8,
     match: /Roxie/i,
     events: ['sf-apature-film-2026'],
     kit: 'board',
+    kitAt: { x: 225.5, z: 594.8, yaw: deg(135) },
     sourceUrl: 'https://www.openstreetmap.org/node/2042397283',
     verifiedAt: '2026-09-28',
   },
@@ -172,20 +189,71 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     match: /Sunnydale/i,
     events: ['sf-sunnydale-pumpkin-fest-2026'],
     kit: 'fair',
+    kitAt: { x: 857.9, z: 1109.8, yaw: deg(210) },
     sourceUrl: 'https://www.openstreetmap.org/way/254299137',
     verifiedAt: '2026-09-28',
   },
   {
     id: 'portola-family-connections',
     name: { zh: 'Portola 家庭中心', en: 'Family Connections, Portola' },
-    x: 776.4, z: 821.6,
+    x: 771.4, z: 822.6,
     match: /Family Connections|2565 San Bruno/i,
     events: ['sf-family-connections-halloween-2026'],
     kit: 'board',
+    kitAt: { x: 771.4, z: 822.6, yaw: deg(120) },
     sourceUrl: 'https://www.openstreetmap.org/way/254299130',
     verifiedAt: '2026-09-28',
   },
 ];
+
+/**
+ * The event souvenirs' ids for lane E's ledger (`registerRewardIds('event', …)`: bit i of `play.g.souvenir` is id i).
+ * APPEND-ONLY: never reorder or remove an id (a moved id would read another event's souvenir); add new events at the end.
+ */
+export const SOUVENIR_IDS: readonly string[] = [
+  'hardly-strictly-bluegrass-2026', 'sf-african-arts-festival-2026', 'litquake-out-loud-2026', 'sf-castro-street-fair-2026',
+  'san-francisco-fleet-week-2026', 'sf-quinteto-latino-lunchtime-2026', 'sf-italian-heritage-parade-2026', 'sf-ybg-dance-day-2026',
+  'sf-indigenous-peoples-day-2026', 'sf-bay-area-science-festival-2026', 'sf-filbookfest-2026', 'sf-sunnydale-pumpkin-fest-2026',
+  'sf-family-connections-halloween-2026', 'sf-fishermans-wharf-chowder-fest-2026', 'sf-world-of-dumplings-2026', 'sf-apature-film-2026',
+  'sf-halloween-hoopla-2026',
+];
+
+/** How BAYBAY names a venue in a sentence (今天<place>有…). */
+export const VENUE_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
+  'hellman-hollow': { zh: '金门公园', en: 'Golden Gate Park' },
+  'yerba-buena-gardens': { zh: '芳草地花园', en: 'Yerba Buena Gardens' },
+  'castro-market': { zh: '卡斯特罗', en: 'the Castro' },
+  'marina-green': { zh: '码头绿地', en: 'Marina Green' },
+  'jefferson-powell': { zh: '渔人码头', en: 'Fisherman’s Wharf' },
+  'fishermans-wharf': { zh: '渔人码头', en: 'Fisherman’s Wharf' },
+  'ferry-building': { zh: '渡轮大厦', en: 'the Ferry Building' },
+  'ucsf-koret-quad': { zh: 'UCSF 校园', en: 'UCSF Mission Bay' },
+  'main-library': { zh: '总图书馆', en: 'the Main Library' },
+  roxie: { zh: 'Roxie 影院', en: 'the Roxie' },
+  'sunnydale-hub': { zh: 'Sunnydale', en: 'Sunnydale' },
+  'portola-family-connections': { zh: 'Portola', en: 'Portola' },
+};
+
+/** Short event names for BAYBAY's lines (catalog titles are long); an event missing here is named by its venue. */
+export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
+  'hardly-strictly-bluegrass-2026': { zh: '蓝草音乐节', en: 'the bluegrass festival' },
+  'sf-african-arts-festival-2026': { zh: '非洲艺术节', en: 'the African Arts Festival' },
+  'litquake-out-loud-2026': { zh: '读书会和书市', en: 'Litquake’s book fair' },
+  'sf-quinteto-latino-lunchtime-2026': { zh: '午间木管五重奏', en: 'a lunchtime wind quintet' },
+  'sf-ybg-dance-day-2026': { zh: '舞蹈日', en: 'Dance Day' },
+  'sf-indigenous-peoples-day-2026': { zh: '原住民日聚会', en: 'Indigenous Peoples’ Day' },
+  'sf-halloween-hoopla-2026': { zh: '万圣节儿童游行', en: 'the Halloween Hoopla' },
+  'sf-castro-street-fair-2026': { zh: '街区节', en: 'the Castro Street Fair' },
+  'san-francisco-fleet-week-2026': { zh: '舰队周飞行表演', en: 'the Fleet Week air show' },
+  'sf-italian-heritage-parade-2026': { zh: '意大利文化游行', en: 'the Italian Heritage Parade' },
+  'sf-fishermans-wharf-chowder-fest-2026': { zh: '浓汤节', en: 'Chowder Fest' },
+  'sf-world-of-dumplings-2026': { zh: '世界饺子节', en: 'World of Dumplings' },
+  'sf-bay-area-science-festival-2026': { zh: '湾区科学节', en: 'the Science Festival' },
+  'sf-filbookfest-2026': { zh: '菲律宾裔书展', en: 'FilBookFest' },
+  'sf-apature-film-2026': { zh: 'APAture 电影夜', en: 'APAture film night' },
+  'sf-sunnydale-pumpkin-fest-2026': { zh: '南瓜节', en: 'the Pumpkin Fest' },
+  'sf-family-connections-halloween-2026': { zh: '万圣节手工和游戏', en: 'Halloween crafts and games' },
+};
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));
 export const venueById = (id: string): EventVenue | undefined => byId.get(id);

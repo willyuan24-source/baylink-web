@@ -159,7 +159,9 @@ test('W5-R2 venues: every point and kit spot stands in the published city and jo
   const lms = landmarkWalkInputs(SF_SITES);
   const city = createCityTerrain(sf.manifest, { landmarks: lms });
   city.setFar(await sf.far());
-  const spots = EVENT_VENUES.flatMap(v => [{ id: v.id, x: v.x, z: v.z }, ...(v.kitAt ? [{ id: `${v.id} kit`, x: v.kitAt.x, z: v.kitAt.z }] : [])]);
+  const { kitCrowd } = await import('../src/opus-bay/realsf/eventKit');
+  const { kitSpot } = await import('../src/opus-bay/realsf/presence');
+  const spots = EVENT_VENUES.flatMap(v => { const k = kitSpot(v), c = kitCrowd(v.kit, k); return [{ id: v.id, x: v.x, z: v.z }, { id: `${v.id} kit`, x: k.x, z: k.z }, ...(c ? [{ id: `${v.id} crowd`, x: c.center.x, z: c.center.z }] : [])]; });
   for (const s of spots) await sf.attachAround(city, s.x, s.z, 24, lms);
   setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
   try {
@@ -171,6 +173,22 @@ test('W5-R2 venues: every point and kit spot stands in the published city and jo
       const n = ix.nearestNode(s.x, s.z, 16);
       assert.ok(n >= 0, `${s.id}: a walking-graph node within 16 u`);
       assert.equal(ix.component(n), home, `${s.id}: reachable from ferry-gate`);
+    }
+    // each kit's footprint: open ground, off the car lanes (the Castro Street Fair is the exception: the real fair closes
+    // Castro St; its crowd stands in the street, where the toy cars stop for people)
+    const { KIT_FOOTPRINT } = await import('../src/opus-bay/realsf/eventKit');
+    const { surfaceAt } = await import('../src/opus-bay/core/terrain');
+    // (a board is a small sign at a door: its own spot is checked above)
+    for (const v of EVENT_VENUES.filter(x => x.kit !== 'board')) {
+      const k = kitSpot(v), cos = Math.cos(k.yaw), sin = Math.sin(k.yaw);
+      const [x0, x1, z0, z1] = KIT_FOOTPRINT[v.kit];
+      let ok = 0, road = 0, n = 0;
+      for (let lx = x0; lx <= x1; lx += 1) for (let lz = z0; lz <= z1; lz += 1) {
+        const x = k.x + lx * cos + lz * sin, z = k.z - lx * sin + lz * cos;
+        n++; if (canStand(x, z)) ok++; if (surfaceAt(x, z) === 'road') road++;
+      }
+      assert.ok(ok / n >= 0.75, `${v.id}: ${(ok / n * 100).toFixed(0)} % of the kit stands on open ground`);
+      if (v.id !== 'castro-market') assert.ok(road / n <= 0.25, `${v.id}: ${(road / n * 100).toFixed(0)} % of the kit on a road`);
     }
   } finally { setCityTerrain(null); }
 });
@@ -188,4 +206,73 @@ test('W5-R: no runtime fetch in lane R leaves the site (same-site paths and the 
   // the catalog itself is same-site
   assert.match(fs.readFileSync(path.resolve('src/opus-bay/data/catalog.ts'), 'utf8'), /fetcher\('\/planner-catalog\.json'/);
   assert.ok(sanitizeCatalog({}).events.length === 0);
+});
+
+test('W5-R3 kits: each kind ≤ 1.5k triangles in one geometry (toy shapes only), the crowd in front of it, ≤ 2 built; lines ≤ 45 zh characters', async () => {
+  const { buildKitGeometry, kitCrowd, KIT_TRIS_MAX } = await import('../src/opus-bay/realsf/eventKit');
+  const { KITS_MAX, eventLine, souvenirLine, kitSpot } = await import('../src/opus-bay/realsf/presence');
+  const { EVENT_SAY, SOUVENIR_IDS } = await import('../src/opus-bay/realsf/eventVenues');
+  assert.equal(KITS_MAX, 2);
+  for (const kind of ['music', 'fair', 'festival', 'parade', 'street', 'board'] as const) {
+    const geo = buildKitGeometry(kind, { x: 10, z: 20, yaw: 0.7 }, () => 3);
+    const tris = (geo.index?.count ?? 0) / 3;
+    assert.ok(tris > 20 && tris <= KIT_TRIS_MAX, `${kind}: ${tris} triangles`);
+    for (const a of ['position', 'normal', 'color', 'aInfo']) assert.ok(geo.getAttribute(a), `${kind}: ${a}`);
+    geo.computeBoundingBox();
+    const bb = geo.boundingBox!;
+    assert.ok(bb.min.y >= 3 - 0.01 && bb.max.y < 3 + 9, `${kind}: stands on the ground, ≤ 9 u tall`);
+    assert.ok(Math.max(bb.max.x - 10, 10 - bb.min.x, bb.max.z - 20, 20 - bb.min.z) < 17, `${kind}: compact`);
+    const c = kitCrowd(kind, { x: 10, z: 20, yaw: 0.7 });
+    if (kind === 'board' || kind === 'street') assert.equal(c, null);
+    else { assert.ok(c && c.count >= 12 && c.count <= 20, kind); assert.ok(dist(c!.center, { x: 10, z: 20 }) > 3, `${kind}: the crowd stands in front`); }
+  }
+  // every venue's kit spot and crowd centre stand on open ground is checked with the published city below
+  assert.deepEqual([...new Set(SOUVENIR_IDS)], [...SOUVENIR_IDS], 'souvenir ids unique (append-only)');
+  for (const v of EVENT_VENUES) for (const id of v.events) assert.ok(SOUVENIR_IDS.includes(id), `${id} has a souvenir id`);
+  for (const id of SOUVENIR_IDS) assert.ok(`event:${id}`.length <= 80 && /^[a-z0-9-]+$/.test(id), id);
+  // the lines for every event the table holds, at their longest hours
+  for (const v of EVENT_VENUES) for (const id of v.events) {
+    const e = FIXTURE.events.find(x => x.id === id) ?? ev(id, '2026-10-10', '2026-10-10', '', 'x');
+    const w = { event: e, venue: v, dateKey: '2026-10-10', open: bay('2026-10-10T09:00').getTime(), close: bay('2026-10-10T19:00').getTime() };
+    const line = eventLine(w);
+    assert.ok([...line.zh].length <= 45, `${id}: ${line.zh} (${[...line.zh].length})`);
+    assert.ok(EVENT_SAY[id], `${id}: a short name`);
+    assert.ok([...souvenirLine(w).zh].length <= 45);
+    assert.ok(!/undefined|NaN/.test(line.zh + line.en), line.en);
+  }
+  const hsb = EVENT_VENUES.find(v => v.id === 'hellman-hollow')!;
+  const w = { event: FIXTURE.events[2], venue: hsb, dateKey: '2026-10-03', open: bay('2026-10-03T09:00').getTime(), close: bay('2026-10-03T19:00').getTime() };
+  assert.equal(eventLine(w).zh, '今天金门公园有免费的蓝草音乐节，9:00–19:00，出发前查官网确认哦。');
+  assert.deepEqual(kitSpot(hsb), hsb.kitAt);
+});
+
+test('W5-R3 sound: the event loops are heard within ≈ 150 u (full within 30 u), registered through audio/hooks.ts and undone', async () => {
+  const { hearGain, HEAR_FULL, HEAR_FAR, LOOP_IDS, registerEventLoops } = await import('../src/opus-bay/realsf/eventSounds');
+  const { audioHooksStats } = await import('../src/opus-bay/audio/hooks');
+  assert.equal(hearGain(0), 1);
+  assert.equal(hearGain(HEAR_FULL), 1);
+  assert.equal(hearGain(HEAR_FAR), 0);
+  assert.equal(hearGain(Infinity), 0);
+  let last = 1;
+  for (let d = HEAR_FULL; d <= HEAR_FAR; d += 10) { const g = hearGain(d); assert.ok(g <= last + 1e-9 && g >= 0); last = g; }
+  const before = audioHooksStats().loops;
+  const off = registerEventLoops();
+  assert.equal(audioHooksStats().loops, before + new Set(Object.values(LOOP_IDS)).size);
+  off();
+  assert.equal(audioHooksStats().loops, before);
+});
+
+test('W5-R3 street arch: nothing hangs lower than 4 u over the roadway between its poles (cars and buses pass under); the Castro fair uses it, 20 u+ from every transit line', async () => {
+  const { buildKitGeometry } = await import('../src/opus-bay/realsf/eventKit');
+  const { kitSpot } = await import('../src/opus-bay/realsf/presence');
+  const geo = buildKitGeometry('street', { x: 0, z: 0, yaw: 0 }, () => 2);
+  const pos = geo.getAttribute('position');
+  let lowest = Infinity;
+  for (let i = 0; i < pos.count; i++) if (Math.abs(pos.getX(i)) < 1.55) lowest = Math.min(lowest, pos.getY(i) - 2);
+  assert.ok(lowest >= 4, `lowest over the road ${lowest.toFixed(2)} u`);
+  const castro = EVENT_VENUES.find(v => v.id === 'castro-market')!;
+  assert.equal(castro.kit, 'street');
+  const transit = JSON.parse(fs.readFileSync(path.resolve('public/opus-bay/sf/v1/transit.json'), 'utf8')) as { lines: { id: string; path: number[] }[] };
+  const k = kitSpot(castro);
+  for (const l of transit.lines) for (let i = 0; i + 2 < l.path.length; i += 3) assert.ok(Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z) > 20, `${l.id} runs ${Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z).toFixed(1)} u from the arch`);
 });
