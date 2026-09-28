@@ -210,3 +210,27 @@ test('E2 w3 part b request 1: a city arrival lands in a large open area (never a
     assert.ok(moved >= 5, `pockets left for an open area: ${moved}`);
   } finally { setCityTerrain(null); }
 });
+
+test('fly to a discovered station (wave 4, lane P): the planner offers the pelican to a station once found, never before; the trip ends at its pole / kiosk', async () => {
+  const fsx = await import('node:fs'), pathx = await import('node:path');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { stationRows } = await import('../src/opus-bay/data/sf/stationPlaces');
+  const { w4Of } = await import('../src/opus-bay/data/sf/mapTransit');
+  const { buildTransit } = await import('../src/opus-bay/data/transit');
+  const { mapLinesFrom, mapStations } = await import('../src/opus-bay/ui/mapLines');
+  const { planTrips } = await import('../src/opus-bay/game/tripPlan');
+  const sf = sfDisk();
+  const file = JSON.parse(fsx.readFileSync(pathx.join(sf.base, 'transit.json'), 'utf8'));
+  const w4 = w4Of(file).lines.length ? w4Of(file) : w4Of(JSON.parse(fsx.readFileSync(pathx.join(sf.base, 'transit-w4.json'), 'utf8')));
+  const rows = stationRows(mapStations(mapLinesFrom(buildTransit(file), file.lines.find((l: { id: string }) => l.id === 'f-line'), w4.lines)), w4.props, new Set(), '2026-09-27');
+  const castro = rows.find(r => r.id === 'muni-castro')!;
+  const at = castro.arrival ?? castro;
+  const dest = { placeId: castro.id, x: at.x, z: at.z, name: castro.name };
+  const from = { x: 133, z: 10 };
+  assert.ok(!planTrips(from, dest, { discovered: () => false }).some(o => o.mode === 'fly'), 'not before');
+  const fly = planTrips(from, dest, { discovered: id => id === 'muni-castro' }).find(o => o.mode === 'fly');
+  assert.ok(fly, 'the pelican once found');
+  const leg = fly!.legs[0];
+  assert.equal(leg.via, 'fly');
+  assert.deepEqual([leg.to.x, leg.to.z], [at.x, at.z], 'lands at the kiosk');
+});

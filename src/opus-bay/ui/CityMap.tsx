@@ -18,6 +18,7 @@ import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRout
 import { parseMapPanelId } from '../game/mapPanel';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { tripRemainingSeconds } from '../game/tripPlan';
+import { TRIP_MODE_NAMES } from '../game/tripTypes';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import { type MapView, clampView, drawCityMap, labelWidth, maxScale, thinPx, toPx, zoomAt } from './cityMapDraw';
@@ -337,7 +338,9 @@ export function CityMapPanel() {
     if (selStation) return { id: `s:${selStation.id}`, to: { x: selStation.x, z: selStation.z }, walkable: true, placeId: ix?.get(selStation.id) ? selStation.id : null, name: selStation.name };
     return null;
   }, [selAttraction, selPlace, selStation, ix]);
-  const plan = useRoutePlan(dest, pos);
+  // a trip of lane C's runner to the selection: its legs are on the canvas, no walking preview of G1-8's
+  const tripHere = !!trip && !!dest?.placeId && trip.placeId === dest.placeId;
+  const plan = useRoutePlan(tripHere ? null : dest, pos);
   const onTrip = !!dest?.placeId && (dest.placeId === tripId || (!!trip && trip.placeId === dest.placeId));
   const left = useMemo(() => (plan?.route ? routeLeft(plan.route, pos) : null), [plan, pos]);
   const routeDraw = useMemo(() => {
@@ -397,6 +400,21 @@ export function CityMapPanel() {
     const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2) : v));
   };
+  // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
+  const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;
+  // the trip's ETA chip at its destination (plan §4.1): "市政厅 · 步行 约 2 分钟"
+  const tripChip = useMemo(() => {
+    if (!trip || !view) return null;
+    const end = trip.legs[trip.legs.length - 1]?.to;
+    if (!end) return null;
+    const [x, y] = toPx(view, end.x, end.z);
+    if (x < -40 || y < -40 || x > view.w + 40 || y > view.h + 40) return null;
+    const mode = TRIP_MODE_NAMES[trip.option.mode], time = timeLabel(tripRemainingSeconds(trip));
+    const text = t({ zh: `${tripName?.zh ?? ''} · ${mode.zh} ${time.zh}`, en: `${tripName?.en ?? ''} · ${mode.en} ${time.en}` });
+    // kept inside the frame (clear of the tool column and the credit line): the target may sit at its edge
+    const cw = labelWidth(text, 11) + 16;
+    return { x: Math.min(view.w - toolRight - cw / 2 - 4, Math.max(cw / 2 + 4, x)), y: Math.min(view.h - 52, Math.max(8, y)), text, cw };
+  }, [trip, view, tripName, t, toolRight]);
   const walkInfo: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
@@ -404,8 +422,6 @@ export function CityMapPanel() {
   const s = view?.scale ?? 0;
   const atMax = !!view && view.scale >= maxScale(MAP_FRAME, view.w, view.h) - 1e-6;
   const leading = !!useFlow(st => st.freeLead) || !!trip || !!tripId;
-  // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
-  const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;
 
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
@@ -465,6 +481,12 @@ export function CityMapPanel() {
               const on = (m && sel?.kind === 'attraction' && sel.id === m.a.id) || (pm && sel?.kind === 'place' && sel.id === pm.p.id) || (!m && !pm && sel?.kind === 'station' && k.id === `station:${sel.id}`);
               return <MapLabel key={`l:${k.id}`} label={k.label} text={k.text} fontPx={size?.font ?? 10} weight={size?.weight ?? 700} selected={!!on} />;
             })}
+            {tripChip && (
+              <g className="cm-route-chip is-trip" transform={`translate(${tripChip.x.toFixed(1)},${(tripChip.y + 22).toFixed(1)})`}>
+                <rect x={-tripChip.cw / 2} y={-10} width={tripChip.cw} height={20} rx={10} />
+                <text y={4}>{tripChip.text}</text>
+              </g>
+            )}
             {routeDraw && (
               <g className={`cm-route-chip ${onTrip ? 'is-trip' : ''}`} transform={`translate(${routeDraw.end[0].toFixed(1)},${(routeDraw.end[1] + 22).toFixed(1)})`}>
                 <rect x={-routeDraw.cw / 2} y={-10} width={routeDraw.cw} height={20} rx={10} />
