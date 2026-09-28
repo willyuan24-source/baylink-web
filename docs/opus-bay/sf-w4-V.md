@@ -653,3 +653,208 @@ commits before this section.
   750 / 750 on `64bfeb4`), incl. hero regression and contracts; `w4-swaps` 5 / 5, `w4-postcards` 3 / 3 (with I7's
   manifest checks merged in the rebase).
 - No relayed owner message arrived during the review.
+
+## Integration part a
+
+Wave-4 integration of lane V (C2's, H2b's and D2's asset-pipeline files and the lane's own early files), 2026-09-27 / 28.
+Worktree `C:/Users/willy/wt/i4-v` (branch `i4-v`), dev port 5406, scratch `C:/Users/willy/opus-qa/w4i/i4-v/`. Brief: wire the
+early work in, the lead-merge's rows for lane V (`sf-w4-lead.md` §8.3 / §8.4), the Integration lists of the other wave-4
+reports that name lane V's files, then the §5.7 tasks the early phase could not do. The finders' reports in
+`C:/Users/willy/opus-qa/w4i/verify-*/` name lane V for a few visual items; the major ones in lane V's files are fixed here.
+
+### 给主人的摘要
+
+0. **进度（回答"现在进度如何"）**：V 线接线第一部分完成，15 个提交都已推送，全部检查通过（837 个测试全绿）。桌面性能关 14 个测点全部通过；手机性能关这台机器太忙（CPU 72%），数字作废，要等安静的机器上由总负责人复测。
+1. **看得见的改进**：草莓山小岛不再是一片湖水（中国亭所在的岛现在是陆地）；小水池不再是"坑"；全城窗户的"沙粒噪点"没了（晚上的窗灯是一整块暖光，手机上最明显）；夜里的卡尔雾不再是发亮的紫灰色泥团，而是暗蓝的雾，滑翔飞进云里会散开；Salesforce 大楼顶冠夜里发光；水面夜间倒影在脚下不再变成长长的金色"芦苇"；壁画板贴墙；手机上调试面板不挡按钮。
+2. **接进游戏的素材**：四个 AI 地标、4 张新明信片的图、环游讲解语音（按需加载，不进首屏包）都已登记；新录了 C 线加的"下一站 Holloway，就是州立大学"（中英各一句，机器检查全过）。
+3. **性能**：着色器以前会在路上临时编译（走到艺术宫、龙门各卡一下），现在开局一次编好，一路程序数不变；其他线后加载的模块会自动补编。五个老区角色模型压缩到原来的 46%（908 KB → 415 KB，画面不变）。乘车时可提前加载前方城市（T 线已经用上）。
+4. **花费**：0.06 分（录一句台词）。第四波累计 55.51 / 120 分，余额 400.07。
+5. **没做成**：三种房子的夜间亮窗遮罩（贴图里根本没有窗户可标）；D2 八个地标重烘贴图、渔人码头电车架空线缺杆（会改动老区画面，要总负责人拍板）留到下一部分。
+
+### What was done (pushed to `opus-bay`, last `c90c7d6`)
+
+| commit | what | main files |
+|---|---|---|
+| `9340000` W4-V-I1 | Lake islands are land in the render (Strawberry Hill and every lake island: lead-merge 8.3 / 8.4, verify-visual F3); chunk ponds that no far lake surface covers are painted, not pits to the table | `world/sf/{raster,build,far,worker,stream}.ts` |
+| `b285a4a` W4-V-I2 | `opus-prof.mjs` lets Chrome pick its debugging port (8.4); `budget-views.mjs --add` measures extra views | `scripts/opus-sf/qa/**` |
+| `bcd267f` W4-V-I3 | The city `?debug` panel on ≤ 720 px: 10 px, wrapped, under G1's debug line (8.4, G1 w3 a3; verify-phone's cut-off panel) | `world/sf/stats.ts` |
+| `cc96c30` W4-V-I4 | The four AI landmarks in `SF_MODELS`; the tour narration registers itself in `ASSETS.voice` on import (`registerVoiceClips`) | `data/assets.ts`, `data/sf/{w4Models,voiceTour}.ts`, `tour_post.py` |
+| `1033d62` W4-V-I5 | Warm-up: late registrations compile at once (`lateWarmups`), both sides of every caster kind's depth program, the hero labels (8.4, D2 w3 c3) | `world/{warmup,world}.ts` |
+| `8c15d9f` W4-V-I6 | Mural boards flush to the walls, 0.06 u (8.3 / 8.4) | `scripts/opus-sf/murals/place.ts`, `data/murals.ts` |
+| `8f154aa` W4-V-I7 | The four wave-4 postcards' art in `POSTCARD_ART` / `ASSETS.postcards` / `listAssetUrls` (`POSTCARD_ART_ALL_IDS`) | `data/assets.ts` |
+| `ab2bd35` W4-V-I8 | `metro-sfsu-next-2` recorded (lane C's request); `takes.ts --set 2`, `tour_post.py --merge` | voice files, `voiceTour.ts`, ledger batch 5 |
+| `248eb60` W4-V-I9 | The Salesforce crown in the night light field (W4-V8) | `world/landmarks.ts` (`SALESFORCE_LEVELS`), `world/sf/lights.ts` |
+| `6350f06` W4-V-I10 | `CityStreamer.prefetch(points, radius = 120)`: soft foci ahead of a moving ride (W4-V8; lane T uses it since `8f40d61`) | `world/sf/{cell,stream}.ts` |
+| `4557809` W4-V-I11 | The five district heroes go Draco (8.4, D2 w3 not done 3) | `scripts/opus-sf/assets/hero-draco.mjs`, `public/opus-bay/models/*.glb`, `data/assets.ts` |
+| `cc2aa8d` W4-V-I12 | Perf gate: spots face their subject uncapped (and after a reveal), measured aimed when the walking camera still looks away; `public/opus-bay/README.md` wave-4 section | `scripts/opus-sf/qa/**`, README |
+| `0af1a71` W4-V-I13 | Clean window light: the per-building window seed is quantised once (verify-visual F1, the finder's verified fix); `gateRow` fails a void spot (early review item 8) | `world/materials.ts`, `w4-perf.mjs` |
+| `110e097` W4-V-I14 | Karl's bank at night is dim cool fog; clusters melt as a glide flies into them (verify-visual F4) | `world/sf/cloudBank.ts` |
+| `c90c7d6` W4-V-I15 | Night water reflections fade in 12–28 u from the camera (verify-visual F8) | `world/water.ts` |
+
+New APIs: `registerVoiceClips(clips, skip?)`; `lateWarmups`, `WARM_DEPTH_KINDS`; `CityStreamer.prefetch()` / `prefetching`,
+`Focus.soft`, `SOFT_PRI`, `PREFETCH_R`; `farWaterRings()` / `inFarWater()` (`FarResult.farWater`, `CityInit.farWater`);
+`POND_CLASS`; `salesforceCrownLights()`, `SALESFORCE_LEVELS`; `cityDebugPlacement()`; `POSTCARD_ART_ALL_IDS`; `NEAR_MELT`.
+
+### Evidence
+
+- **Checks** on the pushed tree `c90c7d6`: `tsc` 0 · `eslint .` 0 errors · **837 / 837** opus-bay tests (hero regression and
+  contracts green). Every push ran them after its last rebase (736 … 808 / 808 on the way; lane L's two red tests on
+  `b967512` were its own and fixed in `94badf8` before this lane pushed over them; the E2-5 wall-clock test tripped once under
+  load and passed alone).
+- **Water** (sf-stream): the drawn mask equals the walk raster on the Stow Lake, Blue Heron and Lake Merced chunks — 485
+  mismatching 0.5 u cells before (all on islands), 0 after; no lake-surface vertex more than 4 u inside an island; the
+  pavilion origin (−251.5, 1017) is ground. far.obc keeps water ≥ 200 u² only: 62 smaller chunk lakes had no surface; those
+  above the sea are painted (18 chunks, ≈ 1,800 u²), covered and sea-level ones keep their hole. Shots
+  `qa/w4/V/i-strawberry-hill.jpg`, `i-pond-twin-peaks.jpg` (was a pit to the table).
+- **Programs** (city, RTX, quality high; the Palace → the Dragon Gate → Twin Peaks → Alamo Square → the Music Concourse → the
+  Legion): before 39 → 40 (`ob-depth-instColor`) → 41 (`ob-labels`); after 47 all the way (boot warm-up 1.02 → 1.13 s,
+  async). The perf gate on the head with lane G's flags and lane T's fleet: 48 → 48 over 14 measures. Phone profile (mid)
+  city start: 41 after the warm-up, 45 after 12 s — the sailboats' GLB material (`world/life.ts`) and three basic / standard
+  materials of other lanes still link on first sight (Requests).
+- **Desktop perf gate** (`w4-perf.mjs`, RTX 3070 laptop, 1440 × 900, quality high, golden, head `4557809`; fps indicative,
+  the machine was shared). Every spot walks at 60 fps with no frame over 100 ms:
+
+  | spot / ride | calls | triangles | programs | gate |
+  |---|---|---|---|---|
+  | ferry-gate (aimed at downtown; the walking camera looked 151° away, at the Bay: 70 / 240k) | 96 | 377k | 48 | pass |
+  | chinatown | 125 | 392–394k | 48 | pass |
+  | twin-peaks | 118 | 378k | 48 | pass |
+  | ocean-beach | 46 | 108k | 48 | pass |
+  | ggb-south | 65 | 120k | 48 | pass |
+  | mission | 82 | 337k | 48 | pass |
+  | union-square | 83 | 286k | 48 | pass |
+  | civic-center | 87 | 304k | 48 | pass |
+  | music-concourse | 89 | 249k | 48 | pass |
+  | stonestown-sfsu | 74 | 195k | 48 | pass |
+  | haight-usf | 90 | 304k | 48 | pass |
+  | ride bus-palace (camera proxy, 12 u/s) | 106 | 380k | 48 | pass |
+  | ride n-duboce | 87 | 302k | 48 | pass |
+  | ride m-west-portal | 88 | 271k | 48 | pass |
+
+  On `fd57e45` (before lane T's fleet merge) Chinatown was 414k (380k main + 34k shadow: hero buildings 97k, hero ground 47k,
+  life 38k, streetcars 38k + 15k shadow, actors 34k + 17k shadow).
+- **Phone perf gate** (390 × 844, dpr 3, quality mid, 4× CPU, the RTX): **void** — the host CPU was at 72 % (other lanes'
+  Chromes and suites; verify-phone saw the same at 100 %). The pre-integration tree `32eda15`, measured right after on the same
+  machine, fails the same way, so the numbers say nothing about wave 4:
+
+  | spot | head `cc2aa8d` idle / walk fps | pre-integration `32eda15` idle / walk fps |
+  |---|---|---|
+  | ferry-gate | 34.7 / 28.4 | 15.2 / 7.7 |
+  | chinatown | 26.3 / 27.4 | 36.9 / 37.9 |
+  | twin-peaks | 34.7 / 34.4 | 27.7 / 26.2 |
+  | ocean-beach | 35.9 / 25.6 | 44.0 / 31.1 |
+  | ggb-south | 42.6 / 33.4 | 50.2 / 45.9 |
+  | mission | 37.9 / 31.2 | 28.8 / 22.8 |
+
+  (head: the five new spots 15–27 fps, the rides 18–22 fps; programs 45 → 45 at mid, the old tree drifted 37 → 38.) A CPU
+  profile at Civic Center (4×): 45 % native / GPU submission, 33 % three.js render (setProgram, projectObject,
+  updateMatrixWorld); no lane module above 2 % (crowd 2.0 %, traffic 1.2 %); no texture re-uploaded every frame.
+- **Bundle** (`vite build`, gzip -9): GameRoot 298,338 B; the same tree with lane V's eager-graph changes reverted: 299,437 B
+  (they did not grow it). The page chunk 21,515 → 23,263 B (the model rows, postcard ids, `registerVoiceClips`, and what
+  rollup moved over with them); the city chunk 41,086 → 41,350 B; the tour table is its own lazy chunk (10,062 B).
+- **District heroes**: 908,300 → 415,216 B raw, 592,885 → 375,759 B gzip; the Draco decoder (75 KB gzip) is fetched once and
+  shared with the city. `--check`: every source vertex found, positions within the quantization step, normals p99 0.19°
+  (worst 0.23°), UVs ≤ 0.00017, skins identical; BAYBAY keeps 9 joints and the idle / jump / run / walk / wave clips. In the
+  app the Ferry gate, Pier 39 and Pier 7 look as before and BAYBAY follows with its walk pose
+  (`qa/w4/V/i-heroes-draco-before-after.jpg`).
+- **Visual fixes**: `qa/w4/V/i-windows-clean-phone-night.jpg` (375 × 667, dpr 3: flat window light; the finder's
+  `verify-visual/F1-windows-phone375-night-dragon-gate.jpg` is the before), `i-karl-night.jpg` (Twin Peaks → the Sunset at
+  night: dim blue fog banks below the lit city), `i-salesforce-crown-night.jpg`, `i-murals-flush.jpg` (no z-fighting up close
+  or from ≈ 300 u; back faces 0.03–0.09 u from the wall, 0.119 before).
+- **Voice**: `zh-metro-sfsu-next-2` 3.55 s (recogniser 0.93), `en-` 3.70 s (0.90), every gate passed; the 214 committed picks
+  unchanged byte for byte; the listening sheet marks the two rows "+", previews
+  `qa/w4/V/voice/tour-voice-preview-added-{zh,en}.m4a`.
+
+### Decisions
+
+- **`SF_MODEL_IDS` unchanged, `SfModelId` widened**: the four models are in `SF_MODELS` (loader, `ASSETS.models`, D2's swap
+  rule), but lane L's `opus-bay-sf-models` counts `SF_MODEL_IDS` + kit = 24; adding the ids there would have needed an edit
+  of lane L's test. The four are checked file by file in lane V's `opus-bay-w4-assets` (lane L's W4-IL5 test checks the swaps).
+- **Tour voice registered on import**, not spread into `SF_VOICE_CLIPS`: that would put the 10 KB table in the page chunk and
+  make `preloadLines()` fetch every clip at each city start; lane T preloads a stop's clips on `transit` events.
+- **Postcards**: `SF_POSTCARD_ART_IDS` stays the 12 until lane C's `CARDS` (a `Record` over it) gains the four rows; the art
+  is in the manifest now, so nothing breaks in between.
+- **Ponds painted**, not given water: a surface per small pond would mean new calls. A pond above the sea that no far water
+  covers is flat teal ground (the walk raster still calls it water: the player stops at its edge).
+- **Late warm-ups** replace lane T's "call warmPrograms again" and lane G's "import before the first warm-up": any chunk's
+  sets compile ≈ 30 ms after registering, against the last warm-up's render path.
+- **Prefetch = soft foci**: `whenReady(p)` made p a full focus only until ready (the cells fell back and were rebuilt when
+  the ride arrived); a soft focus asks for L1 and the walking rasters, stays until replaced and queues behind the player.
+- **Draco for the heroes** with float decoded geometry (life.ts bakes node matrices), the skin lossless; district mode now
+  fetches the decoder once (a net −142 KB gzip there, −217 KB in the city).
+- **The perf gate aims** when lane G's clear-line-of-sight camera looks away from the spot's subject; the gate takes the larger
+  of the two measures (only the Ferry gate needed it).
+- **Shared-shader fixes touch district mode too** (F1 windows, F8 water; the hero regression pins geometry, not pixels): both
+  remove a defect (per-pixel noise, near-camera bars) and keep the look; a revert is one line each if the lead wants the
+  district pixel-identical. The F-line wires without poles on Jefferson St (verify-visual F9) change the hero geometry and
+  are left for the lead's call.
+- **A lane C test line changed**: `opus-bay-sf-triptext` "a line without a clip" used `metro-sfsu-next-2` as its unrecorded
+  example; its lookup now leaves that id out (same meaning; lane C asked for the recording).
+
+### Known gaps
+
+- The phone fps gate is open until a quiet-machine run (the lead's W4-Z). verify-phone also saw the adaptive quality step
+  mid → low link ≈ 20 programs at runtime (every key changes when shadows go off): warming the low variants while at mid is
+  the lever (part b).
+- Chinatown passes with ≈ 6k of margin; the heavy parts are the hero district and lane T's / G's groups (Requests).
+- Painted ponds have the 2 u L0 ground's stepped edge; a pond on a slope follows the DEM.
+- 8 more programs at boot (the caster-kind depth programs, both sides): a few ms more of async compile.
+- The shared `node_modules/.bin` (`C:/Users/willy/OneDrive/Desktop/baylink-web/node_modules`) was emptied at 19:29:48 local
+  while this part ran (not by lane V): `npx tsc` then fetches npm's placeholder "tsc" package and `npx vite` fails. The checks
+  ran as `node node_modules/typescript/bin/tsc`, `node node_modules/eslint/bin/eslint.js`, `node node_modules/tsx/dist/cli.mjs`
+  and `node node_modules/vite/bin/vite.js`; running dev servers were unaffected.
+
+### Not done
+
+- **Kit night-glass masks** for marina-mediterranean / sunset-doelger / edwardian-flats (8.4): their SAM atlases have no
+  window detail to mask (flat wall planes and one to three dark blobs: a door, roof shading; sheet
+  `qa/w4/V/i-kit-masks-three-houses.jpg`, texture | current mask). A darkness rule would light doors and roof shadows. Needs a
+  re-texture or procedural window decals on the swap.
+- **D2's eight wave-3 SAM landmarks with the texel re-bake** (offered in the early phase): part b.
+- verify-visual **F9** (Jefferson St wires: district geometry, the lead's call), **F7** (Yerba Buena Island bare tan: a
+  landcover gap in the published data, no chunk rebuild in wave 4), **F10** (the morning glide whiteout: owner decision) and
+  the mid → low warm-up above: part b.
+- **GameRoot ≤ 250 KB gzip** (W4-V8): 298 KB; the split by mode stays the lead's decision (8.3); lane V kept GameRoot at or
+  under origin with every push.
+- **H-8 generated SFX**: waits for a listening pass after lane T's bus / LRV sounds are wired (≤ 5 credits kept).
+
+### Status of the early integration plan and the routed rows
+
+| item | state |
+|---|---|
+| step 1 `data/assets.ts` | models done (I4); the sticker URLs stay out of `listAssetUrls` (it would pull mapStickers.ts into the page chunk; lane P decodes the atlas itself, lane V's test checks the file) |
+| step 2 tour voice | done (I4 + lane T's MUTED_CLIPS / stop preload) |
+| step 3 lane L swaps | done by lane L (W4-IL5: all four ship) |
+| step 4 lane P stickers | done by lane P (W4-P-I7) |
+| step 5 perf gate | done (tables above; runner I12 / I13) |
+| step 6 README | done (I12) |
+| step 7 ledger | batch 5 added; the lead merges |
+| 8.4 water holes · murals · opus-prof · `?debug` · warm-up drift · Draco heroes | done (I1, I6, I2, I3, I5, I11) |
+| 8.4 kit night masks | not done (above) |
+| 8.4 T + V Chinatown | the desktop gate passes (394k) |
+| lane C part-2 step 7 · lane T steps 8 / 9 · lane G's 'g-flags' in the gate | done (I8, I5, I10; 48 programs stable) |
+
+### Requests
+
+- **Lane T** (`world/life.ts`): the sailboats' GLB material links on first sight in city mode (phone profile): register it for
+  warm-up (a `registerWarmup` set with the loaded model's material on an InstancedMesh like the real one; a late registration
+  compiles by itself now). Chinatown: the hero life drawn from there (pedestrians 16.5k, sailboats 9.7k, gulls 7.3k, instanced
+  over the whole district) and the cable rails (11.9k in one mesh) are the levers if the margin is needed.
+- **Lane G**: one MeshBasicMaterial mesh with an unnamed parent (a marker or ring of the HUD systems) links its program after
+  the warm-up at the city start: register it (or `renderer.compileAsync` it before adding it).
+- **Lane L** (optional, `tests/opus-bay-sf-models.test.ts`): count `[...SF_MODEL_IDS, ...W4_MODEL_IDS]` if the four should be
+  in the generic file checks too.
+- **Lane C**: `data/sf/postcards.ts` `CARDS` gains the four `W4_POSTCARDS` rows (the art is registered); `SF_POSTCARD_ART_IDS`
+  may then take `W4_POSTCARD_IDS` in the same commit (lane V agrees).
+- **Lead**: merge ledger batch 5 (0.06 credits); the shared `node_modules/.bin` (Known gaps); the district-pixel question of
+  F1 / F8 and F9 (Decisions); the quiet-machine phone gate in W4-Z.
+
+### Checks
+
+- `node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`: 0 errors (on `c90c7d6`).
+- `node node_modules/eslint/bin/eslint.js .`: 0 errors (43 warnings, none in lane V's files).
+- `node node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **837 / 837**, incl. hero
+  regression and contracts. Lane V's new or changed tests: sf-stream (islands, ponds, prefetch, far lakes), sf-perf (late
+  warm-ups, the depth kinds), sf-budget (`?debug` placement), sf-atmos (crown, night bank, melt), h2b-assets (flush boards),
+  w4-assets (registration, `registerVoiceClips`, the Draco heroes, TOUR_LINES_2), w4-postcards (manifest).
+- One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
