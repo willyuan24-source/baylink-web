@@ -545,3 +545,222 @@ Lane V's part b adds nothing to it: the lamps, glints, binder and voice table li
 - `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: 1,196 / 1,196 on `bb7b843`; **1,197 / 1,197** on
   `41e3f13` (the clock test added), before this report's commit.
 - Higgsfield: 22.90 credits (ledger above), balance 377.17 (never under 250).
+
+## Part c
+
+### 给主人的摘要
+
+1. **首屏包瘦身（检查点 CP-10）**：24 张地标卡的文字、12 张旧金山明信片的文字和地标照片表，搬进一个"城市数据包"——只有城市模式才下载，街区模式完全不下。我这边一共挪走约 21 KB；但这几天其他线又加了约 10 KB，现在 GameRoot 约 300 KB（目标 265）。剩下的都在别的线的代码里，清单和大小写在下面"请求"里。
+2. **夜晚的旧金山更像真的了**：海湾大桥西段北侧的吊索上亮起一串串 LED 小灯，慢慢流动闪烁（真实的 Bay Lights 2026 年 3 月 20 日重新点亮）；Salesforce 塔顶的灯会慢慢变色（近看塔顶本身、远看灯点都会变）；天上的月亮按旧金山当晚真实的月相显示（新月那几天星星更多）；Karl 雾按月份浓淡：7 月最浓，9–10 月最淡。只在城市模式，不多一次绘制。
+3. **BAYBAY 又会说 53 句新话**（中英文 106 条录音）：烤棉花糖、捡小石子、城市之声、小铺和手帐的台词；电脑中文和手机英文都在游戏里听到了。两条语速不合格的先静音，等你听过再定（试听单里第 4 批）。
+4. 日本町街角的三块日文招牌做好了：ラーメン、和菓子、本。
+5. **性能检查**：电脑版 20 个测点、3 段乘车、夜景和活动日全部 60 帧、0 次卡顿，最多 120 次绘制 / 36.6 万三角形（上限 150 / 40 万）。手机 4 倍降速这次机器太忙（其他线在跑测试），帧数不作数；我把同一个地方新旧两版的 CPU 分析对比过，没有发现新代码变慢。请总负责人在安静的机器上复测手机。
+6. Higgsfield 这部分只花了 2.17 分（语音），第五波共 25.07 分（上限 130），余额 375.00。
+
+### What was built
+
+| task | commit(s) | files |
+|---|---|---|
+| **W5-V3 (CP-10)** the city's text tables in a lazy data chunk: the 24 landmark cards (`SF_LANDMARK_INFO`), the 12 SF postcards' texts, the landmark photos | `b0bf1e3f`, `2bda42fb` | `src/opus-bay/data/sf/{cityData,cityDataChunk,postcardCards,cityPhotos}.ts` (new), `data/sf/{cityPois,postcards}.ts` (lane C's: the reads switched), `tests/opus-bay-sf-budget.test.ts` |
+| **W5-V10** The Bay Lights, the Salesforce crown's drift, tonight's moon, Karl by month | `cef43f9b` | `src/opus-bay/world/sf/{lights,cityWorld,fog}.ts`, `world/{environment,backdrop,world}.ts`, `tests/opus-bay-w5-perf.test.ts`, `tests/opus-bay-sf-atmos.test.ts` |
+| **W5-V4** (lane L's request) three Japanese plaques; W5-V1 lane D's Pier 45 spot | `2506d3c4` | `src/opus-bay/world/sf/signsAtlas.ts`, `scripts/opus-sf/qa/perf/w5-spots.json` |
+| **W5-V11** the gate runner: long tables over several Chrome sessions; a 3 s settle before a ride | `af0c8e30`, `03ee807b` | `scripts/opus-sf/qa/perf/w4-perf.mjs` |
+| **W5-V7** voice batch 4 (the lanes' part-c lines) | `d8b2c26f` | `scripts/opus-sf/voice/w5/lines.ts`, `src/opus-bay/data/sf/voiceW5.ts` (generated), `public/opus-bay/w5/voice/` (+212 files), `docs/opus-bay/qa/w5/V/voice/`, `docs/opus-bay/ledger/w5-V.md` |
+
+**The city data chunk (W5-V3).** `data/sf/cityData.ts` (in the main graph, 150 B) exports `CITY_DATA`, the awaited
+`import('./cityDataChunk')` — a top-level await. The content modules resolve their tables at import time
+(`data/contentMode.ts`: the world mode is fixed per page), so in city mode GameRoot's chunk pauses there for one small
+request and every table then resolves as before; district mode never fetches it (`CITY_DATA` null, the city tables empty:
+district reads them nowhere, `byMode`); node (tests, QA scripts: no `import.meta.env`) always loads it, so every `CITY_*`
+export stays whole in tests. `cityPois.ts` reads `SF_LANDMARK_INFO` and `CITY_PHOTOS`, `postcards.ts` the 12 cards' texts
+from it; every export keeps its name and shape. The one rule that makes it safe: nothing the data chunk reaches at runtime
+may be in GameRoot's static graph (a shared module would stay in GameRoot's chunk, the data chunk would import it from
+there and the two would wait on each other for ever) — a test walks both graphs. Checked on a production build served
+with the fixed CSP: district mode loads no data chunk (Postcards 0/8), city mode loads `cityDataChunk` + `landmarks` and
+shows the Palace card, the turntable card, Postcards 0/24 and Ray at the turntable (`qa/w5/V/v3-production-district-city.jpg`).
+
+**The Bay Lights, the crown, the moon, Karl (W5-V10)**, city mode only, 0 draw calls, 0 triangles, 0 programs:
+- *The Bay Lights*: the city Bay Bridge (`world/backdrop.ts`) hands its suspender strands (every 3 u, both cable planes)
+  to the night light field; `bayLights()` puts an LED dot every 1 u up each strand of the **northern** plane (true north
+  from `core/geo.ts`) — 1,209 points in the existing Points draw, level band `BAY_LIGHTS` (4 + position along the
+  crossing). The shader draws them as small cool-white dots with two soft waves drifting across the strands and a faint
+  sparkle (our own pattern, never the installation's sequences), energy-kept when a dot is smaller than a pixel far away.
+  Facts (checked 2026-09-28): relit 20 March 2026 with 48,000 LEDs on the northern cable plane of the west span, nightly
+  from dusk (illuminate.org/projects/thebaylights, illuminate.org/2026/02/19/the-bay-lights-to-return-friday-march-20-2026);
+  on the vertical cables, seen mostly from the north side / the waterfront (en.wikipedia.org/wiki/The_Bay_Lights).
+- *The Salesforce crown*: its light-field points take their own band (`CROWN_DRIFT`, 5 + height) and drift through a soft
+  palette (one turn ≈ 2 min, a band rising up the crown), and the hero tower's own glowing crown faces take the same
+  colours through their vertex colours (`CrownDrift`, ≤ 5 Hz, mixed by the night level; by day as built; restored on
+  dispose) — the floodlit crown was a white glow at every distance, so points alone never showed. Our own abstract drift:
+  the real "Day for Night" shows low-resolution moving pictures of the city from 11,000 LEDs (salesforcetower.com/artwork,
+  checked 2026-09-28), never copied.
+- *Tonight's moon*: the sky shader gains `uMoonPhase` (−1 = the district's full moon, byte for byte as before); the city's
+  `realSky` system sets it from lane R's `moonPhase(bayNow())` at once and every 60 s: an elliptic terminator (waxing lit
+  on the right), a faint ashen dark side, the glow round the lit part and as bright as it, and more stars as the lit
+  fraction falls. `?date=` moves it (DEV / QA builds).
+- *Karl by month*: `karlTarget(tod, flag, month)`; the time table is July (factor 1); a clearer month thins the level
+  (× 0.55 in October), keeps the western front up to 160 u further offshore and shortens the Gate lobe; the `?karl` flags
+  ignore it; the first month applies at once, a new month slides like a new time.
+
+**Voice batch 4 (W5-V7, part c).** 53 new lines (lane A's marshmallow and fire rings 13, lane D's pebbles, city sounds,
+batch-2 eggs and the renamed Wave Organ rumour 26, lane E's 12 `E_LINES` under lane E's own ids `e-<key>` — lane E plays
+them with its own `voice-line` event —, one shop line), 106 Pixie clips + 18 retakes; 104 through the gates, 2 muted
+(`zh-e-bought` 好看！买下啦。 too slow, `en-w5-a-dbc137fe` "Golden! Crisp outside, gooey inside!" too slow) until the
+owner's ear; 100 heard right by the recogniser (advisory). The inventory now skips paper under `riddle` / `how` / `name` /
+`hint` … keys (lane D's city-sound riddles and hints) and three lane-A button labels, and reads `E_LINES` (written with
+`bi()`). One recorded line retired (the old 码头区 wording of the Wave Organ rumour). Table: 386 clips, 383 pass.
+
+**Japanese plaques (W5-V4, lane L's request).** `ramen` ラーメン Ramen (lacquer), `sweets` 和菓子 Sweets (rose), `hon` 本
+Books (enamel) in cells 22–24 (append only), a Japanese font stack (Hiragino on iOS, Yu Gothic / Meiryo on Windows);
+painted in Chrome with the page's fonts (`qa/w5/V/v4-signs-atlas-c.jpg`).
+
+**The gate runner (W5-V11).** 20 spots + 3 rides no longer fit one Windows command line (`spawn ENAMETOOLONG`): the runner
+splits the table over as few Chrome sessions as fit and prints programs first → last per session. A ride now stands the
+camera at its start for 3 s before it measures: after Pier 45 the rides read 367k / 394k on their first frames (the
+Wharf's chunks still loaded), 248–257k settled.
+
+### Evidence
+
+**The gate on the part-c tree** — pinned `2506d3c4` (the part-c work of lanes C, E, F, L, N, R, T and V pushed by 13:20 PT;
+lanes A's and D's later batches not in it), gate tree `C:/Users/willy/wt/w5-v-gate`, dev server 5516, PERF-LOCK held
+20:34–21:30 UTC; desktop 1440 × 900, quality high, RTX, golden; the host at 80–100 % CPU during the desktop run (the
+desktop numbers held at 60 fps anyway). Raw: `C:/Users/willy/opus-qa/w5/w5-v/gate-c/{desk,rides2,night,fair,jets,phone,phoneA,phoneB}`.
+
+| spot / ride | calls · triangles | fps idle / walk (ride) | p95 ms | > 100 ms | part b |
+|---|---|---|---|---|---|
+| ferry-gate | 103 · 353k | 60.1 / 60 | 16.8 | 0 | 104 · 352k |
+| chinatown | 120 · 278k | 60.1 / 60 | 16.8 | 0 | 113 · 272k |
+| twin-peaks | 95 · 273k | 60.1 / 60.1 | 16.8 | 0 | 108 · 293k |
+| civic-center | 81 · 245k | 59.9 / 59.9 | 16.8 | 0 | 76 · 239k |
+| union-square | 74 · 220k | 59.9 / 59.9 | 16.8 | 0 | 75 · 279k |
+| music-concourse | 103 · 304k | 59.7 / 59.9 | 16.8 | 0 | 85 · 221k |
+| stonestown-sfsu | 68 · 183k | 59.8 / 59.8 | 16.8 | 0 | 67 · 215k |
+| haight-usf | 82 · 295k | 60.1 / 60.1 | 16.8 | 0 | 91 · 294k |
+| ocean-beach | 89 · 305k | 60.1 / 60 | 16.8 | 0 | 43 · 104k (no aimed view then) |
+| ggb-south | 72 · 132k | 59.9 / 59.9 | 16.8 | 0 | 59 · 100k |
+| mission | 84 · 315k | 60 / 60.1 | 16.8 | 0 | 85 · 317k |
+| grace-nob-hill | 99 · 294k | 60.1 / 59.9 | 16.8 | 0 | 93 · 258k |
+| powell-market | 97 · 310k | 59.9 / 59.8 | 16.8 | 0 | 117 · 319k |
+| fidi | 93 · 268k | 60 / 59.9 | 16.8 | 0 | 82 · 261k |
+| ggb-deck | 76 · 203k | 60.1 / 60 | 16.8 | 0 | 43 · 80k |
+| hellman-hollow | 95 · 233k | 59.9 / 59.6 | 16.8 | 0 | 63 · 195k |
+| marina-green | 92 · 334k | 59.9 / 60 | 16.8 | 0 | 70 · 300k |
+| castro | 72 · 299k | 60.1 / 60.1 | 16.8 | 0 | 73 · 296k |
+| filbert-steps | 86 · 290k | 60.1 / 60 | 16.8 | 0 | 70 · 236k |
+| **pier45** (new, lane D's request) | 113 · 366k (two runs: 104 · 366k, 113 · 328k) | 60.1 / 60.1 | 16.8 | 0 | — |
+| ride bus-palace (settled) | 72 · 254k | (60) | 16.8 | 0 | 69 · 222k |
+| ride n-duboce (settled) | 84 · 257k | (60.1) | 16.8 | 0 | 77 · 247k |
+| ride m-west-portal (settled) | 65 · 225k | (60.1) | 16.8 | 0 | 66 · 221k |
+| **night** irving-night | 95 · 296k | 60.1 / 60.1 | 16.8 | 0 | 96 · 295k |
+| **event** hellman-hollow `--date 2026-10-04T12:00` | 68 · 225k | 60.1 / 60.1 | 16.8 | 0 | 69 · 222k |
+| **event** castro `--date 2026-10-04T12:00` | 73 · 291k | 60.1 / 60.1 | 16.7 | 0 | 73 · 293k |
+| **event** marina-green `--date 2026-10-09T12:40` | 77 · 148k | 60.1 / 60.1 | 16.7 | 0 | 76 · 145k |
+
+Programs **60 → 60** in every desktop session (first = last). Max 120 calls (Chinatown) and 366k triangles (Pier 45):
+headroom 30 calls / 34k at the tightest. The first ride row of the one-session run read 104 · 367k and 107 · 394k:
+the transition from Pier 45, fixed in the runner (above). A 78-program reading in some dev runs is the warm-up's
+background pass for the next quality level (the base set compiled twice, by design), not a leak.
+
+**The phone subset** (390 × 844, dpr 3, mid, 4× CPU, same tree): **void — the host was loaded** (other lanes' suites;
+10 Chrome processes seen). Ferry gate 85 · 273k, walk 31.8 then 23.3 fps; Music Concourse walk 33.9 then 41.9. An A/B
+back to back on the part-b tree `21c6c4d` gave the Ferry gate 45.8 / 39.9 and the Music Concourse 60 / 60 in the same
+window; the CPU profiles of the Music Concourse walking at 4× (`gate-c/prof{A,B}.cpuprofile`, 8 s) differ by 2.5 % of
+busy time, spread over three.js (+100 ms), the driver (+97 ms) and lane T's crowd (+56 ms); no new module shows (lane
+D's pebbles 5 ms). Calls, triangles and programs (58 → 58) are valid; the fps are the lead's quiet run to make.
+
+**GameRoot** (`vite build`, gzip as vite reports it):
+
+| tree | GameRoot | note |
+|---|---|---|
+| checkpoint head `dfb02f3` | 310.52 KB | CP-10's 310.48 |
+| + landmarks out | 295.14 KB | `cityDataChunk` 16.78 KB |
+| part-c gate tree `2506d3c4` | 299.29 KB | + postcards / photos out (−5.5 KB); the lanes' part c +10.2 KB (lane C's residents' second favours +3.2, photo album +0.7, lane F's controller / move / glide +1.4, lane T's life +0.6 …) |
+
+The data chunks: `cityDataChunk` 4.33 KB + `landmarks` 16.63 KB gzip (the landmark library is shared with the city's lazy
+chunks), fetched only in city mode. On the pushed head `d8b2c26f` (the lanes' reviews in): **GameRoot 299.98 KB**.
+
+**Shots** (every image read): `qa/w5/V/v10-bay-lights-desktop-phone.jpg` (the Bay Lights from the Embarcadero at night,
+desktop and 390 × 844), `v10-crown-drift-desktop-phone.jpg` (the crown tinted from Coit Tower, desktop and phone),
+`v10-moon-phases.jpg` (10-10 thin crescent, 10-14 waxing crescent, 10-18 first quarter, 10-25 full, 11-01 last quarter,
+over the Bay), `v10-karl-october-july.jpg` (8 am from Twin Peaks: October's bank over the outer Sunset, July's over the
+whole Sunset), `v3-production-district-city.jpg`, `v4-signs-atlas-c.jpg`, `obs-journal-tabs-en-desktop.jpg` (Requests).
+
+**Voice in the game** (dev server on this tree, 21:58 UTC): desktop 1440 × 900 zh and phone 390 × 844 en — lane D's
+我闻到小石子的味道啦！ / "I can smell a pebble!", lane A's 再来一个！ / "Another one!" and lane E's own `e-ticketFly` event
+each played their clip once; an unrecorded BAYBAY line stayed text.
+
+**Routed V items** (plan §4.9 V10): all landed in wave 4 and are still in place — Strawberry Hill's water holes
+(`9340000` W4-V-I1), the mural boards at 0.06 u (`scripts/opus-sf/murals/place.ts` PANEL.clear), `opus-prof.mjs`'s own
+debugging port (W4-V-I2), the `?debug` panel on phones (W4-V-I3, tested in sf-budget), the route warm-up drift
+(W4-V-I5, late passes). **Lane N's flag render-target variant**: not reproduced on this tree — `ob-flags` stays one program
+before, with and after the map sheet (desktop high 60, desktop mid 58, phone mid), so nothing to warm.
+
+**Tests** (new in part c): sf-budget "W5-V3" (the data chunk: out of the main graph, disjoint from it, the loader rule,
+the tables resolve); w5-perf "W5-V10" × 5 (the Bay Lights north plane and count, the crown bands, the hero crown drift,
+Karl by month, tonight's moon), the V4 atlas test (the Japanese cells), the V7 inventory (E_LINES ids, the city-sound
+riddles are paper, lane A's facts are spoken).
+
+### Decisions
+
+1. **A top-level await, not a mutable registry**, for the city data: the content tables resolve at import time; awaiting the
+   chunk before they evaluate keeps every export's shape and every consumer unchanged (a two-line switch in lane C's files),
+   and node loads it too, so no test changed. Safe only while the data chunk shares nothing with GameRoot's graph (tested).
+2. **The residents' rows stay put** — moved and then undone within the hour: lane C was adding the second favours to the
+   same rows (a rebase conflict in lane C's file: stopped, as the protocol says). ≈ 3.5 KB when lane C is done (Requests).
+3. **The Bay Lights on the northern plane only**, dots 1 u apart (the real LEDs are 30 cm apart on cables ≈ 15 m apart:
+   ours are the toy's scale); white LEDs brighter than 1 so the small additive dots read as the brightest lights on the Bay.
+4. **The crown drifts on the hero mesh too** (vertex colours of one mesh, city mode only) — the plan named the Points draw
+   only, but the floodlit crown hid the points at every distance; no shader changed for it (the TOY program is shared by
+   the district: untouched).
+5. **The moon's glow is centred on its lit part** (not masked by the terminator): a masked glow drew rays out of the
+   horns into the sky.
+6. **Karl's table is July.** September and October are SF's clearest months (lane R's source); an October morning still
+   pools over the outer Sunset. The owner's usual fog comes back in June–August.
+7. **No H5-1 shop tiles.** Lane E's shop shows live try-on previews in the exact item colours; a painted tile per colour
+   would not match the in-game recolours exactly, and the plan's fallback is those previews. 0 credits.
+8. **Voice for lane E under lane E's ids** (`e-<key>`, `own`): lane E already emits `voice-line e-<key>`, so the clip plays
+   without a change on its side and the binder never doubles it.
+9. **Phone fps not claimed** under a loaded host; the A/B and the profiles are the evidence that nothing regressed.
+
+### Not done
+
+- **GameRoot ≤ 265 KB**: 299.98 KB on `d8b2c26f` (299.29 on `2506d3c4`) (−21 KB of city data moved; the lanes added +10 KB meanwhile). What is
+  left is other lanes' code (Requests, with sizes).
+- **The residents' rows** in the data chunk (Decisions 2).
+- **The phone gate** under a quiet host (the lead's W5-Z run).
+- **H5-1 shop tiles** (Decisions 7); H5-4, H5-5, H5-6: nothing spent.
+- Lanes A's and D's batches pushed after 13:20 PT (A9's new activities, D's batch-2 eggs) are not in the gate tree; lines
+  they added after the voice inventory (21:00 UTC) are text only until a next batch.
+
+### Requests
+
+1. **Lead — GameRoot to 265 KB** (gzip of parts on `2506d3c4`, ×0.91 ≈ real): lane F's city-only actor modules
+   (`charImpl` 2.0, `feet` 1.2, `stuckHelper` 1.2, `glideTall` 1.0, `viewField` 0.9, `deckSteer` 0.8, `recolor` 0.6,
+   `faceOpen` 0.5 ≈ 8.2 KB) through a lazy city chunk, and the district vehicles (`actors/vehicles` 12.8 KB) on the first
+   ride; lane C's `data/pois.ts` card bodies (`realInfo`, most of its 12.1 KB) loaded when a card opens and the district
+   tour's dialogue in `data/script.ts` (13.6 KB); lane C's residents' rows into `CITY_DATA` (≈ 3.5 KB, the recipe is
+   `data/sf/cityDataChunk.ts`'s header; lane V can do it with lane C's OK); lane N's city-only `discovery` 1.8,
+   `fastTravel` 2.2, `hudLayout` 1.5, `cityZones` 1.4. Lanes F + C alone would reach ≈ 265.
+2. **Lead — `vercel.json`** (still open from part b): `script-src 'self' 'wasm-unsafe-eval'`, `blob:` in `connect-src`, a
+   route for `/opus-bay`. Without them every AI model falls back to its procedural stand-in in production.
+3. **Lead — the phone gate** on a quiet host: the Ferry gate, Chinatown, Twin Peaks, the Music Concourse, Ocean Beach, the
+   bus (`node scripts/opus-sf/qa/perf/w4-perf.mjs --file w5-spots.json --mobile --dpr 3 --quality mid --throttle 4 --spots
+   ferry-gate,chinatown,twin-peaks,music-concourse,ocean-beach,bus-palace`).
+4. **Lane C**: (a) the Journal's six tabs overlap on desktop in English (`Today 0/3Notebook`, `Postcards 0/24Goals`,
+   `WishlistFootprints 1`: `qa/w5/V/obs-journal-tabs-en-desktop.jpg`, a production build at 1440 × 900); (b) read
+   `W5_PACED_CLIPS` in `game/cityMoments.ts` (the 11 `w5c-*` clips are still silent); (c) the residents' rows (Request 1).
+5. **Lane R**: `JETS_NOW_LINE` still shares the key `jets-day` with `JETS_DAY_LINE`: give it its own key and the next voice
+   batch records both.
+6. **Lanes A and D**: lines added after 21:00 UTC today are text only until the next batch (ask lane V).
+7. **Lane L**: `ramen`, `sweets` and `hon` are in the signs atlas for the Japantown corner.
+8. **Owner**: the listening sheet's batch 4 (`docs/opus-bay/qa/w5/V/voice/listening.md`, `w5-voice-preview-b4-{zh,en}.m4a`);
+   say yes / no to the muted `zh-e-bought` and `en-w5-a-dbc137fe` (and part b's `en-w5-a-2fe95a24`).
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors · `npx eslint .`: 0 errors (43 old warnings).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: before each push fail 0 (1,203 / 1,203;
+  1,231 / 1,231; 1,291 / 1,291; 1,324 / 1,324); on the pushed head `d8b2c26f` **1,331 / 1,331**. Wall-clock flakes seen under load and passed alone: the audio
+  "P1" asserts, sf-move2 "E2-5 … cached per 16 u cell", actors "A* … planned in 499 ms".
+- Higgsfield: **25.07 credits** in wave 5 (ledger `docs/opus-bay/ledger/w5-V.md`), balance 375.00 (never under 250).
+- The PERF-LOCK was held 20:34–21:30 UTC and removed; the dev servers on 5506 and 5516 are stopped.
