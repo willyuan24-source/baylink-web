@@ -537,6 +537,25 @@ test('W5-V8: the six secret postcards — one per egg of lane D\'s registry, 120
   assert.equal(P.eggPostcard('not-an-egg'), null);
 });
 
+test('W5-V-review: a secret postcard never shares its name with another card (the six, the city\'s 24 and the district\'s postcards)', async () => {
+  const P = await import('../src/opus-bay/data/sf/eggPostcards');
+  const { CITY_POSTCARDS } = await import('../src/opus-bay/data/sf/postcards');
+  const { DISTRICT_POSTCARDS } = await import('../src/opus-bay/data/postcards');
+  const key = (s: string) => s.trim().toLowerCase();
+  const others = [...CITY_POSTCARDS, ...DISTRICT_POSTCARDS];
+  assert.ok(CITY_POSTCARDS.length >= 16 && DISTRICT_POSTCARDS.length >= 8, 'node loads the city data chunk');
+  for (const lang of ['zh', 'en'] as const) {
+    const mine = P.EGG_POSTCARDS.map(p => key(p.title[lang]));
+    assert.equal(new Set(mine).size, mine.length, `${lang}: the six are named apart`);
+    const taken = new Set(others.map(c => key(c.title[lang])));
+    assert.deepEqual(mine.filter(t => taken.has(t)), [], `${lang}: a secret postcard named like a collectable one`);
+  }
+  // the foghorn egg's card: its own name, and the towers' colour agrees in both languages
+  const fog = P.eggPostcard('ggb-foghorn-duet')!;
+  assert.equal(fog.title.zh, '雾笛响起的时候');
+  assert.ok(fog.alt.zh.includes('橙') && /orange/.test(fog.alt.en));
+});
+
 // ---------------------------------------------------------------------------
 // Part b · W5-V7: BAYBAY's recorded wave-5 lines
 // ---------------------------------------------------------------------------

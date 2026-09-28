@@ -32,10 +32,13 @@ export const EGG_POSTCARDS: readonly EggPostcard[] = [
     { zh: '防波堤尽头的石阶和管口，浪花拍上来，远处是金门大桥。', en: 'Stone steps and pipes at the end of the jetty, waves splashing, the Golden Gate beyond.' }),
   card('lands-end-labyrinth', { zh: '天涯海角的石头迷宫', en: 'The Lands End labyrinth' },
     { zh: '悬崖上一圈圈小石头摆成的迷宫，海峡对面是金门大桥。', en: 'A ring labyrinth of small stones on the cliff, the Golden Gate Bridge across the strait.' }),
-  card('dahlia-dell-100', { zh: '大丽花一百岁', en: 'The dahlia turns 100' },
+  // (review) the city's flower turns 100 (named on 4 Oct 1926), not the plant: say so
+  card('dahlia-dell-100', { zh: '市花大丽花一百岁', en: 'The city flower turns 100' },
     { zh: '开满大丽花的花圃挂着小彩旗，后面是白色的花卉温室。', en: 'A dahlia bed in full bloom under little pennants, the white Conservatory behind.' }),
-  card('ggb-foghorn-duet', { zh: '雾里的金门大桥', en: 'The Golden Gate in the fog' },
-    { zh: '浓雾盖住了桥面，只露出两座红色桥塔和主缆。', en: 'Thick fog hides the deck; only the two orange towers and the cables show.' }),
+  // (review) the title was the city postcard sf-golden-gate-fog's own (雾里的金门大桥 / The Golden Gate in the Fog), so the
+  // 手帐 and the Journal named two different cards alike; this one is the foghorn egg's. The towers are orange, as the en says
+  card('ggb-foghorn-duet', { zh: '雾笛响起的时候', en: 'When the foghorns sound' },
+    { zh: '浓雾盖住了桥面，只露出两座橙红色的桥塔和主缆。', en: 'Thick fog hides the deck; only the two orange towers and the cables show.' }),
 ];
 
 const BY_EGG = new Map(EGG_POSTCARDS.map(p => [p.egg, p]));
