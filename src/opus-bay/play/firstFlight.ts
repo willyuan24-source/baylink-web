@@ -186,7 +186,10 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
   const first = state.rings[0];
   if (state.phase === 'intro') {
     faceCameraToward(first.x, first.z, { uncapped: true, seconds: 0.9 });
-    bubble({ zh: '先试试起飞？穿过金圈，圈里有金币！', en: 'Try taking off! Fly through the rings for coins!' }, 4200);
+    // (lane C's moment asked 先试试起飞？ already: here only which button, and what the rings are)
+    bubble(runtime.input.device === 'touch'
+      ? { zh: '点「起飞」，穿过金圈拿金币！', en: 'Tap Take off, then fly through the rings for coins!' }
+      : { zh: '按 G 起飞，穿过金圈拿金币！', en: 'Press G to take off, then fly through the rings for coins!' }, 4200);
   } else bubble({ zh: '跟着金圈飞！', en: 'Follow the gold rings!' }, 2600);
   changed();
   return true;
