@@ -310,6 +310,18 @@
     "arrival": true
    },
    "note": "Irving St (the attraction's arrival, ≈ 22nd Ave) at night, facing east along Irving toward 9th Ave; wave 5: lane L's corner 1 and lane V's lit outer nights (run with --time night)"
+  },
+  {
+   "id": "pier45",
+   "since": "w5c",
+   "go": {
+    "x": -212.7,
+    "z": 70.5,
+    "fx": -140,
+    "fz": 75,
+    "arrival": true
+   },
+   "note": "lane D's request (sf-w5-D.md part a): Pier 45 at the Musee Mecanique door, facing east along the Wharf; D read 113 calls / 430k triangles there by day with nothing of lane D's"
   }
  ],
  "rides": [

@@ -20,7 +20,7 @@ import { registerWarmup, meshWarmup } from '../warmup';
  * draw call for all of a corner's signs. A plaque is 2 : 1 (w × w / 2).
  */
 
-export type SignScript = 'zh' | 'en' | 'es';
+export type SignScript = 'zh' | 'ja' | 'en' | 'es';
 export interface SignLine { text: string; script: SignScript }
 /** Painted looks: enamel (cream, dark green), lacquer (red, gold), wood (brown, cream), teal / blue / mustard enamel, rose. */
 export const SIGN_STYLES = {
@@ -39,10 +39,12 @@ export interface SignSpec { id: string; lines: readonly [SignLine, SignLine?]; s
 const zh = (text: string): SignLine => ({ text, script: 'zh' });
 const en = (text: string): SignLine => ({ text, script: 'en' });
 const es = (text: string): SignLine => ({ text, script: 'es' });
+const ja = (text: string): SignLine => ({ text, script: 'ja' });
 
 /**
  * The plaques (append only: the index is the atlas cell). Chinese first where the street's shops are signed that way
- * (Irving, Clement), Spanish on 24th St (Taquería, Panadería), English elsewhere; generic trade words only.
+ * (Irving, Clement), Spanish on 24th St (Taquería, Panadería), Japanese on Post St in Japantown (part c, lane L's
+ * request: ラーメン, 和菓子, 本), English elsewhere; generic trade words only.
  */
 export const SIGNS: readonly SignSpec[] = [
   { id: 'bakery', lines: [zh('面包'), en('Bakery')], style: 'lacquer' },
@@ -67,6 +69,10 @@ export const SIGNS: readonly SignSpec[] = [
   { id: 'deli', lines: [en('Deli')], style: 'wood' },
   { id: 'soul-food', lines: [en('Soul Food')], style: 'mustard' },
   { id: 'laundry', lines: [zh('洗衣'), en('Laundry')], style: 'blue' },
+  // part c (lane L's Japantown corner): generic Japanese trade words
+  { id: 'ramen', lines: [ja('ラーメン'), en('Ramen')], style: 'lacquer' },
+  { id: 'sweets', lines: [ja('和菓子'), en('Sweets')], style: 'rose' },
+  { id: 'hon', lines: [ja('本'), en('Books')], style: 'enamel' },
 ];
 
 /** 1024² canvas, 4 × 8 cells of 256 × 128 px (a 244 × 122 plaque, 2 : 1 like its quad, centred in each cell). */
@@ -94,6 +100,8 @@ export function signRect(id: string): { u0: number; v0: number; u1: number; v1: 
 /** Font stacks (the page loads Noto Sans SC and Plus Jakarta Sans; the system CJK fonts cover the rest). */
 export const SIGN_FONTS = {
   zh: "900 {px}px 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif",
+  /** kana and Japanese kanji forms: the system Japanese fonts first (iOS / macOS Hiragino, Windows Yu Gothic / Meiryo) */
+  ja: "900 {px}px 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', 'Noto Sans JP', 'Noto Sans SC', sans-serif",
   latin: "800 {px}px 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif",
 } as const;
 
@@ -123,8 +131,8 @@ function roundRect(g: SignCtx, x: number, y: number, w: number, h: number, r: nu
 
 /** Fit one line of text into maxW (px): the font size, then a horizontal squeeze only past 0.8 of it. */
 function fitText(g: SignCtx, line: SignLine, px: number, cx: number, cy: number, maxW: number, spacing: number) {
-  g.font = (line.script === 'zh' ? SIGN_FONTS.zh : SIGN_FONTS.latin).replace('{px}', String(Math.round(px)));
-  const text = line.script === 'zh' ? [...line.text].join(spacing > 0 ? ' ' : '') : line.text;
+  g.font = (line.script === 'zh' ? SIGN_FONTS.zh : line.script === 'ja' ? SIGN_FONTS.ja : SIGN_FONTS.latin).replace('{px}', String(Math.round(px)));
+  const text = line.script === 'zh' || line.script === 'ja' ? [...line.text].join(spacing > 0 ? ' ' : '') : line.text;
   const w = g.measureText(text).width;
   if (w <= maxW) { g.fillText(text, cx, cy); return; }
   g.save();
@@ -160,9 +168,10 @@ export function drawSign(g: SignCtx, spec: SignSpec, box: { x: number; y: number
   // (the words keep clear of the screws: 29 px each side)
   const cx = x + w / 2, maxW = w - 58;
   g.fillStyle = st.ink;
-  if (!b) fitText(g, a, a.script === 'zh' ? 62 : 46, cx, y + h / 2 + 2, maxW, a.script === 'zh' ? 1 : 0);
+  const cjk = a.script === 'zh' || a.script === 'ja';
+  if (!b) fitText(g, a, cjk ? 62 : 46, cx, y + h / 2 + 2, maxW, cjk ? 1 : 0);
   else {
-    fitText(g, a, a.script === 'zh' ? 54 : 40, cx, y + h * 0.42, maxW, a.script === 'zh' ? 1 : 0);
+    fitText(g, a, cjk ? 54 : 40, cx, y + h * 0.42, maxW, cjk && [...a.text].length <= 3 ? 1 : 0);
     g.fillStyle = st.sub;
     fitText(g, b, 21, cx, y + h * 0.78, maxW, 0);
   }

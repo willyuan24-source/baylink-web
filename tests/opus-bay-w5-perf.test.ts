@@ -280,11 +280,13 @@ test('W5-V4: the signs atlas — 1024² of 256 × 128 plaques, append-only ids, 
   assert.deepEqual(S.SIGNS.slice(0, 13).map(s => s.id), ['bakery', 'dim-sum', 'books', 'flowers', 'coffee', 'grocery', 'produce', 'tea', 'noodles', 'hardware', 'taqueria', 'panaderia', 'mercado']);
   assert.equal(new Set(S.SIGNS.map(s => s.id)).size, S.SIGNS.length);
   // generic trade words only (plan §3.6 / D24: never a brand or a shop's name): the whole vocabulary is this list
-  const WORDS = new Set(['面包', 'Bakery', '点心', 'Dim Sum', '书店', 'Books', '花店', 'Flowers', '咖啡', 'Coffee', '杂货', 'Grocery', '蔬果', 'Produce', '茶', 'Tea', '面馆', 'Noodles', '五金', 'Hardware', 'Taquería', 'Tacos · Burritos', 'Panadería', 'Mercado', 'Market', 'Café', 'Records', 'Vintage', 'Barber', 'Deli', 'Soul Food', '洗衣', 'Laundry']);
+  const WORDS = new Set(['面包', 'Bakery', '点心', 'Dim Sum', '书店', 'Books', '花店', 'Flowers', '咖啡', 'Coffee', '杂货', 'Grocery', '蔬果', 'Produce', '茶', 'Tea', '面馆', 'Noodles', '五金', 'Hardware', 'Taquería', 'Tacos · Burritos', 'Panadería', 'Mercado', 'Market', 'Café', 'Records', 'Vintage', 'Barber', 'Deli', 'Soul Food', '洗衣', 'Laundry', 'ラーメン', 'Ramen', '和菓子', 'Sweets', '本']);
   for (const s of S.SIGNS) {
     for (const l of s.lines) if (l) assert.ok(WORDS.has(l.text), `${s.id}: "${l.text}" is not in the generic vocabulary`);
     const z = s.lines.find(l => l?.script === 'zh');
     if (z) assert.ok([...z.text].length <= 4, `${s.id}: short Chinese`);
+    const j = s.lines.find(l => l?.script === 'ja');
+    if (j) assert.ok([...j.text].length <= 4, `${s.id}: short Japanese`);
     assert.ok(S.SIGN_STYLES[s.style]);
   }
   // cells: inside the canvas, distinct, uv rectangles inside their plaque (v up)
@@ -298,6 +300,9 @@ test('W5-V4: the signs atlas — 1024² of 256 × 128 plaques, append-only ids, 
   }
   assert.equal(boxes.size, S.SIGNS.length);
   assert.equal(S.signRect('no-such-sign'), null);
+  // part c: lane L's Japantown plaques, appended after the first 22
+  assert.deepEqual(S.SIGNS.slice(22, 25).map(s => [s.id, s.lines[0].script]), [['ramen', 'ja'], ['sweets', 'ja'], ['hon', 'ja']]);
+  assert.match(S.SIGN_FONTS.ja, /Hiragino Sans/);
   // painting: every plaque's words drawn inside its own box
   const texts: { text: string; x: number; y: number; tx: number; ty: number }[] = [];
   let tx = 0, ty = 0;
@@ -314,7 +319,7 @@ test('W5-V4: the signs atlas — 1024² of 256 × 128 plaques, append-only ids, 
     const b = S.signCellBox(i);
     for (const l of s.lines) {
       if (!l) continue;
-      const want = l.script === 'zh' ? [...l.text].join(' ') : l.text;
+      const want = l.script === 'zh' || (l.script === 'ja' && [...l.text].length <= 3) ? [...l.text].join(' ') : l.text;
       const t = texts.find(e => e.text === want && e.x + e.tx >= b.x && e.x + e.tx <= b.x + b.w && e.y + e.ty >= b.y && e.y + e.ty <= b.y + b.h);
       assert.ok(t, `${s.id}: "${want}" drawn inside its plaque`);
     }
