@@ -83,7 +83,7 @@ export const RESIDENTS: readonly ResidentDef[] = [
       title: bi('帮 Ray 试坐叮当车', 'Test-ride a cable car for Ray'),
       hint: bi('在转车台上车，多坐几站再下', 'Board at the turntable and ride a few stops'),
       teaser: bi('Powell & Market 转车台旁的叮当车司机', 'A gripman by the Powell & Market turntable'),
-      target: { id: 'sf:cable-car-turntable', x: 134.9, z: 261.01, name: bi('叮当车 · Powell & Market 转车台', 'Cable car · Powell & Market turntable'), r: 4 },
+      target: { id: 'sf:cable-car-turntable', x: 131.58, z: 254.17, name: bi('叮当车 · Powell & Market 转车台', 'Cable car · Powell & Market turntable'), r: 4 },
     },
   },
   {

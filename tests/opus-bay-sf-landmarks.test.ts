@@ -6,6 +6,7 @@ import { buildingH, terrainY } from '../src/opus-bay/core/geo';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { SF_MODELS } from '../src/opus-bay/data/assets';
 import { SF_LANDMARK_INFO, sfLandmarkInfo, sfLandmarkInfoByPlace } from '../src/opus-bay/data/sf/landmarks';
+import { SF_ROUTES } from '../src/opus-bay/data/sf/routes';
 import {
   SF_LANDMARKS, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkMatrix, landmarkToWorld, landmarkWalkWorld, sfLandmark, triangleBudget, worldToLandmark,
 } from '../src/opus-bay/world/sf/landmarks/index';
@@ -272,6 +273,27 @@ test('D2-12: every landmark names its places.json row; zh follows the city gloss
     // a guide tied to one month or year goes stale on a permanent card
     if (i.guideSlug) assert.ok(!/(january|february|march|april|may|june|july|august|september|october|november|december)|-20\d\d(-|$)/i.test(i.guideSlug), `${i.id}: ${i.guideSlug}`);
   }
+  // W4-IL13 (verify C6 / C7): zh text uses the game's zh names (lane C's cards, the map and VOICE.md), never the English
+  // name of a place that has one (a gloss in （） is fine); Lands End is 天涯海角, never 海角 alone
+  const EN_WITH_ZH = ['Grant Ave', 'North Beach', 'Washington Square', 'Twin Peaks', 'Ocean Beach', 'Dolores Park', 'Sutro Baths', 'Marina Green',
+    'Crissy Field', 'Lands End', 'Ferry Building', 'Embarcadero', 'Aquatic Park', 'JFK Promenade', 'Music Concourse', 'Mount Sutro', 'Harvey Milk Plaza',
+    'Alamo Square', 'Queen Wilhelmina', 'Christmas Tree Point', 'Coit Tower'];
+  const zhTexts = [
+    ...SF_LANDMARK_INFO.flatMap(i => [i.name, i.zone, i.bark, i.realInfo.summary, i.realInfo.hours, i.realInfo.cost, ...i.realInfo.tips, i.plaza].map(t => [i.id, t] as const)),
+    ...SF_ROUTES.flatMap(r => [r.name, r.blurb, ...r.stops.flatMap(s => [s.name, s.line])].map(t => [r.id, t] as const)),
+  ];
+  for (const [id, t] of zhTexts) {
+    if (!t) continue;
+    const zh = t.zh.replace(/（[^）]*）/g, '');
+    for (const w of EN_WITH_ZH) assert.ok(!zh.includes(w), `${id}: "${w}" in the zh text "${t.zh}"`);
+    assert.ok(!/(^|[^涯])海角/.test(zh), `${id}: 海角 without 天涯 in "${t.zh}"`);
+  }
+  // verify C3: the Cliff House card says what lane C's status says (closed, restoring, the operator's target), no café date
+  const cliff = sfLandmarkInfo('cliff-house')!.realInfo.summary;
+  assert.ok(cliff.zh.includes('2026 年底') && !cliff.zh.includes('咖啡馆') && !/caf[eé]/i.test(cliff.en), cliff.zh);
+  // verify C8: route R1 passes Portsmouth Square while it is fenced off for its rebuild (June 2026 – about 2028)
+  const ports = SF_ROUTES.find(r => r.id === 'r1')!.stops.find(s => s.id === 'r1-portsmouth')!;
+  assert.ok(ports.line.zh.includes('2028') && ports.line.en.includes('2028'), ports.line.zh);
   assert.equal(sfLandmarkInfo('cable-car-turntable')!.guideSlug, 'san-francisco-guide');
   assert.equal(sfLandmarkInfo('ghirardelli-square')!.plannerPlaceId, undefined, 'PIER 39 is not Ghirardelli Square');
   assert.equal(sfLandmarkInfo('twin-peaks')!.name.zh, '双峰观景台');
@@ -445,4 +467,27 @@ test('W4-IL11 (verify D1): the Golden Gate Bridge deck over Fort Point walks thr
     assert.ok(ground >= 30 && wall === ground, `the fort blocks at ground level (${wall} of ${ground} samples inside its outline)`);
     assert.equal(UNDER_DECK, 1);
   } finally { setCityTerrain(null); }
+});
+
+test('W4-IL12 (verify D3): no landmark card / arrival spot stands on a vehicle line (a car brakes for a person on its line ahead and never reaches its stop)', async () => {
+  const { LANDMARK_ARRIVALS } = await import('../src/opus-bay/data/sf/arrivals');
+  type Line = { id: string; kind: string; path: number[]; tunnels?: [number, number][] };
+  const read = (f: string) => (JSON.parse(readFileSync(new URL(`../public/opus-bay/sf/v1/${f}`, import.meta.url), 'utf8')) as { lines: Line[] }).lines;
+  // the side reach of each surface vehicle's "person ahead" rule (world/transitLine onTrackAhead 1.3, busSystem
+  // onRoadAhead 1.5) + the player's radius (0.4) and a margin; light rail runs underground where the arrivals are near it
+  const reach: Record<string, number> = { 'cable-car': 1.3 + 0.5, streetcar: 1.3 + 0.5, bus: 1.5 + 0.5 };
+  const lines = [...read('transit.json'), ...read('transit-w4.json')].filter(l => reach[l.kind] !== undefined);
+  assert.ok(lines.some(l => l.kind === 'cable-car') && lines.some(l => l.kind === 'bus'), 'the cable cars and the loop are read');
+  const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz: number) => {
+    const dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / L));
+    return Math.hypot(px - ax - dx * t, pz - az - dz * t);
+  };
+  for (const [id, a] of Object.entries(LANDMARK_ARRIVALS)) {
+    for (const l of lines) {
+      let d = Infinity;
+      for (let i = 0; i + 5 < l.path.length; i += 3) d = Math.min(d, segDist(a.x, a.z, l.path[i], l.path[i + 2], l.path[i + 3], l.path[i + 5]));
+      assert.ok(d >= reach[l.kind], `${id}'s arrival is ${d.toFixed(2)} u from ${l.id}'s line (needs ${reach[l.kind]})`);
+    }
+  }
 });

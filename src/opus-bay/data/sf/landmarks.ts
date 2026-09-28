@@ -63,7 +63,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('金门大桥', 'Golden Gate Bridge'),
     zone: bi('金门海峡 · 要塞公园', 'The Golden Gate · Presidio'),
     lat: 37.81976, lng: -122.47856,
-    arrival: { x: -236, z: 2.5, heading: Math.PI / 2 },
+    arrival: { x: -236, z: 4.6, heading: Math.PI / 2 },
     photo: { target: [-40, 22, 0], distance: 240, elevation: 0.1, bearing: -0.55 },
     height: { realM: 227, u: 42.2, rule: 'terrainY' },
     plannerPlaceId: 'golden-gate',
@@ -79,7 +79,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       tips: [
         bi('“国际橙”是建筑师 Irving Morrow 选的：既配海岬的颜色，雾里也看得清。', 'Architect Irving Morrow picked "International Orange" to suit the headlands and stay visible in fog.'),
         bi('南端桥下的钢拱是为了保住 Fort Point 特意设计的。', 'The steel arch at the south end was designed to leave Fort Point standing beneath it.'),
-        bi('BAYLINK 攻略：从南端 Welcome Center 出发，先分清人行道开放时间和停车收费。', 'BAYLINK guide: start at the south-end Welcome Center and check sidewalk hours and parking fees first.'),
+        bi('BAYLINK 攻略：从南端的游客中心（Welcome Center）出发，先分清人行道开放时间和停车收费。', 'BAYLINK guide: start at the south-end Welcome Center and check sidewalk hours and parking fees first.'),
       ],
       sourceUrl: 'https://www.goldengate.org/bridge/history-research/statistics-data/design-construction-stats/',
       verifiedAt: V, lat: 37.81976, lng: -122.47856,
@@ -100,9 +100,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     sources: ['https://en.wikipedia.org/wiki/Sutro_Tower'],
     bark: bi('三条腿的红白铁塔——迷路了就抬头找它，它在城市正中间的山上。', 'The three-legged red-and-white tower — lost? Look up for it on the hill in the middle of the city.'),
     realInfo: {
-      summary: bi('三脚电视/电台发射塔，高 977 英尺（约 298 米），立在海拔约 834 英尺的 Mount Sutro 上，1973 年启用。', 'A three-legged TV and radio mast, 977 ft (≈298 m) tall on Mount Sutro, its base at about 834 ft; it went on air in 1973.'),
+      summary: bi('三脚电视/电台发射塔，高 977 英尺（约 298 米），立在海拔约 834 英尺的苏特罗山上，1973 年启用。', 'A three-legged TV and radio mast, 977 ft (≈298 m) tall on Mount Sutro, its base at about 834 ft; it went on air in 1973.'),
       tips: [
-        bi('塔身不对外开放，最好的观景点在旁边的 Twin Peaks。', 'The tower itself is closed to visitors; nearby Twin Peaks is the place to see it.'),
+        bi('塔身不对外开放，最好的观景点在旁边的双峰。', 'The tower itself is closed to visitors; nearby Twin Peaks is the place to see it.'),
         bi('三条腿在腰部收窄、顶部张开，远看像一只爪子，本地人也叫它 “Space Claw”。', 'The legs pinch at the waist and splay at the top — locals call it the "Space Claw".'),
       ],
       sourceUrl: 'https://sutrotower.com/about/',
@@ -158,7 +158,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       cost: bi('观景塔免费进入；看展要买票，价格和开放时间以官网为准。', 'The observation tower is free; exhibitions are ticketed — check the official site for prices and hours.'),
       tips: [
         bi('塔身从底部顺着博物馆、到顶部对齐城市街网，是一路“扭”上去的。', 'The tower twists from the museum\'s alignment at its base to the city street grid at the top.'),
-        bi('BAYLINK 攻略：JFK Promenade 无车路线会走到它门口的 Music Concourse。', 'BAYLINK guide: the car-free JFK Promenade walk ends at the Music Concourse right outside.'),
+        bi('BAYLINK 攻略：JFK 大道的无车步行段一直通到它门口的音乐广场。', 'BAYLINK guide: the car-free JFK Promenade walk ends at the Music Concourse right outside.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/De_Young_Museum',
       verifiedAt: V, lat: 37.771498, lng: -122.46872,
@@ -184,7 +184,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       summary: bi('Bernard Maybeck 为 1915 年巴拿马–太平洋万国博览会设计，49 米高的圆顶亭一边是泻湖，一边是弧形展厅，中间隔着柱廊；1964–1974 年整体重建。', 'Bernard Maybeck designed it for the 1915 Panama–Pacific International Exposition: a 49 m rotunda between a lagoon and a curved exhibition hall, separated by colonnades; fully rebuilt 1964–1974.'),
       cost: bi('圆顶与湖边步道免费开放。', 'The rotunda and lagoon paths are free to walk.'),
       tips: [
-        bi('BAYLINK 攻略：先绕湖看柱廊，再去 Marina Green 海边坐一会儿。', 'BAYLINK guide: loop the lagoon for the colonnades, then sit by the water at Marina Green.'),
+        bi('BAYLINK 攻略：先绕湖看柱廊，再去码头绿地海边坐一会儿。', 'BAYLINK guide: loop the lagoon for the colonnades, then sit by the water at Marina Green.'),
         bi('柱顶那些“花箱”上有背对着人的女子雕像，据说是在为艺术哭泣。', 'The planter boxes on the columns carry figures facing away from you — "weeping" for art, legend says.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Palace_of_Fine_Arts',
@@ -207,9 +207,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     sources: [],
     bark: bi('整个旧金山都在脚下！找找看：金门大桥、市中心、还有海湾大桥。', 'All of San Francisco below you! Spot the Golden Gate, downtown and the Bay Bridge.'),
     realInfo: {
-      summary: bi('两座约 925 英尺（282 米）的山峰，北峰 Eureka、南峰 Noe；观景台 Christmas Tree Point 在北峰下约 20 米，能看到全城和海湾。', 'Two peaks of about 925 ft (282 m) — Eureka to the north and Noe to the south; the Christmas Tree Point overlook, some 20 m below the north peak, takes in the whole city and the Bay.'),
+      summary: bi('两座约 925 英尺（282 米）的山峰，北峰 Eureka、南峰 Noe；圣诞树观景点在北峰下约 20 米，能看到全城和海湾。', 'Two peaks of about 925 ft (282 m) — Eureka to the north and Noe to the south; the Christmas Tree Point overlook, some 20 m below the north peak, takes in the whole city and the Bay.'),
       tips: [
-        bi('Twin Peaks Boulevard 东侧一段只让行人和自行车通行。', 'One side of Twin Peaks Boulevard is reserved for walkers and bikes.'),
+        bi('双峰大道东侧一段只让行人和自行车通行。', 'One side of Twin Peaks Boulevard is reserved for walkers and bikes.'),
         bi('山顶风大、常有雾，带件外套；天气好时往东南能看很远。', 'It is windy and often foggy up here — bring a layer; on clear days the view runs far down the Peninsula.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Twin_Peaks_(San_Francisco)',
@@ -232,7 +232,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     bark: bi('一排维多利亚小楼，背后就是市中心——站在公园草坡上拍最经典。', 'A row of Victorians with downtown behind — the classic shot is from the park lawn.'),
     realInfo: {
       summary: bi('Steiner 街 710–720 号这排维多利亚式住宅由开发商 Matthew Kavanaugh 在 1892–1896 年建成，他自己住在隔壁 722 号；因为出现在《Full House》片头而闻名。', 'The Victorians at 710–720 Steiner Street were built in 1892–1896 by developer Matthew Kavanaugh, who lived next door at 722; the opening credits of "Full House" made them famous.'),
-      cost: bi('从 Alamo Square 公园看是免费的。', 'Free to see from Alamo Square park.'),
+      cost: bi('从阿拉莫广场公园看是免费的。', 'Free to see from Alamo Square park.'),
       tips: [
         bi('这些都是私人住宅，请在人行道和公园里拍照，不要上门廊。', 'They are private homes — photograph from the sidewalk or the park, not the porches.'),
         bi('也叫 “Seven Sisters”（七姐妹）。', 'They are also called the "Seven Sisters".'),
@@ -254,13 +254,13 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     guideSlug: 'sf-chinatown-north-beach-walk-guide',
     osm: ['node/65328703'],
     sources: [],
-    bark: bi('穿过龙门就是 Grant Avenue——中门走车，两边小门走人。', 'Through the gate is Grant Avenue — cars take the middle arch, people the side ones.'),
+    bark: bi('穿过龙门就是都板街——中门走车，两边小门走人。', 'Through the gate is Grant Avenue — cars take the middle arch, people the side ones.'),
     realInfo: {
       summary: bi('1970 年落成的唐人街牌楼，由 Clayton Lee 设计，绿色琉璃瓦和石狮由台湾捐赠；中门写着孙中山题的“天下为公”。', 'The Chinatown gateway, dedicated in 1970 and designed by Clayton Lee, with green glazed tiles and guardian lions donated from Taiwan; the central portal carries Sun Yat-sen\'s motto "All under heaven is for the good of the people".'),
       cost: bi('免费。', 'Free.'),
       tips: [
         bi('屋脊上有龙和鱼：鱼代表富足，龙代表力量。', 'Dragons and fish ride the ridges: fish for prosperity, dragons for power.'),
-        bi('BAYLINK 攻略：从龙门沿 Grant Avenue 一路走到 North Beach 的 Washington Square。', 'BAYLINK guide: walk from the gate up Grant Avenue to Washington Square in North Beach.'),
+        bi('BAYLINK 攻略：从龙门沿都板街一路走到北滩的华盛顿广场。', 'BAYLINK guide: walk from the gate up Grant Avenue to Washington Square in North Beach.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Dragon_Gate_(San_Francisco)',
       verifiedAt: V, lat: 37.790688, lng: -122.405594,
@@ -285,7 +285,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       summary: bi('1879 年建成的木框玻璃温室，是金门公园最老的建筑，也是北美仍对公众开放的最古老的木与玻璃温室。', 'Completed in 1879, the wood-and-glass greenhouse is the oldest building in Golden Gate Park and the oldest wood-and-glass conservatory in North America still open to the public.'),
       cost: bi('进温室要买票，价格和开放时间以官网为准；外面的花坛草坡免费。', 'Entry is ticketed — see the official site for prices and hours; the flower beds and lawns outside are free.'),
       tips: [
-        bi('BAYLINK 攻略：把白色温室当背景，沿无车的 JFK Promenade 慢慢走。', 'BAYLINK guide: keep the white glasshouse as your backdrop and stroll the car-free JFK Promenade.'),
+        bi('BAYLINK 攻略：把白色温室当背景，沿无车的 JFK 大道慢慢走。', 'BAYLINK guide: keep the white glasshouse as your backdrop and stroll the car-free JFK Promenade.'),
         bi('骨架用的是加州海岸红杉木。', 'Its frame is California coast redwood.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Conservatory_of_Flowers',
@@ -308,11 +308,11 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     sources: [],
     bark: bi('当年它是用来抽水浇公园的！春天旁边的郁金香开得最好。', 'It once pumped water for the park! The tulips next to it are best in spring.'),
     realInfo: {
-      summary: bi('1903 年建成、给金门公园抽水灌溉的风车，风叶长 102 英尺；旁边是 Queen Wilhelmina 郁金香花园。', 'Built in 1903 to pump irrigation water for Golden Gate Park, with 102-ft sails; the Queen Wilhelmina Tulip Garden grows beside it.'),
+      summary: bi('1903 年建成、给金门公园抽水灌溉的风车，风叶长 102 英尺；旁边是威廉明娜女王郁金香花园。', 'Built in 1903 to pump irrigation water for Golden Gate Park, with 102-ft sails; the Queen Wilhelmina Tulip Garden grows beside it.'),
       cost: bi('免费。', 'Free.'),
       tips: [
         bi('郁金香一般在春天（约 2–4 月）开，具体花期看天气。', 'The tulips usually bloom in spring (roughly February–April), depending on the weather.'),
-        bi('过一条马路就是 Ocean Beach。', 'Ocean Beach is just across the road.'),
+        bi('过一条马路就是海洋海滩。', 'Ocean Beach is just across the road.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Dutch_Windmill_(Golden_Gate_Park)',
       verifiedAt: V, lat: 37.770441, lng: -122.509406,
@@ -337,7 +337,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       cost: bi('参观老教堂和墓园需要付费或捐款，金额和开放时间以官网为准。', 'Visiting the old church and cemetery asks a fee or donation — check the official site for the amount and hours.'),
       tips: [
         bi('老教堂天花板上的图案是奥隆人（Ohlone）用植物染料画的。', 'The old church\'s ceiling designs were painted by Ohlone people with vegetable dyes.'),
-        bi('往南走两个路口就是 Dolores Park 草坡。', 'Dolores Park\'s lawns are two blocks south.'),
+        bi('往南走两个路口就是多洛雷斯公园的草坡。', 'Dolores Park\'s lawns are two blocks south.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Mission_San_Francisco_de_As%C3%ADs',
       verifiedAt: V, lat: 37.764185, lng: -122.426812,
@@ -351,7 +351,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     plaza: bi('亨廷顿公园', 'Huntington Park'),
     lat: 37.791833, lng: -122.413497,
     // on the Taylor St sidewalk at the foot of the Sky Steps (lane L, wave 4: it stood on the street)
-    arrival: { x: 1.6, z: 9.8, heading: Math.PI },
+    arrival: { x: 2, z: 16, heading: 3.017 },
     photo: { target: [0, 6, 2], distance: 33, elevation: 0.1, bearing: 0.25 },
     height: { realM: 75, u: 14.8, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -374,7 +374,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     id: 'legion-of-honor',
     placeId: 'legion-of-honor',
     name: bi('荣勋宫美术馆', 'Legion of Honor'),
-    zone: bi('林肯公园 · 海角', 'Lincoln Park · Lands End'),
+    zone: bi('林肯公园 · 天涯海角', 'Lincoln Park · Lands End'),
     plaza: bi('荣誉庭院', 'Court of Honor'),
     lat: 37.78455, lng: -122.500735,
     arrival: { x: 0, z: 9, heading: Math.PI },
@@ -389,7 +389,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       summary: bi('1924 年 11 月 11 日开馆，按原尺寸复制了 1915 年博览会的法国馆（巴黎荣誉军团宫的 3/4 比例版）；荣誉庭院里摆着罗丹的《思想者》。', 'Opened on November 11, 1924, a full-scale copy of the French Pavilion from the 1915 Exposition (itself a 3/4-scale Palais de la Légion d\'Honneur); Rodin\'s "The Thinker" sits in the Court of Honor.'),
       cost: bi('看展要买票，价格、免费日和开放时间以官网为准。', 'Exhibitions are ticketed — check the official site for prices, free days and hours.'),
       tips: [
-        bi('门口就是 Lands End 步道，可以一路走到 Sutro Baths。', 'The Lands End trail starts right outside and runs to Sutro Baths.'),
+        bi('门口就是天涯海角步道，可以一路走到苏特罗浴场。', 'The Lands End trail starts right outside and runs to Sutro Baths.'),
         bi('天气好时从停车场能看到金门大桥。', 'On clear days you can see the Golden Gate Bridge from the car park.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/California_Palace_of_the_Legion_of_Honor',
@@ -416,7 +416,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       summary: bi('1853 年开工、1861 年装上第一门炮的砖石炮台，墙厚七英尺；金门大桥南端引桥用一道钢拱跨过它，把它完整保留下来。', 'A masonry fort begun in 1853 with its first cannon mounted in 1861, its walls seven feet thick; the bridge\'s southern approach vaults over it on a steel arch to keep it intact.'),
       hours: bi('国家公园管理局网站列出周四至周一 10:00–17:00 开放，屋顶 16:30 关闭；出发前再确认。', 'The National Park Service lists Thursday–Monday, 10am–5pm, with the roof closing at 4:30pm; confirm before you go.'),
       tips: [
-        bi('BAYLINK 攻略：桥上看结构，Fort Point 看尺度，Crissy Field 看海。', 'BAYLINK guide: see the structure from the bridge, its scale from Fort Point, and the sea from Crissy Field.'),
+        bi('BAYLINK 攻略：桥上看结构，Fort Point 看尺度，克里西场看海。', 'BAYLINK guide: see the structure from the bridge, its scale from Fort Point, and the sea from Crissy Field.'),
         bi('炮台外墙每天都能走到，海风很大。', 'You can reach the outside walls any day — it is very windy.'),
       ],
       sourceUrl: 'https://www.nps.gov/fopo/planyourvisit/hours.htm',
@@ -431,8 +431,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     plaza: bi('哈维·米尔克广场', 'Harvey Milk Plaza'),
     lat: 37.762, lng: -122.434748,
     // across Castro St from the turned facade (D2-09 Castro), no longer behind the theatre on Hartford St (wave-4 L)
-    arrival: { x: 0, z: 7.3, heading: Math.PI },
-    photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 0.3 },
+    arrival: { x: 6.5, z: 4.6, heading: -1.745 },
+    photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 1.4 },
     height: { realM: 21.7, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
     officialUrl: 'https://www.castrotheatre.com/',
@@ -444,7 +444,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       cost: bi('演出和放映票价以官网为准。', 'Check the official site for show and screening tickets.'),
       tips: [
         bi('模型里的招牌故意没有字，真正的招牌写着剧院名字。', 'Our toy sign is blank on purpose — the real one spells the theatre\'s name.'),
-        bi('旁边的 Harvey Milk Plaza 是 Muni 地铁 Castro 站。', 'Harvey Milk Plaza next door is the Muni Metro Castro station.'),
+        bi('旁边的哈维·米尔克广场下面就是 Muni 地铁卡斯特罗站。', 'Harvey Milk Plaza next door is the Muni Metro Castro station.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Castro_Theatre',
       verifiedAt: V, lat: 37.762, lng: -122.434748,
@@ -470,7 +470,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       cost: bi('比赛与参观导览票价以官网为准。', 'Check the official site for game and tour tickets.'),
       tips: [
         bi('左外野那只巨型手套是钢和玻璃钢做的老式四指手套。', 'The giant left-field mitt is a steel-and-fiberglass old-time four-fingered glove.'),
-        bi('从 Ferry Building 沿 Embarcadero 海滨步道一路往南就能走到。', 'Follow the Embarcadero promenade south from the Ferry Building to walk here.'),
+        bi('从渡轮大厦沿内河码头海滨步道一路往南就能走到。', 'Follow the Embarcadero promenade south from the Ferry Building to walk here.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Oracle_Park',
       verifiedAt: V, lat: 37.778646, lng: -122.38958,
@@ -520,7 +520,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
       cost: bi('进广场免费，店铺各自营业。', 'Free to wander; shops keep their own hours.'),
       tips: [
         bi('为了不打扰对面山坡的住户，景观设计师 Lawrence Halprin 让屋顶大招牌转向海边。', 'To spare the neighbours uphill, landscape architect Lawrence Halprin had the rooftop sign turned to face the waterfront.'),
-        bi('往下走就是 Aquatic Park 和 Hyde St 叮当车终点站。', 'Downhill are Aquatic Park and the Hyde St cable-car turnaround.'),
+        bi('往下走就是水上公园和海德街叮当车终点站。', 'Downhill are Aquatic Park and the Hyde St cable-car turnaround.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Ghirardelli_Square',
       verifiedAt: V, lat: 37.805871, lng: -122.422949,
@@ -539,7 +539,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     guideSlug: 'sf-fishermans-wharf-pier39-guide',
     officialUrl: 'https://www.fishermanswharf.org/',
     osm: ['node/5455630121', 'node/11283438662'],
-    sources: ['https://www.sfexaminer.com/news/new-fishermans-wharf-sign-a-near-replica-of-old-crab-wheel/'],
+    sources: ['https://www.sfexaminer.com/news/new-fishermans-wharf-sign-a-near-replica-of-old-crab-wheel/article_63740196-ab87-56cf-ae59-b80f16681116.html'],
     bark: bi('舵轮中间一只大螃蟹——到渔人码头的第一张照片就在这儿拍。', 'A crab in a ship\'s wheel — the first photo everyone takes at the Wharf.'),
     realInfo: {
       summary: bi('Jefferson 街和 Taylor 街口的舵轮螃蟹招牌 1968 年首次立起，2013 年花约 11.5 万美元按原样翻新。', 'The ship\'s-wheel crab sign at Jefferson and Taylor went up in 1968 and was rebuilt close to the original in 2013 for about $115,000.'),
@@ -556,7 +556,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     id: 'sutro-baths',
     placeId: 'sutro-baths',
     name: bi('苏特罗浴场遗址', 'Sutro Baths ruins'),
-    zone: bi('海角 Lands End', 'Lands End'),
+    zone: bi('天涯海角', 'Lands End'),
     lat: 37.780142, lng: -122.513796,
     arrival: { x: 4.6, z: -6.2, heading: 0.4 },
     photo: { target: [0, 0.5, 1], distance: 24, elevation: 0.35, bearing: Math.PI },
@@ -581,9 +581,12 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     id: 'cliff-house',
     placeId: 'cliff-house',
     name: bi('悬崖屋', 'Cliff House'),
-    zone: bi('海角 Lands End · 海洋海滩北端', 'Lands End · north end of Ocean Beach'),
+    zone: bi('天涯海角 · 海洋海滩北端', 'Lands End · north end of Ocean Beach'),
     lat: 37.778557, lng: -122.513978,
-    arrival: { x: -2, z: -4.2, heading: 0 },
+    // W4-IL12: on Point Lobos Ave's sidewalk up the hill, 2.4 u off the sightseeing loop's line (a bus brakes for a person
+    // within 1.5 u of its line ahead; the old spot stood in the road, 1.2 u off it), the house and the Camera Obscura's
+    // terrace ahead with the sea beyond
+    arrival: { x: 8.5, z: -0.9, heading: -1.141 },
     photo: { target: [0, 2, 1], distance: 25, elevation: 0.12, bearing: 0.6 },
     height: { realM: 7, u: 4.3, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -592,11 +595,11 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     sources: [],
     bark: bi('露台上那个像大相机的小房子，就是会“投影”外面海景的暗箱。', 'That little camera-shaped hut on the deck is a camera obscura that projects the sea view inside.'),
     realInfo: {
-      summary: bi('这里的第三座悬崖屋，1909 年建成的新古典建筑（前两座都毁于火灾）；餐厅 2020 年底停业，新经营方正在修复，计划 2026 年先开街面咖啡馆、年底全部开放。', 'The third Cliff House on the site, a neo-classical building of 1909 (the first two burned); its restaurant closed at the end of 2020 and a new operator is restoring it, planning a street-level café in 2026 and the whole building by the end of the year.'),
+      summary: bi('这里的第三座悬崖屋，1909 年建成的新古典建筑（前两座都毁于火灾）；餐厅 2020 年底停业，正在修复，经营方目标 2026 年底重新开放。', 'The third Cliff House on the site, a neo-classical building of 1909 (the first two burned); its restaurant closed at the end of 2020 and the building is being restored — the operator aims to reopen it by the end of 2026.'),
       cost: bi('开放情况以国家公园管理局和经营方公告为准。', 'Check the National Park Service and the operator for what is open.'),
       tips: [
         bi('观景台的暗箱（Camera Obscura）仍可参观。', 'The Camera Obscura on the deck is still open to visitors.'),
-        bi('往北走几分钟就是 Sutro Baths 遗址。', 'Sutro Baths ruins are a few minutes\' walk north.'),
+        bi('往北走几分钟就是苏特罗浴场遗址。', 'Sutro Baths ruins are a few minutes\' walk north.'),
       ],
       sourceUrl: 'https://en.wikipedia.org/wiki/Cliff_House,_San_Francisco',
       verifiedAt: V, lat: 37.778557, lng: -122.513978,
@@ -609,7 +612,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('联合广场 · 市场街', 'Union Square · Market St'),
     plaza: bi('哈勒迪广场', 'Hallidie Plaza'),
     lat: 37.78477, lng: -122.40776,
-    arrival: { x: 0, z: 5.6, heading: Math.PI },
+    // W4-IL12 (verify D3): on the brick plaza east of the disc, 3.4 u off the rails' line (a cable car brakes for a
+    // person within 1.3 u of its line ahead; the old spot, z 5.6 on the line past the disc, held car #2 short of its
+    // stop for as long as the player stood there), facing the disc and the rails up Powell St
+    arrival: { x: 3.4, z: -1.2, heading: -2.34 },
     photo: { target: [0, 1, -1], distance: 15, elevation: 0.35, bearing: 0.4 },
     height: { realM: 0, u: 0.12, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -659,7 +665,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('米慎湾', 'Mission Bay'),
     plaza: bi('Thrive City 广场', 'Thrive City'),
     lat: 37.767888, lng: -122.387421,
-    arrival: { x: 0, z: 14, heading: Math.PI },
+    arrival: { x: -2.5, z: -19, heading: 0.131 },
     photo: { target: [0, 4.5, 0], distance: 42, elevation: 0.15, bearing: 0.4 },
     height: { realM: 38.1, u: 9.1, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,

@@ -66,13 +66,13 @@ export const SF_ROUTES: readonly SfRoute[] = [
   {
     id: 'r1',
     name: bi('唐人街 → 北滩 → 科伊特塔', 'Chinatown → North Beach → Coit Tower'),
-    blurb: bi('从龙门走进唐人街，穿过天后庙街和花园角，经北滩的华盛顿广场，最后爬上电报山到科伊特塔。', 'Through the Dragon Gate into Chinatown, past Waverly Place and Portsmouth Square, across North Beach\'s Washington Square and up Telegraph Hill to Coit Tower.'),
+    blurb: bi('从龙门走进唐人街，经过天后庙街和正在整修的花园角，穿过北滩的华盛顿广场，最后爬上电报山到科伊特塔。', 'Through the Dragon Gate into Chinatown, past Waverly Place and Portsmouth Square (closed for its rebuild), across North Beach\'s Washington Square and up Telegraph Hill to Coit Tower.'),
     planner: ['chinatown'],
     guides: ['sf-chinatown-north-beach-walk-guide'],
     stops: [
-      { id: 'r1-dragon-gate', kind: 'landmark', landmark: 'dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), x: 86.29, z: 178.06, line: bi('从龙门出发，沿 Grant Ave 往北走，头顶是一串串红灯笼。', 'Start at the Dragon Gate and walk north up Grant Ave under the red lanterns.') },
+      { id: 'r1-dragon-gate', kind: 'landmark', landmark: 'dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), x: 86.29, z: 178.06, line: bi('从龙门出发，沿都板街往北走，头顶是一串串红灯笼。', 'Start at the Dragon Gate and walk north up Grant Ave under the red lanterns.') },
       { id: 'r1-tin-how', kind: 'filler', attraction: 'tin-how-temple', name: bi('天后古庙（天后庙街）', 'Tin How Temple (Waverly Place)'), x: 26.6, z: 145.1, line: bi('天后庙街：彩色阳台的小街，天后古庙就在楼上。', 'Waverly Place: the lane of painted balconies, with Tin How Temple upstairs.') },
-      { id: 'r1-portsmouth', kind: 'place', placeId: 'osm-r14547583', attraction: 'portsmouth-square', name: bi('花园角', 'Portsmouth Square'), x: 37.73, z: 128.11, line: bi('花园角：唐人街的客厅，街坊在这里下棋聊天。', 'Portsmouth Square: Chinatown\'s living room, where neighbours meet over cards and chess.') },
+      { id: 'r1-portsmouth', kind: 'place', placeId: 'osm-r14547583', attraction: 'portsmouth-square', name: bi('花园角', 'Portsmouth Square'), x: 37.73, z: 128.11, line: bi('花园角是唐人街的客厅，2026 年 6 月起封闭整修，预计 2028 年重开，这回隔着围栏看看。', 'Portsmouth Square, Chinatown\'s living room, is fenced off for its rebuild from June 2026 until about 2028: a look through the fence this time.') },
       { id: 'r1-washington-sq', kind: 'place', placeId: 'north-beach-washington-sq', name: bi('北滩 · 华盛顿广场', 'North Beach · Washington Square'), x: -69.19, z: 105.91, via: [[4.3, 120.6], [-9.8, 110.7], [-31.3, 95.8], [-45.3, 86.0]], line: bi('到北滩了：华盛顿广场的草坪，对面是白色双塔教堂。', 'North Beach: the lawn of Washington Square, the white twin-spired church across it.') },
       { id: 'r1-peter-paul', kind: 'filler', attraction: 'saints-peter-and-paul-church', name: bi('圣彼得圣保罗教堂', 'Saints Peter and Paul Church'), x: -76.1, z: 100.1, line: bi('从教堂门前往东，朝电报山的坡走。', 'From the church steps, head east for the slope of Telegraph Hill.') },
       { id: 'r1-coit', kind: 'landmark', placeId: 'coit-tower', attraction: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), x: -50.25, z: 51.1, line: bi('电报山顶的科伊特塔：回头看，唐人街和海湾都在脚下。', 'Coit Tower on Telegraph Hill: look back over Chinatown and the Bay.') },

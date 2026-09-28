@@ -8,7 +8,7 @@
  * when D2 moves a landmark or its arrival: paste it here.
  */
 export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; heading: number }>> = {
-  'golden-gate-bridge': { x: -680.06, z: 654.15, heading: 4.037 },
+  'golden-gate-bridge': { x: -678.75, z: 652.51, heading: 4.037 },
   'sutro-tower': { x: 68.43, z: 980.61, heading: 2.443 },
   'city-hall': { x: 99.29, z: 408.19, heading: 5.672 },
   'de-young-tower': { x: -243.9, z: 928.6, heading: -1.01 },
@@ -19,17 +19,17 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
   'conservatory-of-flowers': { x: -177.51, z: 858.11, heading: 4.049 },
   'dutch-windmill': { x: -584.3, z: 1315.67, heading: 2.374 },
   'mission-dolores': { x: 198.74, z: 641.87, heading: 5.655 },
-  'grace-cathedral': { x: 5.67, z: 223.32, heading: 5.669 },
+  'grace-cathedral': { x: 8.92, z: 218.02, heading: 5.544 },
   'legion-of-honor': { x: -663.12, z: 1074.83, heading: 6.229 },
   'fort-point': { x: -747.66, z: 598.89, heading: -2.147 },
-  'castro-theatre': { x: 147.76, z: 746.15, heading: 2.449 },
+  'castro-theatre': { x: 154.48, z: 748.22, heading: -2.438 },
   'oracle-park': { x: 343.37, z: 179.07, heading: 2.421 },
   'peace-pagoda': { x: -59.62, z: 452.42, heading: 4.102 },
   'ghirardelli-square': { x: -242.3, z: 160.56, heading: 0.967 },
   'fishermans-wharf': { x: -198.51, z: 76.63, heading: 4.109 },
   'sutro-baths': { x: -717.26, z: 1246.05, heading: -0.352 },
-  'cliff-house': { x: -711.12, z: 1261.59, heading: -0.323 },
-  'cable-car-turntable': { x: 134.9, z: 261.01, heading: 4.058 },
+  'cliff-house': { x: -702.21, z: 1268.05, heading: -1.464 },
+  'cable-car-turntable': { x: 131.58, z: 254.17, heading: -1.424 },
   'lombard-crooked-street': { x: -151.33, z: 159.48, heading: 5.653 },
-  'chase-center': { x: 483.33, z: 270.61, heading: 2.55 },
+  'chase-center': { x: 499.66, z: 241.83, heading: -0.461 },
 };
