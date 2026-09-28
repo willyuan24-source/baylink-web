@@ -122,6 +122,7 @@ export function walkedDown(id: CrookedCourse['id']) {
   if (before.lombard && before.vermont) return;
   const other = id === 'lombard' ? before.vermont : before.lombard;
   if (other) { sayWhenQuiet(CROOKED_LINES.verdict, 1200); return; }
-  if (id === 'lombard') { sayWhenQuiet(CROOKED_LINES.lombardFact, 1200); sayWhenQuiet(CROOKED_LINES.tease, 6200); }
+  // (Lombard's own bark, lane L's landmark card, already says its eight hairpins and 5 mph: on foot only the tease)
+  if (id === 'lombard') sayWhenQuiet(CROOKED_LINES.tease, 1200);
   else sayWhenQuiet(CROOKED_LINES.vermontFact, 1200);
 }
