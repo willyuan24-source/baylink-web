@@ -1,6 +1,6 @@
 import type { Bilingual } from '../../core/types';
 import type { SfPlace, SfPlaceKindAll } from '../../world/sf/format';
-import { ARRIVAL_PLACES, ATTRACTION_INDEX, type AttractionIndex } from './attractions';
+import { ARRIVAL_PLACES, ATTRACTION_INDEX, SITE_ARRIVAL_IDS, type AttractionIndex } from './attractions';
 
 /**
  * Wave 4 · place-index changes as data (lane P, W4-P3; plan sf-w4-plan.md §4.1 "Data", lead note §4.6):
@@ -205,7 +205,8 @@ export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
 
 /** New anchors / arrivals (plan §4.1). `x` / `z` move the badge; `arrival` is where travel ends. */
 export const PLACE_REANCHORS: Readonly<Record<string, { x?: number; z?: number; arrival: { x: number; z: number } }>> = {
-  'lands-end': { x: -703.2, z: 1231.2, arrival: { x: -701.6, z: 1229.6 } },
+  // (W5-N5) the arrival is the Lands End site record's (lane L's data/sf/siteArrivals.ts): the lookout plaza's walk
+  'lands-end': { x: -703.2, z: 1231.2, arrival: { x: -699.81, z: 1227.26 } },
   'lake-merced': { arrival: { x: 88.9, z: 1704.4 } },
   // the San Francisco Botanical Garden row (OSM way 120480164, its centre) moves to the main gate on MLK Dr at 9th Ave
   // (OSM node 7838369891, entrance=main): discovery, the card and the arrival happen at the gate, where lane L builds
@@ -246,6 +247,22 @@ export interface W4PlaceOptions {
   arrivals?: Readonly<Record<string, { x: number; z: number; heading?: number }>>;
   /** placeId → the zh name of the attraction that speaks for it (default: attractionZhNames()) */
   zhNames?: Readonly<Record<string, string>>;
+  /** extra rows that take their attraction's arrival (default: siteArrivalRows(), W5-N5) */
+  siteRows?: ReadonlySet<string>;
+}
+
+/**
+ * W5-N5 · the place ids whose primary attraction arrives at lane L's site record (data/sf/siteArrivals.ts): their
+ * extra rows end travel there too (the published rows already follow `attractionArrivals`).
+ */
+export function siteArrivalRows(ix: AttractionIndex = ATTRACTION_INDEX): Set<string> {
+  const out = new Set<string>();
+  for (const id of SITE_ARRIVAL_IDS) {
+    const a = ix.get(id);
+    const pid = a ? a.placeId ?? a.id : null;
+    if (a && pid && ix.primary(pid) === a) out.add(pid);
+  }
+  return out;
 }
 
 /** Han characters: a zh name without any is the OSM English name copied over (the pipeline's fallback). */
@@ -300,6 +317,7 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
   const extras = o.extras ?? RUNTIME_PLACES, snaps = o.snaps ?? EXTRA_PLACE_SNAPS, names = o.names ?? PLACE_NAME_FIXES;
   const reanchors = o.reanchors ?? PLACE_REANCHORS, kinds = o.kinds ?? PLACE_KIND_FIXES, hidden = o.hidden ?? PLACE_HIDDEN;
   const arrivals = o.arrivals ?? attractionArrivals(), zhNames = o.zhNames ?? attractionZhNames();
+  const siteRows = o.siteRows ?? siteArrivalRows();
   const out: W4PlaceRow[] = [];
   const ids = new Set<string>();
   for (const src of file.places) {
@@ -325,7 +343,12 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
   for (const e of extras) {
     if (ids.has(e.id)) continue;
     ids.add(e.id);
-    out.push(extraRow(e, snaps[e.id]));
+    const row = extraRow(e, snaps[e.id]);
+    // (W5-N5) an extra row whose attraction takes lane L's site arrival (data/sf/siteArrivals.ts moved nine of them out
+    // of blockers and driven lanes: the Women's Building, Calle 24, Noe Valley, the sundial …) ends travel there too
+    const arr = arrivals[e.id];
+    if (arr && siteRows.has(e.id)) row.arrival = { ...arr };
+    out.push(row);
   }
   return out;
 }

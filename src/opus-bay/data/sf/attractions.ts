@@ -4,6 +4,7 @@ import {
   ATTRACTION_CAT_STYLE, ATTRACTION_FLAG_H, type Attraction, type AttractionCat, type AttractionFlag, type AttractionGlyph, type AttractionRank,
   type AttractionStop,
 } from './attractionTypes';
+import { SITE_ARRIVALS } from './siteArrivals';
 
 /**
  * Wave 4 · the big attractions of San Francisco (lane P, W4-P2; plan sf-w4-plan.md §2.4 and §4.1, types in the frozen
@@ -289,11 +290,12 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   'sf-botanical-garden': { x: -178.3, z: 970.9, heading: 5.43, why: 'the main gate (MLK Dr at 9th Ave), not the middle of the garden' },
   // W5-N (lane F's sweep run 1, plan MF2: no T1 / T2 trip end may be stuck): each moved to the nearest open, reachable
   // ground off the carriageway, found with the sweep's own judge (four pushes of 1.5 s, three move ≥ 3 u; a nav path from
-  // the walking graph's main component ends on it), heading toward the landmark
-  'lombard-crooked': { x: -158.44, z: 153.14, heading: 0.056, why: 'the top of the crooked block at Hyde St: the old end stood in Lombard St\'s lane, boxed (1 of 4 ways open)' },
+  // the walking graph's main component ends on it), heading toward the landmark; each looked at in the game. Fort Point
+  // stays at its door (BOXED there: the apron's walk data is lane L's site record): every open spot within 25 u is either
+  // the bridge deck 15 u above it or out of the fort's sight
+  'lombard-crooked': { x: -158.44, z: 153.14, heading: 0.056, why: 'the pavement at the crooked block\'s foot (Leavenworth St), the zigzag up ahead: the old end stood in Lombard St\'s lane, boxed (1 of 4 ways open)' },
   'sutro-baths': { x: -718.13, z: 1243.55, heading: -1.22, why: 'the ruins\' overlook path: the old end snagged (a wall 0.4 u ahead that the map does not draw)' },
   'pier-39': { x: -160.66, z: 24.1, heading: 1.18, why: 'the pier\'s gate plaza: the anchor is in The Embarcadero\'s roadway (not standable)' },
-  'fort-point': { x: -746.99, z: 600.91, heading: -2.61, why: 'the apron before the fort\'s door: the old end was boxed against the seawall' },
   'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
   'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };
@@ -355,10 +357,33 @@ export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 
   return { placeId: a.placeId ?? a.id, x: at.x, z: at.z, name: a.name, attraction: a.id, ...(a.short ? { short: a.short } : {}) };
 }
 
+/**
+ * Lane L's site arrivals not taken yet, with the reason: the ones that wait for other lanes (lane E's coin spots within
+ * 4 u of them, lane L's route stop r3-bison pinned to the old bison-paddock arrival: wired as soon as those move; Requests
+ * in docs/opus-bay/sf-w5-N.md), and the one lane F's sweep judges worse than the old end.
+ */
+export const SITE_ARRIVALS_WAITING: Readonly<Record<string, string>> = {
+  'bison-paddock': 'lane E trail bison-paddock #1 within 3 u; lane L route stop r3-bison pinned to the old arrival',
+  'buena-vista-park': 'lane E trail buena-vista-park #5 and #6 within 3 u',
+  'haight-ashbury': 'lane E trail stop-haight #1 within 3 u',
+  'sutro-heights-park': 'lane E cache sutro-heights-top within 3 u',
+  'seward-street-slides': 'lane E cache seward-slides-top 3.8 u away',
+  'irving-street': 'the sweep: BOXED on the new pavement spot (1 of 4 ways), the old end is a CORRIDOR',
+};
+/** The site arrival an attraction takes (lane L's data/sf/siteArrivals.ts, less the waiting ones). */
+export const siteArrivalFor = (id: string) => (SITE_ARRIVALS_WAITING[id] ? undefined : SITE_ARRIVALS[id]);
+/** The attraction ids with a site arrival in use. */
+export const SITE_ARRIVAL_IDS: readonly string[] = Object.keys(SITE_ARRIVALS).filter(id => !SITE_ARRIVALS_WAITING[id]);
+
 /** Every attraction, T1 and T2 with their flag. Sorted by map priority (rank, then fame). */
 export const ATTRACTIONS: readonly Attraction[] = ROWS.map(row => {
   const o = ARRIVAL_OVERRIDES[row.id];
-  const arr = o ? { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) } : row.landmarkId ? LANDMARK_ARRIVALS[row.landmarkId] : undefined;
+  // W5-N5 (lane L's W5-L1 table, plan MF2): a wave-4 site's own arrival where the row's trip end failed the walk sweep
+  // (inside a blocker, in a driven lane, off the graph, a tier-3 end > 8 u from its feature); after the overrides and
+  // the landmark anchors
+  const site = siteArrivalFor(row.id);
+  const arr = o ? { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) }
+    : (row.landmarkId ? LANDMARK_ARRIVALS[row.landmarkId] : undefined) ?? (site ? { x: site.x, z: site.z, heading: site.heading } : undefined);
   const a = arr ? { ...row, arrival: { ...arr } } : row;
   const flag = flagFor(a);
   return flag ? { ...a, flag } : a;

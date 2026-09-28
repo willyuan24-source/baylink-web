@@ -375,7 +375,8 @@ test('place cards: the POI resolver opens a card by its id; a decorated row open
   cards.applyCards(set);
   const japan = poiById('sf:japan-center')!;
   assert.equal(japan?.name.en, set.byId.get('japan-center')!.name.en);
-  assert.ok(Math.abs(japan.position.x - -73.1) < 0.01, 'at the attraction’s arrival spot');
+  // (W5-N5) Japan Center arrives at lane L's site record (data/sf/siteArrivals.ts: the Webster St bridge, off the lane)
+  assert.ok(Math.abs(japan.position.x - -70.91) < 0.01, 'at the attraction’s arrival spot');
   const sfsu = poiById('sf:sf-state-university')!;
   assert.match(sfsu.realInfo!.photo!.src, /sf-state-small\.webp$/);
   assert.match(sfsu.realInfo!.photo!.credit, /Wikimedia Commons/);
