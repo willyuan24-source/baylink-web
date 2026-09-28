@@ -1,4 +1,5 @@
 import type { Bilingual, Vec2 } from '../core/types';
+import { timeLabel } from './tripText';
 import {
   TRIP_MODES, TRIP_MODE_NAMES, type TripDriveLeg, type TripFlyLeg, type TripLeg, type TripLineLeg, type TripMode, type TripOption,
   type TripPoint, type TripState, type TripWalkLeg,
@@ -313,13 +314,13 @@ export function linePathSlice(line: TripLineInfo, a: number, b: number, dir: 1 |
 /** A name after a CJK verb: a space before Latin ("坐 N 线"), none before CJK ("坐观光巴士"). */
 export const zhJoin = (name: string) => (/^[A-Za-z0-9]/.test(name) ? ` ${name}` : name);
 
-/** "约 8 秒" / "约 2 分钟" (the same rounding as the waypoint: game/travel gameSeconds). */
+/**
+ * "约 8 秒" / "约 2 分钟" / "~3 min": the game's one time rule (lane C's game/tripText.ts `timeLabel`, compact style;
+ * lane G's review O4 / lane C part 2 integration step 1). Kept as an export: the planner rows, the pill and the card
+ * call it.
+ */
 export function tripTimeLabel(seconds: number): Bilingual {
-  const s0 = Math.max(0, seconds);
-  const s = s0 > 20 ? Math.round(s0 / 5) * 5 : Math.max(1, Math.round(s0));
-  if (s < 60) return { zh: `约 ${s} 秒`, en: `~${s}s` };
-  const m = Math.max(1, Math.round(s / 60));
-  return { zh: `约 ${m} 分钟`, en: `~${m} min` };
+  return timeLabel(seconds);
 }
 
 /** The line's short display name: "观光巴士", "N 线", "叮当车" (+ en). */

@@ -1,5 +1,6 @@
 import type { Bilingual } from '../core/types';
 import { type TripLineInfo, lineDisplayName, tripTimeLabel, zhJoin } from '../game/tripPlan';
+import { arrivalToast } from '../game/tripText';
 import { TRIP_MODE_NAMES, type TripLeg, type TripLegVia, type TripState } from '../game/tripTypes';
 
 /**
@@ -126,7 +127,8 @@ export function tripLegRows(trip: Pick<TripState, 'legs' | 'leg'>, lines?: Reado
  * places (memorials, churches): "到了 · …", no gold.
  */
 export function arrivalToastText(name: Bilingual, quiet = false): Bilingual {
-  return quiet ? { zh: `到了 · ${name.zh}`, en: `Here: ${name.en}` } : { zh: `抵达 · ${name.zh}`, en: `Arrived · ${name.en}` };
+  // one wording with lane C's arrivalBeats().toast (game/tripText.ts, lane C part 2 integration step 1)
+  return arrivalToast(name, quiet);
 }
 
 /** How long the arrival peek card stays (ms, plan §4.2) and the toast. */
