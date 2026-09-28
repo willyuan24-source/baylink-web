@@ -247,7 +247,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('唐人街龙门', 'Chinatown Dragon Gate'),
     zone: bi('唐人街', 'Chinatown'),
     lat: 37.790688, lng: -122.405594,
-    arrival: { x: 0, z: 4.95, heading: Math.PI },
+    // (W4-L-int-review: on Grant Ave's east sidewalk south of Bush St, the gate up the street; the old spot stood in
+    // Grant Ave's roadway, where the terrain says road and the toy traffic stops for the player. Known: a fly-in landing
+    // snaps 0.4 u onto the kerb lane (actors/nav arrivalSpot's 0.75 u cells); a spot further south frames only walls)
+    arrival: { x: 1, z: 4.7, heading: -2.93 },
     photo: { target: [0, 3, 0], distance: 17, elevation: 0.08, bearing: 0 },
     height: { realM: 11, u: 5.8, rule: 'H = 3.2 + 0.155·h' },
     plannerPlaceId: 'chinatown',
@@ -324,7 +327,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('多洛雷斯传教站', 'Mission Dolores'),
     zone: bi('教会区', 'The Mission'),
     lat: 37.764185, lng: -122.426812,
-    arrival: { x: -0.5, z: 7.2, heading: Math.PI },
+    // (W4-L-int-review: across Dolores St on its east sidewalk, facing the mission; the old spot stood on the street's
+    // centre line)
+    arrival: { x: -0.5, z: 9.7, heading: 2.95 },
     photo: { target: [1, 3.5, 2], distance: 21, elevation: 0.08, bearing: 0.2 },
     height: { realM: 8, u: 4.4, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -430,8 +435,10 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('卡斯特罗', 'The Castro'),
     plaza: bi('哈维·米尔克广场', 'Harvey Milk Plaza'),
     lat: 37.762, lng: -122.434748,
-    // across Castro St from the turned facade (D2-09 Castro), no longer behind the theatre on Hartford St (wave-4 L)
-    arrival: { x: 6.5, z: 4.6, heading: -1.745 },
+    // up Castro St on the theatre's own sidewalk, the blade sign and the marquee down the street (wave-4 L; the
+    // W4-L-int-review moved it 0.6 u onto the pavement: W4-IL12's spot was on Castro St's asphalt, where the toy
+    // traffic stops for the player)
+    arrival: { x: 5.5, z: 4, heading: -1.75 },
     photo: { target: [0, 4, 3], distance: 17, elevation: 0.1, bearing: 1.4 },
     height: { realM: 21.7, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -457,7 +464,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('南滩 · McCovey Cove', 'South Beach · McCovey Cove'),
     plaza: bi('威利·梅斯广场', 'Willie Mays Plaza'),
     lat: 37.778646, lng: -122.38958,
-    arrival: { x: 1, z: 21.5, heading: Math.PI },
+    // (W4-L-int-review: on the Willie Mays Plaza paving, 2.5 u back from King St's asphalt where it stood)
+    arrival: { x: 1, z: 19, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 58, elevation: 0.22, bearing: 2.3 },
     height: { realM: 45, u: 10.2, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -483,7 +491,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('日本城', 'Japantown'),
     plaza: bi('和平广场', 'Peace Plaza'),
     lat: 37.78507, lng: -122.429855,
-    arrival: { x: 0, z: 4.2, heading: Math.PI },
+    // (W4-L-int-review: on the Peace Plaza north of the pagoda, facing it; the old spot was in Geary Blvd's lanes)
+    arrival: { x: 0.5, z: -4.5, heading: -0.11 },
     photo: { target: [0, 4, 0], distance: 18, elevation: 0.12, bearing: 0.3 },
     height: { realM: 30, u: 7.85, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -507,7 +516,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('吉尔德利广场', 'Ghirardelli Square'),
     zone: bi('渔人码头西端', 'West end of Fisherman\'s Wharf'),
     lat: 37.805871, lng: -122.422949,
-    arrival: { x: 0, z: 8.2, heading: Math.PI },
+    // (W4-L-int-review: across North Point St at the lawn's edge; the old spot was on the street's asphalt)
+    arrival: { x: 0, z: 9.2, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 34, elevation: 0.15, bearing: 0.2 },
     height: { realM: 22, u: 6.6, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
@@ -640,7 +650,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('九曲花街（伦巴底街）', 'Lombard Street (the crooked block)'),
     zone: bi('俄罗斯山', 'Russian Hill'),
     lat: 37.80212, lng: -122.418716,
-    arrival: { x: 0, z: 10.6, heading: Math.PI },
+    // (W4-L-int-review: at the foot of the east stairs, looking up the switchbacks; the old spot stood in the
+    // Leavenworth / Lombard junction, and the corner sidewalk is too narrow for the landing's nav grid)
+    arrival: { x: 4, z: 8.35, heading: -2.74 },
     photo: { target: [0, 3.5, -1], distance: 27, elevation: 0.12, bearing: 0 },
     height: { realM: 0, u: 7.8, rule: 'terrainY' },
     guideSlug: SF_GUIDE,

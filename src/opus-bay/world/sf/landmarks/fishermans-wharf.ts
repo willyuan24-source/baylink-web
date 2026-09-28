@@ -14,7 +14,8 @@ import { lamp } from './siteKit';
  *
  * Setting (lane L, wave 4 — D2's remaining T2 settings): two sidewalk crab stands on Jefferson St's south side west
  * of the sign (the street stalls with their steaming cauldrons the wharf is known for), striped awnings without any
- * lettering, a lamp; the sidewalk in front of them is a crowd spot.
+ * lettering, a lamp; the sidewalk west of them is a crowd spot (W4-L-int-review: "in front of them" was Jefferson St's
+ * asphalt, where the cars drove through the sightseer — the stands fill the 1 u sidewalk).
  */
 
 const X0 = -201.14, Z0 = 74.81, YAW = (55.4 * Math.PI) / 180;
@@ -88,5 +89,5 @@ export const fishermansWharf: SfLandmark & SiteHooks = {
   build(b, lod) { build(b, lod); if (lod === 0) setting(b); },
   walk: { blockers: [{ poly: rect(0, 0, 2.4, 1.5) }, ...STANDS.map(([x, z]) => ({ poly: rect(x, z, 1.7, 0.8) }))] },
   lights: [{ x: -3.7, y: G.at(-3.7, 3.1) + 3.8, z: 3.1, size: 1, color: '#ffd9a0' }],
-  plaza: [{ poly: rect(-6.75, 2.3, 4.5, 0.6), surface: 'pavement' }],
+  plaza: [{ poly: rect(-9.75, 3.0, 0.3, 0.3), surface: 'pavement' }],
 };

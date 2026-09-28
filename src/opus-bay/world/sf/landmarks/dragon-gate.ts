@@ -96,8 +96,12 @@ function lanterns(b: BatchLike) {
 }
 
 const LIGHTS: NonNullable<SiteHooks['lights']> = STRINGS.map(z => ({ x: 0, y: G.at(0, z) + WIRE - 0.5, z, size: 0.55, color: '#ff8a5c' }));
-/** Bush St's north sidewalk under the gate (the side arches span it): where people stop for the photo */
-const PLAZA = [rect(0, 0.95, 8.6, 0.9)];
+/**
+ * Where people stop for the photo: Grant Ave's west sidewalk south of Bush St, the gate across the street.
+ * W4-L-int-review: the old strip under the gate (z 0.5–1.4) lay on Bush St's asphalt 0.1 u from the sightseeing loop's
+ * line (the gate stands at Bush St's kerb in the city data): the loop bus and the cars drove through the sightseers.
+ */
+const PLAZA = [rect(-1.8, 3.5, 0.3, 0.3), rect(-1.65, 5.5, 0.3, 0.3)];
 
 /**
  * AI gate (lane D2, D2-06): lane H's SAM mesh at scale 1 (9.6 u wide, 5.85 u tall; central passage 2.24 u wide ×

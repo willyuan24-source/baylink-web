@@ -87,7 +87,8 @@ export const inglesideTerracesSundial: W4Site = {
   w4: {
     placeId: 'ingleside-terraces-sundial',
     attractions: ['ingleside-terraces-sundial'],
-    arrival: { x: 0.4, z: -2.6, heading: 0 },
+    // (W4-L-int-review: on the circle's island at its south edge, by the dial; it stood in the circle's roadway)
+    arrival: { x: -0.2, z: -2, heading: 0.09 },
     photo: { target: [0, 1.4, 0.2], distance: 11, elevation: 0.3, bearing: 2.6 },
     flag: { x: 0, z: 0.4, h: 30 },
     height: { realM: 8.5, u: 3.4, top: 3.63, rule: 'H = 3.2 + 0.155·h' },

@@ -70,7 +70,7 @@ export const SF_ROUTES: readonly SfRoute[] = [
     planner: ['chinatown'],
     guides: ['sf-chinatown-north-beach-walk-guide'],
     stops: [
-      { id: 'r1-dragon-gate', kind: 'landmark', landmark: 'dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), x: 86.29, z: 178.06, line: bi('从龙门出发，沿都板街往北走，头顶是一串串红灯笼。', 'Start at the Dragon Gate and walk north up Grant Ave under the red lanterns.') },
+      { id: 'r1-dragon-gate', kind: 'landmark', landmark: 'dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), x: 86.7, z: 177.11, line: bi('从龙门出发，沿都板街往北走，头顶是一串串红灯笼。', 'Start at the Dragon Gate and walk north up Grant Ave under the red lanterns.') },
       { id: 'r1-tin-how', kind: 'filler', attraction: 'tin-how-temple', name: bi('天后古庙（天后庙街）', 'Tin How Temple (Waverly Place)'), x: 26.6, z: 145.1, line: bi('天后庙街：彩色阳台的小街，天后古庙就在楼上。', 'Waverly Place: the lane of painted balconies, with Tin How Temple upstairs.') },
       { id: 'r1-portsmouth', kind: 'place', placeId: 'osm-r14547583', attraction: 'portsmouth-square', name: bi('花园角', 'Portsmouth Square'), x: 37.73, z: 128.11, line: bi('花园角是唐人街的客厅，2026 年 6 月起封闭整修，预计 2028 年重开，这回隔着围栏看看。', 'Portsmouth Square, Chinatown\'s living room, is fenced off for its rebuild from June 2026 until about 2028: a look through the fence this time.') },
       { id: 'r1-washington-sq', kind: 'place', placeId: 'north-beach-washington-sq', name: bi('北滩 · 华盛顿广场', 'North Beach · Washington Square'), x: -69.19, z: 105.91, via: [[4.3, 120.6], [-9.8, 110.7], [-31.3, 95.8], [-45.3, 86.0]], line: bi('到北滩了：华盛顿广场的草坪，对面是白色双塔教堂。', 'North Beach: the lawn of Washington Square, the white twin-spired church across it.') },

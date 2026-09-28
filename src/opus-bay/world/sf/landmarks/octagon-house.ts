@@ -78,7 +78,8 @@ export const octagonHouse: W4Site = {
   w4: {
     placeId: 'octagon-house',
     attractions: ['octagon-house'],
-    arrival: { x: 1.4, z: 1.6, heading: -2.5 },
+    // (W4-L-int-review: across Gough St on its far sidewalk; it stood on Gough St's asphalt)
+    arrival: { x: 1, z: 4.5, heading: -2.93 },
     photo: { target: [0, 2.0, 0], distance: 12, elevation: 0.2, bearing: 0.6 },
     flag: { x: 0, z: -0.3, h: 30 },
     height: { realM: 8, u: 4.44, top: 4.81, rule: 'H = 3.2 + 0.155·h' },

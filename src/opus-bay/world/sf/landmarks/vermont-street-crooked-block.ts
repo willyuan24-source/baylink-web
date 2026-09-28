@@ -81,7 +81,9 @@ export const vermontStreetCrookedBlock: W4Site = {
   w4: {
     placeId: 'vermont-street-crooked-block',
     attractions: ['vermont-street-crooked-block'],
-    arrival: { x: -0.4, z: -8.3, heading: 0 },
+    // (W4-L-int-review: on the west sidewalk at the block's top, looking down the bends; it stood where Vermont St's
+    // roadway enters the block)
+    arrival: { x: -2.9, z: -8.6, heading: 0.23 },
     photo: { target: [-0.9, 0, 0], distance: 16, elevation: 0.55, bearing: Math.PI + 0.3 },
     flag: { x: -0.9, z: 0, h: 30 },
     height: { realM: 0, u: 1.0, top: 12.08, rule: 'overlook' },

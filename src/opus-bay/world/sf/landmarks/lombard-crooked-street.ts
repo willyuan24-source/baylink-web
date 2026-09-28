@@ -117,8 +117,8 @@ function walk(): NonNullable<SfLandmark['walk']> {
 /**
  * Setting (lane L, wave 4 — D2's remaining T2 settings): the exclusion clipped Hyde St with the Powell–Hyde cable-car
  * rails across the top and Leavenworth St across the foot (the lane met a gap in both): restored as the city draws
- * them, only beyond the lane's ends. The classic views are crowd spots: Hyde St's far sidewalk at the top (the lane
- * and the Bay below) and Leavenworth's far sidewalk at the foot (looking up the switchbacks).
+ * them, only beyond the lane's ends. The classic view at the top is a crowd spot: Hyde St's far corner (the lane and
+ * the Bay below); the foot's view is the arrival, at the foot of the east stairs (looking up the switchbacks).
  */
 const CROSS_STREETS = (_x: number, z: number, cls: string) => (cls === 'tertiary' || cls === 'tram' || cls === 'residential') && (z < Z_TOP - 0.3 || z > Z_BOT - 0.4);
 
@@ -133,7 +133,10 @@ export const lombardCrookedStreet: SfLandmark & SiteHooks = {
   build,
   walk: walk(),
   ground: streetStrips('lombard-crooked-street', CROSS_STREETS),
-  plaza: [{ poly: rect(0, 11.1, 6.0, 0.6), surface: 'pavement' }, { poly: rect(0, -13.9, 5.0, 0.6), surface: 'pavement' }],
+  // (W4-L-int-review: the top strip at z −13.9 lay on Hyde St's asphalt by the Powell–Hyde rails; two chosen points on
+  // the far corner's sidewalk instead; the foot strip at z 11.1 is dropped too: it lay over Lombard St's roadway and the
+  // corner houses east of Leavenworth)
+  plaza: [{ poly: rect(-2.5, -13.5, 0.3, 0.3), surface: 'pavement' }, { poly: rect(-3.5, -13.3, 0.3, 0.3), surface: 'pavement' }],
 };
 
 export const LOMBARD = { PATH, TURNS, ROAD_W, LIFT, Z_TOP, Z_BOT };

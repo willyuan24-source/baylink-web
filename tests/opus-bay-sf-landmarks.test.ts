@@ -525,3 +525,78 @@ test('W4-L-int-review: a terrain-base landmark keeps its blockers in rasters str
   assert.ok(n >= 10, `blockers checked: ${n}`);
   assert.deepEqual(lost, [], 'blockers standable in the rasters or passed by the queries');
 });
+
+test('W4-L-int-review: every site\'s arrival stands on walkable pavement off the traffic\'s asphalt, and no crowd spot stands on it', async () => {
+  const { createCityTerrain } = await import('../src/opus-bay/core/sfTerrain');
+  const { canStand, setCityTerrain, surfaceAt } = await import('../src/opus-bay/core/terrain');
+  const { CURB_BAND } = await import('../src/opus-bay/core/geo');
+  const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { landmarkPlazaSpots, sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { arrivalSpot } = await import('../src/opus-bay/actors/nav');
+  const card = new Set(SF_LANDMARK_INFO.map(i => i.id));
+  const { ROAD_CLASSES, demSample } = await import('../src/opus-bay/world/sf/format');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const sf = sfDisk(), far = await sf.far();
+  const sites = new CitySites(), lms = sites.walkInputs();
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(far);
+  sites.onBase = (id, y) => { city.setLandmarkBase(id, y); };
+  sites.attach(null as never, (x, z) => demSample(far.dem, x, z));
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  // The toy traffic (world/sf/traffic.ts) stops for the player only where the terrain says 'road' (cityLife people:
+  // surfaceAt === 'road'), and never for a standing sightseer (crowd.ts spawnStander puts one exactly on a landmark
+  // plaza spot, the roadway check skipped). A point is in the traffic when the rasters paint it 'road' AND it lies on a
+  // driven street's asphalt as they paint it (core/sfTerrain roads: the CURB_BAND edge of a street ≥ 3 u is pavement).
+  const DRIVEN = new Set(['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential']);
+  const chunks = new Map<string, Awaited<ReturnType<typeof sf.chunk>>>();
+  const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz: number) => {
+    const dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / L));
+    return Math.hypot(px - ax - dx * t, pz - az - dz * t);
+  };
+  const inTraffic = async (p: Vec2): Promise<string | null> => {
+    await sf.attachAround(city, p.x, p.z, 8, lms);
+    if (surfaceAt(p.x, p.z) !== 'road') return null;
+    for (let cz = Math.floor((p.z - 8) / 128); cz <= Math.floor((p.z + 8) / 128); cz++) for (let cx = Math.floor((p.x - 8) / 128); cx <= Math.floor((p.x + 8) / 128); cx++) {
+      const k = `${cx}_${cz}`;
+      if (!chunks.has(k)) chunks.set(k, await sf.chunk(cx, cz));
+      const rd = chunks.get(k)?.roads;
+      for (let i = 0; rd && i < rd.count; i++) {
+        if (!DRIVEN.has(ROAD_CLASSES[rd.cls[i]])) continue;
+        const w = rd.width[i], asphalt = w >= 3 ? w / 2 - CURB_BAND : w / 2;
+        for (let q = rd.pStart[i]; q + 1 < rd.pStart[i + 1]; q++) {
+          const d = segDist(p.x, p.z, rd.xyz[q * 3], rd.xyz[q * 3 + 2], rd.xyz[q * 3 + 3], rd.xyz[q * 3 + 5]);
+          if (d <= asphalt) return `${ROAD_CLASSES[rd.cls[i]]} street, ${d.toFixed(2)} u from its centre line (asphalt ${asphalt.toFixed(1)})`;
+        }
+      }
+    }
+    return null;
+  };
+  // Holy Virgin's arrival: lane V's swap test pins it ≥ 0.9 u before the porch, on Geary's asphalt (lane L's Requests);
+  // Balmy Alley is the site's own alley (its murals are on the garage doors either side: the crowd stands in it)
+  const OPEN = new Set(['geary-west', 'balmy-alley']);
+  // the Dragon Gate's arrival is on Grant Ave's 0.6 u east sidewalk (the only spot that frames the gate up the street): its
+  // fly-in landing snaps 0.4 u onto the kerb lane (actors/nav arrivalSpot keeps the nearest 0.75 u cell centre, not p;
+  // lane L's Request to the nav's owner). Any other card landing on the asphalt fails.
+  const LANDING_OPEN = new Set(['dragon-gate']);
+  const spots = landmarkPlazaSpots(), bad: string[] = [];
+  try {
+    for (const l of SF_SITES) {
+      if (OPEN.has(l.id)) continue;
+      const a = sfLandmarkAnchor(l.id);
+      if (a) {
+        const t = await inTraffic(a);
+        if (t) bad.push(`${l.id} arrival: ${t}`);
+        if (!canStand(a.x, a.z, 0.4)) bad.push(`${l.id} arrival (${a.x.toFixed(2)}, ${a.z.toFixed(2)}) is not standable`);
+        // a card's landing (fast travel, ?at=, the trip's fly leg: game/fastTravel arrivalSpot → actors/nav, the nearest
+        // 0.75 u nav cell of a large open area) must not snap onto the asphalt either: a 0.6 u sidewalk often has no cell
+        if (card.has(l.id) && !LANDING_OPEN.has(l.id)) {
+          const s = arrivalSpot(a, 30), t = s ? await inTraffic(s) : 'no landing';
+          if (t) bad.push(`${l.id} landing${s ? ` (${s.x.toFixed(2)}, ${s.z.toFixed(2)})` : ''}: ${t}`);
+        }
+      }
+      for (const p of spots.filter(s => s.id === l.id)) { const t = await inTraffic(p); if (t) bad.push(`${l.id} crowd spot (${p.x.toFixed(2)}, ${p.z.toFixed(2)}): ${t}`); }
+    }
+  } finally { setCityTerrain(null); }
+  assert.deepEqual(bad, []);
+});

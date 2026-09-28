@@ -88,7 +88,9 @@ const G = settingGround('cable-car-turntable');
 /** the plaza up Powell St to the apron's Market St side (beyond z 3 the drawn ground drops into Market St's gutter) */
 const PLAZA: Vec2[] = rect(0, -3.25, 10, 12.5);
 const LAMPS: Vec2[] = [{ x: -4.4, z: -3.2 }, { x: 4.3, z: -8.6 }];
-const BENCHES: { x: number; z: number; ry: number }[] = [{ x: -4.3, z: -6.0, ry: Math.PI / 2 }, { x: 4.2, z: -5.6, ry: -Math.PI / 2 }];
+// (W4-L-int-review: the west bench stood at z −6.0 inside the corner building the city keeps, which reaches 2.5 u into the
+// exclusion; it and the west crowd spot move south of that building's face)
+const BENCHES: { x: number; z: number; ry: number }[] = [{ x: -4.3, z: -8.3, ry: Math.PI / 2 }, { x: 4.2, z: -5.6, ry: -Math.PI / 2 }];
 
 function setting(b: BatchLike) {
   for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
@@ -119,7 +121,7 @@ export const cableCarTurntable: SfLandmark & SiteHooks = {
     ...streetStrips('cable-car-turntable', (x, z, cls) => (cls === 'tertiary' || cls === 'tram') && z > 1 && Math.hypot(x, z) > R + 1.6),
   ],
   lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
-  plaza: [{ poly: rect(-3.6, -6.5, 2.4, 5.0), surface: 'plaza' }, { poly: rect(3.4, -6.5, 2.4, 5.0), surface: 'plaza' }],
+  plaza: [{ poly: rect(-3.4, -8.6, 0.3, 0.3), surface: 'plaza' }, { poly: rect(3.4, -6.5, 2.4, 5.0), surface: 'plaza' }],
 };
 
 /** For the transit lane: turntable centre (local) and radius, and the rail gauge offsets. */

@@ -94,8 +94,10 @@ export const castroTheatre: SfLandmark & SiteHooks = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0.3, 4.6, 8.0)) },
   build,
   walk: { blockers: blockers(SWAP.ship) },
-  // the sidewalk before the doors, under the marquee (lane F's sightseers queue there)
-  plaza: [{ poly: rect(0, 4.55, 5.2, 0.7), surface: 'pavement' }],
+  // the sidewalk at the marquee's two ends (lane F's sightseers queue there). W4-L-int-review: the old strip (z 4.2–4.9)
+  // lay on Castro St's asphalt, and a standing sightseer is never in the traffic's people list (the cars drove through
+  // them); under the marquee the 0.6 u sidewalk is its posts' (not standable): two chosen points on the pavement
+  plaza: [{ poly: rect(-2.2, 4.0, 0.3, 0.3), surface: 'pavement' }, { poly: rect(2.0, 4.0, 0.3, 0.3), surface: 'pavement' }],
   swap: SWAP,
   fade: { r: 4, y1: 6.2, box: [2.3, 4.2], procedural: false },
 };
