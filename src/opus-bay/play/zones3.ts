@@ -124,9 +124,12 @@ export const BADGE_OVERLAY = 'play-lion-badges';
 export const LION_PROMPT_R = 2.6;
 /** The rail over K-Dock (the district's `sea-lion-viewpoint` anchor, the same place in the city). */
 export const LION_VIEW = DISTRICT.anchors['sea-lion-viewpoint'] ?? { x: -198.7, z: 3.8 };
+/** 数海狮 stands 6 u along the rail from it (south-west): the viewpoint itself is the photo spot (给海狮拍照, radius 4), which
+ * won the prompt there; 6 u out, each prompt has its own ground (checked in the game, 2026-09-28). */
+export const LION_SPOT = { x: +(LION_VIEW.x - 4.24).toFixed(2), z: +(LION_VIEW.z - 4.24).toFixed(2) };
 export const lionIt: Interactable = {
   id: 'play:sealions', source: 'activity', action: 'info', verb: { zh: '数海狮', en: 'Count the sea lions' }, name: { zh: 'K 码头', en: 'K-Dock' },
-  x: LION_VIEW.x, z: LION_VIEW.z, radius: LION_PROMPT_R,
+  x: LION_SPOT.x, z: LION_SPOT.z, radius: LION_PROMPT_R,
   act: () => { void import('./sealions').then(m => { m.startSeaLions(); }); },
 };
 const SeaLionBadges = lazy(() => import('./SeaLionBadges'));
@@ -212,7 +215,7 @@ export function initZones3(): () => void {
     if (placeHeave(tt)) zoneInvite('heave', HEAVE_INVITE_LINE);
     // the sea lions: fetched near the rail, BAYBAY's invite there
     if (nearPlayer(LION_VIEW.x, LION_VIEW.z, PREFETCH_R)) zonePrefetch('sealions', () => import('./sealions'));
-    if (nearPlayer(LION_VIEW.x, LION_VIEW.z, INVITE_R + 1)) zoneInvite('sealions', LION_INVITE_LINE);
+    if (nearPlayer(LION_SPOT.x, LION_SPOT.z, INVITE_R + 1)) zoneInvite('sealions', LION_INVITE_LINE);
     // the grass slide: offered where you stand on a steep lawn (on foot, playing, nothing else running)
     {
       const p = runtime.player;

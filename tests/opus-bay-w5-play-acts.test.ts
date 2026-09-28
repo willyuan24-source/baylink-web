@@ -26,6 +26,9 @@ const views = await import('../src/opus-bay/play/viewSpots');
 const flight = await import('../src/opus-bay/play/firstFlight');
 const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const { CITY_POIS } = await import('../src/opus-bay/data/sf/cityPois');
+const { CITY_DISTRICT_POIS } = await import('../src/opus-bay/data/pois');
+/** Every POI prompt the city builds (game/interactables.ts: the district's POIs in the city too, and the city's own). */
+const CITY_POI_PROMPTS = [...CITY_DISTRICT_POIS, ...CITY_POIS].filter(p => p.position && p.interaction).map(p => ({ id: `poi ${p.id}`, x: p.position.x, z: p.position.z, r: Math.max(1.5, p.radius || 3) }));
 const { PLACE_CARDS } = await import('../src/opus-bay/data/sf/placeCards');
 const { PLACE_CARDS_2 } = await import('../src/opus-bay/data/sf/placeCards2');
 const { CITY_POSTCARDS } = await import('../src/opus-bay/data/sf/postcards');
@@ -86,7 +89,7 @@ test('W5-A1 view spots: 16 append-only ids, bilingual names and short lines, a c
 test('W5-A4 view spots on the published city: standable, facing an open view, clear of every other prompt', async () => {
   await cityAround(views.VIEW_SPOTS, 110);
   const prompts = [
-    ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
+    ...CITY_POI_PROMPTS,
     ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
     ...CITY_POSTCARDS.map(c => ({ id: `postcard ${c.id}`, ...c.position })),
   ];
@@ -1030,7 +1033,7 @@ test('W5-A9 marshmallow: the toast (tiers, 金黄度, words, colours), the burni
   await cityAround(zones.FIRE_RINGS, 60);
   try {
     const prompts: { id: string; x: number; z: number }[] = [
-      ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
+      ...CITY_POI_PROMPTS,
       ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
       ...CITY_POSTCARDS.map(c => ({ id: `postcard ${c.id}`, ...c.position })),
       ...views.VIEW_SPOTS.map(v => ({ id: `view ${v.id}`, x: v.x, z: v.z })),
@@ -1349,15 +1352,17 @@ test('W5-A9 sea lions: 数海狮 at the K-Dock rail (standable, clear of other p
   const chip = await import('../src/opus-bay/play/chip');
   const THREE = await import('three');
   // the rail on the published city, a few steps from the dock, clear of every card / POI / postcard prompt
-  await cityAround([z3.LION_VIEW], 60);
+  await cityAround([z3.LION_VIEW, z3.LION_SPOT], 60);
   try {
-    assert.ok(T.canStand(z3.LION_VIEW.x, z3.LION_VIEW.z, 0.3), 'the rail is standable');
+    assert.ok(T.canStand(z3.LION_SPOT.x, z3.LION_SPOT.z, 0.5), 'the rail is standable');
+    assert.ok(dist(z3.LION_SPOT, z3.LION_VIEW) < 7, 'along the rail from the viewpoint');
     const prompts = [
-      ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
+      ...CITY_POI_PROMPTS,
       ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
       ...CITY_POSTCARDS.map(c => ({ id: `postcard ${c.id}`, ...c.position })),
     ];
-    for (const p of prompts) assert.ok(dist(z3.LION_VIEW, p) >= z3.LION_PROMPT_R + 1, `${dist(z3.LION_VIEW, p).toFixed(1)} u from ${p.id}`);
+    // (a POI prompt reaches its own radius: the viewpoint's 给海狮拍照 holds 4 u round it, so 数海狮 stands clear of that)
+    for (const p of prompts) assert.ok(dist(z3.LION_SPOT, p) >= Math.max(z3.LION_PROMPT_R, (p as { r?: number }).r ?? 0) + 1, `${dist(z3.LION_SPOT, p).toFixed(1)} u from ${p.id}`);
   } finally { T.setCityTerrain(null); }
   for (const line of [...Object.values(SL.LION_LINES), z3.LION_INVITE_LINE]) assert.ok([...line.zh].length <= 45, line.zh);
   assert.equal(SL.lionTier(19, 19), 3);
@@ -1368,7 +1373,7 @@ test('W5-A9 sea lions: 数海狮 at the K-Dock rail (standable, clear of other p
   kit.__resetKit();
   kit.__setBestWriter(null);
   SL.__resetLions();
-  runtime.player.x = z3.LION_VIEW.x; runtime.player.z = z3.LION_VIEW.z;
+  runtime.player.x = z3.LION_SPOT.x; runtime.player.z = z3.LION_SPOT.z;
   const offZ = z3.initZones3();
   const { events, off } = record();
   mock.timers.enable({ apis: ['setTimeout'] });
