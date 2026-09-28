@@ -20,12 +20,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { type TransitFile, type TransitLine, transitLineProblems } from '../../src/opus-bay/world/sf/format';
-import { METRO_STATIONS, W4_LINES } from '../../src/opus-bay/data/sf/stationNames';
-import { bakeLoop } from './lib/busLoop';
+import { METRO_STATIONS } from '../../src/opus-bay/data/sf/stationNames';
 import { loadDem } from './lib/io';
-import { buildMetroLines } from './lib/metro';
 import { Clearance, placeKiosk, placePole } from './lib/stopPlace';
 import { buildTerrain } from './lib/terrain';
+import { W4_SOURCE_NOTE, buildW4Lines } from './lib/transit';
 
 const REPO = path.resolve(import.meta.dirname, '../..');
 const PUBLISHED = path.join(REPO, 'public/opus-bay/sf/v1/transit.json');
@@ -129,19 +128,15 @@ async function main() {
   const wave2 = published.lines.filter(l => (WAVE2_IDS as readonly string[]).includes(l.id));
   if (wave2.length !== WAVE2_IDS.length) throw new Error(`published transit.json lacks a wave-2 line (${wave2.map(l => l.id)})`);
   const terrain = buildTerrain(loadDem(), log);
-  const metro = buildMetroLines(terrain, log);
-  const loop = bakeLoop(terrain, log);
+  // the same lines a full build appends (lib/transit.ts buildW4Lines: the loop with its speed spans, N, M)
+  const w4 = buildW4Lines(terrain, log);
   // the OSM station positions (under Market St) before the kiosks move
   const metroRaw = new Map<string, { x: number; z: number }>();
-  for (const l of metro.lines) for (const st of l.stops) if (!metroRaw.has(st.id)) metroRaw.set(st.id, { x: st.x, z: st.z });
-  // the loop carries its speed spans (an additive field the runtime reads; lead request: `speeds?` on TransitLine)
-  const loopLine = { ...loop.line, speeds: loop.speeds } as TransitLine & { speeds: [number, number, number][] };
-  const w4 = [loopLine, ...metro.lines].sort((a, b) => Object.keys(W4_LINES).indexOf(a.id) - Object.keys(W4_LINES).indexOf(b.id));
+  for (const l of w4) if (l.kind === 'light-rail') for (const st of l.stops) if (!metroRaw.has(st.id)) metroRaw.set(st.id, { x: st.x, z: st.z });
   const props = await placeStops(w4, metroRaw, log);
   const problems = checkW4Lines(w4);
-  for (const r of [...metro.report, ...loop.report]) log(r);
   if (problems.length) { for (const p of problems) console.error(`PROBLEM ${p}`); throw new Error(`${problems.length} problems: nothing written`); }
-  const source = `${published.source.split('; wave 4:')[0]}; wave 4: the sightseeing loop designed on the car-legal OSM street graph, Muni Metro N / M from OSM route relations 3435877 / 3433314 (underground heights interpolated between the portals)`;
+  const source = `${published.source.split('; wave 4:')[0]}; ${W4_SOURCE_NOTE}`;
   // `props`: where each wave-4 stop's pole / kiosk stands (an additive field; data/transit.ts reads it)
   const full = { version: published.version, source, lines: [...wave2, ...w4], props } as TransitFile & { props: Record<string, [number, number]> };
   const onlyW4 = { version: published.version, source, lines: w4, props } as TransitFile & { props: Record<string, [number, number]> };

@@ -4,17 +4,21 @@ import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
-import { LOOP_STOP_LINES, loopHopOffTip, metroNarration, tourLineText, tunnelNarration } from '../data/sf/tourLines';
+import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
 import { type TransitW4, activeLineFleet, boardAt, transitW4, w4Kind } from '../data/transit';
 import type { TransitLine, TransitTunnel } from '../world/sf/format';
 import type { BusRideStatus } from '../world/busSystem';
 import { type RailRideStatus, stopPos } from '../world/lightRail';
+import { noteLoopRide, sayTunnel } from './cityContent';
 import { hookFill, npcLine } from './content';
+import { getLocale } from '../../i18n/locale';
+import { cityStreamerLazy } from '../world/cityLoader';
 import { travelEpoch } from './fastTravel';
-import { announce, bubble, defineNode, playDialogue, refreshLock, say } from './flow';
+import { announce, defineNode, playDialogue, refreshLock, say } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import type { Interactable } from './interactables';
 import { type LineChoice, type LineLite, lineChoices, lineRideLabel } from './lineChoices';
+import { LINE_TTL } from './linePacer';
 import { type RideState, beginLineRide, currentRide, isLineRide, lineRideEta } from './ride';
 import { registerLineEstimator, registerTripLines, transitTripLine } from './tripProviders';
 
@@ -306,6 +310,41 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean)
   return { spot: null, side, station: st?.station ?? null };
 }
 
+/** 直接到站 farther than this (u, straight to the destination: beyond the ring the streamer holds round the player) waits under a veil for the city to stream in. */
+export const SKIP_VEIL_OVER = 250;
+
+/**
+ * 直接到站 on a long leg (plan §3.4: > 400 u): a dark veil fades in over the view (0.35 s), `jump` ends the ride and puts
+ * the rider at the destination under it, the streamer brings that part of the city in (whenReady 150 u, at most 8 s),
+ * then the veil fades out (0.5 s). Plain DOM (no React root): one element over the canvas, under the HUD's toasts.
+ */
+export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void) {
+  if (typeof document === 'undefined') { jump(); return; }
+  const host = document.querySelector('.ob-overlay') ?? document.body;
+  const veil = document.createElement('div');
+  veil.className = 'ob-line-veil';
+  veil.setAttribute('aria-hidden', 'true');
+  Object.assign(veil.style, {
+    position: 'absolute', inset: '0', zIndex: '45', pointerEvents: 'auto', opacity: '0', transition: 'opacity .35s ease',
+    background: 'radial-gradient(ellipse at 50% 55%, #243037 0 35%, #11171b 100%)', display: 'grid', placeItems: 'center',
+    color: '#f5efe2', font: '800 17px/1.4 inherit', letterSpacing: '.02em',
+  } as Partial<CSSStyleDeclaration>);
+  const en = getLocale() === 'en';
+  if (name) veil.textContent = en ? `Next stop: ${name.en} …` : `直接到站：${name.zh} …`;
+  host.appendChild(veil);
+  requestAnimationFrame(() => { veil.style.opacity = '1'; });
+  window.setTimeout(() => {
+    jump();
+    const streamer = cityStreamerLazy();
+    const ready = streamer ? streamer.whenReady(to, 150) : Promise.resolve();
+    void Promise.race([ready, new Promise(r => window.setTimeout(r, 8000))]).then(() => {
+      veil.style.transition = 'opacity .5s ease';
+      veil.style.opacity = '0';
+      window.setTimeout(() => veil.remove(), 600);
+    });
+  }, 380);
+}
+
 /**
  * 直接到站 on a loop / Metro ride counts as a ride (plan §3.4) when the skipped leg is a real one: another station, at
  * least the odometer rule's length along the line, no fast travel since boarding.
@@ -364,8 +403,8 @@ export function subwayView(): SubwayView | null {
     // once as the overlay comes up
     const a = l.stops.find(s => s.id === r.from)?.at ?? tunnel.fromAt, b = l.stops.find(s => s.id === r.to)?.at ?? tunnel.toAt;
     const clamp = (x: number) => Math.min(tunnel.toAt, Math.max(tunnel.fromAt, x));
-    const say = tunnelNarration(l.id, clamp(a), clamp(b));
-    if (say) { bubble(tourLineText(say), 5200); emit({ type: 'voice-line', id: say.id }); }
+    // through BAYBAY's line pacer (lane C: game/cityMoments sayTunnel), never over another of her lines
+    sayTunnel(l.id, clamp(a), clamp(b));
   }
   const meta = W4_LINES[l.id as W4LineId];
   const stations = l.stops.filter(s => s.at >= tunnel.fromAt - 0.5 && s.at <= tunnel.toAt + 0.5).map(s => ({ id: s.id, name: w4StationShort(s.id) ?? w4StationName(s.id) ?? s.name, at: s.at }));
@@ -390,20 +429,29 @@ export function subwayView(): SubwayView | null {
 // Narration fallbacks (lane C narrates the loop / Metro stops from the `transit` events; these are the boarding bubbles)
 // ---------------------------------------------------------------------------
 
-/** The boarding bubble of a loop / Metro ride (the Metro's is lane C's frozen board line). */
-export function boardBubble(r: RideState): Bilingual {
-  if (w4Kind(r.line ?? '') === 'light-rail') {
-    const line = metroNarration({ what: 'board', line: r.line!, dir: r.dir });
-    if (line) return tourLineText(line);
-  }
+/**
+ * The boarding bubble of a loop ride, or null: the Metro's board line is lane C's (its pacer says `metro-board-n / -m`
+ * on the fleet's `board` event), the loop's frozen lines start at the first approach.
+ */
+export function boardBubble(r: RideState): Bilingual | null {
+  if (w4Kind(r.line ?? '') !== 'bus') return null;
   return { zh: '上车啦！上层前排视野最好，每一站我都给你讲', en: 'All aboard! The front of the top deck has the best view, and I’ll tell you about every stop' };
 }
 
-/** The loop stop's hop-off tip (lane C's frozen line: "下车走 20 米就是风车…"), for the bubble when you get off there. */
-export function hopOffTip(station: string | null): { text: Bilingual; id: string } | null {
+/**
+ * Getting off at a loop stop: its hop-off tip (lane C's frozen line: "下车走 20 米就是风车…") through BAYBAY's line pacer
+ * (game/cityMoments offerLine: after whatever she is saying, never over it; the arrival moment follows on foot).
+ * Returns whether the stop has one.
+ */
+export function sayHopOffTip(station: string | null): boolean {
   const line = station ? loopHopOffTip(station) : null;
-  return line ? { text: tourLineText(line), id: line.id } : null;
+  if (!line) return false;
+  void import('./cityMoments').then(m => m.offerLine(line.id, LINE_TTL.tip), () => {});
+  return true;
 }
+
+/** Lane C's sightseeing goal: the loop stops of a ride finished with 直接到站 (no `arrive` under the veil). */
+export function noteLoopSkip(from: string, to: string) { noteLoopRide(from, to); }
 
 /**
  * The recorded tour lines (lane C's frozen TOUR_LINES, lane V's clips) that may play at `station` and at the next stop

@@ -1,6 +1,11 @@
 // Step 9a: transit.json — the three cable-car lines and the F-line (Wharf → Castro) from their OSM route relations,
 // with terrain-following track heights, stops, turntables and the spans that run inside the hero slab.
+import fs from 'node:fs';
+import path from 'node:path';
 import type { TransitFile, TransitLine } from '../../../src/opus-bay/world/sf/format';
+import { W4_LINES } from '../../../src/opus-bay/data/sf/stationNames';
+import { bakeLoop } from './busLoop';
+import { buildMetroLines } from './metro';
 import { elements, type OsmElement } from './io';
 import { type Terrain, heightAt } from './terrain';
 import { inSlab, projPt } from './world';
@@ -13,7 +18,7 @@ const LINES: LineSpec[] = [
   { id: 'f-line', rel: 2007934, kind: 'streetcar', name: { zh: 'F 线复古电车', en: 'F Market & Wharves streetcar' }, color: '#2f8f88', doubleEnded: false },
 ];
 
-export function buildTransit(t: Terrain, version: string, log: (s: string) => void): { file: TransitFile; stopPoints: { x: number; z: number; rot: number }[] } {
+export function buildTransit(t: Terrain, version: string, log: (s: string) => void, opts: { w4?: boolean } = {}): { file: TransitFile; stopPoints: { x: number; z: number; rot: number }[] } {
   const rels = new Map<number, OsmElement>();
   const nodes = new Map<number, OsmElement>();
   const namedNodes: OsmElement[] = [];
@@ -113,7 +118,42 @@ export function buildTransit(t: Terrain, version: string, log: (s: string) => vo
     });
     log(`transit: ${spec.id} ${cum[cum.length - 1].toFixed(0)} u, ${stops.length} stops, ${tts.length} turntables, max joint gap ${maxGap.toFixed(2)} u, hero spans ${JSON.stringify(heroSpans)}`);
   }
-  return { file: { version, source: 'OpenStreetMap route relations (ODbL); track heights from the Opus Bay terrain curve', lines }, stopPoints };
+  const source = 'OpenStreetMap route relations (ODbL); track heights from the Opus Bay terrain curve';
+  if (opts.w4 === false) return { file: { version, source, lines }, stopPoints };
+  // wave 4 (lane T): the sightseeing loop and the Muni Metro N / M, exactly as scripts/opus-sf/transit-sidecar.ts writes
+  // them, so a full rebuild keeps them; the stops' poles / kiosks (`props`) are placed by the sidecar on the published
+  // chunks: a full build reuses the published placement (re-run the sidecar after a chunk rebuild). Their stops do not
+  // feed the chunk props (`stopPoints`), as in the published build.
+  const w4 = buildW4Lines(t, log);
+  const file = { version, source: `${source}; ${W4_SOURCE_NOTE}`, lines: [...lines, ...w4], props: publishedProps(w4) } as TransitFile & { props: Record<string, [number, number]> };
+  return { file, stopPoints };
+}
+
+/** The note the wave-4 lines add to transit.json's `source`. */
+export const W4_SOURCE_NOTE = 'wave 4: the sightseeing loop designed on the car-legal OSM street graph, Muni Metro N / M from OSM route relations 3435877 / 3433314 (underground heights interpolated between the portals)';
+
+/** The loop (with its speed spans) and the N / M, in the W4_LINES order (the sidecar's lines). */
+export function buildW4Lines(t: Terrain, log: (s: string) => void): TransitLine[] {
+  const metro = buildMetroLines(t, log);
+  const loop = bakeLoop(t, log);
+  for (const r of [...metro.report, ...loop.report]) log(r);
+  const loopLine = { ...loop.line, speeds: loop.speeds } as TransitLine & { speeds: [number, number, number][] };
+  return [loopLine, ...metro.lines].sort((a, b) => Object.keys(W4_LINES).indexOf(a.id) - Object.keys(W4_LINES).indexOf(b.id));
+}
+
+/** The published props (public/opus-bay/sf/v1/transit.json) for these lines' stops; a stop without one keeps its point. */
+function publishedProps(lines: TransitLine[]): Record<string, [number, number]> {
+  let pub: Record<string, [number, number]> = {};
+  try {
+    const file = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../../../public/opus-bay/sf/v1/transit.json'), 'utf8')) as { props?: Record<string, [number, number]> };
+    pub = file.props ?? {};
+  } catch { /* no published file: the stop points */ }
+  // (the published key order first: the same bytes as the sidecar's file)
+  const ids = new Set(lines.flatMap(l => l.stops.map(st => st.id)));
+  const out: Record<string, [number, number]> = {};
+  for (const id of Object.keys(pub)) if (ids.has(id)) out[id] = pub[id];
+  for (const l of lines) for (const st of l.stops) out[st.id] ??= [st.x, st.z];
+  return out;
 }
 
 const round = (v: number, q = 100) => Math.round(v * q) / q;

@@ -374,6 +374,8 @@ function stepCity(r: RideState, dt: number) {
   if (input.hornCount !== seenHorn) {
     seenHorn = input.hornCount;
     if (r.mode === 'follow') {
+      // wave 4: on the sightseeing bus H is the stop bell — 下一站下车 (the bus makes its next stop the rider's; ding)
+      if (r.kind === 'bus' && W4G) { W4G.requestNextStop(); return; }
       if (r.kind === 'streetcar') emit({ type: 'streetcar-bell' });
       if (r.kind === 'ferry') { emit({ type: 'transit', what: 'horn', line: r.line!, kind: 'ferry', strength: 1 }); return; }
       emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 1 });
@@ -396,7 +398,7 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
   if (tick.boarded) {
     // (the wave-4 fleet emits its own board event, with the station and the direction)
     if (!w4Kind(r.line!)) emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
-    if (W4G && w4Kind(r.line!)) bubble(W4G.boardBubble(r), 3600);
+    if (W4G && w4Kind(r.line!)) { const b = W4G.boardBubble(r); if (b) bubble(b, 3600); }
     else if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
     else if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
     else bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
@@ -439,7 +441,7 @@ function countRide(r: RideState, station?: string | null) {
 }
 
 /** Leave a city line ride: at the stop (arrived) or anywhere (hop off, "skip to stop"). Steps off beside the car. */
-function leaveLineRide(r: RideState, finishing: boolean) {
+function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   const sys = rideSystemFor(r.line!);
   const st = sys?.rideStatus();
   const car = st && sys ? sys.cars[st.car] : null;
@@ -450,6 +452,12 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   // wave 4 (the loop, the N / M): under ground only at a station's kiosk; 直接到站 lands at the destination's pole /
   // kiosk; on the surface off the kerb side of the bus / train
   const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing) : null;
+  // a long 直接到站 (> 400 u): the city streams in under a veil first (plan §3.4), then the ride ends there
+  if (w4 && skip && !veiled && w4.spot && Math.hypot(w4.spot.x - runtime.player.x, w4.spot.z - runtime.player.z) > W4G!.SKIP_VEIL_OVER) {
+    const dest = w4.station ?? r.to;
+    W4G!.veiledSkip(w4.spot, W4G!.stationPoint(dest)?.name ?? null, () => { if (currentRide() === r) leaveLineRide(r, true, true); });
+    return;
+  }
   const side = w4 ? w4.side : platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
   const skipCounts = !!(w4 && skip && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r)));
   releaseStop();
@@ -485,11 +493,15 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   const dest = stationOf(r, w4?.station && finishing ? w4.station : r.to);
   if (finishing && dest) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
   if (w4) {
-    if (skipCounts) { r.counted = true; countRide(r, r.to); }
+    if (skipCounts) {
+      r.counted = true;
+      countRide(r, r.to);
+      // lane C's sightseeing goal counts the loop stops the veil skipped (they raised no `arrive`)
+      if (w4Kind(r.line!) === 'bus') W4G!.noteLoopSkip(st?.lastStation ?? r.from, r.to);
+    }
     const at = w4.station ?? (finishing ? r.to : null);
-    const tip = at ? W4G!.hopOffTip(at) : null;
-    if (tip && (r.counted || finishing)) { bubble(tip.text, 5200); emit({ type: 'voice-line', id: tip.id }); }
-    else if (!r.counted && r.mode === 'follow') bubble({ zh: '坐过一站再下车，才算坐过哦', en: 'Ride at least one stop and it counts as a ride' }, 3000);
+    const tipped = (r.counted || finishing) && W4G!.sayHopOffTip(at);
+    if (!tipped && !r.counted && r.mode === 'follow') bubble({ zh: '坐过一站再下车，才算坐过哦', en: 'Ride at least one stop and it counts as a ride' }, 3000);
   } else if (r.kind === 'ferry') {
     if (r.counted && !skip) bubble(hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, 2800);
   } else if (r.kind === 'streetcar') {
@@ -701,6 +713,7 @@ export function initTransit(): () => void {
       /** wave 4 (lane T): the loop / Metro fleet, E at a pole / kiosk, a ride, 下一站下车, the subway view */
       fleet: () => activeLineFleet(), boardLine, rideLine: (line: string, from: string, to: string) => W4G?.rideLine(line, from, to),
       nextStop: requestNextStop, subway: subwayView, stationRides, nextArrival, stationPoint: (id: string) => W4G?.stationPoint(id) ?? null,
+      finish: finishRide, hopOff: hopOffRide, cancel: cancelRide,
       me: () => ({ x: +runtime.player.x.toFixed(1), z: +runtime.player.z.toFixed(1), move: game.get().move, ride: flow.get().ride, label: flow.get().ride ? rideLabel(flow.get().ride!) : null }),
       /** QA: stand at a station (x, z) */
       station: (id: string) => transitStation(id),

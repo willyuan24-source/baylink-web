@@ -47,8 +47,12 @@ const duration = (seconds: number): Bilingual => (seconds >= 90 ? { zh: `约 ${m
 function rideLabel(line: LineLite, to: LineStopLite, seconds: number, prefix?: Bilingual): Bilingual {
   const mark = star(to.id) ? '★ ' : '';
   const t = duration(seconds);
-  const lead = prefix ?? (line.kind === 'bus' ? { zh: '去', en: 'To' } : { zh: `${line.name.zh} · 去`, en: `${line.name.en} · to` });
-  return { zh: `${lead.zh} ${mark}${to.name.zh}（${t.zh}）`, en: `${lead.en} ${mark}${to.name.en} (${t.en})` };
+  // (integration, phone check: "N Judah · to ★ Judah & La Playa · Ocean Beach (~3 min)" wrapped to four lines in a
+  // 390 px dialogue row) — the Metro rows lead with the line letter in English, destinations use their short names
+  const letter = W4_LINES[line.id as W4LineId]?.short;
+  const lead = prefix ?? (line.kind === 'bus' ? { zh: '去', en: 'To' } : { zh: `${line.name.zh} · 去`, en: `${letter ?? line.name.en} · to` });
+  const name = w4StationShort(to.id) ?? to.name;
+  return { zh: `${lead.zh} ${mark}${name.zh}（${t.zh}）`, en: `${lead.en} ${mark}${name.en} (${t.en})` };
 }
 
 /** The boarding choices at station `from` of `line`. */
