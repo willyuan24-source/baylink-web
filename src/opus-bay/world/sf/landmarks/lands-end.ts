@@ -96,7 +96,8 @@ export const landsEnd: W4Site = {
   w4: {
     placeId: 'lands-end',
     attractions: ['lands-end'],
-    arrival: { x: 0.0, z: 4.2, heading: Math.PI },
+    // (W4-IL17: the Lookout's forecourt east of the doors, off El Camino del Mar's asphalt and the loop's line)
+    arrival: { x: 4.5, z: 2.6, heading: -1.81 },
     photo: { target: [2, 1.5, -8], distance: 30, elevation: 0.5, bearing: 1.6 },
     flag: { x: 0, z: 0.25, h: 30 },
     height: { realM: 6, u: 3.5, top: 7.4, rule: 'H = 3.2 + 0.155·h' },

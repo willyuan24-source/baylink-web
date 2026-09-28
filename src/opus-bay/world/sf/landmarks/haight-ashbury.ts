@@ -92,18 +92,22 @@ export const haightAshbury: W4Site = {
   build,
   walk: { blockers: BLOCKERS },
   lights: [{ x: 1.4, y: g.at(1.4, -1.2) + 3.0, z: -1.2, size: 1.4, color: '#ffcf8a' }],
-  plaza: [{ poly: [{ x: -1.9, z: -9.5 }, { x: 1.9, z: -9.5 }, { x: 1.9, z: 9.5 }, { x: -1.9, z: 9.5 }], surface: 'pavement' }],
+  // (W4-IL17: two spots on Ashbury's west sidewalk facing the corner; the sidewalks round the crossing are 0.3 u past
+  // the asphalt elsewhere, and the old strip was the Haight St carriageway)
+  plaza: [{ poly: rect(-1.9, -4.5, 0.3, 0.3), surface: 'pavement' }, { poly: rect(-1.9, -5.0, 0.3, 0.3), surface: 'pavement' }],
   w4: {
     placeId: 'haight-ashbury',
     attractions: ['haight-ashbury'],
     lod0R: 260,
-    arrival: { x: -1.2, z: 1.4, heading: 2.3 },
+    // (W4-IL17: the south-west corner's kerb return, off both carriageways, looking across Ashbury at the corner)
+    arrival: { x: -1.9, z: -1.9, heading: 1.859 },
     photo: { target: [3.5, 3, -3.5], distance: 20, elevation: 0.18, bearing: -2.4 },
     flag: { x: 3.3, z: -5.5, h: 30 },
     height: { realM: 24, u: 7.0, top: 7.3, rule: 'H = 3.2 + 0.155·h' },
     osm: ['node/4359145394', 'way/264356958', 'way/264356960', 'way/264356943'],
     terrain: [-3, -11, 14, 3],
     ringMin: 0.6,
-    notes: 'A street corner with its origin at the crossing (outside the corner quadrant it models), not a plaza: the crowd spots are the Haight St carriageway strip (the city street) and the walk-around ring is 60 % (row houses on both streets close the block).',
+    plazaMin: 0.17,
+    notes: 'A street corner with its origin at the crossing (outside the corner quadrant it models), not a plaza: the crowd stands on two sidewalk spots on Ashbury facing the corner (the city\'s sidewalks round the crossing are 0.3 u wide past the asphalt) and the walk-around ring is 60 % (row houses on both streets close the block).',
   },
 };

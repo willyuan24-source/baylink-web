@@ -71,19 +71,27 @@ export const sfmoma: W4Site = {
   build,
   walk: { blockers: [{ poly: rect(0, 0.6, 8.3, 10.0) }] },
   lights: [{ x: 0, y: g.at(0, 6) + 5, z: 7, size: 2.4, color: '#ffe3b0' }],
-  plaza: [{ poly: [{ x: -4.3, z: 5.6 }, { x: 4.6, z: 5.6 }, { x: 4.6, z: 9.5 }, { x: -4.3, z: 9.5 }], surface: 'pavement' }],
+  // (W4-IL17: the front stands on 3rd St's kerb, so the crowd stands on the side street's sidewalk and at Yerba Buena
+  // Gardens' edge across 3rd St, never on the carriageway)
+  plaza: [
+    { poly: rect(-7.5, -0.75, 0.6, 1.0), surface: 'pavement' },
+    { poly: rect(-7.5, 1.75, 0.6, 1.0), surface: 'pavement' },
+    { poly: rect(9.5, 12.5, 1.6, 5.0), surface: 'pavement' },
+  ],
   w4: {
     placeId: 'sfmoma',
     attractions: ['sfmoma'],
     lod0R: 200,
     budget: 1200,
-    arrival: { x: 0, z: 6.6, heading: Math.PI },
+    // (W4-IL17: the corner sidewalk, off 3rd St's asphalt, along the front)
+    arrival: { x: -7.5, z: 5.6, heading: 1.649 },
     photo: { target: [0, 5, 2], distance: 26, elevation: 0.22, bearing: 0.4 },
     flag: { x: 0, z: 2.4, h: 30 },
     height: { realM: 43, u: 10.0, top: 9.5, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/41692824'],
     terrain: [-6, -6, 6, 9],
     ringMin: 0.6,
-    notes: 'Downtown diet (plan §2.2): ≤ 1.2k, lod0R 200. Walk-around ring 60 %: the hotel tower and the garage hug the museum on two sides; its front is the 3rd St sidewalk.',
+    plazaMin: 9,
+    notes: 'Downtown diet (plan §2.2): ≤ 1.2k, lod0R 200. Walk-around ring 60 %: the hotel tower and the garage hug the museum on two sides; its front is the 3rd St sidewalk. Crowd plaza: two sidewalk spots on the side street and the edge of Yerba Buena Gardens across 3rd St (the front stands on the kerb).',
   },
 };

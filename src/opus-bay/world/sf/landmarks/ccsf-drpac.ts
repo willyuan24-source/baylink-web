@@ -71,12 +71,14 @@ export const ccsfDrpac: W4Site = {
   walk: { blockers: [{ poly: LOT }] },
   ground: ground(),
   lights: [{ x: -5.8, y: g.at(-5.8, 0.4) + 3.8, z: 0.4, size: 1, color: '#ffd9a0' }],
-  plaza: [{ poly: [{ x: -8.6, z: -5.1 }, { x: 8.3, z: -5.1 }, { x: 8.3, z: -7.6 }, { x: -8.6, z: -7.6 }], surface: 'pavement' }],
+  // (W4-IL17: the open ground west of the hoarding; the old strip ran into the campus building south of the lot)
+  plaza: [{ poly: [{ x: -11.5, z: -4.0 }, { x: -7.5, z: -4.0 }, { x: -7.5, z: 4.0 }, { x: -11.5, z: 4.0 }], surface: 'pavement' }],
   w4: {
     placeId: 'ccsf-ocean-campus',
     attractions: ['ccsf-ocean-campus'],
     lod0R: 260,
-    arrival: { x: 9.6, z: -2.0, heading: -Math.PI / 2 },
+    // (W4-IL17: the verge between the hoarding and the street, off the asphalt)
+    arrival: { x: 8.9, z: -2.0, heading: -Math.PI / 2 },
     photo: { target: [0, 5, 0], distance: 34, elevation: 0.3, bearing: 1.2 },
     flag: { x: 0, z: 0, h: 30 },
     height: { realM: 64, u: 14.6, top: 13.2, rule: 'H = 3.2 + 0.155·h' },

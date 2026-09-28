@@ -22,6 +22,11 @@ const g = siteGround(ID, 23.4);
 const STUCCO = '#efe2c8', STUCCO_SHADE = '#dccbaa', TILE = SF.tileRed, TRIM = '#f7efdd', DARK = '#4d4640', IRON = '#3d3a36';
 const MAIN = { x0: -9.5, x1: 9.6, z0: -5.4, z1: 5.4 };
 const TOWER = { x: 0.05, z: 4.3, w: 2.6 };
+/**
+ * W4-IL17: the east wing (the adjoining OSM block, 15.8 u², whose centroid falls inside the exclusion so the city drops
+ * it): drawn and walled here, or its 9 u² outside the exclusion would stay an empty lot beside the building
+ */
+const WING = { x: 11.0, z: -2.4, w: 2.8, d: 5.0 };
 /** the garden stairway: flights between landings from the terrace (z 6.4) down to Turk Blvd's kerb (z 17.8) */
 const STAIR_X = -1.2, STAIR_W = 2.6;
 const LANDINGS = [6.4, 10.2, 14.0, 17.4];
@@ -34,6 +39,8 @@ function main(b: BatchLike, lod: 0 | 2) {
   box(b, cx, -1.2, cz, w, t + 1.2, d, STUCCO, GLOW(0.1));
   // red tile roofs: the long central range and the two end pavilions stepping forward
   gable(b, cx, t, cz, w - 5.2, d - 0.6, 1.5, TILE, STUCCO, 0, 0.25);
+  box(b, WING.x, -1.2, WING.z, WING.w, t - 0.5 + 1.2, WING.d, STUCCO_SHADE, GLOW(0.1));
+  gable(b, WING.x, t - 0.5, WING.z, WING.d, WING.w, 1.0, TILE, STUCCO_SHADE, Math.PI / 2, 0.2);
   for (const sx of [-1, 1]) {
     const px = sx > 0 ? MAIN.x1 - 1.9 : MAIN.x0 + 1.9;
     box(b, px, -1.2, cz + 0.3, 3.8, t + 1.2 + 0.6, d + 0.6, STUCCO_SHADE, GLOW(0.1));
@@ -126,11 +133,12 @@ const BLOCKERS = [
   // hedged edges of the stairway (the planting either side is open lawn)
   ...[-1, 1].map(sx => ({ poly: rect(STAIR_X + sx * (STAIR_W / 2 + 0.25), 12.4, 0.4, 7.6) })),
   ...WALLS.map(([x0, x1]) => ({ poly: rect((x0 + x1) / 2, 17.0, x1 - x0, 0.4) })),
+  { poly: rect(WING.x, WING.z, WING.w, WING.d) },
 ];
 
-/** exclusion: the Main Building and the stairway garden (Lone Mountain North, the loop drive and Turk Blvd stay) */
+/** exclusion: the Main Building with its east wing (W4-IL17) and the stairway garden (Lone Mountain North, the loop drive and Turk Blvd stay) */
 const EXCLUDE: Vec2[] = [
-  { x: -10.2, z: -5.9 }, { x: 10.3, z: -5.9 }, { x: 10.3, z: 5.8 }, { x: 3.9, z: 5.8 }, { x: 3.9, z: 17.9 }, { x: -5.3, z: 17.9 },
+  { x: -10.2, z: -5.9 }, { x: 12.8, z: -5.9 }, { x: 12.8, z: 0.5 }, { x: 10.3, z: 0.5 }, { x: 10.3, z: 5.8 }, { x: 3.9, z: 5.8 }, { x: 3.9, z: 17.9 }, { x: -5.3, z: 17.9 },
   { x: -5.3, z: 5.8 }, { x: -10.2, z: 5.8 },
 ];
 

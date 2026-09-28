@@ -92,13 +92,15 @@ export const gearyWest: W4Site = {
   tall: [{ x: 0, z: -0.1, r: 1.4 }],
   lights: [{ x: 0, y: g.at(0, 0) + WALL + 3.2, z: CZ, size: 1.6, color: '#ffe2a0' }],
   plaza: [
-    // the sidewalks of Geary Blvd in front of it and across the boulevard (no gameplay objects on the cathedral)
-    { poly: [{ x: -5.0, z: 1.65 }, { x: 5.0, z: 1.65 }, { x: 5.0, z: 3.4 }, { x: -5.0, z: 3.4 }], surface: 'pavement' },
-    { poly: [{ x: -6.0, z: 7.6 }, { x: 6.0, z: 7.6 }, { x: 6.0, z: 8.8 }, { x: -6.0, z: 8.8 }], surface: 'pavement' },
+    // the walk beside the cathedral's west side (W4-IL17: Geary Blvd's frontage is 0.8 u past the asphalt, and the old
+    // strips stood on both carriageways; no gameplay objects on the cathedral)
+    { poly: [{ x: -3.0, z: -9.0 }, { x: -1.8, z: -9.0 }, { x: -1.8, z: -4.0 }, { x: -3.0, z: -4.0 }], surface: 'pavement' },
   ],
   w4: {
     placeId: 'holy-virgin-cathedral',
     attractions: ['holy-virgin-cathedral'],
+    // (on Geary's asphalt edge, 1.6 u from the centreline: lane V's swap test pins it ≥ 0.9 u before the porch, where
+    // the carriageway starts — sites test OPEN_ARRIVALS, Requests)
     arrival: { x: 0, z: 2.6, heading: Math.PI },
     photo: { target: [0, 5, 0], distance: 22, elevation: 0.25, bearing: 0.3 },
     flag: { x: 0, z: 0, h: 30 },
@@ -107,6 +109,7 @@ export const gearyWest: W4Site = {
     terrain: [-4, -4, 4, 5],
     terrainStep: 1,
     aiSlot: { model: 'w4-holy-virgin', id: 'sf-holy-virgin', at: [0, +w4SwapY(SWAP_ROW, g.at).toFixed(2), -0.02], note: 'lane V (data/sf/w4Models.ts, sf-holy-virgin): five gold onion domes, white with red trim; to be re-fitted to this lot (2.6 × 3.0 u, 9.1 u to the cross), front +Z = Geary Blvd' },
-    notes: 'Active cathedral: quiet card, no gameplay objects.',
+    plazaMin: 6,
+    notes: 'Active cathedral: quiet card, no gameplay objects. Crowd plaza: the walk beside its west side (the Geary Blvd sidewalk in front is too narrow to stand on).',
   },
 };
