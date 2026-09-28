@@ -31,6 +31,8 @@ export const HUD_BOX_SELECTOR = [
   '.ob-go-chip',
   // W5-N7: the quiet discovery chip (+3 个地点) under the area pill, outside its box
   '.ob-found-chip',
+  // lane F's request (part b): lane A's result card and first-flight chip keep the waypoint and the bubble off them
+  '.ob-play-result', '.ob-play-flight',
 ].join(', ');
 
 /**

@@ -64,6 +64,25 @@ export function landmarkAreaAt(x: number, z: number): LandmarkArea | null {
 }
 
 /**
+ * CP-13 (the mid-wave checkpoint: "English names in the zh HUD"): the hero waterfront's zones keep the district's own
+ * frozen names in district mode (data/district.ts: 'Coit Tower · 电报山', 'Exploratorium · Pier 15', 'Embarcadero 海滨大道'
+ * …); the city's area pill names them in zh as the rest of the city does (data/VOICE.md glossary: 科伊特塔 ·
+ * 菲尔伯特台阶, 33 号码头, 内河码头; the attraction names for the piers and the Exploratorium).
+ */
+export const CITY_HERO_ZONE_NAMES: Readonly<Record<string, Bilingual>> = {
+  coit: bi('科伊特塔 · 电报山', 'Coit Tower · Telegraph Hill'),
+  filbert: bi('菲尔伯特台阶', 'Filbert Steps'),
+  levis: bi('李维斯广场', "Levi's Plaza"),
+  pier14: bi('14 号码头', 'Pier 14'),
+  ferry: bi('渡轮大厦', 'Ferry Building'),
+  pier7: bi('7 号码头', 'Pier 7'),
+  exploratorium: bi('探索馆 · 15 号码头', 'Exploratorium · Pier 15'),
+  pier33: bi('33 号码头', 'Pier 33 · Alcatraz Landing'),
+  pier39: bi('39 号码头', 'Pier 39'),
+  embarcadero: bi('内河码头', 'The Embarcadero'),
+};
+
+/**
  * City mode only: the area at a world point (id for store.area + its name), or null. `y` (the walker's height, when the
  * caller knows it): on a span's deck anywhere along it, not under it.
  */
@@ -71,7 +90,9 @@ export function cityAreaAt(x: number, z: number, y?: number): { id: string; name
   const s = landmarkSpanAt(x, z, y);
   if (s) return { id: s.id, name: s.name };
   for (const a of LANDMARK_AREAS) if ((x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r) return { id: a.id, name: a.name };
-  return zoneAt(x, z);
+  const zone = zoneAt(x, z);
+  const hero = zone ? CITY_HERO_ZONE_NAMES[zone.id] : undefined;
+  return hero && zone ? { id: zone.id, name: hero } : zone;
 }
 
 /** Put the 41 neighbourhood names from far.obc into AREA_NAMES (the map and place list name zones not walked yet). */
@@ -81,7 +102,7 @@ export function learnZoneNames(zones: readonly { id: string; zh: string; en: str
 
 /** Name of an area id: landmark areas and seen neighbourhoods, else 旧金山. */
 export function zoneName(id: string | null | undefined): Bilingual {
-  const hit = id ? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name ?? SPAN_AREAS.get(id)?.name : undefined;
+  const hit = id ? CITY_HERO_ZONE_NAMES[id] ?? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name ?? SPAN_AREAS.get(id)?.name : undefined;
   return hit ?? SF_NAME;
 }
 export const SF_NAME: Bilingual = bi('旧金山', 'San Francisco');

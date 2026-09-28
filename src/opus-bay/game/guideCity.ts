@@ -105,6 +105,18 @@ export function chipFinds<P extends { id: string }>(found: readonly P[], onFoot:
   return found.filter(p => { const r = rankOf(p.id); return !(onFoot && r !== undefined && r <= 2); });
 }
 
+/** Has the text a CJK character (a real zh name, not an English one copied into zh)? */
+export const hasCjk = (s: string): boolean => /[㐀-鿿豈-﫿]/.test(s);
+
+/**
+ * The chip's words (pure): "+1 · 名称" for one find, "+3 个地点" for more. CP-13: a find whose zh name is only its
+ * English one (most OSM places: 'Golden White House', 'Boiler rooms') says "+1 个地点" in zh, never English in the zh HUD.
+ */
+export function foundChipText(found: Pick<FoundChip, 'n' | 'first'>): Bilingual {
+  if (found.n !== 1) return { zh: `+${found.n} 个地点`, en: `+${found.n} places` };
+  return { zh: hasCjk(found.first.zh) ? `+1 · ${found.first.zh}` : '+1 个地点', en: `+1 · ${found.first.en}` };
+}
+
 /** The chip after `add` finds (pure): a showing chip grows, else a new one (key + 1). */
 export function bumpFound(cur: FoundChip | null, add: readonly { name: Bilingual }[], key: number): FoundChip | null {
   if (!add.length) return cur;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Footprints, Hand, MapPin, Route, Sparkles } from 'lucide-react';
 import { DISTRICT } from '../data/district';
 import { AREA_NAMES } from '../game/brain';
+import { CITY_HERO_ZONE_NAMES } from '../data/cityZones';
 import { useStreetName } from '../game/streets';
 import PHOTO_ASSETS from '../../data/sf-landmark-photo-assets.json';
 import { runtime } from '../core/runtime';
@@ -9,7 +10,7 @@ import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
 import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourPill, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { type GuideUiState, TOAST_MS, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
+import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
 import { type TripLineInfo, tripTimeLabel } from '../game/tripPlan';
 import type { TripState } from '../game/tripTypes';
@@ -89,7 +90,8 @@ export function CityAreaLabel() {
   const { t, locale } = useT();
   const area = useGame(s => s.area);
   const zone = DISTRICT.zones?.find(item => item.id === area);
-  const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? SF_NAME;
+  // CP-13: the hero waterfront zones by their city names (the district's frozen ones mix in English)
+  const name = (area ? CITY_HERO_ZONE_NAMES[area] : undefined) ?? zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? SF_NAME;
   const streetName = useStreetName();
   const street = streetName && streetName.toLowerCase() !== name.en.toLowerCase() ? streetName : null;
   const [fresh, setFresh] = useState(true);
@@ -121,7 +123,7 @@ function FoundChipView() {
   const { t } = useT();
   const found = useGuide(s => s.found);
   if (!found) return null;
-  const text = found.n === 1 ? { zh: `+1 · ${found.first.zh}`, en: `+1 · ${found.first.en}` } : { zh: `+${found.n} 个地点`, en: `+${found.n} places` };
+  const text = foundChipText(found);
   return <span key={found.key} className="ob-found-chip" role="status"><Sparkles size={13} aria-hidden /><span>{t(text)}</span></span>;
 }
 
