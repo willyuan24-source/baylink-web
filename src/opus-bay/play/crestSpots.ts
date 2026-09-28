@@ -38,9 +38,22 @@ export const CREST_R = 9;
 /** play.b key: the crests hopped so far (a mask, bit i = spot i). */
 export const CREST_KEY = 'crests';
 
-/** The spot a crest hop at (x, z) belongs to (the nearest within CREST_R), or −1. */
+/**
+ * A hop up to CREST_LEAD u before the spot on its street (within CREST_LANE of the line) counts too: a long crest has more
+ * than one brow, and a fast car leaves the ground at the first (Castro St at full speed in the game hopped 23 u before the
+ * spot, at the plateau's edge, 2026-09-28).
+ */
+export const CREST_LEAD = 26, CREST_LANE = 4;
+
+/** The spot a crest hop at (x, z) belongs to (the nearest within CREST_R, else one whose run-up it is on), or −1. */
 export function crestAt(x: number, z: number): number {
   let best = -1, bd = CREST_R;
   CREST_SPOTS.forEach((s, i) => { const d = Math.hypot(s.x - x, s.z - z); if (d <= bd) { bd = d; best = i; } });
+  if (best >= 0) return best;
+  let lead = CREST_LEAD;
+  CREST_SPOTS.forEach((s, i) => {
+    const along = (x - s.x) * Math.sin(s.heading) + (z - s.z) * Math.cos(s.heading), lat = (x - s.x) * Math.cos(s.heading) - (z - s.z) * Math.sin(s.heading);
+    if (along < 0 && -along <= lead && Math.abs(lat) <= CREST_LANE) { lead = -along; best = i; }
+  });
   return best;
 }

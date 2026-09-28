@@ -1254,6 +1254,9 @@ test('W5-A9 crest hops: 12 append-only crests on the published city — the toy 
   for (const a of CS.CREST_SPOTS) for (const b of CS.CREST_SPOTS) if (a !== b) assert.ok(dist(a, b) > 60, `${a.id} vs ${b.id}`);
   assert.equal(CS.crestAt(CS.CREST_SPOTS[5].x + 3, CS.CREST_SPOTS[5].z - 2), 5);
   assert.equal(CS.crestAt(CS.CREST_SPOTS[5].x + 30, CS.CREST_SPOTS[5].z), -1);
+  // on the run-up (a long crest's first brow), not past it nor beside the street
+  const c5 = CS.CREST_SPOTS[5], ahead = (a: number, l = 0) => ({ x: c5.x + Math.sin(c5.heading) * a + Math.cos(c5.heading) * l, z: c5.z + Math.cos(c5.heading) * a - Math.sin(c5.heading) * l });
+  for (const [a, l, want] of [[-22, 0, 5], [-22, 3, 5], [-22, 7, -1], [22, 0, -1], [-30, 0, -1]] as const) { const p = ahead(a, l); assert.equal(CS.crestAt(p.x, p.z), want, `${a} along, ${l} across`); }
   const DT = 1 / 60;
   const drive = (make: () => ReturnType<typeof createToyCar>, s: (typeof CS.CREST_SPOTS)[number]) => {
     const sim = make(), dx = Math.sin(s.heading), dz = Math.cos(s.heading);
