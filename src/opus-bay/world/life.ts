@@ -3,7 +3,7 @@ import type { Vec2 } from '../core/types';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { canStand, heightAt, isWater } from '../core/terrain';
+import { canStand, heightAt, isWater, surfaceAt } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { ASSETS, type ModelAsset } from '../data/assets';
 import { activeFerrySystem, pendingFerry } from '../data/transit';
@@ -46,6 +46,23 @@ const place = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: nu
  */
 export const LIFE_FAR = { people: 130, birds: 130, boats: 260, carousel: 220, perched: 110 } as const;
 const LIFE_FADE = { people: 15, birds: 20, boats: 25 } as const;
+/**
+ * (W5-T7, plan S-M4) City mode: the district's pigeon flock (8 birds of the gull mesh: no new call) moves to the plaza
+ * nearest the player, within PIGEON_REACH u (the Ferry Building plaza is home); it flies in and lands there, and scatters
+ * when you run through as it does at home. The plazas' centres (core/geo projectRaw of the squares), on standable ground off the roadway.
+ */
+export const PIGEON_PLAZAS: readonly { id: string; x: number; z: number }[] = [
+  { id: 'union-square', x: 95.9, z: 220.1 },
+  { id: 'hallidie-plaza', x: 130.8, z: 259.7 },
+  { id: 'portsmouth-square', x: 35, z: 129.5 },
+  { id: 'washington-square', x: -69.2, z: 105.9 },
+  { id: 'yerba-buena-gardens', x: 171.7, z: 208.4 },
+  { id: 'civic-center', x: 108.9, z: 396 },
+  { id: 'ghirardelli-square', x: -234.3, z: 165.5 },
+  { id: 'pier-39', x: -160.7, z: 24.1 },
+  { id: 'harvey-milk-plaza', x: 143.3, z: 742.8 },
+];
+export const PIGEON_REACH = 120;
 /** 1 inside reach, easing to 0 over the last `fade` u, 0 beyond (never culls with reach = Infinity: district mode) */
 const reachK = (d: number, reach: number, fade: number) => (d <= reach - fade ? 1 : d >= reach ? 0 : smooth(reach, reach - fade, d));
 
@@ -512,6 +529,10 @@ export class Life {
   private pelicanSpots: { x: number; y: number; z: number; ry: number; ph: number }[] = [];
   private loading = false;
   private lastGullEmit = -9;
+  /** (W5-T7) where the pigeon flock is ('home' = the Ferry Building plaza), its home perches, the 2 s re-check */
+  pigeonAt = 'home';
+  private pigeonHome: THREE.Vector3[] | null = null;
+  private pigeonT = 0;
   private flapMat = flapMaterial();
   private peopleMat = peopleMaterial();
   private kdock: Vec2;
@@ -950,6 +971,46 @@ export class Life {
     }
   }
 
+  /**
+   * (W5-T7) City mode, every 2 s: the flock goes to the plaza nearest the player (within PIGEON_REACH; home included)
+   * once every pigeon sits, the new plaza is ≥ 45 u from the camera (you see them fly in, never pop) and its ground has
+   * streamed in. Returns true when it moved (tests).
+   */
+  movePigeons(dt: number, px: number, pz: number, cam: { x: number; z: number }): boolean {
+    if (!this.cullFar()) return false;
+    this.pigeonT += dt;
+    if (this.pigeonT < 2) return false;
+    this.pigeonT = 0;
+    const flock = this.gulls.filter(g => g.pigeon && g.perch);
+    if (!flock.length) return false;
+    this.pigeonHome ??= flock.map(g => g.perch!.clone());
+    const home = this.pigeonHome;
+    const hx = home.reduce((a, v) => a + v.x, 0) / home.length, hz = home.reduce((a, v) => a + v.z, 0) / home.length;
+    let best = 'home', bx = hx, bz = hz, bd = Math.hypot(hx - px, hz - pz);
+    for (const q of PIGEON_PLAZAS) { const d = Math.hypot(q.x - px, q.z - pz); if (d < bd) { best = q.id; bx = q.x; bz = q.z; bd = d; } }
+    if (bd > PIGEON_REACH || best === this.pigeonAt) return false;
+    if (Math.hypot(bx - cam.x, bz - cam.z) < 45 || flock.some(g => g.mode !== 'perched')) return false;
+    let spots: THREE.Vector3[];
+    if (best === 'home') spots = home.map(v => v.clone());
+    else {
+      spots = [];
+      for (let k = 0; k < 36 && spots.length < flock.length; k++) {
+        const a = k * 2.4, d = 1.2 + (k % 4) * 1;
+        const x = bx + Math.cos(a) * d, z = bz + Math.sin(a) * d;
+        if (canStand(x, z, 0.1) && surfaceAt(x, z) !== 'road') spots.push(new THREE.Vector3(x, heightAt(x, z) + 0.02, z));
+      }
+      if (spots.length < flock.length) return false;
+    }
+    flock.forEach((g, k) => {
+      const v = spots[k];
+      g.perch!.copy(v); g.cx = v.x; g.cz = v.z; g.y = v.y + 5;
+      // they come in from above and a little off, and land (the 'return' glide)
+      g.x = v.x + Math.cos(g.ph) * 14; g.z = v.z + Math.sin(g.ph) * 14; g.yy = v.y + 9; g.mode = 'return'; g.timer = 0;
+    });
+    this.pigeonAt = best;
+    return true;
+  }
+
   private updateGulls(dt: number, t: number) {
     const px = runtime.player.x, pz = runtime.player.z;
     const running = runtime.player.running || runtime.player.speed > 5;
@@ -957,6 +1018,7 @@ export class Life {
     // (W5-T4) city mode: only the birds within LIFE_FAR.birds of the camera are drawn (packed to the front; the flap is
     // written for the slot a bird is drawn in). District mode: every bird in its own slot, as before.
     const reach = this.cullFar() ? LIFE_FAR.birds : Infinity;
+    this.movePigeons(dt, px, pz, cam);
     const pack = this.packGulls;
     pack.begin();
     // birds that come within 6 u of the lens shrink away instead of filling the frame

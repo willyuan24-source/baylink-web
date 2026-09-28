@@ -1047,3 +1047,244 @@ test('W5-T6 a bus keeps several ducks: the lowest in force applies and each ends
   b.update(19.9);
   assert.ok(Math.abs(b.ducking.amount - (0.5 + 12 * 0.01)) < 1e-9, 'the ones ending first made room');
 });
+
+// ---------------------------------------------------------------------------
+// Part c · the mid-wave checkpoint's CP-3 (stops you can walk away from) and CP-11 (the bus at the cable-car boxes, the
+// rider who just got off)
+// ---------------------------------------------------------------------------
+
+const PUB_TRANSIT = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as import('../src/opus-bay/data/transit').TransitFileJson & { props: Record<string, [number, number]> };
+
+test('W5-T part c (CP-11) the loop and the cable cars for an hour: no bus stands > 15 s at a box (it was 23–46 s at California & Drumm and at the Hyde St turntable), no car stands > 40 s, nothing overlaps', async () => {
+  const { busInterlocks } = await import('../src/opus-bay/world/sf/lineFleet');
+  const { interlockLines, boxBlocked } = await import('../src/opus-bay/world/sf/lineInterlocks');
+  const W4 = T.buildTransitW4(PUB_TRANSIT)!;
+  const data = T.buildTransit(PUB_TRANSIT);
+  T.setTransitW4(W4);
+  T.setTransitData(data);
+  const sys = new CableSystem(data, {});
+  const fleet = new LineFleet({ loop: W4.loop, metro: W4.metro, props: W4.props }, {
+    boxes: bt => busInterlocks(bt, interlockLines(data, null), (line, b0, b1) => boxBlocked(sys, null, line, b0, b1)),
+    emitEvents: false,
+  });
+  T.setActiveLineFleet(fleet);
+  try {
+    const bus = fleet.bus;
+    assert.ok(bus.boxes.some(b => b.id.startsWith('california@')) && bus.boxes.some(b => b.other?.line === 'powell-hyde' && b.a0 < 600), 'the California St and Hyde St boxes');
+    const DT = 1 / 20, held = new Map<number, number>();
+    let worstHold = 0, worstCar = 0, bad: string[] = [];
+    for (let t = 0; t < 3600; t += DT) {
+      sys.step(DT);
+      bus.step(DT);
+      for (const b of bus.buses) {
+        const h = b.why === 'box' && b.v < 0.3 ? (held.get(b.index) ?? 0) + DT : 0;
+        held.set(b.index, h);
+        worstHold = Math.max(worstHold, h);
+      }
+      for (const c of sys.cars) worstCar = Math.max(worstCar, c.still);
+      const v = [...sys.violations(), ...bus.violations()];
+      if (v.length) bad = v;
+    }
+    assert.ok(worstHold <= 15, `longest bus hold at a box ${worstHold.toFixed(1)} s`);
+    assert.ok(worstCar <= 40, `longest cable car stand ${worstCar.toFixed(1)} s`);
+    assert.deepEqual(bad, []);
+  } finally { T.setActiveLineFleet(null); fleet.dispose(); }
+});
+
+test('W5-T part c (CP-11) a car outside a box part leaves it to a bus due there; the car carrying the rider never yields; a car inside hurries its stop', () => {
+  const data = T.buildTransit(PUB_TRANSIT);
+  T.setTransitData(data);
+  const sys = new CableSystem(data);
+  const car = sys.cars.find(c => c.line.id === 'california' && c.mode === 'dwell')!;
+  assert.ok(car);
+  let due = true;
+  // the part: a stretch of California St ahead of the car, not under it
+  const part = car.dir > 0 ? { b0: car.s + 12, b1: car.s + 60 } : { b0: car.s - 60, b1: car.s - 12 };
+  const fake = { bus: { boxes: [{ id: 'california@t', a0: 0, a1: 1, blocked: () => false, other: { line: 'california', ...part } }], occupies: () => false, boxDue: () => due } };
+  T.setActiveLineFleet(fake as unknown as InstanceType<typeof LineFleet>);
+  try {
+    const s0 = car.s;
+    for (let i = 0; i < 30 * 20; i++) sys.step(1 / 20);
+    assert.ok(Math.abs(car.s - s0) < 0.01, 'held at its stop while the bus is due');
+    due = false;
+    for (let i = 0; i < 30 * 20; i++) sys.step(1 / 20);
+    assert.ok(Math.abs(car.s - s0) > 1, 'goes once the bus has passed');
+    // a car standing inside the part while the bus waits: its stop is cut to a second
+    const inPart = sys.cars.find(c => c.line.id === 'california' && c !== car)!;
+    fake.bus.boxes[0].other = { line: 'california', b0: inPart.s - 10, b1: inPart.s + 10 };
+    due = true;
+    inPart.mode = 'dwell'; inPart.v = 0; inPart.timer = 4;
+    sys.step(1 / 20);
+    assert.ok(inPart.timer <= 1, `the stop in the part is hurried (${inPart.timer.toFixed(2)} s left)`);
+    inPart.rider = true; inPart.timer = 4;
+    sys.step(1 / 20);
+    assert.ok(inPart.timer > 3, 'not with the rider aboard');
+    inPart.rider = false;
+  } finally { T.setActiveLineFleet(null); }
+});
+
+test('W5-T part c (CP-11) off at a loop stop: the rider stands by the pole, clear of the bus path; a bus is held only by someone on its path ahead, measured along the bend', async () => {
+  const { clearOfPath, PATH_CLEAR } = await import('../src/opus-bay/game/lineRides');
+  const W4 = T.buildTransitW4(PUB_TRANSIT)!;
+  const path3 = W4.loop.path;
+  const toPath = (x: number, z: number) => {
+    let d = Infinity;
+    for (let i = 3; i + 2 < path3.length; i += 3) {
+      const ax = path3[i - 3], az = path3[i - 1], dx = path3[i] - ax, dz = path3[i + 2] - az, L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+      d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return d;
+  };
+  for (const s of W4.loop.stops) {
+    const p = W4.props[s.id], q = clearOfPath(path3, { x: p[0], z: p[1] });
+    assert.ok(Math.hypot(q.x - p[0], q.z - p[1]) <= 2.5, `${s.id}: by its pole`);
+    // a pole already clear of the path is where the rider stands
+    if (toPath(p[0], p[1]) >= PATH_CLEAR) assert.deepEqual(q, { x: p[0], z: p[1] }, s.id);
+  }
+  // the bus's "someone ahead" follows the track: the Golden Gate Bridge stop, the rider at the pole beside the bend
+  const ggb = W4.loop.stops.find(s => s.id === 'loop-golden-gate-bridge')!;
+  const pole = W4.props[ggb.id];
+  let viewer = { x: pole[0], z: pole[1], onFoot: true };
+  const sys = new BusSystem(busTrack(W4.loop as never), { viewer: () => viewer } as never);
+  const b = sys.buses[0];
+  for (const o of sys.buses) if (o !== b) o.s = (ggb.at + 2000) % sys.track.length;
+  b.s = ggb.at - 3; b.mode = 'run'; b.v = 0; b.next = (sys.stopIndex(ggb.id) + 1) % W4.loop.stops.length;
+  sys.updatePose(b);
+  let personT = 0;
+  for (let k = 0; k < 20 * 30; k++) { sys.step(1 / 30); if (b.why === 'person') personT += 1 / 30; }
+  assert.ok(personT < 1, `held ${personT.toFixed(1)} s by the rider standing at the pole`);
+  // someone on the road ahead does hold it
+  const LT = await import('../src/opus-bay/world/lineTrack');
+  const ahead = LT.trackPoint(sys.track, b.s + BUS.length / 2 + 8);
+  viewer = { x: ahead.x, z: ahead.z, onFoot: true };
+  personT = 0;
+  for (let k = 0; k < 5 * 30; k++) { sys.step(1 / 30); if (b.why === 'person') personT += 1 / 30; }
+  assert.ok(personT > 3, 'someone standing on its path ahead');
+});
+
+test('W5-T part c (CP-3) every loop / Metro pole and kiosk: reached from the streets, and the real controller walks off 3 u in 3 of 4 directions (the sweep rule; four named corridors: 2 ways); the Sausalito quay is not a place anyone lands', async () => {
+  const sidecar = await import('../scripts/opus-sf/transit-sidecar');
+  const W4 = T.buildTransitW4(PUB_TRANSIT)!;
+  const ids = new Map<string, { x: number; z: number }>();
+  for (const l of W4.lines) for (const s of l.stops) if (!ids.has(s.id)) ids.set(s.id, { x: W4.props[s.id][0], z: W4.props[s.id][1] });
+  // (the two hero stops keep their promenade-kerb poles on the district slab)
+  ids.delete('loop-ferry-building'); ids.delete('loop-pier-39');
+  const CORRIDORS = new Set(['loop-haight-ashbury', 'loop-castro', 'muni-church', 'muni-castro']);
+  const { judge } = await sidecar.openJudge([...ids.values()]);
+  const px = runtime.player.x, pz = runtime.player.z;
+  try {
+    const bad: string[] = [];
+    for (const [id, p] of ids) {
+      const j = judge(p.x, p.z);
+      const moving = j.moves.filter(m => m >= 3).length;
+      if (j.reach === null || j.reach > 1.1 || moving < (CORRIDORS.has(id) ? 2 : 3)) bad.push(`${id} reach ${j.reach} moves ${j.moves.join('/')}`);
+    }
+    assert.deepEqual(bad, []);
+  } finally { setCityTerrain(null); runtime.player.x = px; runtime.player.z = pz; }
+  // the Sausalito boat is data only (running: false): no terminal, no prompt, no trip ends on its quay
+  const ferry = await import('../src/opus-bay/data/ferry');
+  assert.equal(ferry.ferryTerminal('sausalito'), null);
+  assert.equal(ferry.FERRY_ROUTES.find(r => r.id === 'ferry-sausalito')?.running, false);
+});
+
+// ---------------------------------------------------------------------------
+// W5-T7 (should): honest service rows, the barn after the real hours, the plaza pigeons
+// ---------------------------------------------------------------------------
+
+test('W5-T7 service rows: every real line carries its SFMTA route page and the date it was read; hours by the Bay clock; zh short', async () => {
+  const { LINE_SERVICE, serviceRow } = await import('../src/opus-bay/data/sf/serviceHours');
+  for (const [id, s] of Object.entries(LINE_SERVICE)) {
+    assert.equal(s.line, id);
+    assert.match(s.sourceUrl, /^https:\/\/www\.sfmta\.com\/routes\/[a-z-]+$/, id);
+    assert.match(s.verifiedAt, /^2026-\d\d-\d\d$/, id);
+    const r = serviceRow(id, { hour: 12, minute: 0 })!;
+    assert.ok(r.running, `${id} runs at noon`);
+    assert.ok([...r.text.zh].length <= 45 && [...r.state.zh].length <= 8, `${id}: ${r.text.zh}`);
+  }
+  assert.equal(serviceRow('sf-loop', { hour: 12, minute: 0 }), null, 'the game\'s own loop: no real row');
+  const at = (h: number, m = 0) => Object.fromEntries(Object.keys(LINE_SERVICE).map(id => [id, serviceRow(id, { hour: h, minute: m })!.running]));
+  // SFMTA route pages (2026-09-28): PH / PM 7 a.m.–11 p.m., California 7 a.m.–9 p.m., F 7 a.m.–12 a.m., M 6 a.m.–12 a.m., N 24 hours
+  assert.deepEqual(at(22, 30), { 'powell-hyde': true, 'powell-mason': true, california: false, 'f-line': true, 'n-judah': true, 'm-ocean-view': true });
+  assert.deepEqual(at(23, 5), { 'powell-hyde': false, 'powell-mason': false, california: false, 'f-line': true, 'n-judah': true, 'm-ocean-view': true });
+  assert.deepEqual(at(5, 30), { 'powell-hyde': false, 'powell-mason': false, california: false, 'f-line': false, 'n-judah': true, 'm-ocean-view': false });
+  assert.deepEqual(at(7, 0), { 'powell-hyde': true, 'powell-mason': true, california: true, 'f-line': true, 'n-judah': true, 'm-ocean-view': true });
+  assert.equal(serviceRow('powell-hyde', { hour: 9, minute: 0 })!.text.zh, '海德线 7:00–23:00 · 约9–10分钟一班');
+  // the station card renders them (the loop's stop has none)
+  const { ServiceRows } = await import('../src/opus-bay/ui/serviceRows');
+  const html = renderToStaticMarkup(h(ServiceRows, { lines: ['sf-loop', 'powell-hyde', 'california'] }));
+  assert.ok(html.includes('ob-svc') && html.includes('SFMTA') && (html.match(/<li/g) ?? []).length === 2, html);
+  assert.equal(renderToStaticMarkup(h(ServiceRows, { lines: ['sf-loop'] })), '');
+});
+
+test('W5-T7 the barn: after the real hours each line keeps one car out and the idle ones go in unseen; a rider brings them out; at 7:00 they are all back', () => {
+  const data = T.buildTransit(PUB_TRANSIT);
+  T.setTransitData(data);
+  let open = false;
+  const sys = new CableSystem(data, { realService: () => open });
+  const DT = 1 / 20, run = (secs: number) => { for (let t = 0; t < secs; t += DT) sys.step(DT); };
+  run(600);
+  for (const l of data.lines) {
+    const out = sys.cars.filter(c => c.line === l && !c.parked);
+    assert.equal(out.length, 1, `${l.id}: one car out after hours`);
+  }
+  assert.equal(sys.parkedCars(), sys.cars.length - data.lines.length);
+  assert.deepEqual(sys.violations(), []);
+  const parked = sys.cars.find(c => c.parked)!;
+  const s0 = parked.s;
+  run(60);
+  assert.equal(parked.s, s0, 'a parked car stays in the barn');
+  assert.equal(sys.eta(parked, 0, 1), Infinity);
+  // a rider on that line: the barn car comes out if its stretch is free, and the ride is served
+  const line = parked.line, stop = line.stops.find(st => !st.terminus)!;
+  const req = sys.request({ line: line.id, station: stop.station, dir: 1, to: line.stops[line.stops.length - 1].station });
+  assert.ok(req, 'a ride is available after hours');
+  assert.ok(sys.cars.filter(c => c.line === line && !c.parked).length >= 1);
+  sys.cancel();
+  // 7:00: everyone out again (unseen, stretch free)
+  open = true;
+  run(120);
+  assert.equal(sys.parkedCars(), 0);
+  run(300);
+  assert.deepEqual(sys.violations(), []);
+});
+
+test('W5-T7 plaza pigeons: in city mode the flock flies to the plaza nearest the player (≤ 120 u; lands, 0 new meshes), not while you watch; district mode keeps it home', async () => {
+  const { PIGEON_PLAZAS } = await import('../src/opus-bay/world/life');
+  const union = PIGEON_PLAZAS.find(p => p.id === 'union-square')!;
+  const prevCam = U.uCam.value.clone();
+  game.set({ phase: 'free' } as never);
+  try {
+    await withCity(union, 60, () => {
+      const life = new Life([]);
+      life.heroFarSource = () => false;
+      const meshes = (() => { let n = 0; life.group.traverse(o => { if ((o as import('three').Mesh).isMesh) n++; }); return n; })();
+      const gulls = (life as unknown as { gulls: { pigeon?: boolean; mode: string; perch?: { x: number; z: number }; x: number; z: number }[] }).gulls;
+      const flock = gulls.filter(g => g.pigeon);
+      assert.ok(flock.length >= 6, `${flock.length} pigeons`);
+      // district mode: never moves
+      life.cullFar = () => false;
+      assert.equal(life.movePigeons(3, union.x, union.z, { x: union.x + 80, z: union.z }), false);
+      life.cullFar = () => true;
+      // the camera right on the plaza: they do not pop in under your eyes
+      assert.equal(life.movePigeons(3, union.x, union.z, { x: union.x + 10, z: union.z }), false);
+      // from 70 u off: they fly in and land round the plaza
+      assert.equal(life.movePigeons(3, union.x, union.z, { x: union.x + 70, z: union.z }), true);
+      assert.equal(life.pigeonAt, 'union-square');
+      for (const g of flock) { assert.ok(Math.hypot(g.perch!.x - union.x, g.perch!.z - union.z) < 4.5, 'perched round the plaza'); assert.equal(g.mode, 'return'); }
+      U.uCam.value.set(union.x + 70, 20, union.z);
+      runtime.player.x = union.x + 60; runtime.player.z = union.z;
+      for (let i = 0; i < 60; i++) life.update(0.1, i * 0.1, 0);
+      assert.ok(flock.every(g => g.mode === 'perched'), 'landed');
+      // run through: they scatter
+      runtime.player.x = union.x; runtime.player.z = union.z; runtime.player.running = true;
+      life.update(0.1, 7, 0);
+      assert.ok(flock.some(g => g.mode === 'flee'), 'scatter when you run through');
+      runtime.player.running = false;
+      assert.equal((() => { let n = 0; life.group.traverse(o => { if ((o as import('three').Mesh).isMesh) n++; }); return n; })(), meshes, 'no new mesh');
+      // far from every plaza (> 120 u): the flock stays where it is
+      assert.equal(life.movePigeons(3, union.x + 400, union.z + 400, { x: union.x + 470, z: union.z + 400 }), false);
+      life.dispose();
+    });
+  } finally { U.uCam.value.copy(prevCam); game.set({ phase: 'title' } as never); runtime.player.running = false; }
+});

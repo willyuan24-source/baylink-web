@@ -57,7 +57,7 @@ export function boxBlocked(cable: Pick<CableSystem, 'cars'>, fline: FLineHost | 
   }
   const half = CABLE.length / 2 + 0.3;
   for (const c of cable.cars) {
-    if (c.line.id !== line) continue;
+    if (c.line.id !== line || c.parked) continue;
     const ahead = c.mode === 'run' && c.v > 0.5 ? BOX_APPROACH * c.dir : 0;
     const a = Math.min(c.s - half, c.s - half + ahead), b = Math.max(c.s + half, c.s + half + ahead);
     if (b > b0 && a < b1) return true;

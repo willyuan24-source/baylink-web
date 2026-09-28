@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { definePlatform, setPlatformPose } from '../actors/platform';
 import { registerObstacleSource } from '../actors/view';
 import { emitAt } from '../audio/cityHooks';
+import { serviceRow } from '../data/sf/serviceHours';
+import { bayParts } from '../game/bayNow';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { CABLE, type TransitData, type Turntable, activeLineFleet, flineJson, loadTransit, pointAt, setActiveLineFleet, transitW4 } from '../data/transit';
@@ -109,6 +111,8 @@ export class TransitLayer {
       groundY: residentGround,
       visible: visibleFromCamera,
       viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+      // (W5-T7) after the real line's hours (SFMTA, data/sf/serviceHours.ts) the idle cars go back to the barn; one stays out
+      realService: line => serviceRow(line, bayParts())?.running ?? true,
     });
     setActiveCableSystem(this.sys);
     for (const line of data.lines) definePlatform(line.id, CABLE_PLATFORM);
@@ -226,8 +230,9 @@ export class TransitLayer {
       const q = car.pose;
       const d = Math.hypot(q.x - cam.x, q.z - cam.z);
       // wave 4: drawn by the fleet's batched meshes (near with a shadow ≤ 60 u, the full car ≤ 110 u, the far car)
-      if (lines) { lines.drawExtra('cable', car.index, q, d > CABLE.hideBeyond, cam); continue; }
-      if (d > CABLE.hideBeyond) continue;
+      // (W5-T7) a car in the barn for the night is not drawn
+      if (lines) { lines.drawExtra('cable', car.index, q, d > CABLE.hideBeyond || !!car.parked, cam); continue; }
+      if (d > CABLE.hideBeyond || car.parked) continue;
       tmpQ.setFromEuler(tmpE.set(-q.pitch, q.heading, q.roll, 'YXZ'));
       tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE);
       if (d > FAR_LOD) this.carsFar.setMatrixAt(nf++, tmpM); else this.cars.setMatrixAt(n++, tmpM);
@@ -295,7 +300,7 @@ export class TransitLayer {
         out.push(d);
       }
     };
-    for (const c of this.sys.cars) add(c.pose, CABLE.length / 2, CABLE.width / 2);
+    for (const c of this.sys.cars) if (!c.parked) add(c.pose, CABLE.length / 2, CABLE.width / 2);
     if (this.fline?.active) for (const c of this.fline.sys.cars) add(c.pose, 4.2, 1.05);
   }
   private readonly obstaclePool = obstaclePool();
@@ -354,7 +359,7 @@ export class TransitLayer {
     const pool = this.vehiclePool.begin(out);
     for (const c of this.sys.cars) {
       const q = c.pose;
-      if (Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
+      if (c.parked || Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
       out.push(setVehicle(pool.next(), q.x, q.z, q.heading, c.mode === 'turn' ? 0 : Math.abs(c.v), CABLE.length / 2, CABLE.width / 2, 'cable-car', c.line.id));
     }
     if (this.fline) for (const c of this.fline.sys.cars) {

@@ -232,7 +232,7 @@ test('a cable car does not claim a span through a box a bus occupies (CableSyste
   const car = sys.cars.find(c => c.line.id === 'california' && c.mode === 'dwell')!;
   assert.ok(car);
   let busInside = true;
-  const fake = { bus: { boxes: [{ id: 'california@x', a0: 0, a1: 1, blocked: () => false, other: { line: 'california', b0: -1e4, b1: 1e4 } }], occupies: () => busInside } };
+  const fake = { bus: { boxes: [{ id: 'california@x', a0: 0, a1: 1, blocked: () => false, other: { line: 'california', b0: -1e4, b1: 1e4 } }], occupies: () => busInside, boxDue: () => false } };
   T.setActiveLineFleet(fake as unknown as InstanceType<typeof LineFleet>);
   try {
     const s0 = car.s;

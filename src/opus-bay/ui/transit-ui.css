@@ -90,3 +90,14 @@
   .ob-subway.is-moving .ob-subway-tunnel i { animation: none; opacity: .35; }
   .ob-subway-dot { transition: none; }
 }
+
+/* ---- lane T (W5-T7): the station card's real-world service rows (ui/StationPanel.tsx ServiceRows) ---- */
+.ob-svc { margin: 8px 0 0; padding: 8px 10px 7px; border-radius: 12px; background: rgba(111, 95, 71, .07); font-size: 12.5px; line-height: 1.35; color: var(--ob-ink-2, #4b4336); }
+.ob-svc-head { margin: 0 0 4px; font-weight: 800; font-size: 12px; letter-spacing: .02em; color: var(--ob-ink-3, #7a6f5f); }
+.ob-svc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.ob-svc li { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 7px; min-height: 20px; }
+.ob-svc li i { width: 8px; height: 8px; border-radius: 50%; }
+.ob-svc li em { font-style: normal; font-weight: 700; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.ob-svc li em.is-on { background: rgba(47, 143, 99, .14); color: #2c7a55; }
+.ob-svc li em.is-off { background: rgba(120, 110, 96, .14); color: #6f655a; }
+.ob-svc-src { margin: 5px 0 0; font-size: 11px; color: var(--ob-ink-3, #7a6f5f); }

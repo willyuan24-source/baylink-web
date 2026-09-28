@@ -47,6 +47,8 @@ export interface CableCar {
   boost: number;
   /** at a terminus: already turned / reversed (reset on departure) */
   turned: boolean;
+  /** (W5-T7) gone back to the barn for the night: off the track, not drawn, not in any block (CableSystem.barn) */
+  parked?: boolean;
   /** station while stopped at one */
   station: string | null;
   /** sideways passing offset (u, to the car's right) */
@@ -104,6 +106,12 @@ export interface CableOptions {
   viewer?: () => { x: number; z: number; onFoot: boolean };
   /** cars per line (default 2) */
   perLine?: number;
+  /**
+   * (W5-T7) Does the real line run now (data/sf/serviceHours.ts by the Bay clock)? When it does not, the line keeps
+   * one car out and its other idle cars go back to the barn unseen; a rider's request brings them out again. Absent
+   * (tests, district mode): every car always runs.
+   */
+  realService?: (line: string) => boolean;
 }
 
 /** Half the length a car claims on its track (half a body + a small gap). */
@@ -120,6 +128,14 @@ const BOARD_MIN = 1.6;
 const TELEPORT_BACK = [30, 22, 15, 45, 70, 100];
 /** a rider waiting longer than this (s) gets a new dispatch attempt every second */
 const REDISPATCH_ETA = 20;
+/** (W5-T part c) a bus this close (u) to an interlock box it shares with a cable line has it first (CableSystem.free) */
+export const BOX_DUE = 160;
+/** (W5-T part c) a car's stop inside a box's part while a bus waits there (s): the reversal at Drumm included */
+const HURRY_DWELL = 1;
+/** (W5-T part c) the longest a car leaves a box to a bus that is due (s); then it goes (the bus waits for it) */
+const YIELD_MAX = 20;
+/** (W5-T part c) the turntable push kept up while the bus waits for the turn (rad/s: the turn in ≈ 4.5 s instead of 9) */
+const HURRY_BOOST = Math.PI / 9;
 
 const tmpA: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpB: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
@@ -133,6 +149,10 @@ export class CableSystem {
   private opts: CableOptions;
   private req: RiderRequest | null = null;
   private riderCar = -1;
+  /** (W5-T7) seconds since the last barn check */
+  private barnT = 0;
+  /** (W5-T part c) car index → the time it began leaving a box to a bus due there */
+  private readonly yieldSince = new Map<number, number>();
   private status: RideStatus | null = null;
   private retry = 0;
   /** simulated seconds (tests) */
@@ -224,7 +244,7 @@ export class CableSystem {
     const terminus = this.isTerminus(car.line, target);
     const here = this.isTerminus(car.line, car.s) ? null : car.station;
     for (const o of this.cars) {
-      if (o === car || o.index === ignore) continue;
+      if (o === car || o.index === ignore || o.parked) continue;
       const until = this.sharedUntil(car.line, o.line);
       if (until <= 0) continue;
       const [oa, ob0] = this.span(o);
@@ -252,13 +272,24 @@ export class CableSystem {
         const o = box.other;
         if (!o || o.line !== car.line.id || b < o.b0 || a > o.b1) continue;
         if (fleet.bus.occupies(box.id)) return false;
+        // (W5-T part c, checkpoint CP-11) a bus due there: a car still outside the part leaves it to the bus (a car that
+        // went down California St to Drumm, reversed and came back held the loop bus 23–46 s); a car in the part goes on
+        // (the bus waits for it), and the car carrying or fetching the rider never yields
+        if (ignore >= 0 || car.rider || this.riderCar === car.index || (car.s + HALF > o.b0 && car.s - HALF < o.b1)) continue;
+        if (fleet.bus.boxDue(box.id, BOX_DUE)) {
+          // …for YIELD_MAX at most unless the bus is about to enter (a bus held up on its way never keeps a car for long)
+          const since = this.yieldSince.get(car.index) ?? this.time;
+          this.yieldSince.set(car.index, since);
+          if (this.time - since < YIELD_MAX || fleet.bus.boxDue(box.id, 40)) return false;
+        }
       }
     }
+    this.yieldSince.delete(car.index);
     // the crossing: our span through our crossing box needs the other line's cars out of theirs
     for (const cr of car.line.crossings) {
       if (b < cr.at - CROSSING_HALF || a > cr.at + CROSSING_HALF) continue;
       for (const o of this.cars) {
-        if (o.line.id !== cr.line || o.index === ignore) continue;
+        if (o.line.id !== cr.line || o.index === ignore || o.parked) continue;
         const [oa, ob] = this.span(o);
         if (ob >= cr.otherAt - CROSSING_HALF && oa <= cr.otherAt + CROSSING_HALF) return false;
       }
@@ -272,6 +303,7 @@ export class CableSystem {
 
   /** Seconds until `car` stops at arc `target` travelling in `dir` (rough: cable speed, dwells, up to two turn-arounds). */
   eta(car: CableCar, target: number, dir: 1 | -1): number {
+    if (car.parked) return Infinity;
     const line = car.line;
     const reverse = line.turntableStart || line.turntableEnd ? CABLE.turnSeconds + TERMINUS_BOARD : TERMINUS_BOARD;
     let t = car.mode === 'dwell' || car.mode === 'hold' ? Math.max(0, car.timer) : 0;
@@ -304,6 +336,8 @@ export class CableSystem {
     if (!line || !stop) return null;
     const target = stopPos(stop, req.dir);
     const cars = this.cars.filter(c => c.line === line);
+    // (W5-T7) a rider after the real line's hours: the cars in the barn come out (rides stay available)
+    for (const c of cars) if (c.parked && !this.seen(c)) this.unpark(c);
     let best: CableCar | null = null, bestEta = Infinity;
     for (const c of cars) { const e = this.eta(c, target, req.dir); if (e < bestEta) { bestEta = e; best = c; } }
     if (!best) return null;
@@ -405,7 +439,7 @@ export class CableSystem {
         const behind = place - pdir * HALF * 2;
         if (Math.abs(endPos - place) < 0.5 || !this.free(probe, Math.min(a, behind), Math.max(b, behind), endPos, end.station, c.index)) continue;
         c.s = place; c.dir = pdir; c.v = probe.v; c.mode = 'run'; c.timer = 0; c.authority = endPos; c.authStation = end.station; c.turned = false; c.turn = 0;
-        c.station = null; c.lateral = 0; c.still = 0;
+        c.station = null; c.lateral = 0; c.still = 0; c.parked = false;
         this.updatePose(c);
         return c;
       }
@@ -506,9 +540,11 @@ export class CableSystem {
   step(dt: number) {
     if (dt <= 0) return;
     this.time += dt;
-    for (const car of this.cars) this.stepCar(car, dt);
-    for (const car of this.cars) this.stepLateral(car, dt);
-    for (const car of this.cars) this.updatePose(car);
+    this.barnT += dt;
+    if (this.barnT >= 1) { this.barnT = 0; this.barn(); }
+    for (const car of this.cars) if (!car.parked) this.stepCar(car, dt);
+    for (const car of this.cars) if (!car.parked) this.stepLateral(car, dt);
+    for (const car of this.cars) if (!car.parked) this.updatePose(car);
     this.updateStatus(dt);
   }
 
@@ -521,6 +557,8 @@ export class CableSystem {
     if (stopReq && !car.braking) car.brakeRate = Math.max(CABLE.brake, car.v / Math.max(0.05, stopReq.within - stopReq.since));
     car.braking = !!stopReq;
     if (car.mode === 'turn') {
+      // (W5-T part c) the bus waits at the Hyde St box for this turn: the crew push hard (as a player's push, kept up)
+      if (car.boost < HURRY_BOOST && this.riderCar !== car.index && this.busWaitsIn(car)) car.boost = HURRY_BOOST;
       car.turn += (TURN_RATE + car.boost) * dt;
       car.boost *= Math.exp(-dt / PUSH_DECAY);
       if (car.turn >= Math.PI) {
@@ -536,6 +574,8 @@ export class CableSystem {
     } else if (car.mode === 'dwell') {
       car.v = 0;
       car.held = 0;
+      // (W5-T part c) a car standing in a box's part while the bus waits at it: a short stop, then on (its riders are toys)
+      if (car.timer > HURRY_DWELL && !car.rider && this.riderCar !== car.index && this.busWaitsIn(car)) car.timer = HURRY_DWELL;
       car.timer -= dt;
       if (car.timer <= 0) this.leave(car);
     } else {
@@ -578,6 +618,55 @@ export class CableSystem {
       if (next && Math.abs(target - car.s) < 0.02 && !stopReq) this.arrive(car, next);
     }
     car.still = Math.abs(car.s - s0) > 1e-4 || car.mode === 'turn' ? 0 : car.still + dt;
+  }
+
+  /** Could the player see this car now (the dispatch's rule: in view, or within 60 u)? */
+  private seen(c: CableCar): boolean {
+    const viewer = this.opts.viewer?.();
+    return !!this.opts.visible?.(c.pose.x, c.pose.z) || (!!viewer && Math.hypot(c.pose.x - viewer.x, c.pose.z - viewer.z) < 60);
+  }
+
+  /**
+   * (W5-T7, once a second) The barn: outside the real line's hours (options.realService) a line keeps one car out and
+   * sends its other idle cars in, one at a time and only unseen (standing at a stop, no rider, not fetching one); in
+   * the real hours they come back out where they went in, unseen and when that stretch is free.
+   */
+  private barn() {
+    const real = this.opts.realService;
+    if (!real) return;
+    for (const line of this.data.lines) {
+      const cars = this.cars.filter(c => c.line === line);
+      if (real(line.id)) { for (const c of cars) if (c.parked && !this.seen(c)) this.unpark(c); continue; }
+      const out = cars.filter(c => !c.parked);
+      if (out.length <= 1) continue;
+      const c = out.find(q => !q.rider && this.riderCar !== q.index && !q.pickup && q.mode === 'dwell' && Number.isNaN(q.authority) && !this.seen(q));
+      if (!c) continue;
+      c.parked = true; c.v = 0; c.lateral = 0; c.held = 0; c.still = 0;
+    }
+  }
+
+  /** Back out of the barn onto its stop (only when nobody holds that stretch). */
+  private unpark(c: CableCar): boolean {
+    if (!c.parked) return true;
+    if (!this.free(c, c.s - HALF, c.s + HALF, c.s, c.station)) return false;
+    c.parked = false; c.mode = 'dwell'; c.timer = 1; c.authority = NaN; c.authStation = null; c.v = 0;
+    this.updatePose(c);
+    return true;
+  }
+
+  /** (W5-T7) Cars in the barn now (QA, the station card). */
+  parkedCars(): number { return this.cars.filter(c => c.parked).length; }
+
+  /** (W5-T part c) Does a sightseeing bus wait (or stand within a few units) at a box whose part this car stands in? */
+  private busWaitsIn(car: CableCar): boolean {
+    const fleet = activeLineFleet();
+    if (!fleet) return false;
+    for (const box of fleet.bus.boxes) {
+      const o = box.other;
+      if (!o || o.line !== car.line.id || car.s + HALF <= o.b0 || car.s - HALF >= o.b1) continue;
+      if (fleet.bus.boxDue(box.id, 24)) return true;
+    }
+    return false;
   }
 
   /**
@@ -736,6 +825,7 @@ export class CableSystem {
     const out: string[] = [];
     for (let i = 0; i < this.cars.length; i++) for (let j = i + 1; j < this.cars.length; j++) {
       const a = this.cars[i], b = this.cars[j];
+      if (a.parked || b.parked) continue;
       const until = this.sharedUntil(a.line, b.line);
       if (until <= 0 || a.mode === 'turn' && b.mode === 'turn') continue;
       if (until !== Infinity && (a.s > until + HALF || b.s > until + HALF)) continue;

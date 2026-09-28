@@ -351,7 +351,10 @@ export function lineInteractables(): Interactable[] {
  * Where a ride on the loop / the Metro ends, or null for the generic "beside the car" rule of game/transit.ts:
  * - underground (the train is hidden) or 直接到站 before the stop: the destination's kiosk / pole (you only get off at
  *   stations under ground; a skip lands you where you would have alighted);
- * - a surface stop: null (beside the vehicle, on its kerb side: `side`).
+ * - a surface stop the vehicle stands at: its pole, when it stands within POLE_STEP of the vehicle (W5-T part c: every
+ *   loop / Metro pole now stands on open ground, checked by the sidecar's sweep rule; off a bus at Twin Peaks the
+ *   rider used to land on the road beside it, in the path it pulls out on, and held it 12 s);
+ * - between stops (a hop-off): null (beside the vehicle, on its kerb side: `side`).
  */
 export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean, alightAt: string | null = null): { spot: { x: number; z: number } | null; side: 1 | -1; station: string | null } {
   const w4 = lines();
@@ -374,7 +377,43 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean,
     const dest = stopAt(r.to);
     return { spot: dest ? boardAt(w4, dest) : null, side, station: dest?.id ?? null };
   }
+  const at = stopAt(st?.station);
+  const pose = at && st ? rideSystemFor(l.id)?.cars[st.car]?.pose : undefined;
+  if (at && pose) {
+    const pole = boardAt(w4, at);
+    if (Math.hypot(pole.x - pose.x, pole.z - pose.z) <= POLE_STEP) return { spot: clearOfPath(l.path, pole), side, station: at.id };
+  }
   return { spot: null, side, station: st?.station ?? null };
+}
+
+/** (W5-T part c) Off at a surface stop: to its pole when it stands this close (u) to the bus / train (else beside it). */
+export const POLE_STEP = 9;
+/** (W5-T part c) someone this close (u) to a vehicle's path is in its way (a bus's half width 1.25 + a person 0.45 + room) */
+export const PATH_CLEAR = 2.3;
+
+/**
+ * (W5-T part c) A spot by `p` (a stop's pole) that is out of the vehicles' path: the pole itself when it stands
+ * PATH_CLEAR from the line's centreline, else the point pushed straight away from the path until it does (≤ 2 u, on
+ * standable ground). A loop pole stands 1.6 u off the bus's line (a thin pole clears the bus); someone standing there
+ * did not, and the bus waited for them (22 s at the Golden Gate Bridge stop in the node sim).
+ */
+export function clearOfPath(path: readonly number[], p: { x: number; z: number }): { x: number; z: number } {
+  let d = Infinity, qx = p.x, qz = p.z;
+  for (let i = 3; i + 2 < path.length; i += 3) {
+    const ax = path[i - 3], az = path[i - 1], bx = path[i], bz = path[i + 2];
+    if (Math.max(ax, bx) < p.x - 12 || Math.min(ax, bx) > p.x + 12 || Math.max(az, bz) < p.z - 12 || Math.min(az, bz) > p.z + 12) continue;
+    const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((p.x - ax) * dx + (p.z - az) * dz) / L2));
+    const cx = ax + dx * t, cz = az + dz * t, e = Math.hypot(p.x - cx, p.z - cz);
+    if (e < d) { d = e; qx = cx; qz = cz; }
+  }
+  if (d >= PATH_CLEAR || d < 1e-3) return { x: p.x, z: p.z };
+  const ux = (p.x - qx) / d, uz = (p.z - qz) / d;
+  for (let k = PATH_CLEAR - d; k <= PATH_CLEAR - d + 2; k += 0.25) {
+    const x = p.x + ux * k, z = p.z + uz * k;
+    if (canStand(x, z, 0.45)) return { x, z };
+  }
+  return { x: p.x, z: p.z };
 }
 
 /** 直接到站 farther than this (u, straight to the destination: beyond the ring the streamer holds round the player) waits under a veil for the city to stream in. */

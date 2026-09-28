@@ -156,6 +156,7 @@ const HALF = BUS.length / 2;
 const tmpA: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpB: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpC: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
+const tmpP: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 /** placements tried for a brought-in bus: seconds of running before the pickup (preferred first; W5-T2: then farther back) */
 const DISPATCH_RUN = [11, 9, 13, 7, 5, 16, 19, 22, 25, 28, 31];
@@ -351,6 +352,19 @@ export class BusSystem implements LineRideSystem {
     return this.buses.some(b => this.overlapsBox(b, box));
   }
 
+  /**
+   * (W5-T part c) Is a bus due at interlock box `id`: not in it yet, its nose within `within` u of the box's start? A
+   * cable car outside the box's part then leaves the box to the bus (world/transitLine.ts free): the loop shares 70 u of
+   * California St with the cable cars down to their Drumm terminus and 43 u of Hyde St with the Hyde St turntable, and
+   * a car starting down there made the bus stand 23–46 s (a car's trip down, its reversal or turn, and back).
+   */
+  boxDue(id: string, within: number): boolean {
+    const box = this.boxes.find(b => b.id === id);
+    if (!box) return false;
+    // (a bus standing at a stop on its way is due once it pulls out)
+    return this.buses.some(b => b.mode !== 'dwell' && !this.overlapsBox(b, box) && arcAhead(this.track, b.s + HALF, box.a0) <= within);
+  }
+
   private overlapsBox(b: Bus, box: InterlockBox): boolean {
     const tr = this.track;
     // the box, seen from the bus's rear: the bus [s − HALF, s + HALF] overlaps [a0, a1]
@@ -491,12 +505,19 @@ export class BusSystem implements LineRideSystem {
     return t;
   }
 
-  /** Arc distance ahead of the bus centre to a person standing in its path (within 1.5 u sideways), or null. */
+  /**
+   * Arc distance ahead of the bus's nose to a person standing in its path (within 1.5 u of the track ahead), or null.
+   * (W5-T part c) Measured along the track, not down the bus's heading: on a bend a straight ray from the nose passed
+   * someone standing beside the road (off at the Golden Gate Bridge stop, by its pole) and the bus waited for them 22 s.
+   */
   private onRoadAhead(b: Bus, x: number, z: number): number | null {
     const dx = x - b.pose.x, dz = z - b.pose.z;
-    const fx = Math.sin(b.pose.heading), fz = Math.cos(b.pose.heading);
-    const along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx);
-    return along > HALF && along < 18 && side < 1.5 ? along - HALF : null;
+    if (dx * dx + dz * dz > 20 * 20) return null;
+    for (let a = 0; a <= 18 - HALF; a += 0.5) {
+      const p = trackPoint(this.track, b.s + HALF + a, tmpP);
+      if (Math.hypot(x - p.x, z - p.z) < 1.5) return a;
+    }
+    return null;
   }
 
   private stepBus(b: Bus, dt: number) {

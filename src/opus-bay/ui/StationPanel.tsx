@@ -15,7 +15,9 @@ import { useT } from '../i18n';
 import { ChangeWay, type WalkInfo } from './PlaceActions';
 import { type StationRide, StationActions } from './StationActions';
 import type { MapLine, MapStation } from './mapLines';
+import { ServiceRows } from './serviceRows';
 import { stationRideOption, stationRides, stationWalkSeconds, tripLineInfos } from './mapTrips';
+import './transit-ui.css';
 
 /**
  * Wave 4 · the tapped station on the city map (lane P, W4-P7; plan §4.1 "Lines and stations"): lane P's StationActions
@@ -90,6 +92,7 @@ export function StationPanel({ station, lines, pos, walk, routeSeconds = null, c
     <div className="mw-station-wrap">
       {change && <ChangeWay to={change.to} tripTime={change.tripTime} tripMode={change.tripMode} startOpen={change.startOpen} onPick={change.onPick} />}
       <StationActions station={station} rides={rides} nextIn={nextIn} walkSeconds={walkSeconds} here={here} onRide={onRide} onGo={goStation} />
+      <ServiceRows lines={station.lines} />
       {place && isDiscovered(station.id) && !here && (
         <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm mw-fly" onClick={() => flyTo(place)}><Bird size={15} aria-hidden /><span>{t('飞过去', 'Fly there')}</span></button>
       )}
