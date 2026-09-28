@@ -350,7 +350,8 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     zone: bi('诺布山', 'Nob Hill'),
     plaza: bi('亨廷顿公园', 'Huntington Park'),
     lat: 37.791833, lng: -122.413497,
-    arrival: { x: 0, z: 10.5, heading: Math.PI },
+    // on the Taylor St sidewalk at the foot of the Sky Steps (lane L, wave 4: it stood on the street)
+    arrival: { x: 1.6, z: 9.8, heading: Math.PI },
     photo: { target: [0, 6, 2], distance: 33, elevation: 0.1, bearing: 0.25 },
     height: { realM: 75, u: 14.8, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,

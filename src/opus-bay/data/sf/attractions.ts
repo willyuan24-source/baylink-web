@@ -263,7 +263,7 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
   'dutch-windmill': { x: -584.3, z: 1315.67, heading: 2.374 },
   'fort-point': { x: -747.66, z: 598.89, heading: -2.147 },
   'castro-theatre': { x: 147.76, z: 746.15, heading: 2.449 },
-  'grace-cathedral': { x: 7.38, z: 223.67, heading: 5.669 },
+  'grace-cathedral': { x: 5.67, z: 223.32, heading: 5.669 },
   'peace-pagoda': { x: -59.62, z: 452.42, heading: 4.102 },
   'chase-center': { x: 483.33, z: 270.61, heading: 2.55 },
   'cliff-house': { x: -711.12, z: 1261.59, heading: -0.323 },

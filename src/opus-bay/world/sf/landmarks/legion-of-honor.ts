@@ -1,6 +1,10 @@
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, LIT, NONE, box, cyl, lathe, pyramid, rect, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { settingGround } from './setting';
+import { GC, PAT, bench, conifer, gfill, hedge, lamp } from './siteKit';
 
 /**
  * Legion of Honor (T2) in Lincoln Park: the neoclassical museum (a 3/4-scale copy of the Paris Palais de la Légion
@@ -8,6 +12,12 @@ import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
  * the triumphal-arch gateway in front and The Thinker on his plinth in the court. Local +z = the gateway side
  * (yaw 176.9° from OSM relation 21115818; OSM node 2567140420 puts The Thinker at local z +4.4). Height ~20 m for
  * the dome → 5.7 u; colonnades 2.7 u.
+ *
+ * Setting (lane L, wave 4 — D2's "court approach"): the paved forecourt between the gateway and Legion of Honor Drive
+ * (the plaza whose fountain across the drive ends the Lincoln Highway, famsf.org / Wikipedia), a lighter centre walk,
+ * lawn panels with clipped cypresses and low hedges at its sides, lamps and benches; the Court of Honor is paved and
+ * walkable at its floor. The base is the court floor (25.1): the lowest ground of the old exclusion (24.09) left the
+ * city's grass 0.7 u over the court paving.
  */
 
 const X0 = -663.61, Z0 = 1083.82, YAW = (176.9 * Math.PI) / 180;
@@ -67,6 +77,7 @@ function aiRemainder(b: BatchLike) {
   // a stone skirt under the whole mesh (the lawn falls away on the Lincoln Park side), The Thinker in the court
   box(b, 0, -1.2, AI_Z, 8.7, 1.24, 11.5, SHADE);
   thinker(b, 3.2);
+  setting(b);
 }
 
 const SWAP: LandmarkSwap = {
@@ -95,20 +106,69 @@ function blockers(ai: boolean): WalkBlocker[] {
   ];
 }
 
-export const legionOfHonor: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (lane L, wave 4)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('legion-of-honor');
+/** the forecourt from the gateway screen (z 6.8) to the drive's kerb (z 12.7) */
+const FORECOURT: Vec2[] = rect(0, 9.75, 9.2, 5.9);
+const WALK: Vec2[] = rect(0, 9.75, 2.4, 5.9);
+const LAWNS: Vec2[][] = [-1, 1].map(sx => rect(sx * 5.55, 9.75, 1.9, 5.9));
+/** the Court of Honor between the colonnade wings and the gateway passage (walkable at the floor) */
+const COURT_FLOOR: Vec2[] = rect(0, 2.25, 4.9, 7.0);
+const PASSAGE: Vec2[] = rect(0, 6.3, 1.5, 1.2);
+const LAMPS: Vec2[] = [{ x: -3.3, z: 7.6 }, { x: 3.3, z: 7.6 }, { x: -3.3, z: 11.9 }, { x: 3.3, z: 11.9 }];
+const BENCHES: { x: number; z: number; ry: number }[] = [{ x: -3.9, z: 9.75, ry: Math.PI / 2 }, { x: 3.9, z: 9.75, ry: -Math.PI / 2 }];
+const CYPRESSES: Vec2[] = [{ x: -5.55, z: 7.6 }, { x: 5.55, z: 7.6 }, { x: -5.55, z: 11.9 }, { x: 5.55, z: 11.9 }];
+/** the Lincoln Highway's western end: a plain white marker post by the drive (no lettering) */
+const MARKER: Vec2 = { x: 1.9, z: 12.3 };
+
+function setting(b: BatchLike) {
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, p.ry);
+  for (const p of CYPRESSES) conifer(b, p.x, G.at(p.x, p.z), p.z, 0.8);
+  for (const sx of [-1, 1]) {
+    // low hedges along the walk side of each lawn panel, a gap at the benches
+    hedge(b, { x: sx * 4.6, z: 6.95 }, { x: sx * 4.6, z: 9.0 }, G.at(sx * 4.6, 8), 0.45, 0.35);
+    hedge(b, { x: sx * 4.6, z: 10.5 }, { x: sx * 4.6, z: 12.6 }, G.at(sx * 4.6, 11.5), 0.45, 0.35);
+  }
+  box(b, MARKER.x, G.at(MARKER.x, MARKER.z) - 0.2, MARKER.z, 0.22, 1.0, 0.22, '#eeeae1');
+}
+
+export const legionOfHonor: SfLandmark & SiteHooks = {
   id: 'legion-of-honor',
   tier: 2,
   x: X0,
   z: Z0,
   yaw: YAW,
-  base: 'terrain',
-  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0.4, 9.2, 14)) },
-  build,
-  walk: { blockers: blockers(SWAP.ship) },
+  // pinned (lane L, wave 4): the 'terrain' base the renderer computed before the exclusion took in the forecourt
+  base: 25.1,
+  exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 3.1, 13.2, 19.4)) },
+  sink: 0,
+  build(b, lod) { build(b, lod); if (lod === 0) setting(b); },
+  walk: {
+    blockers: [
+      ...blockers(SWAP.ship),
+      ...BENCHES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+      ...CYPRESSES.map(p => ({ x: p.x, z: p.z, r: 0.4 })),
+      { x: MARKER.x, z: MARKER.z, r: 0.2 },
+    ],
+    // the court and the gateway passage at the paving (the city ground under them lies up to 0.1 u lower)
+    surfaces: [{ poly: COURT_FLOOR, y: 0.03, surface: 'pavement' }, { poly: PASSAGE, y: 0.03, surface: 'pavement' }],
+  },
   swap: SWAP,
   // the AI complex thins as one while it stands between the camera and the player (walking into the court)
   fade: { r: 6, y1: 5.8, box: [4.5, 6.4], procedural: false },
   // D2-10: the dome over the museum block
   tall: [{ x: 0, z: -3.9, r: 1.1 }],
+  ground: [
+    ...gfill(WALK, GC.plaza, PAT.stone, G, 2, 0.05),
+    ...[-1, 1].flatMap(sx => gfill(rect(sx * 2.9, 9.75, 3.4, 5.9), GC.pavers, PAT.stone, G, 2, 0.04)),
+    ...LAWNS.flatMap(p => gfill(p, GC.lawn, PAT.grass, G, 2, 0.04)),
+    // no street strips: the clipped footways ring the court under its paving, the steps end under a lawn panel
+  ],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: FORECOURT, surface: 'pavement' }],
 };
 

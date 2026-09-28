@@ -122,14 +122,14 @@ test('D2-10: blocker tops reach the terrain provider as world Blocker.top and fo
   const oracle = byId('oracle-park');
   const tops = near(oracle.x, oracle.z).map(b => b.top);
   assert.ok(tops.some(t => Math.abs(t! - ((oracle.base as number) + blockerTops(oracle)[0]!)) < 1e-9), `Oracle bowl top ${tops}`);
-  // a 'terrain' landmark: Grace Cathedral moves with setLandmarkBase (the far estimate, then its chunk; City Hall's
-  // base is numeric since D2-09 pinned it when its exclusion became the block)
-  const hall = byId('grace-cathedral');
+  // a 'terrain' landmark: Mission Dolores moves with setLandmarkBase (the far estimate, then its chunk; City Hall's
+  // base is numeric since D2-09 pinned it when its exclusion became the block, Grace Cathedral's since lane L's terrace)
+  const hall = byId('mission-dolores');
   assert.equal(hall.base, 'terrain');
   const top0 = blockerTops(hall)[0]!;
-  city.setLandmarkBase('grace-cathedral', 27.25);
-  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (27.25 + top0)) < 1e-9), 'Grace Cathedral nave top follows its base');
-  city.setLandmarkBase('grace-cathedral', 28);
+  city.setLandmarkBase('mission-dolores', 27.25);
+  assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (27.25 + top0)) < 1e-9), 'the Mission church top follows its base');
+  city.setLandmarkBase('mission-dolores', 28);
   assert.ok(near(hall.x, hall.z).some(b => Math.abs((b.top ?? NaN) - (28 + top0)) < 1e-9));
   // D2-review: landmarkBase answers the pinned base too (it answered the walkInputs hint 0), so the glide's tall parts
   // (actors/glideTall landmarkBaseY reads the provider) stand on it: the flèche over the nave, not 20 u under it
@@ -233,7 +233,9 @@ test("F's request: with lane F's spinning disc on, the turntable's lod 0 drops i
 // ---------------------------------------------------------------------------
 
 /** the landmarks D2-09 set (priority: the three routes', then City Hall, Twin Peaks, the Castro pocket) */
-const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks'];
+const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks',
+  // lane L, wave 4: D2's remaining T2 settings
+  'legion-of-honor', 'grace-cathedral'];
 const inPoly = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[]) => {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; }

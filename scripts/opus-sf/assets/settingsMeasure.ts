@@ -33,6 +33,8 @@ const BOX: Record<string, [number, number, number, number]> = {
 export const SETTING_IDS = [
   'golden-gate-bridge', 'city-hall', 'de-young-tower', 'palace-of-fine-arts', 'twin-peaks', 'painted-ladies', 'dragon-gate',
   'conservatory-of-flowers', 'dutch-windmill', 'mission-dolores', 'fort-point', 'oracle-park', 'peace-pagoda', 'chase-center',
+  // lane L, wave-4 integration: D2's remaining T2 settings
+  'grace-cathedral', 'legion-of-honor',
 ];
 
 const sf = sfDisk();
