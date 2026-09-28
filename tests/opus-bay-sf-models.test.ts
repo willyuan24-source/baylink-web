@@ -426,9 +426,10 @@ test('W4-IL5 (W4-L4): the wave-4 AI swaps — registered models of their own sit
       const at = s.w4.aiSlot!.at;
       assert.equal(s.w4.aiSlot!.id, p.model);
       assert.ok(Math.abs(p.x - at[0]) <= 0.05 && Math.abs(p.y - at[1]) <= 0.05 && Math.abs(p.z - at[2]) <= 0.05, `${s.id} part at the slot`);
-      // on the site's ground (or on its stone base: the pavilion)
+      // on the site's ground, on the pavilion's stone base, or (Holy Virgin, lane V's review 2) at the sidewalk before
+      // its porch, 0.68 u over the lot's centre, with a plinth filling the fall toward the back
       const gy = siteGround(s.id, s.base).at(p.x, p.z);
-      assert.ok(p.y >= gy - 0.05 && p.y <= gy + 0.5, `${s.id}: part y ${p.y} over ground ${gy.toFixed(2)}`);
+      assert.ok(p.y >= gy - 0.05 && p.y <= gy + 0.75, `${s.id}: part y ${p.y} over ground ${gy.toFixed(2)}`);
     }
     const tris = s.swap!.parts.reduce((t, p) => t + ASSETS.models[p.model].triangles, 0);
     assert.ok(tris <= 6_000 && s.swap!.parts.length === 1, `${s.id}: one AI part ≤ 6k triangles`);

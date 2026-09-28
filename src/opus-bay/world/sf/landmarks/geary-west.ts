@@ -1,5 +1,5 @@
 import type { Vec2 } from '../../../core/types';
-import { w4Swap, w4SwapPart } from '../../../data/sf/w4Swaps';
+import { w4Swap, w4SwapPart, w4SwapPlinth, w4SwapY } from '../../../data/sf/w4Swaps';
 import type { BatchLike } from '../../builder';
 import { LIT, NONE, box, cyl, disc, lathe, worldPoly } from './kit';
 import { type W4Site, hipRoof, siteGround } from './siteKit';
@@ -64,8 +64,9 @@ const EXCLUDE: Vec2[] = [{ x: -1.45, z: -1.65 }, { x: 1.5, z: -1.65 }, { x: 1.5,
 
 /**
  * Lane V's AI cathedral (W4-L4; data/sf/w4Swaps.ts, the gate's verdict "ship": kokoshniks, red trim, porch and five
- * gold domes against the procedural box): the GLB is the whole cathedral, so the remainder draws nothing (the
- * sidewalks are the city's). While it ships, its blockers are the measured body and porch.
+ * gold domes against the procedural box): the GLB is the whole cathedral, standing at the Geary sidewalk's height before
+ * its porch (lane V's review 2); the remainder is the row's plinth, which fills the lot's fall toward the back. While
+ * it ships, its blockers are the measured body and porch.
  */
 const SWAP_ROW = w4Swap('geary-west')!;
 const PROC_BLOCKERS = [{ poly: [{ x: -1.3, z: -1.55 }, { x: 1.3, z: -1.55 }, { x: 1.3, z: 1.45 }, { x: -1.3, z: 1.45 }] }];
@@ -80,7 +81,12 @@ export const gearyWest: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
-  swap: { parts: [w4SwapPart(SWAP_ROW, g.at)], build: () => undefined, ship: SWAP_ROW.ship, note: SWAP_ROW.note },
+  swap: {
+    parts: [w4SwapPart(SWAP_ROW, g.at)],
+    build: b => { for (const p of w4SwapPlinth(SWAP_ROW, g.at)) box(b, p.x, p.y, p.z, p.w, p.h, p.d, p.color); },
+    ship: SWAP_ROW.ship,
+    note: SWAP_ROW.note,
+  },
   walk: { blockers: SWAP_ROW.ship ? SWAP_ROW.blockers : PROC_BLOCKERS },
   // the glide: the domes rise 9.6 u over the base (lane V's step 3)
   tall: [{ x: 0, z: -0.1, r: 1.4 }],
@@ -100,7 +106,7 @@ export const gearyWest: W4Site = {
     osm: ['way/286435447'],
     terrain: [-4, -4, 4, 5],
     terrainStep: 1,
-    aiSlot: { model: 'w4-holy-virgin', id: 'sf-holy-virgin', at: [0, +g.at(0, 0).toFixed(2), CZ], note: 'lane V (data/sf/w4Models.ts, sf-holy-virgin): five gold onion domes, white with red trim; to be re-fitted to this lot (2.6 × 3.0 u, 9.1 u to the cross), front +Z = Geary Blvd' },
+    aiSlot: { model: 'w4-holy-virgin', id: 'sf-holy-virgin', at: [0, +w4SwapY(SWAP_ROW, g.at).toFixed(2), -0.02], note: 'lane V (data/sf/w4Models.ts, sf-holy-virgin): five gold onion domes, white with red trim; to be re-fitted to this lot (2.6 × 3.0 u, 9.1 u to the cross), front +Z = Geary Blvd' },
     notes: 'Active cathedral: quiet card, no gameplay objects.',
   },
 };

@@ -57,7 +57,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'kezar-stadium': { blockers: [4.6, 4.9], tall: [] },
   'koret-carousel': { blockers: [5, 1.7, 3.4], tall: [] },
   'hippie-hill': { blockers: [2.5], tall: [] },
-  'geary-west': { blockers: [9.7, 5.2], tall: [9.7] },
+  'geary-west': { blockers: [10.4, 5.8], tall: [10.4] },
   'clement-street': { blockers: [4.5, 3.6, 3, 3.4, 3.9, 4.8, 4.7], tall: [] },
   'irving-street': { blockers: [3.4, 4.4, 4.4, 3.4, 4.4, 4.4, 4.5], tall: [] },
   'tiled-steps': { blockers: [4.6], tall: [] },
