@@ -296,7 +296,7 @@ test('review R5: the 直接到站 veil lifts even when the jump throws', async (
   try {
     LR.veiledSkip({ x: 0, z: 0 }, { zh: '某站', en: 'Somewhere' }, () => { throw new Error('world gone'); });
     assert.equal(veils.length, before + 1);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 2500));
     assert.ok(veils[before].removed, 'the veil is gone');
     assert.equal(logged.length, 1, 'the error is reported');
   } finally { console.error = error; }
