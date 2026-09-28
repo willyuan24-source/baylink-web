@@ -225,6 +225,33 @@ test('verify D11 / m5: the ferry offer counts the wait for the boat (boat at Gat
   }
 });
 
+test('verify m5: while waiting for the ferry, 直接到站 puts the rider on the other quay (the label offers it); it does not count as a ride', async () => {
+  const sys = new FerrySystem(T.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
+  T.setActiveFerrySystem(sys);
+  const prev = game.get();
+  try {
+    game.set({ phase: 'playing', worldMode: 'city', toasts: [] } as never);
+    const q41 = T.ferryTerminal('pier-41')!.terminal.quay, gate = T.ferryTerminal('ferry-building')!.terminal.quay;
+    runtime.player.x = q41.x; runtime.player.z = q41.z;
+    transit.rideFerry('pier-41', 'ferry-building');
+    assert.equal(ride.currentRide()?.mode, 'wait');
+    assert.equal(transit.rideLabel(flow.get().ride!).skipWhileWaiting, true);
+    transit.finishRide();
+    // 350 u away: under the veil first (it waits for that part of the city), then ashore there
+    await new Promise(r => setTimeout(r, 500));
+    assert.equal(ride.currentRide(), null);
+    assert.ok(Math.hypot(runtime.player.x - gate.x, runtime.player.z - gate.z) < 16, `on the Gate E quay (${runtime.player.x.toFixed(1)}, ${runtime.player.z.toFixed(1)})`);
+    assert.ok(game.get().toasts.some(t => /Gate E|E 号登船口/.test(t.text)), 'arrival said');
+    assert.equal(transit.rideLog().ferry ?? 0, 0, 'not a ride');
+    assert.equal(game.get().move.mode, 'foot');
+  } finally {
+    ride.endRide(); sys.cancel();
+    T.setActiveFerrySystem(null);
+    game.set({ phase: prev.phase, worldMode: prev.worldMode, move: prev.move, toasts: [] } as never);
+    flow.set({ ride: null });
+  }
+});
+
 test('verify m6: no sightseer spawns on the player (an arrival spot); one the player walks up to shuffles out of the way', async () => {
   const SPOT = { x: 78, z: 222 };
   const probe: StreetProbe = { surface: surfaceAt, stand: canStand, height: heightAt, epoch: (x, z) => cityChunkEpoch(Math.floor(x / 128), Math.floor(z / 128)) };

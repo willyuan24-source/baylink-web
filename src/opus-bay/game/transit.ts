@@ -231,6 +231,12 @@ export interface RideLabel {
   hopOffNote?: Bilingual | null;
   /** 下一站下车 is offered (bus / Metro rides under way): `requestNextStop()` */
   nextStop?: boolean;
+  /**
+   * (verify m5) 直接到站 may be offered while still waiting (the ferry: the boat can be 80–140 s away). finishRide() then
+   * puts the rider on the destination's quay (under the veil when it has not streamed in); it never counts as a ride.
+   * Lane G's banner shows the button in the waiting stage when this is set.
+   */
+  skipWhileWaiting?: boolean;
 }
 
 /** What the HUD RideBanner shows for a ride (the hero F-line: exactly the old strings). */
@@ -260,6 +266,7 @@ export function rideLabel(ride: FlowRide): RideLabel {
       waiting: { zh: `等渡轮靠岸…${ride.eta ? `约 ${ride.eta} 秒` : ''}`, en: `Waiting for the ferry…${ride.eta ? ` ~${ride.eta}s` : ''}` },
       lineTo: { zh: '渡轮 · 开往', en: 'Ferry · to' },
       dest: dest ? dest.name : null,
+      skipWhileWaiting: true,
     };
   }
   if (ride.kind === 'streetcar' && ride.line) {
