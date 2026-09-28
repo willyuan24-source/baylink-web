@@ -231,9 +231,8 @@ flight through `fastTravel.startTravel` (a first sight when not found yet), 10 b
 ### Evidence
 
 - **Checks**: `npx tsc -p tsconfig.app.json --noEmit` 0 errors · `npx eslint .` 0 errors (the 43 old warnings, none in
-  economy/) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1120 / 1120** before rebasing on
-  `0db1687`; after the rebase the lane's and related files (shop, notebook, ledger, contracts, w5-perf, play-acts) 82 / 82,
-  and the full suite again before the push.
+  economy/) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1141 / 1141** on the head rebased on
+  `0db1687` (1120 / 1120 before the rebase; 24 of them new: 15 shop, 9 notebook).
 - **Tests** — `w5-shop`: the registry pinned (append-only indices), prices, and "nothing sells speed / access / places" (a
   grep: no unlock, discovery, goal or speed call anywhere in economy/), buy / wear / take off, earned items, the 飞行券
   rule (gift once, one held, refund once, hidden after), conveniences, a 200-round fuzz of `bitClear` / `bitList` against a
