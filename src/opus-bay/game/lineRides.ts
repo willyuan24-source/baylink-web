@@ -5,9 +5,10 @@ import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
-import { type CableLine, type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, cableLine, nearestAt, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
+import { DISTRICT } from '../data/district';
+import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, flineJson, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
 import { canStand, groundPending, nearestWalkable } from '../core/terrain';
-import type { TransitLine, TransitTunnel } from '../world/sf/format';
+import { type TransitLine, type TransitTunnel, tunnelAt } from '../world/sf/format';
 import { BUS, type BusRideStatus } from '../world/busSystem';
 import { LRV, type RailRideStatus, stopPos } from '../world/lightRail';
 import { noteLoopRide, sayTunnel } from './cityContent';
@@ -96,17 +97,28 @@ const phone = () => runtime.input.device === 'touch';
 export function stationChoices(station: string, o: { to?: string; line?: string } = {}): LineChoice[] {
   const ls = stationLines(station).filter(l => !o.line || l.id === o.line);
   const max = phone() ? 6 : 8;
-  const per = Math.max(2, Math.floor(max / Math.max(1, ls.length)));
-  const rides: LineChoice[] = [];
+  const perLine: LineChoice[][] = [];
   let map: LineChoice | null = null, cancel: LineChoice | null = null;
   for (const l of ls) {
-    for (const c of lineChoices(lite(l), station, { rideSeconds: lineRideSeconds, max: per, to: o.to })) {
+    const rides: LineChoice[] = [];
+    for (const c of lineChoices(lite(l), station, { rideSeconds: lineRideSeconds, max: ls.length > 1 ? 99 : max, to: o.to })) {
       if (c.kind === 'map') map ??= c;
       else if (c.kind === 'cancel') cancel ??= c;
       else rides.push(c);
     }
     // a pre-filled leg on one of the lines: only its confirm row
     if (o.to && rides.some(r => r.to === o.to)) return [...rides.filter(r => r.to === o.to).slice(0, 1), cancel ?? { kind: 'cancel', label: { zh: '先不坐了', en: 'Not now' } }];
+    perLine.push(rides);
+  }
+  // (review) the five Market St stations serve the N and the M: take the lines' rows in turn and offer a destination
+  // both reach once. A cap per line had left two identical rows each for the trunk stops (Civic Center, Montgomery,
+  // Embarcadero) and no Ocean Beach / Stonestown row on a phone at Powell (the Metro goal's ends).
+  const rides: LineChoice[] = [];
+  for (let k = 0; rides.length < max && perLine.some(rs => k < rs.length); k++) {
+    for (const rs of perLine) {
+      const c = rs[k];
+      if (c && rides.length < max && !rides.some(r => r.to === c.to)) rides.push(c);
+    }
   }
   return [...rides, ...(map ? [map] : []), cancel ?? { kind: 'cancel', label: { zh: '先不坐了', en: 'Not now' } }];
 }
@@ -312,7 +324,7 @@ export function lineInteractables(): Interactable[] {
  *   stations under ground; a skip lands you where you would have alighted);
  * - a surface stop: null (beside the vehicle, on its kerb side: `side`).
  */
-export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean): { spot: { x: number; z: number } | null; side: 1 | -1; station: string | null } {
+export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean, alightAt: string | null = null): { spot: { x: number; z: number } | null; side: 1 | -1; station: string | null } {
   const w4 = lines();
   const l = w4Line(r.line ?? '');
   const arrived = st?.phase === 'arrived';
@@ -321,8 +333,11 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean)
   if (!w4 || !l) return { spot: null, side, station: null };
   const stopAt = (id: string | null | undefined) => (id ? l.stops.find(s => s.id === id) : undefined);
   if (st?.underground || r.hold) {
-    // under ground only at a station: the one the train stands at (在这站下车 / arrived), else the destination
-    const here = stopAt(st?.station) ?? stopAt(finishing ? r.to : null);
+    // under ground only at a station: the one the rider asked to get off at (在这站下车: `alightAt`, kept through the
+    // veil while the train may have moved on), the one the train stands at (a hop-off there, arrived), else the
+    // destination. (review) 直接到站 while the train dwells at a station on the way used to put the rider at that
+    // station, not at the destination.
+    const here = stopAt(alightAt) ?? (!finishing || arrived ? stopAt(st?.station) : undefined) ?? stopAt(finishing ? r.to : null);
     return { spot: here ? boardAt(w4, here) : r.hold ?? null, side, station: here?.id ?? null };
   }
   // 直接到站 aboard, or while still waiting (verify M2 / m5): the destination's pole / kiosk
@@ -361,23 +376,26 @@ export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null,
   const ready = streamer ? streamer.whenReady(to, 150) : Promise.resolve();
   const shown = new Promise(r => window.setTimeout(r, 380));
   void Promise.all([shown, Promise.race([ready, new Promise(r => window.setTimeout(r, 8000))])]).then(() => {
-    jump();
-    veil.style.transition = 'opacity .5s ease';
-    requestAnimationFrame(() => { veil.style.opacity = '0'; });
-    window.setTimeout(() => veil.remove(), 650);
-  });
+    // (review) the veil takes the pointer: it always lifts, even if the jump throws (a torn-down world)
+    try { jump(); } finally {
+      veil.style.transition = 'opacity .5s ease';
+      requestAnimationFrame(() => { veil.style.opacity = '0'; });
+      window.setTimeout(() => veil.remove(), 650);
+    }
+  }).catch((e: unknown) => { console.error('[opus-bay] 直接到站', e); });
 }
 
 /**
  * 直接到站 on a loop / Metro ride counts as a ride (plan §3.4) when the skipped leg is a real one: another station, at
  * least the odometer rule's length along the line, no fast travel since boarding.
  */
-export function skipCounts(r: RideState, minOdometer: number): boolean {
+export function skipCounts(r: RideState, minOdometer: number, to: string = r.to): boolean {
   const l = w4Line(r.line ?? '');
   const st = w4Status(r);
-  const a = l?.stops.find(s => s.id === (st?.lastStation ?? r.from)), b = l?.stops.find(s => s.id === r.to);
+  // (review) `to`: where the rider gets off (在这站下车 at a station on the way: that station, not the destination)
+  const a = l?.stops.find(s => s.id === (st?.lastStation ?? r.from)), b = l?.stops.find(s => s.id === to);
   if (!l || !a || !b || a === b || r.epoch !== travelEpoch()) return false;
-  const along = l.loop ? (((b.at - a.at) % l.length) + l.length) % l.length : Math.abs(b.at - a.at);
+  const along = l.loop ? (((b.at - a.at) % l.length) + l.length) % l.length : Math.max(0, (b.at - a.at) * (r.dir ?? (b.at > a.at ? 1 : -1)));
   return (st?.odometer ?? 0) + along >= minOdometer;
 }
 
@@ -561,7 +579,10 @@ export function pollCity(dt: number): boolean {
     && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6));
 }
 
-/** Where each cable-car station's prompt stands: beside the track (verify D3), once the ground there has streamed in. */
+/**
+ * Where each cable-car station's prompt stands: beside the track (verify D3), once the ground there has streamed in. (Also
+ * the F-line stations' landing spots, keyed `f:<id>`.)
+ */
 const kerbSpots = new Map<string, { x: number; z: number }>();
 /**
  * When a search last found no spot (city clock, s): it is tried again after KERB_RETRY (the ground round a stop can still
@@ -570,38 +591,150 @@ const kerbSpots = new Map<string, { x: number; z: number }>();
  */
 const kerbMiss = new Map<string, number>();
 const KERB_RETRY = 5;
-/** a station prompt stands at least this far from the track (u): a passing car's body reaches 2.05 u */
-const KERB_OFF = 2.45;
+/**
+ * a station prompt stands at least this far from every vehicle path (u): a passing cable car's body reaches 2.05 u; a
+ * bus stops for someone within 1.5 u of its path, an F-line car within 1.4 u, a cable car within 1.3 u
+ */
+export const KERB_OFF = 2.45;
+/**
+ * the least a prompt may stand from a vehicle path where the street has no room for KERB_OFF (u): a bus stops for someone
+ * within 1.5 u of its path, a train or F-line car 1.4 u, a cable car 1.3 u
+ */
+export const KERB_MIN = 1.6;
+/** how far round a station the kerb search looks (u; a terminus: round its turntable) */
+const KERB_RINGS = [2.6, 3.2, 3.8, 4.5, 5.5, 6.5, 7.5, 9];
+const KERB_RINGS_TURNTABLE = [5.2, 6, 7];
+
+/**
+ * (review) Every vehicle path within `r` of (x, z) as flat segments [ax, az, bx, bz, …]: the cable lines, the F-line
+ * (Market St and the Castro as published, the hero waterfront as the district gives it), the sightseeing loop and the
+ * N / M outside their tunnels. A station prompt clears all of them, not only its own track: the D3 spots stood in the
+ * sightseeing bus's path on California St (1.1–1.6 u), 0.09 u from it at Powell & Bush, 0.9 u at Hyde & North Point, and
+ * on the F-line's rails at Powell & Market (1.0 u) and California & Drumm (0.6 u), so the bus / streetcar stopped for
+ * whoever waited there (or ran through a rider waiting for their cable car).
+ */
+export function vehicleSegmentsNear(x: number, z: number, r: number): number[] {
+  const out: number[] = [];
+  const seg = (ax: number, az: number, bx: number, bz: number) => {
+    if (Math.max(ax, bx) < x - r || Math.min(ax, bx) > x + r || Math.max(az, bz) < z - r || Math.min(az, bz) > z + r) return;
+    out.push(ax, az, bx, bz);
+  };
+  const triples = (p: ArrayLike<number>, under?: (at: number) => boolean) => {
+    let at = 0;
+    for (let i = 3; i + 2 < p.length; i += 3) {
+      const ax = p[i - 3], az = p[i - 1], bx = p[i], bz = p[i + 2], L = Math.hypot(bx - ax, bz - az);
+      if (!under?.(at + L / 2)) seg(ax, az, bx, bz);
+      at += L;
+    }
+  };
+  for (const l of transitData()?.lines ?? []) triples(l.xyz);
+  const f = flineJson();
+  if (f) triples(f.path);
+  const hero = DISTRICT.streetcar?.path ?? [];
+  for (let i = 1; i < hero.length; i++) seg(hero[i - 1].x, hero[i - 1].z, hero[i].x, hero[i].z);
+  for (const l of transitW4()?.lines ?? []) triples(l.path, l.tunnels?.length ? at => !!tunnelAt(l, at) : undefined);
+  return out;
+}
+
+/** Distance from (x, z) to the nearest of `segs` (vehicleSegmentsNear), ∞ without any. */
+export function segmentsDistance(segs: readonly number[], x: number, z: number): number {
+  let best = Infinity;
+  for (let i = 0; i + 3 < segs.length; i += 4) {
+    const ax = segs[i], az = segs[i + 1], dx = segs[i + 2] - ax, dz = segs[i + 3] - az, L2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+    best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+  }
+  return best;
+}
+
+/** A kerb spot's walkable ground must reach this far (u): not a gap walled in behind the kerb (review: Powell & Bush). */
+const KERB_JOIN = 10;
+
+/**
+ * Can the player walk KERB_JOIN u away from (x0, z0)? A flood of standable ground in 0.5 u steps (ground not streamed in
+ * yet counts as open), at most 4000 cells.
+ */
+export function walkJoinedNear(x0: number, z0: number, reach = KERB_JOIN): boolean {
+  if (!canStand(x0, z0, 0.45)) return false;
+  const step = 0.5, key = (i: number, j: number) => (i + 512) * 1024 + (j + 512);
+  const seen = new Set<number>([key(0, 0)]), stack: number[] = [0, 0];
+  let cells = 0;
+  while (stack.length && cells++ < 4000) {
+    const j = stack.pop()!, i = stack.pop()!;
+    if (Math.hypot(i, j) * step >= reach) return true;
+    for (let d = 0; d < 4; d++) {
+      const a = i + (d === 0 ? 1 : d === 1 ? -1 : 0), b = j + (d === 2 ? 1 : d === 3 ? -1 : 0), k = key(a, b);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const x = x0 + a * step, z = z0 + b * step;
+      if (groundPending(x, z, 0) || canStand(x, z, 0.45)) stack.push(a, b);
+    }
+  }
+  return cells >= 4000;
+}
+
+/**
+ * The nearest standable spot on the rings round (bx, bz) that is ≥ KERB_OFF from every vehicle path and joined to the
+ * street (walkJoinedNear) (cached under `key` once found; a miss is kept KERB_RETRY s), or null (the ground not in yet,
+ * or nothing found).
+ */
+function kerbAround(key: string, bx: number, bz: number, rings: readonly number[]): { x: number; z: number } | null {
+  const hit = kerbSpots.get(key);
+  if (hit) return hit;
+  const miss = kerbMiss.get(key);
+  if (groundPending(bx, bz, 6) || (miss !== undefined && cityClock - miss < KERB_RETRY)) return null;
+  const segs = vehicleSegmentsNear(bx, bz, rings[rings.length - 1] + KERB_OFF + 1);
+  // a street too narrow for KERB_OFF (Powell & Bush: the cable track and the bus loop cross between buildings at the
+  // kerb): the joined spot farthest from every path, if no vehicle stops for someone standing there (KERB_MIN)
+  let best: { x: number; z: number; off: number } | null = null;
+  for (const r of rings) {
+    for (let a = 0; a < 16; a++) {
+      const x = bx + Math.cos((a * Math.PI) / 8) * r, z = bz + Math.sin((a * Math.PI) / 8) * r;
+      if (!canStand(x, z, 0.45)) continue;
+      const off = segmentsDistance(segs, x, z);
+      if (off < KERB_MIN || (off < KERB_OFF && best && off <= best.off) || !walkJoinedNear(x, z)) continue;
+      if (off < KERB_OFF) { best = { x, z, off }; continue; }
+      const spot = { x, z };
+      kerbSpots.set(key, spot);
+      kerbMiss.delete(key);
+      return spot;
+    }
+  }
+  if (best) {
+    const spot = { x: best.x, z: best.z };
+    kerbSpots.set(key, spot);
+    kerbMiss.delete(key);
+    return spot;
+  }
+  kerbMiss.set(key, cityClock);
+  return null;
+}
 
 /**
  * (verify D3) A cable-car station's prompt (and so where the player walks to and waits, and where 直接到站 lands) stands
  * beside the track, not on it: a car cannot pull in to a stop someone stands on (the Powell & Market prompt was 2.5 u from
- * the turntable centre, and a car stood short of it for good). The nearest standable spot 2.6–5.5 u round the station that
- * is ≥ KERB_OFF from every track stopping there; at a terminus 5–7 u round the turntable, clear of the turning car. None
- * (or the ground not in yet): the station point itself, and another look KERB_RETRY s later. `fresh`: forget the last
- * answer (QA).
+ * the turntable centre, and a car stood short of it for good). The nearest standable spot 2.6–9 u round the station that
+ * is ≥ KERB_OFF from every vehicle path there (its own track, and the review: the bus loop, the F-line, the other lines);
+ * at a terminus 5–7 u round the turntable, clear of the turning car. None (or the ground not in yet): the station point
+ * itself, and another look KERB_RETRY s later. `fresh`: forget the last answer (QA).
  */
 export function stationBoardSpot(st: TransitStation, fresh = false): { x: number; z: number } {
   if (fresh) { kerbSpots.delete(st.id); kerbMiss.delete(st.id); }
-  const hit = kerbSpots.get(st.id);
-  if (hit) return hit;
-  const data = transitData(), miss = kerbMiss.get(st.id);
-  if (!data || groundPending(st.x, st.z, 6) || (miss !== undefined && cityClock - miss < KERB_RETRY)) return { x: st.x, z: st.z };
-  const lines = st.lines.map(e => cableLine(e.line)).filter((l): l is CableLine => !!l);
+  const data = transitData();
+  if (!data) return { x: st.x, z: st.z };
   const tt = data.turntables.find(t => Math.hypot(t.x - st.x, t.z - st.z) < 6);
-  const bx = tt ? tt.x : st.x, bz = tt ? tt.z : st.z;
-  for (const r of tt ? [5.2, 6, 7] : [2.6, 3.2, 3.8, 4.5, 5.5]) {
-    for (let a = 0; a < 16; a++) {
-      const x = bx + Math.cos((a * Math.PI) / 8) * r, z = bz + Math.sin((a * Math.PI) / 8) * r;
-      if (!canStand(x, z, 0.45) || lines.some(l => nearestAt(l, x, z).d < KERB_OFF)) continue;
-      const spot = { x, z };
-      kerbSpots.set(st.id, spot);
-      kerbMiss.delete(st.id);
-      return spot;
-    }
-  }
-  kerbMiss.set(st.id, cityClock);
-  return { x: st.x, z: st.z };
+  return kerbAround(st.id, tt ? tt.x : st.x, tt ? tt.z : st.z, tt ? KERB_RINGS_TURNTABLE : KERB_RINGS) ?? { x: st.x, z: st.z };
+}
+
+/**
+ * (review, verify M2) Where 直接到站 to a city F-line station lands: the station point is on the rails (a streetcar coming
+ * in stopped short of the rider and BAYBAY asked them to step aside); a hero stop's platform (the district anchor), else
+ * the kerb beside the tracks, else the point itself.
+ */
+export function flineLandingSpot(st: { id: string; x: number; z: number; hero?: boolean }): { x: number; z: number } {
+  const platform = st.hero ? DISTRICT.anchors?.[`streetcar-${st.id}`] : undefined;
+  if (platform) return { x: platform.x, z: platform.z };
+  return kerbAround(`f:${st.id}`, st.x, st.z, KERB_RINGS) ?? { x: st.x, z: st.z };
 }
 
 /**

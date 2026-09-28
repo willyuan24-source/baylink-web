@@ -439,6 +439,9 @@ export function transitW4(): TransitW4 | null { return W4; }
 /** Tests / QA: install (or clear) the wave-4 lines directly (before setTransitData, whose listeners read them). */
 export function setTransitW4(w: TransitW4 | null) { W4 = w; }
 
+/** Tests / QA: install (or clear) the published F-line entry directly (loadTransit sets it from transit.json). */
+export function setFlineJson(j: TransitLineJson | null) { FLINE_JSON = j; }
+
 /** Tests / QA: install (or clear) the data directly. */
 export function setTransitData(d: TransitData | null) {
   DATA = d;

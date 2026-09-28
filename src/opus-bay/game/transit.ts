@@ -455,7 +455,7 @@ let veiledRide: RideState | null = null;
  * (verify M2) 直接到站 to a stop whose ground has not streamed in (or that lies far off) waits under the veil until that part
  * of the city is walkable, then puts the rider there; "到站" is only said once the rider stands at the stop.
  */
-function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
+function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightAt: string | null = null) {
   if (!veiled && veiledRide === r) return;
   const sys = rideSystemFor(r.line!);
   const st = sys?.rideStatus();
@@ -467,24 +467,30 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   const pose = car?.pose;
   // wave 4 (the loop, the N / M): under ground only at a station's kiosk; 直接到站 lands at the destination's pole /
   // kiosk; on the surface off the kerb side of the bus / train
-  const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing) : null;
+  const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing, alightAt) : null;
   // where a skip lands: the destination's pole / kiosk (wave 4), quay (ferry), a cable-car station's kerb spot beside the
-  // track (never on the rails: the station point is the track), the F-line station
+  // track (never on the rails: the station point is the track), an F-line station's platform / kerb (its point is the
+  // track too: review)
   const cableTo = skip && !w4 && rideKind(r) === 'cable-car' ? transitStation(r.to) : undefined;
-  const skipTo = skip ? (w4 ? w4.spot : cableTo ? W4G?.stationBoardSpot(cableTo) ?? cableTo : stationOf(r, r.to) ?? null) : null;
+  const fTo = skip && !w4 && rideKind(r) === 'streetcar' ? flineStation(r.to) : undefined;
+  const skipTo = skip
+    ? (w4 ? w4.spot : cableTo ? W4G?.stationBoardSpot(cableTo) ?? cableTo : fTo ? W4G?.flineLandingSpot(fTo) ?? fTo : stationOf(r, r.to) ?? null)
+    : null;
   // a long 直接到站, or one to a stop the streamer has not brought in: the city streams in under a veil first (plan §3.4)
   if (skipTo && !veiled && W4G && W4G.skipNeedsVeil(skipTo)) {
     const dest = w4?.station ?? r.to;
     veiledRide = r;
     W4G.veiledSkip(skipTo, stationOf(r, dest)?.name ?? null, () => {
       if (veiledRide === r) veiledRide = null;
-      if (currentRide() === r) leaveLineRide(r, true, true);
+      if (currentRide() === r) leaveLineRide(r, true, true, alightAt);
     });
     return;
   }
   if (veiledRide === r) veiledRide = null;
   const side = w4 ? w4.side : platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
-  const skipCounts = !!(w4 && skip && r.mode === 'follow' && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r)));
+  // (review) where the rider gets off: the destination, or the station 在这站下车 was tapped at
+  const offAt = w4?.station ?? r.to;
+  const skipCounts = !!(w4 && skip && r.mode === 'follow' && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r), offAt));
   releaseStop();
   sys?.cancel();
   endRide();
@@ -522,9 +528,9 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   if (w4) {
     if (skipCounts) {
       r.counted = true;
-      countRide(r, r.to);
+      countRide(r, offAt);
       // lane C's sightseeing goal counts the loop stops the veil skipped (they raised no `arrive`)
-      if (w4Kind(r.line!) === 'bus') W4G!.noteLoopSkip(st?.lastStation ?? r.from, r.to);
+      if (w4Kind(r.line!) === 'bus') W4G!.noteLoopSkip(st?.lastStation ?? r.from, offAt);
     }
     const at = w4.station ?? (finishing ? r.to : null);
     const tipped = (r.counted || finishing) && W4G!.sayHopOffTip(at);
@@ -803,7 +809,9 @@ export function subwayView(): ReturnType<LineRidesModule['subwayView']> { return
 /** 在这站下车 in the subway overlay: off at the station the train stands at (placed at its kiosk). */
 export function alightHere() {
   const r = currentRide();
-  if (isLineRide(r) && W4G?.w4Status(r)?.station) leaveLineRide(r, true);
+  const at = isLineRide(r) ? W4G?.w4Status(r)?.station : null;
+  // (review) the station tapped at, kept through the veil (the train may leave it while the kiosk streams in)
+  if (isLineRide(r) && at) leaveLineRide(r, true, false, at);
 }
 
 let lineMapOpener: ((line: string) => void) | null = null;
