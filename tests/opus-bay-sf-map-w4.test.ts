@@ -314,11 +314,12 @@ const OPTS: TripOption[] = [
 ];
 
 test('trip rows: honest short times, "观光巴士 2 站", legs in the detail line, 推荐 first, at most 4', () => {
-  assert.deepEqual(tripSecondsLabel(6), { zh: '约 6 秒', en: '~6 s' });
+  // the game's one time rule (lane C's game/tripText.ts timeLabel, lane G's review O4): '~6s', hours with 分钟
+  assert.deepEqual(tripSecondsLabel(6), { zh: '约 6 秒', en: '~6s' });
   assert.equal(tripSecondsLabel(42).zh, '约 40 秒');
   assert.equal(tripSecondsLabel(61).zh, '约 1 分钟');
   assert.equal(tripSecondsLabel(250).zh, '约 4 分钟');
-  assert.equal(tripSecondsLabel(3700).zh, '约 1 小时 2 分');
+  assert.equal(tripSecondsLabel(3700).zh, '约 1 小时 2 分钟');
   assert.deepEqual(optionTitle(OPTS[2]), { zh: '观光巴士 2 站', en: 'Tour bus · 2 stops' });
   assert.deepEqual(optionTitle(OPTS[0]), { zh: '步行', en: 'Walk' });
   assert.equal(optionLineGlyph(OPTS[2]), 'Bus');

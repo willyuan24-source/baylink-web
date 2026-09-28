@@ -1,9 +1,11 @@
 import { driveTo, isRiding } from '../actors/moveApi';
 import { game } from '../core/store';
+import type { Bilingual } from '../core/types';
 import type { CityPlace } from '../data/sf/places';
+import type { TripOption } from './tripTypes';
 import { closePanel, navigateTo, say } from './flow';
 import { startTravel } from './fastTravel';
-import { interactables } from './interactables';
+import { interactableById, interactables } from './interactables';
 import { requestHopOff } from './transit';
 import { rideableNear } from './travel';
 
@@ -21,6 +23,25 @@ export function flyTo(p: CityPlace) {
 }
 
 export function takeMeTo(p: CityPlace) { navigateTo(`place:${p.id}`); }
+
+/** Where a map trip goes: lane G's TripDestination + the attraction (lane C's TripDest). */
+export interface PlaceTripDest { placeId: string; x: number; z: number; name?: Bilingual; attraction?: string }
+
+/**
+ * Start a trip the map picked (跟 BAYBAY 去, a TripOptions row): lane C's trip runner takes every option at the
+ * integration (`flow.startTrip`); until it is wired each mode runs through the wave-3 actions — 步行 / 跑过去: 带我去 (the
+ * auto-walk eases into a run), 骑车 / 开车: the autopilot, 飞过去: the pelican, 坐车: 带我去 the boarding stop.
+ */
+export function startPlaceTrip(o: TripOption, dest: PlaceTripDest, place: CityPlace) {
+  if (o.mode === 'fly') { flyTo(place); return; }
+  if (o.mode === 'bike' || o.mode === 'car') { if (driveOption()) { driveThere(place); return; } }
+  if (o.mode === 'line') {
+    const st = o.legs.find(l => l.via === 'line')?.from.station;
+    const at = st ? interactableById(`place:${st}`) ?? interactableById(`transit-${st}`) : undefined;
+    if (at) { navigateTo(at.id); return; }
+  }
+  navigateTo(`place:${dest.placeId}`);
+}
 
 /** What 骑车去 / 开车去 can do right now: drive (riding), walk to a rideable nearby, or nothing. */
 export function driveOption(): { kind: 'drive' | 'fetch'; vehicle: 'bike' | 'car'; id?: string } | null {

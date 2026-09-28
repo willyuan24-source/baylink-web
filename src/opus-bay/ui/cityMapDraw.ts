@@ -28,6 +28,13 @@ export interface MapFrameBox { minX: number; maxX: number; minZ: number; maxZ: n
 
 export const MIN_ZOOM = 0.8;
 export const MAX_ZOOM = 18;
+/**
+ * The closest the map zooms in, in CSS px per world unit, whatever the frame (wave 4, lane P): 18× the frame fit is
+ * only s ≈ 2 on a 390 px phone, short of the plan's T4 labels (s ≥ 3); a street reads at s 4.
+ */
+export const MAX_SCALE = 4;
+/** The zoom-in limit for a view of w × h: 18× the fit, or s 4 when that is closer. */
+export const maxScale = (f: MapFrameBox, w: number, h: number) => Math.max(fitScale(f, w, h) * MAX_ZOOM, MAX_SCALE);
 
 export const toPx = (v: MapView, x: number, z: number): [number, number] => [(x - v.cx) * v.scale + v.w / 2, (z - v.cz) * v.scale + v.h / 2];
 export const toWorld = (v: MapView, px: number, py: number): { x: number; z: number } => ({ x: (px - v.w / 2) / v.scale + v.cx, z: (py - v.h / 2) / v.scale + v.cz });
@@ -38,7 +45,7 @@ export const fitScale = (f: MapFrameBox, w: number, h: number) => Math.min(w / (
 /** Keep the zoom in [MIN_ZOOM, MAX_ZOOM] × fit and the centre inside the frame. */
 export function clampView(v: MapView, f: MapFrameBox): MapView {
   const fit = fitScale(f, v.w, v.h);
-  const scale = Math.min(fit * MAX_ZOOM, Math.max(fit * MIN_ZOOM, v.scale));
+  const scale = Math.min(maxScale(f, v.w, v.h), Math.max(fit * MIN_ZOOM, v.scale));
   return { ...v, scale, cx: Math.min(f.maxX, Math.max(f.minX, v.cx)), cz: Math.min(f.maxZ, Math.max(f.minZ, v.cz)) };
 }
 

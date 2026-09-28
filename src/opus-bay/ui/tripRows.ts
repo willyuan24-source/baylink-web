@@ -1,4 +1,5 @@
 import type { Bilingual } from '../core/types';
+import { timeLabel } from '../game/tripText';
 import { TRIP_MODE_NAMES, TRIP_MODES, type TripLeg, type TripLineLeg, type TripOption } from '../game/tripTypes';
 import { LINE_STYLES, type LineGlyph } from './mapLines';
 
@@ -9,14 +10,12 @@ import { LINE_STYLES, type LineGlyph } from './mapLines';
  * Every time shown is real play time (the planner's honest seconds).
  */
 
-/** "约 6 秒" / "约 40 秒" / "约 4 分钟" / "约 1 小时 5 分" (rounded: 5 s steps from 20 s, whole minutes from 90 s). */
+/**
+ * "约 6 秒" / "约 40 秒" / "约 4 分钟" / "约 1 小时 5 分钟": the game's ONE time rule (lane C's game/tripText.ts
+ * `timeLabel`, lane G's review O4: pill, card, map and ETA chip say the same words).
+ */
 export function tripSecondsLabel(sec: number): Bilingual {
-  const s = Math.max(1, Math.round(sec));
-  if (s < 20) return { zh: `约 ${s} 秒`, en: `~${s} s` };
-  if (s < 90) { const r = Math.round(s / 5) * 5; return r < 60 ? { zh: `约 ${r} 秒`, en: `~${r} s` } : { zh: `约 1 分钟`, en: '~1 min' }; }
-  const m = Math.round(s / 60);
-  if (m < 60) return { zh: `约 ${m} 分钟`, en: `~${m} min` };
-  return { zh: `约 ${Math.floor(m / 60)} 小时 ${m % 60} 分`, en: `~${Math.floor(m / 60)} h ${m % 60} min` };
+  return timeLabel(sec);
 }
 
 const firstLine = (o: TripOption): TripLineLeg | undefined => o.legs.find((l): l is TripLineLeg => l.via === 'line');
@@ -59,10 +58,10 @@ export function optionDetail(o: TripOption): Bilingual | null {
   if (o.note) parts.push(o.note);
   else if (o.legs.length > 1 || o.mode === 'line') {
     for (const l of o.legs) {
-      if (l.via === 'line' && l.wait > 0) parts.push({ zh: `等 ${tripSecondsLabel(l.wait).zh.replace('约 ', '')}`, en: `wait ${tripSecondsLabel(l.wait).en.replace('~', '')}` });
+      if (l.via === 'line' && l.wait > 0) { const wl = timeLabel(l.wait, 'bare'); parts.push({ zh: `等 ${wl.zh}`, en: `wait ${wl.en}` }); }
       const sec = l.via === 'line' ? Math.max(1, l.seconds - l.wait) : l.seconds;
-      const w = legWord(l), tl = tripSecondsLabel(sec);
-      parts.push({ zh: `${w.zh} ${tl.zh.replace('约 ', '')}`, en: `${w.en} ${tl.en.replace('~', '')}` });
+      const w = legWord(l), tl = timeLabel(sec, 'bare');
+      parts.push({ zh: `${w.zh} ${tl.zh}`, en: `${w.en} ${tl.en}` });
     }
   }
   if (est) parts.push({ zh: '计算中…', en: 'working it out…' });

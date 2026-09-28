@@ -1,53 +1,62 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
-import { Bike, Car, Landmark, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, Search, X } from 'lucide-react';
+import { Bike, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
 import { fleetSnapshot } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
-import { useGame } from '../core/store';
+import { toast, useGame } from '../core/store';
 import type { Bilingual, Vec2 } from '../core/types';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
-import { landmarkAreaAt, zoneLabelAnchor, zoneName } from '../data/cityZones';
+import { zoneLabelAnchor, zoneName } from '../data/cityZones';
+import type { Attraction } from '../data/sf/attractionTypes';
+import { ATTRACTIONS, ATTRACTION_INDEX, coveredPlaceIds, tripDestination } from '../data/sf/attractions';
 import type { CityPlace } from '../data/sf/places';
-import { onTransitData, transitData } from '../data/transit';
 import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
+import { parseMapPanelId } from '../game/mapPanel';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { useT } from '../i18n';
-import { type LabelItem, type LabelObstacle, type MapView, MAX_ZOOM, clampView, drawCityMap, fitPoints, fitScale, labelWidth, layoutLabels, markerShown, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { type MapView, clampView, drawCityMap, labelWidth, maxScale, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { type MapSel, type MapTarget, NORTH_DEG, buildScene, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
 import { useFar, usePlaceIndex } from './cityHooks';
+import { CityMapList, type MapTab } from './CityMapList';
 import { BaybayFace, Sheet } from './common';
+import { MapBadge, MapLabel } from './MapBadge';
+import { useMapLines, useMapStations } from './mapData';
+import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
+import { MapFilters } from './MapFilters';
+import { MapLegend } from './MapLegend';
+import { type StationCtx, drawTransitLines, tripRouteStrokes } from './mapLines';
 import { MapPaperLayer } from './MapPaperLayer';
 import { PlaceActions, type WalkInfo } from './PlaceActions';
+import { StationPanel } from './StationPanel';
 import './city-ui.css';
+import './map-w4.css';
 
 /**
- * The whole-city map (lane G1, G1-5 / G1-6): far.obc on a canvas (ui/cityMapDraw.ts), H2b's painted paper under it
- * (<MapPaperLayer/> in a world-space SVG, empty until the paper lands), and a screen-space SVG on top with the
- * landmarks, places, neighbourhood names, BAYBAY and you. Drag to pan, wheel / pinch / buttons to zoom (0.8–18×), tap a
- * marker to select it; the list below searches every place (zh / en). Unvisited neighbourhoods stay under paper fog.
+ * The whole-city map (lane G1 in wave 3; wave 4 lane P, plan sf-w4-plan.md §4.1): far.obc on a canvas
+ * (ui/cityMapDraw.ts) over H2b's painted paper, the transit lines (the loop, N, M, the cable cars, the F-line; dashed
+ * underground) and the station marks on the canvas too, and a screen-space SVG with the attraction badges by tier and
+ * category (T1 always, T2 from s 0.3, T3 from 0.45), the other places, labels beside their badge, "+n" clusters, the
+ * target's gold pin-flag, BAYBAY and you — all laid out once per view (ui/cityMapModel.ts buildScene). Under the frame:
+ * the filter chips, the selected place (PlaceActions) or station (StationPanel), then the search and the tabs 景点 ·
+ * 线路 · 附近 · 去过的 (ui/CityMapList.tsx). Drag to pan, wheel / pinch / buttons to zoom; a tap selects the nearest badge
+ * or station, a tap on a "+n" zooms into it. The compass rose shows true north (up-left: the game turns the city).
  */
 
 const MAX_DPR = 2;
 const MAX_CANVAS = 1800;
 const HIT_PX = 22;
-/** screen boxes labels keep clear of: the tool column (4 buttons of 34 px + gaps, city-ui.css) and the credit line */
-const TOOLS_W = 48, TOOLS_H = 172, TOOL_STEP = 40, CREDIT_H = 20;
 
-function useTransitLines() {
-  const [d, setD] = useState(() => transitData());
-  useEffect(() => onTransitData(setD), []);
-  return useMemo(() => (d ? d.lines.map(l => ({ xyz: l.xyz, color: l.color })) : []), [d]);
-}
-
-/** The selected place's walking route (G1-8): pending while E2's time-sliced A* runs, then the route or 'none'. */
+/** The selected destination's walking route (G1-8): pending while E2's time-sliced A* runs, then the route or 'none'. */
 interface RoutePlan { id: string; status: 'pending' | 'ok' | 'none'; route: PlannedRoute | null }
+interface Dest { id: string; to: Vec2 & { heading?: number }; walkable: boolean; placeId: string | null; name: Bilingual }
 
-function useRoutePlan(place: CityPlace | null, pos: Vec2): RoutePlan | null {
+function useRoutePlan(dest: Dest | null, pos: Vec2): RoutePlan | null {
   const [plan, setPlan] = useState<RoutePlan | null>(null);
-  const id = place?.walkable ? place.id : null;
-  const to = place?.walkable ? place.arrival : null;
+  const id = dest?.walkable ? dest.id : null;
+  const to = dest?.walkable ? dest.to : null;
   // the player left the planned way (the map does not stop you): plan again from here. Walking along it (带我去 with
   // the map open) keeps the plan: what is left of it is drawn and timed (G1-review: no re-plan every 20 u)
   const stale = !!plan?.route && plan.id === id && offRoute(plan.route, pos);
@@ -68,43 +77,65 @@ function useRoutePlan(place: CityPlace | null, pos: Vec2): RoutePlan | null {
   return plan && plan.id === id ? plan : null;
 }
 
-/**
- * "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline. The way back onto
- * the route counts too, as in the waypoint's routeLeftTo (G1-review: the strip, the chip, the place card and the
- * waypoint say one number).
- */
+/** "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline (G1-review). */
 function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual; walked: Vec2[] } {
   const ahead = routeAhead(route.points, pos);
   return { points: ahead.points, time: secondsLabel(autoWalkSeconds(ahead.length + ahead.off)), walked: [{ x: pos.x, z: pos.z }, ...ahead.points] };
 }
 
-type Tab = 'landmarks' | 'near' | 'found';
+/** The map's target: an attraction's badge becomes the pin, or a plain place (the island piers: the badge stays). */
+function mapTargetOf(placeId: string | null, attraction?: string | null): MapTarget | null {
+  if (!placeId && !attraction) return null;
+  const a = attraction ? ATTRACTION_INDEX.resolve(attraction) : placeId ? ATTRACTION_INDEX.primary(placeId) : undefined;
+  if (a && (!placeId || (a.placeId ?? a.id) === placeId)) return { attraction: a.id };
+  return placeId ? { place: placeId } : null;
+}
+
+/** One MapTarget object per (place, attraction) pair: a stable identity for the scene's memo. */
+const TARGETS = new Map<string, MapTarget | null>();
+function mapTargetFor(placeId: string | null, attraction: string | null): MapTarget | null {
+  const key = `${placeId ?? ''}|${attraction ?? ''}`;
+  let v = TARGETS.get(key);
+  if (v === undefined) { v = mapTargetOf(placeId, attraction); TARGETS.set(key, v); }
+  return v;
+}
+
+const ATTRACTION_BY_ID: ReadonlyMap<string, Attraction> = new Map(ATTRACTIONS.map(a => [a.id, a]));
+const T1_LIST = ATTRACTIONS.filter(a => a.rank === 1);
 
 export function CityMapPanel() {
-  const { t } = useT();
+  const { t, locale } = useT();
+  const loc: 'zh' | 'en' = locale === 'en' ? 'en' : 'zh';
   const far = useFar();
   const ix = usePlaceIndex();
-  const lines = useTransitLines();
+  const lines = useMapLines();
+  const { stations, termini } = useMapStations(lines);
+  const stationById = useMemo(() => new Map(stations.map(s => [s.id, s])), [stations]);
   const epoch = useDiscoveryEpoch();
   const pos = useGame(s => s.playerPos);
-  const [selected, setSelected] = useState<string | null>(null);
+  const coarse = useMemo(() => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches, []);
+  const covered = useMemo(() => coveredPlaceIds(), []);
+  const [sel, setSel] = useState<MapSel | null>(null);
   const [query, setQuery] = useState('');
-  const [tab, setTab] = useState<Tab>('landmarks');
+  const [tab, setTab] = useState<MapTab>('sights');
+  const [filter, setFilterState] = useState<MapFilter>(() => loadMapFilter());
+  const setFilter = useCallback((f: MapFilter) => { setFilterState(f); saveMapFilter(f); }, []);
+  const [highlight, setHighlight] = useState<string | null>(null);
+  const [legend, setLegend] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [size, setSize] = useState({ w: 520, h: 360 });
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<MapView | null>(null);
-  // 带我去 in progress (flow.mapTarget = place:<id>): the map opens on it, selected, with the route still ahead
-  const tripId = tripPlaceId(useFlow(s => s.mapTarget));
-  const tripPlace = tripId && ix ? ix.get(tripId) ?? null : null;
-  const openedOnTrip = useRef(false);
-  useEffect(() => {
-    if (openedOnTrip.current || !tripPlace) return;
-    openedOnTrip.current = true;
-    setSelected(s => s ?? tripPlace.id);
-  }, [tripPlace]);
 
-  // size: follow the frame; the first view shows your part of the city at 3× (street names are for the HUD)
+  // 带我去 in progress (flow.mapTarget = place:<id>) or a trip (lane C's flow.trip): the target pin, the trip's route
+  const mapTarget = useFlow(s => s.mapTarget);
+  const trip = useFlow(s => s.trip);
+  const tripId = tripPlaceId(mapTarget);
+  const tripPlace = tripId && ix ? ix.get(tripId) ?? null : null;
+  const targetPlaceId = trip ? trip.placeId : tripId, targetAttraction = trip?.attraction ?? null;
+  const target = mapTargetFor(targetPlaceId, targetAttraction);
+
+  // size: follow the frame
   useEffect(() => {
     const el = frameRef.current;
     if (!el) return;
@@ -114,14 +145,72 @@ export function CityMapPanel() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  useEffect(() => {
-    setView(v => {
-      const base = v ?? { cx: runtime.player.x, cz: runtime.player.z, scale: fitScale(MAP_FRAME, size.w, size.h) * 3, w: size.w, h: size.h };
-      return clampView({ ...base, w: size.w, h: size.h }, MAP_FRAME);
-    });
-  }, [size.w, size.h]);
 
-  // draw (one rAF per change)
+  // the first view (plan §4.1 "Framing"): the player + the target / the 3 nearest T1 not visited yet; later resizes
+  // keep the centre and the scale
+  const targetPoint = useMemo((): Vec2 | null => {
+    if (target?.attraction) { const a = ATTRACTION_INDEX.get(target.attraction); if (a) { const d = tripDestination(a); return { x: d.x, z: d.z }; } }
+    if (target?.place) { const p = ix?.get(target.place); if (p) return p.arrival; }
+    return null;
+  }, [target, ix]);
+  useEffect(() => {
+    if (!size) return;
+    setView(v => {
+      if (v) return clampView({ ...v, w: size.w, h: size.h }, MAP_FRAME);
+      const base: MapView = { cx: runtime.player.x, cz: runtime.player.z, scale: 0.5, w: size.w, h: size.h };
+      return firstOpenView(base, MAP_FRAME, {
+        player: { x: runtime.player.x, z: runtime.player.z },
+        focus: targetPoint ? [targetPoint] : [],
+        t1: T1_LIST.map(a => ({ x: a.x, z: a.z, found: isDiscovered(a.placeId ?? a.id) })),
+      });
+    });
+  }, [size?.w, size?.h]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the map opened on a trip: the destination selected
+  const openedOnTrip = useRef(false);
+  useEffect(() => {
+    if (openedOnTrip.current || !target) return;
+    openedOnTrip.current = true;
+    setSel(s => s ?? (target.attraction ? { kind: 'attraction', id: target.attraction } : target.place ? { kind: 'place', id: target.place } : null));
+  }, [target]);
+
+  // openPanel('map', …): a place (the Journal's 足迹), an attraction, a station, a line (lane T's 看线路图)
+  const openId = useGame(s => (s.panel.kind === 'map' ? s.panel.id ?? null : null));
+  const openedOn = useRef<string | null>(null);
+
+  // --- the scene (badges, places, stations, zone names, labels, clusters) -----------------------------------------------
+  const zones = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at).map(z => ({ id: z.id, x: z.at!.x, z: z.at!.z, name: zoneName(z.id) })) : []), [far]);
+  const visitedZones = useMemo(() => zones.filter(z => zoneVisited(z.id)), [zones, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  // parked bikes and the toy car (their spots, or where you left them: E2's fleet snapshot), from s 1.2
+  const rides = useMemo(() => {
+    if (!view || view.scale < 1.2) return [] as { id: string; kind: 'bike' | 'car'; x: number; y: number }[];
+    const fleet = fleetSnapshot();
+    const out: { id: string; kind: 'bike' | 'car'; x: number; y: number }[] = [];
+    for (const s of vehicleSpots()) {
+      const moved = s.kind === 'car' ? fleet.car : fleet.bike?.id === s.id ? fleet.bike : undefined;
+      const x = moved?.x ?? s.x, z = moved?.z ?? s.z;
+      if (Math.hypot(x - pos.x, z - pos.z) < 2.5) continue; // the one you are riding
+      const [px, py] = toPx(view, x, z);
+      if (px < -10 || py < -10 || px > view.w + 10 || py > view.h + 10) continue;
+      out.push({ id: s.id, kind: s.kind, x: px, y: py });
+    }
+    return out;
+  }, [view, pos]);
+  const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
+  const youAt = view ? toPx(view, pos.x, pos.z) : null;
+  const tallTools = !!size && size.h >= 300;
+  const toolRight = tallTools ? 48 : 90;
+  const scene = useMemo(() => {
+    if (!view) return null;
+    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }];
+    return buildScene({
+      view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
+      discovered: isDiscovered, selected: sel, target, filter, highlight, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
+    });
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, filter, highlight, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
+  const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv || !view || !far) return;
@@ -134,12 +223,15 @@ export function CityMapPanel() {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawCityMap(ctx, { far, visited: zoneVisited, transit: lines, paper: !!MAP_PAPER }, view);
+      drawCityMap(ctx, { far, visited: zoneVisited, paper: !!MAP_PAPER }, view);
+      const fl = filterLines(filter);
+      drawTransitLines(ctx, lines, view, { highlight, dimAll: fl.lines === 'dim' });
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
     });
     return () => cancelAnimationFrame(id);
-  }, [view, far, lines, epoch]);
+  }, [view, far, lines, epoch, highlight, filter, routeStrokes, scene]);
 
-  // --- pan / zoom / pinch -------------------------------------------------------------------------------------------
+  // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ moved: number; pinch: number | null }>({ moved: 0, pinch: null });
   const local = (e: { clientX: number; clientY: number }) => {
@@ -147,7 +239,7 @@ export function CityMapPanel() {
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('button')) return;
+    if ((e.target as HTMLElement).closest('button, .mw-legend-pop')) return;
     frameRef.current?.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, local(e));
     drag.current = { moved: 0, pinch: null };
@@ -172,16 +264,16 @@ export function CityMapPanel() {
   const onUp = (e: RPointerEvent<HTMLDivElement>) => {
     const had = pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) drag.current.pinch = null;
-    if (!had || drag.current.moved > 6 || !view) return;
-    // a tap: the nearest marker within reach
+    if (!had || drag.current.moved > 6 || !view || !scene) return;
+    // a tap: the nearest badge / place / station within reach; a "+n" badge zooms in to its members
     const p = local(e);
-    let best: string | null = null, bestD = HIT_PX;
-    for (const m of markers) {
-      const [x, y] = toPx(view, m.p.x, m.p.z);
-      const d = Math.hypot(x - p.x, y - p.y);
-      if (d < bestD) { bestD = d; best = m.p.id; }
+    const hit = hitTest(scene, p.x, p.y, HIT_PX);
+    if (hit?.members?.length && scene.s < 1.2) {
+      const pts = clusterPoints(scene, ATTRACTION_BY_ID, hit.id, hit.members);
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 56, 0.5, 2.4) : v));
+      return;
     }
-    setSelected(best);
+    setSel(hit ? { kind: hit.kind, id: hit.id } : null);
   };
   const onWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -195,44 +287,59 @@ export function CityMapPanel() {
     return () => el.removeEventListener('wheel', onWheel);
   }, [onWheel]);
   const zoomBy = (k: number) => setView(v => (v ? zoomAt(v, MAP_FRAME, k, v.w / 2, v.h / 2) : v));
-  const fit = () => setView(v => (v ? clampView({ ...v, cx: (MAP_FRAME.minX + MAP_FRAME.maxX) / 2, cz: (MAP_FRAME.minZ + MAP_FRAME.maxZ) / 2, scale: fitScale(MAP_FRAME, v.w, v.h) }, MAP_FRAME) : v));
-  const locate = () => setView(v => (v ? clampView({ ...v, cx: runtime.player.x, cz: runtime.player.z, scale: Math.max(v.scale, fitScale(MAP_FRAME, v.w, v.h) * 6) }, MAP_FRAME) : v));
-  const focusPlace = (p: CityPlace) => {
-    setSelected(p.id);
-    setView(v => (v ? clampView({ ...v, cx: p.x, cz: p.z, scale: Math.max(v.scale, fitScale(MAP_FRAME, v.w, v.h) * 5) }, MAP_FRAME) : v));
+  const fitCity = () => setView(v => (v ? sfLandView(v, MAP_FRAME) : v));
+  const locate = () => setView(v => (v ? clampView({ ...v, cx: runtime.player.x, cz: runtime.player.z, scale: Math.max(v.scale, 0.9) }, MAP_FRAME) : v));
+  const focusAt = (x: number, z: number, minScale = 0.8) => setView(v => (v ? clampView({ ...v, cx: x, cz: z, scale: Math.max(v.scale, minScale) }, MAP_FRAME) : v));
+  const pickAttraction = (a: Attraction) => { setSel({ kind: 'attraction', id: a.id }); focusAt(a.x, a.z); };
+  const pickPlace = (p: CityPlace) => {
+    // a place an attraction speaks for selects the attraction's badge; a station row selects the station
+    const a = ATTRACTION_INDEX.primary(p.id);
+    if (a) { pickAttraction(a); return; }
+    if (stationById.has(p.id)) { pickStation(p.id); return; }
+    setSel({ kind: 'place', id: p.id });
+    focusAt(p.x, p.z, 1.2);
   };
-  // openPanel('map', '<placeId>') (the Journal's 足迹 tab): open on that place, selected
-  const openId = useGame(s => (s.panel.kind === 'map' ? s.panel.id ?? null : null));
-  const openedOn = useRef<string | null>(null);
+  const pickStation = (id: string) => { const st = stationById.get(id); if (!st) return; setSel({ kind: 'station', id }); focusAt(st.x, st.z, 0.8); };
+  const pickLine = (id: string) => {
+    setHighlight(h => (h === id ? null : id));
+    setTab('lines');
+    const line = lines.find(l => l.id === id);
+    if (line && highlight !== id) {
+      const pts: Vec2[] = [];
+      for (let i = 0; i + 2 < line.path.length; i += 3 * 8) pts.push({ x: line.path[i], z: line.path[i + 2] });
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 28, 0.1, 1.2) : v));
+    }
+  };
   useEffect(() => {
-    if (!openId || !ix || !view || openedOn.current === openId) return;
-    const p = ix.get(openId);
+    if (!openId || !view || openedOn.current === openId) return;
+    const on = parseMapPanelId(openId);
+    if (!on) return;
+    if (on.kind === 'line') { if (!lines.some(l => l.id === on.id)) return; openedOn.current = openId; pickLine(on.id); return; }
+    if (on.kind === 'station') { if (!stationById.has(on.id)) return; openedOn.current = openId; pickStation(on.id); return; }
+    if (on.kind === 'attraction') { const a = ATTRACTION_INDEX.resolve(on.id); if (a) { openedOn.current = openId; pickAttraction(a); } return; }
+    if (!ix) return;
+    const p = ix.get(on.id);
     if (!p) return;
     openedOn.current = openId;
-    focusPlace(p);
-  }, [openId, ix, view]);
+    pickPlace(p);
+  }, [openId, ix, view, lines, stationById]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- markers ------------------------------------------------------------------------------------------------------
-  const zoom = view ? view.scale / fitScale(MAP_FRAME, view.w, view.h) : 1;
-  const markers = useMemo(() => {
-    if (!ix || !view) return [] as { p: CityPlace; kind: 'lm' | 'curated' | 'place' }[];
-    const out: { p: CityPlace; kind: 'lm' | 'curated' | 'place' }[] = [];
-    const pad = 20;
-    for (const p of ix.list) {
-      const kind = p.landmark ? 'lm' : p.curated ? 'curated' : 'place';
-      if (!markerShown(kind, zoom, isDiscovered(p.id), p.id === selected)) continue;
-      const [x, y] = toPx(view, p.x, p.z);
-      if (x < -pad || y < -pad || x > view.w + pad || y > view.h + pad) continue;
-      out.push({ p, kind });
+  // --- the selection: its destination, its walking route (G1-8) -------------------------------------------------------
+  const selAttraction = sel?.kind === 'attraction' ? ATTRACTION_INDEX.get(sel.id) ?? null : null;
+  const selPlace: CityPlace | null = !ix || !sel ? null : sel.kind === 'place' ? ix.get(sel.id) ?? null : selAttraction ? ix.get(selAttraction.placeId ?? selAttraction.id) ?? null : null;
+  const selStation = sel?.kind === 'station' ? stationById.get(sel.id) ?? null : null;
+  const dest = useMemo((): Dest | null => {
+    if (selAttraction) {
+      const d = tripDestination(selAttraction);
+      const row = ix?.get(d.placeId);
+      return { id: `a:${selAttraction.id}`, to: { x: d.x, z: d.z }, walkable: row ? row.walkable : !selAttraction.offWalk, placeId: d.placeId, name: d.name };
     }
-    return out;
-  }, [ix, view, zoom, epoch, selected]); // eslint-disable-line react-hooks/exhaustive-deps
-  const zoneLabels = useMemo(() => (far ? far.zones.map(z => ({ id: z.id, at: zoneLabelAnchor(z) })).filter(z => z.at) : []), [far]);
-  const sel = selected && ix ? ix.get(selected) ?? null : null;
-
-  // --- G1-8 layers: the selected place's walking route (gold while 带我去 is on) with its time chip, rideables, BAYBAY
-  const plan = useRoutePlan(sel, pos);
-  const onTrip = !!sel && sel.id === tripId;
+    if (selPlace) return { id: `p:${selPlace.id}`, to: selPlace.arrival, walkable: selPlace.walkable, placeId: selPlace.id, name: selPlace.name };
+    if (selStation) return { id: `s:${selStation.id}`, to: { x: selStation.x, z: selStation.z }, walkable: true, placeId: ix?.get(selStation.id) ? selStation.id : null, name: selStation.name };
+    return null;
+  }, [selAttraction, selPlace, selStation, ix]);
+  const plan = useRoutePlan(dest, pos);
+  const onTrip = !!dest?.placeId && (dest.placeId === tripId || (!!trip && trip.placeId === dest.placeId));
   const left = useMemo(() => (plan?.route ? routeLeft(plan.route, pos) : null), [plan, pos]);
   const routeDraw = useMemo(() => {
     if (!view || !left || left.points.length < 2) return null;
@@ -240,7 +347,7 @@ export function CityMapPanel() {
     const end = pts[pts.length - 1];
     const chip = t(left.time);
     const cw = labelWidth(chip, 11) + 16;
-    return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw, box: [end[0] - cw / 2, end[1] + 12, end[0] + cw / 2, end[1] + 32] as const };
+    return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw };
   }, [view, left, t]);
   // the map opened on a trip: frame you and the whole way once the route is known
   const framedTrip = useRef(false);
@@ -248,75 +355,24 @@ export function CityMapPanel() {
     if (framedTrip.current || !onTrip || !plan?.route) return;
     framedTrip.current = true;
     const route = plan.route;
-    setView(v => (v ? fitPoints(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...route.points], 44) : v));
+    setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...route.points], 44, 0.25, 2) : v));
   }, [onTrip, plan]);
-  const showRoute = () => { const route = plan?.route; if (route) setView(v => (v ? fitPoints(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...routeAhead(route.points, runtime.player).points], 44) : v)); };
-  // parked bikes and the toy car (their spots, or where you left them: E2's fleet snapshot), from 2.5× in
-  const rides = useMemo(() => {
-    if (!view || zoom < 2.5) return [] as { id: string; kind: 'bike' | 'car'; x: number; y: number }[];
-    const fleet = fleetSnapshot();
-    const out: { id: string; kind: 'bike' | 'car'; x: number; y: number }[] = [];
-    for (const s of vehicleSpots()) {
-      const moved = s.kind === 'car' ? fleet.car : fleet.bike?.id === s.id ? fleet.bike : undefined;
-      const x = moved?.x ?? s.x, z = moved?.z ?? s.z;
-      if (Math.hypot(x - pos.x, z - pos.z) < 2.5) continue; // the one you are riding
-      const [px, py] = toPx(view, x, z);
-      if (px < -10 || py < -10 || px > view.w + 10 || py > view.h + 10) continue;
-      out.push({ id: s.id, kind: s.kind, x: px, y: py });
-    }
-    return out;
-  }, [view, zoom, pos]);
-  const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
-  const youAt = view ? toPx(view, pos.x, pos.z) : null;
-  const toolsH = TOOLS_H + (plan?.route ? TOOL_STEP : 0);
-
-  // labels: the selected place first, then landmarks, curated places (zoomed in), then neighbourhood names. A marker's
-  // label sits above, right, left or below its own badge (never dropped for touching it: the wave-2 bug hid them all)
-  const labels = useMemo(() => {
-    if (!view) return [] as { id: string; text: string; zone: boolean; x: number; y: number; anchor: 'middle' | 'start' | 'end' }[];
-    const items: LabelItem[] = [];
-    const obstacles: LabelObstacle[] = [];
-    for (const { p, kind } of markers) {
-      const [x, y] = toPx(view, p.x, p.z);
-      const r = kind === 'lm' ? 10 : kind === 'curated' ? 5 : 3.5;
-      obstacles.push({ id: p.id, x, y, r });
-      const prio = p.id === selected ? 0 : kind === 'lm' ? (isDiscovered(p.id) ? 1 : 2) : kind === 'curated' ? 3 : 4;
-      // the whole city: discovered landmarks only; zoomed in: every landmark, then curated places, then the rest
-      const want = prio === 0 || (prio === 1 && zoom > 1.6) || (prio === 2 && zoom > 2.4) || (kind === 'curated' && zoom > 4) || zoom > 9;
-      if (want) items.push({ id: p.id, x, y, r, text: t(p.name), prio, over: prio === 0 });
-    }
-    if (zoom < 7) for (const z of zoneLabels) {
-      if (!zoneVisited(z.id)) continue;
-      const [x, y] = toPx(view, z.at!.x, z.at!.z);
-      items.push({ id: `zone:${z.id}`, x, y: y + 4, text: t(zoneName(z.id)), prio: 5, fontPx: 11 });
-    }
-    // you, BAYBAY and the rideables are markers too
-    for (const r of rides) obstacles.push({ x: r.x, y: r.y, r: 8 });
-    if (youAt) obstacles.push({ x: youAt[0], y: youAt[1], r: 10 });
-    if (guideAt) obstacles.push({ x: guideAt[0], y: guideAt[1], r: 11 });
-    // keep clear of the zoom / locate / fit column (top right), the ODbL credit line (bottom) and the route's time chip
-    const reserved: (readonly [number, number, number, number])[] = [[view.w - TOOLS_W, 0, view.w, toolsH], [0, view.h - CREDIT_H, view.w, view.h]];
-    if (routeDraw) reserved.push(routeDraw.box);
-    const placed = layoutLabels(items, view.w, view.h, 3, obstacles, reserved);
-    return items.flatMap(it => { const s = placed.get(it.id); return s ? [{ id: it.id, text: it.text, zone: it.id.startsWith('zone:'), ...s }] : []; });
-  }, [markers, view, zoom, zoneLabels, selected, t, epoch, rides, routeDraw, toolsH, youAt?.[0], youAt?.[1]]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // --- list ---------------------------------------------------------------------------------------------------------
-  const list = useMemo(() => {
-    if (!ix) return [];
-    if (query.trim()) return ix.search(query, 24);
-    if (tab === 'landmarks') return ix.list.filter(p => p.landmark).sort((a, b) => Math.hypot(a.x - pos.x, a.z - pos.z) - Math.hypot(b.x - pos.x, b.z - pos.z));
-    if (tab === 'near') return ix.near(pos.x, pos.z, 320).filter(p => p.curated || isDiscovered(p.id)).slice(0, 24);
-    return ix.list.filter(p => isDiscovered(p.id)).slice(-40).reverse();
-  }, [ix, query, tab, pos.x, pos.z, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  const showRoute = () => {
+    const route = plan?.route;
+    const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
+    if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2) : v));
+  };
+  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
   const vis = view ? { x: view.cx - view.w / 2 / view.scale, z: view.cz - view.h / 2 / view.scale, w: view.w / view.scale, h: view.h / view.scale } : null;
-  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
+  const s = view?.scale ?? 0;
+  const atMax = !!view && view.scale >= maxScale(MAP_FRAME, view.w, view.h) - 1e-6;
+  const leading = !!useFlow(st => st.freeLead) || !!trip || !!tripId;
 
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
-      {tripPlace && (
+      {tripPlace && !trip && (
         <div className="ob-citymap-trip" role="status">
           <Navigation size={15} aria-hidden />
           <span>
@@ -328,14 +384,13 @@ export function CityMapPanel() {
       )}
       <div ref={frameRef} className="ob-citymap-frame" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
         role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放', 'Map of San Francisco: drag to pan, wheel or pinch to zoom')}>
-        {vis && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={zoom > 4 ? 4096 : 2048} /></svg>}
-        <canvas ref={canvasRef} className="ob-citymap-canvas" style={{ width: size.w, height: size.h }} aria-hidden />
-        {guideAt && guideAt[0] > -12 && guideAt[1] > -12 && guideAt[0] < size.w + 12 && guideAt[1] < size.h + 12 && (
-          <span className="cm-baybay-face" style={{ transform: `translate(${(guideAt[0] - 11).toFixed(1)}px, ${(guideAt[1] - 11).toFixed(1)}px)` }} aria-hidden><BaybayFace size={22} /></span>
+        {vis && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={s > 1.2 ? 4096 : 2048} /></svg>}
+        <canvas ref={canvasRef} className="ob-citymap-canvas" style={size ? { width: size.w, height: size.h } : undefined} aria-hidden />
+        {guideAt && guideAt[0] > -12 && guideAt[1] > -12 && guideAt[0] < (size?.w ?? 0) + 12 && guideAt[1] < (size?.h ?? 0) + 12 && (
+          <span className={`cm-baybay-face${leading ? ' is-leading' : ''}`} style={{ transform: `translate(${(guideAt[0] - 11).toFixed(1)}px, ${(guideAt[1] - 11).toFixed(1)}px)` }} aria-hidden><BaybayFace size={22} /></span>
         )}
-        {view && (
+        {view && scene && (
           <svg className="ob-citymap-overlay" width={view.w} height={view.h} aria-hidden>
-            {labels.map(l => (l.zone ? <text key={l.id} x={l.x} y={l.y} className="cm-zone">{l.text}</text> : null))}
             {routeDraw && (
               <g className={`cm-route ${onTrip ? 'is-trip' : ''}`}>
                 <polyline className="cm-route-case" points={routeDraw.pts} />
@@ -348,24 +403,21 @@ export function CityMapPanel() {
                 {r.kind === 'car' ? <Car x={-5.5} y={-5.5} width={11} height={11} strokeWidth={2.4} /> : <Bike x={-5.5} y={-5.5} width={11} height={11} strokeWidth={2.4} />}
               </g>
             ))}
-            {markers.map(({ p, kind }) => {
-              const [x, y] = toPx(view, p.x, p.z);
-              const found = isDiscovered(p.id);
-              if (kind === 'lm') {
-                return (
-                  <g key={p.id} className={`cm-lm ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
-                    <circle r={10} />
-                    <Landmark x={-6.5} y={-6.5} width={13} height={13} strokeWidth={2.2} />
-                  </g>
-                );
-              }
-              return (
-                <g key={p.id} className={`cm-dot ${found ? 'is-found' : ''} ${p.id === selected ? 'is-on' : ''}`} transform={`translate(${x},${y})`}>
-                  <circle r={kind === 'curated' ? 5 : 3.5} />
-                </g>
-              );
+            {scene.layout.kept.map(k => {
+              const m = scene.attractions.get(k.id);
+              if (m) return <MapBadge key={k.id} a={m.a} tier={m.a.rank} s={s} state={{ ...m.state, ...(k.members.length ? { cluster: k.members.length } : {}) }} x={k.x} y={k.y} size={m.size} />;
+              const pm = scene.places.get(k.id);
+              if (pm) return <MapBadge key={k.id} a={{ id: pm.p.id, cat: pm.cat }} tier={pm.tier} s={s} state={{ ...pm.state, ...(k.members.length ? { cluster: k.members.length } : {}) }} x={k.x} y={k.y} size={pm.size} />;
+              return null;
             })}
-            {labels.map(l => (l.zone ? null : <text key={l.id} x={l.x} y={l.y} className={`cm-label ${l.id === selected ? 'is-on' : ''}`} style={{ textAnchor: l.anchor }}>{l.text}</text>))}
+            {scene.layout.kept.map(k => {
+              if (!k.label || !k.text) return null;
+              if (scene.zones.has(k.id)) return <text key={`l:${k.id}`} x={k.label.tx} y={k.label.ty} className="cm-zone" style={{ textAnchor: 'middle' }}>{k.text}</text>;
+              const m = scene.attractions.get(k.id), pm = scene.places.get(k.id);
+              const size = m?.size ?? pm?.size;
+              const on = (m && sel?.kind === 'attraction' && sel.id === m.a.id) || (pm && sel?.kind === 'place' && sel.id === pm.p.id) || (!m && !pm && sel?.kind === 'station' && k.id === `station:${sel.id}`);
+              return <MapLabel key={`l:${k.id}`} label={k.label} text={k.text} fontPx={size?.font ?? 10} weight={size?.weight ?? 700} selected={!!on} />;
+            })}
             {routeDraw && (
               <g className={`cm-route-chip ${onTrip ? 'is-trip' : ''}`} transform={`translate(${routeDraw.end[0].toFixed(1)},${(routeDraw.end[1] + 22).toFixed(1)})`}>
                 <rect x={-routeDraw.cw / 2} y={-10} width={routeDraw.cw} height={20} rx={10} />
@@ -380,42 +432,40 @@ export function CityMapPanel() {
           </svg>
         )}
         {!far && <p className="ob-citymap-wait">{t('地图铺开中…', 'Unfolding the map…')}</p>}
-        <div className="ob-citymap-tools">
-          <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1.6)} aria-label={t('放大', 'Zoom in')} disabled={zoom >= MAX_ZOOM - 0.01}><Plus size={17} aria-hidden /></button>
+        <button type="button" className="mw-compass" onClick={() => toast(t('地图按游戏方向摆放，北在左上', 'The map follows the game view: north is up-left'), 'info', 2800)}
+          aria-label={t('指北针：北在左上', 'Compass: north is up-left')}>
+          <svg width={28} height={28} viewBox="-14 -14 28 28" aria-hidden>
+            <circle r={13} className="mw-compass-disc" />
+            <g transform={`rotate(${NORTH_DEG})`}>
+              <path d="M0 -10 L3.6 0 L0 -2 L-3.6 0 Z" className="mw-compass-n" />
+              <path d="M0 10 L3.6 0 L0 2 L-3.6 0 Z" className="mw-compass-s" />
+              <text y={-5.2} x={0} className="mw-compass-t" transform={`rotate(${-NORTH_DEG} 0 -7.5)`}>{t('北', 'N')}</text>
+            </g>
+          </svg>
+        </button>
+        <div className={`ob-citymap-tools${tallTools ? '' : ' is-two'}`}>
+          <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1.6)} aria-label={t('放大', 'Zoom in')} disabled={atMax}><Plus size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1 / 1.6)} aria-label={t('缩小', 'Zoom out')}><Minus size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={locate} aria-label={t('回到我这', 'Find me')}><LocateFixed size={17} aria-hidden /></button>
-          <button type="button" className="ob-icon-btn" onClick={fit} aria-label={t('全城', 'Whole city')}><Maximize2 size={16} aria-hidden /></button>
-          {plan?.route && <button type="button" className="ob-icon-btn" onClick={showRoute} aria-label={t('看整条路线', 'Show the whole route')}><RouteIcon size={16} aria-hidden /></button>}
+          <button type="button" className="ob-icon-btn" onClick={fitCity} aria-label={t('全城', 'Whole city')}><Maximize2 size={16} aria-hidden /></button>
+          {(plan?.route || trip) && <button type="button" className="ob-icon-btn" onClick={showRoute} aria-label={t('看整条路线', 'Show the whole route')}><RouteIcon size={16} aria-hidden /></button>}
+          <button type="button" className={`ob-icon-btn${legend ? ' is-on' : ''}`} onClick={() => setLegend(v => !v)} aria-label={t('图例', 'Legend')} aria-pressed={legend}><Info size={17} aria-hidden /></button>
         </div>
+        {legend && <div className="mw-legend-pop"><MapLegend onClose={() => setLegend(false)} /></div>}
         <p className="ob-citymap-credit">{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
       </div>
 
-      {sel && <PlaceActions place={sel} walk={walk} onTrip={onTrip} />}
+      <MapFilters value={filter} onChange={setFilter} />
 
-      <section className="ob-block ob-citymap-list">
-        <label className="ob-citymap-search">
-          <Search size={16} aria-hidden />
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder={t('搜地方：金门大桥、Dolores…', 'Search: Golden Gate, 唐人街…')} aria-label={t('搜索地点', 'Search places')} />
-        </label>
-        {!query.trim() && (
-          <div className="ob-map-zoom ob-citymap-tabs" role="tablist">
-            {([['landmarks', t('地标', 'Landmarks')], ['near', t('附近', 'Nearby')], ['found', t('去过的', 'Visited')]] as const).map(([k, label]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => setTab(k)}>{label}</button>
-            ))}
-          </div>
-        )}
-        <ul className="ob-place-list">
-          {list.map(p => (
-            <li key={p.id}>
-              <button type="button" className={selected === p.id ? 'is-on' : ''} onClick={() => focusPlace(p)}>
-                <span className={`ob-place-num ${isDiscovered(p.id) ? 'is-found' : ''}`} aria-hidden>{p.landmark ? <Landmark size={13} /> : '·'}</span>
-                <span className="ob-place-text"><span>{t(p.name)}</span><small>{t(landmarkAreaAt(p.x, p.z)?.name ?? zoneName(p.zone))}</small></span>
-              </button>
-            </li>
-          ))}
-          {!list.length && <li className="ob-citymap-empty">{ix ? t('没找到，换个词试试', 'Nothing found — try another word') : t('地点加载中…', 'Loading places…')}</li>}
-        </ul>
-      </section>
+      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walk} onTrip={onTrip} />}
+      {selStation && (
+        <StationPanel station={selStation} lines={lines} pos={pos} walk={walk} placeId={dest?.placeId ?? null} />
+      )}
+
+      <CityMapList
+        ix={ix} lines={lines} stations={stations} pos={pos} query={query} setQuery={setQuery} tab={tab} setTab={setTab} selected={sel} highlight={highlight} epoch={epoch}
+        onAttraction={pickAttraction} onPlace={pickPlace} onStation={st => pickStation(st.id)} onLine={pickLine}
+      />
     </Sheet>
   );
 }

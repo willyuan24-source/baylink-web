@@ -49,6 +49,8 @@ export interface CityPlace {
   verifiedAt: string;
   /** made from the landmark registry (no places.json row matched) */
   synthetic?: boolean;
+  /** a transit station (data/sf/stationPlaces.ts): the map draws it as a station, not as a place dot */
+  station?: boolean;
 }
 
 export interface LandmarkInput {
@@ -145,7 +147,13 @@ export class PlaceIndex {
  * A places.json row, or a wave-4 row (data/sf/extraPlaces.ts `applyW4Places`): `arrival` = where travel ends when it is
  * not the anchor (the attraction's arrival, a re-anchor, an extra row's measured spot).
  */
-export type PlaceRow = SfPlace & { arrival?: { x: number; z: number; heading?: number } };
+export type PlaceRow = SfPlace & {
+  arrival?: { x: number; z: number; heading?: number };
+  /** overrides "on the walking graph or in the hero" (stations: on their street by construction) */
+  walkable?: boolean;
+  /** a transit station row (data/sf/stationPlaces.ts) */
+  station?: boolean;
+};
 
 /**
  * The pure builder (see the header). Wave 4 (lane P, integration): a row's own `arrival` wins over the landmark anchor
@@ -161,9 +169,10 @@ export function buildPlaceIndex(file: { places: readonly PlaceRow[] }, landmarks
     const arr = src.arrival && Number.isFinite(src.arrival.x) && Number.isFinite(src.arrival.z) ? src.arrival : null;
     const p: CityPlace = {
       id: src.id, name: src.name, kind: src.kind, x: src.x, z: src.z, y: src.y ?? 0, zone: src.zone ?? null,
-      curated: !!src.curated, hero: !!src.hero, walkable: src.graphNode >= 0 || !!src.hero,
+      curated: !!src.curated, hero: !!src.hero, walkable: src.walkable ?? (src.graphNode >= 0 || !!src.hero),
       arrival: arr ? { ...arr } : { x: src.x, z: src.z }, sourceUrl: src.sourceUrl, verifiedAt: src.verifiedAt,
       ...(src.plannerId ? { plannerId: src.plannerId } : {}), ...(src.guideSlug ? { guideSlug: src.guideSlug } : {}),
+      ...(src.station ? { station: true } : {}),
     };
     if (arr) ownArrival.add(p);
     if (p.hero) {
@@ -286,7 +295,10 @@ export function loadPlaces(root = '/opus-bay/sf'): Promise<PlaceIndex | null> {
       const res = await fetch(`${root}/${cur.version}/places.json`);
       if (!res.ok) throw new Error(`places.json: HTTP ${res.status}`);
       const [file, lms, { applyW4Places }] = await Promise.all([res.json() as Promise<PlacesFile>, landmarkInputs(), import('./extraPlaces')]);
-      const ix = buildPlaceIndex({ places: applyW4Places(file) }, lms, poiInputs());
+      const rows: PlaceRow[] = applyW4Places(file);
+      // the stations join the index (search, discovery at 12 u, fly once discovered); the places never wait on them
+      const stations = await import('./stationPlaces').then(m => m.loadStationRows(new Set(rows.map(r => r.id)), file.verifiedAt)).catch(() => [] as PlaceRow[]);
+      const ix = buildPlaceIndex({ places: [...rows, ...stations] }, lms, poiInputs());
       setPlaceIndex(ix);
       return ix;
     } catch (error) {

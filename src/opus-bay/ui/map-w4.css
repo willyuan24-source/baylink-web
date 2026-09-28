@@ -76,3 +76,64 @@
   .mw-trip-text strong { font-size: 14px; }
   .mw-legend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* --- the integrated city map (lane P, wave-4 integration) ----------------------------------------------------------- */
+/* the compass rose (true north is up-left: the game turns the city); top-left of the frame */
+.mw-compass { position: absolute; left: 8px; top: 8px; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 250, 241, .94); box-shadow: var(--ob-shadow-s); cursor: pointer; }
+.mw-compass:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 2px; }
+.mw-compass-disc { fill: #fffaf1; stroke: rgba(60, 40, 20, .28); stroke-width: 1; }
+.mw-compass-n { fill: #d8744a; }
+.mw-compass-s { fill: #b9ad98; }
+.mw-compass-t { font: 800 6.5px/1 var(--ob-font); fill: #7a4b0c; text-anchor: middle; }
+/* the tool column wraps into a second column (to the left) when the frame is short (375 × 667: ≈ 280 px) */
+.ob-citymap-tools { flex-wrap: wrap-reverse; max-height: calc(100% - 30px); align-content: flex-start; }
+.ob-citymap-tools.is-two { max-height: 160px; }
+.ob-citymap-tools .ob-icon-btn.is-on { background: var(--ob-gold); color: #fff; }
+/* the legend over the map */
+.mw-legend-pop { position: absolute; inset: 8px 52px 26px 8px; z-index: 3; display: flex; flex-direction: column; }
+.mw-legend-pop .mw-legend { max-height: 100%; box-shadow: var(--ob-shadow-m, 0 6px 18px rgba(60, 40, 20, .18)); }
+/* BAYBAY's face pulses gold while she leads (a trip, 带我去, a free lead) */
+.cm-baybay-face.is-leading::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--ob-gold); animation: mw-lead 1.6s var(--ob-ease) infinite; }
+@keyframes mw-lead { from { transform: scale(.8); opacity: .95; } to { transform: scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cm-baybay-face.is-leading::after { animation: none; opacity: .8; } }
+
+/* the chips sit right under the frame */
+.ob-citymap .mw-chips { margin-top: 4px; }
+
+/* the selected place: the full name wraps (never cut), one row of ≥ 44 px buttons */
+/* no wrap: in a wrapping column the flex line takes its widest item's min-content width and every row stretches past the card */
+.mw-place { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; padding: 10px; }
+.mw-place-head { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mw-place-title { font-size: 16px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.mw-place-head small { font-size: 12.5px; color: var(--ob-ink-3); line-height: 1.35; }
+.mw-place-note { color: #8a5a1c !important; }
+.mw-place-actions { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+.mw-place-actions .ob-btn { min-height: 44px; }
+.mw-go { flex: 1 1 auto; min-width: 0; justify-content: center; padding: 0 10px; gap: 5px; }
+.mw-go span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-more { flex: 0 0 auto; gap: 3px; white-space: nowrap; padding: 0 9px; }
+.mw-more svg { transition: transform .15s var(--ob-ease); }
+.mw-more.is-on svg { transform: rotate(180deg); }
+.mw-44 { width: 44px; height: 44px; flex: none; }
+.mw-station-wrap { display: grid; gap: 6px; margin-top: 10px; }
+.mw-fly { justify-self: start; }
+
+/* the list: section heads, photo thumbs, station / line rows */
+.mw-list-head { list-style: none; margin: 10px 2px 2px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--ob-ink-3); }
+.mw-list-head:first-child { margin-top: 2px; }
+.mw-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+.mw-row .ob-place-text { flex: 1; min-width: 0; }
+.mw-row .ob-place-text > span { overflow-wrap: anywhere; }
+.mw-thumb { flex: none; width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--ob-cream-2); }
+.mw-thumb.is-badge { background: transparent; overflow: visible; }
+.mw-found { flex: none; color: var(--ob-teal); }
+.mw-row-disc { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: #e7eef8; color: #2f6fb0; }
+.mw-row.is-line .mw-swatch { flex: none; }
+.mw-row.is-line.is-on { background: var(--ob-teal-l); }
+.mw-suggest { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ob-citymap-empty { display: flex; flex-direction: column; align-items: flex-start; }
+@media (max-width: 420px) {
+  .mw-place-actions { gap: 5px; }
+  .mw-go { font-size: 14px; }
+  .mw-more { font-size: 13.5px; }
+}

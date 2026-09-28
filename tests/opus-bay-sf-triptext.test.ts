@@ -72,7 +72,9 @@ test('timeLabel agrees with lane G\'s tripTimeLabel and lane P\'s tripSecondsLab
   for (const [s, zh] of [[8, '约 8 秒'], [47, '约 45 秒'], [58, '约 1 分钟'], [245, '约 4 分钟'], [0.2, '约 1 秒']] as const) assert.equal(timeLabel(s).zh, zh);
   // lane P: the same zh up to an hour; the English loses its space ("~6 s" → "~6s") and hours read "1 小时 2 分钟"
   for (let s = 1; s < 3570; s++) assert.equal(timeLabel(s).zh, tripSecondsLabel(s).zh.replace(/分$/, '分钟'), `${s} s`);
-  assert.equal(tripSecondsLabel(6).en, '~6 s');
+  // lane P switched at the integration (sf-w4-C.md part 2 step 2: tripSecondsLabel = timeLabel): the same words now
+  assert.equal(tripSecondsLabel(6).en, '~6s');
+  assert.deepEqual(tripSecondsLabel(3700), timeLabel(3700));
   assert.equal(timeLabel(6).en, '~6s');
 });
 

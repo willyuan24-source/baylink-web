@@ -1,9 +1,9 @@
 import type { Bilingual } from '../core/types';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { attractionShort, type MapTier } from '../data/sf/attractions';
-import { type BadgeSize, type BadgeState, badgeNodes, badgeSize, pipBox, scaleRules } from './mapBadges';
+import { type BadgeSize, type BadgeState, SCALE_STEPS, badgeNodes, badgeSize, pipBox, scaleRules } from './mapBadges';
 import { type MapView, labelWidth, toPx } from './cityMapDraw';
-import { filterAttraction, type MapFilter } from './mapFilterRules';
+import { MAP_FILTERS, filterAttraction, type MapFilter } from './mapFilterRules';
 import { type MapStation, type StationSymbol, stationNodes } from './mapLines';
 
 /**
@@ -192,23 +192,28 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
   tourNext?: { id: string; n: number } | null; filter?: MapFilter; name: (b: Bilingual) => string;
 }): { items: LayoutItem[]; markers: Map<string, AttractionMarker> } {
   const s = v.scale, rules = scaleRules(s);
+  const focusCat = MAP_FILTERS.find(d => d.id === o.filter)?.cat;
   const items: LayoutItem[] = [];
   const markers = new Map<string, AttractionMarker>();
   for (const a of list) {
     const [x, y] = toPx(v, a.x, a.z);
     if (x < -24 || y < -24 || x > v.w + 24 || y > v.h + 24) continue;
     const selected = o.selected === a.id, target = o.target === a.id, tourNext = o.tourNext?.id === a.id;
-    const size = badgeSize(a.rank, s);
-    if (size.kind === 'none' && !selected && !target) continue;
     const look = filterAttraction(o.filter ?? 'all', a);
     if (!look.show && !selected && !target) continue;
+    // a category chip (校园, 博物馆 …) shows its own T2 / T3 at every scale (integration: at the whole-city fit the
+    // campus chip must show the campuses, not only SF State): T2 as badges, T3 as dots
+    const focus = !!focusCat && a.cat === focusCat && a.rank > 1;
+    let size = badgeSize(a.rank, s);
+    if (size.kind === 'none' && focus) size = a.rank === 2 ? badgeSize(2, SCALE_STEPS.t2) : badgeSize(3, SCALE_STEPS.t3);
+    if (size.kind === 'none' && !selected && !target) continue;
     const shown = size.kind === 'none' ? badgeSize(1, s) : size;
     const dim = look.alpha < 1 && !selected && !target;
     const state: BadgeState = {
       discovered: o.discovered(a.placeId ?? a.id), arrived: o.arrived?.(a.id), selected, target, dim,
       ...(dim ? { dimAlpha: look.alpha } : {}), ...(tourNext ? { tourStop: o.tourNext!.n } : {}),
     };
-    const wantLabel = selected || target || tourNext || (look.label && (a.rank === 1 || (a.rank === 2 && rules.t2Labels) || (a.rank === 3 && rules.t3Labels)));
+    const wantLabel = selected || target || tourNext || (look.label && (a.rank === 1 || (a.rank === 2 && (rules.t2Labels || focus)) || (a.rank === 3 && (rules.t3Labels || (focus && s >= SCALE_STEPS.t3)))));
     const label = wantLabel ? o.name(selected ? a.name : attractionShort(a)) : null;
     items.push({
       id: a.id, x, y, r: shown.r, prio: layoutPriority({ selected, target, tourNext, tier: a.rank, fame: a.fame }),
