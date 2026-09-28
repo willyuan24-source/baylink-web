@@ -260,7 +260,8 @@ function ContextAction() {
   const tone = KIND_HINT[it.action] ?? 'teal';
   const label = t(it.verb);
   // lane E's movement interactables: bike / toy car / seat icons (ids ride:<spot id>, sources 'vehicle' and 'seat')
-  const ride = it.source === 'vehicle' ? (it.id.startsWith('ride:car') ? 'car' : 'bike') : it.source === 'seat' ? 'seat' : undefined;
+  // (wave 5, lane A's request: its 坐下 prompt — sit anywhere, play/index.ts `play:sit` — shows the seat too)
+  const ride = it.source === 'vehicle' ? (it.id.startsWith('ride:car') ? 'car' : 'bike') : it.source === 'seat' || it.id === 'play:sit' ? 'seat' : undefined;
   // lane F's city stations: a cable car / ferry glyph by the line kind (not the district F-line tram)
   const transit = transitGlyph(it);
   // the bar's 问 BAYBAY already covers her on phones: only offer the big action when she has something to say

@@ -179,11 +179,13 @@ test('charApi: attach puts an object on a slot anchor (again: replaced; null: re
   h.api.attach('player', 'head', null);
   assert.equal(hat.parent, null);
   assert.equal(h.host.player.bones.hat.scale.x, 1, 'and comes back');
-  // the GLB swap: a new body (same bone names), the items follow
+  // the GLB swap: a new body (same bone names), the items follow, a mood goes on
+  h.api.emote('baybay', 'dance', { loop: true, seconds: 30 });
   const glb = buildBaybay();
-  h.host.guide = glb; h.host.glb = true;
+  h.host.guide = glb; h.host.glb = true; h.host.guideAnim = new Animator(glb, 'baybay', GLB_BAYBAY_TUNING);
   h.api.onGuideSwap();
   assert.equal(hat2.parent?.parent, glb.bones.head, 'the hat is on the new head');
+  assert.ok(h.host.guideAnim.playing('dance'), 'still dancing on the new body');
   h.api.dispose();
   assert.equal(hat2.parent, null);
   assert.equal(bag.parent, null);

@@ -205,6 +205,9 @@ export class CharImpl implements CharApi {
     }
     const scarf = this.tints['baybay:scarf'];
     if (scarf !== undefined) this.applyTint('baybay', 'scarf', scarf);
+    // a mood she was in goes on on the new body (its own animator starts idle)
+    const l = this.loops.baybay;
+    if (l && l.left > 0) this.host.guideAnim.play(l.name, l.left);
   }
 
   private anchor(who: CharWho, slot: AttachSlot): THREE.Object3D {
