@@ -128,6 +128,11 @@ export class GradeTracker {
     return true;
   }
 }
+/** a long walk that has not come LONG_PROGRESS u closer in this many seconds gives up (verify-desktop D2) */
+export const LONG_NO_PROGRESS = 14;
+const LONG_PROGRESS = 2;
+/** a failed walk to a target farther than this (u) is "far": BAYBAY says why (the red ring may be off screen) */
+const FAR_FAIL = 14;
 /** pushing into a wall at less than this share of the wish speed along it = stop and lean instead of crawling */
 const SLIDE_MIN = 0.35;
 /** minimum time a press lasts before sliding can resume (s) */
@@ -249,6 +254,8 @@ export class PlayerController {
   planCount = 0;
   /** `now` of the last path that could not be planned / had to be given up (A11: say so) */
   pathFailedAt = -10;
+  /** that failed walk's target was far (a long auto-walk: the map's 带我去, a lead) — the actor system says why */
+  pathFailedFar = false;
   /** double-click / double-tap: run the whole way */
   forceRun = false;
   private autoRunK = 0;
@@ -257,6 +264,13 @@ export class PlayerController {
   private stallT = 0;
   private stallRef = Infinity;
   private repaths = 0;
+  /**
+   * (part b, verify-desktop D2) no-progress watchdog of a long walk: the least route length left so far and when it was
+   * reached. Re-planning legs and fresh routes reset the stall counters, so a walker that paced between two points
+   * (Pier 41's walkway: (-239, 70) ↔ (-212, 69) for 60 s and more) never gave up; now it does after LONG_NO_PROGRESS s.
+   */
+  private bestLeft = Infinity;
+  private bestAt = 0;
   /** city mode: the long route being fetched / followed for the current target (E2-1) */
   readonly route = new RouteFollower();
   /** following `route` (pending: still walking the clamped local path) */
@@ -625,9 +639,11 @@ export class PlayerController {
     if (target !== this.plannedFor) {
       this.plannedFor = target;
       this.repaths = 0;
+      this.bestLeft = Infinity;
+      this.bestAt = this.stepNow;
       this.autoRunK = 0;
       if (this.longMode) { this.longMode = false; this.route.cancel(); }
-      if (!this.plan(target)) { this.pathFailedAt = this.stepNow; this.cancelPath(); return null; }
+      if (!this.plan(target)) { this.failPath(target); return null; }
     }
     if (this.longMode) return this.followLong(dt, target);
     // advance through reached waypoints
@@ -643,7 +659,7 @@ export class PlayerController {
     else this.stallT += dt;
     if (this.stallT > 0.9) {
       this.stallT = 0; this.stallRef = Infinity;
-      if (++this.repaths > 3 || !this.plan(target)) { this.pathFailedAt = this.stepNow; this.cancelPath(); return null; }
+      if (++this.repaths > 3 || !this.plan(target)) { this.failPath(target); return null; }
     }
     // A11: auto-run only for long routes (> 30 u left), easing in; a double-click runs the whole way
     const far = remaining > 30;
@@ -651,6 +667,14 @@ export class PlayerController {
     let speed = runtime.input.run ? RUN_SPEED : WALK_SPEED + (RUN_SPEED - WALK_SPEED) * this.autoRunK * this.autoRunK;
     if (last) speed *= clamp(d / 1.6, 0.35, 1);
     return { x: dx / (d || 1), z: dz / (d || 1), speed };
+  }
+
+  /** Give the walk up (A11: the actor system shows the red ring; a far target also gets BAYBAY's line). */
+  private failPath(target: Vec2) {
+    const p = runtime.player;
+    this.pathFailedFar = Math.hypot(target.x - p.x, target.z - p.z) > FAR_FAIL;
+    this.pathFailedAt = this.stepNow;
+    this.cancelPath();
   }
 
   private plan(target: Vec2): boolean {
@@ -682,7 +706,7 @@ export class PlayerController {
     if (f.state === 'failed') {
       // no graph route: finish the local path when it reached the target itself, else say so
       if (this.localOk && this.path.length) { this.longMode = false; this.route.cancel(); return null; }
-      this.pathFailedAt = this.stepNow; this.cancelPath(); return null;
+      this.failPath(target); return null;
     }
     if (f.active) {
       if (f.arrivals !== this.seenArrivals) { this.seenArrivals = f.arrivals; this.planCount++; }
@@ -718,9 +742,14 @@ export class PlayerController {
         f.request(pos, target);
         this.path = findPath(pos, target, 10)?.points ?? [];
         this.pathIndex = 0;
-      } else { this.pathFailedAt = this.stepNow; this.cancelPath(); return null; }
+      } else { this.failPath(target); return null; }
     }
     const left = f.active ? f.remaining(pos) : Infinity;
+    // the whole way must shrink now and then (the stall counters above only watch the current leg)
+    const toGo = Number.isFinite(left) ? left : Math.hypot(target.x - p.x, target.z - p.z);
+    if (toGo < this.bestLeft - LONG_PROGRESS) { this.bestLeft = toGo; this.bestAt = this.stepNow; }
+    else if (ahead) this.bestAt += dt;
+    else if (this.stepNow - this.bestAt > LONG_NO_PROGRESS) { this.failPath(target); return null; }
     this.autoRunK = clamp(this.autoRunK + (left > 30 || this.forceRun ? dt / 0.8 : -dt / 0.4), 0, 1);
     let speed = runtime.input.run ? RUN_SPEED : WALK_SPEED + (RUN_SPEED - WALK_SPEED) * this.autoRunK * this.autoRunK;
     if (final) speed *= clamp(d / 1.6, 0.35, 1);

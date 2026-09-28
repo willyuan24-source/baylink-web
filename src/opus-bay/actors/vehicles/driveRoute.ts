@@ -379,3 +379,38 @@ export async function driveRoute(from: Vec2, to: Vec2, kind: DriveKind, opts: As
   const points = dedupe([from, ...connector(from, A, kind), ...mid, B, ...connector(B, goal, kind)]);
   return { points, length: polylineLength(points), via: 'graph', nodes, snapped: snappedGoal || b.d > GRAPH_SNAP };
 }
+
+/** how far short of a thing to talk to / pick up the autopilot parks (u): the rider steps off beside it, not onto it */
+export const PARK_CLEAR = 3.2;
+
+/**
+ * Wave 4 integration part b (verify-desktop D5): the map's 骑车去 parked the bike 0.9 u from the Clarion Alley postcard,
+ * and a parked ride is solid, so the card could not be reached. When a spot to walk up to (a postcard, a resident, a
+ * card …) lies within `clear` of the route's end, the route stops where it first comes within `clear` of one (walking
+ * back along the last stretch; the start is never cut). Returns the same array when nothing is near the end.
+ */
+export function stopShortOf(points: readonly Vec2[], spots: readonly Vec2[], clear = PARK_CLEAR): Vec2[] {
+  if (points.length < 2 || !spots.length) return points as Vec2[];
+  const end = points[points.length - 1];
+  const near = spots.filter(s => Math.hypot(s.x - end.x, s.z - end.z) < clear);
+  if (!near.length) return points as Vec2[];
+  const inside = (x: number, z: number) => near.some(s => Math.hypot(s.x - x, s.z - z) < clear);
+  // walk the polyline from the start: the first point (at 0.25 u steps) inside `clear` of a near spot ends the route
+  const out: Vec2[] = [{ x: points[0].x, z: points[0].z }];
+  if (inside(points[0].x, points[0].z)) return points as Vec2[]; // starting at it: nothing to trim toward
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i], L = Math.hypot(b.x - a.x, b.z - a.z);
+    const n = Math.max(1, Math.ceil(L / 0.25));
+    for (let k = 1; k <= n; k++) {
+      const x = a.x + (b.x - a.x) * (k / n), z = a.z + (b.z - a.z) * (k / n);
+      if (inside(x, z)) {
+        const px = a.x + (b.x - a.x) * ((k - 1) / n), pz = a.z + (b.z - a.z) * ((k - 1) / n);
+        const last = out[out.length - 1];
+        if (Math.hypot(px - last.x, pz - last.z) > 0.3) out.push({ x: px, z: pz });
+        return out.length >= 2 ? out : [out[0], { x: px, z: pz }];
+      }
+    }
+    out.push({ x: b.x, z: b.z });
+  }
+  return out;
+}

@@ -9,7 +9,8 @@ import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './came
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
 import { heroView, preferredCameraYaw, preferredViewDir } from './viewField';
-import { moveBasis, residents, view } from './view';
+import { collectObstacles, moveBasis, residents, view } from './view';
+import type { Obstacle } from './controller';
 
 /**
  * Third-person follow camera (polish round 1): yaw / pitch / distance with smoothed springs, drag / pinch / wheel /
@@ -49,6 +50,8 @@ const FRAME_IN = 0.8, FRAME_OUT = 0.9;
 const HERO_CLEAR = 4;
 /** automatic conversation two-shot (A3): distance from the pair's midpoint, height, angle off the player → speaker axis */
 const TWO_DIST = 8, TWO_HEIGHT = 2.3, TWO_ANGLE = 0.66;
+/** the two-shot's candidate angles (part b: + 1.9× for a pair standing close, where the smaller ones overlap the two) */
+const TWO_ANGLES = [TWO_ANGLE, TWO_ANGLE * 0.65, TWO_ANGLE * 1.5, TWO_ANGLE * 1.9] as const;
 /** city: after an arrival the yaw is chosen again (as the ground streams in) for this long (s), while nobody moves */
 const SETTLE_S = 8;
 /** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
@@ -277,13 +280,35 @@ function occlusionBehind(x: number, z: number, yaw: number, dist: number): numbe
 function residentsInView(cx: number, cz: number, mx: number, mz: number): number {
   const dx = mx - cx, dz = mz - cz, L = Math.hypot(dx, dz) || 1;
   let hits = 0;
-  for (const r of residents) {
-    const vx = r.x - cx, vz = r.z - cz;
-    if (Math.hypot(vx, vz) < 1.8) { hits += 3; continue; }
+  const weigh = (x: number, z: number) => {
+    const vx = x - cx, vz = z - cz;
+    if (Math.hypot(vx, vz) < 1.8) { hits += 3; return; }
     const along = (vx * dx + vz * dz) / L;
     if (along > 0 && along < L - 1.6 && Math.abs(vx * dz - vz * dx) / L < 0.9) hits += 1.5;
-  }
+  };
+  for (const r of residents) weigh(r.x, r.z);
+  // (part b, verify-desktop D10) the city's walkers too (lane T's crowd, actors/view registerObstacleSource): a
+  // sightseer who stood in the lens filled a quarter of the ranger's two-shot
+  const obs = crowdScratch;
+  obs.length = 0;
+  collectObstacles(obs, (cx + mx) / 2, (cz + mz) / 2, L / 2 + 2);
+  for (const o of obs) if (o.kind === 'crowd' || o.kind === 'person') weigh(o.x, o.z);
   return hits;
+}
+const crowdScratch: Obstacle[] = [];
+
+/** half widths (u) of the player (with the backpack) and a speaker, as the two-shot sees them */
+const PLAYER_HALF = 0.8, SPEAKER_HALF = 0.55;
+/**
+ * (part b, verify-desktop D10) A two-shot where the player's back hides the speaker: from the camera at (cx, cz) the two
+ * bodies' angular widths overlap. Luz and Dana stood 2.4–2.9 u from the player; at 0.65 × the two-shot angle (the
+ * candidate that won when the 38° one had a little occlusion) they are ≈ 7.6° apart and need ≈ 10°. 0 when clear.
+ */
+export function pairOverlap(cx: number, cz: number, px: number, pz: number, sx: number, sz: number): number {
+  const dp = Math.max(0.5, Math.hypot(px - cx, pz - cz)), ds = Math.max(0.5, Math.hypot(sx - cx, sz - cz));
+  const sep = Math.abs(Math.atan2(Math.sin(Math.atan2(px - cx, pz - cz) - Math.atan2(sx - cx, sz - cz)), Math.cos(Math.atan2(px - cx, pz - cz) - Math.atan2(sx - cx, sz - cz))));
+  const need = Math.atan(PLAYER_HALF / dp) + Math.atan(SPEAKER_HALF / ds);
+  return sep >= need ? 0 : 2 + (need - sep) * 20;
 }
 
 /** Line of sight between two points (horizontal samples through blockers). */
@@ -315,6 +340,17 @@ export function chooseYaw(x: number, z: number, fallback: number, dist: number):
         if (score < bestScore) { bestScore = score; best = yaw; }
       }
       if (bestScore < 9) return best;
+      // (part b, E2 w3 review open "blocked zone arrivals swing", verify-visual F6) nothing near the view is clear: stay
+      // with the subject rather than the plain chooser, which ignores it (the turntable came in 2.75 rad off its axis,
+      // then the entry assist swung back over 4–8 s). Twice the width, each step past the width priced like losing the
+      // subject; the camera's own dither / roof lift thins what is left in between.
+      for (let k = -8; k <= 8; k++) {
+        if (Math.abs(k) <= 4) continue;
+        const yaw = zy + (k / 4) * near;
+        const score = occlusionBehind(x, z, yaw, dist) * 3 + Math.abs(k) * 0.75 + (Math.abs(k) - 4) * 3;
+        if (score < bestScore) { bestScore = score; best = yaw; }
+      }
+      return best;
     }
   }
   let best = fallback, bestScore = Infinity;
@@ -1009,11 +1045,11 @@ export class CameraController {
       const prefer = gs || this.twoSide;
       let best = prefer * TWO_ANGLE, bestScore = Infinity;
       for (const sign of [prefer, -prefer]) {
-        for (const a of [TWO_ANGLE, TWO_ANGLE * 0.65, TWO_ANGLE * 1.5]) {
+        for (const a of TWO_ANGLES) {
           const c = camAt(sign * a, tmpA);
           const ground = canStand(c.x, c.z, 0.3) ? 0 : inWorld(c.x, c.z) ? 1.5 : 0.6;
           const score = segmentBlocked(c.x, c.z, px, pz) + segmentBlocked(c.x, c.z, sx, sz) * 1.2 + ground + residentsInView(c.x, c.z, mx, mz)
-            + (sign === prefer ? 0 : 0.3) + Math.abs(a - TWO_ANGLE) * 0.8;
+            + pairOverlap(c.x, c.z, px, pz, sx, sz) + (sign === prefer ? 0 : 0.3) + Math.abs(a - TWO_ANGLE) * 0.8;
           if (score < bestScore) { bestScore = score; best = sign * a; }
         }
       }

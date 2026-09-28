@@ -6,8 +6,9 @@ import { game, type MoveState } from '../core/store';
 import { canStand, groundPending, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { seatSpots, type SeatSpot } from '../data/vehicles';
-import { cancelRide, hopOffRide, say } from '../game/flow';
+import { bubble, cancelRide, hopOffRide, say } from '../game/flow';
 import { flow } from '../game/flowStore';
+import { interactables } from '../game/interactables';
 import { currentRide } from '../game/ride';
 import { rideSystemFor } from '../data/transit';
 import { travelPose, type TravelPose } from '../game/fastTravel';
@@ -23,7 +24,8 @@ import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pic
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
-import { driveRoute } from './vehicles/driveRoute';
+import { driveRoute, PARK_CLEAR, stopShortOf } from './vehicles/driveRoute';
+import { DriveTalk, driveCueLine } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
@@ -86,6 +88,10 @@ export interface RideAnim {
 type GuideSeat = 'none' | 'in' | 'seated' | 'out';
 
 const SLOTS: SlotWorld = { canStand, heightAt };
+/** the autopilot waits this long (s) for someone in front to walk on before its back-up-and-retry (verify-desktop D6) */
+const WAY_WAIT = 6;
+/** obstacle kinds that move on by themselves (toy traffic): the autopilot waits for them like for people */
+const MOVING_KINDS: ReadonlySet<string> = new Set(['car', 'traffic', 'vehicle', 'bus', 'streetcar']);
 /** obstacle kinds that are people: a vehicle stopping short of one gets a "whoa" (giveWay) */
 const PERSON_KINDS: ReadonlySet<string> = new Set(['npc', 'crowd', 'person', 'resident', 'baybay']);
 const UPY = new THREE.Vector3(0, 1, 0);
@@ -106,6 +112,18 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
   const d = runtime.input.device;
   if (action === 'exit') return d === 'touch' ? { zh: '点「下车」', en: 'tap Get off' } : d === 'gamepad' ? { zh: 'Y 下车', en: 'Y to get off' } : { zh: 'F 下车', en: 'F to get off' };
   return d === 'touch' ? { zh: '点「起飞」', en: 'tap Glide' } : d === 'gamepad' ? { zh: '按 L3 起飞', en: 'press L3 to take off' } : { zh: '按 G 起飞', en: 'press G to take off' };
+}
+
+/** Interactables a drive parks short of (not rides, seats, BAYBAY or a lead marker): ones you walk up to. */
+const PARK_SKIP: ReadonlySet<string> = new Set(['vehicle', 'seat', 'baybay', 'free-lead']);
+/** The things to walk up to within reach of a drive's end (verify-desktop D5): the autopilot stops short of them. */
+function parkSpotsNear(end: Vec2): Vec2[] {
+  const out: Vec2[] = [];
+  for (const it of interactables()) {
+    if (PARK_SKIP.has(it.source) || it.id.startsWith('ride:') || it.id.startsWith('seat:')) continue;
+    if (Math.hypot(it.x - end.x, it.z - end.z) < PARK_CLEAR) out.push({ x: it.x, z: it.z });
+  }
+  return out;
 }
 
 /** A transit hop-off farther than this from the rider (u) is a cut to the spot, not a 0.4 s hop (a ferry's quay). */
@@ -172,6 +190,8 @@ export class MoveSystem {
   // --- tap-to-drive (E2-4)
   /** the autopilot following a drive route, and the pending route request */
   auto: PursuitDriver | null = null;
+  /** W4-G4 (part b): BAYBAY's pointing and lines on the autopilot's route while she rides along */
+  private driveTalk: DriveTalk | null = null;
   private autoToken: { aborted: boolean } | null = null;
   /** where the autopilot is heading (the tapped point, then the route's end) — the target ring */
   driveTarget: Vec2 | null = null;
@@ -527,7 +547,7 @@ export class MoveSystem {
       runtime.input.jump = false;
       // any manual input takes over from the autopilot
       if ((this.auto || this.autoToken) && (input.manualMove || input.throttle > 0.05 || input.brake > 0.05 || hop)) this.cancelDrive();
-      if (this.auto) inp = this.stepAuto(ride, this.auto, dt);
+      if (this.auto) inp = this.stepAuto(ride, this.auto, dt, t);
       else if (this.autoToken) inp = NO_DRIVE; // the route is on its way: roll on
       else {
         inp = {
@@ -570,9 +590,12 @@ export class MoveSystem {
         say('那边开不过去', r.kind === 'car' ? 'The toy car can’t get there' : 'The bike can’t get there');
         return;
       }
-      this.auto = new PursuitDriver(r.sim.spec, route.points);
-      this.drivePath = route.points;
-      this.driveTarget = route.points[route.points.length - 1];
+      // (part b, verify-desktop D5) park short of a card / resident / place at the end, never on top of it
+      const points = stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1]));
+      this.auto = new PursuitDriver(r.sim.spec, points);
+      this.driveTalk = new DriveTalk(points);
+      this.drivePath = points;
+      this.driveTarget = points[points.length - 1];
       this.driveRoutes++;
       emit({ type: 'vehicle:auto', vehicle: r.kind, state: 'start' });
     }, () => {
@@ -596,11 +619,22 @@ export class MoveSystem {
   /** The autopilot is fetching or following a route. */
   get autoDriving(): boolean { return !!this.auto || !!this.autoToken; }
 
-  private stepAuto(ride: Ride, auto: PursuitDriver, dt: number): DriveInput {
+  private stepAuto(ride: Ride, auto: PursuitDriver, dt: number, t: number): DriveInput {
     const s = ride.sim;
     // the ground just ahead still streaming in (city): wait there, that is not being stuck
     const ahead = groundPending(s.x + Math.sin(s.heading) * 2.5, s.z + Math.cos(s.heading) * 2.5, 0.6);
-    const inp = auto.step(s, dt, ahead);
+    // (part b, verify-desktop D6) someone walking across in front (giveWay held the vehicle this frame or the last):
+    // wait for them, up to WAY_WAIT s — the bike's 骑车去 from Dolores Park gave up 3 times among the park's walkers
+    // (held → "no progress" → back up → held again → "your turn to steer"). Someone who stays put: the usual back-up.
+    const held = t - this.wayHeldAt < 0.3 && t - this.wayHeldSince < WAY_WAIT;
+    const inp = auto.step(s, dt, ahead || held);
+    // W4-G4 (part b): BAYBAY in the basket / front seat points ≈ 20 u before a turn over 45° and says a line at a third
+    // and at two thirds of a long drive (plan §4.2 "BAYBAY leads", bike / car)
+    const cue = this.guideSeat === 'seated' && auto.state === 'drive' ? this.driveTalk?.step(auto.s, t) : null;
+    if (cue && (ride.kind === 'bike' || ride.kind === 'car')) {
+      if (cue.kind === 'turn') emit({ type: 'emote', who: 'baybay', emote: 'point' });
+      bubble(driveCueLine(cue, ride.kind), 2600);
+    }
     if (auto.state === 'arrived' && Math.abs(s.v) < 0.3) {
       emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'arrive' });
       this.driveArrivals++;
@@ -692,7 +726,8 @@ export class MoveSystem {
       collectObstacles(obs, s.x + fx * reach * 0.5, s.z + fz * reach * 0.5, reach + 2);
       for (const o of obs) if (inPath(o.x - s.x, o.z - s.z, o.r)) { hit = o.kind; break; }
     }
-    if (!hit) return;
+    if (!hit) { if (t - this.wayHeldAt > 0.6) this.wayHeldSince = Infinity; return; }
+    if (PERSON_KINDS.has(hit) || MOVING_KINDS.has(hit)) { if (this.wayHeldSince === Infinity) this.wayHeldSince = t; this.wayHeldAt = t; }
     const speed = Math.abs(s.v), strength = Math.min(1, speed / s.spec.vmax);
     s.v = 0; s.px = 0; s.pz = 0;
     s.x = x0; s.y = y0; s.z = z0;
@@ -704,6 +739,9 @@ export class MoveSystem {
     }
   }
   private giveWayAt = -9;
+  /** the last frame a person / traffic held the vehicle (giveWay) and since when it has been held (Infinity = not held) */
+  private wayHeldAt = -9;
+  private wayHeldSince = Infinity;
   private readonly wayObstacles: Obstacle[] = [];
 
   private onDriveReport(ride: Ride, r: StepReport, t: number) {

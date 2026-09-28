@@ -8,7 +8,7 @@ import { MAX_GROUND_Y, canStand, heightAt, inWorld, nearestWalkable } from '../c
 import type { Vec2 } from '../core/types';
 import { MODELS } from '../data/assets';
 import { DISTRICT } from '../data/district';
-import { nodeById } from '../game/flow';
+import { nodeById, say } from '../game/flow';
 import { interactableById } from '../game/interactables';
 import { flow } from '../game/flowStore';
 import { Animator, GLB_BAYBAY_TUNING, type Emote } from './anim';
@@ -406,6 +406,10 @@ export class ActorSystem {
           const m: Partial<Record<string, Emote>> = { taste: 'taste', cast: 'reach', wave: 'wave', cheer: 'cheer', hop: 'cheer', clap: 'clap' };
           const em = m[e.emote];
           if (em) pa.play(em);
+        } else if (e.who === 'baybay' && BABY_EMOTES.has(e.emote)) {
+          // (W4-G4, part b) a gesture sent as an event alone (BAYBAY pointing at a turn from the bike basket) plays now,
+          // even when it repeats; one also written to runtime.guide.emote plays through the update's change check
+          if (!(runtime.guide.emote === e.emote && this.lastGuideEmote !== e.emote)) this.guideAnim.play(e.emote as Emote);
         }
         break;
       case 'guide-call': pa.play('call'); break;
@@ -667,6 +671,8 @@ export class ActorSystem {
     if (pc2.pathFailedAt !== this.seenFail) {
       this.seenFail = pc2.pathFailedAt;
       if (this.prevPathTarget) { this.ring.show(this.prevPathTarget, true); emit({ type: 'ui', action: 'error' }); }
+      // (part b, verify-desktop D2) a far walk that gave up says so: its red ring is often off screen
+      if (pc2.pathFailedFar) say('这边走不过去了 · 打开地图换个方式吧', 'Can’t get through this way — try the map for another way', 'info', 4200);
     } else if (this.prevPathTarget && !p.pathTarget && Math.hypot(p.x - this.prevPathTarget.x, p.z - this.prevPathTarget.z) < 1.2) this.ring.arrive();
     if (pc2.planCount !== this.seenPlan) {
       this.seenPlan = pc2.planCount;
