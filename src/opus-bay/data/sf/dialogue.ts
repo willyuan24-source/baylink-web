@@ -169,7 +169,7 @@ const SCRIPTS2: Record<ResidentKey, Script2> = {
     remind: ['thinking', '三处壁画各拍一张：Balmy 巷、Clarion 巷、女性大楼。', "One photo at each: Balmy Alley, Clarion Alley, the Women's Building."],
     go: ['wave', '去吧，找找最亮的那面墙！', 'Go on — find the brightest wall!'],
     thanks: ['excited', '三处的颜色都齐啦！我在巷子里给你画了个小东西～', 'All three sets of colours! I painted a little something for you in the alley~'],
-    fact: ['happy', '去巷子中间的围栏上找找——有一只小水獭哦！', 'Look on the fence halfway down the alley — there’s a little otter!'],
+    fact: ['happy', '去巷子中间的围栏上找找——有一只小海獭哦！', 'Look on the fence halfway down the alley — there’s a little otter!'],
   },
   gardener: {
     ask: ['happy', '花园每年十月重新种球根。帮我拍张风车吧，开花了好对比！', 'The garden replants its bulbs every October. Photograph the windmill for me — so we can compare when they bloom!'],

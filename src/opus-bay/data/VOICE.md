@@ -198,3 +198,15 @@ Lane C's recorded wave-5 lines are `W5_C_LINES` in `data/sf/linesW5.ts` (FROZEN 
 | the south / north tower (GGB) | 南塔 · 北塔 | 南桥塔 · 桥墩 | 走过金门大桥 = from one tower to the other on the deck (within 10 u of each) |
 | the Golden Gate strait | 金门海峡 | 金门湾 | under the main span; the bridge is 金门大桥, the park 金门公园 |
 | a rumour's frame | 听说，… · 悄悄说：… · 据说… | 小道消息 · 八卦 | BAYBAY's frames round lane D's text; a text that brings its own 听说… is said as it is |
+
+Part c (W5-C7, 2026-09-28): the residents' second favours, their letters and the album. Text only (not in the frozen set).
+
+| en | zh (say this) | not | note |
+|---|---|---|---|
+| a favour / its second step | 小忙 · X 还想请你帮个忙 | 任务 · 支线 | the Journal's 邻居的小忙 list; 小忙完成：… (the gold toast) |
+| a letter (from a resident) | 信 · 收到一封信 · 来自 X · 读信 · 再读一遍 · 收好 | 邮件 · 消息 | 有你的信！在旅行本的「目标」里～ (BAYBAY); 亲爱的朋友： opens every letter |
+| the album | 相册 · 已存进相册 · 保存 · 分享 · 删除 | 图库 · 下载 | 保存 on a phone opens the share sheet (iOS: 存储图像) |
+| Hippie Hill · Crissy Field beach | 嬉皮山 · 克里西场海滩 | 嬉皮士山 | the attraction and lane A's view spot names |
+| Queen Wilhelmina Tulip Garden · the Dutch Windmill | 威廉明娜女王郁金香花园 · 荷兰风车 | | Hank's own first line keeps the English garden name (wave 3) |
+| the Ferry Plaza Farmers Market | 渡轮大厦的农夫市集 · 市集 | 农贸市场 | Sat 8–14, Tue & Thu 10–14 (foodwise.org, 2026-09-28) |
+| Luz's otter board | 小海獭 | 小水獭 (BAYBAY is a sea otter) | an original painting of BAYBAY on a small board in Balmy Alley |
