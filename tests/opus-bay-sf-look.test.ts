@@ -240,3 +240,17 @@ test('zones: the far.obc grid answers the DataSF neighbourhoods the look keys on
   assert.equal(look.zoneAt(null, 0, 0), null);
   assert.equal(look.zoneAt(zones, 1e5, 1e5), null);
 });
+
+test('W4-V part b (verify-visual F7): Yerba Buena Island\'s hill paints as forest; its flat shore, the causeway, Treasure Island and the city stay as the data says', async () => {
+  const { LAND_PATCHES, landPatchAt } = await import('../src/opus-bay/world/sf/look');
+  const { project } = await import('../src/opus-bay/core/geo');
+  const summit = project(37.8105, -122.3645);
+  assert.equal(landPatchAt(summit.x, summit.z, 20), 'forest', 'the summit');
+  assert.equal(landPatchAt(summit.x + 60, summit.z + 20, 6), 'forest', 'a slope');
+  assert.equal(landPatchAt(summit.x + 60, summit.z + 20, 1.5), null, 'the flat shore under y0');
+  const ti = project(37.8235, -122.3700);
+  assert.equal(landPatchAt(ti.x, ti.z, 3), null, 'Treasure Island');
+  assert.equal(landPatchAt(150, 0, 5), null, 'the Ferry Building');
+  assert.equal(landPatchAt(-30, 700, 60), null, 'a city hill keeps the hill rule');
+  for (const p of LAND_PATCHES) assert.ok(Math.hypot(p.x - ti.x, p.z - ti.z) > p.r + 50, `${p.id}: clear of Treasure Island`);
+});

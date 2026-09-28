@@ -4,7 +4,7 @@ import { C, hash2, mixColor, shade } from '../builder';
 import { CITY_PAL } from '../palette';
 import { WIN } from '../recipes/shapes';
 import { AREA_CLASSES, AREA_FLAG, type FarData, ROAD_CLASSES, demSample } from './format';
-import { HILL, type LookZones, asphaltInfo, farPrismColors, hillMix, lookZones, slopeEarth, zoneAt } from './look';
+import { HILL, type LookZones, asphaltInfo, farPrismColors, hillMix, landPatchAt, lookZones, slopeEarth, zoneAt } from './look';
 import { CityBatch, GROUND_CITY, type PoolArrays, buildGround, clipOutside, clipPolyline, ribbon } from './mesh';
 import { type Raster, chamfer, fillPoly, fillRing, fillRings, inPoly, inRingXZ, makeRaster, pushOutOf, ringWithHoles, sampleField, sampleNearest, signedDistance } from './raster';
 
@@ -154,7 +154,8 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
   let triangles = 0;
   const demAt = (x: number, z: number) => demSample(far.dem, x, z);
   const paint = (x: number, z: number, h: number, slope: number) => {
-    const k = sampleNearest(cls, r, x, z);
+    let k = sampleNearest(cls, r, x, z);
+    if (!k) { const pc = landPatchAt(x, z, h); if (pc) k = A[pc]; } // landcover the data lacks (Yerba Buena Island)
     let col = C(FAR_CLASS[k] ?? CITY_PAL.land);
     col = mixColor(col, shade(col, 0.93), hash2(Math.floor(x / 16), Math.floor(z / 16)) * 0.5);
     // green hills: the rules of the near tiers (look.ts HILL) on the 16 u grid

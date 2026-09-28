@@ -317,6 +317,22 @@ export const hillMix = (h: number) => (h <= HILL.y0 ? 0 : Math.min(HILL.max, ((h
 export const slopeEarth = (slope: number) => (slope <= HILL.slope0 ? 0 : Math.min(HILL.slopeMax, (slope - HILL.slope0) * HILL.slopeGain));
 
 /**
+ * Landcover the published data lacks (wave 4, lane V; verify-visual F7): Yerba Buena Island's wooded hill has no class
+ * in the chunks (no rebuild in wave 4, plan R16) and drew as a bare tan dune, under every Bay Bridge view and across
+ * the water from the Embarcadero. Plain land inside a patch's circle and above its `y0` (not the flat shore, the
+ * causeway or Treasure Island, which is flat and built up) paints as the patch's class. Shared by build.ts and far.ts.
+ */
+export const LAND_PATCHES: readonly { id: string; x: number; z: number; r: number; y0: number; cls: 'forest' }[] = [
+  // summit (37.8105, -122.3645) → (212.9, -402.3); the island's shore lies 55–90 u from it, Treasure Island 210 u
+  { id: 'yerba-buena-island', x: 213, z: -402, r: 100, y0: 2.5, cls: 'forest' },
+];
+/** The class a patch gives plain land at (x, z) with ground height h, or null. */
+export function landPatchAt(x: number, z: number, h: number): 'forest' | null {
+  for (const p of LAND_PATCHES) if (h > p.y0 && (x - p.x) ** 2 + (z - p.z) ** 2 < p.r * p.r) return p.cls;
+  return null;
+}
+
+/**
  * Night street lamps (lane C2-9): lamp level per road class, primary 1 / secondary 0.7 / tertiary 0.5 (motorways 0.8,
  * residential streets 0: their light comes from the windows). The city ground bakes it into the asphalt ribbons'
  * aInfo.w (GROUND_CITY + level, with the arc length in y and the side in z) for the GROUND street glow, and the light

@@ -8,7 +8,7 @@ import { CITY_ROOFS, CITY_STYLES, type CityBuildingSpec, type CityPalette, toyBu
 import { WIN } from '../recipes/shapes';
 import type { TypedBatchArrays } from '../typedBatch';
 import { type L0Buildings, L0Recorder, l0Desc } from './l0index';
-import { HILL, type LookStyle, type LookZones, asphaltInfo, hillMix, sfLook, slopeEarth, zoneAt } from './look';
+import { HILL, type LookStyle, type LookZones, asphaltInfo, hillMix, landPatchAt, sfLook, slopeEarth, zoneAt } from './look';
 import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
 import { type FarWater, inFarWater } from './far';
 import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
@@ -347,7 +347,8 @@ export function dropSeamBuildings(chunk: ChunkData, init: CityInit): number[] {
 const _col = new THREE.Color();
 function paintFor(ctx: ChunkContext) {
   return (x: number, z: number, h: number, slope: number) => {
-    const k = sampleNearest(ctx.clsData, ctx.cls, x, z);
+    let k = sampleNearest(ctx.clsData, ctx.cls, x, z);
+    if (k === 0) { const pc = landPatchAt(x, z, h); if (pc) k = A[pc]; } // landcover the data lacks (Yerba Buena Island)
     const p = CLASS_PAINT[k] ?? CLASS_PAINT[0];
     const n = hash2(Math.floor(x / 5), Math.floor(z / 5));
     let col = mixColor(p.color, k === 0 ? CITY_PAL.landShade : shade(p.color, 0.92), n * 0.45);
