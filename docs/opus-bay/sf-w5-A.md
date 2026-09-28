@@ -86,8 +86,8 @@ Lines (zh ≤ 45, VOICE glossary): 按 G 起飞，穿过金圈拿金币！ / 点
 3. **The card shows at the last ring** (not after a landing): the pelican otherwise flew on past PIER 39 and the card came at the Marina.
 4. **`startFirstFlight` is a live export** of `play/index.ts`, set by `init()` and cleared by its teardown: lane C's code finds it in
    the game, and C's own test of the "no lane A" path (the plain take-off) still holds.
-5. **Ring coins:** the flight asks 3 per ring (`ring:first-flight:<n>`, the same ids from any course); lane E's ledger caps `ring` at
-   1, so the flight pays 8 + the medals (the game showed +30 for 5 / 10 / 15). E owns the table (Requests).
+5. **Ring coins:** the flight asks 3 per ring (`ring:first-flight:<n>`, the same ids from any course). In the QA run lane E's ledger
+   still capped `ring` at 1 (the card's +30 were the medals 5 / 10 / 15); E raised the cap to 3 in `675e123`.
 6. **坐下 is offered** after 1 s still, on foot, on grass / sand / earth / steps / plaza / pavement / boardwalk, never with another prompt
    in reach and never while BAYBAY has news (her 跟我来 / called bubble): on a keyboard E sits then, and her menu is on Q (问 BAYBAY);
    E E at her side still pets when she is the prompt. The second word names where you sit (草地上 · 台阶上 · 沙滩上 …).
@@ -97,7 +97,8 @@ Lines (zh ≤ 45, VOICE glossary): 按 G 起飞，穿过金圈拿金币！ / 点
 9. **The selfie waits** (≤ 2.5 s) for BAYBAY to stand at your side before photo mode opens; the follow distance comes back after.
 10. **The coach line** (once per device, localStorage `opus-bay:play:emote-coach:v1`) waits for ≈ 50 s of quiet free roam and lane F's
     body, so the phone line (tap yourself) never promises a tap that does nothing.
-11. **Bests** are kept for the session and written through lane E when it exports `recordBest` (it does not yet): `play.b` stays E's.
+11. **Bests** are kept for the session and written through lane E's `recordBest` (`economy/index.ts`, delivered in `675e123`, looked up
+    lazily by `play/kit.ts`): `play.b` stays E's.
 
 ### Known gaps
 
@@ -113,10 +114,9 @@ W5-A6 Seward slides, W5-A7 the bell riff, W5-A8 stair races, W5-A9 the should li
 
 ### Requests
 
-- **E**: (1) export `recordBest(key: string, value: number): void` from `economy/index.ts` (writes `play.b`; PlayKit calls it lazily and
-  keeps a session copy until then); (2) the cap for `ring:first-flight:<n>` (A asks 3 per ring, the table pays 1; a separate cap or
-  registering them is E's call); (3) the notebook's 看风景 page: `VIEW_SPOTS` / `VIEW_SPOT_IDS` from `play/viewSpots.ts` — A's `init()`
-  registers them (`registerRewardIds('view', VIEW_SPOT_IDS)`), `find view` carries `first`.
+- **E**: (1) `recordBest` and (2) the ring cap were delivered in `675e123` (thank you: closed). (3) The notebook's 看风景 page:
+  `VIEW_SPOTS` / `VIEW_SPOT_IDS` from `play/viewSpots.ts` — A's `init()` registers them (`registerRewardIds('view', VIEW_SPOT_IDS)`),
+  `find view` carries `first`.
 - **F**: (1) the 坐下 prompt's icon: `ui/Hud.tsx` ContextAction `ride = 'seat'` also for `it.id === 'play:sit'` (the Armchair); (2)
   optional: `emote('baybay', 'pose')` turning her to the camera in photo mode (the selfie shows her side-on when she stood facing the
   player); (3) optional: a one-time pulse of the move column's 起飞 while the first flight's intro runs (`firstFlightActive()`).
