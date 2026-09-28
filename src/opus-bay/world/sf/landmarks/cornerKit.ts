@@ -3,7 +3,7 @@ import type { Obstacle } from '../../../actors/controller';
 import { registerObstacleSource } from '../../../actors/view';
 import type { Bilingual, Vec2 } from '../../../core/types';
 import { bayNow, bayParts } from '../../../game/bayNow';
-import { type BatchLike, CYL, type ColorLike, M, SPHERE } from '../../builder';
+import { type BatchLike, CONE, CYL, type ColorLike, M, SPHERE } from '../../builder';
 import { TOY } from '../../materials';
 import { TypedBatch } from '../../typedBatch';
 import { type CrowdLane, addCrowdSpots } from '../crowdSpots';
@@ -39,8 +39,9 @@ import { GLOW, LIT, NONE, SWAY, box, cbox, cyl } from './kit';
 /** a Bay-time window: minutes of the Bay day [from, to), on `days` (0 = Sunday; all days when absent) */
 export interface CornerWindow { days?: readonly number[]; from: number; to: number }
 
-/** one plaque of the signs atlas, LOCAL: centre, facing yaw `ry` (three.js), width `w` (height w / 2) */
-export interface CornerSign { id: string; x: number; y: number; z: number; ry: number; w: number }
+/** one plaque of the signs atlas, LOCAL: centre, facing yaw `ry` (three.js), width `w` (height w / 2); `blade` = one face
+ *  of a blade sign hung out over the sidewalk (else flat on a wall, a bay or a stall) */
+export interface CornerSign { id: string; x: number; y: number; z: number; ry: number; w: number; blade?: true }
 
 /** a crowd group (LOCAL coordinates; world/sf/crowdSpots.ts semantics), shown while its window is on */
 export interface CornerCrowd {
@@ -270,9 +271,42 @@ export function bladeSign(b: BatchLike, id: string, x: number, yTop: number, z0:
   cbox(b, x, yTop, zc, 0.05, 0.05, len + 0.15, CK.bracket);
   cbox(b, x, yc, zc, 0.03, h + 0.04, w + 0.04, CK.backing);
   return [
-    { id, x: x + 0.016, y: yc, z: zc, ry: Math.PI / 2, w },
-    { id, x: x - 0.016, y: yc, z: zc, ry: -Math.PI / 2, w },
+    { id, x: x + 0.016, y: yc, z: zc, ry: Math.PI / 2, w, blade: true },
+    { id, x: x - 0.016, y: yc, z: zc, ry: -Math.PI / 2, w, blade: true },
   ];
+}
+
+/**
+ * A blade sign on any wall: the wall at local (x, z) faces yaw `ry`; the bracket runs out along that facing at `yTop`,
+ * the plaque (width `w`, height w / 2) hangs under it from `off` to off + w u out, readable both ways along the wall.
+ */
+export function blade(b: BatchLike, id: string, x: number, z: number, yTop: number, ry: number, w: number, off = 0.08): CornerSign[] {
+  const fx = Math.sin(ry), fz = Math.cos(ry), rx = Math.cos(ry), rz = -Math.sin(ry), h = w / 2, yc = yTop - 0.05 - h / 2;
+  const cx = x + fx * (off + w / 2), cz = z + fz * (off + w / 2);
+  cbox(b, x + fx * (off + w / 2 + 0.04), yTop, z + fz * (off + w / 2 + 0.04), 0.05, 0.05, w + 0.15, CK.bracket, NONE, ry);
+  cbox(b, cx, yc, cz, 0.03, h + 0.04, w + 0.04, CK.backing, NONE, ry);
+  return [
+    { id, x: cx + rx * 0.016, y: yc, z: cz + rz * 0.016, ry: ry + Math.PI / 2, w, blade: true },
+    { id, x: cx - rx * 0.016, y: yc, z: cz - rz * 0.016, ry: ry - Math.PI / 2, w, blade: true },
+  ];
+}
+
+/** A street lamp post (like the sites' lamps: post, glowing lantern, cap; ≈ 56 triangles) at local (x, y, z). */
+export function lampPost(b: BatchLike, x: number, y: number, z: number) {
+  b.add(CYL(6), M(x, y, z, 0, 0.1, 0.45, 0.1), '#2f3d3a');
+  b.add(CYL(5), M(x, y + 0.4, z, 0, 0.06, 3.2, 0.06), '#2f3d3a');
+  b.add(CYL(6, 0.7), M(x, y + 3.55, z, 0, 0.22, 0.5, 0.22), '#fff1c9', [0, 0, 0, 1.3]);
+  b.add(CONE(6), M(x, y + 4.02, z, 0, 0.3, 0.3, 0.3), '#2f3d3a');
+}
+
+/** A noren (a shop's short split curtain) over a door at local (x, z) on a wall facing `ry`, its top `y` over the ground. */
+export function noren(b: BatchLike, x: number, z: number, ry: number, y: number, color: ColorLike, w = 0.72) {
+  const fx = Math.sin(ry), fz = Math.cos(ry), rx = Math.cos(ry), rz = -Math.sin(ry), n = 3, pw = (w - 0.04 * (n - 1)) / n;
+  cbox(b, x + fx * 0.06, y, z + fz * 0.06, w + 0.1, 0.04, 0.04, CK.bracket, NONE, ry);
+  for (let i = 0; i < n; i++) {
+    const u = (i - (n - 1) / 2) * (pw + 0.04);
+    cbox(b, x + rx * u + fx * 0.07, y - 0.27, z + rz * u + fz * 0.07, pw, 0.5, 0.015, color, SWAY(0.3), ry);
+  }
 }
 
 /** A paper lantern (a squat sphere with a dark cap and foot), glowing at night; hung with its top at `y`. */
@@ -423,10 +457,13 @@ export function cafeTable(b: BatchLike, x: number, y: number, z: number, ry: num
   }
 }
 
-/** A rainbow banner on a lamp pole (the district's pole banners: the six-stripe pride flag, no text), hung at `y` facing `ry`. */
-export function rainbowBanner(b: BatchLike, x: number, y: number, z: number, ry: number, off = 0.32) {
+/**
+ * A rainbow banner on a lamp pole (the district's pole banners: the six-stripe pride flag, no text), its top at `y`,
+ * hung from a bracket running `off` u along (cos ry, −sin ry) from the pole; `w` wide along the bracket, 0.78 tall.
+ */
+export function rainbowBanner(b: BatchLike, x: number, y: number, z: number, ry: number, off = 0.32, w = 0.5) {
   const RAINBOW = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#004dff', '#750787'];
   const ox = Math.cos(ry) * off, oz = -Math.sin(ry) * off, sh = 0.13;
-  cbox(b, x + ox / 2, y + 0.04, z + oz / 2, off + 0.05, 0.035, 0.035, CK.bracket, NONE, ry);
-  RAINBOW.forEach((c, i) => cbox(b, x + ox, y - sh * (i + 0.5), z + oz, 0.02, sh, 0.5, c, SWAY(0.4), ry + Math.PI / 2));
+  cbox(b, x + ox / 2, y + 0.04, z + oz / 2, off + w / 2, 0.035, 0.035, CK.bracket, NONE, ry);
+  RAINBOW.forEach((c, i) => cbox(b, x + ox, y - sh * (i + 0.5), z + oz, 0.02, sh, w, c, SWAY(0.4), ry + Math.PI / 2));
 }

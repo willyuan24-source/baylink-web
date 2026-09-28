@@ -98,7 +98,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'mclaren-park': { blockers: [7.8, 1.8], tall: [7.8] },
   'mount-sutro-open-space': { blockers: [1, 1.1, 1.2, 1.8], tall: [] },
   'mountain-lake-park': { blockers: [0.8, 0.8, 1.5], tall: [] },
-  'noe-valley-town-square': { blockers: [2.3, 2.7, 3.4, 4.8, 2.1, 4.7, 3.6], tall: [] },
+  'noe-valley-town-square': { blockers: [2.3, 2.7, 3.4, 4.8, 1.4, 4.7, 3.6], tall: [] },
   'patricias-green': { blockers: [2, 1, 0.7], tall: [] },
   'sutro-heights-park': { blockers: [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 2.2], tall: [] },
 };

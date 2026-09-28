@@ -78,21 +78,23 @@ const WALKS: Vec2[] = [{ x: -1.0, z: 0.2 }, { x: 0.5, z: 0.2 }, { x: 3.0, z: 0.2
 /**
  * the shopfronts dressed (the city's buildings: the north fronts at z −0.2, the south at 4.2): an awning each (plain
  * colour, never a mural or a sign copied) and a painted plaque of lane V's atlas above it (Spanish trade words first,
- * as 24th Street's shops are signed). North, only between the banners and clear of the street tree's crown.
+ * as 24th Street's shops are signed). North, only between the banners and clear of the street tree's crown. Where
+ * the city draws a ground-floor bay window (world/recipes/city.ts bay(), 0.52–0.54 u proud: the mercado's and the
+ * café's fronts, measured on the published city's L0) the dressing hangs on the bay's face (`out`).
  */
-const FRONTS: { x0: number; x1: number; side: -1 | 1; color: string; sign: string; w: number }[] = [
-  { x0: -2.1, x1: -0.8, side: -1, color: '#d8544a', sign: 'panaderia', w: 1.0 },
-  { x0: -0.6, x1: 1.0, side: -1, color: '#e0a94a', sign: 'taqueria', w: 1.1 },
-  { x0: 1.1, x1: 2.6, side: -1, color: '#2f8f88', sign: 'mercado', w: 1.0 },
-  { x0: 0.35, x1: 1.3, side: 1, color: '#f28c3a', sign: 'barber', w: 0.85 },
-  { x0: 2.35, x1: 4.35, side: 1, color: '#3fb37f', sign: 'cafe', w: 1.0 },
+const FRONTS: { x0: number; x1: number; side: -1 | 1; color: string; sign: string; w: number; out: number }[] = [
+  { x0: -2.1, x1: -0.8, side: -1, color: '#d8544a', sign: 'panaderia', w: 1.0, out: 0 },
+  { x0: -0.6, x1: 0.6, side: -1, color: '#e0a94a', sign: 'taqueria', w: 1.1, out: 0 },
+  { x0: 0.8, x1: 2.3, side: -1, color: '#2f8f88', sign: 'mercado', w: 1.0, out: 0.52 },
+  { x0: 0.3, x1: 1.1, side: 1, color: '#f28c3a', sign: 'barber', w: 0.75, out: 0 },
+  { x0: 1.3, x1: 3.4, side: 1, color: '#3fb37f', sign: 'cafe', w: 1.0, out: 0.54 },
 ];
 /** the fronts' wall lines (local z) by the way they face */
 const WALL = { [1]: -0.2, [-1]: 4.2 } as const;
 /** the guitarist on the south sidewalk under the taquería's awning, his case along the wall toward Harrison */
-const BUSKER = { x: 1.5, z: 3.9 };
-/** his listeners: two on his sidewalk, two across the street on the north one (walked spots, standable at 0.3 u) */
-const LISTENERS: Vec2[] = [{ x: -0.3, z: 3.8 }, { x: 2.4, z: 3.8 }, { x: 0.6, z: 0.15 }, { x: 1.2, z: 0.15 }];
+const BUSKER = { x: -0.1, z: 3.9 };
+/** his listeners: two on his sidewalk, two across the street on the north one (walked spots, clear of the bays) */
+const LISTENERS: Vec2[] = [{ x: -1.7, z: 3.8 }, { x: 0.45, z: 3.8 }, { x: 0.05, z: 0.15 }, { x: 0.7, z: 0.15 }];
 
 export const CALLE_24_CORNER: CornerDef = {
   id: 'calle-24',
@@ -104,17 +106,19 @@ export const CALLE_24_CORNER: CornerDef = {
   box: [-3, -0.6, 6, 4.6],
   windows: { afternoon: { from: 12 * 60, to: 20 * 60 } },
   signs: ground => FRONTS.map((f): CornerSign => {
-    const x = (f.x0 + f.x1) / 2, zf = WALL[f.side];
-    return { id: f.sign, x, y: ground.at(x, zf + f.side * 0.3) + 2.62, z: zf + f.side * 0.02, ry: f.side > 0 ? 0 : Math.PI, w: f.w };
+    const x = (f.x0 + f.x1) / 2, zf = WALL[f.side] + f.side * f.out;
+    return { id: f.sign, x, y: ground.at(x, WALL[f.side] + f.side * 0.3) + 2.62, z: zf + f.side * 0.03, ry: f.side > 0 ? 0 : Math.PI, w: f.w };
   }),
   build: (b, ground, on) => {
-    for (const f of FRONTS) { const x = (f.x0 + f.x1) / 2, zf = WALL[f.side]; awning(b, x, zf, f.x1 - f.x0, f.side > 0 ? 0 : Math.PI, ground.at(x, zf + f.side * 0.3) + 2.22, 0.45, f.color); }
-    // papel picado across the street, from the banner poles' tops to hooks on the south fronts, and along the south fronts
+    for (const f of FRONTS) {
+      const x = (f.x0 + f.x1) / 2, zf = WALL[f.side] + f.side * f.out;
+      awning(b, x, zf, f.x1 - f.x0, f.side > 0 ? 0 : Math.PI, ground.at(x, WALL[f.side] + f.side * 0.3) + 2.22, f.out ? 0.35 : 0.45, f.color);
+    }
+    // papel picado across the street, from the banner poles' tops to hooks on the south fronts (over the bays' tops)
     const V = (x: number, dy: number, z: number) => new THREE.Vector3(x, ground.at(x, z) + dy, z);
     paperString(b, V(-1.5, 3.62, 0.0), V(-1.1, 3.95, 4.15), PAPER, 0.3, 1);
-    paperString(b, V(1.6, 3.62, 0.0), V(2.05, 3.95, 4.15), PAPER, 0.3, 4);
+    paperString(b, V(1.6, 3.62, 0.0), V(2.55, 3.95, 4.15), PAPER, 0.3, 4);
     paperString(b, V(4.7, 3.62, 0.0), V(5.0, 3.95, 4.15), PAPER, 0.3, 2);
-    paperString(b, V(-2.1, 3.55, 4.12), V(2.6, 3.55, 4.12), PAPER, 0.22, 5);
     if (on.has('afternoon')) guitarist(b, BUSKER.x, ground.at(BUSKER.x, BUSKER.z), BUSKER.z, Math.PI, 1, 0.75);
   },
   crowds: [{ key: 'listeners', when: 'afternoon', spots: LISTENERS, face: BUSKER, lane: { ax: -6, az: 2.0, bx: 8, bz: 2.0 } }],

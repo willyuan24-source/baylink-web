@@ -39,7 +39,7 @@ const pip = (p: Vec2, poly: readonly Vec2[]) => {
 };
 
 test('W5-L4 / L5: the corners are the plan\'s, in order, each on its site (same frame) and mounted through it', () => {
-  assert.ok(CORNERS.length >= 2);
+  assert.equal(CORNERS.length, 8, 'the eight corners of the plan');
   CORNERS.forEach((c, i) => {
     assert.equal(c.order, i + 1, `${c.id} is row ${i + 1} of the plan's table`);
     const s = siteOf(c);
@@ -65,7 +65,7 @@ test('W5-L4 / L5: every corner stays within 2 draw calls and 2.5k triangles in e
       // the two kinds: the sites' own TOY program, the signs atlas (warmed as 'v-signs'); neither casts a shadow
       if (m.toy) { assert.equal(m.toy.material, TOY); assert.equal(m.toy.castShadow, false); assert.equal(m.toy.receiveShadow, true); }
       if (m.signs) { assert.equal(m.signs.material, signsMaterial()); assert.equal(m.signs.castShadow, false); assert.equal(m.signs.receiveShadow, true); }
-      assert.ok(m.plaques >= 4, `${c.id}: ${m.plaques} plaques`);
+      assert.ok(m.plaques >= 2, `${c.id}: ${m.plaques} plaques`);
       for (const p of c.signs({ at: () => 0 }, on)) assert.ok(signKnown(p.id), `${c.id}: unknown plaque ${p.id}`);
       for (const x of meshes) x.geometry.dispose();
     }

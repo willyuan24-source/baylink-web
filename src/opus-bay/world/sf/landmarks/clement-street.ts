@@ -2,7 +2,7 @@ import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { type CornerDef, type CornerSign, bladeSign, cornerMount } from './cornerKit';
 import { worldPoly } from './kit';
-import { type ShopBlock, shopBlockers, shopBoard, shopExclude, shopFronts, shopGapX, shopGround, shopLights } from './shopStreet';
+import { type ShopBlock, shopBlockers, shopBoard, shopExclude, shopFronts, shopGround, shopLights } from './shopStreet';
 import { type W4Site, siteGround } from './siteKit';
 
 /**
@@ -47,9 +47,23 @@ const BOARDS: [-1 | 1, number, string][] = [
   [1, 0, 'produce'], [1, 1, 'books'], [1, 2, 'bakery'], [1, 3, 'grocery'], [1, 4, 'tea'],
   [-1, 0, 'hardware'], [-1, 1, 'produce'], [-1, 2, 'noodles'], [-1, 3, 'dim-sum'], [-1, 4, 'flowers'],
 ];
-/** blade signs over the sidewalk (read along the street), clear of the two street trees' crowns: [side, gap, sign] */
-const BLADES: [-1 | 1, number, string][] = [[1, 2, 'books'], [1, 3, 'bakery'], [-1, 2, 'noodles'], [-1, 4, 'dim-sum']];
+/** blade signs over the sidewalk (read along the street), clear of the two street trees' crowns and of the city's bay
+ *  windows: [side, local x, sign] */
+const BLADES: [-1 | 1, number, string][] = [[1, -0.1, 'books'], [1, 1.0, 'bakery'], [-1, 0.9, 'noodles'], [-1, 4.5, 'dim-sum']];
 const BLADE_W = 0.7;
+/**
+ * The city's ground-floor bay windows on the shopfronts (world/recipes/city.ts bay(), measured on the published city's
+ * L0): [x from, x to] and the |z| of their fronts. The plaques of the boards they cover hang on the bays' faces.
+ */
+const BAYS: Record<-1 | 1, { spans: [number, number][]; face: number }> = {
+  [1]: { spans: [[-2.0, -0.3], [1.2, 2.6]], face: 1.25 },
+  [-1]: { spans: [[-2.9, -0.6], [1.4, 3.7]], face: 1.3 },
+};
+/** the bay a board's plaque hangs on (its x kept on the bay's face), or null */
+const bayOf = (side: -1 | 1, x: number, w: number) => {
+  const bay = BAYS[side].spans.find(([a, b]) => x > a - 0.3 && x < b + 0.3);
+  return bay ? { z: side * (BAYS[side].face - 0.03), x: Math.min(bay[1] - w / 2, Math.max(bay[0] + w / 2, x)) } : null;
+};
 /**
  * shoppers beside two produce stands, each group facing its stand, on the walked strip of the sidewalk (the kerb half,
  * z ±1.3–1.5: the shopfronts' footprints reach past the facade line), clear of the trees and lamps
@@ -68,8 +82,8 @@ const SHOPPER_SPOTS: Vec2[][] = SHOPPERS.flatMap(({ at }) => at.map(p => [{ x: p
 function blades(b: BatchLike | null): CornerSign[] {
   const out: CornerSign[] = [];
   const sink = b ?? { add() { return this; } } as unknown as BatchLike;
-  for (const [side, gap, id] of BLADES) {
-    const x = shopGapX(BLOCK, gap), zf = side * BLOCK.half, y = g.at(x, zf);
+  for (const [side, x, id] of BLADES) {
+    const zf = side * BLOCK.half, y = g.at(x, zf);
     out.push(...bladeSign(sink, id, x, y + 3.02, zf - side * 0.08, zf - side * (0.08 + BLADE_W), BLADE_W));
   }
   return out;
@@ -86,7 +100,10 @@ export const CLEMENT_CORNER: CornerDef = {
   windows: { day: { from: 9 * 60, to: 19 * 60 } },
   ground: g,
   signs: () => [
-    ...BOARDS.map(([side, bay, id]): CornerSign => { const k = shopBoard(BLOCK, side, bay); return { id, x: k.x, y: g.at(k.x, k.zf) + k.dy, z: k.z, ry: k.ry, w: 1.0 }; }),
+    ...BOARDS.map(([side, bay, id]): CornerSign => {
+      const k = shopBoard(BLOCK, side, bay), on = bayOf(side, k.x, 1.0);
+      return { id, x: on ? on.x : k.x, y: g.at(k.x, k.zf) + k.dy, z: on ? on.z : k.z, ry: k.ry, w: 1.0 };
+    }),
     ...blades(null),
   ],
   build: b => { blades(b); },

@@ -1,5 +1,6 @@
 import type { Vec2 } from '../../../core/types';
 import { type BatchLike, CBOX, M } from '../../builder';
+import { type CornerDef, type CornerSign, awning, cornerMount, lampPost, rainbowBanner } from './cornerKit';
 import { NONE, cyl, worldPoly } from './kit';
 import { LIFT_STRIPE, type SiteGroundPoly, type W4Site, gpoly, siteGround } from './siteKit';
 
@@ -86,6 +87,73 @@ const CORNERS: { poly: Vec2[]; surface: 'pavement' }[] = [[1, 1], [1, -1], [-1, 
   return [rect(w0, far, w0, w1), rect(w0, w1, w1, far)];
 });
 
+// ---------------------------------------------------------------------------
+// W5-L5 · signature corner 8 (plan §3.6): Castro Street between Market and 18th — rainbow pole banners, shop plaques;
+// the rainbow crosswalks are the site's ground (lane D's egg 21), the fair-day crowds lane R's
+// ---------------------------------------------------------------------------
+
+/**
+ * "In the Castro and Upper Market area, rainbow flags can be seen everywhere: attached to light poles as banners"
+ * (castrocbd.org "Things to See", checked 2026-09-28; the banners are paid for by the Castro Street Fair and the
+ * merchants). Toy: four street lamps along Castro Street's sidewalks, each with a six-stripe banner (the generic pride
+ * flag, no text) hung over the sidewalk (clear of the traffic), and awnings with generic English plaques on five
+ * shopfronts (the city's buildings; never a shop's name). By day two friends stand at the south-east corner of Castro &
+ * 18th looking at the rainbow crossing. Street frame: `along` from the Castro St centreline point (0.9, −3.1) toward
+ * 18th (at along 23.6), `across` to the west; the fronts stand at across +2.15 (west) and −2.25 (east), the sidewalks
+ * 1.6–2.2 either side. The city draws most of these Edwardian and Victorian fronts with ground-floor bay windows (0.5 u
+ * proud; measured on the published city's L0: west bays at along 1.9–3.2, 4.3–5.6, 6.9–8.6, 11.9–13.6, 16.1–17.2, east
+ * 13.5–14.7): the lamps stand in the gaps, the café's and the vintage shop's dressing hangs on their bays' faces (`out`).
+ */
+const CASTRO_AX = { x: 0.773, z: 0.635 }, CASTRO_ACROSS = { x: -0.635, z: 0.773 };
+const S = (along: number, across: number): Vec2 => ({ x: +(0.9 + CASTRO_AX.x * along + CASTRO_ACROSS.x * across).toFixed(3), z: +(-3.1 + CASTRO_AX.z * along + CASTRO_ACROSS.z * across).toFixed(3) });
+/** facing yaws: the west fronts face east (−across), the east fronts west (+across) */
+const FACE_E = Math.atan2(-CASTRO_ACROSS.x, -CASTRO_ACROSS.z), FACE_W = Math.atan2(CASTRO_ACROSS.x, CASTRO_ACROSS.z);
+/** the lamps with banners: [along, across] at the kerb, clear of the street trees and the bays (the banner hangs over the sidewalk) */
+const CASTRO_POLES: [number, number][] = [[10.2, 1.65], [15.0, 1.65], [2.0, -1.7], [12.5, -1.7]];
+const CASTRO_SHOPS: { along: number; west: boolean; sign: string; awn: string; w: number; out: number }[] = [
+  { along: 3.75, west: true, sign: 'books-en', awn: '#2f8f88', w: 1.0, out: 0 },
+  { along: 12.75, west: true, sign: 'cafe', awn: '#e0a94a', w: 1.5, out: 0.53 },
+  { along: 16.65, west: true, sign: 'vintage', awn: '#7a4fa0', w: 1.0, out: 0.57 },
+  { along: 11.0, west: false, sign: 'records', awn: '#c9473a', w: 1.8, out: 0 },
+  { along: 19.8, west: false, sign: 'barber', awn: '#4f7fbf', w: 1.8, out: 0 },
+];
+/** a shop's wall point (moved onto its bay's face when it has one) */
+const shopAt = (s: (typeof CASTRO_SHOPS)[number]) => S(s.along, s.west ? 2.15 - s.out : -2.25 + s.out);
+const CASTRO_PHOTO: Vec2[] = [{ x: 18.5, z: 8.95 }, { x: 19.0, z: 9.42 }];
+
+export const CASTRO_CORNER: CornerDef = {
+  id: 'castro',
+  order: 8,
+  site: ID,
+  frame: { x: X0, z: Z0, yaw: YAW },
+  name: { zh: '卡斯特罗街', en: 'Castro Street' },
+  ambient: { zh: '彩虹斑马线旁拍照的朋友', en: 'friends photographing the rainbow crossing' },
+  box: [-1, -4, 20, 13],
+  windows: { day: { from: 10 * 60, to: 20 * 60 } },
+  ground: g,
+  signs: () => CASTRO_SHOPS.map((s): CornerSign => {
+    const w = shopAt(s), ry = s.west ? FACE_E : FACE_W;
+    return { id: s.sign, x: w.x + Math.sin(ry) * 0.03, y: g.at(w.x + Math.sin(ry) * 0.3, w.z + Math.cos(ry) * 0.3) + 2.62, z: w.z + Math.cos(ry) * 0.03, ry, w: Math.min(1.0, s.w - 0.1) };
+  }),
+  build: b => {
+    for (const [along, across] of CASTRO_POLES) {
+      const p = S(along, across), y = g.at(p.x, p.z);
+      lampPost(b, p.x, y, p.z);
+      // the banner hangs from a bracket over the sidewalk, toward the fronts (the bracket runs along (cos ry, −sin ry))
+      const toWall = across > 0 ? 1 : -1, rx = CASTRO_ACROSS.x * toWall, rz = CASTRO_ACROSS.z * toWall;
+      rainbowBanner(b, p.x, y + 3.05, p.z, Math.atan2(-rz, rx), 0.27, 0.4);
+    }
+    for (const s of CASTRO_SHOPS) {
+      const w = shopAt(s), ry = s.west ? FACE_E : FACE_W;
+      awning(b, w.x, w.z, s.w, ry, g.at(w.x + Math.sin(ry) * 0.3, w.z + Math.cos(ry) * 0.3) + 2.2, s.out ? 0.35 : 0.4, s.awn);
+    }
+  },
+  crowds: [{ key: 'photo', when: 'day', spots: CASTRO_PHOTO, face: { x: 16.63, z: 9.78 }, lane: { ax: 23.0, az: 7.25, bx: 15.36, bz: 16.51 } }],
+  soft: CASTRO_POLES.map(([along, across]) => ({ ...S(along, across), r: 0.12 })),
+  // (lane E has no cache on this corner yet: Requests)
+  cache: null,
+};
+
 export const harveyMilkPlaza: W4Site = {
   id: ID,
   tier: 2,
@@ -100,6 +168,10 @@ export const harveyMilkPlaza: W4Site = {
   build,
   walk: { blockers: [{ x: POLE.x, z: POLE.z, r: 0.35 }] },
   ground: ground(),
+  // W5-L5: the Castro St lamps' night lights (the corner draws the lamps: CASTRO_CORNER)
+  lights: CASTRO_POLES.map(([along, across]) => { const p = S(along, across); return { x: p.x, y: g.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' }; }),
+  // W5-L5: Castro Street's corner (landmarks/cornerKit.ts)
+  mount: cornerMount(CASTRO_CORNER),
   plaza: [
     // the Castro St sidewalk at the pole's corner (Market's asphalt west of it, Castro's south, the house north)
     { poly: [{ x: 0.06, z: -1.66 }, { x: 1.61, z: -0.39 }, { x: 1.3, z: -0.01 }, { x: -0.26, z: -1.27 }], surface: 'pavement' },
