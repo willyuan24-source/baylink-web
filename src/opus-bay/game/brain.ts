@@ -137,6 +137,9 @@ let stillSince = 0;
 let lastBarkAt = 0;
 let playingSince = 0;
 let timeBarked = false;
+/** the last frame a ride or a vehicle carried the player (city small talk waits SMALL_TALK_QUIET_MS after it) */
+let lastCarriedAt = -Infinity;
+export const SMALL_TALK_QUIET_MS = 15000;
 let welcomeWaved = false;
 const barkedAt = new Map<string, number>();
 
@@ -301,7 +304,12 @@ function follow(now: number) {
     if (gp < 5.5 && g.arrived) setTarget(null);
   }
   g.run = gp > 6 || p.running;
-  const quiet = performance.now() < flow.get().quietUntil;
+  // city (wave-4 QA at the Palace stop): her own small talk waits a moment after a ride or an arrival moment, so the
+  // stop's arrive line and hop-off tip (the pacer, 8 s to live) are not pushed out by "金色时刻！"
+  const arrivedAt = lastArrivalAt();
+  const settling = game.get().worldMode === 'city'
+    && (now - lastCarriedAt < SMALL_TALK_QUIET_MS || (arrivedAt > 0 && performance.now() - arrivedAt < SMALL_TALK_QUIET_MS));
+  const quiet = performance.now() < flow.get().quietUntil || settling;
   // once per visit, a line about the light right now (morning fog, golden hour, night lights)
   if (!quiet && !timeBarked && playingSince && now - playingSince > 20000 && !flow.get().bubble && gp < 10) {
     const line = bark(game.get().timeOfDay);
@@ -365,7 +373,7 @@ export function updateGuide(now: number) {
   }
   // riding anything: the movement system carries her (basket, front seat, pelican), so no lead targets
   const carried = s.move.mode === 'bike' || s.move.mode === 'car' || s.move.mode === 'glide' || s.move.mode === 'travel';
-  if (s.riding || carried) { g.state = 'idle'; setTarget(null); return; }
+  if (s.riding || carried) { lastCarriedAt = now; g.state = 'idle'; setTarget(null); return; }
   if (f.callPending) {
     g.state = 'follow';
     setTarget(beside(P(), G(), 1.8), 0.6);
@@ -420,6 +428,6 @@ export function updateGuide(now: number) {
 export function resetBrain() {
   lastTarget = null; waiting = false; lastWave = 0; lastHint = 0; playerAtStopSince = 0; lastIdleEmote = 0; stillSince = 0; lastBarkAt = 0; lastArea = undefined;
   lastWaitLine = ''; ledIdleSince = 0; lastNudgeAt = -Infinity; freeSince = 0; hintAt = 0;
-  playingSince = 0; timeBarked = false; seenEmote = 'none'; emoteSince = 0; lastPos = { x: NaN, z: NaN }; welcomeWaved = false;
+  playingSince = 0; timeBarked = false; lastCarriedAt = -Infinity; seenEmote = 'none'; emoteSince = 0; lastPos = { x: NaN, z: NaN }; welcomeWaved = false;
   barkedAt.clear();
 }

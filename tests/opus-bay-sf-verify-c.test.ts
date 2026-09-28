@@ -256,6 +256,63 @@ test('verify m4: the city’s soft goal chip drops while you ride and once you s
   assert.equal(flowMod.objectiveTarget()?.soft, true, 'district unchanged');
 });
 
+test('QA (the Palace loop stop): in the city BAYBAY’s small talk waits after a ride, so the stop’s arrive line and hop-off tip come first', () => {
+  reset('city');
+  store.game.set({ timeOfDay: 'golden', mode: 'free' });
+  const said = () => flow.get().bubble?.text.zh ?? null;
+  // riding for 30 s (the time-of-day line never plays on a ride)
+  store.game.set({ move: { mode: 'transit', line: 'sf-loop', spot: 'deck' } });
+  for (let i = 0; i < 30; i++) { tick(1000); brain.updateGuide(clock); }
+  store.game.set({ move: { mode: 'foot' } });
+  flow.set({ bubble: null });
+  // just off the bus: quiet for SMALL_TALK_QUIET_MS
+  for (let i = 0; i < 12; i++) { tick(1000); brain.updateGuide(clock); assert.equal(said(), null, `quiet ${i + 1} s after the ride`); }
+  for (let i = 0; i < 6; i++) { tick(1000); brain.updateGuide(clock); }
+  assert.match(said() ?? '', /金色时刻/, 'then the golden-hour line');
+  // the district keeps its timing (no settling window)
+  reset('district');
+  store.game.set({ timeOfDay: 'golden', mode: 'free' });
+  store.game.set({ move: { mode: 'transit', line: 'streetcar', spot: 'rail' } });
+  for (let i = 0; i < 30; i++) { tick(1000); brain.updateGuide(clock); }
+  store.game.set({ move: { mode: 'foot' } });
+  flow.set({ bubble: null });
+  tick(1000); brain.updateGuide(clock);
+  assert.ok(said(), 'district: at once, as before');
+});
+
+test('part b · the Grand Tour: a photo moment waits for the shutter; the express points at 直接到站 on long Metro legs', async () => {
+  const tour = await import('../src/opus-bay/game/cityTour');
+  const { dwellOver, wantsSkipHint, photoPrompt, PHOTO_AFTER_S, PHOTO_HOLD_MAX_S, DWELL_S, LONG_METRO_U } = tour;
+  const at = { x: 0, z: 0 };
+  const photo = { dwellAt: 100, dwell: DWELL_S.photo, at, moment: 'photo' as const, shotAt: 0 };
+  const still = { photoMode: false, player: at }, framing = { photoMode: true, player: at };
+  assert.equal(dwellOver(photo, 100 + DWELL_S.photo - 1, still), false);
+  assert.equal(dwellOver(photo, 100 + DWELL_S.photo, still), true, 'no shot: the usual 25 s');
+  assert.equal(dwellOver(photo, 100 + 60, framing), false, 'framing a shot holds the stop');
+  assert.equal(dwellOver(photo, 100 + PHOTO_HOLD_MAX_S, framing), true, '… up to a cap');
+  const shot = { ...photo, shotAt: 108 };
+  assert.equal(dwellOver(shot, 108 + PHOTO_AFTER_S - 0.5, still), false);
+  assert.equal(dwellOver(shot, 108 + PHOTO_AFTER_S, still), true, 'the shot ends it 3 s later');
+  assert.equal(dwellOver({ ...shot, moment: 'arrive' as const, dwell: DWELL_S.arrive }, 108 + PHOTO_AFTER_S, framing), false, 'only photo moments');
+  assert.equal(dwellOver({ ...photo, moment: 'arrive' as const, dwell: DWELL_S.arrive }, 100 + DWELL_S.arrive, framing), true, 'photo mode does not hold other moments');
+  // the express hint: your own LRV leaving on a long tour ride, once
+  const leg = { via: 'line' as const, line: 'n-judah', board: 'a', alight: 'b', wait: 30, stops: 6, from: at, to: at, seconds: 300, length: LONG_METRO_U + 200 };
+  const trip = { placeId: 'x', option: { mode: 'line' as const, legs: [leg], seconds: 300 }, legs: [leg], leg: 0, startedAt: 0, source: 'tour' as const };
+  const depart = { type: 'transit' as const, what: 'depart' as const, line: 'n-judah', kind: 'light-rail' as const };
+  const r = { express: true, phase: 'leading' as const, hinted: false };
+  assert.equal(wantsSkipHint(depart, r, trip), true);
+  assert.equal(wantsSkipHint({ ...depart, strength: 0.6 }, r, trip), false, 'another train heard nearby');
+  assert.equal(wantsSkipHint(depart, { ...r, hinted: true }, trip), false, 'once per stop');
+  assert.equal(wantsSkipHint(depart, { ...r, express: false }, trip), false, 'the full tour rides it');
+  assert.equal(wantsSkipHint(depart, r, { ...trip, legs: [{ ...leg, length: 300 }] }), false, 'a short leg');
+  assert.equal(wantsSkipHint({ ...depart, kind: 'bus' as const, line: 'sf-loop' }, r, trip), false, 'the bus');
+  // words for the device; the express intro names the button as the English UI does
+  assert.match(photoPrompt('touch', 390).zh, /更多/);
+  assert.match(photoPrompt('keyboard', 1440).en, /Press P/);
+  const src = readFileSync(new URL('../src/opus-bay/game/cityTour.ts', import.meta.url), 'utf8');
+  assert.ok(src.includes("you can tap Skip to stop.'") && !/en: '[^']*直接到站/.test(src), 'no zh button name in English text');
+});
+
 test('verify F5: Settings → reset progress forgets lane C’s arrival stamps and stops a running Grand Tour without writing it back', async () => {
   reset('city');
   save.resetSaveCache();

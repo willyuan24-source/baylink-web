@@ -196,7 +196,7 @@ test('declared minutes are the timing model\'s; chapters add up to ≈ 26 min, e
   assert.ok(rideSeconds('sf-loop', 'loop-ferry-building', 'loop-golden-gate-bridge', true) > 100, 'the bus keeps its narration in express');
 });
 
-test('goals are completed honestly on the way; postcards lie on the route', () => {
+test('goals are completed honestly on the way; postcards lie on the route', async () => {
   const goals = new Set(allStops.map(f => f.stop.goal).filter(Boolean));
   // W4-C review: `goal` = where a goal really completes; campuses needs 3 campus arrivals, the tour has 1 (advances)
   assert.deepEqual([...goals].sort(), ['cable-car', 'golden-gate', 'metro', 'painted-ladies', 'sightseeing', 'twin-peaks']);
@@ -235,8 +235,15 @@ test('goals are completed honestly on the way; postcards lie on the route', () =
   assert.equal(peak.leg.via, 'walk');
   const bus = targetAt('transit-loop-twin-peaks')!, top = targetAt(peak.target)!;
   assert.ok(Math.hypot(bus.x - top.x, bus.z - top.z) >= 30, 'walked up');
-  const postcardSrc = fs.readFileSync(new URL('src/opus-bay/data/sf/postcards.ts', ROOT), 'utf8');
-  for (const { stop } of allStops) if (stop.postcard) assert.ok(postcardSrc.includes(`'${stop.postcard}'`), `${stop.id}: postcard ${stop.postcard}`);
+  // a stop's postcard is a real city postcard (lane V's four included) lying within ≈ 70 u of the stop
+  const { CITY_POSTCARDS } = await import('../src/opus-bay/data/sf/postcards');
+  for (const { stop } of allStops) if (stop.postcard) {
+    const card = CITY_POSTCARDS.find(c => c.id === stop.postcard);
+    assert.ok(card, `${stop.id}: postcard ${stop.postcard}`);
+    const at = targetAt(stop.target)!;
+    assert.ok(Math.hypot(card.position.x - at.x, card.position.z - at.z) <= 75, `${stop.id}: ${stop.postcard} within 75 u`);
+  }
+  for (const id of ['sf-state-quad', 'sf-music-concourse', 'sf-lands-end']) assert.ok(allStops.some(f => f.stop.postcard === id), `${id} is on a tour stop (W4-C9)`);
   // the deck walk is optional and not counted; the express keeps GGB, Twin Peaks and SF State
   assert.equal(allStops.find(f => f.stop.id === 'bay-deck')!.stop.optional, true);
   const expressIds = tourStops(SF_GRAND, { express: true }).map(f => f.stop.id);

@@ -1,4 +1,4 @@
-import { onEvent } from '../core/events';
+import { onEvent, type GameEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, game, tourIdOf } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
@@ -7,7 +7,7 @@ import { GRAND_TOUR } from '../data/sf/copy';
 import {
   chapterSay, cityTour, decodeTourSaves, expressRide, stopSay, tourStops, type CityTourDef, type CityTourStop, type FlatStop, type TourProgress,
 } from '../data/sf/tours';
-import { clearLines, lineSpeaking, offerPaced } from './cityMoments';
+import { clearLines, lineSpeaking, offerLine, offerPaced } from './cityMoments';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, endTrip, openPanel, playDialogue, say, setCityTourApi, startFree, startTrip, type CityTourApi, type TourPill,
 } from './flow';
@@ -16,6 +16,7 @@ import { BAYBAY_ID, interactableById } from './interactables';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
 import { minutesLabel } from './tripText';
+import type { TripState } from './tripTypes';
 
 /**
  * Wave 4 · lane C · W4-C2 / W4-C4: the city tour engine — the Grand Tour 环游旧金山 · 一日游 (data/sf/tours.ts SF_GRAND)
@@ -38,6 +39,8 @@ import { minutesLabel } from './tripText';
  *   end        the recap (ui/Moments Recap → ui/CityTourRecap.tsx) when stops were done; the progress is kept for
  *              "继续一日游 · 第 N 章" unless the tour was finished
  * Optional stops (Fort Point, the deck walk) are not led in wave 4: the Welcome Center's lines point them out.
+ * Part b: a photo moment waits for the shutter (photo mode holds the dwell, a shot ends it 3 s later with "拍得真好"); the
+ * express version points at 直接到站 when your train leaves on a Metro leg > 400 u.
  */
 
 /** The dwell after an arrival, by moment (s): the timing model's, the moment itself (lane G's card, the reveal). */
@@ -46,6 +49,14 @@ export const DWELL_S: Readonly<Record<NonNullable<CityTourStop['moment']> | 'non
 export const DWELL_LEAVE_R = 18;
 /** the dwell's shortest length (s): the arrival line gets its time */
 export const DWELL_MIN_S = 4;
+/** a photo moment waits for the shutter (part b): photo mode holds the dwell up to this long (s) … */
+export const PHOTO_HOLD_MAX_S = 90;
+/** … and a shot ends it this long after (s), once the camera is put away */
+export const PHOTO_AFTER_S = 3;
+/** the express version points at 直接到站 on a Metro leg longer than this (u; lane T's veil rule, plan §3.4) */
+export const LONG_METRO_U = 400;
+const NICE_SHOT: Bilingual = { zh: '拍得真好！这张可以当明信片了。', en: 'Great shot — that could be a postcard!' };
+const SKIP_HINT: Bilingual = { zh: '这段地铁比较长，想快点可以点「直接到站」。', en: 'A long Metro leg — tap Skip to stop to get there sooner.' };
 
 interface Run {
   def: CityTourDef;
@@ -62,6 +73,11 @@ interface Run {
   at: { x: number; z: number } | null;
   /** the chapter whose intro was said last (−1: none) */
   chapter: number;
+  /** the current stop's moment (the dwell reads it) and the clock (s) of a photo taken in it (0: none yet) */
+  moment?: CityTourStop['moment'];
+  shotAt: number;
+  /** the express 直接到站 hint was given on this stop's ride */
+  hinted: boolean;
 }
 
 let run: Run | null = null;
@@ -103,7 +119,7 @@ function begin(def: CityTourDef, express: boolean, completed: string[]) {
   const stops = tourStops(def, { express });
   const firstOpen = stops.findIndex(f => !completed.includes(f.stop.id));
   const i = firstOpen < 0 ? 0 : firstOpen;
-  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1 };
+  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1, shotAt: 0, hinted: false };
   lastRun = run;
   endTrip();
   closePanel();
@@ -131,6 +147,7 @@ function startStop(r: Run) {
   const lead = stopSay(stop, 'lead', r.express);
   if (lead) offerPaced(lead);
   r.phase = 'leading';
+  r.hinted = false;
   flow.set({ tourPhase: 'leading' });
   setTourState(r, true);
   const target = stop.target.startsWith('place:') ? stop.target.slice(6) : stop.target;
@@ -144,11 +161,13 @@ function arrived(r: Run) {
   const stop = playedStop(r.def, flat.stop, r.express);
   const line = stopSay(stop, 'arrive', r.express && !!flat.stop.expressTo);
   if (line) offerPaced(line);
-  if (stop.moment === 'photo') bubble({ zh: '拍张照吧！按 P 或点相机', en: 'Take a photo! Press P or tap the camera' }, 3200, BAYBAY_ID, 'call');
+  if (stop.moment === 'photo') bubble(photoPrompt(), 3200, BAYBAY_ID, 'call');
   if (!r.completed.includes(flat.stop.id)) r.completed.push(flat.stop.id);
   r.phase = 'dwell';
   r.dwellAt = clock();
   r.dwell = DWELL_S[stop.moment ?? 'none'];
+  r.moment = stop.moment;
+  r.shotAt = 0;
   r.at = { x: runtime.player.x, z: runtime.player.z };
   flow.set({ tourPhase: 'arrived' });
   // the chapter's last stop: its outro
@@ -156,6 +175,13 @@ function arrived(r: Run) {
   if (!next || next.chapter !== flat.chapter) { const outro = chapterSay(r.def.chapters[flat.chapter], 'outro'); if (outro) offerPaced(outro); }
   setTourState(r, true);
   saveProgress(r);
+}
+
+/** "Take a photo" in the words of this device: phones keep the camera under 更多 (ui/Hud.tsx PhoneBar, ≤ 600 px). */
+export function photoPrompt(device = runtime.input.device, width = typeof window !== 'undefined' ? window.innerWidth : 1440): Bilingual {
+  if (device === 'touch' && width <= 600) return { zh: '拍张照吧！点「更多」里的「拍照」', en: 'Take a photo! Tap More, then Photo' };
+  if (device === 'touch') return { zh: '拍张照吧！点相机按钮', en: 'Take a photo! Tap the camera button' };
+  return { zh: '拍张照吧！按 P 或点相机', en: 'Take a photo! Press P or click the camera' };
 }
 
 /** On to the next stop (the dwell is over, or 下一站). */
@@ -211,7 +237,7 @@ function choose(def: CityTourDef) {
   ];
   // the two picks are nodes that start the tour when they open (flow's dialogue runner has no custom actions)
   defineNode({ id: `flow.tour.${def.id}.full`, speaker: 'baybay', mood: 'excited', text: { zh: '好嘞！完整版出发，跟我来～', en: 'Great — the full tour it is. Follow me~' }, action: { type: 'end' } });
-  defineNode({ id: `flow.tour.${def.id}.express`, speaker: 'baybay', mood: 'excited', text: { zh: '好嘞！快速版出发，长的地铁段可以点「直接到站」。', en: 'Great — the express. On the long Metro legs you can tap 直接到站.' }, action: { type: 'end' } });
+  defineNode({ id: `flow.tour.${def.id}.express`, speaker: 'baybay', mood: 'excited', text: { zh: '好嘞！快速版出发，长的地铁段可以点「直接到站」。', en: 'Great — the express. On the long Metro legs you can tap Skip to stop.' }, action: { type: 'end' } });
   pendingPick = def;
   playDialogue(defineNode({
     id: `flow.tour.${def.id}`, speaker: 'baybay', mood: 'excited',
@@ -264,6 +290,27 @@ function pill(): TourPill | null {
   return { id: r.def.id, name: { zh: `一日游 · ${chapter.name.zh}`, en: `Grand Tour · ${chapter.name.en}` }, step: flat.chapter + 1, total: r.def.chapters.length, done, next: r.phase === 'leading' ? nameOf(playedStop(r.def, flat.stop, r.express).target) : null };
 }
 
+/**
+ * Whether a stop's dwell is over (pure): its time is up, or you walked on (after DWELL_MIN_S), or — a photo moment — you
+ * took the shot PHOTO_AFTER_S ago; while you frame a photo moment's shot (photo mode) it waits, up to PHOTO_HOLD_MAX_S.
+ */
+export function dwellOver(r: Pick<Run, 'dwellAt' | 'dwell' | 'at' | 'moment' | 'shotAt'>, now: number, o: { photoMode: boolean; player: { x: number; z: number } }): boolean {
+  const elapsed = now - r.dwellAt;
+  const photo = r.moment === 'photo';
+  if (photo && o.photoMode && elapsed < PHOTO_HOLD_MAX_S) return false;
+  const shot = photo && r.shotAt > 0 && now - r.shotAt >= PHOTO_AFTER_S;
+  const left = r.at ? Math.hypot(o.player.x - r.at.x, o.player.z - r.at.z) > DWELL_LEAVE_R : false;
+  return elapsed >= r.dwell || shot || (left && elapsed >= DWELL_MIN_S);
+}
+
+/** Express: your own train just left on a long Metro leg of a tour trip, and the hint was not given yet (pure). */
+export function wantsSkipHint(e: GameEvent, r: Pick<Run, 'express' | 'phase' | 'hinted'> | null, trip: TripState | null): boolean {
+  if (e.type !== 'transit' || e.what !== 'depart' || e.kind !== 'light-rail' || e.strength !== undefined) return false;
+  if (!r?.express || r.phase !== 'leading' || r.hinted || trip?.source !== 'tour') return false;
+  const leg = trip.legs[trip.leg];
+  return leg?.via === 'line' && leg.length > LONG_METRO_U;
+}
+
 /** 2 Hz: the dwell's end, a tour that something else ended (the week, a restart). */
 function tick(now: number) {
   const r = run;
@@ -271,9 +318,7 @@ function tick(now: number) {
   const t = game.get().tour;
   if (!t.active || tourIdOf(t) !== r.def.id) { run = null; clearLines(); saveProgress(r); return; }
   if (r.phase !== 'dwell' || dialogueOpen()) return;
-  const elapsed = now - r.dwellAt;
-  const left = r.at ? Math.hypot(runtime.player.x - r.at.x, runtime.player.z - r.at.z) > DWELL_LEAVE_R : false;
-  if ((elapsed >= r.dwell || (left && elapsed >= DWELL_MIN_S)) && !lineSpeaking(now)) nextStop(r);
+  if (dwellOver(r, now, { photoMode: game.get().photoMode, player: runtime.player }) && !lineSpeaking(now)) nextStop(r);
 }
 
 let booted = false;
@@ -300,6 +345,10 @@ export function initCityTour(): void {
     }
     // the stop's trip ended (game/tripRun: `trip` end of a 'tour' trip)
     if (e.type === 'trip' && e.what === 'end' && run && flow.get().trip?.source === 'tour') arrived(run);
+    // the photo moment's shot
+    if (e.type === 'shutter' && run?.phase === 'dwell' && run.moment === 'photo' && !run.shotAt) { run.shotAt = clock(); offerLine(NICE_SHOT, 6); }
+    // express: your own train leaves on a long Metro leg → 直接到站 is there (once per stop)
+    if (run && wantsSkipHint(e, run, flow.get().trip)) { run.hinted = true; offerLine(SKIP_HINT, 10); }
   });
 }
 

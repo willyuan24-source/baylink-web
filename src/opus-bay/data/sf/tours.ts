@@ -344,7 +344,7 @@ const CHAPTERS: CityTourChapter[] = [
   chapter('coast', bi('海岸', 'The Coast'), [
     {
       id: 'coast-ride-lands-end', target: 'transit-loop-lands-end-sutro', leg: loop('golden-gate-bridge', 'lands-end-sutro'),
-      expressTo: 'loop-ocean-beach-windmill', advances: 'sightseeing',
+      expressTo: 'loop-ocean-beach-windmill', advances: 'sightseeing', postcard: 'sf-lands-end',
       lines: { lead: bi('回车站，下一班车往海边开！', 'Back to the stop — the next bus heads for the coast!'), arrive: 'loop-lands-end-sutro-arrive', expressArrive: 'loop-ocean-beach-windmill-arrive' },
       minutes: 2.1, expressMinutes: 2.5,
     },
@@ -376,7 +376,7 @@ const CHAPTERS: CityTourChapter[] = [
       minutes: 1.2, expressMinutes: 0.0,
     },
     {
-      id: 'n-tea-garden', target: 'place:japanese-tea-garden', leg: walk, attraction: 'japanese-tea-garden', moment: 'arrive', express: 'skip',
+      id: 'n-tea-garden', target: 'place:japanese-tea-garden', leg: walk, attraction: 'japanese-tea-garden', moment: 'arrive', express: 'skip', postcard: 'sf-music-concourse',
       lines: { lead: bi('走过加州科学院，就到日本茶园！', 'Past the Cal Academy to the Japanese Tea Garden!'), arrive: 'arrive-japanese-tea-garden' },
       minutes: 0.9, expressMinutes: 0.0,
     },
@@ -414,7 +414,7 @@ const CHAPTERS: CityTourChapter[] = [
       minutes: 0.4, expressMinutes: 0.0,
     },
     {
-      id: 'm-sfsu', target: 'place:sf-state-university', leg: walk, attraction: 'sf-state-university', moment: 'arrive', advances: 'campuses',
+      id: 'm-sfsu', target: 'place:sf-state-university', leg: walk, attraction: 'sf-state-university', moment: 'arrive', advances: 'campuses', postcard: 'sf-state-quad',
       lines: { lead: bi('顺着 19 大道往南走，州立大学就在前面。', 'Down 19th Avenue — SF State is just ahead.'), arrive: 'arrive-sf-state-university' },
       minutes: 0.8, expressMinutes: 0.6,
     },

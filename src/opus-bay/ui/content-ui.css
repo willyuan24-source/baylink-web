@@ -28,5 +28,6 @@
   .ob-journal .ob-tabs:has(> button:nth-child(4)) button small { font-size: 10.5px; }
 }
 
-/* C14 · a choice's second line breaks between words, never inside one (叮 / 当车 at 375 px) */
-.ob-choice-label .ob-choice-sub { word-break: keep-all; overflow-wrap: break-word; }
+/* C14 · a choice's label and second line break between words, never inside one (叮 / 当车, 认 / 识 at 375 px); a
+   phrase too long for the line still breaks where it must */
+.ob-choice-label > span, .ob-choice-label .ob-choice-sub { word-break: keep-all; overflow-wrap: break-word; }
