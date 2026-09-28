@@ -1463,11 +1463,13 @@ test('W5-A9 frisbee: 玩飞盘 on grass / sand (问 BAYBAY), a throw sails 5–1
     assert.ok(runtime.guide.target === null || dist(runtime.guide.target, runtime.player) < 2.5);
     let caught = 0;
     for (let k = 0; k < FZ.THROWS; k++) {
-      // throws: a far tap is clamped to THROW_MAX; she is there first on even throws
+      // throws: a far tap is clamped to THROW_MAX; she is there first on even throws; the last one is E (ahead where the camera looks)
       const far = k === 0 ? 40 : 8;
-      assert.equal(FZ.throwAt(P.x, P.z + far), true, `throw ${k}`);
+      if (k === FZ.THROWS - 1) runtime.camera.yaw = Math.PI;
+      assert.equal(k === FZ.THROWS - 1 ? FZ.keyThrow() : FZ.throwAt(P.x, P.z + far), true, `throw ${k}`);
       const g = FZ.frisbeeState()!;
-      assert.ok(Math.abs(g.dist - (k === 0 ? FZ.THROW_MAX : 8)) < 1e-6);
+      assert.ok(Math.abs(g.dist - (k === 0 ? FZ.THROW_MAX : k === FZ.THROWS - 1 ? FZ.THROW_KEY_DIST : 8)) < 1e-6, `throw ${k}: ${g.dist}`);
+      if (k === FZ.THROWS - 1) assert.ok(Math.abs(g.to.x - P.x) < 1e-6 && g.to.z > P.z, 'E throws where the camera looks');
       assert.equal(FZ.throwAt(P.x, P.z + 6), false, 'one frisbee at a time');
       FZ.driveBaybay();
       assert.ok(runtime.guide.run && dist(runtime.guide.target!, g.to) < 1e-6, 'she runs for it');

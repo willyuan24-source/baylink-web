@@ -88,8 +88,21 @@ export function startFrisbee(): boolean {
   flow.set({ quietUntil: performance.now() + 60000 });
   offFrame = registerFrameSystem('a-play-frisbee', step);
   offLayer = registerSceneSystem('a-play-frisbee', FrisbeeLayer);
-  keys = holdKeys(['KeyE'], () => { const h = runtime.player.heading; throwAt(runtime.player.x + Math.sin(h) * THROW_KEY_DIST, runtime.player.z + Math.cos(h) * THROW_KEY_DIST); });
+  keys = holdKeys(['KeyE'], () => { keyThrow(); });
   return true;
+}
+
+/**
+ * E on a keyboard: a throw THROW_KEY_DIST ahead where the camera looks (a bench or a wall there: a little to either side,
+ * or shorter — never the 扔太远啦 line for a key press that had open lawn beside it).
+ */
+export function keyThrow(): boolean {
+  const p = runtime.player, h = runtime.camera.yaw + Math.PI;
+  for (const d of [THROW_KEY_DIST, 7, THROW_MIN]) for (const turn of [0, 0.35, -0.35, 0.7, -0.7]) {
+    const x = p.x + Math.sin(h + turn) * d, z = p.z + Math.cos(h + turn) * d;
+    if (canStand(x, z, 0.4)) return throwAt(x, z);
+  }
+  return throwAt(p.x + Math.sin(h) * THROW_KEY_DIST, p.z + Math.cos(h) * THROW_KEY_DIST);
 }
 
 /** Throw toward (x, z): clamped to THROW_MIN … THROW_MAX from the player; false when not ready or where she cannot go. */
