@@ -4,7 +4,7 @@ import PHOTO_ASSETS from '../../data/sf-landmark-photo-assets.json';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
-import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, walkTo } from '../game/flow';
+import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourPill, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
 import { type GuideUiState, TOAST_MS, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
@@ -67,7 +67,10 @@ export function TripPillSlot() {
   useEffect(() => { if (flow.get().goalsCard) flow.set({ goalsCard: false }); }, []);
   if (!trip || trip.leg >= trip.legs.length) return null;
   const text = tripPillText(trip, tripSecondsLeft(trip, runtime.player), { lines, phase: stage, compact: narrow, ...tripNames(trip) });
-  return <TripPill text={text} onOpen={() => guideUi.set(s => ({ tripCard: !s.tripCard }))} open={open} />;
+  // a tour's leg: lane C's tourPill progress (the first lesson's stops, the Grand Tour's chapters)
+  const tp = trip.source === 'tour' ? tourPill() : null;
+  const dots = tp ? { done: tp.done, now: tp.step - 1, total: tp.total } : null;
+  return <TripPill text={text} dots={dots} onOpen={() => guideUi.set(s => ({ tripCard: !s.tripCard }))} open={open} />;
 }
 
 export function GuideToasts() {

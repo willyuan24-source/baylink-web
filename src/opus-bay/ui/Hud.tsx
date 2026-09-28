@@ -6,7 +6,7 @@ import type { InteractionKind } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { FREE_GOALS } from '../data/script';
-import { callBaybay, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
+import { callBaybay, cityTourActive, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourPill, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
 import { useStreetName } from '../game/streets';
 import { flow, useFlow } from '../game/flowStore';
@@ -98,6 +98,23 @@ function Objective() {
   const goalsOpen = useFlow(s => s.goalsCard);
 
   if (cityTrip) return <Suspense fallback={null}><TripPillSlot /></Suspense>;
+  // wave 4 (city): the Grand Tour between its stops — lane C's tourPill (the chapter, its step, the next stop);
+  // on the way to a stop the trip pill above carries the same dots
+  if (tourActive && cityTourActive()) {
+    const tp = tourPill();
+    if (tp) {
+      return (
+        <button type="button" className="ob-objective" onClick={() => openPanel('journal')} aria-label={t('查看旅行本', 'Open journal')}>
+          <span className="ob-objective-icon"><Route size={16} aria-hidden /></span>
+          <span className="ob-objective-text">
+            <strong>{t(tp.name)} <em>{tp.step}/{tp.total}</em></strong>
+            {tp.next && <small>{t('下一站', 'Next')} · {t(tp.next)}</small>}
+          </span>
+          <span className="ob-progress-dots" aria-hidden>{Array.from({ length: tp.total }, (_, i) => <i key={i} className={i < tp.done ? 'done' : i === tp.step - 1 ? 'now' : ''} />)}</span>
+        </button>
+      );
+    }
+  }
   if (tourActive) {
     const cur = currentStop();
     const total = tourStops().length;

@@ -29,6 +29,7 @@ import { zoneVisited } from './discovery';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { qualityDecision } from '../world/quality';
 import { registerWarmup } from '../world/warmup';
+import { loadGuideLayer } from '../ui/lazyParts';
 
 /**
  * Canvas-side game systems: click/hover proxies, the gold focus marker, postcard glints, the objective
@@ -89,6 +90,8 @@ function loadGuide() {
   if (guide || guideLoading || !cityMode()) return;
   guideLoading = true;
   import('./guideCity').then(m => { guide = m; m.initGuideCity(); }, () => { guideLoading = false; });
+  // and its screen layer (the arrival toast / card of a moment in the first seconds of play must not wait for it)
+  void loadGuideLayer().catch(() => { /* the Overlay asks again when it mounts it */ });
 }
 if (typeof window !== 'undefined') loadGuide();
 

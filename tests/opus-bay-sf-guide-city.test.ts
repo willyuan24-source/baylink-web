@@ -184,3 +184,27 @@ test('ride banner / move chip: 提前下车 waits on a ferry under way and in a 
     T.setActiveLineFleet(null);
   }
 });
+
+test('W4-G9 ride camera: a look-at bias turns the transit camera toward the point (85 % at full weight), eases in and out, and a drag cancels it', async () => {
+  const { RideCamera, rideLookAt, rideLookWeight } = await import('../src/opus-bay/actors/cameraModes');
+  const cam = new RideCamera();
+  const sub = { mode: 'transit' as const, x: 0, y: 0, z: 0, heading: 0, speed: 8, gradeAhead: 0, side: 1 as const };
+  const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 46 };
+  const yawOf = () => Math.atan2(pose.pos.x - sub.x, pose.pos.z - sub.z);
+  cam.update(sub, 1, 10, pose);
+  const plain = yawOf();
+  // the stop's attraction ahead-left of the bus: the camera should end up behind the rider on the line to it
+  rideLookAt(-100, 50, 4);
+  assert.ok(rideLookWeight() < 0.05, 'eases in');
+  const t0 = performance.now();
+  while (performance.now() - t0 < 1000) { /* let the 0.8 s ease-in pass */ }
+  assert.ok(rideLookWeight() > 0.95, `full weight after 0.8 s (${rideLookWeight().toFixed(2)})`);
+  for (let i = 0; i < 60; i++) cam.update(sub, 1 / 30, 11 + i / 30, pose);
+  const want = Math.atan2(sub.x + 100, sub.z - 50);
+  const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+  assert.ok(Math.abs(wrap(yawOf() - want)) < Math.abs(wrap(plain - want)) * 0.3, `turned toward it (yaw ${yawOf().toFixed(2)}, plain ${plain.toFixed(2)}, want ${want.toFixed(2)})`);
+  // a drag after the look began cancels it
+  cam.orbit(0, 0, 13);
+  for (let i = 0; i < 90; i++) cam.update(sub, 1 / 30, 13 + i / 30, pose);
+  assert.ok(Math.abs(wrap(yawOf() - plain)) < 0.2, 'back to the side-on view after a drag');
+});
