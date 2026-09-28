@@ -3,11 +3,12 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
-import { flightState, ringBearing, skipFirstFlight, subscribeFlight, takeOffNow, FIRST_FLIGHT_NAME } from './firstFlight';
+import { flightName, flightState, ringBearing, skipFirstFlight, subscribeFlight, takeOffNow, type FlightCourse } from './firstFlight';
 import './play.css';
 
 /**
- * Wave 5 · lane A · the first flight's chip (overlay 'play-flight'): one line under the top of the screen — 第一次飞行 ·
+ * Wave 5 · lane A · the first flight's chip (overlay 'play-flight'; the Golden Gate rings' too, by its course name): one
+ * line under the top of the screen — 第一次飞行 ·
  * 金圈 3 / 8 — with 跳过; before the take-off it teaches the button once (desktop: the G keycap; phones: its own 起飞, the
  * same press as the move column's 起飞 button); while flying a small arrow points to the next ring (as the camera sees
  * it: up = ahead).
@@ -15,7 +16,7 @@ import './play.css';
 
 const snapshot = () => {
   const s = flightState();
-  return s ? `${s.phase}:${s.got}:${s.rings.length}` : '';
+  return s ? `${s.phase}:${s.got}:${s.rings.length}:${s.course}` : '';
 };
 
 export default function FlightChip() {
@@ -37,11 +38,11 @@ export default function FlightChip() {
     return () => cancelAnimationFrame(id);
   }, []);
   if (!key) return null;
-  const [phase, got, total] = key.split(':');
+  const [phase, got, total, course] = key.split(':');
   return (
     <div className={`ob-play-flight is-${phase}`} role="status" aria-live="polite">
       <Bird size={18} aria-hidden />
-      <span className="ob-play-flight-name">{t(FIRST_FLIGHT_NAME)}</span>
+      <span className="ob-play-flight-name">{t(flightName(course as FlightCourse))}</span>
       {phase === 'intro' ? (
         device === 'touch'
           ? <button type="button" className="ob-play-btn is-go" onClick={takeOffNow}>{t('起飞', 'Take off')}</button>

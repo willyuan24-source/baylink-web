@@ -12,6 +12,7 @@ import { bubble } from '../game/flow';
 import { registerFrameSystem, registerSceneSystem } from '../game/systemsRegistry';
 import { registerOverlay, openOverlay, closeOverlay } from '../ui/slots';
 import { spawnFx } from '../world/fx';
+import { GGB_COURSE, GGB_ID, GGB_LINES, GGB_NAME } from './ggbRings';
 import { ensureResultOverlay, startActivity, tierFor, type ActivityRun } from './kit';
 
 /**
@@ -26,6 +27,9 @@ import { ensureResultOverlay, startActivity, tierFor, type ActivityRun } from '.
  * under it, ≤ +45), so a first-time flyer only has to steer. Rings missed stay missed (the run goes on). Unlocked
  * somewhere else than Coit (any viewpoint, a tour stop), the course is laid out ahead of the player instead
  * (`localCourse`). The rings render as ONE instanced draw call while the flight runs (play/rings.ts, its own chunk).
+ *
+ * W5-A9: the same run flies the Golden Gate rings (course 'ggb', play/ggbRings.ts): its own activity id and name, no
+ * coins in the rings (its medal pays), BAYBAY's two bridge facts on the way; zones.ts starts it gliding by the bridge.
  */
 
 export interface CourseRing { x: number; z: number; /** the glide's roof under / near it (world y; tests recompute it) */ floor: number }
@@ -43,6 +47,8 @@ export const COIT_COURSE: readonly CourseRing[] = [
 ];
 export const FIRST_FLIGHT_ID = 'first-flight';
 export const FIRST_FLIGHT_NAME: Bilingual = { zh: '第一次飞行', en: 'First flight' };
+/** The chip's and the card's name for a course. */
+export const flightName = (course: FlightCourse): Bilingual => (course === 'ggb' ? GGB_NAME : FIRST_FLIGHT_NAME);
 export const RING_COINS = 3;
 /** Ring visual radius and the catch radius (u) */
 export const RING_R = 4.2;
@@ -100,9 +106,11 @@ export function localCourse(from: Vec2, heading: number, world: { inWorld(x: num
 
 export interface FlightRing { x: number; z: number; y: number; floor: number; got: boolean; missed: boolean }
 export type FlightPhase = 'intro' | 'flying' | 'finale';
+/** coit / local: the first flight (rings pay coins); ggb: the Golden Gate rings (play/ggbRings.ts: its own activity, medal only) */
+export type FlightCourse = 'coit' | 'local' | 'ggb';
 export interface FlightState {
   phase: FlightPhase;
-  course: 'coit' | 'local';
+  course: FlightCourse;
   rings: FlightRing[];
   /** rings passed so far */
   got: number;
@@ -140,7 +148,7 @@ export const RINGS_SCENE = 'a-play-rings';
  * Start the first flight (lane C's unlock moment, 再来一次, QA). Needs the pelican unlocked and the player playing on
  * foot (or already gliding). Returns false when it cannot start (nothing changes then).
  */
-export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: boolean } = {}): boolean {
+export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean } = {}): boolean {
   const s = game.get();
   if (state || s.phase !== 'playing' || s.dialogue.nodeId || !glideUnlocked()) return false;
   const mode = runtime.move.mode;
@@ -148,9 +156,14 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
   const p = runtime.player;
   const nearCoit = Math.hypot(p.x - COIT_COURSE[0].x, p.z - COIT_COURSE[0].z) <= COIT_NEAR;
   const course = opts.course ?? (nearCoit ? 'coit' : 'local');
-  const pts: CourseRing[] = course === 'coit'
-    ? COIT_COURSE.map(r => ({ ...r }))
-    : localCourse(p, runtime.camera.yaw + Math.PI).map(q => ({ ...q, floor: floorOf(q.x, q.z) }));
+  const ggb = course === 'ggb';
+  // the Golden Gate figure-eight: flown from whichever end is nearer
+  const from = mode === 'glide' ? runtime.glide : p, far = (r: Vec2) => Math.hypot(from.x - r.x, from.z - r.z);
+  const pts: CourseRing[] = ggb
+    ? (far(GGB_COURSE[0]) <= far(GGB_COURSE[GGB_COURSE.length - 1]) ? [...GGB_COURSE] : [...GGB_COURSE].reverse()).map(r => ({ ...r }))
+    : course === 'coit'
+      ? COIT_COURSE.map(r => ({ ...r }))
+      : localCourse(p, runtime.camera.yaw + Math.PI).map(q => ({ ...q, floor: floorOf(q.x, q.z) }));
   if (pts.length < 4) return false;
   const startY = (mode === 'glide' ? runtime.glide.y : heightAt(p.x, p.z) + 24);
   state = {
@@ -164,7 +177,7 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
     from: { x: p.x, z: p.z },
   };
   ensureResultOverlay();
-  run = startActivity({ id: FIRST_FLIGHT_ID, name: FIRST_FLIGHT_NAME, better: 'higher' }, { onStop: teardown });
+  run = startActivity({ id: ggb ? GGB_ID : FIRST_FLIGHT_ID, name: flightName(course), better: 'higher' }, { onStop: teardown });
   offs.push(registerFrameSystem('a-first-flight', step));
   offs.push(onEvent(e => {
     if (!state) return;
@@ -187,10 +200,11 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
   if (state.phase === 'intro') {
     faceCameraToward(first.x, first.z, { uncapped: true, seconds: 0.9 });
     // (lane C's moment asked 先试试起飞？ already: here only which button, and what the rings are)
+    const what = ggb ? { zh: '绕着桥塔穿金圈', en: 'fly the rings round the towers' } : { zh: '穿过金圈拿金币', en: 'fly through the rings for coins' };
     bubble(runtime.input.device === 'touch'
-      ? { zh: '点「起飞」，穿过金圈拿金币！', en: 'Tap Take off, then fly through the rings for coins!' }
-      : { zh: '按 G 起飞，穿过金圈拿金币！', en: 'Press G to take off, then fly through the rings for coins!' }, 4200);
-  } else bubble({ zh: '跟着金圈飞！', en: 'Follow the gold rings!' }, 2600);
+      ? { zh: `点「起飞」，${what.zh}！`, en: `Tap Take off, then ${what.en}!` }
+      : { zh: `按 G 起飞，${what.zh}！`, en: `Press G to take off, then ${what.en}!` }, 4200);
+  } else bubble(ggb ? GGB_LINES.go : { zh: '跟着金圈飞！', en: 'Follow the gold rings!' }, 2600);
   changed();
   return true;
 }
@@ -235,7 +249,8 @@ function catchRing(i: number) {
   s.next = i + 1;
   playSound('play-ring', { pitch: 1 + 0.07 * s.got });
   spawnFx('sparkle', r.x, r.y, r.z, { scale: 2.4, count: 18 });
-  emit({ type: 'reward', source: ringSource(i), coins: RING_COINS });
+  // the first flight's rings pay (lane E's slot ring:first-flight); the Golden Gate course pays by its medal only
+  if (s.course !== 'ggb') emit({ type: 'reward', source: ringSource(i), coins: RING_COINS });
   if (s.next >= s.rings.length) {
     // the last ring: the card now (not after a landing somewhere past PIER 39), then fly on or land as you like
     setPhase('finale');
@@ -246,6 +261,7 @@ function catchRing(i: number) {
       : { zh: all ? '全部穿过！按 G 降落吧～' : '到终点啦！按 G 降落吧～', en: all ? 'Every ring! Press G to land.' : 'That’s the course! Press G to land.' }, 4000);
     return;
   } else if (s.got === 1) bubble({ zh: '漂亮！下一个金圈在前面～', en: 'Nice! The next ring is up ahead.' }, 2600);
+  else if (s.course === 'ggb' && (s.got === 3 || s.got === 5)) bubble(s.got === 3 ? GGB_LINES.tower : GGB_LINES.colour, 3400);
   changed();
 }
 
@@ -290,7 +306,7 @@ function finish() {
     score: got,
     detail: { zh: `穿过 ${got} / ${total} 个金圈`, en: `${got} of ${total} rings` },
     bestText: best => ({ zh: `最好成绩：${best} 个圈`, en: `Best: ${best} rings` }),
-    again: () => { setTimeout(() => startFirstFlight(), 250); },
+    again: () => { setTimeout(() => startFirstFlight(s.course === 'ggb' ? { course: 'ggb' } : {}), 250); },
   });
 }
 

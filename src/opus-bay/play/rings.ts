@@ -8,7 +8,8 @@ import { registerWarmup } from '../world/warmup';
 import { flightState, RING_R } from './firstFlight';
 
 /**
- * Wave 5 · lane A · the first flight's rings (W5-A5): ONE InstancedMesh (+1 draw call while the flight runs, 8 × 124
+ * Wave 5 · lane A · the first flight's rings (W5-A5; the Golden Gate course's too, W5-A9, drawn without the coins: it pays
+ * by its medal): ONE InstancedMesh (+1 draw call while the flight runs, 8 × 124
  * = 992 triangles), each instance a gold ring with a coin in the middle, facing along the course. The next ring glows
  * and pulses, the ones after it are dimmer, a missed one greys out, a caught one is gone (scale 0).
  *
@@ -62,6 +63,8 @@ export function ringGeometry(): THREE.BufferGeometry {
     for (const p of parts) { const a = p.getAttribute(name).array as Float32Array; arr.set(a, at); at += a.length; }
     merged.setAttribute(name, new THREE.BufferAttribute(arr, size));
   }
+  // the torus comes first: a draw range of its vertices shows the rings without their coins (the Golden Gate course)
+  merged.userData.ringOnly = torus.getAttribute('position').count;
   for (const p of parts) p.dispose();
   return merged;
 }
@@ -114,6 +117,7 @@ function update(mesh: THREE.InstancedMesh) {
     mesh.setColorAt(i, col.setRGB(glow, glow * (r.missed ? 1 : 0.98), glow * (r.missed ? 1.05 : 0.9)));
   }
   mesh.count = n;
+  mesh.geometry.setDrawRange(0, s.course === 'ggb' ? (mesh.geometry.userData.ringOnly as number) : Infinity);
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 }

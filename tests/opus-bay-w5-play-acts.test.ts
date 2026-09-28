@@ -1674,3 +1674,120 @@ test('W5-A9 crooked blocks: Lombard and Vermont on the published city (walkable,
     assert.equal(card.activity, 'crooked-lombard', 'no card on foot');
   } finally { v.occupied = false; v.kind = null; v.speed = 0; mock.timers.reset(); CR.__resetDescent(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
 });
+
+test('W5-A9 Golden Gate rings: a figure-eight round both towers inside the glide envelope, flyable spacing, the facts short', async () => {
+  const G = await import('../src/opus-bay/play/ggbRings');
+  const { goldenGateBridge: B, GGB: GF } = await import('../src/opus-bay/world/sf/landmarks/golden-gate-bridge');
+  const { ringGeometry } = await import('../src/opus-bay/play/rings');
+  const course = G.GGB_COURSE;
+  assert.equal(course.length, 8);
+  // lane L's frame: s along the deck, c across (+ = the bay side)
+  const local = (p: { x: number; z: number }) => {
+    const dx = p.x - B.x, dz = p.z - B.z;
+    return { s: dx * Math.cos(B.yaw) - dz * Math.sin(B.yaw), c: dx * Math.sin(B.yaw) + dz * Math.cos(B.yaw) };
+  };
+  assert.ok(dist(G.GGB_MID, B) < 0.2, 'the middle is the bridge frame origin');
+  await cityAround([{ x: B.x, z: B.z }, course[0], course[4]], 140);
+  try {
+    const tall = [...siteContext.landmarkTallStructures(l => (typeof l.base === 'number' ? l.base : T.heightAt(l.x, l.z))), ...heroTall(), ...bayBridgeTall()];
+    const world = terrainGlideWorld(tall);
+    let len = 0;
+    course.forEach((r, i) => {
+      assert.ok(T.inWorld(r.x, r.z), `ring ${i + 1}: in the model`);
+      const floor = Math.max(world.heightAt(r.x, r.z), world.roofAt(r.x, r.z, GLIDE.floorR + flight.RING_R));
+      assert.ok(r.floor >= floor - 1e-6, `ring ${i + 1}: floor ${r.floor} under the glide's ${floor.toFixed(1)}`);
+      assert.ok(flight.ringY(r.floor, -1e9) >= floor + GLIDE.floorClear + 2);
+      assert.ok(flight.ringY(r.floor, 1e9) <= GLIDE.ceiling);
+      assert.ok(dist(r, G.GGB_MID) < G.GGB_NEAR - 60, `ring ${i + 1} well inside the start radius`);
+      if (i) {
+        const d = dist(r, course[i - 1]);
+        assert.ok(d >= 40 && d <= 120, `ring ${i}→${i + 1}: ${d.toFixed(0)} u`);
+        len += d;
+      }
+    });
+    const seconds = len / GLIDE.cruise;
+    assert.ok(seconds > 30 && seconds < 60, `≈ ${seconds.toFixed(0)} s at cruise`);
+  } finally { T.setCityTerrain(null); }
+  // round the towers: each one passed on both sides, none flown into (the tower legs stand ≈ 3 u off the axis)
+  const loc = course.map(local);
+  for (const sT of [-GF.TOWER, GF.TOWER]) {
+    assert.ok(loc.some(p => Math.abs(p.s - sT) < 12 && p.c > 10), `a ring abeam the tower at s ${sT} on the bay side`);
+    assert.ok(loc.some(p => Math.abs(p.s - sT) < 12 && p.c < -10), `… and on the ocean side`);
+    assert.ok(loc.every(p => Math.hypot(p.s - sT, p.c) > 12));
+  }
+  // over the cables three times: legs from one side to the other
+  const crossings = loc.slice(1).filter((p, i) => Math.sign(p.c) !== Math.sign(loc[i].c)).length;
+  assert.ok(crossings >= 3, `${crossings} crossings`);
+  for (const line of Object.values(G.GGB_LINES)) assert.ok([...line.zh].length <= 45, line.zh);
+  assert.equal(flight.flightName('ggb'), G.GGB_NAME);
+  assert.equal(flight.flightName('coit'), flight.FIRST_FLIGHT_NAME);
+  // the rings drawn without their coins: the torus is the first part of the geometry
+  const geo = ringGeometry();
+  assert.ok(geo.userData.ringOnly > 0 && geo.userData.ringOnly < geo.getAttribute('position').count);
+  geo.dispose();
+});
+
+test('W5-A9 Golden Gate rings run: BAYBAY\'s invite on foot, gliding by the bridge starts it from the nearer end (once a visit), no coins in the rings, the medal, the facts on the way', async () => {
+  const G = await import('../src/opus-bay/play/ggbRings');
+  const zones = await import('../src/opus-bay/play/zones');
+  const flush = async () => { for (let i = 0; i < 6; i++) await new Promise(r => setImmediate(r)); };
+  playing();
+  stubBody();
+  game.set({ worldMode: 'city' });
+  moveApi.setGlideUnlocked(true);
+  kit.__resetKit();
+  const written: Record<string, number> = {};
+  kit.__setBestWriter((k, v) => { written[k] = v; });
+  const { events, off: offEv } = record();
+  const off = zones.initZones();
+  const g = runtime.glide;
+  try {
+    // on foot by the bridge, BAYBAY at hand: her invite
+    const foot = { x: G.GGB_MID.x + 120, z: G.GGB_MID.z + 60 };
+    runtime.player.x = foot.x; runtime.player.z = foot.z;
+    runtime.guide.x = foot.x + 2; runtime.guide.z = foot.z;
+    flow.set({ bubble: null });
+    stepFrameSystems(0.3, 0);
+    assert.deepEqual(flow.get().bubble?.text, G.GGB_LINES.invite);
+    assert.equal(flight.flightState(), null, 'on foot nothing starts');
+    flow.set({ bubble: null });
+    // gliding in from the ocean side of the south tower: the course starts, the last ring first
+    const last = G.GGB_COURSE[7];
+    runtime.move.mode = 'glide';
+    g.active = true;
+    g.x = last.x - 40; g.z = last.z + 30; g.y = 30;
+    runtime.player.x = g.x; runtime.player.z = g.z;
+    assert.ok(dist(g, G.GGB_MID) < G.GGB_NEAR);
+    stepFrameSystems(0.3, 0);
+    await flush();
+    const s = flight.flightState()!;
+    assert.ok(s, 'the course started');
+    assert.equal(s.course, 'ggb');
+    assert.equal(s.phase, 'flying');
+    assert.equal(kit.currentActivity()?.spec.id, G.GGB_ID);
+    assert.deepEqual([s.rings[0].x, s.rings[0].z], [last.x, last.z], 'from the nearer end');
+    assert.ok(slots.openOverlays().some(o => o.id === flight.CHIP_OVERLAY));
+    // all eight: BAYBAY's tower fact at the third, the colour at the fifth
+    const said: string[] = [];
+    s.rings.forEach((r, i) => {
+      g.x = r.x + 2; g.z = r.z; g.y = r.y;
+      flow.set({ bubble: null });
+      flight.step(1 / 30);
+      if (flow.get().bubble) said.push(`${i + 1}:${flow.get().bubble!.text.zh}`);
+    });
+    assert.ok(said.includes(`3:${G.GGB_LINES.tower.zh}`) && said.includes(`5:${G.GGB_LINES.colour.zh}`), said.join(' | '));
+    assert.equal(flight.flightState(), null);
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, G.GGB_ID);
+    assert.equal(card.tier, 3);
+    assert.deepEqual(card.detail, { zh: '穿过 8 / 8 个金圈', en: '8 of 8 rings' });
+    const sources = events.filter(e => e.type === 'reward').map(e => (e.type === 'reward' ? e.source : ''));
+    assert.ok(!sources.some(x => x.startsWith('ring:')), 'no coins in the Golden Gate rings');
+    assert.deepEqual(sources.filter(x => x.startsWith('medal:')), [1, 2, 3].map(t => `medal:${G.GGB_ID}:${t}`));
+    assert.equal(written[G.GGB_ID], 8);
+    // still by the bridge: not again this visit (and all eight are flown)
+    stepFrameSystems(0.3, 0);
+    await flush();
+    assert.equal(flight.flightState(), null);
+  } finally { off(); offEv(); flight.skipFirstFlight(); g.active = false; runtime.move.mode = 'foot'; kit.unregisterResultOverlay(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
+});

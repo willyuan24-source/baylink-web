@@ -1,4 +1,5 @@
 import { createElement, lazy, Suspense } from 'react';
+import { glideUnlocked } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
@@ -13,6 +14,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { registerRidePad } from '../ui/rideSlots';
 import { registerOverlay } from '../ui/slots';
 import { CHIP_OVERLAY } from './chip';
+import { GGB_ID, GGB_INVITE_R, GGB_LINES, GGB_MID, GGB_NEAR } from './ggbRings';
 import { bestOf, currentActivity, saveNumber } from './kit';
 import { ensurePlaySounds2 } from './sounds2';
 import { courseFoot, courseTop, STAIR_COURSES, STEPS_PER_U } from './stairCourses';
@@ -26,6 +28,7 @@ import { courseFoot, courseTop, STAIR_COURSES, STEPS_PER_U } from './stairCourse
  *   slides.ts   the Seward Street slides (W5-A6)       stairs.ts   the stair races (W5-A8)
  *   bell.ts + BellPad.tsx   the cable-car bell riff and the lean-out photo (W5-A7), loaded with the pad on a cable car
  *   zones3.ts   part c (W5-A9), its own chunk loaded at init: the should activities' zones (marshmallow.ts: the fire rings…)
+ *   the Golden Gate rings (W5-A9, ggbRings.ts): gliding by the bridge starts them (firstFlight.ts, course 'ggb')
  */
 
 export const PREFETCH_R = 60;
@@ -199,7 +202,7 @@ export function initZones(): () => void {
   void import('./zones3').then(m => { if (!disposed) off3 = m.initZones3(); });
   offs.push(() => { disposed = true; off3?.(); });
 
-  let acc = 0;
+  let acc = 0, ggbTried = false;
   offs.push(registerFrameSystem('a-play-zones', dt => {
     if ((acc += dt) < 0.25) return;
     const step = acc;
@@ -216,6 +219,16 @@ export function initZones(): () => void {
       const foot = courseFoot(c), top = courseTop(c);
       if (nearPlayer(foot.x, foot.z, PREFETCH_R) || nearPlayer(top.x, top.z, PREFETCH_R)) zonePrefetch('stairs', () => import('./stairs'));
       if (nearPlayer(foot.x, foot.z, INVITE_R)) zoneInvite(`stairs:${c.id}`, STAIRS_INVITE_LINE);
+    }
+    // the Golden Gate rings: gliding by the bridge, not all 8 flown yet — the course, once a visit; on foot, BAYBAY's invite
+    {
+      const g = runtime.glide, todo = (bestOf(GGB_ID) ?? 0) < 8;
+      if (!nearPlayer(GGB_MID.x, GGB_MID.z, 2 * GGB_NEAR)) ggbTried = false;
+      if (g.active && todo && !ggbTried && !currentActivity() && Math.hypot(g.x - GGB_MID.x, g.z - GGB_MID.z) < GGB_NEAR) {
+        ggbTried = true;
+        void import('./firstFlight').then(m => { m.startFirstFlight({ course: 'ggb' }); });
+      }
+      if (todo && glideUnlocked() && nearPlayer(GGB_MID.x, GGB_MID.z, GGB_INVITE_R)) zoneInvite('ggb', GGB_LINES.invite);
     }
   }));
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
