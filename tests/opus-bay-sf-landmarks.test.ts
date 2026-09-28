@@ -382,3 +382,27 @@ test('W4-IL3: kit.pyramid caps the w × d rectangle (turned before the scale), t
   const s = ext(2, 2, 0);
   assert.ok(Math.abs(s.x - 1) < 1e-5 && Math.abs(s.z - 1) < 1e-5, 'a square cap is unchanged');
 });
+
+test('W4-IL7 (W4-L7): Strawberry Hill is reached on foot over both footbridges (walk decks on the bridge ways)', async () => {
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { setCityTerrain, canStand } = await import('../src/opus-bay/core/terrain');
+  const { findPath } = await import('../src/opus-bay/actors/nav');
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const sf = sfDisk();
+  const lms = landmarkWalkInputs(SF_SITES);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, -262, 1030, 160, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    // from the lake drive at each bridge's foot onto the island (beyond the south bridge's far end; the north bridge's
+    // island end, where the island path climbs), and on to the Chinese Pavilion's arrival spot
+    const heron = sfLandmark('blue-heron-lake')!, pav = landmarkToWorld(heron, (heron as unknown as { w4: { arrival: Vec2 } }).w4.arrival);
+    for (const [from, to] of [[{ x: -274.15, z: 1011.0 }, { x: -270.9, z: 1019.5 }], [{ x: -270.0, z: 1051.8 }, { x: -271.5, z: 1045.0 }], [{ x: -274.15, z: 1011.0 }, pav]]) {
+      assert.ok(canStand(from.x, from.z) && canStand(to.x, to.z), 'both ends standable');
+      const r = findPath(from, to);
+      assert.ok(r && !r.snapped, `over the bridge ${JSON.stringify(from)} → ${JSON.stringify(to)}: ${r ? `snapped at ${JSON.stringify(r.points.at(-1))}` : 'no path'}`);
+    }
+  } finally { setCityTerrain(null); }
+});
