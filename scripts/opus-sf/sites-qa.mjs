@@ -1,5 +1,5 @@
-// Wave-4 site QA (lane L, W4-L8): for every new site, 8 samples on a ring around it plus the named views (street,
-// high), each with renderer.info (calls / triangles / programs), the city's per-group breakdown, the site's own lod-0
+// Wave-4 site QA (lane L, W4-L8): for every new site (and, since the integration, any registered landmark id), 8 samples
+// on a ring around it plus the named views (street, high), each with renderer.info (calls / triangles / programs), the city's per-group breakdown, the site's own lod-0
 // state and its on-screen fraction (the projected box of its lod-0 group over the viewport), and a JPEG.
 //
 //   node scripts/opus-sf/sites-qa.mjs --out C:/Users/willy/opus-qa/w4/w4-l/qa [--port 5303] [--sites stonestown,sfsu]
@@ -21,7 +21,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, cur, i, arr) 
 const HELPERS = `window.__sq = {
   m: null,
   async mods() {
-    if (!this.m) this.m = { w4: await import('/src/opus-bay/world/sf/landmarks/w4sites.ts'), flow: await import('/src/opus-bay/game/flow.ts'), nav: await import('/src/opus-bay/actors/nav.ts'), cinema: await import('/src/opus-bay/game/cinema.ts'), terrain: await import('/src/opus-bay/core/terrain.ts') };
+    if (!this.m) this.m = { w4: await import('/src/opus-bay/world/sf/landmarks/w4sites.ts'), lm: await import('/src/opus-bay/world/sf/landmarks/index.ts'), ctx: await import('/src/opus-bay/world/sf/landmarks/context.ts'), info: await import('/src/opus-bay/data/sf/landmarks.ts'), flow: await import('/src/opus-bay/game/flow.ts'), nav: await import('/src/opus-bay/actors/nav.ts'), cinema: await import('/src/opus-bay/game/cinema.ts'), terrain: await import('/src/opus-bay/core/terrain.ts') };
     return this.m;
   },
   sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
@@ -33,10 +33,15 @@ const HELPERS = `window.__sq = {
   async sites() { const m = await this.mods(); return JSON.stringify((m.w4.W4_ALL_SITES ?? m.w4.W4_SITES).map(s => s.id)); },
   /** local → world for a site */
   w(s, x, z) { const c = Math.cos(s.yaw), n = Math.sin(s.yaw); return { x: s.x + x * c + z * n, z: s.z - x * n + z * c }; },
-  extent(s) { let r = 0; for (const p of s.exclude.poly) r = Math.max(r, Math.hypot(p.x - s.x, p.z - s.z)); return r; },
+  extent(s) { if ('r' in s.exclude) return s.exclude.r; let r = 0; for (const p of s.exclude.poly) r = Math.max(r, Math.hypot(p.x - s.x, p.z - s.z)); return Math.min(r, 60); },
+  /** a landmark's or site's base as the city placed it (the renderer's refined 'terrain' base) */
+  baseOf(s) { const q = window.__opusBay.city.streamer.opts.sites.sites.find(x => x.l.id === s.id); return q ? q.baseY : (typeof s.base === 'number' ? s.base : 0); },
   async view(id, kind, k, n) {
-    const m = await this.mods(); const s = m.w4.w4Site(id); const ob = window.__opusBay;
-    if (!s) return JSON.stringify({ error: 'unknown site ' + id });
+    const m = await this.mods(); const l = m.lm.sfLandmark(id); const ob = window.__opusBay;
+    if (!l) return JSON.stringify({ error: 'unknown site ' + id });
+    const info = m.info.sfLandmarkInfo(id);
+    // a wave-4 site's own w4 block, or a landmark's info poses (context.ts sitePhoto answers both)
+    const s = { ...l, base: this.baseOf(l), w4: l.w4 ?? { arrival: info.arrival, photo: m.ctx.sitePhoto(id), height: { u: info.height.u } } };
     const R = Math.max(30, this.extent(s) * 1.5), top = s.base + (s.w4.height ? Math.min(s.w4.height.u, 14) : 6) * 0.45;
     let p, t;
     if (kind === 'ring') { const a = s.yaw + (k / n) * Math.PI * 2; p = [s.x + Math.sin(a) * R, s.base + 12 + R * 0.12, s.z + Math.cos(a) * R]; t = [s.x, top, s.z]; }
