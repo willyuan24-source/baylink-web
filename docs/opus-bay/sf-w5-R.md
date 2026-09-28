@@ -402,3 +402,234 @@ Oct 7 20:00 PT) is met on the code side.
    lines: 今天中午到下午四点，湾上有飞行表演，去码头绿地看！ · 飞行表演正在湾上，四点结束，去码头绿地看！ · 飞机编队来啦！打开拍照，把它们拍下来吧～ ·
    飞机编队拍到啦，舰队周纪念章收好！ · 我们在旁边看就好～ · 今天的三件小事都做完啦！明天可能不一样哦～ (dynamic lines with times stay text).
 6. **Lead**: the leftover worktree metadata above; the jets' live check on Fri Oct 9 at 12:30 PT (plan §4.14).
+
+## Part c
+
+Written 2026-09-28 (PDT). Tasks: W5-R7 (the shoulds) and W5-R8 (tests, shots, report) (plan §4.13 items 7–8, §3.3 "Should").
+The mid-wave checkpoint listed no findings for lane R, so the shoulds started right away. Pushed as three commits
+(`W5-R7: San Francisco's real tides and BAYLINK's own offers…`, `W5-R7: the verified calendar and its dressings…`,
+`W5-R7 / W5-R8: the 今天 tab's new rows…`) and this report (hashes in the structured report: they were rebased on the way).
+
+### 给主人的摘要
+
+1. 万圣节（10/31）那天，彩绘女士的台阶上和 Waller 街老房子门口会摆满南瓜，晚上南瓜脸会发光；BAYBAY 会说"今天万圣节！老房子的台阶上摆满了南瓜灯～"。
+2. 游戏里有了真实潮汐（美国海洋大气局的预报，打包进游戏，不连外网）：低潮时天涯海角海里会露出两艘老沉船的发动机；涨潮时海浪风琴更响；11/24–26 等特大潮日，渡轮大厦后面的海堤会溅起浪花。
+3. "今天"页新增：今天的潮汐和海边安全提醒、今天免费的博物馆和花园（来自 BAYLINK 自己的优惠，点开就是 BAYLINK 优惠页）、这周的日历（万圣节、特大潮）、"我的周末"（把想去的活动带去 BAYLINK 排计划）和三条 BAYLINK 散步攻略。
+4. 活动卡上多了"现实中怎么去"：最近的真实电车/缆车站、步行几分钟、几分钟一班（9/28 查过 SFMTA 官网），并提醒出发前查 SFMTA / 511。
+5. 满月前后的晚上，在双峰或海洋海滩 BAYBAY 会说"今晚差不多满月"。所有日期、时间都在 9/28 查过官网；查不到 2026 日期的亡灵节先不显示。
+
+### What was built
+
+**Baked at build time, read same-site** (plan D13: no third-party call from the player's browser)
+
+- `scripts/opus-sf/export-tides.ts` → `public/opus-bay/sf/v1/tides.json`: NOAA CO-OPS predictions for station 9414290
+  San Francisco (Golden Gate), `interval=hilo`, feet above MLLW, UTC, fetched in ≤ 1-year pieces with the `application=`
+  parameter. 1,762 extremes from 2026-09-01 to 2027-11-30, 16 KB raw, **6.1 KB gzip** (`t0` + minute deltas + heights in
+  hundredths of a foot + an `HL…` string).
+- `scripts/opus-sf/export-live.ts` → `public/opus-bay/sf/v1/live.json`: the 11 San Francisco offers of plan §3.3 read from
+  the site's own `src/data` (the `export-planner-catalog.ts` pattern, read-only) — museums, parks and transit only, never a
+  shop — each with the offer's own title, conditions, source and check date, a short "who", its place in the world, the day
+  rule and hours of a standing offer (read on the organiser's page on 2026-09-28) and `href: /offers/<id>`. The export fails
+  if an offer disappears or turns into a purchase deal. 3.7 KB gzip.
+- `realsf/sameSite.ts` `fetchSfJson('tides.json' | 'live.json')`: the only fetches, `/opus-bay/sf/current.json` →
+  `/opus-bay/sf/<version>/<name>`, at idle (4 s after the feature starts).
+- `realsf/tides.ts`: `parseTides` (untrusted input), `loadTides`, `tideAt(ms)` (a half cosine between the neighbouring
+  extremes; null past the file's end), `tidesOnDay(dateKey)`, `nextTide`, `tideLoudness` (0.25 … 1; the neutral 0.7 without a
+  table), `COAST_SAFETY`, the sources.
+- `realsf/live.ts`: `parseLive`, `loadLive`, `offersOn(dateKey)` (a dated offer on its dates, a standing one on its weekdays /
+  n-th weekdays, with that day's hours; a closed weekday never applies), `standingOffers()`, `offersForPlace(placeId, dateKey)`
+  for lanes C / N.
+
+**The verified calendar and what it dresses** (DESIGN §8's carve-out: dressing and lines only, never an event card)
+
+- `realsf/calendar.ts` `CALENDAR` `{ id, title, from, to, at?, where, placeId?, xz?, note, grade, source, catalogId?, dress?,
+  line?, hidden?, later? }`: Halloween (Oct 31, `usually`, dresses `pumpkins`); Día de los Muertos **hidden** (the organiser's
+  page still shows 2025); the king tides Nov 24–26 and Dec 23–25, 2026 and Jan 21–22, 2027 (`official`, dress `king-tide`);
+  data-only rows kept with their sources for later waves (Lunar New Year Feb 6, 2027 `secondary`, the parade Feb 20, Cherry
+  Blossom Apr 10–11 / 17–18, the 1906 remembrance Apr 18 05:12 `usually`, Pride Jun 26–27). `calendarOn`, `calendarAhead`,
+  `dressingOn`, `GRADE_SAY`.
+- `realsf/dressing.ts` (a 2 Hz frame system, one group added to the city world):
+  - **Halloween pumpkins** — 33 pumpkins: on the middle step of each of the Painted Ladies' seven stoops plus a
+    jack-o'-lantern on the sidewalk at each foot (in lane L's landmark frame), and 19 along Waller St between Scott and
+    Steiner (0.45 u out from the street face of each building, standable, never the roadway), placed on the published city by
+    `scripts/opus-sf/realsf-place.mts`. The carved faces glow at night (the toy shader's night light). **1 call, 1,524
+    triangles**, own kit material `ob-realsf-pumpkins` (TOY_DYN's program key: no new program), warmed `r-pumpkins`; built on
+    the Bay date Oct 31 within 420 u.
+  - **King-tide spray** — crossed fans bursting over the seawall behind the Ferry Building at six edge points (the water found
+    at build time), CPU-animated, within 100 minutes of the day's highest tide on a king-tide day, within 400 u. **1 call, 36
+    triangles** (the Ferry gate's published allowance is 1 call and 2k), own instance of the jets' smoke material (the same
+    program), warmed `r-tide-spray`.
+  - **The Lands End wrecks** — the Lyman Stewart's engine and the Frank Buck's stern post and engine as toy shapes (no names)
+    in the surf off Mile Rock Beach, shown at a real low tide of +1 ft or less and lifted by how low it is (`wreckExposure`).
+    **1 call, 212 triangles**, own kit material, warmed `r-wrecks`, within 400 u.
+  - Lines, once a Bay day through part a's scheduler: 今天万圣节！老房子的台阶上摆满了南瓜灯～ (within 220 u of the Painted Ladies);
+    今天是特大潮，海水快漫上堤岸了，离水边远一点哦。 (at the seawall while the water is high); 低潮啦！看，老沉船的发动机露出水面了。 (within 150 u of the
+    wrecks).
+- `realsf/index.ts`: `initDressing()`; the idle fetches; **lane D's Wave Organ follows the real tide** through D's published
+  `setOrganTide(() => tideLoudness())` (dynamic import, undone on teardown); **今晚差不多满月，在这儿看月亮正好～** when the moon is
+  ≥ 96 % lit, the real sky is golden or night, within 250 u of the Twin Peaks overlook or Ocean Beach (`fullMoonNear`). DEV
+  `__opusRealSF.dressing()` and `.organWired()`.
+
+**现实中怎么去** (`realsf/transitReal.ts`, `realsf/HowToGo.tsx`)
+
+- `REAL_LINES`: N Judah, M Ocean View, the F line, the Powell–Hyde, Powell–Mason and California cable cars, each with its
+  service hours and daytime headways from its sfmta.com route page (checked 2026-09-28); the game's sightseeing loop is never
+  listed. `realStopsOf`, `loadedRealStops` (the game's loaded transit data), `nearestRealStops(point)` (the nearest stop of each
+  line within 1.2 km, real distance through `unprojectCity`, walking minutes by the catalog's own 80 m/min rule),
+  `serviceLabel` (全天 24 小时 · 白天约 10 分钟一班 / 现在不开 · 运营 6:00–24:00), `CHECK_511`.
+- `HowToGo` (lazy) under the summary of every event card with a venue in the world (`ui/EventCardBody.tsx`, city mode only):
+  up to two lines, then 出发前查 SFMTA / 511 确认 with the route pages and 511.
+
+**The 今天 tab** (`realsf/TodayTab.tsx`, `realsf/todayRows.ts`, `data/links.ts` `offerUrl`)
+
+- 今天在旧金山: today's calendar row (with its grade 通常如此 / 以官网为准); BAYLINK's offers today (缆车博物馆 · 免费 · 10:00–16:00 ·
+  所有人, the organiser's page and **BAYLINK 优惠详情** → `/offers/<id>`; an offer that belongs to an existing hand row — the Tea
+  Garden hour, the Conservatory's and the Botanical Garden's free Tuesdays — adds its link to that row instead of a second
+  row); the tides (潮汐 · 低 3:25 · 高 9:57 …, then either the Lands End wrecks at a daylight low of ≤ 1 ft still ahead with
+  带我去 天涯海角, or the Wave Organ before a high with 带我去 海浪风琴, and 海水冰冷、水流危险：别下水，别爬礁石, with NOAA, the wreck / organ
+  source and nps.gov); the standing offers with their conditions in one line (探索馆（持福利卡加证件，$5）· 旧金山现代艺术博物馆（SF 居民持福利卡）·
+  Muni（18 岁及以下））.
+- 这周: the calendar rows starting in the next 7 days (Halloween from Oct 24, the king tides from Nov 17).
+- **我的周末**: the wishlist's events on the coming weekend (today and tomorrow on a Saturday) with their days and 带我去, the saved
+  catalog places, **去 BAYLINK 排周末** (`planUrl` with the weekend day) and **我的一周** (`/my-week`).
+- **走走看 · BAYLINK 攻略**: the three guides the game did not use yet, each by its place with 带我去 — the Sunset Dunes October walk
+  (October only), Lands End and the Sutro Baths, Dolores Park and the Mission murals — shown only when the loaded catalog has
+  them (`guideTitle`).
+
+### Evidence
+
+- **Checks** on the rebased head: `npx tsc -p tsconfig.app.json --noEmit` 0 errors · `npx eslint .` 0 errors (43 old warnings
+  outside `src/opus-bay`) · the full suite `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: 1207 / 1207
+  before the first rebase, **1245 / 1245** after it (lane A's marshmallow, lane N's and F's checkpoint fixes), **1251 / 1251**
+  after lane D's 城市之声; lane V's W5-V10 / W5-V3 then landed and the final numbers are in the structured report.
+- **New tests** `tests/opus-bay-w5-calendar.test.ts` (10): the tides file (≤ 8 KB gzip, 9414290, MLLW, the `application`
+  parameter, alternating highs and lows, two predictions matched to NOAA's API, the cosine exact at the extremes and monotone
+  between, the Bay-date grouping, nothing past the end, loudness, garbage rejected); the king tides (the three official spans,
+  the spray only near the day's highest tide and never on an ordinary day, the spray points on land next to water by the Ferry
+  Building in the published city); the calendar (sources and dates, Día hidden, later rows data only, Halloween only on Oct 31,
+  这周 a week ahead, notes ≤ 40 and lines ≤ 45 zh characters, no event card); Halloween (the stoop spots recomputed from lane L's
+  landmark, every Waller St spot standable, off the road and against a wall, ≤ 1.6k triangles with glowing faces); live.json
+  (11 offers, each still a BAYLINK offer with the same title and source, a free row never a purchase deal, the day rules on
+  Oct 1 / 4 / 5 / 6 / 8 / 25 and Nov 4, the standing three, `offersForPlace`, the hand rows they join); 现实中怎么去 (six real
+  lines and never the loop, sfmta.com sources, HSB → the N, the Castro fair → the F and the M, the Ferry Building → the F,
+  nothing far from a line, the service labels); the moon line (the evening of Oct 25 yes; by day, downtown or at the new moon
+  no); the 今天 tab rendered with the real catalog (tides, offers with `/offers/…`, the standing line, 我的周末's plan link
+  `/plan?date=2026-10-03&stops=event:hardly-strictly-bluegrass-2026`, `/my-week`, the guides, Halloween a week ahead and on the
+  day, the October walk gone in November); same-site only; the wrecks (in the water off Mile Rock Beach, land within 12 u, the
+  sea surface equal to `world/sf/water.ts`, shown at the Nov 25 −1.65 ft low and hidden at that morning's king tide).
+- **Real game** (dev server 5510, headless Chrome `--force_high_performance_gpu`, every image read; QA JPEGs in
+  `docs/opus-bay/qa/w5/R/`):
+  - `?date=2026-10-31T19:30&time=night` at the Painted Ladies: `dressing()` = `{ rows: ['halloween-2026'], pumpkins: 33,
+    pumpkinTris: 1524 }`; the jack-o'-lanterns glowing at the foot of each stoop and BAYBAY 今天万圣节！老房子的台阶上摆满了南瓜灯～
+    (`r7-halloween-painted-ladies-night-desktop.jpg`); phone 390 × 844 dpr 3 (`r7-halloween-painted-ladies-night-phone.jpg`);
+    Waller St by day with the same line (`r7-halloween-waller-st-day-desktop.jpg`).
+  - `?date=2026-11-25T10:45` behind the Ferry Building: `spray: true, sprayTris: 36`, the fans bursting over the railing
+    (`r7-king-tide-spray-2026-11-25-desktop.jpg`).
+  - `?date=2026-11-25T17:40` at Mile Rock Beach (−1.65 ft): `wrecks: 1, wreckTris: 212` (`r7-lands-end-wrecks-low-tide-desktop.jpg`);
+    BAYBAY 低潮啦！看，老沉船的发动机露出水面了。 at 22 s (`r7-lands-end-wrecks-line-desktop.jpg`, taken while the shore chunks were still
+    streaming in).
+  - `?date=2026-10-25T20:00` at Ocean Beach: `fullMoonNear` true and BAYBAY 今晚差不多满月，在这儿看月亮正好～ at 14 s
+    (`r7-full-moon-line-ocean-beach-desktop.jpg`).
+  - The Wave Organ at `?date=2026-10-31T15:40` (5.84 ft, near the 15:44 high): lane D's `organTide()` read **1.0** through the
+    game's own module instance (0.7 is its default).
+  - The 今天 tab on the phone, `?date=2026-10-01T10:30` with HSB wished: the market, fire rings, light show, 缆车博物馆 · 免费 and
+    兰德尔博物馆 · 免费 with their sources and BAYLINK 优惠详情 (`r7-today-offers-phone.jpg`); the tides row (14:58 高潮 6.2 英尺：涨潮时海浪风琴唱得最响)
+    and the standing offers (`r7-today-tides-standing-phone.jpg`); 我的周末 (10月3日 周六、10月4日 周日 · HSB · 去 BAYLINK 排周末 · 我的一周)
+    and 走走看 (`r7-today-weekend-walks-phone.jpg`). Desktop on Oct 31 10:00: the Halloween Hoopla, 万圣节 · 维多利亚老房子的台阶
+    (通常如此, localnewsmatters.org), the offers (`r7-today-halloween-desktop.jpg`), the tides, the honest "no new events this week"
+    (the catalog ends Oct 31) and an empty 我的周末 with 我的一周 (`r7-today-tides-weekend-desktop.jpg`).
+  - Event cards: HSB on desktop — 现实中怎么去 · N 线 · Judah & 28th Ave · 步行约 10 分钟 · 全天 24 小时 · 白天约 10 分钟一班
+    (`r7-eventcard-howtogo-desktop.jpg`); the Castro fair on the phone — M 线 · 卡斯特罗站 · 步行约 5 分钟 and F 线复古电车 · 17th Street &
+    Castro Street · 步行约 5 分钟 (`r7-eventcard-howtogo-castro-phone.jpg`; the card's own tip also says to take Muni Metro to Castro).
+  - Calls / triangles added (read in the game, not a gate run): pumpkins +1 / +1,524 (Oct 31 only, Alamo Square – Lower Haight,
+    not downtown), spray +1 / +36 (king-tide hours only, inside the Ferry gate's allowance), wrecks +1 / +212 (low tides only,
+    Lands End). No new program: the three materials use existing program keys (TOY_DYN; the smoke's basic program). No fps
+    numbers (lane V's gate).
+- **Facts checked on the web, 2026-09-28** (each also next to its row in the code):
+  - NOAA CO-OPS station 9414290 "San Francisco CA" (https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/9414290.json);
+    predictions (https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=9414290).
+  - King tides 2026–27: November 24–26, 2026; December 23–25, 2026; January 21–22, 2027 (https://www.coastal.ca.gov/kingtides/).
+  - The wrecks: "Their engines are still visible at low tide." — the Frank H. Buck (1937) and the Lyman Stewart (1922)
+    (https://oceanservice.noaa.gov/news/oct14/shipwrecks.html); seen "as you walk the Coastal Trail between the vista point and
+    the Palace of the Legion of Honor" (https://www.parksconservancy.org/parks/lands-end); Mile Rock Beach is OSM way 195638010.
+  - The Wave Organ "is best heard at high tide" (https://en.wikipedia.org/wiki/Wave_Organ); Ocean Beach: "the water is frigid
+    and the currents hazardous" (https://www.nps.gov/goga/planyourvisit/oceanbeach.htm).
+  - Halloween decorations on Waller St from Scott to Steiner (Local News Matters, 2025-10-27,
+    https://localnewsmatters.org/2025/10/27/skeletons-fangs-lost-souls-heres-where-to-find-sfs-best-halloween-decorated-homes/).
+  - Día de los Muertos: https://www.dayofthedeadsf.org/ still shows only November 2nd, 2025 → hidden.
+  - 2027: the Chinese New Year parade on February 20, 2027 (https://www.chineseparade.com/); Lunar New Year on February 6, 2027
+    (https://www.si.edu/spotlight/lunar-year-goat, secondary); the Cherry Blossom Festival April 10–11 and 17–18, 2027
+    (https://www.sfcherryblossom.org/); SF Pride June 26–27, 2027 (https://www.sfpride.org/); the 1906 remembrance at Lotta's
+    Fountain at 5:12 am on April 18 (https://downtownsf.org/do/1906-earthquake-and-fire-anniversary-commemoration, the 2026
+    ceremony; 2027 "usually").
+  - Muni route pages (https://www.sfmta.com/routes/…): N Judah 24 hours daily, weekday 10 10 10 20 30, weekend 12 12 12 20 30
+    (the N bus between subway hours and Owl service); M Ocean View 6 a.m. – 12 a.m., weekday 10 10 10 20, weekend 15 12 10 20;
+    F Market & Wharves 7 a.m. – 12 a.m., 20 12 12 20; Powell–Hyde 7 a.m. – 11 p.m., weekday 20 10 7 20, weekend 20 9 12 20;
+    Powell–Mason 7 a.m. – 11 p.m., weekday 10 – 12 20, weekend 10 10 10 20; California 7 a.m. – 9 p.m., 20 10 10.
+  - Offer day rules: the Cable Car Museum Tue–Thu 10–4, Fri–Sun 10–5, closed Monday, free (https://www.cablecarmuseum.org/info.html);
+    the Randall Museum 10–5 Tuesday–Saturday, no admission fee (https://randallmuseum.org/faqs/); the Museo Italo Americano free on
+    Thursdays (Tue–Sat 12–4) and the first Sunday (Sun 10–2) (https://sfmuseo.org/); the Asian Art Museum free on the first
+    Sunday, Fri–Mon 10–5 (https://about.asianart.org/ticketing/); SFMOMA Sunday 10–5 (https://www.sfmoma.org/visit/); the
+    Exploratorium's hours page answered 403, so its row shows no hours.
+
+### Decisions
+
+1. **The calendar never makes an event card.** Rows dress the world and give BAYBAY a line; `catalogId` is empty for all of
+   them (the Halloween Hoopla comes from the catalog as before). Halloween's pumpkins are graded 通常 (a custom, sourced to the
+   street Local News Matters names); the date itself is fixed.
+2. **Only BAYLINK's own 11 offers**, and only what the offer or the organiser's page says: a standing offer applies on the
+   organiser's days and hours, a dated one on its dates; eligibility offers (a benefits card, an age) are one 长期福利 line with
+   their conditions, never 今天免费. An offer that matches an existing hand row adds its link there (no duplicate row).
+3. **Tides in UTC from NOAA, grouped by the Bay date**; a half cosine between extremes (the usual rule); +1 ft MLLW is the
+   practical "low enough to see the wrecks" mark (said as 低潮时, never a promise).
+4. **The king-tide spray sits behind the Ferry Building** on the water edge (1 call, 36 triangles, inside the Ferry gate's
+   published 1 call / 2k) and only near the high water.
+5. **The wrecks are toy shapes off Mile Rock Beach** (OSM), in the water, visible from the Coastal Trail. No authoritative wreck
+   coordinates were found (Overpass timed out, Nominatim has none), so the spot follows the organisers' "from the Coastal Trail
+   between the vista point and the Legion of Honor".
+6. **The Wave Organ is wired through lane D's published setter** from lane R's chunk (a dynamic import resolves to the game's
+   module instance): no edit to D's files.
+7. **现实中怎么去 on event cards only** (lane R's file); place cards are lane C's (Requests 1). Up to two lines within 1.2 km; the
+   game's own sightseeing loop is never offered as a real route.
+8. **Bigger pumpkins after the first look in the game**: at 0.13 / 0.18 u they read as orange dots; the step pumpkins are
+   0.15 u and the jack-o'-lanterns 0.26–0.28 u now.
+9. **The Sunset Dunes walk shows only in October** (its guide is month-tagged); the other two guides show all year.
+
+### Not done / known gaps
+
+- **Place cards and the map** do not show 今天免费, the tide row or 现实中怎么去 yet (lanes C / N; Requests 1–2). The 今天 tab and
+  the event cards carry them.
+- **The sky's moon disc and Karl by month** landed in lane V's W5-V10 while this part was being checked (`cef43f9`, reading
+  lane R's `moonPhase` and `karlMonthFactor`); BAYBAY's full-moon line is lane R's and works now. I have not looked at V10's
+  moon in the game myself.
+- The spray is flat crossed fans with one opacity; the wrecks are simple toy shapes. The King Philip ribs in the Ocean Beach
+  sand (very rare, below −1 ft) are not built.
+- `tides.json` ends on 2027-11-30, and `live.json` is a snapshot of today's `src/data`: both need their export script re-run
+  (Requests 6).
+- The 2027 calendar rows are data only (not shown in this build), as the plan says.
+- No live weather, Muni or AQI (plan: not this wave).
+- Process note: my four Nominatim look-ups for the wreck site carried a contact e-mail in their User-Agent header. No other
+  request did, and none will.
+
+### Requests
+
+1. **C · `ui/PlaceCard.tsx` / `ui/PoiCardBody.tsx`** (city mode): (a) 现实中怎么去 — `const HowToGo = lazy(() => import('../realsf/HowToGo'))`
+   and `<Suspense fallback={null}><HowToGo point={{ x, z }} /></Suspense>` with the card's world point; (b) a 今天免费 chip —
+   `import('../realsf/live').then(m => m.offersForPlace(placeId, bayParts().dateKey))` (`today[].offer.title / who / href`,
+   `standing[]`), linking `offerUrl(id, locale)` from `data/links.ts`; (c) on the coast cards (Ocean Beach, Lands End, Baker Beach,
+   China Beach, the Sutro Baths) a tide row from `realsf/tides.ts` `tidesOnDay(dateKey)` with `COAST_SAFETY`.
+2. **N · the map**: gold 今天免费 badges from `realsf/live.ts offersOn(dateKey)` (`offer.place.x / z`, DOM badges like the 这周 pins),
+   and the calendar's dressed days from `realsf/calendar.ts dressingOn(dateKey)` if a pin is wanted.
+3. **L · `data/sf/landmarks.ts`**: `sutro-baths` → `guideSlug: 'sf-lands-end-sutro-baths-walk-guide'`, `mission-dolores` →
+   `'sf-mission-dolores-murals-walk-guide'` (both in `/baybay-guides.json` since W5-0c; today they point at the general SF guide).
+4. **V**: (W5-V10 with the moon and Karl by month has landed.) Gate spots if wanted: Halloween at the Painted Ladies `&date=2026-10-31T19:30&at=xz:6.5,575` (+1 call, +1,524), the king-tide
+   spray `&date=2026-11-25T10:45&at=xz:131,-17` (+1 / +36 at the Ferry gate), the wrecks `&date=2026-11-25T17:40&at=xz:-738,1103`
+   (+1 / +212). Voice (H5-3), R's new fixed lines: 今天万圣节！老房子的台阶上摆满了南瓜灯～ · 今天是特大潮，海水快漫上堤岸了，离水边远一点哦。 ·
+   低潮啦！看，老沉船的发动机露出水面了。 · 今晚差不多满月，在这儿看月亮正好～.
+5. **E**: the notebook's 季节 page can list the calendar's dressed days (`CALENDAR.filter(r => r.dress)`) as seasonal moments.
+6. **Lead**: re-run `npx tsx scripts/opus-sf/export-live.ts` after any merge that changes the site's offers, and
+   `npx tsx scripts/opus-sf/export-tides.ts 2027-09-01 2028-11-30` before the file runs out (both write only
+   `public/opus-bay/sf/v1/`); live checks: Sat Oct 31 (the pumpkins, the fire-season line), Wed Nov 25 at 10:49 PST (the king
+   tide's spray) and any low tide at Lands End (the wrecks).
+7. **Site editors (via the lead)**: the 2026 Día de los Muertos date when the organisers post it (the row then unhides with its
+   date and source).
