@@ -464,8 +464,10 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   // wave 4 (the loop, the N / M): under ground only at a station's kiosk; 直接到站 lands at the destination's pole /
   // kiosk; on the surface off the kerb side of the bus / train
   const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing) : null;
-  // where a skip lands: the destination's pole / kiosk (wave 4), quay (ferry) or station (cable car, F-line)
-  const skipTo = skip ? (w4 ? w4.spot : stationOf(r, r.to) ?? null) : null;
+  // where a skip lands: the destination's pole / kiosk (wave 4), quay (ferry), a cable-car station's kerb spot beside the
+  // track (never on the rails: the station point is the track), the F-line station
+  const cableTo = skip && !w4 && rideKind(r) === 'cable-car' ? transitStation(r.to) : undefined;
+  const skipTo = skip ? (w4 ? w4.spot : cableTo ? stationBoardSpot(cableTo) : stationOf(r, r.to) ?? null) : null;
   // a long 直接到站, or one to a stop the streamer has not brought in: the city streams in under a veil first (plan §3.4)
   if (skipTo && !veiled && W4G && skipNeedsVeil(skipTo, W4G.SKIP_VEIL_OVER)) {
     const dest = w4?.station ?? r.to;
@@ -593,38 +595,46 @@ function pollTurntables(dt: number) {
   }
   if (now.join() !== turningNear.join()) { turningNear = now; invalidateInteractables(); }
   // a station near the player whose ground has come in since its prompt was placed: place it at the kerb now
-  if (data.stations.some(st => !kerbSpots.has(st.id) && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6))) invalidateInteractables();
+  if (data.stations.some(st => !kerbSpots.has(st.id) && (kerbMiss.get(st.id) ?? -Infinity) <= pollClock - KERB_RETRY && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6))) invalidateInteractables();
 }
 
 /** Where each cable-car station's prompt stands: beside the track (verify D3), once the ground there has streamed in. */
 const kerbSpots = new Map<string, { x: number; z: number }>();
+/**
+ * When a search last found no spot (poll clock, s): it is tried again after KERB_RETRY (the ground round a stop can still
+ * be settling when its chunk is resident: in the game Hyde & Beach found none on its first look and a spot 3 u off the
+ * track a little later; a cached miss had left the prompt, and a 直接到站 landing, on the rails).
+ */
+const kerbMiss = new Map<string, number>();
+const KERB_RETRY = 5;
 
 /**
  * (verify D3) A cable-car station's prompt (and so where the player walks to and waits) stands beside the track, not on
  * it: a car cannot pull in to a stop someone stands on (the Powell & Market prompt was 2.5 u from the turntable centre,
  * and a car stood short of it for good). The nearest standable spot 2.6–5.5 u round the station that is ≥ 2.45 u from
  * every track stopping there (a passing car's body reaches 2.05 u); at a terminus 5–7 u round the turntable, clear of the
- * turning car. None (or the ground not in yet): the station point itself.
+ * turning car. None (or the ground not in yet): the station point itself, and another look KERB_RETRY s later.
  */
 export function stationBoardSpot(st: TransitStation): { x: number; z: number } {
   const hit = kerbSpots.get(st.id);
   if (hit) return hit;
-  const data = transitData();
-  if (!data || groundPending(st.x, st.z, 6)) return { x: st.x, z: st.z };
+  const data = transitData(), miss = kerbMiss.get(st.id);
+  if (!data || groundPending(st.x, st.z, 6) || (miss !== undefined && pollClock - miss < KERB_RETRY)) return { x: st.x, z: st.z };
   const lines = st.lines.map(e => cableLine(e.line)).filter((l): l is CableLine => !!l);
   const tt = data.turntables.find(t => Math.hypot(t.x - st.x, t.z - st.z) < 6);
   const bx = tt ? tt.x : st.x, bz = tt ? tt.z : st.z;
-  let spot = { x: st.x, z: st.z };
-  search: for (const r of tt ? [5.2, 6, 7] : [2.6, 3.2, 3.8, 4.5, 5.5]) {
+  for (const r of tt ? [5.2, 6, 7] : [2.6, 3.2, 3.8, 4.5, 5.5]) {
     for (let a = 0; a < 16; a++) {
       const x = bx + Math.cos((a * Math.PI) / 8) * r, z = bz + Math.sin((a * Math.PI) / 8) * r;
       if (!canStand(x, z, 0.45) || lines.some(l => nearestAt(l, x, z).d < KERB_OFF)) continue;
-      spot = { x, z };
-      break search;
+      const spot = { x, z };
+      kerbSpots.set(st.id, spot);
+      kerbMiss.delete(st.id);
+      return spot;
     }
   }
-  kerbSpots.set(st.id, spot);
-  return spot;
+  kerbMiss.set(st.id, pollClock);
+  return { x: st.x, z: st.z };
 }
 /** a station prompt stands at least this far from the track (u): a passing car's body reaches 2.05 u */
 const KERB_OFF = 2.45;
@@ -827,8 +837,9 @@ export function initTransit(): () => void {
       nextStop: requestNextStop, subway: subwayView, stationRides, nextArrival, stationPoint: (id: string) => W4G?.stationPoint(id) ?? null,
       finish: finishRide, hopOff: hopOffRide, cancel: cancelRide,
       me: () => ({ x: +runtime.player.x.toFixed(1), z: +runtime.player.z.toFixed(1), move: game.get().move, ride: flow.get().ride, label: flow.get().ride ? rideLabel(flow.get().ride!) : null }),
-      /** QA: stand at a station (x, z) */
+      /** QA: stand at a station (x, z); where its prompt stands (beside the track once the ground there is in) */
       station: (id: string) => transitStation(id),
+      kerb: (id: string, fresh = false) => { const st = transitStation(id); if (fresh) kerbSpots.delete(id); return st ? stationBoardSpot(st) : null; },
       stopPos: (line: string, station: string, dir: 1 | -1) => { const l = cableLine(line); const st = l?.stops.find(s => s.station === station); return st ? stopPos(st, dir) : null; },
     };
     const put = () => { if (w.__opusBay && w.__opusBay.transit !== api) w.__opusBay.transit = api; else if (!w.__opusBay) w.__opusBay = { transit: api }; };
