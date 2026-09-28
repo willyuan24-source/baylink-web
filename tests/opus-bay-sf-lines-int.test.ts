@@ -379,3 +379,17 @@ test('an N ride out of the subway: 80 u before the Duboce portal the held rider 
     assert.ok(surfaced, 'then out on the surface');
   } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title' }); }
 });
+
+test('nextArrival answers for a cable-car station too (lane P\'s station card)', async () => {
+  const { setActiveCableSystem } = await import('../src/opus-bay/world/transitLine');
+  T.setTransitData(DATA);
+  const sys = new CableSystem(DATA);
+  setActiveCableSystem(sys);
+  try {
+    const lr = await transit.loadLineRides();
+    const st = DATA.stations.find(s => s.lines.length >= 2)!;
+    const eta = lr.nextArrival(st.id);
+    assert.ok(eta !== null && eta >= 0 && eta < 600, `${st.id}: ${eta}`);
+    assert.equal(lr.nextArrival('no-such-station'), null);
+  } finally { setActiveCableSystem(null); }
+});

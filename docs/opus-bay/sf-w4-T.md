@@ -318,3 +318,135 @@ at integration; `PORTAL_HOOD_SHIFT` + `portalIdOf` live in `stationNames.ts` (pu
 **649 / 649** on the pushed tree (`515fb30`, after rebasing) · the lane-T scripts type-check under a temporary file-only
 config (only the unrelated `src/i18n` declaration errors) · sf-bus 21 tests, sf-metro 21 tests (8 new review tests, 4
 each; the `515fb30` message says "9 … sf-bus 5": it is 4) · no Higgsfield credits.
+
+## Integration part a
+
+Written 2026-09-27 by lane T's integration implementer (worktree `wt/i4-t` → `opus-bay`). Commits: `b093e8e`
+(publish + data), `b88d4f9` (wiring), `b41e95c` (routed wave-3 requests), `fd57e45` (budget: one fleet for every city
+line), `3b3235c` (lane C's pacer / goals, the veil, H, short rows, the full build), `c182311` (walker obstacles, shots),
+`89bb4af` (honest ride times, boxes held by bodies), `8f40d61` (portal hold, soft prefetch) and the one carrying this
+section (`nextArrival` for cable stations).
+
+### 给主人的摘要
+
+**进度（回答"现在进度如何"）：T 组（公交 / 地铁线路）的"接入"第 a 部分已经全部做完、推送上线；下面是结果。**
+
+1. **观光巴士和 N / M 两条地铁在城市模式里真的能坐了。** 走到站牌或地铁口按 E，选目的地（带 ★ 的是景点站，旁边写着大概几分钟）。巴士坐在上层露天前排，BAYBAY 每到一站讲一句；地铁在地下时换成"隧道"界面，快出隧道口时先把地面上的城市加载好再钻出来（实测出洞那一刻不卡）；很远的"直接到站"会先暗一下屏、等目的地加载好再亮起来。
+2. **巴士会和叮当车、F 线老电车互相让路。** 在共用的路段（海德街终点、加州街、卡斯特罗、Market 街）谁先进路口谁先走，另一辆在路口外等。连续模拟一小时：0 次撞到一起。顺便修好了 F 线在卡斯特罗掉头环线上可能永久堵死的老毛病。
+3. **性能达标，还变快了。** 所有线路的车（叮当车、F 线、巴士、轻轨）合成 2 次绘制 + 1 次影子，只有离镜头 60 米内的车才投影子；唐人街从 40.7 万个三角形降到 38.6 万（原来超标，现在达标），11 个测点全部通过，着色器数量不增加；游戏主包反而比开工前小（298.7 KB）。
+4. **别的组转来的 7 条请求都做完了**（英雄区 F 线下车先刹车、新的模型加载器、城里行人绕开 6 位居民、渡轮下船兜底位置、方向信息、影子只在近处、预算确认），还给 P 组的站牌卡片加上了叮当车站的"下一班几分钟"。
+5. **还要别的组帮忙的**：坐轻轨时镜头离车太近，会"钻进"车厢（镜头归 G 组）；巴士上层在窄街会穿过行道树；巴士在海德街终点偶尔要等叮当车掉头，最长约 40 秒。手机 4 倍降速的帧率需要 V 组在空闲机器上正式测一次。所有测试通过，Higgsfield 花费 0。
+
+### What was wired (files, API)
+
+| file | change |
+|---|---|
+| `public/opus-bay/sf/v1/transit.json` | the wave-2 lines unchanged + `sf-loop`, `n-judah`, `m-ocean-view` + `props` (each stop's placed pole / kiosk); byte-identical to the sidecar's output; `transit-w4.json` kept with the same lines (other lanes' tests read it) |
+| `scripts/opus-sf/transit-sidecar.ts`, `scripts/opus-sf/lib/transit.ts` | `--publish` writes the props, re-runs are idempotent; `buildW4Lines` is shared by the sidecar and the full build (`buildTransit` appends the three lines and the published props: a full build writes the same lines, props and source — checked) |
+| `data/transit.ts` | `TransitLineJson` widened (kind, short, loop, tunnels, speeds, major, attractions, props); `buildTransitW4` / `transitW4` / `setTransitW4` / `boardAt`; the fleet registry `setActiveLineFleet` / `activeLineFleet` (type-only import); `w4Kind`; `rideSystemFor` routes the three ids to the fleet's buses / trains |
+| `world/transitLayer.ts` | hosts `LineFleet` (+ cable cars and F-line cars as its extra kinds), the interlock boxes, portal readiness (streamer `whenReady`), the ride prefetch (lane V's soft `prefetch`, 200 u ahead), road vehicles, surface Metro runs as transit streets, walker obstacles; DEV `__opusBay.transitLayer` |
+| `world/sf/lineFleet.ts` | `ExtraVehicleKind` / `drawExtra`; per vehicle a near slot (casts, ≤ 60 u, `FLEET_DEPTH`), a mid slot (≤ 110 u) and a far slot (≤ 300 u); `roadAhead` for buses; `roadVehicles`, `surfaceRuns`, `obstacles`; `busInterlocks({ body })`; `dir` + the stop's attraction on the rider's events, remote sounds located (`emitAt`); a hidden rider train publishes no stale platform |
+| `world/sf/lineInterlocks.ts` (new) | `interlockLines` (cable lines, the F-line's whole cycle, with their bodies), `boxBlocked` (a body + 14 u approach while moving), `busAheadOfFCar` (the box edge a bus holds) |
+| `world/lineTrack.ts` | `bodySpans` (where two vehicle bodies can touch: separating axes over both tracks) |
+| `world/busSystem.ts` | `roadAhead` (buses keep behind toy cars / the player's vehicle in their lane) |
+| `world/transitLine.ts` | cable cars never claim a span through a box a bus is in (`free`) and stop short of it while running (`boxAhead`) |
+| `world/flineSystem.ts`, `world/flineLayer.ts` | `roadAhead` (stop at a bus-held box edge), `firstInLine` (block queue fix), `setDrawer` (cars drawn by the fleet), `FLINE_LIVERIES` |
+| `world/rails.ts` | straight steps laid as one run (≤ 14 u), plates every third step: Chinatown's rails 10k → 4.7k triangles |
+| `world/streetcar.ts`, `game/ride.ts` | the hero F-line ride carries `line: 'streetcar'` + `hero` (`isLineRide` excludes it), the hero car honours `requestPlatformStop('streetcar')`; a Metro rider is held at the boarding kiosk under the overlay and moved to the exit portal 80 u before the train emerges (`lineRideUnderground()`) |
+| `game/lineRides.ts` (new, lazy) | boarding dialogue (`boardLine`, busDriver / metroOperator lines, pre-filled `to`), `rideLine`, `lineLabel`, station interactables at the props (上观光巴士 / 坐 N 线 / 坐地铁), `stationRides`, `nextArrival` (loop, Metro and now cable stations), `requestNextStop`, `subwayView`, `leaveSpot`, `skipCounts`, `veiledSkip` (> 250 u), `stopVoiceIds`; lane G's `registerTripLines('t-w4')` + `registerLineEstimator`; lane C's `sayTunnel`, `offerLine` (hop-off tip), `noteLoopRide` |
+| `game/transit.ts` | stubs other lanes call (`boardLine`, `stationRides`, `nextArrival`, `requestNextStop`, `subwayView`, `alightHere`, `setLineMapOpener`, `loadLineRides`, `lineRides`); `RideLabel` icons 'bus' / 'metro' + `canHopOff` / `hopOffNote` / `nextStop`; no hop-off in a tunnel, under ground only at a kiosk; 直接到站 counts a real leg; H on the bus = the stop bell; the ferry quay fallback |
+| `ui/LineRideLayer.tsx` (new, lazy), `ui/SubwayOverlay.tsx`, `ui/transit-ui.css`, `ui/Overlay.tsx` (3 lines in lane G's file) | the subway overlay during a Metro ride (BAYBAY's line, 直接到站); the RideBanner steps aside while it is up (`:has()` rule) |
+| `audio/audio.ts`, `audio/lines.ts`, `audio/logic.ts`, `audio/cityHooks.ts`, `audio/voice.ts` | bus / LRV one-shots (panned: arrive, doors, stop bell, gong, horn), `LineLoops` from the tick, the next stops' tour clips fetched ahead, `TOUR_VOICE_CHECK` muted |
+| `world/life.ts`, `world/sf/cityLife.ts` | `heroGltfLoader()`; city walkers step round the six residents within 100 u |
+| tests | `tests/opus-bay-sf-lines-int.test.ts` (new, 12 tests), `tests/opus-bay-sf-hopoff.test.ts` (the hero case now expects the braked hop-off, on purpose: the requested behaviour) |
+
+### Evidence
+
+- **Checks** before each push: `tsc` 0, `npx eslint .` 0 errors (warnings none in lane-T files), the full opus-bay
+  suite green (820 / 820 on `8f40d61`; **821 / 821** on this section's commit, rebased on `39993fb`). Two wall-clock tests of other lanes
+  (audio "P1 sliced jobs", sf-move2 "E2-5") failed once each under machine load and passed alone.
+- **Perf gate** (lane V's `w4-perf.mjs`, desktop RTX, 1440 × 900, quality high, golden, 11 spots; calls / triangles
+  incl. shadows): ferry-gate 70 / 240k · chinatown 124 / 386k · twin-peaks 119 / 378k · ocean-beach 45 / 105k ·
+  ggb-south 65 / 121k · mission 81 / 337k · union-square 82 / 286k · civic-center 88 / 303k · music-concourse 89 / 251k
+  · stonestown-sfsu 74 / 194k · haight-usf 90 / 305k: **all pass**, programs 48 → 48, 0 frames over 100 ms, p95 ≤ 16.9
+  ms. Before the fleet batching / rail runs Chinatown read 130 / 407k (**fail: tris**).
+- **Shared streets** (node, 60 simulated minutes, 3 buses + the cable cars + the F-line cars, the game's own glue incl.
+  the F cars' `roadAhead`): **0 overlapping frames**, 0 block violations, ≈ 3.8 laps a bus (≈ 15.7 min a lap); longest
+  box waits: Powell–Hyde terminus 39 s, the F-line's shared stretches ≤ 27 s, California 1.3 s (≈ 50–60 s before boxes
+  were held by bodies); longest F car stand 24 s, cable car 22 s. The old F-line queue jammed the Castro loop for good
+  after ≈ 37 min (a 1,452 s stand) — pinned by the test. (Without the F cars' `roadAhead` the same sim shows 14
+  overlapping frames: the glue matters.)
+- **Ride times** (node, six legs × 3): within ± 10 % of the shown estimate, except legs that meet a cable car at the
+  Hyde terminus / California or an F car at the Castro hairpin (up to + 55 s).
+- **Portal cuts** (N through the Duboce and Sunset portals, desktop 1×): no frame over 100 ms at either emergence after
+  the exit-portal hold. Phone profile (390 × 844, mid, 4× CPU) only indicative: the machine sat at 87 % CPU with many
+  other Chromes (bus ride 24 fps, N ride 18 fps) — lane V / the lead should run the gate quietly.
+- **Bundle** (`vite build`): GameRoot 791.35 kB / **298.68 kB gzip** (origin `786c93e`: 310.82); lazy chunks
+  `lineRides` 6.70, `LineRideLayer` 2.45 + css 1.56, audio `lines` 1.87, `transitLayer` 47.18 kB gzip.
+- **Shots** (all read; `docs/opus-bay/qa/w4/T/`): `ux-w4-bus-deck.jpg` (1440 × 900: the open top deck along the Marina
+  lagoon, the banner "Sightseeing Loop · next Palace of Fine Arts" with Stop at the next / Hop off here / Skip to stop,
+  BAYBAY: the rotunda is from the 1915 world's fair), `i-subway-overlay-phone.jpg` (390 × 844 @3×: the M under Market
+  St, the stop strip, "Next Civic Center · ~6s", the 1980 fact, "No getting off inside the tunnel", Skip to stop),
+  `i-n-surfacing-duboce.jpg` (the N out of the Duboce portal toward Carl & Cole; shows the LRV camera clipping into the
+  lead car — gap below), `i-m-19th-winston.jpg` (the M on 19th Ave, "Goal complete: Take the Metro to the sea or to SF
+  State"; the same camera clip), `i-night-bus.jpg` (the bus near Pier 39 at night: lit windows, deck bulbs, tail
+  lamps), `i-kiosk-embarcadero.jpg` (the Embarcadero kiosk, "Ride Muni Metro · Embarcadero", the Ferry Building
+  behind), `i-skip-veil.jpg` (a long 直接到站 under the veil: "Next stop: Chinatown · Union Square …").
+
+### Decisions
+
+- **Stops keep their x, z; you board at the prop.** Lane C pins the stop points, so the placed pole / kiosk (`props`)
+  is the boarding point (interactables, planner stops, where an underground ride ends); the stop point stays the
+  track-side reference. No cross-lane re-pin.
+- **The wave-4 game code is one lazy chunk** (`game/lineRides.ts`, loaded by `initTransit` in city mode); the main
+  graph keeps thin stubs, and GameRoot did not grow.
+- **The subway overlay mounts from `ui/Overlay.tsx`** (3 lines in lane G's file) and hides the RideBanner with a CSS
+  `:has()` rule in lane T's stylesheet while up (its card carries the line, next stop and 直接到站).
+- **Every city line vehicle in the fleet's two batched meshes** (the plan's optional step): cable cars and F-line cars
+  are extra kinds with near / mid / far slots; the old InstancedMeshes remain only for a transit file without the
+  wave-4 lines.
+- **Interlock boxes from bodies, both ways**: a box is where a bus body and a cable / F car body can touch (centre-line
+  distance missed the bus's Castro hairpin next to the F terminal loop); a box is held by a vehicle's body (plus its
+  stopping distance while moving), not a cable car's whole block; cable and F cars stop at the edge of a part a bus is
+  in. `firstInLine` was needed because those stops lined F cars up at the loop.
+- **Honest times**: the boarding stop's dwell is part of the shown ride time; 直接到站 farther than 250 u waits under a
+  veil until the destination is ready (whenReady, 8 s cap).
+- **Out of the subway**: the held rider moves to the exit portal 80 u early so the portal's surface streams at the
+  player's own priority under the overlay (a soft prefetch alone dropped its focus before the cut).
+- **H on the sightseeing bus is the stop bell** (下一站下车); on the LRV it stays the gong.
+- **Narration goes through lane C's pacer** (tunnel line, hop-off tip); T keeps only the bus's boarding bubble.
+- **Walker obstacles are soft** ('static' for poles / kiosks / portal hoods, 'traffic' for vehicles): no chunk rebuild,
+  nothing new in the walk rasters.
+
+### Known gaps
+
+- **LRV ride camera** (lane G): the rider stands at the lead car's front; the ride camera sits inside the train and
+  dithers through its body (`i-n-surfacing-duboce.jpg`, `i-m-19th-winston.jpg`).
+- **Bus upper deck under street trees**: on narrow streets (Castro St) the camera and deck pass through canopies.
+- **Hyde St terminus**: the loop's Wharf stop sits on the Powell–Hyde turnaround, so a bus there can wait for a car on
+  the turntable (≤ 39 s an hour); estimates exclude box waits. Moving the stop means a loop re-bake (lane C pins it).
+- The loop's blend into Jefferson St in the hero west end was checked from above only.
+- The 直接到站 veil is plain text (no art).
+- `transit-w4.json` duplicates the three lines; `manifest.json` still says `transitLines: 4` (informational).
+- Phone 4× fps not measured on a quiet machine (above).
+
+### Not done (part b)
+
+- The phone gate on real rides (bus deck, N at Duboce, M at West Portal) on a quiet machine
+  (`__opusBay.transit.rideLine(line, from, to)` / `me()` board from a script).
+- In-game shots that wait for lane G's LRV camera (N at the Sunset Tunnel west portal, M emerging at West Portal) and a
+  clean loop-pole close-up.
+- A real dark tube for the Sunset Tunnel instead of the overlay (plan R5: later polish).
+
+### Requests
+
+- **Lane G**: the LRV ride camera (a side chase outside the train or a rear-window spot); canopy fade over the bus deck.
+  `lineRideUnderground()` (game/ride.ts) tells a camera that the rider is under the overlay.
+- **Lane V**: the phone 4× gate on real rides (above); a listening pass for `audio/lines.ts` (air brake, doors, stop
+  bell, gong, horn, hum / whine / tunnel rumble) — generated SFX are your call; the late `w4-lines` warm-up and batched
+  caster depth were checked flat (48 programs).
+- **Lane C**: none open.
+- **Lane P**: `nextArrival` now answers for cable-car stations (your optional request).
+- **Lead**: drop `transit-w4.json` once no test reads it; `manifest.json` `transitLines` 4 → 7 at the next data touch.
+
+Relayed owner message during this part — "现在进度如何" — answered by the first line of the summary above.

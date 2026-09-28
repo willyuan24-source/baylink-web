@@ -5,7 +5,7 @@ import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
-import { type TransitW4, activeLineFleet, boardAt, transitW4, w4Kind } from '../data/transit';
+import { type TransitW4, activeCableSystem, activeLineFleet, boardAt, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
 import type { TransitLine, TransitTunnel } from '../world/sf/format';
 import { BUS, type BusRideStatus } from '../world/busSystem';
 import { LRV, type RailRideStatus, stopPos } from '../world/lightRail';
@@ -148,6 +148,21 @@ export function stationRides(station: string): StationRide[] {
  * not a wave-4 station). The loop runs one way (dir ignored).
  */
 export function nextArrival(station: string, line?: string, dir?: 1 | -1): number | null {
+  // a cable-car station (lane P's station card, optional request): the soonest car of its lines either way
+  const cable = activeCableSystem(), data = transitData();
+  if (cable && data?.stations.some(st => st.id === station)) {
+    let best = Infinity;
+    for (const l of data.lines) {
+      if (line && l.id !== line) continue;
+      const stop = l.stops.find(st => st.station === station);
+      if (!stop) continue;
+      for (const c of cable.cars) {
+        if (c.line !== l) continue;
+        for (const d of dir ? [dir] : ([1, -1] as const)) best = Math.min(best, cable.eta(c, cableStopPos(stop, d), d));
+      }
+    }
+    return Number.isFinite(best) ? best : null;
+  }
   const f = activeLineFleet();
   if (!f) return null;
   let best = Infinity;
