@@ -150,8 +150,8 @@ export const CASTRO_CORNER: CornerDef = {
   },
   crowds: [{ key: 'photo', when: 'day', spots: CASTRO_PHOTO, face: { x: 16.63, z: 9.78 }, lane: { ax: 23.0, az: 7.25, bx: 15.36, bz: 16.51 } }],
   soft: CASTRO_POLES.map(([along, across]) => ({ ...S(along, across), r: 0.12 })),
-  // (lane E has no cache on this corner yet: Requests)
-  cache: null,
+  // lane E's cache on this corner (economy/coinSpots.ts, appended at lane L's request)
+  cache: 'castro',
 };
 
 export const harveyMilkPlaza: W4Site = {

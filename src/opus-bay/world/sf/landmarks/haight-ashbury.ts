@@ -126,8 +126,8 @@ export const HAIGHT_CORNER: CornerDef = {
   },
   crowds: [{ key: 'listeners', when: 'afternoon', spots: LISTENERS_H, face: BUSKER_H, lane: { ax: 0, az: -12, bx: 0, bz: 2 } }],
   soft: [{ when: 'afternoon', x: BUSKER_H.x, z: BUSKER_H.z, r: 0.3, kind: 'person' }, { when: 'afternoon', x: 1.9, z: BUSKER_H.z - 0.8, r: 0.3 }],
-  // (lane E has no cache on this corner yet: Requests)
-  cache: null,
+  // lane E's cache on this corner (economy/coinSpots.ts, appended at lane L's request)
+  cache: 'haight',
   plaza: LISTENERS_H.map(p => standSpot(p).poly),
 };
 
