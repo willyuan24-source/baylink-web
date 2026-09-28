@@ -3,12 +3,12 @@ import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
-import { TUNNELS, W4_LINES, type W4LineId, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
+import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
 import { type TransitW4, activeLineFleet, boardAt, transitW4, w4Kind } from '../data/transit';
 import type { TransitLine, TransitTunnel } from '../world/sf/format';
-import type { BusRideStatus } from '../world/busSystem';
-import { type RailRideStatus, stopPos } from '../world/lightRail';
+import { BUS, type BusRideStatus } from '../world/busSystem';
+import { LRV, type RailRideStatus, stopPos } from '../world/lightRail';
 import { noteLoopRide, sayTunnel } from './cityContent';
 import { hookFill, npcLine } from './content';
 import { getLocale } from '../../i18n/locale';
@@ -60,11 +60,17 @@ export function lite(line: TransitLine): LineLite {
   };
 }
 
-/** Seconds of a ride on `line` from → to (the running systems' own estimate; to = from on the loop: a whole lap). */
+/**
+ * Seconds of a ride on `line` from → to, from stepping aboard (the running systems' own estimate plus the dwell at the
+ * boarding stop, which the rider sits through: 8 s on the bus, 3 / 4 s on the Metro under / above ground; to = from on
+ * the loop: a whole lap). The rows, the planner and the banner all say this.
+ */
 export function lineRideSeconds(line: string, from: string, to: string): number {
   const f = activeLineFleet();
   if (!f) return 0;
-  return w4Kind(line) === 'bus' ? f.bus.rideSeconds(from, to) : f.rail.rideSeconds(line, from, to);
+  if (w4Kind(line) === 'bus') return f.bus.rideSeconds(from, to) + BUS.dwell;
+  const s = f.rail.rideSeconds(line, from, to);
+  return s > 0 ? s + (metroStation(from)?.underground ? LRV.dwellUnderground : LRV.dwell) : 0;
 }
 
 /** A wave-4 station's name and where you board there (its placed pole / kiosk), or null. */

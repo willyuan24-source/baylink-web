@@ -35,17 +35,31 @@ export function interlockLines(data: Pick<TransitData, 'lines'>, fline: FLineHos
 /** Where arc `u` lies ahead of `a` on the F-line's cycle (0 … length). */
 const aheadOn = (line: Pick<FLine, 'length'>, a: number, u: number) => ((((u - a) % line.length) + line.length) % line.length);
 
-/** Is a vehicle of `line` in its part [b0, b1] of an interlock box? */
-export function boxBlocked(cable: Pick<CableSystem, 'cars' | 'span'>, fline: FLineHost | null, line: string, b0: number, b1: number): boolean {
+/** A moving car closer than this to a box part (u) could not stop short of it any more: it counts as in it. */
+export const BOX_APPROACH = 14;
+
+/**
+ * Is a vehicle of `line` in (or about to enter) its part [b0, b1] of an interlock box? A car's body, widened ahead by
+ * BOX_APPROACH while it moves (it could not stop short: the braking distance from full cable / streetcar speed). Cars
+ * further out stop at the part's edge by themselves while a bus is in the box (CableSystem boxAhead, flineSystem
+ * roadAhead), so a cable car's block authority over a long block no longer holds the bus back for the whole block (it
+ * did: ≈ 60 s at California & Drumm).
+ */
+export function boxBlocked(cable: Pick<CableSystem, 'cars'>, fline: FLineHost | null, line: string, b0: number, b1: number): boolean {
   if (line === 'f-line') {
     if (!fline) return false;
-    // a car's body [u − half, u + half] overlaps the part [b0, b1] of the cycle
-    for (const c of fline.sys.cars) if (aheadOn(fline.line, b0 - FL.half, c.u) < b1 - b0 + 2 * FL.half) return true;
+    // a car's body [u − half, u + half] (+ the approach ahead while moving) overlaps the part [b0, b1] of the cycle
+    for (const c of fline.sys.cars) {
+      const ahead = Math.abs(c.v) > 0.5 ? BOX_APPROACH : 0;
+      if (aheadOn(fline.line, b0 - FL.half - ahead, c.u) < b1 - b0 + 2 * FL.half + ahead) return true;
+    }
     return false;
   }
+  const half = CABLE.length / 2 + 0.3;
   for (const c of cable.cars) {
     if (c.line.id !== line) continue;
-    const [a, b] = cable.span(c);
+    const ahead = c.mode === 'run' && c.v > 0.5 ? BOX_APPROACH * c.dir : 0;
+    const a = Math.min(c.s - half, c.s - half + ahead), b = Math.max(c.s + half, c.s + half + ahead);
     if (b > b0 && a < b1) return true;
   }
   return false;

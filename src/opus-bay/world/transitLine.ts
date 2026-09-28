@@ -550,6 +550,10 @@ export class CableSystem {
           if (ahead < 9 && car.v > 1 && this.time - car.bellAt > 3) { car.bellAt = this.time; this.events.push({ what: 'bell', car: car.index, line: line.id }); }
         }
       }
+      // wave 4 (lane T): a sightseeing bus inside a box shared with this line ahead: stop short of the box's part (the
+      // bus in turn waits at the box while a car's body is in or close to it: world/sf/lineInterlocks.ts boxBlocked)
+      const boxGap = this.boxAhead(car);
+      if (boxGap < Infinity) limit = Math.min(limit, Math.sqrt(2 * CABLE.brake * Math.max(0, boxGap)));
       if (stopReq) {
         car.v = Math.max(0, car.v - car.brakeRate * dt);
         car.mode = car.v <= 0.02 ? 'hold' : 'run';
@@ -559,12 +563,32 @@ export class CableSystem {
       }
       let step = car.v * dt;
       if (step >= dist && dist < Infinity) step = dist;
+      if (step > boxGap) step = Math.max(0, boxGap);
       car.s += car.dir * step;
       if (car.rider) car.odometer += step;
       if (car.v > 0.02) car.station = null;
       if (next && Math.abs(target - car.s) < 0.02 && !stopReq) this.arrive(car, next);
     }
     car.still = Math.abs(car.s - s0) > 1e-4 || car.mode === 'turn' ? 0 : car.still + dt;
+  }
+
+  /**
+   * Arc distance the car may still run before its front reaches the part of an interlock box a sightseeing bus
+   * occupies (0.5 u short of it), ∞ if none within 40 u ahead (the part already entered does not stop it).
+   */
+  private boxAhead(car: CableCar): number {
+    const fleet = activeLineFleet();
+    if (!fleet) return Infinity;
+    let best = Infinity;
+    const front = car.s + car.dir * HALF;
+    for (const box of fleet.bus.boxes) {
+      const o = box.other;
+      if (!o || o.line !== car.line.id) continue;
+      const toEdge = ((car.dir > 0 ? o.b0 : o.b1) - front) * car.dir;
+      if (toEdge < 0 || toEdge > 40 || !fleet.bus.occupies(box.id)) continue;
+      best = Math.min(best, toEdge - 0.5);
+    }
+    return best;
   }
 
   /** Arc distance ahead of the car's front to a person standing on its track (within 1.3 u sideways), or null. */
