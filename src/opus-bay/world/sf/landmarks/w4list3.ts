@@ -14,6 +14,7 @@ import { altaPlazaPark } from './alta-plaza-park';
 import { buenaVistaPark } from './buena-vista-park';
 import { calle24 } from './calle-24';
 import { chinaBeach } from './china-beach';
+import { glenCanyonPark } from './glen-canyon-park';
 
 /**
  * The wave-4 tier-3 site records (lane L3, W4-L9: plan §2.4 "Priority 4", in the table's order), and nothing else.
@@ -49,6 +50,7 @@ export const W4_SITES_T3_NEXT: readonly W4Site[] = [
   buenaVistaPark,
   calle24,
   chinaBeach,
+  glenCanyonPark,
 ];
 
 export const W4_SITES_T3_ALL: readonly W4Site[] = [...W4_SITES_T3, ...W4_SITES_T3_NEXT];
