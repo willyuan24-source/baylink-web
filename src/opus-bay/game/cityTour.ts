@@ -13,6 +13,7 @@ import {
 } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById } from './interactables';
+import { unlockPelican } from './pelicanFirst';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
 import { minutesLabel } from './tripText';
@@ -177,6 +178,8 @@ function arrived(r: Run) {
   if (line) offerPaced(line);
   if (stop.moment === 'photo') bubble(photoPrompt(), 3200, BAYBAY_ID, 'call');
   if (!r.completed.includes(flat.stop.id)) r.completed.push(flat.stop.id);
+  // wave 5 (W5-C2, plan MF3 / D26): the first stop reached meets the pelican — a line, no route change
+  unlockPelican('tour');
   r.phase = 'dwell';
   r.paused = false;
   r.lostAt = 0;

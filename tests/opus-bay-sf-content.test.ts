@@ -92,7 +92,8 @@ test('G2-0: city mode = district waterfront + city content; no waterfront-only b
   assert.equal(c.postcards.length, 24);
   assert.equal(new Set(c.postcards.map(card => card.id)).size, 24);
   // wave 4 (lane C, W4-C8, on purpose): the sightseeing bus, the Metro and the campuses join the seven (7 → 10)
-  assert.deepEqual(c.freeGoals.map(goal => goal.id), ['postcards', 'cable-car', 'twin-peaks', 'golden-gate', 'painted-ladies', 'neighbourhoods', 'viewpoint', 'sightseeing', 'metro', 'campuses']);
+  // wave 5 (W5-C2, on purpose): the pelican first; it took the Coit viewpoint goal's place (10 goals)
+  assert.deepEqual(c.freeGoals.map(goal => goal.id), ['pelican', 'postcards', 'cable-car', 'twin-peaks', 'golden-gate', 'painted-ladies', 'neighbourhoods', 'sightseeing', 'metro', 'campuses']);
   assert.equal(c.startNode, 'intro.hello.city');
   for (const kind of ['idle', 'day', 'night', 'edge']) {
     for (const line of c.guideBarks[kind]) assert.ok(!/海狮|码头|sea lion|pier/i.test(line.zh + line.en), `city ${kind} bark stays off the waterfront: ${line.zh}`);
@@ -240,9 +241,13 @@ test('G2-5: goal ids — only the three shared keys map to a GoalKey', () => {
   assert.equal(goalKeyOf(CITY_GOAL.postcards), 'postcards');
   assert.equal(goalKeyOf(CITY_GOAL.cableCar), 'cable-car');
   assert.equal(goalKeyOf(CITY_GOAL.viewpoint), 'viewpoint');
-  for (const id of [CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies, CITY_GOAL.neighbourhoods, CITY_GOAL.sightseeing, CITY_GOAL.metro, CITY_GOAL.campuses]) assert.equal(goalKeyOf(id), null, `${id}: no other key completes it`);
+  for (const id of [CITY_GOAL.pelican, CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies, CITY_GOAL.neighbourhoods, CITY_GOAL.sightseeing, CITY_GOAL.metro, CITY_GOAL.campuses]) assert.equal(goalKeyOf(id), null, `${id}: no other key completes it`);
   CITY_FREE_GOALS.forEach(goal => { filled(goal.label, goal.id); filled(goal.hint, goal.id); });
-  assert.ok(CITY_FREE_GOALS[0].label.zh.includes('24'));
+  // wave 5 (W5-C2): goal #1 is the pelican at Coit Tower; the postcards come second
+  assert.equal(CITY_FREE_GOALS[0].id, CITY_GOAL.pelican);
+  assert.equal(CITY_FREE_GOALS[0].label.zh, '先去科伊特塔找鹈鹕朋友');
+  assert.ok(CITY_FREE_GOALS[1].label.zh.includes('24'));
+  assert.ok(!CITY_FREE_GOALS.some(goal => goal.id === CITY_GOAL.viewpoint), 'the Coit viewpoint goal became the pelican goal');
 });
 
 test('G2-5: Twin Peaks counts only when climbed on your own (fast travel and the pelican disarm it)', () => {
@@ -299,9 +304,14 @@ test('G2-5: 8 of 41 neighbourhoods, hero zones not counted; progress text', () =
   assert.equal(goalProgress(CITY_GOAL.twinPeaks, done), null);
 });
 
-test('G2-5: goal waypoints resolve to landmark cards', () => {
-  const targets = cityGoals.cityGoalTargets();
-  assert.deepEqual(targets.map(t => t.goal), [CITY_GOAL.cableCar, CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies]);
+test('G2-5: goal waypoints resolve to landmark cards (wave 5: the pelican first, at Coit)', () => {
+  const all = cityGoals.cityGoalTargets();
+  assert.deepEqual(all.map(t => t.goal), [CITY_GOAL.pelican, CITY_GOAL.cableCar, CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies]);
+  // goal #1 leads to the district's Coit Tower viewpoint card (the summit), which city mode resolves too
+  assert.equal(all[0].id, 'coit-tower');
+  assert.ok(dist(all[0], { x: -50.25, z: 45.5 }) < 0.01, 'the Coit view anchor');
+  filled(all[0].name, all[0].id);
+  const targets = all.slice(1);
   for (const t of targets) {
     const poi = CITY_POIS.find(p => p.id === t.id);
     assert.ok(poi, `${t.id} is a city card (interactableById resolves it in city mode)`);

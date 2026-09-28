@@ -18,13 +18,20 @@ import { registerGoalTargets, type GoalTarget } from './cityContent';
 import { cinemaActive } from './cinema';
 import { isDiscovered, markDiscovered } from './discovery';
 import { travelActive } from './fastTravel';
-import { bubble, dialogueOpen, markGoalsDone, noteArrivalMoment } from './flow';
+import { bubble, dialogueOpen, goalsStepOpen, markGoalsDone, noteArrivalMoment } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactables } from './interactables';
 import { LINE_TTL, LinePacer, NARRATION_REPEAT, clipSecondsFrom, voiceLang, type PacedLine, type SaidLine } from './linePacer';
 import { registerFrameSystem } from './systemsRegistry';
 import { arriveYourselfGoalRule, cableCarGoalRule, lineRideGoalRule, type TripGoalRule } from './tripPlan';
 import { registerTripGoals } from './tripProviders';
+import { bayNow } from './bayNow';
+import { initPelicanFirst, stepPelican, unlockPelican, unlocksAt } from './pelicanFirst';
+import { rewardArrival } from './rewards';
+import { frameRumour, pickRumour, rumourDue, rumourSourceCount } from './rumours';
+
+// wave 5 (W5-C2): flow reaches the pelican moment through game/cityContent.ts unlockPelican
+export { unlockPelican };
 
 /**
  * Wave 4 · lane C · BAYBAY in the running city (lazy: game/cityContent.ts imports it in city mode only).
@@ -82,7 +89,7 @@ export function sayTunnel(line: string, fromAt: number, toAt: number) {
 function stepPacer(now: number) {
   const s = game.get(), f = flow.get();
   const silent = s.phase !== 'playing' || s.paused || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive() || s.move.mode === 'travel' || s.photoMode
-    || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null;
+    || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null || goalsStepOpen();
   const other = !!f.bubble && f.bubble.text.zh !== lastSaid?.text.zh;
   const said = pacer.step(now, silent || other);
   if (!said) return;
@@ -176,6 +183,10 @@ export function applyArrival(hit: ArrivalHit, now = performance.now()) {
   }
   for (const line of arrivalPaced(beats, a.attraction)) offerPaced(line);
   if (beats.stampSound) emit({ type: 'stamp' });
+  // wave 5 (W5-C4): the first arrival at an attraction is paid once by lane E's ledger (T1 10 · T2 5 · T3 3)
+  if (hit.first) rewardArrival(a.attraction, a.rank);
+  // wave 5 (W5-C2): Coit Tower or any panorama viewpoint meets the pelican (the moment waits for this one to end)
+  if (unlocksAt(hit)) unlockPelican('viewpoint', now);
   // discovered (fast travel unlocked), when the arrival anchor lies beyond the 12 u discovery ring of its place
   const place = placeIndex()?.get(a.place);
   if (place && !isDiscovered(place.id)) markDiscovered(place);
@@ -240,6 +251,40 @@ export function openGoalRules(goalsDone: readonly string[] = game.get().goalsDon
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Wave 5 (W5-C1): 听说… — BAYBAY tells a rumour from the registered sources (game/rumours.ts; lane D's eggs first)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** A source with nothing to say now is asked again after this long (ms), not every second. */
+export const RUMOUR_ASK_MS = 20_000;
+/** BAYBAY tells it only when she is this close (u): a hint is whispered, not shouted across a plaza. */
+export const RUMOUR_NEAR = 10;
+/** the teller's state: when play began, the last rumour told, the last time the sources were asked, told ids */
+export const rumours = { start: 0, last: null as number | null, askAt: 0, n: 0, told: new Set<string>() };
+
+/** Free roam, on foot, BAYBAY beside you and quiet: may a rumour be told now? (pure over the running state) */
+function rumourMoment(now: number): boolean {
+  const s = game.get(), f = flow.get(), p = runtime.player, g = runtime.guide;
+  return s.phase === 'playing' && s.mode === 'free' && !s.tour.active && !f.trip && !f.freeLead && s.move.mode === 'foot' && !s.paused && !s.photoMode
+    && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.bubble && !f.arrival && !f.postcardReward && !f.postcardFly
+    && !goalsStepOpen() && !linesBusy(now / 1000) && performance.now() >= f.quietUntil && Math.hypot(g.x - p.x, g.z - p.z) <= RUMOUR_NEAR;
+}
+
+/** 1 Hz: tell at most one rumour per RUMOUR_GAP_MS (never in the first RUMOUR_FIRST_MS of play). */
+export function stepRumours(now: number): boolean {
+  const s = game.get();
+  if (!rumours.start) { if (s.phase === 'playing' && s.mode !== 'onboarding') rumours.start = now; return false; }
+  if (!rumourSourceCount() || !rumourDue({ startedAt: rumours.start, lastAt: rumours.last, now }) || now - rumours.askAt < RUMOUR_ASK_MS || !rumourMoment(now)) return false;
+  rumours.askAt = now;
+  const r = pickRumour({ x: runtime.player.x, z: runtime.player.z, zone: s.area, now: bayNow(), told: rumours.told });
+  if (!r) return false;
+  if (!offerLine(frameRumour(r, rumours.n), 20)) return false;
+  rumours.told.add(r.id);
+  rumours.n++;
+  rumours.last = now;
+  return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -249,14 +294,16 @@ export function initCityMoments(): () => void {
   if (booted) return () => {};
   booted = true;
   watcher = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS), decodeArrivalSeen(readSave()?.arrivals));
-  let accA = 0, accP = 0, riding = false;
+  const offPelican = initPelicanFirst();
+  let accA = 0, accP = 0, accR = 0, riding = false;
   const offFrame = registerFrameSystem('c-moments', (dt, now) => {
     // hopping off transit counts as arriving on foot for a moment (the ride's end is a hop-off)
     const onRide = !!flow.get().ride;
     if (riding && !onRide) hoppedOffAt = now;
     riding = onRide;
     if ((accP += dt) >= 0.2) { accP = 0; stepPacer(now / 1000); }
-    if ((accA += dt) >= 0.25) { accA = 0; stepArrivals(now); }
+    if ((accA += dt) >= 0.25) { accA = 0; stepArrivals(now); stepPelican(now, (line, ttl) => offerLine(line, ttl)); }
+    if ((accR += dt) >= 1) { accR = 0; stepRumours(now); }
   });
   const offEvents = onEvent(e => {
     if (e.type === 'transit') onTransit(e);
@@ -269,18 +316,24 @@ export function initCityMoments(): () => void {
     watcher = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS));
     metroRide = null; lastSaid = null; hoppedOffAt = undefined; pacer.clear();
   });
+  rumours.start = 0; rumours.last = null; rumours.askAt = 0;
   // DEV / QA: lane C's city modules as `__opusBay.c` (the tour, the trips, the moments)
   let offDev = () => {};
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const api = { moments: { offerLine, onTransit, applyArrival, arrivalSeen, sayTunnel, noteLoopRide, openGoalRules, rideGoalTargets, watcher: () => watcher }, trips: () => import('./tripRun'), tour: () => import('./cityTour') };
+    const api = {
+      moments: { offerLine, onTransit, applyArrival, arrivalSeen, sayTunnel, noteLoopRide, openGoalRules, rideGoalTargets, watcher: () => watcher },
+      trips: () => import('./tripRun'), tour: () => import('./cityTour'),
+      // wave 5 (W5-C1 / C2): the pelican moment and the rumour teller, for QA scripts
+      pelican: { unlock: unlockPelican }, rumours: { state: rumours, step: stepRumours },
+    };
     const put = () => { if (w.__opusBay && w.__opusBay.c !== api) w.__opusBay.c = api; else if (!w.__opusBay) w.__opusBay = { c: api }; };
     put();
     const id = window.setInterval(put, 500);
     offDev = () => window.clearInterval(id);
   }
   return () => {
-    offFrame(); offEvents(); offTargets(); offRules(); offDev(); offCleared();
+    offFrame(); offEvents(); offTargets(); offRules(); offDev(); offCleared(); offPelican();
     if (arrivalClear) clearTimeout(arrivalClear);
     watcher = null; metroRide = null; pacer.clear(); booted = false;
   };

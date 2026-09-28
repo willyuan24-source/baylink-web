@@ -32,3 +32,7 @@
    375 px); `anywhere` keeps the grid's two columns equal. The first line keeps the default CJK breaking: its phrases
    have no spaces, and keep-all would push a lone "？" to a line of its own. */
 .ob-choice-label .ob-choice-sub { word-break: keep-all; overflow-wrap: anywhere; }
+
+/* Wave 5 · W5-C2: a goal's reward text in the journal (goal #1: 解锁：随时飞), and its 带我去 */
+.ob-goals small.ob-goal-reward { width: fit-content; margin-top: 3px; padding: 2px 9px; border-radius: 999px; background: #fdebc3; color: #8a5a10; font-weight: 800; }
+.ob-goals li > div > .ob-btn { align-self: flex-start; margin-top: 6px; }

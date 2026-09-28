@@ -13,6 +13,7 @@ import { travelActive, travelEpoch } from './fastTravel';
 import { bubble, defineNode, dialogueOpen, navigateTo, playDialogue, say, setResidentTalk } from './flow';
 import { flow } from './flowStore';
 import { invalidateInteractables } from './interactables';
+import { rewardFavour } from './rewards';
 import { registerFrameSystem } from './systemsRegistry';
 
 /**
@@ -114,6 +115,8 @@ export function initResidentTasks(): () => void {
     game.set({ goalsDone: finishTask(before, key) });
     invalidateInteractables();
     emit({ type: 'goal', id: taskDoneId(key) });
+    // wave 5 (W5-C4): lane E's ledger pays a neighbour's favour once
+    rewardFavour(key);
     say(TASK_TEXT.done(r.task.title).zh, TASK_TEXT.done(r.task.title).en, 'gold', 3400);
     if (tell) bubble(TASK_TEXT.tellThem(r.short), 3400);
     if (tasksDone(game.get().goalsDone) === RESIDENTS.length) setTimeout(() => say(TASK_TEXT.allDone.zh, TASK_TEXT.allDone.en, 'gold', 4200), 3600);

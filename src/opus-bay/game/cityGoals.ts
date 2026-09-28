@@ -1,4 +1,5 @@
 import { CITY_GOAL } from '../data/sf/goals';
+import { DISTRICT } from '../data/district';
 import { LANDMARK_ARRIVALS } from '../data/sf/arrivals';
 import { cityPoiId } from '../data/sf/cityPois';
 import type { GoalTarget } from './cityContent';
@@ -14,6 +15,9 @@ import type { GoalTarget } from './cityContent';
 /** Soft waypoints for unfinished city goals (game/cityContent goalTargets): the landmark card of each place goal. */
 export function cityGoalTargets(): GoalTarget[] {
   const out: GoalTarget[] = [];
+  // wave 5 (W5-C2): goal #1, the pelican at Coit Tower (the district's viewpoint card: 带我去 walks up to the summit)
+  const coit = DISTRICT.anchors?.['coit-view'];
+  if (coit) out.push({ id: 'coit-tower', goal: CITY_GOAL.pelican, x: coit.x, z: coit.z, name: { zh: '找鹈鹕朋友 · 科伊特塔', en: 'Meet the pelican · Coit Tower' }, radius: 10 });
   const add = (goal: string, landmark: string, name: GoalTarget['name']) => {
     const at = LANDMARK_ARRIVALS[landmark];
     if (at) out.push({ id: cityPoiId(landmark), goal, x: at.x, z: at.z, name, radius: 4 });

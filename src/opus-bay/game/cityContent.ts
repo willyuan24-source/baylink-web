@@ -10,7 +10,8 @@ import { CITY_FREE_GOALS } from '../data/sf/goals';
 import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/script';
 import { RESIDENTS, taskDoneId, taskState } from '../data/sf/residents';
 import { cityGoalTargets } from './cityGoals';
-import { markGoalsDone } from './flow';
+import { bubble, markGoalsDone } from './flow';
+import { flow } from './flowStore';
 import { registerInteractables, type Interactable } from './interactables';
 import { initW5Features } from './w5Features';
 
@@ -77,13 +78,35 @@ export function initCityContent(): () => void {
   void import('./tripRun').then(m => { if (!disposed) offTrips = m.initTripRun(); }, fail('trips'));
   void import('./cityMoments').then(m => { if (!disposed) { moments = m; offMoments = m.initCityMoments(); } }, fail('moments'));
   void import('./cityCards').then(m => { if (!disposed) offCards = m.initCityCards(); }, fail('cards'));
+  // wave 5 (lane C, W5-C3): the goals step (the overlay, once per player)
+  let offStep: (() => void) | null = null;
+  void import('./goalsStep').then(m => { if (!disposed) offStep = m.initGoalsStep(); }, fail('goals step'));
   // wave 5 (day 0, game/w5Features.ts): the economy (first), play, eggs and real-SF features, each a lazy city chunk
   const w5 = initW5Features();
-  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); w5.off(); moments = null; };
+  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); offStep?.(); w5.off(); moments = null; };
 }
 
 /** Lane P's map: has the player had the arrival moment of this attraction? (false before the city content loads) */
 export const arrivalSeen = (attraction: string): boolean => moments?.arrivalSeen(attraction) ?? false;
+
+/**
+ * Wave 5 · W5-C1: one of BAYBAY's lines through her pacer (game/cityMoments.ts): it waits for the line she is saying
+ * (tour, transit, arrival), is dropped after `ttl` s (default 30) rather than said late, and is not said twice within a
+ * few minutes. Before the city chunk lands (or in district mode) it is a plain bubble. zh ≤ 45 characters. Returns
+ * false when the pacer refused it (a repeat).
+ */
+export function baybayLine(text: Bilingual, opts: { ttl?: number } = {}): boolean {
+  if (moments) return moments.offerLine(text, opts.ttl ?? 30);
+  // (no pacer yet: after the bubble on screen, never over it)
+  if (flow.get().bubble) setTimeout(() => bubble(text, 4200), 4600); else bubble(text, 4200);
+  return true;
+}
+
+/**
+ * Wave 5 · W5-C2: meet the pelican now (the Coit sweep; game/pelicanFirst.ts, in the city chunk). A no-op before the
+ * chunk lands, in district mode or once unlocked (the move system's own unlock stands in). True when it unlocked.
+ */
+export const unlockPelican = (reason: 'viewpoint' | 'sweep' | 'tour'): boolean => moments?.unlockPelican(reason) ?? false;
 /** Lane T's subway overlay: BAYBAY's tunnel line for the arc span it goes under ground on (nothing before load). */
 export function sayTunnel(line: string, fromAt: number, toAt: number) { moments?.sayTunnel(line, fromAt, toAt); }
 /** Lane T's countRide for a sightseeing-bus ride finished with 直接到站: every loop stop of it counts for the goal. */

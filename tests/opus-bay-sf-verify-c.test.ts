@@ -127,9 +127,10 @@ test('verify C2 / C6 / C7: zh card text uses the game’s zh names (天涯海角
   assert.equal(placeCardName({ zh: '中国城', en: 'Chinatown' }).zh, '唐人街');
   assert.equal(placeCardName({ zh: '西索玛', en: 'SoMa West' }).zh, '西南市场');
   const { CITY_FREE_GOALS, CITY_GOAL } = await import('../src/opus-bay/data/sf/goals');
-  const coit = CITY_FREE_GOALS.find(goal => goal.id === CITY_GOAL.viewpoint)!;
-  assert.equal(coit.label.zh, '登上科伊特塔观景点');
-  assert.ok(!/[A-Z]/.test(coit.hint.zh.replace("Levi's Plaza", '')), coit.hint.zh);
+  // wave 5 (W5-C2, on purpose): the Coit goal is the pelican goal now; its zh text uses the game's zh names
+  const coit = CITY_FREE_GOALS.find(goal => goal.id === CITY_GOAL.pelican)!;
+  assert.equal(coit.label.zh, '先去科伊特塔找鹈鹕朋友');
+  assert.ok(!/[A-Z]/.test(coit.hint.zh), coit.hint.zh);
   const voice = src('data/VOICE.md');
   for (const row of ['| Lands End | 天涯海角 |', '| Marina Green | 码头绿地 |', '湖岸区 · 维西塔西翁谷 · 英格尔赛德', '科伊特塔 · 菲尔伯特台阶']) assert.ok(voice.includes(row), row);
 });
@@ -232,7 +233,7 @@ test('verify D14: a city postcard clue leads to a spot ≈ 8 u short of the card
   assert.deepEqual({ x: close.x, z: close.z }, { x: card.x + 3, z: card.z }, 'a place closer than that: the place');
   // the free-roam hint (node tests see the district's cards; the mechanism is the same): with only the postcards left,
   // the city hint is a clue id that resolves near its card (the waypoint, 带我去 and the free lead use interactableById)
-  store.game.set({ goalsDone: FREE_GOALS.map(goal => goal.id).filter(id => id !== 'postcards') });
+  store.game.set({ goalsDone: [...FREE_GOALS.map(goal => goal.id).filter(id => id !== 'postcards'), 'pelican'] });
   const next = nextFreeGoal({ x: 0, z: 0 })!;
   assert.ok(next.id.startsWith(CLUE_PREFIX), next.id);
   assert.match(next.name.zh, /^明信片线索 · .+附近$/);
@@ -242,7 +243,7 @@ test('verify D14: a city postcard clue leads to a spot ≈ 8 u short of the card
   assert.equal(it.refId, pc.id);
   // the district keeps the old clue (the nearest real place)
   reset('district');
-  store.game.set({ goalsDone: FREE_GOALS.map(goal => goal.id).filter(id => id !== 'postcards') });
+  store.game.set({ goalsDone: [...FREE_GOALS.map(goal => goal.id).filter(id => id !== 'postcards'), 'pelican'] });
   const d = nextFreeGoal({ x: 0, z: 0 })!;
   assert.ok(!d.id.startsWith(CLUE_PREFIX), d.id);
 });

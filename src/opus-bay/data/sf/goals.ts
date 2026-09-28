@@ -9,17 +9,24 @@ import type { Bilingual, FreeGoal } from '../../core/types';
  * other ids avoid every GOAL_WORDS word (ride, view, hill, card, photo, market, …) so no other key completes them
  * (`goalKeyOf(id) === null`, tested); game/cityGoals.ts detects them, and the wave-4 ones game/cityMoments.ts (lazy,
  * with its rules in data/sf/goalMarks.ts: this file is in the main graph, so it keeps only the list and the counts).
+ *
+ * Wave 5 (W5-C2, plan MF3 "the pelican first"): `pelican` is goal #1 — reached at Coit Tower or any of the six panorama
+ * viewpoints, or at the Grand Tour's first stop; game/pelicanFirst.ts marks it with the glide unlock. It replaces the
+ * old "登上科伊特塔观景点" goal (the same place, now with a reason to go): the list keeps 10 goals.
  */
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
 
 export const CITY_GOAL = {
+  /** wave 5 (W5-C2): the pelican friend — the glide unlock at Coit or any panorama viewpoint (game/pelicanFirst.ts) */
+  pelican: 'pelican',
   postcards: 'postcards',
   cableCar: 'cable-car',
   twinPeaks: 'twin-peaks',
   goldenGate: 'golden-gate',
   paintedLadies: 'painted-ladies',
   neighbourhoods: 'neighbourhoods',
+  /** the Coit sweep's GoalKey; since wave 5 no longer a city goal of its own (the pelican goal took its place) */
   viewpoint: 'viewpoint',
   // wave 4 (lane C, W4-C8; plan §3.6)
   sightseeing: 'sightseeing',
@@ -43,13 +50,14 @@ export const CAMPUS_TARGET = 3;
 export const CAMPUS_PREFIX = 'campus:';
 
 export const CITY_FREE_GOALS: FreeGoal[] = [
-  { id: CITY_GOAL.postcards, label: bi('找齐 24 张旧金山明信片', 'Find all 24 San Francisco postcards'), hint: bi('留意发金光的小卡片，旅行本里有线索', 'Look for little golden glints — your journal has clues') },
+  // wave 5 (lane C, W5-C2; plan MF3): first — the pelican unlocks flying anywhere (Coit is ≈ 70 s from the Ferry Building)
+  { id: CITY_GOAL.pelican, label: bi('先去科伊特塔找鹈鹕朋友', 'Meet the pelican at Coit Tower'), hint: bi('从菲尔伯特台阶爬上去；双峰等观景台也行', 'Climb the Filbert Steps — Twin Peaks and the other viewpoints work too') },
+  { id: CITY_GOAL.postcards,label: bi('找齐 24 张旧金山明信片', 'Find all 24 San Francisco postcards'), hint: bi('留意发金光的小卡片，旅行本里有线索', 'Look for little golden glints — your journal has clues') },
   { id: CITY_GOAL.cableCar, label: bi('坐一段真的叮当车', 'Ride a real cable car'), hint: bi('去 Powell & Market 转车台上车，多坐几站', 'Board at the Powell & Market turntable and ride a few stops') },
   { id: CITY_GOAL.twinPeaks, label: bi('自己爬上双峰', 'Climb Twin Peaks yourself'), hint: bi('走路、骑车或开小车上山都算，飞过去不算', 'On foot, by bike or in the toy car — flying there doesn’t count') },
   { id: CITY_GOAL.goldenGate, label: bi('走过金门大桥', 'Cross the Golden Gate Bridge'), hint: bi('在桥面上从一座桥塔走到另一座', 'On the deck, from one tower to the other') },
   { id: CITY_GOAL.paintedLadies, label: bi('给彩绘女士拍张照', 'Photograph the Painted Ladies'), hint: bi('去阿拉莫广场，对着那排彩色老房子拍一张', 'Head to Alamo Square and snap the row of colourful houses') },
   { id: CITY_GOAL.neighbourhoods, label: bi(`逛 ${NEIGHBOURHOOD_TARGET} 个街区`, `Wander ${NEIGHBOURHOOD_TARGET} neighbourhoods`), hint: bi('走进新街区时，屏幕上会亮出它的名字', 'Each new neighbourhood shows its name as you walk in') },
-  { id: CITY_GOAL.viewpoint, label: bi('登上科伊特塔观景点', 'Reach Coit Tower’s viewpoint'), hint: bi("从 Levi's Plaza 旁的菲尔伯特台阶往上爬", "Climb the Filbert Steps by Levi's Plaza") },
   // wave 4 (lane C, W4-C8)
   { id: CITY_GOAL.sightseeing, label: bi(`坐观光巴士逛 ${SIGHTSEEING_STOPS} 站`, `Ride the sightseeing bus past ${SIGHTSEEING_STOPS} stops`), hint: bi('在有「观光」牌子的车站上车，BAYBAY 一路讲解；飞过去不算', 'Board at a stop with the coral sightseeing sign — BAYBAY tells you about the sights; flying doesn’t count') },
   { id: CITY_GOAL.metro, label: bi('坐地铁去海边或州立大学', 'Take the Metro to the sea or to SF State'), hint: bi('N 线坐到海洋海滩终点，或 M 线坐到石镇 / 州立大学', 'The N to the end at Ocean Beach, or the M to Stonestown / SF State') },
@@ -71,3 +79,16 @@ export function goalProgress(goalId: string, goalsDone: readonly string[]): stri
       : goalId === CITY_GOAL.campuses ? [campusesVisited(goalsDone), CAMPUS_TARGET] : null;
   return count ? `${Math.min(count[1], count[0])}/${count[1]}` : null;
 }
+
+/**
+ * Wave 5 (W5-C2 / W5-C3): what a goal gives besides its tick, shown under it in the goals step and the journal
+ * (plan MF3: "reward text 解锁：随时飞 / Unlocks flying"). Coins are lane E's to show (its ledger pays `goal:<id>`).
+ */
+export const GOAL_REWARDS: Readonly<Record<string, Bilingual>> = {
+  [CITY_GOAL.pelican]: bi('解锁：随时飞', 'Unlocks flying'),
+};
+
+/** goalsDone mark: the goals step was shown to this player (W5-C3, plan MF6 "goals once"); reset progress clears it. */
+export const GOALS_STEP_SEEN = 'seen:goals-step';
+/** The goals step's overlay id (ui/slots.ts registerOverlay; game/goalsStep.ts registers it in city mode). */
+export const GOALS_STEP_ID = 'c-goals-step';

@@ -13,7 +13,9 @@ import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/script';
 import { FIRST_TOUR } from '../data/tours';
 import { readSave } from '../data/save';
 import { GRAND_TOUR } from '../data/sf/copy';
-import { districtTourProgress, markProgress, wishlist } from '../data/wishlist';
+import { CITY_GOAL, GOALS_STEP_ID, GOALS_STEP_SEEN } from '../data/sf/goals';
+import { zoneName, SF_NAME } from '../data/cityZones';
+import { districtTourProgress, markProgress, progressExtras, wishlist } from '../data/wishlist';
 import { pick } from '../i18n';
 import { cinemaActive, faceCameraToward, holdFraming, playShots, releaseFraming, skipCinema, type Framing, type Shot } from './cinema';
 import { CHAR_SCALE } from '../actors/dims';
@@ -22,17 +24,36 @@ import { flow, initialFlowState, type Bubble } from './flowStore';
 import { lockHeld, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
-import { goalTargets, initCityContent } from './cityContent';
+import { baybayLine, goalTargets, initCityContent, unlockPelican } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
-import { bindJournalOpener, runAskItem, visibleAskItems } from '../ui/slots';
+import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
+import { rewardGoal, rewardPostcard } from './rewards';
+import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
 
 /**
  * Game flow controller: modes, dialogue runner, tour/week/free logic, interactions and goals.
  * Framework-free; DOM UI and Canvas systems call into it. Per-frame work lives in Systems.tsx.
+ *
+ * Wave 5 · lane C · W5-C1 — the PUBLIC content API for the other lanes (import from the lazy chunks; this module is in
+ * the main graph, so it adds nothing to them):
+ *
+ *   bubble(text, ms = 3200, who = BAYBAY_ID, tone = 'bark')
+ *       BAYBAY's (or a resident's, `who` = their id) speech bubble, right now. Dropped while a postcard reward is up and
+ *       while the goals step is open; a later bubble replaces it. For a line that must not talk over BAYBAY's tour /
+ *       transit / arrival lines, use cityContent `baybayLine(text, { ttl })` (her pacer: it waits its turn, and is
+ *       dropped after `ttl` s rather than said late). zh ≤ 45 characters.
+ *   markGoalsDone(ids, { quiet }?)
+ *       Tick goalsDone ids (a FREE_GOALS goal, or a mark like `hood:<id>` / `loop:<stop>`); an id already done is
+ *       ignored. A FREE_GOALS id also gets the `goal` event, the gold 目标完成 toast (not with `quiet`) and, in city
+ *       mode, lane E's `reward goal:<id>` (game/rewards.ts).
+ *   completeGoal(key)            a GoalKey ('cable-car', 'ferry', …) and the goals whose ids contain its words
+ *   game/welcome.ts              onWelcome(fn): 'new' after the welcome choice, 'returning' when a saved player resumes
+ *   game/rumours.ts              registerRumourSource(fn): 听说… hints BAYBAY drops (≤ 1 per 5 min, lane C's timing)
+ *   game/photoFrames.ts          registerFrameDecorator(id, draw): paint on the photo card (lane E's frames)
  */
 
 const L = (text: Bilingual | string) => pick(text, getLocale());
@@ -47,8 +68,8 @@ export function announce(text: Bilingual | string) { flow.set({ announce: L(text
 let bubbleKey = 0;
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null;
 export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble['tone'] = 'bark') {
-  // nothing talks over a postcard reward
-  if (flow.get().postcardReward || flow.get().postcardFly) return;
+  // nothing talks over a postcard reward, nor over the goals step (W5-C3: bubbles paused while it is open)
+  if (flow.get().postcardReward || flow.get().postcardFly || goalsStepOpen()) return;
   const key = ++bubbleKey;
   flow.set({ bubble: { who, text, key, tone } });
   if (bubbleTimer) clearTimeout(bubbleTimer);
@@ -193,11 +214,13 @@ export function closeDialogue() {
 }
 
 export function runAction(action: DialogueAction) {
+  // wave 5 (W5-C1 / W5-C3): the welcome's choice tells game/welcome.ts' listeners (city mode)
+  const welcoming = game.get().mode === 'onboarding';
   switch (action.type) {
-    case 'start-tour': closeQuiet(); startTour(action.tourId); offerRealTime(); break;
-    case 'start-week': closeQuiet(); startWeek(); offerRealTime(); break;
-    case 'free-roam': closeQuiet(); startFree(); facePlaza(); offerRealTime(); break;
-    case 'skip-intro': closeQuiet(); startFree({ local: true }); facePlaza(); offerRealTime(); break;
+    case 'start-tour': closeQuiet(); startTour(action.tourId); offerRealTime(); if (welcoming) welcomed('tour'); break;
+    case 'start-week': closeQuiet(); startWeek(); offerRealTime(); if (welcoming) welcomed('week'); break;
+    case 'free-roam': closeQuiet(); startFree(); facePlaza(); offerRealTime(); if (welcoming) welcomed('free'); break;
+    case 'skip-intro': closeQuiet(); startFree({ local: true }); facePlaza(); offerRealTime(); if (welcoming) welcomed('local'); break;
     case 'set-week-pref': setWeekPref(action.key, action.value); break;
     case 'show-week-results': closeQuiet(); void showWeekResults(); break;
     case 'open-map': closeQuiet(); openPanel('map'); break;
@@ -311,6 +334,8 @@ export function startGame() {
   // The Enter/Space that pressed Start may also reach actors' input as an interact edge next frame;
   // swallow it so it does not immediately skip the arrival cinematic.
   noteInteractHandled();
+  // wave 5 (W5-C3): who is being welcomed, read before this visit writes anything (the welcome marks `visited`)
+  startKind = hasProgress() ? 'returning' : 'new';
   emit({ type: 'start' });
   game.set({ phase: 'arrival' });
   const spawn = FERRY_GATE();
@@ -382,8 +407,62 @@ export function beginPlaying(start?: 'tour' | 'week' | 'free' | 'local') {
   introPendingSince = 0;
   if (start === 'tour') startTour();
   else if (start === 'week') startWeek();
-  else if (start === 'local') { startFree({ local: true }); facePlaza(); }
+  // (lane N's resume — game/resume.ts, the title's 继续 — starts here: a city player with progress is welcomed back)
+  else if (start === 'local') { startFree({ local: true, back: game.get().worldMode === 'city' && hasProgress() }); facePlaza(); }
   else { startFree(); facePlaza(); }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 · lane C · W5-C1 / W5-C3: the welcome (new / returning) and the goals step
+// ---------------------------------------------------------------------------
+
+/** 'new' or 'returning', read at the title's Start (before this visit writes progress). */
+let startKind: WelcomeKind = 'new';
+
+/** The player has played before: progress v1 (the welcome seen, cards, goals, a tour) or a save v2 in the city. */
+export function hasProgress(): boolean {
+  const s = game.get(), sv = readSave();
+  return progressExtras().visited === true || s.postcards.length > 0 || s.goalsDone.length > 0 || s.tour.completed.length > 0
+    || sv?.lastSafe?.world === 'city' || (sv?.arrivals?.length ?? 0) > 0 || !!sv?.unlocked?.glide || !!sv?.play;
+}
+
+/** The welcome's choice (city): tell game/welcome.ts' listeners; a returning player hears a listener's line (lane R). */
+function welcomed(choice: NonNullable<WelcomeInfo['choice']>) {
+  if (game.get().worldMode !== 'city') return;
+  const line = runWelcome({ kind: startKind, choice, zone: game.get().area, at: performance.now() });
+  if (line && startKind === 'returning') baybayLine(line, { ttl: 60 });
+}
+
+/**
+ * 欢迎回来 (plan MF6): a returning city player resumed where they were (lane N's resume). BAYBAY names the area they got
+ * to (save v2 lastSafe.zone, else where they stand) and then one line from a welcome listener (lane R's SF Today), or,
+ * with the pelican still to meet, goal #1. Never "第一次来吗？".
+ */
+export function welcomeBack(): void {
+  const zone = readSave()?.lastSafe?.zone ?? game.get().area ?? null;
+  const name = zoneName(zone);
+  const known = name !== SF_NAME && !!zone;
+  bubble(known ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : { zh: '欢迎回来！我们接着逛吧。', en: "Welcome back! Let's keep exploring." }, 4400, BAYBAY_ID, 'call');
+  const extra = runWelcome({ kind: 'returning', zone, at: performance.now() });
+  const next = extra ?? (goalDone(CITY_GOAL.pelican) ? null : PELICAN_NUDGE);
+  if (next) baybayLine(next, { ttl: 60 });
+}
+
+/** BAYBAY's first free-roam suggestion while goal #1 is open (plan MF3). */
+export const PELICAN_NUDGE: Bilingual = { zh: '先去科伊特塔找鹈鹕朋友吧！之后想去哪都能飞～', en: "Let's meet the pelican at Coit Tower first — then we can fly anywhere!" };
+
+/** The goals step is on screen (bubbles wait: plan MF6 "with bubbles paused"). */
+export const goalsStepOpen = () => openOverlays().some(o => o.id === GOALS_STEP_ID);
+
+/**
+ * The goals step, once per player (city): opens the overlay game/goalsStep.ts registered and marks it seen. False when
+ * it was seen already or is not registered (its chunk has not loaded: the old goals card shows instead).
+ */
+export function openGoalsStep(): boolean {
+  if (game.get().worldMode !== 'city' || goalDone(GOALS_STEP_SEEN) || !overlays.get(GOALS_STEP_ID)) return false;
+  markGoalsDone([GOALS_STEP_SEEN]);
+  openOverlay(GOALS_STEP_ID);
+  return true;
 }
 
 /** After the welcome (free / local): turn toward the Ferry plaza with the clock tower in view, not the gangway. */
@@ -407,14 +486,25 @@ export function maybeStartIntro(guideDistance: number, atMark = true) {
   }
 }
 
-export function startFree(opts: { local?: boolean; quiet?: boolean } = {}) {
+export function startFree(opts: { local?: boolean; quiet?: boolean; back?: boolean } = {}) {
   introPendingSince = 0;
   game.set(s => ({ mode: 'free', tour: { ...s.tour, active: false } }));
+  const city = game.get().worldMode === 'city';
+  const talk = !opts.local && !opts.quiet;
+  // wave 5 (W5-C3, plan MF6): the city shows its goals ONCE, as a step (game/goalsStep.ts); after it, free roam starts
+  // without a card (the pill opens the journal). If the step's chunk is not there, the old card stands in.
+  const step = city && talk && openGoalsStep();
+  const card = talk && (!city || (!step && !goalDone(GOALS_STEP_SEEN)));
   // "I'm a local": no goals card and no ambient chatter for a minute (F9)
-  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: !opts.local && !opts.quiet, quietUntil: opts.local ? performance.now() + 60000 : 0 });
-  if (opts.local) bubble(hookText('localIntro') ?? { zh: '欢迎回来！M 看地图，Q 随时叫我。', en: 'Welcome back! M opens the map, Q calls me anytime.' }, 4200);
+  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: card, quietUntil: opts.local ? performance.now() + 60000 : 0 });
+  if (opts.back) welcomeBack();
+  else if (opts.local) bubble(hookText('localIntro') ?? { zh: '欢迎回来！M 看地图，Q 随时叫我。', en: 'Welcome back! M opens the map, Q calls me anytime.' }, 4200);
+  else if (step) return; // (the step carries BAYBAY's intro; her pelican line follows when it closes)
+  else if (!opts.quiet && city && !card) bubble(goalDone(CITY_GOAL.pelican) ? FREE_AGAIN : PELICAN_NUDGE, 4600, BAYBAY_ID, 'call');
   else if (!opts.quiet) bubble(hookText('freeIntro') ?? { zh: '我就跟在你后面～想问什么按 Q 叫我！', en: "I'll tag along — press Q whenever you need me!" }, 4200);
 }
+/** City free roam once the goals were shown (W5-C3): no "here are some goals" again. */
+export const FREE_AGAIN: Bilingual = { zh: '好嘞，你带路，我跟着！想去哪儿就叫我～', en: "Okay — you lead, I'll follow! Call me when you want to go somewhere." };
 
 // ---------------------------------------------------------------------------
 // F11 · first visit at golden hour, the real Bay time one tap away
@@ -803,13 +893,16 @@ export function completeGoal(key: GoalKey) {
   emit({ type: 'goal', id: key });
   const goal = FREE_GOALS.find(item => goalIdsFor(key).includes(item.id));
   if (goal) say(`目标完成：${goal.label.zh}`, `Goal complete: ${goal.label.en}`, 'gold', 3200);
+  // wave 5 (W5-C4): lane E's ledger pays each explorer goal once (city mode only; game/rewards.ts)
+  for (const id of ids) if (FREE_GOALS.some(item => item.id === id)) rewardGoal(id);
 }
 
 /**
  * Mark goalsDone ids that are not GoalKeys (lane G2's city detectors, game/cityGoals.ts: `twin-peaks`, `golden-gate`,
- * `painted-ladies`, `neighbourhoods`, and the `hood:<id>` visit marks). A FREE_GOALS id gets the goal event and toast.
+ * `painted-ladies`, `neighbourhoods`, and the `hood:<id>` visit marks). A FREE_GOALS id gets the goal event and toast
+ * (`quiet`: no toast — the caller shows its own moment, e.g. the pelican unlock) and, in city mode, lane E's reward.
  */
-export function markGoalsDone(ids: readonly string[]) {
+export function markGoalsDone(ids: readonly string[], opts: { quiet?: boolean } = {}) {
   const done = game.get().goalsDone;
   const fresh = [...new Set(ids)].filter(id => !done.includes(id));
   if (!fresh.length) return;
@@ -818,7 +911,8 @@ export function markGoalsDone(ids: readonly string[]) {
     const goal = FREE_GOALS.find(item => item.id === id);
     if (!goal) continue;
     emit({ type: 'goal', id });
-    say(`目标完成：${goal.label.zh}`, `Goal complete: ${goal.label.en}`, 'gold', 3200);
+    if (!opts.quiet) say(`目标完成：${goal.label.zh}`, `Goal complete: ${goal.label.en}`, 'gold', 3200);
+    rewardGoal(id);
   }
 }
 
@@ -830,6 +924,8 @@ export function collectPostcard(id: string) {
   game.set({ postcards });
   emit({ type: 'postcard', id });
   emit({ type: 'stamp' });
+  // wave 5 (W5-C4): lane E's ledger pays a postcard once (city mode only)
+  rewardPostcard(id);
   emit({ type: 'emote', who: 'player', emote: 'pickup' });
   // the card flies to you first (Systems.tsx animates it), then the reward card opens
   flow.set({ postcardFly: { id, at: performance.now() }, bubble: null });
@@ -1293,6 +1389,8 @@ function viewpointSweep(it: Interactable, done: () => void) {
     refreshLock();
     const first = !game.get().viewpointUnlocked;
     game.set({ viewpointUnlocked: true });
+    // wave 5 (W5-C2): in the city the sweep meets the pelican too (lane C's moment; before the move system's own toast)
+    unlockPelican('sweep');
     completeGoal('viewpoint');
     emit({ type: 'stamp' });
     if (first) {
@@ -1408,9 +1506,10 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
   // city goals (lane G2, game/cityContent.ts goalTargets): a waypoint per unfinished goal; ids resolve through
   // interactableById (an interactable, or a G1 `place:<id>` via setExtraResolver) so "take me there" can lead.
   // A favour you said yes to (`first`) comes before everything else.
-  const firsts: typeof out = [];
-  for (const t of goalTargets()) if (!goalDone(t.goal) && dist(from, t) > (t.radius ?? 3) + 1) (t.first ? firsts : out).push({ id: t.id, x: t.x, z: t.z, name: t.name });
-  const pickFrom = firsts.length ? firsts : out;
+  // Wave 5 (W5-C2, plan MF3): then the pelican goal, before any nearer goal — once it is done, BAYBAY can fly you anywhere.
+  const firsts: typeof out = [], pelican: typeof out = [];
+  for (const t of goalTargets()) if (!goalDone(t.goal) && dist(from, t) > (t.radius ?? 3) + 1) (t.first ? firsts : t.goal === CITY_GOAL.pelican ? pelican : out).push({ id: t.id, x: t.x, z: t.z, name: t.name });
+  const pickFrom = firsts.length ? firsts : pelican.length ? pelican : out;
   pickFrom.sort((a, b) => dist(from, a) - dist(from, b));
   return pickFrom[0] ?? null;
 }
@@ -1612,6 +1711,9 @@ export function restartOnboarding() {
   game.set(s => ({ phase: 'playing', mode: 'onboarding', tour: { ...s.tour, active: false }, riding: null, photoMode: false }));
   const keep = { debug: flow.get().debug };
   flow.set({ ...initialFlowState(), ...keep });
+  // wave 5 (W5-C3): a restart (Settings → reset progress, its only caller) welcomes a new player again
+  resetWelcome();
+  startKind = 'new';
   introPendingSince = performance.now() - 2000;
   refreshLock();
 }

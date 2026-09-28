@@ -1,0 +1,49 @@
+/* Wave 5 · lane C · W5-C3: the goals step (ui/GoalsStep.tsx; its own lazy chunk). Once per player, city mode. */
+
+.ob-overlay .ob-gstep-wrap {
+  position: absolute; inset: 0; z-index: 34; display: grid; place-items: center; padding: calc(16px + var(--ob-st)) calc(16px + var(--ob-sr)) calc(16px + var(--ob-sb)) calc(16px + var(--ob-sl));
+  background: rgba(34, 50, 47, .34); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; animation: ob-fade-in .3s;
+}
+.ob-gstep {
+  position: relative; width: min(440px, 100%); display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 14px;
+  border-radius: 24px; background: var(--ob-cream); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow); animation: ob-card-in .5s var(--ob-spring);
+}
+.ob-gstep-head { display: flex; align-items: center; gap: 12px; }
+.ob-gstep-head .ob-face { flex: none; box-shadow: 0 0 0 3px #fff, var(--ob-shadow-s); }
+.ob-gstep-head p { font-size: 16px; font-weight: 800; line-height: 1.45; color: var(--ob-ink); }
+
+/* goal #1: the pelican */
+.ob-gstep-hero {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 18px;
+  background: linear-gradient(135deg, #fff6df, #fdebc3); border: 2px solid #f0c978; box-shadow: 0 6px 16px -10px rgba(168, 116, 31, .7);
+}
+.ob-gstep-hero > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ob-gstep-hero strong { font-size: 16.5px; font-weight: 900; color: #3b2c0c; line-height: 1.35; }
+.ob-gstep-hero small { font-size: 13px; font-weight: 600; color: #7a5a1c; line-height: 1.45; }
+.ob-gstep-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--ob-gold); color: #2b2210; }
+.ob-gstep-reward { display: inline-flex; align-items: center; gap: 5px; width: fit-content; margin-top: 3px; padding: 3px 10px; border-radius: 999px; background: #fff; color: #8a5a10; font-size: 12.5px; font-weight: 800; font-style: normal; }
+.ob-gstep-hero.is-done { background: var(--ob-teal-l); border-color: var(--ob-teal); box-shadow: none; }
+.ob-gstep-hero.is-done .ob-gstep-icon { background: var(--ob-teal); color: #fff; }
+.ob-gstep-hero.is-done strong { text-decoration: line-through; color: var(--ob-ink-3); }
+
+/* the other goals, compact */
+.ob-gstep-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; padding: 2px 4px; }
+.ob-gstep-list li { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; font-size: 13px; font-weight: 700; line-height: 1.35; color: var(--ob-ink-2); }
+.ob-gstep-list .ob-check { width: 16px; height: 16px; border-radius: 5px; }
+.ob-gstep-list li.is-done { color: var(--ob-ink-3); text-decoration: line-through; }
+
+.ob-gstep-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+.ob-gstep-go { min-height: 54px; font-size: 17px; font-weight: 900; justify-content: center; }
+.ob-gstep-go small { font-size: 14px; font-weight: 700; opacity: .8; }
+.ob-gstep-self { min-height: 46px; justify-content: center; }
+.ob-gstep-note { text-align: center; font-size: 12px; font-weight: 600; color: var(--ob-ink-3); }
+
+@media (max-width: 720px) {
+  .ob-gstep { padding: 16px 14px 12px; gap: 10px; border-radius: 22px; }
+  .ob-gstep-head p { font-size: 15px; }
+  .ob-gstep-hero strong { font-size: 15.5px; }
+  .ob-gstep-list li { font-size: 12.5px; padding: 4px 0; }
+}
+@media (max-width: 360px) {
+  .ob-gstep-list { grid-template-columns: 1fr; }
+}

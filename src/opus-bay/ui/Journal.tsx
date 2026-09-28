@@ -7,11 +7,12 @@ import { eventById, nextShowing, placeById, todayInBay, useCatalog } from '../da
 import { eventUrl, guideUrl, mapsUrl, pickPlanDate, planStopTitles, planUrl, walkingRouteUrl, type PlanStop } from '../data/links';
 import { POIS } from '../data/pois';
 import { POSTCARDS, activePostcardCount, activePostcardTotal } from '../data/postcards';
-import { goalProgress } from '../data/sf/goals';
+import { CITY_GOAL, GOAL_REWARDS, goalProgress } from '../data/sf/goals';
 import { RESIDENTS, taskState, tasksDone } from '../data/sf/residents';
 import { FREE_GOALS } from '../data/script';
 import { districtTourProgress, wishlist } from '../data/wishlist';
 import { closePanel, navigateTo, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
+import { goalTargets } from '../game/cityContent';
 import { flow } from '../game/flowStore';
 import { poiById } from '../game/interactables';
 import { useT } from '../i18n';
@@ -173,10 +174,17 @@ function Goals() {
           {FREE_GOALS.map(goal => {
             const ok = done.includes(goal.id);
             const progress = goalProgress(goal.id, done);
+            // wave 5 (W5-C2): goal #1's reward text (解锁：随时飞) and 带我去 while it is open
+            const reward = GOAL_REWARDS[goal.id];
+            const go = !ok && goal.id === CITY_GOAL.pelican ? goalTargets().find(g => g.goal === goal.id)?.id : undefined;
             return (
               <li key={goal.id} className={ok ? 'is-done' : ''}>
                 <span className="ob-check">{ok && <Check size={13} aria-hidden />}</span>
-                <div><strong>{t(goal.label)}{progress && ` · ${progress}`}</strong><small>{t(goal.hint)}</small></div>
+                <div>
+                  <strong>{t(goal.label)}{progress && ` · ${progress}`}</strong><small>{t(goal.hint)}</small>
+                  {reward && <small className="ob-goal-reward">{t(reward)}</small>}
+                  {go && <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={() => navigateTo(go)}><Navigation size={14} aria-hidden />{t('带我去', 'Take me there')}</button>}
+                </div>
               </li>
             );
           })}
