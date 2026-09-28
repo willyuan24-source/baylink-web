@@ -304,11 +304,12 @@ test('G2-5: 8 of 41 neighbourhoods, hero zones not counted; progress text', () =
   assert.equal(goalProgress(CITY_GOAL.twinPeaks, done), null);
 });
 
-test('G2-5: goal waypoints resolve to landmark cards (wave 5: the pelican first, at Coit)', () => {
+test('G2-5: goal waypoints resolve to landmark cards (wave 5: the pelican first, at Coit)', async () => {
   const all = cityGoals.cityGoalTargets();
   assert.deepEqual(all.map(t => t.goal), [CITY_GOAL.pelican, CITY_GOAL.cableCar, CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies]);
   // goal #1 leads to the district's Coit Tower viewpoint card (the summit), which city mode resolves too
-  assert.equal(all[0].id, 'coit-tower');
+  assert.equal(all[0].id, 'pelican:coit');
+  assert.equal((await import('../src/opus-bay/game/interactables')).interactableById('pelican:coit')?.name.zh, '科伊特塔', 'resolved by the game’s zh name');
   assert.ok(dist(all[0], { x: -50.25, z: 45.5 }) < 0.01, 'the Coit view anchor');
   filled(all[0].name, all[0].id);
   const targets = all.slice(1);

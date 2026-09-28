@@ -51,7 +51,7 @@ export default function GoalsStep({ close }: OverlayProps) {
     <div className="ob-gstep-wrap" onClick={e => { if (e.target === e.currentTarget) self(); }}>
       <section className="ob-gstep" role="dialog" aria-modal="true" aria-labelledby="ob-gstep-title">
         <header className="ob-gstep-head">
-          <BaybayFace mood="excited" size={56} />
+          <BaybayFace mood="wave" size={56} />
           <p id="ob-gstep-title">{t(INTRO)}</p>
         </header>
         {pelican && (

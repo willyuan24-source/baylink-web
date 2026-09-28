@@ -258,9 +258,9 @@ test('W5-C2 BAYBAY recommends the pelican first: nextFreeGoal leads to Coit befo
   reset();
   // stand right next to the cable-car turntable goal: the pelican (Coit, ≈ 250 u away) still comes first
   Object.assign(runtime.player, { x: 150, z: 262 });
-  assert.equal(flowMod.nextFreeGoal()?.id, 'coit-tower');
+  assert.equal(flowMod.nextFreeGoal()?.id, 'pelican:coit');
   game.set({ goalsDone: ['pelican'] });
-  assert.notEqual(flowMod.nextFreeGoal()?.id, 'coit-tower', 'met: the nearest goal again');
+  assert.notEqual(flowMod.nextFreeGoal()?.id, 'pelican:coit', 'met: the nearest goal again');
   game.set({ goalsDone: ['task-on:baker'] });
   const first = flowMod.nextFreeGoal()!;
   assert.ok(first.name.zh.startsWith('小忙'), `an accepted favour leads: ${first.name.zh}`);
@@ -330,11 +330,23 @@ test('W5-C2 以后再说 leaves a take-off hint; without lane A the take-off its
   reset();
   game.set({ tour: { active: true, id: 'sf-grand', stop: 0, completed: [] } });
   const offered: string[] = [];
+  pelican.resetPelicanForTests(null, line => { offered.push(line.zh); return true; });
   pelican.unlockPelican('tour', clock);
+  // at once, queued right behind the stop's own line on BAYBAY's pacer (the QA run lost a line that waited behind
+  // the tour's next lead line and the bus boarding), with the toast
+  assert.deepEqual(offered, ['送你一位鹈鹕朋友！以后想去哪都能飞～']);
+  assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')));
+  assert.equal(pelican.pelicanPending(), null, 'nothing waits');
   tick(pelican.MOMENT_MIN_MS + 1);
   pelican.stepPelican(clock, line => { offered.push(line.zh); return true; });
-  assert.deepEqual(offered, ['送你一位鹈鹕朋友！以后想去哪都能飞～']);
+  assert.equal(offered.length, 1, 'said once');
   assert.equal(game.get().dialogue.nodeId, null, 'the tour goes on');
+  // a viewpoint unlock that happens while a tour runs is the tour's kind of moment too
+  reset();
+  game.set({ tour: { active: true, id: 'sf-grand', stop: 0, completed: [] } });
+  pelican.unlockPelican('viewpoint', clock);
+  assert.equal(pelican.pelicanPending(), null);
+  assert.equal(flow.get().bubble?.text.zh, '送你一位鹈鹕朋友！以后想去哪都能飞～', 'no pacer yet: a bubble');
 });
 
 test('W5-C2 a save that already had the glide: goal #1 ticked quietly on load, no reward, no moment; district mode never unlocks', () => {
@@ -394,12 +406,12 @@ test('W5-C3 the goals step: once per player, pelican first, bubbles paused, the 
     assert.equal(flow.get().bubble, null, 'BAYBAY waits: the step carries her intro');
     slots.closeOverlay(goals.GOALS_STEP_ID);
     // after it: 我自己逛 → her pelican line and the soft waypoint on Coit
-    afterGoalsStep('self', 'coit-tower');
+    afterGoalsStep('self', 'pelican:coit');
     assert.equal(flow.get().bubble?.text.zh, flowMod.PELICAN_NUDGE.zh);
-    assert.equal(flow.get().freeHint?.id, 'coit-tower');
+    assert.equal(flow.get().freeHint?.id, 'pelican:coit');
     // the big button → BAYBAY leads there
-    afterGoalsStep('lead', 'coit-tower');
-    assert.equal(flow.get().freeLead, 'coit-tower');
+    afterGoalsStep('lead', 'pelican:coit');
+    assert.equal(flow.get().freeLead, 'pelican:coit');
     // a second free roam: no step, no card, and no "here are some goals" again
     flowMod.startFree();
     assert.equal(flowMod.goalsStepOpen(), false);
@@ -498,4 +510,17 @@ test('W5-C4 a finished favour emits favour:<key> once (25)', async () => {
     emit({ type: 'dialogue', speaker: 'npc', nodeId: 'npc.muralist.yes' });
     assert.equal(rewardsSeen().length, 1);
   } finally { off(); }
+});
+
+test('W5-C3 a resume is not an arrival: settle() marks the anchors around the spot entered (no moment) until the player leaves and comes back', async () => {
+  const { ArrivalWatcher } = await import('../src/opus-bay/game/arrival');
+  const w = new ArrivalWatcher(anchors);
+  const dragon = anchors.find(a => a.attraction === 'chinatown-dragon-gate' && !a.spot)!;
+  const at = (x: number, z: number, now: number) => w.step({ x, z, now, onFoot: true, busy: false, travelling: false });
+  assert.ok(w.settle(dragon.x, dragon.z) >= 1);
+  assert.equal(at(dragon.x, dragon.z, 1000), null, 'standing where they left off: no moment');
+  assert.equal(w.hasSeen('chinatown-dragon-gate'), false, 'nothing marked seen');
+  at(dragon.x + 200, dragon.z, 2000);
+  assert.equal(at(dragon.x, dragon.z, 3000)?.anchor.attraction, 'chinatown-dragon-gate', 'walking back in is the first arrival');
+  assert.match(src('game/flow.ts').replace(/\r\n/g, '\n'), /export function welcomeBack\(\): void \{\n[^\n]*\n {2}settleArrivals\(\);/, 'the welcome back settles first');
 });

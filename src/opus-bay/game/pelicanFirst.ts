@@ -10,7 +10,7 @@ import { CITY_GOAL } from '../data/sf/goals';
 import type { ArrivalHit } from './arrival';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
-import { bubble, defineNode, dialogueOpen, markGoalsDone, playDialogue, say } from './flow';
+import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
 
@@ -88,8 +88,21 @@ export function unlockPelican(reason: UnlockReason, now = performance.now()): bo
   setGlideUnlocked(true);
   // quiet: the moment is the toast (the goal event still plays its sound and lane E pays `goal:pelican`)
   markGoalsDone([CITY_GOAL.pelican], { quiet: true });
+  // the Grand Tour: at once, right after the stop's own line (the tour goes on: no dialogue, no waiting)
+  if (reason === 'tour' || game.get().tour.active) { tourMoment(); return true; }
   pending = { reason, since: now };
   return true;
+}
+
+/** BAYBAY's pacer (game/cityMoments.ts registers it at boot); a plain bubble before that (tests). */
+type Offer = (line: Bilingual, ttl?: number) => boolean;
+let offerFn: Offer | null = null;
+
+/** The tour's version of the moment: the toast and one paced line, queued behind the stop's arrive line. */
+function tourMoment() {
+  const key = takeOffKey();
+  say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
+  if (!offerFn?.(PELICAN_LINES.tour, 60)) bubble(PELICAN_LINES.tour, 4200);
 }
 
 /** A save that had the glide before wave 5 (or ?debug=1): tick goal #1 quietly — no reward, no moment. */
@@ -104,7 +117,7 @@ function quiet(now: number, p: Pending): boolean {
   const s = game.get(), f = flow.get();
   if (now - p.since < MOMENT_MIN_MS) return false;
   return s.phase === 'playing' && !s.paused && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.arrival
-    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing;
+    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen();
 }
 
 /** City frame system (≈ 4 Hz, game/cityMoments.ts): play the moment once the screen is free. `offer` = BAYBAY's pacer. */
@@ -117,7 +130,7 @@ export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) 
   pending = null;
   const key = takeOffKey();
   say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
-  if (inTour) { offer(PELICAN_LINES.tour, 30); return; }
+  if (inTour) { if (!offer(PELICAN_LINES.tour, 60)) bubble(PELICAN_LINES.tour, 4200); return; }
   // waited too long for a quiet screen (a trip, a ride): a bubble, never a dialogue over something else
   if (late && !quiet(now, { ...p, since: -Infinity })) { bubble(PELICAN_LINES.laterBubble(key), 4200); return; }
   wantFlight = false;
@@ -148,12 +161,13 @@ function takeOff() {
 // 试试起飞 opens GO_NODE: remembered for the moment's end (module level: this module lives in the city chunk only)
 onEvent(e => { if (e.type === 'dialogue' && (e.nodeId === GO_NODE || e.nodeId === ASK_NODE)) wantFlight = e.nodeId === GO_NODE; });
 
-/** The city chunk's boot: tick an old save's goal #1. Returns the disposer. */
-export function initPelicanFirst(): () => void {
+/** The city chunk's boot: BAYBAY's pacer for the tour's line; tick an old save's goal #1. Returns the disposer. */
+export function initPelicanFirst(offer: Offer | null = null): () => void {
+  offerFn = offer;
   syncPelicanGoal();
-  return () => { pending = null; wantFlight = false; };
+  return () => { pending = null; wantFlight = false; offerFn = null; };
 }
 
-/** Tests: forget the moment and lane A's starter. */
-export function resetPelicanForTests(starter: (() => unknown) | null = null) { pending = null; wantFlight = false; flightStarter = starter; }
+/** Tests: forget the moment and lane A's starter; `offer` stands in for BAYBAY's pacer. */
+export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; }
 

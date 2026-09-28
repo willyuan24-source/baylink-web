@@ -189,6 +189,16 @@ export class ArrivalWatcher {
   seen(): string[] { return [...this.seenIds]; }
   hasSeen(attraction: string): boolean { return this.seenIds.has(attraction); }
 
+  /**
+   * Wave 5 (W5-C3): the player reappeared here (a resume) rather than arrived: every anchor around (x, z) counts as
+   * already entered — no moment until they leave it (1.6 × its radius) and come back. Nothing is marked seen.
+   */
+  settle(x: number, z: number): number {
+    let n = 0;
+    for (const a of this.near(x, z)) if (Math.hypot(a.x - x, a.z - z) <= radiusOf(a) && !this.inside.has(keyOf(a))) { this.inside.add(keyOf(a)); n++; }
+    return n;
+  }
+
   /** The soft hint stays off for HINT_QUIET_MS after an arrival. */
   hintSuppressed(now: number): boolean { return this.lastArrivalAt > 0 && now - this.lastArrivalAt < HINT_QUIET_MS; }
 

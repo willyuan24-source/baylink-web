@@ -24,7 +24,7 @@ import { flow, initialFlowState, type Bubble } from './flowStore';
 import { deriveLock, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
-import { baybayLine, goalTargets, initCityContent, unlockPelican } from './cityContent';
+import { baybayLine, goalTargets, initCityContent, settleArrivals, unlockPelican } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
@@ -438,6 +438,8 @@ function welcomed(choice: NonNullable<WelcomeInfo['choice']>) {
  * with the pelican still to meet, goal #1. Never "第一次来吗？".
  */
 export function welcomeBack(): void {
+  // standing where they left off is not arriving there (no reveal or 抵达 toast over the welcome)
+  settleArrivals();
   const zone = readSave()?.lastSafe?.zone ?? game.get().area ?? null;
   const name = zoneName(zone);
   const known = name !== SF_NAME && !!zone;
@@ -517,8 +519,13 @@ export function offerRealTime(now = new Date()) {
   timeOffered = true;
   const real = bayTimeOfDay(now);
   if (real === 'golden') { flow.set({ goldenFirstVisit: false }); return; } // it really is golden hour
-  setTimeout(() => { if (flow.get().goldenFirstVisit) flow.set({ timeOffer: real }); }, 1800);
-  setTimeout(() => { if (flow.get().timeOffer === real) flow.set({ timeOffer: null }); }, 1800 + 10000);
+  // (wave 5, W5-C3: after the goals step, never over it; its 10 s start when it shows)
+  const show = () => {
+    if (goalsStepOpen()) { setTimeout(show, 500); return; }
+    if (flow.get().goldenFirstVisit) flow.set({ timeOffer: real });
+    setTimeout(() => { if (flow.get().timeOffer === real) flow.set({ timeOffer: null }); }, 10000);
+  };
+  setTimeout(show, 1800);
 }
 
 /** [看夜景]: follow the real Bay clock for the rest of this visit (nothing is saved). */
@@ -985,7 +992,9 @@ let feedbackPending = false;
 
 export const busy = () => {
   const s = game.get(), f = flow.get();
-  return feedbackPending || s.phase !== 'playing' || !!s.dialogue.nodeId || !!f.fishing || cinemaActive() || s.riding !== null || s.photoMode || !!f.postcardReward || !!f.postcardFly;
+  return feedbackPending || s.phase !== 'playing' || !!s.dialogue.nodeId || !!f.fishing || cinemaActive() || s.riding !== null || s.photoMode || !!f.postcardReward || !!f.postcardFly
+    // wave 5 (W5-C3): E behind the goals step never boards the ferry at the gate
+    || goalsStepOpen();
 };
 
 let lastInteractAt = 0;
@@ -1157,7 +1166,7 @@ let lastCallAt = -Infinity;
 export function callBaybay() {
   const s = game.get();
   if (s.phase !== 'playing' || s.dialogue.nodeId || cinemaActive() || flow.get().fishing) return;
-  if (introPending()) return;
+  if (introPending() || goalsStepOpen()) return;
   // Q is seen both by the DOM shortcut and by actors' input (runtime.input.call): treat them as one press.
   const now = performance.now();
   if (now - lastCallAt < 400) return;

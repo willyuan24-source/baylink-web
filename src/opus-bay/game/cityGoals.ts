@@ -3,6 +3,7 @@ import { DISTRICT } from '../data/district';
 import { LANDMARK_ARRIVALS } from '../data/sf/arrivals';
 import { cityPoiId } from '../data/sf/cityPois';
 import type { GoalTarget } from './cityContent';
+import { registerPrefixResolver, type Interactable } from './interactables';
 
 /**
  * City goal waypoints (lane G2, plan G2-5; lane C from wave 4). The goals themselves are data/sf/goals.ts; `postcards`,
@@ -12,12 +13,24 @@ import type { GoalTarget } from './cityContent';
  * main graph (the waypoints), so it imports no world/sf code.
  */
 
+/**
+ * Wave 5 (W5-C2): goal #1's place — the Coit Tower summit (the district's viewpoint anchor), by the game's zh name
+ * (the district card itself is "Coit Tower 观景点" and stays as it is). Resolved like `clue:` ids: the waypoint, the
+ * goals step's big button and 带我去 lead there ("跟我来！去科伊特塔"); not in interactables() (no E prompt).
+ */
+export const PELICAN_TARGET = 'pelican:coit';
+const RADIUS = 10;
+function pelicanTarget(): Interactable | undefined {
+  const coit = DISTRICT.anchors?.['coit-view'];
+  return coit ? { id: PELICAN_TARGET, source: 'place', action: 'info', verb: { zh: '看看海湾', en: 'Take in the Bay' }, name: { zh: '科伊特塔', en: 'Coit Tower' }, x: coit.x, z: coit.z, radius: RADIUS } : undefined;
+}
+registerPrefixResolver('pelican:', id => (id === PELICAN_TARGET ? pelicanTarget() : undefined));
+
 /** Soft waypoints for unfinished city goals (game/cityContent goalTargets): the landmark card of each place goal. */
 export function cityGoalTargets(): GoalTarget[] {
   const out: GoalTarget[] = [];
-  // wave 5 (W5-C2): goal #1, the pelican at Coit Tower (the district's viewpoint card: 带我去 walks up to the summit)
-  const coit = DISTRICT.anchors?.['coit-view'];
-  if (coit) out.push({ id: 'coit-tower', goal: CITY_GOAL.pelican, x: coit.x, z: coit.z, name: { zh: '找鹈鹕朋友 · 科伊特塔', en: 'Meet the pelican · Coit Tower' }, radius: 10 });
+  const coit = pelicanTarget();
+  if (coit) out.push({ id: PELICAN_TARGET, goal: CITY_GOAL.pelican, x: coit.x, z: coit.z, name: { zh: '找鹈鹕朋友 · 科伊特塔', en: 'Meet the pelican · Coit Tower' }, radius: RADIUS });
   const add = (goal: string, landmark: string, name: GoalTarget['name']) => {
     const at = LANDMARK_ARRIVALS[landmark];
     if (at) out.push({ id: cityPoiId(landmark), goal, x: at.x, z: at.z, name, radius: 4 });

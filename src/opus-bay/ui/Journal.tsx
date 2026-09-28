@@ -153,9 +153,8 @@ function Goals() {
   const active = useGame(s => s.tour.active);
   const city = useGame(s => s.worldMode === 'city');
   const stops = tourStops();
-  return (
-    <>
-      <section className="ob-block">
+  const bay101 = (
+      <section className="ob-block" key="bay101">
         <h3 className="ob-h3"><Route size={15} aria-hidden />{t('湾区第一课', 'Bay 101')} · {completed.length}/{stops.length}</h3>
         <ol className="ob-stops">
           {stops.map(stop => {
@@ -168,7 +167,9 @@ function Goals() {
           <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={() => { closePanel(); startTour(); }}>{completed.length ? t('继续导览', 'Resume the tour') : t('开始导览', 'Start the tour')}</button>
         )}
       </section>
-      <section className="ob-block">
+  );
+  const explorer = (
+      <section className="ob-block" key="explorer">
         <h3 className="ob-h3"><ListChecks size={15} aria-hidden />{t('自由探索目标', 'Explorer goals')}</h3>
         <ul className="ob-goals">
           {FREE_GOALS.map(goal => {
@@ -190,9 +191,9 @@ function Goals() {
           })}
         </ul>
       </section>
-      {city && <Favours done={done} />}
-    </>
   );
+  // wave 5 (W5-C3): in the city the explorer goals come first (goal #1, the pelican, on top); the district as before
+  return city ? <>{explorer}<Favours done={done} />{bay101}</> : <>{bay101}{explorer}</>;
 }
 
 /**

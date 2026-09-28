@@ -195,6 +195,9 @@ export function applyArrival(hit: ArrivalHit, now = performance.now()) {
   if (hit.first || hit.panorama) patchSave(sv => { sv.arrivals = watcher?.seen() ?? sv.arrivals; });
 }
 
+/** Wave 5 (W5-C3): a resumed player reappears where they were: no arrival moment for standing there (game/arrival.ts settle). */
+export const settleArrivals = (x = runtime.player.x, z = runtime.player.z): number => watcher?.settle(x, z) ?? 0;
+
 function stepArrivals(now: number) {
   if (!watcher) return;
   const s = game.get(), f = flow.get();
@@ -294,7 +297,7 @@ export function initCityMoments(): () => void {
   if (booted) return () => {};
   booted = true;
   watcher = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS), decodeArrivalSeen(readSave()?.arrivals));
-  const offPelican = initPelicanFirst();
+  const offPelican = initPelicanFirst((line, ttl) => offerLine(line, ttl));
   let accA = 0, accP = 0, accR = 0, riding = false;
   const offFrame = registerFrameSystem('c-moments', (dt, now) => {
     // hopping off transit counts as arriving on foot for a moment (the ride's end is a hop-off)

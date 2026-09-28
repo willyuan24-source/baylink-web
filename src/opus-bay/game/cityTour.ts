@@ -174,12 +174,13 @@ function arrived(r: Run) {
   const flat = r.stops[r.i];
   if (!flat || r.phase !== 'leading') return;
   const stop = playedStop(r.def, flat.stop, r.express);
+  // wave 5 (W5-C2, plan MF3 / D26): the first stop reached meets the pelican — its toast and line first (the stop's
+  // own line often says where to go next: 观光巴士就在…), no route change
+  unlockPelican('tour');
   const line = stopSay(stop, 'arrive', r.express && !!flat.stop.expressTo);
   if (line) offerPaced(line);
   if (stop.moment === 'photo') bubble(photoPrompt(), 3200, BAYBAY_ID, 'call');
   if (!r.completed.includes(flat.stop.id)) r.completed.push(flat.stop.id);
-  // wave 5 (W5-C2, plan MF3 / D26): the first stop reached meets the pelican — a line, no route change
-  unlockPelican('tour');
   r.phase = 'dwell';
   r.paused = false;
   r.lostAt = 0;
