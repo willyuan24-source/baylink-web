@@ -844,3 +844,77 @@ already pushed: `ddb2b5f`, `f566fcd`, `59fb14b`); F6 eslint (lead, applied in §
 - **Lane P** (optional): `save.onSaveCleared(fn)` is there if discovery wants to follow a reset without a Settings edit.
 
 Relayed owner message during this part: "现在进度如何" (answered in the summary's first line). Higgsfield: 0 credits.
+
+## Integration review
+
+Adversarial reviewer of lane C's integration (parts a and b), 2026-09-27 (21:00–23:10 PDT), worktree
+`C:/Users/willy/wt/i4-c` (branch `i4-c`), dev port 5405, scratch `C:/Users/willy/opus-qa/w4i/i4-c/rv/` (QA action
+scripts `*.json`, shots `shots/`, `suite1/2.log`, `checks2.log`, `build.log`). Commits on `opus-bay`: `8a99429`, `b196f15`
+(W4-C-int-review) and this report.
+
+### 给主人的摘要
+
+1. **进度（回复"现在进度如何"）**：C 线接线的复查做完并已推上去——找到 2 个真问题，都修好了（有测试、有截图），其余检查都通过。
+2. **一日游不会再"卡住"**：以前一日游途中，如果在行程卡里点「换个方式」、在地图上让 BAYBAY 带你去别处、点「结束」或者飞过去，一日游就停在原地不再带路，叫 BAYBAY 点「继续」也没反应。现在：换个方式去同一站，仍然算一日游这一站；去别处时提示"一日游先暂停～想接着逛就叫 BAYBAY"，叫她选「继续一日游：带我去 …」就接着带路；自己走到那一站也算到站；一日游也不会再把你自己的行程抢掉或一起结束。
+3. **旅行本**里"湾区第一课"以前把一日游走过的站也算进去（显示 3/7 但一站都没勾，按钮还写"继续导览"），现在只算第一课自己的进度。
+4. 检查：tsc 0、eslint 0 错误、全套 863 个测试全部通过；主包 GameRoot 没有变大（改动都在按需加载的小包里）；Higgsfield 0 分。
+
+### What was checked
+
+- **Every lane C commit of parts a and b** (`ae3d577` `95dfa46` `2efc5b9` `344bbc2` `fbd13df` `3641b5b` `5697ca7` `38f2847`
+  `3600806`, the two reports) and the code around them: `game/{tripRun,cityMoments,cityTour,cityCards,cityDetectors}.ts`,
+  lane C's wiring in `game/{flow,brain,cityContent,interactables}.ts`, `data/{save,wishlist}.ts`, `data/sf/{cityPois,goals,
+  goalMarks}.ts`, `ui/{PoiCard,PoiCardBody,PlaceCard,EventCard,Moments,CityTourRecap,DistrictRecap,Journal}.tsx`,
+  `ui/content-ui.css`, and the other lanes' callers of lane C's entry points (lane G's GuideLayer / Hud / TripCard, lane
+  P's placeTrips / CityMap / PlaceActions).
+- **In game** (dev 5405, RTX; every shot read). Desktop 1440 × 900: welcome → 一日游 → 完整版 → the first stop; the trip
+  card's 换个方式 path (the map opened with the tour trip's id, a map trip to the same stop); a map trip elsewhere; the
+  trip card's 结束; the call menu while paused and the resume (lane T's pre-filled "Board · ride to ★ Golden Gate Bridge"
+  opened again); the cable-car leg of chapter 5 (`peaks-cable-ride`: BAYBAY's pre-filled row "上车 · 坐到 加州街 & Drumm
+  街（约 40 秒）", boarding, `flow.ride` california, the trip in its `ride` stage); the Grand Tour recap (3 of 23 stops,
+  lane P's map); the journal's Goals tab. Phone 375 × 667 dpr 3 (touch, quality mid): the paused toast under the
+  real-time toast, the paused call menu (5 rows in two columns, scrollWidth = clientWidth on every row), the journal
+  after the fix.
+- **Card texts after lane L's `a14658e`** (landmarks.ts' zh text rewritten in the game's zh names): a scan of every city
+  landmark card's zh summary / tips / bark / hours / cost / zone finds no name doubled by lane C's `glossZhText`; the
+  English left is people's names and names the game keeps (Fort Point 炮台, Camera Obscura).
+- **Budgets** (vite build of the pushed tree): GameRoot 781.19 kB / 295.15 kB gzip (part b measured 778.94 / 294.17 on
+  its own tree; the difference is other lanes' commits since). This review's code is all in lazy chunks: `cityTour`
+  12.34 kB, `tripRun` 8.90 kB, `Journal` 16.04 kB. Rendering untouched.
+- **District**: the journal reads the same field there (the district's tour is always the first lesson); trips and the
+  Grand Tour are city-only; the district and hero-regression tests are green.
+
+### Defects found and fixed
+
+| id | defect | fix | evidence |
+|---|---|---|---|
+| R1 (major) | **The Grand Tour got stuck** whenever another trip replaced or ended its stop's trip: the trip card's 换个方式 (it opens the map; lane P's options start a `'map'` trip), 跟 BAYBAY 去 elsewhere, the trip card's 结束, the map's 带我去 or a fast travel. The tour stayed "leading" with no trip, no waypoint and a pill saying "下一站 渡轮大厦" while you stood there; the call menu's "继续：带我去 …" only closed the menu. Also: a dwell's end replaced a trip the player had started at the stop, and 结束一日游 ended the player's own trip. | `tripRun.start`: a trip to the running tour stop (same place, or an end ≤ 15 u from it: `sameDestination`) is a replan of the tour's trip (its dots, lines, arrival). `cityTour.watchTrip` (2 Hz): the stop's trip missing ≥ 1.5 s or the player's own trip under way pauses the tour with one toast ("一日游先暂停～想接着逛就叫 BAYBAY"); reaching the stop (≤ 12 u of the trip's end, no trip running) counts as arriving; the call menu's first row becomes "继续一日游：带我去 …" / "继续一日游 · 去下一站" (`tour-next` leads again); the tour only ends its own trips (`endTourTrip`) | `tests/opus-bay-sf-int-review-c.test.ts` (4 tests, all red on the old code); in game before: `stuck1` (`qa/w4/C/ir-tour-stuck-before-desk.jpg`: at the Ferry Building stop, the pill still "Next · Ferry Building", no trip 30 s later); after: 换个方式 stays `source: 'tour'`, arrives, dwells, leads to the bus; 结束 → the toast; the menu (`ir-tour-paused-menu-desk.jpg`, `ir-tour-paused-toast-375.jpg`); resume → the tour's trip and lane T's boarding again |
+| R2 (minor) | **The journal's Bay 101** read `game.tour.completed`, which holds the Grand Tour's stops while or after it runs: "Bay 101 · 3/7" with no stop ticked and "继续导览" for a lesson never started (it could read 12/7 after a longer tour) | `ui/Journal.tsx` Goals reads the first lesson's own progress (`districtTourProgress`) when `game.tour` is a city tour, as the call menu already did | same test file (the journal test); `ir-journal-before-desk.jpg` (3/7) → `ir-journal-after-375.jpg` (0/7, "Start the tour") |
+
+### Checked, not changed
+
+- `cityCards.applyCards` refreshes the landmark cards in `POIS` in place, so a second apply would add the status twice;
+  it runs once per page (the Overlay's `useBoot` guard, never disposed), so it is not a live defect.
+- The arrival moment and the tour's arrive line at the same attraction share the frozen line id, so the pacer says it
+  once (`arrivalPaced` key = the voice id).
+- Part b's requests to lane L are closed by `a14658e`: the turntable arrival moved off the track (131.58, 254.17) and the
+  landmark texts use the game's zh names.
+
+### Open (other lanes' files)
+
+- **Lane P / G**: the trip card's 换个方式 opens the map with the trip's `placeId`; for a Grand Tour trip that is the
+  stop's interactable id (`transit-loop-ferry-building`, `sf:<landmark>`), which the map does not select (it opens on
+  the list with "Now: to Ferry Building", `shots/change-map.jpg`). Picking the stop again now works (R1); selecting it
+  for the player would save the search.
+- **Lane G**: the real-time toast ("It's night in the Bay right now … See the night view") sits over the recap's stamp
+  at 1440 and above the trip toasts on phones; part a's ArrivalCard 看介绍 request (`attractionCardId`) is still open.
+- Part b's own gaps stand: the optional side stops, the two-shot framing, the express run timed end to end, the loop's
+  ride estimate (lane T).
+
+### Checks
+
+Pushed tree (rebased over `f54e4a3`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings,
+none in lane C's files) · full opus-bay suite **863 / 863** (843 / 843, 854 / 854 and 860 / 860 over the earlier bases). Run through `node
+node_modules/{typescript/bin/tsc, eslint/bin/eslint.js, tsx/dist/cli.mjs}` like part b. Dev server on 5405 stopped.
+
+Relayed owner message during this review: "现在进度如何" (answered in the summary's first line). Higgsfield: 0 credits.
