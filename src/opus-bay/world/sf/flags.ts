@@ -276,6 +276,7 @@ varying vec3 vTint;
 varying float vAlpha;
 varying float vGlyph;
 varying float vShade;
+varying float vPoleY;
 void main() {
   vec3 foot = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec2 toCam = cameraPosition.xz - foot.xz;
@@ -289,7 +290,9 @@ void main() {
   vec3 away = vec3(-toCam.x, 0.0, -toCam.y);
   vec3 p;
   vShade = 1.0;
+  vPoleY = 1.0;
   if (aPart < 0.5) {
+    vPoleY = position.y;
     float r = ${POLE.r.toFixed(2)} * kp;
     p = foot + vec3(position.x * r, position.y * top, position.z * r);
     // light from the upper left of the view: sides facing the camera's right are brighter
@@ -331,6 +334,7 @@ varying vec3 vTint;
 varying float vAlpha;
 varying float vGlyph;
 varying float vShade;
+varying float vPoleY;
 void main() {
   vec3 col;
   if (vPart < 0.5) col = uPole * vShade;
@@ -356,7 +360,10 @@ void main() {
       col = mix(col, vTint * 0.78, ink * disc);
     }
   }
-  gl_FragColor = vec4(col * uDim, vAlpha);
+  // the flags draw over the city (no depth test): the pole rises out of the skyline, its lower part fading in
+  float a = vAlpha;
+  if (vPart < 0.5) a *= smoothstep(0.0, 0.6, vPoleY);
+  gl_FragColor = vec4(col * uDim, a);
   #include <colorspace_fragment>
 }
 `;
@@ -376,6 +383,9 @@ export function makeFlagMaterial(atlas: THREE.Texture | null = null): FlagMateri
     fragmentShader: FRAG,
     transparent: true,
     depthWrite: false,
+    // integration (lane G review O7, seen in the game): with the depth test the downtown towers hid every flag from
+    // the Ferry Building. Flags are guidance, like the waypoint pin: they draw over the city (renderOrder 8)
+    depthTest: false,
     side: THREE.DoubleSide,
     fog: false,
     toneMapped: false,

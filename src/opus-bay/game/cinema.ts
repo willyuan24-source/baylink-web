@@ -70,10 +70,15 @@ function applyShot(shot: Shot) {
   if (shot.caption !== undefined) flow.set({ caption: shot.caption, captionSub: shot.sub ?? null });
 }
 
-/** One-shot request to turn the follow camera toward a point (photo subjects…); consumed by actors/camera.ts. */
-let faceRequest: { x: number; z: number } | null = null;
-export function faceCameraToward(x: number, z: number) { faceRequest = { x, z }; }
-export function takeFaceRequest() { const r = faceRequest; faceRequest = null; return r; }
+/**
+ * One-shot request to turn the follow camera toward a point (photo subjects…); consumed by actors/camera.ts.
+ * `seconds`: how long the turn takes (default ≈ 1 s, the camera's usual assist); `uncapped`: turn all the way (the
+ * waypoint's edge arrow, W4-G2: "转过去" over 0.6 s, even to a target behind you) instead of at most 100°.
+ */
+export interface FaceRequest { x: number; z: number; seconds?: number; uncapped?: boolean }
+let faceRequest: FaceRequest | null = null;
+export function faceCameraToward(x: number, z: number, opts: { seconds?: number; uncapped?: boolean } = {}) { faceRequest = { x, z, ...opts }; }
+export function takeFaceRequest(): FaceRequest | null { const r = faceRequest; faceRequest = null; return r; }
 
 // ---------------------------------------------------------------------------
 // C1 · Framing API (polish round 1). Game flow HOLDS a framing for as long as a moment lasts; the camera

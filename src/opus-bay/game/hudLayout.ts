@@ -22,6 +22,8 @@ export interface Box { l: number; t: number; r: number; b: number }
 export const HUD_BOX_SELECTOR = [
   '.ob-hud > *', '.ob-touch-action > span', '.ob-topstack > *', '.ob-toast', '.ob-goals-card', '.ob-coach', '.ob-lead-chip',
   '.ob-move-buttons > *',
+  // wave 4 (lane G, city): the trip card and the arrival peek card
+  '.ob-trip-card', '.ob-arrival-card',
 ].join(', ');
 
 const GAP = 6;
@@ -104,7 +106,7 @@ const SETTLE_MS = 450;
 /** and a slow safety re-read (4 s) while something needs the boxes (a size change without a DOM mutation, …) */
 const SAFETY_MS = 4000;
 /** mutations inside the projected elements themselves (written every frame) or the debug readout do not count */
-const IGNORE = '.ob-bubble-anchor, .ob-waypoint, .ob-tap-hint, .ob-fish-alert, .ob-debug, .ob-sr';
+const IGNORE = '.ob-bubble-anchor, .ob-waypoint, .ob-tap-hint, .ob-fish-alert, .ob-debug, .ob-sr, .ob-pano';
 
 let scanned: Box[] = [];
 let scannedAt = -Infinity;

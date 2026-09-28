@@ -24,6 +24,7 @@ import { CoachMark, TapHint } from './CoachMark';
 import { Hud, RideBanner } from './Hud';
 import { FishGame, GoalsCard, PhotoMode, PostcardReward, Recap } from './Moments';
 import { PoiCard } from './PoiCard';
+import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 
 // Side panels are their own chunks (opened by a key / HUD button, prefetched once play starts).
 const loadMap = () => import('./MapPanel');
@@ -36,6 +37,10 @@ const WeekPanel = lazy(() => loadWeek().then(m => ({ default: m.WeekPanel })));
 const SettingsPanel = lazy(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
 // wave 4 · lane T: the subway overlay, only during a Muni Metro ride (its own chunk)
 const LineRideLayer = lazy(() => import('./LineRideLayer'));
+// Wave 4 · lane G's city guidance on screen (arrival toast and card, panorama tags, trip card): city mode only
+const GuideOverlay = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideOverlay })));
+const GuideToasts = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideToasts })));
+const GuideLeadChip = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideLeadChip })));
 
 /**
  * All DOM UI over the canvas. The title screen is not here: OpusBayPage owns it (it paints before this chunk
@@ -66,8 +71,11 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
   useEffect(() => { setRightInset(mobile ? 0 : sheetWidth); }, [mobile, sheetWidth]);
   const offer = useFlow(s => !!s.timeOffer);
   const hudOn = phase === 'playing' && !photo && !cinematic && !welcoming;
+  const city = useGame(s => s.worldMode === 'city');
+  // wave 4 (city): a trip under way owns the objective slot (its pill opens the trip card), so the goals card folds
+  const trip = useFlow(s => !!s.trip && s.trip.leg < s.trip.legs.length) && city;
   // the goals card: never over a cinematic or a trip (DR-4), and it waits while the night-view banner is up (M1)
-  const goalsOn = phase === 'playing' && !photo && !cinematic && !offer;
+  const goalsOn = phase === 'playing' && !photo && !cinematic && !offer && !trip;
   return (
     <div
       className={`ob-overlay ${reduced ? 'is-reduced' : ''} ${photo ? 'is-photo' : ''} ${panel.kind ? 'has-panel' : ''} ${sheetWidth ? 'has-sheet' : ''} ${panel.kind === 'recap' ? 'is-modal' : ''} ${cinematic ? 'is-cinema' : ''} ${talking ? 'is-talking' : ''}`}
@@ -83,7 +91,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
           {hudOn && <Hud />}
           {goalsOn && !mobile && <GoalsCard />}
           {phase === 'playing' && !photo && <CoachMark />}
-          {phase === 'playing' && !photo && !welcoming && <LeadChip />}
+          {phase === 'playing' && !photo && !welcoming && (city ? <Suspense fallback={null}><GuideLeadChip /></Suspense> : <LeadChip />)}
           {panel.kind === 'poi' && <PoiCard key={panel.id} id={panel.id} />}
           {panel.kind === 'event' && <EventCard key={panel.id} id={panel.id} />}
           <Suspense fallback={null}>
@@ -93,6 +101,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
             {panel.kind === 'settings' && <SettingsPanel />}
           </Suspense>
           {panel.kind === 'recap' && <Recap />}
+          {city && phase === 'playing' && !photo && <Suspense fallback={null}><GuideOverlay /></Suspense>}
           <Dialogue />
           <FishGame />
           <PostcardReward />
@@ -105,6 +114,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
         {phase === 'playing' && <TimeOffer />}
         {hudOn && <RideBanner />}
         {goalsOn && mobile && <GoalsCard />}
+        {city && phase === 'playing' && <Suspense fallback={null}><GuideToasts /></Suspense>}
         <Toasts />
       </div>
       <LiveRegion />
@@ -144,7 +154,7 @@ function usePrefetchPanels() {
   const playing = useGame(s => s.phase === 'playing');
   useEffect(() => {
     if (!playing) return;
-    const id = window.setTimeout(() => { void loadMap(); void loadJournal(); void loadWeek(); void loadSettings(); }, 4000);
+    const id = window.setTimeout(() => { void loadMap(); void loadJournal(); void loadWeek(); void loadSettings(); void loadRideBanner(); void loadMoveChip(); }, 4000);
     return () => window.clearTimeout(id);
   }, [playing]);
 }

@@ -40,6 +40,8 @@ export function Systems() {
   const epoch = useSyncExternalStore(subscribeInteractables, interactablesEpoch, interactablesEpoch);
   const list = useMemo(() => buildInteractables(), [epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   useLayoutEffect(() => { setInteractables(list); }, [list]);
+  // (city mode) lane G's guidance chunk: a failed fetch at module load is tried again on mount
+  useEffect(() => { loadGuide(); }, []);
   return (
     <>
       <Proxies list={list} />
@@ -73,7 +75,22 @@ function refreshObjective() {
   const s = game.get();
   objectiveNow = objectiveTarget();
   objective = s.photoMode || flow.get().cinematic || s.dialogue.nodeId ? null : objectiveNow;
+  guide?.noteObjective(objectiveNow);
 }
+
+/**
+ * Wave 4 · lane G's city guidance (game/guideCity.ts: attraction flags, the city waypoint layout, arrival moments, the
+ * panorama, trip chevrons). City mode only, loaded dynamically (never in the district, never in GameRoot's static
+ * graph); started as early as possible so its flag program is in before the first flag is picked.
+ */
+let guide: typeof import('./guideCity') | null = null;
+let guideLoading = false;
+function loadGuide() {
+  if (guide || guideLoading || !cityMode()) return;
+  guideLoading = true;
+  import('./guideCity').then(m => { guide = m; m.initGuideCity(); }, () => { guideLoading = false; });
+}
+if (typeof window !== 'undefined') loadGuide();
 
 // ---------------------------------------------------------------------------
 // Click / hover proxies (one instanced mesh + one for BAYBAY; invisible material)
@@ -581,6 +598,16 @@ function projectionChanged(camera: THREE.Camera, w: number, h: number, now: numb
   return changed;
 }
 
+/**
+ * F8 / G1-8 · the waypoint's time outside a trip: how long the walk takes in the game ("约 8 秒"), not map metres (the
+ * district is compressed); a city place the map planned a route to says the time along that route (the map's own
+ * figure: at the auto-walk's pace while 带我去 walks you, at walking pace when you walk it yourself).
+ */
+function plainTimeLabel(target: { x: number; z: number; id: string }, d: number) {
+  const along = target.id.startsWith('place:') ? routeLeftTo(target, runtime.player) : null;
+  return along === null ? gameTimeLabel(d) : runtime.player.pathTarget ? secondsLabel(autoWalkSeconds(along)) : gameTimeLabel(along);
+}
+
 function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number, h: number, now: number) {
   // an open side sheet covers the right edge: keep bubbles and the waypoint in the visible part
   const w = Math.max(240, fullW - overlayInsets.right);
@@ -648,6 +675,14 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
   }
   // objective waypoint (edge arrow when off-screen)
   const wp = domAnchors.waypoint;
+  // wave 4, city mode: lane G's layout (game/guideCity cityWaypoint: safe area, bubble rule, trip time, notch)
+  if (guide) guide.noteHudBoxes(boxes);
+  if (wp && guide && objective) {
+    const locale = getLocale();
+    const r = guide.cityWaypoint({ camera, w, fullW, h, mobile, now, target: objective, boxes, bubble: bubbleRect, wp, lab: domAnchors.waypointLabel, plainTime: plainTimeLabel, pick: b => pick(b, locale) });
+    if (r.recheck) { labelRecheck = true; waypointTextAt = now; }
+    return;
+  }
   if (wp) {
     const target = objective;
     const d = target ? Math.hypot(target.x - runtime.player.x, target.z - runtime.player.z) : 0;
@@ -675,13 +710,8 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
     if (lab) {
       if (now - waypointTextAt > 250) {
         waypointTextAt = now;
-        // F8: how long the walk takes in the game ("约 8 秒"), not map metres (the district is compressed). G1-8: a
-        // city place the map planned a route to says the time along that route (the map's own figure: at the
-        // auto-walk's pace while 带我去 walks you, at walking pace when you walk it yourself)
         const locale = getLocale();
-        const along = target.id.startsWith('place:') ? routeLeftTo(target, runtime.player) : null;
-        const time = along === null ? gameTimeLabel(d) : runtime.player.pathTarget ? secondsLabel(autoWalkSeconds(along)) : gameTimeLabel(along);
-        const text = `${pick(target.name, locale)} · ${pick(time, locale)}`;
+        const text = `${pick(target.name, locale)} · ${pick(plainTimeLabel(target, d), locale)}`;
         if (lab.textContent !== text) { lab.textContent = text; labelMeasured = false; }
         if (!labelMeasured) {
           const lw = lab.offsetWidth;

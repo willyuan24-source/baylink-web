@@ -1,5 +1,5 @@
-import { useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
-import { Armchair, Bike, Bird, CableCar, CarFront, Ship, TramFront } from 'lucide-react';
+import { useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
+import { Armchair, Bike, Bird, Bus, CableCar, CarFront, Ship, TrainFront, TramFront } from 'lucide-react';
 import { glideUnlocked, requestHopOff, subscribeGlide } from '../actors/moveApi';
 import { input } from '../core/input';
 import { useGame } from '../core/store';
@@ -7,6 +7,7 @@ import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { Keycap } from './common';
 import { useDevice } from './hooks';
+import { hopOffNote } from './rideHop';
 
 /**
  * Lane E2 owns this file from wave 2 (day 0 moved it out of ui/Hud.tsx verbatim; Hud renders <MoveChip />).
@@ -54,6 +55,14 @@ export function MoveChip() {
   const dialogue = useGame(s => s.dialogue.nodeId);
   const focus = useGame(s => s.focus);
   const device = useDevice();
+  // on board, the hop-off rule follows the vehicle (a ferry docking, a train leaving a tunnel): look twice a second
+  const [, setTick] = useState(0);
+  const onBoard = mode === 'transit' && !!ride && ride.stage === 'riding';
+  useEffect(() => {
+    if (!onBoard) return;
+    const id = window.setInterval(() => setTick(n => (n + 1) % 1e6), 500);
+    return () => window.clearInterval(id);
+  }, [onBoard]);
   if (device === 'touch' || dialogue) return null;
   const pad = device === 'gamepad';
   const exit = () => { input.vehicleCount++; };
@@ -84,17 +93,19 @@ export function MoveChip() {
   if (mode === 'sit') return chip(<Armchair size={20} aria-hidden />, t('坐着歇会儿', 'Taking a seat'), <Hint k={pad ? 'A' : 'E'} label={t('起身', 'Stand up')} onPress={() => { input.interactCount++; }} />);
   if (mode === 'transit') {
     const kind = ride?.kind ?? 'streetcar';
-    const icon = kind === 'cable-car' ? <CableCar size={20} aria-hidden /> : kind === 'ferry' ? <Ship size={20} aria-hidden /> : <TramFront size={20} aria-hidden />;
+    const icon = kind === 'cable-car' ? <CableCar size={20} aria-hidden /> : kind === 'ferry' ? <Ship size={20} aria-hidden /> : kind === 'bus' ? <Bus size={20} aria-hidden /> : kind === 'light-rail' ? <TrainFront size={20} aria-hidden /> : <TramFront size={20} aria-hidden />;
     // DR-1: still at the stop (or the car is turning on its turntable) — not on board yet
     if (!ride || ride.stage === 'waiting' || ride.stage === 'turning') {
-      const name = kind === 'cable-car' ? t('等缆车', 'Waiting for the cable car') : kind === 'ferry' ? t('等渡轮', 'Waiting for the ferry') : t('等电车', 'Waiting for the streetcar');
+      const name = kind === 'cable-car' ? t('等缆车', 'Waiting for the cable car') : kind === 'ferry' ? t('等渡轮', 'Waiting for the ferry') : kind === 'bus' ? t('等观光巴士', 'Waiting for the bus') : kind === 'light-rail' ? t('等地铁', 'Waiting for the train') : t('等电车', 'Waiting for the streetcar');
       return chip(icon, name, <Hint k={pad ? 'B' : 'Space'} label={t('不坐了', 'Cancel')} onPress={requestHopOff} />);
     }
     if (ride.stage === 'braking') return chip(icon, t('停车中…', 'Stopping…'), null);
+    const note = hopOffNote(ride, {});
     return chip(icon, t('车厢里', 'On board'), <>
       <Hint k={pad ? 'A' : 'E'} label={spot === 'seat' ? t('站起来', 'Stand') : t('坐下', 'Sit down')} onPress={() => { input.interactCount++; }} />
-      {!pad && <Hint k="WASD" label={t('车厢里走走', 'Walk the aisle')} />}
-      <Hint k={pad ? 'B' : 'Space'} label={t('下车', 'Hop off')} onPress={requestHopOff} />
+      {!pad && <Hint k="WASD" label={kind === 'ferry' ? t('走走甲板', 'Walk the deck') : t('车厢里走走', 'Walk the aisle')} />}
+      {/* wave 4 (lane F review, lane T review open 1): under way / in a tunnel the key says why it waits */}
+      {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : 'Space'} label={t('下车', 'Hop off')} onPress={requestHopOff} />}
     </>);
   }
   // on foot: the glide is ready (never over a context prompt)

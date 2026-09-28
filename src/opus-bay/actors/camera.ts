@@ -541,7 +541,9 @@ export class CameraController {
       if (face) {
         const dx = face.x - view.x, dz = face.z - view.z;
         const want = Math.atan2(-dx, -dz); // camera behind the player, looking at the subject
-        if (Math.hypot(dx, dz) > 1) this.startAssist(photo ? want : this.clearYaw(view.x, view.z, want, false), now, reduced ? 6 : 1.0, photo);
+        // a timed turn (the waypoint's 转过去: 0.6 s) eases at 3 / seconds (≈ 95 % of the way in that time)
+        const rate = face.seconds ? 3 / Math.max(0.1, face.seconds) : 1.0;
+        if (Math.hypot(dx, dz) > 1) this.startAssist(photo ? want : this.clearYaw(view.x, view.z, want, false), now, reduced ? 6 : rate, photo || !!face.uncapped);
       }
       if (!photo) this.assists(now, talking, idleMs);
       this.applyAssist(now, dt, idleMs);

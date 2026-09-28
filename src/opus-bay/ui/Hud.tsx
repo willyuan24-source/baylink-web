@@ -1,23 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
-import { BookOpen, Bus, CableCar, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Ship, Sparkles, TrainFront, TramFront, type LucideIcon } from 'lucide-react';
-import { requestHopOff } from '../actors/moveApi';
-import { useGame } from '../core/store';
+import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { BookOpen, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Sparkles } from 'lucide-react';
+import { glideUnlocked, subscribeGlide } from '../actors/moveApi';
+import { game, useGame } from '../core/store';
 import type { InteractionKind } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { FREE_GOALS } from '../data/script';
-import { callBaybay, cancelRide, currentStop, enterPhotoMode, finishRide, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
+import { callBaybay, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
 import { useStreetName } from '../game/streets';
 import { flow, useFlow } from '../game/flowStore';
 import { BAYBAY_ID, interactableById } from '../game/interactables';
-import { rideLabel } from '../game/transit';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
 import { transitGlyph } from './transitGlyph';
-import { MoveChip } from './MoveChip';
+import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 
 /**
  * Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action.
@@ -31,7 +30,7 @@ export function Hud() {
       <Objective />
       {narrow ? <PhoneBar /> : <HudButtons />}
       <ContextAction />
-      <MoveChip />
+      <MoveChipSlot />
     </div>
   );
 }
@@ -78,9 +77,14 @@ function AreaLabel() {
   );
 }
 
+/** Wave 4 · lane G's trip pill (ui/GuideLayer.tsx, a city-only lazy chunk: the district never fetches it). */
+const TripPillSlot = lazy(() => loadGuideLayer().then(m => ({ default: m.TripPillSlot })));
+
 function Objective() {
   const { t } = useT();
   const mode = useGame(s => s.mode);
+  // city mode, a trip under way (lane C's flow.trip): the trip pill takes the objective slot (plan §4.2)
+  const cityTrip = useFlow(s => !!s.trip && s.trip.leg < s.trip.legs.length) && game.get().worldMode === 'city';
   const tourActive = useGame(s => s.tour.active);
   const stopIndex = useGame(s => s.tour.stop);
   const completed = useGame(s => s.tour.completed.length);
@@ -93,6 +97,7 @@ function Objective() {
   const device = useDevice();
   const goalsOpen = useFlow(s => s.goalsCard);
 
+  if (cityTrip) return <Suspense fallback={null}><TripPillSlot /></Suspense>;
   if (tourActive) {
     const cur = currentStop();
     const total = tourStops().length;
@@ -280,28 +285,25 @@ function PhoneBar() {
   );
 }
 
-/** The banner glyph per `RideLabel.icon` (an unknown icon falls back to the tram, like the district F-line). */
-const RIDE_ICONS: Readonly<Record<string, LucideIcon>> = { ferry: Ship, 'cable-car': CableCar, tram: TramFront, bus: Bus, metro: TrainFront };
+/**
+ * The ride banner (ui/RideBanner.tsx) and the keyboard move chip (ui/MoveChip.tsx) are their own chunks, fetched on the
+ * first ride / vehicle / glide (and prefetched a few seconds into play by the Overlay): GameRoot does not carry them
+ * (wave 4 integration, lane G: room for the city guidance glue within GameRoot's size).
+ */
+const RideBannerBody = lazy(loadRideBanner);
+const MoveChipBody = lazy(() => loadMoveChip().then(m => ({ default: m.MoveChip })));
 
 /** The ride banner (line, destination, 提前下车 / 直接到站): rendered in the Overlay's top stack. */
 export function RideBanner() {
-  const { t } = useT();
-  const ride = useFlow(s => s.ride);
-  if (!ride) return null;
-  // line name, destination and glyph come from lane F / T (game/transit.ts rideLabel; wave 4 adds 'bus' / 'metro')
-  const label = rideLabel(ride);
-  const Icon = RIDE_ICONS[label.icon] ?? TramFront;
-  return (
-    <div className="ob-ride" role="status">
-      <Icon size={20} aria-hidden />
-      <span>{ride.stage === 'waiting' ? t(label.waiting) : <>{t(label.lineTo)} <strong>{label.dest ? t(label.dest) : ''}</strong></>}</span>
-      {ride.stage === 'waiting'
-        ? <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={cancelRide}>{t('不坐了', 'Cancel')}</button>
-        : <>
-            {/* lane E2's hop-off request (actors/moveApi): the same path as Space / pad B */}
-            <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={requestHopOff}>{t('提前下车', 'Hop off here')}</button>
-            <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={finishRide}>{t('直接到站', 'Skip to stop')}</button>
-          </>}
-    </div>
-  );
+  const on = useFlow(s => !!s.ride);
+  return on ? <Suspense fallback={null}><RideBannerBody /></Suspense> : null;
+}
+
+/** The move chip (keyboard / pad): on a bike or in the car, gliding, seated, riding, or the glide button once unlocked. */
+function MoveChipSlot() {
+  const device = useDevice();
+  const mode = useGame(s => s.move.mode);
+  const unlocked = useSyncExternalStore(subscribeGlide, glideUnlocked, glideUnlocked);
+  if (device === 'touch' || (mode === 'foot' && !unlocked)) return null;
+  return <Suspense fallback={null}><MoveChipBody /></Suspense>;
 }
