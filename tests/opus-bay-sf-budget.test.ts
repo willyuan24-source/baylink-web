@@ -176,3 +176,13 @@ test('P7: the static graph of GameRoot reaches no city module, the landmark libr
   const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
   assert.deepEqual(sf.filter(m => m !== 'world/sf/format.ts').map(why), [], 'city modules in the main graph (use cityLoader.ts cityModule() or a dynamic import)');
 });
+
+test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {
+  const { CITY_DEBUG_NARROW, cityDebugPlacement } = await import('../src/opus-bay/world/sf/stats');
+  assert.equal(CITY_DEBUG_NARROW, '(max-width: 720px)');
+  const phone = cityDebugPlacement(true, 160.4);
+  assert.deepEqual([phone.top, phone.bottom, phone.left, phone.maxWidth, phone.whiteSpace, phone.fontSize], ['166px', 'auto', '6px', 'calc(100% - 12px)', 'pre-wrap', '10px']);
+  assert.equal(cityDebugPlacement(true, null).top, '156px', 'before G1\'s line mounts');
+  const desk = cityDebugPlacement(false, 160);
+  assert.deepEqual([desk.right, desk.bottom, desk.top, desk.whiteSpace, desk.fontSize], ['8px', '96px', 'auto', 'pre', '11px']);
+});

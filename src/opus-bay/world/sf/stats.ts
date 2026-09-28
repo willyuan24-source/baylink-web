@@ -143,6 +143,18 @@ export function breakdown(scene: THREE.Object3D, camera: THREE.Camera, opts: { w
   return { groups, shadow, total: sum(groups), shadowTotal: sum(shadow) };
 }
 
+/** The width at and under which the city ?debug panel takes its phone placement (the HUD's narrow breakpoint). */
+export const CITY_DEBUG_NARROW = '(max-width: 720px)';
+
+/**
+ * Where the city ?debug panel goes: desktop bottom right over the bottom bar; on a phone full width (6 px margins),
+ * wrapped, 10 px, just under G1's ?debug line (`g1Bottom` = its bottom edge in px, null while it is not mounted).
+ */
+export function cityDebugPlacement(narrow: boolean, g1Bottom: number | null): Partial<CSSStyleDeclaration> {
+  if (!narrow) return { left: 'auto', right: '8px', top: 'auto', bottom: '96px', maxWidth: 'none', whiteSpace: 'pre', fontSize: '11px', lineHeight: '1.35' };
+  return { left: '6px', right: 'auto', top: `${Math.round((g1Bottom ?? 150) + 6)}px`, bottom: 'auto', maxWidth: 'calc(100% - 12px)', whiteSpace: 'pre-wrap', fontSize: '10px', lineHeight: '1.3' };
+}
+
 function debugFlag(): boolean {
   try { return new URLSearchParams(location.search).get('debug') === '1'; } catch { return false; }
 }
@@ -182,7 +194,13 @@ export function mountCityDebug(streamer: CityStreamer, renderer: THREE.WebGLRend
     font: '11px/1.35 ui-monospace, Menlo, Consolas, monospace', color: '#f4efe3', background: 'rgba(40, 44, 48, 0.72)', borderRadius: '6px', whiteSpace: 'pre',
   } satisfies Partial<CSSStyleDeclaration>);
   document.body.appendChild(el);
+  // phones (≤ 720 px, G1 w3 a3): bottom right it covered the coach mark and the Hop button; there it wraps inside the
+  // screen, smaller, under G1's own ?debug line (.ob-debug, which sits over the top stack at that width)
+  const narrow = typeof window.matchMedia === 'function' ? window.matchMedia(CITY_DEBUG_NARROW) : null;
+  const place = () => Object.assign(el.style, cityDebugPlacement(!!narrow?.matches, document.querySelector('.ob-debug')?.getBoundingClientRect().bottom ?? null));
+  place();
   const tick = () => {
+    place();
     const s = api.stats();
     const p = s.pool;
     el.textContent = [
