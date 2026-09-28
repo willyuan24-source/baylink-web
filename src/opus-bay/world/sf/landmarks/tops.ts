@@ -77,6 +77,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'war-memorial': { blockers: [8.2, 10.6, 1.1, 1.1], tall: [] },
   'asian-art-museum': { blockers: [8.7], tall: [] },
   'webster-bridge': { blockers: [], tall: [] },
+  'ocean-beach-fire-rings': { blockers: [1.5, 1.3, 1.2, 1, 1, 0.9, 1, 0.9, 0.9, 0.8, 0.7, 0.5, 0.6, 0.5, 0.5, 0.5], tall: [] },
   'balmy-alley': { blockers: [4.6, 4.5], tall: [] },
   'bayview-opera-house': { blockers: [5.5, 5.1, 3.4, 4.1, 4, 1.5], tall: [] },
   'crane-cove-park': { blockers: [6.2, 6.2, 8.5, 8.5, 6, 6, 8.3, 8.3], tall: [8.5, 8.3] },

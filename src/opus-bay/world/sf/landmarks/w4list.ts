@@ -30,6 +30,7 @@ import { mountDavidson } from './mount-davidson';
 import { murphyWindmill } from './murphy-windmill';
 import { musicConcourse } from './music-concourse';
 import { oceanBeach } from './ocean-beach';
+import { oceanBeachFireRings } from './ocean-beach-fire-rings';
 import { presidioTunnelTops } from './presidio-tunnel-tops';
 import { sfState } from './sf-state';
 import { sfZoo } from './sf-zoo';
@@ -108,4 +109,5 @@ export const W4_SITES: readonly W4Site[] = [
   warMemorial,
   asianArtMuseum,
   websterBridge,
+  oceanBeachFireRings,
 ];

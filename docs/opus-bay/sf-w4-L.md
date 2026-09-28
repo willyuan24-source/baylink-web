@@ -343,11 +343,11 @@ no other lane's file was edited. Higgsfield: 0 credits.
 
 ### 给主人的摘要
 
-1. 这一轮又做了 **23 个**新地点（接线阶段已经把 L 线的地点表接进游戏，所以都已经在城市里画出来了）：基泽体育场、金门公园旋转木马和游乐场、嬉皮山鼓圈、克莱门街和尔文街两段商店街、第16大道马赛克阶梯、格兰维尤公园山顶、植物园正门、戴维森山十字架、斯特恩林音乐草坪、默塞德湖钓鱼栈桥、芬斯顿堡观景台（天上有一架绕圈的滑翔伞）、哈维·米尔克广场彩虹旗和 18 街彩虹斑马线、要塞隧道顶公园的游乐场、梅森堡艺术中心的红瓦仓库和市集、贝克海滩看金门大桥的位置、科罗娜高地山顶红岩、伯纳尔高地山顶信号塔、圣玛利亚大教堂（四片双曲抛物面屋顶按真实几何算）、叮当车博物馆（门口大轮子会转）、战争纪念歌剧院和退伍军人大楼、亚洲艺术博物馆、日本城韦伯斯特街天桥。
+1. 这一轮又做了 **23 个**新地点（外加北段篝火圈一组）（接线阶段已经把 L 线的地点表接进游戏，所以都已经在城市里画出来了）：基泽体育场、金门公园旋转木马和游乐场、嬉皮山鼓圈、克莱门街和尔文街两段商店街、第16大道马赛克阶梯、格兰维尤公园山顶、植物园正门、戴维森山十字架、斯特恩林音乐草坪、默塞德湖钓鱼栈桥、芬斯顿堡观景台（天上有一架绕圈的滑翔伞）、哈维·米尔克广场彩虹旗和 18 街彩虹斑马线、要塞隧道顶公园的游乐场、梅森堡艺术中心的红瓦仓库和市集、贝克海滩看金门大桥的位置、科罗娜高地山顶红岩、伯纳尔高地山顶信号塔、圣玛利亚大教堂（四片双曲抛物面屋顶按真实几何算）、叮当车博物馆（门口大轮子会转）、战争纪念歌剧院和退伍军人大楼、亚洲艺术博物馆、日本城韦伯斯特街天桥。
 2. 每个地点都在三角形预算内（最多 772 / 800），都有能走到的到达点、地图旗杆、照片机位；全套测试 807 个全部通过，每个地点都截图看过。
-3. 上一轮复查留下的 3 件事做了 2 件：高度规则（'ground' 改成 'overlook'，并记下实测高度）、一个地点只对应一个主记录（城市学院）；北段篝火圈还没做。
+3. 上一轮复查留下的 3 件事都做了：高度规则（'ground' 改成 'overlook'，并记下实测高度）、一个地点只对应一个主记录（城市学院）、海洋海滩北段的 16 个篝火圈（晚上有火光）。
 4. 圣母大教堂和中国亭的 AI 模型摆放数据补齐了（V 组已经用上）；草莓山岛现在画成陆地了（V 组修的），中国亭保留石台基（V 组的模型就放在上面）。
-5. 没做：渔人码头西（海事博物馆、潜艇——潜艇离手工码头区只有 3.7 单位，放不下）、唐人街宝塔群（主程序已定本波只做卡片）、北段篝火圈。
+5. 没做：渔人码头西（海事博物馆、潜艇——潜艇离手工码头区只有 3.7 单位，放不下）、唐人街宝塔群（主程序已定本波只做卡片）。
 
 ### What was built (files, API)
 
@@ -390,6 +390,7 @@ or along the block for a street site):
 | `war-memorial` | the Opera House and the Veterans Building (colonnades to Van Ness, the fly tower), the Memorial Court | 3 | 422 / 800 | 72 % (stated) |
 | `asian-art-museum` | the 1917 library block with its colonnade on the Larkin St front | 3 | 256 / 800 | 93 % |
 | `webster-bridge` | Japan Center's glazed bridge over Webster St (curved roof, mullions, lit), the street re-laid under it | 3 | 208 / 800 | 86 % |
+| `ocean-beach-fire-rings` | the Early review's open item 16: the 16 NPS fire rings in a row on the sand between Stairwell 15 (JFK Dr) and Stairwell 20 (Lincoln Way), embers glowing in the evening; a shared setting (no attraction; the Murphy Windmill's place row) | 3 | 640 / 800 | 96 % |
 
 Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id` / `.at` first, as lane V asked.
 
@@ -456,7 +457,6 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
 
 - `wharf-west`: the Maritime Museum's Aquatic Park Bathhouse (OSM way 32839686 and two parts) and the USS Pampanito
   (the hero-slab conflict above).
-- The Early review's open item 16: the fire-ring record on the Stairwell 15–20 stretch of Ocean Beach.
 - `chinatown-pagodas` (the lead's decision); P4 is the tier-3 lane's (`w4list3.ts`).
 - The items routed to lane L in lead §8.4 (the `kit.pyramid` turn, D2's remaining T2 settings): existing files, left to
   the integration lane.
@@ -472,7 +472,7 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
   `node node_modules/tsx/dist/cli.mjs`, `node node_modules/typescript/bin/tsc` and
   `node node_modules/eslint/bin/eslint.js` instead (never an npm install).
 
-Status (2026-09-27): 第二轮 23 个新地点已推送；篝火圈和渔人码头西没做（原因见上）。
+Status (2026-09-27): 第二轮 24 个新记录（23 个地点 + 北段篝火圈）已推送；渔人码头西没做（原因见上）。
 
 ## Integration part a
 
