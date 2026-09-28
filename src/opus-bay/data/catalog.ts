@@ -1,17 +1,21 @@
 import { useSyncExternalStore } from 'react';
 import { game } from '../core/store';
 import type { Bilingual, Catalog, CatalogEvent, CatalogGuide, CatalogPlace } from '../core/types';
+import { bayNow } from '../game/bayNow';
 
 /**
  * Live BAYLINK catalog (published `/planner-catalog.json`). Fetched once, cached, never invented.
  * Pure selectors below take the catalog + a Bay Area day string so they are deterministic and testable.
+ * Wave 5 (lane R): "now" defaults to the Bay clock `bayNow()` (DEV / QA builds: `?date=` moves it), and city mode
+ * registers where San Francisco's events happen (`setEventVenueHooks`, from realsf/index.ts): "附近这周" then finds
+ * events by their mapped venue, flyers and event cards offer 带我去, and the week board ranks the playable city first.
  */
 
 // ---------------------------------------------------------------------------
 // Dates (America/Los_Angeles calendar days as YYYY-MM-DD strings)
 // ---------------------------------------------------------------------------
 
-export const todayInBay = (now = new Date()) =>
+export const todayInBay = (now = bayNow()) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 
 export const isDay = (value: unknown): value is string =>
@@ -60,7 +64,7 @@ export function eventNextDate(event: CatalogEvent, today: string): string | null
 export const isExpired = (event: CatalogEvent, today: string) => eventNextDate(event, today) === null;
 
 /** The next showing as of now (evening-aware, see upcomingEvents): its day and whether that is "tonight"; null = over. */
-export function nextShowing(event: CatalogEvent, now = new Date()): { date: string; tonight: boolean } | null {
+export function nextShowing(event: CatalogEvent, now = bayNow()): { date: string; tonight: boolean } | null {
   const today = todayInBay(now);
   const hit = upcomingEvents({ events: [event], places: [], guides: [] }, today, 400, now)[0];
   return hit ? { date: hit.nextDate, tonight: !!hit.tonight } : null;
@@ -70,7 +74,7 @@ export function nextShowing(event: CatalogEvent, now = new Date()): { date: stri
 export type UpcomingEvent = { event: CatalogEvent; nextDate: string; days: string[]; tonight?: boolean };
 
 /** Hour of day (fractional) in the Bay Area. */
-export function bayHour(now = new Date()): number {
+export function bayHour(now = bayNow()): number {
   const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(now);
   return Number(parts.find(p => p.type === 'hour')?.value ?? 12) + Number(parts.find(p => p.type === 'minute')?.value ?? 0) / 60;
 }
@@ -204,7 +208,7 @@ export function vibeFit(event: CatalogEvent, vibe: string | null): boolean {
 
 export const regionFit = (event: CatalogEvent, region: string | null) => !region || region === 'any' || event.region === region;
 
-export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string, vibeRelaxed = false): RankedEvent {
+export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string, vibeRelaxed = false, cityFirst = false): RankedEvent {
   const { event } = item;
   let score = 0;
   const reasons: Bilingual[] = [];
@@ -233,11 +237,14 @@ export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string,
   score += Math.max(0, 1 - daysAway / 10);
   if (item.days.some(day => weekday(day) === 0 || weekday(day) === 6)) score += 0.4;
   if (item.tonight) score -= item.days.length > 1 ? 1 : 2.5; // late in the evening: "today" is nearly over — never the top pick
+  // wave 5 (city mode): the playable city first — San Francisco events, and above all the ones you can walk to in the
+  // world — unless the player asked for another part of the Bay
+  if (cityFirst && event.region === 'sf' && (!prefs.region || prefs.region === 'any' || prefs.region === 'sf')) score += eventSpot(event) ? 2.5 : 1.5;
   return { ...item, score, reasons };
 }
 
-export function scoreEvents(items: UpcomingEvent[], prefs: WeekPrefs, today: string, vibeRelaxed = false): RankedEvent[] {
-  return items.map(item => scoreEvent(item, prefs, today, vibeRelaxed))
+export function scoreEvents(items: UpcomingEvent[], prefs: WeekPrefs, today: string, vibeRelaxed = false, cityFirst = false): RankedEvent[] {
+  return items.map(item => scoreEvent(item, prefs, today, vibeRelaxed, cityFirst))
     .sort((a, b) => b.score - a.score || a.nextDate.localeCompare(b.nextDate) || a.event.id.localeCompare(b.event.id));
 }
 
@@ -295,10 +302,11 @@ export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windo
  * Filter this week's events by preferences; if fewer than `min` match, relax one filter at a time
  * (a two-week window → region → vibe → companions) and report what was relaxed so the UI can say so.
  * Hard exclusions never relax: adult-only events for kids, professional events outside "solo + culture",
- * and "kids" itself is never relaxed.
+ * and "kids" itself is never relaxed. `cityFirst` (default: city mode) ranks San Francisco first (see scoreEvent).
  */
-export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today: string, opts: { min?: number; max?: number; days?: number; now?: Date } = {}): WeekResult {
+export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today: string, opts: { min?: number; max?: number; days?: number; now?: Date; cityFirst?: boolean } = {}): WeekResult {
   const min = opts.min ?? 3, max = opts.max ?? 5, days = opts.days ?? 7;
+  const cityFirst = opts.cityFirst ?? game.get().worldMode === 'city';
   let pool = upcomingEvents(catalog, today, days, opts.now).filter(({ event }) => hardFit(event, prefs));
   const active = { companions: true, vibe: true, region: true };
   const filter = () => pool.filter(({ event }) =>
@@ -315,7 +323,7 @@ export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today
     active[step] = false;
     matches = filter();
   }
-  const events = scoreEvents(matches, prefs, today, !active.vibe).slice(0, max);
+  const events = scoreEvents(matches, prefs, today, !active.vibe, cityFirst).slice(0, max);
   // Report only what the shown picks actually relax (honest: never claim a relaxation nobody sees).
   const end7 = addDays(today, days);
   const relaxed: RelaxStep[] = [];
@@ -382,17 +390,49 @@ export type NearEvent = UpcomingEvent & { km: number; walkMin: number };
 /** Walking minutes for a distance (≈ 80 m per minute, rounded to 5). */
 export const walkMinutes = (km: number) => Math.max(5, Math.round((km * 1000) / 80 / 5) * 5);
 
+// ---------------------------------------------------------------------------
+// Wave 5 · where an event happens in the world (city mode; lane R's realsf/index.ts registers it)
+// ---------------------------------------------------------------------------
+
+/** An event's place in the world: the venue point (city frame), its real coordinates and its name. */
+export interface EventSpot { x: number; z: number; lat: number; lng: number; name: Bilingual }
+export interface EventVenueHooks {
+  /** the event's mapped venue (null: not in San Francisco's venue table, adult-only or professional) */
+  locate(event: CatalogEvent): EventSpot | null;
+  /** take the player there (带我去) */
+  go(event: CatalogEvent): void;
+}
+
+let venueHooks: EventVenueHooks | null = null;
+/** City mode (realsf/index.ts): register the venue table; returns the undo. District mode never registers one. */
+export function setEventVenueHooks(hooks: EventVenueHooks | null): () => void {
+  venueHooks = hooks;
+  listeners.forEach(listener => listener());
+  return () => { if (venueHooks === hooks) { venueHooks = null; listeners.forEach(listener => listener()); } };
+}
+/** Where the event happens in the world (null in district mode, before the city registers, or unmapped). */
+export const eventSpot = (event: CatalogEvent): EventSpot | null => venueHooks?.locate(event) ?? null;
+/** 带我去 an event's venue; false when there is nowhere to go. */
+export function goToEvent(event: CatalogEvent): boolean {
+  if (!venueHooks || !venueHooks.locate(event)) return false;
+  venueHooks.go(event);
+  return true;
+}
+
 /**
- * Upcoming leisure events with a known location within `km` of a point (for "附近这周"), nearest first.
- * Adult-only and professional events never show here (the card is read by everyone, kids included).
+ * Upcoming leisure events with a known location within `km` of a point (for "附近这周"), nearest first: the event's
+ * own `location`, else (city mode) its mapped venue. Adult-only and professional events never show here (the card is
+ * read by everyone, kids included).
  */
 export function eventsNear(catalog: Catalog | null, point: { lat: number; lng: number }, today: string, km = 1.0, days = 7, now?: Date): NearEvent[] {
   const out: NearEvent[] = [];
   for (const item of upcomingEvents(catalog, today, days, now)) {
     const { event } = item;
-    if (!event.location || !Number.isFinite(event.location.lat) || !Number.isFinite(event.location.lng)) continue;
     if (isAdultOnly(event) || isProfessional(event)) continue;
-    const d = distanceKm(point, event.location);
+    const own = event.location && Number.isFinite(event.location.lat) && Number.isFinite(event.location.lng) ? event.location : null;
+    const where = own ?? eventSpot(event);
+    if (!where) continue;
+    const d = distanceKm(point, where);
     if (d <= km) out.push({ ...item, km: d, walkMin: walkMinutes(d) });
   }
   return out.sort((a, b) => a.km - b.km || a.nextDate.localeCompare(b.nextDate));
