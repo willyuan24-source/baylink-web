@@ -15,6 +15,8 @@ export interface StationRide {
   stops?: number;
   /** a whole lap of the sightseeing loop (坐一圈, BAYBAY narrates) */
   lap?: boolean;
+  /** the stop id to board at (a merged station has several: the ride's own line's) */
+  boardAt?: string;
 }
 
 /**

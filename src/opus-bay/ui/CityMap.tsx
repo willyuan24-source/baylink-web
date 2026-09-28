@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 import { Bike, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
 import { fleetSnapshot } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
-import { toast, useGame } from '../core/store';
+import { DEFAULT_TOUR_ID, toast, tourIdOf, useGame } from '../core/store';
 import type { Bilingual, Vec2 } from '../core/types';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
 import { zoneLabelAnchor, zoneName } from '../data/cityZones';
@@ -11,11 +11,13 @@ import { ATTRACTIONS, ATTRACTION_INDEX, coveredPlaceIds, tripDestination } from 
 import type { CityPlace } from '../data/sf/places';
 import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
-import { closePanel } from '../game/flow';
+import { closePanel, endTrip as endFlowTrip } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
 import { parseMapPanelId } from '../game/mapPanel';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
+import { tripRemainingSeconds } from '../game/tripPlan';
+import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import { type MapView, clampView, drawCityMap, labelWidth, maxScale, thinPx, toPx, zoomAt } from './cityMapDraw';
 import { type MapSel, type MapTarget, NORTH_DEG, buildScene, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
@@ -134,6 +136,21 @@ export function CityMapPanel() {
   const tripPlace = tripId && ix ? ix.get(tripId) ?? null : null;
   const targetPlaceId = trip ? trip.placeId : tripId, targetAttraction = trip?.attraction ?? null;
   const target = mapTargetFor(targetPlaceId, targetAttraction);
+  // a city tour (lane C's Grand Tour): its current stop's attraction gets the coral number disc (plan §4.1 "next tour stop")
+  const tourId = useGame(s => (s.tour.active && tourIdOf(s.tour) !== DEFAULT_TOUR_ID ? tourIdOf(s.tour) : null));
+  const tourStep = useGame(s => s.tour.stop);
+  const [tourNext, setTourNext] = useState<{ id: string; n: number } | null>(null);
+  useEffect(() => {
+    if (!tourId) { setTourNext(null); return; }
+    let live = true;
+    void Promise.all([import('../game/cityTour'), import('../data/sf/tours')]).then(([ct, tours]) => {
+      const run = ct.cityTourRun(), def = tours.cityTour(tourId);
+      const stop = run?.stop && def ? def.chapters.flatMap(c => c.stops).find(s => s.id === run.stop) : undefined;
+      const a = stop?.attraction ? ATTRACTION_INDEX.resolve(stop.attraction) : undefined;
+      if (live) setTourNext(a && run ? { id: a.id, n: run.i + 1 } : null);
+    }, () => { if (live) setTourNext(null); });
+    return () => { live = false; };
+  }, [tourId, tourStep, trip?.placeId]);
 
   // size: follow the frame
   useEffect(() => {
@@ -205,9 +222,9 @@ export function CityMapPanel() {
     const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
-      discovered: isDiscovered, selected: sel, target, filter, highlight, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
+      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
     });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, filter, highlight, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
   const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
@@ -369,9 +386,21 @@ export function CityMapPanel() {
   const s = view?.scale ?? 0;
   const atMax = !!view && view.scale >= maxScale(MAP_FRAME, view.w, view.h) - 1e-6;
   const leading = !!useFlow(st => st.freeLead) || !!trip || !!tripId;
+  // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
+  const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;
 
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
+      {trip && (
+        <div className="ob-citymap-trip" role="status">
+          <Navigation size={15} aria-hidden />
+          <span>
+            <b>{t('当前：去', 'Now: to')}{loc === 'en' ? ' ' : ''}{t(tripName ?? { zh: '目的地', en: 'the destination' })}</b>
+            <small>{t(timeLabel(tripRemainingSeconds(trip)))}</small>
+          </span>
+          <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={endFlowTrip}><X size={14} aria-hidden /><span>{t('结束', 'End')}</span></button>
+        </div>
+      )}
       {tripPlace && !trip && (
         <div className="ob-citymap-trip" role="status">
           <Navigation size={15} aria-hidden />

@@ -71,7 +71,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
       : walk.state === 'ok' ? walk.label
         : walk.state === 'pending' ? { zh: '找路中…', en: 'Finding the way…' }
           : { zh: '走不过去', en: 'No walking way there' };
-  const go = (o: TripOption) => { setPicked(o.mode); startPlaceTrip(o, dest, place); };
+  const go = (o: TripOption) => { setPicked(o.mode); startPlaceTrip(o, dest); };
   return (
     <div className="ob-map-pop ob-place-pop mw-place" role="group" aria-label={t(name)}>
       <div className="mw-place-head">
