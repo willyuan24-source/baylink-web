@@ -21,6 +21,8 @@ import { type Box, hudBoxes, hudBoxesVersion, hudScanCount, placeBubble, placeWa
 import { routeLeftTo } from './mapRoute';
 import { autoWalkSeconds, gameTimeLabel, secondsLabel } from './travel';
 import { stepTravel } from './fastTravel';
+import { stepLockWatchdog, watchdogStats } from './lockWatchdog';
+import { lockHeld, lockReport } from './playerLock';
 import { parseAt, readQa } from './qa';
 import { goToCitySpot } from './resume';
 import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
@@ -522,6 +524,9 @@ function Ticker() {
     // other lanes' per-frame steps (game/systemsRegistry registerFrameSystem)
     stepFrameSystems(dt, now);
 
+    // W5-0b: a lock nothing explains for > 1 s (or when R is pressed) is freed, logged in DEV (game/lockWatchdog)
+    stepLockWatchdog(dt);
+
     c.tenHz += dt;
     if (c.tenHz >= 0.1) { c.tenHz = 0; updateFocus(); updateGuide(now); refreshObjective(); runtime.perf.tier = game.get().settings.quality; }
 
@@ -798,7 +803,7 @@ function QaBridge() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, hudBoxes, exportMap: exportCityMap, warmProbe } };
+    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, hudBoxes, exportMap: exportCityMap, warmProbe }, lock: { held: lockHeld, report: lockReport, watchdog: watchdogStats } };
     w.__opusBay = { ...(w.__opusBay ?? {}), ...mine, renderer: (w.__opusBay?.renderer as unknown) ?? gl };
     // other modules re-publish the object on their own schedules: keep the flow hooks on it (QA scripts rely on them)
     const id = window.setInterval(() => { const o = w.__opusBay; if (o && o.actions !== flowActions) Object.assign(o, mine); }, 500);

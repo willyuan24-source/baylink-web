@@ -1,6 +1,7 @@
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { flow, type Cinematic } from './flowStore';
+import { holdLock } from './playerLock';
 
 /**
  * Camera shot sequencer. Flow code queues shots; the Canvas-side `CinemaSystem` steps them every frame
@@ -20,7 +21,7 @@ export interface Shot {
   sub?: { zh: string; en: string } | null;
 }
 
-interface Sequence { kind: Exclude<Cinematic, null>; shots: Shot[]; index: number; elapsed: number; onDone?: () => void }
+interface Sequence { kind: Exclude<Cinematic, null>; shots: Shot[]; index: number; elapsed: number; onDone?: () => void; release: () => void }
 
 let sequence: Sequence | null = null;
 
@@ -29,20 +30,26 @@ export function playShots(kind: Exclude<Cinematic, null>, shots: Shot[], onDone?
   if (!shots.length) { onDone?.(); return; }
   const reduced = game.get().settings.reducedMotion;
   const list = reduced ? shots.map(shot => ({ ...shot, duration: Math.min(shot.duration, 0.35), hold: (shot.hold ?? 0) + Math.max(0, shot.duration - 0.35) * 0.5 })) : shots;
-  sequence = { kind, shots: list, index: -1, elapsed: 0, onDone };
+  // (W5-0b) the feet are held through game/playerLock: however the sequence ends — the last shot, a skip, another
+  // sequence taking over — finish() releases the hold, which re-derives the lock (flow's refreshLock). Before, the lock
+  // was written here and never recomputed at the end: the first-arrival reveal left the player stuck until the next
+  // dialogue closed (owner F1).
+  sequence = { kind, shots: list, index: -1, elapsed: 0, onDone, release: () => {} };
   flow.set({ cinematic: kind });
-  runtime.player.locked = true;
+  sequence.release = holdLock('cinema', kind);
 }
 
 export const cinemaActive = () => sequence !== null;
 export const cinemaKind = () => sequence?.kind ?? null;
 
 function finish(callDone = true) {
-  const done = sequence?.onDone;
+  const seq = sequence;
   sequence = null;
   runtime.camera.shot = null;
   flow.set({ cinematic: null, caption: null, captionSub: null });
-  if (callDone) done?.();
+  // the lock first (the refresher sees the cinema gone), then `done` (which may open a dialogue and lock again)
+  seq?.release();
+  if (callDone) seq?.onDone?.();
 }
 
 /** Skip to the end (Esc / Skip button). */

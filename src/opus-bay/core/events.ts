@@ -97,7 +97,13 @@ export type GameEvent =
    * start = a trip option was chosen; leg = leg `leg` (0-based index into TripOption.legs) just started; end = arrived
    * at `place`; cancel = ended early (结束, a new trip, a tour taking over). `mode` = the chosen TripOption.mode.
    */
-  | { type: 'trip'; what: 'start' | 'leg' | 'end' | 'cancel'; place: string; mode: TripMode; leg?: number };
+  | { type: 'trip'; what: 'start' | 'leg' | 'end' | 'cancel'; place: string; mode: TripMode; leg?: number }
+  /**
+   * Wave 5 (frozen, plan sf-w5-plan.md §4.2) · the player was stuck at (x, z): `watchdog` = game/lockWatchdog freed a
+   * lock nothing explained (W5-0b; `source` names the holds left, else 'unknown'), `pull` = BAYBAY pulled the player
+   * free (lane F), `sweep` = the QA sweep's report. A DEV log: every one is a bug with a source, not a fix.
+   */
+  | { type: 'stuck'; x: number; z: number; what: 'pull' | 'watchdog' | 'sweep'; source?: string };
 
 /** Transit line kinds (the store's move.line holds the line id; this is its vehicle kind). Wave 4 adds the sightseeing
  * bus loop ('bus') and the Muni Metro lines ('light-rail'). The lists are runtime values so the contracts test pins them. */

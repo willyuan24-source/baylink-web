@@ -6,7 +6,7 @@ import { game, type MoveState } from '../core/store';
 import { canStand, groundPending, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { seatSpots, type SeatSpot } from '../data/vehicles';
-import { bubble, cancelRide, hopOffRide, say } from '../game/flow';
+import { bubble, cancelRide, hopOffRide, refreshLock, say } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { interactables } from '../game/interactables';
 import { currentRide } from '../game/ride';
@@ -955,6 +955,8 @@ export class MoveSystem {
         emit({ type: 'land', impact: 0.6 });
         this.pelican.flyOff();
         this.releaseGuide(true);
+        // W5-0b: on the ground again, the lock is derived from what is open now (never one left over from the air)
+        refreshLock();
         break;
       }
       case 'sat': break;

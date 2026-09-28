@@ -19,6 +19,7 @@ import { cinemaActive, faceCameraToward, holdFraming, playShots, releaseFraming,
 import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
 import { flow, initialFlowState, type Bubble } from './flowStore';
+import { lockHeld, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable } from './interactables';
 import { endRide } from './ride';
 import { goalTargets, initCityContent } from './cityContent';
@@ -57,11 +58,16 @@ export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble
 // Player helpers
 // ---------------------------------------------------------------------------
 
-/** Movement is frozen while any of these is active. */
+/**
+ * Movement is frozen while any of these is active. W5-0b: plus anything held through game/playerLock (a 飞过去 trip,
+ * a camera sequence, later the lanes' activities); every release there calls this (registered below), so the end of
+ * a cinema or a trip derives the lock again instead of leaving it as it was (owner F1).
+ */
 export function refreshLock() {
   const s = game.get(), f = flow.get();
-  runtime.player.locked = !!s.dialogue.nodeId || !!f.fishing || cinemaActive() || s.riding !== null || s.phase !== 'playing';
+  runtime.player.locked = !!s.dialogue.nodeId || !!f.fishing || cinemaActive() || s.riding !== null || s.phase !== 'playing' || lockHeld();
 }
+setLockRefresher(refreshLock);
 
 export function teleportPlayer(p: Vec2, heading?: number) {
   runtime.player.x = p.x;

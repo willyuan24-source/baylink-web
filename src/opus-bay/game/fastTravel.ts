@@ -7,6 +7,7 @@ import { canStand, cityTerrain, heightAt, nearestWalkable } from '../core/terrai
 import type { Bilingual, Vec2 } from '../core/types';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { flow } from './flowStore';
+import { holdLock } from './playerLock';
 
 /**
  * 飞过去 fast travel (lane G1, plan §6.7 / G1-7). Light on purpose (game/transit.ts imports travelEpoch): no flow, no
@@ -140,7 +141,7 @@ export function topShot(p: Vec2, gy: number, yaw: number, dist = TOP_DIST, pitch
 // ---------------------------------------------------------------------------
 
 let epoch = 0;
-interface Trip { dest: TravelDest; from: Vec2; clock: TripClock; ready: boolean; landed: Vec2 | null; veil: boolean }
+interface Trip { dest: TravelDest; from: Vec2; clock: TripClock; ready: boolean; landed: Vec2 | null; veil: boolean; release: () => void }
 let trip: Trip | null = null;
 
 export function travelActive(): boolean { return trip !== null; }
@@ -189,10 +190,11 @@ export function placePlayer(p: Vec2, heading?: number) {
 export function startTravel(dest: TravelDest): boolean {
   if (trip || !Number.isFinite(dest.x) || !Number.isFinite(dest.z)) return false;
   const from = { x: runtime.player.x, z: runtime.player.z };
-  trip = { dest, from, clock: new TripClock(planTrip(from, dest)), ready: false, landed: null, veil: false };
+  // (W5-0b) the trip holds the feet through game/playerLock: a lock re-derived mid-trip (a line's dialogue closing, a
+  // ride ending) keeps the rider on the pelican, and the landing's release lets the refresher free them
+  trip = { dest, from, clock: new TripClock(planTrip(from, dest)), ready: false, landed: null, veil: false, release: holdLock('travel', dest.id) };
   epoch++;
   game.set({ move: { mode: 'travel' } });
-  runtime.player.locked = true;
   runtime.player.pathTarget = null;
   flow.set({ cinematic: 'travel', caption: { zh: `飞往 · ${dest.name.zh}`, en: `Flying to ${dest.name.en}` }, captionSub: null, mapTarget: null });
   setView({ active: true, veil: false, to: dest.name });
@@ -249,9 +251,10 @@ function finish(tr: Trip) {
   const s = cityStreamerLazy();
   if (s) s.focusOverride = null;  // CS-4: never leave the streamer pinned
   runtime.camera.shot = null;
-  runtime.player.locked = false;
   if (game.get().move.mode === 'travel') game.set({ move: { mode: 'foot' } });
   flow.set({ cinematic: null, caption: null, captionSub: null });
+  // after the store says 'foot' and the cinematic is gone: the refresher derives the lock from what is still open
+  tr.release();
   setView({ active: false, veil: false, to: null });
   emit({ type: 'travel', what: 'land', to: tr.dest.id });
 }
