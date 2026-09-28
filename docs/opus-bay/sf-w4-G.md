@@ -287,7 +287,7 @@ part 2 steps 1 and 6, lane P's flags step, lane V's warm-up), then the plan §5.
 1. G 线做的"引导"已经真正接进游戏（只在城市模式；街区模式一点没变，街区根本不会下载这些代码）：景点小旗、屏幕边的目标箭头（点一下镜头就转过去）、右上角"下一站 · 约 N 分钟"的行程胶囊和行程卡片（跳过这一站 / 换个方式 / 结束）、"抵达"金色提示 + 6 秒小卡片 + 2.4 秒揭幕镜头、双峰等观景台的地名标签、手动走路时地上的三个金色小箭头、触屏上"自动跟上 BAYBAY"按钮和一次性提示。
 2. 修好了第三波留给 G 线的 10 个请求：手机横屏最上面的按钮被切掉、自动带路时往东多走 20 格又折回（渡轮大厦去唐人街）、坐地铁在隧道里还能"提前下车"、渡轮开着时还显示"下车"、BAYBAY 站在渡轮上的玩家身上、F 线车站图标不对等。
 3. 坐观光巴士时 BAYBAY 坐在你旁边；车快到景点时镜头会转过去看它；地铁出隧道时回头看隧道口；乘车横幅多了"下一站下车"（手机上是 下一站下车 · 直接到站 · ⋯）。
-4. 主包 GameRoot 变小了：新东西都在按需加载的小包里，还把几个界面和"街道名"的计算挪出了主包；和当前线上版本比，791.94 → 781.71 KB（压缩后 298.95 → 294.78 KB，少了约 4 KB）。检查：tsc 0、eslint 0 错误、全套 822 个测试全过；没有花 Higgsfield 积分。
+4. 主包 GameRoot 变小了：新东西都在按需加载的小包里，还把几个界面和"街道名"的计算挪出了主包；和当前线上版本比，791.94 → 781.71 KB（压缩后 298.95 → 294.78 KB，少了约 4 KB）。检查：tsc 0、eslint 0 错误、全套 824 个测试全过；没有花 Higgsfield 积分。
 5. 进度（回复"现在进度如何"）：接线部分（part a）已完成，10 个提交（W4-IG1 至 W4-IG10）都已推送；留给 part b 的是 BAYBAY 骑车 / 开车带路时的指路和台词、长距离"直接到站"的过场、地铁出隧道更完整的取景，以及逐个检查每个一级景点的揭幕镜头。
 6. 一次失误，已修好：我删除一个临时对照用的工作目录时（`git worktree remove --force`），命令顺着它的 node_modules 链接，把桌面上 baylink-web 共用的 `node_modules/.bin`（tsx、tsc、eslint、vite 等命令的启动文件）删空了。发现后我只重建了这 108 个启动文件（36 个命令，和另一份完好的副本逐字节一致），没有重新安装任何依赖，其它文件没动；现在这些命令都能正常用。
 
@@ -321,15 +321,17 @@ None of it is in GameRoot's static graph (tested); the district never fetches it
 
 - **Checks** (each push: tsc 0, whole-repo eslint 0 errors / 43 old warnings, the full suite): 715 / 715 (IG1), 722 / 722
   and 726 / 726 on the pushed tree (IG2), 748 / 748 and 775 / 775 (IG3–IG5 before the last rebases), **801 / 801 on the
-  pushed tree `cd7c141`** (IG3–IG6), 802 / 802 for IG7 and for IG8, 808 / 808 on IG7 + IG8 over `4557809`, **822 / 822 on the pushed tree (IG7–IG10 over
-  `3b4e38a`)**. IG7 and IG8 were checked but not pushed before the incident below; they went out with IG9 and IG10
-  after two more rebases and a full run each. One run on the way (over `b2ea5b6`) failed E2's timing assert "a cached
-  cell is cheap" (1000 cached `preferredViewDir` calls < 50 ms) once under machine load; the file passed twice alone
-  and the whole suite on the re-run (809 / 809). Two failures seen during the IG5 rebase (`D2-10 tops.ts`, `W4-IL5 swaps`) were lane L's and red on origin without lane G's commits (checked in a scratch
-  worktree at `868b677`); lane L fixed them in `94badf8` before my push. **Honest notes:** the IG2 push went out right
-  after a rebase that brought lane P's `W4-P-I1/I2` before the suite was re-run (re-run on the pushed tree: 726 / 726);
-  the pushes after racing rebases (lane P, C, L commits touching none of lane G's files) were re-checked with tsc and
-  the test files those commits touched, and the full suite ran on the pushed tree right after (801 / 801).
+  pushed tree `cd7c141`** (IG3–IG6), 802 / 802 for IG7 and for IG8, 808 / 808 on IG7 + IG8 over `4557809`, 822 / 822 on
+  IG7–IG10 over `77c4f81`, **824 / 824 on the pushed tree `4d8d5f3`** (IG7–IG10 over `3b4e38a`). Two failures seen
+  during the IG5 rebase (`D2-10 tops.ts`, `W4-IL5 swaps`) were lane L's and red on origin without lane G's commits
+  (checked in a scratch worktree at `868b677`); lane L fixed them in `94badf8` before my push. **Honest notes:** the
+  IG2 push went out right after a rebase that brought lane P's `W4-P-I1/I2` before the suite was re-run (re-run on the
+  pushed tree: 726 / 726); the pushes after racing rebases (lane P, C, L, T commits touching none of lane G's files) were
+  re-checked with tsc and the test files those commits touched, and the full suite ran on the pushed tree right after
+  (801 / 801 on `cd7c141`, 824 / 824 on `4d8d5f3`). IG7 and IG8 were checked but not pushed before the incident below;
+  they went out with IG9 and IG10. E2's timing assert "a cached cell is cheap" (`opus-bay-sf-move2` E2-5: 1000 cached
+  `preferredViewDir` calls < 50 ms) failed twice in full runs under machine load (over `b2ea5b6` and on `4d8d5f3`); the
+  file passed alone five times and each full re-run passed (809 / 809, 824 / 824).
 - **Incident (fixed; honest note).** Late in the part I removed the scratch base worktree of the IG5 rebase check,
   `C:/Users/willy/wt/i4-g-base`, with `git worktree remove --force`. Its `node_modules` was a junction to the shared
   checkout's `C:/Users/willy/OneDrive/Desktop/baylink-web/node_modules`, and the removal followed the junction and
@@ -420,6 +422,8 @@ None of it is in GameRoot's static graph (tested); the district never fetches it
 - **Lane C**: `startPanorama()` is exported by `game/guideCity` (E at an overlook); `flow.arrival` is read once per object
   and the peek card's close calls `dismissArrival()`; a `[下一站]` on the card needs a tour "next" entry point.
 - **Lane L**: `sitePhoto` of the wave-4 sites drives the reveal (SF State's pose looks over a near roof).
+- **Lane E2 / lead**: `opus-bay-sf-move2` E2-5 "a cached cell is cheap" (< 50 ms for 1000 calls) flakes under machine
+  load in full runs (passes alone): a looser bound or a relative measure would keep the suite green.
 - **Lead**: warn every lane: never `git worktree remove --force` a worktree whose `node_modules` is a junction — remove
   the junction link first (`cmd /c rmdir <wt>\node_modules`), then the worktree (see the incident in Evidence).
 
