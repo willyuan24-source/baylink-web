@@ -18,14 +18,14 @@ export function freeOnFoot(): boolean {
   return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && s.riding === null && runtime.move.mode === 'foot' && !flow.get().cinematic;
 }
 
-export interface HeldKeys { held(): boolean; off(): void }
+export interface HeldKeys { held(): boolean; isDown(code: string): boolean; off(): void }
 /**
  * While an activity runs, `codes` are its own (captured at the window, so the HUD never sees them: E does not open
  * BAYBAY's menu, Space is no hop): `held()` is true while one is down. `onPress` runs on each fresh press.
  */
 export function holdKeys(codes: readonly string[], onPress?: (code: string) => void): HeldKeys {
   const down = new Set<string>();
-  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return { held: () => false, off: () => {} };
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return { held: () => false, isDown: () => false, off: () => {} };
   const keyDown = (e: KeyboardEvent) => {
     if (!codes.includes(e.code) || e.metaKey || e.ctrlKey || e.altKey) return;
     const el = e.target as HTMLElement | null;
@@ -41,6 +41,7 @@ export function holdKeys(codes: readonly string[], onPress?: (code: string) => v
   window.addEventListener('blur', blur);
   return {
     held: () => down.size > 0,
+    isDown: code => down.has(code),
     off: () => { window.removeEventListener('keydown', keyDown, true); window.removeEventListener('keyup', keyUp, true); window.removeEventListener('blur', blur); down.clear(); },
   };
 }

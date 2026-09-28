@@ -2,14 +2,14 @@ import { Disc, Volleyball } from 'lucide-react';
 import { createElement, lazy, Suspense } from 'react';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
-import { surfaceAt } from '../core/terrain';
+import { canStand, heightAt, surfaceAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { transitData } from '../data/transit';
 import { bayNow } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
-import { registerInteractables, type Interactable } from '../game/interactables';
+import { interactables, registerInteractables, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { turntableNear } from '../game/transit';
 import { game } from '../core/store';
@@ -17,7 +17,7 @@ import { fireRingSeason } from '../realsf/seasons';
 import { registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { CREST_KEY, CREST_SPOTS, crestAt } from './crestSpots';
-import { bestOf } from './kit';
+import { bestOf, currentActivity } from './kit';
 import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
 
 /**
@@ -30,6 +30,7 @@ import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch 
  *   sealions.ts      PIER 39's K-Dock: 数海狮 at the rail
  *   frisbee.ts       问 BAYBAY → 玩飞盘 on a lawn or a beach
  *   ball.ts          问 BAYBAY → 玩沙滩球 on the sand
+ *   sled.ts          滑草 offered standing on a lawn steeper than 1 in 4
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -145,9 +146,39 @@ export const BALL_ID = 'beachball';
 export const BALL_NAME: Bilingual = { zh: '颠沙滩球', en: 'Beach-ball rally' };
 export const ballHere = (): boolean => surfaceAt(runtime.player.x, runtime.player.z) === 'sand' && runtime.move.mode === 'foot';
 
+// --- the cardboard sled on steep grass (W5-A9): 滑草 follows you on a lawn steeper than 1 in 4 ----------------------
+
+export const SLED_ID = 'sled';
+export const SLED_NAME: Bilingual = { zh: '纸板滑草', en: 'Cardboard grass slide' };
+export const SLED_PROMPT_R = 1.3;
+/** Toy gravity along the slope, the cardboard's rub (sitting / leaning back), steering, the top speed, the rub off grass. */
+export const SLED = { g: 9, mu: 0.19, muLean: 0.11, steer: 3.2, minGrade: 0.25, maxS: 12, offGrass: 4 } as const;
+export const SLEDDABLE: ReadonlySet<string> = new Set(['grass', 'dirt']);
+/** The slope under (x, z): its steepness (tan) and the way down (unit). */
+export function slopeAt(x: number, z: number): { grade: number; dx: number; dz: number } {
+  const e = 0.6;
+  const gx = (heightAt(x + e, z) - heightAt(x - e, z)) / (2 * e), gz = (heightAt(x, z + e) - heightAt(x, z - e)) / (2 * e);
+  const grade = Math.hypot(gx, gz);
+  return { grade, dx: grade > 1e-6 ? -gx / grade : 0, dz: grade > 1e-6 ? -gz / grade : 0 };
+}
+/** A slide can start at (x, z): grass or earth, steep enough, and grass for a few steps down the fall line. */
+export function sledOffer(x: number, z: number): boolean {
+  const s = surfaceAt(x, z);
+  if (!s || !SLEDDABLE.has(s)) return false;
+  const sl = slopeAt(x, z);
+  if (sl.grade < SLED.minGrade) return false;
+  for (const d of [2, 4]) { const px = x + sl.dx * d, pz = z + sl.dz * d; if (!canStand(px, pz, 0.35) || !SLEDDABLE.has(surfaceAt(px, pz) ?? '')) return false; }
+  return true;
+}
+export const sledIt: Interactable = {
+  id: 'play:sled', source: 'activity', action: 'info', verb: { zh: '滑草', en: 'Slide down' }, name: { zh: '坐纸板滑下去', en: 'On a sheet of cardboard' },
+  x: 1e7, z: 1e7, radius: SLED_PROMPT_R,
+  act: () => { void import('./sled').then(m => { m.startSled(); }); },
+};
+
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
-  offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt]));
+  offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt, sledIt]));
   offs.push(registerOverlay({ id: BADGE_OVERLAY, Component: BadgeSlot }));
   offs.push(registerAskItem({ id: 'play-ball', order: -4, label: { zh: '玩沙滩球', en: 'Beach ball' }, icon: Volleyball, visible: ballHere, onSelect: () => { void import('./ball').then(m => { m.startBall(); }); } }));
   offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void import('./frisbee').then(m => { m.startFrisbee(); }); } }));
@@ -179,6 +210,15 @@ export function initZones3(): () => void {
     // the sea lions: fetched near the rail, BAYBAY's invite there
     if (nearPlayer(LION_VIEW.x, LION_VIEW.z, PREFETCH_R)) zonePrefetch('sealions', () => import('./sealions'));
     if (nearPlayer(LION_VIEW.x, LION_VIEW.z, INVITE_R + 1)) zoneInvite('sealions', LION_INVITE_LINE);
+    // the grass slide: offered where you stand on a steep lawn (on foot, playing, nothing else running)
+    {
+      const p = runtime.player;
+      // never over another prompt (a view spot on a steep lawn keeps its 坐下看风景)
+      const on = runtime.move.mode === 'foot' && !p.moving && !currentActivity() && sledOffer(p.x, p.z)
+        && !interactables().some(it => it !== sledIt && it.source !== 'baybay' && it.id !== 'play:sit' && Math.hypot(p.x - it.x, p.z - it.z) < it.radius + 0.5);
+      sledIt.x = on ? p.x : 1e7; sledIt.z = on ? p.z : 1e7;
+      if (on) zonePrefetch('sled', () => import('./sled'));
+    }
     // the crests: the pennants while one is near (the crests chunk), BAYBAY's hint riding toward one not hopped yet
     const near = CREST_SPOTS.some(s => nearPlayer(s.x, s.z, CREST_NEAR));
     if (near !== crestsOn) { crestsOn = near; void import('./crests').then(m => { m.setCrestsNear(crestsOn); }); }

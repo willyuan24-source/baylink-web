@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts', 'ball.ts'];
+  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts', 'ball.ts', 'sled.ts'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1553,4 +1553,57 @@ test('W5-A9 beach ball: 玩沙滩球 on the sand — BAYBAY serves, your feet wa
     assert.equal(typeof z3.ballHere(), 'boolean');
     assert.ok(rallies > 0);
   } finally { mock.timers.reset(); B.__resetBall(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); runtime.player.pathTarget = null; playing(); }
+});
+
+test('W5-A9 grass sled: 滑草 offered on a lawn steeper than 1 in 4 (Dolores Park, not on flat grass nor over a view spot), down the fall line, leaning back is faster, the card by the distance', async () => {
+  const S = await import('../src/opus-bay/play/sled');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  const DOLORES = { x: 253, z: 717 };
+  await cityAround([DOLORES], 70);
+  try {
+    assert.equal(z3.sledOffer(DOLORES.x, DOLORES.z), true, 'the Dolores Park slope');
+    const view = views.viewSpotById('dolores-park')!;
+    assert.ok(dist(view, DOLORES) > views.VIEW_RADIUS + 0.5);
+    // flat ground is no sled
+    const flat = [...CITY_POSTCARDS].find(c => z3.slopeAt(c.position.x, c.position.z).grade < 0.05);
+    if (flat) assert.equal(z3.sledOffer(flat.position.x, flat.position.z), false);
+    // the slide down the fall line: sitting, then leaning back all the way (further and faster)
+    const slide = (lean: boolean) => {
+      const sl = z3.slopeAt(DOLORES.x, DOLORES.z), s = { x: DOLORES.x, z: DOLORES.z, vx: sl.dx * 0.8, vz: sl.dz * 0.8, dist: 0, top: 0 };
+      let t = 0;
+      while (t < 20 && S.sledStep(s, 1 / 60, 0, lean) === 'go') t += 1 / 60;
+      return { ...s, t };
+    };
+    const sit = slide(false), lean = slide(true);
+    assert.ok(sit.dist >= S.SLED_TIERS[1], `slid ${sit.dist.toFixed(1)} u`);
+    assert.ok(lean.top > sit.top, `leaning back is faster (${lean.top.toFixed(1)} vs ${sit.top.toFixed(1)})`);
+    assert.ok(T.canStand(sit.x, sit.z, 0.35), 'ends on standable ground');
+    // the ride in the game loop
+    playing();
+    const calls = stubBody();
+    kit.__resetKit();
+    kit.__setBestWriter(null);
+    S.__resetSled();
+    runtime.player.x = DOLORES.x; runtime.player.z = DOLORES.z; runtime.player.y = T.heightAt(DOLORES.x, DOLORES.z);
+    mock.timers.enable({ apis: ['setTimeout'] });
+    try {
+      assert.equal(S.startSled(), true);
+      assert.ok(lockReport().some(h => h.source === 'activity' && h.key === 'sled'));
+      assert.ok(calls.includes('player:sit'));
+      assert.equal(chip.chipState()?.id, 'sled');
+      assert.equal(z3.sledIt.radius, 0);
+      let n = 0;
+      while (S.sledState() && n++ < 60 * 25) stepFrameSystems(1 / 60, 0);
+      assert.equal(S.sledState(), null);
+      const card = kit.lastResultShown()!;
+      assert.equal(card.activity, 'sled');
+      assert.ok(card.tier >= 2, `tier ${card.tier}: ${card.detail?.zh}`);
+      assert.match(card.detail!.zh, /^滑了 \d+ u · 最快 [\d.]+ u\/s$/);
+      assert.ok(dist(runtime.player, DOLORES) > 10, 'you end down the slope');
+      assert.equal(lockHeld(), false);
+      assert.equal(z3.sledIt.radius, z3.SLED_PROMPT_R);
+      for (const line of Object.values(S.SLED_LINES)) assert.ok([...line.zh].length <= 45);
+    } finally { mock.timers.reset(); S.__resetSled(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
+  } finally { T.setCityTerrain(null); }
 });
