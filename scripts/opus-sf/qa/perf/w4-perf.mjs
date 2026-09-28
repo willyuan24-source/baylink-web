@@ -34,6 +34,8 @@ export function gateRow(r, gate = SPOTS.gate) {
   if (r.profile === 'phone' && fps < gate.phone.fps) fps < Infinity && fails.push('fps<45');
   const over100 = (r.idle?.over100 ?? 0) + (r.walk?.over100 ?? 0) + (r.ride?.over100 ?? 0);
   if (over100 > 0) fails.push('>100ms');
+  // a spot whose player was moved away before the measure (e.g. back to the district) measured another place: void
+  if (m.player && r.pos?.p && Math.hypot(m.player.x - r.pos.p.x, m.player.z - r.pos.p.z) > 40) fails.push(`void: player at ${m.player.x}, ${m.player.z}`);
   return { calls, tris, fps: fps === Infinity ? null : fps, over100, fails };
 }
 
@@ -43,8 +45,6 @@ function table(res) {
     '| spot / ride | calls | triangles | programs | fps idle / walk (ride) | p95 ms | frames > 100 ms | gate |', '|---|---|---|---|---|---|---|---|'];
   for (const r of res.rows) {
     const g = gateRow({ ...r, profile: res.profile });
-    const moved = r.m?.player && r.pos?.p && Math.hypot(r.m.player.x - r.pos.p.x, r.m.player.z - r.pos.p.z) > 40;
-    if (moved) g.fails.push(`void: player at ${r.m.player.x}, ${r.m.player.z}`);
     const fpsCol = r.ride ? `(${r.ride.fps})` : `${r.idle?.fps ?? '—'} / ${r.walk?.fps ?? '—'}`;
     const p95 = r.ride ? r.ride.p95 : r.walk?.p95;
     const id = r.aim?.cam ? `${r.id} (aimed: the walking camera looked ${r.aim.off}° away)` : r.id;

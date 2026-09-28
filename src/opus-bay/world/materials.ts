@@ -373,8 +373,10 @@ float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
     float keepV = step(minV, v);
     float cover = (rect.y - rect.x) * (rect.w - rect.z);
     float mask = mix(inX * inY, cover, unres) * keepV;
-    // per-building seed (baked into aInfo.z as a negative number), else a coarse world-cell hash
-    float seed = vInfo.z < 0.0 ? -vInfo.z : obHash(floor(vWPos.xz * 0.08));
+    // per-building seed (baked into aInfo.z as a negative number), else a coarse world-cell hash. Quantised once
+    // (wave 4, verify-visual F1): vInfo.z is an interpolated varying, a ulp off from pixel to pixel, and the sin hashes
+    // below (× ≈ 5e8) turned that into per-pixel "sand" in lit windows and day glass
+    float seed = floor((vInfo.z < 0.0 ? -vInfo.z : obHash(floor(vWPos.xz * 0.08))) * 4096.0 + 0.5) / 4096.0;
     float h = obHash(id + seed * 97.0);
     vec3 day = glass * (0.8 + 0.5 * h) + vec3(0.05, 0.07, 0.08) * (1.0 - f.y);
     day = mix(day, glass * 1.05 + vec3(0.05, 0.07, 0.08) * (1.0 - 0.5 * (rect.z + rect.w)), unres);
