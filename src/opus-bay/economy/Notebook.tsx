@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
   AudioLines, Binoculars, Bird, BusFront, CableCar, Car, Castle, CircleHelp, CloudFog, Cookie, Crown, Droplets, Ear, Fish, Flag, Flower2, Footprints, GraduationCap, Landmark,
-  Laugh, Mail, Megaphone, Mountain, Navigation, Octagon, Orbit, PartyPopper, Phone, Plane, Rainbow, Sailboat, Shell, ShoppingBag, Signpost, Sparkles, Stamp, Store, Sun,
+  Laugh, Mail, Megaphone, Mountain, Music, Navigation, Octagon, Orbit, PartyPopper, Phone, Plane, Rainbow, Sailboat, Shell, ShoppingBag, Signpost, Sparkles, Stamp, Store, Sun,
   Ticket, TrainFront, TramFront, Trees, Trophy, Waves, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ import { discoveredIds, visitedZoneIds } from '../game/discovery';
 import { goTo } from '../game/goTo';
 import { CITY_SOUNDS } from '../eggs/citySounds';
 import { PEBBLE_IDS, pebbleRewardSource } from '../eggs/pebbleSpots';
-import { EGG_AREAS, EGG_AREA_NAMES, EGGS } from '../eggs/registry';
+import { ALL_EGGS, EGG_AREAS, EGG_AREA_NAMES } from '../eggs/registry';
 import { useT } from '../i18n';
 import { VIEW_SPOTS } from '../play/viewSpots';
 import { EVENT_SAY, SOUVENIR_IDS } from '../realsf/eventVenues';
@@ -29,7 +29,7 @@ import './economy.css';
 
 /**
  * Wave 5 · lane E · W5-E5: the 手帐 tab of the Journal (ui/slots registerJournalTab 'notebook'). Pages: 印章 (16
- * must-sees + six journeys), 小发现 (lane D's eggs: silhouettes and riddles until found), 看风景 (lane A's view spots,
+ * must-sees + six journeys), 小发现 (lane D's eggs, both batches — ALL_EGGS —: silhouettes and riddles until found), 看风景 (lane A's view spots,
  * 带我去 for the ones not sat at yet), 足迹 (lane N's page). Each page shows how full it is and what a full page gives
  * (30 金币 and a cosmetic). The header is today's real San Francisco (lane R's sun and moon) and 明天可能不一样 —
  * never a streak. A stamp new since the last look lands with a thud (per viewer, localStorage; none with reduced motion).
@@ -58,6 +58,10 @@ const EGG_GLYPHS: Record<string, LucideIcon> = {
   'golden-gate-humpback': Fish, 'lands-end-labyrinth': Orbit, 'china-beach-fishermen': Sailboat, 'dahlia-dell-100': Flower2,
   'tiled-steps-sea-to-stars': Sparkles, 'karl-the-fog-diary': CloudFog, 'ingleside-sundial-real-time': Sun, 'golden-hydrant-1906': Droplets,
   'castro-rainbow-steps': Rainbow, 'herons-head-from-above': Bird, 'sf-250-birthday-trail': Flag, 'alta-plaza-chipped-steps': Car,
+  // lane D's batch 2 (eggs 25–33)
+  'mt-davidson-top-of-sf': Mountain, 'telegraph-hill-semaphore': Signpost, 'sutro-baths-tunnel': Waves, 'spreckels-lake-model-yachts': Sailboat,
+  'fort-funston-hang-gliders': Plane, 'castro-theatre-organ': Music, 'presidio-pet-cemetery': Flower2, 'grace-outdoor-labyrinth': Orbit,
+  'bay-lights': Sparkles,
 };
 
 const readJson = <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) as T : fallback; } catch { return fallback; } };
@@ -231,7 +235,7 @@ function FindsPage({ seen }: { seen: (k: string) => boolean }) {
       <SecretPostcards />
       <Pebbles />
       {EGG_AREAS.map(area => {
-        const eggs = EGGS.filter(e => e.area === area);
+        const eggs = ALL_EGGS.filter(e => e.area === area);
         if (!eggs.length) return null;
         return (
           <section key={area} className="ob-block">
@@ -341,7 +345,7 @@ export default function Notebook() {
   const w = useMemo(() => { void lv; void nv; return stampWorld(); }, [lv, nv]);
   const keys = useMemo(() => [
     ...STAMPS.filter((_, i) => stamped(p, i, w)).map(s => `stamp:${s.id}`),
-    ...EGGS.filter(e => isPaid(`egg:${e.id}`)).map(e => `egg:${e.id}`),
+    ...ALL_EGGS.filter(e => isPaid(`egg:${e.id}`)).map(e => `egg:${e.id}`),
     ...VIEW_SPOTS.filter(v => isPaid(`view:${v.id}`)).map(v => `view:${v.id}`),
     ...SOUVENIR_IDS.filter(id => isPaid(`event:${id}`)).map(id => `event:${id}`),
     ...CITY_SOUNDS.filter(s => isPaid(`sound:${s.id}`)).map(s => `sound:${s.id}`),

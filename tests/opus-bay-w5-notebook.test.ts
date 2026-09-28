@@ -18,7 +18,7 @@ const N = await import('../src/opus-bay/economy/notebookRun');
 const I = await import('../src/opus-bay/economy/items');
 const { todayLine } = await import('../src/opus-bay/economy/today');
 const { ATTRACTIONS, ARRIVAL_PLACES } = await import('../src/opus-bay/data/sf/attractions');
-const { EGG_AREAS, EGG_IDS, EGGS } = await import('../src/opus-bay/eggs/registry');
+const { EGG_AREAS, ALL_EGG_IDS: EGG_IDS, EGGS } = await import('../src/opus-bay/eggs/registry');
 const { VIEW_SPOTS, VIEW_SPOT_IDS } = await import('../src/opus-bay/play/viewSpots');
 const { SOUND_IDS } = await import('../src/opus-bay/eggs/citySounds');
 
@@ -114,17 +114,17 @@ test('W5-E5 a full page pays 30 金币 and gives its cosmetic, once', () => {
   for (const id of EGG_IDS) L.pay(`egg:${id}`, 10);
   assert.deepEqual(N.checkNotebook(all, true), ['finds']);
   assert.equal(W.owns('scarf-treasure'), true);
-  assert.equal(L.coinsTotal(), 3 * S.PAGE_COINS + 16 * 5 + 24 * 10);
+  assert.equal(L.coinsTotal(), 3 * S.PAGE_COINS + 16 * 5 + EGG_IDS.length * 10);
   // W5-E9: the 城市之声 page — lane D pays sound:<id> as each is heard
   for (const id of SOUND_IDS.slice(0, -1)) L.pay(`sound:${id}`, 5);
   assert.deepEqual(N.checkNotebook(all, true), [], 'one sound short');
   L.pay(`sound:${SOUND_IDS.at(-1)}`, 5);
   assert.deepEqual(N.checkNotebook(all, true), ['sounds']);
   assert.equal(W.owns('frame-sounds'), true, 'the 城市之声 frame');
-  assert.equal(L.coinsTotal(), 4 * S.PAGE_COINS + 16 * 5 + 24 * 10 + SOUND_IDS.length * 5);
+  assert.equal(L.coinsTotal(), 4 * S.PAGE_COINS + 16 * 5 + EGG_IDS.length * 10 + SOUND_IDS.length * 5);
   const st = N.notebookPages()!;
-  assert.deepEqual([st.stamps.got, st.stamps.total, st.finds.got, st.finds.total, st.views.got, st.views.total, st.sounds.got, st.sounds.total], [22, 22, 24, 24, 16, 16, 12, 12]);
-  assert.equal(N.notebookCount(), String(22 + 24 + 16 + 12));
+  assert.deepEqual([st.stamps.got, st.stamps.total, st.finds.got, st.finds.total, st.views.got, st.views.total, st.sounds.got, st.sounds.total], [22, 22, 33, 33, 16, 16, 12, 12], 'lane D\'s two egg batches: 24 + 9');
+  assert.equal(N.notebookCount(), String(22 + 33 + 16 + 12));
 });
 
 test('W5-E5 MF8: the pages list something in every area (the eight egg areas; view spots in five of the six attraction areas)', () => {

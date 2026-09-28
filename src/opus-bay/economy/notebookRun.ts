@@ -3,7 +3,7 @@ import { game } from '../core/store';
 import { bitSet, type PlaySaveV1 } from '../data/playSave';
 import { readSave } from '../data/save';
 import { SOUND_IDS } from '../eggs/citySounds';
-import { EGG_IDS } from '../eggs/registry';
+import { ALL_EGG_IDS } from '../eggs/registry';
 import { isDiscovered } from '../game/discovery';
 import { VIEW_SPOTS, VIEW_SPOT_IDS } from '../play/viewSpots';
 import { PAGE_ITEM, type PageId } from './items';
@@ -59,7 +59,7 @@ export function checkNotebook(world: StampWorld = stampWorld(), persist = !disco
     const add = newStamps(playState(), world);
     if (add.length) commitPlay(p => ({ ...p, g: { ...p.g, stamp: add.reduce((b, i) => bitSet(b, i), p.g.stamp) } }) as PlaySaveV1);
   }
-  const next = pageStates(playState(), persist ? world : null, EGG_IDS, liveViewIds(), isPaid, SOUND_IDS);
+  const next = pageStates(playState(), persist ? world : null, ALL_EGG_IDS, liveViewIds(), isPaid, SOUND_IDS);
   const paid: PageId[] = [];
   for (const id of PAGE_IDS) {
     if (!next[id].full || isPaid(`page:${id}`)) continue;

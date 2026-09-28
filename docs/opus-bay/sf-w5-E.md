@@ -322,7 +322,7 @@ flight through `fastTravel.startTravel` (a first sight when not found yet), 10 b
 2. 用真实地图、真实账本跑了"一小时典型玩法"（快、普通、慢三种节奏）：普通玩家第一小时大约攒 450 金币，够买 5 件装扮，第一件 5 分钟内就买得起；23 件装扮全部买齐大约要玩 7 小时。
 3. 价格按这个结果定了：BAYBAY 围巾 70、帽子 150，你的帽子和背包 50，单车/小车漆 110，鹈鹕丝带 90，相框 60；罗盘和放大镜 20、飞行券 10 不变。金币永远买不到速度、地方或交通。
 4. 手帐新增「城市之声」页（D 线的 12 种城市声音，没听到时是谜语和去哪儿听，集满送"城市之声相框"），小发现页多了 6 张彩蛋明信片（找到彩蛋才出现，点开看大图）和 BAYBAY 的小石子数，印章页多了活动纪念章，足迹页多了「我的记录」（爬台阶级数、滑梯/摇铃/台阶赛最好成绩；只看今天，没有连续打卡）。
-5. 电脑和手机上都实际打开看过；全部 1291 个测试通过，改动都已推上去。
+5. 电脑和手机上都实际打开看过；全部 1293 个测试通过，改动都已推上去。
 
 ### What was built
 
@@ -331,7 +331,7 @@ flight through `fastTravel.startTravel` (a first sight when not found yet), 10 b
 | **CP-4** part b on origin | `7d43e5b` … `2d994f0` (the five part-b commits, rebased on `dfb02f3`, checks 1221 / 1221; the part-b table above names their pre-rebase ids) | — |
 | **CP-5** stuck coin spots (W5-E2) | `58d674d`, `88722c2`, `3a8f086` | `scripts/opus-sf/coins-place.mts`, `economy/coinSpots.ts` (generated), `tests/opus-bay-w5-coins.test.ts` |
 | **W5-E8** the economy run, prices locked | `8d71207` | `scripts/opus-sf/economy-run.mts`, `economy/items.ts` (prices), `tests/opus-bay-w5-economy.test.ts`, `tests/opus-bay-w5-shop.test.ts` |
-| **W5-E9** the should pages | `08b5e1b`, `9b21f1a`, and the commit with this report (the pebbles row) | `economy/{Notebook.tsx,records.ts,stamps.ts,notebookRun.ts,items.ts,frames.ts,lines.ts,economy.css}`, `tests/opus-bay-w5-notebook.test.ts` |
+| **W5-E9** the should pages | `08b5e1b`, `9b21f1a`, and the commits with this report (the pebbles row; lane D's batch-2 eggs) | `economy/{Notebook.tsx,records.ts,stamps.ts,notebookRun.ts,items.ts,frames.ts,lines.ts,economy.css}`, `tests/opus-bay-w5-notebook.test.ts` |
 
 **CP-5 · every coin where the walker can leave it.** `coins-place.mts` now judges every ground spot the way lane F's
 sweep does (`walkProblems`): the real `PlayerController` pushed 1.5 s in four directions (the most open first), the
@@ -376,20 +376,20 @@ run is on the low side.
 
 | profile | hour 1 | by minute (5′ · 15′ · 30′ · 60′) | after 2 h · 4 h · 8 h | places in hour 1 |
 |---|---|---|---|---|
-| typical | **449** (arrivals 134, goals 80, trail coins 61, the first flight 54, caches 50, eggs 20, postcards 20, the daily three 20, views 10) | 115 · 206 · 285 · 449 | 743 · 1,282 · 2,002 | 23 |
-| brisk | 559 | 115 · 206 · 303 · 559 | 946 · 1,696 · 1,856 (runs out of places after hour 4) | 32 |
-| relaxed | 404 | 115 · 206 · 257 · 404 | 647 · 1,099 · 1,820 | 18 |
+| typical | **449** (arrivals 134, goals 80, trail coins 61, the first flight 54, caches 50, eggs 20, postcards 20, the daily three 20, views 10) | 115 · 206 · 285 · 449 | 743 · 1,292 · 2,018 | 23 |
+| brisk | 559 | 115 · 206 · 303 · 559 | 970 · 1,691 · 1,804 (runs out of places after hour 4) | 32 |
+| relaxed | 404 | 115 · 206 · 257 · 404 | 647 · 1,086 · 1,878 | 18 |
 
-The city holds **2,547 one-off coins** (arrivals 667, caches 420, event souvenirs 270, eggs 240, goals 200, postcards
-160, favours 150, ring coins 120, medals ≈ 120, pages 120) plus 351 trail coins and the daily three's 50 each Bay day.
+The city holds **2,637 one-off coins** (arrivals 667, caches 420, eggs 330 (lane D's two batches), event souvenirs 270,
+goals 200, postcards 160, favours 150, ring coins 120, medals ≈ 120, pages 120) plus 351 trail coins and the daily three's 50 each Bay day.
 
 **Prices locked** (the plan's ratios × ≈ 1.8, round numbers): BAYBAY scarves **70**, BAYBAY hats **150**, your hat /
 backpack colours **50**, bike / toy-car paints **110**, the pelican ribbon **90**, frames **60**; the compass and the
 magnifier stay **20** (one outing each, not cosmetics), the 飞行券 **10** (its refund stays 10). The wardrobe is **1,970**
 coins for 23 wearables (average 85.7): the typical first hour buys **5.2** of them (relaxed 4.7, brisk 6.5), one about
 every **11–13 minutes**, the first within **five minutes** (115 coins at 5′); the typical player has bought everything
-after **about 7 hours** (1,982 after hour 7; the relaxed run 1,820 after 8, with the sources the run leaves out ≈ 8–9 h).
-The wardrobe is 77 % of the one-off coins: nobody needs the daily refills to buy it all. Coins still never buy speed,
+after **about 7 hours** (1,998 after hour 7; the relaxed run 1,878 after 8, with the sources the run leaves out ≈ 8–9 h).
+The wardrobe is 75 % of the one-off coins: nobody needs the daily refills to buy it all. Coins still never buy speed,
 access or places (the grep test in `w5-shop`).
 
 **W5-E9 · the should pages and the ladder.**
@@ -400,7 +400,8 @@ access or places (the grep test in `w5-shop`).
   **城市之声相框** (item 30: a bay-teal ring with a foghorn's sound rings and little notes, painted only in the polaroid's
   border like the others); BAYBAY says 城市之声都听全啦！送你一个城市之声相框。 (zh 20). The notebook registers lane D's
   `sound` ids too (the same append-only list).
-- **小发现**: lane V's six secret postcards (W5-V8) on top: a blank card until its egg is found, then the 600 × 450
+- **小发现**: both of lane D's egg batches (`ALL_EGGS`: 24 + the nine of batch 2 that landed during this part, each with a
+  silhouette glyph; the page is now 33), with lane V's six secret postcards (W5-V8) on top: a blank card until its egg is found, then the 600 × 450
   picture and its title; a tap shows the 1200 × 900 one. Then **BAYBAY 的小石子 n/48** (lane D's pebbles: a count, never a
   page to fill).
 - **印章**: lane R's event souvenirs (`SOUVENIR_IDS`, names from `EVENT_SAY`) as stamps once earned at a real event in its
@@ -417,7 +418,8 @@ access or places (the grep test in `w5-shop`).
 
 - **Checks** on the pushed head `9b21f1a` (rebased on `508d4f0`): `npx tsc -p tsconfig.app.json --noEmit` 0 errors ·
   `npx eslint .` 0 errors (the 43 old warnings, none in economy/) · `npx tsx --tsconfig tsconfig.app.json --test
-  tests/opus-bay-*.test.ts` **1291 / 1291**; the report commit re-ran them. New or changed tests: `w5-economy` (2: hour 1
+  tests/opus-bay-*.test.ts` **1291 / 1291**; on the report's head (rebased on `ead7e08`, lane D's batch 2) **1293 / 1293**
+  (one wall-clock flake, `sf-transit-review` R5, passed alone and in the next full run). New or changed tests: `w5-economy` (2: hour 1
   of the typical profile on the real ledger buys 3–5.5 cosmetics, the first within ten minutes, each source paid once,
   what hour 1 is made of; the one-off coins cover the wardrobe with room to spare and the wardrobe is 6–8 hours at the
   run's pace), `w5-shop` (the locked prices, the wardrobe 1,970, item 30, the sounds frame clipped to the ring),
