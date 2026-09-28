@@ -12,8 +12,10 @@ import { W4_MODELS, W4_MODEL_IDS } from '../src/opus-bay/data/sf/w4Models';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { NO_NAME, ROAD_CLASSES } from '../src/opus-bay/world/sf/format';
 import { landmarkSink } from '../src/opus-bay/world/sf/sites';
-import { SF_LANDMARKS, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
-import { LIFT, LIFT_STRIPE, type W4Site, polyArea, siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
+import { SF_LANDMARKS, SF_SITES, TIER_TRIANGLES, type SfLandmark, buildLandmark, buildLandmarkAnimated, landmarkToWorld, sfLandmark, worldToLandmark } from '../src/opus-bay/world/sf/landmarks/index';
+import { GC, LIFT, LIFT_STRIPE, type W4Site, polyArea, siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
+import { landmarkPlazaSpots } from '../src/opus-bay/world/sf/landmarks/context';
+import { CURB_BAND } from '../src/opus-bay/core/geo';
 import { SITE_TERRAIN } from '../src/opus-bay/world/sf/landmarks/siteTerrain';
 import { W4_SITES as W4_LIST } from '../src/opus-bay/world/sf/landmarks/w4list';
 import { W4_SITES_T3 } from '../src/opus-bay/world/sf/landmarks/w4list3';
@@ -22,7 +24,8 @@ import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
 import { sfDisk } from './opus-bay-sf-disk';
 
 // Wave-4 landmark sites (lane L, plan §2.2 / §5.4): the new site modules built in node against the published city
-// (public/opus-bay/sf/v1). They are not registered yet (integration phase), so everything here uses them directly.
+// (public/opus-bay/sf/v1). They are registered (W4-IL1: landmarks/index.ts SF_SITES spreads w4list.ts); the tests
+// still take the records from w4list / w4sites directly.
 
 const sf = sfDisk();
 const attractions = (JSON.parse(readFileSync(new URL('../docs/opus-bay/sf-w4-attractions.json', import.meta.url), 'utf8')) as { attractions: { id: string; x: number; z: number; placeId: string | null; treatment: string; mapRank: number }[] }).attractions;
@@ -335,6 +338,109 @@ test('streets: every street the exclusion cuts is continued by the site ground, 
   }
 });
 
+// the city around a site as the renderer draws it (decoded chunks cached): world/sf/build.ts buildingsOf drops a city
+// building whose VERTEX-MEAN centroid is inside any site's exclusion and keeps the rest whole; streets draw their asphalt
+// max(1.6, w − 2·CURB_BAND) wide with a CURB_BAND sidewalk on either side, and the traffic drives the street classes
+const decoded = new Map<string, Awaited<ReturnType<typeof sf.chunk>>>();
+async function chunkAt(cx: number, cz: number) {
+  const k = `${cx}_${cz}`;
+  if (!decoded.has(k)) decoded.set(k, await sf.chunk(cx, cz));
+  return decoded.get(k)!;
+}
+const ALL_EX = SF_SITES.map(exPoly);
+/** a city building: footprint (world), kept or dropped by the exclusions, its toy wall height over its ground (u) */
+interface CityBuilding { poly: Vec2[]; kept: boolean; h: number }
+async function buildingsAround(pts: Vec2[], pad = 16): Promise<CityBuilding[]> {
+  const xs = pts.map(p => p.x), zs = pts.map(p => p.z), x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, z0 = Math.min(...zs) - pad, z1 = Math.max(...zs) + pad;
+  const out: CityBuilding[] = [];
+  for (let cz = Math.floor(z0 / 128); cz <= Math.floor(z1 / 128); cz++) for (let cx = Math.floor(x0 / 128); cx <= Math.floor(x1 / 128); cx++) {
+    const b = (await chunkAt(cx, cz))?.buildings;
+    for (let i = 0; b && i < b.count; i++) {
+      const poly: Vec2[] = [];
+      for (let k = b.vStart[i]; k < b.vStart[i + 1]; k++) poly.push({ x: b.xz[k * 2], z: b.xz[k * 2 + 1] });
+      if (poly.length < 3 || !poly.some(p => p.x > x0 && p.x < x1 && p.z > z0 && p.z < z1)) continue;
+      const cen = { x: poly.reduce((a, p) => a + p.x, 0) / poly.length, z: poly.reduce((a, p) => a + p.z, 0) / poly.length };
+      out.push({ poly, kept: !ALL_EX.some(e => inPoly(cen, e)), h: b.height[i] });
+    }
+  }
+  return out;
+}
+const TRAFFIC = new Set(['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential']);
+/** the street carriageway under a world point outside every exclusion (class, distance to the centreline, asphalt half), or null */
+async function carriageway(p: Vec2): Promise<string | null> {
+  for (let cz = Math.floor((p.z - 8) / 128); cz <= Math.floor((p.z + 8) / 128); cz++) for (let cx = Math.floor((p.x - 8) / 128); cx <= Math.floor((p.x + 8) / 128); cx++) {
+    const rd = (await chunkAt(cx, cz))?.roads;
+    for (let i = 0; rd && i < rd.count; i++) {
+      if (!TRAFFIC.has(ROAD_CLASSES[rd.cls[i]])) continue;
+      const half = Math.max(0.8, rd.width[i] / 2 - CURB_BAND);
+      for (let k = rd.pStart[i]; k + 1 < rd.pStart[i + 1]; k++) {
+        const d = distToSeg(p, { x: rd.xyz[k * 3], z: rd.xyz[k * 3 + 2] }, { x: rd.xyz[k * 3 + 3], z: rd.xyz[k * 3 + 5] });
+        if (d < half) return `${ROAD_CLASSES[rd.cls[i]]} ${d.toFixed(2)} u from its centreline (asphalt half ${half.toFixed(1)})`;
+      }
+    }
+  }
+  return null;
+}
+/**
+ * Part-1 records (lane L's early phase, before this review) with the same faults, routed to the integration lane in
+ * docs/opus-bay/sf-w4-L.md "Early review 2" (open items): crowd spots or the arrival on a carriageway or in a building,
+ * and USF's dropped east wing. Every other wave-4 record is checked.
+ */
+const OPEN_P1 = new Set(['sfmoma', 'haight-ashbury', 'geary-west', 'st-ignatius-church', 'lands-end', 'bison-paddock', 'ccsf-drpac']);
+const OPEN_HOLES = new Set(['usf-lone-mountain']);
+
+test('crowd spots and arrivals: never on a street carriageway, never inside a city building (W4-L-review)', async () => {
+  const spots = landmarkPlazaSpots();
+  for (const s of W4_SITES) {
+    if (OPEN_P1.has(s.id)) continue;
+    const ar = landmarkToWorld(s, s.w4.arrival);
+    const pts = [...spots.filter(p => p.id === s.id).map(p => ({ ...p, what: 'crowd spot' })), { ...ar, what: 'arrival' }];
+    const kept = (await buildingsAround(pts, 4)).filter(b => b.kept);
+    // the crowd stands EXACTLY on a plaza spot (crowd.ts spawnStander skips its roadway check for them), and traffic
+    // only yields to walkers it sees on the road: a spot on the asphalt is a person standing in the traffic
+    const asphalt = (s.ground ?? []).filter(q => q.color === GC.asphalt);
+    for (const p of pts) {
+      const L = worldToLandmark(s, p), at = `${s.id} ${p.what} (${L.x.toFixed(2)}, ${L.z.toFixed(2)})`;
+      assert.ok(!kept.some(b => inPoly(p, b.poly)), `${at} is inside a city building`);
+      if (ALL_EX.some(e => inPoly(p, e))) assert.ok(!asphalt.some(q => inPoly(L, q.poly)), `${at} is on the site's re-laid carriageway`);
+      else { const c = await carriageway(p); assert.equal(c, null, `${at} is on a carriageway: ${c}`); }
+    }
+  }
+});
+
+test('city buildings: the site never reaches into one the city keeps, and never drops one it does not replace (W4-L-review)', async () => {
+  for (const s of W4_SITES) {
+    const ex = exPoly(s), city = await buildingsAround(ex);
+    // the model: at most 0.8 u into a kept building below its roof (eaves, awnings, a street tree's crown against a
+    // facade; a flag flying over a roof is fine)
+    const pos = buildLandmark(s, 0, s.base).getAttribute('position'), g = siteGround(s.id);
+    let worst = 0;
+    for (let i = 0; i < pos.count; i++) {
+      const L = { x: pos.getX(i), z: pos.getZ(i) }, w = landmarkToWorld(s, L);
+      for (const b of city) if (b.kept && pos.getY(i) < g.at(L.x, L.z) + b.h && inPoly(w, b.poly)) worst = Math.max(worst, Math.min(...b.poly.map((a, k) => distToSeg(w, a, b.poly[(k + 1) % b.poly.length]))));
+    }
+    assert.ok(worst <= 0.8, `${s.id}: the model reaches ${worst.toFixed(2)} u into a city building the city keeps`);
+    if (OPEN_HOLES.has(s.id)) continue;
+    // a dropped building (centroid inside this exclusion) is the site's to replace: what of it lies outside the exclusion
+    // and under none of the site's blockers is a hole in the street front (≤ 1 u², or ≤ 40 % of a big footprint)
+    const blocked = (p: Vec2) => (s.walk?.blockers ?? []).some(b => ('poly' in b ? inPoly(p, b.poly) : Math.hypot(p.x - b.x, p.z - b.z) < b.r));
+    for (const b of city) {
+      const cen = { x: b.poly.reduce((a, p) => a + p.x, 0) / b.poly.length, z: b.poly.reduce((a, p) => a + p.z, 0) / b.poly.length };
+      if (b.kept || !inPoly(cen, ex)) continue;
+      const bx = b.poly.map(p => p.x), bz = b.poly.map(p => p.z);
+      let all = 0, hole = 0;
+      for (let z = Math.min(...bz) + 0.1; z < Math.max(...bz); z += 0.2) for (let x = Math.min(...bx) + 0.1; x < Math.max(...bx); x += 0.2) {
+        const p = { x, z };
+        if (!inPoly(p, b.poly)) continue;
+        all++;
+        if (!inPoly(p, ex) && !blocked(worldToLandmark(s, p))) hole++;
+      }
+      const holeA = hole * 0.04, allA = all * 0.04;
+      assert.ok(holeA <= 1 || holeA <= 0.4 * allA, `${s.id}: drops a city building of ${allA.toFixed(1)} u² and leaves ${holeA.toFixed(1)} u² of it empty (its centroid is inside the exclusion)`);
+    }
+  }
+});
+
 test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u; the landmark table matches the models', () => {
   for (const s of W4_SITES) {
     const f = siteFlagTop(s.id);
@@ -370,10 +476,13 @@ test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u;
   assert.equal(siteFlagTop('no-such-place'), null);
 });
 
-test('settings: plazas ≥ 30 u², lamps light the night, no text or logo parts, AI slots for lane V', () => {
+test('settings: plazas ≥ 30 u² (or the stated sidewalks), never a roadway; lamps light the night, no text or logo parts, AI slots for lane V', () => {
   for (const s of W4_SITES) {
-    const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0);
-    assert.ok(plaza >= 30, `${s.id} plaza ${plaza.toFixed(0)} u²`);
+    const plaza = (s.plaza ?? []).reduce((a, p) => a + polyArea(p.poly), 0), min = s.w4.plazaMin ?? 30;
+    if (min < 30) assert.ok(min >= 5 && /sidewalk|plaza/i.test(s.w4.notes ?? ''), `${s.id} explains its smaller plaza`);
+    assert.ok(plaza >= min, `${s.id} plaza ${plaza.toFixed(1)} u² ≥ ${min}`);
+    // the crowd stands exactly on plaza spots (world/sf/crowd.ts spawnStander skips its roadway check for them)
+    for (const p of s.plaza ?? []) assert.notEqual(p.surface, 'road', `${s.id}: a plaza polygon on the roadway`);
     for (const l of s.lights ?? []) assert.ok([l.x, l.y, l.z, l.size].every(Number.isFinite) && /^#[0-9a-f]{6}$/i.test(l.color), s.id);
     // declarative records only: no materials, textures or labels (every surface is the shared TOY / GROUND)
     for (const k of Object.keys(s)) assert.ok(!/material|texture|label|sign|logo/i.test(k), `${s.id}.${k}`);

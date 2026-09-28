@@ -13,7 +13,10 @@ import { type W4Site, siteGround } from './siteKit';
  * part) — the brick stack at the back and the low wing. No lettering.
  *
  * Frame: origin (−18.6, 186.3) inside the barn, yaw −34.7°: Mason St runs along z −6.1 (the front), Washington St
- * along x 5.5 (the east corner); both ribbons stay the city's. Two storeys, ≈ 12 m → 5.1 u; the stack to 8 u.
+ * along x 5.9 (the east corner), both 3.6 wide with the cable-car tracks in their asphalt; both ribbons stay the
+ * city's. Their sidewalks on the barn's side are z −4.9…−4.3 and x 4.1…4.7: the crowd spots and the arrival stand
+ * there, never on the asphalt (W4-L-review: they stood on Mason St's cable-car track and on Washington St).
+ * Two storeys, ≈ 12 m → 5.1 u; the stack to 8 u.
  */
 
 const ID = 'cable-car-museum';
@@ -67,14 +70,15 @@ export const cableCarMuseum: W4Site = {
   },
   walk: { blockers: [{ poly: rect((BARN.x0 + BARN.x1) / 2, (BARN.z0 + BARN.z1) / 2, BARN.x1 - BARN.x0, BARN.z1 - BARN.z0) }, { poly: rect(-4.6, 3.9, 3.2, 1.6) }] },
   lights: [{ x: SHEAVES.x, y: g.at(SHEAVES.x, BARN.z0) + 1.8, z: BARN.z0 - 0.4, size: 1.4, color: '#ffd9a0' }],
-  // the sidewalks along Mason St (the front) and Washington St, and their corner
-  plaza: [{ poly: [{ x: -6.0, z: -5.9 }, { x: 5.3, z: -5.9 }, { x: 5.3, z: -4.4 }, { x: -6.0, z: -4.4 }], surface: 'pavement' }, { poly: [{ x: 4.1, z: -4.4 }, { x: 5.4, z: -4.4 }, { x: 5.4, z: 7.0 }, { x: 4.1, z: 7.0 }], surface: 'pavement' }],
+  // the sidewalks along Mason St (the front) and Washington St on the barn's side (the asphalt carries the cable cars)
+  plaza: [{ poly: [{ x: -6.0, z: -4.88 }, { x: 4.6, z: -4.88 }, { x: 4.6, z: -4.35 }, { x: -6.0, z: -4.35 }], surface: 'pavement' }, { poly: [{ x: 4.15, z: -4.3 }, { x: 4.65, z: -4.3 }, { x: 4.65, z: 7.0 }, { x: 4.15, z: 7.0 }], surface: 'pavement' }],
   w4: {
     placeId: 'cable-car-museum',
     attractions: ['cable-car-museum'],
     lod0R: 200,
     budget: 1000,
-    arrival: { x: 0.8, z: -5.3, heading: 0 },
+    // on the Mason St sidewalk by the west arch, the turning sheave to the right
+    arrival: { x: -2.2, z: -4.85, heading: 0.3 },
     photo: { target: [0.5, 2.5, -1], distance: 16, elevation: 0.2, bearing: Math.PI - 0.5 },
     flag: { x: 0.5, z: -0.6, h: 30 },
     height: { realM: 12, u: 5.1, top: 8.4, rule: 'H = 3.2 + 0.155·h' },
@@ -82,6 +86,7 @@ export const cableCarMuseum: W4Site = {
     terrain: [-7, -7, 7, 5],
     terrainStep: 1,
     ringMin: 0.6,
-    notes: 'Downtown diet (plan §2.2): ≤ 1.0k, lod0R 200. A corner building between row houses: the walk-around ring crosses its neighbours. Free admission; hours on the card. No lettering on the barn.',
+    plazaMin: 10,
+    notes: 'Downtown diet (plan §2.2): ≤ 1.0k, lod0R 200. A corner building between row houses: the walk-around ring crosses its neighbours, and the crowd plaza is its two sidewalks (11 u²). Free admission; hours on the card. No lettering on the barn.',
   },
 };

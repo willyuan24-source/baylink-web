@@ -37,18 +37,20 @@ function build(b: BatchLike, lod: 0 | 2) {
     for (const k of [0, 1]) { const z0 = Z_FOOT + (k * (Z_TOP - Z_FOOT)) / 2, zc = z0 + (Z_TOP - Z_FOOT) / 4; b.add(BOX(), M(CX, g.at(CX, zc) - 1, zc, 0, W, 1.1, (Z_TOP - Z_FOOT) / 2), runColor(k ? 0.8 : 0.2)); }
     return;
   }
-  // sixteen steps, each a block whose top meets the walked slope at its middle; the riser colour runs sea → sun
+  // fourteen steps, each a block whose top meets the walked slope at its middle; the riser colour runs sea → sun
   for (let k = 0; k < N; k++) {
     const zc = Z_FOOT + dz * (k + 0.5), top = g.at(CX, zc) + 0.04;
     b.add(BOX(), M(CX, top - 0.9, zc, 0, W, 0.9, dz), runColor(k / (N - 1)), NONE);
   }
-  // low garden walls along both sides, stepping with the stair, and the neighbours' planting behind them
+  // low garden walls along both sides, stepping with the stair, and the neighbours' planting behind the east one (the
+  // west house stands at the wall: W4-L-review, its planting boxes were inside that house)
   for (const side of [-1, 1]) {
     const x = CX + side * (W / 2 + 0.12);
     for (let k = 0; k < N; k += 4) {
       const z0 = Z_FOOT + dz * k, z1 = z0 + dz * 4, y0 = g.at(x, z0) + 0.35, y1 = g.at(x, z1) + 0.35;
       b.beam(new THREE.Vector3(x, y0, z0), new THREE.Vector3(x, y1, z1), 0.2, 0.5, FC.concrete);
     }
+    if (side < 0) continue;
     for (const [k, z] of [-2.9, -0.4, 1.8].entries()) {
       const hx = CX + side * (W / 2 + 0.5), y = g.at(hx, z);
       b.add(BOX(), M(hx, y - 0.2, z, 0.3 * side, 0.55, 0.75 + (k % 2) * 0.25, 1.4), k % 2 ? FC.hedge : '#7fa05a');
@@ -76,11 +78,11 @@ export const tiledSteps: W4Site = {
   plaza: [
     { poly: [{ x: CX - W / 2, z: Z_FOOT }, { x: CX + W / 2, z: Z_FOOT }, { x: CX + W / 2, z: Z_TOP }, { x: CX - W / 2, z: Z_TOP }], surface: 'stairs' },
     // the foot on the corner of 16th Ave and Moraga St (people stop there to look up the run of colours), the top
-    // landing, and the garden strips along both sides
-    { poly: [{ x: -2.5, z: -5.0 }, { x: 2.5, z: -5.0 }, { x: 2.5, z: Z_FOOT }, { x: -2.5, z: Z_FOOT }], surface: 'pavement' },
+    // landing, and the garden strip on the east side (the west house stands at the stair). The foot is the sidewalk of
+    // the street across it (its asphalt from z −4.6: W4-L-review, the plaza reached onto it)
+    { poly: [{ x: -2.5, z: -4.4 }, { x: 2.5, z: -4.4 }, { x: 2.5, z: Z_FOOT }, { x: -2.5, z: Z_FOOT }], surface: 'pavement' },
     { poly: [{ x: -1.2, z: Z_TOP }, { x: 1.2, z: Z_TOP }, { x: 1.2, z: 5.2 }, { x: -1.2, z: 5.2 }], surface: 'pavement' },
     { poly: [{ x: CX + W / 2 + 0.1, z: Z_FOOT }, { x: 1.2, z: Z_FOOT }, { x: 1.2, z: Z_TOP }, { x: CX + W / 2 + 0.1, z: Z_TOP }], surface: 'grass' },
-    { poly: [{ x: -1.9, z: Z_FOOT }, { x: CX - W / 2 - 0.1, z: Z_FOOT }, { x: CX - W / 2 - 0.1, z: Z_TOP }, { x: -1.9, z: Z_TOP }], surface: 'grass' },
   ],
   w4: {
     placeId: 'tiled-steps-16th-avenue',
@@ -92,6 +94,7 @@ export const tiledSteps: W4Site = {
     osm: [],
     terrain: [-3, -9, 3, 5],
     terrainStep: 1,
-    notes: 'Never a copy of the mosaic (Aileen Barr and Colette Crutcher\'s artwork): an abstract colour run on the risers only. The Hidden Garden Steps (16th Ave, Kirkham to Lawton) are a card.',
+    plazaMin: 20,
+    notes: 'The crowd plaza is the stair, the sidewalk at its foot, the top landing and the east garden strip (≈ 23 u²: the houses close both sides). Never a copy of the mosaic (Aileen Barr and Colette Crutcher\'s artwork): an abstract colour run on the risers only. The Hidden Garden Steps (16th Ave, Kirkham to Lawton) are a card.',
   },
 };

@@ -12,7 +12,11 @@ import { GC, LIFT, PAT, type SiteGroundPoly, type W4Site, grect, siteGround } fr
  * span out of the city's ribbon). No shop names.
  *
  * Frame: origin (−75.7, 462.7) at the bridge's centre, yaw −124.8°: the bridge runs along local x (the West mall's
- * wall at x −2.8), Webster St along local z at x 1.08 (4.4 wide), Post St at z 4.6, Geary Blvd at z −5.5.
+ * wall at x −2.8), Webster St along local z, Post St at z 4.6, Geary Blvd at z −5.5. Webster St is a DUAL carriageway
+ * in the published data: two one-way ribbons 4.4 wide with their centrelines at x −0.6 and 1.1, which the city draws as
+ * one street — asphalt x −2.2…2.7 between the sidewalks x −2.8…−2.2 and 2.7…3.3 (W4-L-review: the site had re-laid
+ * only the x 1.1 ribbon and painted a sidewalk strip over the other one's centreline, leaving x −2.2…−1.1 bare under
+ * the bridge). The crowd spots and the arrival are on the two sidewalks, never on the carriageway.
  */
 
 const ID = 'webster-bridge';
@@ -20,10 +24,13 @@ const X0 = -75.7, Z0 = 462.7, YAW = (-124.8 * Math.PI) / 180;
 const g = siteGround(ID, 9.2);
 
 const X_0 = -2.7, X_1 = 3.5, W = 2.1, DECK = 2.6, HALL = 1.5;
-const STREET = { x: 1.08, half: 2.2, road: 1.6 };
+/** the street under the span as the city draws it: asphalt x0…x1 and a sidewalk `walk` wide on either side */
+const STREET = { x0: -2.2, x1: 2.7, walk: 0.6 };
+/** the carriageway's middle; the deck's ground reference (the east ribbon's centreline, where its height was set) */
+const MID = (STREET.x0 + STREET.x1) / 2, REF_X = 1.08;
 
 function build(b: BatchLike, lod: 0 | 2) {
-  const y = g.at(STREET.x, 0), cx = (X_0 + X_1) / 2, L = X_1 - X_0;
+  const y = g.at(REF_X, 0), cx = (X_0 + X_1) / 2, L = X_1 - X_0;
   if (lod === 2) { box(b, cx, y + DECK - 0.4, 0, L, HALL + 0.4, W, '#8fa9b3'); return; }
   box(b, cx, y + DECK - 0.4, 0, L, 0.4, W, '#d8d1c3');
   // the glazed gallery, its curved roof, the spandrel bands
@@ -36,12 +43,13 @@ function build(b: BatchLike, lod: 0 | 2) {
   }
 }
 
-/** Webster St under the span: carriageway and sidewalks, 1.6 u beyond the exclusion on both sides */
+/** Webster St under the span (both carriageways): asphalt and the two sidewalks, 1.6 u beyond the exclusion on both sides */
 function ground(): SiteGroundPoly[] {
-  const len = 2 * 2.9;
+  const len = 2 * 2.9, { x0, x1, walk } = STREET;
   return [
-    ...grect(STREET.x, 0, 2 * STREET.road, len, 0, GC.asphalt, PAT.asphalt, g, 3, LIFT),
-    ...[-1, 1].flatMap(s => grect(STREET.x + s * (STREET.road + (STREET.half - STREET.road) / 2), 0, STREET.half - STREET.road, len, 0, GC.sidewalk, PAT.stone, g, 3, LIFT + 0.02)),
+    ...grect(MID, 0, x1 - x0, len, 0, GC.asphalt, PAT.asphalt, g, 3, LIFT),
+    ...grect(x0 - walk / 2, 0, walk, len, 0, GC.sidewalk, PAT.stone, g, 3, LIFT + 0.02),
+    ...grect(x1 + walk / 2, 0, walk, len, 0, GC.sidewalk, PAT.stone, g, 3, LIFT + 0.02),
   ];
 }
 
@@ -59,18 +67,20 @@ export const websterBridge: W4Site = {
   build,
   walk: { blockers: [] },
   ground: ground(),
-  lights: [{ x: 0.4, y: g.at(STREET.x, 0) + DECK + 0.9, z: 0, size: 1.6, color: '#ffd7a0' }],
-  plaza: [{ poly: [{ x: -1.1, z: -4.0 }, { x: -0.5, z: -4.0 }, { x: -0.5, z: 3.6 }, { x: -1.1, z: 3.6 }], surface: 'pavement' }, { poly: [{ x: 2.7, z: -4.0 }, { x: 3.3, z: -4.0 }, { x: 3.3, z: 3.6 }, { x: 2.7, z: 3.6 }], surface: 'pavement' }, { poly: [{ x: -0.5, z: -4.0 }, { x: 2.7, z: -4.0 }, { x: 2.7, z: 3.6 }, { x: -0.5, z: 3.6 }], surface: 'road' }],
+  lights: [{ x: 0.4, y: g.at(REF_X, 0) + DECK + 0.9, z: 0, size: 1.6, color: '#ffd7a0' }],
+  // the two sidewalks under and beside the span (a crowd spot is never on the carriageway: the crowd stands exactly there)
+  plaza: [{ poly: [{ x: -2.75, z: -4.0 }, { x: -2.25, z: -4.0 }, { x: -2.25, z: 3.6 }, { x: -2.75, z: 3.6 }], surface: 'pavement' }, { poly: [{ x: 2.75, z: -4.0 }, { x: 3.25, z: -4.0 }, { x: 3.25, z: 3.6 }, { x: 2.75, z: 3.6 }], surface: 'pavement' }],
   w4: {
     placeId: 'osm-w546510348',
     attractions: ['japan-center'],
-    arrival: { x: -0.8, z: -2.2, heading: 0 },
+    arrival: { x: -2.35, z: -2.2, heading: 0 },
     photo: { target: [0.4, 3, 0], distance: 14, elevation: 0.12, bearing: 0.2 },
     flag: { x: 0.4, z: 0, h: 30 },
     height: { realM: 10, u: 4.4, top: 5.2, rule: 'H = 3.2 + 0.155·h' },
     osm: ['way/148481441'],
     terrain: [-4, -5, 5, 5],
     terrainStep: 1,
-    notes: 'The malls are the city buildings (no shop names anywhere). The place row is Peace Plaza (osm-w546510348): the curated japantown-peace-pagoda row stays the Peace Pagoda one.',
+    plazaMin: 7,
+    notes: 'The crowd plaza is the two sidewalks of Webster St (7.6 u²: the malls close both sides). The malls are the city buildings (no shop names anywhere). The place row is Peace Plaza (osm-w546510348): the curated japantown-peace-pagoda row stays the Peace Pagoda one.',
   },
 };

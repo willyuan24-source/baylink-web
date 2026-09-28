@@ -12,9 +12,10 @@ import { GC, PAT, type SiteGroundPoly, type W4Site, gfill, hedge, siteGround } f
  * (ways 32865161, 32865757): light stone blocks with colonnades to Van Ness, the Opera House's fly tower rising behind,
  * the court's lawn between hedges. Davies Symphony Hall (south, across Grove St) stays the city's. No names or banners.
  *
- * Frame: origin (79.5, 437.0) in the Memorial Court, yaw −34.9°: Van Ness runs along z −13.5 (the fronts face −z),
- * Franklin St along z 8.3 behind; the Veterans Building is x −12.6…−3.1, the Opera House x 3.4…12.3 (the city drew
- * them 7.5 and 10.0 u high).
+ * Frame: origin (79.5, 437.0) in the Memorial Court, yaw −34.9°: Van Ness is a dual carriageway in the data (two
+ * one-way ribbons 5.6 wide along z −11.1 and z −13.5; the fronts face −z), so its sidewalk on this side is
+ * z −8.9…−8.3 (W4-L-review: the front plaza reached z −10.2, onto the asphalt); Franklin St along z 8.3 behind; the
+ * Veterans Building is x −12.6…−3.1, the Opera House x 3.4…12.3 (the city drew them 7.5 and 10.0 u high).
  */
 
 const ID = 'war-memorial';
@@ -56,7 +57,7 @@ export const warMemorial: W4Site = {
     ],
   },
   ground: ground(),
-  plaza: [{ poly: COURT, surface: 'grass' }, { poly: [{ x: -12.4, z: -10.2 }, { x: 12.1, z: -10.2 }, { x: 12.1, z: -8.3 }, { x: -12.4, z: -8.3 }], surface: 'pavement' }],
+  plaza: [{ poly: COURT, surface: 'grass' }, { poly: [{ x: -12.4, z: -8.85 }, { x: 12.1, z: -8.85 }, { x: 12.1, z: -8.35 }, { x: -12.4, z: -8.35 }], surface: 'pavement' }],
   w4: {
     placeId: 'osm-w32865161',
     attractions: ['war-memorial-opera-house'],

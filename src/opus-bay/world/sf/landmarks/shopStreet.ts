@@ -32,9 +32,14 @@ export interface ShopBlock {
 
 const CRATE = ['#7fae4f', '#e08a3a', '#c9473a', '#e0c24a', '#5f9a4c', '#b04a6a'];
 
-/** exclusion: the block's carriageway, sidewalks and the first 0.8 u of the shops behind the facade line */
+/**
+ * exclusion: the block's carriageway, sidewalks and the first 0.5 u behind the facade line (the palms' fronds reach
+ * 0.7 u past it). Never deeper: the city drops every building whose vertex-mean centroid falls inside (build.ts
+ * buildingsOf), and a narrow shop's centroid sits close to its facade (W4-L-review: at 0.8 u Irving lost the shop at
+ * local x −1.2…−0.1, a hole in its south row)
+ */
 export function shopExclude(k: ShopBlock): Vec2[] {
-  const z = k.half + 0.8;
+  const z = k.half + 0.5;
   return [{ x: k.x0, z: -z }, { x: k.x1, z: -z }, { x: k.x1, z }, { x: k.x0, z }];
 }
 

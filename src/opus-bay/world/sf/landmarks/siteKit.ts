@@ -75,6 +75,12 @@ export interface W4SiteMeta {
   /** the walk-around ring's open share when an existing building or the shore closes one side (default 0.75; say why in `notes`) */
   ringMin?: number;
   /**
+   * the crowd plaza's least area (u², default 30) when the site only has sidewalks to offer (a shopping block, a corner
+   * building, a bridge over a street; say why in `notes`). The crowd stands EXACTLY on the plaza spots
+   * (world/sf/crowd.ts spawnStander skips its roadway check for them), so a plaza never covers a carriageway
+   */
+  plazaMin?: number;
+  /**
    * a street site (a shopping block: shopStreet.ts): the block's kerb corners along local x and the facade line |z|.
    * The walk check samples the street's length (sidewalks and carriageway) instead of a ring, which would cross the
    * shops on both sides.

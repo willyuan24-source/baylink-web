@@ -13,8 +13,10 @@ import { FC, GC, PAT, type SiteGroundPoly, type W4Site, bench, fence, gfill, hip
  *
  * Frame: origin (−178.3, 970.9) at the gate, yaw 140.4°: local +z faces MLK Drive (centreline z 3.3, 4.4 wide: the
  * kerb at z 1.1), +x runs along it toward 9th Avenue's side of the garden; the main path leads in toward (3.4, −8.3).
- * The San Francisco County Fair Building stands just west (its front from (2.15, −3.2) to (−13.8, −0.3)) and stays the
- * city's; the old kiosk (OSM way 941355659, at (2.0, −2.8)) is re-drawn here.
+ * The San Francisco County Fair Building stands just west (its front from (2.15, −3.2) to (−13.8, −0.3), its east wall
+ * from (2.1, −3.2) to (0.7, −11.1)) and stays the city's; the old kiosk (OSM way 941355659, at (2.0, −2.8), against
+ * that corner) is re-drawn 2 u east of it so the path in passes between the kiosk and the building (W4-L-review: a
+ * magnolia and the path's crowd spot stood inside the Fair Building, and the arrival looked straight at its wall).
  */
 
 const ID = 'botanical-garden-gate';
@@ -22,9 +24,9 @@ const X0 = -178.3, Z0 = 970.9, YAW = (140.4 * Math.PI) / 180;
 const g = siteGround(ID, 17.2);
 
 const GATE_Z = -1.2, PIER_X = 1.4;
-const KIOSK = { x: 3.4, z: -2.6, w: 1.3, d: 1.1 };
+const KIOSK = { x: 4.0, z: -2.6, w: 1.3, d: 1.1 };
 const COURT: Vec2[] = [{ x: -1.9, z: GATE_Z - 0.2 }, { x: 5.8, z: GATE_Z - 0.2 }, { x: 5.8, z: 0.95 }, { x: -1.9, z: 0.95 }];
-const MAGNOLIAS: [number, number, number][] = [[5.4, -3.4, 1.1], [1.0, -4.4, 0.95], [6.4, -1.8, 0.85]];
+const MAGNOLIAS: [number, number, number][] = [[5.4, -3.4, 1.1], [3.9, -4.6, 0.8], [6.4, -1.8, 0.85]];
 const BLOSSOM = ['#f2c4d4', '#e9a8c0', '#f7dde6'];
 
 function magnolia(b: BatchLike, x: number, z: number, s: number, k: number) {
@@ -85,14 +87,16 @@ export const botanicalGardenGate: W4Site = {
   lights: [{ x: KIOSK.x, y: g.at(KIOSK.x, KIOSK.z) + 1.3, z: KIOSK.z + 0.8, size: 1.1, color: '#ffe0b0' }],
   plaza: [
     { poly: COURT, surface: 'plaza' },
-    // the main path in, and the lawn under the magnolias
-    { poly: [{ x: -0.6, z: GATE_Z - 0.2 }, { x: 1.0, z: GATE_Z - 0.2 }, { x: 3.2, z: -5.4 }, { x: 1.6, z: -5.6 }], surface: 'pavement' },
+    // the main path in (north of the Fair Building's front, then east of its wall, past the kiosk), and the lawn under
+    // the magnolias
+    { poly: [{ x: -0.6, z: GATE_Z - 0.2 }, { x: 1.0, z: GATE_Z - 0.2 }, { x: 3.2, z: -3.0 }, { x: 3.6, z: -5.4 }, { x: 2.2, z: -5.5 }, { x: 2.15, z: -3.25 }, { x: 1.9, z: -3.1 }, { x: -0.2, z: -2.7 }], surface: 'pavement' },
     { poly: [{ x: 4.3, z: -4.6 }, { x: 7.0, z: -4.2 }, { x: 7.0, z: GATE_Z - 0.4 }, { x: 4.3, z: GATE_Z - 0.4 }], surface: 'grass' },
   ],
   w4: {
     placeId: 'osm-w120480164',
     attractions: ['sf-botanical-garden'],
-    arrival: { x: 0.3, z: 0.1, heading: Math.PI },
+    // looking in along the main path (past the Fair Building's corner), not at its wall
+    arrival: { x: 0.3, z: 0.1, heading: 2.68 },
     photo: { target: [1.5, 1.6, -2], distance: 13, elevation: 0.3, bearing: 0.5 },
     flag: { x: 0, z: -0.3, h: 30 },
     height: { realM: 8, u: 3.2, top: 3.6, rule: 'overlook' },
