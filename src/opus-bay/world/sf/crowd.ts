@@ -4,7 +4,7 @@ import type { Quality } from '../../core/store';
 import { Batch, CYL, M, SPHERE } from '../builder';
 import { crowdPeopleMaterial, personGeometry } from '../life';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistance, lifeRng, predictApproach } from './streetNet';
-import { type CrowdPin, type WalkerLane, laneDistance } from './crowdSpots';
+import { type CrowdPin, type LaneHit, type WalkerLane, laneDistanceInto } from './crowdSpots';
 import { obstaclePool } from './recordPool';
 
 /**
@@ -186,6 +186,8 @@ const newWalker = (id: number): Walker => ({
 });
 
 const _p = { x: 0, z: 0 };
+/** (W5-T review) the lane tests' scratch record (laneStep runs for every walker near a lane every frame) */
+const _lq: LaneHit = { d: 0, side: 1, t: 0 };
 const _q = { x: 0, z: 0 };
 const _avoid: { x: number; z: number }[] = [];
 /** (verify m6) no walker spawns within this of the player, BAYBAY or a resident (u) */
@@ -499,7 +501,7 @@ export class CrowdSim {
     const lanes = this.env.lanes?.();
     if (!lanes) return false;
     for (const L of lanes) {
-      const q = laneDistance(L.lane, x, z);
+      const q = laneDistanceInto(L.lane, x, z, _lq);
       if (q.d < L.half + margin && q.t > 0 && q.t < 1) return true;
     }
     return false;
@@ -637,7 +639,7 @@ export class CrowdSim {
       const l = lane.lane, ll = Math.hypot(l.bx - l.ax, l.bz - l.az) || 1;
       if (!lane.noCross && Math.abs(ux * (l.bx - l.ax) / ll + uz * (l.bz - l.az) / ll) < 0.7) continue;
       for (let i = 0; i <= n; i++) {
-        const q = laneDistance(l, ax + (bx - ax) * (i / n), az + (bz - az) * (i / n));
+        const q = laneDistanceInto(l, ax + (bx - ax) * (i / n), az + (bz - az) * (i / n), _lq);
         if (q.d < lane.half && q.t > 0 && q.t < 1) return true;
       }
     }
@@ -873,20 +875,20 @@ export class CrowdSim {
         const l = L.lane, need = L.half + CROWD.r + 0.05;
         const ax = Math.min(l.ax, l.bx) - need, bx = Math.max(l.ax, l.bx) + need, az = Math.min(l.az, l.bz) - need, bz = Math.max(l.az, l.bz) + need;
         if (x < ax || x > bx || z < az || z > bz) continue;
-        const q = laneDistance(l, x, z);
+        const q = laneDistanceInto(l, x, z, _lq);
         // (only along its length: past an end the lane is open ground again)
         if (q.d >= need || q.t <= 0 || q.t >= 1) continue;
         const dx = l.bx - l.ax, dz = l.bz - l.az, len = Math.hypot(dx, dz) || 1, ux = dx / len, uz = dz / len;
         if (w.mode === 'walk' && Math.abs(Math.sin(heading) * ux + Math.cos(heading) * uz) < 0.7) continue;
         const onRoad = this.net.probe.surface(x, z) === 'road';
-        const fits = (px: number, pz: number) => this.net.probe.stand(px, pz, STAND_R) && (onRoad || this.net.probe.surface(px, pz) !== 'road');
-        // the side it is on first (exactly on the line: by its id), then the other one
-        const first = q.d < 1e-3 ? (w.id % 2 ? 1 : -1) : q.side;
+        // the side it is on first (exactly on the line: by its id), then the other one (q is the shared record: read now)
+        const qd = q.d, qside = q.side;
+        const first = qd < 1e-3 ? (w.id % 2 ? 1 : -1) : qside;
         for (let k = 0; k < 2; k++) {
           const side = k ? -first : first;
-          const push = side === q.side || q.d < 1e-3 ? need - q.d : need + q.d;
+          const push = side === qside || qd < 1e-3 ? need - qd : need + qd;
           const nx = -uz * side * push, nz = ux * side * push;
-          if (!fits(x + nx, z + nz)) continue;
+          if (!this.laneFits(x + nx, z + nz, onRoad)) continue;
           tx += nx; tz += nz;
           break;
         }
@@ -895,6 +897,11 @@ export class CrowdSim {
     const k = 1 - Math.exp(-dt * 5);
     w.lx += (tx - w.lx) * k; w.lz += (tz - w.lz) * k;
     if (Math.abs(w.lx) < 1e-4 && Math.abs(w.lz) < 1e-4) w.lx = w.lz = 0;
+  }
+
+  /** (W5-T review) ground a walker stepping out of a lane fits on (never from a sidewalk onto the roadway) */
+  private laneFits(px: number, pz: number, fromRoad: boolean): boolean {
+    return this.net.probe.stand(px, pz, STAND_R) && (fromRoad || this.net.probe.surface(px, pz) !== 'road');
   }
 
   /**

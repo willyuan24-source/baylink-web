@@ -71,13 +71,25 @@ const listeners = new Set<() => void>();
 
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 
+/** Where (x, z) lies from a lane: the distance to its segment, the side (+1 left of a→b, −1 right), the along-parameter. */
+export interface LaneHit { d: number; side: 1 | -1; t: number }
+
 /** Distance from (x, z) to segment (a, b), and the side (+1 left of a→b, −1 right). */
-export function laneDistance(l: CrowdLane, x: number, z: number): { d: number; side: 1 | -1; t: number } {
+export function laneDistance(l: CrowdLane, x: number, z: number): LaneHit {
+  return laneDistanceInto(l, x, z, { d: 0, side: 1, t: 0 });
+}
+
+/**
+ * (W5-T review) laneDistance written into the caller's record: the crowd asks it for every walker near a lane every frame
+ * (world/sf/crowd.ts laneStep), where a new record each call was per-frame garbage.
+ */
+export function laneDistanceInto(l: CrowdLane, x: number, z: number, out: LaneHit): LaneHit {
   const dx = l.bx - l.ax, dz = l.bz - l.az, L2 = dx * dx + dz * dz || 1;
   const t = Math.max(0, Math.min(1, ((x - l.ax) * dx + (z - l.az) * dz) / L2));
   const px = l.ax + dx * t, pz = l.az + dz * t;
   const cross = dx * (z - l.az) - dz * (x - l.ax);
-  return { d: Math.hypot(x - px, z - pz), side: cross >= 0 ? 1 : -1, t };
+  out.d = Math.hypot(x - px, z - pz); out.side = cross >= 0 ? 1 : -1; out.t = t;
+  return out;
 }
 
 /** The standing positions a group asks for (before the lanes): `count` spread over the spots, sunflower-packed. */
@@ -229,9 +241,12 @@ export function crowdWave(x: number, z: number, r = WAVE_REACH) {
   waves.push({ x, z, r: Math.max(0.5, Math.min(12, r)) });
 }
 
+/** (W5-T review) the answer when nobody waved: one shared empty list (the crowd asks every frame) */
+const NO_WAVES: readonly { x: number; z: number; r: number }[] = Object.freeze([]);
+
 /** The crowd's side: take the wave requests since the last call. */
-export function takeCrowdWaves(): { x: number; z: number; r: number }[] {
-  if (!waves.length) return [];
+export function takeCrowdWaves(): readonly { x: number; z: number; r: number }[] {
+  if (!waves.length) return NO_WAVES;
   return waves.splice(0, waves.length);
 }
 
