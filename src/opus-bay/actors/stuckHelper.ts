@@ -33,6 +33,11 @@ export interface StuckInput {
   reset: boolean;
   /** soft obstacles round the player (a parked car, a resident): pushing into one is not being stuck */
   obstacles?: readonly Obstacle[];
+  /**
+   * (W5-F review) the feet are no longer the player's own: a ride, the pelican, a bench, a fast travel, a restart. A pull
+   * in progress stops at once and leaves the player where the new mover put them.
+   */
+  abort?: boolean;
 }
 
 /** what actors/system.ts needs to stage a pull that starts this frame */
@@ -45,6 +50,8 @@ export interface PullStart {
 
 /** the pull's hop (s) and its height (u); a pull at a spot this many times in PULL_REPEAT_S stops pulling there */
 export const PULL_TIME = 0.45, PULL_HOP = 0.35, PULL_REPEAT = 3, PULL_REPEAT_S = 30, PULL_COOLDOWN = 1.5;
+/** (W5-F review) the player found this far (u) from where the pull last put them: something else moved them */
+export const PULL_MOVED_AWAY = 1;
 
 const ease = (k: number) => k * k * (3 - 2 * k);
 
@@ -72,6 +79,9 @@ export class StuckHelper {
   private to = { x: 0, z: 0, y: 0 };
   private cooldownUntil = -Infinity;
   private clock = 0;
+  /** where the pull last left the player (found far from it: somebody else moved them) */
+  private lastX = NaN;
+  private lastZ = NaN;
 
   /** a pull is running: the controller waits, the helper places the player */
   get active(): boolean { return this.phase !== 'idle'; }
@@ -86,13 +96,23 @@ export class StuckHelper {
   /** 0..1 through the pull's hop (the animation), 0 otherwise */
   get pullK(): number { return this.phase === 'pull' ? Math.min(1, this.t / PULL_TIME) : 0; }
 
-  /** Drop any pull in progress (a teleport, a ride, the world changing). */
-  cancel() { this.phase = 'idle'; this.pushT = 0; this.anchorX = NaN; }
+  /** Drop any pull in progress (a teleport, a ride, the world changing); the player stays where they are. */
+  cancel() {
+    if (this.phase !== 'idle') this.cooldownUntil = this.clock + PULL_COOLDOWN;
+    this.phase = 'idle'; this.pushT = 0; this.anchorX = NaN;
+  }
 
   update(inp: StuckInput): PullStart | null {
     const p = runtime.player;
     this.clock = inp.now;
-    if (this.phase !== 'idle') { this.advance(inp.dt); return null; }
+    if (this.phase !== 'idle') {
+      // (W5-F review) the feet were taken over (起飞 while BAYBAY runs over, a vehicle, a fast travel, a restart) or the
+      // player was put somewhere else (a teleport, R's own unstick): the pull stops there — before, it went on writing
+      // the player's position for up to 1.15 s and dragged them back to the spot they had been taken from
+      if (inp.abort || Math.hypot(p.x - this.lastX, p.z - this.lastZ) > PULL_MOVED_AWAY) { this.cancel(); return null; }
+      this.advance(inp.dt);
+      return null;
+    }
     if (!inp.free) { this.pushT = 0; this.anchorX = NaN; return null; }
     let reason: 'push' | 'reset' | null = null;
     let dx = inp.dirX, dz = inp.dirZ;
@@ -128,6 +148,7 @@ export class StuckHelper {
     const p = runtime.player, g = runtime.guide;
     this.from = { x: p.x, z: p.z, y: heightAt(p.x, p.z) };
     this.to = { ...to };
+    this.lastX = p.x; this.lastZ = p.z;
     this.count++;
     this.pulls.push({ x: +p.x.toFixed(2), z: +p.z.toFixed(2), tx: +to.x.toFixed(2), tz: +to.z.toFixed(2), t: +now.toFixed(2), reason });
     if (this.pulls.length > 50) this.pulls.shift();
@@ -160,6 +181,7 @@ export class StuckHelper {
     p.x = this.from.x + (this.to.x - this.from.x) * e;
     p.z = this.from.z + (this.to.z - this.from.z) * e;
     p.heading = Math.atan2(this.to.x - this.from.x, this.to.z - this.from.z);
+    this.lastX = p.x; this.lastZ = p.z;
     if (k >= 1) {
       p.x = this.to.x; p.z = this.to.z;
       this.phase = 'idle';

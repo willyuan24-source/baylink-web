@@ -72,6 +72,7 @@ const SLOTS: Record<'newcomer' | 'baybay' | 'baybay-glb', Record<AttachSlot, { b
 };
 
 type LoopState = { name: Emote; left: number; body: boolean } | null;
+const WHO: readonly CharWho[] = ['player', 'baybay'];
 
 export class CharImpl implements CharApi {
   private readonly host: CharHost;
@@ -130,7 +131,8 @@ export class CharImpl implements CharApi {
 
   /** Once a frame (actors/system.ts): loops run out or end on a move; the ridden bike's paint follows the rider. */
   update(dt: number): void {
-    for (const who of ['player', 'baybay'] as const) {
+    // (W5-F review: once a frame — no array or closure made here)
+    for (const who of WHO) {
       const l = this.loops[who];
       if (!l) continue;
       const anim = who === 'player' ? this.host.playerAnim : this.host.guideAnim;
@@ -245,7 +247,8 @@ export class CharImpl implements CharApi {
   private syncPaints() {
     const rides = this.host.rides();
     // the ridden bike
-    const bike = rides.find(r => r.kind === 'bike' && r.occupied) ?? null;
+    let bike: CharRide | null = null;
+    for (const r of rides) if (r.kind === 'bike' && r.occupied) { bike = r; break; }
     if (this.paintedBike && (this.paintedBike !== bike || this.paints.bike === null)) { paintBike(this.paintedBike, null); this.paintedBike = null; }
     if (bike && this.paints.bike && (this.paintedBike !== bike || this.bikeId !== this.paints.bike)) { paintBike(bike, this.paints.bike); this.paintedBike = bike; }
     this.bikeId = this.paintedBike ? this.paints.bike : null;

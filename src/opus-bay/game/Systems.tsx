@@ -129,13 +129,20 @@ function activate(id: string) {
 /**
  * Wave 5 (W5-F2) · a tap on BAYBAY. The first tap does what it always did (talk / walk up to her) and says so
  * (`self-tap`, double: false); a second within DOUBLE_TAP_S is a double-tap (lane A: pet her) — the call menu the
- * first tap opened folds away again, untouched.
+ * first tap opened folds away again, untouched. City mode only (W5-F review): lane A's pet is a city feature, and in the
+ * district the double-tap folded the menu away with nothing to answer it; there every tap is the old tap.
  */
 const DOUBLE_TAP_S = 0.38;
 const baybayTap = { t: -10, opened: null as string | null };
 function tapBaybay(now = performance.now() / 1000) {
+  if (game.get().worldMode !== 'city') { activate(BAYBAY_ID); return; }
   if (now - baybayTap.t < DOUBLE_TAP_S) {
     if (baybayTap.opened && game.get().dialogue.nodeId === baybayTap.opened) closeDialogue();
+    // (W5-F review) out of her reach the first tap has not opened the menu yet: it started a walk up to her that opens
+    // it on arrival (brain's pending interact) — the pet then played under the call menu, which covered the phone
+    // screen. The walk goes on (lane A pets her on arrival) but no longer opens the menu.
+    if (runtime.player.pendingInteract === BAYBAY_ID) runtime.player.pendingInteract = null;
+    if (flow.get().callPending) flow.set({ callPending: false });
     baybayTap.t = -10; baybayTap.opened = null;
     emit({ type: 'self-tap', who: 'baybay', double: true });
     return;

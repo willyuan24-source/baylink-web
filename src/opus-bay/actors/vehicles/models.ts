@@ -50,8 +50,10 @@ export const PAINTS = {
   gold: { name: { zh: '暖金', en: 'Warm gold' }, color: PALETTE.gold, dark: '#b9832f' },
   maroon: { name: { zh: '缆车栗红', en: 'Cable-car maroon' }, color: '#8e2f3c', dark: '#68212b' },
   // the bridge's colour is named International Orange (goldengate.org "Color & Art Deco Styling", CMYK 0/69/100/6,
-  // read 2026-09-28); the toy paint is the softened tone the game's own bridge wears (landmarks/kit.ts SF.ggb)
-  orange: { name: { zh: '国际橘', en: 'International Orange' }, color: '#c44a31', dark: '#9b3a27' },
+  // read 2026-09-28; https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/,
+  // re-read in the review 2026-09-28); the toy paint is the softened tone the game's own bridge wears (landmarks/kit.ts SF.ggb)
+  // (W5-F review: in Chinese the colour is 国际橙 — as the game's own bridge lines and postcard say — not 国际橘)
+  orange: { name: { zh: '国际橙', en: 'International Orange' }, color: '#c44a31', dark: '#9b3a27' },
   fog: { name: { zh: '雾灰', en: 'Karl fog grey' }, color: '#a9b2b7', dark: '#7f888e' },
   cream: { name: { zh: '酸面包奶油', en: 'Sourdough cream' }, color: '#e9d6ae', dark: '#c4ad80' },
   dahlia: { name: { zh: '大丽花粉', en: 'Dahlia pink' }, color: '#d8668f', dark: '#a8476a' },

@@ -758,3 +758,94 @@ test('W5-F11 (the trips phase): parked bikes and the toy car stay solid to the w
   const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
   assert.match(src, /for \(const r of move\.fleet\.rides\) \{\s*if \(r\.occupied \|\| p\.pathTarget \|\| [^\n]*continue;\s*this\.obstacles\.push\(\{ x: r\.sim\.x, z: r\.sim\.z, r: r\.kind === 'car' \? 0\.8 : 0\.45/);
 });
+
+// ---------------------------------------------------------------------------
+// W5-F review (the adversarial review of lane F)
+// ---------------------------------------------------------------------------
+
+test('W5-F review: a BAYBAY pull in progress stops when the feet are taken over (起飞, a vehicle, a fast travel) or someone else moves the player — it never drags them back', async () => {
+  const k = await feetKit();
+  const T = await synthWorld({ ground: x => (x >= SX + 3 ? 0.7 : 0) });
+  try {
+    const p = runtime.player;
+    const begin = (h: InstanceType<typeof k.StuckHelper>, t0: number) => {
+      p.x = SX + 2.4; p.z = SZ; p.y = 0;
+      let t = t0;
+      for (let i = 0; i < 200; i++) { t += 1 / 60; if (h.update({ dt: 1 / 60, now: t, free: true, pushing: true, dirX: 1, dirZ: 0, reset: false })) return t; }
+      throw new Error('no pull started');
+    };
+    // 1. a teleport while BAYBAY runs over (R's own unstick, a fast travel's arrival, a restart): the player stays there
+    let h = new k.StuckHelper();
+    let t = begin(h, 0);
+    assert.equal(h.phase, 'rush');
+    p.x = SX - 40; p.z = SZ + 20;
+    for (let i = 0; i < 90; i++) { t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false }); }
+    assert.equal(h.phase, 'idle');
+    assert.deepEqual([p.x, p.z], [SX - 40, SZ + 20], 'left where the teleport put them');
+    // 2. mid-hop, the feet are taken over (the pelican takes off from here): the pull stops at once
+    h = new k.StuckHelper();
+    t = begin(h, 100);
+    for (let i = 0; i < 60 && h.phase !== 'pull'; i++) { t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false }); }
+    assert.equal(h.phase, 'pull');
+    t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false });
+    const at = { x: p.x, z: p.z };
+    p.x += 0.4; // the glide carries the body on (a small step: the abort, not the jump test, stops it)
+    t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false, abort: true });
+    assert.equal(h.phase, 'idle');
+    for (let i = 0; i < 60; i++) { t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false }); }
+    assert.ok(Math.abs(p.x - (at.x + 0.4)) < 1e-9 && p.z === at.z, 'nothing written after the take-over');
+    // 3. left alone, a pull still lands on the ground beyond (the part-b behaviour)
+    h = new k.StuckHelper();
+    t = begin(h, 200);
+    for (let i = 0; i < 120 && h.phase !== 'idle'; i++) { t += 1 / 60; h.update({ dt: 1 / 60, now: t, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false }); }
+    assert.ok(p.x >= SX + 3.2, `pulled up onto the ground beyond (${p.x.toFixed(2)})`);
+  } finally { T.setCityTerrain(null); }
+  // the actor system passes the take-over and reuses one input object (it runs every frame)
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(src, /fi\.abort = s\.phase !== 'playing' \|\| carried \|\| move\.mode !== 'foot';\s*const pull = this\.feet\.update\(fi\);/);
+});
+
+test('W5-F review: after an arrival\'s open-ground turn the stick walks the open way at once (the movement basis), while the camera swings; a camera drag or the camera getting there hands the basis back', async () => {
+  const THREE = await import('three');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { input } = await import('../src/opus-bay/core/input');
+  const { view, moveBasis } = await import('../src/opus-bay/actors/view');
+  const { CameraController } = await import('../src/opus-bay/actors/camera');
+  const { faceCameraToward } = await import('../src/opus-bay/game/cinema');
+  const saved = { phase: game.get().phase, photoMode: game.get().photoMode, worldMode: game.get().worldMode };
+  const gate = DISTRICT.anchors['ferry-gate'];
+  Object.assign(view, { x: gate.x, y: 0, z: gate.z, ground: 0, vx: 0, vz: 0, ready: true });
+  const cam = new THREE.PerspectiveCamera(42, 1440 / 900, 0.5, 4000);
+  const rig = new CameraController();
+  const lastCam = input.lastCameraInputAt;
+  try {
+    game.set({ phase: 'playing', photoMode: false, worldMode: 'district' });
+    input.lastCameraInputAt = performance.now() - 10_000;
+    let t = 0;
+    const step = (s: number) => { for (let i = 0; i < Math.round(s * 30); i++) { t += 1 / 30; rig.update(cam, 1 / 30, t, 900, 1440); } };
+    step(0.3);
+    // the open ground lies 90° to the camera's right: W (forward = the basis yaw + π) must walk there at once
+    const fwd = moveBasis.yaw + Math.PI, h = fwd - Math.PI / 2;
+    const tx = gate.x + Math.sin(h) * 12, tz = gate.z + Math.cos(h) * 12;
+    faceCameraToward(tx, tz, { uncapped: true, open: true });
+    step(1 / 30);
+    const walk = moveBasis.yaw + Math.PI;
+    assert.ok(Math.abs(wrap(walk - h)) < 0.02, `the basis walks the open way at once (${walk.toFixed(2)} vs ${h.toFixed(2)})`);
+    assert.ok(Math.abs(wrap(rig.yaw + Math.PI - h)) > 0.8, 'while the camera is still on its way');
+    step(0.5);
+    assert.ok(Math.abs(wrap(moveBasis.yaw + Math.PI - h)) < 0.02, 'held while the camera swings');
+    // the player drags the camera: the basis blends back to the camera's own
+    input.lastCameraInputAt = performance.now();
+    step(0.5);
+    assert.ok(Math.abs(wrap(moveBasis.yaw - rig.yawS)) < 1e-6, 'the camera\'s basis again');
+    // with no drag, the basis follows the camera once the hold ends (3 s)
+    input.lastCameraInputAt = performance.now() - 10_000;
+    faceCameraToward(gate.x - Math.sin(h) * 12, gate.z - Math.cos(h) * 12, { uncapped: true, open: true });
+    step(1 / 30);
+    assert.ok(Math.abs(wrap(moveBasis.yaw + Math.PI - (h + Math.PI))) < 0.02, 'a second turn: the basis goes there at once');
+    step(4);
+    assert.ok(Math.abs(wrap(moveBasis.yaw - rig.yawS)) < 1e-6, 'after the hold the camera\'s basis');
+  } finally { rig.dispose(); input.lastCameraInputAt = lastCam; game.set(saved); }
+});

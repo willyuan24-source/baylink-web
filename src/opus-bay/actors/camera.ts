@@ -613,8 +613,9 @@ export class CameraController {
         if (Math.hypot(dx, dz) > 1) {
           const yaw = photo ? want : this.clearYaw(view.x, view.z, want, false);
           this.startAssist(yaw, now, reduced ? 6 : rate, photo || !!face.uncapped);
-          // an arrival's open-ground turn (W5-F7) outranks the arrival yaw the snap / the settle look would choose
-          if (face.open) { this.openYaw = yaw; this.openUntil = now + OPEN_HOLD_S; this.settleUntil = 0; }
+          // an arrival's open-ground turn (W5-F7) outranks the arrival yaw the snap / the settle look would choose; the
+          // movement basis goes there at once (updateMoveBasis: the first push walks the open way while the camera swings)
+          if (face.open) { this.openYaw = yaw; this.openUntil = now + OPEN_HOLD_S; this.settleUntil = 0; this.openBasis = want; this.openAt = performance.now(); }
         }
       }
       if (!photo) this.assists(now, talking, idleMs);
@@ -955,6 +956,9 @@ export class CameraController {
   /** W5-F7: the open-ground yaw an arrival asked for (faceCameraToward open) and until when it outranks the arrival yaw */
   private openYaw = 0;
   private openUntil = 0;
+  /** (W5-F review) the movement basis of that turn (the player walks the open way) and when it was asked (performance ms) */
+  private openBasis = 0;
+  private openAt = -Infinity;
   private settleEpoch = -1;
   private settleAt = 0;
   private settleCheckAt = 0;
@@ -1049,6 +1053,16 @@ export class CameraController {
   }
 
   private updateMoveBasis(now: number, dt: number) {
+    // W5-F7 (review): after an arrival's open-ground turn the stick and the keys walk the open way at once — the camera
+    // takes a second or two to swing behind, and a push meanwhile went along the old view: off a glide landing by the
+    // Ferry Building's seawall the first push walked into the rail. Until the camera is there, the hold ends or the
+    // player turns the camera themselves; then the basis blends back to the camera's (0.3 s).
+    if (this.openUntil > now && input.lastCameraInputAt <= this.openAt && Math.abs(wrap(this.openBasis - this.yawS)) > 0.05) {
+      moveBasis.locked = false;
+      moveBasis.yaw = this.lockYaw = this.openBasis;
+      this.lockRelease = 0;
+      return;
+    }
     if (moveBasis.locked) {
       if (!input.manualMove || now > this.lockUntil) { moveBasis.locked = false; this.lockRelease = 0; }
       else { moveBasis.yaw = this.lockYaw; return; }

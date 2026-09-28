@@ -465,3 +465,84 @@ test('lane C\'s request: the greeting pelican flies in, sits with its wings fold
   S.flyOff(); run(S, 0.05);
   assert.ok(!S.greeting && Math.hypot(S.group.position.x, S.group.position.z - 4) < 1.5, 'leaves from its spot');
 });
+
+// ---------------------------------------------------------------------------
+// W5-F review (the adversarial review of lane F): district mode unchanged, the city lever only in the city
+// ---------------------------------------------------------------------------
+
+test('W5-F review: the shadow proxies cast in city mode only — with them off (the district) the shadow pass draws the full body, as before wave 5', async () => {
+  const { shadowProxies, shadowProxyStats } = await import('../src/opus-bay/actors/models');
+  const was = shadowProxies.on;
+  try {
+    for (const rig of [buildNewcomer(), buildBaybay()]) {
+      const st = shadowProxyStats(rig.mesh), g = rig.mesh.geometry;
+      shadowProxies.on = false;
+      rig.mesh.onBeforeShadow(null as never, rig.mesh, null as never, null as never, g, new THREE.MeshDepthMaterial(), null);
+      assert.deepEqual([g.drawRange.start, g.drawRange.count], [0, st.drawn * 3], 'district: the full body casts');
+      shadowProxies.on = true;
+      rig.mesh.onBeforeShadow(null as never, rig.mesh, null as never, null as never, g, new THREE.MeshDepthMaterial(), null);
+      assert.deepEqual([g.drawRange.start, g.drawRange.count], [st.drawn * 3, st.shadow * 3], 'city: the proxy casts');
+    }
+  } finally { shadowProxies.on = was; }
+  // the actor system sets it from the world mode every frame
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(src, /const cityMode = s\.worldMode === 'city';[^\n]*\n(?:\s*\/\/[^\n]*\n)*\s*shadowProxies\.on = cityMode;/);
+});
+
+test('W5-F review: the self-tap body and the BAYBAY double-tap are city features (lane A\'s wheel and pet), in the district a tap is the old tap; a double-tap never leaves the call menu to open on arrival', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const sys = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(sys, /selfTap\.on = cityMode && s\.phase === 'playing' && !carried && move\.mode === 'foot' && !frozen && !s\.photoMode;/);
+  const systems = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/game/Systems.tsx'), 'utf8');
+  assert.match(systems, /function tapBaybay\(now = performance\.now\(\) \/ 1000\) \{\s*if \(game\.get\(\)\.worldMode !== 'city'\) \{ activate\(BAYBAY_ID\); return; \}/);
+  // out of her reach the first tap walks up to her with a pending interact that opens the call menu on arrival: the
+  // double-tap keeps the walk (lane A pets her on arrival) but drops the pending menu (seen on the phone: the pet played
+  // under the call menu)
+  assert.match(systems, /if \(now - baybayTap\.t < DOUBLE_TAP_S\) \{[\s\S]{0,700}if \(runtime\.player\.pendingInteract === BAYBAY_ID\) runtime\.player\.pendingInteract = null;/);
+});
+
+test('W5-F review: charImpl (+ recolor) is a lazy city chunk — nothing in GameRoot\'s graph imports it statically; Actors.tsx loads it in city mode and registers it', async () => {
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const path = await import('node:path');
+  const root = path.resolve(import.meta.dirname, '../src/opus-bay');
+  const files: string[] = [];
+  const walk = (d: string) => { for (const f of readdirSync(d)) { const p = path.join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.tsx?$/.test(f)) files.push(p); } };
+  walk(root);
+  for (const f of files) {
+    if (path.basename(f) === 'charImpl.ts') continue;
+    const src = readFileSync(f, 'utf8');
+    // a value import (not `import type`) of charImpl / recolor pulls them into whatever graph imports this file
+    assert.doesNotMatch(src, /^import (?!type )[^;]*from '(?:\.\.?\/)+(?:actors\/)?(?:charImpl|recolor)';/m, path.relative(root, f));
+  }
+  const actors = readFileSync(path.join(root, 'actors/Actors.tsx'), 'utf8');
+  assert.match(actors, /if \(game\.get\(\)\.worldMode !== 'city'\) return;[\s\S]{0,120}import\('\.\/charImpl'\)[\s\S]{0,200}setCharApi\(system\.char\)/);
+});
+
+test('W5-F review: the International Orange paint is 国际橙 in Chinese (the game\'s own GGB lines say so; goldengate.org names the colour)', () => {
+  assert.equal(PAINTS.orange.name.zh, '国际橙');
+  assert.equal(PAINTS.orange.name.en, 'International Orange');
+});
+
+test('W5-F review: a tap on BAYBAY standing in front of the player is hers (the self-tap\'s 4 u lead only beats the spheres round the spot, never her body)', async () => {
+  const { BAYBAY_TAP, SELF_TAP, selfTapDistance } = await import('../src/opus-bay/actors/system');
+  const { CHAR_SCALE } = await import('../src/opus-bay/actors/dims');
+  assert.equal(selfTapDistance(10, -1), 6, 'nothing of hers on the ray: the lead');
+  assert.equal(selfTapDistance(10, 12), 6, 'she is behind the player: the lead');
+  assert.equal(selfTapDistance(10, 8.5), 10, 'she is in front: the true distance (her proxy, nearer, takes the tap)');
+  assert.equal(selfTapDistance(3, -1, 0.5), 0.5, 'never nearer than the camera\'s near plane');
+  // the geometry: a low camera behind BAYBAY, who stands 1.2 u in front of the player; a ray at the player's chest
+  const o = { x: 0, y: 3, z: 10 };
+  const v = new THREE.Vector3(0 - o.x, 0.9 - o.y, 0 - o.z).normalize();
+  const d = { x: v.x, y: v.y, z: v.z };
+  const t = rayCapsuleT(o, d, 0, 0, 0, SELF_TAP.r * CHAR_SCALE, SELF_TAP.h * CHAR_SCALE);
+  const tb = rayCapsuleT(o, d, 0, 0, 1.2, BAYBAY_TAP.r, BAYBAY_TAP.h);
+  assert.ok(t > 0 && tb > 0 && tb < t, `she is met first (${tb.toFixed(2)} < ${t.toFixed(2)})`);
+  assert.equal(selfTapDistance(t, tb), t);
+  // BAYBAY off to the side: the ray misses her body, the player's tap keeps its lead
+  const tb2 = rayCapsuleT(o, d, 1.6, 0, 1.2, BAYBAY_TAP.r, BAYBAY_TAP.h);
+  assert.equal(tb2, -1);
+  assert.equal(selfTapDistance(t, tb2), t - 4);
+});

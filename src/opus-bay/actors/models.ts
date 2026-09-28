@@ -109,6 +109,12 @@ export function rigFromGltf(scene: THREE.Object3D, height = 1.3): { rig: Rig; ob
 // ---------------------------------------------------------------------------
 
 /**
+ * W5-F review: the proxies cast in city mode only (plan MF9: every lever is city-mode only and the district stays as it
+ * was); actors/system.ts sets this every frame from the world mode. Off, the shadow pass draws the full body again.
+ */
+export const shadowProxies = { on: true };
+
+/**
  * Put a low-poly shadow proxy inside a skinned character's own geometry: the proxy's triangles go after the drawn ones
  * (the same vertex layout, the same skeleton), the main pass draws only the drawn range (onBeforeRender) and the shadow
  * pass only the proxy's (onBeforeShadow, chained after one already set). No extra draw call, material or program; the
@@ -146,7 +152,10 @@ export function withShadowProxy(mesh: THREE.SkinnedMesh, proxy: THREE.BufferGeom
   mesh.geometry = out;
   const before = mesh.onBeforeShadow.bind(mesh);
   mesh.onBeforeRender = () => { out.drawRange.start = 0; out.drawRange.count = drawn; };
-  mesh.onBeforeShadow = (r, o, c, sc, g, depth, group) => { before(r, o, c, sc, g, depth, group); out.drawRange.start = drawn; out.drawRange.count = extra; };
+  mesh.onBeforeShadow = (r, o, c, sc, g, depth, group) => {
+    before(r, o, c, sc, g, depth, group);
+    if (shadowProxies.on) { out.drawRange.start = drawn; out.drawRange.count = extra; } else { out.drawRange.start = 0; out.drawRange.count = drawn; }
+  };
   return { drawn: drawn / 3, shadow: extra / 3 };
 }
 

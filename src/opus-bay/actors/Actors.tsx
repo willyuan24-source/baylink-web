@@ -50,8 +50,20 @@ export function Actors() {
     return () => { offKeys(); offPointer(); padActions.journal = null; padActions.settings = null; padActions.map = null; };
   }, [gl]);
   useEffect(() => () => system.dispose(), [system]);
-  // wave 5 (W5-F2): the charApi implementation lives while the actors do (lanes A, E, R, D call charApi())
-  useEffect(() => { setCharApi(system.char); return () => setCharApi(null); }, [system]);
+  // wave 5 (W5-F2): the charApi implementation lives while the actors do (lanes A, E, R, D call charApi()). W5-F review:
+  // city mode only and in its own lazy chunk (its callers are all city features; the district never fetches it, and
+  // GameRoot's main graph stays ≈ 2.7 KB gzip lighter). charApi() is null until it lands (the frozen contract: callers
+  // skip the flourish; lane E's wear re-sends every second).
+  useEffect(() => {
+    if (game.get().worldMode !== 'city') return;
+    let live = true;
+    void import('./charImpl').then(({ CharImpl }) => {
+      if (!live) return;
+      system.char = new CharImpl(system.charHost());
+      setCharApi(system.char);
+    }).catch(err => { if (import.meta.env.DEV) console.warn('[opus-bay] charImpl chunk failed to load', err); });
+    return () => { live = false; setCharApi(null); };
+  }, [system]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };

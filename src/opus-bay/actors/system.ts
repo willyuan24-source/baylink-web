@@ -15,15 +15,15 @@ import { Animator, GLB_BAYBAY_TUNING, type Emote } from './anim';
 import { PlayerController, RUN_SPEED, WALK_SPEED, dampAngle, type Obstacle } from './controller';
 import { GUIDE_RUN, GUIDE_WALK, GuideMover } from './guide';
 import { collectObstacles, moveBasis, residents, view } from './view';
-import { CHAR_SCALE } from './dims';
-import { baybayGlbUniforms, buildBaybay, buildNewcomer, rigFromGltf, rimUniforms, type Rig } from './models';
+import { BAYBAY_HEIGHT, CHAR_SCALE } from './dims';
+import { baybayGlbUniforms, buildBaybay, buildNewcomer, rigFromGltf, rimUniforms, shadowProxies, type Rig } from './models';
 import { Npc, npcDefsFor } from './npcs';
 import { DRAG_THRESHOLD } from './pointer';
 import { MoveSystem } from './moveSystem';
 import { bindMoveApi } from './moveApi';
 import { FACADE_REACH, facadeAlongRay, frontSpot, type FacadeIntersection } from './tapTarget';
-import { CharImpl, type CharHost } from './charImpl';
-import { StuckHelper, type PullStart } from './stuckHelper';
+import type { CharHost, CharImpl } from './charImpl';
+import { StuckHelper, type PullStart, type StuckInput } from './stuckHelper';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -141,12 +141,22 @@ export function rayCapsuleT(o: { x: number; y: number; z: number }, d: { x: numb
  * ferry gate): under the finger the player is what shows.
  */
 const SELF_TAP_LEAD = 4;
+/** (W5-F review) BAYBAY's own body for that test: a capsule round her (her tap proxy, a 1.1 u sphere, is much bigger) */
+export const BAYBAY_TAP = { r: 0.4 * CHAR_SCALE, h: BAYBAY_HEIGHT } as const;
+/** The self-tap's reported distance: the lead over the spheres round the spot, none when BAYBAY's body is in front. */
+export function selfTapDistance(t: number, tBaybay: number, near = 0): number {
+  // (W5-F review) BAYBAY's body in front of the player's on this ray is what shows under the finger: her proxy takes the
+  // tap (a double-tap pets her); before, the 4 u lead gave a tap on her to the player's emote wheel
+  return Math.max(near, tBaybay >= 0 && tBaybay < t ? t : t - SELF_TAP_LEAD);
+}
 function selfTapRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
   if (!selfTap.on || !view.ready) return;
   const o = raycaster.ray.origin, d = raycaster.ray.direction;
   const t = rayCapsuleT(o, d, view.x, view.y, view.z, SELF_TAP.r * CHAR_SCALE, SELF_TAP.h * CHAR_SCALE);
   if (t < 0 || t > raycaster.far) return;
-  intersects.push({ distance: Math.max(raycaster.near, t - SELF_TAP_LEAD), point: new THREE.Vector3(o.x + d.x * t, o.y + d.y * t, o.z + d.z * t), object: this });
+  const g = runtime.guide;
+  const tb = rayCapsuleT(o, d, g.x, g.y, g.z, BAYBAY_TAP.r, BAYBAY_TAP.h);
+  intersects.push({ distance: selfTapDistance(t, tb, raycaster.near), point: new THREE.Vector3(o.x + d.x * t, o.y + d.y * t, o.z + d.z * t), object: this });
 }
 
 /** The point the occlusion dither fades around (world/world.ts sets uPlayer from the same place). */
@@ -384,12 +394,16 @@ export class ActorSystem {
   }
   /** vehicles, glide, benches, the streetcar platform */
   readonly move = new MoveSystem();
-  /** wave 5 (W5-F2): the charApi implementation over these bodies (Actors.tsx registers it) */
-  readonly char: CharImpl;
+  /**
+   * wave 5 (W5-F2): the charApi implementation over these bodies — city mode only, in a lazy chunk (W5-F review: its
+   * callers, lanes A, E, R and D, are all city features): Actors.tsx loads it, sets it here and registers it
+   */
+  char: CharImpl | null = null;
   private lastSelfTap = -10;
   private seenPant = -10;
   /** wave 5 (W5-F5): BAYBAY's pull for a player stuck on something unseen (QA: `__opusBay.actors.feet.pulls`) */
   readonly feet = new StuckHelper();
+  private readonly feetIn: StuckInput = { dt: 0, now: 0, free: false, pushing: false, dirX: 0, dirZ: 0, reset: false, abort: false };
   private feetReset = input.resetCount;
   private feetPhase: StuckHelper['phase'] = 'idle';
   // A9 · idle life
@@ -441,10 +455,10 @@ export class ActorSystem {
 
     this.unsub = onEvent(e => this.onGameEvent(e));
     this.mover.place();
-    this.char = new CharImpl(this.charHost());
   }
 
-  private charHost(): CharHost {
+  /** What actors/charImpl needs from this system (Actors.tsx builds the lazy CharImpl with it). */
+  charHost(): CharHost {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const sys = this;
     return {
@@ -626,6 +640,8 @@ export class ActorSystem {
     // in city mode a parked ride more than FAR_RIDE from the camera is not drawn at all (the district's bikes and toy car
     // seen from the rest of the city: −10 calls, −15.6k triangles at Twin Peaks); district mode unchanged
     const cityMode = s.worldMode === 'city';
+    // (W5-F review) the heroes' low-poly shadow proxies are a city lever: the district casts the full bodies as before
+    shadowProxies.on = cityMode;
     for (const r of move.fleet.rides) {
       const mine = r === move.ride || r.occupied || !!r.call;
       r.rig.mesh.visible = !cityMode || mine || this.withinCamera(r.sim.x, r.sim.z, FAR_RIDE);
@@ -651,11 +667,14 @@ export class ActorSystem {
     const pc0 = this.controller;
     const resetPress = input.resetCount !== this.feetReset;
     this.feetReset = input.resetCount;
-    const pull = this.feet.update({
-      dt, now: t, reset: resetPress, obstacles: this.obstacles,
-      free: s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && pc0.grounded && !pc0.vault && !pc0.mantle && !p.pathTarget,
-      pushing: pc0.manualWish && input.manualMove, dirX: pc0.wishX, dirZ: pc0.wishZ,
-    });
+    // (one reused input object: this runs every frame)
+    const fi = this.feetIn;
+    fi.dt = dt; fi.now = t; fi.reset = resetPress; fi.obstacles = this.obstacles;
+    fi.free = s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && pc0.grounded && !pc0.vault && !pc0.mantle && !p.pathTarget;
+    fi.pushing = pc0.manualWish && input.manualMove; fi.dirX = pc0.wishX; fi.dirZ = pc0.wishZ;
+    // (W5-F review) a pull in progress stops when the feet are taken over: 起飞, a vehicle, a fast travel, a restart
+    fi.abort = s.phase !== 'playing' || carried || move.mode !== 'foot';
+    const pull = this.feet.update(fi);
     if (pull) this.stagePull(pull);
     const pulling = this.feet.active;
     this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen: frozen || pulling, riding: carried, obstacles: this.obstacles });
@@ -668,8 +687,10 @@ export class ActorSystem {
     }
     move.finishPlayer();
     // wave 5 (W5-F2): emote loops end on a move; the ridden bike wears its paint; the body can be tapped when free
-    this.char.update(dt);
-    selfTap.on = s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && !s.photoMode;
+    this.char?.update(dt);
+    // (W5-F review: city mode only — its one listener, lane A's emote wheel, is a city feature; in the district the body
+    // took the tap and nothing answered, where the tap used to reach the ground or the interactable round the player)
+    selfTap.on = cityMode && s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && !s.photoMode;
     this.guideSeen = frustum.intersectsSphere(tmpSphere.set(tmpV.set(g.x, g.y + 0.75, g.z), 1.1));
     const guideHeld = move.guideCarried || (carried && move.mode !== 'sit');
     this.mover.step(dt, t, { playing: s.phase === 'playing', riding: riding || guideHeld, visible: this.guideSeen });
@@ -956,7 +977,7 @@ export class ActorSystem {
     this.lastGuideEmote = 'none';
     this.glbPending = null;
     this.guideModel = 'glb';
-    this.char.onGuideSwap();
+    this.char?.onGuideSwap();
     old.mesh.geometry.dispose();
     old.mesh.skeleton.dispose();
     return true;
@@ -970,7 +991,8 @@ export class ActorSystem {
     // (a city resident whose body is still loading never builds it now: G2's review request 7, sf-w3-G2.md)
     this.npcs.forEach(n => n.release());
     this.disposed = true;
-    this.char.dispose();
+    this.char?.dispose();
+    this.char = null;
     selfTap.on = false;
     this.unsub();
     bindMoveApi(null);
