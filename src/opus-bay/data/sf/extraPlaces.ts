@@ -1,6 +1,6 @@
 import type { Bilingual } from '../../core/types';
 import type { SfPlace, SfPlaceKindAll } from '../../world/sf/format';
-import { ARRIVAL_PLACES, ATTRACTION_INDEX, SITE_ARRIVAL_IDS, type AttractionIndex } from './attractions';
+import { ARRIVAL_OVERRIDES, ARRIVAL_PLACES, ATTRACTION_INDEX, SITE_ARRIVAL_IDS, type AttractionIndex } from './attractions';
 
 /**
  * Wave 4 · place-index changes as data (lane P, W4-P3; plan sf-w4-plan.md §4.1 "Data", lead note §4.6):
@@ -253,17 +253,21 @@ export interface W4PlaceOptions {
 
 /**
  * W5-N5 · the place ids whose primary attraction arrives at lane L's site record (data/sf/siteArrivals.ts): their
- * extra rows end travel there too (the published rows already follow `attractionArrivals`).
+ * extra rows end travel there too (the published rows already follow `attractionArrivals`). `ids`: part c passes the
+ * moved trip ends (`overrideArrivalRows`).
  */
-export function siteArrivalRows(ix: AttractionIndex = ATTRACTION_INDEX): Set<string> {
+export function siteArrivalRows(ix: AttractionIndex = ATTRACTION_INDEX, ids: readonly string[] = SITE_ARRIVAL_IDS): Set<string> {
   const out = new Set<string>();
-  for (const id of SITE_ARRIVAL_IDS) {
+  for (const id of ids) {
     const a = ix.get(id);
     const pid = a ? a.placeId ?? a.id : null;
     if (a && pid && ix.primary(pid) === a) out.add(pid);
   }
   return out;
 }
+
+/** Part c (CP-7): the extra rows whose attraction's trip end moved (`ARRIVAL_OVERRIDES`, the bison paddock) end travel there too. */
+export const overrideArrivalRows = (ix: AttractionIndex = ATTRACTION_INDEX): Set<string> => siteArrivalRows(ix, Object.keys(ARRIVAL_OVERRIDES));
 
 /** Han characters: a zh name without any is the OSM English name copied over (the pipeline's fallback). */
 const HAN = /[\u3400-\u9fff]/;
@@ -317,7 +321,7 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
   const extras = o.extras ?? RUNTIME_PLACES, snaps = o.snaps ?? EXTRA_PLACE_SNAPS, names = o.names ?? PLACE_NAME_FIXES;
   const reanchors = o.reanchors ?? PLACE_REANCHORS, kinds = o.kinds ?? PLACE_KIND_FIXES, hidden = o.hidden ?? PLACE_HIDDEN;
   const arrivals = o.arrivals ?? attractionArrivals(), zhNames = o.zhNames ?? attractionZhNames();
-  const siteRows = o.siteRows ?? siteArrivalRows();
+  const siteRows = o.siteRows ?? new Set([...siteArrivalRows(), ...overrideArrivalRows()]);
   const out: W4PlaceRow[] = [];
   const ids = new Set<string>();
   for (const src of file.places) {

@@ -26,7 +26,7 @@ const { sfLandmarkInfo } = await import('../src/opus-bay/data/sf/landmarks');
 const { LANDMARK_AREAS, landmarkAreaAt, farZoneIndexAt, zoneLabelAnchor } = await import('../src/opus-bay/data/cityZones');
 const { newlyDiscovered, StampThrottle, DISCOVER_R } = await import('../src/opus-bay/game/discovery');
 const { namedRoadsNear, chooseStreet } = await import('../src/opus-bay/game/streets');
-const { applyW4Places, PLACE_HIDDEN, RUNTIME_PLACES, PLACE_NAME_FIXES, siteArrivalRows } = await import('../src/opus-bay/data/sf/extraPlaces');
+const { applyW4Places, PLACE_HIDDEN, RUNTIME_PLACES, PLACE_NAME_FIXES, siteArrivalRows, overrideArrivalRows } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { ATTRACTIONS, ARRIVAL_OVERRIDES, ATTRACTION_INDEX: ATTR_IX } = await import('../src/opus-bay/data/sf/attractions');
 // landmarks whose attraction's arrival moved on purpose (ARRIVAL_OVERRIDES: the bridge's Welcome Center; wave 5, lane F's
 // sweep: Lombard and the Sutro Baths off boxed / snagged ground)
@@ -92,12 +92,12 @@ test('places: near() by bucket matches a brute-force scan; search finds zh and e
 
 test('wave 4 (lane P integration): the runtime index — extra rows, wave-4 kinds, name fixes, own arrivals; wave-4 site records are not place landmarks', () => {
   // the 47 attraction rows and the islands' landing places are in, on the walking graph, arriving where measured
-  const siteRows = siteArrivalRows();
+  const siteRows = new Set([...siteArrivalRows(), ...overrideArrivalRows()]);
   for (const e of RUNTIME_PLACES) {
     const p = ix.get(e.id);
     assert.ok(p, e.id);
     assert.equal(p.walkable, true, `${e.id} walkable`);
-    // (W5-N5) a row whose attraction arrives at lane L's site record ends travel there instead
+    // (W5-N5) a row whose attraction arrives at lane L's site record (part c: or at a moved trip end) ends travel there instead
     const want = siteRows.has(e.id) ? ATTR_IX.primary(e.id)!.arrival! : e.arrival;
     assert.ok(Math.hypot(p.arrival.x - want.x, p.arrival.z - want.z) < 1e-6, `${e.id} arrival`);
   }

@@ -14,7 +14,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const { ATTRACTIONS, ATTRACTION_INDEX, AttractionIndex, FLAG_TOPS, T1_IDS, attractionGlyph, attractionColor, attractionShort, byMapPriority, flagFor, nearStops, placeTier, withNearStops,
   LANDMARK_ARRIVALS, BADGE_ALSO_COVERS, coveredPlaceIds, ARRIVAL_OVERRIDES, ARRIVAL_PLACES, tripDestination, siteArrivalFor, SITE_ARRIVAL_IDS } = await import('../src/opus-bay/data/sf/attractions');
 const { ATTRACTION_CATS, ATTRACTION_CAT_STYLE, ATTRACTION_AREAS, ATTRACTION_FLAG_H, ATTRACTION_GLYPHS, ATTRACTION_TREATMENTS } = await import('../src/opus-bay/data/sf/attractionTypes');
-const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals, RUNTIME_PLACES, ARRIVAL_PLACE_ROWS, siteArrivalRows } = await import('../src/opus-bay/data/sf/extraPlaces');
+const { EXTRA_PLACES, EXTRA_PLACE_SNAPS, PLACE_NAME_FIXES, PLACE_REANCHORS, PLACE_KIND_FIXES, PLACE_HIDDEN, applyW4Places, extraRow, attractionArrivals, RUNTIME_PLACES, ARRIVAL_PLACE_ROWS, siteArrivalRows, overrideArrivalRows } = await import('../src/opus-bay/data/sf/extraPlaces');
 const { SF_PLACE_KINDS_W4 } = await import('../src/opus-bay/world/sf/format');
 const { MAP_FRAME } = await import('../src/opus-bay/data/mapPaper');
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
@@ -441,10 +441,12 @@ test('attractions × place index: a trip to the place an attraction speaks for e
   for (const [id, re] of Object.entries(PLACE_REANCHORS)) { const a = ATTRACTION_INDEX.primary(id)!; assert.deepEqual(re.arrival, { x: a.arrival!.x, z: a.arrival!.z }, id); }
   // extra rows: the attraction's arrival too (≤ 1 u: the scouting rounded them separately); a site arrival (W5-N5)
   // replaces the extra's own at runtime (applyW4Places: siteArrivalRows)
-  const siteRows = siteArrivalRows();
+  const siteRows = siteArrivalRows(), movedRows = new Set([...siteRows, ...overrideArrivalRows()]);
+  // (part c: a moved trip end — ARRIVAL_OVERRIDES, the bison paddock — replaces the extra's own the same way)
+  assert.ok(overrideArrivalRows().has('bison-paddock'));
   for (const e of EXTRA_PLACES) {
     const a = ATTRACTION_INDEX.get(e.id)!, w = a.arrival ?? { x: a.x, z: a.z };
-    if (siteRows.has(e.id)) { const r = rowById.get(e.id)!; assert.deepEqual({ x: r.arrival!.x, z: r.arrival!.z }, { x: w.x, z: w.z }, `${e.id} runtime row at the site arrival`); continue; }
+    if (movedRows.has(e.id)) { const r = rowById.get(e.id)!; assert.deepEqual({ x: r.arrival!.x, z: r.arrival!.z }, { x: w.x, z: w.z }, `${e.id} runtime row at the site arrival`); continue; }
     assert.ok(Math.hypot(w.x - e.arrival.x, w.z - e.arrival.z) <= 1, e.id);
   }
   assert.equal(siteRows.size, SITE_ARRIVAL_IDS.length - 1, 'every site arrival names a primary attraction but Japan Center (the Peace Pagoda row speaks for it)');
