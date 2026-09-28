@@ -11,6 +11,7 @@ import { ATTRACTIONS, ATTRACTION_INDEX, coveredPlaceIds, tripDestination } from 
 import type { CityPlace } from '../data/sf/places';
 import { type SfRouteId, routePath, sfRoute } from '../data/sf/routes';
 import { vehicleSpots } from '../data/vehicles';
+import { arrivalSeen } from '../game/cityContent';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel, endTrip as endFlowTrip } from '../game/flow';
 import { useFlow } from '../game/flowStore';
@@ -135,6 +136,8 @@ export function CityMapPanel() {
   // 带我去 in progress (flow.mapTarget = place:<id>) or a trip (lane C's flow.trip): the target pin, the trip's route
   const mapTarget = useFlow(s => s.mapTarget);
   const trip = useFlow(s => s.trip);
+  // lane C's arrival moments: an attraction reached gets the gold tick at 4 o'clock (a new arrival repaints the scene)
+  const arrivalNow = useFlow(s => s.arrival);
   const tripId = tripPlaceId(mapTarget);
   const tripPlace = tripId && ix ? ix.get(tripId) ?? null : null;
   const targetPlaceId = trip ? trip.placeId : tripId, targetAttraction = trip?.attraction ?? null;
@@ -351,21 +354,27 @@ export function CityMapPanel() {
     const cw = labelWidth(chip, 11) + 16;
     return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw };
   }, [view, left, t]);
+  // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines; a stop
+  // an attraction badge stands for wears its number on the badge (gold, at 10 o'clock), the others get a disc on the walk
+  const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;
+  const walk = useMemo(() => {
+    const r = walkId ? sfRoute(walkId) : undefined, p = walkId ? routePath(walkId) : undefined;
+    if (!r || !p) return null;
+    const stops = r.stops.map((st, i) => ({ x: st.x, z: st.z, n: i + 1, attraction: (st.attraction ? ATTRACTION_INDEX.resolve(st.attraction) : st.placeId ? ATTRACTION_INDEX.primary(st.placeId) : undefined)?.id ?? null }));
+    return { xz: p.points, stops, numbers: new Map(stops.filter(st => st.attraction).map(st => [st.attraction!, st.n])) };
+  }, [walkId]);
   // the scene (after the route: its time chip is an obstacle for the labels)
   const scene = useMemo(() => {
     if (!view) return null;
     const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 26, y: 26, r: 18 }, ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: routeDraw.cw / 2 }] : [])];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
-      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
+      discovered: isDiscovered, arrived: arrivalSeen, selected: sel, target, tourNext, stops: walk?.numbers ?? null, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
     });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw, arrivalNow, walk]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
   const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
-  // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines
-  const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;
-  const walk = useMemo(() => { const r = walkId ? sfRoute(walkId) : undefined, p = walkId ? routePath(walkId) : undefined; return r && p ? { xz: p.points, stops: r.stops.map(s => ({ x: s.x, z: s.z })) } : null; }, [walkId]);
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv || !view || !far) return;
@@ -382,7 +391,10 @@ export function CityMapPanel() {
       drawCityMap(ctx, { far, visited: zoneVisited, paper: MAP_PAPER ? paperShare(view.scale) : 0, coast: false }, view);
       const fl = filterLines(filter);
       drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
-      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
+      // the stops whose badge is on the map wear their number there
+      const onBadge = new Set(scene?.layout.kept.map(kk => kk.id) ?? []);
+      const walkDraw = walk ? { xz: walk.xz, stops: walk.stops.filter(st => !st.attraction || !onBadge.has(st.attraction)) } : null;
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk: walkDraw, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
     });
     return () => cancelAnimationFrame(id);
   }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, scene]);

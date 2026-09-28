@@ -60,6 +60,8 @@ export interface SceneInput {
   selected: MapSel | null;
   target?: MapTarget | null;
   tourNext?: { id: string; n: number } | null;
+  /** a highlighted walking route: attraction id → stop number (the badge wears the number, gold) */
+  stops?: ReadonlyMap<string, number> | null;
   filter: MapFilter;
   /** lane V's T1 sticker atlas is decoded (and not `?stickers=0`) */
   stickers?: boolean;
@@ -103,7 +105,7 @@ export function buildScene(o: SceneInput): MapScene {
   // 1. attractions
   const { items, markers } = attractionMarkers(o.attractions, v, {
     discovered: o.discovered, arrived: o.arrived, selected: sel?.kind === 'attraction' ? sel.id : null, target: tgt.attraction ?? null,
-    tourNext: o.tourNext ?? null, filter: o.filter, name, stickers: o.stickers,
+    tourNext: o.tourNext ?? null, stops: o.stops ?? null, filter: o.filter, name, stickers: o.stickers,
   });
   const all: LayoutItem[] = [...items];
   // 2. the other places: curated rows no attraction speaks for (T3), discovered OSM rows (T4); the selected / target always
@@ -130,16 +132,31 @@ export function buildScene(o: SceneInput): MapScene {
       ...(label ? { label, fontPx: size.font } : {}), nodes: badgeNodes(size, state),
     });
   }
-  // 3. stations (lane P2: canvas marks, obstacles for labels, a label when the symbol asks)
+  // 3. stations (lane P2: canvas marks, obstacles for labels, a label when the symbol asks); a mark under an
+  //    attraction badge moves just clear of it (≤ STATION_NUDGE_PX; lane P's review 2: the turntable badge hid Powell's
+  //    叮当 disc, 唐人街 Montgomery's N, 渡轮大厦 the Ferry Building's loop + F pill)
   const stations: StationMark[] = [];
+  // (badges only: a T3 dot is small and sits over a mark without hiding it; a dense downtown has no room otherwise)
+  const badgeDiscs = [...markers.values()].filter(m => !m.state.dim && m.size.kind === 'badge').map(m => ({ x: m.x, y: m.y, r: m.size.r * (m.state.selected ? 1.15 : 1) + 2 }));
   if (filterLines(o.filter).stations) {
+    const shown: StationMark[] = [];
     for (const st of o.stations) {
-      const x = st.x * k + ox, y = st.z * k + oy;
-      if (!inView(x, y, 40)) continue;
+      const x0 = st.x * k + ox, y0 = st.z * k + oy;
+      if (!inView(x0, y0, 40)) continue;
       const onLine = !!o.highlight && st.lines.includes(o.highlight);
       if (o.highlight && !onLine && !(sel?.kind === 'station' && sel.id === st.id)) continue;
       const sym = stationSymbol(st, onLine ? Math.max(s, 0.45) : s, { locale: o.locale, tourStop: st.lines.includes('sf-loop'), terminus: st.ids.some(id => o.termini?.has(id)) });
-      if (!sym) continue;
+      if (sym) shown.push({ st, sym, x: x0, y: y0 });
+    }
+    // the covered marks move (the clear ones stay put and are kept off, as the marks already moved)
+    const isCovered = (m: StationMark) => badgeDiscs.some(d => Math.hypot(Math.max(0, Math.abs(d.x - m.x) - m.sym.w / 2), Math.max(0, Math.abs(d.y - m.y) - m.sym.h / 2)) < d.r);
+    const boxes = shown.filter(m => !isCovered(m)).map(m => ({ x: m.x, y: m.y, hw: m.sym.w / 2, hh: m.sym.h / 2 }));
+    for (const m of shown) {
+      if (!isCovered(m)) continue;
+      [m.x, m.y] = nudgeClear(m.x, m.y, m.sym.w / 2, m.sym.h / 2, badgeDiscs, STATION_NUDGE_PX, boxes);
+      boxes.push({ x: m.x, y: m.y, hw: m.sym.w / 2, hh: m.sym.h / 2 });
+    }
+    for (const { st, sym, x, y } of shown) {
       stations.push({ st, sym, x, y });
       const selected = sel?.kind === 'station' && sel.id === st.id;
       // a stop named for the attraction it serves (the loop's 艺术宫) says nothing while that badge shows its own name
@@ -175,6 +192,44 @@ export function buildScene(o: SceneInput): MapScene {
 }
 
 const catColorOf = (c: AttractionCat) => ATTRACTION_CAT_STYLE[c].color;
+
+/** How far (px) a station mark may move off its point to clear an attraction badge. */
+export const STATION_NUDGE_PX = 24;
+
+/** Distance from a circle's centre (cx, cy) to a box centred at (x, y) with half sizes hw × hh (0 inside). */
+const boxDist = (x: number, y: number, hw: number, hh: number, cx: number, cy: number) => Math.hypot(Math.max(0, Math.abs(cx - x) - hw), Math.max(0, Math.abs(cy - y) - hh));
+
+/**
+ * Where a station mark (a box hw × hh around x, y) is drawn so that no badge disc covers it: the smallest move (whole
+ * px, at most `cap`) in one of 16 directions that clears every disc near it, the directions tried away from the disc
+ * that covers it most first (straight down when the centres meet), never onto one of `boxes` (the other station marks,
+ * 1 px apart) unless no such spot is in reach (then only the badges count); a mark no move within the cap can clear
+ * stays on its point (the badge still wins a tap there). Pure;
+ * only the discs and boxes within reach are tested.
+ */
+export function nudgeClear(x: number, y: number, hw: number, hh: number, discs: readonly { x: number; y: number; r: number }[], cap = STATION_NUDGE_PX,
+  boxes: readonly { x: number; y: number; hw: number; hh: number }[] = []): [number, number] {
+  const reach = cap + Math.hypot(hw, hh);
+  const near = discs.filter(d => Math.abs(d.x - x) < reach + d.r && Math.abs(d.y - y) < reach + d.r);
+  const nearBoxes = boxes.filter(b => Math.abs(b.x - x) < reach + b.hw && Math.abs(b.y - y) < reach + b.hh);
+  const covered = (px: number, py: number) => near.some(d => boxDist(px, py, hw, hh, d.x, d.y) < d.r);
+  const clear = (px: number, py: number) => !covered(px, py) && nearBoxes.every(b => Math.abs(b.x - px) >= b.hw + hw + 1 || Math.abs(b.y - py) >= b.hh + hh + 1);
+  if (!covered(x, y)) return [x, y];
+  // the disc that covers the most: its outward direction first, then the others by their angle from it
+  const deep = near.reduce((a, b) => (boxDist(x, y, hw, hh, b.x, b.y) - b.r < boxDist(x, y, hw, hh, a.x, a.y) - a.r ? b : a));
+  const len = Math.hypot(x - deep.x, y - deep.y);
+  const a0 = len < 0.5 ? Math.PI / 2 : Math.atan2(y - deep.y, x - deep.x);
+  const dirs: [number, number][] = [];
+  for (let i = 0; i < 16; i++) {
+    const k = i === 0 ? 0 : (i % 2 ? 1 : -1) * Math.ceil(i / 2); // 0, +1, −1, +2, −2 … steps of 22.5°
+    const a = a0 + (k * Math.PI) / 8;
+    dirs.push([Math.cos(a), Math.sin(a)]);
+  }
+  for (let t = 1; t <= cap; t++) for (const [ux, uy] of dirs) if (clear(x + ux * t, y + uy * t)) return [x + ux * t, y + uy * t];
+  // downtown has no room for a wide transfer pill: clear of the badges, over a neighbouring station mark if it must
+  for (let t = 1; t <= cap; t++) for (const [ux, uy] of dirs) if (!covered(x + ux * t, y + uy * t)) return [x + ux * t, y + uy * t];
+  return [x, y];
+}
 
 /** What a tap at (px, py) hits: the nearest kept badge / place / station within `r` px (the selected wins ties). */
 export function hitTest(scene: MapScene, px: number, py: number, r = 22): (MapSel & { members?: string[] }) | null {
@@ -248,7 +303,7 @@ export function firstOpenView(v: MapView, frame: MapFrameBox, o: { player: Vec2;
 export function drawMapExtras(ctx: StationCtx, v: MapView, o: {
   route?: { strokes: readonly RouteStroke[]; dots: readonly Vec2[] } | null; stations?: readonly StationMark[]; stationAlpha?: number; dots?: MapScene['canvasDots'];
   /** a walking route of data/sf/routes.ts (the 线路 tab's 步行路线): its walk (flat x, z) and its numbered stops */
-  walk?: { xz: readonly number[]; stops: readonly Vec2[] } | null;
+  walk?: { xz: readonly number[]; stops: readonly (Vec2 & { n?: number })[] } | null;
 }): number {
   let ops = 0;
   const k = v.scale, ox = v.w / 2 - v.cx * k, oy = v.h / 2 - v.cz * k;
@@ -283,7 +338,7 @@ export function drawMapExtras(ctx: StationCtx, v: MapView, o: {
       ctx.lineWidth = 1.6;
       ctx.stroke();
       ctx.fillStyle = '#fff';
-      ctx.fillText(String(i + 1), x, y + 3.2);
+      ctx.fillText(String(p.n ?? i + 1), x, y + 3.2);
       ops += 3;
     });
     ctx.restore();

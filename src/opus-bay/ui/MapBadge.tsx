@@ -56,7 +56,7 @@ export function MapBadge({ a, tier, s, state, x, y, size }: {
         )}
         {p.pip && <rect className="mw-pip" x={p.pip.x - 2} y={p.pip.y - 6} width={p.pip.text.length * 6 + 6} height={12} rx={6} fill={BADGE_INK.cream} stroke={BADGE_INK.outline} />}
         {p.pip && <text className="mw-pip-t" x={p.pip.x - 2 + (p.pip.text.length * 6 + 6) / 2} y={p.pip.y + 3.2} style={MIDDLE}>{p.pip.text}</text>}
-        {p.tourDisc && <circle className="mw-tour" cx={p.tourDisc.x} cy={p.tourDisc.y} r={6.5} fill={BADGE_INK.coral} stroke={BADGE_INK.cream} strokeWidth={1.4} />}
+        {p.tourDisc && <circle className="mw-tour" cx={p.tourDisc.x} cy={p.tourDisc.y} r={6.5} fill={p.tourDisc.fill} stroke={BADGE_INK.cream} strokeWidth={1.4} />}
         {p.tourDisc && <text className="mw-tour-t" x={p.tourDisc.x} y={p.tourDisc.y + 3.4} style={MIDDLE}>{p.tourDisc.text}</text>}
       </g>
     );
@@ -75,7 +75,7 @@ export function MapBadge({ a, tier, s, state, x, y, size }: {
       )}
       {p.pip && <rect className="mw-pip" x={p.pip.x - 2} y={p.pip.y - 6} width={p.pip.text.length * 6 + 6} height={12} rx={6} fill={BADGE_INK.cream} stroke={BADGE_INK.outline} />}
       {p.pip && <text className="mw-pip-t" x={p.pip.x - 2 + (p.pip.text.length * 6 + 6) / 2} y={p.pip.y + 3.2} style={MIDDLE}>{p.pip.text}</text>}
-      {p.tourDisc && <circle className="mw-tour" cx={p.tourDisc.x} cy={p.tourDisc.y} r={6.5} fill={BADGE_INK.coral} stroke={BADGE_INK.cream} strokeWidth={1.4} />}
+      {p.tourDisc && <circle className="mw-tour" cx={p.tourDisc.x} cy={p.tourDisc.y} r={6.5} fill={p.tourDisc.fill} stroke={BADGE_INK.cream} strokeWidth={1.4} />}
       {p.tourDisc && <text className="mw-tour-t" x={p.tourDisc.x} y={p.tourDisc.y + 3.4} style={MIDDLE}>{p.tourDisc.text}</text>}
     </g>
   );

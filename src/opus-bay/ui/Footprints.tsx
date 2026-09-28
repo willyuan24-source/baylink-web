@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, History, MapPinned, Star, TramFront } from 'lucide-react';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
-import { landmarkAreaAt, zoneName } from '../data/cityZones';
+import { farZoneIndexAt, landmarkAreaAt, zoneName } from '../data/cityZones';
 import { readSave } from '../data/save';
 import { glossName, transitData } from '../data/transit';
 import { discoveredIds, useDiscoveryEpoch, visitedZoneIds, zoneVisited } from '../game/discovery';
@@ -55,6 +55,7 @@ export function Footprints() {
   const { t } = useT();
   const epoch = useDiscoveryEpoch();
   const ix = usePlaceIndex();
+  const far = useFar();
   const zones = useZones();
   const { attractions, w4 } = useCityLists();
   const s = useMemo(() => {
@@ -68,7 +69,11 @@ export function Footprints() {
   const mustSee = useMemo(() => attractions.filter(a => a.rank === 1), [attractions]);
   const found = useMemo(() => new Set(discoveredIds()), [epoch]); // eslint-disable-line react-hooks/exhaustive-deps
   const showOnMap = (id: string) => openMapOn({ kind: 'place', id });
+  // a station row has no zone of its own: its neighbourhood from far.obc; it says 车站 so it never reads as the place of
+  // the same name next to it (the loop's 渡轮大厦 stop under the Ferry Building)
   const area = (x: number, z: number, zone?: string | null) => t(landmarkAreaAt(x, z)?.name ?? zoneName(zone ?? ''));
+  const zoneAt = (x: number, z: number) => { const i = far ? farZoneIndexAt(far, x, z) : -1; return i >= 0 ? far!.zones[i]?.id ?? null : null; };
+  const where = (p: { x: number; z: number; zone: string | null; station?: boolean }) => (p.station ? `${t('车站', 'Stop')} · ${area(p.x, p.z, zoneAt(p.x, p.z))}` : area(p.x, p.z, p.zone));
 
   return (
     <>
@@ -90,7 +95,7 @@ export function Footprints() {
               <li key={p.id}>
                 <button type="button" onClick={() => showOnMap(p.id)}>
                   <span className="ob-check is-on"><Check size={12} aria-hidden /></span>
-                  <span className="ob-steps-text"><span>{t(p.name)}</span><small>{area(p.x, p.z, p.zone)}</small></span>
+                  <span className="ob-steps-text"><span>{t(p.name)}</span><small>{where(p)}</small></span>
                   <MapPinned size={15} aria-hidden className="ob-steps-go" />
                 </button>
               </li>

@@ -8,6 +8,7 @@ import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { mapsUrl } from '../data/links';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { ATTRACTION_INDEX } from '../data/sf/attractions';
+import { attractionCardId } from '../data/sf/cityPois';
 import type { CityPlace } from '../data/sf/places';
 import { SF_ROUTES, type SfRouteId } from '../data/sf/routes';
 import { isDiscovered, useDiscoveryEpoch } from '../game/discovery';
@@ -66,7 +67,8 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   // 详情: the district POI card for merged hero places, lane C / G2's SF card (`sf:<landmarkId>` / `sf:<placeId>`) otherwise;
   // an attraction that shares another's row (Japan Center on the Peace Pagoda's) opens its own card (`sf:<attraction>`)
   const shares = !!attraction && ATTRACTION_INDEX.primary(place.id) !== attraction;
-  const detail = shares ? `sf:${attraction!.id}` : place.poi ?? `sf:${place.landmark ?? place.id}`;
+  // (lane C's attractionCardId: the landmark card, else the attraction's own wave-4 card once the cards are loaded)
+  const detail = shares ? attractionCardId(attraction!) : place.poi ?? (attraction ? attractionCardId(attraction) : `sf:${place.landmark ?? place.id}`);
   // the walking routes this stop is on (lane D2's SF_ROUTES): chips that show the route on the map
   const routes = SF_ROUTES.filter(r => r.stops.some(s => (attraction && s.attraction === attraction.id) || s.placeId === place.id));
   const ll = unproject({ x: place.x, z: place.z });

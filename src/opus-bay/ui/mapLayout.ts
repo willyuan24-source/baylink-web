@@ -191,6 +191,8 @@ export interface AttractionMarker { a: Attraction; x: number; y: number; size: B
 export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
   discovered: (placeId: string) => boolean; arrived?: (id: string) => boolean; selected?: string | null; target?: string | null;
   tourNext?: { id: string; n: number } | null; filter?: MapFilter; name: (b: Bilingual) => string;
+  /** a highlighted walking route: attraction id → its stop number (the badge wears it; shown and named like a tour stop) */
+  stops?: ReadonlyMap<string, number> | null;
   /** lane V's T1 stickers are ready (the atlas decoded, not `?stickers=0`): T1 badges draw them from s 0.45 */
   stickers?: boolean;
 }): { items: LayoutItem[]; markers: Map<string, AttractionMarker> } {
@@ -201,12 +203,13 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
   for (const a of list) {
     const [x, y] = toPx(v, a.x, a.z);
     if (x < -24 || y < -24 || x > v.w + 24 || y > v.h + 24) continue;
-    const selected = o.selected === a.id, target = o.target === a.id, tourNext = o.tourNext?.id === a.id;
+    const walkN = o.stops?.get(a.id);
+    const selected = o.selected === a.id, target = o.target === a.id, tourNext = o.tourNext?.id === a.id || walkN !== undefined;
     const look = filterAttraction(o.filter ?? 'all', a);
     if (!look.show && !selected && !target) continue;
     // a category chip (校园, 博物馆 …) shows its own T2 / T3 at every scale (integration: at the whole-city fit the
     // campus chip must show the campuses, not only SF State): T2 as badges, T3 as dots
-    const focus = !!focusCat && a.cat === focusCat && a.rank > 1;
+    const focus = (!!focusCat && a.cat === focusCat && a.rank > 1) || (walkN !== undefined && a.rank > 1);
     let size = badgeSize(a.rank, s);
     if (size.kind === 'none' && focus) size = a.rank === 2 ? badgeSize(2, SCALE_STEPS.t2) : badgeSize(3, SCALE_STEPS.t3);
     if (size.kind === 'none' && !selected && !target) continue;
@@ -214,7 +217,7 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
     const dim = look.alpha < 1 && !selected && !target;
     const state: BadgeState = {
       discovered: o.discovered(a.placeId ?? a.id), arrived: o.arrived?.(a.id), selected, target, dim,
-      ...(dim ? { dimAlpha: look.alpha } : {}), ...(tourNext ? { tourStop: o.tourNext!.n } : {}),
+      ...(dim ? { dimAlpha: look.alpha } : {}), ...(o.tourNext?.id === a.id ? { tourStop: o.tourNext.n } : walkN !== undefined ? { tourStop: walkN, stopTone: 'walk' as const } : {}),
       ...(o.stickers && a.rank === 1 && !target && s >= MAP_STICKERS_T1.minScale && isMapStickerId(a.id) ? { sticker: true } : {}),
     };
     const wantLabel = selected || target || tourNext || (look.label && (a.rank === 1 || (a.rank === 2 && (rules.t2Labels || focus)) || (a.rank === 3 && (rules.t3Labels || (focus && s >= SCALE_STEPS.t3)))));

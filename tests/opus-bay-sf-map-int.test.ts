@@ -301,3 +301,54 @@ test('a stop named for the attraction it serves says nothing while that badge sh
   const sel = scene(352, 388, { cx: palace.x, cz: palace.z, scale: 1.4 }, { selected: { kind: 'station', id: stop!.st.id } });
   assert.ok(sel.layout.kept.find(k => k.id === `station:${stop!.st.id}`)?.label);
 });
+
+// Integration part b: the open items of part a
+test('station marks move clear of the attraction badges (the turntable over Powell\'s 叮当, 唐人街 over Montgomery\'s N): ≤ 24 px, fewer covered marks', async () => {
+  const { nudgeClear, STATION_NUDGE_PX } = await import('../src/opus-bay/ui/cityMapModel');
+  // unit: a 30 × 14 pill under a 13 px badge moves straight down, just clear; a far disc changes nothing
+  const [x, y] = nudgeClear(100, 100, 15, 7, [{ x: 100, y: 100, r: 13 }]);
+  assert.equal(x, 100);
+  assert.ok(y > 100 && y - 100 <= STATION_NUDGE_PX && y - 7 >= 113 - 1e-9, `moved to ${y}`);
+  assert.deepEqual(nudgeClear(10, 10, 5, 5, [{ x: 100, y: 100, r: 13 }]), [10, 10]);
+  // a disc too big to clear within the cap: the mark stays on its point
+  assert.deepEqual(nudgeClear(0, 0, 5, 5, [{ x: 0, y: 0, r: 60 }]), [0, 0]);
+  // the real downtown views (phone s 0.7 and 1.0, desktop s 0.7): count marks a kept badge still covers (T3 dots are
+  // small and sit over a mark without hiding it: they do not move marks)
+  const covered = (sc: ReturnType<typeof scene>) => sc.stations.filter(m => sc.layout.kept.some(kk => {
+    const a = sc.attractions.get(kk.id);
+    if (!a || a.state.dim || a.size.kind !== 'badge') return false;
+    const dx = Math.max(0, Math.abs(kk.x - m.x) - m.sym.w / 2), dy = Math.max(0, Math.abs(kk.y - m.y) - m.sym.h / 2);
+    return Math.hypot(dx, dy) < kk.r;
+  })).length;
+  for (const [w, h, v] of [[352, 388, { cx: 110, cz: 150, scale: 0.7 }], [352, 388, { cx: 120, cz: 200, scale: 1 }], [900, 600, { cx: 60, cz: 200, scale: 0.7 }]] as const) {
+    const sc = scene(w, h, v);
+    const moved = sc.stations.filter(m => Math.hypot(m.x - (m.st.x * v.scale + w / 2 - v.cx * v.scale), m.y - (m.st.z * v.scale + h / 2 - v.cz * v.scale)) > 0.5);
+    assert.ok(moved.every(m => Math.hypot(m.x - (m.st.x * v.scale + w / 2 - v.cx * v.scale), m.y - (m.st.z * v.scale + h / 2 - v.cz * v.scale)) <= STATION_NUDGE_PX + 1e-6));
+    const left = covered(sc);
+    assert.ok(left <= 1, `${w}×${h} s ${v.scale}: ${left} station marks under a badge (${moved.length} moved)`);
+    // taps still find the moved marks where they are drawn
+    for (const m of moved.slice(0, 5)) if (hitTest(sc, m.x, m.y)?.kind === 'station') assert.equal(hitTest(sc, m.x, m.y)?.id, m.st.id);
+  }
+});
+
+test('a walking route\'s stop an attraction badge stands for wears its number on the badge (gold), shown at any scale', async () => {
+  const { SF_ROUTES } = await import('../src/opus-bay/data/sf/routes');
+  const { badgePaint, BADGE_INK } = await import('../src/opus-bay/ui/mapBadges');
+  const r = SF_ROUTES.find(x => x.id === 'r2') ?? SF_ROUTES[1];
+  const numbers = new Map<string, number>();
+  r.stops.forEach((st, i) => { const a = st.attraction ? ATTRACTION_INDEX.resolve(st.attraction) : st.placeId ? ATTRACTION_INDEX.primary(st.placeId) : undefined; if (a) numbers.set(a.id, i + 1); });
+  assert.ok(numbers.size >= 3, `${numbers.size} stops on badges`);
+  const xs = r.stops.map(s => s.x), zs = r.stops.map(s => s.z);
+  const v = { cx: (Math.min(...xs) + Math.max(...xs)) / 2, cz: (Math.min(...zs) + Math.max(...zs)) / 2, scale: 0.35 };
+  const sc = scene(352, 388, v, { stops: numbers, highlight: `route:${r.id}` });
+  for (const [id, n] of numbers) {
+    const m = sc.attractions.get(id);
+    assert.ok(m, `${id} shown`);
+    assert.equal(m!.state.tourStop, n);
+    assert.equal(m!.state.stopTone, 'walk');
+    assert.equal(badgePaint(m!.a, m!.size, m!.state).tourDisc?.fill, BADGE_INK.gold);
+  }
+  // the Grand Tour's number stays coral
+  const pal = scene(352, 388, v, { tourNext: { id: [...numbers.keys()][0], n: 3 } }).attractions.get([...numbers.keys()][0])!;
+  assert.equal(badgePaint(pal.a, pal.size, pal.state).tourDisc?.fill, BADGE_INK.coral);
+});

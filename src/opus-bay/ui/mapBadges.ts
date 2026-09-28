@@ -65,6 +65,8 @@ export interface BadgeState {
   target?: boolean;
   /** the next tour stop: a coral number disc at 10 o'clock */
   tourStop?: number;
+  /** the number is a walking route's stop (the 线路 tab's 步行路线): a gold disc, the route's own colour */
+  stopTone?: 'walk';
   /** a filter dims the badge (25 %; the T1 of other categories 40 %: `dimAlpha`, filterAttraction's alpha) */
   dim?: boolean;
   dimAlpha?: number;
@@ -86,7 +88,7 @@ export interface BadgePaint {
   opacity: number;
   tick: { x: number; y: number } | null;
   pip: { x: number; y: number; text: string } | null;
-  tourDisc: { x: number; y: number; text: string } | null;
+  tourDisc: { x: number; y: number; text: string; fill: string } | null;
   /** the baked shadow circle (offset 0, 1.5; 22 % ink), no SVG filters on phones */
   shadow: { dy: number; color: string };
 }
@@ -114,7 +116,7 @@ export function badgePaint(a: Pick<Attraction, 'cat'>, size: BadgeSize, st: Badg
     opacity: st.dim ? st.dimAlpha ?? 0.25 : 1,
     tick: st.arrived ? at(4, size.r) : null,
     pip: st.cluster && st.cluster > 0 ? { ...at(2, size.r + 2), text: `+${st.cluster}` } : null,
-    tourDisc: st.tourStop !== undefined ? { ...at(10, size.r + 1), text: String(st.tourStop) } : null,
+    tourDisc: st.tourStop !== undefined ? { ...at(10, size.r + 1), text: String(st.tourStop), fill: st.stopTone === 'walk' ? BADGE_INK.gold : BADGE_INK.coral } : null,
     shadow: { dy: 1.5, color: BADGE_INK.shadow },
   };
 }
