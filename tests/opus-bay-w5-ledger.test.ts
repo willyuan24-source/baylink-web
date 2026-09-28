@@ -242,3 +242,19 @@ test('W5-E1 hints: the nearest unfound target of a kind; any = the compass kinds
   } finally { offA(); offB(); offC(); offD(); }
   assert.equal(hints.hintTarget('any', { x: 0, z: 0 }), null);
 });
+
+test('W5-E1 recordBest (lane A through economy/index): play.b takes a best, bad keys / values refused, ≤ 32 keys; ring caps at 3 (first-flight rings)', () => {
+  fresh();
+  assert.equal(typeof (economy as unknown as { recordBest?: unknown }).recordBest, 'function', 'the export play/kit.ts looks for');
+  assert.equal(L.recordBest('slides:time', 18.4), true);
+  assert.equal(L.recordBest('slides:time', 17.9), true, 'the caller decides it is better');
+  assert.deepEqual(L.playState().b, { 'slides:time': 17.9 });
+  for (const [k, v] of [['Bad Key', 1], ['ok', Number.NaN], ['x'.repeat(41), 1]] as const) assert.equal(L.recordBest(k, v), false, String(k));
+  for (let i = 0; i < 31; i++) assert.equal(L.recordBest(`a-${i}`, i), true);
+  assert.equal(L.recordBest('one-more', 1), false, 'the 33rd key');
+  assert.equal(L.recordBest('slides:time', 16), true, 'an existing key still updates');
+  const text = save.encodeSave({ version: 2, play: L.playState() as never });
+  assert.deepEqual(save.decodeSave(text)!.play!.b, L.playState().b, 'round trip through the frozen decoder');
+  assert.equal(L.pay('ring:first-flight:1', 3), 3, 'lane A pays 3 per first-flight ring');
+  assert.equal(L.pay('ring:first-flight:1', 3), 0);
+});

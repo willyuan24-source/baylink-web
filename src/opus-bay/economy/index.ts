@@ -20,6 +20,9 @@ import { CoinBadge } from './CoinBadge';
 import * as hints from './hints';
 import * as ledger from './ledger';
 
+/** Lane A's PlayKit looks for this export (play/kit.ts writeBest): an activity best into save v2 `play.b`. */
+export const recordBest = (key: string, value: number): void => { ledger.recordBest(key, value); };
+
 export function init(): () => void {
   let gone = false;
   const offs: (() => void)[] = [

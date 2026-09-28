@@ -31,6 +31,7 @@ export function pay(source: string, coins: number): number; // what the `reward`
 export function isPaid(source: string): boolean;          // paid, or no longer payable (a past day's daily / trail)
 export function coinsTotal(): number;
 export function spend(item: string, price: number): boolean;   // the 小铺 (W5-E6); emits coins with source `shop:<item>`
+export function recordBest(key: string, value: number): boolean;  // lane A's bests into play.b (≤ 32 keys); economy/index.ts re-exports it for play/kit.ts
 export function registerRewardIds(prefix: RewardPrefix, ids: readonly string[]): () => void;  // APPEND-ONLY id lists
 export function subscribeLedger(fn: () => void): () => void;  export const ledgerVersion: () => number;
 export function playState(): Readonly<PlaySaveV1>;        export const todayKey: () => string;   // Bay date
@@ -52,7 +53,7 @@ export function hintTarget(kind: HintKind | 'any', from: { x: number; z: number 
 | anything else (`medal:*`, an unregistered id) | `play.e` (≤ 128 sources of ≤ 40 characters); moved into the bitset when its registry arrives | — |
 
 Coins paid = min(asked, `REWARD_CAPS[prefix]`) (arrive 10 · postcard 10 · favour 25 · goal 20 · egg 10 · view 5 · sound 5 ·
-pebble 3 · cache 12 · trail 1 · ring 1 · event 15 · daily 20 · page 30 · medal 15 · pelican 20), whole, ≥ 0, balance ≤
+pebble 3 · cache 12 · trail 1 · ring 3 (the air-ring coins ask 1, lane A's first-flight rings 3) · event 15 · daily 20 · page 30 · medal 15 · pelican 20), whole, ≥ 0, balance ≤
 999,999. A source that cannot be kept (bad daily, unregistered trail id, `play.e` full, > 40 characters) is **not paid**
 (DEV warning): never paid twice, never silently lost.
 
@@ -142,8 +143,9 @@ contracts test loads economy/index — cannot load .css). `economy/index.ts` sta
 - **Lane D**: in `eggs/index.ts` init, `registerRewardIds('egg', EGG_IDS)` (and the same for `sound` / `pebble` when they
   exist) before the first emit; read `isPaid('egg:<id>')` for `find.first`; the compass: `registerHintSource('egg', …)`
   with the unfound eggs' ground spots (economy/hints.ts).
-- **Lane A**: `registerRewardIds('view', VIEW_SPOT_IDS)` in `play/index.ts` init; the first flight's coins pay
-  `ring:first-flight:1` … `:8` (already registered by the coins, bits 0–7 of `play.g.ring`) — or use `medal:` for more.
+- **Lane A**: `registerRewardIds('view', VIEW_SPOT_IDS)` in `play/index.ts` init. Done on my side after reading your
+  push: `ring:first-flight:1…8` is registered (bits 0–7 of `play.g.ring`) and the ring cap is 3 (your `RING_COINS`);
+  `recordBest` is exported from `economy/index.ts` as `play/kit.ts` looks for it (commit `W5-E1: recordBest …`).
 - **Lane R**: `registerRewardIds('event', <souvenir event ids, append-only>)`; the daily three pay
   `daily:<dateKey>:1` … `:3` and `daily:<dateKey>:all`.
 - **Lane V**: the coin glints at night can read `coinItems()` (economy/coins.ts) positions; the gate spot "the Filbert

@@ -6,6 +6,7 @@
  *   isPaid(source)            already paid (or can no longer be paid: a past Bay day's trail / daily source)
  *   coinsTotal()              the balance
  *   spend(item, price)        a 小铺 purchase: false (nothing changes) when the balance is short
+ *   recordBest(key, value)    lane A's activity bests into `play.b` (A decides what "better" is; ≤ 32 keys)
  *   registerRewardIds(p, ids) a lane's APPEND-ONLY id list for a prefix whose bits live in its own kind (below)
  *   subscribeLedger(fn)       the pill badge, the notebook, the coins in the world: called after every change
  *
@@ -26,14 +27,15 @@
  * it from a module GameRoot loads statically.
  */
 import { emit, onEvent, rewardPrefix, type RewardPrefix } from '../core/events';
-import { bitGet, bitSet, emptyPlay, MAX_COINS, MAX_ONE_OFF_CHARS, MAX_ONE_OFFS, ONE_OFF_RE, PLAY_DATE_RE, type PlayBitKind, type PlaySaveV1 } from '../data/playSave';
+import { bitGet, bitSet, emptyPlay, MAX_BESTS, MAX_COINS, MAX_ONE_OFF_CHARS, MAX_ONE_OFFS, ONE_OFF_RE, PLAY_DATE_RE, type PlayBitKind, type PlaySaveV1 } from '../data/playSave';
 import { onSaveCleared, patchSave, readSave } from '../data/save';
 import { bayParts } from '../game/bayNow';
 import { FIXED_SOURCES } from './sources';
 
 /** The most one source of each prefix pays (plan §3.4: T1 arrival 10 · postcard 10 · egg 10 · favour 25 · …). */
 export const REWARD_CAPS: Readonly<Record<RewardPrefix, number>> = {
-  arrive: 10, postcard: 10, favour: 25, goal: 20, egg: 10, view: 5, sound: 5, pebble: 3, cache: 12, trail: 1, ring: 1,
+  // ring: the air-ring coins ask 1 each; lane A's first-flight rings (ring:first-flight:<n>) ask 3 per big ring
+  arrive: 10, postcard: 10, favour: 25, goal: 20, egg: 10, view: 5, sound: 5, pebble: 3, cache: 12, trail: 1, ring: 3,
   event: 15, daily: 20, page: 30, medal: 15, pelican: 20,
 };
 
@@ -155,6 +157,22 @@ export function pay(source: string, coins: number): number {
   notify();
   if (delta > 0) emit({ type: 'coins', total: next.c, delta, source });
   return delta;
+}
+
+const BEST_KEY = /^[a-z0-9:-]{1,40}$/;
+/**
+ * Lane A's PlayKit (play/kit.ts writeBest, through economy/index.ts): store an activity best in `play.b`. The caller has
+ * already decided it beats the old one. False (nothing written) for a bad key, a value that is not finite, or a 33rd key.
+ */
+export function recordBest(key: string, value: number): boolean {
+  if (!BEST_KEY.test(key) || !Number.isFinite(value)) return false;
+  const p = playState();
+  const b = { ...(p.b ?? {}) };
+  if (!(key in b) && Object.keys(b).length >= MAX_BESTS) { if (dev()) console.warn('[opus-bay ledger] play.b is full:', key); return false; }
+  b[key] = Math.max(-1e9, Math.min(1e9, value));
+  write({ ...p, b });
+  notify();
+  return true;
 }
 
 /** A purchase: takes `price` coins (a whole number > 0) when the balance covers it; emits `coins` with source `shop:<item>`. */
