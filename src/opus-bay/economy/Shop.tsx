@@ -7,7 +7,6 @@ import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import type { WearSlot } from '../data/playSave';
 import { holdFraming, releaseFraming } from '../game/cinema';
-import { isDiscovered } from '../game/discovery';
 import { holdLock } from '../game/playerLock';
 import { useT } from '../i18n';
 import { Sheet } from '../ui/common';
@@ -19,7 +18,7 @@ import { EARN_NAMES, SHELVES, SLOT_NAMES, forSale, shelfItems, type FrameKind, t
 import { coinsTotal, ledgerVersion, subscribeLedger } from './ledger';
 import { sayWhenFree } from './lines';
 import { buy, canBuy, holds, owns, takeOff, wear, wornItem } from './wallet';
-import { compassStarted, flyWithTicket, magnifierStarted, pelicanOut, type ShopProps } from './shopRun';
+import { compassStarted, flyWithTicket, magnifierStarted, pelicanOut, ticketDestinations, type ShopProps, type TicketDest } from './shopRun';
 import { clearPreview, setPreview } from './wear';
 import './economy.css';
 
@@ -269,23 +268,14 @@ function Footer({ tile, balance, said, onBuy, onClose }: { tile: Tile; balance: 
 
 // --- the 飞行券 picker -------------------------------------------------------------------------------------------------
 
-interface Dest { id: string; name: Bilingual; x: number; z: number; look: { x: number; z: number }; seen: boolean; d: number }
-
-/** The 16 must-sees, the ones not visited first, then the farthest first (a ticket is for going far). */
-function useDestinations(): Dest[] | null {
-  const [list, setList] = useState<Dest[] | null>(null);
+/** The 16 must-sees, the ones not visited first, then the farthest first (shopRun.ts ticketDestinations). */
+function useDestinations(): TicketDest[] | null {
+  const [list, setList] = useState<TicketDest[] | null>(null);
   useEffect(() => {
     let live = true;
     void import('../data/sf/attractions').then(m => {
-      if (!live) return;
-      const p = { x: runtime.player.x, z: runtime.player.z };
-      const out = m.ATTRACTIONS.filter(a => a.rank === 1 && !a.offWalk).map(a => {
-        const d = m.tripDestination(a);
-        return { id: d.placeId, name: d.name, x: d.x, z: d.z, look: { x: a.x, z: a.z }, seen: isDiscovered(d.placeId), d: Math.hypot(d.x - p.x, d.z - p.z) };
-      }).filter(d => d.d > 60);
-      out.sort((a, b) => Number(a.seen) - Number(b.seen) || b.d - a.d);
-      setList(out);
-    });
+      if (live) setList(ticketDestinations(m, { x: runtime.player.x, z: runtime.player.z }));
+    }).catch(() => { if (live) setList([]); });
     return () => { live = false; };
   }, []);
   return list;

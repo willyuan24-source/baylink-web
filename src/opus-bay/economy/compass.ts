@@ -9,6 +9,12 @@ export function screenAngle(px: number, pz: number, tx: number, tz: number, yaw:
   return Math.PI + yaw - b;
 }
 
+/**
+ * `a` moved by whole turns to be the nearest to `prev` (W5-E-review: the badge's CSS transition turned the arrow the
+ * long way round, a full spin, each time the target crossed behind you and atan2 jumped by 2π).
+ */
+export const nearestTurn = (prev: number, a: number): number => prev + Math.atan2(Math.sin(a - prev), Math.cos(a - prev));
+
 const R = 6371000, RAD = Math.PI / 180;
 /** Metres between two city points (their real latitude / longitude). */
 export function realMetres(a: { x: number; z: number }, b: { x: number; z: number }): number {

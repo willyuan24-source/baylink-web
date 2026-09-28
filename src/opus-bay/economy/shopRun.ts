@@ -7,7 +7,7 @@ import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { POSTCARDS } from '../data/postcards';
-import { readSave } from '../data/save';
+import { onSaveCleared, readSave } from '../data/save';
 import { startTravel, travelActive } from '../game/fastTravel';
 import { closePanel } from '../game/flow';
 import { flow } from '../game/flowStore';
@@ -93,6 +93,23 @@ export function flyWithTicket(dest: { id: string; name: Bilingual; x: number; z:
   return true;
 }
 
+export interface TicketDest { id: string; name: Bilingual; x: number; z: number; look: { x: number; z: number }; seen: boolean; d: number }
+
+/**
+ * The must-sees a ticket flies to from `from` (not within 60 u), the ones not visited first, then the farthest first (a
+ * ticket is for going far). All 16: W5-E-review — `!offWalk` dropped Alcatraz, yet tripDestination already gives its
+ * Pier 33 landing (where you stand and look at the island), so the picker showed 15 of the "16 must-sees". `m` is
+ * data/sf/attractions (the picker loads it lazily).
+ */
+export function ticketDestinations(m: Pick<typeof import('../data/sf/attractions'), 'ATTRACTIONS' | 'tripDestination'>, from: { x: number; z: number }, seen: (placeId: string) => boolean = isDiscovered): TicketDest[] {
+  const out = m.ATTRACTIONS.filter(a => a.rank === 1).map(a => {
+    const d = m.tripDestination(a);
+    return { id: d.placeId, name: d.name, x: d.x, z: d.z, look: { x: a.x, z: a.z }, seen: seen(d.placeId), d: Math.hypot(d.x - from.x, d.z - from.z) };
+  }).filter(d => d.d > 60);
+  out.sort((a, b) => Number(a.seen) - Number(b.seen) || b.d - a.d);
+  return out;
+}
+
 // --- the compass -----------------------------------------------------------------------------------------------------
 
 /** The compass's target now (null: nothing left to find, or the compass is off). */
@@ -133,14 +150,20 @@ export function initShop(CompassBadge: () => ReturnType<typeof createElement> | 
   const marketTimer = setInterval(() => { const m = isMarketOpen(); if (m !== market) { market = m; invalidateInteractables(); } }, 30_000);
   offs.push(() => clearInterval(marketTimer));
 
-  // the 飞行券: BAYBAY's first one (once per save, before the pelican), the refund after the unlock
+  // the 飞行券: BAYBAY's first one (once per save, before the pelican), the refund after the unlock. W5-E-review: also
+  // after Settings → reset progress (a new save starts; before, the gift waited for the next page load): the reset
+  // clears the save, then the glide — so the check runs once that click is over
+  let gone = false;
   const ticketCheck = () => {
+    if (gone) return;
     const out = pelicanOut();
+    if (giveFirstTicket(out)) sayWhenFree('ticketGift', 300, 5200);
     if (ticketRule(out) > 0) sayWhenFree('ticketRefund');
   };
-  if (giveFirstTicket(pelicanOut())) sayWhenFree('ticketGift', 300, 5200);
   ticketCheck();
   offs.push(subscribeGlide(ticketCheck));
+  offs.push(onSaveCleared(() => { queueMicrotask(ticketCheck); }));
+  offs.push(() => { gone = true; });
   offs.push(registerAskItem({
     id: 'e-ticket', order: 20, label: { zh: '用飞行券飞一次', en: 'Use my flight ticket' }, icon: TicketIcon,
     visible: () => holds('fly-ticket') && !pelicanOut(), onSelect: () => openOverlay('e-ticket'),

@@ -81,6 +81,9 @@ export function notebookCount(): string | undefined {
   return n ? String(n) : undefined;
 }
 
+/** How many live checks ran (tests, QA). */
+export const notebookStats = { runs: 0 };
+
 export function initNotebook(): () => void {
   // lane A's and lane D's own lists (the same append-only lists their inits register: either keeps the bits in place)
   const offs = [registerRewardIds('page', PAGE_IDS), registerRewardIds('view', VIEW_SPOT_IDS), registerRewardIds('sound', SOUND_IDS)];
@@ -88,13 +91,17 @@ export function initNotebook(): () => void {
   const run = () => {
     if (busy) return;
     busy = true;
+    notebookStats.runs++;
     try {
       for (const id of checkNotebook()) sayWhenFree(PAGE_LINE[id]);
     } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay notebook]', error); } finally { busy = false; }
   };
-  offs.push(subscribeLedger(() => { queueMicrotask(run); }));
+  // one check per burst of ledger changes (W5-E-review: flying through a ring pays eight coins in one step, and each
+  // change queued its own full check — eight stamp / page passes in one frame)
+  let queued = false, gone = false;
+  offs.push(subscribeLedger(() => { if (!queued) { queued = true; queueMicrotask(() => { queued = false; if (!gone) run(); }); } }));
   const timer = setInterval(run, 2000);
   run();
-  return () => { clearInterval(timer); for (const off of offs.splice(0).reverse()) off(); states = null; };
+  return () => { gone = true; clearInterval(timer); for (const off of offs.splice(0).reverse()) off(); states = null; };
 }
 

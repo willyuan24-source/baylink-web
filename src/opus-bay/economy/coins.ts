@@ -88,17 +88,24 @@ export function ringCoinPositions(r: { x: number; y: number; z: number; yaw: num
 
 /** Where the player picks up from right now, or null (not playing, travelling, riding a line, photo mode). */
 export interface Picker { x: number; y: number; z: number; mode: 'foot' | 'ride' | 'glide'; low: boolean }
+/** W5-E-review: one object refilled each step (the frame system asked for a new one 30 times a second). */
+const PICKER: Picker = { x: 0, y: 0, z: 0, mode: 'foot', low: true };
+const pickerAt = (x: number, y: number, z: number, mode: Picker['mode'], low: boolean): Picker => {
+  PICKER.x = x; PICKER.y = y; PICKER.z = z; PICKER.mode = mode; PICKER.low = low;
+  return PICKER;
+};
 export function currentPicker(): Picker | null {
   const s = game.get();
-  if (s.phase !== 'playing' || s.worldMode !== 'city') return null;
+  // W5-E-review: photo mode too, as the doc above and the report always said (the shutter is not a pickup)
+  if (s.phase !== 'playing' || s.worldMode !== 'city' || s.photoMode) return null;
   const mode = runtime.move.mode;
   if (mode === 'glide') {
     const gl = runtime.glide;
-    return { x: gl.x, y: gl.y, z: gl.z, mode: 'glide', low: gl.height < PICKUP.glideLow };
+    return pickerAt(gl.x, gl.y, gl.z, 'glide', gl.height < PICKUP.glideLow);
   }
   const p = runtime.player;
-  if (mode === 'foot' || mode === 'sit') return { x: p.x, y: p.y, z: p.z, mode: 'foot', low: true };
-  if (mode === 'bike' || mode === 'car') { const v = runtime.vehicle; return { x: v.x, y: v.y, z: v.z, mode: 'ride', low: true }; }
+  if (mode === 'foot' || mode === 'sit') return pickerAt(p.x, p.y, p.z, 'foot', true);
+  if (mode === 'bike' || mode === 'car') { const v = runtime.vehicle; return pickerAt(v.x, v.y, v.z, 'ride', true); }
   return null;
 }
 
@@ -120,11 +127,19 @@ export function canPick(p: Picker, c: CoinItem): boolean {
  * (or the Bay day turns), the pickup step and the draw list. Pure apart from the ledger / events it calls (tests drive
  * it with a stub picker).
  */
+/** A bucket's key (W5-E-review: a number, not a `${bx},${bz}` string built for every bucket of every step). */
+const bucketKey = (bx: number, bz: number) => (bx + 4096) * 8192 + (bz + 4096);
+/** What step() returns when nothing was picked up (most steps): no new array. */
+const NO_PICKS: number[] = Object.freeze([]) as unknown as number[];
+/** The Bay date is looked at once a second (bayParts hands back a new object on every call). */
+const DAY_CHECK_MS = 1000;
+
 export class CoinWorld {
   readonly items: CoinItem[];
-  private readonly buckets = new Map<string, number[]>();
+  private readonly buckets = new Map<number, number[]>();
   private taken: Uint8Array;
   private day = '';
+  private dayAt = -Infinity;
   private dirty = false;
   /** the instances to draw (index into items), nearest first, ≤ MAX_DRAWN instances (a cache counts CACHE_STACK) */
   visible: number[] = [];
@@ -137,8 +152,9 @@ export class CoinWorld {
   constructor(items: CoinItem[]) {
     this.items = items;
     this.taken = new Uint8Array(items.length);
+    this.d2 = new Float64Array(items.length);
     items.forEach((c, i) => {
-      const k = `${Math.floor(c.x / BUCKET)},${Math.floor(c.z / BUCKET)}`;
+      const k = bucketKey(Math.floor(c.x / BUCKET), Math.floor(c.z / BUCKET));
       let list = this.buckets.get(k);
       if (!list) this.buckets.set(k, (list = []));
       list.push(i);
@@ -164,7 +180,7 @@ export class CoinWorld {
     out.length = 0;
     const b0 = Math.floor((x - r) / BUCKET), b1 = Math.floor((x + r) / BUCKET), c0 = Math.floor((z - r) / BUCKET), c1 = Math.floor((z + r) / BUCKET);
     for (let bx = b0; bx <= b1; bx++) for (let bz = c0; bz <= c1; bz++) {
-      const list = this.buckets.get(`${bx},${bz}`);
+      const list = this.buckets.get(bucketKey(bx, bz));
       if (!list) continue;
       for (const i of list) {
         if (this.taken[i]) continue;
@@ -176,16 +192,23 @@ export class CoinWorld {
   }
 
   private scratch: number[] = [];
-  /** One pickup step for `p` at `now` (ms): the items picked up (each paid through a `reward` event). */
+  private nearList: number[] = [];
+  private d2 = new Float64Array(0);
+  private readonly byDistance = (a: number, b: number) => this.d2[a] - this.d2[b];
+  /**
+   * One pickup step for `p` at `now` (ms): the items picked up (each paid through a `reward` event). Allocation-free
+   * when nothing is picked up (W5-E-review: it built an array, a date object and bucket strings 30 times a second).
+   */
   step(p: Picker | null, now: number): number[] {
-    if (this.dirty || todayKey() !== this.day) { this.dirty = false; this.refresh(); }
-    if (!p) return [];
-    const got: number[] = [];
+    if (!this.dirty && now - this.dayAt >= DAY_CHECK_MS) { this.dayAt = now; if (todayKey() !== this.day) this.dirty = true; }
+    if (this.dirty) { this.dirty = false; this.refresh(); }
+    if (!p) return NO_PICKS;
+    let got: number[] | null = null;
     for (const i of this.near(p.x, p.z, PICKUP.air + 1, this.scratch)) {
       const c = this.items[i];
       if (!canPick(p, c)) continue;
       this.taken[i] = 1;
-      got.push(i);
+      (got ??= []).push(i);
       this.popping.push([i, now]);
       this.stats.picked++;
       emit({ type: 'reward', source: c.source, coins: c.coins });
@@ -193,9 +216,9 @@ export class CoinWorld {
       this.chime(c, now);
       spawnFx('sparkle', c.x, c.air ? c.y : c.y + 0.9, c.z, { count: c.kind === 'cache' ? 14 : 5, scale: c.kind === 'cache' ? 1 : 0.6, color: '#ffd66b' });
     }
-    if (got.length) this.visibleAt = -1e9;
-    if (this.popping.length) this.popping = this.popping.filter(([, t]) => now - t < 400);
-    return got;
+    if (got) this.visibleAt = -1e9;
+    if (this.popping.length && now - this.popping[0][1] >= 400) this.popping = this.popping.filter(([, t]) => now - t < 400);
+    return got ?? NO_PICKS;
   }
 
   private chime(c: CoinItem, now: number) {
@@ -210,8 +233,11 @@ export class CoinWorld {
     if (now - this.visibleAt < 200) return;
     this.visibleAt = now;
     const R = gliding ? VIEW_R.glide : VIEW_R.foot;
-    const list = this.near(x, z, R, []);
-    list.sort((a, b) => ((this.items[a].x - x) ** 2 + (this.items[a].z - z) ** 2) - ((this.items[b].x - x) ** 2 + (this.items[b].z - z) ** 2));
+    const list = this.near(x, z, R, this.nearList);
+    const d2 = this.d2;
+    for (const i of list) d2[i] = (this.items[i].x - x) ** 2 + (this.items[i].z - z) ** 2;
+    list.sort(this.byDistance);
+    // a new array each time (≤ 5 Hz): the layer and QA may still hold the last one
     const out: number[] = [];
     let n = 0;
     for (const i of list) {

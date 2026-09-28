@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { runtime } from '../core/runtime';
 import { useT } from '../i18n';
-import { distanceText, realMetres, screenAngle } from './compass';
+import { distanceText, nearestTurn, realMetres, screenAngle } from './compass';
 import { compassTarget } from './shopRun';
 
 /**
@@ -17,7 +17,15 @@ export function CompassBadge() {
     const tick = () => {
       const p = { x: runtime.player.x, z: runtime.player.z };
       const tg = compassTarget(p);
-      setS(tg ? { a: screenAngle(p.x, p.z, tg.x, tg.z, runtime.camera.yaw), text: distanceText(realMetres(p, tg), locale !== 'en') } : null);
+      const a = tg ? screenAngle(p.x, p.z, tg.x, tg.z, runtime.camera.yaw) : 0;
+      const text = tg ? distanceText(realMetres(p, tg), locale !== 'en') : '';
+      // W5-E-review: the arrow turns the short way (atan2 jumps by a full turn behind you, and the CSS transition spun it
+      // all the way round), and the pill does not re-render 4 times a second while nothing it shows has changed
+      setS(prev => {
+        if (!tg) return prev ? null : prev;
+        const turn = prev ? nearestTurn(prev.a, a) : a;
+        return prev && prev.text === text && Math.abs(prev.a - turn) < 0.02 ? prev : { a: turn, text };
+      });
     };
     tick();
     const id = window.setInterval(tick, 250);
