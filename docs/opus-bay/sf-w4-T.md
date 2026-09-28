@@ -542,3 +542,65 @@ load on an earlier run and passed alone, lane G's wall-clock test) · `opus-bay-
 no Higgsfield credits.
 
 Relayed owner message during this part — "现在进度如何" — answered by the first line of the summary above.
+
+## Integration review
+
+Written 2026-09-27 by lane T's adversarial reviewer (worktree `wt/i4-t` → `opus-bay`), over every W4-T commit of this
+run (`b093e8e` … `0fc539e`, incl. `b41e95c`). Commits: `W4-T-int-review` ×3 (the props, the game code + tests, this
+report with the flood tweak and the shots).
+
+### 给主人的摘要
+
+**进度（回答"现在进度如何"）：T 组的复查做完并推送：找到 6 个真问题，全部修好、有测试，并在游戏里（电脑和手机）实际走过一遍。**
+
+1. **最严重的一个：66 个站牌 / 地铁口里有 22 个被房子围在"死角"里**（卡斯特罗、教堂街地铁口，海洋海滩终点站牌等）。坐地铁到卡斯特罗下车，或者用"直接到站"，人会被困在墙缝里走不出来（游戏里实测按方向键 20 秒只挪了 1 米）。现在所有站牌都重新摆在能走到街上的地方，另加了自动检查。
+2. **叮当车站的上车点之前挪到了观光巴士车道和 F 线轨道上**（加州街、Powell & Market 等），站在那里等车会挡住巴士 / 电车；现在离所有车道都有安全距离。地铁在中途站停靠时按"直接到站"会被放在那个中途站，也修好了。
+3. **手机上市中心的地铁站选项更有用了**：原来"市政中心 / 蒙哥马利 / 内河码头"各重复出现两次，却没有"海洋海滩"；现在每个目的地只出现一次，N 线终点和 M 线终点都在。
+
+### What was checked
+
+- Every W4-T commit's code: game/transit.ts, game/lineRides.ts, game/ride.ts, data/transit.ts, data/ferry.ts, the four
+  vehicle systems (PERSON_CLEAR, viewerHeld), world/transitLayer.ts, world/sf/{lineFleet,crowd,traffic,cityLife,
+  recordPool,lineInterlocks}.ts, ui/{LineRideLayer,SubwayOverlay}.tsx, scripts/opus-sf/{transit-sidecar,lib/stopPlace}.ts.
+- Geometry over the published data (node, the game's own walk terrain from the chunks and the city's sites): every place
+  a line ride puts the rider (66 wave-4 props, 56 cable-car prompts, the F-line stations, both ferry quays) flooded for a
+  way out; every prompt's distance to every vehicle path.
+- In the real game (dev server 5402, RTX): desktop 1440 × 900 and phone 390 × 844 @3 (touch, zh): the Castro kiosk
+  (walk-out before / after), a real M ride Civic Center → Castro ending under ground, 直接到站 while the M dwells at
+  Montgomery, 在这站下车 at Civic Center (phone), the Powell kiosk dialogue (phone), the Powell & Market prompt, the La
+  Playa pole, district mode (the hero F-line ride and a Space hop-off). Every image read.
+- Claims in parts a / b against the code: the pooled records (F4: one pool per consumer array, every consumer clears its
+  array first), the stander base (m6), PERSON_CLEAR in each system (measured from the resting nose everywhere), the
+  ferry landing (D2: joined), the ferry wait label (D11), district strings (unchanged), teardown (the layer's disposers).
+
+### Defects found and fixed
+
+| # | defect (severity) | fix | evidence |
+|---|---|---|---|
+| R6 | **22 of the 66 wave-4 props stood in walled gaps behind the kerb** (major): the sidecar's clearances (building footprints, road edges) accepted gaps between footprints that the walk rasters close: the Castro and Church kiosks, Duboce & Church, the La Playa pole (the N's goal end), the Palace of Fine Arts / Haight / Painted Ladies poles, most outer Judah stops. An underground arrival (always at the kiosk) or 直接到站 left the rider walled in; part a said "kiosks on a free patch of sidewalk / plaza" | `transit-sidecar.ts walkJoined`: each candidate is flooded on the game's walk terrain (published chunks + `SF_SITES`, 0.5 u, the player's radius) and must reach 24 u, judged at the published (rounded) spot and firm round it; where the buildings stand at the kerb, `stopPlace.placeOnStreet` puts the pole on the roadway's edge 2.6 u clear of every surface vehicle path. transit.json / transit-w4.json re-published: lines byte-identical, 45 props moved (most < 1 u; Castro 12.8, Church 31.6) | test R6 (66 props + 2 quays joined); game: at the old Castro kiosk 20 s of WASD moved the player 1 u; after the fix a real M ride to the Castro ends on the Market St sidewalk and the player walks off 10 u (`r-castro-arrival-phone.jpg`); `r-la-playa-pole.jpg` |
+| R1 | **The D3 cable-car prompts stood in other vehicles' paths** (major): only the station's own track was cleared: California & Davis / Front / Battery / Sansome 1.1–1.6 u from the bus loop, Powell & Bush 0.09, Hyde & North Point 0.88, Powell & Market 1.0 and California & Drumm 0.6 u from the F-line's rails. A bus / streetcar stopped for whoever stood at the prompt, and ran through a rider waiting there for a cable car | `lineRides.ts kerbAround`: ≥ KERB_OFF 2.45 u from every vehicle path (cable lines, the F-line incl. the hero waterfront, the loop, the N / M outside tunnels: `vehicleSegmentsNear`), on ground joined to the street (`walkJoinedNear`, 10 u; unstreamed ground counts as closed, a miss is retried); rings out to 9 u; a street too narrow for 2.45 (Powell & Bush) takes the joined spot farthest from the paths if ≥ KERB_MIN 1.6 (no vehicle stops for someone there) | test R1 (56 stations, independent path distances; red on the old code); the Powell & Market prompt on the plaza (`r-powell-market-prompt.jpg`); all 56 searches 13 ms in node |
+| R2 | 直接到站 to a city F-line station landed on the rails (minor): the station point is on the track | `flineLandingSpot`: the hero stop's platform (district anchor), else the kerb as in R1 | test R2 |
+| R3 | **Metro 直接到站 during a dwell went to the wrong station** (major): pressed while the train stood at a station on the way, the rider was put at that station (leaveSpot took the dwelling station first); 在这站下车 followed the train when it pulled out under the veil; a skip count named the destination | `leaveSpot(…, alightAt)`: 直接到站 → the destination, 在这站下车 → the station tapped at (kept through the veil); `skipCounts` / `countRide` use where the rider got off | tests R3 (both red on the old code); game: a skip at the Montgomery dwell lands at the Castro kiosk, "Arrived: Castro" (`r-metro-skip-at-dwell.jpg`); phone 在这站下车 at Civic Center lands at its kiosk, "到站：市政中心站" |
+| R4 | Shared Market St stations on a phone: Civic Center / Montgomery / Embarcadero twice (N and M) and no Ocean Beach / Balboa Park row (minor, UX): a cap per line | `stationChoices`: the lines' rows in turn, each destination once, one cap for all | test R4 (5 stations × phone / desktop); `r-powell-kiosk-rows-phone.jpg` (6 rows: 市政中心 · 蒙哥马利 · 内河码头 · 海洋海滩 · Balboa Park · Duboce & Church) |
+| R5 | A throwing jump left the veil (pointer-events on) over the whole game (minor, robustness) | `veiledSkip`: the veil lifts in a `finally`, the error is reported | test R5 |
+
+### Open (not fixed)
+
+- The zh boarding rows show "Balboa Park" and "Duboce & Church" untranslated (the short name is the part before " · " in
+  `stationNames.ts`); a content call, left as is.
+- On a phone at Powell / Civic Center the M's Stonestown / SF State rows do not fit in the 6 (La Playa and Balboa Park
+  do; desktop shows 8). Lane P's station card and the map still reach them.
+- While a 直接到站 veil is up (≤ 8 s), a hop-off or a map fly-to is ignored and the landing wins.
+- The subway overlay pops off without its fade when the ride ends (LineRideLayer unmounts with the ride).
+- Part a / b open items stand: the phone 4× gate on a quiet machine (lane V / lead), the LRV ride camera (lane G), Pier
+  45's walled shed deck (lane L / V), `transit-w4.json` and `manifest.json transitLines` (lead).
+
+### Checks
+
+On the pushed tree (rebased over `9953a4c`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings,
+none in lane-T files) · full opus-bay suite **895 / 895** · new `tests/opus-bay-sf-transit-review.test.ts` 7 tests (red
+on the old code, green now) · the sidecar re-run on the rebased tree reproduces the published bytes · `vite build`:
+GameRoot 775.19 kB / **292.45 kB gzip**, lazy `lineRides` 8.64 kB gzip (+0.9) · no Higgsfield credits · dev server 5402
+stopped.
+
+Relayed owner message during this review — "现在进度如何" — answered by the first line of the summary above.

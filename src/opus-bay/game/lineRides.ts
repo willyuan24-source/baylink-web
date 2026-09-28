@@ -112,7 +112,7 @@ export function stationChoices(station: string, o: { to?: string; line?: string 
   }
   // (review) the five Market St stations serve the N and the M: take the lines' rows in turn and offer a destination
   // both reach once. A cap per line had left two identical rows each for the trunk stops (Civic Center, Montgomery,
-  // Embarcadero) and no Ocean Beach / Stonestown row on a phone at Powell (the Metro goal's ends).
+  // Embarcadero) and no Ocean Beach / Balboa Park row on a phone at Powell (Ocean Beach: the Metro goal's sea).
   const rides: LineChoice[] = [];
   for (let k = 0; rides.length < max && perLine.some(rs => k < rs.length); k++) {
     for (const rs of perLine) {
@@ -651,8 +651,8 @@ export function segmentsDistance(segs: readonly number[], x: number, z: number):
 const KERB_JOIN = 10;
 
 /**
- * Can the player walk KERB_JOIN u away from (x0, z0)? A flood of standable ground in 0.5 u steps (ground not streamed in
- * yet counts as open), at most 4000 cells.
+ * Can the player walk KERB_JOIN u away from (x0, z0)? A flood of standable ground in 0.5 u steps, at most 4000 cells
+ * (ground not streamed in yet is not standable: a spot that cannot be judged yet is a miss, looked at again later).
  */
 export function walkJoinedNear(x0: number, z0: number, reach = KERB_JOIN): boolean {
   if (!canStand(x0, z0, 0.45)) return false;
@@ -667,7 +667,7 @@ export function walkJoinedNear(x0: number, z0: number, reach = KERB_JOIN): boole
       if (seen.has(k)) continue;
       seen.add(k);
       const x = x0 + a * step, z = z0 + b * step;
-      if (groundPending(x, z, 0) || canStand(x, z, 0.45)) stack.push(a, b);
+      if (!groundPending(x, z) && canStand(x, z, 0.45)) stack.push(a, b);
     }
   }
   return cells >= 4000;
