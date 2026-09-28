@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { Vec2 } from '../../../core/types';
 import { type BatchLike, CBOX, M } from '../../builder';
 import { box, cyl, rect, worldPoly } from './kit';
 import { type W4Site, fence, siteGround } from './siteKit';
