@@ -1661,6 +1661,9 @@ test('W5-A9 crooked blocks: Lombard and Vermont on the published city (walkable,
   assert.equal(CR.crookedTier(1, 1), 2);
   assert.equal(CR.crookedTier(3, 0), 1);
   for (const line of Object.values(CR.CROOKED_LINES)) assert.ok([...line.zh].length <= 45, line.zh);
+  // the sign at the top RECOMMENDS 5 mph (en.wikipedia.org "Lombard Street (San Francisco)", review 2026-09-28): never 限速
+  assert.doesNotMatch(CR.CROOKED_LINES.lombard.zh, /限速/);
+  assert.match(CR.CROOKED_LINES.lombard.zh, /建议每小时 5 英里/);
   playing();
   stubBody();
   kit.__resetKit();

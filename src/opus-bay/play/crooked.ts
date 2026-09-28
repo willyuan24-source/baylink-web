@@ -28,7 +28,7 @@ export const GRACE_S = 1.2;
 export const OVER_OK = 1.5;
 export const OFF_LANE = 4.5;
 export const CROOKED_LINES = {
-  lombard: { zh: '九曲花街限速每小时 5 英里——慢慢开，别碰到花坛！', en: 'Lombard’s sign says 5 mph — nice and slow, mind the flower beds!' },
+  lombard: { zh: '九曲花街的路牌建议每小时 5 英里——慢慢开，别碰到花坛！', en: 'Lombard’s sign says 5 mph — nice and slow, mind the flower beds!' },
   vermont: { zh: '佛蒙特街只有 7 个弯，可坡更陡——慢一点！', en: 'Vermont has seven bends but a steeper hill — slowly!' },
   lombardFact: { zh: '九曲花街这一段有 8 个急弯，而且只能往下开哦！', en: 'Eight hairpins on this block — and it’s one way, downhill!' },
   tease: { zh: '有人量过，佛蒙特街其实更弯：弯曲度 1.56 比 1.2！', en: 'Someone measured it: Vermont Street is curvier — 1.56 to 1.2!' },
