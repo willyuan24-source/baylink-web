@@ -14,6 +14,7 @@ import { LRV_PLATFORM, lrvCarFarGeometry, lrvCarGeometry } from './lrv';
 import { type PortalPlacement, portalBlockers, portalGeometry, portalPlacements } from './portals';
 import { type StationProp, busPoleGeometry, kioskGeometry, railStopGeometry, stationGeometryKey, stationProps } from './stations';
 import type { RoadVehicle } from './streetNet';
+import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
 import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBus';
 
 /**
@@ -386,19 +387,23 @@ export class LineFleet {
    * aside, the toy traffic waits for them). A train is one body over both cars.
    */
   roadVehicles(out: RoadVehicle[], near: { x: number; z: number }) {
+    const pool = this.vehiclePool.begin(out);
     for (const b of this.bus.buses) {
       const q = b.pose;
       if (Math.abs(q.x - near.x) > 250 || Math.abs(q.z - near.z) > 250) continue;
-      out.push({ x: q.x, z: q.z, heading: q.heading, v: b.v, halfL: BUS.length / 2, halfW: BUS.width / 2, kind: 'bus', line: this.bus.track.id });
+      out.push(setVehicle(pool.next(), q.x, q.z, q.heading, b.v, BUS.length / 2, BUS.width / 2, 'bus', this.bus.track.id));
     }
     for (const t of this.rail.trains) {
       if (t.hidden) continue;
       const a = t.cars[0], c = t.cars[1];
       const x = (a.x + c.x) / 2, z = (a.z + c.z) / 2;
       if (Math.abs(x - near.x) > 250 || Math.abs(z - near.z) > 250) continue;
-      out.push({ x, z, heading: this.rail.leadCar(t).heading, v: Math.abs(t.v), halfL: TRAIN_LENGTH / 2, halfW: LRV.width / 2, kind: 'light-rail', line: t.track.id });
+      out.push(setVehicle(pool.next(), x, z, this.rail.leadCar(t).heading, Math.abs(t.v), TRAIN_LENGTH / 2, LRV.width / 2, 'light-rail', t.track.id));
     }
   }
+  /** (F4) pooled records: one pool per consumer array */
+  private readonly vehiclePool = vehiclePool();
+  private readonly obstaclePool = obstaclePool();
 
   /** The Metro lines' surface stretches (outside the tunnels and the portal hoods) as [x, y, z] runs: the transit streets. */
   static surfaceRuns(metro: readonly Pick<TransitLine, 'path' | 'tunnels'>[]): Float32Array[] {
@@ -422,19 +427,21 @@ export class LineFleet {
    * portals ('static': a soft bump), the buses and the visible train cars ('traffic').
    */
   obstacles(out: { x: number; z: number; r: number; kind: string }[], x: number, z: number, r: number) {
-    for (const d of this.discs) if (Math.abs(d.x - x) < r + d.r && Math.abs(d.z - z) < r + d.r) out.push({ x: d.x, z: d.z, r: d.r, kind: 'static' });
+    const pool = this.obstaclePool.begin(out);
+    const put = (px: number, pz: number, pr: number, kind: string) => { const o = pool.next(); o.x = px; o.z = pz; o.r = pr; o.kind = kind; out.push(o); };
+    for (const d of this.discs) if (Math.abs(d.x - x) < r + d.r && Math.abs(d.z - z) < r + d.r) put(d.x, d.z, d.r, 'static');
     for (const b of this.bus.buses) {
       const q = b.pose;
       if (Math.abs(q.x - x) > r + 5 || Math.abs(q.z - z) > r + 5) continue;
       const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
-      for (const o of [-2.6, 0, 2.6]) out.push({ x: q.x + fx * o, z: q.z + fz * o, r: BUS.width / 2, kind: 'traffic' });
+      for (let k = -1; k <= 1; k++) put(q.x + fx * 2.6 * k, q.z + fz * 2.6 * k, BUS.width / 2, 'traffic');
     }
     for (const t of this.rail.trains) {
       if (t.hidden) continue;
       for (const q of t.cars) {
         if (Math.abs(q.x - x) > r + 4 || Math.abs(q.z - z) > r + 4) continue;
         const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
-        for (const o of [-2.1, 0, 2.1]) out.push({ x: q.x + fx * o, z: q.z + fz * o, r: LRV.width / 2, kind: 'traffic' });
+        for (let k = -1; k <= 1; k++) put(q.x + fx * 2.1 * k, q.z + fz * 2.1 * k, LRV.width / 2, 'traffic');
       }
     }
   }

@@ -4,6 +4,7 @@ import type { Quality } from '../../core/store';
 import { BOX, Batch, CYL, M } from '../builder';
 import { TOY_INST_TINT } from '../materials';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, lifeRng } from './streetNet';
+import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
 
 /**
  * Toy traffic (lane F, checkpoint F12): up to 24 little instanced cars on the streets around the player, city mode only
@@ -468,21 +469,32 @@ export class TrafficSim {
     if (this.passes.length > 16) this.passes.splice(0, this.passes.length - 16);
   }
 
-  /** Two soft obstacle discs per car (actors/view.ts registerObstacleSource). */
+  /** Two soft obstacle discs per car (actors/view.ts registerObstacleSource; pooled records, F4). */
   obstacles(out: Obstacle[], x: number, z: number, r: number) {
+    const pool = this.obstaclePool.begin(out);
     for (const c of this.cars) {
       if (!c.on || c.grow < 0.5) continue;
       if (Math.abs(c.x - x) > r + 2 || Math.abs(c.z - z) > r + 2) continue;
       const fx = Math.sin(c.heading) * 0.5, fz = Math.cos(c.heading) * 0.5;
-      out.push({ x: c.x + fx, z: c.z + fz, r: 0.6, kind: 'traffic' }, { x: c.x - fx, z: c.z - fz, r: 0.6, kind: 'traffic' });
+      for (const k of FRONT_BACK) {
+        const o = pool.next();
+        o.x = c.x + fx * k; o.z = c.z + fz * k; o.r = 0.6; o.kind = 'traffic';
+        out.push(o);
+      }
     }
   }
+  private readonly obstaclePool = obstaclePool();
 
-  /** The cars as road vehicles (for the crowd's hop). */
+  /** The cars as road vehicles (for the crowd's hop; pooled records, F4). */
   vehicles(out: RoadVehicle[]) {
-    for (const c of this.cars) if (c.on) out.push({ x: c.x, z: c.z, heading: c.heading, v: c.v, halfL: HALF_L, halfW: HALF_W, kind: 'traffic', line: 'traffic' });
+    const pool = this.vehiclePool.begin(out);
+    for (const c of this.cars) if (c.on) out.push(setVehicle(pool.next(), c.x, c.z, c.heading, c.v, HALF_L, HALF_W, 'traffic', 'traffic'));
   }
+  private readonly vehiclePool = vehiclePool();
 }
+
+/** a car's two obstacle discs: half a unit ahead of and behind its centre */
+const FRONT_BACK = [1, -1] as const;
 
 function bezierLength(ax: number, az: number, cx: number, cz: number, bx: number, bz: number): number {
   let L = 0, px = ax, pz = az;

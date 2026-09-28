@@ -4,6 +4,7 @@ import type { Quality } from '../../core/store';
 import { Batch, CYL, M, SPHERE } from '../builder';
 import { crowdPeopleMaterial, personGeometry } from '../life';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistance, lifeRng, predictApproach } from './streetNet';
+import { obstaclePool } from './recordPool';
 
 /**
  * The city crowd (lane F, checkpoint F11): up to 64 instanced walkers on the sidewalks around the player, in city mode
@@ -160,6 +161,15 @@ const newWalker = (id: number): Walker => ({
 const _p = { x: 0, z: 0 };
 const _q = { x: 0, z: 0 };
 const _avoid: { x: number; z: number }[] = [];
+/** (verify m6) no walker spawns within this of the player, BAYBAY or a resident (u) */
+export const CLEAR_OF_PEOPLE = 2.5;
+/** (verify m6) a sightseer shuffles back to this far from the player / BAYBAY (u) */
+const STANDER_ROOM = 1.5;
+/** is (x, z) within CLEAR_OF_PEOPLE of the player, BAYBAY or a resident (this step's avoid list)? */
+function nearAvoid(x: number, z: number): boolean {
+  for (const a of _avoid) if (Math.abs(a.x - x) < CLEAR_OF_PEOPLE && Math.abs(a.z - z) < CLEAR_OF_PEOPLE && Math.hypot(a.x - x, a.z - z) < CLEAR_OF_PEOPLE) return true;
+  return false;
+}
 
 export class CrowdSim {
   readonly net: StreetNet;
@@ -246,6 +256,9 @@ export class CrowdSim {
       for (const w of this.walkers) if (w.on && Math.hypot(w.x - f.x, w.z - f.z) < NEAR_R) near++;
       this.sparse = near < want * CROWD.nearShare;
     }
+    // the player, BAYBAY and the residents: spawns keep clear of them (verify m6), movers step round them
+    _avoid.length = 0;
+    this.env.avoid(_avoid);
     // spawn: a burst while filling (spread over a few frames), else a few a frame
     let budget = this.filling ? 10 : 3;
     const mode: SpawnMode = this.filling ? 'fill' : this.sparse ? 'near' : 'recycle';
@@ -267,8 +280,6 @@ export class CrowdSim {
       if (far) { far.on = false; this.stats.recycled++; }
     }
 
-    _avoid.length = 0;
-    this.env.avoid(_avoid);
     const vehicles = this.env.vehicles();
     this.separate(dt);
     for (const w of this.walkers) {
@@ -315,6 +326,7 @@ export class CrowdSim {
       if (!anywhere && seen && dd < CROWD.spawnInView) continue;
       if (!this.fits(s, along, side, lane)) continue;
       if (this.walkers.some(o => o.on && Math.abs(o.x - _p.x) < 1.5 && Math.abs(o.z - _p.z) < 1.5)) continue;
+      if (nearAvoid(_p.x, _p.z)) continue;
       this.init(w, seen);
       w.mode = 'walk'; w.e = e; w.s = along; w.side = side; w.lane = lane; w.laneT = lane;
       w.x = _p.x; w.z = _p.z; w.heading = Math.atan2(s.dx, s.dz);
@@ -339,11 +351,14 @@ export class CrowdSim {
       const surf = this.net.probe.surface(x, z);
       if (!spot.exact && surf !== 'plaza' && surf !== 'pavement' && surf !== 'grass' && surf !== 'wood') continue;
       if (!this.net.probe.stand(x, z, 0.3)) continue;
+      // (verify m6) never in the player's arrival ring / on BAYBAY / a resident: a fast-travel landing refilled the plaza
+      // spots round the player, and a sightseer stood in the player's face
+      if (nearAvoid(x, z)) continue;
       const seen = this.env.visible(x, z);
       if (!anywhere && seen && dd < CROWD.spawnInView) continue;
       this.init(w, seen);
       w.mode = 'stand'; w.e = -1;
-      w.x = x; w.z = z;
+      w.x = x; w.z = z; w.x0 = x; w.z0 = z;
       const f = spot.face ?? spot;
       w.face = Math.atan2(f.x - x, f.z - z) + (r() - 0.5) * 1.2;
       w.heading = w.face;
@@ -574,6 +589,15 @@ export class CrowdSim {
         const k = (1.6 - d) * dt * 3;
         w.px += hz * side * k; w.pz -= hx * side * k;
       }
+    } else {
+      // (verify m6) a sightseer the player (or BAYBAY) walks up to shuffles back out of their way, then drifts home
+      for (const a of _avoid) {
+        const dx = w.x - a.x, dz = w.z - a.z, d = Math.hypot(dx, dz);
+        if (d > STANDER_ROOM || d < 1e-3) continue;
+        const k = (STANDER_ROOM - d) * dt * 2.2 / d;
+        w.px += dx * k; w.pz += dz * k;
+        w.pushHold = Math.max(w.pushHold, 0.6);
+      }
     }
     if (w.hopT >= 0) {
       w.hopT += dt;
@@ -635,7 +659,9 @@ export class CrowdSim {
 
   private pose(w: Walker, dt: number) {
     let bx: number, bz: number, hd: number;
-    if (w.mode === 'stand') { bx = w.x - w.px; bz = w.z - w.pz; hd = w.face + Math.sin(this.t * 0.3 + w.ph) * 0.4; }
+    // a sightseer's spot is (x0, z0): the push (the player walking up, a hop out of a bus's way) moves them off it and
+    // they drift back (verify m6: the base used to be taken from the pushed position, so a stander never budged)
+    if (w.mode === 'stand') { bx = w.x0; bz = w.z0; hd = w.face + Math.sin(this.t * 0.3 + w.ph) * 0.4; }
     else if (w.mode === 'cross') {
       const dx = w.x1 - w.x0, dz = w.z1 - w.z0, L = Math.hypot(dx, dz) || 1, k = Math.min(1, w.s / L);
       bx = w.x0 + dx * k; bz = w.z0 + dz * k; hd = Math.atan2(dx, dz);
@@ -664,15 +690,23 @@ export class CrowdSim {
   /** The smoothed offset (laneT is the offset past the kerb, eased toward `lane`). */
   private offsetT(s: StreetEdge, w: Walker): number { return this.offset(s, w.side, w.laneT); }
 
-  /** Walkers within r of (x, z) as soft obstacles (actors/view.ts registerObstacleSource). */
+  /**
+   * Walkers within r of (x, z) as soft obstacles (actors/view.ts registerObstacleSource). The records are reused, one pool
+   * per consumer's array (F4: no garbage each frame; a consumer clears its array before every query).
+   */
   obstacles(out: Obstacle[], x: number, z: number, r: number) {
     const R = r + CROWD.r;
+    const pool = this.obstaclePool.begin(out);
     for (const w of this.walkers) {
       if (!w.on || w.grow < 0.5) continue;
       const dx = w.x - x, dz = w.z - z;
-      if (dx * dx + dz * dz <= R * R) out.push({ x: w.x, z: w.z, r: CROWD.r, kind: 'crowd' });
+      if (dx * dx + dz * dz > R * R) continue;
+      const o = pool.next();
+      o.x = w.x; o.z = w.z; o.r = CROWD.r; o.kind = 'crowd';
+      out.push(o);
     }
   }
+  private readonly obstaclePool = obstaclePool();
 }
 
 // ---------------------------------------------------------------------------

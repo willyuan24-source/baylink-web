@@ -14,6 +14,7 @@ import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
 import { sfLandmark } from './landmarks/index';
 import { landmarkPlazaSpots } from './landmarks/context';
 import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
+import { setVehicle, vehiclePool } from './recordPool';
 import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
 
 /**
@@ -84,14 +85,18 @@ export class CityLife {
   start(net: StreetNet) {
     this.net = net;
     const vis = this.opts.visible;
+    // (verify F4) the per-frame lists reuse their records: `spot(i, x, z)` is the i-th of this frame's points
+    const avoidPts: { x: number; z: number }[] = [], peoplePts: { x: number; z: number; r: number }[] = [];
     const crowdEnv: CrowdEnv = {
       focus: () => focus(),
       avoid: out => {
         const p = runtime.player, g = runtime.guide;
-        if (!runtime.vehicle.occupied) out.push({ x: p.x, z: p.z });
-        out.push({ x: g.x, z: g.z });
+        let n = 0;
+        const put = (x: number, z: number) => { const o = avoidPts[n] ?? (avoidPts[n] = { x: 0, z: 0 }); n++; o.x = x; o.z = z; out.push(o); };
+        if (!runtime.vehicle.occupied) put(p.x, p.z);
+        put(g.x, g.z);
         // the six city residents stand at their static spots (G2 w3 review 9): walkers step round them too
-        for (const r of RESIDENTS) if (Math.abs(r.at.x - p.x) < 100 && Math.abs(r.at.z - p.z) < 100) out.push({ x: r.at.x, z: r.at.z });
+        for (const r of RESIDENTS) if (Math.abs(r.at.x - p.x) < 100 && Math.abs(r.at.z - p.z) < 100) put(r.at.x, r.at.z);
       },
       visible: vis,
       vehicles: () => this.all,
@@ -115,9 +120,11 @@ export class CityLife {
       vehicles: () => this.others,
       people: out => {
         const p = runtime.player, g = runtime.guide;
-        if (!runtime.vehicle.occupied && surfaceAt(p.x, p.z) === 'road') out.push({ x: p.x, z: p.z, r: 0.45 });
-        if (surfaceAt(g.x, g.z) === 'road') out.push({ x: g.x, z: g.z, r: 0.4 });
-        for (const w of this.crowd?.sim.walkers ?? []) if (w.on && (w.onRoad || w.hopT >= 0)) out.push({ x: w.x, z: w.z, r: CROWD.r });
+        let n = 0;
+        const put = (x: number, z: number, r: number) => { const o = peoplePts[n] ?? (peoplePts[n] = { x: 0, z: 0, r: 0 }); n++; o.x = x; o.z = z; o.r = r; out.push(o); };
+        if (!runtime.vehicle.occupied && surfaceAt(p.x, p.z) === 'road') put(p.x, p.z, 0.45);
+        if (surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
+        if (this.crowd) for (const w of this.crowd.sim.walkers) if (w.on && (w.onRoad || w.hopT >= 0)) put(w.x, w.z, CROWD.r);
       },
       transitStreet: (x, z, dx, dz) => onTransitStreet(x, z, dx, dz),
       night: () => U.uNight.value,
@@ -126,13 +133,14 @@ export class CityLife {
     this.traffic = new TrafficLayer(net, trafficEnv, TRAFFIC.count.high);
     this.group.add(this.crowd.group, this.traffic.group);
     const traffic = this.traffic, crowd = this.crowd;
+    const mine = vehiclePool();
     this.offs.push(
       registerRoadVehicles(out => traffic.sim.vehicles(out)),
       registerRoadVehicles(out => {
         const v = runtime.vehicle;
         if (!v.occupied || !v.kind) return;
         const d = v.kind === 'car' ? PLAYER_CAR : PLAYER_BIKE;
-        out.push({ x: v.x, z: v.z, heading: v.speed < 0 ? v.heading + Math.PI : v.heading, v: Math.abs(v.speed), halfL: d.halfL, halfW: d.halfW, kind: 'player', line: 'player' });
+        out.push(setVehicle(mine.begin(out).next(), v.x, v.z, v.speed < 0 ? v.heading + Math.PI : v.heading, Math.abs(v.speed), d.halfL, d.halfW, 'player', 'player'));
       }),
       registerObstacleSource((out, x, z, r) => { crowd.sim.obstacles(out, x, z, r); traffic.sim.obstacles(out, x, z, r); }),
     );
@@ -215,8 +223,11 @@ export class CityLife {
   }
 }
 
-/** The crowd and the traffic live around the player (the vehicle while driving). */
+/** The crowd and the traffic live around the player (the vehicle while driving). One record, rewritten each call (F4). */
+const FOCUS = { x: 0, z: 0 };
 function focus(): { x: number; z: number } {
   const v = runtime.vehicle;
-  return v.occupied ? { x: v.x, z: v.z } : { x: runtime.player.x, z: runtime.player.z };
+  FOCUS.x = v.occupied ? v.x : runtime.player.x;
+  FOCUS.z = v.occupied ? v.z : runtime.player.z;
+  return FOCUS;
 }

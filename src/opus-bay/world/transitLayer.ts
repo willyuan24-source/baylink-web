@@ -21,6 +21,7 @@ import type { TransitPortal } from './sf/format';
 import { LineFleet, busInterlocks } from './sf/lineFleet';
 import { boxBlocked, busAheadOfFCar, interlockLines } from './sf/lineInterlocks';
 import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
+import { obstaclePool, setVehicle, vehiclePool } from './sf/recordPool';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
 import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeometry } from './turntable';
 
@@ -281,16 +282,23 @@ export class TransitLayer {
     void t;
   }
 
-  /** The cable cars and the F-line cars as walker obstacles ('traffic': three discs along each body). */
+  /** The cable cars and the F-line cars as walker obstacles ('traffic': three discs along each body; pooled records, F4). */
   private vehicleObstacles(out: { x: number; z: number; r: number; kind: string }[], x: number, z: number, r: number) {
+    const pool = this.obstaclePool.begin(out);
     const add = (q: { x: number; z: number; heading: number }, half: number, w: number) => {
       if (Math.abs(q.x - x) > r + half + 1 || Math.abs(q.z - z) > r + half + 1) return;
       const fx = Math.sin(q.heading), fz = Math.cos(q.heading), o = half - w;
-      for (const k of [-o, 0, o]) out.push({ x: q.x + fx * k, z: q.z + fz * k, r: w, kind: 'traffic' });
+      for (let k = -1; k <= 1; k++) {
+        const d = pool.next();
+        d.x = q.x + fx * o * k; d.z = q.z + fz * o * k; d.r = w; d.kind = 'traffic';
+        out.push(d);
+      }
     };
     for (const c of this.sys.cars) add(c.pose, CABLE.length / 2, CABLE.width / 2);
     if (this.fline?.active) for (const c of this.fline.sys.cars) add(c.pose, 4.2, 1.05);
   }
+  private readonly obstaclePool = obstaclePool();
+  private readonly vehiclePool = vehiclePool();
 
   /** An F-line car's view down its track: a bus ahead, or a shared box a bus is in (world/sf/lineInterlocks.ts). */
   private busAhead(car: { u: number }): number {
@@ -342,15 +350,16 @@ export class TransitLayer {
   /** The cable cars and the F-line cars within 250 u of the player as road vehicles (crowd hop, traffic give-way). */
   private roadVehicles(out: RoadVehicle[]) {
     const p = runtime.player;
+    const pool = this.vehiclePool.begin(out);
     for (const c of this.sys.cars) {
       const q = c.pose;
       if (Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
-      out.push({ x: q.x, z: q.z, heading: q.heading, v: c.mode === 'turn' ? 0 : Math.abs(c.v), halfL: CABLE.length / 2, halfW: CABLE.width / 2, kind: 'cable-car', line: c.line.id });
+      out.push(setVehicle(pool.next(), q.x, q.z, q.heading, c.mode === 'turn' ? 0 : Math.abs(c.v), CABLE.length / 2, CABLE.width / 2, 'cable-car', c.line.id));
     }
-    for (const c of this.fline?.sys.cars ?? []) {
+    if (this.fline) for (const c of this.fline.sys.cars) {
       const q = c.pose;
       if (Math.abs(q.x - p.x) > 250 || Math.abs(q.z - p.z) > 250) continue;
-      out.push({ x: q.x, z: q.z, heading: q.heading, v: Math.abs(c.v), halfL: 4.3, halfW: 1.1, kind: 'streetcar', line: 'f-line' });
+      out.push(setVehicle(pool.next(), q.x, q.z, q.heading, Math.abs(c.v), 4.3, 1.1, 'streetcar', 'f-line'));
     }
   }
 
