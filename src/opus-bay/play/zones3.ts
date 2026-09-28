@@ -181,6 +181,10 @@ export const sledIt: Interactable = {
   act: () => { void import('./sled').then(m => { m.startSled(); }); },
 };
 
+/** On foot, the crooked blocks' ends (u): people walk the side steps, whose ends are 3–4 u off the lane's (Lombard: the
+ * game's own path follower from the top stopped 3.4 u from the lane's bottom, 2026-09-28). */
+export const CROOKED_END_R = 5;
+
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
   offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt, sledIt]));
@@ -228,8 +232,8 @@ export function initZones3(): () => void {
     // the crooked blocks: a rider coming into the top, going down, starts the gentle descent; on foot, top → bottom, the facts
     for (const c of CROOKED) {
       const t = crookedTop(c), b = c.line[c.line.length - 1];
-      if (runtime.move.mode === 'foot' && nearPlayer(t.x, t.z, 3)) walkFrom.set(c.id, runtime.time);
-      if (runtime.move.mode === 'foot' && nearPlayer(b.x, b.z, 2.5) && runtime.time - (walkFrom.get(c.id) ?? -1e9) < 120) { walkFrom.delete(c.id); void import('./crooked').then(m => { m.walkedDown(c.id); }); }
+      if (runtime.move.mode === 'foot' && nearPlayer(t.x, t.z, CROOKED_END_R)) walkFrom.set(c.id, runtime.time);
+      if (runtime.move.mode === 'foot' && nearPlayer(b.x, b.z, CROOKED_END_R) && runtime.time - (walkFrom.get(c.id) ?? -1e9) < 120) { walkFrom.delete(c.id); void import('./crooked').then(m => { m.walkedDown(c.id); }); }
     }
     if (runtime.vehicle.occupied && !currentActivity()) for (const c of CROOKED) {
       const t = crookedTop(c), n = c.line[Math.min(3, c.line.length - 1)], v = runtime.vehicle;

@@ -1636,6 +1636,9 @@ test('W5-A9 crooked blocks: Lombard and Vermont on the published city (walkable,
       assert.ok(CC.progressOn(c, top.x, top.z) < 0.02 && CC.progressOn(c, bot.x, bot.z) > 0.98);
     } finally { T.setCityTerrain(null); }
   }
+  // on foot the ends are wide enough for the side steps (the game's path follower ended 3.4 u off Lombard's bottom)
+  const z3c = await import('../src/opus-bay/play/zones3');
+  assert.ok(dist({ x: -155.1, z: 157.8 }, CC.crookedBottom(CC.CROOKED[0])) < z3c.CROOKED_END_R);
   assert.equal(CR.crookedTier(0, 0), 3);
   assert.equal(CR.crookedTier(1, 1), 2);
   assert.equal(CR.crookedTier(3, 0), 1);
