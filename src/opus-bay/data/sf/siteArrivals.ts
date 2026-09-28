@@ -7,7 +7,7 @@
  * An attraction is listed when its trip end (data/sf/attractions.ts `tripDestination`) stands inside a blocker, where no
  * walker can stand, in a driven street's lane (the toy traffic stops for the player there), or beyond the walking graph's
  * reach; or, for lane L3's tier-3 records (w4list3.ts), more than 8 u from the feature (the sundial, Mountain Lake's
- * overlook, McLaren's La Grande, the Wave Organ's spit). Every listed spot is standable, clear of the site's blockers, off
+ * overlook, McLaren's La Grande, Buena Vista's summit). Every listed spot is standable, clear of the site's blockers, off
  * the asphalt, reached by a path from the walking graph, and a fly-in (actors/nav arrivalSpot) lands on it within 3 u off
  * the asphalt, except Irving Street and Haight & Ashbury, whose sidewalks are thinner than a nav cell (the landing
  * snaps into the kerb lane: Requests to the nav; Clement Street keeps its own trip end, with the same landing).
@@ -37,7 +37,6 @@ export const SITE_ARRIVALS: Readonly<Record<string, { x: number; z: number; head
   'octagon-house': { x: -184.14, z: 286.09, heading: -0.006, site: 'octagon-house' },
   'seward-street-slides': { x: 154.9, z: 829.8, heading: 0, site: 'seward-street-slides' },
   'vermont-street-crooked-block': { x: 446.93, z: 502.15, heading: 1.073, site: 'vermont-street-crooked-block' },
-  'wave-organ': { x: -442.3, z: 352, heading: 2.69, site: 'wave-organ' },
   'womens-building': { x: 263.58, z: 636.23, heading: -0.394, site: 'womens-building' },
   'buena-vista-park': { x: 29.62, z: 736.62, heading: 0, site: 'buena-vista-park' },
   'calle-24': { x: 452.55, z: 635.74, heading: 2.45, site: 'calle-24' },

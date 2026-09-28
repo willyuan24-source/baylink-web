@@ -88,7 +88,6 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'octagon-house': { blockers: [4.5, 3.7], tall: [4.9] },
   'seward-street-slides': { blockers: [3.4, 2.5, 3.2, 7.5], tall: [] },
   'vermont-street-crooked-block': { blockers: [8.2, 7.7, 6.9, 6.1, 5.1, 4.4, 9.7], tall: [] },
-  'wave-organ': { blockers: [1.3, 1, 1.4, 1.1, 0.9, 1.1, 0.9, 1, 1.1, 1.4], tall: [] },
   'womens-building': { blockers: [5.9], tall: [] },
   'alta-plaza-park': { blockers: [4.6, 4.5, 4.1, 4, 3, 3, 4.6], tall: [] },
   'buena-vista-park': { blockers: [1.7, 2.4, 2, 2.4, 1.7], tall: [] },

@@ -90,7 +90,7 @@ const src = `/**
  * An attraction is listed when its trip end (data/sf/attractions.ts \`tripDestination\`) stands inside a blocker, where no
  * walker can stand, in a driven street's lane (the toy traffic stops for the player there), or beyond the walking graph's
  * reach; or, for lane L3's tier-3 records (w4list3.ts), more than 8 u from the feature (the sundial, Mountain Lake's
- * overlook, McLaren's La Grande, the Wave Organ's spit). Every listed spot is standable, clear of the site's blockers, off
+ * overlook, McLaren's La Grande, Buena Vista's summit). Every listed spot is standable, clear of the site's blockers, off
  * the asphalt, reached by a path from the walking graph, and a fly-in (actors/nav arrivalSpot) lands on it within 3 u off
  * the asphalt, except Irving Street and Haight & Ashbury, whose sidewalks are thinner than a nav cell (the landing
  * snaps into the kerb lane: Requests to the nav; Clement Street keeps its own trip end, with the same landing).

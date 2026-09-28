@@ -19,8 +19,8 @@ import { sfDisk } from './opus-bay-sf-disk';
 // Wave 5 · lane L (landmarks & streets): W5-L1 (the tier-3 sites registered, the sweep over every site-backed
 // attraction's trip end, the site arrivals table for lane N), W5-L3 (the Seward Street Slides for lane A).
 
-/** the 14 tier-3 sites W5-L1 registered (built by lane L3 after W4-IL1) */
-const REGISTERED_W5 = ['wave-organ', 'womens-building', 'alta-plaza-park', 'buena-vista-park', 'calle-24', 'china-beach', 'glen-canyon-park', 'lafayette-park', 'mclaren-park', 'mount-sutro-open-space', 'mountain-lake-park', 'noe-valley-town-square', 'patricias-green', 'sutro-heights-park'];
+/** the 13 tier-3 sites W5-L1 registered (built by lane L3 after W4-IL1) */
+const REGISTERED_W5 = ['womens-building', 'alta-plaza-park', 'buena-vista-park', 'calle-24', 'china-beach', 'glen-canyon-park', 'lafayette-park', 'mclaren-park', 'mount-sutro-open-space', 'mountain-lake-park', 'noe-valley-town-square', 'patricias-green', 'sutro-heights-park'];
 /** the downtown gate spots (sf-w5-lead.md §6: nothing new there until lane V publishes the measured headroom) */
 const DOWNTOWN = ['ferry-gate', 'chinatown', 'union-square', 'grace-nob-hill', 'powell-market'];
 
@@ -43,11 +43,12 @@ test('W5-L1: the tier-3 sites built after W4-IL1 are registered with their tops 
       assert.ok(dist > r, `${id}: its lod-0 ring (${r} u) reaches the ${d} gate spot (${dist.toFixed(0)} u)`);
     }
   }
-  // the one left waiting is inside the Grace / Nob Hill spot's ring: registering it waits for lane V's headroom
-  assert.deepEqual(W4_SITES_T3_NEXT.map(s => s.id), ['ina-coolbrith-park']);
-  const ina = W4_SITES_T3_NEXT[0], g = at('grace-nob-hill');
+  // two wait: the Wave Organ for lane D's egg spot at its tip (w4list3.ts), Ina Coolbrith for lane V's downtown
+  // headroom (it is inside the Grace / Nob Hill spot's ring)
+  assert.deepEqual(W4_SITES_T3_NEXT.map(s => s.id), ['wave-organ', 'ina-coolbrith-park']);
+  const ina = W4_SITES_T3_NEXT[1], g = at('grace-nob-hill');
   assert.ok(Math.hypot(g.x - ina.x, g.z - ina.z) < LOD0[3], 'Ina Coolbrith would reach the Grace / Nob Hill spot');
-  assert.equal(sfLandmark('ina-coolbrith-park'), undefined, 'not registered yet');
+  for (const s of W4_SITES_T3_NEXT) assert.equal(sfLandmark(s.id), undefined, `${s.id} not registered yet`);
 });
 
 // ---------------------------------------------------------------------------
@@ -184,19 +185,6 @@ test('W5-L1: the walk sweep — every site-backed attraction ends its trip where
   } finally { w.T.setCityTerrain(null); worldP = null; }
   assert.ok(n >= 60, `${n} attractions swept`);
   assert.deepEqual(bad, []);
-});
-
-test('W5-L1: the Wave Organ\'s trip end is on its own side of the harbour, and the spit leads from it to the terraces', async () => {
-  const w = await world();
-  try {
-    const s = w4Site('wave-organ')!, e = SITE_ARRIVALS['wave-organ'];
-    assert.ok(e, 'in the table');
-    const tip = landmarkToWorld(s, { x: -0.7, z: -0.2 });
-    await w.attach(tip.x, tip.z, 140);
-    const p = w.nav.findPath({ x: e.x, z: e.z }, tip, 1);
-    const end = p?.points[p.points.length - 1];
-    assert.ok(p && end && Math.hypot(end.x - tip.x, end.z - tip.z) < 0.8, 'a walk from the arrival reaches the terraces');
-  } finally { w.T.setCityTerrain(null); worldP = null; }
 });
 
 // ---------------------------------------------------------------------------

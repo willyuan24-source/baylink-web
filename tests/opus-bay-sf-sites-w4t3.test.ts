@@ -284,8 +284,9 @@ test('decks over the water: the Wave Organ\'s tip is reachable on foot from the 
   await sf.attachAround(city, s.x, s.z, 140, lms);
   setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
   try {
-    // from the Yacht Road side (land, local (−31, 60)) to the upper terrace at the tip (local (−0.7, −0.2))
-    const a = landmarkToWorld(s, { x: -31, z: 60 }), b = landmarkToWorld(s, { x: -0.7, z: -0.2 });
+    // from the arrival at the spit's root on Yacht Road (W5-L1; local (−30, 62)) to the upper terrace at the tip
+    // (local (−0.7, −0.2)): the walk out is the visit
+    const a = landmarkToWorld(s, s.w4.arrival), b = landmarkToWorld(s, { x: -0.7, z: -0.2 });
     assert.ok(canStand(a.x, a.z, 0.3) && canStand(b.x, b.z, 0.3), 'both ends standable');
     const p = findPath(a, b, 1);
     assert.ok(p, 'a path along the spit');
