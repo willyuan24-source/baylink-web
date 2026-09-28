@@ -85,6 +85,17 @@ export const YIELD_MAX_MS = 20000;
 export const YIELD_SIDE = 4.5;
 /** A player further than this ahead of a vehicle's centre is clear of its nose (u; the longest half body is 4.2). */
 export const YIELD_BODY_CLEAR = 5.4;
+/** A step-aside spot keeps this far from every other vehicle's body axis (u: a half width ≈ 1.2 and room to stand). */
+export const YIELD_OTHER_CLEAR = 2.6;
+/** The half length of the body axis a vehicle's clearance is measured along (u: the longest half body). */
+export const VEHICLE_HALF = 4.2;
+
+/** Distance from `p` to a vehicle's body axis (its centre ± VEHICLE_HALF along its heading). Pure. */
+export function vehicleAxisDist(p: Vec2, v: { x: number; z: number; heading: number }): number {
+  const fx = Math.sin(v.heading), fz = Math.cos(v.heading), dx = p.x - v.x, dz = p.z - v.z;
+  const along = Math.max(-VEHICLE_HALF, Math.min(VEHICLE_HALF, dx * fx + dz * fz));
+  return Math.hypot(dx - fx * along, dz - fz * along);
+}
 
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
 
@@ -94,7 +105,7 @@ const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
  * side first (never round its nose); clear ahead of its nose, on the side of `toward` (where the walk goes) first. The
  * other side next; null when neither is standable (the old behaviour: wait for the car).
  */
-export function yieldSpot(player: Vec2, car: { x: number; z: number; heading: number }, stand: (p: Vec2) => boolean, toward?: Vec2 | null, side = YIELD_SIDE): Vec2 | null {
+export function yieldSpot(player: Vec2, car: { x: number; z: number; heading: number }, stand: (p: Vec2) => boolean, toward?: Vec2 | null, side = YIELD_SIDE, clear: (p: Vec2) => boolean = () => true): Vec2 | null {
   const fx = Math.sin(car.heading), fz = Math.cos(car.heading);
   const dx = player.x - car.x, dz = player.z - car.z;
   // the lateral offset along the right normal (fz, −fx), and how far ahead of the car's centre
@@ -104,12 +115,10 @@ export function yieldSpot(player: Vec2, car: { x: number; z: number; heading: nu
     const tl = (toward.x - car.x) * fz - (toward.z - car.z) * fx;
     if (Math.abs(tl - lat) > 0.5) own = tl < lat ? -1 : 1;
   }
-  for (const sgn of [own, -own]) {
-    const step = sgn * side - lat;
-    const p = { x: player.x + fz * step, z: player.z - fx * step };
-    if (stand(p)) return p;
-  }
-  return null;
+  // (the part-c walk on Powell St: squeezed between a waiting cable car and one at its stop on the other track, the
+  // own side's spot lay beside the other car — a side clear of every other vehicle first, then any standable one)
+  const spots = [own, -own].map(sgn => { const step = sgn * side - lat; return { x: player.x + fz * step, z: player.z - fx * step }; });
+  return spots.find(p => stand(p) && clear(p)) ?? spots.find(stand) ?? null;
 }
 
 /** One step of auto-travel (pure): the next state and what to do. */

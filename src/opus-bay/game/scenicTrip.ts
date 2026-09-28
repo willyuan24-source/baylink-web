@@ -1,35 +1,47 @@
+import { AUTO_GLIDE } from '../actors/glide';
 import type { Bilingual } from '../core/types';
-import { PICKUP_S, RISE_S } from './fastTravel';
 import type { TripFlyLeg, TripLeg, TripOption } from './tripTypes';
 
 /**
- * Wave 5 · lane N · W5-N9: 看风景飞过去 — the scenic flight as a trip option (pure, tiny: the map UI and the trip runner
- * read it; the flight itself is game/scenicFlight.ts, loaded with the trip runner).
+ * Wave 5 · lane N · W5-N9 (plan sf-w5-plan.md §3.2 "A-glide+", §4.5 item 9): 看风景飞过去 — the scenic auto-glide as a
+ * trip option (pure, tiny: the map UI and the trip runner read it).
  *
- * For mid distances (150–900 u, plan §3.2 "A-glide+") and once the pelican is unlocked, the map card lists it right
- * after the fast 飞过去: the pelican flies the way itself, low over the city with the glide's own camera; touch the stick
- * and you fly, let go and BAYBAY flies on; she lands at the destination. Never 推荐 and never a goal (as every fly row).
+ * For mid distances (150–900 u) once the pelican is unlocked, the map card lists it right after the fast 飞过去: the
+ * pelican flies the way itself in the free glide (lane F's W5-F10 `moveApi.autoGlide`: it takes off toward the
+ * destination, holds a sightseeing height over the roofs, boosts on the straight, lands about 20 u out facing open
+ * ground); a push of the stick hands the wings to the player (a free glide from there: G / 降落 lands). The trip runner
+ * (game/tripRun.ts) starts it for a scenic leg and walks the player (carried) from the landing to the trip's end. Never
+ * 推荐 and never a goal (as every fly row).
  */
 
 export const SCENIC_TRIP = {
-  /** offered for flights this long (u): below, the walk is short; above, the fast hop */
+  /** offered for flights this long (u): below, the walk is short; above, the fast hop (lane F's AUTO_GLIDE.maxDist) */
   minD: 150,
-  maxD: 900,
+  maxD: AUTO_GLIDE.maxDist,
+  /** the take-off swoop (s: the glide's own, actors/glide takeOff) */
+  takeoffS: 1,
   /**
-   * the planner's speed (u/s): the autopilot boosts (20 u/s) except on turns and the approach. Measured in the game
-   * (5502, part c): Ferry → Lombard 360 u in 22.5 s, Ferry → the Palace of Fine Arts 712 u in 41 s (tap to landing)
+   * the planner's speed (u/s) over the straight-line distance: lane F's autopilot boosts (20 u/s) on the straight and
+   * slows on the approach. Measured in the game (5502, part c, tap to the trip's end): see the report
    */
   speed: 18.5,
-  /** the landing curve (s, the planner's; game/fastTravel scenicDescentSeconds gives 2–3.2) */
-  descentS: 2.6,
+  /** the landing curve (2–3 s) and the carried walk from the landing (lane F sets down within ~10 u) to the trip's end (s) */
+  landS: 2.5,
+  walkS: 1.5,
 } as const;
 
 /** The flight is offered for a trip this long (u). */
 export const scenicFits = (d: number): boolean => Number.isFinite(d) && d >= SCENIC_TRIP.minD && d <= SCENIC_TRIP.maxD;
 
-/** Honest seconds of a scenic flight over `d` u: the pickup and the rise, the flight, the landing. */
+/** Honest seconds of a scenic flight over `d` u: the take-off, the flight, the landing and the last few steps. */
 export function scenicSeconds(d: number): number {
-  return PICKUP_S + RISE_S + Math.max(0, d) / SCENIC_TRIP.speed + SCENIC_TRIP.descentS;
+  return SCENIC_TRIP.takeoffS + Math.max(0, d) / SCENIC_TRIP.speed + SCENIC_TRIP.landS + SCENIC_TRIP.walkS;
+}
+
+/** Seconds left of a scenic flight from `pos` (the pilot's position: the player rides the pelican) to `to`, ≤ the leg's. */
+export function scenicSecondsLeft(leg: Pick<TripFlyLeg, 'to' | 'seconds'>, pos: { x: number; z: number }): number {
+  const d = Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z);
+  return Math.min(leg.seconds, d / SCENIC_TRIP.speed + SCENIC_TRIP.landS + SCENIC_TRIP.walkS);
 }
 
 /** A fly leg flown the scenic way (a structural extension of the frozen TripFlyLeg: it survives the trip's copies). */

@@ -22,6 +22,8 @@ import { placePanoramaTags } from './panoramaPlace';
 import { TripCard, TripPill } from './TripPill';
 import { GoChip } from './GoChip';
 import { autoOn, subscribeAuto } from '../game/autoTravel';
+import { autoGliding } from '../actors/moveApi';
+import { isScenicLeg } from '../game/scenicTrip';
 import { tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
 
@@ -219,6 +221,9 @@ export function GuideLeadChip() {
   const auto = useSyncExternalStore(subscribeAuto, autoOn, autoOn);
   const [leading, setLeading] = useState(false);
   const [handIdle, setHandIdle] = useState(false);
+  // W5-N9: a scenic flight whose wings the player took (gliding on their own, not lane F's auto-glide)
+  const [ownWings, setOwnWings] = useState(false);
+  const scenicLeg = useFlow(s => !!s.trip && s.trip.leg < s.trip.legs.length && isScenicLeg(s.trip.legs[s.trip.leg]));
   const [coach, setCoach] = useState(false);
   const touch = device === 'touch';
   useEffect(() => {
@@ -227,6 +232,7 @@ export function GuideLeadChip() {
       setLeading(touch && (g === 'lead' || g === 'wait') && !p.pathTarget && s.move.mode === 'foot' && s.phase === 'playing');
       // keyboard / pad players who took over are offered 自动跟上 once they stop steering
       setHandIdle(!p.moving);
+      setOwnWings(s.move.mode === 'glide' && !autoGliding());
     }, 250);
     return () => window.clearInterval(id);
   }, [touch]);
@@ -239,6 +245,9 @@ export function GuideLeadChip() {
     const id = window.setTimeout(() => setCoach(false), 6000);
     return () => { window.clearTimeout(id); setCoach(false); };
   }, [touchOn]);
+  if (scenicLeg && ownWings && !dialogue && !panel) {
+    return <GoChip auto={false} fly device={device} onResume={() => { void import('../game/tripRun').then(m => m.resumeScenicGlide()); }} />;
+  }
   if (tripChip) {
     if (auto) return <GoChip auto device={device} />;
     if (touch || handIdle) return <GoChip auto={false} device={device} onResume={() => { void import('../game/tripRun').then(m => m.resumeAutoTravel()); }} />;

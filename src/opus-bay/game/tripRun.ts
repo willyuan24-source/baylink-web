@@ -1,5 +1,5 @@
 import { Navigation } from 'lucide-react';
-import { cancelDrive, driveTo, isRiding } from '../actors/moveApi';
+import { autoGlide, autoGliding, cancelAutoGlide, cancelDrive, driveTo, isRiding } from '../actors/moveApi';
 import { emit, onEvent } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
@@ -11,11 +11,11 @@ import { activeCableSystem, activeLineFleet, activeStreetcarSystem, rideSystemFo
 import { isDiscovered } from './discovery';
 import { registerAskItem } from '../ui/slots';
 import {
-  type AutoWant, YIELD_AFTER_S, YIELD_CLEAR_R, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState, yieldSpot,
+  type AutoWant, YIELD_AFTER_S, YIELD_CLEAR_R, YIELD_OTHER_CLEAR, YIELD_SIDE, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState, vehicleAxisDist,
+  yieldSpot,
 } from './autoTravel';
 import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
-import { ScenicFlight } from './scenicFlight';
 import { isScenicLeg } from './scenicTrip';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
@@ -57,10 +57,12 @@ export const ALIGHT_R = 40;
 /** a drive leg ends this close to its end point */
 export const DRIVE_R = 10;
 /**
- * a flight that landed this close to its leg's end arrived (the landing spot is an open area within 30 u, else the
- * nearest walkable ground within 40 u); farther (W5-N9: G on a scenic flight lands where the pelican is) the rest walks
+ * W5-N9: a scenic flight that landed farther than this from its leg's end (the player took the wings and landed
+ * elsewhere) walks the rest with BAYBAY's line; closer (lane F's auto-glide sets down about 20 u out) it walks quietly
  */
 export const FLY_END_R = 60;
+/** W5-N9: the take-off of a scenic flight has this long to happen (ms), else the fast hop takes the leg */
+export const GLIDE_START_MS = 1500;
 
 type Stage = 'lead' | 'board' | 'ride' | 'drive' | 'fly';
 
@@ -69,6 +71,19 @@ let stage: Stage = 'lead';
 let boardOffered = '';
 let rideSeen = false;
 let travelSeen = false;
+/**
+ * W5-N9: the current fly leg is flown the scenic way (lane F's `moveApi.autoGlide`): since when (ms), and how lane F's
+ * auto-glide ended ('taken' = the player has the wings, 'cancelled' = before or after the take-off)
+ */
+let glide: { at: number; end: 'landed' | 'taken' | 'cancelled' | null } | null = null;
+/** Tests / QA: a scenic flight is flying this leg. */
+export const scenicGlideOn = (): boolean => glide !== null;
+/** Hand a running scenic flight's wings to the player (the glide goes on under their stick) and forget it. */
+function stopGlide() {
+  if (!glide) return;
+  glide = null;
+  if (autoGliding()) cancelAutoGlide();
+}
 let driving = false;
 let endedAt = 0;
 /** a free lead's arrival radius (the old rule: min(interactable radius, 3.5)) */
@@ -131,12 +146,13 @@ function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   const name = destName(t);
   if (source !== 'tour' && source !== 'free-lead') {
     const first = t.legs[0];
-    const line = isScenicLeg(first) ? { zh: '抓紧！我们低低地飞，看看风景～', en: 'Hold on — we fly low and see the sights!' }
+    // (a scenic flight: lane F's take-off says 抓稳，飞咯！ and how to take the wings — no third line on top)
+    const line = isScenicLeg(first) ? null
       : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
       : first.via === 'line' || t.legs.some(l => l.via === 'line') ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
         : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
           : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
-    bubble(line, 3000, BAYBAY_ID, 'call');
+    if (line) bubble(line, 3000, BAYBAY_ID, 'call');
   }
   announce({ zh: `出发：${name.zh}`, en: `Heading to ${name.en}` });
   onLegStart(t);
@@ -149,23 +165,33 @@ function withDestName(legs: TripLeg[], name: Bilingual): TripLeg[] {
   return [...legs.slice(0, -1), { ...last, to: { ...last.to, name } } as TripLeg];
 }
 
-function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; }
+function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; stopGlide(); }
 
 /** A leg just became current: fly legs take off at once. */
 function onLegStart(t: TripState) {
   const leg = currentLeg(t);
   legKey = keyOf(t);
   stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false;
+  stopGlide();
   if (!leg) return;
   if (leg.via === 'fly') {
     stage = 'fly';
     // off a cable car / the bus first; bikes and the car park when the move mode turns 'travel'
     if (game.get().move.mode === 'transit' || game.get().riding) requestHopOff();
     closePanel();
-    // W5-N9: 看风景飞过去 — the pelican flies the way itself (the autopilot, or the player's controls)
-    const scenic = isScenicLeg(leg) ? new ScenicFlight({ x: leg.to.x, z: leg.to.z }) : null;
-    if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z, ...firstSight(t) }, scenic)) arrived();
+    // W5-N9: 看风景飞过去 — lane F's auto-glide flies the way itself (a push of the stick hands the wings over); it
+    // refuses outside 60–900 u or with the glide locked: then the fast hop
+    if (isScenicLeg(leg)) {
+      const g: NonNullable<typeof glide> = { at: performance.now(), end: null };
+      if (autoGlide({ x: leg.to.x, z: leg.to.z }, { onEnd: how => { g.end = how; } })) { glide = g; return; }
+    }
+    flyFast(t, leg);
   }
+}
+
+/** The fast hop (飞过去): the pelican's cloud trip to the leg's end. */
+function flyFast(t: TripState, leg: TripLeg) {
+  if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z, ...firstSight(t) })) arrived();
 }
 
 /**
@@ -212,6 +238,7 @@ function walkRest(t: TripState, why?: Bilingual) {
 function skip() {
   const t = flow.get().trip;
   if (!t || isArrived(t)) return;
+  stopGlide();
   if (t.source === 'tour') { void import('./cityTour').then(m => m.skipCityTourStop()); return; }
   if (driving) { cancelDrive(); driving = false; }
   const next = dispatchTrip({ type: 'skip-leg' });
@@ -223,6 +250,7 @@ function replan(option: TripOption) {
   const t = flow.get().trip;
   if (!t || !option.legs.length) return;
   if (driving) { cancelDrive(); driving = false; }
+  stopGlide();
   const next = dispatchTrip({ type: 'replan', option: { ...option, legs: withDestName(option.legs, destName(t)) } });
   if (next) onLegStart(next);
 }
@@ -360,13 +388,27 @@ function tick(now: number) {
       if (dist(p, leg.to) < DRIVE_R) arrived();
       return;
     }
-    case 'fly':
+    case 'fly': {
+      // W5-N9: a scenic flight — up while lane F's auto-glide flies or the player glides on after taking the wings;
+      // back on foot, BAYBAY walks the rest (quietly from the ~20 u landing; with a line from a landing elsewhere)
+      const g = glide;
+      if (g) {
+        if (autoGliding() || game.get().move.mode === 'glide') { travelSeen = true; return; }
+        if (!travelSeen) {
+          // the take-off never happened (a dialogue opened, the player was not on foot…): the fast hop
+          if (g.end === 'cancelled' || now - g.at > GLIDE_START_MS) { glide = null; flyFast(t, leg); }
+          return;
+        }
+        glide = null;
+        const d = dist(p, leg.to);
+        if (d <= END_R) arrived();
+        else walkRest(t, d > FLY_END_R ? { zh: '就在这儿降落啦，我们走过去！', en: 'We landed here — let’s walk the rest!' } : undefined);
+        return;
+      }
       if (travelActive()) { travelSeen = true; return; }
-      if (!travelSeen) return;
-      // W5-N9: landed where the pelican was (G on a scenic flight): the rest is a walk from there
-      if (dist(p, leg.to) <= FLY_END_R) arrived();
-      else walkRest(t, { zh: '就在这儿降落啦，我们走过去！', en: 'We landed here — let’s walk the rest!' });
+      if (travelSeen) arrived();
       return;
+    }
   }
 }
 
@@ -432,7 +474,9 @@ export function vehicleYield(player: Vec2, vehicles: readonly LineVehicle[], tow
     if (Math.hypot(v.x - player.x, v.z - player.z) < YIELD_CLEAR_R) near = true;
     if (v.held >= YIELD_AFTER_S && (!holder || v.held > holder.held) && Math.hypot(v.x - player.x, v.z - player.z) < 24) holder = v;
   }
-  return { to: holder ? yieldSpot(player, holder, stand, toward) : null, near };
+  const h = holder;
+  const clear = (p: Vec2) => vehicles.every(v => v === h || vehicleAxisDist(p, v) >= YIELD_OTHER_CLEAR);
+  return { to: h ? yieldSpot(player, h, stand, toward, YIELD_SIDE, clear) : null, near };
 }
 
 /** 10 Hz (and at a trip's start): step auto-travel and apply its decision. */
@@ -459,6 +503,19 @@ function autoTick(now: number) {
   } else if (decision.type === 'giveup') {
     bubble({ zh: '这段路有点难走，你来带路吧！', en: 'This bit is tricky — you steer for a moment!' }, 3000, BAYBAY_ID, 'call');
   }
+}
+
+/**
+ * W5-N9 · 让 BAYBAY 接着飞 (the chip while the player glides on a scenic flight's taken wings): lane F's auto-glide flies
+ * on to the leg's end from where the pelican is. False: not a scenic flight, not gliding, or the glide refuses (under
+ * 60 u to go: land with 降落 / G).
+ */
+export function resumeScenicGlide(): boolean {
+  const t = flow.get().trip, leg = currentLeg(t);
+  if (!t || !leg || !isScenicLeg(leg) || !glide || game.get().move.mode !== 'glide' || autoGliding()) return false;
+  const g = glide;
+  g.end = null;
+  return autoGlide({ x: leg.to.x, z: leg.to.z }, { onEnd: how => { g.end = how; } });
 }
 
 /** 自动跟上 (the chip, 问 BAYBAY): BAYBAY carries the player again for the running trip. */

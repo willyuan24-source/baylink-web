@@ -26,6 +26,7 @@ import { tickStreet } from './streets';
 import { registerSceneSystem } from './systemsRegistry';
 import { timeLabel } from './tripText';
 import { ALIGHT_S, TRIP_SPEED, autoTravelSeconds, tripRemainingSeconds, STREET_FACTOR } from './tripPlan';
+import { isScenicLeg, scenicSecondsLeft } from './scenicTrip';
 import { liveRideEta } from './tripProviders';
 import { autoOn } from './autoTravel';
 import type { TripLeg, TripState } from './tripTypes';
@@ -192,7 +193,8 @@ const legSpeed = (leg: TripLeg): number => (leg.via === 'run' ? TRIP_SPEED.run :
  * `waitLeft` (not aboard yet): the vehicle's live ETA while the rider waits at the stop, in place of the planned wait.
  */
 export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false, waitLeft?: number, pace: LegPace = {}): number {
-  if (leg.via === 'fly') return leg.seconds;
+  // (W5-N9: a scenic flight counts down from where the pelican is; the fast hop is its own few seconds)
+  if (leg.via === 'fly') return isScenicLeg(leg) ? scenicSecondsLeft(leg, pos) : leg.seconds;
   if (leg.via === 'line') {
     const ride = Math.max(0, leg.seconds - leg.wait);
     if (!riding) return waitLeft === undefined ? leg.seconds : ride + Math.max(0, waitLeft);
