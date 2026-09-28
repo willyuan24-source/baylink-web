@@ -1,0 +1,82 @@
+/* Wave 5 · lane A · PlayKit: the result card, the emote wheel, the first flight's chip (tokens from opus-bay.css) */
+
+.ob-play-btn {
+  min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ob-line-2); background: #fff;
+  font: 800 14px/1 var(--ob-font); color: var(--ob-ink); cursor: pointer; transition: transform .15s var(--ob-ease), background .15s;
+}
+.ob-play-btn:hover { background: var(--ob-cream-2); }
+.ob-play-btn:active { transform: scale(.96); }
+.ob-play-btn.is-again, .ob-play-btn.is-go { background: var(--ob-teal); border-color: var(--ob-teal); color: #fff; }
+.ob-play-btn.is-again:hover, .ob-play-btn.is-go:hover { background: var(--ob-teal-d); }
+.ob-play-btn.is-quiet { background: transparent; border-color: transparent; color: var(--ob-ink-2); min-height: 34px; padding: 0 10px; }
+.ob-play-btn:focus-visible, .ob-play-slot:focus-visible, .ob-play-wheel-close:focus-visible { outline: 3px solid var(--ob-gold); outline-offset: 2px; }
+
+/* --- the result card ------------------------------------------------------------------------------------------------ */
+.ob-play-result {
+  position: absolute; left: 50%; top: calc(104px + var(--ob-st)); z-index: 42; transform: translateX(-50%);
+  width: min(380px, calc(100% - 32px)); display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center;
+  padding: 14px 16px 12px; border-radius: var(--ob-r-l); background: rgba(255, 250, 241, .97); border: 1px solid var(--ob-line);
+  box-shadow: var(--ob-shadow); pointer-events: auto; animation: ob-play-pop .45s var(--ob-spring);
+}
+.ob-play-medal { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; background: var(--ob-cream-2); }
+.ob-play-medal svg { fill: var(--ob-ink-3); stroke: none; }
+.ob-play-medal svg .is-open { fill: none; stroke: var(--ob-ink-3); stroke-width: 3; stroke-dasharray: 5 5; }
+.ob-play-result.tier-1 .ob-play-medal { background: var(--ob-teal-l); }
+.ob-play-result.tier-1 .ob-play-medal svg { fill: var(--ob-teal); }
+.ob-play-result.tier-2 .ob-play-medal { background: var(--ob-gold-l); }
+.ob-play-result.tier-2 .ob-play-medal svg { fill: var(--ob-gold); }
+.ob-play-result.tier-3 .ob-play-medal { background: var(--ob-gold-l); box-shadow: 0 0 0 3px rgba(224, 169, 74, .35); }
+.ob-play-result.tier-3 .ob-play-medal svg { fill: var(--ob-gold); animation: ob-play-spin 1.2s var(--ob-spring); }
+.ob-play-result-body { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.ob-play-result-body small { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-play-result-body strong { font-size: 24px; line-height: 1.15; font-weight: 900; color: var(--ob-ink); font-family: 'Noto Sans SC', var(--ob-font); }
+.ob-play-result-body span { font-size: 14px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-play-best.is-new { color: var(--ob-terra); }
+.ob-play-coins { color: var(--ob-gold-d) !important; }
+.ob-play-result-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+@keyframes ob-play-pop { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.94); } 100% { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes ob-play-spin { from { transform: rotate(-120deg) scale(.4); } }
+
+/* --- the emote wheel -------------------------------------------------------------------------------------------------- */
+.ob-play-wheel-wrap { position: absolute; inset: 0; z-index: 44; pointer-events: auto; background: radial-gradient(circle at 50% 50%, rgba(34, 50, 47, .16), rgba(34, 50, 47, 0) 62%); animation: ob-fade-in .2s; }
+.ob-play-wheel { position: absolute; left: 50%; top: 50%; width: 0; height: 0; --r: 112px; }
+.ob-play-slot {
+  position: absolute; left: 0; top: 0; width: 92px; height: 92px; margin: -46px 0 0 -46px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px; border-radius: 28px; border: 1px solid var(--ob-line);
+  background: rgba(255, 250, 241, .97); box-shadow: var(--ob-shadow-s); color: var(--ob-teal-d); cursor: pointer;
+  font: 800 14px/1.1 var(--ob-font); animation: ob-play-slot-in .35s var(--ob-spring) both; transition: transform .15s var(--ob-ease), background .15s;
+}
+.ob-play-slot span { color: var(--ob-ink); font-family: 'Noto Sans SC', var(--ob-font); }
+.ob-play-slot:hover { background: #fff; }
+.ob-play-slot:active { scale: .95; }
+.ob-play-slot[aria-disabled='true'] { opacity: .45; cursor: default; }
+.ob-play-slot.at-0 { transform: translate(0, calc(-1 * var(--r))); }
+.ob-play-slot.at-1 { transform: translate(var(--r), 0); animation-delay: .03s; }
+.ob-play-slot.at-2 { transform: translate(0, var(--r)); animation-delay: .06s; }
+.ob-play-slot.at-3 { transform: translate(calc(-1 * var(--r)), 0); animation-delay: .09s; }
+.ob-play-slot-key { position: absolute; top: 6px; right: 7px; height: 20px; min-width: 20px; font-size: 11px; }
+.ob-play-wheel-close {
+  position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; display: grid; place-items: center;
+  border-radius: 50%; border: 1px solid var(--ob-line); background: rgba(255, 250, 241, .92); color: var(--ob-ink-2); cursor: pointer; box-shadow: var(--ob-shadow-s);
+}
+@keyframes ob-play-slot-in { from { opacity: 0; scale: .6; } }
+@media (max-width: 600px) {
+  .ob-play-wheel { top: 47%; --r: 100px; }
+  .ob-play-slot { width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 26px; }
+}
+.ob-overlay.is-reduced .ob-play-slot, .ob-overlay.is-reduced .ob-play-result { animation: none; }
+
+/* --- the first flight's chip ------------------------------------------------------------------------------------------ */
+.ob-play-flight {
+  position: absolute; left: 50%; top: calc(16px + var(--ob-st)); z-index: 41; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  min-height: 46px; padding: 4px 6px 4px 14px; border-radius: 999px; background: rgba(255, 250, 241, .95); border: 1px solid var(--ob-line);
+  box-shadow: var(--ob-shadow-s); color: var(--ob-gold-d); font-weight: 800; font-size: 14px; white-space: nowrap; pointer-events: auto; animation: ob-pop .4s var(--ob-spring);
+}
+.ob-play-flight-name { color: var(--ob-ink); font-family: 'Noto Sans SC', var(--ob-font); }
+.ob-play-flight-hint, .ob-play-flight-count { display: inline-flex; align-items: center; gap: 5px; color: var(--ob-ink-2); font-weight: 700; }
+.ob-play-flight-count { color: var(--ob-gold-d); font-variant-numeric: tabular-nums; }
+.ob-play-flight .ob-play-btn { min-height: 36px; }
+/* phones: under the objective pill (top right) and the area chip (top left), one line */
+@media (max-width: 600px) {
+  .ob-play-flight { top: calc(118px + var(--ob-st)); font-size: 13px; gap: 6px; padding-left: 12px; }
+}
