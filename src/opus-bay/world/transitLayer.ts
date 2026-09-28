@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { definePlatform, setPlatformPose } from '../actors/platform';
+import { registerObstacleSource } from '../actors/view';
 import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
@@ -181,6 +182,8 @@ export class TransitLayer {
       this.fline?.setDrawer((i, pose, hidden) => lines.drawExtra(`fline-${i % nl}`, Math.floor(i / nl), pose, hidden, U.uCam.value));
       for (const run of LineFleet.surfaceRuns(w4.metro)) this.offs.push(registerTransitStreet(run));
       this.offs.push(registerRoadVehicles(out => lines.roadVehicles(out, runtime.player)));
+      // the walker steps round the stops, kiosks, portal hoods and the vehicles of every line (soft obstacles)
+      this.offs.push(registerObstacleSource((out, x, z, r) => { lines.obstacles(out, x, z, r); this.vehicleObstacles(out, x, z, r); }));
     }
     this.refreshDiscHeights(true);
     this.update(0, 0);
@@ -276,6 +279,17 @@ export class TransitLayer {
     this.prefetch(dt);
     this.life.update(dt);
     void t;
+  }
+
+  /** The cable cars and the F-line cars as walker obstacles ('traffic': three discs along each body). */
+  private vehicleObstacles(out: { x: number; z: number; r: number; kind: string }[], x: number, z: number, r: number) {
+    const add = (q: { x: number; z: number; heading: number }, half: number, w: number) => {
+      if (Math.abs(q.x - x) > r + half + 1 || Math.abs(q.z - z) > r + half + 1) return;
+      const fx = Math.sin(q.heading), fz = Math.cos(q.heading), o = half - w;
+      for (const k of [-o, 0, o]) out.push({ x: q.x + fx * k, z: q.z + fz * k, r: w, kind: 'traffic' });
+    };
+    for (const c of this.sys.cars) add(c.pose, CABLE.length / 2, CABLE.width / 2);
+    if (this.fline?.active) for (const c of this.fline.sys.cars) add(c.pose, 4.2, 1.05);
   }
 
   /** An F-line car's view down its track: a bus ahead, or a shared box a bus is in (world/sf/lineInterlocks.ts). */

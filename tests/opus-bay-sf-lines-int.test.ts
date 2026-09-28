@@ -329,3 +329,26 @@ test('shared streets, 60 simulated minutes: a sightseeing bus never drives throu
     assert.deepEqual(fleet.bus.violations(), []);
   } finally { T.setActiveLineFleet(null); fleet.dispose(); }
 });
+
+test('walker obstacles: every pole, kiosk and portal mouth is a soft obstacle, and so are the buses and visible trains', () => {
+  const fleet = makeFleet(false);
+  try {
+    const out: { x: number; z: number; r: number; kind: string }[] = [];
+    const covered = (x: number, z: number) => { out.length = 0; fleet.obstacles(out, x, z, 3); return out.some(o => Math.hypot(o.x - x, o.z - z) < o.r); };
+    for (const p of fleet.props) assert.ok(covered(p.x, p.z), `${p.station} (${p.kind}) blocks its own spot`);
+    for (const p of fleet.portals) {
+      // a point 2 u inside the mouth, on the track
+      const x = p.x + Math.sin(p.heading) * 2, z = p.z + Math.cos(p.heading) * 2;
+      assert.ok(covered(x, z), `${p.id}: nobody walks into the mouth`);
+    }
+    fleet.update(0, { x: 0, z: 0 }, { x: 0, z: 0 });
+    const b = fleet.bus.buses[0].pose;
+    out.length = 0;
+    fleet.obstacles(out, b.x, b.z, 2);
+    assert.ok(out.some(o => o.kind === 'traffic' && Math.hypot(o.x - b.x, o.z - b.z) < 0.5), 'a bus is a moving obstacle');
+    // far from everything: nothing
+    out.length = 0;
+    fleet.obstacles(out, 5000, 5000, 5);
+    assert.equal(out.length, 0);
+  } finally { T.setActiveLineFleet(null); fleet.dispose(); }
+});

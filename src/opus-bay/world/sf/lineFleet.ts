@@ -11,7 +11,7 @@ import type { CarPose } from '../transitLine';
 import { registerWarmup } from '../warmup';
 import type { TransitLine, TransitPortal } from './format';
 import { LRV_PLATFORM, lrvCarFarGeometry, lrvCarGeometry } from './lrv';
-import { type PortalPlacement, portalGeometry, portalPlacements } from './portals';
+import { type PortalPlacement, portalBlockers, portalGeometry, portalPlacements } from './portals';
 import { type StationProp, busPoleGeometry, kioskGeometry, railStopGeometry, stationGeometryKey, stationProps } from './stations';
 import type { RoadVehicle } from './streetNet';
 import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBus';
@@ -138,6 +138,8 @@ export class LineFleet {
   /** other layers' vehicles (ExtraVehicleKind), by key */
   private extraSlots = new Map<string, VehicleSlot[]>();
   private propSlots: { id: number; x: number; z: number; tris: number }[] = [];
+  /** the stops' poles, the kiosks and the portal hoods as discs the walker steps round (obstacles()) */
+  private discs: { x: number; z: number; r: number }[] = [];
   private opts: FleetOptions;
   private propT = 0;
   private propCam = { x: 1e9, z: 1e9 };
@@ -217,6 +219,14 @@ export class LineFleet {
     };
     for (const p of this.props) place(stationGeometryKey(p), p.x, p.y, p.z, p.heading);
     for (const p of this.portals) place(`portal-${p.id}`, p.x, p.y, p.z, p.heading);
+    // walk obstacles: a pole is a thin disc; a kiosk (2.2 × 3.0 u) two discs along its length; a portal's hood and wing
+    // walls rows of discs over their rectangles (the walker cannot wander into a tunnel mouth or through a kiosk)
+    for (const p of this.props) {
+      if (p.kind !== 'kiosk') { this.discs.push({ x: p.x, z: p.z, r: 0.22 }); continue; }
+      const fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+      for (const o of [-0.7, 0.7]) this.discs.push({ x: p.x + fx * o, z: p.z + fz * o, r: 1.12 });
+    }
+    for (const p of this.portals) for (const poly of portalBlockers(p)) this.discs.push(...rectDiscs(poly));
     for (const g of [...nearGeos, ...farGeos, ...geoList]) g.dispose();
 
     this.group.add(this.near, this.far, this.staticMesh);
@@ -407,6 +417,28 @@ export class LineFleet {
     return out;
   }
 
+  /**
+   * Walker obstacles near (x, z) (actors/view registerObstacleSource, via the transit layer): the stops, kiosks and
+   * portals ('static': a soft bump), the buses and the visible train cars ('traffic').
+   */
+  obstacles(out: { x: number; z: number; r: number; kind: string }[], x: number, z: number, r: number) {
+    for (const d of this.discs) if (Math.abs(d.x - x) < r + d.r && Math.abs(d.z - z) < r + d.r) out.push({ x: d.x, z: d.z, r: d.r, kind: 'static' });
+    for (const b of this.bus.buses) {
+      const q = b.pose;
+      if (Math.abs(q.x - x) > r + 5 || Math.abs(q.z - z) > r + 5) continue;
+      const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
+      for (const o of [-2.6, 0, 2.6]) out.push({ x: q.x + fx * o, z: q.z + fz * o, r: BUS.width / 2, kind: 'traffic' });
+    }
+    for (const t of this.rail.trains) {
+      if (t.hidden) continue;
+      for (const q of t.cars) {
+        if (Math.abs(q.x - x) > r + 4 || Math.abs(q.z - z) > r + 4) continue;
+        const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
+        for (const o of [-2.1, 0, 2.1]) out.push({ x: q.x + fx * o, z: q.z + fz * o, r: LRV.width / 2, kind: 'traffic' });
+      }
+    }
+  }
+
   /** The train the rider rides (for the overlay / camera), or null. */
   riderTrain(): Train | null {
     const rs = this.rail.rideStatus();
@@ -434,6 +466,21 @@ export class LineFleet {
     for (const m of this.materials) m.dispose();
     this.portalListeners.clear();
   }
+}
+
+/** Discs covering a rectangle (4 corners): radius = half its short side, spaced along its long side. */
+function rectDiscs(poly: readonly { x: number; z: number }[]): { x: number; z: number; r: number }[] {
+  const [a, b, , d] = poly;
+  const ux = b.x - a.x, uz = b.z - a.z, vx = d.x - a.x, vz = d.z - a.z;
+  const lu = Math.hypot(ux, uz), lv = Math.hypot(vx, vz);
+  const [lx, lz, L, sx, sz, S] = lu >= lv ? [ux, uz, lu, vx, vz, lv] : [vx, vz, lv, ux, uz, lu];
+  const r = S / 2, n = Math.max(1, Math.ceil((L - S) / r) + 1);
+  const out: { x: number; z: number; r: number }[] = [];
+  for (let i = 0; i < n; i++) {
+    const t = n === 1 ? 0.5 : (r + ((L - 2 * r) * i) / (n - 1)) / L;
+    out.push({ x: a.x + lx * t + sx / 2, z: a.z + lz * t + sz / 2, r });
+  }
+  return out;
 }
 
 /** Warm-up (plan: every new program registered): the three batched-mesh kinds exactly as the fleet builds them. */
