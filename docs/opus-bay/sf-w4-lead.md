@@ -5,6 +5,8 @@ section it points to), `sf-w3-lead.md` §3 (checks, commits, pushes: unchanged) 
 of tests that pin another lane's module). Where this note and the plan differ, **this note wins** (the ports of plan
 §5.0 are replaced by §3 below).
 
+**Never delete through a junction.** `node_modules` in every worktree is a junction to the main checkout's. `git worktree remove --force`, `rm -rf` or `Remove-Item -Recurse` on a worktree FOLLOWS that junction and empties the main checkout's `node_modules` (this happened once on 2026-09-27: `.bin` was emptied and had to be rebuilt). To remove a worktree: first `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` (removes only the link), check it is gone, then `git worktree remove <path>`. Never delete anything under `node_modules`.
+
 ## 0. 给主人的摘要
 
 1. 第四波"第 0 天"的底层约定已经推上去了：新增巴士 / 轻轨两种线路类型、"抵达时刻"和"行程"两种事件、导览编号（默认还是湾区第一课）、行程和景点两套共用类型。街区模式完全不变，全部 388 个测试通过。

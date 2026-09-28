@@ -4,6 +4,8 @@ Written by the lead on 2026-09-27 before the wave-3 lanes start. **Read this fir
 `sf-w2-contracts.md` (ownership §1, hooks §4–§6: still valid) and your lane's task list in `sf-w1-checkpoint.md` §5.
 Where this note and an older doc differ, this note wins.
 
+**Never delete through a junction.** `node_modules` in every worktree is a junction to the main checkout's. `git worktree remove --force`, `rm -rf` or `Remove-Item -Recurse` on a worktree FOLLOWS that junction and empties the main checkout's `node_modules` (this happened once on 2026-09-27: `.bin` was emptied and had to be rebuilt). To remove a worktree: first `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` (removes only the link), check it is gone, then `git worktree remove <path>`. Never delete anything under `node_modules`.
+
 ## 1. State at the start of wave 3
 
 - `opus-bay` @ the commit that adds this note. Before it: `e22d600` (perf table + phone check, checkpoint §4),
