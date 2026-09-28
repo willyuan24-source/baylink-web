@@ -2,7 +2,8 @@ import { useMemo, type CSSProperties } from 'react';
 import { ArrowLeft, CalendarDays, CalendarPlus, Heart, RefreshCw, Sparkles } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import type { Bilingual, WeekOption } from '../core/types';
-import { REGION_LABELS, categoryLabel, loadCatalog, todayInBay, useCatalog, type RankedEvent } from '../data/catalog';
+import { REGION_LABELS, categoryLabel, eventSpot, goToEvent, loadCatalog, todayInBay, useCatalog, type RankedEvent } from '../data/catalog';
+import './event-go.css';
 import { calendarUrl, planUrl, thisMonthUrl } from '../data/links';
 import { NODES, WEEK_QUESTIONS } from '../data/script';
 import { closePanel, openEvent, setWeekPref, showWeekResults, startWeek, weekBack } from '../game/flow';
@@ -168,8 +169,10 @@ function Flyer({ item, index, saved }: { item: RankedEvent; index: number; saved
   const category = categoryLabel(event);
   const region = REGION_LABELS[event.region];
   const tilt = [-2.2, 1.6, -1, 2.4, -1.8][index % 5];
+  // wave 5 (city mode): an event at a mapped San Francisco venue can be gone to (lane R's venue table, N's goTo)
+  const spot = eventSpot(event);
   return (
-    <li className="ob-flyer" style={{ '--tilt': `${tilt}deg`, '--tint': FLYER_TINTS[index % FLYER_TINTS.length], animationDelay: `${index * 70}ms` } as CSSProperties}>
+    <li className={`ob-flyer${spot ? ' has-go' : ''}`} style={{ '--tilt': `${tilt}deg`, '--tint': FLYER_TINTS[index % FLYER_TINTS.length], animationDelay: `${index * 70}ms` } as CSSProperties}>
       <button type="button" onClick={() => openEvent(event.id)} aria-label={`${event.title} · ${day.top} ${day.big}`}>
         <span className="ob-flyer-pin" aria-hidden />
         <span className="ob-flyer-date"><small>{day.week}</small><strong>{day.big}</strong><small>{day.month}</small></span>
@@ -184,6 +187,7 @@ function Flyer({ item, index, saved }: { item: RankedEvent; index: number; saved
         </span>
         {saved && <span className="ob-flyer-saved" aria-label={t('已加入想去', 'Saved')}><Heart size={14} aria-hidden /></span>}
       </button>
+      {spot && <button type="button" className="ob-flyer-go" onClick={() => { goToEvent(event); }} aria-label={t(`带我去${spot.name.zh}`, `Take me to ${spot.name.en}`)}>{t('带我去', 'Go')}</button>}
     </li>
   );
 }

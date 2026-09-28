@@ -1,6 +1,7 @@
-import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Newspaper, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
 import { game, useGame } from '../core/store';
-import { REGION_LABELS, categoryLabel, eventById, nextShowing, useCatalog } from '../data/catalog';
+import { REGION_LABELS, categoryLabel, eventById, eventSpot, goToEvent, nextShowing, useCatalog } from '../data/catalog';
+import './event-go.css';
 import { eventUrl, mapsUrl, planUrl, safeHref } from '../data/links';
 import { closePanel, openPanel, toggleWish } from '../game/flow';
 import { useFlow } from '../game/flowStore';
@@ -31,6 +32,8 @@ export default function EventCardBody({ id }: { id?: string }) {
   const category = categoryLabel(event);
   const region = REGION_LABELS[event.region];
   const official = safeHref(event.officialUrl);
+  // wave 5 (city mode): its San Francisco venue in the world (lane R's table): 带我去 through N's goTo
+  const spot = next ? eventSpot(event) : null;
 
   return (
     <Sheet
@@ -51,6 +54,11 @@ export default function EventCardBody({ id }: { id?: string }) {
       <div className="ob-event-when">
         <span className={`ob-chip ${next ? 'is-teal' : ''}`}>{showing?.tonight ? t('今晚', 'Tonight') : next ? formatDay(next, locale) : t('已结束', 'Ended')}</span>
         {event.dateLabel && <span className="ob-event-datelabel">{event.dateLabel}</span>}
+        {spot && (
+          <button type="button" className="ob-btn ob-btn-primary ob-btn-sm ob-event-go" onClick={() => { goToEvent(event); }} aria-label={t(`带我去${spot.name.zh}`, `Take me to ${spot.name.en}`)}>
+            <Navigation size={15} aria-hidden /><span>{t('带我去', 'Take me there')}</span>
+          </button>
+        )}
       </div>
       <dl className="ob-facts">
         {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue, event.city, region ? t(region) : null])}</dd></div>}
