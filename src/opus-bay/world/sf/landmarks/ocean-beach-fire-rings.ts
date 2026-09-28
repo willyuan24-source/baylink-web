@@ -35,12 +35,19 @@ const CONCRETE = '#c9c3b5', EMBER = '#e0662f', ASH = '#5d534a', COLD = '#8f877c'
 
 /** how often the Bay clock is asked (ms): buildKey runs every frame while the rings' lod 0 is near */
 const LIT_EVERY = 15_000;
-let litAt = -Infinity, lit = false;
+let litAt = -Infinity, lit = false, forced: boolean | null = null;
 /** Fires may burn in the rings now (lane R's isFireRingLit on the Bay clock), cached for LIT_EVERY. */
 export function fireRingsLit(now = Date.now()): boolean {
+  if (forced !== null) return forced;
   if (now - litAt >= LIT_EVERY || now < litAt) { litAt = now; lit = isFireRingLit(); }
   return lit;
 }
+/**
+ * Tools and tests only: draw the rings lit (true) or cold (false) whatever the clock says, null = the clock again. The
+ * measured tables (landmarks/tops.ts, `height.top`) are of the lit rings, their tallest state (scripts/opus-sf/assets/
+ * topsMeasure.ts draws them lit): measured on the wall clock they flipped at 06:00 and 21:30.
+ */
+export function forceFireRings(v: boolean | null) { forced = v; }
 /** tests: forget the cached answer (after moving the Bay clock with __setBayNowForTests) */
 export function resetFireRings() { litAt = -Infinity; }
 
@@ -84,7 +91,8 @@ export const oceanBeachFireRings: W4Site = {
     arrival: { x: 1.8, z: 38.5, heading: Math.PI },
     photo: { target: [0, 0.5, 0], distance: 26, elevation: 0.35, bearing: 1.9 },
     flag: { x: 0, z: 0, h: 30 },
-    height: { realM: 1, u: 0.5, top: 1.4, rule: 'overlook' },
+    // (W5-L2: the top with the fires burning, the rings' tallest state: tests draw them lit, forceFireRings)
+    height: { realM: 1, u: 0.5, top: 1.57, rule: 'overlook' },
     osm: [],
     terrain: [-4, -31, 4, 47],
     notes: 'Fires only in the rings, 6 am–9:30 pm, 1 March–31 October (lane C\'s Ocean Beach card says "at the north end"); the embers and the fire lights follow that through lane R\'s isFireRingLit (W5-L2). The rules lettering on the rings is never drawn. A shared setting: no attraction of its own.',

@@ -21,6 +21,7 @@ import { W4_SITES as W4_LIST } from '../src/opus-bay/world/sf/landmarks/w4list';
 import { W4_SITES_T3 } from '../src/opus-bay/world/sf/landmarks/w4list3';
 import { HERO_FLAGS, LANDMARK_FLAGS, W4_SITES, flagHeight, isMainSite, siteFlagTop, w4Site, w4SiteByPlace, w4SiteOf } from '../src/opus-bay/world/sf/landmarks/w4sites';
 import { measureTops } from '../scripts/opus-sf/assets/topsMeasure';
+import { forceFireRings } from '../src/opus-bay/world/sf/landmarks/ocean-beach-fire-rings';
 import { sfDisk } from './opus-bay-sf-disk';
 
 // Wave-4 landmark sites (lane L, plan §2.2 / §5.4): the new site modules built in node against the published city
@@ -463,7 +464,10 @@ test('flags (plan §4.2): every site, landmark and T1 hero has a pole 28–70 u;
     if (w4SiteOf(s.w4.placeId) === s) assert.deepEqual(siteFlagTop(s.w4.placeId), f);
     // over the site: the pole foot inside the exclusion, the top over the model's skyline
     assert.ok(inPoly(f, exPoly(s)), `${s.id} flag foot inside the site`);
+    // (W5-L2: the fire rings drawn lit, their tallest state, whatever the wall clock says)
+    forceFireRings(true);
     const g = buildLandmark(s, 0, 0);
+    forceFireRings(null);
     g.computeBoundingBox();
     const top = g.boundingBox!.max.y;
     // the record's measured top over its base (what cityViews / cityLive add to the base at the integration)

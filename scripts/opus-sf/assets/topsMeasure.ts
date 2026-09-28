@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { Batch } from '../../../src/opus-bay/world/builder';
 import { type SfLandmark, type WalkBlocker, usesAi } from '../../../src/opus-bay/world/sf/landmarks/index';
+import { forceFireRings } from '../../../src/opus-bay/world/sf/landmarks/ocean-beach-fire-rings';
 import type { GlbMesh } from './glbNode';
 
 /** grid cell (u) */
@@ -26,7 +27,9 @@ export function drawnLandmark(l: SfLandmark, models: ReadonlyMap<string, GlbMesh
   const out: Tri[] = [];
   const b = new Batch();
   const ai = usesAi(l) && l.swap!.parts.every(p => models.has(p.model));
-  if (ai) l.swap!.build(b); else l.build(b, 0);
+  // (W5-L2: the Ocean Beach fire rings are measured lit, their tallest state, whatever the wall clock says)
+  forceFireRings(true);
+  try { if (ai) l.swap!.build(b); else l.build(b, 0); } finally { forceFireRings(null); }
   out.push({ positions: b.pos, index: b.idx });
   if (ai) {
     for (const p of l.swap!.parts) {
