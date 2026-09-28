@@ -9,8 +9,8 @@ import { CAMPUS_IDS, LOOP_LINE, campusArrived, loopStopReached, metroRideCounts 
 import { CITY_GOAL, SIGHTSEEING_STOPS, loopStopsReached } from '../data/sf/goals';
 import { CITY_POSTCARDS } from '../data/sf/postcards';
 import { placeIndex } from '../data/sf/places';
-import { loopNarration, metroNarration, sayLine, tunnelNarration } from '../data/sf/tourLines';
-import { TOUR_GEO, rideArc } from '../data/sf/tours';
+import { sayLine, tunnelNarration } from '../data/sf/tourLines';
+import { TOUR_GEO, rideArc, transitSay } from '../data/sf/tours';
 import { TOUR_VOICE_CLIPS } from '../data/sf/voiceTour';
 import { ARRIVAL_CARD_MS } from '../ui/guideText';
 import { ArrivalWatcher, arrivalAnchors, arrivalBeats, arrivalPaced, decodeArrivalSeen, type ArrivalHit } from './arrival';
@@ -21,7 +21,7 @@ import { travelActive } from './fastTravel';
 import { bubble, dialogueOpen, markGoalsDone, noteArrivalMoment } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactables } from './interactables';
-import { LINE_TTL, LinePacer, type PacedLine } from './linePacer';
+import { LINE_TTL, LinePacer, NARRATION_REPEAT, clipSecondsFrom, voiceLang, type PacedLine, type SaidLine } from './linePacer';
 import { registerFrameSystem } from './systemsRegistry';
 import { arriveYourselfGoalRule, cableCarGoalRule, lineRideGoalRule, type TripGoalRule } from './tripPlan';
 import { registerTripGoals } from './tripProviders';
@@ -46,8 +46,9 @@ import { registerTripGoals } from './tripProviders';
 // The pacer
 // ---------------------------------------------------------------------------------------------------------------
 
-const lang = () => (getLocale() === 'en' ? 'en' : 'zh');
-const pacer = new LinePacer(id => TOUR_VOICE_CLIPS[`${lang()}-${id}`]?.duration);
+// the clip lengths of the current voice language (read per line: a language switch mid-tour times the next line right)
+const pacer = new LinePacer(clipSecondsFrom(TOUR_VOICE_CLIPS, () => voiceLang(getLocale())));
+let lastSaid: SaidLine | null = null;
 const clock = () => performance.now() / 1000;
 
 const EMOTES: Partial<Record<Mood, Emote>> = { point: 'point', excited: 'hop', wave: 'wave', proud: 'clap', thinking: 'think' };
@@ -67,14 +68,23 @@ export const linesBusy = (now = clock()) => pacer.isBusy(now) || pacer.pending()
 /** Lane T's subway overlay, when a ride goes under ground on the arc span [fromAt, toAt]. */
 export function sayTunnel(line: string, fromAt: number, toAt: number) {
   const l = tunnelNarration(line, fromAt, toAt);
-  if (l) offerLine(l.id, LINE_TTL.portal);
+  const say = l ? sayLine(l.id, LINE_TTL.portal) : null;
+  if (say) pacer.offer({ ...say, repeatGap: NARRATION_REPEAT }, clock());
 }
 
+/**
+ * Held (review 2, D5): by G2's own silent gate (game/baybayLines.ts: dialogue, cinematics, fast travel, photo mode,
+ * fishing, pause, the postcard reward, an open panel: flow.bubble() would drop the text and the voice would play alone)
+ * and by a bubble on screen that is not the pacer's own (another city line, a trip call).
+ */
 function stepPacer(now: number) {
-  const s = game.get();
-  const blocked = s.phase !== 'playing' || dialogueOpen() || cinemaActive() || !!flow.get().cinematic || !!flow.get().postcardReward;
-  const said = pacer.step(now, blocked);
+  const s = game.get(), f = flow.get();
+  const silent = s.phase !== 'playing' || s.paused || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive() || s.move.mode === 'travel' || s.photoMode
+    || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null;
+  const other = !!f.bubble && f.bubble.text.zh !== lastSaid?.text.zh;
+  const said = pacer.step(now, silent || other);
   if (!said) return;
+  lastSaid = said;
   bubble(said.text, said.bubbleMs, BAYBAY_ID, 'bark');
   if (said.voiced && said.voice) emit({ type: 'voice-line', id: said.voice });
   const emote = said.mood ? EMOTES[said.mood] : undefined;
@@ -98,9 +108,9 @@ export function metroArc(line: string, board: string, alight: string): number | 
 /** A rider's `transit` event (lane T: the ridden vehicle's arrive / approach carry the `station`). */
 export function onTransit(e: TransitEvent, now = clock()) {
   if (e.kind !== 'bus' && e.kind !== 'light-rail') return;
-  // narration: the loop's approach / arrive, the Metro's board / approach / arrive
-  const line = loopNarration(e) ?? metroNarration(e);
-  if (line) offerLine(line.id, e.what === 'approach' ? LINE_TTL.approach : e.what === 'board' ? LINE_TTL.board : LINE_TTL.arrive, now);
+  // narration: the loop's approach / arrive, the Metro's board / approach / arrive (once per outing: NARRATION_REPEAT)
+  const say = transitSay(e);
+  if (say) pacer.offer(say, now);
   if (e.real === false || travelActive()) return;
   const done = game.get().goalsDone;
   if (e.kind === 'bus' && e.line === LOOP_LINE && e.what === 'arrive' && e.station) {

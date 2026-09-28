@@ -12,7 +12,7 @@ import {
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById, type Interactable } from './interactables';
 import { registerFrameSystem } from './systemsRegistry';
-import { requestHopOff } from './transit';
+import { boardLine, requestHopOff } from './transit';
 import { timeLabel } from './tripText';
 import { currentLeg, isArrived, legTarget, tripEvents, tripReducer, walkLeg, type TripAction } from './trips';
 import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './tripTypes';
@@ -238,6 +238,8 @@ function offerBoarding(t: TripState, leg: TripLineLeg) {
   const next = rideNodeFor(leg);
   if (!next) { walkRest(t, { zh: '这条线今天没开，我们走过去吧！', en: "That line isn't running today — let's walk!" }); return; }
   stage = 'board';
+  // the sightseeing loop and the Metro: lane T's boarding dialogue with the pre-filled row ("上车 · 坐到 石镇（约 70 秒）")
+  if (W4_LINE.test(leg.line)) { boardLine(leg.board, { to: leg.alight, line: leg.line }); return; }
   const to = leg.to.name ?? { zh: '下一站', en: 'the next stop' };
   const ride = timeLabel(Math.max(0, leg.seconds - leg.wait));
   const choices: NonNullable<DialogueNode['choices']> = [

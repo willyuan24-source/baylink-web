@@ -108,7 +108,7 @@ test('trips: a city free lead is a one-leg walking trip; freeLeadArrived clears 
   tripRun.initTripRun();
 });
 
-test('trips: a line leg leads to the stop, offers the pre-filled boarding, or walks when the line does not run; a ride that ends early walks on', () => {
+test('trips: a line leg leads to the stop, offers the pre-filled boarding, or walks when the line does not run; a ride that ends early walks on', async () => {
   reset();
   // the ride node formats (lane F's cc: / fl:, lane T's ln:)
   const run = () => true;
@@ -137,10 +137,9 @@ test('trips: a line leg leads to the stop, offers the pre-filled boarding, or wa
   at(0, 0);
   flowMod.startTrip(option, { placeId: 'twin-peaks' }, 'map');
   at(10, 0); updateGuide(clock); tick(100); updateGuide(clock); updateGuide(clock);
-  assert.equal(game.get().dialogue.nodeId, 'flow.trip.board', 'the pre-filled boarding');
-  const node = flowMod.nodeById('flow.trip.board')!;
-  assert.match(node.choices![0].label.zh, /^上车 · 坐到 双峰（约/);
-  assert.equal(node.choices![0].next, 'flow.ride.ln:sf-loop:loop-castro:loop-twin-peaks');
+  // the loop / Metro board through lane T's dialogue (game/transit.ts boardLine with the pre-filled 'to')
+  assert.equal(tripRun.tripStage(), 'board', 'at the stop: boarding (lane T)');
+  assert.equal(flow.get().trip?.leg, 1, 'the ride leg waits for the bus');
   flowMod.closeDialogue();
   flow.set({ ride: { stage: 'riding', from: 'loop-castro', to: 'loop-twin-peaks', line: 'sf-loop', kind: 'bus' } });
   frames(2);
@@ -159,6 +158,23 @@ test('trips: a line leg leads to the stop, offers the pre-filled boarding, or wa
   flow.set({ ride: null }); at(205, 0); frames(2);
   assert.equal(events.at(-1)?.what, 'end');
   offStation();
+  // lane C's own pre-filled boarding for the other lines (a running ferry here)
+  const { setActiveFerrySystem } = await import('../src/opus-bay/data/transit');
+  setActiveFerrySystem({ request: () => null, board() {}, cancel() {}, rideStatus: () => null, cars: [] });
+  const ferry = {
+    mode: 'line' as const, seconds: 90,
+    legs: [{ via: 'line' as const, line: 'ferry', board: 'ferry-gate-e', alight: 'pier-41', wait: 30, stops: 1, from: { x: 0, z: 0, station: 'ferry-gate-e' }, to: { x: -300, z: 0, station: 'pier-41', name: { zh: '41 号码头', en: 'Pier 41' } }, seconds: 90, length: 300 }],
+  };
+  at(0, 0);
+  flowMod.startTrip(ferry, { placeId: 'pier-41' }, 'map');
+  updateGuide(clock); tick(100); updateGuide(clock); updateGuide(clock);
+  assert.equal(game.get().dialogue.nodeId, 'flow.trip.board', 'the pre-filled boarding');
+  const node = flowMod.nodeById('flow.trip.board')!;
+  assert.match(node.choices![0].label.zh, /^上车 · 坐到 41 号码头（约 1 分钟）/);
+  assert.equal(node.choices![0].next, 'flow.ride.fe:ferry-gate-e:pier-41');
+  flowMod.closeDialogue();
+  flowMod.endTrip();
+  setActiveFerrySystem(null);
 });
 
 test('trips: the soft hint waits during a trip and for a minute after an arrival moment', () => {
