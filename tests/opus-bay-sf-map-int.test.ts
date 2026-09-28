@@ -130,7 +130,8 @@ test('scene: downtown at s 0.7 on a phone — stations on the canvas, badges and
   // a tap on a kept attraction badge selects it; on a station mark, the station
   const badge = s.layout.kept.find(k => s.attractions.has(k.id) && !k.members.length)!;
   assert.deepEqual(hitTest(s, badge.x + 2, badge.y - 1), { kind: 'attraction', id: badge.id, members: [] });
-  const far = s.stations.find(m => s.layout.kept.every(k => Math.hypot(k.x - m.x, k.y - m.y) > 30))!;
+  const badges = s.layout.kept.filter(k => s.attractions.has(k.id) || s.places.has(k.id));
+  const far = s.stations.find(m => badges.every(k => Math.hypot(k.x - m.x, k.y - m.y) > 30))!;
   assert.ok(far, 'a station away from every badge');
   assert.equal(hitTest(s, far.x, far.y)?.kind, 'station');
   assert.equal(hitTest(s, far.x, far.y)?.id, far.st.id);
