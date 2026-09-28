@@ -189,7 +189,8 @@ Embarcadero and the hill's trees read the same; only the street furniture is gon
 **Flags and signs in the game**: `v4-flag-glyphs-desktop-zoom.jpg` (coin, calendar and sparkle pennants from a registered
 source at Union Square, cells 16–18 drawn), `v4-flag-glyph-phone.jpg` (the calendar pennant, 390 × 844); `v4-signs-atlas.jpg`
 (the 22 plaques as painted in Chrome with the page's fonts); `v4-signs-in-scene-day-night.jpg` (four plaques at the Ferry
-gate: lit and shadowed by day, glowing at night; `ob-signs` had linked in the late pass before the mesh drew: 59 → 59).
+gate: lit and shadowed by day, glowing at night; `ob-signs` had linked in the late pass before the mesh drew: 59 → 59),
+`v4-signs-in-scene-phone.jpg` (390 × 844, mid: crisp).
 
 **Bundle** (`vite build --sourcemap` of each tree, gzip -9 of the chunk):
 
