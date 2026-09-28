@@ -424,7 +424,8 @@ edited.
   (lane L's rule).
 - **`near`** = the card that shows the art once found: `sfsu`, `de-young-tower` (the Music Concourse has no card of its
   own; the de Young overlooks the bowl, 14 u away), `lands-end`, and `west-portal` (lane P's attraction and lane C's
-  place card; lane L's P3 site `west-portal` is not built).
+  place card; lane L's P3 site `west-portal` is not built). *Early review 2: `sfsu` and `west-portal` never matched a
+  card POI (`sf:sfsu`, `sf:west-portal`); now `sf-state-university` and `osm-n2094547200`, tested.*
 - **H-8 skipped**: lane T's `audio/lines.ts` sounds are not wired yet (`transitSound` plays cable-car kinds only), so
   there is nothing to listen to in the game; by construction they follow the game's other synthesized SFX (filtered
   noise for the air brake, inharmonic partials for the stop bell and the gong, two-note chimes), which keeps the toy world
@@ -434,24 +435,35 @@ edited.
 
 1. **`data/assets.ts`** (lane V): besides part 1's step 1 (`SF_MODEL_IDS` / `SF_MODELS` gain the four models;
    `sf-holy-virgin` is now 179,372 B), `SF_POSTCARD_ART_IDS = [ …the 12…, ...W4_POSTCARD_IDS ] as const` (import from
-   `./sf/w4Postcards`); `POSTCARD_ART` and `listAssetUrls()` then carry the eight files. **This lands in the same commit
-   as step 2** (`CARDS` in data/sf/postcards.ts is a `Record<SfPostcardArtId, SfCard>`): lane C may make both edits in
-   one commit (lane V agrees here; say so in lane C's report).
+   `./sf/w4Postcards`) **and `SF_POSTCARD_SUBJECTS` gains `...W4_POSTCARD_SUBJECTS`** (it is a
+   `Record<SfPostcardArtId, …>`: without the four captions tsc fails; added by Early review 2); `POSTCARD_ART` and
+   `listAssetUrls()` then carry the eight files. **This lands in the same commit as step 2** (`CARDS` in
+   data/sf/postcards.ts is a `Record<SfPostcardArtId, SfCard>`): lane C may make both edits in one commit (lane V agrees
+   here; say so in lane C's report).
 2. **`data/sf/postcards.ts`** (lane C): `CARDS` gains the four rows: `...Object.fromEntries(W4_POSTCARD_IDS.map(id => {
    const c = W4_POSTCARDS[id]; return [id, { title: c.title, fact: c.fact, hint: c.hint, sourceUrl: c.sourceUrl,
    position: c.position, near: c.near }]; }))`; `CITY_POSTCARDS` / `CITY_POSTCARD_NEAR` follow; the header's "20 in
-   all" becomes 24. Where `CITY_POSTCARD_NEAR` is read (the art strip on a card), `sfsu` / `lands-end` resolve after lane
-   L's registration; `west-portal` resolves to lane C's `west-portal` place card (or to lane L's site if it is built).
+   all" becomes 24. `near` is read as `cityPoiId(near)` (data/postcards.ts `CITY_POSTCARD_FOR_POI`, the art strip of
+   ui/format.ts `postcardForPoi`), so each row's `near` is the POI suffix of the card that shows the art (corrected by
+   Early review 2): `sf-state-university` and `osm-n2094547200` = `cardPoiId()` of lane C's `sf-state-university` /
+   `west-portal` place cards, `lands-end` (its card's place), `de-young-tower` (the landmark card). The `SfCard.near`
+   comment becomes "a landmark id or a place card's POI suffix".
    Tests that change on purpose (`tests/opus-bay-sf-content.test.ts`, lane C): G2-2 expects 16 ids; the fact-source rule
    accepts the rows of `W4_POSTCARDS` (verified on the web on `W4_POSTCARDS_VERIFIED_AT`; their sources are not among
-   D2's landmark sources); the 400 u list gains `sf-west-portal` while `west-portal` is not a landmark; the anchor check
-   uses `w4Site(near)`'s arrival for `sfsu` / `lands-end`; `c.postcards.length` 20 → 24 and the `sf-` filter 12 → 16.
+   D2's landmark sources); `sfLandmark(near)` holds only for the 12 + `de-young-tower`: for the other three accept a
+   place card whose `cardPoiId(card) === cityPoiId(near)`; the anchor check uses the postcard's `attraction` (its
+   arrival, else its point; all four within 70 u, so no 400 u exception); `c.postcards.length` 20 → 24 and the `sf-`
+   filter 12 → 16. `tests/opus-bay-w4-postcards.test.ts` already holds before and after step 1 (the four ids are
+   accepted as the tail of `SF_POSTCARD_ART_IDS`).
    `tests/opus-bay-w4-postcards.test.ts` (lane V) keeps checking the spots.
-3. **Lane L, `geary-west.ts`**: `import { w4Swap, w4SwapPart } from '../../../data/sf/w4Swaps';`,
-   `const SWAP = w4Swap('geary-west')!;`, and on the record `swap: { parts: [w4SwapPart(SWAP, g.at)], build: () =>
-   undefined, ship: SWAP.ship, note: SWAP.note }`, `walk: { blockers: SWAP.ship ? SWAP.blockers : <today's box> }`;
-   `aiSlot.at` z may become −0.02 (the row). Optional: `tall: [{ x: 0, z: -0.1, r: 1.4 }]` for the glide (the domes
-   reach 9.6 u over the base), then regenerate tops.ts (lane L's step 5).
+3. **Lane L, `geary-west.ts`**: `import { w4Swap, w4SwapPart, w4SwapPlinth } from '../../../data/sf/w4Swaps';`,
+   `const SWAP = w4Swap('geary-west')!;`, and on the record `swap: { parts: [w4SwapPart(SWAP, g.at)], build: b => {
+   for (const p of w4SwapPlinth(SWAP, g.at)) box(b, p.x, p.y, p.z, p.w, p.h, p.d, p.color); }, ship: SWAP.ship, note:
+   SWAP.note }`, `walk: { blockers: SWAP.ship ? SWAP.blockers : <today's box> }` (corrected by Early review 2: the part
+   stands at the sidewalk's height in front of the porch, local y ≈ 1.21, and the remainder is the plinth where the lot
+   falls away toward the back); `aiSlot.at` becomes `[0, +g.at(0, 1.65).toFixed(2), -0.02]` (lane L's sites-w4 test
+   allows 0.8 u from the centre's ground). Optional: `tall: [{ x: 0, z: -0.1, r: 1.4 }]` for the glide (the domes
+   reach 10.3 u over the base), then regenerate tops.ts (lane L's step 5).
 4. **Lane L, `blue-heron-lake.ts`**: the same with `build: b => { <the stone-base lathe>; <the two causeways> }` (the
    first and the last statement of today's lod-0 build; the floor, columns, beam ring, roof and finial go), `ship:
    SWAP.ship`, `fade: SWAP.fade`; blockers and surfaces unchanged.
