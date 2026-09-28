@@ -10,14 +10,23 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, cur, i, arr) 
   return acc;
 }, []));
 const W = Number(args.w || 1440), H = Number(args.h || 900);
-const port = 9900 + Math.floor(Math.random() * 90);
+// The debugging port: Chrome picks a free one (--remote-debugging-port=0) and writes it to <profile>/DevToolsActivePort,
+// as scripts/opus-shot.mjs does (a random fixed port collided between lanes: the second Chrome failed to bind and the
+// script profiled another lane's page; lead-merge sf-w4-lead.md §8.4).
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'opus-prof-'));
-const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--force_high_performance_gpu', '--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--enable-gpu', '--ignore-gpu-blocklist', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+const chromePath = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const chrome = spawn(chromePath, ['--force_high_performance_gpu', '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--enable-gpu', '--ignore-gpu-blocklist', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 try {
+  let port = 0;
+  const portFile = path.join(profile, 'DevToolsActivePort');
+  for (let i = 0; i < 100 && !port; i++) { try { port = Number(fs.readFileSync(portFile, 'utf8').split('\n')[0]) || 0; } catch { /* not written yet */ } if (!port) await sleep(100); }
+  if (!port) throw new Error(`Chrome wrote no ${portFile} (did it start?)`);
   let targets;
   for (let i = 0; i < 50; i++) { try { targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); if (targets.find(t => t.type === 'page')) break; } catch { /* retry */ } await sleep(200); }
-  const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
+  const page = targets?.find(t => t.type === 'page');
+  if (!page) throw new Error(`no page target on the debugging port ${port}`);
+  const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise(r => ws.addEventListener('open', r, { once: true }));
   let id = 0; const pending = new Map();
   ws.addEventListener('message', ev => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(JSON.stringify(m.error))) : p.resolve(m.result); } });

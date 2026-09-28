@@ -5,6 +5,7 @@
 //   node scripts/opus-sf/qa/budget-views.mjs --out /tmp/c2/base-golden [--port 5201] [--time golden] [--quality high]
 //        [--views tp-walk,tp-high] [--pool tile] [--wait 20000] [--w 960 --h 600] [--karl 0] [--hud 1] [--mobile [--dpr 3]]
 //        [--shot "node scripts/opus-shot.mjs"]   (cloud: --shot /tmp/claude-0/bin/opus-shot)
+//        [--add '[{"id":"x","cam":{"p":[x,y,z],"t":[x,y,z],"f":[x,z]}}]' | --add views.json]   (extra views; alone = only them)
 //
 // Writes <out>/views.json (every number), <out>/views.md (the table) and <out>/<view>.jpg. Needs the dev server
 // (npx vite --config vite.opus.config.ts --port <port>): the helpers import game modules by their dev URLs.
@@ -134,7 +135,9 @@ if (args.pool) q.set('pool', args.pool);
 if (args.karl !== undefined) q.set('karl', args.karl);
 const url = `http://localhost:${port}/opus-bay?${q}`;
 const pick = args.views ? String(args.views).split(',') : null;
-const views = VIEWS.filter(v => !pick || pick.includes(v.id));
+// --add: extra views after the picked ones (a JSON array, or a .json file holding one); --add alone runs only them
+const extra = args.add ? JSON.parse(String(args.add).trim().startsWith('[') ? String(args.add) : fs.readFileSync(String(args.add), 'utf8')) : [];
+const views = [...VIEWS.filter(v => (!pick && !extra.length) || pick?.includes(v.id)), ...extra];
 const wait = Number(args.wait || 20000);
 
 const acts = [
