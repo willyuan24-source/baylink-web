@@ -20,7 +20,7 @@ import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld, shoreJob } from './ambience';
 import { lineVoices, soundAt } from './cityHooks';
 import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
-import { bindAudioHooks, stepAudioHooks } from './hooks';
+import { audioHooksStats, bindAudioHooks, stepAudioHooks } from './hooks';
 import { clamp, createRateLimiter, panFor, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
@@ -380,6 +380,9 @@ export function startAudio(): () => void {
         ...rig.engine.stats,
         counts: { ...rig.engine.stats.counts },
         city: rig.ambience.debugCity(),
+        // (W5-T6) the wave-5 lanes' sounds and loops (audio/hooks.ts), and the buses' ducks
+        hooks: audioHooksStats(),
+        ducks: { music: rig.engine.buses.music.ducking, ambience: rig.engine.buses.ambience.ducking },
       } : { state: ctx ? 'preparing' : 'not-started', activated, prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
       boot: activate,
     };

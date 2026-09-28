@@ -15,6 +15,8 @@ const DEV = import.meta.env?.DEV;
 /** Default bus levels (music is intentionally low). */
 export const BUS_LEVELS: Record<BusName, number> = { ambience: 0.36, sfx: 0.8, music: 0.26, voice: 0.9 };
 const MAX_VOICES = 32;
+/** (W5-T6) ducks a bus keeps at once */
+const MAX_DUCKS = 8;
 
 /** A mix bus: input → level (mute × duck × level) → master, and send → same gain → reverb. */
 export class Bus {
@@ -25,7 +27,12 @@ export class Bus {
   private readonly ctx: BaseAudioContext;
   level: number;
   private duckAmount = 1;
-  private duckUntil = 0;
+  /**
+   * (W5-T6) the ducks in force, each with its own end (ctx time): the lowest amount applies, and the bus comes back up one
+   * duck at a time. It used to keep the deepest amount until the latest end: a 3 s jet-roar duck to 0.2 under a 12 s
+   * slow-look duck to 0.45 held the music at 0.2 for all 12 s. At most MAX_DUCKS (the ones ending first make room).
+   */
+  private ducks: { amount: number; until: number }[] = [];
   /** sustained attenuation (e.g. while a dialogue box is open), 1 = none */
   private holdAmount = 1;
   private applied = 1;
@@ -67,11 +74,25 @@ export class Bus {
     this.apply(tau);
   }
 
-  /** Lower this bus to `amount` until `until` (ctx time), then recover. */
+  /** Lower this bus to `amount` until `until` (ctx time), then recover (several ducks: the lowest in force applies). */
   duck(amount: number, until: number) {
-    this.duckUntil = Math.max(this.duckUntil, until);
-    if (amount < this.duckAmount - 1e-3) { this.duckAmount = amount; if (this.factor() < this.applied - 1e-3) this.apply(0.08); }
+    if (!Number.isFinite(amount) || !Number.isFinite(until)) return;
+    const a = Math.max(0, Math.min(1, amount));
+    const same = this.ducks.find(d => Math.abs(d.amount - a) < 1e-3);
+    if (same) same.until = Math.max(same.until, until);
+    else {
+      if (this.ducks.length >= MAX_DUCKS) { let k = 0; this.ducks.forEach((d, i) => { if (d.until < this.ducks[k].until) k = i; }); this.ducks.splice(k, 1); }
+      this.ducks.push({ amount: a, until });
+    }
+    const next = this.lowest();
+    if (next < this.duckAmount - 1e-3) { this.duckAmount = next; if (this.factor() < this.applied - 1e-3) this.apply(0.08); }
   }
+
+  /** the lowest duck in force (1 = none) */
+  private lowest() { let m = 1; for (const d of this.ducks) m = Math.min(m, d.amount); return m; }
+
+  /** (W5-T6, QA / tests) the duck amount applied now (1 = none) and how many ducks are in force */
+  get ducking() { return { amount: this.duckAmount, count: this.ducks.length }; }
 
   /** Sustained attenuation until released with hold(1). */
   hold(amount: number) {
@@ -81,10 +102,13 @@ export class Bus {
   }
 
   update(now: number) {
-    if (this.duckAmount < 1 && now > this.duckUntil) {
-      this.duckAmount = 1;
-      if (Math.abs(this.factor() - this.applied) > 1e-3) this.apply(0.5);
-    }
+    if (!this.ducks.length) return;
+    this.ducks = this.ducks.filter(d => d.until >= now);
+    const next = this.lowest();
+    if (Math.abs(next - this.duckAmount) < 1e-3) return;
+    const down = next < this.duckAmount;
+    this.duckAmount = next;
+    if (Math.abs(this.factor() - this.applied) > 1e-3) this.apply(down ? 0.08 : 0.5);
   }
 }
 
