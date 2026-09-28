@@ -1,7 +1,12 @@
 import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
 import type { SfPlaceKind } from '../../world/sf/format';
 import { LANDMARK_ARRIVALS } from './arrivals';
-import { SF_LANDMARK_INFO, type SfLandmarkInfo } from './landmarks';
+import { CITY_DATA } from './cityData';
+import type { SfLandmarkInfo } from './landmarks';
+
+// W5-V3 (lane V): the landmark info records come with the city's data chunk (city mode and node only), so the 17 KB
+// of card text stays out of GameRoot's chunk; district mode never reads the tables below (data/pois.ts `byMode`)
+const SF_LANDMARK_INFO: readonly SfLandmarkInfo[] = CITY_DATA?.SF_LANDMARK_INFO ?? [];
 
 /**
  * The 24 San Francisco landmark info cards (lane G2, plan G2-1). One PoiDef per SF_LANDMARK_INFO record (lane D2's

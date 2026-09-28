@@ -145,7 +145,7 @@ test('HC-2: the city code stays out of the main graph (import it through world/c
  * Every module GameRoot reaches through static imports (P7, wave 3): `import` / `export … from` lines that are not
  * type-only, relative specifiers resolved to .ts / .tsx / index files. Map: module → the module that first reached it.
  */
-function mainGraph(root: string): Map<string, string> {
+function mainGraph(root: string, from = 'game/GameRoot.tsx'): Map<string, string> {
   const spec = /^\s*(?:import|export)\s+(?!type\s)(?:[^'";]*?\sfrom\s+)?['"](\.[^'"]+)['"]/gm;
   const rel = (p: string) => path.relative(root, p).split(path.sep).join('/');
   const resolve = (from: string, s: string) => {
@@ -153,7 +153,7 @@ function mainGraph(root: string): Map<string, string> {
     for (const c of [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts'), path.join(base, 'index.tsx')]) if (fs.existsSync(c) && fs.statSync(c).isFile()) return c;
     return null;
   };
-  const start = path.join(root, 'game/GameRoot.tsx');
+  const start = path.join(root, from);
   const seen = new Map<string, string>([[rel(start), '']]);
   const queue = [start];
   while (queue.length) {
@@ -180,6 +180,28 @@ test('P7: the static graph of GameRoot reaches no city module, the landmark libr
   const w5 = [...graph.keys()].filter(m => /^(economy|play|eggs|realsf)\//.test(m));
   assert.deepEqual(w5.map(why), [], 'wave-5 feature modules in the main graph (import them through their index.ts init, lazily)');
   for (const m of ['world/recipes/city.ts', 'world/typedBatch.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+});
+
+test('W5-V3: the city data chunk — the landmark cards leave GameRoot, the chunk shares no module with its graph, district mode never fetches it', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(graph.has('data/sf/cityData.ts') && graph.has('data/sf/cityPois.ts'), 'the loader is in the main graph (cityPois reads CITY_DATA)');
+  for (const m of ['data/sf/landmarks.ts', 'data/sf/cityDataChunk.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+  // cityData.ts awaits the chunk while GameRoot's chunk evaluates: a module in both graphs would stay in GameRoot's
+  // chunk, the data chunk would import it from there and the two would wait on each other for ever
+  const chunk = mainGraph(root, 'data/sf/cityDataChunk.ts');
+  assert.ok(chunk.has('data/sf/landmarks.ts'), 'the walk follows the chunk\'s re-exports');
+  assert.deepEqual([...chunk.keys()].filter(m => graph.has(m)).map(why), [], 'modules the data chunk reaches that GameRoot also imports statically');
+  // the loader: city mode in the game, always in node (no import.meta.env), never district mode in the game
+  const { cityDataWanted, CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  assert.deepEqual([cityDataWanted('district', true), cityDataWanted('city', true), cityDataWanted('district', false), cityDataWanted('city', false)], [false, true, true, true]);
+  assert.ok(CITY_DATA, 'node tests load the chunk');
+  const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
+  assert.equal(CITY_DATA.SF_LANDMARK_INFO, SF_LANDMARK_INFO, 'one module instance: the chunk re-exports the library');
+  const { CITY_POIS, CITY_SUBJECT_FACTS } = await import('../src/opus-bay/data/sf/cityPois');
+  assert.deepEqual(CITY_POIS.map(p => p.id), SF_LANDMARK_INFO.map(i => `sf:${i.id}`), 'the 24 cards resolve from the chunk as before');
+  assert.equal(Object.keys(CITY_SUBJECT_FACTS).length, SF_LANDMARK_INFO.length);
 });
 
 test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {
