@@ -186,7 +186,7 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
 2. 叠在一起的「+2」图标，点一下会列出这几个地方，每行都有出发按钮；长按地图任意位置会插一面小旗「去这里」；搜索结果每一行也带出发按钮。
 3. 画面安静了：路上顺路经过的地方不再一个个弹提示，只在左上角显示「+3 个地点」；从渡轮大厦走到科伊特塔，以前一路会弹很多次（计划里的试玩记录是 50 秒 12 次），现在只有 2 次（到达科伊特塔、解锁鹈鹕）。走上金门大桥桥面，左上角会写「金门大桥」。
 4. 地图多了「这周」按钮：这周的真实活动（比如 10/3 金门公园的免费蓝草音乐节）在场地上显示小日历，点开能直接出发或看活动介绍；手机上活动小旗优先插在你附近和目的地附近。
-5. 顺手修了几处「到了却走不动」的终点：九曲花街、苏特罗浴场、39 号码头、格林威治台阶、海德街码头，以及 L 线整理的 23 处景点到达点；飞到 Fort Point 不会再落到头顶的大桥上。自动检查从 12 处卡住降到 3 处（Fort Point 门口要 L 线改场地、野牛围场等 E / L 线改数据后接上、奥布莱恩号还没找到好位置）。
+5. 顺手修了几处「到了却走不动」的终点：九曲花街、苏特罗浴场、39 号码头、格林威治台阶、海德街码头，以及 L 线整理的 23 处景点到达点；飞到 Fort Point 不会再落到头顶的大桥上。自动检查从 12 处卡住降到 3 处（Fort Point 门口要 L 线改场地、野牛围场等 5 处等 E 线挪金币后接上、奥布莱恩号还没找到好位置）。
 6. 进度：本部分全部推送；手机（390 × 844、375 × 667）和电脑都实际打开看过；全部测试通过。
 
 ### What was built
@@ -262,15 +262,14 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
 
 ### Evidence
 
-- Commits on `origin/opus-bay`: `de13ff3` (N4), `e4c17c0` (N7 / N8), `af8f50f` (N8 这周), `964ad80` / `84b2783` /
-  `4acf0a1` (MF2 trip ends, site arrivals, the landing level). This report: the commit after them.
+- Commits on `origin/opus-bay`: `de13ff3` (N4), `e4c17c0` (N7 / N8), `af8f50f` (N8 这周), then three W5-N5 (MF2)
+  commits (the trip ends, the site arrivals, the landing level) and this report (their hashes after the last rebase: the
+  structured output).
 - Checks on the pushed head: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings
-  outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1,140 tests, 1,138 pass;
-  the 2 failures are lane L's and depend on the real Bay clock, not on this part: `sf-landmark-context` "D2-10: landmarks/tops.ts
-  is the measurement of the drawn lod 0" (ocean-beach-fire-rings: blocker tops) and `sf-sites-w4` "flags: every site … has a
-  pole" fail while the fire rings are lit (06:00–21:30 PT, `isFireRingLit` on the Bay clock): the same head passed at 05:15
-  PT (1,118 / 1,118) and `origin/opus-bay` without my commits fails the same two now (checked in a scratch worktree at
-  `af8f50f` and `7f0d8c7`). Request to L below. `tests/opus-bay-w5-nav.test.ts` 30 → 46: the card never hides its go button in the 352 × 388 and
+  outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1,158 / 1,158** (on
+  the base with lane L's `e889335`; before it, a run at 06:40 PT failed only lane L's two fire-ring tests, which read the
+  real Bay clock — the same failures on `origin/opus-bay` without my commits, checked in a scratch worktree — and the run
+  at 05:15 PT passed 1,118 / 1,118). `tests/opus-bay-w5-nav.test.ts` 30 → 46: the card never hides its go button in the 352 × 388 and
   337 × 307 frames (clear of the tools and the compass), the pan, long-press spots (standable / snapped / graph / place /
   land / the sea) and names, the quick rows start no search, the list pace, the card and chooser markup; the find chip, the
   announcer, the 金门大桥 deck area (and not at Fort Point), the objective owner, pass-by moments; phone pennants, the
@@ -349,15 +348,12 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
   bison-paddock #1 (−463.7, 1218.6), trail stop-haight #1 (−39.4, 760), cache sutro-heights-top, cache seward-slides-top
   (3.8 u from the Seward deck arrival 154.6, 838.9). The arrivals: `data/sf/siteArrivals.ts`.
 - **L**: Fort Point's apron (the door is BOXED: 1 of 4 ways; F's triage too) — then N drops nothing (the end stays);
-  route stop `r3-bison` at the bison paddock's site arrival (−464.9, 1220), then N takes it out of `SITE_ARRIVALS_WAITING`;
-  Irving St's site arrival (−248.1, 1124.99) is BOXED in the sweep (the old end −247.9, 1121.6 is a corridor).
+  (route stop `r3-bison` at the bison paddock's site arrival: done by lane L in `81d6178`; the paddock now waits for lane
+  E's trail #1 only, 1.8 u from it); Irving St's site arrival (−248.1, 1124.99) is BOXED in the sweep (the old end −247.9, 1121.6 is a corridor).
 - **F**: the sweep's `trip-end` numbers above are on this head; run 2 can count N's ends as fixed but Fort Point / bison /
   O'Brien.
 - **V** (W5-V3, the city-data move): OK from N to edit N's files in the window (`game/resume.ts`, `game/discovery.ts`,
   and any other of N's importers of the moved data).
-- **L (urgent, every lane's "fail 0")**: `tests/opus-bay-sf-landmark-context.test.ts` D2-10 (tops.ts) and
-  `tests/opus-bay-sf-sites-w4.test.ts` "flags … every site … has a pole" read the fire rings' drawn lod 0 at the real Bay
-  time: from 06:00 to 21:30 PT (the rings lit) they fail on `origin/opus-bay` itself. Pin the Bay clock in those tests
-  (`__setBayNowForTests`) or measure the rings unlit.
-- **Lead**: none frozen. My pushes of this part went up with the two failures above (not mine, present on origin; the
-  rest of the suite green).
+- ~~**L**: the fire-ring tests fail 06:00–21:30 PT on the real clock~~ — fixed by lane L in `e889335` (lane T found it
+  too); the final suite of this part ran on it.
+- **Lead**: none frozen.

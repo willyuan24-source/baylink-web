@@ -359,11 +359,11 @@ export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 
 
 /**
  * Lane L's site arrivals not taken yet, with the reason: the ones that wait for other lanes (lane E's coin spots within
- * 4 u of them, lane L's route stop r3-bison pinned to the old bison-paddock arrival: wired as soon as those move; Requests
+ * 4 u of them: wired as soon as those move; Requests
  * in docs/opus-bay/sf-w5-N.md), and the one lane F's sweep judges worse than the old end.
  */
 export const SITE_ARRIVALS_WAITING: Readonly<Record<string, string>> = {
-  'bison-paddock': 'lane E trail bison-paddock #1 within 3 u; lane L route stop r3-bison pinned to the old arrival',
+  'bison-paddock': 'lane E trail bison-paddock #1 1.8 u from it (lane L moved route stop r3-bison there: 81d6178)',
   'buena-vista-park': 'lane E trail buena-vista-park #5 and #6 within 3 u',
   'haight-ashbury': 'lane E trail stop-haight #1 within 3 u',
   'sutro-heights-park': 'lane E cache sutro-heights-top within 3 u',
