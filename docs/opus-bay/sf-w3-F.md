@@ -160,7 +160,7 @@ Relayed messages during part b: none.
 
 - 我把 F 线电车、渡轮、城市里的人群和小汽车、城市声音都读了代码，并在浏览器里（电脑 1440×900 和手机 390×844）一个个试过，找到 9 个真问题，其中 8 个由我修好并推上去了：刚进城马上坐电车会被"换"到另一辆车上、城市里的渡轮偶尔要多等一整圈（约 95 秒）才能坐、在码头等船就听到船上的发动机、降低画质或天黑时人群不变少、高空滑翔时人群不隐藏、远处叮当车掉头的声音太响等。
 - 第 9 个（渡轮开到海湾中间时跳船会被困在水面上）E2 的复查同时修好了（现在会提示"等船靠岸"），我确认过。
-- 剩下几个小问题要别的线处理（渡轮开动时仍显示"下车"按钮、F 线车站的提示图标是叮当车的），写在下面的 Requests 里。全部检查通过。
+- 剩下的小问题要别的线处理（渡轮开动时仍显示"下车"按钮等），写在下面的 Requests 里；F 线车站图标的问题 G 线刚刚修好了。全部检查通过（最终 726 个测试全过）。
 
 ### What I checked
 
@@ -191,7 +191,7 @@ Open (not fixed here):
 
 ### Evidence
 
-- Checks on the pushed head `60b3a05`: `tsc` 0, `eslint .` 0 errors (43 warnings, none in lane F files), **719 / 719** opus-bay tests in the run before the last rebase; on the rebased tree 720 tests, 719 pass and 1 failure, E2's wall-clock assert "a cached cell is cheap" (`opus-bay-sf-move2`) under load, 24 / 24 when that file is re-run. New tests: sf-fline (legacy hero ride), sf-ferry (waiting rider, leaving on the Bay), sf-life (ferry waits at Gate E; crowd thins in view), sf-transit (turned / bell by distance), audio (engine while waiting / aboard). Each fails on the code before its fix.
+- Checks: the report commit's rebased tree (on `f553560`) **726 / 726**, `tsc` 0. On the fix head `60b3a05`: `tsc` 0, `eslint .` 0 errors (43 warnings, none in lane F files), **719 / 719** opus-bay tests in the run before the last rebase; on the rebased tree 720 tests, 719 pass and 1 failure, E2's wall-clock assert "a cached cell is cheap" (`opus-bay-sf-move2`) under load, 24 / 24 when that file is re-run. New tests: sf-fline (legacy hero ride), sf-ferry (waiting rider, leaving on the Bay), sf-life (ferry waits at Gate E; crowd thins in view), sf-transit (turned / bell by distance), audio (engine while waiting / aboard). Each fails on the code before its fix.
 - Budget at Union Square (1440×900, high, day): with / without crowd + traffic 105 / 100 calls, 404.9k / 389.9k triangles, programs 51 / 51. Crowd 64 (near 18, far 46), traffic 24 (near 7), 0 overlaps. Night: 57 walkers, 19 cars.
 - Ferry hand-over at load: layer in at 15.3 s (1×), 19.4 s (4× CPU phone), within the dock window on these runs; with the fix the window no longer matters.
 - City audio: Ocean Beach `ocean 1` + surf crashes, Bayview shore `ocean 0` (the Pacific test holds on the Bay side), Golden Gate Park `park 0.81` + birds, Valencia & 24th `busk 1` (46 busker notes), Stow Lake no surf; the district builds no city layer and fetches none of the city chunks.
@@ -205,6 +205,6 @@ Open (not fixed here):
 |---|---|---|
 | wave 4 lane G | `ui/Hud.tsx` RideBanner, `ui/MoveChip.tsx` | On the ferry under way (`rideSystemFor('ferry').rideStatus()?.station == null`) moveSystem refuses the hop-off (等船靠岸), yet the banner still offers 提前下车 / Hop off here and the chip "SPACE Hop off": grey them or say "at the next dock". On spot `'deck'` the chip reads "Walk the aisle": "Walk the deck" (走走甲板). |
 | wave 4 lane T | `world/streetcar.ts`, `game/ride.ts` | §8.4 gives the hero F-line ride `line: 'streetcar'`. `Streetcars.update` tells a hero-loop ride from a city F-line ride by `r.line` (`city = fline && !(r && !r.line)`, plus the review's `legacyRide` / `fline.setActive`), and `rideSystemFor('streetcar')` answers the city F-line: keep a separate marker for a ride that runs on the hero loop (e.g. `kind` / a flag), or a hero ride begun before the layer came in is handed to the F-line system mid-ride again. |
-| (already routed by the lead, §8.4) | `ui/transitGlyph.ts` (G), `game/transit.ts` `?? quay` (T) | unchanged; confirmed still open in the code (F-line stations and `pier-41` show the cable-car glyph). |
+| (already routed by the lead, §8.4) | `game/transit.ts` `?? quay` (T) | still open. (The `ui/transitGlyph.ts` row of §8.4, open when this review checked it, landed in lane G's `4f5890a` W4-IG1 during the final rebase: F-line stations answer 'streetcar', `pier-41` 'ferry'.) |
 
 Relayed messages during the review: none.
