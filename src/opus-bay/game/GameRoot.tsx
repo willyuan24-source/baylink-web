@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
 import { loadCity } from '../world/cityLoader';
-import { initQualityPolicy } from '../world/quality';
+import { initQualityPolicy, nextWarmState } from '../world/quality';
 import { warmPrograms } from '../world/warmup';
 import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
@@ -100,12 +100,12 @@ function Warmup() {
   const scene = useThree(s => s.scene);
   const camera = useThree(s => s.camera);
   const offscreen = useGame(s => s.settings.quality === 'high' && !s.settings.reducedMotion);
-  const shadows = useGame(s => s.settings.quality !== 'low');
+  const quality = useGame(s => s.settings.quality);
   useEffect(() => {
     let gone = false;
     // after the world's own effects (fog, tone mapping, shadow map) and the first frames
     const id = window.setTimeout(() => {
-      void warmPrograms(gl, scene, camera, { offscreen }).then(r => {
+      void warmPrograms(gl, scene, camera, { offscreen, next: nextWarmState(quality) }).then(r => {
         if (gone || !import.meta.env.DEV) return;
         const w = window as unknown as { __opusBay?: Record<string, unknown> };
         w.__opusBay = { ...(w.__opusBay ?? {}), warmup: r };
@@ -113,6 +113,6 @@ function Warmup() {
       }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay warmup]', error); });
     }, 250);
     return () => { gone = true; window.clearTimeout(id); };
-  }, [gl, scene, camera, offscreen, shadows]);
+  }, [gl, scene, camera, offscreen, quality]);
   return null;
 }

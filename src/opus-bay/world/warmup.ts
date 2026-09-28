@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { BOX, C } from './builder';
-import { GROUND, GROUND_BATCH, GROUND_CITY, TOY, TOY_BATCH, TOY_INST, TOY_INST_TINT } from './materials';
+import { GROUND, GROUND_BATCH, GROUND_CITY, TOY, TOY_BATCH, TOY_DYN, TOY_INST, TOY_INST_TINT } from './materials';
 import { toyBuildingL1 } from './recipes/city';
 import { TypedBatch } from './typedBatch';
 
@@ -16,6 +16,9 @@ import { TypedBatch } from './typedBatch';
  *   GROUND_BATCH  · BatchedMesh with a colour texture                   → far ground pool (USE_BATCHING(_COLOR))
  *   TOY_INST      · InstancedMesh without instanceColor              → untinted instanced props
  *   TOY_INST_TINT · InstancedMesh with instanceColor                 → city trees / lamps, Karl's cloud bank
+ *   TOY_DYN       · plain Mesh                                        → moving single meshes (district ferries, cars,
+ *                                                                        clock hands, site animations; drawn from boot,
+ *                                                                        so this is for the next level's pass)
  *   depth         · MeshDepthMaterial BackSide / DoubleSide into a render target (the shadow pass of every caster
  *                   kind: plain Mesh = three's internal depth material; InstancedMesh with / without instanceColor =
  *                   kindSweep's own; BatchedMesh with / without colours = three's internal one with USE_BATCHING)
@@ -30,9 +33,23 @@ import { TypedBatch } from './typedBatch';
  * Wave 4 (lane V, W4-V8): a set registered after the boot warm-up is compiled on its own at once (see registerWarmup),
  * and the depth set covers the instanced and batched caster kinds (the "40–41 → 42 programs along a route" drift of
  * D2's routes QA was an instanced tinted caster's depth program and the hero labels linking on first sight).
+ * Part b: NEXT_WARM_MS after a full warm-up, in the background, (1) the live scene is compiled at the current level: what
+ * is on stage but not drawn yet (hidden until night, outside the view, a pool's spare: night beams, the sailboats' GLB
+ * material, HUD markers) no longer links on first sight; (2) the level the adaptive monitor would step down to is
+ * compiled, the dummies and the visible live objects (verify-phone: the step mid → low linked ≈ 20 programs at once,
+ * every key changes when shadows go off; high → mid changes the render path). The live objects go LIVE_BATCH at a time.
  */
 
 export interface WarmupResult { ms: number; before: number; after: number }
+
+/**
+ * A quality level's render state as far as program keys go: the render path (`offscreen`: tilt-shift post renders into a
+ * target, so no tone mapping in the program) and the shadow map (`shadows: false` = quality low: shadowMap off and no
+ * light casts, which changes every lit program's key).
+ */
+export interface WarmState { offscreen?: boolean; shadows?: boolean }
+/** Delay of the live-scene and next-level passes after a full warm-up (off the arrival; they link in the background). */
+export const NEXT_WARM_MS = 4000;
 
 /**
  * Day-0 hook (wave 2): other lanes add their program variants to the warm-up set from their own files (D2's model
@@ -52,11 +69,12 @@ export function registerWarmup(key: string, make: () => WarmupSet): () => void {
 }
 
 /** The render state of the last full warm-up (null until the first): late registrations compile against it. */
-let lastWarm: { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.Camera; opts: { offscreen?: boolean } } | null = null;
+let lastWarm: { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.Camera; opts: WarmState; next: WarmState | null } | null = null;
+let nextTimer: ReturnType<typeof setTimeout> | null = null;
 const lateKeys = new Set<string>();
 let lateTimer: ReturnType<typeof setTimeout> | null = null;
-/** The late warm-ups since boot (their keys and cost): `window.__opusWarmLate` in DEV. */
-export const lateWarmups: ({ keys: string[] } & WarmupResult)[] = [];
+/** The late warm-ups, live-scene and next-level passes since boot (their keys and cost): `window.__opusWarmLate` in DEV. */
+export const lateWarmups: ({ keys: string[] | 'all' | 'live'; next?: boolean } & WarmupResult)[] = [];
 if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __opusWarmLate?: unknown }).__opusWarmLate = lateWarmups;
 
 function scheduleLateWarm(key: string) {
@@ -71,6 +89,10 @@ function scheduleLateWarm(key: string) {
     if (!w || !keys.length) return;
     void compileSets(w.renderer, w.scene, w.camera, w.opts, keys)
       .then(r => { lateWarmups.push({ keys, ...r }); })
+      // the next level's variants of a late set: now when that level's pass already ran (else the pass covers them)
+      .then(() => w.next && nextTimer === null && lastWarm === w
+        ? compileSets(w.renderer, w.scene, w.camera, { ...w.next, depth: false }, keys).then(r => { lateWarmups.push({ keys, next: true, ...r }); })
+        : undefined)
       .catch(error => { if (import.meta.env?.DEV) console.warn('[opus-bay warmup late]', keys, error); });
   }, 30);
 }
@@ -97,6 +119,7 @@ function dummySet(base: boolean, keys: readonly string[] | null): { group: THREE
     toyMesh.receiveShadow = true;
     const groundMesh = new THREE.Mesh(groundGeo, GROUND);
     groundMesh.receiveShadow = true;
+    const dynMesh = new THREE.Mesh(toyGeo, TOY_DYN);
 
     const batched = (geo: THREE.BufferGeometry, material: THREE.Material) => {
       const index = geo.getIndex()!;
@@ -119,7 +142,7 @@ function dummySet(base: boolean, keys: readonly string[] | null): { group: THREE
     tinted.setColorAt(0, C('#ffffff'));
     tinted.receiveShadow = true;
 
-    group.add(toyMesh, groundMesh, toyPool, groundPool, props, tinted);
+    group.add(toyMesh, groundMesh, dynMesh, toyPool, groundPool, props, tinted);
     disposers.push(() => {
       toyGeo.dispose(); groundGeo.dispose(); propGeo.dispose();
       toyPool.dispose(); groundPool.dispose(); props.dispose(); tinted.dispose();
@@ -184,31 +207,101 @@ export function shadowDepthSet(): { group: THREE.Group; target: THREE.WebGLRende
  * Compile the city's program variants for the current render state (call after the world has mounted:
  * fog, shadow map and tone mapping must already be set). Safe to call again (e.g. after a quality change):
  * programs already linked are reused and the call resolves quickly. Later registrations compile against this call's
- * state (registerWarmup).
+ * state (registerWarmup). NEXT_WARM_MS later the live scene compiles at this level, then, when `next` is given (the render
+ * state of the level the adaptive monitor would step down to; null when it never steps: low, or a ?quality= link), the
+ * dummies and the live scene at that level.
  */
-export async function warmPrograms(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: { offscreen?: boolean } = {}): Promise<WarmupResult> {
-  lastWarm = { renderer, scene, camera, opts };
-  return compileSets(renderer, scene, camera, opts, null);
+export async function warmPrograms(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: WarmState & { next?: WarmState | null } = {}): Promise<WarmupResult> {
+  const w = lastWarm = { renderer, scene, camera, opts: { offscreen: opts.offscreen }, next: opts.next ?? null };
+  if (nextTimer !== null) { clearTimeout(nextTimer); nextTimer = null; }
+  const result = await compileSets(renderer, scene, camera, w.opts, null);
+  if (lastWarm === w) {
+    nextTimer = setTimeout(() => {
+      nextTimer = null;
+      if (lastWarm !== w) return;
+      const next = w.next;
+      void compileSets(renderer, scene, camera, { ...w.opts, depth: false, live: 'all' }, [])
+        .then(r => { lateWarmups.push({ keys: 'live', ...r }); })
+        // the next level: what could be on screen at the step (the dummies and the visible objects; a hidden one links
+        // on first sight at that level, as it would have at this one without the live pass)
+        .then(() => next && lastWarm === w
+          ? compileSets(renderer, scene, camera, { ...next, depth: false, live: 'visible' }, null).then(r => { lateWarmups.push({ keys: 'all', next: true, ...r }); })
+          : undefined)
+        .catch(error => { if (import.meta.env?.DEV) console.warn('[opus-bay warmup live / next]', error); });
+    }, NEXT_WARM_MS);
+  }
+  return result;
 }
 
-/** One compile pass: the base dummies + every set (`keys` null), or only the named late sets. */
-async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: { offscreen?: boolean }, keys: readonly string[] | null): Promise<WarmupResult> {
+/** Live-scene objects compiled per task (their links are awaited before the next batch: a deep queue of links stalled
+ * the next frame's first use of any new program ≈ 0.5 s on the RTX), and the pause between batches. */
+export const LIVE_BATCH = 1;
+export const LIVE_GAP_MS = 32;
+
+/**
+ * One object per material of the live scene (three's compile() takes each material once, with the first object that
+ * uses it: right under the one-material-per-object-kind rule): every object, or only the visible ones.
+ */
+export function liveObjects(scene: THREE.Object3D, visibleOnly: boolean): THREE.Object3D[] {
+  const seen = new Set<THREE.Material>();
+  const out: THREE.Object3D[] = [];
+  const visit = (o: THREE.Object3D) => {
+    const m = (o as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+    const drawn = (o as THREE.Mesh).isMesh || (o as THREE.Points).isPoints || (o as THREE.Line).isLine || (o as THREE.Sprite).isSprite;
+    if (!m || !drawn || o.name.startsWith('ob-warmup')) return;
+    const first = Array.isArray(m) ? m[0] : m;
+    if (!first || seen.has(first)) return;
+    seen.add(first);
+    out.push(o);
+  };
+  if (visibleOnly) scene.traverseVisible(visit); else scene.traverse(visit);
+  return out;
+}
+
+/**
+ * Run `f` (synchronous compile calls: three's compile() is synchronous, compileAsync only waits for the links) with the
+ * render state in place: the render target of the path (tone mapping / output colour space are keyed on it) and, for
+ * `noShadows`, no shadow map and no casting light (quality low).
+ */
+function inState<T>(renderer: THREE.WebGLRenderer, scene: THREE.Scene, noShadows: boolean, target: THREE.WebGLRenderTarget | null, f: () => T): T {
+  const prevTarget = renderer.getRenderTarget();
+  const lift = noShadows && renderer.shadowMap.enabled;
+  const lifted: THREE.Object3D[] = [];
+  renderer.setRenderTarget(target);
+  if (lift) {
+    renderer.shadowMap.enabled = false;
+    scene.traverse(o => { if ((o as THREE.Light).isLight && o.castShadow) { o.castShadow = false; lifted.push(o); } });
+  }
+  try { return f(); } finally {
+    if (lift) { renderer.shadowMap.enabled = true; for (const o of lifted) o.castShadow = true; }
+    renderer.setRenderTarget(prevTarget);
+  }
+}
+
+const inScene = (o: THREE.Object3D, scene: THREE.Object3D) => { let p: THREE.Object3D | null = o; while (p && p !== scene) p = p.parent; return p === scene; };
+
+/**
+ * One compile pass: the base dummies + every set (`keys` null), or only the named late sets, for the render state `opts`
+ * (`shadows: false`: the shadow map and every light's castShadow lifted for the synchronous compile calls only; `depth:
+ * false` skips the shadow pass's programs: the next level shares them or has none; `live`: then the live scene's objects,
+ * all or the visible ones, LIVE_BATCH at a time).
+ */
+async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: WarmState & { depth?: boolean; live?: 'all' | 'visible' }, keys: readonly string[] | null): Promise<WarmupResult> {
   const t0 = performance.now();
   const before = programsCount(renderer);
   const { group, dispose } = dummySet(keys === null, keys);
   const prevTarget = renderer.getRenderTarget();
   const target = opts.offscreen ? new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }) : null;
+  const noShadows = opts.shadows === false;
   try {
-    // the program key reads the current render target (tone mapping / output colour space) at compile time
-    renderer.setRenderTarget(target);
-    const pending = renderer.compileAsync(group, camera, scene);
-    renderer.setRenderTarget(prevTarget);
+    // a background pass (`live`) compiles the dummies LIVE_BATCH at a time too (below)
+    const pending = group.children.length && !opts.live ? inState(renderer, scene, noShadows, target, () => renderer.compileAsync(group, camera, scene)) : null;
     // the shadow pass's own depth programs (P5, E2's wave-3 request 3: one linked on the first high glide in city
     // mode): into the shadow map (a render target: no tone mapping, linear output); the shadow pass renders without a
     // scene: no fog in the key — the scene's fog is lifted while the keys are made. A late pass needs them only when
     // one of its objects casts (they are linked already after the boot pass: the call resolves at once).
-    let casts = keys === null;
-    if (!casts) group.traverse(o => { if (o.castShadow) casts = true; });
+    let casts = keys === null && opts.depth !== false;
+    if (!casts && opts.depth !== false) group.traverse(o => { if (o.castShadow) casts = true; });
     const shadow = renderer.shadowMap.enabled && casts ? shadowDepthSet() : null;
     if (shadow) {
       const fog = scene.fog;
@@ -219,6 +312,14 @@ async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
       await p.finally(shadow.dispose);
     }
     await pending;
+    if (opts.live) {
+      const objects = [...group.children, ...liveObjects(scene, opts.live === 'visible')];
+      for (let i = 0; i < objects.length; i += LIVE_BATCH) {
+        const batch = objects.slice(i, i + LIVE_BATCH).filter(o => o.parent === group || inScene(o, scene));
+        if (batch.length) await inState(renderer, scene, noShadows, target, () => Promise.all(batch.map(o => renderer.compileAsync(o, camera, scene))));
+        await new Promise(r => setTimeout(r, LIVE_GAP_MS));
+      }
+    }
   } finally {
     renderer.setRenderTarget(prevTarget);
     target?.dispose();
@@ -230,6 +331,7 @@ async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
 /** Test hook: forget the last warm-up's render state (no late passes until the next warmPrograms). */
 export function resetWarmupState() {
   lastWarm = null;
+  if (nextTimer !== null) { clearTimeout(nextTimer); nextTimer = null; }
   lateKeys.clear();
   if (lateTimer !== null) { clearTimeout(lateTimer); lateTimer = null; }
 }

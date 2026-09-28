@@ -123,6 +123,15 @@ export function initQualityPolicy(): void {
   });
 }
 
+/**
+ * The render state of the level the monitor would step down to, for the warm-up (world/warmup.ts `next`): null when it
+ * never steps (low, or a ?quality= link: the monitor is off). The next level never has the post path (high only).
+ */
+export function nextWarmState(q: Quality): { shadows: boolean } | null {
+  const next = decided?.reason === 'url' ? null : declineFrom(q);
+  return next && { shadows: next !== 'low' };
+}
+
 /** The monitor saw a slow stretch: one step down for this visit (never saved, never back up). Returns the new level. */
 export function declineQuality(): Quality | null {
   const q = game.get().settings.quality;

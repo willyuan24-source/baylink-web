@@ -437,3 +437,67 @@ test('W4-V8: a warm-up set registered after the boot warm-up compiles by itself 
   for (const off of [offEarly, offA, offB]) off();
   warm.resetWarmupState();
 });
+
+test('W4-V part b: one live object per material (all, or only the visible ones), never a warm-up dummy', async () => {
+  const { liveObjects } = await import('../src/opus-bay/world/warmup');
+  const scene = new THREE.Scene();
+  const mA = new THREE.MeshBasicMaterial(), mB = new THREE.MeshBasicMaterial(), mC = new THREE.MeshBasicMaterial();
+  const a = new THREE.Mesh(new THREE.BoxGeometry(), mA); a.name = 'a';
+  const a2 = new THREE.Mesh(new THREE.BoxGeometry(), mA); a2.name = 'a2';
+  const hidden = new THREE.Group(); hidden.visible = false;
+  const b = new THREE.Mesh(new THREE.BoxGeometry(), mB); b.name = 'b';
+  hidden.add(b);
+  const dummy = new THREE.Mesh(new THREE.BoxGeometry(), mC); dummy.name = 'ob-warmup-x';
+  scene.add(a, a2, hidden, dummy, new THREE.Object3D());
+  assert.deepEqual(liveObjects(scene, false).map(o => o.name), ['a', 'b'], 'the first object per material (three\'s own rule), hidden ones too');
+  assert.deepEqual(liveObjects(scene, true).map(o => o.name), ['a'], 'visible only');
+});
+
+test('W4-V part b: the live scene at this level, then the next level (dummies + visible objects) with the shadows lifted only during each compile', async t => {
+  const warm = await import('../src/opus-bay/world/warmup');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const calls: { names: string[]; shadowMap: boolean; sunCasts: boolean; target: unknown }[] = [];
+  let target: unknown = null;
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  const sun = new THREE.DirectionalLight(); sun.castShadow = true;
+  const seen = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); seen.name = 'seen';
+  const twin = new THREE.Mesh(new THREE.BoxGeometry(), seen.material); twin.name = 'twin';
+  const night = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); night.name = 'night-only'; night.visible = false;
+  scene.add(sun, seen, twin, night);
+  const renderer = {
+    info: { programs: [] as unknown[] },
+    shadowMap: { enabled: true },
+    getRenderTarget: () => target,
+    setRenderTarget: (tg: unknown) => { target = tg; },
+    compileAsync: (root: THREE.Object3D) => {
+      const names: string[] = [];
+      root.traverse(o => { if (o.name && !o.name.startsWith('ob-warmup')) names.push(o.name); });
+      calls.push({ names, shadowMap: renderer.shadowMap.enabled, sunCasts: sun.castShadow, target });
+      renderer.info.programs.push({});
+      return Promise.resolve();
+    },
+  } as unknown as THREE.WebGLRenderer;
+  const drive = async (ms: number) => { for (let i = 0; i < ms / 8; i++) { for (let k = 0; k < 6; k++) await Promise.resolve(); t.mock.timers.tick(8); } };
+  warm.resetWarmupState();
+  const off = warm.registerWarmup('t-set', () => { const o = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()); o.name = 'set'; return { objects: [o] }; });
+  const pBoot = warm.warmPrograms(renderer, scene, camera, { offscreen: false, next: { shadows: false } });
+  await drive(8);
+  await pBoot;
+  const boot = calls.filter(c => c.names.includes('set'));
+  assert.ok(boot.length >= 1 && boot.every(c => c.shadowMap && c.sunCasts), 'the boot pass at this level');
+  const nBoot = calls.length;
+  await drive(warm.NEXT_WARM_MS - 100);
+  assert.equal(calls.length, nBoot, 'nothing more before NEXT_WARM_MS');
+  await drive(100 + (warm.LIVE_GAP_MS + 8) * 40);
+  const later = calls.slice(nBoot);
+  const live = later.filter(c => c.shadowMap), next = later.filter(c => !c.shadowMap);
+  assert.deepEqual(live.map(c => c.names), [['seen'], ['night-only']], 'the live scene at this level: one call per material, hidden objects too');
+  assert.ok(next.length > 3 && next.every(c => !c.sunCasts), 'the next level (low): no shadow map, no casting light, during every call');
+  assert.ok(next.some(c => c.names.includes('set')), 'the next level compiles the registered sets');
+  assert.ok(next.some(c => c.names.includes('seen')) && !next.some(c => c.names.includes('night-only')) && !next.some(c => c.names.includes('twin')), 'and the visible live objects');
+  assert.ok(later.every(c => c.names.length <= 1), 'LIVE_BATCH = 1: one object per compile call');
+  assert.ok(renderer.shadowMap.enabled && sun.castShadow && target === null, 'the state is restored after the passes');
+  assert.deepEqual(warm.lateWarmups.slice(-2).map(l => [l.keys, !!l.next]), [['live', false], ['all', true]]);
+  off();
+  warm.resetWarmupState();
+});

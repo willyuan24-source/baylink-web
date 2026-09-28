@@ -77,13 +77,15 @@ test('a pick back to the automatic level is remembered (verify-code F3: phone mi
   try {
     const { game } = await import('../src/opus-bay/core/store');
     const { keepSetting } = await import('../src/opus-bay/data/wishlist');
-    const { initQualityPolicy, declineQuality, qualityDecision, QUALITY_CHOICE_KEY } = await import('../src/opus-bay/world/quality');
+    const { initQualityPolicy, declineQuality, qualityDecision, nextWarmState, QUALITY_CHOICE_KEY } = await import('../src/opus-bay/world/quality');
     // the Settings panel's own write path (ui/Settings.tsx setSetting)
     const pick = (q: 'high' | 'mid' | 'low') => { keepSetting('quality'); game.set(s => ({ settings: { ...s.settings, quality: q } })); };
     initQualityPolicy();
     assert.deepEqual(qualityDecision(), { quality: 'mid', reason: 'device' });
     assert.equal(game.get().settings.quality, 'mid');
     assert.equal(store.get(QUALITY_CHOICE_KEY), undefined, 'the automatic start level is not a choice');
+    // the warm-up's next level (world/warmup.ts): the monitor's step from each level, as program keys see it
+    assert.deepEqual([nextWarmState('high'), nextWarmState('mid'), nextWarmState('low')], [{ shadows: true }, { shadows: false }, null]);
     pick('high');
     assert.equal(store.get(QUALITY_CHOICE_KEY), 'high');
     pick('mid');
