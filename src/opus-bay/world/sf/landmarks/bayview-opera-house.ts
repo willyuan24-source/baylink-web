@@ -2,7 +2,8 @@ import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
 import { LIT, NONE, box, gable, prismXZ, worldPoly } from './kit';
 import { FC, GC, PAT, type SiteGroundPoly, type W4Site, gfill, lamp, plazaOf, tree } from './siteKit';
-import { boulder, box3, site3Ground } from './siteKit3';
+import { boulder, box3, site3Ground, standSpot } from './siteKit3';
+import { type CornerDef, type CornerSign, awning, cornerMount, ironSeats, shopfront, sitter } from './cornerKit';
 
 /**
  * Bayview Opera House · Ruth Williams Memorial Theatre (wave 4, P4 · map T3, the south-east anchor): built in 1888 at
@@ -100,6 +101,63 @@ const BLOCKERS = [
   ...ROCKS.map(([x, z, s]) => ({ x, z, r: s * 0.9 })),
 ];
 
+// ---------------------------------------------------------------------------
+// W5-L4 · signature corner 4 (plan §3.6): 3rd Street by the T line — colourful storefronts, neighbours at the stop
+// ---------------------------------------------------------------------------
+
+/**
+ * South of Oakdale Avenue, 3rd Street's Oakdale / Palou stop (the T Third's island platform in the median, also signed
+ * "Opera House"; a transfer to the 15, 23, 24, 44 and 54 buses) faces a small plaza on its east side "outfitted with a
+ * series of bolted iron seats facing the Muni stop" (Mission Local, 2010), where neighbours wait and watch the street.
+ * Toy: that seat row on the plaza by Mendell Street, two neighbours sitting and three standing by day, and the shops
+ * either side painted in bright colours (the city's buildings; generic trade words on the plaques, never a shop's name):
+ * the east row's west wall at x 4.06 (OSM way 288916199), the west row's face on 3rd Street (way 3834354).
+ */
+const STOP = { x: -1.4, z: 11.5 };
+const SEATS_AT = { x: 3.3, z: 11.1, n: 5, gap: 0.55 };
+const seatZ = (i: number) => SEATS_AT.z + (i - (SEATS_AT.n - 1) / 2) * SEATS_AT.gap;
+const EAST_WALL = 4.06, WEST_A = { x: -5.79, z: 10.08 }, WEST_C = { x: -4.51, z: 13.77 };
+const WEST_RY = Math.atan2(WEST_C.z - WEST_A.z, -(WEST_C.x - WEST_A.x));
+const westAt = (t: number) => ({ x: WEST_A.x + (WEST_C.x - WEST_A.x) * t, z: WEST_A.z + (WEST_C.z - WEST_A.z) * t });
+/** the storefronts: foot centre, width, facing yaw, painted colour, awning colour, plaque */
+const STORES: { at: Vec2; w: number; ry: number; paint: string; awn: string; sign: string }[] = [
+  { at: { x: EAST_WALL, z: 11.0 }, w: 2.2, ry: -Math.PI / 2, paint: '#e0a94a', awn: '#c9473a', sign: 'soul-food' },
+  { at: { x: EAST_WALL, z: 13.9 }, w: 2.4, ry: -Math.PI / 2, paint: '#7a4fa0', awn: '#e8d44d', sign: 'market' },
+  { at: westAt(0.28), w: 1.8, ry: WEST_RY, paint: '#d8544a', awn: '#2f8f88', sign: 'deli' },
+  { at: westAt(0.74), w: 1.6, ry: WEST_RY, paint: '#4f7fbf', awn: '#f28c3a', sign: 'records' },
+];
+/** the neighbours standing on the plaza, facing the stop (walked ground, standable at 0.3 u) */
+const WAITING: Vec2[] = [{ x: 2.1, z: 9.7 }, { x: 2.65, z: 12.4 }, { x: 2.65, z: 13.3 }];
+
+export const THIRD_STREET_CORNER: CornerDef = {
+  id: 'third-street',
+  order: 4,
+  site: ID,
+  frame: { x: X0, z: Z0, yaw: YAW },
+  name: { zh: '第三街 · 湾景区', en: '3rd Street, the Bayview' },
+  ambient: { zh: '车站旁铁椅上等车的街坊', en: 'neighbours on the iron seats by the stop' },
+  box: [-7, 9, 5, 16],
+  windows: { day: { from: 6 * 60, to: 21 * 60 + 30 } },
+  signs: ground => STORES.map((st): CornerSign => {
+    const fx = Math.sin(st.ry), fz = Math.cos(st.ry);
+    return { id: st.sign, x: st.at.x + fx * 0.03, y: ground.at(st.at.x + fx * 0.3, st.at.z + fz * 0.3) + 2.62, z: st.at.z + fz * 0.03, ry: st.ry, w: Math.min(1.1, st.w - 0.5) };
+  }),
+  build: (b, ground, on) => {
+    for (const st of STORES) {
+      const fx = Math.sin(st.ry), fz = Math.cos(st.ry), y = ground.at(st.at.x + fx * 0.3, st.at.z + fz * 0.3);
+      shopfront(b, st.at.x, st.at.z, st.w, st.ry, y, st.paint);
+      awning(b, st.at.x + fx * 0.05, st.at.z + fz * 0.05, st.w - 0.1, st.ry, y + 2.18, 0.42, st.awn);
+    }
+    ironSeats(b, SEATS_AT.x, ground.at(SEATS_AT.x, SEATS_AT.z), SEATS_AT.z, -Math.PI / 2, SEATS_AT.n);
+    if (on.has('day')) for (const [k, i] of [1, 3].entries()) sitter(b, SEATS_AT.x, ground.at(SEATS_AT.x, seatZ(i)), seatZ(i), -Math.PI / 2, k * 3);
+  },
+  crowds: [{ key: 'waiting', when: 'day', spots: WAITING, face: STOP, lane: { ax: -3, az: 7.95, bx: 5, bz: 7.95 } }],
+  // the seat row (always there: soft, the site's walk data stays the opera house's lot)
+  soft: Array.from({ length: SEATS_AT.n }, (_, i) => ({ x: SEATS_AT.x, z: seatZ(i), r: 0.28 })),
+  cache: 'third-street',
+  plaza: WAITING.map(p => standSpot(p).poly),
+};
+
 /** exclusion: the lot (the hall, the plaza to x 6.0 south of z 3.0); its west edge is 3rd Street's east kerb */
 const EXCLUDE: Vec2[] = [{ x: -1.72, z: -2.1 }, { x: 4.3, z: -2.1 }, { x: 4.3, z: 2.9 }, { x: 6.1, z: 2.9 }, { x: 6.1, z: 6.0 }, { x: 0.75, z: 6.0 }, { x: -0.3, z: 3.25 }, { x: -1.7, z: -0.35 }];
 
@@ -118,7 +176,9 @@ export const bayviewOperaHouse: W4Site = {
   lights: [{ x: 3.6, y: g.at(3.6, 2.6) + 3.8, z: 2.6, size: 1, color: '#ffd9a0' }, { x: 0.7, y: g.at(0.7, 3.5) + 2.2, z: 3.6, size: 1.4, color: '#ffe0b0' }],
   // the crowd: the plaza by the stage and the forecourt east of the hall (the lot as one polygon left a single spot on
   // the crowd's 2.5 u grid: the hall, the stage and the rocks take the rest; W4-L3-review)
-  plaza: [plazaOf(LOT), plazaOf([{ x: 1.6, z: -1.9 }, { x: 4.1, z: -1.9 }, { x: 4.1, z: 2.9 }, { x: 1.6, z: 2.9 }])],
+  plaza: [plazaOf(LOT), plazaOf([{ x: 1.6, z: -1.9 }, { x: 4.1, z: -1.9 }, { x: 4.1, z: 2.9 }, { x: 1.6, z: 2.9 }]), ...WAITING.map(p => standSpot(p))],
+  // W5-L4: 3rd Street's corner by the Oakdale / Palou stop (landmarks/cornerKit.ts)
+  mount: cornerMount(THIRD_STREET_CORNER),
   w4: {
     placeId: 'osm-w288836717',
     attractions: ['bayview-opera-house'],

@@ -1,6 +1,8 @@
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
+import { type CornerDef, type CornerSign, bladeSign, cornerMount } from './cornerKit';
 import { worldPoly } from './kit';
-import { type ShopBlock, shopBlockers, shopExclude, shopFronts, shopGround, shopLights } from './shopStreet';
+import { type ShopBlock, shopBlockers, shopBoard, shopExclude, shopFronts, shopGapX, shopGround, shopLights } from './shopStreet';
 import { type W4Site, siteGround } from './siteKit';
 
 /**
@@ -36,6 +38,63 @@ const SIDEWALK_SPOTS: [number, -1 | 1][] = [[-4.2, -1], [0.3, -1], [3.0, -1], [-
 
 function build(b: BatchLike, lod: 0 | 2) { shopFronts(b, BLOCK, g, lod); }
 
+// ---------------------------------------------------------------------------
+// W5-L4 · signature corner 2 (plan §3.6): bookshop and dim-sum windows, shoppers at the produce stands
+// ---------------------------------------------------------------------------
+
+/** the painted plaques on the blank boards: [side, bay, sign] (generic trade words of lane V's atlas, never a name) */
+const BOARDS: [-1 | 1, number, string][] = [
+  [1, 0, 'produce'], [1, 1, 'books'], [1, 2, 'bakery'], [1, 3, 'grocery'], [1, 4, 'tea'],
+  [-1, 0, 'hardware'], [-1, 1, 'produce'], [-1, 2, 'noodles'], [-1, 3, 'dim-sum'], [-1, 4, 'flowers'],
+];
+/** blade signs over the sidewalk (read along the street), clear of the two street trees' crowns: [side, gap, sign] */
+const BLADES: [-1 | 1, number, string][] = [[1, 2, 'books'], [1, 3, 'bakery'], [-1, 2, 'noodles'], [-1, 4, 'dim-sum']];
+const BLADE_W = 0.7;
+/**
+ * shoppers beside two produce stands, each group facing its stand, on the walked strip of the sidewalk (the kerb half,
+ * z ±1.3–1.5: the shopfronts' footprints reach past the facade line), clear of the trees and lamps
+ */
+const SHOPPERS: { at: Vec2[]; stand: Vec2 }[] = [
+  { at: [{ x: -2.45, z: 1.4 }, { x: -1.6, z: 1.4 }], stand: { x: -3.6, z: 1.5 } },
+  { at: [{ x: 0.0, z: -1.4 }], stand: { x: -1.8, z: -1.5 } },
+];
+/**
+ * the crowd's clear lane: the zebra crossing at 5th Avenue (the shoppers stand on both sidewalks, so a lane along the
+ * street would push one side's into the shopfronts; T's lanes move every group's standers)
+ */
+const LANE = { ax: BLOCK.x0 - 0.8, az: -2.2, bx: BLOCK.x0 - 0.8, bz: 2.2 };
+const SHOPPER_SPOTS: Vec2[][] = SHOPPERS.flatMap(({ at }) => at.map(p => [{ x: p.x - 0.2, z: p.z - 0.08 }, { x: p.x + 0.2, z: p.z - 0.08 }, { x: p.x + 0.2, z: p.z + 0.08 }, { x: p.x - 0.2, z: p.z + 0.08 }]));
+
+function blades(b: BatchLike | null): CornerSign[] {
+  const out: CornerSign[] = [];
+  const sink = b ?? { add() { return this; } } as unknown as BatchLike;
+  for (const [side, gap, id] of BLADES) {
+    const x = shopGapX(BLOCK, gap), zf = side * BLOCK.half, y = g.at(x, zf);
+    out.push(...bladeSign(sink, id, x, y + 3.02, zf - side * 0.08, zf - side * (0.08 + BLADE_W), BLADE_W));
+  }
+  return out;
+}
+
+export const CLEMENT_CORNER: CornerDef = {
+  id: 'clement',
+  order: 2,
+  site: ID,
+  frame: { x: X0, z: Z0, yaw: YAW },
+  name: { zh: '克莱门特街 · 里士满区', en: 'Clement Street, the Richmond' },
+  ambient: { zh: '菜摊前挑菜的街坊', en: 'shoppers at the produce stands' },
+  box: [-6, -2.2, 6, 2.2],
+  windows: { day: { from: 9 * 60, to: 19 * 60 } },
+  ground: g,
+  signs: () => [
+    ...BOARDS.map(([side, bay, id]): CornerSign => { const k = shopBoard(BLOCK, side, bay); return { id, x: k.x, y: g.at(k.x, k.zf) + k.dy, z: k.z, ry: k.ry, w: 1.0 }; }),
+    ...blades(null),
+  ],
+  build: b => { blades(b); },
+  crowds: SHOPPERS.map(({ at, stand }, i) => ({ key: `shoppers-${i}`, when: 'day', spots: at, face: stand, lane: LANE })),
+  cache: 'clement-street',
+  plaza: SHOPPER_SPOTS,
+};
+
 export const clementStreet: W4Site = {
   id: ID,
   tier: 3,
@@ -50,7 +109,13 @@ export const clementStreet: W4Site = {
   ground: shopGround(BLOCK, g),
   lights: shopLights(BLOCK, g),
   // the two sidewalks (a crowd spot is never on the carriageway: the crowd stands exactly there)
-  plaza: SIDEWALK_SPOTS.map(([x, side]) => ({ poly: [{ x: x - 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.5 }, { x: x - 0.5, z: side * 1.5 }], surface: 'pavement' as const })),
+  plaza: [
+    ...SIDEWALK_SPOTS.map(([x, side]) => ({ poly: [{ x: x - 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.22 }, { x: x + 0.5, z: side * 1.5 }, { x: x - 0.5, z: side * 1.5 }], surface: 'pavement' as const })),
+    // W5-L4: where the shoppers stand beside the produce stands
+    ...SHOPPER_SPOTS.map(poly => ({ poly, surface: 'pavement' as const })),
+  ],
+  // W5-L4: the corner's plaques, blade signs and shoppers (landmarks/cornerKit.ts)
+  mount: cornerMount(CLEMENT_CORNER),
   w4: {
     placeId: 'clement-street',
     attractions: ['clement-street'],

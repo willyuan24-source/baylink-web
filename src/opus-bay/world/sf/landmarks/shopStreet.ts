@@ -95,6 +95,20 @@ export function shopFronts(b: BatchLike, k: ShopBlock, g: SiteGround, lod: 0 | 2
   }
 }
 
+/**
+ * W5-L4: a bay's blank signboard as the corner's plaques see it: the board's street face (local x, z), the yaw that
+ * faces the street, its height over the ground at the facade (`dy`) and its width. (shopFronts draws the board 0.12 u
+ * deep against the facade, 0.45 u high, at 2.65 u.)
+ */
+export function shopBoard(k: ShopBlock, side: -1 | 1, bay: number): { x: number; z: number; ry: number; dy: number; w: number; zf: number } {
+  const zf = side * k.half;
+  return { x: bayX(k, bay), z: zf - side * 0.12, ry: side > 0 ? Math.PI : 0, dy: 2.65, w: bayW(k) - 0.6, zf };
+}
+/** W5-L4: local x of the gap between bays i − 1 and i (0 … bays): where a blade sign hangs clear of both awnings and boards */
+export const shopGapX = (k: ShopBlock, i: number) => k.x0 + 0.3 + bayW(k) * i;
+/** W5-L4: a produce stand's footprint along the street (local x from, to), as its blocker has it */
+export function shopStandSpan(k: ShopBlock, bay: number): [number, number] { const hw = standW(k) / 2 + 0.1; return [bayX(k, bay) - hw, bayX(k, bay) + hw]; }
+
 /** walk blockers of the stands, trees and lamps */
 export function shopBlockers(k: ShopBlock): Blocker[] {
   const out: Blocker[] = [];

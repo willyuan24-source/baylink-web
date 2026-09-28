@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
+import { type CornerDef, type CornerSign, awning, cornerMount, guitarist, paperString } from './cornerKit';
 import { worldPoly } from './kit';
 import type { W4Site } from './siteKit';
 import { box3, site3Ground, standSpot } from './siteKit3';
@@ -70,6 +71,58 @@ function build(b: BatchLike, lod: 0 | 2) {
  */
 const WALKS: Vec2[] = [{ x: -1.0, z: 0.2 }, { x: 0.5, z: 0.2 }, { x: 3.0, z: 0.2 }, { x: 0.5, z: 3.85 }, { x: 4.2, z: 3.85 }];
 
+// ---------------------------------------------------------------------------
+// W5-L4 · signature corner 3 (plan §3.6): papel-picado strings across the street, taquería awnings, a guitarist
+// ---------------------------------------------------------------------------
+
+/**
+ * the shopfronts dressed (the city's buildings: the north fronts at z −0.2, the south at 4.2): an awning each (plain
+ * colour, never a mural or a sign copied) and a painted plaque of lane V's atlas above it (Spanish trade words first,
+ * as 24th Street's shops are signed). North, only between the banners and clear of the street tree's crown.
+ */
+const FRONTS: { x0: number; x1: number; side: -1 | 1; color: string; sign: string; w: number }[] = [
+  { x0: -2.1, x1: -0.8, side: -1, color: '#d8544a', sign: 'panaderia', w: 1.0 },
+  { x0: -0.6, x1: 1.0, side: -1, color: '#e0a94a', sign: 'taqueria', w: 1.1 },
+  { x0: 1.1, x1: 2.6, side: -1, color: '#2f8f88', sign: 'mercado', w: 1.0 },
+  { x0: 0.35, x1: 1.3, side: 1, color: '#f28c3a', sign: 'barber', w: 0.85 },
+  { x0: 2.35, x1: 4.35, side: 1, color: '#3fb37f', sign: 'cafe', w: 1.0 },
+];
+/** the fronts' wall lines (local z) by the way they face */
+const WALL = { [1]: -0.2, [-1]: 4.2 } as const;
+/** the guitarist on the south sidewalk under the taquería's awning, his case along the wall toward Harrison */
+const BUSKER = { x: 1.5, z: 3.9 };
+/** his listeners: two on his sidewalk, two across the street on the north one (walked spots, standable at 0.3 u) */
+const LISTENERS: Vec2[] = [{ x: -0.3, z: 3.8 }, { x: 2.4, z: 3.8 }, { x: 0.6, z: 0.15 }, { x: 1.2, z: 0.15 }];
+
+export const CALLE_24_CORNER: CornerDef = {
+  id: 'calle-24',
+  order: 3,
+  site: ID,
+  frame: { x: X0, z: Z0, yaw: YAW },
+  name: { zh: '24 街 · 教会区', en: '24th Street, the Mission' },
+  ambient: { zh: '塔可店檐下弹吉他的街头艺人', en: 'a guitarist under a taquería awning' },
+  box: [-3, -0.6, 6, 4.6],
+  windows: { afternoon: { from: 12 * 60, to: 20 * 60 } },
+  signs: ground => FRONTS.map((f): CornerSign => {
+    const x = (f.x0 + f.x1) / 2, zf = WALL[f.side];
+    return { id: f.sign, x, y: ground.at(x, zf + f.side * 0.3) + 2.62, z: zf + f.side * 0.02, ry: f.side > 0 ? 0 : Math.PI, w: f.w };
+  }),
+  build: (b, ground, on) => {
+    for (const f of FRONTS) { const x = (f.x0 + f.x1) / 2, zf = WALL[f.side]; awning(b, x, zf, f.x1 - f.x0, f.side > 0 ? 0 : Math.PI, ground.at(x, zf + f.side * 0.3) + 2.22, 0.45, f.color); }
+    // papel picado across the street, from the banner poles' tops to hooks on the south fronts, and along the south fronts
+    const V = (x: number, dy: number, z: number) => new THREE.Vector3(x, ground.at(x, z) + dy, z);
+    paperString(b, V(-1.5, 3.62, 0.0), V(-1.1, 3.95, 4.15), PAPER, 0.3, 1);
+    paperString(b, V(1.6, 3.62, 0.0), V(2.05, 3.95, 4.15), PAPER, 0.3, 4);
+    paperString(b, V(4.7, 3.62, 0.0), V(5.0, 3.95, 4.15), PAPER, 0.3, 2);
+    paperString(b, V(-2.1, 3.55, 4.12), V(2.6, 3.55, 4.12), PAPER, 0.22, 5);
+    if (on.has('afternoon')) guitarist(b, BUSKER.x, ground.at(BUSKER.x, BUSKER.z), BUSKER.z, Math.PI, 1, 0.75);
+  },
+  crowds: [{ key: 'listeners', when: 'afternoon', spots: LISTENERS, face: BUSKER, lane: { ax: -6, az: 2.0, bx: 8, bz: 2.0 } }],
+  soft: [{ when: 'afternoon', x: BUSKER.x, z: BUSKER.z, r: 0.3, kind: 'person' }, { when: 'afternoon', x: BUSKER.x - 0.75, z: 3.95, r: 0.3 }],
+  cache: 'calle-24',
+  plaza: LISTENERS.map(p => standSpot(p).poly),
+};
+
 export const calle24: W4Site = {
   id: ID,
   tier: 3,
@@ -83,7 +136,10 @@ export const calle24: W4Site = {
   exclude: { poly: worldPoly(X0, Z0, YAW, [{ x: -2.6, z: -0.18 }, { x: 5.4, z: -0.18 }, { x: 5.4, z: 0.1 }, { x: -2.6, z: 0.1 }]) },
   build,
   walk: { blockers: [...POLES.map(x => ({ x, z: ZP, r: 0.1 })), { poly: [{ x: -2.48, z: -0.15 }, { x: -1.92, z: -0.15 }, { x: -1.92, z: 0.15 }, { x: -2.48, z: 0.15 }] }] },
-  plaza: WALKS.map(p => standSpot(p)),
+  // (W5-L4: + the guitarist's listeners)
+  plaza: [...WALKS, ...LISTENERS].map(p => standSpot(p)),
+  // W5-L4: the corner's awnings, plaques, papel picado across the street and the afternoon guitarist (landmarks/cornerKit.ts)
+  mount: cornerMount(CALLE_24_CORNER),
   w4: {
     placeId: 'calle-24',
     attractions: ['calle-24'],
