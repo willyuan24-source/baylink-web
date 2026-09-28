@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts'];
+  const partC = ['marshmallow.ts', 'heave.ts'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1148,4 +1148,95 @@ test('W5-A9 marshmallow round: holds the feet, hold to toast and let go at golde
     assert.equal(M.toastState(), null);
     assert.equal(lockHeld(), false);
   } finally { mock.timers.reset(); off(); M.__resetMarshmallow(); __setBayNowForTests(null); resetFireRings(); charApiMod.setCharApi(null); kit.unregisterResultOverlay(); kit.__resetKit(); flow.set({ bubble: null }); runtime.input.moveY = 0; playing(); }
+});
+
+test('W5-A9 heave-ho: BAYBAY calls the beat, a push on it is a big shove (2) and off it a small one (1), the card by on-beat pushes, the stamp once all three turntables are pushed; walking off costs nothing', async () => {
+  const H = await import('../src/opus-bay/play/heave');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  playing();
+  stubBody();
+  kit.__resetKit();
+  const written: Record<string, number> = {};
+  kit.__setBestWriter((k, v) => { written[k] = v; });
+  H.__resetHeave();
+  const TT: Record<string, { x: number; z: number }> = { 'tt-a': { x: 0, z: 0 }, 'tt-b': { x: 10, z: 0 }, 'tt-c': { x: 20, z: 0 } };
+  let clock = 100, t0 = 100, turning: string | null = 'tt-b';
+  const pushes: [string, number][] = [];
+  H.__setHeaveHooks({
+    now: () => clock,
+    near: () => (turning ? { id: turning, name: { zh: '转盘', en: 'Turntable' }, ...TT[turning], progress: 0.3 } : null),
+    beat: id => {
+      if (turning !== id) return null;
+      const n = Math.max(1, Math.ceil((clock - t0) / 1.2 + 1e-6));
+      return { period: 1.2, next: t0 + n * 1.2, n };
+    },
+    push: (id, s = 1) => { pushes.push([id, s]); return true; },
+    ids: () => ['tt-a', 'tt-b', 'tt-c'],
+  });
+  const at = (id: string) => { runtime.player.x = TT[id].x; runtime.player.z = TT[id].z + 3; };
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    // the prompt follows the turn near the player (a hair wider than lane T's own 帮忙推, so it takes the focus)
+    at('tt-b');
+    assert.equal(z3.placeHeave({ id: 'tt-b', ...TT['tt-b'] }), true);
+    assert.equal(z3.heaveIt.refId, 'tt-b');
+    assert.ok(z3.heaveIt.radius > 12);
+    runtime.player.x = 40;
+    assert.equal(z3.placeHeave({ id: 'tt-b', ...TT['tt-b'] }), false);
+    assert.ok(z3.heaveIt.x > 1e6);
+    at('tt-b');
+    assert.equal(H.heavePush('tt-a'), false, 'nothing turns there');
+    // three pushes on the beat (a hair early / late is still on it), one between beats
+    clock = 101.2;
+    assert.equal(H.heavePush('tt-b'), true);
+    assert.equal(chip.chipState()?.id, 'heave');
+    assert.equal(lockHeld(), false, 'the feet stay free');
+    clock = 102.45; H.heavePush('tt-b');
+    clock = 103.56; H.heavePush('tt-b');
+    clock = 104.2; H.heavePush('tt-b');
+    assert.deepEqual(pushes.map(p => p[1]), [2, 2, 2, 1]);
+    assert.equal(H.heaveState()?.onBeat, 3);
+    // BAYBAY's call on the chip: 嘿— half a beat before, 咻！ as the beat passes
+    clock = 104.45; stepFrameSystems(1 / 60, 0);
+    assert.equal(chip.chipState()?.big, '嘿—');
+    clock = 104.85; stepFrameSystems(1 / 60, 0);
+    assert.equal(chip.chipState()?.big, '咻！');
+    // the car has turned: the card
+    turning = null;
+    stepFrameSystems(1 / 60, 0);
+    assert.equal(H.heaveState(), null);
+    assert.equal(chip.chipState(), null);
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'heave');
+    assert.equal(card.tier, 3);
+    assert.equal(card.detail?.zh, '推了 4 下 · 踩中节拍 3 次');
+    assert.equal(written[H.HEAVE_SET_KEY], 2, 'the second turntable pushed');
+    assert.deepEqual(events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && e.source), ['medal:heave:1', 'medal:heave:2', 'medal:heave:3']);
+    // the other two: the stamp once, when all three are in
+    events.length = 0;
+    for (const id of ['tt-a', 'tt-c']) {
+      at(id); turning = id; t0 = clock = 200; clock = 201.2;
+      H.heavePush(id);
+      turning = null; stepFrameSystems(1 / 60, 0);
+    }
+    assert.equal(written[H.HEAVE_SET_KEY], 7);
+    assert.deepEqual(events.filter(e => e.type === 'reward' && e.source === H.HEAVE_STAMP).length, 1);
+    at('tt-a'); turning = 'tt-a'; t0 = clock = 300; clock = 301.2;
+    H.heavePush('tt-a'); turning = null; stepFrameSystems(1 / 60, 0);
+    assert.equal(events.filter(e => e.type === 'reward' && e.source === H.HEAVE_STAMP).length, 1, 'the stamp once');
+    // walking off: nothing paid, no card
+    events.length = 0;
+    const before = kit.lastResultShown();
+    at('tt-b'); turning = 'tt-b'; t0 = clock = 400; clock = 401.2;
+    H.heavePush('tt-b');
+    runtime.player.x = 40;
+    stepFrameSystems(1 / 60, 0);
+    assert.equal(H.heaveState(), null);
+    assert.equal(kit.lastResultShown(), before);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && e.what), ['start', 'cancel']);
+    for (const line of Object.values(H.HEAVE_LINES)) assert.ok([...line.zh].length <= 45);
+    assert.ok([...z3.HEAVE_INVITE_LINE.zh].length <= 45);
+  } finally { mock.timers.reset(); off(); H.__resetHeave(); H.__setHeaveHooks(null); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
 });

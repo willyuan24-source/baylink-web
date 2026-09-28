@@ -1,8 +1,10 @@
 import type { Bilingual } from '../core/types';
+import { transitData } from '../data/transit';
 import { bayNow } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { registerInteractables, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
+import { turntableNear } from '../game/transit';
 import { game } from '../core/store';
 import { fireRingSeason } from '../realsf/seasons';
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
@@ -13,6 +15,7 @@ import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zo
  * loads at init (city mode only) — the prompts, BAYBAY's invites and each activity's chunk fetched within PREFETCH_R:
  *
  *   marshmallow.ts   Ocean Beach's burning fire rings: 烤棉花糖 (几点能生火？ outside the NPS season and hours)
+ *   heave.ts         the cable-car turntables: 嘿咻，推！ while a car turns near the player (lane T's turntableNear)
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -63,10 +66,31 @@ export const fireIts: Interactable[] = FIRE_RINGS.map(r => ({
   },
 }));
 
+// --- the cable-car turntables (W5-A9 heave-ho) ---------------------------------------------------------------------
+
+export const HEAVE_ID = 'heave';
+export const HEAVE_NAME: Bilingual = { zh: '嘿咻推转盘', en: 'Heave-ho turntable' };
+export const HEAVE_INVITE_LINE: Bilingual = { zh: '车要掉头啦！跟着我喊：嘿——咻！', en: 'The car’s turning! Shout with me: heave — ho!' };
+/** Lane T's own 帮忙推 prompt reaches 12 u: this one reaches a hair further, so it takes the focus while a car turns. */
+export const HEAVE_PROMPT_R = 12.5;
+const FAR = 1e7;
+
+/** 嘿咻，推！ at the turntable turning near the player (lane T's turntableNear), parked far away otherwise. */
+export const heaveIt: Interactable = {
+  id: 'play:heave', source: 'activity', action: 'info', verb: { zh: '嘿咻，推！', en: 'Heave-ho!' }, name: HEAVE_NAME,
+  x: FAR, z: FAR, radius: HEAVE_PROMPT_R,
+  act: () => { const id = heaveIt.refId; if (id) void import('./heave').then(m => { m.heavePush(id); }); },
+};
+/** The prompt follows the turn near the player (4 Hz); true while one is on offer. */
+export function placeHeave(tt: { id: string; x: number; z: number } | null): boolean {
+  const on = !!tt && nearPlayer(tt.x, tt.z, HEAVE_PROMPT_R - 0.5);
+  heaveIt.x = on ? tt!.x : FAR; heaveIt.z = on ? tt!.z : FAR; heaveIt.refId = on ? tt!.id : undefined;
+  return on;
+}
 
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
-  offs.push(registerInteractables('a-play-zones3', () => [...fireIts]));
+  offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt]));
   let acc = 0;
   offs.push(registerFrameSystem('a-play-zones3', dt => {
     if ((acc += dt) < 0.25) return;
@@ -79,6 +103,10 @@ export function initZones3(): () => void {
       zonePrefetch('marshmallow', () => import('./marshmallow'));
       if (FIRE_RINGS.some(r => nearPlayer(r.x, r.z, INVITE_R))) zoneInvite('fire', FIRE_INVITE_LINE);
     }
+    // the turntables: the prompt follows a turn near the player; the heave-ho fetched near one; BAYBAY's invite as it starts
+    const tt = turntableNear();
+    if ((transitData()?.turntables ?? []).some(t => nearPlayer(t.x, t.z, PREFETCH_R))) zonePrefetch('heave', () => import('./heave'));
+    if (placeHeave(tt)) zoneInvite('heave', HEAVE_INVITE_LINE);
   }));
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
 }
