@@ -51,26 +51,37 @@ function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; bu
  *                  discovered), each with its real play time
  *   ⓘ 详情         the card (the district POI for merged hero places, `sf:<id>` otherwise)
  *   ↗ Maps         the real place in a maps app
- * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button).
+ * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button) and 其他方式 becomes
+ * 换个方式: the ways from here, a pick changes the running trip's way (onReplan).
  */
-export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onRoute }: {
+export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onReplan, tripMode = null, startOpen = false, onRoute }: {
   place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean;
   /**
    * lane C's trip to this place is running: its way and time left ("跑过去 约 2 分钟", as the trip strip and the ETA
    * chip say; integration review: the card said "游戏里约 50 秒 · 现实约 2.0 公里" beside the strip's "约 1 分钟")
    */
   tripTime?: Bilingual | null;
+  /**
+   * lane C's trip to this place is running: 换个方式 lists the ways from here and a pick changes the running trip's way
+   * (flow.replanTrip). The trip card's 换个方式 (lane G) opens the map on its destination; the card then offered nothing
+   * (integration review: a dead end). `tripMode` = the running way (its row shows pressed); `startOpen`: the list open.
+   */
+  onReplan?: ((o: TripOption) => void) | null;
+  tripMode?: TripOption['mode'] | null;
+  startOpen?: boolean;
   onRoute?: (id: SfRouteId) => void;
 }) {
   const { t } = useT();
   useDiscoveryEpoch();
   const pos = useGame(s => s.playerPos);
   useGame(s => s.move.mode); // re-plan when mounting / leaving a vehicle
-  const [more, setMore] = useState(false);
+  const [more, setMore] = useState(startOpen);
   const [picked, setPicked] = useState<TripOption['mode'] | null>(null);
-  useEffect(() => { setMore(false); setPicked(null); }, [place.id, attraction?.id]);
+  useEffect(() => { setMore(startOpen); setPicked(null); }, [place.id, attraction?.id, startOpen]);
   const dest = useMemo(() => placeTripDest(place, attraction), [place, attraction]);
-  const { options, busy } = useTripOptions(onTrip ? null : dest);
+  // on a trip here: the ways only to change it (换个方式), never a second trip
+  const changing = onTrip && !!onReplan;
+  const { options, busy } = useTripOptions(onTrip && !changing ? null : dest);
   const rec = options.find(o => o.recommended) ?? options[0] ?? null;
   // 详情: the district POI card for merged hero places, lane C / G2's SF card (`sf:<landmarkId>` / `sf:<placeId>`) otherwise;
   // an attraction that shares another's row (Japan Center on the Peace Pagoda's) opens its own card (`sf:<attraction>`)
@@ -87,7 +98,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
       : walk.state === 'ok' ? walk.label
         : walk.state === 'pending' ? { zh: '找路中…', en: 'Finding the way…' }
           : { zh: '走不过去', en: 'No walking way there' });
-  const go = (o: TripOption) => { setPicked(o.mode); startPlaceTrip(o, dest); };
+  const go = (o: TripOption) => { setPicked(o.mode); if (changing) onReplan!(o); else startPlaceTrip(o, dest); };
   return (
     <div className="ob-map-pop ob-place-pop mw-place" role="group" aria-label={t(name)}>
       <div className="mw-place-head">
@@ -101,9 +112,9 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
             <Navigation size={16} aria-hidden /><span>{t('跟 BAYBAY 去', 'Go with BAYBAY')}</span>
           </button>
         )}
-        {!onTrip && options.length > 1 && (
+        {(changing ? options.length > 0 : !onTrip && options.length > 1) && (
           <button type="button" className={`ob-btn ob-btn-ghost mw-more${more ? ' is-on' : ''}`} onClick={() => setMore(m => !m)} aria-expanded={more}>
-            <span>{t('其他方式', 'Other ways')}</span><ChevronDown size={15} aria-hidden />
+            <span>{changing ? t('换个方式', 'Another way') : t('其他方式', 'Other ways')}</span><ChevronDown size={15} aria-hidden />
           </button>
         )}
         <button type="button" className="ob-icon-btn mw-44" onClick={() => openPanel('poi', detail)} aria-label={t('查看介绍', 'Details')}><Info size={18} aria-hidden /></button>
@@ -115,7 +126,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
           {routes.map(r => <button key={r.id} type="button" className="mw-chip mw-route-chip" onClick={() => onRoute(r.id)}><Footprints size={14} aria-hidden /><span>{t({ zh: `步行路线 · ${r.name.zh}`, en: `Walk · ${r.name.en}` })}</span></button>)}
         </div>
       )}
-      {more && !onTrip && <TripOptions options={options} busy={busy} onPick={go} picked={picked} />}
+      {more && (!onTrip || changing) && <TripOptions options={options} busy={busy} onPick={go} picked={picked ?? (changing ? tripMode : null)} />}
     </div>
   );
 }

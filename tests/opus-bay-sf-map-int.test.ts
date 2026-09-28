@@ -476,3 +476,22 @@ test('review: a station ride the planner does not offer is still that ride (walk
     assert.equal(eta.en, `Ride ${timeLabel(tripRemainingSeconds(trip)).en}`);
   } finally { setTransitData(null); }
 });
+
+test('review: during a trip here the place card changes its way (换个方式: the ways from here, the running one pressed, a pick replans); without the hook it offers no second trip', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { PlaceActions } = await import('../src/opus-bay/ui/PlaceActions');
+  const coit = ATTRACTION_INDEX.get('coit-tower')!;
+  const place = ix.get(coit.placeId ?? coit.id)!;
+  const eta = { zh: '跑过去 约 1 分钟', en: 'Run ~1 min' };
+  const changing = renderToStaticMarkup(h(PlaceActions, { place, attraction: coit, onTrip: true, tripTime: eta, onReplan: () => undefined, tripMode: 'walk', startOpen: true }));
+  assert.match(changing, /跑过去 约 1 分钟/, 'the trip\'s own way and time in the head');
+  assert.match(changing, /换个方式/);
+  assert.match(changing, /mw-trip-row[^"]*is-on/, 'the running way pressed');
+  assert.match(changing, /class="mw-trip"/, 'the ways listed (in node: the walk row of the planner)');
+  assert.doesNotMatch(changing, /跟 BAYBAY 去/, 'no second trip');
+  const plain = renderToStaticMarkup(h(PlaceActions, { place, attraction: coit, onTrip: true, tripTime: eta }));
+  assert.doesNotMatch(plain, /换个方式|其他方式|跟 BAYBAY 去/);
+  const idle = renderToStaticMarkup(h(PlaceActions, { place, attraction: coit }));
+  assert.match(idle, /跟 BAYBAY 去/);
+});

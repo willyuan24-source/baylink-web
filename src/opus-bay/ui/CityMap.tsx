@@ -13,12 +13,13 @@ import { type SfRouteId, routePath, sfRoute } from '../data/sf/routes';
 import { vehicleSpots } from '../data/vehicles';
 import { arrivalSeen } from '../game/cityContent';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
-import { closePanel, endTrip as endFlowTrip } from '../game/flow';
+import { closePanel, endTrip as endFlowTrip, replanTrip } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
 import { parseMapPanelId } from '../game/mapPanel';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { tripRemainingSeconds } from '../game/tripPlan';
+import type { TripOption } from '../game/tripTypes';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import { type MapView, clampView, drawCityMap, labelWidth, maxScale, paperShare, thinPx, toPx, zoomAt } from './cityMapDraw';
@@ -453,6 +454,10 @@ export function CityMapPanel() {
     const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2, toolRight) : v));
   };
+  // lane C's trip to the selection: the card's 换个方式 changes its way (the trip card's 换个方式 opens the map on its
+  // destination: the list starts open then)
+  const changeWay = (o: TripOption) => { replanTrip(o); closePanel(); };
+  const openedToChange = tripHere && !!trip && !!openId && parseMapPanelId(openId)?.id === trip.placeId;
   const walkInfo: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
@@ -567,7 +572,8 @@ export function CityMapPanel() {
 
       <MapFilters value={filter} onChange={setFilter} />
 
-      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} onRoute={id => { pickRoute(id); revealMap(); }} />}
+      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null}
+        onReplan={tripHere ? changeWay : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange} onRoute={id => { pickRoute(id); revealMap(); }} />}
       {selStation && (
         <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null} />
       )}
