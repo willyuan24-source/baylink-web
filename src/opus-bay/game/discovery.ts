@@ -14,7 +14,6 @@ import { cityStreamerLazy } from '../world/cityLoader';
 import { registerFocusHook } from './brain';
 import { type Interactable, setExtraResolver } from './interactables';
 import { travelActive } from './fastTravel';
-import { tickStreet } from './streets';
 import { readQa } from './qa';
 import { rideLog, setLineMapOpener } from './transit';
 
@@ -228,7 +227,6 @@ export function initG1(): () => void {
       if (game.get().worldMode === 'city') {
         loadPlacesOnIdle();
         updateDiscovery(p, now);
-        tickStreet(p, now);
       }
       sampleLastSafe(now);
     },

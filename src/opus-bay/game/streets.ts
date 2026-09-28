@@ -7,10 +7,11 @@ import { NO_NAME, ROAD_CLASSES, type RoadSet, fetchChunk, versionBase } from '..
 /**
  * HUD street name (lane G1, plan §5.9 / G1-9), city mode only (the district HUD is unchanged).
  *
- * At 2 Hz (from brain's 10 Hz focus hook) the nearest NAMED road centreline within 6 u of the player: the resident
- * chunk's RoadSet (fetched on the main thread at most once a second, the HTTP cache already has it from the stream
- * workers; the 6 most recent chunks stay decoded), else the far city's main streets (far.lines) while a chunk is on
- * its way. 1.5 u hysteresis: the current name stays until another street is 1.5 u nearer (no flicker at corners).
+ * At 2 Hz (from brain's 10 Hz focus hook, registered by the lazy city guide game/guideCity) the nearest NAMED road
+ * centreline within 6 u of the player: the resident chunk's RoadSet (fetched on the main thread at most once a second,
+ * the HTTP cache already has it from the stream workers; the 6 most recent chunks stay decoded), else the far city's
+ * main streets (far.lines) while a chunk is on its way. 1.5 u hysteresis: the current name stays until another street
+ * is 1.5 u nearer (no flicker at corners).
  */
 
 export const STREET_R = 6;

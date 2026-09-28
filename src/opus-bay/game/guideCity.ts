@@ -16,11 +16,13 @@ import { emit, onEvent } from '../core/events';
 import { activeLineFleet } from '../data/transit';
 import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from '../actors/reveal';
 import { faceCameraToward, playShots } from './cinema';
+import { registerFocusHook } from './brain';
 import { isDiscovered } from './discovery';
 import { type FlagSource, type FlagTarget, type PanoramaTag, flagMax, layoutPanoramaTags, pickFlags, pickPanoramaTags, tagWidth, type TagInput, PANORAMA } from './flags';
 import { flow } from './flowStore';
 import { landmarkFlagsPref } from './guidePrefs';
 import type { Box } from './hudLayout';
+import { tickStreet } from './streets';
 import { registerSceneSystem } from './systemsRegistry';
 import { timeLabel } from './tripText';
 import { TRIP_SPEED, tripRemainingSeconds, STREET_FACTOR } from './tripPlan';
@@ -648,6 +650,8 @@ export function initGuideCity(): () => void {
   inited = true;
   const offScene = registerSceneSystem('g-guide', GuideScene);
   const offRide = watchRideLooks();
+  // the HUD's street name (lane G1, G1-9) ticks here, city only, so GameRoot does not carry game/streets
+  const offStreet = registerFocusHook('g-street', { tick: tickStreet });
   lastArrival = flow.get().arrival;
   const offFlow = flow.subscribe(() => {
     const a = flow.get().arrival;
@@ -660,5 +664,5 @@ export function initGuideCity(): () => void {
     w.__opusBay = { ...(w.__opusBay ?? {}), guide: { stats: guideStats, ui: guideUi, startPanorama, flow, qaTrip } };
   }
   void import('../world/sf/landmarks/context').then(m => { siteContext = m; }, () => { /* no reveal without the site data */ });
-  return () => { offScene(); offFlow(); offRide(); inited = false; };
+  return () => { offScene(); offFlow(); offRide(); offStreet(); inited = false; };
 }
