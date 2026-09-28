@@ -325,7 +325,8 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
 
 ### Known gaps
 
-- SS Jeremiah O'Brien (T3) stays UNREACHABLE: the only open spots are 26–35 u away at Pier 45's foot; not moved without a
+- SS Jeremiah O'Brien (T3) stays UNREACHABLE: the only open spots are 26–35 u away at Pier 45's foot [review: Pier 35's — the
+  ship has berthed at Pier 35 since 2020, for good since 2023; the game's anchor is there]; not moved without a
   look at the pier (next part). The bison paddock and four more wait (Requests).
 - The chooser covers the lower half of a 375 × 667 map with 4+ rows (it scrolls; the badge is panned above it).
 - A pass-by chip counts the attraction once more if its place is found again later on foot (rare: the place is then known).
@@ -547,3 +548,103 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
 - **Lead**: none frozen.
 
 Status (zh): 第五波 N 线 part c 完成：中期检查 4 个问题（让车、地图误开网页、两个终点、英文地名）已修并推送；「看风景飞过去」用 F 线的自动滑翔上线（手机和电脑都实测）；散步选项等 E 线接口。
+
+## Review (2026-09-28, the adversarial review of lane N)
+
+### 给主人的摘要
+
+1. N 线的主要功能在手机（390 × 844）和电脑上实际玩了一遍，都能用：地图点一下出发、搜索出发、"+2" 选地方、长按「去这里」、碰摇杆接管再「自动跟上」、拿到鹈鹕后「看风景飞过去」和「让 BAYBAY 接着飞」、继续旅程回到原地；街区模式没变。
+2. 修了 6 处小毛病：地图选「这周」时活动小旗会跑到画面外或藏在按钮下面；长按地图起的名字常是英文（如「Filbert Steps附近」）；iPhone 长按地图可能选中文字；关掉地图后长按计时还会触发；「换个方式」里两个飞行选项会同时高亮；离目的地太近时「让 BAYBAY 接着飞」按了没反应。
+3. 核对了 14 条真实信息（附出处和日期），游戏数据都对；报告里写错一处（奥布莱恩号在 35 号码头，不是 45 号），已更正。
+
+### What I checked
+
+- Every W5-N commit (27, parts a–c) and the code around it: goTo / goToRun, autoTravel + tripRun (the reducer, the yield, the
+  scenic legs), scenicTrip, fastTravel (arrivalSpot's level guard, landingHeading, descentShot), resume + TitleScreen, the
+  phone map (CityMap, MapGoCard, mapGo, CityMapList, PlaceActions, TripOptions, tripRows), mapEvents / MapFilters, flags,
+  guideCity (the find chip, pass-by moments, one ETA source), discovery's announcer, cityZones, hudLayout; plan §4.5 item by item.
+- The real game on my dev server 5502 (Chrome headless, RTX flag, zh-Hans), after lane V's PERF-LOCK (20:34–21:30 UTC) was
+  gone, one Chrome at a time. Phone 390 × 844 dpr 3 with touch: the map → the 探索馆 badge → the pinned card → go (2 taps,
+  carried at once, BAYBAY 带路中 · 碰摇杆接管); search 九曲花街 → the row's go → carried; the stick takes over → 自动跟上
+  BAYBAY → carried again → arrived (the arrival card); a long-press → 去这里 · 俄罗斯山附近 · BAYBAY 带路 · 约 11 秒; the Coit
+  "+2" → the chooser (科伊特塔 约 30 秒 · 电报山 约 35 秒 · 格林威治台阶 约 30 秒) → go → the pelican moment at Coit; search 艺术宫 →
+  the pinned 飞过去 · 约 6 秒 → ⌄ → 飞过去 约 6 秒 推荐 · 看风景飞过去 约 30 秒 · 步行 约 1 分钟 → the scenic flight (lane F's
+  glide, 76 calls / 235k triangles at mid) → the stick → 让 BAYBAY 接着飞 → landed and walked in, arrived 21 s later; the title
+  → 继续旅程 → back on the exact saved spot (−409.4, 409.6); 这周 3 on the real date (fix 1 below). Desktop 1440 × 900: the
+  district title (开始 only) and welcome unchanged; the city map's side sheet pins the card; go → carried; A takes over →
+  自动跟上 BAYBAY; Q → 8 带我去 · 唐人街龙门 → carried again. No console error. Shots: scratch
+  `C:/Users/willy/opus-qa/w5/w5-n/review/shots/` (30, all read); kept `docs/opus-bay/qa/w5/N/r-*.jpg` (6).
+- Lane F's static sweep on this head (`sweep-static.mts --only trip-end,arrival`): 158 targets, ok 118 · CORRIDOR 39 · BOXED 0 ·
+  SNAG 0 · OFF 0 · UNREACHABLE 1 (SS Jeremiah O'Brien) — the part c numbers hold.
+- Budgets, warm-ups, teardown, allocations: N adds no material and no draw call (the extra pennants ride the flag
+  InstancedMesh); every review fix is in a lazy chunk (the map, the guide layer), the main graph does not change. Teardown:
+  initTripRun, initGuideCity (announcer, found timer), useWeekPins, useQuickWays and the chip's interval all release; the
+  map's long-press timer did not (fixed). Per frame: the trip runner reads one input flag; its work runs at 10 Hz, flags at 4 Hz.
+- Save / economy: goTo, the trip runner and resume write no save field but lastSafe through the existing sampler; rewards stay
+  lane E's once-per-source ledger (an arrival by flight or pass-by pays `arrive:` once). Resume keeps every progress field;
+  从头开始 · 渡轮大厦 only starts at the Ferry Building.
+
+### Defects found and fixed (pushed)
+
+| # | defect | seen | fix (commit) |
+|---|---|---|---|
+| 1 | Picking 这周 left the view where it was: opened near the player (a resume in the Marina), one venue pin sat under the zoom buttons and another outside the frame — 这周 3 showed one pin | phone, real date 2026-09-28 (`r-phone-week-before.jpg`) | `weekFitPoints` + `pickFilter`: 这周 frames every venue and the player, clear of the tool column; all three pins in view after (`r-phone-week-fit.jpg`; Hardly Strictly's card 10/2 周五 11:00–19:00 · 飞过去) — `W5-N-review: picking 这周 …` |
+| 2 | A long-pressed spot took the nearest place's zh name, which is the English name for 931 of the 1,033 published rows: 289 of 360 sampled presses near a place read "Filbert Steps附近", "Win Yen Co.附近" on the card, the pill and BAYBAY's line (CP-13's English-in-the-zh-HUD class) | node probe over the published places + `applyW4Places` (`C:/Users/willy/opus-qa/w5/w5-n/review/press-names.mts`) | only a place with Chinese in its zh name names the spot, else the area (0 of 360 English after; 261 still named by a place; the live press read 俄罗斯山附近, `r-phone-press-zh.jpg`) — `W5-N-review: a long-pressed map spot is named in zh …` |
+| 3 | iPhone long-press: the map frame set only the unprefixed `user-select` under a sheet with `-webkit-user-select: text` (Safari needs the prefixed one, MDN "user-select", read 2026-09-28), so a held finger could select labels or open the image callout instead of 去这里 | code (headless Chrome cannot show it) | `-webkit-user-select: none; -webkit-touch-callout: none` on the frame — `W5-N-review: the phone map's long-press holds …` |
+| 4 | The map's long-press timer outlived a map closed mid-press (pressAt fired on an unmounted map) | code | cleared on unmount — same commit |
+| 5 | 换个方式 pressed both fly rows while either flew (part c's known gap) | code | `optionWay` / `TripWay` ('fly-scenic' apart from 'fly') in TripOptions, PlaceActions and the map — same commit |
+| 6 | 让 BAYBAY 接着飞 showed within 60 u (and beyond 900 u) of the leg's end, where lane F's auto-glide refuses: the tap did nothing | code (autoGlide's range) | `scenicResumeOffered`: the chip shows only where the glide takes the wings back — same commit |
+
+Tests: `tests/opus-bay-w5-nav.test.ts` 56 → 61 (five "W5-N review" tests; those for 1, 2 and 5 are red on the old code).
+Checks on the pushed head: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings outside
+`src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1308 / 1308 before the push (the
+final run is in the structured output).
+
+### Real-world facts re-checked on the web (2026-09-28)
+
+| fact in the game / report | verdict | source |
+|---|---|---|
+| The Exploratorium is at Pier 15 (moved from the Palace of Fine Arts, opened there 2013-04-17): 探索馆 · 15 号码头 | ✓ | https://www.exploratorium.edu/press-office/press-releases/exploratoriums-new-home-san-franciscos-waterfront-pier-15 |
+| Every Alcatraz ferry leaves from Pier 33 Alcatraz Landing (33 号码头, Alcatraz's trip end) | ✓ | https://alcatrazcitycruises.com/plan-your-visit/directions |
+| SS Jeremiah O'Brien berths at Pier 35 (since the 2020 Pier 45 fire; permanent lease 2023) — the game's anchor is at Pier 35; **part b's report said "Pier 45's foot": corrected in place** | game ✓, report ✗ → fixed | https://ssjeremiahobrien.org/visit-us/ · https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien |
+| Hardly Strictly Bluegrass 2026: Oct 2–4, Hellman Hollow, free; gates 11:00 Fri / 9:00 Sat–Sun, music to 19:00 (the 这周 card: 10/2 周五 11:00–19:00; 2026-10-02 is a Friday) | ✓ | https://hardlystrictlybluegrass.com/info-faq-2026/ · https://www.sfmta.com/travel-updates/hardly-strictly-bluegrass-october-2-4-2026 |
+| Fort Point sits under the bridge's southern approach arch, with a 1,500-ft seawall (1869) — N's trip end on the seawall promenade | ✓ | https://en.wikipedia.org/wiki/Fort_Point_National_Historic_Site |
+| The Filbert Steps climb from Sansome St behind Levi's Plaza to Coit Tower (菲尔伯特台阶, 李维斯广场, 科伊特塔 · 电报山) | ✓ | https://www.inside-guide-to-san-francisco-tourism.com/filbert-steps.html |
+| Levi's Plaza sits at the foot of the Filbert Steps / Telegraph Hill on the Embarcadero | ✓ | https://www.tripadvisor.com/Attraction_Review-g60713-d6212675-Reviews-Levi_s_Plaza_Park-San_Francisco_California.html |
+| The bison paddock is on JFK Drive between 36th Ave and Chain of Lakes Dr East (the site arrival on the JFK Drive path) | ✓ | https://sfrecpark.org/facilities/facility/details/bison-paddock-224 |
+| Hyde Street Pier holds SF Maritime NHP's historic ships (Balclutha, C.A. Thayer, Eureka, Hercules, Alma) at the Wharf's west end | ✓ | https://www.nps.gov/places/000/san-francisco-maritime-hyde-street-pier.htm |
+| Pier 14 is a 637-ft public pier and breakwater by the Ferry Building, opened 2006 (14 号码头; Treasure Island's trip end) | ✓ | https://www.romacollaborative.com/pier-14 |
+| Pier 7 is an 840-ft public fishing pier near Broadway (7 号码头) | ✓ | https://www.pierfishing.com/pier-7-san-francisco/ |
+| The Seward Street Slides are in the Castro, Seward St between Douglass and 19th, ridden on cardboard, opened 1973 | ✓ | https://www.atlasobscura.com/places/seward-street-slides |
+| The Queen Wilhelmina Tulip Garden is by the Dutch (North) Windmill at the park's west end, 47th Ave & Great Highway (威廉明娜女王郁金香花园 row) | ✓ | https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard |
+| Safari needs the prefixed `-webkit-user-select` (fix 3) | ✓ | https://developer.mozilla.org/en-US/docs/Web/CSS/user-select |
+
+### Checked and fine
+
+- The report's claims hold in the code: goTo's resolution / choice / sources, ROUTE_WAIT_MS 0.9 s, the flag caps and the
+  phone's 600 u rule, FLY_REC_AFTER_S 60, autoTravelSeconds, the yield constants (1 s, 4.5 u, 7 u, 1.5–20 s, 2.6 u, 24 u),
+  PRESS 0.52 s / 8 px, the 520 px compact frame, scenicSeconds, END_R / FLY_END_R / GLIDE_START_MS, the level guard (4 u).
+- One ETA source in the game: the chooser row 约 30 秒 → the pill 约 25 秒 two seconds into the walk; the waypoint label and
+  the pill agree; after a takeover the pill counts walking pace (九曲花街 约 20 秒 by hand, 约 15 秒 carried again).
+- The owner's five points: F1 — every landing and arrival I made (the scenic landing, the Lombard and Exploratorium
+  arrivals, the pelican moment, the resume) left the player free (`locked: false`, no watchdog line); F2 — the sweep above;
+  F3 — goal #1 carried to Coit, the unlock moment, 起飞 on the phone after it; F4 — two taps on the phone, one click on
+  desktop; F5 — the coins counted up through the trips (0 → 76).
+- zh text: N's new lines are short and natural (有车来，我们先让一让～ · 就在这儿降落啦，我们走过去！ · 这段路有点难走，你来带路吧！ ·
+  那里去不了，长按陆地试试); every bubble stays ≤ 45 characters with the longest place names.
+- District mode: the title (开始 only), the welcome choices and the HUD are unchanged; the district's zone names stay frozen
+  (CITY_HERO_ZONE_NAMES is read in city mode only); arrivalSpot's level guard is city-only.
+
+### Open (other lanes' files, or not defects)
+
+- **Lead / F**: by the plan's literal MF2 rule (stuck = fewer than 3 of 4 directions), the 39 CORRIDOR trip ends count as
+  stuck, 4 of them T1 (Fisherman's Wharf, the Ferry Building Marketplace, the Chinatown gate, Stonestown) and 7 T2; lane F's
+  report (decision 8) triages CORRIDOR apart (narrow plazas and pavements). The lead should confirm that reading or waive
+  them by name, as the plan asks.
+- **C** (optional, part b's request): `game/brain.ts updateFocus` still calls `cityAreaAt(p.x, p.z)` without the height, so
+  the first quarter of the Golden Gate deck (from the south anchorage) says 要塞公园, not 金门大桥.
+- **T**: the map labels some cable-car stops in English in zh (California & Van Ness) — `data/sf/stationNames.ts`.
+- Seen, left: after an arrival the card can show while the pill still says 下一站 … 约 4 秒 (the trip ends when BAYBAY is there
+  too); a scenic flight over an undiscovered T1 can name it in the find chip and then toast it on arrival.
+
+Status (zh): 第五波 N 线复审完成：手机和电脑实玩通过，修了 6 处（这周小旗出画、长按地名英文、iPhone 长按、长按计时、两个飞行选项同时高亮、接着飞按钮无效），已推送。
