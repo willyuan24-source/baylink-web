@@ -10,7 +10,44 @@ import { type TransitLineJson, activeStreetcarSystem, setActiveStreetcarSystem }
 import { TOY_INST, U } from './materials';
 import { type FCar, FLINE_ID, type FLineOptions, StreetcarSystem } from './flineSystem';
 import type { RailTrack } from './rails';
-import { carFarGeometry, carGeometry } from './streetcar';
+import { BOX, Batch, CYL, M } from './builder';
+import { CAR_LEN, CAR_Y, carFarGeometry, carGeometry } from './streetcar';
+
+/**
+ * (W5-T4, plan MF9; in the lazy city chunk rather than world/streetcar.ts, which the main graph carries) The car at a
+ * middle distance (city mode, ≈ 45–110 u, drawn without a shadow): the near car's look in ≈ 490 triangles instead of
+ * 1,112 — livery, gold belt and cream sill, the open window band (the light inside between six posts a side), header,
+ * roof and vents, the rounded cabs in 8-sided pieces with their windscreens, lit signs and head lamps, the pole.
+ */
+export function carMidGeometry(livery: string): THREE.BufferGeometry {
+  const b = new Batch();
+  const cream = '#f3ead6', glass = '#3d4d52';
+  const L = CAR_LEN - 2, W = 2.1;
+  const BELT = 1.02, SILL = 1.14, WIN = 1.26, HEAD = 2.28, ROOF = 2.57;
+  b.add(BOX(), M(0, 0.1, 0, 0, W - 0.3, 0.35, L - 1), '#454b48');
+  b.add(BOX(), M(0, 0.4, 0, 0, W - 0.06, 0.1, L), '#8f7a62');
+  for (const s of [-1, 1]) b.add(BOX(), M(0, 0.05, s * (L / 2 - 1), 0, 1.6, 0.35, 1.8), '#2d3431');
+  b.add(BOX(), M(0, 0.5, 0, 0, W, BELT - 0.5, L), livery);
+  b.add(BOX(), M(0, BELT, 0, 0, W + 0.02, SILL - BELT, L), '#e0a94a');
+  b.add(BOX(), M(0, SILL, 0, 0, W, WIN - SILL, L), cream);
+  // the open windows show the light inside of the car between the posts (six a side: the near car has eight)
+  b.add(BOX(), M(0, WIN, 0, 0, W - 0.04, HEAD - WIN, L), '#d6c8a8');
+  for (const s of [-1, 1]) for (let i = 0; i < 6; i++) b.add(BOX(), M(s * (W / 2 - 0.04), WIN, -L / 2 + 0.12 + i * ((L - 0.24) / 5), 0, 0.08, HEAD - WIN, 0.16), cream);
+  b.add(BOX(), M(0, HEAD, 0, 0, W, ROOF - HEAD, L), cream);
+  b.add(BOX(), M(0, ROOF, 0, 0, W - 0.2, 0.22, L + 0.8), '#d9d4c7');
+  b.add(BOX(), M(0, ROOF + 0.22, 0, 0, 0.9, 0.18, L * 0.6), '#bdb7aa');
+  for (const s of [-1, 1]) {
+    b.add(CYL(8), M(0, 0.5, s * L / 2, 0, W / 2, SILL - 0.5, 1.0), livery);
+    b.add(CYL(8), M(0, SILL, s * L / 2, 0, W / 2, ROOF - SILL, 1.0), cream);
+    b.add(BOX(), M(0, 1.45, s * (L / 2 + 0.72), s > 0 ? 0 : Math.PI, 1.3, 0.75, 0.35), glass);
+    b.add(BOX(), M(0, 2.3, s * (L / 2 + 0.55), 0, 1.0, 0.26, 0.3), '#ffcf7a', [0, 0, 0, 1]);
+    b.add(BOX(), M(0, 0.8, s * (L / 2 + 0.9), 0, 0.26, 0.2, 0.12), '#fff4d0', [0, 0, 0, 1]);
+  }
+  // the trolley pole, trailing up to the wire (as the near car's)
+  const base = new THREE.Matrix4().makeTranslation(0, 2.9 - CAR_Y, -1.8).multiply(new THREE.Matrix4().makeRotationX(-0.71));
+  b.add(BOX(), base.clone().multiply(M(0, 0, 0, 0, 0.08, 2.9, 0.08)), '#2a2a2a');
+  return b.build();
+}
 
 /**
  * The city F-line (lane F, checkpoint F7): part of the lazy transit layer (world/transitLayer.ts), city mode only.
