@@ -154,3 +154,163 @@ contracts test loads economy/index — cannot load .css). `economy/index.ts` sta
 - **Lane F** (W5-F9): the phone pill now wraps to three lines with the badge (`明信片 0/24` · `🪙 n` · `目标`); the final look is
   yours.
 - **Lead**: nothing frozen needs changing. `npx` resolved everywhere (no fallback to `node node_modules/...` needed).
+
+## Part b
+
+### 给主人的摘要
+
+1. 旅行本里多了「手帐」（第一个页签）：印章（16 个必看地标 + 鹈鹕、走过金门大桥、叮当车、F 线、观光巴士、地铁）、小发现（24 个彩蛋，没找到的是剪影 + 一句谜语）、看风景（16 个观景点，没去过的有「带我去」）、足迹。每集满一页给 30 金币和一件只能靠集章拿到的装扮。页头写今天旧金山的真实日落和月相，再加一句「明天可能不一样」，没有连续签到。
+2. BAYBAY 小铺开张：手机点「更多 → 小铺」，电脑点「更多」按钮，或者走到渡轮大厦南侧没开集市的摊位按「逛逛小铺」。点一件就在 BAYBAY（或你）身上试穿，镜头拍你们俩，买下直接穿上。
+3. 能买的：BAYBAY 围巾 5 色、帽子 3 顶（毛线帽、遮阳帽、水手帽）、你的帽子和背包颜色、单车和小车的漆、鹈鹕丝带、雾 / 夜相框（拍照自动加框）；寻宝罗盘（右上角箭头指向最近的小发现）和明信片放大镜（最近的明信片插金色小旗），各管一趟。
+4. 飞行券：还没有鹈鹕时 BAYBAY 先送一张，「问 BAYBAY → 用飞行券飞一次」选一个必看地标就飞过去；有了鹈鹕后飞行券自动收起，没用的退 10 金币。
+5. 电脑和手机上都实际点过、买过、试戴过、飞过；新装扮不增加着色程序；全部测试通过。
+
+### What was built
+
+| task | commits | files |
+|---|---|---|
+| **W5-E5** the 手帐 tab | `8d4e3a4` | `src/opus-bay/economy/{stamps,notebookRun,today}.ts`, `Notebook.tsx`; the tab registered in `economy/index.ts` |
+| **W5-E6** the 小铺 | `8d4e3a4`, `975e0f2`, the report commit | `economy/{items,wallet,bits,shopRun,compass,lines,extras}.ts`, `Shop.tsx`, `CompassBadge.tsx`, `economy.css`; `ledger.commitPlay` |
+| **W5-E7** wearables | `8d4e3a4` | `economy/{wear,hats,frames}.ts` |
+| tests | `8d4e3a4` | `tests/opus-bay-w5-shop.test.ts` (15), `tests/opus-bay-w5-notebook.test.ts` (9) |
+
+**How it loads.** `economy/index.ts` (the first wave-5 chunk) now also registers the Journal tab `notebook` (order 7:
+after R's 今天, before 明信片 10) and the overlays `e-shop` / `e-ticket` (lazy bodies), then loads `extras.ts` right after
+the coins: `initWear()` (the looks), `initShop()` (More → 小铺, the stall, the ticket rule, the conveniences) and
+`initNotebook()` (stamps, page rewards). Chunks (vite build to scratch, gzip): extras 1.3 KB · notebookRun 2.6 · wear 2.8 ·
+shopRun 6.0 · Shop 5.5 and Notebook 6.0 (first open only) · economy.css 2.7; shared with lanes D / A: eggs `registry` 14.9,
+`viewSpots` 2.1. Nothing of it is in GameRoot (checked in that build: no economy string in the GameRoot chunk).
+
+**The play save** (frozen format; the ledger stays its only writer — `commitPlay` is lane-E-internal):
+
+| what | where | registry (append-only) |
+|---|---|---|
+| owned items; a held convenience (compass / magnifier / 飞行券: one held) | `play.g.own` bit i | `economy/items.ts` ITEMS (30: 26 for sale, 3 earned, 1 hidden gift marker) |
+| the worn item per slot | `play.w[slot] = i` (the 8 frozen slots) | the same ITEMS index |
+| the 印章 page's stamps, once seen | `play.g.stamp` bit i | `economy/stamps.ts` STAMPS (16 `t1:<attraction>` + 6 journeys) |
+| a full page paid (30 金币) | `play.g.page` (`page:<id>`) | PAGE_IDS `stamps · finds · views` |
+
+**The shop API** (`economy/wallet.ts`): `owns · wornItem · wornAll · holds · canBuy · buy · wear · takeOff · grant ·
+consume · giveFirstTicket · ticketRule`. `buy` takes the price once (`coins` event, source `shop:<id>`, delta < 0) and wears
+a wearable at once; `shop` events `open / buy / wear / close` are emitted. Prices (plan §3.4): scarves 40, BAYBAY hats 80,
+your hat / backpack 30, bike / toy-car paints 60, the pelican ribbon 50, frames 30, compass / magnifier 20, 飞行券 10 —
+26 items, 1,140 coins in all (1,090 for the 23 wearables). W5-E8 (the scripted hour) still has to set them.
+
+**Wearables** (`economy/wear.ts`, through lane F's `charApi`): scarf → `tint('baybay','scarf')` · BAYBAY hat →
+`attach('baybay','head', mesh)` · your hat / backpack → `tint('player', …)` · bike / car / pelican → `vehiclePaint(kind,
+PAINTS id)` · frame → lane C's `registerFrameDecorator('e-frame')`. Only looks that changed are sent; a new implementation
+(the actors remount) gets every worn look again; the shop's try-on is a preview dropped on close. The hats (`hats.ts`):
+beanie 342, sun hat 304, sailor cap 308 triangles, plain Meshes on our own instance of the **TOY_DYN program** (key
+`ob-toy-dyn`, no shadow), warm-up key `e-hats`; +1 draw call while BAYBAY wears one. The frames (`frames.ts`): 雾 (Karl's
+puffs), 夜 (stars and a crescent), 金色时刻 (earned: rays and a low sun), 邮戳 (earned: a stamp's perforations and SAN
+FRANCISCO · BAY), painted only in the card's outer ring (clipped even-odd, ≤ 60 % of the margin and ≤ 25 % of the band), so
+the photo, caption and stamp are never covered. The orange items follow lane F's new International Orange tone (`#c44a31`).
+
+**The notebook** (`stamps.ts` + `notebookRun.ts`): a landmark stamp = an arrival (the save's `arrivals`, or the paid
+`arrive:`), or its place discovered (Alcatraz: its Pier 33 landing, or egg 11 round the island); journeys by goal or by a
+ride (`rides` keys `powell-hyde · powell-mason · california · streetcar · sf-loop · n-judah · m-ocean-view`). Seen stamps
+go into `play.g.stamp` (a trimmed `arrivals` list never un-stamps; nothing is persisted under `?discover=all`). Every 2 s
+and after each ledger change a full page pays `page:<id>` once and grants its cosmetic (印章 → 邮戳相框, 小发现 → 寻宝金围巾,
+看风景 → 金色时刻相框, plan §3.5) and BAYBAY says so. It registers lane A's `view` ids too (A's own append-only list). The
+header (`today.ts`): `旧金山 9月28日 周一 · 日落 18:57 · 今晚约是亏凸月` + 明天可能不一样 (lane R's `sunTimes`,
+`moonPhase`). New stamps land with a thud (CSS; none with reduced motion; per viewer in localStorage).
+
+**The shop in the world** (`shopRun.ts`): the stall is the Ferry Plaza south stall nearest the Ferry gate (158.85, −3.76;
+a district prop, 0 new geometry); its prompt 逛逛小铺 is offered while the market is not on (`world/clock isMarketOpen`, the
+clock that tarps the canopies); in market hours the sheet says 今天集市，小铺在「更多」里。 The sheet holds
+`holdLock('shop')` and, when BAYBAY is within 10 u, a two-shot (`holdFraming`, cover 0.42 phone / 0.5 desktop), and folds
+lane C's goals card. Phone: a bottom sheet at 38 %, one row of big tiles; desktop: a counter along the bottom, left of the
+round HUD buttons (the pill with 🪙 stays in view). 寻宝罗盘: a pill badge `🧭 ➤ 700米` (the arrow turned as the camera
+sees the nearest unfound cache / egg / pebble; real metres from the city projection), ending at the next such `find`.
+明信片放大镜: lane N's flag layer (`registerFlagSource('e-magnifier')`, gold, the Sparkles glyph) over the two nearest unfound
+postcards beyond the flags' 60 u near ring, ending at the next postcard. 飞行券: BAYBAY's gift before the pelican (once
+per save), the ask item 用飞行券飞一次 while one is held, the picker (the 16 must-sees, not visited first, then farthest), the
+flight through `fastTravel.startTravel` (a first sight when not found yet), 10 back when the glide unlocks
+(`subscribeGlide`). BAYBAY's 11 lines are in `economy/lines.ts` (voice ids `e-<key>`), said only in a quiet moment.
+
+### Evidence
+
+- **Checks**: `npx tsc -p tsconfig.app.json --noEmit` 0 errors · `npx eslint .` 0 errors (the 43 old warnings, none in
+  economy/) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1120 / 1120** before rebasing on
+  `0db1687`; after the rebase the lane's and related files (shop, notebook, ledger, contracts, w5-perf, play-acts) 82 / 82,
+  and the full suite again before the push.
+- **Tests** — `w5-shop`: the registry pinned (append-only indices), prices, and "nothing sells speed / access / places" (a
+  grep: no unlock, discovery, goal or speed call anywhere in economy/), buy / wear / take off, earned items, the 飞行券
+  rule (gift once, one held, refund once, hidden after), conveniences, a 200-round fuzz of `bitClear` / `bitList` against a
+  set model (same string as bitSet's), the save round trip, the looks through a stub charApi (only changes, try-on and
+  back, a new implementation), the hats (≤ 420 tris, the TOY_DYN key, the warm-up built from the real material), the frames
+  (clipped even-odd before painting), E's lines (zh ≤ 45), the compass maths, the sheet rendered in node. `w5-notebook`: the
+  16 stamps equal the rank-1 attractions (ids, place ids, short names, the island's landing), when a stamp is stamped,
+  stamps kept in the save, nothing persisted under `?discover=all`, each page pays 30 + its cosmetic once (all three →
+  62 / 62), the MF8 areas, the header against R's sun (Sep 28 18:5x, Dec 21 16:5x), the tab at order 7, the notebook
+  rendered in node.
+- **In the game** (dev 5507, headless Chrome `--force_high_performance_gpu --lang=zh-CN`, `?start=free&world=city&time=
+  golden&save=off`; PERF-LOCK respected: I waited for lane V's 11:55Z gate), every image read:
+  - desktop 1440 × 900: the shop from `openShop` and from the stall's E prompt; the Karl-grey scarf tried on (BAYBAY's GLB
+    scarf turns grey) and bought (300 → 260, the tile ✓ 穿着, the pill 260); the beanie, sun hat and sailor cap on BAYBAY;
+    the helpers shelf; the compass bought (pill `🧭 ➤ 700米`, target lane D's Emperor Norton egg 90 u away); the ticket
+    picker and a real ticket flight to Golden Gate Park (landed at Overlook Drive; ticket used; shop and picker closed);
+    the magnifier's two gold pennants over Pier 7 and the F-line stop (`guide.stats.picks` lists `extra:e-magnifier:*`);
+    the frames shelf and the night frame on a card; the notebook's 印章 (Coit stamped), 小发现 (3 found, silhouettes +
+    riddles) and 看风景 (带我去 rows).
+  - phone 390 × 844 dpr 3 mid: 更多 → 拍照 · 小铺 · 设置; the shop sheet with the Karl-grey try-on; the compass badge in the
+    pill; the notebook (tabs 手帐 · 明信片 · 目标 · 想去 · 足迹 fit, 56–95 px each).
+  - **Programs**: 90 before and 90 after trying all three hats, a scarf and a hat colour (boot warm-up 25 → 44, live pass
+    48 → 58, next-level pass 58 → 90, the same passes as before); `e-hats` is compiled in the boot pass.
+  - Shots: `docs/opus-bay/qa/w5/E/` — `e5-notebook-{stamps,finds,views}-desktop.jpg`, `e5-notebook-finds-phone.jpg`,
+    `e6-shop-try-karl-grey-{desktop,phone}.jpg`, `e6-more-menu-phone.jpg`, `e6-stall-prompt-desktop.jpg`,
+    `e6-ticket-picker-desktop.jpg`, `e6-compass-pill-phone.jpg`, `e6-magnifier-pennants-desktop.jpg`,
+    `e7-hat-{beanie,sailor}-desktop.jpg`, `e7-frames-shelf-desktop.jpg`; the rest in `C:/Users/willy/opus-qa/w5/w5-e/b/`.
+    No fps numbers (lane V / the lead).
+- **Facts** (checked on the web on 2026-09-28): the Golden Gate Bridge's colour is called International Orange —
+  https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/ ; the dahlia became San
+  Francisco's official flower in 1926 — https://www.dahliadell.org/history (also abc7news.com on the 100th anniversary).
+  Each is a one-line note on its shop item, with the source link in the sheet.
+
+### Decisions
+
+1. **One module name per case**: the shop's logic is `wallet.ts` (a `shop.ts` beside `Shop.tsx` collides on Windows).
+2. **Earned, never sold**: the three page cosmetics are not for sale (the plan's "the full 看风景 page → the golden-hour
+   frame"); the frames for sale are 雾 and 夜. Their locked tiles say how to get them.
+3. **BAYBAY's own teal is the default look** (no 海湾青 scarf to buy: 取下 gives it back); 5 scarves for sale, 1 earned.
+4. **Conveniences are held, one at a time**: the `own` bit means "one held"; buying switches it on for one outing, which
+   ends at the next matching find (a cache / egg / pebble for the compass, a postcard for the magnifier) and survives a
+   reload. The 飞行券 likewise; BAYBAY's gift is remembered by a hidden marker item.
+5. **The ticket flies to a must-see** (the 16 T1, not visited first): before the unlock 飞过去 goes only to discovered
+   places, so the ticket takes you somewhere new; it calls `startTravel` directly (as lane R's venues do) instead of
+   changing lane N's planner.
+6. **The stall** is an existing Ferry Plaza stall (the south one nearest the Ferry gate; the plan says "back plaza", but
+   the market kit stands on the front and south plazas), open while the market is not on, by the stall's own clock.
+7. **The 印章 page** is the 16 must-sees and six journeys (22, can be completed); other arrivals and neighbourhoods are
+   counted on the page with a link to 足迹. Event souvenirs are not on the page yet (see Not done).
+8. **Stamps are kept** in `play.g.stamp` once seen (the `stamp` field of `reward` events is not needed: each stamp's
+   source is already in the save).
+9. **The desktop shop is a bottom counter** left of the round buttons, not the right side sheet: that would cover the pill
+   (the balance) and the 更多 button, and the Overlay's `has-sheet` shift only follows panels.
+10. **The magnifier's pennants start 60 u away** (the flag layer's near ring): a closer postcard already glints in view.
+
+### Not done
+
+- **W5-E8** (the scripted 60-minute economy run → prices) and **W5-E9** (城市之声 / 自然 pages, the toys shelf with lane A)
+  were not in this part; the prices are the plan's.
+- The tiles are drawn (SVG, lucide, a canvas preview for frames), not lane V's H5-1 painted tiles.
+- BAYBAY's new lines and the shop were not listened to (headless); the lines have voice ids `e-<key>` but no clips yet.
+- A photo taken in photo mode with a frame was not saved in the browser (the shutter downloads a PNG); the frame was
+  checked on a card painted through the same decorator in the page, and in node.
+- Not tried on a real iPhone (the lead's verify).
+- Event souvenir stamps on the 印章 page: they need lane R's `event` id list (not registered yet); the ledger already keeps
+  them in `play.g.souvenir`, the page will list them (never required for a full page: they are time-limited).
+
+### Requests
+
+- **Lane C** (Journal): in city mode the built-in 足迹 tab can go — it is the 手帐's last page now; with R's 今天 the plan's
+  five tabs are 今天 · 手帐 · 目标 · 明信片 · 想去 (six do not fit 375 px).
+- **Lane V**: H5-1 shop tiles keyed by the ids in `economy/items.ts` (26 for sale + 3 earned; a
+  `public/opus-bay/w5/shop/<id>.webp` would need a small change on my side to show); voice clips for `economy/lines.ts` (11
+  lines, ids `e-<key>`); a worn BAYBAY hat is +1 call and ≤ 342 tris.
+- **Lane N**: the magnifier uses your flag source API as designed; the pennants stand ≈ 30 u tall, so from the follow camera
+  the near ones (Pier 7 from the Ferry gate) are above the frame — perhaps a lower pole for extra flags within ≈ 150 u.
+- **Lane F**: `charApi` covers everything E needs (tint, attach, vehiclePaint, emote pose / cheer); the phone pill wraps to
+  three lines with the coin and compass badges (`明信片 0/24` · `🪙 220 · 🧭 ➤ 700米` · `目标`) — W5-F9's layout.
+- **Lane R**: `registerRewardIds('event', …)` is still needed for event souvenirs.
+- **Lead**: nothing frozen needs changing. `npx` resolved everywhere.
