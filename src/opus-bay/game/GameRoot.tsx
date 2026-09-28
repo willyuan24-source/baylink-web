@@ -4,7 +4,7 @@ import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
 import { loadCity } from '../world/cityLoader';
 import { initQualityPolicy, nextWarmState } from '../world/quality';
-import { warmPrograms } from '../world/warmup';
+import { stopWarmup, warmPrograms } from '../world/warmup';
 import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
 import { Systems } from './Systems';
@@ -112,7 +112,8 @@ function Warmup() {
         console.debug(`[opus-bay warmup] ${r.before} → ${r.after} programs in ${r.ms.toFixed(0)} ms`);
       }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay warmup]', error); });
     }, 250);
-    return () => { gone = true; window.clearTimeout(id); };
+    // the background passes of this warm-up stop with it (a new level warms up again; an unmount frees the renderer)
+    return () => { gone = true; window.clearTimeout(id); stopWarmup(gl); };
   }, [gl, scene, camera, offscreen, quality]);
   return null;
 }

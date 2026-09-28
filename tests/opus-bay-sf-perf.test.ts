@@ -501,3 +501,93 @@ test('W4-V part b: the live scene at this level, then the next level (dummies + 
   off();
   warm.resetWarmupState();
 });
+
+/** A fake renderer whose compileAsync resolves at once (as three's does when the next frame hands a visible object's
+ *  material back to this level's linked program) while the program it made links for `linkMs`. */
+function linkingRenderer(t: { mock: { timers: { tick(ms: number): void } } }, linkMs: number) {
+  let now = 0, target: unknown = null;
+  const calls: { at: number; pending: number; names: string[] }[] = [];
+  const programs: { readyAt: number; isReady(): boolean }[] = [];
+  const renderer = {
+    info: { programs },
+    shadowMap: { enabled: true },
+    getRenderTarget: () => target,
+    setRenderTarget: (tg: unknown) => { target = tg; },
+    compileAsync: (root: THREE.Object3D) => {
+      const names: string[] = [];
+      root.traverse(o => { if (o.name && !o.name.startsWith('ob-warmup')) names.push(o.name); });
+      calls.push({ at: now, pending: programs.filter(p => !p.isReady()).length, names });
+      const p = { readyAt: now + linkMs, isReady: () => now >= p.readyAt };
+      programs.push(p);
+      return Promise.resolve();
+    },
+  } as unknown as THREE.WebGLRenderer;
+  const drive = async (ms: number) => { for (let i = 0; i < ms / 8; i++) { for (let k = 0; k < 6; k++) await Promise.resolve(); now += 8; t.mock.timers.tick(8); } };
+  return { renderer, calls, drive };
+}
+
+test('W4-V integration review: a background pass waits for the programs it made to link, not for compileAsync (the next frame switches a visible material back)', async t => {
+  const warm = await import('../src/opus-bay/world/warmup');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { renderer, calls, drive } = linkingRenderer(t, 400);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  const sun = new THREE.DirectionalLight(); sun.castShadow = true;
+  scene.add(sun);
+  for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); m.name = `seen-${i}`; scene.add(m); }
+  warm.resetWarmupState();
+  const pBoot = warm.warmPrograms(renderer, scene, camera, { offscreen: false, next: { shadows: false } });
+  await drive(8);
+  await pBoot;
+  const nBoot = calls.length;
+  await drive(warm.NEXT_WARM_MS + 30 * (400 + warm.LIVE_GAP_MS + 24));
+  const later = calls.slice(nBoot);
+  assert.ok(later.length >= 8, `the live and next passes ran (${later.length} calls)`);
+  // the old loop issued the next call LIVE_GAP_MS after compileAsync resolved: 400 ms links piled up behind it
+  assert.deepEqual(later.filter(c => c.pending > 0).map(c => c.names.join()), [], 'no compile call while a pass\'s program still links');
+  const gaps = later.slice(1).map((c, i) => c.at - later[i].at);
+  assert.ok(gaps.every(g => g >= 400), `each call waits for the last link (gaps ${gaps.join(', ')} ms)`);
+  warm.resetWarmupState();
+});
+
+test('W4-V integration review: stopWarmup (the canvas goes, or its level changes) ends the background passes and late passes against its renderer', async t => {
+  const warm = await import('../src/opus-bay/world/warmup');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { renderer, calls, drive } = linkingRenderer(t, 40);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); m.name = `obj-${i}`; scene.add(m); }
+  warm.resetWarmupState();
+  // stopped before NEXT_WARM_MS: no pass at all
+  let p = warm.warmPrograms(renderer, scene, camera, { next: { shadows: false } });
+  await drive(8); await p;
+  let n = calls.length;
+  warm.stopWarmup(renderer);
+  await drive(warm.NEXT_WARM_MS + 2000);
+  assert.equal(calls.length, n, 'no live / next pass after the stop');
+  // stopped inside the live pass: at most the call in flight, then nothing
+  p = warm.warmPrograms(renderer, scene, camera, { next: { shadows: false } });
+  await drive(8); await p;
+  n = calls.length;
+  await drive(warm.NEXT_WARM_MS + 3 * (40 + warm.LIVE_GAP_MS + 16));
+  const started = calls.length - n;
+  assert.ok(started >= 1 && started < 12, `the live pass is under way (${started} calls)`);
+  warm.stopWarmup(renderer);
+  const atStop = calls.length, logAtStop = warm.lateWarmups.length;
+  await drive(20 * (40 + warm.LIVE_GAP_MS + 16));
+  assert.ok(calls.length <= atStop + 1, `the pass stops (${calls.length - atStop} calls after the stop)`);
+  assert.ok(!warm.lateWarmups.slice(logAtStop).some(l => l.next), 'the next level never starts');
+  // a lazy chunk registering later compiles nothing against the released renderer (its set waits for the next full warm-up)
+  const before = calls.length;
+  const off = warm.registerWarmup('t-after-stop', () => { const o = new THREE.Object3D(); o.name = 'after-stop'; return { objects: [o] }; });
+  await drive(200);
+  assert.equal(calls.length, before, 'no late pass against a released renderer');
+  // another renderer's stop is not this warm-up's
+  p = warm.warmPrograms(renderer, scene, camera, {});
+  await drive(8); await p;
+  assert.ok(calls.slice(before).some(c => c.names.includes('after-stop')), 'the next full warm-up takes the waiting set');
+  n = calls.length;
+  warm.stopWarmup({} as THREE.WebGLRenderer);
+  await drive(warm.NEXT_WARM_MS + 200);
+  assert.ok(calls.length > n, 'a stop for another renderer leaves this warm-up\'s passes alone');
+  off();
+  warm.resetWarmupState();
+});

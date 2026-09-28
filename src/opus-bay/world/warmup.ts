@@ -220,12 +220,13 @@ export async function warmPrograms(renderer: THREE.WebGLRenderer, scene: THREE.S
       nextTimer = null;
       if (lastWarm !== w) return;
       const next = w.next;
-      void compileSets(renderer, scene, camera, { ...w.opts, depth: false, live: 'all' }, [])
+      const alive = () => lastWarm === w;
+      void compileSets(renderer, scene, camera, { ...w.opts, depth: false, live: 'all', alive }, [])
         .then(r => { lateWarmups.push({ keys: 'live', ...r }); })
         // the next level: what could be on screen at the step (the dummies and the visible objects; a hidden one links
         // on first sight at that level, as it would have at this one without the live pass)
-        .then(() => next && lastWarm === w
-          ? compileSets(renderer, scene, camera, { ...next, depth: false, live: 'visible' }, null).then(r => { lateWarmups.push({ keys: 'all', next: true, ...r }); })
+        .then(() => next && alive()
+          ? compileSets(renderer, scene, camera, { ...next, depth: false, live: 'visible', alive }, null).then(r => { lateWarmups.push({ keys: 'all', next: true, ...r }); })
           : undefined)
         .catch(error => { if (import.meta.env?.DEV) console.warn('[opus-bay warmup live / next]', error); });
     }, NEXT_WARM_MS);
@@ -233,10 +234,43 @@ export async function warmPrograms(renderer: THREE.WebGLRenderer, scene: THREE.S
   return result;
 }
 
+/**
+ * The canvas that warmed up is going (GameRoot's Warmup cleanup: an unmount, or a quality / motion change whose new
+ * warm-up follows): no live / next pass starts or goes on for it, and a later registration no longer compiles against
+ * its renderer (the set waits for the next full warm-up). Before this, the passes ran on for seconds against the old
+ * level (or a disposed renderer) and the module kept the old renderer and scene until the next warm-up.
+ */
+export function stopWarmup(renderer: THREE.WebGLRenderer) {
+  if (lastWarm?.renderer !== renderer) return;
+  lastWarm = null;
+  if (nextTimer !== null) { clearTimeout(nextTimer); nextTimer = null; }
+}
+
 /** Live-scene objects compiled per task (their links are awaited before the next batch: a deep queue of links stalled
  * the next frame's first use of any new program ≈ 0.5 s on the RTX), and the pause between batches. */
 export const LIVE_BATCH = 1;
 export const LIVE_GAP_MS = 32;
+/** The longest a background pass waits for one batch's links (a lost context never reports a link complete). */
+export const LINK_WAIT_MS = 4000;
+
+type LinkingProgram = { isReady?: () => boolean };
+
+/**
+ * Wait until the programs a batch created have linked (integration review: compileAsync polls the material's
+ * *current* program, and for an object on screen the next frame sets that back to this level's, already linked one, so
+ * at the next level 12 of 40 calls resolved while their program was still linking and the next calls queued behind
+ * them (phone profile: up to 13 calls started with links pending, 380–520 ms link waits). Polls the programs
+ * themselves (KHR_parallel_shader_compile: a non-blocking query; without it three reports them ready at once), and any
+ * other link that started meanwhile.
+ */
+async function programsLinked(programs: readonly LinkingProgram[], alive: () => boolean): Promise<void> {
+  const t0 = performance.now();
+  let rest = programs.filter(p => typeof p.isReady === 'function');
+  while (rest.length && alive() && performance.now() - t0 < LINK_WAIT_MS) {
+    rest = rest.filter(p => !p.isReady!());
+    if (rest.length) await new Promise(r => setTimeout(r, 10));
+  }
+}
 
 /**
  * One object per material of the live scene (three's compile() takes each material once, with the first object that
@@ -286,7 +320,7 @@ const inScene = (o: THREE.Object3D, scene: THREE.Object3D) => { let p: THREE.Obj
  * false` skips the shadow pass's programs: the next level shares them or has none; `live`: then the live scene's objects,
  * all or the visible ones, LIVE_BATCH at a time).
  */
-async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: WarmState & { depth?: boolean; live?: 'all' | 'visible' }, keys: readonly string[] | null): Promise<WarmupResult> {
+async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, opts: WarmState & { depth?: boolean; live?: 'all' | 'visible'; alive?: () => boolean }, keys: readonly string[] | null): Promise<WarmupResult> {
   const t0 = performance.now();
   const before = programsCount(renderer);
   const { group, dispose } = dummySet(keys === null, keys);
@@ -313,10 +347,16 @@ async function compileSets(renderer: THREE.WebGLRenderer, scene: THREE.Scene, ca
     }
     await pending;
     if (opts.live) {
+      const alive = opts.alive ?? (() => true);
       const objects = [...group.children, ...liveObjects(scene, opts.live === 'visible')];
-      for (let i = 0; i < objects.length; i += LIVE_BATCH) {
+      // a pass stops when its warm-up is superseded (a quality change) or released (the canvas unmounted)
+      for (let i = 0; i < objects.length && alive(); i += LIVE_BATCH) {
         const batch = objects.slice(i, i + LIVE_BATCH).filter(o => o.parent === group || inScene(o, scene));
-        if (batch.length) await inState(renderer, scene, noShadows, target, () => Promise.all(batch.map(o => renderer.compileAsync(o, camera, scene))));
+        if (batch.length) {
+          const had = new Set<unknown>(renderer.info.programs ?? []);
+          await inState(renderer, scene, noShadows, target, () => Promise.all(batch.map(o => renderer.compileAsync(o, camera, scene))));
+          await programsLinked((renderer.info.programs ?? []).filter(p => !had.has(p)) as LinkingProgram[], alive);
+        }
         await new Promise(r => setTimeout(r, LIVE_GAP_MS));
       }
     }
