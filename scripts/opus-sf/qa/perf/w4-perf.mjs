@@ -12,6 +12,9 @@
 // Wave 5 (lane V, W5-V1): --file w5-spots.json takes the wave-5 table (the wave-4 spots + the new views; default
 // w4-spots.json). A spot with `time` (e.g. irving-night) runs only when the run's --time is its time, and a run whose
 // --time some spot carries measures only those spots (`--time night --rides 0`: Irving St at night alone).
+// Part b (W5-V1 / V6): --date YYYY-MM-DDTHH:mm starts the Bay clock there (the dev server honours ?date, game/bayNow.ts):
+// the event views run on their day — Castro fair day and Hellman Hollow on 2026-10-04T12:00, the jets over Marina Green
+// on 2026-10-09T12:40 (`--date … --spots castro,hellman-hollow --rides 0`).
 //
 // Desktop gate: CHROME_FLAGS=--force_high_performance_gpu, --quality high (1440 × 900). Phone gate: --mobile --dpr 3
 // --quality mid --throttle 4. Needs the dev server (the page imports game modules by their dev URLs).
@@ -146,6 +149,7 @@ fs.mkdirSync(out, { recursive: true });
 const port = args.port || 5306;
 const phone = !!args.mobile;
 const q = new URLSearchParams({ start: 'free', world: 'city', time: args.time || 'golden', quality: args.quality || (phone ? 'mid' : 'high') });
+if (args.date) q.set('date', String(args.date));
 const url = `http://localhost:${port}/opus-bay?${q}`;
 const pick = args.spots ? String(args.spots).split(',') : null;
 const runTime = args.time || 'golden';

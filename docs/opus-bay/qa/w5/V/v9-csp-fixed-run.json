@@ -1,0 +1,12 @@
+{
+ "violations": [],
+ "failed": [],
+ "served": 299,
+ "spaHits": 2,
+ "started": "2026-09-28T14:52:52.845Z",
+ "dir": "C:\\Users\\willy\\opus-qa\\w5\\w5-v\\dist-csp",
+ "spa": [
+  "/opus-bay"
+ ],
+ "finished": "2026-09-28T14:53:57.680Z"
+}

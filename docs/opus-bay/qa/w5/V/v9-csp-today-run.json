@@ -1,0 +1,160 @@
+{
+ "violations": [
+  {
+   "at": "2026-09-28T14:37:09.221Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:37:09.385Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:37:09.386Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:37:17.445Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:37:17.612Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:37:17.613Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:38:03.829Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:38:03.979Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:38:03.979Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:38:50.176Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:38:50.253Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:38:50.257Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:39:36.081Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:39:36.181Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:39:36.181Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:40:22.662Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:40:22.774Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:40:22.774Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:41:08.807Z",
+   "directive": "connect-src",
+   "blocked": "blob",
+   "source": "http://localhost:5517/assets/react-three-fiber.esm-CfG4_HCb.js",
+   "line": 5
+  },
+  {
+   "at": "2026-09-28T14:41:09.035Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  },
+  {
+   "at": "2026-09-28T14:41:09.035Z",
+   "directive": "script-src",
+   "blocked": "wasm-eval",
+   "source": "blob",
+   "line": 39
+  }
+ ],
+ "failed": [],
+ "served": 393,
+ "spaHits": 7,
+ "started": "2026-09-28T14:36:58.489Z",
+ "dir": "C:\\Users\\willy\\opus-qa\\w5\\w5-v\\dist-csp",
+ "spa": [
+  "/opus-bay"
+ ],
+ "finished": "2026-09-28T14:41:54.634Z"
+}
