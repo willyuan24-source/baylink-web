@@ -16,6 +16,7 @@ import { BAYBAY_ID, interactableById } from './interactables';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
 import { minutesLabel } from './tripText';
+import { isArrived } from './trips';
 import type { TripState } from './tripTypes';
 
 /**
@@ -41,6 +42,9 @@ import type { TripState } from './tripTypes';
  * Optional stops (Fort Point, the deck walk) are not led in wave 4: the Welcome Center's lines point them out.
  * Part b: a photo moment waits for the shutter (photo mode holds the dwell, a shot ends it 3 s later with "拍得真好"); the
  * express version points at 直接到站 when your train leaves on a Metro leg > 400 u.
+ * Int-review: the player's own trip never strands the tour — 换个方式 to the same stop stays the tour's trip
+ * (game/tripRun.ts start), another trip / 结束 / a fast travel pauses it (a toast; the call menu's 继续一日游 leads on),
+ * reaching the stop anyway counts, and the tour never ends or takes over the player's own trip by itself (`watchTrip`).
  */
 
 /** The dwell after an arrival, by moment (s): the timing model's, the moment itself (lane G's card, the reveal). */
@@ -78,6 +82,12 @@ interface Run {
   shotAt: number;
   /** the express 直接到站 hint was given on this stop's ride */
   hinted: boolean;
+  /** where the current stop's trip ends (got there without it still counts: int-review) */
+  target: { x: number; z: number } | null;
+  /** clock (s) the leading stop's trip went missing (0: it runs) */
+  lostAt: number;
+  /** the player's own trip took over (int-review): the tour waits until the call menu's 继续一日游 */
+  paused: boolean;
 }
 
 let run: Run | null = null;
@@ -119,7 +129,7 @@ function begin(def: CityTourDef, express: boolean, completed: string[]) {
   const stops = tourStops(def, { express });
   const firstOpen = stops.findIndex(f => !completed.includes(f.stop.id));
   const i = firstOpen < 0 ? 0 : firstOpen;
-  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1, shotAt: 0, hinted: false };
+  run = { def, express, stops, i, completed: firstOpen < 0 ? [] : completed, phase: 'leading', dwellAt: 0, dwell: 0, at: null, chapter: -1, shotAt: 0, hinted: false, target: null, lostAt: 0, paused: false };
   lastRun = run;
   endTrip();
   closePanel();
@@ -148,6 +158,10 @@ function startStop(r: Run) {
   if (lead) offerPaced(lead);
   r.phase = 'leading';
   r.hinted = false;
+  const end = option.legs[option.legs.length - 1].to;
+  r.target = { x: end.x, z: end.z };
+  r.lostAt = 0;
+  r.paused = false;
   flow.set({ tourPhase: 'leading' });
   setTourState(r, true);
   const target = stop.target.startsWith('place:') ? stop.target.slice(6) : stop.target;
@@ -164,6 +178,8 @@ function arrived(r: Run) {
   if (stop.moment === 'photo') bubble(photoPrompt(), 3200, BAYBAY_ID, 'call');
   if (!r.completed.includes(flat.stop.id)) r.completed.push(flat.stop.id);
   r.phase = 'dwell';
+  r.paused = false;
+  r.lostAt = 0;
   r.dwellAt = clock();
   r.dwell = DWELL_S[stop.moment ?? 'none'];
   r.moment = stop.moment;
@@ -192,9 +208,12 @@ function nextStop(r: Run) {
   startStop(r);
 }
 
+/** End the stop's trip (never the player's own trip from the map: int-review). */
+const endTourTrip = () => { if (flow.get().trip?.source === 'tour') endTrip(); };
+
 function finish(r: Run) {
   r.phase = 'done';
-  endTrip();
+  endTourTrip();
   clearProgress(r.def.id);
   run = null;
   game.set({ mode: 'free', tour: { active: false, id: r.def.id, stop: r.stops.length - 1, completed: [...r.completed] } });
@@ -208,7 +227,7 @@ function end(quiet = false) {
   if (!r) return;
   r.phase = 'done';
   run = null;
-  endTrip();
+  endTourTrip();
   clearLines();
   saveProgress(r);
   game.set({ mode: 'free', tour: { active: false, id: r.def.id, stop: r.i, completed: [...r.completed] } });
@@ -260,9 +279,18 @@ function start(id: string) {
   choose(def);
 }
 
+/** The tour waits for the player (int-review): paused, or leading without the stop's trip. */
+const waiting = (r: Run): boolean => r.paused || (r.phase === 'leading' && flow.get().trip?.source !== 'tour');
+
 function next() {
   const r = run;
   if (!r) return;
+  // 继续一日游 after the player's own trip: lead to the stop again (or on from the stop it waited at)
+  if (waiting(r)) {
+    r.paused = false; r.lostAt = 0;
+    if (r.phase === 'dwell') nextStop(r); else startStop(r);
+    return;
+  }
   if (r.phase === 'dwell') { nextStop(r); return; }
   // leading: 下一站 from the call menu means "keep going" (the trip leads on); nothing to skip
 }
@@ -273,7 +301,12 @@ function callChoices(): NonNullable<DialogueNode['choices']> {
   const flat = r.stops[r.i];
   const name = flat ? nameOf(playedStop(r.def, flat.stop, r.express).target) : null;
   const out: NonNullable<DialogueNode['choices']> = [];
-  if (r.phase === 'dwell') out.push({ label: { zh: '继续下一站', en: 'On to the next stop' }, action: { type: 'tour-next' } });
+  if (waiting(r)) {
+    out.push({
+      label: r.phase === 'dwell' || !name ? { zh: '继续一日游 · 去下一站', en: 'Resume the Grand Tour · next stop' } : { zh: `继续一日游：带我去${name.zh}`, en: `Resume the Grand Tour: take me to ${name.en}` },
+      action: { type: 'tour-next' },
+    });
+  } else if (r.phase === 'dwell') out.push({ label: { zh: '继续下一站', en: 'On to the next stop' }, action: { type: 'tour-next' } });
   else out.push({ label: name ? { zh: `继续：带我去${name.zh}`, en: `Keep going: take me to ${name.en}` } : { zh: '继续跟你走', en: 'Keep following you' }, action: { type: 'end' } });
   out.push({ label: { zh: '跳过这一站', en: 'Skip this stop' }, next: 'flow.tour.skip' });
   out.push({ label: { zh: '先不逛了，结束一日游', en: 'End the Grand Tour for now' }, action: { type: 'tour-end' } });
@@ -311,12 +344,43 @@ export function wantsSkipHint(e: GameEvent, r: Pick<Run, 'express' | 'phase' | '
   return leg?.via === 'line' && leg.length > LONG_METRO_U;
 }
 
-/** 2 Hz: the dwell's end, a tour that something else ended (the week, a restart). */
+/**
+ * The player's own trip over the tour (int-review), 2 Hz: the stop's trip was ended (the trip card's 结束, 带我去, a fast
+ * travel) or replaced (the map's 跟 BAYBAY 去 somewhere else), or a trip of theirs starts while the tour waits at a stop.
+ * The tour then waits (no lead, no next stop taking their trip over) with one toast; getting to the stop anyway still
+ * counts; the call menu's 继续一日游 leads on. True while the tour waits.
+ */
+function watchTrip(r: Run, now: number): boolean {
+  const trip = flow.get().trip;
+  const theirs = !!trip && !isArrived(trip) && trip.source !== 'tour';
+  if (r.phase === 'leading') {
+    if (trip?.source === 'tour') { r.lostAt = 0; r.paused = false; return false; }
+    if (!r.lostAt) r.lostAt = now;
+    // got to the stop without the tour's trip (walked, flew or took the map's route there): arrived
+    if (!theirs && r.target && game.get().move.mode !== 'travel' && Math.hypot(runtime.player.x - r.target.x, runtime.player.z - r.target.z) <= STOP_REACHED_R) { arrived(r); return true; }
+    if (!r.paused && now - r.lostAt >= LOST_GRACE_S) pause(r);
+    return true;
+  }
+  if (r.phase === 'dwell' && theirs && !r.paused) pause(r);
+  return r.paused;
+}
+function pause(r: Run) {
+  r.paused = true;
+  say(PAUSED.zh, PAUSED.en, 'info', 4200);
+}
+/** a stop counts as reached without its trip this close to the trip's end (u): the attraction's arrival ring */
+export const STOP_REACHED_R = 12;
+/** the stop's trip missing this long (s) pauses the tour (a new tour trip starts within a frame) */
+export const LOST_GRACE_S = 1.5;
+const PAUSED: Bilingual = { zh: '一日游先暂停～想接着逛就叫 BAYBAY', en: 'Grand Tour paused — call BAYBAY to go on' };
+
+/** 2 Hz: the dwell's end, the player's own trip, a tour that something else ended (the week, a restart). */
 function tick(now: number) {
   const r = run;
   if (!r) return;
   const t = game.get().tour;
   if (!t.active || tourIdOf(t) !== r.def.id) { run = null; clearLines(); saveProgress(r); return; }
+  if (r.phase === 'done' || watchTrip(r, now)) return;
   if (r.phase !== 'dwell' || dialogueOpen()) return;
   if (dwellOver(r, now, { photoMode: game.get().photoMode, player: runtime.player }) && !lineSpeaking(now)) nextStop(r);
 }
@@ -353,8 +417,8 @@ export function initCityTour(): void {
 }
 
 /** Tests / QA: the running tour (read-only view). */
-export const cityTourRun = (): Readonly<Pick<Run, 'express' | 'i' | 'completed' | 'phase'>> & { stop?: string; chapter?: number } | null =>
-  (run ? { express: run.express, i: run.i, completed: run.completed, phase: run.phase, stop: run.stops[run.i]?.stop.id, chapter: run.stops[run.i]?.chapter } : null);
+export const cityTourRun = (): Readonly<Pick<Run, 'express' | 'i' | 'completed' | 'phase' | 'paused'>> & { stop?: string; chapter?: number } | null =>
+  (run ? { express: run.express, i: run.i, completed: run.completed, phase: run.phase, paused: run.paused, stop: run.stops[run.i]?.stop.id, chapter: run.stops[run.i]?.chapter } : null);
 
 /** The Grand Tour's id (= data/sf/copy GRAND_TOUR.id), for the flow's first-lesson checks. */
 export const GRAND_ID = GRAND_TOUR.id;

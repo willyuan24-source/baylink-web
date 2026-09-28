@@ -79,8 +79,27 @@ function destName(t: TripState): Bilingual {
   return last?.name ?? interactableById(t.placeId)?.name ?? interactableById(`place:${t.placeId}`)?.name ?? { zh: '目的地', en: 'there' };
 }
 
+/** A trip that ends this close to a running Grand Tour stop's end goes to that stop (int-review: 换个方式). */
+export const SAME_STOP_R = 15;
+
+/** Does `option` (to `dest`) go where the running trip `t` goes: the same place, or an end within SAME_STOP_R? */
+export function sameDestination(t: TripState, option: TripOption, dest: Pick<TripDest, 'placeId'>): boolean {
+  if (dest.placeId === t.placeId) return true;
+  const a = t.legs[t.legs.length - 1]?.to, b = option.legs[option.legs.length - 1]?.to;
+  return !!a && !!b && Math.hypot(a.x - b.x, a.z - b.z) <= SAME_STOP_R;
+}
+
 function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   if (!option.legs.length) return;
+  // int-review: 换个方式 on a Grand Tour leg (lane G's trip card opens the map; its options, a station's ride or 跟
+  // BAYBAY 去 to the same stop) goes on as the tour's trip with the new option — its dots, its lines, its arrival. A
+  // new trip there used to replace it, and the tour waited for a stop that never ended.
+  const cur = flow.get().trip;
+  if (source !== 'tour' && source !== 'free-lead' && cur?.source === 'tour' && !isArrived(cur) && sameDestination(cur, option, dest)) {
+    if (source === 'map' || source === 'card') closePanel();
+    replan(option);
+    return;
+  }
   const legs = dest.name && option.legs.length ? withDestName(option.legs, dest.name) : option.legs;
   const opt = legs === option.legs ? option : { ...option, legs };
   if (source !== 'free-lead' && flow.get().freeLead) flow.set({ freeLead: null });
