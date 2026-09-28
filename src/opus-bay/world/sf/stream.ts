@@ -336,8 +336,9 @@ export class CityStreamer {
 
   private onFar(r: FarResult, far: FarData) {
     this.far = far;
-    // the SF look needs the neighbourhoods: every chunk job is dispatched after this (status 'streaming' below)
-    const zones: WorkerIn = { t: 'zones', zones: lookZones(far) };
+    // the SF look needs the neighbourhoods, the ponds the far water rings: every chunk job is dispatched after this
+    // (status 'streaming' below)
+    const zones: WorkerIn = { t: 'zones', zones: lookZones(far), farWater: r.farWater };
     for (const w of this.workers) w.postMessage(zones);
     this.farMs = r.ms;
     this.farQueue = r.cells;

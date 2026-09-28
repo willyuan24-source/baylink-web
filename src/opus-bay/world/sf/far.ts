@@ -6,7 +6,7 @@ import { WIN } from '../recipes/shapes';
 import { AREA_CLASSES, AREA_FLAG, type FarData, ROAD_CLASSES, demSample } from './format';
 import { HILL, type LookZones, asphaltInfo, farPrismColors, hillMix, lookZones, slopeEarth, zoneAt } from './look';
 import { CityBatch, GROUND_CITY, type PoolArrays, buildGround, clipOutside, clipPolyline, ribbon } from './mesh';
-import { type Raster, chamfer, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
+import { type Raster, chamfer, fillPoly, fillRing, fillRings, inPoly, inRingXZ, makeRaster, pushOutOf, ringWithHoles, sampleField, sampleNearest, signedDistance } from './raster';
 
 /**
  * The far city (L2, plan §5.3) from far.obc, built once in a stream worker during the arrival cinematic:
@@ -42,6 +42,8 @@ export interface FarResult {
   cells: FarCell[];
   lakes: { position: Float32Array; index: Uint32Array } | null;
   shore: { data: Uint8Array; x0: number; z0: number; step: number; cols: number; rows: number };
+  /** far.obc's water rings, forwarded to the chunk workers (CityInit.farWater: which lakes get a surface) */
+  farWater: FarWater[];
   ms: number;
   triangles: number;
 }
@@ -65,20 +67,23 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
     return i1 > i0 && excl(cx / (i1 - i0), cz / (i1 - i0));
   };
   for (let i = 0; i < ar.count; i++) {
-    const k = ar.cls[i], i0 = ar.pStart[i], i1 = ar.pStart[i + 1];
-    if (k === A.land) { fillRing(r, ar.xz, i0, i1, j => { land[j] = 1; }); continue; }
+    const k = ar.cls[i], i0 = ar.pStart[i], i1 = ar.pStart[i + 1], hole = (ar.flags[i] & AREA_FLAG.hole) !== 0;
+    // land and water rings fill even-odd with the hole rings that follow them (core/sfTerrain's rule): a lake's
+    // islands (Strawberry Hill) stay land, out of the lake surface
+    if ((k === A.land || k === A.water) && hole) continue;
+    if (k === A.land) { fillRings(r, ar.xz, ringWithHoles(ar, i, AREA_FLAG.hole), j => { land[j] = 1; }); continue; }
     if (k === A.water) {
       // a landmark's own lagoon / basins (Palace of Fine Arts, Sutro Baths) stay ground: the landmark draws the water
-      if (!(ar.flags[i] & AREA_FLAG.hole) && landmarkLake(ar.xz, i0, i1)) continue;
-      fillRing(r, ar.xz, i0, i1, j => { land[j] = 0; });
-      if (ar.flags[i] & AREA_FLAG.hole) continue;
+      if (landmarkLake(ar.xz, i0, i1)) continue;
+      const rings = ringWithHoles(ar, i, AREA_FLAG.hole);
+      fillRings(r, ar.xz, rings, j => { land[j] = 0; });
       // lake level: the lowest shore point (DEM smoothed at 16 u → a touch below it)
       let lo = Infinity;
       for (let p = i0; p < i1; p++) lo = Math.min(lo, demSample(far.dem, ar.xz[p * 2], ar.xz[p * 2 + 1]));
       if (lo > 0.3) {
         const id = lakes.length;
         lakes.push({ i0, i1, level: lo - 0.2 });
-        fillRing(r, ar.xz, i0, i1, j => { lakeId[j] = id; });
+        fillRings(r, ar.xz, rings, j => { lakeId[j] = id; });
       }
       continue;
     }
@@ -190,7 +195,39 @@ export function buildFar(far: FarData, init: FarInit): FarResult {
     if (toy || ground) cells.push({ ix, iz, toy, ground });
   }
 
-  return { cells, lakes: lakeSurfaces(far, r, lakeId, lakes), shore: { data: shore, x0: r.x0, z0: r.z0, step: r.step, cols: r.cols, rows: r.rows }, ms: performance.now() - t0, triangles };
+  return { cells, lakes: lakeSurfaces(far, r, lakeId, lakes), shore: { data: shore, x0: r.x0, z0: r.z0, step: r.step, cols: r.cols, rows: r.rows }, farWater: farWaterRings(far), ms: performance.now() - t0, triangles };
+}
+
+/**
+ * far.obc's water (each outer ring with its holes): what buildFar turns into water (the lake surfaces and the sea
+ * holes). The data build keeps only water areas ≥ 200 u² here, so a smaller chunk pond lies in none of them: the chunk
+ * builder (build.ts chunkContext, through CityInit.farWater) paints such a pond on the ground instead of cutting a hole
+ * that nothing fills (a pit to the table on a hill: the Strawberry Hill reservoir, a Twin Peaks tank).
+ */
+export interface FarWater { box: [x0: number, z0: number, x1: number, z1: number]; outer: Float32Array; holes: Float32Array[] }
+
+export function farWaterRings(far: Pick<FarData, 'areas'>): FarWater[] {
+  const ar = far.areas, out: FarWater[] = [];
+  for (let i = 0; i < ar.count; i++) {
+    if (ar.cls[i] !== A.water || ar.flags[i] & AREA_FLAG.hole) continue;
+    const ranges = ringWithHoles(ar, i, AREA_FLAG.hole);
+    const outer = Float32Array.from(ar.xz.subarray(ranges[0] * 2, ranges[1] * 2));
+    const holes: Float32Array[] = [];
+    for (let g = 2; g < ranges.length; g += 2) holes.push(Float32Array.from(ar.xz.subarray(ranges[g] * 2, ranges[g + 1] * 2)));
+    const box: FarWater['box'] = [Infinity, Infinity, -Infinity, -Infinity];
+    for (let k = 0; k < outer.length; k += 2) { box[0] = Math.min(box[0], outer[k]); box[1] = Math.min(box[1], outer[k + 1]); box[2] = Math.max(box[2], outer[k]); box[3] = Math.max(box[3], outer[k + 1]); }
+    out.push({ box, outer, holes });
+  }
+  return out;
+}
+
+/** Is (x, z) far water (inside an outer ring, outside its holes)? */
+export function inFarWater(list: readonly FarWater[], x: number, z: number): boolean {
+  for (const w of list) {
+    if (x < w.box[0] || x > w.box[2] || z < w.box[1] || z > w.box[3] || !inRingXZ(w.outer, x, z)) continue;
+    if (!w.holes.some(h => inRingXZ(h, x, z))) return true;
+  }
+  return false;
 }
 
 const _pc = { x: 0, z: 0 };

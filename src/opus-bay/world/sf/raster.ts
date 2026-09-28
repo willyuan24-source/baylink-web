@@ -15,21 +15,38 @@ export function makeRaster(x0: number, z0: number, x1: number, z1: number, step:
  * `set(index)` is called for every covered cell.
  */
 export function fillRing(r: Raster, xz: ArrayLike<number>, i0: number, i1: number, set: (i: number) => void) {
-  const n = i1 - i0;
-  if (n < 3) return;
-  let zMin = Infinity, zMax = -Infinity;
-  for (let k = i0; k < i1; k++) { const z = xz[k * 2 + 1]; if (z < zMin) zMin = z; if (z > zMax) zMax = z; }
+  fillRings(r, xz, [i0, i1], set);
+}
+
+/**
+ * Even-odd scanline fill of a SET of rings (`ranges` = [i0, i1, i0', i1', …], each a closed ring of the x, z pair
+ * array): an outer ring and the hole rings that follow it in the chunk / far files (AREA_FLAG.hole) fill as one shape,
+ * so an island in a lake stays out of the lake (as core/sfTerrain `rasterizeChunk` / `scanFill` does for the walk).
+ * Rings with fewer than 3 points are skipped.
+ */
+export function fillRings(r: Raster, xz: ArrayLike<number>, ranges: readonly number[], set: (i: number) => void) {
+  let zMin = Infinity, zMax = -Infinity, any = false;
+  for (let g = 0; g + 1 < ranges.length; g += 2) {
+    if (ranges[g + 1] - ranges[g] < 3) continue;
+    any = true;
+    for (let k = ranges[g]; k < ranges[g + 1]; k++) { const z = xz[k * 2 + 1]; if (z < zMin) zMin = z; if (z > zMax) zMax = z; }
+  }
+  if (!any) return;
   const j0 = Math.max(0, Math.floor((zMin - r.z0) / r.step - 0.5)), j1 = Math.min(r.rows - 1, Math.ceil((zMax - r.z0) / r.step - 0.5));
   const xs: number[] = [];
   for (let j = j0; j <= j1; j++) {
     const z = r.z0 + (j + 0.5) * r.step;
     xs.length = 0;
-    for (let a = 0; a < n; a++) {
-      const p = i0 + a, q = i0 + ((a + n - 1) % n);
-      const az = xz[p * 2 + 1], bz = xz[q * 2 + 1];
-      if ((az > z) !== (bz > z)) {
-        const ax = xz[p * 2], bx = xz[q * 2];
-        xs.push(ax + ((z - az) * (bx - ax)) / (bz - az));
+    for (let g = 0; g + 1 < ranges.length; g += 2) {
+      const i0 = ranges[g], n = ranges[g + 1] - i0;
+      if (n < 3) continue;
+      for (let a = 0; a < n; a++) {
+        const p = i0 + a, q = i0 + ((a + n - 1) % n);
+        const az = xz[p * 2 + 1], bz = xz[q * 2 + 1];
+        if ((az > z) !== (bz > z)) {
+          const ax = xz[p * 2], bx = xz[q * 2];
+          xs.push(ax + ((z - az) * (bx - ax)) / (bz - az));
+        }
       }
     }
     if (xs.length < 2) continue;
@@ -39,6 +56,17 @@ export function fillRing(r: Raster, xz: ArrayLike<number>, i0: number, i1: numbe
       for (let c = c0; c <= c1; c++) set(j * r.cols + c);
     }
   }
+}
+
+/**
+ * The ring set of area `i` in a chunk / far file: its own range plus the ranges of the rings right after it that carry
+ * the hole flag with the same class (the file's rule: "a ring with AREA_FLAG.hole cuts the preceding outer ring of the
+ * same class"), for `fillRings`.
+ */
+export function ringWithHoles(ar: { count: number; cls: ArrayLike<number>; flags: ArrayLike<number>; pStart: ArrayLike<number> }, i: number, holeFlag: number): number[] {
+  const ranges = [ar.pStart[i], ar.pStart[i + 1]];
+  for (let j = i + 1; j < ar.count && ar.flags[j] & holeFlag; j++) if (ar.cls[j] === ar.cls[i]) ranges.push(ar.pStart[j], ar.pStart[j + 1]);
+  return ranges;
 }
 
 /** Fill a polygon given as {x, z}[] (convenience for the slab / exclusion shapes). */
@@ -143,6 +171,17 @@ export function pushOutOf(polys: readonly (readonly { x: number; z: number }[])[
 }
 
 /** Point in polygon for {x, z}[] (even-odd). */
+/** Point in a ring given as a flat x, z pair array (even-odd). */
+export function inRingXZ(xz: ArrayLike<number>, x: number, z: number): boolean {
+  let ins = false;
+  const n = xz.length >> 1;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const ax = xz[i * 2], az = xz[i * 2 + 1], bx = xz[j * 2], bz = xz[j * 2 + 1];
+    if ((az > z) !== (bz > z) && x < ((bx - ax) * (z - az)) / (bz - az) + ax) ins = !ins;
+  }
+  return ins;
+}
+
 export function inPoly(x: number, z: number, poly: readonly { x: number; z: number }[]): boolean {
   let ins = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {

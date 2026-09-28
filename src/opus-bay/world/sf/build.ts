@@ -10,8 +10,9 @@ import type { TypedBatchArrays } from '../typedBatch';
 import { type L0Buildings, L0Recorder, l0Desc } from './l0index';
 import { HILL, type LookStyle, type LookZones, asphaltInfo, hillMix, sfLook, slopeEarth, zoneAt } from './look';
 import { AREA_CLASSES, AREA_FLAG, type ChunkData, PROP_KINDS, ROAD_CLASSES, ROAD_FLAG, type SfPalette, demSample } from './format';
+import { type FarWater, inFarWater } from './far';
 import { CityBatch, GROUND_CITY, type Line3, type PoolArrays, buildGround, clipOutside, clipPolyline, dashes, ribbon } from './mesh';
-import { type Raster, fillPoly, fillRing, inPoly, makeRaster, pushOutOf, sampleField, sampleNearest, signedDistance } from './raster';
+import { type Raster, fillPoly, fillRing, fillRings, inPoly, makeRaster, pushOutOf, ringWithHoles, sampleField, sampleNearest, signedDistance } from './raster';
 
 /**
  * Chunk → render geometry for the streamed city (runs in the stream workers; pure, three core only):
@@ -53,7 +54,18 @@ export interface CityInit {
    * building takes its zone-free look (flat, the neutral pools).
    */
   zones?: LookZones | null;
+  /**
+   * far.obc's water rings (far.ts farWaterRings), posted with `zones`: a lake of a chunk that lies in none of them
+   * and stands above the sea has no water surface (far.ts draws the lakes), so it is painted on the ground as a pond
+   * (POND_CLASS) instead of cut out. Without them (tests, the first jobs) every lake is cut out as before.
+   */
+  farWater?: FarWater[] | null;
 }
+
+/** Class raster value of a pond painted on the ground (no far lake surface covers it); not an AREA_CLASSES index. */
+export const POND_CLASS = 200;
+/** A lake whose shore is lower than this sits at the sea plane, which shows through its hole: it stays cut out. */
+const POND_MIN_Y = 0.6;
 
 const P = { none: 0, pavers: 1, stone: 2, planks: 3, grass: 4, asphalt: 5, cobble: 6, earth: 7, brick: 8 } as const;
 const A = Object.fromEntries(AREA_CLASSES.map((c, i) => [c, i])) as Record<(typeof AREA_CLASSES)[number], number>;
@@ -75,6 +87,8 @@ const CLASS_PAINT: Record<number, { color: string; pattern: number }> = {
   [A.parking]: { color: CITY_PAL.parking, pattern: P.asphalt },
   [A.water]: { color: CITY_PAL.land, pattern: P.earth },
   [A.pier]: { color: CITY_PAL.pier, pattern: P.planks },
+  // a small pond painted on the ground (between the lake shader's shallow and deep day colours)
+  [POND_CLASS]: { color: '#5ea9a8', pattern: P.none },
 };
 
 // ---------------------------------------------------------------------------
@@ -143,6 +157,24 @@ function ringInside(xz: ArrayLike<number>, i0: number, i1: number, inside: (x: n
   return i1 > i0 && !!inside(cx / (i1 - i0), cz / (i1 - i0));
 }
 
+/**
+ * A chunk lake (ring i0 … i1) that no far water covers and that stands above the sea: far.ts draws no surface for it,
+ * so its hole in the ground would open onto the table. Covered = its centre or half its shore points lie in far water.
+ */
+function pondOnGround(xz: ArrayLike<number>, i0: number, i1: number, chunk: ChunkData, farWater: readonly FarWater[]) {
+  const n = i1 - i0;
+  if (n < 3) return false;
+  let cx = 0, cz = 0, lo = Infinity, wet = 0;
+  for (let k = i0; k < i1; k++) {
+    const x = xz[k * 2], z = xz[k * 2 + 1];
+    cx += x; cz += z;
+    lo = Math.min(lo, demSample(chunk.dem, x, z));
+    if (inFarWater(farWater, x, z)) wet++;
+  }
+  if (lo <= POND_MIN_Y) return false;
+  return !inFarWater(farWater, cx / n, cz / n) && wet * 2 < n;
+}
+
 const bboxOf = (poly: readonly Vec2[]) => {
   let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
   for (const p of poly) { x0 = Math.min(x0, p.x); z0 = Math.min(z0, p.z); x1 = Math.max(x1, p.x); z1 = Math.max(z1, p.z); }
@@ -175,10 +207,16 @@ export function chunkContext(chunk: ChunkData, init: CityInit): ChunkContext {
     if (k !== A.land && k !== A.water) coast = false;
     if (!coast && k === A.water && !hole && ringInside(ar.xz, i0, i1, inExclusion)) continue; // a landmark's own lagoon / basins
     if (coast || k === A.water) {
-      // coastline rings (land, then its sea holes) and lakes: the ground mask
-      const v = k === A.land ? 1 : 0;
-      fillRing(mask, ar.xz, i0, i1, j => { m[j] = v; });
-      if (k === A.water) fillRing(cls, ar.xz, i0, i1, j => { c[j] = A.water; });
+      // coastline rings and lakes: the ground mask. A hole ring was filled with its outer ring (even-odd, as
+      // core/sfTerrain rasterizeChunk walks it): the islands of a lake (Strawberry Hill in Stow Lake …) stay land.
+      if (hole) continue;
+      const v = k === A.land ? 1 : 0, rings = ringWithHoles(ar, i, AREA_FLAG.hole);
+      if (!coast && k === A.water && init.farWater && pondOnGround(ar.xz, i0, i1, chunk, init.farWater)) {
+        fillRings(cls, ar.xz, rings, j => { c[j] = POND_CLASS; });
+        continue;
+      }
+      fillRings(mask, ar.xz, rings, j => { m[j] = v; });
+      if (k === A.water) fillRings(cls, ar.xz, rings, j => { c[j] = A.water; });
       continue;
     }
     if ((ar.flags[i] & AREA_FLAG.deck) !== 0) continue; // piers: drawn as decks (buildL0 / buildL1)
@@ -315,7 +353,7 @@ function paintFor(ctx: ChunkContext) {
     let col = mixColor(p.color, k === 0 ? CITY_PAL.landShade : shade(p.color, 0.92), n * 0.45);
     // green hills (look.ts HILL): plain land high up turns to hill grass, only steep ground shows earth
     if (k === 0 && h > HILL.y0) col = mixColor(col, CITY_PAL.hillGrass, hillMix(h));
-    if (slope > HILL.slope0) col = mixColor(col, CITY_PAL.earth, slopeEarth(slope));
+    if (slope > HILL.slope0 && k !== POND_CLASS) col = mixColor(col, CITY_PAL.earth, slopeEarth(slope));
     return { color: _col.copy(col), pattern: p.pattern };
   };
 }

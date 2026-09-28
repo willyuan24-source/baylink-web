@@ -21,8 +21,8 @@ g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const { ATTACH_BUDGET, CellTable, Lru, RADII, RESIDENCY, desiredTier, squareDist } = await import('../src/opus-bay/world/sf/cell');
-const { buildL0, buildL1, chunkContext, isGround } = await import('../src/opus-bay/world/sf/build');
-const { buildFar } = await import('../src/opus-bay/world/sf/far');
+const { POND_CLASS, buildL0, buildL1, chunkContext, isGround } = await import('../src/opus-bay/world/sf/build');
+const { buildFar, farWaterRings, inFarWater } = await import('../src/opus-bay/world/sf/far');
 const { GROUND_CITY, clipOutside, clipPolyline } = await import('../src/opus-bay/world/sf/mesh');
 const { classVerts, sizeClass } = await import('../src/opus-bay/world/sf/pools');
 const { inPoly } = await import('../src/opus-bay/world/sf/raster');
@@ -32,6 +32,9 @@ const { CitySites } = await import('../src/opus-bay/world/sf/sites');
 const { projectCity } = await import('../src/opus-bay/core/geo');
 const { DISTRICT } = await import('../src/opus-bay/data/district');
 const { sfDisk } = await import('./opus-bay-sf-disk');
+const { SF_KIND, rasterizeChunk } = await import('../src/opus-bay/core/sfTerrain');
+const { AREA_CLASSES, AREA_FLAG, demSample } = await import('../src/opus-bay/world/sf/format');
+type Vec2 = { x: number; z: number };
 
 type Table = InstanceType<typeof CellTable>;
 
@@ -309,6 +312,100 @@ test('far city: L2 within budget, prisms keep out of the slab, shore texture cov
   assert.equal(at(mission.x, mission.z), 0, 'land is distance 0');
   assert.ok(r.lakes && r.lakes.index.length > 0, 'hill lakes (Stow Lake, Mountain Lake …) get their own water');
   assert.ok(r.ms < 20_000);
+  // wave 4 (lead-merge 8.4, lane V): a lake's hole rings are its islands — no lake surface deep inside Strawberry Hill
+  const ar = far.areas;
+  const islands: Vec2[][] = [];
+  for (let i = 0; i < ar.count; i++) {
+    if (!(ar.flags[i] & AREA_FLAG.hole) || AREA_CLASSES[ar.cls[i]] !== 'water') continue;
+    const ring: Vec2[] = [];
+    for (let p = ar.pStart[i]; p < ar.pStart[i + 1]; p++) ring.push({ x: ar.xz[p * 2], z: ar.xz[p * 2 + 1] });
+    islands.push(ring);
+  }
+  assert.ok(islands.some(q => inPoly(-262, 1030, q)), 'far.obc carries Strawberry Hill as a water hole');
+  const lp = r.lakes!.position;
+  let deepIn = 0;
+  for (let i = 0; i < lp.length; i += 3) for (const q of islands) if (inPoly(lp[i], lp[i + 2], q) && ringDistance(q, lp[i], lp[i + 2]) > 4) deepIn++;
+  assert.equal(deepIn, 0, 'lake surface vertices deep inside an island');
+});
+
+/** Distance from (x, z) to the edges of a closed ring. */
+function ringDistance(q: readonly Vec2[], x: number, z: number) {
+  let best = Infinity;
+  for (let k = 0; k < q.length; k++) {
+    const a = q[k], b = q[(k + 1) % q.length], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
+    const t = L2 > 0 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
+    best = Math.min(best, Math.hypot(x - a.x - dx * t, z - a.z - dz * t));
+  }
+  return best;
+}
+
+test('lake islands are drawn as ground (lead-merge 8.4): the L0 mask agrees with the walk raster on the Golden Gate Park lakes', async () => {
+  // Stow Lake (Strawberry Hill and its small islands), Blue Heron … and Lake Merced (−1_12): every 0.5 u cell whose
+  // 4.5 u neighbourhood is all land or all water in core/sfTerrain's raster is ground / water in the drawn mask too;
+  // a pond no far lake surface covers is ground painted as a pond (POND_CLASS: the Strawberry Hill reservoir)
+  const farWater = farWaterRings(await sf.far());
+  const withWater = { ...init, farWater };
+  for (const [cx, cz] of [[-3, 8], [-2, 7], [-2, 8], [-1, 12]]) {
+    const c = (await sf.chunk(cx, cz))!;
+    const ctx = chunkContext(c, withWater), r = rasterizeChunk(c);
+    const pond = (x: number, z: number) => ctx.clsData[Math.floor((z - ctx.cls.z0) / ctx.cls.step) * ctx.cls.cols + Math.floor((x - ctx.cls.x0) / ctx.cls.step)] === POND_CLASS;
+    const m = Math.round(Math.sqrt(r.kind.length)), A = (m - r.n) / 2;
+    let land = 0, bad = 0;
+    const where: string[] = [];
+    for (let j = 4; j < r.n - 4; j += 2) for (let i = 4; i < r.n - 4; i += 2) {
+      const k = r.kind[(j + A) * m + (i + A)];
+      if (k !== SF_KIND.land && k !== SF_KIND.water) continue;
+      let uniform = true;
+      for (let dj = -4; dj <= 4 && uniform; dj++) for (let di = -4; di <= 4; di++) if (r.kind[(j + dj + A) * m + (i + di + A)] !== k) { uniform = false; break; }
+      if (!uniform) continue;
+      const x = cx * 128 + (i + 0.5) * 0.5, z = cz * 128 + (j + 0.5) * 0.5;
+      if (k === SF_KIND.land) land++;
+      if (isGround(ctx, x, z) !== (k === SF_KIND.land || pond(x, z))) { bad++; if (where.length < 4) where.push(`(${x}, ${z})`); }
+    }
+    assert.ok(land > 1000, `${cx}_${cz} land samples`);
+    assert.equal(bad, 0, `${cx}_${cz}: drawn ≠ walked at ${where.join(' ')}`);
+  }
+  // the Chinese Pavilion (lane L's blue-heron-lake site) stands on Strawberry Hill's east shore
+  const ctx = chunkContext((await sf.chunk(-2, 7))!, withWater);
+  assert.ok(isGround(ctx, -251.5, 1017), 'the pavilion origin is ground');
+  // the reservoir on top of Strawberry Hill (−268, 1024; far.obc drops water under 200 u²): painted, not a pit
+  const top = chunkContext((await sf.chunk(-3, 8))!, withWater);
+  assert.ok(isGround(top, -268, 1024) && top.clsData[Math.floor((1024 - top.cls.z0) / top.cls.step) * top.cls.cols + Math.floor((-268 - top.cls.x0) / top.cls.step)] === POND_CLASS, 'the reservoir is a painted pond');
+  assert.ok(!isGround(chunkContext((await sf.chunk(-3, 8))!, init), -268, 1024), 'without far water (tests, first jobs) every lake is cut out as before');
+});
+
+test('ponds: every chunk lake above the sea that no far water covers is painted on the ground, every other lake stays cut out', async () => {
+  const farWater = farWaterRings(await sf.far());
+  const withWater = { ...init, farWater };
+  let painted = 0, cut = 0;
+  for (const k of sf.manifest.chunks) {
+    if (k.hero) continue;
+    const c = (await sf.chunk(k.cx, k.cz))!;
+    const ar = c.areas;
+    let coast = true, any = false;
+    for (let i = 0; i < ar.count; i++) {
+      const cls = AREA_CLASSES[ar.cls[i]];
+      if (cls !== 'land' && cls !== 'water') coast = false;
+      if (!coast && cls === 'water' && !(ar.flags[i] & AREA_FLAG.hole)) { any = true; break; }
+    }
+    if (!any) continue;
+    const ctx = chunkContext(c, withWater);
+    coast = true;
+    for (let i = 0; i < ar.count; i++) {
+      const cls = AREA_CLASSES[ar.cls[i]];
+      if (cls !== 'land' && cls !== 'water') coast = false;
+      if (coast || cls !== 'water' || ar.flags[i] & AREA_FLAG.hole) continue;
+      const ring: Vec2[] = [];
+      for (let p = ar.pStart[i]; p < ar.pStart[i + 1]; p++) ring.push({ x: ar.xz[p * 2], z: ar.xz[p * 2 + 1] });
+      const cx = ring.reduce((s, p) => s + p.x, 0) / ring.length, cz = ring.reduce((s, p) => s + p.z, 0) / ring.length;
+      if (!inPoly(cx, cz, ring) || ctx.excluded(cx, cz) || ringDistance(ring, cx, cz) < 1.5) continue;
+      const lo = Math.min(...ring.map(p => demSample(c.dem, p.x, p.z)));
+      const covered = inFarWater(farWater, cx, cz);
+      if (covered || lo <= 0.6) { assert.ok(!isGround(ctx, cx, cz), `${k.k}#${i} (${cx.toFixed(0)}, ${cz.toFixed(0)}) cut out`); cut++; }
+      else if (ring.filter(p => inFarWater(farWater, p.x, p.z)).length * 2 < ring.length) { assert.ok(isGround(ctx, cx, cz), `${k.k}#${i} (${cx.toFixed(0)}, ${cz.toFixed(0)}) painted`); painted++; }
+    }
+  }
+  assert.ok(painted >= 10 && cut >= 20, `painted ${painted}, cut ${cut}`);
 });
 
 test('pools: size classes grow by 1.25 and always fit the item', () => {
