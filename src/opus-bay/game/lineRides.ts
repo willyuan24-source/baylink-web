@@ -5,7 +5,8 @@ import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
-import { type TransitW4, activeCableSystem, activeLineFleet, boardAt, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
+import { type CableLine, type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, cableLine, nearestAt, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
+import { canStand, groundPending, nearestWalkable } from '../core/terrain';
 import type { TransitLine, TransitTunnel } from '../world/sf/format';
 import { BUS, type BusRideStatus } from '../world/busSystem';
 import { LRV, type RailRideStatus, stopPos } from '../world/lightRail';
@@ -14,7 +15,7 @@ import { hookFill, npcLine } from './content';
 import { getLocale } from '../../i18n/locale';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { travelEpoch } from './fastTravel';
-import { announce, defineNode, playDialogue, refreshLock, say } from './flow';
+import { announce, bubble, defineNode, playDialogue, refreshLock, say } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import type { Interactable } from './interactables';
 import { type LineChoice, type LineLite, lineChoices, lineRideLabel } from './lineChoices';
@@ -521,3 +522,109 @@ export function initLineRides(): () => void {
   lineVoices.ids = stopVoiceIds;
   return () => { off(); registerLineEstimator({}); if (lineVoices.ids === stopVoiceIds) lineVoices.ids = null; };
 }
+
+// ---------------------------------------------------------------------------
+// Every city line (wave 4 verify, part b): kept in this lazy chunk, called by game/transit.ts in city mode
+// ---------------------------------------------------------------------------
+
+/** the city lines' poll clock (s, 4 Hz from game/transit.ts pollTurntables) */
+let cityClock = 0;
+let stepAsideAt = -Infinity;
+/** A vehicle has stood this long (s) short of the player on its track before BAYBAY asks them to step aside (verify D3). */
+export const STEP_ASIDE_AFTER = 4;
+/** …at most once in this long (s) */
+const STEP_ASIDE_EVERY = 40;
+
+/**
+ * 4 Hz from game/transit.ts: (verify D3) a cable car / F-line car / bus / Metro train standing short of the player on its
+ * track: after STEP_ASIDE_AFTER s BAYBAY asks them to step aside (the gripman already rang; nothing told the player
+ * before, and a car could wait for good). Returns true when a cable-car station near the player can now have its prompt
+ * placed beside the track (the caller rebuilds the interactables).
+ */
+export function pollCity(dt: number): boolean {
+  cityClock += dt;
+  const fleet = activeLineFleet();
+  const held: [number, Bilingual][] = [
+    [activeCableSystem()?.viewerHeld() ?? 0, { zh: '叮当车在等我们让路呢，往路边站一站吧', en: 'The cable car is waiting for us. Let’s step to the side' }],
+    [activeStreetcarSystem()?.viewerHeld() ?? 0, { zh: '电车在等我们让路呢，往路边站一站吧', en: 'The streetcar is waiting for us. Let’s step to the side' }],
+    [fleet?.bus.viewerHeld() ?? 0, { zh: '观光巴士在等我们让路呢，往路边站一站吧', en: 'The tour bus is waiting for us. Let’s step to the side' }],
+    [fleet?.rail.viewerHeld() ?? 0, { zh: '轻轨在等我们让路呢，往路边站一站吧', en: 'The train is waiting for us. Let’s step to the side' }],
+  ];
+  let best: [number, Bilingual] | null = null;
+  for (const h of held) if (h[0] >= STEP_ASIDE_AFTER && (!best || h[0] > best[0])) best = h;
+  if (best && cityClock - stepAsideAt >= STEP_ASIDE_EVERY && game.get().move.mode === 'foot') {
+    stepAsideAt = cityClock;
+    bubble(best[1], 3600);
+  }
+  const data = transitData(), p = runtime.player;
+  return !!data?.stations.some(st => !kerbSpots.has(st.id) && (kerbMiss.get(st.id) ?? -Infinity) <= cityClock - KERB_RETRY
+    && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6));
+}
+
+/** Where each cable-car station's prompt stands: beside the track (verify D3), once the ground there has streamed in. */
+const kerbSpots = new Map<string, { x: number; z: number }>();
+/**
+ * When a search last found no spot (city clock, s): it is tried again after KERB_RETRY (the ground round a stop can still
+ * be settling when its chunk is resident: in the game Hyde & Beach found none on its first look and a spot 3 u off the
+ * track a little later; a kept miss had left the prompt, and a 直接到站 landing, on the rails).
+ */
+const kerbMiss = new Map<string, number>();
+const KERB_RETRY = 5;
+/** a station prompt stands at least this far from the track (u): a passing car's body reaches 2.05 u */
+const KERB_OFF = 2.45;
+
+/**
+ * (verify D3) A cable-car station's prompt (and so where the player walks to and waits, and where 直接到站 lands) stands
+ * beside the track, not on it: a car cannot pull in to a stop someone stands on (the Powell & Market prompt was 2.5 u from
+ * the turntable centre, and a car stood short of it for good). The nearest standable spot 2.6–5.5 u round the station that
+ * is ≥ KERB_OFF from every track stopping there; at a terminus 5–7 u round the turntable, clear of the turning car. None
+ * (or the ground not in yet): the station point itself, and another look KERB_RETRY s later. `fresh`: forget the last
+ * answer (QA).
+ */
+export function stationBoardSpot(st: TransitStation, fresh = false): { x: number; z: number } {
+  if (fresh) { kerbSpots.delete(st.id); kerbMiss.delete(st.id); }
+  const hit = kerbSpots.get(st.id);
+  if (hit) return hit;
+  const data = transitData(), miss = kerbMiss.get(st.id);
+  if (!data || groundPending(st.x, st.z, 6) || (miss !== undefined && cityClock - miss < KERB_RETRY)) return { x: st.x, z: st.z };
+  const lines = st.lines.map(e => cableLine(e.line)).filter((l): l is CableLine => !!l);
+  const tt = data.turntables.find(t => Math.hypot(t.x - st.x, t.z - st.z) < 6);
+  const bx = tt ? tt.x : st.x, bz = tt ? tt.z : st.z;
+  for (const r of tt ? [5.2, 6, 7] : [2.6, 3.2, 3.8, 4.5, 5.5]) {
+    for (let a = 0; a < 16; a++) {
+      const x = bx + Math.cos((a * Math.PI) / 8) * r, z = bz + Math.sin((a * Math.PI) / 8) * r;
+      if (!canStand(x, z, 0.45) || lines.some(l => nearestAt(l, x, z).d < KERB_OFF)) continue;
+      const spot = { x, z };
+      kerbSpots.set(st.id, spot);
+      kerbMiss.delete(st.id);
+      return spot;
+    }
+  }
+  kerbMiss.set(st.id, cityClock);
+  return { x: st.x, z: st.z };
+}
+
+/**
+ * 直接到站 waits under the veil (veiledSkip) when the destination lies farther than SKIP_VEIL_OVER (beyond the ring the
+ * streamer holds round the rider) or its ground has not streamed in yet (verify M2: the Powell–Hyde skip from Powell &
+ * Market to Hyde & Beach found no walkable ground there and left the rider mid-route).
+ */
+export function skipNeedsVeil(to: { x: number; z: number }, far = SKIP_VEIL_OVER): boolean {
+  const p = runtime.player;
+  return Math.hypot(to.x - p.x, to.z - p.z) > far || groundPending(to.x, to.z, 2) || !nearestWalkable(to, 16);
+}
+
+/**
+ * Seconds until the boat can take a rider waiting at terminal `from` (0 when it lies there): world/ferry.ts `eta`, with the
+ * dwell at the other end cut short the way a waiting rider cuts it (verify D11 / m5: the offer left out an 80–140 s wait).
+ */
+export function ferryWaitSeconds(from: string): number {
+  const sys = activeFerrySystem() as unknown as { line?: { stops: { terminal: string }[] }; eta?(i: number): number; boat?: { mode: string; at: number; timer: number } } | null;
+  const i = sys?.line?.stops.findIndex(s => s.terminal === from) ?? -1;
+  if (!sys?.eta || i < 0) return 0;
+  const b = sys.boat;
+  const cut = b && b.mode === 'dwell' && b.at !== i ? Math.max(0, b.timer - FERRY_DWELL_RIDER) : 0;
+  return Math.max(0, sys.eta(i) - cut);
+}
+/** world/ferry.ts: a rider waiting at the other terminal cuts the boat's dwell to this (s) */
+const FERRY_DWELL_RIDER = 4;

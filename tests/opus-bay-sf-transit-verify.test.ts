@@ -42,6 +42,8 @@ const { flow } = await import('../src/opus-bay/game/flowStore');
 const flowMod = await import('../src/opus-bay/game/flow');
 const transit = await import('../src/opus-bay/game/transit');
 const ride = await import('../src/opus-bay/game/ride');
+// the city lines' helpers live in the lazy chunk game/transit.ts loads in city mode
+const LR = await transit.loadLineRides();
 const { sfDisk } = await import('./opus-bay-sf-disk');
 const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
 const { canStand, setCityTerrain, heightAt, surfaceAt, cityChunkEpoch } = await import('../src/opus-bay/core/terrain');
@@ -116,8 +118,8 @@ test('verify D3: someone on the stop itself still holds the car (it never runs i
     }
     assert.ok(car.s > 2, `the car stands short of the person (s ${car.s.toFixed(2)})`);
     assert.ok(Math.abs(car.v) < 0.05, 'standing');
-    assert.ok(sys.viewerHeld() >= transit.STEP_ASIDE_AFTER, `held ${sys.viewerHeld().toFixed(1)} s`);
-    assert.ok(asked >= transit.STEP_ASIDE_AFTER && asked < 25, `BAYBAY asked after ${asked.toFixed(1)} s`);
+    assert.ok(sys.viewerHeld() >= LR.STEP_ASIDE_AFTER, `held ${sys.viewerHeld().toFixed(1)} s`);
+    assert.ok(asked >= LR.STEP_ASIDE_AFTER && asked < 25, `BAYBAY asked after ${asked.toFixed(1)} s`);
     assert.match(flow.get().bubble!.text.zh, /让路/);
     // the person steps aside: the car pulls in
     viewer.x += 6; viewer.z -= 6;
@@ -166,8 +168,8 @@ test('verify M2: 直接到站 on a cable car to a stop that has not streamed in 
     try {
       game.set({ phase: 'playing', worldMode: 'city', toasts: [] } as never);
       runtime.player.x = pm.x + 3; runtime.player.z = pm.z;
-      assert.ok(transit.skipNeedsVeil(dest, 250), 'Hyde & Beach is far and not streamed in');
-      assert.ok(!transit.skipNeedsVeil({ x: pm.x + 3, z: pm.z }, 250), 'a streamed-in stop close by needs no veil');
+      assert.ok(LR.skipNeedsVeil(dest, 250), 'Hyde & Beach is far and not streamed in');
+      assert.ok(!LR.skipNeedsVeil({ x: pm.x + 3, z: pm.z }, 250), 'a streamed-in stop close by needs no veil');
       transit.rideCable('powell-hyde', 'powell-market', 'hyde-beach');
       const step = (n: number, until?: () => boolean) => { for (let i = 0; i < n; i++) { sys.step(DT); transit.stepTransit(DT); if (until?.()) return true; } return false; };
       assert.ok(step(30 * 60, () => ride.currentRide()?.mode === 'follow'), 'boarded');
@@ -182,7 +184,7 @@ test('verify M2: 直接到站 on a cable car to a stop that has not streamed in 
       await new Promise(r => setTimeout(r, 500));
       assert.equal(ride.currentRide(), null, 'the ride ended under the veil');
       // at the stop: its prompt beside the track once that ground is known (never on the rails), else the station point
-      const p = runtime.player, at = transit.stationBoardSpot(dest);
+      const p = runtime.player, at = LR.stationBoardSpot(dest);
       assert.ok(Math.hypot(p.x - at.x, p.z - at.z) < 1.5 && Math.hypot(p.x - dest.x, p.z - dest.z) < 8, `at Hyde & Beach (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
       assert.ok(game.get().toasts.some(t => /Hyde & Beach/.test(t.text)), 'arrival announced');
       assert.equal(game.get().move.mode, 'foot');
@@ -201,9 +203,9 @@ test('verify D11 / m5: the ferry offer counts the wait for the boat (boat at Gat
   const prev = game.get();
   try {
     game.set({ phase: 'playing', worldMode: 'city' } as never);
-    const wait = transit.ferryWaitSeconds('pier-41');
+    const wait = LR.ferryWaitSeconds('pier-41');
     assert.ok(wait > 40, `the boat lies at Gate E: ~${wait.toFixed(0)} s to Pier 41`);
-    assert.equal(transit.ferryWaitSeconds('ferry-building'), 0, 'lying here: no wait');
+    assert.equal(LR.ferryWaitSeconds('ferry-building'), 0, 'lying here: no wait');
     transit.boardFerry('pier-41');
     const node = flowMod.nodeById(game.get().dialogue.nodeId);
     const label = node?.choices?.[0].label;
