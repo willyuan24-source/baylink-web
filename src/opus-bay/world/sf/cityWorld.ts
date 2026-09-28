@@ -70,6 +70,14 @@ export function wharfPoles(t: Batch) {
   }
 }
 
+/** The hero's own ground chunks among the World's static chunks (not Angel Island's): their bbox meets the slab's. */
+export function heroGroundOf(chunks: THREE.Mesh[]): THREE.Mesh[] {
+  const sb = new THREE.Box3(), v = new THREE.Vector3();
+  for (const p of DISTRICT.slab) sb.expandByPoint(v.set(p.x, 0, p.z));
+  sb.min.y = -Infinity; sb.max.y = Infinity;
+  return chunks.filter(m => m.name.startsWith('ground#') && (m.geometry.computeBoundingBox(), sb.intersectsBox(m.geometry.boundingBox!)));
+}
+
 /** Angel Island's board (a 24-gon on the backdrop's ellipse): the table under the city water. */
 export function angelIslandBoard(): Polygon {
   const A = ANGEL_ISLAND, ai = CITY_BACKDROP['angel-island'];

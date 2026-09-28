@@ -14,7 +14,7 @@ export { KarlState, cityFogK } from './fog';
 export { LightField, siteLightSpecs } from './lights';
 export { mountCityDebug } from './stats';
 // the World's city part (world/world.ts enableCity / the constructor's city branch)
-export { angelIslandBoard, startCityWorld, westSeawall, wharfPoles } from './cityWorld';
+export { angelIslandBoard, heroGroundOf, startCityWorld, westSeawall, wharfPoles } from './cityWorld';
 export { demSample } from './format';
 // for actors/moveSystem.ts (lane E2 request in docs/opus-bay/sf-w2-C2.md): once it reads the glide obstacles through
 // cityModule()?.landmarkTallStructures, the landmark data and recipes (≈ 42 KB gzip) leave the main chunk too

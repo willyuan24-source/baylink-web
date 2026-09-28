@@ -205,11 +205,7 @@ export class World {
     blobMesh.updateMatrix();
     this.root.add(this.env.group, labelMesh, blobMesh, ...chunks);
     if (city) {
-      // the hero's ground chunks (not Angel Island's): their bbox meets the slab's
-      const sb = new THREE.Box3();
-      for (const p of DISTRICT.slab) sb.expandByPoint(this.tmp.set(p.x, 0, p.z));
-      sb.min.y = -Infinity; sb.max.y = Infinity;
-      this.heroGroundChunks = chunks.filter(m => m.name.startsWith('ground#') && (m.geometry.computeBoundingBox(), sb.intersectsBox(m.geometry.boundingBox!)));
+      this.heroGroundChunks = requireCity().heroGroundOf(chunks);
       this.heroFarExtras = [labelMesh, blobMesh];
     }
     if (this.cityWater) this.root.add(this.cityWater.group);
