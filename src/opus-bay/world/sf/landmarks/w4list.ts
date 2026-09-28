@@ -44,6 +44,7 @@ import { unionSquare } from './union-square';
 import { ucsfParnassus } from './ucsf-parnassus';
 import { usfLoneMountain } from './usf-lone-mountain';
 import { warMemorial } from './war-memorial';
+import { websterBridge } from './webster-bridge';
 import { yerbaBuenaGardens } from './yerba-buena-gardens';
 
 /**
@@ -106,4 +107,5 @@ export const W4_SITES: readonly W4Site[] = [
   cableCarMuseum,
   warMemorial,
   asianArtMuseum,
+  websterBridge,
 ];
