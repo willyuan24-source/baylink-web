@@ -84,10 +84,19 @@ function deviceInfo(): { coarse: boolean; dpr: number } {
   } catch { return { coarse: false, dpr: 1 }; }
 }
 
-/** The level this module set last (policy or monitor); a store change to anything else is the player's pick. */
-let ours: Quality | null = null;
+/**
+ * True while this module writes the level itself (the start policy or the monitor): the store notifies its listeners
+ * synchronously, so any change seen while this is false is the player's pick (verify-code F3: comparing values missed a
+ * pick back to the automatic level: phone starts mid, the player picks high, then mid again, and high stayed saved).
+ */
+let applying = false;
 let started = false;
 let decided: { quality: Quality; reason: QualityReason } | null = null;
+
+function applyLevel(q: Quality) {
+  applying = true;
+  try { setSessionSettings({ quality: q }); } finally { applying = false; }
+}
 
 /** Why the visit started at its level (debug overlay / QA). */
 export function qualityDecision() { return decided; }
@@ -103,17 +112,14 @@ export function initQualityPolicy(): void {
   const d = deviceInfo();
   decided = startQuality({ url, choice: readChoice(), saved: readProgress()?.settings.quality ?? null, coarse: d.coarse, dpr: d.dpr });
   // ?quality= is applied by the page (locked, session-only); the rest here, for this visit only
-  if (decided.reason !== 'url' && game.get().settings.quality !== decided.quality) {
-    ours = decided.quality;
-    setSessionSettings({ quality: decided.quality });
-  }
+  if (decided.reason !== 'url' && game.get().settings.quality !== decided.quality) applyLevel(decided.quality);
   if (url) return; // a QA link never records a choice
   let last = game.get().settings.quality;
   game.subscribe(() => {
     const q = game.get().settings.quality;
     if (q === last) return;
     last = q;
-    if (q !== ours) writeChoice(q);
+    if (!applying) writeChoice(q);
   });
 }
 
@@ -122,7 +128,6 @@ export function declineQuality(): Quality | null {
   const q = game.get().settings.quality;
   const next = declineFrom(q);
   if (!next) return null;
-  ours = next;
-  setSessionSettings({ quality: next });
+  applyLevel(next);
   return next;
 }

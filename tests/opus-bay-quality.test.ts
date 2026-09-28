@@ -65,3 +65,39 @@ test('monitor: never steps back up; from mid only when really slow; never below 
   assert.equal(declineFrom('low'), null);
   assert.ok(MONITOR.flipflops >= 2, 'high → mid → low stays possible');
 });
+
+test('a pick back to the automatic level is remembered (verify-code F3: phone mid → pick high → pick mid again)', async () => {
+  const g = globalThis as unknown as Record<string, unknown>;
+  const store = new Map<string, string>();
+  const localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, String(v)); }, removeItem: (k: string) => { store.delete(k); } };
+  const matchMedia = (m: string) => ({ matches: m === '(pointer: coarse)' });
+  const prev = { window: g.window, location: g.location };
+  g.window = { localStorage, matchMedia, devicePixelRatio: 3, location: { search: '' } };
+  g.location = { search: '' };
+  try {
+    const { game } = await import('../src/opus-bay/core/store');
+    const { keepSetting } = await import('../src/opus-bay/data/wishlist');
+    const { initQualityPolicy, declineQuality, qualityDecision, QUALITY_CHOICE_KEY } = await import('../src/opus-bay/world/quality');
+    // the Settings panel's own write path (ui/Settings.tsx setSetting)
+    const pick = (q: 'high' | 'mid' | 'low') => { keepSetting('quality'); game.set(s => ({ settings: { ...s.settings, quality: q } })); };
+    initQualityPolicy();
+    assert.deepEqual(qualityDecision(), { quality: 'mid', reason: 'device' });
+    assert.equal(game.get().settings.quality, 'mid');
+    assert.equal(store.get(QUALITY_CHOICE_KEY), undefined, 'the automatic start level is not a choice');
+    pick('high');
+    assert.equal(store.get(QUALITY_CHOICE_KEY), 'high');
+    pick('mid');
+    assert.deepEqual({ stored: store.get(QUALITY_CHOICE_KEY), live: game.get().settings.quality }, { stored: 'mid', live: 'mid' });
+    // the monitor's steps stay session-only; a pick after one is saved again
+    assert.equal(declineQuality(), 'low');
+    assert.equal(store.get(QUALITY_CHOICE_KEY), 'mid', 'an automatic step is never saved as a choice');
+    pick('mid');
+    assert.equal(store.get(QUALITY_CHOICE_KEY), 'mid');
+    pick('high');
+    assert.equal(declineQuality(), 'mid');
+    assert.equal(store.get(QUALITY_CHOICE_KEY), 'high', 'the step down from the pick keeps the pick');
+  } finally {
+    g.window = prev.window;
+    g.location = prev.location;
+  }
+});
