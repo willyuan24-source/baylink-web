@@ -42,3 +42,10 @@
 .ob-letter-btn { position: relative; }
 .ob-letter-btn.is-new { background: var(--ob-terra-l); color: #9a3f1d; }
 .ob-letter-btn.is-new::after { content: ''; position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ob-terra); box-shadow: 0 0 0 2px #fff; }
+
+/* review · the city's six Journal tabs (今天 · 手帐 · 明信片 · 目标 · 想去 · 足迹, ui/Journal.tsx `is-many`): in English on a
+   390 px phone their labels ran into each other ("Today 0/3Notebook"); each tab now keeps its own width and the row
+   scrolls sideways when they do not fit (Chinese fits as it is); the district's three or four tabs are unchanged */
+.ob-journal .ob-tabs.is-many { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.ob-journal .ob-tabs.is-many::-webkit-scrollbar { display: none; }
+.ob-journal .ob-tabs.is-many:has(> button) > button { flex: 1 0 auto; min-width: max-content; padding-left: 6px; padding-right: 6px; }

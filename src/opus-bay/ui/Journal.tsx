@@ -90,9 +90,19 @@ export function Journal() {
   }
   tabs.sort((a, b) => a.order - b.order);
   const slot = (BUILTIN_TABS as string[]).includes(tab) ? undefined : slots.find(s => s.id === tab);
+  // (review: the city's six tabs — 今天 · 手帐 · 明信片 · 目标 · 想去 · 足迹 — ran into each other in English on a phone:
+  // "Today 0/3Notebook"; with five or more the row scrolls sideways (content-ui.css .is-many) and keeps the chosen tab
+  // in view; the district's three or four tabs are unchanged)
+  const many = tabs.length >= 5;
+  const tabRow = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!many) return;
+    const on = tabRow.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (on && typeof on.scrollIntoView === 'function') on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [tab, many]);
   return (
     <Sheet eyebrow={<><BookOpen size={14} aria-hidden />{t('旅行本', 'Journal')}</>} title={t('我的湾区旅行本', 'My Bay journal')} onClose={closePanel} className="ob-journal">
-      <div className="ob-tabs" role="tablist">
+      <div ref={tabRow} className={many ? 'ob-tabs is-many' : 'ob-tabs'} role="tablist">
         {tabs.map(item => (
           <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} className={tab === item.id ? 'is-on' : ''} onClick={() => setTab(item.id)}>
             {item.icon}<span>{item.label}</span>{item.count && <small>{item.count}</small>}
