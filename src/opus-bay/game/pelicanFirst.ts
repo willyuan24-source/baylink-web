@@ -14,6 +14,9 @@ import type { ArrivalHit } from './arrival';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say, setTalkMarkSource } from './flow';
+import { autoOn } from './autoTravel';
+import { isArrived } from './trips';
+import { PELICAN_TARGET } from './cityGoals';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
 
@@ -189,12 +192,27 @@ export function syncPelicanGoal() {
   game.set({ goalsDone: [...s.goalsDone, CITY_GOAL.pelican] });
 }
 
+/**
+ * Review: the goals step's 跟 BAYBAY 去找鹈鹕 lead (a carried free lead to `pelican:coit`, the summit) is still walking.
+ * Coit's arrival anchor is on the Filbert Steps, a few seconds below the summit: the moment used to open there and pause
+ * the lead, which then walked on under the first flight's 按 G 起飞 (the 带路中 chip and the Coit beam, then 到啦！试试「眺望
+ * 海湾」 over the take-off line). The moment now waits for the lead to reach the summit (open plaza: the two-shot and
+ * lane F's pelican), at most LEAD_WAIT_MS; a lead the player took over (auto-travel off) does not hold it.
+ */
+function leadingToPelican(): boolean {
+  const t = flow.get().trip;
+  return flow.get().freeLead === PELICAN_TARGET && t?.source === 'free-lead' && !isArrived(t) && autoOn();
+}
+/** the longest the moment waits for that lead (ms): Coit's anchor is ≈ 20 u below the summit */
+export const LEAD_WAIT_MS = 15_000;
+
 /** Nothing else on screen: the moment may play. */
 function quiet(now: number, p: Pending): boolean {
   const s = game.get(), f = flow.get();
   if (now - p.since < MOMENT_MIN_MS) return false;
   const g = runtime.guide, pl = runtime.player;
   if (Math.hypot(g.x - pl.x, g.z - pl.z) > PAIR_NEAR && now - p.since < PAIR_WAIT_MS) return false;
+  if (leadingToPelican() && now - p.since < LEAD_WAIT_MS) return false;
   return s.phase === 'playing' && !s.paused && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.arrival
     && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen();
 }

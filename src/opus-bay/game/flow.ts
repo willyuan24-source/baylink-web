@@ -29,6 +29,7 @@ import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/resid
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { bayNow } from './bayNow';
+import { PELICAN_TARGET } from './cityGoals';
 import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
@@ -1611,6 +1612,9 @@ export function freeLeadArrived() {
   if (flow.get().trip?.source === 'free-lead') tripRunner?.arrived();
   if (!it) return;
   emit({ type: 'arrive', poiId: it.id });
+  // (review: the goals step's lead to the pelican ends at the summit with the pelican met on the steps just below — its
+  // moment speaks next (game/pelicanFirst.ts), not 到啦！试试「眺望海湾」 over it)
+  if (it.id === PELICAN_TARGET && goalDone(CITY_GOAL.pelican)) return;
   bubble({ zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
 }
 

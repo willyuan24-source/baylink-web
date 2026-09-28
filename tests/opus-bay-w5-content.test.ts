@@ -621,3 +621,47 @@ test('review (plan MF6, §3.3 item 5; lane R’s requests): J / 旅行本 open o
     }
   } finally { setCatalogForTests(null); reset(); }
 });
+
+test('review: the goals step’s lead to the pelican walks on to the summit before the moment opens, and says no 试试「…」 over it', async () => {
+  reset();
+  const tripRun = await import('../src/opus-bay/game/tripRun');
+  const offTrips = tripRun.initTripRun();
+  try {
+    Object.assign(runtime.player, { x: 131.5, z: 15.1 }); // the Ferry Building
+    flowMod.startFreeLead('pelican:coit');
+    assert.equal(flow.get().trip?.source, 'free-lead');
+    // Coit's arrival anchor is on the Filbert Steps: the unlock comes a few seconds before the lead reaches the summit
+    assert.equal(pelican.unlockPelican('viewpoint', clock), true);
+    Object.assign(runtime.guide, { x: runtime.player.x + 1, z: runtime.player.z }); // BAYBAY beside you: only the lead holds it
+    tick(pelican.MOMENT_MIN_MS + 500);
+    pelican.stepPelican(clock, () => true);
+    assert.ok(pelican.pelicanPending(), 'the moment waits for the lead (it used to open on the steps and the lead walked on under the first flight)');
+    assert.equal(game.get().dialogue.nodeId, null);
+    // the lead arrives at the summit: no 到啦！试试「眺望海湾」 (the moment speaks next), then the moment
+    const target = inter.interactableById('pelican:coit')!;
+    Object.assign(runtime.player, { x: target.x, z: target.z });
+    Object.assign(runtime.guide, { x: target.x + 1, z: target.z });
+    flow.set({ bubble: null });
+    flowMod.freeLeadArrived();
+    const { isArrived } = await import('../src/opus-bay/game/trips');
+    assert.ok(!flow.get().trip || isArrived(flow.get().trip), 'the lead is over');
+    assert.equal(flow.get().bubble, null, 'no 试试「…」 bubble over the moment');
+    pelican.stepPelican(clock, () => true);
+    assert.equal(game.get().dialogue.nodeId, 'pelican.moment', 'the moment on the summit');
+    flowMod.closeDialogue();
+    // a lead the player took over does not hold the moment, and it never waits past LEAD_WAIT_MS
+    reset();
+    flowMod.startFreeLead('pelican:coit');
+    pelican.unlockPelican('viewpoint', clock);
+    tick(pelican.LEAD_WAIT_MS + 100);
+    pelican.stepPelican(clock, () => true);
+    assert.equal(game.get().dialogue.nodeId, 'pelican.moment', 'at most LEAD_WAIT_MS');
+    flowMod.closeDialogue();
+    // any other lead's arrival still says its line
+    reset();
+    flowMod.startFreeLead('coit-tower');
+    flow.set({ bubble: null });
+    flowMod.freeLeadArrived();
+    assert.match(flow.get().bubble?.text.zh ?? '', /到啦！试试「眺望海湾」/);
+  } finally { flowMod.endTrip(); offTrips(); }
+});
