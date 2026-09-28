@@ -13,7 +13,7 @@ which lane L3 then followed. Higgsfield: 0 credits.
 1. 第四优先级能做的 **24 个小景点全部做好了**（地图三级）：壁画街、歌剧院、鹤湾两台老起重机、两座老宅（哈斯-利连塔尔、八角屋）、大日晷、里昂街台阶、滑梯、弯道、海浪风琴（能沿防波堤走到尽头）、女性大楼、24 街，还有 13 个公园和广场：阿尔塔、布埃纳维斯塔、中国海滩、格伦峡谷（红色燧石）、伊娜·库尔布里斯、拉法叶、麦克拉伦（蓝色大水塔）、苏特罗山、山湖（湖边木平台）、诺伊谷镇广场、帕特里夏绿地、苏特罗高地（面朝大海的石栏台）。
 2. 每个都有：按真实坡度铺的地面、长椅路灯等小道具、能走的范围和到达点、地图旗杆；三角形都在 800 以内。壁画一律只用抽象色块，从不照抄；牌子一律空白；住宅区（日晷、滑梯）不放人群。
 3. 前 9 个已经被主线接进游戏里（W4-IL1）；后 15 个在单独的等待名单里，接线时整批移过去、重跑一次 tops 表即可。
-4. 测试 9 项全部通过，全套 opus-bay 测试 808/808 通过；每个地点都在预览里截图看过。
+4. 测试 9 项全部通过，全套 opus-bay 测试 818/818 通过；每个地点都在预览里截图看过。
 5. 没做的只有两个：华人电话局（唐人街三角形预算不够，按规定只做卡片）、亨廷顿公园（属于格蕾丝大教堂的场景，已派给 L 线）。
 
 ### What was built (files, API)
@@ -63,9 +63,9 @@ Every module's header carries its facts and sources and its local frame (origin,
 
 ### Evidence
 
-- **Checks** on the last pushed tree (this report's commit, rebased on `cc2aa8d`): `npx tsc -p tsconfig.app.json
-  --noEmit` 0; `npx eslint .` 0 errors (43 old warnings); the full opus-bay suite **808 / 808**; the tier-3 test 9 / 9
-  over all 24 records. Earlier pushes ran the same checks (766 / 766 at `88bfe00`, 807 / 807 at `b24562d`); runs under
+- **Checks** on the pushed report tree `1cc2c35` (rebased on `59fb14b`): `npx tsc -p tsconfig.app.json --noEmit` 0;
+  `npx eslint .` 0 errors (43 old warnings); the full opus-bay suite **818 / 818** (808 / 808 one rebase earlier, on
+  `cc2aa8d`); the tier-3 test 9 / 9 over all 24 records. Earlier pushes ran the same checks (766 / 766 at `88bfe00`, 807 / 807 at `b24562d`); runs under
   load twice failed a wall-clock test (`opus-bay-sf-nav` "city mode: local A* window …", `opus-bay-audio` P1), which
   passed alone and in the next full run.
 - **`tests/opus-bay-sf-sites-w4t3.test.ts`** (9 tests): registry (tier 3, ids not a landmark's nor lane L's, registered
