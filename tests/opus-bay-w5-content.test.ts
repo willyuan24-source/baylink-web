@@ -82,7 +82,7 @@ function reset(world: 'city' | 'district' = 'city') {
 // W5-C1 · the public hooks
 // ---------------------------------------------------------------------------
 
-test('W5-C1 rumours: sources in order, the first answer wins, told once, a throwing or oversized source is skipped; frames fit a bubble', () => {
+test('W5-C1 rumours: sources in order, the first answer wins, told once, a throwing or oversized source is skipped; frames fit a bubble', async () => {
   const ctx = { x: 0, z: 0, zone: 'north-beach', now: new Date(), told: new Set<string>() };
   assert.equal(rumours.pickRumour(ctx), null, 'no source: nothing');
   const offBad = rumours.registerRumourSource(() => { throw new Error('boom'); });
@@ -99,8 +99,23 @@ test('W5-C1 rumours: sources in order, the first answer wins, told once, a throw
       assert.ok(f.en.endsWith('The parrots are back.'), 'the source sentence keeps its own capital');
     }
     assert.match(rumours.frameRumour({ text: { zh: '电报山有鹦鹉', en: 'x' } }).zh, /^听说，电报山有鹦鹉$/);
+    // lane D's rumours bring their own frame (听说… / They say …): said as they are, never 听说，听说
+    const own = { zh: '听说电报山台阶的花园里，早上常有一群吵吵闹闹的绿鹦鹉。', en: 'They say a noisy green flock visits the Telegraph Hill stair gardens in the mornings.' };
+    assert.deepEqual(rumours.frameRumour({ text: own }, 1), own);
+    const offOwn = rumours.registerRumourSource(() => ({ id: 'egg:own', text: own }));
+    assert.equal(rumours.pickRumour({ ...ctx, zone: 'mission', told: new Set(['egg:b']) })?.id, 'egg:own', 'a framed text up to 45 is valid');
+    offOwn();
   } finally { offBad(); offLong(); offA(); offB(); }
   assert.equal(rumours.rumourSourceCount(), 0, 'unregistered');
+  // lane D's 24 egg rumours (eggs/registry.ts) fit the hook as they are
+  const { EGGS } = await import('../src/opus-bay/eggs/registry');
+  for (const e of EGGS) {
+    const said = rumours.frameRumour({ text: e.rumour });
+    assert.ok(zhLen(said.zh) <= 45 && !/听说，?听说/.test(said.zh), `${e.id}: ${said.zh}`);
+    const off = rumours.registerRumourSource(() => ({ id: `egg:${e.id}`, text: e.rumour }));
+    assert.equal(rumours.pickRumour(ctx)?.id, `egg:${e.id}`, `${e.id} is accepted`);
+    off();
+  }
   // the timing rule: none in the first 90 s, then one per 5 min
   assert.equal(rumours.rumourDue({ startedAt: 0, lastAt: null, now: rumours.RUMOUR_FIRST_MS - 1 }), false);
   assert.equal(rumours.rumourDue({ startedAt: 0, lastAt: null, now: rumours.RUMOUR_FIRST_MS }), true);

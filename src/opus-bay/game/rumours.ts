@@ -11,8 +11,10 @@ import type { Bilingual, Vec2 } from '../core/types';
  *                              to tell one (≤ once per RUMOUR_GAP_MS), in registration order, the first answer wins.
  *                              A throwing source is skipped.
  *   Rumour                     { id, text, at? }: `id` is told at most once per visit (e.g. `egg:telegraph-hill-parrots`);
- *                              `text` is the rumour itself WITHOUT a frame ("听说" / "Word is"): lane C adds one
- *                              (frameRumour), so keep the zh text ≤ RUMOUR_TEXT_ZH_MAX characters (a bubble holds 45);
+ *                              `text` is the rumour itself. Without a frame, lane C adds one (frameRumour: 听说，… /
+ *                              悄悄说：… / 据说…; "I heard something: …"), so keep that zh ≤ RUMOUR_TEXT_ZH_MAX (40);
+ *                              a text that already starts with its own frame (听说 / 据说 / 悄悄 in zh — lane D's egg
+ *                              rumours do — and They say / Word is / I heard in en) is said as it is, zh ≤ 45;
  *                              `at` (optional) is where it points (a later 带我去 / the compass can use it).
  *
  * Who tells it (game/cityMoments.ts, city mode, lazy): BAYBAY, through her line pacer, while you wander on foot in free
@@ -62,9 +64,16 @@ export function registerRumourSource(fn: RumourSource): () => void {
 /** How many sources are registered (tests, QA). */
 export const rumourSourceCount = () => sources.length;
 
+/** A text that brings its own frame (lane D's 听说… rumours): said as it is. */
+const FRAMED_ZH = /^\s*(听说|据说|悄悄)/;
+const FRAMED_EN = /^\s*(they say|word is|i heard|psst|rumou?r has it)\b/i;
+/** A bubble's limit for a text that brings its own frame. */
+export const RUMOUR_FRAMED_ZH_MAX = 45;
+const framedZh = (zh: string) => FRAMED_ZH.test(zh);
+
 const validRumour = (r: Rumour | null | undefined): r is Rumour =>
   !!r && typeof r.id === 'string' && r.id.length > 0 && !!r.text && typeof r.text.zh === 'string' && typeof r.text.en === 'string'
-  && r.text.zh.trim().length > 0 && r.text.en.trim().length > 0 && [...r.text.zh].length <= RUMOUR_TEXT_ZH_MAX;
+  && r.text.zh.trim().length > 0 && r.text.en.trim().length > 0 && [...r.text.zh].length <= (framedZh(r.text.zh) ? RUMOUR_FRAMED_ZH_MAX : RUMOUR_TEXT_ZH_MAX);
 
 /** The first source's answer that was not told yet (sources in registration order; a throwing source is skipped). */
 export function pickRumour(ctx: RumourContext): Rumour | null {
@@ -91,8 +100,9 @@ const FRAMES: readonly { zh: (t: string) => string; en: (t: string) => string }[
   { zh: t => `据说${t}`, en: t => `Word is: ${t}` },
 ];
 
-/** The words BAYBAY says: the rumour inside one of lane C's frames. */
+/** The words BAYBAY says: the rumour inside one of lane C's frames (a text with its own frame keeps it). */
 export function frameRumour(r: Pick<Rumour, 'text'>, n = 0): Bilingual {
   const f = FRAMES[((n % FRAMES.length) + FRAMES.length) % FRAMES.length];
-  return { zh: f.zh(r.text.zh), en: f.en(r.text.en) };
+  const zh = r.text.zh.trim(), en = r.text.en.trim();
+  return { zh: framedZh(zh) ? zh : f.zh(zh), en: FRAMED_EN.test(en) ? en : f.en(en) };
 }
