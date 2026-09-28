@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { MAP_STICKERS_T1 } from '../data/sf/mapStickers';
 import { type MapW4, loadMapW4, mapW4 } from '../data/sf/mapTransit';
 import { flineJson, onTransitData, transitData } from '../data/transit';
 import { type MapLine, type MapStation, mapLinesFrom, mapStations } from './mapLines';
@@ -32,4 +33,30 @@ export function lineTermini(lines: readonly MapLine[]): Set<string> {
 /** The map's stations (transfers merged by distance) and the stop ids at the ends of each line. */
 export function useMapStations(lines: readonly MapLine[]): { stations: MapStation[]; termini: Set<string> } {
   return useMemo(() => ({ stations: mapStations(lines), termini: lineTermini(lines) }), [lines]);
+}
+
+let stickerState: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
+let stickerLoad: Promise<void> | null = null;
+
+/**
+ * Lane V's T1 sticker atlas (data/sf/mapStickers.ts, 74 KB WebP) decoded once per page: the badges draw the lucide
+ * glyph until then, and always under `?stickers=0` (plan §4.1 "Badges").
+ */
+export function useStickersReady(): boolean {
+  const off = typeof location !== 'undefined' && /[?&]stickers=0(?:&|$)/.test(location.search);
+  const [ready, setReady] = useState(stickerState === 'ready');
+  useEffect(() => {
+    if (off || ready || typeof Image === 'undefined') return;
+    let live = true;
+    if (stickerState === 'idle' || stickerState === 'failed') {
+      stickerState = 'loading';
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = MAP_STICKERS_T1.url;
+      stickerLoad = img.decode().then(() => { stickerState = 'ready'; }, () => { stickerState = 'failed'; });
+    }
+    void stickerLoad?.then(() => { if (live && stickerState === 'ready') setReady(true); });
+    return () => { live = false; };
+  }, [off, ready]);
+  return !off && ready;
 }

@@ -1,5 +1,6 @@
 import type { Bilingual } from '../core/types';
 import type { Attraction } from '../data/sf/attractionTypes';
+import { MAP_STICKERS_T1, isMapStickerId } from '../data/sf/mapStickers';
 import { attractionShort, type MapTier } from '../data/sf/attractions';
 import { type BadgeSize, type BadgeState, SCALE_STEPS, badgeNodes, badgeSize, pipBox, scaleRules } from './mapBadges';
 import { type MapView, labelWidth, toPx } from './cityMapDraw';
@@ -190,6 +191,8 @@ export interface AttractionMarker { a: Attraction; x: number; y: number; size: B
 export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
   discovered: (placeId: string) => boolean; arrived?: (id: string) => boolean; selected?: string | null; target?: string | null;
   tourNext?: { id: string; n: number } | null; filter?: MapFilter; name: (b: Bilingual) => string;
+  /** lane V's T1 stickers are ready (the atlas decoded, not `?stickers=0`): T1 badges draw them from s 0.45 */
+  stickers?: boolean;
 }): { items: LayoutItem[]; markers: Map<string, AttractionMarker> } {
   const s = v.scale, rules = scaleRules(s);
   const focusCat = MAP_FILTERS.find(d => d.id === o.filter)?.cat;
@@ -212,6 +215,7 @@ export function attractionMarkers(list: readonly Attraction[], v: MapView, o: {
     const state: BadgeState = {
       discovered: o.discovered(a.placeId ?? a.id), arrived: o.arrived?.(a.id), selected, target, dim,
       ...(dim ? { dimAlpha: look.alpha } : {}), ...(tourNext ? { tourStop: o.tourNext!.n } : {}),
+      ...(o.stickers && a.rank === 1 && !target && s >= MAP_STICKERS_T1.minScale && isMapStickerId(a.id) ? { sticker: true } : {}),
     };
     const wantLabel = selected || target || tourNext || (look.label && (a.rank === 1 || (a.rank === 2 && (rules.t2Labels || focus)) || (a.rank === 3 && (rules.t3Labels || (focus && s >= SCALE_STEPS.t3)))));
     const label = wantLabel ? o.name(selected ? a.name : attractionShort(a)) : null;

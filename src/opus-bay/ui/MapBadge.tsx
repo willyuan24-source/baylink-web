@@ -1,5 +1,6 @@
 import type { Attraction } from '../data/sf/attractionTypes';
 import type { MapTier } from '../data/sf/attractions';
+import { mapStickerSvg } from '../data/sf/mapStickers';
 import { GLYPH_D, GLYPH_STROKE } from './glyphPaths';
 import { BADGE_INK, type BadgeSize, type BadgeState, badgeGlyph, badgePaint, badgeSize, pipBox } from './mapBadges';
 import type { LabelBox } from './mapLayout';
@@ -40,6 +41,26 @@ export function MapBadge({ a, tier, s, state, x, y, size }: {
     );
   }
   const g = sz.glyph;
+  // lane V's illustrated T1 sticker (its own cream rim: no disc, no ring), the atlas cropped by a nested <svg>
+  const st = state.sticker ? mapStickerSvg(a.id) : null;
+  if (st) {
+    const d = sz.r * 2 + 4;
+    return (
+      <g className={`mw-badge t${tier} is-sticker${state.selected ? ' is-on' : ''}`} transform={`translate(${x},${y}) scale(${p.scale})`} opacity={p.opacity} data-id={a.id}>
+        <svg x={-d / 2} y={-d / 2} width={d} height={d} viewBox={st.viewBox}><image href={st.href} width={st.atlasW} height={st.atlasH} /></svg>
+        {state.selected && <circle r={d / 2 + 1} fill="none" stroke={BADGE_INK.gold} strokeWidth={3} />}
+        {p.tick && <circle cx={p.tick.x} cy={p.tick.y} r={3.5} fill={BADGE_INK.tick} stroke={BADGE_INK.cream} strokeWidth={1.2} />}
+        {p.tick && (
+          <path d={`M${p.tick.x - 1.6} ${p.tick.y} L${p.tick.x - 0.4} ${p.tick.y + 1.2} L${p.tick.x + 1.7} ${p.tick.y - 1.2}`} fill="none" stroke={BADGE_INK.cream}
+            strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" />
+        )}
+        {p.pip && <rect className="mw-pip" x={p.pip.x - 2} y={p.pip.y - 6} width={p.pip.text.length * 6 + 6} height={12} rx={6} fill={BADGE_INK.cream} stroke={BADGE_INK.outline} />}
+        {p.pip && <text className="mw-pip-t" x={p.pip.x - 2 + (p.pip.text.length * 6 + 6) / 2} y={p.pip.y + 3.2} style={MIDDLE}>{p.pip.text}</text>}
+        {p.tourDisc && <circle className="mw-tour" cx={p.tourDisc.x} cy={p.tourDisc.y} r={6.5} fill={BADGE_INK.coral} stroke={BADGE_INK.cream} strokeWidth={1.4} />}
+        {p.tourDisc && <text className="mw-tour-t" x={p.tourDisc.x} y={p.tourDisc.y + 3.4} style={MIDDLE}>{p.tourDisc.text}</text>}
+      </g>
+    );
+  }
   return (
     <g className={`mw-badge t${tier}${state.selected ? ' is-on' : ''}`} transform={`translate(${x},${y}) scale(${p.scale})`} opacity={p.opacity} data-id={a.id}>
       <circle cy={p.shadow.dy} r={sz.r + 1} fill={p.shadow.color} />

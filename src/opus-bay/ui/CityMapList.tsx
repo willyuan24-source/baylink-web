@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Check, Search, TrainFront } from 'lucide-react';
+import { Check, Footprints, Search, TrainFront } from 'lucide-react';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTION_AREAS, type Attraction, type AttractionArea } from '../data/sf/attractionTypes';
 import { ATTRACTIONS, coveredPlaceIds } from '../data/sf/attractions';
 import type { CityPlace, PlaceIndex } from '../data/sf/places';
+import { SF_ROUTES, type SfRoute, type SfRouteId, routePath } from '../data/sf/routes';
 import { SEARCH_GROUP_NAMES, SEARCH_SUGGESTIONS, type SearchEntry, attractionEntries, groupHits, lineEntries, placeEntries, prepareSearch, rankSearch, stationEntries } from '../data/sf/placeSearch';
 import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { discoveredIds, isDiscovered } from '../game/discovery';
@@ -64,6 +65,8 @@ export interface CityMapListProps {
   onPlace: (p: CityPlace) => void;
   onStation: (st: MapStation) => void;
   onLine: (id: string) => void;
+  /** a walking route (data/sf/routes.ts): highlight it on the map */
+  onRoute: (id: SfRouteId) => void;
 }
 
 type Row =
@@ -71,7 +74,9 @@ type Row =
   | { kind: 'attraction'; key: string; a: Attraction }
   | { kind: 'place'; key: string; p: CityPlace }
   | { kind: 'station'; key: string; st: MapStation }
-  | { kind: 'line'; key: string; id: string };
+  | { kind: 'line'; key: string; id: string }
+  | { kind: 'route'; key: string; r: SfRoute }
+  | { kind: 'routeStop'; key: string; r: SfRoute; i: number };
 
 export function CityMapList(p: CityMapListProps) {
   const { t } = useT();
@@ -121,6 +126,12 @@ export function CityMapList(p: CityMapListProps) {
       for (const id of lineIds) {
         out.push({ kind: 'line', key: `l:${id}`, id });
         if (p.highlight === id) for (const st of stations) if (st.lines.includes(id)) out.push({ kind: 'station', key: `s:${id}:${st.id}`, st });
+      }
+      // the three finished walking routes (lane D2's SF_ROUTES): a row each, its stops under it while highlighted
+      out.push({ kind: 'head', key: 'h:walks', text: { zh: '步行路线', en: 'Walking routes' } });
+      for (const r of SF_ROUTES) {
+        out.push({ kind: 'route', key: `r:${r.id}`, r });
+        if (p.highlight === `route:${r.id}`) r.stops.forEach((_, i) => out.push({ kind: 'routeStop', key: `rs:${r.id}:${i}`, r, i }));
       }
       return out;
     }
@@ -186,6 +197,30 @@ export function CityMapList(p: CityMapListProps) {
                   <span className="mw-row-disc" aria-hidden><TrainFront size={15} /></span>
                   <span className="ob-place-text"><span>{t(st.name)}</span><small>{[...new Set(st.lines.map(l => t(LINE_STYLES[l]?.disc ?? { zh: l, en: l })))].join(' · ')} · {t(timeLabel(listWalkSeconds(pos, st)))}</small></span>
                   {isDiscovered(st.id) && <Check size={16} className="mw-found" aria-label={t('去过', 'Visited')} />}
+                </button>
+              </li>
+            );
+          }
+          if (r.kind === 'route') {
+            const len = routePath(r.r.id)?.length ?? 0, on = p.highlight === `route:${r.r.id}`;
+            return (
+              <li key={r.key}>
+                <button type="button" className={`mw-row is-line${on ? ' is-on' : ''}`} onClick={() => p.onRoute(r.r.id)} aria-pressed={on}>
+                  <span className="mw-row-disc is-walk" aria-hidden><Footprints size={15} /></span>
+                  <span className="ob-place-text"><span>{t(r.r.name)}</span><small>{t({ zh: `${r.r.stops.length} 站`, en: `${r.r.stops.length} stops` })} · {t(timeLabel(len / 4.2))}</small></span>
+                </button>
+              </li>
+            );
+          }
+          if (r.kind === 'routeStop') {
+            const s = r.r.stops[r.i];
+            const a = s.attraction ? attrById.get(s.attraction) : s.placeId ? ATTRACTIONS.find(x => (x.placeId ?? x.id) === s.placeId) : undefined;
+            const pl = !a && s.placeId ? ix?.get(s.placeId) : undefined;
+            return (
+              <li key={r.key}>
+                <button type="button" className="mw-row is-stop" onClick={() => { if (a) p.onAttraction(a); else if (pl) p.onPlace(pl); }} disabled={!a && !pl}>
+                  <span className="mw-row-num" aria-hidden>{r.i + 1}</span>
+                  <span className="ob-place-text"><span>{t(s.name)}</span><small>{t(s.line)}</small></span>
                 </button>
               </li>
             );

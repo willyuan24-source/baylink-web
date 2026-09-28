@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ExternalLink, Info, Navigation } from 'lucide-react';
+import { ChevronDown, ExternalLink, Footprints, Info, Navigation } from 'lucide-react';
 import { unproject } from '../core/geo';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -7,7 +7,9 @@ import type { Bilingual } from '../core/types';
 import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { mapsUrl } from '../data/links';
 import type { Attraction } from '../data/sf/attractionTypes';
+import { ATTRACTION_INDEX } from '../data/sf/attractions';
 import type { CityPlace } from '../data/sf/places';
+import { SF_ROUTES, type SfRouteId } from '../data/sf/routes';
 import { isDiscovered, useDiscoveryEpoch } from '../game/discovery';
 import { openPanel } from '../game/flow';
 import { type PlaceTripDest, startPlaceTrip } from '../game/placeTrips';
@@ -50,7 +52,7 @@ function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; bu
  *   ↗ Maps         the real place in a maps app
  * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button).
  */
-export function PlaceActions({ place, attraction = null, walk = null, onTrip = false }: { place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean }) {
+export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, onRoute }: { place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean; onRoute?: (id: SfRouteId) => void }) {
   const { t } = useT();
   useDiscoveryEpoch();
   const pos = useGame(s => s.playerPos);
@@ -61,8 +63,12 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   const dest = useMemo(() => placeTripDest(place, attraction), [place, attraction]);
   const { options, busy } = useTripOptions(onTrip ? null : dest);
   const rec = options.find(o => o.recommended) ?? options[0] ?? null;
-  // 详情: the district POI card for merged hero places, lane C / G2's SF card (`sf:<landmarkId>` / `sf:<placeId>`) otherwise
-  const detail = place.poi ?? `sf:${place.landmark ?? place.id}`;
+  // 详情: the district POI card for merged hero places, lane C / G2's SF card (`sf:<landmarkId>` / `sf:<placeId>`) otherwise;
+  // an attraction that shares another's row (Japan Center on the Peace Pagoda's) opens its own card (`sf:<attraction>`)
+  const shares = !!attraction && ATTRACTION_INDEX.primary(place.id) !== attraction;
+  const detail = shares ? `sf:${attraction!.id}` : place.poi ?? `sf:${place.landmark ?? place.id}`;
+  // the walking routes this stop is on (lane D2's SF_ROUTES): chips that show the route on the map
+  const routes = SF_ROUTES.filter(r => r.stops.some(s => (attraction && s.attraction === attraction.id) || s.placeId === place.id));
   const ll = unproject({ x: place.x, z: place.z });
   const zone = landmarkAreaAt(place.x, place.z)?.name ?? (place.zone ? zoneName(place.zone) : null);
   const name = attraction?.name ?? place.name;
@@ -94,6 +100,11 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
         <a className="ob-icon-btn mw-44" href={mapsUrl(ll.lat, ll.lng, place.name.en)} target="_blank" rel="noopener noreferrer" aria-label={t('在地图 App 里打开', 'Open in Maps')}><ExternalLink size={17} aria-hidden /></a>
       </div>
       {!onTrip && !options.length && place.walkable && walk?.state === 'none' && <small className="mw-place-note">{t('这里走不过去，换个地方试试', 'No way there on foot')}</small>}
+      {onRoute && routes.length > 0 && (
+        <div className="mw-route-chips">
+          {routes.map(r => <button key={r.id} type="button" className="mw-chip mw-route-chip" onClick={() => onRoute(r.id)}><Footprints size={14} aria-hidden /><span>{t({ zh: `步行路线 · ${r.name.zh}`, en: `Walk · ${r.name.en}` })}</span></button>)}
+        </div>
+      )}
       {more && !onTrip && <TripOptions options={options} busy={busy} onPick={go} picked={picked} />}
     </div>
   );

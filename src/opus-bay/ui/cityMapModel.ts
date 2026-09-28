@@ -7,7 +7,7 @@ import { type MapFrameBox, type MapView, clampView } from './cityMapDraw';
 import { BADGE_INK, type BadgeSize, type BadgeState, badgeNodes, badgeSize, scaleRules } from './mapBadges';
 import { type MapFilter, filterLines, filterPlaces } from './mapFilterRules';
 import { type AttractionMarker, type LayoutItem, type LayoutResult, attractionMarkers, layoutMap, layoutPriority, stationItem } from './mapLayout';
-import { type MapStation, type RouteStroke, type StationCtx, type StationSymbol, drawStationMarks, stationSymbol } from './mapLines';
+import { MAP_FONT_FAMILY, type MapStation, type RouteStroke, type StationCtx, type StationSymbol, drawStationMarks, stationSymbol } from './mapLines';
 
 /**
  * Wave 4 · the city map's scene for one view (lane P, integration of W4-P4 … P10; plan sf-w4-plan.md §4.1). Pure: the
@@ -61,6 +61,8 @@ export interface SceneInput {
   target?: MapTarget | null;
   tourNext?: { id: string; n: number } | null;
   filter: MapFilter;
+  /** lane V's T1 sticker atlas is decoded (and not `?stickers=0`) */
+  stickers?: boolean;
   /** the 线路 tab's highlighted line: its stations show at every scale (tappable: 坐到这一站), the others hide */
   highlight?: string | null;
   /** the UI locale ('en' or a Chinese one) */
@@ -101,7 +103,7 @@ export function buildScene(o: SceneInput): MapScene {
   // 1. attractions
   const { items, markers } = attractionMarkers(o.attractions, v, {
     discovered: o.discovered, arrived: o.arrived, selected: sel?.kind === 'attraction' ? sel.id : null, target: tgt.attraction ?? null,
-    tourNext: o.tourNext ?? null, filter: o.filter, name,
+    tourNext: o.tourNext ?? null, filter: o.filter, name, stickers: o.stickers,
   });
   const all: LayoutItem[] = [...items];
   // 2. the other places: curated rows no attraction speaks for (T3), discovered OSM rows (T4); the selected / target always
@@ -241,9 +243,49 @@ export function firstOpenView(v: MapView, frame: MapFrameBox, o: { player: Vec2;
  * The trip route (mapLines.tripRouteStrokes: walk legs dashed gold, rides in the line colour, finished legs grey), the
  * white board / alight dots, the station marks and the over-budget dots, in that order. Returns the operation count.
  */
-export function drawMapExtras(ctx: StationCtx, v: MapView, o: { route?: { strokes: readonly RouteStroke[]; dots: readonly Vec2[] } | null; stations?: readonly StationMark[]; stationAlpha?: number; dots?: MapScene['canvasDots'] }): number {
+export function drawMapExtras(ctx: StationCtx, v: MapView, o: {
+  route?: { strokes: readonly RouteStroke[]; dots: readonly Vec2[] } | null; stations?: readonly StationMark[]; stationAlpha?: number; dots?: MapScene['canvasDots'];
+  /** a walking route of data/sf/routes.ts (the 线路 tab's 步行路线): its walk (flat x, z) and its numbered stops */
+  walk?: { xz: readonly number[]; stops: readonly Vec2[] } | null;
+}): number {
   let ops = 0;
   const k = v.scale, ox = v.w / 2 - v.cx * k, oy = v.h / 2 - v.cz * k;
+  if (o.walk && o.walk.xz.length >= 4) {
+    const xz = o.walk.xz;
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(xz[0] * k + ox, xz[1] * k + oy);
+    for (let i = 2; i < xz.length; i += 2) ctx.lineTo(xz[i] * k + ox, xz[i + 1] * k + oy);
+    ctx.setLineDash([]);
+    ctx.strokeStyle = BADGE_INK.cream;
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    ctx.strokeStyle = BADGE_INK.goldDeep;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([7, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ops += 2;
+    ctx.font = `800 9px ${MAP_FONT_FAMILY}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    o.walk.stops.forEach((p, i) => {
+      const x = p.x * k + ox, y = p.z * k + oy;
+      ctx.beginPath();
+      ctx.arc(x, y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = BADGE_INK.gold;
+      ctx.fill();
+      ctx.strokeStyle = BADGE_INK.cream;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.fillText(String(i + 1), x, y + 3.2);
+      ops += 3;
+    });
+    ctx.restore();
+  }
   if (o.route) {
     ctx.save();
     ctx.lineJoin = 'round';

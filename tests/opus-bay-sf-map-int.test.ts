@@ -253,3 +253,38 @@ test('the tour recap map (lane C\'s mapSlot): the Grand Tour over the paper, fin
   assert.ok(html.includes('>1<') && html.includes(`>${SF_GRAND.chapters.length}<`), 'every chapter numbered');
   assert.ok(html.includes('opacity="1"') && html.includes('opacity="0.35"'), 'done and to-do legs differ');
 });
+
+test('stickers (lane V\'s T1 sheet): from s 0.45 once the atlas is decoded, never under 0.45 or when off; the node count is the markup\'s', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { MapBadge } = await import('../src/opus-bay/ui/MapBadge');
+  const { badgeNodes, badgeSize } = await import('../src/opus-bay/ui/mapBadges');
+  const on = scene(352, 388, { cx: 110, cz: 150, scale: 0.7 }, { stickers: true });
+  const st = [...on.attractions.values()].filter(m => m.state.sticker);
+  assert.ok(st.length >= 2, `${st.length} stickers downtown`);
+  assert.ok(st.every(m => m.a.rank === 1));
+  assert.ok(![...scene(352, 388, { cx: 110, cz: 150, scale: 0.4 }, { stickers: true }).attractions.values()].some(m => m.state.sticker), 'below s 0.45: glyphs');
+  assert.ok(![...scene(352, 388, { cx: 110, cz: 150, scale: 0.7 }).attractions.values()].some(m => m.state.sticker), 'not decoded / off: glyphs');
+  const a = ATTRACTION_INDEX.get('coit-tower')!, size = badgeSize(1, 0.7);
+  for (const state of [{ discovered: false, sticker: true }, { discovered: true, sticker: true, selected: true }, { discovered: true, sticker: true, arrived: true, cluster: 2, tourStop: 3 }]) {
+    const html = renderToStaticMarkup(h('svg', null, h(MapBadge, { a, tier: 1, s: 0.7, state, x: 10, y: 10, size })));
+    assert.equal((html.match(/<[a-z]+[\s/>]/g) ?? []).length - 1, badgeNodes(size, state), JSON.stringify(state));
+    assert.match(html, /<image href="\/opus-bay\/map\/stickers-t1\.webp"/);
+  }
+});
+
+test('walking routes (lane D2\'s SF_ROUTES): the canvas pass draws the walk and a numbered disc per stop', async () => {
+  const { drawMapExtras } = await import('../src/opus-bay/ui/cityMapModel');
+  const { SF_ROUTES, routePath } = await import('../src/opus-bay/data/sf/routes');
+  let strokes = 0, fills = 0; const texts: string[] = [];
+  const ctx = new Proxy({} as Record<string, unknown>, {
+    get: (o, k) => (k === 'stroke' ? () => { strokes++; } : k === 'fill' ? () => { fills++; } : k === 'fillText' ? (s: string) => { texts.push(s); } : k in o ? o[k as string] : noop),
+    set: (o, k, v) => { o[k as string] = v; return true; },
+  });
+  const r = SF_ROUTES[0], p = routePath(r.id)!;
+  const ops = drawMapExtras(ctx as never, { cx: -20, cz: 120, scale: 1, w: 400, h: 400 }, { walk: { xz: p.points, stops: r.stops.map(s => ({ x: s.x, z: s.z })) } });
+  assert.equal(ops, 2 + 3 * r.stops.length);
+  assert.deepEqual(texts, r.stops.map((_, i) => String(i + 1)));
+  assert.equal(fills, r.stops.length);
+  assert.equal(strokes, 2 + r.stops.length);
+});

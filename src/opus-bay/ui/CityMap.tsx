@@ -9,6 +9,7 @@ import { zoneLabelAnchor, zoneName } from '../data/cityZones';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { ATTRACTIONS, ATTRACTION_INDEX, coveredPlaceIds, tripDestination } from '../data/sf/attractions';
 import type { CityPlace } from '../data/sf/places';
+import { type SfRouteId, routePath, sfRoute } from '../data/sf/routes';
 import { vehicleSpots } from '../data/vehicles';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel, endTrip as endFlowTrip } from '../game/flow';
@@ -25,7 +26,7 @@ import { useFar, usePlaceIndex } from './cityHooks';
 import { CityMapList, type MapTab } from './CityMapList';
 import { BaybayFace, Sheet } from './common';
 import { MapBadge, MapLabel } from './MapBadge';
-import { useMapLines, useMapStations } from './mapData';
+import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
 import { MapFilters } from './MapFilters';
 import { MapLegend } from './MapLegend';
@@ -117,6 +118,7 @@ export function CityMapPanel() {
   const pos = useGame(s => s.playerPos);
   const coarse = useMemo(() => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches, []);
   const covered = useMemo(() => coveredPlaceIds(), []);
+  const stickers = useStickersReady();
   const [sel, setSel] = useState<MapSel | null>(null);
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<MapTab>('sights');
@@ -222,12 +224,15 @@ export function CityMapPanel() {
     const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
-      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
+      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
     });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
   const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
+  // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines
+  const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;
+  const walk = useMemo(() => { const r = walkId ? sfRoute(walkId) : undefined, p = walkId ? routePath(walkId) : undefined; return r && p ? { xz: p.points, stops: r.stops.map(s => ({ x: s.x, z: s.z })) } : null; }, [walkId]);
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv || !view || !far) return;
@@ -242,11 +247,11 @@ export function CityMapPanel() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawCityMap(ctx, { far, visited: zoneVisited, paper: !!MAP_PAPER }, view);
       const fl = filterLines(filter);
-      drawTransitLines(ctx, lines, view, { highlight, dimAll: fl.lines === 'dim' });
-      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
+      drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
     });
     return () => cancelAnimationFrame(id);
-  }, [view, far, lines, epoch, highlight, filter, routeStrokes, scene]);
+  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, scene]);
 
   // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -327,6 +332,17 @@ export function CityMapPanel() {
       setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 28, 0.1, 1.2) : v));
     }
   };
+  const pickRoute = (id: SfRouteId) => {
+    const key = `route:${id}`;
+    setHighlight(h => (h === key ? null : key));
+    setTab('lines');
+    const p = routePath(id);
+    if (p && highlight !== key) {
+      const pts: Vec2[] = [];
+      for (let i = 0; i + 1 < p.points.length; i += 2) pts.push({ x: p.points[i], z: p.points[i + 1] });
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.2, 2) : v));
+    }
+  };
   useEffect(() => {
     if (!openId || !view || openedOn.current === openId) return;
     const on = parseMapPanelId(openId);
@@ -379,7 +395,7 @@ export function CityMapPanel() {
     const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2) : v));
   };
-  const walk: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
+  const walkInfo: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
   const vis = view ? { x: view.cx - view.w / 2 / view.scale, z: view.cz - view.h / 2 / view.scale, w: view.w / view.scale, h: view.h / view.scale } : null;
@@ -486,14 +502,14 @@ export function CityMapPanel() {
 
       <MapFilters value={filter} onChange={setFilter} />
 
-      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walk} onTrip={onTrip} />}
+      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} onRoute={pickRoute} />}
       {selStation && (
-        <StationPanel station={selStation} lines={lines} pos={pos} walk={walk} placeId={dest?.placeId ?? null} />
+        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} placeId={dest?.placeId ?? null} />
       )}
 
       <CityMapList
         ix={ix} lines={lines} stations={stations} pos={pos} query={query} setQuery={setQuery} tab={tab} setTab={setTab} selected={sel} highlight={highlight} epoch={epoch}
-        onAttraction={pickAttraction} onPlace={pickPlace} onStation={st => pickStation(st.id)} onLine={pickLine}
+        onAttraction={pickAttraction} onPlace={pickPlace} onStation={st => pickStation(st.id)} onLine={pickLine} onRoute={pickRoute}
       />
     </Sheet>
   );

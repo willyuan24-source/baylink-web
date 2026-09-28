@@ -70,6 +70,8 @@ export interface BadgeState {
   dimAlpha?: number;
   /** members merged into this badge: a "+n" pip at 2 o'clock */
   cluster?: number;
+  /** a T1 badge drawn as lane V's illustrated sticker (s ≥ 0.45, the atlas decoded, not `?stickers=0`) */
+  sticker?: boolean;
 }
 
 export const BADGE_INK = { cream: '#fffaf1', outline: 'rgba(60, 40, 20, .25)', shadow: 'rgba(34, 50, 47, .22)', gold: '#e0a94a', goldDeep: '#a8741f', coral: '#e0563f', tick: '#e0a94a' } as const;
@@ -134,5 +136,7 @@ export function badgeNodes(size: BadgeSize, st: BadgeState): number {
   if (size.kind === 'none') return 0;
   if (st.target) return TARGET_PIN_NODES;
   if (size.kind === 'dot') return 1 + (st.cluster ? 2 : 0);
+  // a sticker: g + the nested <svg> crop + its <image> (+ the gold ring when selected)
+  if (st.sticker) return 3 + (st.selected ? 1 : 0) + (st.arrived ? 2 : 0) + (st.cluster ? 2 : 0) + (st.tourStop !== undefined ? 2 : 0);
   return 5 + (st.arrived ? 2 : 0) + (st.cluster ? 2 : 0) + (st.tourStop !== undefined ? 2 : 0);
 }

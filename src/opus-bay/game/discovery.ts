@@ -16,7 +16,6 @@ import { type Interactable, setExtraResolver } from './interactables';
 import { travelActive } from './fastTravel';
 import { tickStreet } from './streets';
 import { readQa } from './qa';
-import { openMapLine } from './mapPanel';
 import { rideLog, setLineMapOpener } from './transit';
 
 /**
@@ -198,7 +197,7 @@ export function initG1(): () => void {
   // a place already underfoot when the index arrives (resume, ?at=) is found on the next tick; repaint the map now
   const offPlaces = onPlaces(() => changed());
   // lane T's boarding dialogue 看线路图: the map's 线路 tab with that line highlighted (wave 4, lane P)
-  setLineMapOpener(openMapLine);
+  setLineMapOpener(line => { void import('./mapPanel').then(m => m.openMapLine(line)); });
   return () => { offHook(); offPlaces(); setExtraResolver(null); setLineMapOpener(null); booted = false; };
 }
 

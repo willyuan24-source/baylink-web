@@ -138,3 +138,10 @@
   .mw-more { font-size: 13.5px; }
 }
 
+
+/* walking routes (data/sf/routes.ts) in the 线路 tab and as chips on the place card */
+.mw-row-disc.is-walk { background: var(--ob-gold-l); color: var(--ob-gold-d); }
+.mw-row-num { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--ob-gold); color: #fff; font: 800 12px/1 var(--ob-font); margin-left: 8px; }
+.mw-row.is-stop small { white-space: normal; }
+.mw-route-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mw-route-chip { height: auto; min-height: 36px; white-space: normal; text-align: left; line-height: 1.25; padding: 6px 12px; }
