@@ -8,9 +8,17 @@ import type { CityPlace, PlaceIndex } from '../data/sf/places';
  *   地点  every place found (landmarks, curated, and the OSM places you walked past)
  *   街区  DataSF neighbourhoods visited / all (far.zones)
  *   坐车  counted stop-to-stop rides (save v2 `rides`), per line
+ * Wave 4 (lane P, W4-P13): 必看 (the 16 T1 attractions found / 16), 景点 (every attraction whose place you found),
+ * 线路 (lines ridden / all: the loop, N, M, the three cable cars, the F-line, the ferry).
  */
 
 export interface FootprintsSummary {
+  /** wave 4 (lane P, W4-P13): the 16 必看 (T1 attractions) found / all */
+  mustSee: { found: number; total: number };
+  /** every attraction (T1–T3) whose place you found / all */
+  attractions: { found: number; total: number };
+  /** lines ridden at least once / lines known */
+  lines: { ridden: number; total: number };
   landmarks: { found: number; total: number };
   sights: { found: number; total: number };
   places: number;
@@ -29,8 +37,16 @@ export function footprintsSummary(
   rides: Record<string, number>,
   lineName: (lineId: string) => Bilingual | null,
   recentMax = 8,
+  attractions: readonly { id: string; placeId?: string; rank: number }[] = [],
+  lineTotal = 0,
 ): FootprintsSummary {
   const has = new Set(found);
+  let must = 0, mustFound = 0, attrFound = 0;
+  for (const a of attractions) {
+    const ok = has.has(a.placeId ?? a.id);
+    if (ok) attrFound++;
+    if (a.rank === 1) { must++; if (ok) mustFound++; }
+  }
   let lm = 0, lmFound = 0, sights = 0, sightsFound = 0;
   for (const p of ix?.list ?? []) {
     if (p.landmark) { lm++; if (has.has(p.id)) lmFound++; } else if (p.curated) { sights++; if (has.has(p.id)) sightsFound++; }
@@ -38,7 +54,11 @@ export function footprintsSummary(
   const recent: CityPlace[] = [];
   for (let i = found.length - 1; i >= 0 && recent.length < recentMax; i--) { const p = ix?.get(found[i]); if (p) recent.push(p); }
   const rideRows = Object.entries(rides).filter(([, n]) => n > 0).map(([lineId, count]) => ({ lineId, count, name: lineName(lineId) ?? { zh: lineId, en: lineId } })).sort((a, b) => b.count - a.count);
+  const ridden = rideRows.length;
   return {
+    mustSee: { found: mustFound, total: must },
+    attractions: { found: attrFound, total: attractions.length },
+    lines: { ridden, total: Math.max(lineTotal, ridden) },
     landmarks: { found: lmFound, total: lm },
     sights: { found: sightsFound, total: sights },
     // ids of places no longer in the index (an older save) are not counted

@@ -224,3 +224,31 @@ test('trips from the map: the islands end at their piers, the others at their ar
   assert.deepEqual(placeTripDest(plain), { placeId: plain.id, x: plain.arrival.x, z: plain.arrival.z, name: plain.name });
   assert.ok(labelWidth('州立大学 +1', 12) < 90);
 });
+
+test('足迹 (W4-P13): 必看 x / 16, every attraction whose place was found, lines ridden / known; the old counts stay', async () => {
+  const { footprintsSummary } = await import('../src/opus-bay/ui/footprintsData');
+  const found = ['palace-of-fine-arts', 'twin-peaks', 'stonestown-galleria', 'osm-w120483945', 'muni-castro'];
+  const s = footprintsSummary(ix, found, 3, 41, { 'n-judah': 2, 'powell-hyde': 1 }, id => ({ zh: id, en: id }), 8, ATTRACTIONS, 8);
+  assert.deepEqual(s.mustSee, { found: 3, total: 16 });
+  assert.equal(s.attractions.total, ATTRACTIONS.length);
+  assert.equal(s.attractions.found, 3);
+  assert.deepEqual(s.lines, { ridden: 2, total: 8 });
+  assert.equal(s.places, 5, 'a station is a place too');
+  const old = footprintsSummary(ix, found, 3, 41, {}, () => null);
+  assert.deepEqual([old.mustSee.total, old.attractions.total, old.lines.total], [0, 0, 0], 'without the lists: zeros, the old fields unchanged');
+  assert.equal(old.landmarks.total, 24);
+});
+
+test('the tour recap map (lane C\'s mapSlot): the Grand Tour over the paper, finished legs full strength, chapters numbered', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { RecapMap } = await import('../src/opus-bay/ui/RecapMap');
+  const { SF_GRAND } = await import('../src/opus-bay/data/sf/tours');
+  const first = SF_GRAND.chapters[0].stops.map(s => s.id);
+  const html = renderToStaticMarkup(h(RecapMap, { tour: SF_GRAND, completed: first }));
+  assert.match(html, /^<svg class="mw-recap" viewBox="[-\d. ]+"/);
+  assert.ok((html.match(/<path /g) ?? []).length >= 10, 'route segments with their casing');
+  assert.ok((html.match(/<circle /g) ?? []).length >= 10, 'stops and chapter discs');
+  assert.ok(html.includes('>1<') && html.includes(`>${SF_GRAND.chapters.length}<`), 'every chapter numbered');
+  assert.ok(html.includes('opacity="1"') && html.includes('opacity="0.35"'), 'done and to-do legs differ');
+});

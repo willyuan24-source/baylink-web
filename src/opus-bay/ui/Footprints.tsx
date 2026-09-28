@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
-import { Check, History, Landmark, MapPinned, TramFront } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Check, History, MapPinned, Star, TramFront } from 'lucide-react';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { readSave } from '../data/save';
 import { glossName, transitData } from '../data/transit';
 import { discoveredIds, useDiscoveryEpoch, visitedZoneIds, zoneVisited } from '../game/discovery';
-import { openPanel } from '../game/flow';
+import { openMapOn } from '../game/mapPanel';
 import { useT } from '../i18n';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { footprintsSummary } from './footprintsData';
@@ -35,29 +35,48 @@ const OTHER_LINES: Record<string, Bilingual> = {
   ferry: { zh: '渡轮', en: 'Ferry' },
 };
 
+type Attr = { id: string; placeId?: string; rank: number; name: Bilingual; x: number; z: number };
+type W4Names = Readonly<Record<string, { name: Bilingual }>>;
+/**
+ * The attraction list and the wave-4 line names, loaded with the tab (the Journal chunk also serves the district, which
+ * needs neither).
+ */
+function useCityLists(): { attractions: readonly Attr[]; w4: W4Names } {
+  const [v, setV] = useState<{ attractions: readonly Attr[]; w4: W4Names }>({ attractions: [], w4: {} });
+  useEffect(() => {
+    let live = true;
+    void Promise.all([import('../data/sf/attractions'), import('../data/sf/stationNames')]).then(([a, s]) => { if (live) setV({ attractions: a.ATTRACTIONS, w4: s.W4_LINES }); });
+    return () => { live = false; };
+  }, []);
+  return v;
+}
+
 export function Footprints() {
   const { t } = useT();
   const epoch = useDiscoveryEpoch();
   const ix = usePlaceIndex();
   const zones = useZones();
+  const { attractions, w4 } = useCityLists();
   const s = useMemo(() => {
     const lines = transitData()?.lines ?? [];
-    // cable-car lines by their data/transit.ts names; lane F's F-line ('streetcar') and ferry ('ferry') rides by kind
-    const lineName = (id: string) => { const l = lines.find(x => x.id === id); return l ? glossName(l.name) : OTHER_LINES[id] ?? null; };
-    return footprintsSummary(ix, discoveredIds(), visitedZoneIds().length, zones.total, readSave()?.rides ?? {}, lineName);
-  }, [ix, zones.total, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
-  const landmarks = useMemo(() => (ix ? ix.list.filter(p => p.landmark) : []), [ix]);
+    // cable-car lines by their data/transit.ts names, lane T's loop / N / M by theirs; lane F's F-line ('streetcar')
+    // and ferry ('ferry') rides by kind
+    const lineName = (id: string) => { const l = lines.find(x => x.id === id); return l ? glossName(l.name) : w4[id]?.name ?? OTHER_LINES[id] ?? null; };
+    const lineTotal = lines.length + Object.keys(w4).length + Object.keys(OTHER_LINES).length;
+    return footprintsSummary(ix, discoveredIds(), visitedZoneIds().length, zones.total, readSave()?.rides ?? {}, lineName, 8, attractions, lineTotal);
+  }, [ix, zones.total, epoch, attractions, w4]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mustSee = useMemo(() => attractions.filter(a => a.rank === 1), [attractions]);
   const found = useMemo(() => new Set(discoveredIds()), [epoch]); // eslint-disable-line react-hooks/exhaustive-deps
-  const showOnMap = (id: string) => openPanel('map', id);
+  const showOnMap = (id: string) => openMapOn({ kind: 'place', id });
   const area = (x: number, z: number, zone?: string | null) => t(landmarkAreaAt(x, z)?.name ?? zoneName(zone ?? ''));
 
   return (
     <>
       <ul className="ob-steps-stats" aria-label={t('足迹统计', 'Footprint counts')}>
-        <li><strong>{s.landmarks.found}<small>/{s.landmarks.total || 24}</small></strong><span>{t('地标', 'Landmarks')}</span></li>
-        <li><strong>{s.sights.found}<small>/{s.sights.total || '…'}</small></strong><span>{t('景点', 'Sights')}</span></li>
+        <li><strong>{s.mustSee.found}<small>/{s.mustSee.total || 16}</small></strong><span>{t('必看', 'Must-see')}</span></li>
+        <li><strong>{s.attractions.found}<small>/{s.attractions.total || '…'}</small></strong><span>{t('景点', 'Sights')}</span></li>
         <li><strong>{s.zones.visited}<small>/{s.zones.total}</small></strong><span>{t('街区', 'Neighbourhoods')}</span></li>
-        <li><strong>{s.places}</strong><span>{t('去过的地点', 'Places found')}</span></li>
+        <li><strong>{s.lines.ridden}<small>/{s.lines.total || '…'}</small></strong><span>{t('线路', 'Lines')}</span></li>
       </ul>
       {!s.places && !s.zones.visited && (
         <p className="ob-muted">{t('还没有足迹。出去走走吧：走近一个地方就会盖上章，走进一个街区地图上的雾就散开。', 'No footprints yet. Walk up to a place to stamp it; walk into a neighbourhood and its fog lifts on the map.')}</p>
@@ -65,12 +84,12 @@ export function Footprints() {
 
       {s.recent.length > 0 && (
         <section className="ob-block">
-          <h3 className="ob-h3"><History size={15} aria-hidden />{t('最近发现', 'Latest finds')}</h3>
+          <h3 className="ob-h3"><History size={15} aria-hidden />{t('最近发现', 'Latest finds')} · {t({ zh: `去过 ${s.places} 个地点`, en: `${s.places} places found` })}</h3>
           <ul className="ob-steps-list">
             {s.recent.map(p => (
               <li key={p.id}>
                 <button type="button" onClick={() => showOnMap(p.id)}>
-                  <span className="ob-check is-on">{p.landmark ? <Landmark size={12} aria-hidden /> : <Check size={12} aria-hidden />}</span>
+                  <span className="ob-check is-on"><Check size={12} aria-hidden /></span>
                   <span className="ob-steps-text"><span>{t(p.name)}</span><small>{area(p.x, p.z, p.zone)}</small></span>
                   <MapPinned size={15} aria-hidden className="ob-steps-go" />
                 </button>
@@ -81,16 +100,16 @@ export function Footprints() {
       )}
 
       <section className="ob-block">
-        <h3 className="ob-h3"><Landmark size={15} aria-hidden />{t('旧金山地标', 'San Francisco landmarks')} · {s.landmarks.found}/{s.landmarks.total || 24}</h3>
-        {!ix && <p className="ob-muted">{t('地点加载中…', 'Loading places…')}</p>}
+        <h3 className="ob-h3"><Star size={15} aria-hidden />{t('旧金山必看', 'San Francisco must-sees')} · {s.mustSee.found}/{s.mustSee.total || 16}</h3>
+        {!mustSee.length && <p className="ob-muted">{t('地点加载中…', 'Loading places…')}</p>}
         <ul className="ob-steps-list is-grid">
-          {landmarks.map(p => {
-            const ok = found.has(p.id);
+          {mustSee.map(a => {
+            const ok = found.has(a.placeId ?? a.id), row = ix?.get(a.placeId ?? a.id);
             return (
-              <li key={p.id} className={ok ? 'is-found' : ''}>
-                <button type="button" onClick={() => showOnMap(p.id)} aria-label={`${t(p.name)} · ${ok ? t('去过', 'visited') : t('还没去', 'not yet')}`}>
+              <li key={a.id} className={ok ? 'is-found' : ''}>
+                <button type="button" onClick={() => openMapOn({ kind: 'attraction', id: a.id })} aria-label={`${t(a.name)} · ${ok ? t('去过', 'visited') : t('还没去', 'not yet')}`}>
                   <span className={`ob-check ${ok ? 'is-on' : ''}`}>{ok && <Check size={12} aria-hidden />}</span>
-                  <span className="ob-steps-text"><span>{t(p.name)}</span><small>{area(p.x, p.z, p.zone)}</small></span>
+                  <span className="ob-steps-text"><span>{t(a.name)}</span><small>{area(a.x, a.z, row?.zone)}</small></span>
                 </button>
               </li>
             );
