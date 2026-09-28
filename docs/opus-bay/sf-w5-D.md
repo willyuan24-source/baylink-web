@@ -476,4 +476,12 @@ are warmed. District mode never loads the eggs. zh lines ≤ 45 and riddles ≤ 
 - New save, first minute (lanes C / F): the 随便逛，顺便完成这些 goals card opened over the ringing phone and over the operator's
   paper, while the contextual 接电话 button stayed live under it.
 
+### Requests
+
+- **V** (voice): egg 2's first line changed (1989 年秋天起，海狮陆续搬到这片浮台上来了。 / From the autumn of 1989 the sea lions
+  began moving onto these docks.); its batch-4 clip `w5-d-6f8ba0b8` says the old words, and `game/voiceW5.ts` matches by text, so
+  the line is text-only until it is recorded again (nothing plays the old claim). Batch 2's Spreckels line (10 点到 13 点) had no
+  clip yet.
+- **C / F**: the new-save goals card over the ringing phone (Observations).
+
 Status: no relayed owner message reached the review.
