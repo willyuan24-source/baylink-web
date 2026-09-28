@@ -540,3 +540,30 @@ test('W5-C2 lane A’s first flight refusing (it resolves false: not unlocked ye
   assert.equal(asked, 1);
   assert.equal(input.glideCount, before + 1);
 });
+
+test('lane N’s requests: a flight’s landing arrives like a hop-off (no on-foot reveal); the call menu times a carried trip', async () => {
+  reset();
+  const { stepFrameSystems } = await import('../src/opus-bay/game/systemsRegistry');
+  const { emit } = await import('../src/opus-bay/core/events');
+  const frames = (n: number, ms = 250) => { for (let i = 0; i < n; i++) { tick(ms); stepFrameSystems(ms / 1000, clock); } };
+  const off = moments.initCityMoments();
+  try {
+    const t1 = anchors.filter(a => a.rank === 1 && !a.spot && !a.quiet && !pelican.PELICAN_VIEWPOINTS.has(a.attraction));
+    // walked in: the full moment with the reveal
+    Object.assign(runtime.player, { x: t1[0].x, z: t1[0].z });
+    frames(2);
+    assert.equal(flow.get().arrival?.attraction, t1[0].attraction);
+    assert.equal(flow.get().arrival?.reveal, true, 'on foot: the reveal');
+    // flown in: the landing is a hop-off (N's descent beat is the moment)
+    flow.set({ arrival: null });
+    emit({ type: 'travel', what: 'land', to: t1[1].place });
+    Object.assign(runtime.player, { x: t1[1].x, z: t1[1].z });
+    frames(2);
+    assert.equal(flow.get().arrival?.attraction, t1[1].attraction);
+    assert.equal(flow.get().arrival?.reveal, false, 'after a landing: no on-foot reveal');
+  } finally { off(); }
+  // the carried time: the auto-travel pace over the street factor (faster than the straight walk's label for a long way)
+  const { autoTravelSeconds, STREET_FACTOR } = await import('../src/opus-bay/game/tripPlan');
+  const { timeLabel } = await import('../src/opus-bay/game/tripText');
+  assert.deepEqual(moments.carriedTime(400), timeLabel(autoTravelSeconds(400 * STREET_FACTOR)));
+});

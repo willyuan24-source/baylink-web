@@ -23,7 +23,8 @@ import { flow } from './flowStore';
 import { BAYBAY_ID, interactables } from './interactables';
 import { LINE_TTL, LinePacer, NARRATION_REPEAT, clipSecondsFrom, voiceLang, type PacedLine, type SaidLine } from './linePacer';
 import { registerFrameSystem } from './systemsRegistry';
-import { arriveYourselfGoalRule, cableCarGoalRule, lineRideGoalRule, type TripGoalRule } from './tripPlan';
+import { STREET_FACTOR, arriveYourselfGoalRule, autoTravelSeconds, cableCarGoalRule, lineRideGoalRule, type TripGoalRule } from './tripPlan';
+import { timeLabel } from './tripText';
 import { registerTripGoals } from './tripProviders';
 import { bayNow } from './bayNow';
 import { initPelicanFirst, stepPelican, unlockPelican, unlocksAt } from './pelicanFirst';
@@ -195,6 +196,9 @@ export function applyArrival(hit: ArrivalHit, now = performance.now()) {
   if (hit.first || hit.panorama) patchSave(sv => { sv.arrivals = watcher?.seen() ?? sv.arrivals; });
 }
 
+/** Lane N's request: the time of a trip BAYBAY carries you on (auto-travel) over a straight distance d (u). */
+export const carriedTime = (d: number) => timeLabel(autoTravelSeconds(d * STREET_FACTOR));
+
 /** Wave 5 (W5-C3): a resumed player reappears where they were: no arrival moment for standing there (game/arrival.ts settle). */
 export const settleArrivals = (x = runtime.player.x, z = runtime.player.z): number => watcher?.settle(x, z) ?? 0;
 
@@ -311,6 +315,9 @@ export function initCityMoments(): () => void {
   const offEvents = onEvent(e => {
     if (e.type === 'transit') onTransit(e);
     else if (e.type === 'vehicle:exit') hoppedOffAt = performance.now();
+    // lane N's request (W5-N5): a flight's landing is a hop-off for the grace window — its own descent beat, never the
+    // 2.4 s on-foot reveal on top (plan MF4)
+    else if (e.type === 'travel' && e.what === 'land') hoppedOffAt = performance.now();
   });
   const offTargets = registerGoalTargets('c-rides', () => rideGoalTargets());
   const offRules = registerTripGoals('c-goals', () => openGoalRules());

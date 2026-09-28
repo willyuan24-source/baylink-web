@@ -108,6 +108,9 @@ export function baybayLine(text: Bilingual, opts: { ttl?: number } = {}): boolea
  */
 export const unlockPelican = (reason: 'viewpoint' | 'sweep' | 'tour'): boolean => moments?.unlockPelican(reason) ?? false;
 
+/** Lane N's request: a carried trip's time label (the auto-travel pace), null before the city chunk lands. */
+export const carriedTimeLabel = (d: number): Bilingual | null => moments?.carriedTime(d) ?? null;
+
 /** Wave 5 · W5-C3: a resume places the player where they were — that is not an arrival (no reveal, no toast). */
 export const settleArrivals = (): number => moments?.settleArrivals() ?? 0;
 /** Lane T's subway overlay: BAYBAY's tunnel line for the arc span it goes under ground on (nothing before load). */

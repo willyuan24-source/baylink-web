@@ -24,7 +24,7 @@ import { flow, initialFlowState, type Bubble } from './flowStore';
 import { deriveLock, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
-import { baybayLine, goalTargets, initCityContent, settleArrivals, unlockPelican } from './cityContent';
+import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, unlockPelican } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
@@ -1199,7 +1199,9 @@ export function openCallMenu() {
   } else {
     // F8: free roam always has a "next" — the nearest unfinished goal, and what is around you
     const next = s.mode === 'free' ? nextFreeGoal() : null;
-    if (next) choices.push({ label: { zh: `带我去下一个目标：${next.name.zh} · ${gameTimeLabel(dist(playerPos(), next)).zh}`, en: `Take me to the next goal: ${next.name.en} · ${gameTimeLabel(dist(playerPos(), next)).en}` }, next: `flow.goto.${next.id}` });
+    // (lane N's request: in the city BAYBAY carries you there — the label times that, not a straight walk)
+    const nt = next ? (city ? carriedTimeLabel(dist(playerPos(), next)) : null) ?? gameTimeLabel(dist(playerPos(), next)) : null;
+    if (next && nt) choices.push({ label: { zh: `带我去下一个目标：${next.name.zh} · ${nt.zh}`, en: `Take me to the next goal: ${next.name.en} · ${nt.en}` }, next: `flow.goto.${next.id}` });
     const nearby = nearbyNode();
     if (nearby) choices.push({ label: { zh: '附近有什么？', en: "What's around here?" }, next: nearby });
     // W4-C7 · city: the Grand Tour (or where it was left); the nearest bus stop / Metro station is in 附近有什么
