@@ -5,6 +5,7 @@ import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { SEWARD_SLIDES_WORLD } from '../data/sf/sewardSlides';
+import { onSaveCleared } from '../data/save';
 import { bayNow, bayParts } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
@@ -197,6 +198,10 @@ export function initZones(): () => void {
   offs.push(registerOverlay({ id: CHIP_OVERLAY, Component: ChipSlot }));
   offs.push(registerInteractables('a-play-zones', () => [slidesIt, ...stairsIts]));
   offs.push(registerRidePad({ id: 'bell', order: 10, visible: bellPadVisible, Component: PadSlot }));
+  // Settings → reset progress: the counter starts over from the fresh save (else its next save wrote the old count back);
+  // leaving the city: the steps not saved yet are kept
+  offs.push(onSaveCleared(__resetSteps));
+  offs.push(() => { if (steps.unsaved > 0) saveSteps(); });
   // part c: the should activities' zones (the fire rings, the turntables…), their own chunk
   let off3: (() => void) | null = null, disposed = false;
   void import('./zones3').then(m => { if (!disposed) off3 = m.initZones3(); });

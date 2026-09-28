@@ -6,13 +6,14 @@ import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
+import { onSaveCleared } from '../data/save';
 import { bubble, runAction } from '../game/flow';
 import { registerRewardIds } from '../economy/ledger';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMoving, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, openOverlays, registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
-import { currentActivity, ensureResultOverlay, unregisterResultOverlay } from './kit';
+import { currentActivity, ensureResultOverlay, forgetSession, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
 import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
 
@@ -186,6 +187,13 @@ export function init(): () => void {
   let offZones: (() => void) | null = null;
   void import('./zones').then(m => { if (!disposed) offZones = m.initZones(); });
   offs.push(() => { disposed = true; offFloat?.(); offZones?.(); sitModule?.resetSit(); });
+  // Settings → reset progress: the session's bests, medals and view finds go with the save (zones.ts forgets the steps,
+  // crests.ts its set)
+  offs.push(onSaveCleared(() => { forgetSession(); sitModule?.forgetFinds(); }));
+  // leaving the city (the page, the route) with an activity running: it ends at no cost and lets go of the feet — an
+  // activity hold is one the lock watchdog never drops (game/lockWatchdog SELF_EXPLAINED), so a run left behind would
+  // hold the player still on the next visit (review 2026-09-28)
+  offs.push(() => { currentActivity()?.cancel(); });
 
   // one coach line for the emotes, once per device, when the player has settled in and stands still
   const seen = () => { try { return localStorage.getItem(COACH_KEY) === '1'; } catch { return true; } };

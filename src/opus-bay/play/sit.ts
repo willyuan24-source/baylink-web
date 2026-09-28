@@ -119,5 +119,8 @@ function slowLook(s: Seat) {
   });
 }
 
-/** tests / teardown */
-export function resetSit() { seat = null; offFrame?.(); offFrame = null; found.clear(); }
+/** Settings → reset progress: the views found this session go with the save (they pay again in the fresh one). */
+export function forgetFinds() { found.clear(); }
+
+/** tests / teardown (a seat still held is stood up first: lane F's body and the move mode let go) */
+export function resetSit() { if (seat) standUp(); seat = null; offFrame?.(); offFrame = null; found.clear(); }

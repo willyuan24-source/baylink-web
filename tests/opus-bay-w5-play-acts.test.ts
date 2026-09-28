@@ -1874,3 +1874,78 @@ test('W5-A-review Golden Gate rings: never started on a trip the pelican flies i
     assert.equal(events.filter(e => e.type === 'reward').length, 0);
   } finally { off(); offEv(); flight.skipFirstFlight(); moveApi.bindMoveApi(null); g.active = false; runtime.move.mode = 'foot'; kit.unregisterResultOverlay(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
 });
+
+test('W5-A-review leaving the city: an activity still running ends at no cost and lets go of the feet; a seat is stood up', async () => {
+  const index = await import('../src/opus-bay/play/index');
+  const sit = await import('../src/opus-bay/play/sit');
+  playing();
+  const calls = stubBody();
+  kit.__resetKit();
+  const off = index.init();
+  const { events, off: offEv } = record();
+  try {
+    // an activity hold is "self-explained" to lane F's lock watchdog (it never drops one): a run left behind held the feet
+    const run = kit.startActivity({ id: 'test-leave', name: { zh: '测试', en: 'Test' } }, { lock: true });
+    assert.ok(run && lockHeld());
+    off();
+    assert.equal(lockHeld(), false, 'the activity hold went with the city');
+    assert.equal(kit.currentActivity(), null);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && `${e.activity}:${e.what}`), ['test-leave:start', 'test-leave:cancel']);
+    // a seat held when the city goes: stood up (lane F's body lets go)
+    assert.equal(sit.sitHere(), true);
+    calls.length = 0;
+    sit.resetSit();
+    assert.equal(sit.seated(), null);
+    assert.ok(calls.includes('stand'));
+  } finally { offEv(); kit.__resetKit(); sit.resetSit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
+});
+
+test('W5-A-review reset progress (Settings): the session\'s bests and medals, the view finds, the crests and the step counter start over with the fresh save', async () => {
+  const index = await import('../src/opus-bay/play/index');
+  const sit = await import('../src/opus-bay/play/sit');
+  const zones = await import('../src/opus-bay/play/zones');
+  const C = await import('../src/opus-bay/play/crests');
+  const { clearSave } = await import('../src/opus-bay/data/save');
+  playing();
+  stubBody();
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  zones.__resetSteps();
+  C.__resetCrests();
+  const off = index.init();
+  const offZ = zones.initZones();
+  await flushAll();
+  const { events, off: offEv } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    // a run with a medal and a best
+    const spec = { id: 'test-reset', name: { zh: '测试', en: 'Test' }, better: 'higher' as const };
+    kit.startActivity(spec)!.end({ tier: 1, score: 5, card: false });
+    assert.equal(kit.bestOf('test-reset'), 5);
+    assert.deepEqual(events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && e.source), ['medal:test-reset:1']);
+    // a view found (the slow look), a crest hopped, steps climbed
+    const spot = views.viewSpotById('twin-peaks')!;
+    runtime.player.x = spot.x; runtime.player.z = spot.z;
+    sit.sitAtSpot(spot);
+    for (let i = 0; i < 6; i++) stepFrameSystems(1, 0);
+    skipCinema();
+    stepCinema(0.1);
+    sit.standUp();
+    assert.equal(sit.firstFind('twin-peaks'), false);
+    C.crestHop(3);
+    assert.equal(C.crestCount(), 1);
+    zones.addStairRise(2);
+    assert.equal(zones.stepsToday(), 58);
+    // Settings → 重置进度
+    events.length = 0;
+    clearSave();
+    assert.equal(kit.bestOf('test-reset'), undefined, 'no old best');
+    assert.equal(sit.firstFind('twin-peaks'), true, 'the view pays again in the fresh save');
+    assert.equal(C.crestCount(), 0, 'the crests start over (a next hop is 1 / 12, not the old set + 1)');
+    assert.equal(zones.stepsToday(), 0, 'the step counter starts over (its next save would write the old count back)');
+    assert.equal(zones.stepsTotal(), 0);
+    kit.startActivity(spec)!.end({ tier: 1, score: 3, card: false });
+    assert.deepEqual(events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && e.source), ['medal:test-reset:1'], 'the medal is asked for again');
+    assert.equal(kit.bestOf('test-reset'), 3);
+  } finally { mock.timers.reset(); offEv(); offZ(); off(); C.__resetCrests(); zones.__resetSteps(); sit.resetSit(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
+});

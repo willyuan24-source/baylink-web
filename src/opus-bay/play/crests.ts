@@ -5,6 +5,7 @@ import { charApi } from '../actors/charApi';
 import { playSound } from '../audio/hooks';
 import { runtime } from '../core/runtime';
 import { heightAt } from '../core/terrain';
+import { onSaveCleared } from '../data/save';
 import type { Bilingual } from '../core/types';
 import { bubble } from '../game/flow';
 import { registerSceneSystem } from '../game/systemsRegistry';
@@ -33,6 +34,8 @@ import { SNAP_OVERLAY } from './zones3';
 
 registerToyWarmup('pennant');
 ensurePlaySounds3();
+// Settings → reset progress: the set of crests hopped starts over with the fresh save (a module for the page's life)
+onSaveCleared(() => { mask = null; });
 
 export const CREST_ID = 'crests';
 export const CREST_NAME: Bilingual = { zh: '坡顶飞跃', en: 'Crest hops' };

@@ -262,6 +262,13 @@ function finish(spec: ActivitySpec, result: ActivityResult) {
   showResult({ activity: spec.id, name: spec.name, tier, detail: result.detail, best, fresh, coins: paid, again: result.again, photo: result.photo });
 }
 
+/**
+ * Settings → reset progress (data/save.ts onSaveCleared, registered by play/index.ts): the session's bests and the
+ * medals asked for this session go with the save, so the fresh save can earn them again and no old best is written back
+ * into it.
+ */
+export function forgetSession() { paidThisSession.clear(); sessionBests.clear(); }
+
 /** tests: forget the session state */
 export function __resetKit() { current?.cancel(); current = null; paidThisSession.clear(); sessionBests.clear(); }
 
