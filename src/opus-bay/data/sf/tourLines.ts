@@ -283,7 +283,7 @@ export const tourLineText = (line: TourLine): Bilingual => ({ zh: line.zh, en: l
  * What a tour says, ready for the pacer (game/linePacer.ts `PacedLine`): a frozen / added line id → its text, voice id
  * and mood; a plain bubble → text only (mood `happy`). Null for an unknown id (never a silent voice id).
  */
-export function sayLine(say: string | Bilingual, ttl?: number): { text: Bilingual; voice: string | null; mood: Mood; ttl?: number; key: string } | null {
+export function sayLine(say: string | Bilingual, ttl?: number): { text: Bilingual; voice: string | null; mood: Mood; ttl?: number; key: string; repeatGap?: number } | null {
   if (typeof say !== 'string') return { text: { zh: say.zh, en: say.en }, voice: null, mood: 'happy', key: `text:${say.zh}`, ...(ttl !== undefined ? { ttl } : {}) };
   const line = BY_ID.get(say);
   if (!line) return null;

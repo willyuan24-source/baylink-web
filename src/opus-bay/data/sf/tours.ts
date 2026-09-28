@@ -1,8 +1,8 @@
 import type { Bilingual } from '../../core/types';
-import { LINE_TTL } from '../../game/linePacer';
+import { LINE_TTL, NARRATION_REPEAT } from '../../game/linePacer';
 import { minutesLabel } from '../../game/tripText';
 import { LANDMARK_ARRIVALS } from './arrivals';
-import { CHAPTER_LINES, sayLine, type GrandChapterId } from './tourLines';
+import { CHAPTER_LINES, loopNarration, metroNarration, sayLine, type GrandChapterId } from './tourLines';
 
 /**
  * Wave 4 · lane C · W4-C4: the city tours. `SF_GRAND` = 环游旧金山 · 一日游 (plan sf-w4-plan.md §3.5): 5 chapters by
@@ -534,6 +534,20 @@ export function stopSay(stop: CityTourStop, beat: StopBeat, express = false): Pa
 
 /** A chapter's intro or outro (frozen, recorded), ready for the pacer. */
 export const chapterSay = (chapter: CityTourChapter, beat: 'intro' | 'outro'): PacedSay | null => sayLine(chapter[beat], LINE_TTL.chapter);
+
+/**
+ * What BAYBAY says on a `transit` event of the loop or the N / M (review 2: the integration's offer in one tested
+ * place): `loopNarration(e) ?? metroNarration(e)` with the ttl of its moment (approach 5 s: never after the stop; board
+ * and arrive 8 s) and the narration's repeat window (NARRATION_REPEAT: the tour's second N / M boarding and a stop's
+ * lead said again on board stay quiet). Null when she has nothing to say there.
+ */
+export function transitSay(e: { what: string; line: string; station?: string; dir?: 1 | -1 }): PacedSay | null {
+  const line = loopNarration(e) ?? metroNarration(e);
+  if (!line) return null;
+  const ttl = e.what === 'approach' ? LINE_TTL.approach : e.what === 'board' ? LINE_TTL.board : LINE_TTL.arrive;
+  const say = sayLine(line.id, ttl);
+  return say && { ...say, repeatGap: NARRATION_REPEAT };
+}
 
 /** "继续一日游 · 第 3 章" resume label, or the start label when nothing is done. */
 export function tourResumeLabel(def: CityTourDef, progress: TourProgress | undefined): Bilingual {

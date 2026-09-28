@@ -252,3 +252,138 @@ test('the whole Grand Tour through the pacer: every chapter / stop line is said,
     if (express) assert.ok(said.some(s => s.id === 'loop-ocean-beach-windmill-arrive'));
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Review 2: repeats beyond 25 s, the transit narration in one place, the clip lookup without the audio module
+// ---------------------------------------------------------------------------------------------------------------
+
+test('review 2 · transitSay: the loop / Metro line of a transit event with its ttl and the narration repeat window', async () => {
+  const { transitSay } = await import('../src/opus-bay/data/sf/tours');
+  const { NARRATION_REPEAT } = pacerMod;
+  const ap = transitSay({ what: 'approach', line: 'sf-loop', station: 'loop-castro' })!;
+  assert.equal(ap.voice, LOOP_STOP_LINES['loop-castro'].approach.id);
+  assert.equal(ap.ttl, LINE_TTL.approach);
+  assert.equal(ap.repeatGap, NARRATION_REPEAT);
+  assert.equal(transitSay({ what: 'arrive', line: 'sf-loop', station: 'loop-castro' })!.ttl, LINE_TTL.arrive);
+  const board = transitSay({ what: 'board', line: 'n-judah', station: 'muni-judah-la-playa' })!;
+  assert.equal(board.voice, 'metro-board-n');
+  assert.equal(board.ttl, LINE_TTL.board);
+  assert.equal(transitSay({ what: 'approach', line: 'm-ocean-view', station: 'muni-19th-holloway' })!.voice, 'metro-sfsu-next-2');
+  assert.equal(transitSay({ what: 'board', line: 'sf-loop', station: 'loop-castro' }), null, 'the loop says nothing on board');
+  assert.equal(transitSay({ what: 'arrive', line: 'cable-california', station: 'x' }), null);
+  assert.ok(NARRATION_REPEAT > 157 && NARRATION_REPEAT < 13.5 * 60, 'longer than the tour\'s second N / M boarding, shorter than a loop lap');
+});
+
+test('review 2 · pacer: a line\'s own repeat window; a stop\'s lead said again on board after a long wait stays quiet', async () => {
+  const { transitSay } = await import('../src/opus-bay/data/sf/tours');
+  const p = new LinePacer(clipsOf('zh'));
+  // the N ride's lead is the board line (n-ride-9th-irving: lead 'metro-board-n'); the train comes 40 s later
+  p.offer(sayLine('metro-board-n', LINE_TTL.stop)!, 0);
+  assert.equal(p.step(0)!.voice, 'metro-board-n');
+  const board = transitSay({ what: 'board', line: 'n-judah', station: 'muni-judah-la-playa' })!;
+  assert.equal(p.offer(board, 40), false, 'said 40 s ago: not again on board (was said twice with the 25 s window)');
+  assert.equal(p.offer(board, 200), false, 'the second N boarding of the tour, 135 s later: quiet');
+  assert.equal(p.offer(board, 301), true, 'five minutes later she may say it again');
+  // a plain line keeps the 25 s window
+  const q = new LinePacer();
+  q.offer({ text: bi('跟我来！', 'Follow me!') }, 0);
+  q.step(0);
+  assert.equal(q.offer({ text: bi('跟我来！', 'Follow me!') }, 26), true);
+  // the same line waiting twice keeps the later deadline (the stop's copy has the longer ttl)
+  const r = new LinePacer(clipsOf('zh'));
+  assert.equal(r.offer(sayLine('loop-golden-gate-bridge-arrive', LINE_TTL.arrive)!, 0.1), true);
+  assert.equal(r.offer(sayLine('loop-golden-gate-bridge-arrive', LINE_TTL.stop)!, 0.2), false, 'already waiting');
+  // held (a dialogue) past the transit copy's 8 s
+  assert.equal(r.step(0.1 + LINE_TTL.arrive + 2, true), null);
+  assert.equal(r.step(0.1 + LINE_TTL.arrive + 3)!.voice, 'loop-golden-gate-bridge-arrive', 'kept by the stop copy\'s ttl');
+  // step() drops expired lines in place: no new array per call
+  const s = new LinePacer();
+  const queue = Reflect.get(s, 'queue');
+  s.offer({ text: bi('一', 'one'), ttl: 1 }, 0);
+  s.offer({ text: bi('二', 'two') }, 0);
+  s.step(5, true);
+  s.step(5.1, true);
+  assert.equal(Reflect.get(s, 'queue'), queue, 'the same array');
+  assert.equal(s.pending(), 1);
+});
+
+test('review 2 · the clip lookup: TOUR_VOICE_CLIPS in the voice language without importing audio/voice.ts', async () => {
+  const { clipSecondsFrom, voiceLang } = pacerMod;
+  // audio/voice.ts VoicePlayer.lang() = getLocale() === 'en' ? 'en' : 'zh'; the audio chunk is lazy, game code must not import it
+  assert.equal(voiceLang('en'), 'en');
+  assert.equal(voiceLang('zh-Hans'), 'zh');
+  assert.equal(voiceLang('zh-Hant'), 'zh');
+  let lang: 'zh' | 'en' = 'zh';
+  const clip = clipSecondsFrom(TOUR_VOICE_CLIPS, () => lang);
+  assert.equal(clip('grand-bay-intro'), TOUR_VOICE_CLIPS['zh-grand-bay-intro'].duration);
+  lang = 'en';
+  assert.equal(clip('grand-bay-intro'), TOUR_VOICE_CLIPS['en-grand-bay-intro'].duration, 'a language switch times the next line by its clip');
+  assert.equal(clip('metro-sfsu-next-2'), undefined, 'not recorded yet: text only');
+  // linePacer stays light: type imports only
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../src/opus-bay/game/linePacer.ts', import.meta.url), 'utf8');
+  assert.deepEqual(src.split('\n').filter(l => /^import /.test(l) && !/^import type /.test(l)), []);
+});
+
+test('review 2 · the whole Grand Tour with the transit narration of every station passed: no line twice, no overlap, no tour line dropped', async () => {
+  const { stopSay, chapterSay, transitSay, TOUR_GEO, rideArc, rideSeconds, TOUR_MODEL, expressRide } = await import('../src/opus-bay/data/sf/tours');
+  type Say = NonNullable<ReturnType<typeof stopSay>>;
+  // lane T: the approach ≈ 7.3 s before the vehicle stands; the wait for a train up to ≈ 35 s (dispatch 20 + 15 s)
+  for (const wait of [5, 20, 40]) for (const express of [false, true]) for (const lang of ['zh', 'en'] as const) {
+    const p = new LinePacer(clipsOf(lang));
+    const events: { t: number; l: Say; tour: boolean }[] = [];
+    let t = 0, lastChapter = -1;
+    const at = (dt: number, l: Say | null, tour = true) => { if (l) events.push({ t: t + dt, l, tour }); };
+    for (const { stop, chapter } of tourStops(SF_GRAND, { express })) {
+      if (chapter !== lastChapter) {
+        if (lastChapter >= 0) at(0, chapterSay(SF_GRAND.chapters[lastChapter], 'outro'));
+        at(0.1, chapterSay(SF_GRAND.chapters[chapter], 'intro'));
+        lastChapter = chapter;
+      }
+      at(0.2, stopSay(stop, 'lead', express));
+      let dur = (express ? stop.expressMinutes : stop.minutes) * 60;
+      if (stop.leg.via === 'line') {
+        const ride = express ? expressRide(SF_GRAND, stop.id)! : { line: stop.leg.line, from: stop.leg.from, to: stop.leg.to };
+        const geo = TOUR_GEO[ride.line], r = rideArc(ride.line, ride.from, ride.to)!;
+        const veiled = express && !stop.goal && r.arc > TOUR_MODEL.veilOver && TOUR_MODEL.veilKinds.includes(geo.kind);
+        const t0 = wait + 3, ev = { line: ride.line, dir: r.dir };
+        at(t0, transitSay({ ...ev, what: 'board', station: ride.from }), false);
+        const end = t0 + rideSeconds(ride.line, ride.from, ride.to, veiled);
+        if (veiled) at(end, transitSay({ ...ev, what: 'arrive', station: ride.to }), false);
+        else {
+          for (const [id, s] of Object.entries(geo.stations)) {
+            if (id === ride.from) continue;
+            const d = ((s.at - r.a) % geo.length + geo.length) % geo.length;
+            if (geo.loop ? !(d > 0 && d <= r.arc + 1e-6) : !(s.at >= r.a - 1e-6 && s.at <= r.b + 1e-6)) continue;
+            const secs = rideSeconds(ride.line, ride.from, id);
+            at(t0 + secs - 7.3, transitSay({ ...ev, what: 'approach', station: id }), false);
+            at(t0 + secs, transitSay({ ...ev, what: 'arrive', station: id }), false);
+          }
+        }
+        at(end + 1, stopSay(stop, 'arrive', express));
+        at(end + 3, stopSay(stop, 'done', express));
+        dur = Math.max(dur, end + 5);
+      } else {
+        at(Math.max(1, dur - (stop.moment ? TOUR_MODEL.moment[stop.moment] : 0)), stopSay(stop, 'arrive', express));
+        at(Math.max(2, dur - 2), stopSay(stop, 'done', express));
+      }
+      t += dur;
+    }
+    at(1, chapterSay(SF_GRAND.chapters[lastChapter], 'outro'));
+    events.sort((a, b) => a.t - b.t);
+    const accepted: { l: Say; tour: boolean; now: number }[] = [], said: { key: string; at: number; end: number }[] = [];
+    let k = 0;
+    for (let now = 0; now < t + 120; now += 0.1) {
+      while (k < events.length && events[k].t <= now) { const e = events[k++]; if (p.offer(e.l, now)) accepted.push({ ...e, now }); }
+      const s = p.step(now);
+      if (s) said.push({ key: LinePacer.keyOf(s), at: now, end: now + s.seconds });
+    }
+    const tag = `wait ${wait} ${express ? 'express' : 'full'} ${lang}`;
+    const lost = accepted.filter(e => !said.some(s => s.key === LinePacer.keyOf(e.l) && s.at >= e.now - 1e-6));
+    assert.deepEqual(lost.filter(e => e.tour).map(e => e.l.key), [], `${tag}: every chapter / stop line is said`);
+    const keys = said.map(s => s.key);
+    assert.deepEqual(keys.filter((key, i) => keys.indexOf(key) !== i), [], `${tag}: no line twice (metro-board-n / -m and metro-stonestown-next were)`);
+    for (let i = 1; i < said.length; i++) assert.ok(said[i].at >= said[i - 1].end + PACER_GAP - 1e-6, `${tag}: ${said[i - 1].key} → ${said[i].key} overlap`);
+    assert.ok(said.length > 55, `${tag}: ${said.length} lines`);
+  }
+});
