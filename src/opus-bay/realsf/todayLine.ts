@@ -3,7 +3,7 @@ import { getCatalog } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
 import { weekEvents } from './events';
-import { bayHm, sunTimes } from './sun';
+import { sunHm, sunTimes } from './sun';
 
 /**
  * Wave 5 · lane R (W5-R4) · one short line about San Francisco today (zh ≤ 45 characters): BAYBAY's addition to lane C's
@@ -28,7 +28,7 @@ export function todayLine(now: Date = bayNow(), catalog: Catalog | null = getCat
   }
   const sun = sunTimes(now);
   if (now.getTime() < sun.sunset.getTime()) {
-    const t = bayHm(sun.sunset);
+    const t = sunHm(sun.sunset);
     return { zh: `今天旧金山日落 ${t}，旅行本「今天」里有三件小事～`, en: `Sunset in San Francisco today is at ${t}; three small things wait in the journal's Today page.` };
   }
   return { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait in the journal’s Today page — no rush.' };

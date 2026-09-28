@@ -62,7 +62,9 @@ export const CALENDAR: readonly CalendarRow[] = [
   {
     id: 'halloween-2026', title: { zh: '万圣节', en: 'Halloween' }, from: '2026-10-31', to: '2026-10-31',
     where: { zh: '维多利亚老房子的台阶', en: 'Victorian stoops' }, placeId: 'alamo-square-painted-ladies', xz: { x: 8.7, z: 572.4 },
-    note: { zh: '老房子门前通常摆满南瓜 · 彩绘女士和 Waller 街', en: 'Stoops usually fill with pumpkins · the Painted Ladies and Waller St' },
+    // (review) the source names Waller St's decorated houses, not the Painted Ladies: the note says only what it bears out
+    // (the game's own pumpkins stand on both; 带我去 goes to the Painted Ladies, the nearer landmark)
+    note: { zh: 'Waller 街（Scott 到 Steiner）有很多人家做万圣节装饰', en: 'Waller St (Scott to Steiner) has many Halloween-decorated houses' },
     grade: 'usually', dress: 'pumpkins',
     line: { zh: '今天万圣节！老房子的台阶上摆满了南瓜灯～', en: 'Happy Halloween! The old houses have pumpkins on their steps.' },
     // "Waller Street, particularly the stretch from Scott Street to Steiner Street in the Duboce Triangle, has several

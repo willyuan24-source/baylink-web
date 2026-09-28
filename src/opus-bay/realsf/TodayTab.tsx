@@ -19,7 +19,7 @@ import { EVENT_SAY, VENUE_SAY } from './eventVenues';
 import { activeEventsAt, weekEvents, type EventWindow } from './events';
 import { MOON_LABELS, MOON_SOURCE, moonPhase } from './moon';
 import { KARL_SOURCE, karlMonthFactor } from './seasons';
-import { bayHm, sunBandAt, sunTimes } from './sun';
+import { bayHm, roundMinute, sunBandAt, sunHm, sunTimes } from './sun';
 import { calendarAhead, calendarOn, GRADE_SAY, type CalendarRow } from './calendar';
 import { liveOffers, loadLive, offersOn, standingOffers, subscribeLive } from './live';
 import { hm, rowState, rowsOn, WALK_GUIDES, weekendOf, type HandRow, type SourceRef } from './todayRows';
@@ -171,7 +171,7 @@ export default function TodayTab() {
   // 今天在旧金山: world events still on today, then the hand rows not over yet
   const live = new Set(activeEventsAt(now, catalog).map(w => w.event.id));
   const todays = weekEvents(now, 1, catalog).filter(w => w.dateKey === day);
-  const hand = rowsOn(day, minuteOf(sun.sunset)).filter(r => rowState(r.hours, nowMin) !== 'over');
+  const hand = rowsOn(day, minuteOf(roundMinute(sun.sunset))).filter(r => rowState(r.hours, nowMin) !== 'over');
   const calToday = calendarOn(day);
   // the tides: the Lands End wrecks at a daylight low (≤ 1 ft) still ahead, else the Wave Organ before a high
   const tides = tidesOnDay(day);
@@ -218,8 +218,8 @@ export default function TodayTab() {
           <span>{formatDay(day, locale, '1970-01-01')} · {t('旧金山时间', 'SF time')}</span>
         </div>
         <ul className="ob-today-sky">
-          <li><Sunrise size={15} aria-hidden />{t('日出', 'Sunrise')} {bayHm(sun.sunrise).replace(/^0/, '')}</li>
-          <li><Sunset size={15} aria-hidden />{t('日落', 'Sunset')} {bayHm(sun.sunset)}</li>
+          <li><Sunrise size={15} aria-hidden />{t('日出', 'Sunrise')} {sunHm(sun.sunrise).replace(/^0/, '')}</li>
+          <li><Sunset size={15} aria-hidden />{t('日落', 'Sunset')} {sunHm(sun.sunset)}</li>
           <li><Moon size={15} aria-hidden />{t(`约${MOON_LABELS[moon.name].zh}`, `About a ${MOON_LABELS[moon.name].en.toLowerCase()}`)}</li>
           <li><Sun size={15} aria-hidden />{t(band)}</li>
         </ul>

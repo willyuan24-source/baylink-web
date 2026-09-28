@@ -271,8 +271,8 @@ test('W5-R7 现实中怎么去: the real lines\' hours and headways (sfmta.com),
   // the service line
   assert.match(real.serviceLabel(real.REAL_LINES['n-judah'], '2026-10-05', 10 * 60).zh, /全天 24 小时 · 白天约 10 分钟一班/);
   assert.match(real.serviceLabel(real.REAL_LINES['n-judah'], '2026-10-04', 10 * 60).zh, /约 12 分钟/, 'weekend');
-  assert.match(real.serviceLabel(real.REAL_LINES['m-ocean-view'], '2026-10-05', 3 * 60).zh, /现在不开 · 运营 6:00–24:00/);
-  assert.match(real.serviceLabel(real.REAL_LINES['powell-hyde'], '2026-10-05', 23 * 60).zh, /现在不开/);
+  assert.match(real.serviceLabel(real.REAL_LINES['m-ocean-view'], '2026-10-05', 3 * 60).zh, /现在停运 · 运营 6:00–24:00/);
+  assert.match(real.serviceLabel(real.REAL_LINES['powell-hyde'], '2026-10-05', 23 * 60).zh, /现在停运/);
   assert.equal(real.CHECK_511.zh, '出发前查 SFMTA / 511 确认');
 });
 

@@ -56,8 +56,16 @@ export function bayHm(date: Date): string {
   return `${pad(p.hour)}:${pad(p.minute)}`;
 }
 
+/** An instant rounded to the nearest minute (sun times are printed rounded: USNO and NOAA never truncate). */
+export const roundMinute = (date: Date): Date => new Date(Math.round(date.getTime() / 60_000) * 60_000);
+/**
+ * A sun time as the almanacs print it, 'HH:mm' rounded to the nearest minute (review: `bayHm` truncates, which showed
+ * 27 of 56 checked USNO times a minute early — the Oct 31 sunset 18:11 instead of 18:12; rounded, 55 of 56 match).
+ */
+export const sunHm = (date: Date): string => bayHm(roundMinute(date));
+
 /** BAYBAY's sunset line for the Bay day of `date` (≤ 45 zh characters). */
 export function sunsetLine(date: Date = bayNow()): Bilingual {
-  const t = bayHm(sunTimes(date).sunset);
+  const t = sunHm(sunTimes(date).sunset);
   return { zh: `今天旧金山日落 ${t}，找个坡坐下来看吧。`, en: `Sunset in San Francisco today is at ${t} — find a hill and sit for it.` };
 }

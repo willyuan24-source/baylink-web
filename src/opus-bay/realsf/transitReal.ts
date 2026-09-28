@@ -85,7 +85,7 @@ export function serviceLabel(line: RealLine, dateKey: string, minute: number): B
   const [lo, hi] = w === 0 || w === 6 ? line.day.we : line.day.wd;
   const every = lo === hi ? `${lo}` : `${lo}–${hi}`;
   const hours: Bilingual = line.hours ? { zh: `${hh(line.hours[0])}–${line.hours[1] >= H(24) ? '24:00' : hh(line.hours[1])}`, en: `${hh(line.hours[0])}–${line.hours[1] >= H(24) ? '24:00' : hh(line.hours[1])}` } : { zh: '全天 24 小时', en: '24 hours' };
-  if (!lineRunning(line, minute)) return { zh: `现在不开 · 运营 ${hours.zh}`, en: `Not running now · runs ${hours.en}` };
+  if (!lineRunning(line, minute)) return { zh: `现在停运 · 运营 ${hours.zh}`, en: `Not running now · runs ${hours.en}` };
   return { zh: `${hours.zh} · 白天约 ${every} 分钟一班`, en: `${hours.en} · about every ${every} min by day` };
 }
 
