@@ -97,6 +97,9 @@ type WorkerOut =
 
 /** beyond this distance (focus → hero slab bbox) the hero's buildings give way to L1 boxes; ± HERO_HYST */
 const HERO_NEAR = 300;
+/** prefetch(): the soft radius (u) around each point, and at most this many points */
+export const PREFETCH_R = 120;
+export const PREFETCH_MAX = 3;
 const HERO_HYST = 24;
 const HERO_ID = 8_999_999;
 /** the hero ground stand-in (≡ 3 mod 4 like HERO_ID: never an l1Id / l2Id) */
@@ -156,6 +159,7 @@ export class CityStreamer {
   private farQueue: FarCell[] = [];
   private farCells = new Set<number>();
   private waits: { p: Vec2; r: number; resolve: () => void }[] = [];
+  private prefetchFoci: Focus[] = [];
   private focus = { x: 0, z: 0, vx: 0, vz: 0 };
   private selAt = { x: Infinity, z: Infinity, yaw: 0, t: -1, radii: '' };
   /** the cell table changed (a worker result, a re-selection, far cells, an attach / drop last frame): walk it again */
@@ -724,7 +728,7 @@ export class CityStreamer {
     const dyaw = Math.abs(((yaw - this.selAt.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (Math.hypot(this.focus.x - this.selAt.x, this.focus.z - this.selAt.z) > RESELECT_MOVE || dyaw > RESELECT_YAW || rk !== this.selAt.radii || this.time - this.selAt.t > 0.5 || this.waits.length) {
       this.selAt = { x: this.focus.x, z: this.focus.z, yaw, t: this.time, radii: rk };
-      const foci: Focus[] = [this.focus, ...this.waits.map(w => ({ x: w.p.x, z: w.p.z }))];
+      const foci: Focus[] = [this.focus, ...this.waits.map(w => ({ x: w.p.x, z: w.p.z })), ...this.prefetchFoci];
       t.select(foci, radii);
       this.visDirty = true;
       this.m4.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
@@ -771,6 +775,22 @@ export class CityStreamer {
     if (this.table?.ready(p.x, p.z, r)) return Promise.resolve();
     return new Promise(resolve => this.waits.push({ p: { x: p.x, z: p.z }, r, resolve }));
   }
+
+  /**
+   * Stream ahead of a moving ride (wave 4, W4-V8; lane T's rides): the points (e.g. the track 200 u ahead of the rider,
+   * refreshed every 0.5 s) become soft foci: the L1 tier within `radius` and the walking rasters there, queued behind
+   * the player's own jobs, never L0. Unlike whenReady (a full focus until ready, then gone) they stay until replaced;
+   * `prefetch([])` when the ride ends. At most PREFETCH_MAX points.
+   */
+  prefetch(points: readonly Vec2[], radius = PREFETCH_R) {
+    const next = points.slice(0, PREFETCH_MAX).map(p => ({ x: p.x, z: p.z, soft: radius }));
+    if (next.length === 0 && this.prefetchFoci.length === 0) return;
+    this.prefetchFoci = next;
+    this.selAt.t = -Infinity;
+  }
+
+  /** the soft foci of prefetch() (QA) */
+  get prefetching(): readonly Focus[] { return this.prefetchFoci; }
 
   setQuality(q: Quality) { this.quality = q; }
 

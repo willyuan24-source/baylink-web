@@ -159,6 +159,29 @@ test('whenReady semantics: not ready until the rasters within the residency radi
   assert.equal(t.ready(p.x, p.z, 150), true);
 });
 
+test('W4-V8 prefetch: a soft focus ahead of a ride asks for L1 and rasters within its radius, never L0, behind the player', () => {
+  const t = new CellTable(chunkList);
+  const player = { x: -8, z: 587 }, ahead = { x: -8, z: 1200 }; // Alamo Square, and a track point 613 u south (the Sunset)
+  t.select([player]);
+  const near = (p: { x: number; z: number }, r: number) => t.cells.filter(c => Math.hypot(c.x - p.x, c.z - p.z) < r);
+  assert.ok(near(ahead, 120).every(c => c.want === 2), 'beyond the player\'s radii: L2');
+  t.select([player, { ...ahead, soft: 120 }]);
+  const soft = near(ahead, 120);
+  assert.ok(soft.length > 4 && soft.every(c => c.want === 1), 'L1 within the soft radius');
+  assert.ok(near(ahead, 400).filter(c => Math.hypot(c.x - ahead.x, c.z - ahead.z) >= 125 && Math.hypot(c.x - player.x, c.z - player.z) > 400).every(c => c.want === 2), 'nothing beyond it');
+  assert.ok(near(player, RADII.high.l0In - 1).some(c => c.want === 0), 'the player keeps L0');
+  const jobs = t.jobs();
+  const softRaster = jobs.filter(j => j.kind === 'raster' && squareDist(ahead.x, ahead.z, j.chunk.cx * 128, j.chunk.cz * 128, 128) < 120);
+  assert.ok(softRaster.length > 0, 'the rasters under the prefetch point are requested');
+  assert.ok(!jobs.some(j => j.kind === 'l0' && Math.hypot(j.cell.x - ahead.x, j.cell.z - ahead.z) < 120), 'never an L0 job there');
+  const firstSoft = jobs.findIndex(j => j.kind === 'raster' && softRaster.includes(j));
+  const playerRaster = jobs.filter(j => j.kind === 'raster' && squareDist(player.x, player.z, j.chunk.cx * 128, j.chunk.cz * 128, 128) < 60);
+  assert.ok(playerRaster.every(j => jobs.indexOf(j) < firstSoft), 'the player\'s own rasters first');
+  // the ride passed: the point is replaced / cleared and its cells fall back
+  t.select([player]);
+  assert.ok(soft.every(c => c.want === 2));
+});
+
 test('LRU of compressed chunk bytes evicts least-recently used entries by byte budget', () => {
   const evicted: string[] = [];
   const l = new Lru<string, number>(100, k => evicted.push(k));

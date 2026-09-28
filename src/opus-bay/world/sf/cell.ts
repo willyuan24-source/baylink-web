@@ -132,7 +132,15 @@ export interface ChunkInfo {
   hero: boolean;
 }
 
-export interface Focus { x: number; z: number; vx?: number; vz?: number }
+/**
+ * A point the city streams around. `soft` (wave 4, W4-V8: the prefetch ahead of a moving ride) = a radius in u: the
+ * point only asks for the L1 tier within it and the walking rasters of the chunks there (never L0: that follows the
+ * camera's own focus when the ride gets there), and its jobs queue behind the player's (SOFT_PRI).
+ */
+export interface Focus { x: number; z: number; vx?: number; vz?: number; soft?: number }
+
+/** a soft focus's jobs wait this many u of priority behind the player's own */
+export const SOFT_PRI = 250;
 
 export type Job =
   | { kind: 'raster'; chunk: ChunkInfo; pri: number }
@@ -179,16 +187,29 @@ export class CellTable {
   /** Recompute distances (nearest focus, predicted LOOKAHEAD s ahead) and wanted tiers. */
   select(foci: readonly Focus[], radii: Radii = this.radii) {
     this.radii = radii;
-    const pts = foci.map(f => ({ x: f.x + (f.vx ?? 0) * LOOKAHEAD, z: f.z + (f.vz ?? 0) * LOOKAHEAD, x0: f.x, z0: f.z }));
+    const pts = foci.filter(f => !f.soft).map(f => ({ x: f.x + (f.vx ?? 0) * LOOKAHEAD, z: f.z + (f.vz ?? 0) * LOOKAHEAD, x0: f.x, z0: f.z }));
+    const soft = foci.filter(f => (f.soft ?? 0) > 0);
     for (const ch of this.chunks) {
       let dc = Infinity;
       for (const p of pts) dc = Math.min(dc, squareDist(p.x0, p.z0, ch.cx * CHUNK, ch.cz * CHUNK, CHUNK));
+      // a soft focus asks for the rasters of the chunks within its radius (kept below RESIDENCY.in, queued behind)
+      for (const f of soft) {
+        const d = squareDist(f.x, f.z, ch.cx * CHUNK, ch.cz * CHUNK, CHUNK);
+        if (d < Math.min(f.soft!, RESIDENCY.in)) dc = Math.min(dc, Math.min(RESIDENCY.in - 1, d + SOFT_PRI));
+      }
       ch.dist = dc;
       for (const c of ch.cells) {
         // the wanted tier follows the real focus (no flapping from velocity noise); priorities use the prediction
         let d = Infinity, dp = Infinity;
         for (const p of pts) { d = Math.min(d, Math.hypot(c.x - p.x0, c.z - p.z0)); dp = Math.min(dp, Math.hypot(c.x - p.x, c.z - p.z)); }
-        c.want = desiredTier(d, c.want, radii);
+        let want = desiredTier(d, c.want, radii);
+        for (const f of soft) {
+          const ds = Math.hypot(c.x - f.x, c.z - f.z);
+          if (ds >= f.soft!) continue;
+          if (want > 1) want = 1;
+          dp = Math.min(dp, ds + SOFT_PRI);
+        }
+        c.want = want;
         c.dist = dp;
       }
     }
