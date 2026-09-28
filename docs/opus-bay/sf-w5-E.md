@@ -603,7 +603,7 @@ Also: `items.ts`' shelf comments still carried part b's prices (40 / 80 / 30 / 6
 ### Checks
 
 `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (the 43 old warnings, none in `economy/`) ·
-`npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1326 / 1326**, fail 0, on the pushed head
+`npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1331 / 1331**, fail 0, on the pushed head `b9b40eb` (after lane N's review; 1326 / 1326 before it)
 (rebased on `88056a7`, after lane A's W5-A9 and lane L's review; 1316 / 1316 on `cb9e653`; one run before it had the known wall-clock flake `sf-nav` "local A* window", which passed alone
 and in the next full run; 1314 / 1314 on `b1749cb`). New: `tests/opus-bay-w5-e-review.test.ts` (6) and
 `tests/opus-bay-w5-e-review-dom.test.ts` (2, jsdom). `npx` resolved normally. The dev server on 5507 is stopped and no
