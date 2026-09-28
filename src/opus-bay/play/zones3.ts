@@ -1,7 +1,10 @@
+import { Disc } from 'lucide-react';
 import { createElement, lazy, Suspense } from 'react';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
+import { surfaceAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
+import { DISTRICT } from '../data/district';
 import { transitData } from '../data/transit';
 import { bayNow } from '../game/bayNow';
 import { bubble } from '../game/flow';
@@ -11,7 +14,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { turntableNear } from '../game/transit';
 import { game } from '../core/store';
 import { fireRingSeason } from '../realsf/seasons';
-import { registerOverlay, type OverlayProps } from '../ui/slots';
+import { registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { CREST_KEY, CREST_SPOTS, crestAt } from './crestSpots';
 import { bestOf } from './kit';
@@ -24,6 +27,8 @@ import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch 
  *   marshmallow.ts   Ocean Beach's burning fire rings: 烤棉花糖 (几点能生火？ outside the NPS season and hours)
  *   heave.ts         the cable-car turntables: 嘿咻，推！ while a car turns near the player (lane T's turntableNear)
  *   crests.ts        the 12 crest hops (crestSpots.ts): the pennants near one, a car / bike crest hop there counts it
+ *   sealions.ts      PIER 39's K-Dock: 数海狮 at the rail
+ *   frisbee.ts       问 BAYBAY → 玩飞盘 on a lawn or a beach
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -106,9 +111,38 @@ const SnapSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { f
 export const CREST_NEAR = 160, CREST_HINT_R = 60;
 
 
+// --- the sea lions at PIER 39's K-Dock (W5-A9) ----------------------------------------------------------------------
+
+export const LION_ID = 'sealions';
+export const LION_NAME: Bilingual = { zh: '数海狮', en: 'Counting sea lions' };
+export const LION_INVITE_LINE: Bilingual = { zh: '看，K 码头上好多海狮！数数有几只？', en: 'Look at all the sea lions on K-Dock! Shall we count them?' };
+export const BADGE_OVERLAY = 'play-lion-badges';
+export const LION_PROMPT_R = 2.6;
+/** The rail over K-Dock (the district's `sea-lion-viewpoint` anchor, the same place in the city). */
+export const LION_VIEW = DISTRICT.anchors['sea-lion-viewpoint'] ?? { x: -198.7, z: 3.8 };
+export const lionIt: Interactable = {
+  id: 'play:sealions', source: 'activity', action: 'info', verb: { zh: '数海狮', en: 'Count the sea lions' }, name: { zh: 'K 码头', en: 'K-Dock' },
+  x: LION_VIEW.x, z: LION_VIEW.z, radius: LION_PROMPT_R,
+  act: () => { void import('./sealions').then(m => { m.startSeaLions(); }); },
+};
+const SeaLionBadges = lazy(() => import('./SeaLionBadges'));
+const BadgeSlot = () => createElement(Suspense, { fallback: null }, createElement(SeaLionBadges));
+
+// --- frisbee with BAYBAY (W5-A9): 问 BAYBAY → 玩飞盘 on a lawn or a beach ---------------------------------------------
+
+export const FRISBEE_ID = 'frisbee';
+export const FRISBEE_NAME: Bilingual = { zh: '和 BAYBAY 玩飞盘', en: 'Frisbee with BAYBAY' };
+/** Grass, sand or earth under you and room to throw (the ask item shows only there). */
+export function frisbeeHere(): boolean {
+  const p = runtime.player, s = surfaceAt(p.x, p.z);
+  return (s === 'grass' || s === 'sand' || s === 'dirt') && runtime.move.mode === 'foot';
+}
+
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
-  offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt]));
+  offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt]));
+  offs.push(registerOverlay({ id: BADGE_OVERLAY, Component: BadgeSlot }));
+  offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void import('./frisbee').then(m => { m.startFrisbee(); }); } }));
   offs.push(registerOverlay({ id: SNAP_OVERLAY, Component: SnapSlot }));
   // a crest hop (lane F's vehicle:hop) at one of the 12 crests
   offs.push(onEvent(ev => {
@@ -134,6 +168,9 @@ export function initZones3(): () => void {
     const tt = turntableNear();
     if ((transitData()?.turntables ?? []).some(t => nearPlayer(t.x, t.z, PREFETCH_R))) zonePrefetch('heave', () => import('./heave'));
     if (placeHeave(tt)) zoneInvite('heave', HEAVE_INVITE_LINE);
+    // the sea lions: fetched near the rail, BAYBAY's invite there
+    if (nearPlayer(LION_VIEW.x, LION_VIEW.z, PREFETCH_R)) zonePrefetch('sealions', () => import('./sealions'));
+    if (nearPlayer(LION_VIEW.x, LION_VIEW.z, INVITE_R + 1)) zoneInvite('sealions', LION_INVITE_LINE);
     // the crests: the pennants while one is near (the crests chunk), BAYBAY's hint riding toward one not hopped yet
     const near = CREST_SPOTS.some(s => nearPlayer(s.x, s.z, CREST_NEAR));
     if (near !== crestsOn) { crestsOn = near; void import('./crests').then(m => { m.setCrestsNear(crestsOn); }); }

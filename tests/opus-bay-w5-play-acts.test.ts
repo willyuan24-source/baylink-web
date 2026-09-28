@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx'];
+  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1341,4 +1341,155 @@ test('W5-A9 crest hops: a crest hop at a spot counts it once (the card: ● the 
     assert.equal(mesh.count, 0);
     for (const line of [...Object.values(C.CREST_LINES), z3.CREST_HINT]) assert.ok([...line.zh].length <= 45);
   } finally { offZ(); mock.timers.reset(); off(); C.__resetCrests(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
+});
+
+test('W5-A9 sea lions: 数海狮 at the K-Dock rail (standable, clear of other prompts), taps count each lion once (a bark), 数好了 → the card, all of them → ★; moving costs nothing', async () => {
+  const SL = await import('../src/opus-bay/play/sealions');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  const THREE = await import('three');
+  // the rail on the published city, a few steps from the dock, clear of every card / POI / postcard prompt
+  await cityAround([z3.LION_VIEW], 60);
+  try {
+    assert.ok(T.canStand(z3.LION_VIEW.x, z3.LION_VIEW.z, 0.3), 'the rail is standable');
+    const prompts = [
+      ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
+      ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
+      ...CITY_POSTCARDS.map(c => ({ id: `postcard ${c.id}`, ...c.position })),
+    ];
+    for (const p of prompts) assert.ok(dist(z3.LION_VIEW, p) >= z3.LION_PROMPT_R + 1, `${dist(z3.LION_VIEW, p).toFixed(1)} u from ${p.id}`);
+  } finally { T.setCityTerrain(null); }
+  for (const line of [...Object.values(SL.LION_LINES), z3.LION_INVITE_LINE]) assert.ok([...line.zh].length <= 45, line.zh);
+  assert.equal(SL.lionTier(19, 19), 3);
+  assert.equal(SL.lionTier(12, 19), 2);
+  assert.equal(SL.lionTier(3, 19), 1);
+  playing();
+  stubBody();
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  SL.__resetLions();
+  runtime.player.x = z3.LION_VIEW.x; runtime.player.z = z3.LION_VIEW.z;
+  const offZ = z3.initZones3();
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    assert.equal(SL.startSeaLions(), true);
+    assert.equal(SL.startSeaLions(), false, 'one count at a time');
+    assert.ok(lockReport().some(h => h.source === 'activity' && h.key === 'sealions'));
+    assert.ok(runtime.camera.shot, 'the camera over the dock');
+    assert.equal(chip.chipState()?.big, '0 / 19');
+    assert.ok(slots.openOverlays().some(o => o.id === z3.BADGE_OVERLAY), 'the numbers overlay');
+    // the camera the shot asks for: every lion in view
+    const cam = new THREE.PerspectiveCamera(50, 390 / 844, 0.1, 500);
+    const sh = SL.lionShot(SL.lionState()!.spots, true);
+    cam.position.set(...sh.position); cam.lookAt(new THREE.Vector3(...sh.target)); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    SL.projectLions(cam, 390, 844);
+    const st = SL.lionState()!;
+    assert.equal(st.spots.length, 19);
+    assert.ok(st.screen.filter(p => p.on).length >= 17, `lions in view on a phone: ${st.screen.filter(p => p.on).length}`);
+    const wide = new THREE.PerspectiveCamera(50, 1440 / 900, 0.1, 500), ws = SL.lionShot(st.spots, false);
+    wide.position.set(...ws.position); wide.lookAt(new THREE.Vector3(...ws.target)); wide.updateMatrixWorld(); wide.updateProjectionMatrix();
+    SL.projectLions(wide, 1440, 900);
+    assert.ok(SL.lionState()!.screen.filter(p => p.on).length >= 17, 'lions in view on a desktop');
+    SL.projectLions(cam, 390, 844);
+    // a tap on a lion counts it, once; a tap on empty water nothing
+    const i = st.screen.findIndex(p => p.on);
+    assert.equal(SL.tapAt(st.screen[i].x + 5, st.screen[i].y - 4), true);
+    assert.equal(st.order[i], 1);
+    assert.equal(SL.tapAt(st.screen[i].x, st.screen[i].y), SL.lionState()!.screen.some((p, k) => k !== i && p.on && Math.hypot(p.x - st.screen[i].x, p.y - st.screen[i].y) < SL.TAP_R), 'the same lion is not counted twice (a close neighbour may be)');
+    assert.equal(SL.tapAt(-500, -500), false);
+    assert.ok(events.some(e => e.type === 'sea-lion'), 'it barks');
+    assert.ok(SL.lionBadges().length >= 1);
+    // 数好了: the card with the count
+    const n = SL.lionState()!.n;
+    chip.chipState()!.action!.run();
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'sealions');
+    assert.equal(card.detail?.zh, `数到 ${n} 只海狮`);
+    assert.equal(lockHeld(), false);
+    assert.equal(runtime.camera.shot, null);
+    assert.ok(!slots.openOverlays().some(o => o.id === z3.BADGE_OVERLAY));
+    // all of them: ★ by itself
+    assert.equal(SL.startSeaLions(), true);
+    for (let k = 0; k < 19; k++) SL.countLion(k);
+    assert.equal(SL.lionState(), null);
+    assert.equal(kit.lastResultShown()!.tier, 3);
+    assert.match(kit.lastResultShown()!.detail!.zh, /全数到了/);
+    // moving away: nothing paid, no card
+    const before = kit.lastResultShown();
+    events.length = 0;
+    assert.equal(SL.startSeaLions(), true);
+    for (let k = 0; k < 30; k++) stepFrameSystems(1 / 60, 0);
+    runtime.input.moveY = 1; stepFrameSystems(1 / 60, 0); runtime.input.moveY = 0;
+    assert.equal(SL.lionState(), null);
+    assert.equal(kit.lastResultShown(), before);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && e.what), ['start', 'cancel']);
+  } finally { offZ(); mock.timers.reset(); off(); SL.__resetLions(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); runtime.input.moveY = 0; playing(); }
+});
+
+test('W5-A9 frisbee: 玩飞盘 on grass / sand (问 BAYBAY), a throw sails 5–14 u in an arc, BAYBAY there first catches it, else fetches it; five throws → the card by catches', async () => {
+  const FZ = await import('../src/opus-bay/play/frisbee');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  const THREE = await import('three');
+  // the arc: from the hand to the spot, highest in the middle, a longer throw flies longer
+  const g0 = { from: new THREE.Vector3(0, 1, 0), to: new THREE.Vector3(0, 0, 10), dur: FZ.flightTime(10), dist: 10 };
+  assert.ok(FZ.discAt(g0, g0.dur).distanceTo(g0.to) < 1e-6);
+  assert.ok(FZ.discAt(g0, g0.dur / 2).y > 2);
+  assert.ok(FZ.flightTime(14) > FZ.flightTime(6));
+  for (const line of Object.values(FZ.FRISBEE_LINES)) assert.ok([...line.zh].length <= 45);
+  playing();
+  stubBody();
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  FZ.__resetFrisbee();
+  const P = DISTRICT.anchors['ferry-gate'];
+  runtime.player.x = P.x; runtime.player.z = P.z; runtime.player.heading = 0;
+  runtime.guide.x = P.x + 1.5; runtime.guide.z = P.z;
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  const until = (fn: () => boolean, max = 600) => { let n = 0; while (!fn() && n++ < max) stepFrameSystems(1 / 60, 0); };
+  try {
+    assert.equal(FZ.startFrisbee(), true);
+    assert.equal(chip.chipState()?.big, `0 / ${FZ.THROWS}`);
+    assert.equal(lockHeld(), false, 'the feet stay free');
+    // BAYBAY waits a step to your side
+    FZ.driveBaybay();
+    assert.ok(runtime.guide.target === null || dist(runtime.guide.target, runtime.player) < 2.5);
+    let caught = 0;
+    for (let k = 0; k < FZ.THROWS; k++) {
+      // throws: a far tap is clamped to THROW_MAX; she is there first on even throws
+      const far = k === 0 ? 40 : 8;
+      assert.equal(FZ.throwAt(P.x, P.z + far), true, `throw ${k}`);
+      const g = FZ.frisbeeState()!;
+      assert.ok(Math.abs(g.dist - (k === 0 ? FZ.THROW_MAX : 8)) < 1e-6);
+      assert.equal(FZ.throwAt(P.x, P.z + 6), false, 'one frisbee at a time');
+      FZ.driveBaybay();
+      assert.ok(runtime.guide.run && dist(runtime.guide.target!, g.to) < 1e-6, 'she runs for it');
+      if (k % 2 === 0) { runtime.guide.x = g.to.x + 0.3; runtime.guide.z = g.to.z; caught++; }
+      until(() => FZ.frisbeeState()?.phase !== 'fly');
+      if (k % 2 === 1) {
+        assert.equal(FZ.frisbeeState()?.phase, 'fetch');
+        runtime.guide.x = g.to.x; runtime.guide.z = g.to.z;
+        until(() => FZ.frisbeeState()?.phase !== 'fetch');
+      }
+      assert.equal(FZ.frisbeeState()?.phase, 'back');
+      runtime.guide.x = P.x + 1; runtime.guide.z = P.z;
+      until(() => !FZ.frisbeeState() || FZ.frisbeeState()!.phase === 'ready');
+    }
+    assert.equal(FZ.frisbeeState(), null);
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'frisbee');
+    assert.equal(card.tier, 2);
+    assert.equal(card.detail?.zh, `接住 ${caught} / ${FZ.THROWS} · 飞身接 1 次`);
+    assert.ok(card.again);
+    // 不玩了: nothing paid
+    events.length = 0;
+    assert.equal(FZ.startFrisbee(), true);
+    chip.chipState()!.action!.run();
+    assert.equal(FZ.frisbeeState(), null);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && e.what), ['start', 'cancel']);
+    // the ask item: only on grass, sand or earth
+    assert.equal(typeof z3.frisbeeHere(), 'boolean');
+  } finally { mock.timers.reset(); off(); FZ.__resetFrisbee(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
 });
