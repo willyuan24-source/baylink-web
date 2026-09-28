@@ -167,7 +167,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   const { build } = await import('esbuild');
   const dir = path.join(ROOT, 'src/opus-bay/play');
   // what Vite splits: the core (index.ts and its static closure inside play/), then each lazily imported module
-  const lazyOnes = ['firstFlight.ts', 'rings.ts', 'FlightChip.tsx', 'ResultCard.tsx'];
+  const lazyOnes = ['EmoteWheel.tsx', 'pet.ts', 'sit.ts', 'firstFlight.ts', 'rings.ts', 'FlightChip.tsx', 'ResultCard.tsx'];
   const closure = (entry: string) => {
     const seen = new Set<string>();
     const walk = (f: string) => {
@@ -226,11 +226,18 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
 
 const { runtime } = await import('../src/opus-bay/core/runtime');
 const { game } = await import('../src/opus-bay/core/store');
-const { emit, onEvent } = await import('../src/opus-bay/core/events');
+const { emit, onEvent, REWARD_SOURCE } = await import('../src/opus-bay/core/events');
 const charApiMod = await import('../src/opus-bay/actors/charApi');
 const moveApi = await import('../src/opus-bay/actors/moveApi');
+const { lockHeld, lockReport } = await import('../src/opus-bay/game/playerLock');
+const { cinemaActive, cinemaKind, skipCinema, stepCinema } = await import('../src/opus-bay/game/cinema');
+const { stepFrameSystems } = await import('../src/opus-bay/game/systemsRegistry');
+const { setInteractables, interactables } = await import('../src/opus-bay/game/interactables');
+const { flow } = await import('../src/opus-bay/game/flowStore');
 const slots = await import('../src/opus-bay/ui/slots');
 const kit = await import('../src/opus-bay/play/kit');
+const { DISTRICT } = await import('../src/opus-bay/data/district');
+const { mock } = await import('node:test');
 
 type Ev = import('../src/opus-bay/core/events').GameEvent;
 function record() { const events: Ev[] = []; const off = onEvent(e => { events.push(e); }); return { events, off }; }
@@ -253,6 +260,158 @@ function playing() {
   runtime.player.speed = 0;
   runtime.player.grounded = true;
 }
+const PLAZA = DISTRICT.anchors['ferry-gate'];
+
+test('W5-A2 emotes: wave (the event the crowd answers), dance with BAYBAY, lie only on grass, the selfie two-shot into photo mode', async () => {
+  const emotes = await import('../src/opus-bay/play/emotes');
+  playing();
+  runtime.player.x = PLAZA.x; runtime.player.z = PLAZA.z; runtime.player.heading = 0;
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    // without lane F's body: the wave still works (the actors play it from the event), dance and lie wait
+    charApiMod.setCharApi(null);
+    assert.equal(emotes.doEmote('dance'), false);
+    assert.equal(emotes.doEmote('lie'), false);
+    assert.equal(emotes.doEmote('wave'), true);
+    assert.ok(events.some(e => e.type === 'emote' && e.who === 'player' && e.emote === 'wave'));
+    mock.timers.tick(600);
+    assert.ok(events.some(e => e.type === 'emote' && e.who === 'baybay' && e.emote === 'wave'), 'BAYBAY waves back');
+    const calls = stubBody();
+    assert.equal(emotes.doEmote('dance'), true);
+    assert.deepEqual(calls.splice(0), ['player:dance', 'baybay:dance']);
+    // the plaza is no lawn: she suggests grass and nothing lies down
+    assert.equal(emotes.doEmote('lie'), false);
+    assert.deepEqual(calls, []);
+    assert.equal(flow.get().bubble?.text.zh, '找块草地再躺吧～');
+    // the selfie: the feet held for the camera swing, then photo mode with both posing; the distance comes back after
+    runtime.camera.distance = 15;
+    // BAYBAY still walking to your side: the shutter waits for her (at most 2.5 s)
+    runtime.guide.arrived = false;
+    runtime.guide.x = runtime.player.x + 6; runtime.guide.z = runtime.player.z;
+    emotes.selfie();
+    assert.ok(lockReport().some(h => h.source === 'activity' && h.key === 'selfie'));
+    assert.equal(runtime.camera.distance, emotes.SELFIE_DISTANCE);
+    mock.timers.tick(950);
+    assert.ok(lockHeld(), 'waiting for her');
+    assert.equal(game.get().photoMode, false);
+    runtime.guide.arrived = true; runtime.guide.x = runtime.player.x + 2;
+    mock.timers.tick(160);
+    assert.equal(lockHeld(), false);
+    assert.equal(game.get().photoMode, true);
+    assert.deepEqual(calls.splice(0), ['player:pose', 'baybay:pose']);
+    game.set({ photoMode: false });
+    assert.equal(runtime.camera.distance, 15);
+    // nothing runs mid-dialogue or while riding
+    game.set({ dialogue: { nodeId: 'x' } });
+    assert.equal(emotes.doEmote('wave'), false);
+    game.set({ dialogue: { nodeId: null } });
+    runtime.move.mode = 'bike';
+    assert.equal(emotes.doEmote('dance'), false);
+    assert.deepEqual(emotes.WHEEL.map(s => `${s.key}:${s.label.zh}`), ['1:挥手', '2:跳舞', '3:躺草地', '4:自拍']);
+  } finally { mock.timers.reset(); off(); charApiMod.setCharApi(null); emotes.clearEmoteTimers(); playing(); }
+});
+
+test('W5-A3 pet BAYBAY: in reach only, hearts + a line, her own line when petted a lot; the shoreline float needs water near and quiet', async () => {
+  const pet = await import('../src/opus-bay/play/pet');
+  playing();
+  const calls = stubBody();
+  try {
+    runtime.player.x = 0; runtime.player.z = 0;
+    runtime.guide.x = 10; runtime.guide.z = 0;
+    assert.equal(pet.petAllowed(), false);
+    assert.equal(pet.pet(0), false);
+    runtime.guide.x = 2;
+    assert.equal(pet.pet(1), true);
+    assert.deepEqual(calls.splice(0), ['baybay:pet', 'player:pet']);
+    assert.ok(Math.abs(runtime.player.heading - Math.PI / 2) < 1e-9, 'the player turns to her');
+    assert.equal(flow.get().bubble?.text.zh, pet.PET_LINES[0].zh);
+    pet.pet(2); pet.pet(3); pet.pet(4);
+    assert.equal(flow.get().bubble?.text.zh, pet.PET_SPAM_LINE.zh, 'the fourth pet in 12 s');
+    for (const l of [...pet.PET_LINES, pet.PET_SPAM_LINE, pet.FLOAT_LINE]) assert.ok(width(l.zh) <= 45, l.zh);
+    // water near: any of 16 samples on two rings
+    assert.equal(pet.waterNear(0, 0, 10, () => false), false);
+    assert.equal(pet.waterNear(0, 0, 10, (x, z) => x > 9 && Math.abs(z) < 1), true);
+    // the float watcher: still for FLOAT_IDLE s, a coin flip, water by her
+    runtime.guide.x = PLAZA.x; runtime.guide.z = PLAZA.z - 60;
+    const off = pet.startFloatWatch(() => 0);
+    try {
+      for (let i = 0; i < 12; i++) stepFrameSystems(1, 1000 * (i + 1));
+      assert.equal(calls.includes('baybay:float'), pet.waterNear(runtime.guide.x, runtime.guide.z), 'floats exactly when water is near');
+    } finally { off(); }
+  } finally { charApiMod.setCharApi(null); playing(); }
+});
+
+test('W5-A4 sit: 坐下 offered only to a still player on a sittable surface with nothing else in reach; moving stands up at no cost', async () => {
+  const index = await import('../src/opus-bay/play/index');
+  const sit = await import('../src/opus-bay/play/sit');
+  playing();
+  const base = interactables();
+  runtime.player.x = PLAZA.x; runtime.player.z = PLAZA.z;
+  const { events, off } = record();
+  try {
+    charApiMod.setCharApi(null);
+    assert.equal(index.sitOffer(5), false, 'no body to sit with yet');
+    const calls = stubBody();
+    assert.equal(index.sitOffer(0.5), false, 'not still long enough');
+    assert.equal(index.sitOffer(5), true);
+    // a card in reach wins; BAYBAY at your side does not count
+    setInteractables([{ id: 'test-card', source: 'poi', action: 'info', verb: { zh: '看', en: 'Look' }, name: { zh: '卡', en: 'Card' }, x: PLAZA.x + 1, z: PLAZA.z, radius: 2 }]);
+    assert.equal(index.sitOffer(5), false);
+    setInteractables([{ id: 'baybay', source: 'baybay', action: 'talk', verb: { zh: '聊', en: 'Talk' }, name: { zh: 'B', en: 'B' }, x: PLAZA.x + 1, z: PLAZA.z, radius: 2.4 }]);
+    assert.equal(index.sitOffer(5), true);
+    // sit, then push the stick: stand up, `play` cancel, nothing paid
+    runtime.player.heading = 1;
+    assert.equal(sit.sitHere(), true);
+    assert.deepEqual(calls.splice(0), ['sit:1.00']);
+    assert.ok(sit.seated());
+    stepFrameSystems(0.5, 0);
+    runtime.input.moveY = 1;
+    stepFrameSystems(0.1, 0);
+    runtime.input.moveY = 0;
+    assert.equal(sit.seated(), null);
+    assert.deepEqual(calls, ['stand']);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && `${e.activity}:${e.what}`), ['sit:start', 'sit:cancel']);
+    assert.equal(events.filter(e => e.type === 'reward').length, 0);
+  } finally { off(); setInteractables(base); sit.resetSit(); charApiMod.setCharApi(null); runtime.input.moveY = 0; playing(); }
+});
+
+test('W5-A4 view spot: seated 5 s, then the 20 s slow look (a cinematic); the first time pays view:<id> and finds it; skipping keeps it', async () => {
+  const sit = await import('../src/opus-bay/play/sit');
+  playing();
+  const spot = views.viewSpotById('twin-peaks')!;
+  runtime.player.x = spot.x; runtime.player.z = spot.z;
+  const { events, off } = record();
+  try {
+    // no body yet: the spot still works standing, facing the view
+    charApiMod.setCharApi(null);
+    assert.equal(sit.sitAtSpot(spot), true);
+    assert.ok(Math.abs(runtime.player.heading - views.viewHeading(spot)) < 1e-9);
+    for (let i = 0; i < 4; i++) stepFrameSystems(1, 0);
+    assert.equal(cinemaActive(), false, 'not before 5 s');
+    stepFrameSystems(1.1, 0);
+    assert.equal(cinemaKind(), 'viewpoint');
+    assert.ok(lockReport().some(h => h.source === 'cinema'));
+    const shots = sit.lookShots(0, 0, 0, 0, spot);
+    const total = shots.reduce((s, x) => s + x.duration + (x.hold ?? 0), 0);
+    assert.ok(Math.abs(total - views.VIEW_LOOK_SECONDS) < 1e-9, `${total} s`);
+    assert.deepEqual(events.filter(e => e.type === 'find'), [{ type: 'find', kind: 'view', id: 'twin-peaks', first: true }]);
+    const rewards = events.filter(e => e.type === 'reward');
+    assert.deepEqual(rewards, [{ type: 'reward', source: 'view:twin-peaks', coins: 5, stamp: 'view:twin-peaks' }]);
+    assert.match((rewards[0] as { source: string }).source, REWARD_SOURCE);
+    skipCinema();
+    assert.equal(lockHeld(), false);
+    stepCinema(0.1);
+    // stand up and sit again: the look plays again, never pays again
+    sit.standUp();
+    events.length = 0;
+    sit.sitAtSpot(spot);
+    for (let i = 0; i < 6; i++) stepFrameSystems(1, 0);
+    assert.deepEqual(events.filter(e => e.type === 'find'), [{ type: 'find', kind: 'view', id: 'twin-peaks', first: false }]);
+    assert.equal(events.filter(e => e.type === 'reward').length, 0);
+    skipCinema();
+  } finally { off(); sit.resetSit(); playing(); }
+});
 
 test('W5-A5 first flight run: rings pay once each in any order, a missed ring stays missed, the card counts them; 跳过 costs nothing', async () => {
   playing();
@@ -319,4 +478,42 @@ test('W5-A5 first flight run: rings pay once each in any order, a missed ring st
     moveApi.setGlideUnlocked(false);
     assert.equal(flight.startFirstFlight(), false);
   } finally { off(); flight.skipFirstFlight(); charApiMod.setCharApi(null); runtime.move.mode = 'foot'; runtime.glide.active = false; kit.unregisterResultOverlay(); kit.__resetKit(); playing(); }
+});
+
+test('W5-A2 / A3 init: 做个动作 and 摸摸 BAYBAY on top of 问 BAYBAY, tapping yourself opens the wheel, a double tap on BAYBAY pets her', async () => {
+  const index = await import('../src/opus-bay/play/index');
+  const flowMod = await import('../src/opus-bay/game/flow');
+  playing();
+  const off = index.init();
+  const calls = stubBody();
+  try {
+    assert.equal(typeof index.startFirstFlight, 'function', 'the live export lane C calls');
+    flowMod.openCallMenu();
+    const menu = flowMod.nodeById(game.get().dialogue.nodeId)!;
+    assert.deepEqual(menu.choices!.slice(0, 2).map(c => c.label.zh), ['做个动作', '摸摸 BAYBAY']);
+    flowMod.closeDialogue();
+    // lane F's self-tap: your own character toggles the wheel
+    emit({ type: 'self-tap', who: 'player', double: false });
+    assert.ok(slots.openOverlays().some(o => o.id === 'play-emotes'));
+    emit({ type: 'self-tap', who: 'player', double: false });
+    assert.ok(!slots.openOverlays().some(o => o.id === 'play-emotes'));
+    // not while riding
+    runtime.move.mode = 'bike';
+    assert.equal(index.openWheel(), false);
+    runtime.move.mode = 'foot';
+    // a double tap on BAYBAY in reach pets her (the pet chunk loads first)
+    runtime.player.x = 0; runtime.player.z = 0; runtime.guide.x = 1.5; runtime.guide.z = 0;
+    emit({ type: 'self-tap', who: 'baybay', double: true });
+    for (let i = 0; i < 50 && !calls.includes('baybay:pet'); i++) await new Promise(r => setTimeout(r, 10));
+    assert.ok(calls.includes('baybay:pet'));
+    // the prompts: 坐下 and the 16 view spots are interactables (activity / find: their act() runs)
+    const ids = index.viewIts.map(it => it.id);
+    assert.equal(ids.length, 16);
+    assert.ok(index.viewIts.every(it => it.source === 'find' && it.verb.zh === '坐下看风景' && typeof it.act === 'function'));
+    assert.equal(index.sitHereIt.source, 'activity');
+  } finally { off(); charApiMod.setCharApi(null); playing(); }
+  assert.equal(index.startFirstFlight, undefined, 'teardown takes the export back');
+  flowMod.openCallMenu();
+  assert.ok(!flowMod.nodeById(game.get().dialogue.nodeId)!.choices!.some(c => c.action?.type === 'ask'));
+  flowMod.closeDialogue();
 });
