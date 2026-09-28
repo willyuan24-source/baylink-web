@@ -1,19 +1,29 @@
 import { lazy } from 'react';
 import * as THREE from 'three';
+import { runtime } from '../core/runtime';
+import { game } from '../core/store';
 import { registerHintSource } from '../economy/hints';
+import { bayNow } from '../game/bayNow';
 import { registerRewardIds } from '../economy/ledger';
+import { registerRumourSource } from '../game/rumours';
 import { registerSceneSystem } from '../game/systemsRegistry';
 import { registerOverlay } from '../ui/slots';
 import { cookiesHost } from './cookies';
 import { nortonHost, phoneHost } from './downtown';
 import { activeHosts, type EggHost, flock, isFound, liveHosts, props, reveal, startHosts } from './hosts';
 import { crissyHost, foghornHost, octagonHost, otterHost, waveOrganHost } from './marina';
+import { castroHost, hydrantHost, karlHost } from './mission';
 import { parrotsHost } from './north';
+import { dahliaHost, tiledStepsHost } from './park';
+import { altaHost, humpbackHost, trailHost } from './presidio';
 import { registerEggWarmup } from './props';
-import { EGG_IDS, eggById } from './registry';
+import { EGG_IDS } from './registry';
+import { eggHintSpots, eggRumour } from './rumourSource';
 import { makeEggScene } from './scene';
 import { registerEggSounds } from './sounds';
+import { heronsHost, sundialHost } from './south';
 import { alcatrazHost, laughingLadyHost, seaLionsHost } from './wharf';
+import { chinaBeachHost, labyrinthHost } from './west';
 
 /**
  * Wave 5 · lane D — the 24 real San Francisco easter eggs (小发现), their hosts, fact cards and rumours.
@@ -23,8 +33,9 @@ import { alcatrazHost, laughingLadyHost, seaLionsHost } from './wharf';
  * other module of this folder stays behind this one (no static import of it from a module GameRoot loads).
  *
  * What init wires:
- *   the egg id list with the ledger (registerRewardIds('egg', EGG_IDS): bit i of play.g.egg) and the compass
- *   (registerHintSource('egg', …): the unfound eggs that have a host)
+ *   the egg id list with the ledger (registerRewardIds('egg', EGG_IDS): bit i of play.g.egg), the compass
+ *   (registerHintSource('egg', …): every spot where an unfound egg can happen today) and the rumours (lane C's
+ *   registerRumourSource: BAYBAY's 听说… about an unfound egg of the zone; eggs/rumourSource.ts)
  *   the sounds (audio/hooks), the overlays (ui/slots: egg-card, egg-note, egg-operator)
  *   the prop pool and the flock (one scene system, warmed), the hosts (one frame system, the prompts)
  *
@@ -37,11 +48,13 @@ const FactCard = lazy(() => import('./FactCard').then(m => ({ default: m.FactCar
 const NoteCard = lazy(() => import('./FactCard').then(m => ({ default: m.NoteCard })));
 const OperatorBubble = lazy(() => import('./FactCard').then(m => ({ default: m.OperatorBubble })));
 
-/** The hosts built so far (W5-D3: eggs 1–12). */
+/** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24). */
 export function makeHosts(): EggHost[] {
   return [
     parrotsHost(), seaLionsHost(), laughingLadyHost(), phoneHost(), cookiesHost(), nortonHost(),
     waveOrganHost(), crissyHost(), otterHost(), octagonHost(), alcatrazHost(), foghornHost(),
+    humpbackHost(), labyrinthHost(), chinaBeachHost(), dahliaHost(), tiledStepsHost(), karlHost(),
+    sundialHost(), hydrantHost(), castroHost(), heronsHost(), trailHost(), altaHost(),
   ];
 }
 
@@ -66,7 +79,9 @@ export function init(): () => void {
 
   const hosts = makeHosts();
   add(startHosts(hosts));
-  add(registerHintSource('egg', () => hosts.filter(h => !isFound(h.id)).map(h => ({ id: h.id, ...eggById(h.id)!.at }))));
+  // W5-D5: the compass (lane E) points at the nearest spot of an unfound egg that can happen today; BAYBAY's 听说… (lane C)
+  add(registerHintSource('egg', () => eggHintSpots(isFound)));
+  add(registerRumourSource(ctx => eggRumour(ctx, isFound)));
 
   if (typeof window !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_OPUS_QA === '1')) {
     // DEV / QA: __opusBay.d — play an egg's moment now (gates ignored), what is found / awake / drawn
@@ -80,7 +95,15 @@ export function init(): () => void {
         hosts: () => liveHosts().map(h => h.id),
         active: activeHosts,
         props: () => props.visibleKeys(),
+        /** the pool's mesh as drawn now (QA: is it in the scene, where are its vertices) */
+        pool: () => {
+          const pos = props.mesh.geometry.getAttribute('position');
+          return { visible: props.mesh.visible, inScene: !!props.mesh.parent, vertices: pos.count, sphere: props.mesh.geometry.boundingSphere, specs: props.visibleKeys().map(k => [k, props.get(k)]) };
+        },
         flock: () => flock.active,
+        // W5-D5: the rumour lane C would get here now, and the compass's list
+        rumour: () => eggRumour({ x: runtime.player.x, z: runtime.player.z, zone: game.get().area, now: bayNow(), told: new Set() }, isFound),
+        hints: () => eggHintSpots(isFound),
       },
     };
   }

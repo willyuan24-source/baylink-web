@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-// Wave 5 · lane D (W5-D1…D3) · the easter eggs (小发现): the registry (append-only ids, riddles, verified facts, short
-// lines), the spots in the published city, and (below) the hosts, the date gates and the first twelve eggs.
+// Wave 5 · lane D (W5-D1…D5) · the easter eggs (小发现): the registry (append-only ids, riddles, verified facts, short
+// lines), the spots in the published city, and (below) the hosts, the date gates, the 24 eggs, the rumours and the
+// compass.
 
 // --- headless canvas stub (world modules create label atlases at import time; same as the content tests) ---
 const g = globalThis as unknown as Record<string, unknown>;
@@ -223,7 +224,7 @@ test('W5-D2 materials: our own instances, never TOY_DYN / TOY_INST themselves, o
   assert.equal(pool.mesh.geometry.getAttribute('color').itemSize, 3, 'colour as TOY reads it (no vertex-alpha variant)');
   assert.equal(pool.mesh.castShadow, false);
   const birds = flock.group.children as import('three').InstancedMesh[];
-  assert.equal(birds.length, 2);
+  assert.equal(birds.length, P.FLOCK_KINDS.length, 'parrots, pelicans, (part b) the whale and the junk sails');
   for (const b of birds) {
     const m = b.material as import('three').MeshStandardMaterial;
     assert.notEqual(m, TOY_INST);
@@ -239,7 +240,7 @@ test('W5-D2 materials: our own instances, never TOY_DYN / TOY_INST themselves, o
   flock.step(0.1);
   assert.equal(birds[0].visible, true);
   assert.equal(birds[0].count, 12);
-  assert.equal(birds[1].visible, false);
+  assert.ok(birds.slice(1).every(b => !b.visible), 'one kind at a time');
   flock.step(1);
   assert.equal(birds[0].visible, false);
   assert.equal(flock.active, null);
@@ -329,11 +330,11 @@ const { KARL_TIME } = await import('../src/opus-bay/world/sf/fog');
 
 const shortZh = (b: { zh: string; en: string }, where: string) => { bilingual(b, where); assert.ok(zhLen(b.zh) <= 45, `${where}: ≤ 45 in zh (${zhLen(b.zh)})`); };
 
-test('W5-D3 hosts: eggs 1–12 each have one host; prompts are find-source `egg:` ids with an act, within reach of their egg', () => {
+test('W5-D3 / W5-D4 hosts: all 24 eggs have one host each (registry order); prompts are find-source `egg:` ids with an act, within reach of their egg', () => {
   H.__resetHostsForTests();
   const hosts = makeHosts();
   try {
-    assert.deepEqual(hosts.map(h => h.id).sort(), EGG_IDS.slice(0, 12).slice().sort());
+    assert.deepEqual(hosts.map(h => h.id), [...EGG_IDS], 'one host per egg, in the registry order');
     for (const h of hosts) {
       assert.ok(h.range > 0, `${h.id}: range`);
       assert.ok(typeof h.qa === 'function', `${h.id}: a QA trigger for the screenshots`);
@@ -635,4 +636,541 @@ test('W5-D2 cards: the find card (compact: 小发现 · +10 金币, the name, "t
   const op = renderToStaticMarkup(h(OperatorBubble, { props: { choices: downtown.OPERATOR_CHOICES, onPick: () => {} }, close }));
   assert.match(op, /你找谁/);
   assert.equal((op.match(/ob-btn-soft/g) ?? []).length, 3);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-D4 · eggs 13–24 (the west, the south, the east) · W5-D5 · the rumours (lane C) and the compass (lane E)
+// ---------------------------------------------------------------------------------------------------------------
+
+const presidio = await import('../src/opus-bay/eggs/presidio');
+const west = await import('../src/opus-bay/eggs/west');
+const park = await import('../src/opus-bay/eggs/park');
+const mission = await import('../src/opus-bay/eggs/mission');
+const south = await import('../src/opus-bay/eggs/south');
+const RS = await import('../src/opus-bay/eggs/rumourSource');
+const { parseBayDate, bayNow } = await import('../src/opus-bay/game/bayNow');
+const { sunPosition } = await import('../src/opus-bay/realsf/sun');
+const { flow } = await import('../src/opus-bay/game/flowStore');
+const rumoursC = await import('../src/opus-bay/game/rumours');
+const hints = await import('../src/opus-bay/economy/hints');
+const { extraFlags } = await import('../src/opus-bay/game/flags');
+
+/** |a − b| on the compass (degrees, 0 … 180) */
+const angleDiff = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
+/** a Bay date on which the labyrinth is (or is not) laid out */
+const labyrinthDay = (want: boolean) => {
+  for (let d = 0; d < 60; d++) { const key = new Date(Date.UTC(2026, 9, 1) + d * 86_400_000).toISOString().slice(0, 10); if (west.labyrinthToday(key) === want) return key; }
+  throw new Error('no such day');
+};
+
+test('W5-D4 gates: the humpback only April–November, dahlias June–October, the "100" sign only in 2026, the hydrant brush only 18 April 05:00–09:00, the 250 pennants in 2026 and every 17 September, the labyrinth on ≈ 70 % of 365 days', () => {
+  try {
+    const rows: [string, boolean, boolean, boolean, boolean, boolean][] = [
+      // Bay time           whale  bloom  sign   brush  pennants
+      ['2026-03-31T12:00', false, false, true, false, true],
+      ['2026-04-18T04:59', true, false, true, false, true],
+      ['2026-04-18T05:30', true, false, true, true, true],
+      ['2026-04-18T08:59', true, false, true, true, true],
+      ['2026-04-18T09:00', true, false, true, false, true],
+      ['2026-06-01T08:00', true, true, true, false, true],
+      ['2026-10-31T18:00', true, true, true, false, true],
+      ['2026-11-30T18:00', true, false, true, false, true],
+      ['2026-12-01T18:00', false, false, true, false, true],
+      ['2027-04-18T06:00', true, false, false, true, false],
+      ['2027-08-15T12:00', true, true, false, false, false],
+      ['2027-09-17T12:00', true, true, false, false, true],
+      ['2027-09-18T12:00', true, true, false, false, false],
+    ];
+    for (const [spec, whale, bloom, sign, brush, pennants] of rows) {
+      assert.ok(__setBayNowForTests(spec), spec);
+      assert.equal(gates.inMonths(presidio.WHALE_MONTHS), whale, `${spec}: humpback`);
+      assert.equal(park.dahliaInBloom(), bloom, `${spec}: dahlias`);
+      assert.equal(park.dahliaSignUp(), sign, `${spec}: the "100" sign`);
+      assert.equal(mission.paintMorning(), brush, `${spec}: the brush`);
+      assert.equal(presidio.bannerDay(), pennants, `${spec}: the 250 pennants`);
+    }
+    let present = 0;
+    for (let d = 0; d < 365; d++) {
+      const key = new Date(Date.UTC(2026, 0, 1) + d * 86_400_000).toISOString().slice(0, 10);
+      const on = west.labyrinthToday(key);
+      assert.equal(west.labyrinthToday(key), on, 'stable for a Bay date');
+      if (on) present++;
+    }
+    assert.ok(present >= 230 && present <= 280, `the labyrinth on ≈ 70 % of days (${present} / 365)`);
+  } finally { __setBayNowForTests(null); }
+});
+
+test('W5-D4 sundial: the drawn shadow points away from lane R\'s real sun (within 2°), is shorter when the sun is high, and is gone at night', () => {
+  // the city frame's compass (core/geo turns the map 46°): north and east are unit and at right angles
+  assert.ok(Math.abs(Math.hypot(south.NORTH.x, south.NORTH.z) - 1) < 1e-9 && Math.abs(south.NORTH.x * south.EAST.x + south.NORTH.z * south.EAST.z) < 0.01);
+  assert.ok(angleDiff(south.dirAzimuth(south.azimuthDir(123)), 123) < 1e-6);
+  const sizes: number[] = [];
+  for (const spec of ['2026-09-28T09:00', '2026-09-28T12:00', '2026-09-28T15:00', '2026-09-28T17:30', '2026-12-21T12:00', '2026-06-21T07:00']) {
+    const d = parseBayDate(spec)!;
+    const sun = sunPosition(d);
+    const s = south.sundialShadow(d);
+    assert.ok(s && sun.elevation > 0.5, `${spec}: the sun is up`);
+    const want = (sun.azimuth + 180) % 360;
+    assert.ok(angleDiff(s!.azimuth, want) < 1e-6);
+    // the prop as drawn: its far tip, seen from the dial's centre
+    const pool = new P.PropPool();
+    const D = south.DIAL;
+    pool.set('s', { kind: 'shadow', x: D.x, z: D.z, heading: s!.heading, size: s!.size, y: 0 });
+    pool.step(0, D.x, D.z);
+    assert.deepEqual(pool.visibleKeys(), ['s']);
+    const pos = pool.mesh.geometry.getAttribute('position');
+    let tip = { x: 0, z: 0 }, far = 0;
+    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i) - D.x, z = pos.getZ(i) - D.z, r = Math.hypot(x, z); if (r > far) { far = r; tip = { x, z }; } }
+    pool.dispose();
+    assert.ok(angleDiff(south.dirAzimuth(tip), want) <= 2, `${spec}: the shadow ${south.dirAzimuth(tip).toFixed(1)}° vs away from the sun ${want.toFixed(1)}°`);
+    assert.ok(far <= 1.5, 'on the dial (r 1.5)');
+    if (spec.startsWith('2026-09-28')) sizes.push(s!.size);
+    const line = south.sundialNowLine(d)!;
+    shortZh(line, `${spec}: the line`);
+    assert.ok(line.zh.includes(south.compassWord(s!.azimuth).zh));
+  }
+  assert.ok(sizes[1] < sizes[0] && sizes[1] < sizes[3], 'shortest round noon');
+  // 15:00 in late September: the sun in the south-west, the shadow to the north-east
+  assert.equal(south.compassWord(south.sundialShadow(parseBayDate('2026-09-28T15:00')!)!.azimuth).en, 'north-east');
+  assert.equal(south.sundialShadow(parseBayDate('2026-09-28T23:00')!), null, 'no shadow at night');
+  assert.equal(south.sundialNowLine(parseBayDate('2026-09-28T23:00')!), null);
+  shortZh(south.NIGHT_LINE, 'night line');
+});
+
+test('W5-D4 words and props: every new line is short and bilingual; props ≤ 200 triangles, the whale < 500 and the junk sails small; props on open ground, the junks on water (published city)', async () => {
+  for (const l of [presidio.BIKE_LINE, west.SCATTERED_LINE, west.IMAGINED_LINE, park.OFF_SEASON_LINE, mission.SUTRO_LINE, mission.SUMMER_LINE, mission.AWAY_LINE, mission.TODAY_18_LINE, south.NIGHT_LINE]) shortZh(l, l.en);
+  for (const m of [1, 6, 7, 8, 9, 10, 12]) { shortZh(mission.karlAwayLine(m), `Karl away ${m}`); for (const l of mission.karlFogLines(m)) shortZh(l, `Karl ${m}`); }
+  assert.ok(mission.karlAwayLine(9).zh.includes('九月'), 'Sep–Oct: Karl often takes time off');
+  assert.ok(mission.karlFogLines(7).includes(mission.SUMMER_LINE) && !mission.karlFogLines(10).includes(mission.SUMMER_LINE), 'the summer line only in summer');
+  assert.ok(mission.karlFogLines(9).some(l => l.zh.includes('马克·吐温')), 'the quip that is not Twain’s');
+  for (const [k, spec] of [['labyrinth', {}], ['labyrinth-scattered', {}], ['dahlias', { color: '#d6336c' }], ['sign100', {}], ['hydrant', {}], ['brush', {}], ['shadow', { size: 1.4 }], ['print', { color: '#e53935' }], ['chips', {}]] as const) {
+    const n = P.propTriangles(k, spec);
+    assert.ok(n > 0 && n <= 200, `${k}: ${n} triangles`);
+  }
+  const flock = new P.Flock();
+  const tris = (k: string) => { const m = flock.group.children[P.FLOCK_KINDS.indexOf(k as never)] as import('three').InstancedMesh; return (m.geometry.getIndex()?.count ?? m.geometry.getAttribute('position').count) / 3; };
+  assert.ok(tris('whale') < 500, `whale ${tris('whale')}`);
+  assert.ok(tris('junk') * west.JUNKS.length < 500, `junks ${tris('junk')} × 3`);
+  flock.dispose();
+  // the published city
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { canStand, isWater, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const sf = sfDisk();
+  const lms = landmarkWalkInputs(SF_SITES);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  const dell = eggById('dahlia-dell-100')!.at;
+  const ground = [
+    { id: 'labyrinth', x: eggById('lands-end-labyrinth')!.at.x, z: eggById('lands-end-labyrinth')!.at.z },
+    ...park.DAHLIA_BEDS.map((b, i) => ({ id: `dahlia bed ${i}`, x: dell.x + b.dx, z: dell.z + b.dz })),
+    { id: 'sign 100', x: dell.x + park.SIGN_100.dx, z: dell.z + park.SIGN_100.dz },
+    { id: 'hydrant', x: mission.HYDRANT_AT.x, z: mission.HYDRANT_AT.z },
+    { id: 'chips', x: presidio.CHIPS.x, z: presidio.CHIPS.z },
+    { id: 'sundial', x: south.DIAL.x, z: south.DIAL.z },
+  ];
+  for (const s of [...ground, ...west.JUNKS.map((j, i) => ({ id: `junk ${i}`, x: j.x, z: j.z }))]) await sf.attachAround(city, s.x, s.z, 16, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    for (const s of ground) assert.ok(!isWater(s.x, s.z), `${s.id}: on land`);
+    for (const s of ground.filter(q => q.id !== 'sundial' && q.id !== 'hydrant')) assert.ok(canStand(s.x, s.z, 0.2), `${s.id}: on open ground`);
+    assert.ok(Math.hypot(mission.HYDRANT_AT.x - eggById('golden-hydrant-1906')!.at.x, mission.HYDRANT_AT.z - eggById('golden-hydrant-1906')!.at.z) <= 2, 'the hydrant beside its stand spot');
+    for (const j of west.JUNKS) for (const [dx, dz] of [[0, 0], [2.5, 0], [-2.5, 0], [0, 2.5], [0, -2.5]]) assert.ok(isWater(j.x + dx, j.z + dz), `junk at (${j.x}, ${j.z}) on open water`);
+    // the tiled steps' ends are the egg's two spots
+    const steps = eggById('tiled-steps-sea-to-stars')!;
+    assert.deepEqual([steps.at, ...(steps.also ?? [])].map(p => [p.x, p.z]), [[park.STEPS_BOTTOM.x, park.STEPS_BOTTOM.z], [park.STEPS_TOP.x, park.STEPS_TOP.z]]);
+    assert.ok(Math.hypot(presidio.ALTA_TOP.x - eggById('alta-plaza-chipped-steps')!.at.x, presidio.ALTA_TOP.z - eggById('alta-plaza-chipped-steps')!.at.z) < 0.01);
+  } finally { setCityTerrain(null); }
+});
+
+/** the shared set-up of the trigger tests: a clean save, the hosts' session, playing on foot, the card overlays */
+function eggWorld(t: import('node:test').TestContext, spec: string) {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const finds: string[] = [];
+  const off = onEvent(e => { if (e.type === 'find' && e.first) finds.push(e.id); });
+  const phase = game.get().phase, tod = game.get().timeOfDay;
+  const lvl = KARL.uKarl.value, a = KARL.uKarlA.value.clone();
+  const offOverlays = ['egg-card', 'egg-note', 'egg-operator'].map(id => slots.registerOverlay({ id, Component: () => null }));
+  clearSave();
+  gates.__resetDailyForTests();
+  H.__resetHostsForTests();
+  __setBayNowForTests(spec);
+  game.set({ phase: 'playing' });
+  runtime.move.mode = 'foot';
+  runtime.glide.active = false;
+  runtime.camera.shot = null;
+  const p = runtime.player;
+  const put = (x: number, z: number, y = 0) => { p.x = x; p.z = z; p.y = y; p.speed = 0; p.pathTarget = null; };
+  const cinemaDone = () => { for (let i = 0; i < 400 && cinemaActive(); i++) stepCinema(1 / 30); assert.equal(lockHeld(), false, 'the feet come back'); };
+  const cleanup = () => {
+    off(); for (const o of offOverlays) o();
+    H.__resetHostsForTests(); gates.__resetDailyForTests(); clearSave(); __setBayNowForTests(null);
+    KARL.uKarl.value = lvl; KARL.uKarlA.value.copy(a);
+    runtime.move.mode = 'foot'; runtime.glide.active = false; runtime.vehicle.occupied = false; runtime.camera.shot = null;
+    if (cinemaActive()) skipCinema();
+    game.set({ phase, timeOfDay: tod });
+  };
+  return { finds, put, cinemaDone, cleanup, p };
+}
+
+test('W5-D4 the humpback: about one Gate crossing in six (April–November only) — over the Gate on the pelican or past mid-span on the deck; the spout, then the find', t => {
+  const w = eggWorld(t, '2026-09-28T10:00');
+  const rnd = Math.random;
+  const G = runtime.glide;
+  const at = (along: number, across: number) => ({ x: marina.MID.x + marina.AX.x * along - marina.AX.z * across, z: marina.MID.z + marina.AX.z * along + marina.AX.x * across });
+  let stop = () => {};
+  try {
+    Math.random = () => 0;
+    const cross = (fly: boolean) => {
+      if (fly) { runtime.move.mode = 'glide'; G.active = true; }
+      run(3.2, tt => {
+        const q = at(-80 + tt * 50, fly ? 60 : 0);
+        if (fly) { G.x = q.x; G.z = q.z; G.y = 40; G.height = 40; G.heading = Math.atan2(marina.AX.x, marina.AX.z); }
+        w.put(q.x, q.z, fly ? 40 : 15.4);
+      });
+      G.active = false; runtime.move.mode = 'foot';
+    };
+    // December: no humpback, whatever the crossing
+    __setBayNowForTests('2026-12-02T10:00');
+    stop = H.startHosts([presidio.humpbackHost(() => true)]);
+    cross(true);
+    assert.equal(H.flock.active, null, 'none in December');
+    stop();
+    // September, on the pelican across the Gate
+    __setBayNowForTests('2026-09-28T10:00');
+    H.__resetHostsForTests();
+    stop = H.startHosts([presidio.humpbackHost(() => true)]);
+    cross(true);
+    assert.equal(H.flock.active, 'whale', 'the spout and the back');
+    assert.ok(!w.finds.includes('golden-gate-humpback'), 'the find waits for the blow');
+    t.mock.timers.tick(1600);
+    assert.ok(w.finds.includes('golden-gate-humpback'));
+    run(10);
+    assert.equal(H.flock.active, null, 'the fluke, then gone');
+    stop();
+    // on the deck, past mid-span, a roll that fails: nothing (看缘分), and no second roll within a minute
+    H.__resetHostsForTests();
+    Math.random = () => 0.5;
+    stop = H.startHosts([presidio.humpbackHost(() => true)]);
+    assert.ok(marina.onDeck(at(-10, 0).x, 15.4, at(-10, 0).z));
+    cross(false);
+    assert.equal(H.flock.active, null, 'a crossing that did not roll one in six');
+    Math.random = () => 0;
+    cross(false);
+    assert.equal(H.flock.active, null, 'the next roll waits a minute');
+    // the whale needs clear water ahead: none found → nothing drawn
+    assert.equal(presidio.whaleSpot({ x: 0, z: 0 }, 0, () => false), null);
+  } finally { Math.random = rnd; stop(); w.cleanup(); }
+});
+
+test('W5-D4 the west: the labyrinth (walk in to its centre on its days → the camera turns to the Gate; scattered days say so) and China Beach at golden hour (three sails rise for six seconds)', t => {
+  const on = labyrinthDay(true), off = labyrinthDay(false);
+  const w = eggWorld(t, `${off}T10:00`);
+  let stop = () => {};
+  try {
+    const lab = eggById('lands-end-labyrinth')!;
+    // a scattered day: a few stones, BAYBAY says so, no find
+    stop = H.startHosts([west.labyrinthHost()]);
+    assert.equal(H.props.get('egg:lands-end-labyrinth')?.kind, 'labyrinth-scattered');
+    w.put(lab.at.x + 3, lab.at.z); run(0.3);
+    w.put(lab.at.x, lab.at.z); run(0.3);
+    assert.equal(flow.get().bubble?.text.zh, west.SCATTERED_LINE.zh);
+    assert.ok(!w.finds.includes(lab.id));
+    stop();
+    // a labyrinth day: in from outside to the centre → the beat, then the find
+    __setBayNowForTests(`${on}T10:00`);
+    H.__resetHostsForTests();
+    stop = H.startHosts([west.labyrinthHost()]);
+    assert.equal(H.props.get('egg:lands-end-labyrinth')?.kind, 'labyrinth');
+    w.put(lab.at.x, lab.at.z); run(0.3);
+    assert.ok(!cinemaActive(), 'standing at the centre without walking in: nothing');
+    w.put(lab.at.x + 3, lab.at.z); run(0.3);
+    w.put(lab.at.x + 0.3, lab.at.z); run(0.3);
+    assert.ok(cinemaActive(), 'the camera turns to the Golden Gate');
+    w.cinemaDone();
+    assert.ok(w.finds.includes(lab.id));
+    stop();
+    // China Beach: nothing by day; at golden hour on the lawn above the cove, three sails
+    const china = eggById('china-beach-fishermen')!;
+    H.__resetHostsForTests();
+    stop = H.startHosts([west.chinaBeachHost()]);
+    game.set({ timeOfDay: 'day' });
+    w.put(china.at.x + 1, china.at.z); run(0.5);
+    assert.equal(H.flock.active, null);
+    assert.ok(!w.finds.includes(china.id));
+    w.put(0, 0); run(0.3);
+    game.set({ timeOfDay: 'golden' });
+    w.put(china.at.x + 1, china.at.z); run(0.3);
+    assert.equal(H.flock.active, 'junk');
+    assert.ok(w.finds.includes(china.id));
+    assert.ok(cinemaActive(), 'a look out over the cove');
+    w.cinemaDone();
+    run(west.JUNK_S + 0.5);
+    assert.equal(H.flock.active, null, 'six seconds, then they sink');
+    assert.ok(west.watchingCove(china.at.x + 4, china.at.z) && !west.watchingCove(china.at.x + 8, china.at.z + 8), 'the lawn above the cove');
+  } finally { stop(); w.cleanup(); }
+});
+
+test('W5-D4 Golden Gate Park and the Sunset: the Dahlia Dell (beds in bloom June–October, the "100" sign in 2026) and the Tiled Steps climbed in one go (a long pause starts over)', t => {
+  const w = eggWorld(t, '2027-01-10T11:00');
+  let stop = () => {};
+  try {
+    const dell = eggById('dahlia-dell-100')!;
+    // January 2027: the beds rest, no sign
+    let host = park.dahliaHost();
+    assert.ok(!H.props.has('egg:dahlia-dell-100:bed0') && !H.props.has('egg:dahlia-dell-100:sign'));
+    host.dispose?.();
+    // September 2026: three beds in bloom and the "100" sign; walking up finds it
+    __setBayNowForTests('2026-09-28T11:00');
+    host = park.dahliaHost();
+    stop = H.startHosts([host]);
+    for (let i = 0; i < 3; i++) assert.equal(H.props.get(`egg:dahlia-dell-100:bed${i}`)?.kind, 'dahlias');
+    assert.equal(H.props.get('egg:dahlia-dell-100:sign')?.kind, 'sign100');
+    w.put(dell.at.x + 3, dell.at.z); run(0.3);
+    assert.ok(w.finds.includes(dell.id));
+    stop();
+    // the Tiled Steps
+    const steps = eggById('tiled-steps-sea-to-stars')!;
+    const B = park.STEPS_BOTTOM, T = park.STEPS_TOP;
+    const climb = (from: number, to: number, seconds: number) => run(seconds, tt => { const k = from + (to - from) * Math.min(1, tt / (seconds - 0.2)); w.put(B.x + (T.x - B.x) * k, B.z + (T.z - B.z) * k); });
+    H.__resetHostsForTests();
+    stop = H.startHosts([park.tiledStepsHost()]);
+    // halfway, a long rest, then on: starts over (not "in one go")
+    climb(0, 0.5, 2);
+    run(26);
+    climb(0.5, 1, 2);
+    assert.ok(!w.finds.includes(steps.id), 'a 26 s rest halfway is not one go');
+    // down and up in one go
+    climb(1, -0.1, 2);
+    climb(-0.05, 1, 3.5);
+    assert.ok(w.finds.includes(steps.id), 'from the sea to the stars');
+    const pr = park.stairProgress(T.x, T.z);
+    assert.ok(Math.abs(pr.t - 1) < 1e-9 && pr.off < 1e-9);
+  } finally { stop(); w.cleanup(); }
+});
+
+test('W5-D4 the Mission, the Castro and Twin Peaks: Karl from the summit (in fog: Sutro\'s tips and the find; away: the month\'s words), the golden hydrant (and its brush on 18 April at dawn), rainbow footprints that fade', t => {
+  const w = eggWorld(t, '2026-09-28T13:00');
+  let stop = () => {};
+  try {
+    const karl = eggById('karl-the-fog-diary')!;
+    stop = H.startHosts([mission.karlHost()]);
+    // Karl away (midday): the month's words, no find
+    const day = KARL_TIME.day;
+    KARL.uKarl.value = day.level; KARL.uKarlA.value.set(day.front, day.top, day.gate, day.gateLen);
+    w.put(karl.at.x + 2, karl.at.z); run(3);
+    assert.equal(flow.get().bubble?.text.zh, mission.karlAwayLine(9).zh);
+    assert.ok(!w.finds.includes(karl.id) && !cinemaActive());
+    // Karl in (morning): stand still 2.5 s → the look over the white sea to Sutro Tower, then the find
+    w.put(0, 0); run(0.3);
+    const m = KARL_TIME.morning;
+    KARL.uKarl.value = m.level; KARL.uKarlA.value.set(m.front, m.top, m.gate, m.gateLen);
+    assert.ok(mission.karlIn());
+    w.put(karl.at.x + 2, karl.at.z); run(1.5);
+    assert.ok(!cinemaActive(), 'still for 2.5 s first');
+    run(1.5);
+    assert.ok(cinemaActive());
+    w.cinemaDone();
+    assert.ok(w.finds.includes(karl.id));
+    stop();
+    // the hydrant: a prompt; the brush only on its morning
+    H.__resetHostsForTests();
+    const hydrant = mission.hydrantHost();
+    stop = H.startHosts([hydrant]);
+    const it = hydrant.interactables!()[0];
+    assert.equal(it.id, 'egg:golden-hydrant-1906');
+    w.put(mission.HYDRANT_AT.x + 1.5, mission.HYDRANT_AT.z); run(0.6);
+    assert.ok(!H.props.has('egg:golden-hydrant-1906:brush'), 'no brush on an ordinary day');
+    it.act!();
+    assert.ok(w.finds.includes('golden-hydrant-1906'));
+    __setBayNowForTests('2027-04-18T06:10');
+    run(0.6);
+    assert.equal(H.props.get('egg:golden-hydrant-1906:brush')?.kind, 'brush', 'the anniversary morning');
+    __setBayNowForTests('2027-04-18T09:10');
+    run(0.6);
+    assert.ok(!H.props.has('egg:golden-hydrant-1906:brush'));
+    stop();
+    // the Castro: walking over the crossing → the find and a trail of rainbow prints, each gone after 6 s
+    H.__resetHostsForTests();
+    stop = H.startHosts([mission.castroHost()]);
+    const C = mission.CROSSING;
+    runtime.player.heading = Math.PI / 2;
+    run(9, tt => { w.put(C.x - 4 + tt * 1.2, C.z); runtime.player.speed = 1.2; });
+    assert.ok(w.finds.includes('castro-rainbow-steps'));
+    const prints = Array.from({ length: mission.PRINTS }, (_, i) => H.props.get(`egg:castro-rainbow-steps:p${i}`)).filter(Boolean);
+    assert.ok(prints.length >= 6, `prints behind you (${prints.length})`);
+    assert.ok(prints.every(q => q!.kind === 'print' && mission.RAINBOW.includes(q!.color as never)));
+    run(mission.PRINT_LIFE + 4);
+    assert.ok(Array.from({ length: mission.PRINTS }, (_, i) => H.props.has(`egg:castro-rainbow-steps:p${i}`)).every(x => !x), 'faded');
+  } finally { stop(); w.cleanup(); }
+});
+
+test('W5-D4 the south: the sundial prompt (by day the beat and the find; at real night a yawn) and Heron\'s Head from the pelican (a look down that never holds the controls)', t => {
+  const w = eggWorld(t, '2026-09-28T23:00');
+  let stop = () => {};
+  try {
+    const dial = south.sundialHost();
+    stop = H.startHosts([dial]);
+    w.put(south.DIAL.x + 2, south.DIAL.z); run(0.3);
+    assert.ok(!H.props.has('egg:ingleside-sundial-real-time:shadow'), 'no shadow at night');
+    dial.interactables!()[0].act!();
+    assert.equal(flow.get().bubble?.text.zh, south.NIGHT_LINE.zh);
+    assert.ok(!w.finds.includes('ingleside-sundial-real-time') && !cinemaActive());
+    __setBayNowForTests('2026-09-28T15:00');
+    dial.interactables!()[0].act!();
+    assert.equal(H.props.get('egg:ingleside-sundial-real-time:shadow')?.kind, 'shadow');
+    assert.ok(cinemaActive(), 'a look down at the dial');
+    w.cinemaDone();
+    assert.ok(w.finds.includes('ingleside-sundial-real-time'));
+    stop();
+    // Heron's Head: over the park on the pelican → a glance straight down (the lock is never held), the find
+    H.__resetHostsForTests();
+    stop = H.startHosts([south.heronsHost()]);
+    const G = runtime.glide;
+    runtime.move.mode = 'glide'; G.active = true;
+    G.x = south.HERONS_MID.x + 20; G.z = south.HERONS_MID.z; G.y = 45; G.height = 45;
+    w.put(G.x, G.z, 45); run(0.3);
+    assert.ok(H.glancing(), 'the camera looks down');
+    assert.equal(lockHeld(), false, 'the pelican keeps flying');
+    assert.ok(w.finds.includes('herons-head-from-above'));
+    t.mock.timers.tick(2600);
+    assert.ok(!H.glancing() && runtime.camera.shot === null, 'and back');
+    // too low (landing in the park) is not "from above"
+    stop();
+    H.__resetHostsForTests();
+    stop = H.startHosts([south.heronsHost()]);
+    G.height = 4; run(0.3);
+    assert.ok(!H.glancing());
+    assert.equal(H.activeHosts().length, 1, 'awake over the park');
+  } finally { stop(); w.cleanup(); }
+});
+
+test('W5-D4 the 250th birthday trail (three 1776 stops in any order, each with the Ohlone line; pennants in 2026) and Alta Plaza (the toy car or the bike stops at the top step)', t => {
+  const w = eggWorld(t, '2026-10-01T11:00');
+  let stop = () => {};
+  try {
+    const trail = eggById('sf-250-birthday-trail')!;
+    const spots = eggSpots(trail);
+    stop = H.startHosts([presidio.trailHost()]);
+    const flags = () => extraFlags({ player: { x: 0, z: 0 }, target: null, phone: false }).filter(f => f.key.startsWith('eggs-250:')).map(f => f.key);
+    assert.deepEqual(flags(), ['eggs-250:presidio', 'eggs-250:lake', 'eggs-250:mission'], 'a pennant at each 1776 stop');
+    const said: string[] = [];
+    const visit = (i: number) => { w.put(spots[i].x, spots[i].z); run(0.3); said.push(flow.get().bubble?.text.zh ?? ''); t.mock.timers.tick(12_000); w.put(0, 0); run(0.3); };
+    visit(2);
+    assert.ok(!w.finds.includes(trail.id));
+    assert.deepEqual(flags(), ['eggs-250:presidio', 'eggs-250:lake'], 'a visited stop lowers its pennant');
+    visit(0);
+    visit(0);
+    assert.ok(!w.finds.includes(trail.id), 'the same stop twice is not three');
+    visit(1);
+    assert.ok(w.finds.includes(trail.id), 'three stops, any order');
+    assert.deepEqual(flags(), [], 'found: no pennants');
+    assert.ok(trail.lines.some(l => l.zh.includes('奥隆尼')));
+    stop();
+    // Alta Plaza: on foot nothing; the toy car stopping at the top step → the beat and the find
+    H.__resetHostsForTests();
+    const alta = eggById('alta-plaza-chipped-steps')!;
+    stop = H.startHosts([presidio.altaHost()]);
+    assert.equal(H.props.get('egg:alta-plaza-chipped-steps')?.kind, 'chips');
+    w.put(alta.at.x, alta.at.z); run(0.5);
+    assert.ok(!cinemaActive() && !w.finds.includes(alta.id), 'on foot: nothing');
+    const v = runtime.vehicle;
+    runtime.move.mode = 'car'; v.occupied = true;
+    v.x = alta.at.x + 1; v.z = alta.at.z; v.y = 0; v.speed = 6;
+    run(0.5);
+    assert.ok(!cinemaActive(), 'still rolling');
+    v.speed = 0.6;
+    run(0.3);
+    assert.ok(cinemaActive(), 'stops politely; the camera looks at the chipped lip');
+    w.cinemaDone();
+    assert.ok(w.finds.includes(alta.id));
+  } finally { stop(); w.cleanup(); }
+});
+
+test('W5-D5 rumours through lane C: an unfound egg of the zone first, else the nearest within reach; never found, told, out of season or a pelican egg before the glide; lane C says it as it is', () => {
+  const none = () => false;
+  const told = new Set<string>();
+  const ctx = (x: number, z: number, zone: string | null = null) => ({ x, z, zone, now: bayNow(), told });
+  let off = () => {};
+  try {
+    __setBayNowForTests('2026-09-28T10:00');
+    gates.__resetDailyForTests();
+    const karl = eggById('karl-the-fog-diary')!;
+    const near = ctx(karl.at.x + 5, karl.at.z);
+    const r = RS.eggRumour(near, none, { canFly: true, zone: () => null });
+    assert.equal(r?.id, 'egg:karl-the-fog-diary');
+    assert.deepEqual(r!.text, karl.rumour);
+    assert.deepEqual(r!.at, karl.at);
+    assert.notEqual(RS.eggRumour(near, id => id === karl.id, { canFly: true, zone: () => null })?.id, r!.id, 'found: another one');
+    told.add(r!.id);
+    assert.notEqual(RS.eggRumour(near, none, { canFly: true, zone: () => null })?.id, r!.id, 'told this visit: another one');
+    told.clear();
+    // the zone first: an egg of the player's zone beats a nearer one elsewhere
+    const china = eggById('china-beach-fishermen')!;
+    const zoneOf = (p: { x: number; z: number }) => (p.x === china.at.x && p.z === china.at.z ? 'sea-cliff' : 'elsewhere');
+    assert.equal(RS.eggRumour(ctx(karl.at.x, karl.at.z, 'sea-cliff'), none, { canFly: true, zone: zoneOf })?.id, 'egg:china-beach-fishermen');
+    // nothing near and no zone: none
+    assert.equal(RS.eggRumour(ctx(3000, -3000), none, { canFly: true, zone: () => null }), null);
+    // the pelican's eggs wait for the glide
+    const crissy = eggById('crissy-field-dusk-landing')!;
+    assert.equal(RS.eggRumour(ctx(crissy.at.x, crissy.at.z), none, { canFly: true, zone: () => null })?.id, 'egg:crissy-field-dusk-landing');
+    assert.notEqual(RS.eggRumour(ctx(crissy.at.x, crissy.at.z), none, { canFly: false, zone: () => null })?.id, 'egg:crissy-field-dusk-landing');
+    for (const id of RS.PELICAN_EGGS) assert.deepEqual(RS.liveSpots(eggById(id)!, false), [], `${id}: after the glide`);
+    // out of season: no humpback rumour in December; the labyrinth only on its days
+    const whale = eggById('golden-gate-humpback')!;
+    const others = (id: string) => id !== whale.id;
+    assert.equal(RS.eggRumour(ctx(whale.at.x, whale.at.z), others, { canFly: true, zone: () => null })?.id, 'egg:golden-gate-humpback');
+    __setBayNowForTests('2026-12-02T10:00');
+    assert.equal(RS.eggRumour(ctx(whale.at.x, whale.at.z), others, { canFly: true, zone: () => null }), null, 'no humpback in December');
+    const lab = eggById('lands-end-labyrinth')!;
+    __setBayNowForTests(`${labyrinthDay(false)}T10:00`);
+    assert.deepEqual(RS.liveSpots(lab, true), []);
+    __setBayNowForTests(`${labyrinthDay(true)}T10:00`);
+    assert.equal(RS.liveSpots(lab, true).length, 1);
+    // through lane C's real teller: registered, picked, said as it is (the text brings its own 听说), ≤ 45
+    const before = rumoursC.rumourSourceCount();
+    off = rumoursC.registerRumourSource(c => RS.eggRumour(c, none, { canFly: true, zone: () => null }));
+    assert.equal(rumoursC.rumourSourceCount(), before + 1);
+    const picked = rumoursC.pickRumour(ctx(karl.at.x + 5, karl.at.z));
+    assert.equal(picked?.id, 'egg:karl-the-fog-diary');
+    for (const e of EGGS) {
+      const said = rumoursC.frameRumour({ text: e.rumour }, 0);
+      assert.equal(said.zh, e.rumour.zh, `${e.id}: said as it is (no 听说，听说)`);
+      assert.ok(zhLen(said.zh) <= rumoursC.RUMOUR_FRAMED_ZH_MAX);
+    }
+  } finally { off(); __setBayNowForTests(null); gates.__resetDailyForTests(); }
+});
+
+test('W5-D5 the compass (lane E): hintTarget points at the nearest spot of an unfound egg that can happen today, and moves on once it is found', () => {
+  let found = new Set<string>();
+  let canFly = false;
+  const off = hints.registerHintSource('egg', () => RS.eggHintSpots(id => found.has(id), canFly));
+  try {
+    __setBayNowForTests('2026-09-28T10:00');
+    gates.__resetDailyForTests();
+    const dell = eggById('dahlia-dell-100')!;
+    const t1 = hints.hintTarget('egg', { x: dell.at.x + 10, z: dell.at.z });
+    assert.equal(t1?.id, 'dahlia-dell-100');
+    assert.equal(t1?.kind, 'egg');
+    assert.ok(t1!.dist < 11);
+    found = new Set(['dahlia-dell-100']);
+    const t2 = hints.hintTarget('egg', { x: dell.at.x + 10, z: dell.at.z });
+    assert.ok(t2 && t2.id !== 'dahlia-dell-100', 'found: the next one');
+    // the pelican's eggs only once the glide is unlocked
+    const crissy = eggById('crissy-field-dusk-landing')!;
+    assert.notEqual(hints.hintTarget('egg', crissy.at)?.id, crissy.id);
+    canFly = true;
+    assert.equal(hints.hintTarget('egg', crissy.at)?.id, crissy.id);
+    // a visited 1776 stop leaves the list; the others stay
+    const trail = eggById('sf-250-birthday-trail')!;
+    gates.mark(presidio.trailMark('presidio'));
+    const trailSpots = RS.eggHintSpots(() => false, true).filter(s => s.id === trail.id);
+    assert.equal(trailSpots.length, 2);
+    assert.ok(!trailSpots.some(s => s.x === trail.at.x && s.z === trail.at.z));
+    // every unfound egg (with the glide, in September, on a labyrinth day) is listed
+    __setBayNowForTests(`${labyrinthDay(true)}T10:00`);
+    gates.__resetDailyForTests();
+    assert.deepEqual([...new Set(RS.eggHintSpots(() => false, true).map(s => s.id))], [...EGG_IDS]);
+  } finally { off(); __setBayNowForTests(null); gates.__resetDailyForTests(); }
 });

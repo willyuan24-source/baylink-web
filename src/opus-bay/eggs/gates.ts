@@ -72,5 +72,33 @@ export function markToday(key: string, dateKey: string = bayParts().dateKey): bo
   return true;
 }
 
-/** tests: forget the daily memory */
-export function __resetDailyForTests(): void { memory = null; }
+// --- visited marks (per viewer): the 1776 stops of egg 23 ---------------------------------------------------------
+
+const MARKS = 'opus-bay:eggs:marks:v1';
+let marks: Set<string> | null = null;
+
+function loadMarks(): Set<string> {
+  if (marks) return marks;
+  marks = new Set();
+  try {
+    const parsed: unknown = JSON.parse(globalThis.localStorage?.getItem(MARKS) ?? '[]');
+    if (Array.isArray(parsed)) for (const k of parsed) if (typeof k === 'string' && /^[a-z0-9:-]{1,40}$/.test(k)) marks.add(k);
+  } catch { /* private mode / blocked storage: memory only */ }
+  return marks;
+}
+
+/**
+ * A per-viewer "been there" mark (a convenience like the daily memory: losing it only means walking to a stop again;
+ * the find itself is the ledger's bit).
+ */
+export const marked = (key: string): boolean => loadMarks().has(key);
+export function mark(key: string): boolean {
+  const m = loadMarks();
+  if (m.has(key)) return false;
+  m.add(key);
+  try { globalThis.localStorage?.setItem(MARKS, JSON.stringify([...m])); } catch { /* keep it in memory */ }
+  return true;
+}
+
+/** tests: forget the daily memory and the marks */
+export function __resetDailyForTests(): void { memory = null; marks = null; }

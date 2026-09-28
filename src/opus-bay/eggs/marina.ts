@@ -195,8 +195,14 @@ export const GGB = {
   /** along the deck from mid-span (u, + = north): the south / north anchorages */
   deck: { from: -160.33, to: 144.37, halfWidth: 4, minY: 11 },
 } as const;
-const MID = { x: (GGB.south.x + GGB.north.x) / 2, z: (GGB.south.z + GGB.north.z) / 2 };
-const AX = (() => { const dx = GGB.north.x - GGB.south.x, dz = GGB.north.z - GGB.south.z, l = Math.hypot(dx, dz); return { x: dx / l, z: dz / l }; })();
+/** Mid-span and the deck's axis (unit, south → north). */
+export const MID = { x: (GGB.south.x + GGB.north.x) / 2, z: (GGB.south.z + GGB.north.z) / 2 };
+export const AX = (() => { const dx = GGB.north.x - GGB.south.x, dz = GGB.north.z - GGB.south.z, l = Math.hypot(dx, dz); return { x: dx / l, z: dz / l }; })();
+/** Along the deck from mid-span (u, + = north) and across it (+ = the Bay side, towards Alcatraz). */
+export function deckCoords(x: number, z: number): { along: number; across: number } {
+  const rx = x - MID.x, rz = z - MID.z;
+  return { along: rx * AX.x + rz * AX.z, across: rx * -AX.z + rz * AX.x };
+}
 
 /** On the bridge deck (between the anchorages, on the deck's width, up at deck height). */
 export function onDeck(x: number, y: number, z: number): boolean {

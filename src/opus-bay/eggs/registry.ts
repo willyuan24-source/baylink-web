@@ -118,7 +118,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '游戏厅里的大笑女士', en: 'The laughing lady of the arcade' },
     riddle: { zh: '码头边的老游戏厅，谁笑个不停？', en: 'Who can’t stop laughing in the old arcade?' },
     rumour: { zh: '听说 45 号码头那家老游戏厅门口，总能听见有人哈哈大笑。', en: 'They say you can hear someone laughing at the old arcade on Pier 45.' },
-    at: { x: -212.7, z: 69.3 }, kind: 'ground',
+    at: { x: -214.7, z: 71.3 }, kind: 'ground',
     how: { zh: '在 45 号码头的老游戏厅门口听一听', en: 'Listen at the old arcade’s door on Pier 45' },
     lines: [
       { zh: '海边乐园 1972 年关门后，这家游戏厅买下了一位"大笑女士"。', en: 'When the beach amusement park closed in 1972, this arcade bought a “laughing lady”.' },
@@ -189,7 +189,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '会唱歌的海浪风琴', en: 'The singing Wave Organ' },
     riddle: { zh: '防波堤的尽头，石头会唱歌。', en: 'At the jetty’s end, the stones sing.' },
     rumour: { zh: '听说码头区防波堤的尽头，把耳朵贴近管口能听见海在唱歌。', en: 'They say that at the end of the Marina jetty, the sea sings into the pipes.' },
-    at: { x: -412.3, z: 290 }, kind: 'ground',
+    at: { x: -413, z: 289.8 }, kind: 'ground',
     how: { zh: '走到防波堤尽头，把耳朵凑近管口', en: 'Walk to the jetty’s end and put your ear to a pipe' },
     lines: [
       { zh: '把耳朵凑近管口听听——涨潮的时候，它唱得最响！', en: 'Put your ear to a pipe — it sings loudest at high tide!' },
@@ -223,7 +223,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: 'BAYBAY 的远房亲戚', en: 'BAYBAY’s distant cousins' },
     riddle: { zh: '大桥下的水边，BAYBAY 想起了谁？', en: 'By the water under the bridge, who does BAYBAY remember?' },
     rumour: { zh: '听说 BAYBAY 一到大桥下的炮台水边，就会想起她的亲戚。', en: 'They say BAYBAY remembers her family at the water by the fort under the bridge.' },
-    at: { x: -747.3, z: 598.5 }, kind: 'ground',
+    at: { x: -747.3, z: 595.5 }, kind: 'ground',
     how: { zh: '和 BAYBAY 一起走到金门大桥下炮台旁的水边', en: 'Walk with BAYBAY to the water by the fort under the Golden Gate Bridge' },
     lines: [
       { zh: '很久以前，旧金山湾里也住着海獭——是我的远房亲戚！', en: 'Long ago, sea otters lived in San Francisco Bay too — my distant cousins!' },
@@ -289,13 +289,13 @@ export const EGGS: readonly EggDef[] = [
     sources: [src('https://www.goldengate.org/bridge/history-research/bridge-features/foghorns-beacons/')],
     stamp: { zh: '雾笛听众', en: 'Foghorn listener' },
   },
-  // --- 13–24: the west, the south and the east (W5-D4; spots marked approx are snapped there) ------------------------
+  // --- 13–24: the west, the south and the east (W5-D4; spots snapped from OSM on 2026-09-28 and checked standable) ---
   {
     id: 'golden-gate-humpback', n: 13, area: 'marina-presidio',
     name: { zh: '海峡里的座头鲸', en: 'A humpback in the Golden Gate' },
     riddle: { zh: '海峡里，有时冒出一股水柱。', en: 'Sometimes a spout rises in the strait.' },
     rumour: { zh: '听说春天到秋天，金门海峡里偶尔能看见座头鲸喷水。', en: 'They say that from spring to autumn a humpback sometimes spouts in the Golden Gate.' },
-    at: { x: -816.6, z: 563.6 }, kind: 'water', approx: true,
+    at: { x: -822, z: 454 }, kind: 'water',
     how: { zh: '四到十一月，过金门海峡时看看海面（看缘分）', en: 'April to November, watch the water as you cross the Gate (if you’re lucky)' },
     lines: [
       { zh: '是座头鲸！2016 年起它们常游进湾里觅食，看缘分哦。', en: 'A humpback! Since 2016 they often come into the Bay to feed — if you’re lucky.' },
@@ -311,14 +311,14 @@ export const EGGS: readonly EggDef[] = [
     id: 'lands-end-labyrinth', n: 14, area: 'west-coast',
     name: { zh: '时有时无的石头迷宫', en: 'The labyrinth that comes and goes' },
     riddle: { zh: '悬崖上的石圈，有时在有时不在。', en: 'A stone ring on the cliff: some days there, some not.' },
-    rumour: { zh: '听说地之角的海边，有个用石头摆的迷宫，但不是每天都在。', en: 'They say there’s a stone labyrinth at Lands End — but not every day.' },
-    at: { x: -742.9, z: 1102.1 }, kind: 'ground', approx: true,
-    how: { zh: '在地之角找到石头迷宫，沿着小路走到中心', en: 'Find the stone labyrinth at Lands End and walk its path to the centre' },
+    rumour: { zh: '听说天涯海角的海边，有个用石头摆的迷宫，但不是每天都在。', en: 'They say there’s a stone labyrinth at Lands End — but not every day.' },
+    at: { x: -743, z: 1093.7 }, kind: 'ground',
+    how: { zh: '在天涯海角找到石头迷宫，沿着小路走到中心', en: 'Find the stone labyrinth at Lands End and walk its path to the centre' },
     lines: [
       { zh: '这个石头迷宫被弄乱过好几次，每次都有人把它重新摆好。', en: 'This stone labyrinth has been scattered many times — and someone always rebuilds it.' },
     ],
     fact: {
-      zh: '地之角的石头迷宫由艺术家爱德华多·阿吉莱拉在 2004 年摆成，多次被破坏，又被志愿者一次次重新摆好。',
+      zh: '天涯海角的石头迷宫由艺术家爱德华多·阿吉莱拉在 2004 年摆成，多次被破坏，又被志愿者一次次重新摆好。',
       en: 'Artist Eduardo Aguilera laid the Lands End labyrinth in 2004. It has been vandalised several times and rebuilt again and again by volunteers.',
     },
     sources: [src('https://localwiki.org/sf/Land%27s_End_Labyrinth'), src('https://richmondsfblog.com/2015/08/18/photo-lands-end-labyrinth-erased/', 'vandalised several times; rebuilt by its keeper')],
@@ -329,8 +329,8 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '中国海滩的由来', en: 'Why it’s called China Beach' },
     riddle: { zh: '金色傍晚的小海湾，看看海面。', en: 'A small cove at golden hour: watch the water.' },
     rumour: { zh: '听说海崖区那个小海湾，傍晚的海面上会出现旧时的帆影。', en: 'They say old sails appear on the water of the Sea Cliff cove at golden hour.' },
-    at: { x: -622.3, z: 960.9 }, kind: 'ground', approx: true,
-    how: { zh: '黄金时刻站在中国海滩的沙滩上', en: 'Stand on the sand at China Beach at golden hour' },
+    at: { x: -614.8, z: 969 }, kind: 'ground',
+    how: { zh: '黄金时刻到中国海滩，看看小海湾', en: 'Come to China Beach at golden hour and look over the cove' },
     lines: [
       { zh: '据说以前华人渔民在这个小湾停船扎营，所以叫"中国海滩"。', en: 'They say Chinese fishermen once anchored and camped in this cove — hence China Beach.' },
     ],
@@ -346,7 +346,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '市花大丽花 100 岁', en: 'The dahlia turns 100' },
     riddle: { zh: '温室东边的花圃，今年一百岁。', en: 'The bed east of the glasshouse is 100 this year.' },
     rumour: { zh: '听说花卉温室东边的大丽花圃，今年有个特别的生日。', en: 'They say the dahlia bed east of the Conservatory has a special birthday this year.' },
-    at: { x: -174.2, z: 845.3 }, kind: 'ground', approx: true,
+    at: { x: -174.2, z: 845.3 }, kind: 'ground',
     how: { zh: '到花卉温室东边的大丽花圃看看', en: 'Visit the dahlia bed just east of the Conservatory of Flowers' },
     lines: [
       { zh: '大丽花是旧金山的市花，2026 年正好满一百年！', en: 'The dahlia is San Francisco’s official flower — 100 years in 2026!' },
@@ -362,14 +362,14 @@ export const EGGS: readonly EggDef[] = [
     id: 'tiled-steps-sea-to-stars', n: 17, area: 'golden-gate-park',
     name: { zh: '从海底爬到星空', en: 'From the sea to the stars' },
     riddle: { zh: '一口气，从海底爬到星空。', en: 'In one go, from the sea floor to the stars.' },
-    rumour: { zh: '听说 16 街的马赛克台阶，一口气爬到顶，会听见不一样的声音。', en: 'They say that if you climb the 16th Avenue mosaic steps in one go, you’ll hear something.' },
-    at: { x: -113.3, z: 1143.4 }, kind: 'ground', approx: true,
-    how: { zh: '一口气爬完 16 街的马赛克台阶', en: 'Climb the 16th Avenue Tiled Steps in one go' },
+    rumour: { zh: '听说第 16 大道的马赛克台阶，一口气爬到顶，会听见不一样的声音。', en: 'They say that if you climb the 16th Avenue mosaic steps in one go, you’ll hear something.' },
+    at: { x: -115.9, z: 1147 }, kind: 'ground', also: [{ x: -109.8, z: 1139.9 }],
+    how: { zh: '一口气爬完第 16 大道的马赛克台阶', en: 'Climb the 16th Avenue Tiled Steps in one go' },
     lines: [
       { zh: '从海底一路爬到星空——163 级台阶全是马赛克！', en: 'From the sea floor up to the stars — 163 steps of mosaic!' },
     ],
     fact: {
-      zh: '16 街马赛克台阶共 163 级，图案从大海画到天空，由艾琳·巴尔和科莉特·克鲁彻设计、街坊一起完成，2005 年 8 月 27 日揭幕。',
+      zh: '第 16 大道马赛克台阶共 163 级，图案从大海画到天空，由艾琳·巴尔和科莉特·克鲁彻设计、街坊一起完成，2005 年 8 月 27 日揭幕。',
       en: 'The 16th Avenue Tiled Steps: 163 steps whose mosaic runs from the sea to the sky, designed by Aileen Barr and Colette Crutcher with the neighbours, opened on 27 August 2005.',
     },
     sources: [src('https://en.wikipedia.org/wiki/16th_Avenue_Tiled_Steps')],
@@ -380,7 +380,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: 'Karl 的小秘密', en: 'Karl the Fog’s secrets' },
     riddle: { zh: '雾来的时候，站到双峰顶上。', en: 'When the fog comes, stand on Twin Peaks.' },
     rumour: { zh: '听说起雾时站在双峰顶上，能看见 Karl 的小秘密。', en: 'They say Twin Peaks in fog shows you a secret or two about Karl.' },
-    at: { x: 125.7, z: 937.8 }, kind: 'ground', approx: true,
+    at: { x: 125.7, z: 937.8 }, kind: 'ground',
     how: { zh: '雾天站在双峰顶上', en: 'Stand on Twin Peaks when the fog is in' },
     lines: [
       { zh: 'Karl 这个名字，是 2010 年一个社交账号带火的。', en: 'The name Karl caught on from a social account started in 2010.' },
@@ -395,6 +395,7 @@ export const EGGS: readonly EggDef[] = [
       src('https://www.kqed.org/news/11682057/how-the-bay-areas-fog-came-to-be-named-karl'),
       src('https://www.currentresults.com/Weather/California/Places/san-francisco-temperatures-by-month-average.php', 'September average high 70°F, the highest (1991–2020)'),
       src('https://quoteinvestigator.com/2011/11/30/coldest-winter/', 'the quip is not Twain’s'),
+      src('https://www.sfbayweather.com/learn/when-does-sf-fog-peak', 'July is usually the foggiest month; September–October the clearest'),
     ],
     stamp: { zh: '遇见 Karl', en: 'Karl sighting' },
   },
@@ -403,7 +404,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '会报真实时间的日晷', en: 'The sundial that tells real time' },
     riddle: { zh: '这个大日晷，听谁的时间？', en: 'Whose time does the giant sundial keep?' },
     rumour: { zh: '听说英格塞德那座大日晷的影子，跟着真的太阳走。', en: 'They say the Ingleside sundial’s shadow follows the real sun.' },
-    at: { x: 284.7, z: 1437.4 }, kind: 'ground', approx: true,
+    at: { x: 277, z: 1442.9 }, kind: 'ground',
     how: { zh: '白天去英格塞德的大日晷，看看影子', en: 'Visit the Ingleside sundial by day and read its shadow' },
     lines: [
       { zh: '日晷的影子，指着旧金山现在的真实时间！', en: 'The sundial’s shadow shows the real time in San Francisco right now!' },
@@ -421,7 +422,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '金色消防栓', en: 'The golden fire hydrant' },
     riddle: { zh: '公园坡顶，有个金色的小家伙。', en: 'A little golden fellow at the top of the park.' },
     rumour: { zh: '听说多洛雷斯公园坡顶有个金色的消防栓，救过整个教会区。', en: 'They say a golden hydrant at the top of Dolores Park once saved the Mission.' },
-    at: { x: 248.8, z: 727.8 }, kind: 'ground', approx: true,
+    at: { x: 256.6, z: 724.3 }, kind: 'ground',
     how: { zh: '在多洛雷斯公园西南角，找到那个金色的消防栓', en: 'Find the golden hydrant at Dolores Park’s south-west corner' },
     lines: [
       { zh: '1906 年大火时，消防员靠这个消防栓挡住了火，救下了教会区！', en: 'In the 1906 fire, firefighters used this hydrant to stop the flames reaching the Mission!' },
@@ -439,7 +440,7 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '彩虹脚印', en: 'Rainbow footsteps' },
     riddle: { zh: '走过彩虹，看看脚下。', en: 'Cross the rainbow and look at your feet.' },
     rumour: { zh: '听说走过卡斯特罗街口的彩虹斑马线，脚印会变成彩色的。', en: 'They say your footprints turn rainbow after the Castro’s rainbow crosswalk.' },
-    at: { x: 162, z: 755.4 }, kind: 'ground', approx: true,
+    at: { x: 161.7, z: 755.8 }, kind: 'ground',
     how: { zh: '走过 18 街和卡斯特罗街路口的彩虹斑马线', en: 'Cross the rainbow crosswalk at 18th and Castro' },
     lines: [
       { zh: '2014 年，这个路口铺上了彩虹斑马线！', en: 'This crossing got its rainbow crosswalks in 2014!' },
@@ -457,24 +458,24 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '从天上看"鹭鸟头"', en: 'The heron’s head from above' },
     riddle: { zh: '从天上看，那个公园像谁的头？', en: 'From the sky, whose head is that park?' },
     rumour: { zh: '听说从天上看湾景区海边那个公园，形状特别有意思。', en: 'They say a park on the Bayview shore has a funny shape from the sky.' },
-    at: { x: 923.6, z: 456.9 }, kind: 'air', approx: true,
-    how: { zh: '骑着鹈鹕飞过鹭头公园上空', en: 'Fly the pelican over Heron’s Head Park' },
+    at: { x: 923.3, z: 457.4 }, kind: 'air',
+    how: { zh: '骑着鹈鹕飞过苍鹭头公园上空', en: 'Fly the pelican over Heron’s Head Park' },
     lines: [
       { zh: '从天上看，这座公园真的像一只大蓝鹭的脑袋！', en: 'From up here the park really looks like a great blue heron’s head!' },
     ],
     fact: {
-      zh: '鹭头公园占地 22 英亩，名字来自它的形状——从天上看像一只大蓝鹭的头。这里能见到一百多种鸟。',
+      zh: '苍鹭头公园占地 22 英亩，名字来自它的形状——从天上看像一只大蓝鹭的头。这里能见到一百多种鸟。',
       en: 'Heron’s Head Park (22 acres) is named for its shape: from above it looks like the head of a great blue heron. More than a hundred bird species visit.',
     },
     sources: [src('https://www.sfport.com/heronsheadpark'), src('https://en.wikipedia.org/wiki/Heron%27s_Head_Park')],
-    stamp: { zh: '鹭头', en: 'Heron’s Head' },
+    stamp: { zh: '苍鹭头', en: 'Heron’s Head' },
   },
   {
     id: 'sf-250-birthday-trail', n: 23, area: 'marina-presidio',
     name: { zh: '旧金山 250 岁生日小路', en: 'San Francisco’s 250th birthday trail' },
     riddle: { zh: '三个 1776 年的地方，在哪里？', en: 'Three places from 1776: where are they?' },
     rumour: { zh: '听说要塞、山湖和多洛雷斯教堂，藏着同一个 1776 年的故事。', en: 'They say the Presidio, Mountain Lake and Mission Dolores share one story from 1776.' },
-    at: { x: -446.7, z: 576.3 }, kind: 'ground', approx: true, also: [{ x: -429.5, z: 773.1 }, { x: 199.3, z: 647.3 }],
+    at: { x: -446.7, z: 576.3 }, kind: 'ground', also: [{ x: -434, z: 777 }, { x: 199.3, z: 646.9 }],
     how: { zh: '走访要塞军官俱乐部、山湖和多洛雷斯教堂（顺序随意）', en: 'Visit the Presidio Officers’ Club, Mountain Lake and Mission Dolores, in any order' },
     lines: [
       { zh: '1776 年 9 月 17 日，西班牙人在这里建起了要塞。', en: 'On 17 September 1776 the Spanish founded the presidio here.' },
@@ -498,8 +499,8 @@ export const EGGS: readonly EggDef[] = [
     name: { zh: '被电影飞车磕坏的台阶', en: 'The steps a movie chase chipped' },
     riddle: { zh: '开小车到台阶顶，停一停。', en: 'Drive the toy car to the top step, then stop.' },
     rumour: { zh: '听说太平洋高地公园的大台阶上，还留着一场老电影的印子。', en: 'They say the grand steps of Alta Plaza still carry marks from an old movie.' },
-    at: { x: -191.7, z: 460 }, kind: 'ground', approx: true,
-    how: { zh: '开着玩具小车到阿尔塔广场公园南边台阶的顶上', en: 'Drive the toy car to the top of Alta Plaza’s south steps' },
+    at: { x: -194.1, z: 456.3 }, kind: 'ground',
+    how: { zh: '开玩具小车（或骑单车）到阿尔塔广场公园南边台阶顶上', en: 'Drive the toy car (or ride a bike) to the top of Alta Plaza’s south steps' },
     lines: [
       { zh: '别开下去！1972 年一场电影飞车把台阶磕坏了，印子还在呢。', en: 'Not down the steps! A 1972 movie chase chipped them, and the marks are still there.' },
     ],

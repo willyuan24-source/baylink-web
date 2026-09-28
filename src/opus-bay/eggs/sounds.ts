@@ -185,10 +185,108 @@ function hornMid(e: AudioEngine, o?: SoundOpts) {
   }
 }
 
+// --- part b (W5-D4) -------------------------------------------------------------------------------------------------
+
+/** A humpback's blow: a deep breathy rush with a low body under it (on the ambience bus: it carries across the water). */
+function spout(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 2.4, gain: g0(o, 0.5), pan: pan(o), priority: 3, reverb: 0.45, name: 'egg:spout' });
+  if (!v) return;
+  e.noiseBurst(v, { color: 'pink', attack: 0.05, decay: 1.3, peak: 0.6, filter: { type: 'bandpass', freq: 900, freqTo: 500, glide: 1.2, Q: 0.7 } });
+  e.noiseBurst(v, { color: 'brown', attack: 0.08, decay: 1.6, peak: 0.45, filter: { type: 'lowpass', freq: 260 } });
+  e.tone(v, { type: 'sine', freq: 62, freqTo: 48, glide: 1.4, decay: 1.5, peak: 0.25, attack: 0.1 });
+}
+
+/** Shorebirds over a salt marsh: a few rising whistles and a soft chatter (Heron's Head). */
+function marsh(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 3.2, gain: g0(o, 0.3), pan: pan(o), priority: 3, reverb: 0.35, name: 'egg:marsh' });
+  if (!v) return;
+  for (let i = 0; i < 4; i++) {
+    const at = rand(0, 2.2), f = rand(1700, 2300) * pitch(o);
+    e.tone(v, { type: 'sine', freq: f, freqTo: f * 1.45, glide: 0.18, decay: 0.24, peak: 0.3, offset: at, attack: 0.02 });
+    e.tone(v, { type: 'sine', freq: f * 1.4, freqTo: f * 1.1, glide: 0.2, decay: 0.2, peak: 0.22, offset: at + 0.26, attack: 0.02 });
+  }
+  for (let i = 0; i < 7; i++) e.tone(v, { type: 'triangle', freq: rand(3000, 3800), decay: 0.05, peak: 0.12, offset: rand(0.4, 2.8), attack: 0.004 });
+  e.noiseBurst(v, { color: 'pink', attack: 0.8, decay: 2.2, peak: 0.1, filter: { type: 'highpass', freq: 2500 } });
+}
+
+/** The Tiled Steps, bottom third: the sea — bubbles rising. */
+function bubbles(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 1.8, gain: g0(o, 0.26), pan: pan(o), priority: 3, reverb: 0.3, name: 'egg:bubbles' });
+  if (!v) return;
+  for (let i = 0; i < 10; i++) { const f = rand(380, 900) * pitch(o); e.tone(v, { type: 'sine', freq: f, freqTo: f * 1.8, glide: 0.07, decay: 0.09, peak: 0.3, offset: i * 0.13 + rand(0, 0.05), attack: 0.004 }); }
+}
+
+/** The Tiled Steps, middle: the sky — two little birds. */
+function birds(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 1.8, gain: g0(o, 0.22), pan: pan(o), priority: 3, reverb: 0.25, name: 'egg:birds' });
+  if (!v) return;
+  for (let i = 0; i < 6; i++) { const f = rand(2600, 3600) * pitch(o); e.tone(v, { type: 'sine', freq: f, freqTo: f * rand(0.8, 1.25), glide: 0.06, decay: 0.08, peak: 0.26, offset: i * 0.2 + rand(0, 0.06), attack: 0.004, vibrato: { rate: 30, depth: 0.03 } }); }
+}
+
+/** The Tiled Steps, top: the stars — a high, slow chime. */
+function stars(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 2.6, gain: g0(o, 0.24), pan: pan(o), priority: 3, reverb: 0.6, name: 'egg:stars' });
+  if (!v) return;
+  [84, 88, 91, 96, 91].forEach((m, i) => e.tone(v, { type: 'sine', freq: midi(m) * pitch(o), decay: 1.1, peak: 0.2, offset: i * 0.22, attack: 0.004 }));
+}
+
+/** A small bell (the labyrinth's centre, a 1776 stop). */
+function chime(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 2.2, gain: g0(o, 0.24), pan: pan(o), priority: 3, reverb: 0.5, name: 'egg:chime' });
+  if (!v) return;
+  for (const [m, at] of [[79, 0], [86, 0.18]] as const) {
+    e.tone(v, { type: 'sine', freq: midi(m) * pitch(o), decay: 1.4, peak: 0.28, offset: at, attack: 0.003 });
+    e.tone(v, { type: 'sine', freq: midi(m) * 2.76 * pitch(o), decay: 0.5, peak: 0.06, offset: at, attack: 0.003 });
+  }
+}
+
+/** A knuckle on the golden hydrant: a bright metal ting. */
+function ting(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 1.4, gain: g0(o, 0.22), pan: pan(o), priority: 2, reverb: 0.3, name: 'egg:ting' });
+  if (!v) return;
+  for (const [f, p] of [[1760, 0.3], [2640, 0.12], [4130, 0.06]] as const) e.tone(v, { type: 'sine', freq: f * pitch(o), decay: 0.9, peak: p, attack: 0.002 });
+}
+
+/** A paintbrush stroke. */
+function brush(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 0.9, gain: g0(o, 0.22), pan: pan(o), priority: 2, name: 'egg:brush' });
+  if (!v) return;
+  e.noiseBurst(v, { color: 'pink', attack: 0.06, decay: 0.35, peak: 0.4, filter: { type: 'bandpass', freq: 2200, freqTo: 3200, glide: 0.3, Q: 1.2 } });
+  e.noiseBurst(v, { color: 'pink', attack: 0.05, decay: 0.3, peak: 0.3, offset: 0.4, filter: { type: 'bandpass', freq: 3000, freqTo: 2000, glide: 0.3, Q: 1.2 } });
+}
+
+/** BAYBAY yawning (the sundial at night). */
+function yawn(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'voice', dur: 1.8, gain: g0(o, 0.2), pan: pan(o), priority: 3, reverb: 0.15, name: 'egg:yawn' });
+  if (!v) return;
+  const b = 620 * pitch(o);
+  e.tone(v, { type: 'sine', freq: b, freqTo: b * 1.5, glide: 0.5, decay: 0.7, peak: 0.35, attack: 0.15, fm: { ratio: 2, index: 0.15 } });
+  e.tone(v, { type: 'sine', freq: b * 1.45, freqTo: b * 0.8, glide: 0.7, decay: 0.8, peak: 0.3, offset: 0.6, attack: 0.05 });
+  e.noiseBurst(v, { color: 'pink', attack: 0.2, decay: 0.8, peak: 0.08, offset: 0.2, filter: { type: 'bandpass', freq: 1400, Q: 0.8 } });
+}
+
+/** A toy car / bike stopping politely: a small squeak and a tick. */
+function squeak(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'sfx', dur: 0.8, gain: g0(o, 0.2), pan: pan(o), priority: 2, name: 'egg:squeak' });
+  if (!v) return;
+  e.tone(v, { type: 'triangle', freq: 1250, freqTo: 900, glide: 0.25, decay: 0.3, peak: 0.3, attack: 0.01, vibrato: { rate: 26, depth: 0.03 } });
+  e.noiseBurst(v, { attack: 0.001, decay: 0.03, peak: 0.3, offset: 0.34, filter: { type: 'bandpass', freq: 2600, Q: 2 } });
+}
+
+/** Old sails in the wind: a soft gust and a wooden creak (China Beach). */
+function sails(e: AudioEngine, o?: SoundOpts) {
+  const v = e.voice({ bus: 'ambience', dur: 3, gain: g0(o, 0.26), pan: pan(o), priority: 3, reverb: 0.5, name: 'egg:sails' });
+  if (!v) return;
+  e.noiseBurst(v, { color: 'pink', attack: 0.6, decay: 1.8, peak: 0.4, filter: { type: 'bandpass', freq: 600, freqTo: 1100, glide: 1.2, Q: 0.6 } });
+  for (const at of [0.7, 1.5]) e.tone(v, { type: 'sawtooth', freq: 190, freqTo: 150, glide: 0.4, decay: 0.45, peak: 0.1, offset: at, attack: 0.08, filter: { type: 'bandpass', freq: 700, Q: 3 } });
+}
+
 export const EGG_SOUNDS = {
   'egg:find': find, 'egg:parrots': parrots, 'egg:sealions': seaLions, 'egg:cackle': cackle, 'egg:giggle': giggle, 'egg:phone': phone,
   'egg:plug': plug, 'egg:cookie': cookie, 'egg:fanfare': fanfare, 'egg:organ': organ, 'egg:propeller': propeller, 'egg:splash': splash,
   'egg:tin': tin, 'egg:whoosh': whoosh, 'egg:horn-south': hornSouth, 'egg:horn-mid': hornMid,
+  'egg:spout': spout, 'egg:marsh': marsh, 'egg:bubbles': bubbles, 'egg:birds': birds, 'egg:stars': stars, 'egg:chime': chime,
+  'egg:ting': ting, 'egg:brush': brush, 'egg:yawn': yawn, 'egg:squeak': squeak, 'egg:sails': sails,
 } as const satisfies Record<string, (e: AudioEngine, o?: SoundOpts) => void>;
 export type EggSound = keyof typeof EGG_SOUNDS;
 

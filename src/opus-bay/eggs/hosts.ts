@@ -136,12 +136,49 @@ export function momentFree(): boolean {
   return mode === 'foot' || mode === 'sit';
 }
 
-/** A short camera beat (playShots holds the lock and releases it however it ends). False when it cannot play now. */
-export function beat(shots: Shot[], onDone?: () => void): boolean {
-  if (!shots.length || !momentFree() || runtime.glide.active) return false;
+/** In the bike or the toy car, (nearly) stopped: a beat may play (the lock only holds a vehicle that already stands). */
+export function vehicleStill(maxSpeed = 2.5): boolean {
+  const mode = runtime.move.mode;
+  return (mode === 'bike' || mode === 'car') && runtime.vehicle.occupied && Math.abs(runtime.vehicle.speed) <= maxSpeed;
+}
+
+/**
+ * A short camera beat (playShots holds the lock and releases it however it ends). False when it cannot play now.
+ * `vehicle`: also in the bike / toy car when it has (nearly) stopped (Alta Plaza's steps).
+ */
+export function beat(shots: Shot[], onDone?: () => void, opts: { vehicle?: boolean } = {}): boolean {
+  if (!shots.length || runtime.glide.active) return false;
+  const free = momentFree() || (!!opts.vehicle && !busy() && !cinemaActive() && vehicleStill());
+  if (!free) return false;
   playShots('viewpoint', shots, onDone);
   return true;
 }
+
+let glanceShot: typeof runtime.camera.shot = null;
+let glanceTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * A glance: the camera eases to `shot` for `seconds` and back, WITHOUT holding the lock (the pelican keeps flying, the
+ * player keeps steering: glide steering does not follow the camera). Used from the air only (Heron's Head from above).
+ * Refused while a cinematic or another shot owns the camera; the shot is cleared only if it is still ours.
+ */
+export function glance(shot: { position: [number, number, number]; target: [number, number, number]; duration: number }, seconds: number): boolean {
+  if (cinemaActive() || runtime.camera.shot || busy()) return false;
+  const mine = { position: shot.position, target: shot.target, duration: shot.duration };
+  runtime.camera.shot = mine;
+  glanceShot = mine;
+  if (glanceTimer) clearTimeout(glanceTimer);
+  glanceTimer = setTimeout(endGlance, Math.max(0.2, seconds) * 1000);
+  return true;
+}
+function endGlance(): void {
+  if (glanceTimer) clearTimeout(glanceTimer);
+  glanceTimer = null;
+  if (glanceShot && runtime.camera.shot === glanceShot) runtime.camera.shot = null;
+  glanceShot = null;
+}
+/** A glance is on (tests / QA). */
+export const glancing = () => glanceShot !== null && runtime.camera.shot === glanceShot;
 
 /**
  * A paper on screen (the egg-note overlay); `onClosed` runs once when it goes (×, 收好, Esc, E, walking away, or
@@ -217,8 +254,11 @@ export function stepHosts(dt: number): void {
     const inside = d <= h.range;
     try {
       if (inside) {
+        // (arriving: one step's dt, not the time since the host last woke — a timer must not jump on arrival)
+        const arriving = !active.has(h.id);
+        if (arriving) lastUpdate.set(h.id, clock - HOST_STEP);
         const ctx = ctxFor(h, p.x, p.y, p.z, d, isBusy);
-        if (!active.has(h.id)) { active.add(h.id); h.enter?.(ctx); }
+        if (arriving) { active.add(h.id); h.enter?.(ctx); }
         h.update?.(ctx);
         lastUpdate.set(h.id, clock);
       } else if (active.has(h.id)) {
@@ -255,6 +295,7 @@ export function startHosts(list: readonly EggHost[]): () => void {
     lineTimers = [];
     if (cardTimer) clearTimeout(cardTimer);
     cardTimer = null;
+    endGlance();
     for (const h of hosts) { try { h.dispose?.(); } catch { /* keep tearing down */ } }
     hosts = [];
     active.clear();
@@ -266,4 +307,8 @@ export function startHosts(list: readonly EggHost[]): () => void {
 /** tests: forget the session state */
 export function __resetHostsForTests(): void {
   sessionFound.clear(); repeatSaid.clear(); active.clear(); lastUpdate.clear(); clock = 0; acc = 0; hosts = [];
+  endGlance();
 }
+
+/** The sea's surface in the city (world/sf/water.ts WATER_Y): whales and junk sails float on it. */
+export const SEA_Y = -0.6;
