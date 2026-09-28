@@ -67,6 +67,8 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'lake-merced': { blockers: [1.4], tall: [] },
   'fort-funston': { blockers: [11, 7.2], tall: [] },
   'harvey-milk-plaza': { blockers: [7.6], tall: [] },
+  'presidio-tunnel-tops': { blockers: [4.3, 1.3], tall: [] },
+  'fort-mason-center': { blockers: [5.7, 5.7, 5.7, 5.6, 2.9, 2.9, 3, 4.7], tall: [] },
   'balmy-alley': { blockers: [4.6, 4.5], tall: [] },
   'bayview-opera-house': { blockers: [5.5, 5.1, 3.4, 4.1, 4, 1.5], tall: [] },
   'crane-cove-park': { blockers: [6.2, 6.2, 8.5, 8.5, 6, 6, 8.3, 8.3], tall: [8.5, 8.3] },

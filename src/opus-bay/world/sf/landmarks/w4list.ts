@@ -9,6 +9,7 @@ import { clementStreet } from './clement-street';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { fortFunston } from './fort-funston';
+import { fortMasonCenter } from './fort-mason-center';
 import { gearyWest } from './geary-west';
 import { grandViewPark } from './grand-view-park';
 import { haightAshbury } from './haight-ashbury';
@@ -24,6 +25,7 @@ import { mountDavidson } from './mount-davidson';
 import { murphyWindmill } from './murphy-windmill';
 import { musicConcourse } from './music-concourse';
 import { oceanBeach } from './ocean-beach';
+import { presidioTunnelTops } from './presidio-tunnel-tops';
 import { sfState } from './sf-state';
 import { sfZoo } from './sf-zoo';
 import { sfmoma } from './sfmoma';
@@ -88,4 +90,6 @@ export const W4_SITES: readonly W4Site[] = [
   lakeMerced,
   fortFunston,
   harveyMilkPlaza,
+  presidioTunnelTops,
+  fortMasonCenter,
 ];
