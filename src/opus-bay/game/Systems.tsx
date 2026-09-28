@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { heightAt } from '../core/terrain';
+import { canStand, heightAt } from '../core/terrain';
 import { DISTRICT } from '../data/district';
 import { getLocale } from '../../i18n/locale';
 import { pick } from '../i18n';
@@ -827,7 +827,7 @@ function QaBridge() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, hudBoxes, exportMap: exportCityMap, warmProbe }, lock: { held: lockHeld, report: lockReport, watchdog: watchdogStats } };
+    const mine = { game, runtime, emit, district: DISTRICT, flow, actions: flowActions, cinema: { currentFraming, measureBottomCover }, g1: { projectCost, hudScans: hudScanCount, hudBoxes, exportMap: exportCityMap, warmProbe }, lock: { held: lockHeld, report: lockReport, watchdog: watchdogStats }, terrain: { canStand, heightAt } };
     w.__opusBay = { ...(w.__opusBay ?? {}), ...mine, renderer: (w.__opusBay?.renderer as unknown) ?? gl };
     // other modules re-publish the object on their own schedules: keep the flow hooks on it (QA scripts rely on them)
     const id = window.setInterval(() => { const o = w.__opusBay; if (o && o.actions !== flowActions) Object.assign(o, mine); }, 500);
