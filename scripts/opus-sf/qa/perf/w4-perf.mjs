@@ -124,6 +124,9 @@ const HELPERS = `window.__w4 = {
     for (let i = 1; i < P.length; i++) { const d = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); seg.push(d); L += d; }
     const at = a => { let i = 0; while (i < seg.length - 1 && a > seg[i]) { a -= seg[i]; i++; } const t = Math.min(1, a / (seg[i] || 1)); return [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t]; };
     const [sx, sz] = at(0); await Promise.race([ob.city.whenReady(sx, sz, 150), this.sleep(60000)]);
+    // part c (W5-V11): stand the camera at the ride's start for 3 s first, so the city the previous spot streamed has
+    // unloaded before the maxima are taken (after Pier 45 the rides read 367k / 394k on their first frames, 248k alone)
+    { const [tx, tz] = at(Math.min(L, rd.lookAhead)); ob.world.cam(sx, hAt(sx, sz) + rd.camH, sz, tx, hAt(tx, tz) + 1.5, tz, sx, sz); await this.sleep(3000); }
     return await new Promise(done => {
       const d = []; let t0 = 0, last = 0, maxCalls = 0, maxTris = 0;
       requestAnimationFrame(function f(now) {
