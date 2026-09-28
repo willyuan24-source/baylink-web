@@ -270,7 +270,18 @@ export class PlayerController {
    * (Pier 41's walkway: (-239, 70) ↔ (-212, 69) for 60 s and more) never gave up; now it does after LONG_NO_PROGRESS s.
    */
   private bestLeft = Infinity;
-  private bestAt = 0;
+  /**
+   * (integration review) seconds of walking since `bestLeft` last shrank — counted only while the walker walks (not
+   * while frozen by a dialogue / cinematic, waiting for its route, or at ground still streaming in)
+   */
+  private noProgressT = 0;
+  /**
+   * (integration review) which measure `bestLeft` is in: -1 the straight line (no route yet / a fresh one on its way),
+   * else the route's arrival count (the length left along that route). A new measure starts a new baseline: a route
+   * is longer than the straight line (Ferry → Pier 39: 407 u vs 285), so comparing across the switch read a walker
+   * making steady progress as stuck and gave the walk up after 14 s.
+   */
+  private bestKey = -2;
   /** city mode: the long route being fetched / followed for the current target (E2-1) */
   readonly route = new RouteFollower();
   /** following `route` (pending: still walking the clamped local path) */
@@ -640,7 +651,8 @@ export class PlayerController {
       this.plannedFor = target;
       this.repaths = 0;
       this.bestLeft = Infinity;
-      this.bestAt = this.stepNow;
+      this.noProgressT = 0;
+      this.bestKey = -2;
       this.autoRunK = 0;
       if (this.longMode) { this.longMode = false; this.route.cancel(); }
       if (!this.plan(target)) { this.failPath(target); return null; }
@@ -745,11 +757,13 @@ export class PlayerController {
       } else { this.failPath(target); return null; }
     }
     const left = f.active ? f.remaining(pos) : Infinity;
-    // the whole way must shrink now and then (the stall counters above only watch the current leg)
+    // the whole way must shrink now and then (the stall counters above only watch the current leg). Each measure keeps
+    // its own baseline (the clock runs on): the straight line while no route is in, the route's length once it is
+    const key = f.active ? f.arrivals : -1;
     const toGo = Number.isFinite(left) ? left : Math.hypot(target.x - p.x, target.z - p.z);
-    if (toGo < this.bestLeft - LONG_PROGRESS) { this.bestLeft = toGo; this.bestAt = this.stepNow; }
-    else if (ahead) this.bestAt += dt;
-    else if (this.stepNow - this.bestAt > LONG_NO_PROGRESS) { this.failPath(target); return null; }
+    if (key !== this.bestKey) { this.bestKey = key; this.bestLeft = toGo; }
+    if (toGo < this.bestLeft - LONG_PROGRESS) { this.bestLeft = toGo; this.noProgressT = 0; }
+    else if (!ahead && (this.noProgressT += dt) > LONG_NO_PROGRESS) { this.failPath(target); return null; }
     this.autoRunK = clamp(this.autoRunK + (left > 30 || this.forceRun ? dt / 0.8 : -dt / 0.4), 0, 1);
     let speed = runtime.input.run ? RUN_SPEED : WALK_SPEED + (RUN_SPEED - WALK_SPEED) * this.autoRunK * this.autoRunK;
     if (final) speed *= clamp(d / 1.6, 0.35, 1);

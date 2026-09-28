@@ -56,7 +56,12 @@ export default function RideBanner() {
       <Icon size={20} aria-hidden />
       <span>{ride.stage === 'waiting' ? t(label.waiting) : <>{t(label.lineTo)} <strong>{label.dest ? t(label.dest) : ''}</strong></>}</span>
       {ride.stage === 'waiting'
-        ? <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={cancelRide}>{t('不坐了', 'Cancel')}</button>
+        ? <>
+            <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={cancelRide}>{t('不坐了', 'Cancel')}</button>
+            {/* (integration review; lane T's request, verify-phone m5) the ferry can be 80–140 s away: 直接到站 while waiting
+                puts the rider on the other quay (lane T's finishRide, under the veil; never counted as a ride) */}
+            {label.skipWhileWaiting && <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={finishRide}>{t('直接到站', 'Skip to stop')}</button>}
+          </>
         : <>
             {bell && (rung
               ? <span className="ob-ride-note is-rung"><BellRing size={14} aria-hidden />{t('下一站停', 'Stopping next')}</span>

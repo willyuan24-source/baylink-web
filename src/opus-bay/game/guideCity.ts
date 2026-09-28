@@ -133,15 +133,17 @@ const legSpeed = (leg: TripLeg): number => (leg.via === 'run' ? TRIP_SPEED.run :
  * The current leg's seconds left from `pos`: along its route when it has one (plus the way back onto it), else the
  * straight line × 1.25 at the leg's pace; a ride counts its share of the ride left once aboard (the wait is gone then);
  * a flight its own time. Never more than the leg's planned seconds by more than the way back onto the route.
+ * `waitLeft` (not aboard yet): the vehicle's live ETA while the rider waits at the stop, in place of the planned wait.
  */
-export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false): number {
+export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false, waitLeft?: number): number {
   if (leg.via === 'fly') return leg.seconds;
   if (leg.via === 'line') {
-    if (!riding) return leg.seconds;
+    const ride = Math.max(0, leg.seconds - leg.wait);
+    if (!riding) return waitLeft === undefined ? leg.seconds : ride + Math.max(0, waitLeft);
     const all = Math.hypot(leg.to.x - leg.from.x, leg.to.z - leg.from.z);
     const left = Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z);
     const k = all > 1 ? Math.min(1, left / all) : 0;
-    return Math.max(0, (leg.seconds - leg.wait) * k);
+    return ride * k;
   }
   const v = legSpeed(leg);
   if (leg.path && leg.path.length >= 4) {
@@ -151,10 +153,23 @@ export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false): number 
   return (Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z) * STREET_FACTOR) / v;
 }
 
+/**
+ * (integration review) The rider now: aboard a vehicle under way, or waiting at its stop with its live ETA. A ride in
+ * its waiting stage is not "aboard": counting it as aboard dropped the whole wait from the pill the moment the rider
+ * started waiting (a ferry 80–140 s away) and froze the time until the boat came.
+ */
+export interface RideNow { aboard: boolean; waitLeft?: number }
+export function rideNow(): RideNow {
+  const r = flow.get().ride;
+  if (!r) return { aboard: false };
+  return r.stage === 'waiting' ? { aboard: false, waitLeft: r.eta } : { aboard: true };
+}
+
 /** The whole trip's seconds left from `pos` (the pill, the card). */
-export function tripSecondsLeft(trip: TripState, pos: Vec2, riding = !!flow.get().ride): number {
+export function tripSecondsLeft(trip: TripState, pos: Vec2, ride: boolean | RideNow = rideNow()): number {
   if (trip.leg >= trip.legs.length) return 0;
-  return tripRemainingSeconds(trip, legSecondsLeft(trip.legs[trip.leg], pos, riding));
+  const r = typeof ride === 'boolean' ? { aboard: ride } : ride;
+  return tripRemainingSeconds(trip, legSecondsLeft(trip.legs[trip.leg], pos, r.aboard, r.waitLeft));
 }
 
 /** The pill's destination words for a trip: lane P's `tripDestination` name and, on foot, the attraction's short name. */
@@ -228,12 +243,12 @@ function writeLabel(lab: HTMLElement, name: string | null, time: string) {
 
 /** The seconds to the waypoint's target: the current trip leg's (when the target is where the leg ends), else null. */
 function tripTargetSeconds(target: Vec2, pos: Vec2): number | null {
-  const f = flow.get();
-  const trip = f.trip;
+  const trip = flow.get().trip;
   if (!trip || trip.leg >= trip.legs.length) return null;
   const leg = trip.legs[trip.leg];
   if (Math.hypot(leg.to.x - target.x, leg.to.z - target.z) > 3) return null;
-  return legSecondsLeft(leg, pos, !!f.ride);
+  const r = rideNow();
+  return legSecondsLeft(leg, pos, r.aboard, r.waitLeft);
 }
 
 /**
