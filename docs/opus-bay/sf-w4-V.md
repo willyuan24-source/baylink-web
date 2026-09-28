@@ -497,10 +497,13 @@ edited.
 - `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
 - `npx eslint .`: 0 errors, 43 warnings (the repo's; none in lane V's files: ai-gate.tsx mounts the page with
   `createElement` so react-refresh's rule stays quiet; the lead-merge now ignores `.vite-opus`).
-- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **717 / 717** green on `9a62916` + this part's
-  commits; after the rebase onto the lead-merge (`32eda15`): 719 / 720, the one failure E2-5's wall-clock assert "a
-  cached cell is cheap" (`opus-bay-sf-move2`) under the load of the full run, green on its own re-run (24 / 24), so
-  **720 / 720**; incl. hero regression and contracts; lane V's `w4-assets` 7 / 7, `w4-swaps` 4 / 4, `w4-postcards` 3 / 3. The swap checks fail on the old data (tried: with the part-1 Holy Virgin GLB put back, the exclusion and the
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **733 / 733** green on the tree rebased onto
+  `dccb988`^ (the lead-merge and the first integration pushes of lanes G and P included), incl. hero regression and
+  contracts; lane V's `w4-assets` 7 / 7, `w4-swaps` 4 / 4, `w4-postcards` 3 / 3. On the rebases before it the only
+  failures were other lanes' wall-clock asserts under the full run's load, green alone: E2-5 "a cached cell is cheap"
+  (`opus-bay-sf-move2`, 24 / 24) and "window build < 200 ms" (`opus-bay-sf-nav`, 7 / 7; the lead-merge §8.4 routes it to
+  lane G). Other lanes push every few minutes: the final rebase before the push is checked with tsc, eslint and lane
+  V's three test files (the full suite takes ≈ 2 min). The swap checks fail on the old data (tried: with the part-1 Holy Virgin GLB put back, the exclusion and the
   lot-fit tests fail). The spot search rejected West Portal candidates inside the shops (`canStand` false) and left out
   those on the carriageway (surface `road`).
 - No relayed owner message arrived during part 2.
