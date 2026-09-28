@@ -2,7 +2,8 @@
 
 Play `tour-voice-preview-zh.m4a` / `tour-voice-preview-en.m4a` (every pick in this order, 0.7 s apart). Mark a clip
 "✗" to mute it (it falls back to the text bubble + chirp) or "retake" for another take. Alternates of every clip: the
-scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`.
+scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`. Lines added after the freeze (TOUR_LINES_2, the
+rows marked "+" below): `tour-voice-preview-added-zh.m4a` / `-en.m4a`; their takes: `C:/Users/willy/opus-qa/w4i/i4-v/voice2/listen/`.
 
 ## zh
 
@@ -115,6 +116,7 @@ scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`.
 | 105 | `zh-arrive-holy-virgin-cathedral` | 那五个金色洋葱顶就是圣母大教堂，我们轻声走过。 | 6.09 | pass | ✓ (1.00) | |
 | 106 | `zh-arrive-saints-peter-and-paul-church` | 北滩的白色双塔教堂，正对着华盛顿广场，我们轻声看看。 | 4.75 | pass | ✓ (1.00) | |
 | 107 | `zh-quiet-mission-dolores-cemetery` | 传教站旁边的墓园是安息之地，我们小声一点。 | 4.93 | pass | ✓ (0.99) | |
+| 108 + | `zh-metro-sfsu-next-2` | 下一站 Holloway，就是州立大学。 | 3.55 | pass | ✓ (0.93) | |
 
 ## en
 
@@ -227,3 +229,4 @@ scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`.
 | 105 | `en-arrive-holy-virgin-cathedral` | Five golden onion domes: the Holy Virgin Cathedral. Let's pass quietly. | 6.26 | pass | ✓ (0.96) | |
 | 106 | `en-arrive-saints-peter-and-paul-church` | North Beach's white twin-spired church, facing Washington Square. Softly now. | 5.96 | pass | ✓ (0.96) | |
 | 107 | `en-quiet-mission-dolores-cemetery` | The mission's cemetery is a resting place — let's keep our voices low. | 4.48 | pass | ✓ (0.95) | |
+| 108 + | `en-metro-sfsu-next-2` | Next stop Holloway — that's SF State. | 3.70 | pass | ✓ (0.90) | |

@@ -2,6 +2,9 @@
 Lane V (W4-V6): post-process the tour narration takes (lane C's frozen TOUR_LINES) and pick one per clip.
 
   python scripts/opus-sf/voice/w4/tour_post.py --work C:/Users/willy/opus-qa/w4/w4-v/voice --repo C:/Users/willy/wt/w4-v
+  python scripts/opus-sf/voice/w4/tour_post.py --work <work2> --repo <repo> --merge     (lines added after the freeze:
+      takes.ts --set 2; only these takes are processed and encoded, their clips are added to the committed report, the
+      published picks of the first set stay byte for byte; previews of the added clips: tour-voice-preview-added-*.m4a)
 
 Reuses wave 3's measured chain (scripts/opus-sf/voice/voice_post.py: trim at −40 dB with 20 / 80 ms kept, 5 / 30 ms fades,
 two-pass loudnorm to −18 LUFS / TP −1.5, AAC 64k + Opus 48k mono, the Windows closed-grammar recogniser as an advisory
@@ -46,6 +49,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--work', required=True)
     ap.add_argument('--repo', required=True)
+    ap.add_argument('--merge', action='store_true', help='add these takes to the committed report (TOUR_LINES_2)')
     a = ap.parse_args()
     W, R = a.work, a.repo
     takes = json.load(open(f'{W}/takes.json', encoding='utf-8'))['takes']
@@ -58,6 +62,7 @@ def main():
     out_dir = f'{R}/public/opus-bay/voice/sf/tour'
     qa_dir = f'{R}/docs/opus-bay/qa/w4/V/voice'
     os.makedirs(out_dir, exist_ok=True); os.makedirs(qa_dir, exist_ok=True)
+    old = json.load(open(f'{qa_dir}/tour-voice-report.json', encoding='utf-8')) if a.merge else None
 
     cache_path = f'{W}/measure-cache.json'
     cache = json.load(open(cache_path)) if os.path.exists(cache_path) else {}
@@ -98,7 +103,9 @@ def main():
     asr_cache = json.load(open(asr_path, encoding='utf-8')) if os.path.exists(asr_path) else {}
     for lang, culture in [('zh', 'zh-CN'), ('en', 'en-US')]:
         rs = [r for r in rows if r['language'] == lang]
-        choices = sorted({plain(r['text']) for r in rs})
+        # the closed grammar: every sentence of the language (with --merge the committed clips' too, so a new clip still
+        # has to be told apart from the 107 others)
+        choices = sorted({plain(r['text']) for r in rs} | ({plain(e['text']) for e in old['clips'].values() if e['language'] == lang} if old else set()))
         todo = [r for r in rs if f"{r['tag']}.wav" not in asr_cache]
         if todo:
             asr_cache.update({k: list(v) for k, v in asr([f"{W}/asr/{r['tag']}.wav" for r in todo], culture, choices, script).items()})
@@ -135,10 +142,17 @@ def main():
 
     gap = np.zeros(int(0.7 * SR), dtype=np.float32)
     for lang, files in previews.items():
+        if not files: continue
         cat = np.concatenate([np.concatenate([load(f), gap]) for f in files])
         tmp = f'{W}/norm/preview-{lang}.wav'
         save(cat, tmp)
-        ffmpeg('-y', '-i', tmp, '-ac', '1', '-c:a', 'aac', '-b:a', '48k', '-movflags', '+faststart', f'{qa_dir}/tour-voice-preview-{lang}.m4a')
+        name = f'tour-voice-preview-added-{lang}.m4a' if old else f'tour-voice-preview-{lang}.m4a'
+        ffmpeg('-y', '-i', tmp, '-ac', '1', '-c:a', 'aac', '-b:a', '48k', '-movflags', '+faststart', f'{qa_dir}/{name}')
+    if old:  # the committed clips first, in their order; an added clip id replaces nothing of theirs
+        clash = set(old['clips']) & set(report['clips'])
+        if clash: raise SystemExit(f'--merge would replace committed clips: {sorted(clash)}')
+        report = {'settings': {**old['settings'], 'added': 'src/opus-bay/data/sf/tourLines.ts TOUR_LINES_2 (after the freeze)'},
+                  'clips': {**old['clips'], **{k: {**v, 'set': 2} for k, v in report['clips'].items()}}}
 
     with open(f'{qa_dir}/tour-voice-report.json', 'w', encoding='utf-8', newline='\n') as f:
         f.write('{\n "settings": ' + json.dumps(report['settings'], ensure_ascii=False) + ',\n "clips": {\n')
@@ -150,7 +164,8 @@ def main():
     lines = ['# Tour narration · listening sheet (lane V, W4-V6)', '',
              'Play `tour-voice-preview-zh.m4a` / `tour-voice-preview-en.m4a` (every pick in this order, 0.7 s apart). Mark a clip',
              '"✗" to mute it (it falls back to the text bubble + chirp) or "retake" for another take. Alternates of every clip: the',
-             'scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`.', '']
+             'scratch folder `C:/Users/willy/opus-qa/w4/w4-v/voice/listen/`. Lines added after the freeze (TOUR_LINES_2, the',
+             'rows marked "+" below): `tour-voice-preview-added-zh.m4a` / `-en.m4a`; their takes: `C:/Users/willy/opus-qa/w4i/i4-v/voice2/listen/`.', '']
     for lang in ('zh', 'en'):
         lines += [f'## {lang}', '', '| # | clip | text | s | gates | recogniser | 你的判断 |', '|---|---|---|---|---|---|---|']
         n = 0
@@ -159,14 +174,15 @@ def main():
             n += 1
             p = e['pick']
             heard = '✓' if p['asr_ok'] else (p['asr'] or '—')
-            lines.append(f"| {n} | `{clip}` | {e['text']} | {p['duration']:.2f} | {'pass' if p['passed'] else 'check'} | {heard} ({p['asr_conf'] or 0:.2f}) | |")
+            lines.append(f"| {n}{' +' if e.get('set') == 2 else ''} | `{clip}` | {e['text']} | {p['duration']:.2f} | {'pass' if p['passed'] else 'check'} | {heard} ({p['asr_conf'] or 0:.2f}) | |")
         lines.append('')
     open(f'{qa_dir}/listening.md', 'w', encoding='utf-8', newline='\n').write('\n'.join(lines))
 
     # the generated clip table (registers itself in ASSETS.voice on import)
     ts = ['/**',
           ' * GENERATED by scripts/opus-sf/voice/w4/tour_post.py — do not edit by hand.',
-          ' * BAYBAY\'s recorded tour narration (lane V, W4-V6): every line of lane C\'s frozen TOUR_LINES (data/sf/tourLines.ts),',
+          ' * BAYBAY\'s recorded tour narration (lane V, W4-V6): every line of lane C\'s frozen TOUR_LINES (data/sf/tourLines.ts)',
+          ' * and of TOUR_LINES_2 (lines added after the freeze, at the end),',
           ' * zh + en, qwen_audio_tts preset "Pixie", trimmed, two-pass loudnorm −18 LUFS / TP −1.5, AAC 64k .m4a + Opus 48k .ogg.',
           ' * Clip id `<lang>-<line id>` like the wave-3 city lines. Measurements and picks: docs/opus-bay/qa/w4/V/voice/.',
           ' * Registered on import (data/assets.ts registerVoiceClips): the table loads with the tour / audio code, never in the main',

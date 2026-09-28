@@ -137,11 +137,35 @@ centre-crop to 4:3, 1200 + 600 WebP q82, as the shipped 12):
 
 | file | tris | bytes | size w x h x d (u) | IoU | non-manifold / islands | palette ΔE12 (before -> after) | status |
 |---|---|---|---|---|---|---|---|
-| postcards/sf-state-quad-1200.webp | - | 71,116 | 1200 x 900 | - | - | - | published, not registered (data/sf/w4Postcards.ts) |
-| postcards/sf-state-quad-600.webp | - | 28,124 | 600 x 450 | - | - | - | published, not registered |
-| postcards/sf-music-concourse-1200.webp | - | 88,882 | 1200 x 900 | - | - | - | published, not registered |
-| postcards/sf-music-concourse-600.webp | - | 32,444 | 600 x 450 | - | - | - | published, not registered |
-| postcards/sf-lands-end-1200.webp | - | 64,372 | 1200 x 900 | - | - | - | published, not registered |
-| postcards/sf-lands-end-600.webp | - | 27,074 | 600 x 450 | - | - | - | published, not registered |
-| postcards/sf-west-portal-1200.webp | - | 54,460 | 1200 x 900 | - | - | - | published, not registered |
-| postcards/sf-west-portal-600.webp | - | 23,064 | 600 x 450 | - | - | - | published, not registered |
+| postcards/sf-state-quad-1200.webp | - | 71,116 | 1200 x 900 | - | - | - | published; registered at the integration (W4-V-I7: POSTCARD_ART, ASSETS.postcards) |
+| postcards/sf-state-quad-600.webp | - | 28,124 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-music-concourse-1200.webp | - | 88,882 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-music-concourse-600.webp | - | 32,444 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-lands-end-1200.webp | - | 64,372 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-lands-end-600.webp | - | 27,074 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-west-portal-1200.webp | - | 54,460 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-west-portal-600.webp | - | 23,064 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+
+## Batch 5 · integration (part a): lane C's line added after the freeze (W4-V-I8), 2026-09-28 01:26 UTC
+
+Balance before: 400.13 (`balance`; newest transaction: this lane's Nano Banana Pro −2 at 2026-09-27 22:20:16 UTC). Lane C's
+request (`sf-w4-C.md` part 2, integration step 7): `metro-sfsu-next-2` in `TOUR_LINES_2` ("下一站 Holloway，就是州立大学。" /
+"Next stop Holloway — that's SF State.", mood happy), replacing the retired `metro-sfsu-next`. Same recipe as batch 3
+(qwen_audio_tts, preset Pixie `0178ef57-ada4-43d9-992b-8d9221045bb4`, wav 48 kHz, the guide instruction + "Happy and warm,
+relaxed."), both speech rates at once. Take list `scripts/opus-sf/voice/w4/takes.ts --set 2`; processed by
+`tour_post.py --merge` (only these takes; the 214 committed picks unchanged byte for byte). Preflight `get_cost` 0.01.
+Raw wavs: `C:/Users/willy/opus-qa/w4i/i4-v/voice2/raw/<index>.wav`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-VO4a | zh-metro-sfsu-next-2, take 0 | qwen_audio_tts, Pixie, zh, speech_rate 1.0 | 下一站 Holloway，就是州立大学。 | 0.01 | 3638d5a6-3937-4d55-b0de-1d07083f8119 | voice2/raw/0.wav | **USED** (3.55 s, every gate, recogniser right 0.93) |
+| W4V-VO4b | zh-metro-sfsu-next-2, take 1 | same, speech_rate 1.08 | same | 0.01 | cc03cdf4-7ab0-42f4-8598-97ef515e3c1e | voice2/raw/1.wav | alternate (3.30 s, passes) |
+| W4V-VO4c | en-metro-sfsu-next-2, take 2 | same, en, speech_rate 1.0 | Next stop Holloway — that's SF State. | 0.02 | 2826fc19-4a30-483e-95c3-9896b56cc096 | voice2/raw/2.wav | **USED** (3.70 s, every gate, recogniser right 0.90) |
+| W4V-VO4d | en-metro-sfsu-next-2, take 3 | same, speech_rate 1.08 | same | 0.02 | 3bf2058e-b50c-4c9b-867d-c36f22550833 | voice2/raw/3.wav | alternate (3.87 s, passes) |
+
+Transactions 2026-09-28 01:26:32, 01:26:43, 01:26:46, 01:26:49 UTC: Qwen Audio 3.0 TTS Flash −0.01, −0.01, −0.02, −0.02; no
+refunds, no other spend in the window. **Subtotal 0.06.** **Wave-4 lane V total: 55.51 credits** of the 120 cap. Balance
+400.13 → **400.07** (`balance`, 2026-09-28 ≈ 01:28 UTC).
+
+Published: `public/opus-bay/voice/sf/tour/{zh,en}-metro-sfsu-next-2.{m4a,ogg}` (the report `tour-voice-report.json` holds
+bytes and sha256), in `src/opus-bay/data/sf/voiceTour.ts`; previews `docs/opus-bay/qa/w4/V/voice/tour-voice-preview-added-{zh,en}.m4a`.

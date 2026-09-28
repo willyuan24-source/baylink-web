@@ -4,6 +4,8 @@
  * chapter intros and outros, the arrival barks and the quiet lines, zh + en.
  *
  *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/voice/w4/takes.ts > C:/Users/willy/opus-qa/w4/w4-v/voice/takes.json
+ *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/voice/w4/takes.ts --set 2 > <work2>/takes.json   (TOUR_LINES_2, the
+ *        lines lane C added after the freeze, e.g. metro-sfsu-next-2; tour_post.py --only merges them into the report)
  *
  * One take = one qwen_audio_tts job (preset "Pixie" as every BAYBAY clip, wav 48 kHz), the line text, the language hint,
  * an instruction of ≤ 128 characters (the service's cap): a guide variant of the shipped BAYBAY instruction (these are
@@ -11,7 +13,7 @@
  * clip at speech_rate 1.0 and 1.08 (wave 3 found the seed ignored for a third of the texts: the rate makes the takes
  * distinct), so the owner's listening sheet always has an alternate.
  */
-import { TOUR_LINES, QUIET_LINES } from '../../../../src/opus-bay/data/sf/tourLines';
+import { TOUR_LINES, TOUR_LINES_2, QUIET_LINES } from '../../../../src/opus-bay/data/sf/tourLines';
 
 export const PIXIE = '0178ef57-ada4-43d9-992b-8d9221045bb4';
 export const RATES = [1.0, 1.08];
@@ -30,8 +32,10 @@ const QUIET_INSTRUCTION = 'Cute otter mascot: soft, gentle and respectful, quiet
 export interface Take { index: number; clip: string; line: string; text: string; language: 'zh' | 'en'; instruction: string; speechRate: number }
 
 const quiet = new Set(Object.values(QUIET_LINES).map(l => l.id));
+const set2 = process.argv.includes('--set') && process.argv[process.argv.indexOf('--set') + 1] === '2';
+const LINES = set2 ? TOUR_LINES_2 : TOUR_LINES;
 const takes: Take[] = [];
-for (const line of TOUR_LINES) {
+for (const line of LINES) {
   for (const language of ['zh', 'en'] as const) {
     const instruction = quiet.has(line.id) ? QUIET_INSTRUCTION : `${GUIDE_INSTRUCTION} ${MOOD_NOTE[line.mood] ?? MOOD_NOTE.happy}`;
     if (instruction.length > MAX_INSTRUCTION) throw new Error(`instruction too long for ${line.id}`);
@@ -40,4 +44,4 @@ for (const line of TOUR_LINES) {
     }
   }
 }
-process.stdout.write(JSON.stringify({ voice: PIXIE, lines: TOUR_LINES.length, takes }, null, 1) + '\n');
+process.stdout.write(JSON.stringify({ voice: PIXIE, lines: LINES.length, set: set2 ? 2 : 1, takes }, null, 1) + '\n');

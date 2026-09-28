@@ -7,7 +7,7 @@ import { ASSETS, SF_MODELS, SF_MODEL_IDS, listAssetUrls, registerVoiceClips } fr
 import { W4_MODELS, W4_MODEL_IDS, w4ModelUrls } from '../src/opus-bay/data/sf/w4Models';
 import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerSvg, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
 import { T1_IDS } from '../src/opus-bay/data/sf/attractions';
-import { TOUR_LINES } from '../src/opus-bay/data/sf/tourLines';
+import { TOUR_LINES, TOUR_LINES_2 } from '../src/opus-bay/data/sf/tourLines';
 import { TOUR_VOICE_CHECK, TOUR_VOICE_CLIPS } from '../src/opus-bay/data/sf/voiceTour';
 import { LOOP_STOPS, W4_STATION_IDS } from '../src/opus-bay/data/sf/stationNames';
 import { W4_SITES, siteLod0R, w4Site } from '../src/opus-bay/world/sf/landmarks/w4sites';
@@ -248,12 +248,12 @@ test('w4 models: landmarkId = the lane L site whose AI slot the model fills (D2 
   }
 });
 
-test('tour voice: every frozen TOUR_LINES line has its zh + en clip, word for word, files = the report (bytes, sha256), 1.5–9 s', () => {
-  assert.equal(Object.keys(TOUR_VOICE_CLIPS).length, TOUR_LINES.length * 2);
+test('tour voice: every frozen TOUR_LINES line (and TOUR_LINES_2, added after the freeze) has its zh + en clip, word for word, files = the report (bytes, sha256), 1.5–9 s', () => {
+  assert.equal(Object.keys(TOUR_VOICE_CLIPS).length, (TOUR_LINES.length + TOUR_LINES_2.length) * 2);
   const report = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/opus-bay/qa/w4/V/voice/tour-voice-report.json'), 'utf8')) as {
     clips: Record<string, { text: string; pick: { duration: number; passed: boolean; files: Record<'m4a' | 'ogg', { path: string; bytes: number; sha256: string }> } }>;
   };
-  for (const line of TOUR_LINES) {
+  for (const line of [...TOUR_LINES, ...TOUR_LINES_2]) {
     for (const lang of ['zh', 'en'] as const) {
       const id = `${lang}-${line.id}`, c = TOUR_VOICE_CLIPS[id], r = report.clips[id];
       assert.ok(c && r, `${id} recorded`);

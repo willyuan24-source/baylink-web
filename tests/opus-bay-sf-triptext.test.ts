@@ -187,7 +187,8 @@ test('pacer: once per stop (review O6), late lines dropped by their ttl, busy ho
 });
 
 test('pacer: a line without a clip (added after the freeze, plain bubbles) is text only and holds its reading time', () => {
-  const p = new LinePacer(clipsOf('zh'));
+  // (lane V recorded metro-sfsu-next-2 at the integration, W4-V-I8: the lookup here leaves it out, as before a recording)
+  const p = new LinePacer(id => (id === 'metro-sfsu-next-2' ? undefined : clipsOf('zh')(id)));
   p.offer(sayLine('metro-sfsu-next-2')!, 0);
   const s = p.step(0)!;
   assert.equal(s.voiced, false, 'no recorded clip yet: no voice-line event (no chirp)');
