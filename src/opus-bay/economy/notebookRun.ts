@@ -2,6 +2,7 @@ import { glideUnlocked } from '../actors/moveApi';
 import { game } from '../core/store';
 import { bitSet, type PlaySaveV1 } from '../data/playSave';
 import { readSave } from '../data/save';
+import { SOUND_IDS } from '../eggs/citySounds';
 import { EGG_IDS } from '../eggs/registry';
 import { isDiscovered } from '../game/discovery';
 import { VIEW_SPOTS, VIEW_SPOT_IDS } from '../play/viewSpots';
@@ -40,7 +41,7 @@ export function stampWorld(): StampWorld {
 
 export const liveViewIds = (): string[] => VIEW_SPOTS.filter(v => !v.retired).map(v => v.id);
 
-const PAGE_LINE: Record<PageId, ELineKey> = { stamps: 'pageStamps', finds: 'pageFinds', views: 'pageViews' };
+const PAGE_LINE: Record<PageId, ELineKey> = { stamps: 'pageStamps', finds: 'pageFinds', views: 'pageViews', sounds: 'pageSounds' };
 
 let states: Record<PageId, PageState> | null = null;
 let version = 0;
@@ -58,7 +59,7 @@ export function checkNotebook(world: StampWorld = stampWorld(), persist = !disco
     const add = newStamps(playState(), world);
     if (add.length) commitPlay(p => ({ ...p, g: { ...p.g, stamp: add.reduce((b, i) => bitSet(b, i), p.g.stamp) } }) as PlaySaveV1);
   }
-  const next = pageStates(playState(), persist ? world : null, EGG_IDS, liveViewIds(), isPaid);
+  const next = pageStates(playState(), persist ? world : null, EGG_IDS, liveViewIds(), isPaid, SOUND_IDS);
   const paid: PageId[] = [];
   for (const id of PAGE_IDS) {
     if (!next[id].full || isPaid(`page:${id}`)) continue;
@@ -73,15 +74,16 @@ export function checkNotebook(world: StampWorld = stampWorld(), persist = !disco
   return paid;
 }
 
-/** Stamps + finds + views collected (the Journal tab's count). */
+/** Stamps + finds + views + city sounds collected (the Journal tab's count). */
 export function notebookCount(): string | undefined {
   if (!states) return undefined;
-  const n = states.stamps.got + states.finds.got + states.views.got;
+  const n = states.stamps.got + states.finds.got + states.views.got + states.sounds.got;
   return n ? String(n) : undefined;
 }
 
 export function initNotebook(): () => void {
-  const offs = [registerRewardIds('page', PAGE_IDS), registerRewardIds('view', VIEW_SPOT_IDS)];
+  // lane A's and lane D's own lists (the same append-only lists their inits register: either keeps the bits in place)
+  const offs = [registerRewardIds('page', PAGE_IDS), registerRewardIds('view', VIEW_SPOT_IDS), registerRewardIds('sound', SOUND_IDS)];
   let busy = false;
   const run = () => {
     if (busy) return;

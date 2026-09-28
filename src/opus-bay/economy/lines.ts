@@ -29,6 +29,7 @@ export const E_LINES = {
   pageStamps: bi('手帐「印章」集满啦！送你一个邮戳相框。', 'The Stamps page is full! A postmark frame for you.'),
   pageFinds: bi('手帐「小发现」集满啦！小铺里多了条寻宝金围巾，我想戴！', 'The Finds page is full! A treasure-gold scarf is in the shop now — can I wear it?'),
   pageViews: bi('手帐「看风景」集满啦！送你金色时刻相框。', 'The Views page is full! A golden-hour frame for you.'),
+  pageSounds: bi('城市之声都听全啦！送你一个城市之声相框。', 'We heard every city sound! A city-sounds frame for you.'),
 } as const;
 export type ELineKey = keyof typeof E_LINES;
 

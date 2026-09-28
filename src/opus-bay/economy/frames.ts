@@ -2,7 +2,7 @@ import type { FrameCanvas } from '../game/photoFrames';
 import type { FrameKind } from './items';
 
 /**
- * Wave 5 · lane E · W5-E7: the photo frames (雾 · 夜 for sale, 金色时刻 and 邮戳 earned with notebook pages), painted on
+ * Wave 5 · lane E · W5-E7: the photo frames (雾 · 夜 for sale; 金色时刻, 邮戳 and — W5-E9 — 城市之声 earned with notebook pages), painted on
  * the polaroid by lane C's frame hook (game/photoFrames.ts registerFrameDecorator; economy/wear.ts registers ours).
  *
  * Every frame paints only the card's border ring — the outer `t` of the card, clipped even-odd — so the photo, the
@@ -82,6 +82,25 @@ export function drawFrame(kind: FrameKind, f: FrameCanvas): void {
     ctx.beginPath(); ctx.arc(W - t * 0.5, t * 0.5, t * 0.34, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#1d2742';
     ctx.beginPath(); ctx.arc(W - t * 0.38, t * 0.42, t * 0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (kind === 'sounds') {
+    // 城市之声: a bay-teal ground, a foghorn's sound rings from the top-left corner and little notes round the ring
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#2f8f88'); g.addColorStop(1, '#1f6461');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(251, 247, 239, 0.4)';
+    ctx.lineWidth = Math.max(1, t * 0.1);
+    for (let k = 1; k <= 7; k++) { ctx.beginPath(); ctx.arc(0, 0, t * 0.9 * k, 0, Math.PI / 2); ctx.stroke(); }
+    const r = seq(41);
+    ctx.fillStyle = '#f7e2a8'; ctx.strokeStyle = '#f7e2a8';
+    const n = Math.round((W + H) / (t * 2.2));
+    for (let i = 0; i < n; i++) {
+      const u = r() * (2 * W + 2 * H), d = t * (0.35 + r() * 0.3), s = t * (0.16 + r() * 0.08);
+      const [x, y] = u < W ? [u, d] : u < W + H ? [W - d, u - W] : u < 2 * W + H ? [2 * W + H - u, H - d] : [d, 2 * W + 2 * H - u];
+      // an eighth note: a tilted head, a stem, a flag
+      ctx.beginPath(); ctx.ellipse(x, y + s * 0.9, s * 0.55, s * 0.4, -0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = Math.max(1, s * 0.16);
+      ctx.beginPath(); ctx.moveTo(x + s * 0.48, y + s * 0.8); ctx.lineTo(x + s * 0.48, y - s * 0.9); ctx.quadraticCurveTo(x + s * 1.1, y - s * 0.5, x + s * 0.9, y); ctx.stroke();
+    }
   } else {
     // postmark: a postage stamp's red border with perforations and SAN FRANCISCO along the top
     ctx.fillStyle = '#b5553c'; ctx.fillRect(0, 0, W, H);

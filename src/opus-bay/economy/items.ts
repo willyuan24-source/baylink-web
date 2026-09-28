@@ -21,10 +21,10 @@ import type { WearSlot } from '../data/playSave';
 
 export type Shelf = 'baybay' | 'me' | 'rides' | 'photos' | 'helpers';
 export type HatKind = 'beanie' | 'sun' | 'sailor';
-export type FrameKind = 'fog' | 'golden' | 'night' | 'postmark';
+export type FrameKind = 'fog' | 'golden' | 'night' | 'postmark' | 'sounds';
 export type UseKind = 'compass' | 'magnifier' | 'fly-ticket' | 'fly-gift';
 /** the notebook pages (economy/stamps.ts PAGE_IDS) */
-export type PageId = 'stamps' | 'finds' | 'views';
+export type PageId = 'stamps' | 'finds' | 'views' | 'sounds';
 
 export interface ItemDef {
   /** append-only id `[a-z0-9-]` (the `shop` event's item, the `coins` source `shop:<id>`) */
@@ -103,6 +103,8 @@ export const ITEMS: readonly ItemDef[] = [
   { id: 'fly-ticket', shelf: 'helpers', slot: 'use', name: bi('飞行券', 'Flight ticket'), short: bi('飞行券', 'Ticket'), price: 10, use: 'fly-ticket', note: bi('还没有鹈鹕时飞一次', 'One flight before the pelican') },
   // the first 飞行券 is BAYBAY's gift: this bit remembers it was given (never shown, never sold)
   { id: 'fly-gift', shelf: 'helpers', slot: 'use', name: bi('BAYBAY 送的飞行券', 'BAYBAY’s gift ticket'), short: bi('送的飞行券', 'Gift ticket'), price: 0, use: 'fly-gift', hidden: true },
+  // W5-E9: the 城市之声 page (lane D's twelve city sounds) gives it
+  { id: 'frame-sounds', shelf: 'photos', slot: 'frame', name: bi('城市之声相框', 'City-sounds frame'), short: bi('城市之声', 'City sounds'), price: 0, frame: 'sounds', earn: 'sounds' },
 ];
 
 export const ITEM_IDS: readonly string[] = ITEMS.map(i => i.id);
@@ -141,10 +143,11 @@ export const EARN_NAMES: Readonly<Record<PageId, Bilingual>> = {
   stamps: bi('集满手帐「印章」页', 'Fill the notebook’s Stamps page'),
   finds: bi('集满手帐「小发现」页', 'Fill the notebook’s Finds page'),
   views: bi('集满手帐「看风景」页', 'Fill the notebook’s Views page'),
+  sounds: bi('集满手帐「城市之声」页', 'Fill the notebook’s City sounds page'),
 };
 
 /** The item a full page gives. */
-export const PAGE_ITEM: Readonly<Record<PageId, string>> = { stamps: 'frame-postmark', finds: 'scarf-treasure', views: 'frame-golden' };
+export const PAGE_ITEM: Readonly<Record<PageId, string>> = { stamps: 'frame-postmark', finds: 'scarf-treasure', views: 'frame-golden', sounds: 'frame-sounds' };
 
 /** Items the shop sells (wearables and conveniences with a price; not earned, hidden or retired). */
 export const forSale = (it: ItemDef): boolean => it.price > 0 && !it.earn && !it.hidden && !it.retired;

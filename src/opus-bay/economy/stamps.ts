@@ -15,12 +15,13 @@ import type { PageId } from './items';
  */
 
 /** APPEND-ONLY: bit i of the play save's `page` bitset (registerRewardIds('page', PAGE_IDS)). */
-export const PAGE_IDS: readonly PageId[] = ['stamps', 'finds', 'views'];
+export const PAGE_IDS: readonly PageId[] = ['stamps', 'finds', 'views', 'sounds'];
 export const PAGE_COINS = 30;
 export const PAGE_NAMES: Readonly<Record<PageId, Bilingual>> = {
   stamps: { zh: '印章', en: 'Stamps' },
   finds: { zh: '小发现', en: 'Finds' },
   views: { zh: '看风景', en: 'Views' },
+  sounds: { zh: '城市之声', en: 'City sounds' },
 };
 
 export type StampGlyph = 'Landmark' | 'Sailboat' | 'Waves' | 'Signpost' | 'Castle' | 'Trees' | 'Mountain' | 'ShoppingBag' | 'GraduationCap'
@@ -122,15 +123,16 @@ export function newStamps(p: Readonly<PlaySaveV1>, w: StampWorld): number[] {
 export interface PageState { id: PageId; got: number; total: number; full: boolean }
 
 /**
- * Each page's progress. `eggIds` / `viewIds` are lanes D's and A's registered lists (the not-retired ones count);
- * `found(source)` is the ledger's isPaid (`egg:<id>`, `view:<id>`).
+ * Each page's progress. `eggIds` / `viewIds` / `soundIds` are lanes D's, A's and D's registered lists (the not-retired
+ * ones count); `found(source)` is the ledger's isPaid (`egg:<id>`, `view:<id>`, `sound:<id>`).
  */
-export function pageStates(p: Readonly<PlaySaveV1>, w: StampWorld | null, eggIds: readonly string[], viewIds: readonly string[], found: (source: string) => boolean): Record<PageId, PageState> {
+export function pageStates(p: Readonly<PlaySaveV1>, w: StampWorld | null, eggIds: readonly string[], viewIds: readonly string[], found: (source: string) => boolean, soundIds: readonly string[] = []): Record<PageId, PageState> {
   const s = STAMPS.reduce((n, _, i) => n + (stamped(p, i, w) ? 1 : 0), 0);
   const e = eggIds.filter(id => found(`egg:${id}`)).length;
   const v = viewIds.filter(id => found(`view:${id}`)).length;
+  const c = soundIds.filter(id => found(`sound:${id}`)).length;
   const st = (id: PageId, got: number, total: number): PageState => ({ id, got, total, full: total > 0 && got >= total });
-  return { stamps: st('stamps', s, STAMPS.length), finds: st('finds', e, eggIds.length), views: st('views', v, viewIds.length) };
+  return { stamps: st('stamps', s, STAMPS.length), finds: st('finds', e, eggIds.length), views: st('views', v, viewIds.length), sounds: st('sounds', c, soundIds.length) };
 }
 
 /** Stamps kept in the save (the tab's count before the world is read). */

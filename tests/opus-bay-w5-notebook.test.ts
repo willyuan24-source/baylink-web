@@ -20,6 +20,7 @@ const { todayLine } = await import('../src/opus-bay/economy/today');
 const { ATTRACTIONS, ARRIVAL_PLACES } = await import('../src/opus-bay/data/sf/attractions');
 const { EGG_AREAS, EGG_IDS, EGGS } = await import('../src/opus-bay/eggs/registry');
 const { VIEW_SPOTS, VIEW_SPOT_IDS } = await import('../src/opus-bay/play/viewSpots');
+const { SOUND_IDS } = await import('../src/opus-bay/eggs/citySounds');
 
 function fresh() {
   save.resetSaveCache();
@@ -29,6 +30,7 @@ function fresh() {
   L.registerRewardIds('page', S.PAGE_IDS);
   L.registerRewardIds('view', VIEW_SPOT_IDS);
   L.registerRewardIds('egg', EGG_IDS);
+  L.registerRewardIds('sound', SOUND_IDS);
 }
 
 /** A world where nothing is done yet, with overrides. */
@@ -52,7 +54,7 @@ test('W5-E5 stamps: the 16 must-sees are the attractions of rank 1 (ids, place i
   // APPEND-ONLY: the head never moves
   assert.deepEqual(S.STAMP_IDS.slice(0, 3), ['t1:golden-gate-bridge', 't1:alcatraz', 't1:fishermans-wharf']);
   assert.equal(S.STAMP_IDS.indexOf('pelican'), 16);
-  assert.deepEqual([...S.PAGE_IDS], ['stamps', 'finds', 'views']);
+  assert.deepEqual([...S.PAGE_IDS], ['stamps', 'finds', 'views', 'sounds']);
   assert.equal(new Set(S.STAMP_IDS).size, S.STAMP_IDS.length);
 });
 
@@ -113,9 +115,16 @@ test('W5-E5 a full page pays 30 金币 and gives its cosmetic, once', () => {
   assert.deepEqual(N.checkNotebook(all, true), ['finds']);
   assert.equal(W.owns('scarf-treasure'), true);
   assert.equal(L.coinsTotal(), 3 * S.PAGE_COINS + 16 * 5 + 24 * 10);
+  // W5-E9: the 城市之声 page — lane D pays sound:<id> as each is heard
+  for (const id of SOUND_IDS.slice(0, -1)) L.pay(`sound:${id}`, 5);
+  assert.deepEqual(N.checkNotebook(all, true), [], 'one sound short');
+  L.pay(`sound:${SOUND_IDS.at(-1)}`, 5);
+  assert.deepEqual(N.checkNotebook(all, true), ['sounds']);
+  assert.equal(W.owns('frame-sounds'), true, 'the 城市之声 frame');
+  assert.equal(L.coinsTotal(), 4 * S.PAGE_COINS + 16 * 5 + 24 * 10 + SOUND_IDS.length * 5);
   const st = N.notebookPages()!;
-  assert.deepEqual([st.stamps.got, st.stamps.total, st.finds.got, st.finds.total, st.views.got, st.views.total], [22, 22, 24, 24, 16, 16]);
-  assert.equal(N.notebookCount(), String(22 + 24 + 16));
+  assert.deepEqual([st.stamps.got, st.stamps.total, st.finds.got, st.finds.total, st.views.got, st.views.total, st.sounds.got, st.sounds.total], [22, 22, 24, 24, 16, 16, 12, 12]);
+  assert.equal(N.notebookCount(), String(22 + 24 + 16 + 12));
 });
 
 test('W5-E5 MF8: the pages list something in every area (the eight egg areas; view spots in five of the six attraction areas)', () => {
@@ -163,7 +172,7 @@ test('W5-E5 the notebook renders in node: the header, four pages, the stamps wit
   const html = renderToStaticMarkup(h(Notebook));
   assert.match(html, /旧金山 9月28日 周一/);
   assert.match(html, /明天可能不一样/);
-  for (const p of ['印章', '小发现', '看风景', '足迹']) assert.match(html, new RegExp(`role="tab"[^>]*><span>${p}</span>`), p);
+  for (const p of ['印章', '小发现', '看风景', '城市之声', '足迹']) assert.match(html, new RegExp(`role="tab"[^>]*><span>${p}</span>`), p);
   assert.match(html, /<span>印章<\/span><small>2\/22<\/small>/);
   assert.match(html, /集满这一页：\+30 金币 · 邮戳相框/);
   assert.match(html, /ob-nb-disc is-on[^"]*"[^>]*>[^]*?科伊特塔/, 'Coit stamped');
@@ -209,9 +218,14 @@ test('W5-E9 the should pages: 我的记录 from lane A\'s play.b (today only for
     assert.match(finds, new RegExp(`彩蛋明信片<small class="ob-nb-h-count">1/${EGG_POSTCARDS.length}</small>`));
     assert.match(finds, /<img src="\/opus-bay\/w5\/postcards\/telegraph-hill-parrots-600\.webp"/, 'the parrots\' postcard, found');
     assert.equal((finds.match(/ob-nb-card is-blank/g) ?? []).length, EGG_POSTCARDS.length - 1, 'the others still hidden');
+    assert.ok(L.pay('sound:ggb-foghorns', 5) > 0);
+    N.checkNotebook(world(), false);
+    const sounds = page('sounds');
+    assert.match(sounds, /金门大桥的雾笛[^]*?雾天里/, 'a heard sound: its name and fact');
+    assert.match(sounds, /<span>城市之声<\/span><small>1\/12<\/small>/);
     const steps = page('steps');
     assert.match(steps, /我的记录[^]*?今天 42 级 · 一共 420 级[^]*?缆车摇铃[^]*?最高 18 分/);
-    assert.doesNotMatch(stamps + finds + steps, /连续|签到/, 'never a streak');
+    assert.doesNotMatch(stamps + finds + sounds + steps, /连续|签到/, 'never a streak');
   } finally {
     g.localStorage = had;
     __setBayNowForTests(null);

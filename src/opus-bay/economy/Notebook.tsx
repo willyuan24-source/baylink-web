@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
-  Binoculars, Bird, BusFront, CableCar, Car, Castle, CircleHelp, CloudFog, Cookie, Crown, Droplets, Fish, Flag, Flower2, Footprints, GraduationCap, Landmark,
+  AudioLines, Binoculars, Bird, BusFront, CableCar, Car, Castle, CircleHelp, CloudFog, Cookie, Crown, Droplets, Ear, Fish, Flag, Flower2, Footprints, GraduationCap, Landmark,
   Laugh, Mail, Megaphone, Mountain, Navigation, Octagon, Orbit, PartyPopper, Phone, Plane, Rainbow, Sailboat, Shell, ShoppingBag, Signpost, Sparkles, Stamp, Store, Sun,
   Ticket, TrainFront, TramFront, Trees, Trophy, Waves, X,
 } from 'lucide-react';
@@ -11,6 +11,7 @@ import { EGG_POSTCARDS, type EggPostcard } from '../data/sf/eggPostcards';
 import { bayParts } from '../game/bayNow';
 import { discoveredIds, visitedZoneIds } from '../game/discovery';
 import { goTo } from '../game/goTo';
+import { CITY_SOUNDS } from '../eggs/citySounds';
 import { EGG_AREAS, EGG_AREA_NAMES, EGGS } from '../eggs/registry';
 import { useT } from '../i18n';
 import { VIEW_SPOTS } from '../play/viewSpots';
@@ -34,10 +35,13 @@ import './economy.css';
  *
  * W5-E9 (the should pages): 印章 also shows the event souvenirs (lane R's SOUVENIR_IDS, earned only at a real event in
  * its real window; never part of the full page), 小发现 opens with lane V's six secret postcards (shown once their egg
- * is found, tap for the big one), and 足迹 starts with 我的记录 (lane A's stair steps and activity bests).
+ * is found, tap for the big one), 足迹 starts with 我的记录 (lane A's stair steps and activity bests), and the 城市之声
+ * page lists lane D's twelve city sounds (riddle and where to listen until heard; then the name and its fact) — a
+ * full page pays 30 金币 and gives the 城市之声 frame.
  */
 
 type NbPage = PageId | 'steps';
+const NB_PAGES: readonly NbPage[] = ['stamps', 'finds', 'views', 'sounds', 'steps'];
 const PAGE_KEY = 'opus-bay:e-notebook-page';
 const SEEN_KEY = 'opus-bay:e-notebook-seen:v1';
 
@@ -236,6 +240,36 @@ function FindsPage({ seen }: { seen: (k: string) => boolean }) {
   );
 }
 
+/** Lane D's 城市之声 (W5-D6): what to listen for and where until heard, then its name and fact. */
+function SoundsPage({ seen }: { seen: (k: string) => boolean }) {
+  const { t } = useT();
+  return (
+    <>
+      <p className="ob-muted">{t('在对的地方、对的时候点「听一听」，站着听 3 秒。有几种声音要赶上它响的那一刻。', 'Tap 听一听 in the right place at the right time and stand still for 3 seconds. Some sounds only come at their moment.')}</p>
+      {EGG_AREAS.map(area => {
+        const list = CITY_SOUNDS.filter(s => s.area === area);
+        if (!list.length) return null;
+        return (
+          <section key={area} className="ob-block">
+            <h3 className="ob-h3"><AudioLines size={15} aria-hidden />{t(EGG_AREA_NAMES[area])}</h3>
+            <ul className="ob-nb-list">
+              {list.map(s => {
+                const on = isPaid(`sound:${s.id}`);
+                return (
+                  <li key={s.id} className={on ? 'is-on' : ''}>
+                    <Disc Glyph={on ? AudioLines : Ear} ink="#2f8f88" on={on} fresh={on && !seen(`sound:${s.id}`)} tilt={tiltOf(s.id)} />
+                    <span className="ob-nb-row-text"><strong>{on ? t(s.name) : t(s.riddle)}</strong><small>{on ? t(s.fact) : t(s.how)}</small></span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </>
+  );
+}
+
 const VIEW_AREAS: readonly AttractionArea[] = ['north-downtown', 'bridge-presidio', 'coast', 'park-sunset', 'twin-peaks-mission', 'south'];
 
 function ViewsPage({ seen }: { seen: (k: string) => boolean }) {
@@ -281,7 +315,7 @@ export default function Notebook() {
   const { t } = useT();
   const lv = useSyncExternalStore(subscribeLedger, ledgerVersion, ledgerVersion);
   const nv = useSyncExternalStore(subscribeNotebook, notebookVersion, notebookVersion);
-  const [page, setPageState] = useState<NbPage>(() => { const v = readJson<string>(PAGE_KEY, 'stamps'); return (['stamps', 'finds', 'views', 'steps'] as string[]).includes(v) ? (v as NbPage) : 'stamps'; });
+  const [page, setPageState] = useState<NbPage>(() => { const v = readJson<string>(PAGE_KEY, 'stamps'); return (NB_PAGES as readonly string[]).includes(v) ? (v as NbPage) : 'stamps'; });
   const tabsRef = useRef<HTMLDivElement>(null);
   // a new page starts at its top (the Journal keeps its scroll between pages otherwise)
   const setPage = (p: NbPage) => { setPageState(p); writeJson(PAGE_KEY, p); requestAnimationFrame(() => tabsRef.current?.scrollIntoView({ block: 'nearest' })); };
@@ -295,6 +329,7 @@ export default function Notebook() {
     ...EGGS.filter(e => isPaid(`egg:${e.id}`)).map(e => `egg:${e.id}`),
     ...VIEW_SPOTS.filter(v => isPaid(`view:${v.id}`)).map(v => `view:${v.id}`),
     ...SOUVENIR_IDS.filter(id => isPaid(`event:${id}`)).map(id => `event:${id}`),
+    ...CITY_SOUNDS.filter(s => isPaid(`sound:${s.id}`)).map(s => `sound:${s.id}`),
   ], [p, w]);
   const seen = useSeen(keys);
   const today = todayLine();
@@ -302,6 +337,7 @@ export default function Notebook() {
     { id: 'stamps', label: t(PAGE_NAMES.stamps), count: pages ? `${pages.stamps.got}/${pages.stamps.total}` : undefined },
     { id: 'finds', label: t(PAGE_NAMES.finds), count: pages ? `${pages.finds.got}/${pages.finds.total}` : undefined },
     { id: 'views', label: t(PAGE_NAMES.views), count: pages ? `${pages.views.got}/${pages.views.total}` : undefined },
+    { id: 'sounds', label: t(PAGE_NAMES.sounds), count: pages ? `${pages.sounds.got}/${pages.sounds.total}` : undefined },
     { id: 'steps', label: t('足迹', 'Footprints') },
   ];
   const state = page !== 'steps' ? pages?.[page] : undefined;
@@ -322,6 +358,7 @@ export default function Notebook() {
       {page === 'stamps' && <StampsPage seen={seen} goSteps={() => setPage('steps')} w={w} />}
       {page === 'finds' && <FindsPage seen={seen} />}
       {page === 'views' && <ViewsPage seen={seen} />}
+      {page === 'sounds' && <SoundsPage seen={seen} />}
       {page === 'steps' && <><RecordsBlock /><FootprintsTab embedded /></>}
     </div>
   );

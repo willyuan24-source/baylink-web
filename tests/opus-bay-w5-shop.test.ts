@@ -48,6 +48,7 @@ test('W5-E6 items: append-only order pinned, ids well formed and unique, every w
   assert.equal(I.itemIndex('scarf-treasure'), 25);
   assert.equal(I.itemIndex('fly-ticket'), 28);
   assert.equal(I.itemIndex('fly-gift'), 29);
+  assert.equal(I.itemIndex('frame-sounds'), 30, 'W5-E9: appended for the 城市之声 page');
   assert.equal(new Set(I.ITEM_IDS).size, I.ITEMS.length);
   assert.ok(I.ITEMS.length <= MAX_WEAR_INDEX + 1, 'every item index fits a wear slot number');
   for (const it of I.ITEMS) {
@@ -309,7 +310,7 @@ function fakeCtx() {
 }
 
 test('W5-E7 the frames paint only the card\'s ring (clipped even-odd), thin enough to miss the caption', () => {
-  for (const kind of ['fog', 'golden', 'night', 'postmark'] as const) {
+  for (const kind of ['fog', 'golden', 'night', 'postmark', 'sounds'] as const) {
     const { ctx, calls } = fakeCtx();
     const f = { ctx, width: 1340, height: 1003, photo: { x: 36, y: 36, w: 1268, h: 840 }, band: { x: 0, y: 876, w: 1340, h: 127 }, pad: 36, caption: 'x', stamp: 'y', at: new Date() };
     frames.drawFrame(kind, f);
