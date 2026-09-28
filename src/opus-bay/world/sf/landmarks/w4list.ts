@@ -5,6 +5,7 @@ import { bernalHeights } from './bernal-heights';
 import { bisonPaddock } from './bison-paddock';
 import { blueHeronLake } from './blue-heron-lake';
 import { botanicalGardenGate } from './botanical-garden-gate';
+import { cableCarMuseum } from './cable-car-museum';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { clementStreet } from './clement-street';
@@ -100,4 +101,5 @@ export const W4_SITES: readonly W4Site[] = [
   coronaHeights,
   bernalHeights,
   stMarysCathedral,
+  cableCarMuseum,
 ];
