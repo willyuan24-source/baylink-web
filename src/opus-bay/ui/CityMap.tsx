@@ -19,11 +19,10 @@ import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRout
 import { parseMapPanelId } from '../game/mapPanel';
 import { autoWalkSeconds, routeAhead, routeTravelLabel, secondsLabel } from '../game/travel';
 import { tripRemainingSeconds } from '../game/tripPlan';
-import { TRIP_MODE_NAMES } from '../game/tripTypes';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import { type MapView, clampView, drawCityMap, labelWidth, maxScale, paperShare, thinPx, toPx, zoomAt } from './cityMapDraw';
-import { type MapSel, type MapTarget, NORTH_DEG, buildScene, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
+import { type MapSel, type MapTarget, NORTH_DEG, buildScene, canvasMarksKey, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { CityMapList, type MapTab } from './CityMapList';
 import { BaybayFace, Sheet } from './common';
@@ -34,6 +33,7 @@ import { MapFilters } from './MapFilters';
 import { MapLegend } from './MapLegend';
 import { type StationCtx, drawTransitLines, tripRouteStrokes } from './mapLines';
 import { MapPaperLayer } from './MapPaperLayer';
+import { tripEta } from './mapTrips';
 import { PlaceActions, type WalkInfo } from './PlaceActions';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
@@ -53,6 +53,10 @@ import './map-w4.css';
 const MAX_DPR = 2;
 const MAX_CANVAS = 1800;
 const HIT_PX = 22;
+/** From this frame height the tool column is one button wide (below it: two columns, the 375 × 667 phone) */
+const TALL_TOOLS_H = 300;
+/** px the right-hand tool column takes (labels keep off it, framings keep you, BAYBAY and the target clear of it) */
+const toolColumn = (frameH: number) => (frameH >= TALL_TOOLS_H ? 48 : 90);
 
 /** The selected destination's walking route (G1-8): pending while E2's time-sliced A* runs, then the route or 'none'. */
 interface RoutePlan { id: string; status: 'pending' | 'ok' | 'none'; route: PlannedRoute | null }
@@ -83,9 +87,10 @@ function useRoutePlan(dest: Dest | null, pos: Vec2): RoutePlan | null {
 }
 
 /** "约 3 分钟" of auto-walk left on a route for someone at pos, and that route's remaining polyline (G1-review). */
-function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual; walked: Vec2[] } {
+function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bilingual; seconds: number; walked: Vec2[] } {
   const ahead = routeAhead(route.points, pos);
-  return { points: ahead.points, time: secondsLabel(autoWalkSeconds(ahead.length + ahead.off)), walked: [{ x: pos.x, z: pos.z }, ...ahead.points] };
+  const seconds = autoWalkSeconds(ahead.length + ahead.off);
+  return { points: ahead.points, time: secondsLabel(seconds), seconds, walked: [{ x: pos.x, z: pos.z }, ...ahead.points] };
 }
 
 /** The map's target: an attraction's badge becomes the pin, or a plain place (the island piers: the badge stays). */
@@ -185,6 +190,8 @@ export function CityMapPanel() {
         player: { x: runtime.player.x, z: runtime.player.z },
         focus: targetPoint ? [targetPoint] : [],
         t1: T1_LIST.map(a => ({ x: a.x, z: a.z, found: isDiscovered(a.placeId ?? a.id) })),
+        // you, BAYBAY and the target clear of the tool column (the size's own: the column is one or two wide)
+        right: toolColumn(size.h),
       });
     });
   }, [size?.w, size?.h]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -221,7 +228,8 @@ export function CityMapPanel() {
   }, [view, pos]);
   const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
   const youAt = view ? toPx(view, pos.x, pos.z) : null;
-  const tallTools = !!size && size.h >= 300;
+  const tallTools = !!size && size.h >= TALL_TOOLS_H;
+  // (a literal, not toolColumn(): the React compiler keeps the memos below only for values it knows are primitives)
   const toolRight = tallTools ? 48 : 90;
   // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -363,18 +371,42 @@ export function CityMapPanel() {
     const stops = r.stops.map((st, i) => ({ x: st.x, z: st.z, n: i + 1, attraction: (st.attraction ? ATTRACTION_INDEX.resolve(st.attraction) : st.placeId ? ATTRACTION_INDEX.primary(st.placeId) : undefined)?.id ?? null }));
     return { xz: p.points, stops, numbers: new Map(stops.filter(st => st.attraction).map(st => [st.attraction!, st.n])) };
   }, [walkId]);
-  // the scene (after the route: its time chip is an obstacle for the labels)
+  // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
+  const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;
+  // the trip's ETA chip at its destination (plan §4.1): "市政厅 · 步行 约 2 分钟"
+  const tripChip = useMemo(() => {
+    if (!trip || !view) return null;
+    const end = trip.legs[trip.legs.length - 1]?.to;
+    if (!end) return null;
+    const [x, y] = toPx(view, end.x, end.z);
+    if (x < -40 || y < -40 || x > view.w + 40 || y > view.h + 40) return null;
+    const eta = tripEta(trip);
+    const text = t({ zh: `${tripName?.zh ?? ''} · ${eta.zh}`, en: `${tripName?.en ?? ''} · ${eta.en}` });
+    // kept inside the frame (clear of the tool column and the credit line): the target may sit at its edge
+    const cw = labelWidth(text, 11) + 16;
+    return { x: Math.min(view.w - toolRight - cw / 2 - 4, Math.max(cw / 2 + 4, x)), y: Math.min(view.h - 52, Math.max(8, y)), text, cw };
+  }, [trip, view, tripName, t, toolRight]);
+  // the scene (after the route and the trip: their time chips are boxes the labels keep off — the trip's covered the
+  // target's own name, integration review)
   const scene = useMemo(() => {
     if (!view) return null;
-    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 26, y: 26, r: 18 }, ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: routeDraw.cw / 2 }] : [])];
+    const obstacles = [
+      ...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 26, y: 26, r: 18 },
+      ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: 10, hw: routeDraw.cw / 2, hh: 10 }] : []),
+      ...(tripChip ? [{ x: tripChip.x, y: tripChip.y + 22, r: 10, hw: tripChip.cw / 2, hh: 10 }] : []),
+    ];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
       discovered: isDiscovered, arrived: arrivalSeen, selected: sel, target, tourNext, stops: walk?.numbers ?? null, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
     });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw, arrivalNow, walk]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw, tripChip, arrivalNow, walk]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
   const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
+  // what the canvas draws of the scene, by content: you and BAYBAY moving re-lay the labels (10 Hz while you walk with
+  // the map open) but move no station mark or dot, so the base map is not redrawn for them (integration review)
+  const canvasKey = scene ? canvasMarksKey(scene, !!walk) : '';
+  const marks = useMemo(() => (scene ? { stations: scene.stations, dots: scene.canvasDots, onBadge: new Set(scene.layout.kept.map(kk => kk.id)) } : null), [canvasKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv || !view || !far) return;
@@ -392,13 +424,11 @@ export function CityMapPanel() {
       const fl = filterLines(filter);
       drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
       // the stops whose badge is on the map wear their number there
-      const onBadge = new Set(scene?.layout.kept.map(kk => kk.id) ?? []);
-      const walkDraw = walk ? { xz: walk.xz, stops: walk.stops.filter(st => !st.attraction || !onBadge.has(st.attraction)) } : null;
-      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk: walkDraw, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
+      const walkDraw = walk ? { xz: walk.xz, stops: walk.stops.filter(st => !st.attraction || !marks?.onBadge.has(st.attraction)) } : null;
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk: walkDraw, stations: marks?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: marks?.dots ?? [] });
     });
     return () => cancelAnimationFrame(id);
-  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, scene]);
-
+  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, marks]);
 
   // the map opened on a trip: frame you and the whole way once the route is known
   const framedTrip = useRef(false);
@@ -413,21 +443,6 @@ export function CityMapPanel() {
     const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2, toolRight) : v));
   };
-  // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
-  const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;
-  // the trip's ETA chip at its destination (plan §4.1): "市政厅 · 步行 约 2 分钟"
-  const tripChip = useMemo(() => {
-    if (!trip || !view) return null;
-    const end = trip.legs[trip.legs.length - 1]?.to;
-    if (!end) return null;
-    const [x, y] = toPx(view, end.x, end.z);
-    if (x < -40 || y < -40 || x > view.w + 40 || y > view.h + 40) return null;
-    const mode = TRIP_MODE_NAMES[trip.option.mode], time = timeLabel(tripRemainingSeconds(trip));
-    const text = t({ zh: `${tripName?.zh ?? ''} · ${mode.zh} ${time.zh}`, en: `${tripName?.en ?? ''} · ${mode.en} ${time.en}` });
-    // kept inside the frame (clear of the tool column and the credit line): the target may sit at its edge
-    const cw = labelWidth(text, 11) + 16;
-    return { x: Math.min(view.w - toolRight - cw / 2 - 4, Math.max(cw / 2 + 4, x)), y: Math.min(view.h - 52, Math.max(8, y)), text, cw };
-  }, [trip, view, tripName, t, toolRight]);
   const walkInfo: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
@@ -542,9 +557,9 @@ export function CityMapPanel() {
 
       <MapFilters value={filter} onChange={setFilter} />
 
-      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} onRoute={pickRoute} />}
+      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} onRoute={pickRoute} />}
       {selStation && (
-        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} placeId={dest?.placeId ?? null} />
+        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null} />
       )}
 
       <CityMapList

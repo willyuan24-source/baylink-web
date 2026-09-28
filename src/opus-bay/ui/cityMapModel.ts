@@ -72,8 +72,12 @@ export interface SceneInput {
   t: (b: Bilingual) => string;
   /** SVG node budget (150 desktop, 120 on a coarse pointer) */
   maxNodes: number;
-  /** markers drawn outside the layout that labels keep off (you, BAYBAY, the rideables), px */
-  obstacles?: readonly { x: number; y: number; r: number }[];
+  /**
+   * markers drawn outside the layout that labels keep off (you, BAYBAY, the rideables), px; `hw` / `hh` make one a box
+   * (the route's and the trip's time chips: a 150 px wide chip as a disc of radius 75 cleared a whole neighbourhood of
+   * labels, and the trip chip was no obstacle at all — it covered the target's own name)
+   */
+  obstacles?: readonly { x: number; y: number; r: number; hw?: number; hh?: number }[];
   toolRight?: number;
   creditBottom?: number;
 }
@@ -178,7 +182,10 @@ export function buildScene(o: SceneInput): MapScene {
     }
   }
   // 5. you, BAYBAY, the rideables: labels keep off them, nothing merges with them, they cost no node here
-  (o.obstacles ?? []).forEach((b, i) => all.push({ id: `${OBSTACLE_PREFIX}${i}`, x: b.x, y: b.y, r: b.r, prio: 0.5, clusterable: false, host: false, nodes: 0 }));
+  (o.obstacles ?? []).forEach((b, i) => all.push({
+    id: `${OBSTACLE_PREFIX}${i}`, x: b.x, y: b.y, r: b.r, ...(b.hw !== undefined || b.hh !== undefined ? { hw: b.hw ?? b.r, hh: b.hh ?? b.r } : {}),
+    prio: 0.5, clusterable: false, host: false, nodes: 0,
+  }));
   const layout = layoutMap(all, { w: v.w, h: v.h, clusters: rules.clusters, maxNodes: o.maxNodes, toolRight: o.toolRight ?? 48, creditBottom: o.creditBottom ?? 18 });
   layout.kept = layout.kept.filter(kk => !kk.id.startsWith(OBSTACLE_PREFIX));
   // the budget's leftovers: plain canvas dots
@@ -192,6 +199,24 @@ export function buildScene(o: SceneInput): MapScene {
 }
 
 const catColorOf = (c: AttractionCat) => ATTRACTION_CAT_STYLE[c].color;
+
+/**
+ * What the canvas draws of a scene, as a string (integration review): the station marks where they are drawn, the
+ * over-budget dots, and — while a walking route is highlighted — the kept badge ids (its stops on a badge wear their
+ * number there, the others get a disc). Labels and the you / BAYBAY / rideable obstacles are not in it: the player
+ * walking with the map open re-lays the labels at 10 Hz, and the base map is redrawn only when this changes. Pure.
+ */
+export function canvasMarksKey(scene: MapScene, walk = false): string {
+  let k = '';
+  for (const m of scene.stations) {
+    const y = m.sym;
+    k += `${m.st.id}@${m.x.toFixed(1)},${m.y.toFixed(1)}:${y.kind}${y.w}x${y.h}${y.ring}${y.locale}${y.stair ? 's' : ''}${y.discs.length};`;
+  }
+  k += '|';
+  for (const d of scene.canvasDots) k += `${d.x.toFixed(1)},${d.y.toFixed(1)},${d.r},${d.color},${d.alpha};`;
+  if (walk) { k += '|'; for (const kk of scene.layout.kept) k += `${kk.id},`; }
+  return k;
+}
 
 /** How far (px) a station mark may move off its point to clear an attraction badge. */
 export const STATION_NUDGE_PX = 24;
@@ -287,12 +312,15 @@ export function sfLandView(v: MapView, frame: MapFrameBox, pad = 6): MapView {
  * The map's first view (plan §4.1 "Framing"): with a trip / tour / target, the player + the target (+ the next stop),
  * 48 px padding, s in [0.25, 1.2]; otherwise the player + the 3 nearest T1 not visited yet, s in [0.3, 0.8] (from the
  * Ferry that frames Coit, Chinatown and Union Square instead of the Bay); nothing left to find: the player at s 0.6.
+ * `right`: px kept clear for the tool column, as every other framing (integration review: opened mid-trip, you and
+ * BAYBAY sat under the zoom buttons on the desktop and the phone).
  */
-export function firstOpenView(v: MapView, frame: MapFrameBox, o: { player: Vec2; focus?: readonly Vec2[]; t1: readonly (Vec2 & { found: boolean })[] }): MapView {
-  if (o.focus?.length) return fitAbs(v, frame, [o.player, ...o.focus], 48, 0.25, 1.2);
+export function firstOpenView(v: MapView, frame: MapFrameBox, o: { player: Vec2; focus?: readonly Vec2[]; t1: readonly (Vec2 & { found: boolean })[]; right?: number }): MapView {
+  const right = o.right ?? 0;
+  if (o.focus?.length) return fitAbs(v, frame, [o.player, ...o.focus], 48, 0.25, 1.2, right);
   const near = o.t1.filter(a => !a.found).map(a => ({ a, d: Math.hypot(a.x - o.player.x, a.z - o.player.z) })).sort((p, q) => p.d - q.d).slice(0, 3).map(q => q.a);
-  if (!near.length) return clampView({ ...v, cx: o.player.x, cz: o.player.z, scale: 0.6 }, frame);
-  return fitAbs(v, frame, [o.player, ...near], 40, 0.3, 0.8);
+  if (!near.length) return clampView({ ...v, cx: o.player.x + right / 2 / 0.6, cz: o.player.z, scale: 0.6 }, frame);
+  return fitAbs(v, frame, [o.player, ...near], 40, 0.3, 0.8, right);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

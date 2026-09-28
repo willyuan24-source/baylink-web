@@ -53,7 +53,15 @@ function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; bu
  *   ↗ Maps         the real place in a maps app
  * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button).
  */
-export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, onRoute }: { place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean; onRoute?: (id: SfRouteId) => void }) {
+export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onRoute }: {
+  place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean;
+  /**
+   * lane C's trip to this place is running: its way and time left ("跑过去 约 2 分钟", as the trip strip and the ETA
+   * chip say; integration review: the card said "游戏里约 50 秒 · 现实约 2.0 公里" beside the strip's "约 1 分钟")
+   */
+  tripTime?: Bilingual | null;
+  onRoute?: (id: SfRouteId) => void;
+}) {
   const { t } = useT();
   useDiscoveryEpoch();
   const pos = useGame(s => s.playerPos);
@@ -74,11 +82,11 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   const ll = unproject({ x: place.x, z: place.z });
   const zone = landmarkAreaAt(place.x, place.z)?.name ?? (place.zone ? zoneName(place.zone) : null);
   const name = attraction?.name ?? place.name;
-  const time: Bilingual = rec ? tripSecondsLabel(rec.seconds)
+  const time: Bilingual = tripTime ?? (rec ? tripSecondsLabel(rec.seconds)
     : !place.walkable || !walk ? cityTravelLabel(pos, dest)
       : walk.state === 'ok' ? walk.label
         : walk.state === 'pending' ? { zh: '找路中…', en: 'Finding the way…' }
-          : { zh: '走不过去', en: 'No walking way there' };
+          : { zh: '走不过去', en: 'No walking way there' });
   const go = (o: TripOption) => { setPicked(o.mode); startPlaceTrip(o, dest); };
   return (
     <div className="ob-map-pop ob-place-pop mw-place" role="group" aria-label={t(name)}>

@@ -362,3 +362,117 @@ test('framing a line, a route or a trip keeps the tool column clear (a walk\'s f
   const old = fitAbs({ cx: 0, cz: 0, scale: 1, w: 352, h: 388 }, MAP_FRAME, pts, 36, 0.2, 2);
   assert.ok(Math.abs(old.cx - (-382 - 760) / 2) < 1e-6);
 });
+
+// --- integration review (W4-P-int-review) --------------------------------------------------------------------------------
+
+test('review: opened mid-trip, the first view keeps you and the target clear of the tool column (desktop 484 × 430, phone 352 × 388, 375 px two-wide column)', () => {
+  const palace = ATTRACTION_INDEX.get('palace-of-fine-arts')!, lombard = ATTRACTION_INDEX.get('lombard-crooked')!;
+  const t1 = ATTRACTIONS.filter(a => a.rank === 1).map(a => ({ x: a.x, z: a.z, found: false }));
+  for (const [w, h, right] of [[484, 430, 48], [352, 388, 48], [327, 290, 90]] as const) {
+    for (const a of [palace, lombard]) {
+      const target = a.arrival ?? a;
+      const base = { cx: 0, cz: 0, scale: 0.5, w, h };
+      const v = firstOpenView(base, MAP_FRAME, { player: FERRY, focus: [target], t1, right });
+      const px = (p: { x: number; z: number }) => (p.x - v.cx) * v.scale + w / 2;
+      // you (r 9) and BAYBAY beside you stay left of the column; the target too
+      for (const p of [FERRY, target]) assert.ok(px(p) <= w - right - 40, `${w}×${h} → ${a.id}: x ${px(p).toFixed(1)} under the ${right} px column`);
+      // the old framing put the Ferry under the buttons on the desktop (the bug)
+      if (w === 484 && a === palace) {
+        const old = firstOpenView(base, MAP_FRAME, { player: FERRY, focus: [target], t1 });
+        assert.ok((FERRY.x - old.cx) * old.scale + w / 2 > w - 48 - 10, 'the old view: the Ferry at the tool column');
+      }
+    }
+    // the first open with no trip keeps the column clear too
+    const free = firstOpenView({ cx: 0, cz: 0, scale: 0.5, w, h }, MAP_FRAME, { player: FERRY, t1, right });
+    assert.ok((FERRY.x - free.cx) * free.scale + w / 2 <= w - right - 30);
+  }
+});
+
+test('review: the trip\'s ETA chip is a box the labels keep off (it covered the target\'s own name); a wide chip no longer clears a disc of labels', () => {
+  const palace = ATTRACTION_INDEX.get('palace-of-fine-arts')!;
+  const w = 484, h = 430, v = { cx: palace.x + 200, cz: palace.z - 80, scale: 0.8 };
+  const base = scene(w, h, v, { target: { attraction: palace.id } });
+  const k = base.layout.kept.find(kk => kk.id === palace.id)!;
+  assert.ok(k && k.label, 'the target is named');
+  // a 150 × 20 chip whose centre is 60 px left of that name: its box covers the name's start, a disc of r 10 at its
+  // centre (what the scene made of every obstacle before) does not
+  const lb = k.label!;
+  const chip = { x: lb.x - 60, y: lb.y + lb.h / 2, r: 10, hw: 75, hh: 10 };
+  const boxOf = (o: typeof chip) => [o.x - o.hw, o.y - o.hh, o.x + o.hw, o.y + o.hh] as Box;
+  const labelBox = (l: NonNullable<typeof k.label>) => [l.x, l.y, l.x + l.w, l.y + l.h] as Box;
+  assert.ok(overlap(labelBox(lb), boxOf(chip)), 'the chip box covers the name where it was');
+  const withChip = scene(w, h, v, { target: { attraction: palace.id }, obstacles: [chip] });
+  for (const kk of withChip.layout.kept) if (kk.label) assert.ok(!overlap([kk.label.x, kk.label.y, kk.label.x + kk.label.w, kk.label.y + kk.label.h], boxOf(chip)), `${kk.text} under the chip`);
+  assert.ok(withChip.layout.kept.find(kk => kk.id === palace.id)?.label, 'the target keeps its name beside the pin');
+  // a box, not a disc of radius 75: no fewer labels than the disc left
+  const labelled = (s: ReturnType<typeof scene>) => s.layout.kept.filter(kk => kk.label).length;
+  const asDisc = scene(w, h, v, { target: { attraction: palace.id }, obstacles: [{ x: chip.x, y: chip.y, r: 75 }] });
+  assert.ok(labelled(withChip) >= labelled(asDisc), `${labelled(withChip)} labels with the box, ${labelled(asDisc)} with the disc`);
+  // the obstacles never show as badges
+  assert.ok(!withChip.layout.kept.some(kk => kk.id.startsWith('obstacle:')));
+});
+
+test('review: the canvas key follows the station marks and dots, not you / BAYBAY moving (no base-map redraw at 10 Hz while walking with the map open)', async () => {
+  const { canvasMarksKey } = await import('../src/opus-bay/ui/cityMapModel');
+  const v = { cx: 60, cz: 120, scale: 0.7 };
+  const a = scene(352, 388, v, { obstacles: [{ x: 120, y: 200, r: 10 }, { x: 140, y: 210, r: 12 }] });
+  const b = scene(352, 388, v, { obstacles: [{ x: 128, y: 203, r: 10 }, { x: 150, y: 214, r: 12 }] });
+  assert.ok(a.stations.length > 5);
+  assert.equal(canvasMarksKey(a), canvasMarksKey(b), 'you and BAYBAY moved: the same marks');
+  assert.notEqual(canvasMarksKey(a), canvasMarksKey(scene(352, 388, { ...v, cx: v.cx + 10 })), 'a pan moves the marks');
+  assert.notEqual(canvasMarksKey(a), canvasMarksKey(a, true), 'a highlighted walk adds the kept badges');
+});
+
+test('review: a station ride the planner does not offer is still that ride (walk to the tapped stop, then the line); the card\'s walk time stays once the route is known; the ETA text', async () => {
+  const { stationRideOption, stationWalkSeconds, tripEta } = await import('../src/opus-bay/ui/mapTrips');
+  const { timeLabel } = await import('../src/opus-bay/game/tripText');
+  const { tripRemainingSeconds, LINE_MODELS } = await import('../src/opus-bay/game/tripPlan');
+  setTransitData(cable);
+  try {
+    const infos = tripLineInfos(LINES);
+    const loop = infos.get('sf-loop')!;
+    const ferry = STATIONS.find(s => s.lines.includes('sf-loop') && Math.hypot(s.x - FERRY.x, s.z - FERRY.z) < 80)!;
+    assert.ok(ferry, 'the loop stops at the Ferry');
+    const board = loop.stops.find(s => ferry.ids.includes(s.id))!;
+    const rides = stationRides(ferry, infos).filter(r => r.line === 'sf-loop' && !r.lap);
+    assert.ok(rides.length >= 1 && rides.every(r => r.dir === 1), 'the loop rides carry their direction');
+    const to = rides[0].to.stop;
+    const from = { x: FERRY.x + 30, z: FERRY.z + 25 };
+    const o = stationRideOption(from, loop, board.id, to, { dir: 1, wait: 42, rideSeconds: 60 })!;
+    assert.ok(o, 'a ride option');
+    assert.equal(o.mode, 'line');
+    assert.deepEqual(o.legs.map(l => l.via), ['walk', 'line']);
+    const walk = o.legs[0], ride = o.legs[1] as import('../src/opus-bay/game/tripTypes').TripLineLeg;
+    assert.equal(walk.estimate, true);
+    assert.equal(walk.to.station, board.id);
+    assert.equal(ride.board, board.id);
+    assert.equal(ride.alight, to);
+    assert.equal(ride.wait, 42);
+    assert.equal(ride.seconds, 42 + 60 + 2);
+    assert.ok(ride.path && ride.path.length >= 4, 'the ride is drawn along the line');
+    assert.ok(ride.stops >= 1 && !!ride.label?.zh.includes('坐'));
+    assert.ok(Math.abs(o.seconds - (walk.seconds + ride.seconds)) < 1e-9);
+    // standing at the stop: the ride alone; no ETA from the system: the line's own wait
+    const at = stationRideOption({ x: board.x, z: board.z }, loop, board.id, to)!;
+    assert.deepEqual(at.legs.map(l => l.via), ['line']);
+    assert.equal((at.legs[0] as typeof ride).wait, LINE_MODELS.bus.wait);
+    // nothing to ride: the same stop, an unknown stop; a two-way line the wrong way
+    assert.equal(stationRideOption(from, loop, board.id, board.id), null);
+    assert.equal(stationRideOption(from, loop, board.id, 'nope'), null);
+    const n = infos.get('n-judah')!;
+    const [n0, n1] = [n.stops[2], n.stops[5]];
+    assert.ok(stationRideOption(from, n, n0.id, n1.id, { dir: 1 }));
+    assert.equal(stationRideOption(from, n, n0.id, n1.id, { dir: -1 }), null, 'outbound stops, inbound direction');
+    assert.equal((stationRideOption(from, n, n1.id, n0.id)!.legs.at(-1) as typeof ride).dir, -1, 'the direction follows the stops when not given');
+    // the walk time on 带我去车站: the route's once known, the estimate meanwhile, none without a way
+    assert.equal(stationWalkSeconds({ state: 'ok' }, 37, 100), 37);
+    assert.ok(Math.abs(stationWalkSeconds({ state: 'pending' }, null, 100)! - 125 / 4.2) < 1e-9);
+    assert.ok(Math.abs(stationWalkSeconds(null, null, 100)! - 125 / 4.2) < 1e-9);
+    assert.equal(stationWalkSeconds({ state: 'none' }, null, 100), null);
+    // the ETA the chip and the selected card share: the mode and the strip's time
+    const trip = { option: o, legs: o.legs, leg: 1 };
+    const eta = tripEta(trip);
+    assert.equal(eta.zh, `坐车 ${timeLabel(tripRemainingSeconds(trip)).zh}`);
+    assert.equal(eta.en, `Ride ${timeLabel(tripRemainingSeconds(trip)).en}`);
+  } finally { setTransitData(null); }
+});

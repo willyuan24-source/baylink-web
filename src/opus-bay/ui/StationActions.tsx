@@ -17,6 +17,8 @@ export interface StationRide {
   lap?: boolean;
   /** the stop id to board at (a merged station has several: the ride's own line's) */
   boardAt?: string;
+  /** direction along the line's arc (+1 = increasing `at`), when the ride knows it */
+  dir?: 1 | -1;
 }
 
 /**
