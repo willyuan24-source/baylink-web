@@ -1,4 +1,4 @@
-import { glideUnlocked, setGlideUnlocked } from '../actors/moveApi';
+import { glideUnlocked, pulseGlideButton, setGlideUnlocked } from '../actors/moveApi';
 import { onEvent } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
@@ -146,6 +146,8 @@ export function stepPelican(now: number, offer: (line: Bilingual, ttl?: number) 
   playDialogue(ask, () => {
     if (wantFlight) { wantFlight = false; takeOff(); return; }
     bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200, BAYBAY_ID, 'call');
+    // (phones: lane F's 起飞 pulses once more, where the line points)
+    pulseGlideButton();
   }, { kind: 'two-shot', subject: null });
 }
 
