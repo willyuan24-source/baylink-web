@@ -46,15 +46,28 @@ export interface MoveApiImpl {
 }
 
 let impl: MoveApiImpl | null = null;
+let glidePulse = 0;
 const glideListeners = new Set<() => void>();
 /** The MoveSystem calls this when its glideUnlocked changes (also done here at the bind and on setGlideUnlocked). */
-export function notifyGlide() { for (const fn of glideListeners) fn(); }
+export function notifyGlide() {
+  // (W5-F3) a glide unlocked during play (not a save restored while the world mounts) pulses the phone's 起飞 once
+  const now = glideUnlocked();
+  if (now && !lastUnlocked && clock() - boundAt > PULSE_AFTER_MS) glidePulse++;
+  lastUnlocked = now;
+  for (const fn of glideListeners) fn();
+}
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+/** an unlock this long after the actors bound is a moment in play (ms) */
+const PULSE_AFTER_MS = 3000;
+let boundAt = 0;
+let lastUnlocked = false;
 export function subscribeGlide(fn: () => void): () => void { glideListeners.add(fn); return () => { glideListeners.delete(fn); }; }
 /** a setGlideUnlocked call that came before the bind (resume runs while the world is still mounting) */
 let pendingGlide: boolean | null = null;
 /** actors/system.ts at construction (and null on dispose). */
 export function bindMoveApi(m: MoveApiImpl | null) {
   impl = m;
+  boundAt = clock();
   if (m && pendingGlide !== null) { applyGlide(m, pendingGlide); pendingGlide = null; }
   // (the ActorSystem is built inside a render: tell the UI afterwards)
   queueMicrotask(notifyGlide);
@@ -74,3 +87,11 @@ export function setGlideUnlocked(v: boolean) {
   notifyGlide();
 }
 export function isRiding(): boolean { return impl?.carried ?? false; }
+
+/**
+ * Wave 5 (W5-F3) · the phone's 起飞 button pulses once (lane C's pelican moment: 先试试起飞？; lane A's first flight).
+ * The button also pulses by itself when the glide unlocks during play (never on a save restored at load: notifyGlide).
+ */
+export function pulseGlideButton() { glidePulse++; notifyGlide(); }
+/** the pulse count (actors/TouchControls restarts the pulse when it changes) */
+export function glidePulseSeq(): number { return glidePulse; }

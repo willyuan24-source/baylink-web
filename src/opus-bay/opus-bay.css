@@ -1222,3 +1222,14 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 @media (max-width: 1180px) { .ob-hud-more-menu { bottom: 0; right: calc(100% + 10px); } }
 .ob-choice-icon { display: inline-flex; vertical-align: -3px; margin-right: 6px; }
 .ob-choice-icon svg { width: 16px; height: 16px; }
+
+/* W5-F3 · the phone's 起飞 pulses once (a glide unlocked in play; lane C's 先试试起飞？): a warm ring swells out twice */
+.ob-glide-pulse { animation: ob-glide-pulse 1.2s ease-out 2; }
+@keyframes ob-glide-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(224, 169, 74, .75); transform: scale(1); }
+  35% { transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 18px rgba(224, 169, 74, 0); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .ob-glide-pulse { animation-name: ob-glide-glow; } }
+.ob-overlay.is-reduced .ob-glide-pulse { animation-name: ob-glide-glow; }
+@keyframes ob-glide-glow { 0% { box-shadow: 0 0 0 0 rgba(224, 169, 74, .75); } 100% { box-shadow: 0 0 0 18px rgba(224, 169, 74, 0); } }

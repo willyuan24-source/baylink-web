@@ -6,7 +6,7 @@ import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { useDevice, useMedia } from '../ui/hooks';
 import { spotActionLabel } from '../ui/spotLabel';
-import { glideUnlocked, subscribeGlide } from './moveApi';
+import { glidePulseSeq, glideUnlocked, subscribeGlide } from './moveApi';
 import { setStickRenderer, stickView } from './pointer';
 
 /**
@@ -19,6 +19,11 @@ import { setStickRenderer, stickView } from './pointer';
  * Movement buttons (plan §6.10, touch only, right edge above the action button, ≥ 44 px): 下车 while riding, the
  * bell / horn (56 px), 起飞 once the glide is unlocked and 降落 while gliding. In a vehicle the stick is throttle (up),
  * brake / reverse (down) and steering (sideways).
+ *
+ * 起飞 (wave 5, W5-F3 — owner F3, plan MF3): once the glide is unlocked it is ALWAYS there on foot, in its own slot right
+ * above 跳 — hidden only in a dialogue, a panel, a cinematic, fishing, the postcard reward or a ride (before, a focus in
+ * range hid it, and BAYBAY beside you is usually the focus: it showed in 7 of 23 samples). It pulses once when the
+ * glide unlocks during play and when lane C / A ask (moveApi pulseGlideButton).
  *
  * 跳 / Hop (E2-9, 56 px): always the lowest button of the column, on foot and on the bike / in the car (a bunny hop),
  * held like Space (core/input touchJump: a quick tap is a short hop). The column clears the rest of the HUD: on phones
@@ -90,9 +95,10 @@ function MoveButtons() {
   // (integration review) its words follow what the tap does: deck → the rail (the ferry boards onto its deck)
   const rideKind = useFlow(s => s.ride?.kind);
   const unlocked = useSyncExternalStore(subscribeGlide, glideUnlocked, glideUnlocked);
+  // (W5-F3) the 起飞 pulse: a new key restarts the CSS pulse (moveApi: an unlock in play, or pulseGlideButton)
+  const pulse = useSyncExternalStore(subscribeGlide, glidePulseSeq, glidePulseSeq);
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
-  const focus = useGame(s => s.focus);
   const busy = useFlow(s => !!s.cinematic || !!s.fishing || !!s.postcardReward);
   const beside = useMedia('(min-width: 601px) and (max-width: 1180px)');
   if (dialogue || panel || busy) return null;
@@ -111,7 +117,11 @@ function MoveButtons() {
         </Btn>
       )}
       {mode === 'glide' && <Btn size={64} tone="teal" label={t('降落', 'Land')} onPress={() => { input.glideCount++; }}><PlaneLanding size={24} aria-hidden /></Btn>}
-      {mode === 'foot' && unlocked && !focus && <Btn size={52} tone="gold" label={t('起飞', 'Glide')} onPress={() => { input.glideCount++; }}><Bird size={20} aria-hidden /></Btn>}
+      {mode === 'foot' && unlocked && (
+        <span key={pulse} className={pulse ? 'ob-glide-slot ob-glide-pulse' : 'ob-glide-slot'} style={{ display: 'flex', borderRadius: '50%' }}>
+          <Btn size={52} tone="gold" label={t('起飞', 'Glide')} onPress={() => { input.glideCount++; }}><Bird size={20} aria-hidden /></Btn>
+        </span>
+      )}
       {(mode === 'foot' || riding) && <HopButton label={t('跳', 'Hop')} />}
     </div>
   );

@@ -91,3 +91,61 @@ test('W4 integration (routed F w3 a / b): F-line stations show the streetcar, Pi
     assert.equal(transitGlyph({ id: `transit-${st.id}`, source: 'transit', refId: st.id }), 'cable-car');
   } finally { setTransitData(null); }
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Wave 5 · W5-F3 (plan MF3, owner F3): 起飞 always there on foot after the unlock; the routed wave-3 G items
+// ---------------------------------------------------------------------------------------------------------------
+
+const OB = path.resolve(import.meta.dirname, '../src/opus-bay');
+const srcOf = (f: string) => fs.readFileSync(path.join(OB, f), 'utf8');
+
+test('W5-F3 · 起飞 on the phone: shown on foot once unlocked whatever the focus (BAYBAY in talk range included); hidden only in a dialogue, a panel, a cinematic / fishing / the postcard reward or off foot', () => {
+  const s = srcOf('actors/TouchControls.tsx');
+  const line = s.split('\n').find(l => l.includes("mode === 'foot' && unlocked"));
+  assert.ok(line, 'the 起飞 slot');
+  assert.doesNotMatch(line, /focus/, 'no focus rule on 起飞 (BAYBAY in range is usually the focus: 7 of 23 samples)');
+  assert.doesNotMatch(s, /useGame\(s => s\.focus\)/, 'the move column does not read the focus at all');
+  assert.match(s, /if \(dialogue \|\| panel \|\| busy\) return null;/, 'the column hides in a dialogue, a panel, a cinematic, fishing or the reward');
+  assert.match(s, /const busy = useFlow\(s => !!s\.cinematic \|\| !!s\.fishing \|\| !!s\.postcardReward\)/);
+});
+
+test('W5-F3 · the 起飞 pulse: an unlock during play pulses once, a save restored while the world mounts does not; lane C / A ask with pulseGlideButton', async () => {
+  const moveApi = await import('../src/opus-bay/actors/moveApi');
+  const now = { t: 1_000_000 };
+  const real = performance.now.bind(performance);
+  (performance as { now: () => number }).now = () => now.t;
+  try {
+    const m = { carried: false, glideUnlocked: false, toFoot() {}, setGlideUnlocked(v: boolean) { this.glideUnlocked = v; } };
+    moveApi.setGlideUnlocked(true);             // a restore before the bind
+    const p0 = moveApi.glidePulseSeq();
+    moveApi.bindMoveApi(m);
+    moveApi.notifyGlide();
+    assert.equal(moveApi.glidePulseSeq(), p0, 'no pulse for a restore at load');
+    moveApi.setGlideUnlocked(false);
+    now.t += 60_000;                            // a minute of play later: the pelican moment
+    moveApi.setGlideUnlocked(true);
+    assert.equal(moveApi.glidePulseSeq(), p0 + 1, 'the unlock in play pulses');
+    moveApi.notifyGlide();
+    assert.equal(moveApi.glidePulseSeq(), p0 + 1, 'once');
+    moveApi.pulseGlideButton();
+    assert.equal(moveApi.glidePulseSeq(), p0 + 2, 'asked again (先试试起飞？)');
+    moveApi.bindMoveApi(null);
+  } finally { (performance as { now: () => number }).now = real; }
+  // the pulse is a CSS ring (a glow with reduced motion) on the 起飞 slot, keyed by the count
+  assert.match(srcOf('actors/TouchControls.tsx'), /key=\{pulse\} className=\{pulse \? 'ob-glide-slot ob-glide-pulse'/);
+  const css = srcOf('opus-bay.css');
+  assert.match(css, /\.ob-glide-pulse \{ animation: ob-glide-pulse 1\.2s ease-out 2; \}/);
+  assert.match(css, /\.ob-overlay\.is-reduced \.ob-glide-pulse \{ animation-name: ob-glide-glow; \}/);
+});
+
+test('W5-F3 · the routed wave-3 G items (sf-w4-lead.md §8.4) are in: FocusMarker single pass, the move column in the HUD boxes, the 667 × 375 column, twoShotPose prefers BAYBAY\'s side, the reset clears the line memory and the play block, the BAYBAY GLB through heroGltfLoader', () => {
+  assert.match(srcOf('game/Systems.tsx'), /ring: new THREE\.MeshBasicMaterial\(\{[^}]*forceSinglePass: true/);
+  assert.match(srcOf('game/hudLayout.ts'), /'\.ob-move-buttons > \*'/);
+  assert.match(srcOf('opus-bay.css'), /@media \(min-width: 601px\) and \(max-width: 720px\) and \(max-height: 500px\) \{\s*\.ob-hud-buttons \{ flex-direction: column-reverse; bottom: calc\(18px \+ var\(--ob-sb\)\); \}/);
+  assert.match(srcOf('actors/camera.ts'), /const prefer = gs \|\| this\.twoSide;/);
+  const settings = srcOf('ui/Settings.tsx');
+  assert.match(settings, /import\('\.\.\/game\/baybayLines'\)\.then\(m => m\.clearLineMemory\(\)/);
+  assert.match(settings, /clearSave\(\); resetLineMemory\(\);/, 'the reset clears the save (the play block with it) and the line memory');
+  assert.match(srcOf('economy/ledger.ts'), /onSaveCleared\(/, 'lane E\'s ledger forgets its coins when the save is cleared');
+  assert.match(srcOf('actors/system.ts'), /import\('\.\.\/world\/models'\)\.then\(m => m\.heroGltfLoader\(\)\.loadAsync\(MODELS\.baybay\.url\)\)/);
+});
