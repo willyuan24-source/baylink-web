@@ -324,7 +324,8 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean)
     const here = stopAt(st?.station) ?? stopAt(finishing ? r.to : null);
     return { spot: here ? boardAt(w4, here) : r.hold ?? null, side, station: here?.id ?? null };
   }
-  if (finishing && !arrived && r.mode === 'follow') {
+  // 直接到站 aboard, or while still waiting (verify M2 / m5): the destination's pole / kiosk
+  if (finishing && !arrived) {
     const dest = stopAt(r.to);
     return { spot: dest ? boardAt(w4, dest) : null, side, station: dest?.id ?? null };
   }
@@ -335,9 +336,10 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean)
 export const SKIP_VEIL_OVER = 250;
 
 /**
- * 直接到站 on a long leg (plan §3.4: > 400 u): a dark veil fades in over the view (0.35 s), `jump` ends the ride and puts
- * the rider at the destination under it, the streamer brings that part of the city in (whenReady 150 u, at most 8 s),
- * then the veil fades out (0.5 s). Plain DOM (no React root): one element over the canvas, under the HUD's toasts.
+ * 直接到站 on a long leg (plan §3.4: > 400 u) or to a stop that has not streamed in (verify M2, any city line): a dark veil
+ * fades in over the view (0.35 s) while the streamer brings the destination in (whenReady 150 u, at most 8 s; the ride
+ * goes on under the veil), then `jump` ends the ride and puts the rider there on walkable ground, and the veil fades out
+ * (0.5 s). Plain DOM (no React root): one element over the canvas, under the HUD's toasts.
  */
 export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void) {
   if (typeof document === 'undefined') { jump(); return; }
@@ -354,16 +356,15 @@ export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null,
   if (name) veil.textContent = en ? `Next stop: ${name.en} …` : `直接到站：${name.zh} …`;
   host.appendChild(veil);
   requestAnimationFrame(() => { veil.style.opacity = '1'; });
-  window.setTimeout(() => {
+  const streamer = cityStreamerLazy();
+  const ready = streamer ? streamer.whenReady(to, 150) : Promise.resolve();
+  const shown = new Promise(r => window.setTimeout(r, 380));
+  void Promise.all([shown, Promise.race([ready, new Promise(r => window.setTimeout(r, 8000))])]).then(() => {
     jump();
-    const streamer = cityStreamerLazy();
-    const ready = streamer ? streamer.whenReady(to, 150) : Promise.resolve();
-    void Promise.race([ready, new Promise(r => window.setTimeout(r, 8000))]).then(() => {
-      veil.style.transition = 'opacity .5s ease';
-      veil.style.opacity = '0';
-      window.setTimeout(() => veil.remove(), 600);
-    });
-  }, 380);
+    veil.style.transition = 'opacity .5s ease';
+    requestAnimationFrame(() => { veil.style.opacity = '0'; });
+    window.setTimeout(() => veil.remove(), 650);
+  });
 }
 
 /**

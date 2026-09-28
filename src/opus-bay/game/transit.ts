@@ -3,14 +3,14 @@ import { emit } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { canStand, nearestWalkable } from '../core/terrain';
+import { canStand, groundPending, nearestWalkable } from '../core/terrain';
 import type { Bilingual, DialogueNode } from '../core/types';
 import type { TransitKind } from '../core/events';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { noteRide } from '../data/save';
 import type { FLineStation } from '../data/fline';
-import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
+import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, type TransitStation, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, nearestAt, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
 import { hookFill, hookText, nodeText, npcLine } from './content';
 import { travelEpoch } from './fastTravel';
 import { announce, bubble, completeGoal, defineNode, openPanel, playDialogue, refreshLock, say, teleportPlayer } from './flow';
@@ -298,6 +298,9 @@ let seenInteract = input.interactCount;
 let turningNear: string[] = [];
 let pushedAt: string | null = null;
 let pollT = 0;
+/** poll clock (s) and when BAYBAY last asked the player to step off a track / out of a bus's way */
+let pollClock = 0;
+let stepAsideAt = -Infinity;
 let seenFLine: unknown = null;
 let seenFerry: unknown = null;
 let seenFleet: unknown = null;
@@ -440,26 +443,42 @@ function countRide(r: RideState, station?: string | null) {
   noteRide(line);
 }
 
-/** Leave a city line ride: at the stop (arrived) or anywhere (hop off, "skip to stop"). Steps off beside the car. */
+/** The ride whose 直接到站 waits under the veil for its destination to stream in (a second tap does not start another). */
+let veiledRide: RideState | null = null;
+
+/**
+ * Leave a city line ride: at the stop (arrived) or anywhere (hop off, "skip to stop"). Steps off beside the car.
+ * (verify M2) 直接到站 to a stop whose ground has not streamed in (or that lies far off) waits under the veil until that part
+ * of the city is walkable, then puts the rider there; "到站" is only said once the rider stands at the stop.
+ */
 function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
+  if (!veiled && veiledRide === r) return;
   const sys = rideSystemFor(r.line!);
   const st = sys?.rideStatus();
   const car = st && sys ? sys.cars[st.car] : null;
   const arrived = st?.phase === 'arrived';
-  // "skip to stop" before the car got there: no car ride, just go (it never counts: not a real segment)
-  const skip = finishing && !arrived && r.mode === 'follow';
+  // "skip to stop" before the car got there (aboard, or still waiting for it): no car ride, just go (it never counts,
+  // except a real leg of the loop / the Metro skipped aboard: skipCounts)
+  const skip = finishing && !arrived;
   const pose = car?.pose;
   // wave 4 (the loop, the N / M): under ground only at a station's kiosk; 直接到站 lands at the destination's pole /
   // kiosk; on the surface off the kerb side of the bus / train
   const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing) : null;
-  // a long 直接到站 (> 400 u): the city streams in under a veil first (plan §3.4), then the ride ends there
-  if (w4 && skip && !veiled && w4.spot && Math.hypot(w4.spot.x - runtime.player.x, w4.spot.z - runtime.player.z) > W4G!.SKIP_VEIL_OVER) {
-    const dest = w4.station ?? r.to;
-    W4G!.veiledSkip(w4.spot, W4G!.stationPoint(dest)?.name ?? null, () => { if (currentRide() === r) leaveLineRide(r, true, true); });
+  // where a skip lands: the destination's pole / kiosk (wave 4), quay (ferry) or station (cable car, F-line)
+  const skipTo = skip ? (w4 ? w4.spot : stationOf(r, r.to) ?? null) : null;
+  // a long 直接到站, or one to a stop the streamer has not brought in: the city streams in under a veil first (plan §3.4)
+  if (skipTo && !veiled && W4G && skipNeedsVeil(skipTo, W4G.SKIP_VEIL_OVER)) {
+    const dest = w4?.station ?? r.to;
+    veiledRide = r;
+    W4G.veiledSkip(skipTo, stationOf(r, dest)?.name ?? null, () => {
+      if (veiledRide === r) veiledRide = null;
+      if (currentRide() === r) leaveLineRide(r, true, true);
+    });
     return;
   }
+  if (veiledRide === r) veiledRide = null;
   const side = w4 ? w4.side : platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
-  const skipCounts = !!(w4 && skip && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r)));
+  const skipCounts = !!(w4 && skip && r.mode === 'follow' && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r)));
   releaseStop();
   sys?.cancel();
   endRide();
@@ -469,15 +488,16 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   if (w4?.spot) {
     spot = nearestWalkable(w4.spot, 12) ?? w4.spot;
   } else if (r.kind === 'ferry') {
-    // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach.
+    // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach;
+    // 直接到站 (aboard or still waiting): the destination's quay.
     // (review) Still waiting on the quay: stay there (the boat may lie at the other terminal, or be out on the Bay).
     // E2's hop-off (actors/moveSystem 'transit-alight') keeps the spot F puts the rider on here.
-    const quay = r.mode === 'follow' ? stationOf(r, st?.station ?? r.to) : undefined;
+    const quay = finishing ? stationOf(r, r.to) : r.mode === 'follow' ? stationOf(r, st?.station ?? r.to) : undefined;
     // (E2 w3 review 1: the quay's ground may not be streamed in yet: stand on the quay point itself then)
     if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16) ?? { x: quay.x, z: quay.z };
-  } else if (skip) {
-    const dest = stationOf(r, r.to);
-    if (dest) spot = nearestWalkable({ x: dest.x, z: dest.z }, 16);
+  } else if (skipTo) {
+    // (verify M2) the station's ground is in (the veil above waited for it); without the lazy module to veil: the point
+    spot = nearestWalkable(skipTo, 16) ?? { x: skipTo.x, z: skipTo.z };
   } else if (pose && r.mode === 'follow') {
     // off the running board on the rider's side, onto the street
     const out = toWorld(pose, side * 2.3, 0, 0.8);
@@ -491,7 +511,8 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   if (r.kind === 'streetcar') emit({ type: 'streetcar-bell' });
   if (!w4) emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 0.8 });
   const dest = stationOf(r, w4?.station && finishing ? w4.station : r.to);
-  if (finishing && dest) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
+  // (verify M2) only once the rider stands there: the car brought them, or they were put at the stop
+  if (finishing && dest && (arrived || spot)) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
   if (w4) {
     if (skipCounts) {
       r.counted = true;
@@ -512,6 +533,16 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false) {
   refreshLock();
 }
 
+/**
+ * 直接到站 waits under the veil (game/lineRides.ts veiledSkip) when the destination lies farther than `far` (beyond the
+ * ring the streamer holds round the rider) or its ground has not streamed in yet (verify M2: the Powell–Hyde skip from
+ * Powell & Market to Hyde & Beach found no walkable ground there and left the rider mid-route).
+ */
+export function skipNeedsVeil(to: { x: number; z: number }, far: number): boolean {
+  const p = runtime.player;
+  return Math.hypot(to.x - p.x, to.z - p.z) > far || groundPending(to.x, to.z, 2) || !nearestWalkable(to, 16);
+}
+
 /** E on foot at a turntable while a car turns: help push it round (+14°/s a press). */
 export function pushTurntable(id: string) {
   const sys = activeCableSystem();
@@ -520,12 +551,37 @@ export function pushTurntable(id: string) {
   emit({ type: 'emote', who: 'player', emote: 'pickup' });
 }
 
+/** A vehicle has stood this long (s) short of the player on its track before BAYBAY asks them to step aside (verify D3). */
+export const STEP_ASIDE_AFTER = 4;
+/** …at most once in this long (s) */
+const STEP_ASIDE_EVERY = 40;
+
+/**
+ * (verify D3) A cable car / F-line car / bus / Metro train standing short of the player on its track: after a few seconds
+ * BAYBAY asks them to step aside (the gripman already rang). Nothing told the player before, and a car could wait for good.
+ */
+function pollStepAside() {
+  const held: [number, Bilingual][] = [
+    [activeCableSystem()?.viewerHeld() ?? 0, { zh: '叮当车在等我们让路呢，往路边站一站吧', en: 'The cable car is waiting for us. Let’s step to the side' }],
+    [activeStreetcarSystem()?.viewerHeld() ?? 0, { zh: '电车在等我们让路呢，往路边站一站吧', en: 'The streetcar is waiting for us. Let’s step to the side' }],
+    [activeLineFleet()?.bus.viewerHeld() ?? 0, { zh: '观光巴士在等我们让路呢，往路边站一站吧', en: 'The tour bus is waiting for us. Let’s step to the side' }],
+    [activeLineFleet()?.rail.viewerHeld() ?? 0, { zh: '轻轨在等我们让路呢，往路边站一站吧', en: 'The train is waiting for us. Let’s step to the side' }],
+  ];
+  let best: [number, Bilingual] | null = null;
+  for (const h of held) if (h[0] >= STEP_ASIDE_AFTER && (!best || h[0] > best[0])) best = h;
+  if (!best || pollClock - stepAsideAt < STEP_ASIDE_EVERY || game.get().move.mode !== 'foot') return;
+  stepAsideAt = pollClock;
+  bubble(best[1], 3600);
+}
+
 /** 4 Hz: offer the push prompt at turntables turning near the player; cheer when a pushed car has turned. */
 function pollTurntables(dt: number) {
   if ((pollT -= dt) > 0) return;
   pollT = 0.25;
+  pollClock += 0.25;
   const fl = activeStreetcarSystem(), fe = activeFerrySystem(), lf = activeLineFleet();
   if (fl !== seenFLine || fe !== seenFerry || lf !== seenFleet) { seenFLine = fl; seenFerry = fe; seenFleet = lf; invalidateInteractables(); }
+  pollStepAside();
   const sys = activeCableSystem(), data = transitData();
   if (!sys || !data) { if (turningNear.length) { turningNear = []; invalidateInteractables(); } return; }
   const p = runtime.player;
@@ -536,7 +592,42 @@ function pollTurntables(dt: number) {
     emit({ type: 'emote', who: 'baybay', emote: 'clap' });
   }
   if (now.join() !== turningNear.join()) { turningNear = now; invalidateInteractables(); }
+  // a station near the player whose ground has come in since its prompt was placed: place it at the kerb now
+  if (data.stations.some(st => !kerbSpots.has(st.id) && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6))) invalidateInteractables();
 }
+
+/** Where each cable-car station's prompt stands: beside the track (verify D3), once the ground there has streamed in. */
+const kerbSpots = new Map<string, { x: number; z: number }>();
+
+/**
+ * (verify D3) A cable-car station's prompt (and so where the player walks to and waits) stands beside the track, not on
+ * it: a car cannot pull in to a stop someone stands on (the Powell & Market prompt was 2.5 u from the turntable centre,
+ * and a car stood short of it for good). The nearest standable spot 2.6–5.5 u round the station that is ≥ 2.45 u from
+ * every track stopping there (a passing car's body reaches 2.05 u); at a terminus 5–7 u round the turntable, clear of the
+ * turning car. None (or the ground not in yet): the station point itself.
+ */
+export function stationBoardSpot(st: TransitStation): { x: number; z: number } {
+  const hit = kerbSpots.get(st.id);
+  if (hit) return hit;
+  const data = transitData();
+  if (!data || groundPending(st.x, st.z, 6)) return { x: st.x, z: st.z };
+  const lines = st.lines.map(e => cableLine(e.line)).filter((l): l is CableLine => !!l);
+  const tt = data.turntables.find(t => Math.hypot(t.x - st.x, t.z - st.z) < 6);
+  const bx = tt ? tt.x : st.x, bz = tt ? tt.z : st.z;
+  let spot = { x: st.x, z: st.z };
+  search: for (const r of tt ? [5.2, 6, 7] : [2.6, 3.2, 3.8, 4.5, 5.5]) {
+    for (let a = 0; a < 16; a++) {
+      const x = bx + Math.cos((a * Math.PI) / 8) * r, z = bz + Math.sin((a * Math.PI) / 8) * r;
+      if (!canStand(x, z, 0.45) || lines.some(l => nearestAt(l, x, z).d < KERB_OFF)) continue;
+      spot = { x, z };
+      break search;
+    }
+  }
+  kerbSpots.set(st.id, spot);
+  return spot;
+}
+/** a station prompt stands at least this far from the track (u): a passing car's body reaches 2.05 u */
+const KERB_OFF = 2.45;
 
 // --- the ferry (lane F, wave 3: F8) ------------------------------------------------------------------------
 
@@ -552,14 +643,32 @@ export function ferryRideSeconds(from: string, to: string): number {
   return ((((b.u - a.u) % line.length) + line.length) % line.length) / 7 + 8;
 }
 
-/** E at a ferry terminal (city mode, once the ferry runs): the deckhand asks where to. */
+/**
+ * Seconds until the boat can take a rider waiting at terminal `from` (0 when it lies there): world/ferry.ts `eta`, with the
+ * dwell at the other end cut short the way a waiting rider cuts it (verify D11 / m5: the offer left out an 80–140 s wait).
+ */
+export function ferryWaitSeconds(from: string): number {
+  const sys = activeFerrySystem() as unknown as { line?: { stops: { terminal: string }[] }; eta?(i: number): number; boat?: { mode: string; at: number; timer: number } } | null;
+  const i = sys?.line?.stops.findIndex(s => s.terminal === from) ?? -1;
+  if (!sys?.eta || i < 0) return 0;
+  const b = sys.boat;
+  const cut = b && b.mode === 'dwell' && b.at !== i ? Math.max(0, b.timer - FERRY_DWELL_RIDER) : 0;
+  return Math.max(0, sys.eta(i) - cut);
+}
+const FERRY_DWELL_RIDER = 4;
+
+/** E at a ferry terminal (city mode, once the ferry runs): the deckhand asks where to (the time counts the wait for the boat). */
 export function boardFerry(stationId: string) {
   const t = ferryTerminal(stationId);
   if (!t || !activeFerrySystem()) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
   const others = t.route.terminals.filter(x => x.id !== stationId);
+  const wait = Math.round(ferryWaitSeconds(stationId));
   const choices: NonNullable<DialogueNode['choices']> = others.map((o, i) => {
-    const secs = Math.round(ferryRideSeconds(stationId, o.id));
-    return { hotkey: String(i + 1), label: { zh: `去${o.name.zh}（约 ${secs} 秒）`, en: `To ${o.name.en} (~${secs}s)` }, next: `flow.ride.fe:${stationId}:${o.id}` };
+    const secs = Math.round(ferryRideSeconds(stationId, o.id)) + wait;
+    const label: Bilingual = wait >= 10
+      ? { zh: `去${o.name.zh}（约 ${secs} 秒，船约 ${wait} 秒后到）`, en: `To ${o.name.en} (~${secs}s · boat in ~${wait}s)` }
+      : { zh: `去${o.name.zh}（约 ${secs} 秒）`, en: `To ${o.name.en} (~${secs}s)` };
+    return { hotkey: String(i + 1), label, next: `flow.ride.fe:${stationId}:${o.id}` };
   });
   choices.push({ hotkey: String(choices.length + 1), label: { zh: '先不坐了', en: 'Not now' }, action: { type: 'end' } });
   const deckhand = npcLine('deckhand').name ?? { zh: '水手', en: 'Deckhand' };
@@ -676,11 +785,14 @@ export function transitInteractables(): Interactable[] {
   if (!isCity()) return [];
   const out: Interactable[] = [...flineInteractables(), ...ferryInteractables(), ...(W4G?.lineInteractables() ?? [])];
   if (!data) return out;
-  out.push(...data.stations.map(st => ({
-    id: `transit-${st.id}`, source: 'transit' as const, action: 'streetcar' as const,
-    verb: { zh: '坐叮当车', en: 'Ride the cable car' },
-    name: st.name, x: st.x, z: st.z, radius: STATION_RADIUS, refId: st.id,
-  })));
+  out.push(...data.stations.map(st => {
+    const at = stationBoardSpot(st);
+    return {
+      id: `transit-${st.id}`, source: 'transit' as const, action: 'streetcar' as const,
+      verb: { zh: '坐叮当车', en: 'Ride the cable car' },
+      name: st.name, x: at.x, z: at.z, radius: STATION_RADIUS, refId: st.id,
+    };
+  }));
   for (const id of turningNear) {
     const tt = data.turntables.find(t => t.id === id);
     if (tt) out.push({ id: `${PUSH_PREFIX}${tt.id}`, source: 'transit', action: 'streetcar', verb: { zh: '帮忙推', en: 'Help push' }, name: tt.name, x: tt.x, z: tt.z, radius: PUSH_RADIUS, refId: tt.id });
