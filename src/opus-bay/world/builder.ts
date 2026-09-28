@@ -386,17 +386,27 @@ export function freezeStatic<T extends THREE.Object3D>(o: T): T {
 }
 
 export function splitGeometry(geo: THREE.BufferGeometry, cell: number): THREE.BufferGeometry[] {
+  return splitGeometryCells(geo, cell).map(c => c.geometry);
+}
+
+/**
+ * splitGeometry with each chunk's grid cell (ix, iz): the chunk holds the triangles whose centroid lies in
+ * [ix·cell, ix·cell + cell) × [iz·cell, iz·cell + cell). Same chunks, same order, same bytes. Wave 5 (W5-V2): the city
+ * pairs the hero's near and far chunks by cell. A geometry without an index is one chunk at cell (0, 0).
+ */
+export function splitGeometryCells(geo: THREE.BufferGeometry, cell: number): { ix: number; iz: number; geometry: THREE.BufferGeometry }[] {
   const index = geo.getIndex();
   const pos = geo.getAttribute('position') as THREE.BufferAttribute;
-  if (!index) return [geo];
+  if (!index) return [{ ix: 0, iz: 0, geometry: geo }];
   const names = Object.keys(geo.attributes);
-  const buckets = new Map<string, { map: Map<number, number>; idx: number[]; data: Record<string, number[]> }>();
+  const buckets = new Map<string, { ix: number; iz: number; map: Map<number, number>; idx: number[]; data: Record<string, number[]> }>();
   for (let i = 0; i < index.count; i += 3) {
     const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2);
     const cx = (pos.getX(a) + pos.getX(b) + pos.getX(c)) / 3, cz = (pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3;
-    const key = `${Math.floor(cx / cell)}:${Math.floor(cz / cell)}`;
+    const ix = Math.floor(cx / cell), iz = Math.floor(cz / cell);
+    const key = `${ix}:${iz}`;
     let bk = buckets.get(key);
-    if (!bk) { bk = { map: new Map(), idx: [], data: Object.fromEntries(names.map(n => [n, [] as number[]])) }; buckets.set(key, bk); }
+    if (!bk) { bk = { ix, iz, map: new Map(), idx: [], data: Object.fromEntries(names.map(n => [n, [] as number[]])) }; buckets.set(key, bk); }
     for (const v of [a, b, c]) {
       let ni = bk.map.get(v);
       if (ni === undefined) {
@@ -410,7 +420,7 @@ export function splitGeometry(geo: THREE.BufferGeometry, cell: number): THREE.Bu
       bk.idx.push(ni);
     }
   }
-  const out: THREE.BufferGeometry[] = [];
+  const out: { ix: number; iz: number; geometry: THREE.BufferGeometry }[] = [];
   for (const bk of buckets.values()) {
     const g = new THREE.BufferGeometry();
     for (const n of names) {
@@ -420,7 +430,7 @@ export function splitGeometry(geo: THREE.BufferGeometry, cell: number): THREE.Bu
     g.setIndex(bk.map.size > 65535 ? new THREE.Uint32BufferAttribute(bk.idx, 1) : new THREE.Uint16BufferAttribute(bk.idx, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
-    out.push(g);
+    out.push({ ix: bk.ix, iz: bk.iz, geometry: g });
   }
   geo.dispose();
   return out;
