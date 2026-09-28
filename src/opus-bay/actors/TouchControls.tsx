@@ -5,6 +5,7 @@ import { useGame } from '../core/store';
 import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { useDevice, useMedia } from '../ui/hooks';
+import { spotActionLabel } from '../ui/spotLabel';
 import { glideUnlocked, subscribeGlide } from './moveApi';
 import { setStickRenderer, stickView } from './pointer';
 
@@ -86,6 +87,8 @@ function MoveButtons() {
   // on board a moving line (the cable car's outward bench, the ferry's sun deck, the bus deck …): 坐下 / 站起来, the
   // touch twin of the keyboard's E (verify-code F2: the seats could not be used on a phone)
   const onBoard = useFlow(s => s.ride?.stage === 'riding') && mode === 'transit';
+  // (integration review) its words follow what the tap does: deck → the rail (the ferry boards onto its deck)
+  const rideKind = useFlow(s => s.ride?.kind);
   const unlocked = useSyncExternalStore(subscribeGlide, glideUnlocked, glideUnlocked);
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
@@ -103,8 +106,8 @@ function MoveButtons() {
       )}
       {riding && <Btn size={64} tone="teal" label={t('下车', 'Get off')} onPress={() => { input.vehicleCount++; }}><LogOut size={24} aria-hidden /></Btn>}
       {onBoard && (
-        <Btn size={56} tone="cream" label={spot === 'seat' ? t('站起来', 'Stand') : t('坐下', 'Sit down')} onPress={() => { input.interactCount++; }}>
-          {spot === 'seat' ? <PersonStanding size={22} aria-hidden /> : <Armchair size={22} aria-hidden />}
+        <Btn size={56} tone="cream" label={t(spotActionLabel(spot, rideKind, true))} onPress={() => { input.interactCount++; }}>
+          {spot === 'rail' ? <Armchair size={22} aria-hidden /> : <PersonStanding size={22} aria-hidden />}
         </Btn>
       )}
       {mode === 'glide' && <Btn size={64} tone="teal" label={t('降落', 'Land')} onPress={() => { input.glideCount++; }}><PlaneLanding size={24} aria-hidden /></Btn>}

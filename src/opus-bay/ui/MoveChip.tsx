@@ -8,6 +8,7 @@ import { useT } from '../i18n';
 import { Keycap } from './common';
 import { useDevice } from './hooks';
 import { hopOffNote } from './rideHop';
+import { spotActionLabel } from './spotLabel';
 
 /**
  * Lane E2 owns this file from wave 2 (day 0 moved it out of ui/Hud.tsx verbatim; Hud renders <MoveChip />).
@@ -102,7 +103,7 @@ export function MoveChip() {
     if (ride.stage === 'braking') return chip(icon, t('停车中…', 'Stopping…'), null);
     const note = hopOffNote(ride, {});
     return chip(icon, t('车厢里', 'On board'), <>
-      <Hint k={pad ? 'A' : 'E'} label={spot === 'seat' ? t('站起来', 'Stand') : t('坐下', 'Sit down')} onPress={() => { input.interactCount++; }} />
+      <Hint k={pad ? 'A' : 'E'} label={t(spotActionLabel(spot, kind))} onPress={() => { input.interactCount++; }} />
       {!pad && <Hint k="WASD" label={kind === 'ferry' ? t('走走甲板', 'Walk the deck') : t('车厢里走走', 'Walk the aisle')} />}
       {/* wave 4 (lane F review, lane T review open 1): under way / in a tunnel the key says why it waits */}
       {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : 'Space'} label={t('下车', 'Hop off')} onPress={requestHopOff} />}

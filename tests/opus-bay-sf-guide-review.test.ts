@@ -116,3 +116,27 @@ test('W4-G-int-review: the ride banner offers 直接到站 while waiting for the
     assert.doesNotMatch(cable, /直接到站/, 'lines without skipWhileWaiting keep 不坐了 alone');
   } finally { flow.set({ ride: saved }); }
 });
+
+test('W4-G-int-review: the on-board E / touch button says what the tap does — deck → the rail (the ferry boards onto its deck), rail → a seat, seat → standing', async () => {
+  const { MoveMachine } = await import('../src/opus-bay/actors/modes');
+  const { spotActionLabel } = await import('../src/opus-bay/ui/spotLabel');
+  const m = new MoveMachine();
+  m.beginTransit('ferry', 'deck');
+  for (let t = 0; t < 0.6; t += DT) m.tick(DT, { vehicleSpeed: 0, findExitSlot: () => null });
+  const said: Record<string, string> = { rail: '坐下', seat: '站起来', deck: '扶好栏杆' };
+  for (const from of ['deck', 'rail', 'seat'] as const) {
+    if (from === 'deck') m.walkDeck();
+    else while (m.spot !== from) m.switchSpot();
+    const label = spotActionLabel(m.spot!, 'ferry').zh;
+    assert.equal(label, said[from], `on the ${from}`);
+    m.switchSpot();
+    // the words match the spot the tap leads to
+    if (from === 'rail') assert.equal(m.spot, 'seat');
+    else assert.equal(m.spot, 'rail', `${from} → the rail, so not "坐下" (the ferry starts on its deck: 坐下 stood the rider at the rail)`);
+  }
+  assert.equal(spotActionLabel('deck', 'cable-car').zh, '抓紧扶杆');
+  for (const s of ['deck', 'rail', 'seat'] as const) for (const k of ['ferry', 'cable-car']) {
+    const w = spotActionLabel(s, k, true);
+    assert.ok([...w.zh].length <= 3 && w.en.length <= 8, `the round touch button's words fit (${w.zh} / ${w.en})`);
+  }
+});
