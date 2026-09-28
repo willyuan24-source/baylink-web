@@ -491,3 +491,37 @@ test('W4-IL12 (verify D3): no landmark card / arrival spot stands on a vehicle l
     }
   }
 });
+
+test('W4-L-int-review: a terrain-base landmark keeps its blockers in rasters streamed after the renderer pinned its base (the under-deck rule needs a known base)', async () => {
+  const { createCityTerrain } = await import('../src/opus-bay/core/sfTerrain');
+  const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+  const { SF_SITES, blockerTops } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { demSample } = await import('../src/opus-bay/world/sf/format');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const sf = sfDisk(), far = await sf.far();
+  // the game's order (world/sf/stream.ts): walk inputs at start (a 'terrain' site's baseY is still 0), the far DEM, the
+  // renderer's first base estimate pinned (sites.attach → onBase → setLandmarkBase), then the chunk rasters stream in
+  const sites = new CitySites(), lms = sites.walkInputs();
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(far);
+  sites.onBase = (id, y) => { city.setLandmarkBase(id, y); };
+  sites.attach(null as never, (x, z) => demSample(far.dem, x, z));
+  const terrainSites = SF_SITES.filter(l => l.base === 'terrain' && blockerTops(l).some(t => t !== undefined));
+  assert.ok(terrainSites.some(l => l.id === 'peace-pagoda') && terrainSites.some(l => l.id === 'mission-dolores'), 'the premise: terrain-base sites with measured tops');
+  const lost: string[] = [];
+  let n = 0;
+  for (const l of terrainSites) {
+    assert.equal(lms.find(w => w.id === l.id)!.baseY, 0, `${l.id}: the streamed walk input's baseY (premise)`);
+    await sf.attachAround(city, l.x, l.z, 40, lms);
+    const tops = blockerTops(l);
+    for (const [i, b] of l.walk!.blockers.entries()) {
+      if (tops[i] === undefined) continue;
+      const c = 'poly' in b ? { x: b.poly.reduce((s, p) => s + p.x, 0) / b.poly.length, z: b.poly.reduce((s, p) => s + p.z, 0) / b.poly.length } : { x: b.x, z: b.z };
+      const p = landmarkToWorld(l, c);
+      n++;
+      if (!city.blockedAt(p.x, p.z) || city.standAt(p.x, p.z) === 1 || !city.hitsBlocker(p.x, p.z, 0.3)) lost.push(`${l.id} #${i}`);
+    }
+  }
+  assert.ok(n >= 10, `blockers checked: ${n}`);
+  assert.deepEqual(lost, [], 'blockers standable in the rasters or passed by the queries');
+});
