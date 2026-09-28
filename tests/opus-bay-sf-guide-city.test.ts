@@ -160,6 +160,8 @@ test('ride banner / move chip: 提前下车 waits on a ferry under way and in a 
   const fake = { request: () => null, board: () => {}, cancel: () => {}, rideStatus: () => status, cars: [] };
   T.setActiveFerrySystem(fake as never);
   T.setActiveCableSystem(fake as never);
+  // lane T's fleet answers for the loop and the Metro lines (data/transit rideSystemFor)
+  T.setActiveLineFleet({ bus: fake, rail: fake } as never);
   try {
     assert.equal(hopOffNote({ stage: 'riding', from: 'a', to: 'b' }, {}), null, 'the hero F-line (no line id)');
     assert.equal(hopOffNote({ stage: 'riding', from: 'ferry-building', to: 'pier-41', line: 'ferry', kind: 'ferry' }, {})?.zh, '到站再下');
@@ -176,5 +178,6 @@ test('ride banner / move chip: 提前下车 waits on a ferry under way and in a 
   } finally {
     T.setActiveFerrySystem(null);
     T.setActiveCableSystem(null);
+    T.setActiveLineFleet(null);
   }
 });

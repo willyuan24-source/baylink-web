@@ -1179,3 +1179,5 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 }
 /* wave 4 (lane G) · the ride banner's note where 提前下车 cannot be done now (a ferry under way, a Metro tunnel) */
 .ob-ride-note { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-3); padding: 0 6px; white-space: nowrap; }
+.ob-ride-note.is-rung { display: inline-flex; align-items: center; gap: 4px; color: var(--ob-teal-d); }
+.ob-ride .ob-btn svg { color: inherit; }
