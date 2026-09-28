@@ -523,3 +523,127 @@ edited.
   lot-fit tests fail). The spot search rejected West Portal candidates inside the shops (`canStand` false) and left out
   those on the carriageway (surface `road`).
 - No relayed owner message arrived during part 2.
+
+## Early review 2
+
+Adversarial review of part 2 (commits `038fad9`, `6065ec7`, `1d6fdee`, `81f5f9d`, `1e303cd`, `e00ed00`), 2026-09-27, in
+`C:/Users/willy/wt/w4-v` rebased on `origin/opus-bay` (`fbbb239`: lane L's W4-IL1 registry and lane V's W4-V-I1…I3 are
+in it); scratch `C:/Users/willy/opus-qa/w4/w4-v/review2/`, dev port 5306 (stopped). Fixes: the four `W4-V-review:`
+commits before this section.
+
+### 给主人的摘要
+
+1. V 线第二部分整体靠谱：两个 AI 地标换成 AI 版的结论、4 张新明信片（逐张放大看过，没有文字和标志）、花费（15 分，和 Higgsfield 流水逐笔对上，第四波累计 55.45 / 120，余额 400.13）都没问题；网上和地图数据抽查了 21 条事实和坐标，全部对得上。
+2. 修好 3 个会在游戏里露馅的问题：圣母大教堂的地皮前高后低，模型按地皮中心的地面放，正门有一半埋在人行道下面（现在门口和人行道齐平，后面低下去的地方补了一段石头基座）；州立大学和西门两张明信片挂错了卡片编号，捡到后对应卡片上不会出现这张画；接线时还缺一张"明信片说明"表，会直接编译失败。
+3. 两处中文小改（"科学院"统一成游戏里的"加州科学院"；1925 年那条是电车线，"观光火车 / 山崩"改成"观光铁路 / 滑坡"）。剩下要 L 线接线时一起改的（程序化教堂的门同样埋在地下、AI 槽位的高度）写在下面。
+
+### What was checked
+
+- **Scope rule**: part 2 only created files or changed lane V's own part-1 files (`w4Models.ts`, `prompts.py` / `.json`,
+  `specs.json`, `w4-holy-virgin.glb`, the ledger, this report); no other lane's file and no pre-wave-4 tracked file was
+  edited. No uncommitted work was left in the worktree.
+- **Read**: the lead note (§2, §5, §8), plan §5.7 / §6, part 2 of this report, ledger batch 4, every new file
+  (`data/sf/w4Swaps.ts`, `data/sf/w4Postcards.ts`, both tests, `ai-gate.{html,tsx,mjs}`, `gate_sheet.py`,
+  `postcards.py`, the prompts / specs diffs) and the files the integration plan names: `data/assets.ts`
+  (`POSTCARD_ART`, `SF_POSTCARD_SUBJECTS`), `data/sf/postcards.ts` (`SfCard`, `CARDS`, `CITY_POSTCARD_NEAR`),
+  `data/postcards.ts` (`CITY_POSTCARD_FOR_POI`), `ui/format.ts` (`postcardForPoi`), `data/sf/placeCardTypes.ts`
+  (`cardPoiId`), `landmarks/index.ts` (the swap / fade types, `blockerTops`, `SF_SITES`), `geary-west.ts`,
+  `blue-heron-lake.ts`, `siteKit.ts`, `sites.ts`, `SoloView.tsx`, and the tests that pin them (`sf-content` G2-2,
+  `sf-models` D2-15, `sf-sites-w4`'s AI-slot rule).
+- **Budget**: Higgsfield `transactions`: 6 × Nano Banana Pro −2 at 22:16:37.08–.68 UTC, 3D Objects −1 at 22:18:37,
+  Nano Banana Pro −2 at 22:20:16, nothing since; `balance` 400.13 = the ledger. Lane V 55.45 / 120, ≥ 50 kept. The GLB
+  179,372 B / 5,879 triangles (≤ 250 KB / 6k); postcards 54–89 KB / 23–32 KB (the shipped 12: 45–96 / 20–39).
+- **Assets looked at**: the four postcards at 1200 px (no letters, numbers or logos; West Portal's painted-out marks are
+  clean) beside four of the shipped 12 (the same cream-sky clay diorama), both gate sheets, the part-2 city shots. The
+  Holy Virgin GLB decoded with draco3d (lane V's `gate/footprint.mjs`): x ±1.40, z ±1.60, H 9.10; ground footprint body
+  x ±1.33, z −1.54…1.24, the porch to z 1.60 (|x| ≤ 0.6): the rows' numbers.
+- **In the game**: the walk ground around `geary-west` probed on the published city with the wave-4 sites
+  (`heightAt`), and the gate re-run in the city with the new placement, before and after the rebase onto W4-IL1.
+- **Per frame**: nothing (data modules; `w4SwapPart` / `w4SwapPlinth` / `w4PostcardDefs` run once at build or load;
+  the gate is dev-only).
+- **zh on a phone**: titles 7 characters, facts ≤ 38 wide (≤ 40), hints ≤ 26 (≤ 45); names = lane P's attraction names
+  (州立大学, 音乐广场, 迪扬博物馆, 加州科学院, 天涯海角, 西门站).
+- **Facts and coordinates re-checked** (web and OSM, 2026-09-27):
+
+  | # | fact (where) | result | source |
+  |---|---|---|---|
+  | 1 | SF State began in 1899 as the San Francisco State Normal School (postcard) | right (approved 22 Mar 1899) | en.wikipedia.org/wiki/San_Francisco_State_University |
+  | 2 | a normal school trains teachers ("专门培养老师") | right | same |
+  | 3 | the bandshell was sugar magnate Claus Spreckels's gift (postcard) | right | en.wikipedia.org/wiki/Spreckels_Temple_of_Music |
+  | 4 | "a gift to the people of California" | right, verbatim | same |
+  | 5 | dedicated in 1900 | right (9 Sep 1900, Admission Day) | same |
+  | 6 | the bandshell at the concourse's end | right: (37.76972, −122.46833) projects to (−221.3, 955.8), local z +16.8 in lane L's bowl | same + `core/geo` |
+  | 7 | the Lands End trail follows the old railway's route | right ("much the same path") | sfmta.com "A Line to Land's End" |
+  | 8 | landslides in the winter of 1925 ended it | right (February 1925; one slide destroyed a large section of track) | same |
+  | 9 | "观光火车" | loose: the line had run electric streetcars since 27 May 1905 → 观光铁路 | same |
+  | 10 | the Twin Peaks Tunnel opened in 1918 | right (3 Feb 1918) | en.wikipedia.org/wiki/Twin_Peaks_Tunnel |
+  | 11 | about 3.6 km long | right (11,675 ft = 3,559 m with approaches; 2.27 mi / 3.65 km of line) | same |
+  | 12 | West Portal is named for the tunnel's west portal | right | same |
+  | 13 | SF State spot (37.72221, −122.47781) is on the Quad | right: between the J. Paul Leonard Library (S), Business (E), Science (NE) and Burk Hall (NW) | OSM (Overpass, Nominatim) |
+  | 14 | Music Concourse spot (−228.5, 927) inside the bowl | right: local (−4, −12) in lane L's bowl (x −9.6…10, z −19.6…19.2), 29 u north of the bandshell | `music-concourse.ts`, `core/geo` |
+  | 15 | Lands End spot (37.78288, −122.50961) on the cliff trail | right: OSM path way 707865766 within 40 m | OSM |
+  | 16 | West Portal spot (37.74001, −122.46650) on West Portal Ave | right: its sidewalk between the station (37.7411) and Vicente St (37.7397) | OSM |
+  | 17 | OSM way 286435447 is 2.8 u (20.1 m) wide along Geary (x −1.39…1.43) | right, to the centimetre in lane L's frame | api.openstreetmap.org |
+  | 18 | the cathedral had always been plain white before the new scheme; "the narrow strip along Geary" | right | orthodoxartsjournal.org |
+  | 19 | 125 ft = 38.1 m → 3.2 + 0.155 × 38.1 = 9.1 u | right | arithmetic |
+  | 20 | batch 4 = 15.00 credits at 22:16–22:20 UTC, balance 400.13 | right | Higgsfield `transactions`, `balance` |
+  | 21 | Holy Virgin 276 u and the pavilion 83 u from the Music Concourse spot; +5.2k / +2.6k triangles | right | arithmetic on the report's numbers |
+
+  Observation (lane L, no change for lane V): today's OSM footprint of way 286435447 (check_date 2026-07-20) reaches
+  local z 2.48, the city's Geary sidewalk starts at z 1.65: the in-game street is the chunk data's, older than that edit.
+
+### Defects found and fixed
+
+1. **Holy Virgin's porch sank 0.68 u under the sidewalk** (`w4Swaps.ts`). The lot rises 1.15 u from the back (local
+   ground 0.08) to Geary Blvd (1.22); `y: 'ground'` at the centre (0.54, lane L's slot) put the model's base at world
+   10.63 while the walk ground in front of the porch is 11.32: the lower half of the door was hidden (shot below). Now
+   the row samples its ground at the sidewalk before the porch (`ground: { x: 0, z: 1.65 }` → y 1.21: 125 ft is
+   measured from the street, so the 9.1 u stand over Geary) and a `plinth` (two boxes under the body and the porch,
+   inset 0.01 u inside the walls; `w4SwapPlinth()` → kit `box()` arguments, from 0.3 u below the lowest ground sampled
+   every 0.25 u up 0.02 u into the walls) fills the fall toward the back; the gate draws it as the remainder
+   (+24 triangles). New test: the base = the sidewalk (± 0.08) from the porch to the arrival spot, the top cross 9.1 u
+   over Geary, no daylight under the model on a 0.05 u grid, the plinth inside the footprint and the exclusion; it fails
+   on the old placement. Shot `docs/opus-bay/qa/w4/V/v-review2-holy-virgin-porch.jpg` (before / after at the porch, the
+   plinth from the back, the street view); re-shot on the tree with W4-IL1 (same result).
+2. **Two postcards named no card** (`w4Postcards.ts`). `near` is read as `cityPoiId(near)` (data/postcards.ts
+   `CITY_POSTCARD_FOR_POI` → ui/format.ts `postcardForPoi`), but lane C's cards open as `cardPoiId(card)`: `sfsu` →
+   `sf:sfsu` and `west-portal` → `sf:west-portal` match nothing, so the SF State and West Portal cards would never show
+   their postcard. Now `sf-state-university` and `osm-n2094547200` (`lands-end` and `de-young-tower` were right). The
+   test now requires `cityPoiId(near)` = the attraction's own card POI (its landmark card, or `cardPoiId` of its place
+   card); it fails on the old ids.
+3. **Integration step 1 would break tsc** (`w4Postcards.ts`). `data/assets.ts SF_POSTCARD_SUBJECTS` is a
+   `Record<SfPostcardArtId, …>`: widening `SF_POSTCARD_ART_IDS` without four more captions fails to compile. New
+   `W4_POSTCARD_SUBJECTS` (tested bilingual); step 1 now spreads it.
+4. **Lane V's own postcard test would fail at step 1**: it asserted the four ids are not in `SF_POSTCARD_ART_IDS`. It
+   now accepts them as exactly the tail after the 12, so it holds before and after the integration commit. Its spot
+   check now walks `SF_SITES` (the registry since W4-IL1, tier-3 sites included) instead of the P1–P3 list.
+5. **zh**: the Music Concourse hint says 加州科学院 (the game's name; 科学院 alone reads as any academy); the Lands End
+   fact says 观光铁路 … 滑坡冲毁了铁轨 (the 1925 line was an electric streetcar, not a 火车; a cliff slide is 滑坡).
+6. **The report's integration steps 1–3** said `sfsu` / `west-portal` would resolve, told lane C to anchor on
+   `w4Site(near)` and to add a 400 u exception, and gave geary-west `build: () => undefined` at the centre's ground.
+   Corrected in place (marked "corrected by Early review 2"). The gate (`ai-gate.tsx`) no longer appends a site the
+   registry already holds (W4-IL1).
+
+### Open
+
+1. **Lane L, `geary-west.ts`** (its file): the procedural cathedral has the same burial (door box at `y0 = g.at(0, 0)`
+   = 0.54, sidewalk 1.21), which the city shows while the GLB loads or if it fails: raise the facade datum to
+   `g.at(0, 1.65)` (keep the body box down to `y0 − 1.2`), lift the dome light (`lights` y) by the same 0.67 u, set
+   `aiSlot.at` to `[0, +g.at(0, 1.65).toFixed(2), -0.02]` (its sites-w4 rule allows 0.8 u), and take the swap exactly
+   as integration step 3 now says (the plinth in `build`); regenerate `tops.ts` (the AI top is 10.3 u over the base).
+2. **Lane C**: the `SfCard.near` comment and the G2-2 changes of step 2 (the `near` rule is "a landmark id or a place
+   card's POI suffix").
+3. **The Lands End postcard** draws the bridge landing on the Lands End cliffs (its south end is in the Presidio,
+   ≈ 3 km east): a toy compression of the view, kept; a retake would be 2 credits (owner's call).
+4. **Holy Virgin's IoU 0.666 as published** (the lot-fit waiver, like St Ignatius's 0.807): accepted; the native
+   retake passed at 0.906.
+5. Unchanged from part 2: the cal-academy / st-ignatius gate, lane C's `metro-sfsu-next-2` recording, the H-8
+   listening pass after lane T's sounds are wired.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
+- `npx eslint .`: 0 errors, 43 warnings (none in lane V's files).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **747 / 747** green on the tree rebased onto
+  `fbbb239` (incl. hero regression and contracts); `w4-swaps` 5 / 5, `w4-postcards` 3 / 3, `w4-assets` 7 / 7.
+- No relayed owner message arrived during the review.
