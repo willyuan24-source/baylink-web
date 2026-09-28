@@ -1,5 +1,5 @@
 import { createElement, lazy, Suspense } from 'react';
-import { glideUnlocked } from '../actors/moveApi';
+import { autoGliding, glideUnlocked } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
@@ -220,11 +220,13 @@ export function initZones(): () => void {
       if (nearPlayer(foot.x, foot.z, PREFETCH_R) || nearPlayer(top.x, top.z, PREFETCH_R)) zonePrefetch('stairs', () => import('./stairs'));
       if (nearPlayer(foot.x, foot.z, INVITE_R)) zoneInvite(`stairs:${c.id}`, STAIRS_INVITE_LINE);
     }
-    // the Golden Gate rings: gliding by the bridge, not all 8 flown yet — the course, once a visit; on foot, BAYBAY's invite
+    // the Golden Gate rings: gliding by the bridge, not all 8 flown yet — the course, once a visit; on foot, BAYBAY's invite.
+    // Never on a trip the pelican flies by itself (lane F's scenic auto-glide: 飞过去 / 带我去 past the bridge — review
+    // 2026-09-28: it took over the trip's line and ended in a 再试试 card at the landing)
     {
       const g = runtime.glide, todo = (bestOf(GGB_ID) ?? 0) < 8;
       if (!nearPlayer(GGB_MID.x, GGB_MID.z, 2 * GGB_NEAR)) ggbTried = false;
-      if (g.active && todo && !ggbTried && !currentActivity() && Math.hypot(g.x - GGB_MID.x, g.z - GGB_MID.z) < GGB_NEAR) {
+      if (g.active && todo && !ggbTried && !currentActivity() && !autoGliding() && Math.hypot(g.x - GGB_MID.x, g.z - GGB_MID.z) < GGB_NEAR) {
         ggbTried = true;
         void import('./firstFlight').then(m => { m.startFirstFlight({ course: 'ggb' }); });
       }

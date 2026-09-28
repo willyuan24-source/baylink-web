@@ -1,5 +1,5 @@
 import { createElement, lazy, Suspense } from 'react';
-import { glideUnlocked } from '../actors/moveApi';
+import { autoGliding, glideUnlocked } from '../actors/moveApi';
 import { playSound } from '../audio/hooks';
 import { emit, onEvent } from '../core/events';
 import { input } from '../core/input';
@@ -150,7 +150,7 @@ export const RINGS_SCENE = 'a-play-rings';
  */
 export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean } = {}): boolean {
   const s = game.get();
-  if (state || s.phase !== 'playing' || s.dialogue.nodeId || !glideUnlocked()) return false;
+  if (state || s.phase !== 'playing' || s.dialogue.nodeId || !glideUnlocked() || autoGliding()) return false;
   const mode = runtime.move.mode;
   if (mode !== 'foot' && mode !== 'glide') return false;
   const p = runtime.player;
@@ -271,6 +271,8 @@ export function step(dt: number) {
   if (!s) return;
   s.t += dt;
   s.clock += dt;
+  // a trip took the wings (lane F's scenic auto-glide: 飞过去 from the map, 带我去): the course ends at no cost, no card
+  if (autoGliding()) { run?.cancel(); return; }
   const g = runtime.glide, p = runtime.player;
   if (s.phase === 'intro') {
     if (runtime.move.mode === 'glide' || g.active) { setPhase('flying'); return; }
@@ -300,9 +302,12 @@ export function step(dt: number) {
 function finish() {
   const s = state;
   if (!s || !run) return;
-  const got = s.got, total = s.rings.length;
+  const got = s.got, total = s.rings.length, tier = tierFor(got, RING_TIERS, 'higher');
+  // the Golden Gate rings start by themselves (gliding by the bridge): flown past without a medal they end quietly — never
+  // a 再试试 card for a course the player did not ask for (review 2026-09-28)
+  if (s.course === 'ggb' && tier === 0) { run.cancel(); return; }
   run.end({
-    tier: tierFor(got, RING_TIERS, 'higher'),
+    tier,
     score: got,
     detail: { zh: `穿过 ${got} / ${total} 个金圈`, en: `${got} of ${total} rings` },
     bestText: best => ({ zh: `最好成绩：${best} 个圈`, en: `Best: ${best} rings` }),

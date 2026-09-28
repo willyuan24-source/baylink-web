@@ -1804,3 +1804,73 @@ test('W5-A9 Golden Gate rings run: BAYBAY\'s invite on foot, gliding by the brid
     assert.equal(flight.flightState(), null);
   } finally { off(); offEv(); flight.skipFirstFlight(); g.active = false; runtime.move.mode = 'foot'; kit.unregisterResultOverlay(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
 });
+
+// --- the adversarial review (2026-09-28) ----------------------------------------------------------------------------------
+
+const flushAll = async () => { for (let i = 0; i < 8; i++) await new Promise(r => setImmediate(r)); };
+
+test('W5-A-review Golden Gate rings: never started on a trip the pelican flies itself; a trip taking the wings ends any course at no cost; an unasked course flown past without a medal ends quietly', async () => {
+  const G = await import('../src/opus-bay/play/ggbRings');
+  const zones = await import('../src/opus-bay/play/zones');
+  playing();
+  stubBody();
+  game.set({ worldMode: 'city' });
+  // lane F's move system as the game binds it: the pelican unlocked, an auto-glide (飞过去 / 带我去 on a mid trip) or not
+  let auto = false;
+  moveApi.bindMoveApi({ carried: false, glideUnlocked: true, toFoot: () => undefined, get autoGliding() { return auto; } });
+  moveApi.setGlideUnlocked(true);
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  const { events, off: offEv } = record();
+  const off = zones.initZones();
+  const g = runtime.glide;
+  const before = kit.lastResultShown();
+  try {
+    // the review's run in the game: Crissy Field → the bridge's south end by auto-glide started the course, and the
+    // landing showed ○ 再试试 · 穿过 1 / 8 个金圈
+    auto = true;
+    runtime.move.mode = 'glide';
+    g.active = true;
+    g.x = G.GGB_MID.x + 150; g.z = G.GGB_MID.z + 60; g.y = 30;
+    runtime.player.x = g.x; runtime.player.z = g.z;
+    stepFrameSystems(0.3, 0);
+    await flushAll();
+    assert.equal(flight.flightState(), null, 'no course on an auto-glide trip');
+    assert.equal(flight.startFirstFlight({ course: 'ggb' }), false, 'nor started by hand while one flies');
+    // the player's own glide by the bridge: it starts
+    auto = false;
+    stepFrameSystems(0.3, 0);
+    await flushAll();
+    assert.equal(flight.flightState()?.course, 'ggb');
+    // then a trip takes the wings mid-course: it ends at no cost, no card, no medal
+    auto = true;
+    flight.step(1 / 30);
+    assert.equal(flight.flightState(), null);
+    assert.equal(kit.lastResultShown(), before, 'no card');
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && `${e.activity}:${e.what}`), [`${G.GGB_ID}:start`, `${G.GGB_ID}:cancel`]);
+    // an unasked course flown past (no ring, or fewer than a medal's three): the landing ends it quietly
+    auto = false;
+    for (const rings of [0, 2]) {
+      events.length = 0;
+      assert.equal(flight.startFirstFlight({ course: 'ggb' }), true);
+      const s = flight.flightState()!;
+      for (let i = 0; i < rings; i++) { const r = s.rings[i]; g.x = r.x + 2; g.z = r.z; g.y = r.y; flight.step(1 / 30); }
+      assert.equal(s.got, rings);
+      g.x = G.GGB_MID.x + 150; g.z = G.GGB_MID.z + 60;
+      emit({ type: 'glide:land', x: g.x, z: g.z });
+      assert.equal(flight.flightState(), null);
+      assert.equal(kit.lastResultShown(), before, `${rings} rings: no 再试试 card`);
+      assert.equal(events.filter(e => e.type === 'reward').length, 0);
+      assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && e.what), ['start', 'cancel']);
+    }
+    // the first flight too: a trip picked on the map mid-flight ends it at no cost
+    g.x = flight.COIT_COURSE[0].x; g.z = flight.COIT_COURSE[0].z; runtime.player.x = g.x; runtime.player.z = g.z;
+    events.length = 0;
+    assert.equal(flight.startFirstFlight(), true);
+    assert.equal(flight.flightState()?.course, 'coit');
+    auto = true;
+    flight.step(1 / 30);
+    assert.equal(flight.flightState(), null);
+    assert.equal(events.filter(e => e.type === 'reward').length, 0);
+  } finally { off(); offEv(); flight.skipFirstFlight(); moveApi.bindMoveApi(null); g.active = false; runtime.move.mode = 'foot'; kit.unregisterResultOverlay(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
+});
