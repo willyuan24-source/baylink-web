@@ -30,6 +30,12 @@ export const KARL_GEO = {
   /** view depth (u) that stays clear around the camera, so the player and BAYBAY read inside the bank (the walking
    *  camera is 20–40 u away) */
   clear: 15,
+  /**
+   * A glide over the bank still sees the ground (wave 4, lane V; verify-visual F10: the morning glide over the west side
+   * was a total whiteout): with the camera `y0` … `y1` u above the fog top, the bank's amount is capped at 1 − `see`
+   * (smoothstep). The Twin Peaks summit camera (≈ 20 u above the morning top) keeps its opaque white sea.
+   */
+  glide: { y0: 30, y1: 70, see: 0.35 },
   /** the fog top's soft band (u below / above the lumpy top) */
   topSoft: [10, 4],
   /** the west bank's leading edge: full cover `edge[0]` u behind the front, none `edge[1]` u past it (M3: a bank's edge, not
@@ -120,13 +126,16 @@ float obKarl(vec3 w, float depth) {
   float n = obKarlNoise(w.xz);
   float top = uKarlA.y + n * 12.0;
   float c = obKarlXZ(w.xz, n) * (1.0 - smoothstep(top - ${KARL_GEO.topSoft[0].toFixed(1)}, top + ${KARL_GEO.topSoft[1].toFixed(1)}, w.y));
-  float cy = cameraPosition.y, portion, len = ${KARL_GEO.depth.toFixed(1)};
-  if (cy > top) { portion = clamp((top - w.y) / max(cy - w.y, 0.5), 0.0, 1.0); len = ${KARL_GEO.depthAbove.toFixed(1)}; }
+  float cy = cameraPosition.y, portion, len = ${KARL_GEO.depth.toFixed(1)}, cap = 1.0;
+  if (cy > top) {
+    portion = clamp((top - w.y) / max(cy - w.y, 0.5), 0.0, 1.0); len = ${KARL_GEO.depthAbove.toFixed(1)};
+    cap = 1.0 - ${KARL_GEO.glide.see.toFixed(2)} * smoothstep(${KARL_GEO.glide.y0.toFixed(1)}, ${KARL_GEO.glide.y1.toFixed(1)}, cy - top);
+  }
   else {
     c = max(c, 0.6 * uKarlCam);
     portion = w.y <= top ? 1.0 : clamp((top - cy) / max(w.y - cy, 0.5), 0.0, 1.0);
   }
-  return uKarl * c * (1.0 - exp(-max(depth - ${KARL_GEO.clear.toFixed(1)}, 0.0) * portion / len));
+  return uKarl * c * min(cap, 1.0 - exp(-max(depth - ${KARL_GEO.clear.toFixed(1)}, 0.0) * portion / len));
 }
 `;
 

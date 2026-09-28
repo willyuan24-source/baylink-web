@@ -127,13 +127,17 @@ export function karlCover(x: number, y: number, z: number, t: Omit<KarlTarget, '
  */
 export function karlAmount(p: { x: number; y: number; z: number }, cam: { x: number; y: number; z: number }, depth: number, t: KarlTarget): number {
   let c = karlCover(p.x, p.y, p.z, t);
-  let portion: number, len: number = KARL_GEO.depth;
-  if (cam.y > t.top) { portion = Math.min(1, Math.max(0, (t.top - p.y) / Math.max(cam.y - p.y, 0.5))); len = KARL_GEO.depthAbove; }
+  let portion: number, len: number = KARL_GEO.depth, cap = 1;
+  if (cam.y > t.top) {
+    portion = Math.min(1, Math.max(0, (t.top - p.y) / Math.max(cam.y - p.y, 0.5))); len = KARL_GEO.depthAbove;
+    // a glide over the bank still sees the ground (KARL_GEO.glide)
+    cap = 1 - KARL_GEO.glide.see * smooth(KARL_GEO.glide.y0, KARL_GEO.glide.y1, cam.y - t.top);
+  }
   else {
     c = Math.max(c, 0.6 * karlCover(cam.x, -1e3, cam.z, t));
     portion = p.y <= t.top ? 1 : Math.min(1, Math.max(0, (t.top - cam.y) / Math.max(p.y - cam.y, 0.5)));
   }
-  return c * (1 - Math.exp(-Math.max(depth - KARL_GEO.clear, 0) * portion / len));
+  return c * Math.min(cap, 1 - Math.exp(-Math.max(depth - KARL_GEO.clear, 0) * portion / len));
 }
 
 /** Seconds Karl takes to slide from one time's layout to the next (the cloud bank moves with it). */

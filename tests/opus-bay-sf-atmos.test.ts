@@ -206,10 +206,15 @@ test('Karl as a bank (M3): an opaque sea under Twin Peaks in the morning, thick 
   // the summit itself, above the top, is clear even from inside the bank's reach; a glide high above sees the sea
   assert.equal(karlAmount(at('tpSummit'), { x: 60, y: 90, z: 1000 }, 80, m), 0);
   assert.ok(karlAmount(at('sunset'), { x: -200, y: 150, z: 1200 }, 170, m) > 0.5, 'from a glide: the sea below');
+  // wave 4 (verify-visual F10): … and the ground under it, faintly (no total whiteout); the summit's sea stays opaque
+  const glide = (y: number) => karlAmount(at('sunset'), { x: -200, y, z: 1200 }, Math.hypot(y - P.sunset[1], 200 + 200), m);
+  assert.ok(glide(150) <= 1 - KARL_GEO.glide.see + 1e-9 && glide(100) < 0.75, `glide: ${glide(100).toFixed(2)} at y 100, ${glide(150).toFixed(2)} at y 150`);
+  assert.ok(karlAmount(at('sunset'), tp, dist(at('sunset'), tp), m) > 0.9, 'Twin Peaks (22 u above the morning top) unchanged');
   // the shader carries the same model
   const sh = { vertexShader: ['#include <fog_pars_vertex>', '#include <fog_vertex>'].join('\n'), fragmentShader: ['#include <fog_pars_fragment>', '#include <fog_fragment>'].join('\n'), uniforms: {} as Record<string, THREE.IUniform> };
   patchFog(sh);
   assert.ok(sh.fragmentShader.includes('float cy = cameraPosition.y, portion, len') && sh.fragmentShader.includes('* portion / len'), 'in-layer ray length in GLSL');
+  assert.ok(sh.fragmentShader.includes(`cap = 1.0 - ${KARL_GEO.glide.see.toFixed(2)} * smoothstep(`) && sh.fragmentShader.includes('min(cap, '), 'the glide cap in GLSL');
   assert.ok(sh.uniforms.uKarlCam === KARL.uKarlCam && sh.fragmentShader.split('obKarlNoise(').length === 4, 'one noise per fragment (the camera term is a uniform)');
 });
 
