@@ -97,9 +97,122 @@ export function rigFromGltf(scene: THREE.Object3D, height = 1.3): { rig: Rig; ob
   // material, which would link a second skinned depth program (USE_MAP) on her first shadowed frame (C2's P5)
   found.onBeforeShadow = (_r, _o, _c, _sc, _g, depth) => { (depth as THREE.MeshDepthMaterial).map = null; };
   found.frustumCulled = false;
+  // W5-F8: her shadow is an ellipsoid per bone (≈ 1k triangles) inside the same draw, not the full model
+  withShadowProxy(found, fitShadowProxy(found));
   const rest: Record<string, THREE.Vector3> = {};
   for (const [name, bone] of Object.entries(bones)) { rest[name] = bone.position.clone(); bone.rotation.set(0, 0, 0); }
   return { rig: { mesh: found, bones, rest, height }, object: scene };
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 · W5-F8 (plan MF9 lever): low-poly shadow proxies for the player and BAYBAY
+// ---------------------------------------------------------------------------
+
+/**
+ * Put a low-poly shadow proxy inside a skinned character's own geometry: the proxy's triangles go after the drawn ones
+ * (the same vertex layout, the same skeleton), the main pass draws only the drawn range (onBeforeRender) and the shadow
+ * pass only the proxy's (onBeforeShadow, chained after one already set). No extra draw call, material or program; the
+ * shadow keeps the arms, the feet and the hat because the proxy rides the same bones. Returns the two triangle counts.
+ */
+export function withShadowProxy(mesh: THREE.SkinnedMesh, proxy: THREE.BufferGeometry): { drawn: number; shadow: number } {
+  const geo = mesh.geometry;
+  // (already proxied, or nothing to add: the counts as they are)
+  if (!geo.index || !proxy.index || (geo.userData as { shadowProxy?: unknown }).shadowProxy) { proxy.dispose(); return shadowProxyStats(mesh); }
+  const n0 = geo.attributes.position.count, n1 = proxy.attributes.position.count, drawn = geo.index.count, extra = proxy.index.count;
+  const out = new THREE.BufferGeometry();
+  for (const [name, a] of Object.entries(geo.attributes)) {
+    const src = a as THREE.BufferAttribute | THREE.InterleavedBufferAttribute;
+    const size = src.itemSize;
+    const Arr = ((src as THREE.InterleavedBufferAttribute).isInterleavedBufferAttribute ? (src as THREE.InterleavedBufferAttribute).data.array : (src as THREE.BufferAttribute).array).constructor as new (n: number) => THREE.TypedArray;
+    const dst = new THREE.BufferAttribute(new Arr((n0 + n1) * size), size, src.normalized);
+    const p = proxy.getAttribute(name) as THREE.BufferAttribute | undefined;
+    for (let i = 0; i < n0; i++) for (let k = 0; k < size; k++) dst.setComponent(i, k, src.getComponent(i, k));
+    // (attributes the proxy has no values for — uv, colour — stay 0: never drawn)
+    if (p && p.itemSize === size) for (let i = 0; i < n1; i++) for (let k = 0; k < size; k++) dst.setComponent(n0 + i, k, p.getComponent(i, k));
+    out.setAttribute(name, dst);
+  }
+  const Idx = n0 + n1 > 65535 ? Uint32Array : Uint16Array;
+  const index = new Idx(drawn + extra);
+  for (let i = 0; i < drawn; i++) index[i] = geo.index.getX(i);
+  for (let i = 0; i < extra; i++) index[drawn + i] = n0 + proxy.index.getX(i);
+  out.setIndex(new THREE.BufferAttribute(index, 1));
+  out.userData = { ...geo.userData, shadowProxy: { drawn, shadow: extra } };
+  out.setDrawRange(0, drawn);
+  out.computeBoundingBox();
+  out.computeBoundingSphere();
+  if (geo.boundingSphere && out.boundingSphere) out.boundingSphere.radius = Math.max(out.boundingSphere.radius, geo.boundingSphere.radius);
+  geo.dispose();
+  proxy.dispose();
+  mesh.geometry = out;
+  const before = mesh.onBeforeShadow.bind(mesh);
+  mesh.onBeforeRender = () => { out.drawRange.start = 0; out.drawRange.count = drawn; };
+  mesh.onBeforeShadow = (r, o, c, sc, g, depth, group) => { before(r, o, c, sc, g, depth, group); out.drawRange.start = drawn; out.drawRange.count = extra; };
+  return { drawn: drawn / 3, shadow: extra / 3 };
+}
+
+/** Shadow proxy parts → one indexed geometry skinned rigidly to the rig's bones (colour 0: never drawn). */
+function proxyGeometry(boneDefs: BoneDef[], parts: Omit<Part, 'color'>[]): THREE.BufferGeometry {
+  const index = new Map(boneDefs.map((b, i) => [b.name, i]));
+  const geos = parts.map(part => {
+    const g = part.geo.index ? part.geo : part.geo;
+    g.deleteAttribute('uv');
+    if (!g.attributes.normal) g.computeVertexNormals();
+    const n = g.attributes.position.count, bi = index.get(part.bone);
+    if (bi === undefined) throw new Error(`shadow proxy: unknown bone ${part.bone}`);
+    const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) { si[i * 4] = bi; sw[i * 4] = 1; }
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+    g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+    return g;
+  });
+  const merged = mergeGeometries(geos, false);
+  geos.forEach(g => g.dispose());
+  if (!merged) throw new Error('shadow proxy: merge failed');
+  return merged;
+}
+
+/**
+ * A shadow proxy fitted to any skinned mesh (the GLB BAYBAY): per bone, the vertices it weighs most, their bounding box
+ * in the bind pose → one low-poly ellipsoid (10 × 7) rigid on that bone. Bones with a sliver of the mesh (eyes, mouth)
+ * add nothing.
+ */
+export function fitShadowProxy(mesh: THREE.SkinnedMesh, minVerts = 24): THREE.BufferGeometry {
+  const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
+  const boxes = new Map<number, { min: THREE.Vector3; max: THREE.Vector3; n: number }>();
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    let best = 0, bw = -1;
+    for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; best = si.getComponent(i, k); } }
+    v.fromBufferAttribute(pos, i);
+    let b = boxes.get(best);
+    if (!b) boxes.set(best, (b = { min: v.clone(), max: v.clone(), n: 0 }));
+    b.min.min(v); b.max.max(v); b.n++;
+  }
+  const geos: THREE.BufferGeometry[] = [];
+  for (const [bone, b] of boxes) {
+    const size = b.max.clone().sub(b.min);
+    if (b.n < minVerts || Math.min(size.x, size.y, size.z) < 0.01) continue;
+    const c = b.min.clone().add(b.max).multiplyScalar(0.5);
+    const g = xf(new THREE.SphereGeometry(0.5, 10, 7), [c.x, c.y, c.z], [0, 0, 0], [size.x, size.y, size.z]);
+    g.deleteAttribute('uv');
+    const n = g.attributes.position.count;
+    const s = new Uint16Array(n * 4), w = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) { s[i * 4] = bone; w[i * 4] = 1; }
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(s, 4));
+    g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(w, 4));
+    geos.push(g);
+  }
+  const merged = geos.length ? mergeGeometries(geos, false) : null;
+  geos.forEach(g => g.dispose());
+  return merged ?? new THREE.BufferGeometry();
+}
+
+/** The drawn / shadow triangle counts of a character (tests, QA): equal when it has no proxy. */
+export function shadowProxyStats(mesh: THREE.Mesh): { drawn: number; shadow: number } {
+  const sp = (mesh.geometry.userData as { shadowProxy?: { drawn: number; shadow: number } }).shadowProxy;
+  const n = (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3;
+  return sp ? { drawn: sp.drawn / 3, shadow: sp.shadow / 3 } : { drawn: n, shadow: n };
 }
 
 // ---------------------------------------------------------------------------
@@ -297,7 +410,23 @@ export function buildNewcomer(): Rig {
     { geo: sphere(0.13, [0.16, 0.075, 0.05], [1, 0.62, 1.3]), color: C.creamFoot, bone: 'footL' },
     { geo: sphere(0.13, [-0.16, 0.075, 0.05], [1, 0.62, 1.3]), color: C.creamFoot, bone: 'footR' },
   ];
-  return buildRig(bones, parts);
+  const rig = buildRig(bones, parts);
+  // W5-F8: the shadow is the same silhouette in ≈ 650 triangles (bean, hat, pack and bedroll, arms and the map, feet)
+  const tilt = -0.45, hy = 1.2, hz = -0.05;
+  const hat = (dy: number, dz: number): Vec3 => [0, hy + dy * Math.cos(tilt) - dz * Math.sin(tilt), hz + dy * Math.sin(tilt) + dz * Math.cos(tilt)];
+  withShadowProxy(rig.mesh, proxyGeometry(bones, [
+    { geo: sphere(0.45, [0, 0.72, 0], [1, 1.36, 0.92], [0, 0, 0], 10, 7), bone: 'body' },
+    { geo: cyl(0.33, 0.43, 0.12, hat(0, 0), [tilt, 0, 0], 10, [1, 1, 0.92]), bone: 'hat' },
+    { geo: sphere(0.315, hat(0.07, 0), [1, 0.8, 1], [tilt, 0, 0], 10, 5), bone: 'hat' },
+    { geo: box(0.46, 0.56, 0.3, [0, 0.82, -0.45], [0.08, 0, 0]), bone: 'pack' },
+    { geo: xf(new THREE.CylinderGeometry(0.1, 0.1, 0.56, 8), [0, 1.14, -0.47], [0, 0, Math.PI / 2]), bone: 'pack' },
+    { geo: xf(new THREE.CapsuleGeometry(0.088, 0.15, 2, 6), [0.47, 0.67, 0.04], [0, 0, 0.34]), bone: 'armL' },
+    { geo: xf(new THREE.CapsuleGeometry(0.088, 0.15, 2, 6), [-0.47, 0.67, 0.04], [0, 0, -0.34]), bone: 'armR' },
+    { geo: cyl(0.06, 0.06, 0.46, [0.55, 0.56, 0.15], [0.3, 0, -0.12], 6), bone: 'armL' },
+    { geo: sphere(0.13, [0.16, 0.075, 0.05], [1, 0.62, 1.3], [0, 0, 0], 8, 5), bone: 'footL' },
+    { geo: sphere(0.13, [-0.16, 0.075, 0.05], [1, 0.62, 1.3], [0, 0, 0], 8, 5), bone: 'footR' },
+  ]));
+  return rig;
 }
 
 // ---------------------------------------------------------------------------
@@ -391,7 +520,22 @@ export function buildBaybay(): Rig {
     { geo: sphere(0.1, [0.13, 0.058, 0.08], [1.05, 0.62, 1.45]), color: B.foot, bone: 'footL' },
     { geo: sphere(0.1, [-0.13, 0.058, 0.08], [1.05, 0.62, 1.45]), color: B.foot, bone: 'footR' },
   ];
-  return buildRig(bones, parts);
+  const rig = buildRig(bones, parts);
+  // W5-F8: her shadow in ≈ 900 triangles (body, head with muzzle and ears, scarf ring, arms, tail, feet)
+  withShadowProxy(rig.mesh, proxyGeometry(bones, [
+    { geo: sphere(0.34, [0, 0.5, 0], [1, 1.18, 0.9], [0, 0, 0], 10, 7), bone: 'body' },
+    { geo: sphere(0.31, [0, 1.04, 0.03], [1.1, 0.95, 0.98], [0, 0, 0], 10, 7), bone: 'head' },
+    { geo: sphere(0.13, [0, 0.955, 0.275], [1.32, 0.86, 0.9], [0, 0, 0], 8, 5), bone: 'head' },
+    { geo: sphere(0.09, [0.25, 1.25, -0.02], [1, 0.86, 0.55], [0, 0, 0], 6, 4), bone: 'head' },
+    { geo: sphere(0.09, [-0.25, 1.25, -0.02], [1, 0.86, 0.55], [0, 0, 0], 6, 4), bone: 'head' },
+    { geo: xf(new THREE.TorusGeometry(0.27, 0.078, 4, 12), [0, 0.83, 0.015], [Math.PI / 2 - 0.12, 0, 0]), bone: 'body' },
+    { geo: xf(new THREE.CapsuleGeometry(0.072, 0.19, 2, 6), [0.325, 0.6, 0.1], [0.12, 0, 0.3]), bone: 'armL' },
+    { geo: xf(new THREE.CapsuleGeometry(0.072, 0.19, 2, 6), [-0.325, 0.6, 0.1], [0.12, 0, -0.3]), bone: 'armR' },
+    { geo: xf(new THREE.CapsuleGeometry(0.11, 0.26, 2, 6), [0, 0.16, -0.42], [-1.1, 0, 0], [1, 1, 0.8]), bone: 'tail' },
+    { geo: sphere(0.1, [0.13, 0.058, 0.08], [1.05, 0.62, 1.45], [0, 0, 0], 8, 5), bone: 'footL' },
+    { geo: sphere(0.1, [-0.13, 0.058, 0.08], [1.05, 0.62, 1.45], [0, 0, 0], 8, 5), bone: 'footR' },
+  ]));
+  return rig;
 }
 
 // ---------------------------------------------------------------------------

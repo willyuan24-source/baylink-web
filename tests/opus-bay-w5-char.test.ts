@@ -313,3 +313,78 @@ test('charApi: registered and cleared through setCharApi; the self-tap body is a
   assert.equal(rayCapsuleT(o, aim(1.4, 0.8, 0), 0, 0, 0, 0.6, 1.7), -1, 'miss beside');
   assert.equal(rayCapsuleT(o, aim(0, 3, -4), 0, 0, 0, 0.6, 1.7), -1, 'miss above');
 });
+
+// ---------------------------------------------------------------------------
+// W5-F8 (plan MF9 lever): low-poly shadow proxies for the player and BAYBAY; far parked rides not drawn in the city
+// ---------------------------------------------------------------------------
+
+test('W5-F8 shadow proxies: the player and BAYBAY draw their full body but cast a shadow from < 1,000 triangles, in the same draw (no new material, the same bones)', async () => {
+  const { shadowProxyStats } = await import('../src/opus-bay/actors/models');
+  for (const [name, rig, full] of [['newcomer', buildNewcomer(), 8784], ['baybay', buildBaybay(), 10404]] as const) {
+    const st = shadowProxyStats(rig.mesh);
+    assert.equal(st.drawn, full, `${name}: the drawn body is unchanged`);
+    assert.ok(st.shadow > 300 && st.shadow < 1000, `${name}: shadow ${st.shadow} triangles`);
+    const g = rig.mesh.geometry;
+    // the main pass draws the body's range, the shadow pass the proxy's
+    rig.mesh.onBeforeRender(null as never, null as never, null as never, g, rig.mesh.material as THREE.Material, null);
+    assert.deepEqual([g.drawRange.start, g.drawRange.count], [0, st.drawn * 3]);
+    rig.mesh.onBeforeShadow(null as never, rig.mesh, null as never, null as never, g, new THREE.MeshDepthMaterial(), null);
+    assert.deepEqual([g.drawRange.start, g.drawRange.count], [st.drawn * 3, st.shadow * 3]);
+    rig.mesh.onBeforeRender(null as never, null as never, null as never, g, rig.mesh.material as THREE.Material, null);
+    // the proxy rides the rig's own bones (weight 1) and is never coloured (colour 0: never drawn in the main pass)
+    const si = g.getAttribute('skinIndex'), sw = g.getAttribute('skinWeight'), col = g.getAttribute('color'), idx = g.index!;
+    let first = Infinity;
+    for (let i = st.drawn * 3; i < idx.count; i++) first = Math.min(first, idx.getX(i));
+    for (let v = first; v < g.attributes.position.count; v++) {
+      assert.ok(si.getX(v) < rig.mesh.skeleton.bones.length && Math.abs(sw.getX(v) - 1) < 1e-6);
+      assert.equal(col.getX(v) + col.getY(v) + col.getZ(v), 0);
+    }
+    assert.equal(Array.isArray(rig.mesh.material), false, 'one material');
+  }
+});
+
+test('W5-F8 fitShadowProxy (the GLB BAYBAY): an ellipsoid per bone over the vertices it weighs most, slivers left out; normalized 8-bit weights copied exactly', async () => {
+  const { fitShadowProxy, withShadowProxy, shadowProxyStats } = await import('../src/opus-bay/actors/models');
+  const { mergeGeometries } = await import('three/examples/jsm/utils/BufferGeometryUtils.js');
+  // a stand-in: a body box on bone 0 and a head box on bone 1, each 10 % on bone 2; weights as normalized bytes
+  const body = new THREE.BoxGeometry(0.6, 0.8, 0.5, 2, 2, 2).translate(0, 0.4, 0), head = new THREE.BoxGeometry(0.5, 0.4, 0.4, 2, 2, 2).translate(0, 1.0, 0);
+  const geos = [body, head].map((g, bone) => {
+    const n = g.attributes.position.count;
+    const si = new Uint8Array(n * 4), sw = new Uint8Array(n * 4);
+    for (let i = 0; i < n; i++) { si[i * 4] = bone; si[i * 4 + 1] = 2; sw[i * 4] = 230; sw[i * 4 + 1] = 25; }
+    g.setAttribute('skinIndex', new THREE.Uint8BufferAttribute(si, 4));
+    g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4, true));
+    return g;
+  });
+  const merged = mergeGeometries(geos, false)!;
+  const bones = [new THREE.Bone(), new THREE.Bone(), new THREE.Bone()];
+  bones[0].add(bones[1]); bones[0].add(bones[2]);
+  const mesh = new THREE.SkinnedMesh(merged, new THREE.MeshStandardMaterial());
+  mesh.add(bones[0]); mesh.bind(new THREE.Skeleton(bones));
+  const proxy = fitShadowProxy(mesh);
+  const ps = proxy.getAttribute('skinIndex');
+  const used = new Set<number>();
+  for (let i = 0; i < ps.count; i++) used.add(ps.getX(i));
+  assert.deepEqual([...used].sort(), [0, 1], 'one ellipsoid each for the body and the head, none for the minor bone');
+  proxy.computeBoundingBox();
+  assert.ok(proxy.boundingBox!.max.y <= 1.2 + 1e-6 && proxy.boundingBox!.min.y >= -1e-6, 'inside the model');
+  const before = Array.from((merged.getAttribute('skinWeight') as THREE.BufferAttribute).array as Uint8Array);
+  const st = withShadowProxy(mesh, proxy);
+  assert.ok(st.shadow > 0 && st.shadow <= 2 * 140);
+  const sw = mesh.geometry.getAttribute('skinWeight') as THREE.BufferAttribute;
+  assert.ok(sw.array instanceof Uint8Array && sw.normalized, 'the weights keep their type');
+  assert.deepEqual(Array.from((sw.array as Uint8Array).slice(0, before.length)), before, 'the model\'s own weights unchanged');
+  assert.equal((sw.array as Uint8Array)[before.length], 255, 'the proxy weighs 1 (255)');
+  assert.deepEqual(shadowProxyStats(mesh), st);
+  // a second call does nothing
+  assert.deepEqual(withShadowProxy(mesh, fitShadowProxy(mesh)), st);
+});
+
+test('W5-F8 far parked rides: city mode draws a parked bike / the toy car only within FAR_RIDE of the camera (the one you ride or called always); district mode unchanged', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const { FAR_RIDE } = await import('../src/opus-bay/actors/system');
+  assert.equal(FAR_RIDE, 250);
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(src, /const mine = r === move\.ride \|\| r\.occupied \|\| !!r\.call;\s*r\.rig\.mesh\.visible = !cityMode \|\| mine \|\| this\.withinCamera\(r\.sim\.x, r\.sim\.z, FAR_RIDE\);/);
+});

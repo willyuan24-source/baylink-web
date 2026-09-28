@@ -63,6 +63,8 @@ function glbDisabled(): boolean {
 
 /** residents and parked rides cast a real shadow within this of the camera (u; C2 part b request 1) */
 const ACTOR_SHADOW_R = 40;
+/** W5-F8: city mode draws a parked ride only within this of the camera (u) */
+export const FAR_RIDE = 250;
 const frustum = new THREE.Frustum();
 const tmpPM = new THREE.Matrix4();
 const tmpSphere = new THREE.Sphere();
@@ -362,6 +364,11 @@ export class ActorSystem {
     const dx = x - this.camPos.x, dz = z - this.camPos.z;
     return dx * dx + dz * dz < ACTOR_SHADOW_R * ACTOR_SHADOW_R;
   }
+  /** (x, z) within r of the camera, horizontally (W5-F8) */
+  private withinCamera(x: number, z: number, r: number): boolean {
+    const dx = x - this.camPos.x, dz = z - this.camPos.z;
+    return dx * dx + dz * dz < r * r;
+  }
   /**
    * castShadow on / off; a skinned caster turned on takes the player's shadow-depth material (C2's kindSweep gives
    * casters their kind's one once a second and skips those not casting: before it, three drew the caster with its own
@@ -615,8 +622,15 @@ export class ActorSystem {
     // vehicles / glide / bench / streetcar platform first: they consume their own input edges and carry the body
     const move = this.move;
     move.update(dt, t, { cameraYaw: moveBasis.yaw, frozen: flowFrozen, playing: s.phase === 'playing', controller: this.controller, frustum, precompile: this.precompile ?? undefined });
-    // parked rides cast a real shadow only near the camera (C2 part b request 1; the one you ride always does)
-    for (const r of move.fleet.rides) this.castNear(r.rig.mesh, r === move.ride || this.nearCamera(r.sim.x, r.sim.z));
+    // parked rides cast a real shadow only near the camera (C2 part b request 1; the one you ride always does); W5-F8:
+    // in city mode a parked ride more than FAR_RIDE from the camera is not drawn at all (the district's bikes and toy car
+    // seen from the rest of the city: −10 calls, −15.6k triangles at Twin Peaks); district mode unchanged
+    const cityMode = s.worldMode === 'city';
+    for (const r of move.fleet.rides) {
+      const mine = r === move.ride || r.occupied || !!r.call;
+      r.rig.mesh.visible = !cityMode || mine || this.withinCamera(r.sim.x, r.sim.z, FAR_RIDE);
+      this.castNear(r.rig.mesh, mine || this.nearCamera(r.sim.x, r.sim.z));
+    }
     const carried = move.carried || riding;
 
     // soft obstacles for the player
