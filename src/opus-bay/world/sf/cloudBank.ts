@@ -84,10 +84,18 @@ export function cloudSlots(t: KarlTarget, n: number = CLOUD_BANK.count): CloudSl
 }
 
 /** instanceColor of the bank per time (multiplies the white / grey vertex colours and the clusters' faint glow; the TOY
- *  lighting stays): at night low, or the glow alone would light the bank white against the night sky */
+ *  lighting stays): at night low and cool, or the always-on glow lights the bank brighter than the city (wave 4,
+ *  verify-visual F4: at 0.6 / 0.55 / 0.62 the night clusters were lavender clay blobs over the lit Sunset) */
 export const CLOUD_TINT: Record<TimeOfDay, [number, number, number]> = {
-  morning: [1.2, 1.2, 1.22], day: [1.15, 1.15, 1.15], golden: [1.42, 1.26, 1.14], night: [0.6, 0.55, 0.62],
+  morning: [1.2, 1.2, 1.22], day: [1.15, 1.15, 1.15], golden: [1.42, 1.26, 1.14], night: [0.3, 0.33, 0.42],
 };
+
+/**
+ * A camera flying into the bank (a glide, the 70–115 u views) sees the nearest clusters melt away instead of filling
+ * the frame with faceted lumps (verify-visual F4): a cluster shrinks to nothing as the camera comes within NEAR_MELT.in
+ * of its surface, full size beyond NEAR_MELT.out.
+ */
+export const NEAR_MELT = { in: 8, out: 60 } as const;
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 const _c = new THREE.Color(), _c2 = new THREE.Color();
@@ -180,7 +188,11 @@ export class CloudBank implements WorldSystem {
       _p.set(a.x + (b.x - a.x) * e + E.x * d, a.y + (b.y - a.y) * e, a.z + (b.z - a.z) * e + E.z * d);
       // under the bank (walking in the Sunset, on Ocean Beach) Karl is the distance fog, not blobs overhead
       if (cam.y < _p.y + 12) grow *= smooth(70, 170, Math.hypot(_p.x - cam.x, _p.z - cam.z));
-      _s.set(a.sx + (b.sx - a.sx) * e, a.sy + (b.sy - a.sy) * e, a.sz + (b.sz - a.sz) * e).multiplyScalar(grow);
+      _s.set(a.sx + (b.sx - a.sx) * e, a.sy + (b.sy - a.sy) * e, a.sz + (b.sz - a.sz) * e);
+      // near the camera (above the bank: a glide, a high view) the cluster melts instead of filling the frame
+      const gap = Math.hypot((_p.x - cam.x) / Math.max(1, _s.x), (_p.y - cam.y) / Math.max(1, _s.y), (_p.z - cam.z) / Math.max(1, _s.z));
+      if (gap < 4) grow *= smooth(NEAR_MELT.in, NEAR_MELT.out, (gap - 1) * Math.min(_s.x, _s.z));
+      _s.multiplyScalar(grow);
       if (_s.x < 0.05 || _s.y < 0.05) continue;
       const r = Math.max(_s.x, _s.z) * 1.8;
       if (!_f.intersectsSphere(_sph.set(_p, r))) continue;

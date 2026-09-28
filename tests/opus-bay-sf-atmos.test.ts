@@ -213,7 +213,7 @@ test('Karl as a bank (M3): an opaque sea under Twin Peaks in the morning, thick 
   assert.ok(sh.uniforms.uKarlCam === KARL.uKarlCam && sh.fragmentShader.split('obKarlNoise(').length === 4, 'one noise per fragment (the camera term is a uniform)');
 });
 
-const { CLOUD_BANK, CloudBank, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
+const { CLOUD_BANK, CLOUD_TINT, CloudBank, NEAR_MELT, cloudSlots } = await import('../src/opus-bay/world/sf/cloudBank');
 
 test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMesh, ≤ 12k triangles, sitting inside Karl', async () => {
   const { TOY_INST_TINT } = await import('../src/opus-bay/world/materials');
@@ -261,6 +261,26 @@ test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMes
     // never over downtown / the Mission (east of the front by far)
     assert.ok(slots.every(s => (s.x - 137) ** 2 + (s.z - 133) ** 2 > 400 ** 2 && (s.x - 195) ** 2 + (s.z - 648) ** 2 > 250 ** 2), `${tod}: clear of downtown`);
   }
+  // wave 4 (verify-visual F4): the night bank is dim and cool (below the lit city), and a camera flying into a cluster
+  // sees it melt instead of a faceted wall
+  assert.ok(Math.max(...CLOUD_TINT.night) <= 0.45 && CLOUD_TINT.night[2] >= CLOUD_TINT.night[0], 'night tint dim and cool');
+  assert.ok(NEAR_MELT.in < NEAR_MELT.out);
+  const glider = new THREE.PerspectiveCamera(50, 1.6, 0.5, 3000);
+  const m4 = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+  const instances = () => Array.from({ length: bank.mesh.count }, (_, i) => { bank.mesh.getMatrixAt(i, m4); m4.decompose(p, q, sc); return { p: p.clone(), s: sc.clone() }; });
+  // from 400 u east and 80 u up, looking at the bank: full-size clusters
+  glider.position.set(-250, 150, 1150); glider.lookAt(-650, 40, 1150); glider.updateMatrixWorld();
+  bank.update(0.016, 0, glider);
+  const far = instances();
+  assert.ok(far.length > 0);
+  const target = far.reduce((a, b) => (b.s.x > a.s.x ? b : a));
+  // glide just over the biggest one (above the bank: the 'under the bank' shrink does not apply): it melts, no faceted
+  // lump wraps the camera
+  glider.position.set(target.p.x, target.p.y + target.s.y * 1.3, target.p.z); glider.lookAt(target.p.x - 100, target.p.y - 20, target.p.z); glider.updateMatrixWorld();
+  bank.update(0.016, 0, glider);
+  const near = instances();
+  const wraps = near.filter(c => Math.hypot((c.p.x - glider.position.x) / c.s.x, (c.p.y - glider.position.y) / c.s.y, (c.p.z - glider.position.z) / c.s.z) < 1.6);
+  assert.equal(wraps.length, 0, 'the camera inside a cloud sees no faceted lump around it');
   k.setFlag(0);
   bank.update(0.016, 0, cam);
   assert.equal(bank.mesh.visible, false, '?karl=0: no clouds, no draw call');
