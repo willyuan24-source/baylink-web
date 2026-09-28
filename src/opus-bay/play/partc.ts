@@ -30,13 +30,11 @@ export function holdKeys(codes: readonly string[], onPress?: (code: string) => v
     if (!codes.includes(e.code) || e.metaKey || e.ctrlKey || e.altKey) return;
     const el = e.target as HTMLElement | null;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON' || el.isContentEditable)) return;
-    // (immediate: a key event aimed at the window itself reaches its other listeners at the target otherwise — input.ts
-    // counted such an E and opened BAYBAY's menu once the rally was over)
-    e.preventDefault(); e.stopImmediatePropagation();
+    e.preventDefault(); e.stopPropagation();
     if (!e.repeat && !down.has(e.code)) onPress?.(e.code);
     down.add(e.code);
   };
-  const keyUp = (e: KeyboardEvent) => { if (codes.includes(e.code)) { down.delete(e.code); e.stopImmediatePropagation(); } };
+  const keyUp = (e: KeyboardEvent) => { if (codes.includes(e.code)) { down.delete(e.code); e.stopPropagation(); } };
   const blur = () => down.clear();
   window.addEventListener('keydown', keyDown, true);
   window.addEventListener('keyup', keyUp, true);
