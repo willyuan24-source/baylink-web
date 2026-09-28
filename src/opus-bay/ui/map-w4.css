@@ -5,8 +5,10 @@
 /* --- filter chips: a horizontally scrolling row of 32 px chips in a 44 px band ---------------------------------- */
 .mw-chips { position: relative; display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 6px 2px; margin: 0 -2px; min-height: 44px; align-items: center; -webkit-overflow-scrolling: touch; }
 .mw-chips::-webkit-scrollbar { display: none; }
-.mw-chip { --mw-chip: var(--ob-ink-2); flex: none; display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--ob-line-2); background: var(--ob-cream); color: var(--ob-ink-2); font: 700 13px/1 var(--ob-font); cursor: pointer; white-space: nowrap; transition: background .15s var(--ob-ease), border-color .15s var(--ob-ease); }
+.mw-chip { --mw-chip: var(--ob-ink-2); position: relative; flex: none; display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--ob-line-2); background: var(--ob-cream); color: var(--ob-ink-2); font: 700 13px/1 var(--ob-font); cursor: pointer; white-space: nowrap; transition: background .15s var(--ob-ease), border-color .15s var(--ob-ease); }
 .mw-chip svg { color: var(--mw-chip); }
+/* a 44 px tall touch area over the 32 px chip (the band is 44 px; the 6 px gaps split between neighbours) */
+.mw-chip::before { content: ''; position: absolute; inset: -6px -3px; }
 .mw-chip:hover { background: var(--ob-cream-2); }
 .mw-chip.is-on { background: var(--mw-chip); border-color: var(--mw-chip); color: #fff; }
 .mw-chip.is-on svg { color: #fff; }
@@ -79,7 +81,8 @@
 
 /* --- the integrated city map (lane P, wave-4 integration) ----------------------------------------------------------- */
 /* the compass rose (true north is up-left: the game turns the city); top-left of the frame */
-.mw-compass { position: absolute; left: 8px; top: 8px; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 250, 241, .94); box-shadow: var(--ob-shadow-s); cursor: pointer; }
+.mw-compass::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; }
+.mw-compass { position: absolute; left: 8px; top: 8px; width: 36px; height: 36px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255, 250, 241, .94); box-shadow: var(--ob-shadow-s); cursor: pointer; }
 .mw-compass:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 2px; }
 .mw-compass-disc { fill: #fffaf1; stroke: rgba(60, 40, 20, .28); stroke-width: 1; }
 .mw-compass-n { fill: #d8744a; }

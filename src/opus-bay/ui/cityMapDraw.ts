@@ -129,8 +129,28 @@ export interface CityMapInput {
   visited: (zoneId: string) => boolean;
   /** cable-car lines (data/transit.ts) as world [x, y, z] triples with their colour */
   transit?: readonly { xyz: Float32Array; color: string }[];
-  /** H2b's painted paper is drawn underneath: skip the sea and land fills */
-  paper?: boolean;
+  /**
+   * H2b's painted paper is drawn underneath: `true` (or 1) skips the sea and land fills; a share in (0, 1) draws the
+   * vector base at 1 − share over it (the game map cross-fades from the paper to the vector base as you zoom in:
+   * paperShare); 0 / absent: no paper.
+   */
+  paper?: boolean | number;
+  /**
+   * Stroke the vector coastline over a fully shown paper (default true: H2b's DEV export). The game map passes false:
+   * the paper paints its own coast, which sits 20–40 u off the vector one in places (verify-visual F2: two crossing
+   * coastlines).
+   */
+  coast?: boolean;
+}
+
+/** The paper is shown whole up to this scale (CSS px per world unit) … */
+export const PAPER_FULL_UNTIL = 0.5;
+/** … and gone from this one on: the vector base alone when close (the paper is blurry and off by 20–40 u there). */
+export const PAPER_GONE_FROM = 0.8;
+/** How much of the painted paper the map shows at scale s (1 = all of it, 0 = the vector base alone). Pure. */
+export function paperShare(s: number): number {
+  const t = Math.min(1, Math.max(0, (s - PAPER_FULL_UNTIL) / (PAPER_GONE_FROM - PAPER_FULL_UNTIL)));
+  return 1 - t * t * (3 - 2 * t);
 }
 
 // area classes (world/sf/format AREA_CLASSES order)
@@ -245,14 +265,24 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
-  if (!input.paper) {
-    ctx.fillStyle = MAP_PAINT.sea;
-    ctx.fillRect(0, 0, v.w, v.h);
-    ops++;
+  // how much of H2b's paper shows under the canvas: the vector base covers the rest
+  const share = input.paper === true ? 1 : typeof input.paper === 'number' ? Math.min(1, Math.max(0, input.paper)) : 0;
+  const base = 1 - share;
+  if (base > 0.004) {
+    ctx.globalAlpha = base;
+    if (share > 0.004) {
+      // fading in over the paper: the sea only outside the land (a sea fill under the half-clear land would tint it)
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(v.w, 0); ctx.lineTo(v.w, v.h); ctx.lineTo(0, v.h); ctx.closePath();
+      areaPath(ctx, v, far.areas, b.areas, vb, [A_LAND]);
+      fill(MAP_PAINT.sea, 'evenodd');
+    } else {
+      ctx.fillStyle = MAP_PAINT.sea;
+      ctx.fillRect(0, 0, v.w, v.h);
+      ops++;
+    }
     ctx.beginPath();
     if (areaPath(ctx, v, far.areas, b.areas, vb, [A_LAND])) fill(MAP_PAINT.land, 'evenodd');
-  }
-  if (!input.paper) {
     ctx.beginPath();
     if (areaPath(ctx, v, far.areas, b.areas, vb, [A_WATER])) fill(MAP_PAINT.lake, 'evenodd');
     ctx.beginPath();
@@ -263,15 +293,16 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
     if (areaPath(ctx, v, far.areas, b.areas, vb, [A_SAND])) fill(MAP_PAINT.sand, 'evenodd');
     ctx.beginPath();
     if (prismPath(ctx, v, far.prisms, b.prisms, vb)) fill(MAP_PAINT.blocks);
-  } else {
-    // H2b's paper paints the lakes, parks, woods, beaches and blocks; the vector coastline goes on top of it
+    ctx.globalAlpha = 1;
+  } else if (input.coast !== false) {
+    // H2b's paper paints the lakes, parks, woods, beaches and blocks; the vector coastline on top of it (DEV export)
     ctx.beginPath();
     if (areaPath(ctx, v, far.areas, b.areas, vb, [A_LAND])) stroke(MAP_PAINT.paperCoast, Math.max(1, 0.9 * zoom));
   }
   // streets: minor ones (tertiary) from 1.6 px/u … widths grow with the zoom (right-of-way ≈ 3–6 u). Over the paper
   // they fade in from 0.8 px/u (the paper's own streets read below that)
   const w = (u: number, min: number) => Math.max(min, u * zoom);
-  const streetAlpha = input.paper ? Math.min(0.9, Math.max(0, (zoom - 0.8) / 0.8)) : 1;
+  const streetAlpha = share * Math.min(0.9, Math.max(0, (zoom - 0.8) / 0.8)) + base;
   if (streetAlpha > 0.01) {
     ctx.globalAlpha = streetAlpha;
     if (zoom > 0.6) {
@@ -303,7 +334,8 @@ export function drawCityMap(ctx: Ctx2D, input: CityMapInput, v: MapView): number
     ctx.setLineDash([]);
   }
   ctx.beginPath();
-  if (zonePath(ctx, v, far.zones, id => !input.visited(id))) { fill(input.paper ? MAP_PAINT.paperFog : MAP_PAINT.fog, 'evenodd'); stroke(MAP_PAINT.fogEdge, 1.2); }
+  const fog = share >= 1 ? MAP_PAINT.paperFog : share <= 0 ? MAP_PAINT.fog : `rgba(241, 232, 216, ${(0.82 - 0.12 * share).toFixed(3)})`;
+  if (zonePath(ctx, v, far.zones, id => !input.visited(id))) { fill(fog, 'evenodd'); stroke(MAP_PAINT.fogEdge, 1.2); }
   ctx.restore();
   return ops;
 }

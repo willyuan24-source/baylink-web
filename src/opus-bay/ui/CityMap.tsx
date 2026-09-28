@@ -21,7 +21,7 @@ import { tripRemainingSeconds } from '../game/tripPlan';
 import { TRIP_MODE_NAMES } from '../game/tripTypes';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
-import { type MapView, clampView, drawCityMap, labelWidth, maxScale, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { type MapView, clampView, drawCityMap, labelWidth, maxScale, paperShare, thinPx, toPx, zoomAt } from './cityMapDraw';
 import { type MapSel, type MapTarget, NORTH_DEG, buildScene, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { CityMapList, type MapTab } from './CityMapList';
@@ -354,7 +354,7 @@ export function CityMapPanel() {
   // the scene (after the route: its time chip is an obstacle for the labels)
   const scene = useMemo(() => {
     if (!view) return null;
-    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }, ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: routeDraw.cw / 2 }] : [])];
+    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 26, y: 26, r: 18 }, ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: routeDraw.cw / 2 }] : [])];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
       discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
@@ -378,7 +378,8 @@ export function CityMapPanel() {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawCityMap(ctx, { far, visited: zoneVisited, paper: !!MAP_PAPER }, view);
+      // the painted paper at city scale, the vector base when close (verify-visual F2): no second coastline over the paper
+      drawCityMap(ctx, { far, visited: zoneVisited, paper: MAP_PAPER ? paperShare(view.scale) : 0, coast: false }, view);
       const fl = filterLines(filter);
       drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
       drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
@@ -420,6 +421,9 @@ export function CityMapPanel() {
   const heading = runtime.player.heading;
   const vis = view ? { x: view.cx - view.w / 2 / view.scale, z: view.cz - view.h / 2 / view.scale, w: view.w / view.scale, h: view.h / view.scale } : null;
   const s = view?.scale ?? 0;
+  // the paper leaves the DOM once the vector base covers it (decoded papers come back at once when you zoom out)
+  const showPaper = !!MAP_PAPER && paperShare(s) > 0;
+  const dpr = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1;
   const atMax = !!view && view.scale >= maxScale(MAP_FRAME, view.w, view.h) - 1e-6;
   const leading = !!useFlow(st => st.freeLead) || !!trip || !!tripId;
 
@@ -447,7 +451,7 @@ export function CityMapPanel() {
       )}
       <div ref={frameRef} className="ob-citymap-frame" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
         role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放', 'Map of San Francisco: drag to pan, wheel or pinch to zoom')}>
-        {vis && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={s > 1.2 ? 4096 : 2048} /></svg>}
+        {vis && showPaper && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={s * dpr > 0.7 ? 4096 : 2048} /></svg>}
         <canvas ref={canvasRef} className="ob-citymap-canvas" style={size ? { width: size.w, height: size.h } : undefined} aria-hidden />
         {guideAt && guideAt[0] > -12 && guideAt[1] > -12 && guideAt[0] < (size?.w ?? 0) + 12 && guideAt[1] < (size?.h ?? 0) + 12 && (
           <span className={`cm-baybay-face${leading ? ' is-leading' : ''}`} style={{ transform: `translate(${(guideAt[0] - 11).toFixed(1)}px, ${(guideAt[1] - 11).toFixed(1)}px)` }} aria-hidden><BaybayFace size={22} /></span>
