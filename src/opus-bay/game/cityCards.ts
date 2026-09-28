@@ -58,7 +58,13 @@ export function cardPoi(card: PlaceCard): PoiDef | null {
 export function refreshedPoi(poi: PoiDef, r: CardRefresh): PoiDef {
   const info = poi.realInfo;
   if (!info) return poi;
-  const tips = [...(r.status ? [r.status.text] : []), ...info.tips, ...(r.addTips ?? [])];
+  const own = [...info.tips];
+  const extra: typeof own = [];
+  for (const { match, text } of r.replaceTips ?? []) {
+    const i = own.findIndex(tip => tip.zh.includes(match));
+    if (i >= 0) own[i] = text; else extra.push(text);
+  }
+  const tips = [...(r.status ? [r.status.text] : []), ...own, ...extra, ...(r.addTips ?? [])];
   return {
     ...poi,
     realInfo: { ...info, tips, ...(r.hours ? { hours: r.hours } : {}), ...(r.cost ? { cost: r.cost } : {}), verifiedAt: r.verifiedAt },

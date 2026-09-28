@@ -654,13 +654,16 @@ export const CITY_GUIDE_BARKS: Record<BarkKind, Bilingual[]> = {
     { zh: '再往外就出了我们的旧金山啦！', en: "That's the edge of our San Francisco!" },
     { zh: '前面是模型边缘，再走就到桌子上咯～', en: "Model's edge ahead — one more step and you're on the table!" },
   ],
+  // Karl's joke only by day, when his bank waits offshore (verify D8: never at golden hour with the bank on screen)
   idle: [
-    { zh: 'Karl 今天好像请假了——雾都没来上班。', en: 'Looks like Karl the Fog called in sick today.' },
     { zh: '要是我有口袋，一定装满酸面包。', en: "If I had pockets, they'd be full of sourdough." },
     { zh: '这座城的坡，走着走着就成了风景。', en: 'In this city, every hill turns into a view if you keep walking.' },
     { zh: '每个街区都有自己的颜色，慢慢看。', en: 'Every neighbourhood has its own colours — take it slow.' },
   ],
-  day: [{ zh: '今天的风刚刚好，适合一直走下去。', en: "Perfect breeze today — let's keep walking." }],
+  day: [
+    { zh: '今天的风刚刚好，适合一直走下去。', en: "Perfect breeze today — let's keep walking." },
+    { zh: 'Karl 今天好像请假了——雾都没来上班。', en: 'Looks like Karl the Fog called in sick today.' },
+  ],
   night: [{ zh: '城里的灯一盏盏亮起来了，好温柔。', en: 'The city lights are coming on, one by one — so cozy.' }],
 };
 /** One-off bubbles of the active world (plan G2-0). */

@@ -71,7 +71,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
   }),
   short({
     id: 'ingleside-terraces-sundial',
-    name: bi('英格塞德日晷', 'Ingleside Terraces Sundial'), zone: bi('英格塞德台地', 'Ingleside Terraces'),
+    name: bi('英格塞德日晷', 'Ingleside Terraces Sundial'), zone: bi('英格尔赛德 · 台地住宅区', 'Ingleside Terraces'),
     bark: bi('这个日晷 1913 年建成时，号称世界最大！', 'When it was built in 1913, this sundial was billed as the world\'s biggest!'),
     summary: bi('1913 年 10 月 10 日落成：28 英尺高的指针立在 34 英尺宽的表盘上。它当年是新住宅区吸引买家的招牌，号称世界最大的日晷。', 'Dedicated on 10 Oct 1913: a 28-ft gnomon on a 34-ft dial, built to draw buyers to a new neighbourhood and billed as the world\'s largest sundial.'),
     tips: [bi('它在住宅区的小广场里，安静看看就好。', 'It sits in a residential court: enjoy it quietly.')],
@@ -204,7 +204,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
   }),
   short({
     id: 'mclaren-park', place: 'osm-w28716696',
-    name: bi('麦克拉伦公园', 'John McLaren Park'), zone: bi('城南 · 访谷旁', 'The south · by Visitacion Valley'),
+    name: bi('麦克拉伦公园', 'John McLaren Park'), zone: bi('城南 · 维西塔西翁谷旁', 'The south · by Visitacion Valley'),
     bark: bi('麦克拉伦公园有 313 英亩，那个蓝色大水塔从高速上就能看到。', 'McLaren Park covers 313 acres — you can spot its blue water tank from the freeway.'),
     summary: bi('城南 313.7 英亩的野趣大公园：有以 Jerry Garcia 命名的露天剧场、2.7 英里的“哲人之路”步道，还有 1956 年的蓝色“大水塔”。', 'A big wild southern park of 313.7 acres with the Jerry Garcia Amphitheater, the 2.7-mile Philosopher\'s Way and the blue "La Grande" water tank of 1956.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/John_McLaren_Park', sources: ['https://www.openstreetmap.org/way/28716696'],
@@ -424,7 +424,6 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     name: bi('非洲侨民博物馆', 'Museum of the African Diaspora (MoAD)'), zone: bi('南市场 · 芳草地', 'SoMa · Yerba Buena'),
     bark: bi('看那面三层楼高的马赛克，是用 2,000 多张照片拼成的一张脸！', 'That three-storey mosaic is one face made of 2,000-plus photos!'),
     summary: bi('Mission 街上就能看到它三层楼高的《非洲侨民之脸》：2,000 多张照片拼成摄影师 Chester Higgins Jr. 镜头下的一个女孩。', 'Its three-storey "Face of the African Diaspora", visible from Mission St, uses 2,000-plus photos to form Chester Higgins Jr.\'s portrait of a girl.'),
-    status: { kind: 'changing', text: bi('换展闭馆到 2026 年 9 月 29 日，9 月 30 日重新开放。', 'Closed for installation through 29 Sep 2026; reopens 30 September.'), until: '2026-09' },
     hours: bi('周一闭馆，其余约 11:00–17:00（周四到 20:00），成人约 15 美元。', 'Closed Mondays; otherwise about 11am–5pm (Thu to 8pm), adults about $15.'),
     officialUrl: 'https://www.moadsf.org/visit',
     sourceUrl: 'https://www.moadsf.org/visit', sources: [],
@@ -534,9 +533,9 @@ export const PLACE_CARDS_2: PlaceCard[] = [
   }),
   short({
     id: 'visitacion-valley-greenway', place: 'osm-w257182717',
-    name: bi('访谷绿道', 'Visitacion Valley Greenway'), zone: bi('访谷', 'Visitacion Valley'),
+    name: bi('访谷绿道', 'Visitacion Valley Greenway'), zone: bi('维西塔西翁谷', 'Visitacion Valley'),
     bark: bi('访谷绿道是街坊们自己一块块建起来的社区花园！', 'The Visitacion Valley Greenway was built lot by lot by the neighbours!'),
-    summary: bi('访谷街坊和市公园局一起建的一串社区花园：原生植物园、儿童游戏园、香草园、菜地和老人亭，访谷也是城里华人聚居的街区之一。', 'A chain of community gardens built by Visitacion Valley neighbours with Rec & Park: native plants, a children\'s garden, herbs, crops and a senior pavilion, in one of the city\'s Chinese-American neighbourhoods.'),
+    summary: bi('维西塔西翁谷（访谷）的街坊和市公园局一起建的一串社区花园：原生植物园、儿童园、香草园、菜地和老人亭，这里也是华人聚居的街区之一。', 'A chain of community gardens built by Visitacion Valley neighbours with Rec & Park: native plants, a children\'s garden, herbs, crops and a senior pavilion, in one of the city\'s Chinese-American neighbourhoods.'),
     tips: [bi('这是社区花园，只看不摘。', 'These are community gardens: look, don\'t pick.')],
     sourceUrl: 'https://visvalleygreenway.com/visitacion-valley', sources: ['https://sfrecpark.org/facilities/facility/details/Visitacion-Valley-Greenway-Agriculture-L-407'],
     lat: 37.71397, lng: -122.40575,

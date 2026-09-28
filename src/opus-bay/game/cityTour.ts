@@ -2,7 +2,7 @@ import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, game, tourIdOf } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
-import { patchSave, readSave } from '../data/save';
+import { onSaveCleared, patchSave, readSave } from '../data/save';
 import { GRAND_TOUR } from '../data/sf/copy';
 import {
   chapterSay, cityTour, decodeTourSaves, expressRide, stopSay, tourStops, type CityTourDef, type CityTourStop, type FlatStop, type TourProgress,
@@ -287,6 +287,8 @@ export function initCityTour(): void {
   defineNode({ id: 'flow.tour.skip', speaker: 'baybay', mood: 'point', text: { zh: '好，这站先跳过，去下一站！', en: 'OK, we skip this one — on to the next!' }, action: { type: 'end' } });
   let acc = 0;
   registerFrameSystem('c-city-tour', (dt, now) => { if ((acc += dt) >= 0.5) { acc = 0; tick(now / 1000); } });
+  // Settings → reset progress (verify F5): a running tour stops without writing its progress back into the new save
+  onSaveCleared(() => { if (run) clearLines(); run = null; lastRun = null; pendingPick = null; });
   onEvent(e => {
     // the welcome / intro picks, the skip node
     if (e.type === 'dialogue') {

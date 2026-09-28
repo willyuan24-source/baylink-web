@@ -19,6 +19,7 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState, useWindowKey } from './hooks';
 import { postcardArt } from './format';
+import './content-ui.css';
 
 // ---------------------------------------------------------------------------
 // Fishing mini game (3 s bobber)
@@ -108,7 +109,7 @@ export function PostcardReward() {
           <span className="ob-postcard-message">
             <strong>{t(card.title)}</strong>
             <span className="ob-postcard-fact">{t(card.fact)}</span>
-            {card.sourceUrl && <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>{t('资料来源', 'Source')} · {sourceDomain(card.sourceUrl)}</a>}
+            {card.sourceUrl && <a className="ob-postcard-src" href={card.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}><span>{t('资料来源', 'Source')} · {sourceDomain(card.sourceUrl)}</span></a>}
           </span>
           <span className="ob-postcard-address" aria-hidden>
             <span className="ob-postcard-stamp"><BaybayFace mood="proud" size={48} /></span>

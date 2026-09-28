@@ -91,6 +91,11 @@ export interface CardRefresh {
   cost?: Bilingual;
   /** appended to realInfo.tips (after the existing ones) */
   addTips?: Bilingual[];
+  /**
+   * replace the built card's tip whose zh contains `match` (a tip the refresh restates: one line, never two that read
+   * as a contradiction, verify C3); a match that is gone appends the text instead (tested: every match hits today)
+   */
+  replaceTips?: { match: string; text: Bilingual }[];
   sources: string[];
   verifiedAt: string;
 }
@@ -191,8 +196,30 @@ export interface PlaceCardSet {
   byPlace: ReadonlyMap<string, PlaceCard>;
 }
 
-/** Index a list of cards (pure; the loader and the tests use it). */
-export function indexPlaceCards(cards: readonly PlaceCard[], refreshes: Readonly<Record<string, CardRefresh>> = {}): PlaceCardSet {
+/**
+ * False once a status's `until` (YYYY or YYYY-MM, inclusive, Bay time) is over (verify C9): a dated closure or works
+ * note never outlives its date. A status without `until` stays until someone re-checks it.
+ */
+export function statusLive(status: CardStatus | undefined, now: Date = new Date()): boolean {
+  if (!status) return false;
+  const m = status.until ? /^(\d{4})(?:-(\d{2}))?$/.exec(status.until) : null;
+  if (!m) return true;
+  // the first moment after the period: month `mo` (1-based) ends where JS month index `mo` begins; 08:00 UTC = midnight PDT
+  const end = Date.UTC(Number(m[1]), m[2] ? Number(m[2]) : 12, 1, 8);
+  return now.getTime() < end;
+}
+/** The card / refresh without a status whose date has passed (the same object when nothing changes). */
+function liveStatus<T extends { status?: CardStatus }>(x: T, now: Date): T {
+  if (!x.status || statusLive(x.status, now)) return x;
+  const out = { ...x };
+  delete out.status;
+  return out;
+}
+
+/** Index a list of cards (pure; the loader and the tests use it). Statuses past their `until` are dropped (`now`). */
+export function indexPlaceCards(allCards: readonly PlaceCard[], allRefreshes: Readonly<Record<string, CardRefresh>> = {}, now: Date = new Date()): PlaceCardSet {
+  const cards = allCards.map(card => liveStatus(card, now));
+  const refreshes: Record<string, CardRefresh> = Object.fromEntries(Object.entries(allRefreshes).map(([id, r]) => [id, liveStatus(r, now)]));
   const byId = new Map<string, PlaceCard>();
   const byPlace = new Map<string, PlaceCard>();
   for (const card of cards) {

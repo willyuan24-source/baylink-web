@@ -220,11 +220,23 @@ export function patchSave(fn: (s: SaveV2) => void) {
   timer = setTimeout(flushSave, 1000);
 }
 
-/** Settings → reset progress. */
+/** Settings → reset progress. Modules that keep a copy of the save in memory drop it (`onSaveCleared`). */
 export function clearSave() {
   if (timer) { clearTimeout(timer); timer = null; }
   cache = null;
   try { storage()?.removeItem(SAVE_KEY); } catch { /* ignore */ }
+  for (const fn of [...clearedListeners]) { try { fn(); } catch (e) { if (import.meta.env?.DEV) console.error('[opus-bay save] reset listener', e); } }
+}
+
+const clearedListeners = new Set<() => void>();
+/**
+ * Wave-4 verify F5: a module holding save state in memory (lane C's arrival stamps, the Grand Tour's run; lane P's
+ * discovery sets may join) forgets it when the player resets progress, so the next write cannot put it back.
+ * Returns the unregister.
+ */
+export function onSaveCleared(fn: () => void): () => void {
+  clearedListeners.add(fn);
+  return () => { clearedListeners.delete(fn); };
 }
 
 /** rides noted this visit, per line (reconcileRides compares lane F's rideLog with it) */

@@ -3,7 +3,7 @@ import { emit, onEvent, type GameEvent } from '../core/events';
 import { runtime, type Emote } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual, Mood } from '../core/types';
-import { patchSave, readSave } from '../data/save';
+import { onSaveCleared, patchSave, readSave } from '../data/save';
 import { ATTRACTIONS } from '../data/sf/attractions';
 import { CAMPUS_IDS, LOOP_LINE, campusArrived, loopStopReached, metroRideCounts } from '../data/sf/goalMarks';
 import { CITY_GOAL, SIGHTSEEING_STOPS, loopStopsReached } from '../data/sf/goals';
@@ -264,6 +264,11 @@ export function initCityMoments(): () => void {
   });
   const offTargets = registerGoalTargets('c-rides', () => rideGoalTargets());
   const offRules = registerTripGoals('c-goals', () => openGoalRules());
+  // Settings → reset progress (verify F5): the stamps start over, so the next arrival is a first one again
+  const offCleared = onSaveCleared(() => {
+    watcher = new ArrivalWatcher(arrivalAnchors(ATTRACTIONS));
+    metroRide = null; lastSaid = null; hoppedOffAt = undefined; pacer.clear();
+  });
   // DEV / QA: lane C's city modules as `__opusBay.c` (the tour, the trips, the moments)
   let offDev = () => {};
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
@@ -275,7 +280,7 @@ export function initCityMoments(): () => void {
     offDev = () => window.clearInterval(id);
   }
   return () => {
-    offFrame(); offEvents(); offTargets(); offRules(); offDev();
+    offFrame(); offEvents(); offTargets(); offRules(); offDev(); offCleared();
     if (arrivalClear) clearTimeout(arrivalClear);
     watcher = null; metroRide = null; pacer.clear(); booted = false;
   };

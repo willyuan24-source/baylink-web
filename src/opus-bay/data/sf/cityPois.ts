@@ -33,6 +33,11 @@ export const ZH_GLOSSARY: readonly (readonly [from: string, to: string])[] = [
   ['卡斯楚区', '卡斯特罗'],
   ['卡斯楚', '卡斯特罗'],
   ['Presidio', '要塞公园'],
+  // wave-4 verify C2: OSM zh names on place cards (the map's own names are lane P's PLACE_NAME_FIXES)
+  ['中国城', '唐人街'],
+  ['西索玛', '西南市场'],
+  ['索玛区', '南市场'],
+  ['普雷西迪奥高地', '要塞高地'],
 ];
 export function glossZh(text: string): string {
   let out = text;
@@ -40,6 +45,48 @@ export function glossZh(text: string): string {
   return out;
 }
 const gloss = (b: Bilingual): Bilingual => ({ zh: glossZh(b.zh), en: b.en });
+
+/**
+ * English place names inside the landmark cards' zh sentences where the game already has a zh name (wave-4 verify C7:
+ * "沿 Grant Avenue 一路走到 North Beach 的 Washington Square"; C6: the zone labels say 天涯海角 like the attractions,
+ * the stations and the recorded tour lines). Card text only (summary, tips, bark, hours, cost, zone), never a name;
+ * the space an English word kept from its Chinese neighbours goes with it. Longer phrases first.
+ */
+export const ZH_TEXT_NAMES: readonly (readonly [from: string, to: string])[] = [
+  ['天涯海角 Lands End', '天涯海角'],
+  ['海角 Lands End', '天涯海角'],
+  ['林肯公园 · 海角', '林肯公园 · 天涯海角'],
+  ['Lands End', '天涯海角'],
+  ['Twin Peaks Boulevard', '双峰大道'],
+  ['Twin Peaks', '双峰'],
+  ['Grant Avenue', '都板街'],
+  ['North Beach', '北滩'],
+  ['Washington Square', '华盛顿广场'],
+  ['Ocean Beach', '海洋海滩'],
+  ['Dolores Park', '多洛雷斯公园'],
+  ['Sutro Baths', '苏特罗浴场'],
+  ['Marina Green', '码头绿地'],
+  ['Crissy Field', '克里西场'],
+  ['Alamo Square', '阿拉莫广场'],
+  ['Queen Wilhelmina 郁金香花园', '威廉明娜女王郁金香花园'],
+  ['Ferry Building', '渡轮大厦'],
+  ['Aquatic Park', '水上公园'],
+  ['Music Concourse', '音乐广场'],
+];
+const CJK = '[⺀-鿿　-〿＀-￯]';
+const CJK_GAP = new RegExp(`(${CJK}) +(?=${CJK})`, 'g');
+/** A zh card sentence with the game's zh names for the places it mentions (ZH_TEXT_NAMES), after the glossary. */
+export function glossZhText(text: string): string {
+  let out = glossZh(text);
+  let hit = false;
+  for (const [from, to] of ZH_TEXT_NAMES) {
+    if (!out.includes(from)) continue;
+    hit = true;
+    out = out.split(from).join(to).split(`${to} ${to}`).join(to).split(`${to}${to}`).join(to);
+  }
+  return hit ? out.replace(CJK_GAP, '$1') : out;
+}
+const glossText = (b: Bilingual): Bilingual => ({ zh: glossZhText(b.zh), en: b.en });
 
 /** BAYLINK's general San Francisco guide (the fallback for month-tagged guides). */
 export const SF_GUIDE_SLUG = 'san-francisco-guide';
@@ -83,13 +130,13 @@ function cityPoi(info: SfLandmarkInfo): PoiDef {
     ...(info.plannerPlaceId && !PLANNER_DROP.has(info.id) ? { plannerPlaceId: info.plannerPlaceId } : {}),
     ...(guideSlug ? { guideSlug } : {}),
     interaction: { kind: 'info', verb: { zh: '看看这里的介绍卡', en: 'Read about this place' } },
-    bark: gloss(info.bark),
+    bark: glossText(info.bark),
     realInfo: {
       ...real,
-      summary: gloss(real.summary),
-      tips: real.tips.map(gloss),
-      ...(real.hours ? { hours: gloss(real.hours) } : {}),
-      ...(real.cost ? { cost: gloss(real.cost) } : {}),
+      summary: glossText(real.summary),
+      tips: real.tips.map(glossText),
+      ...(real.hours ? { hours: glossText(real.hours) } : {}),
+      ...(real.cost ? { cost: glossText(real.cost) } : {}),
       ...(photo ? { photo: { src: photo.src, credit: photo.credit, license: photo.license, licenseUrl: photo.licenseUrl } } : {}),
     },
   };
@@ -99,16 +146,25 @@ function cityPoi(info: SfLandmarkInfo): PoiDef {
 export const CITY_POIS: PoiDef[] = SF_LANDMARK_INFO.map(cityPoi);
 
 /** The landmark's zone label, glossed (for the card eyebrow and "附近有什么"). */
-export const CITY_POI_ZONES: Record<string, Bilingual> = Object.fromEntries(SF_LANDMARK_INFO.map(info => [cityPoiId(info.id), gloss(info.zone)]));
+export const CITY_POI_ZONES: Record<string, Bilingual> = Object.fromEntries(SF_LANDMARK_INFO.map(info => [cityPoiId(info.id), glossText(info.zone)]));
 /** Official sites (PoiCard's 官网 button), only where D2 recorded a real official site. */
 export const CITY_POI_OFFICIAL_URLS: Record<string, string> = Object.fromEntries(SF_LANDMARK_INFO.flatMap(info => (info.officialUrl ? [[cityPoiId(info.id), info.officialUrl]] : [])));
+/**
+ * The 官网 a card links (wave-4 verify C1): a city card (`sf:…`) links only its own official site — the planner place's
+ * link names a neighbouring page (Fort Point → the bridge's bike page, the de Young → JFK Promenade) and already has its
+ * own 排进计划 button — and no 官网 at all when the landmark has none. District cards keep the planner link first.
+ */
+export function cardOfficialUrl(poiId: string, plannerUrl: string | undefined, official: Readonly<Record<string, string>>): string | undefined {
+  if (poiId.startsWith(CITY_POI_PREFIX)) return official[poiId];
+  return plannerUrl ?? official[poiId];
+}
 /** Secondary fact sources (PoiCard's 更多来源). */
 export const CITY_POI_EXTRA_SOURCES: Record<string, string[]> = Object.fromEntries(SF_LANDMARK_INFO.filter(info => info.sources.length).map(info => [cityPoiId(info.id), [...info.sources]]));
 /** Photo file pages keyed by photo src (PoiCard's credit link). */
 export const CITY_PHOTO_SOURCE_PAGES: Record<string, string> = Object.fromEntries(Object.values(CITY_PHOTOS).map(photo => [photo.src, photo.page]));
 /** Telescope / photo captions for the landmarks (content.subjectFact), keyed by landmark id. */
 export const CITY_SUBJECT_FACTS: Record<string, { name: Bilingual; fact: Bilingual; sourceUrl: string; verifiedAt: string }> = Object.fromEntries(
-  SF_LANDMARK_INFO.map(info => [info.id, { name: gloss(info.name), fact: gloss(info.bark), sourceUrl: info.realInfo.sourceUrl, verifiedAt: info.realInfo.verifiedAt }]),
+  SF_LANDMARK_INFO.map(info => [info.id, { name: gloss(info.name), fact: glossText(info.bark), sourceUrl: info.realInfo.sourceUrl, verifiedAt: info.realInfo.verifiedAt }]),
 );
 
 // ---------------------------------------------------------------------------------------------------------------

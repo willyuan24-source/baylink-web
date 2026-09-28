@@ -156,7 +156,7 @@ test('cautious hours, stated closures, quiet places, and the plan\'s never-say l
   assert.equal(status('california-college-of-the-arts'), 'changing');
   assert.equal(status('sunset-dunes'), 'changing');
   assert.equal(status('harvey-milk-plaza'), 'works');
-  assert.equal(status('moad'), 'changing');
+  assert.equal(status('moad'), undefined, 'the installation closure ended on 29 Sep 2026 (verify C9)');
   // memorials and places of worship speak softly
   for (const a of NEW.filter(x => x.category === 'religious')) assert.equal(byId.get(a.id)!.quiet, true, `${a.id} is quiet`);
   for (const id of ['national-aids-memorial-grove', 'mount-davidson']) assert.equal(byId.get(id)!.quiet, true, `${id} is quiet`);

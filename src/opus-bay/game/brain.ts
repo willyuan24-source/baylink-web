@@ -93,6 +93,9 @@ export function updateFocus() {
   const tourPhase = flow.get().tourPhase;
   const finished = s.tour.active && cur && (tourPhase === 'done-node' || tourPhase === 'card') ? cur.poi.id : undefined;
   let best: string | null = null, bestScore = Infinity;
+  // city (verify D5): a postcard in reach beats BAYBAY at your side and a parked ride on top of it (Luz's Clarion card
+  // under a bike the map's Ride parked there); the district keeps its weights
+  const city = s.worldMode === 'city';
   for (const it of interactables()) {
     if (it.source === 'postcard' && s.postcards.includes(postcardIdOf(it))) continue;
     if (finished && it.id === finished) continue;
@@ -103,13 +106,18 @@ export function updateFocus() {
     const d = Math.hypot(p.x - it.x, p.z - it.z);
     if (d > it.radius) continue;
     let score = d / it.radius;
-    if (it.source === 'postcard') score -= 0.25;
+    if (it.source === 'postcard') score -= city ? POSTCARD_PULL_CITY : 0.25;
+    if (city && it.source === 'vehicle') score += PARKED_RIDE_PUSH;
     if (it.id === tourTarget) score -= 0.35;
     if (it.source === 'baybay') score += 0.2;
     if (score < bestScore) { bestScore = score; best = it.id; }
   }
   if (best !== s.focus) game.set({ focus: best });
 }
+
+/** Focus weights in the city (verify D5): see updateFocus. */
+export const POSTCARD_PULL_CITY = 0.6;
+export const PARKED_RIDE_PUSH = 0.15;
 
 // ---------------------------------------------------------------------------
 // Guide brain
@@ -207,8 +215,34 @@ export function leadTo(now: number, dest: Vec2, radius: number, onArrive: () => 
 /** The soft hint stays away this long after an arrival moment (plan §4.2 waypoint; = game/arrival.ts HINT_QUIET_MS). */
 const HINT_QUIET_MS = 60000;
 
-function lead(now: number, dest: Vec2, radius: number, onArrive: () => void) {
+/**
+ * Walkways above the ground the flat route cannot tell from the ground under them (verify D12: led to the Golden Gate
+ * deck, BAYBAY walked west under the bridge to Fort Point, then 40 s back east to the approach). A target on one is
+ * led through its entry first while the player is not up there yet. The Golden Gate deck: from its south end (local
+ * x = END_S + 4 of world/sf/landmarks/golden-gate-bridge.ts) to mid-span, deck height 15.2; tested against GGB.
+ */
+export const ELEVATED_WALKS: readonly { id: string; a: Vec2; b: Vec2; half: number; y: number; entry: Vec2 }[] = [
+  { id: 'ggb-deck', a: { x: -689.35, z: 649.76 }, b: { x: -865.81, z: 508.56 }, half: 4, y: 15.2, entry: { x: -689.35, z: 649.76 } },
+];
+const onSegment = (p: Vec2, w: (typeof ELEVATED_WALKS)[number]) => {
+  const ax = w.b.x - w.a.x, az = w.b.z - w.a.z, len2 = ax * ax + az * az;
+  const t = Math.max(0, Math.min(1, ((p.x - w.a.x) * ax + (p.z - w.a.z) * az) / len2));
+  return Math.hypot(p.x - (w.a.x + ax * t), p.z - (w.a.z + az * t)) <= w.half;
+};
+/** Where to lead now for `dest` (pure): an elevated walkway's entry while the walker is below it, else `dest`. */
+export function leadStep(dest: Vec2, walker: Vec2 & { y: number }): Vec2 {
+  for (const w of ELEVATED_WALKS) {
+    if (!onSegment(dest, w)) continue;
+    const up = walker.y > w.y - 3 && onSegment(walker, w);
+    if (!up && Math.hypot(walker.x - w.entry.x, walker.z - w.entry.z) > 3) return w.entry;
+  }
+  return dest;
+}
+
+function lead(now: number, destIn: Vec2, radius: number, onArrive: () => void) {
   const g = runtime.guide, p = P(), gp = dist(G(), p);
+  // the real destination decides arrival; `dest` (a walkway's entry on the way) is where to walk now
+  const dest = leadStep(destIn, runtime.player);
   const guideToDest = dist(G(), dest), playerToDest = dist(p, dest);
   ledIdle(now);
   if (!waiting && gp > 12 && guideToDest < playerToDest) waiting = true;
@@ -224,7 +258,7 @@ function lead(now: number, dest: Vec2, radius: number, onArrive: () => void) {
   setTarget(beside(dest, p, Math.min(2, radius * 0.5)));
   // match the player's pace; hurry only when the player is right behind
   g.run = runtime.player.running || (gp < 5 && guideToDest > 25);
-  const playerThere = playerToDest < radius + 1.2;
+  const playerThere = dest === destIn && playerToDest < radius + 1.2;
   if (playerThere && !playerAtStopSince) playerAtStopSince = now;
   if (!playerThere) playerAtStopSince = 0;
   if (playerThere && (guideToDest < 6 || runtime.guide.arrived || now - playerAtStopSince > 3500)) { playerAtStopSince = 0; onArrive(); }

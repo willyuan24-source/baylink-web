@@ -31,7 +31,7 @@ export const PLACE_CARDS: PlaceCard[] = [
   full({
     id: 'stonestown-galleria',
     name: bi('石镇购物中心', 'Stonestown Galleria'),
-    zone: bi('湖滨区 · 19th Ave', 'Lakeshore · 19th Avenue'),
+    zone: bi('湖岸区 · 19th Ave', 'Lakeshore · 19th Avenue'),
     bark: bi('石镇到啦！1952 年就开业了，城西人逛街、看电影都来这儿。', 'Stonestown! Open since 1952 — the west side comes here to shop and catch a film.'),
     summary: bi('城西的大型购物中心：1952 年以 Stonestown Shopping Center 开业，1987 年改建成两层的室内商场，改名 Galleria。', 'The west side\'s big mall: it opened in 1952 as Stonestown Shopping Center and was rebuilt in 1987 as a two-level indoor galleria.'),
     hours: bi('约周一至周四 11:00–20:00，周五六 11:00–21:00，周日 11:00–19:00；出发前查官网确认。', 'About Mon–Thu 11am–8pm, Fri–Sat 11am–9pm, Sun 11am–7pm; check the official site before you go.'),
@@ -48,7 +48,7 @@ export const PLACE_CARDS: PlaceCard[] = [
   full({
     id: 'sf-state-university',
     name: bi('旧金山州立大学', 'San Francisco State University'),
-    zone: bi('湖滨区 · 默塞德湖旁', 'Lakeshore · by Lake Merced'),
+    zone: bi('湖岸区 · 默塞德湖旁', 'Lakeshore · by Lake Merced'),
     bark: bi('到州立大学啦！1899 年建校，1953 年搬到默塞德湖边这片校园。', 'SF State! Founded in 1899, it moved to this campus by Lake Merced in 1953.'),
     summary: bi('加州州立大学系统的一员，约 2.1 万名学生。1899 年建校，1953 年秋天起在这片湖边校园上课。', 'Part of the California State University system, with about 21,000 students. Founded in 1899, it has taught on this lakeside campus since autumn 1953.'),
     tips: [
@@ -235,7 +235,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     summary: bi('旧金山的购物和剧院中心，广场约 2.6 英亩。中间是 1903 年的杜威纪念柱，柱顶是胜利女神像；名字来自南北战争时支持北方联邦的集会。', 'The city\'s shopping and theatre heart, a 2.6-acre plaza. The 1903 Dewey Monument, topped by Victory, stands in the middle; the name comes from rallies for the Union in the Civil War.'),
     tips: [
       bi('冬天会搭起溜冰场和大圣诞树，日期每年不同。', 'An ice rink and a giant tree go up each winter; dates change every year.'),
-      bi('往西一个路口就是鲍威尔街的叮当车线。', 'The Powell St cable cars run one block west.'),
+      bi('广场西边的鲍威尔街上就有叮当车经过。', 'The Powell St cable cars run right along the square\'s west side.'),
     ],
     sourceUrl: 'https://en.wikipedia.org/wiki/Union_Square,_San_Francisco',
     sources: ['https://en.wikipedia.org/wiki/Dewey_Monument'],
@@ -258,7 +258,7 @@ export const PLACE_CARDS: PlaceCard[] = [
   full({
     id: 'sf-zoo', place: 'sf-zoo',
     name: bi('旧金山动物园', 'San Francisco Zoo & Gardens'),
-    zone: bi('湖滨区 · 海边', 'Lakeshore · by the ocean'),
+    zone: bi('湖岸区 · 海边', 'Lakeshore · by the ocean'),
     bark: bi('动物园到啦！100 英亩的园子就挨着大海。', 'The Zoo! A hundred acres right by the ocean.'),
     summary: bi('临海的 100 英亩动物园，1929 年开园，有 1,500 多只动物，有大猩猩和非洲草原展区，还有一座约 1921 年的 Dentzel 老旋转木马。', 'A 100-acre zoo by the ocean, opened in 1929, with more than 1,500 animals — gorillas, an African savanna — and a Dentzel carousel from about 1921.'),
     hours: bi('每天 10:00–17:00，16:00 停止入园；出发前查官网确认。', 'Daily 10am–5pm, last entry 4pm; check the official site before you go.'),
@@ -484,7 +484,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     cost: bi('旋转木马成人约 2.5 美元一次，6–12 岁约 1 美元（以现场为准）。', 'Carousel about $2.50 for adults and $1 for ages 6–12 (check on site).'),
     tips: [bi('旋转木马的开放时间随天气和季节变化，去之前先问问。', 'Carousel hours change with the weather and season: ask before you go.')],
     sourceUrl: 'https://sfrecpark.org/Facilities/Facility/Details/Koret-Childrens-Quarter-and-Carousel-414/',
-    sources: ['https://goldengatepark.com/golden-gate-park-carousel.html'],
+    sources: ['https://en.wikipedia.org/wiki/Golden_Gate_Park'],
     lat: 37.76824, lng: -122.45723, guideSlug: GGP_GUIDE, plannerPlaceId: 'golden-gate-park',
   }),
   full({
@@ -498,7 +498,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     tips: [bi('隔壁的海德街码头 2024 年 11 月起关闭重建，老船暂时搬去了瓦列霍。', 'The Hyde Street Pier next door closed in November 2024 for a rebuild; its ships wait in Vallejo.')],
     officialUrl: 'https://www.nps.gov/safr/planyourvisit/basicinfo.htm',
     sourceUrl: 'https://www.nps.gov/safr/learn/historyculture/aquatic-park-bathhouse.htm',
-    sources: ['https://www.nps.gov/safr/planyourvisit/basicinfo.htm', 'https://maritime.org/home/parkinfo/'],
+    sources: ['https://www.nps.gov/safr/planyourvisit/basicinfo.htm'],
     lat: 37.80641, lng: -122.4239, guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
   }),
   full({
@@ -672,7 +672,7 @@ export const PLACE_CARDS: PlaceCard[] = [
   full({
     id: 'lake-merced', place: 'lake-merced',
     name: bi('默塞德湖', 'Lake Merced'),
-    zone: bi('湖滨区 · 城西南', 'Lakeshore · south-west'),
+    zone: bi('湖岸区 · 城西南', 'Lakeshore · south-west'),
     bark: bi('默塞德湖有 650 英亩，湖边一圈都是步道。', 'Lake Merced covers 650 acres, ringed by a walking path.'),
     summary: bi('城西南角约 650 英亩的淡水湖，是城里仅有的三个天然淡水湖之一。湖边一圈步道，周围有高尔夫球场，其中 TPC Harding Park 对公众开放。', 'A freshwater lake of about 650 acres in the south-west corner, one of the city\'s three natural lakes, ringed by a path and golf courses, of which TPC Harding Park is public.'),
     tips: [
@@ -723,7 +723,7 @@ export const PLACE_CARDS: PlaceCard[] = [
   full({
     id: 'fort-funston', place: 'osm-w404851503',
     name: bi('芬斯顿堡', 'Fort Funston'),
-    zone: bi('湖滨区 · 海边悬崖', 'Lakeshore · ocean bluffs'),
+    zone: bi('湖岸区 · 海边悬崖', 'Lakeshore · ocean bluffs'),
     bark: bi('芬斯顿堡的悬崖上常有滑翔翼起飞，风好大！', 'Hang-gliders launch off Fort Funston\'s cliffs — feel that wind!'),
     summary: bi('海边的砂岩悬崖，风大又稳，是滑翔翼的起飞点；还有 1936–39 年修的戴维斯炮台。这里是金门国家休闲区里唯一允许狗狗不拴绳的地方。', 'Sandstone bluffs with strong steady winds where hang-gliders launch, and the 1936–39 Battery Davis. It is the only park in the Golden Gate National Recreation Area where dogs may run off-leash.'),
     tips: [bi('悬崖会塌，靠边的地方常被封，请走在步道上。', 'The bluffs crumble and edges close: stay on the paths.')],
@@ -899,12 +899,12 @@ export const PLACE_CARDS: PlaceCard[] = [
 export const CARD_REFRESHES: Record<string, CardRefresh> = {
   'twin-peaks': {
     status: { kind: 'works', text: bi('步行大道工程 2026 年 5 月动工，部分步道封闭；观景台照常开放。', 'The Promenade works began in May 2026 and close some trails; the overlook stays open.'), until: '2027' },
-    addTips: [bi('北边 Burnett 大道那头的双峰大道已永久禁止汽车，适合走路骑车。', 'The north end of Twin Peaks Blvd is car-free for good — lovely on foot or by bike.')],
+    // one car-free tip (verify C3): the built card's "东侧一段" and the north end are both true, said once together
+    replaceTips: [{ match: '只让行人和自行车', text: bi('双峰大道有两段不走汽车：东侧一段（2020 年起）和北边 Burnett 大道那头（2021 年起），适合走路骑车。', 'Two stretches of Twin Peaks Blvd are car-free: the east side (since 2020) and the north end by Burnett Ave (since 2021) — lovely on foot or by bike.') }],
     sources: ['https://www.sfrecpark.org/634/Twin-Peaks-Trails-Improvement-Promenade-', 'https://sfrecpark.org/m/newsflash/Home/Detail/2876'],
     verifiedAt: V,
   },
   'castro-theatre': {
-    addTips: [bi('2026 年 2 月整修后重新开放，现在放电影、办演出。', 'It reopened in February 2026 after its renovation, with films and shows.')],
     sources: ['https://localnewsmatters.org/2026/02/05/sf-castro-theatre-reopening-friday-after-rehabilitation/'],
     verifiedAt: V,
   },
@@ -926,7 +926,7 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: V,
   },
   'dutch-windmill': {
-    addTips: [bi('脚下的郁金香花园一般 3 月盛开；风车内部不开放。', 'The tulip garden at its foot usually peaks in March; the windmill itself is closed.')],
+    addTips: [bi('风车内部不开放，在外面看就好。', 'The windmill itself is closed: enjoy it from outside.')],
     sources: ['https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard'],
     verifiedAt: V,
   },
@@ -936,18 +936,15 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: V,
   },
   'sutro-tower': {
-    addTips: [bi('塔下是私人设施，不能进去；在双峰看它最好。', 'The tower grounds are private; Twin Peaks is the place to see it.')],
     sources: ['https://sutrotower.org/'],
     verifiedAt: V,
   },
   'sutro-baths': {
-    addTips: [bi('遗址的岩石湿滑，小心突然扑上来的大浪。', 'The ruins\' rocks are slippery: watch for sneaker waves.')],
     sources: ['https://www.nps.gov/places/000/sutro-baths.htm'],
     verifiedAt: V,
   },
   'cliff-house': {
-    status: { kind: 'closed', text: bi('2020 年底停业，正在修复，重新开放的时间还没确定。', 'Closed since late 2020 and being restored; no confirmed reopening date.') },
-    addTips: [bi('旁边 1946 年的暗箱相机（Camera Obscura）天气好时开放。', 'The 1946 Camera Obscura next door opens in good weather.')],
+    status: { kind: 'closed', text: bi('2020 年底停业，正在修复；经营方目标 2026 年底重开，日期未定。', 'Closed since late 2020 and being restored; the operator aims for late 2026, no date set.') },
     sources: ['https://sfist.com/2025/11/07/the-cliff-house-will-still-be-called-cliff-house-when-it-reopens-but-probably-wont-reopen-until-late-2026/', 'http://www.giantcamera.com/'],
     verifiedAt: V,
   },

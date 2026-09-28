@@ -49,7 +49,7 @@ export const CITY_FREE_GOALS: FreeGoal[] = [
   { id: CITY_GOAL.goldenGate, label: bi('走过金门大桥', 'Cross the Golden Gate Bridge'), hint: bi('在桥面上从一座桥塔走到另一座', 'On the deck, from one tower to the other') },
   { id: CITY_GOAL.paintedLadies, label: bi('给彩绘女士拍张照', 'Photograph the Painted Ladies'), hint: bi('去阿拉莫广场，对着那排彩色老房子拍一张', 'Head to Alamo Square and snap the row of colourful houses') },
   { id: CITY_GOAL.neighbourhoods, label: bi(`逛 ${NEIGHBOURHOOD_TARGET} 个街区`, `Wander ${NEIGHBOURHOOD_TARGET} neighbourhoods`), hint: bi('走进新街区时，屏幕上会亮出它的名字', 'Each new neighbourhood shows its name as you walk in') },
-  { id: CITY_GOAL.viewpoint, label: bi('登上 Coit Tower 观景点', 'Reach Coit Tower’s viewpoint'), hint: bi("从 Levi's Plaza 旁的 Filbert Steps 往上爬", "Climb the Filbert Steps by Levi's Plaza") },
+  { id: CITY_GOAL.viewpoint, label: bi('登上科伊特塔观景点', 'Reach Coit Tower’s viewpoint'), hint: bi("从 Levi's Plaza 旁的菲尔伯特台阶往上爬", "Climb the Filbert Steps by Levi's Plaza") },
   // wave 4 (lane C, W4-C8)
   { id: CITY_GOAL.sightseeing, label: bi(`坐观光巴士逛 ${SIGHTSEEING_STOPS} 站`, `Ride the sightseeing bus past ${SIGHTSEEING_STOPS} stops`), hint: bi('在有「观光」牌子的车站上车，BAYBAY 一路讲解；飞过去不算', 'Board at a stop with the coral sightseeing sign — BAYBAY tells you about the sights; flying doesn’t count') },
   { id: CITY_GOAL.metro, label: bi('坐地铁去海边或州立大学', 'Take the Metro to the sea or to SF State'), hint: bi('N 线坐到海洋海滩终点，或 M 线坐到石镇 / 州立大学', 'The N to the end at Ocean Beach, or the M to Stonestown / SF State') },

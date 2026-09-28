@@ -19,7 +19,7 @@ import { cinemaActive, faceCameraToward, holdFraming, playShots, releaseFraming,
 import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
 import { flow, initialFlowState, type Bubble } from './flowStore';
-import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, subjectPosition, type Interactable } from './interactables';
+import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable } from './interactables';
 import { endRide } from './ride';
 import { goalTargets, initCityContent } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
@@ -1341,10 +1341,15 @@ export function objectiveTarget(): (Vec2 & { id: string; name: Bilingual; soft?:
     const it = interactableById(f.mapTarget);
     if (it) return { x: it.x, z: it.z, id: it.id, name: it.name };
   }
-  // F8: a soft hint toward the nearest unfinished goal (no beacon, dismissable)
-  if (s.mode === 'free' && f.freeHint) return { ...f.freeHint, soft: true };
+  // F8: a soft hint toward the nearest unfinished goal (no beacon, dismissable). City (verify m4): not while you ride
+  // (the brain does not refresh it then, and the chip sat on the rider's face) nor once you stand at it.
+  if (s.mode === 'free' && f.freeHint) {
+    if (s.worldMode === 'city' && (s.move.mode === 'transit' || dist(playerPos(), f.freeHint) < HINT_AT_R)) return null;
+    return { ...f.freeHint, soft: true };
+  }
   return null;
 }
+const HINT_AT_R = 5;
 
 // ---------------------------------------------------------------------------
 // F8 · free roam: the nearest unfinished goal, a guided walk there, "what's around here"
@@ -1370,8 +1375,10 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
     // not the card itself (that would spoil the hunt): the real place it hides next to
     const cards = POSTCARDS.filter(card => !s.postcards.includes(card.id)).sort((a, b) => dist(from, a.position) - dist(from, b.position));
     const card = cards[0];
-    const near = card ? POIS.filter(poi => poi.interaction.kind !== 'board').sort((a, b) => dist(card.position, a.position) - dist(card.position, b.position))[0] : undefined;
-    if (near) add(near.id, { zh: `明信片线索 · ${near.name.zh}附近`, en: `Postcard clue · near ${near.name.en}` });
+    const near = card ? clueNear(card.position) : undefined;
+    // city (verify D14): the clue walks you to a spot ≈ CLUE_OFFSET u short of the card, not to that place 44–63 u away
+    if (card && s.worldMode === 'city') add(`${CLUE_PREFIX}${card.id}`);
+    else if (near) add(near.id, clueName(near));
   }
   // city goals (lane G2, game/cityContent.ts goalTargets): a waypoint per unfinished goal; ids resolve through
   // interactableById (an interactable, or a G1 `place:<id>` via setExtraResolver) so "take me there" can lead.
@@ -1382,6 +1389,41 @@ export function nextFreeGoal(from: Vec2 = playerPos()): (Vec2 & { id: string; na
   pickFrom.sort((a, b) => dist(from, a) - dist(from, b));
   return pickFrom[0] ?? null;
 }
+
+/** The real place a postcard hides next to (its clue's name): the nearest POI that is not the week board. */
+const clueNear = (p: Vec2): PoiDef | undefined => POIS.filter(poi => poi.interaction.kind !== 'board').sort((a, b) => dist(p, a.position) - dist(p, b.position))[0];
+const clueName = (near: PoiDef | undefined): Bilingual => (near ? { zh: `明信片线索 · ${near.name.zh}附近`, en: `Postcard clue · near ${near.name.en}` } : { zh: '明信片线索', en: 'Postcard clue' });
+
+/** City postcard clues (verify D14): `clue:<postcardId>` resolves to a walkable spot this far short of the card. */
+export const CLUE_PREFIX = 'clue:';
+export const CLUE_OFFSET = 8;
+const CLUE_RADIUS = 3;
+/**
+ * Where a clue leads (pure): CLUE_OFFSET u from the card toward the place it is named after (so the walk ends with the
+ * card's glint in sight, not on it), the place itself when that is closer; `snap` moves it onto walkable ground.
+ */
+export function clueSpot(card: Vec2, toward: Vec2 | undefined, snap: (p: Vec2) => Vec2 | null = p => nearestWalkable(p, 6)): { x: number; z: number; snapped: boolean } {
+  const d = toward ? dist(card, toward) : 0;
+  if (!toward || d <= CLUE_OFFSET) { const at = toward ?? card; return { x: at.x, z: at.z, snapped: !!toward }; }
+  const k = CLUE_OFFSET / d;
+  const raw = { x: card.x + (toward.x - card.x) * k, z: card.z + (toward.z - card.z) * k };
+  const s = snap(raw);
+  return s ? { x: s.x, z: s.z, snapped: true } : { ...raw, snapped: false };
+}
+const clueCache = new Map<string, Interactable>();
+function clueInteractable(id: string): Interactable | undefined {
+  const hit = clueCache.get(id);
+  if (hit) return hit;
+  const card = POSTCARDS.find(c => c.id === id.slice(CLUE_PREFIX.length));
+  if (!card) return undefined;
+  const near = clueNear(card.position);
+  const spot = clueSpot(card.position, near?.position);
+  const it: Interactable = { id, source: 'place', action: 'info', verb: { zh: '找找明信片', en: 'Look for the postcard' }, name: clueName(near), x: spot.x, z: spot.z, radius: CLUE_RADIUS, refId: card.id };
+  // keep it once the ground there answered (streamed); until then the raw spot, asked again next time
+  if (spot.snapped) clueCache.set(id, it);
+  return it;
+}
+registerPrefixResolver(CLUE_PREFIX, clueInteractable);
 
 /** BAYBAY leads you to an interactable (free roam, from the call menu). */
 export function startFreeLead(id: string) {

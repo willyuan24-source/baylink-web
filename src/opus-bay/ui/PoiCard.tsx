@@ -5,7 +5,7 @@ import type { PoiDef } from '../core/types';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
 import { guideUrl, mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
 import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS } from '../data/pois';
-import { CITY_POI_ZONES, placeCardTarget } from '../data/sf/cityPois';
+import { CITY_POI_ZONES, cardOfficialUrl, placeCardTarget } from '../data/sf/cityPois';
 import { onPlaces, placeById as cityPlaceById, placeIndex } from '../data/sf/places';
 import { closePanel, openEvent, toggleWish, tourStops } from '../game/flow';
 import { useFlow } from '../game/flowStore';
@@ -49,7 +49,7 @@ function PoiCardInner({ poi }: { poi: PoiDef }) {
   const place = placeById(catalog, poi.plannerPlaceId);
   const guideSlug = poi.guideSlug ?? place?.guideSlug;
   const guideName = guideTitle(catalog, guideSlug);
-  const official = safeHref(place?.officialUrl ?? POI_OFFICIAL_URLS[poi.id]);
+  const official = safeHref(cardOfficialUrl(poi.id, place?.officialUrl, POI_OFFICIAL_URLS));
   const extra = (POI_EXTRA_SOURCES[poi.id] ?? []).map(url => safeHref(url)).filter((url): url is string => !!url);
   const photoPage = info?.photo ? safeHref(PHOTO_SOURCE_PAGES[info.photo.src]) : undefined;
   const near = info ? eventsNear(catalog, { lat: info.lat, lng: info.lng }, todayInBay(), 1.0, 7, new Date()).slice(0, 3) : [];
@@ -109,7 +109,8 @@ function PoiCardInner({ poi }: { poi: PoiDef }) {
           {!mobile && guideRow}
           {place && (
             <LinkButton href={planUrl({ stops: [{ kind: 'place', id: place.id }] }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="soft">
-              {t(`把 ${planTitles[0] ?? place.title} 排进 BAYLINK 计划`, `Put ${planTitles[0] ?? place.title} in a BAYLINK plan`)}
+              {/* the planner catalog's titles are zh only (verify D7): English names the card's own place; the label wraps (content-ui.css) */}
+              {t(`把 ${planTitles[0] ?? place.title} 排进 BAYLINK 计划`, `Put ${poi.name.en} in a BAYLINK plan`)}
             </LinkButton>
           )}
           {(info.hours || info.cost) && (

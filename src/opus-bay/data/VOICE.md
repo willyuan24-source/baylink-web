@@ -149,7 +149,13 @@ what BAYBAY says and what the cards print. SFMTA's own Chinese station list coul
 | de Young Museum | 迪扬博物馆 | | |
 | Clement St | 克莱门街 | 企李街 | 企李街 is Clay St (Chinatown) |
 | Grant Ave · Irving St | 都板街 · 尔文街 | | |
-| Bay Bridge · Marina Green · Treasure Island | 海湾大桥 · 码头绿地 · 金银岛 | | the frozen loop tip says 海滨草地 as a description |
+| Bay Bridge · Treasure Island | 海湾大桥 · 金银岛 | | |
+| Marina Green | 码头绿地 | 码头区 (as an alias) | the lawn's own name (decided in the wave-4 verify, R2-O1 closed: it stays 码头绿地); 码头区 is the Embarcadero piers, never a name for it; the frozen loop tip says 海滨草地 as a description |
+| Lands End | 天涯海角 | 海角 alone | the attractions, cards, stations and the recorded tour lines; the landmark zone labels read 林肯公园 · 天涯海角 / 天涯海角 · 海洋海滩北端 (cityPois ZH_TEXT_NAMES) |
+| Coit Tower · Filbert Steps | 科伊特塔 · 菲尔伯特台阶 | Coit Tower (in zh) | the city goal, the map and route R1; the district's frozen texts keep theirs |
+| Lakeshore · Visitacion Valley · Ingleside | 湖岸区 · 维西塔西翁谷 · 英格尔赛德 | 湖滨区 · 访谷 (as a zone) · 英格塞德 | the HUD labels (far.zones); 访谷 lives on only inside the greenway's name (访谷绿道) |
+| Ocean Beach · Dolores Park · Sutro Baths · Crissy Field | 海洋海滩 · 多洛雷斯公园 · 苏特罗浴场 · 克里西场 | the English names inside zh sentences | card text uses the zh names (C7); names of people, brands and streets without a game name stay English |
+| Chinatown (OSM) · SoMa West · Presidio Heights | 唐人街 · 西南市场 · 要塞高地 | 中国城 · 西索玛 / 索玛区 · 普雷西迪奥高地 | place-card titles via ZH_GLOSSARY; the map's own names are lane P's PLACE_NAME_FIXES |
 | Pier 33 Alcatraz Landing · Pier 14 | 恶魔岛渡轮码头 · 33 号码头 · 14 号码头 | | where the island trips end (lane P's ARRIVAL_PLACES) |
 | Corona Heights | 科罗娜高地 | | the panorama is at the summit |
 | the sightseeing bus / loop | 观光巴士 / 观光环线 | 旅游巴士 | coral 观光 roundel |

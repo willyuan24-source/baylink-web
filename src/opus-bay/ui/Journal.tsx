@@ -18,6 +18,7 @@ import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
+import './content-ui.css';
 
 type Tab = 'cards' | 'goals' | 'wish' | 'steps';
 

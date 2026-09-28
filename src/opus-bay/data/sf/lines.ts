@@ -196,7 +196,7 @@ export const NEIGHBOURHOOD_LINES: readonly NeighbourhoodLine[] = [
   hood('haight-ashbury', '你好，海特街！街区名来自 Haight 和 Ashbury 两条街的路口。', "Hello, Haight-Ashbury! It's named for the corner of Haight and Ashbury streets.", 'https://en.wikipedia.org/wiki/Haight-Ashbury'),
   hood('marina', '你好，马里纳区！1915 年的世博会就在这儿办的。', "Hello, the Marina! The 1915 world's fair was held right here.", 'https://en.wikipedia.org/wiki/Marina_District,_San_Francisco'),
   hood('twin-peaks', '登上双峰啦！整座城都在脚下～', 'Twin Peaks — we made it! The whole city at our feet~', undefined, { landmark: 'twin-peaks', r: 45 }),
-  hood('golden-gate-park', '你好，金门公园！约 1017 英亩，是全城最大的公园。', "Hello, Golden Gate Park! About 1,017 acres — the city's biggest park.", 'https://sfrecpark.org/770/Golden-Gate-Park'),
+  hood('golden-gate-park', '你好，金门公园！约 1017 英亩，是全城最大的市立公园。', "Hello, Golden Gate Park! About 1,017 acres — the city's biggest city-run park.", 'https://sfrecpark.org/770/Golden-Gate-Park'),
   hood('financial-district-south-beach', '你好，金融区！尖尖的泛美金字塔 1972 年建成。', 'Hello, downtown! The pointy Transamerica Pyramid was finished in 1972.', 'https://en.wikipedia.org/wiki/Transamerica_Pyramid'),
   hood('presidio', '你好，要塞公园！这里当了 218 年军营，现在是国家公园。', 'Hello, the Presidio! An army post for 218 years, now a national park.', 'https://www.nps.gov/prsf/index.htm'),
   hood('nob-hill', '你好，诺布山！山名来自当年住在山顶的铁路富豪。', "Hello, Nob Hill! It's named for the railroad tycoons who built mansions up top.", 'https://en.wikipedia.org/wiki/Nob_Hill,_San_Francisco'),

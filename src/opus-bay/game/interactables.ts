@@ -192,8 +192,18 @@ export const interactables = () => current;
 export function interactableById(id: string | null | undefined): Interactable | undefined {
   if (!id) return undefined;
   const item = byId.get(id);
-  if (item) syncMoving(item);
-  return item ?? extraResolver?.(id);
+  if (item) { syncMoving(item); return item; }
+  for (const [prefix, fn] of prefixResolvers) if (id.startsWith(prefix)) { const hit = fn(id); if (hit) return hit; }
+  return extraResolver?.(id);
+}
+const prefixResolvers = new Map<string, ExtraResolver>();
+/**
+ * Lane C: ids with a prefix of lane C's own (`clue:<postcardId>`, flow.ts: where a city postcard clue leads), resolved
+ * like G1's `place:` ids (not in interactables(), no E prompt). Returns the unregister.
+ */
+export function registerPrefixResolver(prefix: string, fn: ExtraResolver): () => void {
+  prefixResolvers.set(prefix, fn);
+  return () => { if (prefixResolvers.get(prefix) === fn) prefixResolvers.delete(prefix); };
 }
 type PoiResolver = (id: string) => PoiDef | undefined;
 const poiResolvers: PoiResolver[] = [];

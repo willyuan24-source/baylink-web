@@ -9,6 +9,7 @@ import { NPC_POSTS } from '../game/interactables';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { portraitSrc, useDevice, useWindowKey } from './hooks';
+import './content-ui.css';
 
 /** Bottom dialogue box: portrait, name, typewriter text (skippable), choices with number hotkeys. */
 export function Dialogue() {

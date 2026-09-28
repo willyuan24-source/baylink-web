@@ -58,7 +58,7 @@ export default function PlaceCard({ place }: { place: CityPlace }) {
       {!mobile && guideRow}
       {planner && (
         <LinkButton href={planUrl({ stops: [{ kind: 'place', id: planner.id }] }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="soft">
-          {t(`把 ${planTitles[0] ?? planner.title} 排进 BAYLINK 计划`, `Put ${planTitles[0] ?? planner.title} in a BAYLINK plan`)}
+          {t(`把 ${planTitles[0] ?? planner.title} 排进 BAYLINK 计划`, `Put ${name.en} in a BAYLINK plan`)}
         </LinkButton>
       )}
       <div className="ob-link-grid">
