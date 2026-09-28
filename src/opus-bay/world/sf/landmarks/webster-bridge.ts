@@ -13,10 +13,11 @@ import { GC, LIFT, PAT, type SiteGroundPoly, type W4Site, grect, siteGround } fr
  *
  * Frame: origin (−75.7, 462.7) at the bridge's centre, yaw −124.8°: the bridge runs along local x (the West mall's
  * wall at x −2.8), Webster St along local z, Post St at z 4.6, Geary Blvd at z −5.5. Webster St is a DUAL carriageway
- * in the published data: two one-way ribbons 4.4 wide with their centrelines at x −0.6 and 1.1, which the city draws as
- * one street — asphalt x −2.2…2.7 between the sidewalks x −2.8…−2.2 and 2.7…3.3 (W4-L-review: the site had re-laid
- * only the x 1.1 ribbon and painted a sidewalk strip over the other one's centreline, leaving x −2.2…−1.1 bare under
- * the bridge). The crowd spots and the arrival are on the two sidewalks, never on the carriageway.
+ * in the published data: two one-way ribbons 4.4 wide with their centrelines at x −0.6 and 1.1, which the city draws
+ * (outside the exclusion) as asphalt x −2.2…−1.1 and −0.5…2.7 either side of a paved median x −1.1…−0.5, between the
+ * sidewalks x −2.8…−2.2 and 2.7…3.3. W4-L-review: the site had re-laid only the x 1.1 ribbon and the median, leaving
+ * the west carriageway x −2.2…−1.1 bare under the bridge; now it continues all five strips. The crowd spots and the
+ * arrival are on the two sidewalks, never on the carriageway.
  */
 
 const ID = 'webster-bridge';
@@ -24,10 +25,10 @@ const X0 = -75.7, Z0 = 462.7, YAW = (-124.8 * Math.PI) / 180;
 const g = siteGround(ID, 9.2);
 
 const X_0 = -2.7, X_1 = 3.5, W = 2.1, DECK = 2.6, HALL = 1.5;
-/** the street under the span as the city draws it: asphalt x0…x1 and a sidewalk `walk` wide on either side */
-const STREET = { x0: -2.2, x1: 2.7, walk: 0.6 };
-/** the carriageway's middle; the deck's ground reference (the east ribbon's centreline, where its height was set) */
-const MID = (STREET.x0 + STREET.x1) / 2, REF_X = 1.08;
+/** the street under the span as the city draws it: asphalt x0…x1 with the median m0…m1, a sidewalk `walk` wide either side */
+const STREET = { x0: -2.2, x1: 2.7, m0: -1.1, m1: -0.5, walk: 0.6 };
+/** the deck's ground reference (the east ribbon's centreline, where its height was set) */
+const REF_X = 1.08;
 
 function build(b: BatchLike, lod: 0 | 2) {
   const y = g.at(REF_X, 0), cx = (X_0 + X_1) / 2, L = X_1 - X_0;
@@ -43,13 +44,16 @@ function build(b: BatchLike, lod: 0 | 2) {
   }
 }
 
-/** Webster St under the span (both carriageways): asphalt and the two sidewalks, 1.6 u beyond the exclusion on both sides */
+/** Webster St under the span (both carriageways, the median, the sidewalks), 1.6 u beyond the exclusion on both sides */
 function ground(): SiteGroundPoly[] {
-  const len = 2 * 2.9, { x0, x1, walk } = STREET;
+  const len = 2 * 2.9, { x0, x1, m0, m1, walk } = STREET;
+  const strip = (a: number, c: number, color: string, pattern: number, lift: number) => grect((a + c) / 2, 0, c - a, len, 0, color, pattern, g, 3, lift);
   return [
-    ...grect(MID, 0, x1 - x0, len, 0, GC.asphalt, PAT.asphalt, g, 3, LIFT),
-    ...grect(x0 - walk / 2, 0, walk, len, 0, GC.sidewalk, PAT.stone, g, 3, LIFT + 0.02),
-    ...grect(x1 + walk / 2, 0, walk, len, 0, GC.sidewalk, PAT.stone, g, 3, LIFT + 0.02),
+    ...strip(x0, m0, GC.asphalt, PAT.asphalt, LIFT),
+    ...strip(m1, x1, GC.asphalt, PAT.asphalt, LIFT),
+    ...strip(m0, m1, GC.sidewalk, PAT.stone, LIFT + 0.02),
+    ...strip(x0 - walk, x0, GC.sidewalk, PAT.stone, LIFT + 0.02),
+    ...strip(x1, x1 + walk, GC.sidewalk, PAT.stone, LIFT + 0.02),
   ];
 }
 
