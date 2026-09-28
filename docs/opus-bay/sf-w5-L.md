@@ -472,3 +472,91 @@ frames): ≤ 2 calls and ≤ 1.8k triangles, as built. Lane V's part-b gate at C
   added one 9.5 s wait behind a car that stopped for a crossing sightseer); nothing to change unless it recurs.
 
 Status（进度）：C 部分完成——检查点 CP-8 已修并推送（`8000e8a`），唐人街街角（L6）已推送（`90291cb`），海特 / 卡斯特罗街角已接上 E 线的宝箱（`2a474f1`）；北滩街角等城市拼接缺口补上后再做。
+
+## Review
+
+Written 2026-09-28 by lane L's adversarial reviewer (worktree `C:/Users/willy/wt/w5-l`, dev port 5505, scratch
+`C:/Users/willy/opus-qa/w5/w5-l/review/`). Read every W5-L commit (part a `e0d0b8e` … part c `90291cb`), the code around
+them and plan §4.8; played the lane's features in the game on desktop (1440 × 900, high) and on the phone profile
+(390 × 844, dpr 3, touch, mid); ran lane F's static judge over every one of lane L's own arrival records; re-checked 14
+facts on the web. Higgsfield: 0 credits. No relayed owner message reached this review.
+
+### 给主人的摘要
+
+1. **海浪风琴防波堤会“卡住”，已修**：从到达点往前走，人会从步道边滑进旁边一条更低的死胡同，推不回步道，BAYBAY 连拉三次才出来。现在步道根部两侧各加一级花岗岩台阶，上下都走得通（电脑、手机实测 0 次被拉）。
+2. **街角的人“一到就不见”，已修**：诺伊谷周六市集的 3 位顾客、24 街对面 2 位听众、克莱门特街 1 位顾客站在到达点 2.5 格内——游戏不在玩家 2.5 格内放人，所以一到那里市集是空的。现在都站到 3 格外；海特街 2 位听众、克莱门特街 1 位顾客原来半个身子在墙里 / 飘窗里，也挪开了。
+3. 其余都核过没问题：9 个街角的绘制和三角形预算、离开再回来不漏内存、没有新着色器、篝火季节、滑梯平台、路线站点；14 条现实信息网上复核，只有海浪风琴的开放日期写错（1986 年 6 月 8 日开放），已改。
+
+### Defects found and fixed (pushed)
+
+| commit | defect | fix | test |
+|---|---|---|---|
+| `27acd96` | **The Wave Organ's jetty (registered in part c) traps the player.** The city's own low path (y ≈ 0) runs beside the deck's root (y 0.5) on both sides, 1.7–3.5 u off the spit's line, and the deck's side is a wall back up (a rise steeper than `WALL_GRADE` 0.9: 0.5 u over the walk grid's half-unit cells). In the game (desktop, `?date=2026-10-03T15:00`) holding W from the arrival slid the player off the deck into the west pocket: three BAYBAY pulls (嘿咻！) at (−439.9, 338.3), (−438.9, 336.8), (−436.8, 334.3) before the deck was reached (`review-wave-organ-pocket-before-desk.jpg`). The part-c test walked the jetty with `findPath` only, never with the controller. Of 50 low spots beside the root, 16 could not climb back. | A granite step (0.8 u, walk top 0.25) along both sides of the root's last two stretches (`wave-organ.ts` `SIDE_STEP`, drawn and walked; +48 triangles, still ≤ 800). After: 0 of 18 low spots stuck; in the game 0 pulls, desktop and phone (`review-wave-organ-steps-after-desk.jpg` / `-phone.jpg`). | `w5-landmarks` "the Wave Organ's deck is climbed by the real controller …": every low spot beside the root pushed at the deck gets up on it; straight on from the arrival at 4 headings keeps moving (red on the part-c file: 6 spots + 3 headings stuck). |
+| `f16a0ec`, `541b5d6` | **Corner crowds invisible from their arrivals.** Lane T's crowd places nobody within 2.5 u of the player (`crowd.ts` `syncPins` → `nearAvoid`), and the Noe Valley market's three shoppers stood 0.6–2.2 u from the square's arrival (= its trip end), 24th St's two listeners across the street 0.9 / 1.5 u, Clement's south shopper 1.3 u from the trip end: an arriving player saw an empty market. In the game a landing is up to half a nav cell off the anchor (the Noe back shopper stood 2.35 u from the landed player), so the trip ends need ARRIVAL_CLEAR + 0.5. | Noe: two shoppers on the 24th St sidewalk either side of the mouth, one on the lawn by the back stall (3.0–3.15 u from the landed player in the game); 24th St: the third listener west of the panadería on the busker's sidewalk; Clement: the third shopper at the bakery's window on the north sidewalk (the south sidewalk west of its stand is the crossing's clear lane and a tree). Shots: `review-noe-market-arrival-phone.jpg` (Sat 12:30, the stalls and shoppers from the arrival), `review-calle24-listeners-arrival-phone.jpg`. | `w5-corners` "no corner crowd pin stands where travel puts the player" (site arrival ≥ 2.5, trip ends ≥ 3.0). |
+| `f16a0ec` | **Figures inside walls.** Two Haight listeners (local x −1.7) stood 0.05 u from the city's kerbside geometry at every height (half the body inside it); a Clement shopper had a bay window 0.15 u from her middle at chest height. The part-b profiling covered plaques, not people. | Haight's two at x −1.9, Clement's at z 1.5 (all ≥ 0.24 u clear, standable, off the roadway). | `w5-corners-view` "every corner crowd pin and figure stands clear of the city's walls and bay windows at body height" (the published L0, ray casts in 8 directions at 0.45 / 1.1 u). |
+| `27acd96` | Fact: `wave-organ.ts` said "opened in May 1986". | Built in May 1986 (Wikipedia), opened on 8 June 1986 (NBC Bay Area, 2026-06-08; the 40th anniversary). Player-facing texts say "1986" only: correct. | — |
+
+`e3ff897` only makes the jetty test sample by frame (not by float time).
+
+### Checked and sound
+
+- **Corners in the game** (fresh dev server, desktop): Chinatown 1,788 triangles, 5 shopper groups and 4 lamp obstacles while the
+  `shops` window is on, its LOD drawn at the gate spot; Irving 128 (`day` at 15:00, `early` at 09:30), Noe 658 with
+  `market` + `day` on Saturday 09:30 / 12:30. **Teardown**: going Chinatown → Irving → Chinatown → Irving the renderer's
+  geometries read 151 → 149 → 153 → 149 and the corner's crowd lanes 7 → 1 → 7 → 1 (the unmount drops the LOD, the
+  groups, the obstacle source and the 15 s timer). **Programs**: 60 desktop / 58 phone on a fresh server with every
+  corner and the fire rings about. The 76–78 the lane saw "once" (and I saw on a long-running server) is Vite's HMR
+  duplicating modules after edits, not the game: a fresh server reads 58 at once.
+- **Warm-up / materials**: the corner meshes are plain `Mesh` + `TOY` (receiveShadow, no shadow: the L0 cell program)
+  and the one `signsMaterial()` warmed as `v-signs`; the fire rings rebuild on `buildKey` with `TOY`; no new material.
+- **Per frame**: `buildKey` → `fireRingsLit()` compares `Date.now()` (the Bay clock every 15 s), the LOD update is three's
+  own, the obstacle source loops ≤ 5 items without allocating; windows are re-read every 15 s.
+- **District mode**: no W5-L commit touches a district file; the corners mount only through city sites.
+- **Lane F's static sweep** (`run2b`, 20:08Z): 0 lane-L targets BOXED / SNAG / UNREACHABLE; the five route CORRIDORs are
+  the ones the part-c test names. My run of the same judge over all 30 `SITE_ARRIVALS` rows and the 24 tier-3 anchors:
+  Irving BOXED, Haight & Ashbury SNAG (both parked by lane N, below), the rest ok / corridor.
+- **Fire rings, Seward, Noe's Saturday stalls, the corner windows** follow Bay time (`?date=` checked at 09:30 / 12:30 /
+  15:00 on 2026-10-03, a Saturday); Seward's `hours` (Tue–Sun 10–17) match sfrecpark.org and lane A's slides show
+  "Opening hours" before 10.
+- **Economy**: lane L pays nothing; the corner caches are lane E's ids (the crowd test checks them standable).
+
+### Facts re-checked on the web (2026-09-28)
+
+1. Seward slides: open 10 am – 5 pm Tuesday – Sunday, bring cardboard, "adults must be accompanied by children", the
+   park closes at sunset, nothing on wet weather — https://sfrecpark.org/facilities/facility/details/sewardminipark-203 ✓
+2. Ocean Beach fires 6:00 am – 9:30 pm, March – October, 16 rings between Stairwells 15 and 20 —
+   https://www.nps.gov/articles/ocean-beach-fire-program.htm ✓
+3. Noe Valley Farmers Market Saturday 8 am – 1 pm, year-round, volunteer-run, Noe Valley Town Square —
+   https://www.noevalleyfarmersmarket.com/ ✓
+4. Dragon lamps: D'Arcy Ryan, 1925 Diamond Jubilee, 43 lamps from Bush St to Broadway, red / gold / green, a pagoda
+   lantern with bells under a red roof, 71 today — SFPUC 2019 (the lane's URL) ✓
+5. Oakdale / Palou: island platform in Third Street's median, opened 13 January 2007, signed "Opera House", buses 15,
+   23, 24, 44, 54 — https://en.wikipedia.org/wiki/Oakdale/Palou_station ✓
+6. 180+ red lanterns back on Grant Ave by 8 August 2023 after the winter storms — sfist.com 2023-08-08 ✓
+7. Portsmouth Square closed from 10 June 2026 to mid-2028 — https://sfrecpark.org/1166/Portsmouth-Square-Improvement-Project ✓
+8. Osaka Way / Buchanan Mall: renovation from August 2026 (xpressmagazine.org, 14 May 2026), "Winter 2026" at SF
+   Planning — the lane's hedge holds ✓
+9. Castro rainbow banners on the light poles, paid by the Castro Street Fair and the merchants — https://castrocbd.org/things-to-see/ ✓
+10. Japantown Peace Plaza still under construction in September 2026 (update of 2 September) — https://peaceplaza.org/ ✓
+11. Wave Organ: Peter Richards with George Gonzales, 25 PVC pipes, Laurel Hill Cemetery stone, best at high tide ✓;
+    **opened 8 June 1986**, not "May" — https://www.nbcbayarea.com/news/local/san-francisco-wave-organ/4096076/ (fixed)
+12. La Grande tank, McLaren Park: 1956, 350,000 gallons, 80 ft, seismic upgrade 2008 — SF Heritage / SFGate ✓
+13. Ina Coolbrith named California's poet laureate on 30 June 1915 at the Panama-Pacific Exposition — Britannica /
+    Wikipedia ✓
+14. 都板街 = Grant Avenue (from "Dupont") in the Chinatown corner's name ✓
+
+### Open (not changed; owners named)
+
+- **Irving St's site arrival is BOXED, Haight & Ashbury's SNAGs** (lane N parks both in `SITE_ARRIVALS_WAITING`, the
+  trips use the old ends, which pass). Irving: no sidewalk spot within 5 u opens 3 ways and lands off the asphalt (a
+  searched grid); Haight: one 0.35 u away does, but lane E's `stop-haight` trail coin is also within 4 u, so N would still
+  wait. Worth doing together with E if the site arrivals should be wired.
+- The North Beach seam gap (V + lead), Fort Point's own arrival (C's verify D12) — as part c says.
+- Chinatown registers five identical clear lanes (one per shopper group: each faces its own window); cheap, noted.
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the full suite
+`tests/opus-bay-*.test.ts`: 1,265 / 1,265 before the first push's rebase, **1,306 / 1,306** after it (the rebase brought
+lanes N, F, T, D, E, R, C); the last rebase before that push brought lane R's docs and a comment (tsc re-run). The
+final numbers of this section's push are below.
