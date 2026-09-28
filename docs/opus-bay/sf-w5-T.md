@@ -503,3 +503,112 @@ under load had `sf-move2` "E2-5 view field in the city", a wall-clock test, fail
 lineRides 10.74 kB, transitLayer 49.57 kB, CityMap 41.73 kB. In-game checks on dev server 5504 (stopped at the end), one
 headless Chrome at a time, no PERF-LOCK present; every image read. npx tsc / eslint / tsx all worked (no node_modules
 fallback needed). No relayed owner message arrived during this part. No Higgsfield credits used.
+
+## Review
+
+Written 2026-09-28 by lane T's adversarial reviewer (worktree `wt/w5-t` → `opus-bay`) on the lane's pushed tree `01d8e2d6`:
+every W5-T commit (`d0bcb32` … `01d8e2d`), the code round them, plan §1, §2 (MF2, MF9), §4.1–4.3, §4.7, §4.14, §6 and
+`sf-w5-lead.md`. Review commits: `72d16787`, `c5e83e4a`, `40a0220a`, `b3b05326`, `3d113a97` (pushed first),
+`e926f1c2` and the one carrying this section.
+
+### 给主人的摘要
+
+1. 交通这一条整体扎实：观光巴士不再停在路上、一日游直接上车、下车站在站牌旁、晚上叮当车回车厂、鸽子会飞到广场，电脑和手机上都实际玩过。
+2. 修了一个你每次都会碰到的误报：坐渡轮（开船前在码头停 14 秒）或在海德街 / 泰勒街转盘上叮当车时，横幅马上显示"车停住了"，"直接到站"变成大按钮。现在正常停站上客不算"停住"，真的卡住 10 秒以上才提示；渡轮上改说"船停住了"。
+3. 在海德街转盘等叮当车以前要等 1.5–2 分钟（镜头看得到整条街，系统不肯让车"凭空出现"）；现在等 12 秒后可以在 110 米外补一辆车，最长约 1 分半。
+4. 车站卡片的现实班次写错两处：N 线、M 线周末中午是约 12 分钟一班（原来写 10），而且原来不分时段；现在写"午间约…分钟一班"并分工作日 / 周末，N 线注明"清早和深夜是巴士"（9 月 28 日在 SFMTA 官网重新核对）。另外哈维·米尔克广场的鸽子原来永远飞不过去，已修好。全部测试通过；Higgsfield 花费 0。
+
+### What was checked
+
+- **Every W5-T diff read**, and the code round it: `busSystem`, `traffic`, `crowd`, `crowdSpots`, `cityLife`, `life`,
+  `transitLine`, `transitLayer`, `lineFleet`, `lineRides`, `transit`, `RideBanner`, `rideSlots`, `busWatch`,
+  `audio/hooks` + `engine`, `serviceHours` / `serviceRows`, `lineChoices`, the sidecar's `--fix-props`, the tests.
+- **Played in the game** (dev server 5504, one headless Chrome at a time, no PERF-LOCK; every image read), zh:
+  - desktop 1440 × 900: a Powell–Hyde ride from the Hyde & Beach turntable — waits 88 s and 127 s before `e926f1c2`, 84 s
+    three times after; aboard, `stalled` 0 at boarding and ≤ 4.5 s, the banner never said 车停住了 (lane A's 铃声对答 and
+    探出身 pads on their own row); the ferry Pier 41 → Ferry Building — boarded, ≤ 0.3 s stalled aboard, no held note
+    (`review-ferry-aboard-desktop.jpg`); the Powell station card's rows (`午间约…`, Monday → the weekday column);
+  - phone 390 × 844 dpr 3 touch: the Powell card's five rows fit (the N row wraps to two lines,
+    `review-service-rows-phone.jpg`); boarding at Hyde & Beach after a 122 s wait (before `e926f1c2`): 提前下车 · 直接到站
+    and the pads, no held note (`review-cable-hyde-boarded-phone.jpg`);
+  - district mode (`/opus-bay?start=free`): the promenade's walkers, gull and sailboat drawn as before (scratch shot).
+- **District mode unchanged**: in `life.ts` district mode pushes every instance in order (slot k = instance k), the
+  counts and visibility equal the old code (the heroFar path returns before the packers), the wave line of the people
+  shader adds 0 for `aWalk ≥ 0`, the pigeons never move (`cullFar()` false); no district file else touched.
+- **Budgets / warm-ups**: no new material, program, mesh or call (the middle looks join the existing far BatchedMesh;
+  `world/cablecar.ts` is reached only from the lazy transit layer). The review's changes add nothing to GameRoot's graph
+  but one constant in `life.ts`; GameRoot not re-measured here (lane V's table).
+- **Teardown**: CityLife's disposers remove the deck lane and the emote listener; the transit layer clears the cable
+  system; the crowd-spot, ride-pad and sound registries hand back removers; busWatch's per-bus map is bounded.
+- **Economy**: lane T pays nothing itself; a hop-off or a flight under the 直接到站 veil cancels the veil's jump, so a ride
+  never counts twice (`r.counted`), and `endLineRideQuietly` counts nothing.
+- **Per-frame allocations**: see defect 3.
+- **Facts**: 14 re-checked on the web (table below).
+
+### Defects found and fixed
+
+| # | defect | evidence | fix (commit) | test |
+|---|---|---|---|---|
+| 1 | **False 车停住了 at boarding.** `watchStall` counted the rider's wait and the boarding stop's own dwell: on every ferry ride the banner said 车停住了 with 直接到站 as the big button for ≈ 5 s at the quay it left from (the boat lies 14 s at a terminal); a cable car boarded at the Hyde & Beach or Taylor & Bay turntable had "stood" 13.4 s (its arrival dwell and the 9 s turn) the moment the rider stepped on, and said so for 3.3 s. On a ferry it also said 车 | node probe on `01d8e2d6` (published transit data, the real `FerrySystem` / `CableSystem` stepped through `game/transit.ts`): ferry both ways 14.8–15.0 s stalled aboard, held 4.8–5.0 s; PH / PM from their turntables 16.7 s, held 3.3 s | the count restarts when the rider is aboard; at the boarding stop the stand counts only past `BOARD_GRACE` 15 s; once the vehicle has left, as before (10 s → the big button); 船停住了 on the ferry (`72d16787`) | `W5-T review: boarding is not a hold-up` (red on `01d8e2d6`: "powell-hyde from hyde-beach: stalled 16.7 s aboard (the banner said held up: true)"); the loop-ride ETA test also pins stalled < 10 s on a normal ride (`b3b05326`) |
+| 2 | **Wrong real-world facts on the station cards.** The N and the M said 约10分钟一班 every day; the SFMTA pages give midday weekday 10, **weekend 12**. Every row gave the midday figure unlabelled at any hour (约9–10分钟一班 · 现在有车 at 22:30, when Powell–Hyde's late-night column says 20). Part c's facts list said "N Judah … 10", "M Ocean View … 10" | the six route pages re-read 2026-09-28 (below); lane R's `realsf/transitReal.ts` already had N weekend 12 and M weekend 10–15 | `serviceRow` takes the weekday / weekend midday figure (`bayParts().weekday`) and says 午间 / midday; the N note follows the page's asterisk on the morning and late-night columns: 清早和深夜是巴士 (`40a0220a`) | the service-rows test by day; the drift guard against lane R's rows also pins each midday figure inside R's daytime range |
+| 3 | **Per-frame garbage the report said was gone.** Part b's `5e5cb20` said "the lane step allocates nothing per frame", but `laneDistance` returned a new record for every walker inside a lane's box every frame (the GGB deck: ≈ 50), `laneStep` built a closure per walker, and `takeCrowdWaves` returned a new `[]` every frame | code read | `laneDistanceInto` with one scratch record (`laneDistance` keeps its signature), a private `laneFits`, one shared frozen empty wave list (`c5e83e4a`) | the crowd-spots test pins the record reuse and the shared empty list |
+| 4 | **A pigeon plaza the flock never reached.** Harvey Milk Plaza's centre lies in the sunken plaza round the station stairs: 4 of the 8 landing spots stand there, so `movePigeons` gave up every 2 s | node, the published city round each of the nine plazas: 8 / 8 spots everywhere else, 4 / 8 there | the spot 6 u west on the Castro / Market corner's pavement: 8 / 8 (`3d113a97`) | the flock lands at all nine plazas |
+| 5 | **Cable-car waits of 1.5–3 minutes at the turntables** (the owner's "rides that arrive", MF2). The dispatch never places a car where the camera sees it, and at Hyde & Beach, Taylor & Bay and Powell & Market the camera looks straight down the street: the car comes the whole line. Wave-2 behaviour, not a wave-5 regression, but the lane gave the loop bus a relaxed rule (W5-T2) and not the cable cars | in the game at Hyde & Beach: 88 s and 127 s (desktop), 122 s (phone); node with 250 u round the stop in view: Hyde & Beach 37–191 s, Taylor & Bay 44–143, Powell & Market 23–203 | after `WAIT_RELAX` 12 s a car may be brought in within view `RELAX_DISTANCE` 110 u from the rider (the far look), from 130 / 160 / 190 u back as well; far placements still have to beat the ETA by 3 s; the car moved still comes from out of view (`e926f1c2`). Node, same camera: 37–79 s; in the game 84 s × 3 (a 16 s wait at Hyde & Chestnut for the loop bus in the shared Hyde St box included) | every wait ≤ 90 s at the three turntables over five warm-ups; a car that pops in within view lands ≥ 110 u away after ≥ 12 s (red on `3d113a97`) |
+
+### Facts re-checked on the web (2026-09-28)
+
+| fact in lane T's rows / report | source | verdict |
+|---|---|---|
+| Powell–Hyde "7 a.m. - 11 p.m. daily" | https://www.sfmta.com/routes/powell-hyde-cable-car | ✔ |
+| Powell–Hyde midday weekday 10 / weekend 9 (morning 20, evening 7 / 12, late night 20) | same | ✔ (now labelled 午间) |
+| Powell–Mason "7 a.m. - 11 p.m. daily" | https://www.sfmta.com/routes/powell-mason-cable-car | ✔ |
+| Powell–Mason midday 12 / 10 (evening 20) | same | ✔ |
+| California "7 a.m. - 9 p.m. daily", Van Ness ↔ California & Drumm by Market | https://www.sfmta.com/routes/california-cable-car | ✔ |
+| California midday 10 / 10 | same | ✔ |
+| F Market & Wharves "7 a.m. - 12 a.m. daily" | https://www.sfmta.com/routes/f-market-wharves | ✔ |
+| F midday 12 / 12 | same | ✔ |
+| N Judah "24 hours daily"; "Between subway hours and Owl service, use the N Bus" (morning and late-night columns) | https://www.sfmta.com/routes/n-judah | ✔ (the note re-worded) |
+| N Judah midday 10 | same: weekday 10, **weekend 12** | ✘ fixed |
+| M Ocean View "6 a.m. - 12 a.m. daily" | https://www.sfmta.com/routes/m-ocean-view | ✔ |
+| M Ocean View midday 10 | same: weekday 10, **weekend 12** | ✘ fixed |
+| the M serves Stonestown (19th Ave & Winston) and SF State (19th Ave & Holloway); Balboa Park is its end (the phone rows' "goal ends") | same | ✔ |
+| the nine pigeon plazas (Union Square … Harvey Milk Plaza) stand where the squares are | the squares' coordinates through `core/geo projectCity` | ✔ within 0.3–10 u of the centres (big plazas) |
+
+### Checks
+
+- On the pushed `3d113a97` (rebased on `e3ff897b`, which brought lanes C, E, L, N, R's commits): `npx tsc -p
+  tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings outside `src/opus-bay`) · the suite **1308 /
+  1308**. With `e926f1c2`: tsc 0, eslint 0 errors, the suite **1309 / 1309**; the final numbers are in this commit's push.
+- In-game checks on dev server 5504 (stopped at the end), one headless Chrome at a time, started only after lane V's
+  PERF-LOCK (20:34–21:30 UTC) had gone; the full suites ran with `--test-concurrency=4` (the first two during the lock:
+  no Chrome and no vite build ran then).
+- npx tsc / eslint / tsx all worked (no node_modules fallback). A scratch worktree for the before / after probes was
+  removed junction first; git could not delete its admin folder under the OneDrive checkout's `.git/worktrees/`
+  (permission denied, like the older `base*` entries there): harmless leftovers for the lead.
+
+### Not changed (judged, left as they are)
+
+- `CableSystem.bringIn`'s near placements (≤ 30 u) skip the ETA check, so in node with no viewer a rider at Powell &
+  Market waited 300 s (the same car put back 21–30 u every second); in the game the viewer's 60 u rule stops it. Wave-2
+  code; left.
+- The loop bus and the cable car share Hyde St's box: a rider's car waited 16 s at Hyde & Chestnut for the bus dwelling at
+  the Wharf stop (part c's gap, the other way round). The lane's CP-11 rules are right; only a different loop route
+  removes it.
+- The turntable beat runs on `audioNow()`: a turn first seen before the audio context runs keeps its zero on the
+  performance clock. Lane A's heave-ho starts from a gesture, so it never meets it.
+- Small allocations off the frame path: `Bus.update` filters its ducks at 10 Hz, `noteTurning` spreads a key list at 4 Hz,
+  `movePigeons` filters the flock every 2 s. Negligible.
+- The platform pose of a line may follow a parked (invisible) cable car nearest the player: only a rider reads it, and a
+  rider's own car always wins. Harmless.
+- Lane T's own known gaps stand as written (the hop-off brake has no cap; a toy car shrinks in view when it gives way;
+  the barn has no door).
+
+### Requests
+
+- **Lead**: decide whether the cable cars should also offer 直接到站 while waiting (the ferry does): at a turntable the
+  wait is still ≈ 60–85 s after `e926f1c2` (the car's run, its arrival dwell and the 9 s turn).
+- **Lane F**: aboard the ferry the move chip says 车厢里 (the deck); the ride camera on Hyde St clipped through the house
+  walls in one desktop run (`r-cable-hyde-desktop.jpg` in `C:/Users/willy/opus-qa/w5/w5-t/review/shots/`).
+- **Lane V**: nothing new to warm or count; the relaxed dispatch may put a cable car in view at ≥ 110 u (the far look).
+
+No relayed owner message arrived during the review. No Higgsfield credits used.
