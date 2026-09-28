@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
+import { isFireRingLit } from '../../../realsf/seasons';
 import { BOX, type BatchLike, M } from '../../builder';
 import { lathe, worldPoly } from './kit';
 import { type W4Site, siteGround } from './siteKit';
@@ -11,6 +12,12 @@ import { type W4Site, siteGround } from './siteKit';
  * 9:30 pm, 1 March to 31 October, in the rings only (nps.gov "Ocean Beach Fire Program"; the 2016 program went from 12
  * to 16 rings of 800-pound concrete; SFGate). Toy version: sixteen low concrete rings in a line along the sand with warm
  * embers in each (a glow in the evening), never the rules lettering. None at Lawton St (the ocean-beach site).
+ *
+ * W5-L2 (plan §3.3 item 4): the embers and their night lights follow the real program through lane R's
+ * `isFireRingLit` (realsf/seasons.ts, the Bay clock: `?date=` moves it in DEV / QA builds): lit from 06:00 to 21:30
+ * between 1 March and 31 October (the glow reads from dusk), cold grey ash otherwise. `buildKey` flips with it, so
+ * sites.ts rebuilds the lod 0 (no extra draw call), and `lightsOn` takes the eight fire lights out of the city's night
+ * light field (it polls the site lights every 4 s at night). Asked at most every 15 s.
  *
  * Frame: origin (−564.83, 1363.73) on the sand halfway between JFK Dr and Lincoln Way, yaw 38.5°: local z runs along
  * the beach toward Lincoln Way (the rings from z −28 — beyond it the Great Highway bends seaward toward JFK Dr — to z 44 near Lincoln Way), the surf west (x ≤ −7), the Great
@@ -24,17 +31,29 @@ const g = siteGround(ID, 0.5);
 
 const N = 16, Z_0 = -28, STEP = 4.8;
 const ring = (k: number) => { const z = Z_0 + k * STEP, x = k % 2 ? -0.6 : 0.6; return { x, z, y: g.at(x, z) }; };
-const CONCRETE = '#c9c3b5', EMBER = '#e0662f', ASH = '#5d534a';
+const CONCRETE = '#c9c3b5', EMBER = '#e0662f', ASH = '#5d534a', COLD = '#8f877c';
+
+/** how often the Bay clock is asked (ms): buildKey runs every frame while the rings' lod 0 is near */
+const LIT_EVERY = 15_000;
+let litAt = -Infinity, lit = false;
+/** Fires may burn in the rings now (lane R's isFireRingLit on the Bay clock), cached for LIT_EVERY. */
+export function fireRingsLit(now = Date.now()): boolean {
+  if (now - litAt >= LIT_EVERY || now < litAt) { litAt = now; lit = isFireRingLit(); }
+  return lit;
+}
+/** tests: forget the cached answer (after moving the Bay clock with __setBayNowForTests) */
+export function resetFireRings() { litAt = -Infinity; }
 
 function build(b: BatchLike, lod: 0 | 2) {
   if (lod === 2) {
     for (let k = 1; k < N; k += 4) { const r = ring(k); b.add(BOX(), M(r.x, r.y - 0.1, r.z, 0, 1.1, 0.5, 1.1), CONCRETE); }
     return;
   }
+  const on = fireRingsLit();
   for (let k = 0; k < N; k++) {
     const r = ring(k);
-    // a low concrete ring, its inside falling to the ash and the embers (glowing a little)
-    lathe(b, [[0.55, -0.1], [0.55, 0.42], [0.38, 0.42], [0.36, 0.12], [0.02, 0.1]], r.x, r.y, r.z, (ly: number) => new THREE.Color(ly > 0.3 ? CONCRETE : ly > 0.15 ? ASH : EMBER), [0, 0, 0, 0.6], 5);
+    // a low concrete ring, its inside falling to the ash and, in the fire season's hours, the embers (glowing a little)
+    lathe(b, [[0.55, -0.1], [0.55, 0.42], [0.38, 0.42], [0.36, 0.12], [0.02, 0.1]], r.x, r.y, r.z, (ly: number) => new THREE.Color(ly > 0.3 ? CONCRETE : ly > 0.15 ? ASH : on ? EMBER : COLD), [0, 0, 0, on ? 0.6 : 0], 5);
   }
 }
 
@@ -50,9 +69,11 @@ export const oceanBeachFireRings: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
+  buildKey: () => (fireRingsLit() ? 1 : 0),
   walk: { blockers: Array.from({ length: N }, (_, k) => { const r = ring(k); return { x: r.x, z: r.z, r: 0.6 }; }) },
-  // the evening fires (the city's night light field)
+  // the evening fires (the city's night light field), only while fires may burn
   lights: Array.from({ length: N / 2 }, (_, i) => { const r = ring(i * 2 + 1); return { x: r.x, y: r.y + 0.7, z: r.z, size: 0.9, color: '#ff9a4a' }; }),
+  lightsOn: () => fireRingsLit(),
   plaza: [{ poly: [{ x: -4.0, z: Z_0 - 2 }, { x: 4.0, z: Z_0 - 2 }, { x: 4.0, z: Z_0 + (N - 1) * STEP + 2 }, { x: -4.0, z: Z_0 + (N - 1) * STEP + 2 }], surface: 'sand' }],
   w4: {
     placeId: 'murphy-windmill',
@@ -63,6 +84,6 @@ export const oceanBeachFireRings: W4Site = {
     height: { realM: 1, u: 0.5, top: 1.4, rule: 'overlook' },
     osm: [],
     terrain: [-4, -31, 4, 47],
-    notes: 'Fires only in the rings, 6 am–9:30 pm, 1 March–31 October (lane C\'s Ocean Beach card says "at the north end"); the rules lettering on the rings is never drawn. A shared setting: no attraction of its own.',
+    notes: 'Fires only in the rings, 6 am–9:30 pm, 1 March–31 October (lane C\'s Ocean Beach card says "at the north end"); the embers and the fire lights follow that through lane R\'s isFireRingLit (W5-L2). The rules lettering on the rings is never drawn. A shared setting: no attraction of its own.',
   },
 };

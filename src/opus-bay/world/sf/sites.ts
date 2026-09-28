@@ -75,9 +75,12 @@ function modelsModule(): Promise<ModelsModule> {
  *   mount    called when the lod-0 mesh is built: add extra objects to its group (GLB swaps, dressing); return an
  *            unmount function (called when the lod-0 mesh is dropped)
  *   plaza    walkable plaza polygons around the landmark (lane D2's dressing; lane F's crowd reads plazaSpots)
+ *   lightsOn W5-L2: false leaves the site's lights out of siteLights() (the fire rings out of their season's hours); the
+ *            light field polls siteLights() every few seconds at night and rebuilds when the count changes
  */
 export interface SiteHooks {
   lights?: { x: number; y: number; z: number; size: number; color: string }[];
+  lightsOn?(): boolean;
   mount?(group: THREE.Group, baseY: number): void | (() => void);
   plaza?: { poly: Vec2[]; surface: SurfaceKind }[];
 }
@@ -630,8 +633,8 @@ export class CitySites {
   siteLights(): { x: number; y: number; z: number; size: number; color: string }[] {
     const out: { x: number; y: number; z: number; size: number; color: string }[] = [];
     for (const s of this.sites) {
-      const lights = (s.l as SfLandmark & SiteHooks).lights;
-      if (!lights?.length) continue;
+      const h = s.l as SfLandmark & SiteHooks, lights = h.lights;
+      if (!lights?.length || h.lightsOn?.() === false) continue;
       const c = Math.cos(s.l.yaw), sn = Math.sin(s.l.yaw);
       for (const p of lights) out.push({ x: s.l.x + p.x * c + p.z * sn, y: s.baseY + p.y, z: s.l.z - p.x * sn + p.z * c, size: p.size, color: p.color });
     }

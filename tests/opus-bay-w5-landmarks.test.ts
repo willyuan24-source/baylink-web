@@ -261,3 +261,38 @@ test('W5-L3: the Seward top deck is walkable, each chute head is stood at from i
     assert.deepEqual(loose.slice(0, 5), [], 'drawn parts where a walker stands');
   } finally { w.T.setCityTerrain(null); worldP = null; }
 });
+
+// ---------------------------------------------------------------------------
+// W5-L2: the Ocean Beach fire rings follow the real season (lane R's isFireRingLit)
+// ---------------------------------------------------------------------------
+
+test('W5-L2: the fire rings burn only in the NPS season and hours (1 March – 31 October, 06:00 – 21:30 Bay time), through lane R\'s isFireRingLit', async () => {
+  const { __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
+  const { fireRingsLit, resetFireRings, oceanBeachFireRings: R } = await import('../src/opus-bay/world/sf/landmarks/ocean-beach-fire-rings');
+  const { buildLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+  const at = (spec: string) => { assert.ok(__setBayNowForTests(spec), spec); resetFireRings(); return fireRingsLit(); };
+  const glow = () => { const g = buildLandmark(R, 0, 0), info = g.getAttribute('aInfo'); let n = 0; for (let i = 0; i < info.count; i++) if (info.getW(i) > 0) n++; return n; };
+  const ringLights = () => new CitySites().siteLights().filter(l => l.color === '#ff9a4a' && Math.hypot(l.x - R.x, l.z - R.z) < 60).length;
+  try {
+    const cases: [string, boolean][] = [
+      ['2026-10-03T19:00', true], ['2026-10-03T21:29', true], ['2026-10-03T21:30', false], ['2026-10-03T05:59', false],
+      ['2026-10-31T21:00', true], ['2026-11-01T19:00', false], ['2026-11-05T19:00', false], ['2027-02-28T20:00', false],
+      ['2027-03-01T20:00', true], ['2026-07-04T12:00', true],
+    ];
+    for (const [spec, want] of cases) assert.equal(at(spec), want, spec);
+    // cold out of season: grey ash, no glow, no fire lights, and the lod 0 rebuilds when it flips (buildKey)
+    at('2026-11-05T19:00');
+    assert.equal(R.buildKey!(), 0);
+    assert.equal(glow(), 0, 'no ember glow');
+    assert.equal(ringLights(), 0, 'no fire lights in the night light field');
+    at('2026-10-03T19:00');
+    assert.equal(R.buildKey!(), 1);
+    assert.ok(glow() > 0, 'the embers glow');
+    assert.equal(ringLights(), 8, 'eight fire lights');
+    // the Bay clock is asked at most every 15 s (buildKey runs every frame while the lod 0 is near)
+    __setBayNowForTests('2026-11-05T19:00');
+    assert.equal(fireRingsLit(), true, 'cached within 15 s');
+    assert.equal(fireRingsLit(Date.now() + 15_001), false, 'asked again after 15 s');
+  } finally { __setBayNowForTests(null); resetFireRings(); }
+});
