@@ -34,6 +34,7 @@ import { sfZoo } from './sf-zoo';
 import { sfmoma } from './sfmoma';
 import { tiledSteps } from './tiled-steps';
 import { stIgnatius } from './st-ignatius';
+import { stMarysCathedral } from './st-marys-cathedral';
 import { sternGrove } from './stern-grove';
 import { stonestown } from './stonestown';
 import { ucsfMissionBay } from './ucsf-mission-bay';
@@ -98,4 +99,5 @@ export const W4_SITES: readonly W4Site[] = [
   bakerBeach,
   coronaHeights,
   bernalHeights,
+  stMarysCathedral,
 ];

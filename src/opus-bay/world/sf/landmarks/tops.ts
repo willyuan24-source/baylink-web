@@ -72,6 +72,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'baker-beach': { blockers: [3.3, 1.2], tall: [] },
   'corona-heights': { blockers: [2.6, 2.5, 2.5, 2], tall: [] },
   'bernal-heights': { blockers: [6.4], tall: [] },
+  'st-marys-cathedral': { blockers: [14.2, 4.1], tall: [] },
   'balmy-alley': { blockers: [4.6, 4.5], tall: [] },
   'bayview-opera-house': { blockers: [5.5, 5.1, 3.4, 4.1, 4, 1.5], tall: [] },
   'crane-cove-park': { blockers: [6.2, 6.2, 8.5, 8.5, 6, 6, 8.3, 8.3], tall: [8.5, 8.3] },
