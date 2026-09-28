@@ -1,11 +1,14 @@
 import type { W4Site } from './siteKit';
+import { bakerBeach } from './baker-beach';
 import { beachChalet } from './beach-chalet';
+import { bernalHeights } from './bernal-heights';
 import { bisonPaddock } from './bison-paddock';
 import { blueHeronLake } from './blue-heron-lake';
 import { botanicalGardenGate } from './botanical-garden-gate';
 import { calAcademy } from './cal-academy';
 import { ccsfDrpac } from './ccsf-drpac';
 import { clementStreet } from './clement-street';
+import { coronaHeights } from './corona-heights';
 import { ccsfOcean } from './ccsf-ocean';
 import { doloresPark } from './dolores-park';
 import { fortFunston } from './fort-funston';
@@ -92,4 +95,7 @@ export const W4_SITES: readonly W4Site[] = [
   harveyMilkPlaza,
   presidioTunnelTops,
   fortMasonCenter,
+  bakerBeach,
+  coronaHeights,
+  bernalHeights,
 ];
