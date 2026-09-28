@@ -10,7 +10,9 @@ window.__perf = {
     const p = nav.arrivalSpot({ x, z }, 30) ?? { x, z };
     flow.teleportPlayer(p);
     ob.city.focus(null);
-    cinema.faceCameraToward(fx, fz);
+    cinema.faceCameraToward(fx, fz, { uncapped: true });
+    await new Promise(r => setTimeout(r, 6000));
+    cinema.faceCameraToward(fx, fz, { uncapped: true });
     return JSON.stringify({ x: +p.x.toFixed(1), z: +p.z.toFixed(1) });
   },
   info() {

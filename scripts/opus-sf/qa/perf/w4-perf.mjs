@@ -25,8 +25,9 @@ const SPOTS = JSON.parse(fs.readFileSync(here('./w4-spots.json'), 'utf8'));
 export function gateRow(r, gate = SPOTS.gate) {
   const fails = [];
   const m = r.m || {};
-  const calls = Math.max(m.calls ?? 0, r.idle?.calls ?? 0, r.walk?.calls ?? 0, r.ride?.maxCalls ?? 0);
-  const tris = Math.max(m.triangles ?? 0, r.idle?.tris ?? 0, r.walk?.tris ?? 0, r.ride?.maxTris ?? 0);
+  const am = r.aim?.cam ? r.aim.m || {} : {};
+  const calls = Math.max(m.calls ?? 0, am.calls ?? 0, r.idle?.calls ?? 0, r.walk?.calls ?? 0, r.ride?.maxCalls ?? 0);
+  const tris = Math.max(m.triangles ?? 0, am.triangles ?? 0, r.idle?.tris ?? 0, r.walk?.tris ?? 0, r.ride?.maxTris ?? 0);
   if (r.profile === 'desktop' && calls > gate.desktop.calls) fails.push('calls');
   if (r.profile === 'desktop' && tris > gate.desktop.triangles) fails.push('tris');
   const fps = Math.min(...[r.idle?.fps, r.walk?.fps, r.ride?.fps].filter(v => typeof v === 'number'));
@@ -46,7 +47,8 @@ function table(res) {
     if (moved) g.fails.push(`void: player at ${r.m.player.x}, ${r.m.player.z}`);
     const fpsCol = r.ride ? `(${r.ride.fps})` : `${r.idle?.fps ?? '—'} / ${r.walk?.fps ?? '—'}`;
     const p95 = r.ride ? r.ride.p95 : r.walk?.p95;
-    lines.push(`| ${r.id} | ${g.calls || '—'} | ${g.tris ? k(g.tris) : '—'} | ${r.m?.programs ?? r.ride?.programs ?? '—'} | ${fpsCol} | ${p95 ?? '—'} | ${g.over100} | ${g.fails.length ? 'fail: ' + g.fails.join(', ') : 'pass'} |`);
+    const id = r.aim?.cam ? `${r.id} (aimed: the walking camera looked ${r.aim.off}° away)` : r.id;
+    lines.push(`| ${id} | ${g.calls || '—'} | ${g.tris ? k(g.tris) : '—'} | ${r.m?.programs ?? r.ride?.programs ?? '—'} | ${fpsCol} | ${p95 ?? '—'} | ${g.over100} | ${g.fails.length ? 'fail: ' + g.fails.join(', ') : 'pass'} |`);
   }
   lines.push('', `programs first → last: ${res.programs?.first} → ${res.programs?.last}${res.programs && res.programs.first !== res.programs.last ? ' (drift)' : ''}`);
   return lines.join('\n');
@@ -76,8 +78,24 @@ const HELPERS = `window.__w4 = {
     const a = m.nav.arrivalSpot(p, 30); if (a) p = a;
     m.flow.teleportPlayer(p);
     ob.city.focus(null);
-    if (v.fx !== undefined) m.cinema.faceCameraToward(v.fx, v.fz);
+    // the camera's automatic turn is capped at 100° (actors/camera.ts) and an arrival reveal (lane G, wave 4) may play
+    // right after the teleport: face uncapped, and again once a reveal is over
+    if (v.fx !== undefined) { m.cinema.faceCameraToward(v.fx, v.fz, { uncapped: true }); await this.sleep(6000); m.cinema.faceCameraToward(v.fx, v.fz, { uncapped: true }); }
     return JSON.stringify({ ready, ms: Math.round(performance.now() - t0), p: { x: +p.x.toFixed(1), z: +p.z.toFixed(1) } });
+  },
+  // the walking camera may still look away from the spot's subject (lane G's camera keeps a clear line of sight: at the
+  // Ferry gate it looks over the Bay, not at the Ferry Building): then a QA camera at the walking camera's distance and
+  // height behind the player looks at the subject, and that view is measured too ('aim', the gate takes the larger)
+  async aimSet(v) {
+    const m = await this.mods(); const ob = window.__opusBay; const cam = ob.world.camera; const p = ob.game.get().playerPos;
+    if (v.fx === undefined) return JSON.stringify({ off: 0, cam: false });
+    const want = Math.atan2(v.fx - p.x, v.fz - p.z); const d = cam.position.clone(); cam.getWorldDirection(d);
+    const off = Math.abs(((Math.atan2(d.x, d.z) - want + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * 180 / Math.PI;
+    if (off < 30) return JSON.stringify({ off: Math.round(off), cam: false });
+    const dist = Math.max(4, Math.hypot(cam.position.x - p.x, cam.position.z - p.z)), ux = Math.sin(want), uz = Math.cos(want);
+    const tx = p.x + ux * 15, tz = p.z + uz * 15;
+    ob.world.cam(p.x - ux * dist, cam.position.y, p.z - uz * dist, tx, m.terrain.heightAt(tx, tz) + 1.5, tz, p.x, p.z);
+    return JSON.stringify({ off: Math.round(off), cam: true });
   },
   measure() {
     const ob = window.__opusBay; const r = ob.renderer.info; const s = ob.city.stats();
@@ -142,6 +160,11 @@ for (const s of spots) {
   acts.push({ do: 'wait', ms: wait });
   acts.push({ do: 'eval', label: `measure ${s.id}`, expr: 'window.__w4.measure()' });
   acts.push({ do: 'shot', name: path.join(out, `${s.id}.jpg`) });
+  acts.push({ do: 'eval', label: `aim ${s.id}`, expr: `window.__w4.aimSet(${JSON.stringify(s.go)})` });
+  acts.push({ do: 'wait', ms: 4000 });
+  acts.push({ do: 'eval', label: `measure-aim ${s.id}`, expr: 'window.__w4.measure()' });
+  acts.push({ do: 'shot', name: path.join(out, `${s.id}-aim.jpg`) });
+  acts.push({ do: 'eval', label: `unaim ${s.id}`, expr: 'window.__opusBay.world.clearCam() || "ok"' });
   acts.push({ do: 'eval', label: `idle ${s.id}`, expr: `window.__perf.frames(${ms}, false)` });
   acts.push({ do: 'eval', label: `walk ${s.id}`, expr: `window.__perf.frames(${ms}, true)` });
 }
@@ -170,7 +193,7 @@ child.stdout.on('data', d => {
 child.on('close', code => {
   const val = label => { const e = events.find(x => x.eval === label); try { return e && JSON.parse(e.value); } catch { return e?.value ?? null; } };
   const rows = [
-    ...spots.map(s => ({ id: s.id, pos: val(`pos ${s.id}`), m: val(`measure ${s.id}`), idle: val(`idle ${s.id}`), walk: val(`walk ${s.id}`) })),
+    ...spots.map(s => ({ id: s.id, pos: val(`pos ${s.id}`), m: val(`measure ${s.id}`), aim: { ...(val(`aim ${s.id}`) || {}), m: val(`measure-aim ${s.id}`) }, idle: val(`idle ${s.id}`), walk: val(`walk ${s.id}`) })),
     ...rides.map(r => ({ id: r.id, ride: val(`ride ${r.id}`) })),
   ];
   const firstProg = rows.find(r => r.m)?.m?.programs ?? null;

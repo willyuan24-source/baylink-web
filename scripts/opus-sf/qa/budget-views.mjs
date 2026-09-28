@@ -86,7 +86,8 @@ const HELPERS = `window.__qb = {
     if (v.arrival) { const a = m.nav.arrivalSpot(p, 30); if (a) p = a; }
     m.flow.teleportPlayer(p);
     ob.city.focus(null);
-    if (v.fx !== undefined) m.cinema.faceCameraToward(v.fx, v.fz);
+    // uncapped (the automatic turn stops at 100°), and again after a possible arrival reveal (lane G, wave 4)
+    if (v.fx !== undefined) { m.cinema.faceCameraToward(v.fx, v.fz, { uncapped: true }); await this.sleep(6000); m.cinema.faceCameraToward(v.fx, v.fz, { uncapped: true }); }
     return JSON.stringify({ ready, ms: Math.round(performance.now() - t0), p: { x: +p.x.toFixed(1), z: +p.z.toFixed(1) } });
   },
   async cam(v) {

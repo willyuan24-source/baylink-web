@@ -44,7 +44,7 @@ Account balance went from 1090.21 to 901.98 over the run (a drop of 188.23, matc
 | folder | contents | notes |
 |---|---|---|
 | `sf/current.json`, `sf/v1/` | Streamed city data: 194 chunk files `c/<cx>_<cz>.obc`, `far.obc`, `graph.obc`, `transit.json`, `places.json`, `manifest.json`, `report.json` | Built by `scripts/opus-sf/build.ts`, published by `scripts/opus-sf/publish.ts` (never overwrites a version). 4.6 MB on disk, 3.96 MB gzip, streamed by workers in city mode only (`?world=city`). Sources and licences: `sf/v1/ATTRIBUTION.md` (© OpenStreetMap contributors, ODbL; DataSF, PDDL; AWS Terrain Tiles). |
-| `models/sf/` | `victorian-a`, `victorian-b` (+ `-mask.webp`), `palace-rotunda`, `dragon-gate`, `conservatory` (+ `-mask.webp`) | SAM 3 3D meshes (Higgsfield), cleaned in Blender, Draco + WebP. Masks: R = night-lit glass, G = tintable walls (load with `flipY = false`). Not yet loaded by the game (needs a DRACOLoader). |
+| `models/sf/` | `victorian-a`, `victorian-b` (+ `-mask.webp`), `palace-rotunda`, `dragon-gate`, `conservatory` (+ `-mask.webp`) | SAM 3 3D meshes (Higgsfield), cleaned in Blender, Draco + WebP. Masks: R = night-lit glass, G = tintable walls (load with `flipY = false`). Loaded by `src/opus-bay/world/models.ts` (a GLTFLoader with a DRACOLoader). |
 | `models/sf/draco/` | `draco_decoder.wasm`, `draco_wasm_wrapper.js` | Copied unchanged from three 0.186 (`examples/jsm/libs/draco/gltf/`). |
 | `postcards/sf-*` | 12 San Francisco postcards (golden-gate-fog, painted-ladies, palace-fine-arts, cable-car-hill, chinatown-lanterns, lombard-street, mission-murals, dolores-park, windmill, city-hall, twin-peaks-view, ocean-beach), `-1200` and `-600` | 4:3 WebP, no text. |
 | `portraits/sf-npc-*` | gripman, baker, muralist, gardener, ranger, record-store | 512 px WebP, same style as `npc-*`. |
@@ -62,3 +62,16 @@ Every paid job is in `src/opus-bay/ASSETS-LEDGER.md` ("Whole-SF assets, part 1 (
 
 Every paid job of wave 3 is in `docs/opus-bay/ledger/w3-H2b.md` (merged into `src/opus-bay/ASSETS-LEDGER.md` by the lead):
 map 20.5 + voice 3.20 + murals 19.0 = **42.70 credits**.
+
+## Whole San Francisco, wave 4 (2026-09-27 / 28, lane V)
+
+| folder | contents | notes |
+|---|---|---|
+| `models/sf/w4-*.glb` | `w4-cal-academy` (+ `-mask.webp`: the glass hall), `w4-st-ignatius`, `w4-holy-virgin`, `w4-chinese-pavilion` | SAM 3 3D meshes from Nano Banana Pro concepts in the K6 toy style, cleaned in Blender 5.2 with a texel re-bake onto fresh UVs, graded, Draco + WebP (`scripts/opus-sf/assets/w4/`). 71–179 KB, ≤ 5,880 triangles. Registered in `src/opus-bay/data/assets.ts` `SF_MODELS` (rows: `data/sf/w4Models.ts`); lane L's sites swap them in (`data/sf/w4Swaps.ts`). |
+| `map/stickers-t1.webp` + `.json` | 16 round gouache stickers of the must-see places (4 × 4 atlas of 128 px cells, 74 KB) | The painted map's style, no letters. `src/opus-bay/data/sf/mapStickers.ts`; drawn on the map's T1 badges from zoom 0.45. |
+| `voice/sf/tour/` | 216 narration clips (`zh-` / `en-` × lane C's 107 frozen tour lines + `metro-sfsu-next-2`) | Qwen TTS (`qwen_audio_tts`, preset "Pixie", a storytelling variant of BAYBAY's instruction), picked by measured checks (`scripts/opus-sf/voice/w4/tour_post.py`), −18 LUFS / TP −1.5, `.m4a` AAC 64k + `.ogg` Opus 48k. Loaded on demand with the tour (`src/opus-bay/data/sf/voiceTour.ts` registers them in `ASSETS.voice` on import). The owner's listening sheet: `docs/opus-bay/qa/w4/V/voice/listening.md`. |
+| `postcards/sf-{state-quad,music-concourse,lands-end,west-portal}-{1200,600}.webp` | four postcards for the wave-4 areas | Nano Banana Pro with the shipped postcards' references; no text or logos (checked at full size). `src/opus-bay/data/sf/w4Postcards.ts`; in `POSTCARD_ART`. |
+| `models/{sea-lion,sea-lion-bark,pelican,sailboat,baybay}.glb` | the five district heroes, re-encoded | Draco geometry (`scripts/opus-sf/assets/hero-draco.mjs`; the game loads them with its DRACOLoader): 908,300 → 415,216 B, 593 → 376 KB gzip. |
+
+Every paid job of wave 4 is in `docs/opus-bay/ledger/w4-V.md` (merged into `src/opus-bay/ASSETS-LEDGER.md` by the lead):
+**55.51 credits** of the 120 cap (images and 3D 50.00, voice 5.51).
