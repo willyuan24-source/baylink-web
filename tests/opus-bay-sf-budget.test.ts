@@ -187,7 +187,7 @@ test('W5-V3: the city data chunk — the landmark cards leave GameRoot, the chun
   const graph = mainGraph(root);
   const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
   assert.ok(graph.has('data/sf/cityData.ts') && graph.has('data/sf/cityPois.ts'), 'the loader is in the main graph (cityPois reads CITY_DATA)');
-  for (const m of ['data/sf/landmarks.ts', 'data/sf/cityDataChunk.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+  for (const m of ['data/sf/landmarks.ts', 'data/sf/cityDataChunk.ts', 'data/sf/postcardCards.ts', 'data/sf/cityPhotos.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
   // cityData.ts awaits the chunk while GameRoot's chunk evaluates: a module in both graphs would stay in GameRoot's
   // chunk, the data chunk would import it from there and the two would wait on each other for ever
   const chunk = mainGraph(root, 'data/sf/cityDataChunk.ts');
@@ -202,6 +202,13 @@ test('W5-V3: the city data chunk — the landmark cards leave GameRoot, the chun
   const { CITY_POIS, CITY_SUBJECT_FACTS } = await import('../src/opus-bay/data/sf/cityPois');
   assert.deepEqual(CITY_POIS.map(p => p.id), SF_LANDMARK_INFO.map(i => `sf:${i.id}`), 'the 24 cards resolve from the chunk as before');
   assert.equal(Object.keys(CITY_SUBJECT_FACTS).length, SF_LANDMARK_INFO.length);
+  // the postcards' texts and the landmark photos came along (part c): the tables resolve as before
+  const { CITY_POSTCARDS, CITY_POSTCARD_NEAR } = await import('../src/opus-bay/data/sf/postcards');
+  assert.equal(CITY_POSTCARDS.length, 16);
+  assert.ok(CITY_POSTCARDS.every(c => c.title.zh && c.fact.en && c.image) && Object.keys(CITY_POSTCARD_NEAR).length === 16);
+  const { CITY_PHOTOS } = await import('../src/opus-bay/data/sf/cityPois');
+  assert.equal(CITY_PHOTOS, CITY_DATA.CITY_PHOTOS);
+  assert.ok(Object.keys(CITY_PHOTOS).length >= 10);
 });
 
 test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {

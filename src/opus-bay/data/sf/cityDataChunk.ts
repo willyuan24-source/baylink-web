@@ -10,3 +10,5 @@
  * main graph to `CITY_DATA`.
  */
 export { SF_LANDMARK_INFO } from './landmarks';
+export { SF_POSTCARD_CARDS } from './postcardCards';
+export { CITY_PHOTOS } from './cityPhotos';
