@@ -5,8 +5,9 @@
 //   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/places-sidecar.ts [--out <dir>] [--snaps] [--check]
 //
 //   --out <dir>   where places.json + places-diff.json go (default C:/Users/willy/opus-qa/w4/p/places-sidecar/).
-//                 Publishing = copying places.json over public/opus-bay/sf/<version>/places.json (integration phase
-//                 only, after SfPlaceKind absorbs the wave-4 kinds; the manifest names the file without a hash).
+//                 Publishing = copying places.json over public/opus-bay/sf/<version>/places.json (the manifest names
+//                 the file without a hash). Published at the wave-4 integration (W4-P-I3): 1,033 rows; the kinds and
+//                 the reviewed additions come from lib/places.ts (`poiKind`, `takesPoi`), as a full build makes them.
 //   --snaps       also write <out>/extra-snaps.txt: the EXTRA_PLACE_SNAPS block of src/opus-bay/data/sf/extraPlaces.ts
 //                 (ground y, zone, walking-graph node of each runtime row — the 47 extras and the named arrival places —
 //                 as the build computes them for places.json).
@@ -17,7 +18,6 @@
 // node ids must be the published graph's).
 import fs from 'node:fs';
 import path from 'node:path';
-import * as OpenCC from 'opencc-js';
 import { unproject } from '../../src/opus-bay/core/geo';
 import { WalkGraphIndex } from '../../src/opus-bay/core/walkGraph';
 import { EXTRA_PLACE_SNAPS, RUNTIME_PLACES } from '../../src/opus-bay/data/sf/extraPlaces';
@@ -25,11 +25,11 @@ import { type PlacesFile, type SfCurrent, decodeGraphFile } from '../../src/opus
 import { inLake, loadAreas, onPier } from './lib/areas';
 import { elements, layerHeader, loadDem, writeFile } from './lib/io';
 import { buildLand, loadBoundaryRings, loadCoast } from './lib/land';
-import { buildPlaces } from './lib/places';
-import { type PlaceRowW4, W4_OSM_ZH, candidateSkip, poiKindW4, sameName, stableMerge } from './lib/placesW4';
+import { buildPlaces, takesPoi } from './lib/places';
+import { type PlaceRowW4, W4_OSM_ADDS, candidateSkip, poiKindW4, sameName, stableMerge } from './lib/placesW4';
 import { loadWays } from './lib/roads';
 import { buildTerrain, heightAt } from './lib/terrain';
-import { inSlab, projPt } from './lib/world';
+import { inSlab } from './lib/world';
 import { loadZones, zoneIndexAt } from './lib/zones';
 
 const REPO = path.resolve(import.meta.dirname, '../..');
@@ -77,69 +77,30 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 const rebuilt = buildPlaces({ terrain, land, zones, version: cur.version, verifiedAt, plannerGuides, onDeck, inLake: lake, log }).places as PlaceRowW4[];
 for (const p of rebuilt) p.graphNode = snapNode(p.x, p.z);
 
-// --- 2. wave-4 kinds for OSM rows, new OSM rows ------------------------------------------------------------------------
-const tags = new Map<string, Record<string, string>>();
-const candidates: { key: string; type: 'node' | 'way' | 'relation'; id: number; name: string; t: Record<string, string>; lat: number; lon: number }[] = [];
-const rowKeys = new Set([...published.places, ...rebuilt].filter(p => p.osmType && p.osmId != null).map(p => `${p.osmType}/${p.osmId}`));
-for (const e of elements('pois')) {
-  const t = e.tags ?? {};
-  if (!t.name) continue;
-  const key = `${e.type}/${e.id}`;
-  tags.set(key, t);
-  if (!poiKindW4(t) || rowKeys.has(key)) continue;
-  const c = e.center ?? (e.lat !== undefined ? { lat: e.lat, lon: e.lon! } : null);
-  if (c) candidates.push({ key, type: e.type, id: e.id, name: t['name:en'] ?? t.name, t, lat: c.lat, lon: c.lon });
-}
-// curated rows keep landmarks.json's category (the Ferry Building is tagged shop=mall in OSM: still a landmark)
-const kindOf = (r: PlaceRowW4) => (!r.curated && r.osmType && r.osmId != null ? poiKindW4(tags.get(`${r.osmType}/${r.osmId}`) ?? {}) ?? r.kind : r.kind);
-
-/** lib/places.ts snapToLand (module-private there; folds back at the integration). */
-function snapToLand(x: number, z: number): [number, number] {
-  const at = (px: number, pz: number) => (land.grid.at(px, pz) === 1 && !lake(px, pz)) || onDeck(px, pz);
-  const solid = (px: number, pz: number) => {
-    if (!at(px, pz)) return false;
-    for (let k = 0; k < 8; k++) if (!at(px + Math.cos(k * 0.785) * 1.2, pz + Math.sin(k * 0.785) * 1.2)) return false;
-    return true;
-  };
-  if (solid(x, z)) return [x, z];
-  for (let r = 0.5; r <= 20; r += 0.5) {
-    const n = Math.ceil((2 * Math.PI * r) / 0.5);
-    for (let k = 0; k < n; k++) {
-      const a = (k / n) * Math.PI * 2, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
-      if (solid(px, pz)) return [px, pz];
-    }
-  }
-  return [x, z];
-}
-
-const toHans = OpenCC.Converter({ from: 'hk', to: 'cn' });
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+// --- 2. what the wave-4 rules change ---------------------------------------------------------------------------------
+// lib/places.ts `poiKind` gives the wave-4 kinds (campus / shopping / zoo) and `takesPoi` keeps only the reviewed new
+// rows (`W4_OSM_ADDS`), so the rebuild already carries both: published rows take its kind, and the rebuild's reviewed
+// rows that are not published yet are appended (in key order). The candidates the wave-4 rules found but the list does
+// not keep are reported for a later review (places-diff.json `skipped`).
+const pubIds = new Set(published.places.map(p => p.id));
+const keyOf = (r: { osmType: string | null; osmId: number | null }) => `${r.osmType}/${r.osmId}`;
 const skipped: { key: string; name: string; why: string }[] = [];
-const additions: PlaceRowW4[] = [];
-for (const c of candidates.sort((a, b) => (a.key < b.key ? -1 : 1))) {
-  const [x, z] = projPt(c.lat, c.lon);
-  // the build's SF-only filter: inside the county, on land or within 3 u of it
-  if (land.inside.at(x, z) !== 1) { skipped.push({ key: c.key, name: c.name, why: 'outside SF' }); continue; }
-  let nearLand = land.grid.at(x, z) === 1;
-  for (let k = 0; k < 8 && !nearLand; k++) nearLand = land.grid.at(x + Math.cos(k * 0.785) * 3, z + Math.sin(k * 0.785) * 3) === 1;
-  if (!nearLand) { skipped.push({ key: c.key, name: c.name, why: 'not on land' }); continue; }
-  const [sx, sz] = snapToLand(x, z);
-  const n = norm(c.name);
-  const dupe = rebuilt.find(p => Math.hypot(p.x - x, p.z - z) < (p.curated ? 25 : 40) && (norm(p.name.en).includes(n) || n.includes(norm(p.name.en))));
-  if (dupe) { skipped.push({ key: c.key, name: c.name, why: `duplicate of ${dupe.id}` }); continue; }
-  const why = candidateSkip({ key: c.key, name: c.name }, RUNTIME_PLACES, additions.map(a => ({ name: a.name.en })));
-  if (why) { skipped.push({ key: c.key, name: c.name, why }); continue; }
-  const zhRaw = c.t['name:zh-Hans'] ?? c.t['name:zh'] ?? c.t['name:zh-Hant'] ?? '';
-  const row: PlaceRowW4 = {
-    id: `osm-${c.type[0]}${c.id}`, name: { zh: W4_OSM_ZH[c.key] ?? (zhRaw ? toHans(zhRaw) : c.t.name), en: c.name }, kind: poiKindW4(c.t)!, x: r2(sx), z: r2(sz), y: r2(heightAt(terrain, sx, sz)),
-    zone: zoneAt(sx, sz), osmType: c.type, osmId: c.id, sourceUrl: `https://www.openstreetmap.org/${c.type}/${c.id}`, verifiedAt, curated: false, graphNode: snapNode(sx, sz),
-  };
-  if (inSlab(sx, sz)) row.hero = true;
-  additions.push(row);
+for (const e of elements('pois')) {
+  const t = e.tags ?? {}, key = `${e.type}/${e.id}`;
+  if (t.name && poiKindW4(t) && !takesPoi(t, key) && !published.places.some(p => keyOf(p) === key)) skipped.push({ key, name: t['name:en'] ?? t.name, why: 'not on the reviewed list (W4_OSM_ADDS)' });
 }
+const additions: PlaceRowW4[] = [];
+for (const r of rebuilt.filter(q => !pubIds.has(q.id) && q.osmType && W4_OSM_ADDS[keyOf(q)]).sort((p, q) => (keyOf(p) < keyOf(q) ? -1 : 1))) {
+  const why = candidateSkip({ key: keyOf(r), name: r.name.en }, RUNTIME_PLACES, additions.map(x => ({ name: x.name.en })), null);
+  if (why) { skipped.push({ key: keyOf(r), name: r.name.en, why }); continue; }
+  additions.push(r);
+}
+for (const k of Object.keys(W4_OSM_ADDS)) if (!additions.some(x => keyOf(x) === k) && !skipped.some(x => x.key === k)) skipped.push({ key: k, name: W4_OSM_ADDS[k], why: 'reviewed, but the build drops it (lib/places.ts: a row within 25–40 u whose name is part of its name, or off SF land)' });
 
 // --- 3. stable merge, write ------------------------------------------------------------------------------------------
-const { places, diff } = stableMerge(published.places, rebuilt, additions, kindOf);
+const { places, diff } = stableMerge(published.places, rebuilt, additions);
+// the appended rows are not "rebuild-only"
+diff.rebuildOnly = diff.rebuildOnly.filter(id => !additions.some(x => x.id === id));
 const file = { version: published.version, verifiedAt: published.verifiedAt, places };
 writeFile(path.join(OUT, 'places.json'), JSON.stringify(file));
 const report = {
@@ -153,7 +114,6 @@ for (const k of diff.kindChanges) log(`  kind ${k.id}: ${k.from} → ${k.to}`);
 for (const a of additions) log(`  + ${a.id} ${a.kind} "${a.name.en}" (${a.x}, ${a.z}) node ${a.graphNode}`);
 
 // --- 4. the extra rows' snaps ----------------------------------------------------------------------------------------
-const pubIds = new Set(published.places.map(p => p.id));
 const snaps = RUNTIME_PLACES.map(e => ({ id: e.id, y: r2(heightAt(terrain, e.x, e.z)), zone: zoneAt(e.x, e.z), graphNode: snapNode(e.arrival.x, e.arrival.z), hero: inSlab(e.x, e.z) }));
 if (flag('snaps')) {
   const lines = snaps.map(s => `  '${s.id}': { y: ${s.y}, zone: ${s.zone === null ? 'null' : `'${s.zone}'`}, graphNode: ${s.graphNode} },`);

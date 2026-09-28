@@ -25,6 +25,16 @@ const sf = sfDisk();
 const places = JSON.parse(fs.readFileSync(path.join(sf.base, 'places.json'), 'utf8')) as import('../src/opus-bay/world/sf/format').PlacesFile;
 const placeIds = new Set(places.places.map(p => p.id));
 const photos = new Set((JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/sf-landmark-photo-assets.json'), 'utf8')) as { id: string }[]).map(p => p.id));
+/**
+ * Lane T's wave-4 lines (sf-loop, N, M): from transit.json once lane T publishes them there (its integration step 1),
+ * else from the early-phase transit-w4.json.
+ */
+function w4TransitLines(): import('../src/opus-bay/world/sf/format').TransitLine[] {
+  const main = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const inMain = main.lines.filter(l => l.kind === 'bus' || l.kind === 'light-rail');
+  if (inMain.length) return inMain;
+  return (JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] }).lines;
+}
 
 /** zh label width in CJK cells: a CJK / full-width character is 1, anything else ½ (plan: short ≤ 5 CJK / 14 Latin). */
 const cjkWidth = (s: string) => [...s].reduce((w, ch) => w + (/[⺀-鿿＀-￯]/.test(ch) ? 1 : 0.5), 0);
@@ -277,10 +287,39 @@ test('places sidecar lib: wave-4 OSM kinds, name matching, reviewed additions, s
   assert.throws(() => stableMerge(pub, pub, [pub[0]]), /not new/);
 });
 
+test('places.json (published, wave 4): lib/places.ts poiKind takes the wave-4 kinds, only reviewed new rows; the 6 reviewed campuses are in with zh names, the zoo row is kind zoo, every older row keeps its index', async () => {
+  const { poiKind, takesPoi } = await import('../scripts/opus-sf/lib/places');
+  const { W4_OSM_ADDS, W4_OSM_ZH } = await import('../scripts/opus-sf/lib/placesW4');
+  assert.equal(poiKind({ amenity: 'university' }), 'campus');
+  assert.equal(poiKind({ shop: 'mall', tourism: 'attraction' }), 'shopping', 'the wave-4 rule first');
+  assert.equal(poiKind({ tourism: 'zoo' }), 'zoo');
+  assert.equal(poiKind({ tourism: 'viewpoint' }), 'viewpoint');
+  assert.equal(poiKind({ amenity: 'bank' }), null);
+  assert.equal(takesPoi({ tourism: 'zoo' }, 'way/1'), true, 'a POI the wave-2 rules took keeps its row');
+  assert.equal(takesPoi({ amenity: 'university' }, 'way/1'), false, 'an unreviewed campus is not added');
+  assert.equal(takesPoi({ amenity: 'university' }, 'way/301548804'), true);
+  // the published file: v1's 1,027 rows first (the chunks reference them by index), then the reviewed additions
+  assert.equal(places.places.length, 1033);
+  const added = places.places.slice(1027);
+  assert.deepEqual(added.map(p => `${p.osmType}/${p.osmId}`).sort(), Object.keys(W4_OSM_ADDS).filter(k => k !== 'way/392375234').sort());
+  for (const p of added) {
+    assert.equal(p.kind, 'campus', p.id);
+    assert.equal(p.name.zh, W4_OSM_ZH[`${p.osmType}/${p.osmId}`], p.id);
+    assert.ok(p.graphNode >= 0, `${p.id} on the walking graph`);
+    assert.ok(p.sourceUrl.startsWith('https://www.openstreetmap.org/'), p.id);
+  }
+  assert.equal(places.places.find(p => p.id === 'osm-w1501253434')!.kind, 'zoo');
+  // the one reviewed campus the build does not add (CCSF North Beach / Chinatown, 808 Kearny St): the build's duplicate
+  // rule drops it for the Chinatown neighbourhood row within 40 u (osm-n3639535348: its name is in the campus's); the
+  // sidecar reports it (places-diff.json `skipped`)
+  assert.ok(!places.places.some(p => p.osmId === 392375234));
+  assert.ok(places.places.some(p => p.id === 'osm-n3639535348'));
+});
+
 test('search: every alias finds its attraction; the plan\'s queries rank as asked (大学 / 石镇 / SFSU / UCSF / N 线 / muni)', async () => {
   const { prepareSearch, rankSearch, groupHits, attractionEntries, lineEntries, stationEntries, placeEntries, SEARCH_SUGGESTIONS, normalizeSearch } = await import('../src/opus-bay/data/sf/placeSearch');
   const { LINE_STYLES, mapStations } = await import('../src/opus-bay/ui/mapLines');
-  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const w4 = { lines: w4TransitLines() };
   const stations = mapStations(w4.lines);
   const rows = applyW4Places(places);
   const covered = new Set(ATTRACTIONS.map(a => a.placeId ?? a.id));
@@ -457,7 +496,7 @@ test('P2: Clement St is 克莱门街 (企李街 is Clay St in Chinatown) in the 
 test('P2: the Golden Gate Bridge arrives at the Welcome Center, the loop stop "金门大桥 · 游客中心" serves it and lane G\'s planner offers the loop (review G O1)', async () => {
   const { planTrips } = await import('../src/opus-bay/game/tripPlan');
   const { transitTripLine } = await import('../src/opus-bay/game/tripProviders');
-  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const w4 = { lines: w4TransitLines() };
   const ggb = ATTRACTION_INDEX.get('golden-gate-bridge')!;
   const arr = ggb.arrival!;
   const loop = w4.lines.find(l => l.id === 'sf-loop')!;
@@ -551,7 +590,7 @@ test('P2: search — a multi-word query scores as word start when its words star
   const { buildTransit } = await import('../src/opus-bay/data/transit');
   type TFile = import('../src/opus-bay/data/transit').TransitFileJson;
   const w1 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit.json'), 'utf8')) as TFile;
-  const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: import('../src/opus-bay/world/sf/format').TransitLine[] };
+  const w4 = { lines: w4TransitLines() };
   const stations = mapStations(mapLinesFrom(buildTransit(w1), w1.lines.find(l => l.id === 'f-line')!, w4.lines));
   const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(applyW4Places(places), coveredPlaceIds())]);
   const hit = (q: string, id: string) => rankSearch(ix, q, 60).find(x => x.entry.id === id);

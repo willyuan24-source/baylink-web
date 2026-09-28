@@ -1,7 +1,7 @@
 // Wave 4 · the places.json delta as pure functions (lane P, W4-P3), used by scripts/opus-sf/places-sidecar.ts and the
-// node tests. At the integration phase `poiKindW4` joins lib/places.ts `poiKind` (and SfPlaceKind absorbs the wave-4
-// kinds); `stableMerge` stays: chunks reference places.json rows by INDEX (PlaceRefSet), so a rebuild must keep every
-// published row at its index and only append.
+// node tests, and by lib/places.ts (integration, W4-P-I3: `poiKind` asks `poiKindW4` first and `takesPoi` adds only the
+// `W4_OSM_ADDS` rows, with their `W4_OSM_ZH` names); `stableMerge` stays: chunks reference places.json rows by INDEX
+// (PlaceRefSet), so a rebuild must keep every published row at its index and only append.
 import type { SfPlace, SfPlaceKindAll, SfPlaceKindW4 } from '../../../src/opus-bay/world/sf/format';
 
 /** A places.json row that may carry a wave-4 kind. */

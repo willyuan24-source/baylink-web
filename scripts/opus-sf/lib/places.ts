@@ -10,6 +10,7 @@ import { type Land } from './land';
 import { type Terrain, heightAt } from './terrain';
 import { type Zones, zoneIndexAt } from './zones';
 import { inSlab, projPt } from './world';
+import { W4_OSM_ADDS, W4_OSM_ZH, poiKindW4 } from './placesW4';
 
 /** landmarks.json id → planner place id (public/planner-catalog.json `places`) */
 const PLANNER: Record<string, string> = {
@@ -17,7 +18,8 @@ const PLANNER: Record<string, string> = {
   'palace-of-fine-arts': 'palace', 'golden-gate-park': 'golden-gate-park', presidio: 'presidio',
 };
 
-function poiKind(t: Record<string, string>): SfPlaceKind | null {
+/** The wave-2 OSM rules: the kinds every row of places.json v1 was built with. */
+function poiKindLegacy(t: Record<string, string>): SfPlaceKind | null {
   if (t.tourism === 'viewpoint') return 'viewpoint';
   if (t.tourism === 'museum' || t.tourism === 'gallery') return 'museum';
   if (t.tourism === 'attraction' || t.tourism === 'zoo' || t.tourism === 'aquarium' || t.tourism === 'theme_park') return 'attraction';
@@ -34,10 +36,25 @@ function poiKind(t: Record<string, string>): SfPlaceKind | null {
 }
 
 /**
+ * The kind of an OSM POI (wave 4, lane P, plan §4.1): amenity=university|college → campus, shop=mall → shopping,
+ * tourism=zoo → zoo first (placesW4 `poiKindW4`), then the wave-2 rules.
+ */
+export function poiKind(t: Record<string, string>): SfPlaceKind | null {
+  return poiKindW4(t) ?? poiKindLegacy(t);
+}
+
+/**
+ * Whether a POI becomes a row: every POI the wave-2 rules take (keeping its wave-4 kind: the zoo), and a POI only the
+ * wave-4 rules take (a campus or a mall) only when it is on the reviewed list (placesW4 `W4_OSM_ADDS`): OSM's campus /
+ * mall tags in SF are partly stale (closed schools).
+ */
+export const takesPoi = (t: Record<string, string>, key: string): boolean => !!poiKindLegacy(t) || (!!poiKindW4(t) && !!W4_OSM_ADDS[key]);
+
+/**
  * Anchors must stand clearly on SF land or a pier deck (a 1.2 u disc): beach centroids, cliff-edge viewpoints and
  * ruins at the shore move to the nearest such spot within 20 u.
  */
-function snapToLand(land: Land, onDeck: (x: number, z: number) => boolean, x: number, z: number, lake: (x: number, z: number) => boolean): [number, number, boolean] {
+export function snapToLand(land: Land, onDeck: (x: number, z: number) => boolean, x: number, z: number, lake: (x: number, z: number) => boolean): [number, number, boolean] {
   const at = (px: number, pz: number) => (land.grid.at(px, pz) === 1 && !lake(px, pz)) || onDeck(px, pz);
   const solid = (px: number, pz: number) => {
     if (!at(px, pz)) return false;
@@ -85,7 +102,7 @@ export function buildPlaces(o: { terrain: Terrain; land: Land; zones: Zones; ver
     const t = e.tags ?? {};
     if (!t.name) continue;
     const kind = poiKind(t);
-    if (!kind) continue;
+    if (!kind || !takesPoi(t, `${e.type}/${e.id}`)) continue;
     const c = e.center ?? (e.lat !== undefined ? { lat: e.lat, lon: e.lon! } : null);
     if (!c) continue;
     if (curatedOsm.has(`${e.type}/${e.id}`)) { dupes++; continue; }
@@ -100,8 +117,10 @@ export function buildPlaces(o: { terrain: Terrain; land: Land; zones: Zones; ver
     const n = norm(t.name);
     if (places.some(p => Math.hypot(p.x - x, p.z - z) < (p.curated ? 25 : 40) && (norm(p.name.en).includes(n) || n.includes(norm(p.name.en))))) { dupes++; continue; }
     const zhRaw = t['name:zh-Hans'] ?? t['name:zh'] ?? t['name:zh-Hant'] ?? '';
+    // the reviewed wave-4 additions have no Chinese name in OSM (placesW4 `W4_OSM_ZH`)
+    const zh = W4_OSM_ZH[`${e.type}/${e.id}`] ?? (zhRaw ? toHans(zhRaw) : t.name);
     const p: SfPlace = {
-      id: `osm-${e.type[0]}${e.id}`, name: { zh: zhRaw ? toHans(zhRaw) : t.name, en: t['name:en'] ?? t.name }, kind, x: r2(sx), z: r2(sz), y: r2(heightAt(terrain, sx, sz)),
+      id: `osm-${e.type[0]}${e.id}`, name: { zh, en: t['name:en'] ?? t.name }, kind, x: r2(sx), z: r2(sz), y: r2(heightAt(terrain, sx, sz)),
       zone: zoneAt(sx, sz), osmType: e.type, osmId: e.id, sourceUrl: `https://www.openstreetmap.org/${e.type}/${e.id}`, verifiedAt: o.verifiedAt, curated: false, graphNode: -1,
     };
     if (inSlab(sx, sz)) p.hero = true;
