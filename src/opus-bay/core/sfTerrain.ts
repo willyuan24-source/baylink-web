@@ -530,8 +530,11 @@ export function rasterizeChunk(chunk: ChunkData, opts: RasterizeOptions = {}): C
     stampPolygon(Ctr, bs.xz, s, e, surf, blk);
   }
   if (lm) {
-    const over = overCorners(m, v => hv[v]);
-    for (const b of lm.blockers) if (boxHit(b.bbox, wx0 - 1, wz0 - 1, wx1 + 1, wz1 + 1)) stampLmBlocker(Ctr, b, surf, blk, over);
+    // W4-L-int-review: the under-deck rule needs the blocker's world top, i.e. the landmark's base. The worker knows it
+    // for a numeric base only: a 'terrain' landmark's base is the renderer's (streamed walk inputs carry baseY 0 before
+    // the far DEM arrives), so its blockers are stamped whole here and the provider's re-stamps add the rest.
+    const over = overCorners(m, v => hv[v]), list = opts.landmarks!;
+    for (const b of lm.blockers) if (boxHit(b.bbox, wx0 - 1, wz0 - 1, wx1 + 1, wz1 + 1)) stampLmBlocker(Ctr, b, surf, blk, typeof list[b.lm].base === 'number' ? over : undefined);
   }
 
   // 6. stand: walkable cell and 8 neighbours, no blocker within the radius
@@ -566,6 +569,9 @@ function stampPolygon(L: Lattice, xz: ArrayLike<number>, s: number, e: number, s
  * Bridge's deck (15.2) walled the deck off ~50 u short of the south tower. Rasters leave such a blocker out of the
  * cells whose four corners stand that high, and the provider's collision queries (hitsBlocker, forEachBlockerNear)
  * skip it where the ground at the query point does. Blockers without a top, and the city's buildings, are unchanged.
+ * Only where the blocker's world top is known (W4-L-int-review): a numeric base in the rasters (the worker's walk inputs
+ * carry baseY 0 for a 'terrain' landmark, which made the Peace Pagoda and a Mission Dolores wall standable in the
+ * rasters of a chunk that streamed in after the renderer's base), and in the queries a numeric or pinned base.
  */
 export const UNDER_DECK = 1;
 
@@ -1096,8 +1102,9 @@ class Provider implements CityTerrainProvider {
       const cl = (v: number) => (v < 0 ? 0 : v > n - 1 ? n - 1 : v);
       steepRegion(r, cl(Math.floor((sf.bbox[0] - ox) / r.cell) - 1), cl(Math.floor((sf.bbox[1] - oz) / r.cell) - 1), cl(Math.floor((sf.bbox[2] - ox) / r.cell) + 1), cl(Math.floor((sf.bbox[3] - oz) / r.cell) + 1), deck);
     }
+    // the under-deck rule for numeric bases only (the tops here use fixedBase's guess for a 'terrain' landmark)
     const blk = new Uint8Array(n * n), over = overCorners(n, v => r.h[v] / W_Q - W_B);
-    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk, over);
+    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk, typeof this.lmInput[lis[b.lm]].base === 'number' ? over : undefined);
     for (let k = 0; k < n * n; k++) if (blk[k]) r.stand[k] |= BLOCK_BIT;
     this.restand(r, ox, oz, ox + CHUNK - 1e-6, oz + CHUNK - 1e-6);
     r.landmarks = true;
@@ -1229,7 +1236,8 @@ class Provider implements CityTerrainProvider {
             const bb = blockers[i].bbox;
             if (bb[0] > qx1 || bb[2] < qx0 || bb[1] > qz1 || bb[3] < qz0) continue;
             const top = blockers[i].obj.top;
-            if (top !== undefined) {
+            // (W4-L-int-review) only once the top is a world height: a numeric base, or the renderer's pinned base
+            if (top !== undefined && (this.lmBaseSrc[blockers[i].lm] || typeof this.lmInput[blockers[i].lm].base === 'number')) {
               if (gy !== gy) gy = this.heightAt(x, z) ?? -Infinity;
               if (gy > top + UNDER_DECK) continue; // under a deck / the ground here (Fort Point under the bridge)
             }
