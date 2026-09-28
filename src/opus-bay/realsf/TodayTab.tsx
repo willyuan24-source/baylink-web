@@ -1,8 +1,9 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { CalendarDays, Camera, Check, Clock, CloudFog, ExternalLink, Flame, Flower2, Moon, Music, Navigation, ShoppingBag, Sparkles, Sun, Sunrise, Sunset, Target, TramFront } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarPlus, Camera, Check, Clock, CloudFog, ExternalLink, Flame, Flower2, Ghost, Heart, Moon, Music, Navigation, ShoppingBag, Sparkles, Sun, Sunrise, Sunset, Target, Ticket, TramFront, Waves } from 'lucide-react';
 import { useGame } from '../core/store';
 import type { Bilingual, CatalogEvent } from '../core/types';
-import { eventSpot, goToEvent, isAdultOnly, isProfessional, upcomingEvents, useCatalog } from '../data/catalog';
+import { eventById, eventDaysInWindow, eventSpot, goToEvent, guideTitle, isAdultOnly, isProfessional, upcomingEvents, useCatalog } from '../data/catalog';
+import { guideUrl, myWeekUrl, offerUrl, planUrl, type PlanStop } from '../data/links';
 import { FREE_GOALS } from '../data/script';
 import { ledgerVersion, subscribeLedger } from '../economy/ledger';
 import { bayNow, bayParts } from '../game/bayNow';
@@ -11,6 +12,7 @@ import { navigateTo, openEvent, openPanel } from '../game/flow';
 import { goTo, type GoToTarget } from '../game/goTo';
 import { runtime } from '../core/runtime';
 import { useT } from '../i18n';
+import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
@@ -18,7 +20,10 @@ import { activeEventsAt, weekEvents, type EventWindow } from './events';
 import { MOON_LABELS, MOON_SOURCE, moonPhase } from './moon';
 import { KARL_SOURCE, karlMonthFactor } from './seasons';
 import { bayHm, sunBandAt, sunTimes } from './sun';
-import { hm, rowState, rowsOn, type HandRow, type SourceRef } from './todayRows';
+import { calendarAhead, calendarOn, GRADE_SAY, type CalendarRow } from './calendar';
+import { liveOffers, loadLive, offersOn, standingOffers, subscribeLive } from './live';
+import { hm, rowState, rowsOn, WALK_GUIDES, weekendOf, type HandRow, type SourceRef } from './todayRows';
+import { COAST_SAFETY, COAST_SAFETY_SOURCE, ftLabel, loadTides, tidesOnDay, TIDE_SOURCE, WAVE_ORGAN_SOURCE, WRECK_LOW_FT, WRECKS_SOURCE, type TideExtreme } from './tides';
 import './realsf.css';
 
 /**
@@ -30,6 +35,13 @@ import './realsf.css';
  *   今天在旧金山  the world events on today (venue, hours, cost), the Ferry Plaza market, what is free today, the fire
  *                rings in season, the Conservatory's light show — a row whose hours are over is hidden
  *   这周         San Francisco's BAYLINK events of the next 7 days (带我去 when the venue is in the world, else 看看)
+ *
+ * W5-R7 (the shoulds): today's calendar row (Halloween, the king tides: realsf/calendar.ts) and the tides (NOAA, baked:
+ * realsf/tides.ts — the Lands End wrecks at a daylight low, the Wave Organ before a high, the coast safety line) in
+ * 今天在旧金山, with BAYLINK's own offers that apply today (live.json: realsf/live.ts, each linking /offers/:id) and the
+ * standing ones with their conditions; the calendar rows of the next 7 days in 这周; 我的周末 (the wishlist's events on
+ * the coming weekend → BAYLINK /plan and /my-week); and 走走看 (BAYLINK walking guides by their place, only those the
+ * catalog has).
  *
  * Every row carries 带我去 (lane N's goTo) and its source with the day it was checked; every time says 以官网为准.
  * Bay time throughout (`?date=` in DEV / QA builds).
@@ -109,12 +121,36 @@ const hmOf = (ms: number) => bayHm(new Date(ms)).replace(/^0(?=\d:)/, '');
 const span = (w: EventWindow) => `${hmOf(w.open)}–${hmOf(w.close) === '0:00' ? '24:00' : hmOf(w.close)}`;
 const eventSource = (e: CatalogEvent) => ({ label: e.sourceLabel ?? 'BAYLINK', url: e.officialUrl && /^https:\/\//.test(e.officialUrl) ? e.officialUrl : undefined, verifiedAt: e.verifiedAt });
 
+const CAL_ICON = (r: CalendarRow) => (r.dress === 'pumpkins' ? <Ghost size={15} /> : r.dress === 'king-tide' ? <Waves size={15} /> : <CalendarDays size={15} />);
+const TIDE_KIND: Record<TideExtreme['kind'], Bilingual> = { H: { zh: '高', en: 'high' }, L: { zh: '低', en: 'low' } };
+
+/** 'https://www.cablecarmuseum.org/info.html' → 'cablecarmuseum.org' */
+const sourceLabel = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; } };
+
+function OfferLink({ id }: { id: string }) {
+  const { t, locale } = useT();
+  return (
+    <small className="ob-today-src ob-today-offer">
+      <a href={offerUrl(id, locale)} target="_blank" rel="noopener">{t('BAYLINK 优惠详情', 'BAYLINK offer')}<ExternalLink size={11} aria-hidden /></a>
+    </small>
+  );
+}
+
 export default function TodayTab() {
   const { t, locale } = useT();
   const now = useBayClock();
   const catalog = useCatalog();
   const goalsDone = useGame(s => s.goalsDone);
   useSyncExternalStore(subscribeLedger, ledgerVersion, ledgerVersion);
+  useSyncExternalStore(subscribeLive, liveOffers, liveOffers);
+  const wish = useGame(s => s.wishlist);
+  const [, setTidesIn] = useState(0);
+  useEffect(() => {
+    let on = true;
+    void loadTides().then(tb => { if (on && tb) setTidesIn(n => n + 1); });
+    void loadLive();
+    return () => { on = false; };
+  }, []);
 
   const day = bayParts(now).dateKey;
   const nowMs = now.getTime(), nowMin = minuteOf(now);
@@ -136,6 +172,17 @@ export default function TodayTab() {
   const live = new Set(activeEventsAt(now, catalog).map(w => w.event.id));
   const todays = weekEvents(now, 1, catalog).filter(w => w.dateKey === day);
   const hand = rowsOn(day, minuteOf(sun.sunset)).filter(r => rowState(r.hours, nowMin) !== 'over');
+  const calToday = calendarOn(day);
+  // the tides: the Lands End wrecks at a daylight low (≤ 1 ft) still ahead, else the Wave Organ before a high
+  const tides = tidesOnDay(day);
+  const lowAhead = tides.find(e => e.kind === 'L' && e.ft <= WRECK_LOW_FT && e.ms > nowMs && e.ms > sun.sunrise.getTime() && e.ms < sun.sunset.getTime());
+  const highAhead = tides.find(e => e.kind === 'H' && e.ms > nowMs);
+  // BAYLINK's offers today: on their own hand row when there is one, else a row (hidden once its hours are over)
+  const offers = offersOn(day);
+  const handIds = new Set(hand.map(r => r.id));
+  const offerOnHand = new Map(offers.filter(o => o.offer.hand && handIds.has(o.offer.hand)).map(o => [o.offer.hand!, o.offer]));
+  const offerRows = offers.filter(o => !(o.offer.hand && offerOnHand.get(o.offer.hand) === o.offer) && rowState(o.hours, nowMin) !== 'over');
+  const standing = standingOffers();
 
   // 这周: San Francisco events of the next 7 days (not the ones above), for everyone; an event whose venue is in the
   // world shows its window there (Fleet Week: the air show at Marina Green, not the week's first programme)
@@ -146,6 +193,18 @@ export default function TodayTab() {
     .map(u => ({ u, win: worldWins.get(u.event.id) }))
     .sort((a, b) => (a.win?.dateKey ?? a.u.nextDate).localeCompare(b.win?.dateKey ?? b.u.nextDate))
     .slice(0, 8);
+  const calWeek = calendarAhead(day, 7);
+
+  // 我的周末: the wishlist's events on the coming weekend (+ its catalog places) → BAYLINK's planner
+  const weekend = weekendOf(day);
+  const wishEvents = wish.filter(w => w.kind === 'event').map(w => eventById(catalog, w.id))
+    .filter((e): e is CatalogEvent => !!e)
+    .map(e => ({ e, on: eventDaysInWindow(e, weekend[0], weekend[weekend.length - 1], day) }))
+    .filter(x => x.on.length);
+  const wishPlaces = wish.filter(w => w.kind === 'place' && !!catalog?.places.some(p => p.id === w.id));
+  const planStops: PlanStop[] = [...wishEvents.map(x => ({ kind: 'event' as const, id: x.e.id })), ...wishPlaces.map(w => ({ kind: 'place' as const, id: w.id }))];
+  const planDay = wishEvents[0]?.on[0] ?? weekend[0];
+  const guides = WALK_GUIDES.filter(g => guideTitle(catalog, g.slug) && (!g.month || g.month === bayParts(now).month));
 
   const karlLine: Bilingual = karl >= 0.8 ? { zh: '这个月通常多雾，卡尔常来', en: 'Usually a foggy month — Karl drops by often' }
     : karl <= 0.4 ? { zh: '这个月通常晴朗少雾', en: 'Usually a clear month with little fog' }
@@ -230,8 +289,15 @@ export default function TodayTab() {
               </Row>
             );
           })}
+          {calToday.map(r => (
+            <Row key={r.id} icon={CAL_ICON(r)} tone="now" title={`${t(r.title)} · ${t(r.where)}`} meta={`${t(r.note)} · ${t(GRADE_SAY[r.grade])}`}
+              side={(r.placeId || r.xz) && <GoButton label={r.where} onClick={() => go(r.placeId ? { placeId: r.placeId, name: r.where } : { point: r.xz!, name: r.where })} />}>
+              <Source src={r.source} />
+            </Row>
+          ))}
           {hand.map(r => {
             const state = rowState(r.hours, nowMin);
+            const offer = offerOnHand.get(r.id);
             return (
               <Row key={r.id} icon={HAND_ICON[r.kind]} tone={state === 'open' ? 'now' : 'later'} title={`${t({ zh: r.place.zh, en: cap(r.place.en) })} · ${t(r.what)}`}
                 meta={`${r.hours ? `${hm(r.hours[0])}–${hm(r.hours[1])} · ` : ''}${t(r.note)}`}
@@ -240,20 +306,68 @@ export default function TodayTab() {
                   <GoButton label={r.place} onClick={() => go(r.placeId ? { placeId: r.placeId, name: r.place } : { point: r.at, name: r.place })} />
                 </>}>
                 <Source src={r.source} />
+                {offer && <OfferLink id={offer.id} />}
               </Row>
             );
           })}
-          {!todays.length && !hand.length && <li className="ob-muted">{t('今天没有特别的安排，随便逛逛也很好。', 'Nothing special today — a wander is lovely too.')}</li>}
+          {offerRows.map(({ offer, hours }) => {
+            const state = rowState(hours, nowMin);
+            const place = offer.place;
+            return (
+              <Row key={offer.id} icon={<Ticket size={15} />} tone={state === 'open' ? 'now' : 'later'}
+                title={`${place ? t({ zh: place.name.zh, en: cap(place.name.en) }) : t(offer.title)} · ${offer.free ? t('免费', 'free') : t('优惠', 'discount')}`}
+                meta={`${hours ? `${hm(hours[0])}–${hm(hours[1])} · ` : ''}${t(offer.who)} · ${t('以官网为准', 'check before you go')}`}
+                side={<>
+                  {hours && <State state={state} from={hours[0]} />}
+                  {place && <GoButton label={place.name} onClick={() => go(place.id ? { placeId: place.id, name: place.name } : { point: { x: place.x, z: place.z }, name: place.name })} />}
+                </>}>
+                <Source src={offer.rule ? { label: sourceLabel(offer.rule.url), url: offer.rule.url, verifiedAt: offer.rule.verifiedAt } : offer.source} />
+                <OfferLink id={offer.id} />
+              </Row>
+            );
+          })}
+          {tides.length > 0 && (
+            <Row key="tides" icon={<Waves size={15} />} title={`${t('潮汐', 'Tides')} · ${tides.map(e => `${t(TIDE_KIND[e.kind])} ${hmOf(e.ms)}`).join(' · ')}`}
+              meta={`${lowAhead ? t(`${hmOf(lowAhead.ms)} 低潮 ${ftLabel(lowAhead.ft)} 英尺：天涯海角下能看到老沉船的发动机`, `Low tide ${ftLabel(lowAhead.ft)} ft at ${hmOf(lowAhead.ms)}: the old wrecks’ engines show below Lands End`)
+                : highAhead ? t(`${hmOf(highAhead.ms)} 高潮 ${ftLabel(highAhead.ft)} 英尺：涨潮时海浪风琴唱得最响`, `High tide ${ftLabel(highAhead.ft)} ft at ${hmOf(highAhead.ms)}: the Wave Organ sings loudest at high tide`)
+                : t('今天的潮水都过了', 'Today’s tides have turned')} · ${t(COAST_SAFETY)}`}
+              side={lowAhead
+                ? <GoButton label={{ zh: '天涯海角', en: 'Lands End' }} onClick={() => go({ placeId: 'lands-end', name: { zh: '天涯海角', en: 'Lands End' } })} />
+                : highAhead ? <GoButton label={{ zh: '海浪风琴', en: 'the Wave Organ' }} onClick={() => go({ placeId: 'wave-organ', name: { zh: '海浪风琴', en: 'the Wave Organ' } })} /> : undefined}>
+              <small className="ob-today-src">
+                {t('来源', 'Source')} · <a href={TIDE_SOURCE.url} target="_blank" rel="noopener noreferrer">{t('NOAA 潮汐预报 · 金门站', 'NOAA tide predictions · Golden Gate')}<ExternalLink size={11} aria-hidden /></a>
+                {' · '}<a href={(lowAhead ? WRECKS_SOURCE : WAVE_ORGAN_SOURCE).url} target="_blank" rel="noopener noreferrer">{(lowAhead ? WRECKS_SOURCE : WAVE_ORGAN_SOURCE).label}<ExternalLink size={11} aria-hidden /></a>
+                {' · '}<a href={COAST_SAFETY_SOURCE.url} target="_blank" rel="noopener noreferrer">{COAST_SAFETY_SOURCE.label}<ExternalLink size={11} aria-hidden /></a>
+                {' · '}{t('查证于', 'checked')} {TIDE_SOURCE.verifiedAt}
+              </small>
+            </Row>
+          )}
+          {!todays.length && !hand.length && !calToday.length && !offerRows.length && !tides.length && <li className="ob-muted">{t('今天没有特别的安排，随便逛逛也很好。', 'Nothing special today — a wander is lovely too.')}</li>}
         </ul>
+        {standing.length > 0 && (
+          <p className="ob-muted ob-today-foot ob-today-standing">
+            {t('长期福利（需符合条件）：', 'Standing offers (conditions apply): ')}
+            {standing.map((o, i) => (
+              <span key={o.id}>{i > 0 && ' · '}<a href={offerUrl(o.id, locale)} target="_blank" rel="noopener">{o.place ? t(o.place.name) : 'Muni'}</a>{t(`（${o.who.zh}）`, ` (${o.who.en})`)}</span>
+            ))}
+          </p>
+        )}
         <p className="ob-muted ob-today-foot">{t('游戏里的地方随时都能去；时间写的是现实里的旧金山。', 'In the game every place is open any time; the hours are the real San Francisco’s.')}</p>
       </section>
 
       <section className="ob-block">
         <h3 className="ob-h3"><Clock size={15} aria-hidden />{t('这周', 'This week')}</h3>
-        {!catalog ? <p className="ob-muted">{t('正在读取 BAYLINK 活动…', 'Loading BAYLINK events…')}</p> : !week.length ? (
+        {!catalog ? <p className="ob-muted">{t('正在读取 BAYLINK 活动…', 'Loading BAYLINK events…')}</p> : !week.length && !calWeek.length ? (
           <p className="ob-muted">{t('这周旧金山暂时没有新活动，过几天再来看看。', 'No new San Francisco events this week yet — check back in a few days.')}</p>
         ) : (
           <ul className="ob-today-rows">
+            {calWeek.map(r => (
+              <Row key={r.id} icon={CAL_ICON(r)} title={`${t(r.title)} · ${t(r.where)}`}
+                meta={`${formatDay(r.from, locale, day)}${r.to !== r.from ? `–${formatDay(r.to, locale, day)}` : ''} · ${t(r.note)}`}
+                side={(r.placeId || r.xz) && <GoButton label={r.where} onClick={() => go(r.placeId ? { placeId: r.placeId, name: r.where } : { point: r.xz!, name: r.where })} />}>
+                <Source src={r.source} />
+              </Row>
+            ))}
             {week.map(({ u, win }) => {
               const spot = eventSpot(u.event);
               const en = EVENT_SAY[u.event.id]?.en;
@@ -275,6 +389,44 @@ export default function TodayTab() {
           <button type="button" className="ob-today-link" onClick={() => openPanel('week')}>{t('这周去哪', 'This week')}</button>
         </p>
       </section>
+
+      <section className="ob-block ob-today-weekend">
+        <h3 className="ob-h3"><Heart size={15} aria-hidden />{t('我的周末', 'My weekend')}<small className="ob-today-count">{weekend.map(d => formatDay(d, locale, day)).join(t('、', ', '))}</small></h3>
+        {wishEvents.length || wishPlaces.length ? (
+          <ul className="ob-today-rows">
+            {wishEvents.map(({ e, on }) => {
+              const spot = eventSpot(e);
+              return (
+                <Row key={e.id} icon={<CalendarDays size={15} />}
+                  title={<button type="button" className="ob-today-link" onClick={() => openEvent(e.id)}>{e.title}</button>}
+                  meta={on.map(d => formatDay(d, locale, day)).join(t('、', ', '))}
+                  side={spot ? <GoButton label={spot.name} onClick={() => goToEvent(e)} /> : undefined} />
+              );
+            })}
+            {wishPlaces.map(w => <Row key={w.id} icon={<Heart size={15} />} title={catalog?.places.find(p => p.id === w.id)?.title ?? w.title} meta={t('想去的地方', 'Saved place')} />)}
+          </ul>
+        ) : (
+          <p className="ob-muted">{t('在活动卡上点「加入想去」，这个周末能去的就会出现在这里。', 'Tap “Save to wishlist” on an event card: what fits this weekend shows up here.')}</p>
+        )}
+        <div className="ob-actions ob-today-actions">
+          {planStops.length > 0 && <LinkButton href={planUrl({ date: planDay, stops: planStops }, catalog, locale, day)} tone="primary" icon={<CalendarPlus size={17} aria-hidden />}>{t('去 BAYLINK 排周末', 'Plan the weekend on BAYLINK')}</LinkButton>}
+          <LinkButton href={myWeekUrl(locale)} tone={planStops.length ? 'soft' : 'primary'} icon={<CalendarDays size={17} aria-hidden />}>{t('我的一周', 'My week')}</LinkButton>
+        </div>
+      </section>
+
+      {guides.length > 0 && (
+        <section className="ob-block">
+          <h3 className="ob-h3"><BookOpen size={15} aria-hidden />{t('走走看 · BAYLINK 攻略', 'Walks · BAYLINK guides')}</h3>
+          <ul className="ob-today-rows">
+            {guides.map(g => (
+              <Row key={g.slug} icon={<BookOpen size={15} />}
+                title={<a className="ob-today-link" href={guideUrl(g.slug, locale)} target="_blank" rel="noopener">{t(guideTitle(catalog, g.slug) ?? g.name.zh, g.name.en)}</a>}
+                meta={t(g.month ? '这个月的散步路线 · BAYLINK 攻略' : '散步路线 · BAYLINK 攻略', g.month ? 'This month’s walk · a BAYLINK guide' : 'A walk · a BAYLINK guide')}
+                side={<GoButton label={g.name} onClick={() => go({ placeId: g.placeId, name: g.name })} />} />
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

@@ -18,6 +18,8 @@ export const guideUrl = (slug: string, locale: Locale) => withLang(`/guides/${en
 export const guidesUrl = (locale: Locale) => withLang('/guides', locale);
 export const eventUrl = (id: string, locale: Locale) => withLang(`/events/${encodeURIComponent(id)}`, locale);
 export const myWeekUrl = (locale: Locale) => withLang('/my-week', locale);
+/** A BAYLINK offer's page (`/offers/:id`, wave 5: the 今天 tab's 今天免费 rows). */
+export const offerUrl = (id: string, locale: Locale) => withLang(`/offers/${encodeURIComponent(id)}`, locale);
 export const homeUrl = (locale: Locale) => withLang('/', locale);
 export const thisMonthUrl = (locale: Locale) => withLang('/this-month', locale);
 export function calendarUrl(locale: Locale, opts: { date?: string; region?: string } = {}) {

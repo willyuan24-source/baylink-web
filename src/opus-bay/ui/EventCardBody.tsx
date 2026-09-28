@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import { REGION_LABELS, categoryLabel, eventById, eventSpot, goToEvent, nextShowing, useCatalog } from '../data/catalog';
@@ -8,6 +9,9 @@ import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
+
+/** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
+const HowToGo = lazy(() => import('../realsf/HowToGo'));
 
 /** One live BAYLINK event (only ids from /planner-catalog.json). */
 export default function EventCardBody({ id }: { id?: string }) {
@@ -66,6 +70,7 @@ export default function EventCardBody({ id }: { id?: string }) {
         {event.audience?.length ? <div><dt><Users size={15} aria-hidden />{t('适合', 'For')}</dt><dd>{event.audience.slice(0, 4).join(' · ')}</dd></div> : null}
       </dl>
       {event.summary && <p className="ob-lede">{event.summary}</p>}
+      {spot && <Suspense fallback={null}><HowToGo point={{ x: spot.x, z: spot.z }} /></Suspense>}
       {event.plan?.length ? (
         <section className="ob-block">
           <h3 className="ob-h3">{t('出发前', 'Before you go')}</h3>

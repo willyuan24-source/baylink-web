@@ -1,5 +1,5 @@
 import type { Bilingual, Vec2 } from '../core/types';
-import { addDays, weekday } from '../data/catalog';
+import { addDays, nextSaturday, weekday } from '../data/catalog';
 import { parseBayDate } from '../game/bayNow';
 import { FIRE_RINGS } from './seasons';
 
@@ -191,4 +191,22 @@ export function atMinute(dateKey: string, min: number): number {
 export function hm(min: number): string {
   const h = Math.floor(min / 60), m = Math.round(min % 60);
   return `${h}:${String(m).padStart(2, '0')}`;
+}
+
+/**
+ * W5-R7 · BAYLINK walking guides the game had not linked yet, by their place (the 今天 tab's 走走看; shown only when the
+ * loaded catalog has the guide, a month-tagged one only in its month).
+ */
+export const WALK_GUIDES: readonly { slug: string; placeId: string; name: Bilingual; month?: number }[] = [
+  { slug: 'sf-sunset-dunes-october-coastal-walk-2026', placeId: 'sunset-dunes', name: { zh: '日落沙丘秋日海边散步', en: 'An autumn walk at Sunset Dunes' }, month: 10 },
+  { slug: 'sf-lands-end-sutro-baths-walk-guide', placeId: 'lands-end', name: { zh: '天涯海角与苏特罗浴场', en: 'Lands End and the Sutro Baths' } },
+  { slug: 'sf-mission-dolores-murals-walk-guide', placeId: 'mission-dolores', name: { zh: '多洛雷斯草坡与壁画', en: 'Dolores Park and the Mission murals' } },
+];
+
+/** W5-R7 · 我的周末: today and tomorrow on a Saturday, today on a Sunday, else the coming Saturday and Sunday. */
+export function weekendOf(day: string): string[] {
+  const w = weekday(day);
+  if (w === 0) return [day];
+  const sat = w === 6 ? day : nextSaturday(day);
+  return [sat, addDays(sat, 1)];
 }
