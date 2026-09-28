@@ -1361,6 +1361,24 @@ test('W5-T7 plaza pigeons: in city mode the flock flies to the plaza nearest the
   } finally { U.uCam.value.copy(prevCam); game.set({ phase: 'title' } as never); runtime.player.running = false; }
 });
 
+test('W5-T review: every pigeon plaza can seat the whole flock (Harvey Milk Plaza\'s sunken stairs held 4 of 8 spots: the flock never went there)', async () => {
+  const { PIGEON_PLAZAS } = await import('../src/opus-bay/world/life');
+  game.set({ phase: 'free' } as never);
+  try {
+    for (const q of PIGEON_PLAZAS) {
+      await withCity(q, 40, () => {
+        const life = new Life([]);
+        life.heroFarSource = () => false;
+        life.cullFar = () => true;
+        try {
+          assert.equal(life.movePigeons(3, q.x, q.z, { x: q.x + 70, z: q.z }), true, `${q.id}: the flock lands round it`);
+          assert.equal(life.pigeonAt, q.id);
+        } finally { life.dispose(); }
+      });
+    }
+  } finally { game.set({ phase: 'title' } as never); }
+});
+
 test('W5-T7 the station rows and lane R\'s 现实中怎么去 rows read the same SFMTA pages: same hours, same sources (two copies may not drift)', async () => {
   const { LINE_SERVICE } = await import('../src/opus-bay/data/sf/serviceHours');
   const { REAL_LINES } = await import('../src/opus-bay/realsf/transitReal');

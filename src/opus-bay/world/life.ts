@@ -60,7 +60,9 @@ export const PIGEON_PLAZAS: readonly { id: string; x: number; z: number }[] = [
   { id: 'civic-center', x: 108.9, z: 396 },
   { id: 'ghirardelli-square', x: -234.3, z: 165.5 },
   { id: 'pier-39', x: -160.7, z: 24.1 },
-  { id: 'harvey-milk-plaza', x: 143.3, z: 742.8 },
+  // (W5-T review) 6 u west of the Castro / Market corner: the sunken plaza round the station stairs held only 4 of the 8
+  // landing spots, so the flock never went there
+  { id: 'harvey-milk-plaza', x: 137.3, z: 736.8 },
 ];
 export const PIGEON_REACH = 120;
 /** 1 inside reach, easing to 0 over the last `fade` u, 0 beyond (never culls with reach = Infinity: district mode) */
