@@ -460,3 +460,129 @@ quote, the longest 237.6 s:
 - **Lead / V**: new in GameRoot's main graph: the pelican greeting (vehicles/pelican.ts), the mantle (controller), the
   auto-glide (glide.ts, moveSystem), openSpot (faceOpen.ts), `RIDE_TOUR` (cameraModes.ts), `THUMB_PASS` (pointer.ts) —
   a few KB gzip in all; please count them in the next bundle measurement. No draw call, triangle, material or program.
+
+## Review (2026-09-28, the adversarial review of lane F)
+
+### 给主人的摘要
+
+1. F 线做的东西在电脑和手机（390×844）上都实际玩了一遍：落地后马上能走、跳舞/摸摸/坐下、"起飞"常驻、自动飞、金门大桥都正常。找到并修好 8 个问题，最明显的两个：滑翔落在渡轮大厦海堤边时，第一下推摇杆会撞上栏杆（现在直接朝空地走）；离 BAYBAY 稍远时双击她，摸完会弹出一大块菜单挡住手机屏幕（现在只摸摸）。
+2. 街区模式恢复原样（点自己、双击 BAYBAY、角色影子都和以前一样）；车漆"国际橘"改成常用的"国际橙"（小铺里的同名商品请 E 线改）。
+3. 还没解决的：首屏包 298 KB，目标 265（这次把 F 线的角色能力代码挪进城市包，省了约 2.8 KB），其余要主管和其它线一起挪。
+
+### What I checked
+
+- Every commit lane F pushed in wave 5 (22 code / tool commits and the three report commits, `23c9b8de` … `5e448a0a`), the
+  code round them (controller, camera, moveSystem, system, glide, pelican, models, anim, pointer, TouchControls, Hud,
+  Systems, playerLock, lockWatchdog, cinema, the sweep scripts), plan §2 MF1–MF3, §4.4, §4.9, the lead note and the
+  owner's feedback. Rebased on `80ede43f` (lane A's review) before the push.
+- Played on the dev server 5501, headless Chrome with the RTX flag, one at a time, PERF-LOCK checked before each run:
+  desktop 1440 × 900 (city and district) and the phone profile 390 × 844 dpr 3 with touch. Every shot read.
+  - City, desktop: the self-tap opens lane A's wheel; dance on both heroes; G → glide → G lands, 0 watchdog releases;
+    the scenic auto-glide Ferry gate → Coit landed 7.7 u from the target in 8.3 s and W walked 3.9 u at once.
+  - City, phone: 起飞 shown next to 跳 with the ferry as the focus; the self-tap wheel → 跳舞 on both heroes
+    (`review-wheel-dance-lazy-charimpl-phone.jpg`); the pill opens the journal on 今天 (`panel journal / today`); a glide
+    landing by the Ferry Building, then the stick walked 8.5 u in 1.5 s.
+  - District, desktop: after the fixes a tap on the player gives no `self-tap` and nothing else changes.
+  - Node probes (not committed): the auto-glide with lane R's real Fleet Week soft boxes on a flat stand-in city, Ferry →
+    Marina Green / the Wave Organ / Fort Mason: all landed (35 s, 40 s, 30 s), no circling at the boxes' edges.
+- Report claims recomputed from the data on disk: the trips phase (`run2c/trips/live.json`) — T1 16 / 16 within 1.3 ×
+  (0.78 · 0.93 · 1.30), T2 24 / 25 (0.70 · 0.95 · 1.34, the Powell & Market turntable over), 0 pulls, 22 skipped by
+  the budget: as reported.
+
+### Defects found and fixed (`f734abce`, tests +7)
+
+| # | where | what was wrong (seen / proven) | fix |
+|---|---|---|---|
+| 1 | W5-F7 `actors/camera.ts` | After a landing faceOpen turns the player at once, but the camera swings at rate 1 and the stick is camera-relative: the first push went along the old view. Off a glide landing by the Ferry Building's seawall (114.4, −27.4) W walked into the rail: **0.64 u in 1 s** (replayed: 1.16 u in 1.5 s, stuck at the chain) — the report's "第一下推摇杆不会撞墙或冲海" did not hold there. | The open-ground turn sets the movement basis to the open heading at once, until the camera gets there, the 3 s hold ends or the player drags the camera (then a 0.3 s blend). Same spot: **3.3 u in 1 s, 6.6 u in 1.5 s** along the plaza (`review-landing-seawall-before-desktop.jpg`, `review-landing-seawall-after-desktop.jpg`). |
+| 2 | W5-F2 `game/Systems.tsx` | A double-tap on BAYBAY out of her reach: the first tap starts a walk up to her with a pending interact, so no menu is open yet to fold; the walk arrived and opened the call menu over the pet (phone: the hearts under a menu covering the lower half of the screen). | The double-tap drops the pending interact (the walk goes on: lane A pets her on arrival) and a pending call. Phone: pet, no menu 2.5 s later (`review-baybay-pet-no-menu-phone.jpg`). |
+| 3 | W5-F5 `actors/stuckHelper.ts`, `system.ts` | A pull in progress kept writing the player's position for up to 1.15 s whatever happened: 起飞 while BAYBAY runs over, a vehicle, a restart, or R's own unstick (the controller and the helper both answer R) — a node probe teleported the player 45 u away and it was dragged back to the pull's target. | `abort` (not playing, carried, not on foot) and a moved-away check (> 1 u from where the pull last put them) stop it where the new mover put them. The helper's input is one reused object (it was a new literal every frame). |
+| 4 | W5-F2 `actors/system.ts`, `game/Systems.tsx` | District mode changed: the self-tap body (reported 4 u nearer) took any tap on the player in the district, where nothing listens (lane A's wheel is a city feature) — the tap used to reach the ground or the interactable round the player; the district's BAYBAY double-tap folded her menu away with nothing to answer. | Both are city-only; the district taps as before wave 5 (checked live: 0 self-taps, nothing opened). |
+| 5 | W5-F8 `actors/models.ts` | The shadow proxies also cast in the district; plan MF9 makes every lever city-mode only ("district mode unchanged"). | `shadowProxies.on` follows the world mode every frame; off, the shadow pass draws the full body (as before wave 5). |
+| 6 | W5-F2 `actors/system.ts` | The self-tap's 4 u lead also beat BAYBAY standing in front of the player: a tap on her body gave the player's emote wheel. | No lead when BAYBAY's own body (a capsule, not her 1.1 u proxy sphere) is met first on the ray (`selfTapDistance`). |
+| 7 | rules / budget: `actors/Actors.tsx`, `system.ts` | `charImpl` (+ `recolor`) sat in GameRoot's main graph although every caller (lanes A, E, R, D) is a city feature ("city-only code behind cityLoader or a lazy chunk"). | A lazy chunk loaded in city mode (charApi() is null until it lands: the frozen contract; E's wear re-sends every second). Production build of `f734abce` (to scratch): the `charImpl` chunk is **2.79 KB gzip**, GameRoot **298.36 KB** gzip. `CharImpl.update` makes no array or closure per frame. |
+| 8 | zh text: `actors/vehicles/models.ts` | The paint's Chinese name 国际橘: the colour is 国际橙 (the game's own GGB bark and postcard, common usage). | 国际橙; lane E's shop copied 国际橘 (Requests). |
+
+Tests: `tests/opus-bay-w5-feet.test.ts` (the pull stops on a take-over and after a teleport, a lone pull still lands; the
+open basis at once, handed back on a drag and after the hold), `tests/opus-bay-w5-char.test.ts` (proxies off = the full
+body casts; the city-only gates and the dropped pending menu; no static import of charImpl / recolor anywhere in
+`src/opus-bay`; 国际橙; BAYBAY in front wins the tap). The two behaviour tests (1, 3) fail on the unfixed code.
+
+### Facts re-checked on the web (2026-09-28)
+
+1. The Golden Gate Bridge's colour is named International Orange, CMYK 0 / 69 / 100 / 6 — goldengate.org, Color & Art
+   Deco Styling (https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/) ✓ (the
+   page now lives under bridge-features; the code comment carries the URL).
+2. In Chinese the colour is 国际橙 (the game's own `data/sf/landmarks.ts` bark and postcard fact; e.g.
+   https://color.d777.com/hex-c0362c "国际橙金门大桥"). ✗ in lane F's paint name → fixed; ✗ in lane E's shop.
+3. Ocean Beach fires: March 1 – October 31, 6 a.m. – 9:30 p.m., in the NPS rings
+   (https://www.nps.gov/articles/ocean-beach-fire-program.htm, https://sf.funcheap.com/event-series/ocean-beach-bonfires-return/)
+   — the noVault rings' "they burn in season" ✓.
+4. The Aquatic Park Municipal Pier has been closed since October 2022
+   (https://www.nps.gov/safr/learn/historyculture/aquatic-park-pier.htm,
+   https://www.sfgate.com/bayarea/article/san-francisco-municipal-pier-closed-17607420.php) — part a's triage ✓.
+5. Sea otters float on their backs and use the chest as a table
+   (https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/sea-otter) — the float emote ✓.
+6. SS Jeremiah O'Brien is at Pier 35 (long-term lease 2023; https://ssjeremiahobrien.org/visit-us/) ✓ (N's T3 target).
+7. Fort Point stands under the bridge's south arch (https://www.goldengate.org/bridge/visiting-the-bridge/fort-point/) —
+   `deckSteer.ts`'s "the ground far below, Fort Point under the arch" ✓.
+8. Golden Gate Ferry runs the Ferry Building ↔ Sausalito (https://www.goldengate.org/ferry/riding-the-ferry/) ✓.
+9. The Powell–Hyde and Powell–Mason lines turn on the Powell & Market turntable
+   (https://www.sfmta.com/places/powell-cable-car-turnaround) ✓.
+10. The Wave Organ sounds best at high tide (https://www.exploratorium.edu/visit/wave-organ) ✓.
+11. The N Judah stops Irving & 2nd Ave and Irving & 6th Ave exist (https://www.sfmta.com/routes/n-judah; SFMTA's
+    bus-substitution stop lists) ✓.
+12. Randolph & Bright: trains stop at marked poles, no platforms (https://en.wikipedia.org/wiki/Randolph_and_Bright_station) ✓
+    (the "poles" the sweep judges).
+13. **M Ocean View, San Jose Ave & Mt Vernon Ave: permanently removed** from Saturday 28 September 2024 (SFMTA board
+    approval February 2024; https://www.sfmta.com/project-updates/stop-removal-san-jose-ave-mt-vernon-ave-starting-saturday-september-28).
+    ✗ lane T's `muni-san-jose-mt-vernon` still stops there (and part b's list names it) — request to T.
+
+### Claims the code or the data do not bear out (besides the defects above)
+
+- Part a cites six commit ids that are not on origin (pre-rebase ids): W5-F2 is `b76a7177`, `be708590`, `9bc07e57`,
+  `cddbb065` (not `d7bff1f` / `0933450`); W5-F1 is `b094085e` (not `f66a14b`); W5-F3 `a3339730` (not `fb20445`); the
+  landings `43f975d7` (not `ce39c21`); W5-F4 `362bdc6c` (not `48fb99b`).
+- Part c "T2 (nearest 25 of 48)" with "22 far T2 left": 25 + 22 = 47 — Treasure Island (T2) is not in the phase's list
+  (no walk trip: it is across the Bay Bridge); the next run should say so.
+- "双击 BAYBAY 是摸摸" and "第一下推摇杆不会撞墙或冲海" held only in the easy cases (defects 2 and 1, now fixed).
+
+### Budgets, warm-ups, teardown, save
+
+- No new draw call, material or program from lane F: the proxies ride the heroes' own draw; the GLB scarf key is inside
+  the existing `opus-bay-character-glb` program; the ribbon is a bone of the pelican mesh (+332 tris). GameRoot is
+  298.36 KB gzip on `f734abce` (target 265): still over (open, the lead's list).
+- Teardown: `setCharApi(null)` on unmount; the self-tap switched off; the THUMB_PASS window listeners removed; the deck,
+  noVault and soft-box registries and the scarf uniforms are module state, fine while the world mode is fixed per page.
+- Save / economy: lane F writes no save and pays no reward. Vault, mantle and pull never land on a roof (buildings are
+  blockers; the landing must be standable ground), so the rooftop coins stay glide-only; the auto-glide may fly through
+  lane E's air rings (paid once each by E's ledger).
+- zh lines: 嘿咻！ · 好，你来飞！ · 坐稳啦～想自己飞，动一下就接管 (15 characters): short and natural.
+
+### Open (not fixed here)
+
+- The mantle also runs in the district (a hop against a 0.45–1.6 u ledge climbs hands first; the > 1.6 u wall is
+  city-only). It is MF2's forgiving feet, not a lever; left for the lead to decide.
+- The watchdog never drops a leaked `activity` / `shop` / `panel` hold (self-explained by the day-0 design), and R cannot
+  free it: a hold a lane forgets to release would lock the feet for good. Lanes A and E release on every path (their
+  reviews); the lead may want a long timeout.
+- Small per-frame garbage left: on the GGB deck `deckAt` / `deckWish` / `laneClear` objects every frame, and
+  `autoGlideInput` + `floorAt` objects during an auto-glide.
+- The phone trips phase and the 22 far T2 trips (lane F's part c gaps) are still to run at W5-Z.
+
+### Requests
+
+- **E**: `economy/items.ts` — 国际橘围巾 / 国际橘背包 / 国际橘单车, the short name 国际橘 and the note 金门大桥的颜色就叫国际橘 →
+  国际橙 (the paint itself is now 国际橙).
+- **T**: `muni-san-jose-mt-vernon` — the M no longer stops at San Jose & Mt Vernon (permanent since 2024-09-28, SFMTA):
+  retire the stop (riders use San Jose & Geneva inbound, San Jose & Niagara outbound).
+- **Lead**: GameRoot 298.36 KB — lane F's remaining city-only main-graph code (`deckSteer` ≈ 0.8 KB, the auto-glide in
+  `glide.ts` / `moveSystem.ts`, the greeting in `vehicles/pelican.ts`) could follow charImpl into a city chunk; and the
+  self-explained-hold policy above.
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (the 43 old warnings, none in `src/opus-bay`) ·
+`npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1353 / 1353**, fail 0, on the rebased head
+(`80ede43f` + `f734abce`). npx, tsx, tsc and eslint worked from the junctioned node_modules. PERF-LOCK absent at every
+Chrome and at the one `vite build` (to scratch); one Chrome at a time; dev server 5501 stopped at the end. No Higgsfield
+credits.
