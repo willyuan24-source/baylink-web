@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { Vec2 } from '../core/types';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
@@ -358,7 +357,9 @@ interface LoadedModel { geometry: THREE.BufferGeometry; material: THREE.Material
 async function loadModel(id: string): Promise<LoadedModel | null> {
   const asset = ASSETS.models[id];
   if (!asset) return null;
-  const gltf = await new GLTFLoader().loadAsync(asset.url);
+  // the shared Draco-capable loader (D2 w3 c2 / HC-4: lane V can publish Draco + WebP heroes); world/models is imported
+  // dynamically so district mode keeps DRACOLoader out of its first load
+  const gltf = await (await import('./models')).heroGltfLoader().loadAsync(asset.url);
   let mesh: THREE.Mesh | null = null;
   gltf.scene.traverse(o => { if (!mesh && (o as THREE.Mesh).isMesh) mesh = o as THREE.Mesh; });
   if (!mesh) return null;

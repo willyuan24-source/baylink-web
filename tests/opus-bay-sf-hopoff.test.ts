@@ -154,14 +154,27 @@ test('E2-10 on a city cable car: board, ride pitched on the running board (lean 
   }
 });
 
-test('E2-10 on the hero F-line (district): the car does not brake yet, so Space hops off at once as before (no stop request)', () => {
+test('E2-10 on the hero F-line (district; wave 4, E2 request 4 to lane T): Space asks the car to stop (platform "streetcar"), it brakes, then the rider steps off and the request is released', async () => {
   const ms = new MoveSystem();
   const c = new PlayerController();
   let t = 0;
-  const frame = () => { transit.stepTransit(DT); ms.update(DT, t, env(c)); t += DT; };
+  // the hero car as world/streetcar.ts publishes it: platform 'streetcar' moving along the track at 8 u/s, braking at
+  // 9 u/s² while a stop request stands (the Streetcars class is not built in node)
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const path = DISTRICT.streetcar.path, L = ride.pathLength(path);
+  platform.definePlatform('streetcar', { floor: 0.55, deck: { minX: -0.5, maxX: 0.5, minZ: -3.2, maxZ: 3.2 }, rail: { x: 0.3, z: 2.4, heading: 0 }, seatLeft: { x: 0.6, z: 0, heading: 0 }, seatRight: { x: -0.6, z: 0, heading: 0 }, seatY: 0.45 });
+  let u = 0, v = 8;
+  const publish = () => {
+    if (platform.platformStop('streetcar')) v = Math.max(0, v - 9 * DT);
+    u = Math.max(0, u - v * DT);
+    const p = ride.pointOnPath(path, u / L);
+    platform.setPlatformPose('streetcar', { x: p.x, y: 0.12, z: p.z, heading: p.heading + Math.PI, roll: 0 }, DT);
+  };
+  const frame = () => { publish(); transit.stepTransit(DT); ms.update(DT, t, env(c)); t += DT; };
   try {
     game.set({ phase: 'playing' });
     const stops = ride.sortedStops();
+    u = stops[1].at * L;
     transit.rideTo(stops[1].id, stops[0].id);
     frame();
     assert.equal(ms.mode, 'transit');
@@ -169,9 +182,14 @@ test('E2-10 on the hero F-line (district): the car does not brake yet, so Space 
     assert.notEqual(ride.currentRide()?.mode, 'wait', 'the (virtual) car came');
     runtime.input.jump = true;
     frame();
-    assert.equal(ride.currentRide(), null, 'off at once');
+    // the hero ride carries line 'streetcar' (+ hero): E2's rider asks that platform to stop and brakes first
+    assert.equal(ride.currentRide()?.hero, true);
+    assert.ok(platform.platformStop('streetcar'), 'a stop request for the hero F-line');
+    assert.notEqual(ride.currentRide(), null, 'still aboard while the car brakes');
+    for (let i = 0; i < 90 && ms.mode !== 'foot'; i++) frame();
+    assert.equal(ride.currentRide(), null, 'off after the brake');
     assert.equal(ms.mode, 'foot');
-    assert.equal(platform.platformStop('streetcar'), null, 'no stop request for the F-line');
+    assert.equal(platform.platformStop('streetcar'), null, 'the request is released');
   } finally {
     ride.endRide();
     game.set({ riding: null, phase: 'title' });

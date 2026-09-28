@@ -7,6 +7,7 @@ import { runtime } from '../../core/runtime';
 import { game } from '../../core/store';
 import { canStand, cityChunkEpoch, heightAt, surfaceAt } from '../../core/terrain';
 import { placesNear } from '../../data/sf/places';
+import { RESIDENTS } from '../../data/sf/residents';
 import { travelActive } from '../../game/fastTravel';
 import { U } from '../materials';
 import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
@@ -89,6 +90,8 @@ export class CityLife {
         const p = runtime.player, g = runtime.guide;
         if (!runtime.vehicle.occupied) out.push({ x: p.x, z: p.z });
         out.push({ x: g.x, z: g.z });
+        // the six city residents stand at their static spots (G2 w3 review 9): walkers step round them too
+        for (const r of RESIDENTS) if (Math.abs(r.at.x - p.x) < 100 && Math.abs(r.at.z - p.z) < 100) out.push({ x: r.at.x, z: r.at.z });
       },
       visible: vis,
       vehicles: () => this.all,

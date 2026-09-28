@@ -6,7 +6,7 @@ import { game } from '../core/store';
 import { DISTRICT } from '../data/district';
 import { MAX_WAIT, currentRide, virtualT } from '../game/ride';
 import { BOX, Batch, CYL, M, shade } from './builder';
-import { definePlatform, setPlatformPose } from '../actors/platform';
+import { definePlatform, platformStop, setPlatformPose } from '../actors/platform';
 import { crowdPeopleMaterial } from './life';
 import { TOY_DYN, TOY_INST, TOY_INST_TINT } from './materials';
 import { registerWarmup } from './warmup';
@@ -371,7 +371,8 @@ export class Streetcars {
     // platform 'streetcar' and runtime.streetcar; the hero loop only finishes a ride that started on it
     const r = currentRide();
     const fline = this.layer?.fline ?? null;
-    const city = !!fline && !(r && !r.line);
+    // (a hero ride carries `line: 'streetcar'` + `hero` since wave 4: its braked hop-off asks platform 'streetcar' to stop)
+    const city = !!fline && !(r && (r.hero || !r.line));
     // (review) a hero ride that started before the layer came in: the F-line keeps simulating but stays hidden and off
     // the platform 'streetcar' / runtime.streetcar until that ride ends, then takes over where the hero cars are by then
     if (fline && !city) this.legacyRide = true;
@@ -385,6 +386,9 @@ export class Streetcars {
     if (city) { this.layer!.update(dt, t); return; }
     const ride = this.handleRide();
     const carrying = !!ride && ride.mode === 'follow';
+    // E2-10 (wave 4, E2's request 4): the rider's hop-off brake — the car carrying them brakes to 0 within the asked
+    // time and stands while the request holds (releasePlatformStop lets it go), like the city cars
+    const stopReq = carrying ? platformStop('streetcar') : null;
     this.cars.forEach((car, i) => {
       const mine = carrying && i === this.tracked;
       if (ride && ride.mode === 'virtual' && i === this.carried) {
@@ -397,6 +401,7 @@ export class Streetcars {
       } else if (car.dwell > 0) {
         car.dwell -= dt;
         car.v = 0;
+        if (mine && stopReq) car.dwell = Math.max(car.dwell, 0.3);
         if (car.dwell <= 0) {
           car.atStop = null;
           const p = this.sample(car.u);
@@ -409,8 +414,10 @@ export class Streetcars {
         const other = this.cars[1 - i];
         const gap = other ? this.ahead(car.u, other.u) - CAR_LEN - 3 : Infinity;
         const vmax = mine ? VMAX_RIDE : VMAX;
-        const target = Math.min(vmax, Math.sqrt(2 * DEC * Math.max(0, dist)), Math.sqrt(2 * DEC * Math.max(0, gap)));
-        car.v = car.v < target ? Math.min(target, car.v + ACC * dt) : Math.max(target, car.v - DEC * 1.6 * dt);
+        let target = Math.min(vmax, Math.sqrt(2 * DEC * Math.max(0, dist)), Math.sqrt(2 * DEC * Math.max(0, gap)));
+        let dec = DEC * 1.6;
+        if (mine && stopReq) { target = 0; dec = Math.max(dec, car.v / Math.max(0.15, stopReq.within - stopReq.since)); }
+        car.v = car.v < target ? Math.min(target, car.v + ACC * dt) : Math.max(target, car.v - dec * dt);
         car.u = this.wrap(car.u + car.v * dt);
         if (next && this.ahead(car.u, next.stop.u) < 0.08 && car.v < 0.6) {
           car.u = next.stop.u;
