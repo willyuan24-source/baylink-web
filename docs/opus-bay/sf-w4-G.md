@@ -548,3 +548,67 @@ content C1–C13 (C / P / L / T) and C14's dialogue half (lane C).
 - **Lead / wave 5**: owner feedback F1 / F2 (above) belong with lane G's actors in wave 5.
 
 Relayed owner message during this part: "现在进度如何" — answered in summary item 5.
+
+## Integration review
+
+Written 2026-09-27 by lane G's adversarial integration reviewer (worktree `C:/Users/willy/wt/i4-g`, dev port 5404,
+scratch `C:/Users/willy/opus-qa/w4i/i4-g/review/`). Scope: every commit of parts a and b (W4-IG1 … W4-IG19), the code
+around them, the claims of the two sections above, played in the real game at 1440 × 900 and on touch at 390 × 844,
+375 × 667, 667 × 375 and 640 × 360, the district, the bundle.
+
+### 给主人的摘要
+
+1. 发现并修好 5 个问题：①（最重要）part b 加的"走不过去就放弃"规则会误判：路线比直线远的长距离自动走路（例如渡轮大厦走到 39 号码头）明明一直在往前走，14 秒就停下说"这边走不过去了"——现在只有真的原地打转才会放弃，渡轮大厦到 39 号码头 58 秒走到了；② 等渡轮时横幅上没有"直接到站"（T 线已经准备好，G 线漏接了），现在有了，点了就到对岸；③ 等车时行程胶囊把等车时间整个算没了、时间也不动，现在按船/车真实还要多久到来算；④ 横屏小手机上"设置"按钮压住了右上角的目标胶囊，已挪开；⑤ 船上甲板上的"坐下"按钮点了其实是去扶栏杆，文字改对了。
+2. 进度（回复"现在进度如何"）：G 线接线的复查已完成并推送（W4-G-int-review 共 3 个修复提交 + 本报告），全套 888 个测试通过；还没做的：地铁 N/M 线车厢里的镜头（贴在车身里、车身半透明，T 线的请求，G 线报告里漏写了）和横屏时一次性提示遮住 BAYBAY 第一句话，留到第 5 波。
+
+### What was checked
+
+- Every file of W4-IG1 … W4-IG18 read with its surroundings (guideCity, GuideLayer, RideBanner, rideHop, lazyParts, the
+  Systems / Hud / Overlay mounts, controller, moveSystem, camera / cameraModes / cityViews, driveRoute / driveTalk, flags /
+  panoramaPlace, hudLayout, TouchControls, the CSS). Played: a Ferry → Pier 39 trip on foot (pill, waypoint, arrival
+  toast / card) at 1440; a trip with the trip card, 换个方式 → the map on the destination, the lead chip and its coach
+  mark on a 390 phone; the ferry both ways with real taps at 375 (the waiting stage, 直接到站); the N Judah from Duboce
+  & Church through the Sunset Tunnel; the phone HUD in short landscape (667 × 375, 640 × 360) idle, on a trip and on the
+  ferry; the ferry's on-board button; the district at 390 (no guide chunk fetched, the 更多 menu hit-tests to itself).
+- Held up: the district never loads the guide / drive chunks (resource list read); the D6 wait / way-round and D5
+  park-short code paths; the drive cues' left / right (checked against the city frame: x east, z south); the chevrons'
+  program; the two-shot scoring runs once per conversation (no per-frame crowd scan); the pill / card / arrival UI;
+  GameRoot with the review's first fixes over `163bb88`: `775.78 kB / 292.70 kB gzip` (vite build), under part b's 776.93 / 292.94
+  (the label helper added later is a few hundred bytes).
+
+### Defects found and fixed (commits on `opus-bay`)
+
+| defect | fix | test / evidence |
+|---|---|---|
+| **The D2 walk watchdog (W4-IG13) gave up long walks that were getting closer.** Before the graph route arrives it measured the straight line; once the route came in it compared the route's length left with that straight-line best, so any route more than ~100 u longer than the straight line read as "no progress" and failed at 14 s with "这边走不过去了". Its clock also ran while the walker was frozen (a dialogue, a cinematic) or waiting for its route with nowhere to walk. Ferry gate → Pier 39 (407 u of route, 285 u straight): given up at 14.0 s with 222 u left while walking steadily inland along its route | `controller`: one baseline per measure (the straight line while no route is in, each arrived route its own), and a no-progress clock that only runs while the walker walks (not frozen, not waiting for the route, not at ground still streaming) — `3ee6675` | `tests/opus-bay-sf-guide-review.test.ts`: Ferry → Pier 39 arrives (fails on the lane's code at 14 s), a 20 s freeze on Market Street is not "stuck" (fails on the lane's code); the lane's D2 pacing test still gives up (19 s). In game: the same walk arrives in ~58 s through the Financial District, Chinatown and North Beach (`ir-long-walk-pier39-1440.jpg`) |
+| **直接到站 while waiting for the ferry was never shown** (verify-phone m5): lane T added `RideLabel.skipWhileWaiting` and asked lane G to show the button in the waiting stage (sf-w4-T.md part b request 1); part b left it out and did not list it | `RideBanner`: 不坐了 · 直接到站 while waiting when the label says `skipWhileWaiting` (lane T's `finishRide` puts the rider on the other quay) — `3ee6675` | test (ferry waiting → both buttons, a cable car waiting → 不坐了 only); in game at 375 × 667: "等渡轮靠岸…约 80 秒 · 不坐了 · 直接到站", the tap landed at the Ferry Building (`ir-ferry-wait-skip-375.jpg`) |
+| **The trip time dropped the wait while waiting at the stop**: `tripSecondsLeft` / the waypoint counted `flow.ride` in its `waiting` stage as aboard, so the pill lost the whole wait the moment the rider started waiting and stood still until the vehicle came | `guideCity.rideNow()`: aboard only once under way; while waiting the line leg counts the ride plus the vehicle's live ETA (`ride.eta`) — `3ee6675` | test: a ferry 85 s away → 185 s (was 100), 20 s away → 120 s, aboard half way → 50 s |
+| **Short landscape phones: 设置 over the objective / trip pill.** IG1 stood the round-button column on the bottom edge; with five buttons and the 问我 badge it reaches y 53 at 667 × 375 and y 38 at 640 × 360, under the pill's right end (y 12–54): "目标 0/10" was covered at 640 × 360 | `opus-bay.css` (601–720 px × ≤ 500 px): the pill stands left of the column (right 74 px) — `86aaa3e` | DOM + audit: pill 428–566 / column 578–628 at 640 × 360 (no box over another), 455–593 / 605–655 at 667 × 375; `ir-landscape-before-640.jpg`, `ir-landscape-after-640.jpg` |
+| **The on-board 坐下 (IG12, and the keyboard chip) on a deck / aisle stood the rider at the rail**: the FSM goes deck → rail (the ferry even boards onto its deck), rail → seat, seat → rail | `ui/spotLabel.ts`: the words follow the FSM — 扶栏杆 / 抓扶杆 (touch; 扶好栏杆 / 抓紧扶杆 on the key chip) on the deck, 坐下 at the rail, 站起来 seated — `a841df9` | test against `MoveMachine` (and the round button's words fit); in game on the ferry at 390: rail 坐下 → seat 站起来 → rail 坐下 → stick → deck 扶栏杆 → rail (`ir-deck-rail-390.jpg`) |
+
+### Open items (not fixed here)
+
+- **The Metro LRV ride camera** (lane T's part a and part b request 2, not in lane G's reports): riding the N / M the
+  side-on transit camera stands against the closed car, pulls in to ~4 u among the street's buildings and trees and
+  dithers through the car body; the player and BAYBAY fill the frame (`ir-lrv-camera-open-1440.jpg`). Needs a designed
+  view (a side chase outside the train, or a rear-window spot) with shots — wave 5.
+- **Short landscape: the one-time lead coach mark covers BAYBAY's first lead line** (640 × 360: the coach at y 102–142,
+  the 自动跟上 chip at 164–210; a 40 px bubble has no room between them, so `placeBubble` ends on the coach) for its
+  6 s. Minor, once per device.
+- The planner's walking pace (4.2 u/s) is what the pill counts down, while 自动跟上 / 带我去 auto-run long routes at
+  7.5 u/s: a walk the pill calls "约 2 分钟" took ~1 min (Ferry → Pier 39). Honest for walking by hand; lane C / G to
+  decide whether an auto-walk should show its own pace.
+- Walks that start inside a landmark's footprint can still fail at once (from the Palace of Fine Arts' and
+  Ghirardelli's attraction points the walker never left the spot, with or without the watchdog): wave 5's F2 sweep.
+- The city area pill's zh name "Embarcadero 海滨大道" is clipped at 375 px ("Embarcadero …").
+
+### Checks
+
+- Review tree (`a841df9` over `afabb3a`): `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint .` 0 errors (43 old
+  warnings); the full suite **888 / 888**. The first push (`3ee6675`,
+  `86aaa3e` over `cf41edf`): 885 / 885.
+- The four new tests of `3ee6675` were run against the lane's code (`controller`, `guideCity`, `RideBanner` restored from
+  `163bb88`): all four failed there. The label test checks the new helper against the movement FSM.
+- No Higgsfield credits. Dev server 5404 and the review's Chromes stopped at the end.
+
+Relayed owner message during this review: "现在进度如何" — answered in summary item 2.
