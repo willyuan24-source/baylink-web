@@ -158,3 +158,90 @@ badge; C's goals card covers the pill's second line on the phone right after the
 - **C**: FYI the one-line `refreshLock` change in `game/flow.ts` (decision 2).
 - **Lead**: accept `deriveLock` / `dropHolds` as playerLock internals (decision 1). Seen in passing and already fixed upstream by the
   time of this report: the `ob-flags` shader compile error (`float col` shadowing the colour, W5-V4) — flags are fine again at head.
+
+## Part b (2026-09-28): W5-F5, W5-F6, W5-F8, W5-F9
+
+### 给主人的摘要
+
+1. **脚下更宽容（F5）**：贴着栏杆、码头边、窄路走时会顺着滑过去，不再"一顶就停"；跑着（或跳着）撞上矮墙、矮树篱会自动撑手翻过去（只翻有实测高度的矮东西，绝不翻到屋顶、悬崖、水里、桥栏外，海滩篝火也不翻）；真被看不见的缝卡住，推 1.2 秒 BAYBAY 会跑来喊"嘿咻！"把你拉出来（绝不隔着水或墙拉）；按 R 也能马上脱困。
+2. **金门大桥桥面（F6）**：上桥后镜头自动转到身后、顺着桥走；一直按"前"就能从南走到北、再走回来，遇到桥塔的柱子会自己绕到中间车道，速度一直 ≥ 3 u/s、镜头偏差 ≤ 1°（电脑和手机都实测过）。
+3. **帮手机减负（F8）**：主角和 BAYBAY 的影子改用简化模型（影子三角形从约 1.7 万降到约 1,500，画面一样，不多一次绘制）；在城里离镜头 250 u 以外的停放单车/小车不画。
+4. **手机界面不重叠（F9）**：390×844 和 375×667 上逐个状态检查（自由逛、提示条、到达卡、带路中、叮当车、目标页、更多菜单、小游戏成绩卡），修掉了 4 处遮挡；城里右上角的明信片药丸现在直接打开旅行本（有"今天"就开"今天"，否则开"目标"），金币显示在第二行，药丸保持两行。
+5. 顺手完成其它线的请求：拍照时 BAYBAY 摆姿势会整个身子转向镜头（A）；镜头朝向接口可以指定俯仰角（R，拍舰队周飞机用）。
+6. 进度：本部分 4 项全部推送；下一步是全城巡检第 2 轮（F11）和 C 线要的"鹈鹕落在身边"小动画。
+
+### What was built
+
+**W5-F5 · forgiving feet** (`6232123`; walk speed, jump and stair rules unchanged) — `actors/feet.ts` (pure queries over core/terrain), `actors/stuckHelper.ts`, `actors/controller.ts`, `actors/guide.ts`, `actors/anim.ts`, `actors/system.ts`.
+
+| move | rule in the code | guards |
+|---|---|---|
+| slide along | `corridorAt(x, z, n)`: a wall contact whose other edge is within `FEET.corridor` 6 u (a deck, a pier, a narrow path, a stair landing), or a registered bridge deck. There a wish within `FEET.steerCone` 35° of the wall runs along it at full speed; a steeper one slides at `cos φ` down to `FEET.corridorSlideMin` 0.12 before it stops and leans. The contact probe now also runs while sliding, so the glide along a rail does not stutter. | open ground keeps `SLIDE_MIN` 0.35 (a 75° push into a sidewalk wall still leans) |
+| auto-vault | `vaultPlan(x, z, feet, dir)`: running (≥ 5 u/s, or the run key held and ≥ 2.5 u/s) or in a jump, head-on (≤ 45°) into blockers that **all** have a measured `top` ≤ feet + 1.1 u, with standable ground ≤ 1.6 u beyond the far side → a 0.35 s hop (the controller's `vault` state: an eased line with a parabola that clears the top by 0.3 u, hands forward via the new `Motion.vault` weight, the jump / land sounds, the run carries on). | an unknown top is a wall; never when the ground beyond is more than 0.75 u lower or more than 0.6 u higher (so never onto a roof or a terrace); never over water or off the model; never with a cliff (ground 2 u lower) within 1.2 u of the landing; never in a `noVault` area (`registerNoVault(key, polys)`; bridge decks always; the Ocean Beach fire rings, registered from `actors/cityViews.ts`: they burn in season, plan D22) |
+| BAYBAY pull | `StuckHelper`: a manual push for `FEET.pullPush` 1.2 s with < 0.3 u of progress → `pullTarget` (the nearest standable spot ≥ 0.9 u along the push, within 45° of it and 4 u of the player) → BAYBAY dashes over (`GuideMover.dash`: a straight run at her running pace, or a hop-in from the camera side when she is far or out of view), 嘿咻！/ Heave-ho! (`flow.bubble`), a 0.45 s hop to the spot (the controller waits, `Motion.vault` on the player, `reach` then `hop` on BAYBAY). Every pull emits `stuck { what: 'pull', x, z, source: 'push' \| 'reset' }`, a DEV console line, and a record in `__opusBay.actors.feet.pulls`. | the line to the target crosses no blocker (a 0.08 u probe: no building, wall or fence), no water, nothing off the model, no ridge more than 1 u above the feet or a drop past 1.6 u; the target at most 0.8 u higher / 1.2 u lower; not while leaning on a parked car or a resident; at most 3 pulls within 30 s at one spot; 1.5 s rest after one |
+| R | R with the feet boxed in (`probeReach` < 0.9 u of 1 u toward the push, or with no push toward the most open ground) pulls at once; the day-0 watchdog already frees a stale lock on R. | free on open ground, R stays the camera reset |
+
+**W5-F6 · the Golden Gate Bridge deck** (`6232123`, `a26d35f`, `abc0d96`) — `actors/deckSteer.ts` (a deck registry: `registerDeck`, `deckAt(x, z, y?)` with station and lateral offset, `deckWish`, `deckCameraYaw`, `heroRelaxed`). `actors/cityViews.ts` registers the bridge (`ggbDeck()`: END_S → END_N, the rails' inner faces 2.62 u off the axis, y = `GGB.DECK`) when the city camera data loads, so the landmark library stays out of the main graph.
+- Steering (controller, manual input only): a wish within 60° of the axis runs along it (a third of the across input kept, never outward past the rail clearance); when the lane ahead is blocked within 3.2 u (the tower legs stand across the sidewalks), it steers to the nearest clear lane (0.35 u steps). A wish mostly across the deck is left alone (to go and look over the rail).
+- Camera (`actors/camera.ts`): on the deck the follow camera turns behind the player along the axis (rate 3 while more than 25° off, 2.2 after); the alignment is chosen behind the heading when the player comes onto the deck, after a jump of more than 1.2 u (a teleport, a landing) and on R, and then holds (walking back toward the camera never flips it) until the player turns the camera; the towers' hero points are relaxed on the deck and the occlusion swing waits there. `chooseYaw` on the deck gives the axis alignment.
+- `game/cinema.ts faceCameraToward(x, z, { pitch })` (lane R's request 3): the photo orbit's pitch (clamped to its range) or the follow camera's pitch through its offset.
+- `scripts/opus-sf/qa/walker-sweep.mjs --deck` presses R after the teleport, shoots the half-way view, reads the pull count.
+
+**W5-F8 · the levers** (`877dc59`)
+- `actors/models.ts withShadowProxy(mesh, proxy)`: a character's low-poly shadow proxy lives in its own geometry after the drawn triangles (the same vertex layout and skeleton); `onBeforeRender` sets the draw range to the body, `onBeforeShadow` (chained after BAYBAY's existing one) to the proxy — no extra draw call, material or program, and the shadow keeps the arms, hat, pack, tail and feet because the proxy rides the same bones. The player (hand-made proxy: bean, hat, pack + bedroll, arms and the map, feet) **8,784 → 556** shadow triangles; the procedural BAYBAY **10,404 → 780**; the GLB BAYBAY **8,326 → 960** (`fitShadowProxy`: a 10 × 7 ellipsoid per bone over the vertices it weighs most; slivers such as the eyes add nothing). Measured in the game at the Ferry gate (`geometry.userData.shadowProxy`): the drawn ranges unchanged, ≈ −15.6k triangles in the sun's shadow pass.
+- `actors/system.ts`: in city mode a parked bike or the toy car more than `FAR_RIDE` 250 u from the camera is not drawn (the one ridden or called always is; district mode unchanged). In the game: 5 of 7 rides drawn at the Ferry gate, 1 of 8 (the pooled city bike beside the player) after a teleport to the west side.
+
+**W5-F9 · the overlay layout at 390 × 844 and 375 × 667** (`98a9d32`, `042bafb`)
+- `ui/Hud.tsx` + `ui/objectivePill.ts` (plan MF6; lanes C and R asked): in the city the top-right pill opens the journal on lane R's 今天 once registered (it is now, order 5), else on 目标; it no longer toggles a hidden goals card. The district keeps its goals card.
+- Phones: lane E's pill badges ride on the goals line (目标 0/10 · 🪙 42): the pill keeps two lines (it wrapped to three).
+- Phones: lane N's go chip (BAYBAY 带路中 · 碰摇杆接管) sits in the band left of the move column (it covered 跳 by 43 px), its second half ellipsed when it does not fit.
+- Phones: while lane N's discovery chip (+3 个地点) shows under the area pill, the top stack starts under it (a toast covered its right half); while lane A's activity chip shows, the stack starts under it (185 px); while A's result card shows, it starts under the card on every screen (281 px; under the ride banner the card already sits below the stack and the toasts wait hidden) — lane A's request 3.
+- Lane A's request 2 (`39dab6e`): posing in photo mode, BAYBAY turns her whole body to the camera.
+
+### Evidence
+
+- Checks on the last push `abc0d96` (rebased on `7319d9e`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1191 / 1191**, fail 0. Earlier today, between 06:00 and 07:00 PDT, two lane-L tests (the fire-ring tops and the flags table) failed on the real clock (the rings are lit from 06:00): with `Date` pinned to 04:00 PDT the suite was green, and lane L fixed the tests in `e889335`.
+- New tests: `tests/opus-bay-w5-feet.test.ts` +11 (synthetic worlds: slide along at 30° keeps full speed in a corridor and 75° still slides there but leans on open ground; the vault over a low wall running or jumping, none walking, none over an unknown or 1.3 u top; the guards: a drop, a roof, a terrace, water, a cliff, a noVault area, a deck; the pull out of a 0.7 u lip with the `stuck` event, never across water or a wall; R out of a pit, nothing on flat ground; the fire rings are noVault. The published city: the deck's lanes, the legs and the rails; the walk south → north holding forward from a camera 83° across, and back north → south running, **never under 3 u/s over any 3 s, camera within 25°**; `chooseYaw` / the relaxed tower hero points; the photo pitch) · `tests/opus-bay-w5-char.test.ts` +4 (the proxies' draw ranges, bones and colours; `fitShadowProxy` with normalized 8-bit weights; the far-ride rule; BAYBAY's pose) · `tests/opus-bay-sf-hud.test.ts` +2 (the pill → journal; the phone pill, the go chip, the stack rules).
+- Without the deck steering (a temporary switch, reverted) the north → south walk stalled at s 89 of 422 — the test catches the run-1 failure.
+- In the game (dev 5501, headless Chrome with the RTX flag; every shot read; key ones in `docs/opus-bay/qa/w5/F/`):
+  - **The GGB deck, live walker** (`walker-sweep.mjs --deck`): desktop 1440 × 900 south → north reached, slowest 3 s **3.47 u/s**, camera ≤ **0°** off the axis; north → south **3.97 u/s**, ≤ 1°. Phone 390 × 844 dpr 3: **4.16 / 0°** and **4.16 / 1°**. Run 1 was stuck at the south start (0 u in 6.7 s, the camera 83° across) and stalled at the north tower. `f6-deck-mid-camera-behind-desktop.jpg`, `f6-deck-mid-camera-behind-phone.jpg`.
+  - **The pull**: the Sutro Baths trip end (a run-1 SNAG: a hole in the walk surface on the slope up to the path) — R there pulled 0.9 u (`reset`), holding forward later got stuck at a surface seam and BAYBAY pulled 3.6 u (`push`): the bubble, her dash, the hop (`f5-baybay-pull-sutro-desktop.jpg`); 0 watchdog releases.
+  - **The vault**: running into a 0.6 u hedge on Franklin Street by City Hall → one vault, landed on the lawn beyond (`f5-vault-hedge-civic-center-desktop.jpg`, the camera over a roof, dithered). A node scan of the whole city (every landmark site, 1.5 u grid, 8 headings) found 37 vault spots at 13 landmarks (hedges, planters and low walls at City Hall, the de Young, the Palace, Lombard, the Dutch windmill, the Legion of Honor, Sutro Baths …) before the fire rings became noVault.
+  - **The stuck targets**: the static sweep on today's head — 673 targets: ok 483 · CORRIDOR 153 · BOXED 14 · SNAG 2 · UNREACHABLE 19 · OFF 2 (run 1: 454 / 162 / 26 / 5 / 21 / 4). None of the 39 left is lane F's (the deck points are corridors; the slope SNAGs are gone): N 3, T 19, L 1, E 12, D 1, A 1 (Requests). A node run of push + pull on the BOXED / SNAG ones: 12 stuck directions at 10 targets get out with BAYBAY's pull.
+  - **Shadows**: `f8-shadow-proxies-desktop.jpg` (golden hour at the Ferry gate: both heroes' long shadows read as the bean with its hat and the otter).
+  - **F9 overlap scans** (every fixed HUD box, the bubble, the waypoint, the overlays; pairs that overlap, containers excluded), 390 × 844 and 375 × 667 in en and zh, and 1440 × 900: free roam + bubble + two toasts · the arrival toast + card · a walking trip (pill, go chip, waypoint, discovery chip, toast, bubble) · a cable-car ride banner · lane C's goals step · the 更多 menu · lane A's chip and result card with toasts → **no overlaps left** except lane C's goals step, a modal card over the dimmed HUD (it scrolls at 375 × 667). `f9-trip-go-chip-phone-390.jpg`, `f9-busy-hud-phone-375-zh.jpg`, `f9-pill-opens-journal-phone-375-zh.jpg` (the pill tap → 旅行本 on lane R's 今天 0/3, whose first row is the next goal; before R's tab reached my tree the same tap opened 目标), `f9-play-result-toasts-phone-390-zh.jpg`.
+  - BAYBAY posing in photo mode faces the camera: `f2-baybay-pose-photo-desktop.jpg`.
+- No real-world fact is new in this part (the fire-ring season is lane L / R's, already sourced).
+
+### Decisions
+
+1. **Corridors are found from the ground, not the walk graph**: a ray from the wall contact across the walk (≤ 12 raster reads, only while touching a wall) finds the other edge; the walk graph has no hero decks or piers and is loaded late.
+2. **The vault needs every blocker in front to have a measured top** (`Blocker.top`: landmark walk blockers from `landmarks/tops.ts`, the city's buildings); the hero district's props and benches have none, so they stay walls. The landing must be standable ground within 0.6 u above and 0.75 u below the feet: a roof or a terrace is never a landing.
+3. **The Ocean Beach fire rings are noVault** (they burn in season; plan D22's safety tone), registered with the city camera data.
+4. **The pull never crosses any blocker**, not only buildings: a fence or a wall with ground behind stays a wall (the vault is the way over low ones). It also refuses a climb of more than 0.8 u, so repeated pulls cannot scale a slope.
+5. **The deck camera's alignment is sticky**: behind the heading on entering, after a teleport / landing and on R; otherwise it holds, so walking back toward the camera does not swing it round (the lazy re-centre's own rule); a player who turns the camera keeps the alignment nearest their view.
+6. **Shadow proxies inside the same draw** (draw-range switching in `onBeforeRender` / `onBeforeShadow`): a separate shadow-only mesh would cost a draw call and a program in the main pass (three.js tests the main camera's layers in the shadow pass).
+7. **The pill opens the journal only in the city**; the district's goals card toggle is unchanged (district mode must not change).
+8. **Toasts give way to lane A's card and chip** by moving the top stack down while they show (not by hiding them), except under the ride banner, where the card sits below the stack and the toasts wait hidden.
+
+### Known gaps
+
+- The live vault shot is over a hedge seen through a dithered roof (the best of the spots tried; at the Palace the arrival cinematic took the run, at the windmill garden the approach was not head-on).
+- Lane C's goals step at 375 × 667 is taller than the screen: it scrolls, its last line starts below the fold (C's `goals-step.css`, `place-items: center` in an overflowing wrap).
+- The waypoint does not avoid lane A's result card and chip (they are not in `game/hudLayout.ts HUD_BOX_SELECTOR`, lane N's file): its label can sit faintly behind the card (Requests).
+- The deck rule knows one deck (the Golden Gate Bridge); other long decks (piers) get the corridor slide only.
+
+### Not done (this part)
+
+- W5-F10 (should: mantle, the bus / LRV ride camera, the auto-glide with N) and W5-F11 (sweep run 2 on the phone profile, the walker's trips phase Ferry → every T1 / T2 within 1.3 × the quote).
+- Lane C's `pelicanGreet(x, z)` (the pelican landing beside the player for the unlock moment): next part.
+- Lane A's optional request 1 (`holdGuide` in the brain) is lane C's file (`game/brain.ts`).
+
+### Requests
+
+- **N**: add `'.ob-play-result', '.ob-play-flight'` (lane A's card and chip) to `game/hudLayout.ts HUD_BOX_SELECTOR`, so the waypoint and the bubble keep out of them. Still stuck on today's head: `trip:fort-point` (BOXED), `trip:bison-paddock` (OFF), `trip:ss-jeremiah-obrien` (UNREACHABLE).
+- **T**: the Muni Metro surface stops are unchanged since run 1: 19 of them (N Judah: Carl & Stanyan, Irving & 2nd / 6th, 9th & Irving, Judah & 9th / Funston / 19th / 25th / 34th / 43rd / 46th; M: West Portal, St Francis Circle, 19th & Randolph, Randolph & Arch, Randolph & Bright, Broad & Orizaba, San Jose & Mt Vernon) and the Sausalito quay (OFF). List: `C:/Users/willy/opus-qa/w5/w5-f/static-c/static.json`.
+- **E**: 12 coin spots still stuck: `lyon-street-steps:1`, `ina-coolbrith:5`, `crane-cove-end`, `calle-24`, `stop-castro:5`, `baker-beach-north`, the closed Municipal Pier trail (1 / 4 / 7 and its end cache), `wave-organ-jetty:4` and `:8`.
+- **L**: route r2's Fort Point stop (BOXED) and the Wave Organ jetty's reachability (lanes A, D, E's spots there); lane F's vault scan found low hedges and walls at City Hall, the de Young, the Palace, Lombard, the windmill, the Legion of Honor and Sutro Baths — tell me any that must not be vaulted and I register them as noVault.
+- **C**: `ui/goals-step.css`: `align-items: safe center` (or `start` when taller than the screen) so the step never opens with its end below the fold at 375 × 667.
+- **Lead / V**: `actors/feet.ts`, `actors/stuckHelper.ts` and `actors/deckSteer.ts` are in GameRoot's main graph (the controller and the actor system use them): 1.3 + 1.4 + 0.9 KB gzip standalone (esbuild --minify), plus the additions to the controller, camera, models and actor system — please count them in the next bundle measurement. The deck and the fire-ring noVault ride on the lazy `actors/cityViews.ts`.
