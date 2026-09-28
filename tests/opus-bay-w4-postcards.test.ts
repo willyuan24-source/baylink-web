@@ -19,10 +19,11 @@ const ctx2d = new Proxy({}, {
 g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
-const { W4_POSTCARDS, W4_POSTCARD_IDS, W4_POSTCARD_ART, W4_POSTCARDS_VERIFIED_AT, w4PostcardDefs, w4PostcardUrls } = await import('../src/opus-bay/data/sf/w4Postcards');
+const { W4_POSTCARDS, W4_POSTCARD_IDS, W4_POSTCARD_ART, W4_POSTCARD_SUBJECTS, W4_POSTCARDS_VERIFIED_AT, w4PostcardDefs, w4PostcardUrls } = await import('../src/opus-bay/data/sf/w4Postcards');
 const { CITY_POSTCARDS } = await import('../src/opus-bay/data/sf/postcards');
 const { ASSETS, POSTCARD_ART, POSTCARD_ART_IDS, SF_POSTCARD_ART_IDS, listAssetUrls } = await import('../src/opus-bay/data/assets');
-const { CITY_POIS } = await import('../src/opus-bay/data/sf/cityPois');
+const { CITY_POIS, cityPoiId } = await import('../src/opus-bay/data/sf/cityPois');
+const { cardPoiId } = await import('../src/opus-bay/data/sf/placeCardTypes');
 const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const { PLACE_CARDS } = await import('../src/opus-bay/data/sf/placeCards');
 const { PLACE_CARDS_2 } = await import('../src/opus-bay/data/sf/placeCards2');
@@ -50,8 +51,14 @@ function webpSize(file: string): [number, number] {
 
 test('W4 postcards: four new ids with art on disk (1200 × 900 + 600 × 450 WebP), text, hint ≤ 45, a https source', () => {
   assert.deepEqual([...W4_POSTCARD_IDS], ['sf-state-quad', 'sf-music-concourse', 'sf-lands-end', 'sf-west-portal']);
+  // new ids: not the district's, not among the shipped 12 — and once the integration registers them (data/assets.ts),
+  // exactly the four after the 12, in this order (so this test holds before and after that commit)
+  const sfIds = SF_POSTCARD_ART_IDS as readonly string[];
+  const tail = sfIds.slice(12);
+  assert.ok(tail.length === 0 || JSON.stringify(tail) === JSON.stringify(W4_POSTCARD_IDS), `SF_POSTCARD_ART_IDS after the 12: ${tail.join(', ')}`);
   for (const id of W4_POSTCARD_IDS) {
-    assert.ok(!(SF_POSTCARD_ART_IDS as readonly string[]).includes(id) && !(POSTCARD_ART_IDS as readonly string[]).includes(id), `${id} is new`);
+    assert.ok(!sfIds.slice(0, 12).includes(id) && !(POSTCARD_ART_IDS as readonly string[]).includes(id), `${id} is new`);
+    filled(W4_POSTCARD_SUBJECTS[id], `${id} subject (for data/assets SF_POSTCARD_SUBJECTS if SF_POSTCARD_ART_IDS gains the four)`);
     // integration (lane V): the art is in the manifest like the other 20 (lane C's cards join CARDS)
     assert.equal(POSTCARD_ART[id].large, W4_POSTCARD_ART[id].large);
     assert.equal(POSTCARD_ART[id].small, W4_POSTCARD_ART[id].small);
@@ -85,14 +92,21 @@ test('W4 postcards: four new ids with art on disk (1200 × 900 + 600 × 450 WebP
   }
 });
 
-test('W4 postcards: near a real card (a landmark, a wave-4 site or an attraction) and within reach of it', () => {
+test('W4 postcards: `near` is the POI of the own card of the attraction (its art strip shows the postcard) and within reach of it', () => {
   const attractionIds = new Set(ATTRACTIONS.map(a => a.id));
+  const cards = [...PLACE_CARDS, ...PLACE_CARDS_2];
   for (const id of W4_POSTCARD_IDS) {
     const c = W4_POSTCARDS[id];
     assert.ok(attractionIds.has(c.attraction), `${id}: attraction ${c.attraction}`);
-    const lm = sfLandmark(c.near), site = w4Site(c.near);
-    assert.ok(lm || site || attractionIds.has(c.near), `${id}: near ${c.near}`);
     const a = ATTRACTIONS.find(x => x.id === c.attraction)!;
+    // data/postcards.ts CITY_POSTCARD_FOR_POI keys the art by cityPoiId(near); the attraction's card opens as the landmark
+    // card `sf:<landmarkId>` (CITY_POIS) or as lane C's place card `cardPoiId(card)` (placeCardTypes.ts)
+    const card = cards.find(k => k.id === a.id);
+    const poi = a.landmarkId ? cityPoiId(a.landmarkId) : card ? cardPoiId(card) : null;
+    assert.ok(poi, `${id}: ${a.id} has a landmark card or a place card`);
+    if (a.landmarkId) assert.ok(CITY_POIS.some(p => p.id === poi) && sfLandmark(a.landmarkId), `${id}: landmark card ${poi}`);
+    assert.equal(cityPoiId(c.near), poi, `${id}: near ${c.near} → ${cityPoiId(c.near)} is the card of ${a.id}`);
+    assert.ok(!w4Site(c.near) || w4Site(c.near)!.w4.placeId === c.near, `${id}: near is a card POI suffix, not a bare site id`);
     const anchor = a.arrival ?? { x: a.x, z: a.z };
     assert.ok(dist(c.position, anchor) < 70, `${id}: ${dist(c.position, anchor).toFixed(1)} u from ${c.attraction}`);
   }

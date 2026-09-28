@@ -13,13 +13,17 @@ import type { Bilingual, PostcardDef, Vec2 } from '../../core/types';
  * - Spots: standable, a walking-graph node within 12 u reachable from ferry-gate, ≥ 6.5 u from every card spot (the
  *   24 landmark cards, lane C's place cards, lane P's attraction points and arrivals) and > 20 u from every other
  *   postcard, measured with the wave-4 sites registered (tests/opus-bay-w4-postcards.test.ts).
- * - `near`: the landmark / wave-4 site whose card shows the art once found (the Music Concourse has no card of its
- *   own: the de Young's, 14 u away, shows it); `attraction`: lane P's attraction id. West Portal has no site yet
- *   (lane L's P3 `west-portal`): its `near` is that id, and lane C's `west-portal` place card shows the art.
+ * - `near`: the city card that shows the art once the postcard is found, as data/sf/postcards.ts means it — its POI is
+ *   `sf:<near>` (data/postcards.ts CITY_POSTCARD_FOR_POI → ui/format.ts postcardForPoi): a landmark id, or the POI
+ *   suffix of lane C's place card for the attraction (placeCardTypes.ts `cardPoiId`: the card's `place`, else its id).
+ *   So SF State is `sf-state-university` (not lane L's site id `sfsu`), West Portal `osm-n2094547200` (the card's place
+ *   row), Lands End `lands-end`, and the Music Concourse, which has no card of its own, the de Young's landmark card
+ *   (`de-young-tower`, 14 u away). `attraction`: lane P's attraction id.
  *
- * Registered (integration, lane V): data/assets.ts POSTCARD_ART / ASSETS.postcards / listAssetUrls carry the art
+ * Registered (integration, lane V, W4-V-I7): data/assets.ts POSTCARD_ART / ASSETS.postcards / listAssetUrls carry the art
  * (`POSTCARD_ART_ALL_IDS`); `SF_POSTCARD_ART_IDS` stays the 12 until lane C's data/sf/postcards.ts `CARDS` gains
- * `W4_POSTCARDS` (then CITY_POSTCARDS walks both lists). Dependency-free at runtime.
+ * `W4_POSTCARDS` (then CITY_POSTCARDS walks both lists). Should `SF_POSTCARD_ART_IDS` itself gain the four instead,
+ * `SF_POSTCARD_SUBJECTS` (a Record over it) needs `W4_POSTCARD_SUBJECTS` in the same commit. Dependency-free at runtime.
  */
 
 export const W4_POSTCARDS_VERIFIED_AT = '2026-09-27';
@@ -34,6 +38,7 @@ export interface W4Postcard {
   hint: Bilingual;
   sourceUrl: string;
   position: Vec2;
+  /** the city card whose POI `sf:<near>` shows the art (a landmark id or a place card's `cardPoiId` suffix) */
   near: string;
   attraction: string;
 }
@@ -46,18 +51,18 @@ export const W4_POSTCARDS: Readonly<Record<W4PostcardId, W4Postcard>> = {
     fact: bi('州立大学 1899 年诞生时叫“旧金山州立师范学校”，专门培养老师。', 'SF State began in 1899 as the San Francisco State Normal School, a college for training teachers.'),
     hint: bi('州立大学的中央草坪上，学生们常在这儿晒太阳。', 'On the Quad at SF State, where students sit in the sun.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/San_Francisco_State_University',
-    position: { x: 226.5, z: 1550.6 }, near: 'sfsu', attraction: 'sf-state-university',
+    position: { x: 226.5, z: 1550.6 }, near: 'sf-state-university', attraction: 'sf-state-university',
   },
   'sf-music-concourse': {
     title: bi('音乐广场的午后', 'An Afternoon at the Music Concourse'),
     fact: bi('广场尽头的音乐台是糖业大亨 Claus Spreckels 送给加州人民的礼物，1900 年落成。', 'The bandshell at its end was sugar magnate Claus Spreckels’s gift to the people of California, dedicated in 1900.'),
-    hint: bi('金门公园里，迪扬博物馆和科学院中间的下沉广场。', 'In Golden Gate Park, the sunken plaza between the de Young and the Academy.'),
+    hint: bi('金门公园里，迪扬博物馆和加州科学院中间的下沉广场。', 'In Golden Gate Park, the sunken plaza between the de Young and the Academy.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/Spreckels_Temple_of_Music',
     position: { x: -228.5, z: 927 }, near: 'de-young-tower', attraction: 'de-young-tower',
   },
   'sf-lands-end': {
     title: bi('天涯海角望金门', 'The Golden Gate from Lands End'),
-    fact: bi('这条海边步道差不多就是当年观光火车走的老路，1925 年冬天的山崩冲断了铁轨。', 'The cliff trail follows the route of an old scenic railway, given up after landslides in the winter of 1925.'),
+    fact: bi('这条海边步道差不多就是当年观光铁路的老路，1925 年冬天的滑坡冲毁了铁轨。', 'The cliff trail follows the route of an old scenic railway, given up after landslides in the winter of 1925.'),
     hint: bi('天涯海角的海边步道上，找一处能望见金门大桥的地方。', 'On the Lands End cliff trail, where the Golden Gate Bridge comes into view.'),
     sourceUrl: 'https://www.sfmta.com/blog/line-lands-end-san-franciscos-lost-scenic-railway',
     position: { x: -721, z: 1180 }, near: 'lands-end', attraction: 'lands-end',
@@ -67,8 +72,17 @@ export const W4_POSTCARDS: Readonly<Record<W4PostcardId, W4Postcard>> = {
     fact: bi('西门这个街区，名字就来自双峰隧道的西口；这条隧道 1918 年通车，长约 3.6 公里。', 'West Portal is named for the Twin Peaks Tunnel’s west mouth; the tunnel opened in 1918 and runs about 3.6 km.'),
     hint: bi('坐 M 线钻出双峰隧道，在 West Portal 大道边上找找。', 'Ride the M out of the Twin Peaks Tunnel and look along West Portal Avenue.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/Twin_Peaks_Tunnel',
-    position: { x: 125, z: 1259 }, near: 'west-portal', attraction: 'west-portal',
+    position: { x: 125, z: 1259 }, near: 'osm-n2094547200', attraction: 'west-portal',
   },
+};
+
+/** Working captions, as data/assets `SF_POSTCARD_SUBJECTS` (a `Record<SfPostcardArtId, …>`: it must gain these four
+ *  in the commit that widens `SF_POSTCARD_ART_IDS`, or tsc fails). */
+export const W4_POSTCARD_SUBJECTS: Readonly<Record<W4PostcardId, Bilingual>> = {
+  'sf-state-quad': bi('州立大学的中央草坪', 'The Quad at SF State'),
+  'sf-music-concourse': bi('金门公园音乐广场', 'The Music Concourse in Golden Gate Park'),
+  'sf-lands-end': bi('天涯海角步道望金门大桥', 'The Golden Gate Bridge from the Lands End trail'),
+  'sf-west-portal': bi('轻轨钻出双峰隧道西口', 'A Muni Metro train leaving the Twin Peaks Tunnel at West Portal'),
 };
 
 /** The art files: `large` 1200 × 900 (hi-dpi), `small` 600 × 450 (the journal and cards), as data/assets POSTCARD_ART. */
