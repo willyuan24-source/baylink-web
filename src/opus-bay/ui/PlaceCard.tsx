@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { CalendarPlus, MapPin, MapPinned, Navigation, Tag } from 'lucide-react';
 import { unprojectCity } from '../core/geo';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
@@ -11,6 +12,9 @@ import { cityStreamerLazy } from '../world/cityLoader';
 import { LinkButton, Sheet } from './common';
 import { useIsMobile } from './hooks';
 import { GuideRow, NearEvents } from './PoiCardBody';
+
+/** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk; place cards are city-only): R's request 1a */
+const HowToGo = lazy(() => import('../realsf/HowToGo'));
 
 /**
  * A city place that is not a landmark (G1's place index, OpenStreetMap names; G1's request 3): what it is and where,
@@ -61,6 +65,7 @@ export default function PlaceCard({ place }: { place: CityPlace }) {
           {t(`把 ${planTitles[0] ?? planner.title} 排进 BAYLINK 计划`, `Put ${name.en} in a BAYLINK plan`)}
         </LinkButton>
       )}
+      <Suspense fallback={null}><HowToGo point={{ x: place.x, z: place.z }} /></Suspense>
       <div className="ob-link-grid">
         <LinkButton href={mapsUrl(ll.lat, ll.lng, place.name.en)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>
       </div>

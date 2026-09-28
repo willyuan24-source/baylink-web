@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { ArrowRight, BookOpen, CalendarDays, CalendarPlus, Check, Clock, ExternalLink, Heart, Lightbulb, Lock, Mail, MapPinned, Ticket } from 'lucide-react';
 import { useGame } from '../core/store';
 import type { PoiDef } from '../core/types';
@@ -15,6 +16,9 @@ import { InteractIcon } from './icons';
 import { formatDay, postcardArt, postcardForPoi } from './format';
 import './content-ui.css';
 
+/** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk): the nearest real Muni stops, city mode only (R's request 1a) */
+const HowToGo = lazy(() => import('../realsf/HowToGo'));
+
 /**
  * The body of the real-info card (ui/PoiCard.tsx resolves which card an id opens). F10: BAYLINK leads — the matching
  * guide sits right under the summary (pinned in the footer on phones); 官网 only when it really is the official site
@@ -27,6 +31,7 @@ export default function PoiCardBody({ poi }: { poi: PoiDef }) {
   const catalog = useCatalog();
   const mobile = useIsMobile();
   const saved = useGame(s => s.wishlist.some(item => item.kind === 'poi' && item.id === poi.id));
+  const city = useGame(s => s.worldMode === 'city');
   const tourCard = useFlow(s => s.tourPhase === 'card');
   const lastStop = useGame(s => s.tour.stop >= tourStops().length - 1);
   const info = poi.realInfo;
@@ -109,6 +114,7 @@ export default function PoiCardBody({ poi }: { poi: PoiDef }) {
               <ul className="ob-tips">{info.tips.map((tip, i) => <li key={i}>{t(tip)}</li>)}</ul>
             </section>
           )}
+          {city && <Suspense fallback={null}><HowToGo point={poi.position} /></Suspense>}
           <div className="ob-link-grid">
             {official && <LinkButton href={official} icon={<ExternalLink size={17} aria-hidden />} tone="soft" external>{t('官网', 'Official site')}</LinkButton>}
             <LinkButton href={mapsUrl(info.lat, info.lng, poi.name.en)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>
