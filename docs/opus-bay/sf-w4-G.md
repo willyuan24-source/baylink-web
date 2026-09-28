@@ -428,3 +428,123 @@ None of it is in GameRoot's static graph (tested); the district never fetches it
   the junction link first (`cmd /c rmdir <wt>\node_modules`), then the worktree (see the incident in Evidence).
 
 Relayed owner message during this part: "现在进度如何" — answered in summary item 5.
+
+## Integration part b
+
+Written 2026-09-27 by lane G's integration implementer (worktree `C:/Users/willy/wt/i4-g`, branch `i4-g`, dev port 5404,
+scratch `C:/Users/willy/opus-qa/w4i/i4-g/`). Scope: the wave-4 verify findings on lane G's files (all six finders),
+what part a left open, and the plan §5.5 QA shots in the real game at 1440 × 900, 390 × 844 and 375 × 667.
+
+### 给主人的摘要
+
+1. 验收时发现、属于 G 线文件的问题都修好了：手机"更多"菜单被右下角大按钮挡住（点"设置"会打开渡轮）、过场字幕在手机上从词中间断行、几个按钮小于 44 px、坐叮当车 / 渡轮时手机上没法"坐下 / 站起来"、英文目标提示在窄屏上把时间截掉、桌面上目标标签被"问我"小牌挡住、英文明信片撇号后多一个空格。
+2. 走路和骑车更可靠：自动走路如果一直走不近就会停下并说"这边走不过去了 · 打开地图换个方式吧"（以前在 41 号码头会来回走一分多钟）；自动骑车会停在明信片 / 居民 / 地点旁边约 3 u 处，不会停在明信片上；前面有人会先等人走开；卡住时会自己绕一下再继续。BAYBAY 坐在车篮里会在转弯前约 20 u 提醒"前面左转 / 右转"，长路程在 1/3、2/3 处各说一句。
+3. 镜头：和居民聊天时不再让玩家的背挡住居民，路人站在镜头前会换角度；地标到达时如果正面被挡，镜头宁可留在地标这边也不转走；炮台（Fort Point）的到达镜头贴近、压低；地铁出隧道时镜头拉远一点，整列车和隧道口都看得到；双峰观景台的地名标签从 3 个增加到 7 个（手机 4 个）。
+4. 主包 GameRoot 比 part b 开始前还小 3 KB（779.95 → 776.93 KB，压缩后 294.58 → 292.94 KB）：自动骑车的路线计算和 BAYBAY 的转弯提示改成用到时才下载。检查：tsc 0、eslint 0 错误、全套 881 个测试全过；没有花 Higgsfield 积分。
+5. 进度（回复"现在进度如何"）：part b 已完成并推送（W4-IG12 至 W4-IG19）；桌面和手机的验收截图在 `docs/opus-bay/qa/w4/G/ib-*.jpg`。还剩下的主要是：几个地标的揭幕机位要 L 线调（唐人街龙门太低、萨特罗浴场被松树挡）、手机 4 倍降速的帧率要在机器空闲时由 V 线重测。
+
+### What was fixed (commits on `opus-bay`)
+
+| finding (verify report) | fix | evidence |
+|---|---|---|
+| **M1** phone · the 更多 menu under the action button (设置 opened the ferry) | `opus-bay.css`: the phone bar paints above the action (z 2); while the menu is open (`:has(.ob-bar-more)`) the action, its label and the touch move column step aside — `caaaff7` IG12 | real CDP taps at the ferry, 390 × 844: both rows hit-test to themselves, 设置 opens `panel: settings`; `ib-more-menu-390.jpg` |
+| **m1** phone · captions broke mid-word (渡 / 轮大厦码头) | `.ob-cinema-caption { width: max-content; max-width: … }` — IG12 | 375 × 667: one line, 321 px; `ib-caption-375-en.jpg` |
+| **m2** phone · targets under 44 px (lane G's four) | 跳过 44 px tall; the objective pill's hit area +3 px each way (`::before`); the camera slider 44 px; the hint's × a 44 px hit area mostly inside its label — IG12 | DOM: 跳过 56 × 44, slider 337 × 44, a hit-test 2 px over the pill and 8 px over the × land on them |
+| **visual F5 / district F1** the waypoint on 跳 / Hop | (part a IG1: `.ob-move-buttons > *` are HUD boxes) + the touch move column now stands above the projected waypoint (z 9) — IG12 | district 375 × 667 free roam: arrow 316–354 × 322–360, label ≤ 390, Hop 461–517: no overlap; `ib-district-waypoint-375.jpg` |
+| **district F2** desktop · the label under BAYBAY's "Ask me" badge | `.ob-ask-me` is a HUD box (`HUD_DECOR`: scanned although aria-hidden) — IG12 | sea-lion viewpoint 1440 × 900: label bottom 789, badge top 795; `ib-askme-waypoint-1440.jpg` |
+| **code F2** touch could not sit / stand on a ride | `TouchControls`: 坐下 / 站起来 (56 px) in the move column while on board a moving line, the touch twin of E — IG12 | a real Powell–Hyde ride at 390 × 844: taps flip `move.spot` rail → seat → rail; `ib-sit-stand-390.jpg` |
+| **content C14** the English waypoint label lost its time | the city label is two parts: the name gives way with an ellipsis, the time stays (`writeLabel`, guide-ui.css) — IG12 | 375 × 667 en: "Postcard clue · near Ferry Building clock to… · ~4s"; `ib-waypoint-time-375-en.jpg` |
+| **desktop D9** a gap after ’ in English postcard facts | `html[lang='en'] .ob-postcard-fact, .ob-title-h1 { font-family: var(--ob-font) }` — IG12 | — |
+| **desktop D2** (lane G part) Pier 41: Take me paced 60 s+ | `controller`: a long walk that has not come 2 u closer in 14 s gives up (`failPath`, `pathFailedFar`); the actor system says "这边走不过去了 · 打开地图换个方式吧" — `eb03878` IG13 (+ `e418669` IG13b: the test starts on the walled-in deck once lane T's W4-T16 moved the landing ashore) | node, the real chunks: from the old landing the walk paced (−238, 67) ↔ (−212, 69) for 64 s before, gives up at 19 s now (`sf-verify-g`) |
+| **desktop D5** (lane G part) the map's Ride parked the bike on Luz's card | `driveRoute.stopShortOf`: a drive ends ≥ 3.2 u short of a card / resident / place at its end (`parkSpotsNear`) — IG13 (lane C ranks the card over a parked ride) | in game Dolores Park → Clarion Alley: parked at (258.7, 609.2), 4.0 u from the card; `ib-bike-parks-short-clarion-1440.jpg`; test |
+| **desktop D6** the bike's Ride gave up 3× from Dolores Park | the autopilot waits ≤ 6 s for a person / traffic held in front (`giveWay` marks it) — IG13; a stuck drive takes a grid route round the spot to the route ≥ 14 u on (≤ 2 per drive) — `8ae3d83` IG14 | tests: a walker in front for 4.5 s → drives on (stuck without the wait); a blocked line → goes round (stuck without it). In game the same drive stuck once at the hairpin (266.5, 629.4) before IG14 and arrived in the runs after |
+| **desktop D10** the player's back over the resident | `camera.twoShotPose`: `pairOverlap` (the two bodies' angular widths from the candidate) prices a hidden speaker; a 1.9 × candidate angle; the city's walkers in the lens count like residents — IG13 | test (at 2.4–2.9 u the 0.65 × angle hides the speaker, 1.5 × does not); in game Luz and Dana both in frame; `ib-two-shot-dana-1440.jpg` |
+| **visual F6** (camera part) / **E2 w3 review open** blocked landmark zones | a landmark zone with no clear yaw within its width keeps the subject (search twice the width, each step past it priced) instead of the plain chooser — IG13; Fort Point's zone view close and low (9 u, pitch ≤ 0.1: under the bridge's arch) — IG14 | the five F6 arrivals by real fast travel at golden 1440: GGB, Castro (lane L moved the arrival), Chase Center, Grace frame their subject; Fort Point shows the fort's face (a steel column still dithered in front); `ib-arrival-ggb-1440.jpg`, `ib-arrival-fort-point-1440.jpg` |
+
+Findings in files lane G does not own — checked, each is in its owner's list and fixed there: code F1 (lane L `e56e20e`),
+F3 (lane V W4-V-I17), F4 (lane T W4-T19 pooled records; kitSwap / sites lane L), F5 (lane P W4-P-I13 and its review),
+F6 (lead); desktop D1 (lane L W4-IL11), D3 / D11 (lane T W4-T17 / T18), D4 (lane L W4-IL12), D7 / D8 / D14 (lane C),
+D12 (lane C: a lead to a deck goes through its entry), D13 (lane P); phone B1 (lane P W4-P-I11), M2 / m5 (lane T),
+M3 / m3 (lane P), m4 (lane C: no soft hint while riding), m6 (lanes T / L); visual F1–F4, F7–F10 (lane V), F2 (V / P);
+content C1–C13 (C / P / L / T) and C14's dialogue half (lane C).
+
+### Part a's open items
+
+| item | now |
+|---|---|
+| W4-G4 BAYBAY rides along by bike / car | `actors/vehicles/driveTalk.ts` (its own chunk): in the basket / front seat she points (`point`) ≈ 20 u before a turn over 45° ("前面左转！" / "前面右转！", the side as the rider sees it) and says a line at 1/3 and 2/3 of a drive ≥ 150 u; one cue every 6 s, none in the first 3 s, never over a line she is saying — IG13, `a0863c1` IG17, `b06a74a` IG18. In game Dolores → Clarion: 前面右转 · 前面右转 · 前面左转 · 前面右转 at the route's corners; `ib-bike-basket-turn-1440.jpg`. On the Metro LRV and every deck she stands 1.1 u aft of a standing rider (she stood on the rider behind the cab) — IG14 |
+| W4-G9 直接到站 veil; portal framing | the veil is lane T's (W4-T18: 直接到站 waits under the veil for a far / unstreamed stop). The train out of a portal: the ride camera looks back 3.2 s, pulled back 5 u, a little higher and 6° wider (the whole train and the mouth) — IG14, test |
+| E2 w3 review open: blocked zone arrivals swing | IG13 (above) |
+| panorama tags crowd at the horizon | tags nudge sideways (the anchor stays under the tag), lift up to 5 rows, then hang under their flag with the leader going up — IG14, `498ace0` IG15. Twin Peaks at golden: 7 of 8 at 1440 × 900 (3 before), 4 at 390 × 844; `ib-panorama-twin-peaks-1440.jpg`, `-390.jpg`; tests |
+| every T1 reveal pose | the photo pose of each T1 with a site, seen through the QA camera at golden: GGB, the Wharf, Lombard, the Painted Ladies, the Palace, Twin Peaks, City Hall good; SF State / Stonestown fair (Karl's fog); **Dragon Gate** too low and close (the gate's top leaves the frame), **Sutro Baths** two pines across the ruins, **Union Square** a building edge fills the left half → lane L. Alcatraz, the Ferry Building Marketplace, Golden Gate Park and Coit Tower have no site frame / photo, so no reveal (card only). `ib-reveal-pose-dragon-gate.jpg`, `-sutro-baths.jpg` |
+| flags and chevrons in-game cost | below (Evidence) |
+
+### Evidence
+
+- **Checks** (each push: tsc 0, whole-repo eslint 0 errors / 43 old warnings, the full suite): 853 / 854 before the IG12–13
+  push — the one failure was my new D2 test after lane T's W4-T16 moved the landing ashore (fixed in IG13b, the rest of
+  that tree green); **869 / 869 on the pushed tree `8ae3d83`**; **881 / 881 on the pushed tree `b06a74a`**. One timing
+  assert failed once under load (`sf-nav` "A* is time-sliced"); it passed alone.
+- **New tests** `tests/opus-bay-sf-verify-g.test.ts` (10): D2 walker on the real chunks (paced 64 s without the watchdog),
+  D5 park-short, D6 wait for a walker and D6 way round (each fails without its fix), D10 two-shot overlap, W4-G4 cues (side,
+  lead distance, thirds, pace, the opening hold), panorama tags on a crowded horizon and under a high skyline, W4-G9 portal
+  framing.
+- **GameRoot** (`vite build`): the tree without part b (IG12–IG17 reverted in place) 779.95 kB / 294.58 kB gzip → with part
+  b **776.93 kB / 292.94 kB gzip** (−3.0 kB): tap-to-drive's routing (`vehicles/driveRoute`, 9.14 kB) and BAYBAY's drive
+  cues (`vehicles/driveTalk`, 2.15 kB) are their own chunks, fetched when a bike / the toy car is mounted.
+- **Rendering** — part b adds no draw: the panorama tags, labels and menus are DOM. Measured on the RTX at golden:
+  1440 × 900 high at the Embarcadero, 6 flags: 112 calls with the flag mesh, 111 without, programs 58 both; phone mid
+  390 × 844: 3 flags picked (≤ 3), 73–81 calls, 283–305k tris. Phone profile at 4× CPU (Embarcadero, 390 × 844, mid):
+  35–42 fps, flags hidden 42 vs shown 38 — **void as a gate**: the host CPU was at 57–90 % (other agents); 1×: 57–60 fps.
+- **In the game** (screens read, `docs/opus-bay/qa/w4/G/ib-*.jpg`), the plan §5.5 shots:
+  - flags from the Ferry toward downtown on phones (≤ 3): `ib-flags-ferry-downtown-390.jpg`, `-375.jpg`; desktop
+    `ib-flags-embarcadero-west-1440.jpg`;
+  - the gold target flag over the downtown towers from the Embarcadero (a City Hall trip, the flag drawn over the
+    towers, the pin "San Francisco City Hall · ~2 min"): `ib-gold-target-city-hall-1440.jpg`;
+  - Twin Peaks panorama tags: `ib-panorama-twin-peaks-1440.jpg`, `-390.jpg`;
+  - edge arrow + BAYBAY's bubble: `ib-edge-arrow-bubble-390.jpg` (bubble docked under the top row), `-375.jpg` (label
+    337–362, bubble ≤ 287: clear), with the trip pill, coach mark and 自动跟上 BAYBAY;
+  - BAYBAY leading on foot with the chevrons: `ib-lead-chevrons-1440.jpg`;
+  - in the bike basket at a turn: `ib-bike-basket-turn-1440.jpg`;
+  - at a stop with the pre-filled boarding: `ib-line-stop-boarding-1440.jpg` (the California cable car to Union Square;
+    see Known gaps for the bus);
+  - the SF State arrival card on a phone: `ib-arrival-card-sfsu-390.jpg` (抵达 · photo · 看介绍 · 拍照, BAYBAY's line).
+
+### Decisions
+
+- The phone menu hides the action, its label and the move column while open (not only a z-index): a half-covered 跳
+  beside the menu read as a second menu row.
+- The walk watchdog is for long walks only (the graph route); short walks keep their re-plan-3×-then-give-up rule.
+- A drive parks short only of things you walk up to (postcards, residents, cards, places); a plain ground tap drives to
+  the point as before.
+- The drive keeps going to the drivable point nearest the destination (then the planner's tail walk leg) rather than
+  stopping 30 u short as the plan wrote: the player arrives sooner and BAYBAY still hops out for the last steps.
+- Drive cues are text + the pointing gesture (no new recording); the words are lane G's (`driveCueLine`).
+- A blocked landmark zone never falls back to the plain chooser (the subject stays in frame; the dither thins what is in
+  between), after E2's note that narrowing the width alone made it worse.
+
+### Known gaps
+
+- Fort Point's arrival still has one of the bridge's steel columns (dithered) between the camera and the player.
+- The sightseeing bus is never offered from downtown: with honest waits (up to a lap) and the loop's length, walking is
+  faster from the Ferry to the Palace / the Wharf / the bridge, so the plan's example row "🚌 观光巴士 2 站 约 3 分钟"
+  does not occur (the planner works as specified).
+- BAYBAY's point is the generic gesture (it does not aim left / right); the words carry the side.
+- The phone 4× gate could not be measured on a quiet machine.
+
+### Not done
+
+- Owner feedback of 2026-09-27 (`docs/opus-bay/owner-feedback-2026-09-27.md`, wave 5): F1 (stuck after landing) and F2
+  (walking snags) touch lane G's files; the D2 watchdog and the D6 way round are partial answers, the sweep is wave 5's.
+
+### Requests
+
+- **Lane L**: reveal / photo poses — `chinatown-dragon-gate` (too low and close: the gate's top leaves a 16:10 frame),
+  `sutro-baths` (two pines between the pose and the ruins), `union-square` (a building edge fills the left half); a
+  site frame + photo for Coit Tower, the Ferry Building Marketplace, Golden Gate Park and Alcatraz if they should reveal.
+- **Lane C**: the arrival card's [下一站] still needs the tour's "next stop" entry point (part a request); BAYBAY's drive
+  cues now wait while any bubble shows (the trip's "骑车出发！" is not stepped on).
+- **Lane V**: re-run the phone 4× gate on a quiet machine with the flags on (the 1-call mesh) and the chevrons.
+- **Lead / wave 5**: owner feedback F1 / F2 (above) belong with lane G's actors in wave 5.
+
+Relayed owner message during this part: "现在进度如何" — answered in summary item 5.
