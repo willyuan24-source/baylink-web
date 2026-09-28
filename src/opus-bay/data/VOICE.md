@@ -165,3 +165,18 @@ what BAYBAY says and what the cards print. SFMTA's own Chinese station list coul
 | Holloway (the M stop at SF State) | Holloway | | no Chinese name |
 | Sunset Tunnel · Twin Peaks Tunnel | 日落隧道 · 双峰隧道 | | |
 | the Grand Tour | 环游旧金山 · 一日游 | | "继续一日游 · 第 3 章" when resumed |
+
+### Wave 5 additions (day 0, the lead: coins, the shop, the notebook, finds, the daily three)
+
+Every lane writes these words exactly (bubbles, cards, the HUD, the shop, the notebook). Bubbles stay ≤ 45 characters
+in zh; the tone is warm and never pushes (no "快来", no "别错过", no "明天就没了").
+
+| en | zh (say this) | not | note |
+|---|---|---|---|
+| coin(s) | 金币 | 硬币 · 金钱 · 钱 | the owner's word; toy gold discs with an otter-paw emboss; the HUD shows 🪙 n; "+10 金币" |
+| the shop (BAYBAY's shop) | 小铺 · BAYBAY 小铺 | 商店 · 商城 · 市场 | More → 小铺, and the Ferry Building back-plaza stall on non-market days; "今天集市，小铺在「更多」里。" |
+| the notebook (travel journal pages) | 手帐 · 旅行手帐 | 笔记本 · 日记 | the Journal tab for stamps, finds, views and footprints; the Journal itself stays 旅行本 |
+| a find / an easter egg | 小发现 | 成就 · 隐藏任务 | the 手帐 page, the find card and BAYBAY's lines; 彩蛋 only in 彩蛋明信片 (the six secret postcards) and when talking about the game from outside (reports, the owner's summaries) |
+| a view spot / the slow look | 看风景 | 观景 · 风景点 (as the verb) | the 手帐 page and the prompt 坐下看风景; the place itself may be a 观景台 |
+| the daily three | 今日三件小事 | 每日任务 · 签到 | three small things for today's Bay date; skipping a day loses nothing |
+| the flight ticket | 飞行券 | 机票 · 传送券 | one 飞过去 before the pelican unlock (the first is free); hidden after the unlock, an unused one gives back 10 金币 |
