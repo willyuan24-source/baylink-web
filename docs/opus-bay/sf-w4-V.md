@@ -858,3 +858,208 @@ New APIs: `registerVoiceClips(clips, skip?)`; `lateWarmups`, `WARM_DEPTH_KINDS`;
   warm-ups, the depth kinds), sf-budget (`?debug` placement), sf-atmos (crown, night bank, melt), h2b-assets (flush boards),
   w4-assets (registration, `registerVoiceClips`, the Draco heroes, TOUR_LINES_2), w4-postcards (manifest).
 - One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
+
+## Integration part b
+
+Wave-4 integration of lane V, part b (the verify findings and QA), 2026-09-27 / 28. Worktree `C:/Users/willy/wt/i4-v`
+(branch `i4-v`), dev port 5406, scratch `C:/Users/willy/opus-qa/w4i/i4-v/b/`. Brief: fix every finding of the verify
+finders that lies in lane V's files (C2's, H2b's, D2's asset pipeline, the lane's own), finish part a's list, take the plan
+§5.7 QA in the real game (desktop + phone) with calls / triangles / programs.
+
+### 给主人的摘要
+
+0. **进度（回答"现在进度如何"）**：V 线接线第二部分完成，10 个提交都已推送，全部检查通过（881 个测试全绿）。检查员找到的问题里落在 V 线文件的都处理完了；桌面性能关 13 个测点 + 3 段乘车全部通过；手机性能关这次机器比较空（后台约 30%），6 个老测点过了 3 个，差的是双峰顶（约 38 帧）和 Mission 边走边加载，最终以总负责人在安静机器上的复测为准。
+1. **修好的问题**：画质"选回自动那一档"时没被记住（手机下次又从高画质开局）；耶尔巴布埃纳岛（YBI）不再是光秃秃的沙丘，是绿色的林岛；渔人码头电车架空线补上电杆（不再是天上悬着的黑条；只改城市模式，老区不动）；清晨滑翔飞过卡尔雾上空时能隐约看见地面（双峰顶看到的白色雾海不变）。
+2. **卡顿**：手机画质自动从"均衡"降到"省电"那一刻，原来要临时编译 14 个着色器、最长卡 3 秒多；现在开局几秒后在后台一个一个提前编好，切换时 0 个新编译、最长一帧 0.07–0.26 秒。场景里暂时看不见的东西（夜里的光束、帆船、提示标记）也提前编好，第一次出现时不再卡一下。
+3. **首屏包**：把城市模式专用的几段代码搬进城市分包，GameRoot 比推送前的 origin 小。
+4. **没做成 / 留给别人**：三种房子的夜间亮窗（贴图里没有窗户，要重画贴图）；手机性能最终复测（总负责人）；桌面轮渡大厦门口测点只剩约 1k 三角形余量，大头是 T 线的"城市生活"和角色（请求已写）。
+5. **花费**：0 分（这部分没有调用 Higgsfield）。
+
+### What was done (pushed to `opus-bay`, last `c71b4dc`)
+
+| commit | what | main files |
+|---|---|---|
+| `58207f8` W4-V-I17 | A quality pick back to the automatic level is remembered (verify-code F3): the module's own writes are flagged (`applying`), not compared by value | `world/quality.ts`, `tests/opus-bay-quality.test.ts` |
+| `a68106b` W4-V-I18 | Warm-up, part b: `NEXT_WARM_MS` (4 s) after a full warm-up, in the background, the **live scene** at the current level (one object per material, hidden ones too), then the **next level** the adaptive monitor would step down to (the dummies + the visible objects, the shadow map and the casting lights lifted for each synchronous compile call only), one object per compile call with its link awaited; `TOY_DYN` joins the dummies; `quality.ts nextWarmState` (null for low and for a `?quality=` link) | `world/warmup.ts`, `game/GameRoot.tsx`, `world/quality.ts`, `tests/opus-bay-sf-perf.test.ts` |
+| `f54e4a3` W4-V-I19 | The World's city part (streamer start, Karl's bank, the light field, murals, `?debug`, the hero lot cuts, the west seawall, Angel Island's board) moves to the city chunk: `world/sf/cityWorld.ts`, exported through `cityMode.ts` | `world/world.ts`, `world/sf/{cityWorld,cityMode}.ts` |
+| `efca55b` W4-V-I20 | Yerba Buena Island's hill paints as forest (verify-visual F7): `look.ts LAND_PATCHES` / `landPatchAt`, plain land above y 2.5 in the island's circle, near (build.ts) and far (far.ts) tiers alike | `world/sf/{look,build,far}.ts`, `tests/opus-bay-sf-look.test.ts` |
+| `4814f72` W4-V-I21 | City mode carries the F-line poles on along Jefferson St to the wires' end (verify-visual F9); district geometry unchanged (first version in `ground.ts`, moved in I25) | `world/ground.ts`, `world/world.ts`, `tests/opus-bay-hero-regression.test.ts` |
+| `5233b63` W4-V-I22 | A glide over Karl's bank still sees the ground (verify-visual F10): 30 → 70 u above the fog top the bank's amount is capped at 1 − 0.35 (`KARL_GEO.glide`), in the GLSL and the JS mirror | `world/fogShader.ts`, `world/sf/fog.ts`, `tests/opus-bay-sf-atmos.test.ts` |
+| `197c55a` W4-V-I23 | QA sheet: D2's shipped AI landmarks from their unseen sides (no decimation streaks to re-bake) | `docs/opus-bay/qa/w4/V/ib-d2-ai-sides.jpg` |
+| `6595faf` W4-V-I24 | Perf gate: two downtown spots (Grace on Nob Hill, Powell & Market: lane L's request) and the part-b table; QA sheets of the four AI landmarks and of the gate's spots | `scripts/opus-sf/qa/perf/w4-spots.json`, `tests/opus-bay-w4-assets.test.ts`, `qa/w4/V/ib-*.jpg` |
+| `ee392e7` W4-V-I25 | The Wharf poles move from `ground.ts` to the city chunk (`cityWorld.wharfPoles`, same poles): the second push had grown GameRoot by 210 B | `world/{ground,world}.ts`, `world/sf/{cityWorld,cityMode}.ts`, hero-regression test |
+| `c71b4dc` W4-V-I26 | City mode's hero ground chunks are picked in the city chunk (`cityWorld.heroGroundOf`) | `world/world.ts`, `world/sf/{cityWorld,cityMode}.ts` |
+
+New APIs: `nextWarmState(q)` (world/quality.ts); `WarmState`, `NEXT_WARM_MS`, `LIVE_BATCH`, `LIVE_GAP_MS`, `liveObjects(scene,
+visibleOnly)`, `warmPrograms(…, { offscreen, next })` (world/warmup.ts); `LAND_PATCHES`, `landPatchAt` (world/sf/look.ts);
+`KARL_GEO.glide` (world/fogShader.ts); `startCityWorld`, `westSeawall`, `wharfPoles`, `heroGroundOf`, `angelIslandBoard`,
+`dropLotTriangles`, `haloLights` (world/sf/cityWorld.ts, city chunk).
+
+### The findings in lane V's files
+
+| finding | state | evidence |
+|---|---|---|
+| verify-code **F3** (minor) — a quality pick equal to the automatic level is not remembered | **fixed** I17 | the new test drives the Settings panel's own write path (`keepSetting` + `game.set`) with a coarse-pointer / DPR 3 window stub: the old code leaves `{ stored: 'high', live: 'mid' }` (fails), now `mid`; a monitor step is still never saved |
+| verify-visual **F7** (minor) — Yerba Buena Island a bare tan dune | **fixed** I20 | `qa/w4/V/ib-ybi-forest.jpg` (the finder's view · the same camera after · from the Embarcadero); the test pins the island, its flat shore, Treasure Island and the city |
+| verify-visual **F9** (minor) — the Jefferson St wires without poles | **fixed in city mode** I21 / I25 | `qa/w4/V/ib-wharf-poles.jpg` (the finder's two views vs after: from above and at walking height); test: poles only past station 368, ≤ 5.8 u, the last within 7 u of the wires' end; the district World stays pinned by the hero regression |
+| verify-visual **F10** (minor, "owner decision") — the morning glide over the west side a whiteout | **fixed, moderately** I22 | `qa/w4/V/ib-karl-glide-morning.jpg` (before / after: Ocean Beach at y 90, the Sunset at y 95, the Twin Peaks summit unchanged); tests: amount ≤ 0.65 at y 150, < 0.75 at y 100, the summit's Sunset still > 0.9 |
+| verify-visual **F2** (major; P's part fixed in `W4-P-I12`) — the zoomed-out paper ends in a polygonal sea board on the cream table | **kept (Decisions)** | the painted paper is the city board on its table, like the 3D world's own board; P's cross-fade hands every close zoom to the vector map |
+| verify-visual F1 / F3 / F4 / F8 | fixed in part a (I13, I1, I14, I15) | part a |
+| verify-code **F1** (major) — kit instances past the 12-slot mesh | already fixed on origin (`e56e20e`, D2-review: `KIT_SLOTS` = 2 × the cap; `kitSwap.ts` is lane L's now) | — |
+| verify-code F6 — `.vite-opus` not ignored by eslint | applied by the lead-merge (§8.2) | — |
+| verify-phone (part a's known gap) — the adaptive step mid → low links ≈ 20 programs at once | **fixed** I18 | Evidence · warm-up |
+
+Every other finding lies in another lane's files and is in that lane's list; lanes T, G, P, L and C pushed their fixes during
+this part.
+
+### The rest of part a
+
+| item | state |
+|---|---|
+| phone perf gate (void in part a) | run again at ≈ 30 % host load: 3 of the 6 old spots and the M ride pass (Evidence); the quiet-machine number stays the lead's W4-Z |
+| kit night-glass masks (marina-mediterranean, sunset-doelger, edwardian-flats) | not done: their textures have no windows (part a's sheet); needs a re-texture |
+| texel re-bake of D2's eight wave-3 SAM landmarks | **checked, not needed**: the shipped ones from their unseen sides (SoloView left / back, `ib-d2-ai-sides.jpg`) show no decimation streaks (stone palettes; the streaks were red tile over cream walls on St Ignatius) |
+| verify-visual F7 / F9 / F10 | done (above) |
+| warming the low variants while at mid | done (I18) |
+| GameRoot ≤ 250 KB gzip | the lead's split decision; lane V's pushes left GameRoot smaller (Evidence · bundle) |
+| H-8 generated SFX | waits for the owner's listening pass of lane T's line sounds (no credits spent) |
+| lane L's request: a downtown spot near Grace / Powell & Market | done (I24): both pass at quality high |
+
+### Evidence
+
+- **Checks** on the pushed tree `c71b4dc`: `tsc` 0 · `eslint .` 0 errors (43 warnings, none in lane V's files) · **881 / 881**
+  opus-bay tests (hero regression and contracts green). Every push ran them after its last rebase (844, 852, 857, 867, 881).
+- **Warm-up** (phone profile 390 × 844 dpr 3 without `?quality=`, so the device rule starts at mid; city start at Powell &
+  Market; the RTX at 1× CPU; `warm-next.mjs` forces the monitor's step mid → low through the store after the passes):
+
+  | tree | after the boot warm-up | background passes | programs linked at the step | longest frame at the step |
+  |---|---|---|---|---|
+  | origin behaviour (no next level) | 42 (+2 on first sight) | — | **14** | **3,296 ms** |
+  | the dummies only at the next level | 42 | next +17 | 4 (ob-toy-dyn, ob-flap, an unnamed basic, the sailboats' Material_0) | 470–626 ms |
+  | **I18** (TOY_DYN dummy, live pass, next = dummies + visible objects) | 42 | live +10 (2.1 s), next +32 (4.3 s) | **0** | **65–257 ms** (four runs) |
+
+  The passes' own cost: one compile call for everything held ≈ 0.5 s render stalls on the RTX (the next frame's first sync
+  call waited for a deep queue of links); batches of 3, 190–240 ms; one object per call with its link awaited, 33–162 ms
+  (the compile calls themselves ≤ 17 ms). In the city at quality high (a `?quality=` link: no next level) the live pass adds
+  10 programs (48 → 58) and the perf gate stays 58 → 58 over 13 spots and 3 rides; district mode 50 → 69, then flat.
+- **Bundle** (`vite build`, gzip -9, each tree built from `git archive`): push 1 `a14658e` → `f54e4a3`: GameRoot 292,089 →
+  291,559 B (−530); push 2 `8ae3d83` → `197c55a`: 294,767 → 294,977 (+210: the Wharf poles in `ground.ts` and the Karl cap);
+  push 3 (I25 / I26 took both moves out again) `163bb88` → `c71b4dc`: 290,657 → 290,448 (−209), and the second push's tree
+  with them 294,756 (< 294,767). The city chunk grew 41,351 → 43,167 B with what it took over.
+- **Desktop perf gate** (`w4-perf.mjs`, RTX 3070 laptop, 1440 × 900, quality high, golden, on the dev tree of I24 before its last rebase, with
+  every lane's pushes up to then). All pass, ≈ 60 fps, no frame over 100 ms:
+
+  | spot / ride | calls | triangles | programs | gate |
+  |---|---|---|---|---|
+  | ferry-gate | 103 | **399k** (walking; 384k standing) | 58 | pass |
+  | chinatown | 126 | 394k (396k on the aimed QA pose) | 58 | pass |
+  | twin-peaks | 121 | 380k | 58 | pass |
+  | ocean-beach | 45 | 105k | 58 | pass |
+  | ggb-south | 52 | 111k | 58 | pass |
+  | mission (aimed) | 78 | 323k | 58 | pass |
+  | union-square | 87 | 284k | 58 | pass |
+  | civic-center | 78 | 259k | 58 | pass |
+  | music-concourse | 88 | 249k | 58 | pass |
+  | stonestown-sfsu (aimed) | 71 | 204k | 58 | pass |
+  | haight-usf (aimed) | 93 | 287k | 58 | pass |
+  | **grace-nob-hill** (new; aimed at the Financial District) | 111 | 397k | 58 | pass |
+  | **powell-market** (new; aimed up Market St) | 108 | 394k | 58 | pass |
+  | ride bus-palace | 77 | 287k | 58 | pass |
+  | ride n-duboce | 78 | 264k | 58 | pass |
+  | ride m-west-portal | 75 | 250k | 58 | pass |
+
+  The Ferry gate (budget-views `perf-ferry`, 384k standing): hero buildings 81k, hero ground 47k, **life 47k** (lane T), city
+  pool toy 40k, **actors 35k + 24k shadow**, pool ground 34k, city water 20k, city landmarks 11k, Karl's clouds 8.6k,
+  streetcars 8k. Sheet: `qa/w4/V/ib-perf-desktop-spots.jpg`.
+- **Phone perf gate** (390 × 844, dpr 3, quality mid, 4× CPU, the RTX; host ≈ 30 % busy at the start, other lanes' checks
+  came and went; the rides at ≈ 60 %): the first non-void run, not yet the quiet-machine number:
+
+  | spot / ride | calls | triangles | fps idle / walk (ride) | p95 ms | frames > 100 ms | gate |
+  |---|---|---|---|---|---|---|
+  | ferry-gate | 84 | 319k | 57.8 / 47 | 33.4 | 0 | pass |
+  | chinatown | 101 | 317k | 53.4 / 53.9 | 33.3 | 0 | pass |
+  | twin-peaks | 93 | 261k | 37.6 / 39 | 49.9 | 2 | fail |
+  | ocean-beach | 39 | 99k | 48.2 / 57.1 | 16.8 | 1 | fail (one frame) |
+  | ggb-south | 47 | 101k | 59.2 / 59.8 | 16.7 | 0 | pass |
+  | mission | 64 | 250k | 53 / 34.2 | 50 | 1 | fail (walking) |
+  | ride bus-palace (camera path) | 61 | 225k | (39.6) | 49.9 | 3 (worst 216 ms) | fail |
+  | ride n-duboce | 62 | 222k | (41.2) | 50 | 3 | fail |
+  | ride m-west-portal | 60 | 230k | (55.1) | 33.3 | 0 | pass |
+
+  Part a's void run (host at 72 %) had every spot at 26–43 fps with 1–18 frames over 100 ms. Where the time goes at Twin
+  Peaks (CPU profile, 4×): three.js traversal and draw submission (projectObject 4 %, updateMatrixWorld 4 %, setProgram 4 %,
+  native submission 31 %), no lane module above 2 %; its draws (budget-views `tp-walk`, phone, 105 main + 4 shadow): **actors
+  21**, city landmarks 15, hero landmarks 12, city water 12 (3 water + 9 board-edge chunks), props 8, L0 6 + 6, streetcars 6,
+  backdrop 4, floaters 4. Per frame the skinned characters re-upload 12 bone textures and lane T's per-object-culled
+  `w4-vehicles` BatchedMeshes their indirect / matrix textures (main + shadow).
+- **QA shots in the real game** (every image read): the four AI landmarks at golden and night on desktop (St Ignatius 85
+  calls / 303k, Cal Academy 67 / 216k, Holy Virgin 104 / 352k, the Chinese Pavilion 78 / 198k; programs 57–58) and at
+  golden on the 390 × 844 phone at mid (70 / 235k, 59 / 166k, 61 / 230k, 58 / 149k; programs 54–55):
+  `qa/w4/V/ib-ai-landmarks-desktop.jpg`, `ib-ai-landmarks-phone.jpg`. Tour narration in the city (zh): the table registers
+  on import (216 clips) and a `voice-line` for `loop-ferry-building-approach` plays the recorded clip
+  (`voice-clip:zh-loop-ferry-building-approach`, not the chirp). City mode after the World refactor (I19, I25, I26):
+  streaming, Karl, murals, the light field, `?debug` and the Wharf poles as before (the Dragon Gate 122 calls / 387k);
+  district mode unchanged (the Ferry gate 74 calls / 232k).
+
+### Decisions
+
+- **Warm the live scene, not only the registered sets.** three's `compile()` takes each material once with the first object
+  that uses it, which is right under the one-material-per-object-kind rule, so every material on stage (hidden until night,
+  outside the view, a pool's spare) links before it is first seen, whoever owns it. This closes part a's requests to lanes
+  T (the sailboats' GLB material) and G (an unnamed basic marker). Objects created later still rely on `registerWarmup`.
+- **The next level warms only what could be on screen at the step** (the dummies and the visible objects): the whole live
+  scene at low was 42 programs, the visible part 32. A hidden object links on first sight at low, as it did at mid before.
+- **One object per compile call, each link awaited, 32 ms apart**: slower (≈ 2 + 4 s in the background, from 4 s after the
+  boot warm-up: normally behind the title) but the render never waits on a deep queue of links.
+- **`?quality=` links warm no next level** (the monitor is off there): the gate's program counts are those of a locked
+  level; a player's phone has ≈ 30 more programs (the low variants), linked in the background.
+- **F9 in city mode only**: "district mode never changes" wins (the hero regression pins it); the poles live in the city
+  chunk, so neither district mode nor GameRoot carries them.
+- **F10 moderate**: the cap starts 30 u above the fog top, so the Twin Peaks summit (≈ 20 u above the morning top) keeps its
+  opaque sea, and a glide at 100 u and more sees the ground at ≈ 30–35 %.
+- **F2's board kept**: the painted paper is a board on its table (the 3D world is one too); extending the painted sea past the
+  board would repaint the art for zooms below the city fit, and P's cross-fade already makes close zooms vector-only.
+- **YBI as a landcover patch** (`LAND_PATCHES`), not a chunk rebuild (plan R16): one circle over the hill above its flat
+  shore; Treasure Island (flat, built up) stays as the data says.
+- **GameRoot**: the city part of `World` (the streamer start, the Wharf poles, the hero ground pick, the seawall, Angel
+  Island's board, the lot cuts) lives in the city chunk; lane V's pushes leave GameRoot below origin.
+
+### Known gaps
+
+- The Ferry gate has ≈ 1k triangles of headroom at quality high while walking (399k; 384k standing); Grace and Powell &
+  Market 3–6k, Chinatown 4–6k. The levers are lane T's life (47k at the Ferry) and the actors (35k + 24k shadow); lane V's
+  share there is the far pools and the water.
+- The phone gate at Twin Peaks (≈ 38 fps at 4×) is draw-call bound: 105 calls, 21 of them actors. Merging the hero landmarks
+  (12) or the board-edge chunks (9) in city mode would save calls there but add triangles (and shadow triangles) at the Ferry
+  gate, which has no margin left; left for the lead's decision with the quiet-machine numbers.
+- The background passes still cost single render stalls of up to ≈ 160 ms on the RTX while a heavy program links; the boot
+  warm-up itself stalls ≈ 0.4–0.7 s behind the title, as before.
+- `?debug`'s "+N since" (G1's line) now counts the live pass's programs too.
+
+### Not done
+
+- Kit night-glass masks for the three maskless houses (a re-texture; their atlases have no windows).
+- The quiet-machine phone gate (the lead's W4-Z).
+- H-8 generated SFX (waits for the owner's listening pass).
+
+### Requests
+
+- **Lead (W4-Z)**: the phone gate on a quiet machine (this part's run is the first non-void one); the Ferry gate's 1k margin
+  and the Twin Peaks phone draw calls (Known gaps). Ledger: no new rows (0 credits in part b).
+- **Lane T** (optional): the life group at the Ferry gate (47k: pedestrians, sailboats, gulls instanced over the district)
+  is the biggest lever for the desktop margin; the `w4-vehicles` / `w4-vehicles-far` / `w4-stops-portals` BatchedMeshes are
+  per-object culled, which re-uploads their indirect texture every render (main + shadow pass).
+- **Lanes G / C / T** (optional): 21 actor draw calls at the Twin Peaks summit on the phone (sightseers, residents, BAYBAY,
+  the player): fewer sightseers per plaza at quality mid would help the phone gate most.
+- **Withdrawn**: part a's requests to lane T (warm the sailboats' material) and lane G (the unnamed MeshBasicMaterial
+  marker): the live-scene pass compiles both now.
+
+### Checks
+
+- `node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`: 0 errors (on `c71b4dc`).
+- `node node_modules/eslint/bin/eslint.js .`: 0 errors (43 warnings, none in lane V's files).
+- `node node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **881 / 881**, incl. hero
+  regression and contracts. Lane V's new or changed tests: quality (F3, `nextWarmState`), sf-perf (live objects; the live
+  and next passes with the shadow state lifted per call), sf-look (the YBI patch), hero-regression (the Wharf poles),
+  sf-atmos (the glide cap), w4-assets (the two downtown spots).
+- One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
