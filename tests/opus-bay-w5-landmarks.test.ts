@@ -289,6 +289,8 @@ test('W5-L2: the fire rings burn only in the NPS season and hours (1 March – 3
     at('2026-10-03T19:00');
     assert.equal(R.buildKey!(), 1);
     assert.ok(glow() > 0, 'the embers glow');
+    const g = buildLandmark(R, 0, 0), tris = (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
+    assert.ok(tris <= 800, `lit, the rings stay in the tier-3 cap: ${tris} ≤ 800`);
     assert.equal(ringLights(), 8, 'eight fire lights');
     // the Bay clock is asked at most every 15 s (buildKey runs every frame while the lod 0 is near)
     __setBayNowForTests('2026-11-05T19:00');

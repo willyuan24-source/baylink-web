@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import { isFireRingLit } from '../../../realsf/seasons';
 import { BOX, type BatchLike, M } from '../../builder';
-import { lathe, worldPoly } from './kit';
+import { NONE, lathe, worldPoly } from './kit';
 import { type W4Site, siteGround } from './siteKit';
 
 /**
@@ -52,8 +52,11 @@ function build(b: BatchLike, lod: 0 | 2) {
   const on = fireRingsLit();
   for (let k = 0; k < N; k++) {
     const r = ring(k);
-    // a low concrete ring, its inside falling to the ash and, in the fire season's hours, the embers (glowing a little)
-    lathe(b, [[0.55, -0.1], [0.55, 0.42], [0.38, 0.42], [0.36, 0.12], [0.02, 0.1]], r.x, r.y, r.z, (ly: number) => new THREE.Color(ly > 0.3 ? CONCRETE : ly > 0.15 ? ASH : on ? EMBER : COLD), [0, 0, 0, on ? 0.6 : 0], 5);
+    // a low concrete ring, its inside falling to the ash (the concrete never glows: W5-L2 lights only the embers)
+    lathe(b, [[0.55, -0.1], [0.55, 0.42], [0.38, 0.42], [0.36, 0.12], [0.02, 0.1]], r.x, r.y, r.z, (ly: number) => new THREE.Color(ly > 0.3 ? CONCRETE : ly > 0.15 ? ASH : COLD), NONE, 5);
+    // in the fire season's hours a toy flame burns in every other ring (the ones the night lights stand over; the rings
+    // are first come, first served), rising over the rim so it reads from the promenade
+    if (on && k % 2) lathe(b, [[0.26, 0.12], [0.02, 0.78]], r.x, r.y, r.z, EMBER, [0, 0, 0, 0.9], 5);
   }
 }
 
