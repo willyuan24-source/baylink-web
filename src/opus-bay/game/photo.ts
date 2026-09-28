@@ -1,10 +1,12 @@
 import { emit } from '../core/events';
 import { flow } from './flowStore';
+import { decorateFrame } from './photoFrames';
 
 /**
  * Photo mode capture. The WebGL canvas does not preserve its drawing buffer, so the shutter only raises a
  * flag; the Canvas-side system copies the frame in a microtask right after R3F renders it (same task,
- * before compositing), then frames it as a small polaroid and saves a PNG.
+ * before compositing), then frames it as a small polaroid and saves a PNG. Wave 5: the frame decorators of
+ * game/photoFrames.ts (`registerFrameDecorator`, lane E's frames) paint on the finished card before it is saved.
  */
 
 let requested: null | { caption: string; stamp: string } = null;
@@ -52,6 +54,8 @@ function compose(source: HTMLCanvasElement, caption: string, stamp: string) {
   ctx.fillStyle = '#2f8f88';
   const stampWidth = ctx.measureText(stamp).width;
   ctx.fillText(stamp, out.width - pad - stampWidth, h + pad + band / 2);
+  // wave 5 (W5-C1): the registered frame decorators paint on the finished card (lane E's shop frames)
+  decorateFrame({ ctx, width: out.width, height: out.height, photo: { x: pad, y: pad, w, h }, band: { x: 0, y: h + pad, w: out.width, h: band }, pad, caption, stamp, at: new Date() });
   out.toBlob(blob => {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
