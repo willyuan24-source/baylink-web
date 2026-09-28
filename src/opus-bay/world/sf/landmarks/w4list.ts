@@ -1,4 +1,5 @@
 import type { W4Site } from './siteKit';
+import { aquaticParkBathhouse } from './aquatic-park-bathhouse';
 import { asianArtMuseum } from './asian-art-museum';
 import { bakerBeach } from './baker-beach';
 import { beachChalet } from './beach-chalet';
@@ -110,4 +111,5 @@ export const W4_SITES: readonly W4Site[] = [
   asianArtMuseum,
   websterBridge,
   oceanBeachFireRings,
+  aquaticParkBathhouse,
 ];

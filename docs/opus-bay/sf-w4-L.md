@@ -347,7 +347,7 @@ no other lane's file was edited. Higgsfield: 0 credits.
 2. 每个地点都在三角形预算内（最多 772 / 800），都有能走到的到达点、地图旗杆、照片机位；全套测试 807 个全部通过，每个地点都截图看过。
 3. 上一轮复查留下的 3 件事都做了：高度规则（'ground' 改成 'overlook'，并记下实测高度）、一个地点只对应一个主记录（城市学院）、海洋海滩北段的 16 个篝火圈（晚上有火光）。
 4. 圣母大教堂和中国亭的 AI 模型摆放数据补齐了（V 组已经用上）；草莓山岛现在画成陆地了（V 组修的），中国亭保留石台基（V 组的模型就放在上面）。
-5. 没做：渔人码头西（海事博物馆、潜艇——潜艇离手工码头区只有 3.7 单位，放不下）、唐人街宝塔群（主程序已定本波只做卡片）。
+5. 渔人码头西做了海事博物馆（1939 年像邮轮的浴场大楼）；没做：潘帕尼托号潜艇（离手工码头区只有 3.7 单位，放不下）、唐人街宝塔群（主程序已定本波只做卡片）。
 
 ### What was built (files, API)
 
@@ -390,6 +390,7 @@ or along the block for a street site):
 | `war-memorial` | the Opera House and the Veterans Building (colonnades to Van Ness, the fly tower), the Memorial Court | 3 | 422 / 800 | 72 % (stated) |
 | `asian-art-museum` | the 1917 library block with its colonnade on the Larkin St front | 3 | 256 / 800 | 93 % |
 | `webster-bridge` | Japan Center's glazed bridge over Webster St (curved roof, mullions, lit), the street re-laid under it | 3 | 208 / 800 | 86 % |
+| `aquatic-park-bathhouse` | wharf west: the 1939 Streamline Moderne bathhouse (the Maritime Museum) as an ocean liner — three white decks with rounded bow and stern, dark window bands lit at night, navy rails, a signal mast | 3 | 324 / 800 | 70 % (stated) |
 | `ocean-beach-fire-rings` | the Early review's open item 16: the 16 NPS fire rings in a row on the sand between Stairwell 15 (JFK Dr) and Stairwell 20 (Lincoln Way), embers glowing in the evening; a shared setting (no attraction; the Murphy Windmill's place row) | 3 | 640 / 800 | 96 % |
 
 Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id` / `.at` first, as lane V asked.
@@ -455,8 +456,7 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
 
 ### Not done
 
-- `wharf-west`: the Maritime Museum's Aquatic Park Bathhouse (OSM way 32839686 and two parts) and the USS Pampanito
-  (the hero-slab conflict above).
+- `wharf-west`'s USS Pampanito (the hero-slab conflict above; the bathhouse is built).
 - `chinatown-pagodas` (the lead's decision); P4 is the tier-3 lane's (`w4list3.ts`).
 - The items routed to lane L in lead §8.4 (the `kit.pyramid` turn, D2's remaining T2 settings): existing files, left to
   the integration lane.
@@ -472,7 +472,7 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
   `node node_modules/tsx/dist/cli.mjs`, `node node_modules/typescript/bin/tsc` and
   `node node_modules/eslint/bin/eslint.js` instead (never an npm install).
 
-Status (2026-09-27): 第二轮 24 个新记录（23 个地点 + 北段篝火圈）已推送；渔人码头西没做（原因见上）。
+Status (2026-09-27): 第二轮 25 个新记录（24 个地点 + 北段篝火圈）已推送；潘帕尼托号潜艇和唐人街宝塔群没做（原因见上）。
 
 ## Integration part a
 

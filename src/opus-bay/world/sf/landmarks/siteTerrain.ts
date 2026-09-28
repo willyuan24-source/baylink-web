@@ -8,6 +8,17 @@
 export interface SiteTerrainGrid { base: number; x0: number; z0: number; step: number; cols: number; rows: number; h: readonly number[] }
 
 export const SITE_TERRAIN: Readonly<Record<string, SiteTerrainGrid>> = {
+  'aquatic-park-bathhouse': {
+    base: 0.2, x0: -7, z0: -3, step: 2, cols: 8, rows: 6,
+    h: [
+      124, 117, 103, 110, 111, 107, 98, 99,
+      104, 90, 100, 102, 103, 98, 88, 93,
+      93, 55, 33, 30, 28, 34, 64, 75,
+      46, 19, 13, -2, -1, 11, 22, 33,
+      -9, -6, -4, -16, -16, -10, -7, -5,
+      -16, -20, -20, -20, -20, -20, -20, -19,
+    ],
+  },
   'asian-art-museum': {
     base: 3.01, x0: -5, z0: -9, step: 2, cols: 7, rows: 11,
     h: [
