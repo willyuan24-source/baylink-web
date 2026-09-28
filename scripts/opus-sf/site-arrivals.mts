@@ -128,11 +128,12 @@ const chutes = SEWARD_SLIDES.map((c, k) => {
   return { id: k === 0 ? 'west' : 'east', top: W(c.to), bottom: W(c.from), start: { ...W({ x: start.x, z: start.z }), y: +(base + deckY).toFixed(2) }, runout: W({ x: out.x, z: out.z }), startLocal: start, runoutLocal: out };
 });
 console.log(JSON.stringify(chutes, null, 1));
-const foot = sfLandmarkAnchor(S.id)!;
+const arrival = sfLandmarkAnchor(S.id)!, foot = W({ x: 0.2, z: -2.6 });
 const fmt = (p: { x: number; y?: number; z: number }) => p.y === undefined ? `{ x: ${p.x}, z: ${p.z} }` : `{ x: ${p.x}, y: ${p.y}, z: ${p.z} }`;
 const sew = `/**
  * Seward Street Slides for lane A's slide activity (W5-L3): the two chute lines, where a rider stands at each chute head
- * on the top deck, where they stand up at the foot, and the foot arrival, in WORLD coordinates (y = world height of the
+ * on the top deck, where they stand up at the foot, the site's arrival (on the deck) and the foot of the slides on the
+ * Seward Street sidewalk, in WORLD coordinates (y = world height of the
  * chute bed / the deck), pasted from world/sf/landmarks/seward-street-slides.ts (\`SEWARD_SLIDES\`, the site's base
  * ${base}, origin (${S.x}, ${S.z}), yaw 0) so that lane A's chunk never pulls the landmark library.
  * tests/opus-bay-w5-landmarks.test.ts checks every number against the record (±0.01 u) and the walk data (the deck and
@@ -152,14 +153,16 @@ export interface SewardChute { id: 'west' | 'east'; top: SlidePoint; bottom: Sli
 export const SEWARD_SLIDES_WORLD: {
   site: 'seward-street-slides';
   attraction: 'seward-street-slides';
-  foot: { x: number; z: number; heading: number };
+  arrival: { x: number; z: number; heading: number };
+  foot: { x: number; z: number };
   deck: SlidePoint;
   chutes: readonly SewardChute[];
   hours: { days: readonly number[]; open: number; close: number; sourceUrl: string; verifiedAt: string };
 } = {
   site: 'seward-street-slides',
   attraction: 'seward-street-slides',
-  foot: { x: ${+foot.x.toFixed(2)}, z: ${+foot.z.toFixed(2)}, heading: ${+foot.heading.toFixed(3)} },
+  arrival: { x: ${+arrival.x.toFixed(2)}, z: ${+arrival.z.toFixed(2)}, heading: ${+arrival.heading.toFixed(3)} },
+  foot: { x: ${foot.x}, z: ${foot.z} },
   deck: ${fmt({ ...W({ x: -0.13, z: 6.2 }), y: +(base + deckY).toFixed(2) })},
   chutes: [
 ${chutes.map(c => `    { id: '${c.id}', top: ${fmt(c.top)}, bottom: ${fmt(c.bottom)}, start: ${fmt(c.start)}, runout: ${fmt(c.runout)}, heading: ${+Math.PI.toFixed(3)} },`).join('\n')}

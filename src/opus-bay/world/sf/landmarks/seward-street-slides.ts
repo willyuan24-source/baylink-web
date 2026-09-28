@@ -15,7 +15,8 @@ import { box3, site3Ground } from './siteKit3';
  * W5-L3 (for lane A's slide activity): the top deck is walkable and open to the path behind it, the chute heads can be
  * stood at from the deck (the chutes' blocker ends at their lip), and data/sf/sewardSlides.ts gives A the deck, the two
  * chute lines and the run-out in WORLD coordinates (pasted; tests/opus-bay-w5-landmarks.test.ts pins them to this
- * record). The arrival is at the foot on the Seward Street sidewalk, looking up both chutes.
+ * record). The arrival is on the deck behind the chute heads, looking down both chutes (from the foot the city's trees
+ * hide them); the foot on the Seward Street sidewalk is the table's `foot`.
  *
  * Toy: the two concrete chutes side by side down the slope (a bed and two low walls each), the small top deck and a
  * stack of flattened cardboard, native shrubs beside them, a lamp and a bin. The riding itself (the player and BAYBAY on
@@ -96,9 +97,9 @@ export const sewardStreetSlides: W4Site = {
   w4: {
     placeId: 'osm-w1364891448',
     attractions: ['seward-street-slides'],
-    // W5-L1 / L3: the foot of the slides on the Seward Street sidewalk, looking up both chutes (the old spot on the deck
-    // was a nav dead end: trips and fly-ins stopped ≈ 1 u short of it; the attraction's own point is inside the chutes)
-    arrival: { x: 0.2, z: -2.6, heading: 0 },
+    // W5-L1 / L3: on the deck behind the chute heads, looking down both chutes and over the Castro (the attraction's own
+    // point is inside the chutes; the deck is open to the path behind it now, so trips and fly-ins end within a step)
+    arrival: { x: -0.1, z: 6.5, heading: Math.PI },
     photo: { target: [-0.1, 1.8, 2.0], distance: 11, elevation: 0.35, bearing: 2.7 },
     flag: { x: -0.1, z: 3.0, h: 30 },
     height: { realM: 0, u: 1.0, top: 7.48, rule: 'overlook' },

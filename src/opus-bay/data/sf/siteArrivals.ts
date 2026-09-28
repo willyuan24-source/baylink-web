@@ -35,7 +35,7 @@ export const SITE_ARRIVALS: Readonly<Record<string, { x: number; z: number; head
   'ingleside-terraces-sundial': { x: 277.85, z: 1444.9, heading: -2.249, site: 'ingleside-terraces-sundial' },
   'lyon-street-steps': { x: -292.6, z: 512.7, heading: -2.217, site: 'lyon-street-steps' },
   'octagon-house': { x: -184.14, z: 286.09, heading: -0.006, site: 'octagon-house' },
-  'seward-street-slides': { x: 154.9, z: 829.8, heading: 0, site: 'seward-street-slides' },
+  'seward-street-slides': { x: 154.6, z: 838.9, heading: 3.142, site: 'seward-street-slides' },
   'vermont-street-crooked-block': { x: 446.93, z: 502.15, heading: 1.073, site: 'vermont-street-crooked-block' },
   'womens-building': { x: 263.58, z: 636.23, heading: -0.394, site: 'womens-building' },
   'buena-vista-park': { x: 29.62, z: 736.62, heading: 0, site: 'buena-vista-park' },

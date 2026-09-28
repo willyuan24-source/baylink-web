@@ -1,6 +1,7 @@
 /**
  * Seward Street Slides for lane A's slide activity (W5-L3): the two chute lines, where a rider stands at each chute head
- * on the top deck, where they stand up at the foot, and the foot arrival, in WORLD coordinates (y = world height of the
+ * on the top deck, where they stand up at the foot, the site's arrival (on the deck) and the foot of the slides on the
+ * Seward Street sidewalk, in WORLD coordinates (y = world height of the
  * chute bed / the deck), pasted from world/sf/landmarks/seward-street-slides.ts (`SEWARD_SLIDES`, the site's base
  * 20.71, origin (154.7, 832.4), yaw 0) so that lane A's chunk never pulls the landmark library.
  * tests/opus-bay-w5-landmarks.test.ts checks every number against the record (±0.01 u) and the walk data (the deck and
@@ -20,14 +21,16 @@ export interface SewardChute { id: 'west' | 'east'; top: SlidePoint; bottom: Sli
 export const SEWARD_SLIDES_WORLD: {
   site: 'seward-street-slides';
   attraction: 'seward-street-slides';
-  foot: { x: number; z: number; heading: number };
+  arrival: { x: number; z: number; heading: number };
+  foot: { x: number; z: number };
   deck: SlidePoint;
   chutes: readonly SewardChute[];
   hours: { days: readonly number[]; open: number; close: number; sourceUrl: string; verifiedAt: string };
 } = {
   site: 'seward-street-slides',
   attraction: 'seward-street-slides',
-  foot: { x: 154.9, z: 829.8, heading: 0 },
+  arrival: { x: 154.6, z: 838.9, heading: 3.142 },
+  foot: { x: 154.9, z: 829.8 },
   deck: { x: 154.57, y: 23.99, z: 838.6 },
   chutes: [
     { id: 'west', top: { x: 154.34, y: 23.77, z: 838.1 }, bottom: { x: 154.34, y: 21.09, z: 830.5 }, start: { x: 154.34, y: 23.99, z: 838.5 }, runout: { x: 154.34, z: 830.05 }, heading: 3.142 },

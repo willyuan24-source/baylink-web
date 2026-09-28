@@ -191,7 +191,7 @@ test('W5-L1: the walk sweep — every site-backed attraction ends its trip where
 // W5-L3: the Seward Street Slides for lane A
 // ---------------------------------------------------------------------------
 
-test('W5-L3: data/sf/sewardSlides.ts is the Seward record in world coordinates (chute lines, deck, foot)', async () => {
+test('W5-L3: data/sf/sewardSlides.ts is the Seward record in world coordinates (chute lines, deck, arrival, foot)', async () => {
   const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
   const S = sewardStreetSlides, T = SEWARD_SLIDES_WORLD, near = (a: number, b: number) => Math.abs(a - b) <= 0.011;
   assert.equal(T.site, S.id);
@@ -212,7 +212,10 @@ test('W5-L3: data/sf/sewardSlides.ts is the Seward record in world coordinates (
   assert.ok(near(T.deck.y, S.base + (deck.y as number)), 'the deck height is the walk surface\'s');
   assert.ok(pip(worldToLandmark(S, T.deck), deck.poly), 'the deck point is on the deck');
   const a = sfLandmarkAnchor(S.id)!;
-  assert.ok(near(T.foot.x, a.x) && near(T.foot.z, a.z) && near(T.foot.heading, a.heading), 'the foot is the site\'s arrival');
+  assert.ok(near(T.arrival.x, a.x) && near(T.arrival.z, a.z) && near(T.arrival.heading, a.heading), 'the arrival is the site\'s');
+  assert.ok(pip(worldToLandmark(S, T.arrival), deck.poly), 'the arrival is on the deck');
+  const f = worldToLandmark(S, T.foot);
+  assert.ok(f.z < -2 && Math.abs(f.x) < 1, 'the foot is below the chutes\' ends');
   assert.deepEqual([...T.hours.days].sort(), [0, 2, 3, 4, 5, 6], 'Tuesday to Sunday');
   assert.equal(T.hours.open, 600);
   assert.equal(T.hours.close, 1020);
