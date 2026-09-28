@@ -21,7 +21,7 @@ g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getCont
 
 const { W4_POSTCARDS, W4_POSTCARD_IDS, W4_POSTCARD_ART, W4_POSTCARDS_VERIFIED_AT, w4PostcardDefs, w4PostcardUrls } = await import('../src/opus-bay/data/sf/w4Postcards');
 const { CITY_POSTCARDS } = await import('../src/opus-bay/data/sf/postcards');
-const { POSTCARD_ART_IDS, SF_POSTCARD_ART_IDS } = await import('../src/opus-bay/data/assets');
+const { ASSETS, POSTCARD_ART, POSTCARD_ART_IDS, SF_POSTCARD_ART_IDS, listAssetUrls } = await import('../src/opus-bay/data/assets');
 const { CITY_POIS } = await import('../src/opus-bay/data/sf/cityPois');
 const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const { PLACE_CARDS } = await import('../src/opus-bay/data/sf/placeCards');
@@ -52,6 +52,11 @@ test('W4 postcards: four new ids with art on disk (1200 × 900 + 600 × 450 WebP
   assert.deepEqual([...W4_POSTCARD_IDS], ['sf-state-quad', 'sf-music-concourse', 'sf-lands-end', 'sf-west-portal']);
   for (const id of W4_POSTCARD_IDS) {
     assert.ok(!(SF_POSTCARD_ART_IDS as readonly string[]).includes(id) && !(POSTCARD_ART_IDS as readonly string[]).includes(id), `${id} is new`);
+    // integration (lane V): the art is in the manifest like the other 20 (lane C's cards join CARDS)
+    assert.equal(POSTCARD_ART[id].large, W4_POSTCARD_ART[id].large);
+    assert.equal(POSTCARD_ART[id].small, W4_POSTCARD_ART[id].small);
+    assert.ok([W4_POSTCARD_ART[id].large, W4_POSTCARD_ART[id].small].includes(ASSETS.postcards[id]), `${id} in ASSETS.postcards`);
+    assert.ok(listAssetUrls().includes(W4_POSTCARD_ART[id].large) && listAssetUrls().includes(W4_POSTCARD_ART[id].small), `${id} files listed`);
     for (const [url, size, max] of [[W4_POSTCARD_ART[id].large, [1200, 900], 120_000], [W4_POSTCARD_ART[id].small, [600, 450], 50_000]] as const) {
       const file = path.join(ROOT, 'public', url);
       assert.deepEqual(webpSize(file), [...size], url);

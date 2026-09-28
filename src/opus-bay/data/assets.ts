@@ -13,6 +13,7 @@ import { mapPaperUrls } from './mapPaper';
 import { muralUrls } from './murals';
 import type { PostcardId } from './postcards';
 import { W4_MODELS, type W4ModelId } from './sf/w4Models';
+import { W4_POSTCARD_IDS, type W4PostcardId } from './sf/w4Postcards';
 import { SF_VOICE_CLIPS } from './voiceLinesSf';
 
 const BASE = '/opus-bay';
@@ -139,13 +140,19 @@ export const SF_POSTCARD_SUBJECTS: Record<SfPostcardArtId, { zh: string; en: str
   'sf-ocean-beach': { zh: '海洋海滩的日落', en: 'Sunset at Ocean Beach' },
 };
 
+/**
+ * Every postcard with art: the district's 8, the 12 SF ones and lane V's 4 wave-4 ones (data/sf/w4Postcards.ts; their
+ * cards join data/sf/postcards.ts CARDS with lane C, which keeps `SF_POSTCARD_ART_IDS` = the 12 until then).
+ */
+export const POSTCARD_ART_ALL_IDS = [...POSTCARD_ART_IDS, ...SF_POSTCARD_ART_IDS, ...W4_POSTCARD_IDS] as const;
+
 export const POSTCARD_ART = Object.fromEntries(
-  [...POSTCARD_ART_IDS, ...SF_POSTCARD_ART_IDS].map(id => [id, {
+  POSTCARD_ART_ALL_IDS.map(id => [id, {
     large: postcardUrl(id, 1200),
     small: postcardUrl(id, 600),
     srcSet: srcSet([[postcardUrl(id, 600), 600], [postcardUrl(id, 1200), 1200]]),
   }]),
-) as Record<PostcardArtId | SfPostcardArtId, PostcardArt>;
+) as Record<PostcardArtId | SfPostcardArtId | W4PostcardId, PostcardArt>;
 
 export const POSTCARD_SIZE = { large: { w: 1200, h: 900 }, small: { w: 600, h: 450 } } as const;
 
@@ -480,7 +487,7 @@ export const ASSETS: AssetManifest = {
     ...Object.fromEntries(Object.entries(PORTRAIT_ALIASES).map(([alias, id]) => [alias, PORTRAITS[id]])),
   },
   postcards: Object.fromEntries(
-    [...POSTCARD_ART_IDS, ...SF_POSTCARD_ART_IDS].map(id => [id, hiDpi ? POSTCARD_ART[id].large : POSTCARD_ART[id].small]),
+    POSTCARD_ART_ALL_IDS.map(id => [id, hiDpi ? POSTCARD_ART[id].large : POSTCARD_ART[id].small]),
   ),
   // (lane H2b's city lines and re-records merge in from data/voiceLinesSf.ts; the player only plays listed ids)
   voice: Object.fromEntries(Object.entries({ ...VOICE_CLIPS, ...SF_VOICE_CLIPS }).map(([id, c]) => [id, c[voiceFormat]])),

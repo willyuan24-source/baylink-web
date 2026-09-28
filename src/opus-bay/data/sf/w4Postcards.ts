@@ -17,8 +17,9 @@ import type { Bilingual, PostcardDef, Vec2 } from '../../core/types';
  *   own: the de Young's, 14 u away, shows it); `attraction`: lane P's attraction id. West Portal has no site yet
  *   (lane L's P3 `west-portal`): its `near` is that id, and lane C's `west-portal` place card shows the art.
  *
- * Not registered yet (early phase). Integration: data/assets.ts `SF_POSTCARD_ART_IDS` gains `W4_POSTCARD_IDS` (lane V),
- * data/sf/postcards.ts `CARDS` gains `W4_POSTCARDS` (lane C). Dependency-free at runtime.
+ * Registered (integration, lane V): data/assets.ts POSTCARD_ART / ASSETS.postcards / listAssetUrls carry the art
+ * (`POSTCARD_ART_ALL_IDS`); `SF_POSTCARD_ART_IDS` stays the 12 until lane C's data/sf/postcards.ts `CARDS` gains
+ * `W4_POSTCARDS` (then CITY_POSTCARDS walks both lists). Dependency-free at runtime.
  */
 
 export const W4_POSTCARDS_VERIFIED_AT = '2026-09-27';
