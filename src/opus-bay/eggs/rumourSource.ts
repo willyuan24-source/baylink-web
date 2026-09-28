@@ -4,7 +4,7 @@ import type { HintSpot } from '../economy/hints';
 import type { Rumour, RumourContext } from '../game/rumours';
 import { inMonths, marked } from './gates';
 import { TRAIL_STOPS, trailMark, WHALE_MONTHS } from './presidio';
-import { EGGS, eggSpots, type EggDef } from './registry';
+import { ALL_EGGS, eggSpots, type EggDef } from './registry';
 import { labyrinthToday } from './west';
 
 /**
@@ -64,7 +64,7 @@ export function eggRumour(
 ): Rumour | null {
   const zone = o.zone ?? zoneOf, canFly = o.canFly ?? glideUnlocked();
   let best: { e: EggDef; at: { x: number; z: number }; d: number; same: boolean } | null = null;
-  for (const e of EGGS) {
+  for (const e of ALL_EGGS) {
     if (found(e.id) || ctx.told.has(`egg:${e.id}`)) continue;
     for (const at of liveSpots(e, canFly)) {
       const d = Math.hypot(at.x - ctx.x, at.z - ctx.z);
@@ -79,6 +79,6 @@ export function eggRumour(
 /** The compass's list: every live spot of every unfound egg (an egg with two spots is listed twice under its id). */
 export function eggHintSpots(found: (id: string) => boolean, canFly: boolean = glideUnlocked()): HintSpot[] {
   const out: HintSpot[] = [];
-  for (const e of EGGS) if (!found(e.id)) for (const p of liveSpots(e, canFly)) out.push({ id: e.id, x: p.x, z: p.z });
+  for (const e of ALL_EGGS) if (!found(e.id)) for (const p of liveSpots(e, canFly)) out.push({ id: e.id, x: p.x, z: p.z });
   return out;
 }

@@ -1,12 +1,12 @@
 import type { Bilingual } from '../core/types';
 
 /**
- * Wave 5 · lane D (W5-D1) · the registry of the 24 real San Francisco easter eggs (小发现), batch 1 of plan sf-w5-plan.md
- * §3.1. Pure data and helpers, no game imports: lane E's notebook (the 小发现 page, the `egg` bitset) and lane C's rumours
- * read it; lane D's hosts (eggs/hosts.ts and the area modules) play them.
+ * Wave 5 · lane D (W5-D1) · the registry of the real San Francisco easter eggs (小发现): batch 1 of plan sf-w5-plan.md
+ * §3.1 (24) and (part c, W5-D6) nine of batch 2 (25–33). Pure data and helpers, no game imports: lane E's notebook
+ * (the 小发现 page, the `egg` bitset) and lane C's rumours read it; lane D's hosts (eggs/hosts.ts and the area modules) play them.
  *
- * APPEND-ONLY. `EGG_IDS[i]` is bit `i` of the save's `play.g.egg` bitset (data/playSave.ts): an egg's index never moves;
- * a later batch appends. The reward source of an egg is `egg:<id>` (core/events.ts REWARD_SOURCE), paid once, 10 金币.
+ * APPEND-ONLY. `ALL_EGG_IDS[i]` is bit `i` of the save's `play.g.egg` bitset (data/playSave.ts): an egg's index never
+ * moves; a later batch appends (batch 1 = `EGGS` / `EGG_IDS`, bits 0–23; batch 2 = `EGGS_BATCH_2`, bits 24–32). The reward source of an egg is `egg:<id>` (core/events.ts REWARD_SOURCE), paid once, 10 金币.
  *
  * Every fact a line or a card states was checked on the web on `verifiedAt` (the page is `sources[].url`); wording
  * follows data/VOICE.md (≤ 45 characters a bubble, 据说 / 通常 where the source hedges, wildlife never guaranteed,
@@ -510,20 +510,194 @@ export const EGGS: readonly EggDef[] = [
     },
     sources: [src('https://en.wikipedia.org/wiki/Alta_Plaza_Park')],
     stamp: { zh: '电影台阶', en: 'Film steps' },
+  },];
+
+/**
+ * (part c, W5-D6) Batch 2: eggs 25–33, appended after batch 1 in the same bitset (`ALL_EGG_IDS[i]` is bit `i` of
+ * `play.g.egg`: batch 1 keeps bits 0–23). A list of their own so lane E's 小发现 page (and its tests) keep batch 1's 24
+ * until E adds these; everything of lane D's (the hosts, the ledger's ids, the rumours, the compass) reads `ALL_EGGS`.
+ */
+export const EGGS_BATCH_2: readonly EggDef[] = [
+  {
+    id: 'mt-davidson-top-of-sf', n: 25, area: 'south',
+    name: { zh: '旧金山最高的山顶', en: 'The top of San Francisco' },
+    riddle: { zh: '全城最高的天然山顶在哪？', en: 'Where is the city’s highest natural top?' },
+    rumour: { zh: '听说城西南有座山，比双峰还高一点，是旧金山最高的地方。', en: 'They say a hill in the south-west, a little higher than Twin Peaks, is the top of San Francisco.' },
+    at: { x: 256.9, z: 1160.9 }, kind: 'ground',
+    how: { zh: '爬上戴维森山的山顶，站一会儿', en: 'Climb to the top of Mount Davidson and stand a while' },
+    lines: [
+      { zh: '登顶！这是旧金山最高的天然山顶，海拔 928 英尺（283 米）。', en: 'We made it! San Francisco’s highest natural point: 928 feet (283 m).' },
+      { zh: '比双峰还高一点点呢。', en: 'Just a little higher than Twin Peaks.' },
+    ],
+    fact: {
+      zh: '戴维森山海拔 928 英尺（283 米），是旧金山最高的天然山顶；双峰约 925 英尺。山顶一带是 38 英亩的公园。',
+      en: 'Mount Davidson, 928 ft (283 m), is San Francisco’s highest natural point; Twin Peaks rise about 925 ft. The top is a 38-acre park.',
+    },
+    sources: [src('https://en.wikipedia.org/wiki/Mount_Davidson_(California)'), src('https://en.wikipedia.org/wiki/Twin_Peaks_(San_Francisco)', 'about 925 ft')],
+    stamp: { zh: '最高点', en: 'Top of SF' },
+  },
+  {
+    id: 'telegraph-hill-semaphore', n: 26, area: 'north-beach',
+    name: { zh: '电报山的信号杆', en: 'The Telegraph Hill semaphore' },
+    riddle: { zh: '山顶的木杆，为什么举起手？', en: 'Why does the hilltop pole raise its arms?' },
+    rumour: { zh: '听说电报山顶上，从前有根会举手臂的木杆。', en: 'They say a pole on top of Telegraph Hill used to raise its arms.' },
+    at: { x: -51.7, z: 46.1 }, kind: 'ground',
+    how: { zh: '在科伊特塔前的小广场，站到木杆旁边', en: 'Stand by the pole on the plaza before Coit Tower' },
+    lines: [
+      { zh: '1849 年这里立过信号杆：船一进金门，就举起手臂告诉全城。', en: 'In 1849 a signal pole stood here: when a ship came through the Gate, its arms told the city.' },
+      { zh: '后来山顶架了电报，这座山就叫"电报山"了。', en: 'Later a telegraph went up here — and the hill became Telegraph Hill.' },
+    ],
+    fact: {
+      zh: '1849 年 9 月，山顶立起一根有两条活动手臂的信号杆，用不同姿势告诉全城驶进金门的是轮船还是帆船；1853 年换成电报，山因此得名。',
+      en: 'In September 1849 a pole with two movable arms on the hilltop told the city whether a steamer or a sailing ship was entering the Golden Gate; a telegraph replaced it in 1853 and named the hill.',
+    },
+    sources: [src('https://en.wikipedia.org/wiki/Telegraph_Hill,_San_Francisco')],
+    stamp: { zh: '信号杆', en: 'Semaphore' },
+  },
+  {
+    id: 'sutro-baths-tunnel', n: 27, area: 'west-coast',
+    name: { zh: '浴场废墟的隧道', en: 'The tunnel at the Sutro Baths' },
+    riddle: { zh: '废墟边的石洞，浪从哪来？', en: 'The tunnel by the ruins — where do the waves come from?' },
+    rumour: { zh: '听说苏特罗浴场废墟边有条石头隧道，那头就是大海。', en: 'They say a rock tunnel by the Sutro Baths ruins opens onto the sea.' },
+    at: { x: -738.5, z: 1239.6 }, kind: 'ground',
+    how: { zh: '走到苏特罗浴场废墟的隧道口', en: 'Walk to the tunnel mouth by the Sutro Baths ruins' },
+    lines: [
+      { zh: '哇，浪花从石缝里喷出来了！这条隧道 1892 年就挖好了。', en: 'Whoa — spray through the rocks! This tunnel was dug by 1892.' },
+      { zh: '浪大的时候，我们在这儿看看就好，别往里走。', en: 'In big surf we just watch from here — we don’t go in.' },
+    ],
+    fact: {
+      zh: '苏特罗浴场 1896 年开张，是当时世界上最大的室内游泳场，1966 年大火后只剩废墟；旁边的隧道原是运石头的采石道，1892 年完工，约 46 米长。',
+      en: 'The Sutro Baths opened in 1896 as the world’s largest indoor swimming establishment and burned in 1966; the tunnel beside them, a quarry passage about 152 ft long, was finished in 1892.',
+    },
+    sources: [
+      src('https://en.wikipedia.org/wiki/Sutro_Baths'),
+      src('https://www.sfgate.com/obscuresf/article/historic-tunnel-at-SF-Sutro-Baths-16988820.php', 'SFGATE, 2022-03-14: a quarry tunnel, completed 1892, about 152 ft long'),
+    ],
+    stamp: { zh: '海边石洞', en: 'Sea tunnel' },
+  },
+  {
+    id: 'spreckels-lake-model-yachts', n: 28, area: 'golden-gate-park',
+    name: { zh: '湖上的模型帆船', en: 'Model yachts on Spreckels Lake' },
+    riddle: { zh: '公园的湖上，谁的船这么小？', en: 'Whose boats are so small on the park lake?' },
+    rumour: { zh: '听说金门公园有片湖，是专门给模型船修的。', en: 'They say a lake in Golden Gate Park was built just for model boats.' },
+    at: { x: -461.6, z: 1163.9 }, kind: 'ground',
+    how: { zh: '白天在斯普雷克尔斯湖边站一会儿', en: 'Stand by Spreckels Lake a while, by day' },
+    lines: [
+      { zh: '这片湖 1904 年专门为模型船修好，模型游艇俱乐部就在湖边。', en: 'This lake was finished in 1904 just for model boats — the model yacht club is right here.' },
+      { zh: '周二、四、六上午是动力船时间，其他时候湖面归帆船。', en: 'Tuesday, Thursday and Saturday mornings are for powered boats; the rest of the time, the sailboats’.' },
+    ],
+    fact: {
+      zh: '斯普雷克尔斯湖 1904 年 3 月建成，专供模型船使用；旧金山模型游艇俱乐部 1892 年成立，湖边会所 1937–1939 年由公共事业振兴署建成。',
+      en: 'Spreckels Lake was completed in March 1904 for model boaters; the San Francisco Model Yacht Club formed in 1892, and its WPA clubhouse by the lake was built in 1937–39.',
+    },
+    sources: [src('https://en.wikipedia.org/wiki/Spreckels_Lake', 'powered boats Tue / Thu / Sat 10:00–13:00; sailboats the rest of the time')],
+    stamp: { zh: '模型帆船', en: 'Model yacht' },
+  },
+  {
+    id: 'fort-funston-hang-gliders', n: 29, area: 'west-coast',
+    name: { zh: '沙崖上的滑翔翼', en: 'Hang gliders at Fort Funston' },
+    riddle: { zh: '海边沙崖上，谁在风里飞？', en: 'Who flies in the wind over the sandy cliffs?' },
+    rumour: { zh: '听说城西南海边的沙崖上，常有人乘着风滑翔。', en: 'They say people ride the wind off the sandy cliffs on the south-west coast.' },
+    at: { x: 100.4, z: 1846.3 }, kind: 'ground',
+    how: { zh: '走到芬斯顿堡的观景台，或者骑鹈鹕飞过沙崖', en: 'Walk to the Fort Funston deck, or fly the pelican past the cliffs' },
+    lines: [
+      { zh: '看，滑翔翼！这片悬崖上的风又强又稳，最适合滑翔。', en: 'Look — hang gliders! The wind on these cliffs is strong and steady, perfect for gliding.' },
+      { zh: '它们乘着海上吹来的风，在崖边飘来飘去。', en: 'They ride the sea wind back and forth along the cliffs.' },
+    ],
+    fact: {
+      zh: '芬斯顿堡 1963 年停用后交给国家公园管理局；悬崖上又强又稳的风，让这里成了热门的滑翔翼场地。',
+      en: 'Fort Funston was inactivated in 1963 and passed to the National Park Service; the strong, steady winds on its cliffs make it a popular hang-gliding site.',
+    },
+    sources: [src('https://en.wikipedia.org/wiki/Fort_Funston')],
+    stamp: { zh: '乘风', en: 'Ridge rider' },
+  },
+  {
+    id: 'castro-theatre-organ', n: 30, area: 'mission-castro',
+    name: { zh: '卡斯特罗剧院的管风琴', en: 'The Castro Theatre organ' },
+    riddle: { zh: '招牌下的琴声，傍晚才响', en: 'Music under the marquee, after dusk' },
+    rumour: { zh: '听说卡斯特罗剧院今年重新开门了，还搬来一台新管风琴。', en: 'They say the Castro Theatre reopened this year — with a new organ.' },
+    at: { x: 154.5, z: 747 }, kind: 'ground',
+    how: { zh: '傍晚或晚上，站到卡斯特罗剧院的招牌下', en: 'At golden hour or night, stand under the Castro Theatre’s marquee' },
+    lines: [
+      { zh: '剧院 2026 年 2 月重新开门啦，新管风琴也搬进来了！', en: 'The theatre reopened in February 2026 — and a new organ moved in!' },
+      { zh: '这段琴声是我们自己编的小曲，欢迎回来！', en: 'That tune is our own little piece — welcome back!' },
+    ],
+    fact: {
+      zh: '卡斯特罗剧院 1922 年开业；整修两年、花费 4100 万美元后，2026 年 2 月 6 日重新开放，新管风琴在开放前运到。',
+      en: 'The Castro Theatre opened in 1922. After two years and a $41 million renovation it reopened on 6 February 2026; its new organ arrived just before.',
+    },
+    sources: [src('https://en.wikipedia.org/wiki/Castro_Theatre')],
+    stamp: { zh: '管风琴之夜', en: 'Organ night' },
+  },
+  {
+    id: 'presidio-pet-cemetery', n: 31, area: 'marina-presidio',
+    name: { zh: '要塞的宠物墓园', en: 'The Presidio pet cemetery' },
+    riddle: { zh: '白栅栏里，住着谁的老朋友？', en: 'Whose old friends rest inside the white fence?' },
+    rumour: { zh: '听说克里西场附近有个小小的宠物墓园，很安静。', en: 'They say there’s a small, quiet pet cemetery near Crissy Field.' },
+    at: { x: -584, z: 601 }, kind: 'ground',
+    how: { zh: '走到宠物墓园边，安静地待一会儿', en: 'Walk to the little pet cemetery and stay quietly a while' },
+    lines: [
+      { zh: '这是要塞的军人家庭给宠物建的小墓园，我们轻声点。', en: 'Army families at the Presidio made this little cemetery for their pets. Let’s be quiet.' },
+      { zh: '我放一朵小花在这儿吧。', en: 'I’ll leave a little flower here.' },
+    ],
+    fact: {
+      zh: '墓园始于 1950 年代初，安葬着要塞军人家庭的宠物；白色尖桩篱笆里有 424 块手做的墓碑，现在不再接收新的安葬。',
+      en: 'Begun in the early 1950s for the pets of the Presidio’s Army families, the cemetery holds 424 handmade headstones inside a white picket fence; it no longer takes new burials.',
+    },
+    sources: [src('https://presidio.gov/explore/attractions/presidio-pet-cemetery')],
+    stamp: { zh: '一朵小花', en: 'A flower' },
+  },
+  {
+    id: 'grace-outdoor-labyrinth', n: 32, area: 'downtown',
+    name: { zh: '大教堂门前的迷宫', en: 'Grace Cathedral’s outdoor labyrinth' },
+    riddle: { zh: '山顶教堂的露台上，也有迷宫', en: 'A labyrinth on the hilltop church’s terrace' },
+    rumour: { zh: '听说诺布山的大教堂门前有座迷宫，白天晚上都开着。', en: 'They say the cathedral on Nob Hill has a labyrinth outside, open day and night.' },
+    at: { x: 8.2, z: 228.3 }, kind: 'ground',
+    how: { zh: '在格雷斯大教堂门前露台的迷宫边，静静站一会儿', en: 'Stand quietly by the labyrinth on Grace Cathedral’s terrace' },
+    lines: [
+      { zh: '这座户外迷宫全天开放，图案照着法国沙特尔大教堂的老迷宫。', en: 'This outdoor labyrinth is open all day and night; its pattern follows the old one at Chartres.' },
+    ],
+    fact: {
+      zh: '格雷斯大教堂有室内、室外两座沙特尔式迷宫；室外那座全天 24 小时开放。',
+      en: 'Grace Cathedral has two Chartres-style labyrinths, one indoors and one outdoors; the outdoor one is open 24/7.',
+    },
+    sources: [src('https://gracecathedral.org/our-labyrinths/')],
+    stamp: { zh: '第二座迷宫', en: 'Labyrinth two' },
+  },
+  {
+    id: 'bay-lights', n: 33, area: 'downtown',
+    name: { zh: '海湾大桥的灯', en: 'The Bay Lights' },
+    riddle: { zh: '天黑以后，大桥在眨眼', en: 'After dark, the bridge twinkles' },
+    rumour: { zh: '听说海湾大桥的灯今年又亮起来了，天黑后去内河码头看看。', en: 'They say the Bay Bridge lights are back this year — see them from the Embarcadero after dark.' },
+    at: { x: 208.3, z: 10.4 }, kind: 'ground',
+    how: { zh: '天黑后，在内河码头 14 号码头一带站着看海湾大桥', en: 'After dark, stand by Pier 14 on the Embarcadero and watch the Bay Bridge' },
+    lines: [
+      { zh: '海湾大桥的灯 2026 年 3 月又亮了，每晚从黄昏亮到天亮！', en: 'The Bay Bridge lights came back in March 2026 — every night from dusk to dawn!' },
+      { zh: '这些闪闪的光是我们学着做的，真的灯更好看哦。', en: 'These twinkles are our own imitation — the real lights are lovelier.' },
+    ],
+    fact: {
+      zh: '"海湾灯光"装在海湾大桥西段北侧的钢索上，共 48,000 颗 LED；2023 年熄灭，重建后于 2026 年 3 月 20 日重新点亮，每晚从黄昏亮到天亮。',
+      en: 'The Bay Lights: 48,000 LEDs on the northern cable plane of the Bay Bridge’s western span. Dark from 2023, rebuilt and relit on 20 March 2026, they shine nightly from dusk to dawn.',
+    },
+    sources: [src('https://illuminate.org/2026/02/19/the-bay-lights-to-return-friday-march-20-2026/', 'relit 20 Mar 2026; 48,000 LEDs; northern cable plane of the western span; dusk to dawn')],
+    stamp: { zh: '大桥的灯', en: 'Bay Lights' },
   },
 ];
 
-/** The append-only id list: `EGG_IDS[i]` is bit `i` of `play.g.egg`. */
+/** Batch 1's append-only id list: `EGG_IDS[i]` is bit `i` of `play.g.egg` (lane E's 小发现 page). */
 export const EGG_IDS: readonly string[] = EGGS.map(e => e.id);
+/** Every egg, batch 1 then batch 2 (the whole bitset order: `ALL_EGG_IDS[i]` is bit `i` of `play.g.egg`). */
+export const ALL_EGGS: readonly EggDef[] = [...EGGS, ...EGGS_BATCH_2];
+export const ALL_EGG_IDS: readonly string[] = ALL_EGGS.map(e => e.id);
 
-const BY_ID = new Map(EGGS.map(e => [e.id, e] as const));
+const BY_ID = new Map(ALL_EGGS.map(e => [e.id, e] as const));
 export const eggById = (id: string): EggDef | undefined => BY_ID.get(id);
-/** The egg's bit in `play.g.egg` (its index in EGG_IDS), or −1. */
-export const eggIndex = (id: string): number => EGG_IDS.indexOf(id);
+/** The egg's bit in `play.g.egg` (its index in ALL_EGG_IDS), or −1. */
+export const eggIndex = (id: string): number => ALL_EGG_IDS.indexOf(id);
 /** The ledger's pay-once key for an egg. */
 export const eggRewardSource = (id: string): string => `egg:${id}`;
-/** The eggs of an area, in the notebook's order. */
-export const eggsInArea = (area: EggArea): EggDef[] => EGGS.filter(e => e.area === area);
+/** The eggs of an area (both batches), in the notebook's order. */
+export const eggsInArea = (area: EggArea): EggDef[] => ALL_EGGS.filter(e => e.area === area);
 /** Every spot of an egg (the main one first). */
 export const eggSpots = (e: EggDef): { x: number; z: number }[] => [e.at, ...(e.also ?? [])];
 

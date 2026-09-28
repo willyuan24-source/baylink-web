@@ -33,7 +33,7 @@ const sourced = (sources: readonly { url: string; verifiedAt: string }[], where:
 const { REWARD_SOURCE, rewardPrefix, onEvent } = await import('../src/opus-bay/core/events');
 type GameEvent = import('../src/opus-bay/core/events').GameEvent;
 const { MAX_PLAY_BITS } = await import('../src/opus-bay/data/playSave');
-const { EGG_AREAS, EGG_IDS } = await import('../src/opus-bay/eggs/registry');
+const { EGG_AREAS, ALL_EGG_IDS } = await import('../src/opus-bay/eggs/registry');
 const CS = await import('../src/opus-bay/eggs/citySounds');
 const { EGG_SOUNDS } = await import('../src/opus-bay/eggs/sounds');
 const { __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
@@ -246,7 +246,7 @@ test('W5-D6 城市之声 listening: 听一听 plays the sound, three seconds sta
 
 test('W5-D6 城市之声 moments: the foghorn duet heard on the deck and the Tiled Steps climbed in one go collect their sounds — each card after the egg\'s, BAYBAY\'s line after hers', t => {
   const w = world(t, '2026-09-28T08:00');
-  const offIds = [ledger.registerRewardIds('sound', CS.SOUND_IDS), ledger.registerRewardIds('egg', EGG_IDS)];
+  const offIds = [ledger.registerRewardIds('sound', CS.SOUND_IDS), ledger.registerRewardIds('egg', ALL_EGG_IDS)];
   let stop = () => {};
   try {
     stop = H.startHosts(makeHosts());
@@ -451,4 +451,122 @@ test('W5-D6 pebbles and batch-2 props and flock: every recipe within its budget 
     assert.equal((a.material as import('three').Material & { customProgramCacheKey(): string }).customProgramCacheKey(), 'ob-toy-dyn', 'TOY_DYN\'s program');
     assert.equal(a.castShadow, false);
   } finally { pool.dispose(); }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-D6 · batch 2 (eggs 25–32)
+// ---------------------------------------------------------------------------------------------------------------
+
+const B2 = await import('../src/opus-bay/eggs/batch2');
+const { eggById } = await import('../src/opus-bay/eggs/registry');
+const BATCH_2 = ['mt-davidson-top-of-sf', 'telegraph-hill-semaphore', 'sutro-baths-tunnel', 'spreckels-lake-model-yachts', 'fort-funston-hang-gliders', 'castro-theatre-organ', 'presidio-pet-cemetery', 'grace-outdoor-labyrinth', 'bay-lights'];
+
+test('W5-D6 batch 2: nine more eggs appended (bits 24–32, their own list after batch 1), each with its host; the plan\'s other three stay out until the city can host them', async () => {
+  const R2 = await import('../src/opus-bay/eggs/registry');
+  assert.deepEqual(ALL_EGG_IDS.slice(24), BATCH_2);
+  assert.deepEqual(R2.EGGS_BATCH_2.map(e => e.id), BATCH_2);
+  assert.deepEqual(R2.EGGS_BATCH_2.map(e => e.n), [25, 26, 27, 28, 29, 30, 31, 32, 33]);
+  assert.equal(R2.EGG_IDS.length, 24, 'batch 1 unchanged (lane E\'s page)');
+  for (const id of BATCH_2) assert.equal(R2.eggIndex(id), 24 + BATCH_2.indexOf(id), `${id}: its bit`);
+  assert.deepEqual(B2.batch2Hosts().map(h => h.id), BATCH_2);
+  for (const id of ['hyde-street-pier-ships', 'lands-end-low-tide-wrecks', 'ocean-beach-king-philip']) assert.equal(eggById(id), undefined, `${id}: not yet`);
+  assert.match(eggById('bay-lights')!.lines[1].zh, /我们学着做的/, 'our own shimmer, said so');
+  // cautious words: the pet cemetery is quiet; the organ tune is ours; no guns at Fort Funston; no going into the tunnel in surf
+  assert.match(eggById('presidio-pet-cemetery')!.lines[0].zh, /轻声/);
+  assert.match(eggById('castro-theatre-organ')!.lines[1].zh, /我们自己编的/);
+  assert.ok(!/炮|枪/.test(eggById('fort-funston-hang-gliders')!.fact.zh));
+  assert.match(eggById('sutro-baths-tunnel')!.lines[1].zh, /别往里走/);
+});
+
+test('W5-D6 batch 2 on the real host code: the summit, the semaphore, the tunnel, the yachts (not in powered-boat hours), the gliders (on foot or on the pelican), the organ at golden hour, the pet cemetery, the Grace labyrinth', t => {
+  const w = world(t, '2026-09-28T15:00');
+  const offIds = ledger.registerRewardIds('egg', ALL_EGG_IDS);
+  let stop = () => {};
+  const settle = () => { for (let i = 0; i < 400 && cinemaActive(); i++) { H.stepHosts(1 / 30); skipCinema(); } };
+  try {
+    stop = H.startHosts(makeHosts());
+    game.set({ timeOfDay: 'day' });
+    // 25 · the summit: 1.5 s standing on top
+    w.put(B2.DAVIDSON_TOP.x + 2, B2.DAVIDSON_TOP.z);
+    run(1);
+    assert.ok(!w.firsts('egg').includes(BATCH_2[0]));
+    run(0.8);
+    settle();
+    assert.ok(w.firsts('egg').includes(BATCH_2[0]), 'the top of SF');
+    assert.equal(lockHeld(), false);
+    // 26 · the semaphore raises its arms, then lowers them
+    w.put(B2.SEMA_STAND.x, B2.SEMA_STAND.z);
+    run(1.8);
+    assert.ok(w.firsts('egg').includes(BATCH_2[1]));
+    assert.ok([1, 2].includes(H.props.get('egg:telegraph-hill-semaphore')!.size!), 'arms up');
+    run(7.5);
+    assert.equal(H.props.get('egg:telegraph-hill-semaphore')!.size, 0, 'and down again');
+    // 27 · the tunnel mouth: on arrival
+    w.put(B2.TUNNEL_AT.x + 1, B2.TUNNEL_AT.z);
+    run(0.3);
+    assert.ok(w.firsts('egg').includes(BATCH_2[2]));
+    // 28 · the yachts: Monday 15:00 yes; Tuesday 11:00 (powered boats) no
+    w.put(B2.YACHT_SHORE.x, B2.YACHT_SHORE.z);
+    run(2.3);
+    assert.ok(w.firsts('egg').includes(BATCH_2[3]));
+    assert.equal(H.flock.active, 'yacht');
+    assert.equal(B2.yachtsOut(), true);
+    __setBayNowForTests('2026-09-29T11:00');
+    assert.equal(B2.yachtsOut(), false, 'Tuesday morning: powered boats');
+    __setBayNowForTests('2026-09-29T13:30');
+    assert.equal(B2.yachtsOut(), true);
+    __setBayNowForTests('2026-09-28T21:00');
+    assert.equal(B2.yachtsOut(), false, 'night');
+    __setBayNowForTests('2026-09-28T15:00');
+    w.put(0, 0);
+    run(0.5);
+    H.flock.stop();
+    // 29 · the gliders: on foot at the deck
+    w.put(B2.FUNSTON_DECK.x + 2, B2.FUNSTON_DECK.z);
+    run(0.3);
+    assert.ok(w.firsts('egg').includes(BATCH_2[4]));
+    assert.equal(H.flock.active, 'glider');
+    H.flock.stop();
+    // 30 · the organ: not at midday, yes at golden hour
+    w.put(B2.MARQUEE.x, B2.MARQUEE.z);
+    run(0.5);
+    assert.ok(!w.firsts('egg').includes(BATCH_2[5]), 'not at midday');
+    w.put(0, 0);
+    run(0.3);
+    game.set({ timeOfDay: 'golden' });
+    w.put(B2.MARQUEE.x, B2.MARQUEE.z);
+    run(0.5);
+    assert.ok(w.firsts('egg').includes(BATCH_2[5]), 'golden hour');
+    // 31 · the pet cemetery: 2 s standing quietly; the flower stays
+    w.put(B2.PETS_AT.x, B2.PETS_AT.z);
+    run(2.4);
+    assert.ok(w.firsts('egg').includes(BATCH_2[6]));
+    assert.ok(H.props.has('egg:presidio-pet-cemetery:flower'));
+    // 32 · the Grace labyrinth: 2 s beside it
+    w.put(B2.GRACE_STAND.x, B2.GRACE_STAND.z);
+    run(2.4);
+    assert.ok(w.firsts('egg').includes(BATCH_2[7]));
+    // 33 · the Bay Lights: not at golden hour, yes at night by Pier 14
+    w.put(B2.PIER14.x, B2.PIER14.z);
+    run(2);
+    assert.ok(!w.firsts('egg').includes(BATCH_2[8]), 'not before dark');
+    w.put(0, 0);
+    run(0.3);
+    game.set({ timeOfDay: 'night' });
+    w.put(B2.PIER14.x, B2.PIER14.z);
+    run(2);
+    assert.ok(w.firsts('egg').includes(BATCH_2[8]), 'at night');
+    assert.equal(lockHeld(), false);
+    // the gliders from the pelican too
+    stop();
+    H.__resetHostsForTests();
+    clearSave();
+    stop = H.startHosts(makeHosts());
+    runtime.move.mode = 'glide';
+    runtime.glide.active = true;
+    runtime.glide.x = B2.FUNSTON_DECK.x - 40; runtime.glide.z = B2.FUNSTON_DECK.z; runtime.glide.y = 40;
+    w.put(runtime.glide.x, runtime.glide.z, 40);
+    run(0.3);
+    assert.equal(H.flock.active, 'glider', 'on the pelican past the cliffs');
+  } finally { stop(); offIds(); w.cleanup(); }
 });

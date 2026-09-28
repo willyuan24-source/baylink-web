@@ -16,7 +16,7 @@ g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const R = await import('../src/opus-bay/eggs/registry');
-const { EGGS, EGG_IDS, EGG_AREAS, EGG_AREA_NAMES, EGG_COINS, EGGS_VERIFIED_AT, FORTUNES, FORTUNE_SOURCES, eggById, eggIndex, eggRewardSource, eggsInArea, eggSpots } = R;
+const { EGG_IDS, ALL_EGGS, ALL_EGG_IDS, EGG_AREAS, EGG_AREA_NAMES, EGG_COINS, EGGS_VERIFIED_AT, FORTUNES, FORTUNE_SOURCES, eggById, eggIndex, eggRewardSource, eggsInArea, eggSpots } = R;
 const { REWARD_SOURCE, rewardPrefix } = await import('../src/opus-bay/core/events');
 const { MAX_PLAY_BITS } = await import('../src/opus-bay/data/playSave');
 
@@ -37,11 +37,13 @@ const BATCH_1 = [
   'herons-head-from-above', 'sf-250-birthday-trail', 'alta-plaza-chipped-steps',
 ];
 
-test('W5-D1 registry: the 24 ids are append-only (bit i of play.g.egg), numbered 1–24, each a well-formed reward source', () => {
+test('W5-D1 registry: the ids are append-only (bit i of play.g.egg), numbered from 1, each a well-formed reward source', () => {
   assert.deepEqual(EGG_IDS.slice(0, BATCH_1.length), BATCH_1, 'batch 1 keeps its order (a later batch appends)');
-  assert.equal(new Set(EGG_IDS).size, EGG_IDS.length, 'unique ids');
-  assert.ok(EGG_IDS.length <= MAX_PLAY_BITS, 'fits the play bitset');
-  EGGS.forEach((e, i) => {
+  assert.deepEqual(EGG_IDS, BATCH_1, "batch 1 is lane E's 小发现 page (part c: batch 2 follows in ALL_EGGS)");
+  assert.deepEqual(ALL_EGG_IDS.slice(0, BATCH_1.length), BATCH_1, 'the whole bitset order starts with batch 1');
+  assert.equal(new Set(ALL_EGG_IDS).size, ALL_EGG_IDS.length, 'unique ids');
+  assert.ok(ALL_EGG_IDS.length <= MAX_PLAY_BITS, 'fits the play bitset');
+  ALL_EGGS.forEach((e, i) => {
     assert.equal(e.n, i + 1, `${e.id}: n`);
     assert.equal(eggIndex(e.id), i);
     assert.equal(eggById(e.id), e);
@@ -56,7 +58,7 @@ test('W5-D1 registry: the 24 ids are append-only (bit i of play.g.egg), numbered
 
 test('W5-D1 registry: every egg has a verified https source (verifiedAt), bilingual text, a riddle ≤ 20, a 听说 rumour and lines ≤ 45 in zh', () => {
   assert.match(EGGS_VERIFIED_AT, /^2026-\d{2}-\d{2}$/);
-  for (const e of EGGS) {
+  for (const e of ALL_EGGS) {
     bilingual(e.name, `${e.id} name`);
     bilingual(e.riddle, `${e.id} riddle`);
     assert.ok(zhLen(e.riddle.zh) <= 20, `${e.id}: riddle ≤ 20 (${zhLen(e.riddle.zh)})`);
@@ -96,7 +98,7 @@ test('W5-D1 registry: every one of the eight areas (plan MF8) has at least one e
     assert.ok(eggsInArea(a).length >= 1, `${a}: an egg`);
     assert.ok(EGG_AREA_NAMES[a].zh && EGG_AREA_NAMES[a].en, `${a}: name`);
   }
-  assert.equal(EGGS.filter(e => !EGG_AREAS.includes(e.area)).length, 0);
+  assert.equal(ALL_EGGS.filter(e => !EGG_AREAS.includes(e.area)).length, 0);
   assert.ok(FORTUNES.length >= 7);
   for (const f of FORTUNES) { bilingual(f, 'fortune'); assert.ok(f.zh.startsWith('今日签：') && zhLen(f.zh) <= 45, f.zh); }
   assert.ok(FORTUNE_SOURCES.length >= 3 && FORTUNE_SOURCES.every(s => s.url.startsWith('https://')));
@@ -112,11 +114,11 @@ test('W5-D1 registry: every spot lies in the city bbox; ground spots stand in th
   const lms = landmarkWalkInputs(SF_SITES);
   const city = createCityTerrain(sf.manifest, { landmarks: lms });
   city.setFar(await sf.far());
-  for (const e of EGGS) for (const p of eggSpots(e)) await sf.attachAround(city, p.x, p.z, 16, lms);
+  for (const e of ALL_EGGS) for (const p of eggSpots(e)) await sf.attachAround(city, p.x, p.z, 16, lms);
   setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
   try {
     const ix = await sf.graphIndex();
-    for (const e of EGGS) {
+    for (const e of ALL_EGGS) {
       for (const p of eggSpots(e)) {
         assert.ok(p.x > bb.minX && p.x < bb.maxX && p.z > bb.minZ && p.z < bb.maxZ, `${e.id}: (${p.x}, ${p.z}) in the city bbox`);
         if (e.kind !== 'ground') continue;
@@ -338,7 +340,7 @@ test('W5-D3 / W5-D4 hosts: every egg has one host (registry order); prompts are 
   // (part c) after the eggs: the hosts of 城市之声 (the listening, one per 听一听 sound) and the pebbles — they have spots of their own
   const hosts = all.filter(h => eggById(h.id));
   try {
-    assert.deepEqual(hosts.map(h => h.id), [...EGG_IDS], 'one host per egg, in the registry order');
+    assert.deepEqual(hosts.map(h => h.id), [...ALL_EGG_IDS], 'one host per egg, in the registry order');
     assert.deepEqual(all.slice(0, hosts.length), hosts, 'the eggs first');
     assert.ok(all.slice(hosts.length).every(h => h.spots && h.isFound), 'the others bring their spots and their found');
     for (const h of hosts) {
@@ -1171,7 +1173,7 @@ test('W5-D5 rumours through lane C: an unfound egg of the zone first, else the n
     assert.equal(rumoursC.rumourSourceCount(), before + 1);
     const picked = rumoursC.pickRumour(ctx(karl.at.x + 5, karl.at.z));
     assert.equal(picked?.id, 'egg:karl-the-fog-diary');
-    for (const e of EGGS) {
+    for (const e of ALL_EGGS) {
       const said = rumoursC.frameRumour({ text: e.rumour }, 0);
       assert.equal(said.zh, e.rumour.zh, `${e.id}: said as it is (no 听说，听说)`);
       assert.ok(zhLen(said.zh) <= rumoursC.RUMOUR_FRAMED_ZH_MAX);
@@ -1208,6 +1210,6 @@ test('W5-D5 the compass (lane E): hintTarget points at the nearest spot of an un
     // every unfound egg (with the glide, in September, on a labyrinth day) is listed
     __setBayNowForTests(`${labyrinthDay(true)}T10:00`);
     gates.__resetDailyForTests();
-    assert.deepEqual([...new Set(RS.eggHintSpots(() => false, true).map(s => s.id))], [...EGG_IDS]);
+    assert.deepEqual([...new Set(RS.eggHintSpots(() => false, true).map(s => s.id))], [...ALL_EGG_IDS]);
   } finally { off(); __setBayNowForTests(null); gates.__resetDailyForTests(); }
 });

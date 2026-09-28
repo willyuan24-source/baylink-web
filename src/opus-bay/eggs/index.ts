@@ -17,11 +17,12 @@ import { parrotsHost } from './north';
 import { dahliaHost, tiledStepsHost } from './park';
 import { altaHost, humpbackHost, trailHost } from './presidio';
 import { registerEggWarmup } from './props';
+import { batch2Hosts } from './batch2';
 import { SOUND_IDS } from './citySounds';
 import { heard, soundFound, soundHosts } from './listen';
 import { PEBBLE_IDS } from './pebbleSpots';
 import { pebbleCount, pebbleHintSpots, pebblesHost, pickPebble, showNextTrick } from './pebbles';
-import { EGG_IDS } from './registry';
+import { ALL_EGG_IDS } from './registry';
 import { eggHintSpots, eggRumour } from './rumourSource';
 import { makeEggScene } from './scene';
 import { registerEggSounds } from './sounds';
@@ -37,7 +38,7 @@ import { chinaBeachHost, labyrinthHost } from './west';
  * other module of this folder stays behind this one (no static import of it from a module GameRoot loads).
  *
  * What init wires:
- *   the egg id list with the ledger (registerRewardIds('egg', EGG_IDS): bit i of play.g.egg), the compass
+ *   the egg id list with the ledger (registerRewardIds('egg', ALL_EGG_IDS): bit i of play.g.egg), the compass
  *   (registerHintSource('egg', …): every spot where an unfound egg can happen today) and the rumours (lane C's
  *   registerRumourSource: BAYBAY's 听说… about an unfound egg of the zone; eggs/rumourSource.ts)
  *   the sounds (audio/hooks), the overlays (ui/slots: egg-card, egg-note, egg-operator)
@@ -53,13 +54,14 @@ const NoteCard = lazy(() => import('./FactCard').then(m => ({ default: m.NoteCar
 const OperatorBubble = lazy(() => import('./FactCard').then(m => ({ default: m.OperatorBubble })));
 const ListenRing = lazy(() => import('./FactCard').then(m => ({ default: m.ListenRing })));
 
-/** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24), then 城市之声 and the pebbles (W5-D6). */
+/** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24; W5-D6: eggs 25–33), then 城市之声 and the pebbles (W5-D6). */
 export function makeHosts(): EggHost[] {
   return [
     parrotsHost(), seaLionsHost(), laughingLadyHost(), phoneHost(), cookiesHost(), nortonHost(),
     waveOrganHost(), crissyHost(), otterHost(), octagonHost(), alcatrazHost(), foghornHost(),
     humpbackHost(), labyrinthHost(), chinaBeachHost(), dahliaHost(), tiledStepsHost(), karlHost(),
     sundialHost(), hydrantHost(), castroHost(), heronsHost(), trailHost(), altaHost(),
+    ...batch2Hosts(),
     // W5-D6: 城市之声 (the listening and one 听一听 prompt per sound), BAYBAY's pebbles
     ...soundHosts(),
     pebblesHost(),
@@ -69,7 +71,7 @@ export function makeHosts(): EggHost[] {
 export function init(): () => void {
   const offs: (() => void)[] = [];
   const add = (off: () => void) => { offs.push(off); };
-  add(registerRewardIds('egg', EGG_IDS));
+  add(registerRewardIds('egg', ALL_EGG_IDS));
   add(registerRewardIds('sound', SOUND_IDS));
   add(registerRewardIds('pebble', PEBBLE_IDS));
   add(registerEggSounds());
