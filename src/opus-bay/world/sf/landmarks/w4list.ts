@@ -1,4 +1,5 @@
 import type { W4Site } from './siteKit';
+import { asianArtMuseum } from './asian-art-museum';
 import { bakerBeach } from './baker-beach';
 import { beachChalet } from './beach-chalet';
 import { bernalHeights } from './bernal-heights';
@@ -42,6 +43,7 @@ import { ucsfMissionBay } from './ucsf-mission-bay';
 import { unionSquare } from './union-square';
 import { ucsfParnassus } from './ucsf-parnassus';
 import { usfLoneMountain } from './usf-lone-mountain';
+import { warMemorial } from './war-memorial';
 import { yerbaBuenaGardens } from './yerba-buena-gardens';
 
 /**
@@ -102,4 +104,6 @@ export const W4_SITES: readonly W4Site[] = [
   bernalHeights,
   stMarysCathedral,
   cableCarMuseum,
+  warMemorial,
+  asianArtMuseum,
 ];
