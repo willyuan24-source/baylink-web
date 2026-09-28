@@ -24,7 +24,7 @@ export function useMedia(query: string): boolean {
 
 export const useIsMobile = () => useMedia('(max-width: 720px)');
 
-type Device = 'keyboard' | 'touch' | 'gamepad';
+export type Device = 'keyboard' | 'touch' | 'gamepad';
 let deviceNow: Device | null = null;
 const deviceListeners = new Set<() => void>();
 let deviceInstalled = false;
@@ -33,12 +33,69 @@ function setDevice(next: Device) {
   deviceNow = next;
   deviceListeners.forEach(listener => listener());
 }
+
+/** A mouse event this soon (ms) after a touch is the tap's own compat event, not a mouse. */
+export const TOUCH_COMPAT_MS = 1000;
+/** The parts of an input event the device detector reads. */
+export interface DeviceInput {
+  type: string;
+  pointerType?: string;
+  detail?: number;
+  target?: EventTarget | null;
+  /** MouseEvent.sourceCapabilities.firesTouchEvents (Chrome): the mouse event comes from a touch */
+  firesTouch?: boolean;
+}
+const EDITABLE = /^(INPUT|TEXTAREA|SELECT)$/;
+const editable = (t: EventTarget | null | undefined): boolean => {
+  const el = t as { tagName?: string; isContentEditable?: boolean } | null | undefined;
+  return !!el && (EDITABLE.test(el.tagName ?? '') || !!el.isContentEditable);
+};
+/**
+ * Which device an input event says the player uses, or null when it says nothing (lane P, verify-phone B1). A tap
+ * also fires compat mouse events (mousedown / mouseup / click, no pointerType) right after its touchend; the old
+ * detector took that mousedown for a mouse and flipped the HUD to the keyboard layout between mousedown and mouseup,
+ * so the tapped action button (和 Ray 聊聊, 坐渡轮, 捡起明信片 …) unmounted under the finger and never got its click,
+ * and 跳 vanished for ≈ 350 ms after every tap. Now only a real mouse pointer (pointerdown with pointerType 'mouse') or
+ * a key pressed outside a text field (the map search types on the phone keyboard) switches to the keyboard layout; the
+ * mousedown path stays for browsers without pointer events, never within TOUCH_COMPAT_MS of a touch. Pure.
+ */
+export function deviceFromInput(e: DeviceInput, current: Device | null, msSinceTouch: number): Device | null {
+  switch (e.type) {
+    case 'touchstart': return 'touch';
+    case 'pointerdown':
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') return 'touch';
+      return e.pointerType === 'mouse' && msSinceTouch > TOUCH_COMPAT_MS ? 'keyboard' : null;
+    case 'mousedown':
+      return (e.detail ?? 0) > 0 && current === 'touch' && !e.pointerType && !e.firesTouch && msSinceTouch > TOUCH_COMPAT_MS ? 'keyboard' : null;
+    case 'keydown': return current === 'touch' && editable(e.target) ? null : 'keyboard';
+    default: return null;
+  }
+}
+
+/**
+ * Listen on `target` (the window) and feed the shared device state. `pointer`: the browser has pointer events (then
+ * mousedown is not listened to: pointerdown says which pointer it was). Returns the remover. Exported for the tests.
+ */
+export function trackDevice(target: EventTarget, pointer: boolean, now: () => number = () => performance.now()): () => void {
+  let touchAt = -Infinity;
+  const on = (event: Event) => {
+    const ev = event as Event & { pointerType?: string; detail?: number; sourceCapabilities?: { firesTouchEvents?: boolean } | null };
+    const t = now();
+    if (ev.type === 'touchstart' || ev.type === 'touchend' || (ev.type === 'pointerdown' && ev.pointerType === 'touch')) touchAt = t;
+    const next = deviceFromInput({ type: ev.type, pointerType: ev.pointerType, detail: ev.detail, target: ev.target, firesTouch: !!ev.sourceCapabilities?.firesTouchEvents }, deviceNow, t - touchAt);
+    if (next) setDevice(next);
+  };
+  const types = ['touchstart', 'touchend', 'keydown', pointer ? 'pointerdown' : 'mousedown'];
+  for (const type of types) target.addEventListener(type, on, { capture: true, passive: true });
+  return () => { for (const type of types) target.removeEventListener(type, on, { capture: true }); };
+}
+/** The device the shared detector holds now (null before any input). */
+export const currentDevice = (): Device | null => deviceNow;
+
 function installDevice() {
   if (deviceInstalled || typeof window === 'undefined') return;
   deviceInstalled = true;
-  window.addEventListener('touchstart', () => setDevice('touch'), { passive: true, capture: true });
-  window.addEventListener('keydown', () => setDevice('keyboard'), { capture: true });
-  window.addEventListener('mousedown', event => { if ((event as MouseEvent).detail > 0 && deviceNow === 'touch' && !(event as PointerEvent).pointerType) setDevice('keyboard'); }, { capture: true });
+  trackDevice(window, typeof window.PointerEvent === 'function');
   // actors report gamepad use through runtime.input.device
   window.setInterval(() => { if (runtime.input.device === 'gamepad' || (runtime.input.device === 'touch' && deviceNow !== 'touch')) setDevice(runtime.input.device); }, 500);
 }
