@@ -121,8 +121,11 @@ try {
   for (const c of COIN_CACHES) if (!c.air && !c.retired) add({ id: `cache:${c.id}`, kind: 'cache', owner: 'E', x: c.x, z: c.z });
 } catch (e) { console.warn('[sweep] no coin spots yet', String(e).slice(0, 120)); }
 try {
-  const { EGGS, eggSpots } = await import('../../../src/opus-bay/eggs/registry');
-  for (const e of EGGS) if (e.kind === 'ground') eggSpots(e).forEach((p, i) => add({ id: `egg:${e.id}${i ? `:${i + 1}` : ''}`, kind: 'egg', owner: 'D', x: p.x, z: p.z, name: e.name.en }));
+  const reg = await import('../../../src/opus-bay/eggs/registry');
+  const { eggSpots } = reg;
+  // (every batch: ALL_EGGS once lane D has more than one list)
+  const eggs = (reg as { ALL_EGGS?: typeof reg.EGGS }).ALL_EGGS ?? reg.EGGS;
+  for (const e of eggs) if (e.kind === 'ground') eggSpots(e).forEach((p, i) => add({ id: `egg:${e.id}${i ? `:${i + 1}` : ''}`, kind: 'egg', owner: 'D', x: p.x, z: p.z, name: e.name.en }));
 } catch (e) { console.warn('[sweep] no eggs yet', String(e).slice(0, 120)); }
 try {
   const { VIEW_SPOTS } = await import('../../../src/opus-bay/play/viewSpots');

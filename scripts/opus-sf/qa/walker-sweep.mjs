@@ -275,6 +275,8 @@ try {
       if (!r.pass) { r.shot = await shot(path.join(OUT, `trip_${a.id}.jpg`)); failures.push({ phase: 'trip', owner: stalled ? '?' : 'N', leg: `Ferry → ${a.id}`, ...r }); }
       results.trips.push(r);
       log({ trip: a.id, quote: r.quote, seconds, ratio: r.ratio, arrived, stalled, pulls });
+      // (a long run: keep what is done on disk after every trip)
+      fs.writeFileSync(path.join(OUT, 'live.json'), JSON.stringify(results, null, 1));
       await evaluate(`(async()=>{const F=await import('/src/opus-bay/game/flow.ts');F.endTrip();return 1})()`).catch(() => null);
     }
   }
