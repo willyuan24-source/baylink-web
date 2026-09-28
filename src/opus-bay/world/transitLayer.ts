@@ -317,25 +317,26 @@ export class TransitLayer {
   }
 
   /**
-   * W4-T11: while the rider's bus / surface train moves, stream the next 200 u of its line (one whenReady at a time,
-   * 90 u round the point 200 u ahead; every 0.5 s once the last one landed or after 3 s).
+   * W4-T11: while the rider's bus / surface train moves, the streamer prefetches the next 200 u of its line (lane V's
+   * CityStreamer.prefetch soft foci: L1 and walking rasters there, behind the player's own jobs, never L0), every
+   * 0.5 s; cleared when the ride ends or the train is under ground (the portal is asked for by portalReady).
    */
   private prefetch(dt: number) {
-    const f = this.lines, r = currentRide();
-    if (!f || !isLineRide(r) || r.mode === 'wait') return;
     if ((this.prefetchT -= dt) > 0) return;
+    this.prefetchT = 0.5;
     const s = cityStreamerLazy();
     if (!s) return;
+    const f = this.lines, r = currentRide();
     let pt: { x: number; z: number } | null = null;
-    const bus = f.bus.riderCarOf(r.line);
-    if (bus && bus.v > 2) pt = trackPoint(f.bus.track, bus.s + 200);
-    const train = f.rail.riderCarOf(r.line);
-    if (train && !train.hidden && Math.abs(train.v) > 2) pt = trackPoint(train.track, train.s + train.dir * 200);
-    if (!pt) { this.prefetchT = 0.5; return; }
-    if (this.prefetching && this.prefetchT > -2.5) return;
-    this.prefetching = true;
-    this.prefetchT = 0.5;
-    void s.whenReady({ x: pt.x, z: pt.z }, 90).then(() => { this.prefetching = false; });
+    if (f && isLineRide(r) && r.mode !== 'wait') {
+      // (also while it dwells: the soft focus stays put instead of dropping and coming back at every stop)
+      const bus = f.bus.riderCarOf(r.line);
+      if (bus?.rider) pt = trackPoint(f.bus.track, bus.s + 200);
+      const train = f.rail.riderCarOf(r.line);
+      if (train?.rider && !train.hidden) pt = trackPoint(train.track, train.s + train.dir * 200);
+    }
+    if (pt) { s.prefetch([{ x: pt.x, z: pt.z }]); this.prefetching = true; }
+    else if (this.prefetching) { s.prefetch([]); this.prefetching = false; }
   }
 
   /** The cable cars and the F-line cars within 250 u of the player as road vehicles (crowd hop, traffic give-way). */
@@ -408,6 +409,7 @@ export class TransitLayer {
     this.offs.length = 0;
     this.life.dispose();
     if (this.lines) { if (activeLineFleet() === this.lines) setActiveLineFleet(null); this.lines.dispose(); }
+    if (this.prefetching) cityStreamerLazy()?.prefetch([]);
     setTurntableSpinner(false);
     if (LAYER === this) LAYER = null;
   }

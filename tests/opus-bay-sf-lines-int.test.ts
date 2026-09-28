@@ -352,3 +352,30 @@ test('walker obstacles: every pole, kiosk and portal mouth is a soft obstacle, a
     assert.equal(out.length, 0);
   } finally { T.setActiveLineFleet(null); fleet.dispose(); }
 });
+
+test('an N ride out of the subway: 80 u before the Duboce portal the held rider moves to it (the surface streams there first), then rides the train out', async () => {
+  T.setTransitW4(W4);
+  T.setTransitData(DATA);
+  const fleet = makeFleet(false);
+  const lr = await transit.loadLineRides();
+  try {
+    game.set({ phase: 'playing' });
+    const N = W4.metro.find(l => l.id === 'n-judah')!;
+    const kiosk = T.boardAt(W4, N.stops.find(s => s.id === 'muni-van-ness')!);
+    runtime.player.x = kiosk.x; runtime.player.z = kiosk.z;
+    lr.rideLine('n-judah', 'muni-van-ness', 'muni-duboce-church');
+    const portal = N.tunnels![0].portalB!;
+    let atPortal = false, surfaced = false;
+    const done = stepAll(fleet, 120, () => {
+      const r = ride.currentRide();
+      if (!r) return true;
+      const st = lr.w4Status(r);
+      if (st?.underground && Math.hypot(runtime.player.x - portal.x, runtime.player.z - portal.z) < 0.5) atPortal = true;
+      if (atPortal && st && !st.underground) surfaced = true;
+      return false;
+    });
+    assert.ok(done, 'arrived at Duboce & Church');
+    assert.ok(atPortal, 'held at the Duboce portal before the train came out');
+    assert.ok(surfaced, 'then out on the surface');
+  } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title' }); }
+});

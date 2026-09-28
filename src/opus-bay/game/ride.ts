@@ -196,10 +196,16 @@ function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTic
   // aboard: the rider stands / sits on the car's platform (actors/moveSystem places them; mirror it here)
   const at = riderWorld();
   const car = sys.cars[st.car];
-  if ((st as { underground?: boolean }).underground) {
+  const sub = st as { underground?: boolean; tunnel?: { fromAt: number; toAt: number; portalA: { x: number; z: number } | null; portalB: { x: number; z: number } | null } | null; at?: number; dir?: 1 | -1 };
+  if (sub.underground) {
     // wave 4: the train runs the virtual subway (no platform pose is published for a hidden train): the rider stays
-    // where they went down (the kiosk, or the mouth the train dived into) under the subway overlay; nothing streams
+    // where they went down (the kiosk, or the mouth the train dived into) under the subway overlay; nothing streams.
+    // 80 u before the portal it will come out of, the rider moves to that portal (still under the overlay), so the
+    // streamer builds the surface there at full priority before the train emerges (no cut into a half-built street)
     r.hold ??= at ? { x: at.x, z: at.z } : { x: runtime.player.x, z: runtime.player.z };
+    const t = sub.tunnel, dir = sub.dir ?? 1;
+    const exit = t ? (dir > 0 ? t.portalB : t.portalA) : null;
+    if (t && exit && sub.at !== undefined && Math.abs((dir > 0 ? t.toAt : t.fromAt) - sub.at) < 80) r.hold = { x: exit.x, z: exit.z };
     runtime.player.x = r.hold.x;
     runtime.player.z = r.hold.z;
   } else {
