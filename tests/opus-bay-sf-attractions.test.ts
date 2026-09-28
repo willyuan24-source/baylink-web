@@ -442,8 +442,7 @@ test('attractions × place index: a trip to the place an attraction speaks for e
   // extra rows: the attraction's arrival too (≤ 1 u: the scouting rounded them separately); a site arrival (W5-N5)
   // replaces the extra's own at runtime (applyW4Places: siteArrivalRows)
   const siteRows = siteArrivalRows(), movedRows = new Set([...siteRows, ...overrideArrivalRows()]);
-  // (part c: a moved trip end — ARRIVAL_OVERRIDES, the bison paddock — replaces the extra's own the same way)
-  assert.ok(overrideArrivalRows().has('bison-paddock'));
+  // (part c: a moved trip end — ARRIVAL_OVERRIDES — replaces an extra row's own the same way)
   for (const e of EXTRA_PLACES) {
     const a = ATTRACTION_INDEX.get(e.id)!, w = a.arrival ?? { x: a.x, z: a.z };
     if (movedRows.has(e.id)) { const r = rowById.get(e.id)!; assert.deepEqual({ x: r.arrival!.x, z: r.arrival!.z }, { x: w.x, z: w.z }, `${e.id} runtime row at the site arrival`); continue; }

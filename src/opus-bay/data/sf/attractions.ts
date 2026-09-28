@@ -291,11 +291,10 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   // W5-N (lane F's sweep run 1, plan MF2: no T1 / T2 trip end may be stuck): each moved to the nearest open, reachable
   // ground off the carriageway, found with the sweep's own judge (four pushes of 1.5 s, three move ≥ 3 u; a nav path from
   // the walking graph's main component ends on it), heading toward the landmark; each looked at in the game.
-  // Part c (the mid-wave checkpoint's CP-7: Fort Point BOXED live, W D S A 2.4 / 4.5 / 1.1 / 0.1 u; the bison paddock with
-  // no ground at its point): the same search, at the fort's own level only (under 4 u: the bridge deck is 15 u up) and,
-  // for the paddock, ≥ 4.2 u from lane E's trail coins (bison-paddock #1 and #2)
+  // Part c (the mid-wave checkpoint's CP-7: Fort Point BOXED live, W D S A 2.4 / 4.5 / 1.1 / 0.1 u): the same search, at
+  // the fort's own level only (under 4 u: the bridge deck is 15 u up). (The bison paddock, OFF at its anchor, takes lane
+  // L's site arrival now that lane E's coins keep 4 u from it: 88722c2.)
   'fort-point': { x: -744.81, z: 588.26, heading: -0.685, why: 'the seawall promenade by the fort\'s east wall, the bridge overhead: the door end was boxed against the wall and the slope (1 of 4 ways)' },
-  'bison-paddock': { x: -466.9, z: 1223.46, heading: -1.953, why: 'the JFK Drive path at the paddock\'s fence, the meadow ahead: the anchor is inside the fence (no ground); lane L\'s site arrival waits for lane E\'s trail coin #1 (1.8 u)' },
   'lombard-crooked': { x: -158.44, z: 153.14, heading: 0.056, why: 'the pavement at the crooked block\'s foot (Leavenworth St), the zigzag up ahead: the old end stood in Lombard St\'s lane, boxed (1 of 4 ways open)' },
   'sutro-baths': { x: -718.13, z: 1243.55, heading: -1.22, why: 'the ruins\' overlook path: the old end snagged (a wall 0.4 u ahead that the map does not draw)' },
   'pier-39': { x: -160.66, z: 24.1, heading: 1.18, why: 'the pier\'s gate plaza: the anchor is in The Embarcadero\'s roadway (not standable)' },
@@ -361,16 +360,12 @@ export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 
 }
 
 /**
- * Lane L's site arrivals not taken yet, with the reason: the ones that wait for other lanes (lane E's coin spots within
- * 4 u of them: wired as soon as those move; Requests
- * in docs/opus-bay/sf-w5-N.md), and the one lane F's sweep judges worse than the old end.
+ * Lane L's site arrivals not taken yet, with the reason: the ones lane F's sweep judges worse than the old end. (Part c:
+ * four of the five that waited for lane E's coins — the bison paddock, Buena Vista Park, Sutro Heights, the Seward
+ * slides — are wired since lane E keeps every coin 4 u from them, 88722c2; Haight & Ashbury's snags in the sweep.)
  */
 export const SITE_ARRIVALS_WAITING: Readonly<Record<string, string>> = {
-  'bison-paddock': 'lane E trail bison-paddock #1 1.8 u from it (lane L moved route stop r3-bison there: 81d6178); meanwhile ARRIVAL_OVERRIDES ends trips 4 u away',
-  'buena-vista-park': 'lane E trail buena-vista-park #5 and #6 within 3 u',
-  'haight-ashbury': 'lane E trail stop-haight #1 within 3 u',
-  'sutro-heights-park': 'lane E cache sutro-heights-top within 3 u',
-  'seward-street-slides': 'lane E cache seward-slides-top 3.8 u away',
+  'haight-ashbury': 'the sweep (part c): SNAG on the site arrival (one way stopped at once by a wall the map does not draw); the old end is ok',
   'irving-street': 'the sweep: BOXED on the new pavement spot (1 of 4 ways), the old end is a CORRIDOR',
 };
 /** The site arrival an attraction takes (lane L's data/sf/siteArrivals.ts, less the waiting ones). */

@@ -943,8 +943,12 @@ test('CP-2 the phone map: a map tap swallows its click; the lifted OSM credit ig
   assert.match(src, /e\.preventDefault\(\)/);
 });
 
-test('CP-7 trip ends: Fort Point on the seawall at the fort, the bison paddock at its fence, both inside the arrival radius, facing it, clear of the coins', async () => {
+test('CP-7 trip ends: Fort Point on the seawall at the fort, the bison paddock at the site arrival of lane L (lane E moved its coins), both inside the arrival radius, facing it, clear of the coins', async () => {
   const fp = ATTRACTION_INDEX.get('fort-point')!, bp = ATTRACTION_INDEX.get('bison-paddock')!;
+  const { SITE_ARRIVALS_WAITING } = await import('../src/opus-bay/data/sf/attractions');
+  assert.deepEqual(Object.keys(SITE_ARRIVALS_WAITING).sort(), ['haight-ashbury', 'irving-street'], 'only the two the sweep judges worse wait: the four that waited on the coins are wired');
+  const { SITE_ARRIVALS } = await import('../src/opus-bay/data/sf/siteArrivals');
+  assert.deepEqual({ x: bp.arrival!.x, z: bp.arrival!.z }, { x: SITE_ARRIVALS['bison-paddock'].x, z: SITE_ARRIVALS['bison-paddock'].z }, 'the paddock = the stop of route r3');
   for (const a of [fp, bp]) {
     const d = tripDestination(a);
     assert.ok(Math.hypot(d.x - a.x, d.z - a.z) < 12, `${a.id}: the end is inside the 12 u arrival radius (the moment fires there)`);
