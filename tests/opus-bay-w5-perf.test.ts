@@ -618,3 +618,21 @@ test('W5-V7: a BAYBAY bubble with a recorded text plays its clip (once per bubbl
   flow.set({ bubble: null });
   assert.deepEqual(heard, [line.id], 'one voice-line, for BAYBAY\'s recorded bubble only, none after off');
 });
+
+test('W5-V (lane R\'s request): the Ferry clock and the market stalls read Bay time — a dated check moves them, explicit dates are unchanged', async () => {
+  const clock = await import('../src/opus-bay/world/clock');
+  const bay = await import('../src/opus-bay/game/bayNow');
+  try {
+    assert.equal(bay.__setBayNowForTests('2026-10-03T10:30'), true); // a Saturday, 10:30 Bay time
+    assert.deepEqual(clock.bayClock(), { hour: 10, minute: 30, weekday: 'Sat' });
+    assert.equal(clock.isMarketDay(), true);
+    assert.equal(clock.isMarketOpen(), true);
+    assert.equal(bay.__setBayNowForTests('2026-10-05T15:00'), true); // a Monday afternoon
+    assert.equal(clock.isMarketDay(), false);
+    assert.equal(clock.isMarketOpen(), false);
+    assert.equal(clock.isMarketOpen(new Date('2026-09-26T18:00:00Z')), true, 'an explicit instant is read as given (Sat 11:00)');
+  } finally { bay.__setBayNowForTests(null); }
+  const real = clock.bayClock();
+  const direct = clock.bayClock(new Date());
+  assert.equal(real.weekday, direct.weekday, 'no shift: the real time');
+});
