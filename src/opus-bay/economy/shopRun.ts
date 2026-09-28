@@ -10,6 +10,7 @@ import { POSTCARDS } from '../data/postcards';
 import { readSave } from '../data/save';
 import { startTravel, travelActive } from '../game/fastTravel';
 import { closePanel } from '../game/flow';
+import { flow } from '../game/flowStore';
 import { registerFlagSource } from '../game/flags';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
 import { isDiscovered } from '../game/discovery';
@@ -45,6 +46,8 @@ export const pelicanOut = (): boolean => glideUnlocked() || !!readSave()?.unlock
 
 export function openShop(from: ShopFrom = 'more', shelf?: string): void {
   if (game.get().panel.kind) closePanel();
+  // the goals card folds away (it would sit beside the sheet; the pill brings it back)
+  if (flow.get().goalsCard) flow.set({ goalsCard: false });
   closeOverlay('e-ticket');
   openOverlay('e-shop', { from, ...(shelf ? { shelf } : {}) } satisfies ShopProps);
 }

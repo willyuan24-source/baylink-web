@@ -123,13 +123,6 @@ function ItemArt({ it }: { it: ItemDef }) {
   return <GlyphArt color="#1f8f8a"><Ticket size={24} aria-hidden /></GlyphArt>;
 }
 
-/** The short tile label: the item name without the slot word (雾灰围巾 → 雾灰). */
-const SLOT_WORDS = /(围巾|帽子|背包|单车|小车|相框)$/;
-const tileName = (it: ItemDef, t: (b: Bilingual) => string): string => {
-  const zh = it.name.zh.replace(SLOT_WORDS, '') || it.name.zh;
-  return t({ zh, en: it.name.en.replace(/ (scarf|hat|backpack|bike|toy car|frame)$/i, '') });
-};
-
 // --- the sheet -------------------------------------------------------------------------------------------------------
 
 type Tile = { it: ItemDef; owned: boolean; worn: boolean; locked: boolean; held: boolean };
@@ -221,7 +214,7 @@ export function ShopSheet({ props, close }: OverlayProps) {
                     onClick={() => pick(tile)}
                   >
                     <span className="ob-shop-art"><ItemArt it={tile.it} /></span>
-                    <span className="ob-shop-name">{tileName(tile.it, t)}</span>
+                    <span className="ob-shop-name">{t(tile.it.short)}</span>
                     <span className="ob-shop-price">
                       {tile.worn ? <><Check size={12} aria-hidden />{t('穿着', 'On')}</>
                         : tile.held ? t('有一个', 'Held')

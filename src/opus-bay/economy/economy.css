@@ -65,7 +65,8 @@
 /* desktop: a counter along the bottom (the HUD, the pill and BAYBAY stay in view above it) */
 @media (min-width: 721px) {
   .ob-sheet.ob-shop {
-    top: auto; right: auto; left: max(16px, calc(50% - 400px)); bottom: calc(16px + var(--ob-sb)); width: min(800px, calc(100vw - 32px)); max-height: min(420px, 52vh);
+    /* left of the round HUD buttons (bottom right, ≈ 340 px) */
+    top: auto; right: auto; left: max(16px, calc(50% - 580px)); bottom: calc(16px + var(--ob-sb)); width: min(760px, calc(100vw - 400px)); max-height: min(420px, 52vh);
     animation: ob-shop-up .34s var(--ob-ease);
   }
   .ob-shop .ob-sheet-head { padding-top: 14px; padding-bottom: 8px; }
