@@ -72,7 +72,7 @@ export default function RideBanner() {
   return (
     <div className={`ob-ride${pads.length ? ' has-pads' : ''}${held ? ' is-held' : ''}`} role="status" style={pads.length ? PADS_ON : undefined}>
       <Icon size={20} aria-hidden />
-      <span>{ride.stage === 'waiting' ? t(label.waiting) : <>{t(label.lineTo)} <strong>{label.dest ? t(label.dest) : ''}</strong>{held && <em className="ob-ride-held" style={HELD_NOTE}>{t(' · 车停住了', ' · held up')}</em>}</>}</span>
+      <span>{ride.stage === 'waiting' ? t(label.waiting) : <>{t(label.lineTo)} <strong>{label.dest ? t(label.dest) : ''}</strong>{held && <em className="ob-ride-held" style={HELD_NOTE}>{ride.kind === 'ferry' ? t(' · 船停住了', ' · held up') : t(' · 车停住了', ' · held up')}</em>}</>}</span>
       {ride.stage === 'waiting'
         ? <>
             <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={cancelRide}>{t('不坐了', 'Cancel')}</button>

@@ -861,13 +861,23 @@ export interface RideEta {
   rideLeft: number;
   /** 0 … 1 of the ride behind (0 while waiting) */
   progress: number;
-  /** seconds the vehicle coming for / carrying the rider has not moved (a dwell counts; the 直接到站 rule reads it) */
+  /**
+   * seconds the vehicle coming for / carrying the rider has not moved (a dwell counts; the 直接到站 rule reads it); aboard
+   * it counts from boarding, and at the stop boarded at only past BOARD_GRACE (W5-T review)
+   */
   stalled: number;
 }
 
 /** the vehicle has moved when it is this far from where it was last seen moving (u) */
 const STALL_MOVE = 0.5;
-const stall = { ride: null as RideState | null, x: NaN, z: NaN, t: 0 };
+/**
+ * (W5-T review) aboard, before the vehicle has left the stop the rider boarded at, its stand counts only past this (s): the
+ * stop's own dwell is boarding, not a hold-up — the ferry lies 14 s at its quay, and a cable car boarded at the Hyde St or
+ * Taylor & Bay turntable had stood 13 s (its arrival dwell and the turn, while the rider waited), so the banner said
+ * 车停住了 with 直接到站 as the big button the moment the rider stepped on
+ */
+export const BOARD_GRACE = 15;
+const stall = { ride: null as RideState | null, x: NaN, z: NaN, t: 0, aboard: false, departed: false };
 
 /** The pose of the vehicle coming for / carrying the rider (the hero F-line: the district streetcar). */
 function rideVehicle(r: RideState): { x: number; z: number } | null {
@@ -880,9 +890,21 @@ function rideVehicle(r: RideState): { x: number; z: number } | null {
 export function watchStall(dt: number) {
   const r = currentRide();
   const pose = r ? rideVehicle(r) : null;
-  if (!r || !pose || stall.ride !== r) { stall.ride = r; stall.x = pose?.x ?? NaN; stall.z = pose?.z ?? NaN; stall.t = 0; return; }
-  if (!(Math.hypot(pose.x - stall.x, pose.z - stall.z) < STALL_MOVE)) { stall.x = pose.x; stall.z = pose.z; stall.t = 0; return; }
+  if (!r || !pose || stall.ride !== r) { stall.ride = r; stall.x = pose?.x ?? NaN; stall.z = pose?.z ?? NaN; stall.t = 0; stall.aboard = false; stall.departed = false; return; }
+  // (W5-T review) the count starts again when the rider steps aboard: the wait before it is not the ride's hold-up
+  const aboard = !(flow.get().ride?.stage === 'waiting' || r.mode === 'wait');
+  if (aboard !== stall.aboard) { stall.aboard = aboard; stall.departed = false; stall.x = pose.x; stall.z = pose.z; stall.t = 0; return; }
+  if (!(Math.hypot(pose.x - stall.x, pose.z - stall.z) < STALL_MOVE)) { stall.x = pose.x; stall.z = pose.z; stall.t = 0; if (aboard) stall.departed = true; return; }
   stall.t += dt;
+}
+
+/** How long the vehicle has made no progress for the ride (aboard at the boarding stop: past BOARD_GRACE only). */
+function stalledFor(r: RideState): number {
+  if (stall.ride !== r) return 0;
+  // (just stepped aboard: the watch starts its count on its next step)
+  const aboard = !(flow.get().ride?.stage === 'waiting' || r.mode === 'wait');
+  if (aboard !== stall.aboard) return 0;
+  return aboard && !stall.departed ? Math.max(0, stall.t - BOARD_GRACE) : stall.t;
 }
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
@@ -896,7 +918,7 @@ export function rideEtaNow(): RideEta | null {
   const r = currentRide(), f = flow.get().ride;
   if (!r || !f) return null;
   const waiting = f.stage === 'waiting' || r.mode === 'wait';
-  const stalled = stall.ride === r ? stall.t : 0;
+  const stalled = stalledFor(r);
   if (!isLineRide(r)) {
     // the hero F-line: a virtual ride has its own clock; a followed car ≈ its duration
     const waitLeft = waiting ? Math.max(0, f.eta ?? 0) : 0;
