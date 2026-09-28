@@ -5,7 +5,7 @@ import { game } from '../core/store';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { flow } from './flowStore';
-import { lockReport, type LockSource } from './playerLock';
+import { deriveLock, dropHolds, lockReport, type LockSource } from './playerLock';
 
 /**
  * Wave 5 · W5-0b (plan sf-w5-plan.md §2 MF1 step 1): the lock watchdog, a safety net under game/playerLock. Every frame
@@ -14,6 +14,10 @@ import { lockReport, type LockSource } from './playerLock';
  * shop / panel hold is live — the feet are freed, a `stuck` event says where (what: 'watchdog', `source`: the holds
  * left, else 'unknown') and DEV builds warn. R (unstuck: the keyboard's R, the gamepad's right stick) frees such a lock
  * at once. A release is a bug with a source, never the fix: the scripted phone runs expect none (plan MF1 acceptance).
+ *
+ * W5-F1: the lock is derived (game/playerLock deriveLock), so what can still lock the feet with nothing to explain it
+ * is a hold nobody released (a camera beat or a trip that ended without its release) — the watchdog drops those holds
+ * and derives the lock again; it never writes the lock itself.
  */
 
 export const WATCHDOG_S = 1;
@@ -52,7 +56,8 @@ export function stepLockWatchdog(dt: number): boolean {
   unexplained = 0;
   const holds = lockReport();
   const source = holds.length ? holds.map(h => (h.key ? `${h.source}:${h.key}` : h.source)).join(',') : 'unknown';
-  p.locked = false;
+  // nothing explains the lock (no state, no self-explained hold): every hold left is a forgotten one
+  if (!dropHolds(() => true)) deriveLock();
   watchdogStats.releases++;
   watchdogStats.last = { x: p.x, z: p.z, source, reset };
   emit({ type: 'stuck', x: p.x, z: p.z, what: 'watchdog', source });

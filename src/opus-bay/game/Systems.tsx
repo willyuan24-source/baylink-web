@@ -22,7 +22,7 @@ import { routeLeftTo } from './mapRoute';
 import { autoWalkSeconds, gameTimeLabel, secondsLabel } from './travel';
 import { stepTravel } from './fastTravel';
 import { stepLockWatchdog, watchdogStats } from './lockWatchdog';
-import { lockHeld, lockReport } from './playerLock';
+import { deriveLock, lockHeld, lockReport } from './playerLock';
 import { parseAt, readQa } from './qa';
 import { goToCitySpot } from './resume';
 import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
@@ -546,7 +546,9 @@ function Ticker() {
     // other lanes' per-frame steps (game/systemsRegistry registerFrameSystem)
     stepFrameSystems(dt, now);
 
-    // W5-0b: a lock nothing explains for > 1 s (or when R is pressed) is freed, logged in DEV (game/lockWatchdog)
+    // W5-F1: the lock is derived every frame (game/playerLock: a dialogue, fishing, a ride, the phase or a hold)
+    deriveLock();
+    // W5-0b: a hold nothing explains for > 1 s (or when R is pressed) is dropped, logged in DEV (game/lockWatchdog)
     stepLockWatchdog(dt);
 
     c.tenHz += dt;
