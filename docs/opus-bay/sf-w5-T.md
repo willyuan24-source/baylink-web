@@ -151,7 +151,7 @@ No relayed owner message arrived during this part. No Higgsfield credits used (n
 
 Written 2026-09-28 by lane T's implementer (worktree `wt/w5-t` → `opus-bay`), part b = W5-T4 (the levers), W5-T5 (the crowds:
 the 3 u clear lanes, stepping round the residents, the M rows on phones), W5-T6 (`audio/hooks.ts` internals). Commits:
-`97c0281` (W5-T6), `5a0aae1` (W5-T4), `e144476` (W5-T5 + the part-b tests), `9587456` (W5-T4: the F-line middle look in the
+`97c0281` (W5-T6), `5a0aae1` (W5-T4), `e144476` (W5-T5 + the part-b tests), `a5b4b8e` (W5-T4: the F-line middle look in the
 lazy chunk) and the one carrying this section.
 
 ### 给主人的摘要
@@ -185,7 +185,7 @@ lazy chunk) and the one carrying this section.
 
 **Checks** on the pushed code tree `e144476` (rebased on `af8f50f`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .`
 0 errors (43 old warnings outside `src/opus-bay`) · `tests/opus-bay-*.test.ts` **1126 / 1126** (run at 05:50 PDT). On
-`9587456` (the F-line middle look moved, 06:05 PDT): tsc 0, eslint 0 errors; the suite 1123 / 1126 — `sf-nav` "window build
+`a5b4b8e` (the F-line middle look moved, 06:05 PDT): tsc 0, eslint 0 errors; the suite 1123 / 1126 — `sf-nav` "window build
 906.9 ms" (a wall-clock assert while a phone Chrome ran; passes alone) and **two landmark tests that fail from 06:00 to 21:30
 PDT in the fire season whatever the code**: `sf-landmark-context` "D2-10 tops" and `sf-sites-w4` "flags … the landmark table
 matches the models" measure the Ocean Beach fire rings with their flames lit (W5-L2 draws them through lane R's
@@ -248,7 +248,7 @@ Metro rows on a phone; the hooks' internals (clean options, both rate limits, st
 cap); a bus's several ducks.
 
 **Budget**: no new material, program, draw call or warm-up (the middle geometries join an existing BatchedMesh; the life
-kinds draw fewer instances, sometimes no call). GameRoot on `9587456`: 805.67 kB / **303.96 kB gzip** (304.26 before the F-line
+kinds draw fewer instances, sometimes no call). GameRoot on `a5b4b8e`: 805.67 kB / **303.96 kB gzip** (304.26 before the F-line
 middle look moved to the lazy chunk; 302.73 on part a's `04eb15a` — the difference includes every lane's commits since; lane
 T's part-b share in the main graph is the life cull and the hooks' guards); lazy `transitLayer` 48.91 kB gzip, `lineRides`
 10.33.
@@ -302,5 +302,7 @@ Blvd and the 直接到站 phone banner are in part a; the phone 4× gate is lane
   `__opusAudio.stats().hooks` (DEV) shows plays, drops and errors per id.
 - **Lane R**: your event aisles are walker lanes now too (nothing to do). If a stage wants its aisle elsewhere, pass `lane` to
   `addCrowdSpots`; the width stays 3 u.
+
+**Final checks** (the pushed tree `5e5cb20` + this report, rebased on `da331c9`: lane F's deck steering and lane V's lit nights came in): tsc 0 · eslint 0 errors · the suite **1139 / 1139** with the Bay clock pinned to 05:30 (the fire-ring tests above); the hashes after that rebase: W5-T4 follow-up `a5b4b8e`, W5-T5 follow-up `5e5cb20` (the lane step allocates nothing per frame).
 
 No relayed owner message arrived during this part. No Higgsfield credits used (no ledger rows).
