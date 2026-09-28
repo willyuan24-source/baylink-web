@@ -37,7 +37,6 @@ export const LION_LINES = {
   all: { zh: '全数到啦！一只都没漏！', en: 'Every one of them — none missed!' },
   fact: { zh: '这些海狮 1990 年起就在 K 码头安家啦！', en: 'These sea lions have lived on K-Dock since 1990!' },
   record: { zh: '最多的时候来过 2100 多只呢——2024 年 5、6 月！', en: 'The record: over 2,100 of them, in May–June 2024!' },
-  look: { zh: '看就好——喂它们是违法的哦。', en: 'Just look — feeding them is against the law.' },
 } satisfies Record<string, Bilingual>;
 
 /** Counted lions for ● / ◆ / ★ (★ = all of them). */
@@ -124,7 +123,8 @@ export function finishSeaLions() {
   cleanup();
   charApi()?.emote('baybay', 'clap');
   if (n === total) bubble(LION_LINES.all, 2400);
-  sayWhenQuiet(first ? LION_LINES.fact : Math.random() < 0.5 ? LION_LINES.record : LION_LINES.look, 3000);
+  // (not "don't feed them": lane D's egg at this rail says that one)
+  sayWhenQuiet(first ? LION_LINES.fact : LION_LINES.record, 3000);
 }
 
 function cleanup() {
