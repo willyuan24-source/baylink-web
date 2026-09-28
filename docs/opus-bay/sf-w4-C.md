@@ -708,3 +708,139 @@ port 5405, scratch `C:/Users/willy/opus-qa/w4i/i4-c/`. Commits on `opus-bay`: `a
 - **Lane P**: `arrivalSeen(attraction)` (game/cityContent.ts) for the map's "arrived" tick; `attractionCardId(a)` for the ⓘ.
 
 Relayed owner message during this part: "现在进度如何" (answered in the summary's first line). Higgsfield: 0 credits.
+
+## Integration part b
+
+Integration implementer of lane C, 2026-09-27 (20:00–22:40 PDT), worktree `C:/Users/willy/wt/i4-c` (branch `i4-c`), dev
+port 5405, scratch `C:/Users/willy/opus-qa/w4i/i4-c/` (QA action scripts `qa/b-*.json`, shots `shots/b/`, builds
+`dist-b0…b2`, suite logs `suite-b1…b5.log`). Commits on `opus-bay`: `3641b5b` (W4-IC6), `5697ca7` (W4-IC7), `38f2847`
+(W4-IC8), `3600806` (W4-IC9) and this report.
+
+### 给主人的摘要
+
+1. **进度（回复"现在进度如何"）**：C 线接线第二部分完成并已推上去——六组验证里落在 C 线文件上的问题全部修好（内容核查 2 个较重要 + 9 个小问题，桌面试玩 1 个重要 + 5 个小问题，手机试玩 2 个小问题，代码复查 1 个），每个都有测试或截图；其余问题属于别的线，已确认都在它们各自的清单里。
+2. 介绍卡：「官网」只指向地标自己的官网（没有官网就不显示，比如龙门）；10 张老地标卡不再重复说同一件事（卡斯特罗剧院重开、苏特罗塔在双峰看最好等只说一次），悬崖屋写成"经营方目标 2026 年底重开，日期未定"；卡片里的英文地名换成游戏里的中文名（都板街、北滩、华盛顿广场、天涯海角……），街区名跟 HUD 一致（湖岸区、维西塔西翁谷、英格尔赛德）；过期的状态会自动消失（MoAD 换展已结束）；两条失效来源换掉。
+3. 试玩问题：明信片就在脚边时，按 E 一定是"捡起明信片"（不再被 BAYBAY 或停着的单车抢走，Luz 的委托不会卡住）；带去金门大桥南塔时先走到桥头上桥，不再绕到桥下 Fort Point 再折回；"明信片线索"带你走到离明信片 8 米左右，而不是 40–60 米外的地标；坐车时目标小标签不再压在角色脸上；"Karl 请假了"只在白天说；设置里"重置进度"会同时清掉抵达印章和正在进行的一日游。
+4. 一日游打磨：拍照站会等你按快门（拍完 3 秒后说"拍得真好！"再走）；快速版在长地铁段提醒"可以点「直接到站」"；下车后 BAYBAY 先说站点介绍和下车提示，不再被"金色时刻！"抢话；V 线新画的三张明信片挂到了对应的站。
+5. 游戏主包比接线前还小：把介绍卡正文拆成空闲时预加载的小包，GameRoot 778.94 kB / 294.17 kB gzip（本部分改动前 782.39 / 295.16）。检查：tsc 0、eslint 0 错误、全套 838 个测试全部通过；Higgsfield 0 分。
+
+### Findings fixed (lane C's files)
+
+| id | finding | fix | evidence |
+|---|---|---|---|
+| C1 (major) | 官网 on 7 of 24 landmark cards opened the planner place's page | `cityPois.cardOfficialUrl`: a city card (`sf:…`) links only its own official site, none when the landmark has none; district cards keep the planner link first | `sf-verify-c` "C1 / D7"; in game: Fort Point → nps.gov/fopo, Dragon Gate has no 官网 (`ib-card-dragon-en-desk.jpg`) |
+| C3 (major) | 6 of 10 CARD_REFRESHES repeated or contradicted their built cards; the Cliff House status | dropped the Castro / Sutro Tower / Sutro Baths / Camera Obscura repeats; one tulip window (the built "约 2–4 月"); `CardRefresh.replaceTips` merges the two car-free tips into one ("东侧一段（2020 年起）和北边 Burnett 大道那头（2021 年起）"); Cliff House status "经营方目标 2026 年底重开，日期未定" (no `until`) | `sf-verify-c` "C3" (each repeat once on the merged card; every replace matches a built tip; a stale match appends) |
+| C2 (C's part) | OSM zh names on place cards (中国城 …) | ZH_GLOSSARY: 中国城 → 唐人街, 西索玛 → 西南市场, 索玛区 → 南市场, 普雷西迪奥高地 → 要塞高地 (card titles; lane P's `59fb14b` fixed the map's own names) | `sf-verify-c` "C2 / C6 / C7" |
+| C4 | Union Square's cable cars "one block west" | "广场西边的鲍威尔街上就有叮当车经过 / … right along the square's west side" | `sf-verify-c` "C4 / C5 / C10 / C11" |
+| C5 | card zones 湖滨区 / 访谷 / 英格塞德台地 vs the HUD | 湖岸区 (5 cards), 维西塔西翁谷 (2), 英格尔赛德 · 台地住宅区; VOICE.md row | same test (checked against `scripts/opus-sf/lib/zones.ts`) |
+| C6 (C's part) | two zh names for Lands End / Marina Green | VOICE.md rows (Lands End = 天涯海角; Marina Green stays 码头绿地, never 码头区 — R2-O1 closed); the landmark zone labels read 天涯海角 at runtime (`ZH_TEXT_NAMES`) | same test (`林肯公园 · 天涯海角`, `天涯海角 · 海洋海滩北端`) |
+| C7 | English place names inside zh card text; the city goal's "Coit Tower" | `cityPois.ZH_TEXT_NAMES` + `glossZhText`: the game's zh names in the landmark cards' sentences (双峰, 都板街, 北滩, 华盛顿广场, 海洋海滩, 多洛雷斯公园, 苏特罗浴场, 码头绿地, 克里西场, 阿拉莫广场, 威廉明娜女王郁金香花园, 渡轮大厦, 水上公园, 音乐广场); the space an English word kept goes with it; names are never rewritten. The city goal: "登上科伊特塔观景点 · 从 Levi's Plaza 旁的菲尔伯特台阶往上爬" | same test; in game "从龙门沿都板街一路走到北滩的华盛顿广场。" (`ib-card-dragon-zh-375.jpg`) |
+| C9 | time-limited statuses never expire | MoAD's closure removed; `statusLive` + `indexPlaceCards(…, now)` drop a status past its `until` month (Bay time) | `sf-verify-c` "C9" (Sunset Dunes' vote note gone after Nov 2026, Twin Peaks' works kept to 2027); `sf-cards` MoAD has no status |
+| C10 (C's part) | dead sources (Koret, the Maritime Museum) | Koret → en.wikipedia Golden Gate Park (the first public playground and the 1914 Herschell-Spillman carousel checked there); the dead maritime.org link dropped (nps.gov basicinfo stays) | same test |
+| C11 | "the city's biggest park" (the Presidio is bigger) | "…是全城最大的市立公园 / the city's biggest city-run park" (after the recorded phrase: no new recording) | same test |
+| C14 (C's part) | 叮 / 当车 in a choice's second line at 375 px | `ui/content-ui.css`: `word-break: keep-all; overflow-wrap: anywhere` on `.ob-choice-sub`; the first line keeps the default CJK breaking (keep-all there pushed a lone "？" onto its own line) | `ib-welcome-375.jpg` ("全城 24 张明信片 · / 叮当车 · 双峰"), `ib-district-welcome-375.jpg` |
+| D5 (major) | the parked bike and BAYBAY beat the Clarion postcard in the E prompt | brain `updateFocus` (city): a postcard in reach −0.6 (was −0.25), a parked ride +0.15; the district keeps its weights | `sf-verify-c` "D5"; in game `E 捡起明信片` with BAYBAY 1.5 u away (`ib-clarion-postcard-desk.jpg`) |
+| D7 | "Put 唐人街与 North Beach in a BAYLINK p…" | English names the card's own place; the label wraps (content-ui.css) | test; "Put Chinatown Dragon Gate in a BAYLINK plan" on two lines, 59 px (`ib-card-dragon-en-desk.jpg`) |
+| D8 | Karl's "called in sick" at golden hour | the city's line moved from `idle` to the `day` pool | `sf-verify-c` "D8" |
+| D12 | the lead to the south tower doubled back under the bridge | brain `leadStep` / `ELEVATED_WALKS`: a target on the Golden Gate deck (bridge-local x −100…+100) is led through the deck's south end while you are below it; Fort Point's apron under the deck's south end stays a ground target | `sf-verify-c` "D12" (numbers checked against the bridge model); in game from Crissy Field BAYBAY heads up the lawn to the deck end (−688, 649) and, at the deck end, on to the tower (`ib-deck-lead-desk.jpg`) |
+| D13 | journal tabs clipped at 1440 | `.ob-journal` with four tabs: icon over label, each as wide as its words (lane P's `60c239d` added the same stacking in city-ui.css; the two agree) | scrollWidth 364 = clientWidth 364 in English (`ib-journal-tabs-en-desk.jpg`) |
+| D14 | postcard clues ended 44–63 u from the card | city: the clue is `clue:<postcardId>` (interactables `registerPrefixResolver`), a walkable spot 8 u from the card toward the place it is named after (`flow.clueSpot`); the district keeps its clue | `sf-verify-c` "D14"; in game the Powell & California clue ends 8.1 u from the card (`ib-clue-lead-desk.jpg`) |
+| m2 (C's part) | the photo credit and postcard source links under 44 px | vertical padding on the inline credit links (44 px measured), a 44 px hit box on the postcard source link (the ellipsis moved to an inner span) | measured 44 / 44 in game |
+| m4 | the goal chip on the rider's face while riding | city: `objectiveTarget` drops the soft hint while riding (`move.mode === 'transit'`) and within 5 u of it | `sf-verify-c` "m4" |
+| F5 (C's part) | reset progress kept memory state | `save.onSaveCleared`: the arrival watcher starts over (the next arrival is a first one), the pacer empties, a running Grand Tour stops without writing its progress back (it did, through its 2 Hz tick); lane G's Settings already clears the line memory, lane P's `59fb14b` resets discovery | `sf-verify-c` "F5" (both parts fail without the listeners) |
+
+Also from the QA runs (not in the findings): at the Palace loop stop "金色时刻！" (the brain's once-per-visit time line)
+took the bubble the moment you stepped off the bus, and the stop's hop-off tip (8 s to live) expired behind it — in the
+city BAYBAY's own small talk now waits 15 s after a ride or an arrival moment (`SMALL_TALK_QUIET_MS`, test "QA (the
+Palace loop stop)"). A lead from the Welcome Center to Fort Point went up to the deck end (the first D12 fix treated the
+apron under the deck as a deck target); fixed in `38f2847`.
+
+Findings on other lanes' files were checked against their owners' lists and skipped: F1, D1, D4, D6, C8, C10's
+sfexaminer URL, C6's zone data (lane L); F2, D10, B1's HUD part, M1, m1, m2's HUD targets, C14's objective chip,
+district F1 / F2, visual F5 / F6 camera (lane G); F3, F4's kit / world parts, visual F1–F4 and F7–F10 (lane V); D2, D3's
+car, D11, M2, m5, m6, C13, F4's crowd / traffic (lane T); B1, M3, m3, C12, C2's map names, m2's map tools (lane P,
+already pushed: `ddb2b5f`, `f566fcd`, `59fb14b`); F6 eslint (lead, applied in §8.2).
+
+### Part a's list
+
+- **Done**: the photo moment waits for the shutter (photo mode holds the dwell up to 90 s, a shot ends it 3 s later with
+  "拍得真好！"; the prompt names the camera where the device has it: phones 更多 → 拍照); the express version's 直接到站
+  hint once your own train leaves on a Metro leg > 400 u (`dwellOver` / `wantsSkipHint`, pure, tested); the express
+  intro's English says "Skip to stop" like the ride banner; lane V's SF State quad, Music Concourse and Lands End
+  postcards on the m-sfsu, n-tea-garden and coast-ride-lands-end stops (sf-tours: every stop postcard is a city card
+  within 75 u); the time-sensitive cards expire by themselves (C9); Marina Green decided (stays 码头绿地).
+- **The free-roam intro bubble that left after ≈ 1 s** (part a gap), traced with a hook on `flow.set`: with `?start=free`
+  the bubble is set about 4 s after load while the city is still streaming and lives its full 4.2 s; the world and the
+  page's QA hooks appear only for its last second. The normal start (welcome → 我自己逛逛) shows it after the world is
+  up. No product change.
+- **The plan's shots** (§5.6), read: the tour intro and version question, the recap, the goals card and the SF State
+  card on the phone (part a); the **Stonestown arrival** (desktop golden: 抵达 · 石镇购物中心, 发现新地点, BAYBAY "石镇到啦！
+  1952 年就开业了…", lane G's arrival card, `ib-stonestown-arrival-desk.jpg`); the **SF State campus moment on the
+  phone** (390 × 844 dpr 3: the toast, "发现 2 个新地点", the line, lane G's ArrivalCard 看介绍 · 拍照,
+  `campus:sf-state-university` marked, `ib-sfsu-arrival-390.jpg`); a **hop-off at the Palace** on a real loop ride
+  (boarded at Wharf Hyde through lane T's pre-filled row "上车 · 坐到 ★ 艺术宫（约 41 秒）", the upper deck with the
+  RideBanner, off at the Palace, `loop:loop-palace-of-fine-arts` counted, BAYBAY "艺术宫到了！绕着湖边的柱廊走一圈吧。",
+  `ib-palace-hop-off-desk.jpg`).
+- **Not done**: the optional side stops at the Welcome Center (Fort Point, the deck walk) stay pointed out by its lines —
+  a probe lead from the Welcome Center to Fort Point runs east round the bluff for over a minute, and the deck walk meets
+  D1's wall (lane L) short of the south tower: offer them once D1 and that path are fixed; the stops' two-shot framing
+  (`stageMark` / `stopSubject`; lane G's arrival reveal frames the attraction today); the express run timed end to end
+  (the plan leaves it to the lead's scripted run); the journal's list of arrival stamps (lane P's 足迹 tab shows the
+  arrivals since `60c239d`); the optional ZH_GLOSSARY / PLANNER_DROP clean-up (harmless, kept).
+
+### Evidence
+
+- **Checks** on the pushed tree `3600806` (no commit landed between the last rebase and the push): `npx tsc -p
+  tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings, none in lane C's files) · full opus-bay suite
+  **838 / 838** (829 / 829, 836 / 836 and 837 / 837 on the earlier pushes). `node_modules/.bin` was empty for a while
+  this evening (lane G restored it, `cc2e38f`): the checks ran through `node node_modules/typescript/bin/tsc`,
+  `node_modules/eslint/bin/eslint.js` and `node_modules/tsx/dist/cli.mjs`, the same programs.
+- **GameRoot** (vite build, `vite.opus.config.ts`): HEAD with part b's first three commits 785.30 kB / 296.45 kB gzip;
+  the same tree with lane C's part b reverted 782.39 / 295.16; after W4-IC9 **778.94 / 294.17** (PoiCardBody 6.74 /
+  2.99 kB, fetched at idle; a district card rendered 114 ms after `openPanel` on the dev server). `content-ui.css` adds
+  1.22 kB / 0.51 kB of CSS.
+- **Rendering**: nothing lane C changed draws in the 3D scene (no calls, tris or programs change).
+- **District**: every behaviour change is city-gated (focus weights, the soft chip, the clue, small talk); the deck lead
+  matches deck targets only. The district welcome at 375 keeps its layout (`ib-district-welcome-375.jpg`) and its Ferry
+  Building card opens as before. The English plan button now names the district card's place too (a wording fix).
+- **Tests**: new `tests/opus-bay-sf-verify-c.test.ts` (13); changed on purpose: `sf-cards` (MoAD has no status),
+  `sf-tours` (stop postcards are city cards within 75 u; the three new ones are on stops).
+
+### Decisions
+
+- **Runtime glossing of lane L's card text**: the landmark cards' zh sentences and zone labels pass through
+  `ZH_TEXT_NAMES` in lane C's `cityPois.ts` (the module that already glosses them), so the live cards are right today;
+  when lane L rewrites landmarks.ts the rules stop matching (a label L already fixed is never doubled, tested).
+- **The clue spot** is 8 u from the card, walkable (`nearestWalkable`), cached once the ground there answered; its name
+  keeps "near <the closest real place>". The district keeps the old clue (its cards sit by their POIs).
+- **Postcards over company**: in the city a postcard in reach wins the E prompt over BAYBAY at your side and a parked
+  ride. Where the map's Ride parks the bike is lane G's.
+- **Deck targets** are named by span, not by a height lookup: bridge-local x −100…+100 (the south tower in, Fort Point's
+  apron out); a walker counts as up when above 12.2 u on the deck's span.
+- **Statuses expire by month** (Bay time, the whole `until` month included); a status without `until` (the Cliff House)
+  stays until someone re-checks it — never a closed place shown as open by a guess.
+
+### Known gaps
+
+- D3's data part: the turntable card, Ray's favour target and the fly-there landing are the landmark's arrival spot
+  (134.9, 261.0) on the track stub; the card follows lane L's LANDMARK_ARRIVALS (Request below with a spot).
+- The loop ride from Wharf Hyde to the Palace was offered as "约 41 秒" and took ≈ 92 s on board (lane T's estimate; the
+  same class as D11 / m5).
+- Lane G's ArrivalCard 看介绍 still opens `sf:<place>` (Japan Center and the Ferry Building marketplace open their row's
+  card): part a's request stands.
+
+### Requests
+
+- **Lane L** (D3): move the cable-car-turntable arrival off the track stub, e.g. to (130.5, 254.0) — standable, 3.1 u from
+  the Powell & Market station stop (inside its 4.2 u boarding radius), 3 u beside the track (the car's check is 1.3 u);
+  the card, Ray's target and the fly-there landing follow (`sf-tasks` / `sf-content` compare them with the card, no edit
+  needed). (C3) the Cliff House summary's ending "计划 2026 年先开街面咖啡馆、年底全部开放" → "2020 年底停业，正在修复，
+  经营方目标 2026 年底重开" to match the card's status. (C7) the English names in landmarks.ts' zh sentences may become zh
+  at the source (the runtime gloss covers them meanwhile).
+- **Lane T**: the loop's ride estimate in the pre-filled row (Wharf Hyde → Palace "约 41 秒", ≈ 92 s on board); the
+  `transit-powell-market` stop spot (128.24, 256) sits on the track start (D3).
+- **Lane G**: part a's ArrivalCard `onInfo` request (`attractionCardId`); `.ob-postcard-fact`'s English font (D9) is in
+  opus-bay.css.
+- **Lane P** (optional): `save.onSaveCleared(fn)` is there if discovery wants to follow a reset without a Settings edit.
+
+Relayed owner message during this part: "现在进度如何" (answered in the summary's first line). Higgsfield: 0 credits.
