@@ -60,3 +60,34 @@ export function decorateFrame(f: FrameCanvas): number {
   }
   return ok;
 }
+
+// --- wave 5 · W5-C7: photo tags (the album) -------------------------------------------------------------------------------
+
+/** Where the shot was taken (the player's spot and area id when the shutter fired). */
+export interface PhotoContext { x: number; z: number; area: string; at: Date }
+export type PhotoTagger = (c: PhotoContext) => readonly string[] | null | undefined;
+
+const taggers = new Map<string, PhotoTagger>();
+/** a tag: lowercase words joined by `:` / `-` (`view:twin-peaks`), ≤ 60 characters */
+export const PHOTO_TAG = /^[a-z0-9][a-z0-9:-]{0,59}$/;
+
+/**
+ * Register a tagger (lane A's view spots: `view:<spot>` when the shot is taken there; lane D's nature finds): every
+ * photo kept in the album (game/album.ts, the city) carries the tags the taggers return, and `photosTagged(tag)` finds
+ * them. Returns the unregister; the same id replaces the earlier one; a throwing tagger or a bad tag is skipped.
+ */
+export function registerPhotoTagger(id: string, fn: PhotoTagger): () => void {
+  taggers.set(id, fn);
+  return () => { if (taggers.get(id) === fn) taggers.delete(id); };
+}
+
+/** The tags for a shot (≤ 16, unique, in registration order). */
+export function photoTags(c: PhotoContext): string[] {
+  const out: string[] = [];
+  for (const fn of [...taggers.values()]) {
+    let tags: readonly string[] | null | undefined;
+    try { tags = fn(c); } catch { tags = null; }
+    for (const tag of tags ?? []) if (typeof tag === 'string' && PHOTO_TAG.test(tag) && !out.includes(tag) && out.length < 16) out.push(tag);
+  }
+  return out;
+}

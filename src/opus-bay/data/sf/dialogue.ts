@@ -12,12 +12,25 @@ import { RESIDENTS, type ResidentDef, type ResidentKey } from './residents';
  *   remind            the favour is on: where to go, 带我去 (→ go: the walk starts when the dialogue closes) / 好的
  *   thanks → fact     the favour is done: thanks and a second sourced fact (every later chat replays it)
  *   gripman.bread → bread2   Rosa's loaf delivered (the baker's favour finishes when `npc.gripman.bread` is shown)
+ *   wave 5 (W5-C7) the second favour: ask2 (after the first favour's thanks → fact, or straight away once declined) →
+ *   yes2 · no2; remind2 → go2; thanks2 → fact2 (fact2's words follow the real day where the mark does: Rosa's Saturday
+ *   market, Hank's tulips in spring, Marcus's weekend drums — fact2For)
  *
  * Voice: data/VOICE.md ("Transit crews and residents"). zh ≤ 45 bubble width, en ≤ 120, no key names (tested).
  */
 
 const V = '2026-09-27';
 const src = (url: string): LineSource => ({ url, verifiedAt: V });
+/** wave 5 (W5-C7): the second favours' facts, checked on the web on this date */
+const V5 = '2026-09-28';
+const src5 = (url: string): LineSource => ({ url, verifiedAt: V5 });
+export const W5_SOURCES = {
+  bellContest: 'https://www.sfmta.com/press-releases/sfmta-announces-winners-55th-cable-car-bell-ringing-contest',
+  ferryMarket: 'https://foodwise.org/markets/ferry-plaza-farmers-market/',
+  tulipGarden: 'https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard',
+  crissyMarsh: 'https://home.nps.gov/articles/crissy-field-restoration.htm',
+  hippieHill: 'https://en.wikipedia.org/wiki/Hippie_Hill',
+} as const;
 
 /** The facts residents say, by node id, with where they were checked (tests: every fact node has one). */
 export const RESIDENT_SOURCES: Record<string, LineSource> = {
@@ -35,6 +48,16 @@ export const RESIDENT_SOURCES: Record<string, LineSource> = {
   'npc.ranger.fact': src('https://en.wikipedia.org/wiki/Crissy_Field'),
   'npc.record-store.hi': src('https://en.wikipedia.org/wiki/Haight-Ashbury'),
   'npc.record-store.thanks': src('https://www.kqed.org/news/11682057/how-the-bay-areas-fog-came-to-be-named-karl'),
+  // wave 5 (W5-C7): the second favours
+  'npc.gripman.fact2': src5(W5_SOURCES.bellContest),
+  'npc.baker.ask2': src5(W5_SOURCES.ferryMarket),
+  'npc.baker.fact2': src5(W5_SOURCES.ferryMarket),
+  'npc.gardener.ask2': src5(W5_SOURCES.tulipGarden),
+  'npc.gardener.fact2': src5(W5_SOURCES.tulipGarden),
+  'npc.ranger.fact2': src5(W5_SOURCES.crissyMarsh),
+  'npc.record-store.ask2': src5(W5_SOURCES.hippieHill),
+  'npc.record-store.remind2': src5(W5_SOURCES.hippieHill),
+  'npc.record-store.fact2': src5(W5_SOURCES.hippieHill),
 };
 
 type Say = [Mood, string, string];
@@ -114,6 +137,88 @@ const SCRIPTS: Record<ResidentKey, Script> = {
   },
 };
 
+/** Wave 5 (W5-C7): the second favour's words. */
+interface Script2 { ask: Say; accept: Bilingual; yes: Say; no: Say; remind: Say; go: Say; thanks: Say; fact: Say }
+
+const SCRIPTS2: Record<ResidentKey, Script2> = {
+  gripman: {
+    ask: ['happy', '你上次坐得真稳！再帮个忙？坐车时摇摇铃，跟我来段铃声对答～', 'You rode like a pro! One more? Ring the bell on a ride — answer my riff~'],
+    accept: bi('来一段', "Let's ring"),
+    yes: ['excited', '车一开，铃铛就归你啦。我摇一句，你学一句！', 'Once the car rolls, the bell is yours. I ring, you copy!'],
+    no: ['happy', '好嘞，铃铛随时等你～', 'Sure — the bell will wait for you~'],
+    remind: ['thinking', '坐上叮当车，车开起来就能摇铃啦。', 'Hop on a cable car — once it rolls you can ring the bell.'],
+    go: ['wave', '转车台就在前面，叮叮！', 'The turntable is just ahead — ding ding!'],
+    thanks: ['excited', '叮叮叮——就是这个节奏！你摇得比我徒弟还好。', 'Ding-ding-ding — that’s the rhythm! Better than my apprentice.'],
+    fact: ['proud', '真有叮当车摇铃比赛！在联合广场，已经比了五十多届。', 'There really is a cable car bell ringing contest — in Union Square, more than fifty so far!'],
+  },
+  baker: {
+    ask: ['happy', '周六我在渡轮大厦的农夫市集摆摊。帮我拍张钟楼做招牌好吗？', 'On Saturdays I sell at the Ferry Building farmers market. Could you photograph the clock tower for my sign?'],
+    accept: bi('我去拍', "I'll take it"),
+    yes: ['excited', '到渡轮大厦拍一张，把钟楼拍进去就行！', 'Take one at the Ferry Building — just get the clock tower in!'],
+    no: ['happy', '好，招牌先空着～', 'Okay, the sign can wait~'],
+    remind: ['thinking', '渡轮大厦在内河码头边上，钟楼老远就能看见。', 'The Ferry Building is on the Embarcadero — you can see its clock tower from far off.'],
+    go: ['wave', '拍得好看点哦～', 'Make it a pretty one~'],
+    thanks: ['excited', '拍得真好！这周六就挂上招牌，大家一眼就能找到我。', 'Lovely shot! It goes on my sign this Saturday — everyone will find me.'],
+    fact: ['happy', '渡轮大厦的农夫市集，周六早上 8 点开到下午 2 点，来找我呀！', 'The Ferry Building farmers market runs 8 to 2 on Saturdays — come find me!'],
+  },
+  muralist: {
+    ask: ['happy', '帮我收集颜色吧！去 Balmy 巷、Clarion 巷和女性大楼，各拍一张壁画。', "Help me collect colours! Take a mural photo in Balmy Alley, Clarion Alley and at the Women's Building."],
+    accept: bi('我去拍', "I'm on it"),
+    yes: ['excited', '拍的时候看看墙上的颜色，回来讲给我听！', 'Look at the colours on the walls while you shoot, then tell me!'],
+    no: ['happy', '好呀，颜色一直都在墙上～', 'Sure — the colours will still be on the walls~'],
+    remind: ['thinking', '三处壁画各拍一张：Balmy 巷、Clarion 巷、女性大楼。', "One photo at each: Balmy Alley, Clarion Alley, the Women's Building."],
+    go: ['wave', '去吧，找找最亮的那面墙！', 'Go on — find the brightest wall!'],
+    thanks: ['excited', '三处的颜色都齐啦！我在巷子里给你画了个小东西～', 'All three sets of colours! I painted a little something for you in the alley~'],
+    fact: ['happy', '去巷子中间的围栏上找找——有一只小水獭哦！', 'Look on the fence halfway down the alley — there’s a little otter!'],
+  },
+  gardener: {
+    ask: ['happy', '花园每年十月重新种球根。帮我拍张风车吧，开花了好对比！', 'The garden replants its bulbs every October. Photograph the windmill for me — so we can compare when they bloom!'],
+    accept: bi('我去拍', "I'll go"),
+    yes: ['excited', '风车在公园最西边，挨着海滩。骑车更快哦～', "The windmill is at the park's far west end by the beach. A bike is quicker~"],
+    no: ['happy', '不急，风车天天都在～', "No rush — the windmill's there every day~"],
+    remind: ['thinking', '走到荷兰风车附近，拍一张就好。', 'Get near the Dutch Windmill and take one photo.'],
+    go: ['wave', '路上看看公园的湖～', "Say hi to the park's lakes on the way~"],
+    thanks: ['excited', '拍得真清楚！等到三月，咱们再拍一张比比看。', "So clear! Come March, we'll take another and compare."],
+    fact: ['proud', '威廉明娜女王郁金香花园的郁金香，一般三月开得最旺。', 'The tulips in the Queen Wilhelmina garden are usually at their best in March.'],
+  },
+  ranger: {
+    ask: ['happy', '巡护员的秘密：去克里西场海滩坐一会儿，看看金门大桥。', "A ranger's secret: sit a while on Crissy Field beach and watch the Golden Gate Bridge."],
+    accept: bi('去坐坐', "I'll go sit"),
+    yes: ['excited', '海滩上有个看风景的好位置，坐下来慢慢看！', "There's a good view spot on the beach — sit down and take your time!"],
+    no: ['happy', '好，大桥和海都不会走～', "Sure — the bridge and the bay aren't going anywhere~"],
+    remind: ['thinking', '在克里西场海滩找到看风景的位置，坐下看一会儿。', 'Find the view spot on Crissy Field beach and sit for a look.'],
+    go: ['wave', '慢慢走，海风很舒服～', 'Take it slow — the sea breeze is lovely~'],
+    thanks: ['excited', '看到了吧？这就是我每天巡完一圈后的奖励！', "See? That's my reward after every patrol!"],
+    fact: ['proud', '1999 年 11 月，海水重新流进这里的湿地，湿地又活过来了。', 'In November 1999 the tide flowed back into the marsh here, and it came back to life.'],
+  },
+  'record-store': {
+    ask: ['happy', '替我去嬉皮山拍张照？1967 年爱之夏，那儿到处是音乐。', 'Take a photo of Hippie Hill for me? In the 1967 Summer of Love it was full of music.'],
+    accept: bi('我去拍', "I'll go"),
+    yes: ['excited', '从海特街往公园里走，那片草坡就是！', "Walk into the park from Haight Street — it's that grassy slope!"],
+    no: ['happy', '好，我再放一首～', "Okay, I'll play another track~"],
+    remind: ['thinking', '嬉皮山在花卉温室和海特街之间，拍一张就好。', 'Hippie Hill is between the Conservatory of Flowers and Haight Street — one photo will do.'],
+    go: ['wave', '顺着音乐走就对啦～', 'Just follow the music~'],
+    thanks: ['excited', '就是这片草坡！我要把它印在店里的海报上。', "That's the slope! It's going on a poster in my shop."],
+    fact: ['happy', '现在周末还常有人在嬉皮山围成圈打鼓，谁都能加入！', "On weekends there's often a drum circle on Hippie Hill — anyone can join!"],
+  },
+};
+
+/**
+ * fact2 on the real day (the marks that follow the calendar; `month` 1–12, `weekday` 0 = Sunday, Bay time): Rosa on a
+ * Saturday market morning, Hank's tulips (sfrecpark: "usually in full bloom in March"; Feb–Apr counts as their
+ * season here), Marcus on a weekend. Null = the plain fact2.
+ */
+export function fact2For(key: ResidentKey, d: { month: number; weekday: number; hour: number }): Say | null {
+  if (key === 'baker' && d.weekday === 6 && d.hour >= 8 && d.hour < 14) return ['excited', '今天周六，市集开着呢！我的招牌就是你拍的那张钟楼～', "It's Saturday and the market's on! My sign is your clock tower photo~"];
+  if (key === 'gardener') {
+    return d.month >= 2 && d.month <= 4
+      ? ['excited', '郁金香开啦！快去风车下看看，比你那张照片热闹多了～', 'The tulips are out! Go and see the windmill — much livelier than your photo~']
+      : ['happy', '球根在土里睡觉呢，郁金香一般三月开得最旺，到时候来看！', 'The bulbs are asleep in the soil — the tulips are usually best in March. Come and see!'];
+  }
+  if (key === 'record-store' && (d.weekday === 0 || d.weekday === 6)) return ['excited', '今天周末！嬉皮山上说不定正有人围成圈打鼓呢～', "It's the weekend — there may be a drum circle on Hippie Hill right now~"];
+  return null;
+}
+
 /** Rosa's loaf reaches Ray (the baker's favour, spoken by Ray). */
 const BREAD: [Say, Say] = [
   ['excited', 'Rosa 的酸面包？还热乎呢！替我谢谢她～', 'Sourdough from Rosa? Still warm! Tell her thanks~'],
@@ -125,6 +230,11 @@ export const nodeIds = (key: ResidentKey) => ({
   remind: `npc.${key}.remind`, go: `npc.${key}.go`, thanks: `npc.${key}.thanks`, fact: `npc.${key}.fact`,
 });
 export const BREAD_NODE = 'npc.gripman.bread';
+/** Wave 5 (W5-C7): the second favour's nodes. */
+export const nodeIds2 = (key: ResidentKey) => ({
+  ask: `npc.${key}.ask2`, yes: `npc.${key}.yes2`, no: `npc.${key}.no2`, remind: `npc.${key}.remind2`, go: `npc.${key}.go2`,
+  thanks: `npc.${key}.thanks2`, fact: `npc.${key}.fact2`,
+});
 
 const END = { type: 'end' } as const;
 
@@ -155,9 +265,36 @@ function residentNodes(r: ResidentDef): DialogueNode[] {
   ];
 }
 
+/** Wave 5 (W5-C7): the second favour's nodes; `fact` = fact2 in the words of the real day (fact2For), when given. */
+export function residentNodes2(r: ResidentDef, fact: Say | null = null): DialogueNode[] {
+  const s = SCRIPTS2[r.key], id = nodeIds2(r.key);
+  const say = (nodeId: string, [mood, zh, en]: Say, more: Partial<DialogueNode> = {}): DialogueNode => ({
+    id: nodeId, speaker: 'npc', npcName: r.name, mood, text: { zh, en }, ...(more.next || more.choices ? {} : { action: END }), ...more,
+  });
+  return [
+    say(id.ask, s.ask, {
+      choices: [
+        { hotkey: '1', label: s.accept, next: id.yes },
+        { hotkey: '2', label: bi('下次吧', 'Maybe later'), next: id.no },
+      ],
+    }),
+    say(id.yes, s.yes),
+    say(id.no, s.no),
+    say(id.remind, s.remind, {
+      choices: [
+        { hotkey: '1', label: bi('带我去', 'Take me there'), next: id.go },
+        { hotkey: '2', label: bi('好的', 'Okay'), action: END },
+      ],
+    }),
+    say(id.go, s.go),
+    say(id.thanks, s.thanks, { next: id.fact }),
+    say(id.fact, fact ?? s.fact),
+  ];
+}
+
 /** Every resident node (residentTasks defines them once per page). */
 export function residentDialogue(): DialogueNode[] {
-  const nodes = RESIDENTS.flatMap(residentNodes);
+  const nodes = RESIDENTS.flatMap(r => [...residentNodes(r), ...residentNodes2(r)]);
   const ray = RESIDENTS.find(r => r.key === 'gripman')!;
   nodes.push(
     { id: BREAD_NODE, speaker: 'npc', npcName: ray.name, mood: BREAD[0][0], text: { zh: BREAD[0][1], en: BREAD[0][2] }, next: `${BREAD_NODE}2` },
@@ -173,4 +310,12 @@ export const TASK_TEXT = {
   /** BAYBAY, right after the deed (not for a delivery: the thanks is already on screen) */
   tellThem: (short: Bilingual): Bilingual => bi(`完成啦！回去告诉 ${short.zh} 吧～`, `Done! Let's go tell ${short.en}~`),
   allDone: bi('六个邻居都帮过啦——你真像个旧金山人了！', "You've helped all six neighbours — you're a real San Franciscan now!"),
+  /** wave 5 (W5-C7): a photo favour's spot photographed (toast), the letters */
+  photoSpot: (n: number, need: number, spot: Bilingual): Bilingual => bi(`拍到啦 ${n}/${need} · ${spot.zh}`, `Got it ${n}/${need} · ${spot.en}`),
+  letter: (short: Bilingual): Bilingual => bi(`收到一封信 · 来自 ${short.zh}`, `A letter for you · from ${short.en}`),
+  /** BAYBAY, when a letter arrives (the Journal's 目标 tab has the letters) */
+  letterLine: bi('有你的信！在旅行本的「目标」里～', "You've got a letter! It's in your journal, under Goals~"),
+  allLetters: bi('六个邻居都给你写了信——你是大家的好朋友啦！', 'All six neighbours have written to you — you’re everyone’s friend now!'),
+  /** Ray's riff when you walk past him after his second favour (his bubble) */
+  rayRiff: bi('叮叮——叮叮叮！你教我的那段～', 'Ding-ding — ding-ding-ding! Your riff~'),
 } as const;

@@ -36,3 +36,9 @@
 /* Wave 5 · W5-C2: a goal's reward text in the journal (goal #1: 解锁：随时飞), and its 带我去 */
 .ob-goals small.ob-goal-reward { width: fit-content; margin-top: 3px; padding: 2px 9px; border-radius: 999px; background: #fdebc3; color: #8a5a10; font-weight: 800; }
 .ob-goals li > div > .ob-btn { align-self: flex-start; margin-top: 6px; }
+
+/* wave 5 · W5-C7: the residents' letters in the 目标 tab (a dot until the letter is opened) */
+.ob-h3-note { font-weight: 700; color: var(--ob-terra); }
+.ob-letter-btn { position: relative; }
+.ob-letter-btn.is-new { background: var(--ob-terra-l); color: #9a3f1d; }
+.ob-letter-btn.is-new::after { content: ''; position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ob-terra); box-shadow: 0 0 0 2px #fff; }

@@ -55,7 +55,8 @@ export interface FlowState {
   callPending: boolean;
   /** transit ride status for the HUD (see FlowRide) */
   ride: null | FlowRide;
-  lastPhoto: { url: string; name: string } | null;
+  /** the last card taken: its object URL; in the city (W5-C7) `album` with its album id as `name` */
+  lastPhoto: { url: string; name: string; album?: boolean } | null;
   photoFlash: number;
   /** aria-live announcement */
   announce: string;

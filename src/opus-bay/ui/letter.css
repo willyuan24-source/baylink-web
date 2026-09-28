@@ -1,0 +1,27 @@
+/* Wave 5 · lane C · W5-C7: a resident's letter (ui/Letter.tsx; its own lazy chunk, city mode). */
+
+.ob-overlay .ob-letter-wrap {
+  position: absolute; inset: 0; z-index: 35; display: grid; place-items: center;
+  padding: calc(16px + var(--ob-st)) calc(16px + var(--ob-sr)) calc(16px + var(--ob-sb)) calc(16px + var(--ob-sl));
+  background: rgba(34, 50, 47, .34); overscroll-behavior: contain; pointer-events: auto; animation: ob-fade-in .25s;
+}
+.ob-letter {
+  width: min(400px, 100%); display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 14px; border-radius: 22px;
+  background: var(--ob-cream); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow); animation: ob-card-in .45s var(--ob-spring);
+}
+.ob-letter header { display: flex; align-items: center; gap: 10px; }
+.ob-letter header p { font-size: 15.5px; font-weight: 900; color: var(--ob-ink); }
+.ob-letter-stamp { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--ob-terra-l); color: var(--ob-terra); flex: none; transform: rotate(-6deg); }
+.ob-letter-paper {
+  position: relative; display: flex; flex-direction: column; gap: 0; padding: 12px 16px 14px; border-radius: 12px;
+  background: repeating-linear-gradient(#fffdf7, #fffdf7 27px, #efe5d3 27px, #efe5d3 28px) 0 12px / 100% 28px; border: 1px solid var(--ob-line);
+  font-size: 15px; line-height: 28px; color: var(--ob-ink-2); font-weight: 600;
+}
+.ob-letter-paper p { line-height: 28px; }
+.ob-letter-hi { font-weight: 800; color: var(--ob-ink); }
+.ob-letter-sign { align-self: flex-end; font-weight: 800; color: var(--ob-teal-d); }
+.ob-letter-ok { align-self: center; min-width: 140px; }
+
+@media (max-width: 720px) {
+  .ob-letter-paper { font-size: 14.5px; }
+}

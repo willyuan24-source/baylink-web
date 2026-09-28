@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Aperture, Check, Download, HandHeart, Mail, Sparkles, X } from 'lucide-react';
+import { Aperture, Check, Download, HandHeart, Images, Mail, Sparkles, X } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, tourIdOf, useGame } from '../core/store';
 import { DISTRICT } from '../data/district';
@@ -14,6 +14,9 @@ import {
 import { flow, useFlow } from '../game/flowStore';
 import { postcardById } from '../game/interactables';
 import { downloadUrl, requestShutter } from '../game/photo';
+import { SF_NAME, zoneName } from '../data/cityZones';
+import { cityDistrictZh } from '../data/sf/cityPois';
+import { closeOverlay, openOverlay, openOverlays } from './slots';
 import { registerAnchor } from '../game/projector';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
@@ -130,14 +133,22 @@ export function PostcardReward() {
 // Photo mode
 // ---------------------------------------------------------------------------
 
+/** game/album.ts ALBUM_ID (the album's overlay, city mode; not imported: the album stays in its lazy chunk) */
+const ALBUM_OVERLAY = 'c-album';
+
 export function PhotoMode() {
   const { t, locale } = useT();
   const device = useDevice();
   const flash = useFlow(s => s.photoFlash);
   const last = useFlow(s => s.lastPhoto);
   const area = useGame(s => s.area);
+  const city = useGame(s => s.worldMode === 'city');
   const [flashing, setFlashing] = useState(false);
-  const zone = DISTRICT.zones.find(item => item.id === area)?.name ?? DISTRICT.name;
+  // (the city: its neighbourhood name, or the waterfront zone in the city's words — W5-C7; the district as before)
+  const districtZone = DISTRICT.zones.find(item => item.id === area)?.name;
+  const cityZone = city ? zoneName(area) : null;
+  const cityName = cityZone && cityZone !== SF_NAME ? cityZone : districtZone ?? SF_NAME;
+  const zone = city ? { zh: cityDistrictZh(cityName.zh), en: cityName.en } : districtZone ?? DISTRICT.name;
   const shoot = () => {
     const date = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { timeZone: 'America/Los_Angeles', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date());
     requestShutter(`${t('湾区小旅', 'Little Bay Trip')} · ${t(zone)} · ${date}`, 'BAYLINK');
@@ -151,6 +162,8 @@ export function PhotoMode() {
   }, [flash]);
   useWindowKey(e => {
     if (e.repeat) return;
+    // (the album open over photo mode: Escape closes the album, not photo mode; its other keys are its own)
+    if (openOverlays().some(o => o.id === ALBUM_OVERLAY)) { if (e.code === 'Escape') { e.preventDefault(); closeOverlay(ALBUM_OVERLAY); } return; }
     if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); exitPhotoMode(); }
     else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') { if ((e.target as HTMLElement)?.tagName === 'BUTTON') return; e.preventDefault(); shoot(); }
   });
@@ -162,7 +175,9 @@ export function PhotoMode() {
       <div className="ob-photo-bar">
         <button type="button" className="ob-icon-btn ob-photo-exit" onClick={exitPhotoMode} aria-label={t('退出拍照', 'Exit photo mode')}><X size={22} aria-hidden /></button>
         <button type="button" className="ob-shutter" onClick={shoot} aria-label={t('拍照', 'Take photo')}><Aperture size={30} aria-hidden /></button>
-        {last ? (
+        {last?.album ? (
+          <button type="button" className="ob-photo-thumb" onClick={() => openOverlay(ALBUM_OVERLAY, { photo: last.name })} aria-label={t('看看相册', 'Open the album')} style={{ backgroundImage: `url(${last.url})` }}><Images size={16} aria-hidden /></button>
+        ) : last ? (
           <button type="button" className="ob-photo-thumb" onClick={() => downloadUrl(last.url, last.name)} aria-label={t('再次保存照片', 'Save photo again')} style={{ backgroundImage: `url(${last.url})` }}><Download size={16} aria-hidden /></button>
         ) : <span className="ob-photo-thumb is-empty" aria-hidden />}
       </div>

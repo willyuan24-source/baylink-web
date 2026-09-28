@@ -1,0 +1,61 @@
+/* Wave 5 · lane C · W5-C7: the album (ui/Album.tsx; its own lazy chunk). City mode: every photo goes here. */
+
+.ob-overlay .ob-album-wrap {
+  position: absolute; inset: 0; z-index: 36; display: grid; place-items: center;
+  padding: calc(14px + var(--ob-st)) calc(14px + var(--ob-sr)) calc(14px + var(--ob-sb)) calc(14px + var(--ob-sl));
+  background: rgba(34, 50, 47, .38); overscroll-behavior: contain; pointer-events: auto; animation: ob-fade-in .25s;
+}
+.ob-album {
+  position: relative; width: min(640px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 12px;
+  border-radius: 24px; background: var(--ob-cream); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow);
+  animation: ob-card-in .45s var(--ob-spring); overflow: hidden;
+}
+.ob-album-head { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.ob-album-head h2 { flex: 1; font-size: 17px; font-weight: 900; color: var(--ob-ink); }
+.ob-album-head h2 small { font-size: 14px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-album-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--ob-teal-l); color: var(--ob-teal-d); flex: none; }
+
+.ob-album-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; overflow-y: auto; min-height: 0; padding: 2px;
+  max-height: min(62vh, 520px); overscroll-behavior: contain;
+}
+.ob-album-grid button {
+  display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border-radius: 12px; overflow: hidden; background: var(--ob-cream-3);
+  box-shadow: var(--ob-shadow-s); transition: transform .15s var(--ob-ease);
+}
+.ob-album-grid button:hover { transform: translateY(-2px); }
+.ob-album-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ob-album-empty { padding: 26px 8px; text-align: center; font-size: 15px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-album-note { font-size: 12px; font-weight: 600; line-height: 1.5; color: var(--ob-ink-3); text-align: center; }
+
+/* one photo */
+.ob-album-view { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.ob-album-view figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
+.ob-album-photo {
+  position: relative; max-width: 100%; max-height: min(60vh, 520px); border-radius: 10px; overflow: hidden;
+  box-shadow: var(--ob-shadow-s); background: var(--ob-cream-3);
+}
+.ob-album-photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ob-album-view figcaption { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-album-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255, 250, 241, .88); color: var(--ob-ink); box-shadow: var(--ob-shadow-s);
+}
+.ob-album-nav.is-prev { left: 8px; }
+.ob-album-nav.is-next { right: 8px; }
+.ob-album-actions { display: flex; align-items: center; gap: 10px; }
+.ob-album-actions .ob-btn { flex: 1; }
+.ob-album-actions .ob-btn:disabled { opacity: .55; }
+.ob-album-actions.is-ask { flex-wrap: wrap; justify-content: center; }
+.ob-album-actions.is-ask p { flex-basis: 100%; text-align: center; font-size: 14px; font-weight: 800; color: var(--ob-ink); }
+.ob-album-actions.is-ask .ob-btn { flex: 0 1 120px; }
+.ob-album-del { color: var(--ob-danger); }
+
+@media (max-width: 720px) {
+  .ob-album { padding: 12px 12px 10px; border-radius: 22px; }
+  .ob-album-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 58vh; }
+  .ob-album-photo { max-height: 56vh; }
+}
+@media (max-width: 360px) {
+  .ob-album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

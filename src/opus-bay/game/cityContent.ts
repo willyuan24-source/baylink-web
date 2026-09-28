@@ -4,11 +4,12 @@ import { heightAt } from '../core/terrain';
 import { byMode, CONTENT_MODE } from '../data/contentMode';
 import { CITY_POIS } from '../data/sf/cityPois';
 import { CITY_POSTCARDS } from '../data/sf/postcards';
-import { DISTRICT_POIS } from '../data/pois';
+import { CITY_DISTRICT_POIS, DISTRICT_POIS } from '../data/pois';
 import { DISTRICT_POSTCARDS } from '../data/postcards';
 import { CITY_FREE_GOALS } from '../data/sf/goals';
 import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/script';
-import { RESIDENTS, taskDoneId, taskState } from '../data/sf/residents';
+import { RESIDENTS, nextPhotoSpot, task2DoneId, task2State, taskDoneId, taskState } from '../data/sf/residents';
+import { runtime } from '../core/runtime';
 import { cityGoalTargets } from './cityGoals';
 import { bubble, markGoalsDone } from './flow';
 import { flow } from './flowStore';
@@ -81,9 +82,12 @@ export function initCityContent(): () => void {
   // wave 5 (lane C, W5-C3): the goals step (the overlay, once per player)
   let offStep: (() => void) | null = null;
   void import('./goalsStep').then(m => { if (!disposed) offStep = m.initGoalsStep(); }, fail('goals step'));
+  // wave 5 (lane C, W5-C7): the album (photos are kept on this device instead of downloaded; More → 相册)
+  let offAlbum: (() => void) | null = null;
+  void import('./album').then(m => { if (!disposed) offAlbum = m.initAlbum(); }, fail('album'));
   // wave 5 (day 0, game/w5Features.ts): the economy (first), play, eggs and real-SF features, each a lazy city chunk
   const w5 = initW5Features();
-  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); offStep?.(); w5.off(); moments = null; };
+  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); offStep?.(); offAlbum?.(); w5.off(); moments = null; };
 }
 
 /** Lane P's map: has the player had the arrival moment of this attraction? (false before the city content loads) */
@@ -141,6 +145,13 @@ export function goalTargets(): GoalTarget[] {
     const t = r.task.target;
     return { id: t.id, goal: taskDoneId(r.key), x: t.x, z: t.z, name: { zh: `小忙 · ${t.name.zh}`, en: `Favour · ${t.name.en}` }, radius: t.r, first: true };
   });
+  // wave 5 (W5-C7): a second favour on leads too (a photo favour: its nearest spot not photographed yet)
+  for (const r of RESIDENTS) {
+    if (task2State(done, r.key) !== 'on') continue;
+    const t = r.task2.target, s = nextPhotoSpot(done, r, runtime.player);
+    const at = s ? { x: s.x, z: s.z, name: s.name } : t;
+    favours.push({ id: t.id, goal: task2DoneId(r.key), x: at.x, z: at.z, name: { zh: `小忙 · ${at.name.zh}`, en: `Favour · ${at.name.en}` }, radius: t.r, first: true });
+  }
   const extra = [...extraTargets.values()].flatMap(fn => fn());
   return favours.length || extra.length ? [...favours, ...targets, ...extra] : targets;
 }
@@ -157,7 +168,7 @@ export interface ContentTables {
 /** The content tables a world mode resolves to (what data/pois, postcards and script export in that mode). */
 export function contentFor(mode: WorldMode = CONTENT_MODE): ContentTables {
   return {
-    pois: byMode(DISTRICT_POIS, [...DISTRICT_POIS, ...CITY_POIS], mode),
+    pois: byMode(DISTRICT_POIS, [...CITY_DISTRICT_POIS, ...CITY_POIS], mode),
     postcards: byMode(DISTRICT_POSTCARDS, [...DISTRICT_POSTCARDS, ...CITY_POSTCARDS], mode),
     freeGoals: byMode(DISTRICT_FREE_GOALS, CITY_FREE_GOALS, mode),
     guideBarks: byMode<Record<string, Bilingual[]>>(DISTRICT_GUIDE_BARKS, CITY_GUIDE_BARKS, mode),

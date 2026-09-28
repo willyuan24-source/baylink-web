@@ -8,7 +8,7 @@ import { eventUrl, guideUrl, mapsUrl, pickPlanDate, planStopTitles, planUrl, wal
 import { POIS } from '../data/pois';
 import { POSTCARDS, activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { CITY_GOAL, GOAL_REWARDS, goalProgress } from '../data/sf/goals';
-import { RESIDENTS, taskState, tasksDone } from '../data/sf/residents';
+import { RESIDENTS, favour2Target, letterState, lettersArrived, task2Progress, task2State, taskState, tasksDone } from '../data/sf/residents';
 import { FREE_GOALS } from '../data/script';
 import { districtTourProgress, wishlist } from '../data/wishlist';
 import { closePanel, navigateTo, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
@@ -19,7 +19,7 @@ import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
-import { JOURNAL_BUILTIN_ORDER, journalTabs, lastJournalRequest, subscribeJournalRequest, type JournalTabSlot } from './slots';
+import { JOURNAL_BUILTIN_ORDER, journalTabs, lastJournalRequest, openOverlay, subscribeJournalRequest, type JournalTabSlot } from './slots';
 import './content-ui.css';
 
 type BuiltinTab = keyof typeof JOURNAL_BUILTIN_ORDER;
@@ -199,15 +199,43 @@ function Goals() {
 /**
  * 邻居的小忙 (city, plan G2-11): the six residents' favours. Not met yet → who and where (去找 TA); said yes → what to
  * do (带我去 walks to the favour's target); done → ticked. The buttons are big enough for a thumb.
+ * Wave 5 (W5-C7): after the first favour the row follows the second — asked or not (去找 TA), on (what to do, the
+ * photo progress, 带我去), done (the letter on its way, then 读信 with a dot until it is opened: ui/Letter.tsx).
  */
 function Favours({ done }: { done: readonly string[] }) {
   const { t } = useT();
+  const letters = lettersArrived(done);
   return (
     <section className="ob-block">
-      <h3 className="ob-h3"><HandHeart size={15} aria-hidden />{t('邻居的小忙', 'Neighbour favours')} · {tasksDone(done)}/{RESIDENTS.length}</h3>
+      <h3 className="ob-h3"><HandHeart size={15} aria-hidden />{t('邻居的小忙', 'Neighbour favours')} · {tasksDone(done)}/{RESIDENTS.length}{letters > 0 && <span className="ob-h3-note"> · {t(`信 ${letters}`, `Letters ${letters}`)}</span>}</h3>
       <ul className="ob-goals">
         {RESIDENTS.map(r => {
           const state = taskState(done, r.key);
+          const s2 = task2State(done, r.key);
+          if (state === 'done' && s2 !== 'locked') {
+            const letter = letterState(done, r.key), progress = task2Progress(done, r);
+            const go2 = s2 === 'on' ? (r.task2.target.id.startsWith('favour2:') ? favour2Target(r.key) : r.task2.target.id) : s2 === 'new' ? r.id : null;
+            return (
+              <li key={r.key} className={s2 === 'done' ? 'is-done' : ''}>
+                <span className="ob-check">{s2 === 'done' && <Check size={13} aria-hidden />}</span>
+                <div>
+                  <strong>{s2 === 'new' ? t(r.task2.teaser) : t(r.task2.title)}</strong>
+                  <small>
+                    {s2 === 'new' ? t(`回去找 ${r.short.zh} 聊聊`, `Go and chat with ${r.short.en}`)
+                      : s2 === 'on' ? <>{t(r.task2.hint)}{progress && ` · ${t('已拍', 'shot')} ${progress}`}</>
+                        : letter === 'due' ? t(`${r.short.zh} 说会给你写信～`, `${r.short.en} says a letter is coming~`)
+                          : t(`${r.short.zh} 给你写了一封信`, `${r.short.en} wrote you a letter`)}
+                  </small>
+                  {go2 && <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={() => navigateTo(go2)}><Navigation size={14} aria-hidden />{s2 === 'new' ? t(`去找 ${r.short.zh}`, `Find ${r.short.en}`) : t('带我去', 'Take me there')}</button>}
+                  {(letter === 'new' || letter === 'read') && (
+                    <button type="button" className={`ob-btn ob-btn-soft ob-btn-sm ob-letter-btn ${letter === 'new' ? 'is-new' : ''}`} onClick={() => openOverlay('c-letter', { key: r.key })}>
+                      <Mail size={14} aria-hidden />{letter === 'new' ? t('读信', 'Read the letter') : t('再读一遍', 'Read again')}
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          }
           const go = state === 'on' ? r.task.target.id : state === 'new' ? r.id : null;
           return (
             <li key={r.key} className={state === 'done' ? 'is-done' : ''}>
