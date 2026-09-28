@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { BookOpen, CalendarPlus, Check, CircleHelp, Footprints, HandHeart, Heart, ListChecks, Mail, MapPinned, Navigation, Route, Trash2 } from 'lucide-react';
 import { FOOTPRINTS_TAB, Footprints as FootprintsTab } from './Footprints';
-import { useGame } from '../core/store';
+import { DEFAULT_TOUR_ID, tourIdOf, useGame } from '../core/store';
 import type { WishItem } from '../core/types';
 import { eventById, nextShowing, placeById, todayInBay, useCatalog } from '../data/catalog';
 import { eventUrl, guideUrl, mapsUrl, pickPlanDate, planStopTitles, planUrl, walkingRouteUrl, type PlanStop } from '../data/links';
@@ -10,7 +10,7 @@ import { POSTCARDS, activePostcardCount, activePostcardTotal } from '../data/pos
 import { goalProgress } from '../data/sf/goals';
 import { RESIDENTS, taskState, tasksDone } from '../data/sf/residents';
 import { FREE_GOALS } from '../data/script';
-import { wishlist } from '../data/wishlist';
+import { districtTourProgress, wishlist } from '../data/wishlist';
 import { closePanel, navigateTo, openEvent, openPanel, startTour, tourStops, wishPlannable } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { poiById } from '../game/interactables';
@@ -95,7 +95,9 @@ function CardImage({ src, n, label }: { src?: string; n: number; label: string }
 function Goals() {
   const { t } = useT();
   const done = useGame(s => s.goalsDone);
-  const completed = useGame(s => s.tour.completed);
+  // the first lesson's own stops: while or after the Grand Tour `game.tour` holds that tour's (int-review: "Bay 101 · 3/7"
+  // with no stop ticked and 继续导览 for a lesson never started)
+  const completed = useGame(s => (tourIdOf(s.tour) === DEFAULT_TOUR_ID ? s.tour.completed : districtTourProgress(s).completed));
   const active = useGame(s => s.tour.active);
   const city = useGame(s => s.worldMode === 'city');
   const stops = tourStops();
