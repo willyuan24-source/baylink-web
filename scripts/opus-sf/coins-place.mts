@@ -6,6 +6,11 @@
  *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/coins-place.mts --write    # … and write economy/coinSpots.ts
  *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/coins-place.mts --sources  # append missing fixed reward sources
  *                                                                                   # to economy/sources.ts (append-only)
+ *   … --write --replace a,b   place these ids again even if they pass · --fresh   place everything again
+ *   COINS_DEBUG=<trail id> …  print why each candidate spot of that trail was taken or refused
+ *
+ * A published spot that still passes every rule is KEPT where it is (players learn where the coins lie); only failing
+ * ones are placed again.
  *
  * - TRAILS (≈ 60 × 5–8 coins, refilled every Bay day): each definition names an anchor (an attraction, a transit stop or
  *   a point) and a kind. `climb` finds the highest walking-graph node near the anchor and the lowest one 30–70 u of path
@@ -22,8 +27,10 @@
  *
  * Every ground spot: standable (core/terrain canStand), not water, a walking-graph node within 12 u that joins the
  * network of the Ferry gate, ≥ 6.5 u from every card prompt (landmark POIs, place cards, attractions and their
- * arrivals, postcards), ≥ 3 u from any other coin. Spots in the Financial District / South Beach and Chinatown zones
- * are flagged `dt` (downtown: held until lane V publishes the measured headroom, plan MF9 / D15).
+ * arrivals, postcards), ≥ 3 u from any other coin, and — the mid-wave checkpoint's CP-5 — never BOXED, SNAG or
+ * UNREACHABLE in lane F's walk sweep (the real controller pushed four ways; the game's path finder from the graph).
+ * Spots in the Financial District / South Beach and Chinatown zones are flagged `dt` (downtown: held until lane V
+ * publishes the measured headroom, plan MF9 / D15).
  *
  * APPEND-ONLY: a trail, cache or ring keeps its place in the list (its ledger bits: trail i owns bits 8i … 8i + 7 of
  * `play.t`, ring i bits 8i … 8i + 7 of `play.g.ring`, cache i bit i of `play.g.cache`); new ones are appended; a
@@ -43,12 +50,16 @@ const ctx2d = new Proxy({}, {
 g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
-const { createCityTerrain, landmarkWalkInputs } = await import('../../src/opus-bay/core/sfTerrain');
+const { createCityTerrain } = await import('../../src/opus-bay/core/sfTerrain');
 const terrain = await import('../../src/opus-bay/core/terrain');
-const { GRAPH_EDGE } = await import('../../src/opus-bay/world/sf/format');
+const { GRAPH_EDGE, demSample } = await import('../../src/opus-bay/world/sf/format');
+const { CitySites } = await import('../../src/opus-bay/world/sf/sites');
+const { runtime } = await import('../../src/opus-bay/core/runtime');
+const { findPath } = await import('../../src/opus-bay/actors/nav');
+const { openHeading } = await import('../../src/opus-bay/actors/faceOpen');
+const { PlayerController } = await import('../../src/opus-bay/actors/controller');
 const { findGraphPath } = await import('../../src/opus-bay/core/walkGraph');
 const { project } = await import('../../src/opus-bay/core/geo');
-const { SF_SITES } = await import('../../src/opus-bay/world/sf/landmarks/index');
 const { landmarkTallStructures } = await import('../../src/opus-bay/world/sf/landmarks/context');
 const { terrainGlideWorld, GLIDE } = await import('../../src/opus-bay/actors/glide');
 const { heroTall, bayBridgeTall } = await import('../../src/opus-bay/actors/glideTall');
@@ -91,6 +102,15 @@ export const RULES = {
   airCacheLift: 1,
   trailMin: 5,
   trailMax: 8,
+  /**
+   * the walk check (W5-E, the mid-wave checkpoint's CP-5: lane F's sweep, scripts/opus-sf/qa/sweep-static.mts): the real
+   * controller pushed `walkPushS` s in four directions (the most open one first, then 90° steps) must move ≥ `walkMove` u
+   * in at least 2 of them (a pier or a stairway is a corridor: fine), never stop dead where the ground ahead is open (a
+   * snag), and the game's own path finder must reach the spot from the walking graph (within `walkReachEnd` u)
+   */
+  walkPushS: 1.5,
+  walkMove: 3,
+  walkReachEnd: 1.1,
 } as const;
 
 export const DOWNTOWN_ZONES = ['financial-district-south-beach', 'chinatown'] as const;
@@ -118,13 +138,18 @@ export interface CityCtx {
   done(): void;
 }
 
-/** Load the published city like the postcard test does (every wave-4 site registered), chunks attached on demand. */
+/**
+ * Load the published city the way the game streams it (and lane F's sweep judges it): the landmark sites' walk inputs
+ * from CitySites (tops, sinks, their measured bases), chunks attached on demand.
+ */
 export async function loadCity(): Promise<CityCtx> {
   const sf = sfDisk();
-  const lms = landmarkWalkInputs(SF_SITES);
-  const city = createCityTerrain(sf.manifest, { landmarks: lms });
   const far = await sf.far();
+  const sites = new CitySites(), lms = sites.walkInputs();
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
   city.setFar(far);
+  sites.onBase = (id, y) => { city.setLandmarkBase(id, y); };
+  sites.attach(null as never, (x, z) => demSample(far.dem, x, z));
   terrain.setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
   const ix = await sf.graphIndex();
   const ferry = DISTRICT.anchors['ferry-gate'];
@@ -206,6 +231,47 @@ export function spotProblems(ctx: CityCtx, x: number, z: number, clear: number =
   return out;
 }
 
+let probe: InstanceType<typeof PlayerController> | null = null;
+/** The real controller pushed RULES.walkPushS s from (x, z) along `heading`: how far it got. */
+function push(x: number, z: number, heading: number): number {
+  const DT = 1 / 30, p = runtime.player;
+  probe ??= new PlayerController();
+  p.x = x; p.z = z; p.y = terrain.heightAt(x, z); p.heading = heading; p.pathTarget = null; p.locked = false;
+  probe.sync();
+  const dx = Math.sin(heading), dz = Math.cos(heading), yaw = Math.atan2(-dx, -dz);
+  runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
+  for (let i = 0; i < RULES.walkPushS / DT; i++) probe.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false });
+  runtime.input.moveY = 0;
+  return Math.hypot(p.x - x, p.z - z);
+}
+
+/**
+ * What stops a player at a ground spot (empty = fine), lane F's sweep verdicts: BOXED (≤ 1 of 4 directions moves
+ * RULES.walkMove u), SNAG (open ground ahead but the controller does not move), UNREACHABLE (the path finder from the
+ * walking graph's main network ends > RULES.walkReachEnd u short). A corridor (a pier, a stairway: 2 directions) is fine.
+ */
+export async function walkProblems(ctx: CityCtx, x: number, z: number): Promise<string[]> {
+  await ctx.ensure(x, z, 48);
+  if (!terrain.canStand(x, z, 0.4)) return ['not standable for the walker'];
+  const out: string[] = [];
+  const first = openHeading(x, z, 0).heading;
+  let moving = 0, snags = 0;
+  for (let k = 0; k < 4; k++) {
+    const h = first + (k * Math.PI) / 2, dx = Math.sin(h), dz = Math.cos(h);
+    const moved = push(x, z, h);
+    if (moved >= RULES.walkMove) moving++;
+    else if ([1, 2, 3].every(d => terrain.canStand(x + dx * d, z + dz * d, 0.4))) snags++;
+  }
+  if (moving <= 1) out.push(`boxed (${moving} of 4 directions move ${RULES.walkMove} u)`);
+  if (snags) out.push(`${snags} snag${snags > 1 ? 's' : ''} (open ground ahead, no move)`);
+  const n = ctx.ix.nearestNode(x, z, 60, i => ctx.ix.component(i) === ctx.home);
+  const res = n >= 0 ? findPath({ x: ctx.ix.x(n), z: ctx.ix.z(n) }, { x, z }, 8) : null;
+  const e = res?.points[res.points.length - 1];
+  const end = res ? (e ? Math.hypot(e.x - x, e.z - z) : 0) : Infinity;
+  if (end > RULES.walkReachEnd) out.push(`the path finder ends ${Number.isFinite(end) ? `${end.toFixed(1)} u short` : 'nowhere'}`);
+  return out;
+}
+
 export interface RingGeom { x: number; y: number; z: number; yaw: number; r: number }
 /** The eight coin positions of a ring (a vertical circle across the flight direction `yaw`). */
 export function ringCoins(r: RingGeom): { x: number; y: number; z: number }[] {
@@ -250,7 +316,8 @@ export const TRAIL_DEFS: readonly TrailDef[] = [
   { id: 'tiled-steps', kind: 'steps', at: 'tiled-steps-16th-avenue', r: 30, n: 8, why: 'the 16th Avenue Tiled Steps and on up Grand View' },
   { id: 'hidden-garden-steps', kind: 'steps', at: 'hidden-garden-steps', r: 30, n: 5, gap: 3, why: 'the Hidden Garden Steps' },
   { id: 'macondray-lane', kind: 'path', at: 'macondray-lane', r: 50, why: 'Macondray Lane' },
-  { id: 'ina-coolbrith', kind: 'climb', at: 'ina-coolbrith-park', r: 45, why: 'Ina Coolbrith Park' },
+  // 'ina-coolbrith' is RETIRED (CP-5): the park's top terrace is boxed in and its paths hold only 3–4 coins that the
+  // walker can leave; its slot stays (append-only), its coins moved to 'fort-mason-meadow' at the end of the list
   { id: 'lombard-steps', kind: 'steps', at: 'lombard-crooked', r: 40, why: 'the steps beside the crooked block' },
   { id: 'twin-peaks', kind: 'climb', at: 'twin-peaks', r: 80, n: 8, why: 'up to the Twin Peaks lookout' },
   { id: 'bernal-summit', kind: 'climb', at: 'bernal-heights-park', r: 80, n: 7, why: 'Bernal Heights to the summit' },
@@ -266,10 +333,12 @@ export const TRAIL_DEFS: readonly TrailDef[] = [
   { id: 'mount-sutro', kind: 'path', at: 'mount-sutro-open-space', r: 70, why: 'the Mount Sutro forest trail' },
   // pier ends and jetties (explicit lines where the walking graph does not go)
   { id: 'pier-39', kind: 'pier', at: [-161.1, 15.0], line: [[-163, 12], [-172, 7], [-181, 2], [-190, -3], [-196, -8]], why: 'out along PIER 39' },
-  { id: 'municipal-pier', kind: 'pier', at: [-294, 171], line: [[-294, 171], [-301, 166], [-307, 159], [-311, 150], [-311, 141]], n: 7, why: 'out along the Aquatic Park municipal pier' },
+  // (CP-5: the municipal pier and the Wave Organ jetty's far part are off the walking network — the path finder cannot
+  // reach them —, so their slots now lead along the shore to the pier's foot and out to where the jetty walk ends)
+  { id: 'municipal-pier', kind: 'path', at: [-288, 175], r: 45, n: 6, why: 'Aquatic Park\'s promenade to the municipal pier\'s foot' },
   { id: 'pier-7', kind: 'pier', at: [69.6, -5.4], r: 60, n: 7, why: 'Pier 7' },
   { id: 'pier-14', kind: 'pier', at: [157.0, -21.0], r: 50, why: 'Pier 14 by the Ferry Building' },
-  { id: 'wave-organ-jetty', kind: 'pier', at: 'wave-organ', line: [[-455, 361], [-446, 349], [-438, 340], [-433, 330], [-428, 320], [-422, 309], [-417, 300]], rev: true, n: 8, why: 'along the jetty out to the Wave Organ' },
+  { id: 'wave-organ-jetty', kind: 'path', at: 'wave-organ', r: 60, n: 6, why: 'Yacht Road out toward the Wave Organ' },
   { id: 'crane-cove', kind: 'pier', at: 'crane-cove-park', r: 70, why: 'Crane Cove Park' },
   { id: 'herons-head', kind: 'pier', at: 'herons-head-park', r: 90, n: 8, why: 'Heron\'s Head spit' },
   // park paths, promenades and beaches
@@ -308,6 +377,8 @@ export const TRAIL_DEFS: readonly TrailDef[] = [
   { id: 'stop-carl-cole', kind: 'stop', at: 'muni-carl-cole', to: 'haight-ashbury', n: 5, why: 'N Carl & Cole' },
   { id: 'stop-9th-irving', kind: 'stop', at: 'muni-9th-irving', to: 'irving-street', n: 5, why: 'N 9th & Irving' },
   { id: 'stop-duboce-park', kind: 'stop', at: 'muni-duboce-park', to: 'corona-heights-randall-museum', n: 5, why: 'N Duboce Park' },
+  // appended after W5-E2 (CP-5)
+  { id: 'fort-mason-meadow', kind: 'path', at: 'fort-mason-center', r: 60, n: 6, why: 'the Great Meadow paths above Fort Mason (replaces the retired Ina Coolbrith trail)' },
 ];
 
 /** 40 caches: hilltops, pier ends, nooks, the signature corners' streets (lane L), two over roofs / domes (glide). */
@@ -322,7 +393,7 @@ export const CACHE_DEFS: readonly CacheDef[] = [
   { id: 'sutro-heights-top', kind: 'top', at: 'sutro-heights-park', r: 40, why: 'Sutro Heights parapet' },
   { id: 'mount-sutro-top', kind: 'top', at: 'mount-sutro-open-space', r: 70, why: 'Mount Sutro' },
   { id: 'pier-39-end', kind: 'spot', at: [-199, -18], r: 8, why: 'the far end of PIER 39' },
-  { id: 'municipal-pier-end', kind: 'spot', at: [-302, 129.5], r: 4, why: 'the tip of the municipal pier' },
+  { id: 'municipal-pier-end', kind: 'end', at: [-288, 175], r: 40, why: 'the municipal pier\'s foot at Aquatic Park (CP-5: the tip is off the walking network)' },
   { id: 'lands-end-overlook', kind: 'nook', at: 'lands-end', r: 60, why: 'a Lands End overlook' },
   { id: 'fort-mason-meadow', kind: 'top', at: 'fort-mason-center', r: 50, why: 'above Fort Mason' },
   { id: 'crane-cove-end', kind: 'end', at: 'crane-cove-park', r: 70, why: 'Crane Cove\'s slipway' },
@@ -534,15 +605,24 @@ async function placeTrail(ctx: CityCtx, def: TrailDef, taken: Placed[]): Promise
     if (last && Math.hypot(p.x - last.x, p.z - last.z) < spacing) continue;
     await ctx.ensure(p.x, p.z);
     const q = { x: r1(p.x), z: r1(p.z) };
-    if (spotProblems(ctx, q.x, q.z, RULES.trailPromptClear).length) continue;
-    if ([...taken, ...pts].some(o => Math.hypot(o.x - q.x, o.z - q.z) < RULES.coinGap)) continue;
+    const why = (s: string) => { if (process.env.COINS_DEBUG === def.id) console.log(`  (${q.x}, ${q.z}) walked ${walked.toFixed(1)}: ${s}`); };
+    const pr = spotProblems(ctx, q.x, q.z, RULES.trailPromptClear);
+    if (pr.length) { why(pr.join(', ')); continue; }
+    if ([...taken, ...pts].some(o => Math.hypot(o.x - q.x, o.z - q.z) < RULES.coinGap)) { why('near another coin'); continue; }
+    const wp = await walkProblems(ctx, q.x, q.z);
+    if (wp.length) { why(wp.join(', ')); continue; }
+    why('coin');
     pts.push({ x: q.x, y: r1(terrain.heightAt(q.x, q.z)), z: q.z });
     last = p;
   }
   if (fromEnd) pts.reverse();
   const problems = pts.length < RULES.trailMin ? [`only ${pts.length} coins`] : [];
   // a rounded spot is checked again (0.05 u can matter at a wall)
-  for (const p of pts) { const pr = spotProblems(ctx, p.x, p.z, RULES.trailPromptClear); if (pr.length) problems.push(`(${p.x}, ${p.z}): ${pr.join(', ')}`); }
+  for (const p of pts) {
+    await ctx.ensure(p.x, p.z);
+    const pr = [...spotProblems(ctx, p.x, p.z, RULES.trailPromptClear), ...await walkProblems(ctx, p.x, p.z)];
+    if (pr.length) problems.push(`(${p.x}, ${p.z}): ${pr.join(', ')}`);
+  }
   return { id: def.id, kind: def.kind, pts, dt: pts.some(p => isDowntown(ctx, p.x, p.z)), problems };
 }
 
@@ -581,15 +661,18 @@ async function placeCache(ctx: CityCtx, def: CacheDef, coins: Placed[], caches: 
   cands.sort((a, b) => b.score - a.score);
   for (const c of cands.slice(0, 400)) {
     await ctx.ensure(c.x, c.z);
-    // the node itself, else the nearest good point within 3 u of it
-    for (let rr = 0; rr <= 3; rr += 0.5) {
+    // the node itself, else the nearest good point within 3 u of it; a spot the walker cannot leave → the next candidate
+    let p: Placed | null = null;
+    for (let rr = 0; rr <= 3 && !p; rr += 0.5) {
       for (let k = 0; k < (rr ? 12 : 1); k++) {
         const a = (k / 12) * Math.PI * 2, x = c.x + Math.cos(a) * rr, z = c.z + Math.sin(a) * rr;
         if (!ok(x, z) || !ok(r1(x), r1(z))) continue;
-        const p = { x: r1(x), y: r1(terrain.heightAt(x, z)), z: r1(z) };
-        return { ...base, ...p, dt: isDowntown(ctx, p.x, p.z), problems: [] };
+        p = { x: r1(x), y: r1(terrain.heightAt(x, z)), z: r1(z) };
+        break;
       }
     }
+    if (!p || (await walkProblems(ctx, p.x, p.z)).length) continue;
+    return { ...base, ...p, dt: isDowntown(ctx, p.x, p.z), problems: [] };
   }
   return { ...base, x: at.x, y: 0, z: at.z, dt: false, problems: ['no good spot'] };
 }
@@ -690,25 +773,59 @@ async function main() {
   const t0 = Date.now();
   const ctx = await loadCity();
   try {
+    // a published spot that still passes every rule stays where it is (players learn where the coins lie); only the
+    // failing ones, and the ids named by --replace a,b,c, are placed again
+    const pub = fs.existsSync(SPOTS_FILE) && !args.has('--fresh') ? await import('../../src/opus-bay/economy/coinSpots') : null;
+    const replaceAt = process.argv.indexOf('--replace');
+    const force = new Set(replaceAt > 0 ? process.argv[replaceAt + 1].split(',') : []);
+    const keptTrail = async (def: TrailDef, taken: Placed[]): Promise<TrailOut | null> => {
+      const e = pub?.COIN_TRAILS.find(t => t.id === def.id);
+      if (!e || e.retired || force.has(def.id) || e.p.length / 3 < RULES.trailMin) return null;
+      const pts: Placed[] = [];
+      for (let i = 0; i < e.p.length; i += 3) {
+        const p = { x: e.p[i], y: e.p[i + 1], z: e.p[i + 2] };
+        await ctx.ensure(p.x, p.z);
+        if (spotProblems(ctx, p.x, p.z, RULES.trailPromptClear).length || taken.some(o => Math.hypot(o.x - p.x, o.z - p.z) < RULES.coinGap)) return null;
+        if ((await walkProblems(ctx, p.x, p.z)).length) return null;
+        pts.push(p);
+      }
+      return { id: def.id, kind: def.kind, pts, dt: pts.some(p => isDowntown(ctx, p.x, p.z)), problems: [] };
+    };
+    const keptCache = async (def: CacheDef, coins: Placed[], caches: CacheOut[]): Promise<CacheOut | null> => {
+      const e = pub?.COIN_CACHES.find(c => c.id === def.id);
+      if (!e || e.retired || force.has(def.id) || !!e.air !== (def.kind === 'air')) return null;
+      await ctx.ensure(e.x, e.z);
+      if (e.air ? airProblems(ctx, [e]).length : spotProblems(ctx, e.x, e.z).length || coins.some(q => Math.hypot(q.x - e.x, q.z - e.z) < RULES.cacheGap) || caches.some(q => Math.hypot(q.x - e.x, q.z - e.z) < 30) || (await walkProblems(ctx, e.x, e.z)).length) return null;
+      return { id: def.id, kind: def.kind, x: e.x, y: e.y, z: e.z, air: !!e.air, dt: isDowntown(ctx, e.x, e.z), problems: [] };
+    };
+    const keptRing = async (def: RingDef): Promise<RingOut | null> => {
+      const e = pub?.COIN_RINGS.find(r => r.id === def.id);
+      if (!e || e.retired || force.has(def.id)) return null;
+      await ctx.ensure(e.x, e.z, 40);
+      return airProblems(ctx, ringCoins(e)).length ? null : { id: def.id, x: e.x, y: e.y, z: e.z, yaw: e.yaw, r: e.r, dt: isDowntown(ctx, e.x, e.z), problems: [] };
+    };
     const trails: TrailOut[] = [];
     const taken: Placed[] = [];
     for (const def of TRAIL_DEFS) {
-      const t = await placeTrail(ctx, def, taken);
+      const kept = await keptTrail(def, taken);
+      const t = kept ?? await placeTrail(ctx, def, taken);
       trails.push(t);
       taken.push(...t.pts);
-      console.log(`${t.problems.length ? '✗' : '✓'} trail ${def.id.padEnd(22)} ${def.kind.padEnd(5)} ${String(t.pts.length)} coins${t.dt ? ' (downtown)' : ''}${t.pts[0] ? ` from (${t.pts[0].x}, ${t.pts[0].z}) to (${t.pts.at(-1)!.x}, ${t.pts.at(-1)!.z}) rise ${(t.pts.at(-1)!.y - t.pts[0].y).toFixed(1)}` : ''} ${t.problems.join('; ')}`);
+      console.log(`${t.problems.length ? '✗' : '✓'} trail ${def.id.padEnd(22)} ${def.kind.padEnd(5)} ${String(t.pts.length)} coins${t.dt ? ' (downtown)' : ''}${t.pts[0] ? ` from (${t.pts[0].x}, ${t.pts[0].z}) to (${t.pts.at(-1)!.x}, ${t.pts.at(-1)!.z}) rise ${(t.pts.at(-1)!.y - t.pts[0].y).toFixed(1)}` : ''} ${kept ? 'kept' : pub ? 'PLACED' : ''} ${t.problems.join('; ')}`);
     }
     const caches: CacheOut[] = [];
     for (const def of CACHE_DEFS) {
-      const c = await placeCache(ctx, def, taken, caches);
+      const kept = await keptCache(def, taken, caches);
+      const c = kept ?? await placeCache(ctx, def, taken, caches);
       caches.push(c);
-      console.log(`${c.problems.length ? '✗' : '✓'} cache ${def.id.padEnd(22)} ${def.kind.padEnd(4)} (${c.x}, ${c.y}, ${c.z})${c.dt ? ' (downtown)' : ''} ${c.problems.join('; ')}`);
+      console.log(`${c.problems.length ? '✗' : '✓'} cache ${def.id.padEnd(22)} ${def.kind.padEnd(4)} (${c.x}, ${c.y}, ${c.z})${c.dt ? ' (downtown)' : ''} ${kept ? 'kept' : pub ? 'PLACED' : ''} ${c.problems.join('; ')}`);
     }
     const rings: RingOut[] = [{ id: 'first-flight', x: -50, y: 60, z: 51, yaw: 0, r: RULES.ringR, dt: false, problems: [] }];
     for (const def of RING_DEFS) {
-      const r = await placeRing(ctx, def);
+      const kept = await keptRing(def);
+      const r = kept ?? await placeRing(ctx, def);
       rings.push(r);
-      console.log(`${r.problems.length ? '✗' : '✓'} ring ${def.id.padEnd(22)} (${r.x}, ${r.y}, ${r.z})${r.dt ? ' (downtown)' : ''} ${r.problems.join('; ')}`);
+      console.log(`${r.problems.length ? '✗' : '✓'} ring ${def.id.padEnd(22)} (${r.x}, ${r.y}, ${r.z})${r.dt ? ' (downtown)' : ''} ${kept ? 'kept' : pub ? 'PLACED' : ''} ${r.problems.join('; ')}`);
     }
     const good = trails.filter(t => !t.problems.length);
     const coins = good.reduce((n, t) => n + t.pts.length, 0);

@@ -8,7 +8,9 @@ import test from 'node:test';
  * - The registry is APPEND-ONLY: the W5-E2 order is pinned below (a new trail, cache or ring goes at the end).
  * - Every spot is checked against the published city with the placement script's own rules: standable, not water,
  *   reachable on foot from the Ferry gate's network, clear of the card prompts (caches 6.5 u, trail coins 3.5 u),
- *   3 u between coins; every air coin between the glide's soft floor (+ 1.5 u) and 250; downtown flags match the zones.
+ *   3 u between coins; every air coin between the glide's soft floor (+ 1.5 u) and 250; downtown flags match the zones;
+ *   and (the mid-wave checkpoint's CP-5) lane F's walk sweep verdicts on every ground spot: never BOXED, SNAG or
+ *   UNREACHABLE for the real controller and the game's path finder.
  * - The live set: pickup radii, air coins only while gliding, trails back on the next Bay day, caches and rings once,
  *   downtown held, ≤ 32 instances drawn, a `reward` per coin (the ledger pays it), the chime ladder, the 48-triangle disc.
  */
@@ -84,7 +86,7 @@ test('W5-E2 every spot stands in the published city: standable, dry, reachable, 
       for (let i = 0; i < t.p.length / 3; i++) {
         const x = t.p[3 * i], z = t.p[3 * i + 2];
         await ctx.ensure(x, z);
-        const pr = P.spotProblems(ctx, x, z, P.RULES.trailPromptClear);
+        const pr = [...P.spotProblems(ctx, x, z, P.RULES.trailPromptClear), ...await P.walkProblems(ctx, x, z)];
         if (pr.length) bad.push(`trail ${t.id} #${i + 1} (${x}, ${z}): ${pr.join(', ')}`);
         if ((P.DOWNTOWN_ZONES as readonly string[]).includes(ctx.zoneOf(x, z) ?? '') && !t.dt) bad.push(`trail ${t.id}: downtown but not flagged`);
         ground.push({ id: `${t.id}#${i + 1}`, x, z });
@@ -93,7 +95,7 @@ test('W5-E2 every spot stands in the published city: standable, dry, reachable, 
     for (const c of COIN_CACHES) {
       if (c.retired) continue;
       await ctx.ensure(c.x, c.z);
-      const pr = c.air ? P.airProblems(ctx, [c]) : P.spotProblems(ctx, c.x, c.z);
+      const pr = c.air ? P.airProblems(ctx, [c]) : [...P.spotProblems(ctx, c.x, c.z), ...await P.walkProblems(ctx, c.x, c.z)];
       if (pr.length) bad.push(`cache ${c.id}: ${pr.join(', ')}`);
       if (!c.air) for (const q of ground) if (Math.hypot(q.x - c.x, q.z - c.z) < P.RULES.cacheGap) bad.push(`cache ${c.id}: ${Math.hypot(q.x - c.x, q.z - c.z).toFixed(1)} u from trail coin ${q.id}`);
       if (!c.air) ground.push({ id: c.id, x: c.x, z: c.z });
