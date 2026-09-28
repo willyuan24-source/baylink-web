@@ -83,6 +83,20 @@ export function panForCard(v: MapView, pt: Vec2, cardH: number = goCardHeight(v.
 
 /** A long-press: held this long (ms) without moving more than `slop` px, one finger / the mouse. */
 export const PRESS = { ms: 520, slop: 8 } as const;
+
+/** The map frame's own controls (buttons, links, the legend, the pinned card): a gesture there is not a map gesture. */
+export const MAP_CONTROLS = 'button, a, .mw-legend-pop, .mw-gocard, .mw-chooser';
+/** Is `target` the map itself (pan / tap / press), not one of its controls? */
+export function mapGestureTarget(target: EventTarget | null): boolean {
+  const el = target as { closest?: (sel: string) => unknown } | null;
+  return !!el && typeof el.closest === 'function' && !el.closest(MAP_CONTROLS);
+}
+/**
+ * CP-2: the OSM credit ignores a click this soon after a map gesture (ms): a tap that selects lifts the credit over the
+ * pinned card, under the finger, and the touch's compatibility click would land on it (a new tab; the game paused).
+ */
+export const CREDIT_GUARD_MS = 600;
+export const creditGuarded = (now: number, lastMapGesture: number): boolean => now - lastMapGesture < CREDIT_GUARD_MS;
 /** Snap radii (u): the resident terrain's nearest standable spot; the walking graph's nearest node; a place's arrival. */
 export const PRESS_SNAP = { walkable: 30, graph: 60, place: 60, nearName: 60 } as const;
 

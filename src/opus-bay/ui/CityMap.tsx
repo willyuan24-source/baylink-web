@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type TouchEvent as RTouchEvent } from 'react';
 import { Bike, CalendarDays, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
 import { fleetSnapshot } from '../actors/moveApi';
 import { walkGraph } from '../actors/nav';
@@ -32,7 +32,7 @@ import { CityMapList, type MapTab } from './CityMapList';
 import { BaybayFace, Sheet } from './common';
 import { MapBadge, MapLabel, MapTargetPin } from './MapBadge';
 import { type ChooserRow, ClusterChooser, MapGoCard, useQuickWays } from './MapGoCard';
-import { type PressLookups, type PressSpot, PRESS, chooserHeight, goCardHeight, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
+import { type PressLookups, type PressSpot, PRESS, chooserHeight, creditGuarded, goCardHeight, mapGestureTarget, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
 import { pinsFor, useWeekPins } from './mapEvents';
 import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
@@ -273,7 +273,7 @@ export function CityMapPanel() {
   const pressTimer = useRef<{ id: number; fired: boolean } | null>(null);
   const cancelPress = () => { if (pressTimer.current) { window.clearTimeout(pressTimer.current.id); pressTimer.current = pressTimer.current.fired ? pressTimer.current : null; } };
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('button, a, .mw-legend-pop, .mw-gocard')) return;
+    if (!mapGestureTarget(e.target)) return;
     if (e.button > 0) return;
     frameRef.current?.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, local(e));
@@ -309,7 +309,26 @@ export function CityMapPanel() {
     drag.current.moved += Math.abs(dx) + Math.abs(dy);
     setView(v => (v ? clampView({ ...v, cx: v.cx - dx / v.scale, cz: v.cz - dy / v.scale }, MAP_FRAME) : v));
   };
+  // CP-2 (the mid-wave checkpoint): a tap that selects lifts the OSM credit over the pinned card, right under the finger,
+  // and the touch's compatibility click then opened openstreetmap.org/copyright in a new tab (the game went to the
+  // background). A map tap swallows its click (touchend preventDefault), and the credit ignores clicks for a moment
+  // after a map gesture.
+  const lastMapTap = useRef(-Infinity);
+  const onTouchEnd = (e: RTouchEvent<HTMLDivElement>) => {
+    if (!mapGestureTarget(e.target)) return;
+    lastMapTap.current = e.timeStamp;
+    if (!e.cancelable) return;
+    e.preventDefault();
+    // (no click follows: a focused search field keeps the keyboard up unless it is let go here, as the click would)
+    const f = document.activeElement;
+    if (f instanceof HTMLInputElement || f instanceof HTMLTextAreaElement) f.blur();
+  };
+  const onCreditClick = (e: RMouseEvent<HTMLAnchorElement>) => {
+    // (event time stamps: the same clock as performance.now())
+    if (creditGuarded(e.timeStamp, lastMapTap.current)) e.preventDefault();
+  };
   const onUp = (e: RPointerEvent<HTMLDivElement>) => {
+    if (mapGestureTarget(e.target)) lastMapTap.current = e.timeStamp;
     const had = pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) drag.current.pinch = null;
     const pressed = !!pressTimer.current?.fired;
@@ -670,7 +689,7 @@ export function CityMapPanel() {
           <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={() => endTrip(tripPlace.arrival)}><X size={14} aria-hidden /><span>{t('不去了', 'Stop')}</span></button>
         </div>
       )}
-      <div ref={frameRef} className={`ob-citymap-frame${pinned ? ' has-gocard' : ''}`} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onContextMenu={onContextMenu}
+      <div ref={frameRef} className={`ob-citymap-frame${pinned ? ' has-gocard' : ''}`} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onTouchEnd={onTouchEnd} onContextMenu={onContextMenu}
         role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放，长按任意位置去那里', 'Map of San Francisco: drag to pan, wheel or pinch to zoom, long-press anywhere to go there')}>
         {vis && showPaper && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={s * dpr > 0.7 ? 4096 : 2048} /></svg>}
         <canvas ref={canvasRef} className="ob-citymap-canvas" style={size ? { width: size.w, height: size.h } : undefined} aria-hidden />
@@ -755,7 +774,7 @@ export function CityMapPanel() {
           <button type="button" className={`ob-icon-btn${legend ? ' is-on' : ''}`} onClick={() => setLegend(v => !v)} aria-label={t('图例', 'Legend')} aria-pressed={legend}><Info size={17} aria-hidden /></button>
         </div>
         {legend && <div className="mw-legend-pop"><MapLegend onClose={() => setLegend(false)} /></div>}
-        <p className={`ob-citymap-credit${chooser ? ' is-hidden' : ''}`} style={pinned ? { bottom: cardH + 14 } : undefined}>{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
+        <p className={`ob-citymap-credit${chooser ? ' is-hidden' : ''}`} style={pinned ? { bottom: cardH + 14 } : undefined}>{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" onClick={onCreditClick}>OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
         {cardSel && selName && (
           <MapGoCard title={selName} meta={selMeta} option={recWay} busy={!!planDest && !recWay} short={!!size && size.h < 340}
             onGo={o => { if (planDest) startPlaceTrip(o, planDest); }} onMore={showMore} onClose={() => setSel(null)} />
