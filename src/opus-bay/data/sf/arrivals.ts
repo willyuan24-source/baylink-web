@@ -18,7 +18,7 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
   'dragon-gate': { x: 86.7, z: 177.11, heading: -2.015 },
   'conservatory-of-flowers': { x: -177.51, z: 858.11, heading: 4.049 },
   'dutch-windmill': { x: -584.3, z: 1315.67, heading: 2.374 },
-  'mission-dolores': { x: 200.21, z: 639.85, heading: 5.463 },
+  'mission-dolores': { x: 198.99, z: 638.96, heading: 5.655 },
   'grace-cathedral': { x: 8.92, z: 218.02, heading: 5.544 },
   'legion-of-honor': { x: -663.12, z: 1074.83, heading: 6.229 },
   'fort-point': { x: -747.66, z: 598.89, heading: -2.147 },

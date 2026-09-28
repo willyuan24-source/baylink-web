@@ -257,7 +257,7 @@ export const LANDMARK_ARRIVALS: Readonly<Record<string, { x: number; z: number; 
   'oracle-park': { x: 345.02, z: 177.19, heading: 2.421 },
   'ghirardelli-square': { x: -243.12, z: 160, heading: 0.967 },
   'conservatory-of-flowers': { x: -177.51, z: 858.11, heading: 4.049 },
-  'mission-dolores': { x: 200.21, z: 639.85, heading: 5.463 },
+  'mission-dolores': { x: 198.99, z: 638.96, heading: 5.655 },
   'sutro-tower': { x: 68.43, z: 980.61, heading: 2.443 },
   'legion-of-honor': { x: -663.12, z: 1074.83, heading: 6.229 },
   'dutch-windmill': { x: -584.3, z: 1315.67, heading: 2.374 },

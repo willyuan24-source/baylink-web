@@ -327,9 +327,9 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
     name: bi('多洛雷斯传教站', 'Mission Dolores'),
     zone: bi('教会区', 'The Mission'),
     lat: 37.764185, lng: -122.426812,
-    // (W4-L-int-review: across Dolores St on its east sidewalk, facing the mission; the old spot stood on the street's
+    // (W4-L-int-review: across Dolores St on its east sidewalk, facing the old mission; the old spot stood on the street's
     // centre line)
-    arrival: { x: -0.5, z: 9.7, heading: 2.95 },
+    arrival: { x: 1, z: 9.7, heading: Math.PI },
     photo: { target: [1, 3.5, 2], distance: 21, elevation: 0.08, bearing: 0.2 },
     height: { realM: 8, u: 4.4, rule: 'H = 3.2 + 0.155·h' },
     guideSlug: SF_GUIDE,
