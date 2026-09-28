@@ -74,6 +74,17 @@ export function orderOptions(options: readonly TripOption[], max = 4): TripOptio
   return [...options].sort((a, b) => Number(!!b.recommended) - Number(!!a.recommended) || a.seconds - b.seconds || TRIP_MODES.indexOf(a.mode) - TRIP_MODES.indexOf(b.mode)).slice(0, max);
 }
 
+/**
+ * W5-N3 · the big go button's words (plan MF4 "🐦 飞过去 · 8 秒 / 🚶 BAYBAY 带路 · 3 分钟 / 🚲 骑车 · 2 分钟"): what
+ * happens when you tap it and how long it takes — on foot BAYBAY leads (auto-travel carries you), a line option names
+ * its ride. One tap starts moving (game/tripRun: auto-travel).
+ */
+export function goButtonLabel(o: TripOption): Bilingual {
+  const what: Bilingual = o.mode === 'walk' || o.mode === 'run' ? { zh: 'BAYBAY 带路', en: 'BAYBAY leads' } : optionTitle(o);
+  const time = tripSecondsLabel(o.seconds);
+  return { zh: `${what.zh} · ${time.zh}`, en: `${what.en} · ${time.en}` };
+}
+
 /** A screen-reader line for a row ("观光巴士 2 站，约 3 分钟，推荐"). */
 export function optionAria(o: TripOption): Bilingual {
   const title = optionTitle(o), time = tripSecondsLabel(o.seconds);

@@ -1,10 +1,17 @@
+import { Navigation } from 'lucide-react';
 import { cancelDrive, driveTo, isRiding } from '../actors/moveApi';
 import { emit, onEvent } from '../core/events';
+import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
+import { canStand, nearestWalkable } from '../core/terrain';
 import type { Bilingual, DialogueNode, Vec2 } from '../core/types';
+import { ATTRACTION_INDEX } from '../data/sf/attractions';
 import { rideSystemFor } from '../data/transit';
-import { leadTo } from './brain';
+import { isDiscovered } from './discovery';
+import { registerAskItem } from '../ui/slots';
+import { type AutoWant, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState } from './autoTravel';
+import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
@@ -108,6 +115,10 @@ function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   resetLeg();
   const t = dispatchTrip({ type: 'start', placeId: dest.placeId, ...(dest.attraction ? { attraction: dest.attraction } : {}), option: opt, now: performance.now(), source });
   if (!t) return;
+  // W5-N3: one tap and BAYBAY carries you (the map, a row, 问 BAYBAY, goTo, a free lead); a tour leads as before
+  const was = autoEnd();
+  if (was && runtime.player.pathTarget === was) runtime.player.pathTarget = null;
+  if (AUTO_SOURCES.has(source)) { autoBegin(); autoTick(performance.now()); }
   const name = destName(t);
   if (source !== 'tour' && source !== 'free-lead') {
     const first = t.legs[0];
@@ -141,8 +152,18 @@ function onLegStart(t: TripState) {
     // off a cable car / the bus first; bikes and the car park when the move mode turns 'travel'
     if (game.get().move.mode === 'transit' || game.get().riding) requestHopOff();
     closePanel();
-    if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z })) arrived();
+    if (!startTravel({ id: t.placeId, name: destName(t), x: leg.to.x, z: leg.to.z, ...firstSight(t) })) arrived();
   }
+}
+
+/**
+ * W5-N5 · a flight to an attraction not found yet is its first sight: the landing faces the landmark (its anchor) and
+ * the descent frames it (game/fastTravel `look`). Discovered places land as before.
+ */
+export function firstSight(t: Pick<TripState, 'placeId' | 'attraction'>, discovered: (id: string) => boolean = isDiscovered): { look?: Vec2 } {
+  const a = t.attraction ? ATTRACTION_INDEX.get(t.attraction) : undefined;
+  if (!a || discovered(t.placeId) || discovered(a.placeId ?? a.id)) return {};
+  return { look: { x: a.x, z: a.z } };
 }
 
 /** The current leg is done (the lead arrived, the ride ended at its stop, the drive or the flight got there). */
@@ -160,6 +181,8 @@ function arrived() {
 
 function onTripEnd(t: TripState) {
   endedAt = performance.now();
+  // (the last few steps to the exact point finish by themselves: the walk target stays)
+  autoEnd();
   if (t.source === 'free-lead') { freeLeadArrived(); return; }
   // an attraction's own arrival moment speaks for it (game/cityArrivals.ts); a plain place gets a short line
   if (t.source !== 'tour' && !t.attraction) bubble({ zh: `到啦！这里就是${destName(t).zh}`, en: `Here we are — ${destName(t).en}!` }, 3200, BAYBAY_ID, 'call');
@@ -196,6 +219,9 @@ function end() {
   const t = flow.get().trip;
   if (!t) return;
   if (driving) { cancelDrive(); driving = false; }
+  // 结束: stop the auto-walk this trip set (a walk the player set stays theirs)
+  const was = autoEnd();
+  if (was && runtime.player.pathTarget === was) { runtime.player.pathTarget = null; runtime.player.pendingInteract = null; }
   if (t.source === 'free-lead' && flow.get().freeLead) flow.set({ freeLead: null });
   dispatchTrip({ type: 'cancel' });
   resetLeg();
@@ -329,6 +355,93 @@ function tick(now: number) {
   }
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N3 · auto-travel (game/autoTravel.ts: the state and the reducer; here the live inputs and the effects)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** The trips that carry the player (the map's buttons and rows, cards / goTo, 问 BAYBAY, a panorama tag, a free lead). */
+export const AUTO_SOURCES: ReadonlySet<TripSource> = new Set<TripSource>(['map', 'card', 'call', 'panorama', 'free-lead', 'qa']);
+/** How close counts as "there" for an on-foot target (u); the controller walks to within 0.3 u of it. */
+export const AUTO_AT_R = 2.5;
+/** A start inside a blocker (a landmark footprint, a hedge) steps out to walkable ground within this first (u). */
+export const STEP_OUT_R = 12;
+
+/** The last frame a movement key / the stick was held (performance ms). */
+let manualAt = -Infinity;
+
+/**
+ * Where auto-travel walks for the current leg (null: nothing to walk — riding, driving, flying): a walk / run leg's end
+ * (through an elevated walkway's entry first: brain leadStep, the GGB deck), a line leg's boarding stop until the ride
+ * is seen, a bike / car leg's parked vehicle (used on arrival: the mount, then the autopilot drives). A player standing
+ * inside a blocker first steps out to the nearest walkable spot (plan W5-N3 "the footprint step-out").
+ */
+export function autoWant(leg: TripLeg, player: Vec2 & { y: number }, stand: (p: Vec2) => boolean = p => canStand(p.x, p.z), exit: (p: Vec2) => Vec2 | null = p => nearestWalkable(p, STEP_OUT_R)): AutoWant | null {
+  let want: AutoWant | null = null;
+  switch (leg.via) {
+    case 'walk': case 'run': { const s = leadStep(leg.to, player); want = { p: { x: s.x, z: s.z }, r: AUTO_AT_R }; break; }
+    case 'line': want = rideSeen || onLine(leg) ? null : { p: { x: leg.from.x, z: leg.from.z }, r: STOP_R }; break;
+    case 'bike': case 'car':
+      want = mounted(leg.via) || driving ? null : { p: { x: leg.from.x, z: leg.from.z }, r: AUTO_AT_R, ...(leg.vehicle && leg.vehicle !== 'ridden' ? { interact: leg.vehicle } : {}) };
+      break;
+    case 'fly': want = null;
+  }
+  if (want && !stand(player)) {
+    const out = exit(player);
+    if (out && Math.hypot(out.x - player.x, out.z - player.z) > 0.3) return { p: out, r: 0.8 };
+  }
+  return want;
+}
+
+/** 10 Hz (and at a trip's start): step auto-travel and apply its decision. */
+function autoTick(now: number) {
+  const st = autoState();
+  if (!st.on) return;
+  const t = flow.get().trip, leg = currentLeg(t);
+  if (!t || !leg) { autoEnd(); return; }
+  const s = game.get(), f = flow.get(), pl = runtime.player;
+  const blocked = s.phase !== 'playing' || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || travelActive() || s.riding !== null
+    || s.move.mode !== 'foot' || s.photoMode;
+  const { state, decision } = autoStep(st, {
+    now, manualAt, pathTarget: pl.pathTarget, player: { x: pl.x, z: pl.z }, want: autoWant(leg, pl), blocked, legKey: keyOf(t),
+  });
+  setAutoState(state);
+  if (decision.type === 'issue') {
+    // (our own object: the reducer tells ours from a tap by identity)
+    pl.pathTarget = decision.p;
+    pl.pendingInteract = decision.interact ?? null;
+  } else if (decision.type === 'giveup') {
+    bubble({ zh: '这段路有点难走，你来带路吧！', en: 'This bit is tricky — you steer for a moment!' }, 3000, BAYBAY_ID, 'call');
+  }
+}
+
+/** 自动跟上 (the chip, 问 BAYBAY): BAYBAY carries the player again for the running trip. */
+export function resumeAutoTravel(): boolean {
+  const t = flow.get().trip;
+  if (!t || isArrived(t) || autoOn()) return false;
+  autoBegin();
+  autoTick(performance.now());
+  return true;
+}
+
+/** The 问 BAYBAY item "带我去 · <destination>" (visible while a trip runs without auto-travel). */
+function askLabel(): Bilingual | null {
+  const t = flow.get().trip;
+  if (!t || isArrived(t) || t.source === 'tour' || autoOn()) return null;
+  const n = destName(t);
+  return { zh: `带我去 · ${n.zh}`, en: `Take me there · ${n.en}` };
+}
+let askText = '';
+let offAsk: (() => void) | null = null;
+/** (Re-)register the ask item when its words change (the slot registry: the same id replaces). */
+function syncAskItem() {
+  const label = askLabel();
+  const text = label ? label.zh + label.en : '';
+  if (text === askText) return;
+  askText = text;
+  offAsk?.();
+  offAsk = label ? registerAskItem({ id: 'n-take-me', order: 5, label, icon: Navigation, visible: () => askLabel() !== null, onSelect: () => { resumeAutoTravel(); } }) : null;
+}
+
 let booted = false;
 /** Once per page in city mode (game/cityContent.ts); returns the disposer. */
 export function initTripRun(): () => void {
@@ -338,9 +451,12 @@ export function initTripRun(): () => void {
   setTripRunner(runner);
   let acc = 0;
   const offFrame = registerFrameSystem('c-trips', (dt, now) => {
+    // every frame: a held movement key / stick is a takeover (a quick tap must not slip between the 10 Hz steps)
+    if (input.manualMove) manualAt = now;
     if ((acc += dt) < 0.1) return;
     acc = 0;
-    if (game.get().phase === 'playing') tick(now);
+    if (game.get().phase === 'playing') { tick(now); autoTick(now); }
+    syncAskItem();
   });
   // a fast-travel trip that the player did not start as a fly leg moves them away: the walk would lead back, so end it
   const offEvents = onEvent(e => {
@@ -348,5 +464,5 @@ export function initTripRun(): () => void {
     const t = flow.get().trip, leg = currentLeg(t);
     if (t && leg && leg.via !== 'fly') end();
   });
-  return () => { offFrame(); offEvents(); setTripRunner(null); resetLeg(); booted = false; };
+  return () => { offFrame(); offEvents(); offAsk?.(); offAsk = null; askText = ''; autoEnd(); setTripRunner(null); resetLeg(); booted = false; };
 }

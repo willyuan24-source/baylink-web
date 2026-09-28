@@ -25,7 +25,9 @@ import type { Box } from './hudLayout';
 import { tickStreet } from './streets';
 import { registerSceneSystem } from './systemsRegistry';
 import { timeLabel } from './tripText';
-import { TRIP_SPEED, tripRemainingSeconds, STREET_FACTOR } from './tripPlan';
+import { ALIGHT_S, TRIP_SPEED, autoTravelSeconds, tripRemainingSeconds, STREET_FACTOR } from './tripPlan';
+import { liveRideEta } from './tripProviders';
+import { autoOn } from './autoTravel';
 import type { TripLeg, TripState } from './tripTypes';
 import { CHEVRONS, WAYPOINT, chevronPoses, layoutWaypoint, occludedByTerrain, routeRemaining, waypointSafeArea } from './waypoint';
 // the waypoint's label / notch / arrow rules (data-label, --ob-label-dy …) come with the layout that writes them
@@ -135,41 +137,55 @@ const legSpeed = (leg: TripLeg): number => (leg.via === 'run' ? TRIP_SPEED.run :
  * a flight its own time. Never more than the leg's planned seconds by more than the way back onto the route.
  * `waitLeft` (not aboard yet): the vehicle's live ETA while the rider waits at the stop, in place of the planned wait.
  */
-export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false, waitLeft?: number): number {
+export function legSecondsLeft(leg: TripLeg, pos: Vec2, riding = false, waitLeft?: number, pace: LegPace = {}): number {
   if (leg.via === 'fly') return leg.seconds;
   if (leg.via === 'line') {
     const ride = Math.max(0, leg.seconds - leg.wait);
     if (!riding) return waitLeft === undefined ? leg.seconds : ride + Math.max(0, waitLeft);
+    // W5-N2: lane T's ETA from the vehicle's real progress, when it gives one (+ stepping off)
+    if (pace.rideEta !== undefined) return Math.max(0, pace.rideEta) + ALIGHT_S;
     const all = Math.hypot(leg.to.x - leg.from.x, leg.to.z - leg.from.z);
     const left = Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z);
     const k = all > 1 ? Math.min(1, left / all) : 0;
     return ride * k;
   }
-  const v = legSpeed(leg);
-  if (leg.path && leg.path.length >= 4) {
-    const r = routeRemaining(leg.path, pos);
-    return (r.length + r.off) / v;
-  }
-  return (Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z) * STREET_FACTOR) / v;
+  const length = leg.path && leg.path.length >= 4
+    ? (() => { const r = routeRemaining(leg.path, pos); return r.length + r.off; })()
+    : Math.hypot(leg.to.x - pos.x, leg.to.z - pos.z) * STREET_FACTOR;
+  // W5-N3: BAYBAY carries the player (auto-travel): the auto-walk's pace, the same the planner quoted
+  if (pace.auto && leg.via === 'walk') return autoTravelSeconds(length);
+  return length / legSpeed(leg);
 }
+
+/**
+ * How the current leg is travelled (W5-N2 / N3): `auto` = BAYBAY's auto-travel carries the player (on-foot legs at
+ * autoTravelSeconds); `rideEta` = lane T's live seconds to the alighting stop while aboard.
+ */
+export interface LegPace { auto?: boolean; rideEta?: number }
 
 /**
  * (integration review) The rider now: aboard a vehicle under way, or waiting at its stop with its live ETA. A ride in
  * its waiting stage is not "aboard": counting it as aboard dropped the whole wait from the pill the moment the rider
  * started waiting (a ferry 80–140 s away) and froze the time until the boat came.
  */
-export interface RideNow { aboard: boolean; waitLeft?: number }
+export interface RideNow { aboard: boolean; waitLeft?: number; eta?: number }
 export function rideNow(): RideNow {
   const r = flow.get().ride;
   if (!r) return { aboard: false };
-  return r.stage === 'waiting' ? { aboard: false, waitLeft: r.eta } : { aboard: true };
+  if (r.stage === 'waiting') return { aboard: false, waitLeft: r.eta };
+  // W5-N2: lane T's live ETA to the alighting stop, when it gives one
+  const eta = liveRideEta();
+  return eta === undefined ? { aboard: true } : { aboard: true, eta };
 }
 
-/** The whole trip's seconds left from `pos` (the pill, the card). */
-export function tripSecondsLeft(trip: TripState, pos: Vec2, ride: boolean | RideNow = rideNow()): number {
+/**
+ * The whole trip's seconds left from `pos` (the pill, the card, the waypoint). `auto` (W5-N3): BAYBAY carries the
+ * player, so the on-foot part counts at the auto-walk's pace (the planner's number when the trip started).
+ */
+export function tripSecondsLeft(trip: TripState, pos: Vec2, ride: boolean | RideNow = rideNow(), auto: boolean = autoOn()): number {
   if (trip.leg >= trip.legs.length) return 0;
   const r = typeof ride === 'boolean' ? { aboard: ride } : ride;
-  return tripRemainingSeconds(trip, legSecondsLeft(trip.legs[trip.leg], pos, r.aboard, r.waitLeft));
+  return tripRemainingSeconds(trip, legSecondsLeft(trip.legs[trip.leg], pos, r.aboard, r.waitLeft, { auto, ...(r.eta !== undefined ? { rideEta: r.eta } : {}) }));
 }
 
 /** The pill's destination words for a trip: lane P's `tripDestination` name and, on foot, the attraction's short name. */
@@ -248,7 +264,7 @@ function tripTargetSeconds(target: Vec2, pos: Vec2): number | null {
   const leg = trip.legs[trip.leg];
   if (Math.hypot(leg.to.x - target.x, leg.to.z - target.z) > 3) return null;
   const r = rideNow();
-  return legSecondsLeft(leg, pos, r.aboard, r.waitLeft);
+  return legSecondsLeft(leg, pos, r.aboard, r.waitLeft, { auto: autoOn(), ...(r.eta !== undefined ? { rideEta: r.eta } : {}) });
 }
 
 /**

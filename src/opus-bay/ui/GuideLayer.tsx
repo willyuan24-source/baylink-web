@@ -19,6 +19,8 @@ import { ArrivalCard, ArrivalToast } from './ArrivalCard';
 import { PanoramaTags } from './PanoramaTags';
 import { placePanoramaTags } from './panoramaPlace';
 import { TripCard, TripPill } from './TripPill';
+import { GoChip } from './GoChip';
+import { autoOn, subscribeAuto } from '../game/autoTravel';
 import { tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
 
@@ -187,25 +189,34 @@ const markLeadCoachSeen = () => { try { localStorage.setItem(LEAD_COACH_KEY, '1'
  * trip, a free lead: whenever BAYBAY leads and you are not already auto-walking), so nobody has to hold the stick for a
  * long walk; the first time, a coach mark says so ("点箭头转向目标 · 点「自动跟上」就不用一直按"). Keyboard / pad: the
  * district's chip after 20 s standing still (unchanged).
+ * W5-N3: during a trip (not a tour stop) on every device: "BAYBAY 带路中 · 碰摇杆接管" while auto-travel carries the
+ * player, "自动跟上 BAYBAY" after a takeover (touch at once; keyboard / pad once they stop steering).
  */
 export function GuideLeadChip() {
   const { t } = useT();
   const device = useDevice();
   const dialogue = useGame(s => !!s.dialogue.nodeId);
   const panel = useGame(s => !!s.panel.kind);
+  const onFoot = useGame(s => s.move.mode === 'foot');
   const idleChip = useFlow(s => s.leadChip && (s.tourPhase === 'leading' || s.weekStage === 'walking'));
+  // W5-N3: a trip (not a tour stop) carries the player; its chip (ui/GoChip) takes the lead chip's place
+  const tripLive = useFlow(s => !!s.trip && s.trip.leg < s.trip.legs.length && s.trip.source !== 'tour' && s.trip.legs[s.trip.leg].via !== 'fly');
+  const auto = useSyncExternalStore(subscribeAuto, autoOn, autoOn);
   const [leading, setLeading] = useState(false);
+  const [handIdle, setHandIdle] = useState(false);
   const [coach, setCoach] = useState(false);
   const touch = device === 'touch';
   useEffect(() => {
-    if (!touch) { setLeading(false); return; }
     const id = window.setInterval(() => {
       const g = runtime.guide.state, p = runtime.player, s = game.get();
-      setLeading((g === 'lead' || g === 'wait') && !p.pathTarget && s.move.mode === 'foot' && s.phase === 'playing');
+      setLeading(touch && (g === 'lead' || g === 'wait') && !p.pathTarget && s.move.mode === 'foot' && s.phase === 'playing');
+      // keyboard / pad players who took over are offered 自动跟上 once they stop steering
+      setHandIdle(!p.moving);
     }, 250);
     return () => window.clearInterval(id);
   }, [touch]);
-  const touchOn = touch && leading && !dialogue && !panel;
+  const tripChip = tripLive && onFoot && !dialogue && !panel;
+  const touchOn = touch && leading && !dialogue && !panel && !tripChip;
   useEffect(() => {
     if (!touchOn || leadCoachSeen()) return;
     markLeadCoachSeen();
@@ -213,7 +224,12 @@ export function GuideLeadChip() {
     const id = window.setTimeout(() => setCoach(false), 6000);
     return () => { window.clearTimeout(id); setCoach(false); };
   }, [touchOn]);
-  if ((!touchOn && !idleChip) || dialogue || panel) return null;
+  if (tripChip) {
+    if (auto) return <GoChip auto device={device} />;
+    if (touch || handIdle) return <GoChip auto={false} device={device} onResume={() => { void import('../game/tripRun').then(m => m.resumeAutoTravel()); }} />;
+    return null;
+  }
+  if (tripLive || (!touchOn && !idleChip) || dialogue || panel) return null;
   const go = () => {
     const target = runtime.guide.target ?? objectiveTarget();
     if (target) walkTo(target);

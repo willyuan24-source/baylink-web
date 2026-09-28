@@ -161,3 +161,19 @@
 /* ---------- W4-G5 · the lead coach mark (touch, once): above the lead chip, never on it ---------- */
 .ob-coach.is-touch.ob-lead-coach { bottom: calc(max(6px, var(--ob-sb)) + 212px); }
 @media (max-width: 600px) { .ob-coach.is-touch.ob-lead-coach { bottom: calc(max(6px, var(--ob-sb)) + 202px); } }
+
+/* ---------- W5-N3 · the auto-travel chip (ui/GoChip.tsx), in the lead chip's place: a quiet status, taps go through ---------- */
+.ob-go-chip {
+  position: absolute; left: 50%; bottom: calc(150px + var(--ob-sb)); transform: translateX(-50%); z-index: 12;
+  display: inline-flex; align-items: center; gap: 7px; max-width: calc(100% - 24px); min-height: 36px; padding: 0 14px 0 12px;
+  border-radius: 999px; background: rgba(255, 250, 241, .94); color: var(--ob-teal-d); border: 1.5px solid rgba(47, 143, 136, .35);
+  box-shadow: 0 10px 22px -12px rgba(31, 111, 105, .55); font-size: 13.5px; font-weight: 800; white-space: nowrap;
+  pointer-events: none; animation: ob-pop .35s var(--ob-spring);
+}
+.ob-go-chip svg { flex: none; color: var(--ob-teal); }
+.ob-go-chip-main { flex: none; }
+.ob-go-chip-how { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: var(--ob-ink-2); }
+.ob-go-chip-how::before { content: '·'; margin: 0 6px 0 1px; color: var(--ob-ink-3); }
+@media (max-width: 600px) { .ob-go-chip { bottom: calc(max(6px, var(--ob-sb)) + 140px); font-size: 13px; min-height: 34px; } }
+@media (prefers-reduced-motion: reduce) { .ob-go-chip { animation: none; } }
+.ob-overlay.is-modal .ob-go-chip { display: none; }

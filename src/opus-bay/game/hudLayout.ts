@@ -27,6 +27,8 @@ export const HUD_BOX_SELECTOR = [
   // (part b, verify-district F2) BAYBAY's "问我 / Ask me" badge hangs above her round button, outside its box: the
   // waypoint label sat under it at 1440 × 900 ("…IER 39 stop")
   '.ob-ask-me',
+  // W5-N3: the auto-travel chip (BAYBAY 带路中) in the lead chip's place
+  '.ob-go-chip',
 ].join(', ');
 
 /**

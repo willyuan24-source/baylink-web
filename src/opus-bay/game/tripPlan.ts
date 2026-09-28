@@ -23,11 +23,15 @@ import {
  *   line   offered when both ends are within 150 u of walking (straight × 1.25) of stops on one line: walk + wait (the system's ETA; the
  *          dispatch caps it near 15 s) + ride (the system's estimate, else arc / speed + dwells + accel / brake, the
  *          tunnel spans at the subway overlay's 25 u/s) + 2 s to step off + walk
- *   fly    discovered places only: 0.8 + 1.0 + clamp(d / 400, 0.6, 3.5) + ≈ 2 + 1.2 s (game/fastTravel phases; the
- *          hold is the typical streaming wait), note "不算登顶和坐车目标" (FLY_NOTE)
+ *   fly    discovered places (every place once the pelican is unlocked: W5-N2): 0.8 + 1.0 + clamp(d / 400, 0.6, 3.5)
+ *          + ≈ 2 + 1.2 s (game/fastTravel phases; the hold is the typical streaming wait), note "不算登顶和坐车目标"
+ *          (FLY_NOTE)
+ *   auto   (W5-N3, `autoPace`: trips carry the player) on-foot legs at the auto-walk's pace (autoTravelSeconds: it runs
+ *          while more than 30 u are left), no separate run row
  *
  * 推荐 = the fastest non-fly option, or the fastest option that completes an open goal (the goal rules the caller
- * passes: "顺便完成叮当车目标") when it costs at most GOAL_SLACK more. Ties keep the TRIP_MODES order.
+ * passes: "顺便完成叮当车目标") when it costs at most GOAL_SLACK more. Ties keep the TRIP_MODES order. W5-N2: with
+ * the pelican unlocked (`flyUnlocked`), 推荐 = 飞过去 whenever the fastest other way takes over FLY_REC_AFTER_S (60 s).
  *
  * Routes are asynchronous in the game (actors/nav routeTo, actors/vehicles/driveRoute): `TripRouteCache` below wraps
  * them into the synchronous lookups the planner wants (undefined = still computing → the estimate) and tells its
@@ -68,6 +72,32 @@ export const MAX_OPTIONS = 4;
 export const FLY_TIMING = { pickup: 0.8, rise: 1.0, panSpeed: 400, panMin: 0.6, panMax: 3.5, hold: 2, descent: 1.2 } as const;
 /** A goal option is recommended over the fastest one when it takes at most fastest × k + s seconds. */
 export const GOAL_SLACK = { k: 1.5, s: 60 } as const;
+/**
+ * W5-N2 (plan MF4 "Best mode"): once the pelican is unlocked, 推荐 = 飞过去 whenever the fastest other way takes longer
+ * than this (s), to any place, discovered or not (the landing is the discovery).
+ */
+export const FLY_REC_AFTER_S = 60;
+/**
+ * W5-N3 auto-travel pace (actors/controller A11, the same numbers as game/travel.ts autoWalkSeconds): the auto-walk
+ * runs while more than AUTO_RUN_LEFT u are left, easing into the run over AUTO_RUN_EASE_S, and walks the rest.
+ */
+export const AUTO_RUN_LEFT = 30;
+export const AUTO_RUN_EASE_S = 0.8;
+
+/**
+ * Seconds BAYBAY's auto-travel takes over `length` u on foot (the one ETA of a carried walk: the map label, the card,
+ * the rows and the pill all use it). Equal to game/travel.ts autoWalkSeconds (pinned by the tests).
+ */
+export function autoTravelSeconds(length: number): number {
+  if (!(length > 0)) return 0;
+  const W = TRIP_SPEED.walk, R = TRIP_SPEED.run;
+  if (length <= AUTO_RUN_LEFT) return length / W;
+  const run = length - AUTO_RUN_LEFT;
+  // the ease-in covers 0.8 s × the mean of walk + (run − walk)·k² (k² averages 1/3)
+  const easeD = AUTO_RUN_EASE_S * (W + (R - W) / 3);
+  const runS = run <= easeD ? (run / easeD) * AUTO_RUN_EASE_S : AUTO_RUN_EASE_S + (run - easeD) / R;
+  return runS + AUTO_RUN_LEFT / W;
+}
 
 /** Line kinds the planner knows (world/sf/format.ts TRANSIT_LINE_KINDS). */
 export type TripLineKind = 'bus' | 'light-rail' | 'cable-car' | 'streetcar';
@@ -174,8 +204,19 @@ export interface TripProviders {
   lineWait?: (line: string, stop: string, dir: 1 | -1) => number | null | undefined;
   /** the system's ride estimate board → alight (s, dwells included); undefined = the kind's model */
   lineRide?: (line: string, board: string, alight: string, dir: 1 | -1) => number | null | undefined;
-  /** fast travel is offered only to discovered places */
+  /** fast travel is offered only to discovered places (until the pelican is unlocked: `flyUnlocked`) */
   discovered?: (placeId: string) => boolean;
+  /**
+   * W5-N2: the pelican is unlocked (actors/moveApi glideUnlocked): 飞过去 is offered to every place, discovered or not,
+   * and is the 推荐 whenever the fastest other way takes over FLY_REC_AFTER_S
+   */
+  flyUnlocked?: () => boolean;
+  /**
+   * W5-N3: trips carry the player (auto-travel is the rule): on-foot legs are timed at the auto-walk's pace
+   * (autoTravelSeconds) and there is no separate 跑过去 row (the auto-walk already runs). Off: walking pace (4.2 u/s)
+   * and the run row after 90 s, as in wave 4.
+   */
+  autoPace?: boolean;
   /** open goals the options may complete */
   goals?: readonly TripGoalRule[];
 }
@@ -214,8 +255,11 @@ function measure(lookup: RouteLookup | undefined, a: Vec2, b: Vec2, request: boo
   return { length: straight * STREET_FACTOR, estimate: true };
 }
 
-function walkLeg(via: 'walk' | 'run', from: TripPoint, to: TripPoint, m: { length: number; path?: number[]; estimate: boolean }): TripWalkLeg {
-  const leg: TripWalkLeg = { via, from, to, seconds: m.length / TRIP_SPEED[via], length: m.length };
+/** Seconds on foot over `length` u: the auto-travel pace, else walking (4.2) or running (7.5). */
+const footSeconds = (length: number, via: 'walk' | 'run', auto?: boolean) => (auto && via === 'walk' ? autoTravelSeconds(length) : length / TRIP_SPEED[via]);
+
+function walkLeg(via: 'walk' | 'run', from: TripPoint, to: TripPoint, m: { length: number; path?: number[]; estimate: boolean }, auto?: boolean): TripWalkLeg {
+  const leg: TripWalkLeg = { via, from, to, seconds: footSeconds(m.length, via, auto), length: m.length };
   if (m.path) leg.path = m.path;
   if (m.estimate) leg.estimate = true;
   const name = to.name;
@@ -362,9 +406,10 @@ export function tripRemainingSeconds(trip: Pick<TripState, 'legs' | 'leg'>, curr
 function onFoot(from: TripPoint, dest: TripDestination, to: TripPoint, p: TripProviders): TripOption[] {
   const m = measure(p.walk, from, dest, true);
   if (!m) return [];
-  const walk = walkLeg('walk', from, to, m);
+  const walk = walkLeg('walk', from, to, m, p.autoPace);
   const out: TripOption[] = [{ mode: 'walk', legs: [walk], seconds: walk.seconds }];
-  if (walk.seconds > RUN_AFTER_S) {
+  // (auto-travel runs by itself: no separate run row then)
+  if (!p.autoPace && walk.seconds > RUN_AFTER_S) {
     const run = walkLeg('run', from, to, m);
     out.push({ mode: 'run', legs: [run], seconds: run.seconds });
   }
@@ -386,7 +431,7 @@ function driving(kind: 'bike' | 'car', from: TripPoint, dest: TripDestination, t
     if (dist(from, near) >= LEG_MIN) {
       const m = measure(p.walk, from, near, true);
       if (!m) return null;
-      legs.push(walkLeg('walk', from, start, m));
+      legs.push(walkLeg('walk', from, start, m, p.autoPace));
     }
     mount = MOUNT_S;
   }
@@ -406,7 +451,7 @@ function driving(kind: 'bike' | 'car', from: TripPoint, dest: TripDestination, t
   legs.push(leg);
   if (tail) {
     const m = measure(p.walk, end, dest, true);
-    legs.push(walkLeg('walk', point(end), to, m ?? { length: dist(end, dest) * STREET_FACTOR, estimate: true }));
+    legs.push(walkLeg('walk', point(end), to, m ?? { length: dist(end, dest) * STREET_FACTOR, estimate: true }, p.autoPace));
   }
   return { mode: kind, legs, seconds: legs.reduce((s, l) => s + l.seconds, 0) };
 }
@@ -420,7 +465,8 @@ function lineOptions(from: TripPoint, dest: TripDestination, to: TripPoint, p: T
   const peek = (a: Vec2, b: Vec2) => measure(p.walk, a, b, false);
   // walking the whole way (known route or estimate; unreachable on foot = any ride is worth it)
   const direct = peek(from, dest);
-  const walkAll = direct ? direct.length / TRIP_SPEED.walk : Infinity;
+  const foot = (length: number) => footSeconds(length, 'walk', p.autoPace);
+  const walkAll = direct ? foot(direct.length) : Infinity;
   for (const line of lines) {
     if (line.stops.length < 2) continue;
     const near = (q: Vec2) => line.stops
@@ -437,7 +483,7 @@ function lineOptions(from: TripPoint, dest: TripDestination, to: TripPoint, p: T
           if (!line.loop && (dir > 0 ? a.s.at <= b.s.at : a.s.at >= b.s.at)) continue;
           const ride = rideSeconds(line, b.s, a.s, dir, p);
           const wait = waitSeconds(line, b.s, dir, p);
-          const seconds = b.m.length / TRIP_SPEED.walk + wait + ride + ALIGHT_S + a.m.length / TRIP_SPEED.walk;
+          const seconds = foot(b.m.length) + wait + ride + ALIGHT_S + foot(a.m.length);
           if (!top || seconds < top.seconds) top = { line, board: b.s, alight: a.s, dir, seconds };
         }
       }
@@ -469,7 +515,7 @@ function lineOption(c: LineCandidate, from: TripPoint, dest: TripDestination, to
   if (dist(from, board) >= LEG_MIN) {
     const m = measure(p.walk, from, board, true);
     if (!m) return null;
-    legs.push(walkLeg('walk', from, boardPt, m));
+    legs.push(walkLeg('walk', from, boardPt, m, p.autoPace));
   }
   const wait = waitSeconds(line, board, dir, p);
   const ride = rideSeconds(line, board, alight, dir, p);
@@ -492,13 +538,14 @@ function lineOption(c: LineCandidate, from: TripPoint, dest: TripDestination, to
   if (dist(alight, dest) >= LEG_MIN) {
     const m = measure(p.walk, alight, dest, true);
     if (!m) return null;
-    legs.push(walkLeg('walk', alightPt, to, m));
+    legs.push(walkLeg('walk', alightPt, to, m, p.autoPace));
   }
   return { mode: 'line', legs, seconds: legs.reduce((s, l) => s + l.seconds, 0) };
 }
 
 function flying(from: TripPoint, dest: TripDestination, to: TripPoint, p: TripProviders): TripOption | null {
-  if (!p.discovered?.(dest.placeId)) return null;
+  // discovered places always; with the pelican unlocked every place (W5-N2: the landing is the discovery)
+  if (!p.discovered?.(dest.placeId) && !p.flyUnlocked?.()) return null;
   const d = dist(from, dest);
   const leg: TripFlyLeg = { via: 'fly', place: dest.placeId, from, to, seconds: flySeconds(d), length: d };
   if (dest.name) leg.label = { zh: `飞到${dest.name.zh}`, en: `Fly to ${dest.name.en}` };
@@ -541,6 +588,9 @@ export function planTrips(from: Vec2 | TripPoint, dest: TripDestination, provide
   let rec: TripOption | undefined = nonFly[0];
   const goalOpt = nonFly.find(o => o.goal);
   if (rec && goalOpt && goalOpt !== rec && goalOpt.seconds <= rec.seconds * GOAL_SLACK.k + GOAL_SLACK.s) rec = goalOpt;
+  // W5-N2: with the pelican, a trip whose fastest other way takes over a minute flies (the goal ways stay in the list
+  // with their note: flying never completes them, FLY_NOTE)
+  if (fly && providers.flyUnlocked?.() && (!nonFly.length || nonFly[0].seconds > FLY_REC_AFTER_S)) rec = fly;
   if (!rec) rec = all[0];
   rec.recommended = true;
   // at most MAX_OPTIONS rows, never without the recommended one

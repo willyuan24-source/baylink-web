@@ -156,9 +156,16 @@
 /* opus-bay.css gives every span in a list button flex: 1: the discs and numbers keep their own size */
 .ob-place-list .mw-row > .mw-row-disc, .ob-place-list .mw-row > .mw-row-num { flex: none; }
 .ob-place-list .mw-row > .ob-place-text { flex: 1 1 auto; }
-/* 375 px phones: 跟 BAYBAY 去 keeps its whole name (the chevron of 其他方式 goes; the row still reads as a toggle) */
+/* 375 px phones: the go button keeps its whole label (the chevron of 其他方式 goes; the row still reads as a toggle) */
 @media (max-width: 380px) {
   .mw-place-actions { gap: 4px; }
   .mw-more svg { display: none; }
   .mw-more { padding: 0 10px; }
+}
+/* W5-N3 · phones: the go button ("飞过去 · 约 8 秒" / "BAYBAY 带路 · 约 3 分钟") is one big button on its own row, the
+   other ways and the two icon buttons under it (in one row its label was cut: "飞过去 · 约 7 …") */
+@media (max-width: 600px) {
+  .mw-place-actions { flex-wrap: wrap; row-gap: 6px; }
+  .mw-place-actions .mw-go { flex: 1 0 100%; min-height: 48px; font-size: 15px; }
+  .mw-place-actions .mw-more { flex: 1 1 auto; justify-content: center; }
 }

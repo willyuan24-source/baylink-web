@@ -36,7 +36,8 @@ import { MapLegend } from './MapLegend';
 import { type StationCtx, drawTransitLines, tripRouteStrokes } from './mapLines';
 import { MapPaperLayer } from './MapPaperLayer';
 import { mapOpenFallback, mapTargetOf, tripEta } from './mapTrips';
-import { PlaceActions, type WalkInfo } from './PlaceActions';
+import { PlaceActions, type WalkInfo, useTripOptions } from './PlaceActions';
+import { optionTitle, tripSecondsLabel } from './tripRows';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
 import './map-w4.css';
@@ -373,14 +374,20 @@ export function CityMapPanel() {
   const plan = useRoutePlan(tripHere ? null : dest, pos);
   const onTrip = tripHere || (!!dest?.placeId && dest.placeId === tripId);
   const left = useMemo(() => (plan?.route ? routeLeft(plan.route, pos) : null), [plan, pos]);
+  // W5-N2 · one ETA source: the planner's 推荐 (the card's go button). A walk keeps the route's own live time (the same
+  // auto-travel pace); another way (the pelican, a bike, a line) puts its words and time on the pin: "飞过去 约 7 秒"
+  const planDest = useMemo(() => (dest?.placeId && !tripHere ? { placeId: dest.placeId, x: dest.to.x, z: dest.to.z, name: dest.name, ...(selAttraction ? { attraction: selAttraction.id } : {}) } : null), [dest, tripHere, selAttraction]);
+  const { options: planned } = useTripOptions(planDest);
+  const recWay = planned.find(o => o.recommended) ?? null;
   const routeDraw = useMemo(() => {
     if (!view || !left || left.points.length < 2) return null;
     const pts = thinPx(left.points.map(p => toPx(view, p.x, p.z)));
     const end = pts[pts.length - 1];
-    const chip = t(left.time);
+    const other = recWay && recWay.mode !== 'walk' && recWay.mode !== 'run' ? recWay : null;
+    const chip = other ? `${t(optionTitle(other))} ${t(tripSecondsLabel(other.seconds))}` : t(left.time);
     const cw = labelWidth(chip, 11) + 16;
     return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw };
-  }, [view, left, t]);
+  }, [view, left, t, recWay]);
   // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines; a stop
   // an attraction badge stands for wears its number on the badge (gold, at 10 o'clock), the others get a disc on the walk
   const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;

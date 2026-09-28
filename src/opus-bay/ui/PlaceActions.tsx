@@ -20,8 +20,16 @@ import type { TripOption } from '../game/tripTypes';
 import { cityTravelLabel } from '../game/travel';
 import { useT } from '../i18n';
 import { TripOptions } from './TripOptions';
+import { LINE_ICONS, MODE_ICONS } from './mapIcons';
 import { placeTripDest } from './mapTrips';
-import { tripSecondsLabel } from './tripRows';
+import { goButtonLabel, optionAria, optionLineGlyph, tripSecondsLabel } from './tripRows';
+
+/** W5-N3 · the go button's glyph: the way it takes (the pelican, BAYBAY's arrow on foot, a bike, the line's vehicle). */
+function GoIcon({ o }: { o: TripOption }) {
+  const glyph = optionLineGlyph(o);
+  const Icon = glyph ? LINE_ICONS[glyph] : o.mode === 'walk' || o.mode === 'run' ? Navigation : MODE_ICONS[o.mode];
+  return <Icon size={16} aria-hidden />;
+}
 
 /** The walking route to the place as the map knows it (G1-8): being found, found (its honest label), or none. */
 export type WalkInfo = { state: 'pending' } | { state: 'ok'; label: Bilingual } | { state: 'none' };
@@ -29,9 +37,11 @@ export type WalkInfo = { state: 'pending' } | { state: 'ok'; label: Bilingual } 
 /**
  * Every honest way to the destination (lane G's planTrips with the live providers), planned from where the player
  * stood when the card opened (lane G's review O5: re-reading the position on every landing would start new searches
- * while a ride moves you), again each time a route search lands (计算中… until then).
+ * while a ride moves you), again each time a route search lands (计算中… until then). W5-N2: the map (ui/CityMap) uses it
+ * too, so its pin chip says what the card's go button says (one ETA source).
  */
-function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; busy: boolean } {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; busy: boolean } {
   const from = useMemo(() => ({ x: runtime.player.x, z: runtime.player.z }), [dest?.placeId, dest?.x, dest?.z]); // eslint-disable-line react-hooks/exhaustive-deps
   const [rev, setRev] = useState(0);
   useEffect(() => tripRouteCache().subscribe(() => setRev(r => r + 1)), []);
@@ -110,8 +120,9 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
       </div>
       <div className="ob-place-actions mw-place-actions">
         {!onTrip && rec && (
-          <button type="button" className="ob-btn ob-btn-primary mw-go" onClick={() => go(rec)}>
-            <Navigation size={16} aria-hidden /><span>{t('跟 BAYBAY 去', 'Go with BAYBAY')}</span>
+          // W5-N3: the way and its time on the button; one tap closes the map and BAYBAY carries you
+          <button type="button" className="ob-btn ob-btn-primary mw-go" onClick={() => go(rec)} aria-label={t(optionAria(rec))}>
+            <GoIcon o={rec} /><span>{t(goButtonLabel(rec))}</span>
           </button>
         )}
         {(changing ? options.length > 0 : !onTrip && options.length > 1) && (

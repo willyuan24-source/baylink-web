@@ -1,14 +1,24 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import test from 'node:test';
+import { registerHooks } from 'node:module';
+import test, { mock } from 'node:test';
 
 /**
  * Wave 5 · lane N (plan sf-w5-plan.md §4.5): the navigation hooks and one-tap travel.
  *   W5-N1  goTo() resolution and choice, the tiny hook module, registerFlagSource + pickFlags extras, FootprintsTab
+ *   W5-N2  the planner after the pelican unlock (fly 推荐 over 60 s, undiscovered fly, never before), fly never completes
+ *          a goal, the auto-travel pace, the four ETA displays agree, T's live ride ETA
+ *   W5-N3  the persistent-follow reducer, auto-travel in the trip runner (start, takeover, resume, legs, end), the go
+ *          button's words, the 问 BAYBAY 带我去 item
  */
 
 const g = globalThis as unknown as Record<string, unknown>;
 g.window ??= globalThis;
+// the UI modules import their CSS: an empty module in node (as tests/opus-bay-sf-guide-city.test.ts)
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+let clock = 300_000;
+mock.method(performance, 'now', () => clock);
+const tick = (ms: number) => { clock += ms; };
 
 const { resolveGoToTarget, chooseGoToOption, goToSource, pointPlaceId, POINT_NAME } = await import('../src/opus-bay/game/goToRun');
 const { ATTRACTION_INDEX, tripDestination } = await import('../src/opus-bay/data/sf/attractions');
@@ -175,4 +185,408 @@ test('W5-N1 FootprintsTab is exported for embedding (E\'s notebook) next to the 
   assert.match(src, /ob-footprints is-embedded/);
   // (the module imports its CSS, which node cannot load: the exports are checked in the source)
   assert.match(src, /export function Footprints\(\)/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N2 · the planner after the pelican
+// ---------------------------------------------------------------------------------------------------------------
+
+const TP = await import('../src/opus-bay/game/tripPlan');
+const { autoWalkSeconds, routeAhead } = await import('../src/opus-bay/game/travel');
+const G = await import('../src/opus-bay/game/guideCity');
+const TPV = await import('../src/opus-bay/game/tripProviders');
+type Prov = import('../src/opus-bay/game/tripPlan').TripProviders;
+type Dest = import('../src/opus-bay/game/tripPlan').TripDestination;
+
+const destAt = (x: number, z: number, placeId = 'palace'): Dest => ({ placeId, x, z, name: bi('艺术宫', 'Palace') });
+const straightWalk: Prov['walk'] = (a, b) => ({ length: Math.hypot(b.x - a.x, b.z - a.z), path: [a.x, a.z, b.x, b.z] });
+const recOf = (list: Opt[]) => list.find(o => o.recommended);
+
+test('W5-N2 the auto-travel pace equals the controller\'s auto-walk (travel.autoWalkSeconds) at every length', () => {
+  for (const L of [0, 5, 29.9, 30, 30.5, 32, 40, 100, 777, 3000]) assert.ok(Math.abs(TP.autoTravelSeconds(L) - autoWalkSeconds(L)) < 1e-9, `L = ${L}`);
+  assert.equal(TP.autoTravelSeconds(-1), 0);
+  // running most of a long walk: 600 u ≈ 83 s (walking would be 143 s)
+  assert.ok(Math.abs(TP.autoTravelSeconds(600) - 83.4) < 0.5, String(TP.autoTravelSeconds(600)));
+});
+
+test('W5-N2 fly: undiscovered places only once the pelican is unlocked; 推荐 = fly when the fastest other way is over 60 s', () => {
+  const far = destAt(900, 0);
+  // before the unlock: discovered places only, and never 推荐 while a ground way exists
+  assert.equal(TP.planTrips({ x: 0, z: 0 }, far, { walk: straightWalk, discovered: () => false }).some(o => o.mode === 'fly'), false);
+  const before = TP.planTrips({ x: 0, z: 0 }, far, { walk: straightWalk, discovered: () => true, flyUnlocked: () => false });
+  assert.notEqual(recOf(before)?.mode, 'fly', 'never 推荐 before the unlock');
+  // after: offered for an undiscovered place, and 推荐 (900 u on foot is well over 60 s)
+  const after = TP.planTrips({ x: 0, z: 0 }, far, { walk: straightWalk, discovered: () => false, flyUnlocked: () => true, autoPace: true });
+  const fly = after.find(o => o.mode === 'fly')!;
+  assert.ok(fly, 'fly offered for an undiscovered place');
+  assert.equal(fly.recommended, true);
+  assert.deepEqual(fly.note, TP.FLY_NOTE);
+  assert.equal(fly.legs[0].via === 'fly' && fly.legs[0].place, 'palace');
+  // a short trip (the fastest ground way within 60 s) keeps walking as the 推荐; fly stays in the list
+  const shortTrip = TP.planTrips({ x: 0, z: 0 }, destAt(300, 0), { walk: straightWalk, discovered: () => false, flyUnlocked: () => true, autoPace: true });
+  assert.ok(TP.autoTravelSeconds(300) <= TP.FLY_REC_AFTER_S);
+  assert.equal(recOf(shortTrip)?.mode, 'walk');
+  assert.ok(shortTrip.some(o => o.mode === 'fly'));
+  // just over the minute: fly
+  const L = 470;
+  assert.ok(TP.autoTravelSeconds(L) > TP.FLY_REC_AFTER_S);
+  assert.equal(recOf(TP.planTrips({ x: 0, z: 0 }, destAt(L, 0), { walk: straightWalk, flyUnlocked: () => true, autoPace: true }))?.mode, 'fly');
+  // nothing reaches it on the ground: fly is the one way (a discovered place, before the pelican too)
+  assert.deepEqual(TP.planTrips({ x: 0, z: 0 }, far, { walk: () => null, discovered: () => true }).map(o => [o.mode, o.recommended]), [['fly', true]]);
+});
+
+test('W5-N2 fly never completes a goal: the goal way stays in the list with its note, the fly row carries FLY_NOTE', () => {
+  const everything: import('../src/opus-bay/game/tripPlan').TripGoalRule = { goal: 'twin-peaks', note: bi('顺便完成登顶目标'), test: () => true };
+  const list = TP.planTrips({ x: 0, z: 0 }, destAt(1200, 0, 'twin-peaks'), { walk: straightWalk, flyUnlocked: () => true, autoPace: true, goals: [everything] });
+  const fly = list.find(o => o.mode === 'fly')!;
+  assert.equal(fly.goal, undefined, 'flying never completes a goal');
+  assert.deepEqual(fly.note, TP.FLY_NOTE);
+  assert.equal(fly.recommended, true, 'the pelican is the 推荐 for a long trip');
+  const walk = list.find(o => o.mode === 'walk')!;
+  assert.equal(walk.goal, 'twin-peaks', 'the goal way is still offered, with its badge');
+  assert.equal(walk.note?.zh, '顺便完成登顶目标');
+});
+
+test('W5-N2 autoPace: on-foot legs at the auto-travel pace, no separate run row; off: the wave-4 walk / run rows', () => {
+  const d = destAt(0, 900);
+  const auto = TP.planTrips({ x: 0, z: 0 }, d, { walk: straightWalk, autoPace: true });
+  assert.deepEqual(auto.map(o => o.mode), ['walk']);
+  assert.ok(Math.abs(auto[0].seconds - TP.autoTravelSeconds(900)) < 1e-9);
+  const old = TP.planTrips({ x: 0, z: 0 }, d, { walk: straightWalk });
+  assert.deepEqual(old.map(o => o.mode).sort(), ['run', 'walk']);
+  assert.ok(Math.abs(old.find(o => o.mode === 'walk')!.seconds - 900 / TP.TRIP_SPEED.walk) < 1e-9);
+  // the live providers carry: auto pace and the pelican unlock
+  const live = TPV.tripProviders();
+  assert.equal(live.autoPace, true);
+  assert.equal(typeof live.flyUnlocked, 'function');
+});
+
+test('W5-N2 one ETA: the map label, the card, the option row and the pill agree (within 10 %) at the start of a carried walk', () => {
+  const from = { x: 0, z: 0 }, d = destAt(420, 260);
+  // a bent route (the A*'s): 3 segments
+  const path = [0, 0, 200, 0, 200, 260, 420, 260];
+  const walk: Prov['walk'] = () => ({ length: 200 + 260 + 220, path });
+  const options = TP.planTrips(from, d, { walk, autoPace: true });
+  const rec = recOf(options)!;
+  const row = options.find(o => o.mode === 'walk')!;
+  // the map's route label (ui/CityMap: autoWalkSeconds over the route ahead + the way onto it)
+  const ahead = routeAhead([{ x: 0, z: 0 }, { x: 200, z: 0 }, { x: 200, z: 260 }, { x: 420, z: 260 }], from);
+  const mapLabel = autoWalkSeconds(ahead.length + ahead.off);
+  // the pill at the start (auto-travel on)
+  const trip = { placeId: 'palace', option: rec, legs: rec.legs, leg: 0, startedAt: 0 };
+  const pill = G.tripSecondsLeft(trip, from, false, true);
+  const all = [mapLabel, rec.seconds, row.seconds, pill];
+  const lo = Math.min(...all), hi = Math.max(...all);
+  assert.ok(hi <= lo * 1.1, `the four agree: ${all.map(n => n.toFixed(1)).join(' / ')}`);
+  // walking by hand (the player took over), the pill says the walking time
+  assert.ok(Math.abs(G.tripSecondsLeft(trip, from, false, false) - 680 / 4.2) < 1e-6);
+});
+
+test('W5-N2 aboard, lane T\'s live ride ETA drives the pill (+ stepping off); without it the share of the ride left', () => {
+  const leg = { via: 'line' as const, line: 'sf-loop', board: 'a', alight: 'b', wait: 10, stops: 2, from: { x: 0, z: 0 }, to: { x: 400, z: 0 }, seconds: 70, length: 400 };
+  assert.equal(G.legSecondsLeft(leg, { x: 200, z: 0 }, true), 30, 'half way: half of the 60 s ride');
+  assert.equal(G.legSecondsLeft(leg, { x: 200, z: 0 }, true, undefined, { rideEta: 41 }), 41 + TP.ALIGHT_S);
+  const off = TPV.registerRideEta(() => 12.5);
+  assert.equal(TPV.liveRideEta(), 12.5);
+  off();
+  assert.equal(TPV.liveRideEta(), undefined);
+  const off2 = TPV.registerRideEta(() => NaN);
+  assert.equal(TPV.liveRideEta(), undefined, 'a bad answer is no answer');
+  off2();
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N3 · the persistent-follow reducer
+// ---------------------------------------------------------------------------------------------------------------
+
+const AT = await import('../src/opus-bay/game/autoTravel');
+type AIn = import('../src/opus-bay/game/autoTravel').AutoInput;
+
+const base = (over: Partial<AIn> = {}): AIn => ({ now: 1000, manualAt: -Infinity, pathTarget: null, player: { x: 0, z: 0 }, want: { p: { x: 100, z: 0 }, r: 2.5 }, blocked: false, legKey: 'L0', ...over });
+
+test('W5-N3 reducer: off does nothing; on issues the leg target once and then lets the walk run', () => {
+  assert.deepEqual(AT.autoStep(AT.AUTO_IDLE, base()).decision, { type: 'none' });
+  const s0 = { ...AT.AUTO_IDLE, on: true };
+  const a = AT.autoStep(s0, base());
+  assert.equal(a.decision.type, 'issue');
+  const issued = a.state.issued!;
+  assert.deepEqual(issued, { x: 100, z: 0 });
+  // walking there (the controller holds our target): nothing
+  const b = AT.autoStep(a.state, base({ now: 1100, pathTarget: issued, player: { x: 20, z: 0 } }));
+  assert.deepEqual(b.decision, { type: 'none' });
+  assert.equal(b.state.issued, issued);
+  // blocked (a dialogue, a panel, a ride): wait, never issue
+  assert.deepEqual(AT.autoStep(s0, base({ blocked: true })).decision, { type: 'none' });
+  // already there: nothing
+  assert.deepEqual(AT.autoStep(s0, base({ player: { x: 99, z: 0 } })).decision, { type: 'none' });
+});
+
+test('W5-N3 reducer: any stick / WASD or a tap elsewhere takes over (off); the trip goes on without it', () => {
+  const s = { ...AT.AUTO_IDLE, on: true };
+  const a = AT.autoStep(s, base());
+  const stick = AT.autoStep(a.state, base({ now: 1200, manualAt: 1150, pathTarget: null, player: { x: 10, z: 0 } }));
+  assert.deepEqual(stick.decision, { type: 'takeover' });
+  assert.equal(stick.state.on, false);
+  const tap = AT.autoStep(a.state, base({ now: 1200, pathTarget: { x: 100, z: 0 } }));
+  assert.deepEqual(tap.decision, { type: 'takeover' }, 'a tap on the same spot is a new target object: the player chose it');
+  // a key held before the issue is not a takeover
+  assert.equal(AT.autoStep(a.state, base({ now: 1200, manualAt: 900, pathTarget: a.state.issued })).decision.type, 'none');
+});
+
+test('W5-N3 reducer: persistent across legs; a stopped-short walk retries after 1.5 s, gives up after 3; a new target at once', () => {
+  const s = { ...AT.AUTO_IDLE, on: true };
+  let r = AT.autoStep(s, base());
+  // the leg changes (a ride began: no on-foot target) → issued dropped, still on
+  r = AT.autoStep(r.state, base({ now: 2000, legKey: 'L1', want: null, pathTarget: null }));
+  assert.equal(r.state.on, true); assert.equal(r.state.issued, null);
+  // the ride ended at the stop: the next walk leg is issued at once
+  r = AT.autoStep(r.state, base({ now: 3000, legKey: 'L2', want: { p: { x: 0, z: 300 }, r: 2.5 } }));
+  assert.equal(r.decision.type, 'issue');
+  // the auto-walk stopped short (pathTarget cleared far from the target): retry only after AUTO_RETRY_MS
+  const short = (now: number) => AT.autoStep(r.state, base({ now, legKey: 'L2', want: { p: { x: 0, z: 300 }, r: 2.5 }, pathTarget: null, player: { x: 0, z: 50 } }));
+  assert.equal(short(3000 + AT.AUTO_RETRY_MS - 1).decision.type, 'none');
+  for (let i = 1; i <= AT.AUTO_MAX_FAILS; i++) {
+    r = short(r.state.issuedAt + AT.AUTO_RETRY_MS);
+    assert.equal(r.decision.type, 'issue', `retry ${i}`);
+    assert.equal(r.state.fails, i);
+  }
+  r = short(r.state.issuedAt + AT.AUTO_RETRY_MS);
+  assert.deepEqual(r.decision, { type: 'giveup' });
+  assert.equal(r.state.on, false);
+  // a step-out done (the target moved on): issued again at once, no fail counted
+  const st = { ...AT.AUTO_IDLE, on: true, issued: { x: 3, z: 0 }, issuedAt: 5000, legKey: 'L3' };
+  const next = AT.autoStep(st, base({ now: 5100, legKey: 'L3', pathTarget: null, player: { x: 3, z: 0 }, want: { p: { x: 80, z: 0 }, r: 2.5 } }));
+  assert.equal(next.decision.type, 'issue'); assert.equal(next.state.fails, 0);
+  // a bike leg's parked vehicle is used on arrival (the interact id rides along)
+  const bike = AT.autoStep({ ...AT.AUTO_IDLE, on: true }, base({ want: { p: { x: 30, z: 0 }, r: 2.5, interact: 'ride:bike-1' } }));
+  assert.deepEqual(bike.decision, { type: 'issue', p: { x: 30, z: 0 }, interact: 'ride:bike-1' });
+});
+
+test('W5-N3 live state: autoBegin / autoEnd notify only when on changes; autoEnd hands back the issued target', () => {
+  let n = 0;
+  const off = AT.subscribeAuto(() => { n++; });
+  AT.autoBegin(); AT.autoBegin();
+  assert.equal(AT.autoOn(), true);
+  AT.setAutoState({ ...AT.autoState(), issued: { x: 1, z: 2 } });
+  assert.deepEqual(AT.autoEnd(), { x: 1, z: 2 });
+  assert.equal(AT.autoOn(), false);
+  assert.equal(n, 2);
+  off();
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N3 · auto-travel in the trip runner (the real flow, district terrain in node)
+// ---------------------------------------------------------------------------------------------------------------
+
+const { game, initialGameState } = await import('../src/opus-bay/core/store');
+const { runtime } = await import('../src/opus-bay/core/runtime');
+const { input } = await import('../src/opus-bay/core/input');
+const flowMod = await import('../src/opus-bay/game/flow');
+const { flow, initialFlowState } = await import('../src/opus-bay/game/flowStore');
+const { buildInteractables, setInteractables } = await import('../src/opus-bay/game/interactables');
+const { updateGuide, resetBrain } = await import('../src/opus-bay/game/brain');
+const { stepFrameSystems } = await import('../src/opus-bay/game/systemsRegistry');
+const tripRun = await import('../src/opus-bay/game/tripRun');
+const { walkLeg } = await import('../src/opus-bay/game/trips');
+const slots = await import('../src/opus-bay/ui/slots');
+const { DISTRICT } = await import('../src/opus-bay/data/district');
+tripRun.initTripRun();
+
+// standable in the node (district) terrain: the spawn and two spots near it
+const S = { x: DISTRICT.spawn.x, z: DISTRICT.spawn.z };
+const A = { x: S.x - 20, z: S.z };
+const B = { x: S.x, z: S.z + 20 };
+
+function resetWorld() {
+  if (flow.get().trip) flowMod.endTrip();
+  game.set({ ...initialGameState(), phase: 'playing', worldMode: 'city', mode: 'free' });
+  flow.set(initialFlowState());
+  Object.assign(runtime.player, { x: S.x, y: 0, z: S.z, heading: 0, moving: false, running: false, locked: false, pendingInteract: null, pathTarget: null });
+  Object.assign(runtime.guide, { x: S.x + 1, y: 0, z: S.z, state: 'follow', target: null, run: false, emote: 'none', arrived: false });
+  input.manualMove = false;
+  resetBrain();
+  setInteractables(buildInteractables());
+  tick(5000);
+}
+const frames = (n = 1, ms = 120) => { for (let i = 0; i < n; i++) { tick(ms); stepFrameSystems(ms / 1000, clock); } };
+const at = (p: { x: number; z: number }) => { runtime.player.x = p.x; runtime.player.z = p.z; runtime.guide.x = p.x + 1; runtime.guide.z = p.z; };
+const twoLegs = () => {
+  const l1 = walkLeg(S, { ...A, name: bi('甲') }), l2 = walkLeg(A, { ...B, name: bi('乙') });
+  return { mode: 'walk' as const, legs: [l1, l2], seconds: l1.seconds + l2.seconds };
+};
+
+test('W5-N3 trip runner: a map trip carries the player at once, leg after leg; a tour leg does not', () => {
+  resetWorld();
+  flowMod.startTrip(twoLegs(), { placeId: 'b-spot', name: bi('乙') }, 'map');
+  assert.equal(AT.autoOn(), true, 'one tap: carrying');
+  assert.ok(runtime.player.pathTarget, 'walking at once (no second tap)');
+  assert.deepEqual({ ...runtime.player.pathTarget }, { x: A.x, z: A.z });
+  assert.equal(AT.autoState().issued, runtime.player.pathTarget, 'our own target object');
+  // at A the first leg ends (BAYBAY there too), the second is walked by itself
+  at(A); runtime.player.pathTarget = null;
+  updateGuide(clock); tick(100); updateGuide(clock);
+  assert.equal(flow.get().trip?.leg, 1);
+  frames(2);
+  assert.deepEqual({ ...runtime.player.pathTarget! }, { x: B.x, z: B.z }, 'persistent across legs');
+  // a tour's leg leads as before (no auto)
+  resetWorld();
+  flowMod.startTrip(twoLegs(), { placeId: 'b-spot' }, 'tour');
+  assert.equal(AT.autoOn(), false);
+  assert.equal(runtime.player.pathTarget, null);
+  flowMod.endTrip();
+});
+
+test('W5-N3 trip runner: the stick takes over, the trip goes on; 自动跟上 resumes; 结束 stops our walk (not a walk the player set)', () => {
+  resetWorld();
+  flowMod.startTrip(twoLegs(), { placeId: 'b-spot' }, 'card');
+  assert.equal(AT.autoOn(), true);
+  // the player pushes the stick for one frame (the controller cancels the path)
+  input.manualMove = true; frames(1); input.manualMove = false; runtime.player.pathTarget = null;
+  frames(2);
+  assert.equal(AT.autoOn(), false, 'taken over');
+  assert.ok(flow.get().trip, 'the trip goes on');
+  assert.equal(runtime.player.pathTarget, null, 'no walk forced back on');
+  // 问 BAYBAY shows 带我去 · <destination> while not carried
+  frames(1);
+  const ask = slots.visibleAskItems().find(a => a.id === 'n-take-me');
+  assert.ok(ask, 'the ask item');
+  assert.match(ask!.label.zh, /^带我去 · /);
+  assert.equal(tripRun.resumeAutoTravel(), true);
+  assert.equal(AT.autoOn(), true);
+  assert.ok(runtime.player.pathTarget);
+  assert.equal(slots.visibleAskItems().some(a => a.id === 'n-take-me'), false, 'hidden while carried');
+  flowMod.endTrip();
+  assert.equal(AT.autoOn(), false);
+  assert.equal(runtime.player.pathTarget, null, '结束 stops the auto-walk');
+  // a walk target the player set survives 结束
+  resetWorld();
+  flowMod.startTrip(twoLegs(), { placeId: 'b-spot' }, 'map');
+  const mine = { x: S.x + 1, z: S.z - 1 };
+  runtime.player.pathTarget = mine;
+  frames(1);
+  assert.equal(AT.autoOn(), false, 'a tap elsewhere is a takeover');
+  flowMod.endTrip();
+  assert.equal(runtime.player.pathTarget, mine);
+  runtime.player.pathTarget = null;
+});
+
+test('W5-N3 trip runner: a panel pauses auto-travel; a start inside a blocker steps out first; the GGB deck through its entry', () => {
+  resetWorld();
+  flowMod.startTrip(twoLegs(), { placeId: 'b-spot' }, 'map');
+  runtime.player.pathTarget = null;
+  AT.setAutoState({ ...AT.autoState(), issued: null });
+  game.set(s => ({ panel: { ...s.panel, kind: 'journal' } }));
+  frames(2);
+  assert.equal(runtime.player.pathTarget, null, 'paused under a panel');
+  game.set(s => ({ panel: { ...s.panel, kind: null } }));
+  frames(1);
+  assert.ok(runtime.player.pathTarget, 'on again once it closes');
+  flowMod.endTrip();
+  // autoWant: inside a blocker → the nearest walkable spot first; else the leg's end (an elevated walkway's entry first)
+  const leg = walkLeg(S, { ...A, name: bi('甲') });
+  const pl = { x: 0, y: 0, z: 0 };
+  assert.deepEqual(tripRun.autoWant(leg, pl, () => false, () => ({ x: 4, z: 0 })), { p: { x: 4, z: 0 }, r: 0.8 });
+  assert.deepEqual(tripRun.autoWant(leg, pl, () => true), { p: { x: A.x, z: A.z }, r: tripRun.AUTO_AT_R });
+  const deck = { x: -865.8, z: 508.6 };
+  const onDeck = tripRun.autoWant(walkLeg(S, deck), { x: -600, y: 0, z: 700 }, () => true)!;
+  assert.ok(Math.hypot(onDeck.p.x - -689.35, onDeck.p.z - 649.76) < 1e-6, 'the GGB deck: its entry first (brain leadStep)');
+  assert.deepEqual([...tripRun.AUTO_SOURCES].sort(), ['call', 'card', 'free-lead', 'map', 'panorama', 'qa']);
+});
+
+test('W5-N3 the go button says the way and its time', async () => {
+  const { goButtonLabel } = await import('../src/opus-bay/ui/tripRows');
+  assert.deepEqual(goButtonLabel(opt('walk', 185)), { zh: 'BAYBAY 带路 · 约 3 分钟', en: 'BAYBAY leads · ~3 min' });
+  assert.deepEqual(goButtonLabel(opt('fly', 8)), { zh: '飞过去 · 约 8 秒', en: 'Fly · ~8s' });
+  assert.deepEqual(goButtonLabel(opt('bike', 120)), { zh: '骑车 · 约 2 分钟', en: 'Bike · ~2 min' });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N5 · the landing: open ground (F's facer), a first sight faces its landmark
+// ---------------------------------------------------------------------------------------------------------------
+
+const FT = await import('../src/opus-bay/game/fastTravel');
+
+test('W5-N5 landing heading: a first sight faces its landmark; else F\'s open-ground facer; else the place\'s heading; else the travel way', () => {
+  const spot = { x: 0, z: 0 };
+  assert.ok(Math.abs(FT.landingHeading(spot, { look: { x: 10, z: 0 } }, 1.2, () => 3) - Math.PI / 2) < 1e-9, 'faces the landmark (+x)');
+  assert.equal(FT.landingHeading(spot, { look: { x: 1, z: 0 } }, 1.2, () => 3), 3, 'a landmark right here: the facer');
+  assert.equal(FT.landingHeading(spot, { heading: 0.5 }, 1.2, () => 3), 3, 'the facer before the place heading');
+  assert.equal(FT.landingHeading(spot, { heading: 0.5 }, 1.2, () => null), 0.5);
+  assert.equal(FT.landingHeading(spot, {}, 1.2, null), 1.2);
+  // the registered facer (lane F's faceOpen) is the default
+  const off = FT.setLandingFacer(() => -2);
+  assert.equal(FT.landingHeading(spot, {}, 1.2), -2);
+  off();
+  assert.equal(FT.landingHeading(spot, {}, 1.2), 1.2);
+});
+
+test('W5-N5 the descent camera: behind the player; a first sight pulls back and looks past them toward the landmark', () => {
+  const plain = FT.descentShot({ x: 0, z: 0 }, 5, 0);
+  assert.deepEqual(plain, { position: [0, 10, -10], target: [0, 6.6, 0] });
+  const first = FT.descentShot({ x: 0, z: 0 }, 5, 0, { x: 0, z: 200 });
+  assert.deepEqual(first.position, [0, 11.5, -12]);
+  assert.deepEqual(first.target, [0, 9, 30], 'at most 30 u ahead, toward the landmark');
+  assert.deepEqual(FT.descentShot({ x: 0, z: 0 }, 5, 0, { x: 0, z: 40 }).target, [0, 9, 16], '0.4 of a near landmark');
+});
+
+test('W5-N5 a flight to an attraction not found yet is its first sight; found places and plain places land as before', () => {
+  const coit = ATTRACTION_INDEX.get('coit-tower')!;
+  const t = { placeId: coit.placeId ?? coit.id, attraction: coit.id };
+  assert.deepEqual(tripRun.firstSight(t, () => false), { look: { x: coit.x, z: coit.z } });
+  assert.deepEqual(tripRun.firstSight(t, () => true), {});
+  assert.deepEqual(tripRun.firstSight({ placeId: 'osm-cafe' }, () => false), {});
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N6 · title resume
+// ---------------------------------------------------------------------------------------------------------------
+
+const RS = await import('../src/opus-bay/game/resume');
+const save = await import('../src/opus-bay/data/save');
+
+test('W5-N6 resume lands on the saved spot itself when it is standable, else by the arrival rule', () => {
+  const spot = { x: 12.5, z: -3.25 };
+  assert.deepEqual(RS.resumePlace(spot, () => true, () => ({ x: 0, z: 0 })), spot);
+  assert.deepEqual(RS.resumePlace(spot, () => false, () => ({ x: 20, z: 1 })), { x: 20, z: 1 });
+});
+
+test('W5-N6 the title: with a saved city spot 继续旅程 resumes (primary) and 从头开始 starts at the Ferry Building; district unchanged', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { TitleScreen } = await import('../src/opus-bay/ui/TitleScreen');
+  const render = () => renderToStaticMarkup(h(TitleScreen, { onStart: () => undefined }));
+  try {
+    save.clearSave();
+    game.set({ ...initialGameState(), phase: 'title', worldMode: 'city' });
+    const fresh = render();
+    assert.match(fresh, /ob-title-start[^>]*><span>开始<\/span>/);
+    assert.doesNotMatch(fresh, /ob-title-resume/);
+    save.patchSave(s => { s.lastSafe = { world: 'city', x: -300, z: 900, heading: 0.4, zone: 'golden-gate-park' }; });
+    const back = render();
+    assert.match(back, /ob-title-start[^>]*><span>继续旅程<\/span>/, 'the primary button resumes');
+    assert.match(back, /ob-title-resume[^>]*>.*从头开始 · 渡轮大厦/, 'the secondary starts over (progress kept)');
+    assert.match(back, /欢迎回来！接着逛吗？/);
+    assert.doesNotMatch(back, /继续上次的位置/, 'one resume button, not two');
+    // the district title never offers the city spot
+    game.set({ ...initialGameState(), phase: 'title', worldMode: 'district' });
+    assert.doesNotMatch(render(), /ob-title-resume|从头开始/);
+  } finally { save.clearSave(); game.set({ ...initialGameState() }); }
+});
+
+test('W5-N6 startOrResume: a resume request with a saved city spot skips the arrival cinematic; without one, the old start', async () => {
+  try {
+    save.clearSave();
+    game.set({ ...initialGameState(), phase: 'title', worldMode: 'city' });
+    save.patchSave(s => { s.lastSafe = { world: 'city', x: S.x, z: S.z, heading: 0 }; });
+    save.requestResume();
+    RS.startOrResume();
+    assert.equal(game.get().phase, 'arrival', 'waiting for the city at the saved spot (no ferry cinematic)');
+    assert.equal(save.takeResumeRequest(), false, 'the request was taken');
+    assert.ok(Math.hypot(runtime.player.x - S.x, runtime.player.z - S.z) < 1e-6, 'placed on the saved spot at once');
+    // no streamer in node: the wait gives up after READY_MAX_MS (the mocked clock moves on), then play begins there
+    tick(20_000);
+    for (let i = 0; i < 20 && game.get().phase !== 'playing'; i++) await new Promise(r => setTimeout(r, 120));
+    assert.equal(game.get().phase, 'playing');
+    assert.ok(Math.hypot(runtime.player.x - S.x, runtime.player.z - S.z) < 1e-6, 'the standable saved spot itself');
+  } finally { save.clearSave(); game.set({ ...initialGameState() }); }
 });

@@ -45,8 +45,14 @@ export interface TravelDest {
   name: Bilingual;
   x: number;
   z: number;
-  /** facing on arrival (world yaw); default: the travel direction */
+  /** facing on arrival (world yaw); default: open ground (lane F's faceOpen, when registered), else the travel direction */
   heading?: number;
+  /**
+   * W5-N5 · a first sight: the landmark to see on landing (an attraction's anchor, set by the trip runner for a place not
+   * discovered yet). The player lands facing it and the descent camera ends behind them with it in view; the caption
+   * says 第一次来 · 名称 (the landing is the discovery: the arrival moment follows).
+   */
+  look?: Vec2;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,6 +183,41 @@ export function arrivalSpot(p: Vec2, open: (p: Vec2, r: number) => Vec2 | null =
   return nearestWalkable(p, 40) ?? { x: p.x, z: p.z };
 }
 
+/**
+ * W5-N5 · the landing heading: a first sight faces its landmark; else lane F's open-ground facer (`faceOpen(x, z)`,
+ * registered with setLandingFacer: the longest free direction, so the first step is never into a wall); else the
+ * place's own arrival heading; else the travel direction. Pure (tests).
+ */
+export function landingHeading(spot: Vec2, dest: Pick<TravelDest, 'heading' | 'look'>, travelYaw: number, facer: LandingFacer | null = landingFacer): number {
+  if (dest.look) {
+    const dx = dest.look.x - spot.x, dz = dest.look.z - spot.z;
+    if (Math.hypot(dx, dz) > 2) return Math.atan2(dx, dz);
+  }
+  const open = facer?.(spot.x, spot.z);
+  if (typeof open === 'number' && Number.isFinite(open)) return open;
+  return dest.heading !== undefined && Number.isFinite(dest.heading) ? dest.heading : travelYaw;
+}
+
+/** lane F's `faceOpen(x, z)` → a world yaw (null: no preference). */
+export type LandingFacer = (x: number, z: number) => number | null | undefined;
+let landingFacer: LandingFacer | null = null;
+/** Lane F (W5-F7) registers its open-ground facer for every landing (returns the unregister). */
+export function setLandingFacer(fn: LandingFacer | null): () => void {
+  landingFacer = fn;
+  return () => { if (landingFacer === fn) landingFacer = null; };
+}
+
+/**
+ * The descent's closing camera (W5-N5): behind the player along the heading. A first sight pulls back and up a little
+ * and looks past the player toward the landmark (at most 30 u ahead, 4 u up), so it is in the frame as the camera lands.
+ */
+export function descentShot(spot: Vec2, gy: number, heading: number, look?: Vec2): { position: [number, number, number]; target: [number, number, number] } {
+  const sx = Math.sin(heading), cz = Math.cos(heading);
+  if (!look) return { position: [spot.x - sx * 10, gy + 5, spot.z - cz * 10], target: [spot.x, gy + 1.6, spot.z] };
+  const ahead = Math.min(30, 0.4 * Math.hypot(look.x - spot.x, look.z - spot.z));
+  return { position: [spot.x - sx * 12, gy + 6.5, spot.z - cz * 12], target: [spot.x + sx * ahead, gy + 4, spot.z + cz * ahead] };
+}
+
 /** Place the player (no event, no locks): shared by the trip, ?at= and resume. */
 export function placePlayer(p: Vec2, heading?: number) {
   const pl = runtime.player;
@@ -234,15 +275,15 @@ function enterPhase(tr: Trip, phase: TravelPhase) {
     runtime.camera.shot = { ...top, duration: veil ? 0.001 : 0.6 };
   } else if (phase === 'descent') {
     const spot = arrivalSpot(tr.dest);
-    const heading = tr.dest.heading ?? plan.yaw;
+    const heading = landingHeading(spot, tr.dest, plan.yaw);
     tr.landed = spot;
     placePlayer(spot, heading);
-    // the top view straight over the landing spot, then down to behind the player
+    // the top view straight over the landing spot, then down to behind the player (a first sight: its landmark ahead)
     const gy = heightAt(spot.x, spot.z);
     tr.veil = false;
     setView({ ...view, veil: false });
-    const back = { position: [spot.x - Math.sin(heading) * 10, gy + 5, spot.z - Math.cos(heading) * 10] as [number, number, number], target: [spot.x, gy + 1.6, spot.z] as [number, number, number] };
-    runtime.camera.shot = { ...back, duration: DESCENT_S };
+    runtime.camera.shot = { ...descentShot(spot, gy, heading, tr.dest.look), duration: DESCENT_S };
+    if (tr.dest.look) flow.set({ caption: { zh: `第一次来 · ${tr.dest.name.zh}`, en: `First time here · ${tr.dest.name.en}` } });
   }
 }
 

@@ -1,4 +1,4 @@
-import { isRiding } from '../actors/moveApi';
+import { glideUnlocked, isRiding } from '../actors/moveApi';
 import { routeTo } from '../actors/nav';
 import { driveRoute } from '../actors/vehicles/driveRoute';
 import { game } from '../core/store';
@@ -21,7 +21,10 @@ import { RIDEABLE_R, type TripGoalRule, type TripLineInfo, type TripProviders, t
  *               (`registerTripLines`: the loop, N and M from transit.json via `transitTripLine`)
  *   lineWait / lineRide   estimators registered by lane T's systems (`registerLineEstimator`); the planner's models
  *               answer until then
- *   discovered  game/discovery isDiscovered (fast travel is offered to discovered places only)
+ *   discovered  game/discovery isDiscovered (fast travel is offered to discovered places only …)
+ *   flyUnlocked (W5-N2) … until the pelican is unlocked (actors/moveApi glideUnlocked): then to every place
+ *   autoPace    (W5-N3) true: trips carry the player, on-foot legs are timed at the auto-walk's pace
+ *   registerRideEta / liveRideEta (W5-N2) lane T's ride ETA from real progress, for the pill and the waypoint
  *   goals       open-goal rules registered by lane C (`registerTripGoals`)
  */
 
@@ -111,6 +114,27 @@ export function tripProviders(): TripProviders {
     lineWait: (line, stop, dir) => estimator.lineWait?.(line, stop, dir),
     lineRide: (line, board, alight, dir) => estimator.lineRide?.(line, board, alight, dir),
     discovered: id => isDiscovered(id),
+    // W5-N2: the pelican unlock opens 飞过去 to every place and makes it the 推荐 for trips over a minute
+    flyUnlocked: () => glideUnlocked(),
+    // W5-N3: every trip carries the player (auto-travel), so on-foot legs are timed at its pace
+    autoPace: true,
     goals: [...goalSources.values()].flatMap(fn => fn()),
   };
+}
+
+/**
+ * W5-N2 · one ETA source: lane T's `rideEta()` (seconds until the ridden vehicle reaches the stop the rider gets off
+ * at, from its real progress; null / undefined = unknown). T registers it once its systems run; the pill, the waypoint
+ * and the trip card use it while aboard (else the share of the planned ride left). Returns the unregister.
+ */
+let rideEtaSource: (() => number | null | undefined) | null = null;
+export function registerRideEta(fn: () => number | null | undefined): () => void {
+  rideEtaSource = fn;
+  return () => { if (rideEtaSource === fn) rideEtaSource = null; };
+}
+/** The live ride ETA (s) when T gives one, else undefined. */
+export function liveRideEta(): number | undefined {
+  let v: number | null | undefined;
+  try { v = rideEtaSource?.(); } catch { v = undefined; }
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : undefined;
 }
