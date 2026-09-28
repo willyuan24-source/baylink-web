@@ -111,6 +111,16 @@ test('W5-T1 crowd spots: count, spacing, facing the sight, the 3 u clear lane to
   for (const p of CS.crowdPins().filter(p => p.key === 'deck')) assert.ok(Math.abs(p.x) >= 1.5 - 1e-6);
   CS.__resetCrowdSpotsForTests();
   assert.equal(CS.crowdPins().length, 0);
+  // (W5-T review) what the crowd asks every frame makes no garbage: the lane test writes into the caller's record, and
+  // nobody waving is one shared empty list
+  const rec = { d: 0, side: 1 as 1 | -1, t: 0 };
+  assert.equal(CS.laneDistanceInto({ ax: 0, az: 0, bx: 0, bz: 10 }, 2, 5, rec), rec);
+  assert.deepEqual(rec, CS.laneDistance({ ax: 0, az: 0, bx: 0, bz: 10 }, 2, 5));
+  assert.ok(rec.d === 2 && rec.t === 0.5);
+  assert.equal(CS.takeCrowdWaves(), CS.takeCrowdWaves(), 'no wave: the same empty list');
+  CS.crowdWave(1, 2);
+  assert.deepEqual(CS.takeCrowdWaves(), [{ x: 1, z: 2, r: CS.WAVE_REACH }]);
+  assert.equal(CS.takeCrowdWaves().length, 0);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -668,6 +678,57 @@ test('W5-T2 the ride banner: after 10 s without the bus moving, 直接到站 is 
   } finally { releasePlatformStop('sf-loop'); transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title', worldMode: 'district' } as never); }
 });
 
+test('W5-T review: boarding is not a hold-up — the ferry\'s quay dwell and a cable car boarded at the Hyde St / Taylor & Bay turntables never raise 车停住了', async () => {
+  // (the review's probe on 01d8e2d6: every ferry ride showed 车停住了 with 直接到站 as the big button for ≈ 5 s at the
+  // quay it left from, and a cable car boarded at Hyde & Beach for 3.3 s: the wait, the arrival dwell and the turn counted)
+  const { default: RideBanner } = await import('../src/opus-bay/ui/RideBanner');
+  await transit.loadLineRides();
+  game.set({ phase: 'playing', worldMode: 'city' } as never);
+  /** steps a ride to its end; the most stalled aboard, and whether the banner ever said held up */
+  const rideOut = (step: () => void) => {
+    let most = 0, banner = false;
+    for (let i = 0; i < 30 * 400 && ride.currentRide(); i++) {
+      step();
+      transit.stepTransit(DT);
+      const e = transit.rideEta();
+      if (!e || flow.get().ride?.stage === 'waiting') continue;
+      most = Math.max(most, e.stalled);
+      if (i % 15 === 0 && /车停住了|船停住了/.test(renderToStaticMarkup(h(RideBanner)))) banner = true;
+    }
+    return { most, banner, done: !ride.currentRide() };
+  };
+  try {
+    T.setTransitData(DATA);
+    for (const [lineId, from] of [['powell-hyde', 'hyde-beach'], ['powell-mason', 'taylor-bay']] as const) {
+      const sys = new CableSystem(DATA);
+      setActiveCableSystem(sys);
+      try {
+        for (let i = 0; i < 30 * 37; i++) sys.step(DT);
+        const line = DATA.lines.find(l => l.id === lineId)!;
+        const st = DATA.stations.find(s => s.id === from)!;
+        runtime.player.x = st.x; runtime.player.z = st.z;
+        transit.rideCable(lineId, from, line.stops[line.stops.length - 5].station);
+        const r = rideOut(() => sys.step(DT));
+        assert.ok(r.done, `${lineId}: the ride from ${from} arrived`);
+        assert.ok(r.most < transit.STALL_BIG && !r.banner, `${lineId} from ${from}: stalled ${r.most.toFixed(1)} s aboard (the banner said held up: ${r.banner})`);
+      } finally { transit.cancelRide(); setActiveCableSystem(null); }
+    }
+    const D = await import('../src/opus-bay/data/ferry');
+    const { FerrySystem } = await import('../src/opus-bay/world/ferry');
+    const LINE = D.buildFerryLine(D.FERRY_ROUTES.find(x => x.running)!);
+    for (const [from, to] of [['pier-41', 'ferry-building'], ['ferry-building', 'pier-41']] as const) {
+      const sys = new FerrySystem(LINE);
+      T.setActiveFerrySystem(sys);
+      try {
+        transit.rideFerry(from, to);
+        const r = rideOut(() => sys.step(DT));
+        assert.ok(r.done, `ferry ${from} → ${to} arrived`);
+        assert.ok(r.most < transit.STALL_BIG && !r.banner, `ferry ${from} → ${to}: stalled ${r.most.toFixed(1)} s aboard (the banner said held up: ${r.banner})`);
+      } finally { ride.endRide(); T.setActiveFerrySystem(null); flow.set({ ride: null }); game.set({ riding: null } as never); }
+    }
+  } finally { game.set({ phase: 'title', worldMode: 'district' } as never); }
+});
+
 // ---------------------------------------------------------------------------------------------------------------------
 // W5-T3 · the tour's own bus boards without the driver question
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1210,7 +1271,14 @@ test('W5-T7 service rows: every real line carries its SFMTA route page and the d
   assert.deepEqual(at(23, 5), { 'powell-hyde': false, 'powell-mason': false, california: false, 'f-line': true, 'n-judah': true, 'm-ocean-view': true });
   assert.deepEqual(at(5, 30), { 'powell-hyde': false, 'powell-mason': false, california: false, 'f-line': false, 'n-judah': true, 'm-ocean-view': false });
   assert.deepEqual(at(7, 0), { 'powell-hyde': true, 'powell-mason': true, california: true, 'f-line': true, 'n-judah': true, 'm-ocean-view': true });
-  assert.equal(serviceRow('powell-hyde', { hour: 9, minute: 0 })!.text.zh, '海德线 7:00–23:00 · 约9–10分钟一班');
+  // (W5-T review) the midday column of the day's page, said as 午间: Powell–Hyde 10 on weekdays, 9 at weekends; the N and
+  // the M 10 / 12 (they said 10 on every day); the N's early / late hours are the N bus
+  assert.equal(serviceRow('powell-hyde', { hour: 9, minute: 0 })!.text.zh, '海德线 7:00–23:00 · 午间约10分钟一班');
+  assert.equal(serviceRow('powell-hyde', { hour: 9, minute: 0, weekday: 6 })!.text.zh, '海德线 7:00–23:00 · 午间约9分钟一班');
+  assert.equal(serviceRow('powell-mason', { hour: 22, minute: 30, weekday: 2 })!.text.en, 'Powell–Mason 7:00–23:00 · midday about every 12 min');
+  assert.equal(serviceRow('n-judah', { hour: 12, minute: 0, weekday: 0 })!.text.zh, 'N 线 24 小时 · 午间约12分钟一班 · 清早和深夜是巴士');
+  assert.equal(serviceRow('m-ocean-view', { hour: 12, minute: 0, weekday: 3 })!.text.zh, 'M 线 6:00–24:00 · 午间约10分钟一班');
+  assert.equal(serviceRow('m-ocean-view', { hour: 12, minute: 0, weekday: 6 })!.text.zh, 'M 线 6:00–24:00 · 午间约12分钟一班');
   // the station card renders them (the loop's stop has none)
   const { ServiceRows } = await import('../src/opus-bay/ui/serviceRows');
   const html = renderToStaticMarkup(h(ServiceRows, { lines: ['sf-loop', 'powell-hyde', 'california'] }));
@@ -1298,5 +1366,8 @@ test('W5-T7 the station rows and lane R\'s 现实中怎么去 rows read the same
     assert.ok(r, `${id} in both`);
     assert.deepEqual(s.span ? [...s.span] : null, r.hours ? [...r.hours] : null, `${id} hours`);
     assert.equal(s.sourceUrl, r.sourceUrl, `${id} source`);
+    // (W5-T review) the midday figure lies in lane R's daytime range for the same kind of day
+    assert.ok(s.midday.wd >= r.day.wd[0] && s.midday.wd <= r.day.wd[1], `${id} weekday midday ${s.midday.wd} in ${r.day.wd}`);
+    assert.ok(s.midday.we >= r.day.we[0] && s.midday.we <= r.day.we[1], `${id} weekend midday ${s.midday.we} in ${r.day.we}`);
   }
 });
