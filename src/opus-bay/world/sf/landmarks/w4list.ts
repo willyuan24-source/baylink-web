@@ -12,6 +12,7 @@ import { fortFunston } from './fort-funston';
 import { gearyWest } from './geary-west';
 import { grandViewPark } from './grand-view-park';
 import { haightAshbury } from './haight-ashbury';
+import { harveyMilkPlaza } from './harvey-milk-plaza';
 import { hippieHill } from './hippie-hill';
 import { irvingStreet } from './irving-street';
 import { japaneseTeaGarden } from './japanese-tea-garden';
@@ -86,4 +87,5 @@ export const W4_SITES: readonly W4Site[] = [
   sternGrove,
   lakeMerced,
   fortFunston,
+  harveyMilkPlaza,
 ];

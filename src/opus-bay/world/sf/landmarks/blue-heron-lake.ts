@@ -13,9 +13,11 @@ import { type W4Site, siteGround } from './siteKit';
  *
  * Built to lane V's AI pavilion (`sf-chinese-pavilion`, data/sf/w4Models.ts) so the swap keeps the footprint: origin
  * at its placement (−251.5, 1017.0), yaw 0, front +Z; a 0.3 u floor platform of r 2.4, columns r 0.25 on a ring r 2.15
- * at 22.5° + k·45°, 2.0 u clear under the roof, eaves r ≈ 2.8, 4.5 u to the finial. The city draws the lake up to the
- * pavilion (see the lane-L report), so the model stands on a stone base at the water's edge (its origin at local y
- * BASE) and two short causeways reach the island path: +Z (south) and west.
+ * at 22.5° + k·45°, 2.0 u clear under the roof, eaves r ≈ 2.8, 4.5 u to the finial. The model stands on a raised stone
+ * base at the water's edge (its origin at local y BASE, 0.45 over the lake's 20.0: the island ground there is 20.2–20.3,
+ * so the platform stands a step up, like the real pavilion's) and two short causeways reach the island path: +Z (south)
+ * and west. The island itself is drawn as land since lane V's render fix (W4-V-I1); lane V's swap row
+ * (data/sf/w4Swaps.ts) places the AI pavilion on this same base.
  */
 
 const ID = 'blue-heron-lake';
