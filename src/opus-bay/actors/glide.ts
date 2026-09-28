@@ -394,3 +394,34 @@ export class GlideSim {
     if (this.y > GLIDE.ceiling + 20) this.y = GLIDE.ceiling + 20;
   }
 }
+
+// ---------------------------------------------------------------------------
+// W5-F10 · the scenic auto-glide (plan §3.2 A-glide+, with lane N: actors/moveApi autoGlide)
+// ---------------------------------------------------------------------------
+
+/**
+ * The pelican flies a mid-distance trip itself: minDist–maxDist u (N offers it when the destination is streamed; far
+ * trips keep the cloud fast travel), `above` u over the soft floor (roofs + 6) on the way, boosting on a straight
+ * stretch farther than `boostFrom`, easing down from `easeFrom` and landing `landAt` u out (the landing curve's own
+ * lead carries it to the spot); a stick push past `takeOver` hands the wings to the player.
+ */
+export const AUTO_GLIDE = { maxDist: 900, minDist: 60, above: 14, boostFrom: 180, easeFrom: 110, landAt: 20, takeOver: 0.25 } as const;
+export type AutoGlideEnd = 'landed' | 'taken' | 'cancelled';
+export interface AutoGlideRequest { x: number; z: number; onEnd?: (how: AutoGlideEnd) => void }
+
+/** The pelican's own stick toward `to` (pure): steer onto the bearing, hold the sightseeing height, ease down near the end. */
+export function autoGlideInput(g: Pick<GlideSim, 'x' | 'y' | 'z' | 'heading' | 'speed' | 'floorAt'>, to: { x: number; z: number }, world: GlideWorld): GlideInput {
+  const dx = to.x - g.x, dz = to.z - g.z, dist = Math.hypot(dx, dz);
+  const err = wrap(Math.atan2(dx, dz) - g.heading);
+  const fx = Math.sin(g.heading), fz = Math.cos(g.heading);
+  const floor = Math.max(g.floorAt(world, g.x, g.z).soft, g.floorAt(world, g.x + fx * g.speed * 2, g.z + fz * g.speed * 2).soft);
+  const cruise = floor + AUTO_GLIDE.above;
+  const land = world.heightAt(to.x, to.z) + GLIDE.floorClear;
+  const yT = dist < AUTO_GLIDE.easeFrom ? Math.max(floor, land + (cruise - land) * (dist / AUTO_GLIDE.easeFrom)) : cruise;
+  return {
+    steer: clamp(-err * 1.6, -1, 1),
+    pitch: clamp((yT - g.y) * 0.1, -0.7, 0.8),
+    boost: dist > AUTO_GLIDE.boostFrom && Math.abs(err) < 0.4,
+    slow: dist < AUTO_GLIDE.easeFrom * 0.5,
+  };
+}

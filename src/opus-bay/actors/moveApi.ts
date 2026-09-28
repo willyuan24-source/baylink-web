@@ -44,6 +44,9 @@ export interface MoveApiImpl {
   fleetSnapshot?(): FleetSnapshot;
   restoreFleet?(s: FleetSnapshot): void;
   pelicanGreet?(x?: number, z?: number, opts?: { seconds?: number }): boolean;
+  startAutoGlide?(to: Vec2, onEnd?: (how: 'landed' | 'taken' | 'cancelled') => void): boolean;
+  cancelAutoGlide?(): void;
+  readonly autoGliding?: boolean;
 }
 
 let impl: MoveApiImpl | null = null;
@@ -105,3 +108,18 @@ export function glidePulseSeq(): number { return glidePulse; }
  * (nothing happens) when the player is not on foot, the pelican is already out, or no open ground near fits it.
  */
 export function pelicanGreet(x?: number, z?: number, opts?: { seconds?: number }): boolean { return impl?.pelicanGreet?.(x, z, opts) ?? false; }
+
+/**
+ * Wave 5 · W5-F10 the scenic auto-glide (plan §3.2 A-glide+, lane N offers it in the planner): the pelican flies the
+ * player to `to` by itself — on foot it takes off toward it, in the air it takes over the stick — at a sightseeing
+ * height over the roofs, boosting on a long straight, and lands about there (facing the open ground). A push of the
+ * stick hands the wings to the player (`onEnd('taken')`); G / 降落 lands early, a fast travel or a restart ends it
+ * (`'cancelled'`); `'landed'` when it set the player down. False when the glide is locked, the player is neither on foot
+ * nor gliding, or the trip is shorter than 60 u or longer than 900 u (AUTO_GLIDE in actors/glide.ts: far trips keep
+ * the cloud fast travel). BAYBAY says 坐稳啦～想自己飞，动一下就接管 when it starts.
+ */
+export function autoGlide(to: Vec2, opts: { onEnd?: (how: 'landed' | 'taken' | 'cancelled') => void } = {}): boolean { return impl?.startAutoGlide?.(to, opts.onEnd) ?? false; }
+/** The pelican is flying (or about to take off for) an auto-glide. */
+export function autoGliding(): boolean { return impl?.autoGliding ?? false; }
+/** End an auto-glide where it is (the glide goes on under the player's own stick). */
+export function cancelAutoGlide() { impl?.cancelAutoGlide?.(); }

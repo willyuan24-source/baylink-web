@@ -1431,7 +1431,7 @@ function rideSubject(mode: RideCamMode, now: number): import('./cameraModes').Ri
       }
       transitSide.t = now;
       rideCamInfo.side = transitSide.side;
-      return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side: transitSide.side, seated, occlude: true };
+      return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side: transitSide.side, seated, occlude: true, kind: plat.kind };
     }
     // camera on the water side of the car, as the old side-on ride shot (the promenade normal points to the Bay)
     const f = frameAt(stationOf({ x: p.x, z: p.z }).st);

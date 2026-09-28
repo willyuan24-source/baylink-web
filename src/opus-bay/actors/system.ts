@@ -651,7 +651,7 @@ export class ActorSystem {
     this.feetReset = input.resetCount;
     const pull = this.feet.update({
       dt, now: t, reset: resetPress, obstacles: this.obstacles,
-      free: s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && pc0.grounded && !pc0.vault && !p.pathTarget,
+      free: s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && pc0.grounded && !pc0.vault && !pc0.mantle && !p.pathTarget,
       pushing: pc0.manualWish && input.manualMove, dirX: pc0.wishX, dirZ: pc0.wishZ,
     });
     if (pull) this.stagePull(pull);

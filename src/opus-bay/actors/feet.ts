@@ -50,6 +50,16 @@ export const FEET = {
   pullUp: 0.8,
   pullDown: 1.2,
   pullRidge: 1,
+  /**
+   * W5-F10 mantle (a hop against a ledge): in the air, ground ahead standing above the body (by > mantleGap) and
+   * mantleMin–mantleMax above the take-off feet is climbed hands first in up to mantleTime (s: the higher the edge
+   * stands over the body, the longer the pull); in the city a ledge higher than mantleMax is a wall even in a jump
+   * (before, any jump popped the body onto any height). A hop that clears the edge lands on top as before.
+   */
+  mantleGap: 0.1,
+  mantleMin: 0.45,
+  mantleMax: 1.6,
+  mantleTime: 0.42,
 } as const;
 
 // ---------------------------------------------------------------------------

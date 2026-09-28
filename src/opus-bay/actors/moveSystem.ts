@@ -18,7 +18,7 @@ import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
-import { GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, glideSoftBoxLine, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
+import { AUTO_GLIDE, GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, autoGlideInput, glideSoftBoxLine, terrainGlideWorld, type AutoGlideEnd, type AutoGlideRequest, type GlideWorld, type TallStructure } from './glide';
 import { LiveTall } from './glideTall';
 import { faceOpen } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
@@ -313,7 +313,7 @@ export class MoveSystem {
     emit({ type: 'sit', seat: seat.id });
   }
 
-  private tryTakeOff(controller: PlayerController) {
+  private tryTakeOff(controller: PlayerController, toward?: number) {
     if (!this.glideUnlocked) {
       say('先去科伊特塔观景台看看，就能解锁鹈鹕滑翔', 'Visit the Coit Tower viewpoint to unlock the pelican glide');
       emit({ type: 'ui', action: 'error' });
@@ -324,7 +324,7 @@ export class MoveSystem {
     if (!res.ok) return;
     this.pelican.load();
     // fly where the camera looks (the view you want), not where the feet happen to point
-    const heading = runtime.camera.yaw + Math.PI;
+    const heading = toward ?? runtime.camera.yaw + Math.PI;
     this.pelican.sim.takeOff(p.x, p.z, heading, this.world());
     this.pelican.show();
     this.boardFrom.set(p.x, p.y, p.z);
@@ -389,9 +389,54 @@ export class MoveSystem {
     return true;
   }
 
+  // ---------------------------------------------------------------------------
+  // W5-F10 the scenic auto-glide (plan §3.2 A-glide+, with lane N; actors/moveApi autoGlide)
+  // ---------------------------------------------------------------------------
+
+  private autoReq: AutoGlideRequest | null = null;
+  private autoGlide: (AutoGlideRequest & { landing: boolean }) | null = null;
+  /** seconds until BAYBAY says how to take over (once per auto-glide) */
+  private autoSay = -1;
+  get autoGliding(): boolean { return this.autoGlide !== null || this.autoReq !== null; }
+
+  /** Fly the pelican to (x, z) by itself (see moveApi.autoGlide). */
+  startAutoGlide(to: Vec2, onEnd?: (how: AutoGlideEnd) => void): boolean {
+    const m = this.machine;
+    if (!this.glideUnlocked || !Number.isFinite(to.x) || !Number.isFinite(to.z)) return false;
+    if (m.mode !== 'foot' && !(m.mode === 'glide' && m.phase === 'steady')) return false;
+    const p = runtime.player, g = this.pelican.sim, from = m.mode === 'glide' ? g : p;
+    const d = Math.hypot(to.x - from.x, to.z - from.z);
+    if (d > AUTO_GLIDE.maxDist || d < AUTO_GLIDE.minDist) return false;
+    if (this.autoGlide) this.endAutoGlide('cancelled');
+    this.autoReq?.onEnd?.('cancelled');
+    this.autoReq = { x: to.x, z: to.z, onEnd };
+    return true;
+  }
+
+  cancelAutoGlide() {
+    if (this.autoReq) { const r = this.autoReq; this.autoReq = null; r.onEnd?.('cancelled'); }
+    if (this.autoGlide) this.endAutoGlide('cancelled');
+  }
+
+  private beginAutoGlide(r: AutoGlideRequest) {
+    this.approach = null;
+    this.autoGlide = { ...r, landing: false };
+    // (after the take-off's own line: 抓稳，飞咯！)
+    this.autoSay = 2.8;
+  }
+
+  private endAutoGlide(how: AutoGlideEnd) {
+    const a = this.autoGlide;
+    this.autoGlide = null;
+    if (!a) return;
+    a.onEnd?.(how);
+  }
+
   /** Fast travel / restarts (lane G): everything back on foot, the vehicle parked where it is. */
   toFoot() {
     this.cancelDrive(true);
+    this.autoReq = null;
+    if (this.autoGlide) this.endAutoGlide('cancelled');
     if (this.ride) { this.ride.occupied = false; this.ride = null; }
     this.machine.toFoot();
     this.seat = null;
@@ -473,6 +518,14 @@ export class MoveSystem {
       if (vehiclePress && near) this.tryEnter(near.ride, c);
       else if (callPress) this.callVehicle();
       if (glidePress && m.mode === 'foot') this.tryTakeOff(c);
+      // W5-F10 the scenic auto-glide: take off toward the destination, then the pelican flies itself (flyGlide)
+      else if (this.autoReq && m.mode === 'foot') {
+        const r = this.autoReq;
+        this.autoReq = null;
+        this.tryTakeOff(c, Math.atan2(r.x - p.x, r.z - p.z));
+        if (this.machine.mode === 'glide') this.beginAutoGlide(r);
+        else r.onEnd?.('cancelled');
+      }
     } else if (mode === 'sit') {
       const moved = input.manualMove || runtime.input.jump || (interactPress && !s.focus && !s.dialogue.nodeId) || vehiclePress;
       if (m.phase === 'steady' && moved && !frozen) {
@@ -484,6 +537,7 @@ export class MoveSystem {
       if (hornPress && this.ride && !frozen) emit({ type: 'vehicle:horn', vehicle: this.ride.kind });
       if (resetPress && this.ride && m.phase === 'steady') { this.cancelDrive(); if (this.fleet.reset(this.ride)) spawnFx('dust', this.ride.sim.x, this.ride.sim.y + 0.3, this.ride.sim.z); }
     } else if (mode === 'glide') {
+      if (this.autoReq) { const r = this.autoReq; this.autoReq = null; this.beginAutoGlide(r); }
       if (glidePress && m.phase === 'steady' && !frozen) { if (this.approach) this.approach = null; else this.tryLand(); }
     } else if (mode === 'transit') {
       const r = currentRide();
@@ -515,6 +569,9 @@ export class MoveSystem {
         else if (input.manualMove && r.mode !== 'wait' && m.spot !== 'deck') m.walkDeck();
       } else if (!frozen) runtime.input.jump = false;
     }
+    if (this.autoReq && (m.mode !== 'foot' || !env.playing || busyFlow)) { const r = this.autoReq; this.autoReq = null; r.onEnd?.('cancelled'); }
+    // (the auto-glide ends with the glide: landed through G, a fast travel, a restart)
+    if (this.autoGlide && m.mode !== 'glide') this.endAutoGlide(m.mode === 'foot' && this.autoGlide.landing ? 'landed' : 'cancelled');
     input.vehicleContext = this.carried && (mode === 'bike' || mode === 'car' || mode === 'glide') ? 'in' : near ? 'near' : 'none';
     // the autopilot only drives a steady ride (F to get off, R, a teleport … hand control back)
     if ((this.auto || this.autoToken) && (!(m.mode === 'bike' || m.mode === 'car') || m.phase !== 'steady' || !this.ride)) this.cancelDrive(m.mode !== 'bike' && m.mode !== 'car');
@@ -868,6 +925,22 @@ export class MoveSystem {
       boost: runtime.input.run || input.throttle > 0.5,
       slow: input.jumpHeld || input.brake > 0.5,
     };
+    // W5-F10 the scenic auto-glide: toward the destination at a sightseeing height, boosting on the long straight,
+    // easing down near the end and landing ~18 u out (the landing curve's own lead); a push of the stick takes over
+    const A = this.autoGlide;
+    if (A && this.machine.phase === 'steady' && !frozen) {
+      if (Math.abs(runtime.input.moveX) > AUTO_GLIDE.takeOver || Math.abs(runtime.input.moveY) > AUTO_GLIDE.takeOver) {
+        this.endAutoGlide('taken');
+        bubble({ zh: '好，你来飞！', en: 'Your wings now!' }, 2200);
+      } else {
+        inp = autoGlideInput(g, A, this.world());
+        if (this.autoSay > 0 && (this.autoSay -= dt) <= 0) bubble({ zh: '坐稳啦～想自己飞，动一下就接管', en: 'Sit tight! Move to take the wings' }, 3600);
+        if (Math.hypot(A.x - g.x, A.z - g.z) < AUTO_GLIDE.landAt && !this.approach) {
+          A.landing = true;
+          if (!this.tryLand(true) && !this.approach) this.approach = { x: A.x, z: A.z };
+        }
+      }
+    }
     if (this.approach && this.machine.phase === 'steady') {
       // steer for the landing ground (the player can still override), gently down; land once within reach
       const a = this.approach;

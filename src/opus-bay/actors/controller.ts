@@ -31,6 +31,8 @@ import { RouteFollower, isLongRoute } from './routeFollow';
  * path, a stair landing) a push into the rail keeps walking along it (full speed within 35° of the rail, sliding down to
  * FEET.corridorSlideMin before it stops); running or jumping into a low blocker with a measured top vaults it in a
  * 0.35 s hop (guarded: feet.vaultPlan); on a bridge deck forward input follows the deck and steers round the tower legs.
+ * W5-F10 mantle: a hop that meets a ledge above the body (0.45–1.6 u over the take-off feet) climbs it hands first
+ * (startMantle / stepMantle); in the city a ledge higher than that is a wall even in a jump.
  */
 
 /** = terrain STAND_RADIUS, so A* paths on the nav grid stay valid for the body (A8) */
@@ -350,6 +352,11 @@ export class PlayerController {
   vault: (VaultPlan & { x0: number; z0: number; y0: number; t: number; lift: number; speed: number; dirX: number; dirZ: number }) | null = null;
   vaultK = 0;
   vaults = 0;
+  /** W5-F10: the mantle in progress (a hop against a ledge: hands on the edge, pull up, step on), and the count (QA) */
+  mantle: { x0: number; z0: number; y0: number; x: number; z: number; top: number; t: number; dur: number } | null = null;
+  mantles = 0;
+  /** W5-F10: the feet's height when they last stood on the ground (a jump's take-off, for the mantle's limits) */
+  private airFromY = 0;
   /** W5-F6: the wish was steered along a bridge deck this frame (QA / tests) */
   deckSteered = false;
 
@@ -366,6 +373,7 @@ export class PlayerController {
     this.stuckT = 0;
     this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.sliding = false; this.wallLean = 0;
     this.vault = null; this.vaultK = 0;
+    this.mantle = null; this.airFromY = p.y;
   }
 
   clearPath() {
@@ -433,7 +441,7 @@ export class PlayerController {
       this.vx = this.vz = this.vy = 0;
       this.grounded = true;
       this.anticipation = -1;
-      this.vault = null; this.vaultK = 0;
+      this.vault = null; this.vaultK = 0; this.mantle = null;
       p.y = heightAt(p.x, p.z);
       p.speed = 0; p.moving = false; p.running = false; p.grounded = true;
       this.clearPath();
@@ -442,6 +450,8 @@ export class PlayerController {
     }
     // W5-F5: a vault in progress carries the body over the blocker (input waits for the landing)
     if (this.vault) { this.stepVault(ctx); return; }
+    // W5-F10: a mantle in progress pulls the body up onto the ledge (input waits for it)
+    if (this.mantle) { this.stepMantle(ctx); return; }
 
     // 2. desired horizontal velocity
     let wx = 0, wz = 0, wantSpeed = 0;
@@ -582,6 +592,21 @@ export class PlayerController {
       let ground = this.grounded ? ground0 : Math.max(ground0, p.y);
       for (let i = 0; i < n; i++) {
         const r = moveDisc(p.x, p.z, (this.vx * dt) / n, (this.vz * dt) / n, PLAYER_RADIUS, ground, !this.grounded);
+        // W5-F10 mantle: in the air, the ground ahead stands above the body — a ledge. Within FEET.mantleMin–mantleMax
+        // of the take-off feet: climb it hands first (before, the body popped up onto it); in the city a higher one is
+        // a wall even in a jump (a roof is never ground: it is a blocker)
+        if (!this.grounded && !ctx.frozen) {
+          const gq = heightAt(r.x, r.z);
+          if (gq > p.y + FEET.mantleGap) {
+            const rise = gq - this.airFromY;
+            if (rise > FEET.mantleMax && cityTerrain()) {
+              const L = Math.hypot(this.vx, this.vz) || 1;
+              blocked = true; hitX = this.vx / L; hitZ = this.vz / L;
+              break;
+            }
+            if (rise >= FEET.mantleMin) { this.startMantle(p.x, p.z, p.y, r.x, r.z, gq); return; }
+          }
+        }
         p.x = r.x; p.z = r.z;
         if (r.blocked) { blocked = true; hitX = r.nx; hitZ = r.nz; }
         ground = this.grounded ? heightAt(p.x, p.z) : ground;
@@ -675,6 +700,7 @@ export class PlayerController {
     if (!canStand(p.x, p.z, PLAYER_RADIUS * 0.7)) { if (!groundPending(p.x, p.z)) this.stuckT += dt; } else this.stuckT = 0;
     if (this.stuckT > 1) this.unstick();
 
+    if (this.grounded) this.airFromY = p.y;
     // 10. publish (+ the crest pant after a climb of ≥ 6 u, E2-13)
     if (this.grounded && this.climb.update(dt, speed > 0.5 ? this.grade : 0, speed > 0.5, p.y)) this.pantAt = ctx.now;
     p.speed = speed;
@@ -722,6 +748,59 @@ export class PlayerController {
       p.y = heightAt(p.x, p.z); p.grounded = true;
       this.landedAt = ctx.now; this.landImpact = 0.3;
       emit({ type: 'land', impact: 0.3 });
+    }
+    const surf = surfaceAt(p.x, p.z);
+    if (surf) p.surface = surf;
+    this.onStairs = surf === 'stairs';
+    this.lastX = p.x; this.lastZ = p.z;
+  }
+
+  /**
+   * W5-F10: begin a mantle — the body at (x0, y0, z0) met ground `top` high at (x1, z1): the hands go onto the edge,
+   * the body pulls up and steps on to the first standable spot 0.3–0.9 u past the edge at that height.
+   */
+  private startMantle(x0: number, z0: number, y0: number, x1: number, z1: number, top: number) {
+    const p = runtime.player;
+    const L = Math.hypot(x1 - x0, z1 - z0);
+    const ux = L > 1e-6 ? (x1 - x0) / L : Math.sin(p.heading), uz = L > 1e-6 ? (z1 - z0) / L : Math.cos(p.heading);
+    let x = x1, z = z1;
+    for (let d = 0.3; d <= 0.9 + 1e-6; d += 0.15) {
+      const px = x1 + ux * d, pz = z1 + uz * d;
+      if (canStand(px, pz, PLAYER_RADIUS) && Math.abs(heightAt(px, pz) - top) < 0.35) { x = px; z = pz; break; }
+    }
+    const top2 = heightAt(x, z);
+    this.mantle = { x0, z0, y0, x, z, top: top2, t: 0, dur: FEET.mantleTime * (0.55 + 0.45 * clamp((top2 - y0) / 1.1, 0, 1)) };
+    this.mantles++;
+    this.vx = this.vz = this.vy = 0;
+    this.grounded = false;
+    this.anticipation = -1;
+    this.wallHits.length = 0; this.contactAge = 99; this.pressing = false; this.sliding = false; this.wallLean = 0;
+    p.heading = Math.atan2(ux, uz);
+    p.grounded = false;
+    this.lastX = p.x; this.lastZ = p.z;
+  }
+
+  /** W5-F10: one frame of the mantle: up the face (the first 55 %), then onto the ledge, in `dur` (≤ FEET.mantleTime). */
+  private stepMantle(ctx: StepContext) {
+    const p = runtime.player, m = this.mantle!;
+    m.t += ctx.dt;
+    const k = clamp(m.t / m.dur, 0, 1);
+    const sm = (v: number) => v * v * (3 - 2 * v);
+    const up = sm(Math.min(1, k / 0.55)), fwd = sm(Math.max(0, (k - 0.4) / 0.6));
+    p.x = m.x0 + (m.x - m.x0) * fwd; p.z = m.z0 + (m.z - m.z0) * fwd;
+    p.y = m.y0 + (m.top + 0.12 - m.y0) * up - 0.12 * fwd;
+    // the hands reach up and stay on the edge while the body comes up (the vault's hands-first weight)
+    this.vaultK = k < 0.7 ? Math.min(1, k * 4) : (1 - k) / 0.3;
+    this.vx = this.vz = 0; this.vy = k < 0.55 ? 3 : 0;
+    this.airTime += ctx.dt;
+    p.speed = 0; p.moving = true; p.running = false; p.grounded = false;
+    if (k >= 1) {
+      this.mantle = null; this.vaultK = 0;
+      this.grounded = true; this.vy = 0;
+      p.y = heightAt(p.x, p.z); p.grounded = true;
+      this.airFromY = p.y;
+      this.landedAt = ctx.now; this.landImpact = 0.2;
+      emit({ type: 'land', impact: 0.2 });
     }
     const surf = surfaceAt(p.x, p.z);
     if (surf) p.surface = surf;

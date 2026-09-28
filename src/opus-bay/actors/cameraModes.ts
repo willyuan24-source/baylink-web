@@ -10,6 +10,7 @@ import { forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/ter
  * | car     | 10 + 0.25v (≤ 13)   | 0.26 + 0.25·max(0, −g 8 u ahead) | 44 + 0.6v (≤ 52) | carried by the delta (GTA_SZ src/city-world.ts), 2 s hold after a drag, rate 3 |
  * | glide   | 14, pitch 0.3       | —                             | 50 + 0.4(v − 14) | exp 6                                    |
  * | transit | rail 7 / seat 8     | window height                 | 46               | fixed to the car frame, the chosen side  |
+ * | bus, LRV (W5-F10) | 14 / 15   | 0.38 / 0.46                   | 50               | behind and above, turned toward the view side (RIDE_TOUR) |
  * | sit     | 9 behind the seat   | 0.22                          | 42               | over the shoulder toward the view        |
  *
  * Occlusion: vehicles pull in to ≥ 4 u in front of a building (the TOY dither thins what is left); the glide pulls in
@@ -37,6 +38,8 @@ export interface RideSubject {
   seated?: boolean;
   /** transit: pull in before a building like the vehicles (city lines run between houses; the F-line keeps its window shot) */
   occlude?: boolean;
+  /** transit: the vehicle kind (W5-F10: the sightseeing bus's open deck and the Metro's LRV get a designed shot) */
+  kind?: 'streetcar' | 'cable-car' | 'ferry' | 'bus' | 'light-rail';
 }
 
 export interface RidePose { pos: THREE.Vector3; target: THREE.Vector3; fov: number }
@@ -66,6 +69,18 @@ export function rideLookWeight(now = perfNow()): number {
   const k = Math.min(1, (now - lookBias.t0) / 0.8, (lookBias.t1 - now) / 0.8);
   return k * k * (3 - 2 * k);
 }
+
+/**
+ * W5-F10 · the designed ride shots (transit kinds with one): distance, pitch, FOV, the look point above the rider and
+ * ahead of the vehicle, and how far round from straight behind toward the view side (rad).
+ */
+export const RIDE_TOUR: Partial<Record<NonNullable<RideSubject['kind']>, { dist: number; pitch: number; fov: number; lookUp: number; ahead: number; quarter: number }>> = {
+  // (a phone frame is narrow: a wider quarter-turn or a longer look ahead put the riders at its edge)
+  bus: { dist: 14, pitch: 0.38, fov: 50, lookUp: 1.2, ahead: 6, quarter: 0.35 },
+  // (the Metro runs down the middle of the street between two- and three-storey houses: from nearly straight behind the
+  // street stays open to the camera; a quarter-turn put the rig over the houses and it pulled in to a wall at corners)
+  'light-rail': { dist: 15, pitch: 0.46, fov: 50, lookUp: 1.4, ahead: 6, quarter: 0.18 },
+};
 
 /** Distance (u) the camera may pull in to, and the hold after a manual drag before re-centring (s). */
 const MIN_PULL = 4;
@@ -149,6 +164,15 @@ export class RideCamera {
         // worst when a narrow street pulls the rig in)
         if (sub.occlude) { dist += 1.5; pitch = sub.seated ? 0.03 : 0.2; lookUp = sub.seated ? -0.1 : 0.15; }
         yaw = sub.heading + (Math.PI / 2) * side - 0.35 * side + this.yawOff + Math.sin(now * 0.15) * 0.05;
+        const tour = RIDE_TOUR[sub.kind ?? 'streetcar'];
+        if (tour) {
+          // W5-F10 (plan §4.4, gaps S18): the sightseeing bus's open top deck and the Metro's LRV — a designed shot from
+          // behind the vehicle and above it, a quarter-turn toward the view side, looking ahead down the street: the
+          // riders small in the lower third, the city opening in front (the side-on window shot filled the frame
+          // with the rider and the next wall)
+          dist = tour.dist; pitch = tour.pitch; fov = tour.fov; lookUp = tour.lookUp; ahead = tour.ahead; rate = 5;
+          yaw = sub.heading + Math.PI - tour.quarter * side + this.yawOff + Math.sin(now * 0.12) * 0.04;
+        }
         // W4-G9: toward the stop's attraction / the portal (behind the rider on the line to it), unless dragged since
         const w = this.dragPerf >= lookBias.t0 ? 0 : rideLookWeight();
         if (w > 0) {

@@ -541,3 +541,194 @@ test('lane R\'s request 3: faceCameraToward(x, z, { pitch }) sets the photo orbi
     assert.ok(Math.abs(rig.pitch - 0.04) < 1e-6, `photo: clamped to its lowest (${rig.pitch})`);
   } finally { rig.dispose(); game.set(saved); }
 });
+
+test('W5-F10 mantle: a hop against a 0.45–1.6 u ledge climbs it hands first (walking into it still stops); a higher one is a wall even in a jump; a roof never is ground', async () => {
+  const k = await feetKit();
+  const ledge = (h: number) => synthWorld({ ground: x => (x >= SX + 3 ? h : 0) });
+  for (const h of [1.45, 1.55]) {
+    const T = await ledge(h);
+    try {
+      const c = new k.PlayerController();
+      k.place(c, SX, SZ);
+      k.hold(c, 1.5);
+      assert.ok(runtime.player.x < SX + 3, `${h} u: walking into it stops`);
+      assert.equal(c.mantles, 0);
+      // standing against the ledge, a hop (the stick still pushing)
+      runtime.input.jump = true;
+      let sawMantle = false, maxK = 0;
+      const p = runtime.player;
+      for (let i = 0; i < 90; i++) {
+        k.hold(c, 1 / 60, { t0: 2 + i / 60 });
+        if (c.mantle) { sawMantle = true; maxK = Math.max(maxK, c.vaultK); assert.ok(p.y <= h + 0.13, 'never above the edge by more than the pull'); }
+      }
+      assert.ok(sawMantle && c.mantles === 1, `${h} u: one mantle`);
+      assert.ok(maxK > 0.9, 'the hands go onto the edge (the vault\'s hands-first weight)');
+      assert.ok(p.x > SX + 3.2 && Math.abs(p.y - h) < 1e-6 && c.grounded, `${h} u: standing on top (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`);
+      assert.ok(T.canStand(p.x, p.z, 0.45));
+    } finally { T.setCityTerrain(null); }
+  }
+  // a ledge the hop clears (0.8 u: the body is above it when it gets there) is landed on as before, no mantle
+  let T = await ledge(0.8);
+  try {
+    const c = new k.PlayerController();
+    k.place(c, SX, SZ);
+    k.hold(c, 1.5);
+    runtime.input.jump = true;
+    k.hold(c, 1.2, { t0: 2 });
+    assert.equal(c.mantles, 0);
+    assert.ok(runtime.player.x > SX + 3 && Math.abs(runtime.player.y - 0.8) < 1e-6, 'on top');
+  } finally { T.setCityTerrain(null); }
+  // higher than FEET.mantleMax above the take-off: a wall, even in a jump (before, any jump popped onto any height)
+  T = await ledge(2.0);
+  try {
+    const c = new k.PlayerController();
+    k.place(c, SX + 1.6, SZ);
+    runtime.input.jump = true;
+    k.hold(c, 1.5);
+    assert.equal(c.mantles, 0);
+    assert.ok(runtime.player.x < SX + 3 && runtime.player.y < 0.01, `stays below (${runtime.player.x.toFixed(2)}, ${runtime.player.y.toFixed(2)})`);
+  } finally { T.setCityTerrain(null); }
+  // a step under FEET.mantleMin: the jump lands on it as before (no mantle)
+  T = await ledge(0.4);
+  try {
+    const c = new k.PlayerController();
+    k.place(c, SX + 1.6, SZ);
+    runtime.input.jump = true;
+    k.hold(c, 1.2);
+    assert.equal(c.mantles, 0);
+    assert.ok(runtime.player.x > SX + 3 && Math.abs(runtime.player.y - 0.4) < 1e-6, 'on the step');
+  } finally { T.setCityTerrain(null); }
+  // a building (a blocker with a roof 1.2 u up) is never climbed: its top is not ground
+  T = await synthWorld({ blockers: [rect(SX + 3, SZ - 10, SX + 12, SZ + 10, 1.2)] });
+  try {
+    const c = new k.PlayerController();
+    k.place(c, SX + 1.6, SZ);
+    runtime.input.jump = true;
+    k.hold(c, 1.5);
+    assert.equal(c.mantles, 0);
+    assert.ok(runtime.player.x < SX + 3, 'stays in front of the building');
+  } finally { T.setCityTerrain(null); }
+});
+
+test('checkpoint CP-12: a line ride the flow ends at its stop (the loop bus at Twin Peaks) faces the open pavement in the city, like a hop-off', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/moveSystem.ts'), 'utf8');
+  assert.match(src, /m\.endTransit\(\); platformRider\.platform = null; this\.releaseGuide\(true\);[\s\S]{0,400}if \(s\.move\.mode === 'foot' && s\.worldMode === 'city'\) faceOpen\(p\.x, p\.z\);/);
+});
+
+test('W5-F10 ride camera: the sightseeing bus and the Metro get a designed shot — behind and above the vehicle, the riders small in the lower third; the cable car keeps its side-on window shot', async () => {
+  const THREE = await import('three');
+  const { RideCamera, RIDE_TOUR } = await import('../src/opus-bay/actors/cameraModes');
+  const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+  // far from any building (no occlusion pull-in): the rig's own framing
+  const at = { x: 5000, y: 3, z: 5000 };
+  for (const kind of ['bus', 'light-rail'] as const) {
+    const cam = new RideCamera();
+    const sub = { mode: 'transit' as const, ...at, heading: 0.4, speed: 6, gradeAhead: 0, side: 1 as const, seated: false, occlude: true, kind };
+    const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 46 };
+    for (let i = 0; i < 120; i++) cam.update(sub, 1 / 30, 10 + i / 30, pose);
+    const T = RIDE_TOUR[kind]!;
+    const back = -((pose.pos.x - at.x) * Math.sin(sub.heading) + (pose.pos.z - at.z) * Math.cos(sub.heading));
+    assert.ok(back > T.dist * 0.6, `${kind}: behind the vehicle (${back.toFixed(1)} u)`);
+    assert.ok(pose.pos.y - at.y > 4, `${kind}: above it (${(pose.pos.y - at.y).toFixed(1)} u)`);
+    const yaw = Math.atan2(pose.pos.x - at.x, pose.pos.z - at.z);
+    assert.ok(Math.abs(wrapA(yaw - (sub.heading + Math.PI - T.quarter))) < 0.1, `${kind}: turned toward the view side`);
+    // the rider in the lower third of the frame (NDC y < −1/3), well inside it across — on a phone and on a desktop
+    for (const [w, h] of [[390, 844], [1440, 900]]) {
+      const c = new THREE.PerspectiveCamera(pose.fov, w / h, 0.1, 2000);
+      c.position.copy(pose.pos); c.lookAt(pose.target); c.updateMatrixWorld(); c.updateProjectionMatrix();
+      const ndc = new THREE.Vector3(at.x, at.y, at.z).project(c);
+      assert.ok(ndc.y < -1 / 3 && ndc.y > -1, `${kind} ${w}×${h}: the rider in the lower third (ndc y ${ndc.y.toFixed(2)})`);
+      assert.ok(Math.abs(ndc.x) < 0.6, `${kind} ${w}×${h}: well inside across (ndc x ${ndc.x.toFixed(2)})`);
+    }
+  }
+  // the cable car keeps the side-on window shot
+  const cam = new RideCamera();
+  const sub = { mode: 'transit' as const, ...at, heading: 0.4, speed: 6, gradeAhead: 0, side: 1 as const, seated: false, occlude: true, kind: 'cable-car' as const };
+  const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 46 };
+  for (let i = 0; i < 120; i++) cam.update(sub, 1 / 30, 10 + i / 30, pose);
+  const yaw = Math.atan2(pose.pos.x - at.x, pose.pos.z - at.z);
+  assert.ok(Math.abs(wrapA(yaw - (sub.heading + Math.PI / 2 - 0.35))) < 0.12, 'side-on as before');
+});
+
+test('W5-F10 scenic auto-glide: the pelican steers onto the bearing, holds a sightseeing height, boosts on the long straight and eases down near the end', async () => {
+  const { AUTO_GLIDE, GLIDE, GlideSim, autoGlideInput } = await import('../src/opus-bay/actors/glide');
+  const world = { heightAt: () => 0, inWorld: () => true, roofAt: () => -Infinity, landingSpot: () => null };
+  const g = new GlideSim();
+  g.x = 0; g.z = 0; g.y = 20; g.heading = 0; g.speed = GLIDE.cruise;
+  // straight ahead and far: no steer, boost, near the cruise height (the soft floor is floorClear over the ground)
+  let inp = autoGlideInput(g, { x: 0, z: 500 }, world);
+  assert.ok(Math.abs(inp.steer) < 1e-9 && inp.boost && !inp.slow);
+  assert.ok(Math.abs(inp.pitch) < 0.2, `holds about ${GLIDE.floorClear + AUTO_GLIDE.above} u (pitch ${inp.pitch.toFixed(2)})`);
+  g.y = 8;
+  assert.ok(autoGlideInput(g, { x: 0, z: 500 }, world).pitch > 0.5, 'climbs when low');
+  // off to one side: steers toward it (a negative steer turns toward +x: yaw rate −tan(roll)), no boost while turning
+  g.y = 20;
+  inp = autoGlideInput(g, { x: 300, z: 300 }, world);
+  assert.ok(inp.steer < -0.5 && !inp.boost, `turns toward +x (steer ${inp.steer.toFixed(2)})`);
+  // near the end: slows and comes down
+  inp = autoGlideInput(g, { x: 0, z: 40 }, world);
+  assert.ok(inp.slow && inp.pitch < 0, 'eases down near the end');
+});
+
+test('W5-F10 scenic auto-glide in the move system: takes off toward the destination, flies itself and lands near it (landed); a stick push hands the wings over (taken); refused when locked, too near or too far', async () => {
+  const THREE = await import('three');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { input } = await import('../src/opus-bay/core/input');
+  const { heightAt } = await import('../src/opus-bay/core/terrain');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const { MoveSystem } = await import('../src/opus-bay/actors/moveSystem');
+  const moveApi = await import('../src/opus-bay/actors/moveApi');
+  const gl = globalThis as unknown as Record<string, unknown>;
+  gl.window ??= globalThis;
+  game.set({ phase: 'playing', worldMode: 'district', move: { mode: 'foot' }, riding: null, dialogue: { nodeId: null }, panel: { kind: null } });
+  const ms = new MoveSystem(), c = new PlayerController();
+  moveApi.bindMoveApi(ms);
+  try {
+    const gate = DISTRICT.anchors['ferry-gate'], p = runtime.player;
+    const place = () => { p.x = gate.x; p.z = gate.z; p.y = heightAt(gate.x, gate.z); p.heading = 0; p.locked = false; c.sync(); };
+    place();
+    let t = 0;
+    const step = (s: number, until?: () => boolean) => {
+      for (let i = 0; i < s * 30; i++) {
+        t += 1 / 30;
+        ms.update(1 / 30, t, { cameraYaw: runtime.camera.yaw, frozen: false, playing: true, controller: c, frustum: new THREE.Frustum() });
+        c.step({ dt: 1 / 30, now: t, cameraYaw: runtime.camera.yaw, frozen: p.locked, riding: ms.carried });
+        ms.finishPlayer();
+        if (until?.()) return true;
+      }
+      return false;
+    };
+    // a destination 150–400 u away on the district's standable ground
+    const far = Object.values(DISTRICT.anchors).map(a => ({ a, d: Math.hypot(a.x - gate.x, a.z - gate.z) })).filter(o => o.d > 150 && o.d < 400 && canStand(o.a.x, o.a.z, 0.45)).sort((x, y) => x.d - y.d)[0];
+    assert.ok(far, 'a destination anchor 150–400 u away');
+    const to = { x: far.a.x, z: far.a.z };
+    assert.equal(moveApi.autoGlide(to), false, 'locked: refused');
+    ms.setGlideUnlocked(true);
+    assert.equal(moveApi.autoGlide({ x: gate.x + 20, z: gate.z }), false, 'too near');
+    assert.equal(moveApi.autoGlide({ x: gate.x + 2000, z: gate.z }), false, 'too far');
+    const ends: string[] = [];
+    assert.equal(moveApi.autoGlide(to, { onEnd: h => ends.push(h) }), true);
+    assert.ok(moveApi.autoGliding());
+    step(0.2);
+    assert.equal(ms.mode, 'glide', 'took off');
+    assert.ok(step(90, () => ends.length > 0 && ms.mode === 'foot'), `ended (${ends.join()})`);
+    assert.deepEqual(ends, ['landed']);
+    assert.ok(Math.hypot(p.x - to.x, p.z - to.z) < 45, `landed near it (${Math.hypot(p.x - to.x, p.z - to.z).toFixed(1)} u)`);
+    assert.ok(canStand(p.x, p.z, 0.45));
+    assert.ok(!moveApi.autoGliding());
+    // a stick push hands the wings over
+    place();
+    const ends2: string[] = [];
+    assert.equal(moveApi.autoGlide(to, { onEnd: h => ends2.push(h) }), true);
+    step(2.5);
+    runtime.input.moveX = 1;
+    step(0.2);
+    runtime.input.moveX = 0;
+    assert.deepEqual(ends2, ['taken']);
+    assert.equal(ms.mode, 'glide', 'still gliding, under the player\'s stick');
+    input.glideCount++;
+    step(12, () => ms.mode === 'foot');
+  } finally { runtime.input.moveX = 0; moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title', move: { mode: 'foot' } }); }
+});
