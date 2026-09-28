@@ -355,3 +355,504 @@ test('landmark helpers (D2, world/sf/landmarks/context.ts): glide tall structure
   assert.equal(ctx.sfLandmarkAnchor('no-such-landmark'), null);
   assert.ok(Array.isArray(ctx.landmarkPlazaSpots()));
 });
+
+// --- wave 5 day 0 (docs/opus-bay/sf-w5-lead.md §4; plan sf-w5-plan.md §4.2 W5-0d): the frozen contracts ---
+
+test('wave 5: the new GameEvent members travel the bus; FIND_KINDS and the reward source grammar are exact', async () => {
+  const events = await import('../src/opus-bay/core/events');
+  assert.deepEqual([...events.FIND_KINDS], ['egg', 'view', 'sound', 'pebble', 'cache', 'souvenir', 'nature']);
+  assert.deepEqual([...events.REWARD_PREFIXES], ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican']);
+  assert.equal(events.REWARD_SOURCE.source, '^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican):[a-z0-9:@-]{1,80}$', 'the plan §4.2 grammar, character for character');
+  assert.equal(events.REWARD_SOURCE.flags, '');
+  assert.equal(events.REWARD_SOURCE.source.slice(2, events.REWARD_SOURCE.source.indexOf(')')), events.REWARD_PREFIXES.join('|'), 'the prefix list is the grammar\'s');
+  for (const ok of ['arrive:coit-tower', 'postcard:sf-painted-ladies', 'egg:telegraph-hill-parrots', 'trail:filbert-steps:3', 'daily:2026-10-03:1', 'medal:slides:2', 'arrive:coit-tower@summit', `cache:${'a'.repeat(80)}`, 'pelican:unlock']) {
+    assert.ok(events.REWARD_SOURCE.test(ok), ok);
+    assert.equal(events.rewardPrefix(ok), ok.slice(0, ok.indexOf(':')));
+  }
+  for (const bad of ['', 'coins:5', 'arrive:', 'arrive:Coit', 'arrive:coit tower', 'Arrive:coit', 'shop:scarf', `cache:${'a'.repeat(81)}`, 'arrive-coit', ' arrive:coit', 'egg:parrots\n']) {
+    assert.equal(events.REWARD_SOURCE.test(bad), false, JSON.stringify(bad));
+    assert.equal(events.rewardPrefix(bad), null);
+  }
+  const sample: import('../src/opus-bay/core/events').GameEvent[] = [
+    { type: 'reward', source: 'arrive:coit-tower', coins: 10, stamp: 'coit-tower' },
+    { type: 'coins', total: 52, delta: 10, source: 'arrive:coit-tower' },
+    { type: 'find', kind: 'egg', id: 'telegraph-hill-parrots', first: true },
+    { type: 'play', activity: 'slides', what: 'end', tier: 2 },
+    { type: 'shop', what: 'buy', item: 'scarf-fog' },
+    { type: 'realsf', what: 'event-enter', id: 'hardly-strictly-bluegrass-2026' },
+    { type: 'stuck', x: 1, z: 2, what: 'pull' },
+    { type: 'self-tap', who: 'baybay', double: true },
+  ];
+  const got: import('../src/opus-bay/core/events').GameEvent[] = [];
+  const wanted = new Set(sample.map(e => e.type));
+  const off = events.onEvent(e => { if (wanted.has(e.type)) got.push(e); });
+  for (const e of sample) events.emit(e);
+  off();
+  assert.deepEqual(got, sample);
+});
+
+test('wave 5: game/playerLock.ts — the frozen API (holdLock releases once, lockHeld, lockReport, setLockRefresher)', async () => {
+  const lock = await import('../src/opus-bay/game/playerLock');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const held0 = lock.lockReport().length;
+  const release = lock.holdLock('activity', 'contract-test');
+  assert.equal(lock.lockHeld(), true);
+  assert.equal(runtime.player.locked, true);
+  const mine = lock.lockReport().filter(h => h.key === 'contract-test');
+  assert.equal(mine.length, 1);
+  assert.equal(mine[0].source, 'activity');
+  assert.ok(Number.isFinite(mine[0].since));
+  release();
+  release();
+  assert.equal(lock.lockReport().length, held0, 'released once, a second call does nothing');
+  const sources: import('../src/opus-bay/game/playerLock').LockSource[] = ['dialogue', 'fishing', 'cinema', 'ride', 'phase', 'travel', 'panel', 'activity', 'shop'];
+  for (const s of sources) lock.holdLock(s)();
+  assert.equal(lock.lockReport().length, held0);
+  assert.equal(typeof lock.setLockRefresher, 'function');
+});
+
+test('wave 5: game/bayNow.ts — Bay wall-clock parts, the ?date= parser, DST, no URL shift outside DEV / QA builds', async () => {
+  const bay = await import('../src/opus-bay/game/bayNow');
+  assert.equal(bay.BAY_TZ, 'America/Los_Angeles');
+  // Mon Sep 28 2026 12:00 PDT
+  assert.deepEqual(bay.bayParts(new Date('2026-09-28T19:00:00Z')), { year: 2026, month: 9, day: 28, hour: 12, minute: 0, weekday: 1, dateKey: '2026-09-28' });
+  // the Bay date is not the UTC date in the evening
+  assert.equal(bay.bayParts(new Date('2026-10-03T03:30:00Z')).dateKey, '2026-10-02');
+  assert.equal(bay.bayParts(new Date('2026-10-03T03:30:00Z')).weekday, 5, 'a Friday evening in SF');
+  // DST ends Sun Nov 1 2026 at 02:00 PDT: 01:30 happens twice
+  assert.deepEqual([bay.bayParts(new Date('2026-11-01T08:30:00Z')).hour, bay.bayParts(new Date('2026-11-01T09:30:00Z')).hour], [1, 1]);
+  assert.equal(bay.bayParts(new Date('2026-12-21T12:00:00Z')).hour, 4, 'PST in December');
+  assert.equal(bay.parseBayDate('2026-10-03T10:30')?.toISOString(), '2026-10-03T17:30:00.000Z');
+  assert.equal(bay.parseBayDate('2026-12-21T17:10')?.toISOString(), '2026-12-22T01:10:00.000Z');
+  assert.equal(bay.parseBayDate('2026-11-01T01:30')?.toISOString(), '2026-11-01T08:30:00.000Z', 'a repeated minute: the first (daylight) one');
+  assert.equal(bay.parseBayDate('2027-03-14T02:30')?.toISOString(), '2027-03-14T10:30:00.000Z', 'a skipped minute: an hour later (03:30 PDT)');
+  for (const bad of ['', '2026-10-03', '2026-10-03T10:30:00', '2026-13-01T00:00', '2026-02-30T10:00', '2026-10-03T24:00', '2026-10-03T10:60', '1999-01-01T00:00', 'x2026-10-03T10:30']) assert.equal(bay.parseBayDate(bad), null, bad);
+  // node is neither DEV nor a QA build: the URL never shifts the clock
+  assert.equal(bay.bayDateOverrideAllowed(), false);
+  const gl = globalThis as unknown as { location?: unknown };
+  const hadLocation = 'location' in gl, oldLocation = gl.location;
+  gl.location = { search: '?date=2020-01-01T00:00' };
+  try {
+    bay.__setBayNowForTests(null);
+    assert.ok(Math.abs(bay.bayNow().getTime() - Date.now()) < 5000, 'production: the real time');
+  } finally { if (hadLocation) gl.location = oldLocation; else delete gl.location; }
+  // tests / node QA: a shifted clock runs on from the given Bay minute
+  assert.equal(bay.__setBayNowForTests('2026-10-09T12:40'), true);
+  const now = bay.bayParts();
+  assert.deepEqual([now.year, now.month, now.day, now.hour, now.minute, now.weekday], [2026, 10, 9, 12, 40, 5]);
+  assert.equal(bay.__setBayNowForTests('nonsense'), false);
+  assert.equal(bay.bayParts().dateKey, '2026-10-09', 'a bad spec changes nothing');
+  bay.__setBayNowForTests(null);
+  assert.ok(Math.abs(bay.bayNow().getTime() - Date.now()) < 5000);
+  const p = bay.bayParts();
+  p.year = 1;
+  assert.notEqual(bay.bayParts().year, 1, 'callers get a copy of the cached parts');
+});
+test('wave 5: data/playSave.ts — the frozen format, bitsets, decodePlay clamps untrusted input (fuzz)', async () => {
+  const ps = await import('../src/opus-bay/data/playSave');
+  assert.deepEqual([...ps.PLAY_BIT_KINDS], ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page']);
+  assert.deepEqual([...ps.WEAR_SLOTS], ['baybay-scarf', 'baybay-hat', 'player-hat', 'player-pack', 'bike', 'car', 'pelican', 'frame']);
+  assert.deepEqual([ps.MAX_COINS, ps.MAX_BITSET_CHARS, ps.MAX_PLAY_BITS, ps.MAX_BESTS, ps.MAX_ONE_OFFS, ps.MAX_ONE_OFF_CHARS], [999999, 256, 1536, 32, 128, 40]);
+  // bitsets: LSB first, standard base64 alphabet, no padding, trailing zero bytes trimmed
+  assert.equal(ps.bitSet(undefined, 0), 'AQ');
+  assert.equal(ps.bitSet('', 7), 'gA');
+  assert.equal(ps.bitSet('AQ', 8), 'AQE');
+  assert.equal(ps.bitSet(undefined, 23), 'AACA');
+  let b = '';
+  const idx = [0, 1, 7, 8, 9, 63, 64, 500, 1000, 1535];
+  for (const i of idx) b = ps.bitSet(b, i);
+  for (let i = 0; i < ps.MAX_PLAY_BITS; i++) assert.equal(ps.bitGet(b, i), idx.includes(i), `bit ${i}`);
+  assert.equal(ps.bitCount(b), idx.length);
+  assert.ok(b.length <= ps.MAX_BITSET_CHARS);
+  let full = '';
+  for (let i = 0; i < ps.MAX_PLAY_BITS; i++) full = ps.bitSet(full, i);
+  assert.equal(full.length, ps.MAX_BITSET_CHARS, '1,536 bits fill exactly 256 characters');
+  assert.equal(ps.bitCount(full), ps.MAX_PLAY_BITS);
+  for (const i of [-1, 1.5, ps.MAX_PLAY_BITS, Number.NaN]) { assert.equal(ps.bitSet('AQ', i), 'AQ', `out of range ${i}`); assert.equal(ps.bitGet(full, i), false); }
+  for (const junk of ['!!', 'A', 'AQ==x', 'A'.repeat(257)]) { assert.equal(ps.bitGet(junk, 0), false, junk); assert.equal(ps.normalBits(junk), undefined, junk); }
+  assert.equal(ps.normalBits('AQ=='), 'AQ', 'padding is accepted and normalised away');
+  assert.equal(ps.normalBits('AQAA'), 'AQ', 'trailing zero bytes trimmed');
+
+  const good = {
+    v: 1, c: 42.9, g: { coin: 'AQ', egg: 'gA', bogus: 'AQ', view: '!!' }, t: { d: '2026-10-03', b: 'Bw' }, w: { 'baybay-scarf': 2, bike: 300, hat: 1 },
+    b: { slides: 18.2, 'stairs:filbert': 95, 'Bad Key': 1, nan: Number.NaN }, d: { d: '2026-10-03', m: 5 }, e: ['favour:baker', 'favour:baker', 'shop:x', 'not a source', `egg:${'a'.repeat(40)}`],
+  };
+  const out = ps.decodePlay(good)!;
+  assert.deepEqual(out, { v: 1, c: 42, g: { coin: 'AQ', egg: 'gA' }, t: { d: '2026-10-03', b: 'Bw' }, w: { 'baybay-scarf': 2 }, b: { slides: 18.2, 'stairs:filbert': 95 }, d: { d: '2026-10-03', m: 5 }, e: ['favour:baker', 'shop:x'] });
+  assert.deepEqual(ps.decodePlay(JSON.parse(JSON.stringify(out))), out, 'round trip');
+  for (const raw of [undefined, null, 1, 'x', [], {}, { v: 2 }, { v: '1' }]) assert.equal(ps.decodePlay(raw), undefined, JSON.stringify(raw));
+  assert.equal(ps.decodePlay({ v: 1, c: -5 })!.c, 0);
+  assert.equal(ps.decodePlay({ v: 1, c: 5e9 })!.c, ps.MAX_COINS);
+  assert.equal(ps.decodePlay({ v: 1, c: Infinity })!.c, 0);
+  assert.equal(Object.keys(ps.decodePlay({ v: 1, c: 0, b: Object.fromEntries(Array.from({ length: 99 }, (_, i) => [`k${i}`, i])) })!.b!).length, ps.MAX_BESTS);
+  assert.equal(ps.decodePlay({ v: 1, c: 0, e: Array.from({ length: 300 }, (_, i) => `egg:e${i}`) })!.e!.length, ps.MAX_ONE_OFFS);
+  assert.deepEqual(ps.emptyPlay(), { v: 1, c: 0, g: {} });
+
+  // fuzz: never throws; the output is always valid and a fixed point of the decoder
+  let seed = 11;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const junk = (): unknown => {
+    const r = rnd();
+    if (r < 0.08) return null;
+    if (r < 0.16) return rnd() * 2e6 - 1e6;
+    if (r < 0.22) return [Number.NaN, Infinity, -Infinity, -0, 2 ** 53][Math.floor(rnd() * 5)];
+    if (r < 0.32) return 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=!'.slice(Math.floor(rnd() * 60)).repeat(1 + Math.floor(rnd() * 6));
+    if (r < 0.4) return [junk(), junk(), `egg:x${Math.floor(rnd() * 9)}`];
+    if (r < 0.5) return { d: rnd() < 0.5 ? '2026-10-03' : junk(), b: junk(), m: junk() };
+    if (r < 0.58) return true;
+    if (r < 0.66) return { __proto__: { v: 1 }, constructor: 1 };
+    if (r < 0.8) return Object.fromEntries([...ps.PLAY_BIT_KINDS, ...ps.WEAR_SLOTS].filter(() => rnd() < 0.3).map(k => [k, rnd() < 0.5 ? junk() : Math.floor(rnd() * 400)]));
+    return `id-${Math.floor(rnd() * 99)}`;
+  };
+  const keys = ['v', 'c', 'g', 't', 'w', 'b', 'd', 'e'] as const;
+  for (let i = 0; i < 3000; i++) {
+    const s: Record<string, unknown> = JSON.parse(JSON.stringify(out));
+    for (let m = 0; m < 1 + Math.floor(rnd() * 4); m++) {
+      const k = keys[Math.floor(rnd() * keys.length)];
+      if (k === 'v' && rnd() < 0.8) continue;
+      if (rnd() < 0.5 && s[k] && typeof s[k] === 'object') { const o = s[k] as Record<string, unknown>; const ks = Object.keys(o); if (ks.length) o[ks[Math.floor(rnd() * ks.length)]] = junk(); }
+      else s[k] = junk();
+    }
+    let p: ReturnType<typeof ps.decodePlay>;
+    assert.doesNotThrow(() => { p = ps.decodePlay(rnd() < 0.3 ? JSON.parse(JSON.stringify(s)) : s); });
+    const v = p!;
+    if (!v) continue;
+    assert.equal(v.v, 1);
+    assert.ok(Number.isInteger(v.c) && v.c >= 0 && v.c <= ps.MAX_COINS);
+    for (const [k, bits] of Object.entries(v.g)) { assert.ok((ps.PLAY_BIT_KINDS as readonly string[]).includes(k)); assert.equal(ps.normalBits(bits), bits); assert.ok(bits!.length <= ps.MAX_BITSET_CHARS && bits!.length > 0); }
+    if (v.t) { assert.match(v.t.d, ps.PLAY_DATE_RE); assert.equal(ps.normalBits(v.t.b), v.t.b); }
+    for (const [k, n] of Object.entries(v.w ?? {})) { assert.ok((ps.WEAR_SLOTS as readonly string[]).includes(k)); assert.ok(Number.isInteger(n) && n! >= 0 && n! <= ps.MAX_WEAR_INDEX); }
+    assert.ok(Object.values(v.b ?? {}).every(Number.isFinite) && Object.keys(v.b ?? {}).length <= ps.MAX_BESTS);
+    if (v.d) { assert.match(v.d.d, ps.PLAY_DATE_RE); assert.ok(Number.isInteger(v.d.m) && v.d.m >= 0 && v.d.m <= 255); }
+    if (v.e) { assert.ok(v.e.length <= ps.MAX_ONE_OFFS && new Set(v.e).size === v.e.length); for (const id of v.e) assert.ok(id.length <= ps.MAX_ONE_OFF_CHARS && ps.ONE_OFF_RE.test(id)); }
+    assert.deepEqual(ps.decodePlay(JSON.parse(JSON.stringify(v))), v, 'a fixed point');
+  }
+});
+
+test('wave 5: data/save.ts — SaveV2.play is decoded; encodeSave trims discovered then arrivals and never drops play / unlocked / tours / lastSafe (the size test at every cap)', async () => {
+  const sv = await import('../src/opus-bay/data/save');
+  const ps = await import('../src/opus-bay/data/playSave');
+  assert.deepEqual([sv.SAVE_MAX_BYTES, sv.SAVE_TRIM_DISCOVERED, sv.SAVE_TRIM_ARRIVALS, sv.MAX_DISCOVERED, sv.MAX_ARRIVALS, sv.MAX_TOUR_SAVES], [65536, 500, 128, 2000, 512, 8]);
+  const s0 = sv.decodeSave({ version: 2, play: { v: 1, c: 12, g: { egg: 'AQ' } } })!;
+  assert.deepEqual(s0.play, { v: 1, c: 12, g: { egg: 'AQ' } });
+  assert.equal(sv.decodeSave({ version: 2, play: { v: 9, c: 12 } })!.play, undefined, 'an unknown play version is dropped, the save stays');
+  assert.deepEqual(sv.decodeSave(sv.encodeSave(s0)), s0, 'round trip');
+
+  // the largest play block the decoder lets through
+  let bits = '';
+  for (let i = 0; i < ps.MAX_PLAY_BITS; i++) bits = ps.bitSet(bits, i);
+  const fullPlay = ps.decodePlay({
+    v: 1, c: ps.MAX_COINS, g: Object.fromEntries(ps.PLAY_BIT_KINDS.map(k => [k, bits])), t: { d: '2026-10-03', b: bits },
+    w: Object.fromEntries(ps.WEAR_SLOTS.map(k => [k, ps.MAX_WEAR_INDEX])), b: Object.fromEntries(Array.from({ length: ps.MAX_BESTS }, (_, i) => [`${'k'.repeat(36)}${String(i).padStart(4, '0')}`, -123456789.123456])),
+    d: { d: '2026-10-03', m: 255 }, e: Array.from({ length: ps.MAX_ONE_OFFS }, (_, i) => `egg:${String(i).padStart(36, 'x')}`),
+  })!;
+  assert.equal(Object.keys(fullPlay.g).length, ps.PLAY_BIT_KINDS.length);
+  assert.equal(fullPlay.e!.length, ps.MAX_ONE_OFFS);
+  assert.equal(Object.keys(fullPlay.b!).length, ps.MAX_BESTS);
+  const id = (n: number, len: number) => `${'p'.repeat(Math.max(0, len - 6))}${String(n).padStart(6, '0')}`.slice(-len);
+  const tours = (len: number) => Object.fromEntries(Array.from({ length: sv.MAX_TOUR_SAVES }, (_, t) => [`t${t}${'x'.repeat(40)}`.slice(0, len), { chapter: 32, stop: 32, completed: Array.from({ length: 64 }, (_, k) => `s${String(k).padStart(2, '0')}${'y'.repeat(40)}`.slice(0, len)), express: true }]));
+  const arrival = (n: number, len: number) => len > 64 ? `a${String(n).padStart(5, '0')}${'z'.repeat(58)}@${'s'.repeat(24)}` : `a${String(n).padStart(5, '0')}${'z'.repeat(58)}`.slice(0, len);
+  for (const c of [{ name: 'realistic ids', idLen: 16, arrLen: 24, tourLen: 20 }, { name: 'the longest ids', idLen: 80, arrLen: 89, tourLen: 40 }]) {
+    const save: import('../src/opus-bay/data/save').SaveV2 = {
+      version: 2, lastSafe: { world: 'city', x: 120.5, z: 640, heading: 1, zone: 'mission' },
+      discovered: Array.from({ length: sv.MAX_DISCOVERED }, (_, i) => id(i, c.idLen)),
+      zones: Array.from({ length: sv.MAX_ZONES }, (_, i) => id(i, c.idLen)),
+      rides: Object.fromEntries(Array.from({ length: sv.MAX_RIDE_LINES }, (_, i) => [id(i, c.idLen), 999999])),
+      vehicles: { bike: { id: id(1, c.idLen), x: 1, z: 2, heading: 0 }, car: { x: 3, z: 4, heading: 0 } },
+      unlocked: { glide: true }, tours: tours(c.tourLen), arrivals: Array.from({ length: sv.MAX_ARRIVALS }, (_, i) => arrival(i, c.arrLen)),
+      play: fullPlay, savedAt: 1790000000000,
+    };
+    const input = sv.decodeSave(save)!;
+    assert.equal(input.discovered!.length, sv.MAX_DISCOVERED, `${c.name}: the input sits at every cap`);
+    assert.equal(input.arrivals!.length, sv.MAX_ARRIVALS, c.name);
+    assert.equal(Object.keys(input.tours!).length, sv.MAX_TOUR_SAVES, c.name);
+    const text = sv.encodeSave(input);
+    assert.ok(text.length <= sv.SAVE_MAX_BYTES, `${c.name}: ${text.length} ≤ 64 KB`);
+    const back = sv.decodeSave(text)!;
+    assert.ok(back, `${c.name}: the written save reads back`);
+    assert.deepEqual(back.play, input.play, `${c.name}: play kept whole`);
+    assert.deepEqual(back.unlocked, { glide: true }, c.name);
+    assert.deepEqual(back.tours, input.tours, `${c.name}: tours kept whole`);
+    assert.deepEqual(back.lastSafe, input.lastSafe, c.name);
+    assert.equal(back.savedAt, input.savedAt, c.name);
+    // what was trimmed is the oldest part, in the plan's order (discovered first, then arrivals)
+    if (back.discovered) assert.deepEqual(back.discovered, input.discovered!.slice(-back.discovered.length), `${c.name}: the newest discoveries kept`);
+    if (back.arrivals) {
+      if (back.arrivals.length < sv.MAX_ARRIVALS) assert.ok(!back.discovered || back.discovered.length <= sv.SAVE_TRIM_DISCOVERED, `${c.name}: arrivals are trimmed only after discovered`);
+      assert.deepEqual(back.arrivals, input.arrivals!.slice(-back.arrivals.length), `${c.name}: the newest arrivals kept`);
+    }
+  }
+  // realistic ids at the caps: only the discoveries are trimmed (to the newest 500), everything else stays
+  const real = sv.decodeSave(sv.encodeSave(sv.decodeSave({
+    version: 2, discovered: Array.from({ length: sv.MAX_DISCOVERED }, (_, i) => id(i, 24)), arrivals: Array.from({ length: sv.MAX_ARRIVALS }, (_, i) => arrival(i, 30)),
+    tours: tours(20), play: fullPlay, unlocked: { glide: true }, lastSafe: { world: 'city', x: 0, z: 0, heading: 0 },
+  })!))!;
+  assert.equal(real.discovered!.length, sv.SAVE_TRIM_DISCOVERED);
+  assert.equal(real.arrivals!.length, sv.MAX_ARRIVALS);
+  // the essentials alone, at their longest, stay far below the cap
+  const essentials = JSON.stringify({ version: 2, lastSafe: { world: 'district', x: -1024.123456789, z: 2176.123456789, heading: -3.14159265358979, zone: 'z'.repeat(80) }, unlocked: { glide: true }, tours: tours(40), play: fullPlay, savedAt: 1790000000000 });
+  assert.ok(essentials.length < sv.SAVE_MAX_BYTES * 0.75, `the kept core is ${essentials.length} characters`);
+});
+test('wave 5: ui/slots.ts — registries (order, last wins, unregister), overlays, the Journal request, ask items', async () => {
+  const slots = await import('../src/opus-bay/ui/slots');
+  assert.deepEqual({ ...slots.JOURNAL_BUILTIN_ORDER }, { cards: 10, goals: 20, wish: 30, steps: 40 });
+  assert.deepEqual({ ...slots.MORE_BUILTIN_ORDER }, { photo: 10, settings: 90 });
+  const Icon = () => null;
+  const base = slots.moreItems.list().length;
+  let changes = 0;
+  const unsub = slots.moreItems.subscribe(() => { changes++; });
+  const offB = slots.registerMoreItem({ id: 'w5-test-b', order: 50, label: { zh: '乙', en: 'B' }, icon: Icon, onSelect: () => undefined });
+  const offA = slots.registerMoreItem({ id: 'w5-test-a', order: 20, label: { zh: '甲', en: 'A' }, icon: Icon, onSelect: () => undefined });
+  const snap = slots.moreItems.list();
+  assert.equal(slots.moreItems.list(), snap, 'a stable snapshot until something changes');
+  assert.deepEqual(snap.filter(m => m.id.startsWith('w5-test')).map(m => m.id), ['w5-test-a', 'w5-test-b'], 'by order');
+  let picked = '';
+  const offA2 = slots.registerMoreItem({ id: 'w5-test-a', order: 60, label: { zh: '甲2', en: 'A2' }, icon: Icon, onSelect: () => { picked = 'a2'; } });
+  assert.deepEqual(slots.moreItems.list().filter(m => m.id.startsWith('w5-test')).map(m => m.id), ['w5-test-b', 'w5-test-a'], 'the same id again: the last wins');
+  offA();
+  assert.ok(slots.moreItems.get('w5-test-a'), 'the earlier unregister no longer removes the replacement');
+  slots.runMoreItem('w5-test-a');
+  assert.equal(picked, 'a2');
+  offA2(); offB();
+  assert.equal(slots.moreItems.list().length, base);
+  assert.ok(changes >= 5);
+  unsub();
+
+  // overlays: only registered ids open; reopening moves to the top; Escape closes the most recent; unregistering closes
+  const Comp = () => null;
+  slots.openOverlay('w5-test-none');
+  assert.equal(slots.openOverlays().some(o => o.id === 'w5-test-none'), false);
+  const offO1 = slots.registerOverlay({ id: 'w5-test-o1', Component: Comp });
+  const offO2 = slots.registerOverlay({ id: 'w5-test-o2', Component: Comp });
+  slots.openOverlay('w5-test-o1', { n: 1 });
+  slots.openOverlay('w5-test-o2');
+  slots.openOverlay('w5-test-o1', { n: 2 });
+  assert.deepEqual(slots.openOverlays().filter(o => o.id.startsWith('w5-test')), [{ id: 'w5-test-o2' }, { id: 'w5-test-o1', props: { n: 2 } }]);
+  assert.equal(slots.closeTopOverlay(), true);
+  assert.deepEqual(slots.openOverlays().map(o => o.id), ['w5-test-o2']);
+  offO2();
+  assert.deepEqual(slots.openOverlays(), [], 'unregistering an open overlay closes it');
+  assert.equal(slots.closeTopOverlay(), false);
+  offO1();
+
+  // ask items: visible() asked each time (a throwing one hides its item); runAskItem contains a throwing onSelect
+  let ran = 0;
+  const offK1 = slots.registerAskItem({ id: 'w5-test-k1', order: -1, label: { zh: '挥手', en: 'Wave' }, icon: Icon, onSelect: () => { ran++; } });
+  const offK2 = slots.registerAskItem({ id: 'w5-test-k2', order: 5, label: { zh: '带我去', en: 'Take me' }, icon: Icon, onSelect: () => { throw new Error('boom'); }, visible: () => { throw new Error('no'); } });
+  assert.deepEqual(slots.visibleAskItems().filter(a => a.id.startsWith('w5-test')).map(a => a.id), ['w5-test-k1']);
+  assert.equal(slots.runAskItem('w5-test-k1'), true);
+  assert.equal(ran, 1);
+  assert.equal(slots.runAskItem('w5-test-k2'), true, 'a throwing onSelect is contained');
+  assert.equal(slots.runAskItem('w5-test-nope'), false);
+  offK1(); offK2();
+
+  // openJournal: flow binds the opener (panel 'journal' with the tab as its id); every request bumps seq
+  const before = game.get().panel;
+  const seq = slots.lastJournalRequest().seq;
+  slots.openJournal('goals');
+  assert.deepEqual(game.get().panel, { kind: 'journal', id: 'goals' });
+  assert.deepEqual(slots.lastJournalRequest(), { tab: 'goals', seq: seq + 1 });
+  slots.openJournal('goals');
+  assert.equal(slots.lastJournalRequest().seq, seq + 2, 'the same tab again is a new request');
+  flowMod.closePanel();
+  game.set({ panel: before });
+});
+
+test('wave 5: the render points — the pill badge and the desktop 更多 (Hud), a registered Journal tab, the ask items in 问 BAYBAY, the act dispatch', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const slots = await import('../src/opus-bay/ui/slots');
+  // the UI modules import their stylesheets: stub .css while loading them (as tests/opus-bay-sf-guide-review.test.ts)
+  const { registerHooks } = await import('node:module');
+  const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+  const { Hud } = await import('../src/opus-bay/ui/Hud');
+  const { Journal } = await import('../src/opus-bay/ui/Journal');
+  styles.deregister();
+  const saved = { mode: game.get().mode, phase: game.get().phase, panel: game.get().panel };
+  try {
+    game.set({ mode: 'free', phase: 'playing' });
+    const plain = renderToStaticMarkup(h(Hud));
+    assert.doesNotMatch(plain, /ob-pill-badge|ob-hud-more/, 'nothing registered: the HUD is as before');
+    const Coins = () => h('span', null, '🪙 42');
+    const offBadge = slots.registerPillBadge({ id: 'w5-test-coins', order: 0, Component: Coins });
+    const offMore = slots.registerMoreItem({ id: 'w5-test-shop', order: 50, label: { zh: '小铺', en: 'Shop' }, icon: () => null, onSelect: () => undefined });
+    const withSlots = renderToStaticMarkup(h(Hud));
+    assert.match(withSlots, /<em>[^<]*<\/em><span class="ob-pill-badges"><span class="ob-pill-badge"><span>🪙 42<\/span><\/span><\/span><\/strong>/, 'the badge sits inside the pill after 明信片 n/m');
+    assert.match(withSlots, /class="ob-hud-more"/, 'desktop: the 更多 button appears with a registered item');
+    offBadge(); offMore();
+    assert.equal(renderToStaticMarkup(h(Hud)), plain, 'unregistered: exactly as before');
+
+    const offTab = slots.registerJournalTab({ id: 'w5-test-today', order: 0, label: { zh: '今天', en: 'Today' }, icon: () => null, count: () => '3', load: async () => ({ default: () => null }) });
+    game.set({ panel: { kind: 'journal', id: 'w5-test-today' } });
+    const journal = renderToStaticMarkup(h(Journal));
+    const tabs = [...journal.matchAll(/role="tab" aria-selected="(true|false)"[^>]*>(?:<svg[\s\S]*?<\/svg>)?<span>([^<]+)<\/span>/g)].map(m => `${m[2]}${m[1] === 'true' ? '*' : ''}`);
+    assert.deepEqual(tabs.slice(0, 4), ['今天*', '明信片', '目标', '想去'], 'the registered tab by its order, opened on it through the panel id');
+    assert.match(journal, /翻开中…/, 'its body is loading');
+    offTab();
+  } finally { game.set(saved); }
+
+  // 问 BAYBAY: order < 0 on top, order ≥ 0 before 打开地图; choosing one runs it and closes the menu
+  let chosen = '';
+  const offTop = slots.registerAskItem({ id: 'w5-test-emote', order: -10, label: { zh: '跳个舞', en: 'Dance' }, icon: () => null, onSelect: () => { chosen = 'emote'; } });
+  const offGo = slots.registerAskItem({ id: 'w5-test-go', order: 10, label: { zh: '带我去', en: 'Take me' }, icon: () => null, onSelect: () => { chosen = 'go'; } });
+  const offHidden = slots.registerAskItem({ id: 'w5-test-hidden', order: 1, label: { zh: '藏', en: 'Hidden' }, icon: () => null, onSelect: () => undefined, visible: () => false });
+  try {
+    flowMod.openCallMenu();
+    const menu = flowMod.nodeById(game.get().dialogue.nodeId)!;
+    const labels = menu.choices!.map(c => c.label.zh);
+    assert.equal(labels[0], '跳个舞');
+    assert.ok(!labels.includes('藏'));
+    assert.equal(labels.indexOf('带我去'), labels.indexOf('打开地图') - 1);
+    assert.deepEqual(menu.choices![labels.indexOf('带我去')].action, { type: 'ask', id: 'w5-test-go' });
+    flowMod.runAction({ type: 'ask', id: 'w5-test-go' });
+    assert.equal(chosen, 'go');
+    assert.equal(game.get().dialogue.nodeId, null, 'the menu closed');
+  } finally { offTop(); offGo(); offHidden(); flowMod.closeDialogue(); }
+  flowMod.openCallMenu();
+  assert.equal(flowMod.nodeById(game.get().dialogue.nodeId)!.choices!.some(c => c.action?.type === 'ask'), false, 'nothing registered: no ask choice');
+  flowMod.closeDialogue();
+
+  // the act dispatch: the four new sources run act() (and nothing else); an old source never does
+  assert.deepEqual([...flowMod.ACT_SOURCES].sort(), ['activity', 'event', 'find', 'shop']);
+  const base = inter.interactables();
+  const phase = game.get().phase;
+  const acted: string[] = [];
+  const mk = (id: string, source: import('../src/opus-bay/game/interactables').InteractableSource): import('../src/opus-bay/game/interactables').Interactable => ({ id, source, action: 'info', verb: { zh: '滑下去', en: 'Slide' }, name: { zh: '滑梯', en: 'Slides' }, x: 0, z: 0, radius: 2, act: () => { acted.push(id); } });
+  try {
+    game.set({ phase: 'playing' });
+    inter.setInteractables([...base, mk('w5-test-activity', 'activity'), mk('w5-test-find', 'find'), mk('w5-test-shop', 'shop'), mk('w5-test-event', 'event'), mk('w5-test-poi', 'poi')]);
+    for (const id of ['w5-test-activity', 'w5-test-find', 'w5-test-shop', 'w5-test-event', 'w5-test-poi']) flowMod.performInteraction(id);
+    assert.deepEqual(acted, ['w5-test-activity', 'w5-test-find', 'w5-test-shop', 'w5-test-event']);
+  } finally { inter.setInteractables(base); game.set({ phase }); }
+});
+
+test('wave 5: actors/charApi.ts — the frozen emote list; null until lane F registers', async () => {
+  const ca = await import('../src/opus-bay/actors/charApi');
+  assert.deepEqual([...ca.EMOTES], ['wave', 'cheer', 'clap', 'point', 'pose', 'dance', 'lie', 'sit', 'float', 'pet']);
+  assert.equal(ca.charApi(), null);
+  const calls: string[] = [];
+  const stub: import('../src/opus-bay/actors/charApi').CharApi = {
+    emote: (who, name) => { calls.push(`${who}:${name}`); }, sitGround: () => true, stand: () => undefined, attach: () => undefined,
+    tint: () => undefined, vehiclePaint: () => undefined, glideSoftBox: () => undefined,
+  };
+  ca.setCharApi(stub);
+  ca.charApi()?.emote('baybay', 'dance', { loop: true, seconds: 2 });
+  assert.deepEqual(calls, ['baybay:dance']);
+  ca.setCharApi(null);
+  assert.equal(ca.charApi(), null);
+});
+
+test('wave 5: audio/hooks.ts — sounds and loops reach the bound engine only while live; audioNow; duck', async () => {
+  const ah = await import('../src/opus-bay/audio/hooks');
+  const ducks: [number, number][] = [];
+  const ctx = { state: 'running', currentTime: 12.5 };
+  const bus = () => ({ duck: (a: number, until: number) => { ducks.push([a, until]); } });
+  const engine = { ctx, get now() { return ctx.currentTime; }, buses: { music: bus(), ambience: bus(), sfx: bus(), voice: bus() } } as unknown as import('../src/opus-bay/audio/engine').AudioEngine;
+  const played: unknown[] = [];
+  const off = ah.registerSound('w5-test-chime', (_e, opts) => { played.push(opts); });
+  // before audio is live: nothing plays, and the clock is the performance clock (seconds)
+  ah.playSound('w5-test-chime');
+  assert.deepEqual(played, []);
+  assert.ok(Math.abs(ah.audioNow() - performance.now() / 1000) < 1);
+  let live = true;
+  ah.bindAudioHooks(engine, () => live);
+  ah.playSound('w5-test-chime', { gain: 0.5, pitch: 1.2 });
+  ah.playSound('w5-test-unknown');
+  assert.deepEqual(played, [{ gain: 0.5, pitch: 1.2 }]);
+  assert.equal(ah.audioNow(), 12.5, 'AudioContext time while running');
+  ah.duck('music', 0.4, 2000);
+  assert.deepEqual(ducks, [[0.4, 14.5]]);
+  live = false;
+  ah.playSound('w5-test-chime');
+  assert.equal(played.length, 1, 'sound off / suspended: nothing');
+  live = true;
+  const off2 = ah.registerSound('w5-test-bad', () => { throw new Error('recipe'); });
+  assert.doesNotThrow(() => ah.playSound('w5-test-bad'));
+
+  // loops: built on the first gain > 0, faded at the tick, stopped (released) after fading to 0
+  const log: string[] = [];
+  const offLoop = ah.registerLoop('w5-test-banjo', () => { log.push('build'); return { setGain: g => { log.push(`g${g.toFixed(2)}`); }, stop: () => { log.push('stop'); } }; });
+  ah.stepAudioHooks(0.1);
+  assert.deepEqual(log, [], 'gain 0: never built');
+  ah.setLoop('w5-test-banjo', 1, 200);
+  ah.stepAudioHooks(0.1);
+  ah.stepAudioHooks(0.1);
+  ah.stepAudioHooks(0.1);
+  assert.deepEqual(log, ['build', 'g0.50', 'g1.00']);
+  assert.deepEqual(ah.audioHooksStats().running, ['w5-test-banjo']);
+  ah.setLoop('w5-test-banjo', 0, 0);
+  ah.stepAudioHooks(0.1);
+  assert.deepEqual(log.slice(3), ['g0.00', 'stop']);
+  ah.setLoop('w5-test-banjo', 0.5, 0);
+  ah.stepAudioHooks(0.1);
+  assert.deepEqual(log.slice(5), ['build', 'g0.50']);
+  ah.bindAudioHooks(null);
+  assert.deepEqual(log.slice(7), ['stop'], 'teardown stops every loop');
+  assert.ok(Math.abs(ah.audioNow() - performance.now() / 1000) < 1, 'unbound: the performance clock again');
+  offLoop(); off(); off2();
+  assert.equal(ah.audioHooksStats().loops, 0);
+});
+
+test('wave 5: game/w5Features.ts — the frozen four, the economy initialised first, failures contained, teardown in reverse', async () => {
+  const w5 = await import('../src/opus-bay/game/w5Features');
+  assert.deepEqual([...w5.W5_FEATURES], ['economy', 'play', 'eggs', 'realsf']);
+  assert.deepEqual(Object.keys(w5.W5_LOADERS), [...w5.W5_FEATURES]);
+  const log: string[] = [];
+  const later = <T,>(ms: number, v: T) => new Promise<T>(r => setTimeout(() => r(v), ms));
+  const feature = (id: string) => ({ init: () => { log.push(`init:${id}`); return () => { log.push(`off:${id}`); }; } });
+  const { off, ready } = w5.initW5Features({
+    economy: () => later(30, feature('economy')),
+    play: () => later(1, feature('play')),
+    eggs: () => Promise.reject(new Error('chunk failed')),
+    realsf: () => later(5, { init: () => { throw new Error('init failed'); } }),
+  });
+  await ready;
+  assert.deepEqual(log, ['init:economy', 'init:play'], 'the economy first although it loaded last; a failed load or init stops nothing else');
+  off();
+  assert.deepEqual(log.slice(2), ['off:play', 'off:economy']);
+  off();
+  assert.equal(log.length, 4, 'teardown once');
+  // torn down before the chunks arrive: nothing starts
+  const r2 = w5.initW5Features({ economy: () => later(5, feature('e2')), play: () => later(5, feature('p2')), eggs: () => later(5, feature('g2')), realsf: () => later(5, feature('r2')) });
+  r2.off();
+  await r2.ready;
+  assert.equal(log.length, 4);
+  // the real day-0 stubs: init() returns its undo, harmless
+  for (const id of w5.W5_FEATURES) {
+    const m = await w5.W5_LOADERS[id]();
+    const undo = m.init();
+    assert.equal(typeof undo, 'function', id);
+    undo();
+  }
+});
+
+test('wave 5: the four feature folders stay out of the GameRoot graph (dynamic imports only, through game/w5Features.ts)', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const root = path.resolve('src/opus-bay');
+  const spec = /^\s*(?:import|export)\s+(?!type\s)(?:[^'";]*?\sfrom\s+)?['"](\.[^'"]+)['"]/gm;
+  const rel = (p: string) => path.relative(root, p).split(path.sep).join('/');
+  const resolve = (from: string, s: string) => {
+    const b = path.resolve(path.dirname(from), s);
+    for (const c of [b, `${b}.ts`, `${b}.tsx`, path.join(b, 'index.ts'), path.join(b, 'index.tsx')]) if (fs.existsSync(c) && fs.statSync(c).isFile()) return c;
+    return null;
+  };
+  const start = path.join(root, 'game/GameRoot.tsx');
+  const seen = new Set<string>([rel(start)]);
+  const queue = [start];
+  while (queue.length) {
+    const f = queue.shift()!;
+    for (const m of fs.readFileSync(f, 'utf8').matchAll(spec)) {
+      const r = resolve(f, m[1]);
+      if (r && !seen.has(rel(r))) { seen.add(rel(r)); queue.push(r); }
+    }
+  }
+  assert.ok(seen.has('game/cityContent.ts') && seen.has('game/w5Features.ts') && seen.has('ui/slots.ts'), 'the day-0 glue is in the main graph');
+  assert.deepEqual([...seen].filter(m => /^(economy|play|eggs|realsf)\//.test(m)), [], 'the feature folders are lazy chunks');
+  const glue = fs.readFileSync(path.join(root, 'game/w5Features.ts'), 'utf8');
+  for (const dir of ['economy', 'play', 'eggs', 'realsf']) {
+    assert.ok(fs.existsSync(path.join(root, dir, 'index.ts')), `${dir}/index.ts exists`);
+    assert.match(glue, new RegExp(`import\\('\\.\\./${dir}/index'\\)`), dir);
+  }
+  assert.match(fs.readFileSync(path.join(root, 'game/cityContent.ts'), 'utf8'), /const w5 = initW5Features\(\);/, 'started once from initCityContent (it returns early in district mode)');
+});

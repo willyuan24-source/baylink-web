@@ -9,6 +9,7 @@ import { NPC_POSTS } from '../game/interactables';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { portraitSrc, useDevice, useWindowKey } from './hooks';
+import { askItems } from './slots';
 import './content-ui.css';
 
 /** Bottom dialogue box: portrait, name, typewriter text (skippable), choices with number hotkeys. */
@@ -121,7 +122,7 @@ function DialogueBox({ node }: { node: DialogueNode }) {
               <button key={i} type="button" className="ob-choice" onClick={() => { noteInteractHandled(); chooseDialogue(i); }} tabIndex={done ? 0 : -1}>
                 <span className="ob-choice-key">{choice.hotkey ?? i + 1}</span>
                 <span className="ob-choice-label">
-                  <span>{t(choice.label)}</span>
+                  <span>{choice.action?.type === 'ask' && <AskIcon id={choice.action.id} />}{t(choice.label)}</span>
                   {CHOICE_SUBS[`${node.id}:${choice.hotkey ?? i + 1}`] && <small className="ob-choice-sub">{t(CHOICE_SUBS[`${node.id}:${choice.hotkey ?? i + 1}`])}</small>}
                 </span>
               </button>
@@ -137,6 +138,12 @@ function DialogueBox({ node }: { node: DialogueNode }) {
       </div>
     </div>
   );
+}
+
+/** Wave 5 · a registered 问 BAYBAY item's icon (ui/slots.ts registerAskItem), before its label. */
+function AskIcon({ id }: { id: string }) {
+  const Icon = askItems.get(id)?.icon;
+  return Icon ? <span className="ob-choice-icon" aria-hidden><Icon /></span> : null;
 }
 
 /** Which resident is speaking: from the node id (npc.<key>, flow.npc.<key>) or the speaker's name. */

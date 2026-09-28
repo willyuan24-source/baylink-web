@@ -12,8 +12,14 @@ import { POSTCARDS } from '../data/postcards';
  * time — this module only relies on the shared types.
  */
 
-/** 'transit' = lane F's city stations (action 'streetcar'); 'place' = lane G1's places resolved by setExtraResolver */
-export type InteractableSource = 'poi' | 'postcard' | 'npc' | 'baybay' | 'streetcar' | 'board' | 'vehicle' | 'seat' | 'transit' | 'place';
+/**
+ * 'transit' = lane F's city stations (action 'streetcar'); 'place' = lane G1's places resolved by setExtraResolver.
+ * Wave 5 (day 0, frozen with plan sf-w5-plan.md §4.2): 'activity' (lane A's PlayKit starts), 'find' (lane D's eggs, A's
+ * view spots), 'shop' (lane E's stall), 'event' (lane R's event kits). For these four sources game/flow.ts
+ * performInteraction calls the interactable's `act()` instead of the built-in action switch (flow ACT_SOURCES); `action`
+ * still picks the prompt's icon (use 'info' when nothing fits) and `verb` is the button label (滑下去 · 比赛？ · 摇铃).
+ */
+export type InteractableSource = 'poi' | 'postcard' | 'npc' | 'baybay' | 'streetcar' | 'board' | 'vehicle' | 'seat' | 'transit' | 'place' | 'activity' | 'find' | 'shop' | 'event';
 
 export interface Interactable {
   id: string;
@@ -31,6 +37,8 @@ export interface Interactable {
   /** streetcar stop id / postcard id */
   refId?: string;
   nodeId?: string;
+  /** wave 5: what E / the button does for the 'activity' · 'find' · 'shop' · 'event' sources (flow calls it; nothing else runs) */
+  act?: () => void;
 }
 
 export const BAYBAY_ID = 'baybay';

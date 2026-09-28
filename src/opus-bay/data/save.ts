@@ -12,7 +12,13 @@
  *   clearSave()            Settings → reset progress
  *
  * Progress v1 (`opus-bay:progress:v1`) and the wishlist key are untouched. `?save=off` disables every write (QA).
+ *
+ * Wave 5 (day 0, plan sf-w5-plan.md MF5): `play` (coins, finds, wearables, bests; the frozen format of data/playSave.ts,
+ * written by lane E's ledger) is decoded here as untrusted input, and the encoder never loses progress to the 64 KB cap:
+ * it trims `discovered` (→ 500, the newest kept), then `arrivals` (→ 128), and only then drops the re-learnable rows;
+ * `play`, `unlocked`, `tours` and `lastSafe` are never dropped (encodeSave below).
  */
+import { decodePlay, type PlaySaveV1 } from './playSave';
 
 export const SAVE_KEY = 'opus-bay:save:v2';
 export const SAVE_MAX_BYTES = 64 * 1024;
@@ -44,6 +50,8 @@ export interface SaveV2 {
   tours?: Record<string, SaveTourProgress>;
   /** Wave 4 · lane C: arrival moments already had (`<attraction>` or `<attraction>@<spot>`, ≤ 512; game/arrival.ts) */
   arrivals?: string[];
+  /** Wave 5 · lane E: coins, finds, wearables, bests, the daily three (frozen format: data/playSave.ts) */
+  play?: PlaySaveV1;
   /** ms since epoch of the last write */
   savedAt?: number;
 }
@@ -160,16 +168,38 @@ export function decodeSave(raw: unknown): SaveV2 | null {
   if (tours) out.tours = tours;
   const arrivals = decodeArrivals(v.arrivals);
   if (arrivals) out.arrivals = arrivals;
+  const play = decodePlay(v.play);
+  if (play) out.play = play;
   if (fin(v.savedAt) && v.savedAt > 0) out.savedAt = v.savedAt;
   return out;
 }
 
-/** Serialise; drops the oldest discoveries if the text would pass the size cap (the id caps keep it far below). */
+/** encodeSave's trims, in order (wave 5, MF5): the newest `discovered` and `arrivals` are kept. */
+export const SAVE_TRIM_DISCOVERED = 500;
+export const SAVE_TRIM_ARRIVALS = 128;
+
+/**
+ * Serialise within SAVE_MAX_BYTES without ever losing progress that cannot be re-learned by walking (wave 5, MF5).
+ * Steps, each only while the text is still over the cap: 1. `discovered` → the newest 500; 2. `arrivals` → the newest
+ * 128; 3. drop `discovered` and `arrivals`; 4. drop `zones`, `rides` and `vehicles`. `version`, `lastSafe`, `unlocked`,
+ * `tours`, `play` and `savedAt` are always written (their decode caps keep them far below 64 KB together; the contracts
+ * size test builds every cap at its longest ids).
+ */
 export function encodeSave(s: SaveV2): string {
   let text = JSON.stringify(s);
   if (text.length <= SAVE_MAX_BYTES) return text;
-  text = JSON.stringify({ ...s, discovered: (s.discovered ?? []).slice(-500) });
-  return text.length <= SAVE_MAX_BYTES ? text : JSON.stringify({ version: 2, lastSafe: s.lastSafe });
+  let t: SaveV2 = s.discovered && s.discovered.length > SAVE_TRIM_DISCOVERED ? { ...s, discovered: s.discovered.slice(-SAVE_TRIM_DISCOVERED) } : s;
+  text = JSON.stringify(t);
+  if (text.length <= SAVE_MAX_BYTES) return text;
+  if (t.arrivals && t.arrivals.length > SAVE_TRIM_ARRIVALS) { t = { ...t, arrivals: t.arrivals.slice(-SAVE_TRIM_ARRIVALS) }; text = JSON.stringify(t); }
+  if (text.length <= SAVE_MAX_BYTES) return text;
+  t = { ...t };
+  delete t.discovered;
+  delete t.arrivals;
+  text = JSON.stringify(t);
+  if (text.length <= SAVE_MAX_BYTES) return text;
+  const { version, lastSafe, unlocked, tours, play, savedAt } = t;
+  return JSON.stringify({ version, lastSafe, unlocked, tours, play, savedAt });
 }
 
 // ---------------------------------------------------------------------------

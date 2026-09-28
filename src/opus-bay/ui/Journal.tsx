@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
 import { BookOpen, CalendarPlus, Check, CircleHelp, Footprints, HandHeart, Heart, ListChecks, Mail, MapPinned, Navigation, Route, Trash2 } from 'lucide-react';
 import { FOOTPRINTS_TAB, Footprints as FootprintsTab } from './Footprints';
 import { DEFAULT_TOUR_ID, tourIdOf, useGame } from '../core/store';
@@ -18,25 +18,74 @@ import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
+import { JOURNAL_BUILTIN_ORDER, journalTabs, lastJournalRequest, subscribeJournalRequest, type JournalTabSlot } from './slots';
 import './content-ui.css';
 
-type Tab = 'cards' | 'goals' | 'wish' | 'steps';
+type BuiltinTab = keyof typeof JOURNAL_BUILTIN_ORDER;
+const BUILTIN_TABS = Object.keys(JOURNAL_BUILTIN_ORDER) as BuiltinTab[];
 
-/** 旅行本: postcards, goals + tour progress, wishlist with a BAYLINK hand-off. */
+/** Wave 5 · a registered tab's body (ui/slots.ts registerJournalTab): loaded once per registration, then kept. */
+const slotBodies = new WeakMap<JournalTabSlot, ComponentType>();
+function SlotTabBody({ slot }: { slot: JournalTabSlot }) {
+  const { t } = useT();
+  const [Body, setBody] = useState<ComponentType | null>(() => slotBodies.get(slot) ?? null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const known = slotBodies.get(slot);
+    if (known) { setBody(() => known); return; }
+    let live = true;
+    setBody(null);
+    setFailed(false);
+    slot.load().then(m => { slotBodies.set(slot, m.default); if (live) setBody(() => m.default); }, error => {
+      if (import.meta.env?.DEV) console.error('[opus-bay journal tab]', slot.id, error);
+      if (live) setFailed(true);
+    });
+    return () => { live = false; };
+  }, [slot]);
+  if (Body) return <Body />;
+  return <p className="ob-muted">{failed ? t('这一页暂时打不开，稍后再试。', 'This page will not open right now. Try again later.') : t('翻开中…', 'Opening…')}</p>;
+}
+
+/**
+ * 旅行本: postcards, goals + tour progress, wishlist with a BAYLINK hand-off. Wave 5: tabs registered through
+ * ui/slots.ts merge in by `order` (built-in: cards 10 · goals 20 · wish 30 · steps 40), and `openJournal(tab)` (the
+ * panel id) chooses the tab it opens on.
+ */
 export function Journal() {
   const { t } = useT();
   const wishCount = useGame(s => s.wishlist.length);
   // only the active world's cards count (a save may hold both worlds' ids, G2-3)
   const cards = useGame(s => activePostcardCount(s.postcards));
-  const [tab, setTab] = useState<Tab>(() => (wishCount > 0 && cards === 0 ? 'wish' : 'cards'));
-  const tabs: { id: Tab; label: string; icon: ReactNode; count?: string }[] = [
-    { id: 'cards', label: t('明信片', 'Postcards'), icon: <Mail size={16} aria-hidden />, count: `${cards}/${activePostcardTotal() || 8}` },
-    { id: 'goals', label: t('目标', 'Goals'), icon: <ListChecks size={16} aria-hidden /> },
-    { id: 'wish', label: t('想去', 'Wishlist'), icon: <Heart size={16} aria-hidden />, count: wishCount ? String(wishCount) : undefined },
+  const asked = useGame(s => s.panel.id);
+  const slots = useSyncExternalStore(journalTabs.subscribe, journalTabs.list, journalTabs.list);
+  const known = (id: string | undefined): id is string => !!id && ((BUILTIN_TABS as string[]).includes(id) ? id !== 'steps' || !!FOOTPRINTS_TAB : slots.some(s => s.id === id));
+  const [tab, setTab] = useState<string>(() => (known(asked) ? asked : wishCount > 0 && cards === 0 ? 'wish' : 'cards'));
+  // openJournal(tab) while the Journal is open switches the tab (the panel id, and every request by its seq)
+  const request = useSyncExternalStore(subscribeJournalRequest, lastJournalRequest, lastJournalRequest);
+  useEffect(() => { if (known(asked)) setTab(asked); }, [asked]); // eslint-disable-line react-hooks/exhaustive-deps
+  const seenRequest = useRef(request.seq);
+  useEffect(() => {
+    if (request.seq === seenRequest.current) return; // a request from before this Journal opened: the panel id decided
+    seenRequest.current = request.seq;
+    if (known(request.tab)) setTab(request.tab);
+  }, [request.seq]); // eslint-disable-line react-hooks/exhaustive-deps
+  const tabs: { id: string; order: number; label: string; icon: ReactNode; count?: string }[] = [
+    { id: 'cards', order: JOURNAL_BUILTIN_ORDER.cards, label: t('明信片', 'Postcards'), icon: <Mail size={16} aria-hidden />, count: `${cards}/${activePostcardTotal() || 8}` },
+    { id: 'goals', order: JOURNAL_BUILTIN_ORDER.goals, label: t('目标', 'Goals'), icon: <ListChecks size={16} aria-hidden /> },
+    { id: 'wish', order: JOURNAL_BUILTIN_ORDER.wish, label: t('想去', 'Wishlist'), icon: <Heart size={16} aria-hidden />, count: wishCount ? String(wishCount) : undefined },
   ];
   // lane G1's 足迹 tab (ui/Footprints.tsx; absent until G1 turns it on)
   const steps = FOOTPRINTS_TAB;
-  if (steps) tabs.push({ id: 'steps', label: t(steps.label), icon: <Footprints size={16} aria-hidden />, count: steps.count?.() });
+  if (steps) tabs.push({ id: 'steps', order: JOURNAL_BUILTIN_ORDER.steps, label: t(steps.label), icon: <Footprints size={16} aria-hidden />, count: steps.count?.() });
+  // wave 5 · the lanes' tabs (今天 R, 手帐 E, …); a slot never replaces a built-in id
+  for (const slot of slots) {
+    if ((BUILTIN_TABS as string[]).includes(slot.id)) continue;
+    let count: string | undefined;
+    try { count = slot.count?.(); } catch { count = undefined; }
+    tabs.push({ id: slot.id, order: slot.order, label: t(slot.label), icon: <slot.icon />, count });
+  }
+  tabs.sort((a, b) => a.order - b.order);
+  const slot = (BUILTIN_TABS as string[]).includes(tab) ? undefined : slots.find(s => s.id === tab);
   return (
     <Sheet eyebrow={<><BookOpen size={14} aria-hidden />{t('旅行本', 'Journal')}</>} title={t('我的湾区旅行本', 'My Bay journal')} onClose={closePanel} className="ob-journal">
       <div className="ob-tabs" role="tablist">
@@ -51,6 +100,8 @@ export function Journal() {
         {tab === 'goals' && <Goals />}
         {tab === 'wish' && <Wishes />}
         {tab === 'steps' && <FootprintsTab />}
+        {slot && <SlotTabBody key={slot.id} slot={slot} />}
+        {!slot && !(BUILTIN_TABS as string[]).includes(tab) && <Cards />}
       </div>
     </Sheet>
   );

@@ -16,6 +16,7 @@ import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
 import { transitGlyph } from './transitGlyph';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
+import { MORE_BUILTIN_ORDER, moreItems, pillBadges, runMoreItem, type MoreItemSlot } from './slots';
 
 /**
  * Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action.
@@ -123,13 +124,25 @@ function Objective() {
       <button type="button" className="ob-objective is-gold" onClick={() => flow.set(s => ({ goalsCard: !s.goalsCard }))} aria-label={t('看看探索目标', 'Show the explorer goals')} aria-expanded={goalsOpen}>
         <span className="ob-objective-icon"><PostcardGlyph /></span>
         <span className="ob-objective-text">
-          <strong>{t('明信片', 'Postcards')} <em>{postcards}/{total || 8}</em></strong>
+          <strong>{t('明信片', 'Postcards')} <em>{postcards}/{total || 8}</em><PillBadges /></strong>
           {FREE_GOALS.length > 1 && <small>{t('目标', 'Goals')} {goals}/{FREE_GOALS.length}</small>}
         </span>
       </button>
     );
   }
   return null;
+}
+
+/** Wave 5 · ui/slots.ts registerPillBadge (lane E's 🪙 n …): inside the pill, after 明信片 n/m; nothing when none is registered. */
+function PillBadges() {
+  const badges = useSyncExternalStore(pillBadges.subscribe, pillBadges.list, pillBadges.list);
+  if (!badges.length) return null;
+  return <span className="ob-pill-badges">{badges.map(b => <span key={b.id} className="ob-pill-badge"><b.Component /></span>)}</span>;
+}
+
+/** Wave 5 · ui/slots.ts registerMoreItem: the registered items with the built-in ones (拍照 10 · 设置 90), by order. */
+function useMoreItems(): readonly MoreItemSlot[] {
+  return useSyncExternalStore(moreItems.subscribe, moreItems.list, moreItems.list);
 }
 
 function PostcardGlyph() {
@@ -185,10 +198,44 @@ function HudButtons() {
       <button type="button" className={`ob-round ${fresh('photo')}`} onClick={() => { mark('photo'); enterPhotoMode(); }} aria-label={t('拍照（P）', 'Photo (P)')}>
         <Camera size={21} aria-hidden /><span className="ob-round-label">{t('拍照', 'Photo')}</span>{kb && <Keycap className="ob-round-key">P</Keycap>}
       </button>
+      <DeskMore />
       <button type="button" className={`ob-round ${fresh('settings')}`} onClick={() => { mark('settings'); openPanel('settings'); }} aria-label={t('设置（Esc）', 'Settings (Esc)')}>
         <Settings size={21} aria-hidden /><span className="ob-round-label">{t('设置', 'Settings')}</span>{kb && <Keycap className="ob-round-key">Esc</Keycap>}
       </button>
     </nav>
+  );
+}
+
+/**
+ * Wave 5 · desktop 更多 (ui/slots.ts registerMoreItem, e.g. lane E's 小铺): a round button that exists only while at
+ * least one item is registered (city features register from their lazy init; district mode never shows it). Photo and
+ * settings keep their own round buttons on desktop.
+ */
+function DeskMore() {
+  const { t } = useT();
+  const items = useMoreItems();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); } };
+    window.addEventListener('pointerdown', close, true);
+    window.addEventListener('keydown', esc, true);
+    return () => { window.removeEventListener('pointerdown', close, true); window.removeEventListener('keydown', esc, true); };
+  }, [open]);
+  if (!items.length) return null;
+  return (
+    <div ref={ref} className="ob-hud-more">
+      <button type="button" className="ob-round" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="menu" aria-label={t('更多', 'More')}>
+        <Ellipsis size={21} aria-hidden /><span className="ob-round-label">{t('更多', 'More')}</span>
+      </button>
+      {open && (
+        <div className="ob-bar-more ob-hud-more-menu" role="menu">
+          {items.map(m => <button key={m.id} type="button" role="menuitem" onClick={() => { setOpen(false); runMoreItem(m.id); }}><m.icon /><span>{t(m.label)}</span></button>)}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -245,6 +292,7 @@ function PhoneBar() {
   const postcards = useGame(s => s.postcards.length);
   const wishes = useGame(s => s.wishlist.length);
   const [more, setMore] = useState(false);
+  const extra = useMoreItems();
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!more) return;
@@ -267,8 +315,12 @@ function PhoneBar() {
       </button>
       {more && (
         <div className="ob-bar-more" role="menu">
-          <button type="button" role="menuitem" onClick={() => { setMore(false); enterPhotoMode(); }}><Camera size={18} aria-hidden /><span>{t('拍照', 'Photo')}</span></button>
-          <button type="button" role="menuitem" onClick={() => { setMore(false); openPanel('settings'); }}><Settings size={18} aria-hidden /><span>{t('设置', 'Settings')}</span></button>
+          {/* wave 5 · ui/slots.ts registerMoreItem (e.g. lane E's 小铺) merged by order with 拍照 (10) and 设置 (90) */}
+          {[
+            { id: 'photo', order: MORE_BUILTIN_ORDER.photo, node: <button key="photo" type="button" role="menuitem" onClick={() => { setMore(false); enterPhotoMode(); }}><Camera size={18} aria-hidden /><span>{t('拍照', 'Photo')}</span></button> },
+            ...extra.map(m => ({ id: m.id, order: m.order, node: <button key={`slot:${m.id}`} type="button" role="menuitem" onClick={() => { setMore(false); runMoreItem(m.id); }}><m.icon /><span>{t(m.label)}</span></button> })),
+            { id: 'settings', order: MORE_BUILTIN_ORDER.settings, node: <button key="settings" type="button" role="menuitem" onClick={() => { setMore(false); openPanel('settings'); }}><Settings size={18} aria-hidden /><span>{t('设置', 'Settings')}</span></button> },
+          ].sort((a, b) => a.order - b.order).map(row => row.node)}
         </div>
       )}
     </nav>

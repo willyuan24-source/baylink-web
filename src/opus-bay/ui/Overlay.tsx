@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useSyncExternalStore, type CSSProperties } from 'react';
 import { TouchControls } from '../actors/TouchControls';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
@@ -25,6 +25,7 @@ import { Hud, RideBanner } from './Hud';
 import { FishGame, GoalsCard, PhotoMode, PostcardReward, Recap } from './Moments';
 import { PoiCard } from './PoiCard';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
+import { closeOverlay, closeTopOverlay, openOverlays, overlays, subscribeOverlays } from './slots';
 
 // Side panels are their own chunks (opened by a key / HUD button, prefetched once play starts).
 const loadMap = () => import('./MapPanel');
@@ -102,6 +103,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
           </Suspense>
           {panel.kind === 'recap' && <Recap />}
           {city && phase === 'playing' && !photo && <Suspense fallback={null}><GuideOverlay /></Suspense>}
+          <SlotOverlays />
           <Dialogue />
           <FishGame />
           <PostcardReward />
@@ -120,6 +122,25 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
       <LiveRegion />
       {debug && <DebugOverlay />}
     </div>
+  );
+}
+
+/**
+ * Wave 5 · ui/slots.ts registerOverlay / openOverlay: the lanes' overlays (the shop sheet, a fact card, an activity's
+ * result card, the emote wheel …), oldest first, above the HUD and the panels and under the dialogue box. Each one
+ * gets its `props` and a `close`; Escape closes the most recent (useKeyboard).
+ */
+function SlotOverlays() {
+  const open = useSyncExternalStore(subscribeOverlays, openOverlays, openOverlays);
+  const registered = useSyncExternalStore(overlays.subscribe, overlays.list, overlays.list);
+  if (!open.length) return null;
+  return (
+    <Suspense fallback={null}>
+      {open.map(o => {
+        const slot = registered.find(r => r.id === o.id);
+        return slot ? <slot.Component key={o.id} props={o.props} close={() => closeOverlay(o.id)} /> : null;
+      })}
+    </Suspense>
   );
 }
 
@@ -210,6 +231,8 @@ function useKeyboard() {
         case 'KeyQ': callBaybay(); break;
         case 'Escape':
           e.preventDefault();
+          // wave 5: a lane's overlay (ui/slots.ts) closes first, the most recent one
+          if (closeTopOverlay()) break;
           if (s.panel.kind) closePanel(); else openPanel('settings');
           break;
         case 'KeyE':

@@ -12,6 +12,7 @@ import { RESIDENTS, taskDoneId, taskState } from '../data/sf/residents';
 import { cityGoalTargets } from './cityGoals';
 import { markGoalsDone } from './flow';
 import { registerInteractables, type Interactable } from './interactables';
+import { initW5Features } from './w5Features';
 
 /**
  * City content entry (lane G2 owns this file from wave 2).
@@ -22,6 +23,7 @@ import { registerInteractables, type Interactable } from './interactables';
  *                       library, which stays out of GameRoot, P7), BAYBAY's event and
  *                       neighbourhood lines (game/baybayLines.ts, its own chunk), the six residents' interactables
  *                       and their favours (game/residentTasks.ts, its own chunk; the bodies are actors/npcs.ts').
+ *                       Wave 5: the four feature folders through game/w5Features.ts (economy first; lazy chunks).
  *   goalTargets()       soft waypoints for unfinished city goals, read by flow.nextFreeGoal (free roam hint and the
  *                       call menu's "take me to the next goal"). `goal` is the goalsDone id that hides the target once
  *                       done; `id` resolves through interactables.interactableById (the landmark card `sf:<id>`).
@@ -75,7 +77,9 @@ export function initCityContent(): () => void {
   void import('./tripRun').then(m => { if (!disposed) offTrips = m.initTripRun(); }, fail('trips'));
   void import('./cityMoments').then(m => { if (!disposed) { moments = m; offMoments = m.initCityMoments(); } }, fail('moments'));
   void import('./cityCards').then(m => { if (!disposed) offCards = m.initCityCards(); }, fail('cards'));
-  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); moments = null; };
+  // wave 5 (day 0, game/w5Features.ts): the economy (first), play, eggs and real-SF features, each a lazy city chunk
+  const w5 = initW5Features();
+  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); w5.off(); moments = null; };
 }
 
 /** Lane P's map: has the player had the arrival moment of this attraction? (false before the city content loads) */

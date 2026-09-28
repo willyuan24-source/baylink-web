@@ -2,7 +2,7 @@ import { getLocale } from '../../i18n/locale';
 import { emit, onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, game, toast, tourIdOf, type PanelKind, type Toast } from '../core/store';
-import type { Bilingual, DialogueAction, DialogueNode, PoiDef, TourStop, Vec2, WishItem } from '../core/types';
+import type { Bilingual, DialogueAction, DialogueChoice, DialogueNode, PoiDef, TourStop, Vec2, WishItem } from '../core/types';
 import { canStand, heightAt, isWater, nearestWalkable } from '../core/terrain';
 import { spawnFx } from '../world/fx';
 import { getCatalog, isExpired, loadCatalog, recommendEvents, todayInBay, weekday } from '../data/catalog';
@@ -20,7 +20,7 @@ import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
 import { flow, initialFlowState, type Bubble } from './flowStore';
 import { lockHeld, setLockRefresher } from './playerLock';
-import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable } from './interactables';
+import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
 import { goalTargets, initCityContent } from './cityContent';
 import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
@@ -28,6 +28,7 @@ import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
+import { bindJournalOpener, runAskItem, visibleAskItems } from '../ui/slots';
 
 /**
  * Game flow controller: modes, dialogue runner, tour/week/free logic, interactions and goals.
@@ -204,6 +205,8 @@ export function runAction(action: DialogueAction) {
     case 'open-poi': closeQuiet(); openPanel('poi', action.poiId); break;
     case 'tour-next': closeQuiet(); tourNext(); break;
     case 'tour-end': closeQuiet(); endTour(); break;
+    // wave 5: a lane's 问 BAYBAY item (ui/slots.ts registerAskItem)
+    case 'ask': closeQuiet(); runAskItem(action.id); break;
     case 'end': closeDialogue(); break;
   }
 }
@@ -239,6 +242,9 @@ export function closePanel() {
   // (the first lesson's "finished" flag: a city tour's recap is not the first lesson's)
   if (panel.kind === 'recap' && tourIdOf(game.get().tour) === DEFAULT_TOUR_ID) markProgress({ finished: true });
 }
+
+// wave 5 (ui/slots.ts openJournal): the Journal opens on a tab through the panel id
+bindJournalOpener(tab => openPanel('journal', tab));
 
 export function togglePanel(kind: Exclude<PanelKind, null>) {
   if (game.get().panel.kind === kind) closePanel(); else openPanel(kind);
@@ -911,12 +917,20 @@ const isTourTarget = (id: string) => {
   return !!cur && game.get().tour.active && cur.poi.id === id && ['leading', 'arrived', 'await'].includes(flow.get().tourPhase);
 };
 
+/** Wave 5 (frozen with interactables.ts): the sources whose `act()` replaces the built-in action switch. */
+export const ACT_SOURCES: ReadonlySet<InteractableSource> = new Set<InteractableSource>(['activity', 'find', 'shop', 'event']);
+
 export function performInteraction(id: string) {
   const it = interactableById(id);
   if (!it || busy()) return;
   runtime.player.pendingInteract = null;
   runtime.player.pathTarget = null;
   if (it.source !== 'baybay') emit({ type: 'interact', id, kind: it.action });
+  // wave 5 (day 0): the new lanes' interactables (an activity start, a find, the shop stall, an event kit) run their own act
+  if (it.act && ACT_SOURCES.has(it.source)) {
+    try { it.act(); } catch (error) { if (import.meta.env?.DEV) console.error('[opus-bay interact]', it.id, error); }
+    return;
+  }
 
   if (it.poi && isTourTarget(it.id) && flow.get().tourPhase === 'leading') { tourArrived(); return; }
   const done = () => afterFeedback(it);
@@ -1069,6 +1083,10 @@ export function openCallMenu() {
   const choices: DialogueNode['choices'] = [];
   const cur = currentStop();
   const city = s.worldMode === 'city';
+  // wave 5 (ui/slots.ts registerAskItem): order < 0 above BAYBAY's own choices, order ≥ 0 after them (before the map)
+  const asks = visibleAskItems();
+  const askChoice = (a: (typeof asks)[number]): DialogueChoice => ({ label: a.label, action: { type: 'ask', id: a.id } });
+  choices.push(...asks.filter(a => a.order < 0).map(askChoice));
   if (cityTourActive()) choices.push(...(cityTourApi?.callChoices() ?? []));
   else if (s.tour.active && cur) {
     choices.push({ label: { zh: `继续：带我去${cur.poi.name.zh}`, en: `Keep going: take me to ${cur.poi.name.en}` }, action: { type: 'end' } });
@@ -1087,6 +1105,7 @@ export function openCallMenu() {
     choices.push({ label: done && done < total ? { zh: `继续湾区第一课（${done}/${total}）`, en: `Resume Bay 101 (${done}/${total})` } : bay101, action: { type: 'start-tour' } });
     choices.push({ label: { zh: '这周有什么好玩的？', en: "What's on this week?" }, action: { type: 'start-week' } });
   }
+  choices.push(...asks.filter(a => a.order >= 0).map(askChoice));
   choices.push({ label: { zh: '打开地图', en: 'Open the map' }, action: { type: 'open-map' } });
   choices.push({ label: { zh: '没事，继续逛', en: "Nothing — I'll keep exploring" }, action: { type: 'end' } });
   choices.forEach((choice, i) => { choice.hotkey = String(i + 1); });

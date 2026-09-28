@@ -258,6 +258,8 @@ export type DialogueAction =
   | { type: 'open-poi'; poiId: string }
   | { type: 'tour-next' }
   | { type: 'tour-end' }
+  /** wave 5 (day 0): a 问 BAYBAY ask item registered through ui/slots.ts registerAskItem (flow runs its onSelect) */
+  | { type: 'ask'; id: string }
   | { type: 'end' };
 
 export interface DialogueChoice {

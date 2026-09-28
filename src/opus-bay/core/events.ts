@@ -103,7 +103,45 @@ export type GameEvent =
    * lock nothing explained (W5-0b; `source` names the holds left, else 'unknown'), `pull` = BAYBAY pulled the player
    * free (lane F), `sweep` = the QA sweep's report. A DEV log: every one is a bug with a source, not a fix.
    */
-  | { type: 'stuck'; x: number; z: number; what: 'pull' | 'watchdog' | 'sweep'; source?: string };
+  | { type: 'stuck'; x: number; z: number; what: 'pull' | 'watchdog' | 'sweep'; source?: string }
+  // --- Wave 5 day 0 (frozen, plan sf-w5-plan.md §4.2 W5-0d; the lead note sf-w5-lead.md §4) ---
+  /**
+   * Any lane → lane E's ledger (economy/ledger.ts): "this happened, pay it". `source` follows REWARD_SOURCE below
+   * (`<prefix>:<id>`, e.g. `arrive:coit-tower`, `egg:telegraph-hill-parrots`, `daily:2026-10-03:2`); the ledger pays each
+   * source ONCE per save (bitsets / play.e) and ignores a source outside the grammar. `coins` is what the emitter asks
+   * for (the ledger may clamp it to its own table); `stamp` (optional) names the notebook stamp it also earns.
+   */
+  | { type: 'reward'; source: string; coins: number; stamp?: string }
+  /** lane E, after paying a reward (or a purchase: negative delta, source `shop:<item>`): the pill badge and the chime */
+  | { type: 'coins'; total: number; delta: number; source: string }
+  /** a find (FIND_KINDS): D eggs / pebbles / sounds, A view spots, E caches, R event souvenirs; `first` = never found before */
+  | { type: 'find'; kind: FindKind; id: string; first: boolean }
+  /** lane A's PlayKit: an activity started, ended (with the medal tier reached, if any) or was cancelled (moving away: free) */
+  | { type: 'play'; activity: string; what: 'start' | 'end' | 'cancel'; tier?: 1 | 2 | 3 }
+  /** lane E's 小铺: the sheet opened / closed, an item bought or worn */
+  | { type: 'shop'; what: 'open' | 'buy' | 'wear' | 'close'; item?: string }
+  /** lane R: the player entered / left a live event's venue zone; an event's real window opened / closed (Bay time) */
+  | { type: 'realsf'; what: 'event-enter' | 'event-leave' | 'window-open' | 'window-close'; id: string }
+  /** lane F's pointer: the player tapped their own character or BAYBAY (`double` = a double tap) → lane A's emote wheel / pet */
+  | { type: 'self-tap'; who: 'player' | 'baybay'; double: boolean };
+
+/** Wave 5 (frozen): what a `find` event can be. The notebook's pages and the ledger's bitsets are keyed by these. */
+export const FIND_KINDS = ['egg', 'view', 'sound', 'pebble', 'cache', 'souvenir', 'nature'] as const;
+export type FindKind = (typeof FIND_KINDS)[number];
+
+/** Wave 5 (frozen): the prefixes a `reward` source may start with (the ledger's pay-once key space). */
+export const REWARD_PREFIXES = ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican'] as const;
+export type RewardPrefix = (typeof REWARD_PREFIXES)[number];
+/**
+ * Wave 5 (frozen): the reward source grammar, `<prefix>:<id>` with a lower-case id of 1–80 characters from `a-z 0-9 : @ -`.
+ * Examples: `arrive:coit-tower`, `postcard:sf-painted-ladies`, `trail:filbert-steps:3`, `medal:slides:2`,
+ * `event:hardly-strictly-bluegrass-2026`, `daily:2026-10-03:1`, `pelican:unlock`. Anything else is not paid.
+ */
+export const REWARD_SOURCE = /^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican):[a-z0-9:@-]{1,80}$/;
+/** The prefix of a well-formed reward source, or null (ledger, tests). */
+export function rewardPrefix(source: string): RewardPrefix | null {
+  return REWARD_SOURCE.test(source) ? (source.slice(0, source.indexOf(':')) as RewardPrefix) : null;
+}
 
 /** Transit line kinds (the store's move.line holds the line id; this is its vehicle kind). Wave 4 adds the sightseeing
  * bus loop ('bus') and the Muni Metro lines ('light-rail'). The lists are runtime values so the contracts test pins them. */

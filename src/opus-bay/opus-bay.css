@@ -1208,3 +1208,17 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-waypoint-dismiss::before { content: ''; position: absolute; inset: -10px -4px -10px -16px; border-radius: 12px; }
 /* verify-desktop D9 · English text in the Noto-first stacks: Noto Sans SC's full-width ’ left a gap ("The Mission’ s") */
 html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: var(--ob-font); }
+
+/* Wave 5 day 0 (lead) · ui/slots.ts render points. Pill badges: inside the objective pill after 明信片 n/m
+   (`明信片 3/24 · 🪙 42`); the desktop 更多 button exists only while a lane registered a More item; its menu opens
+   above the button in the row (≥ 1181 px) and to its left in the column layouts (601–1180 px). */
+.ob-pill-badges { display: inline-flex; align-items: baseline; gap: 6px; margin-left: 6px; white-space: nowrap; }
+/* phones: the pill is at most min(58vw, 250px) wide — the badges take a line of their own when 明信片 n/m + badges do not fit */
+@media (max-width: 600px) { .ob-objective-text strong:has(> .ob-pill-badges) { white-space: normal; } .ob-pill-badge:first-child::before { display: none; } }
+.ob-pill-badge { display: inline-flex; align-items: baseline; gap: 3px; }
+.ob-pill-badge::before { content: '·'; color: var(--ob-ink-2); margin-right: 3px; }
+.ob-hud-more { position: relative; display: flex; }
+.ob-hud-more-menu { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 2; }
+@media (max-width: 1180px) { .ob-hud-more-menu { bottom: 0; right: calc(100% + 10px); } }
+.ob-choice-icon { display: inline-flex; vertical-align: -3px; margin-right: 6px; }
+.ob-choice-icon svg { width: 16px; height: 16px; }

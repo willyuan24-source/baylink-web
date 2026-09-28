@@ -20,6 +20,7 @@ import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld, shoreJob } from './ambience';
 import { lineVoices, soundAt } from './cityHooks';
 import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
+import { bindAudioHooks, stepAudioHooks } from './hooks';
 import { clamp, createRateLimiter, panFor, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
@@ -149,6 +150,8 @@ export function startAudio(): () => void {
       const v = runtime.vehicle, g = runtime.glide;
       rig.loops.update({ gliding: g.active, glideSpeed: g.speed, glideHeight: g.height, driving: v.occupied && v.kind === 'car', carSpeed: v.speed });
       lineLoops(rig);
+      // wave 5 (audio/hooks.ts): the new lanes' loops fade toward their targets
+      stepAudioHooks(dt);
       rig.music.tick();
       rig.engine.update(now);
     } catch (error) {
@@ -186,6 +189,8 @@ export function startAudio(): () => void {
     if (!rig || disposed) return;
     const s = game.get();
     rig.engine.log('boot', { state: rig.ctx.state, sampleRate: rig.ctx.sampleRate });
+    // wave 5 (audio/hooks.ts): the lanes' playSound / setLoop / duck reach this engine from now on
+    bindAudioHooks(rig.engine, live);
     applySettings(true);
     rig.engine.setMuffled(s.paused);
     timers.push(window.setTimeout(() => {
@@ -393,6 +398,7 @@ export function startAudio(): () => void {
     window.clearTimeout(suspendTimer);
     timers.forEach(t => window.clearTimeout(t));
     prep?.cancel();
+    bindAudioHooks(null);
     if (rig) {
       const r = rig;
       rig = null;
