@@ -297,3 +297,149 @@ model check `retime.mts`, QA actions `qa-*.json`, shots `shots/b/`, suite logs `
   (not done: a product call).
 
 No relayed owner message arrived during this part. Higgsfield: 0 credits (no ledger rows).
+
+## Part c
+
+Implementer of lane C, part c (the mid-wave checkpoint's CP-14, then W5-C7 → W5-C8), 2026-09-28, worktree
+`C:/Users/willy/wt/w5-c`, dev port 5503, scratch `C:/Users/willy/opus-qa/w5/w5-c/c/` (QA action scripts `qa-*.json`,
+shots, suite logs `suite-c*.log`, the edit scripts). Commits on `opus-bay`: `6f50f975` (CP-14), `d8324715` (W5-C7: the
+album, the second favours, the letters, the otter), `7d06b800` (CP-14: the pair on your level, lane F's pelican),
+`e828ab31` (lanes A / F / N's requests), `34d8e116` (lane R's request 1a), `95d58f94` (VOICE.md) and this report.
+
+### 给主人的摘要
+
+1. **检查点的问题修好了**：城市里科伊特塔一带的名字都换成了中文（提示读「看看壁画 · 科伊特塔壁画」，线索读「科伊特塔壁画附近」）；从华盛顿广场那边爬台阶上来遇到鹈鹕时，镜头不再对着地砖——BAYBAY 先站到你身边、和你面对面，再开口问「先试试起飞？」。F 线做好的「鹈鹕落在身边」也接上了，只在它不会挡住 BAYBAY 的时候才落下。
+2. **相册**：城市里每拍一张照片都存进这台设备的「相册」，不再每张都弹出下载；在「更多 › 相册」或拍照时点右下角缩略图就能看，手机上点「保存」会打开系统的分享面板（iPhone 可以「存储图像」到照片）。长竖屏照片底下的文字也不会再压到一起了。
+3. **六位邻居的第二个小忙**：给 Rosa 拍渡轮大厦钟楼、帮 Luz 拍三处壁画、给 Hank 拍荷兰风车、替 Marcus 拍嬉皮山、陪 Ray 在叮当车上摇一段铃、在克里西场海滩陪 Dana 坐下看大桥。做完会留下小变化：Balmy 巷围栏边多一块 Luz 画的小海獭，路过 Ray 他会摇你教的那段铃，Rosa 周六、Hank 春天、Marcus 周末说的话跟着真实的日子变。
+4. **来信**：做完第二个小忙过一会儿，那位邻居会寄来一封信（金色提示 + BAYBAY「有你的信！」），在旅行本「目标」里点「读信」（有小红点）。信和对话里的真实小知识都在官网上查过（2026-09-28）。
+5. 顺手做了别的线请我做的小事：地点卡片加上 R 线的「现实中怎么去」（最近的真实 Muni 站）；城市旅行本不再一上来就列旧版「湾区第一课」；西沃德街滑梯的提示按官网改对了。检查：tsc 0、eslint 0 错误、全部 1291 个测试通过；电脑和手机都实际玩过、截图看过；街区模式不变；Higgsfield 0 分。
+
+### What was built
+
+| file | what | API for other lanes |
+|---|---|---|
+| `data/sf/cityPois.ts` · `data/pois.ts` · `game/cityContent.ts` · `game/arrival.ts` | **CP-14 names**: the district's waterfront POIs join the city named the city's way (`CITY_DISTRICT_POI_NAMES`: 科伊特塔观景点 · 科伊特塔壁画 · 菲尔伯特台阶 · 探索馆 · 李维斯广场 · 14 号码头 · 7 号钓鱼码头 · 恶魔岛渡轮码头 · 39 号码头旋转木马 / 海狮观景处 · F 线 · 39 号码头站 · 渡轮大厦农夫市集) and their zh card text / bark / verb with the English place names swapped (`CITY_DISTRICT_TEXT_NAMES`: Coit Tower, Filbert Steps, Exploratorium, Pier 33, PIER 39, Embarcadero); `POIS` in the city = `CITY_DISTRICT_POIS` + the 24 landmark cards; `contentFor('city')` and the arrival line's fallback read them; the district's `DISTRICT_POIS` untouched | `CITY_DISTRICT_POIS`, `cityDistrictPoi(poi)`, `cityDistrictZh(text)` |
+| `game/pelicanFirst.ts` · `game/flow.ts` | **CP-14 two-shot**: the moment's dialogue waits until BAYBAY is within `PAIR_NEAR` 4 u (at most `PAIR_WAIT_MS` 9 s after the unlock); `pelicanMark` (pure) picks her spot `PAIR_GAP` 1.7 u beside you where the conversation camera's six candidate spots (8 u back, 2.3 u up, 25–57° either side: `actors/camera.ts twoShotPose`) see your chest over the ground, never below your feet (the camera stands over the lower of the two); within `PAIR_SNAP` 5 u she is placed on it as the dialogue opens, the two of you turned face to face (the two-shot keeps the side it picks at the first frame); flow's new `setTalkMarkSource` keeps her there while it plays. **Lane F's `pelicanGreet`** (1c27890) is called `GREET_AFTER_MS` 1.5 s in, only when `greetBehind()` says the bird lands behind the pair (see Decisions 3) | `setTalkMarkSource(fn)` (flow), `pelicanMark`, `greetBehind`, `pelicanMarkNow` (QA) |
+| `game/album.ts` (**new**, lazy) · `ui/Album.tsx` + `ui/album.css` (**new**, their own chunk) · `game/photo.ts` · `game/photoFrames.ts` · `game/flowStore.ts` · `ui/Moments.tsx` | **W5-C7 photo album**: in the city the shutter's card goes to the album (a JPEG q .92 and a 360 px thumbnail) instead of a download; IndexedDB `opus-bay-album` (stores `meta` with the thumbnail bytes, `full`), else an in-memory album for the page; `ALBUM_MAX` 60 (the oldest leaves); the More item 相册 (order 20: phones 拍照 · 相册 · 小铺 · 设置) and photo mode's thumbnail (now 看看相册) open the overlay `c-album`: a grid (4 / 3 / 2 columns), a photo large with ‹ › and arrow keys, 保存 (phones that share files: the system sheet — iOS 存储图像; else a download), 分享 (the sheet with the file, else the download + the game's link copied), 删除 with 删掉 / 留着; the note says where the photos live. The first shot says 已存进相册 · 点缩略图就能看, later ones 已存进相册. Over photo mode, Escape closes the album first. `fitCaption` shrinks (then cuts with …) a caption that would run into the stamp on a narrow portrait card (a caption that fits is drawn as before); the city caption names the area in the city's words. District mode still downloads the PNG | `addPhoto`, `listPhotos`, `photoFile`, `deletePhoto`, `photosTagged(tag)`, `subscribeAlbum`, `openAlbum(id?)`, `ALBUM_ID`; **`registerPhotoTagger(id, fn)`** / `photoTags(ctx)` (photoFrames: lanes A's view cards and D's nature page tag their shots) |
+| `data/sf/residents.ts` · `data/sf/dialogue.ts` · `game/residentTasks.ts` · `game/cityContent.ts` | **W5-C7 second favours**: `task2` for each resident with two new goal kinds — `photo` (a shutter within a spot's radius; Rosa: the Ferry Building clock tower, r 45; Luz: Balmy Alley, Clarion Alley, the Women's Building, 3 of 3, r 16–18; Hank: the Dutch Windmill, r 40; Marcus: Hippie Hill, r 30) and `play` (Ray: lane A's bell riff ends; Dana: lane A's look from the `crissy-beach` view spot, `find view`). The chat: the first favour's thanks → fact, then ask2 [接受 · 下次吧]; declined → a later chat asks at once; on → remind2 [带我去 · 好的]; done → thanks2 → fact2 in the words of the real day (`fact2For`: Rosa on a Saturday market morning, Hank's tulips Feb–Apr / the rest of the year, Marcus on a weekend). Marks in goalsDone `task2-on:` / `task2:` / `task2-p:<key>:<spot>` (dropped when done); the reward `favour:<key>:2` (25); the toasts 新的小忙 / 拍到啦 1/3 · Balmy 巷 / 小忙完成; the waypoint (`favour2:<key>`, a prefix resolver: the nearest spot not photographed yet) leads first. ≈ 60 new bilingual lines | `task2State`, `acceptTask2`, `finishTask2`, `photoHits`, `nextPhotoSpot`, `task2Progress`, `fact2For`, `nodeIds2`, `entryNode(r, done, met, asked2)`, `playGoalMet`, `favour2Spot` |
+| `data/sf/letters.ts` (**new**, data) · `ui/Letter.tsx` + `ui/letter.css` (**new**, their own chunk) · `ui/Journal.tsx` · `ui/content-ui.css` | **W5-C7 letters**: `LETTER_DELAY_MS` 150 s after a second favour (`LETTER_RESUME_MS` 25 s into a later visit), on a quiet frame, one per 20 s: `letter:<key>`, the gold toast 收到一封信 · 来自 Rosa and BAYBAY 有你的信！在旅行本的「目标」里～ (all six: 六个邻居都给你写了信——你是大家的好朋友啦！). The Journal's 邻居的小忙 follows the second favour (去找 TA · 带我去 · 已拍 1/3 · TA 说会给你写信～ · 读信 with a dot → 再读一遍) and counts 信 n; the letter (overlay `c-letter`) is a ruled paper card: 亲爱的朋友： · two lines · the signature · 收好; opening it marks `letter-read:<key>` | `letterState`, `deliverLetter`, `readLetter`, `lettersArrived`, `LETTERS` |
+| `game/otterMark.ts` (**new**, lazy, city) | **the mark**: once Luz's second favour is done, a 0.72 u painted board with the otter (an original canvas drawing of BAYBAY: warm mural fields, her teal scarf, a heart) leans on Balmy Alley's fence 1.2 u from where Luz paints; one plain Mesh, 12 triangles, 1 draw call only within 140 u, no shadow cast, its own instance of D2's model material, warm-up `c-otter` (checked: the late pass 90 → 90 programs); it goes with Settings → reset. Ray rings your riff (`play-riff-1`, lane A's sound, and his bubble 叮叮——叮叮叮！你教我的那段～) when you pass within 6 u, at most every 4 min | `initOtterMark`, `otterSpot` |
+| `ui/PoiCardBody.tsx` · `ui/PlaceCard.tsx` | lane R's request 1a: 现实中怎么去 (`realsf/HowToGo`, lazy) on the city's landmark / POI / place cards | — |
+| `ui/Journal.tsx` · `ui/goals-step.css` · `data/sf/placeCards2.ts` | lane N's request: the city journal shows the district's 湾区第一课 only once that lesson was started (the call menu still offers it); lane F's: the goals step `place-items: safe center`; lane A's: the Seward slides' tip — 官网写的是“大人要有小朋友陪着”！带块纸板、穿结实的裤子。 | — |
+| `data/VOICE.md` | part-c rows: 小忙 · 信 / 读信 / 收好 · 相册 / 保存 / 分享 · 嬉皮山 · 克里西场海滩 · 威廉明娜女王郁金香花园 · 渡轮大厦的农夫市集 · 小海獭 (not 小水獭: BAYBAY is a sea otter) | — |
+| tests (**new**) `opus-bay-w5-favours.test.ts` (10) · `opus-bay-w5-album.test.ts` (5) | CP-14 names (city vs district, no English place name left in the city's zh), the pelican mark on a plateau / rim / level ground, the moment waiting for BAYBAY then opening after 9 s; the second favours (kinds, texts, spots on the real mural places, lane A's view spot), the state machine and its marks, the chat entry, the runtime (accept, a shutter far / near, Luz 1/3 · 2/3 · done, Ray's cancel vs end, Dana's own spot, rewards once), the letters' timing (resume, photo mode, the gap), the words (graph, sizes, sources, fact2 by the day); the album (memory store, File, delete, tags, the 60 cap, the Bay-time file name, the More item and overlay), the taggers, `fitCaption` | — |
+
+### Evidence
+
+- **Checks** on the final tree (after the last rebase over lanes D / T / R): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint .` 0 errors (43 old warnings outside lane C) · the full opus-bay suite **1291 / 1291** (`suite-c6.log`, after the rebase over lanes E and V; 1288 / 1288 before it).
+  Earlier full runs this part: 1236 / 1236 (`suite-c1.log`), 1277 / 1277 (`c2`), 1284 / 1284 (`c3`, the head pushed as
+  `e828ab31`). No wall-clock flake. `npx tsc` / `eslint` / `tsx` all worked (no node_modules workaround).
+- **CP-14 in the game** (dev 5503, desktop 1440 × 900 and phone 390 × 844 dpr 3, zh; every shot read):
+  - the checkpoint's walker path (Peter-Paul → Coit, BAYBAY left 17 u behind): before the fix the probe showed the player
+    on the slope at y 17.2, the camera at y 20.9 on the plaza (paving 20.0) — the wall of paving the checkpoint saw
+    (`c/pel1-moment.jpg` first run); after: the moment waits for her, she stands uphill beside you, the camera looks up
+    the steps at both (`pc-pelican-slope-desk.jpg`, phone `pc-pelican-390.jpg`, pair 1.4 u apart).
+  - on the plaza rim (the part-a teleport spot): a mark down the slope had dropped the camera to 0.8 u over the paving;
+    now face to face on the plaza with the city behind (`pc-pelican-rim-desk.jpg`); on the open plaza by the tower the
+    two-shot frames both with Alcatraz behind (`pc-pelican-plaza-desk.jpg`).
+  - lane F's pelican: seen landing behind the pair in the plaza run before the view guard; in the rim runs it landed
+    between the lens and BAYBAY (the follow camera's yaw −0.60 while the two-shot looked the other way: traced 10 frames)
+    — the guard now skips that landing (Decisions 3).
+  - names: the E prompt reads 看看壁画 · 科伊特塔壁画, the card 科伊特塔壁画 with its tip 官方特别说明：科伊特塔不是照着消防水枪
+    喷嘴设计的。(`pc-coit-murals-desk.jpg`, `pc-card-howto-desk.jpg`, which also shows lane R's 现实中怎么去: F 线 The
+    Embarcadero & Sansome · 步行约 5 分钟 · 7:00–24:00, Powell–Mason at Mason & Greenwich).
+- **The album**: desktop — the shutter toast 已存进相册 · 点缩略图就能看, the thumbnail opens the viewer (保存 · 分享 · 删除,
+  ‹ ›), the grid with the note (`pc-album-grid-desk.jpg`), IndexedDB used
+  (`albumKind` idb, 2 photos kept); over photo mode the first Escape closes the album and the second leaves photo mode (checked; in the first run photo mode had swallowed it); a photo kept before a page reload is listed after it (IndexedDB: 1 → 1, its caption 湾区小旅 · 渡轮大厦 · 2026年9月28日); phone — 更多 lists 拍照 · 相册 · 小铺 · 设置 (`pc-more-390.jpg`), the viewer on a
+  1170 × 2532 card: the caption used to run into BAYLINK (`c/ph-viewer.jpg`), now fitted and cut with …
+  (`pc-album-viewer-390.jpg`). The real share sheet / 存储图像 needs a real iPhone (the lead's W5-Z).
+- **The second favours**, desktop: Rosa (a saved first favour) — thanks → fact → ask2 in one chat
+  (`pc-rosa-ask2-desk.jpg`), 我去拍 → 新的小忙 toast, the waypoint 小忙 · 渡轮大厦钟楼 · 约 55 秒, the journal row with 带我去;
+  a photo by the Ferry Building → 小忙完成：给 Rosa 拍渡轮大厦钟楼 + 已存进相册 (`pc-rosa-photo-desk.jpg`), the pill
+  🪙 25 (lane E paid `favour:baker:2`); Luz — 拍到啦 1/3 · Balmy 巷 in the alley, then Clarion and the Women's Building →
+  done; the otter board beside Luz (`pc-otter-desk.jpg`); Dana — sitting at lane A's Crissy Field beach spot, her
+  favour done at the end of the look; Ray — walking past him after his: his bubble and riff (`pc-ray-riff-desk.jpg`; his
+  own favour was finished by the bell's `play … end` event in the page, the riff itself on a moving car was not played
+  in QA). A letter due from an earlier visit arrived 25 s in: 收到一封信 · 来自 Hank + BAYBAY's line
+  (`pc-letter-arrives-desk.jpg`); 读信 with its dot → the letter → 再读一遍, `letter-read:gardener`. Phone: the
+  journal's rows (去找 Ray · 读信 with a dot · 已拍 1/3 · 去找 Hank: `pc-journal-390.jpg`) and Rosa's letter
+  (`pc-letter-390.jpg`).
+- **Rendering / bundle**: the otter board adds 1 draw call and 12 triangles in Balmy Alley only (the Mission, not
+  downtown), after the favour, within 140 u; 0 new programs (the late warm-up pass 90 → 90). The album, the letter, the
+  otter and the dialogue data are lazy chunks; the main graph grows by the second favours' titles / hints / spots
+  (`data/sf/residents.ts`, read by the Journal) and `photo.ts`'s album hand-off and `fitCaption` (a few KB raw).
+- **Real-world facts** (checked on the web 2026-09-28; each carries its source in `RESIDENT_SOURCES` / `LETTERS`):
+  the Ferry Plaza Farmers Market is on Saturdays 8 am–2 pm, Tue & Thu 10 am–2 pm (foodwise.org,
+  https://foodwise.org/markets/ferry-plaza-farmers-market/); the Queen Wilhelmina tulips "are usually in full bloom in
+  March", the garden is closed for re-planting in May and October (https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard);
+  the SFMTA's 55th Cable Car Bell Ringing Contest was held in Union Square on 10 Oct 2019 (so 已经比了五十多届; no later
+  one found: https://www.sfmta.com/press-releases/sfmta-announces-winners-55th-cable-car-bell-ringing-contest); Crissy
+  Field's marsh was reconnected to the tides in November 1999 after the 1998–2000 restoration of the old airfield
+  (https://home.nps.gov/articles/crissy-field-restoration.htm); Hippie Hill lies between the Conservatory of Flowers and
+  Haight Street, was a focal point of the 1967 Summer of Love, and "a drum circle that anyone can join has formed at
+  Hippie Hill on weekend days" (https://en.wikipedia.org/wiki/Hippie_Hill). Higgsfield: 0 credits.
+
+### Decisions
+
+1. **CP-14's names are a city layer over the district's POIs** (same ids, spots and facts; zh names and card text in
+   the city's words), so the district's frozen texts never change and lane N's zone names (`CITY_HERO_ZONE_NAMES`,
+   df53478) and the POI names agree (李维斯广场, 14 号码头, 探索馆 …). Pier 33 is 恶魔岛渡轮码头 per the glossary.
+2. **The two-shot fix is lane C's staging, not the camera**: `actors/camera.ts twoShotPose` weighs buildings, not the
+   hill, and keeps the side it picks at the first frame, so BAYBAY is put on a terrain-clear, level mark before the
+   dialogue opens (a step of ≤ 5 u under the cut to the two-shot, the pair turned face to face). A terrain line of
+   sight in the camera itself would be the general fix (Request to F).
+3. **Lane F's pelican lands only when it lands behind the pair**: `pelicanGreet` places the bird by
+   `runtime.camera.yaw`, the follow camera's yaw, which a dialogue framing does not move; when that view and the
+   two-shot's (≈ you → BAYBAY) differ by more than 60°, or the spot it would pick is not ≥ 1.2 u beyond the pair along
+   the two-shot's view, the moment keeps no landing — a bird between the lens and BAYBAY was worse than none. In the
+   runs above it landed in the plaza run before the guard and was skipped on the rim; it will land more often once F
+   reads the rendered camera (Request).
+4. **The album is on this device**: bytes (not Blobs) in IndexedDB for older iOS Safari, a memory album when storage is
+   blocked (the note then says the photos go with the window); 60 photos, the oldest leaves; 保存 on a phone opens the
+   share sheet because that is how iOS saves to Photos, 分享 without file sharing downloads and copies the game's link
+   (the plan's fallback). District mode keeps its download (unchanged).
+5. **Second favours use `goalsDone` marks** like the first (≤ 15 more ids at most: 6 done, 3 photo marks while Luz's
+   is on, 6 letters with `letter-read:` replacing `letter:`), inside the progress save's 128.
+6. **The marks**: one thing in the world (Luz's otter board, where she paints — not on a real mural, not on lane H2b's
+   boards), one sound (Ray's riff) and words that follow the real day (fact2For); Rosa is not moved to the market on
+   Saturdays (the residents' spots are tested and lane V's actors place them) — she tells you when it is on.
+7. **Letters live in the Journal's 目标 tab** (the six-tab bar is full at 375 px): lane E's 手帐 could list them later
+   through `LETTERS` / `letterState` (Request).
+8. **Dana's and Ray's favours listen to lane A's events** (`find view crissy-beach`, `play bell end`), so they need A's
+   feature loaded — the only way to do them is A's activity anyway.
+
+### Known gaps
+
+- lane F's pelican rarely lands in the moment now (Decisions 3); the rim / stairs moments have none.
+- The share sheet and 存储图像 are not checked on a real iPhone (headless Chrome has no share target), nor Safari's
+  IndexedDB (a reload keeps the album in Chrome; Safari may clear a site's storage after 7 days without a visit — the
+  album's note tells players to 保存 the ones they love).
+- Ray's riff played on a real cable-car ride was not QA'd end to end (the favour's event path and the pass-by riff were).
+- The letters' 150 s delay was shortened by a saved state in QA (the 25 s resume path); the 150 s path is tested.
+- The otter board is a flat painted board: it reads grey-cream in the alley's shade.
+
+### Not done
+
+- Lane R's request 1 (b) 今天免费 offer chips and (c) the coast cards' tide row (only (a) 现实中怎么去 is in).
+- Voice for part c's lines (≈ 60, text only; not frozen for lane V in this part).
+- No real-iPhone pass (the lead's W5-Z).
+
+### Requests
+
+- **F** (`actors/moveSystem.ts pelicanGreet`): place the bird by the rendered camera's direction (the camera rig's pose;
+  during a dialogue framing `runtime.camera.yaw` stays the follow yaw) — lane C's `greetBehind` guard can then go, and
+  the pelican lands in every moment. Optional (`actors/camera.ts twoShotPose`): weigh the ground between the camera and
+  the pair (a terrain line of sight) as it weighs buildings.
+- **E**: `favour:<key>:2` (six sources, 25 each) go to `play.e`; append them to `economy/sources.ts FIXED_SOURCES` when you
+  next append. Optional: a 信 page in the 手帐 from `data/sf/letters.ts LETTERS` + `letterState` (the Journal's 目标 tab
+  has them today); the album's `photosTagged` for a photo page.
+- **A** / **D**: `registerPhotoTagger(id, fn)` (game/photoFrames.ts) tags a shot taken at a view spot / a nature find
+  (`view:<id>`, `nature:<id>`); `photosTagged(tag)` (game/album.ts, lazy) gives the photos for the view cards / the
+  nature page.
+- **V** (H5-3, optional): part c's resident lines stay text; if they are wanted as voice, lane C freezes them next
+  (they are in `data/sf/dialogue.ts SCRIPTS2` and `data/sf/letters.ts`).
+- **Lead** (W5-Z): on the real iPhone — 保存 in the album opens the share sheet and 存储图像 lands in Photos; the album
+  keeps its photos after closing and reopening the tab.
+
+Status (no relayed owner message arrived): 进度——检查点的鹈鹕镜头和中文名字已修好，相册、六位邻居的第二个小忙和来信都做完并推送，报告已写。
