@@ -1213,8 +1213,9 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
    (`明信片 3/24 · 🪙 42`); the desktop 更多 button exists only while a lane registered a More item; its menu opens
    above the button in the row (≥ 1181 px) and to its left in the column layouts (601–1180 px). */
 .ob-pill-badges { display: inline-flex; align-items: baseline; gap: 6px; margin-left: 6px; white-space: nowrap; }
-/* phones: the pill is at most min(58vw, 250px) wide — the badges take a line of their own when 明信片 n/m + badges do not fit */
-@media (max-width: 600px) { .ob-objective-text strong:has(> .ob-pill-badges) { white-space: normal; } .ob-pill-badge:first-child::before { display: none; } }
+/* phones: the pill is at most min(58vw, 250px) wide — W5-F9: the badges ride on the goals line (目标 3/10 · 🪙 42), so the
+   pill keeps its two lines; with no goals line they stay after 明信片 n/m and may wrap there */
+@media (max-width: 600px) { .ob-objective-text strong:has(> .ob-pill-badges) { white-space: normal; } .ob-objective-text small .ob-pill-badges { margin-left: 1px; gap: 5px; } }
 .ob-pill-badge { display: inline-flex; align-items: baseline; gap: 3px; }
 .ob-pill-badge::before { content: '·'; color: var(--ob-ink-2); margin-right: 3px; }
 .ob-hud-more { position: relative; display: flex; }
@@ -1222,6 +1223,17 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 @media (max-width: 1180px) { .ob-hud-more-menu { bottom: 0; right: calc(100% + 10px); } }
 .ob-choice-icon { display: inline-flex; vertical-align: -3px; margin-right: 6px; }
 .ob-choice-icon svg { width: 16px; height: 16px; }
+
+/* W5-F9 · phones: the move column (跳 / 起飞 / 下车, the right edge from 150 px up: actors/TouchControls) owns the right
+   84 px of that band — lane N's go chip (BAYBAY 带路中 · 碰摇杆接管, bottom 140 px) sits in the band left of it, centred
+   there, its second half ellipsed when it does not fit (at 390 × 844 it covered 跳 by 43 px) */
+@media (max-width: 600px) {
+  .ob-overlay .ob-go-chip { left: calc(12px + var(--ob-sl)); right: calc(84px + var(--ob-sr)); width: max-content; max-width: calc(100% - 96px - var(--ob-sl) - var(--ob-sr)); margin: 0 auto; transform: none; }
+  /* lane N's quiet discovery chip (+3 个地点) hangs under the area pill, down to ≈ 84 px: while it shows, the top stack
+     (toasts, the ride banner) starts under it (a toast covered its right half at 390 × 844 and 375 × 667) */
+  .ob-overlay:has(.ob-found-chip) .ob-topstack { top: calc(92px + var(--ob-st)); }
+  .ob-topstack { transition: top .25s ease; }
+}
 
 /* W5-F3 · the phone's 起飞 pulses once (a glide unlocked in play; lane C's 先试试起飞？): a warm ring swells out twice */
 .ob-glide-pulse { animation: ob-glide-pulse 1.2s ease-out 2; }

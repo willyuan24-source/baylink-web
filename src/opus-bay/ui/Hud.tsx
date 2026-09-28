@@ -17,6 +17,7 @@ import { InteractIcon } from './icons';
 import { transitGlyph } from './transitGlyph';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 import { MORE_BUILTIN_ORDER, moreItems, pillBadges, runMoreItem, type MoreItemSlot } from './slots';
+import { openObjectiveJournal } from './objectivePill';
 
 /**
  * Always-on HUD: area name, one objective pill, round buttons (one bottom bar on phones), one contextual action.
@@ -84,6 +85,8 @@ function Objective() {
   const results = useFlow(s => s.weekResult?.events.length ?? 0);
   const device = useDevice();
   const goalsOpen = useFlow(s => s.goalsCard);
+  const city = useGame(s => s.worldMode === 'city');
+  const narrow = useMedia('(max-width: 600px)');
 
   if (cityTrip) return <Suspense fallback={null}><TripPillSlot /></Suspense>;
   // wave 4 (city): the Grand Tour between its stops — lane C's tourPill (the chapter, its step, the next stop);
@@ -120,12 +123,18 @@ function Objective() {
   if (mode === 'free') {
     const total = activePostcardTotal();
     const goals = FREE_GOALS.filter(goal => goalsDone.includes(goal.id)).length;
+    const second = FREE_GOALS.length > 1;
+    // W5-F9 (plan MF6 "goals once", lane C's request): in the city the pill opens the journal — on 今天 once lane R
+    // registers it, else on 目标 — and never toggles a hidden card; the district keeps its goals card
+    const open = city ? openObjectiveJournal : () => flow.set(s => ({ goalsCard: !s.goalsCard }));
+    // (phones: the badges — lane E's 🪙 n — ride on the goals line, so the pill keeps two lines)
+    const badgesBelow = narrow && second;
     return (
-      <button type="button" className="ob-objective is-gold" onClick={() => flow.set(s => ({ goalsCard: !s.goalsCard }))} aria-label={t('看看探索目标', 'Show the explorer goals')} aria-expanded={goalsOpen}>
+      <button type="button" className="ob-objective is-gold" onClick={open} aria-label={city ? t('打开旅行本', 'Open the journal') : t('看看探索目标', 'Show the explorer goals')} aria-expanded={city ? undefined : goalsOpen}>
         <span className="ob-objective-icon"><PostcardGlyph /></span>
         <span className="ob-objective-text">
-          <strong>{t('明信片', 'Postcards')} <em>{postcards}/{total || 8}</em><PillBadges /></strong>
-          {FREE_GOALS.length > 1 && <small>{t('目标', 'Goals')} {goals}/{FREE_GOALS.length}</small>}
+          <strong>{t('明信片', 'Postcards')} <em>{postcards}/{total || 8}</em>{!badgesBelow && <PillBadges />}</strong>
+          {second && <small>{t('目标', 'Goals')} {goals}/{FREE_GOALS.length}{badgesBelow && <PillBadges />}</small>}
         </span>
       </button>
     );

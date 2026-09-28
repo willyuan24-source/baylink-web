@@ -149,3 +149,59 @@ test('W5-F3 · the routed wave-3 G items (sf-w4-lead.md §8.4) are in: FocusMark
   assert.match(srcOf('economy/ledger.ts'), /onSaveCleared\(/, 'lane E\'s ledger forgets its coins when the save is cleared');
   assert.match(srcOf('actors/system.ts'), /import\('\.\.\/world\/models'\)\.then\(m => m\.heroGltfLoader\(\)\.loadAsync\(MODELS\.baybay\.url\)\)/);
 });
+
+// ---------------------------------------------------------------------------
+// W5-F9 · the overlay layout at 390 × 844 and 375 × 667 (plan §4.4 item 9, MF6)
+// ---------------------------------------------------------------------------
+
+test('W5-F9 · the city pill opens the journal (on 今天 once lane R registers it, else 目标); the district pill still toggles its goals card', async () => {
+  const slots = await import('../src/opus-bay/ui/slots');
+  const { openObjectiveJournal } = await import('../src/opus-bay/ui/objectivePill');
+  const seen: (string | undefined)[] = [];
+  const off = slots.subscribeJournalRequest(() => seen.push(slots.lastJournalRequest().tab));
+  try {
+    openObjectiveJournal();
+    const offTab = slots.registerJournalTab({ id: 'today', order: 5, label: { zh: '今天', en: 'Today' }, icon: () => null, load: async () => ({ default: () => null }) });
+    openObjectiveJournal();
+    offTab();
+    openObjectiveJournal();
+  } finally { off(); }
+  assert.deepEqual(seen, ['goals', 'today', 'goals']);
+  const hud = srcOf('ui/Hud.tsx');
+  assert.match(hud, /const open = city \? openObjectiveJournal : \(\) => flow\.set\(s => \(\{ goalsCard: !s\.goalsCard \}\)\);/, 'district: the goals card as before');
+});
+
+test('W5-F9 · phones: the pill keeps two lines (the badges ride on the goals line); N\'s go chip keeps left of the move column; the top stack starts under the discovery chip while it shows', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { registerHooks } = await import('node:module');
+  const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+  const { Hud } = await import('../src/opus-bay/ui/Hud');
+  styles.deregister();
+  const slots = await import('../src/opus-bay/ui/slots');
+  const { game } = await import('../src/opus-bay/core/store');
+  const g = globalThis as unknown as { window?: Record<string, unknown> };
+  const hadWindow = 'window' in g, savedMM = g.window?.matchMedia;
+  g.window ??= globalThis as unknown as Record<string, unknown>;
+  const saved = { mode: game.get().mode, phase: game.get().phase, worldMode: game.get().worldMode };
+  const offBadge = slots.registerPillBadge({ id: 'w5-f9-coins', order: 0, Component: () => h('span', null, '🪙 42') });
+  try {
+    game.set({ mode: 'free', phase: 'playing', worldMode: 'city' });
+    // a phone: (max-width: 600px) matches
+    g.window!.matchMedia = (q: string) => ({ matches: /max-width: (600|720)px/.test(q) && !/min-width/.test(q), addEventListener() {}, removeEventListener() {} });
+    const phone = renderToStaticMarkup(h(Hud));
+    assert.match(phone, /<small>[^<]*<span class="ob-pill-badges"><span class="ob-pill-badge"><span>🪙 42<\/span><\/span><\/span><\/small>/, 'phone: the coins after 目标 n/m');
+    assert.match(phone, /aria-label="打开旅行本"/);
+    g.window!.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+    const desk = renderToStaticMarkup(h(Hud));
+    assert.match(desk, /<em>[^<]*<\/em><span class="ob-pill-badges">/, 'desktop: after 明信片 n/m as before');
+  } finally {
+    offBadge();
+    game.set(saved);
+    if (savedMM === undefined) delete g.window!.matchMedia; else g.window!.matchMedia = savedMM;
+    if (!hadWindow) delete g.window;
+  }
+  const css = srcOf('opus-bay.css');
+  assert.match(css, /\.ob-overlay \.ob-go-chip \{ left: calc\(12px \+ var\(--ob-sl\)\); right: calc\(84px \+ var\(--ob-sr\)\);[^}]*max-width: calc\(100% - 96px - var\(--ob-sl\) - var\(--ob-sr\)\)/);
+  assert.match(css, /\.ob-overlay:has\(\.ob-found-chip\) \.ob-topstack \{ top: calc\(92px \+ var\(--ob-st\)\); \}/);
+});
