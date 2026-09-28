@@ -100,5 +100,15 @@ export function mark(key: string): boolean {
   return true;
 }
 
+/**
+ * (review) Settings → reset progress: the per-viewer memory goes with the save — the 1776 stops visited (else a new
+ * save's first stop completed egg 23 at once) and today's phone / cookies (a new player may answer and taste again).
+ */
+export function forgetEggMemory(): void {
+  memory = {};
+  marks = new Set();
+  try { globalThis.localStorage?.removeItem(KEY); globalThis.localStorage?.removeItem(MARKS); } catch { /* memory only */ }
+}
+
 /** tests: forget the daily memory and the marks */
 export function __resetDailyForTests(): void { memory = null; marks = null; }

@@ -342,7 +342,8 @@ test('W5-D3 / W5-D4 hosts: every egg has one host (registry order); prompts are 
   try {
     assert.deepEqual(hosts.map(h => h.id), [...ALL_EGG_IDS], 'one host per egg, in the registry order');
     assert.deepEqual(all.slice(0, hosts.length), hosts, 'the eggs first');
-    assert.ok(all.slice(hosts.length).every(h => h.spots && h.isFound), 'the others bring their spots and their found');
+    // (review: a host that runs everywhere — the listening, the pebbles — needs no spot list: distTo skips it)
+    assert.ok(all.slice(hosts.length).every(h => (h.spots || h.range === Infinity) && h.isFound), 'the others bring their spots (or run everywhere) and their found');
     for (const h of hosts) {
       assert.ok(h.range > 0, `${h.id}: range`);
       assert.ok(typeof h.qa === 'function', `${h.id}: a QA trigger for the screenshots`);

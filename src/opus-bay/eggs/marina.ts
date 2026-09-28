@@ -8,7 +8,7 @@ import { bitCount } from '../data/playSave';
 import { bayParts } from '../game/bayNow';
 import type { Shot } from '../game/cinema';
 import { KARL } from '../world/fogShader';
-import { type EggHost, beat, fx, hostClock, isFound, momentFree, note, props, reveal, say, sound } from './hosts';
+import { type EggHost, beat, fx, hostClock, isFound, momentFree, note, props, reveal, say, sound, later } from './hosts';
 import { heard as heardSound, soundFound } from './listen';
 import { eggById } from './registry';
 
@@ -99,9 +99,11 @@ export function crissyHost(): EggHost {
       const d = Math.hypot(e.x - egg.at.x, e.z - egg.at.z);
       if (d > CRISSY_LAWN_R || isWater(e.x, e.z) || !isDusk()) return;
       // the landing hop settles first
-      setTimeout(() => landed(e.x, e.z), 900);
+      later(() => landed(e.x, e.z), 900);
     },
     dispose: () => props.set(`egg:${CRISSY}`, null),
+    // (review) a new save: the windsock waits for its own dusk landing again
+    reset: () => props.set(`egg:${CRISSY}`, null),
     qa: () => landed(runtime.player.x, runtime.player.z),
   };
 }
@@ -132,6 +134,7 @@ export function otterHost(): EggHost {
       if (Math.hypot(g.x - ctx.px, g.z - ctx.pz) > 12 || !momentFree()) return;
       tell();
     },
+    reset: () => { told = false; },
     qa: tell,
   };
 }
@@ -267,8 +270,8 @@ export function foghornHost(): EggHost {
       forced = hostClock() + 120;
       say(egg.lines[0]);
       sound('egg:horn-south', GGB.south, { near: 40, far: 700 });
-      setTimeout(() => sound('egg:horn-mid', MID, { near: 40, far: 700 }), 2600);
-      setTimeout(() => sound('egg:horn-mid', MID, { near: 40, far: 700 }), 4600);
+      later(() => sound('egg:horn-mid', MID, { near: 40, far: 700 }), 2600);
+      later(() => sound('egg:horn-mid', MID, { near: 40, far: 700 }), 4600);
     },
   };
 }

@@ -5,7 +5,7 @@ import type { Shot } from '../game/cinema';
 import { registerFlagSource } from '../game/flags';
 import { bayParts } from '../game/bayNow';
 import { inMonths, mark, marked } from './gates';
-import { type EggHost, SEA_Y, beat, flock, fx, glance, isFound, momentFree, props, reveal, say, sound } from './hosts';
+import { type EggHost, SEA_Y, beat, flock, fx, glance, isFound, momentFree, props, reveal, say, sound, later } from './hosts';
 import { deckCoords, GGB, MID, onDeck } from './marina';
 import type { BirdPath } from './props';
 import { eggById } from './registry';
@@ -92,11 +92,11 @@ export function humpbackHost(water: (x: number, z: number) => boolean = isWater)
     if (!spot) return false;
     flock.start('whale', 1, WHALE_S, whalePath(spot, spot.swim));
     sound('egg:spout', spot, { near: 20, far: 220 });
-    setTimeout(() => {
+    later(() => {
       fx('splash', spot.x, SEA_Y + 0.4, spot.z, { count: 16, scale: 2 });
       fx('dust', spot.x, SEA_Y + 2.8, spot.z, { count: 18, scale: 2.6, color: '#ffffff' });
     }, 1200);
-    setTimeout(() => fx('splash', spot.x + Math.sin(spot.swim) * 7, SEA_Y + 0.3, spot.z + Math.cos(spot.swim) * 7, { count: 12, scale: 1.6 }), 6200);
+    later(() => fx('splash', spot.x + Math.sin(spot.swim) * 7, SEA_Y + 0.3, spot.z + Math.cos(spot.swim) * 7, { count: 12, scale: 1.6 }), 6200);
     // look at it: a glance, on the pelican AND on the deck — the controls stay yours (the checkpoint's CP-6: a beat on
     // foot held the lock for 6 s mid-span, and MF2 asks ≥ 3 u/s over every 3 s window on the deck). The glance's
     // camera stands a little back and above where you were; walking on, you leave the frame and the camera comes
@@ -108,7 +108,7 @@ export function humpbackHost(water: (x: number, z: number) => boolean = isWater)
     const back = air ? 7 : 3.5, side = air ? 0 : 2.6, ux = dx / l, uz = dz / l;
     const shot = { position: [eye.x - ux * back - uz * side, eye.y + (air ? 3 : 5.5), eye.z - uz * back + ux * side] as [number, number, number], target: [spot.x, SEA_Y + 0.8, spot.z] as [number, number, number] };
     glance({ ...shot, duration: air ? 0.8 : 0.9 }, air ? 5.2 : WHALE_LOOK_FOOT);
-    setTimeout(() => { reveal(WHALE, { repeatLine: true, cardDelay: 3 }); }, 1500);
+    later(() => { reveal(WHALE, { repeatLine: true, cardDelay: 3 }); }, 1500);
     return true;
   };
   return {

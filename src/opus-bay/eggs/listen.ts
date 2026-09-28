@@ -1,16 +1,16 @@
 import { playSound } from '../audio/hooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
-import { isPaid } from '../economy/ledger';
 import { bayParts } from '../game/bayNow';
 import { busy } from '../game/flow';
 import { activeEventsAt } from '../realsf/events';
 import { closeOverlay, openOverlay } from '../ui/slots';
 import { spawnFx } from '../world/fx';
-import { CITY_SOUNDS, LISTEN_S, SOUND_COINS, soundById, soundRewardSource, type CitySoundDef } from './citySounds';
+import { CITY_SOUNDS, LISTEN_S, SOUND_COINS, SOUND_IDS, soundById, soundRewardSource, type CitySoundDef } from './citySounds';
 import { bayHour, seaLionMonth } from './gates';
 import { type EggHost, hostClock, invalidate, momentFree, queueCard, say, sayMore, sound } from './hosts';
 import { karlIn } from './mission';
+import { paidSet } from './paid';
 import type { EggSound } from './sounds';
 
 /**
@@ -79,10 +79,10 @@ function playDef(def: CitySoundDef): void {
 // --- found ---------------------------------------------------------------------------------------------------------
 
 const sessionHeard = new Set<string>();
+const paidSounds = paidSet(soundRewardSource, () => SOUND_IDS);
 /** Heard before: the ledger's bit (play.g.sound) or this session. */
 export function soundFound(id: string): boolean {
-  if (sessionHeard.has(id)) return true;
-  try { return isPaid(soundRewardSource(id)); } catch { return false; }
+  return sessionHeard.has(id) || paidSounds().has(id);
 }
 
 /** The collection: the find, the first time the reward, the chime, BAYBAY's line (after any she is saying) and the card. */
@@ -126,6 +126,14 @@ function stopListen(): void {
   invalidate();
 }
 
+/** (review) Settings → reset progress: the sounds heard this session are unheard again (the ledger starts over). */
+export function forgetHeard(): void {
+  sessionHeard.clear();
+  paidSounds.forget();
+  missSaid = false;
+  if (listening) stopListen();
+}
+
 /** The moment played the sound and the player heard it (the duet on the deck, the steps climbed): collect it now. */
 export function heard(id: string): boolean {
   const def = soundById(id);
@@ -151,17 +159,18 @@ function stepListen(t: number): void {
 /** The hosts: one that steps the listening, one per sound with a 听一听 prompt (the moment sounds have none). */
 export function soundHosts(): EggHost[] {
   const hosts: EggHost[] = [{
-    id: 'listen', range: Infinity, spots: () => [{ x: runtime.player.x, z: runtime.player.z }], isFound: () => false,
+    id: 'listen', range: Infinity, isFound: () => false,
     update: ctx => stepListen(ctx.t),
     dispose: () => { if (listening) stopListen(); for (const t of playTimers.splice(0)) clearTimeout(t); },
   }];
   for (const def of CITY_SOUNDS) {
     if (def.by !== 'listen') continue;
     let live = soundLive(def.id);
+    const spots = [def.at] as const;
     hosts.push({
       id: `sound:${def.id}`,
       range: def.radius + 30,
-      spots: () => [def.at],
+      spots: () => spots,
       isFound: () => soundFound(def.id),
       enter: () => { live = soundLive(def.id); invalidate(); },
       update: () => { const now = soundLive(def.id); if (now !== live) { live = now; invalidate(); } },
@@ -178,6 +187,6 @@ export function soundHosts(): EggHost[] {
 
 /** Tests: forget the session. */
 export function __resetListenForTests(): void {
-  listening = null; missSaid = false; sessionHeard.clear();
+  listening = null; missSaid = false; sessionHeard.clear(); paidSounds.forget();
   for (const t of playTimers.splice(0)) clearTimeout(t);
 }

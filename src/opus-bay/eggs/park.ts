@@ -2,7 +2,7 @@ import { runtime } from '../core/runtime';
 import { heightAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { inMonths, inYear } from './gates';
-import { type EggHost, fx, momentFree, props, reveal, sound } from './hosts';
+import { type EggHost, fx, momentFree, props, reveal, sound, later } from './hosts';
 import { heard } from './listen';
 import { eggById } from './registry';
 
@@ -120,6 +120,6 @@ export function tiledStepsHost(): EggHost {
       if (best >= 0.96 && momentFree()) top();
     },
     leave: reset,
-    qa: () => { for (let i = 0; i < STEP_STAGES.length; i++) setTimeout(() => stageFx(i), i * 700); setTimeout(top, 2200); },
+    qa: () => { for (let i = 0; i < STEP_STAGES.length; i++) later(() => stageFx(i), i * 700); later(top, 2200); },
   };
 }

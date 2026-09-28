@@ -5,7 +5,7 @@ import type { Bilingual } from '../core/types';
 import { bayNow } from '../game/bayNow';
 import type { Shot } from '../game/cinema';
 import { bayHm, sunPosition } from '../realsf/sun';
-import { type EggHost, beat, fx, glance, hostClock, props, reveal, say, sound } from './hosts';
+import { type EggHost, beat, fx, glance, hostClock, props, reveal, say, sound, later } from './hosts';
 import { eggById } from './registry';
 
 /**
@@ -132,7 +132,7 @@ export function heronsHost(): EggHost {
     // straight down on the park for two seconds, the pelican flying on underneath
     glance({ position: [HERONS_MID.x - NORTH.x * 18, 115, HERONS_MID.z - NORTH.z * 18], target: [HERONS_MID.x, 0, HERONS_MID.z], duration: 0.9 }, 2.4);
     glow();
-    setTimeout(glow, 900);
+    later(glow, 900);
     reveal(HERONS, { repeatLine: true, cardDelay: 2.8 });
   };
   return {

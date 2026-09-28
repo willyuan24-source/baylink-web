@@ -7,7 +7,7 @@ import type { Bilingual } from '../core/types';
 import type { Shot } from '../game/cinema';
 import { bayParts } from '../game/bayNow';
 import { bayHour } from './gates';
-import { type EggHost, SEA_Y, beat, flock, fx, glance, isFound, momentFree, props, reveal, say, sound } from './hosts';
+import { type EggHost, SEA_Y, beat, flock, fx, glance, isFound, momentFree, props, reveal, say, sound, later } from './hosts';
 import type { BirdPath } from './props';
 import { eggById } from './registry';
 
@@ -107,7 +107,7 @@ export function semaphoreHost(): EggHost {
     downAt = clock + 7;
     setArms(pose);
     sound('egg:creak', SEMA_POLE, { near: 4, far: 30 });
-    setTimeout(() => sound('egg:ting', SEMA_POLE, { near: 4, far: 30, pitch: 0.8 }), 600);
+    later(() => sound('egg:ting', SEMA_POLE, { near: 4, far: 30, pitch: 0.8 }), 600);
     const py = heightAt(SEMA_POLE.x, SEMA_POLE.z);
     fx('sparkle', SEMA_POLE.x, py + 3.6, SEMA_POLE.z, { count: 8, color: '#f3c75a' });
     lookAt({ x: SEMA_POLE.x, y: py + 2.6, z: SEMA_POLE.z }, 3, { back: 3.5, up: 1.8, side: 1.6 });
@@ -143,8 +143,8 @@ export function tunnelHost(): EggHost {
     sound('egg:cave', TUNNEL_AT, { near: 5, far: 50 });
     const s = TUNNEL_SPRAY;
     fx('splash', s.x, SEA_Y + 1.2, s.z, { count: 18, scale: 2.2 });
-    setTimeout(() => fx('dust', s.x, SEA_Y + 2.6, s.z, { count: 14, scale: 2, color: '#ffffff' }), 250);
-    setTimeout(() => fx('splash', s.x + 1.2, SEA_Y + 1, s.z - 0.8, { count: 10, scale: 1.6 }), 2300);
+    later(() => fx('dust', s.x, SEA_Y + 2.6, s.z, { count: 14, scale: 2, color: '#ffffff' }), 250);
+    later(() => fx('splash', s.x + 1.2, SEA_Y + 1, s.z - 0.8, { count: 10, scale: 1.6 }), 2300);
     if (find) { lookAt({ x: s.x, y: SEA_Y + 1.5, z: s.z }, 3.2, { back: 1.2, up: 3.6, side: 2.8 }); reveal(TUNNEL, { repeatLine: true, cardDelay: 3.2 }); }
   };
   return {
@@ -244,7 +244,7 @@ export function glidersHost(): EggHost {
     flock.start('glider', 3, GLIDER_S, gliderPath(from));
     if (!g.active) lookAt({ x: FUNSTON_DECK.x - 22, y: heightAt(FUNSTON_DECK.x, FUNSTON_DECK.z) + 7, z: FUNSTON_DECK.z }, 4.5, { back: 3.5, up: 2.2 });
     sound('egg:whoosh', { x: FUNSTON_DECK.x - 20, z: FUNSTON_DECK.z }, { near: 8, far: 60 });
-    setTimeout(() => sound('egg:wind', { x: FUNSTON_DECK.x - 20, z: FUNSTON_DECK.z }, { near: 8, far: 60, gain: 0.5 }), 500);
+    later(() => sound('egg:wind', { x: FUNSTON_DECK.x - 20, z: FUNSTON_DECK.z }, { near: 8, far: 60, gain: 0.5 }), 500);
     reveal(GLIDERS, { repeatLine: true, cardDelay: 4.6 });
   };
   return {
@@ -277,7 +277,7 @@ export function castroOrganHost(): EggHost {
     played = true;
     sound('egg:theatre-organ', MARQUEE, { near: 4, far: 40 });
     const gy = heightAt(MARQUEE.x, MARQUEE.z);
-    for (const [k, dx] of [[0, -1.2], [1, 0], [2, 1.2]] as const) setTimeout(() => fx('sparkle', MARQUEE_SIGN.x + dx * 0.77, gy + 4.2, MARQUEE_SIGN.z + dx * 0.64, { count: 6, color: '#ffd27a' }), 500 + k * 450);
+    for (const [k, dx] of [[0, -1.2], [1, 0], [2, 1.2]] as const) later(() => fx('sparkle', MARQUEE_SIGN.x + dx * 0.77, gy + 4.2, MARQUEE_SIGN.z + dx * 0.64, { count: 6, color: '#ffd27a' }), 500 + k * 450);
     lookAt({ x: MARQUEE_SIGN.x, y: gy + 3.8, z: MARQUEE_SIGN.z }, 3.4, { back: 4, up: 1.2 });
     reveal(ORGAN2, { repeatLine: true, cardDelay: 3.6 });
   };
@@ -351,8 +351,8 @@ export function graceLabyrinthHost(): EggHost {
     done = true;
     const gy = heightAt(GRACE_STAND.x, GRACE_STAND.z);
     sound('egg:chime', GRACE_LAB, { near: 4, far: 30, pitch: 0.9 });
-    for (let k = 0; k < 3; k++) setTimeout(() => fx('rings', GRACE_LAB.x, gy + 0.08, GRACE_LAB.z, { count: 1, scale: 0.35 + k * 0.12, color: '#fff3c4' }), k * 700);
-    setTimeout(() => fx('sparkle', GRACE_LAB.x, gy + 0.3, GRACE_LAB.z, { count: 10, color: '#fff3c4' }), 2100);
+    for (let k = 0; k < 3; k++) later(() => fx('rings', GRACE_LAB.x, gy + 0.08, GRACE_LAB.z, { count: 1, scale: 0.35 + k * 0.12, color: '#fff3c4' }), k * 700);
+    later(() => fx('sparkle', GRACE_LAB.x, gy + 0.3, GRACE_LAB.z, { count: 10, color: '#fff3c4' }), 2100);
     lookAt({ x: GRACE_LAB.x, y: gy, z: GRACE_LAB.z }, 3, { back: 1.2, up: 3.8, side: 1.8 });
     const lines = isFound('lands-end-labyrinth') ? [egg.lines[0], PAIR_LINE] : egg.lines;
     reveal(GRACE, { lines, repeatLine: true, cardDelay: 2.4 });

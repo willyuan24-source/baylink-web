@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { ChevronDown, Ear, ExternalLink, Gem, Sparkles } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
@@ -67,16 +67,28 @@ function useWalkAway(close: () => void, r = 8) {
   }, [r]);
 }
 
-/** The arrival card (lane N) owns the same corner: the find card stands above it while it is up. */
-function useAboveArrival(): boolean {
-  const [raised, setRaised] = useState(false);
+/**
+ * The arrival card (lane N) owns the same corner: while it is up, a lane-D card that shares its column stands just above
+ * it — the gap measured from the arrival card's real top (px from the overlay's bottom), or null. (Review: a fixed
+ * +92 px left the phone's find card 38 px over the arrival card, whose photo and buttons make it ≈ 130 px tall, and
+ * the 听一听 ring sat on its title at the Powell turntable.)
+ */
+function useAboveArrival(ref: RefObject<HTMLElement | null>): number | null {
+  const [raise, setRaise] = useState<number | null>(null);
   useEffect(() => {
-    const check = () => setRaised(!!document.querySelector('.ob-arrival-card'));
+    const check = () => {
+      const me = ref.current, a = document.querySelector('.ob-arrival-card');
+      const parent = me?.offsetParent;
+      if (!me || !a || !parent) { setRaise(null); return; }
+      const ar = a.getBoundingClientRect(), mr = me.getBoundingClientRect(), pr = parent.getBoundingClientRect();
+      const sameColumn = ar.left < mr.right && ar.right > mr.left && ar.height > 0;
+      setRaise(sameColumn ? Math.round(pr.bottom - ar.top + 10) : null);
+    };
     check();
     const id = window.setInterval(check, 400);
     return () => window.clearInterval(id);
-  }, []);
-  return raised;
+  }, [ref]);
+  return raise;
 }
 
 export function FactCard({ props, close }: OverlayProps) {
@@ -87,7 +99,8 @@ export function FactCard({ props, close }: OverlayProps) {
   // the E keycap only when E opens the card (another prompt in focus keeps E for itself)
   const eOpens = useGame(s => cardKeyFree(s.focus));
   const [held, setHeld] = useState(false);
-  const raised = useAboveArrival();
+  const self = useRef<HTMLElement | null>(null);
+  const raise = useAboveArrival(self);
   const left = useRef(CARD_MS);
   const state = useRef({ open, close });
   useEffect(() => { state.current = { open, close }; }, [open, close]);
@@ -115,11 +128,12 @@ export function FactCard({ props, close }: OverlayProps) {
   const Badge = BADGE[entry.kind];
   return (
     <section
-      className={`ob-egg-card is-${entry.kind} ${open ? 'is-open' : ''} ${raised ? 'is-raised' : ''}`}
+      ref={self}
+      className={`ob-egg-card is-${entry.kind} ${open ? 'is-open' : ''} ${raise !== null ? 'is-raised' : ''}`}
       aria-label={t(entry.name)}
       onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false); }}
-      style={{ ['--ob-egg-ms' as string]: `${CARD_MS}ms` }}
+      style={{ ['--ob-egg-ms' as string]: `${CARD_MS}ms`, ...(raise !== null ? { bottom: `${raise}px` } : null) }}
     >
       <button type="button" className="ob-egg-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
         <span className="ob-egg-badge" aria-hidden><Badge size={24} /></span>
@@ -188,10 +202,12 @@ export interface ListenProps { name: Bilingual; seconds: number }
 export function ListenRing({ props }: OverlayProps) {
   const { t } = useT();
   const p = props as ListenProps | undefined;
+  const self = useRef<HTMLElement | null>(null);
+  const raise = useAboveArrival(self);
   if (!p) return null;
   const R = 20, C = 2 * Math.PI * R;
   return (
-    <section className="ob-egg-listen" role="status" aria-live="polite" style={{ ['--ob-listen-s' as string]: `${p.seconds}s`, ['--ob-listen-c' as string]: `${C}` }}>
+    <section ref={self} className="ob-egg-listen" role="status" aria-live="polite" style={{ ['--ob-listen-s' as string]: `${p.seconds}s`, ['--ob-listen-c' as string]: `${C}`, ...(raise !== null ? { bottom: `${raise}px` } : null) }}>
       <span className="ob-egg-listen-ring" aria-hidden>
         <svg viewBox="0 0 48 48" width="48" height="48">
           <circle cx="24" cy="24" r={R} className="ob-egg-listen-track" />

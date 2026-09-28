@@ -103,14 +103,16 @@ export const EGGS: readonly EggDef[] = [
     at: { x: -198.7, z: 3.8 }, kind: 'ground',
     how: { zh: '在 39 号码头西边的栏杆旁看海狮', en: 'Watch the sea lions from the rail on PIER 39’s west side' },
     lines: [
-      { zh: '1989 年大地震后，海狮就搬到这片浮台上来了。', en: 'The sea lions moved onto these docks after the 1989 earthquake.' },
+      // (review, re-read 2026-09-28) PIER 39 says "shortly after the Loma Prieta earthquake" (October 1989); Wikipedia's
+      // Pier 39 page says the first hauled out in September 1989, before the quake: the line claims only the autumn
+      { zh: '1989 年秋天起，海狮陆续搬到这片浮台上来了。', en: 'From the autumn of 1989 the sea lions began moving onto these docks.' },
       { zh: '看就好，别喂——喂海狮是违法的哦。', en: 'Just watch — feeding them is against the law.' },
     ],
     fact: {
-      zh: '1989 年洛马普列塔地震后，海狮开始在 K 号浮台上岸；数量随季节涨落，六七月大多南下繁殖。',
-      en: 'Sea lions began hauling out on K-Dock after the 1989 Loma Prieta earthquake. Numbers rise and fall with the seasons; in June and July most head south to breed.',
+      zh: '1989 年秋天起，海狮开始在 K 号浮台上岸（码头说是在洛马普列塔地震后不久）；数量随季节涨落，六七月大多南下繁殖。',
+      en: 'Sea lions began hauling out on K-Dock in autumn 1989 (PIER 39 says shortly after the Loma Prieta quake). Numbers rise and fall with the seasons; in June and July most head south to breed.',
     },
-    sources: [src('https://www.pier39.com/sealions/', 'arrival after the 1989 quake; seasonal numbers; feeding unlawful'), src('https://en.wikipedia.org/wiki/Pier_39', 'June–July: most leave for the Channel Islands to breed')],
+    sources: [src('https://www.pier39.com/sealions/', 'K-Dock shortly after the October 1989 quake; seasonal numbers; feeding unlawful'), src('https://en.wikipedia.org/wiki/Pier_39', 'first haul-outs in September 1989, before the quake; June–July: most leave for the Channel Islands to breed')],
     stamp: { zh: '海狮季节', en: 'Sea lion season' },
   },
   {
@@ -164,7 +166,12 @@ export const EGGS: readonly EggDef[] = [
       zh: '据记载，日本茶园的萩原真在 1900 年代初最早在美国端出现代的幸运饼干（洛杉矶也有说法）。罗斯巷的饼干铺 1962 年开张。',
       en: 'Makoto Hagiwara of the Japanese Tea Garden is reported to have served the modern fortune cookie in the early 1900s (Los Angeles has a rival claim). The Ross Alley bakery opened in 1962.',
     },
-    sources: [src('https://en.wikipedia.org/wiki/Fortune_cookie'), src('https://en.wikipedia.org/wiki/Golden_Gate_Fortune_Cookie_Company')],
+    sources: [
+      src('https://en.wikipedia.org/wiki/Fortune_cookie'),
+      src('https://en.wikipedia.org/wiki/Golden_Gate_Fortune_Cookie_Company', 'opened in 1962; entrance off Ross Alley'),
+      // (review) Wikipedia gives the year, not the alley: "It opened in 1962 in Ross Alley" (The Takeout, 2026-01-05)
+      src('https://www.thetakeout.com/2064004/san-francisco-golden-gate-fortune-cookie-factory-handmade/', 'opened in 1962 in Ross Alley'),
+    ],
     stamp: { zh: '签语', en: 'Fortune' },
   },
   {
@@ -318,8 +325,9 @@ export const EGGS: readonly EggDef[] = [
       { zh: '这个石头迷宫被弄乱过好几次，每次都有人把它重新摆好。', en: 'This stone labyrinth has been scattered many times — and someone always rebuilds it.' },
     ],
     fact: {
-      zh: '天涯海角的石头迷宫由艺术家爱德华多·阿吉莱拉在 2004 年摆成，多次被破坏，又被志愿者一次次重新摆好。',
-      en: 'Artist Eduardo Aguilera laid the Lands End labyrinth in 2004. It has been vandalised several times and rebuilt again and again by volunteers.',
+      // (review, richmondsfblog.com 2015-08-18 re-read 2026-09-28: its keeper rebuilds it, a few helpers with her)
+      zh: '天涯海角的石头迷宫由艺术家爱德华多·阿吉莱拉在 2004 年摆成，多次被破坏，守护它的人和帮手一次次把它重新摆好。',
+      en: 'Artist Eduardo Aguilera laid the Lands End labyrinth in 2004. It has been vandalised several times and rebuilt again and again by its keeper and helpers.',
     },
     sources: [src('https://localwiki.org/sf/Land%27s_End_Labyrinth'), src('https://richmondsfblog.com/2015/08/18/photo-lands-end-labyrinth-erased/', 'vandalised several times; rebuilt by its keeper')],
     stamp: { zh: '石头迷宫', en: 'Labyrinth' },
@@ -584,7 +592,7 @@ export const EGGS_BATCH_2: readonly EggDef[] = [
     how: { zh: '白天在斯普雷克尔斯湖边站一会儿', en: 'Stand by Spreckels Lake a while, by day' },
     lines: [
       { zh: '这片湖 1904 年专门为模型船修好，模型游艇俱乐部就在湖边。', en: 'This lake was finished in 1904 just for model boats — the model yacht club is right here.' },
-      { zh: '周二、四、六上午是动力船时间，其他时候湖面归帆船。', en: 'Tuesday, Thursday and Saturday mornings are for powered boats; the rest of the time, the sailboats’.' },
+      { zh: '周二、四、六的 10 点到 13 点是动力船时间，其他时候湖面归帆船。', en: 'Tuesday, Thursday and Saturday, 10 to 1, are for powered boats; the rest of the time, the sailboats’.' },
     ],
     fact: {
       zh: '斯普雷克尔斯湖 1904 年 3 月建成，专供模型船使用；旧金山模型游艇俱乐部 1892 年成立，湖边会所 1937–1939 年由公共事业振兴署建成。',

@@ -1,6 +1,6 @@
 import type { Bilingual } from '../core/types';
 import { markToday, usedToday } from './gates';
-import { type EggHost, invalidate, momentFree, note, operator, props, reveal, say, sound } from './hosts';
+import { type EggHost, invalidate, later, momentFree, note, operator, props, reveal, say, sound } from './hosts';
 import { eggById } from './registry';
 
 /**
@@ -24,7 +24,7 @@ export const OPERATOR_REPLIES: readonly Bilingual[] = [
   { zh: '街坊：你好呀！天气这么好，下次来喝茶！', en: 'Neighbour: Hello there! Lovely day — come for tea next time!' },
   { zh: '草药店：今天没什么不舒服？那就多喝热水吧！', en: 'Herb shop: Feeling fine today? Then drink some warm water!' },
 ];
-/** the phone rings for this long (s) when you come by, once a Bay day (until someone answers) */
+/** the phone rings for this long (s) when you come by, once a visit, until a call goes through that Bay day */
 const RING_S = 26;
 const RING_EVERY = 4;
 
@@ -37,13 +37,15 @@ export function phoneHost(): EggHost {
   const stop = () => { if (ringing) { ringing = false; invalidate(); } };
   const answer = () => {
     stop();
-    markToday('phone');
     sound('egg:plug');
     operator({
       choices: OPERATOR_CHOICES,
       onPick: i => {
+        // (review) the call is "used" for the Bay day only once it goes through: hanging up (×, Esc, walking off, the
+        // operator's 20 s) used to mark the day too, and the phone never rang again that day — the find was lost
+        markToday('phone');
         say(OPERATOR_REPLIES[i] ?? OPERATOR_REPLIES[0]);
-        setTimeout(() => { reveal(PHONE, { cardDelay: 1.2 }); }, 3600);
+        later(() => { reveal(PHONE, { cardDelay: 1.2 }); }, 3600);
       },
     });
   };

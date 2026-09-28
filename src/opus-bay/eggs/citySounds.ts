@@ -135,7 +135,7 @@ export const CITY_SOUNDS: readonly CitySoundDef[] = [
     at: { x: -214.7, z: 71.3 }, radius: 0, by: 'moment',
     line: { zh: '哈哈哈……这笑声会传染，我收起来啦！', en: 'Ha ha ha… that laugh is catching — I’ve kept it!' },
     fact: {
-      zh: '这是我们自己做的笑声，不是原来的录音。"大笑女士"原在海边乐园门口，如今在 45 号码头的机械博物馆。',
+      zh: '这是我们自己做的笑声，不是原来的录音。"大笑女士"原在海边乐园门口；如今 45 号码头的机械博物馆也有一位。',
       en: 'This laugh is our own, not the original recording. Laffing Sal once laughed at Playland-at-the-Beach; one now laughs at the Musée Mécanique on Pier 45.',
     },
     sources: [src('https://en.wikipedia.org/wiki/Laffing_Sal'), src('https://en.wikipedia.org/wiki/Mus%C3%A9e_M%C3%A9canique')],

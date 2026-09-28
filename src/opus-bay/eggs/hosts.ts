@@ -4,7 +4,6 @@ import { emit, onEvent, type GameEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
-import { isPaid } from '../economy/ledger';
 import { cinemaActive, playShots, type Shot } from '../game/cinema';
 import { bubble, busy } from '../game/flow';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
@@ -12,8 +11,9 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { openOverlay, openOverlays, subscribeOverlays } from '../ui/slots';
 import { spawnFx, type FxOpts, type FxPreset } from '../world/fx';
 import type { FactCardProps, NoteProps, OperatorProps } from './FactCard';
+import { paidSet } from './paid';
 import { Flock, PropPool } from './props';
-import { EGG_COINS, eggById, eggRewardSource, eggSpots } from './registry';
+import { ALL_EGG_IDS, EGG_COINS, eggById, eggRewardSource, eggSpots, type EggDef } from './registry';
 import type { EggSound } from './sounds';
 
 /**
@@ -68,6 +68,8 @@ export interface EggHost {
   interactables?(): Interactable[];
   /** DEV / QA: play the moment now, gates ignored (screenshots) */
   qa?(): void;
+  /** (review) Settings → reset progress: forget what this host remembers of the old save (its props, its once-a-session flags) */
+  reset?(): void;
   dispose?(): void;
 }
 
@@ -101,11 +103,28 @@ let cardTimer: ReturnType<typeof setTimeout> | null = null;
 export const props = new PropPool();
 export const flock = new Flock();
 
+/** The eggs lane E's ledger has paid (a memo: recomputed only when the ledger or the save changed). */
+const paidEggs = paidSet(eggRewardSource, () => ALL_EGG_IDS);
+
 /** Found before: paid by the ledger (the egg bitset) or found in this session. */
 export function isFound(id: string): boolean {
-  if (sessionFound.has(id)) return true;
-  try { return isPaid(eggRewardSource(id)); } catch { return false; }
+  return sessionFound.has(id) || paidEggs().has(id);
 }
+
+// --- timers the hosts start (review: all of them are cleared when the hosts stop) -----------------------------------
+
+const laterTimers = new Set<ReturnType<typeof setTimeout>>();
+/** `fn` after `ms` — unless the hosts stop first (a reveal or a sound must never fire after the eggs were torn down). */
+export function later(fn: () => void, ms: number): void {
+  const id = setTimeout(() => { laterTimers.delete(id); fn(); }, Math.max(0, ms));
+  laterTimers.add(id);
+}
+function clearLater(): void {
+  for (const id of laterTimers) clearTimeout(id);
+  laterTimers.clear();
+}
+/** papers waiting to call their `onClosed` (dropped when the hosts stop: a teardown closing the paper is not a read) */
+const noteWatchers = new Set<() => void>();
 
 const lineMs = (b: Bilingual) => Math.max(3200, Math.min(5400, 2400 + 70 * [...b.zh].length));
 
@@ -237,7 +256,9 @@ export function note(p: NoteProps, onClosed?: () => void): void {
   if (!onClosed) return;
   const isOpen = () => openOverlays().some(o => o.id === 'egg-note' && o.props === p);
   if (!isOpen()) { onClosed(); return; }
-  const off = subscribeOverlays(() => { if (!isOpen()) { off(); onClosed(); } });
+  const unsub = subscribeOverlays(() => { if (!isOpen()) { off(); onClosed(); } });
+  const off = () => { unsub(); noteWatchers.delete(off); };
+  noteWatchers.add(off);
 }
 export const operator = (p: OperatorProps) => openOverlay('egg-operator', p);
 /** The prompts changed (a phone started ringing, a prop appeared). */
@@ -280,13 +301,19 @@ function ctxFor(h: EggHost, px: number, py: number, pz: number, dist: number, is
   return { t: clock, dt: clock - prev, px, py, pz, dist, found: h.isFound ? h.isFound() : isFound(h.id), busy: isBusy };
 }
 
+/** An egg's spots, made once (the hosts ask ten times a second). */
+const spotsOf = new Map<EggDef, readonly { x: number; z: number }[]>();
+
 function distTo(h: EggHost, x: number, z: number): number {
+  // a host that runs everywhere (the listening, the pebbles) is always "here": no spot list to build
+  if (h.range === Infinity) return 0;
   let spots: readonly { x: number; z: number }[];
   if (h.spots) spots = h.spots();
   else {
     const egg = eggById(h.id);
     if (!egg) return Infinity;
-    spots = eggSpots(egg);
+    spots = spotsOf.get(egg) ?? eggSpots(egg);
+    spotsOf.set(egg, spots);
   }
   let d = Infinity;
   for (const s of spots) d = Math.min(d, Math.hypot(s.x - x, s.z - z));
@@ -351,6 +378,8 @@ export function startHosts(list: readonly EggHost[]): () => void {
     queueTimers = [];
     if (cardTimer) clearTimeout(cardTimer);
     cardTimer = null;
+    clearLater();
+    for (const off of [...noteWatchers]) off();
     endGlance();
     for (const h of hosts) { try { h.dispose?.(); } catch { /* keep tearing down */ } }
     hosts = [];
@@ -360,11 +389,33 @@ export function startHosts(list: readonly EggHost[]): () => void {
   };
 }
 
+/**
+ * (review) Settings → reset progress (data/save.ts clearSave → onSaveCleared): the ledger starts over, so lane D forgets
+ * what it remembered of the old save — the eggs found this session (else they stayed "found" with nothing paid, never to be
+ * found again until a reload), the repeat lines, the paid memo — and each host resets its own (pebbles back in the world,
+ * the windsock gone). A pending card or queued line of the old save is dropped.
+ */
+export function resetEggHosts(): void {
+  sessionFound.clear();
+  repeatSaid.clear();
+  paidEggs.forget();
+  if (cardTimer) clearTimeout(cardTimer);
+  cardTimer = null;
+  for (const q of queueTimers) clearTimeout(q);
+  queueTimers = [];
+  for (const h of hosts) { try { h.reset?.(); } catch (error) { if (import.meta.env?.DEV) console.error('[opus-bay eggs] reset', h.id, error); } }
+}
+/** (review) The paid memo may have been read before the ids were registered with the ledger: read it again. */
+export const forgetPaidEggs = () => paidEggs.forget();
+
 /** tests: forget the session state */
 export function __resetHostsForTests(): void {
   sessionFound.clear(); repeatSaid.clear(); active.clear(); lastUpdate.clear(); clock = 0; acc = 0; hosts = []; lineEnd = 0;
+  paidEggs.forget();
   for (const q of queueTimers) clearTimeout(q);
   queueTimers = [];
+  clearLater();
+  for (const off of [...noteWatchers]) off();
   endGlance();
 }
 

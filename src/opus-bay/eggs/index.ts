@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
+import { onSaveCleared } from '../data/save';
 import { registerHintSource } from '../economy/hints';
 import { bayNow } from '../game/bayNow';
 import { registerRewardIds } from '../economy/ledger';
@@ -10,7 +11,8 @@ import { registerSceneSystem } from '../game/systemsRegistry';
 import { registerOverlay } from '../ui/slots';
 import { cookiesHost } from './cookies';
 import { nortonHost, phoneHost } from './downtown';
-import { activeHosts, type EggHost, flock, isFound, liveHosts, props, reveal, startHosts } from './hosts';
+import { forgetEggMemory } from './gates';
+import { activeHosts, type EggHost, flock, forgetPaidEggs, isFound, liveHosts, props, resetEggHosts, reveal, startHosts } from './hosts';
 import { crissyHost, foghornHost, octagonHost, otterHost, waveOrganHost } from './marina';
 import { castroHost, hydrantHost, karlHost } from './mission';
 import { parrotsHost } from './north';
@@ -19,7 +21,7 @@ import { altaHost, humpbackHost, trailHost } from './presidio';
 import { registerEggWarmup } from './props';
 import { batch2Hosts } from './batch2';
 import { SOUND_IDS } from './citySounds';
-import { heard, soundFound, soundHosts } from './listen';
+import { forgetHeard, heard, soundFound, soundHosts } from './listen';
 import { PEBBLE_IDS } from './pebbleSpots';
 import { pebbleCount, pebbleHintSpots, pebblesHost, pickPebble, showNextTrick } from './pebbles';
 import { ALL_EGG_IDS } from './registry';
@@ -74,6 +76,8 @@ export function init(): () => void {
   add(registerRewardIds('egg', ALL_EGG_IDS));
   add(registerRewardIds('sound', SOUND_IDS));
   add(registerRewardIds('pebble', PEBBLE_IDS));
+  // (the found memo reads the ledger by these ids: read it afresh now they are registered)
+  forgetPaidEggs();
   add(registerEggSounds());
   add(registerOverlay({ id: 'egg-card', Component: FactCard }));
   add(registerOverlay({ id: 'egg-note', Component: NoteCard }));
@@ -92,6 +96,9 @@ export function init(): () => void {
 
   const hosts = makeHosts();
   add(startHosts(hosts));
+  // (review) Settings → reset progress clears the save without reloading the city: lane D forgets the old save too (the
+  // eggs, sounds and pebbles found this session, the pebbles picked up, the 1776 marks, today's phone and cookies)
+  add(onSaveCleared(() => { forgetEggMemory(); forgetHeard(); resetEggHosts(); }));
   // W5-D5: the compass (lane E) points at the nearest spot of an unfound egg that can happen today; BAYBAY's 听说… (lane C)
   add(registerHintSource('egg', () => eggHintSpots(isFound)));
   add(registerHintSource('pebble', pebbleHintSpots));

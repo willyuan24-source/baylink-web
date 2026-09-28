@@ -5,10 +5,10 @@ import { playSound } from '../audio/hooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
-import { isPaid } from '../economy/ledger';
 import { registerAskItem } from '../ui/slots';
 import { spawnFx } from '../world/fx';
 import { type EggHost, hostClock, momentFree, props, queueCard, say, sayMore, sound } from './hosts';
+import { paidSet } from './paid';
 import {
   GOLDEN_AT, PEBBLE_COINS, PEBBLE_IDS, PEBBLE_PICK, PEBBLE_POINT, PEBBLE_SNIFF, PEBBLE_TRICKS, PEBBLES,
   pebbleRewardSource, tricksAt, type PebbleDef, type PebbleTrick,
@@ -26,12 +26,18 @@ import { heldPebbleMesh } from './props';
  */
 
 const sessionFound = new Set<string>();
+/** the pebbles lane E's ledger has paid (a memo: the host asks ten times a second, the compass four) */
+const paidPebbles = paidSet(pebbleRewardSource, () => PEBBLE_IDS);
 /** In the pouch: the ledger's bit (play.g.pebble) or this session. */
 export function pebbleFound(id: string): boolean {
-  if (sessionFound.has(id)) return true;
-  try { return isPaid(pebbleRewardSource(id)); } catch { return false; }
+  return sessionFound.has(id) || paidPebbles().has(id);
 }
-export const pebbleCount = (): number => PEBBLE_IDS.reduce((n, id) => n + (pebbleFound(id) ? 1 : 0), 0);
+export const pebbleCount = (): number => {
+  const paid = paidPebbles();
+  let n = paid.size;
+  for (const id of sessionFound) if (!paid.has(id)) n++;
+  return n;
+};
 export const hasGolden = (): boolean => pebbleCount() >= GOLDEN_AT;
 
 export const SNIFF_LINES: readonly Bilingual[] = [
@@ -181,15 +187,25 @@ const turnOf = (id: string) => { let h = 7; for (const c of id) h = (h * 31 + c.
 
 /** The host: the stones in the pool, the sniffing, the pointing, the pick-up; the 玩石子 ask item; the compass list. */
 export function pebblesHost(): EggHost {
-  for (const q of PEBBLES) if (!pebbleFound(q.id)) props.set(`pebble:${q.id}`, { kind: 'pebble', x: q.x, z: q.z, heading: turnOf(q.id) });
+  const place = () => { for (const q of PEBBLES) if (!pebbleFound(q.id)) props.set(`pebble:${q.id}`, { kind: 'pebble', x: q.x, z: q.z, heading: turnOf(q.id) }); };
+  place();
   const sniffed = new Set<string>(), pointed = new Set<string>();
   let lines = 0, glintAt = 0;
   const offAsk = registerAskItem({ id: 'eggs-pebbles', order: 40, label: ASK_LABEL, icon: Gem, visible: () => tricksAt(pebbleCount()).length > 0, onSelect: () => { showNextTrick(); } });
   return {
     id: 'pebbles',
     range: Infinity,
-    spots: () => [{ x: runtime.player.x, z: runtime.player.z }],
     isFound: () => pebbleCount() >= GOLDEN_AT,
+    // (review) Settings → reset progress: the pouch is empty again — every stone back where it lay, the tricks unlearnt
+    reset: () => {
+      sessionFound.clear();
+      paidPebbles.forget();
+      for (const t of trickTimers.splice(0)) clearTimeout(t);
+      drop();
+      nextShow = 0; lastLineAt = -Infinity;
+      sniffed.clear(); pointed.clear(); lines = 0;
+      place();
+    },
     update: ctx => {
       if (runtime.move.mode !== 'foot') return;
       let best: PebbleDef | null = null, bd = Infinity;
@@ -229,7 +245,7 @@ export function pebblesHost(): EggHost {
 
 /** Tests: forget the session. */
 export function __resetPebblesForTests(): void {
-  sessionFound.clear(); nextShow = 0; lastLineAt = -Infinity;
+  sessionFound.clear(); paidPebbles.forget(); nextShow = 0; lastLineAt = -Infinity;
   for (const t of trickTimers.splice(0)) clearTimeout(t);
   drop();
 }
