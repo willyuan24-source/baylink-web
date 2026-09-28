@@ -6,8 +6,9 @@ import { GC, PAT, type SiteGroundPoly, type W4Site, bench, fence, gfill, siteGro
 
 /**
  * Fort Funston (wave 4, P3 · map T3, the fort-funston site): the sandstone bluffs at the city's south-west corner where
- * hang-gliders launch over the Pacific, with the old Battery Davis (1936–39) bunker to the north; the only park of the
- * Golden Gate National Recreation Area where dogs may run off-leash (Wikipedia; the scouting). This site is the
+ * hang-gliders launch over the Pacific, with the old Battery Davis (1936–39) bunker to the north; one of the Golden Gate
+ * National Recreation Area's off-leash (voice-control) dog areas, with Crissy Field and Ocean Beach north of Stairwell
+ * 21 — not the only one (Wikipedia; parksconservancy.org "Dog-friendly park sites"; W4-L-review). This site is the
  * Observation Deck at the bluff edge beside the parking lot (OSM node 3101265351): a railed timber deck, a bench, the
  * windsock the pilots read, and one toy hang-glider circling over the beach below (the animate part) — scenery only,
  * never player-flyable (hang gliding is for certified pilots). The bluffs erode and close in places: the rail keeps to

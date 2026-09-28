@@ -516,4 +516,11 @@ test('facts the early review re-checked on the web stay right (the module header
   assert.match(src('st-ignatius'), /210 ft/);
   assert.equal(w4Site('st-ignatius-church')!.w4.height.realM, 64);
   assert.match(src('yerba-buena-gardens'), /20 ft \(6\.1 m\) high/);
+  // Early review 2: Judah St is the next street south of Irving St (Lincoln, Irving, Judah, Kirkham …), its N Judah stop
+  // at 23rd Ave ≈ 34 u from the block; Fort Funston is one of the GGNRA's off-leash areas (Crissy Field, Ocean Beach
+  // north of Stairwell 21), not the only one; the official Hippie Hill 4/20 event was also cancelled in 2026
+  assert.match(src('irving-street'), /N Judah one block south/);
+  assert.doesNotMatch(src('irving-street'), /N Judah two blocks/);
+  assert.doesNotMatch(src('fort-funston'), /the only park/);
+  assert.match(src('hippie-hill'), /2024, 2025 and 2026/);
 });

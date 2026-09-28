@@ -9,7 +9,7 @@ import { GC, PAT, type SiteGroundPoly, type W4Site, gpoly, siteGround } from './
  * weekend days (Wikipedia; the scouting). The meadow and its paths are the city's; this site is the drum circle: seven
  * toy drummers sitting in a ring on the grass with hand drums (their hands are the animate part, beating), two picnic
  * blankets and a guitar case. A sound hook for the drum loop (lane T) sits at the ring's centre. Never cannabis, never
- * a 4/20 prop (the family card; the official event was cancelled in 2024 and 2025).
+ * a 4/20 prop (the family card; the official event was cancelled in 2024, 2025 and 2026: KQED, SFist 17 Apr 2026).
  *
  * Frame: origin (−141.8, 852.7) at the attraction, yaw 0 (local = world offsets): the drum ring is at (1.4, 1.8) on
  * the slope, the promenade (JFK Promenade, 2.4 wide) runs 7 u south-west, a footway 2 u west. The meadow rises ≈ 1.5 u
