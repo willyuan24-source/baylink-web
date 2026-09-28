@@ -878,7 +878,7 @@ scripts `*.json`, shots `shots/`, `suite1/2.log`, `checks2.log`, `build.log`). C
 - **Card texts after lane L's `a14658e`** (landmarks.ts' zh text rewritten in the game's zh names): a scan of every city
   landmark card's zh summary / tips / bark / hours / cost / zone finds no name doubled by lane C's `glossZhText`; the
   English left is people's names and names the game keeps (Fort Point 炮台, Camera Obscura).
-- **Budgets** (vite build of the pushed tree): GameRoot 781.19 kB / 295.15 kB gzip (part b measured 778.94 / 294.17 on
+- **Budgets** (vite build of this review over `d118962`, before lane V's `f54e4a3` moved more out of GameRoot): GameRoot 781.19 kB / 295.15 kB gzip (part b measured 778.94 / 294.17 on
   its own tree; the difference is other lanes' commits since). This review's code is all in lazy chunks: `cityTour`
   12.34 kB, `tripRun` 8.90 kB, `Journal` 16.04 kB. Rendering untouched.
 - **District**: the journal reads the same field there (the district's tour is always the first lesson); trips and the
