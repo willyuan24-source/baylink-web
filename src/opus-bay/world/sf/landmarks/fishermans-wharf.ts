@@ -1,13 +1,20 @@
 import * as THREE from 'three';
 import { type BatchLike, ICO, M, TORUS } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, NONE, box, cbox, cyl, disc, rect, tube, worldPoly } from './kit';
 import type { SfLandmark } from './index';
+import { settingGround } from './setting';
+import { lamp } from './siteKit';
 
 /**
  * Fisherman's Wharf wheel sign (T2) at Jefferson & Taylor (OSM artwork node 5455630121): a ship's wheel with a red
  * crab in its hub, on a post above a little planter island — the wharf's postcard marker. The ring band is plain
  * (no lettering, no trademark). Local +z faces south down Taylor St (yaw 55.4°). Note: the node lies 2 u inside the
  * district slab's west edge — the city lane decides whether the hero or the city owns this corner (report).
+ *
+ * Setting (lane L, wave 4 — D2's remaining T2 settings): two sidewalk crab stands on Jefferson St's south side west
+ * of the sign (the street stalls with their steaming cauldrons the wharf is known for), striped awnings without any
+ * lettering, a lamp; the sidewalk in front of them is a crowd spot.
  */
 
 const X0 = -201.14, Z0 = 74.81, YAW = (55.4 * Math.PI) / 180;
@@ -45,7 +52,32 @@ function build(b: BatchLike, lod: 0 | 2) {
   for (const sx of [-1.5, 1.5]) cyl(b, sx, 0.35, 0.95, 0.12, 0.55, '#3f5a50', NONE, 6);
 }
 
-export const fishermansWharf: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (lane L, wave 4)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('fishermans-wharf');
+/** the stands' centres on the sidewalk (local; +z = the buildings' side of Jefferson St), facing the street (−z) */
+const STANDS: [number, number][] = [[-5.4, 3.05], [-8.1, 3.05]];
+
+function crabStand(b: BatchLike, x: number, z: number, k: number) {
+  const y = G.at(x, z);
+  // counter with crates of crabs, the cauldron, a striped awning on two posts
+  box(b, x, y, z, 1.6, 0.8, 0.7, '#e8e2d6');
+  box(b, x, y + 0.8, z, 1.7, 0.06, 0.8, '#b9c3c7');
+  for (let i = 0; i < 3; i++) b.add(ICO(0), M(x - 0.5 + i * 0.5, y + 0.9, z - 0.1, i + k, 0.2, 0.09, 0.16), CRAB, NONE);
+  cyl(b, x + 0.55, y + 0.86, z + 0.1, 0.24, 0.32, '#3b3f42', NONE, 8);
+  for (let i = 0; i < 2; i++) b.add(ICO(0), M(x + 0.55 + i * 0.08, y + 1.35 + i * 0.28, z + 0.1, i, 0.2 - i * 0.05, 0.16, 0.2 - i * 0.05), '#f4f1ea', GLOW(0.05));
+  for (const sx of [-1, 1]) box(b, x + sx * 0.8, y, z + 0.3, 0.06, 2.1, 0.06, '#6f6a62');
+  for (let s = 0; s < 6; s++) box(b, x - 0.75 + s * 0.3, y + 2.05, z - 0.05, 0.3, 0.05, 1.0, s % 2 ? '#f6f2e8' : '#c9473a');
+}
+
+function setting(b: BatchLike) {
+  for (const [k, [x, z]] of STANDS.entries()) crabStand(b, x, z, k);
+  lamp(b, -3.7, G.at(-3.7, 3.1), 3.1);
+}
+
+export const fishermansWharf: SfLandmark & SiteHooks = {
   id: 'fishermans-wharf',
   tier: 2,
   x: X0,
@@ -53,6 +85,8 @@ export const fishermansWharf: SfLandmark = {
   yaw: YAW,
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 3.2, 2.4)) },
-  build,
-  walk: { blockers: [{ poly: rect(0, 0, 2.4, 1.5) }] },
+  build(b, lod) { build(b, lod); if (lod === 0) setting(b); },
+  walk: { blockers: [{ poly: rect(0, 0, 2.4, 1.5) }, ...STANDS.map(([x, z]) => ({ poly: rect(x, z, 1.7, 0.8) }))] },
+  lights: [{ x: -3.7, y: G.at(-3.7, 3.1) + 3.8, z: 3.1, size: 1, color: '#ffd9a0' }],
+  plaza: [{ poly: rect(-6.75, 2.3, 4.5, 0.6), surface: 'pavement' }],
 };

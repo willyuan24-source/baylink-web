@@ -239,7 +239,7 @@ test("F's request: with lane F's spinning disc on, the turntable's lod 0 drops i
 /** the landmarks D2-09 set (priority: the three routes', then City Hall, Twin Peaks, the Castro pocket) */
 const SET = ['dragon-gate', 'palace-of-fine-arts', 'fort-point', 'golden-gate-bridge', 'conservatory-of-flowers', 'de-young-tower', 'dutch-windmill', 'city-hall', 'twin-peaks',
   // lane L, wave 4: D2's remaining T2 settings
-  'legion-of-honor', 'grace-cathedral'];
+  'legion-of-honor', 'grace-cathedral', 'ghirardelli-square', 'cable-car-turntable', 'lombard-crooked-street'];
 const inPoly = (p: { x: number; z: number }, poly: readonly { x: number; z: number }[]) => {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.z > p.z) !== (b.z > p.z) && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) c = !c; }

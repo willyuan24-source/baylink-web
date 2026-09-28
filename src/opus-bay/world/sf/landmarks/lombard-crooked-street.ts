@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
 import { type BatchLike, resample } from '../../builder';
 import { GLOW, NONE, SF, box, rect, worldPoly } from './kit';
+import type { SiteHooks } from '../sites';
 import type { SfLandmark, WalkBlocker, WalkSurface } from './index';
+import { streetStrips } from './setting';
 
 /**
  * Lombard Street's crooked block (T2), Hyde → Leavenworth: the red-brick one-way lane zig-zagging through eight
@@ -112,7 +114,15 @@ function walk(): NonNullable<SfLandmark['walk']> {
   return { blockers, surfaces };
 }
 
-export const lombardCrookedStreet: SfLandmark = {
+/**
+ * Setting (lane L, wave 4 — D2's remaining T2 settings): the exclusion clipped Hyde St with the Powell–Hyde cable-car
+ * rails across the top and Leavenworth St across the foot (the lane met a gap in both): restored as the city draws
+ * them, only beyond the lane's ends. The classic views are crowd spots: Hyde St's far sidewalk at the top (the lane
+ * and the Bay below) and Leavenworth's far sidewalk at the foot (looking up the switchbacks).
+ */
+const CROSS_STREETS = (_x: number, z: number, cls: string) => (cls === 'tertiary' || cls === 'tram' || cls === 'residential') && (z < Z_TOP - 0.3 || z > Z_BOT - 0.4);
+
+export const lombardCrookedStreet: SfLandmark & SiteHooks = {
   id: 'lombard-crooked-street',
   tier: 2,
   x: X0,
@@ -122,6 +132,8 @@ export const lombardCrookedStreet: SfLandmark = {
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, -0.8, 9.6, 21.6)) },
   build,
   walk: walk(),
+  ground: streetStrips('lombard-crooked-street', CROSS_STREETS),
+  plaza: [{ poly: rect(0, 11.1, 6.0, 0.6), surface: 'pavement' }, { poly: rect(0, -13.9, 5.0, 0.6), surface: 'pavement' }],
 };
 
 export const LOMBARD = { PATH, TURNS, ROAD_W, LIFT, Z_TOP, Z_BOT };

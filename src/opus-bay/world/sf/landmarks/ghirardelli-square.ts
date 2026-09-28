@@ -1,6 +1,10 @@
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
-import { GLOW, NONE, WIN, box, disc, lathe, prismXZ, pyramid, rect, worldPoly } from './kit';
+import type { SiteHooks } from '../sites';
+import { GLOW, NONE, WIN, box, cyl, disc, lathe, prismXZ, pyramid, rect, worldPoly } from './kit';
 import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
+import { settingGround } from './setting';
+import { GC, PAT, bench, gfill, lamp, tree } from './siteKit';
 
 /**
  * Ghirardelli Square (T2): the red-brick former chocolate factory stepping down the hill to Beach St and the Bay,
@@ -9,6 +13,11 @@ import type { LandmarkSwap, SfLandmark, WalkBlocker } from './index';
  * Carousel, Infill, Woolen Mill, Wurster, Power House, Plaza), local with +z = north to the Bay (yaw −124.6°).
  * Heights per plan §2.3 from OSM levels/height (22 m → 6.6 u … 1 level → 3.6 u); each building sits on the DEM
  * grade under its lowest corner (base 1.3 u; the south row is ~2.7 u higher than Beach St).
+ *
+ * Setting (lane L, wave 4 — D2's remaining T2 settings): the courtyards between the brick rows paved in warm brick on
+ * the measured ground (they showed the bare city ground), the passage to Beach St between the Wurster and Power House
+ * blocks with its steps, olive trees in round planters, lamps and benches round the fountain terrace. No lettering, no
+ * copy of the fountain's sculpture (the terrace keeps its plain basin).
  */
 
 const X0 = -235.55, Z0 = 165.22, YAW = (-124.6 * Math.PI) / 180;
@@ -107,6 +116,7 @@ function aiRemainder(b: BatchLike) {
   const y0 = floorOf(B[3].poly);
   box(b, AI_AT.x, y0 - 1.5, AI_AT.z, 3.6, 1.52, 3.5, BRICKS[0], NONE);
   signAndTerrace(b);
+  setting(b);
 }
 
 const SWAP: LandmarkSwap = {
@@ -121,7 +131,34 @@ const blockers = (ai: boolean): WalkBlocker[] => [
   ...(ai ? [{ poly: AI_FOOT }] : []),
 ];
 
-export const ghirardelliSquare: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (lane L, wave 4)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('ghirardelli-square');
+/** the open courtyards between the south and north rows (the buildings stand on their own paving) */
+const COURT: Vec2[] = [{ x: -6.35, z: -3.1 }, { x: 2.3, z: -3.1 }, { x: 2.3, z: 2.6 }, { x: -6.35, z: 2.6 }];
+/** the passage down to Beach St between the Wurster and Power House blocks */
+const PASSAGE: Vec2[] = rect(3.09, 3.9, 1.0, 2.0);
+const TREADS = [2.95, 3.45, 3.95, 4.45];
+const LAMPS: Vec2[] = [{ x: -5.8, z: -2.55 }, { x: -2.0, z: 0.15 }, { x: 1.95, z: 2.3 }];
+const BENCHES: { x: number; z: number; ry: number }[] = [{ x: -4.5, z: -0.35, ry: Math.PI }, { x: -3.9, z: -2.65, ry: 0 }];
+const OLIVES: Vec2[] = [{ x: -5.3, z: 1.6 }, { x: -0.35, z: -0.2 }];
+const BRICK_PAVE = '#c9a189';
+
+function setting(b: BatchLike) {
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, p.ry);
+  for (const [k, p] of OLIVES.entries()) {
+    const y = G.at(p.x, p.z);
+    cyl(b, p.x, y - 0.2, p.z, 0.42, 0.65, '#b98a6e', NONE, 8);
+    tree(b, p.x, y + 0.45, p.z, 0.62, 70 + k);
+  }
+  // the Beach St steps: solid treads, each topped at the ground of its upper edge
+  for (const z0 of TREADS) box(b, 3.09, -1.2, z0 + 0.225, 1.0, G.at(3.09, z0) + 0.04 + 1.2, 0.45, '#d6c7b0');
+}
+
+export const ghirardelliSquare: SfLandmark & SiteHooks = {
   id: 'ghirardelli-square',
   tier: 2,
   x: X0,
@@ -129,8 +166,19 @@ export const ghirardelliSquare: SfLandmark = {
   yaw: YAW,
   base: 1.3,
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 18.2, 12.4)) },
-  build,
-  walk: { blockers: blockers(SWAP.ship), surfaces: [{ poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), y: TERRACE.y, surface: 'plaza' }] },
+  build(b, lod) { build(b, lod); if (lod === 0) setting(b); },
+  walk: {
+    blockers: [
+      ...blockers(SWAP.ship),
+      { x: TERRACE.x, z: TERRACE.z, r: 0.8 },
+      ...BENCHES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+      ...OLIVES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+    ],
+    surfaces: [{ poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), y: TERRACE.y, surface: 'plaza' }],
+  },
+  ground: [...gfill(COURT, BRICK_PAVE, PAT.cobble, G, 3, 0.05), ...gfill(PASSAGE, GC.plazaWarm, PAT.stone, G, 2, 0.05)],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: rect(-4.3, -1.4, 3.8, 2.4), surface: 'pavement' }, { poly: rect(TERRACE.x, TERRACE.z, TERRACE.w, TERRACE.d), surface: 'plaza' }],
   swap: SWAP,
   // D2-10: the clock tower and its spire
   tall: [{ x: -7.2, z: -4.1, r: 1.6 }],

@@ -34,7 +34,7 @@ export const SETTING_IDS = [
   'golden-gate-bridge', 'city-hall', 'de-young-tower', 'palace-of-fine-arts', 'twin-peaks', 'painted-ladies', 'dragon-gate',
   'conservatory-of-flowers', 'dutch-windmill', 'mission-dolores', 'fort-point', 'oracle-park', 'peace-pagoda', 'chase-center',
   // lane L, wave-4 integration: D2's remaining T2 settings
-  'grace-cathedral', 'legion-of-honor',
+  'grace-cathedral', 'legion-of-honor', 'ghirardelli-square', 'fishermans-wharf', 'cable-car-turntable', 'sutro-baths', 'cliff-house', 'lombard-crooked-street',
 ];
 
 const sf = sfDisk();

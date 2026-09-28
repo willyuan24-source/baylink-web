@@ -1,6 +1,10 @@
+import type { Vec2 } from '../../../core/types';
 import type { BatchLike } from '../../builder';
+import type { SiteHooks } from '../sites';
 import { GLOW, NONE, box, cyl, lathe, ngon, pyramid, rect, worldPoly } from './kit';
 import type { SfLandmark } from './index';
+import { settingGround, streetStrips } from './setting';
+import { PAT, bench, gfill, lamp } from './siteKit';
 
 /**
  * Powell & Market cable-car turntable (T2, OSM node 8641952045): the wooden turntable set in the brick plaza where
@@ -13,6 +17,10 @@ import type { SfLandmark } from './index';
  * disc top — deck, planks, the rails across and the pivot, which would stand still through F's turning disc or
  * z-fight with it — and draws a plain sunken deck 0.1 u lower instead (what shows beyond F's 300 u disc range).
  * world/sf/sites.ts rebuilds the lod 0 when `buildKey` changes. The far silhouette and SoloView keep the static disc.
+ *
+ * Setting (lane L, wave 4 — D2's "turntable aprons"): the brick plaza of Powell St's foot laid over the whole exclusion
+ * (the clipped street showed the bare ground round the apron), Market St's corner and the F-line rails restored where
+ * the exclusion cut them, benches either side of the queue, two more lamps; the queue and the plaza are crowd spots.
  */
 
 const X0 = 130.46, Z0 = 257.6, YAW = (52.5 * Math.PI) / 180;
@@ -72,7 +80,22 @@ function build(b: BatchLike, lod: 0 | 2) {
   box(b, R + 2.6, 3.0, 2.9, 0.3, 0.3, 0.3, '#fff1cf', GLOW(0.9));
 }
 
-export const cableCarTurntable: SfLandmark = {
+// ---------------------------------------------------------------------------
+// setting (lane L, wave 4)
+// ---------------------------------------------------------------------------
+
+const G = settingGround('cable-car-turntable');
+/** the plaza up Powell St to the apron's Market St side (beyond z 3 the drawn ground drops into Market St's gutter) */
+const PLAZA: Vec2[] = rect(0, -3.25, 10, 12.5);
+const LAMPS: Vec2[] = [{ x: -4.4, z: -3.2 }, { x: 4.3, z: -8.6 }];
+const BENCHES: { x: number; z: number; ry: number }[] = [{ x: -4.3, z: -6.0, ry: Math.PI / 2 }, { x: 4.2, z: -5.6, ry: -Math.PI / 2 }];
+
+function setting(b: BatchLike) {
+  for (const p of LAMPS) lamp(b, p.x, G.at(p.x, p.z), p.z);
+  for (const p of BENCHES) bench(b, p.x, G.at(p.x, p.z), p.z, p.ry);
+}
+
+export const cableCarTurntable: SfLandmark & SiteHooks = {
   id: 'cable-car-turntable',
   tier: 2,
   x: X0,
@@ -81,12 +104,22 @@ export const cableCarTurntable: SfLandmark = {
   base: 'terrain',
   baseLift: BASE_LIFT,
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, -2.5, 10, 14)) },
-  build,
+  build(b, lod) { build(b, lod); if (lod === 0) setting(b); },
   buildKey: () => spinnerKey,
   walk: {
-    blockers: [{ poly: rect(-R - 1.2, -1.4, 1.0, 1.0) }, { poly: rect(R + 2.0, 0, 0.12, 5.0) }, { poly: rect(-R - 1.6, -1.8, 1.0, 1.0) }, { poly: rect(-R - 1.6, 2.6, 1.0, 1.0) }],
+    blockers: [
+      { poly: rect(-R - 1.2, -1.4, 1.0, 1.0) }, { poly: rect(R + 2.0, 0, 0.12, 5.0) }, { poly: rect(-R - 1.6, -1.8, 1.0, 1.0) }, { poly: rect(-R - 1.6, 2.6, 1.0, 1.0) },
+      ...BENCHES.map(p => ({ x: p.x, z: p.z, r: 0.45 })),
+    ],
     surfaces: [{ poly: ngon(0, 0, R, 16), y: TOP, surface: 'wood' }, { poly: ngon(0, 0, R + 1.4, 16), y: 0.04, surface: 'plaza' }],
   },
+  ground: [
+    ...gfill(PLAZA, BRICK, PAT.cobble, G, 3.5, 0.05),
+    // Market St's corner and the F-line: only what lies clear of the apron (the plaza takes the rest)
+    ...streetStrips('cable-car-turntable', (x, z, cls) => (cls === 'tertiary' || cls === 'tram') && z > 1 && Math.hypot(x, z) > R + 1.6),
+  ],
+  lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
+  plaza: [{ poly: rect(-3.6, -6.5, 2.4, 5.0), surface: 'plaza' }, { poly: rect(3.4, -6.5, 2.4, 5.0), surface: 'plaza' }],
 };
 
 /** For the transit lane: turntable centre (local) and radius, and the rail gauge offsets. */

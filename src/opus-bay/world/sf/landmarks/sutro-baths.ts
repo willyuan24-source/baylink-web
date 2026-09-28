@@ -6,7 +6,11 @@ import type { SfLandmark } from './index';
  * Sutro Baths ruins (T2) at Lands End: the concrete footings of the 1896 bath house — a grid of flooded basins
  * open to the Pacific (local +z, yaw −43.1°), broken wall stubs and a column row, boulders, and the sea cave
  * tunnel in the rock at the north end (local −x). Outline = OSM "Main pool house" way 32776540 (≈10 × 6.6 u).
- * Base 0 = sea level; the cliff behind (local −z) rises to ≈3.4 u (DEM).
+ * The cliff behind (local −z) rises to ≈3.4 u (DEM).
+ *
+ * Base (lane L, wave 4 — D2's "Sutro Baths" setting): 0.9, the city's drawn ground in the ruins' hollow (0.3–0.75 u
+ * over sea level in the published DEM) — at base 0 the grass covered every basin and only the rims stood out of it.
+ * The foundation's seaward face now stands as the old sea wall on the beach.
  */
 
 const X0 = -724.86, Z0 = 1247.43, YAW = (-43.1 * Math.PI) / 180;
@@ -45,7 +49,7 @@ export const sutroBaths: SfLandmark = {
   x: X0,
   z: Z0,
   yaw: YAW,
-  base: 0,
+  base: 0.9,
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(-0.5, 0.4, 13.6, 8.4)) },
   build,
   walk: {
