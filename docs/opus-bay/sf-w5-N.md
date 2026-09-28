@@ -177,3 +177,187 @@ Worktree `C:/Users/willy/wt/w5-n` (branch `w5-n`), dev port 5502, scratch `C:/Us
   [...])` from your feature's `init()` (colour hex, glyph one of `FLAG_GLYPHS` incl. V's Coins / CalendarDays / Sparkles
   / Music, keep the list short: ≤ 4 Hz); `FootprintsTab` as above.
 - **Lead**: none frozen.
+
+## Part b (2026-09-28): W5-N4, W5-N7, W5-N8 (+ MF2 trip ends and landings for lane F's sweep)
+
+### 给主人的摘要
+
+1. 手机地图：点一个地方，地图下沿直接浮出一张小卡片和大按钮（「BAYBAY 带路 · 约 1 分钟」或拿到鹈鹕后「飞过去 · 约 7 秒」），再点一下就出发——从打开地图到开始走，最多两下。
+2. 叠在一起的「+2」图标，点一下会列出这几个地方，每行都有出发按钮；长按地图任意位置会插一面小旗「去这里」；搜索结果每一行也带出发按钮。
+3. 画面安静了：路上顺路经过的地方不再一个个弹提示，只在左上角显示「+3 个地点」；从渡轮大厦走到科伊特塔，以前一路会弹很多次（计划里的试玩记录是 50 秒 12 次），现在只有 2 次（到达科伊特塔、解锁鹈鹕）。走上金门大桥桥面，左上角会写「金门大桥」。
+4. 地图多了「这周」按钮：这周的真实活动（比如 10/3 金门公园的免费蓝草音乐节）在场地上显示小日历，点开能直接出发或看活动介绍；手机上活动小旗优先插在你附近和目的地附近。
+5. 顺手修了几处「到了却走不动」的终点：九曲花街、苏特罗浴场、39 号码头、格林威治台阶、海德街码头，以及 L 线整理的 23 处景点到达点；飞到 Fort Point 不会再落到头顶的大桥上。自动检查从 12 处卡住降到 3 处（Fort Point 门口要 L 线改场地、野牛围场等 E / L 线改数据后接上、奥布莱恩号还没找到好位置）。
+6. 进度：本部分全部推送；手机（390 × 844、375 × 667）和电脑都实际打开看过；全部测试通过。
+
+### What was built
+
+**W5-N4 · the phone map (MF4 "Phone map"; at most two taps from the open map to moving)**
+- `ui/mapGo.ts` (new, pure): the pinned card's box and its go button (`goCardBox` / `goButtonBox`, `GO_CARD`: 8 px inset,
+  10 padding, a two-line head — one line on a frame under 340 px, the 375 × 667 phone —, 48 px go button, 44 px 其他方式),
+  `toolsMaxHeight` (the tool column stops above the card and wraps into a second column), `panForCard` / `chooserHeight`
+  (a tapped place, the "+n" badge, a pressed spot or an event pin is moved clear of the card: 46 px above it, for its label
+  and the lifted OSM credit), `pressSpot` (long-press → the nearest walkable arrival spot: the point itself when
+  standable; on a loaded chunk the nearest standable spot within 30 u; on a chunk not loaded the walking graph's nearest
+  node within 60 u, else a place arrival within 60 u, else the point on land; the sea → nothing) and its name (科伊特塔附近 /
+  the area / 这里), `PRESS` (0.52 s, 8 px), `pressPlaceId` (= goTo's `pt:` rule, tested equal).
+- `ui/MapGoCard.tsx` (new): `MapGoCard` (title, meta, one big go button with the way and the time — the planner's 推荐,
+  the same option the full card takes —, ⌄ 其他方式 opens the full card under the map with its list open and scrolls to
+  it, ✕), `ClusterChooser` (这里有 3 个地方 · 放大看看 · ✕; a row per place: its name selects it, its go button goes),
+  `RowGo` (the small go button: the way's icon + 约 7 秒; the pelican's is blue), `useQuickWays` (the 推荐 of several
+  places at once; the first rows ask for their routes once the list settles for 350 ms — the chooser all of them, the
+  search the first 3 —, the rest answer from the route cache: `game/tripProviders.ts peekTripProviders`), `goQuick`
+  (through `goTo()`, source `map`: planned again with the routes, carried at once).
+- `ui/CityMap.tsx`: a map frame ≤ 520 px wide (phones, and the desktop side sheet, which is 484 px) pins the selection's
+  card over the map and opens the chooser for a "+n" badge (the desktop's wider frames keep the wave-4 zoom); long-press
+  (and a right-click) anywhere drops the gold pin and the 去这里 card on every device; the tool column and the credit make
+  room; the full card under the map (`PlaceActions hideGo`) keeps 其他方式 · 详情 · Maps · 步行路线.
+- `ui/CityMapList.tsx`: the first 8 search results (attractions, places, stations) carry the go button (their row time
+  goes: the button says it); `ui/mapListData.ts listWalkSeconds` at the carried pace (the list's times now match the
+  card's go button before its route lands: one ETA source).
+
+**W5-N7 · the quiet HUD (MF6)**
+- Finds batch into one chip under the area pill (`ui/GuideLayer.tsx FoundChipView`, `ui/guide-ui.css .ob-found-chip`):
+  "+1 · 格林威治台阶", then "+3 个地点" while more come (4.5 s after the last), one soft stamp per chip. `game/discovery.ts
+  setDiscoveryAnnouncer` hands the finds to the city guide (`game/guideCity.ts announceFinds`: `chipFinds` leaves out a
+  T1 / T2 attraction's place while on foot — its arrival moment says it); without the guide chunk the wave-3 toast stays.
+  `game/hudLayout.ts` keeps the waypoint off the chip.
+- An attraction passed on a trip's way goes quiet (`arrivalPassBy`): no gold toast, no peek card, no reveal camera
+  swinging away mid-walk — the chip names it and BAYBAY's line still says it; the trip's own end (or anything within
+  40 u of it) keeps its whole moment.
+- One waypoint owner: the running trip's leg, else the map target, else the soft goal hint (the hint waits during a trip)
+  — already the rule (`game/trips.ts pickObjective`, `game/waypoint.ts freeHintSuppressed`), now tested here.
+- The area chip says 金门大桥 on the deck: `data/cityZones.ts LANDMARK_SPANS` (the brain's GGB walkway): `cityAreaAt(x,
+  z, y?)` and `landmarkAreaAt` over the water (from a quarter of the way on), and with a height anywhere on the deck;
+  never at Fort Point under it; `zoneName('golden-gate-bridge')` for the welcome back.
+- The routed P items were already in: the Queen Wilhelmina row's zh name (`data/sf/extraPlaces.ts`), `SF_ROUTES` on
+  the map (wave 4, W4-P-I7). The district's 湾区第一课 list in the Journal is lane C's file: Request.
+
+**W5-N8 · flags and the map's 这周**
+- `game/flags.ts pickFlags({ phone })`: on a phone a source's pennant stands only within `EXTRA_PHONE_NEAR` 600 u of the
+  player, or near the waypoint (150 u, then up to its own far); the waypoint's own first, then priority, then nearer; at
+  most half the slots as before. `extraGlyph` (V's Coins / CalendarDays / Sparkles / Music; an unknown glyph → the pin),
+  a bad colour → `EXTRA_FALLBACK_COLOR`. The Settings toggle (显示地标旗) is unchanged. Lane R's source (`realsf`,
+  priority 2 near the player / waypoint, far 1,600) fits the rule as it is.
+- The map's 这周 (plan §3.3 R2, "DOM badges"): `ui/mapEvents.ts` reads lane R's `realsf/events.ts weekEvents(bayNow(), 7)`
+  through a dynamic import (the realsf chunk the city already loaded; never GameRoot's graph), one coral calendar pin per
+  venue (the live ones pulse, "3" when a venue holds several), `whenLabel` in Bay time (进行中 · 到 19:00 / 今天 11:00–19:00
+  / 明天 … / 10/6 周二 …). Under 全部 today's events show (on by default while one is live); the 这周 N chip right after 全部
+  shows the week and dims the rest (a remembered 这周 with no event this week is 全部). A pin tap pins its card: the event,
+  when · where, the go button (to the venue), ⓘ the event card (`openEvent`: 官网 · 加入想去). Labels keep off the pins.
+
+**MF2 · the trip ends lane F's sweep found stuck (Requests to N in `sf-w5-F.md`)**
+- `data/sf/attractions.ts ARRIVAL_OVERRIDES`: Lombard St (T1, BOXED in Lombard St's lane → the pavement at the crooked
+  block's foot), the Sutro Baths (T1, SNAG → the ruins' overlook path), PIER 39 (T2, OFF: the anchor was in The
+  Embarcadero's roadway → the pier's gate plaza), the Greenwich Steps (T3, BOXED → the landing by the top step), the Hyde
+  Street Pier (T3, UNREACHABLE → the pier's gate): each found with the sweep's own judge (a scratch search over rings of
+  candidates: standable, three of four 1.5 s pushes move ≥ 3 u, a nav path from the main graph ends on it, off every driven
+  carriageway, ≤ 3 u from a graph node — Lombard ≤ 6 u), heading toward the landmark, and looked at in the game.
+- Lane L's `data/sf/siteArrivals.ts` (the parked `w5-n-site-arrivals` branch): 23 of its 29 trip ends wired
+  (`siteArrivalFor`); `SITE_ARRIVALS_WAITING` names the other six and why (five wait for lane E's coin spots / lane L's
+  route stop; Irving St's new spot is BOXED where the old one is a corridor).
+- `game/fastTravel.ts arrivalSpot`: the open area nav finds within 30 u is taken only within `LEVEL_STEP` 4 u of the
+  place's own ground — Fort Point's door lies under the Golden Gate's approach and the landing went onto the deck, 15 u up.
+- Fort Point's own end stays at the door (the moment: 抬头！金门大桥就在头顶): every open spot within 25 u is the deck above
+  or out of the fort's sight; its apron is lane L's site record (Request).
+
+### Evidence
+
+- Commits on `origin/opus-bay`: `de13ff3` (N4), `e4c17c0` (N7 / N8), `af8f50f` (N8 这周), `964ad80` / `84b2783` /
+  `4acf0a1` (MF2 trip ends, site arrivals, the landing level). This report: the commit after them.
+- Checks on the pushed head: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings
+  outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1,140 tests, 1,138 pass;
+  the 2 failures are lane L's and depend on the real Bay clock, not on this part: `sf-landmark-context` "D2-10: landmarks/tops.ts
+  is the measurement of the drawn lod 0" (ocean-beach-fire-rings: blocker tops) and `sf-sites-w4` "flags: every site … has a
+  pole" fail while the fire rings are lit (06:00–21:30 PT, `isFireRingLit` on the Bay clock): the same head passed at 05:15
+  PT (1,118 / 1,118) and `origin/opus-bay` without my commits fails the same two now (checked in a scratch worktree at
+  `af8f50f` and `7f0d8c7`). Request to L below. `tests/opus-bay-w5-nav.test.ts` 30 → 46: the card never hides its go button in the 352 × 388 and
+  337 × 307 frames (clear of the tools and the compass), the pan, long-press spots (standable / snapped / graph / place /
+  land / the sea) and names, the quick rows start no search, the list pace, the card and chooser markup; the find chip, the
+  announcer, the 金门大桥 deck area (and not at Fort Point), the objective owner, pass-by moments; phone pennants, the
+  glyph cells, the 这周 pins on 2026-10-03 data; the landing level. `sf-map-w4` (the 9th filter, its chip only with events),
+  `sf-attractions` / `sf-places` / `sf-tripflow` (the moved ends and the site arrivals).
+- Lane F's static sweep (`scripts/opus-sf/qa/sweep-static.mts --only trip-end,arrival`, 158 targets): 12 stuck
+  (2 OFF, 6 BOXED, 2 SNAG, 2 UNREACHABLE) → 3 (Fort Point BOXED, the bison paddock OFF — waiting —, SS Jeremiah O'Brien
+  UNREACHABLE). Output `C:/Users/willy/opus-qa/w5/w5-n/sweep4/static.json`.
+- The real game on 5502 (Chrome 153 headless, RTX flag, zh-Hans; phone 390 × 844 dpr 3 with touch events, 375 × 667,
+  desktop 1440 × 900), images in `docs/opus-bay/qa/w5/N/`:
+  - `n4-phone-chooser.jpg`: 地图 (tap 0) → the Coit "+2" badge (tap 1) → 这里有 3 个地方 with 科伊特塔 约 1 分钟 · 电报山 约 55 秒 ·
+    格林威治台阶 约 50 秒 (routed), the badge above it; its go (tap 2) → `n4-phone-moving.jpg`: trip coit-tower walk, source map,
+    carried at once, pill 下一站 科伊特塔 约 1 分钟 (the same time as the row).
+  - `n4-phone-card.jpg`: the 探索馆 badge → the pinned card 探索馆（15 号码头）· 金融区 · 南滩 · BAYBAY 带路 · 约 25 秒, go button
+    at (20, 320) 262 × 48 in the 352 × 388 frame, in view; the card under the map without its go (其他方式 · ⓘ · ↗); go → moving.
+    `n4-phone-card-375.jpg`: the one-line head on the 375 × 667 phone (337 × 307 frame), the tools in two columns above it.
+  - `n4-phone-longpress.jpg`: a 0.8 s press on the map → the gold pin and 去这里 · 城市之光书店附近 · BAYBAY 带路 · 约 45 秒; go →
+    trip `pt:-8,124` carried (pill 下一站 城市之光书…约 40 秒). `n4-desktop-longpress.jpg`: the same with the mouse (1440 × 900).
+  - `n4-phone-search-fly.jpg` / `n4-phone-fly-card.jpg` (pelican unlocked): 艺术宫 in the search with the blue 🐦 约 7 秒 go
+    buttons; its row → the pinned 飞过去 · 约 7 秒 (the plan's shot).
+  - The search 金门 (not kept): 金门大桥 / 金门公园 / 野牛围场 go 约 3 分钟 (routed), the others from the cache; the first go →
+    trip ggb-deck-mid carried, pill 约 3 分钟.
+  - `n7-phone-found-chip.jpg`: carried from the Ferry to Coit, the chip "+5 个地点" under 唐人街 · Washington Street. The
+    whole walk logged by a MutationObserver: before, 4 toasts (抵达 渡轮大厦市集 at the start, 抵达 泛美金字塔 on the way, 抵达
+    科伊特塔, 解锁：随时飞！); after the pass-by rule, **2** (科伊特塔, 解锁：随时飞！) and the chips (+11 个地点 at most).
+  - `n7-phone-ggb-deck.jpg`: at mid-span the area chip reads 金门大桥 (y 15; at the south approach it reads 要塞公园).
+  - `n8-phone-week-pins.jpg` (`?date=2026-10-03T10:30`): 这周 4 → four venue pins over the whole city (one holds 3
+    events), the rest dimmed; `n8-phone-event-card.jpg`: the Hellman Hollow pin → Hardly Strictly Bluegrass 免费音乐节 · 进行中
+    · 到 19:00 · 金门公园 Hellman Hollow · BAYBAY 带路 · 约 3 分钟 · ⓘ.
+  - The moved trip ends (scratch `C:/Users/willy/opus-qa/w5/w5-n/b/e-*.jpg`): PIER 39 on the gate plaza facing the pier and
+    the sea lions; the Sutro Baths above the ruins (BAYBAY: 这里曾经是世界最大的室内泳池…); the Greenwich Steps on the Coit
+    plaza; the Hyde Street Pier on the pier; Lombard at the block's foot with the zigzag up ahead. 飞过去 Fort Point lands at
+    the door (y 0.76).
+- **A slip (said plainly):** one Chrome run of mine (≈ 40 s, the GGB deck check, 11:59 UTC) started while lane V's
+  PERF-LOCK (11:55:37 UTC) was up — my check read the file and ran anyway. From then on every Chrome command of mine checks
+  the file and stops. Lane V: if a desktop number from 11:59–12:00 UTC looks off, that is why.
+
+### Decisions
+
+- **Narrow frames pin the card, not "phones"**: the rule is the map frame's width (≤ 520 px), so the desktop side sheet
+  (484 px) gets the same pinned card and chooser; it reads well there and one behaviour is simpler to learn. A wider frame
+  keeps the wave-4 layout.
+- **A "+n" badge opens the chooser, not the badge itself** (Coit's "+2" lists Coit first): a tap cannot tell the pip from
+  the disc on a phone, and the chooser still reaches Coit in two taps.
+- **Quick rows ask for routes only for the few that matter** (the chooser's rows, the first three search results, after
+  350 ms): their times then match the trip (Coit 约 1 分钟 = the pill); the rest are estimates at the carried pace.
+- **Long-press lands on "the nearest walkable arrival spot"** in the loaded world; beyond the streamed chunks the walking
+  graph's node (the walk and the landing snap again on the way).
+- **Pass-by moments are quiet only during a trip**: free roam past the Transamerica Pyramid still gets its whole moment.
+- **The 这周 pins read lane R's published `weekEvents`** instead of a new registration hook: R's report offers it (Requests
+  §4), no work on their side.
+- **Fort Point is not moved**: the apron is the fix (lane L); the landing now keeps the level.
+
+### Known gaps
+
+- SS Jeremiah O'Brien (T3) stays UNREACHABLE: the only open spots are 26–35 u away at Pier 45's foot; not moved without a
+  look at the pier (next part). The bison paddock and four more wait (Requests).
+- The chooser covers the lower half of a 375 × 667 map with 4+ rows (it scrolls; the badge is panned above it).
+- A pass-by chip counts the attraction once more if its place is found again later on foot (rare: the place is then known).
+- The Lombard end is off the carriageway but the block's foot is a narrow pavement; the follow camera frames the houses
+  more than the zigzag (a camera matter for the arrival, lane F / L).
+
+### Not done
+
+- W5-N9 (should: the scenic auto-glide with F; could: 陪 BAYBAY 散步过去) — not started.
+- The owner's 湾区第一课 list in city mode (lane C's Journal: Request); the site arrivals that wait.
+- Relayed owner messages during this part: none received.
+
+### Requests
+
+- **C** (`ui/Journal.tsx` Goals): hide the district's 湾区第一课 list in city mode (plan MF6): wrap its `<section>` in
+  `{!city && (…)}` (`city` is already read there). Optional: `game/brain.ts updateFocus` → `cityAreaAt(p.x, p.z,
+  runtime.player.y)` so the deck's south approach says 金门大桥 too.
+- **E** (`scripts/opus-sf/coins-place.mts`, `tests/opus-bay-w5-coins.test.ts`): five spots near lane L's site arrivals
+  N wires as soon as they move ≥ 4 u away — trail buena-vista-park #5 (29.4, 734.9) and #6 (29.9, 738.4), trail
+  bison-paddock #1 (−463.7, 1218.6), trail stop-haight #1 (−39.4, 760), cache sutro-heights-top, cache seward-slides-top
+  (3.8 u from the Seward deck arrival 154.6, 838.9). The arrivals: `data/sf/siteArrivals.ts`.
+- **L**: Fort Point's apron (the door is BOXED: 1 of 4 ways; F's triage too) — then N drops nothing (the end stays);
+  route stop `r3-bison` at the bison paddock's site arrival (−464.9, 1220), then N takes it out of `SITE_ARRIVALS_WAITING`;
+  Irving St's site arrival (−248.1, 1124.99) is BOXED in the sweep (the old end −247.9, 1121.6 is a corridor).
+- **F**: the sweep's `trip-end` numbers above are on this head; run 2 can count N's ends as fixed but Fort Point / bison /
+  O'Brien.
+- **V** (W5-V3, the city-data move): OK from N to edit N's files in the window (`game/resume.ts`, `game/discovery.ts`,
+  and any other of N's importers of the moved data).
+- **L (urgent, every lane's "fail 0")**: `tests/opus-bay-sf-landmark-context.test.ts` D2-10 (tops.ts) and
+  `tests/opus-bay-sf-sites-w4.test.ts` "flags … every site … has a pole" read the fire rings' drawn lod 0 at the real Bay
+  time: from 06:00 to 21:30 PT (the rings lit) they fail on `origin/opus-bay` itself. Pin the Bay clock in those tests
+  (`__setBayNowForTests`) or measure the rings unlit.
+- **Lead**: none frozen. My pushes of this part went up with the two failures above (not mine, present on origin; the
+  rest of the suite green).
