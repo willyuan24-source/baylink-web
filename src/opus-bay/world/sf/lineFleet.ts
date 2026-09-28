@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { definePlatform, setPlatformPose } from '../../actors/platform';
+import { definePlatform, platforms, setPlatformPose } from '../../actors/platform';
+import { emitAt } from '../../audio/cityHooks';
 import { emit } from '../../core/events';
-import { W4_LINES } from '../../data/sf/stationNames';
-import { BUS, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../busSystem';
+import { W4_LINES, stationAttractions } from '../../data/sf/stationNames';
+import { BUS, type Bus, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../busSystem';
 import { type LineTrack, proximitySpans } from '../lineTrack';
-import { LightRailSystem, type RailEvent, type Train, railTrack } from '../lightRail';
+import { LRV, LightRailSystem, type RailEvent, TRAIN_LENGTH, type Train, railTrack } from '../lightRail';
 import { patchToyShader } from '../materials';
 import type { CarPose } from '../transitLine';
 import { registerWarmup } from '../warmup';
@@ -12,6 +13,7 @@ import type { TransitLine, TransitPortal } from './format';
 import { LRV_PLATFORM, lrvCarFarGeometry, lrvCarGeometry } from './lrv';
 import { type PortalPlacement, portalGeometry, portalPlacements } from './portals';
 import { type StationProp, busPoleGeometry, kioskGeometry, railStopGeometry, stationGeometryKey, stationProps } from './stations';
+import type { RoadVehicle } from './streetNet';
 import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBus';
 
 /**
@@ -35,6 +37,9 @@ import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBu
  * within earshot (doors have no event: arrive / depart carry the door chime, `bell` is the stop request's ding).
  */
 
+/** The main attraction a stop serves (the `transit` event's `attraction`), or undefined. */
+const stopAttraction = (station: string | null | undefined): string | undefined => (station ? stationAttractions(station)[0] : undefined);
+
 /** vehicles farther than this from the camera draw the far version (no shadow) */
 export const FAR_LOD = 110;
 export const HIDE_BEYOND = 300;
@@ -53,10 +58,12 @@ export interface FleetOptions {
   viewer?: () => { x: number; z: number; onFoot: boolean };
   /** the surface near a portal is streamed in (the streamer's whenReady(exit, 150) as a sync flag) */
   portalReady?: (p: TransitPortal) => boolean;
-  /** interlock boxes on the bus track (cable-car crossings / shared running; see busInterlocks) */
-  boxes?: InterlockBox[];
+  /** interlock boxes on the bus track (cable-car crossings / shared running; see busInterlocks), or a maker from the track */
+  boxes?: InterlockBox[] | ((bus: LineTrack) => InterlockBox[]);
   /** emit `transit` game events (default true; tests pass false) */
   emitEvents?: boolean;
+  /** the other road users (world/sf/streetNet.ts collectRoadVehicles): buses keep behind toy cars in their lane */
+  roadUsers?: (out: RoadVehicle[]) => RoadVehicle[];
 }
 
 /** One material instance per batched mesh: the TOY patch under the 'ob-toy' key (same program family as the pools). */
@@ -115,7 +122,11 @@ export class LineFleet {
     this.opts = opts;
     this.group.name = 'w4-lines';
     this.group.matrixAutoUpdate = false;
-    this.bus = new BusSystem(busTrack(input.loop), { groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, boxes: opts.boxes });
+    const bt = busTrack(input.loop);
+    this.bus = new BusSystem(bt, {
+      groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, boxes: typeof opts.boxes === 'function' ? opts.boxes(bt) : opts.boxes,
+      roadAhead: opts.roadUsers ? b => this.roadAhead(b) : undefined,
+    });
     this.rail = new LightRailSystem(input.metro.map(railTrack), { groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, portalReady: opts.portalReady });
     definePlatform(input.loop.id, TOUR_BUS_PLATFORM);
     for (const l of input.metro) definePlatform(l.id, LRV_PLATFORM);
@@ -176,6 +187,30 @@ export class LineFleet {
     this.update(0, { x: 0, z: 0 }, { x: 0, z: 0 });
   }
 
+  private road: RoadVehicle[] = [];
+  private roadT = -1;
+
+  /**
+   * The nearest toy car / player vehicle in the bus's lane ahead (u from the bus centre), ∞ if none: within 30 u, less
+   * than a lane (1.7 u) to the side of the bus's line, heading the same way (± 60°). The road users are collected once a
+   * frame for all buses.
+   */
+  private roadAhead(b: Bus): number {
+    if (this.roadT !== this.bus.time) { this.roadT = this.bus.time; this.opts.roadUsers!(this.road); }
+    const q = b.pose, fx = Math.sin(q.heading), fz = Math.cos(q.heading);
+    let best = Infinity;
+    for (const v of this.road) {
+      if (v.kind !== 'traffic' && v.kind !== 'player') continue;
+      const dx = v.x - q.x, dz = v.z - q.z;
+      if (dx * dx + dz * dz > 900) continue;
+      const along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx);
+      if (along <= 0 || side > 1.7) continue;
+      if (Math.cos(v.heading - q.heading) < 0.5) continue;
+      best = Math.min(best, along - v.halfL);
+    }
+    return best;
+  }
+
   /** Portal events of the rider's train (`portal-in`: start the subway overlay, `portal-out`: cut to the LRV emerging). */
   onPortal(fn: (e: RailEvent) => void): () => void { this.portalListeners.add(fn); return () => { this.portalListeners.delete(fn); }; }
 
@@ -230,6 +265,12 @@ export class LineFleet {
         }
       }
       if (t && !t.hidden) setPlatformPose(tr.id, this.rail.leadCar(t), dt);
+      else if (t && t.rider) {
+        // the rider's train is under ground: the platform is not there at all (not merely aging out: a pose another
+        // train published a moment ago must not carry the rider off to that train)
+        const plat = platforms.get(tr.id);
+        if (plat) plat.live = false;
+      }
     }
     this.drain(player);
   }
@@ -248,10 +289,11 @@ export class LineFleet {
       if (!loud) continue;
       switch (e.what) {
         case 'approach': if (mine) emit({ ...base, what: 'approach', station: e.station ?? undefined, attraction: e.attraction }); break;
-        case 'arrive': if (mine) emit({ ...base, what: 'arrive', station: e.station ?? undefined }); else if (d < HEAR) emit({ ...base, what: 'arrive', strength: Math.max(0.2, 1 - d / HEAR) }); break;
-        case 'depart': if (mine) emit({ ...base, what: 'depart', station: e.station ?? undefined }); else if (d < HEAR) emit({ ...base, what: 'depart', strength: Math.max(0.2, 1 - d / HEAR) }); break;
+        // another bus's brakes / doors / horn come from where it is (audio pans them: audio/cityHooks emitAt)
+        case 'arrive': if (mine) emit({ ...base, what: 'arrive', station: e.station ?? undefined, attraction: stopAttraction(e.station) }); else if (d < HEAR) emitAt({ ...base, what: 'arrive', strength: Math.max(0.2, 1 - d / HEAR) }, b.pose.x, b.pose.z); break;
+        case 'depart': if (mine) emit({ ...base, what: 'depart', station: e.station ?? undefined }); else if (d < HEAR) emitAt({ ...base, what: 'depart', strength: Math.max(0.2, 1 - d / HEAR) }, b.pose.x, b.pose.z); break;
         case 'board': emit({ ...base, what: 'board', station: e.station ?? undefined }); break;
-        case 'horn': if (d < HEAR * 1.5) emit({ ...base, what: 'horn', strength: 0.9 }); break;
+        case 'horn': if (d < HEAR * 1.5) { if (mine) emit({ ...base, what: 'horn', strength: 0.9 }); else emitAt({ ...base, what: 'horn', strength: 0.9 }, b.pose.x, b.pose.z); } break;
         // doors: no event of their own (arrive / depart carry the door chime; a `bell` is the stop request's ding)
         default: break;
       }
@@ -266,17 +308,56 @@ export class LineFleet {
       const d = t.hidden ? Infinity : Math.hypot(lead.x - player.x, lead.z - player.z);
       const base = { type: 'transit' as const, line: t.track.id, kind: 'light-rail' as const };
       if (!loud) continue;
+      // the rider's events carry the train's direction along the arc (+1 outbound from Embarcadero, −1 inbound): lane C's
+      // portal lines ("钻出日落隧道" / "前面是日落隧道") need it
+      const dir = t.dir;
       switch (e.what) {
-        case 'approach': if (mine) emit({ ...base, what: 'approach', station: e.station ?? undefined, attraction: e.attraction }); break;
-        case 'arrive': if (mine) emit({ ...base, what: 'arrive', station: e.station ?? undefined }); break;
-        case 'depart': if (mine) emit({ ...base, what: 'depart', station: e.station ?? undefined }); else if (d < HEAR) emit({ ...base, what: 'bell', strength: Math.max(0.2, 1 - d / HEAR) }); break;
-        case 'board': emit({ ...base, what: 'board', station: e.station ?? undefined }); break;
-        case 'gong': if (d < HEAR * 1.5) emit({ ...base, what: 'bell', strength: 0.9 }); break;
-        case 'reverse': if (d < HEAR) emit({ ...base, what: 'turned' }); break;
+        case 'approach': if (mine) emit({ ...base, what: 'approach', station: e.station ?? undefined, attraction: e.attraction, dir }); break;
+        case 'arrive': if (mine) emit({ ...base, what: 'arrive', station: e.station ?? undefined, attraction: stopAttraction(e.station), dir }); break;
+        case 'depart': if (mine) emit({ ...base, what: 'depart', station: e.station ?? undefined, dir }); else if (d < HEAR) emitAt({ ...base, what: 'bell', strength: Math.max(0.2, 1 - d / HEAR) }, lead.x, lead.z); break;
+        case 'board': emit({ ...base, what: 'board', station: e.station ?? undefined, dir }); break;
+        case 'gong': if (d < HEAR * 1.5) { if (mine) emit({ ...base, what: 'bell', strength: 0.9 }); else emitAt({ ...base, what: 'bell', strength: 0.9 }, lead.x, lead.z); } break;
+        case 'reverse': if (d < HEAR) emitAt({ ...base, what: 'turned' }, lead.x, lead.z); break;
         default: break;
       }
     }
     this.rail.events.length = 0;
+  }
+
+  /**
+   * The buses and the visible trains within 250 u of `near` as road vehicles (world/sf/streetNet.ts: crowd walkers hop
+   * aside, the toy traffic waits for them). A train is one body over both cars.
+   */
+  roadVehicles(out: RoadVehicle[], near: { x: number; z: number }) {
+    for (const b of this.bus.buses) {
+      const q = b.pose;
+      if (Math.abs(q.x - near.x) > 250 || Math.abs(q.z - near.z) > 250) continue;
+      out.push({ x: q.x, z: q.z, heading: q.heading, v: b.v, halfL: BUS.length / 2, halfW: BUS.width / 2, kind: 'bus', line: this.bus.track.id });
+    }
+    for (const t of this.rail.trains) {
+      if (t.hidden) continue;
+      const a = t.cars[0], c = t.cars[1];
+      const x = (a.x + c.x) / 2, z = (a.z + c.z) / 2;
+      if (Math.abs(x - near.x) > 250 || Math.abs(z - near.z) > 250) continue;
+      out.push({ x, z, heading: this.rail.leadCar(t).heading, v: Math.abs(t.v), halfL: TRAIN_LENGTH / 2, halfW: LRV.width / 2, kind: 'light-rail', line: t.track.id });
+    }
+  }
+
+  /** The Metro lines' surface stretches (outside the tunnels and the portal hoods) as [x, y, z] runs: the transit streets. */
+  static surfaceRuns(metro: readonly Pick<TransitLine, 'path' | 'tunnels'>[]): Float32Array[] {
+    const out: Float32Array[] = [];
+    for (const l of metro) {
+      const n = Math.floor(l.path.length / 3);
+      let run: number[] = [], s = 0;
+      for (let i = 0; i < n; i++) {
+        if (i > 0) s += Math.hypot(l.path[i * 3] - l.path[i * 3 - 3], l.path[i * 3 + 2] - l.path[i * 3 - 1]);
+        const under = (l.tunnels ?? []).some(t => s > t.fromAt - 2 && s < t.toAt + 2);
+        if (under) { if (run.length >= 6) out.push(new Float32Array(run)); run = []; continue; }
+        run.push(l.path[i * 3], l.path[i * 3 + 1], l.path[i * 3 + 2]);
+      }
+      if (run.length >= 6) out.push(new Float32Array(run));
+    }
+    return out;
   }
 
   /** The train the rider rides (for the overlay / camera), or null. */

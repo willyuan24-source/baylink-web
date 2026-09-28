@@ -6,6 +6,7 @@
 import type { Mood, Speaker } from '../core/types';
 import { ASSETS } from '../data/assets';
 import { NODES } from '../data/script';
+import { TOUR_VOICE_CHECK } from '../data/sf/voiceTour';
 import { SF_VOICE_LINES, SF_VOICE_UNMUTE } from '../data/voiceLinesSf';
 import { getLocale } from '../../i18n/locale';
 import type { AudioEngine, Voice } from './engine';
@@ -18,8 +19,10 @@ const SAME_CLIP_GAP = 25;
 /**
  * Recorded barks that listeners mis-hear (zh-yay → "讨厌", zh-think untranscribable, zh-arrived → "到了"): muted
  * until they are re-recorded — the synth chirp and the text bubble carry the moment instead (polish round 1, F14).
+ * Wave 4: the tour clips whose take did not pass every gate (lane V's `TOUR_VOICE_CHECK`, the owner's listening sheet
+ * docs/opus-bay/qa/w4/V/voice/) stay muted until approved (SF_VOICE_UNMUTE).
  */
-export const MUTED_CLIPS: ReadonlySet<string> = new Set(['zh-yay', 'zh-think', 'zh-arrived'].filter(id => !SF_VOICE_UNMUTE.includes(id)));
+export const MUTED_CLIPS: ReadonlySet<string> = new Set(['zh-yay', 'zh-think', 'zh-arrived', ...TOUR_VOICE_CHECK].filter(id => !SF_VOICE_UNMUTE.includes(id)));
 
 /** How long voice.line waits for a clip still loading before it falls back to the chirp (s). */
 export const LINE_WAIT = 0.7;

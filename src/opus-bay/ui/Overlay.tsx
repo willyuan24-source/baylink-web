@@ -34,6 +34,8 @@ const MapPanel = lazy(() => loadMap().then(m => ({ default: m.MapPanel })));
 const Journal = lazy(() => loadJournal().then(m => ({ default: m.Journal })));
 const WeekPanel = lazy(() => loadWeek().then(m => ({ default: m.WeekPanel })));
 const SettingsPanel = lazy(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
+// wave 4 · lane T: the subway overlay, only during a Muni Metro ride (its own chunk)
+const LineRideLayer = lazy(() => import('./LineRideLayer'));
 
 /**
  * All DOM UI over the canvas. The title screen is not here: OpusBayPage owns it (it paints before this chunk
@@ -52,6 +54,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
   const debug = useFlow(s => s.debug);
   const panel = useGame(s => s.panel);
   const cinematic = useFlow(s => s.cinematic);
+  const metroRide = useFlow(s => s.ride?.kind === 'light-rail');
   // F1: no HUD between Start and the welcome choice (the first minute is BAYBAY's, not the buttons')
   const welcoming = useGame(s => s.mode === 'onboarding');
   const inDialogue = useGame(s => !!s.dialogue.nodeId);
@@ -76,6 +79,7 @@ export function Overlay({ startRequested = false }: { startRequested?: boolean }
           <TapHint />
           <SpeechBubble />
           <CinematicLayer />
+          {metroRide && <Suspense fallback={null}><LineRideLayer /></Suspense>}
           {hudOn && <Hud />}
           {goalsOn && !mobile && <GoalsCard />}
           {phase === 'playing' && !photo && <CoachMark />}

@@ -111,6 +111,11 @@ export interface BusOptions {
   viewer?: () => { x: number; z: number; onFoot: boolean };
   count?: number;
   boxes?: InterlockBox[];
+  /**
+   * Integration (world/sf/lineFleet.ts): the distance (u) from a bus's centre to the nearest other road user in its lane
+   * ahead (the toy traffic, the player's car / bike), ∞ / undefined if none. The bus keeps a car's gap behind it.
+   */
+  roadAhead?: (b: Bus) => number;
 }
 
 export interface BusRequest { line: string; station: string; to: string }
@@ -386,6 +391,8 @@ export class BusSystem implements LineRideSystem {
       if (a > 60) continue;
       if (box.blocked()) { b.waitBox = i; d = Math.min(d, a - 1); }
     }
+    const road = this.opts.roadAhead?.(b);
+    if (road !== undefined && road < Infinity) d = Math.min(d, road - HALF - 2.2);
     const viewer = this.opts.viewer?.();
     if (viewer?.onFoot) {
       const ahead = this.onRoadAhead(b, viewer.x, viewer.z);

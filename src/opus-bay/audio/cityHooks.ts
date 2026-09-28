@@ -44,3 +44,9 @@ export function clearCityHooks() {
   cityHooks.cars = 0;
   cityHooks.passes.length = 0;
 }
+
+/**
+ * Wave 4 (lane T): the recorded tour lines that may play at a loop / Metro stop and the next one ahead (game/lineRides.ts
+ * installs it in city mode); the audio rig fetches those clips when the ride boards / approaches / arrives there.
+ */
+export const lineVoices: { ids: ((line: string, station: string, dir?: 1 | -1) => string[]) | null } = { ids: null };

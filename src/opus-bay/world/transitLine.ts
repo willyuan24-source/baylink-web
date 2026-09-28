@@ -1,5 +1,5 @@
 import { platformStop } from '../actors/platform';
-import { CABLE, CROSSING_HALF, type CableLine, type CableStop, type TrackPoint, type TransitData, type Turntable, pointAt, stopPos } from '../data/transit';
+import { CABLE, CROSSING_HALF, type CableLine, type CableStop, type TrackPoint, type TransitData, type Turntable, activeLineFleet, pointAt, stopPos } from '../data/transit';
 
 /**
  * Cable-car motion (lane F, plan §6.5), pure: no three.js, no DOM, so node tests drive it exactly as the world does.
@@ -240,6 +240,17 @@ export class CableSystem {
       // a car coming the other way whose block ends at our target station: we both stop there and pass
       if (opposite && !boundary && !terminus && o.mode !== 'turn' && o.authStation && o.authStation === targetStation) continue;
       return false;
+    }
+    // wave 4 (lane T): a sightseeing bus inside an interlock box shared with this line (Bush × Powell, California near
+    // Drumm, Hyde St at the terminus): no span through the box's part on our line until the bus is out (the bus in turn
+    // waits at the box while a car holds a span there: world/busSystem.ts)
+    const fleet = activeLineFleet();
+    if (fleet) {
+      for (const box of fleet.bus.boxes) {
+        const o = box.other;
+        if (!o || o.line !== car.line.id || b < o.b0 || a > o.b1) continue;
+        if (fleet.bus.occupies(box.id)) return false;
+      }
     }
     // the crossing: our span through our crossing box needs the other line's cars out of theirs
     for (const cr of car.line.crossings) {

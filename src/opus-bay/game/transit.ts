@@ -10,13 +10,13 @@ import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { noteRide } from '../data/save';
 import type { FLineStation } from '../data/fline';
-import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation } from '../data/transit';
+import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
 import { hookFill, hookText, nodeText, npcLine } from './content';
 import { travelEpoch } from './fastTravel';
-import { announce, bubble, completeGoal, defineNode, playDialogue, refreshLock, say, teleportPlayer } from './flow';
+import { announce, bubble, completeGoal, defineNode, openPanel, playDialogue, refreshLock, say, teleportPlayer } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import { interactableById, invalidateInteractables, registerInteractables, type Interactable } from './interactables';
-import { type RideState, beginLineRide, beginRide, currentRide, endRide, lineRideEta, lineRideTurning, nearestStopId, rideSeconds, sortedStops, stepRide } from './ride';
+import { type RideState, beginLineRide, beginRide, currentRide, endRide, isLineRide, lineRideEta, lineRideTurning, nearestStopId, rideMinOdometer, rideSeconds, sortedStops, stepRide } from './ride';
 
 /**
  * Transit flow (lane F owns this file from wave 2; the day-0 commit moved the streetcar section of game/flow.ts here
@@ -71,8 +71,8 @@ export function rideTo(stopId: string, target: string) {
 /** Cancel while waiting at the stop (no teleport). */
 export function cancelRide() {
   releaseStop();
-  const line = currentRide()?.line;
-  if (line) rideSystemFor(line)?.cancel();
+  const r = currentRide();
+  if (isLineRide(r)) rideSystemFor(r.line)?.cancel();
   endRide();
   game.set({ riding: null });
   flow.set({ ride: null });
@@ -93,7 +93,19 @@ function releaseStop() {
 export function hopOffRide() {
   const r = currentRide();
   if (!r) { cancelRide(); return; }
-  if (r.line) { leaveLineRide(r, false); return; }
+  if (isLineRide(r)) {
+    // wave 4: no getting off a Metro train while any part of it is in a tunnel or under a portal hood (unless it stands
+    // at a station); the ride goes on and the HUD says why (lane G's moveSystem checks rideLabel().canHopOff first)
+    const hold = w4Kind(r.line) === 'light-rail' ? W4G?.w4Status(r) : null;
+    if (hold && hold.canHopOff === false && !hold.station) {
+      releaseStop();
+      if (hold.portalWait) say('马上出隧道…', 'Coming out of the tunnel…');
+      else say('隧道里不能下车', 'No getting off inside the tunnel');
+      return;
+    }
+    leaveLineRide(r, false);
+    return;
+  }
   releaseStop();
   const rode = r.mode !== 'wait' && r.elapsed > 2.5;
   endRide();
@@ -113,7 +125,7 @@ export function hopOffRide() {
 
 export function finishRide() {
   const r = currentRide();
-  if (r?.line) { leaveLineRide(r, true); return; }
+  if (isLineRide(r)) { leaveLineRide(r, true); return; }
   releaseStop();
   endRide();
   game.set({ riding: null });
@@ -142,6 +154,8 @@ export function finishRide() {
 export function boardFrom(it: Interactable) {
   if (it.id.startsWith(PUSH_PREFIX)) { pushTurntable(it.refId ?? it.id.slice(PUSH_PREFIX.length)); return; }
   if (it.source === 'transit' && it.refId && ferryTerminal(it.refId)) { boardFerry(it.refId); return; }
+  // wave 4: a sightseeing-loop pole or a Muni Metro kiosk / stop
+  if (it.source === 'transit' && it.refId && W4G?.stationLines(it.refId).length) { W4G.boardLine(it.refId); return; }
   // city mode: the F-line to the Castro serves the hero stops and its Market Street stations
   const fl = it.refId && flineStation(it.refId) ? it.refId : it.source === 'streetcar' && activeStreetcarSystem() ? nearestStopId(it) : null;
   if (fl && flineStation(fl)) { boardFLine(fl); return; }
@@ -151,6 +165,12 @@ export function boardFrom(it: Interactable) {
 
 /** flow's dialogue runner hands every `flow.ride.<rest>` node here: `<fromStop>><toStop>` (F-line) or `cc:<line>:<from>:<to>`. */
 export function openRideNode(rest: string) {
+  if (rest.startsWith('ln:')) {
+    const [, line, from, to] = rest.split(':');
+    if (W4G) W4G.rideLine(line, from, to); else say(...W4_NOT_READY);
+    return;
+  }
+  if (rest.startsWith('map:')) { openLineMap(rest.slice(4)); return; }
   if (rest.startsWith('fe:')) {
     const [, from, to] = rest.split(':');
     rideFerry(from, to);
@@ -174,11 +194,11 @@ export function openRideNode(rest: string) {
 export function stepTransit(dt: number) {
   const r = currentRide();
   const ride = stepRide(dt, travelEpoch());
-  if (r?.line) stepCity(r, dt);
+  if (isLineRide(r)) stepCity(r, dt);
   pollTurntables(dt);
   if (!ride) return;
-  if (r?.line && ride.lost) { cancelRide(); return; }
-  if (r?.line) lineTick(r, ride);
+  if (isLineRide(r) && ride.lost) { cancelRide(); return; }
+  if (isLineRide(r)) lineTick(r, ride);
   const current = flow.get().ride;
   // the hop-off brake (E2 requests the stop, the car brakes): the HUD says so
   const stage = ride.stage === 'riding' && platformStop(r?.line ?? 'streetcar') ? 'braking' : ride.stage;
@@ -194,18 +214,31 @@ export function stepTransit(dt: number) {
 export function requestHopOff() { hopOffRide(); }
 
 export interface RideLabel {
-  /** which glyph the banner shows */
-  icon: 'tram' | 'cable-car' | 'ferry';
+  /** which glyph the banner shows (wave 4: 'bus' = the sightseeing loop, 'metro' = the Muni Metro N / M) */
+  icon: 'tram' | 'cable-car' | 'ferry' | 'bus' | 'metro';
   /** stage 'waiting' text */
   waiting: Bilingual;
   /** "F 线电车 · 开往" — shown before the destination name */
   lineTo: Bilingual;
   /** destination stop / station name */
   dest: Bilingual | null;
+  /**
+   * Wave 4 (lane T; optional, absent = allowed): 提前下车 is possible now — false while any part of a Metro train is in a
+   * tunnel or under a portal hood; `hopOffNote` says why ("隧道里不能下车" / "马上出隧道…"). Lane G's banner greys the
+   * button out and its moveSystem refuses Space / B then.
+   */
+  canHopOff?: boolean;
+  hopOffNote?: Bilingual | null;
+  /** 下一站下车 is offered (bus / Metro rides under way): `requestNextStop()` */
+  nextStop?: boolean;
 }
 
 /** What the HUD RideBanner shows for a ride (the hero F-line: exactly the old strings). */
 export function rideLabel(ride: FlowRide): RideLabel {
+  if ((ride.kind === 'bus' || ride.kind === 'light-rail') && ride.line) {
+    if (W4G) return W4G.lineLabel(ride);
+    return { icon: ride.kind === 'bus' ? 'bus' : 'metro', waiting: { zh: '等车进站…', en: 'Waiting…' }, lineTo: { zh: '', en: '' }, dest: null };
+  }
   if (ride.kind === 'cable-car' && ride.line) {
     const line = cableLine(ride.line);
     const dest = transitStation(ride.to);
@@ -267,6 +300,7 @@ let pushedAt: string | null = null;
 let pollT = 0;
 let seenFLine: unknown = null;
 let seenFerry: unknown = null;
+let seenFleet: unknown = null;
 
 const isCity = () => game.get().worldMode === 'city';
 const lineName = (line: CableLine | undefined): Bilingual => line?.name ?? CABLE_CAR;
@@ -360,13 +394,15 @@ function stepCity(r: RideState, dt: number) {
 function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) {
   const name = rideLineName(r);
   if (tick.boarded) {
-    emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
-    if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
+    // (the wave-4 fleet emits its own board event, with the station and the direction)
+    if (!w4Kind(r.line!)) emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
+    if (W4G && w4Kind(r.line!)) bubble(W4G.boardBubble(r), 3600);
+    else if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
     else if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
     else bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
     announce({ zh: `上车：${name.zh}`, en: `Aboard the ${name.en}` });
   }
-  if (tick.count) countRide(r);
+  if (tick.count) countRide(r, tick.arrivedAt);
   if (tick.arrivedAt && !tick.done) {
     const st = stationOf(r, tick.arrivedAt);
     if (st) announce({ zh: `到站：${st.name.zh}`, en: `Stop: ${st.name.en}` });
@@ -377,18 +413,26 @@ const rideKind = (r: RideState): TransitKind => r.kind ?? 'cable-car';
 /** A city ride's line name: the cable-car line, or the F-line. */
 function rideLineName(r: RideState): Bilingual {
   if (r.kind === 'ferry') return FERRY_NAME;
+  if (W4G && w4Kind(r.line!)) return W4G.lineShortName(r.line!);
   return r.kind === 'streetcar' ? F_LINE : lineName(cableLine(r.line!));
 }
 /** A station of the ride's line (cable-car station, or F-line station). */
 function stationOf(r: RideState, id: string): { name: Bilingual; x: number; z: number } | undefined {
   if (r.kind === 'ferry') { const t = ferryTerminal(id)?.terminal; return t ? { name: t.name, x: t.quay.x, z: t.quay.z } : undefined; }
+  if (w4Kind(r.line!)) return W4G?.stationPoint(id) ?? undefined;
   return r.kind === 'streetcar' ? flineStation(id) : transitStation(id);
 }
 
 /** One real stop-to-stop segment on a city line: goal, save, the `transit` ride event (real: true), once per ride. */
-function countRide(r: RideState) {
+function countRide(r: RideState, station?: string | null) {
   const line = r.line!;
   rides[line] = (rides[line] ?? 0) + 1;
+  if (w4Kind(line)) {
+    // wave 4: the sightseeing / metro goals are lane C's (they read this event: the stop reached, the direction)
+    emit({ type: 'transit', what: 'ride', line, kind: rideKind(r), real: true, ...(station ? { station } : {}), ...(w4Kind(line) === 'light-rail' && r.dir ? { dir: r.dir } : {}) });
+    noteRide(line);
+    return;
+  }
   emit({ type: 'transit', what: 'ride', line, kind: rideKind(r), real: true });
   completeGoal(r.kind === 'streetcar' ? 'streetcar' : r.kind === 'ferry' ? 'ferry' : 'cable-car');
   noteRide(line);
@@ -403,19 +447,26 @@ function leaveLineRide(r: RideState, finishing: boolean) {
   // "skip to stop" before the car got there: no car ride, just go (it never counts: not a real segment)
   const skip = finishing && !arrived && r.mode === 'follow';
   const pose = car?.pose;
-  const side = platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
+  // wave 4 (the loop, the N / M): under ground only at a station's kiosk; 直接到站 lands at the destination's pole /
+  // kiosk; on the surface off the kerb side of the bus / train
+  const w4 = W4G && w4Kind(r.line!) ? W4G.leaveSpot(r, W4G.w4Status(r), finishing) : null;
+  const side = w4 ? w4.side : platformRider.platform === r.line && platformRider.x < 0 ? -1 : 1;
+  const skipCounts = !!(w4 && skip && !r.counted && W4G!.skipCounts(r, rideMinOdometer(r)));
   releaseStop();
   sys?.cancel();
   endRide();
   game.set({ riding: null });
   flow.set({ ride: null });
   let spot: { x: number; z: number } | null = null;
-  if (r.kind === 'ferry') {
+  if (w4?.spot) {
+    spot = nearestWalkable(w4.spot, 12) ?? w4.spot;
+  } else if (r.kind === 'ferry') {
     // off a boat only onto a quay: the terminal it lies at, else (hopping off at sea) the next one it would reach.
     // (review) Still waiting on the quay: stay there (the boat may lie at the other terminal, or be out on the Bay).
     // E2's hop-off (actors/moveSystem 'transit-alight') keeps the spot F puts the rider on here.
     const quay = r.mode === 'follow' ? stationOf(r, st?.station ?? r.to) : undefined;
-    if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16);
+    // (E2 w3 review 1: the quay's ground may not be streamed in yet: stand on the quay point itself then)
+    if (quay) spot = nearestWalkable({ x: quay.x, z: quay.z }, 16) ?? { x: quay.x, z: quay.z };
   } else if (skip) {
     const dest = stationOf(r, r.to);
     if (dest) spot = nearestWalkable({ x: dest.x, z: dest.z }, 16);
@@ -430,10 +481,16 @@ function leaveLineRide(r: RideState, finishing: boolean) {
     runtime.guide.x = spot.x + 1.1; runtime.guide.z = spot.z + 0.7;
   }
   if (r.kind === 'streetcar') emit({ type: 'streetcar-bell' });
-  emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 0.8 });
-  const dest = stationOf(r, r.to);
+  if (!w4) emit({ type: 'transit', what: 'bell', line: r.line!, kind: rideKind(r), strength: 0.8 });
+  const dest = stationOf(r, w4?.station && finishing ? w4.station : r.to);
   if (finishing && dest) say(`到站：${dest.name.zh}`, `Arrived: ${dest.name.en}`, 'success');
-  if (r.kind === 'ferry') {
+  if (w4) {
+    if (skipCounts) { r.counted = true; countRide(r, r.to); }
+    const at = w4.station ?? (finishing ? r.to : null);
+    const tip = at ? W4G!.hopOffTip(at) : null;
+    if (tip && (r.counted || finishing)) { bubble(tip.text, 5200); emit({ type: 'voice-line', id: tip.id }); }
+    else if (!r.counted && r.mode === 'follow') bubble({ zh: '坐过一站再下车，才算坐过哦', en: 'Ride at least one stop and it counts as a ride' }, 3000);
+  } else if (r.kind === 'ferry') {
     if (r.counted && !skip) bubble(hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, 2800);
   } else if (r.kind === 'streetcar') {
     if (r.counted && !skip) bubble(hookText('streetcarOff') ?? { zh: '叮叮！F 线电车，下次再坐', en: 'Ding ding! Let’s take the F-line again' }, 2800);
@@ -455,8 +512,8 @@ export function pushTurntable(id: string) {
 function pollTurntables(dt: number) {
   if ((pollT -= dt) > 0) return;
   pollT = 0.25;
-  const fl = activeStreetcarSystem(), fe = activeFerrySystem();
-  if (fl !== seenFLine || fe !== seenFerry) { seenFLine = fl; seenFerry = fe; invalidateInteractables(); }
+  const fl = activeStreetcarSystem(), fe = activeFerrySystem(), lf = activeLineFleet();
+  if (fl !== seenFLine || fe !== seenFerry || lf !== seenFleet) { seenFLine = fl; seenFerry = fe; seenFleet = lf; invalidateInteractables(); }
   const sys = activeCableSystem(), data = transitData();
   if (!sys || !data) { if (turningNear.length) { turningNear = []; invalidateInteractables(); } return; }
   const p = runtime.player;
@@ -605,7 +662,7 @@ function flineInteractables(): Interactable[] {
 export function transitInteractables(): Interactable[] {
   const data = transitData();
   if (!isCity()) return [];
-  const out: Interactable[] = [...flineInteractables(), ...ferryInteractables()];
+  const out: Interactable[] = [...flineInteractables(), ...ferryInteractables(), ...(W4G?.lineInteractables() ?? [])];
   if (!data) return out;
   out.push(...data.stations.map(st => ({
     id: `transit-${st.id}`, source: 'transit' as const, action: 'streetcar' as const,
@@ -628,6 +685,10 @@ export function initTransit(): () => void {
   const offSource = registerInteractables('transit', transitInteractables);
   const offData = onTransitData(() => invalidateInteractables());
   void loadTransit();
+  // wave 4 (lane T): the loop / Metro game code is its own chunk (the main graph keeps the stubs below)
+  let offW4 = () => {};
+  let disposed = false;
+  void loadLineRides().then(m => { if (!disposed) offW4 = m.initLineRides(); }, () => {});
   let offDev = () => {};
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
@@ -637,6 +698,10 @@ export function initTransit(): () => void {
       fline: () => activeStreetcarSystem(), boardF: boardFLine, rideF: rideFLine,
       /** the ferry: its system, E at a terminal, a ride between terminals */
       ferry: () => activeFerrySystem(), boardFerry, rideFerry,
+      /** wave 4 (lane T): the loop / Metro fleet, E at a pole / kiosk, a ride, 下一站下车, the subway view */
+      fleet: () => activeLineFleet(), boardLine, rideLine: (line: string, from: string, to: string) => W4G?.rideLine(line, from, to),
+      nextStop: requestNextStop, subway: subwayView, stationRides, nextArrival, stationPoint: (id: string) => W4G?.stationPoint(id) ?? null,
+      me: () => ({ x: +runtime.player.x.toFixed(1), z: +runtime.player.z.toFixed(1), move: game.get().move, ride: flow.get().ride, label: flow.get().ride ? rideLabel(flow.get().ride!) : null }),
       /** QA: stand at a station (x, z) */
       station: (id: string) => transitStation(id),
       stopPos: (line: string, station: string, dir: 1 | -1) => { const l = cableLine(line); const st = l?.stops.find(s => s.station === station); return st ? stopPos(st, dir) : null; },
@@ -646,5 +711,55 @@ export function initTransit(): () => void {
     const id = window.setInterval(put, 500);
     offDev = () => window.clearInterval(id);
   }
-  return () => { offSource(); offData(); offDev(); };
+  return () => { disposed = true; offSource(); offData(); offDev(); offW4(); };
+}
+
+// --- wave 4 (lane T): the sightseeing loop and the Muni Metro N / M ---------------------------------------------------
+
+type LineRidesModule = typeof import('./lineRides');
+let W4G: LineRidesModule | null = null;
+let w4Loading: Promise<LineRidesModule> | null = null;
+const W4_NOT_READY: [string, string] = ['车还没开过来，稍等一下', 'Not running here yet, try again in a moment'];
+
+/** The lazy wave-4 game module (game/lineRides.ts), fetched once in city mode by initTransit. */
+export function loadLineRides(): Promise<LineRidesModule> {
+  w4Loading ??= import('./lineRides').then(m => { W4G = m; invalidateInteractables(); return m; }, (e: unknown) => { w4Loading = null; throw e; });
+  return w4Loading;
+}
+/** The wave-4 game module once loaded (null in district mode / before initTransit's fetch lands). */
+export const lineRides = (): LineRidesModule | null => W4G;
+
+/**
+ * Board a sightseeing-loop / Metro line at `station` (E at its pole / kiosk; lane C's trip and tour legs pass `to` for
+ * the pre-filled "上车 · 坐到 …" row). Lanes C / P call this; it waits for the lazy module when needed.
+ */
+export function boardLine(station: string, o: { to?: string; line?: string } = {}) {
+  if (W4G) { W4G.boardLine(station, o); return; }
+  void loadLineRides().then(m => m.boardLine(station, o), () => say(...W4_NOT_READY));
+}
+
+/** Lane P's StationActions: the rides offered at a wave-4 station (next stops each way, ★ stops, termini, 坐一圈). */
+export function stationRides(station: string): ReturnType<LineRidesModule['stationRides']> { return W4G?.stationRides(station) ?? []; }
+
+/** Seconds until the next bus / train stops at `station` (on `line`, toward `dir`), or null. */
+export function nextArrival(station: string, line?: string, dir?: 1 | -1): number | null { return W4G?.nextArrival(station, line, dir) ?? null; }
+
+/** 下一站下车 on a bus / Metro ride (the RideBanner button; lane G). Returns the stop the ride now ends at, or null. */
+export function requestNextStop(): string | null { return W4G?.requestNextStop() ?? null; }
+
+/** The subway overlay's state (ui/LineRideLayer.tsx), null when not underground on a Metro ride. */
+export function subwayView(): ReturnType<LineRidesModule['subwayView']> { return W4G?.subwayView() ?? null; }
+
+/** 在这站下车 in the subway overlay: off at the station the train stands at (placed at its kiosk). */
+export function alightHere() {
+  const r = currentRide();
+  if (isLineRide(r) && W4G?.w4Status(r)?.station) leaveLineRide(r, true);
+}
+
+let lineMapOpener: ((line: string) => void) | null = null;
+/** Lane P: open the map on its 线路 tab with `line` highlighted (the boarding dialogue's 看线路图). */
+export function setLineMapOpener(fn: ((line: string) => void) | null) { lineMapOpener = fn; }
+function openLineMap(line: string) {
+  if (lineMapOpener) lineMapOpener(line);
+  else openPanel('map');
 }

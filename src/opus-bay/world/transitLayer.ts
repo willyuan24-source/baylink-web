@@ -3,8 +3,12 @@ import { definePlatform, setPlatformPose } from '../actors/platform';
 import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
-import { CABLE, type TransitData, type Turntable, flineJson, loadTransit, pointAt } from '../data/transit';
+import { FL, sAtU } from '../data/fline';
+import { CABLE, type TransitData, type Turntable, activeLineFleet, flineJson, loadTransit, pointAt, setActiveLineFleet, transitW4 } from '../data/transit';
+import { currentRide, isLineRide } from '../game/ride';
 import { Batch } from './builder';
+import { cityStreamerLazy } from './cityLoader';
+import { trackPoint } from './lineTrack';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
 import { FerryLayer } from './ferry';
 import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
@@ -12,7 +16,9 @@ import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
 import { CityLife } from './sf/cityLife';
-import { type RoadVehicle, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
+import type { TransitPortal } from './sf/format';
+import { LineFleet, busInterlocks } from './sf/lineFleet';
+import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
 import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeometry } from './turntable';
 
@@ -32,7 +38,12 @@ import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeome
  * - the city F-line to the Castro (world/flineLayer.ts: its four streetcars, the platform 'streetcar', its rails);
  * - the rideable ferry (world/ferry.ts: life's ferry 0 after the arrival, Ferry Building ⇄ Pier 41, platform 'ferry');
  * - the city's crowd and toy traffic (world/sf/cityLife.ts, F11 / F12): the cable cars and the F-line are published to
- *   them as road vehicles (walkers hop aside, cars wait) and their streets as transit streets (no toy traffic along them).
+ *   them as road vehicles (walkers hop aside, cars wait) and their streets as transit streets (no toy traffic along them);
+ * - wave 4 (lane T): the sightseeing buses and the Muni Metro N / M (world/sf/lineFleet.ts: buses, LRVs, the stop poles,
+ *   kiosks and four portals), installed as `activeLineFleet()`. Buses wait at their interlock boxes for a cable car (and
+ *   cable cars for a bus in them: CableSystem.free) or an F-line car in the shared stretch; buses and visible trains are
+ *   road vehicles, the surface Metro tracks transit streets; a portal the rider's train heads for is streamed in first
+ *   (`portalReady`), and the rider's bus / surface train streams the next 200 u of its line ahead (prefetch).
  *
  * Budget (plan §5.10, vehicles + transit ≤ 8 calls / 20k tris): cars 1 + shadow 1, far cars 1, discs 1 (+ shadow 1),
  * aprons 1, rails 1, ring 1 while pushing: ≤ 8 calls. Triangles: 2,124 a near car (again in the shadow pass), 156 a far
@@ -79,7 +90,13 @@ export class TransitLayer {
   readonly ferry = new FerryLayer();
   /** the crowd and the toy traffic (built once the walking graph is in) */
   readonly life: CityLife;
+  /** wave 4: the loop buses and the Metro trains (null without the wave-4 lines in transit.json) */
+  readonly lines: LineFleet | null = null;
   private offs: (() => void)[] = [];
+  /** portals asked of the streamer (whenReady) and when they were ready (ms), by position */
+  private portals = new Map<string, { asked: number; ready: number }>();
+  private prefetchT = 0;
+  private prefetching = false;
 
   constructor(data: TransitData) {
     this.data = data;
@@ -137,6 +154,23 @@ export class TransitLayer {
     for (const line of data.lines) this.offs.push(registerTransitStreet(line.xyz));
     if (this.fline) this.offs.push(registerTransitStreet(this.fline.line.cxyz));
     this.offs.push(registerRoadVehicles(out => this.roadVehicles(out)));
+    // wave 4 (lane T): the sightseeing loop and the Muni Metro
+    const w4 = transitW4();
+    if (w4) {
+      const lines = new LineFleet({ loop: w4.loop, metro: w4.metro, props: w4.props }, {
+        groundY: residentGround,
+        visible: visibleFromCamera,
+        viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+        portalReady: p => this.portalReady(p),
+        boxes: bt => busInterlocks(bt, this.interlockLines(), (line, b0, b1) => this.boxBlocked(line, b0, b1)),
+        roadUsers: out => collectRoadVehicles(out),
+      });
+      this.lines = lines;
+      this.group.add(lines.group);
+      setActiveLineFleet(lines);
+      for (const run of LineFleet.surfaceRuns(w4.metro)) this.offs.push(registerTransitStreet(run));
+      this.offs.push(registerRoadVehicles(out => lines.roadVehicles(out, runtime.player)));
+    }
     this.refreshDiscHeights(true);
     this.update(0, 0);
     this.group.updateMatrixWorld(true);
@@ -222,8 +256,77 @@ export class TransitLayer {
     this.drainEvents();
     this.fline?.update(dt);
     this.ferry.update(dt);
+    this.lines?.update(dt, cam, p);
+    this.prefetch(dt);
     this.life.update(dt);
     void t;
+  }
+
+  /** The other lines the loop's interlock boxes are built against: the cable cars (extended arcs) and the city F-line. */
+  private interlockLines(): { id: string; path: number[]; tunnels: [] }[] {
+    const out: { id: string; path: number[]; tunnels: [] }[] = this.data.lines.map(l => ({ id: l.id, path: Array.from(l.xyz), tunnels: [] }));
+    if (this.fline) out.push({ id: 'f-line', path: Array.from(this.fline.line.cxyz), tunnels: [] });
+    return out;
+  }
+
+  /** Is a vehicle of `line` in its part [b0, b1] of an interlock box? (cable cars: the span they hold, authority included) */
+  private boxBlocked(line: string, b0: number, b1: number): boolean {
+    if (line === 'f-line') {
+      const f = this.fline;
+      if (!f) return false;
+      for (const c of f.sys.cars) {
+        const s = sAtU(f.line, c.u);
+        if (s + FL.half > b0 && s - FL.half < b1) return true;
+      }
+      return false;
+    }
+    for (const c of this.sys.cars) {
+      if (c.line.id !== line) continue;
+      const [a, b] = this.sys.span(c);
+      if (b > b0 && a < b1) return true;
+    }
+    return false;
+  }
+
+  /**
+   * The rider's train heads for a portal: is the surface there streamed in? (the streamer's whenReady(portal, 150),
+   * asked once and re-asked after 10 s; a ready answer holds 20 s). No streamer: nothing to wait for.
+   */
+  private portalReady(p: TransitPortal): boolean {
+    const s = cityStreamerLazy();
+    if (!s) return true;
+    const key = `${Math.round(p.x)},${Math.round(p.z)}`;
+    const now = performance.now();
+    const e = this.portals.get(key);
+    if (e && e.ready > 0 && now - e.ready < 20000) return true;
+    if (!e || now - e.asked > 10000) {
+      const rec = { asked: now, ready: 0 };
+      this.portals.set(key, rec);
+      void s.whenReady({ x: p.x, z: p.z }, 150).then(() => { rec.ready = performance.now(); });
+    }
+    return false;
+  }
+
+  /**
+   * W4-T11: while the rider's bus / surface train moves, stream the next 200 u of its line (one whenReady at a time,
+   * 90 u round the point 200 u ahead; every 0.5 s once the last one landed or after 3 s).
+   */
+  private prefetch(dt: number) {
+    const f = this.lines, r = currentRide();
+    if (!f || !isLineRide(r) || r.mode === 'wait') return;
+    if ((this.prefetchT -= dt) > 0) return;
+    const s = cityStreamerLazy();
+    if (!s) return;
+    let pt: { x: number; z: number } | null = null;
+    const bus = f.bus.riderCarOf(r.line);
+    if (bus && bus.v > 2) pt = trackPoint(f.bus.track, bus.s + 200);
+    const train = f.rail.riderCarOf(r.line);
+    if (train && !train.hidden && Math.abs(train.v) > 2) pt = trackPoint(train.track, train.s + train.dir * 200);
+    if (!pt) { this.prefetchT = 0.5; return; }
+    if (this.prefetching && this.prefetchT > -2.5) return;
+    this.prefetching = true;
+    this.prefetchT = 0.5;
+    void s.whenReady({ x: pt.x, z: pt.z }, 90).then(() => { this.prefetching = false; });
   }
 
   /** The cable cars and the F-line cars within 250 u of the player as road vehicles (crowd hop, traffic give-way). */
@@ -279,7 +382,7 @@ export class TransitLayer {
 
   /** Per-car draw data for QA. */
   stats() {
-    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats(), fline: this.fline?.stats() ?? null, life: this.life.stats() };
+    return { cars: this.sys.cars.map(c => ({ line: c.line.id, s: +c.s.toFixed(1), dir: c.dir, mode: c.mode, v: +c.v.toFixed(2), station: c.station, pitch: +c.pose.pitch.toFixed(3) })), rails: this.rails.stats(), fline: this.fline?.stats() ?? null, life: this.life.stats(), lines: this.lines?.stats() ?? null };
   }
 
   dispose() {
@@ -295,6 +398,7 @@ export class TransitLayer {
     for (const off of this.offs) off();
     this.offs.length = 0;
     this.life.dispose();
+    if (this.lines) { if (activeLineFleet() === this.lines) setActiveLineFleet(null); this.lines.dispose(); }
     setTurntableSpinner(false);
     if (LAYER === this) LAYER = null;
   }

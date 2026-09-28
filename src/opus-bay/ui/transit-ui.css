@@ -70,6 +70,15 @@
   align-self: flex-start; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: #ffd98a; color: #2b2418;
   font: inherit; font-weight: 800; cursor: pointer;
 }
+.ob-subway-say { font-size: 13.5px; line-height: 1.45; color: #f5efe2; }
+.ob-subway-say span { display: inline-block; margin-right: 4px; padding: 0 6px; border-radius: 6px; background: rgba(255, 217, 138, .18); color: #ffd98a; font-size: 11px; font-weight: 900; letter-spacing: .04em; }
+.ob-subway-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ob-subway-skip {
+  min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(245, 239, 226, .35); background: transparent; color: #f5efe2;
+  font: inherit; font-weight: 700; cursor: pointer;
+}
+/* the subway card carries the ride (line, destination, next stop, 直接到站): the RideBanner above it steps aside */
+.ob-overlay:has(.ob-subway.is-on) .ob-topstack > .ob-ride { display: none; }
 
 @media (max-width: 420px) {
   .ob-subway-card { bottom: calc(118px + var(--ob-sb, 0px)); padding: 12px 14px; font-size: 13px; }

@@ -9,9 +9,10 @@
  *   LineLoops   continuous layers from the audio tick (every 100 ms): the bus's diesel hum (pitch and grit follow the
  *               speed), the LRV motor whine (rises with speed), the low tunnel rumble under the subway overlay.
  *
- * Integration (audio/audio.ts, lane T owns it then): `transit` events with kind 'bus' / 'light-rail' → arrive:
- * busAirBrake (+ doorChime after 0.5 s) / doorChime; depart: doorChime; bell: stopBell (bus) / lrvGong (light rail);
- * horn: the existing toyHorn at a lower pitch; the subway overlay's on / off → LineLoops.update({ tunnel }).
+ * Wired in audio/audio.ts (integration, W4-T13): `transit` events with kind 'bus' / 'light-rail' (audio/logic.ts
+ * transitSound) → arrive: busAirBrake + doorChime 0.5 s later / doorChime; depart: doorChime (closing); bell: stopBell
+ * (bus) / lrvGong (light rail); horn: busHorn; other vehicles' sounds are panned from where they happened (emitAt); the
+ * audio tick drives LineLoops from the ride (bus / surface LRV speed, the subway overlay's tunnel rumble).
  */
 import type { AudioEngine } from './engine';
 import { clamp } from './logic';
@@ -20,21 +21,21 @@ const R = Math.random;
 const vary = (amount: number) => 1 + (R() * 2 - 1) * amount;
 
 /** The air brake: a short pink-noise hiss falling in pitch, a soft thunk under it. */
-export function busAirBrake(e: AudioEngine, strength = 1) {
-  const v = e.voice({ bus: 'sfx', dur: 1.2, gain: 0.26 * strength, priority: 2, reverb: 0.08, name: 'bus-air-brake' });
+export function busAirBrake(e: AudioEngine, strength = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.2, gain: 0.26 * strength, pan, priority: 2, reverb: 0.08, name: 'bus-air-brake' });
   if (!v) return;
   e.noiseBurst(v, { color: 'white', attack: 0.02, decay: 0.75, peak: 0.5, filter: { type: 'bandpass', freq: 3800 * vary(0.05), freqTo: 1600, glide: 0.6, Q: 1.2 } });
   e.noiseBurst(v, { color: 'brown', attack: 0.005, decay: 0.12, peak: 0.35, filter: { type: 'lowpass', freq: 240 } });
 }
 
 /** Doors: a bright two-note chime (up for opening, down for closing). */
-export function doorChime(e: AudioEngine, opening = true, strength = 1) {
-  const v = e.voice({ bus: 'sfx', dur: 0.9, gain: 0.18 * strength, priority: 2, reverb: 0.15, name: 'door-chime' });
+export function doorChime(e: AudioEngine, opening = true, strength = 1, pan = 0, at = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 0.9 + at, gain: 0.18 * strength, pan, priority: 2, reverb: 0.15, name: 'door-chime' });
   if (!v) return;
   const [a, b] = opening ? [659, 880] : [880, 659];
-  e.tone(v, { type: 'sine', freq: a, decay: 0.45, peak: 0.5, attack: 0.004 });
-  e.tone(v, { type: 'sine', freq: b, decay: 0.55, peak: 0.45, attack: 0.004, offset: 0.2 });
-  e.tone(v, { type: 'triangle', freq: b * 2, decay: 0.25, peak: 0.08, offset: 0.2 });
+  e.tone(v, { type: 'sine', freq: a, decay: 0.45, peak: 0.5, attack: 0.004, offset: at });
+  e.tone(v, { type: 'sine', freq: b, decay: 0.55, peak: 0.45, attack: 0.004, offset: at + 0.2 });
+  e.tone(v, { type: 'triangle', freq: b * 2, decay: 0.25, peak: 0.08, offset: at + 0.2 });
 }
 
 /** A stop request: one clear "ding". */
@@ -45,12 +46,21 @@ export function stopBell(e: AudioEngine) {
 }
 
 /** The LRV's gong: two low metallic strikes. */
-export function lrvGong(e: AudioEngine, strength = 1) {
-  const v = e.voice({ bus: 'sfx', dur: 1.8, gain: 0.3 * clamp(strength, 0.2, 1), priority: 3, reverb: 0.2, name: 'lrv-gong' });
+export function lrvGong(e: AudioEngine, strength = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 1.8, gain: 0.3 * clamp(strength, 0.2, 1), pan, priority: 3, reverb: 0.2, name: 'lrv-gong' });
   if (!v) return;
   for (const offset of [0, 0.32]) {
     for (const [ratio, g, d] of [[1, 0.5, 1.1], [2.76, 0.2, 0.6], [5.4, 0.08, 0.3]] as const) e.tone(v, { type: 'sine', freq: 392 * ratio * vary(0.003), decay: d, peak: g, offset, attack: 0.002 });
     e.noiseBurst(v, { attack: 0.001, decay: 0.02, peak: 0.12, offset, filter: { type: 'highpass', freq: 2500 } });
+  }
+}
+
+/** The tour bus's horn (someone on the road ahead): a low, friendly two-tone toot. */
+export function busHorn(e: AudioEngine, strength = 1, pan = 0) {
+  const v = e.voice({ bus: 'sfx', dur: 0.9, gain: 0.2 * clamp(strength, 0.2, 1), pan, priority: 2, reverb: 0.12, name: 'bus-horn' });
+  if (!v) return;
+  for (const [f, offset] of [[233, 0], [277, 0.02]] as const) {
+    e.tone(v, { type: 'sawtooth', freq: f, decay: 0.42, peak: 0.28, attack: 0.02, offset, filter: { type: 'lowpass', freq: 1100 } });
   }
 }
 

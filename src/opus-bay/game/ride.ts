@@ -24,9 +24,15 @@ export interface RideState {
   duration: number;
   carT0: number;
   leftStop: boolean;
-  // --- city lines (lane F, wave 2): absent on the hero F-line ride
-  /** transit line id (= move.line = the platform id) */
+  // --- city lines (lane F, wave 2): absent on the hero F-line ride (except `line` + `hero`, below)
+  /**
+   * transit line id (= move.line = the platform id). The hero F-line ride carries `line: 'streetcar'` + `hero: true`
+   * (wave 4 · lane T, E2's request 4: the rider's braked hop-off asks platform 'streetcar' to stop); it is not a city line
+   * ride (`isLineRide`).
+   */
   line?: string;
+  /** the district / hero F-line ride (world/streetcar.ts cars, DISTRICT.streetcar stops) */
+  hero?: boolean;
   kind?: TransitKind;
   /** direction along the line's path */
   dir?: 1 | -1;
@@ -38,7 +44,15 @@ export interface RideState {
   seenArrivals?: number;
   /** the rider is aboard (the car stopped at the pickup station and they stepped on) */
   boarded?: boolean;
+  /**
+   * wave 4 (light rail): where the rider is held while their train runs the virtual subway (the boarding kiosk, or the
+   * spot where the train dived into a portal): the subway overlay covers the view, nothing streams underground
+   */
+  hold?: { x: number; z: number } | null;
 }
+
+/** A city line ride (cable car, city F-line, ferry, the wave-4 bus / light rail), not the hero F-line ride. */
+export const isLineRide = (r: RideState | null | undefined): r is RideState & { line: string } => !!r?.line && !r.hero;
 
 export function pathLength(path: Vec2[]): number {
   let total = 0;
@@ -108,7 +122,7 @@ export function beginRide(from: string, target?: string): RideState | null {
   if (!a || !b || !to) return null;
   const length = pathLength(DISTRICT.streetcar.path) * Math.abs(b.at - a.at);
   ride = {
-    from, to, fromT: a.at, toT: b.at,
+    from, to, fromT: a.at, toT: b.at, line: 'streetcar', hero: true,
     mode: runtime.streetcar.atStop === from ? 'follow' : 'wait',
     elapsed: 0,
     duration: Math.min(26, Math.max(5, length / 13)),
@@ -150,13 +164,19 @@ export function beginLineRide(line: string, from: string, to: string, dir: 1 | -
 
 /** The pickup ETA of a waiting line ride (s), or null. */
 export function lineRideEta(): number | null {
-  const st = ride?.line ? rideSystemFor(ride.line)?.rideStatus() : null;
+  const st = isLineRide(ride) ? rideSystemFor(ride.line)?.rideStatus() : null;
   return st && st.phase === 'coming' ? st.eta : null;
 }
 
 /** Is the car coming for the waiting rider turning on a turntable right now? */
 export function lineRideTurning(): boolean {
-  return !!(ride?.line && rideSystemFor(ride.line)?.rideStatus()?.turning);
+  return !!(isLineRide(ride) && rideSystemFor(ride.line)?.rideStatus()?.turning);
+}
+
+/** Wave 4: the light-rail rider's train is in the virtual subway (the overlay shows; the player is held). */
+export function lineRideUnderground(): boolean {
+  const st = isLineRide(ride) ? (rideSystemFor(ride.line)?.rideStatus() as { underground?: boolean } | null) : null;
+  return !!st?.underground;
 }
 
 function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTick {
@@ -168,15 +188,26 @@ function stepLineRide(r: RideState, dt: number, travelEpochNow: number): RideTic
     r.mode = 'follow';
     r.elapsed = 0;
     r.boarded = true;
+    // wave 4: boarding a Metro train at an underground station: the rider stays at the kiosk under the subway overlay
+    if ((st as { underground?: boolean }).underground) r.hold = { x: runtime.player.x, z: runtime.player.z };
     sys.board();
     return { done: false, stage: 'riding', boarded: true };
   }
   // aboard: the rider stands / sits on the car's platform (actors/moveSystem places them; mirror it here)
   const at = riderWorld();
   const car = sys.cars[st.car];
-  runtime.player.x = at ? at.x : car.pose.x;
-  runtime.player.z = at ? at.z : car.pose.z;
-  runtime.player.heading = at ? at.heading : car.pose.heading;
+  if ((st as { underground?: boolean }).underground) {
+    // wave 4: the train runs the virtual subway (no platform pose is published for a hidden train): the rider stays
+    // where they went down (the kiosk, or the mouth the train dived into) under the subway overlay; nothing streams
+    r.hold ??= at ? { x: at.x, z: at.z } : { x: runtime.player.x, z: runtime.player.z };
+    runtime.player.x = r.hold.x;
+    runtime.player.z = r.hold.z;
+  } else {
+    if (at) r.hold = null;
+    runtime.player.x = at ? at.x : car.pose.x;
+    runtime.player.z = at ? at.z : car.pose.z;
+    runtime.player.heading = at ? at.heading : car.pose.heading;
+  }
   const tick: RideTick = { done: st.phase === 'arrived', stage: platformStop(r.line!) || st.braking ? 'braking' : st.turning ? 'turning' : 'riding' };
   if (st.arrivals > (r.seenArrivals ?? 0)) {
     r.seenArrivals = st.arrivals;
@@ -211,7 +242,7 @@ export function stepRide(dt: number, travelEpochNow = 0): RideTick | null {
   const r = ride;
   if (!r) return null;
   r.elapsed += dt;
-  if (r.line) return stepLineRide(r, dt, travelEpochNow);
+  if (isLineRide(r)) return stepLineRide(r, dt, travelEpochNow);
   const car = runtime.streetcar;
   if (r.mode === 'wait') {
     if (car.atStop === r.from) { r.mode = 'follow'; r.elapsed = 0; return { done: false, stage: 'riding' }; }
@@ -229,6 +260,8 @@ export function stepRide(dt: number, travelEpochNow = 0): RideTick | null {
     if ((r.leftStop && car.atStop === r.to) || r.elapsed > 60) return { done: true, stage: 'riding' };
     return { done: false, stage: 'riding' };
   }
+  // the rider's hop-off brake (E2-10, platform 'streetcar'): the carried car stands while the request holds
+  if (platformStop('streetcar')) r.elapsed = Math.max(0, r.elapsed - dt);
   const k = Math.min(1, r.elapsed / r.duration);
   const p = pointOnPath(DISTRICT.streetcar.path, virtualT(r));
   // (the world carries a car here and publishes it as the platform; without a world, ride the track itself)

@@ -742,12 +742,26 @@ export const isMarketDay = (date: Date) => [2, 4, 6].includes(bayWeekday(date));
  * arrive / ride are covered by the bell that comes with them, or by lines). Where the event happened (audio/cityHooks
  * emitAt) sets the pan; `strength` is already the distance.
  */
-export type TransitSoundKind = 'cable-bell' | 'grip-clank' | 'turntable-creak' | 'turntable-rumble' | 'ferry-horn' | 'hop-squeak';
+export type TransitSoundKind = 'cable-bell' | 'grip-clank' | 'turntable-creak' | 'turntable-rumble' | 'ferry-horn' | 'hop-squeak'
+  // wave 4 (lane T): the sightseeing bus and the Muni Metro (audio/lines.ts)
+  | 'bus-arrive' | 'door-open' | 'door-close' | 'stop-bell' | 'lrv-gong' | 'bus-horn';
 export type TransitSound = { kind: TransitSoundKind; gain: number; strikes: number };
 export function transitSound(what: string, kind: string, strength = 1): TransitSound | null {
   const k = clamp(strength, 0.15, 1);
   if (what === 'hop-aside') return { kind: 'hop-squeak', gain: 0.5 * k, strikes: 1 };
   if (kind === 'ferry') return what === 'horn' ? { kind: 'ferry-horn', gain: k, strikes: 1 } : null;
+  if (kind === 'bus' || kind === 'light-rail') {
+    const bus = kind === 'bus';
+    switch (what) {
+      // the air brake and the doors opening (bus) / the doors (LRV)
+      case 'arrive': return { kind: bus ? 'bus-arrive' : 'door-open', gain: k, strikes: 1 };
+      case 'depart': return { kind: 'door-close', gain: 0.8 * k, strikes: 1 };
+      // the stop request's ding (bus: 下一站下车) / the LRV's gong (H, someone on the track, a passing train)
+      case 'bell': return bus ? { kind: 'stop-bell', gain: k, strikes: 1 } : { kind: 'lrv-gong', gain: k, strikes: 2 };
+      case 'horn': return bus ? { kind: 'bus-horn', gain: k, strikes: 1 } : { kind: 'lrv-gong', gain: k, strikes: 2 };
+      default: return null;
+    }
+  }
   if (kind !== 'cable-car') return null;
   switch (what) {
     case 'bell': return { kind: 'cable-bell', gain: k, strikes: k > 0.6 ? 3 : 2 };

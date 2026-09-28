@@ -18,7 +18,7 @@ import { game, type GameState } from '../core/store';
 import { DISTRICT } from '../data/district';
 import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld, shoreJob } from './ambience';
-import { soundAt } from './cityHooks';
+import { lineVoices, soundAt } from './cityHooks';
 import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
 import { clamp, createRateLimiter, panFor, transitSound } from './logic';
 import { Music } from './music';
@@ -26,6 +26,10 @@ import * as rides from './rides';
 import * as sfx from './sfx';
 import { runSliced, type Job, type Sliced } from './slices';
 import { VoicePlayer } from './voice';
+import type { LineLoops } from './lines';
+import { platforms } from '../actors/platform';
+import { w4Kind } from '../data/transit';
+import { currentRide, lineRideUnderground } from '../game/ride';
 
 type AudioCtor = typeof AudioContext;
 
@@ -37,6 +41,8 @@ interface Rig {
   voice: VoicePlayer;
   /** wind while gliding, the toy car's motor (movement lane) */
   loops: rides.RideLoops;
+  /** wave 4 (lane T, city mode): the bus hum, the LRV whine, the tunnel rumble (audio/lines.ts, built on the first ride) */
+  lines?: LineLoops;
 }
 
 // optional chaining: node tests run startAudio against a fake window (no import.meta.env there)
@@ -72,6 +78,33 @@ export function startAudio(): () => void {
     return { pan: panFor(p, runtime.camera.yaw, soundAt, 0.8), d: Math.hypot(soundAt.x - p.x, soundAt.z - p.z) };
   };
   const areasHeard = new Set<string>();
+  // wave 4 (lane T): the loop / Metro sounds, their own small chunk, fetched in city mode on the first bus / LRV event
+  let cityLines: typeof import('./lines') | null = null;
+  let linesLoading: Promise<void> | null = null;
+  const loadCityLines = () => {
+    if (game.get().worldMode !== 'city') return;
+    linesLoading ??= import('./lines').then(m => { cityLines = m; }, () => { linesLoading = null; });
+  };
+  /** the tour clips that may play at this stop and the next (lane C's narration; lane V's recordings) */
+  const preloadStopVoices = (line: string, station: string) => {
+    const ids = lineVoices.ids?.(line, station, currentRide()?.dir);
+    if (!rig || !ids?.length) return;
+    const lang = VoicePlayer.lang();
+    for (const id of ids) void rig.voice.load(`${lang}-${id}`);
+  };
+  /** the continuous line layers from the ride: the bus / surface LRV speed (its platform), the subway rumble */
+  const lineLoops = (r: Rig) => {
+    const ride = currentRide();
+    const kind = ride?.line ? w4Kind(ride.line) : null;
+    if (!kind && !r.lines) return;
+    if (!cityLines) { if (kind) loadCityLines(); return; }
+    r.lines ??= new cityLines.LineLoops(r.engine);
+    const riding = !!kind && ride!.mode !== 'wait';
+    const plat = riding ? platforms.get(ride!.line!) : undefined;
+    const speed = plat?.live ? Math.hypot(plat.vx, plat.vz) : 0;
+    const tunnel = riding && kind === 'light-rail' && lineRideUnderground();
+    r.lines.update({ bus: riding && kind === 'bus', busSpeed: speed, lrv: riding && kind === 'light-rail' && !tunnel, lrvSpeed: speed, tunnel });
+  };
 
   const wantsSound = () => game.get().settings.sound && document.visibilityState === 'visible';
   // right after boot the context may still report 'suspended' for a moment: sounds scheduled then
@@ -115,6 +148,7 @@ export function startAudio(): () => void {
       rig.ambience.update(dt);
       const v = runtime.vehicle, g = runtime.glide;
       rig.loops.update({ gliding: g.active, glideSpeed: g.speed, glideHeight: g.height, driving: v.occupied && v.kind === 'car', carSpeed: v.speed });
+      lineLoops(rig);
       rig.music.tick();
       rig.engine.update(now);
     } catch (error) {
@@ -247,7 +281,22 @@ export function startAudio(): () => void {
           case 'turntable-rumble': sfx.turntableRumble(e, s.gain, pan); break;
           case 'ferry-horn': if (hornOk(now)) sfx.ferryHorn(e, s.gain, pan); break;
           case 'hop-squeak': if (hopOk(now)) sfx.hopSqueak(e, s.gain, pan); break;
+          // wave 4 (lane T): the loop buses and the Muni Metro (audio/lines.ts, loaded with the city layers)
+          default: {
+            const w4 = cityLines;
+            if (!w4) { void loadCityLines(); break; }
+            switch (s.kind) {
+              case 'bus-arrive': w4.busAirBrake(e, s.gain, pan); w4.doorChime(e, true, s.gain, pan, 0.5); break;
+              case 'door-open': w4.doorChime(e, true, s.gain, pan); break;
+              case 'door-close': w4.doorChime(e, false, s.gain, pan); break;
+              case 'stop-bell': w4.stopBell(e); break;
+              case 'lrv-gong': if (cableBellOk(now)) w4.lrvGong(e, s.gain, pan); break;
+              case 'bus-horn': if (hornOk(now)) w4.busHorn(e, s.gain, pan); break;
+            }
+          }
         }
+        // the tour clips of the next stop (lane C's narration): fetched ahead so the 0.7 s line wait never drops them
+        if (ev.station && (ev.what === 'board' || ev.what === 'approach' || ev.what === 'arrive')) preloadStopVoices(ev.line, ev.station);
         break;
       }
       case 'foghorn': ambience.foghorn(); break;
@@ -347,7 +396,7 @@ export function startAudio(): () => void {
     if (rig) {
       const r = rig;
       rig = null;
-      try { r.loops.dispose(); r.voice.dispose(); r.music.dispose(); r.ambience.dispose(); r.engine.dispose(); } catch { /* ignore */ }
+      try { r.loops.dispose(); r.lines?.dispose(); r.voice.dispose(); r.music.dispose(); r.ambience.dispose(); r.engine.dispose(); } catch { /* ignore */ }
     }
     ctx?.close().catch(() => {});
     ctx = null;

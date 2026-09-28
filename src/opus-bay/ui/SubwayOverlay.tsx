@@ -33,6 +33,10 @@ export interface SubwayOverlayProps {
   next: { id: string; name: Bilingual; eta: number } | null;
   portalWait?: boolean;
   onAlight?: () => void;
+  /** 直接到站 (the RideBanner's skip, which this layer covers): off at the destination's kiosk */
+  onSkip?: () => void;
+  /** what BAYBAY just said (the speech bubble floats over her, and she is under the street with you) */
+  say?: Bilingual | null;
 }
 
 const STRIP_PAD = 16;
@@ -86,9 +90,13 @@ export function SubwayOverlay(p: SubwayOverlayProps) {
             {p.tunnel.fact && <span>{t(p.tunnel.fact)}</span>}
           </div>
         )}
-        {stoppedAt
-          ? p.onAlight && <button type="button" className="ob-subway-alight" onClick={p.onAlight}>{t('在这站下车', 'Get off here')}</button>
-          : <div className="ob-subway-note is-muted">{t('隧道里不能下车', 'No getting off inside the tunnel')}</div>}
+        {p.say && <div className="ob-subway-say"><span aria-hidden>BAYBAY</span> {t(p.say)}</div>}
+        <div className="ob-subway-actions">
+          {stoppedAt
+            ? p.onAlight && <button type="button" className="ob-subway-alight" onClick={p.onAlight}>{t('在这站下车', 'Get off here')}</button>
+            : <div className="ob-subway-note is-muted">{t('隧道里不能下车', 'No getting off inside the tunnel')}</div>}
+          {p.onSkip && <button type="button" className="ob-subway-skip" onClick={p.onSkip}>{t('直接到站', 'Skip to stop')}</button>}
+        </div>
       </div>
     </div>
   );
