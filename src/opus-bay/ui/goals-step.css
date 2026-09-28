@@ -1,7 +1,7 @@
 /* Wave 5 · lane C · W5-C3: the goals step (ui/GoalsStep.tsx; its own lazy chunk). Once per player, city mode. */
 
 .ob-overlay .ob-gstep-wrap {
-  position: absolute; inset: 0; z-index: 34; display: grid; place-items: center; padding: calc(16px + var(--ob-st)) calc(16px + var(--ob-sr)) calc(16px + var(--ob-sb)) calc(16px + var(--ob-sl));
+  position: absolute; inset: 0; z-index: 34; display: grid; place-items: safe center; padding: calc(16px + var(--ob-st)) calc(16px + var(--ob-sr)) calc(16px + var(--ob-sb)) calc(16px + var(--ob-sl));
   background: rgba(34, 50, 47, .34); overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; animation: ob-fade-in .3s;
 }
 .ob-gstep {

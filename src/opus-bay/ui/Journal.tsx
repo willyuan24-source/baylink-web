@@ -151,6 +151,7 @@ function Goals() {
   // with no stop ticked and 继续导览 for a lesson never started)
   const completed = useGame(s => (tourIdOf(s.tour) === DEFAULT_TOUR_ID ? s.tour.completed : districtTourProgress(s).completed));
   const active = useGame(s => s.tour.active);
+  const lessonActive = useGame(s => s.tour.active && tourIdOf(s.tour) === DEFAULT_TOUR_ID);
   const city = useGame(s => s.worldMode === 'city');
   const stops = tourStops();
   const bay101 = (
@@ -192,8 +193,11 @@ function Goals() {
         </ul>
       </section>
   );
-  // wave 5 (W5-C3): in the city the explorer goals come first (goal #1, the pelican, on top); the district as before
-  return city ? <>{explorer}<Favours done={done} />{bay101}</> : <>{bay101}{explorer}</>;
+  // wave 5 (W5-C3): in the city the explorer goals come first (goal #1, the pelican, on top); the district as before.
+  // (lane N's request, plan MF6: the district's 湾区第一课 list shows in the city only once that lesson was started —
+  // the call menu still offers it — so a new city player sees the city's goals, not the waterfront's seven stops)
+  const lessonStarted = completed.length > 0 || lessonActive;
+  return city ? <>{explorer}<Favours done={done} />{lessonStarted && bay101}</> : <>{bay101}{explorer}</>;
 }
 
 /**

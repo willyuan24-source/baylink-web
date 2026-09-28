@@ -103,7 +103,8 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     bark: bi('两条陡陡的水泥滑梯！垫块纸板坐上去，冲！', 'Two steep concrete slides! Sit on a piece of cardboard and whoosh!'),
     summary: bi('卡斯特罗山坡上的小公园，两条水泥长滑梯 1973 年建成，设计出自一位 14 岁的小姑娘。', 'A tiny park above the Castro with two long concrete slides built in 1973, designed by a 14-year-old girl.'),
     hours: bi('滑梯周二至周日 10:00–17:00 开放；出发前查官网确认。', 'The slides are open Tue–Sun 10am–5pm; check the official site before you go.'),
-    tips: [bi('小朋友要有大人陪着，带块纸板、穿结实的裤子。', 'Kids need a grown-up; bring cardboard and sturdy trousers.')],
+    // (lane A's request: sfrecpark.org says it the other way round — "adults must be accompanied by children", 2026-09-28)
+    tips: [bi('官网写的是“大人要有小朋友陪着”！带块纸板、穿结实的裤子。', 'Officially, grown-ups must come with a child! Bring cardboard and sturdy trousers.')],
     sourceUrl: 'https://sfrecpark.org/facilities/facility/details/sewardminipark-203', sources: ['https://www.atlasobscura.com/places/seward-street-slides'],
     lat: 37.75778, lng: -122.43991,
   }),
