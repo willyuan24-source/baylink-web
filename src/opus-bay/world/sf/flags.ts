@@ -11,7 +11,8 @@ import { FLAG_GLYPH_NODES, type GlyphNode } from './flagGlyphs';
  *   'g-flags'), no shadow, fog: false, toneMapped: false, frustumCulled off (the vertex shader places everything).
  *   A flag = a gold six-sided pole (r 0.35 u) up to `h` (28–70 u above the ground at its foot), a ball finial, and a
  *   7 × 4.5 u pennant (4 × 1 segments, a swallowtail notch) in the category colour with a cream disc carrying the glyph
- *   (one 256² canvas atlas drawn from the lucide paths, world/sf/flagGlyphs.ts). The pennant turns to face the camera
+ *   (one canvas atlas drawn from the lucide paths, world/sf/flagGlyphs.ts: 256² in wave 4, 512² with room for 64
+ *   glyphs since wave 5). The pennant turns to face the camera
  *   around the pole (a cylindrical billboard), waves in the vertex shader (uTime) and scales by max(1, d / uScaleDist) so
  *   it never shrinks under ≈ 25 CSS px (uScaleDist from the viewport: `flagScaleDistance`); the pole top rises with it so
  *   a big far pennant never touches the ground. Alpha (vertex shader): smoothstep(140, 200, d) × (1 − smoothstep(1500,
@@ -32,8 +33,12 @@ export const PENNANT = { w: 7, h: 4.5, segments: 4 } as const;
 export const POLE = { r: 0.35, sides: 6, finial: 0.8 } as const;
 /** colours (sRGB hex): pole gold, finial, disc cream */
 export const FLAG_COLORS = { pole: '#d9a441', finial: '#f2cf7a', cream: '#fffaf1' } as const;
-/** the atlas: 256² canvas, 4 × 4 cells of 64 px, a glyph 48 px inside each */
-export const ATLAS = { size: 256, cells: 4, cell: 64, pad: 8, stroke: 2.4 } as const;
+/**
+ * The atlas: 512² canvas (wave 5, lane V W5-V4: 256² → 512², still one texture and one draw call), 8 × 8 cells of 64 px,
+ * a glyph 48 px inside each. Cells go in blocks of 4 × 4 (`block`): cells 0–15 fill the top-left 256² quadrant exactly
+ * where the wave-4 256² atlas had them, 16–31 the top-right quadrant, 32–47 the bottom-left, 48–63 the bottom-right.
+ */
+export const ATLAS = { size: 512, cells: 8, block: 4, cell: 64, pad: 8, stroke: 2.4 } as const;
 
 /**
  * role codes for the shader (aInst.w). A registered source's flag (W5-N1 'extra') fades as the target does: in from
@@ -61,9 +66,16 @@ export const pennantScale = (d: number, scaleDist: number) => Math.max(1, d / sc
 /** The atlas cell of a glyph (FLAG_GLYPHS order). */
 export const glyphCell = (g: FlagGlyph) => Math.max(0, FLAG_GLYPHS.indexOf(g));
 
+/** A cell's column and row in the atlas (row 0 at the top): blocks of ATLAS.block² cells, two blocks a row (the shader mirrors it). */
+export function atlasCellColRow(cell: number): { col: number; row: number } {
+  const per = ATLAS.block * ATLAS.block, blocks = ATLAS.cells / ATLAS.block;
+  const b = Math.floor(cell / per), i = cell % per;
+  return { col: (i % ATLAS.block) + (b % blocks) * ATLAS.block, row: Math.floor(i / ATLAS.block) + Math.floor(b / blocks) * ATLAS.block };
+}
+
 /** Where a cell sits in the atlas canvas (px, y down): its glyph box. */
 export function atlasCellRect(cell: number): { x: number; y: number; size: number } {
-  const col = cell % ATLAS.cells, row = Math.floor(cell / ATLAS.cells);
+  const { col, row } = atlasCellColRow(cell);
   return { x: col * ATLAS.cell + ATLAS.pad, y: row * ATLAS.cell + ATLAS.pad, size: ATLAS.cell - 2 * ATLAS.pad };
 }
 
@@ -357,8 +369,12 @@ void main() {
     col = mix(col, uCream, disc);
     vec2 g = (q - c) / (r * 1.45) * 0.5 + 0.5;
     if (g.x >= 0.0 && g.x <= 1.0 && g.y >= 0.0 && g.y <= 1.0) {
+      // atlasCellColRow: blocks of ${ATLAS.block}² cells, ${ATLAS.cells / ATLAS.block} blocks a row
       float cell = floor(vGlyph + 0.5);
-      vec2 cuv = vec2((mod(cell, ${ATLAS.cells.toFixed(1)}) + g.x) / ${ATLAS.cells.toFixed(1)}, (${(ATLAS.cells - 1).toFixed(1)} - floor(cell / ${ATLAS.cells.toFixed(1)}) + g.y) / ${ATLAS.cells.toFixed(1)});
+      float blk = floor(cell / ${(ATLAS.block * ATLAS.block).toFixed(1)}), inb = mod(cell, ${(ATLAS.block * ATLAS.block).toFixed(1)});
+      float col = mod(inb, ${ATLAS.block.toFixed(1)}) + mod(blk, ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
+      float row = floor(inb / ${ATLAS.block.toFixed(1)}) + floor(blk / ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
+      vec2 cuv = vec2((col + g.x) / ${ATLAS.cells.toFixed(1)}, (${(ATLAS.cells - 1).toFixed(1)} - row + g.y) / ${ATLAS.cells.toFixed(1)});
       float ink = texture2D(uAtlas, cuv).a;
       col = mix(col, vTint * 0.78, ink * disc);
     }

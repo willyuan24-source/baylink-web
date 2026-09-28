@@ -40,8 +40,12 @@ export const FLAG_RULES = {
 /** The active target's pennant (the map's gold pin-flag colour). */
 export const FLAG_GOLD = '#e0a94a';
 
-/** Glyphs on flags: the attraction glyphs plus a pin for a target that is not an attraction (a place, a stop). */
-export const FLAG_GLYPHS = ['Landmark', 'Palette', 'Trees', 'PawPrint', 'Mountain', 'Binoculars', 'Waves', 'Sailboat', 'GraduationCap', 'ShoppingBag', 'Trophy', 'Church', 'Theater', 'Castle', 'Signpost', 'MapPin'] as const;
+/**
+ * Glyphs on flags: the attraction glyphs plus a pin for a target that is not an attraction (a place, a stop); wave 5
+ * (lane V, W5-V4, the 512² atlas: room for 64) adds coins (lane E), a calendar (lane R's events), sparkles (lane D's
+ * finds) and music (events with a stage). Append only: the index is the atlas cell.
+ */
+export const FLAG_GLYPHS = ['Landmark', 'Palette', 'Trees', 'PawPrint', 'Mountain', 'Binoculars', 'Waves', 'Sailboat', 'GraduationCap', 'ShoppingBag', 'Trophy', 'Church', 'Theater', 'Castle', 'Signpost', 'MapPin', 'Coins', 'CalendarDays', 'Sparkles', 'Music'] as const;
 export type FlagGlyph = (typeof FLAG_GLYPHS)[number];
 
 /** What pickFlags needs of an attraction (data/sf/attractionTypes.ts Attraction is assignable). */

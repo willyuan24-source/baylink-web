@@ -1,5 +1,5 @@
 // Lane G (wave 4, W4-G7): bake the lucide-react icon nodes of the flag glyphs into
-// src/opus-bay/world/sf/flagGlyphs.ts (the in-world flags draw them into one 256² canvas atlas; lucide-react 0.460 does
+// src/opus-bay/world/sf/flagGlyphs.ts (the in-world flags draw them into one canvas atlas, 512² since wave 5; lucide-react 0.460 does
 // not export the raw nodes, and importing the React components into the world code is not wanted).
 //
 //   node scripts/opus-sf/flag-glyphs.mjs            write the file
@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const GLYPHS = ['Landmark', 'Palette', 'Trees', 'PawPrint', 'Mountain', 'Binoculars', 'Waves', 'Sailboat', 'GraduationCap', 'ShoppingBag', 'Trophy', 'Church', 'Theater', 'Castle', 'Signpost', 'MapPin'];
+const GLYPHS = ['Landmark', 'Palette', 'Trees', 'PawPrint', 'Mountain', 'Binoculars', 'Waves', 'Sailboat', 'GraduationCap', 'ShoppingBag', 'Trophy', 'Church', 'Theater', 'Castle', 'Signpost', 'MapPin', 'Coins', 'CalendarDays', 'Sparkles', 'Music'];
 const kebab = name => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 
 const pkg = JSON.parse(readFileSync(join(root, 'node_modules/lucide-react/package.json'), 'utf8'));
