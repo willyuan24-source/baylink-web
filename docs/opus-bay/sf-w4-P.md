@@ -695,3 +695,111 @@ switch lane C's own plan asked for).
 - **Lead**: lane P2's GGB footway request stands (the walk from the loop stop to the Welcome Center is 140 u).
 
 Owner messages relayed during this part: "现在进度如何" (answered in the summary's first line).
+
+## Integration part b
+
+Lane P's wave-4 integration, part b (the verify findings on lane P's files, the rest of part a, the plan's §5.2 shots),
+2026-09-27, worktree `C:/Users/willy/wt/i4-p`, dev server 5401, scratch `C:/Users/willy/opus-qa/w4i/i4-p/b/`. Commits
+`W4-P-I11` … `W4-P-I17` on `opus-bay`. No Higgsfield spend.
+
+### 给主人的摘要
+
+**进度（主人问"现在进度如何"）：P 线第二部分做完并推送了——验收里查出的、属于 P 线文件的问题全部修好，并在真实游戏里用手机和电脑截图核对过。**
+
+1. 手机上最严重的问题修好了：右下角的大动作按钮（和 Ray 聊聊、坐渡轮、捡起明信片……）以前点了没反应——每次点屏幕都被误当成"鼠标"，界面一瞬间切成电脑样式，按钮在手指下消失。现在只有真的鼠标或实体键盘才会切换；在游戏里点按钮能直接打开对话，"跳"按钮也不会再闪一下没了，"更多 → 设置"也能正常打开。
+2. 地图放大后换成清晰的矢量地图：手绘纸地图只在看全城、看大片区域时出现，放大时平滑过渡过去，不会再出现两条对不上的海岸线和发糊的纸面。
+3. iPhone 上点地图搜索框不会再把整个页面放大（字号改成 16）；地图右边的按钮、指北针、筛选按钮的可点范围都有 44 像素。
+4. 地名统一用游戏里的叫法：唐人街、卡斯特罗、南市场、西南市场、要塞高地、圣诞树观景点、金门亭；清掉一个只叫"tiat"的无名点，Eagles Point 不再显示成一整行邮寄地址；地图简称更好认（布埃纳公园、布埃纳咖啡、电报山台阶、伊娜公园、米尔克广场）。
+5. 设置里"重置游戏进度"之后，足迹页会清空，旧的发现不会再被写回存档；测试用的 ?discover=all 下足迹也会正确计数。
+6. 地图上的车站小图标不再被景点图标盖住（自动挪开一点）；步行路线的站号直接标在景点图标上，框选路线时不会被右边按钮挡住；到过的景点有小金勾；旅行本的四个标签在电脑上不再被挤出面板；足迹里的车站写明"车站"，不会和同名景点混淆。
+7. 检查：tsc 0、全仓 eslint 0 个错误、全套测试 825 / 825；手机 390、375 和电脑 1440 的截图都看过。
+
+### The findings on lane P's files
+
+| finding | what was wrong | fix | commit | evidence |
+|---|---|---|---|---|
+| **B1** (blocker, phone) | `ui/hooks.ts` took a tap's compat `mousedown` for a mouse: the HUD flipped to the keyboard layout between mousedown and mouseup, and the action button unmounted under the finger | `deviceFromInput` (pure) + `trackDevice`: keyboard only on `pointerdown` with `pointerType 'mouse'` (never within 1 s of a touch) or a key outside a text field; the mousedown path only without pointer events, with the same guard | `W4-P-I11` | `tests/opus-bay-sf-device.test.ts` (tap + compat mousedown stays touch; the decision table). In the game (CDP touch, 390 × 844, dpr 3, `xz:130.5,266`): tapping the action button opened `flow.metro` (event trace `mousedown btn=ob-touch-action … click`); 跳 present at every 50 ms sample 0–524 ms after a ground tap; 更多 → 设置 opened `settings`. `qa/w4/P/fix-b1-tap-390.jpg` |
+| **M3** (major, iPhone) | the map search input was 14 px (iOS zooms the page on focus) | 16 px, the field 44 px tall | `W4-P-I12` | `sf-map-fixes` (the CSS rule), `ux-w4-map-375-search.jpg` |
+| **m2** (phone) | map tools 34 × 34 | 36 px buttons with a 44 px `::before` touch area (8 px gaps keep the areas apart); the compass the same; the 32 px filter chips get a 44 px tall area | `W4-P-I12` | measured in the page: tools 36 × 36 (+ 4 px each side); `sf-map-fixes` |
+| **F2** (major, visual; P's part) | the vector coast stroked over the painted paper (two coastlines 20–40 u apart), the paper blurry when close | `cityMapDraw.paperShare(s)`: the whole paper up to s 0.5, the vector base alone from s 0.8 (smoothstep between; while fading the sea is filled outside the land only); the game map never strokes the vector coast over the paper (`coast: false`; H2b's DEV export keeps it); the paper SVG leaves the DOM once the vector covers it | `W4-P-I12` | `sf-map-fixes` (share values, alphas, no coast op, s ≥ 0.8 draws exactly the plain vector ops); `fix-paper-fade-390.jpg`; the Wharf at s 0.8 → 4 on a 390 phone (scratch `b/shots/p390w-z*.jpg`) |
+| **C2** (major, content) | OSM rows breaking the glossary, wrong, or an address | `PLACE_NAME_FIXES`: 唐人街, 金门亭 / Chinese Pavilion, 圣诞树观景点, 卡斯特罗, 南市场, 西南市场, 要塞高地, 鹰角 · 天涯海角 / Eagles Point (Lands End) (part a's 7 curated fixes were already live) | `W4-P-I13` | `sf-map-fixes` scans the whole runtime index: no 缆车 / 双子峰 / 中国城 / 笛洋 / 索玛 / 卡斯楚 / 普雷西迪奥 / 金门停, no postal address, no lowercase OSM name |
+| **m3** (phone) | "发现新地点：tiat"; lowercase OSM names | `osm-n13702829029` ("tiat") hidden at runtime (`PLACE_HIDDEN`; places.json keeps every id); ARC Gallery & Studios, Moscone Dog Play Area named | `W4-P-I13` | the same test |
+| **C6** (content, P's part) | Marina Green carried the alias 码头区 (= the Embarcadero piers in VOICE.md) | the alias 马里纳 instead | `W4-P-I13` | `sf-map-fixes` |
+| **C12** (content) | shorts that read as something else | 布埃纳公园, 布埃纳咖啡, 电报山台阶, 伊娜公园, 米尔克广场, 39 号码头 (one spacing); all ≤ 5 CJK cells | `W4-P-I13` | `sf-map-fixes`, `sf-attractions` |
+| **F5** (code; discovery's part) | a progress reset kept this visit's finds, and the next find wrote them back | `resetDiscovery()`; the discovery tick follows save v2 (`syncDiscoveryWithSave`: every find is written at once, so sets with no save behind them mean the save was cleared); no change is needed in lane G's Settings handler | `W4-P-I13` | `sf-discovery` (find → clearSave → 足迹 empty → the next find writes only itself) |
+| **D13** (desktop) | the Journal's four tabs overflowed the 364 px panel ("Footprints 50" cut) | `city-ui.css` (loaded with the Journal through 足迹): four tabs put the icon over the label at every width (the three district tabs are unchanged) | `W4-P-I14` | `fix-journal-tabs-1440.jpg` |
+| **D4** (desktop; P's table) | the Castro arrival faced Hartford St | already fixed by lane L (`60e717f`: across Castro St, pasted into `LANDMARK_ARRIVALS` and `arrivals.ts` with the same values) | — | the `sf-attractions` / `sf-content` arrival tables agree |
+
+The other findings name other lanes' files (G, C, T, L, V); they are in those owners' lists and were not touched here.
+
+### The rest of part a
+
+- **Stations under badges** (review 2's open item): `cityMapModel.nudgeClear` moves a station mark covered by an
+  attraction **badge** (T1 / T2, T3 from s 1.2; T3 dots do not move marks) by the least whole px in one of 16
+  directions (away from the covering badge first), at most 24 px, never onto another station mark when there is room;
+  downtown's wide transfer pills may land over a neighbouring stop dot when nothing else is free. The moved mark is
+  drawn, tapped and kept off by labels where it is. Phone s 0.7 / 1.0 and desktop s 0.7: at most 1 mark is still under
+  a badge (`sf-map-int`). `fix-station-nudge-390.jpg` (Powell's pill below the turntable badge, Montgomery's below 唐人街).
+- **Walking-route numbers**: a stop an attraction badge stands for wears its number on the badge (a gold disc at 10
+  o'clock, `stopTone: 'walk'`; the Grand Tour's stays coral) and is shown and named at any scale; the other stops keep
+  their disc on the walk. Framing a line, a route, a cluster or a trip keeps the tool column clear
+  (`fitAbs(…, right)`). `fix-walk-numbers-390.jpg`.
+- **Lane C's requests**: the arrived tick from `arrivalSeen` (the scene repaints on `flow.arrival`); the ⓘ through
+  `attractionCardId` (a shared-row attraction and a primary one without a district card open their own card).
+- **`?discover=all`** counts in 足迹 (every index row and every neighbourhood); a station among 足迹's finds reads
+  "车站 · <neighbourhood>" (the loop's 渡轮大厦 stop showed as a second 渡轮大厦 "in 旧金山" beside the Ferry Building).
+- **Cable-car ETAs** on the station card: lane T's `nextArrival` now answers for cable stations (`77c4f81`); the card
+  already asks every id of the station.
+
+### Evidence
+
+- **Checks** on the pushed tree `72f5095`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+  warnings) · the full opus-bay suite **825 / 825**. (One suite run made while tsc and eslint ran in parallel reported
+  742 tests, and one eslint run 5 transient errors; both were clean when re-run alone.) The shared
+  `node_modules/.bin` was empty during this part, so the tools ran as `node node_modules/<tool>/…` (see lane G's
+  report for that incident).
+- **Tests** new or extended: `tests/opus-bay-sf-device.test.ts` (3), `tests/opus-bay-sf-map-fixes.test.ts` (5),
+  `sf-discovery` (+2), `sf-map-int` (+3).
+- **Shots** (read; `docs/opus-bay/qa/w4/P/`): plan §5.2 phone 390 × 844 dpr 3 zh — `ux-w4-map-phone-open.jpg` (first
+  open at the Ferry), `ux-w4-map-phone-fit.jpg` (the SF-land fit on the paper, one coastline),
+  `ux-w4-map-phone-trip.jpg` (the Palace with 跟 BAYBAY 去 / 其他方式 / 步行路线); 375 × 667 —
+  `ux-w4-map-375-search.jpg` (大学, the 16 px field); desktop 1440 × 900 — `ux-w4-map-desktop-midtrip.jpg` (the strip,
+  the route, the ETA chip). The other plan views were taken and read in scratch (`b/shots/ux-w4-map-phone-*`,
+  `ux-w4-map-375-*`, `ux-w4-map-desktop-{fit,lineN,legend}.jpg`). The fixes: `fix-b1-tap-390.jpg`,
+  `fix-paper-fade-390.jpg`, `fix-station-nudge-390.jpg`, `fix-walk-numbers-390.jpg`, `fix-journal-tabs-1440.jpg`.
+- **Bundle** (`vite build` to scratch, before lane G's `4d8d5f3`): GameRoot 299.01 KB gzip (part a 298.97; lane P's
+  part b adds the device detector and two discovery helpers); CityMap 34.60 KB gzip, unchanged.
+- **Rendering**: nothing 3D changed — the map is DOM + a 2D canvas (no draw call, triangle, program or material); fps
+  was not re-measured.
+
+### Decisions
+
+- The paper stays the city-scale look (what H2b painted it for); close up, the vector map is the truth the markers and
+  routes are drawn on. 0.5 → 0.8 is one zoom step (× 1.6).
+- Station marks move for badges only: a T3 dot is small and sits over a mark without hiding it, and moving marks away
+  from the dots found no room downtown.
+- Discovery follows the save instead of waiting for a call from Settings (lane G's file): any path that clears save v2
+  resets the sets, and nothing new has to be wired.
+- "tiat" is hidden at runtime, not removed from places.json (the frozen rule: the sidecar removes no ids).
+- The device detector ignores keys typed into a text field on touch (the iPhone keyboard typing into the map search
+  would otherwise flip the HUD too).
+
+### Known gaps / not done
+
+- Zoomed out below the SF fit, the painted paper ends in its own polygonal sea "board" on the cream table (the image:
+  lane V's paper files).
+- A wide transfer pill downtown can sit over a neighbouring stop dot (no free spot within 24 px at s 0.7).
+- The Grand Tour numbers only its current stop on the map (lane C exposes the current stop, not the played list).
+- B1 and M3 were checked in Chrome with CDP touch events and an iPhone UA, not on a real iPhone.
+- The Golden Gate footway request (lane P2, to the lead) stands.
+
+### Requests
+
+- **Lane C** (optional): `ZH_GLOSSARY` 中国城 → 唐人街 (`data/sf/cityPois.ts`) for card text; if the owner prefers 马里纳绿地
+  for Marina Green (R2-O1), rename the card and tell lane P (the attraction's name and short follow in the same push;
+  the 码头区 alias is already gone).
+- **Lane G** (optional): Settings' reset may call `resetDiscovery()` (game/discovery.ts) explicitly; it is not needed —
+  the discovery tick already sees the cleared save.
+- **Lane V** (optional): the zoomed-out paper edge (F2's last point): extend the painted sea past the board.
+
+Owner messages relayed during this part: "现在进度如何" (answered in the summary's first line).
