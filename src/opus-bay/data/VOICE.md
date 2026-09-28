@@ -210,3 +210,5 @@ Part c (W5-C7, 2026-09-28): the residents' second favours, their letters and the
 | Queen Wilhelmina Tulip Garden · the Dutch Windmill | 威廉明娜女王郁金香花园 · 荷兰风车 | | Hank's own first line keeps the English garden name (wave 3) |
 | the Ferry Plaza Farmers Market | 渡轮大厦的农夫市集 · 市集 | 农贸市场 | Sat 8–14, Tue & Thu 10–14 (foodwise.org, 2026-09-28) |
 | Luz's otter board | 小海獭 | 小水獭 (BAYBAY is a sea otter) | an original painting of BAYBAY on a small board in Balmy Alley |
+| Balmy Alley · Clarion Alley | 巴尔米巷 · 克拉里恩巷 | Balmy 巷 · Clarion 巷 | the attractions' and cards' names; Luz, her favours' spots, toasts and letter say them too (review, 2026-09-28: the waypoint read 小忙 · Clarion 巷 under the map's 克拉里恩巷) |
+| the Queen Wilhelmina garden's closures | 每年 5 月和 10 月整月关闭、重新种花 | | sfrecpark.org (checked 2026-09-28); the windmill card's tip; Hank's words follow the month (bulbs go in in October) |

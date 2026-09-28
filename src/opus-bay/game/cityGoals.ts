@@ -20,9 +20,14 @@ import { registerPrefixResolver, type Interactable } from './interactables';
  */
 export const PELICAN_TARGET = 'pelican:coit';
 const RADIUS = 10;
+/**
+ * The verb BAYBAY names when the lead arrives (flow.freeLeadArrived: 到啦！试试「…」～) = the prompt the player finds
+ * there, the Coit viewpoint's (data/pois.ts `coit-tower`: 眺望海湾). Review: it said 试试「看看海湾」 over a 眺望海湾 prompt.
+ */
+export const PELICAN_TARGET_VERB = { zh: '眺望海湾', en: 'Take in the view' } as const;
 function pelicanTarget(): Interactable | undefined {
   const coit = DISTRICT.anchors?.['coit-view'];
-  return coit ? { id: PELICAN_TARGET, source: 'place', action: 'info', verb: { zh: '看看海湾', en: 'Take in the Bay' }, name: { zh: '科伊特塔', en: 'Coit Tower' }, x: coit.x, z: coit.z, radius: RADIUS } : undefined;
+  return coit ? { id: PELICAN_TARGET, source: 'place', action: 'info', verb: { ...PELICAN_TARGET_VERB }, name: { zh: '科伊特塔', en: 'Coit Tower' }, x: coit.x, z: coit.z, radius: RADIUS } : undefined;
 }
 registerPrefixResolver('pelican:', id => (id === PELICAN_TARGET ? pelicanTarget() : undefined));
 

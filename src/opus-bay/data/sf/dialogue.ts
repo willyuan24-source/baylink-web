@@ -92,14 +92,14 @@ const SCRIPTS: Record<ResidentKey, Script> = {
     fact: ['happy', '告诉你个秘密：酸面包里有种乳酸菌，学名就叫 sanfranciscensis！', "Here's a secret: a bacterium in sourdough is named after this city — sanfranciscensis!"],
   },
   muralist: {
-    hi: ['wave', '嗨！我是画壁画的 Luz。Balmy 巷最早的壁画，是 1972 年画的。', "Hi! I'm Luz, I paint murals. The first murals in Balmy Alley went up in 1972."],
-    ask: ['happy', 'Clarion 巷也全是壁画，那儿藏着一张明信片——帮我找回来好吗？', "Clarion Alley is full of murals too, and there's a postcard hidden there — could you find it for me?"],
+    hi: ['wave', '嗨！我是画壁画的 Luz。巴尔米巷最早的壁画，是 1972 年画的。', "Hi! I'm Luz, I paint murals. The first murals in Balmy Alley went up in 1972."],
+    ask: ['happy', '克拉里恩巷也全是壁画，那儿藏着一张明信片——帮我找回来好吗？', "Clarion Alley is full of murals too, and there's a postcard hidden there — could you find it for me?"],
     accept: bi('我去找', "I'll find it"),
     yes: ['excited', '它就在两块壁画之间，找发金光的小卡片！', "It's between two of the murals — look for the little golden glint!"],
     no: ['happy', '好呀，壁画又不会跑～', "Sure — the murals aren't going anywhere~"],
-    remind: ['thinking', 'Clarion 巷在 17 街和 18 街之间，明信片就在巷子里。', "Clarion Alley runs between 17th and 18th Streets — the postcard's in the alley."],
+    remind: ['thinking', '克拉里恩巷在 17 街和 18 街之间，明信片就在巷子里。', "Clarion Alley runs between 17th and 18th Streets — the postcard's in the alley."],
     go: ['wave', '去吧，顺便看看那几面墙！', 'Go on — and take a good look at those walls!'],
-    thanks: ['excited', '找到啦！Clarion 巷的壁画计划从 1992 年开始，一直画到今天。', "You found it! The Clarion Alley Mural Project started in 1992 and it's still painting."],
+    thanks: ['excited', '找到啦！克拉里恩巷的壁画计划从 1992 年开始，一直画到今天。', "You found it! The Clarion Alley Mural Project started in 1992 and it's still painting."],
     fact: ['happy', '下次来，墙上说不定又换了新画。谢谢你！', 'Next time you come, the walls might have new paintings. Thank you!'],
   },
   gardener: {
@@ -162,11 +162,11 @@ const SCRIPTS2: Record<ResidentKey, Script2> = {
     fact: ['happy', '渡轮大厦的农夫市集，周六早上 8 点开到下午 2 点，来找我呀！', 'The Ferry Building farmers market runs 8 to 2 on Saturdays — come find me!'],
   },
   muralist: {
-    ask: ['happy', '帮我收集颜色吧！去 Balmy 巷、Clarion 巷和女性大楼，各拍一张壁画。', "Help me collect colours! Take a mural photo in Balmy Alley, Clarion Alley and at the Women's Building."],
+    ask: ['happy', '帮我收集颜色吧！去巴尔米巷、克拉里恩巷和女性大楼，各拍一张壁画。', "Help me collect colours! Take a mural photo in Balmy Alley, Clarion Alley and at the Women's Building."],
     accept: bi('我去拍', "I'm on it"),
     yes: ['excited', '拍的时候看看墙上的颜色，回来讲给我听！', 'Look at the colours on the walls while you shoot, then tell me!'],
     no: ['happy', '好呀，颜色一直都在墙上～', 'Sure — the colours will still be on the walls~'],
-    remind: ['thinking', '三处壁画各拍一张：Balmy 巷、Clarion 巷、女性大楼。', "One photo at each: Balmy Alley, Clarion Alley, the Women's Building."],
+    remind: ['thinking', '三处壁画各拍一张：巴尔米巷、克拉里恩巷、女性大楼。', "One photo at each: Balmy Alley, Clarion Alley, the Women's Building."],
     go: ['wave', '去吧，找找最亮的那面墙！', 'Go on — find the brightest wall!'],
     thanks: ['excited', '三处的颜色都齐啦！我在巷子里给你画了个小东西～', 'All three sets of colours! I painted a little something for you in the alley~'],
     fact: ['happy', '去巷子中间的围栏上找找——有一只小海獭哦！', 'Look on the fence halfway down the alley — there’s a little otter!'],
@@ -211,9 +211,12 @@ const SCRIPTS2: Record<ResidentKey, Script2> = {
 export function fact2For(key: ResidentKey, d: { month: number; weekday: number; hour: number }): Say | null {
   if (key === 'baker' && d.weekday === 6 && d.hour >= 8 && d.hour < 14) return ['excited', '今天周六，市集开着呢！我的招牌就是你拍的那张钟楼～', "It's Saturday and the market's on! My sign is your clock tower photo~"];
   if (key === 'gardener') {
-    return d.month >= 2 && d.month <= 4
-      ? ['excited', '郁金香开啦！快去风车下看看，比你那张照片热闹多了～', 'The tulips are out! Go and see the windmill — much livelier than your photo~']
-      : ['happy', '球根在土里睡觉呢，郁金香一般三月开得最旺，到时候来看！', 'The bulbs are asleep in the soil — the tulips are usually best in March. Come and see!'];
+    // (review: the bulbs are only "asleep in the soil" once October's replanting is done — sfrecpark: the garden closes
+    // all of May and October for re-planting; from May to September Hank says when they go in, as his ask2 does)
+    if (d.month >= 2 && d.month <= 4) return ['excited', '郁金香开啦！快去风车下看看，比你那张照片热闹多了～', 'The tulips are out! Go and see the windmill — much livelier than your photo~'];
+    if (d.month === 10) return ['happy', '这个月花园关门种新球根，郁金香一般三月开得最旺，到时候来看！', "The garden's closed this month while the new bulbs go in — the tulips are usually best in March. Come and see!"];
+    if (d.month >= 5 && d.month <= 9) return ['happy', '花园每年十月种新球根，郁金香一般三月开得最旺，到时候来看！', 'New bulbs go in every October — the tulips are usually best in March. Come and see!'];
+    return ['happy', '新球根在土里睡觉呢，郁金香一般三月开得最旺，到时候来看！', 'The new bulbs are asleep in the soil — the tulips are usually best in March. Come and see!'];
   }
   if (key === 'record-store' && (d.weekday === 0 || d.weekday === 6)) return ['excited', '今天周末！嬉皮山上说不定正有人围成圈打鼓呢～', "It's the weekend — there may be a drum circle on Hippie Hill right now~"];
   return null;

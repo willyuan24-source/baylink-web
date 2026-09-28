@@ -6,9 +6,8 @@ import { CITY_GOAL, GOAL_REWARDS, GOALS_STEP_ID, goalProgress } from '../data/sf
 import { FREE_GOALS } from '../data/script';
 import { W5_WELCOME, w5Text } from '../data/sf/linesW5';
 import { goalTargets, speakRecorded } from '../game/cityContent';
-import { afterGoalsStep } from '../game/goalsStep';
+import { afterGoalsStep, goalsStepEta } from '../game/goalsStep';
 import { holdLock } from '../game/playerLock';
-import { gameTimeLabel } from '../game/travel';
 import { useT } from '../i18n';
 import { BaybayFace } from './common';
 import { openOverlays, type OverlayProps } from './slots';
@@ -33,7 +32,9 @@ export default function GoalsStep({ close }: OverlayProps) {
   const how = useRef<'lead' | 'self'>('self');
   const pelicanOpen = !done.includes(CITY_GOAL.pelican);
   const target = pelicanOpen ? goalTargets().find(g => g.goal === CITY_GOAL.pelican) : undefined;
-  const eta = target ? gameTimeLabel(Math.hypot(target.x - runtime.player.x, target.z - runtime.player.z)) : null;
+  // (review: the big button carries you — a free lead is one of lane N's auto-travel trips — so its time is the carried
+  // one, as the trip pill and the call menu's 带我去下一个目标 say it (cityMoments carriedTime), not the straight walk)
+  const eta = target ? goalsStepEta(Math.hypot(target.x - runtime.player.x, target.z - runtime.player.z)) : null;
 
   // the player stays put while the step is up (released on every way out: unmount)
   useEffect(() => holdLock('panel', 'goals-step'), []);

@@ -187,6 +187,13 @@ test('W5-C7 six second favours: photo (Rosa, Luz ×3, Hank, Marcus) and play (Ra
     const s = luz.spots.find(q => q.id === spot)!, a = ATTRACTIONS.find(q => q.id === id)!;
     assert.ok(Math.hypot(s.x - a.x, s.z - a.z) < 6, `${spot} by ${id}`);
   }
+  // (review) …and are called what the map and their cards call them (巴尔米巷 · 克拉里恩巷, not Balmy 巷 · Clarion 巷): the
+  // spot names, Luz's words and her letter
+  for (const [spot, id] of [['balmy', 'balmy-alley'], ['clarion', 'clarion-alley'], ['womens-building', 'womens-building']] as const) {
+    assert.equal(luz.spots.find(q => q.id === spot)!.name.zh, ATTRACTIONS.find(q => q.id === id)!.short.zh, `${spot}: the attraction's zh name`);
+  }
+  const luzText = [residentByKey('muralist')!.place, residentByKey('muralist')!.task, residentByKey('muralist')!.task2, ...residentDialogue().filter(n => n.id.startsWith('npc.muralist.')).map(n => n.text), ...LETTERS.muralist.body];
+  assert.doesNotMatch(JSON.stringify(luzText), /Balmy 巷|Clarion 巷/, 'the alleys by their zh names in zh');
   const dana = residentByKey('ranger')!.task2.goal;
   assert.ok(dana.kind === 'play' && dana.activity === 'view' && VIEW_SPOTS.some(v => v.id === dana.spot), 'Dana: lane A’s Crissy Field beach view spot');
   const ray = residentByKey('gripman')!.task2.goal;
@@ -281,7 +288,7 @@ test('W5-C7 the runtime: yes2 accepts, a shutter at the Ferry Building finishes 
     assert.deepEqual(rewardsSeen().map(x => x.source), ['favour:baker:2', 'favour:muralist:2', 'favour:gripman:2', 'favour:ranger:2']);
     assert.ok(playGoalMet({ kind: 'play', activity: 'bell' }, { type: 'play', activity: 'bell', what: 'end' }));
     assert.ok(!playGoalMet({ kind: 'play', activity: 'view', spot: 'crissy-beach' }, { type: 'play', activity: 'view', what: 'end' }), 'a view favour waits for its own spot');
-    assert.equal(favour2Spot(residentByKey('muralist')!, [taskDoneId('muralist'), task2OnId('muralist')], spots[1]).name.zh, 'Clarion 巷');
+    assert.equal(favour2Spot(residentByKey('muralist')!, [taskDoneId('muralist'), task2OnId('muralist')], spots[1]).name.zh, '克拉里恩巷');
   } finally { off(); }
 });
 
@@ -311,7 +318,7 @@ test('W5-C7 the letters arrive LETTER_DELAY_MS after the favour, one at a time, 
   } finally { off(); }
 });
 
-test('W5-C7 the words: the second favour’s dialogue graph, fact2 on the real day, the letters (short, warm, sourced where they hold a fact)', () => {
+test('W5-C7 the words: the second favour’s dialogue graph, fact2 on the real day, the letters (short, warm, sourced where they hold a fact)', async () => {
   const nodes = residentDialogue();
   const byId = new Map(nodes.map(n => [n.id, n]));
   for (const r of RESIDENTS) {
@@ -335,12 +342,25 @@ test('W5-C7 the words: the second favour’s dialogue graph, fact2 on the real d
   assert.equal(fact2For('baker', { month: 10, weekday: 6, hour: 15 }), null, 'after the market closes');
   assert.match(fact2For('gardener', { month: 3, weekday: 2, hour: 12 })![1], /开啦/);
   assert.match(fact2For('gardener', { month: 10, weekday: 2, hour: 12 })![1], /三月/);
+  // (review) Hank never says the bulbs are asleep in the soil before they are planted: sfrecpark — the garden closes all
+  // of May and October to replant (his ask2 says 花园每年十月重新种球根); on 2026-09-28 he said 球根在土里睡觉呢
+  for (const month of [5, 6, 7, 8, 9]) {
+    const s = fact2For('gardener', { month, weekday: 1, hour: 12 })!;
+    assert.doesNotMatch(s[1], /土里/, `month ${month}: not in the soil yet`);
+    assert.match(s[1], /十月/, `month ${month}: they go in in October`);
+  }
+  assert.match(fact2For('gardener', { month: 10, weekday: 1, hour: 12 })![1], /这个月.*关门/, 'October: the garden is closed replanting');
+  for (const month of [11, 12, 1]) assert.match(fact2For('gardener', { month, weekday: 1, hour: 12 })![1], /土里/, `month ${month}: asleep in the soil`);
+  for (let month = 1; month <= 12; month++) { const s = fact2For('gardener', { month, weekday: 1, hour: 12 })!; filled({ zh: s[1], en: s[2] }, `gardener fact2 month ${month}`); }
+  // (review) …and the windmill's card, where Hank's favours and the Grand Tour send you, says so (all of October from Oct 1)
+  const { CARD_REFRESHES } = await import('../src/opus-bay/data/sf/placeCards');
+  assert.ok(CARD_REFRESHES['dutch-windmill'].addTips!.some(tip => /5 月和 10 月整月关闭/.test(tip.zh) && /May and October/.test(tip.en)), 'the windmill card: the tulip garden closes in May and October');
   assert.match(fact2For('record-store', { month: 7, weekday: 0, hour: 12 })![1], /周末/);
   assert.equal(fact2For('record-store', { month: 7, weekday: 3, hour: 12 }), null);
   for (const d of [{ month: 10, weekday: 6, hour: 9 }, { month: 3, weekday: 2, hour: 12 }, { month: 10, weekday: 2, hour: 12 }, { month: 7, weekday: 0, hour: 12 }]) {
     for (const k of ['baker', 'gardener', 'record-store'] as const) { const s = fact2For(k, d); if (s) filled({ zh: s[1], en: s[2] }, `${k} fact2 variant`); }
   }
-  for (const text of [TASK_TEXT.letterLine, TASK_TEXT.allLetters, TASK_TEXT.rayRiff, TASK_TEXT.letter(RESIDENTS[1].short), TASK_TEXT.photoSpot(1, 3, { zh: 'Clarion 巷', en: 'Clarion Alley' })]) filled(text, 'favour text');
+  for (const text of [TASK_TEXT.letterLine, TASK_TEXT.allLetters, TASK_TEXT.rayRiff, TASK_TEXT.letter(RESIDENTS[1].short), TASK_TEXT.photoSpot(1, 3, { zh: '克拉里恩巷', en: 'Clarion Alley' })]) filled(text, 'favour text');
 });
 
 test('W5-C7 the Journal lists the second favours: the resident interactables stay the six; the letter overlay and favour2 resolver are the chunk’s', () => {

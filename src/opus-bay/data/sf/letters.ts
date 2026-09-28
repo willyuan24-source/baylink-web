@@ -50,7 +50,7 @@ export const LETTERS: Readonly<Record<ResidentKey, LetterDef>> = {
     key: 'muralist',
     body: [
       bi('谢谢你帮我收集颜色！三处的颜色，我都调进了新画里。', 'Thank you for collecting colours! All three places went into my new painting.'),
-      bi('那只小海獭画在 Balmy 巷的围栏上，路过时跟它打个招呼吧。', 'The little otter is on the fence in Balmy Alley — say hi when you pass.'),
+      bi('那只小海獭画在巴尔米巷的围栏上，路过时跟它打个招呼吧。', 'The little otter is on the fence in Balmy Alley — say hi when you pass.'),
     ],
     sign: bi('—— Luz', '— Luz'),
   },

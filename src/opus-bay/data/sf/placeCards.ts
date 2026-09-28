@@ -926,7 +926,12 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: V,
   },
   'dutch-windmill': {
-    addTips: [bi('风车内部不开放，在外面看就好。', 'The windmill itself is closed: enjoy it from outside.')],
+    addTips: [
+      bi('风车内部不开放，在外面看就好。', 'The windmill itself is closed: enjoy it from outside.'),
+      // (review, sfrecpark.org checked 2026-09-28: "closed every year the entire months of May and October, for annual
+      // re-planting" — the Grand Tour and Hank's favours send players here)
+      bi('旁边的郁金香花园每年 5 月和 10 月整月关闭、重新种花；出发前查官网确认。', 'The tulip garden beside it closes for all of May and October to replant; check the official site before you go.'),
+    ],
     sources: ['https://sfrecpark.org/908/Golden-Gate-Park---Queen-Wilhelmina-Gard'],
     verifiedAt: V,
   },

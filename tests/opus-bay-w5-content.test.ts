@@ -252,6 +252,12 @@ test('W5-C2 goal #1 is the pelican (label, hint, reward text), no GoalKey comple
   for (const line of [pelican.PELICAN_LINES.ask, pelican.PELICAN_LINES.go, pelican.PELICAN_LINES.tour, pelican.PELICAN_LINES.toast(pelican.takeOffKey('touch')), pelican.PELICAN_LINES.laterBubble(pelican.takeOffKey('keyboard')), flowMod.PELICAN_NUDGE, flowMod.FREE_AGAIN]) {
     assert.ok(zhLen(line.zh) <= 45 && line.en.trim(), line.zh);
   }
+  // (review) the lead's arrival line names the prompt the player finds at the summit: 到啦！试试「眺望海湾」～ (Coit's
+  // viewpoint), not a verb no prompt shows (it said 看看海湾)
+  const target = inter.interactableById('pelican:coit')!;
+  const coitView = inter.interactables().find(it => it.id === 'coit-tower')!;
+  assert.ok(coitView && Math.hypot(coitView.x - target.x, coitView.z - target.z) < target.radius!, 'the viewpoint prompt is inside the lead’s target');
+  assert.deepEqual(target.verb, coitView.verb);
 });
 
 test('W5-C2 BAYBAY recommends the pelican first: nextFreeGoal leads to Coit before a nearer goal; a favour you said yes to still comes first', () => {
@@ -442,6 +448,16 @@ test('W5-C3 the goals step body: BAYBAY’s line, the pelican with 解锁：随�
   assert.match(html, /好嘞，整座旧金山都给你逛！/);
   assert.match(html, /class="ob-gstep-hero ">[\s\S]*先去科伊特塔找鹈鹕朋友[\s\S]*解锁：随时飞/);
   assert.match(html, /跟 BAYBAY 去找鹈鹕<small> · 约 \d+ (秒|分钟)<\/small>/);
+  // (review) the button carries you (a free lead is one of lane N's auto-travel trips): its time is the carried one —
+  // the call menu's 带我去下一个目标 and the trip pill's (cityMoments carriedTime) —, not the straight walk's
+  const { goalTargets } = await import('../src/opus-bay/game/cityContent');
+  const coit = goalTargets().find(t => t.goal === goals.CITY_GOAL.pelican)!;
+  const d = Math.hypot(coit.x - 131.5, coit.z - 15.1);
+  const { goalsStepEta } = await import('../src/opus-bay/game/goalsStep');
+  const { gameTimeLabel } = await import('../src/opus-bay/game/travel');
+  assert.deepEqual(goalsStepEta(d), moments.carriedTime(d), 'the goals step and the call menu say the same carried time');
+  assert.ok(html.includes(`<small> · ${goalsStepEta(d).zh}</small>`), `the button says ${goalsStepEta(d).zh}`);
+  assert.notDeepEqual(goalsStepEta(d), gameTimeLabel(d), `not the straight walk's ${gameTimeLabel(d).zh}`);
   assert.match(html, /我自己逛/);
   assert.equal([...html.matchAll(/<li class="[^"]*"><span class="ob-check">/g)].length, 9, 'the nine other goals');
   assert.ok(html.indexOf('鹈鹕') < html.indexOf('明信片'), 'the pelican first');

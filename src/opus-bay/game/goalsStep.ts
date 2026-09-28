@@ -5,6 +5,8 @@ import { registerOverlay } from '../ui/slots';
 import { goalTargets } from './cityContent';
 import { sayFreeLine, startFreeLead } from './flow';
 import { flow } from './flowStore';
+import { STREET_FACTOR, autoTravelSeconds } from './tripPlan';
+import { timeLabel } from './tripText';
 
 /**
  * Wave 5 · lane C · W5-C3 (plan sf-w5-plan.md MF6 "goals once", MF3 "the pelican first"): the goals step.
@@ -21,6 +23,14 @@ import { flow } from './flowStore';
  */
 
 const load = () => import('../ui/GoalsStep');
+
+/**
+ * The big button's time over a straight distance d (u). The button carries you (a free lead is one of lane N's
+ * auto-travel trips), so it is BAYBAY's auto-travel pace over the street distance — what the trip pill and the call
+ * menu's 带我去下一个目标 say (cityMoments carriedTime) — not the straight walk (review: it said 约 50 秒 at the Ferry
+ * Building while the trip it started showed the carried time).
+ */
+export const goalsStepEta = (d: number) => timeLabel(autoTravelSeconds(d * STREET_FACTOR));
 const GoalsStep = lazy(load);
 
 export function initGoalsStep(): () => void {
