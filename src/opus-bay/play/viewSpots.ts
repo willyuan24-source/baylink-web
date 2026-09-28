@@ -37,6 +37,8 @@ const BAY_BRIDGE = { x: 278, z: 72 };
 const ALCATRAZ = { x: -468, z: -58 };
 const PACIFIC = { x: -1000, z: 1260 };
 const BAY_NORTH = { x: -260, z: 150 };
+/** the Wave Organ's terraces at the end of its spit (the site's origin) */
+const WAVE_ORGAN = { x: -412.3, z: 290 };
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
 
@@ -49,12 +51,17 @@ export const VIEW_SPOTS: readonly ViewSpot[] = [
   { id: 'dolores-park', name: bi('多洛雷斯公园坡顶', 'Dolores Park, the top'), line: bi('草坡上看市中心', 'Downtown from the lawn'), x: 248, z: 717, look: DOWNTOWN, area: 'twin-peaks-mission', attraction: 'dolores-park', source: 'https://en.wikipedia.org/wiki/Mission_Dolores_Park', verifiedAt: '2026-09-28' },
   { id: 'lands-end', name: bi('天涯海角步道', 'Lands End trail'), line: bi('悬崖外就是金门海峡', 'The Golden Gate past the cliffs'), x: -707, z: 1170, look: GOLDEN_GATE, area: 'coast', attraction: 'lands-end', source: 'https://www.nps.gov/goga/planyourvisit/landsend.htm', verifiedAt: '2026-09-28' },
   { id: 'sutro-heights', name: bi('苏特罗高地', 'Sutro Heights'), line: bi('俯看太平洋和海滩', 'The Pacific and Ocean Beach below'), x: -688.1, z: 1256.1, look: PACIFIC, area: 'coast', attraction: 'sutro-heights-park', source: 'https://www.nps.gov/places/000/sutro-heights-park.htm', verifiedAt: '2026-09-28' },
-  { id: 'wave-organ', name: bi('海浪风琴', 'Wave Organ'), line: bi('听海浪，看大桥', 'Waves to hear, a bridge to see'), x: -413, z: 296, look: GOLDEN_GATE, area: 'bridge-presidio', attraction: 'wave-organ', source: 'https://en.wikipedia.org/wiki/Wave_Organ', verifiedAt: '2026-09-28' },
+  // (the mid-wave checkpoint's CP-9: the tip of the spit is a 3 u walk the nav graph does not reach, and the sweep's
+  // walker moved only 2 of 4 ways there; the spot sits on the lawn at the spit's root on Yacht Road, looking out along
+  // the breakwater to the organ's terraces at its end — reached on foot, all four ways open)
+  { id: 'wave-organ', name: bi('海浪风琴', 'Wave Organ'), line: bi('防波堤尽头，海浪会唱歌', 'Waves sing at the jetty’s end'), x: -444, z: 346.8, look: WAVE_ORGAN, area: 'bridge-presidio', attraction: 'wave-organ', source: 'https://en.wikipedia.org/wiki/Wave_Organ', verifiedAt: '2026-09-28' },
   { id: 'crissy-beach', name: bi('克里西场海滩', 'Crissy Field beach'), line: bi('沙滩正对金门大桥', 'A beach facing the Golden Gate'), x: -581, z: 538, look: GOLDEN_GATE, area: 'bridge-presidio', attraction: 'crissy-field', source: 'https://presidio.gov/explore/attractions/crissy-field-east-beach', verifiedAt: '2026-09-28' },
-  { id: 'coit', name: bi('科伊特塔下', 'Below Coit Tower'), line: bi('东边是海湾大桥', 'The Bay Bridge to the east'), x: -43.5, z: 49.5, look: BAY_BRIDGE, area: 'north-downtown', attraction: 'coit-tower', source: 'https://sfrecpark.org/Facilities/Facility/Details/Pioneer-Park-381', verifiedAt: '2026-09-28' },
+  // (CP-9 follow-up, 2026-09-28: coit and corona-heights moved a few steps onto open ground — the sweep's CORRIDOR rows,
+  // where only 2 of 4 ways moved: 3 u west on the plaza, 3.6 u down the summit's grass)
+  { id: 'coit', name: bi('科伊特塔下', 'Below Coit Tower'), line: bi('东边是海湾大桥', 'The Bay Bridge to the east'), x: -46.5, z: 49.5, look: BAY_BRIDGE, area: 'north-downtown', attraction: 'coit-tower', source: 'https://sfrecpark.org/Facilities/Facility/Details/Pioneer-Park-381', verifiedAt: '2026-09-28' },
   { id: 'buena-vista', name: bi('布埃纳维斯塔公园', 'Buena Vista Park'), line: bi('林间远望金门大桥', 'The Golden Gate through the trees'), x: 31, z: 739.2, look: GOLDEN_GATE, area: 'twin-peaks-mission', attraction: 'buena-vista-park', source: 'https://www.lonelyplanet.com/usa/san-francisco/the-haight-and-hayes-valley/attractions/buena-vista-park/a/poi-sig/383857/1329645', verifiedAt: '2026-09-28' },
   { id: 'mount-davidson', name: bi('戴维森山', 'Mount Davidson'), line: bi('全城最高的天然山顶', 'The highest natural point in the city'), x: 245.5, z: 1170.9, look: DOWNTOWN, area: 'twin-peaks-mission', attraction: 'mount-davidson', source: 'https://en.wikipedia.org/wiki/Mount_Davidson_(California)', verifiedAt: '2026-09-28' },
-  { id: 'corona-heights', name: bi('科罗娜高地', 'Corona Heights'), line: bi('红岩山顶看市中心', 'Downtown from the red rocks'), x: 77, z: 748, look: DOWNTOWN, area: 'twin-peaks-mission', attraction: 'corona-heights-randall-museum', source: 'https://en.wikipedia.org/wiki/Corona_Heights_Park', verifiedAt: '2026-09-28' },
+  { id: 'corona-heights', name: bi('科罗娜高地', 'Corona Heights'), line: bi('红岩山顶看市中心', 'Downtown from the red rocks'), x: 79, z: 745, look: DOWNTOWN, area: 'twin-peaks-mission', attraction: 'corona-heights-randall-museum', source: 'https://en.wikipedia.org/wiki/Corona_Heights_Park', verifiedAt: '2026-09-28' },
   { id: 'marina-green', name: bi('码头绿地', 'Marina Green'), line: bi('草地尽头就是海湾', 'Where the lawn meets the Bay'), x: -382.1, z: 300.7, look: GOLDEN_GATE, area: 'bridge-presidio', attraction: 'marina-green', source: 'https://goldengatepark.com/marina-green-park.html', verifiedAt: '2026-09-28' },
   { id: 'aquatic-park', name: bi('水上公园', 'Aquatic Park'), line: bi('小海湾外是恶魔岛', 'Alcatraz beyond the cove'), x: -243, z: 140, look: ALCATRAZ, area: 'north-downtown', source: 'https://www.sfgate.com/local/article/aquatic-park-17860469.php', verifiedAt: '2026-09-28' },
 ];

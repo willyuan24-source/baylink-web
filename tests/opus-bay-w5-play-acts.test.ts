@@ -109,6 +109,42 @@ test('W5-A4 view spots on the published city: standable, facing an open view, cl
   } finally { T.setCityTerrain(null); }
 });
 
+test('W5-A4 / CP-9 view spots reached on foot: a nav path from the walk graph, ≥ 3 of 4 directions move ≥ 3 u (the walk sweep\'s rule)', async () => {
+  const { findPath } = await import('../src/opus-bay/actors/nav');
+  const { openHeading } = await import('../src/opus-bay/actors/faceOpen');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  await cityAround(views.VIEW_SPOTS, 60);
+  const ix = await sf.graphIndex(), main = ix.mainComponent();
+  const c = new PlayerController(), p = runtime.player, keep = { x: p.x, y: p.y, z: p.z, heading: p.heading };
+  const DT = 1 / 30;
+  // scripts/opus-sf/qa/sweep-static.mts: the real controller pushed 1.5 s from the spot, the most open way first, then 90° steps
+  const push = (x: number, z: number, heading: number) => {
+    p.x = x; p.z = z; p.y = T.heightAt(x, z); p.heading = heading; p.pathTarget = null; p.locked = false;
+    c.sync();
+    runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
+    const yaw = Math.atan2(-Math.sin(heading), -Math.cos(heading));
+    for (let i = 0; i < 1.5 / DT; i++) c.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false });
+    runtime.input.moveY = 0;
+    return Math.hypot(p.x - x, p.z - z);
+  };
+  try {
+    for (const s of views.VIEW_SPOTS) {
+      const n = ix.nearestNode(s.x, s.z, 60, k => ix.component(k) === main);
+      assert.ok(n >= 0, `${s.id}: a walk-graph node within 60 u`);
+      const res = findPath({ x: ix.x(n), z: ix.z(n) }, { x: s.x, z: s.z }, 8);
+      const e = res?.points[res.points.length - 1];
+      assert.ok(res && (!e || Math.hypot(e.x - s.x, e.z - s.z) <= 1.1), `${s.id}: a walk reaches it`);
+      const first = openHeading(s.x, s.z, 0).heading;
+      const moved = [0, 1, 2, 3].map(k => push(s.x, s.z, first + (k * Math.PI) / 2));
+      assert.ok(moved.filter(m => m >= 3).length >= 3, `${s.id}: moves ${moved.map(m => m.toFixed(1)).join(' / ')}`);
+    }
+  } finally {
+    Object.assign(p, keep, { pathTarget: null });
+    T.setCityTerrain(null);
+  }
+});
+
 test('W5-A5 first flight, the Coit course: inside the model, every ring inside the glide envelope over what is under it, flyable spacing', async () => {
   const course = flight.COIT_COURSE;
   assert.equal(course.length, 8);
