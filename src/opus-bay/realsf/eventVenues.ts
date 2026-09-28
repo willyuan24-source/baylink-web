@@ -216,6 +216,8 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-indigenous-peoples-day-2026', 'sf-bay-area-science-festival-2026', 'sf-filbookfest-2026', 'sf-sunnydale-pumpkin-fest-2026',
   'sf-family-connections-halloween-2026', 'sf-fishermans-wharf-chowder-fest-2026', 'sf-world-of-dumplings-2026', 'sf-apature-film-2026',
   'sf-halloween-hoopla-2026',
+  // W5-R6: the Fleet Week jets' photo (realsf/jets.ts), not a catalog id
+  'fleet-week-2026-jets',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -253,6 +255,7 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-apature-film-2026': { zh: 'APAture 电影夜', en: 'APAture film night' },
   'sf-sunnydale-pumpkin-fest-2026': { zh: '南瓜节', en: 'the Pumpkin Fest' },
   'sf-family-connections-halloween-2026': { zh: '万圣节手工和游戏', en: 'Halloween crafts and games' },
+  'fleet-week-2026-jets': { zh: '舰队周飞机编队', en: 'the Fleet Week jets' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

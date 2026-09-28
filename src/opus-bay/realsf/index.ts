@@ -21,6 +21,7 @@ import { initDaily } from './daily';
 import { worldEvent } from './events';
 import { venueLatLng, type EventVenue } from './eventVenues';
 import { createDayMemory, RealLineScheduler, type OfferedLine } from './lines';
+import { initJets } from './jets';
 import { initPresence } from './presence';
 import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunTimes, sunsetLine } from './sun';
@@ -42,6 +43,8 @@ import { todayLine } from './todayLine';
  *   W5-R4  今天 · SF Today: a Journal tab (realsf/TodayTab.tsx, loaded on first view) and 今天旧金山有什么？ in the 问
  *          BAYBAY menu; BAYBAY's SF Today line after lane C's welcome back (realsf/todayLine.ts)
  *   W5-R5  今日三件小事 (realsf/daily.ts): three small things seeded by the Bay date, paid by lane E's ledger
+ *   W5-R6  Fleet Week over the Bay (realsf/jets.ts): the toy jets, their smoke and roar, the show-day line and the
+ *          waypoint, the photo stamp, the pelican's soft boxes — Oct 9–11, 12:00–16:00 only
  *
  * The hooks other lanes read (plan §4.3) are their own small modules: realsf/sun.ts (sunBandAt, sunTimes, sunPosition),
  * realsf/seasons.ts (isFireRingLit, fireRingSeason, karlMonthFactor), realsf/moon.ts (moonPhase),
@@ -102,7 +105,7 @@ export function init(): () => void {
   const offResolver = registerPrefixResolver('event:', eventInteractable);
   // W5-R3: the open events in the world (pennants, crowds, kits, loops, lines, souvenirs)
   const presence = initPresence();
-  // W5-R5 / R4: the daily three, the 今天 tab, the ask item, the welcome-back line
+  // W5-R5 / R4 / R6: the daily three, the 今天 tab, the ask item, the welcome-back line, the Fleet Week jets
   const daily = initDaily();
   const offTab = registerJournalTab({
     id: 'today', order: 5, label: { zh: '今天', en: 'Today' }, icon: TodayIcon,
@@ -114,9 +117,10 @@ export function init(): () => void {
   const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; return todayLine(); });
   const lw = lastWelcome();
   let welcomeLate = !!lw && lw.kind === 'returning' && performance.now() - lw.at < WELCOME_LATE;
+  const jets = initJets();
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
-      presence: () => presence.stats(),
+      presence: () => presence.stats(), jets: () => jets.stats(),
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
     };
@@ -130,7 +134,7 @@ export function init(): () => void {
     acc = 0;
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
-    const offered: OfferedLine[] = [...presence.offered(), ...daily.offered()];
+    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered()];
     if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });
@@ -145,12 +149,13 @@ export function init(): () => void {
     }, offered);
     if (!line) return;
     if (line.key === 'today-welcome') welcomeLate = false;
+    if (line.key.startsWith('jets-')) jets.said(line.key);
     bubble(line.text, 4600, BAYBAY_ID, 'bark');
     emit({ type: 'voice-line', id: `realsf-${line.key}` });
   }, 5);
 
   return () => {
-    offLines(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
+    offLines(); jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
 }
