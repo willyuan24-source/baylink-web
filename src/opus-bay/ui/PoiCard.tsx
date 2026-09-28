@@ -1,19 +1,16 @@
-import { useSyncExternalStore } from 'react';
-import { ArrowRight, BookOpen, CalendarDays, CalendarPlus, Check, Clock, ExternalLink, Heart, Lightbulb, Lock, Mail, MapPin, MapPinned, Navigation, Tag, Ticket } from 'lucide-react';
-import { unprojectCity } from '../core/geo';
+import { lazy, Suspense, useSyncExternalStore } from 'react';
+import { ArrowRight, BookOpen, CalendarDays, CalendarPlus, Check, Clock, ExternalLink, Heart, Lightbulb, Lock, Mail, MapPinned, Ticket } from 'lucide-react';
 import { useGame } from '../core/store';
 import type { PoiDef } from '../core/types';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
-import { AREA_NAMES, landmarkAreaAt, learnZoneNames } from '../data/cityZones';
 import { guideUrl, mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
 import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS } from '../data/pois';
-import { CITY_POI_ZONES, PLACE_KIND_NAMES, SF_GUIDE_SLUG, isMonthTagged, placeCardName, placeCardTarget } from '../data/sf/cityPois';
-import { type CityPlace, onPlaces, placeById as cityPlaceById, placeIndex } from '../data/sf/places';
-import { closePanel, navigateTo, openEvent, toggleWish, tourStops } from '../game/flow';
+import { CITY_POI_ZONES, placeCardTarget } from '../data/sf/cityPois';
+import { onPlaces, placeById as cityPlaceById, placeIndex } from '../data/sf/places';
+import { closePanel, openEvent, toggleWish, tourStops } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { poiById, postcardById } from '../game/interactables';
 import { useT } from '../i18n';
-import { cityStreamerLazy } from '../world/cityLoader';
 import { LinkButton, Sheet } from './common';
 import { useIsMobile } from './hooks';
 import { InteractIcon } from './icons';
@@ -25,7 +22,7 @@ import { formatDay, postcardArt, postcardForPoi } from './format';
  * is listed; a still-locked postcard illustration is a slim strip, not a blurred quarter of the screen.
  * City mode (lane G2, G2-1): `openPanel('poi', 'sf:<landmarkId>')` renders the SF landmark card the same way, and
  * `openPanel('poi', 'sf:<placeId>')` a city place (G1's data/sf/places.ts): a place standing for a landmark or merged
- * with a district POI opens that card, any other place its own short card (PlaceCard below).
+ * with a district POI opens that card, any other place its own short card (ui/PlaceCard.tsx: lazy, city only).
  */
 export function PoiCard({ id }: { id?: string }) {
   const poi = poiById(id);
@@ -35,8 +32,10 @@ export function PoiCard({ id }: { id?: string }) {
   const target = places ? placeCardTarget(id, cityPlaceById) : null;
   if (!target) return null;
   if ('poi' in target) { const other = poiById(target.poi); return other ? <PoiCardInner poi={other} /> : null; }
-  return <PlaceCard place={target.place} />;
+  return <Suspense fallback={null}><PlaceCard place={target.place} /></Suspense>;
 }
+/** Wave 4 · lane C: the generic place card is city-only, so it loads with its first use (not in the main graph). */
+const PlaceCard = lazy(() => import('./PlaceCard'));
 const subscribePlaces = (fn: () => void) => onPlaces(() => fn());
 
 function PoiCardInner({ poi }: { poi: PoiDef }) {
@@ -148,7 +147,7 @@ function PoiCardInner({ poi }: { poi: PoiDef }) {
 }
 
 /** The BAYLINK guide row (nothing without a guide). */
-function GuideRow({ slug, name }: { slug?: string; name?: string }) {
+export function GuideRow({ slug, name }: { slug?: string; name?: string }) {
   const { t, locale } = useT();
   if (!slug || !name) return null;
   return (
@@ -159,7 +158,7 @@ function GuideRow({ slug, name }: { slug?: string; name?: string }) {
 }
 
 /** "附近这周": this week's BAYLINK events within 1 km. */
-function NearEvents({ near }: { near: ReturnType<typeof eventsNear> }) {
+export function NearEvents({ near }: { near: ReturnType<typeof eventsNear> }) {
   const { t, locale } = useT();
   if (!near.length) return null;
   return (
@@ -178,73 +177,4 @@ function NearEvents({ near }: { near: ReturnType<typeof eventsNear> }) {
       </ul>
     </section>
   );
-}
-
-/**
- * A city place that is not a landmark (G1's place index, OpenStreetMap names; G1's request 3): what it is and where,
- * honest about how little we know yet, the BAYLINK guide / plan when the place has one, Maps, this week's events
- * nearby and the source. 带我去 walks there over the graph (G1's `place:<id>`), a big touch target on phones.
- */
-function PlaceCard({ place }: { place: CityPlace }) {
-  const { t, locale } = useT();
-  const catalog = useCatalog();
-  const mobile = useIsMobile();
-  const name = placeCardName(place.name);
-  const zone = placeZone(place);
-  const kind = PLACE_KIND_NAMES[place.kind] ?? PLACE_KIND_NAMES.attraction;
-  const ll = unprojectCity({ x: place.x, z: place.z });
-  const planner = placeById(catalog, place.plannerId);
-  const slug = place.guideSlug ?? planner?.guideSlug;
-  const guideSlug = slug && isMonthTagged(slug) ? SF_GUIDE_SLUG : slug;
-  const guideName = guideTitle(catalog, guideSlug);
-  const planTitles = planner ? planStopTitles([{ kind: 'place', id: planner.id }], catalog) : [];
-  const near = eventsNear(catalog, ll, todayInBay(), 1.0, 7, new Date()).slice(0, 3);
-  const source = safeHref(place.sourceUrl);
-  const guideRow = <GuideRow slug={guideSlug} name={guideName} />;
-  return (
-    <Sheet
-      eyebrow={<><MapPin size={14} aria-hidden />{t('真实地点', 'Real place')}{zone && <> · {t(zone)}</>}</>}
-      title={t(name)}
-      onClose={closePanel}
-      className="ob-poi ob-place-card"
-      footer={
-        <>
-          {mobile && guideName && <div className="ob-poi-foot-guide">{guideRow}</div>}
-          {place.walkable && (
-            <div className="ob-actions">
-              <button type="button" className="ob-btn ob-btn-primary" onClick={() => navigateTo(`place:${place.id}`)}><Navigation size={18} aria-hidden /><span>{t('带我去', 'Take me there')}</span></button>
-            </div>
-          )}
-        </>
-      }
-    >
-      <dl className="ob-facts">
-        <div><dt><Tag size={15} aria-hidden />{t('类型', 'What')}</dt><dd>{t(kind)}</dd></div>
-        <div><dt><MapPin size={15} aria-hidden />{t('街区', 'Area')}</dt><dd>{zone ? t(zone) : t('旧金山', 'San Francisco')}</dd></div>
-      </dl>
-      <p className="ob-lede">{t('这里的详细介绍还在整理，出发前可以先看看攻略或地图。', 'We are still writing this one up — check a guide or the map before you go.')}</p>
-      {!mobile && guideRow}
-      {planner && (
-        <LinkButton href={planUrl({ stops: [{ kind: 'place', id: planner.id }] }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="soft">
-          {t(`把 ${planTitles[0] ?? planner.title} 排进 BAYLINK 计划`, `Put ${planTitles[0] ?? planner.title} in a BAYLINK plan`)}
-        </LinkButton>
-      )}
-      <div className="ob-link-grid">
-        <LinkButton href={mapsUrl(ll.lat, ll.lng, place.name.en)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>
-      </div>
-      <NearEvents near={near} />
-      <p className="ob-source">
-        {t('名称和位置', 'Name and location')} · {source ? <a href={source} target="_blank" rel="noopener noreferrer">{sourceDomain(place.sourceUrl) || t('来源', 'source')}</a> : t('来源', 'source')} · {t('查证于', 'checked')} {place.verifiedAt}
-      </p>
-    </Sheet>
-  );
-}
-
-/** The area a place is in: a landmark area (CS-8), else its DataSF neighbourhood by name (far.zones), else null. */
-function placeZone(place: CityPlace) {
-  const lm = landmarkAreaAt(place.x, place.z);
-  if (lm) return lm.name;
-  if (!place.zone) return null;
-  if (!AREA_NAMES.has(place.zone)) { const far = cityStreamerLazy()?.far; if (far) learnZoneNames(far.zones); }
-  return AREA_NAMES.get(place.zone) ?? null;
 }
