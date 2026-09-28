@@ -2,16 +2,14 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { runtime } from '../core/runtime';
 import { game, type Quality, type TimeOfDay, type WorldMode } from '../core/store';
-import { pointInPolygon } from '../core/terrain';
-import type { Polygon } from '../core/types';
 import { DISTRICT } from '../data/district';
-import { ANGEL_ISLAND, CITY_BACKDROP, buildBackdrop } from './backdrop';
+import { buildBackdrop } from './backdrop';
 import { bayClock, handAngles, isMarketOpen } from './clock';
 import { Batch, C, freezeStatic, splitGeometry } from './builder';
 import { buildCity } from './city';
 import { Environment } from './environment';
 import { FxPool, attachFx } from './fx';
-import { buildGround, buildSkirtWater, slabEdgeColumns } from './ground';
+import { buildGround, buildSkirtWater } from './ground';
 import { LabelAtlas, LabelBatch } from './labels';
 import { type ClockSpec, buildLandmarks, kDockSpots } from './landmarks';
 import { FERRY_LIGHTS, Life } from './life';
@@ -76,43 +74,6 @@ export interface WorldSystem {
   dispose?(): void;
 }
 
-/**
- * City mode: remove the triangles of hero lots that the streamed city replaces (manifest.heroDropLots) from the
- * already-built district chunks (centroid inside the lot footprint grown by 1 u: walls, bays and eaves included).
- */
-function dropLotTriangles(meshes: THREE.Mesh[], lots: Polygon[]) {
-  const grown = lots.map(poly => {
-    const cx = poly.reduce((a, p) => a + p.x, 0) / poly.length, cz = poly.reduce((a, p) => a + p.z, 0) / poly.length;
-    return poly.map(p => { const dx = p.x - cx, dz = p.z - cz, L = Math.hypot(dx, dz) || 1; return { x: p.x + (dx / L) * 1.4, z: p.z + (dz / L) * 1.4 }; });
-  });
-  for (const m of meshes) {
-    const idx = m.geometry.getIndex(), pos = m.geometry.getAttribute('position');
-    if (!idx) continue;
-    const bb = m.geometry.boundingBox;
-    if (bb && !grown.some(poly => poly.some(p => p.x >= bb.min.x - 2 && p.x <= bb.max.x + 2 && p.z >= bb.min.z - 2 && p.z <= bb.max.z + 2))) continue;
-    const keep: number[] = [];
-    for (let i = 0; i < idx.count; i += 3) {
-      const a = idx.getX(i), b = idx.getX(i + 1), c = idx.getX(i + 2);
-      const x = (pos.getX(a) + pos.getX(b) + pos.getX(c)) / 3, z = (pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3;
-      if (grown.some(poly => pointInPolygon({ x, z }, poly))) continue;
-      keep.push(a, b, c);
-    }
-    if (keep.length === idx.count) continue;
-    m.geometry.setIndex(pos.count > 65535 ? new THREE.Uint32BufferAttribute(keep, 1) : new THREE.Uint16BufferAttribute(keep, 1));
-  }
-}
-
-/** The west seam (lane A §9): a 16 u straight edge where city land meets hero water gets a seawall. */
-function westSeawall(b: Batch) {
-  const a = { x: -218.7, z: 63.9 }, c = { x: -205.4, z: 73.6 };
-  const dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz);
-  const n = new THREE.Vector3(dz / L, 0, -dx / L); // toward the hero water (north-east)
-  const o = (p: { x: number; z: number }, k: number) => new THREE.Vector3(p.x + n.x * k, 0, p.z + n.z * k);
-  const A = o(a, 0.2), B = o(c, 0.2);
-  b.quad(A.clone().setY(0.35), B.clone().setY(0.35), B.clone().setY(-1.8), A.clone().setY(-1.8), n, ['#cfc5b3', '#cfc5b3', '#a99f8e', '#a99f8e']);
-  b.quad(o(a, -0.6).setY(0.35), o(c, -0.6).setY(0.35), B.clone().setY(0.35), A.clone().setY(0.35), new THREE.Vector3(0, 1, 0), '#ddd3c1');
-}
-
 export class World {
   readonly root = new THREE.Group();
   readonly mode: WorldMode;
@@ -125,11 +86,9 @@ export class World {
   /** city mode: the hero's own ground chunks and its labels / contact blobs (hidden with its buildings when far) */
   private heroGroundChunks: THREE.Mesh[] = [];
   private heroFarExtras: THREE.Object3D[] = [];
-  private unmountDebug: (() => void) | null = null;
-  /** removes lane H2b's mural system (world/sf/murals.ts) with the city it was attached to */
-  private detachMurals: (() => void) | null = null;
-  /** removes Karl's cloud bank and the night light field (city mode, lane C2-8 / C2-9) */
-  private detachAtmos: (() => void)[] = [];
+  /** removes what came with the city (world/sf/cityWorld.ts): the ?debug breakdown, H2b's murals, Karl's cloud bank and
+   * the night light field (lane C2-8 / C2-9) */
+  private detachCity: (() => void) | null = null;
   readonly atlas = new LabelAtlas();
   readonly water: THREE.ShaderMaterial;
   readonly heroes: THREE.Mesh[] = [];
@@ -188,7 +147,7 @@ export class World {
     // so the hero's buildings can make way for their L1 boxes when the player is far away (plan §5.1)
     const backToy = city ? new Batch() : toy;
     const back = buildBackdrop(ground, backToy, halos, mode);
-    if (city) westSeawall(backToy);
+    if (city) requireCity().westSeawall(backToy);
     this.halosSpec = halos;
 
     // water: district + bay-side skirt + backdrop tiles, chunked like the rest of the static geometry
@@ -200,9 +159,7 @@ export class World {
       this.cityWater = new (requireCity().CityWater)(dist.texture, dist.box);
       this.water = this.cityWater.material;
       this.water.uniforms.uLightTex.value = lightMask;
-      const A = ANGEL_ISLAND, ai = CITY_BACKDROP['angel-island'];
-      const island: Polygon = Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return { x: ai.x + Math.cos(a) * A.rx * Math.cos(A.rot) - Math.sin(a) * A.rz * Math.sin(A.rot), z: ai.z + Math.cos(a) * A.rx * Math.sin(A.rot) + Math.sin(a) * A.rz * Math.cos(A.rot) }; });
-      this.env.setBoards([this.cityWater.board, island]);
+      this.env.setBoards([this.cityWater.board, requireCity().angelIslandBoard()]);
     } else {
       this.env.setBoards(back.boards);
       this.water = makeWaterMaterial(dist.texture, dist.box);
@@ -408,78 +365,20 @@ export class World {
    */
   enableCity(renderer: THREE.WebGLRenderer, quality: Quality, opts: { pool?: 'batched' | 'tile'; karl?: KarlFlag } = {}) {
     if (this.mode !== 'city' || this.city || !this.cityWater) return;
-    const water = this.cityWater;
-    const ai = CITY_BACKDROP['angel-island'];
-    const cm = requireCity();
-    const { demSample } = cm;
-    const sites = new cm.CitySites();
-    // Karl the Fog (?karl=0|1, else the time table) with its cloud bank, and the night light field
-    const karl = this.env.karl!; // city mode always has Karl (Environment gets the city chunk's KarlState)
-    if (opts.karl !== undefined) karl.setFlag(opts.karl);
-    const clouds = new cm.CloudBank(karl, null, () => this.env.fog.density);
-    const lightField = new cm.LightField(renderer, { slab: DISTRICT.slab, siteLights: () => cm.siteLightSpecs(sites.siteLights()) });
-    this.detachAtmos = [this.addSystem(clouds), this.addSystem(lightField)];
-    const sb = new THREE.Box3();
-    for (const m of this.heroGroundChunks) sb.union(m.geometry.boundingBox!);
-    const heroGround = this.heroGroundChunks;
-    let cityGround: ((x: number, z: number) => number | null) | null = null;
-    this.city = new cm.CityStreamer({
-      renderer, quality, slab: DISTRICT.slab, sites, pool: opts.pool,
-      hero: {
-        meshes: [...this.cityChunks, ...this.heroFarExtras], proxy: cm.heroProxy,
-        ground: { meshes: heroGround, job: () => cm.heroGroundJob(heroGround, { box: { x0: sb.min.x, z0: sb.min.z, x1: sb.max.x, z1: sb.max.z } }) },
-      },
-      farInit: { heroLand: cm.heroLandRaster(), islands: [{ x: ai.x, z: ai.z, rx: ANGEL_ISLAND.rx * 0.95, rz: ANGEL_ISLAND.rz * 0.95, rot: ANGEL_ISLAND.rot }] },
-      onFar: (r, far) => {
-        const s = r.shore;
-        const tex = new THREE.DataTexture(s.data, s.cols, s.rows, THREE.RedFormat, THREE.UnsignedByteType);
-        tex.minFilter = tex.magFilter = THREE.LinearFilter;
-        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-        tex.colorSpace = THREE.NoColorSpace;
-        tex.needsUpdate = true;
-        const box = new THREE.Vector4(s.x0, s.z0, s.cols * s.step, s.rows * s.step);
-        const lights = buildLightMask(this.halosSpec.map(h => ({ x: h.x, z: h.z, w: h.size >= 3 ? 1 : h.size >= 1.3 && h.y < 14 ? 0.3 : 0 })).filter(l => l.w > 0), box, 2);
-        water.setShore(tex, box, s, lights);
-        water.setLakes(r.lakes);
-        const land = (x: number, z: number) => {
-          const i = Math.floor((x - s.x0) / s.step), j = Math.floor((z - s.z0) / s.step);
-          return i >= 0 && j >= 0 && i < s.cols && j < s.rows && s.data[j * s.cols + i] === 0;
-        };
-        // the board's edge waits for the satellite boards (onBoards): where it crosses their land it shows their strata
-        cityGround = (x, z) => (land(x, z) ? demSample(far.dem, x, z) : null);
-        this.env.groundAt = (x, z) => demSample(far.dem, x, z);
-        clouds.setGround(this.env.groundAt);
-        lightField.setFar(far);
-      },
-      onBoards: r => {
-        if (r) { water.setBoardLand(r.landTiles); lightField.setExtra(r.lights); }
-        const city = cityGround;
-        water.setEdge((x, z) => r?.groundAt(x, z) ?? city?.(x, z) ?? null, slabEdgeColumns);
-      },
-    });
-    this.root.add(this.city.group);
-    this.root.updateMatrixWorld(true);
-    const streamer = this.city;
-    // lane H2b's Mission murals (world/sf/murals.ts; null until they exist)
-    const murals = cm.attachMurals(streamer);
-    if (murals) this.detachMurals = this.addSystem(murals);
-    void streamer.start().then(() => {
-      const m = streamer.manifest;
-      if (m?.heroDropLots.length) dropLotTriangles(this.cityChunks, m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
-    });
-    this.unmountDebug = cm.mountCityDebug(streamer, renderer);
+    const r = requireCity().startCityWorld({
+      root: this.root, env: this.env, water: this.cityWater, halos: this.halosSpec, cityChunks: this.cityChunks,
+      heroGround: this.heroGroundChunks, heroFarExtras: this.heroFarExtras, addSystem: sys => this.addSystem(sys),
+    }, renderer, quality, opts);
+    this.city = r.city;
+    this.detachCity = r.detach;
   }
 
   setTime(tod: TimeOfDay, instant: boolean) { this.env.setTime(tod, instant); }
 
   /** Stop streaming (page teardown / QA): workers, provider, city meshes. */
   disableCity() {
-    this.unmountDebug?.();
-    this.unmountDebug = null;
-    this.detachMurals?.();
-    this.detachMurals = null;
-    for (const detach of this.detachAtmos) detach();
-    this.detachAtmos = [];
+    this.detachCity?.();
+    this.detachCity = null;
     if (!this.city) return;
     this.root.remove(this.city.group);
     this.city.dispose();
