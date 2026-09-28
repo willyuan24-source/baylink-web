@@ -343,7 +343,7 @@ no other lane's file was edited. Higgsfield: 0 credits.
 
 ### 给主人的摘要
 
-1. 这一轮又做了 **23 个**新地点（外加北段篝火圈一组）（接线阶段已经把 L 线的地点表接进游戏，所以都已经在城市里画出来了）：基泽体育场、金门公园旋转木马和游乐场、嬉皮山鼓圈、克莱门街和尔文街两段商店街、第16大道马赛克阶梯、格兰维尤公园山顶、植物园正门、戴维森山十字架、斯特恩林音乐草坪、默塞德湖钓鱼栈桥、芬斯顿堡观景台（天上有一架绕圈的滑翔伞）、哈维·米尔克广场彩虹旗和 18 街彩虹斑马线、要塞隧道顶公园的游乐场、梅森堡艺术中心的红瓦仓库和市集、贝克海滩看金门大桥的位置、科罗娜高地山顶红岩、伯纳尔高地山顶信号塔、圣玛利亚大教堂（四片双曲抛物面屋顶按真实几何算）、叮当车博物馆（门口大轮子会转）、战争纪念歌剧院和退伍军人大楼、亚洲艺术博物馆、日本城韦伯斯特街天桥。
+1. 这一轮又做了 **24 个**新地点（外加北段篝火圈一组）（接线阶段已经把 L 线的地点表接进游戏，所以都已经在城市里画出来了）：基泽体育场、金门公园旋转木马和游乐场、嬉皮山鼓圈、克莱门街和尔文街两段商店街、第16大道马赛克阶梯、格兰维尤公园山顶、植物园正门、戴维森山十字架、斯特恩林音乐草坪、默塞德湖钓鱼栈桥、芬斯顿堡观景台（天上有一架绕圈的滑翔伞）、哈维·米尔克广场彩虹旗和 18 街彩虹斑马线、要塞隧道顶公园的游乐场、梅森堡艺术中心的红瓦仓库和市集、贝克海滩看金门大桥的位置、科罗娜高地山顶红岩、伯纳尔高地山顶信号塔、圣玛利亚大教堂（四片双曲抛物面屋顶按真实几何算）、叮当车博物馆（门口大轮子会转）、战争纪念歌剧院和退伍军人大楼、亚洲艺术博物馆、日本城韦伯斯特街天桥、海事博物馆。
 2. 每个地点都在三角形预算内（最多 772 / 800），都有能走到的到达点、地图旗杆、照片机位；全套测试 807 个全部通过，每个地点都截图看过。
 3. 上一轮复查留下的 3 件事都做了：高度规则（'ground' 改成 'overlook'，并记下实测高度）、一个地点只对应一个主记录（城市学院）、海洋海滩北段的 16 个篝火圈（晚上有火光）。
 4. 圣母大教堂和中国亭的 AI 模型摆放数据补齐了（V 组已经用上）；草莓山岛现在画成陆地了（V 组修的），中国亭保留石台基（V 组的模型就放在上面）。
@@ -357,8 +357,8 @@ no other lane's file was edited. Higgsfield: 0 credits.
 | `landmarks/w4sites.ts` | `w4SiteByPlace(placeId)` (the MAIN record of a place row: the first in build order), `isMainSite(s)` |
 | `landmarks/shopStreet.ts` (new) | a shopping block as a site: `shopExclude`, `shopGround` (carriageway, sidewalks, centre dashes, zebra corners), `shopFronts` (awnings, blank signboards, produce stands, kerb trees / palms / lamps), `shopBlockers`, `shopLights` |
 | `landmarks/civicKit.ts` (new) | `civicBlock(b, k, y, lod)`: a Beaux-Arts civic block (rusticated base, colonnade on one front, entablature, parapet, lit arches) |
-| 23 site modules (new) | below; each a declarative `W4Site` record with its facts, sources and frame in the header |
-| `landmarks/w4list.ts` | the 23 records appended (P3 order; the Botanical Garden gate with the Music Concourse group) |
+| 25 site modules (new) | below (24 sites and the fire rings); each a declarative `W4Site` record with its facts, sources and frame in the header |
+| `landmarks/w4list.ts` | the 25 records appended (P3 order; the Botanical Garden gate with the Music Concourse group) |
 | `landmarks/siteTerrain.ts`, `landmarks/tops.ts` | generated (`sites-terrain.mts --site`, `landmark-tops.ts`) |
 | `tests/opus-bay-sf-sites-w4.test.ts` | + the AI slot's id and placement, the height rule and measured top, one main record per place, no overlap with the tier-3 lane's sites (`w4list3`), lane P's travel ends (`attractionArrivals`) in the place check, the street sites' walk check along the block |
 
@@ -463,7 +463,7 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
 
 ### Requests
 
-- **Lane C:** cards for the 23 records (their place rows are each module's `w4.placeId`; the headers carry the
+- **Lane C:** cards for the 24 new sites (their place rows are each module's `w4.placeId`; the headers carry the
   facts); Mount Davidson, Harvey Milk Plaza and St Mary's are quiet cards; Baker Beach and Lake Merced never prompt a
   swim; Fort Funston's glider is never flyable.
 - **Lane T:** the Hippie Hill drum loop (integration step 3).
