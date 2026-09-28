@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { Bilingual, Mood } from '../core/types';
-import { DISTRICT_POIS } from '../data/pois';
+import { CITY_DISTRICT_POIS } from '../data/pois';
 import type { Attraction, AttractionRank } from '../data/sf/attractionTypes';
 import { CITY_SUBJECT_FACTS } from '../data/sf/cityPois';
 import { placeCardNow } from '../data/sf/placeCardTypes';
@@ -308,7 +308,7 @@ export function defaultArrivalLine(attraction: string, anchor?: Pick<ArrivalAnch
   if (card) return { text: card.bark, mood: card.quiet ? 'thinking' : mood };
   const landmark = anchor?.landmark ? CITY_SUBJECT_FACTS[anchor.landmark] : undefined;
   if (landmark) return { text: landmark.fact, mood };
-  const poi = anchor?.place ? DISTRICT_POIS.find(p => p.id === anchor.place) : undefined;
+  const poi = anchor?.place ? CITY_DISTRICT_POIS.find(p => p.id === anchor.place) : undefined;
   return poi?.bark ? { text: poi.bark, mood } : null;
 }
 

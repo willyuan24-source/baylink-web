@@ -150,6 +150,63 @@ function cityPoi(info: SfLandmarkInfo): PoiDef {
 /** The 24 landmark cards, in the registry's order. */
 export const CITY_POIS: PoiDef[] = SF_LANDMARK_INFO.map(cityPoi);
 
+/**
+ * Wave 5 (lane C, mid-wave checkpoint CP-14): the district's waterfront POIs join the city (data/pois.ts), where their
+ * zh names used to show as the district wrote them — the E prompt read 看看壁画 · Coit Tower 壁画, the clue
+ * 明信片线索 · Coit Tower 壁画附近. In the city they say what the city says (data/VOICE.md: 科伊特塔 · 菲尔伯特台阶 ·
+ * 探索馆 · 39 号码头 · 恶魔岛渡轮码头 · 14 号码头); en and the district itself are unchanged. Only the zh.
+ */
+export const CITY_DISTRICT_POI_NAMES: Readonly<Record<string, string>> = {
+  'farmers-market': '渡轮大厦农夫市集',
+  pier14: '14 号码头',
+  pier7: '7 号钓鱼码头',
+  exploratorium: '探索馆',
+  'filbert-steps': '菲尔伯特台阶',
+  'coit-tower': '科伊特塔观景点',
+  'coit-murals': '科伊特塔壁画',
+  pier33: '恶魔岛渡轮码头',
+  'pier39-carousel': '39 号码头旋转木马',
+  'sea-lions': '39 号码头海狮观景处',
+  'streetcar-pier39': 'F 线 · 39 号码头站',
+};
+/** English place names inside the district POIs' zh card text, as the city says them. */
+export const CITY_DISTRICT_TEXT_NAMES: readonly (readonly [from: string, to: string])[] = [
+  ['Coit Tower', '科伊特塔'],
+  ['Filbert Steps', '菲尔伯特台阶'],
+  ['Exploratorium', '探索馆'],
+  ['Pier 33', '33 号码头'],
+  ['PIER 39', '39 号码头'],
+  ['Embarcadero', '内河码头'],
+];
+/** A district POI's zh sentence with the city's names (CITY_DISTRICT_TEXT_NAMES); the space an English word kept goes. */
+export function cityDistrictZh(text: string): string {
+  let out = text, hit = false;
+  for (const [from, to] of CITY_DISTRICT_TEXT_NAMES) if (out.includes(from)) { hit = true; out = out.split(from).join(to); }
+  return hit ? out.replace(CJK_GAP, '$1') : out;
+}
+const cityDistrictText = (b: Bilingual): Bilingual => ({ zh: cityDistrictZh(b.zh), en: b.en });
+
+/** A district POI as the city shows it (its zh name and card text in the city's words); district mode never calls it. */
+export function cityDistrictPoi(poi: PoiDef): PoiDef {
+  const name = CITY_DISTRICT_POI_NAMES[poi.id];
+  const real = poi.realInfo;
+  return {
+    ...poi,
+    name: name ? { zh: name, en: poi.name.en } : poi.name,
+    interaction: { ...poi.interaction, verb: cityDistrictText(poi.interaction.verb) },
+    ...(poi.bark ? { bark: cityDistrictText(poi.bark) } : {}),
+    ...(real ? {
+      realInfo: {
+        ...real,
+        summary: cityDistrictText(real.summary),
+        tips: real.tips.map(cityDistrictText),
+        ...(real.hours ? { hours: cityDistrictText(real.hours) } : {}),
+        ...(real.cost ? { cost: cityDistrictText(real.cost) } : {}),
+      },
+    } : {}),
+  };
+}
+
 /** The landmark's zone label, glossed (for the card eyebrow and "附近有什么"). */
 export const CITY_POI_ZONES: Record<string, Bilingual> = Object.fromEntries(SF_LANDMARK_INFO.map(info => [cityPoiId(info.id), glossText(info.zone)]));
 /** Official sites (PoiCard's 官网 button), only where D2 recorded a real official site. */

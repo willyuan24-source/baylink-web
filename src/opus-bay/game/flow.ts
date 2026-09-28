@@ -692,10 +692,19 @@ export function stageMark(poi: PoiDef, from: Vec2 = playerPos()): Vec2 {
 let aside: { key: string; x: number; z: number; mark: Vec2 | null; seen: number } | null = null;
 const ASIDE_CHAT_GAP = 400;
 
+/**
+ * Wave 5 (CP-14): a lazy city module's own mark for the dialogue it opened — the pelican moment keeps BAYBAY beside
+ * you so its two-shot frames you both (game/pelicanFirst.ts). Asked first; null = the usual rules below.
+ */
+let markSource: ((nodeId: string) => Vec2 | null) | null = null;
+export function setTalkMarkSource(fn: ((nodeId: string) => Vec2 | null) | null) { markSource = fn; }
+
 /** Where BAYBAY should hold still while the current dialogue plays (welcome mark, stage mark, beside a resident), or null. */
 export function talkMark(): Vec2 | null {
   const s = game.get(), f = flow.get();
   if (s.dialogue.nodeId === START_NODE && game.get().mode === 'onboarding') return welcomeMark();
+  const own = s.dialogue.nodeId && markSource ? markSource(s.dialogue.nodeId) : null;
+  if (own) return own;
   if (s.tour.active && (f.tourPhase === 'arrived' || f.tourPhase === 'done-node')) { const cur = currentStop(); return cur ? stageMark(cur.poi) : null; }
   // a chat with one of the six city residents (nodes npc.<key>.…): she steps beside them, out of the two-shot's line
   const r = residentByKey(/^npc\.([a-z-]+)\./.exec(s.dialogue.nodeId ?? '')?.[1] ?? '');

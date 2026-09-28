@@ -3,7 +3,8 @@ import { onEvent } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import type { Bilingual } from '../core/types';
+import { canStand, heightAt } from '../core/terrain';
+import type { Bilingual, Vec2 } from '../core/types';
 import { readQa } from './qa';
 import { ATTRACTIONS } from '../data/sf/attractions';
 import { CITY_GOAL } from '../data/sf/goals';
@@ -11,7 +12,7 @@ import { W5_PELICAN, w5Text } from '../data/sf/linesW5';
 import type { ArrivalHit } from './arrival';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
-import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say } from './flow';
+import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say, setTalkMarkSource } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
 
@@ -70,6 +71,67 @@ const GO_NODE = 'pelican.go';
 export const MOMENT_WAIT_MS = 45_000;
 /** …and at least this long after the unlock (ms): the arrival's own toast and line go first */
 export const MOMENT_MIN_MS = 2200;
+/**
+ * The moment's two-shot frames you both (mid-wave checkpoint CP-14: coming up the slope from Washington Square, the
+ * player stood 3 u below Coit's summit plaza with BAYBAY on the downhill side, so the conversation camera — behind you,
+ * opposite her — sat on the plaza 0.9 u above its paving and saw only the paving). The dialogue waits until she is
+ * within PAIR_NEAR of you (or at most PAIR_WAIT_MS after the unlock), and while it plays she stands PAIR_GAP beside you
+ * on the side that leaves the camera's side of you open: the conversation camera stands TWO_BACK behind the pair at
+ * ±TWO_SWING (actors/camera.ts twoShotPose: 8 u, 2.3 u up, 25–57° off the axis; it weighs buildings, not the hill),
+ * so her mark is chosen where the ground between those spots and your chest stays under the line of sight.
+ */
+export const PAIR_NEAR = 4;
+export const PAIR_WAIT_MS = 9000;
+export const PAIR_GAP = 1.7;
+/** the conversation camera's spots the mark keeps open (behind the pair, u; its height above the lower of the two, u) */
+const TWO_BACK = 8, TWO_UP = 2.3, TWO_SWING = [0.43, 0.66, 0.99] as const;
+
+/** Is the line from a camera at (cx, cy, cz) to the chest at (x, y, z) above the ground (samples every ≈ 0.8 u)? */
+function sightClear(cx: number, cy: number, cz: number, x: number, y: number, z: number, ground: (x: number, z: number) => number): boolean {
+  const n = Math.max(4, Math.ceil(Math.hypot(x - cx, z - cz) / 0.8));
+  for (let i = 1; i < n; i++) {
+    const t = i / n;
+    if (ground(cx + (x - cx) * t, cz + (z - cz) * t) > cy + (y - cy) * t - 0.2) return false;
+  }
+  return true;
+}
+
+/**
+ * BAYBAY's spot for the moment (pure): PAIR_GAP from the player, on standable ground, where the most of the
+ * conversation camera's spots (both sides, three swings) see the player's chest over the ground; ties go to the
+ * direction she already stands in (then the smaller turn). Null when nothing round the player is standable.
+ */
+export function pelicanMark(player: Vec2, guide: Vec2, heading: number, stand: (x: number, z: number) => boolean, ground: (x: number, z: number) => number = () => 0): Vec2 | null {
+  let dx = guide.x - player.x, dz = guide.z - player.z;
+  const L = Math.hypot(dx, dz);
+  // (she stands on top of you: to your right)
+  if (L < 0.3) { dx = Math.cos(heading); dz = -Math.sin(heading); } else { dx /= L; dz /= L; }
+  const py = ground(player.x, player.z);
+  let best: { x: number; z: number; score: number } | null = null;
+  for (const deg of [0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180]) {
+    const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+    const ux = dx * c - dz * s, uz = dx * s + dz * c;
+    const x = player.x + ux * PAIR_GAP, z = player.z + uz * PAIR_GAP;
+    if (!stand(x, z)) continue;
+    const mx = (player.x + x) / 2, mz = (player.z + z) / 2, low = Math.min(py, ground(x, z));
+    let blocked = 0;
+    for (const sign of [1, -1]) {
+      for (const swing of TWO_SWING) {
+        // behind the player (−u) turned by ±swing round the pair's midpoint
+        const k = Math.cos(swing), q = Math.sin(swing) * sign;
+        const bx = -ux * k + uz * q, bz = -ux * q - uz * k;
+        const cx = mx + bx * TWO_BACK, cz = mz + bz * TWO_BACK;
+        const cy = Math.max(low + TWO_UP, ground(cx, cz) + 0.9);
+        if (!sightClear(cx, cy, cz, player.x, py + 1, player.z, ground)) blocked++;
+      }
+    }
+    const score = blocked + Math.abs(deg) / 1000;
+    if (!best || score < best.score) best = { x, z, score };
+    if (blocked === 0) break;
+  }
+  return best ? { x: best.x, z: best.z } : null;
+}
+let mark: Vec2 | null = null;
 
 interface Pending { reason: UnlockReason; since: number }
 let pending: Pending | null = null;
@@ -121,6 +183,8 @@ export function syncPelicanGoal() {
 function quiet(now: number, p: Pending): boolean {
   const s = game.get(), f = flow.get();
   if (now - p.since < MOMENT_MIN_MS) return false;
+  const g = runtime.guide, pl = runtime.player;
+  if (Math.hypot(g.x - pl.x, g.z - pl.z) > PAIR_NEAR && now - p.since < PAIR_WAIT_MS) return false;
   return s.phase === 'playing' && !s.paused && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.arrival
     && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen();
 }
@@ -148,6 +212,9 @@ export function stepPelican(now: number, offer: Offer) {
   });
   defineNode({ id: GO_NODE, speaker: 'baybay', mood: 'excited', text: PELICAN_LINES.go });
   runtime.guide.emote = 'hop';
+  // BAYBAY beside you for the two-shot (flow.talkMark asks setTalkMarkSource's function while the dialogue is open)
+  const pl = runtime.player;
+  mark = pelicanMark({ x: pl.x, z: pl.z }, { x: runtime.guide.x, z: runtime.guide.z }, pl.heading, (x, z) => canStand(x, z, 0.45), heightAt);
   voiceFn?.(W5_PELICAN.ask.id);
   playDialogue(ask, () => {
     if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); takeOff(); return; }
@@ -178,10 +245,14 @@ onEvent(e => { if (e.type === 'dialogue' && (e.nodeId === GO_NODE || e.nodeId ==
 export function initPelicanFirst(offer: Offer | null = null, voice: ((id: string) => void) | null = null): () => void {
   offerFn = offer;
   voiceFn = voice;
+  setTalkMarkSource(nodeId => (nodeId === ASK_NODE || nodeId === GO_NODE ? mark : null));
   syncPelicanGoal();
-  return () => { pending = null; wantFlight = false; offerFn = null; voiceFn = null; };
+  return () => { pending = null; wantFlight = false; offerFn = null; voiceFn = null; mark = null; setTalkMarkSource(null); };
 }
 
 /** Tests: forget the moment and lane A's starter; `offer` stands in for BAYBAY's pacer. */
-export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; voiceFn = voice; }
+export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; voiceFn = voice; mark = null; }
+
+/** Tests / QA: BAYBAY's mark for the moment's dialogue, if one is open. */
+export const pelicanMarkNow = (): Vec2 | null => mark;
 

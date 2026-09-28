@@ -1,7 +1,7 @@
 import type { Bilingual, PoiDef, RealInfo, Vec2 } from '../core/types';
 import { byMode } from './contentMode';
 import { DISTRICT } from './district';
-import { CITY_PHOTO_SOURCE_PAGES, CITY_POIS, CITY_POI_EXTRA_SOURCES, CITY_POI_OFFICIAL_URLS, CITY_SUBJECT_FACTS } from './sf/cityPois';
+import { CITY_PHOTO_SOURCE_PAGES, CITY_POIS, CITY_POI_EXTRA_SOURCES, CITY_POI_OFFICIAL_URLS, CITY_SUBJECT_FACTS, cityDistrictPoi } from './sf/cityPois';
 
 /**
  * Opus Bay points of interest (content-owned).
@@ -534,10 +534,17 @@ export const DISTRICT_POIS: PoiDef[] = [
 ];
 
 /**
- * The active world's POIs (plan G2-0): the district's in district mode (v1, unchanged); in city mode the district's
- * (the hero waterfront is part of the city) plus the 24 SF landmark cards (data/sf/cityPois.ts, ids `sf:<landmarkId>`).
+ * The district's POIs as the city shows them (wave 5, CP-14: the same ids, spots and facts; the zh names and card text
+ * in the city's words — 科伊特塔壁画, not Coit Tower 壁画; data/sf/cityPois.ts cityDistrictPoi).
  */
-export const POIS: PoiDef[] = byMode(DISTRICT_POIS, [...DISTRICT_POIS, ...CITY_POIS]);
+export const CITY_DISTRICT_POIS: PoiDef[] = DISTRICT_POIS.map(cityDistrictPoi);
+
+/**
+ * The active world's POIs (plan G2-0): the district's in district mode (v1, unchanged); in city mode the district's
+ * (the hero waterfront is part of the city, named the city's way) plus the 24 SF landmark cards (data/sf/cityPois.ts,
+ * ids `sf:<landmarkId>`).
+ */
+export const POIS: PoiDef[] = byMode(DISTRICT_POIS, [...CITY_DISTRICT_POIS, ...CITY_POIS]);
 
 /**
  * The places' own official sites (shown as 官网). Only real official homes — a fact-check source (a Port PDF, the
