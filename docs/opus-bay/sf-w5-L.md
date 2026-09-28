@@ -558,5 +558,9 @@ facts on the web. Higgsfield: 0 credits. No relayed owner message reached this r
 
 `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the full suite
 `tests/opus-bay-*.test.ts`: 1,265 / 1,265 before the first push's rebase, **1,306 / 1,306** after it (the rebase brought
-lanes N, F, T, D, E, R, C); the last rebase before that push brought lane R's docs and a comment (tsc re-run). The
-final numbers of this section's push are below.
+lanes N, F, T, D, E, R, C); the last rebase before that push brought lane R's docs and a comment (tsc re-run). This
+section's push, rebased over lanes T, E and D's review commits and lane A's W5-A9: tsc 0, eslint 0 errors (43 old warnings),
+the full suite **1,324 / 1,324**, fail 0. The dev server on 5505 is stopped; PERF-LOCK was respected (lane V's gate held it 20:34–21:30Z:
+no Chrome and no build of mine ran in it; one Chrome at a time).
+
+Status（进度）：评审完成——3 个缺陷已修并推送（海浪风琴防波堤卡住、街角人群到达时看不见、人物穿墙），另有 1 处事实更正；报告已追加。
