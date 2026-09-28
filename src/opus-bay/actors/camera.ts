@@ -600,6 +600,11 @@ export class CameraController {
     const idleCam = idleMs > 1800;
     if (!cam.shot) {
       const face = takeFaceRequest();
+      if (face && face.pitch !== undefined && Number.isFinite(face.pitch)) {
+        // (lane R's request 3) the pitch it asks for: the photo orbit's own, or the follow camera's offset on its zoom
+        if (photo) this.pitch = clamp(face.pitch, PHOTO_PITCH_MIN, PHOTO_PITCH_MAX);
+        else { const bp = basePitch(this.distance); this.pitchOffset = clamp(face.pitch - bp, PITCH_MIN - bp - 0.1, PITCH_MAX - bp); }
+      }
       if (face) {
         const dx = face.x - view.x, dz = face.z - view.z;
         const want = Math.atan2(-dx, -dz); // camera behind the player, looking at the subject

@@ -516,3 +516,28 @@ test('W5-F5 R: boxed in (a pit the feet cannot climb out of), R pulls the player
     assert.equal(h2.count, 0);
   } finally { T.setCityTerrain(null); }
 });
+
+test('lane R\'s request 3: faceCameraToward(x, z, { pitch }) sets the photo orbit\'s pitch (clamped) and the follow camera\'s pitch through its offset', async () => {
+  const THREE = await import('three');
+  const { game } = await import('../src/opus-bay/core/store');
+  const { view } = await import('../src/opus-bay/actors/view');
+  const { CameraController, basePitch } = await import('../src/opus-bay/actors/camera');
+  const { faceCameraToward } = await import('../src/opus-bay/game/cinema');
+  const saved = { phase: game.get().phase, photoMode: game.get().photoMode, worldMode: game.get().worldMode };
+  const gate = DISTRICT.anchors['ferry-gate'];
+  Object.assign(view, { x: gate.x, y: 0, z: gate.z, ground: 0, vx: 0, vz: 0, ready: true });
+  const cam = new THREE.PerspectiveCamera(42, 1440 / 900, 0.5, 4000);
+  const rig = new CameraController();
+  try {
+    game.set({ phase: 'playing', photoMode: false, worldMode: 'district' });
+    for (let i = 0; i < 5; i++) rig.update(cam, 1 / 30, i / 30, 900, 1440);
+    faceCameraToward(gate.x + 40, gate.z, { pitch: 0.12 });
+    rig.update(cam, 1 / 30, 0.2, 900, 1440);
+    assert.ok(Math.abs(basePitch(rig.distance) + rig.pitchOffset - 0.12) < 1e-6, 'follow: base + offset = the asked pitch');
+    game.set({ photoMode: true });
+    rig.update(cam, 1 / 30, 0.25, 900, 1440);
+    faceCameraToward(gate.x + 40, gate.z, { pitch: -1 });
+    rig.update(cam, 1 / 30, 0.3, 900, 1440);
+    assert.ok(Math.abs(rig.pitch - 0.04) < 1e-6, `photo: clamped to its lowest (${rig.pitch})`);
+  } finally { rig.dispose(); game.set(saved); }
+});
