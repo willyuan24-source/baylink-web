@@ -54,6 +54,8 @@ const TWO_DIST = 8, TWO_HEIGHT = 2.3, TWO_ANGLE = 0.66;
 const TWO_ANGLES = [TWO_ANGLE, TWO_ANGLE * 0.65, TWO_ANGLE * 1.5, TWO_ANGLE * 1.9] as const;
 /** city: after an arrival the yaw is chosen again (as the ground streams in) for this long (s), while nobody moves */
 const SETTLE_S = 8;
+/** W5-F7: how long an arrival's open-ground turn outranks the snap / settle yaw (s) */
+const OPEN_HOLD_S = 3;
 /** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
 const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
 // (roofLiftStep's blocker test writes here: module state, no closure per sample)
@@ -579,7 +581,12 @@ export class CameraController {
         const want = Math.atan2(-dx, -dz); // camera behind the player, looking at the subject
         // a timed turn (the waypoint's 转过去: 0.6 s) eases at 3 / seconds (≈ 95 % of the way in that time)
         const rate = face.seconds ? 3 / Math.max(0.1, face.seconds) : 1.0;
-        if (Math.hypot(dx, dz) > 1) this.startAssist(photo ? want : this.clearYaw(view.x, view.z, want, false), now, reduced ? 6 : rate, photo || !!face.uncapped);
+        if (Math.hypot(dx, dz) > 1) {
+          const yaw = photo ? want : this.clearYaw(view.x, view.z, want, false);
+          this.startAssist(yaw, now, reduced ? 6 : rate, photo || !!face.uncapped);
+          // an arrival's open-ground turn (W5-F7) outranks the arrival yaw the snap / the settle look would choose
+          if (face.open) { this.openYaw = yaw; this.openUntil = now + OPEN_HOLD_S; this.settleUntil = 0; }
+        }
       }
       if (!photo) this.assists(now, talking, idleMs);
       this.applyAssist(now, dt, idleMs);
@@ -635,7 +642,7 @@ export class CameraController {
       this.focus.y = want.y;
       if (!cam.shot && !photo) {
         this.zone = zoneAt(vx, vz, null);
-        this.yaw = this.yawS = chooseYaw(vx, vz, p.heading + Math.PI, this.distance);
+        this.yaw = this.yawS = this.openUntil > now ? this.openYaw : chooseYaw(vx, vz, p.heading + Math.PI, this.distance);
         this.zoneW = this.zone ? 1 : 0;
         this.zoneZoomed = false;
         this.pitchS = this.effectivePitch(false);
@@ -643,7 +650,7 @@ export class CameraController {
       }
       // city: that yaw was chosen before the ground there streamed in (?at=, resume, a teleport) — look again as it does
       this.roofCut = true;
-      if (cityTerrain()) { this.settleUntil = now + SETTLE_S; this.settleEpoch = cityEpoch(); this.settleAt = now; this.settleX = vx; this.settleZ = vz; }
+      if (cityTerrain() && this.openUntil <= now) { this.settleUntil = now + SETTLE_S; this.settleEpoch = cityEpoch(); this.settleAt = now; this.settleX = vx; this.settleZ = vz; }
       this.placed = true;
       this.blendT = 1;
       this.returnT = 1;
@@ -887,6 +894,9 @@ export class CameraController {
   private occlCheckAt = 0;
   // the arrival look-again (city, E2-6)
   private settleUntil = 0;
+  /** W5-F7: the open-ground yaw an arrival asked for (faceCameraToward open) and until when it outranks the arrival yaw */
+  private openYaw = 0;
+  private openUntil = 0;
   private settleEpoch = -1;
   private settleAt = 0;
   private settleCheckAt = 0;

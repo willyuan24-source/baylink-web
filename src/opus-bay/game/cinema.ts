@@ -82,9 +82,13 @@ function applyShot(shot: Shot) {
  * `seconds`: how long the turn takes (default ≈ 1 s, the camera's usual assist); `uncapped`: turn all the way (the
  * waypoint's edge arrow, W4-G2: "转过去" over 0.6 s, even to a target behind you) instead of at most 100°.
  */
-export interface FaceRequest { x: number; z: number; seconds?: number; uncapped?: boolean }
+export interface FaceRequest { x: number; z: number; seconds?: number; uncapped?: boolean; open?: boolean }
 let faceRequest: FaceRequest | null = null;
-export function faceCameraToward(x: number, z: number, opts: { seconds?: number; uncapped?: boolean } = {}) { faceRequest = { x, z, ...opts }; }
+/**
+ * `open` (wave 5, W5-F7, actors/faceOpen): an arrival / landing turn — it also wins over the camera's own arrival yaw
+ * (the teleport snap and the city settle look) for a moment, so the player looks at the open ground they turned to.
+ */
+export function faceCameraToward(x: number, z: number, opts: { seconds?: number; uncapped?: boolean; open?: boolean } = {}) { faceRequest = { x, z, ...opts }; }
 export function takeFaceRequest(): FaceRequest | null { const r = faceRequest; faceRequest = null; return r; }
 
 // ---------------------------------------------------------------------------
