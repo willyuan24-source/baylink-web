@@ -41,6 +41,7 @@ export const SLED_TIERS: readonly [number, number, number] = [6, 15, 30];
 export const SLED_LINES = {
   go: { zh: '坐稳啦——冲！', en: 'Hold tight — go!' },
   far: { zh: '滑了好远！草地真滑～', en: 'What a slide! This grass is slippery!' },
+  good: { zh: '滑得真顺～', en: 'Smooth ride!' },
   short: { zh: '嘿嘿，找个更陡的坡试试？', en: 'Hehe, try a steeper slope?' },
 } satisfies Record<string, Bilingual>;
 
@@ -140,7 +141,8 @@ function finish(r: Ride) {
     detail: { zh: `滑了 ${d.toFixed(0)} 米 · 最快每秒 ${r.s.top.toFixed(1)} 米`, en: `${d.toFixed(0)} m slid · top ${r.s.top.toFixed(1)} m/s` },
     bestText: v => ({ zh: `最远滑过 ${v.toFixed(0)} 米！`, en: `Your longest: ${v.toFixed(0)} m!` }),
   });
-  bubble(d >= SLED_TIERS[1] ? SLED_LINES.far : d < SLED_TIERS[0] ? SLED_LINES.short : SLED_LINES.go, 2400);
+  // (at the foot: never the start's 坐稳啦——冲！ again — review 2026-09-28, heard after a 14 m slide)
+  bubble(d >= SLED_TIERS[1] ? SLED_LINES.far : d < SLED_TIERS[0] ? SLED_LINES.short : SLED_LINES.good, 2400);
   if (first) charApi()?.emote('baybay', 'clap');
 }
 

@@ -1632,6 +1632,9 @@ test('W5-A9 grass sled: 滑草 offered on a lawn steeper than 1 in 4 (Dolores Pa
       assert.equal(lockHeld(), false);
       assert.equal(z3.sledIt.radius, z3.SLED_PROMPT_R);
       for (const line of Object.values(S.SLED_LINES)) assert.ok([...line.zh].length <= 45);
+      // BAYBAY's line at the foot fits the slide (never the start's 坐稳啦——冲！ again)
+      assert.deepEqual(flow.get().bubble?.text, S.SLED_LINES.far, 'a ◆ slide (15 u and more): 滑了好远！');
+      assert.notDeepEqual(flow.get().bubble?.text, S.SLED_LINES.go);
     } finally { mock.timers.reset(); S.__resetSled(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
   } finally { T.setCityTerrain(null); }
 });
