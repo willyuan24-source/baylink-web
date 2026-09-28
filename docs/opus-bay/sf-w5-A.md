@@ -281,3 +281,115 @@ New BAYBAY lines for lane V's voice pass (tag `A`, zh ≤ 45): 篝火烧着呢�
 - **E**: the Golden Gate rings pay no coins: if coins in them are wanted, an append-only ring slot `ggb-towers` (reserved like `first-flight`) and lane A switches `ringSource`. Lane A's `play.b` keys are now 19 (first-flight, ggb-rings, slides, bell, stairs-filbert, stairs-tiled, steps, steps-today, steps-day, marshmallow, heave, heave-tt, crests, sealions, frisbee, beachball, sled, crooked-lombard, crooked-vermont); about 30 new medal sources go to `play.e`.
 - **V**: budget: each part-c activity adds at most one instanced draw call while it runs or is near (marshmallows 4 × 28 tris, pennants 22 tris each near a crest, the disc, the ball and its shadow 160, the sled's cardboard), own materials on the `ob-toy-inst` program with warm-ups; the rings as before. A bark sound for the `sea-lion` event lane A emits at each counted lion (intensity 1), if lane V's lion audio wants it. Voice: the part-c lines above, tag `A`. The PERF-LOCK overlap above.
 - **L**: optional: the Wave Organ's tip (the organ's terraces) walkable from the spit, so the view spot can move out to it.
+
+## Review
+
+Adversarial review of lane A (wave 5), 2026-09-28, worktree `C:/Users/willy/wt/w5-a` rebased on `origin/opus-bay`.
+Read: all 29 `W5-A` commits, every file of `src/opus-bay/play/` (≈ 6,000 lines) and both test files, plan §1, §2, §3.2,
+§4.1–4.3, §4.11, §4.14, §6, the lead note and the owner's feedback, and what the lane leans on (lane E's ledger and
+`recordBest`, lane F's `playerLock` / `lockWatchdog` / `charImpl` / `moveApi` auto-glide, `data/save.ts`
+`onSaveCleared`, `world/warmup.ts`). Played on the dev server 5508 (one headless Chrome at a time, PERF-LOCK checked
+before every run: it was never there), desktop 1440 × 900 high and phone 390 × 844 dpr 3 mid.
+
+### 给主人的摘要
+
+1. 玩法线整体扎实：滑梯、数海狮、烤棉花糖、滑草、看风景、自拍，电脑和手机上都实际玩过，玩完都能马上走动，没有"卡住"。
+2. 修了 8 个问题：用"飞过去"让鹈鹕路过金门大桥时，金圈会自己冒出来、落地弹"再试试"——现在不会；离开城市时正在玩的小游戏会松开角色；"重置进度"后最好成绩、台阶数、坡顶飞跃真的清零；滑草只在能滑 6 米以上的坡出现、坐着时不出现、卡片写"米"不写"u"；九曲花街台词改成"路牌建议每小时 5 英里"。
+3. 上网核对了 14 条真实信息，只有九曲花街"限速"一处不准，已改。
+
+### What was checked and holds
+
+- **Owner F1 (never stuck)**: after the Seward slides (★, 2.6 s vs BAYBAY 2.9 s), the sea-lion count, the marshmallow
+  and the grass sled on desktop, and after the slow look at Twin Peaks and the selfie → photo mode → exit on the phone,
+  W moved the player 3–4 u within 1 s every time with `lockReport()` empty (`review-marshmallow-lock-released-desktop.jpg`,
+  `review-slow-look-twin-peaks-phone.jpg`, `review-selfie-photo-mode-phone.jpg`).
+- **District mode**: every lane-A commit touches only `src/opus-bay/play/**`, its two tests, its report and its QA
+  folder; `play/` loads only through `game/w5Features.ts` in city mode; the contracts test keeps it out of GameRoot.
+- **Economy**: medals go to `play.e` (15 activities × 3 tiers + `medal:turntables:3` = 46 of the 128 slots; no other lane
+  writes `medal:`), the first flight's rings to lane E's reserved `ring:first-flight:1…8` bits, the views to the `view`
+  bitset; the ledger pays each source once; lane A never spends. `play.b`: 19 keys of 32, lane A the only writer.
+- **Warm-ups / materials**: one material per object kind (`a-play-rings`, `a-play-cardboard`, `a-play-<kind>` for the
+  marshmallow, the pennants, the frisbee and the beach ball), each registered with `registerWarmup` as its chunk loads
+  (the late pass compiles it), all on the `ob-toy-inst` program. Budgets as reported (+1 call per activity while it
+  runs; the review's runs: 42–81 calls, ≤ 298k triangles).
+- **Chunks**: the size test passes with the review's changes (core ≤ 6 KB, zones3 ≤ 5 KB, each activity ≤ 5 KB).
+- **zh text**: every bubble line ≤ 45 characters (a script over `play/`); the long strings are card details.
+- **The phone's 坐下 icon** (a part-a gap): lane F's armchair shows now (`review-sled-card-metres-after-desktop.jpg`).
+
+### Facts re-checked on the web (2026-09-28)
+
+| fact in the game | source | verdict |
+|---|---|---|
+| Seward slides 10–5 Tue–Sun, the park closes at sunset, "adults must be accompanied by children", cardboard, sturdy pants | https://sfrecpark.org/facilities/facility/details/sewardminipark-203 | ✓ |
+| Ocean Beach fires March–October, 16 rings between Stairwells 15 and 20, out by 9:30 pm, WATER ONLY | https://www.nps.gov/articles/ocean-beach-fire-program.htm | ✓ |
+| Sea lions on K-Dock after the Oct 1989 quake, many by Jan 1990; record over 2,100 in May–June 2024; feeding unlawful | https://www.pier39.com/sea-lions/ | ✓ |
+| Lombard: eight sharp turns, one-way downhill, the sign **recommends** 5 mph | https://en.wikipedia.org/wiki/Lombard_Street_(San_Francisco) | ✗ the line said 限速 (a limit): **fixed** |
+| Vermont: seven turns, steeper than Lombard, sinuosity 1.56 vs 1.2 | https://en.wikipedia.org/wiki/Vermont_Street_(San_Francisco) | ✓ |
+| Filbert Steps ≈ 400 steps, gardens either side; Filbert St ties sixth steepest | https://en.wikipedia.org/wiki/Filbert_Street_(San_Francisco) | ✓ |
+| 16th Avenue Tiled Steps: 163 steps, 2,000+ tiles, handmade | https://en.wikipedia.org/wiki/16th_Avenue_Tiled_Steps ("over 2,000 unique tiles"), https://www.16thavenuetiledsteps.com/ ("handmade named tiles") | ✓ (手工 rests on the project's own site; the line is already recorded) |
+| Golden Gate towers 746 ft (227 m) over the water; "international orange" | https://en.wikipedia.org/wiki/Golden_Gate_Bridge | ✓ |
+| The Golden Gate opened in 1937 (通车) | same page: opened to the public on May 27, 1937 | ✓ |
+| Sea otters float on their backs, chest as a table; loose-skin pockets under each forearm | https://www.montereybayaquarium.org/animals/animals-a-to-z/sea-otter | ✓ |
+| A cable-car bell ringing contest with a division for grips and conductors (the 53rd: 7 July 2016, Union Square) | https://www.sfmta.com/press-releases/sfmta-announces-winners-53rd-cable-car-bell-ringing-contest | ✓ (said without a date) |
+| The Powell lines' turntables are manually powered | https://en.wikipedia.org/wiki/San_Francisco_cable_car_system | ✓ |
+| Hyde Street Pier closed, its ships at Mare Island (the view spot moved to Aquatic Park) | https://www.nps.gov/safr/planyourvisit/basicinfo.htm | ✓ |
+| Mount Davidson the highest natural point in the city, 928 ft | https://en.wikipedia.org/wiki/Mount_Davidson_(California) | ✓ |
+
+### Defects found and fixed (commit prefix `W5-A-review:`)
+
+1. **The Golden Gate rings hijacked lane F's scenic auto-glide** (the owner's one-tap trip, F4). *Played*: an auto-glide
+   from Crissy Field to the bridge's south end started 金门大桥金圈 over the trip's own line, the autopilot crossed a ring
+   by chance and the landing showed **○ 再试试 · 穿过 1 / 8 个金圈**. Now `zones.ts` never starts it while `autoGliding()`,
+   `startFirstFlight` refuses during one, a trip taking the wings ends any ring course at no cost, and an unasked Golden
+   Gate course that ends below the first medal ends quietly. The same run after the fix: the trip's
+   坐稳啦～想自己飞，动一下就接管 stays, the landing has no card (`review-ggb-autoglide-*-after-desktop.jpg`).
+2. **Leaving the city with an activity running kept the feet held.** An `activity` hold is self-explained to lane F's
+   lock watchdog (`SELF_EXPLAINED`: never dropped) and `play/index.ts` teardown did not end the running run, so a toast,
+   a slide, a count or a sled left behind when the page or route left the city held the player on the next visit (the
+   owner's F1). Teardown now cancels it, stands a seat up and saves the steps not yet saved.
+3. **Settings → 重置进度 did not reset lane A.** The session's bests shadowed the fresh save, the medals were not asked
+   again that session, a first crest hop after a reset read 5 / 12, and the step counter's next save wrote the old count
+   back into the cleared save. `onSaveCleared` now clears the kit's session state, the view finds, the crest set and
+   the counter.
+4. **滑草 offered where the slide stops at once, and the card said "u".** *Played* at Dolores Park: 1 u into a lamp post,
+   **○ 再试试 · 滑了 1 u · 最快 1.6 u/s** (`review-sled-1u-lamp-post-u-unit-before-desktop.jpg`). On the published city half
+   of the offers on Dolores Park (32 / 62) and most on Buena Vista (51 / 71) slid under 6 u. The offer now runs the sled's
+   own motion for 6 u (a ● medal) on grass: 30 offers on Dolores, 7 on Buena Vista, every one sliding ≥ 6.7 u; the chip
+   and the card say 米 / m (`review-sled-card-metres-after-desktop.jpg`: 滑了 14 米 · 最快每秒 3.8 米).
+5. **滑草 over a seat.** *Played*: seated at the Dolores view spot (whose prompt goes while you sit there), the E prompt
+   read 滑草 · 坐纸板滑下去 (`review-sled-prompt-over-seat-before-desktop.jpg`), and a slide from a seat is stood up by the
+   seat's own watcher (the rider slid standing). Not offered over a seat any more.
+6. **The ● slide ended with the start's 坐稳啦——冲！** (heard after a 14 m slide): now 滑得真顺～ (a new line).
+7. **Lombard's line said 限速每小时 5 英里**; the sign recommends it: 九曲花街的路牌建议每小时 5 英里——慢慢开，别碰到花坛！
+   (a part-c line, not recorded yet).
+8. **Per-frame objects**: the marshmallow layer made ≈ 20 `Vector3` a frame, the frisbee two, the rings one; now scratch
+   vectors.
+
+Tests (4 new, 2 extended, `tests/opus-bay-w5-play-acts.test.ts`; each red on `a6fcb6f4`, green after): the Golden Gate
+rings vs the auto-glide, leaving the city, reset progress, 滑草 never over a seat; the sled test (every offer round the
+lawn slides ≥ 6 u, the lamp post, 米, the line at the foot) and the crooked-blocks test (never 限速).
+
+### Open (not changed; for the lane / the lead)
+
+- **Mashing the bell reaches ★ 爵士大师.** A tap every ≈ 0.1 s hits every answer beat (±150 ms round beats 0.55 s apart)
+  and almost every freestyle slot (±0.1 s round slots 0.18 s apart). A design call ("never failed"); a gentle fix would
+  let a missed tap spend its beat and count jazzy taps only ≥ 0.15 s apart.
+- **The rings chunk loads, and its material is warmed (late pass), only when the first flight starts**, i.e. at lane
+  C's hand-off moment. Prefetching `play/rings` at the unlock would move that compile off the moment (lane V to measure).
+- The heave-ho prompt (12.5 u, a hair over lane T's own 12 u 帮忙推) takes the E focus over the Powell & Market boarding
+  prompt while a car turns there: inherited from T's prompt, noted.
+- Small per-frame garbage left: the stair race's `lineProgress` objects, the bell pad's React re-render each frame during
+  the 20 s riff.
+- Voice (lane V, tag A): the changed Lombard line and the new 滑得真顺～ are unrecorded; no recorded line changed.
+- From the lane's own list, still open: the painted view card image, Karl / dusk lights in the slow look, the crowd's
+  wave-back shot, hide & seek, the Lyon Street course, the crooked descent by vehicle.
+
+### Evidence
+
+- Scratch: `C:/Users/willy/opus-qa/w5/w5-a/review/` (`rv.mjs` scenarios ggbauto, f1, phone, verify, verify2; the sled
+  probe `probe-sled.mts`; every log and image, each image read). Eight shots kept: `docs/opus-bay/qa/w5/A/review-*.jpg`.
+- Checks on the review's code rebased on `4adab3b1`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors
+  (43 old warnings outside `src/opus-bay`) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1346 / 1346**, fail 0.
+- npx, tsx, tsc and eslint worked from the node_modules junction; nothing was repaired. The dev server on 5508 is
+  stopped at the end.
