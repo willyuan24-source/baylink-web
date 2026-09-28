@@ -65,6 +65,12 @@ export interface FLineOptions {
   viewer?: () => { x: number; z: number; onFoot: boolean };
   /** cars (default 4) */
   cars?: number;
+  /**
+   * Wave 4 (lane T): the distance (u) from a car's centre to the nearest sightseeing bus on its track ahead (the loop
+   * shares Market St and crosses the hero U-turn), ∞ / undefined if none: the car stops short of it (the bus in turn
+   * waits at its interlock boxes while a car is in the F-line's part).
+   */
+  roadAhead?: (car: FCar) => number;
 }
 
 /** The platform id and ride line of the F-line (the district's, kept in city mode). */
@@ -223,6 +229,25 @@ export class StreetcarSystem {
       if (body && body[1] > lo + 0.1 && body[0] < hi - 0.1 && this.dirAt(o.u) !== 0) return false;
     }
     void b;
+    return true;
+  }
+
+  /**
+   * Wave 4 (lane T's integration): the car may take block `need.k` only when no car ahead of it on the way to its hold
+   * point waits for the same block. Cars are stepped in index order, so when a car released a block mid-frame the one
+   * behind in the queue (stepped later) used to get it first: at the Castro loop exit the car behind then held the single
+   * track while the car ahead of it waited at the hold point for it — a jam for good (seen once another delay, a
+   * sightseeing bus in a shared box, lined two cars up there).
+   */
+  private firstInLine(car: FCar, need: { k: number; hold: number }): boolean {
+    const L = this.line, reach = this.toHold(car, need.hold) + FL.length;
+    for (const o of this.cars) {
+      if (o === car || o.blocks.includes(need.k)) continue;
+      const d = aheadU(L, car.u, o.u);
+      if (d <= 0 || d > reach) continue;
+      const on = this.nextNeed(o);
+      if (on && on.k === need.k) return false;
+    }
     return true;
   }
 
@@ -495,7 +520,7 @@ export class StreetcarSystem {
       if (car.timer <= 0) this.leave(car, need);
     } else {
       // try for the next block early enough to keep going
-      if (need && this.toHold(car, need.hold) < (car.v * car.v) / (2 * FL.dec) + 14 && this.canTake(car, need.k, need.dir)) this.take(car, need.k, need.dir);
+      if (need && this.toHold(car, need.hold) < (car.v * car.v) / (2 * FL.dec) + 14 && this.firstInLine(car, need) && this.canTake(car, need.k, need.dir)) this.take(car, need.k, need.dir);
       const need2 = this.nextNeed(car);
       let limit = this.curveLimit(car);
       const next = this.nextStop(car);
@@ -506,6 +531,10 @@ export class StreetcarSystem {
       let gap = Infinity;
       for (const o of this.cars) if (o !== car) gap = Math.min(gap, aheadU(L, car.u, o.u) - FL.length - FL.gap);
       limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, gap)));
+      // a sightseeing bus on the track ahead (wave 4): stop short of it
+      const road = this.opts.roadAhead?.(car);
+      const roadGap = road !== undefined && road < Infinity ? road - FL.half - 1.5 : Infinity;
+      if (roadGap < Infinity) limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, roadGap)));
       // someone standing on the track ahead: slow, stop short, ring
       const viewer = this.opts.viewer?.();
       if (viewer?.onFoot) {
@@ -521,6 +550,7 @@ export class StreetcarSystem {
       if (next && step >= next.d) step = next.d;
       if (step > holdD) step = Math.max(0, holdD);
       if (step > gap && gap >= 0) step = Math.max(0, gap);
+      if (step > roadGap) step = Math.max(0, roadGap);
       car.u = wrapU(L, car.u + step);
       if (car.rider) car.odometer += step;
       if (next && next.d - step < 0.03 && !stopReq) this.arrive(car, next.index);
@@ -562,7 +592,7 @@ export class StreetcarSystem {
     if (this.status && this.riderCar === car.index && this.status.phase === 'here') { car.timer = 0.3; return; }
     if (car.rider && platformStop(FLINE_ID)) { car.timer = 0.3; return; }
     if (need && this.toHold(car, need.hold) < 16) {
-      if (!this.canTake(car, need.k, need.dir)) { car.timer = 0.25; return; }
+      if (!this.firstInLine(car, need) || !this.canTake(car, need.k, need.dir)) { car.timer = 0.25; return; }
       this.take(car, need.k, need.dir);
     }
     car.mode = 'run';

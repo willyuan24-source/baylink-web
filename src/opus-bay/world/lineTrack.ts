@@ -228,3 +228,67 @@ export function proximitySpans(a: Pick<LineTrack, 'xyz' | 'cum' | 'length' | 'lo
   }
   return out;
 }
+
+/** A vehicle body for bodySpans: half length and half width (u), plus a lateral allowance (passing offsets, kerb shift). */
+export interface BodyDims { halfL: number; halfW: number; margin?: number }
+
+/**
+ * Where a vehicle running on track `a` and one on track `b` could touch (wave 4 · lane T, the interlock boxes): both
+ * bodies are rectangles on their tracks (centre at the arc, heading along the chord over the body), sampled every 1 u;
+ * every pair within reach is tested (separating axes). Returns the arc spans on `a` (merged over `merge` u) with the
+ * arcs on `b` that touched them; a span never joins hits whose `b` arcs jump by more than 20 u (two lanes of a street,
+ * the two ends of a loop). Unlike proximitySpans this sees a body sweeping out in a tight turn (a bus's hairpin near a
+ * streetcar terminal). Pure.
+ */
+export function bodySpans(a: Pick<LineTrack, 'xyz' | 'cum' | 'length' | 'loop'>, ab: BodyDims, b: Pick<LineTrack, 'xyz' | 'cum' | 'length' | 'loop'>, bb: BodyDims, merge = 4): { a0: number; a1: number; b0: number; b1: number }[] {
+  const CELL = 8;
+  const pa = { x: 0, y: 0, z: 0, heading: 0, grade: 0 }, pf = { ...pa }, pr = { ...pa };
+  // the body pose at arc s: centre on the track, heading along the chord between its ends
+  const pose = (t: Pick<LineTrack, 'xyz' | 'cum' | 'length' | 'loop'>, sArc: number, half: number) => {
+    trackPoint(t, sArc, pa);
+    trackPoint(t, sArc + half * 0.8, pf); trackPoint(t, sArc - half * 0.8, pr);
+    const h = Math.hypot(pf.x - pr.x, pf.z - pr.z) > 0.3 ? Math.atan2(pf.x - pr.x, pf.z - pr.z) : pa.heading;
+    return { x: pa.x, z: pa.z, h };
+  };
+  const grid = new Map<number, { s: number; x: number; z: number; h: number }[]>();
+  const key = (cx: number, cz: number) => (cx + 4096) * 8192 + (cz + 4096);
+  for (let sb = 0; sb <= b.length; sb += 1) {
+    const q = pose(b, sb, bb.halfL);
+    const k = key(Math.floor(q.x / CELL), Math.floor(q.z / CELL));
+    let list = grid.get(k);
+    if (!list) grid.set(k, (list = []));
+    list.push({ s: sb, ...q });
+  }
+  const aw = ab.halfW + (ab.margin ?? 0), bw = bb.halfW + (bb.margin ?? 0);
+  const reach = ab.halfL + bb.halfL + aw + bw;
+  const cellsOut = Math.ceil(reach / CELL);
+  // separating axes of two rectangles (centre, heading h, half length l, half width w)
+  const proj = (x: number, z: number, h: number, l: number, w: number, ax: number, az: number): [number, number] => {
+    const fx = Math.sin(h), fz = Math.cos(h);
+    const c = x * ax + z * az, r = Math.abs((fx * ax + fz * az) * l) + Math.abs((fz * ax - fx * az) * w);
+    return [c - r, c + r];
+  };
+  const touch = (A: { x: number; z: number; h: number }, B: { x: number; z: number; h: number }) => {
+    for (const h of [A.h, A.h + Math.PI / 2, B.h, B.h + Math.PI / 2]) {
+      const ax = Math.sin(h), az = Math.cos(h);
+      const [a0, a1] = proj(A.x, A.z, A.h, ab.halfL, aw, ax, az), [b0, b1] = proj(B.x, B.z, B.h, bb.halfL, bw, ax, az);
+      if (a1 < b0 || b1 < a0) return false;
+    }
+    return true;
+  };
+  const out: { a0: number; a1: number; b0: number; b1: number }[] = [];
+  for (let s = 0; s <= a.length; s += 1) {
+    const A = pose(a, s, ab.halfL);
+    const cx = Math.floor(A.x / CELL), cz = Math.floor(A.z / CELL);
+    for (let i = -cellsOut; i <= cellsOut; i++) for (let j = -cellsOut; j <= cellsOut; j++) {
+      const list = grid.get(key(cx + i, cz + j));
+      if (!list) continue;
+      for (const B of list) {
+        if (Math.abs(B.x - A.x) > reach || Math.abs(B.z - A.z) > reach || !touch(A, B)) continue;
+        const span = out.find(o => s - o.a1 <= merge && B.s >= o.b0 - 20 && B.s <= o.b1 + 20);
+        if (span) { span.a1 = Math.max(span.a1, s); span.b0 = Math.min(span.b0, B.s); span.b1 = Math.max(span.b1, B.s); } else out.push({ a0: s, a1: s, b0: B.s, b1: B.s });
+      }
+    }
+  }
+  return out.sort((p, q) => p.a0 - q.a0);
+}

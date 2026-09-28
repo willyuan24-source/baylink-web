@@ -82,13 +82,34 @@ export class RailLayer {
     }
   }
 
-  /** Build one cell's rails (null while the terrain there is not exact yet). */
+  /**
+   * Build one cell's rails (null while the terrain there is not exact yet). The track is sampled in 0.8 u steps (2 u on
+   * the F-line's straights); consecutive steps that keep their heading and slope (< 0.012 rad) are laid as one run
+   * (≤ 14 u, W4-T14 / C2 w3 part b request 3: Chinatown drew ≈ 10k rail triangles in 0.8 u boxes), the cable slot's
+   * cover plates stay every 2.4 u.
+   */
   private build(cell: Cell): Batch | null {
     if (residentGround(cell.probe.x, cell.probe.z) === null) return null;
     const b = new Batch();
     const pa = { x: 0, y: 0, z: 0, heading: 0, grade: 0 }, pb = { ...pa };
+    type Step = { ax: number; az: number; ay: number; bx: number; bz: number; by: number; yaw: number; pitch: number; s: number };
+    const lay = (piece: Piece, lift: number, r: Step, last: Step) => {
+      const dx = last.bx - r.ax, dz = last.bz - r.az, len = Math.hypot(dx, dz);
+      if (len < 1e-3) return;
+      const yaw = Math.atan2(dx, dz), pitch = -Math.atan2(last.by - r.ay, len);
+      const cx = (r.ax + last.bx) / 2, cz = (r.az + last.bz) / 2, cy = (r.ay + last.by) / 2;
+      const lx = Math.cos(yaw), lz = -Math.sin(yaw);
+      for (const o of [-RAIL_GAUGE, RAIL_GAUGE]) b.add(BOX(), M(cx + lx * o, cy - 0.03, cz + lz * o, yaw, 0.1, 0.06, len + 0.02, pitch), '#8d8a84', RAIL);
+      if (!piece.cable) {
+        // the F-line's paved track bed across the hero plaza (the district's trackbed colour)
+        if (lift < 0.05) b.add(BOX(), M(cx, cy - 0.034, cz, yaw, RAIL_GAUGE * 2 + 0.55, 0.014, len + 0.04, pitch), '#a39886', RAIL);
+        return;
+      }
+      b.add(BOX(), M(cx, cy - 0.03, cz, yaw, 0.07, 0.052, len + 0.02, pitch), '#3f3a35', RAIL);
+    };
     for (const piece of cell.pieces) {
       let e: number;
+      let run: Step | null = null, last: Step | null = null, runLift = 0;
       for (let s = piece.a; s < piece.b - 1e-3; s = e) {
         // the F-line's plain rails take 2 u steps where the track is straight (0.8 on curves and on cable tracks)
         e = Math.min(piece.b, s + (piece.cable ? 0.8 : 2));
@@ -104,19 +125,18 @@ export class RailLayer {
         const ya = (residentGround(pa.x, pa.z) ?? pa.y) + lift, yb = (residentGround(pb.x, pb.z) ?? pb.y) + lift;
         const dx = pb.x - pa.x, dz = pb.z - pa.z, len = Math.hypot(dx, dz);
         if (len < 1e-3) continue;
-        const yaw = Math.atan2(dx, dz), pitch = -Math.atan2(yb - ya, len);
-        const cx = (pa.x + pb.x) / 2, cz = (pa.z + pb.z) / 2, cy = (ya + yb) / 2;
-        const lx = Math.cos(yaw), lz = -Math.sin(yaw);
-        for (const o of [-RAIL_GAUGE, RAIL_GAUGE]) b.add(BOX(), M(cx + lx * o, cy - 0.03, cz + lz * o, yaw, 0.1, 0.06, len + 0.02, pitch), '#8d8a84', RAIL);
-        if (!piece.cable) {
-          // the F-line's paved track bed across the hero plaza (the district's trackbed colour)
-          if (lift < 0.05) b.add(BOX(), M(cx, cy - 0.034, cz, yaw, RAIL_GAUGE * 2 + 0.55, 0.014, len + 0.04, pitch), '#a39886', RAIL);
-          continue;
+        const step: Step = { ax: pa.x, az: pa.z, ay: ya, bx: pb.x, bz: pb.z, by: yb, yaw: Math.atan2(dx, dz), pitch: -Math.atan2(yb - ya, len), s };
+        if (piece.cable && Math.round(s / 0.8) % 3 === 0) {
+          // sleepers-in-the-road plates every third step (a hint of the conduit covers)
+          b.add(BOX(), M((pa.x + pb.x) / 2, (ya + yb) / 2 - 0.035, (pa.z + pb.z) / 2, step.yaw, RAIL_GAUGE * 2 + 0.4, 0.045, 0.22, step.pitch), '#6d6861', RAIL);
         }
-        b.add(BOX(), M(cx, cy - 0.03, cz, yaw, 0.07, 0.052, len + 0.02, pitch), '#3f3a35', RAIL);
-        // sleepers-in-the-road plates every other step (a hint of the conduit covers)
-        if (Math.round(s / 0.8) % 3 === 0) b.add(BOX(), M(cx, cy - 0.035, cz, yaw, RAIL_GAUGE * 2 + 0.4, 0.045, 0.22, pitch), '#6d6861', RAIL);
+        const keeps = run && last && lift === runLift && Math.abs(Math.atan2(Math.sin(step.yaw - run.yaw), Math.cos(step.yaw - run.yaw))) < 0.012
+          && Math.abs(step.pitch - run.pitch) < 0.012 && Math.hypot(step.bx - run.ax, step.bz - run.az) <= 14;
+        if (keeps) { last = step; continue; }
+        if (run && last) lay(piece, runLift, run, last);
+        run = step; last = step; runLift = lift;
       }
+      if (run && last) lay(piece, runLift, run, last);
     }
     return b;
   }

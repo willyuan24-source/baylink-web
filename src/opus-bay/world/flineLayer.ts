@@ -8,7 +8,7 @@ import { DISTRICT } from '../data/district';
 import { FL, type FLine, buildFLine, centreAt, laneOffset, sAtU } from '../data/fline';
 import { type TransitLineJson, activeStreetcarSystem, setActiveStreetcarSystem } from '../data/transit';
 import { TOY_INST, U } from './materials';
-import { FLINE_ID, StreetcarSystem } from './flineSystem';
+import { type FCar, FLINE_ID, type FLineOptions, StreetcarSystem } from './flineSystem';
 import type { RailTrack } from './rails';
 import { carFarGeometry, carGeometry } from './streetcar';
 
@@ -23,6 +23,8 @@ import { carFarGeometry, carGeometry } from './streetcar';
  */
 
 const LIVERIES = ['#2f7d5a', '#e0874a'];
+/** the cars' two liveries (car i has livery i % 2): the transit layer draws them in lane T's fleet meshes (setDrawer) */
+export const FLINE_LIVERIES: readonly string[] = LIVERIES;
 const FAR_LOD = 110;
 const HIDE = 320;
 const HEAR = 48;
@@ -76,7 +78,7 @@ export class FLineLayer {
   private near: THREE.InstancedMesh[] = [];
   private far: THREE.InstancedMesh[] = [];
 
-  constructor(line: FLine, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null) {
+  constructor(line: FLine, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead'> = {}) {
     this.line = line;
     this.group.name = 'city-fline';
     this.group.matrixAutoUpdate = false;
@@ -84,6 +86,7 @@ export class FLineLayer {
       groundY,
       visible,
       viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+      roadAhead: opts.roadAhead,
     });
     setActiveStreetcarSystem(this.sys);
     const perLivery = Math.ceil(this.sys.cars.length / LIVERIES.length);
@@ -117,6 +120,18 @@ export class FLineLayer {
     this.isActive = on;
     this.group.visible = on;
   }
+  /**
+   * Wave 4 (lane T, W4-T14): draw the cars through someone else's meshes (world/sf/lineFleet.ts drawExtra: every city
+   * line's vehicles in 2 calls + 1 shadow call, a shadow only near the camera) instead of this layer's own InstancedMeshes.
+   * `fn(car index, pose, hidden)` is called for every car every frame (hidden: inactive, or beyond 320 u).
+   */
+  setDrawer(fn: ((car: number, pose: FCar['pose'], hidden: boolean) => void) | null) {
+    this.drawer = fn;
+    for (const m of [...this.near, ...this.far]) { m.visible = false; m.count = 0; }
+    if (fn) this.group.remove(...this.near, ...this.far);
+    else this.group.add(...this.near, ...this.far);
+  }
+  private drawer: ((car: number, pose: FCar['pose'], hidden: boolean) => void) | null = null;
   private isActive = true;
   /** instances per livery this frame (near / far), reused */
   private readonly nNear = [0, 0];
@@ -127,11 +142,17 @@ export class FLineLayer {
     // a ride the game ended some other way (a trip, a reset): the cars forget the rider
     if (sys.rideStatus() && currentRide()?.line !== FLINE_ID) sys.cancel();
     sys.step(dt);
-    if (!this.isActive) { sys.events.length = 0; return; }
     const cam = U.uCam.value, p = runtime.player;
+    const draw = this.drawer;
+    if (!this.isActive) {
+      if (draw) for (const car of sys.cars) draw(car.index, car.pose, true);
+      sys.events.length = 0;
+      return;
+    }
     const n = this.nNear, nf = this.nFar;
     n.fill(0); nf.fill(0);
-    for (const car of sys.cars) {
+    if (draw) for (const car of sys.cars) draw(car.index, car.pose, Math.hypot(car.pose.x - cam.x, car.pose.z - cam.z) > HIDE);
+    else for (const car of sys.cars) {
       const q = car.pose, liv = car.index % LIVERIES.length;
       const d = Math.hypot(q.x - cam.x, q.z - cam.z);
       if (d > HIDE) continue;
@@ -139,7 +160,7 @@ export class FLineLayer {
       tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE);
       if (d > FAR_LOD) this.far[liv].setMatrixAt(nf[liv]++, tmpM); else this.near[liv].setMatrixAt(n[liv]++, tmpM);
     }
-    for (let i = 0; i < LIVERIES.length; i++) {
+    if (!draw) for (let i = 0; i < LIVERIES.length; i++) {
       const m = this.near[i], f = this.far[i];
       m.count = n[i]; m.visible = n[i] > 0; m.instanceMatrix.needsUpdate = true;
       f.count = nf[i]; f.visible = nf[i] > 0; f.instanceMatrix.needsUpdate = true;
@@ -195,7 +216,7 @@ export class FLineLayer {
 }
 
 /** Build the city F-line layer from the published route (null without it). */
-export function createFLineLayer(json: TransitLineJson | null, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null): FLineLayer | null {
+export function createFLineLayer(json: TransitLineJson | null, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead'> = {}): FLineLayer | null {
   const line = buildFLine(json ?? undefined, DISTRICT.streetcar);
-  return line ? new FLineLayer(line, visible, groundY) : null;
+  return line ? new FLineLayer(line, visible, groundY, opts) : null;
 }

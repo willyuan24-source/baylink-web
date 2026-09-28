@@ -4,7 +4,7 @@ import { emitAt } from '../../audio/cityHooks';
 import { emit } from '../../core/events';
 import { W4_LINES, stationAttractions } from '../../data/sf/stationNames';
 import { BUS, type Bus, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../busSystem';
-import { type LineTrack, proximitySpans } from '../lineTrack';
+import { type BodyDims, type LineTrack, bodySpans, proximitySpans } from '../lineTrack';
 import { LRV, LightRailSystem, type RailEvent, TRAIN_LENGTH, type Train, railTrack } from '../lightRail';
 import { patchToyShader } from '../materials';
 import type { CarPose } from '../transitLine';
@@ -43,6 +43,18 @@ const stopAttraction = (station: string | null | undefined): string | undefined 
 /** vehicles farther than this from the camera draw the far version (no shadow) */
 export const FAR_LOD = 110;
 export const HIDE_BEYOND = 300;
+/**
+ * Vehicles cast a shadow only this near the camera (W4-T14 + C2 w3 part b request 3: at Chinatown the cable cars and
+ * streetcars drew 23k main + 10k shadow triangles in 9 + 4 calls); between this and FAR_LOD the full vehicle is drawn
+ * by the non-casting mesh.
+ */
+export const SHADOW_NEAR = 60;
+
+/**
+ * Another layer's vehicles drawn in the fleet's meshes (integration: the cable cars and the city F-line's cars), so every
+ * vehicle of the city's lines costs the same 2 calls + 1 shadow call: `count` vehicles of one look, near + far geometry.
+ */
+export interface ExtraVehicleKind { key: string; near: THREE.BufferGeometry; far: THREE.BufferGeometry; count: number }
 const HEAR = 60;
 
 export interface FleetInput {
@@ -50,6 +62,8 @@ export interface FleetInput {
   metro: TransitLine[];
   /** where each stop's pole / kiosk stands (the sidecar's placement on the built city), by stop id */
   props?: Readonly<Record<string, readonly [number, number]>>;
+  /** other layers' vehicles to draw here (drawExtra) */
+  extra?: ExtraVehicleKind[];
 }
 
 export interface FleetOptions {
@@ -65,6 +79,15 @@ export interface FleetOptions {
   /** the other road users (world/sf/streetNet.ts collectRoadVehicles): buses keep behind toy cars in their lane */
   roadUsers?: (out: RoadVehicle[]) => RoadVehicle[];
 }
+
+/**
+ * The near vehicles' shadow-pass material: a MeshDepthMaterial of their own (BackSide, the side three's shadow pass uses
+ * for a FrontSide caster), so the batched depth program is looked up for this kind only. Module-level, never disposed.
+ * Its program (batching + colours, no fog, into the shadow map) needs warming like the plain casters' (lane V: the
+ * warm-up's shadowDepthSet).
+ */
+export const FLEET_DEPTH = new THREE.MeshDepthMaterial({ side: THREE.BackSide });
+FLEET_DEPTH.name = 'ob-depth-batched';
 
 /** One material instance per batched mesh: the TOY patch under the 'ob-toy' key (same program family as the pools). */
 export function makeFleetMaterial(name: string): THREE.MeshStandardMaterial {
@@ -91,7 +114,8 @@ function batched(geos: THREE.BufferGeometry[], counts: number[], material: THREE
   return { mesh, ids };
 }
 
-interface VehicleSlot { near: number; far: number; tris: number; farTris: number }
+/** One vehicle's three instances: the casting near mesh (≤ SHADOW_NEAR), the full look in the far mesh (≤ FAR_LOD), the far look. */
+interface VehicleSlot { near: number; mid: number; far: number; tris: number; farTris: number }
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -111,6 +135,8 @@ export class LineFleet {
   private busSlots: VehicleSlot[] = [];
   /** per train: its two cars */
   private carSlots: VehicleSlot[][] = [];
+  /** other layers' vehicles (ExtraVehicleKind), by key */
+  private extraSlots = new Map<string, VehicleSlot[]>();
   private propSlots: { id: number; x: number; z: number; tris: number }[] = [];
   private opts: FleetOptions;
   private propT = 0;
@@ -136,25 +162,36 @@ export class LineFleet {
     this.materials = [nearMat, farMat, propMat];
     const lineColor = (id: string) => (id === 'n-judah' ? W4_LINES['n-judah'].color : W4_LINES['m-ocean-view'].color);
     const metroIds = input.metro.map(l => l.id);
-    const nearGeos = [tourBusGeometry(), ...metroIds.map(id => lrvCarGeometry(lineColor(id)))];
-    const farGeos = [tourBusFarGeometry(), ...metroIds.map(id => lrvCarFarGeometry(lineColor(id)))];
+    const extra = input.extra ?? [];
+    const nearGeos = [tourBusGeometry(), ...metroIds.map(id => lrvCarGeometry(lineColor(id))), ...extra.map(e => e.near)];
+    const farGeos = [tourBusFarGeometry(), ...metroIds.map(id => lrvCarFarGeometry(lineColor(id))), ...extra.map(e => e.far)];
     const trainsOf = (id: string) => this.rail.trains.filter(t => t.track.id === id).length * 2;
-    const counts = [this.bus.buses.length, ...metroIds.map(trainsOf)];
+    const counts = [this.bus.buses.length, ...metroIds.map(trainsOf), ...extra.map(e => e.count)];
+    // near: the full look, casting (≤ SHADOW_NEAR); far: the full look (≤ FAR_LOD) and the far look, no shadows
     const n = batched(nearGeos, counts, nearMat, 'w4-vehicles');
-    const f = batched(farGeos, counts, farMat, 'w4-vehicles-far');
+    const f = batched([...nearGeos, ...farGeos], [...counts, ...counts], farMat, 'w4-vehicles-far');
     this.near = n.mesh; this.far = f.mesh;
     this.near.castShadow = true;
     this.near.receiveShadow = true;
+    // the batched casters' own depth material (one per object kind, like materials.ts kindSweep's instanced / skinned
+    // ones): three's shared depth material would switch programs between plain and batched casters every frame
+    this.near.customDepthMaterial = FLEET_DEPTH;
     this.far.receiveShadow = false;
     const triOf = (g: THREE.BufferGeometry) => g.getIndex()!.count / 3;
+    const G = nearGeos.length;
     const slot = (gi: number): VehicleSlot => {
-      const a = this.near.addInstance(n.ids[gi]), b = this.far.addInstance(f.ids[gi]);
-      this.near.setColorAt(a, WHITE); this.far.setColorAt(b, WHITE);
-      this.near.setVisibleAt(a, false); this.far.setVisibleAt(b, false);
-      return { near: a, far: b, tris: triOf(nearGeos[gi]), farTris: triOf(farGeos[gi]) };
+      const a = this.near.addInstance(n.ids[gi]), m = this.far.addInstance(f.ids[gi]), b = this.far.addInstance(f.ids[G + gi]);
+      this.near.setColorAt(a, WHITE); this.far.setColorAt(m, WHITE); this.far.setColorAt(b, WHITE);
+      this.near.setVisibleAt(a, false); this.far.setVisibleAt(m, false); this.far.setVisibleAt(b, false);
+      return { near: a, mid: m, far: b, tris: triOf(nearGeos[gi]), farTris: triOf(farGeos[gi]) };
     };
     for (let k = 0; k < this.bus.buses.length; k++) this.busSlots.push(slot(0));
     for (const t of this.rail.trains) { const gi = 1 + metroIds.indexOf(t.track.id); this.carSlots.push([slot(gi), slot(gi)]); }
+    extra.forEach((e, k) => {
+      const gi = 1 + metroIds.length + k, list: VehicleSlot[] = [];
+      for (let i = 0; i < e.count; i++) list.push(slot(gi));
+      this.extraSlots.set(e.key, list);
+    });
 
     // --- stops, kiosks, portals (static)
     this.props = stationProps([input.loop, ...input.metro], opts.groundY, input.props);
@@ -214,17 +251,27 @@ export class LineFleet {
   /** Portal events of the rider's train (`portal-in`: start the subway overlay, `portal-out`: cut to the LRV emerging). */
   onPortal(fn: (e: RailEvent) => void): () => void { this.portalListeners.add(fn); return () => { this.portalListeners.delete(fn); }; }
 
-  /** Draw one vehicle (near / far / hidden by its camera distance). No allocation: it runs for every vehicle every frame. */
+  /**
+   * Draw one vehicle (near with its shadow / the full look without / far / hidden, by its camera distance). No
+   * allocation: it runs for every vehicle every frame.
+   */
   private show(slot: VehicleSlot, pose: CarPose, hidden: boolean, cam: { x: number; z: number }) {
     const d = Math.hypot(pose.x - cam.x, pose.z - cam.z);
-    const nearOn = !hidden && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
+    const nearOn = !hidden && d <= SHADOW_NEAR, midOn = !hidden && d > SHADOW_NEAR && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
     this.near.setVisibleAt(slot.near, nearOn);
+    this.far.setVisibleAt(slot.mid, midOn);
     this.far.setVisibleAt(slot.far, farOn);
-    if (!nearOn && !farOn) return;
+    if (!nearOn && !midOn && !farOn) return;
     tmpQ.setFromEuler(tmpE.set(-pose.pitch, pose.heading, pose.roll, 'YXZ'));
     tmpM.compose(tmpP.set(pose.x, pose.y, pose.z), tmpQ, ONE);
     if (nearOn) this.near.setMatrixAt(slot.near, tmpM);
-    else this.far.setMatrixAt(slot.far, tmpM);
+    else this.far.setMatrixAt(midOn ? slot.mid : slot.far, tmpM);
+  }
+
+  /** Draw vehicle `i` of another layer's kind `key` (ExtraVehicleKind) for a camera at `cam` (xz). */
+  drawExtra(key: string, i: number, pose: CarPose, hidden: boolean, cam: { x: number; z: number }) {
+    const slot = this.extraSlots.get(key)?.[i];
+    if (slot) this.show(slot, pose, hidden, cam);
   }
 
   /** Step the systems and draw them for a camera at `cam` (xz), the player at `player`. */
@@ -367,16 +414,17 @@ export class LineFleet {
   }
 
   /** Draw data for QA and the budget test: instances and triangles drawn this frame (shadow pass counted separately). */
-  stats(): { calls: number; shadowCalls: number; tris: number; shadowTris: number; nearVehicles: number; farVehicles: number; props: number } {
-    let tris = 0, shadowTris = 0, nearV = 0, farV = 0, props = 0;
+  stats(): { calls: number; shadowCalls: number; tris: number; shadowTris: number; nearVehicles: number; midVehicles: number; farVehicles: number; props: number } {
+    let tris = 0, shadowTris = 0, nearV = 0, midV = 0, farV = 0, props = 0;
     const vis = (m: THREE.BatchedMesh, id: number) => m.getVisibleAt(id);
-    for (const s of [...this.busSlots, ...this.carSlots.flat()]) {
+    for (const s of [...this.busSlots, ...this.carSlots.flat(), ...[...this.extraSlots.values()].flat()]) {
       if (vis(this.near, s.near)) { tris += s.tris; shadowTris += s.tris; nearV++; }
+      if (vis(this.far, s.mid)) { tris += s.tris; midV++; }
       if (vis(this.far, s.far)) { tris += s.farTris; farV++; }
     }
     for (const p of this.propSlots) if (vis(this.staticMesh, p.id)) { tris += p.tris; props++; }
-    const calls = (nearV ? 1 : 0) + (farV ? 1 : 0) + (props ? 1 : 0);
-    return { calls, shadowCalls: nearV ? 1 : 0, tris, shadowTris, nearVehicles: nearV, farVehicles: farV, props };
+    const calls = (nearV ? 1 : 0) + (midV || farV ? 1 : 0) + (props ? 1 : 0);
+    return { calls, shadowCalls: nearV ? 1 : 0, tris, shadowTris, nearVehicles: nearV, midVehicles: midV, farVehicles: farV, props };
   }
 
   dispose() {
@@ -408,17 +456,21 @@ registerWarmup('w4-lines', () => {
  * `blockedBy(line, b0, b1)` answers whether that line has a vehicle in its part [b0, b1] (integration: the cable-car
  * spans of CableSystem, the hero streetcar's position).
  */
-export function busInterlocks(bus: LineTrack, others: Pick<TransitLine, 'id' | 'path' | 'tunnels'>[], blockedBy: (line: string, b0: number, b1: number) => boolean, dist = BUS.width / 2 + 1.4): InterlockBox[] {
+export function busInterlocks(bus: LineTrack, others: (Pick<TransitLine, 'id' | 'path' | 'tunnels'> & { body?: BodyDims })[], blockedBy: (line: string, b0: number, b1: number) => boolean, dist = BUS.width / 2 + 1.4): InterlockBox[] {
   const out: InterlockBox[] = [];
   for (const o of others) {
     const n = Math.floor(o.path.length / 3), xyz = new Float32Array(o.path), cum = new Float32Array(n);
     for (let i = 1; i < n; i++) cum[i] = cum[i - 1] + Math.hypot(xyz[i * 3] - xyz[i * 3 - 3], xyz[i * 3 + 2] - xyz[i * 3 - 1]);
-    for (const s of proximitySpans(bus, { xyz, cum, length: cum[n - 1], loop: false }, dist)) {
+    const track = { xyz, cum, length: cum[n - 1], loop: false };
+    // with the other vehicle's body: where the two bodies can touch (a0 / a1 are the bus's centre arcs already); without
+    // it: where the centre lines come within `dist` (widened by half a bus)
+    const spans = o.body ? bodySpans(bus, { halfL: BUS.length / 2, halfW: BUS.width / 2, margin: BUS.kerbShift }, track, o.body) : proximitySpans(bus, track, dist);
+    for (const s of spans) {
       // underground stretches of a Metro line never conflict
       if ((o.tunnels ?? []).some(t => s.b0 >= t.fromAt && s.b1 <= t.toAt)) continue;
-      const pad = BUS.length / 2;
+      const pad = o.body ? 1 : BUS.length / 2;
       const b0 = s.b0 - 3, b1 = s.b1 + 3;
-      out.push({ id: `${o.id}@${Math.round(s.a0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, b0, b1), other: { line: o.id, b0, b1 } });
+      out.push({ id: `${o.id}@${Math.round(s.a0)}:${Math.round(s.b0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, b0, b1), other: { line: o.id, b0, b1 } });
     }
   }
   return out;

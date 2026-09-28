@@ -3,7 +3,6 @@ import { definePlatform, setPlatformPose } from '../actors/platform';
 import { emitAt } from '../audio/cityHooks';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
-import { FL, sAtU } from '../data/fline';
 import { CABLE, type TransitData, type Turntable, activeLineFleet, flineJson, loadTransit, pointAt, setActiveLineFleet, transitW4 } from '../data/transit';
 import { currentRide, isLineRide } from '../game/ride';
 import { Batch } from './builder';
@@ -12,12 +11,14 @@ import { trackPoint } from './lineTrack';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
 import { FerryLayer } from './ferry';
 import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
-import { type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
+import { FLINE_LIVERIES, type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
+import { carFarGeometry, carGeometry } from './streetcar';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
 import { CityLife } from './sf/cityLife';
 import type { TransitPortal } from './sf/format';
 import { LineFleet, busInterlocks } from './sf/lineFleet';
+import { boxBlocked, busAheadOfFCar, interlockLines } from './sf/lineInterlocks';
 import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
 import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeometry } from './turntable';
@@ -142,7 +143,7 @@ export class TransitLayer {
     this.ring.visible = false;
     this.ring.renderOrder = 2;
 
-    this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround);
+    this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround, { roadAhead: car => this.busAhead(car) });
     this.rails = new RailLayer(data, this.fline ? flineRailTracks(this.fline.line) : []);
     // D2's Powell & Market landmark drops its static disc top under F's spinning disc (its lod 0 rebuilds)
     if (this.discs.some(d => d.tt.landmark)) setTurntableSpinner(true);
@@ -157,17 +158,27 @@ export class TransitLayer {
     // wave 4 (lane T): the sightseeing loop and the Muni Metro
     const w4 = transitW4();
     if (w4) {
-      const lines = new LineFleet({ loop: w4.loop, metro: w4.metro, props: w4.props }, {
+      // every city line's vehicles in the fleet's two batched meshes (W4-T14): the cable cars and the F-line cars too,
+      // a shadow only within SHADOW_NEAR of the camera (C2 w3 part b request 3)
+      const perLivery = this.fline ? Math.ceil(this.fline.sys.cars.length / FLINE_LIVERIES.length) : 0;
+      const extra = [
+        { key: 'cable', near: cableCarGeometry(), far: cableCarFarGeometry(), count: this.sys.cars.length },
+        ...(this.fline ? FLINE_LIVERIES.map((c, li) => ({ key: `fline-${li}`, near: carGeometry(c, true), far: carFarGeometry(c), count: perLivery })) : []),
+      ];
+      const lines = new LineFleet({ loop: w4.loop, metro: w4.metro, props: w4.props, extra }, {
         groundY: residentGround,
         visible: visibleFromCamera,
         viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
         portalReady: p => this.portalReady(p),
-        boxes: bt => busInterlocks(bt, this.interlockLines(), (line, b0, b1) => this.boxBlocked(line, b0, b1)),
+        boxes: bt => busInterlocks(bt, interlockLines(this.data, this.fline), (line, b0, b1) => boxBlocked(this.sys, this.fline, line, b0, b1)),
         roadUsers: out => collectRoadVehicles(out),
       });
       this.lines = lines;
       this.group.add(lines.group);
       setActiveLineFleet(lines);
+      this.group.remove(this.cars, this.carsFar);
+      const nl = FLINE_LIVERIES.length;
+      this.fline?.setDrawer((i, pose, hidden) => lines.drawExtra(`fline-${i % nl}`, Math.floor(i / nl), pose, hidden, U.uCam.value));
       for (const run of LineFleet.surfaceRuns(w4.metro)) this.offs.push(registerTransitStreet(run));
       this.offs.push(registerRoadVehicles(out => lines.roadVehicles(out, runtime.player)));
     }
@@ -205,20 +216,25 @@ export class TransitLayer {
     // cars within range are packed to the front of the near (≤ FAR_LOD, with shadows) or the far mesh; each draw covers
     // only its cars, so hidden ones cost no triangles
     let n = 0, nf = 0;
+    const lines = this.lines;
     for (const car of sys.cars) {
       const q = car.pose;
       const d = Math.hypot(q.x - cam.x, q.z - cam.z);
+      // wave 4: drawn by the fleet's batched meshes (near with a shadow ≤ 60 u, the full car ≤ 110 u, the far car)
+      if (lines) { lines.drawExtra('cable', car.index, q, d > CABLE.hideBeyond, cam); continue; }
       if (d > CABLE.hideBeyond) continue;
       tmpQ.setFromEuler(tmpE.set(-q.pitch, q.heading, q.roll, 'YXZ'));
       tmpM.compose(tmpP.set(q.x, q.y, q.z), tmpQ, ONE);
       if (d > FAR_LOD) this.carsFar.setMatrixAt(nf++, tmpM); else this.cars.setMatrixAt(n++, tmpM);
     }
-    this.cars.count = n;
-    this.cars.instanceMatrix.needsUpdate = true;
-    this.cars.visible = n > 0;
-    this.carsFar.count = nf;
-    this.carsFar.instanceMatrix.needsUpdate = true;
-    this.carsFar.visible = nf > 0;
+    if (!lines) {
+      this.cars.count = n;
+      this.cars.instanceMatrix.needsUpdate = true;
+      this.cars.visible = n > 0;
+      this.carsFar.count = nf;
+      this.carsFar.instanceMatrix.needsUpdate = true;
+      this.carsFar.visible = nf > 0;
+    }
     // platforms: the rider's car, else each line's car nearest the player
     for (const line of this.data.lines) {
       let car = sys.riderCarOf(line.id);
@@ -262,30 +278,9 @@ export class TransitLayer {
     void t;
   }
 
-  /** The other lines the loop's interlock boxes are built against: the cable cars (extended arcs) and the city F-line. */
-  private interlockLines(): { id: string; path: number[]; tunnels: [] }[] {
-    const out: { id: string; path: number[]; tunnels: [] }[] = this.data.lines.map(l => ({ id: l.id, path: Array.from(l.xyz), tunnels: [] }));
-    if (this.fline) out.push({ id: 'f-line', path: Array.from(this.fline.line.cxyz), tunnels: [] });
-    return out;
-  }
-
-  /** Is a vehicle of `line` in its part [b0, b1] of an interlock box? (cable cars: the span they hold, authority included) */
-  private boxBlocked(line: string, b0: number, b1: number): boolean {
-    if (line === 'f-line') {
-      const f = this.fline;
-      if (!f) return false;
-      for (const c of f.sys.cars) {
-        const s = sAtU(f.line, c.u);
-        if (s + FL.half > b0 && s - FL.half < b1) return true;
-      }
-      return false;
-    }
-    for (const c of this.sys.cars) {
-      if (c.line.id !== line) continue;
-      const [a, b] = this.sys.span(c);
-      if (b > b0 && a < b1) return true;
-    }
-    return false;
+  /** An F-line car's view down its track: a bus ahead, or a shared box a bus is in (world/sf/lineInterlocks.ts). */
+  private busAhead(car: { u: number }): number {
+    return this.lines && this.fline ? busAheadOfFCar(this.lines, this.fline, car) : Infinity;
   }
 
   /**
@@ -414,5 +409,10 @@ export async function createTransitLayer(): Promise<TransitLayer | null> {
   if (!data) return null;
   LAYER?.dispose();
   LAYER = new TransitLayer(data);
+  // QA (DEV): the live layer (window.__opusBay.transitLayer: stats, the meshes for per-part budgets)
+  if (import.meta.env?.DEV && typeof window !== 'undefined') {
+    const w = window as unknown as { __opusBay?: Record<string, unknown> };
+    w.__opusBay = { ...(w.__opusBay ?? {}), transitLayer: LAYER };
+  }
   return LAYER;
 }
