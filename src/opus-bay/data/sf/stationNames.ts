@@ -60,7 +60,7 @@ export const W4_LINES: Readonly<Record<W4LineId, W4LineMeta>> = {
   },
   'n-judah': {
     id: 'n-judah', kind: 'light-rail', name: { zh: 'N 线', en: 'N Judah' }, shortName: { zh: 'N 线', en: 'N Judah' },
-    route: { zh: 'N 线 · 市中心 → 海特区 → 金门公园南边 → 海洋海滩', en: 'N Judah · Downtown → Cole Valley → Inner Sunset → Ocean Beach' },
+    route: { zh: 'N 线 · 市中心 → 科尔谷 → 内日落区 → 海洋海滩', en: 'N Judah · Downtown → Cole Valley → Inner Sunset → Ocean Beach' },
     short: 'N', color: '#2f6fb0', casing: '#e7eef7', osmRelation: 3435877,
     sourceUrl: 'https://www.openstreetmap.org/relation/3435877',
   },
@@ -119,7 +119,7 @@ export interface MetroStationDef {
   underground?: boolean;
   /** trains always dwell here (subway stations, transfers, ★ attraction stops, termini); else a request stop */
   major?: boolean;
-  /** the place gloss shown after the English name on the map and the overlay ('海特区') */
+  /** the place gloss shown after the English name on the map and the overlay ('科尔谷') */
   gloss?: string;
 }
 
@@ -158,7 +158,7 @@ export const METRO_STATIONS: readonly MetroStationDef[] = [
   // N surface: Duboce portal → Sunset Tunnel → Carl St → Irving St → 9th Ave → Judah St → Ocean Beach
   st('muni-duboce-church', 'Duboce & Church', 'Duboce & Church · 杜博斯', ['Duboce Avenue & Church Street'], { major: true, gloss: '杜博斯' }),
   st('muni-duboce-park', 'Duboce Park', 'Duboce Park · 日落隧道东口', ['Sunset Tunnel East Portal'], { gloss: '日落隧道东口' }),
-  st('muni-carl-cole', 'Carl & Cole', 'Carl & Cole · 海特区', ['Carl Street & Cole Street'], { major: true, gloss: '海特区' }),
+  st('muni-carl-cole', 'Carl & Cole', 'Carl & Cole · 科尔谷', ['Carl Street & Cole Street'], { major: true, gloss: '科尔谷' }),
   st('muni-carl-stanyan', 'Carl & Stanyan', 'Carl & Stanyan · 金门公园东', ['Carl Street & Stanyan Street'], { gloss: '金门公园东' }),
   st('muni-carl-hillway', 'Carl & Hillway', 'Carl & Hillway · UCSF', ['Carl Street & Hillway Avenue'], { major: true, gloss: 'UCSF' }),
   st('muni-irving-2nd', 'Irving & 2nd Ave', 'Irving & 2nd · UCSF 帕纳萨斯', ['Irving Street & 2nd Avenue'], { major: true, gloss: 'UCSF 帕纳萨斯' }),

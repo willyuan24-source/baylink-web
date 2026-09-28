@@ -50,7 +50,7 @@ test('station ids: stable, prefixed, unique, [a-z0-9-], zh + en names; OSM names
 test('the plan §3.3 stops of interest carry their zh glosses', () => {
   const want: Record<string, string> = {
     'muni-embarcadero': '内河码头', 'muni-montgomery': '蒙哥马利', 'muni-powell': '鲍威尔', 'muni-civic-center': '市政中心',
-    'muni-duboce-church': '杜博斯', 'muni-carl-cole': '海特区', 'muni-carl-stanyan': '金门公园东', 'muni-carl-hillway': 'UCSF',
+    'muni-duboce-church': '杜博斯', 'muni-carl-cole': '科尔谷', 'muni-carl-stanyan': '金门公园东', 'muni-carl-hillway': 'UCSF',
     'muni-irving-2nd': '帕纳萨斯', 'muni-9th-irving': '金门公园', 'muni-judah-la-playa': '海洋海滩', 'muni-church': '教堂街',
     'muni-castro': '卡斯特罗', 'muni-forest-hill': '森林山', 'muni-west-portal': '西门', 'muni-st-francis-circle': '圣弗朗西斯',
     'muni-19th-winston': '石镇', 'muni-19th-holloway': '州立大学',
