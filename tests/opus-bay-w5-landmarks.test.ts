@@ -82,14 +82,14 @@ test('W5-L-review: the Wave Organ\'s deck is climbed by the real controller from
   const line = [mid(quads[0].poly[0], quads[0].poly[3]), ...quads.map(q => mid(q.poly[1], q.poly[2]))];
   const ctl = new PlayerController(), DT = 1 / 30;
   /** the real controller pushed `s` seconds toward world heading h: the highest y it reached and where it ended */
-  const push = (x: number, z: number, h: number, s: number, each?: (t: number) => void) => {
+  const push = (x: number, z: number, h: number, s: number, each?: (frame: number) => void) => {
     const p = runtime.player;
     p.x = x; p.z = z; p.y = w.T.heightAt(x, z); p.heading = h; p.pathTarget = null; p.locked = false;
     ctl.sync();
     const yaw = Math.atan2(-Math.sin(h), -Math.cos(h));
     runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
     let top = p.y;
-    for (let i = 0; i < s / DT; i++) { ctl.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false }); top = Math.max(top, p.y); each?.(i * DT); }
+    for (let i = 0; i < s / DT; i++) { ctl.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false }); top = Math.max(top, p.y); each?.(i); }
     runtime.input.moveY = 0;
     return { top, x: p.x, z: p.z };
   };
@@ -118,7 +118,8 @@ test('W5-L-review: the Wave Organ\'s deck is climbed by the real controller from
     // straight on from the arrival, the way the follow camera may face (along the spit … due south): it keeps moving
     for (const h of [2.57, 2.8, 2.95, 3.14]) {
       const track: Vec2[] = [];
-      push(root.x, root.z, h, 6, t => { if (Math.abs(t % 0.5) < DT / 2) track.push({ x: runtime.player.x, z: runtime.player.z }); });
+      // (a sample every half second: 15 frames)
+      push(root.x, root.z, h, 6, i => { if (i % 15 === 14) track.push({ x: runtime.player.x, z: runtime.player.z }); });
       for (let k = 3; k < track.length; k++) {
         const d = Math.hypot(track[k].x - track[k - 3].x, track[k].z - track[k - 3].z);
         if (d < 2) { bad.push(`heading ${h}: stuck at (${track[k].x.toFixed(1)}, ${track[k].z.toFixed(1)}) after ${(k * 0.5).toFixed(1)} s (${d.toFixed(2)} u in 1.5 s)`); break; }
