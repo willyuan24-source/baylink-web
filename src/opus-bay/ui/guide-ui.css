@@ -145,6 +145,10 @@
 .ob-waypoint[data-notch='1'] .ob-waypoint-pin::after { content: ''; position: absolute; right: -6px; bottom: -6px; width: 7px; height: 7px; border-radius: 2px; background: var(--ob-ink-2); border: 2px solid #fff; }
 .ob-waypoint[data-edge='1'] .ob-waypoint-arrow { pointer-events: auto; cursor: pointer; }
 .ob-waypoint[data-edge='1'] .ob-waypoint-arrow::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; }
+/* (part b, verify-content C14) the label in two parts: the name gives way with an ellipsis, the time always shows */
+.ob-waypoint[data-label] .ob-waypoint-label { display: flex; }
+.ob-wl-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ob-wl-time { flex: none; white-space: pre; }
 
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {

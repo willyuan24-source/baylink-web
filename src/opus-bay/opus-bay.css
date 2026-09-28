@@ -1183,3 +1183,24 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-ride-note { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-3); padding: 0 6px; white-space: nowrap; }
 .ob-ride-note.is-rung { display: inline-flex; align-items: center; gap: 4px; color: var(--ob-teal-d); }
 .ob-ride .ob-btn svg { color: inherit; }
+
+/* ==========================================================================
+   Wave 4 integration part b (lane G) · the wave-4 verify findings on the HUD
+   ========================================================================== */
+/* verify-phone M1 · the 更多 menu opened under the contextual action button and its label (坐渡轮 over 设置: a tap on
+   设置 opened the ferry). The bar paints above the action (its menu with it); while the menu is open the action, its
+   label and the touch move column (跳 …) step aside, so every tap in the menu lands on the menu */
+.ob-hud.is-narrow .ob-bar { z-index: 2; }
+.ob-hud:has(.ob-bar-more) .ob-touch-action, .ob-overlay:has(.ob-bar-more) .ob-move-buttons { visibility: hidden; pointer-events: none; }
+/* verify-phone m1 · a cinematic caption took at most half the screen (left: 50% + shrink-to-fit: 159 px at 390) and
+   broke 渡轮大厦码头 in the middle; it sizes to its words now, up to the screen width */
+.ob-cinema-caption { width: max-content; max-width: min(640px, calc(100vw - 32px - var(--ob-sl) - var(--ob-sr))); }
+/* verify-phone m2 · touch targets ≥ 44 px: the cinema 跳过 (40 tall), the objective pill on phones (40–42 tall: its hit
+   area reaches 2 px past the pill), the camera-distance slider (28 tall), the soft hint's × (24 px: a 44 px hit area
+   around it, mostly inside its label) */
+.ob-cinema-skip { min-height: 44px; }
+.ob-objective::before { content: ''; position: absolute; inset: -3px 0; border-radius: inherit; }
+.ob-range input { height: 44px; }
+.ob-waypoint-dismiss::before { content: ''; position: absolute; inset: -10px -4px -10px -16px; border-radius: 12px; }
+/* verify-desktop D9 · English text in the Noto-first stacks: Noto Sans SC's full-width ’ left a gap ("The Mission’ s") */
+html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: var(--ob-font); }

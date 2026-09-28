@@ -193,7 +193,7 @@ export interface WaypointFrame {
 const wpProj = new THREE.Vector3();
 const eyeTmp = { x: 0, y: 0, z: 0 };
 const tgtTmp = { x: 0, y: 0, z: 0 };
-const wpState = { textAt: 0, full: '', short: '', shown: '', fullW: 120, shortW: WAYPOINT.shortW as number, measured: false, occluded: false, occAt: 0, occKey: '' };
+const wpState = { textAt: 0, full: '', name: '', short: '', shown: '', fullW: 120, shortW: WAYPOINT.shortW as number, measured: false, occluded: false, occAt: 0, occKey: '' };
 const lastWrites = new WeakMap<HTMLElement, string>();
 const writeTransform = (el: HTMLElement, v: string) => { if (lastWrites.get(el) !== v) { lastWrites.set(el, v); el.style.transform = v; } };
 const writeProp = (el: HTMLElement, name: string, v: string) => { if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v); };
@@ -204,6 +204,26 @@ function shortWidth(text: string): number {
   let w = 0;
   for (const ch of text) { const c = ch.codePointAt(0) ?? 0; w += (c >= 0x3000 && c <= 0x9fff) || (c >= 0xff00 && c <= 0xffef) ? 12.5 : 7; }
   return Math.ceil(w + 20);
+}
+
+/**
+ * The label as two parts (verify-content C14): the name, which gives way with an ellipsis when the label meets the
+ * screen's width, and the time, which always shows ("Postcard clue · near Ferry Building clock tower · …" lost the
+ * ETA at 375 px). textContent stays "name · time" (the layout compares it); `name` null = the time alone.
+ */
+function writeLabel(lab: HTMLElement, name: string | null, time: string) {
+  const doc = lab.ownerDocument;
+  lab.textContent = '';
+  if (name) {
+    const n = doc.createElement('span');
+    n.className = 'ob-wl-name';
+    n.textContent = name;
+    lab.appendChild(n);
+  }
+  const tm = doc.createElement('span');
+  tm.className = 'ob-wl-time';
+  tm.textContent = name ? ` · ${time}` : time;
+  lab.appendChild(tm);
 }
 
 /** The seconds to the waypoint's target: the current trip leg's (when the target is where the leg ends), else null. */
@@ -264,7 +284,7 @@ export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
       const trip = tripTargetSeconds(target, p);
       const time = trip === null ? fr.plainTime(target, d) : timeLabel(trip);
       const full = `${fr.pick(target.name)} · ${fr.pick(time)}`;
-      if (full !== wpState.full) { wpState.full = full; wpState.measured = false; }
+      if (full !== wpState.full) { wpState.full = full; wpState.name = fr.pick(target.name); wpState.measured = false; }
       wpState.short = fr.pick(time);
       wpState.shortW = Math.max(WAYPOINT.shortW * 0.6, shortWidth(wpState.short));
     } else recheck = true;
@@ -278,7 +298,7 @@ export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
   }
   // measure the full label once per text (one layout read per change)
   if (lab && !wpState.measured) {
-    if (lab.textContent !== wpState.full) lab.textContent = wpState.full;
+    if (lab.textContent !== wpState.full) writeLabel(lab, wpState.name, wpState.short);
     wpState.shown = wpState.full;
     const lw = lab.offsetWidth;
     if (lw) { wpState.fullW = lw; wpState.measured = true; } else recheck = true;
@@ -294,7 +314,7 @@ export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
   writeProp(wp, '--ob-angle', `${L.angle.toFixed(3)}rad`);
   if (lab) {
     const text = L.label.mode === 'short' ? wpState.short : wpState.full;
-    if (L.label.mode !== 'none' && wpState.shown !== text) { lab.textContent = text; wpState.shown = text; }
+    if (L.label.mode !== 'none' && wpState.shown !== text) { if (L.label.mode === 'short') writeLabel(lab, null, text); else writeLabel(lab, wpState.name, wpState.short); wpState.shown = text; }
     const box = L.label.box;
     if (box) {
       const cx = (box.l + box.r) / 2;

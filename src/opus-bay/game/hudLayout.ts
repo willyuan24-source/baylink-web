@@ -24,7 +24,16 @@ export const HUD_BOX_SELECTOR = [
   '.ob-move-buttons > *',
   // wave 4 (lane G, city): the trip card and the arrival peek card
   '.ob-trip-card', '.ob-arrival-card',
+  // (part b, verify-district F2) BAYBAY's "问我 / Ask me" badge hangs above her round button, outside its box: the
+  // waypoint label sat under it at 1440 × 900 ("…IER 39 stop")
+  '.ob-ask-me',
 ].join(', ');
+
+/**
+ * Decorations that are aria-hidden (the screen reader has the button's own name) but still cover the screen: scanned
+ * although they sit under [aria-hidden="true"].
+ */
+export const HUD_DECOR = '.ob-ask-me';
 
 const GAP = 6;
 
@@ -160,7 +169,7 @@ export function scanHudBoxes(canvas: HTMLElement, now: number, needed: boolean, 
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return;
     const cs = getComputedStyle(el);
-    if (cs.visibility === 'hidden' || Number(cs.opacity) < 0.05 || el.closest('[aria-hidden="true"]')) return;
+    if (cs.visibility === 'hidden' || Number(cs.opacity) < 0.05 || (el.closest('[aria-hidden="true"]') && !el.matches(HUD_DECOR))) return;
     out.push({ l: r.left - origin.left, t: r.top - origin.top, r: r.right - origin.left, b: r.bottom - origin.top });
   });
   const key = out.map(b => `${b.l | 0},${b.t | 0},${b.r | 0},${b.b | 0}`).join(';');

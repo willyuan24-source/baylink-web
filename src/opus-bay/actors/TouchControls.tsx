@@ -1,5 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
-import { ArrowBigUp, Bell, Bird, LogOut, Megaphone, PlaneLanding } from 'lucide-react';
+import { Armchair, ArrowBigUp, Bell, Bird, LogOut, Megaphone, PersonStanding, PlaneLanding } from 'lucide-react';
 import { input, touchJump } from '../core/input';
 import { useGame } from '../core/store';
 import { useFlow } from '../game/flowStore';
@@ -38,7 +38,8 @@ const knob: CSSProperties = {
 };
 const column: CSSProperties = {
   position: 'absolute', right: 'calc(18px + var(--ob-sr))', bottom: 'calc(150px + var(--ob-sb))', display: 'flex', flexDirection: 'column',
-  alignItems: 'center', gap: 14, zIndex: 4, pointerEvents: 'none',
+  // z 9: above the projected waypoint (7) and bubble (8), so a label clamped beside the column never takes its taps
+  alignItems: 'center', gap: 14, zIndex: 9, pointerEvents: 'none',
 };
 /** 601–1180 px touch screens: the round HUD buttons stand in a column at the right edge (≤ 70 px wide): one column in */
 const columnBeside: CSSProperties = { ...column, right: 'calc(84px + var(--ob-sr))' };
@@ -81,6 +82,10 @@ function HopButton({ label }: { label: string }) {
 function MoveButtons() {
   const { t } = useT();
   const mode = useGame(s => s.move.mode);
+  const spot = useGame(s => s.move.spot);
+  // on board a moving line (the cable car's outward bench, the ferry's sun deck, the bus deck …): 坐下 / 站起来, the
+  // touch twin of the keyboard's E (verify-code F2: the seats could not be used on a phone)
+  const onBoard = useFlow(s => s.ride?.stage === 'riding') && mode === 'transit';
   const unlocked = useSyncExternalStore(subscribeGlide, glideUnlocked, glideUnlocked);
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
@@ -97,6 +102,11 @@ function MoveButtons() {
         </Btn>
       )}
       {riding && <Btn size={64} tone="teal" label={t('下车', 'Get off')} onPress={() => { input.vehicleCount++; }}><LogOut size={24} aria-hidden /></Btn>}
+      {onBoard && (
+        <Btn size={56} tone="cream" label={spot === 'seat' ? t('站起来', 'Stand') : t('坐下', 'Sit down')} onPress={() => { input.interactCount++; }}>
+          {spot === 'seat' ? <PersonStanding size={22} aria-hidden /> : <Armchair size={22} aria-hidden />}
+        </Btn>
+      )}
       {mode === 'glide' && <Btn size={64} tone="teal" label={t('降落', 'Land')} onPress={() => { input.glideCount++; }}><PlaneLanding size={24} aria-hidden /></Btn>}
       {mode === 'foot' && unlocked && !focus && <Btn size={52} tone="gold" label={t('起飞', 'Glide')} onPress={() => { input.glideCount++; }}><Bird size={20} aria-hidden /></Btn>}
       {(mode === 'foot' || riding) && <HopButton label={t('跳', 'Hop')} />}
