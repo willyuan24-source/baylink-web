@@ -102,7 +102,16 @@ export class StampThrottle {
 
 const stamps = new StampThrottle();
 
+/**
+ * W5-N7 · the quiet HUD (plan MF6): the city guide (game/guideCity.ts, a city chunk: it knows the attractions) takes the
+ * finds over — minor ones batch into one "+3 个地点" chip under the area pill, the attractions keep their arrival
+ * moment's toast. Until it registers (or in a page without it) the wave-3 toast below tells them.
+ */
+let announcer: ((found: CityPlace[]) => void) | null = null;
+export function setDiscoveryAnnouncer(fn: ((found: CityPlace[]) => void) | null) { announcer = fn; }
+
 function announce(found: CityPlace[]) {
+  if (announcer) { announcer(found); return; }
   const loc = getLocale();
   const first = found[0];
   const text = found.length === 1

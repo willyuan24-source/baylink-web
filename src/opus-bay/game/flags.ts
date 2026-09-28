@@ -107,6 +107,11 @@ export interface PickFlagsInput {
   panorama?: boolean;
   /** flags from the registered sources (`extraFlags()`), placed right after the target (see pickFlags) */
   extras?: readonly ExtraFlag[];
+  /**
+   * W5-N8: a phone (3 slots): the sources' pennants stand only near the player (EXTRA_PHONE_NEAR) or the waypoint
+   * (EXTRA_NEAR_TARGET), where they matter, and the waypoint's own first — a far event never takes a T1's slot
+   */
+  phone?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -172,6 +177,14 @@ export const flagSourceKeys = (): string[] => [...flagSourceFns.keys()];
 export const extraFlagCap = (max: number) => Math.ceil(Math.max(0, max) / 2);
 /** An extra flag within this of the target stands even outside the view cone (the waypoint's own event). */
 export const EXTRA_NEAR_TARGET = 150;
+/** W5-N8: on a phone a source's pennant stands within this of the player (else only near the waypoint) (u) */
+export const EXTRA_PHONE_NEAR = 600;
+/** a pennant colour a source got wrong falls back to this (the terra of the area pin) */
+export const EXTRA_FALLBACK_COLOR = '#d8744a';
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+const GLYPH_SET: ReadonlySet<string> = new Set(FLAG_GLYPHS);
+/** W5-N8: a source's glyph as the atlas knows it (V's 512² cells: FLAG_GLYPHS order), else the pin. */
+export const extraGlyph = (g: string | undefined): FlagGlyph => (g && GLYPH_SET.has(g) ? (g as FlagGlyph) : 'MapPin');
 
 /** How many flags: 3 on phones / quality mid or low, 6 on desktop, 8 during a desktop panorama. */
 export function flagMax(o: { phone: boolean; quality?: 'low' | 'mid' | 'high'; panorama?: boolean }): number {
@@ -231,15 +244,19 @@ export function pickFlags(input: PickFlagsInput): FlagPick[] {
         const d = Math.hypot(f.x - player.x, f.z - player.z);
         const far = Math.min(FLAG_RULES.targetFar, f.far ?? FLAG_RULES.far);
         const nearTarget = !!target && Math.hypot(f.x - target.x, f.z - target.z) <= EXTRA_NEAR_TARGET;
-        const ok = !taken.has(f.key) && d >= FLAG_RULES.near && d <= far && (nearTarget || inViewCone(player, yaw, f));
-        return { f, d, ok };
+        // (W5-N8) the waypoint's own pennant stands within its far, on a phone too; the others in view, and on a phone
+        // only near the player
+        const ok = !taken.has(f.key) && d >= FLAG_RULES.near && d <= far && (nearTarget || ((!input.phone || d <= EXTRA_PHONE_NEAR) && inViewCone(player, yaw, f)));
+        return { f, d, nearTarget, ok };
       })
       .filter(e => e.ok)
-      .sort((p, q) => (q.f.priority ?? 0) - (p.f.priority ?? 0) || p.d - q.d);
+      // the waypoint's own first, then priority, then nearer
+      .sort((p, q) => Number(q.nearTarget) - Number(p.nearTarget) || (q.f.priority ?? 0) - (p.f.priority ?? 0) || p.d - q.d);
     let n = 0;
     for (const { f, d } of list) {
       if (!room() || n >= cap) break;
-      out.push({ key: f.key, attraction: null, role: 'extra', x: f.x, z: f.z, h: clampH(f.h ?? FLAG_RULES.defaultH), color: f.color, glyph: f.glyph ?? 'MapPin', d });
+      const color = HEX_COLOR.test(f.color) ? f.color : EXTRA_FALLBACK_COLOR;
+      out.push({ key: f.key, attraction: null, role: 'extra', x: f.x, z: f.z, h: clampH(f.h ?? FLAG_RULES.defaultH), color, glyph: extraGlyph(f.glyph), d });
       taken.add(f.key);
       n++;
     }

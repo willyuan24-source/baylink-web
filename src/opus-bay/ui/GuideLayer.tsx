@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Footprints, Hand, MapPin, Route } from 'lucide-react';
+import { Footprints, Hand, MapPin, Route, Sparkles } from 'lucide-react';
 import { DISTRICT } from '../data/district';
 import { AREA_NAMES } from '../game/brain';
 import { useStreetName } from '../game/streets';
@@ -108,8 +108,21 @@ export function CityAreaLabel() {
         </span>
         {street && <span className="ob-area-street" translate="no">{street}</span>}
       </span>
+      <FoundChipView />
     </div>
   );
+}
+
+/**
+ * W5-N7 · the quiet discovery chip under the area pill (plan MF6): minor finds batch into "+3 个地点" (one find: "+1 ·
+ * 名称") for 4.5 s after the last one, instead of a gold toast each (12 toasts in 50 s at wave 4).
+ */
+function FoundChipView() {
+  const { t } = useT();
+  const found = useGuide(s => s.found);
+  if (!found) return null;
+  const text = found.n === 1 ? { zh: `+1 · ${found.first.zh}`, en: `+1 · ${found.first.en}` } : { zh: `+${found.n} 个地点`, en: `+${found.n} places` };
+  return <span key={found.key} className="ob-found-chip" role="status"><Sparkles size={13} aria-hidden /><span>{t(text)}</span></span>;
 }
 
 /** The Grand Tour between its stops (ui/Hud Objective, city only): lane C's tourPill — chapter, step / total, next, dots. */

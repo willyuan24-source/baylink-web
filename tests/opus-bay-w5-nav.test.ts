@@ -597,3 +597,221 @@ test('W5-N6 startOrResume: a resume request with a saved city spot skips the arr
     assert.ok(Math.hypot(runtime.player.x - S.x, runtime.player.z - S.z) < 1e-6, 'the standable saved spot itself');
   } finally { save.clearSave(); game.set({ ...initialGameState() }); }
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N4 · the phone map: the pinned card, the chooser, long-press 去这里, search results with the go button
+// ---------------------------------------------------------------------------------------------------------------
+
+const MG = await import('../src/opus-bay/ui/mapGo');
+type Bx = { l: number; t: number; r: number; b: number };
+const insideFrame = (a: Bx, f: { w: number; h: number }) => a.l >= 0 && a.t >= 0 && a.r <= f.w && a.b <= f.h;
+const apart = (a: Bx, b: Bx) => a.r <= b.l || b.r <= a.l || a.b <= b.t || b.b <= a.t;
+
+test('W5-N4 the pinned card never hides its go button: inside the 352 × 388 phone map (and 337 × 307), clear of the tools and the compass', () => {
+  for (const f of [{ w: 352, h: 388 }, { w: 337, h: 307 }, { w: 1200, h: 430 }]) {
+    const card = MG.goCardBox(f), go = MG.goButtonBox(f);
+    assert.ok(insideFrame(card, f) && insideFrame(go, f), `${f.w} × ${f.h}: card and button inside the frame`);
+    assert.ok(go.l >= card.l && go.r <= card.r && go.t >= card.t && go.b <= card.b, 'the button inside the card');
+    assert.ok(go.b - go.t >= 48 && go.r - go.l >= 200, `a big button: ${go.r - go.l} × ${go.b - go.t}`);
+    // the tool column (top 8 px, right 8 px) stops above the card when one shows; the compass (8…44 top-left) is above it
+    const toolsBottom = MG.GO_CARD.toolsTop + MG.toolsMaxHeight(f.h, true);
+    assert.ok(toolsBottom <= card.t - MG.GO_CARD.toolsGap + 1e-9, `${f.w} × ${f.h}: tools end at ${toolsBottom}, the card starts at ${card.t}`);
+    assert.ok(apart(go, { l: f.w - 8 - 36, t: 8, r: f.w - 8, b: toolsBottom }), 'the go button clear of the tool column');
+    assert.ok(apart(card, { l: 8, t: 8, r: 44, b: 44 }), 'clear of the compass');
+    // at least three tool buttons (36 px + 8 gap) per column above the card
+    assert.ok(MG.toolsMaxHeight(f.h, true) >= 3 * 36 + 2 * 8, 'three buttons a column');
+  }
+  // the short frame (375 × 667) takes the one-line head: 96 px instead of 114
+  assert.equal(MG.goCardHeight(388), 114);
+  assert.equal(MG.goCardHeight(307), 96);
+  assert.equal(MG.toolsMaxHeight(388, false), 358, 'no card: the wave-4 column');
+});
+
+test('W5-N4 a selection under the card pans above it; a clear one stays', () => {
+  const v = { cx: 0, cz: 0, scale: 1, w: 352, h: 388 };
+  const top = MG.goCardBox(v).t;
+  assert.equal(MG.panForCard(v, { x: 0, z: 0 }), null, 'the centre is clear');
+  const under = { x: 10, z: 150 };            // y = 194 + 150 = 344: under the card
+  const moved = MG.panForCard(v, under)!;
+  const y = (under.z - moved.cz) * moved.scale + moved.h / 2;
+  assert.ok(y <= top - 28 && y >= 36, `now at ${y}`);
+  assert.equal(moved.cx, v.cx, 'only moved up / down');
+  const hugTop = MG.panForCard(v, { x: 0, z: -180 })!;
+  assert.ok((-180 - hugTop.cz) + 194 >= 36, 'off the top edge');
+});
+
+test('W5-N4 long-press → the nearest walkable arrival spot (standable, snapped, graph, place, land), its name; the sea → null', () => {
+  type PL = import('../src/opus-bay/ui/mapGo').PressLookups;
+  const places = [{ id: 'coit', name: bi('科伊特塔', 'Coit Tower'), x: 100, z: 100, arrival: { x: 104, z: 98 } }];
+  const lk = (o: Partial<PL> = {}): PL => ({
+    stand: () => 1, nearestWalkable: p => ({ x: p.x + 3, z: p.z }), graphNear: p => ({ x: p.x, z: p.z + 7 }),
+    placesNear: (x, z, r) => places.filter(p => Math.hypot(p.x - x, p.z - z) <= r), onLand: () => true, area: () => bi('北滩', 'North Beach'), ...o,
+  });
+  // standable: the pressed point itself, named by the place near it
+  const a = MG.pressSpot({ x: 120, z: 110 }, lk())!;
+  assert.deepEqual([a.x, a.z, a.moved], [120, 110, 0]);
+  assert.deepEqual(a.name, { zh: '科伊特塔附近', en: 'Near Coit Tower' });
+  // a roof / a wall on a loaded chunk: the nearest standable spot
+  const b = MG.pressSpot({ x: 120, z: 110 }, lk({ stand: () => 0 }))!;
+  assert.deepEqual([b.x, b.z, b.moved], [123, 110, 3]);
+  assert.equal(MG.pressSpot({ x: 120, z: 110 }, lk({ stand: () => 0, nearestWalkable: () => null })), null, 'water on a loaded chunk');
+  // a chunk not loaded: the walking graph's node, else the nearest walkable place arrival, else the point on land
+  assert.equal(MG.pressSpot({ x: 500, z: 500 }, lk({ stand: () => -1 }))!.z, 507);
+  const c = MG.pressSpot({ x: 110, z: 110 }, lk({ stand: () => -1, graphNear: () => null }))!;
+  assert.deepEqual([c.x, c.z], [104, 98], 'the place arrival');
+  const d = MG.pressSpot({ x: 900, z: 900 }, lk({ stand: () => -1, graphNear: () => null }))!;
+  assert.deepEqual([d.x, d.z, d.near], [900, 900, null]);
+  assert.deepEqual(d.name, bi('北滩', 'North Beach'), 'no place near: the area');
+  assert.deepEqual(MG.pressSpot({ x: 900, z: 900 }, lk({ stand: () => -1, graphNear: () => null, area: () => null }))!.name, { zh: '这里', en: 'This spot' });
+  assert.equal(MG.pressSpot({ x: 900, z: -900 }, lk({ stand: () => -1, graphNear: () => null, onLand: () => false })), null, 'the sea');
+  // the trip's place id follows goTo's rule (the map does not load the goTo runner)
+  for (const p of [{ x: 100.4, z: -20.6 }, { x: -0.5, z: 3.5 }, { x: 12, z: 7 }]) assert.equal(MG.pressPlaceId(p), pointPlaceId(p));
+  // held 0.52 s without moving past 8 px, one pointer
+  assert.equal(MG.isLongPress(520, 3, 1), true);
+  assert.equal(MG.isLongPress(519, 0, 1), false);
+  assert.equal(MG.isLongPress(900, 9, 1), false);
+  assert.equal(MG.isLongPress(900, 0, 2), false, 'a pinch is no press');
+});
+
+test('W5-N4 the quick rows plan from the route cache only (no search starts), with the card\'s rules', () => {
+  const cache = TPV.tripRouteCache();
+  const before = cache.pending();
+  const peek = TPV.peekTripProviders();
+  const list = TP.planTrips({ x: 0, z: 0 }, destAt(600, 0, 'somewhere'), peek);
+  assert.equal(cache.pending(), before, 'no route search started');
+  const rec = recOf(list)!;
+  assert.ok(rec, 'a way from the estimates');
+  assert.ok(rec.legs.every(l => l.via !== 'walk' || l.estimate), 'on-foot legs are estimates until the routes land');
+  assert.equal(peek.autoPace, true, 'the carried pace, as the card');
+});
+
+test('W5-N4 the list time is the carried pace (straight × 1.25), as the card\'s go button before its route lands', async () => {
+  const { listWalkSeconds } = await import('../src/opus-bay/ui/mapListData');
+  const est = TP.planTrips({ x: 0, z: 0 }, destAt(0, 700), { autoPace: true, walk: () => undefined });
+  assert.ok(Math.abs(listWalkSeconds({ x: 0, z: 0 }, { x: 0, z: 700 }) - recOf(est)!.seconds) < 1e-9);
+});
+
+test('W5-N4 the pinned card and the chooser render the way, the time and the words', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { MapGoCard, ClusterChooser } = await import('../src/opus-bay/ui/MapGoCard');
+  const html = renderToStaticMarkup(h(MapGoCard, { title: bi('艺术宫', 'Palace'), meta: '码头区', option: opt('fly', 7), onGo: () => undefined, onMore: () => undefined, onClose: () => undefined }));
+  assert.match(html, /mw-gocard/);
+  assert.match(html, /飞过去 · 约 7 秒/);
+  assert.match(html, /码头区/);
+  assert.match(html, /aria-label="其他方式和详情"/);
+  const none = renderToStaticMarkup(h(MapGoCard, { title: bi('去这里'), option: null, noWay: bi('那里去不了，长按陆地试试'), onGo: () => undefined, onClose: () => undefined, short: true }));
+  assert.match(none, /is-short/);
+  assert.match(none, /那里去不了，长按陆地试试/);
+  assert.doesNotMatch(none, /mw-go"/);
+  const rows = [
+    { key: 'a:coit-tower', placeId: 'coit-tower', x: 1, z: 2, name: bi('科伊特塔'), attraction: 'coit-tower' },
+    { key: 'p:osm-1', placeId: 'osm-1', x: 3, z: 4, name: bi('小广场'), sub: '去过' },
+  ];
+  const ch = renderToStaticMarkup(h(ClusterChooser, { rows, ways: new Map([['a:coit-tower', opt('walk', 50)], ['p:osm-1', null]]), onPick: () => undefined, onZoom: () => undefined, onClose: () => undefined }));
+  assert.match(ch, /这里有 2 个地方/);
+  assert.match(ch, /放大看看/);
+  assert.equal((ch.match(/class="mw-rowgo/g) ?? []).length, 1, 'a go button where a way is known');
+  assert.match(ch, /aria-label="出发：步行，约 50 秒/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N7 · the quiet HUD: the discovery chip, the 金门大桥 area on the deck, one waypoint owner
+// ---------------------------------------------------------------------------------------------------------------
+
+test('W5-N7 finds batch into one chip: every place but a T1 / T2 attraction on foot (its arrival moment toasts); T3 joins', () => {
+  const found = [{ id: 'osm-cafe', name: bi('小咖啡馆') }, { id: 'coit', name: bi('科伊特塔') }, { id: 'steps', name: bi('格林尼治台阶') }];
+  const rank = (id: string) => ({ coit: 1, steps: 3 } as Record<string, number>)[id];
+  assert.deepEqual(G.chipFinds(found, true, rank).map(p => p.id), ['osm-cafe', 'steps'], 'on foot: Coit is its arrival moment');
+  assert.deepEqual(G.chipFinds(found, false, rank).map(p => p.id), ['osm-cafe', 'coit', 'steps'], 'riding by: no moment, the chip counts it');
+  // a showing chip grows (same key); a new one starts at the finds' count with the first name
+  const a = G.bumpFound(null, [found[0]], 7)!;
+  assert.deepEqual(a, { key: 7, n: 1, first: bi('小咖啡馆') });
+  const b = G.bumpFound(a, [found[2], found[1]], 8)!;
+  assert.deepEqual([b.key, b.n, b.first.zh], [7, 3, '小咖啡馆']);
+  assert.equal(G.bumpFound(b, [], 9), b, 'nothing new: unchanged');
+  assert.ok(G.FOUND_CHIP_MS >= 3000 && G.FOUND_CHIP_MS <= 6000);
+});
+
+test('W5-N7 discovery hands its finds to the city guide (no gold toast each); without it the wave-3 toast', async () => {
+  const D = await import('../src/opus-bay/game/discovery');
+  const seen: string[][] = [];
+  try {
+    D.setDiscoveryAnnouncer(list => { seen.push(list.map(p => p.id)); });
+    game.set({ ...initialGameState(), worldMode: 'city', phase: 'playing', toasts: [] });
+    const ix = { near: () => [{ id: 'osm-x', name: bi('某处'), x: 0, z: 0 }] } as unknown as Parameters<typeof D.newlyDiscovered>[0];
+    for (const pl of D.newlyDiscovered(ix, { x: 0, z: 0 }, D.isDiscovered)) D.markDiscovered(pl);
+    tick(D.STAMP_GAP_MS + 10);
+    D.updateDiscovery({ x: 9999, z: 9999 }, performance.now());
+    assert.deepEqual(seen, [['osm-x']], 'the announcer got the find');
+    assert.equal(game.get().toasts.length, 0, 'no toast');
+  } finally { D.setDiscoveryAnnouncer(null); D.resetDiscovery(); save.clearSave(); game.set({ ...initialGameState() }); }
+});
+
+test('W5-N7 the area chip says 金门大桥 on the deck (over the water; with a height: up on it anywhere), not at Fort Point under it', async () => {
+  const CZ = await import('../src/opus-bay/data/cityZones');
+  const { ELEVATED_WALKS } = await import('../src/opus-bay/game/brain');
+  const deck = ELEVATED_WALKS.find(w => w.id === 'ggb-deck')!;
+  const span = CZ.LANDMARK_SPANS.find(s => s.id === 'golden-gate-bridge')!;
+  assert.deepEqual([span.a, span.b], [deck.span.a, deck.span.b], 'the brain\'s walkway');
+  const at = (t: number, off = 0) => { const ax = span.b.x - span.a.x, az = span.b.z - span.a.z, L = Math.hypot(ax, az); return { x: span.a.x + ax * t - (az / L) * off, z: span.a.z + az * t + (ax / L) * off }; };
+  const mid = at(0.5);
+  assert.deepEqual(CZ.cityAreaAt(mid.x, mid.z), { id: 'golden-gate-bridge', name: bi('金门大桥', 'Golden Gate Bridge') });
+  assert.equal(CZ.cityAreaAt(mid.x, mid.z, 15.2)?.id, 'golden-gate-bridge');
+  assert.equal(CZ.landmarkAreaAt(mid.x, mid.z)?.name.zh, '金门大桥');
+  const edge = at(0.5, 9);
+  assert.equal(CZ.landmarkSpanAt(edge.x, edge.z)?.id, 'golden-gate-bridge', 'the deck\'s width');
+  const off = at(0.5, 14);
+  assert.equal(CZ.landmarkSpanAt(off.x, off.z), null, 'beside the bridge: the water');
+  // Fort Point, under the deck's south end (local −149 ≈ 18 % of the way): not without a height; on the deck with one
+  const fort = at(0.18);
+  assert.equal(CZ.landmarkSpanAt(fort.x, fort.z), null);
+  assert.equal(CZ.landmarkSpanAt(fort.x, fort.z, 4), null, 'down at Fort Point');
+  assert.equal(CZ.landmarkSpanAt(fort.x, fort.z, 15.2)?.id, 'golden-gate-bridge', 'up on the approach');
+  assert.equal(CZ.zoneName('golden-gate-bridge').zh, '金门大桥', 'a saved lastSafe zone names it (welcome back)');
+  // the landmark circles still answer (Chinatown at the Dragon Gate)
+  assert.equal(CZ.cityAreaAt(82, 176)?.id, 'chinatown');
+});
+
+test('W5-N7 one waypoint owner: a running trip\'s leg over the map target and the soft goal hint (the hint waits during a trip)', async () => {
+  const T = await import('../src/opus-bay/game/trips');
+  assert.equal(T.pickObjective({ trip: true, mapTarget: 'x', freeHint: { x: 1 } }), 'trip');
+  assert.equal(T.pickObjective({ mapTarget: 'x', freeHint: { x: 1 } }), 'mapTarget');
+  assert.equal(T.pickObjective({ freeHint: { x: 1 } }), 'freeHint');
+  const { freeHintSuppressed } = await import('../src/opus-bay/game/waypoint');
+  assert.equal(freeHintSuppressed({ trip: true, nowMs: 0 }), true);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N8 · flags: the sources' pennants on phones near the player / the waypoint; V's glyphs; bad input
+// ---------------------------------------------------------------------------------------------------------------
+
+test('W5-N8 phones: a source\'s pennant stands near the player (≤ 600 u) or the waypoint, the waypoint\'s first; desktop keeps its far', () => {
+  const player = { x: 0, z: 0 }, yaw = Math.PI; // the camera looks toward +z
+  const ev = (key: string, z: number, extra: Partial<import('../src/opus-bay/game/flags').ExtraFlag> = {}) => ({ key, x: 0, z, color: '#e8705a', glyph: 'CalendarDays' as const, far: 3000, ...extra });
+  const extras = [ev('far', 1200), ev('near', 400), ev('wp', 2200)];
+  const target = { x: 0, z: 2150 };
+  const phone = flags.pickFlags({ player, yaw, attractions: [], discovered: () => false, target, max: 3, extras, phone: true });
+  assert.deepEqual(phone.filter(p => p.role === 'extra').map(p => p.key), ['wp', 'near'], 'the waypoint\'s event first, then the near one; the far one waits');
+  const desk = flags.pickFlags({ player, yaw, attractions: [], discovered: () => false, target, max: 6, extras });
+  assert.deepEqual(desk.filter(p => p.role === 'extra').map(p => p.key), ['wp', 'near', 'far'], 'desktop: every one in view within its far');
+  // V's glyphs draw; an unknown glyph is the pin; a bad colour falls back
+  const odd = flags.pickFlags({ player, yaw, attractions: [], discovered: () => false, max: 6, extras: [ev('a', 300, { glyph: 'Music' }), ev('b', 320, { glyph: 'Nope' as never, color: 'red' })] });
+  assert.deepEqual(odd.map(p => [p.key, p.glyph, p.color]), [['a', 'Music', '#e8705a'], ['b', 'MapPin', flags.EXTRA_FALLBACK_COLOR]]);
+});
+
+test('W5-N8 every flag glyph has its atlas drawing (V\'s 512² cells in FLAG_GLYPHS order: coins, calendar, sparkles, music)', async () => {
+  const { FLAG_GLYPH_NODES } = await import('../src/opus-bay/world/sf/flagGlyphs');
+  for (const g of flags.FLAG_GLYPHS) assert.ok(FLAG_GLYPH_NODES[g]?.length, g);
+  for (const g of ['Coins', 'CalendarDays', 'Sparkles', 'Music']) assert.equal(flags.extraGlyph(g), g);
+  assert.equal(flags.extraGlyph(undefined), 'MapPin');
+});
+
+test('W5-N7 an attraction passed on a trip\'s way goes quiet (the chip); the trip\'s own end, and free roam, keep the moment', () => {
+  const trip = { placeId: 'coit-tower', attraction: 'coit-tower', leg: 0, legs: [{ via: 'walk' as const, from: { x: 0, z: 0 }, to: { x: -50, z: 51 }, seconds: 60, length: 400 }] };
+  assert.equal(G.arrivalPassBy({ attraction: 'transamerica-pyramid', place: 'osm-tp' }, trip, { x: 60, z: 90 }), true, 'passed on the way');
+  assert.equal(G.arrivalPassBy({ attraction: 'coit-tower', place: 'coit-tower' }, trip, { x: -50, z: 51 }), false, 'the destination');
+  assert.equal(G.arrivalPassBy({ attraction: 'pioneer-park', place: 'osm-pp' }, trip, { x: -60, z: 60 }), false, 'beside the trip end (a pier, a stop)');
+  assert.equal(G.arrivalPassBy({ attraction: 'transamerica-pyramid', place: 'osm-tp' }, null, { x: 60, z: 90 }), false, 'free roam');
+  assert.equal(G.arrivalPassBy({ attraction: 'transamerica-pyramid', place: 'osm-tp' }, { ...trip, leg: 1 }, { x: 60, z: 90 }), false, 'a finished trip');
+});

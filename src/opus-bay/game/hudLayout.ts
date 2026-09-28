@@ -29,6 +29,8 @@ export const HUD_BOX_SELECTOR = [
   '.ob-ask-me',
   // W5-N3: the auto-travel chip (BAYBAY 带路中) in the lead chip's place
   '.ob-go-chip',
+  // W5-N7: the quiet discovery chip (+3 个地点) under the area pill, outside its box
+  '.ob-found-chip',
 ].join(', ');
 
 /**

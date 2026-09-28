@@ -29,16 +29,48 @@ export const LANDMARK_AREAS: readonly LandmarkArea[] = [
   { id: 'twin-peaks', name: bi('双峰', 'Twin Peaks'), x: 140.08, z: 946.9, r: 40 },                // the summits
 ];
 
-/** The landmark area at a point (CS-8), or null. */
+/**
+ * W5-N7 (plan MF2 "the area chip says 金门大桥 on the deck"): landmarks the player walks ALONG — the Golden Gate deck,
+ * the brain's elevated walkway (game/brain.ts ELEVATED_WALKS 'ggb-deck': its south end, local x END_S + 4, to its north
+ * end). Inside `half` of the a → b segment and, when the height is known, above `minY` (the deck at 15.2: Fort Point
+ * sits under its south end); without a height only from `from2d` of the way on (over the water, nothing walkable under
+ * it, so nobody down there).
+ */
+export interface LandmarkSpan { id: string; name: Bilingual; a: { x: number; z: number }; b: { x: number; z: number }; half: number; minY: number; from2d: number }
+export const LANDMARK_SPANS: readonly LandmarkSpan[] = [
+  { id: 'golden-gate-bridge', name: bi('金门大桥', 'Golden Gate Bridge'), a: { x: -689.35, z: 649.76 }, b: { x: -1015.73, z: 388.59 }, half: 10, minY: 12, from2d: 0.25 },
+];
+const SPAN_AREAS: ReadonlyMap<string, LandmarkArea> = new Map(LANDMARK_SPANS.map(s => [s.id, { id: s.id, name: s.name, x: (s.a.x + s.b.x) / 2, z: (s.a.z + s.b.z) / 2, r: 0 }]));
+
+/** The span a point is on (see LANDMARK_SPANS), or null. `y` = the walker's height when known. */
+export function landmarkSpanAt(x: number, z: number, y?: number): LandmarkSpan | null {
+  for (const s of LANDMARK_SPANS) {
+    const ax = s.b.x - s.a.x, az = s.b.z - s.a.z, L2 = ax * ax + az * az;
+    const t = ((x - s.a.x) * ax + (z - s.a.z) * az) / L2;
+    if (t < 0 || t > 1) continue;
+    if (Math.hypot(x - (s.a.x + ax * t), z - (s.a.z + az * t)) > s.half) continue;
+    if (y !== undefined && Number.isFinite(y) ? y < s.minY : t < s.from2d) continue;
+    return s;
+  }
+  return null;
+}
+
+/** The landmark area at a point (CS-8; W5-N7: the spans first, over the water), or null. */
 export function landmarkAreaAt(x: number, z: number): LandmarkArea | null {
+  const s = landmarkSpanAt(x, z);
+  if (s) return SPAN_AREAS.get(s.id)!;
   for (const a of LANDMARK_AREAS) if ((x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r) return a;
   return null;
 }
 
-/** City mode only: the area at a world point (id for store.area + its name), or null. */
-export function cityAreaAt(x: number, z: number): { id: string; name: Bilingual } | null {
-  const lm = landmarkAreaAt(x, z);
-  if (lm) return { id: lm.id, name: lm.name };
+/**
+ * City mode only: the area at a world point (id for store.area + its name), or null. `y` (the walker's height, when the
+ * caller knows it): on a span's deck anywhere along it, not under it.
+ */
+export function cityAreaAt(x: number, z: number, y?: number): { id: string; name: Bilingual } | null {
+  const s = landmarkSpanAt(x, z, y);
+  if (s) return { id: s.id, name: s.name };
+  for (const a of LANDMARK_AREAS) if ((x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r) return { id: a.id, name: a.name };
   return zoneAt(x, z);
 }
 
@@ -49,7 +81,7 @@ export function learnZoneNames(zones: readonly { id: string; zh: string; en: str
 
 /** Name of an area id: landmark areas and seen neighbourhoods, else 旧金山. */
 export function zoneName(id: string | null | undefined): Bilingual {
-  const hit = id ? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name : undefined;
+  const hit = id ? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name ?? SPAN_AREAS.get(id)?.name : undefined;
   return hit ?? SF_NAME;
 }
 export const SF_NAME: Bilingual = bi('旧金山', 'San Francisco');

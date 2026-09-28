@@ -17,7 +17,7 @@ import { activeLineFleet } from '../data/transit';
 import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from '../actors/reveal';
 import { faceCameraToward, playShots } from './cinema';
 import { registerFocusHook } from './brain';
-import { isDiscovered } from './discovery';
+import { isDiscovered, setDiscoveryAnnouncer } from './discovery';
 import { type FlagSource, type FlagTarget, type PanoramaTag, extraFlags, flagMax, layoutPanoramaTags, pickFlags, pickPanoramaTags, tagWidth, type TagInput, PANORAMA } from './flags';
 import { flow } from './flowStore';
 import { landmarkFlagsPref } from './guidePrefs';
@@ -76,14 +76,56 @@ export interface GuideUiState {
   card: ArrivalCardView | null;
   /** the viewpoint panorama's tags (10 s) */
   panorama: { key: number; tags: PanoramaTag[] } | null;
+  /** W5-N7: the quiet discovery chip under the area pill ("+3 个地点"; one find: "+1 · 名称") */
+  found: FoundChip | null;
   /** the trip card is open (tap on the trip pill) */
   tripCard: boolean;
 }
 
-export const guideUi = createStore<GuideUiState>({ toast: null, card: null, panorama: null, tripCard: false });
+export const guideUi = createStore<GuideUiState>({ toast: null, card: null, panorama: null, found: null, tripCard: false });
 
 /** ARRIVAL_TOAST_MS of ui/guideText (kept here as a number: this module does not import the UI words) */
 export const TOAST_MS = 3200;
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N7 · the quiet HUD: finds batch into one chip; only the attractions' arrival moments toast
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface FoundChip { key: number; n: number; first: Bilingual }
+/** the chip stays this long after its last find (ms); a find while it shows adds to it */
+export const FOUND_CHIP_MS = 4500;
+
+/**
+ * Which finds the chip counts (pure; plan MF6 "minor discoveries batch into one +N 个地点 chip; only attractions
+ * toast"): every place, except a tier-1 / tier-2 attraction's while the player is on foot — its arrival moment (lane
+ * C's gold toast, the peek card) says it (they came together at the Ferry start: 抵达 + 发现新地点). Tier-3 attractions
+ * have no moment: they join the chip. `rankOf` = the attraction rank that speaks for a place, undefined for none.
+ */
+export function chipFinds<P extends { id: string }>(found: readonly P[], onFoot: boolean, rankOf: (placeId: string) => number | undefined): P[] {
+  return found.filter(p => { const r = rankOf(p.id); return !(onFoot && r !== undefined && r <= 2); });
+}
+
+/** The chip after `add` finds (pure): a showing chip grows, else a new one (key + 1). */
+export function bumpFound(cur: FoundChip | null, add: readonly { name: Bilingual }[], key: number): FoundChip | null {
+  if (!add.length) return cur;
+  return cur ? { ...cur, n: cur.n + add.length } : { key, n: add.length, first: add[0].name };
+}
+
+let foundKey = 0;
+let foundTimer = 0;
+/** discovery.ts announces its finds here in the city (setDiscoveryAnnouncer): the chip, and one stamp per chip. */
+export function announceFinds(found: readonly { id: string; name: Bilingual }[]) {
+  const s = game.get();
+  const onFoot = s.move.mode === 'foot' && !s.riding;
+  const add = chipFinds(found, onFoot, id => ATTRACTION_INDEX.primary(id)?.rank);
+  if (!add.length) return;
+  const cur = guideUi.get().found;
+  guideUi.set({ found: bumpFound(cur, add, cur ? cur.key : ++foundKey) });
+  // the stamp (a soft sound + sparkles) once per chip, not per find
+  if (!cur) emit({ type: 'stamp' });
+  window.clearTimeout(foundTimer);
+  foundTimer = window.setTimeout(() => guideUi.set({ found: null }), FOUND_CHIP_MS);
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Shared inputs
@@ -462,7 +504,7 @@ function GuideScene() {
       const player = { x: runtime.player.x, z: runtime.player.z };
       const picks = hide ? [] : pickFlags({
         player, yaw: runtime.camera.yaw, attractions: t.sources, discovered: src => isDiscovered(src.placeId ?? src.id),
-        target, max: flagMax({ phone, quality: s.settings.quality, panorama }), showDiscovered: landmarkFlagsPref(), panorama,
+        target, max: flagMax({ phone, quality: s.settings.quality, panorama }), showDiscovered: landmarkFlagsPref(), panorama, phone,
         // W5-N1: the registered sources' pennants (R's events …)
         extras: extraFlags({ player, target, phone }),
       });
@@ -584,12 +626,33 @@ let arrivalKey = 0;
 let lastArrival: unknown = null;
 let revealCamera: THREE.PerspectiveCamera | null = null;
 
+/** A trip end this close to an attraction's arrival spot is that attraction (u): an island's pier, a stop beside it. */
+export const TRIP_END_R = 40;
+
+/**
+ * W5-N7 · an attraction passed on the way (pure): a trip is running and ends somewhere else. BAYBAY carries the player
+ * past it: its moment goes quiet — the discovery chip names it ("+1 · 泛美金字塔"), her line still says it — with no
+ * gold toast, no peek card, no reveal camera swinging away mid-walk (Ferry → Coit fired 4 toasts: the Ferry start, the
+ * Transamerica Pyramid on the way, Coit, the pelican; now Coit and the pelican). The trip's own end keeps its moment.
+ */
+export function arrivalPassBy(a: { attraction: string; place: string }, trip: Pick<TripState, 'placeId' | 'attraction' | 'legs' | 'leg'> | null, at?: Vec2 | null): boolean {
+  if (!trip || trip.leg >= trip.legs.length) return false;
+  if (trip.attraction === a.attraction || trip.placeId === a.place || trip.placeId === a.attraction) return false;
+  const end = trip.legs[trip.legs.length - 1]?.to;
+  return !(end && at && Math.hypot(end.x - at.x, end.z - at.z) <= TRIP_END_R);
+}
+
 /** A new `flow.arrival` (lane C): the toast now, the reveal (T1 on foot), then the card; the panorama after. */
 function onArrival(a: NonNullable<ReturnType<typeof flow.get>['arrival']>) {
   const attr = ATTRACTION_INDEX.get(a.attraction);
   const name = attr?.name ?? { zh: a.place, en: a.place };
   const quiet = !!attr?.quiet;
   const key = ++arrivalKey;
+  // (W5-N7) passed on the way of a trip: the quiet chip only
+  if (arrivalPassBy(a, flow.get().trip, attr?.arrival ?? attr ?? null)) {
+    if (a.toast || a.peek) announceFinds([{ id: `arrival:${a.attraction}`, name: attr?.short ?? name }]);
+    return;
+  }
   if (a.toast) {
     // (ui/GuideLayer GuideToasts times the 3.2 s from when it is on screen — the layer's chunk may still be coming in;
     // this is only the fallback that clears a toast nobody showed)
@@ -707,6 +770,8 @@ export function initGuideCity(): () => void {
   const offRide = watchRideLooks();
   // the HUD's street name (lane G1, G1-9) ticks here, city only, so GameRoot does not carry game/streets
   const offStreet = registerFocusHook('g-street', { tick: tickStreet });
+  // W5-N7: the finds go to the quiet chip (the attractions keep their arrival moment)
+  setDiscoveryAnnouncer(announceFinds);
   lastArrival = flow.get().arrival;
   const offFlow = flow.subscribe(() => {
     const a = flow.get().arrival;
@@ -719,5 +784,5 @@ export function initGuideCity(): () => void {
     w.__opusBay = { ...(w.__opusBay ?? {}), guide: { stats: guideStats, ui: guideUi, startPanorama, flow, qaTrip } };
   }
   void import('../world/sf/landmarks/context').then(m => { siteContext = m; }, () => { /* no reveal without the site data */ });
-  return () => { offScene(); offFlow(); offRide(); offStreet(); inited = false; };
+  return () => { offScene(); offFlow(); offRide(); offStreet(); setDiscoveryAnnouncer(null); window.clearTimeout(foundTimer); inited = false; };
 }
