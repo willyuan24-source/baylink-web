@@ -695,3 +695,137 @@ both).
   facts). The report commits change docs only.
 
 Status (2026-09-27): 复查完成，6 个修复提交 + 本报告已推送；第一轮 6 个地点的同类问题和 USF 的空地已交给接线组（圣依纳爵堂的到达点接线组已修）。
+
+## Integration part b
+
+Written 2026-09-27 by lane L's integration implementer (worktree `C:/Users/willy/wt/i4-l`, branch `i4-l` → `opus-bay`,
+dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/b/`). Commits `W4-IL11` … `W4-IL16` on `opus-bay`. Higgsfield:
+0 credits.
+
+### 给主人的摘要
+
+1. **金门大桥上的"隐形墙"修好了**（电脑试玩发现的阻断问题）：桥面正下方是 Fort Point 炮台，炮台的墙原来把 15 米高桥面上的人也挡住，走到南塔前约 50 米就再也走不动，Dana 的委托和"走过金门大桥"的目标都做不成。现在比脚下低 1 米以上的地标墙不再挡路，桥面一路走得到南塔（电脑和手机都实际走了一遍），炮台在地面上照样挡人。
+2. **到达点重新摆过**：叮当车转车台的介绍卡原来站在轨道上，车会一直停在人面前不进站，现在挪到轨道旁的砖广场；悬崖屋原来站在观光巴士的车道上，挪到人行道；卡斯特罗剧院改成顺着 Castro 街望过去（竖招牌和霓虹顶棚正对镜头）；大通中心、恩典大教堂、金门大桥的到达画面不再对着白墙、屋顶或一棵挡镜头的松树；圣依纳爵堂从马路牙子挪到教堂旁的草坪。新测试保证 24 个地标的到达点都不在叮当车、老电车、观光巴士"为人停车"的范围里。
+3. **卡片文字**：地名一律用游戏里的中文名（都板街、北滩、华盛顿广场、双峰、海洋海滩、苏特罗浴场、天涯海角……）；悬崖屋的介绍和"重开时间未定"的状态说法一致；唐人街步行路线提醒花园角整修到 2028 年；渔人码头招牌的出处换成新链接。
+4. **人群**：观光的小人不再站在玩家落地的位置挡镜头。
+5. 检查三遍：全部测试 855 个通过；电脑（白天、夜晚、60 米高空）和手机（390 与 375 两种屏幕）截图逐张看过，数字在下面。没做完的：Fort Point 的到达点要等 C 组放宽一条测试（请求已写好）；"地标半埋"复查后大多是测量误报，只有市政厅一个墙角有一点，没动模型。
+
+Status（回答主人"现在进度如何"）：L 线 b 部分已完成并推送——阻断的"桥上隐形墙"已修好，到达点、卡片文字、人群站位都改好，全套测试通过，电脑和手机截图都看过。
+
+### Findings on lane L's files
+
+| finding | what was wrong | fix | commit | evidence |
+|---|---|---|---|---|
+| **D1** blocker | Fort Point's walls (measured tops 0.6 / 9.0 over base 0.3) stand under the Golden Gate Bridge deck (walk ground 15.2 there). The rasters stamped them into the deck cells (BLOCK_BIT, surface 0), and `hitsBlocker` / `forEachBlockerNear` tested x, z only: canStand false and `pushOutOfBlockers` walled the deck at (−757, 596); the walk graph had no way on to the south tower. | `core/sfTerrain.ts` (additive): `UNDER_DECK = 1`. A landmark blocker with a top leaves out the raster cells whose four corners stand more than 1 u over that top (the worker's `rasterizeChunk`, the provider's deferred and main-thread stamps), and the provider's queries skip it where the walk ground at the query point does. Blockers without a top and the city's buildings are unchanged; the frozen `sf-terrain` test passes. | `W4-IL11` | test "W4-IL11 (verify D1)": the finder's line along the deck standable with no push, `findPath` reaches (−794.7, 565.4), ≥ 30 ground samples inside the fort still blocked (before the fix the same probe: stand 0 / canStand false at t 0.15–0.30). **In the game**, desktop and phone: placed at (−742.7, 604.9) on the deck, a ground tap's walk to (−794.7, 565.4) passes x −757 at 3 s and reaches the tower at 12 s ("New place found: Golden Gate Bridge · south tower"): `qa/w4/L/i4b-d1-deck-desk.jpg`, `i4b-d1-deck-phone.jpg`. |
+| **D3** major (the arrival part) | The turntable card spot (local 0, 5.6) stood on the rails' line 2.8 u past the disc: `onTrackAhead` held car #2 short of its stop. | Arrival on the brick plaza east of the disc (3.4, −1.2), 3.4 u off the line, facing the disc and the rails up Powell St; lane C's `arrivals.ts`, lane P's `LANDMARK_ARRIVALS` and Ray's favour target pasted from their tests. (Lane T made the cars pull in past a person, `W4-T17`, and moved the station prompts beside the track, `W4-T18`.) | `W4-IL12` | test "W4-IL12 (verify D3)": every one of the 24 arrivals ≥ 1.8 u from each cable-car / streetcar line and ≥ 2.0 u from the sightseeing loop (the vehicles' person-ahead reach 1.3 / 1.5 u + the player); `i4b-arrivals-before-after.jpg`. |
+| (found with D3) | The Cliff House arrival stood in Point Lobos Ave, 1.2 u off the loop's line. | Point Lobos Ave's sidewalk up the hill (8.5, −0.9), 2.4 u off the line: the house, the Camera Obscura's terrace and the sea ahead. | `W4-IL12` | the same test; before / after sheet |
+| **D4** major | The Castro arrival faced Hartford St. Part a's `W4-IL2` had moved it across Castro St already (the finder's tree predates it), but the camera then sat over the opposite rooftops. | Up Castro St on the theatre's own sidewalk (6.5, 4.6): the blade sign and marquee down the street; the photo bearing follows (1.4). | `W4-IL12` | before / after sheet; phone 390 and 375 |
+| **F6** minor (the arrival data) | Golden Gate Bridge: a pine between the camera and the bridge; Chase Center: an alley wall; Grace: a dithered roof, the church at the edge; Castro: rooftops; Fort Point: the bridge's pier behind the player. | GGB 2 u over (the pine leaves the camera line); Chase Center on the lawn across Terry A. Francois Blvd (the arena whole); Grace across Taylor St (the twin towers and rose window); Castro as D4. **Fort Point kept**: lane C's `verify D12` test pins its arrival under the deck (Requests: the better spot is ready). Lane G's `W4-IG13` keeps a blocked zone's subject. | `W4-IL12` | before / after sheet |
+| **C3** major (lane L's part) | The Cliff House summary promised a 2026 street café; lane C's status says the reopening is not fixed. | "餐厅 2020 年底停业，正在修复，经营方目标 2026 年底重新开放" (en the same). | `W4-IL13` | test |
+| **C6** minor | 海角 in three zone labels. | 天涯海角 (the Legion, Sutro Baths, the Cliff House). | `W4-IL13` | test: no 海角 without 天涯 |
+| **C7** minor | English names in zh card text (Grant Avenue, North Beach, Washington Square, Twin Peaks, Ocean Beach, Dolores Park, Sutro Baths, Marina Green, Crissy Field, Harvey Milk Plaza, Ferry Building, Embarcadero, Aquatic Park, JFK Promenade, Music Concourse, Mount Sutro, Alamo Square, Queen Wilhelmina, Christmas Tree Point) and R1's "Grant Ave". | The game's zh names (都板街, 北滩, 华盛顿广场, 双峰, 海洋海滩, 多洛雷斯公园, 苏特罗浴场, 码头绿地, 克里西场, 哈维·米尔克广场, 渡轮大厦, 内河码头, 水上公园, JFK 大道, 音乐广场, 苏特罗山, 阿拉莫广场, 威廉明娜女王郁金香花园, 圣诞树观景点); a gloss in （） stays (游客中心（Welcome Center）). Proper names without a zh name (Irving Morrow, McCovey Cove, Thrive City, Powell & Market) stay. | `W4-IL13` | test over the 24 cards and the three routes |
+| **C8** minor | R1 described Portsmouth Square in the present tense (fenced for its rebuild from June 2026 to about mid-2028). | The stop line and the blurb say so (这回隔着围栏看看 / closed for its rebuild). | `W4-IL13` | test |
+| **C10** minor (lane L's link) | sfexaminer's Fisherman's Wharf sign article moved (404). | Its new URL (…`/article_63740196-ab87-56cf-ae59-b80f16681116.html`, 200). The other two dead links are lane C's cards. All 47 URLs of `landmarks.ts` / `routes.ts` re-checked: 200, except famsf.org (403 to scripts, fine in a browser) and nps.gov / the sfplanning PDF (time-outs from this machine; the content verifier had nps.gov at 200, the PDF loads, 8.9 MB). | `W4-IL13` | — |
+| **m6** minor (the plaza part) | Crowd plaza spots (`landmarkPlazaSpots`, lane L's `context.ts`) could stand on the arrival spot. | No spot within `ARRIVAL_CLEAR` 2.5 u of a site's arrival (325 spots stay, ≈ 70 dropped); Koret's arrival moves to the head of its apron so its spots stay; the Dutch Windmill keeps none (its plaza is the 1.1 u walk the arrival stands at the foot of, and its benches take the tulip strip). Lane T keeps sightseers 2.5 u from the player (`W4-T19`). | `W4-IL15` | test "W4-IL15" (D2-09's plaza test: the windmill may have 0) |
+| **F1** major (code) | kit InstancedMesh overflow | Already fixed by the D2-review (`e56e20e`: `KIT_SLOTS` = 2 × cap, a join waits while the mesh is full). The finder's own repro (`kit-overflow.test.ts`, two rows of 20 Sunset lots, a 4 u/s walk) on this tree: worst 14 instances in 24 slots. | — | repro output |
+| **F4** minor (lane L's two) | `KitSwap.step` spread the entry map, `CitySites.update` built a radius object, every frame. | Already fixed by the D2-review (`6dfb8c3`, `e56e20e`): `step` walks the map, `radius` is a reused field. | — | code read |
+
+Part a's list:
+
+- **St Ignatius's arrival** (`W4-IL14`): the front stands on Fulton St's sidewalk line and has no forecourt (the strip
+  before it is 0.25 u); the arrival moves off the kerb onto the campus lawn at the front's east corner (5.5, 4.4).
+- **"Still buried", looked at one by one** (`i4b-buried-audit.jpg`): Ghirardelli's 2.65 is a false positive — the audit
+  compares with the landmark base, but each block stands on its own grade (`floorOf`) and the south row meets North Point
+  St at its windows' sills; Painted Ladies 1.22 is inside the row (the stairs meet the sidewalk); Castro 0.96, the
+  Conservatory 0.96 and the Dragon Gate 0.90 read right (facade on the sidewalk, the glass house on its lawn, the pillars'
+  plinths on the plaza). **City Hall's SE corner** shows ≈ 0.6 u of bare ground against the rusticated base for a few
+  units: minor, left (a base change would move the AI parts, blockers and tops for one corner).
+- The Chinese Pavilion floor (column gaps) stays lane V's row; lane V's lake-island fix (`W4-V-I1`) is in, and the
+  pavilion's base is the real one's step, no workaround to lower.
+
+Findings in other lanes' files, checked against their pushes (no change here): D2 (lane T moved the Pier 41 landing
+ashore, `W4-T16`; lane G's walk gives up with a message, `W4-IG13`), D3's vehicle side (`W4-T17`, `W4-T18`), D5 / D6 / D10
+and F6's camera side (`W4-IG13`), D12 (lane C's lead through the deck's south end, `W4-IC8`), F2 / M1 / m1 / m2 / D9 / D13 /
+C14 (`W4-IG12`, `W4-P-I14`), B1 / M3 / m3 / C2 / C12 / F5 code (lane P), C1 / C4 / C5 / C9 / C11 / D7 / D8 / D14 (lane C),
+M2 / m5 / D11 / C13 (lane T), F1 / F3 / F4 / F8 visual (lane V: windows, lake islands, Karl, night water).
+
+### QA in the real game (plan §5.4)
+
+Tools (scratch `b/`): `arrivals.mjs` (one session, `game/resume goToCitySpot('lm-<id>')` = the `?at=` path, the follow
+camera and the HUD on), `sitesheet.mjs` (60 u over the photo target, 45 u out on the photo bearing), `walk.mjs` (the D1
+walk), `perfspot.mjs` (renderer.info with the kit's and the AI parts' share), `sheet.mjs` / `mksheet.mjs` (contact
+sheets). Every image was read; the sheets are in `docs/opus-bay/qa/w4/L/`:
+
+- `i4b-arrivals-golden.jpg` — the 21 P1 / P2 sites and the moved landmark arrivals, golden, desktop 1440 × 900, high.
+- `i4b-arrivals-night.jpg` — the 21 sites at night (the lit mall, Lone Mountain's main building, the lookout, the Beach
+  Chalet, the zoo gate).
+- `i4b-sites-60u-golden.jpg` — the settings from 60 u up (the west side is Karl's golden-hour fog: verify-visual F10,
+  lane V's owner decision).
+- `i4b-phone-390.jpg` (16 arrivals, 390 × 844 dpr 3, quality mid), `i4b-phone-375.jpg` (5 moved arrivals, 375 × 667).
+- `i4b-arrivals-before-after.jpg`, `i4b-d1-deck-desk.jpg`, `i4b-d1-deck-phone.jpg`, `i4b-buried-audit.jpg`.
+
+Calls / triangles (programs 47–48 by day, 50 at night on desktop; 45 on the phone, no new program):
+
+| view | numbers |
+|---|---|
+| desktop golden, arrival | stonestown 68 / 224k · sfsu 68 / 201k · ucsf-parnassus 62 / 199k · usf-lone-mountain 79 / 284k · st-ignatius 109 / 355k · ccsf-ocean 67 / 225k · ucsf-mission-bay 71 / 275k · music-concourse 79 / 207k · cal-academy 83 / 218k · japanese-tea-garden 80 / 219k · botanical-garden-gate 78 / 213k · **union-square 113 / 419k** · yerba-buena 91 / 339k · sfmoma 125 / 398k · haight-ashbury 102 / 359k · dolores-park 109 / 368k · lands-end 53 / 97k · ocean-beach 46 / 91k · murphy-windmill 54 / 97k · beach-chalet 70 / 131k · sf-zoo 53 / 105k · turntable 76 / 270k · cliff-house 58 / 105k · castro 101 / 335k · chase-center 71 / 236k · grace 92 / 383k · golden-gate-bridge 57 / 118k · koret-carousel 80 / 229k |
+| desktop night, arrival | the same order: 69 / 219k · 69 / 196k · 63 / 196k · 82 / 277k · 112 / 350k · 67 / 215k · 72 / 257k · 87 / 267k · 121 / 314k · 80 / 211k · 78 / 204k · **112 / 410k** · 91 / 327k · 130 / 390k · 103 / 349k · 109 / 356k · 55 / 91k · 44 / 86k · 53 / 90k · 71 / 127k · 54 / 98k |
+| desktop golden, 60 u up | 61 / 129k · 58 / 118k · 59 / 149k · 47 / 132k · 55 / 157k · 57 / 141k · 60 / 172k · 67 / 135k · 66 / 129k · 55 / 113k · 63 / 132k · 80 / 280k · 62 / 182k · 77 / 246k · 55 / 144k · 62 / 207k · 55 / 101k · 48 / 90k · 52 / 103k · 58 / 110k · 53 / 85k |
+| phone 390 × 844, mid | turntable 65 / 238k · cliff-house 50 / 84k · castro 80 / 254k · chase 55 / 166k · grace 78 / 316k · GGB 53 / 111k · st-ignatius 69 / 222k · stonestown 54 / 121k · sfsu 54 / 146k · ucsf-parnassus 60 / 211k · music-concourse 60 / 202k · union-square 79 / 342k · dolores-park 74 / 273k · lands-end 46 / 89k · ocean-beach 37 / 80k · sf-zoo 43 / 88k |
+| phone 375 × 667, mid | turntable 65 / 243k · castro 77 / 241k · grace 76 / 319k · chase 60 / 207k · st-ignatius 73 / 237k |
+
+**Union Square's arrival is over 400k at quality high** (405–419k in four samples, 410k at night): `perfspot.mjs` puts
+the kit at 0 there (its frame budget holds it off) and three AI landmark parts at 18.6k; the site's own lod 0 is 598
+triangles (its diet cap). The excess is downtown's city geometry — the same family as part a's Grace ring pose and the
+D2-review's Dragon Gate (401–408k): lane V's perf table (Requests). Grace's arrival with the kit on: 353k (kit 11 houses,
+31.8k).
+
+### Decisions
+
+- **The under-deck rule sits in the provider, for landmark blockers with a measured top only.** A y-aware collision in
+  the controller (lane G) would need the walker's feet in every caller (camera, glide, vehicles, crowd); the raster
+  cells and the query point's walk ground already say what stands where, so the rule lives where the blockers do and
+  every caller agrees. 1 u: more than a step (`MAX_RISE` 0.55), so a low wall on a slope keeps blocking.
+- **Fort Point's arrival stays** until lane C relaxes its premise check: lane C's test pins a lane-L number, and the rule
+  is never to edit another lane's test. With the check at |z| < 14 the test's lead behaviour passes on the new spot
+  (tried in a scratch edit, reverted).
+- **Arrivals are chosen by looking**, each before / after in the real game: the zone view frames along the line from the
+  photo target through the arrival, so an arrival whose back faces open ground (a lawn, a street's length, the water)
+  frames its landmark.
+- **The burial list is closed by looking, not by a formula**: the audit measure over-reports on terraced and row
+  landmarks.
+
+### Known gaps
+
+- Fort Point's arrival (above; lane C).
+- Wave-4 site arrivals within the sightseeing loop's reach (used by `?at=lm-…` and lane G's reveal frame, not by trips):
+  lands-end 0.35 u, harvey-milk-plaza 0.11, japanese-tea-garden 1.13, cal-academy 1.89, botanical-garden-gate 1.97.
+- St Ignatius at its arrival: the follow camera keeps its yaw and can look down Fulton St with the church ghosted by the
+  occlusion dither (w4 sites have no zone view; lane G's reveal frames them on a trip).
+- City Hall's SE corner (≈ 0.6 u of bare ground on the base).
+- The D2-review's R7 suggestion (hold AI models only while their parts draw) is not done: a design change for the model
+  cache, not needed for a finding.
+
+### Requests
+
+- **Lane C** (`tests/opus-bay-sf-verify-c.test.ts`, verify D12): relax the premise `Math.abs(local(fort).z) < 4` to `< 14`
+  (the lead checks pass there); then lane L moves Fort Point's arrival to local (−7, 1), heading 1.713 (world
+  (−747.49, 587.79), heading −0.434: Marine Drive's end, the fort under the bridge arch with the water behind the
+  camera; shot `b/arr/fort-point-v2.jpg` in the scratch) with `arrivals.ts`, `LANDMARK_ARRIVALS` and R2's stop.
+- **Lane P** (trip ends within a vehicle's person-ahead reach, `ATTRACTIONS` arrival ?? anchor): haight-ashbury 0.64 u
+  and buena-vista-cafe 0.75 u from the sightseeing loop, harvey-milk-plaza 1.48, aquarium-of-the-bay 1.52; tadich-grill
+  1.27 u from the California cable line, sing-chong-sing-fat-buildings 1.97; sf-railway-museum 1.86 u from the F-line —
+  a person there stops the vehicle (1.3 / 1.5 u + the player); ≥ 2 u clears it.
+- **Lane V**: the perf table's downtown spots — Union Square's arrival 405–419k (above), SFMOMA's 396–400k.
+
+### Checks
+
+- On the pushed tree of `W4-IL15` (`aef9337`, after the rebase over lanes G / T / P / C): `npx tsc -p tsconfig.app.json
+  --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test
+  tests/opus-bay-*.test.ts` **855 / 855**; on the tree of this report (over lanes T / C / V to `b5248ac`) **863 / 863**, tsc 0, eslint 0 errors. Three earlier full runs this part: 822 / 822, 840 / 840, 841 / 841 (one run had
+  E2-5's wall-clock assert red under load, green on the re-run; another caught lane C's new Fort Point pin, which is why
+  the arrival stayed).
+- GameRoot: 785.09 kB / 296.74 kB gzip on the tree of this report (`vite build` to the scratch; 786.34 kB before lane V's `f54e4a3`); `core/sfTerrain.ts` builds into
+  the `cityMode` chunk and the route text into a lazy chunk, the other edits are numbers and text in modules GameRoot
+  already had. No new shader program.
+- Programs: 47–48 by day and 50 at night on desktop, 45 on the phone, at every QA pose above.
