@@ -68,6 +68,66 @@ test('W5-L1 (CP-8): the Wave Organ\'s jetty is walked — from the spit\'s root 
   } finally { w.T.setCityTerrain(null); worldP = null; }
 });
 
+test('W5-L-review: the Wave Organ\'s deck is climbed by the real controller from the low path beside its root (no dead-end pocket), and walking on from the arrival keeps moving', async () => {
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const g = globalThis as unknown as Record<string, unknown>;
+  g.window ??= globalThis;
+  const w = await world();
+  const S = sfLandmark('wave-organ')!, root = SITE_ARRIVALS['wave-organ'];
+  // the spit's line from the deck's quads (one per stretch, the tip end first; the terraces are 'plaza', the root's side
+  // steps lower): each quad's two end midpoints, local → world
+  const quads = (S.walk!.surfaces ?? []).filter(s => s.y === 0.5 && s.surface === 'dirt');
+  const mid = (a: Vec2, b: Vec2) => landmarkToWorld(S, { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 });
+  const line = [mid(quads[0].poly[0], quads[0].poly[3]), ...quads.map(q => mid(q.poly[1], q.poly[2]))];
+  const ctl = new PlayerController(), DT = 1 / 30;
+  /** the real controller pushed `s` seconds toward world heading h: the highest y it reached and where it ended */
+  const push = (x: number, z: number, h: number, s: number, each?: (t: number) => void) => {
+    const p = runtime.player;
+    p.x = x; p.z = z; p.y = w.T.heightAt(x, z); p.heading = h; p.pathTarget = null; p.locked = false;
+    ctl.sync();
+    const yaw = Math.atan2(-Math.sin(h), -Math.cos(h));
+    runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
+    let top = p.y;
+    for (let i = 0; i < s / DT; i++) { ctl.step({ dt: DT, now: i * DT, cameraYaw: yaw, frozen: false, riding: false }); top = Math.max(top, p.y); each?.(i * DT); }
+    runtime.input.moveY = 0;
+    return { top, x: p.x, z: p.z };
+  };
+  const bad: string[] = [];
+  try {
+    await w.attach(root.x + 5, root.z - 10, 60);
+    // every walkable spot of the city's low path beside the root (the deck's last stretches, up to 5 u off its line)
+    // gets up on the deck when pushed toward it: the deck's side is no wall back up from a pocket by the water
+    let low = 0;
+    for (let z = root.z - 26; z <= root.z - 6; z += 0.5) for (let x = root.x - 5; x <= root.x + 10; x += 0.5) {
+      if (!w.T.canStand(x, z, 0.4) || w.T.heightAt(x, z) > 0.2) continue;
+      let best = { d: Infinity, x: 0, z: 0 };
+      for (let i = 0; i + 1 < line.length; i++) {
+        const a = line[i], b = line[i + 1], dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
+        const d = Math.hypot(x - a.x - dx * t, z - a.z - dz * t);
+        if (d < best.d) best = { d, x: a.x + dx * t, z: a.z + dz * t };
+      }
+      // the land at the root (beyond the deck's end) is where the walk starts, not a pocket
+      const end = line[line.length - 1];
+      if (best.d > 5 || Math.hypot(best.x - end.x, best.z - end.z) < 0.5) continue;
+      low++;
+      const r = push(x, z, Math.atan2(best.x - x, best.z - z), 2);
+      if (r.top < 0.45) bad.push(`(${x}, ${z}) h ${w.T.heightAt(x, z).toFixed(2)}, ${best.d.toFixed(1)} u off the line: stays under the deck (top ${r.top.toFixed(2)})`);
+    }
+    assert.ok(low >= 8, `the low path beside the root is still there to test (${low} spots)`);
+    // straight on from the arrival, the way the follow camera may face (along the spit … due south): it keeps moving
+    for (const h of [2.57, 2.8, 2.95, 3.14]) {
+      const track: Vec2[] = [];
+      push(root.x, root.z, h, 6, t => { if (Math.abs(t % 0.5) < DT / 2) track.push({ x: runtime.player.x, z: runtime.player.z }); });
+      for (let k = 3; k < track.length; k++) {
+        const d = Math.hypot(track[k].x - track[k - 3].x, track[k].z - track[k - 3].z);
+        if (d < 2) { bad.push(`heading ${h}: stuck at (${track[k].x.toFixed(1)}, ${track[k].z.toFixed(1)}) after ${(k * 0.5).toFixed(1)} s (${d.toFixed(2)} u in 1.5 s)`); break; }
+      }
+    }
+  } finally { w.T.setCityTerrain(null); worldP = null; }
+  assert.deepEqual(bad, []);
+});
+
 // ---------------------------------------------------------------------------
 // the sweep over the site-backed attractions' trip ends (the real walk data: every site's walk inputs, the rasters,
 // the nav, the published walking graph)

@@ -6,7 +6,8 @@ import { bandPoly, box3, site3Ground, standSpot } from './siteKit3';
 
 /**
  * Wave Organ (wave 4, P4 · map T3, the Marina): at the end of the spit that runs out from the Golden Gate Yacht Club,
- * an acoustic sculpture opened in May 1986 — designed by the installation artist Peter Richards with the stonemason
+ * an acoustic sculpture built in May 1986 and opened on 8 June 1986 (NBC Bay Area, 2026-06-08) — designed by the
+ * installation artist Peter Richards with the stonemason
  * George Gonzales for the Exploratorium, honouring its founder Frank Oppenheimer. 25 PVC pipes let the bay's waves
  * sound (rumbles, gurgles, sloshes, hisses) at listening stations among terraces built of granite and marble salvaged
  * from the demolished Laurel Hill Cemetery; it is best heard at high tide (Wikipedia "Wave Organ"; NBC Bay Area; it
@@ -37,6 +38,18 @@ const SPIT: Vec2[] = [{ x: -1.0, z: 1.2 }, { x: -0.52, z: 2.45 }, { x: -0.09, z:
 /** the deck's top over the water (local y), its nominal lift (the deck is at least this over the walked ground) and the
  *  walk's width (wider than the drawn 1.5 u path: the nav grid's stand clearance leaves about 2.3 u of it, 3 cells) */
 const DECK_Y = 0.5, DECK_LIFT = 0.42, DECK_W = 3.4;
+/**
+ * W5-L-review: a granite step either side of the root's last two stretches. The city's own low path (its thin spit
+ * path, y ≈ 0) runs beside the deck there, up to 3.5 u off the spit's line on both sides: the deck's 0.5 u edge was a
+ * drop into a dead-end pocket between the deck and the water, and a wall on the way back up (actors/controller: a rise
+ * steeper than WALL_GRADE 0.9 is a wall; 0.5 u over the walk grid's half-unit cells is 1.0). Walking "forward" from the
+ * arrival slid the player off the deck into the west pocket and BAYBAY had to pull them out three times (the real game,
+ * desktop, 2026-09-28). The step halves the rise (0.25 u from the path, 0.25 u on to the deck), so the side is walked
+ * both ways; tests/opus-bay-w5-landmarks.test.ts pushes the real controller from the arrival and up both sides.
+ */
+const SIDE_STEP = { y: 0.25, w: 0.8, stretches: 2 } as const;
+/** the stretches (SPIT[i] → SPIT[i + 1]) with the side steps: the last two, at the root */
+const stepped = (i: number) => i >= SPIT.length - 1 - SIDE_STEP.stretches;
 /** the terraces at the tip: an upper platform and two steps down toward the harbour mouth (−z) */
 const TERRACES = [
   { x: -0.7, z: -0.2, w: 3.0, d: 2.6, y: 0.7 },
@@ -56,6 +69,11 @@ function build(b: BatchLike, lod: 0 | 2) {
   for (let i = 0; i + 1 < SPIT.length; i++) {
     const a = SPIT[i], c = SPIT[i + 1], L = Math.hypot(c.x - a.x, c.z - a.z);
     b.add(BOX(), M((a.x + c.x) / 2, -0.8, (a.z + c.z) / 2, Math.atan2(c.x - a.x, c.z - a.z), DECK_W, DECK_Y + 0.72, L + 0.4), i % 2 ? GRANITE : GRANITE_DARK);
+    // the root's side steps (their top the same 0.08 u under the walk as the deck's)
+    if (stepped(i)) for (const side of [-1, 1]) {
+      const o = side * (DECK_W / 2 + SIDE_STEP.w / 2), ux = (c.x - a.x) / L, uz = (c.z - a.z) / L;
+      b.add(BOX(), M((a.x + c.x) / 2 - uz * o, -0.8, (a.z + c.z) / 2 + ux * o, Math.atan2(c.x - a.x, c.z - a.z), SIDE_STEP.w, SIDE_STEP.y + 0.8 - (DECK_Y - DECK_LIFT), L + 0.4), GRANITE_DARK);
+    }
   }
   // the terraces, the pipe mouths at their rim, the carved blocks used as seats
   for (const t of TERRACES) box3(b, t.x, -0.8, t.z, t.w, t.y + 0.8, t.d, GRANITE);
@@ -75,6 +93,10 @@ function deckSurfaces() {
     const a = SPIT[i], c = SPIT[i + 1], L = Math.hypot(c.x - a.x, c.z - a.z), ux = (c.x - a.x) / L, uz = (c.z - a.z) / L;
     const px = -uz * (DECK_W / 2), pz = ux * (DECK_W / 2), ex = ux * 0.3, ez = uz * 0.3;
     out.push({ poly: [{ x: a.x - px - ex, z: a.z - pz - ez }, { x: c.x - px + ex, z: c.z - pz + ez }, { x: c.x + px + ex, z: c.z + pz + ez }, { x: a.x + px - ex, z: a.z + pz - ez }], y: DECK_Y, surface: 'dirt' });
+    if (!stepped(i)) continue;
+    // the side steps: a strip SIDE_STEP.w wide along each edge, half-way up
+    const qx = -uz * (DECK_W / 2 + SIDE_STEP.w), qz = ux * (DECK_W / 2 + SIDE_STEP.w);
+    for (const k of [-1, 1]) out.push({ poly: [{ x: a.x + k * px - ex, z: a.z + k * pz - ez }, { x: c.x + k * px + ex, z: c.z + k * pz + ez }, { x: c.x + k * qx + ex, z: c.z + k * qz + ez }, { x: a.x + k * qx - ex, z: a.z + k * qz - ez }], y: SIDE_STEP.y, surface: 'dirt' });
   }
   return out;
 }
